@@ -82,10 +82,11 @@ static int dgfsm_init( const struct dgmod_protocol_sequence * sequence );
 static irqreturn_t
 handle_interrupt(int irq, void *dev_id)
 {
+    printk( KERN_ALERT "Interrupt %d occured\n", irq );  
+
     if ( irq != IRQ_NUM )
         return IRQ_NONE;
-    
-    // printk(KERN_ALERT "Interrupt %d occured\n",IRQ_NUM);  
+
     dgfsm_handle_irq( &__protocol_sequence ); // start trigger
     
     return IRQ_HANDLED;
@@ -388,6 +389,11 @@ dgmod_module_init( void )
     
     // IRQ
     if ( ( ret = request_irq( IRQ_NUM, handle_interrupt, 0, "dgmod", NULL) ) < 0 )
+        return dgmod_dtor( ret );
+
+    if ( ( ret = request_irq( IRQ_NUM + 1, handle_interrupt, 0, "dgmod", NULL) ) < 0 )
+        return dgmod_dtor( ret );
+    if ( ( ret = request_irq( IRQ_NUM + 2, handle_interrupt, 0, "dgmod", NULL) ) < 0 )
         return dgmod_dtor( ret );
 
     // IOMAP
