@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
+    <mime-type type="text/plain">
+        <comment>Plain text document</comment>
+        <sub-class-of type="application/octet-stream"/>
+        <glob pattern="*.txt"/>
+    </mime-type>
+    <mime-type type="application/xml">
+        <sub-class-of type="text/plain"/>
+        <comment>XML document</comment>
+        <glob pattern="*.xml"/>
+        <glob pattern="*.xsl"/>
+        <glob pattern="*.xslt"/>
+        <glob pattern="*.xbl"/>
+        <alias type="text/xml"/>
+    </mime-type>
+</mime-info>
