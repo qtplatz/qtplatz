@@ -72,10 +72,10 @@ DataAnalysisPlugin::initialize(const QStringList &arguments, QString *error_mess
     // it will unregister itself from the plugin manager when it is deleted.
     Core::BaseMode *baseMode = new Core::BaseMode;
     baseMode->setUniqueModeName("DataAnalysis.HelloWorldMode");
-    baseMode->setName(tr("Hello world!"));
+    baseMode->setName(tr("Data Analysis!"));
     baseMode->setIcon(QIcon());
     baseMode->setPriority(0);
-    baseMode->setWidget(new QPushButton(tr("Hello World PushButton!")));
+    baseMode->setWidget(new QPushButton(tr("Data Analysis PushButton!")));
     baseMode->setContext(context);
     addAutoReleasedObject(baseMode);
 
@@ -90,7 +90,7 @@ DataAnalysisPlugin::initialize(const QStringList &arguments, QString *error_mess
 void
 DataAnalysisPlugin::sayHelloWorld()
 {
-    QMessageBox::information(0, tr("Hello World!"), tr("Hello World! Beutiful day today, isn't it?") );
+    QMessageBox::information(0, tr("Data Analysis!"), tr("Hello World! Beutiful day today, isn't it?") );
 }
 
 Q_EXPORT_PLUGIN(DataAnalysisPlugin)

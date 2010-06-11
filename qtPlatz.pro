@@ -9,5 +9,5 @@ include(qtPlatz.pri)
 TEMPLATE  = subdirs
 CONFIG   += ordered
 
-SUBDIRS = src # share
+SUBDIRS = src share
 unix:!macx:!isEmpty(copydata):SUBDIRS += bin

@@ -1,4 +1,4 @@
-include(../../../qtcreator.pri)
+include(../../../qtPlatz.pri)
 
 LANGUAGES = de es fr it ja pl ru sl
 
@@ -12,7 +12,7 @@ XMLPATTERNS = $$targetPath($$[QT_INSTALL_BINS]/xmlpatterns)
 LUPDATE = $$targetPath($$[QT_INSTALL_BINS]/lupdate) -locations relative -no-ui-lines -no-sort
 LRELEASE = $$targetPath($$[QT_INSTALL_BINS]/lrelease)
 
-TRANSLATIONS = $$prependAll(LANGUAGES, $$PWD/qtcreator_,.ts)
+TRANSLATIONS = $$prependAll(LANGUAGES, $$PWD/qtPlatz_,.ts)
 
 MIME_TR_H = $$IDE_DATA_PATH/translations/mime_tr.h
 
@@ -59,7 +59,7 @@ isEmpty(vcproj) {
     QMAKE_EXTRA_COMPILERS += phony_src
 }
 
-qmfiles.files = $$prependAll(LANGUAGES, $$OUT_PWD/qtcreator_,.qm)
-qmfiles.path = /share/qtcreator/translations
+qmfiles.files = $$prependAll(LANGUAGES, $$OUT_PWD/qtplatz_,.qm)
+qmfiles.path = /share/qtPlatz/translations
 qmfiles.CONFIG += no_check_exist
 INSTALLS += qmfiles
