@@ -14,8 +14,24 @@ include(../../plugins/coreplugin/coreplugin.pri)
 DEFINES += DATAANALYSIS_LIBRARY
 SOURCES += dataanalysisplugin.cpp \
     dataanalysiswindow.cpp \
-    datafile.cpp
+    datafile.cpp \
+    dataeditorfactory.cpp \
+    dataeditor.cpp \
+    sidebar.cpp \
+    minisplitter.cpp \
+    openeditorsview.cpp
 HEADERS += dataanalysisplugin.h \
     dataanalysiswindow.h \
-    datafile.h
+    datafile.h \
+    dataeditorfactory.h \
+    dataeditor.h \
+    sidebar.h \
+    minisplitter.h \
+    openeditorsview.h
 OTHER_FILES += dataanalysis.pluginspec
+
+RESOURCES += \
+    dataanalysis.qrc
+
+FORMS += \
+    treewidget.ui

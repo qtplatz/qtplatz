@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/dataanalysis">
+        <file>dataanalysis.mimetypes.xml</file>
+    </qresource>
+</RCC>

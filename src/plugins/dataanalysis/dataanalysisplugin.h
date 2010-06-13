@@ -1,3 +1,5 @@
+// This is a -*- C++ -*- header.
+
 #ifndef DATAANALYSISPLUGIN_H
 #define DATAANALYSISPLUGIN_H
 
