@@ -80,7 +80,7 @@ private:
     void activateEditor(const QModelIndex &index);
     void closeEditor(const QModelIndex &index);
 
-    Ui::OpenEditorsView m_ui;
+    Ui::treewidget m_ui;
     QWidget *m_widget;
     OpenEditorsDelegate *m_delegate;
 };
