@@ -19,6 +19,8 @@
 #include <coreplugin/mimedatabase.h>
 #include "openeditorsview.h"
 
+#include <coreplugin/editormanager/editormanager.h>
+
 using namespace DataAnalysis::Internal;
 
 DataAnalysisPlugin::~DataAnalysisPlugin()
@@ -90,20 +92,14 @@ DataAnalysisPlugin::initialize(const QStringList &arguments, QString *error_mess
     toolsMenu->addMenu(helloWorldMenu);
   } while (0); // End register to the action manager
   
-#if 0
   // Add a mode with a push button based on BaseMode. Like the BaseView,
   // it will unregister itself from the plugin manager when it is deleted.
 
-  Core::BaseMode *baseMode = new Core::BaseMode;
-  baseMode->setUniqueModeName("DataAnalysis.HelloWorldMode");
-  baseMode->setName(tr("Data Analysis!"));
-  baseMode->setIcon(QIcon());
-  baseMode->setPriority(0);
+  DataAnalysisMode * mode = new DataAnalysisMode(this);
   //    baseMode->setWidget(new QPushButton(tr("Data Analysis PushButton!")));
-  baseMode->setWidget( new DataAnalysisWindow( 0 ) );
-  baseMode->setContext(context);
-  addAutoReleasedObject(baseMode);
-#endif
+  mode->setWidget( new DataAnalysisWindow( 0 ) );
+  mode->setContext(context);
+  addAutoReleasedObject(mode);
 
   // Add the Hello World action command to the mode manager (with 0 priority)
   Core::ModeManager *modeManager = core->modeManager();
@@ -120,3 +116,19 @@ DataAnalysisPlugin::sayHelloWorld()
 }
 
 Q_EXPORT_PLUGIN(DataAnalysisPlugin)
+
+
+////////////////////////
+
+DataAnalysisMode::~DataAnalysisMode()
+{
+    Core::EditorManager::instance()->setParent(0);
+}
+
+DataAnalysisMode::DataAnalysisMode( QObject * parent ) : Core::BaseMode( parent )
+{
+    setName(tr("Data Analysis"));
+    setUniqueModeName( "DataAnalysisr.Mode" );
+    setIcon(QIcon(":/fancyactionbar/images/mode_Debug.png"));
+    setPriority( 85 );
+}
