@@ -14,7 +14,9 @@
 #include <coreplugin/outputpane.h>
 #include <coreplugin/navigationwidget.h>
 #include <utils/fancymainwindow.h>
-
+#include <utils/styledbar.h>
+#include <QToolButton>
+#include <QLabel>
 #include <QtCore/QDebug>
 #include <QtCore/QtPlugin>
 #include <QtGui/QAction>
@@ -118,6 +120,20 @@ DataAnalysisPlugin::initialize(const QStringList &arguments, QString *error_mess
   splitter2->setStretchFactor( 0, 0 );
   splitter2->setStretchFactor( 1, 1 );
 
+  Utils::StyledBar * toolBar = new Utils::StyledBar;
+  toolBar->setProperty("topBorder", true );
+  QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+  toolBarLayout->setMargin(0);
+  toolBarLayout->setSpacing(0);
+  toolBarLayout->addWidget( new QToolButton );
+  toolBarLayout->addWidget( new QLabel(tr("Threads:") ) );
+
+  QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
+  toolBarAddingLayout->setMargin(0);
+  toolBarAddingLayout->setSpacing(0);
+  toolBarAddingLayout->addWidget( rightPaneSplitter );
+  toolBarAddingLayout->addWidget( toolBar );
+
   mode->setWidget( splitter2 );
 
   Core::Command * command(0);
@@ -153,6 +169,7 @@ DataAnalysisPlugin::initialize(const QStringList &arguments, QString *error_mess
   //    baseMode->setWidget(new QPushButton(tr("Data Analysis PushButton!")));
   // mode->setWidget( new DataAnalysisWindow( 0 ) );
   // mode->setContext(context);
+  manager_->setSimpleDockWidgetArrangement();
   addAutoReleasedObject(mode);
 
   // Add the Hello World action command to the mode manager (with 0 priority)

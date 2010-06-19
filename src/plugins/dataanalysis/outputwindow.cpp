@@ -4,32 +4,6 @@
 #include <QtGui/QSplitter>
 #include <QtGui/QVBoxLayout>
 
-
-class DebuggerPane : public QPlainTextEdit {
-  Q_OBJECT
-public:
-  virtual ~DebuggerPane() {}
-  DebuggerPane( QWidget * parent ) : QPlainTextEdit( parent ) {
-  }
-  virtual void addContextActions( QMenu * ) {}
-  void contextMenuEvent(QContextMenuEvent *e) {
-  }
-};
-
-class CombinedPane : public DebuggerPane {
-  Q_OBJECT
-public:
-  virtual ~CombinedPane() {}
-  CombinedPane( QWidget * parent ) : DebuggerPane( parent ) { }
-};
-
-class InputPane : public DebuggerPane {
-  Q_OBJECT
-public:
-  virtual ~InputPane() {}
-  InputPane( QWidget * parent ) : DebuggerPane( parent ) { }
-};
-
 using namespace DataAnalysis;
 using namespace Internal;
 
@@ -87,3 +61,5 @@ OutputWindow::setCursor( const QCursor& cursor )
   combindText_->setCursor( cursor );
   inputText_->setCursor( cursor );
 }
+
+// #include "outputwindow.moc"

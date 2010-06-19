@@ -34,7 +34,8 @@ HEADERS += dataanalysisplugin.h \
     outputwindow.h
 OTHER_FILES += dataanalysis.pluginspec
 
-INCLUDEPATH += /usr/local/include
+INCLUDEPATH += /usr/local/include \
+                c:/Boost/include/boost-1_43
 
 RESOURCES += \
     dataanalysis.qrc

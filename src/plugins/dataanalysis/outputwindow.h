@@ -2,6 +2,7 @@
 #define OUTPUTWINDOW_H
 
 #include <QWidget>
+#include <QtGui/QPlainTextEdit>
 
 class QPlainTextEdit;
 class QLineEdit;
@@ -31,6 +32,32 @@ namespace DataAnalysis {
       QLineEdit* commandEdit_;
 
     };
+
+    class DebuggerPane : public QPlainTextEdit {
+      Q_OBJECT
+    public:
+      virtual ~DebuggerPane() {}
+      DebuggerPane( QWidget * parent ) : QPlainTextEdit( parent ) {
+      }
+	virtual void addContextActions( QMenu * ) {}
+	void contextMenuEvent(QContextMenuEvent *e) {
+	}
+    };
+    
+    class CombinedPane : public DebuggerPane {
+      Q_OBJECT
+    public:
+      virtual ~CombinedPane() {}
+      CombinedPane( QWidget * parent ) : DebuggerPane( parent ) { }
+    };
+    
+    class InputPane : public DebuggerPane {
+      Q_OBJECT
+    public:
+      virtual ~InputPane() {}
+      InputPane( QWidget * parent ) : DebuggerPane( parent ) { }
+    };
+
   }
 }
 

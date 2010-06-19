@@ -2,29 +2,36 @@
 #define DATAANALYSISMANAGER_H
 
 #include <boost/smart_ptr.hpp>
+#include <vector>
+#include <QtCore/QObject>
 
 namespace Utils {
     class FancyMainWindow;
 }
 
-class QDocWidget;
+class QDockWidget;
 class QWidget;
+class QAction;
 
 namespace DataAnalysis {
   namespace Internal {
     
-    class DataAnalysisManager {
+    class DataAnalysisManager : public QObject {
+      Q_OBJECT
     public:
       ~DataAnalysisManager();
       DataAnalysisManager();
       Utils::FancyMainWindow * mainWindow() const;
       void init();
+      void setSimpleDockWidgetArrangement();
     private:
       Utils::FancyMainWindow * mainWindow_;
       boost::shared_ptr< QWidget > breakWindow_;
       boost::shared_ptr< QWidget > outputWindow_;
-      boost::shared_ptr< QWidget > registerWindow_;
-      boost::shared_ptr< QWidget > watchWindow_;
+
+      QDockWidget * breakDock_;
+      QDockWidget * outputDock_;
+      std::vector< QAction * > actions_;
     };
     
   }
