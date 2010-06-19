@@ -1,4 +1,5 @@
 #include "dataanalysisplugin.h"
+#include "dataanalysismanager.h"
 
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
@@ -6,6 +7,13 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/minisplitter.h>
+#include <coreplugin/rightpane.h>
+#include <coreplugin/editormanager/editormanager.h>
+#include <coreplugin/findplaceholder.h>
+#include <coreplugin/outputpane.h>
+#include <coreplugin/navigationwidget.h>
+#include <utils/fancymainwindow.h>
 
 #include <QtCore/QDebug>
 #include <QtCore/QtPlugin>
@@ -27,7 +35,7 @@ DataAnalysisPlugin::~DataAnalysisPlugin()
 {
 }
 
-DataAnalysisPlugin::DataAnalysisPlugin()
+DataAnalysisPlugin::DataAnalysisPlugin() : manager_(0)
 {
 }
 
@@ -41,6 +49,10 @@ DataAnalysisPlugin::initialize(const QStringList &arguments, QString *error_mess
 {
   Q_UNUSED(arguments)
     ;
+
+  manager_ = new DataAnalysisManager;
+  if ( manager_ )
+      manager_->init();
 
   addAutoReleasedObject( new OpenEditorsViewFactory() );
 
@@ -62,9 +74,52 @@ DataAnalysisPlugin::initialize(const QStringList &arguments, QString *error_mess
   
   // Create a unique context id for our own view, that will be used for the
   // menu entry later.
-  QList<int> context = QList<int>()
-    << core->uniqueIDManager()->uniqueIdentifier( QLatin1String("DataAnalysis.MainView") );
+  QList<int> context;
+  context.append( core->uniqueIDManager()->uniqueIdentifier( Core::Constants::C_EDITORMANAGER ) );
+  context.append( core->uniqueIDManager()->uniqueIdentifier( QLatin1String("DataAnalysis.MainView") ) );
+  context.append( core->uniqueIDManager()->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
+
+  DataAnalysisMode * mode = new DataAnalysisMode(this);
+  mode->setContext( context );
+
+  QWidget * editAndFindWidget = new QWidget;
+  if ( editAndFindWidget ) {
+    //------------
+    QBoxLayout * editorHolderLayout = new QVBoxLayout;
+    editorHolderLayout->setMargin(0);
+    editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder(mode) );
+    editorHolderLayout->addWidget( new Core::FindToolBarPlaceHolder( editAndFindWidget ) );
+    editAndFindWidget->setLayout( editorHolderLayout );
+  }
+
+  //------------
+  Core::MiniSplitter * rightPaneSplitter = new Core::MiniSplitter;
+  if ( rightPaneSplitter ) {
+    rightPaneSplitter->addWidget( editAndFindWidget );
+    rightPaneSplitter->addWidget( new Core::RightPanePlaceHolder( mode ) );
+    rightPaneSplitter->setStretchFactor( 0, 1 );
+    rightPaneSplitter->setStretchFactor( 1, 0 );
+  }
   
+  //------------
+  QWidget * centralWidget = new QWidget;
+  manager_->mainWindow()->setCentralWidget( centralWidget );
+
+  Core::MiniSplitter * splitter = new Core::MiniSplitter;
+  splitter->addWidget( manager_->mainWindow() );
+  splitter->addWidget( new Core::OutputPanePlaceHolder( mode ) );
+  splitter->setStretchFactor( 0, 10 );
+  splitter->setStretchFactor( 1, 0 );
+  splitter->setOrientation( Qt::Vertical );
+
+  Core::MiniSplitter * splitter2 = new Core::MiniSplitter;
+  splitter2->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
+  splitter2->addWidget( splitter );
+  splitter2->setStretchFactor( 0, 0 );
+  splitter2->setStretchFactor( 1, 1 );
+
+  mode->setWidget( splitter2 );
+
   Core::Command * command(0);
   do {
     // Create an action to be triggered by a menu entry
@@ -95,10 +150,9 @@ DataAnalysisPlugin::initialize(const QStringList &arguments, QString *error_mess
   // Add a mode with a push button based on BaseMode. Like the BaseView,
   // it will unregister itself from the plugin manager when it is deleted.
 
-  DataAnalysisMode * mode = new DataAnalysisMode(this);
   //    baseMode->setWidget(new QPushButton(tr("Data Analysis PushButton!")));
-  mode->setWidget( new DataAnalysisWindow( 0 ) );
-  mode->setContext(context);
+  // mode->setWidget( new DataAnalysisWindow( 0 ) );
+  // mode->setContext(context);
   addAutoReleasedObject(mode);
 
   // Add the Hello World action command to the mode manager (with 0 priority)

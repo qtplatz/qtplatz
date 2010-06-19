@@ -1,6 +1,7 @@
 #include "dataanalysismanager.h"
 #include <utils/fancymainwindow.h>
 #include <QTabWidget>
+#include <QTreeView>
 
 using namespace DataAnalysis;
 using namespace DataAnalysis::Internal;
@@ -27,6 +28,7 @@ DataAnalysisManager::init()
         mainWindow_->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
         mainWindow_->setDocumentMode( true );
     }
+    breakWindow_.reset( new QTreeView );
 }
 
 

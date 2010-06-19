@@ -9,6 +9,8 @@
 namespace DataAnalysis {
 	namespace Internal {
 
+        class DataAnalysisManager;
+
 		class DataAnalysisPlugin
 			: public ExtensionSystem::IPlugin {
 			Q_OBJECT
@@ -20,6 +22,8 @@ namespace DataAnalysis {
 			void extensionsInitialized();
 		private slots:
 			void sayHelloWorld();
+        private:
+            DataAnalysisManager * manager_;
 		};
 
 		/////////////////////////////

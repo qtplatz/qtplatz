@@ -19,7 +19,9 @@ SOURCES += dataanalysisplugin.cpp \
     dataeditor.cpp \
     sidebar.cpp \
     minisplitter.cpp \
-    openeditorsview.cpp
+    openeditorsview.cpp \
+    dataanalysismanager.cpp \
+    outputwindow.cpp
 HEADERS += dataanalysisplugin.h \
     dataanalysiswindow.h \
     datafile.h \
@@ -27,8 +29,12 @@ HEADERS += dataanalysisplugin.h \
     dataeditor.h \
     sidebar.h \
     minisplitter.h \
-    openeditorsview.h
+    openeditorsview.h \
+    dataanalysismanager.h \
+    outputwindow.h
 OTHER_FILES += dataanalysis.pluginspec
+
+INCLUDEPATH += /usr/local/include
 
 RESOURCES += \
     dataanalysis.qrc

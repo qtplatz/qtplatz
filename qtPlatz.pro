@@ -8,6 +8,7 @@ include(qtPlatz.pri)
 
 TEMPLATE  = subdirs
 CONFIG   += ordered
+INCLUDEPATH += /usr/local/include
 
 SUBDIRS = src share
 unix:!macx:!isEmpty(copydata):SUBDIRS += bin
