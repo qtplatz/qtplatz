@@ -32,6 +32,7 @@ HEADERS += dataanalysisplugin.h \
     openeditorsview.h \
     dataanalysismanager.h \
     outputwindow.h
+
 OTHER_FILES += dataanalysis.pluginspec
 
 INCLUDEPATH += /usr/local/include \

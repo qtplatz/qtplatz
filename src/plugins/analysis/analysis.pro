@@ -1,0 +1,23 @@
+#-------------------------------------------------
+#
+# Project created by QtCreator 2010-06-19T18:58:15
+#
+#-------------------------------------------------
+
+QT       += xml
+
+TARGET = analysis
+TEMPLATE = lib
+PROVIDER = ScienceLiaison
+include(../../qtPlatzplugin.pri)
+LIBS += -L$$IDE_PLUGIN_PATH/Nokia
+include(../../plugins/coreplugin/coreplugin.pri)
+
+DEFINES += ANALYSIS_LIBRARY
+
+SOURCES += analysis.cpp
+
+HEADERS += analysis.h\
+        analysis_global.h
+
+OTHER_FILES += analysis.pluginspec

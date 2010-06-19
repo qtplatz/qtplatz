@@ -5,4 +5,3 @@ SUBDIRS = \
     libs \
     app \
     plugins
-#    tools
