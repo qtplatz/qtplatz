@@ -15,9 +15,11 @@ include(../../plugins/coreplugin/coreplugin.pri)
 
 DEFINES += BATCHPROC_LIBRARY
 
-SOURCES += batchproc.cpp
+SOURCES += batchproc.cpp \
+    batchprocplugin.cpp
 
 HEADERS += batchproc.h\
-        batchproc_global.h
+        batchproc_global.h \
+    batchprocplugin.h
 
 OTHER_FILES += batchproc.pluginspec

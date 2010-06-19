@@ -16,9 +16,11 @@ include(../../plugins/coreplugin/coreplugin.pri)
 
 DEFINES += TUNE_LIBRARY
 
-SOURCES += tune.cpp
+SOURCES += tune.cpp \
+    tuneplugin.cpp
 
 HEADERS += tune.h\
-        tune_global.h
+        tune_global.h \
+    tuneplugin.h
 
-OTHER_FILES += sequence.pluginspec
+OTHER_FILES += tune.pluginspec

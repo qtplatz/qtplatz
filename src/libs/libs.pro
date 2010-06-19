@@ -5,4 +5,5 @@ SUBDIRS   = \
     qtconcurrent \
     aggregation \
     extensionsystem \
-    utils
+    utils \
+    libqt

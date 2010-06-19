@@ -15,9 +15,11 @@ include(../../plugins/coreplugin/coreplugin.pri)
 
 DEFINES += SEQUENCE_LIBRARY
 
-SOURCES += sequence.cpp
+SOURCES += sequence.cpp \
+    sequenceplugin.cpp
 
 HEADERS += sequence.h\
-        sequence_global.h
+        sequence_global.h \
+    sequenceplugin.h
 
 OTHER_FILES += sequence.pluginspec

@@ -1,4 +1,4 @@
-<plugin name="DataAnalysis" version="1.0.0" compatVersion="1.3.1">
+<plugin name="BatchProc" version="1.0.0" compatVersion="1.3.1">
     <vendor>Science Liaison</vendor>
     <copyright>(C) 2010 Toshinobu Hondo, Ph.D.</copyright>
     <license>
@@ -9,7 +9,7 @@ General Public License version 2.1 as published by the Free Software
 Foundation.  Please review the following information to
 ensure the GNU Lesser General Public License version 2.1 requirements
 will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.</license>
-    <description>data analysis sample plugin.</description>
+    <description>batch reprocessing plugin.</description>
     <url>http://qt.nokia.com</url>
     <dependencyList>
         <dependency name="Core" version="1.3.1"/>
