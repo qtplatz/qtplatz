@@ -11,7 +11,10 @@
 #include <libadwidgets/tracewidget.h>
 #include <QDockWidget>
 #include <utils/fancymainwindow.h>
-
+#include <utils/styledbar.h>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QToolBar>
 
 namespace Acquire { 
   namespace internal {
@@ -34,7 +37,7 @@ namespace Acquire {
 
     typedef boost::variant< QWidget_t<ui::TimeTrace, adil::TraceWidget>
 			    , QWidget_t<ui::Spectrum, adil::TraceWidget>
-			    , QWidget_t<ui::TabbedPane, QWidget> > widget_type;
+			    , QWidget_t<ui::TabbedPane, QTabWidget> > widget_type;
   
     struct AcquireUIManagerData : boost::noncopyable {
       AcquireUIManagerData() : mainWindow_(0) {}
@@ -79,8 +82,22 @@ AcquireUIManager::init()
 
   Acquire::internal::AcquireUIManagerData& m = *d_;
   
-  m.mainWindow_ = new Utils::FancyMainWindow;
+  m.mainWindow_ = new Utils::FancyMainWindow; // QMainWindow
   if ( d_ && m.mainWindow_ ) {
+#if 0
+    QToolBar * toolBar = new QToolBar;
+    if ( toolBar ) {
+      /*
+      //toolBar->setProperty( "topBorder", true );
+      //QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+      if ( toolBarLayout ) {
+	toolBarLayout->setMargin(0);
+	toolBarLayout->setSpacing(0);
+	toolBarLayout->addWidget( new QLabel( tr("AcquireUIManagere") ) );
+      */
+      // m.mainWindow_->insertToolBar( 0, toolBar );
+    }
+#endif
     m.mainWindow_->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
     m.mainWindow_->setDocumentMode( true );
   }
@@ -89,8 +106,9 @@ AcquireUIManager::init()
   m.spectrumWidget_.setWindowTitle( tr("Spectrum") );
   m.tabbedWidget_.setWindowTitle( tr("Tab") );
 
-  m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.timeTraceWidget_ ) );
-  m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.spectrumWidget_ ) );
+  //m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.timeTraceWidget_ ) );
+  //m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.spectrumWidget_ ) );
+  m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.tabbedWidget_ ) );
   m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.tabbedWidget_ ) );
 
   // todo

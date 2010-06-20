@@ -24,6 +24,7 @@
 #include <QtGui/QBoxLayout>
 #include <QtGui/QToolButton>
 #include <QtGui/QLabel>
+#include <QTableWidget>
 
 using namespace Acquire;
 using namespace Acquire::internal;
@@ -100,7 +101,11 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
       //rightPaneSplitter->setStretchFactor( 1, 0 );
     }
 
-    QWidget* centralWidget = new QWidget;
+    //QWidget* centralWidget = new QWidget;
+    QTableWidget * centralWidget = new QTableWidget;
+    centralWidget->activateWindow();
+    centralWidget->setColumnCount(20);
+    centralWidget->setRowCount(100);
     manager_->mainWindow()->setCentralWidget( centralWidget );
       
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
