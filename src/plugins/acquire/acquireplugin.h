@@ -12,12 +12,19 @@
 namespace Acquire {
   namespace internal {
 
+    class AcquireUIManager;
+
     class AcquirePlugin : public ExtensionSystem::IPlugin {
       Q_OBJECT
     public:
       ~AcquirePlugin();
       AcquirePlugin();
       bool initialize(const QStringList &arguments, QString *error_message);
+      void extensionsInitialized();
+    private slots:
+
+    private:
+      AcquireUIManager * manager_;
     };
   }
 }

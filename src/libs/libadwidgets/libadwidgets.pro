@@ -3,17 +3,15 @@
 # Project created by QtCreator 2010-06-19T22:32:02
 #
 #-------------------------------------------------
-include(../../qtPlatz.pri)
 
 QT       += xml
 
-TARGET = libqt
+TARGET = adwidgets
 TEMPLATE = lib
-CONFIG += staticlib
+CONFIG += staticlib qaxcontainer
 
-DESTDIR = $$IDE_LIBRARY_PATH
-
-include(rpath.pri)
+#DESTDIR = $$IDE_LIBRARY_PATH
+include(../../qtPlatzlibrary.pri)
 
 SOURCES += libqt.cpp \
     tracewidget.cpp
@@ -21,7 +19,8 @@ SOURCES += libqt.cpp \
 HEADERS += libqt.h \
     tracewidget.h
 
-INCLUDEPATH += /usr/local/include c:/Boost/include/boost-1_43
+include(../../boost.pri)
 
-target.path = /$$IDE_LIBRARY_BASENAME/qtPlatz
-INSTALLS += target
+OTHER_FILES += \
+    libadwidgets.pri \
+    boost.pri

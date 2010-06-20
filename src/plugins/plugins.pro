@@ -6,14 +6,14 @@ TEMPLATE  = subdirs
 SUBDIRS   = plugin_coreplugin \
             plugin_welcome \
             plugin_find \
-            plugin_texteditor \
+#            plugin_texteditor \
             plugin_locator \
             plugin_dataanalysis \ #on trial for mass spec data analysis
             plugin_acquire \
-            plugin_tune \
-            plugin_sequence \
-            plugin_analysis \
-            plugin_batchproc \
+#            plugin_tune \
+#            plugin_sequence \
+#            plugin_analysis \
+#            plugin_batchproc \
             plugin_help
 
 plugin_coreplugin.subdir = coreplugin

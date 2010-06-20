@@ -9,7 +9,7 @@
 
 #include <QWidget>
 
-namespace libqt {
+namespace adil {
   
   struct TraceWidgetData;
   
