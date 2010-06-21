@@ -19,6 +19,7 @@ namespace Acquire {
 
   namespace internal {
 
+    struct AcquireManagerActions;
     struct AcquireUIManagerData;
 
     //------------
@@ -33,12 +34,17 @@ namespace Acquire {
       void init();
       void setSimpleDockWidgetArrangement();
 
+      //
     signals:
 
     public slots:
 
     private:
       AcquireUIManagerData * d_;
+
+    public:
+      const AcquireManagerActions& acquireManagerActions() const;
+
     };
 
   }

@@ -4,6 +4,7 @@
 //////////////////////////////////////////////
 
 #include "acquireuimanager.h"
+#include "acquireactions.h"
 #include <boost/variant.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
@@ -15,6 +16,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QToolBar>
+#include <QTextEdit>
 
 namespace Acquire { 
   namespace internal {
@@ -49,6 +51,7 @@ namespace Acquire {
       QWidget_t<ui::TabbedPane, QWidget> tabbedWidget_;
 
       std::vector< QDockWidget * > dockWidgetVec_;
+      AcquireManagerActions actions_;
     };
 
   }
@@ -74,45 +77,54 @@ AcquireUIManager::mainWindow() const
   return d_->mainWindow_;
 }
 
+const AcquireManagerActions&
+AcquireUIManager::acquireManagerActions() const
+{
+  return d_->actions_;
+}
+
+
 void
 AcquireUIManager::init()
 {
   if ( ! d_ )
     return;
-
+  
   Acquire::internal::AcquireUIManagerData& m = *d_;
   
-  m.mainWindow_ = new Utils::FancyMainWindow; // QMainWindow
+  m.mainWindow_ = new Utils::FancyMainWindow;
   if ( d_ && m.mainWindow_ ) {
-#if 0
-    QToolBar * toolBar = new QToolBar;
-    if ( toolBar ) {
-      /*
-      //toolBar->setProperty( "topBorder", true );
-      //QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-      if ( toolBarLayout ) {
-	toolBarLayout->setMargin(0);
-	toolBarLayout->setSpacing(0);
-	toolBarLayout->addWidget( new QLabel( tr("AcquireUIManagere") ) );
-      */
-      // m.mainWindow_->insertToolBar( 0, toolBar );
-    }
-#endif
     m.mainWindow_->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
     m.mainWindow_->setDocumentMode( true );
+    
+    QWidget * edit1 = new QTextEdit( "Edit 1" );
+    QWidget * edit2 = new QTextEdit( "Edit 2" );
+    QWidget * edit3 = new QTextEdit( "Edit 3" );
+    QWidget * edit4 = new QTextEdit( "Edit 4" );
+    QWidget * edit5 = new QTextEdit( "Edit 5" );
+    QWidget * edit6 = new QTextEdit( "Edit 6" );
+    
+    QDockWidget * dock1 = m.mainWindow_->addDockForWidget( edit1 );
+    QDockWidget * dock2 = m.mainWindow_->addDockForWidget( edit2 );
+    QDockWidget * dock3 = m.mainWindow_->addDockForWidget( edit3 );
+    QDockWidget * dock4 = m.mainWindow_->addDockForWidget( edit4 );
+    QDockWidget * dock5 = m.mainWindow_->addDockForWidget( edit5 );
+    QDockWidget * dock6 = m.mainWindow_->addDockForWidget( edit6 );
+    
+    m.dockWidgetVec_.push_back( dock1 );
+    m.dockWidgetVec_.push_back( dock2 );
+    m.dockWidgetVec_.push_back( dock3 );
+    m.dockWidgetVec_.push_back( dock4 );
+    m.dockWidgetVec_.push_back( dock5 );
+    m.dockWidgetVec_.push_back( dock6 );
+    
+    //m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.spectrumWidget_ ) );
+    //m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.tabbedWidget_ ) );
+    //m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.tabbedWidget_ ) );
+    
+    // todo
+    // set actions
   }
-
-  m.timeTraceWidget_.setWindowTitle( tr("Time Trace") );
-  m.spectrumWidget_.setWindowTitle( tr("Spectrum") );
-  m.tabbedWidget_.setWindowTitle( tr("Tab") );
-
-  //m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.timeTraceWidget_ ) );
-  //m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.spectrumWidget_ ) );
-  m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.tabbedWidget_ ) );
-  m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.tabbedWidget_ ) );
-
-  // todo
-  // set actions
 }
 
 class setTrackingEnabled {
@@ -138,12 +150,21 @@ AcquireUIManager::setSimpleDockWidgetArrangement()
     dockWidget->setFloating( false );
     m.mainWindow_->removeDockWidget( dockWidget );
   }
-  
+
   foreach ( QDockWidget * dockWidget, dockWidgets ) {
-    if ( dockWidget == m.dockWidgetVec_.front() )
-      m.mainWindow_->addDockWidget( Qt::TopDockWidgetArea, dockWidget );
-    else
-      m.mainWindow_->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
+    //if ( dockWidget == m.dockWidgetVec_.front() )
+    //  m.mainWindow_->addDockWidget( Qt::TopDockWidgetArea, dockWidget );
+    //else
+    m.mainWindow_->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
     dockWidget->show();
   }
+
+  for ( unsigned int i = 2; i < m.dockWidgetVec_.size(); ++i )
+    m.mainWindow_->tabifyDockWidget( m.dockWidgetVec_[1], m.dockWidgetVec_[i] );
+
 }
+
+
+
+
+
