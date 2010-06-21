@@ -166,11 +166,28 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
         //toolBarLayout->addWidget(toolButton(am->command(Constants::NEXT)->action()));
         //toolBarLayout->addWidget(toolButton(am->command(Constants::STEP)->action()));
         //toolBarLayout->addWidget(toolButton(am->command(Constants::STEPOUT)->action()));
-	toolBarLayout->addWidget( new QLabel( tr("A") ) );
-	toolBarLayout->addWidget( new Utils::StyledSeparator );
-	toolBarLayout->addWidget( new QLabel( tr("B") ) );
-	toolBarLayout->addWidget( new Utils::StyledSeparator );
-	toolBarLayout->addWidget( new QLabel( tr("C") ) );
+           toolBarLayout->addWidget( new QLabel( tr("A") ) );
+           toolBarLayout->addWidget( new Utils::StyledSeparator );
+           toolBarLayout->addWidget( new QLabel( tr("B") ) );
+           toolBarLayout->addWidget( new Utils::StyledSeparator );
+           toolBarLayout->addWidget( new QLabel( tr("C") ) );
+      }
+      toolBarLayout->addWidget( new Utils::StyledSeparator );
+      toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
+    }
+    Utils::StyledBar * toolBar2 = new Utils::StyledBar;
+    if ( toolBar2 ) {
+      toolBar2->setProperty( "topBorder", true );
+      QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar2 );
+      toolBarLayout->setMargin(0);
+      toolBarLayout->setSpacing(0);
+      Core::ActionManager *am = core->actionManager();
+      if ( am ) {
+        toolBarLayout->addWidget( new QLabel( tr("AA") ) );
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+        toolBarLayout->addWidget( new QLabel( tr("BB") ) );
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+        toolBarLayout->addWidget( new QLabel( tr("CC") ) );
       }
       toolBarLayout->addWidget( new Utils::StyledSeparator );
       toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
@@ -190,14 +207,22 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
     QWidget* centralWidget = new QWidget;
     manager_->mainWindow()->setCentralWidget( centralWidget );
-      
+
+    Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
+    if ( splitter3 ) {
+      splitter3->addWidget( new adil::TraceWidget );
+      splitter3->addWidget( new adil::TraceWidget );
+      splitter3->setOrientation( Qt::Vertical );
+    }
+
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
     toolBarAddingLayout->setMargin(0);
     toolBarAddingLayout->setSpacing(0);
     //toolBarAddingLayout->addWidget( rightPaneSplitter );
-    toolBarAddingLayout->addWidget( new adil::TraceWidget );
     toolBarAddingLayout->addWidget( toolBar );
-    
+    toolBarAddingLayout->addWidget( splitter3 );
+    toolBarAddingLayout->addWidget( toolBar2 );
+
     mode->setWidget( splitter2 );
 
   } while(0);
