@@ -13,7 +13,7 @@
 #include <QtGui/QLineEdit>
 
 using namespace Utils;
-
+#if 0
 namespace Acquire {
   namespace internal {
 
@@ -387,3 +387,4 @@ namespace Acquire {
 } // namespace Acquire
 
 
+#endif

@@ -15,6 +15,10 @@ namespace Acquire {
     const char * const STEPOUT              = "Debugger.StepOut";
     const char * const NEXT                 = "Debugger.NextLine";
     const char * const REVERSE              = "Debugger.ReverseDirection";
+
+    // icon
+    const char * const ICON_CONNECT         = ":/acquire/images/debugger_start.png";
+    const char * const ICON_CONNECT_SMALL   = ":/acquire/images/debugger_start_small.png";
   }
 
 }

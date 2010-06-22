@@ -36,11 +36,11 @@ namespace Acquire {
     template<class T, class Q = QWidget> struct QWidget_t : public Q {
       T t_;
     };
-
-	typedef boost::variant< 
-                QWidget_t<ui::TimeTrace, adil::ui::Dataplot>
-                , QWidget_t<ui::Spectrum, adil::ui::Dataplot>
-		, QWidget_t<ui::TabbedPane, QTabWidget> > widget_type;
+    
+    typedef boost::variant< 
+      QWidget_t<ui::TimeTrace, adil::ui::Dataplot>
+      , QWidget_t<ui::Spectrum, adil::ui::Dataplot>
+      , QWidget_t<ui::TabbedPane, QTabWidget> > widget_type;
   
     struct AcquireUIManagerData : boost::noncopyable {
       AcquireUIManagerData() : mainWindow_(0) {}
@@ -52,7 +52,7 @@ namespace Acquire {
 	  //QWidget_t<ui::TabbedPane, QWidget> tabbedWidget_;
 
       std::vector< QDockWidget * > dockWidgetVec_;
-      AcquireManagerActions actions_;
+	  //AcquireManagerActions actions_;
     };
 
   }
@@ -78,11 +78,11 @@ AcquireUIManager::mainWindow() const
   return d_->mainWindow_;
 }
 
-const AcquireManagerActions&
-AcquireUIManager::acquireManagerActions() const
-{
-  return d_->actions_;
-}
+//const AcquireManagerActions&
+//AcquireUIManager::acquireManagerActions() const
+//{
+//  return d_->actions_;
+//}
 
 
 void

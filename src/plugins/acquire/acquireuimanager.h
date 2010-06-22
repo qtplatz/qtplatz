@@ -43,7 +43,7 @@ namespace Acquire {
       AcquireUIManagerData * d_;
 
     public:
-      const AcquireManagerActions& acquireManagerActions() const;
+      //const AcquireManagerActions& acquireManagerActions() const;
 
     };
 

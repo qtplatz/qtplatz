@@ -37,16 +37,25 @@ using namespace Acquire;
 using namespace Acquire::internal;
 
 namespace Acquire {
-	namespace internal {
-		class AcquireImpl {
-		public:
-			AcquireImpl() : timePlot_(0)
-				          , spectrumPlot_(0) {
-			}
-			adil::ui::Dataplot * timePlot_;
-			adil::ui::Dataplot * spectrumPlot_;
-		};
-	}
+  namespace internal {
+
+    class AcquireImpl {
+    public:
+      ~AcquireImpl() {
+      }
+	  AcquireImpl() : timePlot_(0)
+		            , spectrumPlot_(0) {
+	  }
+      adil::ui::Dataplot * timePlot_;
+      adil::ui::Dataplot * spectrumPlot_;
+      QIcon icon_;
+	  void loadIcon() {
+		  icon_.addFile( Constants::ICON_CONNECT );
+		  icon_.addFile( Constants::ICON_CONNECT_SMALL );
+	  }
+    };
+
+  }
 }
 
 // static
@@ -78,37 +87,37 @@ AcquirePlugin::AcquirePlugin() : manager_(0)
 void
 AcquirePlugin::initialize_actions()
 {
-  action1_ = new QAction(this);
-  action1_->setText( tr("Start and Debug External Application...") );
-  connect( action1_, SIGNAL(triggered()), this, SLOT(action1()) );
+	pImpl_->loadIcon();
 
-  action2_ = new QAction(this);
-  action2_->setText( tr("Start and Debug External Application...") );
-  connect( action2_, SIGNAL(triggered()), this, SLOT(action2()) );
+	action1_ = new QAction(QIcon(Constants::ICON_CONNECT), tr("Connect"), this);
+	// action1_->setText( tr("Start and Debug External Application...") );
+	// action1_->setIcon( pImpl_->icon_ );
+	connect( action1_, SIGNAL(triggered()), this, SLOT(action1()) );
 
-  action3_ = new QAction(this);
-  action3_->setText( tr("Start and Debug External Application...") );
-  connect( action3_, SIGNAL(triggered()), this, SLOT(action3()) );
+	action2_ = new QAction(this);
+	action2_->setText( tr("Start and Debug External Application...") );
+	connect( action2_, SIGNAL(triggered()), this, SLOT(action2()) );
 
-  action4_ = new QAction(this);
-  action4_->setText( tr("Start and Debug External Application...") );
-  connect( action4_, SIGNAL(triggered()), this, SLOT(action4()) );
+	action3_ = new QAction(this);
+	action3_->setText( tr("Start and Debug External Application...") );
+	connect( action3_, SIGNAL(triggered()), this, SLOT(action3()) );
 
-  action5_ = new QAction(this);
-  action5_->setText( tr("Start and Debug External Application...") );
-  connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
+	action4_ = new QAction(this);
+	action4_->setText( tr("Start and Debug External Application...") );
+	connect( action4_, SIGNAL(triggered()), this, SLOT(action4()) );
 
-  /**
-  const AcquireManagerActions& actions = manager_->acquireManagerActions();
-  QList<int> globalcontext;
-  globalcontext << Core::Constants::C_GLOBAL_ID;
+	action5_ = new QAction(this);
+	action5_->setText( tr("Start and Debug External Application...") );
+	connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
 
-  Core::ActionManager *am = Core::ICore::instance()->actionManager();
-  if ( am ) {
-    Core::Command * cmd = 0;
-    cmd = am->registerAction( actions.stopAction, Constants::INTERRUPT, globalcontext );
-  }
-  **/
+	//const AcquireManagerActions& actions = manager_->acquireManagerActions();
+	QList<int> globalcontext;
+	globalcontext << Core::Constants::C_GLOBAL_ID;
+	Core::ActionManager *am = Core::ICore::instance()->actionManager();
+	if ( am ) {
+		Core::Command * cmd = 0;
+		cmd = am->registerAction( action1_, Constants::INTERRUPT, globalcontext );
+	}
 }
 
 bool
@@ -128,8 +137,6 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
   } else
     return false;
 
-  initialize_actions();
-
   AcquireMode * mode = new AcquireMode(this);
   if ( mode )
     mode->setContext( context );
@@ -139,6 +146,8 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
   manager_ = new AcquireUIManager(0);
   if ( manager_ )
     manager_->init();
+
+  initialize_actions();
 
   do {
     
@@ -179,7 +188,9 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
       toolBarLayout->setSpacing(0);
       Core::ActionManager *am = core->actionManager();
       if ( am ) {
-        //toolBarLayout->addWidget(toolButton(am->command(Constants::INTERRUPT)->action()));
+		  Core::Command * cmd(0);
+		  if ( cmd = am->command(Constants::INTERRUPT) )
+			  toolBarLayout->addWidget(toolButton( cmd->action() ));
         //toolBarLayout->addWidget(toolButton(am->command(Constants::NEXT)->action()));
         //toolBarLayout->addWidget(toolButton(am->command(Constants::STEP)->action()));
         //toolBarLayout->addWidget(toolButton(am->command(Constants::STEPOUT)->action()));

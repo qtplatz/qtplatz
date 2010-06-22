@@ -36,3 +36,6 @@ HEADERS +=  acquire_global.h \
 
 OTHER_FILES += acquire.pluginspec \
     acquire_dependencies.pri
+
+RESOURCES += \
+    acquire.qrc

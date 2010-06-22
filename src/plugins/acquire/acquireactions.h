@@ -8,12 +8,13 @@ QT_BEGIN_NAMESPACE
 class QActionGroup;
 QT_END_NAMESPACE
 
+#if 0
 namespace Acquire {
   namespace internal {
 
     class AcquireSettings : public QObject {
       Q_OBJECT
-	public:
+    public:
       AcquireSettings(QObject *parent = 0);
       ~AcquireSettings();
       
@@ -123,6 +124,6 @@ namespace Acquire {
       
   } // namespace Internal
 } // namespace Acquire
-
+#endif // 0
 
 #endif // ACQUIREACTIONS_H
