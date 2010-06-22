@@ -8,9 +8,9 @@
 #include "acquiremode.h"
 #include "acquireuimanager.h"
 #include "acquireactions.h"
+#include <adwidgets/dataplot.h>
 #include <utils/fancymainwindow.h>
 
-#include <libadwidgets/tracewidget.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -210,8 +210,8 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
     Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
     if ( splitter3 ) {
-      splitter3->addWidget( new adil::TraceWidget );
-      splitter3->addWidget( new adil::TraceWidget );
+                splitter3->addWidget( new adil::ui::Dataplot );
+      splitter3->addWidget( new adil::ui::Dataplot );
       splitter3->setOrientation( Qt::Vertical );
     }
 

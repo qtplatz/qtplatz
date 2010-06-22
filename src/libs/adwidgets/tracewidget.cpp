@@ -8,6 +8,7 @@
 #include <QAxWidget>
 #include <QUuid>
 #include <QSize>
+#include <QResizeEvent>
 
 #ifdef WIN32
 #include <atlbase.h>
@@ -56,3 +57,8 @@ TraceWidget::TraceWidget(QWidget *parent) : QWidget(parent)
 #endif
 }
 
+void
+TraceWidget::resizeEvent(QResizeEvent * e)
+{
+	d_->axWidget_->resize( e->size() );
+}

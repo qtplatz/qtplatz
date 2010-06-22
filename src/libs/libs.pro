@@ -6,4 +6,4 @@ SUBDIRS   = \
     aggregation \
     extensionsystem \
     utils \
-    libadwidgets
+    adwidgets

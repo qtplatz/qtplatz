@@ -1,1 +1,1 @@
-include(../../libs/libadwidgets/libadwidgets.pri)
+include(../../libs/adwidgets/adwidgets.pri)

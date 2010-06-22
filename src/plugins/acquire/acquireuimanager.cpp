@@ -9,7 +9,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
 
-#include <libadwidgets/tracewidget.h>
+#include <adwidgets/dataplot.h>
 #include <QDockWidget>
 #include <utils/fancymainwindow.h>
 #include <utils/styledbar.h>
@@ -37,18 +37,19 @@ namespace Acquire {
       T t_;
     };
 
-    typedef boost::variant< QWidget_t<ui::TimeTrace, adil::TraceWidget>
-			    , QWidget_t<ui::Spectrum, adil::TraceWidget>
-			    , QWidget_t<ui::TabbedPane, QTabWidget> > widget_type;
+	typedef boost::variant< 
+                QWidget_t<ui::TimeTrace, adil::ui::Dataplot>
+                , QWidget_t<ui::Spectrum, adil::ui::Dataplot>
+		, QWidget_t<ui::TabbedPane, QTabWidget> > widget_type;
   
     struct AcquireUIManagerData : boost::noncopyable {
       AcquireUIManagerData() : mainWindow_(0) {}
       
       Utils::FancyMainWindow* mainWindow_;
 
-      QWidget_t<ui::TimeTrace, adil::TraceWidget>  timeTraceWidget_;
-      QWidget_t<ui::Spectrum,  adil::TraceWidget>  spectrumWidget_;
-      QWidget_t<ui::TabbedPane, QWidget> tabbedWidget_;
+	  //QWidget_t<ui::TimeTrace, adil::TraceWidget>  timeTraceWidget_;
+	  //QWidget_t<ui::Spectrum,  adil::TraceWidget>  spectrumWidget_;
+	  //QWidget_t<ui::TabbedPane, QWidget> tabbedWidget_;
 
       std::vector< QDockWidget * > dockWidgetVec_;
       AcquireManagerActions actions_;

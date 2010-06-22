@@ -24,6 +24,9 @@ namespace adil {
     
   public slots:
     
+  protected:
+	  // QWidget
+	  virtual void resizeEvent(QResizeEvent *);
   private:
     TraceWidgetData * d_;
   };

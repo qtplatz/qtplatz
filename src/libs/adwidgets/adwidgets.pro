@@ -13,14 +13,29 @@ CONFIG += staticlib qaxcontainer
 #DESTDIR = $$IDE_LIBRARY_PATH
 include(../../qtPlatzlibrary.pri)
 
-SOURCES += libqt.cpp \
-    tracewidget.cpp
+SOURCES +=  dataplot.cpp \
+    tracewidget.cpp \
+    axis.cpp \
+    traces.cpp \
+    trace.cpp \
+    titles.cpp \
+    title.cpp \
+    colors.cpp \
+    legend.cpp
 
-HEADERS += libqt.h \
-    tracewidget.h
+HEADERS += dataplot.h \
+    tracewidget.h \
+    axis.h \
+    traces.h \
+    trace.h \
+    titles.h \
+    title.h \
+    colors.h \
+    legend.h \
+    import_sagraphics.h
 
 include(../../boost.pri)
 
 OTHER_FILES += \
-    libadwidgets.pri \
+    adwidgets.pri \
     boost.pri
