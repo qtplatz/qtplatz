@@ -3,6 +3,6 @@
 
 #import "C:/MassCentre3.1/bin/SAGraphicsU.dll" no_namespace //, named_guids, raw_interfaces_only
 
-
+#include <atlbase.h>
 
 #endif // IMPORT_SAGRAPHICS_H

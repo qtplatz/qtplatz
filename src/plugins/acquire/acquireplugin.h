@@ -16,6 +16,7 @@ namespace Acquire {
   namespace internal {
 
     class AcquireUIManager;
+	class AcquireImpl;
 
     //------------
     class AcquirePlugin : public ExtensionSystem::IPlugin {
@@ -29,6 +30,7 @@ namespace Acquire {
 
     private:
       AcquireUIManager * manager_;
+	  AcquireImpl * pImpl_;
 
       QAction * action1_;
       QAction * action2_;

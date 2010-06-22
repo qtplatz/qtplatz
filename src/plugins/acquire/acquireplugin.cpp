@@ -9,6 +9,8 @@
 #include "acquireuimanager.h"
 #include "acquireactions.h"
 #include <adwidgets/dataplot.h>
+#include <adwidgets/axis.h>
+
 #include <utils/fancymainwindow.h>
 
 #include <coreplugin/icore.h>
@@ -34,6 +36,19 @@
 using namespace Acquire;
 using namespace Acquire::internal;
 
+namespace Acquire {
+	namespace internal {
+		class AcquireImpl {
+		public:
+			AcquireImpl() : timePlot_(0)
+				          , spectrumPlot_(0) {
+			}
+			adil::ui::Dataplot * timePlot_;
+			adil::ui::Dataplot * spectrumPlot_;
+		};
+	}
+}
+
 // static
 QToolButton * 
 AcquirePlugin::toolButton( QAction * action )
@@ -47,14 +62,16 @@ AcquirePlugin::toolButton( QAction * action )
 AcquirePlugin::~AcquirePlugin()
 {
   delete manager_;
+  delete pImpl_;
 }
 
 AcquirePlugin::AcquirePlugin() : manager_(0)
-			       , action1_(0)
-			       , action2_(0)
-			       , action3_(0)
-			       , action4_(0)
-			       , action5_(0)
+                               , pImpl_( new AcquireImpl() )
+							   , action1_(0)
+							   , action2_(0)
+							   , action3_(0)
+							   , action4_(0)
+							   , action5_(0)
 {
 }
 
@@ -210,9 +227,19 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
     Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
     if ( splitter3 ) {
-                splitter3->addWidget( new adil::ui::Dataplot );
-      splitter3->addWidget( new adil::ui::Dataplot );
-      splitter3->setOrientation( Qt::Vertical );
+		if ( pImpl_->timePlot_ = new adil::ui::Dataplot ) {
+			adil::ui::Axis axis = pImpl_->timePlot_->axisX();
+			axis.text( L"Time(min)" );
+		}
+
+		if ( pImpl_->spectrumPlot_ = new adil::ui::Dataplot ) {
+			adil::ui::Axis axis = pImpl_->spectrumPlot_->axisX();
+			axis.text( L"m/z" );
+		}
+
+		splitter3->addWidget( pImpl_->timePlot_ );
+		splitter3->addWidget( pImpl_->spectrumPlot_ );
+		splitter3->setOrientation( Qt::Vertical );
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
