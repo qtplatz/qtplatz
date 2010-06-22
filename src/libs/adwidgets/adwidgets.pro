@@ -14,17 +14,16 @@ CONFIG += staticlib qaxcontainer
 include(../../qtPlatzlibrary.pri)
 
 SOURCES +=  dataplot.cpp \
-    tracewidget.cpp \
     axis.cpp \
     traces.cpp \
     trace.cpp \
     titles.cpp \
     title.cpp \
     colors.cpp \
-    legend.cpp
+    legend.cpp \
+    plotregion.cpp
 
 HEADERS += dataplot.h \
-    tracewidget.h \
     axis.h \
     traces.h \
     trace.h \
@@ -32,7 +31,8 @@ HEADERS += dataplot.h \
     title.h \
     colors.h \
     legend.h \
-    import_sagraphics.h
+    import_sagraphics.h \
+    plotregion.h
 
 include(../../boost.pri)
 

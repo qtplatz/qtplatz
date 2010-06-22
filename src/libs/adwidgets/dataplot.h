@@ -9,6 +9,8 @@
 
 #include <QWidget>
 
+struct ISADataplot;
+
 namespace adil {
 
   namespace ui {
@@ -19,6 +21,8 @@ namespace adil {
     class Trace;
     class Axis;
     class Colors;
+    class PlotRegion;
+	class Legend;
 
     class Dataplot : public QWidget {
       Q_OBJECT
@@ -28,8 +32,8 @@ namespace adil {
 
       bool createControl();
 
-      bool autoSize(bool);
-      void autoSize() const;
+	  void autoSize(bool);
+	  bool autoSize() const;
 
       unsigned long backColor() const;
       void backColor( unsigned long );
@@ -44,45 +48,45 @@ namespace adil {
       void borderWidth( long );
 
       void foreColor(unsigned long newValue);
-      unsigned long foreColor();
+      unsigned long foreColor() const;
 
       void enabled(bool newValue);
-      bool enabled();
+      bool enabled() const;
       void borderVisible(bool newValue);
-      bool borderVisible();
-      Titles titles();
-      //LPDISPATCH plotRegion();
-      Traces traces();
-      Colors colors();
-      Axis axisX();
-      Axis axisY();
-      Axis axisY1();
-      Axis axisY2();
-      bool visible();
-      void bisible(bool newValue);
-      bool redrawEnabled();
+      bool borderVisible() const;
+      Titles titles() const;
+	  PlotRegion plotRegion() const;
+      Traces traces() const;
+      Colors colors() const;
+      Axis axisX() const;
+      Axis axisY() const;
+      Axis axisY1() const;
+      Axis axisY2() const;
+      bool visible() const;
+      void visible(bool newValue);
+      bool redrawEnabled() const;
       void redrawEnabled(bool newValue);
-      long cursorStyle();
+      long cursorStyle() const;
       void cursorStyle(long newValue);
-      bool scaleMinimumY();
+      bool scaleMinimumY() const;
       void scaleMinimumY(bool newValue);
-      bool showCursor();
+      bool showCursor() const;
       void showCursor(bool newValue);
 
       void zoomXY(double minimumX, double minimumY, double maximumX, double maximumY);
       void zoomXAutoscaleY(double minimumX, double maximumX);
       void zoomOut();
       void highlightColor(unsigned long newValue);
-      unsigned long highlightColor();
-      bool highlight();
+      unsigned long highlightColor() const;
+      bool highlight() const;
       void highlight(bool newValue);
-      long currentMouseXPixel();
-      long currentMouseYPixel();
-      bool contourLegendVisible();
+      long currentMouseXPixel() const;
+      long currentMouseYPixel() const;
+      bool contourLegendVisible() const;
       void contourLegendVisible(bool newValue);
-      long plotRegionPadding();
+      long plotRegionPadding() const;
       void plotRegionPadding(long newValue);
-      bool useBitmaps();
+      bool useBitmaps() const;
       void useBitmaps(bool newValue);
       long worldToPixelX(double x);
       long worldToPixelY(double y);
@@ -93,16 +97,17 @@ namespace adil {
       void setMousePosition(double x, double y);
       void setCursorPosition(double x, double y);
       void moveCursorPosition(double x, double y);
-      // LPDISPATCH Legend();
+      Legend legend() const;
 
       signals:
       
 	public slots:
 	
     private:
-		struct DataplotImpl * pImpl_;
+	struct DataplotImpl * pImpl_;
+      ISADataplot * pi_;
     protected:
-		virtual void resizeEvent( QResizeEvent * );
+      virtual void resizeEvent( QResizeEvent * );
     };
 
   }

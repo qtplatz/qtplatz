@@ -4,21 +4,26 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#ifndef LEGEND_H
-#define LEGEND_H
+#ifndef PLOTREGION_H
+#define PLOTREGION_H
 
-struct ISADPLegend;
+struct ISADPPlotRegion;
 
 namespace adil {
+  
   namespace ui {
-    class Legend	  {
+    
+    class PlotRegion {
     public:
-      ~Legend();
-      Legend( ISADPLegend * pi = 0 );
-      Legend( const Legend& );
-	private:
-      ISADPLegend * pi_;
+     ~PlotRegion();
+      PlotRegion( ISADPPlotRegion * pi = 0 );
+      PlotRegion( const PlotRegion& );
+
+      private:
+      ISADPPlotRegion * pi_;
     };
+    
   }
 }
-#endif // LEGEND_H
+
+#endif // PLOTREGION_H

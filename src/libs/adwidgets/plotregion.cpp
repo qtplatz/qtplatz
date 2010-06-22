@@ -3,23 +3,24 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "colors.h"
+#include "plotregion.h"
 #include "import_sagraphics.h"
 
+using namespace adil;
 using namespace adil::ui;
 
-Colors::~Colors()
+PlotRegion::~PlotRegion()
 {
   if ( pi_ )
     pi_->Release();
 }
 
-Colors::Colors( ISADPColors * pi ) : pi_(pi)
+PlotRegion::PlotRegion( ISADPPlotRegion * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }
 
-Colors::Colors( const Colors& t )
+PlotRegion::PlotRegion( const PlotRegion& t )
 {
    if ( t.pi_ )
      t.pi_->AddRef(); // AddRef first, in order to avoid unexpected release when self assignment happens

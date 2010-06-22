@@ -7,14 +7,20 @@
 #ifndef COLORS_H
 #define COLORS_H
 
-namespace adil {
-  namespace gui {
+struct ISADPColors;
 
-	  class Colors
-	  {
-	  public:
-		  Colors();
-	  };
+namespace adil {
+  namespace ui {
+
+    class Colors  {
+    public:
+      ~Colors();
+      Colors( ISADPColors * pi = 0 );
+      Colors( const Colors& );
+
+    private:
+      ISADPColors * pi_;
+    };
   }
 }
 

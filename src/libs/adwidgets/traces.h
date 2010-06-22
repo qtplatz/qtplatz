@@ -7,13 +7,20 @@
 #ifndef TRACES_H
 #define TRACES_H
 
-namespace adil {
-  namespace gui {
+struct ISADPTraces;
 
-	  class Traces {
-	  public:
-		  Traces();
-	  };
+namespace adil {
+  namespace ui {
+
+    class Traces {
+    public:
+      ~Traces();
+      Traces( ISADPTraces * pi = 0 );
+      Traces( const Traces& );
+
+    private:
+      ISADPTraces * pi_;
+    };
   }
 }
 
