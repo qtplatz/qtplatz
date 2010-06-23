@@ -10,6 +10,12 @@ QT       -= gui
 
 TARGET = adbroker
 TEMPLATE = lib
+PROVIDER = ScienceLiaison
+
+include(../../qtPlatzplugin.pri)
+include(adbroker_dependencies.pri)
+LIBS += -L$$IDE_PLUGIN_PATH/Nokia
+include(../../plugins/coreplugin/coreplugin.pri)
 
 DEFINES += ADBROKER_LIBRARY
 
@@ -19,4 +25,5 @@ HEADERS += adbrokerplugin.h\
         adbroker_global.h
 
 OTHER_FILES += \
-    adbroker.pluginspec
+    adbroker.pluginspec \
+    adbroker_dependencies.pri
