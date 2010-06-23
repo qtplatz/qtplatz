@@ -87,35 +87,35 @@ AcquirePlugin::AcquirePlugin() : manager_(0)
 void
 AcquirePlugin::initialize_actions()
 {
-	pImpl_->loadIcon();
-
-	actionConnect_ = new QAction(QIcon(Constants::ICON_CONNECT), tr("Connect to control server..."), this);
-    connect( actionConnect_, SIGNAL(triggered()), this, SLOT(actionConnect()) );
-
-    actionRunStop_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Run / stop control..."), this);
-    connect( actionRunStop_, SIGNAL(triggered()), this, SLOT(actionRunStop()) );
-
-    action3_ = new QAction(QIcon(Constants::ICON_INTERRUPT_SMALL), tr("Interrupt sequence..."), this);
-	connect( action3_, SIGNAL(triggered()), this, SLOT(action3()) );
-
-    action4_ = new QAction(QIcon(Constants::ICON_START_SMALL), tr("Start initial condition..."), this);
-	connect( action4_, SIGNAL(triggered()), this, SLOT(action4()) );
-
-    action5_ = new QAction(QIcon(Constants::ICON_STOP_SMALL), tr("Stop inlet..."), this);
-	connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
-
-	//const AcquireManagerActions& actions = manager_->acquireManagerActions();
-	QList<int> globalcontext;
-	globalcontext << Core::Constants::C_GLOBAL_ID;
-	Core::ActionManager *am = Core::ICore::instance()->actionManager();
-	if ( am ) {
-		Core::Command * cmd = 0;
-        cmd = am->registerAction( actionConnect_, Constants::CONNECT, globalcontext );
-        cmd = am->registerAction( actionRunStop_, Constants::INITIALRUN, globalcontext );
-        cmd = am->registerAction( action3_, Constants::RUN, globalcontext );
-        cmd = am->registerAction( action4_, Constants::STOP, globalcontext );
-        cmd = am->registerAction( action5_, Constants::ACQUISITION, globalcontext );
-	}
+  pImpl_->loadIcon();
+  
+  actionConnect_ = new QAction(QIcon(Constants::ICON_CONNECT), tr("Connect to control server..."), this);
+  connect( actionConnect_, SIGNAL(triggered()), this, SLOT(actionConnect()) );
+  
+  actionRunStop_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Run / stop control..."), this);
+  connect( actionRunStop_, SIGNAL(triggered()), this, SLOT(actionRunStop()) );
+  
+  action3_ = new QAction(QIcon(Constants::ICON_INTERRUPT_SMALL), tr("Interrupt sequence..."), this);
+  connect( action3_, SIGNAL(triggered()), this, SLOT(action3()) );
+  
+  action4_ = new QAction(QIcon(Constants::ICON_START_SMALL), tr("Start initial condition..."), this);
+  connect( action4_, SIGNAL(triggered()), this, SLOT(action4()) );
+  
+  action5_ = new QAction(QIcon(Constants::ICON_STOP_SMALL), tr("Stop inlet..."), this);
+  connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
+  
+  //const AcquireManagerActions& actions = manager_->acquireManagerActions();
+  QList<int> globalcontext;
+  globalcontext << Core::Constants::C_GLOBAL_ID;
+  Core::ActionManager *am = Core::ICore::instance()->actionManager();
+  if ( am ) {
+    Core::Command * cmd = 0;
+    cmd = am->registerAction( actionConnect_, Constants::CONNECT, globalcontext );
+    cmd = am->registerAction( actionRunStop_, Constants::INITIALRUN, globalcontext );
+    cmd = am->registerAction( action3_, Constants::RUN, globalcontext );
+    cmd = am->registerAction( action4_, Constants::STOP, globalcontext );
+    cmd = am->registerAction( action5_, Constants::ACQUISITION, globalcontext );
+  }
 }
 
 bool

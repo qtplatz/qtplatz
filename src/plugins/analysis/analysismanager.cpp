@@ -74,10 +74,10 @@ AnalysisManager::init()
   edit6->setWindowTitle( tr("Targeting") );
   
   QWidget * edit7 = new QTextEdit( "Edit 6" );
-  edit6->setWindowTitle( tr("Chromatogram") );
+  edit7->setWindowTitle( tr("Chromatogram") );
   
   QWidget * edit8 = new QTextEdit( "Edit 6" );
-  edit6->setWindowTitle( tr("Report") );
+  edit8->setWindowTitle( tr("Report") );
 
   AnalysisManagerImpl& m = *pImpl_;
 
@@ -121,3 +121,31 @@ AnalysisManagerImpl::init()
   }
 }
 
+void
+AnalysisManager::setSimpleDockWidgetArrangement()
+{
+  class setTrackingEnabled {
+    Utils::FancyMainWindow& w_;
+  public:
+    setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) { w_.setTrackingEnabled( false ); }
+    ~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
+  };
+
+  AnalysisManagerImpl& m = *pImpl_;
+  setTrackingEnabled lock( *m.mainWindow_ );
+  
+  QList< QDockWidget *> dockWidgets = m.mainWindow_->dockWidgets();
+  
+  foreach ( QDockWidget * dockWidget, dockWidgets ) {
+    dockWidget->setFloating( false );
+    m.mainWindow_->removeDockWidget( dockWidget );
+  }
+
+  foreach ( QDockWidget * dockWidget, dockWidgets ) {
+    m.mainWindow_->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
+    dockWidget->show();
+  }
+
+  for ( unsigned int i = 1; i < m.dockWidgetVec_.size(); ++i )
+    m.mainWindow_->tabifyDockWidget( m.dockWidgetVec_[0], m.dockWidgetVec_[i] );
+}

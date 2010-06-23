@@ -23,6 +23,7 @@ namespace Analysis {
 
       QMainWindow * mainWindow() const;
       void init();
+      void setSimpleDockWidgetArrangement();
       
     signals:
       

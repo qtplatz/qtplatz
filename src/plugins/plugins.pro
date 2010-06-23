@@ -8,7 +8,7 @@ SUBDIRS   = plugin_coreplugin \
             plugin_find \
             plugin_texteditor \
             plugin_locator \
-            plugin_dataanalysis \ #on trial for mass spec data analysis
+#            plugin_dataanalysis \ #on trial for mass spec data analysis
             plugin_acquire \
 #            plugin_tune \
             plugin_sequence \

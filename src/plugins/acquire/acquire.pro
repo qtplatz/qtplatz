@@ -7,7 +7,6 @@
 QT       += xml
 
 TARGET = acquire
-CONFIG += qaxcontainer
 TEMPLATE = lib
 PROVIDER = ScienceLiaison
 

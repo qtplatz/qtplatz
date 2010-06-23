@@ -17,8 +17,8 @@ AnalysisMode::~AnalysisMode()
 AnalysisMode::AnalysisMode(QObject *parent) :
     Core::BaseMode(parent)
 {
-  setName(tr("Acquire"));
+  setName(tr("Data Analysis"));
   setUniqueModeName( "Analysis.Mode" );
   setIcon(QIcon(":/fancyactionbar/images/mode_Debug.png"));
-  setPriority( 89 );
+  setPriority( 97 );
 }

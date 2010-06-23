@@ -19,13 +19,21 @@ DEFINES += ANALYSIS_LIBRARY
 SOURCES += analysis.cpp \
     analysisplugin.cpp \
     analysismode.cpp \
-    analysismanager.cpp
+    analysismanager.cpp \
+    msprocessingwnd.cpp \
+    elementalcompwnd.cpp \
+    mscalibrationwnd.cpp \
+    chromatogramwnd.cpp
 
 HEADERS += analysis.h\
         analysis_global.h \
     analysisplugin.h \
     analysismode.h \
-    analysismanager.h
+    analysismanager.h \
+    msprocessingwnd.h \
+    elementalcompwnd.h \
+    mscalibrationwnd.h \
+    chromatogramwnd.h
 
 OTHER_FILES += analysis.pluginspec \
     analysis_dependencies.pri

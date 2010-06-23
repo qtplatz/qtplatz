@@ -7,6 +7,11 @@
 #include "analysismode.h"
 #include "analysismanager.h"
 
+#include "msprocessingwnd.h"
+#include "elementalcompwnd.h"
+#include "mscalibrationwnd.h"
+#include "chromatogramwnd.h"
+
 #include <QtCore/qplugin.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
@@ -141,16 +146,7 @@ AnalysisPlugin::initialize(const QStringList& arguments, QString* error_message)
       toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
     }
 
-    /*
-    //  [TraceWidget] | [RightPanePlaceHolder]
-    Core::MiniSplitter * rightPaneSplitter = new Core::MiniSplitter;
-    if ( rightPaneSplitter ) {
-      rightPaneSplitter->addWidget( new adil::TraceWidget );
-      //rightPaneHSplitter->addWidget( new Core::RightPanePlaceHolder( mode ) );
-      rightPaneSplitter->addWidget( new QTextEdit( "RightPanePlaceHolder" ) );
-      rightPaneSplitter->setStretchFactor( 0, 1 );
-      rightPaneSplitter->setStretchFactor( 1, 0 );
-    }
+    /******************************************************************************
     */
 
     QWidget* centralWidget = new QWidget;
@@ -158,22 +154,12 @@ AnalysisPlugin::initialize(const QStringList& arguments, QString* error_message)
 
     Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
     if ( splitter3 ) {
-      splitter3->addWidget( new QTextEdit );
-      /*
-		if ( pImpl_->timePlot_ = new adil::ui::Dataplot ) {
-			adil::ui::Axis axis = pImpl_->timePlot_->axisX();
-			axis.text( L"Time(min)" );
-		}
-
-		if ( pImpl_->spectrumPlot_ = new adil::ui::Dataplot ) {
-			adil::ui::Axis axis = pImpl_->spectrumPlot_->axisX();
-			axis.text( L"m/z" );
-		}
-
-		splitter3->addWidget( pImpl_->timePlot_ );
-		splitter3->addWidget( pImpl_->spectrumPlot_ );
-		splitter3->setOrientation( Qt::Vertical );
-      */
+      QTabWidget * pTab = new QTabWidget;
+      splitter3->addWidget( pTab );
+      pTab->addTab( new MSProcessingWnd, QIcon(":/acquire/images/debugger_stepoverproc_small.png"), "MS Processing" );
+      pTab->addTab( new ElementalCompWnd, QIcon(":/acquire/images/debugger_snapshot_small.png"), "Elemental Composition" );
+      pTab->addTab( new MSCalibrationWnd, QIcon(":/acquire/images/debugger_continue_small.png"), "MS Calibration" );
+      pTab->addTab( new ChromatogramWnd,  QIcon(":/acquire/images/watchpoint.png"), "Chromatogram" );
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
@@ -187,7 +173,7 @@ AnalysisPlugin::initialize(const QStringList& arguments, QString* error_message)
 
   } while(0);
   
-  //manager_->setSimpleDockWidgetArrangement();
+  manager_->setSimpleDockWidgetArrangement();
   addAutoReleasedObject(mode);
 
 
