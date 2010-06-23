@@ -8,9 +8,12 @@
 #define ANALYSISPLUGIN_H
 
 #include <extensionsystem/iplugin.h>
+#include <boost/smart_ptr.hpp>
 
 namespace Analysis {
     namespace internal {
+
+      class AnalysisManager;
 
       class AnalysisPlugin : public ExtensionSystem::IPlugin {
 	Q_OBJECT
@@ -23,6 +26,9 @@ namespace Analysis {
       signals:
 
       public slots:
+
+      private:
+      boost::shared_ptr<AnalysisManager> manager_;
 
       };
 

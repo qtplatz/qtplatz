@@ -85,21 +85,17 @@ Dataplot::axisX() const
 Axis
 Dataplot::axisY() const
 {
-  if ( pi_ ) {
-    CComPtr<ISADPAxis> piAxis;
-    pi_->get_AxisY( &piAxis );
-    return Axis( piAxis );
-  }
+	CComPtr<ISADPAxis> piAxis;
+	pi_->get_AxisY( &piAxis );
+	return Axis( piAxis );
 }
 
 Axis
 Dataplot::axisY1() const
 {
-  if ( pi_ ) {
     CComPtr<ISADPAxis> piAxis;
     pi_->get_AxisY1( &piAxis );
     return Axis( piAxis );
-  }
 }
 
 Axis

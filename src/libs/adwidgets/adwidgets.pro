@@ -21,7 +21,20 @@ SOURCES +=  dataplot.cpp \
     title.cpp \
     colors.cpp \
     legend.cpp \
-    plotregion.cpp
+    plotregion.cpp \
+    annotations.cpp \
+    annotation.cpp \
+    fractions.cpp \
+    fraction.cpp \
+    markers.cpp \
+    marker.cpp \
+    peaks.cpp \
+    peak.cpp \
+    baselines.cpp \
+    baseline.cpp \
+    filledranges.cpp \
+    ranges.cpp \
+    font.cpp
 
 HEADERS += dataplot.h \
     axis.h \
@@ -32,7 +45,20 @@ HEADERS += dataplot.h \
     colors.h \
     legend.h \
     import_sagraphics.h \
-    plotregion.h
+    plotregion.h \
+    annotations.h \
+    annotation.h \
+    fractions.h \
+    fraction.h \
+    markers.h \
+    marker.h \
+    peaks.h \
+    peak.h \
+    baselines.h \
+    baseline.h \
+    filledranges.h \
+    ranges.h \
+    font.h
 
 include(../../boost.pri)
 

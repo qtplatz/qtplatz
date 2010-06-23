@@ -17,11 +17,15 @@ include(../../plugins/coreplugin/coreplugin.pri)
 DEFINES += ANALYSIS_LIBRARY
 
 SOURCES += analysis.cpp \
-    analysisplugin.cpp
+    analysisplugin.cpp \
+    analysismode.cpp \
+    analysismanager.cpp
 
 HEADERS += analysis.h\
         analysis_global.h \
-    analysisplugin.h
+    analysisplugin.h \
+    analysismode.h \
+    analysismanager.h
 
 OTHER_FILES += analysis.pluginspec \
     analysis_dependencies.pri

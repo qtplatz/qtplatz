@@ -4,20 +4,19 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#ifndef ACQUIREMODE_H
-#define ACQUIREMODE_H
+#ifndef ANALYSISMODE_H
+#define ANALYSISMODE_H
 
 #include <coreplugin/basemode.h>
 
-namespace Acquire {
+namespace Analysis {
   namespace internal {
-    
-    class AcquireMode : public Core::BaseMode {
+
+    class AnalysisMode : public Core::BaseMode {
       Q_OBJECT
-	;
     public:
-      ~AcquireMode();
-      explicit AcquireMode(QObject *parent = 0);
+      ~AnalysisMode();
+      explicit AnalysisMode(QObject *parent = 0);
 
     signals:
 
@@ -26,8 +25,8 @@ namespace Acquire {
     private:
 
     };
-    //---------
+    ////////////////
   }
 }
 
-#endif // ACQUIREMODE_H
+#endif // ANALYSISMODE_H
