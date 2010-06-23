@@ -3,27 +3,28 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#include "analysisplugin.h"
+#include "adbrokerplugin.h"
 #include <QtCore/qplugin.h>
+
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
 #include <QStringList>
 
-using namespace Analysis;
-using namespace Analysis::internal;
+using namespace ADBroker;
+using namespace ADBroker::internal;
 
-AnalysisPlugin::~AnalysisPlugin()
+ADBrokerPlugin::~ADBrokerPlugin()
 {
 }
 
-AnalysisPlugin::AnalysisPlugin()
+ADBrokerPlugin::ADBrokerPlugin()
 {
 }
 
 bool
-AnalysisPlugin::initialize(const QStringList& arguments, QString* error_message)
+ADBrokerPlugin::initialize(const QStringList& arguments, QString* error_message)
 {
   Q_UNUSED( arguments );
   Q_UNUSED( error_message );
@@ -32,8 +33,8 @@ AnalysisPlugin::initialize(const QStringList& arguments, QString* error_message)
 
 
 void
-AnalysisPlugin::extensionsInitialized()
+ADBrokerPlugin::extensionsInitialized()
 {
 }
 
-Q_EXPORT_PLUGIN( AnalysisPlugin )
+Q_EXPORT_PLUGIN( ADBrokerPlugin )

@@ -11,9 +11,10 @@ SUBDIRS   = plugin_coreplugin \
             plugin_dataanalysis \ #on trial for mass spec data analysis
             plugin_acquire \
 #            plugin_tune \
-#            plugin_sequence \
-#            plugin_analysis \
+            plugin_sequence \
+            plugin_analysis \
 #            plugin_batchproc \
+            plugin_adbroker \
             plugin_help
 
 plugin_coreplugin.subdir = coreplugin
@@ -49,6 +50,9 @@ plugin_analysis.depends = plugin_coreplugin
 
 plugin_batchproc.subdir = batchproc
 plugin_batchproc.depends = plugin_coreplugin
+
+plugin_adbroker.subdir = adbroker
+plugin_adbroker.depends = plugin_coreplugin
 
 plugin_help.subdir = help
 plugin_help.depends = plugin_find

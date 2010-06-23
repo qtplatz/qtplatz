@@ -19,6 +19,7 @@ namespace Sequence {
       explicit SequencePlugin();
 
       bool initialize(const QStringList& arguments, QString* error_message);
+      void extensionsInitialized();
 
     signals:
 

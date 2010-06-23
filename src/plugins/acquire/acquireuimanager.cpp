@@ -21,38 +21,12 @@
 namespace Acquire { 
   namespace internal {
 
-    namespace ui {
-
-      struct TimeTrace {
-      };
-      
-      struct Spectrum {
-      };
-
-      struct TabbedPane {
-      };
-    }
-
-    template<class T, class Q = QWidget> struct QWidget_t : public Q {
-      T t_;
-    };
-    
-    typedef boost::variant< 
-      QWidget_t<ui::TimeTrace, adil::ui::Dataplot>
-      , QWidget_t<ui::Spectrum, adil::ui::Dataplot>
-      , QWidget_t<ui::TabbedPane, QTabWidget> > widget_type;
-  
     struct AcquireUIManagerData : boost::noncopyable {
       AcquireUIManagerData() : mainWindow_(0) {}
       
       Utils::FancyMainWindow* mainWindow_;
 
-	  //QWidget_t<ui::TimeTrace, adil::TraceWidget>  timeTraceWidget_;
-	  //QWidget_t<ui::Spectrum,  adil::TraceWidget>  spectrumWidget_;
-	  //QWidget_t<ui::TabbedPane, QWidget> tabbedWidget_;
-
       std::vector< QDockWidget * > dockWidgetVec_;
-	  //AcquireManagerActions actions_;
     };
 
   }
@@ -98,13 +72,24 @@ AcquireUIManager::init()
     m.mainWindow_->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
     m.mainWindow_->setDocumentMode( true );
     
-    QWidget * edit1 = new QTextEdit( "Edit 1" );
-    QWidget * edit2 = new QTextEdit( "Edit 2" );
-    QWidget * edit3 = new QTextEdit( "Edit 3" );
-    QWidget * edit4 = new QTextEdit( "Edit 4" );
+    QWidget * edit1 = new QTextEdit( "Sequence" );
+    edit1->setWindowTitle( tr("Sequence") );
+
+    QWidget * edit2 = new QTextEdit( "Log" );
+    edit2->setWindowTitle( tr("Log Book") );
+
+    QWidget * edit3 = new QTextEdit( "MS" );
+    edit3->setWindowTitle( tr("Autosampler") );
+
+    QWidget * edit4 = new QTextEdit( "Edit4" );
+    edit4->setWindowTitle( tr("Mass Spectrometer") );
+
     QWidget * edit5 = new QTextEdit( "Edit 5" );
+    edit5->setWindowTitle( tr("Agilnet 1290") );
+
     QWidget * edit6 = new QTextEdit( "Edit 6" );
-    
+    edit6->setWindowTitle( tr("All") );
+
     QDockWidget * dock1 = m.mainWindow_->addDockForWidget( edit1 );
     QDockWidget * dock2 = m.mainWindow_->addDockForWidget( edit2 );
     QDockWidget * dock3 = m.mainWindow_->addDockForWidget( edit3 );
@@ -118,10 +103,6 @@ AcquireUIManager::init()
     m.dockWidgetVec_.push_back( dock4 );
     m.dockWidgetVec_.push_back( dock5 );
     m.dockWidgetVec_.push_back( dock6 );
-    
-    //m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.spectrumWidget_ ) );
-    //m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.tabbedWidget_ ) );
-    //m.dockWidgetVec_.push_back( m.mainWindow_->addDockForWidget( &m.tabbedWidget_ ) );
     
     // todo
     // set actions
@@ -153,9 +134,6 @@ AcquireUIManager::setSimpleDockWidgetArrangement()
   }
 
   foreach ( QDockWidget * dockWidget, dockWidgets ) {
-    //if ( dockWidget == m.dockWidgetVec_.front() )
-    //  m.mainWindow_->addDockWidget( Qt::TopDockWidgetArea, dockWidget );
-    //else
     m.mainWindow_->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
     dockWidget->show();
   }
@@ -164,8 +142,3 @@ AcquireUIManager::setSimpleDockWidgetArrangement()
     m.mainWindow_->tabifyDockWidget( m.dockWidgetVec_[1], m.dockWidgetVec_[i] );
 
 }
-
-
-
-
-

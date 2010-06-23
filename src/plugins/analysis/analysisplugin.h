@@ -15,10 +15,11 @@ namespace Analysis {
       class AnalysisPlugin : public ExtensionSystem::IPlugin {
 	Q_OBJECT
       public:
-	~AnalysisPlugin();
+        ~AnalysisPlugin();
         explicit AnalysisPlugin();
+        void extensionsInitialized();
 
-	bool initialize(const QStringList &arguments, QString *error_message);
+        bool initialize(const QStringList &arguments, QString *error_message);
       signals:
 
       public slots:

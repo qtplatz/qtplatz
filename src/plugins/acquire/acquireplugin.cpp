@@ -17,7 +17,7 @@
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/icore.h>
+
 #include <QtCore/qplugin.h>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
@@ -76,8 +76,8 @@ AcquirePlugin::~AcquirePlugin()
 
 AcquirePlugin::AcquirePlugin() : manager_(0)
                                , pImpl_( new AcquireImpl() )
-							   , action1_(0)
-							   , action2_(0)
+                                                           , actionConnect_(0)
+                                                           , actionRunStop_(0)
 							   , action3_(0)
 							   , action4_(0)
 							   , action5_(0)
@@ -89,25 +89,19 @@ AcquirePlugin::initialize_actions()
 {
 	pImpl_->loadIcon();
 
-	action1_ = new QAction(QIcon(Constants::ICON_CONNECT), tr("Connect"), this);
-	// action1_->setText( tr("Start and Debug External Application...") );
-	// action1_->setIcon( pImpl_->icon_ );
-	connect( action1_, SIGNAL(triggered()), this, SLOT(action1()) );
+	actionConnect_ = new QAction(QIcon(Constants::ICON_CONNECT), tr("Connect to control server..."), this);
+    connect( actionConnect_, SIGNAL(triggered()), this, SLOT(actionConnect()) );
 
-	action2_ = new QAction(this);
-	action2_->setText( tr("Start and Debug External Application...") );
-	connect( action2_, SIGNAL(triggered()), this, SLOT(action2()) );
+    actionRunStop_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Run / stop control..."), this);
+    connect( actionRunStop_, SIGNAL(triggered()), this, SLOT(actionRunStop()) );
 
-	action3_ = new QAction(this);
-	action3_->setText( tr("Start and Debug External Application...") );
+    action3_ = new QAction(QIcon(Constants::ICON_INTERRUPT_SMALL), tr("Interrupt sequence..."), this);
 	connect( action3_, SIGNAL(triggered()), this, SLOT(action3()) );
 
-	action4_ = new QAction(this);
-	action4_->setText( tr("Start and Debug External Application...") );
+    action4_ = new QAction(QIcon(Constants::ICON_START_SMALL), tr("Start initial condition..."), this);
 	connect( action4_, SIGNAL(triggered()), this, SLOT(action4()) );
 
-	action5_ = new QAction(this);
-	action5_->setText( tr("Start and Debug External Application...") );
+    action5_ = new QAction(QIcon(Constants::ICON_STOP_SMALL), tr("Stop inlet..."), this);
 	connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
 
 	//const AcquireManagerActions& actions = manager_->acquireManagerActions();
@@ -116,7 +110,11 @@ AcquirePlugin::initialize_actions()
 	Core::ActionManager *am = Core::ICore::instance()->actionManager();
 	if ( am ) {
 		Core::Command * cmd = 0;
-		cmd = am->registerAction( action1_, Constants::INTERRUPT, globalcontext );
+        cmd = am->registerAction( actionConnect_, Constants::CONNECT, globalcontext );
+        cmd = am->registerAction( actionRunStop_, Constants::INITIALRUN, globalcontext );
+        cmd = am->registerAction( action3_, Constants::RUN, globalcontext );
+        cmd = am->registerAction( action4_, Constants::STOP, globalcontext );
+        cmd = am->registerAction( action5_, Constants::ACQUISITION, globalcontext );
 	}
 }
 
@@ -188,20 +186,14 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
       toolBarLayout->setSpacing(0);
       Core::ActionManager *am = core->actionManager();
       if ( am ) {
-		  Core::Command * cmd(0);
-		  if ( cmd = am->command(Constants::INTERRUPT) )
-			  toolBarLayout->addWidget(toolButton( cmd->action() ));
-        //toolBarLayout->addWidget(toolButton(am->command(Constants::NEXT)->action()));
-        //toolBarLayout->addWidget(toolButton(am->command(Constants::STEP)->action()));
-        //toolBarLayout->addWidget(toolButton(am->command(Constants::STEPOUT)->action()));
-           toolBarLayout->addWidget( new QLabel( tr("A") ) );
-           toolBarLayout->addWidget( new Utils::StyledSeparator );
-           toolBarLayout->addWidget( new QLabel( tr("B") ) );
-           toolBarLayout->addWidget( new Utils::StyledSeparator );
-           toolBarLayout->addWidget( new QLabel( tr("C") ) );
+		  toolBarLayout->addWidget(toolButton(am->command(Constants::CONNECT)->action()));
+		  toolBarLayout->addWidget(toolButton(am->command(Constants::INITIALRUN)->action()));
+		  toolBarLayout->addWidget(toolButton(am->command(Constants::RUN)->action()));
+		  toolBarLayout->addWidget(toolButton(am->command(Constants::STOP)->action()));
+		  toolBarLayout->addWidget(toolButton(am->command(Constants::ACQUISITION)->action()));
       }
       toolBarLayout->addWidget( new Utils::StyledSeparator );
-      toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
+      toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
     }
     Utils::StyledBar * toolBar2 = new Utils::StyledBar;
     if ( toolBar2 ) {

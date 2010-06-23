@@ -32,8 +32,8 @@ namespace Acquire {
       AcquireUIManager * manager_;
 	  AcquireImpl * pImpl_;
 
-      QAction * action1_;
-      QAction * action2_;
+      QAction * actionConnect_;
+      QAction * actionRunStop_;
       QAction * action3_;
       QAction * action4_;
       QAction * action5_;
