@@ -8,7 +8,7 @@
 #include "acquiremode.h"
 #include "acquireuimanager.h"
 #include "acquireactions.h"
-#include <adwidgets/dataplot.h>
+#include <adwidgets/dataplotwidget.h>
 #include <adwidgets/axis.h>
 
 #include <utils/fancymainwindow.h>
@@ -230,12 +230,12 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
     Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
     if ( splitter3 ) {
-		if ( pImpl_->timePlot_ = new adil::ui::Dataplot ) {
+                if ( pImpl_->timePlot_ = new adil::ui::DataplotWidget ) {
 			adil::ui::Axis axis = pImpl_->timePlot_->axisX();
 			axis.text( L"Time(min)" );
 		}
 
-		if ( pImpl_->spectrumPlot_ = new adil::ui::Dataplot ) {
+                if ( pImpl_->spectrumPlot_ = new adil::ui::DataplotWidget ) {
 			adil::ui::Axis axis = pImpl_->spectrumPlot_->axisX();
 			axis.text( L"m/z" );
 		}

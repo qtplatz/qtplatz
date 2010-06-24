@@ -490,47 +490,47 @@ Dataplot::legend() const
 void
 Dataplot::OnMouseDown(double x, double y, short button )
 {
-  emit OnNotifyMouseDown(x, y, button );
+  emit NotifyMouseDown(x, y, button );
 }
 
 void
 Dataplot::OnMouseUp( double x, double y, short button )
 {
-  emit OnNotifyMouseUp(x, y, button );
+  emit NotifyMouseUp(x, y, button );
 }
 
 void
 Dataplot::OnMouseMove( double x, double y, short button )
 {
-  emit OnNotifyMouseMove(x, y, button );
+  emit NotifyMouseMove(x, y, button );
 }
 
 void
 Dataplot::OnCharacter( long KeyCode )
 {
-  emit OnNotifyCharacter( KeyCode );
+  emit NotifyCharacter( KeyCode );
 }
 
 void
 Dataplot::OnKeyDown( long KeyCode )
 {
-  emit OnNotifyKeyDown( KeyCode );
+  emit NotifyKeyDown( KeyCode );
 }
 
 void
 Dataplot::OnSetFocus( long hWnd )
 {
-  emit OnNotifySetFocus( hWnd );
+  emit NotifySetFocus( hWnd );
 }
 
 void
 Dataplot::OnKillFocus( long hWnd )
 {
-  emit OnNotifyKillFocus( hWnd );
+  emit NotifyKillFocus( hWnd );
 }
 
 void
 Dataplot::OnMouseDblClk(double x, double y, short button )
 {
-  emit OnNotifyMouseDblClk(x, y, button );
+  emit NotifyMouseDblClk(x, y, button );
 }

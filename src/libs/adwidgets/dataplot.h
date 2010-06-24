@@ -8,7 +8,6 @@
 #define DATAPLOT_H
 
 #include <QWidget>
-#include <boost/variant.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/noncopyable.hpp>
 
@@ -113,29 +112,29 @@ namespace adil {
       Legend legend() const;
 
     signals:
-		void OnNotifyMouseDown(double x, double y, short button );
-		void OnNotifyMouseUp( double x, double y, short Button );
-		void OnNotifyMouseMove( double x, double y, short Button );
-		void OnNotifyCharacter( long KeyCode );
-		void OnNotifyKeyDown( long KeyCode );
-		void OnNotifySetFocus( long hWnd );
-		void OnNotifyKillFocus( long hWnd );
-		void OnNotifyMouseDblClk(double x, double y, short button );
-      
-	  private slots:
-        friend internal::win32::DataplotImpl;
-
-		void OnMouseDown(double x, double y, short button );
-		void OnMouseUp( double x, double y, short Button );
-		void OnMouseMove( double x, double y, short Button );
-		void OnCharacter( long KeyCode );
-		void OnKeyDown( long KeyCode );
-		void OnSetFocus( long hWnd );
-		void OnKillFocus( long hWnd );
-		void OnMouseDblClk(double x, double y, short button );
-	
+	  void NotifyMouseDown(double x, double y, short button );
+	  void NotifyMouseUp( double x, double y, short Button );
+	  void NotifyMouseMove( double x, double y, short Button );
+	  void NotifyCharacter( long KeyCode );
+	  void NotifyKeyDown( long KeyCode );
+	  void NotifySetFocus( long hWnd );
+	  void NotifyKillFocus( long hWnd );
+	  void NotifyMouseDblClk(double x, double y, short button );
+	  
+	private slots:
+	  friend internal::win32::DataplotImpl;
+	  
+	  virtual void OnMouseDown(double x, double y, short button );
+	  virtual void OnMouseUp( double x, double y, short Button );
+	  virtual void OnMouseMove( double x, double y, short Button );
+	  virtual void OnCharacter( long KeyCode );
+	  virtual void OnKeyDown( long KeyCode );
+	  virtual void OnSetFocus( long hWnd );
+	  virtual void OnKillFocus( long hWnd );
+	  virtual void OnMouseDblClk(double x, double y, short button );
+	  
     private:
-		internal::win32::DataplotImplPtr pImpl_;
+	  internal::win32::DataplotImplPtr pImpl_;
 
     protected:
       virtual void resizeEvent( QResizeEvent * );

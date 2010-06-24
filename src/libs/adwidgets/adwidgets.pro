@@ -35,7 +35,8 @@ SOURCES +=  dataplot.cpp \
     filledranges.cpp \
     ranges.cpp \
     font.cpp \
-    dataplotimpl.cpp
+    dataplotimpl.cpp \
+    dataplotwidget.cpp
 
 HEADERS += dataplot.h \
     axis.h \
@@ -60,7 +61,8 @@ HEADERS += dataplot.h \
     filledranges.h \
     ranges.h \
     font.h \
-    dataplotimpl.h
+    dataplotimpl.h \
+    dataplotwidget.h
 
 include(../../boost.pri)
 
