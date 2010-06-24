@@ -24,50 +24,50 @@ namespace adil {
     class Axis;
     class Colors;
     class PlotRegion;
-	class Legend;
+    class Legend;
 
-	namespace internal {
-		namespace win32 {
-			class DataplotImpl;
-			typedef boost::scoped_ptr< DataplotImpl > DataplotImplPtr;
-		}
-		namespace qt {
-			class DataplotImpl; // TBD
-		}
-	}
-
-	class Dataplot : public QWidget, boost::noncopyable {
+    namespace internal {
+      namespace win32 {
+	class DataplotImpl;
+	typedef boost::scoped_ptr< DataplotImpl > DataplotImplPtr;
+      }
+      namespace qt {
+	class DataplotImpl; // TBD
+      }
+    }
+    
+    class Dataplot : public QWidget, boost::noncopyable {
       Q_OBJECT
     public:
       ~Dataplot();
       explicit Dataplot(QWidget *parent = 0);
-
+      
       bool createControl();
-
-	  void autoSize(bool);
-	  bool autoSize() const;
-
+      
+      void autoSize(bool);
+      bool autoSize() const;
+      
       unsigned long backColor() const;
       void backColor( unsigned long );
-
+      
       unsigned long borderColor() const;
       void borderColor( unsigned long );
-
+      
       long borderStyle() const;
       void borderStyle( long );
-
+      
       long borderWidth() const;
       void borderWidth( long );
-
+      
       void foreColor(unsigned long newValue);
       unsigned long foreColor() const;
-
+      
       void enabled(bool newValue);
       bool enabled() const;
       void borderVisible(bool newValue);
       bool borderVisible() const;
       Titles titles() const;
-	  PlotRegion plotRegion() const;
+      PlotRegion plotRegion() const;
       Traces traces() const;
       Colors colors() const;
       Axis axisX() const;
@@ -112,30 +112,31 @@ namespace adil {
       Legend legend() const;
 
     signals:
-	  void NotifyMouseDown(double x, double y, short button );
-	  void NotifyMouseUp( double x, double y, short Button );
-	  void NotifyMouseMove( double x, double y, short Button );
-	  void NotifyCharacter( long KeyCode );
-	  void NotifyKeyDown( long KeyCode );
-	  void NotifySetFocus( long hWnd );
-	  void NotifyKillFocus( long hWnd );
-	  void NotifyMouseDblClk(double x, double y, short button );
+      void NotifyMouseDown( double x, double y, short button );
+      void NotifyMouseUp( double x, double y, short Button );
+      void NotifyMouseMove( double x, double y, short Button );
+      void NotifyCharacter( long KeyCode );
+      void NotifyKeyDown( long KeyCode );
+      void NotifySetFocus( long hWnd );
+      void NotifyKillFocus( long hWnd );
+      void NotifyMouseDblClk(double x, double y, short button );
 	  
-	private slots:
-	  friend internal::win32::DataplotImpl;
-	  
-	  virtual void OnMouseDown(double x, double y, short button );
-	  virtual void OnMouseUp( double x, double y, short Button );
-	  virtual void OnMouseMove( double x, double y, short Button );
-	  virtual void OnCharacter( long KeyCode );
-	  virtual void OnKeyDown( long KeyCode );
-	  virtual void OnSetFocus( long hWnd );
-	  virtual void OnKillFocus( long hWnd );
-	  virtual void OnMouseDblClk(double x, double y, short button );
-	  
+      private
+	slots:
+      friend internal::win32::DataplotImpl;
+      
+      virtual void OnMouseDown(double x, double y, short button );
+      virtual void OnMouseUp( double x, double y, short Button );
+      virtual void OnMouseMove( double x, double y, short Button );
+      virtual void OnCharacter( long KeyCode );
+      virtual void OnKeyDown( long KeyCode );
+      virtual void OnSetFocus( long hWnd );
+      virtual void OnKillFocus( long hWnd );
+      virtual void OnMouseDblClk(double x, double y, short button );
+      
     private:
-	  internal::win32::DataplotImplPtr pImpl_;
-
+      internal::win32::DataplotImplPtr pImpl_;
+      
     protected:
       virtual void resizeEvent( QResizeEvent * );
     };
