@@ -5,13 +5,12 @@
 
 #include "dataplot.h"
 
-#ifdef WIN32
-#include <atlbase.h>
-#include <atlcom.h>
-
-#include <QAxWidget>  // Fix me, this module requre commercial license
-#include <QUuid>
-#endif
+//#ifdef WIN32
+//#include <atlbase.h>
+//#include <atlcom.h>
+//#include <QAxWidget>  // Fix me, this module requre commercial license
+//#include <QUuid>
+//#endif
 
 #include <QResizeEvent>
 
@@ -24,153 +23,13 @@
 #include "legend.h"
 #include "plotregion.h"
 
-#define QCLSID_SADataplot "{1033423F-6431-46CD-9824-C1A9CAE5861E}"
-static QUuid QIID_ISADataplot(0x9bda62de,0x514e,0x4ffb,0x8d,0xcc,0xe1,0xa3,0x55,0xcf,0x6b,0xff);
+//#define QCLSID_SADataplot "{1033423F-6431-46CD-9824-C1A9CAE5861E}"
+//static QUuid QIID_ISADataplot(0x9bda62de,0x514e,0x4ffb,0x8d,0xcc,0xe1,0xa3,0x55,0xcf,0x6b,0xff);
 
-#include "import_sagraphics.h"
+#include "dataplotimpl.h"
 
 using namespace adil;
 using namespace adil::ui;
-
-
-namespace adil {
-	namespace ui {
-		namespace internal {
-
-			namespace win32 {
-				__declspec(selectany) _ATL_FUNC_INFO SADP_MouseDown = { CC_STDCALL, VT_EMPTY, 3, { VT_R8, VT_R8, VT_I2 } };
-				__declspec(selectany) _ATL_FUNC_INFO SADP_MouseUp   = { CC_STDCALL, VT_EMPTY, 3, { VT_R8, VT_R8, VT_I2 } };
-				__declspec(selectany) _ATL_FUNC_INFO SADP_MouseMove = { CC_STDCALL, VT_EMPTY, 3, { VT_R8, VT_R8, VT_I2 } };
-				__declspec(selectany) _ATL_FUNC_INFO SADP_Character = { CC_STDCALL, VT_EMPTY, 1, { VT_I4 } };
-				__declspec(selectany) _ATL_FUNC_INFO SADP_KeyDown   = { CC_STDCALL, VT_EMPTY, 1, { VT_I4 } };
-				__declspec(selectany) _ATL_FUNC_INFO SADP_SetFocus  = { CC_STDCALL, VT_EMPTY, 1, { VT_I4 } };
-				__declspec(selectany) _ATL_FUNC_INFO SADP_KillFocus = { CC_STDCALL, VT_EMPTY, 1, { VT_I4 } };
-				__declspec(selectany) _ATL_FUNC_INFO SADP_MouseDblClk = { CC_STDCALL, VT_EMPTY, 3, { VT_R8, VT_R8, VT_I2 } };
-
-				/******************************************************
-				*/
-				class DataplotImpl : public QAxWidget
-					               , public IDispEventSimpleImpl<100, DataplotImpl, &DIID__ISADataplotEvents>
-					               , public IDispEventSimpleImpl<100, DataplotImpl, &DIID__ISADataplotEvents2> { 
-				public:
-                    ~DataplotImpl();
-					DataplotImpl( Dataplot& parent );
-					bool createControl();
-					ISADataplot* operator -> () { return pi_.p; };
-				private:
-					Dataplot& dataplot_;
-					CComPtr<ISADataplot> pi_;
-				public:
-                    STDMETHOD(OnMouseDown)(double x, double y, short button );
-					STDMETHOD(OnMouseUp)( double x, double y, short Button );
-					STDMETHOD(OnMouseMove)( double x, double y, short Button );
-					STDMETHOD(OnCharacter)( long KeyCode );
-					STDMETHOD(OnKeyDown)( long KeyCode );
-					STDMETHOD(OnSetFocus)( long hWnd );
-					STDMETHOD(OnKillFocus)( long hWnd );
-                    STDMETHOD(OnMouseDblClk)(double x, double y, short button );
-
-                    BEGIN_SINK_MAP( DataplotImpl )
-						SINK_ENTRY_INFO(100, DIID__ISADataplotEvents,  1, OnMouseDown, &SADP_MouseDown)
-						SINK_ENTRY_INFO(100, DIID__ISADataplotEvents,  2, OnMouseUp,   &SADP_MouseUp)
-						SINK_ENTRY_INFO(100, DIID__ISADataplotEvents,  3, OnMouseMove, &SADP_MouseMove)
-						SINK_ENTRY_INFO(100, DIID__ISADataplotEvents,  4, OnCharacter, &SADP_Character)
-						SINK_ENTRY_INFO(100, DIID__ISADataplotEvents,  5, OnSetFocus,  &SADP_SetFocus)
-						SINK_ENTRY_INFO(100, DIID__ISADataplotEvents,  6, OnKillFocus, &SADP_KillFocus)
-						SINK_ENTRY_INFO(100, DIID__ISADataplotEvents2, 1, OnMouseDblClk, &SADP_MouseDblClk)
-                    END_SINK_MAP()
-				};
-				/*
-				*****************************************************/
-			}
-		}
-	}
-}
-
-using namespace internal::win32;
-
-DataplotImpl::DataplotImpl( Dataplot& dataplot ) : dataplot_( dataplot )
-                                                 , QAxWidget( &dataplot )
-{
-}
-
-DataplotImpl::~DataplotImpl()
-{
-	HRESULT hr;
-	hr = IDispEventSimpleImpl<100, DataplotImpl, &DIID__ISADataplotEvents>::DispEventUnadvise( pi_ );
-	ATLASSERT( hr == S_OK);
-	hr = IDispEventSimpleImpl<100, DataplotImpl, &DIID__ISADataplotEvents2>::DispEventUnadvise( pi_ );
-    ATLASSERT( hr == S_OK );
-}
-
-bool
-DataplotImpl::createControl()
-{
-	if ( this->setControl( QCLSID_SADataplot ) ) {
-		pi_.Release();
-		if ( this->queryInterface( QIID_ISADataplot, reinterpret_cast<void **>(&pi_) ) == S_OK ) {
-            HRESULT hr;
-            hr = IDispEventSimpleImpl<100, DataplotImpl, &DIID__ISADataplotEvents>::DispEventAdvise( pi_ );
-            ATLASSERT( hr == S_OK );
-            hr = IDispEventSimpleImpl<100, DataplotImpl, &DIID__ISADataplotEvents2>::DispEventAdvise( pi_ );
-            ATLASSERT( hr == S_OK );
-			this->activateWindow();
-			return true;
-		}
-	}
-	return false;
-}
-
-STDMETHODIMP
-DataplotImpl::OnMouseDown( double x, double y, short button )
-{
-	long z = 0;
-	return S_OK;
-}
-
-STDMETHODIMP
-DataplotImpl::OnMouseUp( double x, double y, short Button )
-{
-	return S_OK;
-}
-
-STDMETHODIMP
-DataplotImpl::OnMouseMove( double x, double y, short Button )
-{
-	return S_OK;
-}
-
-STDMETHODIMP
-DataplotImpl::OnCharacter( long KeyCode )
-{
-	return S_OK;
-}
-
-STDMETHODIMP
-DataplotImpl::OnKeyDown( long KeyCode )
-{
-	return S_OK;
-}
-
-STDMETHODIMP
-DataplotImpl::OnSetFocus( long hWnd )
-{
-	return S_OK;
-}
-
-STDMETHODIMP
-DataplotImpl::OnKillFocus( long hWnd )
-{
-	return S_OK;
-}
-
-STDMETHODIMP
-DataplotImpl::OnMouseDblClk(double x, double y, short button )
-{
-	return S_OK;
-}
-
-////////////////////////////////////////
 
 Dataplot::~Dataplot()
 {
@@ -178,19 +37,19 @@ Dataplot::~Dataplot()
 
 Dataplot::Dataplot(QWidget *parent) : QWidget(parent)
 {
-	// Only support win32 COM implementation so far.
-	using namespace internal;
-	pImpl_.reset( new win32::DataplotImpl(*this) );
-    if ( pImpl_ )
-		createControl();
+  // Only support win32 COM implementation so far.
+  using namespace internal;
+  pImpl_.reset( new win32::DataplotImpl(*this) );
+  if ( pImpl_ )
+    createControl();
 }
 
 bool
 Dataplot::createControl()
 {
-	if ( pImpl_ ) 
-		return pImpl_->createControl();
-	return false;
+  if ( pImpl_ ) 
+    return pImpl_->createControl();
+  return false;
 }
 
 void
@@ -625,4 +484,53 @@ Dataplot::legend() const
 	CComPtr<ISADPLegend> p;
 	(*pImpl_)->get_Legend( &p );
     return Legend( p );
+}
+
+//////////////////////////
+void
+Dataplot::OnMouseDown(double x, double y, short button )
+{
+  emit OnNotifyMouseDown(x, y, button );
+}
+
+void
+Dataplot::OnMouseUp( double x, double y, short button )
+{
+  emit OnNotifyMouseUp(x, y, button );
+}
+
+void
+Dataplot::OnMouseMove( double x, double y, short button )
+{
+  emit OnNotifyMouseMove(x, y, button );
+}
+
+void
+Dataplot::OnCharacter( long KeyCode )
+{
+  emit OnNotifyCharacter( KeyCode );
+}
+
+void
+Dataplot::OnKeyDown( long KeyCode )
+{
+  emit OnNotifyKeyDown( KeyCode );
+}
+
+void
+Dataplot::OnSetFocus( long hWnd )
+{
+  emit OnNotifySetFocus( hWnd );
+}
+
+void
+Dataplot::OnKillFocus( long hWnd )
+{
+  emit OnNotifyKillFocus( hWnd );
+}
+
+void
+Dataplot::OnMouseDblClk(double x, double y, short button )
+{
+  emit OnNotifyMouseDblClk(x, y, button );
 }

@@ -112,9 +112,27 @@ namespace adil {
       void moveCursorPosition(double x, double y);
       Legend legend() const;
 
-      signals:
+    signals:
+		void OnNotifyMouseDown(double x, double y, short button );
+		void OnNotifyMouseUp( double x, double y, short Button );
+		void OnNotifyMouseMove( double x, double y, short Button );
+		void OnNotifyCharacter( long KeyCode );
+		void OnNotifyKeyDown( long KeyCode );
+		void OnNotifySetFocus( long hWnd );
+		void OnNotifyKillFocus( long hWnd );
+		void OnNotifyMouseDblClk(double x, double y, short button );
       
-	public slots:
+	  private slots:
+        friend internal::win32::DataplotImpl;
+
+		void OnMouseDown(double x, double y, short button );
+		void OnMouseUp( double x, double y, short Button );
+		void OnMouseMove( double x, double y, short Button );
+		void OnCharacter( long KeyCode );
+		void OnKeyDown( long KeyCode );
+		void OnSetFocus( long hWnd );
+		void OnKillFocus( long hWnd );
+		void OnMouseDblClk(double x, double y, short button );
 	
     private:
 		internal::win32::DataplotImplPtr pImpl_;
