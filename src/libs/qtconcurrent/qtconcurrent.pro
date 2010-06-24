@@ -2,7 +2,7 @@ TEMPLATE = lib
 TARGET = QtConcurrent
 DEFINES += BUILD_QTCONCURRENT
 
-include(../../qtPlatzlibrary.pri)
+include(../../adilibrary.pri)
 
 HEADERS += \
     qtconcurrent_global.h \

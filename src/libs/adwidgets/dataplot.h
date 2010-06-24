@@ -8,6 +8,9 @@
 #define DATAPLOT_H
 
 #include <QWidget>
+#include <boost/variant.hpp>
+#include <boost/smart_ptr.hpp>
+#include <boost/noncopyable.hpp>
 
 struct ISADataplot;
 
@@ -24,7 +27,17 @@ namespace adil {
     class PlotRegion;
 	class Legend;
 
-    class Dataplot : public QWidget {
+	namespace internal {
+		namespace win32 {
+			class DataplotImpl;
+			typedef boost::scoped_ptr< DataplotImpl > DataplotImplPtr;
+		}
+		namespace qt {
+			class DataplotImpl; // TBD
+		}
+	}
+
+	class Dataplot : public QWidget, boost::noncopyable {
       Q_OBJECT
     public:
       ~Dataplot();
@@ -104,8 +117,8 @@ namespace adil {
 	public slots:
 	
     private:
-	struct DataplotImpl * pImpl_;
-      ISADataplot * pi_;
+		internal::win32::DataplotImplPtr pImpl_;
+
     protected:
       virtual void resizeEvent( QResizeEvent * );
     };

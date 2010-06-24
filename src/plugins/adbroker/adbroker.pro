@@ -12,7 +12,7 @@ TARGET = adbroker
 TEMPLATE = lib
 PROVIDER = ScienceLiaison
 
-include(../../qtPlatzplugin.pri)
+include(../../adiplugin.pri)
 include(adbroker_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)

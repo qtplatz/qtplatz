@@ -1,6 +1,6 @@
 TEMPLATE = lib
 TARGET = Find
-include(../../qtPlatzplugin.pri)
+include(../../adiplugin.pri)
 include(find_dependencies.pri)
 DEFINES += FIND_LIBRARY
 HEADERS += findtoolwindow.h \

@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = Locator
 DEFINES += LOCATOR_LIBRARY
-include(../../qtPlatzplugin.pri)
+include(../../adiplugin.pri)
 include(locator_dependencies.pri)
 HEADERS += locatorplugin.h \
     locatorwidget.h \

@@ -2,7 +2,7 @@ TEMPLATE = lib
 TARGET = Help
 QT += network
 
-include(../../qtPlatzplugin.pri)
+include(../../adiplugin.pri)
 include(help_dependencies.pri)
 
 CONFIG += help

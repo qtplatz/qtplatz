@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = Aggregation
 
-include(../../qtPlatzlibrary.pri)
+include(../../adilibrary.pri)
 
 DEFINES += AGGREGATION_LIBRARY
 

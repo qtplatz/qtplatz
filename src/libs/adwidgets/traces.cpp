@@ -55,8 +55,7 @@ Trace
 Traces::add()
 {
   CComPtr<ISADPTrace> p;
-  pi_->Add(&p);
-  return Trace(p);
+  return Trace( pi_->Add() );
 }
 
 void

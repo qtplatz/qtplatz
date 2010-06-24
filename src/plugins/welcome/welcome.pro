@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = Welcome
 QT += network
-include(../../qtPlatzplugin.pri)
+include(../../adiplugin.pri)
 include(welcome_dependencies.pri)
 HEADERS += welcomeplugin.h \
     welcomemode.h \

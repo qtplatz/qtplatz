@@ -9,7 +9,7 @@ QT       += xml
 TARGET = analysis
 TEMPLATE = lib
 PROVIDER = ScienceLiaison
-include(../../qtPlatzplugin.pri)
+include(../../adiplugin.pri)
 include(analysis_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)

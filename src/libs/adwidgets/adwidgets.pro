@@ -11,7 +11,7 @@ TEMPLATE = lib
 CONFIG += staticlib qaxcontainer
 
 #DESTDIR = $$IDE_LIBRARY_PATH
-include(../../qtPlatzlibrary.pri)
+include(../../adilibrary.pri)
 
 SOURCES +=  dataplot.cpp \
     axis.cpp \
