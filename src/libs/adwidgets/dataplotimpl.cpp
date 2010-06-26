@@ -25,6 +25,7 @@ DataplotImpl::DataplotImpl( adil::ui::Dataplot& dataplot ) : dataplot_( dataplot
 
 DataplotImpl::~DataplotImpl()
 {
+    using namespace SAGRAPHICSLib;
 	HRESULT hr;
 	hr = IDispEventSimpleImpl<100, DataplotImpl, &DIID__ISADataplotEvents>::DispEventUnadvise( pi_ );
 	ATLASSERT( hr == S_OK);
@@ -32,9 +33,21 @@ DataplotImpl::~DataplotImpl()
     ATLASSERT( hr == S_OK );
 }
 
+static long default_trace_color_table[] = {
+   RGB( 240, 240, 240 ), // background
+   RGB( 0, 0, 255), // blue
+   RGB( 0, 255, 0), // green
+   RGB( 0, 255, 255 ), // cyan
+   RGB( 255, 0, 0 ), // red
+   RGB( 255, 0, 255 ), // magenta
+   RGB( 200, 200, 0 ),  // yellow
+   RGB( 16, 16, 16 ),
+};
+
 bool
 DataplotImpl::createControl()
 {
+    using namespace SAGRAPHICSLib;
 	if ( this->setControl( QCLSID_SADataplot ) ) {
 		pi_.Release();
 		if ( this->queryInterface( QIID_ISADataplot, reinterpret_cast<void **>(&pi_) ) == S_OK ) {
@@ -44,6 +57,13 @@ DataplotImpl::createControl()
             hr = IDispEventSimpleImpl<100, DataplotImpl, &DIID__ISADataplotEvents2>::DispEventAdvise( pi_ );
             ATLASSERT( hr == S_OK );
 			this->activateWindow();
+
+            SAGRAPHICSLib::ISADPColorsPtr colors = pi_->Colors;
+            const int nColors = sizeof(default_trace_color_table)/sizeof(default_trace_color_table[0]);
+            for ( int i = 0; i < nColors; ++i ) {
+                SAGRAPHICSLib::ISADPColorPtr color = colors->GetItem(i + 1);
+                color->Value = COLORREF( default_trace_color_table[i] );
+            }
 			return true;
 		}
 	}

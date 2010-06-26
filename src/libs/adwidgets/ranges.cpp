@@ -13,7 +13,7 @@ Ranges::~Ranges()
     pi_->Release();
 }
 
-Ranges::Ranges( ISADPRanges * pi ) : pi_(pi)
+Ranges::Ranges( SAGRAPHICSLib::ISADPRanges * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }

@@ -8,6 +8,11 @@
 
 #include <QWidget>
 #include <boost/smart_ptr.hpp>
+#include <map>
+
+namespace adil {
+    class MassSpectrum;
+}
 
 namespace Analysis {
   namespace internal {
@@ -27,7 +32,7 @@ namespace Analysis {
 
       private:
         boost::shared_ptr<MSProcessingWndImpl> pImpl_;
-      
+        std::map< std::wstring, boost::shared_ptr<adil::MassSpectrum> > spectra_;
     };
 
   }

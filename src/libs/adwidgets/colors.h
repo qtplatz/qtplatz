@@ -7,7 +7,9 @@
 #ifndef COLORS_H
 #define COLORS_H
 
-struct ISADPColors;
+namespace SAGRAPHICSLib {
+    struct ISADPColors;
+}
 
 namespace adil {
   namespace ui {
@@ -15,11 +17,11 @@ namespace adil {
     class Colors  {
     public:
       ~Colors();
-      Colors( ISADPColors * pi = 0 );
+      Colors( SAGRAPHICSLib::ISADPColors * pi = 0 );
       Colors( const Colors& );
 
     private:
-      ISADPColors * pi_;
+        SAGRAPHICSLib::ISADPColors * pi_;
     };
   }
 }

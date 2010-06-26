@@ -34,17 +34,17 @@ namespace adil {
 	 */
 	class DataplotImpl
 	  : public QAxWidget
-	  , public IDispEventSimpleImpl<100, DataplotImpl, &DIID__ISADataplotEvents>
-	  , public IDispEventSimpleImpl<100, DataplotImpl, &DIID__ISADataplotEvents2> { 
+	  , public IDispEventSimpleImpl<100, DataplotImpl, &SAGRAPHICSLib::DIID__ISADataplotEvents>
+	  , public IDispEventSimpleImpl<100, DataplotImpl, &SAGRAPHICSLib::DIID__ISADataplotEvents2> { 
 	  //Q_OBJECT
 	public:
 	  ~DataplotImpl();
 	  DataplotImpl( Dataplot& parent );
 	  bool createControl();
-	  ISADataplot* operator -> () { return pi_.p; };
+	  SAGRAPHICSLib::ISADataplot* operator -> () { return pi_.p; };
 	private:
 	  Dataplot& dataplot_;
-	  CComPtr<ISADataplot> pi_;
+	  CComPtr<SAGRAPHICSLib::ISADataplot> pi_;
 	public:
 	  STDMETHOD(OnMouseDown)(double x, double y, short button );
 	  STDMETHOD(OnMouseUp)( double x, double y, short Button );
@@ -56,13 +56,13 @@ namespace adil {
 	  STDMETHOD(OnMouseDblClk)(double x, double y, short button );
 	  
 	  BEGIN_SINK_MAP( DataplotImpl )
-	    SINK_ENTRY_INFO(100, DIID__ISADataplotEvents,  1, OnMouseDown,   &SADP_MouseDown)
-	    SINK_ENTRY_INFO(100, DIID__ISADataplotEvents,  2, OnMouseUp,     &SADP_MouseUp)
-	    SINK_ENTRY_INFO(100, DIID__ISADataplotEvents,  3, OnMouseMove,   &SADP_MouseMove)
-	    SINK_ENTRY_INFO(100, DIID__ISADataplotEvents,  4, OnCharacter,   &SADP_Character)
-	    SINK_ENTRY_INFO(100, DIID__ISADataplotEvents,  5, OnSetFocus,    &SADP_SetFocus)
-	    SINK_ENTRY_INFO(100, DIID__ISADataplotEvents,  6, OnKillFocus,   &SADP_KillFocus)
-	    SINK_ENTRY_INFO(100, DIID__ISADataplotEvents2, 1, OnMouseDblClk, &SADP_MouseDblClk)
+	    SINK_ENTRY_INFO(100, SAGRAPHICSLib::DIID__ISADataplotEvents,  1, OnMouseDown,   &SADP_MouseDown)
+	    SINK_ENTRY_INFO(100, SAGRAPHICSLib::DIID__ISADataplotEvents,  2, OnMouseUp,     &SADP_MouseUp)
+	    SINK_ENTRY_INFO(100, SAGRAPHICSLib::DIID__ISADataplotEvents,  3, OnMouseMove,   &SADP_MouseMove)
+	    SINK_ENTRY_INFO(100, SAGRAPHICSLib::DIID__ISADataplotEvents,  4, OnCharacter,   &SADP_Character)
+	    SINK_ENTRY_INFO(100, SAGRAPHICSLib::DIID__ISADataplotEvents,  5, OnSetFocus,    &SADP_SetFocus)
+	    SINK_ENTRY_INFO(100, SAGRAPHICSLib::DIID__ISADataplotEvents,  6, OnKillFocus,   &SADP_KillFocus)
+	    SINK_ENTRY_INFO(100, SAGRAPHICSLib::DIID__ISADataplotEvents2, 1, OnMouseDblClk, &SADP_MouseDblClk)
 	    END_SINK_MAP()
 	    };
 	/******************************************************/

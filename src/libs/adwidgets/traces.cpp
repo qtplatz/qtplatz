@@ -14,7 +14,7 @@ Traces::~Traces()
     pi_->Release();
 }
 
-Traces::Traces( ISADPTraces * pi ) : pi_(pi)
+Traces::Traces( SAGRAPHICSLib::ISADPTraces * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }
@@ -37,7 +37,7 @@ Traces::operator [] (long idx)
 Trace
 Traces::item(long Index)
 {
-  CComPtr<ISADPTrace> p;
+    CComPtr<SAGRAPHICSLib::ISADPTrace> p;
   pi_->get_Item( Index, &p );
   return Trace( p );
 }
@@ -54,7 +54,7 @@ Traces::size() const
 Trace
 Traces::add()
 {
-  CComPtr<ISADPTrace> p;
+  CComPtr<SAGRAPHICSLib::ISADPTrace> p;
   return Trace( pi_->Add() );
 }
 

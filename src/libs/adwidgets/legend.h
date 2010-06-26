@@ -7,17 +7,19 @@
 #ifndef LEGEND_H
 #define LEGEND_H
 
+namespace SAGRAPHICSLib {
 struct ISADPLegend;
+}
 
 namespace adil {
   namespace ui {
     class Legend	  {
     public:
       ~Legend();
-      Legend( ISADPLegend * pi = 0 );
+      Legend( SAGRAPHICSLib::ISADPLegend * pi = 0 );
       Legend( const Legend& );
 	private:
-      ISADPLegend * pi_;
+      SAGRAPHICSLib::ISADPLegend * pi_;
     };
   }
 }

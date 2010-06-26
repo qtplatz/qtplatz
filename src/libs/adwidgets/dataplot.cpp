@@ -27,6 +27,7 @@
 //static QUuid QIID_ISADataplot(0x9bda62de,0x514e,0x4ffb,0x8d,0xcc,0xe1,0xa3,0x55,0xcf,0x6b,0xff);
 
 #include "dataplotimpl.h"
+#include "import_sagraphics.h"
 
 using namespace adil;
 using namespace adil::ui;
@@ -63,7 +64,7 @@ Dataplot::resizeEvent(QResizeEvent * e)
 Axis
 Dataplot::axisX() const
 {
-	CComPtr<ISADPAxis> piAxis;
+	CComPtr<SAGRAPHICSLib::ISADPAxis> piAxis;
 	(*pImpl_)->get_AxisX( &piAxis );
     return Axis( piAxis );
 }
@@ -71,7 +72,7 @@ Dataplot::axisX() const
 Axis
 Dataplot::axisY() const
 {
-	CComPtr<ISADPAxis> piAxis;
+	CComPtr<SAGRAPHICSLib::ISADPAxis> piAxis;
 	(*pImpl_)->get_AxisY( &piAxis );
 	return Axis( piAxis );
 }
@@ -79,7 +80,7 @@ Dataplot::axisY() const
 Axis
 Dataplot::axisY1() const
 {
-    CComPtr<ISADPAxis> piAxis;
+    CComPtr<SAGRAPHICSLib::ISADPAxis> piAxis;
     (*pImpl_)->get_AxisY1( &piAxis );
     return Axis( piAxis );
 }
@@ -87,7 +88,7 @@ Dataplot::axisY1() const
 Axis
 Dataplot::axisY2() const
 {
-	CComPtr<ISADPAxis> piAxis;
+	CComPtr<SAGRAPHICSLib::ISADPAxis> piAxis;
 	(*pImpl_)->get_AxisY2( &piAxis );
 	return Axis( piAxis );
 }
@@ -207,7 +208,7 @@ Dataplot::borderVisible() const
 Titles 
 Dataplot::titles() const
 {
-	CComPtr<ISADPTitles> p;
+	CComPtr<SAGRAPHICSLib::ISADPTitles> p;
 	(*pImpl_)->get_Titles( &p );
 	return Titles( p );
 }
@@ -215,7 +216,7 @@ Dataplot::titles() const
 PlotRegion 
 Dataplot::plotRegion() const
 {
-	CComPtr<ISADPPlotRegion> p;
+	CComPtr<SAGRAPHICSLib::ISADPPlotRegion> p;
 	(*pImpl_)->get_PlotRegion( &p );
 	return PlotRegion( p );
 }
@@ -223,7 +224,7 @@ Dataplot::plotRegion() const
 Traces 
 Dataplot::traces() const
 {
-	CComPtr<ISADPTraces> p;
+	CComPtr<SAGRAPHICSLib::ISADPTraces> p;
 	(*pImpl_)->get_Traces( &p );
 	return Traces( p );
 }
@@ -231,7 +232,7 @@ Dataplot::traces() const
 Colors 
 Dataplot::colors() const
 {
-	CComPtr<ISADPColors> p;
+	CComPtr<SAGRAPHICSLib::ISADPColors> p;
 	(*pImpl_)->get_Colors(&p);
     return Colors( p );
 }
@@ -267,7 +268,7 @@ Dataplot::redrawEnabled(bool newValue)
 long
 Dataplot::cursorStyle() const
 {
-	CursorStyle result;
+    SAGRAPHICSLib::CursorStyle result;
 	(*pImpl_)->get_CursorStyle(&result);
 	return result;
 }
@@ -275,7 +276,7 @@ Dataplot::cursorStyle() const
 void
 Dataplot::cursorStyle(long newValue)
 {
-	(*pImpl_)->put_CursorStyle( static_cast<CursorStyle>(newValue) );	
+    (*pImpl_)->put_CursorStyle( static_cast<SAGRAPHICSLib::CursorStyle>(newValue) );	
 }
 
 bool
@@ -481,7 +482,7 @@ Dataplot::moveCursorPosition(double x, double y)
 Legend
 Dataplot::legend() const
 {
-	CComPtr<ISADPLegend> p;
+    CComPtr<SAGRAPHICSLib::ISADPLegend> p;
 	(*pImpl_)->get_Legend( &p );
     return Legend( p );
 }

@@ -1,7 +1,9 @@
 #ifndef PEAKS_H
 #define PEAKS_H
 
+namespace SAGRAPHICSLib {
 struct ISADPPeaks;
+}
 
 namespace adil {
   namespace ui {
@@ -9,10 +11,10 @@ namespace adil {
     class Peaks  {
     public:
 		~Peaks();
-		Peaks( ISADPPeaks * pi = 0 );
+		Peaks( SAGRAPHICSLib::ISADPPeaks * pi = 0 );
 		Peaks( const Peaks& );
     private:
-		ISADPPeaks * pi_;
+        SAGRAPHICSLib::ISADPPeaks * pi_;
     };
 
   }

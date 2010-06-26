@@ -6,4 +6,5 @@ SUBDIRS   = \
     aggregation \
     extensionsystem \
     utils \
-    adwidgets
+    adwidgets \
+    adicontrols

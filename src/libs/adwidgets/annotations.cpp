@@ -14,7 +14,7 @@ Annotations::~Annotations()
     pi_->Release();
 }
 
-Annotations::Annotations( ISADPAnnotations * pi ) : pi_(pi)
+Annotations::Annotations( SAGRAPHICSLib::ISADPAnnotations * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }

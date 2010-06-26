@@ -8,7 +8,7 @@ namespace ADBroker {
 
     namespace internal {
 
-class ADBROKERSHARED_EXPORT ADBrokerPlugin : public ExtensionSystem::IPlugin {
+class ADBROKER_EXPORT ADBrokerPlugin : public ExtensionSystem::IPlugin {
     Q_OBJECT
 public:
     ~ADBrokerPlugin();
@@ -19,6 +19,7 @@ public:
 signals:
 
 public slots:
+
 
 };
 

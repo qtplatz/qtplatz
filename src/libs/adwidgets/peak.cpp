@@ -14,7 +14,7 @@ Peak::~Peak()
     pi_->Release();
 }
 
-Peak::Peak( ISADPPeak * pi ) : pi_(pi)
+Peak::Peak( SAGRAPHICSLib::ISADPPeak * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }

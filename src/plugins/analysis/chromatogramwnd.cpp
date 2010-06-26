@@ -7,7 +7,8 @@
 
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
-#include <adwidgets/dataplot.h>
+#include <adwidgets/chromatogramwidget.h>
+#include <adwidgets/spectrumwidget.h>
 #include <adwidgets/axis.h>
 #include <QTableWidget>
 
@@ -24,9 +25,9 @@ namespace Analysis {
 			     , processedSpectrum_(0) {
       }
       
-      adil::ui::Dataplot * ticPlot_;
-      adil::ui::Dataplot * profileSpectrum_;
-      adil::ui::Dataplot * processedSpectrum_;
+      adil::ui::ChromatogramWidget * ticPlot_;
+      adil::ui::ChromatogramWidget * profileSpectrum_;
+      adil::ui::SpectrumWidget * processedSpectrum_;
       
     };
 
@@ -47,18 +48,16 @@ ChromatogramWnd::init()
     pImpl_.reset( new ChromatogramWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-      if ( pImpl_->ticPlot_ = new adil::ui::Dataplot ) {
-	adil::ui::Axis axis = pImpl_->ticPlot_->axisX();
-	axis.text( L"Time(min)" );
-      }
-      splitter->addWidget( pImpl_->ticPlot_ );
-      //splitter->addWidget( pImpl_->profileSpectrum_ );
-      //splitter->addWidget( pImpl_->processedSpectrum_ );
-      QTableWidget * pTable = new QTableWidget;
-      pTable->setRowCount(10);
-      pTable->setColumnCount(10);
-      splitter->addWidget( pTable );
-      splitter->setOrientation( Qt::Vertical );
+        if ( pImpl_->ticPlot_ = new adil::ui::ChromatogramWidget ) {
+            splitter->addWidget( pImpl_->ticPlot_ );
+            //splitter->addWidget( pImpl_->profileSpectrum_ );
+            //splitter->addWidget( pImpl_->processedSpectrum_ );
+            QTableWidget * pTable = new QTableWidget;
+            pTable->setRowCount(10);
+            pTable->setColumnCount(10);
+            splitter->addWidget( pTable );
+            splitter->setOrientation( Qt::Vertical );
+        }
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );

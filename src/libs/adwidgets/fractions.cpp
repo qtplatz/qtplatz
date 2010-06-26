@@ -13,7 +13,7 @@ Fractions::~Fractions()
     pi_->Release();
 }
 
-Fractions::Fractions( ISADPFractions * pi ) : pi_(pi)
+Fractions::Fractions( SAGRAPHICSLib::ISADPFractions * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }

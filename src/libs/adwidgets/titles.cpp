@@ -13,7 +13,7 @@ Titles::~Titles()
 	  pi_->Release();
 }
 
-Titles::Titles( ISADPTitles * pi ) : pi_(pi)
+Titles::Titles( SAGRAPHICSLib::ISADPTitles * pi ) : pi_(pi)
 {
 	pi_->AddRef();
 }

@@ -6,7 +6,9 @@
 #ifndef MARKERS_H
 #define MARKERS_H
 
+namespace SAGRAPHICSLib {
 struct ISADPMarkers;
+}
 
 namespace adil {
   namespace ui {
@@ -14,10 +16,10 @@ namespace adil {
     class Markers  {
     public:
 		~Markers();
-		Markers( ISADPMarkers * pi = 0 );
+		Markers( SAGRAPHICSLib::ISADPMarkers * pi = 0 );
 		Markers( const Markers& );
     private:
-		ISADPMarkers * pi_;
+        SAGRAPHICSLib::ISADPMarkers * pi_;
     };
 
   }

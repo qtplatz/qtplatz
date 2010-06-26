@@ -14,7 +14,7 @@ Legend::~Legend()
     pi_->Release();
 }
 
-Legend::Legend( ISADPLegend * pi ) : pi_(pi)
+Legend::Legend( SAGRAPHICSLib::ISADPLegend * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }

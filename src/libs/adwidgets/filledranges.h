@@ -6,7 +6,9 @@
 #ifndef FILLEDRANGES_H
 #define FILLEDRANGES_H
 
+namespace SAGRAPHICSLib {
 struct ISADPFilledRanges;
+}
 
 namespace adil {
   namespace ui {
@@ -14,10 +16,10 @@ namespace adil {
     class FilledRanges {
     public:
       ~FilledRanges();
-      FilledRanges( ISADPFilledRanges * pi = 0 );
+      FilledRanges( SAGRAPHICSLib::ISADPFilledRanges * pi = 0 );
       FilledRanges( const FilledRanges& );
 	private:
-      ISADPFilledRanges * pi_;
+        SAGRAPHICSLib::ISADPFilledRanges * pi_;
     };
 
   }

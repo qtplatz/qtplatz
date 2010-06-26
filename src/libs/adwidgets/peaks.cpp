@@ -13,7 +13,7 @@ Peaks::~Peaks()
     pi_->Release();
 }
 
-Peaks::Peaks( ISADPPeaks * pi ) : pi_(pi)
+Peaks::Peaks( SAGRAPHICSLib::ISADPPeaks * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }

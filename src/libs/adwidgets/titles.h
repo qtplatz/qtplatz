@@ -7,7 +7,9 @@
 #ifndef TITLES_H
 #define TITLES_H
 
-struct ISADPTitles;
+namespace SAGRAPHICSLib {
+    struct ISADPTitles;
+}
 
 namespace adil {
   namespace ui {
@@ -17,7 +19,7 @@ namespace adil {
 	  class Titles  {
 	  public:
 		  ~Titles();
-		  Titles( ISADPTitles * pi = 0 );
+		  Titles( SAGRAPHICSLib::ISADPTitles * pi = 0 );
 		  Titles( const Titles& );
 
 		  // LPUNKNOWN get__NewEnum();
@@ -37,7 +39,7 @@ namespace adil {
 		  long alignment();
 		  void alignment(long newValue);
 	  private:
-		  ISADPTitles * pi_;
+          SAGRAPHICSLib::ISADPTitles * pi_;
 	  };
 
   }

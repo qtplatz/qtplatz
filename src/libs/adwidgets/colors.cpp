@@ -14,7 +14,7 @@ Colors::~Colors()
     pi_->Release();
 }
 
-Colors::Colors( ISADPColors * pi ) : pi_(pi)
+Colors::Colors( SAGRAPHICSLib::ISADPColors * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }

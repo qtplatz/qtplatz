@@ -6,7 +6,9 @@
 #ifndef RANGES_H
 #define RANGES_H
 
+namespace SAGRAPHICSLib {
 struct ISADPRanges;
+}
 
 namespace adil {
   namespace ui {
@@ -14,10 +16,10 @@ namespace adil {
     class Ranges  {
     public:
 		~Ranges();
-		Ranges( ISADPRanges * pi = 0 );
+		Ranges( SAGRAPHICSLib::ISADPRanges * pi = 0 );
 		Ranges( const Ranges& );
     private:
-		ISADPRanges * pi_;
+        SAGRAPHICSLib::ISADPRanges * pi_;
     };
 
   }

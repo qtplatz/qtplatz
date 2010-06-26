@@ -6,7 +6,9 @@
 #ifndef PEAK_H
 #define PEAK_H
 
+namespace SAGRAPHICSLib {
 struct ISADPPeak;
+}
 
 namespace adil {
   namespace ui {
@@ -14,10 +16,10 @@ namespace adil {
     class Peak  {
     public:
 		~Peak();
-		Peak( ISADPPeak * pi = 0 );
+		Peak( SAGRAPHICSLib::ISADPPeak * pi = 0 );
 		Peak( const Peak& );
     private:
-		ISADPPeak * pi_;
+        SAGRAPHICSLib::ISADPPeak * pi_;
     };
 
   }

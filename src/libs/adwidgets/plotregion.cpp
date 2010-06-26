@@ -15,7 +15,7 @@ PlotRegion::~PlotRegion()
     pi_->Release();
 }
 
-PlotRegion::PlotRegion( ISADPPlotRegion * pi ) : pi_(pi)
+PlotRegion::PlotRegion( SAGRAPHICSLib::ISADPPlotRegion * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }

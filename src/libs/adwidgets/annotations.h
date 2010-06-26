@@ -7,7 +7,9 @@
 #ifndef ANNOTATIONS_H
 #define ANNOTATIONS_H
 
+namespace SAGRAPHICSLib {
 struct ISADPAnnotations;
+}
 
 namespace adil {
   namespace ui {
@@ -15,11 +17,11 @@ namespace adil {
     class Annotations {
     public:
       ~Annotations();
-      Annotations( ISADPAnnotations * pi = 0 );
+      Annotations( SAGRAPHICSLib::ISADPAnnotations * pi = 0 );
       Annotations( const Annotations& );
       
     private:
-      ISADPAnnotations * pi_;
+        SAGRAPHICSLib::ISADPAnnotations * pi_;
     };
 
   }

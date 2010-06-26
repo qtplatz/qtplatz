@@ -4,6 +4,8 @@
 //////////////////////////////////////////////
 
 #include "adbrokerplugin.h"
+#include "adicontrols/massspectrum.h"
+
 #include <QtCore/qplugin.h>
 
 #include <coreplugin/icore.h>

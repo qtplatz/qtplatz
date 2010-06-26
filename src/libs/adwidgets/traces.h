@@ -7,7 +7,9 @@
 #ifndef TRACES_H
 #define TRACES_H
 
+namespace SAGRAPHICSLib {
 struct ISADPTraces;
+}
 
 namespace adil {
   namespace ui {
@@ -17,7 +19,7 @@ namespace adil {
 	  class Traces {
 	  public:
 		  ~Traces();
-		  Traces( ISADPTraces * pi = 0 );
+		  Traces( SAGRAPHICSLib::ISADPTraces * pi = 0 );
 		  Traces( const Traces& );
 	  public:
 		  Trace item(long Index);
@@ -32,7 +34,7 @@ namespace adil {
 	    
 
 	  private:
-		  ISADPTraces * pi_;
+          SAGRAPHICSLib::ISADPTraces * pi_;
 	  };
   }
 }

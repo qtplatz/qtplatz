@@ -13,7 +13,7 @@ Baselines::~Baselines()
     pi_->Release();
 }
 
-Baselines::Baselines( ISADPBaselines * pi ) : pi_(pi)
+Baselines::Baselines( SAGRAPHICSLib::ISADPBaselines * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }

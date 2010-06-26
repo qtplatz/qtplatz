@@ -15,7 +15,7 @@ Axis::~Axis()
 	  pi_->Release();
 }
 
-Axis::Axis( ISADPAxis * pi ) : pi_(pi)
+Axis::Axis( SAGRAPHICSLib::ISADPAxis * pi ) : pi_(pi)
 {
 	pi_->AddRef();
 }
@@ -102,7 +102,7 @@ Axis::zoomMaximum() const
 long
 Axis::tickComputeStyle() const
 {
-	TickComputeStyle res;
+    SAGRAPHICSLib::TickComputeStyle res;
     if ( pi_ )
 		pi_->get_TickComputeStyle(&res);
 	return static_cast<long>(res);
@@ -112,7 +112,7 @@ void
 Axis::tickComputeStyle(long newValue)
 {
     if ( pi_ )
-		pi_->put_TickComputeStyle(static_cast<TickComputeStyle>(newValue) );
+		pi_->put_TickComputeStyle(static_cast<SAGRAPHICSLib::TickComputeStyle>(newValue) );
 }
 
 double
@@ -150,23 +150,23 @@ Axis::minorTickIncrement(double newValue)
 long
 Axis::majorTickStyle() const
 {
-	TickStyle res;
-   if ( pi_ )
-	   pi_->get_MajorTickStyle(&res);
-   return static_cast<long>(res);
+    SAGRAPHICSLib::TickStyle res;
+    if ( pi_ )
+        pi_->get_MajorTickStyle(&res);
+    return static_cast<long>(res);
 }
 
 void
 Axis::majorTickStyle(long newValue)
 {
 	if ( pi_ )
-		pi_->put_MajorTickStyle( static_cast<TickStyle>(newValue) );
+		pi_->put_MajorTickStyle( static_cast<SAGRAPHICSLib::TickStyle>(newValue) );
 }
 
 long
 Axis::minorTickStyle() const
 {
-	TickStyle res;
+    SAGRAPHICSLib::TickStyle res;
 	if ( pi_ )
 		pi_->get_MinorTickStyle( &res );
 	return static_cast<long>(res);
@@ -176,13 +176,13 @@ void
 Axis::minorTickStyle(long newValue)
 {
 	if ( pi_ )
-		pi_->put_MinorTickStyle( static_cast<TickStyle>(newValue) );
+		pi_->put_MinorTickStyle( static_cast<SAGRAPHICSLib::TickStyle>(newValue) );
 }
 
 long
 Axis::tickLabelFormat() const
 {
-	TickLabelFormat res;
+    SAGRAPHICSLib::TickLabelFormat res;
     if ( pi_ )
 		pi_->get_TickLabelFormat(&res);
 	return res;
@@ -192,7 +192,7 @@ void
 Axis::tickLabelFormat(long newValue)
 {
     if ( pi_ )
-		pi_->put_TickLabelFormat( static_cast<TickLabelFormat>(newValue) );
+		pi_->put_TickLabelFormat( static_cast<SAGRAPHICSLib::TickLabelFormat>(newValue) );
 }
 
 short
@@ -248,7 +248,7 @@ Axis::text(const std::wstring& newValue)
 long
 Axis::orientation() const
 {
-	Orientation res;
+    SAGRAPHICSLib::Orientation res;
     if ( pi_ )
 		pi_->get_Orientation(&res);
 	return res;
@@ -257,7 +257,7 @@ Axis::orientation() const
 long
 Axis::scaleStyle() const
 {
-	ScaleStyle res;
+    SAGRAPHICSLib::ScaleStyle res;
 	if ( pi_ )
 		pi_->get_ScaleStyle(&res);
 	return res;
@@ -267,7 +267,7 @@ void
 Axis::scaleStyle(long newValue)
 {
 	if ( pi_ )
-		pi_->put_ScaleStyle( static_cast<ScaleStyle>(newValue) );
+        pi_->put_ScaleStyle( static_cast<SAGRAPHICSLib::ScaleStyle>(newValue) );
 }
 
 //LPDISPATCH Axis::Ticks()
@@ -290,7 +290,7 @@ Axis::firstTickValue(double newValue)
 long
 Axis::labelOrientation() const
 {
-	Orientation res;
+    SAGRAPHICSLib::Orientation res;
 	if ( pi_ )
 		pi_->get_LabelOrientation(&res);
 	return res;
@@ -300,7 +300,7 @@ void
 Axis::labelOrientation(long newValue)
 {
     if ( pi_ )
-		pi_->put_LabelOrientation( static_cast<Orientation>(newValue) );
+		pi_->put_LabelOrientation( static_cast<SAGRAPHICSLib::Orientation>(newValue) );
 }
 
 short
@@ -322,7 +322,7 @@ Axis::lineWidth(short newValue)
 long
 Axis::lineStyle() const
 {
-	LineStyle res;
+    SAGRAPHICSLib::LineStyle res;
 	if ( pi_ )
 		pi_->get_LineStyle(&res);
 	return res;
@@ -332,7 +332,7 @@ void
 Axis::lineStyle(long newValue)
 {
 	if ( pi_ )
-		pi_->put_LineStyle( static_cast<LineStyle>(newValue) );
+        pi_->put_LineStyle( static_cast<SAGRAPHICSLib::LineStyle>(newValue) );
 }
 
 bool

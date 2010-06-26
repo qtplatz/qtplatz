@@ -14,7 +14,7 @@ Markers::~Markers()
     pi_->Release();
 }
 
-Markers::Markers( ISADPMarkers * pi ) : pi_(pi)
+Markers::Markers( SAGRAPHICSLib::ISADPMarkers * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }

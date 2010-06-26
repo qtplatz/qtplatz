@@ -12,7 +12,7 @@ Marker::~Marker()
     pi_->Release();
 }
 
-Marker::Marker( ISADPMarker * pi ) : pi_(pi)
+Marker::Marker( SAGRAPHICSLib::ISADPMarker * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }

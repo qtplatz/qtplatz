@@ -9,6 +9,7 @@
 
 #include "dataplot.h"
 #include <boost/smart_ptr.hpp>
+#include <boost/noncopyable.hpp>
 
 namespace adil {
   namespace ui {
@@ -20,13 +21,17 @@ namespace adil {
     class DataplotWidget : public Dataplot {
       Q_OBJECT
     public:
+        virtual ~DataplotWidget();
       explicit DataplotWidget(QWidget *parent = 0);
-      
+      enum { eVK_SHIFT
+           , eVK_CONTROL 
+           , eVK_MENU 
+      };
+
     private:
       bool init();
       
     public:
-      void zoomOut();
 
       signals:
       void NotifyLButtonDown(double x, double y, bool bShift, bool bContrl );
@@ -51,7 +56,8 @@ namespace adil {
       virtual void OnKillFocus( long hWnd );
       virtual void OnMouseDblClk( double x, double y, short button );
     private:
-      boost::scoped_ptr<internal::DataplotWidgetImpl> pImpl_;
+        //boost::scoped_ptr<internal::DataplotWidgetImpl> pImpl_;
+        internal::DataplotWidgetImpl * pImpl_;
     };
 
   }

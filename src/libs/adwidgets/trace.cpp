@@ -22,7 +22,7 @@ Trace::~Trace()
     pi_->Release();
 }
 
-Trace::Trace( ISADPTrace * pi ) : pi_(pi)
+Trace::Trace( SAGRAPHICSLib::ISADPTrace * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }
@@ -39,7 +39,7 @@ Trace::Trace( const Trace& t )
 Annotations
 Trace::annotations() const
 {
-   CComPtr<ISADPAnnotations> p;
+   CComPtr<SAGRAPHICSLib::ISADPAnnotations> p;
    pi_->get_Annotations( &p );
    return Annotations( p );
 }
@@ -47,7 +47,7 @@ Trace::annotations() const
 Fractions
 Trace::fractions() const
 {
-   CComPtr<ISADPFractions> p;
+   CComPtr<SAGRAPHICSLib::ISADPFractions> p;
    pi_->get_Fractions( &p );
    return Fractions( p );
 }
@@ -55,7 +55,7 @@ Trace::fractions() const
 Markers
 Trace::markers() const
 {
-	CComPtr<ISADPMarkers> p;
+	CComPtr<SAGRAPHICSLib::ISADPMarkers> p;
 	pi_->get_Markers( &p );
     return Markers( p );
 }
@@ -63,7 +63,7 @@ Trace::markers() const
 Peaks
 Trace::peaks() const
 {
-	CComPtr<ISADPPeaks> p;
+	CComPtr<SAGRAPHICSLib::ISADPPeaks> p;
 	pi_->get_Peaks( &p );
     return Peaks( p );
 }
@@ -71,7 +71,7 @@ Trace::peaks() const
 Ranges
 Trace::ranges() const
 {
-	CComPtr<ISADPRanges> p;
+	CComPtr<SAGRAPHICSLib::ISADPRanges> p;
 	pi_->get_Ranges( &p );
     return Ranges( p );
 }
@@ -107,7 +107,7 @@ Trace::selected(bool newValue)
 long
 Trace::YAxis() const
 {
-	::YAxis result;
+	SAGRAPHICSLib::YAxis result;
 	pi_->get_YAxis( &result );
 	return result;
 }
@@ -115,7 +115,7 @@ Trace::YAxis() const
 void
 Trace::YAxis(long newValue)
 {
-	pi_->put_YAxis( static_cast<::YAxis>(newValue) );
+	pi_->put_YAxis( static_cast<SAGRAPHICSLib::YAxis>(newValue) );
 }
 
 double
@@ -157,7 +157,7 @@ Trace::font() const
 long
 Trace::traceStyle() const
 {
-	TraceStyle result;
+    SAGRAPHICSLib::TraceStyle result;
     pi_->get_TraceStyle(&result);
 	return result;
 }
@@ -165,13 +165,13 @@ Trace::traceStyle() const
 void
 Trace::traceStyle(long newValue)
 {
-   pi_->put_TraceStyle( static_cast<TraceStyle>(newValue) );
+    pi_->put_TraceStyle( static_cast<SAGRAPHICSLib::TraceStyle>(newValue) );
 }
 
 long
 Trace::lineStyle() const
 {
-	LineStyle result;
+	SAGRAPHICSLib::LineStyle result;
     pi_->get_LineStyle(&result);
 	return result;
 }
@@ -179,13 +179,13 @@ Trace::lineStyle() const
 void
 Trace::lineStyle(long newValue)
 {
-    pi_->put_LineStyle( static_cast<LineStyle>(newValue) );
+    pi_->put_LineStyle( static_cast<SAGRAPHICSLib::LineStyle>(newValue) );
 }
 
 long
 Trace::annotationStyle() const
 {
-	AnnotationStyle result;
+    SAGRAPHICSLib::AnnotationStyle result;
     pi_->get_AnnotationStyle( &result );
 	return result;
 }
@@ -193,7 +193,7 @@ Trace::annotationStyle() const
 void
 Trace::annotationStyle(long newValue)
 {
-	pi_->put_AnnotationStyle( static_cast<AnnotationStyle>(newValue) );
+	pi_->put_AnnotationStyle( static_cast<SAGRAPHICSLib::AnnotationStyle>(newValue) );
 }
 
 bool
@@ -247,13 +247,13 @@ std::vector<short>
 Trace::colorIndices() const
 {
 	std::vector<short> result;
-    CComPtr<ISADPColorIndices> p;
+    CComPtr<SAGRAPHICSLib::ISADPColorIndices> p;
 	if ( pi_->get_ColorIndices( &p ) == S_OK ) {
         long nSize;
 		p->get_Count(&nSize);
 		result.reserve( nSize );
 		for ( int i = 0; i < nSize; ++i ) {
-			CComPtr<ISADPColorIndex> pIndex;
+			CComPtr<SAGRAPHICSLib::ISADPColorIndex> pIndex;
 			if ( p->get_Item( i + 1, &pIndex ) == S_OK ) {
                 short value;
 				pIndex->get_Value(&value);
@@ -309,7 +309,7 @@ Trace::clear()
 Baselines
 Trace::baselines() const
 {
-    CComPtr<ISADPBaselines> p;
+    CComPtr<SAGRAPHICSLib::ISADPBaselines> p;
     pi_->get_Baselines(&p);
     return Baselines(p);
 }
@@ -377,7 +377,7 @@ Trace::setColorIndicesDirect(long nPts, short * pIndices)
 FilledRanges 
 Trace::filledRanges() const
 {
-	CComPtr<ISADPFilledRanges> p;
+	CComPtr<SAGRAPHICSLib::ISADPFilledRanges> p;
     pi_->get_FilledRanges(&p);
     return FilledRanges(p);
 }
@@ -385,7 +385,7 @@ Trace::filledRanges() const
 long
 Trace::orientation() const
 {
-	Orientation result;
+    SAGRAPHICSLib::Orientation result;
 	pi_->get_Orientation(&result);
 	
 	return result;
@@ -394,7 +394,7 @@ Trace::orientation() const
 void
 Trace::orientation(long newValue)
 {
-	pi_->put_Orientation( static_cast<Orientation>(newValue) );
+    pi_->put_Orientation( static_cast<SAGRAPHICSLib::Orientation>(newValue) );
 }
 
 double

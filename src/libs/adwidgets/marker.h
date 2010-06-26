@@ -1,7 +1,9 @@
 #ifndef MARKER_H
 #define MARKER_H
 
+namespace SAGRAPHICSLib {
 struct ISADPMarker;
+}
 
 namespace adil {
   namespace ui {
@@ -9,10 +11,10 @@ namespace adil {
     class Marker  {
     public:
       ~Marker();
-      Marker( ISADPMarker * pi = 0 );
+      Marker( SAGRAPHICSLib::ISADPMarker * pi = 0 );
       Marker( const Marker& );
     private:
-      ISADPMarker * pi_;
+        SAGRAPHICSLib::ISADPMarker * pi_;
     };
 
   }

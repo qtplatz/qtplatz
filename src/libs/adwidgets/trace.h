@@ -8,7 +8,10 @@
 #define TRACE_H
 
 #include <vector>
+
+namespace SAGRAPHICSLib {
 struct ISADPTrace;
+}
 
 
 namespace adil {
@@ -27,7 +30,7 @@ namespace adil {
     class Trace {
     public:
       ~Trace();
-      Trace( ISADPTrace * pi = 0 );
+      Trace( SAGRAPHICSLib::ISADPTrace * pi = 0 );
       Trace( const Trace& );
     public:
 
@@ -90,7 +93,7 @@ namespace adil {
       void clone( Trace& );
       
     private:
-      ISADPTrace * pi_;
+        SAGRAPHICSLib::ISADPTrace * pi_;
     };
   }
 }

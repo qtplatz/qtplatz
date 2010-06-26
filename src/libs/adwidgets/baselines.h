@@ -6,7 +6,9 @@
 #ifndef BASELINES_H
 #define BASELINES_H
 
+namespace SAGRAPHICSLib {
 struct ISADPBaselines;
+}
 
 namespace adil {
   namespace ui {
@@ -14,10 +16,10 @@ namespace adil {
     class Baselines  {
     public:
 		~Baselines();
-		Baselines( ISADPBaselines * pi = 0 );
+		Baselines( SAGRAPHICSLib::ISADPBaselines * pi = 0 );
 		Baselines( const Baselines& );
     private:
-		ISADPBaselines * pi_;
+        SAGRAPHICSLib::ISADPBaselines * pi_;
     };
 
   }

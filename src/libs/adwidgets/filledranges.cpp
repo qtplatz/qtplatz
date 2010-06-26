@@ -13,7 +13,7 @@ FilledRanges::~FilledRanges()
     pi_->Release();
 }
 
-FilledRanges::FilledRanges( ISADPFilledRanges * pi ) : pi_(pi)
+FilledRanges::FilledRanges( SAGRAPHICSLib::ISADPFilledRanges * pi ) : pi_(pi)
 {
   pi_->AddRef();
 }

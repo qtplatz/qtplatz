@@ -13,5 +13,6 @@ will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.</license>
     <url>http://qt.nokia.com</url>
     <dependencyList>
         <dependency name="Core" version="1.3.1"/>
+        <dependency name="ADBroker" version="1.0.0"/>
     </dependencyList>
 </plugin>

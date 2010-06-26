@@ -6,7 +6,9 @@
 #ifndef FRACTIONS_H
 #define FRACTIONS_H
 
+namespace SAGRAPHICSLib {
 struct ISADPFractions;
+}
 
 namespace adil {
   namespace ui {
@@ -14,11 +16,11 @@ namespace adil {
     class Fractions  {
     public:
 		~Fractions();
-		Fractions( ISADPFractions * pi = 0 );
+		Fractions( SAGRAPHICSLib::ISADPFractions * pi = 0 );
 		Fractions( const Fractions& );
 
 	private:
-		ISADPFractions * pi_;
+		SAGRAPHICSLib::ISADPFractions * pi_;
     };
 
   }

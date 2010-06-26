@@ -7,7 +7,9 @@
 #ifndef PLOTREGION_H
 #define PLOTREGION_H
 
+namespace SAGRAPHICSLib {
 struct ISADPPlotRegion;
+}
 
 namespace adil {
   
@@ -16,11 +18,11 @@ namespace adil {
     class PlotRegion {
     public:
      ~PlotRegion();
-      PlotRegion( ISADPPlotRegion * pi = 0 );
+      PlotRegion( SAGRAPHICSLib::ISADPPlotRegion * pi = 0 );
       PlotRegion( const PlotRegion& );
 
       private:
-      ISADPPlotRegion * pi_;
+          SAGRAPHICSLib::ISADPPlotRegion * pi_;
     };
     
   }

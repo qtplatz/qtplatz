@@ -9,7 +9,9 @@
 
 #include <string>
 
-struct ISADPAxis;
+namespace SAGRAPHICSLib {
+    struct ISADPAxis;
+}
 
 namespace adil {
   namespace ui {
@@ -17,7 +19,7 @@ namespace adil {
     class Axis  {
     public:
 		~Axis();
-		Axis( ISADPAxis * pi = 0 );
+		Axis( SAGRAPHICSLib::ISADPAxis * pi = 0 );
 		Axis( const Axis& );
 
 		bool visible() const;
@@ -68,7 +70,7 @@ namespace adil {
 		bool tickLabelsVisible() const;
 		void tickLabelsVisible(bool newValue);
 	private:
-		ISADPAxis * pi_;
+        SAGRAPHICSLib::ISADPAxis * pi_;
 	};
   }
 }
