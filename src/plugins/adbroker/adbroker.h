@@ -4,25 +4,23 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#ifndef ADBROKER_H
-#define ADBROKER_H
+#pragma once
 
 #include <QObject>
 #include "adbroker_global.h"
 
 class ADBROKER_EXPORT ADBroker : public QObject {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    explicit ADBroker(QObject *parent = 0);
-    static ADBroker *instance();
-
-signals:
-
-public slots:
-
-private:
-    static ADBroker * instance_;
-
+  explicit ADBroker(QObject *parent = 0);
+  static ADBroker * instance();
+  
+ signals:
+  
+  public slots:
+  
+ private:
+  static ADBroker * instance_;
+  
 };
 
-#endif // ADBROKER_H

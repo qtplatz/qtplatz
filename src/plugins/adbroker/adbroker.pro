@@ -20,11 +20,13 @@ include(../../plugins/coreplugin/coreplugin.pri)
 DEFINES += ADBROKER_LIBRARY
 
 SOURCES += adbrokerplugin.cpp \
-    adbroker.cpp
+    adbroker.cpp \
+    adbrokerimpl.cpp
 
 HEADERS += adbrokerplugin.h\
         adbroker_global.h \
-    adbroker.h
+    adbroker.h \
+    adbrokerimpl.h
 
 OTHER_FILES += \
     adbroker.pluginspec \

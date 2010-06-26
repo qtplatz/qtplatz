@@ -4,6 +4,7 @@
 //////////////////////////////////////////////
 
 #include "adbroker.h"
+#include "adbrokerimpl.h"
 
 ADBroker * ADBroker::instance_ = 0;
 
@@ -14,5 +15,7 @@ ADBroker::ADBroker(QObject *parent) : QObject(parent)
 ADBroker *
 ADBroker::instance()
 {
-  return 0;
+  if ( instance_ == 0 )
+    instance_ = new internal::ADBrokerImpl;
+  return instance_;
 }

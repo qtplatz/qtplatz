@@ -37,7 +37,7 @@
 #include <QToolButton>
 
 #include <adicontrols/massspectrum.h>
-#include <ADBroker/ADBroker.h>
+#include <adbroker/adbroker.h>
 
 using namespace Analysis;
 using namespace Analysis::internal;
