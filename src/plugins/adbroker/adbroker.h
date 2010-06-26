@@ -8,19 +8,31 @@
 
 #include <QObject>
 #include "adbroker_global.h"
+#include "modelfacade.h"
+#include "analysismodel.h"
+#include "acquiremodel.h"
+
+class ModelFacade;
 
 class ADBROKER_EXPORT ADBroker : public QObject {
   Q_OBJECT
 public:
-  explicit ADBroker(QObject *parent = 0);
-  static ADBroker * instance();
+    explicit ADBroker(QObject *parent = 0);
+    static ADBroker * instance();
+
+    template<class T> T * getModel() {
+        if ( modelfacade_ )
+            return modelfacade_->getModel<T>();
+        return 0;
+    }
   
- signals:
+signals:
   
-  public slots:
+public slots:
   
  private:
-  static ADBroker * instance_;
+     ModelFacade * modelfacade_;
+     static ADBroker * instance_;
   
 };
 

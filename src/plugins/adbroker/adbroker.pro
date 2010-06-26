@@ -21,12 +21,16 @@ DEFINES += ADBROKER_LIBRARY
 
 SOURCES += adbrokerplugin.cpp \
     adbroker.cpp \
-    adbrokerimpl.cpp
+    acquiremodel.cpp \
+    analysismodel.cpp \
+    modelfacade.cpp
 
 HEADERS += adbrokerplugin.h\
         adbroker_global.h \
     adbroker.h \
-    adbrokerimpl.h
+    acquiremodel.h \
+    analysismodel.h \
+    modelfacade.h
 
 OTHER_FILES += \
     adbroker.pluginspec \

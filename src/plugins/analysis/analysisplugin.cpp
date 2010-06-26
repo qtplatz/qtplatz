@@ -38,6 +38,7 @@
 
 #include <adicontrols/massspectrum.h>
 #include <adbroker/adbroker.h>
+#include <adbroker/analysismodel.h>
 
 using namespace Analysis;
 using namespace Analysis::internal;
@@ -69,7 +70,11 @@ AnalysisPlugin::initialize(const QStringList& arguments, QString* error_message)
     return false;
 
   ADBroker * pBroker = ADBroker::instance();
-  delete pBroker;
+  if ( pBroker ) {
+      AnalysisModel * p = pBroker->getModel<AnalysisModel>();
+      long x = 0;
+  }
+
 
   AnalysisMode * mode = new AnalysisMode(this);
   if ( mode )
