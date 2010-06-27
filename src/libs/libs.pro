@@ -6,5 +6,8 @@ SUBDIRS   = \
     aggregation \
     extensionsystem \
     utils \
+    xmlwrapper \
+    acewrapper \
     adwidgets \
-    adcontrols
+    adcontrols \
+    adbroker

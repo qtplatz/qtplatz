@@ -11,11 +11,13 @@
 #include <coreplugin/coreconstants.h>
 #include <QStringList>
 #include <extensionsystem/pluginmanager.h>
+#include <acewrapper/acewrapper.h>
 
 using namespace App::internal;
 
 AppPlugin::AppPlugin()
 {
+    acewrapper::instance_manager::initialize();
 }
 
 bool

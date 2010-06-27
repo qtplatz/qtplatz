@@ -1,0 +1,9 @@
+//////////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison Project
+//////////////////////////////////////////////
+#include "brokerconfig.h"
+
+BrokerConfig::BrokerConfig()
+{
+}
