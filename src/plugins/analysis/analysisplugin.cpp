@@ -36,9 +36,7 @@
 #include <QTextEdit>
 #include <QToolButton>
 
-#include <adicontrols/massspectrum.h>
-#include <adbroker/adbroker.h>
-#include <adbroker/analysismodel.h>
+#include <adcontrols/massspectrum.h>
 
 using namespace Analysis;
 using namespace Analysis::internal;
@@ -68,13 +66,6 @@ AnalysisPlugin::initialize(const QStringList& arguments, QString* error_message)
     }
   } else
     return false;
-
-  ADBroker * pBroker = ADBroker::instance();
-  if ( pBroker ) {
-      AnalysisModel * p = pBroker->getModel<AnalysisModel>();
-      long x = 0;
-  }
-
 
   AnalysisMode * mode = new AnalysisMode(this);
   if ( mode )

@@ -7,4 +7,4 @@ SUBDIRS   = \
     extensionsystem \
     utils \
     adwidgets \
-    adicontrols
+    adcontrols

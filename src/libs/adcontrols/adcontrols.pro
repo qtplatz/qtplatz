@@ -6,18 +6,18 @@
 
 QT       -= gui
 
-TARGET = adicontrols
+TARGET = adcontrols
 TEMPLATE = lib
 
 include(../../adilibrary.pri)
 
-DEFINES += ADICONTROLS_LIBRARY
+DEFINES += ADCONTROLS_LIBRARY
 
 SOURCES += massspectrum.cpp
 
 HEADERS += massspectrum.h\
-        adicontrols_global.h \
+        adcontrols_global.h \
     import_sacontrols.h
 
 OTHER_FILES += \
-    adicontrols.pri
+    adcontrols.pri

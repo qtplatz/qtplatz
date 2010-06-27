@@ -1,11 +1,11 @@
 #ifndef MASSSPECTRUM_H
 #define MASSSPECTRUM_H
 
-#include "adicontrols_global.h"
+#include "adcontrols_global.h"
 
 namespace adil {
 
-class ADICONTROLSSHARED_EXPORT MassSpectrum {
+class ADCONTROLSSHARED_EXPORT MassSpectrum {
 public:
     MassSpectrum();
 };
