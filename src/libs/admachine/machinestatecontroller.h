@@ -3,18 +3,14 @@
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
-#ifndef MASSSPECTRUM_H
-#define MASSSPECTRUM_H
+#ifndef MACHINESTATECONTROLLER_H
+#define MACHINESTATECONTROLLER_H
 
-#include "adcontrols_global.h"
+#include "admachine_global.h"
 
-namespace adil {
-
-class ADCONTROLSSHARED_EXPORT MassSpectrum {
+class ADMACHINESHARED_EXPORT MachineStateController {
 public:
-    MassSpectrum();
+    MachineStateController();
 };
 
-}
-
-#endif // MASSSPECTRUM_H
+#endif // MACHINESTATECONTROLLER_H

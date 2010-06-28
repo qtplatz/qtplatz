@@ -10,4 +10,5 @@ SUBDIRS   = \
     acewrapper \
     adwidgets \
     adcontrols \
-    adbroker
+    adbroker \
+    admachine
