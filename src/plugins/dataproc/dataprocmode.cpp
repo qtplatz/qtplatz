@@ -3,22 +3,22 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "analysismode.h"
+#include "dataprocmode.h"
 #include <coreplugin/editormanager/editormanager.h>
 
-using namespace Analysis;
-using namespace Analysis::internal;
+using namespace dataproc;
+using namespace dataproc::internal;
 
-AnalysisMode::~AnalysisMode()
+DataprocMode::~DataprocMode()
 {
     Core::EditorManager::instance()->setParent(0);
 }
 
-AnalysisMode::AnalysisMode(QObject *parent) :
+DataprocMode::DataprocMode(QObject *parent) :
     Core::BaseMode(parent)
 {
-  setName(tr("Data Analysis"));
-  setUniqueModeName( "Analysis.Mode" );
+  setName(tr("Data processing"));
+  setUniqueModeName( "Dataproc.Mode" );
   setIcon(QIcon(":/fancyactionbar/images/mode_Debug.png"));
   setPriority( 97 );
 }

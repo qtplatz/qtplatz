@@ -3,23 +3,23 @@
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
-#ifndef ANALYSISMANAGER_H
-#define ANALYSISMANAGER_H
+
+#pragma once
 
 #include <QObject>
 #include <boost/smart_ptr.hpp>
 
 class QMainWindow;
 
-namespace Analysis {
+namespace dataproc {
   namespace internal {
 
-    class AnalysisManagerImpl;
+    class DataprocManagerImpl;
 
-    class AnalysisManager : public QObject {
+    class DataprocManager : public QObject {
       Q_OBJECT
     public:
-      explicit AnalysisManager(QObject *parent = 0);
+      explicit DataprocManager(QObject *parent = 0);
 
       QMainWindow * mainWindow() const;
       void init();
@@ -30,10 +30,9 @@ namespace Analysis {
     public slots:
 
     private:
-      boost::shared_ptr<AnalysisManagerImpl> pImpl_;
+      boost::shared_ptr<DataprocManagerImpl> pImpl_;
     };
 
   }
 }
 
-#endif // ANALYSISMANAGER_H

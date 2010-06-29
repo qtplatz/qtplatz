@@ -3,21 +3,22 @@
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
-#ifndef CHROMATOGRAMWND_H
-#define CHROMATOGRAMWND_H
+
+#ifndef MSCALIBRATIONWND_H
+#define MSCALIBRATIONWND_H
 
 #include <QWidget>
-#include <boost/shared_ptr.hpp>
+#include <boost/smart_ptr.hpp>
 
-namespace Analysis {
+namespace dataproc {
   namespace internal {
 
-    class ChromatogramWndImpl;
+    class MSCalibrationWndImpl;
 
-    class ChromatogramWnd : public QWidget {
+    class MSCalibrationWnd : public QWidget {
       Q_OBJECT
 	public:
-      explicit ChromatogramWnd(QWidget *parent = 0);
+      explicit MSCalibrationWnd(QWidget *parent = 0);
       void init();
       
     signals:
@@ -25,9 +26,11 @@ namespace Analysis {
       public slots:
 
       private:
-        boost::shared_ptr<ChromatogramWndImpl> pImpl_;
-
+        boost::shared_ptr<MSCalibrationWndImpl> pImpl_;
+      
     };
+
   }
 }
-#endif // CHROMATOGRAMWND_H
+
+#endif // MSCALIBRATIONWND_H

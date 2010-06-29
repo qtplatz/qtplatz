@@ -4,22 +4,22 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#ifndef ANALYSISPLUGIN_H
-#define ANALYSISPLUGIN_H
+#pragma once
 
 #include <extensionsystem/iplugin.h>
 #include <boost/smart_ptr.hpp>
 
-namespace Analysis {
+namespace dataproc {
     namespace internal {
 
-      class AnalysisManager;
+      class DataprocManager;
 
-      class AnalysisPlugin : public ExtensionSystem::IPlugin {
+      class DataprocPlugin : public ExtensionSystem::IPlugin {
+
 	Q_OBJECT
       public:
-        ~AnalysisPlugin();
-        explicit AnalysisPlugin();
+        ~DataprocPlugin();
+        explicit DataprocPlugin();
         void extensionsInitialized();
 
         bool initialize(const QStringList &arguments, QString *error_message);
@@ -28,11 +28,10 @@ namespace Analysis {
       public slots:
 
       private:
-      boost::shared_ptr<AnalysisManager> manager_;
+      boost::shared_ptr<DataprocManager> manager_;
 
       };
 
     }
 }
 
-#endif // ANALYSISPLUGIN_H

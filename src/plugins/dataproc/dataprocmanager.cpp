@@ -3,7 +3,7 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "analysismanager.h"
+#include "dataprocmanager.h"
 #include <boost/noncopyable.hpp>
 
 #include <utils/fancymainwindow.h>
@@ -18,15 +18,14 @@
 
 #include <vector>
 
-using namespace Analysis;
-using namespace Analysis::internal;
+using namespace dataproc::internal;
 
-namespace Analysis {
+namespace dataproc {
   namespace internal {
-    class AnalysisManagerImpl : boost::noncopyable {
+    class DataprocManagerImpl : boost::noncopyable {
     public:
-      ~AnalysisManagerImpl();
-      AnalysisManagerImpl();
+      ~DataprocManagerImpl();
+      DataprocManagerImpl();
 
       Utils::FancyMainWindow * mainWindow_;
       void init();
@@ -38,20 +37,20 @@ namespace Analysis {
   }
 }
 
-AnalysisManager::AnalysisManager(QObject *parent) :
+DataprocManager::DataprocManager(QObject *parent) :
     QObject(parent)
-    , pImpl_( new AnalysisManagerImpl() )
+    , pImpl_( new DataprocManagerImpl() )
 {
 }
 
 QMainWindow *
-AnalysisManager::mainWindow() const
+DataprocManager::mainWindow() const
 {
     return pImpl_->mainWindow_;
 }
 
 void
-AnalysisManager::init()
+DataprocManager::init()
 {
   pImpl_->init();
 
@@ -79,7 +78,7 @@ AnalysisManager::init()
   QWidget * edit8 = new QTextEdit( "Edit 6" );
   edit8->setWindowTitle( tr("Report") );
 
-  AnalysisManagerImpl& m = *pImpl_;
+  DataprocManagerImpl& m = *pImpl_;
 
     QDockWidget * dock1 = m.mainWindow_->addDockForWidget( edit1 );
     QDockWidget * dock2 = m.mainWindow_->addDockForWidget( edit2 );
@@ -102,16 +101,16 @@ AnalysisManager::init()
 }
 
 ///////////////////////
-AnalysisManagerImpl::~AnalysisManagerImpl()
+DataprocManagerImpl::~DataprocManagerImpl()
 {
 }
 
-AnalysisManagerImpl::AnalysisManagerImpl() : mainWindow_(0)
+DataprocManagerImpl::DataprocManagerImpl() : mainWindow_(0)
 {
 }
 
 void
-AnalysisManagerImpl::init()
+DataprocManagerImpl::init()
 {
   mainWindow_ = new Utils::FancyMainWindow;
   if ( mainWindow_ ) {
@@ -122,7 +121,7 @@ AnalysisManagerImpl::init()
 }
 
 void
-AnalysisManager::setSimpleDockWidgetArrangement()
+DataprocManager::setSimpleDockWidgetArrangement()
 {
   class setTrackingEnabled {
     Utils::FancyMainWindow& w_;
@@ -131,7 +130,7 @@ AnalysisManager::setSimpleDockWidgetArrangement()
     ~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
   };
 
-  AnalysisManagerImpl& m = *pImpl_;
+  DataprocManagerImpl& m = *pImpl_;
   setTrackingEnabled lock( *m.mainWindow_ );
   
   QList< QDockWidget *> dockWidgets = m.mainWindow_->dockWidgets();

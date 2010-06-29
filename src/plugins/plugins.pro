@@ -12,7 +12,7 @@ SUBDIRS   = plugin_coreplugin \
             plugin_acquire \
 #            plugin_tune \
             plugin_sequence \
-            plugin_analysis \
+            plugin_dataproc \
 #            plugin_batchproc \
             plugin_help
 
@@ -32,9 +32,6 @@ plugin_texteditor.depends += plugin_coreplugin
 plugin_locator.subdir = locator
 plugin_locator.depends = plugin_coreplugin
 
-plugin_dataanalysis.subdir = dataanalysis
-plugin_dataanalysis.depends = plugin_coreplugin
-
 plugin_acquire.subdir = acquire
 plugin_acquire.depends = plugin_coreplugin
 
@@ -44,8 +41,8 @@ plugin_tune.depends = plugin_coreplugin
 plugin_sequence.subdir = sequence
 plugin_sequence.depends = plugin_coreplugin
 
-plugin_analysis.subdir = analysis
-plugin_analysis.depends = plugin_coreplugin
+plugin_dataproc.subdir = dataproc
+plugin_dataproc.depends = plugin_coreplugin
 
 plugin_batchproc.subdir = batchproc
 plugin_batchproc.depends = plugin_coreplugin

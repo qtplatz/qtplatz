@@ -3,9 +3,9 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#include "analysisplugin.h"
-#include "analysismode.h"
-#include "analysismanager.h"
+#include "dataprocplugin.h"
+#include "dataprocmode.h"
+#include "dataprocmanager.h"
 
 #include "msprocessingwnd.h"
 #include "elementalcompwnd.h"
@@ -38,19 +38,18 @@
 
 #include <adcontrols/massspectrum.h>
 
-using namespace Analysis;
-using namespace Analysis::internal;
+using namespace dataproc::internal;
 
-AnalysisPlugin::~AnalysisPlugin()
+DataprocPlugin::~DataprocPlugin()
 {
 }
 
-AnalysisPlugin::AnalysisPlugin()
+DataprocPlugin::DataprocPlugin()
 {
 }
 
 bool
-AnalysisPlugin::initialize(const QStringList& arguments, QString* error_message)
+DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
 {
   Q_UNUSED( arguments );
   Q_UNUSED( error_message );
@@ -61,19 +60,19 @@ AnalysisPlugin::initialize(const QStringList& arguments, QString* error_message)
   if ( core ) {
     Core::UniqueIDManager * uidm = core->uniqueIDManager();
     if ( uidm ) {
-      context.append( uidm->uniqueIdentifier( QLatin1String("Analysis.MainView") ) );
+      context.append( uidm->uniqueIdentifier( QLatin1String("Dataproc.MainView") ) );
       context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
     }
   } else
     return false;
 
-  AnalysisMode * mode = new AnalysisMode(this);
+  DataprocMode * mode = new DataprocMode(this);
   if ( mode )
     mode->setContext( context );
   else
     return false;
 
-  manager_.reset( new AnalysisManager(0) );
+  manager_.reset( new DataprocManager(0) );
   if ( manager_ )
     manager_->init();
 
@@ -183,8 +182,8 @@ AnalysisPlugin::initialize(const QStringList& arguments, QString* error_message)
 
 
 void
-AnalysisPlugin::extensionsInitialized()
+DataprocPlugin::extensionsInitialized()
 {
 }
 
-Q_EXPORT_PLUGIN( AnalysisPlugin )
+Q_EXPORT_PLUGIN( DataprocPlugin )

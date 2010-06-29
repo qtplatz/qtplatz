@@ -10,10 +10,9 @@
 #include <adwidgets/dataplot.h>
 #include <adwidgets/axis.h>
 
-using namespace Analysis;
-using namespace Analysis::internal;
+using namespace dataproc::internal;
 
-namespace Analysis {
+namespace dataproc {
     namespace internal {
         class MSCalibrationWndImpl {
         public:

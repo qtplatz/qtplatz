@@ -561,14 +561,14 @@ void MainWindow::registerDefaultActions()
     connect(m_focusToEditor, SIGNAL(activated()), this, SLOT(setFocusToEditor()));
 
     // New File Action
-    m_newAction = new QAction(QIcon(Constants::ICON_NEWFILE), tr("&New File or Project..."), this);
+    m_newAction = new QAction(QIcon(Constants::ICON_NEWFILE), tr("&New..."), this);
     cmd = am->registerAction(m_newAction, Constants::NEW, m_globalContext);
     cmd->setDefaultKeySequence(QKeySequence::New);
     mfile->addAction(cmd, Constants::G_FILE_NEW);
     connect(m_newAction, SIGNAL(triggered()), this, SLOT(newFile()));
 
     // Open Action
-    m_openAction = new QAction(QIcon(Constants::ICON_OPENFILE), tr("&Open File or Project..."), this);
+    m_openAction = new QAction(QIcon(Constants::ICON_OPENFILE), tr("&Open..."), this);
     cmd = am->registerAction(m_openAction, Constants::OPEN, m_globalContext);
     cmd->setDefaultKeySequence(QKeySequence::Open);
     mfile->addAction(cmd, Constants::G_FILE_OPEN);

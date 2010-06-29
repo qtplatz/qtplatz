@@ -10,7 +10,7 @@
 #include <QWidget>
 #include <boost/shared_ptr.hpp>
 
-namespace Analysis {
+namespace dataproc {
   namespace internal {
     
     class ElementalCompWndImpl;

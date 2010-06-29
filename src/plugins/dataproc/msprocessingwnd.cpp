@@ -10,10 +10,9 @@
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 
-using namespace Analysis;
-using namespace Analysis::internal;
+using namespace dataproc::internal;
 
-namespace Analysis {
+namespace dataproc {
     namespace internal {
         class MSProcessingWndImpl {
         public:

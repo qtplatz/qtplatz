@@ -4,19 +4,18 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#ifndef ANALYSISMODE_H
-#define ANALYSISMODE_H
+#pragma once
 
 #include <coreplugin/basemode.h>
 
-namespace Analysis {
+namespace dataproc {
   namespace internal {
 
-    class AnalysisMode : public Core::BaseMode {
+    class DataprocMode : public Core::BaseMode {
       Q_OBJECT
     public:
-      ~AnalysisMode();
-      explicit AnalysisMode(QObject *parent = 0);
+      ~DataprocMode();
+      explicit DataprocMode( QObject * parent = 0 );
 
     signals:
 
@@ -29,4 +28,4 @@ namespace Analysis {
   }
 }
 
-#endif // ANALYSISMODE_H
+

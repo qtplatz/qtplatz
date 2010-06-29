@@ -14,7 +14,7 @@ namespace adil {
     class MassSpectrum;
 }
 
-namespace Analysis {
+namespace dataproc {
   namespace internal {
 
     class MSProcessingWndImpl;

@@ -52,6 +52,8 @@ public:
 	SEQUENCE_STATE_DORMANT,
   };
 
+  static const wchar_t * getStateString( MACHINE_STATE );
+
 protected:
   MACHINE_STATE state_;
   MACHINE_STATE posted_state_;
