@@ -8,7 +8,8 @@
 
 namespace dataproc {
   namespace Constants {
-    const char * C_DATAPROCESSOR = "Dataprocessor";
+    const char * const C_DATAPROCESSOR = "Dataprocessor";
+    const char * const C_DATAPROCESSOR_MIMETYPE = "application/qtplatz.dataset";
   }
 }
 

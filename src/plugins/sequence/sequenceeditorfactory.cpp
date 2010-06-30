@@ -4,6 +4,7 @@
 //////////////////////////////////////////
 #include "sequenceeditorfactory.h"
 #include "sequenceeditor.h"
+#include "constants.h"
 
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
@@ -17,9 +18,11 @@ SequenceEditorFactory::~SequenceEditorFactory()
 
 SequenceEditorFactory::SequenceEditorFactory(QObject *parent) :
     Core::IEditorFactory(parent)
-    , kind_( "Sequence" )
+    , kind_( Constants::C_SEQUENCE )
 {
-  mimeTypes_ << "Sequece";
+  mimeTypes_ << Constants::C_SEQUENCE_MIMETYPE;
+  // mimeTypes_ << Constants::C_CTRLMETHOD_MIMETYPE;
+  // mimeTypes_ << Constants::C_PROCMETHOD_MIMETYPE;
 }
 
 // implementation for IEditorFactory

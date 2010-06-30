@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
-    <mime-type type="application/octet-stream">
+    <mime-type type="application/qtplatz.dataset">
         <comment>Mass spectrometer data file</comment>
         <glob pattern="*.data"/>
     </mime-type>

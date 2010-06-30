@@ -5,6 +5,7 @@
 
 #include "dataprocessorfactory.h"
 #include "dataprocessor.h"
+#include "constants.h"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/ifilefactory.h>
@@ -20,7 +21,7 @@ DataprocessorFactory::DataprocessorFactory(QObject *parent) :
   Core::IEditorFactory(parent)
   , kind_( "Dataprocessor" )
 {
-  mimeTypes_ << "Dataprocessor";
+  mimeTypes_ << Constants::C_DATAPROCESSOR_MIMETYPE;
 }
 
 // implementation for IEditorFactory
