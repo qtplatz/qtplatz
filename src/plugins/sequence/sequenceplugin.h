@@ -8,9 +8,13 @@
 #define SEQUENCEPLUGIN_H
 
 #include <extensionsystem/iplugin.h>
+#include <boost/smart_ptr.hpp>
+
 
 namespace sequence {
   namespace internal {
+
+    class SequenceManager;
 
     class SequencePlugin : public ExtensionSystem::IPlugin {
       Q_OBJECT;
@@ -25,6 +29,8 @@ namespace sequence {
 
     public slots:
 
+    private:
+      boost::shared_ptr<SequenceManager> manager_;
     };
     //------
   }

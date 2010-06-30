@@ -13,6 +13,7 @@ namespace sequence {
     class SequenceMode : public Core::BaseMode {
       Q_OBJECT
     public:
+      ~SequenceMode();
       explicit SequenceMode(QObject *parent = 0);
 
     signals:

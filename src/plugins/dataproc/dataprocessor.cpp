@@ -5,10 +5,10 @@
 
 #include "dataprocessor.h"
 #include "dataset.h"
+#include "constants.h"
 #include <coreplugin/uniqueidmanager.h>
 
-#define C_DATAPROCESSOR "Dataprocessor"
-
+using namespace dataproc;
 using namespace dataproc::internal;
 
 Dataprocessor::~Dataprocessor()
@@ -20,7 +20,7 @@ Dataprocessor::Dataprocessor(QObject *parent) : Core::IEditor(parent)
 {
   Core::UniqueIDManager* uidm = Core::UniqueIDManager::instance();
   if ( uidm ) {
-    context_ << uidm->uniqueIdentifier( C_DATAPROCESSOR );
+    context_ << uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR );
   }
 }
 
@@ -48,7 +48,7 @@ Dataprocessor::file()
 const char *
 Dataprocessor::kind() const
 {
-  return C_DATAPROCESSOR;
+  return Constants::C_DATAPROCESSOR;
 }
 
 QString

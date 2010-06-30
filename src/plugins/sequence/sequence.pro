@@ -20,7 +20,8 @@ SOURCES +=  sequenceplugin.cpp \
     sequenceeditor.cpp \
     sequenceeditorfactory.cpp \
     sequencemode.cpp \
-    sequence.cpp
+    sequence.cpp \
+    sequencemanager.cpp
 
 HEADERS += sequence_global.h \
     sequenceplugin.h \
@@ -28,7 +29,8 @@ HEADERS += sequence_global.h \
     sequenceeditorfactory.h \
     sequencemode.h \
     constants.h \
-    sequence.h
+    sequence.h \
+    sequencemanager.h
 
 OTHER_FILES += sequence.pluginspec \
     sequence-mimetype.xml \
