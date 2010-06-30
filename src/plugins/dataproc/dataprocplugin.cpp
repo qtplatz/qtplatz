@@ -6,6 +6,7 @@
 #include "dataprocplugin.h"
 #include "dataprocmode.h"
 #include "dataprocmanager.h"
+#include "dataprocessorfactory.h"
 
 #include "msprocessingwnd.h"
 #include "elementalcompwnd.h"
@@ -17,6 +18,7 @@
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
+#include <coreplugin/mimedatabase.h>
 #include <QStringList>
 
 #include <coreplugin/minisplitter.h>
@@ -52,7 +54,6 @@ bool
 DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
 {
   Q_UNUSED( arguments );
-  Q_UNUSED( error_message );
 
   Core::ICore * core = Core::ICore::instance();
   
@@ -65,6 +66,13 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     }
   } else
     return false;
+
+  Core::MimeDatabase* mdb = core->mimeDatabase();
+  if ( mdb ) {
+    if ( !mdb->addMimeTypes(":/dataproc/dataproc-mimetype.xml", error_message) )
+      return false;
+    addAutoReleasedObject( new DataprocessorFactory(this) );
+  }
 
   DataprocMode * mode = new DataprocMode(this);
   if ( mode )

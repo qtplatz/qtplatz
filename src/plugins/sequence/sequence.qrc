@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/sequence">
+        <file>sequence-mimetype.xml</file>
+    </qresource>
+</RCC>

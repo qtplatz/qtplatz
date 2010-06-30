@@ -10,16 +10,29 @@ TARGET = sequence
 TEMPLATE = lib
 PROVIDER = ScienceLiaison
 include(../../adiplugin.pri)
+include(sequence_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 
 DEFINES += SEQUENCE_LIBRARY
 
-SOURCES += sequence.cpp \
-    sequenceplugin.cpp
+SOURCES +=  sequenceplugin.cpp \
+    sequenceeditor.cpp \
+    sequenceeditorfactory.cpp \
+    sequencemode.cpp \
+    sequence.cpp
 
-HEADERS += sequence.h\
-        sequence_global.h \
-    sequenceplugin.h
+HEADERS += sequence_global.h \
+    sequenceplugin.h \
+    sequenceeditor.h \
+    sequenceeditorfactory.h \
+    sequencemode.h \
+    constants.h \
+    sequence.h
 
-OTHER_FILES += sequence.pluginspec
+OTHER_FILES += sequence.pluginspec \
+    sequence-mimetype.xml \
+    sequence_dependencies.pri
+
+RESOURCES += \
+    sequence.qrc

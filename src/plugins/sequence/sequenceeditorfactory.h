@@ -3,25 +3,20 @@
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
-
-#ifndef DATAPROCESSORFACTORY_H
-#define DATAPROCESSORFACTORY_H
+#ifndef SEQUENCEEDITORFACTORY_H
+#define SEQUENCEEDITORFACTORY_H
 
 #include <coreplugin/editormanager/ieditorfactory.h>
 #include <QStringList>
 
-namespace Core {
-  class IEditor;
-}
-
-namespace dataproc {
+namespace sequence {
   namespace internal {
 
-    class DataprocessorFactory : public Core::IEditorFactory {
+    class SequenceEditorFactory : public Core::IEditorFactory {
       Q_OBJECT
     public:
-      ~DataprocessorFactory();
-      explicit DataprocessorFactory(QObject *parent = 0);
+    ~SequenceEditorFactory();
+    explicit SequenceEditorFactory(QObject *parent = 0);
 
       // implement IEditorFactory
       virtual Core::IEditor *createEditor(QWidget *parent);
@@ -31,6 +26,7 @@ namespace dataproc {
       virtual QString kind() const;
       virtual Core::IFile * open(const QString& filename );
       // <---
+
     signals:
 
     public slots:
@@ -38,9 +34,10 @@ namespace dataproc {
     private:
       QString kind_;
       QStringList mimeTypes_;
+    
     };
 
   }
 }
 
-#endif // DATAPROCESSORFACTORY_H
+#endif // SEQUENCEEDITORFACTORY_H

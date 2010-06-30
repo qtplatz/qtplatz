@@ -9,7 +9,7 @@
 
 #include <extensionsystem/iplugin.h>
 
-namespace Sequence {
+namespace sequence {
   namespace internal {
 
     class SequencePlugin : public ExtensionSystem::IPlugin {
