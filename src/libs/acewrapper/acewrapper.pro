@@ -13,10 +13,12 @@ CONFIG += staticlib
 include(../../adilibrary.pri)
 include(acewrapper_dependencies.pri)
 
-SOURCES += acewrapper.cpp
+SOURCES += acewrapper.cpp \
+    timeval.cpp
 
 HEADERS += acewrapper.h \
-    mutex.hpp
+    mutex.hpp \
+    timeval.h
 
 OTHER_FILES += \
     acewrapper.pri \

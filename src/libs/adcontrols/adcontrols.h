@@ -3,11 +3,13 @@
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
-#pragma once
+#ifndef ADCONTROLS_H
+#define ADCONTROLS_H
 
-#if defined(ADCONTROLS_LIBRARY)
-#  define ADCONTROLSSHARED_EXPORT __declspec(dllexport)
-#else
-#  define ADCONTROLSSHARED_EXPORT __declspec(dllimport)
-#endif
+namespace adcontrols {
 
+
+
+}
+
+#endif // ADCONTROLS_H

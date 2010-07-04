@@ -8,16 +8,24 @@ QT       -= gui
 
 TARGET = adcontrols
 TEMPLATE = lib
+INCLUDEPATH += $$(SATOOLS_ROOT)/bin
 
 include(../../adilibrary.pri)
+include(../../boost.pri)
+include(../acewrapper/acewrapper.pri)
 
 DEFINES += ADCONTROLS_LIBRARY
 
-SOURCES += massspectrum.cpp
+SOURCES += massspectrum.cpp \
+    description.cpp \
+    descriptions.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
-    import_sacontrols.h
+    import_sacontrols.h \
+    adcontrols.h \
+    description.h \
+    descriptions.h
 
 OTHER_FILES += \
     adcontrols.pri

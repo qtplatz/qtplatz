@@ -3,11 +3,12 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
+#include <atlbase.h>
+#include <atlcom.h>
+
 #include "dataplotimpl.h"
 #include "dataplot.h"
 #include <QResizeEvent>
-#include <atlbase.h>
-#include <atlcom.h>
 #include <QAxWidget>  // Fix me, this module requre commercial license
 #include <QUuid>
 

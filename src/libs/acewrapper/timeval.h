@@ -3,11 +3,15 @@
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
-#pragma once
+#ifndef TIMEVAL_H
+#define TIMEVAL_H
 
-#if defined(ADCONTROLS_LIBRARY)
-#  define ADCONTROLSSHARED_EXPORT __declspec(dllexport)
-#else
-#  define ADCONTROLSSHARED_EXPORT __declspec(dllimport)
-#endif
+#include <time.h>
 
+namespace acewrapper {
+
+  void gettimeofday(time_t& tv_sec, long& tv_usec);
+
+}
+
+#endif // TIMEVAL_H
