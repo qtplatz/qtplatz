@@ -18,14 +18,16 @@ DEFINES += ADCONTROLS_LIBRARY
 
 SOURCES += massspectrum.cpp \
     description.cpp \
-    descriptions.cpp
+    descriptions.cpp \
+    tableofelements.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
     import_sacontrols.h \
     adcontrols.h \
     description.h \
-    descriptions.h
+    descriptions.h \
+    tableofelements.h
 
 OTHER_FILES += \
     adcontrols.pri
