@@ -20,21 +20,6 @@
 
 using namespace adcontrols;
 
-namespace boost {
-    namespace serialization {
-
-        template<class Archive>
-        void serialize(Archive& ar, const Description& desc, const unsigned int version ) {
-            using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP(tv_sec_);
-            ar & BOOST_SERIALIZATION_NVP(tv_usec_);
-            ar & BOOST_SERIALIZATION_NVP(key_);
-            ar & BOOST_SERIALIZATION_NVP(text_);
-        }
-
-    }
-}
-
 namespace adcontrols {
    namespace internal {
 
@@ -46,14 +31,14 @@ namespace adcontrols {
 
 	    typedef std::vector< Description > vector_type;
 
-	    void add( const Description& desc, bool uniq );
+            void append( const Description& desc, bool uniq );
 	    inline size_t size() const { return vec_.size(); }
 	    inline const Description& operator []( int idx ) { return vec_[idx]; }
 
 	 private:
 	    friend class boost::serialization::access;
 	    template<class Archiver> void serialize(Archiver& ar, const unsigned int version) {
-            if ( version > 0 )
+            if ( version >= 0 )
                 ar & BOOST_SERIALIZATION_NVP(vec_);
 	    }
 	    vector_type vec_;
@@ -86,9 +71,9 @@ Descriptions::Descriptions( const Descriptions& t )
 }
 
 void
-Descriptions::add( const Description& desc, bool uniq )
+Descriptions::append( const Description& desc, bool uniq )
 {
-   pImpl_->add( desc, uniq );
+   pImpl_->append( desc, uniq );
 }
 
 size_t
@@ -143,7 +128,7 @@ Descriptions::serialize( boost::archive::xml_wiarchive& ar, const unsigned int v
 ////////////////////////////////////////////////////
 
 void
-DescriptionsImpl::add( const Description& desc, bool uniq )
+DescriptionsImpl::append( const Description& desc, bool uniq )
 {
    if ( uniq ) {
       // to do

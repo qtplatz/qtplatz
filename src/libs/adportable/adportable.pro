@@ -14,4 +14,5 @@ SOURCES += adportable.cpp
 
 HEADERS += adportable.h \
     binary_search.hpp \
-    array_wrapper.hpp
+    array_wrapper.hpp \
+    safearray.hpp

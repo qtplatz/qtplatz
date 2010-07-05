@@ -1,6 +1,10 @@
 win32 {
-    INCLUDEPATH += $$(BOOST_ROOT)/include/boost-1_43
-    LIBS += -L$$(BOOST_ROOT)/lib
+    BOOST = $$(BOOST_ROOT)
+    isEmpty( BOOST ) {
+      BOOST = C:/Boost
+    }
+    INCLUDEPATH += $${BOOST}/include/boost-1_43
+    LIBS += -L$${BOOST}/lib
 } else {
     INCLUDEPATH += /usr/local/include
 }

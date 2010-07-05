@@ -53,8 +53,8 @@ namespace adcontrols {
 	 template<class T> void set( const T& t );
 	 template<class T> const T& get();
 	 
-	 void setDescription( const Description& );
-         const Descriptions& getDescriptions() const;
+	 void addDescription( const Description& );
+	 const Descriptions& getDescriptions() const;
 
 	 std::wstring saveXml() const;
          void loadXml( const std::wstring& );

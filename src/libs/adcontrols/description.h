@@ -36,7 +36,7 @@ namespace adcontrols {
        template<class Archive>
        void serialize(Archive& ar, const unsigned int version) {
            using namespace boost::serialization;
-           if ( version > 0 ) {
+           if ( version >= 0 ) {
                ar & BOOST_SERIALIZATION_NVP(tv_sec_);
                ar & BOOST_SERIALIZATION_NVP(tv_usec_);
                ar & BOOST_SERIALIZATION_NVP(key_);

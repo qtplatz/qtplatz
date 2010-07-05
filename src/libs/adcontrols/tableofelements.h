@@ -7,16 +7,33 @@
 #ifndef TABLEOFELEMENTS_H
 #define TABLEOFELEMENTS_H
 
+#include "adcontrols_global.h"
+#include <string>
+
 namespace adcontrols {
 
-  class TableOfElements {
+  namespace internal {
+    class TableOfElementsImpl;
+  }
+
+  class Element;
+  class Elements;
+  class SuperAtom;
+  class SuperAtoms;
+
+  class ADCONTROLSSHARED_EXPORT TableOfElements {
+    ~TableOfElements();
     TableOfElements();
   public:
-    TableOfElements * instance();
+    static TableOfElements * instance();
+    void dispose();
+
+    std::wstring saveXml() const;
+    void loadXml( const std::wstring& );
 
   private:
     static TableOfElements * instance_;
-
+    internal::TableOfElementsImpl * pImpl_;
   };
 
 }

@@ -9,6 +9,12 @@
 #include "adcontrols_global.h"
 #include "description.h"
 
+namespace boost {
+  namespace serialization {
+	class access;
+  }
+}
+
 namespace adcontrols {
 
    namespace internal {
@@ -19,10 +25,10 @@ namespace adcontrols {
    public:
 	 ~Descriptions();
 	 Descriptions();
-         Descriptions( const Descriptions& );
+	 Descriptions( const Descriptions& );
 	 Descriptions( const std::wstring& text, const std::wstring& key );
 
-	 void add( const Description&, bool uniq = false );
+	 void append( const Description&, bool uniq = false );
 	 size_t size() const;
 	 const Description& operator [](int idx) const;
 
@@ -31,7 +37,7 @@ namespace adcontrols {
 
    private:
 	 friend class boost::serialization::access;
-	 template<class Archiver> void serialize(Archiver& ar, const unsigned int version); // {
+	 template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
      internal::DescriptionsImpl * pImpl_;
    };
 

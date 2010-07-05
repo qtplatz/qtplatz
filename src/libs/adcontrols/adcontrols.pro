@@ -19,7 +19,11 @@ DEFINES += ADCONTROLS_LIBRARY
 SOURCES += massspectrum.cpp \
     description.cpp \
     descriptions.cpp \
-    tableofelements.cpp
+    tableofelements.cpp \
+    adcontrols.cpp \
+    chromatogram.cpp \
+    element.cpp \
+    elements.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -27,7 +31,10 @@ HEADERS += massspectrum.h\
     adcontrols.h \
     description.h \
     descriptions.h \
-    tableofelements.h
+    tableofelements.h \
+    chromatogram.h \
+    element.h \
+    elements.h
 
 OTHER_FILES += \
     adcontrols.pri

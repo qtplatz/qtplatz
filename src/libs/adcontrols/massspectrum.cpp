@@ -169,6 +169,18 @@ MassSpectrum::setColorArray( const unsigned char * values )
     pImpl_->setColorArray( values );
 }
 
+void
+MassSpectrum::addDescription( const Description& t )
+{
+  pImpl_->addDescription( t );
+}
+
+const Descriptions&
+MassSpectrum::getDescriptions() const
+{
+  return pImpl_->getDescriptions();
+}
+
 template<class T> void
 MassSpectrum::set( const T& t )
 {
@@ -256,3 +268,14 @@ MassSpectrumImpl::resize( size_t size )
   intsArray_.resize( size );
 }
 
+void
+MassSpectrumImpl::addDescription( const Description& t )
+{
+  descriptions_.append( t );
+}
+
+const Descriptions&
+MassSpectrumImpl::getDescriptions() const
+{
+  return descriptions_;
+}
