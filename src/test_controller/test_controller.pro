@@ -4,6 +4,7 @@
 #
 #-------------------------------------------------
 
+include(../../qtPlatz.pri)
 QT       += core gui
 
 TARGET = test_controller
@@ -12,13 +13,13 @@ include(../boost.pri)
 
 INCLUDEPATH += $$(ACE_ROOT) ../libs
 
-debug {
+Debug {
+    LIBS += -l$$qtLibraryTarget(acewrapperd)
     LIBS += -L$$(ACE_ROOT)/lib -lACEd
-    LIBS += -L../../lib/qtPlatz -lacewrapperd
 }
-release {
+Release {
+    LIBS += -l$$qtLibraryTarget(acewrapper)
     LIBS += -L$$(ACE_ROOT)/lib -lACE
-    LIBS += -L../../lib/qtPlatz -lacewrapper
 }
 
 SOURCES += main.cpp\
