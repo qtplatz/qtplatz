@@ -4,22 +4,22 @@
 #
 #-------------------------------------------------
 
-include(../../qtPlatz.pri)
 QT       += core gui
 
 TARGET = test_controller
 TEMPLATE = app
 include(../boost.pri)
+include(../adilibrary.pri)
 
 INCLUDEPATH += $$(ACE_ROOT) ../libs
 
+LIBS *= -L$$IDE_LIBRARY_PATH -L$$(ACE_ROOT)/lib
 Debug {
-    LIBS += -l$$qtLibraryTarget(acewrapperd)
-    LIBS += -L$$(ACE_ROOT)/lib -lACEd
+    LIBS += -lacewrapperd -lACEd
+    CONFIG += debug
 }
 Release {
-    LIBS += -l$$qtLibraryTarget(acewrapper)
-    LIBS += -L$$(ACE_ROOT)/lib -lACE
+    LIBS += -lacewrapper -lACE
 }
 
 SOURCES += main.cpp\
@@ -31,3 +31,10 @@ HEADERS  += maincontrollerwindow.h \
     Callback.h
 
 FORMS    += maincontrollerwindow.ui
+
+
+#CONFIG   += console
+#CONFIG   -= app_bundle
+#include(../adilibrary.pri)
+#LIBS += -l$$qtLibraryTarget(adcontrolsd)
+

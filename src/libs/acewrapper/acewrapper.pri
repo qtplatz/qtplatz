@@ -1,9 +1,3 @@
-
-debug {
-    LIBS *= -l$$qtLibraryTarget(acewrapperd)
-}
-release {
-    LIBS *= -l$$qtLibraryTarget(acewrapper)
-}
+LIBS *= -l$$qtLibraryTarget(acewrapper)
 INCLUDEPATH += $$IDE_SOURCE_TREE/src/libs
 include(acewrapper_dependencies.pri)

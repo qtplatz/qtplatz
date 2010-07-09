@@ -5,6 +5,6 @@ SUBDIRS = \
     libs \
     app \
     plugins \
-    test_serializer \
     test_controller \
+    test_serializer \
     test_device

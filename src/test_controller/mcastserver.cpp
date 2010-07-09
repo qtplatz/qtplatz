@@ -52,23 +52,23 @@ McastServer::Handler::Handler( u_short udp_port
                                , ACE_Reactor& reactor
                                , Callback& cb ) : callback_(cb)
 {
-    sock_addr_ = ACE_INET_Addr(udp_port, ip_addr);
-
-    if ( mcast_.join( sock_addr_ ) == -1 ) {
-
-                ACE_ERROR((LM_ERROR, "%p\n", "can't subscribe to multicast group"));
-
-    } else if ( reactor.register_handler(  mcast_.get_handle()
-                                                                                   , this
-                                                                                   , ACE_Event_Handler::READ_MASK) == -1 ) {
-
-                ACE_ERROR((LM_ERROR, "%p\n", "can't register with Reactor"));
-                std::cout << "can't register with reactor" << std::endl;
-
-    }
-    std::cout << "Mcast address: " << sock_addr_.get_host_addr()
-                          << " port number: " << sock_addr_.get_port_number() << std::endl;
-
+   sock_addr_ = ACE_INET_Addr(udp_port, ip_addr);
+   
+   if ( mcast_.join( sock_addr_ ) == -1 ) {
+      
+      ACE_ERROR((LM_ERROR, "%p\n", "can't subscribe to multicast group"));
+      
+   } else if ( reactor.register_handler(  mcast_.get_handle()
+					  , this
+					  , ACE_Event_Handler::READ_MASK) == -1 ) {
+      
+      ACE_ERROR((LM_ERROR, "%p\n", "can't register with Reactor"));
+      std::cout << "can't register with reactor" << std::endl;
+      
+   }
+   std::cout << "Mcast address: " << sock_addr_.get_host_addr()
+	     << " port number: " << sock_addr_.get_port_number() << std::endl;
+   
 }
 
 void
