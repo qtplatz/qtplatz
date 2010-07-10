@@ -9,7 +9,10 @@ QT       -= gui
 TARGET = qtwrapper
 TEMPLATE = lib
 CONFIG += staticlib
+include(../../adilibrary.pri)
 
-SOURCES += qtwrapper.cpp
+SOURCES += qtwrapper.cpp \
+    qstring.cpp
 
-HEADERS += qtwrapper.h
+HEADERS += qtwrapper.h \
+    qstring.h

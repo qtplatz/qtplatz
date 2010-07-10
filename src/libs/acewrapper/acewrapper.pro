@@ -11,14 +11,20 @@ TEMPLATE = lib
 CONFIG += staticlib
 
 include(../../adilibrary.pri)
+include(../../boost.pri)
 include(acewrapper_dependencies.pri)
 
 SOURCES += acewrapper.cpp \
-    timeval.cpp
+    timeval.cpp \
+    mcastserver.cpp \
+    ace_string.cpp
 
 HEADERS += acewrapper.h \
     mutex.hpp \
-    timeval.h
+    timeval.h \
+    mcastserver.h \
+    callback.h \
+    ace_string.h
 
 OTHER_FILES += \
     acewrapper.pri \

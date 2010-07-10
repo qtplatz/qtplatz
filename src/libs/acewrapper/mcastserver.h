@@ -1,3 +1,9 @@
+// This is a -*- C++ -*- header.
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison / Advanced Instrumentation Project
+//////////////////////////////////////////
+
 #ifndef MCASTSERVER_H
 #define MCASTSERVER_H
 
@@ -10,7 +16,7 @@
 class McastServer : boost::noncopyable {
 public:
 	~McastServer();
-    McastServer( Callback& cb, ACE_Reactor * r = 0, u_short port = 0);
+    McastServer( acewrapper::Callback& cb, ACE_Reactor * r = 0, u_short port = 0);
 
     static void * thread_entry( void * me );
 
@@ -21,12 +27,12 @@ public:
 
 private:
     class Handler : public ACE_Event_Handler {
-        Callback& callback_;
+        acewrapper::Callback& callback_;
         ACE_SOCK_Dgram_Mcast mcast_;
         ACE_INET_Addr sock_addr_;
         public:
         ~Handler();
-        Handler(u_short udp_port, const char * ip_addr, ACE_Reactor&, Callback& );
+        Handler(u_short udp_port, const char * ip_addr, ACE_Reactor&, acewrapper::Callback& );
         // demuxer hooks
         virtual int handle_input(ACE_HANDLE);
         virtual int handle_close(ACE_HANDLE, ACE_Reactor_Mask);
@@ -40,8 +46,8 @@ private:
     ACE_Reactor * reactor_;
     ACE_Recursive_Thread_Mutex mutex_;
     u_short port_;
-	Handler * handler_;
-    Callback& callback_;
+    Handler * handler_;
+    acewrapper::Callback& callback_;
 
 };
 

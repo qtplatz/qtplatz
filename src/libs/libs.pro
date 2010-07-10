@@ -8,6 +8,7 @@ SUBDIRS   = \
     utils \
     adportable \
     xmlwrapper \
+    qtwrapper \
     acewrapper \
     adwidgets \
     adcontrols \

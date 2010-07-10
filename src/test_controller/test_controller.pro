@@ -23,12 +23,9 @@ Release {
 }
 
 SOURCES += main.cpp\
-        maincontrollerwindow.cpp \
-    mcastserver.cpp
+        maincontrollerwindow.cpp
 
-HEADERS  += maincontrollerwindow.h \
-    mcastserver.h \
-    Callback.h
+HEADERS  += maincontrollerwindow.h
 
 FORMS    += maincontrollerwindow.ui
 
