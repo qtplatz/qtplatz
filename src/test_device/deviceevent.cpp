@@ -4,15 +4,17 @@
 //////////////////////////////////////////
 
 #include "deviceevent.h"
+#include <acewrapper/callback.h>
 
-DeviceEvent::DeviceEvent(QObject *parent) :
-    QObject(parent)
+DeviceEvent::DeviceEvent(QObject *parent) : QObject(parent)
 {
 }
 
+//virtual
 void
-DeviceEvent::slotRaiseEvent()
+DeviceEvent::operator()(const char * pbuf, ssize_t octets, const ACE_INET_Addr& addr)
 {
-   emit signal_notify();
+    emit signal_mcast(pbuf, octets, &addr);
+    //emit signal_2(pbuf, octets, &addr);
+    //emit signal_3(pbuf, octets, &addr);
 }
-

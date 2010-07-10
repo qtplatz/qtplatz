@@ -17,11 +17,9 @@ class McastServer : boost::noncopyable {
 public:
 	~McastServer();
     McastServer( acewrapper::Callback& cb, ACE_Reactor * r = 0, u_short port = 0);
-
-    static void * thread_entry( void * me );
+    // static void * thread_entry( void * me );
 
     ACE_Reactor * get_reactor();
-    void run_event_loop();
 	bool send( const char * pbuf, ssize_t nsize, const ACE_INET_Addr& );
 	bool send( const char * pbuf, ssize_t nsize );
 

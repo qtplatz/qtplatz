@@ -21,13 +21,6 @@ class McastServer;
 class DeviceTask;
 class ACE_Reactor;
 
-class Callback : public acewrapper::Callback, public DeviceEvent {
- public:
-  MainDeviceWindow& w_;
-  Callback( MainDeviceWindow& w );
-  virtual void operator()(const char * pbuf, ssize_t, const ACE_INET_Addr& );
-};
-
 class MainDeviceWindow : public QMainWindow {
     Q_OBJECT
 
@@ -38,18 +31,14 @@ public:
 
 private:
     Ui::MainDeviceWindow *ui;
-    boost::shared_ptr< Callback > callback_;
+    boost::shared_ptr< DeviceEvent > devEvent_;
     boost::shared_ptr< McastServer > mcast_;
-      // boost::shared_ptr< DeviceTask > task_;
-      // boost::shared_ptr< ACE_Reactor > reactor_;
 
 private slots:
     void on_dismisButton_clicked();
     void on_pushInit_clicked();
     void on_pushHello_clicked();
-    void on_notify_mcast();
-public slots:
-    void on_notify_multicast(const char * pbuf, ssize_t, const ACE_INET_Addr& );
+    void on_notify_mcast(const char *, int, const ACE_INET_Addr* );
 };
 
 #endif // MAINDEVICEWINDOW_H

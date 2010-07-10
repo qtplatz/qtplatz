@@ -12,13 +12,16 @@ class ACE_INET_Addr;
 
 namespace acewrapper {
 
-  class string {
-    std::wstring t_;
-  public:
-    string();
-    string( const ACE_INET_Addr& );
-    operator const std::wstring& () { return t_; }
-  };
+    template<class char_type> class basic_string {
+        std::basic_string<char_type> t_;
+    public:
+        basic_string();
+        basic_string( const ACE_INET_Addr& );
+        operator const std::basic_string<char_type>& () { return t_; }
+    };
+    
+    typedef basic_string<char> string;
+    typedef basic_string<wchar_t> wstring;
   
 }
 

@@ -36,16 +36,6 @@ McastServer::get_reactor()
     return reactor_ ? reactor_ : ACE_Reactor::instance();
 }
 
-
-void *
-McastServer::thread_entry(void * me)
-{
-    McastServer * pThis = reinterpret_cast<McastServer *>(me);
-    if ( pThis )
-        pThis->run_event_loop();
-    return 0;
-}
-
 McastServer::Handler::~Handler()
 {
     if ( mcast_.leave(sock_addr_) == -1 )
@@ -74,36 +64,6 @@ McastServer::Handler::Handler( u_short udp_port
    std::cout << "Mcast address: " << sock_addr_.get_host_addr()
 	     << " port number: " << sock_addr_.get_port_number() << std::endl;
    
-}
-
-void
-McastServer::run_event_loop()
-{
-    ACE_Reactor& reactor = *get_reactor();
-
-    int res = reactor.owner( ACE_OS::thr_self() );
-
-    Handler handler( ACE_DEFAULT_MULTICAST_PORT
-		     , ACE_DEFAULT_MULTICAST_ADDR
-		     , reactor
-		     , callback_ );
-
-    do {
-       scoped_mutex_t<> lock( mutex_ );
-       handler_ = &handler;
-    } while(0);
-
-    std::cout << "McastServer event loop running..." << std::endl;
-
-    while ( true )
-       int res = reactor.handle_events();
-
-    do {
-       scoped_mutex_t<ACE_Recursive_Thread_Mutex> lock( mutex_ );
-       handler_ = 0;
-    } while (0);
-
-    std::cout << "McastServer event loop done." << std::endl;
 }
 
 bool

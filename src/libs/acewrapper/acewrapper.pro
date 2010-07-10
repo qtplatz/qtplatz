@@ -17,14 +17,16 @@ include(acewrapper_dependencies.pri)
 SOURCES += acewrapper.cpp \
     timeval.cpp \
     mcastserver.cpp \
-    ace_string.cpp
+    ace_string.cpp \
+    reactorthread.cpp
 
 HEADERS += acewrapper.h \
     mutex.hpp \
     timeval.h \
     mcastserver.h \
     callback.h \
-    ace_string.h
+    ace_string.h \
+    reactorthread.h
 
 OTHER_FILES += \
     acewrapper.pri \
