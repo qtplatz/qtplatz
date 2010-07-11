@@ -15,30 +15,29 @@
 
 class McastServer : boost::noncopyable {
 public:
-	~McastServer();
-    McastServer( acewrapper::Callback& cb, ACE_Reactor * r = 0, u_short port = 0);
-    // static void * thread_entry( void * me );
+      ~McastServer();
+      McastServer( acewrapper::Callback& cb, ACE_Reactor * r = 0, u_short port = 0);
 
-    ACE_Reactor * get_reactor();
-	bool send( const char * pbuf, ssize_t nsize, const ACE_INET_Addr& );
-	bool send( const char * pbuf, ssize_t nsize );
-
+      ACE_Reactor * get_reactor();
+      bool send( const char * pbuf, ssize_t nsize, const ACE_INET_Addr& );
+      bool send( const char * pbuf, ssize_t nsize );
+      
 private:
-    class Handler : public ACE_Event_Handler {
-        acewrapper::Callback& callback_;
-        ACE_SOCK_Dgram_Mcast mcast_;
-        ACE_INET_Addr sock_addr_;
-        public:
-        ~Handler();
-        Handler(u_short udp_port, const char * ip_addr, ACE_Reactor&, acewrapper::Callback& );
-        // demuxer hooks
-        virtual int handle_input(ACE_HANDLE);
-        virtual int handle_close(ACE_HANDLE, ACE_Reactor_Mask);
-        virtual ACE_HANDLE get_handle() const;
-
-        //
-        bool send( const char * pbuf, ssize_t size );
-    };
+      class Handler : public ACE_Event_Handler {
+	    acewrapper::Callback& callback_;
+	    ACE_SOCK_Dgram_Mcast mcast_;
+	    ACE_INET_Addr sock_addr_;
+	 public:
+	    ~Handler();
+	    Handler(u_short udp_port, const char * ip_addr, ACE_Reactor&, acewrapper::Callback& );
+	    // demuxer hooks
+	    virtual int handle_input(ACE_HANDLE);
+	    virtual int handle_close(ACE_HANDLE, ACE_Reactor_Mask);
+	    virtual ACE_HANDLE get_handle() const;
+	    
+	    //
+	    bool send( const char * pbuf, ssize_t size );
+      };
 
 private:
     ACE_Reactor * reactor_;

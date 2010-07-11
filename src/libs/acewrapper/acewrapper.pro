@@ -18,7 +18,12 @@ SOURCES += acewrapper.cpp \
     timeval.cpp \
     mcastserver.cpp \
     ace_string.cpp \
-    reactorthread.cpp
+    reactorthread.cpp \
+    eventhandler.cpp \
+    mcasthandler.cpp \
+    dgramhandler.cpp \
+    dgram_recv.cpp \
+    timerhandler.cpp
 
 HEADERS += acewrapper.h \
     mutex.hpp \
@@ -26,7 +31,12 @@ HEADERS += acewrapper.h \
     mcastserver.h \
     callback.h \
     ace_string.h \
-    reactorthread.h
+    reactorthread.h \
+    eventhandler.h \
+    mcasthandler.h \
+    dgramhandler.h \
+    dgram_recv.h \
+    timerhandler.h
 
 OTHER_FILES += \
     acewrapper.pri \

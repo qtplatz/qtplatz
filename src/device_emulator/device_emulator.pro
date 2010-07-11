@@ -1,18 +1,17 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2010-07-07T14:07:09
+# Project created by QtCreator 2010-07-07T14:08:12
 #
 #-------------------------------------------------
 
 QT       += core gui
 
-TARGET = test_controller
+TARGET = device_emulator
 TEMPLATE = app
 include(../boost.pri)
 include(../adilibrary.pri)
 
 INCLUDEPATH += $$(ACE_ROOT) ../libs
-
 LIBS *= -L$$IDE_LIBRARY_PATH -L$$(ACE_ROOT)/lib
 Debug {
     LIBS += -lacewrapperd -lACEd
@@ -23,15 +22,12 @@ Release {
 }
 
 SOURCES += main.cpp\
-        maincontrollerwindow.cpp
+        maindevicewindow.cpp \
+    deviceevent.cpp \
+    eventreceiver.cpp
 
-HEADERS  += maincontrollerwindow.h
+HEADERS  += maindevicewindow.h \
+    deviceevent.h \
+    eventreceiver.h
 
-FORMS    += maincontrollerwindow.ui
-
-
-#CONFIG   += console
-#CONFIG   -= app_bundle
-#include(../adilibrary.pri)
-#LIBS += -l$$qtLibraryTarget(adcontrolsd)
-
+FORMS    += maindevicewindow.ui

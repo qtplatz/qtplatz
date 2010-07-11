@@ -4,18 +4,18 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#pragma once
+#ifndef DGRAM_RECV_H
+#define DGRAM_RECV_H
 
-class ACE_Time_Value;
 class ACE_INET_Addr;
 
 namespace acewrapper {
 
-    class Callback {
-    public:
-        virtual void operator()(const char *, int, const ACE_INET_Addr& ) { /* handle input */ }
-        virtual void operator()(const ACE_Time_Value&, const void * ) { /* handle_timeout */ }
-    };
-  
+   template<class T> struct dgram_recv {
+	 T& t_;
+	 dgram_recv(T& t) : t_(t) {}
+	 virtual int operator()( char * pbuf, int bufsize, ACE_INET_Addr& from ) { t_.recv(pbuf, bufsize, from); }
+   };
 }
 
+#endif // DGRAM_RECV_H

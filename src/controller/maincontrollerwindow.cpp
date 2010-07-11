@@ -13,7 +13,12 @@ MainControllerWindow::~MainControllerWindow()
     delete ui;
 }
 
-void MainControllerWindow::on_pushButton_clicked()
+void MainControllerWindow::on_connectButton_clicked()
+{
+
+}
+
+void MainControllerWindow::on_MainControllerWindow_destroyed()
 {
 
 }

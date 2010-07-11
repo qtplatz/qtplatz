@@ -15,6 +15,26 @@ void
 DeviceEvent::operator()(const char * pbuf, ssize_t octets, const ACE_INET_Addr& addr)
 {
     emit signal_mcast(pbuf, octets, &addr);
-    //emit signal_2(pbuf, octets, &addr);
-    //emit signal_3(pbuf, octets, &addr);
+}
+
+int
+DeviceEvent::handle_timeout( const ACE_Time_Value& tv, const void * arg )
+{
+   Q_UNUSED(arg);
+   emit signal_timeout( &tv );
+   return 0;
+}
+
+int
+DeviceEvent::handle_input(ACE_HANDLE)
+{ 
+   return 0;
+}
+
+int
+DeviceEvent::handle_close( ACE_HANDLE handle, ACE_Reactor_Mask close_mask )
+{
+   Q_UNUSED(handle);
+   Q_UNUSED(close_mask); 
+   return 0;
 }

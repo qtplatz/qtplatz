@@ -128,8 +128,7 @@ McastServer::Handler::handle_input(ACE_HANDLE h)
 }
 
 int
-McastServer::Handler::handle_close(ACE_HANDLE h, ACE_Reactor_Mask)
+McastServer::Handler::handle_close(ACE_HANDLE, ACE_Reactor_Mask)
 {
-   //debug_trace(LOG_DEBUG, "McastServer::Handler::handle_close(%d)", h );
    return 0;
 }

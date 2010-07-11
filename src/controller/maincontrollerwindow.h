@@ -19,7 +19,8 @@ private:
     Ui::MainControllerWindow *ui;
 
 private slots:
-    void on_pushButton_clicked();
+    void on_MainControllerWindow_destroyed();
+    void on_connectButton_clicked();
 };
 
 #endif // MAINCONTROLLERWINDOW_H

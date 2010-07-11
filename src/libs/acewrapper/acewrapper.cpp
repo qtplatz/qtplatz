@@ -34,7 +34,14 @@ instance_manager::initialize()
 void
 instance_manager::dispose()
 {
-  delete instance_;
+    if ( instance_manager::instance_ ) {
+        ACE_Recursive_Thread_Mutex *plock;
+        if ( ACE_Object_Manager::get_singleton_lock(plock) == (-1) )
+            throw std::exception("acewrapper: lock object couldn't acquired");
+        scoped_mutex_t<> lock(*plock);
+        delete instance_;
+        instance_ = 0;
+    }
 }
 
 namespace acewrapper {
