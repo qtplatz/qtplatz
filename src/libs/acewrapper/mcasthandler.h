@@ -8,7 +8,6 @@
 #define MCASTHANDLER_H
 
 #include <ace/SOCK_Dgram_Mcast.h>
-#include "acewrapper/dgram_recv.h"
 
 class ACE_INET_Addr;
 

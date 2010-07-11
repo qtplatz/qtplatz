@@ -23,11 +23,9 @@ Release {
 
 SOURCES += main.cpp\
         maindevicewindow.cpp \
-    deviceevent.cpp \
     eventreceiver.cpp
 
 HEADERS  += maindevicewindow.h \
-    deviceevent.h \
     eventreceiver.h
 
 FORMS    += maindevicewindow.ui

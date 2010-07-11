@@ -22,8 +22,8 @@ SOURCES += acewrapper.cpp \
     eventhandler.cpp \
     mcasthandler.cpp \
     dgramhandler.cpp \
-    dgram_recv.cpp \
-    timerhandler.cpp
+    timerhandler.cpp \
+    messageblock.cpp
 
 HEADERS += acewrapper.h \
     mutex.hpp \
@@ -35,8 +35,8 @@ HEADERS += acewrapper.h \
     eventhandler.h \
     mcasthandler.h \
     dgramhandler.h \
-    dgram_recv.h \
-    timerhandler.h
+    timerhandler.h \
+    messageblock.h
 
 OTHER_FILES += \
     acewrapper.pri \

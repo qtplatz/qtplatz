@@ -8,6 +8,8 @@
 
 #include <QObject>
 #include <ace/Event_Handler.h>
+#include <ace/INET_Addr.h>
+#include <ace/Time_Value.h>
 
 class ACE_Time_Value;
 
@@ -17,19 +19,22 @@ namespace acewrapper {
 }
 
 class QEventReceiver : public QObject {
-    Q_OBJECT
-public:
-    explicit QEventReceiver(QObject *parent = 0);
+      Q_OBJECT
+   public:
+      explicit QEventReceiver(QObject *parent = 0);
+      
+      int handle_input(acewrapper::McastHandler&, ACE_HANDLE );  // routed from multicast handler
+      int handle_input(acewrapper::DgramHandler&, ACE_HANDLE );  // routed from dgram handler
+      int handle_input( ACE_HANDLE ); // native entry, may not be used
+      int handle_timeout( const ACE_Time_Value&, const void * );
+      int handle_close( ACE_HANDLE, ACE_Reactor_Mask );
+      
+  signals:
+      void signal_dgram_input( const char * pbuf, int octets, const ACE_INET_Addr * );
+      void signal_mcast_input( const char * pbuf, int octets, const ACE_INET_Addr * );
+      void signal_timeout();
 
-    int handle_input(acewrapper::McastHandler&, ACE_HANDLE );  // routed from multicast handler
-    int handle_input(acewrapper::DgramHandler&, ACE_HANDLE );  // routed from dgram handler
-    int handle_input( ACE_HANDLE ); // native entry, may not be used
-    int handle_timeout( const ACE_Time_Value&, const void * );
-    int handle_close( ACE_HANDLE, ACE_Reactor_Mask );
-
-signals:
-
-public slots:
+  public slots:
 
 };
 
