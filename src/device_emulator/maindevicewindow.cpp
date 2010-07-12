@@ -48,21 +48,24 @@ MainDeviceWindow::mcast_init()
     o << "S/N=" << ACE_OS::getpid() << ",";
     ident_ = o.str();
 
-    dgramHandler_.reset( new acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> >() );
-    if ( dgramHandler_ )
-        dgramHandler_->open();
+	ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
+
+	//dgramHandler_.reset( new acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> >() );
+    if ( dgramHandler_ ) {
+		if ( dgramHandler_->open() )
+			reactor->register_handler( dgramHandler_.get(), ACE_Event_Handler::READ_MASK );
+	}
 
     mcastHandler_.reset( new acewrapper::EventHandler< acewrapper::McastReceiver<QEventReceiver> >() );
-    if ( mcastHandler_ )
-        mcastHandler_->open();
+	if ( mcastHandler_ ) {
+		if ( mcastHandler_->open() ) 
+			reactor->register_handler( mcastHandler_.get(), ACE_Event_Handler::READ_MASK );
+	}
 
-    timerHandler_.reset( new acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> >() );
-
-    ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
-    reactor->register_handler( dgramHandler_.get(), ACE_Event_Handler::READ_MASK );
-    reactor->register_handler( mcastHandler_.get(), ACE_Event_Handler::READ_MASK );
-
-    timerId_ = reactor->schedule_timer( timerHandler_.get(), 0, ACE_Time_Value(3), ACE_Time_Value(3) );
+	// timerHandler_.reset( new acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> >() );
+	if ( timerHandler_ ) {
+		timerId_ = reactor->schedule_timer( timerHandler_.get(), 0, ACE_Time_Value(3), ACE_Time_Value(3) );
+	}
 
     acewrapper::ReactorThread::spawn( acewrapper::TheReactorThread::instance() );
 }
@@ -86,13 +89,17 @@ MainDeviceWindow::on_notify_timeout( const ACE_Time_Value * )
 
 void MainDeviceWindow::on_pushHello_clicked()
 {
-    if ( mcastHandler_ )
-        mcastHandler_->send( ident_.c_str(), ident_.size() + 1 );
+	if ( mcastHandler_ ) {
+		if ( ! mcastHandler_->send( "HELLO", sizeof("HELLO") ) )
+			std::cout << "Mcast send error" << std::endl;
+		// mcastHandler_->send( ident_.c_str(), ident_.size() );
+	}
 }
 
 void MainDeviceWindow::on_pushInit_clicked()
 {
    mcast_init();
+/*
    this->connect( this->dgramHandler_.get()
                 , SIGNAL(signal_dgram_input(const char *, int, const ACE_INET_Addr*))
                 , this
@@ -107,6 +114,7 @@ void MainDeviceWindow::on_pushInit_clicked()
                 , SIGNAL(signal_timer(const char *, int, const ACE_INET_Addr*))
                 , this
                 , SLOT( on_notify_timeout( const ACE_Time_Value *) ) );
+*/
 }
 
 

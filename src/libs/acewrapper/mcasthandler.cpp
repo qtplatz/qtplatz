@@ -35,7 +35,8 @@ McastHandler::open( u_short port )
 bool
 McastHandler::send( const char * pbuf, ssize_t size )
 {
-   return sock_mcast_.send( pbuf, size );
+	ssize_t r = sock_mcast_.send( pbuf, size );
+	return r == size;
 }
 
 int

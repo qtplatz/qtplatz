@@ -10,9 +10,11 @@ TARGET = adportable
 TEMPLATE = lib
 CONFIG += staticlib
 
-SOURCES += adportable.cpp
+SOURCES += adportable.cpp \
+    protocollifecycle.cpp
 
 HEADERS += adportable.h \
     binary_search.hpp \
     array_wrapper.hpp \
-    safearray.hpp
+    safearray.hpp \
+    protocollifecycle.h
