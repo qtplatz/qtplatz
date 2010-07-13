@@ -13,6 +13,7 @@
 #include <acewrapper/dgramhandler.h>
 #include <acewrapper/mcasthandler.h>
 #include <acewrapper/timerhandler.h>
+#include <acewrapper/inputcdr.h>
 #include <ace/Reactor.h>
 #include <ace/Message_Block.h>
 #include <ace/Task.h>
@@ -71,12 +72,35 @@ MainDeviceWindow::mcast_init()
 }
 
 void
-MainDeviceWindow::on_notify_mcast( const char * pbuf, int octets, const ACE_INET_Addr* addr )
+MainDeviceWindow::on_notify_mcast( ACE_Message_Block * mb )
 {
-    std::string from = acewrapper::string( ACE_INET_Addr(*addr) );
-    std::ostringstream o;
-    o << "1:" << pbuf << " " << octets << " octets received " << std::string(from);
+	acewrapper::InputCDR cdr( mb );
+
+	char * pdata = mb->rd_ptr();
+    size_t len = mb->length();
+
+	std::ostringstream o;
+	o << "mb->count() " << mb->cont() << std::endl;
+
+    unsigned short endian_mark;
+    unsigned short protocol_version;
+	std::string from;
+    size_t size;
+	std::vector<char> data;
+        
+	cdr >> endian_mark;
+	cdr >> protocol_version;
+	cdr >> from;
+	cdr >> size;
+    data.resize( size );
+	cdr.read( &data[0], size );
+
+	o << "mcast endian:" << endian_mark << " octet:" << size << " from:" << from;
+	o << " data:" << reinterpret_cast<char *>(&data[0]) << std::endl;
+
     ui->plainTextEdit->appendPlainText( o.str().c_str() );
+
+	ACE_Message_Block::release( mb );
 }
 
 void
@@ -99,16 +123,18 @@ void MainDeviceWindow::on_pushHello_clicked()
 void MainDeviceWindow::on_pushInit_clicked()
 {
    mcast_init();
+
+   this->connect( this->mcastHandler_.get()
+	            , SIGNAL(signal_mcast_input( ACE_Message_Block * ))
+                , this
+                , SLOT( on_notify_mcast( ACE_Message_Block* ) ) );
+
 /*
    this->connect( this->dgramHandler_.get()
                 , SIGNAL(signal_dgram_input(const char *, int, const ACE_INET_Addr*))
                 , this
                 , SLOT( on_notify_dgram(const char*, int, const ACE_INET_Addr*) ) );
 
-   this->connect( this->mcastHandler_.get()
-                , SIGNAL(signal_mcast_input(const char *, int, const ACE_INET_Addr*))
-                , this
-                , SLOT( on_notify_mcast(const char*, int, const ACE_INET_Addr*) ) );
 
    this->connect( this->timerHandler_.get()
                 , SIGNAL(signal_timer(const char *, int, const ACE_INET_Addr*))

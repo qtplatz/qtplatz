@@ -24,7 +24,8 @@ SOURCES += acewrapper.cpp \
     dgramhandler.cpp \
     timerhandler.cpp \
     messageblock.cpp \
-    outputcdr.cpp
+    outputcdr.cpp \
+    inputcdr.cpp
 
 HEADERS += acewrapper.h \
     mutex.hpp \
@@ -38,7 +39,8 @@ HEADERS += acewrapper.h \
     dgramhandler.h \
     timerhandler.h \
     messageblock.h \
-    outputcdr.h
+    outputcdr.h \
+    inputcdr.h
 
 OTHER_FILES += \
     acewrapper.pri \

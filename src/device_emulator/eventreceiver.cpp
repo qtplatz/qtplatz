@@ -44,18 +44,29 @@ QEventReceiver::handle_input(acewrapper::McastHandler& mcast, ACE_HANDLE h)
 
     memset( buf, 0, sizeof(buf) );
     int res = mcast.recv( buf, sizeof(buf), from );
-    if (res == (-1))
+	if (res == (-1)) {
 		perror("handle_input mcast.recv");
+		res = 0;
+	}
 
-	acewrapper::OutputCDR cdr;
+	ACE_Message_Block * mb = new ACE_Message_Block( 256 + res );
+	do {
+		acewrapper::OutputCDR cdr(mb);
+		cdr << unsigned short( 0xfffe ); // endian mark
+		cdr << unsigned short( 0x0001 ); // protocol version
+		cdr << std::string( acewrapper::string( from ) );
+        cdr << unsigned long(res);
+		cdr.write( buf, res );
+        char * wptr = mb->wr_ptr();
+        char * rptr = mb->rd_ptr();
+		size_t len = mb->length();
+		size_t clen = static_cast<ACE_OutputCDR&>(cdr).length();
+        mb->length( clen );
+	} while (0);
 
-    cdr << unsigned long(-1);
-	cdr << std::string( acewrapper::string( from ) );
-	cdr << std::string( buf );
-	const ACE_Message_Block * mb = cdr.begin();
-	char * pdata = mb->rd_ptr();
+	// char * pdata = mb->rd_ptr();
 	std::cout << "handle_input mcast  (" << h << "," << res << ")" << buf << std::endl;
-
+    emit signal_mcast_input( mb );
     return 0;
 	// emit signal_mcast_input( buf, res, &from );
 	return 0;

@@ -87,3 +87,75 @@ OutputCDR& OutputCDR::operator << ( const std::wstring& t )
   return *this;
 }
 
+bool
+OutputCDR::write( const bool * p, size_t o )
+{
+	return impl_.write_boolean_array( p, o );
+}
+
+bool
+OutputCDR::write( const char * p, size_t o )
+{
+	return impl_.write_char_array( p, o );
+}
+
+bool
+OutputCDR::write( const unsigned char * p, size_t o )
+{
+	return impl_.write_octet_array( p, o );
+}
+
+bool
+OutputCDR::write( const short * p, size_t o )
+{
+	return impl_.write_short_array( p, o );
+}
+
+bool
+OutputCDR::write( const unsigned short * p, size_t o )
+{
+	return impl_.write_ushort_array( p, o );
+}
+
+bool
+OutputCDR::write( const long * p, size_t o )
+{
+	return impl_.write_long_array( reinterpret_cast<const ACE_CDR::Long *>(p), o );
+}
+
+bool
+OutputCDR::write( const unsigned long * p, size_t o )
+{
+	return impl_.write_ulong_array( reinterpret_cast<const ACE_CDR::ULong *>(p), o );
+}
+
+bool
+OutputCDR::write( const long long * p, size_t o )
+{
+	return impl_.write_longlong_array( p, o );
+}
+
+bool
+OutputCDR::write( const unsigned long long * p, size_t o )
+{
+	return impl_.write_ulonglong_array( p, o );
+}
+
+bool
+OutputCDR::write( const float * p, size_t o )
+{
+	return impl_.write_float_array( p, o );
+}
+
+bool
+OutputCDR::write( const double * p, size_t o )
+{
+	return impl_.write_double_array( p, o );
+}
+
+bool
+OutputCDR::write( const long double * p, size_t o )
+{
+	return impl_.write_longdouble_array( reinterpret_cast<const ACE_CDR::LongDouble *>(p), o );
+}
+

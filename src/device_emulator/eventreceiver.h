@@ -31,7 +31,7 @@ class QEventReceiver : public QObject {
       
   signals:
       void signal_dgram_input( const char * pbuf, int octets, const ACE_INET_Addr * );
-      void signal_mcast_input( const char * pbuf, int octets, const ACE_INET_Addr * );
+      void signal_mcast_input( ACE_Message_Block * mb );
       void signal_timeout();
 
   public slots:

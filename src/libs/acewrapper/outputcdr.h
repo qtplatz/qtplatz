@@ -34,6 +34,18 @@ namespace acewrapper {
 		OutputCDR& operator << (double);
 		OutputCDR& operator << (const std::string& );
 		OutputCDR& operator << (const std::wstring& );
+		bool write( const bool *, size_t );
+		bool write( const char *, size_t );
+		bool write( const unsigned char *, size_t );
+		bool write( const short *, size_t );
+		bool write( const unsigned short *, size_t );
+		bool write( const long *, size_t );
+		bool write( const unsigned long *, size_t );
+		bool write( const long long *, size_t );
+		bool write( const unsigned long long *, size_t );
+		bool write( const float *, size_t );
+		bool write( const double *, size_t );
+		bool write( const long double *, size_t );
 	private:
 		ACE_OutputCDR impl_;
 	};
