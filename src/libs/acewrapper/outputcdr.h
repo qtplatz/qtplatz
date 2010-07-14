@@ -20,6 +20,7 @@ namespace acewrapper {
 		operator ACE_OutputCDR& () { return impl_; }
 		operator const ACE_OutputCDR& () const { return impl_; }
 		const ACE_Message_Block * begin() { return impl_.begin(); }
+		size_t length() const { return impl_.length(); }
 
 		OutputCDR& operator << (bool);
 		OutputCDR& operator << (char);

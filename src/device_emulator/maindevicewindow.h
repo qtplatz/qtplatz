@@ -10,6 +10,7 @@
 #include <QMainWindow>
 // #include <acewrapper/callback.h>
 #include <boost/smart_ptr.hpp>
+#include <adportable/protocollifecycle.h>
 
 namespace Ui {
     class MainDeviceWindow;
@@ -46,15 +47,14 @@ public:
 
 private:
     Ui::MainDeviceWindow *ui;
-    // boost::shared_ptr< acewrapper::EventHandler<DeviceEvent> > devEvent_;
-    // boost::shared_ptr< McastServer > mcast_;
+	adportable::protocol::LifeCycle lifeCycle_;
 
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> > > dgramHandler_;
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::McastReceiver<QEventReceiver> > > mcastHandler_;
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> > > timerHandler_;
 
     std::string ident_;
-      unsigned long timerId_;
+	unsigned long timerId_;
 
 private slots:
     void on_MainDeviceWindow_destroyed();
@@ -62,7 +62,8 @@ private slots:
     void on_pushInit_clicked();
     void on_pushHello_clicked();
     void on_notify_mcast( ACE_Message_Block * mb );
-    void on_notify_timeout( const ACE_Time_Value * );
+    void on_notify_dgram( ACE_Message_Block * mb );
+    void on_notify_timeout( unsigned long, long );
 };
 
 #endif // MAINDEVICEWINDOW_H

@@ -6,7 +6,7 @@
 
 QT       += core gui
 
-TARGET = device_emulator
+TARGET = controller
 TEMPLATE = app
 include(../boost.pri)
 include(../adilibrary.pri)
@@ -22,10 +22,11 @@ Release {
 }
 
 SOURCES += main.cpp\
-        maindevicewindow.cpp \
+    maincontrollerwindow.cpp \
+    main.cpp \
     eventreceiver.cpp
 
-HEADERS  += maindevicewindow.h \
+HEADERS  += maincontrollerwindow.h \
     eventreceiver.h
 
-FORMS    += maindevicewindow.ui
+FORMS    += maincontrollerwindow.ui

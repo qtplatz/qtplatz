@@ -40,7 +40,8 @@ HEADERS += acewrapper.h \
     timerhandler.h \
     messageblock.h \
     outputcdr.h \
-    inputcdr.h
+    inputcdr.h \
+    serialization_inet_addr.h
 
 OTHER_FILES += \
     acewrapper.pri \

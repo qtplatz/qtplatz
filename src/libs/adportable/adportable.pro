@@ -10,6 +10,9 @@ TARGET = adportable
 TEMPLATE = lib
 CONFIG += staticlib
 
+include(../../adilibrary.pri)
+include(../../boost.pri)
+
 SOURCES += adportable.cpp \
     protocollifecycle.cpp
 
