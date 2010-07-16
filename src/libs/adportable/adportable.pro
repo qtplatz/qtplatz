@@ -14,10 +14,12 @@ include(../../adilibrary.pri)
 include(../../boost.pri)
 
 SOURCES += adportable.cpp \
-    protocollifecycle.cpp
+    protocollifecycle.cpp \
+    lifecycle_frame.cpp
 
 HEADERS += adportable.h \
     binary_search.hpp \
     array_wrapper.hpp \
     safearray.hpp \
-    protocollifecycle.h
+    protocollifecycle.h \
+    lifecycle_frame.h

@@ -44,6 +44,26 @@ namespace adportable {
 		  LifeCycleState state_;
 		  boost::shared_ptr<LifeCycleImpl> pImpl_;
 	  };
+
+	  ///////////////////////////////////////////////////////
+
+	  struct LifeCycleFrame {
+		unsigned short endian_mark_;
+		unsigned short proto_version_;
+		unsigned short command_;
+		unsigned short ctrl_;
+	  };
+	
+	  struct LifeCycle_Hello {
+	    LifeCycleFrame frame_;
+		std::string connect_string_;  // "udp:[ipaddr(optional)]:<port#>"
+		std::string device_name_;     // "device name, as reference"
+		std::string serial_number_;   // "unique number of device"
+		std::string revision_;        // "device firmware revision"
+		std::string model_name_;      // "device model_name"
+		std::string manufacturer_;    // "device or driver manufacturer"
+		std::string copyright_;       // optional
+	  };
   }
 }
 
