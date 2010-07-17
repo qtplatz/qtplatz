@@ -5,10 +5,10 @@
 
 #include "protocollifecycle.h"
 #include <boost/variant.hpp>
+#include <sstream>
 
 using namespace adportable;
 using namespace adportable::protocol;
-
 
 namespace adportable {
 
@@ -183,6 +183,8 @@ LifeCycleImpl::apply_command( LifeCycleCommand cmd, LifeCycleState& state )
 bool
 LifeCycleImpl::reply_received( LifeCycleCommand cmd, unsigned short rseq, LifeCycleState& state )
 {
+    static_cast<void>(rseq); // unsed
+    
     bool result = false;
     LifeCycleType next;
 	switch( cmd ) {
@@ -266,3 +268,56 @@ template<> bool LifeCycle_CloseWait::recv<command_close>( LifeCycleType& cycle )
 	return true;
 }
 
+////////////////////////////////////////
+
+LifeCycleFrame::LifeCycleFrame( LifeCycleCommand cmd ) : endian_mark_(0xfffe)
+						       , proto_version_(0x0001)
+						       , ctrl_(0)
+						       , hoffset_(8)
+						       , command_(cmd)
+{
+}
+
+std::string
+LifeCycle_Hello::to_string( const LifeCycle_Hello& data )
+{
+    std::ostringstream o;
+
+    o << "<HELO>"
+        << ":proto(" << data.proto_ << "," << data.portnumber_ << ")"
+        << ":addr(" << data.ipaddr_ << ")"
+        << ":name(" << data.device_name_ << ")"
+        << ":s/n(" << data.serial_number_ << ")"
+        << ":rev" << data.revision_ << ")"
+        << ":" << data.model_name_
+        << ":" << data.manufacturer_
+        << ":" << data.copyright_ << "</HELO>" ;
+   return o.str();
+}
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+namespace adportable {
+    namespace internal {
+
+        class LifeCycleData_to_string_visitor : public boost::static_visitor< std::string > {
+        public:
+            template<class T> std::string operator()( const T& ) const { return std::string("error"); }
+        };
+
+        template<> std::string LifeCycleData_to_string_visitor::operator () (const LifeCycle_Hello& t) const
+        {
+            return LifeCycle_Hello::to_string(t);
+        }
+
+    }
+}
+
+std::string
+LifeCycleHelper::to_string( const LifeCycleData& data )
+{
+    using namespace adportable::internal;
+    return boost::apply_visitor( LifeCycleData_to_string_visitor(), data );   
+}

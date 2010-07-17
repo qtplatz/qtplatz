@@ -25,7 +25,8 @@ SOURCES += acewrapper.cpp \
     timerhandler.cpp \
     messageblock.cpp \
     outputcdr.cpp \
-    inputcdr.cpp
+    inputcdr.cpp \
+    lifecycle_frame_serializer.cpp
 
 HEADERS += acewrapper.h \
     mutex.hpp \
@@ -41,7 +42,8 @@ HEADERS += acewrapper.h \
     messageblock.h \
     outputcdr.h \
     inputcdr.h \
-    serialization_inet_addr.h
+    serialization_inet_addr.h \
+    lifecycle_frame_serializer.h
 
 OTHER_FILES += \
     acewrapper.pri \

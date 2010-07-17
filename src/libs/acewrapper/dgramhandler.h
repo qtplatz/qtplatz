@@ -22,6 +22,7 @@ namespace acewrapper {
 	 bool open( u_short port = 0 );
 	 bool send( const char *, ssize_t, const ACE_INET_Addr& );
 	 int recv( char * pbuf, int octets, ACE_INET_Addr& remote_addr);
+	 inline operator const ACE_INET_Addr& () const { return sock_addr_; }
 
       private:
 	 int errno_;

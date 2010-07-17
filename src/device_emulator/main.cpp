@@ -8,11 +8,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    ACE_INET_Addr addr;
-    std::wstring wstr = acewrapper::wstring(addr);
-    std::string sstr = acewrapper::string(addr);
-
     MainDeviceWindow w;
+    w.initial_update();
     w.show();
     return a.exec();
 }

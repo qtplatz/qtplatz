@@ -19,6 +19,8 @@
 #include <sstream>
 #include <ace/OS.h>
 #include "eventreceiver.h"
+#include <boost/lexical_cast.hpp>
+#include <acewrapper/lifecycle_frame_serializer.h>
 
 MainControllerWindow::MainControllerWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -30,6 +32,15 @@ MainControllerWindow::MainControllerWindow(QWidget *parent) :
 MainControllerWindow::~MainControllerWindow()
 {
     delete ui;
+}
+
+void
+MainControllerWindow::register_device( const ACE_INET_Addr& addr )
+{
+    std::string addr_str = acewrapper::string( addr );
+    std::ostringstream o;
+    o << "register_device(" << addr_str << ")" ;
+    ui->plainTextEdit->appendPlainText( QString(o.str().c_str() ) );
 }
 
 void MainControllerWindow::on_connectButton_clicked()
@@ -46,54 +57,42 @@ void MainControllerWindow::on_MainControllerWindow_destroyed()
 void
 MainControllerWindow::on_notify_mcast( ACE_Message_Block * mb )
 {
-	acewrapper::InputCDR cdr( mb );
+   ACE_Message_Block * pfrom = mb->cont();
+   ACE_INET_Addr& from_addr( *reinterpret_cast<ACE_INET_Addr *>( pfrom->rd_ptr() ) );
+   std::ostringstream o;
+   if ( pfrom ) {
+      std::string str = acewrapper::string( from_addr );
+      o << "[" << str << "]";
+   }
 
-    unsigned short endian_mark;
-    unsigned short protocol_version;
-	std::string from;
-    size_t size;
-	std::vector<char> data;
-        
-	cdr >> endian_mark;
-	cdr >> protocol_version;
-	cdr >> from;
-	cdr >> size;
-    data.resize( size );
-	cdr.read( &data[0], size );
+   using namespace adportable::protocol;
+   using namespace acewrapper;
+   LifeCycleData data;
+   LifeCycleFrame frame;
+   
+   lifecycle_frame_serializer::unpack( mb, frame, data );
 
-	std::ostringstream o;
-	o << "mcast endian:" << endian_mark << " octet:" << size << " from:" << from;
-	o << " data:" << reinterpret_cast<char *>(&data[0]) << std::endl;
+   try {
+       LifeCycle_Hello& hello = boost::get< LifeCycle_Hello& >(data);
+       ACE_INET_Addr addr;
+       addr.string_to_addr( hello.ipaddr_.c_str() );
+       if ( addr.get_ip_address() == 0 ) {
+           addr = from_addr;
+           addr.set_port_number( hello.portnumber_ );
+       }
+       register_device( addr );
+   } catch ( std::bad_cast& ) {
+   }
 
-    ui->plainTextEdit->appendPlainText( o.str().c_str() );
+   o << LifeCycleHelper::to_string( data );
+   ui->plainTextEdit->appendPlainText( o.str().c_str() );
 
-	ACE_Message_Block::release( mb );
+   ACE_Message_Block::release( mb );
 }
 
 void
 MainControllerWindow::on_notify_dgram( ACE_Message_Block * mb )
 {
-	acewrapper::InputCDR cdr( mb );
-
-    unsigned short endian_mark;
-    unsigned short protocol_version;
-	std::string from;
-    size_t size;
-	std::vector<char> data;
-        
-	cdr >> endian_mark;
-	cdr >> protocol_version;
-	cdr >> from;
-	cdr >> size;
-    data.resize( size );
-	cdr.read( &data[0], size );
-
-	std::ostringstream o;
-	o << "dgram endian:" << endian_mark << " octet:" << size << " from:" << from;
-	o << " data:" << reinterpret_cast<char *>(&data[0]) << std::endl;
-
-	ui->plainTextEdit->appendPlainText( o.str().c_str() );
-
 	ACE_Message_Block::release( mb );
 }
 
@@ -122,43 +121,40 @@ MainControllerWindow::mcast_init()
 {
     acewrapper::instance_manager::initialize();
     
-    std::ostringstream o;
-    o << "HELLO:controller:";
-    o << "S/N=" << ACE_OS::getpid() << ",";
-    ident_ = o.str();
-
-	ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
-
-	dgramHandler_.reset( new acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> >() );
+    ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
+    
+    dgramHandler_.reset( new acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> >() );
     if ( dgramHandler_ ) {
-		if ( dgramHandler_->open() )
-			reactor->register_handler( dgramHandler_.get(), ACE_Event_Handler::READ_MASK );
-	}
+       int port = 6000;
+       while ( ! dgramHandler_->open(port++) && port < 6999 )
+	  ;
+       assert( port < 6999 );
+       if ( port < 6999 )
+	  reactor->register_handler( dgramHandler_.get(), ACE_Event_Handler::READ_MASK );
+    }
 
     mcastHandler_.reset( new acewrapper::EventHandler< acewrapper::McastReceiver<QEventReceiver> >() );
-	if ( mcastHandler_ ) {
-		if ( mcastHandler_->open() ) 
-			reactor->register_handler( mcastHandler_.get(), ACE_Event_Handler::READ_MASK );
-	}
-
-	timerHandler_.reset( new acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> >() );
-	if ( timerHandler_ ) {
-		timerId_ = reactor->schedule_timer( timerHandler_.get(), 0, ACE_Time_Value(3), ACE_Time_Value(3) );
-	}
-
+    if ( mcastHandler_ ) {
+       if ( mcastHandler_->open() ) 
+	  reactor->register_handler( mcastHandler_.get(), ACE_Event_Handler::READ_MASK );
+    }
+    
+    timerHandler_.reset( new acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> >() );
+    if ( timerHandler_ ) {
+       timerId_ = reactor->schedule_timer( timerHandler_.get(), 0, ACE_Time_Value(3), ACE_Time_Value(3) );
+    }
+    
     acewrapper::ReactorThread::spawn( acewrapper::TheReactorThread::instance() );
-
-
-   this->connect( mcastHandler_.get()
-	            , SIGNAL( signal_mcast_input( ACE_Message_Block * ) )
-                , this, SLOT( on_notify_mcast( ACE_Message_Block* ) ) );
-
-   this->connect( dgramHandler_.get()
-                , SIGNAL( signal_dgram_input( ACE_Message_Block * ) )
-                , this, SLOT( on_notify_dgram( ACE_Message_Block* ) ) );
-
-   this->connect( timerHandler_.get()
-	            , SIGNAL( signal_timeout( unsigned long, long ) )
-				, this, SLOT( on_notify_timeout( unsigned long, long ) ) );
-
+    
+    this->connect( mcastHandler_.get()
+		   , SIGNAL( signal_mcast_input( ACE_Message_Block * ) )
+		   , this, SLOT( on_notify_mcast( ACE_Message_Block* ) ) );
+    
+    this->connect( dgramHandler_.get()
+		   , SIGNAL( signal_dgram_input( ACE_Message_Block * ) )
+		   , this, SLOT( on_notify_dgram( ACE_Message_Block* ) ) );
+    
+    this->connect( timerHandler_.get()
+		   , SIGNAL( signal_timeout( unsigned long, long ) )
+		   , this, SLOT( on_notify_timeout( unsigned long, long ) ) );
 }

@@ -23,9 +23,15 @@ Release {
 
 SOURCES += main.cpp\
         maindevicewindow.cpp \
-    eventreceiver.cpp
+    eventreceiver.cpp \
+    roleaverager.cpp \
+    roleesi.cpp \
+    roleanalyzer.cpp
 
 HEADERS  += maindevicewindow.h \
-    eventreceiver.h
+    eventreceiver.h \
+    roleaverager.h \
+    roleesi.h \
+    roleanalyzer.h
 
 FORMS    += maindevicewindow.ui

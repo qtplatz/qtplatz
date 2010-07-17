@@ -39,15 +39,12 @@ DgramHandler::recv( char * pbuf, int bufsize, ACE_INET_Addr& remote_addr )
 bool
 DgramHandler::open( u_short port )
 {
-    if ( sock_dgram_.get_handle() )
-        return false; // already open
-
     if ( port )
         sock_addr_ = ACE_INET_Addr( port, "0.0.0.0" );
    
-    if ( sock_dgram_.open( sock_addr_ ) == (-1) ) {
+    if ( sock_dgram_.open( sock_addr_ ) == (-1) )
         return false;
-    }
+
     return true;
 }
 

@@ -50,6 +50,7 @@ private:
 
     std::string ident_;
     unsigned long timerId_;
+    void register_device( const ACE_INET_Addr& );
 
 private slots:
     void on_MainControllerWindow_destroyed();

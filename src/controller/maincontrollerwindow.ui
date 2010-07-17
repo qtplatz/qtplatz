@@ -49,24 +49,30 @@
         <attribute name="title">
          <string>Global</string>
         </attribute>
-        <widget class="QPlainTextEdit" name="plainTextEdit">
+        <widget class="QWidget" name="verticalLayoutWidget">
          <property name="geometry">
           <rect>
-           <x>10</x>
-           <y>10</y>
-           <width>291</width>
-           <height>281</height>
+           <x>0</x>
+           <y>13</y>
+           <width>301</width>
+           <height>351</height>
           </rect>
          </property>
-         <property name="maximumSize">
-          <size>
-           <width>291</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="undoRedoEnabled">
-          <bool>false</bool>
-         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QPlainTextEdit" name="plainTextEdit">
+            <property name="maximumSize">
+             <size>
+              <width>291</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="undoRedoEnabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </widget>
        <widget class="QWidget" name="tab_2">

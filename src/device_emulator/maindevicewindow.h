@@ -44,6 +44,7 @@ public:
     explicit MainDeviceWindow(QWidget *parent = 0);
     ~MainDeviceWindow();
     void mcast_init();
+    void initial_update();
 
 private:
     Ui::MainDeviceWindow *ui;
@@ -53,10 +54,14 @@ private:
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::McastReceiver<QEventReceiver> > > mcastHandler_;
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> > > timerHandler_;
 
-    std::string ident_;
 	unsigned long timerId_;
+    adportable::protocol::LifeCycleFrame lifeCycleFrame_hello_;
+    adportable::protocol::LifeCycle_Hello lifeCycleData_hello_;
 
 private slots:
+    void on_checkBoxAnalyzer_stateChanged(int );
+    void on_checkBoxIonSource_stateChanged(int );
+    void on_checkBoxAverager_stateChanged(int );
     void on_MainDeviceWindow_destroyed();
     void on_dismisButton_clicked();
     void on_pushInit_clicked();
