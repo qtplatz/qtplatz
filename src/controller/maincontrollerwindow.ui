@@ -14,76 +14,33 @@
    <string>MainControllerWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="connectButton">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>10</y>
-      <width>75</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>connect</string>
-    </property>
-   </widget>
-   <widget class="QWidget" name="horizontalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>40</y>
-      <width>631</width>
-      <height>401</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QTreeView" name="treeView"/>
-     </item>
-     <item>
-      <widget class="QTabWidget" name="tabWidget">
-       <property name="currentIndex">
-        <number>0</number>
-       </property>
-       <widget class="QWidget" name="tab">
-        <attribute name="title">
-         <string>Global</string>
-        </attribute>
-        <widget class="QWidget" name="verticalLayoutWidget">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>13</y>
-           <width>301</width>
-           <height>351</height>
-          </rect>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <widget class="QPlainTextEdit" name="plainTextEdit">
-            <property name="maximumSize">
-             <size>
-              <width>291</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="undoRedoEnabled">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </widget>
-       <widget class="QWidget" name="tab_2">
-        <attribute name="title">
-         <string>Tab 2</string>
-        </attribute>
-       </widget>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QTreeView" name="treeView"/>
+    </item>
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Tab 1</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QPlainTextEdit" name="plainTextEdit"/>
+        </item>
+       </layout>
       </widget>
-     </item>
-    </layout>
-   </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Tab 2</string>
+       </attribute>
+      </widget>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -94,6 +51,14 @@
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuDevices">
+    <property name="title">
+     <string>Devices</string>
+    </property>
+    <addaction name="actionConnect"/>
+    <addaction name="actionDisconnect"/>
+   </widget>
+   <addaction name="menuDevices"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -104,6 +69,16 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionConnect">
+   <property name="text">
+    <string>Connect</string>
+   </property>
+  </action>
+  <action name="actionDisconnect">
+   <property name="text">
+    <string>Disconnect</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui xml
 
 TARGET = controller
 TEMPLATE = app
@@ -24,9 +24,18 @@ Release {
 SOURCES += main.cpp\
     maincontrollerwindow.cpp \
     main.cpp \
-    eventreceiver.cpp
+    eventreceiver.cpp \
+    treemodel.cpp \
+    treeitem.cpp \
+    deviceproxy.cpp
 
 HEADERS  += maincontrollerwindow.h \
-    eventreceiver.h
+    eventreceiver.h \
+    treemodel.h \
+    treeitem.h \
+    deviceproxy.h
 
 FORMS    += maincontrollerwindow.ui
+
+RESOURCES += \
+    controller.qrc

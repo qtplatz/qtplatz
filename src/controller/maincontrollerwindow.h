@@ -9,6 +9,7 @@ namespace Ui {
 
 #include <boost/smart_ptr.hpp>
 #include <adportable/protocollifecycle.h>
+#include <map>
 
 namespace acewrapper {
     template<class T> class EventHandler;
@@ -27,6 +28,9 @@ class ACE_INET_Addr;
 class ACE_Message_Block;
 
 class QEventReceiver;
+class TreeModel;
+
+class DeviceProxy;
 
 /////////////////////
 
@@ -39,18 +43,31 @@ public:
     ~MainControllerWindow();
 
     void mcast_init();
+    void on_initial_update();
 
 private:
     Ui::MainControllerWindow *ui;
+
+    // Hardware configuration & status display in tree view
+    boost::shared_ptr<TreeModel> treeModel_;
+
+    // Hardware life cycle control
     adportable::protocol::LifeCycle lifeCycle_;
 
-    boost::shared_ptr< acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> > > dgramHandler_;
+    // Hardware Half Sync/Async patterns
+    // boost::shared_ptr< acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> > > dgramHandler_;
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::McastReceiver<QEventReceiver> > > mcastHandler_;
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> > > timerHandler_;
 
     std::string ident_;
     unsigned long timerId_;
-    void register_device( const ACE_INET_Addr& );
+    void multicast_update_device( const ACE_INET_Addr&
+        , const adportable::protocol::LifeCycleFrame&
+        , const adportable::protocol::LifeCycleData& );
+    typedef std::map< std::string, boost::shared_ptr< DeviceProxy > > map_type;
+
+private:
+    std::map< std::string /* inet_addr */, boost::shared_ptr< DeviceProxy > > devices_;
 
 private slots:
     void on_MainControllerWindow_destroyed();

@@ -138,6 +138,7 @@ MainDeviceWindow::on_notify_timeout( unsigned long sec, long usec )
 
        ACE_Message_Block * mb = acewrapper::lifecycle_frame_serializer::pack( LifeCycleData(lifeCycleData_hello_) );
        mcastHandler_->send( mb->rd_ptr(), mb->length() );
+       ACE_Message_Block::release( mb );
 	}
 }
 
