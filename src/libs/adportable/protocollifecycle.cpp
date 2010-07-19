@@ -28,10 +28,12 @@ namespace adportable {
 							  , LifeCycle_Established
 							  , LifeCycle_CloseWait > LifeCycleType;  
 
-		struct command_hello   {	/**/ };
-		struct command_syn     {	/**/ };
-		struct command_syn_ack {	/**/ };
-		struct command_close   {	/**/ };
+		struct command_hello    {	/**/ };
+		struct command_syn      {	/**/ };
+		struct command_syn_ack  {	/**/ };
+        struct command_data     {	/**/ };
+        struct command_data_ack {	/**/ };
+		struct command_close    {	/**/ };
 
 		//-----------------------        
 
@@ -106,6 +108,9 @@ namespace adportable {
 			}
 			bool apply_command( LifeCycleCommand cmd, LifeCycleState& );
 			bool reply_received( LifeCycleCommand cmd, unsigned short seq, LifeCycleState& );
+            inline unsigned short remote_sequence() const { return remote_seq_; }
+            inline unsigned short local_sequence() const { return myseq_; }
+            inline unsigned short local_sequence_post_increment() { return myseq_++; }
 
 		private:
 			unsigned short remote_seq_;
@@ -128,6 +133,31 @@ LifeCycle::current_state() const
 {
 	return state_;
 }
+
+void
+LifeCycle::current_state(LifeCycleState state)
+{
+    state_ = state;
+}
+
+unsigned short
+LifeCycle::local_sequence_post_increment()
+{
+    return pImpl_->local_sequence_post_increment();
+}
+
+unsigned short
+LifeCycle::local_sequence() const
+{
+    return pImpl_->local_sequence();
+}
+
+unsigned short
+LifeCycle::remote_sequence() const
+{
+    return pImpl_->remote_sequence();
+}
+
 
 bool
 LifeCycle::apply_command( LifeCycleCommand cmd, LifeCycleState& state )
@@ -166,6 +196,12 @@ LifeCycleImpl::apply_command( LifeCycleCommand cmd, LifeCycleState& state )
 			break;
 		case CONN_SYN_ACK:
 			result = boost::apply_visitor( lifecycle_send_visitor<command_syn_ack>(next), cycle_ );
+			break;
+        case DATA:
+			result = boost::apply_visitor( lifecycle_send_visitor<command_data>(next), cycle_ );
+			break;
+        case DATA_ACK:
+			result = boost::apply_visitor( lifecycle_send_visitor<command_data_ack>(next), cycle_ );
 			break;
 		case CLOSE:
 			result = boost::apply_visitor( lifecycle_send_visitor<command_close>(next), cycle_ );

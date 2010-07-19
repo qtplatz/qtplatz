@@ -55,6 +55,8 @@
     <property name="title">
      <string>Devices</string>
     </property>
+    <addaction name="actionInitialize"/>
+    <addaction name="separator"/>
     <addaction name="actionConnect"/>
     <addaction name="actionDisconnect"/>
    </widget>
@@ -77,6 +79,11 @@
   <action name="actionDisconnect">
    <property name="text">
     <string>Disconnect</string>
+   </property>
+  </action>
+  <action name="actionInitialize">
+   <property name="text">
+    <string>Initialize</string>
    </property>
   </action>
  </widget>

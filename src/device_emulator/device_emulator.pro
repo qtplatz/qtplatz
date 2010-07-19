@@ -26,12 +26,16 @@ SOURCES += main.cpp\
     eventreceiver.cpp \
     roleaverager.cpp \
     roleesi.cpp \
-    roleanalyzer.cpp
+    roleanalyzer.cpp \
+    devicefacade.cpp \
+    device_state.cpp
 
 HEADERS  += maindevicewindow.h \
     eventreceiver.h \
     roleaverager.h \
     roleesi.h \
-    roleanalyzer.h
+    roleanalyzer.h \
+    devicefacade.h \
+    device_state.h
 
 FORMS    += maindevicewindow.ui

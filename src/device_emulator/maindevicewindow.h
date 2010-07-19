@@ -51,7 +51,7 @@ protected:
 
 private:
     Ui::MainDeviceWindow *ui;
-	adportable::protocol::LifeCycle lifeCycle_;
+    // adportable::protocol::LifeCycle lifeCycle_;
 
     // device will handle one unicast data gram
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> > > dgramHandler_;
@@ -74,6 +74,12 @@ private slots:
     void on_notify_mcast( ACE_Message_Block * mb );
     void on_notify_dgram( ACE_Message_Block * mb );
     void on_notify_timeout( unsigned long, long );
+
+    // device_facade notifications
+    void handle_device_attached( std::string device );
+    void handle_device_detached( std::string device );
+    void handle_send_dgram( ACE_Message_Block * );
+    void handle_debug( QString );
 };
 
 #endif // MAINDEVICEWINDOW_H

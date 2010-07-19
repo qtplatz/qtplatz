@@ -26,6 +26,13 @@
 #include <boost/lexical_cast.hpp>
 #include <acewrapper/lifecycle_frame_serializer.h>
 #include <sstream>
+#include <acewrapper/messageblock.h>
+#include "devicefacade.h"
+// #include <ace/Recursive_Thread_Mutex.h>
+// #include <ace/Singleton.h>
+#include "roleanalyzer.h"
+#include "roleaverager.h"
+#include "roleesi.h"
 
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
@@ -129,14 +136,32 @@ MainDeviceWindow::on_notify_mcast( ACE_Message_Block * mb )
 void
 MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
 {
+    acewrapper::scoped_mblock_ptr<> release( mb );
+
+    using namespace adportable::protocol;
+    using namespace acewrapper;
+    LifeCycleData data;
+    LifeCycleFrame frame;
+    
+    if ( lifecycle_frame_serializer::unpack( mb, frame, data ) ) {
+        device_facade::instance()->handle_dgram( frame, data, mb );
+        // debug
+        std::ostringstream o; 
+        o << "dgram: " << LifeCycleHelper::to_string( data );
+        std::cout << o.str().c_str();
+        ui->plainTextEdit->appendPlainText( o.str().c_str() );
+        // <===
+    }
+/*
     ACE_Message_Block * pfrom = mb->cont();
     std::string fromaddr;
-    if ( pfrom )
+    if ( pfrom ) {
         fromaddr = acewrapper::string( *reinterpret_cast<ACE_INET_Addr *>(pfrom->rd_ptr()) );
-
-    // ui->plainTextEdit->appendPlainText( o.str().c_str() );
-
-	ACE_Message_Block::release( mb );
+        std::ostringstream o;
+        o << "dgram from " << fromaddr;
+        ui->plainTextEdit->appendPlainText( o.str().c_str() );
+    }
+*/
 }
 
 void
@@ -146,16 +171,20 @@ MainDeviceWindow::on_notify_timeout( unsigned long sec, long usec )
     ACE_UNUSED_ARG(usec);
 
 	using namespace adportable::protocol;
-	if ( mcastHandler_  
-		&& ( lifeCycle_.current_state() == LCS_CLOSED || 
-		     lifeCycle_.current_state() == LCS_LISTEN ) ) {
-	   LifeCycleState state;
-	   lifeCycle_.apply_command( adportable::protocol::HELO, state );
+    const LifeCycle& lifeCycle = device_facade::instance()->lifeCycle();
+    if ( mcastHandler_ ) {
 
-       ACE_Message_Block * mb = acewrapper::lifecycle_frame_serializer::pack( LifeCycleData(lifeCycleData_hello_) );
-       mcastHandler_->send( mb->rd_ptr(), mb->length() );
-       ACE_Message_Block::release( mb );
-	}
+        if ( lifeCycle.current_state() == LCS_CLOSED )
+            device_facade::instance()->lifeCycleUpdate( HELO );
+
+        if ( lifeCycle.current_state() == LCS_LISTEN ) {
+            // send 'hello' message
+            ACE_Message_Block * mb = acewrapper::lifecycle_frame_serializer::pack( LifeCycleData(lifeCycleData_hello_) );
+            mcastHandler_->send( mb->rd_ptr(), mb->length() );
+            ACE_Message_Block::release( mb );
+
+        }
+    }
 }
 
 void MainDeviceWindow::on_pushHello_clicked()
@@ -163,10 +192,10 @@ void MainDeviceWindow::on_pushHello_clicked()
     using namespace adportable::protocol;
 
 	if ( mcastHandler_ ) {
-		adportable::protocol::LifeCycleState state;
-		lifeCycle_.apply_command( adportable::protocol::HELO, state );
-        ACE_Message_Block * mb = acewrapper::lifecycle_frame_serializer::pack( LifeCycleData(lifeCycleData_hello_) );
-        mcastHandler_->send( mb->rd_ptr(), mb->length() );
+        //adportable::protocol::LifeCycleState state;
+        //lifeCycle_.apply_command( adportable::protocol::HELO, state );
+        //ACE_Message_Block * mb = acewrapper::lifecycle_frame_serializer::pack( LifeCycleData(lifeCycleData_hello_) );
+        //mcastHandler_->send( mb->rd_ptr(), mb->length() );
 	}
 }
 
@@ -174,7 +203,6 @@ void MainDeviceWindow::on_pushInit_clicked()
 {
    ui->pushInit->setEnabled( false );
    ui->dismisButton->setEnabled( true );
-
    mcast_init();
 
    this->connect( mcastHandler_.get()
@@ -189,6 +217,13 @@ void MainDeviceWindow::on_pushInit_clicked()
 	            , SIGNAL( signal_timeout( unsigned long, long ) )
 				, this, SLOT( on_notify_timeout( unsigned long, long ) ) );
 
+   DeviceFacade * facade = device_facade::instance();
+   connect( facade, SIGNAL( signal_device_attached( std::string ) ), this, SLOT( handle_device_attached( std::string ) ) );
+   connect( facade, SIGNAL( signal_device_detached( std::string ) ), this, SLOT( handle_device_detached( std::string ) ) );
+   connect( facade, SIGNAL( signal_send_dgram( ACE_Message_Block * ) ), this, SLOT( handle_send_dgram( ACE_Message_Block * ) ) );
+   connect( facade, SIGNAL( signal_debug( QString ) ), this, SLOT( handle_debug( QString ) ) );
+
+   ui->checkBoxAnalyzer->setChecked( true );
 }
 
 
@@ -207,17 +242,64 @@ MainDeviceWindow::initial_update()
     ui->dismisButton->setEnabled( false );
 }
 
-void MainDeviceWindow::on_checkBoxAverager_stateChanged(int )
+void MainDeviceWindow::on_checkBoxAverager_stateChanged(int state)
 {
-
+    typedef RoleAverager TImpl;
+    if ( state )
+        device_facade::instance()->attach_device( device_facade_type(TImpl()) );
+    else 
+        device_facade::instance()->detach_device( device_facade_type(TImpl()) );
 }
 
-void MainDeviceWindow::on_checkBoxIonSource_stateChanged(int )
+void MainDeviceWindow::on_checkBoxIonSource_stateChanged(int state)
 {
-
+    typedef RoleESI TImpl;
+    if ( state )
+        device_facade::instance()->attach_device( device_facade_type(TImpl()) );
+    else 
+        device_facade::instance()->detach_device( device_facade_type(TImpl()) );
 }
 
-void MainDeviceWindow::on_checkBoxAnalyzer_stateChanged(int )
+void MainDeviceWindow::on_checkBoxAnalyzer_stateChanged(int state)
 {
+    typedef RoleAnalyzer TImpl;
+    if ( state )
+        device_facade::instance()->attach_device( device_facade_type(TImpl()) );
+    else 
+        device_facade::instance()->detach_device( device_facade_type(TImpl()) );
+}
 
+void
+MainDeviceWindow::handle_device_attached( std::string device )
+{
+    std::ostringstream o;
+    o << "device " << device << " has atttached.";
+    ui->plainTextEdit->appendPlainText( o.str().c_str() ); 
+}
+
+void
+MainDeviceWindow::handle_device_detached( std::string device )
+{
+    std::ostringstream o;
+    o << "device " << device << " has detached.";
+    ui->plainTextEdit->appendPlainText( o.str().c_str() ); 
+}
+
+void
+MainDeviceWindow::handle_send_dgram( ACE_Message_Block * mb )
+{
+    using namespace adportable::protocol;
+
+    if ( device_facade::instance()->lifeCycle().current_state() != LCS_CLOSED ) {
+        const ACE_INET_Addr& remote = device_facade::instance()->get_remote_addr();
+        dgramHandler_->send( mb->rd_ptr(), mb->length(), remote );
+    }
+
+    ACE_Message_Block::release( mb );
+}
+
+void
+MainDeviceWindow::handle_debug( QString msg )
+{
+    ui->plainTextEdit->appendPlainText( msg );
 }

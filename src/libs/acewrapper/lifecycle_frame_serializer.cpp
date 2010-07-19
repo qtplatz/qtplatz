@@ -48,7 +48,9 @@ namespace acewrapper {
 	    lifecycle_serializer_visitor( OutputCDR& o ) : cdr(o) {}
         unsigned int operator()( const LifeCycle_Hello& data ) const;
         unsigned int operator()( const LifeCycle_SYN& data ) const;
-        unsigned int operator()( const LifeCycle_Ack& data ) const;
+        unsigned int operator()( const LifeCycle_SYN_Ack& data ) const;
+        unsigned int operator()( const LifeCycle_Data& data ) const;
+        unsigned int operator()( const LifeCycle_DataAck& data ) const;
         unsigned int operator()( const LifeCycle_Close& data ) const;
       };
       //-----------------
@@ -59,7 +61,9 @@ namespace acewrapper {
         void operator()( LifeCycleFrame& frame ) const;
 	    void operator()( LifeCycle_Hello& data ) const;
 	    void operator()( LifeCycle_SYN& data ) const;
-	    void operator()( LifeCycle_Ack& data ) const;
+	    void operator()( LifeCycle_SYN_Ack& data ) const;
+	    void operator()( LifeCycle_Data& data ) const;
+	    void operator()( LifeCycle_DataAck& data ) const;
 	    void operator()( LifeCycle_Close& data ) const;
       };
    }
@@ -100,11 +104,19 @@ lifecycle_frame_serializer::unpack( ACE_Message_Block * mb, LifeCycleFrame& fram
        v = LifeCycle_SYN();
        break;
    case CONN_SYN_ACK:
-       v = LifeCycle_Ack();
+       v = LifeCycle_SYN_Ack();
+       break;
+   case DATA:
+       v = LifeCycle_Data();
+       break;
+   case DATA_ACK:
+       v = LifeCycle_DataAck();
        break;
    case CLOSE:
        v = LifeCycle_Close();
        break;
+   default:
+       return false;
    }
    boost::apply_visitor( unpacker, v );
    return true;
@@ -137,7 +149,23 @@ namespace acewrapper {
             return cdr.length() - orign;
         }
 
-        unsigned int lifecycle_serializer_visitor::operator()( const LifeCycle_Ack& data ) const
+        unsigned int lifecycle_serializer_visitor::operator()( const LifeCycle_SYN_Ack& data ) const
+        {
+            unsigned int orign = cdr.length();
+            cdr << data.sequence_;
+            cdr << data.remote_sequence_;
+            return cdr.length() - orign;
+        }
+
+        unsigned int lifecycle_serializer_visitor::operator()( const LifeCycle_Data& data ) const
+        {
+            unsigned int orign = cdr.length();
+            cdr << data.sequence_;
+            cdr << data.remote_sequence_;
+            return cdr.length() - orign;
+        }
+
+        unsigned int lifecycle_serializer_visitor::operator()( const LifeCycle_DataAck& data ) const
         {
             unsigned int orign = cdr.length();
             cdr << data.sequence_;
@@ -189,11 +217,24 @@ namespace acewrapper {
             cdr >> data.remote_sequence_;
         }
 
-        void lifecycle_deserializer_visitor::operator()( LifeCycle_Ack& data ) const
+        void lifecycle_deserializer_visitor::operator()( LifeCycle_SYN_Ack& data ) const
         {
             cdr >> data.sequence_;
             cdr >> data.remote_sequence_;
         }
+
+        void lifecycle_deserializer_visitor::operator()( LifeCycle_Data& data ) const
+        {
+            cdr >> data.sequence_;
+            cdr >> data.remote_sequence_;
+        }
+
+        void lifecycle_deserializer_visitor::operator()( LifeCycle_DataAck& data ) const
+        {
+            cdr >> data.sequence_;
+            cdr >> data.remote_sequence_;
+        }
+
         void lifecycle_deserializer_visitor::operator()( LifeCycle_Close& data ) const
         {
             cdr >> data.sequence_;

@@ -11,12 +11,12 @@ using namespace acewrapper;
 
 instance_manager::instance_manager()
 {
-    initialize_i();
+    ACE::init();
 }
 
 instance_manager::~instance_manager()
 {
-    finalize_i();
+    ACE::fini();
 }
 
 void

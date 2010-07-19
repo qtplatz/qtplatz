@@ -27,6 +27,8 @@ namespace adportable {
          , CONN_SYN     = unsigned long ( 'S' << 24 | 'Y' << 16 | 'N' << 8 | 'R' )
          , CONN_SYN_ACK = unsigned long ( 'S' << 24 | 'Y' << 16 | 'N' << 8 | 'A' )
          , CLOSE        = unsigned long ( 'C' << 24 | 'L' << 16 | 'O' << 8 | 'S' )
+         , DATA         = unsigned long ( 'D' << 24 | 'A' << 16 | 'T' << 8 | 'A' )
+         , DATA_ACK     = unsigned long ( 'D' << 24 | 'A' << 16 | 'C' << 8 | 'K' )
      };
      
      class LifeCycleImpl;   
@@ -38,9 +40,14 @@ namespace adportable {
 	   LifeCycle( const LifeCycle& );
 	   
 	   LifeCycleState current_state() const;
+       void current_state( LifeCycleState );
+
 	   bool apply_command( LifeCycleCommand, LifeCycleState& );
 	   bool reply_received( LifeCycleCommand, unsigned short rseq, LifeCycleState& );
 	   bool linkdown_detected( LifeCycleState& ); /* heartbeat timeout */
+       unsigned short local_sequence_post_increment();
+       unsigned short local_sequence() const;
+       unsigned short remote_sequence() const;
 	private:
 	   LifeCycleState state_;
 	   boost::shared_ptr<LifeCycleImpl> pImpl_;
@@ -85,15 +92,29 @@ namespace adportable {
 	   unsigned short remote_sequence_;
      };
 
-     struct LifeCycle_Ack {
+     struct LifeCycle_SYN_Ack {
 	   static LifeCycleCommand command() { return CONN_SYN_ACK; }
+	   unsigned short sequence_;
+	   unsigned short remote_sequence_;
+     };
+
+     struct LifeCycle_Data {
+	   static LifeCycleCommand command() { return DATA; }
+	   unsigned short sequence_;
+	   unsigned short remote_sequence_;
+     };
+
+     struct LifeCycle_DataAck {
+       static LifeCycleCommand command() { return DATA_ACK; }
 	   unsigned short sequence_;
 	   unsigned short remote_sequence_;
      };
 
      typedef boost::variant< LifeCycle_Hello
 			     , LifeCycle_SYN
-			     , LifeCycle_Ack
+			     , LifeCycle_SYN_Ack
+			     , LifeCycle_Data
+			     , LifeCycle_DataAck
 			     , LifeCycle_Close > LifeCycleData;
 
      struct LifeCycleHelper {

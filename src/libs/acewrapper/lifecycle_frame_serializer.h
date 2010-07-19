@@ -13,7 +13,9 @@ namespace adportable {
         struct LifeCycleFrame;
         struct LifeCycle_Hello;
         struct LifeCycle_SYN;
-        struct LifeCycle_Ack;
+        struct LifeCycle_SYN_Ack;
+        struct LifeCycle_Data;
+        struct LifeCycle_DataAck;
         struct LifeCycle_Close;
     }
 }

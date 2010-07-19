@@ -72,6 +72,7 @@ private:
     std::map< std::string /* inet_addr */, boost::shared_ptr< DeviceProxy > > devices_;
 
 private slots:
+    void on_actionInitialize_triggered();
     void on_MainControllerWindow_destroyed();
     void on_connectButton_clicked();
 
