@@ -340,7 +340,11 @@ namespace adportable {
 
         class LifeCycleData_to_string_visitor : public boost::static_visitor< std::string > {
         public:
-            template<class T> std::string operator()( const T& ) const { return std::string("error"); }
+            template<class T> std::string operator()( const T& t ) const {
+                std::ostringstream o;
+                o << "remote seq# " << t.remote_sequence_ << " local seq# " << t.sequence_;
+                return o.str().c_str();
+            }
         };
 
         template<> std::string LifeCycleData_to_string_visitor::operator () (const LifeCycle_Hello& t) const

@@ -45,6 +45,15 @@ DeviceProxy::update_device( const LifeCycleFrame& frame, const LifeCycleData& da
         reqData.remote_sequence_ = 0;
         reqData.sequence_ = 0x100;
         boost::intrusive_ptr<ACE_Message_Block> mb( lifecycle_frame_serializer::pack( LifeCycleData(reqData) ) );
+#if defined _DEBUG
+        do {
+           LifeCycleFrame dbgFrame;
+           LifeCycleData dbgData = LifeCycle_SYN();
+           lifecycle_frame_serializer::unpack( mb.get(), dbgFrame, dbgData );
+           LifeCycle_SYN& syn = boost::get<LifeCycle_SYN&>( dbgData );
+           long x = 0;
+        } while(0);
+#endif
 
         dgramHandler_->send( mb->rd_ptr(), mb->length(), remote_addr_ );
 

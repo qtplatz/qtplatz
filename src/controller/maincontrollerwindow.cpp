@@ -43,9 +43,6 @@ MainControllerWindow::closeEvent(QCloseEvent * ev)
 {
     ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
     if ( reactor ) {
-        ACE_HANDLE h1, h2;
-        h1 = mcastHandler_->get_handle();
-        h2 = timerHandler_->get_handle();
         mcastHandler_->close();
         timerHandler_->cancel( reactor, timerHandler_.get() );  // initialize condition
         timerHandler_->wait();

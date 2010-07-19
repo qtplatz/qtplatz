@@ -23,12 +23,13 @@ namespace adportable {
      };
      
      enum LifeCycleCommand {
-         HELO   = unsigned long ( 'H' << 24 | 'E' << 16 | 'L' << 8 | 'O' )
-         , CONN_SYN     = unsigned long ( 'S' << 24 | 'Y' << 16 | 'N' << 8 | 'R' )
-         , CONN_SYN_ACK = unsigned long ( 'S' << 24 | 'Y' << 16 | 'N' << 8 | 'A' )
-         , CLOSE        = unsigned long ( 'C' << 24 | 'L' << 16 | 'O' << 8 | 'S' )
-         , DATA         = unsigned long ( 'D' << 24 | 'A' << 16 | 'T' << 8 | 'A' )
-         , DATA_ACK     = unsigned long ( 'D' << 24 | 'A' << 16 | 'C' << 8 | 'K' )
+         HELO           = 0xffff0720
+         , CONN_SYN     = 0x20100720
+         , CONN_SYN_ACK = 0x20100721
+         , CLOSE        = 0x20100722
+         , CLOSE_ACK    = 0x20100723
+         , DATA         = 0x20100724
+         , DATA_ACK     = 0x20100725
      };
      
      class LifeCycleImpl;   

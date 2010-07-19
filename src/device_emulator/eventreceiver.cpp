@@ -26,25 +26,20 @@ QEventReceiver::handle_input( ACE_HANDLE )
 int
 QEventReceiver::handle_input(acewrapper::DgramHandler& dgram, ACE_HANDLE h)
 {
-    static char buf[4096];
-    static ACE_INET_Addr from;
+    ACE_Message_Block * mb = new ACE_Message_Block( 2000 );
+    ACE_Message_Block * pfrom = new ACE_Message_Block( 512 );
+    ACE_INET_Addr * pFromAddr = new (pfrom->wr_ptr()) ACE_INET_Addr();
 
-    memset( buf, 0, sizeof(buf) );
-	int res = dgram.recv( buf, sizeof(buf), from );
-	if (res == (-1))
-		perror("handle_input mcast.recv");
-
-	ACE_Message_Block * mb = new ACE_Message_Block( 256 + res );
-	do {
-		acewrapper::OutputCDR cdr(mb);
-		cdr << unsigned short( 0xfffe ); // endian mark
-		cdr << unsigned short( 0x0001 ); // protocol version
-		cdr << std::string( acewrapper::string( from ) );
-        cdr << unsigned long(res);
-		cdr.write( buf, res );
-        mb->length( cdr.length() );
-	} while (0);
-	std::cout << "handle_input dgram  (" << h << "," << res << ")" << buf << std::endl;
+    memset( mb->wr_ptr(), mb->size(), 2000 );
+	int res = dgram.recv( mb->wr_ptr(), mb->size(), *pFromAddr );
+    if (res == (-1)) {
+		perror("handle_input dgram.recv");
+        ACE_Message_Block::release( mb );
+        ACE_Message_Block::release( pfrom );
+        return 0;
+    }
+    mb->length( res );
+    mb->cont( pfrom );
     emit signal_dgram_input( mb );
     return 0;
 }
