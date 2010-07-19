@@ -45,3 +45,8 @@ McastHandler::recv( char * pbuf, int bufsize, ACE_INET_Addr& remote_addr)
    return sock_mcast_.recv( pbuf, bufsize, remote_addr );
 }
 
+bool
+McastHandler::close()
+{
+    return sock_mcast_.close() != (-1);
+}

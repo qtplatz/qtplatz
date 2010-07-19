@@ -35,7 +35,6 @@ class QEventReceiver : public QObject {
       void signal_timeout( unsigned long, long );
 
   public slots:
-
 };
 
 #endif // EVENTRECEIVER_H

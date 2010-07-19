@@ -39,6 +39,22 @@ MainControllerWindow::~MainControllerWindow()
 }
 
 void
+MainControllerWindow::closeEvent(QCloseEvent * ev)
+{
+    ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
+    if ( reactor ) {
+        ACE_HANDLE h1, h2;
+        h1 = mcastHandler_->get_handle();
+        h2 = timerHandler_->get_handle();
+        mcastHandler_->close();
+        timerHandler_->cancel( reactor, timerHandler_.get() );  // initialize condition
+        timerHandler_->wait();
+        reactor->end_reactor_event_loop();
+    }
+    ACE_Thread_Manager::instance()->wait(); // barrier wait until all threads have shut down.
+}
+
+void
 MainControllerWindow::on_initial_update()
 {
     treeModel_.reset( new TreeModel( this ) );
@@ -48,6 +64,7 @@ MainControllerWindow::on_initial_update()
         ui->treeView->resizeColumnToContents(column);
 
 ////////////////////////
+#if 0
     TreeModel * model = treeModel_.get();
     for ( int i = 0; i < 3; ++i ) {
         int row = model->rowCount();
@@ -56,11 +73,13 @@ MainControllerWindow::on_initial_update()
         model->setData( model->index( row, 1 ), "client description");
 
         QModelIndex index = model->index( row, 0 );
-        model->insertRow( row, index  );  // for local information
-        model->setData( model->index( 0, 0, index ), "initializeing" );
-        model->setData( model->index( 0, 1, index ), "description" );
+        bool res = model->insertRow( 0, index  );  // for local information
+        if ( res ) {
+            model->setData( model->index( 0, 0, index ), "initializeing" );
+            model->setData( model->index( 0, 1, index ), "description" );
+        }
     }
-
+#endif
     // connect(exitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 /*
     connect(view->selectionModel(),
@@ -89,17 +108,16 @@ MainControllerWindow::multicast_update_device( const ACE_INET_Addr& addr
     map_type::iterator it = devices_.find( addr_str );
     if ( it == devices_.end() ) { // || boost::get<const LifeCycle_Hello *>(&data) ) {
         devices_[ addr_str ] = boost::shared_ptr< DeviceProxy >( new DeviceProxy( addr ) );
+        connect( devices_[ addr_str ].get()
+            , SIGNAL( signal_dgram_to_device(std::string, QString, QString) )
+            , this, SLOT( handle_dgram_to_device(std::string, QString, QString) ) ); 
 
         TreeModel * model = treeModel_.get();
         int row = model->rowCount();
         model->insertRow( row );
         QModelIndex parentIndex = model->index( row, 0 );
         model->setData( parentIndex, addr_str.c_str() );
-        model->setData( model->index( row, 1 ), LifeCycleHelper::to_string( data ).c_str() );
-
-        model->insertRow( row, parentIndex  );  // for local information
-        model->setData( model->index( 0, 0, parentIndex ), "initializeing" );
-        model->setData( model->index( 0, 1, parentIndex ), "description" );
+        model->setData( model->index( row, 2 ), LifeCycleHelper::to_string( data ).c_str() );
     }
     devices_[ addr_str ]->update_device( frame, data );
 
@@ -167,17 +185,20 @@ MainControllerWindow::on_notify_timeout( unsigned long sec, long usec )
 {
     ACE_UNUSED_ARG(sec);
     ACE_UNUSED_ARG(usec);
+}
 
-/*
-	using namespace adportable::protocol;
-	if ( mcastHandler_  
-		&& ( lifeCycle_.current_state() == LCS_CLOSED || 
-		     lifeCycle_.current_state() == LCS_LISTEN ) ) {
-	   LifeCycleState state;
-	   lifeCycle_.apply_command( adportable::protocol::HELO, state );
-	   mcastHandler_->send( ident_.c_str(), ident_.size() + 1 );
-	}
-*/
+void
+MainControllerWindow::handle_dgram_to_device( std::string remote_addr, QString local_address, QString description )
+{
+    TreeModel& model = *treeModel_;
+    int row = model.findParent( remote_addr.c_str() );
+    if ( row >= 0 ) {
+        QModelIndex index = model.index( row, 0 );
+        int childRow = model.rowCount( index );
+        model.insertRow( childRow, index );
+        model.setData( model.index( childRow, 0, index ), local_address );
+        model.setData( model.index( childRow, 2, index ), description );
+    }
 }
 
 
@@ -189,40 +210,25 @@ MainControllerWindow::mcast_init()
     
     ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
 
-    /* 
-    dgramHandler_.reset( new acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> >() );
-    if ( dgramHandler_ ) {
-       int port = 6000;
-       while ( ! dgramHandler_->open(port++) && port < 6999 )
-	  ;
-       assert( port < 6999 );
-       if ( port < 6999 )
-	  reactor->register_handler( dgramHandler_.get(), ACE_Event_Handler::READ_MASK );
-    }
-    */
-
     mcastHandler_.reset( new acewrapper::EventHandler< acewrapper::McastReceiver<QEventReceiver> >() );
     if ( mcastHandler_ ) {
        if ( mcastHandler_->open() ) 
-	  reactor->register_handler( mcastHandler_.get(), ACE_Event_Handler::READ_MASK );
+           reactor->register_handler( mcastHandler_.get(), ACE_Event_Handler::READ_MASK );
     }
     
     timerHandler_.reset( new acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> >() );
     if ( timerHandler_ ) {
-       timerId_ = reactor->schedule_timer( timerHandler_.get(), 0, ACE_Time_Value(3), ACE_Time_Value(3) );
+        timerId_ = reactor->schedule_timer( timerHandler_.get(), 0, ACE_Time_Value(3), ACE_Time_Value(3) );
     }
     
-    acewrapper::ReactorThread::spawn( acewrapper::TheReactorThread::instance() );
-    
-    this->connect( mcastHandler_.get()
-		   , SIGNAL( signal_mcast_input( ACE_Message_Block * ) )
+    connect( mcastHandler_.get()
+           , SIGNAL( signal_mcast_input( ACE_Message_Block * ) )
 		   , this, SLOT( on_notify_mcast( ACE_Message_Block* ) ) );
-/**
-    this->connect( dgramHandler_.get()
-		   , SIGNAL( signal_dgram_input( ACE_Message_Block * ) )
-		   , this, SLOT( on_notify_dgram( ACE_Message_Block* ) ) );
-**/
-    this->connect( timerHandler_.get()
+
+    connect( timerHandler_.get()
 		   , SIGNAL( signal_timeout( unsigned long, long ) )
 		   , this, SLOT( on_notify_timeout( unsigned long, long ) ) );
+
+    acewrapper::ReactorThread::spawn( acewrapper::TheReactorThread::instance() );
 }
+

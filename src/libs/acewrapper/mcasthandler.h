@@ -14,13 +14,14 @@ class ACE_INET_Addr;
 namespace acewrapper {
 
    class McastHandler {
-      public:
+   public:
 	 McastHandler();
 	 ACE_HANDLE get_handle() const;
 	 bool open( u_short port = 0 );
 	 bool send( const char *, ssize_t );
 	 int recv( char * pbuf, ssize_t octets, ACE_INET_Addr& remote_addr );
-      private:
+     bool close();
+   private:
 	 ACE_SOCK_Dgram_Mcast sock_mcast_;
 	 ACE_INET_Addr sock_addr_;
    };

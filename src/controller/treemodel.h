@@ -80,9 +80,7 @@ public:
     bool removeRows(int position, int rows, const QModelIndex &parent = QModelIndex());
 
     ///////////////////////////////////////////////////////////////////////////
-    void register_device( DeviceProxy& );
-    bool unregister_device( DeviceProxy& );
-    bool update_device( DeviceProxy& );
+    int findParent( const QString& addrString ) const;
 
     ///////////////////////////////////////////////////////////////////////////
 private:

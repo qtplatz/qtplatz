@@ -46,11 +46,17 @@ public:
     void mcast_init();
     void initial_update();
 
+protected:
+    void closeEvent(QCloseEvent *);
+
 private:
     Ui::MainDeviceWindow *ui;
 	adportable::protocol::LifeCycle lifeCycle_;
 
+    // device will handle one unicast data gram
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> > > dgramHandler_;
+
+    // mcast dgram, which is a counterpart to controller
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::McastReceiver<QEventReceiver> > > mcastHandler_;
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> > > timerHandler_;
 
@@ -62,7 +68,6 @@ private slots:
     void on_checkBoxAnalyzer_stateChanged(int );
     void on_checkBoxIonSource_stateChanged(int );
     void on_checkBoxAverager_stateChanged(int );
-    void on_MainDeviceWindow_destroyed();
     void on_dismisButton_clicked();
     void on_pushInit_clicked();
     void on_pushHello_clicked();

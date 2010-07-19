@@ -48,3 +48,8 @@ DgramHandler::open( u_short port )
     return true;
 }
 
+bool
+DgramHandler::close()
+{
+    return sock_dgram_.close() != (-1);
+}

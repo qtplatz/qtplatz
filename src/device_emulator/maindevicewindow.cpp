@@ -76,17 +76,33 @@ MainDeviceWindow::mcast_init()
     
     mcastHandler_.reset( new acewrapper::EventHandler< acewrapper::McastReceiver<QEventReceiver> >() );
     if ( mcastHandler_ ) {
-       if ( mcastHandler_->open() ) 
-	  reactor->register_handler( mcastHandler_.get(), ACE_Event_Handler::READ_MASK );
+        if ( mcastHandler_->open() ) 
+           reactor->register_handler( mcastHandler_.get(), ACE_Event_Handler::READ_MASK );
     }
     
     timerHandler_.reset( new acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> >() );
     if ( timerHandler_ ) {
-       timerId_ = reactor->schedule_timer( timerHandler_.get(), 0, ACE_Time_Value(3), ACE_Time_Value(3) );
+        timerId_ = reactor->schedule_timer( timerHandler_.get(), 0, ACE_Time_Value(3), ACE_Time_Value(3) );
     }
     
     acewrapper::ReactorThread::spawn( acewrapper::TheReactorThread::instance() );
 }
+
+void
+MainDeviceWindow::closeEvent(QCloseEvent *)
+{
+    ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
+    if ( reactor ) {
+        mcastHandler_->close();
+        dgramHandler_->close();
+        timerHandler_->cancel( reactor, timerHandler_.get() );  // initialize condition
+        timerHandler_->wait();
+        reactor->end_reactor_event_loop();
+        reactor->close();
+    }
+    ACE_Thread_Manager::instance()->wait(); // barrier wait until all threads have shut down.
+}
+
 
 void
 MainDeviceWindow::on_notify_mcast( ACE_Message_Block * mb )
@@ -182,12 +198,6 @@ void MainDeviceWindow::on_dismisButton_clicked()
     reactor->cancel_timer( timerId_ );
     reactor->end_reactor_event_loop();
     reactor->close();
-}
-
-void MainDeviceWindow::on_MainDeviceWindow_destroyed()
-{
-    on_dismisButton_clicked();
-    // barrier pattern wait should be added here...
 }
 
 void

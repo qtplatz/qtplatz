@@ -44,6 +44,8 @@ public:
 
     void mcast_init();
     void on_initial_update();
+protected:
+    void closeEvent(QCloseEvent *);
 
 private:
     Ui::MainControllerWindow *ui;
@@ -55,7 +57,7 @@ private:
     adportable::protocol::LifeCycle lifeCycle_;
 
     // Hardware Half Sync/Async patterns
-    // boost::shared_ptr< acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> > > dgramHandler_;
+
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::McastReceiver<QEventReceiver> > > mcastHandler_;
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> > > timerHandler_;
 
@@ -76,6 +78,8 @@ private slots:
     void on_notify_mcast( ACE_Message_Block * mb );
     void on_notify_dgram( ACE_Message_Block * mb );
     void on_notify_timeout( unsigned long, long );
+
+    void handle_dgram_to_device( std::string remote_addr, QString local_address, QString description );
 };
 
 #endif // MAINCONTROLLERWINDOW_H

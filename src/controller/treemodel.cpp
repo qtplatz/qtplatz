@@ -225,3 +225,14 @@ TreeModel::setHeaderData(int section, Qt::Orientation orientation,
     return result;
 }
 
+int
+TreeModel::findParent( const QString& addrString ) const
+{
+    TreeItem::vector_type::const_iterator begIt = rootItem_->begin();
+    for ( TreeItem::vector_type::const_iterator it = begIt; it != rootItem_->end(); ++it ) {
+        QVariant v = (*it)->data(0);
+        if ( addrString == v )
+            return std::distance( begIt, it );
+    }
+    return (-1);
+}
