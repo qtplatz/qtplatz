@@ -41,7 +41,8 @@ DeviceProxy::update_device( const LifeCycleFrame& frame, const LifeCycleData& da
 			unsigned short remote_sequence = LifeCycleHelper::remote_sequence( data );
 			LifeCycleData replyData;
 			if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) ) {
-                 // todo
+
+
 			}
 		}
 	}

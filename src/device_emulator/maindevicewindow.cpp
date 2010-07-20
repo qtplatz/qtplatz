@@ -140,11 +140,18 @@ MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
 
     using namespace adportable::protocol;
     using namespace acewrapper;
+
     LifeCycleData data;
     LifeCycleFrame frame;
-    
     if ( lifecycle_frame_serializer::unpack( mb, frame, data ) ) {
-        device_facade::instance()->handle_dgram( frame, data, mb );
+        LifeCycleData replyData;
+        if ( device_facade::instance()->handle_dgram( frame, data, replyData ) ) {
+#if defined _DEBUG
+            std::string debug_recv = LifeCycleHelper::to_string( data );
+            std::string debug_send = LifeCycleHelper::to_string( replyData );
+#endif
+            handle_send_dgram( acewrapper::lifecycle_frame_serializer::pack( replyData ) );
+        }
         // debug
         std::ostringstream o; 
         o << "dgram: " << LifeCycleHelper::to_string( data );
@@ -152,16 +159,6 @@ MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
         ui->plainTextEdit->appendPlainText( o.str().c_str() );
         // <===
     }
-/*
-    ACE_Message_Block * pfrom = mb->cont();
-    std::string fromaddr;
-    if ( pfrom ) {
-        fromaddr = acewrapper::string( *reinterpret_cast<ACE_INET_Addr *>(pfrom->rd_ptr()) );
-        std::ostringstream o;
-        o << "dgram from " << fromaddr;
-        ui->plainTextEdit->appendPlainText( o.str().c_str() );
-    }
-*/
 }
 
 void

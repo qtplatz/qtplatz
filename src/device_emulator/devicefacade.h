@@ -36,7 +36,7 @@ public:
     typedef adportable::protocol::LifeCycleFrame LifeCycleFrame;
     typedef adportable::protocol::LifeCycleData LifeCycleData;
 
-    bool handle_dgram( const LifeCycleFrame&, const LifeCycleData&, ACE_Message_Block * );
+    bool handle_dgram( const LifeCycleFrame&, const LifeCycleData&, LifeCycleData& );
     bool lifeCycleUpdate( adportable::protocol::LifeCycleCommand );
 
     const adportable::protocol::LifeCycle& lifeCycle() const { return lifeCycle_; }

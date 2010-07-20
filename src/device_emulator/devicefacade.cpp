@@ -5,7 +5,7 @@
 #include "devicefacade.h"
 #include <vector>
 #include <boost/variant.hpp>
-
+#include <acewrapper/lifecycle_frame_serializer.h>
 #include <ace/Singleton.h>
 #include <ace/INET_Addr.h>
 
@@ -84,26 +84,25 @@ DeviceFacade::lifeCycleUpdate( adportable::protocol::LifeCycleCommand cmd )
 }
 
 bool
-DeviceFacade::handle_dgram( const LifeCycleFrame& frame, const LifeCycleData& data , ACE_Message_Block * mb )
+DeviceFacade::handle_dgram( const LifeCycleFrame& frame, const LifeCycleData& data, LifeCycleData& replyData )
 {
-	ACE_UNUSED_ARG( mb );
-
     LifeCycleCommand cmd = boost::apply_visitor( lifecycle_command_visitor(), data );
     assert( frame.command_ == cmd );
-    
     std::string msg = LifeCycleHelper::to_string( data );
     emit signal_debug( QString( "handle_dgram: " ) + msg.c_str() );
 
-    if ( lifeCycle_.current_state() != LCS_ESTABLISHED ) {
-        LifeCycleState nextState;
-        LifeCycleCommand replyCmd;
-        if ( lifeCycle_.reply_received( data, nextState, replyCmd ) ) {
+    LifeCycleState nextState;
+    LifeCycleCommand replyCmd;
 
+    if ( lifeCycle_.reply_received( data, nextState, replyCmd ) ) {
+        if ( lifeCycle_.validate_sequence( data ) ) {
+            unsigned short remote_sequence = lifeCycle_.remote_sequence();
+            if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) ) {
+                return true;
+            }
         }
-    } else {
-
     }
-    return true;
+    return false;
 }
 
 const ACE_INET_Addr&
