@@ -86,7 +86,7 @@ DeviceFacade::lifeCycleUpdate( adportable::protocol::LifeCycleCommand cmd )
 bool
 DeviceFacade::handle_dgram( const LifeCycleFrame& frame, const LifeCycleData& data , ACE_Message_Block * mb )
 {
-    (void)mb;
+	ACE_UNUSED_ARG( mb );
 
     LifeCycleCommand cmd = boost::apply_visitor( lifecycle_command_visitor(), data );
     assert( frame.command_ == cmd );
@@ -95,8 +95,9 @@ DeviceFacade::handle_dgram( const LifeCycleFrame& frame, const LifeCycleData& da
     emit signal_debug( QString( "handle_dgram: " ) + msg.c_str() );
 
     if ( lifeCycle_.current_state() != LCS_ESTABLISHED ) {
-        LifeCycleState next_state;
-        if ( lifeCycle_.reply_received( cmd, lifeCycle_.local_sequence(), next_state ) ) {
+        LifeCycleState nextState;
+        LifeCycleCommand replyCmd;
+        if ( lifeCycle_.reply_received( data, nextState, replyCmd ) ) {
 
         }
     } else {

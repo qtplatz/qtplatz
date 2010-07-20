@@ -5,10 +5,12 @@
 
 #include "protocollifecycle.h"
 #include <boost/variant.hpp>
+#include <boost/type_traits.hpp>
 #include <sstream>
 
 using namespace adportable;
 using namespace adportable::protocol;
+using namespace adportable::internal;
 
 namespace adportable {
 
@@ -41,40 +43,42 @@ namespace adportable {
 			LifeCycle_Closed() {}
 			static LifeCycleState state() { return LCS_CLOSED; }
 			template<class T> static bool send( LifeCycleType& ) { return false; }
-			template<class T> static bool recv( LifeCycleType& ) { return false; }
+			template<class T> static bool recv( LifeCycleType&, LifeCycleCommand& ) { return false; }
 		};
 
 		struct LifeCycle_Listen {
 			static LifeCycleState state() { return LCS_LISTEN; }
 			template<class T> static bool send( LifeCycleType& ) { return false; }
-			template<class T> static bool recv( LifeCycleType& ) { return false; }
+			template<class T> static bool recv( LifeCycleType&, LifeCycleCommand& ) { return false; }
 		};
 
 		struct LifeCycle_SYN_Received {
 			static LifeCycleState state() { return LCS_SYN_RCVD; }
 			template<class T> static bool send( LifeCycleType& ) { return false; }
-			template<class T> static bool recv( LifeCycleType& ) { return false; }
+			template<class T> static bool recv( LifeCycleType&, LifeCycleCommand& ) { return false; }
 		};
 
 		struct LifeCycle_SYN_Sent {
 			static LifeCycleState state() { return LCS_SYN_SENT; }
 			template<class T> static bool send( LifeCycleType& ) { return false; }
-			template<class T> static bool recv( LifeCycleType& ) { return false; }
+			template<class T> static bool recv( LifeCycleType&, LifeCycleCommand& ) { return false; }
 		};
 
 		struct LifeCycle_Established {
 			static LifeCycleState state() { return LCS_ESTABLISHED; }
 			template<class T> static bool send( LifeCycleType& ) { return false; }
-			template<class T> static bool recv( LifeCycleType& ) { return false; }
+			template<class T> static bool recv( LifeCycleType&, LifeCycleCommand& ) { return false; }
 		};
 
 		struct LifeCycle_CloseWait {
 			static LifeCycleState state() { return LCS_CLOSE_WAIT; }
 			template<class T> static bool send( LifeCycleType& ) { return false; }
-			template<class T> static bool recv( LifeCycleType& ) { return false; }
+			template<class T> static bool recv( LifeCycleType&, LifeCycleCommand& ) { return false; }
 		};
 
 		///////////////////////////////////////
+        /// following is an example function signature to be used in following two visitors
+		/// LifeCycle_Closed::send<command_hello>( LifeCycleType& cycle );
 		///////////////////////////////////////
 		template<class Command> struct lifecycle_send_visitor : public boost::static_visitor<bool> {
 			LifeCycleType& cycle_;
@@ -87,30 +91,64 @@ namespace adportable {
         //////////////////////////////////////////
 		template<class Command> struct lifecycle_recv_visitor : public boost::static_visitor<bool> {
 			LifeCycleType& cycle_;
-			lifecycle_recv_visitor( LifeCycleType& cycle ) : cycle_(cycle) {}
+            LifeCycleCommand& replyCmd_;
+			lifecycle_recv_visitor( LifeCycleType& cycle, LifeCycleCommand& cmd ) : cycle_(cycle), replyCmd_(cmd) {}
 			template<typename T> bool operator()( T& ) const {
-				return T::recv<Command>( cycle_ );
+				return T::recv<Command>( cycle_, replyCmd_ );
 			}
 		};
 
-        //////////////////////////////////////////
+        ///////////// Access LifeCycle::state() ///////////////////////////// 
 		struct lifecycle_state_visitor : public boost::static_visitor<LifeCycleState> {
 			template<typename T> LifeCycleState operator()( T& ) const { return T::state(); }
 		};
-	}
 
-	namespace protocol {
-		using namespace adportable::internal;
+        ////////////// Access LifeCycleData a.k.a. LifeCycle_Hello::command() ////////////////////////////
+		struct lifecycle_command_access_visitor : public boost::static_visitor<LifeCycleCommand> {
+			template<typename T> LifeCycleCommand operator()( const T& ) const { return T::command(); }
+		};
 
+        //////////////////////////////////////////
+		template<bool b> struct sequence_accessor {
+			template<class T> static unsigned short sequence( const T& t ) { return t.sequence_; }
+			template<class T> static unsigned short remote_sequence( const T& t ) { return t.remote_sequence_; }
+		};
+		template<> struct sequence_accessor<true> {
+			template<class T> static unsigned short sequence( const T& ) { return 0; }
+			template<class T> static unsigned short remote_sequence( const T& ) { return 0; }
+		};
+
+		struct lifecycle_local_sequence_visitor : public boost::static_visitor<unsigned short> {
+			template<typename T> unsigned short operator()( const T& t ) const { 
+				typedef sequence_accessor< boost::is_same<T, LifeCycle_Hello>::value > impl;
+				return impl::sequence( t );
+			}
+		};
+
+		struct lifecycle_remote_sequence_visitor : public boost::static_visitor<unsigned short> {
+			template<typename T> unsigned short operator()( const T& t ) const { 
+				typedef sequence_accessor< boost::is_same<T, LifeCycle_Hello>::value > impl;
+				return impl::remote_sequence( t );
+			}
+		};
+
+
+
+
+		/////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////
+		// namespace adportable::internal
+		/////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////
 		class LifeCycleImpl {
 		public:
 			LifeCycleImpl() : cycle_( LifeCycle_Closed() ), remote_seq_(0), myseq_(0) {
 			}
 			bool apply_command( LifeCycleCommand cmd, LifeCycleState& );
-			bool reply_received( LifeCycleCommand cmd, unsigned short seq, LifeCycleState& );
-            inline unsigned short remote_sequence() const { return remote_seq_; }
-            inline unsigned short local_sequence() const { return myseq_; }
-            inline unsigned short local_sequence_post_increment() { return myseq_++; }
+			bool reply_received( const LifeCycleData& data, LifeCycleState&, LifeCycleCommand& );
+			inline unsigned short remote_sequence() const { return remote_seq_; }
+			inline unsigned short local_sequence() const { return myseq_; }
+			inline unsigned short local_sequence_post_increment() { return myseq_++; }
 
 		private:
 			unsigned short remote_seq_;
@@ -120,6 +158,202 @@ namespace adportable {
 	}
 }
 
+//////////////////////
+
+bool
+LifeCycleImpl::apply_command( LifeCycleCommand cmd, LifeCycleState& state )
+{
+    LifeCycleType next(cycle_);
+    bool result = false;
+	switch( cmd ) {
+		case HELO:
+			result = boost::apply_visitor( lifecycle_send_visitor<command_hello>(next), cycle_ );
+			break;
+		case CONN_SYN:
+			myseq_ = 0x100;
+			result = boost::apply_visitor( lifecycle_send_visitor<command_syn>(next), cycle_ );
+			break;
+		case CONN_SYN_ACK:
+			result = boost::apply_visitor( lifecycle_send_visitor<command_syn_ack>(next), cycle_ );
+			break;
+        case DATA:
+			result = boost::apply_visitor( lifecycle_send_visitor<command_data>(next), cycle_ );
+			break;
+        case DATA_ACK:
+			result = boost::apply_visitor( lifecycle_send_visitor<command_data_ack>(next), cycle_ );
+			break;
+		case CLOSE:
+			result = boost::apply_visitor( lifecycle_send_visitor<command_close>(next), cycle_ );
+			break;
+	};
+
+	if ( result ) {
+		cycle_ = next;
+		state = boost::apply_visitor( lifecycle_state_visitor(), cycle_ );
+	}
+
+	return result;
+}
+
+bool
+LifeCycleImpl::reply_received( const LifeCycleData& data, LifeCycleState& state, LifeCycleCommand& replyCmd )
+{
+    bool result = false;
+    LifeCycleType next;
+	LifeCycleCommand cmd = boost::apply_visitor( lifecycle_command_access_visitor(), data );
+	switch( cmd ) {
+		case HELO:
+			result = boost::apply_visitor( lifecycle_recv_visitor<command_hello>(next, replyCmd), cycle_ );
+			break;
+		case CONN_SYN:
+			result = boost::apply_visitor( lifecycle_recv_visitor<command_syn>(next, replyCmd), cycle_ );
+			break;
+		case CONN_SYN_ACK:
+			result = boost::apply_visitor( lifecycle_recv_visitor<command_syn_ack>(next, replyCmd), cycle_ );
+			break;
+		case CLOSE:
+			result = boost::apply_visitor( lifecycle_recv_visitor<command_close>(next, replyCmd), cycle_ );
+			break;
+	};
+	if ( result ) {
+		cycle_ = next;
+		state = boost::apply_visitor( lifecycle_state_visitor(), cycle_ );
+	}
+	return result;
+}
+
+////////////////////////////////////////////////////////////////////
+/////////////////// STATE CHAGE specializations ////////////////////
+////////////////////////////////////////////////////////////////////
+
+template<> bool LifeCycle_Closed::send<command_hello>( LifeCycleType& cycle )
+{
+	cycle = LifeCycle_Listen();
+	return true;  // state has been changed from closed
+}
+
+template<> bool LifeCycle_Closed::recv<command_hello>( LifeCycleType& cycle, LifeCycleCommand& cmd )
+{
+	cycle = LifeCycle_Listen();
+	cmd = CONN_SYN;
+	return true;  // state has been changed from closed
+}
+
+////////////////// Listen state ////////////////////
+template<> bool LifeCycle_Listen::send<command_syn>( LifeCycleType& cycle )
+{
+	cycle = LifeCycle_SYN_Sent();
+	return true;
+}
+
+template<> bool LifeCycle_Listen::recv<command_syn>( LifeCycleType& cycle, LifeCycleCommand& cmd )
+{
+	cycle = LifeCycle_SYN_Received();  // SYN <seq#>  reply SYN_ACK <seq#>,<device seq#>
+	cmd = CONN_SYN_ACK;
+	return true;
+}
+
+/////////////////// SYN SENT state ////////////////
+template<> bool LifeCycle_SYN_Sent::recv<command_syn_ack>( LifeCycleType& cycle, LifeCycleCommand& )
+{
+	// controller recieve SYN|ACK from device
+	cycle = LifeCycle_Established();  // SYN|ACK <seq#>, <device seq#>
+	return true;
+}
+
+/////////////////// SYN Received state ////////////////
+template<> bool LifeCycle_SYN_Received::recv<command_syn_ack>( LifeCycleType& cycle, LifeCycleCommand& )
+{
+	// device receive SYN|AKC from controller
+	cycle = LifeCycle_Established();  // SYN|ACK <seq#>, <device seq#>
+	return true;
+}
+
+/////////////////// Established state ////////////////
+template<> bool LifeCycle_Established::send<command_close>( LifeCycleType& cycle )
+{
+	cycle = LifeCycle_CloseWait();
+	return true;
+}
+
+template<> bool LifeCycle_Established::recv<command_close>( LifeCycleType& cycle, LifeCycleCommand& )
+{
+	cycle = LifeCycle_Closed();
+	return true;
+}
+
+
+template<> bool LifeCycle_CloseWait::recv<command_close>( LifeCycleType& cycle, LifeCycleCommand& )
+{
+	cycle = LifeCycle_Closed();
+	return true;
+}
+
+////////////////////////////////////////
+
+LifeCycleFrame::LifeCycleFrame( LifeCycleCommand cmd ) : endian_mark_(0xfffe)
+						       , proto_version_(0x0001)
+						       , ctrl_(0)
+						       , hoffset_(8)
+						       , command_(cmd)
+{
+}
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+namespace adportable {
+    namespace internal {
+
+        class LifeCycleData_to_string_visitor : public boost::static_visitor< std::string > {
+        public:
+            template<class T> std::string operator()( const T& t ) const {
+                std::ostringstream o;
+				o << "<" << T::command_name() << "> remote seq# " << t.remote_sequence_ << " local seq# " << t.sequence_;
+				return o.str().c_str();
+            }
+
+			template<> std::string operator()( const LifeCycle_Hello& data ) const {
+				std::ostringstream o;
+				o << "<HELO>"
+					<< ":proto(" << data.proto_ << "," << data.portnumber_ << ")"
+					<< ":addr(" << data.ipaddr_ << ")"
+					<< ":name(" << data.device_name_ << ")"
+					<< ":s/n(" << data.serial_number_ << ")"
+					<< ":rev" << data.revision_ << ")"
+					<< ":" << data.model_name_
+					<< ":" << data.manufacturer_
+					<< ":" << data.copyright_;
+				return o.str();
+			}
+		};
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+std::string
+LifeCycleHelper::to_string( const LifeCycleData& data )
+{
+    return boost::apply_visitor( LifeCycleData_to_string_visitor(), data );   
+}
+
+unsigned short
+LifeCycleHelper::local_sequence( const LifeCycleData& data )
+{
+	return boost::apply_visitor( lifecycle_local_sequence_visitor(), data );   
+}
+
+unsigned short
+LifeCycleHelper::remote_sequence( const LifeCycleData& data )
+{
+	return boost::apply_visitor( lifecycle_remote_sequence_visitor(), data );   
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/////////////// LifeCycle implmentation 
+///////////////////////////////////////////////////////////////////////////////
 LifeCycle::~LifeCycle() 
 {
 }
@@ -166,9 +400,9 @@ LifeCycle::apply_command( LifeCycleCommand cmd, LifeCycleState& state )
 }
 
 bool
-LifeCycle::reply_received( LifeCycleCommand cmd, unsigned short rseq, LifeCycleState& state )
+LifeCycle::reply_received( const LifeCycleData& data, LifeCycleState& state, LifeCycleCommand& replyCmd )
 {
-	return pImpl_->reply_received(cmd, rseq, state);
+	return pImpl_->reply_received( data, state, replyCmd );
 }
 
 bool
@@ -179,185 +413,3 @@ LifeCycle::linkdown_detected( LifeCycleState& state ) /* heartbeat timeout */
     return res;
 }
 
-//////////////////////
-
-bool
-LifeCycleImpl::apply_command( LifeCycleCommand cmd, LifeCycleState& state )
-{
-    LifeCycleType next(cycle_);
-    bool result = false;
-	switch( cmd ) {
-		case HELO:
-			result = boost::apply_visitor( lifecycle_send_visitor<command_hello>(next), cycle_ );
-			break;
-		case CONN_SYN:
-			myseq_ = 0x100;
-			result = boost::apply_visitor( lifecycle_send_visitor<command_syn>(next), cycle_ );
-			break;
-		case CONN_SYN_ACK:
-			result = boost::apply_visitor( lifecycle_send_visitor<command_syn_ack>(next), cycle_ );
-			break;
-        case DATA:
-			result = boost::apply_visitor( lifecycle_send_visitor<command_data>(next), cycle_ );
-			break;
-        case DATA_ACK:
-			result = boost::apply_visitor( lifecycle_send_visitor<command_data_ack>(next), cycle_ );
-			break;
-		case CLOSE:
-			result = boost::apply_visitor( lifecycle_send_visitor<command_close>(next), cycle_ );
-			break;
-	};
-
-	if ( result ) {
-		cycle_ = next;
-		state = boost::apply_visitor( lifecycle_state_visitor(), cycle_ );
-	}
-
-	return result;
-}
-
-bool
-LifeCycleImpl::reply_received( LifeCycleCommand cmd, unsigned short rseq, LifeCycleState& state )
-{
-    static_cast<void>(rseq); // unsed
-    
-    bool result = false;
-    LifeCycleType next;
-	switch( cmd ) {
-		case HELO:
-			result = boost::apply_visitor( lifecycle_recv_visitor<command_hello>(next), cycle_ );
-			break;
-		case CONN_SYN:
-			result = boost::apply_visitor( lifecycle_recv_visitor<command_syn>(next), cycle_ );
-			break;
-		case CONN_SYN_ACK:
-			result = boost::apply_visitor( lifecycle_recv_visitor<command_syn_ack>(next), cycle_ );
-			break;
-		case CLOSE:
-			result = boost::apply_visitor( lifecycle_recv_visitor<command_close>(next), cycle_ );
-			break;
-	};
-	if ( result ) {
-		cycle_ = next;
-		state = boost::apply_visitor( lifecycle_state_visitor(), cycle_ );
-	}
-	return result;
-}
-
-
-template<> bool LifeCycle_Closed::send<command_hello>( LifeCycleType& cycle )
-{
-	// in closed state, controller will send 'HELO' command, 
-    // then change to "LISTEN" state until connection received
-	cycle = LifeCycle_Listen();
-	return true;  // state has been changed from closed
-}
-
-////////////////// Listen state ////////////////////
-template<> bool LifeCycle_Listen::send<command_syn>( LifeCycleType& cycle )
-{
-	// controller send SYN to device
-	cycle = LifeCycle_SYN_Sent(); // SYN <seq#>
-	return true;
-}
-
-template<> bool LifeCycle_Listen::recv<command_syn>( LifeCycleType& cycle )
-{
-	// device receive SYN from device
-	cycle = LifeCycle_SYN_Received();  // SYN <seq#>  reply SYN_ACK <seq#>,<device seq#>
-	return true;
-}
-
-/////////////////// SYN SENT state ////////////////
-template<> bool LifeCycle_SYN_Sent::recv<command_syn_ack>( LifeCycleType& cycle )
-{
-	// controller recieve SYN|ACK from device
-	cycle = LifeCycle_Established();  // SYN|ACK <seq#>, <device seq#>
-	return true;
-}
-
-/////////////////// SYN Received state ////////////////
-template<> bool LifeCycle_SYN_Received::recv<command_syn_ack>( LifeCycleType& cycle )
-{
-	// device receive SYN|AKC from controller
-	cycle = LifeCycle_Established();  // SYN|ACK <seq#>, <device seq#>
-	return true;
-}
-
-/////////////////// Established state ////////////////
-template<> bool LifeCycle_Established::send<command_close>( LifeCycleType& cycle )
-{
-	cycle = LifeCycle_CloseWait();
-	return true;
-}
-
-template<> bool LifeCycle_Established::recv<command_close>( LifeCycleType& cycle )
-{
-	cycle = LifeCycle_Closed();
-	return true;
-}
-
-
-template<> bool LifeCycle_CloseWait::recv<command_close>( LifeCycleType& cycle )
-{
-	cycle = LifeCycle_Closed();
-	return true;
-}
-
-////////////////////////////////////////
-
-LifeCycleFrame::LifeCycleFrame( LifeCycleCommand cmd ) : endian_mark_(0xfffe)
-						       , proto_version_(0x0001)
-						       , ctrl_(0)
-						       , hoffset_(8)
-						       , command_(cmd)
-{
-}
-
-std::string
-LifeCycle_Hello::to_string( const LifeCycle_Hello& data )
-{
-    std::ostringstream o;
-
-    o << "<HELO>"
-        << ":proto(" << data.proto_ << "," << data.portnumber_ << ")"
-        << ":addr(" << data.ipaddr_ << ")"
-        << ":name(" << data.device_name_ << ")"
-        << ":s/n(" << data.serial_number_ << ")"
-        << ":rev" << data.revision_ << ")"
-        << ":" << data.model_name_
-        << ":" << data.manufacturer_
-        << ":" << data.copyright_ << "</HELO>" ;
-   return o.str();
-}
-
-/////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////
-
-namespace adportable {
-    namespace internal {
-
-        class LifeCycleData_to_string_visitor : public boost::static_visitor< std::string > {
-        public:
-            template<class T> std::string operator()( const T& t ) const {
-                std::ostringstream o;
-                o << "remote seq# " << t.remote_sequence_ << " local seq# " << t.sequence_;
-                return o.str().c_str();
-            }
-        };
-
-        template<> std::string LifeCycleData_to_string_visitor::operator () (const LifeCycle_Hello& t) const
-        {
-            return LifeCycle_Hello::to_string(t);
-        }
-
-    }
-}
-
-std::string
-LifeCycleHelper::to_string( const LifeCycleData& data )
-{
-    using namespace adportable::internal;
-    return boost::apply_visitor( LifeCycleData_to_string_visitor(), data );   
-}

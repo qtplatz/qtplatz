@@ -11,6 +11,10 @@
 
 namespace adportable {
 
+	namespace internal {
+		class LifeCycleImpl;   
+	}
+     
   namespace protocol {
 
      enum LifeCycleState {
@@ -32,28 +36,7 @@ namespace adportable {
          , DATA_ACK     = 0x20100725
      };
      
-     class LifeCycleImpl;   
-     
-     class LifeCycle {
-	public:
-	   ~LifeCycle();
-	   LifeCycle();
-	   LifeCycle( const LifeCycle& );
-	   
-	   LifeCycleState current_state() const;
-       void current_state( LifeCycleState );
 
-	   bool apply_command( LifeCycleCommand, LifeCycleState& );
-	   bool reply_received( LifeCycleCommand, unsigned short rseq, LifeCycleState& );
-	   bool linkdown_detected( LifeCycleState& ); /* heartbeat timeout */
-       unsigned short local_sequence_post_increment();
-       unsigned short local_sequence() const;
-       unsigned short remote_sequence() const;
-	private:
-	   LifeCycleState state_;
-	   boost::shared_ptr<LifeCycleImpl> pImpl_;
-     };
-     
      ///////////////////////////////////////////////////////
      
      struct LifeCycleFrame {
@@ -68,7 +51,7 @@ namespace adportable {
      // MCAST data
      struct LifeCycle_Hello {
 	   static LifeCycleCommand command() { return HELO; }
-       static std::string to_string( const LifeCycle_Hello& );
+	   static char * command_name() { return "HELO"; }
 	   unsigned short portnumber_;
 	   std::string proto_;           // "udp"
 	   std::string ipaddr_;          // "0.0.0.0"
@@ -83,30 +66,35 @@ namespace adportable {
      // DGRAM data
      struct LifeCycle_SYN {
 	   static LifeCycleCommand command() { return CONN_SYN; }
+	   static char * command_name() { return "CONN_SYN"; }
 	   unsigned short sequence_;
 	   unsigned short remote_sequence_;
      };
      
      struct LifeCycle_Close {
 	   static LifeCycleCommand command() { return CLOSE; }
+	   static char * command_name() { return "CLOSE"; }
 	   unsigned short sequence_;
 	   unsigned short remote_sequence_;
      };
 
      struct LifeCycle_SYN_Ack {
 	   static LifeCycleCommand command() { return CONN_SYN_ACK; }
+	   static char * command_name() { return "CONN_SYN_ACK"; }
 	   unsigned short sequence_;
 	   unsigned short remote_sequence_;
      };
 
      struct LifeCycle_Data {
 	   static LifeCycleCommand command() { return DATA; }
+	   static char * command_name() { return "DATA"; }
 	   unsigned short sequence_;
 	   unsigned short remote_sequence_;
      };
 
      struct LifeCycle_DataAck {
        static LifeCycleCommand command() { return DATA_ACK; }
+	   static char * command_name() { return "DATA_ACK"; }
 	   unsigned short sequence_;
 	   unsigned short remote_sequence_;
      };
@@ -118,8 +106,31 @@ namespace adportable {
 			     , LifeCycle_DataAck
 			     , LifeCycle_Close > LifeCycleData;
 
+	 class LifeCycle {
+	 public:
+		 ~LifeCycle();
+		 LifeCycle();
+		 LifeCycle( const LifeCycle& );
+	   
+		 LifeCycleState current_state() const;
+		 void current_state( LifeCycleState );
+
+		 bool apply_command( LifeCycleCommand, LifeCycleState& );
+		 bool reply_received( const LifeCycleData&, adportable::protocol::LifeCycleState& nextState, adportable::protocol::LifeCycleCommand& replyCmd );
+		 bool linkdown_detected( LifeCycleState& ); /* heartbeat timeout */
+		 unsigned short local_sequence_post_increment();
+		 unsigned short local_sequence() const;
+		 unsigned short remote_sequence() const;
+	 private:
+		 LifeCycleState state_;
+		 boost::shared_ptr<internal::LifeCycleImpl> pImpl_;
+	 };
+
      struct LifeCycleHelper {
          static std::string to_string( const LifeCycleData& );
+		 static std::string command_by_name( const LifeCycleData& );
+         static unsigned short local_sequence( const LifeCycleData& );
+		 static unsigned short remote_sequence( const LifeCycleData& );
      };
 
   }

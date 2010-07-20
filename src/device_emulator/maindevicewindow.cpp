@@ -76,7 +76,7 @@ MainDeviceWindow::mcast_init()
 
             using namespace adportable::protocol;
 
-            QString qaddr( LifeCycle_Hello::to_string( lifeCycleData_hello_ ).c_str() );
+			QString qaddr( LifeCycleHelper::to_string( lifeCycleData_hello_ ).c_str() );
             ui->lineEditStatus->setText( qaddr );
         }
     }
