@@ -114,6 +114,8 @@ namespace adportable {
 	   
 		 LifeCycleState current_state() const;
 		 void current_state( LifeCycleState );
+		 bool validate_sequence( const LifeCycleData& );
+		 bool prepare_reply_data( LifeCycleCommand, LifeCycleData&, unsigned short remote_sequence );
 
 		 bool apply_command( LifeCycleCommand, LifeCycleState& );
 		 bool reply_received( const LifeCycleData&, adportable::protocol::LifeCycleState& nextState, adportable::protocol::LifeCycleCommand& replyCmd );
@@ -121,6 +123,7 @@ namespace adportable {
 		 unsigned short local_sequence_post_increment();
 		 unsigned short local_sequence() const;
 		 unsigned short remote_sequence() const;
+		 void remote_sequence( unsigned short );
 	 private:
 		 LifeCycleState state_;
 		 boost::shared_ptr<internal::LifeCycleImpl> pImpl_;

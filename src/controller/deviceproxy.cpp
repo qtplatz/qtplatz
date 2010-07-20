@@ -32,6 +32,20 @@ DeviceProxy::update_device( const LifeCycleFrame& frame, const LifeCycleData& da
     ACE_UNUSED_ARG(frame);
     using namespace acewrapper;
 
+    LifeCycleCommand replyCmd;
+    LifeCycleState newState;
+
+	bool res = lifeCycle_.reply_received( data, newState, replyCmd );  // CONN_SYN | CONN_SYN_ACK | DATA | DATA_ACK | CLOSE | CLOSE_ACK
+	if ( res ) {
+		if ( lifeCycle_.validate_sequence( data ) ) {
+			unsigned short remote_sequence = LifeCycleHelper::remote_sequence( data );
+			LifeCycleData replyData;
+			if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) ) {
+                 // todo
+			}
+		}
+	}
+
     if ( lifeCycle_.current_state() == LCS_CLOSED || lifeCycle_.current_state() == LCS_SYN_SENT ) {
 
         if ( ! dgramHandler_ )
