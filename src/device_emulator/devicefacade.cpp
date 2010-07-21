@@ -21,7 +21,7 @@ public:
 
     ACE_INET_Addr& get_remote_addr() { return remote_addr_; }
     const ACE_INET_Addr& get_remote_addr() const { return remote_addr_; }
-
+    void set_remote_addr( const ACE_INET_Addr& addr ) { remote_addr_ = addr; }
 private:
     vector_type devices_;
     ACE_INET_Addr remote_addr_;
@@ -112,6 +112,13 @@ DeviceFacade::get_remote_addr() const
 {
     return pImpl_->get_remote_addr();
 }
+
+void
+DeviceFacade::set_remote_addr( const ACE_INET_Addr& addr )
+{
+    pImpl_->set_remote_addr( addr );
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////

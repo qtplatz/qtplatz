@@ -41,6 +41,7 @@ public:
 
     const adportable::protocol::LifeCycle& lifeCycle() const { return lifeCycle_; }
     const ACE_INET_Addr& get_remote_addr() const;
+    void set_remote_addr( const ACE_INET_Addr& );
 
 protected:
     bool notify_dgram( ACE_Message_Block * );

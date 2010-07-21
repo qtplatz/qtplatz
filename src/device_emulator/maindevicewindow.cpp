@@ -144,6 +144,14 @@ MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
     LifeCycleData data;
     LifeCycleFrame frame;
     if ( lifecycle_frame_serializer::unpack( mb, frame, data ) ) {
+        if ( LifeCycleHelper::command( data ) == CONN_SYN ) {
+            ACE_Message_Block * mbfrom = mb->cont();
+            if ( mbfrom ) {
+                ACE_INET_Addr * remote_addr = reinterpret_cast<ACE_INET_Addr *>( mbfrom->rd_ptr() );
+                device_facade::instance()->set_remote_addr( *remote_addr );
+            }
+        }
+
         LifeCycleData replyData;
         if ( device_facade::instance()->handle_dgram( frame, data, replyData ) ) {
 #if defined _DEBUG
@@ -290,6 +298,7 @@ MainDeviceWindow::handle_send_dgram( ACE_Message_Block * mb )
     if ( device_facade::instance()->lifeCycle().current_state() != LCS_CLOSED ) {
         const ACE_INET_Addr& remote = device_facade::instance()->get_remote_addr();
         dgramHandler_->send( mb->rd_ptr(), mb->length(), remote );
+        std::cout << "send dgram to: " << std::string(acewrapper::string( remote )) << std::endl;
     }
 
     ACE_Message_Block::release( mb );
