@@ -109,7 +109,7 @@ namespace adportable {
 	 class LifeCycle {
 	 public:
 		 ~LifeCycle();
-		 LifeCycle();
+		 LifeCycle( unsigned short sequence_initial = 0x100 );
 		 LifeCycle( const LifeCycle& );
 	   
 		 LifeCycleState current_state() const;
@@ -125,6 +125,7 @@ namespace adportable {
 		 unsigned short remote_sequence() const;
 		 void remote_sequence( unsigned short );
 	 private:
+		 unsigned short syn_sequence_number_;
 		 LifeCycleState state_;
 		 boost::shared_ptr<internal::LifeCycleImpl> pImpl_;
 	 };

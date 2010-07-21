@@ -22,6 +22,7 @@ using namespace acewrapper;
 using namespace adportable::protocol;
 
 DeviceProxy::DeviceProxy( const ACE_INET_Addr& remote ) : remote_addr_(remote)
+                                                        , lifeCycle_( 0x100 ) 
 {
 }
 

@@ -24,7 +24,7 @@ QEventReceiver::handle_input( ACE_HANDLE )
 }
 
 int
-QEventReceiver::handle_input(acewrapper::DgramHandler& dgram, ACE_HANDLE h)
+QEventReceiver::handle_input(acewrapper::DgramHandler& dgram, ACE_HANDLE /* h */)
 {
     ACE_Message_Block * mb = new ACE_Message_Block( 2000 );
     ACE_Message_Block * pfrom = new ACE_Message_Block( 512 );

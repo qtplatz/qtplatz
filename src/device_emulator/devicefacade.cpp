@@ -47,6 +47,7 @@ DeviceFacade::~DeviceFacade()
 }
 
 DeviceFacade::DeviceFacade() : pImpl_(0)
+                             , lifeCycle_(0x200) 
 {
     pImpl_ = new DeviceFacadeImpl;
 }
@@ -94,15 +95,13 @@ DeviceFacade::handle_dgram( const LifeCycleFrame& frame, const LifeCycleData& da
     LifeCycleState nextState;
     LifeCycleCommand replyCmd;
 
-    if ( lifeCycle_.reply_received( data, nextState, replyCmd ) ) {
-        if ( lifeCycle_.validate_sequence( data ) ) {
-            unsigned short remote_sequence = lifeCycle_.remote_sequence();
-            if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) ) {
-                return true;
-            }
-        }
-    }
-    return false;
+	lifeCycle_.reply_received( data, nextState, replyCmd );
+	if ( lifeCycle_.validate_sequence( data ) ) {
+		unsigned short remote_sequence = LifeCycleHelper::local_sequence( data );  // flip local number on recived data to remote on mine
+		if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) )
+			return true;
+	}
+	return false;
 }
 
 const ACE_INET_Addr&

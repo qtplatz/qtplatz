@@ -55,7 +55,7 @@ namespace adportable {
 		struct LifeCycle_SYN_Received {
 			static LifeCycleState state() { return LCS_SYN_RCVD; }
 			template<class T> static bool send( LifeCycleType& ) { return false; }
-			template<class T> static bool recv( LifeCycleType&, LifeCycleCommand& ) { return false; }
+			template<class T> static bool recv( LifeCycleType&, LifeCycleCommand& c ) { c = CONN_SYN_ACK; return false; }
 		};
 
 		struct LifeCycle_SYN_Sent {
@@ -142,7 +142,7 @@ namespace adportable {
 			lifecycle_local_sequence_writer( unsigned short number ) : number_(number) {}
 			template<typename T> void operator()( T& t ) const { 
 				typedef sequence_accessor< boost::is_same<T, LifeCycle_Hello>::value > impl;
-				impl::sequence( t );
+				impl::sequence( t, number_ );
 			}
 		};
 
@@ -170,6 +170,7 @@ namespace adportable {
 			inline unsigned short local_sequence() const { return local_sequence_; }
 			inline unsigned short local_sequence_post_increment() { return local_sequence_++; }
 			inline void remote_sequence( unsigned short value ) { remote_sequence_ = value; }  // last good sequence #
+			inline void local_sequence( unsigned short value ) { local_sequence_ = value; }
 
 		private:
 			unsigned short remote_sequence_;
@@ -228,6 +229,10 @@ LifeCycleImpl::reply_received( const LifeCycleData& data, LifeCycleState& state,
 			break;
 		case CONN_SYN:
 			result = boost::apply_visitor( lifecycle_recv_visitor<command_syn>(next, replyCmd), cycle_ );
+			// initialize local/remote sequence number
+            // flip local from received data onto remote of my registry
+			remote_sequence( boost::apply_visitor( lifecycle_local_sequence_visitor(), data ) );
+			local_sequence( remote_sequence() + 0x100 );
 			break;
 		case CONN_SYN_ACK:
 			result = boost::apply_visitor( lifecycle_recv_visitor<command_syn_ack>(next, replyCmd), cycle_ );
@@ -331,7 +336,7 @@ namespace adportable {
         public:
             template<class T> std::string operator()( const T& t ) const {
                 std::ostringstream o;
-				o << "<" << T::command_name() << "> remote seq# " << t.remote_sequence_ << " local seq# " << t.sequence_;
+				o << "<" << T::command_name() << "> remote# " << t.remote_sequence_ << " local# " << t.sequence_;
 				return o.str().c_str();
             }
 
@@ -379,7 +384,9 @@ LifeCycle::~LifeCycle()
 {
 }
 
-LifeCycle::LifeCycle() : state_( LCS_CLOSED ), pImpl_( new LifeCycleImpl() )
+LifeCycle::LifeCycle( unsigned short seq ) : state_( LCS_CLOSED )
+                                           , pImpl_( new LifeCycleImpl() )
+										   , syn_sequence_number_(seq)
 {
 }
 
@@ -458,19 +465,29 @@ bool
 LifeCycle::prepare_reply_data( LifeCycleCommand cmd, LifeCycleData& data, unsigned short remote_sequence )
 {
 	switch( cmd ) {
-		case HELO:			data = LifeCycle_Hello();    break;
-		case CONN_SYN:      data = LifeCycle_SYN();      break;
-		case CONN_SYN_ACK:  data = LifeCycle_SYN_Ack();  break;
-		case CLOSE:         data = LifeCycle_Close();    break;
-		// case CLOSE_ACK:     data = LifeCycle_CloseAck(); break;
-		case DATA:          data = LifeCycle_Data();     break;
-		case DATA_ACK:      data = LifeCycle_DataAck();  break;
+		case HELO:
+			data = LifeCycle_Hello();
+			break;
+		case CONN_SYN:
+			data = LifeCycle_SYN();
+			break;
+		case CONN_SYN_ACK:
+			data = LifeCycle_SYN_Ack();
+			break;
+		case CLOSE:
+			data = LifeCycle_Close();
+			break;
+		case DATA:
+			data = LifeCycle_Data();
+			break;
+		case DATA_ACK:
+			data = LifeCycle_DataAck();
+			break;
 		default:
 			return false;
    	}
 	// set sequences
 	boost::apply_visitor( lifecycle_remote_sequence_writer( remote_sequence ), data );
 	boost::apply_visitor( lifecycle_local_sequence_writer( local_sequence_post_increment() ), data );
-	this->remote_sequence( remote_sequence );
 	return true;
 }
