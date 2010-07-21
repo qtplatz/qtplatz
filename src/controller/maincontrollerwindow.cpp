@@ -116,7 +116,7 @@ MainControllerWindow::multicast_update_device( const ACE_INET_Addr& addr
         model->setData( parentIndex, addr_str.c_str() );
         model->setData( model->index( row, 2 ), LifeCycleHelper::to_string( data ).c_str() );
     }
-    devices_[ addr_str ]->update_device( frame, data );
+    devices_[ addr_str ]->mcast_update_device( frame, data );
 
     std::ostringstream o;
     o << "register_device(" << addr_str << ")" ;

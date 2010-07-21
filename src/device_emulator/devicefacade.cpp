@@ -90,7 +90,7 @@ DeviceFacade::handle_dgram( const LifeCycleFrame& frame, const LifeCycleData& da
     LifeCycleCommand cmd = boost::apply_visitor( lifecycle_command_visitor(), data );
     assert( frame.command_ == cmd );
     std::string msg = LifeCycleHelper::to_string( data );
-    emit signal_debug( QString( "handle_dgram: " ) + msg.c_str() );
+	emit signal_debug( QString( "handle_dgram got " ) + msg.c_str() );
 
     LifeCycleState nextState;
     LifeCycleCommand replyCmd;
@@ -98,8 +98,11 @@ DeviceFacade::handle_dgram( const LifeCycleFrame& frame, const LifeCycleData& da
 	lifeCycle_.reply_received( data, nextState, replyCmd );
 	if ( lifeCycle_.validate_sequence( data ) ) {
 		unsigned short remote_sequence = LifeCycleHelper::local_sequence( data );  // flip local number on recived data to remote on mine
-		if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) )
+		if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) ) {
+			std::string rmsg = LifeCycleHelper::to_string( replyData );
+			emit signal_debug( QString( "handle_dgram reply " ) + rmsg.c_str() );
 			return true;
+		}
 	}
 	return false;
 }

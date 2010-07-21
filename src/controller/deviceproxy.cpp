@@ -27,53 +27,42 @@ DeviceProxy::DeviceProxy( const ACE_INET_Addr& remote ) : remote_addr_(remote)
 }
 
 void
-DeviceProxy::update_device( const LifeCycleFrame& frame, const LifeCycleData& data )
+DeviceProxy::mcast_update_device( const LifeCycleFrame& frame, const LifeCycleData& data )
 {
-    ACE_UNUSED_ARG(data);
+	// MCAST handler 
     ACE_UNUSED_ARG(frame);
     using namespace acewrapper;
+
+	if ( ! dgramHandler_ )
+		initialize();
 
     LifeCycleCommand replyCmd;
     LifeCycleState newState;
 
-	bool res = lifeCycle_.reply_received( data, newState, replyCmd );  // CONN_SYN | CONN_SYN_ACK | DATA | DATA_ACK | CLOSE | CLOSE_ACK
-	if ( res ) {
-		if ( lifeCycle_.validate_sequence( data ) ) {
-			unsigned short remote_sequence = LifeCycleHelper::remote_sequence( data );
-			LifeCycleData replyData;
-			if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) ) {
+	if ( lifeCycle_.current_state() == LCS_CLOSED || lifeCycle_.current_state() == LCS_LISTEN ) {
 
+		lifeCycle_.reply_received( data, newState, replyCmd );  // CONN_SYN | CONN_SYN_ACK | DATA | DATA_ACK | CLOSE | CLOSE_ACK
 
-			}
-		}
-	}
+		LifeCycleState next;
+		if ( lifeCycle_.apply_command( CONN_SYN, next ) ) // reset internal sequence number, set own state to SYN_SENT
+			lifeCycle_.current_state( next );             // update internal state enum
 
-    if ( lifeCycle_.current_state() == LCS_CLOSED || lifeCycle_.current_state() == LCS_SYN_SENT ) {
+        LifeCycleData reqData;
+        lifeCycle_.prepare_reply_data( CONN_SYN, reqData, 0 );
 
-        if ( ! dgramHandler_ )
-            initialize();
+        boost::intrusive_ptr<ACE_Message_Block> mb( lifecycle_frame_serializer::pack( reqData ) );
 
-        LifeCycleState next;
-        if ( lifeCycle_.apply_command( CONN_SYN, next ) ) { // state has moved
-            // first trial only through this section
-        }
-        LifeCycle_SYN reqData;
-        reqData.remote_sequence_ = 0;
-        reqData.sequence_ = 0x100;
-        boost::intrusive_ptr<ACE_Message_Block> mb( lifecycle_frame_serializer::pack( LifeCycleData(reqData) ) );
-#if defined _DEBUG
-        do {
-           LifeCycleFrame dbgFrame;
-           LifeCycleData dbgData = LifeCycle_SYN();
-           lifecycle_frame_serializer::unpack( mb.get(), dbgFrame, dbgData );
-           LifeCycle_SYN& syn = boost::get<LifeCycle_SYN&>( dbgData );
-           long x = 0;
-        } while(0);
-#endif
+        char * rp = mb->rd_ptr();
+		char * wr = mb->wr_ptr();
+        int len = mb->length();
+		std::string msg = LifeCycleHelper::to_string( reqData );
+		std::string addr = acewrapper::string( remote_addr_ );
+		msg += " sent to ";
+        msg += addr;
 
         dgramHandler_->send( mb->rd_ptr(), mb->length(), remote_addr_ );
 
-        emit signal_dgram_to_device( remote_addr_string_, QString(local_addr_string_.c_str()), "SYN sent" );
+		emit signal_dgram_to_device( remote_addr_string_, QString(local_addr_string_.c_str()), msg.c_str() );
 
     }
 }

@@ -332,6 +332,10 @@ LifeCycleFrame::LifeCycleFrame( LifeCycleCommand cmd ) : endian_mark_(0xfffe)
 namespace adportable {
     namespace internal {
 
+		struct lifecycle_command_visitor : public boost::static_visitor< LifeCycleCommand > {
+			template<class T> LifeCycleCommand operator()( T& ) const { return T::command(); }
+		};
+
         class LifeCycleData_to_string_visitor : public boost::static_visitor< std::string > {
         public:
             template<class T> std::string operator()( const T& t ) const {
@@ -375,6 +379,12 @@ unsigned short
 LifeCycleHelper::remote_sequence( const LifeCycleData& data )
 {
 	return boost::apply_visitor( lifecycle_remote_sequence_visitor(), data );   
+}
+
+LifeCycleCommand
+LifeCycleHelper::command( const LifeCycleData& data )
+{
+	return boost::apply_visitor( lifecycle_command_visitor(), data );   
 }
 
 ////////////////////////////////////////////////////////////////////////////////

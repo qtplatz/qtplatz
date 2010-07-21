@@ -133,6 +133,7 @@ namespace adportable {
      struct LifeCycleHelper {
          static std::string to_string( const LifeCycleData& );
 		 static std::string command_by_name( const LifeCycleData& );
+		 static LifeCycleCommand command( const LifeCycleData& );
          static unsigned short local_sequence( const LifeCycleData& );
 		 static unsigned short remote_sequence( const LifeCycleData& );
      };

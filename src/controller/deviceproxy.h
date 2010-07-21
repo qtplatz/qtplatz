@@ -24,7 +24,7 @@ class DeviceProxy : public QObject {
       Q_OBJECT
    public:
       DeviceProxy( const ACE_INET_Addr& );
-      void update_device( const adportable::protocol::LifeCycleFrame&
+      void mcast_update_device( const adportable::protocol::LifeCycleFrame&
 			  , const adportable::protocol::LifeCycleData& );
       bool initialize();
 
