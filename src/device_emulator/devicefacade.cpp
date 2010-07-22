@@ -95,7 +95,7 @@ DeviceFacade::handle_dgram( const LifeCycleFrame& frame, const LifeCycleData& da
     LifeCycleState nextState;
     LifeCycleCommand replyCmd;
 
-	lifeCycle_.reply_received( data, nextState, replyCmd );
+	lifeCycle_.dispatch_received_data( data, nextState, replyCmd );
 	if ( lifeCycle_.validate_sequence( data ) ) {
 		unsigned short remote_sequence = LifeCycleHelper::local_sequence( data );  // flip local number on recived data to remote on mine
 		if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) ) {

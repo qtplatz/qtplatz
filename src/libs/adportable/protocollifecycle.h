@@ -34,6 +34,7 @@ namespace adportable {
          , CLOSE_ACK    = 0x20100723
          , DATA         = 0x20100724
          , DATA_ACK     = 0x20100725
+		 , NOTHING      = 0 
      };
      
 
@@ -111,14 +112,16 @@ namespace adportable {
 		 ~LifeCycle();
 		 LifeCycle( unsigned short sequence_initial = 0x100 );
 		 LifeCycle( const LifeCycle& );
-	   
+
+		 LifeCycleState machine_state()	const;
 		 LifeCycleState current_state() const;
 		 void current_state( LifeCycleState );
+
 		 bool validate_sequence( const LifeCycleData& );
 		 bool prepare_reply_data( LifeCycleCommand, LifeCycleData&, unsigned short remote_sequence );
 
 		 bool apply_command( LifeCycleCommand, LifeCycleState& );
-		 bool reply_received( const LifeCycleData&, adportable::protocol::LifeCycleState& nextState, adportable::protocol::LifeCycleCommand& replyCmd );
+		 bool dispatch_received_data( const LifeCycleData&, adportable::protocol::LifeCycleState& nextState, adportable::protocol::LifeCycleCommand& replyCmd );
 		 bool linkdown_detected( LifeCycleState& ); /* heartbeat timeout */
 		 unsigned short local_sequence_post_increment();
 		 unsigned short local_sequence() const;

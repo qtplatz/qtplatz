@@ -41,7 +41,7 @@ DeviceProxy::mcast_update_device( const LifeCycleFrame& frame, const LifeCycleDa
 
 	if ( lifeCycle_.current_state() == LCS_CLOSED || lifeCycle_.current_state() == LCS_LISTEN ) {
 
-		lifeCycle_.reply_received( data, newState, replyCmd );  // CONN_SYN | CONN_SYN_ACK | DATA | DATA_ACK | CLOSE | CLOSE_ACK
+		lifeCycle_.dispatch_received_data( data, newState, replyCmd );  // CONN_SYN | CONN_SYN_ACK | DATA | DATA_ACK | CLOSE | CLOSE_ACK
 
 		LifeCycleState next;
 		if ( lifeCycle_.apply_command( CONN_SYN, next ) ) // reset internal sequence number, set own state to SYN_SENT
@@ -52,9 +52,6 @@ DeviceProxy::mcast_update_device( const LifeCycleFrame& frame, const LifeCycleDa
 
         boost::intrusive_ptr<ACE_Message_Block> mb( lifecycle_frame_serializer::pack( reqData ) );
 
-        char * rp = mb->rd_ptr();
-		char * wr = mb->wr_ptr();
-        int len = mb->length();
 		std::string msg = LifeCycleHelper::to_string( reqData );
 		std::string addr = acewrapper::string( remote_addr_ );
 		msg += " sent to ";
@@ -101,17 +98,29 @@ DeviceProxy::on_notify_dgram( ACE_Message_Block * mb )
 {
     acewrapper::scoped_mblock_ptr<> will_release_ptr( mb );
 
-    do { // debug diagnostic
-        ACE_Message_Block * pfrom = mb->cont();
-        ACE_INET_Addr& from_addr( *reinterpret_cast<ACE_INET_Addr *>( pfrom->rd_ptr() ) );
-        std::string remote_addr = acewrapper::string( from_addr );
-        assert( remote_addr == remote_addr_string_ );
-    } while (0);
-
     LifeCycleData data;
     LifeCycleFrame frame;
-   
-    lifecycle_frame_serializer::unpack( mb, frame, data );
-    std::string o = LifeCycleHelper::to_string( data );
-    emit signal_dgram_to_device( remote_addr_string_, QString(local_addr_string_.c_str()), o.c_str() );
+	if ( lifecycle_frame_serializer::unpack( mb, frame, data ) ) {
+
+		std::string o = LifeCycleHelper::to_string( data );
+		emit signal_dgram_to_device( remote_addr_string_, QString(local_addr_string_.c_str()), o.c_str() );
+
+		LifeCycleCommand replyCmd;
+        LifeCycleState newState;
+		if ( lifeCycle_.dispatch_received_data( data, newState, replyCmd ) )
+			lifeCycle_.current_state( newState );
+
+		if ( replyCmd != NOTHING ) {
+			LifeCycleData reqData;
+			lifeCycle_.prepare_reply_data( replyCmd, reqData, 0 );
+
+			boost::intrusive_ptr<ACE_Message_Block> mb( lifecycle_frame_serializer::pack( reqData ) );
+			dgramHandler_->send( mb->rd_ptr(), mb->length(), remote_addr_ );
+		}
+
+		if ( LifeCycleHelper::command( data ) == DATA ) {
+			// dispatch data, to be added
+		}
+
+	}
 }

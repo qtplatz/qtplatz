@@ -165,12 +165,13 @@ namespace adportable {
 			LifeCycleImpl() : cycle_( LifeCycle_Closed() ), remote_sequence_(0), local_sequence_(0) {
 			}
 			bool apply_command( LifeCycleCommand cmd, LifeCycleState& );
-			bool reply_received( const LifeCycleData& data, LifeCycleState&, LifeCycleCommand& );
+			bool dispatch_received_data( const LifeCycleData& data, LifeCycleState&, LifeCycleCommand& );
 			inline unsigned short remote_sequence() const { return remote_sequence_; }
 			inline unsigned short local_sequence() const { return local_sequence_; }
 			inline unsigned short local_sequence_post_increment() { return local_sequence_++; }
 			inline void remote_sequence( unsigned short value ) { remote_sequence_ = value; }  // last good sequence #
 			inline void local_sequence( unsigned short value ) { local_sequence_ = value; }
+			inline const LifeCycleType& lifeCycle() const { return cycle_; }
 
 		private:
 			unsigned short remote_sequence_;
@@ -218,10 +219,11 @@ LifeCycleImpl::apply_command( LifeCycleCommand cmd, LifeCycleState& state )
 }
 
 bool
-LifeCycleImpl::reply_received( const LifeCycleData& data, LifeCycleState& state, LifeCycleCommand& replyCmd )
+LifeCycleImpl::dispatch_received_data( const LifeCycleData& data, LifeCycleState& state, LifeCycleCommand& replyCmd )
 {
     bool result = false;
     LifeCycleType next;
+    replyCmd = NOTHING;
 	LifeCycleCommand cmd = boost::apply_visitor( lifecycle_command_access_visitor(), data );
 	switch( cmd ) {
 		case HELO:
@@ -233,6 +235,12 @@ LifeCycleImpl::reply_received( const LifeCycleData& data, LifeCycleState& state,
             // flip local from received data onto remote of my registry
 			remote_sequence( boost::apply_visitor( lifecycle_local_sequence_visitor(), data ) );
 			local_sequence( remote_sequence() + 0x100 );
+			break;
+        case DATA:
+			result = boost::apply_visitor( lifecycle_recv_visitor<command_data>(next, replyCmd), cycle_ );
+			break;
+        case DATA_ACK:
+			result = boost::apply_visitor( lifecycle_recv_visitor<command_data_ack>(next, replyCmd), cycle_ );
 			break;
 		case CONN_SYN_ACK:
 			result = boost::apply_visitor( lifecycle_recv_visitor<command_syn_ack>(next, replyCmd), cycle_ );
@@ -296,19 +304,29 @@ template<> bool LifeCycle_SYN_Received::recv<command_syn_ack>( LifeCycleType& cy
 }
 
 /////////////////// Established state ////////////////
+
+template<> bool LifeCycle_Established::recv<command_data>( LifeCycleType& cycle, LifeCycleCommand& cmd )
+{
+	(void)cycle;
+	cmd = DATA_ACK;
+	return false;
+}
+
+template<> bool LifeCycle_Established::recv<command_close>( LifeCycleType& cycle, LifeCycleCommand& cmd )
+{
+	cycle = LifeCycle_Closed();
+    cmd = CLOSE_ACK;
+	return true;
+}
+
+//////// SEND 'CLOSE'
 template<> bool LifeCycle_Established::send<command_close>( LifeCycleType& cycle )
 {
 	cycle = LifeCycle_CloseWait();
 	return true;
 }
 
-template<> bool LifeCycle_Established::recv<command_close>( LifeCycleType& cycle, LifeCycleCommand& )
-{
-	cycle = LifeCycle_Closed();
-	return true;
-}
-
-
+//////// RECV 'CLOSE'
 template<> bool LifeCycle_CloseWait::recv<command_close>( LifeCycleType& cycle, LifeCycleCommand& )
 {
 	cycle = LifeCycle_Closed();
@@ -401,6 +419,12 @@ LifeCycle::LifeCycle( unsigned short seq ) : state_( LCS_CLOSED )
 }
 
 LifeCycleState
+LifeCycle::machine_state() const
+{
+	return boost::apply_visitor( lifecycle_state_visitor(), pImpl_->lifeCycle() );
+}
+
+LifeCycleState
 LifeCycle::current_state() const
 {
 	return state_;
@@ -444,9 +468,9 @@ LifeCycle::apply_command( LifeCycleCommand cmd, LifeCycleState& state )
 }
 
 bool
-LifeCycle::reply_received( const LifeCycleData& data, LifeCycleState& state, LifeCycleCommand& replyCmd )
+LifeCycle::dispatch_received_data( const LifeCycleData& data, LifeCycleState& state, LifeCycleCommand& replyCmd )
 {
-	return pImpl_->reply_received( data, state, replyCmd );
+	return pImpl_->dispatch_received_data( data, state, replyCmd );
 }
 
 bool
