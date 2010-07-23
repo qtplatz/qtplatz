@@ -19,6 +19,9 @@
 #include <ace/Singleton.h>
 #include <ace/Reactor.h>
 
+#include "controllerC.h"
+#include "tao/Utils/ORB_Manager.h"
+
 using namespace acewrapper;
 using namespace adportable::protocol;
 
@@ -136,11 +139,16 @@ DeviceProxy::notify_timeout( const ACE_Time_Value& tv )
 		LifeCycleData reqData;
 		lifeCycle_.prepare_reply_data( DATA, reqData, 0 );
 
-        OutputCDR cdr;
-		lifecycle_frame_serializer::pack( cdr, reqData );
+        TAO_OutputCDR tao_cdr;
+        do {
+            OutputCDR cdr( static_cast<ACE_OutputCDR&>(tao_cdr) );
+            lifecycle_frame_serializer::pack( cdr, reqData );
+        } while(0);
+        
+        MassSpectrometer::ESIMethod m;
 
-        cdr << tv;
+        tao_cdr << m;
 		
-		dgramHandler_->send( cdr.begin()->rd_ptr(), cdr.length(), remote_addr_ );
+		dgramHandler_->send( tao_cdr.begin()->rd_ptr(), tao_cdr.length(), remote_addr_ );
 	}
 }

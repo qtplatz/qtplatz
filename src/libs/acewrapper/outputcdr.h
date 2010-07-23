@@ -14,8 +14,10 @@ namespace acewrapper {
 
 	class OutputCDR : boost::noncopyable {
 	public:
-		OutputCDR();
-		OutputCDR( ACE_Message_Block * mb );
+        ~OutputCDR();
+        OutputCDR();
+		OutputCDR( ACE_OutputCDR& );
+        //OutputCDR( ACE_Message_Block * mb );
 
 		operator ACE_OutputCDR& () { return impl_; }
 		operator const ACE_OutputCDR& () const { return impl_; }
@@ -48,7 +50,8 @@ namespace acewrapper {
 		bool write( const double *, size_t );
 		bool write( const long double *, size_t );
 	private:
-		ACE_OutputCDR impl_;
+		ACE_OutputCDR& impl_;
+        ACE_OutputCDR * pImpl_;
 	};
 
 }
