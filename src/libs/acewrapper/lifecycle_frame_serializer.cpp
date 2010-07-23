@@ -55,7 +55,7 @@ namespace acewrapper {
       };
       //-----------------
       class lifecycle_deserializer_visitor : public boost::static_visitor< void > {
-          InputCDR& cdr;
+		  InputCDR& cdr;
 	 public:
 	    lifecycle_deserializer_visitor( InputCDR& in ) : cdr(in) {}
         void operator()( LifeCycleFrame& frame ) const;
@@ -71,6 +71,18 @@ namespace acewrapper {
 
 
 //////////////////////////////////////////////////////////////////////////////////////
+
+template<> bool
+lifecycle_frame_serializer::pack( acewrapper::OutputCDR& cdr, const LifeCycleData& v )
+{
+    LifeCycleFrame frame( boost::apply_visitor( internal::lifecycle_command_visitor(), v ) );
+
+    internal::lifecycle_serializer::serialize(cdr, frame);
+    unsigned int size = boost::apply_visitor( internal::lifecycle_serializer_visitor(cdr), v );
+	if ( size )
+		return true;
+	return false;
+}
 
 template<> ACE_Message_Block *
 lifecycle_frame_serializer::pack( const LifeCycleData& v )
@@ -89,37 +101,42 @@ lifecycle_frame_serializer::pack( const LifeCycleData& v )
 }
 
 template<> bool
+lifecycle_frame_serializer::unpack( InputCDR& cdr, LifeCycleFrame& frame, LifeCycleData& v )
+{
+	internal::lifecycle_deserializer_visitor unpacker(cdr);
+	unpacker( frame );
+
+	switch( frame.command_ ) {
+    case HELO:
+		v = LifeCycle_Hello();
+		break;
+	case CONN_SYN:
+		v = LifeCycle_SYN();
+		break;
+	case CONN_SYN_ACK:
+		v = LifeCycle_SYN_Ack();
+		break;
+	case DATA:
+		v = LifeCycle_Data();
+		break;
+	case DATA_ACK:
+		v = LifeCycle_DataAck();
+		break;
+	case CLOSE:
+		v = LifeCycle_Close();
+		break;
+	default:
+		return false;
+	}
+	boost::apply_visitor( unpacker, v );
+	return true;
+}
+
+template<> bool
 lifecycle_frame_serializer::unpack( ACE_Message_Block * mb, LifeCycleFrame& frame, LifeCycleData& v )
 {
-   InputCDR cdr(mb);
-
-   internal::lifecycle_deserializer_visitor unpacker(cdr);
-   unpacker( frame );
-
-   switch( frame.command_ ) {
-   case HELO:
-       v = LifeCycle_Hello();
-       break;
-   case CONN_SYN:
-       v = LifeCycle_SYN();
-       break;
-   case CONN_SYN_ACK:
-       v = LifeCycle_SYN_Ack();
-       break;
-   case DATA:
-       v = LifeCycle_Data();
-       break;
-   case DATA_ACK:
-       v = LifeCycle_DataAck();
-       break;
-   case CLOSE:
-       v = LifeCycle_Close();
-       break;
-   default:
-       return false;
-   }
-   boost::apply_visitor( unpacker, v );
-   return true;
+	InputCDR cdr(mb);
+	return unpack( cdr, frame, v );
 }
 
 /////////////////////////////////////////

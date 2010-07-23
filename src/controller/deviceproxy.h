@@ -11,6 +11,7 @@
 #include <adportable/protocollifecycle.h>
 #include <QObject>
 class ACE_Message_Block;
+class ACE_Time_Value;
 
 namespace acewrapper {
     template<class T> class EventHandler;
@@ -27,6 +28,8 @@ class DeviceProxy : public QObject {
       void mcast_update_device( const adportable::protocol::LifeCycleFrame&
 			  , const adportable::protocol::LifeCycleData& );
       bool initialize();
+
+	  void notify_timeout( const ACE_Time_Value& );
 
    private:
       unsigned short remote_sequence_;

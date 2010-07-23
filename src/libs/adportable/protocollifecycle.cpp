@@ -298,7 +298,7 @@ template<> bool LifeCycle_SYN_Sent::recv<command_syn_ack>( LifeCycleType& cycle,
 /////////////////// SYN Received state ////////////////
 template<> bool LifeCycle_SYN_Received::recv<command_syn_ack>( LifeCycleType& cycle, LifeCycleCommand& )
 {
-	// device receive SYN|AKC from controller
+	// device receive SYN|ACK from controller
 	cycle = LifeCycle_Established();  // SYN|ACK <seq#>, <device seq#>
 	return true;
 }

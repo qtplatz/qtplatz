@@ -182,6 +182,15 @@ MainControllerWindow::on_notify_timeout( unsigned long sec, long usec )
 {
     ACE_UNUSED_ARG(sec);
     ACE_UNUSED_ARG(usec);
+
+    ACE_Time_Value tv( sec, usec );
+
+	// lock
+	std::map< std::string, boost::shared_ptr< DeviceProxy > >::const_iterator it;
+	for ( it = devices_.begin(); it != devices_.end(); ++it )
+		it->second->notify_timeout( tv );
+    // unlock
+
 }
 
 void

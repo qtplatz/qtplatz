@@ -12,6 +12,7 @@
 #include <acewrapper/lifecycle_frame_serializer.h>
 #include <ace/Message_Block.h>
 #include <acewrapper/ace_string.h>
+#include <acewrapper/outputcdr.h>
 
 #include <boost/smart_ptr.hpp>
 #include <acewrapper/messageblock.h>
@@ -40,6 +41,8 @@ DeviceProxy::mcast_update_device( const LifeCycleFrame& frame, const LifeCycleDa
     LifeCycleState newState;
 
 	if ( lifeCycle_.current_state() == LCS_CLOSED || lifeCycle_.current_state() == LCS_LISTEN ) {
+
+		// lifeCycle_.valid_heartbeat( ACE_High_Res_Timer::gettimeofday_hr() );
 
 		lifeCycle_.dispatch_received_data( data, newState, replyCmd );  // CONN_SYN | CONN_SYN_ACK | DATA | DATA_ACK | CLOSE | CLOSE_ACK
 
@@ -122,5 +125,22 @@ DeviceProxy::on_notify_dgram( ACE_Message_Block * mb )
 			// dispatch data, to be added
 		}
 
+	}
+}
+
+void
+DeviceProxy::notify_timeout( const ACE_Time_Value& tv )
+{
+	if ( lifeCycle_.machine_state() == LCS_ESTABLISHED ) {
+
+		LifeCycleData reqData;
+		lifeCycle_.prepare_reply_data( DATA, reqData, 0 );
+
+        OutputCDR cdr;
+		lifecycle_frame_serializer::pack( cdr, reqData );
+
+        cdr << tv;
+		
+		dgramHandler_->send( cdr.begin()->rd_ptr(), cdr.length(), remote_addr_ );
 	}
 }

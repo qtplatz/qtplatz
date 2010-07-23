@@ -8,6 +8,8 @@
 #include <acewrapper/lifecycle_frame_serializer.h>
 #include <ace/Singleton.h>
 #include <ace/INET_Addr.h>
+#include <ace/Time_Value.h>
+#include <ACE/High_Res_Timer.h>
 
 #include "roleanalyzer.h"
 #include "roleaverager.h"
@@ -22,9 +24,13 @@ public:
     ACE_INET_Addr& get_remote_addr() { return remote_addr_; }
     const ACE_INET_Addr& get_remote_addr() const { return remote_addr_; }
     void set_remote_addr( const ACE_INET_Addr& addr ) { remote_addr_ = addr; }
+	void update_heartbeat();
+    bool heartbeat_timeout() const;
+	void clear_heartbeat();
 private:
     vector_type devices_;
     ACE_INET_Addr remote_addr_;
+	ACE_Time_Value heartbeat_;
 };
 
 /////////////////////////////////////////////////////////////////
@@ -97,6 +103,9 @@ DeviceFacade::handle_dgram( const LifeCycleFrame& frame, const LifeCycleData& da
 
 	lifeCycle_.dispatch_received_data( data, nextState, replyCmd );
 	if ( lifeCycle_.validate_sequence( data ) ) {
+
+		pImpl_->update_heartbeat();
+        
 		unsigned short remote_sequence = LifeCycleHelper::local_sequence( data );  // flip local number on recived data to remote on mine
 		if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) ) {
 			std::string rmsg = LifeCycleHelper::to_string( replyData );
@@ -142,4 +151,28 @@ DeviceFacadeImpl::detach_device( device_facade_type& t )
         return false;
     devices_.erase( find, devices_.end() );
     return true;
+}
+
+void
+DeviceFacadeImpl::update_heartbeat()
+{
+	heartbeat_ = ACE_High_Res_Timer::gettimeofday_hr();
+}
+
+void
+DeviceFacadeImpl::clear_heartbeat()
+{
+	heartbeat_ = ACE_Time_Value::zero;
+}
+
+bool
+DeviceFacadeImpl::heartbeat_timeout() const
+{
+	if ( heartbeat_ != ACE_Time_Value::zero ) {
+		ACE_Time_Value tv = ACE_High_Res_Timer::gettimeofday_hr();
+		tv -= heartbeat_;
+		if ( tv > ACE_Time_Value( 10 ) )
+			return true;
+	}
+    return false;
 }
