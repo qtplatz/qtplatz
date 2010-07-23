@@ -1,0 +1,252 @@
+
+// build setup
+// $(ACE_ROOT)\bin\tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputPath)
+
+module MassSpectrometer {
+
+  enum eIonSource {
+    eIonSource_Unknown
+    , eIonSource_ESI    // 1
+    , eIonSource_APCI       // 2
+    , eIonSource_DART       // 6
+  };
+  
+  enum ePolarity { ePolarity_Positive, ePolarity_Negative, ePolarity_Current };
+  
+  const unsigned long eError_MCP_NotConditioned = 0x00000001;
+  
+  struct ModelInfo_IonSource {
+    eIonSource ionSourceType_;
+    string modelName_;
+    string serialNumber_;
+    unsigned long uptime_;          // seconds since attached.
+  };
+  
+  struct ModelInfo_Averager {
+    string modelName_;
+    string serialNumber_;
+  };
+  
+  struct ModelInfo_Detector {	// MCP
+    string modelName_;
+    string serialNumber_;
+    long uptime_;	// seconds since attached
+  };
+  
+  struct ModuleInfo {
+    ModelInfo_IonSource ionSource_;
+    ModelInfo_Averager averager_;
+    ModelInfo_Detector detector_;
+  };
+  
+  struct ESIMethod {
+    double needle1_voltage_;
+    double needle2_voltage_;
+    double nebulizing1_flow_;
+    double nebulizing2_flow_;
+  };
+  
+  struct APCIMethod {
+    double needle1_voltage_;
+    double nebulizing1_flow_;
+  };
+  
+  struct DARTMethod {
+    long resv_;
+  };
+  struct NullMethod {
+    long resv_;
+  };
+  
+  union IonSourceMethod switch( eIonSource ) {
+  case eIonSource_ESI:        ESIMethod  esi_;
+  case eIonSource_APCI:       APCIMethod apci_;
+  case eIonSource_DART:       DARTMethod dart_;
+  case eIonSource_Unknown:    NullMethod null_;
+  };
+  
+  struct AnalyzerMethod {
+    boolean orifice1_temp_onoff_;
+    boolean tune_sample_onoff_;  // needle2, neblizer2 on
+    boolean desolv_chamber_temp_onoff_;
+    boolean ion_source_gas_onoff_;
+    boolean drying_gas_onoff_;
+    boolean curtain_gas_onoff_;
+    
+    double desolv_chamber_temp_;
+    double orifice1_temp_;
+    
+    double orifice1_voltage_;
+    double ring_lens_voltage_;
+    double orifice2_voltage_;
+    
+    double ion_guide_hf_voltage_;
+    
+    //--- Tune method ---
+    
+    double ion_guide_bias_voltage_;
+    double orifice4_voltage_;
+    double bias_voltage_;
+    double push_bias_voltage_;
+    double focus_voltage_;
+    double focus_lens_voltage_;
+    double quadropole_lens_voltage_;
+    double left_right_voltage_;
+    double up_down_voltage_;
+    double reflectron_voltage_;
+    double pusher_voltage_;
+    double pulling_voltage_;
+    double supress_voltage_;
+    double flight_tube_voltage_;
+    double detector_voltage_;
+  };
+  
+  struct AcquisitionMethod {
+    unsigned long mass_range_lower_;  // mDa (m/z * 1000)
+    unsigned long mass_range_upper_;  // mDa (m/z * 1000)
+    unsigned long resptime_usec_;     // (us) 1s, 0.5s, 0.2s, 0.1s, 0.04s [0.02s] * 1000000
+    boolean compress_;
+  };
+  
+  struct TraceMethod {
+    unsigned long config_;
+    double mass_;
+    double window_;
+  };
+  
+  // should be same with accutof_dataframe.hh 
+  struct protocol_data {
+    double needle1_;
+    double needle2_;
+    double orifice1abs_;
+    double ringlensabs_;
+    double orifice2abs_;
+    double ionguidebias_;
+    double orifice4_;
+    double deflectorXplus_;
+    double deflectorXmunus_;
+    double deflectorZplus_;
+    double deflectorZminus_;
+    double focus_;
+    double ionguiderf_;
+    double push_;
+    double pull_;
+    double supress_;
+    double pushbias_;
+    double flighttube_;
+    double reflectron_;
+    double mcp_;
+  };
+  
+  // should be same with accutof_dataframe.hh 
+  struct AnalyzerActuals {
+    long chamberTemp;
+    long orifice1Temp;
+    long needle1Voltage;
+    long needle2Voltage;
+    long orifice1CurrentLowGain;
+    long orifice1CurrentHighGain;
+    long orifice1Voltage;
+    long ringLensVoltage;
+    long orifice2Voltage;
+    long ionGuideBiasVoltage;
+    long orifice4Voltage;
+    long focusLensVoltage;
+    long quadLensVoltage;
+    long lrVoltage;
+    long updownVoltage;
+    long focusVoltage;
+    long referenceVoltage;
+    long referenceGround;
+    long reference2Voltage;
+    long reference2Ground;
+    long ionGuideRFVoltage;
+    long ionGuideRFCurrent;
+    long pusherVoltage;
+    long pullingVoltage;
+    long supressVoltage;
+    long pushBiasVoltage;
+    long flightTubeVoltage;
+    long reflectronVoltage;
+    long MCPVoltage;
+    long vacuum1;
+    long vacuum2;
+    double vacuum1Pa;
+    double vacuum2Pa;
+    long gas1Flow;
+    long gas2Flow;
+    unsigned short alarm1;
+    unsigned short alarm2;
+    unsigned short alarmTPC;
+    unsigned short alarmEvacStatus;
+    long IonSource;  // := ESI, 1 := APCI, 2 := Corona ESI
+    unsigned long MCPTimer;
+    boolean nebulizer1;
+    boolean nebulizer2;
+    unsigned short opState;
+    boolean dryingGas;
+    boolean curtainGas;
+    boolean isoValve;
+    boolean isPositive;
+    protocol_data proto[4];
+  };
+  
+  // should be same with accutof_dataframe.hh 
+  struct AnalyzerSetpts {
+    long chamberTemp;
+    long orifice1Temp;
+    long needle1Voltage;
+    long needle2Voltage;
+    long orifice1Voltage;
+    long ringLensVoltage;
+    long orifice2Voltage;
+    long ionGuideBiasVoltage;
+    long orifice4Voltage;
+    long focusLensVoltage;
+    long quadLensVoltage;
+    long lrVoltage;
+    long updownVoltage;
+    long focusVoltage;
+    long ionGuideRFVoltage;
+    long pusherVoltage;
+    long pullingVoltage;
+    long supressVoltage;
+    long pushBiasVoltage;
+    long flightTubeVoltage;
+    long reflectronVoltage;
+    long MCPVoltage;
+    long gas1Flow;
+    long gas2Flow;
+    boolean nebulizer1;
+    boolean nebulizer2;
+    unsigned short opState;
+    boolean dryingGas;
+    boolean curtainGas;
+    boolean isoValve;
+    boolean isPositive;
+  };
+  
+  //------------- Control Method -------------------
+  struct MassSpectrometerMethod {
+    ePolarity polarity_;
+    IonSourceMethod ionSourceMethod_; 
+    AnalyzerMethod analyzerMethod_;
+    AcquisitionMethod acqMethod_;
+    TraceMethod traceMethod_[4];
+  };
+  
+  //------------- Actual Values -------------------
+  struct Actuals {
+    AnalyzerSetpts setpts_;
+    AnalyzerActuals actuals_;
+  };
+  
+  //------------- Signal -------------------
+  struct Signal {
+    unsigned long channel_;
+    unsigned long npos_;
+    sequence<unsigned long> data_;
+  };
+  
+
+};
