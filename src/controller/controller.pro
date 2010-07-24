@@ -35,34 +35,29 @@ HEADERS  += maincontrollerwindow.h \
     treeitem.h \
     deviceproxy.h
 
-#HEADERS += controllerC.h controllerS.h
-#SOURCES += controllerC.cpp controllerS.cpp
-
 IDLFILES += controller.idl
 GENERATED_FILES = controllerC.cpp controllerS.cpp
 
-tao_idl.input = IDLFILES
-tao_idl.output = ${QMAKE_FILE_BASE}C.cpp
-isEmpty(vcproj):tao_idl.variable_out = PRE_TARGETDEPS
-tao_idl.depends = ${QMAKE_FILE_IN}
-tao_idl.commands = tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) ${QMAKE_FILE_IN}
-tao_idl.name = tao_idl ${QMAKE_FILE_IN}
-tao_idl.CONFIG += link
-QMAKE_EXTRA_COMPILERS += tao_idl
+tao_idlC.input = IDLFILES
+tao_idlC.output = ${QMAKE_FILE_BASE}C.h
+tao_idlC.variable_out = GENERATED_FILES
+tao_idlC.depends = ${QMAKE_FILE_IN}
+tao_idlC.commands = tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) ${QMAKE_FILE_IN}
+tao_idlC.name = TAO_IDL_C ${QMAKE_FILE_IN}
+tao_idlC.CONFIG = no_link
+QMAKE_EXTRA_COMPILERS += tao_idlC
 
-tao_idl_s.input = IDLFILES
-tao_idl_s.output = ${QMAKE_FILE_BASE}S.cpp
-isEmpty(vcproj):tao_idl_s.variable_out = PRE_TARGETDEPS
-tao_idl_s.depends = ${QMAKE_FILE_IN}
-tao_idl_s.commands = tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) ${QMAKE_FILE_IN}
-tao_idl_s.name = tao_idl ${QMAKE_FILE_IN}
-tao_idl_s.CONFIG += link
-QMAKE_EXTRA_COMPILERS += tao_idl_s
+tao_idlS.input = IDLFILES
+tao_idlS.output = ${QMAKE_FILE_BASE}S.h
+tao_idlS.variable_out = GENERATED_FILES
+tao_idlS.depends = ${QMAKE_FILE_IN}
+tao_idlS.commands = tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) ${QMAKE_FILE_IN}
+tao_idlS.name = TAO_IDL_S ${QMAKE_FILE_IN}
+tao_idlC.CONFIG = no_link
+QMAKE_EXTRA_COMPILERS += tao_idlS
 
 FORMS    += maincontrollerwindow.ui
 
 RESOURCES += \
     controller.qrc
 
-OTHER_FILES += \
-    controller.idl

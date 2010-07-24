@@ -11,7 +11,7 @@ DEPENDPATH += $$IDE_SOURCE_TREE/src/plugins
 
 # copy the plugin spec
 isEmpty(TARGET) {
-    error("qtPlatzplugin.pri: You must provide a TARGET")
+    error("adiplugin.pri: You must provide a TARGET")
 }
 
 PLUGINSPECS = $${_PRO_FILE_PWD_}/$${TARGET}.pluginspec

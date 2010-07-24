@@ -1,0 +1,677 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="9.00"
+	Name="phony_target2"
+	ProjectGUID="{12E12EAC-1C7E-35E9-BE30-390598242AE9}"
+	Keyword="Qt4VSv1.0"
+	TargetFrameworkVersion="0"
+	>
+	<Platforms>
+		<Platform
+			Name="Win32"
+		/>
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory="."
+			IntermediateDirectory="debug\"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				WarningLevel="0"
+				DefaultCharType="0"
+				EnableErrorChecks="1"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
+				Optimization="4"
+				AdditionalIncludeDirectories="&quot;..\..\..\src\libs&quot;,&quot;c:\Users\thondo\src\qtPlatz\tools&quot;,$(QTDIR)\mkspecs\win32-msvc2008"
+				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII"
+				GeneratePreprocessedFile="0"
+				ExceptionHandling="1"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="false"
+				TreatWChar_tAsBuiltInType="true"
+				RuntimeTypeInfo="true"
+				AssemblerListingLocation="debug\"
+				ObjectFile="debug\"
+				ProgramDataBaseFileName=".\"
+				WarningLevel="3"
+				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,_DEBUG"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				IgnoreImportLibrary="true"
+				OutputFile="debug\phony_target2.exe"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="$(QTDIR)\lib"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile=""
+				SubSystem="1"
+				LinkTimeCodeGeneration="0"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="."
+			IntermediateDirectory="release\"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				WarningLevel="0"
+				DefaultCharType="0"
+				EnableErrorChecks="1"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
+				Optimization="2"
+				AdditionalIncludeDirectories="&quot;..\..\..\src\libs&quot;,&quot;c:\Users\thondo\src\qtPlatz\tools&quot;,$(QTDIR)\mkspecs\win32-msvc2008"
+				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,NDEBUG"
+				GeneratePreprocessedFile="0"
+				ExceptionHandling="1"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
+				TreatWChar_tAsBuiltInType="true"
+				RuntimeTypeInfo="true"
+				AssemblerListingLocation="release\"
+				ObjectFile="release\"
+				ProgramDataBaseFileName=".\"
+				WarningLevel="3"
+				SuppressStartupBanner="true"
+				DebugInformationFormat="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				IgnoreImportLibrary="true"
+				OutputFile="release\phony_target2.exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="$(QTDIR)\lib"
+				GenerateDebugInformation="false"
+				ProgramDatabaseFile=""
+				SubSystem="1"
+				LinkTimeCodeGeneration="0"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Generated Files"
+			Filter="cpp;c;cxx;moc;h;def;odl;idl;res;"
+			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
+			>
+			<File
+				RelativePath="phony.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Translation Files"
+			Filter="ts;xlf"
+			UniqueIdentifier="{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}"
+			ParseFiles="false"
+			>
+			<File
+				RelativePath="qtPlatz_de.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_de.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_de.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_de.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_de.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_de.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_de.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_de.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_de.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_de.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_de.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_es.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_es.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_es.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_es.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_es.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_es.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_es.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_es.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_es.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_es.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_es.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_fr.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_fr.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_fr.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_fr.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_fr.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_fr.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_fr.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_fr.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_fr.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_fr.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_fr.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_it.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_it.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_it.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_it.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_it.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_it.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_it.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_it.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_it.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_it.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_it.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_ja.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_ja.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_ja.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ja.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_ja.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ja.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_ja.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_ja.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ja.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_ja.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ja.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_pl.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_pl.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_pl.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_pl.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_pl.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_pl.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_pl.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_pl.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_pl.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_pl.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_pl.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_ru.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_ru.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_ru.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ru.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_ru.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ru.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_ru.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_ru.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ru.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_ru.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ru.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_sl.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_sl.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_sl.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_sl.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_sl.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_sl.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_sl.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_sl.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_sl.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_sl.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_sl.qm"
+					/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+		<Filter
+			Name="LRELEASE"
+			UniqueIdentifier="{E0D8C965-CC5F-43d7-AD63-FAEF0BBC0F85}-updateqm"
+			ParseFiles="false"
+			>
+			<File
+				RelativePath="qtPlatz_de.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_de.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_de.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_de.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_de.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_de.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_de.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_de.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_de.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_de.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_de.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_es.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_es.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_es.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_es.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_es.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_es.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_es.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_es.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_es.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_es.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_es.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_fr.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_fr.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_fr.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_fr.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_fr.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_fr.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_fr.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_fr.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_fr.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_fr.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_fr.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_it.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_it.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_it.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_it.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_it.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_it.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_it.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_it.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_it.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_it.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_it.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_ja.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_ja.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_ja.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ja.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_ja.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ja.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_ja.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_ja.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ja.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_ja.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ja.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_pl.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_pl.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_pl.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_pl.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_pl.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_pl.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_pl.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_pl.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_pl.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_pl.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_pl.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_ru.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_ru.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_ru.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ru.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_ru.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ru.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_ru.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_ru.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ru.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_ru.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_ru.qm"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="qtPlatz_sl.ts"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_sl.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_sl.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_sl.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_sl.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_sl.qm"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="LRELEASE qtPlatz_sl.ts"
+						CommandLine="C:\Qt\4.6.3\bin\lrelease qtPlatz_sl.ts -qm c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_sl.qm&#x0D;&#x0A;"
+						AdditionalDependencies="C:\Qt\4.6.3\bin\lrelease;qtPlatz_sl.ts"
+						Outputs="c:\Users\thondo\src\qtPlatz\share\qtPlatz\translations\qtPlatz_sl.qm"
+					/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+		<Filter
+			Name="CREATE"
+			UniqueIdentifier="{E0D8C965-CC5F-43d7-AD63-FAEF0BBC0F85}-phony_src"
+			ParseFiles="false"
+			>
+			<File
+				RelativePath="."
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="CREATE phony.c"
+						CommandLine="echo int main() { return 0; } &gt; phony.c&#x0D;&#x0A;"
+						AdditionalDependencies=".;echo"
+						Outputs="phony.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="CREATE phony.c"
+						CommandLine="echo int main() { return 0; } &gt; phony.c&#x0D;&#x0A;"
+						AdditionalDependencies=".;echo"
+						Outputs="phony.c"
+					/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+	</Files>
+	<Globals>
+		<Global
+			Name="QtVersion Win32"
+			Value="4.6.3"
+		/>
+	</Globals>
+</VisualStudioProject>

@@ -428,9 +428,33 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
+					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="controllerC.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="controller.idl"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="tao_idl controller.idl"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controller.idl&#x0D;&#x0A;"
+						AdditionalDependencies="controller.idl;tao_idl"
+						Outputs="controllerC.cpp"
 					/>
 				</FileConfiguration>
 			</File>
@@ -464,6 +488,14 @@
 			<File
 				RelativePath=".\controllerS.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AdditionalIncludeDirectories="controller.idl"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\controllerS.inl"
@@ -493,6 +525,18 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="release\qrc_controller.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\debug\qrc_controller.cpp"
 				>
 				<FileConfiguration
@@ -509,18 +553,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="release\qrc_controller.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
 			</File>
@@ -737,7 +769,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Performing Custom Build Step"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO $(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies=""
 						Outputs="$(InputName)C.cpp;$(InputName)C.h;$(InputName)S.cpp;$(InputName)S.h"
 					/>

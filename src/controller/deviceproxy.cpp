@@ -144,11 +144,17 @@ DeviceProxy::notify_timeout( const ACE_Time_Value& tv )
             OutputCDR cdr( static_cast<ACE_OutputCDR&>(tao_cdr) );
             lifecycle_frame_serializer::pack( cdr, reqData );
         } while(0);
-        
+
+        static int count = 1;        
+
         MassSpectrometer::ESIMethod m;
+        m.nebulizing1_flow_ = count++;
+        m.nebulizing2_flow_ = 2.0;
+        m.needle1_voltage_ = 1000.0;
+        m.needle2_voltage_ = 2000.0;
 
         tao_cdr << m;
-		
+
 		dgramHandler_->send( tao_cdr.begin()->rd_ptr(), tao_cdr.length(), remote_addr_ );
 	}
 }

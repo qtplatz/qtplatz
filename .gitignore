@@ -40,9 +40,7 @@ qrc_*.cpp
 *.idb
 *.ilk
 *.pdb
-*.sln
 *.suo
-*.vcproj
 *vcproj.*.*.user
 *.ncb
 
