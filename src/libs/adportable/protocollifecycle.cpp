@@ -125,24 +125,25 @@ namespace adportable {
 
 		struct lifecycle_local_sequence_visitor : public boost::static_visitor<unsigned short> {
 			template<typename T> unsigned short operator()( const T& t ) const { 
-				typedef sequence_accessor< boost::is_same<T, LifeCycle_Hello>::value > impl;
-				return impl::sequence( t );
+                typedef sequence_accessor< boost::is_same<T, LifeCycle_Hello>::value > impl;
+                return impl::sequence( t );
 			}
 		};
 
 		struct lifecycle_remote_sequence_visitor : public boost::static_visitor<unsigned short> {
 			template<typename T> unsigned short operator()( const T& t ) const { 
-				typedef sequence_accessor< boost::is_same<T, LifeCycle_Hello>::value > impl;
+                typedef sequence_accessor< boost::is_same<T, LifeCycle_Hello>::value > impl;
 				return impl::remote_sequence( t );
 			}
+            template<> unsigned short operator()( const LifeCycle_Data& ) const { return 0; }
 		};
 
 		struct lifecycle_local_sequence_writer : public boost::static_visitor<void> {
 			unsigned short number_;
 			lifecycle_local_sequence_writer( unsigned short number ) : number_(number) {}
 			template<typename T> void operator()( T& t ) const { 
-				typedef sequence_accessor< boost::is_same<T, LifeCycle_Hello>::value > impl;
-				impl::sequence( t, number_ );
+                typedef sequence_accessor< boost::is_same<T, LifeCycle_Hello>::value > impl;
+                impl::sequence( t, number_ );
 			}
 		};
 
@@ -150,9 +151,10 @@ namespace adportable {
 			unsigned short number_;
 			lifecycle_remote_sequence_writer( unsigned short number ) : number_(number) {}
 			template<typename T> void operator()( T& t ) const { 
-				typedef sequence_accessor< boost::is_same<T, LifeCycle_Hello>::value > impl;
+                typedef sequence_accessor< boost::is_same<T, LifeCycle_Hello>::value > impl;
 				impl::remote_sequence( t, number_ );
 			}
+            template<> void operator()( LifeCycle_Data& ) const { return; }
 		};
 
 		/////////////////////////////////////////////////////////////
@@ -236,14 +238,14 @@ LifeCycleImpl::dispatch_received_data( const LifeCycleData& data, LifeCycleState
 			remote_sequence( boost::apply_visitor( lifecycle_local_sequence_visitor(), data ) );
 			local_sequence( remote_sequence() + 0x100 );
 			break;
+		case CONN_SYN_ACK:
+            result = boost::apply_visitor( lifecycle_recv_visitor<command_syn_ack>(next, replyCmd), cycle_ );
+			break;
         case DATA:
 			result = boost::apply_visitor( lifecycle_recv_visitor<command_data>(next, replyCmd), cycle_ );
 			break;
         case DATA_ACK:
 			result = boost::apply_visitor( lifecycle_recv_visitor<command_data_ack>(next, replyCmd), cycle_ );
-			break;
-		case CONN_SYN_ACK:
-			result = boost::apply_visitor( lifecycle_recv_visitor<command_syn_ack>(next, replyCmd), cycle_ );
 			break;
 		case CLOSE:
 			result = boost::apply_visitor( lifecycle_recv_visitor<command_close>(next, replyCmd), cycle_ );
@@ -282,7 +284,7 @@ template<> bool LifeCycle_Listen::send<command_syn>( LifeCycleType& cycle )
 
 template<> bool LifeCycle_Listen::recv<command_syn>( LifeCycleType& cycle, LifeCycleCommand& cmd )
 {
-	cycle = LifeCycle_SYN_Received();  // SYN <seq#>  reply SYN_ACK <seq#>,<device seq#>
+    cycle = LifeCycle_SYN_Received();  // SYN <seq#>  reply SYN_ACK <seq#>,<device seq#>
 	cmd = CONN_SYN_ACK;
 	return true;
 }
@@ -296,6 +298,12 @@ template<> bool LifeCycle_SYN_Sent::recv<command_syn_ack>( LifeCycleType& cycle,
 }
 
 /////////////////// SYN Received state ////////////////
+template<> bool LifeCycle_SYN_Received::send<command_syn_ack>( LifeCycleType& cycle )
+{
+	cycle = LifeCycle_Established();
+	return true;
+}
+
 template<> bool LifeCycle_SYN_Received::recv<command_syn_ack>( LifeCycleType& cycle, LifeCycleCommand& )
 {
 	// device receive SYN|ACK from controller
@@ -360,6 +368,11 @@ namespace adportable {
                 std::ostringstream o;
 				o << "<" << T::command_name() << "> remote# " << t.remote_sequence_ << " local# " << t.sequence_;
 				return o.str().c_str();
+            }
+            template<> std::string operator()( const LifeCycle_Data& data ) const {
+                std::ostringstream o;
+                o << "<DATA seq# " << data.sequence_ << "> flags:" << data.flags_ << " offset: " << data.offset_;
+                return o.str().c_str();
             }
 
 			template<> std::string operator()( const LifeCycle_Hello& data ) const {
@@ -493,6 +506,19 @@ LifeCycle::validate_sequence( const LifeCycleData& data )
 		return true;
 	}
 	return true; // todo
+}
+
+bool
+LifeCycle::prepare_data( LifeCycleData& data, unsigned short flags, unsigned long offset )
+{
+    data = LifeCycle_Data();
+    if ( prepare_reply_data( DATA, data, 0 ) ) {
+        LifeCycle_Data& t = boost::get<LifeCycle_Data&>(data);
+        t.flags_ = flags;
+        t.offset_ = offset;
+        return true;
+    }
+    return false;
 }
 
 bool

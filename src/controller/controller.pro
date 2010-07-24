@@ -27,16 +27,19 @@ SOURCES += main.cpp\
     eventreceiver.cpp \
     treemodel.cpp \
     treeitem.cpp \
-    deviceproxy.cpp
+    deviceproxy.cpp \
+    devicetext.cpp
 
 HEADERS  += maincontrollerwindow.h \
     eventreceiver.h \
     treemodel.h \
     treeitem.h \
-    deviceproxy.h
+    deviceproxy.h \
+    devicetext.h
 
 IDLFILES += controller.idl
-GENERATED_FILES = controllerC.cpp controllerS.cpp
+#GENERATED_FILES = controllerC.cpp controllerS.cpp
+SOURCES += controllerC.cpp controllerS.cpp
 
 tao_idlC.input = IDLFILES
 tao_idlC.output = ${QMAKE_FILE_BASE}C.h
@@ -60,4 +63,3 @@ FORMS    += maincontrollerwindow.ui
 
 RESOURCES += \
     controller.qrc
-

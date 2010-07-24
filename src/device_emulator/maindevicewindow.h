@@ -65,6 +65,7 @@ private:
     adportable::protocol::LifeCycle_Hello lifeCycleData_hello_;
 
 private slots:
+    void on_pushDisconnect_clicked();
     void on_checkBoxAnalyzer_stateChanged(int );
     void on_checkBoxIonSource_stateChanged(int );
     void on_checkBoxAverager_stateChanged(int );

@@ -25,9 +25,12 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushHello">
+       <widget class="QPushButton" name="pushDisconnect">
         <property name="text">
-         <string>hello</string>
+         <string>disconnect</string>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
         </property>
        </widget>
       </item>

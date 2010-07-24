@@ -6,6 +6,7 @@
 
 #include "deviceproxy.h"
 #include "eventreceiver.h"
+#include <sstream>
 #include <acewrapper/eventhandler.h>
 #include <acewrapper/dgramhandler.h>
 #include <acewrapper/reactorthread.h>
@@ -16,6 +17,7 @@
 
 #include <boost/smart_ptr.hpp>
 #include <acewrapper/messageblock.h>
+#include <acewrapper/inputcdr.h>
 #include <ace/Singleton.h>
 #include <ace/Reactor.h>
 
@@ -43,7 +45,7 @@ DeviceProxy::mcast_update_device( const LifeCycleFrame& frame, const LifeCycleDa
     LifeCycleCommand replyCmd;
     LifeCycleState newState;
 
-	if ( lifeCycle_.current_state() == LCS_CLOSED || lifeCycle_.current_state() == LCS_LISTEN ) {
+	if ( lifeCycle_.machine_state() == LCS_CLOSED || lifeCycle_.machine_state() == LCS_LISTEN ) {
 
 		// lifeCycle_.valid_heartbeat( ACE_High_Res_Timer::gettimeofday_hr() );
 
@@ -106,26 +108,40 @@ DeviceProxy::on_notify_dgram( ACE_Message_Block * mb )
 
     LifeCycleData data;
     LifeCycleFrame frame;
-	if ( lifecycle_frame_serializer::unpack( mb, frame, data ) ) {
+
+    TAO_InputCDR tao_input( mb );
+    InputCDR input( tao_input );
+	if ( lifecycle_frame_serializer::unpack( input, frame, data ) ) {
 
 		std::string o = LifeCycleHelper::to_string( data );
 		emit signal_dgram_to_device( remote_addr_string_, QString(local_addr_string_.c_str()), o.c_str() );
 
 		LifeCycleCommand replyCmd;
         LifeCycleState newState;
-		if ( lifeCycle_.dispatch_received_data( data, newState, replyCmd ) )
+		if ( lifeCycle_.dispatch_received_data( data, newState, replyCmd ) ) // state may change
 			lifeCycle_.current_state( newState );
 
 		if ( replyCmd != NOTHING ) {
 			LifeCycleData reqData;
-			lifeCycle_.prepare_reply_data( replyCmd, reqData, 0 );
+            if ( lifeCycle_.prepare_reply_data( replyCmd, reqData, 0 ) ) {
+                lifeCycle_.apply_command( replyCmd, newState ); // state may change
 
-			boost::intrusive_ptr<ACE_Message_Block> mb( lifecycle_frame_serializer::pack( reqData ) );
-			dgramHandler_->send( mb->rd_ptr(), mb->length(), remote_addr_ );
+                boost::intrusive_ptr<ACE_Message_Block> mb( lifecycle_frame_serializer::pack( reqData ) );
+                dgramHandler_->send( mb->rd_ptr(), mb->length(), remote_addr_ );
+            }
 		}
 
 		if ( LifeCycleHelper::command( data ) == DATA ) {
-			// dispatch data, to be added
+            unsigned long clsid;
+            input >> clsid;
+            if ( clsid == GlobalConstants::ClassID_InstEvent ) {
+                A_Dummy_MSMethod::InstEvent e;
+                tao_input >> e;
+
+                std::ostringstream o;
+                o << "event#" << e.eventId_ << ", value=" << e.eventValue_ << std::endl;
+                emit signal_debug( remote_addr_string_, QString( o.str().c_str() ) );
+             }
 		}
 
 	}
@@ -137,24 +153,28 @@ DeviceProxy::notify_timeout( const ACE_Time_Value& tv )
 	if ( lifeCycle_.machine_state() == LCS_ESTABLISHED ) {
 
 		LifeCycleData reqData;
-		lifeCycle_.prepare_reply_data( DATA, reqData, 0 );
+        if ( lifeCycle_.prepare_data( reqData ) ) {
 
-        TAO_OutputCDR tao_cdr;
-        do {
-            OutputCDR cdr( static_cast<ACE_OutputCDR&>(tao_cdr) );
-            lifecycle_frame_serializer::pack( cdr, reqData );
-        } while(0);
+            TAO_OutputCDR tao_cdr;
+            do {
+                OutputCDR cdr( static_cast<ACE_OutputCDR&>(tao_cdr) );
+                lifecycle_frame_serializer::pack( cdr, reqData );
+            } while(0);
 
-        static int count = 1;        
+            static int count = 1;        
 
-        MassSpectrometer::ESIMethod m;
-        m.nebulizing1_flow_ = count++;
-        m.nebulizing2_flow_ = 2.0;
-        m.needle1_voltage_ = 1000.0;
-        m.needle2_voltage_ = 2000.0;
+            A_Dummy_MSMethod::IonSourceMethod m;
+            A_Dummy_MSMethod::ESIMethod esi;
 
-        tao_cdr << m;
+            esi.nebulizing1_flow_ = 1.0 + double(count++) / 100;
+            esi.nebulizing2_flow_ = 2.0;
+            esi.needle1_voltage_ = 1000.0 + double(count) / 10;
+            esi.needle2_voltage_ = 2000.0;
+            m.esi_( esi );
+            tao_cdr << GlobalConstants::ClassID_IonSourceMethod;
+            tao_cdr << m;
 
-		dgramHandler_->send( tao_cdr.begin()->rd_ptr(), tao_cdr.length(), remote_addr_ );
-	}
+            dgramHandler_->send( tao_cdr.begin()->rd_ptr(), tao_cdr.length(), remote_addr_ );
+        }
+    }
 }

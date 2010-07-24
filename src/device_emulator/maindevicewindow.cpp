@@ -33,6 +33,7 @@
 #include "roleanalyzer.h"
 #include "roleaverager.h"
 #include "roleesi.h"
+#include "../controller/controllerC.h"
 
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
@@ -143,8 +144,11 @@ MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
 
     LifeCycleData data;
     LifeCycleFrame frame;
-    if ( lifecycle_frame_serializer::unpack( mb, frame, data ) ) {
-        if ( LifeCycleHelper::command( data ) == CONN_SYN ) {
+    ACE_InputCDR ace_cdr( mb );
+    InputCDR cdr( ace_cdr );
+    if ( lifecycle_frame_serializer::unpack( cdr, frame, data ) ) {
+        const LifeCycleCommand gotCmd = LifeCycleHelper::command( data );
+        if ( gotCmd == CONN_SYN ) {
             ACE_Message_Block * mbfrom = mb->cont();
             if ( mbfrom ) {
                 ACE_INET_Addr * remote_addr = reinterpret_cast<ACE_INET_Addr *>( mbfrom->rd_ptr() );
@@ -153,19 +157,42 @@ MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
         }
 
         LifeCycleData replyData;
-        if ( device_facade::instance()->handle_dgram( frame, data, replyData ) ) {
-#if defined _DEBUG
-            std::string debug_recv = LifeCycleHelper::to_string( data );
-            std::string debug_send = LifeCycleHelper::to_string( replyData );
-#endif
+        if ( device_facade::instance()->handle_dgram( frame, data, replyData ) )
             handle_send_dgram( acewrapper::lifecycle_frame_serializer::pack( replyData ) );
+
+        if ( gotCmd == DATA ) {
+            unsigned long classid;
+            cdr >> classid;
+            std::ostringstream o;
+            o << "class id: " << std::hex << classid;
+
+            if ( classid == GlobalConstants::ClassID_IonSourceMethod ) {
+                // for firmware debug purpose, here we do not want to use TAO IIOP serializer
+                // so just read data from stream.
+                unsigned long ionSource;
+                cdr >> ionSource;
+                o << " type: " << ionSource;
+                if ( ionSource == A_Dummy_MSMethod::eIonSource_ESI ) {
+                    A_Dummy_MSMethod::ESIMethod m;
+                    cdr >> m.needle1_voltage_;
+                    cdr >> m.needle2_voltage_;
+                    cdr >> m.nebulizing1_flow_;
+                    cdr >> m.nebulizing2_flow_;
+                    o << " needle " << m.needle1_voltage_ << ", " << m.needle2_voltage_;
+                    o << " nebulizer " << m.nebulizing1_flow_ << ", " << m.nebulizing2_flow_;
+                } else if ( ionSource == A_Dummy_MSMethod::eIonSource_APCI ) {
+                    A_Dummy_MSMethod::APCIMethod m;
+                    cdr >> m.needle1_voltage_;
+                    cdr >> m.nebulizing1_flow_;
+                    o << " nebulizer " << m.nebulizing1_flow_ << " flow " << m.nebulizing1_flow_;
+                } else if ( ionSource == A_Dummy_MSMethod::eIonSource_DART ) {
+                    A_Dummy_MSMethod::DARTMethod m;
+                    cdr >> m.nothing_;
+                    o << " dart: nothing " << m.nothing_;
+                }
+            }
+            ui->plainTextEdit->appendPlainText( o.str().c_str() );
         }
-        // debug
-        std::ostringstream o; 
-        o << "dgram: " << LifeCycleHelper::to_string( data );
-        std::cout << o.str().c_str();
-        ui->plainTextEdit->appendPlainText( o.str().c_str() );
-        // <===
     }
 }
 
@@ -179,16 +206,23 @@ MainDeviceWindow::on_notify_timeout( unsigned long sec, long usec )
     const LifeCycle& lifeCycle = device_facade::instance()->lifeCycle();
     if ( mcastHandler_ ) {
 
-        if ( lifeCycle.current_state() == LCS_CLOSED )
+        if ( lifeCycle.machine_state() == LCS_CLOSED )
             device_facade::instance()->lifeCycleUpdate( HELO );
 
-        if ( lifeCycle.current_state() == LCS_LISTEN ) {
+        if ( lifeCycle.machine_state() == LCS_LISTEN ) {
             // send 'hello' message
             ACE_Message_Block * mb = acewrapper::lifecycle_frame_serializer::pack( LifeCycleData(lifeCycleData_hello_) );
             mcastHandler_->send( mb->rd_ptr(), mb->length() );
             ACE_Message_Block::release( mb );
-
         }
+      
+        if ( lifeCycle.machine_state() == LCS_ESTABLISHED ) {
+            static size_t n;
+            ACE_Message_Block * mb = device_facade::instance()->eventToController( InstrumentStateMachine::event_HeartBeat, n++ );
+            dgramHandler_->send( mb->rd_ptr(), mb->length(), device_facade::instance()->get_remote_addr() );
+            ACE_Message_Block::release( mb );
+        }
+
     }
 }
 
@@ -308,4 +342,12 @@ void
 MainDeviceWindow::handle_debug( QString msg )
 {
     ui->plainTextEdit->appendPlainText( msg );
+}
+
+void MainDeviceWindow::on_pushDisconnect_clicked()
+{
+    using namespace adportable::protocol;
+
+    LifeCycleState state;
+    device_facade::instance()->lifeCycle().apply_command( CLOSE, state );
 }

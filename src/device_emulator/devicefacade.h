@@ -14,6 +14,7 @@ template<class T, class X> class ACE_Singleton;
 class ACE_Recursive_Thread_Mutex;
 class ACE_Message_Block;
 class ACE_INET_Addr;
+class ACE_OutputCDR;
 class DeviceFacadeImpl;
 class RoleAverager;
 class RoleAnalyzer;
@@ -38,8 +39,10 @@ public:
 
     bool handle_dgram( const LifeCycleFrame&, const LifeCycleData&, LifeCycleData& );
     bool lifeCycleUpdate( adportable::protocol::LifeCycleCommand );
+    ACE_Message_Block * eventToController( unsigned long id, unsigned long value );
 
     const adportable::protocol::LifeCycle& lifeCycle() const { return lifeCycle_; }
+    adportable::protocol::LifeCycle& lifeCycle() { return lifeCycle_; }
     const ACE_INET_Addr& get_remote_addr() const;
     void set_remote_addr( const ACE_INET_Addr& );
 

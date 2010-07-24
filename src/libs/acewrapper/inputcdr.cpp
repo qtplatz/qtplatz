@@ -7,7 +7,8 @@
 
 using namespace acewrapper;
 
-InputCDR::InputCDR( ACE_Message_Block * mp ) : impl_( mp->rd_ptr(), mp->length() )
+//InputCDR::InputCDR( ACE_Message_Block * mb ) : impl_( mb )
+InputCDR::InputCDR( ACE_InputCDR& cdr ) : impl_(cdr)
 {
 }
 

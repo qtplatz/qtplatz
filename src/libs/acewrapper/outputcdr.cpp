@@ -12,17 +12,9 @@ OutputCDR::~OutputCDR()
     delete pImpl_;
 }
 
-OutputCDR::OutputCDR() : pImpl_(new ACE_OutputCDR()), impl_(*pImpl_)
-{
-}
-
 OutputCDR::OutputCDR( ACE_OutputCDR& cdr ) : pImpl_(0), impl_(cdr)
 {
 }
-
-//OutputCDR::OutputCDR( ACE_Message_Block * mp ) : pImpl_impl_(mp)
-//{
-//}
 
 OutputCDR& OutputCDR::operator << ( char t )
 {

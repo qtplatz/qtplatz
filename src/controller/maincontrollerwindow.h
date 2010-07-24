@@ -81,6 +81,7 @@ private slots:
     void on_notify_timeout( unsigned long, long );
 
     void handle_dgram_to_device( std::string remote_addr, QString local_address, QString description );
+    void handle_debug( std::string remote_addr, QString description );
 };
 
 #endif // MAINCONTROLLERWINDOW_H

@@ -4,7 +4,6 @@
 	Version="9.00"
 	Name="controller"
 	ProjectGUID="{817821F6-4347-3AB2-AB58-1A4BF1D4CF6E}"
-	RootNamespace="controller"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -46,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;C:\Qt\4.6.3\include\QtCore&quot;,&quot;C:\Qt\4.6.3\include\QtGui&quot;,&quot;C:\Qt\4.6.3\include\QtXml&quot;,&quot;C:\Qt\4.6.3\include\QtTest&quot;,&quot;C:\Qt\4.6.3\include&quot;,&quot;c:\Boost\include\boost-1_43&quot;,&quot;..\libs&quot;,&quot;c:\Users\thondo\src\qtPlatz\tools&quot;,&quot;c:\ACE_wrappers&quot;,&quot;c:\ACE_wrappers\TAO&quot;,&quot;..\libs&quot;,&quot;C:\Qt\4.6.3\include\ActiveQt&quot;,&quot;debug&quot;,&quot;.&quot;,C:\Qt\4.6.3\mkspecs\win32-msvc2008"
+				AdditionalIncludeDirectories="$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtXml;$(QTDIR)\include\QtTest;$(QTDIR)\include;c:\Boost\include\boost-1_43;.\..\libs;c:\Users\thondo\src\qtPlatz\tools;c:\ACE_wrappers;c:\ACE_wrappers\TAO;$(QTDIR)\include\ActiveQt;.\debug;.;$(QTDIR)\mkspecs\win32-msvc2008;$(ConfigurationName)"
 				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,QT_DLL,QT_TESTLIB_LIB,QT_XML_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -74,10 +73,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="C:/Users/thondo/src/qtPlatz/lib/qtPlatz\adportabled.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz\acewrapperd.lib C:\ACE_wrappers/lib\ACEd.lib C:\Qt\4.6.3\lib\QtTestd4.lib C:\Qt\4.6.3\lib\QtXmld4.lib C:\Qt\4.6.3\lib\QtGuid4.lib C:\Qt\4.6.3\lib\QtCored4.lib"
+				AdditionalDependencies="C:/Users/thondo/src/qtPlatz/lib/qtPlatz\adportabled.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz\acewrapperd.lib C:\ACE_wrappers/lib\ACEd.lib QtTestd4.lib QtXmld4.lib QtGuid4.lib QtCored4.lib"
 				OutputFile="..\..\lib\qtPlatz\controller.exe"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\Qt\4.6.3\lib,C:\Boost/lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:\ACE_wrappers/lib"
+				AdditionalLibraryDirectories="$(QTDIR)\lib,C:\Boost/lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:\ACE_wrappers/lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="1"
@@ -135,7 +134,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;C:\Qt\4.6.3\include\QtCore&quot;,&quot;C:\Qt\4.6.3\include\QtGui&quot;,&quot;C:\Qt\4.6.3\include\QtXml&quot;,&quot;C:\Qt\4.6.3\include&quot;,&quot;c:\Boost\include\boost-1_43&quot;,&quot;..\libs&quot;,&quot;c:\Users\thondo\src\qtPlatz\tools&quot;,&quot;c:\ACE_wrappers&quot;,&quot;c:\ACE_wrappers\TAO&quot;,&quot;..\libs&quot;,&quot;C:\Qt\4.6.3\include\ActiveQt&quot;,&quot;release&quot;,&quot;.&quot;,C:\Qt\4.6.3\mkspecs\win32-msvc2008"
+				AdditionalIncludeDirectories="$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtXml;$(QTDIR)\include;c:\Boost\include\boost-1_43;.\..\libs;c:\Users\thondo\src\qtPlatz\tools;c:\ACE_wrappers;c:\ACE_wrappers\TAO;$(QTDIR)\include\ActiveQt;.\release;.;$(QTDIR)\mkspecs\win32-msvc2008;$(ConfigurationName)"
 				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,QT_DLL,QT_NO_DEBUG,QT_XML_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -164,11 +163,11 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot; &quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
-				AdditionalDependencies="C:\Qt\4.6.3\lib\qtmain.lib adportable.lib acewrapper.lib C:\ACE_wrappers/lib\ACE.lib C:\Qt\4.6.3\lib\QtXml4.lib C:\Qt\4.6.3\lib\QtGui4.lib C:\Qt\4.6.3\lib\QtCore4.lib"
+				AdditionalDependencies="qtmain.lib adportable.lib acewrapper.lib C:\ACE_wrappers/lib\ACE.lib QtXml4.lib QtGui4.lib QtCore4.lib"
 				OutputFile="..\..\lib\qtPlatz\controller.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\Qt\4.6.3\lib,C:\Boost/lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:\ACE_wrappers/lib"
+				AdditionalLibraryDirectories="$(QTDIR)\lib,C:\Boost/lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:\ACE_wrappers/lib"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="2"
@@ -206,7 +205,19 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="controllerC.cpp"
+				>
+			</File>
+			<File
+				RelativePath="controllerS.cpp"
+				>
+			</File>
+			<File
 				RelativePath="deviceproxy.cpp"
+				>
+			</File>
+			<File
+				RelativePath="devicetext.cpp"
 				>
 			</File>
 			<File
@@ -236,58 +247,6 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="controllerC.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="controllerS.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="deviceproxy.h"
 				>
 				<FileConfiguration
@@ -296,8 +255,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_deviceproxy.cpp&#x0D;&#x0A;&quot;C:\Qt\4.6.3\bin\moc.exe&quot;   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_TESTLIB_LIB -DQT_XML_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT  -I&quot;C:\Qt\4.6.3\include\QtCore&quot; -I&quot;C:\Qt\4.6.3\include\QtGui&quot; -I&quot;C:\Qt\4.6.3\include\QtXml&quot; -I&quot;C:\Qt\4.6.3\include\QtTest&quot; -I&quot;C:\Qt\4.6.3\include&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;.\..\libs&quot; -I&quot;C:\Qt\4.6.3\include\ActiveQt&quot; -I&quot;.\debug&quot; -I&quot;.&quot; -I&quot;C:\Qt\4.6.3\mkspecs\win32-msvc2008&quot; &quot;deviceproxy.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="&quot;C:\Qt\4.6.3\bin\moc.exe&quot;;$(InputPath)"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_deviceproxy.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DQT_XML_LIB -DUNICODE -DWIN32 -DWITH_TESTS -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include\QtXml&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
@@ -307,8 +266,34 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_deviceproxy.cpp&#x0D;&#x0A;&quot;C:\Qt\4.6.3\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_XML_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT  -I&quot;C:\Qt\4.6.3\include\QtCore&quot; -I&quot;C:\Qt\4.6.3\include\QtGui&quot; -I&quot;C:\Qt\4.6.3\include\QtXml&quot; -I&quot;C:\Qt\4.6.3\include&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;.\..\libs&quot; -I&quot;C:\Qt\4.6.3\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;C:\Qt\4.6.3\mkspecs\win32-msvc2008&quot; &quot;deviceproxy.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="&quot;C:\Qt\4.6.3\bin\moc.exe&quot;;$(InputPath)"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_deviceproxy.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDOWS -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DQT_XML_LIB -DUNICODE -DWIN32 -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtXml&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\libs&quot; -I&quot;.\release&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="devicetext.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputFileName)..."
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_devicetext.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DQT_XML_LIB -DUNICODE -DWIN32 -DWITH_TESTS -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include\QtXml&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputFileName)..."
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_devicetext.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDOWS -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DQT_XML_LIB -DUNICODE -DWIN32 -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtXml&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\libs&quot; -I&quot;.\release&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
@@ -322,8 +307,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_eventreceiver.cpp&#x0D;&#x0A;&quot;C:\Qt\4.6.3\bin\moc.exe&quot;   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_TESTLIB_LIB -DQT_XML_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT  -I&quot;C:\Qt\4.6.3\include\QtCore&quot; -I&quot;C:\Qt\4.6.3\include\QtGui&quot; -I&quot;C:\Qt\4.6.3\include\QtXml&quot; -I&quot;C:\Qt\4.6.3\include\QtTest&quot; -I&quot;C:\Qt\4.6.3\include&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;.\..\libs&quot; -I&quot;C:\Qt\4.6.3\include\ActiveQt&quot; -I&quot;.\debug&quot; -I&quot;.&quot; -I&quot;C:\Qt\4.6.3\mkspecs\win32-msvc2008&quot; &quot;eventreceiver.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="&quot;C:\Qt\4.6.3\bin\moc.exe&quot;;$(InputPath)"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_eventreceiver.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DQT_XML_LIB -DUNICODE -DWIN32 -DWITH_TESTS -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include\QtXml&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
@@ -333,8 +318,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_eventreceiver.cpp&#x0D;&#x0A;&quot;C:\Qt\4.6.3\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_XML_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT  -I&quot;C:\Qt\4.6.3\include\QtCore&quot; -I&quot;C:\Qt\4.6.3\include\QtGui&quot; -I&quot;C:\Qt\4.6.3\include\QtXml&quot; -I&quot;C:\Qt\4.6.3\include&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;.\..\libs&quot; -I&quot;C:\Qt\4.6.3\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;C:\Qt\4.6.3\mkspecs\win32-msvc2008&quot; &quot;eventreceiver.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="&quot;C:\Qt\4.6.3\bin\moc.exe&quot;;$(InputPath)"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_eventreceiver.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDOWS -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DQT_XML_LIB -DUNICODE -DWIN32 -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtXml&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\libs&quot; -I&quot;.\release&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
@@ -348,8 +333,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_maincontrollerwindow.cpp&#x0D;&#x0A;&quot;C:\Qt\4.6.3\bin\moc.exe&quot;   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_TESTLIB_LIB -DQT_XML_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT  -I&quot;C:\Qt\4.6.3\include\QtCore&quot; -I&quot;C:\Qt\4.6.3\include\QtGui&quot; -I&quot;C:\Qt\4.6.3\include\QtXml&quot; -I&quot;C:\Qt\4.6.3\include\QtTest&quot; -I&quot;C:\Qt\4.6.3\include&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;.\..\libs&quot; -I&quot;C:\Qt\4.6.3\include\ActiveQt&quot; -I&quot;.\debug&quot; -I&quot;.&quot; -I&quot;C:\Qt\4.6.3\mkspecs\win32-msvc2008&quot; &quot;maincontrollerwindow.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="&quot;C:\Qt\4.6.3\bin\moc.exe&quot;;$(InputPath)"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_maincontrollerwindow.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DQT_XML_LIB -DUNICODE -DWIN32 -DWITH_TESTS -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include\QtXml&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
@@ -359,8 +344,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_maincontrollerwindow.cpp&#x0D;&#x0A;&quot;C:\Qt\4.6.3\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_XML_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT  -I&quot;C:\Qt\4.6.3\include\QtCore&quot; -I&quot;C:\Qt\4.6.3\include\QtGui&quot; -I&quot;C:\Qt\4.6.3\include\QtXml&quot; -I&quot;C:\Qt\4.6.3\include&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;.\..\libs&quot; -I&quot;C:\Qt\4.6.3\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;C:\Qt\4.6.3\mkspecs\win32-msvc2008&quot; &quot;maincontrollerwindow.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="&quot;C:\Qt\4.6.3\bin\moc.exe&quot;;$(InputPath)"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_maincontrollerwindow.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDOWS -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DQT_XML_LIB -DUNICODE -DWIN32 -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtXml&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\libs&quot; -I&quot;.\release&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
@@ -400,8 +385,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_treemodel.cpp&#x0D;&#x0A;&quot;C:\Qt\4.6.3\bin\moc.exe&quot;   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_TESTLIB_LIB -DQT_XML_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT  -I&quot;C:\Qt\4.6.3\include\QtCore&quot; -I&quot;C:\Qt\4.6.3\include\QtGui&quot; -I&quot;C:\Qt\4.6.3\include\QtXml&quot; -I&quot;C:\Qt\4.6.3\include\QtTest&quot; -I&quot;C:\Qt\4.6.3\include&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;.\..\libs&quot; -I&quot;C:\Qt\4.6.3\include\ActiveQt&quot; -I&quot;.\debug&quot; -I&quot;.&quot; -I&quot;C:\Qt\4.6.3\mkspecs\win32-msvc2008&quot; &quot;treemodel.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="&quot;C:\Qt\4.6.3\bin\moc.exe&quot;;$(InputPath)"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_treemodel.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DQT_XML_LIB -DUNICODE -DWIN32 -DWITH_TESTS -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include\QtXml&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
@@ -411,8 +396,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_treemodel.cpp&#x0D;&#x0A;&quot;C:\Qt\4.6.3\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_XML_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT  -I&quot;C:\Qt\4.6.3\include\QtCore&quot; -I&quot;C:\Qt\4.6.3\include\QtGui&quot; -I&quot;C:\Qt\4.6.3\include\QtXml&quot; -I&quot;C:\Qt\4.6.3\include&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;.\..\libs&quot; -I&quot;C:\Qt\4.6.3\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;C:\Qt\4.6.3\mkspecs\win32-msvc2008&quot; &quot;treemodel.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
-						AdditionalDependencies="&quot;C:\Qt\4.6.3\bin\moc.exe&quot;;$(InputPath)"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_treemodel.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDOWS -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DQT_XML_LIB -DUNICODE -DWIN32 -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtXml&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\libs&quot; -I&quot;.\release&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
@@ -424,29 +409,17 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
-				RelativePath=".\controllerC.cpp"
+				RelativePath="controllerC.h"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\controllerC.inl"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
+						Description="TAO_IDL_C controller.idl"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controller.idl&#x0D;&#x0A;"
+						AdditionalDependencies="controller.idl;tao_idl"
+						Outputs="controllerC.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -454,30 +427,25 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
+						Description="TAO_IDL_C controller.idl"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controller.idl&#x0D;&#x0A;"
+						AdditionalDependencies="controller.idl;tao_idl"
+						Outputs="controllerC.h"
 					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\controllerS.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\controllerS.inl"
+				RelativePath="controllerS.h"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
+						Description="TAO_IDL_S controller.idl"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controller.idl&#x0D;&#x0A;"
+						AdditionalDependencies="controller.idl;tao_idl"
+						Outputs="controllerS.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -485,30 +453,10 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\debug\qrc_controller.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
+						Description="TAO_IDL_S controller.idl"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controller.idl&#x0D;&#x0A;"
+						AdditionalDependencies="controller.idl;tao_idl"
+						Outputs="controllerS.h"
 					/>
 				</FileConfiguration>
 			</File>
@@ -523,6 +471,10 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\debug\qrc_controller.cpp"
+				>
 			</File>
 			<File
 				RelativePath="ui_maincontrollerwindow.h"
@@ -557,6 +509,18 @@
 				>
 				<File
 					RelativePath=".\Debug\moc_deviceproxy.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Debug\moc_devicetext.cpp"
 					>
 					<FileConfiguration
 						Name="Release|Win32"
@@ -622,6 +586,18 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\Release\moc_devicetext.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath=".\Release\moc_eventreceiver.cpp"
 					>
 					<FileConfiguration
@@ -674,7 +650,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="UIC maincontrollerwindow.ui"
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile .\ui_maincontrollerwindow.h&#x0D;&#x0A;C:\Qt\4.6.3\bin\uic.exe maincontrollerwindow.ui -o ui_maincontrollerwindow.h&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile .\ui_maincontrollerwindow.h&#x0D;&#x0A;$(QTDIR)\bin\uic.exe maincontrollerwindow.ui -o ui_maincontrollerwindow.h&#x0D;&#x0A;"
 						AdditionalDependencies="Rem;maincontrollerwindow.ui"
 						Outputs="ui_maincontrollerwindow.h"
 					/>
@@ -685,7 +661,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="UIC maincontrollerwindow.ui"
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile .\ui_maincontrollerwindow.h&#x0D;&#x0A;C:\Qt\4.6.3\bin\uic.exe maincontrollerwindow.ui -o ui_maincontrollerwindow.h&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile .\ui_maincontrollerwindow.h&#x0D;&#x0A;$(QTDIR)\bin\uic.exe maincontrollerwindow.ui -o ui_maincontrollerwindow.h&#x0D;&#x0A;"
 						AdditionalDependencies="Rem;maincontrollerwindow.ui"
 						Outputs="ui_maincontrollerwindow.h"
 					/>
@@ -707,7 +683,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Rcc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;C:\Qt\4.6.3\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\debug\qrc_$(InputName).cpp&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\debug\qrc_$(InputName).cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(InputPath)"
 						Outputs=".\debug\qrc_$(InputName).cpp"
 					/>
@@ -718,33 +694,18 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Rcc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;C:\Qt\4.6.3\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\debug\qrc_$(InputName).cpp&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\debug\qrc_$(InputName).cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(InputPath)"
 						Outputs=".\debug\qrc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
 			</File>
 		</Filter>
-		<Filter
-			Name="OMGIDL"
-			>
-			<File
-				RelativePath=".\controller.idl"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
-						AdditionalDependencies=""
-						Outputs="$(InputName)C.cpp;$(InputName)C.h;$(InputName)S.cpp;$(InputName)S.h"
-					/>
-				</FileConfiguration>
-			</File>
-		</Filter>
 	</Files>
 	<Globals>
+		<Global
+			Name="QtVersion Win32"
+			Value="4.6.3"
+		/>
 	</Globals>
 </VisualStudioProject>

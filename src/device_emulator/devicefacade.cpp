@@ -4,16 +4,20 @@
 //////////////////////////////////////////
 #include "devicefacade.h"
 #include <vector>
+#include <sstream>
 #include <boost/variant.hpp>
 #include <acewrapper/lifecycle_frame_serializer.h>
+#include <acewrapper/outputcdr.h>
 #include <ace/Singleton.h>
 #include <ace/INET_Addr.h>
 #include <ace/Time_Value.h>
-#include <ACE/High_Res_Timer.h>
+#include <ace/High_Res_Timer.h>
+#include <ace/Stream.h>
 
 #include "roleanalyzer.h"
 #include "roleaverager.h"
 #include "roleesi.h"
+#include "../controller/controllerC.h"
 
 class DeviceFacadeImpl {
 public:
@@ -90,26 +94,48 @@ DeviceFacade::lifeCycleUpdate( adportable::protocol::LifeCycleCommand cmd )
     return false;
 }
 
+ACE_Message_Block *
+DeviceFacade::eventToController( unsigned long id, unsigned long value )
+{
+    ACE_OutputCDR cdr;
+    acewrapper::OutputCDR output( cdr );
+    LifeCycleData data;
+    if ( lifeCycle_.prepare_data( data, 0, 0 ) ) {
+        acewrapper::lifecycle_frame_serializer::pack( output, data );
+        output << static_cast<unsigned long>( GlobalConstants::ClassID_InstEvent );
+        output << id;
+        output << value;
+        return cdr.begin()->clone();
+    }
+    return 0;
+}
+
 bool
 DeviceFacade::handle_dgram( const LifeCycleFrame& frame, const LifeCycleData& data, LifeCycleData& replyData )
 {
     LifeCycleCommand cmd = boost::apply_visitor( lifecycle_command_visitor(), data );
     assert( frame.command_ == cmd );
-    std::string msg = LifeCycleHelper::to_string( data );
-	emit signal_debug( QString( "handle_dgram got " ) + msg.c_str() );
+
+    std::ostringstream o;
+    o << "dgram got: " << LifeCycleHelper::to_string( data );
+
+    emit signal_debug( QString( o.str().c_str()) );
 
     LifeCycleState nextState;
     LifeCycleCommand replyCmd;
 
-	lifeCycle_.dispatch_received_data( data, nextState, replyCmd );
+	lifeCycle_.dispatch_received_data( data, nextState, replyCmd );  // state may change
 	if ( lifeCycle_.validate_sequence( data ) ) {
 
 		pImpl_->update_heartbeat();
         
 		unsigned short remote_sequence = LifeCycleHelper::local_sequence( data );  // flip local number on recived data to remote on mine
-		if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) ) {
+        if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) ) {
+
+            lifeCycle_.apply_command( replyCmd, nextState );  // state may change
+
 			std::string rmsg = LifeCycleHelper::to_string( replyData );
-			emit signal_debug( QString( "handle_dgram reply " ) + rmsg.c_str() );
+            emit signal_debug( QString( "dgram reply to controller: " ) + rmsg.c_str() );
 			return true;
 		}
 	}

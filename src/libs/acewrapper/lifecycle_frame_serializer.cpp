@@ -87,7 +87,8 @@ lifecycle_frame_serializer::pack( acewrapper::OutputCDR& cdr, const LifeCycleDat
 template<> ACE_Message_Block *
 lifecycle_frame_serializer::pack( const LifeCycleData& v )
 {
-    OutputCDR cdr;
+    ACE_OutputCDR ace_cdr;
+    OutputCDR cdr(ace_cdr);
 
     LifeCycleFrame frame( boost::apply_visitor( internal::lifecycle_command_visitor(), v ) );
 
@@ -135,7 +136,8 @@ lifecycle_frame_serializer::unpack( InputCDR& cdr, LifeCycleFrame& frame, LifeCy
 template<> bool
 lifecycle_frame_serializer::unpack( ACE_Message_Block * mb, LifeCycleFrame& frame, LifeCycleData& v )
 {
-	InputCDR cdr(mb);
+    ACE_InputCDR input( mb );
+    InputCDR cdr( input );
 	return unpack( cdr, frame, v );
 }
 
@@ -178,7 +180,8 @@ namespace acewrapper {
         {
             unsigned int orign = cdr.length();
             cdr << data.sequence_;
-            cdr << data.remote_sequence_;
+            cdr << data.flags_;
+            cdr << data.offset_;
             return cdr.length() - orign;
         }
 
@@ -243,7 +246,8 @@ namespace acewrapper {
         void lifecycle_deserializer_visitor::operator()( LifeCycle_Data& data ) const
         {
             cdr >> data.sequence_;
-            cdr >> data.remote_sequence_;
+            cdr >> data.flags_;
+            cdr >> data.offset_;
         }
 
         void lifecycle_deserializer_visitor::operator()( LifeCycle_DataAck& data ) const

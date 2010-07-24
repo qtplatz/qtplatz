@@ -210,6 +210,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\devicetext.cpp"
+				>
+			</File>
+			<File
 				RelativePath="eventreceiver.cpp"
 				>
 			</File>
@@ -308,6 +312,21 @@
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
 						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_deviceproxy.cpp&#x0D;&#x0A;&quot;C:\Qt\4.6.3\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_XML_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT  -I&quot;C:\Qt\4.6.3\include\QtCore&quot; -I&quot;C:\Qt\4.6.3\include\QtGui&quot; -I&quot;C:\Qt\4.6.3\include\QtXml&quot; -I&quot;C:\Qt\4.6.3\include&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;.\..\libs&quot; -I&quot;C:\Qt\4.6.3\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;C:\Qt\4.6.3\mkspecs\win32-msvc2008&quot; &quot;deviceproxy.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;C:\Qt\4.6.3\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\devicetext.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputFileName)..."
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_devicetext.cpp&#x0D;&#x0A;&quot;C:\Qt\4.6.3\bin\moc.exe&quot;   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_TESTLIB_LIB -DQT_XML_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT  -I&quot;C:\Qt\4.6.3\include\QtCore&quot; -I&quot;C:\Qt\4.6.3\include\QtGui&quot; -I&quot;C:\Qt\4.6.3\include\QtXml&quot; -I&quot;C:\Qt\4.6.3\include\QtTest&quot; -I&quot;C:\Qt\4.6.3\include&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\ACE_wrappers&quot; -I&quot;c:\ACE_wrappers\TAO&quot; -I&quot;.\..\libs&quot; -I&quot;C:\Qt\4.6.3\include\ActiveQt&quot; -I&quot;.\debug&quot; -I&quot;.&quot; -I&quot;C:\Qt\4.6.3\mkspecs\win32-msvc2008&quot; &quot;devicetext.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;C:\Qt\4.6.3\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -428,33 +447,9 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="controllerC.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="controller.idl"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="tao_idl controller.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controller.idl&#x0D;&#x0A;"
-						AdditionalDependencies="controller.idl;tao_idl"
-						Outputs="controllerC.cpp"
 					/>
 				</FileConfiguration>
 			</File>
@@ -488,14 +483,6 @@
 			<File
 				RelativePath=".\controllerS.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories="controller.idl"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\controllerS.inl"
@@ -525,18 +512,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="release\qrc_controller.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\debug\qrc_controller.cpp"
 				>
 				<FileConfiguration
@@ -553,6 +528,18 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="release\qrc_controller.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
 			</File>
@@ -769,7 +756,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Performing Custom Build Step"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO $(InputFileName)&#x0D;&#x0A;"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies=""
 						Outputs="$(InputName)C.cpp;$(InputName)C.h;$(InputName)S.cpp;$(InputName)S.h"
 					/>

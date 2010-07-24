@@ -46,6 +46,7 @@ class DeviceProxy : public QObject {
 
    signals:
       void signal_dgram_to_device( std::string remote_addr, QString local_address, QString description );
+      void signal_debug( std::string remote_addr, QString description );
 };
 
 #endif // DEVICEPROXY_H

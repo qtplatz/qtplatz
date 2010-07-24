@@ -23,6 +23,7 @@
 #include <acewrapper/lifecycle_frame_serializer.h>
 #include "treemodel.h"
 #include "deviceproxy.h"
+#include "devicetext.h"
 
 using namespace adportable::protocol;
 using namespace acewrapper;
@@ -43,9 +44,12 @@ MainControllerWindow::closeEvent(QCloseEvent * ev)
 {
     ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
     if ( reactor ) {
-        mcastHandler_->close();
-        timerHandler_->cancel( reactor, timerHandler_.get() );  // initialize condition
-        timerHandler_->wait();
+        if ( mcastHandler_ )
+            mcastHandler_->close();
+        if ( timerHandler_ ) {
+            timerHandler_->cancel( reactor, timerHandler_.get() );  // initialize condition
+            timerHandler_->wait();
+        }
         reactor->end_reactor_event_loop();
     }
     ACE_Thread_Manager::instance()->wait(); // barrier wait until all threads have shut down.
@@ -59,40 +63,7 @@ MainControllerWindow::on_initial_update()
 
     for (int column = 0; column < treeModel_->columnCount(); ++column)
         ui->treeView->resizeColumnToContents(column);
-
-////////////////////////
-#if 0
-    TreeModel * model = treeModel_.get();
-    for ( int i = 0; i < 3; ++i ) {
-        int row = model->rowCount();
-        model->insertRow( row );
-        model->setData( model->index( row, 0 ), "client-1" );
-        model->setData( model->index( row, 1 ), "client description");
-
-        QModelIndex index = model->index( row, 0 );
-        bool res = model->insertRow( 0, index  );  // for local information
-        if ( res ) {
-            model->setData( model->index( 0, 0, index ), "initializeing" );
-            model->setData( model->index( 0, 1, index ), "description" );
-        }
-    }
-#endif
-    // connect(exitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
-/*
-    connect(view->selectionModel(),
-            SIGNAL(selectionChanged(const QItemSelection &,
-                                    const QItemSelection &)),
-            this, SLOT(updateActions()));
-
-    connect(actionsMenu, SIGNAL(aboutToShow()), this, SLOT(updateActions()));
-    connect(insertRowAction, SIGNAL(triggered()), this, SLOT(insertRow()));
-    connect(insertColumnAction, SIGNAL(triggered()), this, SLOT(insertColumn()));
-    connect(removeRowAction, SIGNAL(triggered()), this, SLOT(removeRow()));
-    connect(removeColumnAction, SIGNAL(triggered()), this, SLOT(removeColumn()));
-    connect(insertChildAction, SIGNAL(triggered()), this, SLOT(insertChild()));
-    updateActions();
-*/
-
+    // ui->tabWidget->clear();
 }
 
 void
@@ -105,9 +76,17 @@ MainControllerWindow::multicast_update_device( const ACE_INET_Addr& addr
     map_type::iterator it = devices_.find( addr_str );
     if ( it == devices_.end() ) { // || boost::get<const LifeCycle_Hello *>(&data) ) {
         devices_[ addr_str ] = boost::shared_ptr< DeviceProxy >( new DeviceProxy( addr ) );
+
         connect( devices_[ addr_str ].get()
             , SIGNAL( signal_dgram_to_device(std::string, QString, QString) )
             , this, SLOT( handle_dgram_to_device(std::string, QString, QString) ) ); 
+
+        DeviceText * pDevText = new DeviceText(this);
+        ui->tabWidget->addTab( pDevText, addr_str.c_str() );
+
+        connect( devices_[ addr_str ].get()
+            , SIGNAL( signal_debug(std::string, QString) )
+            , pDevText, SLOT( handle_debug(std::string, QString) ) ); 
 
         TreeModel * model = treeModel_.get();
         int row = model->rowCount();
@@ -205,6 +184,11 @@ MainControllerWindow::handle_dgram_to_device( std::string remote_addr, QString l
         model.setData( model.index( childRow, 0, index ), local_address );
         model.setData( model.index( childRow, 2, index ), description );
     }
+}
+
+void
+MainControllerWindow::handle_debug( std::string remote_addr, QString description )
+{
 }
 
 
