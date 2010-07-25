@@ -63,7 +63,11 @@ MainControllerWindow::on_initial_update()
 
     for (int column = 0; column < treeModel_->columnCount(); ++column)
         ui->treeView->resizeColumnToContents(column);
-    // ui->tabWidget->clear();
+
+    ui->tabWidget->clear();
+    DeviceText * p = new DeviceText();
+    ui->tabWidget->addTab( p , "MCAST" );
+    connect( this, SIGNAL( signal_debug(std::string, QString) ), p, SLOT( handle_debug(std::string, QString) ) ); 
 }
 
 void
@@ -99,8 +103,7 @@ MainControllerWindow::multicast_update_device( const ACE_INET_Addr& addr
 
     std::ostringstream o;
     o << "register_device(" << addr_str << ")" ;
-    ui->plainTextEdit->appendPlainText( QString(o.str().c_str() ) );
-
+    emit signal_debug( "mcast", o.str().c_str() );
 }
 
 void MainControllerWindow::on_connectButton_clicked()
@@ -189,6 +192,7 @@ MainControllerWindow::handle_dgram_to_device( std::string remote_addr, QString l
 void
 MainControllerWindow::handle_debug( std::string remote_addr, QString description )
 {
+     
 }
 
 

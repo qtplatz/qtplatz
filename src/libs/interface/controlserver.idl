@@ -1,0 +1,71 @@
+// This is a -*- C++ -*- header.
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison / Advanced Instrumentation Project
+//
+// build setup
+// $(ACE_ROOT)\bin\tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputPath)
+//////////////////////////////////////////
+
+// #include "receiver.idl"
+
+module SignalObserver {
+   interface Signal;
+};
+
+module ControlMethod {
+   interface Method;
+};
+
+module SampleBroker {
+   interface SampleSequence;
+};
+
+interface Receiver;
+
+module ControlServer {
+
+   enum eInstStatus { 
+      eNothing
+      , eNotConnected             //= 0x00000001,  // no instrument := no driver software loaded
+      , eOff                      //= 0x00000002,  // software driver can be controled, but hardware is currently off
+      , eInitializing             //= 0x00000003,  // startup initializing (only at the begining after startup)
+      , eStandBy                  //= 0x00000004,  // instrument is stand by state
+      , ePreparingForRun          //= 0x00000005,  // preparing for next method (parameters being be set value)
+      , eReadyForRun              //= 0x00000006,  // method is in initial state, ready to run (INIT RUN, MS HTV is ready)
+      , eWaitingForContactClosure //= 0x00000007,  //
+      , eRunning                  //= 0x00000008,  // method is in progress
+      , eStop                     //= 0x00000009,  // stop := detector is not monitoring, pump is off
+   };
+   
+
+   interface Session {
+      
+       exception CannotAdd {
+           wstring reason_;
+       };
+       
+      wstring software_revision();  // ex. L"1.216"
+      
+      boolean connect(in Receiver receiver, in wstring token_) raises(CannotAdd);
+      boolean disconnect(in Receiver receiver_);
+      
+      unsigned long get_status();
+      
+      boolean initialize();
+      long getdata(in long pos, inout SignalObserver::Signal data);
+      boolean shutdown();  // shutdown server
+      boolean echo(in string msg);
+      boolean shell(in string cmdline);
+      
+      boolean prepare_for_run(in ControlMethod::Method m);
+      boolean push_back( in SampleBroker::SampleSequence s);
+      
+      boolean event_out(in unsigned long event);
+      boolean start_run();
+      boolean suspend_run();
+      boolean resume_run();
+      boolean stop_run();
+   };
+
+};

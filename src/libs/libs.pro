@@ -13,4 +13,5 @@ SUBDIRS   = \
     adwidgets \
     adcontrols \
     adbroker \
-    admachine
+    admachine \
+    interface

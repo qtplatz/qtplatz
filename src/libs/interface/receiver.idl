@@ -1,0 +1,46 @@
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison / Advanced Instrumentation Project
+//////////////////////////////////////////
+
+interface Receiver {
+
+  enum eMSGPRIORITY { pri_DEBUG
+		      , pri_INFO     // informational
+		      , pri_ERROR    // user correctable error
+		      , pri_EXCEPT   // exception, can be recoverd. Mostly a bug
+		      , pri_PANIC }; // non-recoverable exception
+  
+  enum eINSTEVENT { NOTHING
+		    , HEARTBEAT // formerly, it was timer signal
+		    , CONFIG_CHANGED
+		    , STATE_CHANGED
+		    , METHOD_RECEIVED
+		    , METHOD_STARTED
+		    , START_IN
+		    , START_OUT
+		    , INJECT_IN
+		    , INJECT_OUT
+		    , EVENT_IN
+		    , EVENT_OUT
+  };
+
+  struct TimeValue {
+    unsigned long sec_;
+    long usec_;
+  };
+  
+  struct LogMessage {
+    eMSGPRIORITY pri_;
+    long src_;
+    long msgId_;
+    long seqNum_;
+    TimeValue tv_;
+    wstring msg_;
+  };
+  
+  oneway void message(in eINSTEVENT msg, in unsigned long value); // send message to client
+  oneway void eventLog(in LogMessage log);
+  oneway void shutdown(); // called by the server before it goes away
+  
+};

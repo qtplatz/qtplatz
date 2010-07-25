@@ -139,7 +139,7 @@ DeviceProxy::on_notify_dgram( ACE_Message_Block * mb )
                 tao_input >> e;
 
                 std::ostringstream o;
-                o << "event#" << e.eventId_ << ", value=" << e.eventValue_ << std::endl;
+                o << "event#" << e.eventId_ << ", value=" << e.eventValue_;
                 emit signal_debug( remote_addr_string_, QString( o.str().c_str() ) );
              }
 		}
