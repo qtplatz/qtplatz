@@ -1,0 +1,30 @@
+// This is a -*- C++ -*- header.
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison / Advanced Instrumentation Project
+//
+// build setup
+// $(ACE_ROOT)\bin\tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputPath)
+//////////////////////////////////////////
+
+module SignalObserver {
+
+  // trace_type
+  // uptime
+  // samplinginterval
+  // getdata
+  // sequenceid
+  // axis_x_label
+  // axis_y_label
+  // axis_x_decimals
+  // axis_y_decimals
+  // transfer_clsid
+  // trace_label
+  // transfer_descriptor
+  // trace_display_name
+
+  interface Observer {
+  };
+
+};
+
