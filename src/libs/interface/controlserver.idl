@@ -10,11 +10,11 @@
 // #include "receiver.idl"
 
 module SignalObserver {
-   interface Signal;
+   interface Observer;
 };
 
 module ControlMethod {
-   interface Method;
+    interface Method;
 };
 
 module SampleBroker {
@@ -53,7 +53,8 @@ module ControlServer {
       unsigned long get_status();
       
       boolean initialize();
-      long getdata(in long pos, inout SignalObserver::Signal data);
+      // long getdata(in long pos, inout SignalObserver::Signal data);
+      SignalObserver::Observer getObserver();
       boolean shutdown();  // shutdown server
       boolean echo(in string msg);
       boolean shell(in string cmdline);

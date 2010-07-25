@@ -17,9 +17,13 @@ SOURCES += interface.cpp
 
 HEADERS += interface.h
 
-IDLFILES += controlserver.idl \
+IDLFILES += \
+	controlmethod.idl \
+	controlserver.idl \
 	global_constants.idl \
-	controlmethod.idl
+	receiver.idl \
+	samplebroker.idl \
+	signalobserver.idl
 
 tao_idlC.input = IDLFILES
 tao_idlC.output = ${QMAKE_FILE_BASE}C.h
@@ -41,5 +45,16 @@ QMAKE_EXTRA_COMPILERS += tao_idlS
 
 GENERATED_FILES += global_constantsC.cpp \
 	controlserverC.cpp \
-	controlmethodC.cpp 
-	
+	controlserverS.cpp \
+	controlmethodC.cpp \ 
+	controlmethodS.cpp \ 
+	controlmethodC.cpp \
+	controlmethodS.cpp \
+	controlserverC.cpp \
+	controlserverS.cpp \
+	global_constantsC.cpp \
+	global_constantsS.cpp \
+	receiverC.cpp \
+	receiverS.cpp \
+	samplebrokerC.cpp \
+	signalobserverS.cpp

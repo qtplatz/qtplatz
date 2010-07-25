@@ -57,9 +57,9 @@ module ControlMethod {
     sequence< argument > arguments_;
   };
 
-  struct Method {
-    sequence< InstInfo > iinfo_vec_;
-    sequence< MethodLine > lines_;
+  interface Method {
+      //sequence< InstInfo > iinfo_vec_;
+      //sequence< MethodLine > lines_;
   };
 
 };

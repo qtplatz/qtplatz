@@ -74,7 +74,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="debug\interface.lib"
+				OutputFile="..\..\..\lib\qtPlatz\interfaced.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -151,7 +151,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="release\interface.lib"
+				OutputFile="..\..\..\lib\qtPlatz\interface.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -176,11 +176,59 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			Filter="cpp;c;cxx;def;odl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="controlmethodC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\controlmethodS.cpp"
+				>
+			</File>
+			<File
+				RelativePath="controlserverC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\controlserverS.cpp"
+				>
+			</File>
+			<File
+				RelativePath="global_constantsC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\global_constantsS.cpp"
+				>
+			</File>
+			<File
 				RelativePath="interface.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\receiverC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\receiverS.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\samplebrokerC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\samplebrokerS.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\signalobserverC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\signalobserverS.cpp"
 				>
 			</File>
 		</Filter>
@@ -215,16 +263,20 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\signalobserverC.h"
+				>
+			</File>
+			<File
+				RelativePath=".\signalobserverS.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Generated Files"
 			Filter="cpp;c;cxx;moc;h;def;odl;idl;res;"
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
-			<File
-				RelativePath="controlmethodC.cpp"
-				>
-			</File>
 			<File
 				RelativePath="controlmethodC.h"
 				>
@@ -278,10 +330,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="controlserverC.cpp"
-				>
-			</File>
-			<File
 				RelativePath="controlserverC.h"
 				>
 				<FileConfiguration
@@ -332,10 +380,6 @@
 						Outputs="controlserverS.h"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="global_constantsC.cpp"
-				>
 			</File>
 			<File
 				RelativePath="global_constantsC.h"
@@ -402,7 +446,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>
@@ -411,7 +455,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>
@@ -424,7 +468,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>
@@ -433,13 +477,57 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\global_constants.idl"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\receiver.idl"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\samplebroker.idl"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -461,7 +549,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\receiver.idl"
+				RelativePath=".\signalobserver.idl"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
