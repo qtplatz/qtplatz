@@ -4,7 +4,7 @@
 //////////////////////////////////////////
 
 #include "session_i.h"
-#include "interface/receiverC.h"
+#include "adinterface/receiverC.h"
 #include <iostream>
 #include "ibrokermanager.h"
 #include "ibroker.h"

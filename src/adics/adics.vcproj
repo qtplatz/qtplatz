@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="instmanager"
+	Name="adics"
 	ProjectGUID="{A69737BF-E33C-341C-96A9-36911836C39B}"
-	RootNamespace="instmanager"
+	RootNamespace="adics"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtTest&quot;,&quot;$(QTDIR)\include&quot;,&quot;c:\Boost\include\boost-1_43&quot;,&quot;..\libs&quot;,&quot;c:\Users\thondo\src\qtPlatz\tools&quot;,&quot;c:\ACE_wrappers&quot;,&quot;c:\ACE_wrappers\TAO&quot;,&quot;..\libs&quot;,&quot;$(QTDIR)\include\ActiveQt&quot;,&quot;debug&quot;,$(QTDIR)\mkspecs\win32-msvc2008"
+				AdditionalIncludeDirectories="&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;..\libs;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;debug"
 				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,QT_DLL,QT_TESTLIB_LIB,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -76,7 +76,7 @@
 				IgnoreImportLibrary="true"
 				OutputFile="..\..\lib\qtPlatz\instmanager.exe"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;C:\Boost/lib;C:/Users/thondo/src/qtPlatz/lib/qtPlatz;C:\ACE_wrappers/lib"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;C:\Boost/lib;C:/Users/thondo/src/qtPlatz/lib/qtPlatz;$(ACE_ROOT)/lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="1"
@@ -134,7 +134,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include&quot;,&quot;c:\Boost\include\boost-1_43&quot;,&quot;..\libs&quot;,&quot;c:\Users\thondo\src\qtPlatz\tools&quot;,&quot;c:\ACE_wrappers&quot;,&quot;c:\ACE_wrappers\TAO&quot;,&quot;..\libs&quot;,&quot;$(QTDIR)\include\ActiveQt&quot;,&quot;release&quot;,$(QTDIR)\mkspecs\win32-msvc2008"
+				AdditionalIncludeDirectories="&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;..\libs;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;release"
 				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,QT_DLL,QT_NO_DEBUG,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -165,7 +165,7 @@
 				OutputFile="..\..\lib\qtPlatz\instmanager.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,C:\Boost/lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:\ACE_wrappers/lib"
+				AdditionalLibraryDirectories="$(QTDIR)\lib,$(BOOST_TOOT)/lib,../../lib/qtPlatz,$(ACE_ROOT)/lib"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="1"
@@ -215,6 +215,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mcast_handler.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\receiver_i.cpp"
 				>
 			</File>
@@ -238,6 +242,10 @@
 			</File>
 			<File
 				RelativePath=".\ibrokermanager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mcast_handler.h"
 				>
 			</File>
 			<File

@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="interface"
+	Name="adinterface"
 	ProjectGUID="{0E63611D-F1FE-3CCB-9E32-59C3737F6A59}"
-	RootNamespace="interface"
+	RootNamespace="adinterface"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="$(QTDIR)\include;c:\ACE_wrappers;c:\ACE_wrappers\TAO;.\..\libs;$(QTDIR)\include\ActiveQt;.\debug;$(QTDIR)\mkspecs\win32-msvc2008;.\GeneratedFiles\$(ConfigurationName)"
+				AdditionalIncludeDirectories="$(QTDIR)\include;$(ACE_ROOT);$(ACE_ROOT)\TAO;.\..\libs;$(QTDIR)\include\ActiveQt;.\debug;$(QTDIR)\mkspecs\win32-msvc2008;.\GeneratedFiles\$(ConfigurationName)"
 				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -123,7 +123,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="$(QTDIR)\include;c:\ACE_wrappers;c:\ACE_wrappers\TAO;.\..\libs;$(QTDIR)\include\ActiveQt;.\release;$(QTDIR)\mkspecs\win32-msvc2008;.\GeneratedFiles\$(ConfigurationName)"
+				AdditionalIncludeDirectories="$(QTDIR)\include;$(ACE_ROOT);$(ACE_ROOT)\TAO;.\..\libs;$(QTDIR)\include\ActiveQt;.\release;$(QTDIR)\mkspecs\win32-msvc2008;.\GeneratedFiles\$(ConfigurationName)"
 				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_NO_DEBUG,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -286,7 +286,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="TAO_IDL_C controlmethod.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controlmethod.idl&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) controlmethod.idl&#x0D;&#x0A;"
 						AdditionalDependencies="controlmethod.idl;tao_idl"
 						Outputs="controlmethodC.h"
 					/>
@@ -297,7 +297,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="TAO_IDL_C controlmethod.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controlmethod.idl&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) controlmethod.idl&#x0D;&#x0A;"
 						AdditionalDependencies="controlmethod.idl;tao_idl"
 						Outputs="controlmethodC.h"
 					/>
@@ -312,7 +312,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="TAO_IDL_S controlmethod.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controlmethod.idl&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) controlmethod.idl&#x0D;&#x0A;"
 						AdditionalDependencies="controlmethod.idl;tao_idl"
 						Outputs="controlmethodS.h"
 					/>
@@ -323,7 +323,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="TAO_IDL_S controlmethod.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controlmethod.idl&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) controlmethod.idl&#x0D;&#x0A;"
 						AdditionalDependencies="controlmethod.idl;tao_idl"
 						Outputs="controlmethodS.h"
 					/>
@@ -338,7 +338,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="TAO_IDL_C controlserver.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controlserver.idl&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) controlserver.idl&#x0D;&#x0A;"
 						AdditionalDependencies="controlserver.idl;tao_idl"
 						Outputs="controlserverC.h"
 					/>
@@ -349,7 +349,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="TAO_IDL_C controlserver.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controlserver.idl&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) controlserver.idl&#x0D;&#x0A;"
 						AdditionalDependencies="controlserver.idl;tao_idl"
 						Outputs="controlserverC.h"
 					/>
@@ -364,7 +364,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="TAO_IDL_S controlserver.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controlserver.idl&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) controlserver.idl&#x0D;&#x0A;"
 						AdditionalDependencies="controlserver.idl;tao_idl"
 						Outputs="controlserverS.h"
 					/>
@@ -375,7 +375,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="TAO_IDL_S controlserver.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO controlserver.idl&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) controlserver.idl&#x0D;&#x0A;"
 						AdditionalDependencies="controlserver.idl;tao_idl"
 						Outputs="controlserverS.h"
 					/>
@@ -390,7 +390,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="TAO_IDL_C global_constants.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO global_constants.idl&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) global_constants.idl&#x0D;&#x0A;"
 						AdditionalDependencies="global_constants.idl;tao_idl"
 						Outputs="global_constantsC.h"
 					/>
@@ -401,7 +401,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="TAO_IDL_C global_constants.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO global_constants.idl&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) global_constants.idl&#x0D;&#x0A;"
 						AdditionalDependencies="global_constants.idl;tao_idl"
 						Outputs="global_constantsC.h"
 					/>
@@ -416,7 +416,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="TAO_IDL_S global_constants.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO global_constants.idl&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) global_constants.idl&#x0D;&#x0A;"
 						AdditionalDependencies="global_constants.idl;tao_idl"
 						Outputs="global_constantsS.h"
 					/>
@@ -427,7 +427,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="TAO_IDL_S global_constants.idl"
-						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -IC:\ACE_wrappers\TAO global_constants.idl&#x0D;&#x0A;"
+						CommandLine="tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) global_constants.idl&#x0D;&#x0A;"
 						AdditionalDependencies="global_constants.idl;tao_idl"
 						Outputs="global_constantsS.h"
 					/>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "interface/receiverS.h"
+#include "adinterface/receiverS.h"
 
 class receiver_i : public virtual POA_Receiver {
 public:

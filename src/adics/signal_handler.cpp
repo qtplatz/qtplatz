@@ -14,6 +14,8 @@ int signal_handler::pidChild = 0;
 int signal_handler::pidParent = 0;
 int signal_handler::respawn_flag = 0;
 
+void abort_server();
+
 void
 signal_handler::sigint( int num )
 {
@@ -27,17 +29,13 @@ signal_handler::sigint( int num )
       if ( errno == EPERM || errno == ENOTSUP ) 
 	 ACE_DEBUG((LM_DEBUG, "Warning: user's not superuser, so we'll run in the theme-shared class\n"));
    } else {
-      ACE_DEBUG((LM_DEBUG, "priority set lower success"));
+      ACE_DEBUG((LM_DEBUG, "priority set lower success\n"));
    }
    
    if ( pidChild == 0 ) {
       static int inProgress = 0;
-      
       std::cerr << "################ abort " << ACE_OS::getpid() << "( signal=" << num << ") " << "##################" << std::endl;
-      
-      if ( inProgress++ >= 1 )
-	 exit(0);
-
+	  abort_server();
    } else {
       for ( int i = 0; i < 3; ++i ) {
           std::cerr << "################ kill( " << pidChild << ") ##################" << std::endl;
@@ -46,9 +44,8 @@ signal_handler::sigint( int num )
       }
       ACE_OS::wait();		
    }
-   ACE_Thread_Manager::instance()->wait();
-   ACE_Process_Manager::instance()->close();
-   std::cout << "Merci" << std::endl;
-   exit(num);
+   //ACE_Thread_Manager::instance()->wait();
+   //ACE_Process_Manager::instance()->close();
+   //std::cout << "Merci" << std::endl;
 }
 

@@ -133,22 +133,30 @@ MainControllerWindow::on_notify_mcast( ACE_Message_Block * mb )
    LifeCycleData data;
    LifeCycleFrame frame;
    
-   lifecycle_frame_serializer::unpack( mb, frame, data );
-
-   try {
-       LifeCycle_Hello& hello = boost::get< LifeCycle_Hello& >(data);
-       ACE_INET_Addr addr;
-       addr.string_to_addr( hello.ipaddr_.c_str() );
-       if ( addr.get_ip_address() == 0 ) {
-           addr = from_addr;
-           addr.set_port_number( hello.portnumber_ );
-       }
-       multicast_update_device( addr, frame, data );
-   } catch ( std::bad_cast& ) {
+   if ( lifecycle_frame_serializer::unpack( mb, frame, data ) ) {
+	   try {
+		   LifeCycle_Hello& hello = boost::get< LifeCycle_Hello& >(data);
+		   ACE_INET_Addr addr;
+		   addr.string_to_addr( hello.ipaddr_.c_str() );
+		   if ( addr.get_ip_address() == 0 ) {
+			   addr = from_addr;
+			   addr.set_port_number( hello.portnumber_ );
+		   }
+		   multicast_update_device( addr, frame, data );
+	   } catch ( std::bad_cast& ) {
+	   }
+   } else {
+       char * pchar = mb->rd_ptr();
+	   for ( unsigned int i = 0; i < mb->length(); ++i, ++pchar )
+		   if ( isprint( *pchar ) )
+			   o << *pchar;
+		   else 
+			   o << "\\" << std::hex << unsigned(*pchar);
    }
 
    o << LifeCycleHelper::to_string( data );
-   ui->plainTextEdit->appendPlainText( o.str().c_str() );
+   // ui->plainTextEdit->appendPlainText( o.str().c_str() );
+   emit signal_debug( "MCAST", o.str().c_str() );
 
    ACE_Message_Block::release( mb );
 }

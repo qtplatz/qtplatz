@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "interface/receiverC.h"
-#include "interface/controlserverS.h"
+#include "adinterface/receiverC.h"
+#include "adinterface/controlserverS.h"
 #include <vector>
 
 class session_i : public virtual POA_ControlServer::Session {

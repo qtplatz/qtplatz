@@ -40,8 +40,26 @@
 #include "session_i.h"
 #include <ace/OS.h>
 #include <ace/Process_Manager.h>
+#include <acewrapper/eventhandler.h>
+#include <acewrapper/mcasthandler.h>
+#include "mcast_handler.h"
+#include <boost/smart_ptr.hpp>
+#include <acewrapper/reactorthread.h>
+#include <ace/Reactor.h>
+
+using namespace acewrapper;
 
 static int debug_flag = 1;
+static bool __aborted = false;
+
+typedef ACE_Singleton< orbserver< session_i >, ACE_Recursive_Thread_Mutex > ORBServer;
+
+void
+abort_server()
+{
+	__aborted = true;
+	ORBServer::instance()->deactivate( false );
+}
 
 int
 run( int argc, ACE_TCHAR * argv[] )
@@ -52,64 +70,65 @@ run( int argc, ACE_TCHAR * argv[] )
    
    //<---- set real time priority class for this process
    if ( debug_flag == 0 ) {
-      if ( ACE_OS::sched_params(fifo_sched_params) == -1 ) {
-	 if ( errno == EPERM || errno == ENOTSUP ) 
-	    ACE_DEBUG((LM_DEBUG, "Warning: user's not superuser, so we'll run in the theme-shared class\n"));
-	 else
-	    ACE_ERROR_RETURN((LM_ERROR, "%p\n", "ACE_OS::sched_params()"), -1);
-      }
+	   if ( ACE_OS::sched_params(fifo_sched_params) == -1 ) {
+		   if ( errno == EPERM || errno == ENOTSUP ) 
+			   ACE_DEBUG((LM_DEBUG, "Warning: user's not superuser, so we'll run in the theme-shared class\n"));
+		   else
+			   ACE_ERROR_RETURN((LM_ERROR, "%p\n", "ACE_OS::sched_params()"), -1);
+	   }
    } else {
-       std::cerr << "==================================================" << std::endl;
-       std::cerr << "====== running normal priority for debug =========" << std::endl;
-       std::cerr << "==================================================" << std::endl;
+	   std::cerr << "==================================================" << std::endl;
+	   std::cerr << "====== running normal priority for debug =========" << std::endl;
+	   std::cerr << "==================================================" << std::endl;
    }
    //-------------> end priority code
+
+   ReactorThread::spawn( TheReactorThread::instance() );
    
-   ACE_Thread_Manager * thrMgr = ACE_Thread_Manager::instance();
-   
-#if 0
-   boost::scoped_ptr< ACE_Reactor > ucast_reactor( new ACE_Reactor() );
-   boost::scoped_ptr< ACE_Reactor > mcast_reactor( new ACE_Reactor() );
-   
-   CCallbackImpl<CMcastServer> mcast( mcast_reactor.get() );
-   CCallbackImpl<CDgramServer> dgram( ucast_reactor.get(), 7402 );
-   
-   // MULTI-CAST server start
-   int tid0 = thrMgr->spawn( ACE_THR_FUNC( CMcastServer::thread_entry ),
-			     reinterpret_cast<void *>(&mcast.server_) );
-   
-   // Unicast server start
-   int tid1 = thrMgr->spawn( ACE_THR_FUNC( CDgramServer::thread_entry ),
-			     reinterpret_cast<void *>(&dgram.server_) );
-#endif
-   
-   orbserver<session_i> server;
+   boost::scoped_ptr< EventHandler< McastReceiver< mcast_handler > > > pmcast( new EventHandler< McastReceiver< mcast_handler > >() );
+   if ( pmcast && pmcast->open() ) {
+	   ACE_Reactor * reactor = TheReactorThread::instance()->get_reactor();
+	   if ( reactor )
+		   reactor->register_handler( pmcast.get(), ACE_Event_Handler::READ_MASK );
+   }
+
+   orbserver<session_i>& server = *ORBServer::instance();
    try {
       int ret;
 
       // -ORBListenEndpoints iiop://192.168.0.1:9999
-      ret = server.init(argc, argv);
+	  ret = server.init(argc, argv);
 
       if ( ret != 0 )
           ACE_ERROR_RETURN( (LM_ERROR, "\n error in init.\n"), 1 );
       
-      std::string ior = server.activate();
+	  if ( pmcast ) {
+		  pmcast->ior( server.activate() );
+		  pmcast->send( pmcast->ior().c_str(), pmcast->ior().size() );
+	  }
       
-      //mcast.ior_ = dgram.ior_ = ior;
-      //mcast.server_.send( ior.c_str(), ior.size(), ACE_INET_Addr() );
-      do {
-          std::ofstream outf( "/var/tmp/imanager.ior" );
-          outf << ior.c_str() << std::endl;
-      } while (0);
    } catch ( const CORBA::Exception& ex ) {
        ex._tao_print_exception( "run\t\n" );
        return 1;
    }
-   //int tidSession = thrMgr->spawn( ACE_THR_FUNC( orbserver<session_i>::thread_entry ), reinterpret_cast<void *>(&server) );
-   //ACE_UNUSED_ARG(tidSession);
-   server.run();    
-   // thrMgr->wait();  // perform a barrier wait until all the threads have shut down.
-   
+
+#if defined ORB_IN_THREAD
+   ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( orbserver<session_i>::thread_entry ), reinterpret_cast<void *>(&server) );
+#else
+   server.run();
+#endif
+   if ( ! __aborted )
+	   server.deactivate();
+
+   ACE_Reactor * reactor = TheReactorThread::instance()->get_reactor();
+   reactor->end_reactor_event_loop();
+
+   ACE_Thread_Manager::instance()->wait();
+
+
+   reactor->close();
+
+
    return 0;
 }
 
@@ -136,11 +155,11 @@ main(int argc, char *argv[])
 
    parse_args( argc, argv );
 
-   signal( SIGHUP, &signal_handler::sigint );
    signal( SIGINT, &signal_handler::sigint );
-   signal( SIGQUIT, &signal_handler::sigint );
 #if ! defined WIN32
+   signal( SIGHUP, &signal_handler::sigint );
    signal( SIGKILL, &signal_handler::sigint );
+   signal( SIGQUIT, &signal_handler::sigint );
 #endif
    signal( SIGABRT, &signal_handler::sigint );
 
