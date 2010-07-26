@@ -58,7 +58,7 @@ void
 abort_server()
 {
 	__aborted = true;
-	ORBServer::instance()->deactivate( false );
+	ORBServer::instance()->deactivate();
 }
 
 int
@@ -125,10 +125,7 @@ run( int argc, ACE_TCHAR * argv[] )
 
    ACE_Thread_Manager::instance()->wait();
 
-
    reactor->close();
-
-
    return 0;
 }
 

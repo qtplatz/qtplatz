@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				OutputFile="..\..\lib\qtPlatz\instmanager.exe"
+				OutputFile="..\..\lib\qtPlatz\adics.exe"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;C:\Boost/lib;C:/Users/thondo/src/qtPlatz/lib/qtPlatz;$(ACE_ROOT)/lib"
 				GenerateDebugInformation="true"
@@ -162,7 +162,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				OutputFile="..\..\lib\qtPlatz\instmanager.exe"
+				OutputFile="..\..\lib\qtPlatz\adics.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="$(QTDIR)\lib,$(BOOST_TOOT)/lib,../../lib/qtPlatz,$(ACE_ROOT)/lib"

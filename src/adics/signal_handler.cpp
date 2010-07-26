@@ -44,8 +44,5 @@ signal_handler::sigint( int num )
       }
       ACE_OS::wait();		
    }
-   //ACE_Thread_Manager::instance()->wait();
-   //ACE_Process_Manager::instance()->close();
-   //std::cout << "Merci" << std::endl;
 }
 
