@@ -9,13 +9,68 @@
 
 module SampleBroker {
 
-  struct SequenceLine {
-    long a;
-  };
+	enum SampleType { SAMPLE_UNKNOWN, SAMPLE_STANDARD, SAMPLE_QC };
 
-  interface SampleSequence {
-    boolean getSequence();
-  };
+	struct SampleSequenceLine {
+		wstring sampleId_;
+		SampleType sampType_;
+		short stdLevel_;
+        short stdReplicates_;
+		wstring vialNumber_;
+		wstring dataName_;
+		wstring ctrlMethodName_;
+		wstring procMethodName_;
+		wstring sampleDescription_;
+		wstring targetMolecules_;  // either list of formula or list of mol-file
+		double injVolume_;
+        double methodTime_;
+		double istdAmount_;       // added amount of ISTD
+		sequence< wstring > userValues_;
+	};
+
+	struct CompoundResponse {
+        short stdLevel_;
+		short stdReplicates_;
+		double responce_;       // peak height or area on chromatogram
+	};
+
+	struct CompoundCalibData {
+		wstring compoundName_;  // compund::detection to be unique
+        wstring detection_;     // ex UV:250nm, mass:152.1708 etc.
+		sequence< CompoundResponse > responses_;
+	};
+
+	struct CompoundData {
+		wstring compoundName_;  // compund::detection to be unique
+        wstring detection_;     // ex UV:250nm, mass:152.1708 etc.
+		wstring formula_;       // optional
+		wstring molstring_;     // more optional
+		double retentionTime_;  // required
+		boolean isIntStd_;
+	};
+
+	struct IDTable {
+		sequence< CompoundData > compounds_;
+		sequence< CompoundCalibData > calibResults_;
+	};
+
+	struct QuantMethod {
+		wstring idtableName_;
+        short nLevels_;
+        short nReplicates_;
+        boolean bracketing_;
+	};
+
+	struct SampleSequenceData {
+		sequence< wstring > userColumns_;
+		sequence< SampleSequenceLine > lines_;
+        QuantMethod quantMethod_;
+		IDTable idTable_;
+	};
+
+	interface SampleSequence {
+		SampleSequenceData getSampleSequenceData();
+	};
 
 };
 
