@@ -1,3 +1,8 @@
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison / Advanced Instrumentation Project
+//////////////////////////////////////////
+
 #include "nameservice.h"
 #include <tao/ORB.h>
 #include <orbsvcs/CosNamingC.h>
@@ -62,10 +67,33 @@ NS::register_name_service( CORBA::ORB_ptr orb, const CosNaming::Name& name, CORB
 	}
 
 	try {
-		nc->bind( name, obj );
+		nc->rebind( name, obj );
 	} catch ( const CosNaming::NamingContext::AlreadyBound& ex ) {
 		ex._tao_print_exception( "register_name_service" );
-		return true; // ignore
+	} catch ( const CORBA::Exception& ex ) {
+		ex._tao_print_exception( "register_name_service" );
+        return false;
+	}
+	return true;
+}
+
+// static
+bool
+NS::unregister_name_service( CORBA::ORB_ptr orb, const CosNaming::Name& name )
+{
+	if ( CORBA::is_nil( orb ) )
+		return false;
+
+	CosNaming::NamingContext_var nc;
+	try { 
+		nc = NS::resolve_init( orb );
+	} catch ( const CORBA::Exception& ex ) {
+		ex._tao_print_exception( "register_name_service" );
+        return false;
+	}
+
+	try {
+		nc->unbind( name );
 	} catch ( const CORBA::Exception& ex ) {
 		ex._tao_print_exception( "register_name_service" );
         return false;

@@ -1,3 +1,9 @@
+// This is a -*- C++ -*- header.
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison / Advanced Instrumentation Project
+//////////////////////////////////////////
+
 #pragma once
 
 #include <tao/Object.h>
@@ -13,6 +19,7 @@ namespace acewrapper {
 		static CORBA::Object_ptr resolve_name( CTX::_ptr_type nc, const CosNaming::Name& name );
 
 		static bool register_name_service( CORBA::ORB_ptr orb, const CosNaming::Name& name, CORBA::Object_ptr obj );
+		static bool unregister_name_service( CORBA::ORB_ptr orb, const CosNaming::Name& name );
    
 		template<class T> static typename T::_ptr_type
 			resolve_name_t( CTX::_ptr_type nc, const CosNaming::Name& name ) {

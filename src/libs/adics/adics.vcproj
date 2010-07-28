@@ -249,10 +249,6 @@
 				>
 			</File>
 			<File
-				RelativePath="orbserver.h"
-				>
-			</File>
-			<File
 				RelativePath=".\receiver_i.h"
 				>
 			</File>

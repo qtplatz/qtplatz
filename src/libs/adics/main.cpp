@@ -41,7 +41,8 @@
 
 #include "signal_handler.h"
 #include <signal.h>
-#include "orbserver.h"
+#include <acewrapper/orbservant.h>
+
 #include <iostream>
 #include <fstream>
 #include "session_i.h"
@@ -59,7 +60,7 @@ using namespace acewrapper;
 static int debug_flag = 1;
 static bool __aborted = false;
 
-typedef ACE_Singleton< orbserver< session_i >, ACE_Recursive_Thread_Mutex > ORBServer;
+typedef ACE_Singleton< ORBServant< session_i >, ACE_Recursive_Thread_Mutex > ORBServer;
 
 void
 abort_server()
@@ -89,19 +90,8 @@ register_name_service()
     name.length(1);
 	name[0].id = CORBA::string_dup( "adics.session" );
 	name[0].kind = CORBA::string_dup( "" );
-
-	session_i * psession = *ORBServer::instance();
-	ControlServer::Session_var session = psession->_this();
-	try {
-		nc->bind( name, session );
-	} catch ( const CosNaming::NamingContext::AlreadyBound& ex ) {
-		ex._tao_print_exception( "register_name_service" );
-		return true; // ignore
-	} catch ( const CORBA::Exception& ex ) {
-		ex._tao_print_exception( "register_name_service" );
-        return false;
-	}
-	return true;
+ 
+    return NS::register_name_service( orb, name, *ORBServer::instance() );
 }
 
 int
@@ -135,15 +125,11 @@ run( int argc, ACE_TCHAR * argv[] )
 		   reactor->register_handler( pmcast.get(), ACE_Event_Handler::READ_MASK );
    }
 
-   orbserver<session_i>& server = *ORBServer::instance();
    try {
       int ret;
-
       // -ORBListenEndpoints iiop://192.168.0.1:9999
-	  ret = server.init(argc, argv);
-	  std::string ior = server.activate();
-      if ( pmcast )
-		  pmcast->ior( ior );
+      ret = ORBServer::instance()->init(argc, argv);
+      ORBServer::instance()->activate();
 
       if ( ret != 0 )
           ACE_ERROR_RETURN( (LM_ERROR, "\n error in init.\n"), 1 );
@@ -158,10 +144,10 @@ run( int argc, ACE_TCHAR * argv[] )
 #if defined ORB_IN_THREAD
    ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( orbserver<session_i>::thread_entry ), reinterpret_cast<void *>(&server) );
 #else
-   server.run();
+   ORBServer::instance()->run();
 #endif
    if ( ! __aborted )
-	   server.deactivate();
+       ORBServer::instance()->deactivate();
 
    ACE_Reactor * reactor = TheReactorThread::instance()->get_reactor();
    reactor->end_reactor_event_loop();

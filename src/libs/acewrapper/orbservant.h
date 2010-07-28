@@ -24,6 +24,7 @@ namespace acewrapper {
 	  inline operator typename T::_stub_ptr_type () { return impl_._this(); }
 	  inline void activate() { id_ = orbmgr_.activate( &impl_ ); }
 	  void deactivate() { orbmgr_.deactivate( id_.c_str() ); }
+      void run() { orbmgr_.run(); }
 
 	  static void * thread_entry( void * me ) {
 		  ORBServant<T> * pThis = reinterpret_cast< ORBServant<T> * >(me);
