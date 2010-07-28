@@ -12,7 +12,7 @@ module GlobalConstants {
    const unsigned long ClassID_InstEvent       = 0x10020001;
 };
 
-module InstrumentStateMachine {
+module InstStateMachine {
    
    enum eInstStatus { 
       eNothing
@@ -41,5 +41,3 @@ module InstrumentStateMachine {
       , event_EventOut          // 32bit output event
   };
 };
-
-

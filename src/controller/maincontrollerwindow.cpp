@@ -42,6 +42,10 @@ MainControllerWindow::~MainControllerWindow()
 void
 MainControllerWindow::closeEvent(QCloseEvent * ev)
 {
+    extern void orb_shutdown();
+
+    orb_shutdown();
+
     ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
     if ( reactor ) {
         if ( mcastHandler_ )

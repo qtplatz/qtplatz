@@ -1,3 +1,4 @@
+// This is a -*- C++ -*- header.
 //////////////////////////////////////////
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
@@ -30,6 +31,8 @@ public:
 	}
 
 	int fini() { return orb_manager_.fini(); }
+	CORBA::ORB_ptr orb() { return orb_manager_.orb(); }
+	operator T* () { return &impl_; }
   
 	const std::string& activate() {
 		isactive_ = true;

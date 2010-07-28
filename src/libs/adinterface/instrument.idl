@@ -1,0 +1,53 @@
+// This is a -*- C++ -*- header.
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison / Advanced Instrumentation Project
+//////////////////////////////////////////
+
+module SignalObserver {
+  interface Observer;
+};
+
+module ControlMethod {
+    interface Method;
+};
+
+module SampleBroker {
+   interface SampleSequence;
+};
+
+interface Receiver;
+
+module Instrument {
+
+  interface Session {
+      
+    exception CannotAdd {
+      wstring reason_;
+    };
+    
+    wstring software_revision();  // ex. L"1.216"
+    
+    boolean connect(in Receiver receiver, in wstring token_) raises(CannotAdd);
+    boolean disconnect(in Receiver receiver_);
+      
+    unsigned long get_status();
+    
+    boolean initialize();
+    // long getdata(in long pos, inout SignalObserver::Signal data);
+
+    boolean shutdown();  // shutdown server
+    boolean echo(in string msg);
+    boolean shell(in string cmdline);
+    
+    boolean prepare_for_run(in ControlMethod::Method m);
+    boolean push_back( in SampleBroker::SampleSequence s);
+    
+    boolean event_out(in unsigned long event);
+    boolean start_run();
+    boolean suspend_run();
+    boolean resume_run();
+    boolean stop_run();
+  };
+
+};

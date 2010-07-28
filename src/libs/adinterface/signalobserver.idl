@@ -2,29 +2,36 @@
 //////////////////////////////////////////
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
-//
-// build setup
-// $(ACE_ROOT)\bin\tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputPath)
 //////////////////////////////////////////
 
 module SignalObserver {
 
-  // trace_type
-  // uptime
-  // samplinginterval
-  // getdata
-  // sequenceid
-  // axis_x_label
-  // axis_y_label
-  // axis_x_decimals
-  // axis_y_decimals
-  // transfer_clsid
-  // trace_label
-  // transfer_descriptor
-  // trace_display_name
+	enum eTRACE_METHOD {
+		eTRACE_TRACE
+		, eTRACE_SPECTRA
+	};
 
-  interface Observer {
-  };
+	struct Description {
+		wstring trace_id;
+		wstring trace_display_name;
+		eTRACE_METHOD trace_method;
+        wstring axis_x_label;
+		wstring axis_y_label;
+		wstring axis_x_decimals;
+		wstring axis_y_decimals;
+	};
+
+	struct Signal {
+		sequence< long > data;
+	};
+
+	interface Observer {
+
+	};
+
+	interface Session {
+
+	};
 
 };
 

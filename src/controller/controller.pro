@@ -11,7 +11,7 @@ TEMPLATE = app
 include(../boost.pri)
 include(../adilibrary.pri)
 
-INCLUDEPATH += $$(ACE_ROOT) $$(TAO_ROOT) ../libs
+INCLUDEPATH += $$(ACE_ROOT) $$(TAO_ROOT) $(TAO_ROOT)\orbsvcs ../libs
 LIBS *= -L$$IDE_LIBRARY_PATH -L$$(ACE_ROOT)/lib
 Debug {
     LIBS += -ladportabled -lacewrapperd -lACEd
