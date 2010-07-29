@@ -142,6 +142,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Help", "src\plugins\help\He
 		{6B860B81-51B0-3857-BB04-9E11C13B7D0F} = {6B860B81-51B0-3857-BB04-9E11C13B7D0F}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adinterface", "src\libs\adinterface\adinterface.vcproj", "{0E63611D-F1FE-3CCB-9E32-59C3737F6A59}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -260,6 +262,10 @@ Global
 		{76E806A0-0D41-3881-8BA2-5BAB7AB8D174}.Debug|Win32.Build.0 = Debug|Win32
 		{76E806A0-0D41-3881-8BA2-5BAB7AB8D174}.Release|Win32.ActiveCfg = Release|Win32
 		{76E806A0-0D41-3881-8BA2-5BAB7AB8D174}.Release|Win32.Build.0 = Release|Win32
+		{0E63611D-F1FE-3CCB-9E32-59C3737F6A59}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0E63611D-F1FE-3CCB-9E32-59C3737F6A59}.Debug|Win32.Build.0 = Debug|Win32
+		{0E63611D-F1FE-3CCB-9E32-59C3737F6A59}.Release|Win32.ActiveCfg = Release|Win32
+		{0E63611D-F1FE-3CCB-9E32-59C3737F6A59}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
