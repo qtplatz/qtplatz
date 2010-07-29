@@ -73,10 +73,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="C:/Users/thondo/src/qtPlatz/lib/qtPlatz\Utilsd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz\Aggregationd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz\ExtensionSystemd.lib QtTestd4.lib QtScriptd4.lib QtSvgd4.lib QtSqld4.lib QtXmld4.lib QtGuid4.lib QtNetworkd4.lib QtCored4.lib"
+				AdditionalDependencies="../../../lib/qtPlatz\Utilsd.lib ../../../lib/qtPlatz\Aggregationd.lib ../../../lib/qtPlatz\ExtensionSystemd.lib QtTestd4.lib QtScriptd4.lib QtSvgd4.lib QtSqld4.lib QtXmld4.lib QtGuid4.lib QtNetworkd4.lib QtCored4.lib"
 				OutputFile="..\..\..\lib\qtPlatz\plugins\Nokia\Cored.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/Nokia"
+				AdditionalLibraryDirectories="$(QTDIR)\lib,../../../lib/qtPlatz,../../../lib/qtPlatz/plugins/Nokia"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="1"
@@ -167,7 +167,7 @@
 				OutputFile="..\..\..\lib\qtPlatz\plugins\Nokia\Core.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/Nokia"
+				AdditionalLibraryDirectories="$(QTDIR)\lib,../../../lib/qtPlatz,../../../lib/qtPlatz/plugins/Nokia"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="2"
@@ -5653,9 +5653,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY Core.pluginspec"
-						CommandLine="copy /y Core.pluginspec c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\Nokia\Core.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y Core.pluginspec ..\..\..\lib\qtPlatz\plugins\Nokia\Core.pluginspec&#x0D;&#x0A;"
 						AdditionalDependencies="Core.pluginspec;copy"
-						Outputs="c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\Nokia\Core.pluginspec"
+						Outputs="..\..\..\lib\qtPlatz\plugins\Nokia\Core.pluginspec"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -5664,9 +5664,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY Core.pluginspec"
-						CommandLine="copy /y Core.pluginspec c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\Nokia\Core.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y Core.pluginspec ..\..\..\lib\qtPlatz\plugins\Nokia\Core.pluginspec&#x0D;&#x0A;"
 						AdditionalDependencies="Core.pluginspec;copy"
-						Outputs="c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\Nokia\Core.pluginspec"
+						Outputs="..\..\..\lib\qtPlatz\plugins\Nokia\Core.pluginspec"
 					/>
 				</FileConfiguration>
 			</File>
