@@ -45,8 +45,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;,&quot;$(QTDIR)\include\QtGui&quot;,&quot;$(QTDIR)\include\QtTest&quot;,&quot;$(QTDIR)\include&quot;,&quot;..\..\libs&quot;,&quot;..\..\..\tools&quot;,&quot;$(QTDIR)\include\ActiveQt&quot;,&quot;debug&quot;,&quot;.&quot;,$(QTDIR)\mkspecs\win32-msvc2008"
-				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,EXTENSIONSYSTEM_LIBRARY,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,IDE_TEST_DIR=\&quot;../../..\&quot;,QT_DLL,QT_TESTLIB_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT"
+				AdditionalIncludeDirectories="$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtTest;$(QTDIR)\include;.\..\..\libs;c:\Users\thondo\src\qtPlatz\tools;$(QTDIR)\include\ActiveQt;.\debug;.;$(QTDIR)\mkspecs\win32-msvc2008;$(ConfigurationName)"
+				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,EXTENSIONSYSTEM_LIBRARY,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,IDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot;,QT_DLL,QT_TESTLIB_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
 				RuntimeLibrary="3"
@@ -65,7 +65,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,EXTENSIONSYSTEM_LIBRARY,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,IDE_TEST_DIR=\&quot;../../..\&quot;,QT_DLL,QT_TESTLIB_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT,_DEBUG"
+				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,EXTENSIONSYSTEM_LIBRARY,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,IDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot;,QT_DLL,QT_TESTLIB_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT,_DEBUG"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -73,10 +73,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="../../../lib/qtPlatz\Aggregationd.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
+				AdditionalDependencies="C:/Users/thondo/src/qtPlatz/lib/qtPlatz\Aggregationd.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
 				OutputFile="..\..\..\lib\qtPlatz\ExtensionSystemd.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,../../../lib/qtPlatz"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="1"
@@ -136,8 +136,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;,&quot;$(QTDIR)\include\QtGui&quot;,&quot;$(QTDIR)\include&quot;,&quot;..\..\libs&quot;,&quot;..\..\..\tools&quot;,&quot;$(QTDIR)\include\ActiveQt&quot;,&quot;release&quot;,&quot;.&quot;,$(QTDIR)\mkspecs\win32-msvc2008"
-				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,EXTENSIONSYSTEM_LIBRARY,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,IDE_TEST_DIR=\&quot;../../..\&quot;,QT_DLL,QT_NO_DEBUG,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT,NDEBUG"
+				AdditionalIncludeDirectories="$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include;.\..\..\libs;c:\Users\thondo\src\qtPlatz\tools;$(QTDIR)\include\ActiveQt;.\release;.;$(QTDIR)\mkspecs\win32-msvc2008;$(ConfigurationName)"
+				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,EXTENSIONSYSTEM_LIBRARY,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,IDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot;,QT_DLL,QT_NO_DEBUG,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
@@ -156,7 +156,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,EXTENSIONSYSTEM_LIBRARY,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,IDE_TEST_DIR=\&quot;../../..\&quot;,QT_DLL,QT_NO_DEBUG,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT"
+				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,EXTENSIONSYSTEM_LIBRARY,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,IDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot;,QT_DLL,QT_NO_DEBUG,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -169,7 +169,7 @@
 				OutputFile="..\..\..\lib\qtPlatz\ExtensionSystem.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,../../../lib/qtPlatz"
+				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="2"
@@ -277,7 +277,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_iplugin.cpp&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DIDE_TEST_DIR=\&quot;../../..\&quot; -DQT_DLL -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\..\tools&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\debug&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;iplugin.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_iplugin.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DIDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -DWITH_TESTS -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -288,7 +288,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_iplugin.cpp&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DIDE_TEST_DIR=\&quot;../../..\&quot; -DQT_DLL -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\..\tools&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;iplugin.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_iplugin.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DIDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\release&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -355,7 +355,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_plugindetailsview.cpp&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DIDE_TEST_DIR=\&quot;../../..\&quot; -DQT_DLL -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\..\tools&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\debug&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;plugindetailsview.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_plugindetailsview.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DIDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -DWITH_TESTS -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -366,7 +366,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_plugindetailsview.cpp&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DIDE_TEST_DIR=\&quot;../../..\&quot; -DQT_DLL -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\..\tools&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;plugindetailsview.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_plugindetailsview.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DIDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\release&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -381,7 +381,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_pluginerrorview.cpp&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DIDE_TEST_DIR=\&quot;../../..\&quot; -DQT_DLL -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\..\tools&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\debug&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;pluginerrorview.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_pluginerrorview.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DIDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -DWITH_TESTS -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -392,7 +392,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_pluginerrorview.cpp&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DIDE_TEST_DIR=\&quot;../../..\&quot; -DQT_DLL -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\..\tools&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;pluginerrorview.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_pluginerrorview.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DIDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\release&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -407,7 +407,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_pluginmanager.cpp&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DIDE_TEST_DIR=\&quot;../../..\&quot; -DQT_DLL -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\..\tools&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\debug&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;pluginmanager.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_pluginmanager.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DIDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -DWITH_TESTS -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -418,7 +418,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_pluginmanager.cpp&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DIDE_TEST_DIR=\&quot;../../..\&quot; -DQT_DLL -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\..\tools&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;pluginmanager.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_pluginmanager.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DIDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\release&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -485,7 +485,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_pluginspec_p.cpp&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DIDE_TEST_DIR=\&quot;../../..\&quot; -DQT_DLL -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\..\tools&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\debug&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;pluginspec_p.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_pluginspec_p.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DIDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -DWITH_TESTS -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -496,7 +496,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_pluginspec_p.cpp&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DIDE_TEST_DIR=\&quot;../../..\&quot; -DQT_DLL -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\..\tools&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;pluginspec_p.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_pluginspec_p.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DIDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\release&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -511,7 +511,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_pluginview.cpp&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DIDE_TEST_DIR=\&quot;../../..\&quot; -DQT_DLL -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\..\tools&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\debug&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;pluginview.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile debug\moc_pluginview.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DIDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -DWITH_TESTS -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -522,7 +522,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_pluginview.cpp&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DIDE_TEST_DIR=\&quot;../../..\&quot; -DQT_DLL -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\..\tools&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;pluginview.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile release\moc_pluginview.cpp&#x0D;&#x0A;&#x0D;&#x0A;&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DEXTENSIONSYSTEM_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DIDE_TEST_DIR=\&quot;C:/Users/thondo/src/qtPlatz\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\release&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -561,10 +561,6 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
-				RelativePath=".\debug\qrc_pluginview.cpp"
-				>
-			</File>
-			<File
 				RelativePath="release\qrc_pluginview.cpp"
 				>
 				<FileConfiguration
@@ -575,6 +571,10 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\debug\qrc_pluginview.cpp"
+				>
 			</File>
 			<File
 				RelativePath="ui_plugindetailsview.h"

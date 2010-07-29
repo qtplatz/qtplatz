@@ -45,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="..\..\libs;&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;&quot;$(ACE_ROOT)&quot;;debug;&quot;$(TAO_ROOT)&quot;;&quot;$(TAO_ROOT)\orbsvcs&quot;"
+				AdditionalIncludeDirectories=".\..\..\libs;c:\Users\thondo\src\qtPlatz\tools;&quot;c:\Boost\include\boost-1_43&quot;;&quot;$(ACE_ROOT)&quot;;.\debug;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(TAO_ROOT)&quot;"
 				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,QT_TESTLIB_LIB,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -122,7 +122,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include&quot;,&quot;..\..\libs&quot;,&quot;c:\Users\thondo\src\qtPlatz\tools&quot;,&quot;c:\Boost\include\boost-1_43&quot;,&quot;$(ACE_ROOT)&quot;,&quot;$(QTDIR)\include\ActiveQt&quot;,&quot;release&quot;,$(QTDIR)\mkspecs\win32-msvc2008"
+				AdditionalIncludeDirectories="$(QTDIR)\include;.\..\..\libs;c:\Users\thondo\src\qtPlatz\tools;c:\Boost\include\boost-1_43;c:\ACE_wrappers;$(QTDIR)\include\ActiveQt;.\release;$(QTDIR)\mkspecs\win32-msvc2008;.\GeneratedFiles\$(ConfigurationName)"
 				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,QT_NO_DEBUG,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -212,10 +212,6 @@
 			</File>
 			<File
 				RelativePath="messageblock.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\nameservice.cpp"
 				>
 			</File>
 			<File
@@ -527,12 +523,30 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\nameservice.h"
+				RelativePath="orbservant.h"
 				>
-			</File>
-			<File
-				RelativePath=".\orbservant.h"
-				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step"
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step"
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="outputcdr.h"
