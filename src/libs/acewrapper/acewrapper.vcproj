@@ -45,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories=".\..\..\libs;c:\Users\thondo\src\qtPlatz\tools;&quot;c:\Boost\include\boost-1_43&quot;;&quot;$(ACE_ROOT)&quot;;.\debug;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(TAO_ROOT)&quot;"
+				AdditionalIncludeDirectories=".\..\..\libs;c:\Users\thondo\src\qtPlatz\tools;&quot;c:\Boost\include\boost-1_43&quot;;&quot;$(ACE_ROOT)&quot;;.\debug;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(TAO_ROOT)&quot;;&quot;$(TAO_ROOT)\orbsvcs&quot;"
 				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,QT_TESTLIB_LIB,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -212,6 +212,10 @@
 			</File>
 			<File
 				RelativePath="messageblock.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\nameservice.cpp"
 				>
 			</File>
 			<File
@@ -521,6 +525,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\nameservice.h"
+				>
 			</File>
 			<File
 				RelativePath="orbservant.h"
