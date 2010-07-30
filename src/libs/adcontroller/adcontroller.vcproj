@@ -2,9 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="adics"
-	ProjectGUID="{A69737BF-E33C-341C-96A9-36911836C39B}"
-	RootNamespace="adics"
+	Name="adcontroller"
+	ProjectGUID="{F0E155A8-2FCE-34E9-84EB-610E79DE606D}"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -20,7 +19,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="."
 			IntermediateDirectory="debug\"
-			ConfigurationType="1"
+			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			>
@@ -47,7 +46,7 @@
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
 				AdditionalIncludeDirectories="&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;..\..\libs;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;debug;&quot;$(TAO_ROOT)\orbsvcs&quot;"
-				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,QT_DLL,QT_TESTLIB_LIB,QT_THREAD_SUPPORT"
+				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,ADCONTROLLER_LIBRARY,QT_DLL,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
 				RuntimeLibrary="3"
@@ -66,7 +65,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,QT_DLL,QT_TESTLIB_LIB,QT_THREAD_SUPPORT,_DEBUG"
+				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,ADCONTROLLER_LIBRARY,QT_DLL,QT_THREAD_SUPPORT,_DEBUG"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -74,12 +73,13 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				OutputFile="..\..\..\lib\qtPlatz\adics.exe"
+				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
+				OutputFile="..\..\..\lib\qtPlatz\adcontrollerd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(TargetDir)&quot;;&quot;$(ACE_ROOT)/lib&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
-				SubSystem="1"
+				SubSystem="2"
 				LinkTimeCodeGeneration="0"
 			/>
 			<Tool
@@ -108,7 +108,7 @@
 			Name="Release|Win32"
 			OutputDirectory="."
 			IntermediateDirectory="release\"
-			ConfigurationType="1"
+			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			>
@@ -135,7 +135,7 @@
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
 				AdditionalIncludeDirectories="&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;..\..\libs;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;debug;&quot;$(TAO_ROOT)\orbsvcs&quot;"
-				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,QT_DLL,QT_NO_DEBUG,QT_THREAD_SUPPORT,NDEBUG"
+				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,ADCONTROLLER_LIBRARY,QT_DLL,QT_NO_DEBUG,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
@@ -154,7 +154,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,QT_DLL,QT_NO_DEBUG,QT_THREAD_SUPPORT"
+				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,ADCONTROLLER_LIBRARY,QT_DLL,QT_NO_DEBUG,QT_THREAD_SUPPORT"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -162,13 +162,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				OutputFile="..\..\..\lib\qtPlatz\adics.exe"
+				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
+				OutputFile="..\..\..\lib\qtPlatz\adcontroller.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(TargetDir)&quot;;&quot;$(ACE_ROOT)/lib&quot;"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
-				SubSystem="1"
+				SubSystem="2"
 				LinkTimeCodeGeneration="0"
 			/>
 			<Tool
@@ -191,6 +192,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
+				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -203,7 +206,31 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="main.cpp"
+				RelativePath="adcontroller.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ibroker.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ibrokermanager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\mcast_handler.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\receiver_i.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\session_i.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\signal_handler.cpp"
 				>
 			</File>
 		</Filter>
@@ -212,12 +239,88 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-		</Filter>
-		<Filter
-			Name="Generated Files"
-			>
+			<File
+				RelativePath="adcontroller.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step"
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step"
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="adcontroller_global.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step"
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step"
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\ibroker.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ibrokermanager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mcast_handler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\receiver_i.h"
+				>
+			</File>
+			<File
+				RelativePath=".\session_i.h"
+				>
+			</File>
+			<File
+				RelativePath=".\signal_handler.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
+		<Global
+			Name="QtVersion Win32"
+			Value="4.7.0-beta1"
+		/>
 	</Globals>
 </VisualStudioProject>

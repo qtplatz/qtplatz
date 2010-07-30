@@ -6,7 +6,9 @@
 
 #pragma once
 
-class signal_handler {
+#include "adcontroller_global.h"
+
+class ADCONTROLLERSHARED_EXPORT signal_handler {
 public:
   static int pidChild;
   static int pidParent;

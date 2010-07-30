@@ -76,8 +76,8 @@ AcquirePlugin::~AcquirePlugin()
 
 AcquirePlugin::AcquirePlugin() : manager_(0)
                                , pImpl_( new AcquireImpl() )
-                                                           , actionConnect_(0)
-                                                           , actionRunStop_(0)
+							   , actionConnect_(0)
+							   , actionRunStop_(0)
 							   , action3_(0)
 							   , action4_(0)
 							   , action5_(0)
@@ -267,5 +267,16 @@ void
 AcquirePlugin::extensionsInitialized()
 {
 }
+
+void
+AcquirePlugin::actionConnect()
+{
+}
+
+void
+AcquirePlugin::actionRunStop()
+{
+}
+
 
 Q_EXPORT_PLUGIN( AcquirePlugin )

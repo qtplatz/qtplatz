@@ -27,6 +27,8 @@ namespace Acquire {
       bool initialize(const QStringList &arguments, QString *error_message);
       void extensionsInitialized();
     private slots:
+		void actionConnect();
+		void actionRunStop();
 
     private:
       AcquireUIManager * manager_;

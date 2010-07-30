@@ -8,7 +8,15 @@
 
 #include "adinterface/receiverC.h"
 #include "adinterface/controlserverS.h"
+#include <acewrapper/orbservant.h>
 #include <vector>
+
+class session_i;
+
+namespace singleton {
+
+	typedef ACE_Singleton< acewrapper::ORBServant< session_i >, ACE_Recursive_Thread_Mutex > session;
+}
 
 class session_i : public virtual POA_ControlServer::Session {
    public:

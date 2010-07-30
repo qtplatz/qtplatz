@@ -12,11 +12,12 @@
 #include <ace/OS.h>
 #pragma warning ( default : 4996 )
 
+#include "adcontroller.h"
+
 int signal_handler::pidChild = 0;
 int signal_handler::pidParent = 0;
 int signal_handler::respawn_flag = 0;
 
-void abort_server();
 
 void
 signal_handler::sigint( int num )
@@ -37,7 +38,7 @@ signal_handler::sigint( int num )
    if ( pidChild == 0 ) {
       static int inProgress = 0;
       std::cerr << "################ abort " << ACE_OS::getpid() << "( signal=" << num << ") " << "##################" << std::endl;
-	  abort_server();
+	  adcontroller::abort_server();
    } else {
       for ( int i = 0; i < 3; ++i ) {
           std::cerr << "################ kill( " << pidChild << ") ##################" << std::endl;

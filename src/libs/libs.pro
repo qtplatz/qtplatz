@@ -14,4 +14,6 @@ SUBDIRS   = \
     adcontrols \
     adbroker \
     admachine
+
+#   adcontroller
 #    interface
