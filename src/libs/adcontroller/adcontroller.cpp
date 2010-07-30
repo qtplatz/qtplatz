@@ -69,7 +69,7 @@ adcontroller::abort_server()
 }
 
 bool
-register_name_service()
+register_name_service( const CosNaming::Name& name )
 {
 	CORBA::ORB_var orb = singleton::session::instance()->orb();
 
@@ -83,14 +83,17 @@ register_name_service()
 		ex._tao_print_exception( "register_name_service" );
         return false;
 	}
+	return NS::register_name_service( orb, name, *singleton::session::instance() );
+}
 
-    // create a name
+CosNaming::Name
+adcontroller::name()
+{
 	CosNaming::Name name;
     name.length(1);
-	name[0].id = CORBA::string_dup( "adics.session" );
+    name[0].id = CORBA::string_dup( "adics.session" );
 	name[0].kind = CORBA::string_dup( "" );
- 
-	return NS::register_name_service( orb, name, *singleton::session::instance() );
+	return name;
 }
 
 int
@@ -133,7 +136,7 @@ adcontroller::run( int argc, ACE_TCHAR * argv[] )
       if ( ret != 0 )
           ACE_ERROR_RETURN( (LM_ERROR, "\n error in init.\n"), 1 );
 
-      register_name_service();
+	  register_name_service( name() );
       
    } catch ( const CORBA::Exception& ex ) {
        ex._tao_print_exception( "run\t\n" );

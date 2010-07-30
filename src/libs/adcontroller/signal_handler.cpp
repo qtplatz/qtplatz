@@ -45,6 +45,7 @@ signal_handler::sigint( int num )
           ACE_OS::kill( pidChild, SIGHUP );
           ACE_OS::sleep(1);
       }
+      exit(0);
       ACE_OS::wait();		
    }
 }

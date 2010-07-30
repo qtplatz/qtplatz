@@ -24,14 +24,20 @@ DEFINES += ACQUIRE_LIBRARY
 SOURCES +=  acquireplugin.cpp \
     acquiremode.cpp \
     acquireuimanager.cpp \
-    acquireactions.cpp
+    acquireactions.cpp \
+    session.cpp \
+    acquire.cpp \
+    orbmanager.cpp
 
 HEADERS +=  acquire_global.h \
     acquireplugin.h \
     acquiremode.h \
     acquireuimanager.h \
     constants.h \
-    acquireactions.h
+    acquireactions.h \
+    session.h \
+    acquire.h \
+    orbmanager.h
 
 OTHER_FILES += acquire.pluginspec \
     acquire_dependencies.pri

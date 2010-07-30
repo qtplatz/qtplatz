@@ -75,7 +75,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="QtTestd4.lib QtGuid4.lib QtCored4.lib"
-				OutputFile="$(SolutionDir)bin\Aggregationd.dll"
+				OutputFile="$(SolutionDir)lib\qtPlatz\Aggregationd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;"
 				GenerateDebugInformation="true"
@@ -103,8 +103,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description=""
-				CommandLine=""
+				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
+				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
 				ExcludedFromBuild="false"
 			/>
 		</Configuration>

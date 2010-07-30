@@ -10,6 +10,11 @@
 #include "acquireactions.h"
 #include <adwidgets/dataplotwidget.h>
 #include <adwidgets/axis.h>
+#include "orbmanager.h"
+#include <tao/Object.h>
+#include <orbsvcs/CosNamingC.h>
+#include <adcontroller/adcontroller.h>
+#include <adinterface/controlserverC.h>
 
 #include <utils/fancymainwindow.h>
 
@@ -32,6 +37,7 @@
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QToolButton>
+#include <ace/Singleton.h>
 
 using namespace Acquire;
 using namespace Acquire::internal;
@@ -271,6 +277,16 @@ AcquirePlugin::extensionsInitialized()
 void
 AcquirePlugin::actionConnect()
 {
+	if ( singleton::orbManager::instance()->initialize() ) {
+		CosNaming::Name name = adcontroller::name();
+		CORBA::Object_var obj = singleton::orbManager::instance()->getObject( name );
+		if ( ! CORBA::is_nil( obj ) ) {
+			ControlServer::Session_var session = ControlServer::Session::_narrow( obj );
+			if ( ! CORBA::is_nil( session ) ) {
+				session->echo( "abc" );
+			}
+		}
+	}
 }
 
 void
