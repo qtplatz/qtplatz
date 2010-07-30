@@ -144,6 +144,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Help", "src\plugins\help\He
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adinterface", "src\libs\adinterface\adinterface.vcproj", "{0E63611D-F1FE-3CCB-9E32-59C3737F6A59}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adics", "src\libs\adics\adics.vcproj", "{A69737BF-E33C-341C-96A9-36911836C39B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -266,6 +268,10 @@ Global
 		{0E63611D-F1FE-3CCB-9E32-59C3737F6A59}.Debug|Win32.Build.0 = Debug|Win32
 		{0E63611D-F1FE-3CCB-9E32-59C3737F6A59}.Release|Win32.ActiveCfg = Release|Win32
 		{0E63611D-F1FE-3CCB-9E32-59C3737F6A59}.Release|Win32.Build.0 = Release|Win32
+		{A69737BF-E33C-341C-96A9-36911836C39B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A69737BF-E33C-341C-96A9-36911836C39B}.Debug|Win32.Build.0 = Debug|Win32
+		{A69737BF-E33C-341C-96A9-36911836C39B}.Release|Win32.ActiveCfg = Release|Win32
+		{A69737BF-E33C-341C-96A9-36911836C39B}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

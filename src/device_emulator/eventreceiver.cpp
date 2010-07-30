@@ -82,9 +82,10 @@ QEventReceiver::handle_input( acewrapper::McastHandler& mcast, ACE_HANDLE )
         }
  
     } while(0);
-#endif
 
     std::cout << "handle_input mcast(" << res << ")" << o.str().c_str() << std::endl;
+#endif
+
     emit signal_mcast_input( mb );
     return 0;
 }

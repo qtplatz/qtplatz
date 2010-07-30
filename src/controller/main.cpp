@@ -34,10 +34,12 @@
 #  endif
 #endif
 
+#pragma warning (disable: 4996)
 #include "session_i.h"
 #include <acewrapper/orbservant.h>
 #include <acewrapper/nameservice.h>
 #include <ace/Thread_Manager.h>
+#pragma warning (default: 4996)
 
 typedef ACE_Singleton< acewrapper::ORBServant< session_i >, ACE_Recursive_Thread_Mutex > ORBImpl;
 

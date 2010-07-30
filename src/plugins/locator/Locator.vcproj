@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="Locator"
 	ProjectGUID="{6B860B81-51B0-3857-BB04-9E11C13B7D0F}"
+	RootNamespace="Locator"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -73,7 +74,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="QtConcurrentd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz\Aggregationd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz\ExtensionSystemd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz\Utilsd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/Nokia\Cored.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
+				AdditionalDependencies="QtConcurrentd.lib Aggregationd.lib ExtensionSystemd.lib Utilsd.lib Cored.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
 				OutputFile="..\..\..\lib\qtPlatz\plugins\Nokia\Locatord.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;"
@@ -167,7 +168,7 @@
 				OutputFile="..\..\..\lib\qtPlatz\plugins\Nokia\Locator.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/Nokia"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="2"
@@ -569,10 +570,6 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
-				RelativePath=".\debug\qrc_locator.cpp"
-				>
-			</File>
-			<File
 				RelativePath="release\qrc_locator.cpp"
 				>
 				<FileConfiguration
@@ -583,6 +580,10 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\debug\qrc_locator.cpp"
+				>
 			</File>
 			<File
 				RelativePath="ui_directoryfilter.h"
@@ -1087,9 +1088,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY Locator.pluginspec"
-						CommandLine="copy /y Locator.pluginspec c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\Nokia\Locator.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
 						AdditionalDependencies="Locator.pluginspec;copy"
-						Outputs="c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\Nokia\Locator.pluginspec"
+						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1098,9 +1099,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY Locator.pluginspec"
-						CommandLine="copy /y Locator.pluginspec c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\Nokia\Locator.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
 						AdditionalDependencies="Locator.pluginspec;copy"
-						Outputs="c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\Nokia\Locator.pluginspec"
+						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
 			</File>

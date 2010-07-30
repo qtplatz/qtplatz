@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="appplugin"
 	ProjectGUID="{F06B71ED-E996-306E-9855-E3083DDD1C6B}"
+	RootNamespace="appplugin"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -73,10 +74,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="acewrapperd.lib C:\ACE_wrappers/lib\ACEd.lib adcontrolsd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz\Aggregationd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz\ExtensionSystemd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz\Utilsd.lib Cored.lib Findd.lib QtTestd4.lib QtXmld4.lib QtGuid4.lib QtCored4.lib"
+				AdditionalDependencies="Aggregationd.lib ExtensionSystemd.lib Utilsd.lib Cored.lib Findd.lib QtTestd4.lib QtXmld4.lib QtGuid4.lib QtCored4.lib ACEd.lib"
 				OutputFile="..\..\..\lib\qtPlatz\plugins\ScienceLiaison\appplugind.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/ScienceLiaison,C:\Boost/lib,C:\ACE_wrappers/lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/Nokia"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(TargetDir)&quot;;&quot;$(ACE_ROOT)/lib&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="1"
@@ -163,11 +164,11 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
-				AdditionalDependencies="acewrapper.lib C:\ACE_wrappers/lib\ACE.lib adcontrols.lib Aggregation.lib ExtensionSystem.lib Utils.lib Core.lib Find.lib QtXml4.lib QtGui4.lib QtCore4.lib"
+				AdditionalDependencies="acewrapper.lib ACE.lib adcontrols.lib Aggregation.lib ExtensionSystem.lib Utils.lib Core.lib Find.lib QtXml4.lib QtGui4.lib QtCore4.lib"
 				OutputFile="..\..\..\lib\qtPlatz\plugins\ScienceLiaison\appplugin.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/ScienceLiaison,C:\Boost/lib,C:\ACE_wrappers/lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/Nokia"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(TargetDir)&quot;;&quot;$(ACE_ROOT)/lib&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="2"
@@ -377,9 +378,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY appplugin.pluginspec"
-						CommandLine="copy /y appplugin.pluginspec c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\ScienceLiaison\appplugin.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
 						AdditionalDependencies="appplugin.pluginspec;copy"
-						Outputs="c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\ScienceLiaison\appplugin.pluginspec"
+						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -388,9 +389,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY appplugin.pluginspec"
-						CommandLine="copy /y appplugin.pluginspec c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\ScienceLiaison\appplugin.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
 						AdditionalDependencies="appplugin.pluginspec;copy"
-						Outputs="c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\ScienceLiaison\appplugin.pluginspec"
+						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
 			</File>

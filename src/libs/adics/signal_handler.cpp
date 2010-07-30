@@ -5,10 +5,12 @@
 
 #include "signal_handler.h"
 #include <iostream>
+#pragma warning ( disable : 4996 )
 #include <ace/Sched_Params.h>
 #include <ace/Thread_Manager.h>
 #include <ace/Process_Manager.h>
 #include <ace/OS.h>
+#pragma warning ( default : 4996 )
 
 int signal_handler::pidChild = 0;
 int signal_handler::pidParent = 0;

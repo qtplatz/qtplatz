@@ -3,9 +3,11 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
+#pragma warning( disable: 4996 )
 #include "ace_string.h"
 #include <sstream>
 #include <ace/INET_Addr.h>
+#pragma warning( default: 4996 )
 
 using namespace acewrapper;
 

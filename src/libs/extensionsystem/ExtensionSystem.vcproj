@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="C:/Users/thondo/src/qtPlatz/lib/qtPlatz\Aggregationd.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
+				AdditionalDependencies="Aggregationd.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
 				OutputFile="$(SolutionDir)bin\ExtensionSystemd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;"
@@ -166,10 +166,10 @@
 				IgnoreImportLibrary="true"
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
 				AdditionalDependencies="Aggregation.lib QtGui4.lib QtCore4.lib"
-				OutputFile="$(SolutionDir)bin\ExtensionSystem.dll"
+				OutputFile="$(SolutionDir)lib\qtPlatz\ExtensionSystem.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="2"
@@ -195,7 +195,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copy ExtensionSystem.dll to ..\..\..\bin"
+				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
 				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
 			/>
 		</Configuration>
@@ -561,10 +561,6 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
-				RelativePath=".\debug\qrc_pluginview.cpp"
-				>
-			</File>
-			<File
 				RelativePath="release\qrc_pluginview.cpp"
 				>
 				<FileConfiguration
@@ -575,6 +571,10 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\debug\qrc_pluginview.cpp"
+				>
 			</File>
 			<File
 				RelativePath="ui_plugindetailsview.h"

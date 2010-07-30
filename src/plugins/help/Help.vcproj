@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="Help"
 	ProjectGUID="{76E806A0-0D41-3881-8BA2-5BAB7AB8D174}"
+	RootNamespace="Help"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -73,7 +74,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="C:/Users/thondo/src/qtPlatz/lib/qtPlatz\Aggregationd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz\ExtensionSystemd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz\Utilsd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/Nokia\Cored.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/Nokia\Findd.lib QtConcurrentd.lib C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/Nokia\Locatord.lib QtHelpd4.lib QtWebKitd4.lib QtTestd4.lib QtSqld4.lib QtXmld4.lib QtGuid4.lib QtNetworkd4.lib QtCored4.lib"
+				AdditionalDependencies="Aggregationd.lib ExtensionSystemd.lib Utilsd.lib Cored.lib Findd.lib QtConcurrentd.lib Locatord.lib QtHelpd4.lib QtWebKitd4.lib QtTestd4.lib QtSqld4.lib QtXmld4.lib QtGuid4.lib QtNetworkd4.lib QtCored4.lib"
 				OutputFile="..\..\..\lib\qtPlatz\plugins\Nokia\Helpd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;"
@@ -167,7 +168,7 @@
 				OutputFile="..\..\..\lib\qtPlatz\plugins\Nokia\Help.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/Nokia"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="2"
@@ -749,10 +750,6 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
-				RelativePath=".\debug\qrc_help.cpp"
-				>
-			</File>
-			<File
 				RelativePath="release\qrc_help.cpp"
 				>
 				<FileConfiguration
@@ -763,6 +760,10 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\debug\qrc_help.cpp"
+				>
 			</File>
 			<File
 				RelativePath="ui_bookmarkdialog.h"
@@ -1463,7 +1464,7 @@
 			ParseFiles="false"
 			>
 			<File
-				RelativePath=".\images\mac\addtab.png"
+				RelativePath=".\images\win\addtab.png"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -1483,7 +1484,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\images\win\addtab.png"
+				RelativePath=".\images\mac\addtab.png"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -1703,9 +1704,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY Help.pluginspec"
-						CommandLine="copy /y Help.pluginspec c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\Nokia\Help.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
 						AdditionalDependencies="Help.pluginspec;copy"
-						Outputs="c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\Nokia\Help.pluginspec"
+						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1714,9 +1715,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY Help.pluginspec"
-						CommandLine="copy /y Help.pluginspec c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\Nokia\Help.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
 						AdditionalDependencies="Help.pluginspec;copy"
-						Outputs="c:\Users\thondo\src\qtPlatz\lib\qtPlatz\plugins\Nokia\Help.pluginspec"
+						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
 			</File>

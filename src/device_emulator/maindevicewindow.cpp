@@ -14,14 +14,18 @@
 #include <acewrapper/mcasthandler.h>
 #include <acewrapper/timerhandler.h>
 #include <acewrapper/inputcdr.h>
+#include <iostream>
+#include <QThread>
+#include <sstream>
+
+# pragma warning (disable : 4996 )
+#include <ace/OS.h>
 #include <ace/Reactor.h>
 #include <ace/Message_Block.h>
 #include <ace/Task.h>
 #include <ace/Reactor_Notification_Strategy.h>
-#include <iostream>
-#include <QThread>
-#include <sstream>
-#include <ace/OS.h>
+# pragma warning (default : 4996 )
+
 #include "eventreceiver.h"
 #include <boost/lexical_cast.hpp>
 #include <acewrapper/lifecycle_frame_serializer.h>

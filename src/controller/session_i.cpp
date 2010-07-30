@@ -3,11 +3,15 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
+#include <iostream>
+
+#pragma warning (disable: 4996)
 #include "session_i.h"
 #include "adinterface/receiverC.h"
-#include <iostream>
 #include <acewrapper/mutex.hpp>
 #include <boost/tokenizer.hpp>
+
+#pragma warning (default: 4996)
 
 using namespace acewrapper;
 
