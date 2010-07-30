@@ -569,6 +569,10 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
+				RelativePath=".\debug\qrc_dataproc.cpp"
+				>
+			</File>
+			<File
 				RelativePath="release\qrc_dataproc.cpp"
 				>
 				<FileConfiguration
@@ -579,10 +583,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\debug\qrc_dataproc.cpp"
-				>
 			</File>
 			<Filter
 				Name="Debug"
@@ -883,9 +883,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Rcc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\debug\qrc_$(InputName).cpp&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\$(ConfigurationName)\qrc_$(InputName).cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(InputPath);.\dataproc-mimetype.xml"
-						Outputs=".\debug\qrc_$(InputName).cpp"
+						Outputs=".\$(ConfigurationName)\qrc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
 			</File>
@@ -904,7 +904,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY dataproc.pluginspec"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies="copy;dataproc.pluginspec"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
@@ -915,7 +915,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY dataproc.pluginspec"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies="copy;dataproc.pluginspec"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>

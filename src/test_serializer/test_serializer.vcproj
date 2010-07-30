@@ -135,7 +135,7 @@
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
 				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;.\..\libs;&quot;$(SolutionDir)tools&quot;;&quot;c:\Boost\include\boost-1_43&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.\debug;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;"
-				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,QT_DLL,QT_NO_DEBUG,QT_CORE_LIB,QT_THREAD_SUPPORT,NDEBUG"
+				PreprocessorDefinitions="QT_NO_DEBUG;NDEBUG;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;IDE_LIBRARY_BASENAME=\&quot;lib\&quot;;QT_NO_CAST_TO_ASCII;QT_DLL;QT_CORE_LIB;QT_THREAD_SUPPORT;_CRT_SECURE_NO_WARNINGS"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"

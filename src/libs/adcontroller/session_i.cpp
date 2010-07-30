@@ -3,8 +3,11 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
+#pragma warning (disable: 4996)
 #include "session_i.h"
 #include "adinterface/receiverC.h"
+#pragma warning (default: 4996)
+
 #include <iostream>
 #include "ibrokermanager.h"
 #include "ibroker.h"

@@ -74,7 +74,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="Aggregationd.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
-				OutputFile="$(SolutionDir)bin\ExtensionSystemd.dll"
+				OutputFile="$(SolutionDir)lib\qtPlatz\ExtensionSystemd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;"
 				GenerateDebugInformation="true"
@@ -561,6 +561,10 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
+				RelativePath=".\debug\qrc_pluginview.cpp"
+				>
+			</File>
+			<File
 				RelativePath="release\qrc_pluginview.cpp"
 				>
 				<FileConfiguration
@@ -571,10 +575,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\debug\qrc_pluginview.cpp"
-				>
 			</File>
 			<File
 				RelativePath="ui_plugindetailsview.h"
@@ -962,9 +962,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Rcc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\debug\qrc_$(InputName).cpp&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\release\qrc_$(InputName).cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(InputPath);.\images\ok.png;.\images\error.png"
-						Outputs=".\debug\qrc_$(InputName).cpp"
+						Outputs=".\release\qrc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
 			</File>

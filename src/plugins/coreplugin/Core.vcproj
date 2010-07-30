@@ -2511,23 +2511,11 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
-				RelativePath="release\qrc_core.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\debug\qrc_core.cpp"
 				>
 			</File>
 			<File
-				RelativePath="release\qrc_fancyactionbar.cpp"
+				RelativePath="release\qrc_core.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -2541,6 +2529,18 @@
 			<File
 				RelativePath=".\debug\qrc_fancyactionbar.cpp"
 				>
+			</File>
+			<File
+				RelativePath="release\qrc_fancyactionbar.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="ui_generalsettings.h"
@@ -4666,9 +4666,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Rcc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\debug\qrc_$(InputName).cpp&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\release\qrc_$(InputName).cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(InputPath);.\images\clean_pane_small.png;.\images\clear.png;.\images\closebutton.png;.\images\dir.png;.\images\editcopy.png;.\images\editcut.png;.\images\editpaste.png;.\images\empty14.png;.\images\filenew.png;.\images\fileopen.png;.\images\filesave.png;.\images\find.png;.\images\findnext.png;.\images\qtcreator_logo_128.png;.\images\qtcreator_logo_32.png;.\images\inputfield.png;.\images\inputfield_disabled.png;.\images\linkicon.png;.\images\locked.png;.\images\magnifier.png;.\images\minus.png;.\images\next.png;.\images\panel_button.png;.\images\panel_button_checked.png;.\images\panel_button_checked_hover.png;.\images\panel_button_hover.png;.\images\panel_button_pressed.png;.\images\plus.png;.\images\prev.png;.\images\pushbutton.png;.\images\pushbutton_hover.png;.\images\pushbutton_pressed.png;.\images\qtwatermark.png;.\images\redo.png;.\images\replace.png;.\images\reset.png;.\images\sidebaricon.png;.\images\splitbutton_horizontal.png;.\images\statusbar.png;.\images\undo.png;.\images\unknownfile.png;.\images\unlocked.png;.\images\extension.png;.\images\darkclosebutton.png"
-						Outputs=".\debug\qrc_$(InputName).cpp"
+						Outputs=".\release\qrc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
 			</File>
@@ -4832,9 +4832,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Rcc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\debug\qrc_$(InputName).cpp&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\release\qrc_$(InputName).cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(InputPath);.\images\fancytoolbutton.svg;.\images\mode_Debug.png;.\images\mode_Edit.png;.\images\mode_Output.png;.\images\mode_Project.png;.\images\mode_Reference.png"
-						Outputs=".\debug\qrc_$(InputName).cpp"
+						Outputs=".\release\qrc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
 			</File>
@@ -5653,7 +5653,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY Core.pluginspec"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies="Core.pluginspec;copy"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
@@ -5664,7 +5664,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY Core.pluginspec"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies="Core.pluginspec;copy"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>

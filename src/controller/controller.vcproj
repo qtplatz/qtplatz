@@ -491,6 +491,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\debug\qrc_controller.cpp"
+				>
+			</File>
+			<File
 				RelativePath="release\qrc_controller.cpp"
 				>
 				<FileConfiguration
@@ -501,10 +505,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\debug\qrc_controller.cpp"
-				>
 			</File>
 			<File
 				RelativePath="ui_maincontrollerwindow.h"
@@ -724,9 +724,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Rcc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\debug\qrc_$(InputName).cpp&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\release\qrc_$(InputName).cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(InputPath)"
-						Outputs=".\debug\qrc_$(InputName).cpp"
+						Outputs=".\release\qrc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
 			</File>

@@ -74,7 +74,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="acewrapperd.lib QtTestd4.lib QtCored4.lib"
-				OutputFile="$(SolutionDir)bin\adcontrolsd.dll"
+				OutputFile="$(SolutionDir)lib\qtPlatz\adcontrolsd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;C:\Boost/lib;&quot;$(ACE_ROOT)/lib&quot;"
 				GenerateDebugInformation="true"

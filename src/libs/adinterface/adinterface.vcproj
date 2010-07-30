@@ -134,7 +134,7 @@
 				AssemblerListingLocation="release\"
 				ObjectFile="release\"
 				ProgramDataBaseFileName=".\"
-				WarningLevel="3"
+				WarningLevel="2"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="0"
 			/>

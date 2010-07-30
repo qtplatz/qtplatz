@@ -394,6 +394,10 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
+				RelativePath=".\debug\qrc_welcome.cpp"
+				>
+			</File>
+			<File
 				RelativePath="release\qrc_welcome.cpp"
 				>
 				<FileConfiguration
@@ -404,10 +408,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\debug\qrc_welcome.cpp"
-				>
 			</File>
 			<File
 				RelativePath="ui_communitywelcomepagewidget.h"
@@ -1079,9 +1079,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Rcc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\debug\qrc_$(InputName).cpp&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\release\qrc_$(InputName).cpp&#x0D;&#x0A;"
 						AdditionalDependencies="$(InputPath);.\images\btn_26.png;.\images\btn_26_hover.png;.\images\btn_27.png;.\images\btn_27_hover.png;.\images\feedback_arrow.png;.\images\feedback_arrow_hover.png;.\images\feedback-bar-background.png;.\images\list_bullet_arrow.png;.\images\mode_project.png;.\images\nokia_logo.png;.\images\product_logo.png;.\images\qt_logo.png;.\images\rc_combined.png;.\images\background_center_frame.png;.\images\btn_26_pressed.png;.\images\combobox_arrow.png;.\images\arrow-left.png;.\images\arrow-right.png;.\images\center_frame_header2.png;.\images\center_frame_header.png"
-						Outputs=".\debug\qrc_$(InputName).cpp"
+						Outputs=".\release\qrc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
 			</File>
@@ -1100,7 +1100,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY Welcome.pluginspec"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies="Welcome.pluginspec;copy"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
@@ -1111,7 +1111,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY Welcome.pluginspec"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies="Welcome.pluginspec;copy"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
