@@ -61,11 +61,15 @@ using namespace acewrapper;
 static int debug_flag = 1;
 static bool __aborted = false;
 
+static Receiver * __preceiver_debug;
+std::string __ior_session;
+
 void
 adcontroller::abort_server()
 {
 	__aborted = true;
 	singleton::session::instance()->deactivate();
+	singleton::session::instance()->fini();
 }
 
 bool
@@ -118,20 +122,11 @@ adcontroller::run( int argc, ACE_TCHAR * argv[] )
    }
    //-------------> end priority code
 
-   ReactorThread::spawn( TheReactorThread::instance() );
-   
-   boost::scoped_ptr< EventHandler< McastReceiver< mcast_handler > > > pmcast( new EventHandler< McastReceiver< mcast_handler > >() );
-   if ( pmcast && pmcast->open() ) {
-	   ACE_Reactor * reactor = TheReactorThread::instance()->get_reactor();
-	   if ( reactor )
-		   reactor->register_handler( pmcast.get(), ACE_Event_Handler::READ_MASK );
-   }
-
    try {
       int ret;
       // -ORBListenEndpoints iiop://192.168.0.1:9999
 	  ret = singleton::session::instance()->init(argc, argv);
-	  singleton::session::instance()->activate();
+      singleton::session::instance()->activate();
 
       if ( ret != 0 )
           ACE_ERROR_RETURN( (LM_ERROR, "\n error in init.\n"), 1 );
@@ -146,18 +141,21 @@ adcontroller::run( int argc, ACE_TCHAR * argv[] )
    ORBServant< session_i > * p = singleton::session::instance();
    ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServant<session_i>::thread_entry ), reinterpret_cast<void *>(p) );
 
-   if ( ! __aborted )
-	   singleton::session::instance()->deactivate();
-
-   ACE_Reactor * reactor = TheReactorThread::instance()->get_reactor();
-   reactor->end_reactor_event_loop();
-
-   ACE_Thread_Manager::instance()->wait();
-
-   reactor->close();
    return 0;
 }
 
 adcontroller::adcontroller()
 {
+}
+
+CORBA::ORB_ptr
+adcontroller::orb()
+{
+    return singleton::session::instance()->orb();
+}
+
+const char *
+adcontroller::ior()
+{
+    return singleton::session::instance()->ior().c_str();
 }

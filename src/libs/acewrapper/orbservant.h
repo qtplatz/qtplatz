@@ -25,6 +25,7 @@ namespace acewrapper {
 	  inline void activate() { id_ = orbmgr_.activate( &impl_ ); }
 	  void deactivate() { orbmgr_.deactivate( id_.c_str() ); }
       void run() { orbmgr_.run(); }
+      inline const std::string& ior() const { return id_; }
 
 	  static void * thread_entry( void * me ) {
 		  ORBServant<T> * pThis = reinterpret_cast< ORBServant<T> * >(me);

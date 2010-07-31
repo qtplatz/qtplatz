@@ -12,11 +12,17 @@ namespace CosNaming {
 	class Name;
 }
 
+namespace CORBA {
+    class ORB;
+}
+
 class ADCONTROLLERSHARED_EXPORT adcontroller {
 public:
     adcontroller();
 	static int run( int argc, char * argv[] );
 	static void abort_server();
 	static CosNaming::Name name();
+    static CORBA::ORB * orb();
+    static const char * ior();
 };
 

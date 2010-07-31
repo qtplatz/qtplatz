@@ -42,5 +42,6 @@ interface Receiver {
   oneway void message(in eINSTEVENT msg, in unsigned long value); // send message to client
   oneway void eventLog(in LogMessage log);
   oneway void shutdown(); // called by the server before it goes away
+  oneway void debug_print( in long priority, in long category, in string text );
   
 };

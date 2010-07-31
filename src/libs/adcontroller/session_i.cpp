@@ -66,6 +66,8 @@ session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
       
     if ( receiver_set_.size() == 1 ) 
         iBrokerManager::instance()->get<iBroker>()->reset_clock();
+
+    echo( "client connected" );
       
     return true;
 }
@@ -97,7 +99,10 @@ session_i::get_status()
 CORBA::Boolean
 session_i::echo( const char * msg )
 {
-    ACE_UNUSED_ARG(msg);
+    // lock required
+    for ( vector_type::iterator it = begin(); it != end(); ++it ) {
+        it->receiver_->debug_print( 0, 0, msg );
+    }
 	return true;
 }
 
