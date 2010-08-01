@@ -15,7 +15,7 @@
 #include <orbsvcs/CosNamingC.h>
 #include <adcontroller/adcontroller.h>
 #include <adinterface/controlserverC.h>
-
+#include <acewrapper/constants.h>
 #include <utils/fancymainwindow.h>
 
 #include <coreplugin/icore.h>
@@ -278,7 +278,9 @@ void
 AcquirePlugin::actionConnect()
 {
 	if ( singleton::orbManager::instance()->initialize() ) {
-		CosNaming::Name name = adcontroller::name();
+        // CosNaming::Name name = adcontroller::name();
+        CosNaming::Name name = acewrapper::constants::adcontroller::session::name();
+
 		CORBA::Object_var obj = singleton::orbManager::instance()->getObject( name );
 		if ( ! CORBA::is_nil( obj ) ) {
 			ControlServer::Session_var session = ControlServer::Session::_narrow( obj );
