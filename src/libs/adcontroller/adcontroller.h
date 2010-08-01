@@ -8,10 +8,6 @@
 
 #include "adcontroller_global.h"
 
-namespace CosNaming {
-	class Name;
-}
-
 namespace CORBA {
     class ORB;
 }
@@ -21,7 +17,6 @@ public:
     adcontroller();
 	static int run( int argc, char * argv[] );
 	static void abort_server();
-	static CosNaming::Name name();
     static CORBA::ORB * orb();
     static const char * ior();
 };

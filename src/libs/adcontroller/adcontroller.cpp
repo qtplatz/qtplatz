@@ -50,11 +50,13 @@
 #include <ace/Process_Manager.h>
 #include <acewrapper/eventhandler.h>
 #include <acewrapper/mcasthandler.h>
+#include <acewrapper/constants.h>
 #include "mcast_handler.h"
 #include <boost/smart_ptr.hpp>
 #include <acewrapper/reactorthread.h>
 #include <ace/Reactor.h>
 #include "session_i.h"
+
 
 using namespace acewrapper;
 
@@ -90,16 +92,6 @@ register_name_service( const CosNaming::Name& name )
 	return NS::register_name_service( orb, name, *singleton::session::instance() );
 }
 
-CosNaming::Name
-adcontroller::name()
-{
-	CosNaming::Name name;
-    name.length(1);
-    name[0].id = CORBA::string_dup( "adics.session" );
-	name[0].kind = CORBA::string_dup( "" );
-	return name;
-}
-
 int
 adcontroller::run( int argc, ACE_TCHAR * argv[] )
 {
@@ -131,7 +123,7 @@ adcontroller::run( int argc, ACE_TCHAR * argv[] )
       if ( ret != 0 )
           ACE_ERROR_RETURN( (LM_ERROR, "\n error in init.\n"), 1 );
 
-	  register_name_service( name() );
+      register_name_service( acewrapper::constants::adcontroller::session::name() );
       
    } catch ( const CORBA::Exception& ex ) {
        ex._tao_print_exception( "run\t\n" );

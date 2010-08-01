@@ -20,6 +20,9 @@ namespace acewrapper {
 	  int init( int ac, ACE_TCHAR * av[] ) { return orbmgr_.init( ac, av ); }
 	  int fini() { return orbmgr_.fini(); }
 	  inline CORBA::ORB_ptr orb() { return orbmgr_.orb(); }
+      inline PortableServer::POA_ptr root_poa() { return orbmgr_.root_poa(); }
+      inline PortableServer::POA_ptr child_poa() { return orbmgr_.child_poa(); }
+      inline PortableServer::POAManager_ptr poa_manager() { return orbmgr_.poa_manager(); }
 	  inline operator T* () { return &impl_; }
 	  inline operator typename T::_stub_ptr_type () { return impl_._this(); }
 	  inline void activate() { id_ = orbmgr_.activate( &impl_ ); }

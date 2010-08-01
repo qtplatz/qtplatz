@@ -180,6 +180,14 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\brokerC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\brokerS.cpp"
+				>
+			</File>
+			<File
 				RelativePath="controlmethodC.cpp"
 				>
 			</File>
@@ -216,6 +224,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\loghandlerC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\loghandlerS.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\receiverC.cpp"
 				>
 			</File>
@@ -245,6 +261,14 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\brokerC.h"
+				>
+			</File>
+			<File
+				RelativePath=".\brokerS.h"
+				>
+			</File>
 			<File
 				RelativePath=".\instrumentC.h"
 				>
@@ -292,6 +316,14 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\loghandlerC.h"
+				>
+			</File>
+			<File
+				RelativePath=".\loghandlerS.h"
+				>
+			</File>
+			<File
 				RelativePath=".\signalobserverC.h"
 				>
 			</File>
@@ -302,7 +334,7 @@
 		</Filter>
 		<Filter
 			Name="Generated Files"
-			Filter="cpp;c;cxx;moc;h;def;odl;idl;res;"
+			Filter="cpp;c;cxx;moc;h;def;odl;res;"
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
@@ -467,6 +499,28 @@
 			Filter="idl"
 			>
 			<File
+				RelativePath=".\broker.idl"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\controlmethod.idl"
 				>
 				<FileConfiguration
@@ -550,6 +604,28 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\loghandler.idl"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>

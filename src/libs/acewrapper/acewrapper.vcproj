@@ -187,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\constants.cpp"
+				>
+			</File>
+			<File
 				RelativePath="dgramhandler.cpp"
 				>
 			</File>
@@ -317,6 +321,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\constants.h"
+				>
 			</File>
 			<File
 				RelativePath="dgramhandler.h"

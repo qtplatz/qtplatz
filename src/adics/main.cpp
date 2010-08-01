@@ -21,6 +21,7 @@
 #     pragma comment(lib, "TAO_AnyTypeCoded.lib")
 #     pragma comment(lib, "TAO_CosNamingd.lib")
 #     pragma comment(lib, "adcontrollerd.lib")
+#     pragma comment(lib, "adbrokerd.lib")
 #     pragma comment(lib, "acewrapperd.lib")
 #     pragma comment(lib, "adinterfaced.lib")
 #  else

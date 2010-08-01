@@ -6,12 +6,10 @@
 #ifndef ADBROKER_GLOBAL_H
 #define ADBROKER_GLOBAL_H
 
-#include <QtCore/qglobal.h>
-
 #if defined(ADBROKER_LIBRARY)
-#  define ADBROKERSHARED_EXPORT Q_DECL_EXPORT
+#  define ADBROKERSHARED_EXPORT __declspec(dllexport)
 #else
-#  define ADBROKERSHARED_EXPORT Q_DECL_IMPORT
+#  define ADBROKERSHARED_EXPORT __declspec(dllimport)
 #endif
 
 #endif // ADBROKER_GLOBAL_H
