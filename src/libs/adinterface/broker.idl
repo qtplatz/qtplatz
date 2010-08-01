@@ -1,0 +1,48 @@
+// This is a -*- C++ -*- header.
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison / Advanced Instrumentation Project
+//
+// build setup
+// $(ACE_ROOT)\bin\tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputPath)
+//////////////////////////////////////////
+
+interface LogHandler;
+
+module Broker {
+
+    struct LogMessage {
+        unsigned long logId;
+        long priority;
+        long long tv_sec;
+        long tv_usec;
+        wstring msgId;
+        wstring srcId;
+        wstring text;
+        sequence< wstring > args;
+    };
+
+    interface Session {
+        boolean connect( in string user, in string pass, in string token );
+    };
+
+    interface Logger {
+        exception AlreadyExist {
+            wstring reason_;
+        };
+        void log( in LogMessage msg );
+
+        boolean findLog( in unsigned long logId, inout LogMessage msg );
+        boolean nextLog( inout LogMessage msg );
+        wstring to_string( in LogMessage msg );
+
+        boolean register_handler( in LogHandler handler );
+        boolean unregister_handler( in LogHandler handler );
+    };
+
+    interface Manager {
+        Session getSession( in wstring connStr );
+        Logger getLogger();     
+    };
+
+};
