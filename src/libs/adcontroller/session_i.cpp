@@ -14,6 +14,7 @@
 #include <acewrapper/mutex.hpp>
 #include "ibroker.h"
 #include <boost/tokenizer.hpp>
+#include "task.h"
 
 using namespace acewrapper;
 
@@ -39,6 +40,7 @@ session_i::~session_i()
 
 session_i::session_i()
 {
+	singleton::Task::instance()->initialize();
 }
 
 CORBA::WChar *

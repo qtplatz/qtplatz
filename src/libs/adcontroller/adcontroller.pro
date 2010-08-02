@@ -11,7 +11,9 @@ TEMPLATE = lib
 
 DEFINES += ADCONTROLLER_LIBRARY
 
-SOURCES += adcontroller.cpp
+SOURCES += adcontroller.cpp \
+    controllerservant.cpp
 
 HEADERS += adcontroller.h\
-        adcontroller_global.h
+        adcontroller_global.h \
+    controllerservant.h
