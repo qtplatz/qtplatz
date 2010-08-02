@@ -226,10 +226,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\orbmanager.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\session.cpp"
 				>
 			</File>
@@ -400,10 +396,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\orbmanager.h"
-				>
-			</File>
-			<File
 				RelativePath=".\session.h"
 				>
 			</File>
@@ -413,6 +405,10 @@
 			Filter="cpp;c;cxx;moc;h;def;odl;idl;res;"
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
+			<File
+				RelativePath=".\debug\qrc_acquire.cpp"
+				>
+			</File>
 			<File
 				RelativePath="release\qrc_acquire.cpp"
 				>
@@ -424,10 +420,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\debug\qrc_acquire.cpp"
-				>
 			</File>
 			<Filter
 				Name="Debug"

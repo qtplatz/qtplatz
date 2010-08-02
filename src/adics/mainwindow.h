@@ -17,6 +17,10 @@ namespace Ui {
     class MainWindow;
 }
 
+namespace acewrapper {
+    class ORBServantManager;
+}
+
 class MainWindow;
 
 class LogHandler_i : public POA_LogHandler {
@@ -53,7 +57,7 @@ protected:
     void closeEvent(QCloseEvent *);
 
 private:
-    bool init_adcontroller();
+	bool init_adcontroller();
     bool init_adbroker();
 
 private:
@@ -62,6 +66,7 @@ private:
     Broker::Manager_var manager_;
     Receiver_i receiver_;
     LogHandler_i logHandler_;
+
 public:
     void invoke_debug_print( long pri, long cat, QString );
     void invoke_notify_update( unsigned long logId );

@@ -63,12 +63,26 @@ Release
 doc/html/*
 .rcc
 .pch
+share/qtplatz/phony.c
+share/qtplatz/translations/phony.c
+src/libs/adinterface/*C.cpp
+src/libs/adinterface/*C.h
+src/libs/adinterface/*C.inl
+src/libs/adinterface/*S.cpp
+src/libs/adinterface/*S.h
+src/libs/adinterface/*S.inl
+src/controller/*C.cpp
+src/controller/*C.h
+src/controller/*C.inl
+src/controller/*S.cpp
+src/controller/*S.h
+src/controller/*S.inl
 
 # Binaries
 # --------
 bin/*.dll
+bin/*.exe
 bin/qtcreator.bin
 bin/qtcreator_process_stub*
-bin/qtcreator.exe
 share/doc/qtcreator/qtcreator.qch
 tests/manual/cplusplus/cplusplus0

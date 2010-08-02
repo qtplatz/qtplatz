@@ -6,11 +6,14 @@
 #include <QtGui/QApplication>
 #include "mainwindow.h"
 #include <acewrapper/acewrapper.h>
+#include <acewrapper/orbmanager.h>
+#include <acewrapper/orbservant.h>
 #include <iostream>
 #include <windows.h>
 #include <stdio.h>
 #include <io.h>
 #include <fcntl.h>
+
 
 #  if defined _DEBUG
 #     pragma comment(lib, "ACEd.lib")
@@ -25,17 +28,25 @@
 #     pragma comment(lib, "acewrapperd.lib")
 #     pragma comment(lib, "adinterfaced.lib")
 #  else
-#     pragma comment(lib, "ACE.lib")
-#     pragma comment(lib, "TAO.lib")
-#     pragma comment(lib, "adcontroller.lib")
-#     pragma comment(lib, "acewrapper.lib")
+#     pragma comment(lib, "ACEd.lib")
+#     pragma comment(lib, "TAOd.lib")
+#     pragma comment(lib, "TAO_Utilsd.lib")
+#     pragma comment(lib, "TAO_PId.lib")
+#     pragma comment(lib, "TAO_PortableServerd.lib")
+#     pragma comment(lib, "TAO_AnyTypeCoded.lib")
+#     pragma comment(lib, "TAO_CosNamingd.lib")
+#     pragma comment(lib, "adcontrollerd.lib")
+#     pragma comment(lib, "adbrokerd.lib")
+#     pragma comment(lib, "acewrapperd.lib")
+#     pragma comment(lib, "adinterfaced.lib")
 #  endif
 
 
 int
 main(int argc, char *argv[])
 {
-    AllocConsole();
+    
+	AllocConsole();
     do {
         HANDLE stdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
         int hConHandle = _open_osfhandle( reinterpret_cast<intptr_t>(stdHandle), _O_TEXT );
@@ -53,6 +64,9 @@ main(int argc, char *argv[])
     std::cout << "Bonjour, ca va" << std::endl;
 
     acewrapper::instance_manager::initialize();
+
+	singleton::orbServantManager::instance()->init( argc, argv );
+	singleton::orbManager::instance()->init( argc, argv );
 
     QApplication a(argc, argv);
 

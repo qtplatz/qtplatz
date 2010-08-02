@@ -17,7 +17,9 @@
 class manager_i;
 
 namespace singleton {
-    typedef ACE_Singleton< acewrapper::ORBServant< manager_i >, ACE_Recursive_Thread_Mutex > manager;
+	namespace broker {
+		typedef ACE_Singleton< acewrapper::ORBServant< manager_i >, ACE_Recursive_Thread_Mutex > manager;
+	}
 }
 
 class manager_i : public virtual POA_Broker::Manager {

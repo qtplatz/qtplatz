@@ -195,10 +195,6 @@
 				>
 			</File>
 			<File
-				RelativePath="eventhandler.cpp"
-				>
-			</File>
-			<File
 				RelativePath="inputcdr.cpp"
 				>
 			</File>
@@ -220,6 +216,14 @@
 			</File>
 			<File
 				RelativePath=".\nameservice.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\orbmanager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\orbservant.cpp"
 				>
 			</File>
 			<File
@@ -536,6 +540,10 @@
 			</File>
 			<File
 				RelativePath=".\nameservice.h"
+				>
+			</File>
+			<File
+				RelativePath=".\orbmanager.h"
 				>
 			</File>
 			<File

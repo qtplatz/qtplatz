@@ -44,6 +44,8 @@
 
 using namespace acewrapper;
 
+static bool __own_thread;
+
 adbroker::adbroker(void)
 {
 }
@@ -55,56 +57,52 @@ adbroker::~adbroker(void)
 void
 adbroker::abort_server()
 {
-    static_cast<manager_i *>( *singleton::manager::instance() )->shutdown();
-    singleton::manager::instance()->deactivate();
-    singleton::manager::instance()->fini();
+	deactivate();
+	if ( __own_thread )
+		singleton::broker::manager::instance()->getServantManager()->fini();
 }
 
 bool
-register_name_service( const CosNaming::Name& name )
+adbroker::initialize( CORBA::ORB_ptr orb )
 {
-    CORBA::ORB_var orb = singleton::manager::instance()->orb();
+	if ( ! orb ) {
+		int ac = 0;
+		orb = CORBA::ORB_init( ac, 0 );
+	}
+	ORBServant< manager_i > * pServant = singleton::broker::manager::instance();
+	ORBServantManager * pMgr = new ORBServantManager( orb );
+	pMgr->init( 0, 0 );
+	pServant->setServantManager( pMgr );
+	return true;
+}
 
-	if ( CORBA::is_nil( orb.in() ) )
-		return false;
+bool
+adbroker::activate()
+{
+	ORBServant< manager_i > * pServant = singleton::broker::manager::instance();
+	pServant->activate();
 
-    return NS::register_name_service( orb, name, *singleton::manager::instance() );
+	CORBA::ORB_var orb = pServant->getServantManager()->orb();
+	CosNaming::Name name = acewrapper::constants::adbroker::manager::name();
+	return NS::register_name_service( orb.in(), name, *pServant );
+}
+
+bool
+adbroker::deactivate()
+{
+	ORBServant< manager_i > * pServant = singleton::broker::manager::instance();
+	pServant->deactivate();
+	return true;
 }
 
 int
-adbroker::run( int argc, ACE_TCHAR * argv[] )
+adbroker::run()
 {
-    acewrapper::instance_manager::initialize();
-    try {
-        int ret;
-        // -ORBListenEndpoints iiop://192.168.0.1:9999
-        ret = singleton::manager::instance()->init(argc, argv);
-        singleton::manager::instance()->activate();
-
-        if ( ret != 0 )
-            ACE_ERROR_RETURN( (LM_ERROR, "\n error in init.\n"), 1 );
-
-        register_name_service( acewrapper::constants::adbroker::manager::name() );
-      
-    } catch ( const CORBA::Exception& ex ) {
-        ex._tao_print_exception( "run\t\n" );
-        // return 1;
-    }
-
-    ORBServant< manager_i > * p = singleton::manager::instance();
-    ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServant<manager_i>::thread_entry ), reinterpret_cast<void *>(p) );
-
+	ORBServantManager* p = singleton::broker::manager::instance()->getServantManager();
+	if ( p->test_and_set_thread_flag() ) {
+        __own_thread = true;
+		ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), reinterpret_cast<void *>(p) );
+	}
     return 0;
 }
 
-CORBA::ORB_ptr
-adbroker::orb()
-{
-    return singleton::manager::instance()->orb();
-}
-
-const char *
-adbroker::ior()
-{
-    return singleton::manager::instance()->ior().c_str();
-}

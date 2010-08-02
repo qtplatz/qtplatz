@@ -20,17 +20,16 @@ manager_i::~manager_i(void)
 void
 manager_i::shutdown()
 {
-    PortableServer::POA_ptr poa = singleton::manager::instance()->root_poa();
-
-    if ( logger_i_ ) {
+	PortableServer::POA_var poa = singleton::broker::manager::instance()->getServantManager()->root_poa();
+    if ( logger_i_ )
         poa->deactivate_object( logger_i_->oid() );
-    }
 }
 
 Broker::Session_ptr
 manager_i::getSession( const CORBA::WChar * token )
 {
-    PortableServer::POA_ptr poa = singleton::manager::instance()->root_poa();
+	PortableServer::POA_var poa = singleton::broker::manager::instance()->getServantManager()->root_poa();
+
     if ( CORBA::is_nil( poa ) )
         return 0;
 
@@ -45,7 +44,7 @@ manager_i::getSession( const CORBA::WChar * token )
 Broker::Logger_ptr
 manager_i::getLogger()
 {
-    PortableServer::POA_ptr poa = singleton::manager::instance()->root_poa();
+	PortableServer::POA_var poa = singleton::broker::manager::instance()->getServantManager()->root_poa();
     if ( CORBA::is_nil( poa ) )
         return 0;
 
@@ -55,6 +54,6 @@ manager_i::getLogger()
         logger_i_->oid( *oid );
     }
 
-    CORBA::Object_ptr obj = poa->servant_to_reference( logger_i_.get() );
-    return Broker::Logger::_narrow( obj );
+	CORBA::Object_var obj = poa->servant_to_reference( logger_i_.get() );
+	return Broker::Logger::_narrow( obj );
 }

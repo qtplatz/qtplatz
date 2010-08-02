@@ -8,13 +8,19 @@
 #include <adcontroller/adcontroller.h>
 #include <adbroker/adbroker.h>
 #include <ace/Thread_Manager.h>
+#include <acewrapper/orbservant.h>
+#include <acewrapper/orbmanager.h>
+#include <acewrapper/constants.h>
+#include <orbsvcs/CosNamingC.h>
 
+#define CONTROLLER
+#define BROKER
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    receiver_(*this),
-    logHandler_(*this)
+    QMainWindow(parent)
+		, ui(new Ui::MainWindow)
+		, receiver_(*this)
+		, logHandler_(*this)
 {
     ui->setupUi(this);
 }
@@ -27,27 +33,26 @@ MainWindow::~MainWindow()
 void
 MainWindow::closeEvent( QCloseEvent * )
 {
-    adcontroller::abort_server();
-    adbroker::abort_server();
-    ACE_Thread_Manager::instance()->wait();
+	adbroker::deactivate();
+	adcontroller::deactivate();
+	singleton::orbServantManager::instance()->orb()->shutdown();
+    singleton::orbServantManager::instance()->fini();
+	ACE_Thread_Manager::instance()->wait();
 }
 
 bool
 MainWindow::init_adcontroller()
 {
-    adcontroller::run(0, 0);
+    // initialize server
+	adcontroller::initialize( singleton::orbServantManager::instance()->orb() );
+	adcontroller::activate();
+	adcontroller::run();
 
-    CORBA::ORB_ptr orb = adcontroller::orb();
-    if ( CORBA::is_nil(orb) )
-        return false;
+	// initialize client
+	CORBA::Object_var obj;
+	obj = singleton::orbManager::instance()->getObject( acewrapper::constants::adcontroller::session::name() );
+	session_ = ControlServer::Session::_narrow( obj.in() );
 
-    std::string ior = adcontroller::ior();
-    CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
-    
-    if ( CORBA::is_nil( obj.in() ) )
-        return false;
-
-    session_ = ControlServer::Session::_narrow( obj.in() );
     if ( CORBA::is_nil( session_.in() ) )
         return false;
 
@@ -61,20 +66,17 @@ MainWindow::init_adcontroller()
 bool
 MainWindow::init_adbroker()
 {
-    adbroker::run(0, 0);
+	// initialize server
+	adbroker::initialize( singleton::orbServantManager::instance()->orb() );
+	adbroker::activate();
+	adbroker::run();
 
-    CORBA::ORB_ptr orb = adbroker::orb();
-    if ( CORBA::is_nil(orb) )
-        return false;
-
-    std::string ior = adbroker::ior();
-    CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
-    
-    if ( CORBA::is_nil( obj.in() ) )
-        return false;
-
+	// initialize client
+	CORBA::Object_var obj;
+	obj = singleton::orbManager::instance()->getObject( acewrapper::constants::adbroker::manager::name() );
     manager_ = Broker::Manager::_narrow( obj.in() );
-    if ( CORBA::is_nil( manager_.in() ) )
+
+	if ( CORBA::is_nil( manager_.in() ) )
         return false;
 
     connect( this, SIGNAL( signal_notify_update( unsigned long ) )
@@ -95,8 +97,8 @@ MainWindow::init_adbroker()
 bool
 MainWindow::initial_update()
 {
-    init_adbroker();
-    init_adcontroller();
+	init_adbroker();
+	init_adcontroller();
     return true;
 }
 

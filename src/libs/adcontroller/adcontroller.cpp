@@ -57,11 +57,11 @@
 #include <ace/Reactor.h>
 #include "session_i.h"
 
-
 using namespace acewrapper;
 
 static int debug_flag = 1;
 static bool __aborted = false;
+static bool __own_thread = false;
 
 static Receiver * __preceiver_debug;
 std::string __ior_session;
@@ -70,30 +70,49 @@ void
 adcontroller::abort_server()
 {
 	__aborted = true;
-	singleton::session::instance()->deactivate();
-	singleton::session::instance()->fini();
+	deactivate();
+	if ( __own_thread )
+		singleton::controller::session::instance()->getServantManager()->fini();
+	// singleton::session::instance()->deactivate();
+	// singleton::session::instance()->fini();
 }
 
 bool
-register_name_service( const CosNaming::Name& name )
+adcontroller::initialize( CORBA::ORB_ptr orb )
 {
-	CORBA::ORB_var orb = singleton::session::instance()->orb();
-
-	if ( CORBA::is_nil( orb.in() ) )
-		return false;
-
-	CosNaming::NamingContext_var nc;
-	try { 
-		nc = NS::resolve_init( orb );
-	} catch ( const CORBA::Exception& ex ) {
-		ex._tao_print_exception( "register_name_service" );
-        return false;
+	if ( ! orb ) {
+		int ac = 0;
+		orb = CORBA::ORB_init( ac, 0 );
 	}
-	return NS::register_name_service( orb, name, *singleton::session::instance() );
+
+	ORBServant< session_i > * pServant = singleton::controller::session::instance();
+	ORBServantManager * pMgr = new ORBServantManager( orb );
+	pMgr->init( 0, 0 );
+	pServant->setServantManager( pMgr );
+	return true;
+}
+
+bool
+adcontroller::activate()
+{
+	ORBServant< session_i > * pServant = singleton::controller::session::instance();
+	pServant->activate();
+
+	CORBA::ORB_var orb = pServant->getServantManager()->orb();
+	CosNaming::Name name = constants::adcontroller::session::name();
+	return NS::register_name_service( orb, name, *pServant );
+}
+
+bool
+adcontroller::deactivate()
+{
+	ORBServant< session_i > * pServant = singleton::controller::session::instance();
+	pServant->deactivate();
+	return true;
 }
 
 int
-adcontroller::run( int argc, ACE_TCHAR * argv[] )
+adcontroller::run()
 {
    ACE_Sched_Params fifo_sched_params( ACE_SCHED_FIFO, 
 				       ACE_Sched_Params::priority_min( ACE_SCHED_FIFO ),
@@ -114,24 +133,11 @@ adcontroller::run( int argc, ACE_TCHAR * argv[] )
    }
    //-------------> end priority code
 
-   try {
-      int ret;
-      // -ORBListenEndpoints iiop://192.168.0.1:9999
-	  ret = singleton::session::instance()->init(argc, argv);
-      singleton::session::instance()->activate();
-
-      if ( ret != 0 )
-          ACE_ERROR_RETURN( (LM_ERROR, "\n error in init.\n"), 1 );
-
-      register_name_service( acewrapper::constants::adcontroller::session::name() );
-      
-   } catch ( const CORBA::Exception& ex ) {
-       ex._tao_print_exception( "run\t\n" );
-	   // return 1;
+   ORBServantManager* p = singleton::controller::session::instance()->getServantManager();
+   if ( p->test_and_set_thread_flag() ) {
+	   __own_thread = true;
+	   ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), reinterpret_cast<void *>(p) );
    }
-
-   ORBServant< session_i > * p = singleton::session::instance();
-   ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServant<session_i>::thread_entry ), reinterpret_cast<void *>(p) );
 
    return 0;
 }
@@ -140,14 +146,3 @@ adcontroller::adcontroller()
 {
 }
 
-CORBA::ORB_ptr
-adcontroller::orb()
-{
-    return singleton::session::instance()->orb();
-}
-
-const char *
-adcontroller::ior()
-{
-    return singleton::session::instance()->ior().c_str();
-}

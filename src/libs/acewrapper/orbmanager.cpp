@@ -9,7 +9,6 @@
 #include <acewrapper/mutex.hpp>
 #include <acewrapper/nameservice.h>
 
-using namespace singleton;
 using namespace acewrapper;
 
 ORBManager::~ORBManager()
@@ -22,24 +21,24 @@ ORBManager::ORBManager() : orb_(0)
 {
 }
 
-bool
-ORBManager::initialize()
+int
+ORBManager::init( int argc, char * argv[] )
 {
 	if ( orb_ == 0 ) {
 		acewrapper::scoped_mutex_t<> lock( mutex_ );
 		if ( orb_ == 0 ) {
 			orb_ = new TAO_ORB_Manager();
 			try {
-				int argc = 0;
-				char * argv[1] = { 0 };
-				if ( orb_ )
+				if ( orb_ ) {
 					orb_->init(argc, argv);
+					return argc;
+				}
 			} catch ( CORBA::Exception& ) {
-				return false;
+				return (-1);
 			}
 		}
 	}
-	return true;
+	return (-1);
 }
 
 CORBA::ORB_ptr

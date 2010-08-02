@@ -7,42 +7,76 @@
 #ifndef ORBSERVANT_H
 #define ORBSERVANT_H
 
-#include <boost/noncopyable.hpp>
-#include <tao/Utils/ORB_Manager.h>
+#include <tao/ORB.h>
+#include <tao/PortableServer/PortableServer.h>
 #include <string>
+
+class TAO_ORB_Manager;
 
 namespace acewrapper {
 
-  template<class T> class ORBServant : boost::noncopyable {
-  public:
-	  ORBServant() {}
+	class ORBServantManager {
+        ORBServantManager( const ORBServantManager& ); // noncopyable
+	public:
+        ~ORBServantManager();
+		ORBServantManager( CORBA::ORB_ptr orb = 0
+			          , PortableServer::POA_ptr = 0
+					  , PortableServer::POAManager_ptr = 0);
 
-	  int init( int ac, ACE_TCHAR * av[] ) { return orbmgr_.init( ac, av ); }
-	  int fini() { return orbmgr_.fini(); }
-	  inline CORBA::ORB_ptr orb() { return orbmgr_.orb(); }
-      inline PortableServer::POA_ptr root_poa() { return orbmgr_.root_poa(); }
-      inline PortableServer::POA_ptr child_poa() { return orbmgr_.child_poa(); }
-      inline PortableServer::POAManager_ptr poa_manager() { return orbmgr_.poa_manager(); }
-	  inline operator T* () { return &impl_; }
-	  inline operator typename T::_stub_ptr_type () { return impl_._this(); }
-	  inline void activate() { id_ = orbmgr_.activate( &impl_ ); }
-	  void deactivate() { orbmgr_.deactivate( id_.c_str() ); }
-      void run() { orbmgr_.run(); }
-      inline const std::string& ior() const { return id_; }
+		int init( int ac, ACE_TCHAR * av[] );
+		int fini();
+		void run();
 
-	  static void * thread_entry( void * me ) {
-		  ORBServant<T> * pThis = reinterpret_cast< ORBServant<T> * >(me);
-		  if ( pThis )
-			  pThis->orbmgr_.run();
-		  return 0;
-	  }
+		CORBA::ORB_ptr orb();
+		PortableServer::POA_ptr root_poa();
+		PortableServer::POA_ptr child_poa();
+		PortableServer::POAManager_ptr poa_manager();
 
-  private:
-	  std::string id_;
-	  T impl_;
-      TAO_ORB_Manager orbmgr_;
-  };
+		std::string activate( PortableServer::Servant );
+		void deactivate( const std::string& id );
 
+		bool test_and_set_thread_flag();
+		static void * thread_entry( void * me );
+
+	protected:
+        size_t init_count_;
+		bool thread_running_;
+        ACE_Recursive_Thread_Mutex mutex_;
+		TAO_ORB_Manager * orbmgr_;
+	};
+
+	//////////////////////////
+
+	template<class T> class ORBServant {
+	public:
+		~ORBServant() { 
+			if ( pMgr_)
+				pMgr_->fini();
+			delete pMgr_;
+		}
+		ORBServant( ORBServantManager * pMgr = 0 ) : pMgr_(pMgr) { }
+
+		ORBServantManager* getServantManager() { return pMgr_; }
+		void setServantManager( ORBServantManager * p ) { pMgr_ = p; }
+
+		inline void activate() { id_ = pMgr_->activate( &impl_ ); }
+		void deactivate() { 
+			if ( pMgr_ ) 
+				pMgr_->deactivate( id_ );
+		}
+		inline operator T* () { return &impl_; }
+		inline operator typename T::_stub_ptr_type () { return impl_._this(); }
+		inline const std::string& ior() const { return id_; }
+
+	private:
+		ORBServantManager * pMgr_;
+		std::string id_;
+		T impl_;
+	};
+}
+
+namespace singleton {
+	typedef ACE_Singleton< acewrapper::ORBServantManager, ACE_Recursive_Thread_Mutex > orbServantManager;
 }
 
 #endif // ORBSERVANT_H

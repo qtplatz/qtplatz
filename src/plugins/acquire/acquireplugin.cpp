@@ -10,7 +10,7 @@
 #include "acquireactions.h"
 #include <adwidgets/dataplotwidget.h>
 #include <adwidgets/axis.h>
-#include "orbmanager.h"
+#include <acewrapper/orbmanager.h>
 #include <tao/Object.h>
 #include <orbsvcs/CosNamingC.h>
 #include <adcontroller/adcontroller.h>
@@ -277,11 +277,13 @@ AcquirePlugin::extensionsInitialized()
 void
 AcquirePlugin::actionConnect()
 {
-	if ( singleton::orbManager::instance()->initialize() ) {
+    int argc = 1;
+	char * argv[1] = { "" };
+	if ( acewrapper::orbManager::instance()->init( argc, argv ) >= 0 ) {
         // CosNaming::Name name = adcontroller::name();
         CosNaming::Name name = acewrapper::constants::adcontroller::session::name();
 
-		CORBA::Object_var obj = singleton::orbManager::instance()->getObject( name );
+		CORBA::Object_var obj = acewrapper::orbManager::instance()->getObject( name );
 		if ( ! CORBA::is_nil( obj ) ) {
 			ControlServer::Session_var session = ControlServer::Session::_narrow( obj );
 			if ( ! CORBA::is_nil( session ) ) {

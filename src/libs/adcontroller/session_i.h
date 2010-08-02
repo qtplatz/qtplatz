@@ -15,7 +15,9 @@ class session_i;
 
 namespace singleton {
 
-	typedef ACE_Singleton< acewrapper::ORBServant< session_i >, ACE_Recursive_Thread_Mutex > session;
+	namespace controller {
+		typedef ACE_Singleton< acewrapper::ORBServant< session_i >, ACE_Recursive_Thread_Mutex > session;
+	}
 }
 
 class session_i : public virtual POA_ControlServer::Session {
@@ -62,5 +64,4 @@ class session_i : public virtual POA_ControlServer::Session {
       std::vector<receiver_data> receiver_set_;
       std::vector<receiver_data> receiver_failed_;
 };
-
 

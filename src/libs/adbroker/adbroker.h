@@ -11,14 +11,22 @@ namespace CORBA {
     class ORB;
 }
 
+namespace acewrapper {
+	class ORBServantManager;
+}
+
 class ADBROKERSHARED_EXPORT adbroker {
 public:
     adbroker(void);
     ~adbroker(void);
 
-	static int run( int argc, char * argv[] );
+	static bool initialize( CORBA::ORB * orb = 0 );
+	static bool activate();
+    static bool deactivate();
+
+	static int run();
 	static void abort_server();
 
-    static CORBA::ORB * orb();
-    static const char * ior();
+	// static CORBA::ORB * orb();
+	// static const char * ior();
 };

@@ -12,12 +12,20 @@ namespace CORBA {
     class ORB;
 }
 
+namespace acewrapper {
+	class ORBServantManager;
+}
+
 class ADCONTROLLERSHARED_EXPORT adcontroller {
 public:
     adcontroller();
-	static int run( int argc, char * argv[] );
+
+	static bool initialize( CORBA::ORB * orb = 0 );
+	static bool activate();
+    static bool deactivate();
+	static int run();
 	static void abort_server();
-    static CORBA::ORB * orb();
-    static const char * ior();
+private:
+
 };
 

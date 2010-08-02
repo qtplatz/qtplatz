@@ -18,23 +18,25 @@ namespace CosNaming {
 	class Name;
 }
 
-namespace singleton {
+namespace acewrapper {
 
 	class ORBManager {
 		~ORBManager();
 		ORBManager();
 	public:
-		bool initialize();
+		int init( int argc, char * argv[] );
 		CORBA::ORB_ptr orb();
 		CORBA::Object_ptr getObject( const CosNaming::Name& );
-
 	private:
 		TAO_ORB_Manager * orb_;
 		ACE_Recursive_Thread_Mutex mutex_;
 		friend ACE_Singleton< ORBManager, ACE_Recursive_Thread_Mutex >;
 	};
 
-	typedef ACE_Singleton< ORBManager, ACE_Recursive_Thread_Mutex > orbManager;
+}
+
+namespace singleton {
+	typedef ACE_Singleton< acewrapper::ORBManager, ACE_Recursive_Thread_Mutex > orbManager;
 }
 
 

@@ -74,9 +74,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				OutputFile="$(SolutionDir)lib\qtPlatz\adbrokerd.dll"
+				OutputFile="..\..\..\lib\qtPlatz\adbrokerd.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:/Users/thondo/src/qtPlatz/lib/qtPlatz;&quot;$(TargetDir)&quot;;&quot;$(ACE_ROOT)/lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(TargetDir)&quot;;&quot;$(ACE_ROOT)/lib&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="1"
