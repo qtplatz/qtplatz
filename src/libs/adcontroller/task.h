@@ -15,24 +15,24 @@ class ACE_Recursive_Thread_Mutex;
 template<class T, class M> class ACE_Singleton;
 
 namespace singleton {
-	typedef ACE_Singleton< Task, ACE_Recursive_Thread_Mutex > Task;
+   typedef ACE_Singleton< Task, ACE_Recursive_Thread_Mutex > Task;
 }
+
 ///////////////////////////
 
 class Task : public ACE_Task<ACE_SYNCH> {
-	~Task();
-	Task();
+      ~Task();
+      Task();
 public:
-    bool initialize();
-	void spawn();
-
-    virtual int handle_input(ACE_HANDLE);
-    virtual int svc();
-
+      bool initialize( ACE_Reactor * reactor );
+      void spawn();
+      
+      virtual int handle_input( ACE_HANDLE );
+      virtual int svc();
+      
 private:
-    ACE_Message_Queue<ACE_SYNCH> msgq_;
-
-	static void * thread_entry();
-	friend ACE_Singleton< Task, ACE_Recursive_Thread_Mutex >;
+      ACE_Message_Queue<ACE_SYNCH> msgq_;
+      ACE_Reactor_Notification_Strategy * notification_strategy_;
+      friend ACE_Singleton< Task, ACE_Recursive_Thread_Mutex>;
 };
 

@@ -220,6 +220,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\manager_i.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mcast_handler.cpp"
 				>
 			</File>
@@ -303,6 +307,10 @@
 			</File>
 			<File
 				RelativePath=".\ibrokermanager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\manager_i.h"
 				>
 			</File>
 			<File

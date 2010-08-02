@@ -55,7 +55,7 @@
 #include <boost/smart_ptr.hpp>
 #include <acewrapper/reactorthread.h>
 #include <ace/Reactor.h>
-#include "session_i.h"
+#include "manager_i.h"
 
 using namespace acewrapper;
 
@@ -71,10 +71,10 @@ adcontroller::abort_server()
 {
 	__aborted = true;
 	deactivate();
+/*
 	if ( __own_thread )
-		singleton::controller::session::instance()->getServantManager()->fini();
-	// singleton::session::instance()->deactivate();
-	// singleton::session::instance()->fini();
+        singleton::ns_adcontroller::session::instance()->getServantManager()->fini();
+*/
 }
 
 bool
@@ -85,7 +85,7 @@ adcontroller::initialize( CORBA::ORB_ptr orb )
 		orb = CORBA::ORB_init( ac, 0 );
 	}
 
-	ORBServant< session_i > * pServant = singleton::controller::session::instance();
+    ORBServant< ns_adcontroller::manager_i > * pServant = singleton::ns_adcontroller::manager::instance();
 	ORBServantManager * pMgr = new ORBServantManager( orb );
 	pMgr->init( 0, 0 );
 	pServant->setServantManager( pMgr );
@@ -95,18 +95,18 @@ adcontroller::initialize( CORBA::ORB_ptr orb )
 bool
 adcontroller::activate()
 {
-	ORBServant< session_i > * pServant = singleton::controller::session::instance();
+    ORBServant< ns_adcontroller::manager_i > * pServant = singleton::ns_adcontroller::manager::instance();
 	pServant->activate();
 
 	CORBA::ORB_var orb = pServant->getServantManager()->orb();
-	CosNaming::Name name = constants::adcontroller::session::name();
+    CosNaming::Name name = constants::adcontroller::manager::name();
 	return NS::register_name_service( orb, name, *pServant );
 }
 
 bool
 adcontroller::deactivate()
 {
-	ORBServant< session_i > * pServant = singleton::controller::session::instance();
+    ORBServant< ns_adcontroller::manager_i > * pServant = singleton::ns_adcontroller::manager::instance();
 	pServant->deactivate();
 	return true;
 }
@@ -133,7 +133,7 @@ adcontroller::run()
    }
    //-------------> end priority code
 
-   ORBServantManager* p = singleton::controller::session::instance()->getServantManager();
+   ORBServantManager* p = singleton::ns_adcontroller::manager::instance()->getServantManager();
    if ( p->test_and_set_thread_flag() ) {
 	   __own_thread = true;
 	   ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), reinterpret_cast<void *>(p) );

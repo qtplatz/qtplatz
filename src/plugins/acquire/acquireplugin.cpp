@@ -279,15 +279,16 @@ AcquirePlugin::actionConnect()
 {
     int argc = 1;
 	char * argv[1] = { "" };
-	if ( acewrapper::orbManager::instance()->init( argc, argv ) >= 0 ) {
+    if ( singleton::orbManager::instance()->init( argc, argv ) >= 0 ) {
         // CosNaming::Name name = adcontroller::name();
-        CosNaming::Name name = acewrapper::constants::adcontroller::session::name();
+        CosNaming::Name name = acewrapper::constants::adcontroller::manager::name();
 
-		CORBA::Object_var obj = acewrapper::orbManager::instance()->getObject( name );
+        CORBA::Object_var obj = singleton::orbManager::instance()->getObject( name );
 		if ( ! CORBA::is_nil( obj ) ) {
-			ControlServer::Session_var session = ControlServer::Session::_narrow( obj );
-			if ( ! CORBA::is_nil( session ) ) {
-				session->echo( "abc" );
+            ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
+			if ( ! CORBA::is_nil( manager ) ) {
+                ControlServer::Session_var session = manager->getSession( L"debug" );
+                // session->echo( "abc" );
 			}
 		}
 	}

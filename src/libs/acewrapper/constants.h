@@ -15,7 +15,7 @@ namespace acewrapper {
     namespace constants {
 
         namespace adcontroller {
-            struct session {
+            struct manager {
                 static CosNaming::Name name();
             };
         }

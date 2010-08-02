@@ -11,10 +11,10 @@ namespace acewrapper {
         namespace adcontroller {
 
             CosNaming::Name
-                session::name() {
+                manager::name() {
                     CosNaming::Name name;
                     name.length(1);
-                    name[0].id = CORBA::string_dup( "adics.session" );
+                    name[0].id = CORBA::string_dup( "adcontroller.manager" );
                     name[0].kind = CORBA::string_dup( "" );
                     return name;
             }

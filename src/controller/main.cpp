@@ -48,7 +48,7 @@ using namespace acewrapper;
 void orb_shutdown()
 {
 	ORBImpl::instance()->deactivate();
-	ORBImpl::instance()->fini();
+    ORBImpl::instance()->getServantManager()->fini();
 }
 
 
@@ -61,21 +61,21 @@ int main(int argc, char *argv[])
     w.show();
 
 	try {
-		ORBServant< session_i > * pServant = ORBImpl::instance();
-		pServant->init( argc, argv );
+        CORBA::ORB_var orb = CORBA::ORB_init( argc, argv );
+        acewrapper::ORBServantManager * pMgr = new acewrapper::ORBServantManager( orb );
+        pMgr->init( argc, argv );
+
+        ORBServant< session_i > * pServant = ORBImpl::instance();
+        pServant->setServantManager( pMgr );
+
 		pServant->activate();
 		CosNaming::Name name;
         name.length(1);
 		name[0].id = "controller.controller";
 		CORBA::Object_var obj = *ORBImpl::instance();
-		NS::register_name_service( ORBImpl::instance()->orb(), name, obj );
-
-		ACE_Thread_Manager * mgr = ACE_Thread_Manager::instance();
-		mgr->spawn(ACE_THR_FUNC( ORBServant< session_i >::thread_entry ), reinterpret_cast<void *>( pServant ) );
-        
+		NS::register_name_service( orb, name, obj );
+        pMgr->spawn();
 	} catch ( CORBA::Exception& ) {
 	}
-
-    // w.mcast_init();
     return a.exec();
 }

@@ -69,4 +69,8 @@ module ControlServer {
       boolean stop_run();
    };
 
+    interface Manager {
+        Session getSession( in wstring connStr );
+    };
+
 };

@@ -35,6 +35,8 @@ namespace acewrapper {
 		std::string activate( PortableServer::Servant );
 		void deactivate( const std::string& id );
 
+        bool spawn();
+
 		bool test_and_set_thread_flag();
 		static void * thread_entry( void * me );
 
@@ -59,7 +61,9 @@ namespace acewrapper {
 		ORBServantManager* getServantManager() { return pMgr_; }
 		void setServantManager( ORBServantManager * p ) { pMgr_ = p; }
 
-		inline void activate() { id_ = pMgr_->activate( &impl_ ); }
+		inline void activate() { 
+            id_ = pMgr_->activate( &impl_ );
+        }
 		void deactivate() { 
 			if ( pMgr_ ) 
 				pMgr_->deactivate( id_ );

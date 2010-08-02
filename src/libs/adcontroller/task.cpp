@@ -5,25 +5,27 @@
 
 #include "task.h"
 #include <acewrapper/messageblock.h>
-//#include <ace/Message_Block.h>
+#include <acewrapper/mutex.hpp>
 
 Task::~Task()
 {
+   delete notification_strategy_;
 }
 
-Task::Task()
+Task::Task() : notification_strategy_( 0 )
 {
 }
 
 bool
-Task::initialize()
+Task::initialize( ACE_Reactor * reactor )
 {
-	return true;
-}
+   if ( notification_strategy_ )
+      delete notification_strategy_;
 
-void
-Task::spawn()
-{
+   notification_strategy_ 
+      = new ACE_Reactor_Notification_Strategy( reactor, this, ACE_Event_Handler::READ_MASK );
+   msg_queue()->notification_strategy( notification_strategy_ );
+   return true;
 }
 
 // virtual

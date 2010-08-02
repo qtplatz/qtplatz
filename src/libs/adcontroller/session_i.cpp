@@ -17,6 +17,7 @@
 #include "task.h"
 
 using namespace acewrapper;
+using namespace ns_adcontroller;
 
 ////////////////////////////////////////////
 
@@ -40,7 +41,7 @@ session_i::~session_i()
 
 session_i::session_i()
 {
-	singleton::Task::instance()->initialize();
+    // singleton::Task::instance()->initialize();
 }
 
 CORBA::WChar *

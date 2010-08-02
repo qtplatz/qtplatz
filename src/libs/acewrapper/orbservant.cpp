@@ -6,6 +6,7 @@
 #include "ORBServant.h"
 #include <tao/Utils/ORB_Manager.h>
 #include <acewrapper/mutex.hpp>
+#include <ace/Thread_Manager.h>
 
 using namespace acewrapper;
 
@@ -109,4 +110,17 @@ ORBServantManager::thread_entry( void * me )
 	if ( pThis && pThis->orbmgr_ )
 		pThis->run();
 	return 0;
+}
+
+bool
+ORBServantManager::spawn()
+{
+    if ( this->test_and_set_thread_flag() ) {
+        ACE_Thread_Manager::instance()->spawn(
+            ACE_THR_FUNC( ORBServantManager::thread_entry )
+            , reinterpret_cast<void *>(this)
+            );
+        return true;
+    }
+    return false;
 }
