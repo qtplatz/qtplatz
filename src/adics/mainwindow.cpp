@@ -50,17 +50,18 @@ MainWindow::init_adcontroller()
 
 	// initialize client
 	CORBA::Object_var obj;
-	obj = singleton::orbManager::instance()->getObject( acewrapper::constants::adcontroller::session::name() );
-	session_ = ControlServer::Session::_narrow( obj.in() );
+	obj = singleton::orbManager::instance()->getObject( acewrapper::constants::adcontroller::manager::name() );
+	ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
+	if ( ! CORBA::is_nil( manager ) ) {
+		session_ = manager->getSession( L"debug" );
 
-    if ( CORBA::is_nil( session_.in() ) )
-        return false;
+		connect( this, SIGNAL( signal_debug_print( long, long, QString ) )
+			, this, SLOT( handle_debug_print( long, long, QString ) ) );
 
-    connect( this, SIGNAL( signal_debug_print( long, long, QString ) )
-           , this, SLOT( handle_debug_print( long, long, QString ) ) );
-
-    session_->connect( receiver_._this(), L"debug" );
-    return true;
+		session_->connect( receiver_._this(), L"debug" );
+		return true;
+	}
+	return false;
 }
 
 bool

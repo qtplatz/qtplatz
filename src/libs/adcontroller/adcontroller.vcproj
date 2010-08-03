@@ -45,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;..\..\libs;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;debug;&quot;$(TAO_ROOT)\orbsvcs&quot;"
+				AdditionalIncludeDirectories="$(BOOST_ROOT)\include\boost-1_43;.\..\..\libs;$(ACE_ROOT);$(TAO_ROOT);.\debug;$(TAO_ROOT)\orbsvcs;.\GeneratedFiles\$(ConfigurationName)"
 				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,ADCONTROLLER_LIBRARY,QT_DLL,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -103,7 +103,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
-				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
+				CommandLine="mkdir ..\..\..\bin;&#x0D;&#x0A;copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -136,7 +136,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;..\..\libs;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;debug;&quot;$(TAO_ROOT)\orbsvcs&quot;"
+				AdditionalIncludeDirectories="$(BOOST_ROOT)\include\boost-1_43;.\..\..\libs;$(ACE_ROOT);$(TAO_ROOT);.\debug;$(TAO_ROOT)\orbsvcs;.\GeneratedFiles\$(ConfigurationName)"
 				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,ADCONTROLLER_LIBRARY,QT_DLL,QT_NO_DEBUG,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"

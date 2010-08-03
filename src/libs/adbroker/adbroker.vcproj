@@ -103,7 +103,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy adbrokerd.dll to ..\..\..\bin"
-				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
+				CommandLine="mkdir ..\..\..\bin;&#x0D;&#x0A;copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
 			/>
 		</Configuration>
 		<Configuration

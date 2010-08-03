@@ -6,25 +6,32 @@
 #include "task.h"
 #include <acewrapper/messageblock.h>
 #include <acewrapper/mutex.hpp>
+#include <acewrapper/reactorthread.h>
+#include <ace/Reactor.h>
+#include <ace/Reactor_Notification_Strategy.h>
 
 Task::~Task()
 {
-   delete notification_strategy_;
+	delete notification_strategy_;
 }
 
-Task::Task() : notification_strategy_( 0 )
+Task::Task( ACE_Reactor * reactor ) : notification_strategy_(0)
 {
+	notification_strategy_ = new ACE_Reactor_Notification_Strategy( reactor, this, ACE_Event_Handler::READ_MASK );
+	msg_queue()->notification_strategy( notification_strategy_ );
 }
 
 bool
-Task::initialize( ACE_Reactor * reactor )
+Task::activate()
 {
-   if ( notification_strategy_ )
-      delete notification_strategy_;
+   msg_queue()->activate();
+   return true;
+}
 
-   notification_strategy_ 
-      = new ACE_Reactor_Notification_Strategy( reactor, this, ACE_Event_Handler::READ_MASK );
-   msg_queue()->notification_strategy( notification_strategy_ );
+bool
+Task::deactivate()
+{
+   msg_queue()->deactivate();
    return true;
 }
 

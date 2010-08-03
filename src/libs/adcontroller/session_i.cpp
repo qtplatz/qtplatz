@@ -67,8 +67,10 @@ session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
       
     receiver_set_.push_back( data );
       
-    if ( receiver_set_.size() == 1 ) 
-        iBrokerManager::instance()->get<iBroker>()->reset_clock();
+	if ( receiver_set_.size() == 1 ) {
+		iBrokerManager::instance()->initialize();
+		iBrokerManager::instance()->get<iBroker>()->reset_clock();
+	}
 
     echo( "client connected" );
       

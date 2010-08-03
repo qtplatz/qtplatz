@@ -14,10 +14,10 @@ template<class T, class X> class ACE_Singleton;
 namespace acewrapper {
 
     class ReactorThread {
-    private:
+	public:
         ~ReactorThread();
         ReactorThread();
-    public:
+
         ACE_Reactor * get_reactor();
         static void spawn( ReactorThread * );
 

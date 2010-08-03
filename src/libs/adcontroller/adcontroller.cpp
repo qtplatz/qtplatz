@@ -85,7 +85,7 @@ adcontroller::initialize( CORBA::ORB_ptr orb )
 		orb = CORBA::ORB_init( ac, 0 );
 	}
 
-    ORBServant< ns_adcontroller::manager_i > * pServant = singleton::ns_adcontroller::manager::instance();
+    ORBServant< ns_adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
 	ORBServantManager * pMgr = new ORBServantManager( orb );
 	pMgr->init( 0, 0 );
 	pServant->setServantManager( pMgr );
@@ -95,7 +95,7 @@ adcontroller::initialize( CORBA::ORB_ptr orb )
 bool
 adcontroller::activate()
 {
-    ORBServant< ns_adcontroller::manager_i > * pServant = singleton::ns_adcontroller::manager::instance();
+    ORBServant< ns_adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
 	pServant->activate();
 
 	CORBA::ORB_var orb = pServant->getServantManager()->orb();
@@ -106,7 +106,7 @@ adcontroller::activate()
 bool
 adcontroller::deactivate()
 {
-    ORBServant< ns_adcontroller::manager_i > * pServant = singleton::ns_adcontroller::manager::instance();
+	ORBServant< ns_adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
 	pServant->deactivate();
 	return true;
 }
@@ -133,7 +133,7 @@ adcontroller::run()
    }
    //-------------> end priority code
 
-   ORBServantManager* p = singleton::ns_adcontroller::manager::instance()->getServantManager();
+   ORBServantManager* p = singleton::adcontroller::manager::instance()->getServantManager();
    if ( p->test_and_set_thread_flag() ) {
 	   __own_thread = true;
 	   ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), reinterpret_cast<void *>(p) );
