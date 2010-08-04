@@ -13,6 +13,7 @@
 #include "message.h"
 #include <sstream>
 #include <acewrapper/timeval.h>
+#include <iostream>
 
 iBroker::~iBroker()
 {
@@ -133,6 +134,8 @@ iBroker::handle_input( ACE_HANDLE )
 int
 iBroker::svc()
 {
+	std::cout << "iBroker::svc() task started on thread :" << ACE_Thread::self() << std::endl;
+
 	barrier_.wait();
 
 	for ( ;; ) {
@@ -166,7 +169,7 @@ iBroker::doit( ACE_Message_Block * mblk )
     ACE_InputCDR cdr( mblk ); 
     cdr >> msg;
 
-	o << "doit: src:" << msg.seqId_ << " dst:" << msg.dstId_ 
+	o << "doit <" << ACE_Thread::self() << "> : src:" << msg.seqId_ << " dst:" << msg.dstId_ 
 		<< " cmd:" << msg.cmdId_ << " seq:" <<  msg.seqId_;
 
 	if ( msg.cmdId_ == Notify_Timeout ) {
