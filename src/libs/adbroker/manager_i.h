@@ -6,10 +6,12 @@
 
 #pragma once
 
-#include "adinterface/brokerS.h"
 #include <acewrapper/orbservant.h>
 #include <map>
 #include <string>
+#pragma warning (disable: 4996)
+#include "adinterface/brokerS.h"
+#pragma warning (default: 4996)
 #include "logger_i.h"
 #include "session_i.h"
 #include <boost/smart_ptr.hpp>

@@ -6,10 +6,12 @@
 
 #pragma once
 
-#include "adinterface/brokerS.h"
 #include <deque>
 #include <vector>
-#include <ace/Recursive_Thread_Mutex.h>
+#pragma warning (disable: 4996)
+# include "adinterface/brokerS.h"
+# include <ace/Recursive_Thread_Mutex.h>
+#pragma warning (default: 4996)
 
 namespace broker {
 

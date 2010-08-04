@@ -137,7 +137,7 @@
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
 				AdditionalIncludeDirectories="$(QTDIR)\include;.\..\..\libs;c:\Users\thondo\src\qtPlatz\tools;$(QTDIR)\include\ActiveQt;.\release;$(QTDIR)\mkspecs\win32-msvc2008;.\GeneratedFiles\$(ConfigurationName)"
-				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,ADMACHINE_LIBRARY,QT_DLL,QT_NO_DEBUG,QT_THREAD_SUPPORT,NDEBUG"
+				PreprocessorDefinitions="QT_NO_DEBUG;NDEBUG;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;IDE_LIBRARY_BASENAME=\&quot;lib\&quot;;QT_NO_CAST_TO_ASCII;ADMACHINE_LIBRARY;QT_DLL;QT_THREAD_SUPPORT;_CRT_SECURE_NO_WARNINGS"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"

@@ -1,6 +1,8 @@
 #include "maincontrollerwindow.h"
 #include "ui_maincontrollerwindow.h"
 
+#pragma warning (disable:4996)
+
 #include <acewrapper/mcastserver.h>
 #include <acewrapper/ace_string.h>
 #include <acewrapper/acewrapper.h>
@@ -14,10 +16,12 @@
 #include <ace/Message_Block.h>
 #include <ace/Task.h>
 #include <ace/Reactor_Notification_Strategy.h>
+#include <ace/OS.h>
+#pragma warning (default:4996)
+
 #include <iostream>
 #include <QThread>
 #include <sstream>
-#include <ace/OS.h>
 #include "eventreceiver.h"
 #include <boost/lexical_cast.hpp>
 #include <acewrapper/lifecycle_frame_serializer.h>

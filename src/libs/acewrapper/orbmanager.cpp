@@ -5,7 +5,11 @@
 
 #include "orbmanager.h"
 #include <assert.h>
-#include <tao/Utils/ORB_Manager.h>
+
+#pragma warning (disable: 4669)
+# include <tao/Utils/ORB_Manager.h>
+#pragma warning (default: 4669)
+
 #include <acewrapper/mutex.hpp>
 #include <acewrapper/nameservice.h>
 

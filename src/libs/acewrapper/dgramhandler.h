@@ -7,8 +7,10 @@
 #ifndef DGRAMHANDLER_H
 #define DGRAMHANDLER_H
 
-#include <ace/SOCK_Dgram.h>
-#include <ace/Event_Handler.h>
+#pragma warning (disable: 4996)
+# include <ace/SOCK_Dgram.h>
+# include <ace/Event_Handler.h>
+#pragma warning (default: 4996)
 
 class ACE_INET_Addr;
 

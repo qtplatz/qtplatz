@@ -4,8 +4,10 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 #include "timerhandler.h"
+#pragma warning (disable: 4669)
 #include <ace/Reactor.h>
 #include <ace/Synch.h>
+#pragma warning (default: 4669)
 
 using namespace acewrapper;
 

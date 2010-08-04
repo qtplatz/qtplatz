@@ -7,9 +7,11 @@
 #ifndef ORBMANAGER_H
 #define ORBMANAGER_H
 
-#include <tao/ORB.h>
+#pragma warning (disable: 4996)
+# include <tao/ORB.h>
+# include <ace/Recursive_Thread_Mutex.h>
+#pragma warning (default: 4996)
 
-#include <ace/Recursive_Thread_Mutex.h>
 template<class T, class M> class ACE_Singleton;
 
 class TAO_ORB_Manager;

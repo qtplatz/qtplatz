@@ -6,11 +6,15 @@
 
 #pragma once
 
+#pragma warning (disable: 4996)
 #include "adinterface/brokerS.h"
+#pragma warning (default: 4996)
+
+#include "session_i.h"
 #include <acewrapper/orbservant.h>
 #include <map>
 #include <string>
-#include "session_i.h"
+
 #include <boost/smart_ptr.hpp>
 
 namespace ns_adcontroller {

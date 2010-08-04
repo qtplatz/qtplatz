@@ -4,7 +4,9 @@
 //////////////////////////////////////////
 
 #include "adcontroller.h"
+#pragma warning (disable: 4996)
 #include "ace/Init_ACE.h"
+#pragma warning (default: 4996)
 
 #if defined ACE_WIN32
 #  if defined _DEBUG
@@ -32,12 +34,16 @@
 #  endif
 #endif
 
-#include <ace/SOCK_Dgram_Mcast.h>
-#include <ace/Service_Config.h>
-#include <ace/Sched_Params.h>
-#include <ace/Thread_Manager.h>
+#pragma warning (disable: 4996)
+# include <ace/SOCK_Dgram_Mcast.h>
+# include <ace/Service_Config.h>
+# include <ace/Sched_Params.h>
+# include <ace/Thread_Manager.h>
+# include <ace/Process_Manager.h>
+# include <ace/OS.h>
+# include <tao/Utils/ORB_Manager.h>
+#pragma warning (default: 4996)
 
-#include <tao/Utils/ORB_Manager.h>
 #include <acewrapper/nameservice.h>
 
 #include "signal_handler.h"
@@ -46,8 +52,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <ace/OS.h>
-#include <ace/Process_Manager.h>
+
 #include <acewrapper/constants.h>
 #include <boost/smart_ptr.hpp>
 #include "manager_i.h"

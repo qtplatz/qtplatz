@@ -4,7 +4,9 @@
 //////////////////////////////////////////
 
 #include "constants.h"
-#include <orbsvcs/CosNamingC.h>
+#pragma warning (disable: 4996)
+# include <orbsvcs/CosNamingC.h>
+#pragma warning (default: 4996)
 
 namespace acewrapper {
     namespace constants {

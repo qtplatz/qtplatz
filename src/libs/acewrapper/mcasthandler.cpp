@@ -4,9 +4,11 @@
 //////////////////////////////////////////
 
 #include "mcasthandler.h"
+#pragma warning (disable: 4996)
 #include <ace/SOCK_Dgram_Mcast.h>
 #include <ace/INET_Addr.h>
 #include <ace/Default_Constants.h>
+#pragma warning (default: 4996)
 
 using namespace acewrapper;
 

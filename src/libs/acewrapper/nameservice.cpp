@@ -4,8 +4,10 @@
 //////////////////////////////////////////
 
 #include "nameservice.h"
+#pragma warning (disable: 4996)
 #include <tao/ORB.h>
 #include <orbsvcs/CosNamingC.h>
+#pragma warning (default: 4996)
 
 using namespace acewrapper;
 

@@ -6,7 +6,9 @@
 
 #pragma once
 
-#include "adinterface/brokerS.h"
+#pragma warning (disable: 4996)
+# include "adinterface/brokerS.h"
+#pragma warning (default: 4996)
 
 namespace broker {
 

@@ -4,11 +4,14 @@
 //////////////////////////////////////////////
 
 #include "reactorthread.h"
+
+#pragma warning (disable : 4996)
 #include <ace/Thread_Manager.h>
 #include <ace/Reactor.h>
 #include <ace/Singleton.h>
 #include <ace/Recursive_Thread_Mutex.h>
 #include <ace/Semaphore.h>
+#pragma warning (default: 4996)
 #include <acewrapper/mutex.hpp>
 
 #if defined _DEBUG

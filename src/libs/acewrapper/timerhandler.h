@@ -6,7 +6,9 @@
 #ifndef TIMERHANDLER_H
 #define TIMERHANDLER_H
 
-#include <ace/Event_Handler.h>
+#pragma warning (disable: 4996)
+# include <ace/Event_Handler.h>
+#pragma warning (default: 4996)
 
 class ACE_Semaphore;
 

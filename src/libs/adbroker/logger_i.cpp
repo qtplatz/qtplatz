@@ -4,13 +4,15 @@
 //////////////////////////////////////////
 
 #include "logger_i.h"
-#include <adinterface/loghandlerC.h>
 #include <acewrapper/mutex.hpp>
 #include <acewrapper/timeval.h>
 #include <algorithm>
 #include <assert.h>
 #include <sstream>
-#include <ace/OS.h>
+#pragma warning (disable: 4996)
+# include <adinterface/loghandlerC.h>
+# include <ace/OS.h>
+#pragma warning (default: 4996)
 
 using namespace broker;
 using namespace acewrapper;

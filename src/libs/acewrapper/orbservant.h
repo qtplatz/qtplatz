@@ -7,8 +7,10 @@
 #ifndef ORBSERVANT_H
 #define ORBSERVANT_H
 
+#pragma warning ( disable: 4996 )
 #include <tao/ORB.h>
 #include <tao/PortableServer/PortableServer.h>
+#pragma warning ( default: 4996 )
 #include <string>
 
 class TAO_ORB_Manager;

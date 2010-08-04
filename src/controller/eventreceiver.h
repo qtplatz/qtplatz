@@ -7,9 +7,12 @@
 #define EVENTRECEIVER_H
 
 #include <QObject>
+
+#pragma warning (disable:4996)
 #include <ace/Event_Handler.h>
 #include <ace/INET_Addr.h>
 #include <ace/Time_Value.h>
+#pragma warning (default:4996)
 
 class ACE_Time_Value;
 

@@ -6,8 +6,10 @@
 
 #pragma once
 
-#include <tao/Object.h>
-#include <orbsvcs/CosNamingC.h>
+#pragma warning (disable: 4996)
+# include <tao/Object.h>
+# include <orbsvcs/CosNamingC.h>
+#pragma warning (default: 4996)
 
 namespace acewrapper {
 

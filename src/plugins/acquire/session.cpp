@@ -6,7 +6,10 @@
 
 #include "session.h"
 
-#include <adinterface/controlserverC.h>
+# pragma warning (disable: 4996)
+# include <adinterface/controlserverC.h>
+# pragma warning (default: 4996)
+
 #include <acewrapper/mutex.hpp>
 
 using namespace acquire::internal;

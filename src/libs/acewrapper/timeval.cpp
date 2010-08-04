@@ -4,8 +4,10 @@
 //////////////////////////////////////////
 
 #include "timeval.h"
-#include <ACE/Time_Value.h>
-#include <ACE/High_Res_Timer.h>
+# pragma warning (disable: 4996)
+#  include <ACE/Time_Value.h>
+#  include <ACE/High_Res_Timer.h>
+# pragma warning (default: 4996)
 #include <sstream>
 #include <string>
 #include <time.h>

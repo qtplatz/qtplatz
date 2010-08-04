@@ -4,7 +4,9 @@
 //////////////////////////////////////////
 
 #include "adbroker.h"
-#include "ace/Init_ACE.h"
+#pragma warning (disable: 4996)
+# include "ace/Init_ACE.h"
+#pragma warning (default: 4996)
 
 #  if defined _DEBUG
 #     pragma comment(lib, "TAO_Utilsd.lib")
@@ -30,10 +32,12 @@
 #     pragma comment(lib, "acewrapper.lib")
 #  endif
 
-#include <tao/Utils/ORB_Manager.h>
-#include <ace/Thread_Manager.h>
-#include <ace/OS.h>
-#include <ace/Process_Manager.h>
+#pragma warning (disable: 4996)
+# include <tao/Utils/ORB_Manager.h>
+# include <ace/Thread_Manager.h>
+# include <ace/OS.h>
+# include <ace/Process_Manager.h>
+#pragma warning (default: 4996)
 
 #include <acewrapper/nameservice.h>
 #include <acewrapper/orbservant.h>

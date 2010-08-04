@@ -8,11 +8,14 @@
 #include <boost/variant.hpp>
 #include <acewrapper/lifecycle_frame_serializer.h>
 #include <acewrapper/outputcdr.h>
-#include <ace/Singleton.h>
-#include <ace/INET_Addr.h>
-#include <ace/Time_Value.h>
-#include <ace/High_Res_Timer.h>
-#include <ace/Stream.h>
+
+#pragma warning (disable: 4996)
+# include <ace/Singleton.h>
+# include <ace/INET_Addr.h>
+# include <ace/Time_Value.h>
+# include <ace/High_Res_Timer.h>
+# include <ace/Stream.h>
+#pragma warning (default: 4996)
 
 #include "roleanalyzer.h"
 #include "roleaverager.h"

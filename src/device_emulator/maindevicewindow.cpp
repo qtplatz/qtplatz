@@ -19,11 +19,12 @@
 #include <sstream>
 
 # pragma warning (disable : 4996 )
-#include <ace/OS.h>
-#include <ace/Reactor.h>
-#include <ace/Message_Block.h>
-#include <ace/Task.h>
-#include <ace/Reactor_Notification_Strategy.h>
+# include <ace/OS.h>
+# include <ace/Reactor.h>
+# include <ace/Message_Block.h>
+# include <ace/Task.h>
+# include <ace/Reactor_Notification_Strategy.h>
+# include "../controller/controllerC.h"
 # pragma warning (default : 4996 )
 
 #include "eventreceiver.h"
@@ -37,7 +38,6 @@
 #include "roleanalyzer.h"
 #include "roleaverager.h"
 #include "roleesi.h"
-#include "../controller/controllerC.h"
 #include "./reactor_thread.h"
 
 ///////////////////////////////////////////////////////

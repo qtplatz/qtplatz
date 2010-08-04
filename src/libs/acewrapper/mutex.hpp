@@ -3,8 +3,8 @@
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison Project
 //////////////////////////////////////////////
-#ifndef MUTEX_HPP
-#define MUTEX_HPP
+
+#pragma once
 
 class ACE_Recursive_Thread_Mutex;
 
@@ -36,4 +36,4 @@ namespace acewrapper {
 
 }
 
-#endif // MUTEX_HPP
+

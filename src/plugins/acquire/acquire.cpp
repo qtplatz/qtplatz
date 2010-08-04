@@ -5,8 +5,10 @@
 
 #include "acquire.h"
 
-#include <ace/Service_Config.h>
-#include <ace/Process_Manager.h>
+# pragma warning (disable: 4996)
+# include <ace/Service_Config.h>
+# include <ace/Process_Manager.h>
+# pragma warning (default: 4996)
 
 #if defined _DEBUG
 #     pragma comment(lib, "adcontrollerd.lib")

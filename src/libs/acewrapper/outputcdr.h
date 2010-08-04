@@ -6,7 +6,9 @@
 
 #pragma once
 
-#include <ace/CDR_Stream.h>
+#pragma warning (disable: 4996)
+# include <ace/CDR_Stream.h>
+#pragma warning (default: 4996)
 #include <string>
 #include <boost/noncopyable.hpp>
 

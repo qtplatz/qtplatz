@@ -7,9 +7,12 @@
 #ifndef MCASTSERVER_H
 #define MCASTSERVER_H
 
-#include <ace/SOCK_Dgram_Mcast.h>
-#include <ace/Event_Handler.h>
-#include <ace/Recursive_Thread_Mutex.h>
+# pragma warning (disable: 4996)
+#  include <ace/SOCK_Dgram_Mcast.h>
+#  include <ace/Event_Handler.h>
+#  include <ace/Recursive_Thread_Mutex.h>
+# pragma warning (default: 4996)
+
 #include <boost/utility.hpp>
 #include "callback.h"
 
