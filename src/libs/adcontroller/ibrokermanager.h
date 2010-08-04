@@ -12,36 +12,42 @@ class iBroker;
 class ACE_Reactor;
 class Task;
 
+namespace acewrapper {
+	class ReactorThread;
+    template<class T> class EventHandler;
+    class TimerHandler;
+    template<class T> class TimerReceiver;
+}
+
+namespace internal {
+	class TimeReceiver;
+}
+
 class IBrokerManager {
 private:
     ~IBrokerManager();
     IBrokerManager();
     IBrokerManager( const IBrokerManager& );  /* not defined */
 
-   public:  
-       bool initialize();
-	   void terminate();
+public:  
+	bool initialize();
+	void terminate();
 
-       inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
-	   inline ACE_Reactor * reactor() { return reactor_; }
+	inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
+	ACE_Reactor * reactor();
 
-       template<class T> T* get();
-       template<> iBroker * get<iBroker>() { return pBroker_; }
+	template<class T> T* get();
+	template<> iBroker * get<iBroker>() { return pBroker_; }
       
-   private:
-       friend class ACE_Singleton<IBrokerManager, ACE_Recursive_Thread_Mutex>;
+private:
+	friend class ACE_Singleton<IBrokerManager, ACE_Recursive_Thread_Mutex>;
+	friend class internal::TimeReceiver;
+    int handle_timeout( const ACE_Time_Value&, const void * );
 
-       ACE_Recursive_Thread_Mutex mutex_;
-       iBroker * pBroker_;
-
-       // main contrl server reactor
-       ACE_Reactor * reactor_;
-	   static void * reactor_thread_entry( void * );
-
-	   // a task
-	   boost::shared_ptr< Task > task_;
-
-	   void run_event_loop();
+	ACE_Recursive_Thread_Mutex mutex_;
+	iBroker * pBroker_;
+	acewrapper::ReactorThread * reactor_thread_;    
+	acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> > * timerHandler_;
 };
 
 typedef ACE_Singleton<IBrokerManager, ACE_Recursive_Thread_Mutex> iBrokerManager;

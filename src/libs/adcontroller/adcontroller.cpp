@@ -48,14 +48,10 @@
 #include <fstream>
 #include <ace/OS.h>
 #include <ace/Process_Manager.h>
-#include <acewrapper/eventhandler.h>
-#include <acewrapper/mcasthandler.h>
 #include <acewrapper/constants.h>
-#include "mcast_handler.h"
 #include <boost/smart_ptr.hpp>
-#include <acewrapper/reactorthread.h>
-#include <ace/Reactor.h>
 #include "manager_i.h"
+#include "ibrokermanager.h"
 
 using namespace acewrapper;
 
@@ -71,10 +67,6 @@ adcontroller::abort_server()
 {
 	__aborted = true;
 	deactivate();
-/*
-	if ( __own_thread )
-        singleton::ns_adcontroller::session::instance()->getServantManager()->fini();
-*/
 }
 
 bool
@@ -108,6 +100,9 @@ adcontroller::deactivate()
 {
 	ORBServant< ns_adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
 	pServant->deactivate();
+
+	iBrokerManager::instance()->terminate();
+
 	return true;
 }
 

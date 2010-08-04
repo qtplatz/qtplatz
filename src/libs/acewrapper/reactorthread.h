@@ -7,8 +7,8 @@
 #ifndef REACTORTHREAD_H
 #define REACTORTHREAD_H
 
+class ACE_Semaphore;
 class ACE_Reactor;
-class ACE_Recursive_Thread_Mutex;
 template<class T, class X> class ACE_Singleton;
 
 namespace acewrapper {
@@ -19,16 +19,17 @@ namespace acewrapper {
         ReactorThread();
 
         ACE_Reactor * get_reactor();
+        void terminate();
+        bool spawn();
+
         static void spawn( ReactorThread * );
 
     private:
         static void * thread_entry( void * me );
         void run_event_loop();
         ACE_Reactor * reactor_;
-        friend class ACE_Singleton<ReactorThread, ACE_Recursive_Thread_Mutex>;
+		ACE_Semaphore * sema_;
     };
-
-    typedef ACE_Singleton<ReactorThread, ACE_Recursive_Thread_Mutex> TheReactorThread;
 }
 
 #endif // REACTORTHREAD_H

@@ -53,7 +53,10 @@ session_i::software_revision()
 CORBA::Boolean
 session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
 {
-    scoped_mutex_t<> lock( iBrokerManager::instance()->mutex() );
+	scoped_mutex_t<> lock( iBrokerManager::instance()->mutex() );
+
+	iBroker * pBroker = iBrokerManager::instance()->get<iBroker>();
+	pBroker->connect( _this(), receiver );
 
     ACE_UNUSED_ARG(token);
 
@@ -86,13 +89,16 @@ session_i::disconnect( Receiver_ptr receiver )
 CORBA::Boolean
 session_i::initialize()
 {
-    return iBrokerManager::instance()->get<iBroker>()->initialize();
+    return iBrokerManager::instance()->initialize();
+	return iBrokerManager::instance()->get<iBroker>()->open();
 }
 
 CORBA::Boolean
 session_i::shutdown()
 {
-    return false;
+	iBrokerManager::instance()->terminate();
+	ACE_Thread_Manager::instance()->wait();
+	return true;
 }
 
 CORBA::ULong
@@ -181,24 +187,12 @@ session_i::commit_failed()
 bool
 session_i::internal_disconnect( Receiver_ptr receiver )
 {
-	std::cerr << "Session_i::disconnect." << std::endl;
-
     scoped_mutex_t<> lock( iBrokerManager::instance()->mutex() );
 
 	vector_type::iterator it = std::find(receiver_set_.begin(), receiver_set_.end(), receiver);
+
 	if ( it != receiver_set_.end() ) {
-
-#if defined DEBUG
-		std::cerr << "--------------- Session_i::disconnect target found. size="
-				  << receiver_set_.size() << std::endl;
-#endif
 		receiver_set_.erase( it );
-
-#if defined DEBUG
-		std::cerr << "--------------- Session_i::disconnect target erased. size="
-				  << receiver_set_.size() << std::endl;
-#endif
-
 		return true;
 	}
 	return false;

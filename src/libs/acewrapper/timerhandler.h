@@ -9,8 +9,6 @@
 #include <ace/Event_Handler.h>
 
 class ACE_Semaphore;
-//class ACE_Thread_Mutex;
-//template<class T> class ACE_Condition;
 
 namespace acewrapper {
 

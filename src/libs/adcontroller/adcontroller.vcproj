@@ -103,7 +103,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
-				CommandLine="mkdir ..\..\..\bin;&#x0D;&#x0A;copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
+				CommandLine="mkdir ..\..\..\bin;&#x0D;&#x0A;copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -228,6 +228,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\message.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\receiver_i.cpp"
 				>
 			</File>
@@ -315,6 +319,10 @@
 			</File>
 			<File
 				RelativePath=".\mcast_handler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\message.h"
 				>
 			</File>
 			<File

@@ -7,6 +7,9 @@
 #include <ace/Thread_Manager.h>
 #include <ace/Reactor.h>
 #include <ace/Singleton.h>
+#include <ace/Recursive_Thread_Mutex.h>
+#include <ace/Semaphore.h>
+#include <acewrapper/mutex.hpp>
 
 #if defined _DEBUG
 # include <iostream>
@@ -20,8 +23,17 @@ ReactorThread::~ReactorThread()
 }
 
 ReactorThread::ReactorThread() : reactor_(0)
+                               , sema_(0) 
 {
     reactor_ = new ACE_Reactor();
+	sema_ = new ACE_Semaphore(0, USYNC_THREAD, 0, 0, 1); // binary semaphore, with count = 0
+}
+
+void
+ReactorThread::terminate()
+{
+	reactor_->end_reactor_event_loop();
+	sema_->acquire(); // end_event_loop() will release semaphore
 }
 
 // satic
@@ -46,12 +58,9 @@ ReactorThread::thread_entry( void * me )
 void
 ReactorThread::run_event_loop()
 {
-    while ( reactor_->reactor_event_loop_done() == 0 )
-        reactor_->run_reactor_event_loop();
-
-#if defined _DEBUG
-    std::cout << "done ReactorThread::run_event_loop() successfully" << std::endl;
-#endif 
+	while ( reactor_->reactor_event_loop_done() == 0 )
+		reactor_->run_reactor_event_loop();
+	sema_->release();
 }
 
 

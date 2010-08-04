@@ -8,12 +8,9 @@
 
 #include <ace/Task.h>
 #include <ace/Message_Queue.h>
-#include <acewrapper/reactorthread.h>
 
-class Task;
 class ACE_Recursive_Thread_Mutex;
 class ACE_Notification_Strategy;
-template<class T, class M> class ACE_Singleton;
 
 ///////////////////////////
 
@@ -31,6 +28,5 @@ public:
 private:
 	ACE_Message_Queue<ACE_SYNCH> msgq_;
 	ACE_Notification_Strategy* notification_strategy_;
-	friend ACE_Singleton< Task, ACE_Recursive_Thread_Mutex>;
 };
 

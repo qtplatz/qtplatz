@@ -7,35 +7,61 @@
 #include "ibroker.h"
 #include <boost/noncopyable.hpp>
 #include <acewrapper/mutex.hpp>
+#include <acewrapper/reactorthread.h>
 #include <ace/Thread_Manager.h>
 #include <ace/Reactor.h>
+#include <acewrapper/timerhandler.h>
+#include <acewrapper/eventhandler.h>
+
 #include "task.h"
+#include "message.h"
+
+//////////////////////////
+
+namespace internal {
+
+	class TimeReceiver {
+	public:
+		TimeReceiver() {}
+		int handle_input( ACE_HANDLE ) { return 0; }
+		int handle_timeout( const ACE_Time_Value& tv, const void * arg) {
+			return iBrokerManager::instance()->handle_timeout( tv, arg );
+		}
+		int handle_close( ACE_HANDLE, ACE_Reactor_Mask ) { return 0; }
+	};
+
+}
 
 ///////////////////////////////////////////////////////////////////
 
 IBrokerManager::~IBrokerManager()
 {
-    delete pBroker_;
-	delete reactor_;
+    terminate();
+	ACE_Thread_Manager::instance()->wait();
+	delete pBroker_;
+	delete reactor_thread_;
 }
 
 IBrokerManager::IBrokerManager() : pBroker_(0)
-                                 , reactor_(0) 
+                                 , reactor_thread_(0) 
+								 , timerHandler_(0) 
 {
-    pBroker_ = new iBroker();
+	reactor_thread_ = new acewrapper::ReactorThread();
+	acewrapper::ReactorThread::spawn( reactor_thread_ );
+	pBroker_ = new iBroker( 5 );
 }
 
 bool
 IBrokerManager::initialize()
 {
-	acewrapper::scoped_mutex_t<> lock( mutex_ );
-    
-	if ( reactor_ == 0 ) {
-		reactor_ = new ACE_Reactor();
-		ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( reactor_thread_entry ), reinterpret_cast<void *>( this ) );
-
-        task_.reset( new Task( reactor_ ) );
-		task_->activate();
+	if ( timerHandler_ == 0 ) {
+		acewrapper::scoped_mutex_t<> lock( mutex_ );
+		if ( timerHandler_ == 0 ) {
+			timerHandler_ = new acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> >();
+			ACE_Reactor * reactor = iBrokerManager::instance()->reactor();
+			reactor->schedule_timer( timerHandler_, 0, ACE_Time_Value(3), ACE_Time_Value(3) );
+		}
+		pBroker_->open();
 		return true;
 	}
 	return false;
@@ -44,30 +70,38 @@ IBrokerManager::initialize()
 void
 IBrokerManager::terminate()
 {
-	if ( reactor_ )  {
+	if ( timerHandler_ ) {
 		acewrapper::scoped_mutex_t<> lock( mutex_ );
-		task_->deactivate();
-		if ( reactor_ ) {
-			reactor_->end_reactor_event_loop();
-			// reactor_->reactor_event_loop_done();
+		if ( timerHandler_ ) {
+            timerHandler_->cancel( reactor(), timerHandler_ );
+            timerHandler_->wait();
+            delete timerHandler_;
+			timerHandler_ = 0;
 		}
 	}
+	pBroker_->close();
+    reactor_thread_->terminate();
 }
 
-void *
-IBrokerManager::reactor_thread_entry( void * me )
-{
-	IBrokerManager * pThis = reinterpret_cast<IBrokerManager *>(me);
-    if ( pThis ) {
-        pThis->reactor_->owner( ACE_OS::thr_self() );
-        pThis->run_event_loop();
-    }
-    return 0;
+ACE_Reactor *
+IBrokerManager::reactor()
+{ 
+	return reactor_thread_ ? reactor_thread_->get_reactor() : 0;
 }
 
-void
-IBrokerManager::run_event_loop()
+int
+IBrokerManager::handle_timeout( const ACE_Time_Value& tv, const void * )
 {
-    while ( reactor_->reactor_event_loop_done() == 0 )
-        reactor_->run_reactor_event_loop();
+    using namespace ns_adcontroller;
+
+    ACE_OutputCDR cdr;
+	Message msg( 0, 0, Notify_Timeout, 1 );
+    cdr << msg;
+    cdr << tv.sec();
+    cdr << tv.usec();
+
+	if ( pBroker_ )
+		pBroker_->putq( cdr.begin()->duplicate() );
+
+	return 0;
 }
