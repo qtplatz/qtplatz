@@ -38,6 +38,7 @@
 #include "roleaverager.h"
 #include "roleesi.h"
 #include "../controller/controllerC.h"
+#include "./reactor_thread.h"
 
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
@@ -59,7 +60,7 @@ MainDeviceWindow::mcast_init()
 {
     acewrapper::instance_manager::initialize();
     
-    ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
+    ACE_Reactor * reactor = singleton::theReactorThread::instance()->get_reactor();
     
     dgramHandler_.reset( new acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> >() );
     if ( dgramHandler_ ) {
@@ -97,13 +98,13 @@ MainDeviceWindow::mcast_init()
         timerId_ = reactor->schedule_timer( timerHandler_.get(), 0, ACE_Time_Value(3), ACE_Time_Value(3) );
     }
     
-    acewrapper::ReactorThread::spawn( acewrapper::TheReactorThread::instance() );
+    acewrapper::ReactorThread::spawn( singleton::theReactorThread::instance() );
 }
 
 void
 MainDeviceWindow::closeEvent(QCloseEvent *)
 {
-    ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
+    ACE_Reactor * reactor = singleton::theReactorThread::instance()->get_reactor();
     if ( reactor ) {
         mcastHandler_->close();
         dgramHandler_->close();
@@ -272,7 +273,7 @@ void MainDeviceWindow::on_pushInit_clicked()
 
 void MainDeviceWindow::on_dismisButton_clicked()
 {
-    ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
+    ACE_Reactor * reactor = singleton::theReactorThread::instance()->get_reactor();
     reactor->cancel_timer( timerId_ );
     reactor->end_reactor_event_loop();
     reactor->close();

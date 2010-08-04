@@ -24,6 +24,7 @@
 #include "treemodel.h"
 #include "deviceproxy.h"
 #include "devicetext.h"
+#include "../device_emulator/reactor_thread.h"
 
 using namespace adportable::protocol;
 using namespace acewrapper;
@@ -44,9 +45,11 @@ MainControllerWindow::closeEvent(QCloseEvent * ev)
 {
     extern void orb_shutdown();
 
+    Q_UNUSED(ev);
+
     orb_shutdown();
 
-    ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
+    ACE_Reactor * reactor = singleton::theReactorThread::instance()->get_reactor();
     if ( reactor ) {
         if ( mcastHandler_ )
             mcastHandler_->close();
@@ -214,7 +217,7 @@ MainControllerWindow::mcast_init()
 {
     acewrapper::instance_manager::initialize();
 
-    ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
+    ACE_Reactor * reactor = singleton::theReactorThread::instance()->get_reactor();
     mcastHandler_.reset( new acewrapper::EventHandler< acewrapper::McastReceiver<QEventReceiver> >() );
     if ( mcastHandler_ ) {
        if ( mcastHandler_->open() ) 
@@ -234,7 +237,7 @@ MainControllerWindow::mcast_init()
 		   , SIGNAL( signal_timeout( unsigned long, long ) )
 		   , this, SLOT( on_notify_timeout( unsigned long, long ) ) );
 
-    acewrapper::ReactorThread * pThread = acewrapper::TheReactorThread::instance();
+    acewrapper::ReactorThread * pThread = singleton::theReactorThread::instance();
     acewrapper::ReactorThread::spawn( pThread );
 }
 

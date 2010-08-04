@@ -424,6 +424,10 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\singleton_reaction_thread.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Generated Files"

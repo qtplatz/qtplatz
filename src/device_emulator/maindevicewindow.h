@@ -8,7 +8,6 @@
 #define MAINDEVICEWINDOW_H
 
 #include <QMainWindow>
-// #include <acewrapper/callback.h>
 #include <boost/smart_ptr.hpp>
 #include <adportable/protocollifecycle.h>
 
@@ -25,9 +24,6 @@ namespace acewrapper {
     template<class T> class McastReceiver;
     template<class T> class TimerReceiver;
 }
-
-// class DeviceEvent;
-// class McastServer;
 
 class MainDeviceWindow;
 class ACE_Reactor;
@@ -51,7 +47,6 @@ protected:
 
 private:
     Ui::MainDeviceWindow *ui;
-    // adportable::protocol::LifeCycle lifeCycle_;
 
     // device will handle one unicast data gram
     boost::shared_ptr< acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> > > dgramHandler_;

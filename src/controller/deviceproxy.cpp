@@ -23,6 +23,7 @@
 
 #include "controllerC.h"
 #include "tao/Utils/ORB_Manager.h"
+#include "../device_emulator/reactor_thread.h"
 
 using namespace acewrapper;
 using namespace adportable::protocol;
@@ -83,7 +84,7 @@ DeviceProxy::initialize()
       if ( port >= 6999 )
           return false;
       assert( port < 6999 );
-      ACE_Reactor * reactor = acewrapper::TheReactorThread::instance()->get_reactor();
+      ACE_Reactor * reactor = singleton::theReactorThread::instance()->get_reactor();
       if ( reactor )
           reactor->register_handler( dgramHandler_.get(), ACE_Event_Handler::READ_MASK );
 
@@ -150,6 +151,7 @@ DeviceProxy::on_notify_dgram( ACE_Message_Block * mb )
 void
 DeviceProxy::notify_timeout( const ACE_Time_Value& tv )
 {
+    Q_UNUSED(tv);
 	if ( lifeCycle_.machine_state() == LCS_ESTABLISHED ) {
 
 		LifeCycleData reqData;
