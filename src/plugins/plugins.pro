@@ -13,6 +13,7 @@ SUBDIRS   = plugin_coreplugin \
 #            plugin_tune \
             plugin_sequence \
             plugin_dataproc \
+            adplugin \
 #            plugin_batchproc \
             plugin_help
 
