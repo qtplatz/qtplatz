@@ -5,6 +5,8 @@
 
 #include "acquireuimanager.h"
 #include "acquireactions.h"
+#include <adplugin/ifactory.h>
+
 #include <boost/variant.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
@@ -17,6 +19,9 @@
 #include <QLabel>
 #include <QToolBar>
 #include <QTextEdit>
+#include <QPluginLoader>
+#include <QLibrary>
+#include <QtCore>
 
 namespace Acquire { 
   namespace internal {
@@ -66,6 +71,28 @@ AcquireUIManager::init()
     return;
   
   Acquire::internal::AcquireUIManagerData& m = *d_;
+
+  QDir dir = QCoreApplication::instance()->applicationDirPath();
+  dir.cdUp();
+  dir.cd( "lib/qtPlatz/plugins/ScienceLiaison" );
+#if defined _DEBUG
+  QString adtofms = dir.path() + "/adtofmsd.dll";
+#else
+  QString adtofms = dir.path() + "/adtofms.dll";
+#endif
+
+  QPluginLoader loader( adtofms, this );
+  if ( ! loader.load() ) {
+	  loader.setFileName( adtofms );
+	  if ( ! loader.load() ) {
+		  QString error = loader.errorString();
+	  }
+  }
+  QObject * instance = loader.instance();
+  if ( instance ) {
+	  adplugin::IFactory* piFactory = qobject_cast< adplugin::IFactory *>( instance );
+	  QWidget * pWidget = piFactory->create_widget( "adplugin.ui.IMonitor" );
+  }
   
   m.mainWindow_ = new Utils::FancyMainWindow;
   if ( d_ && m.mainWindow_ ) {

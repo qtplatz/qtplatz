@@ -14,6 +14,7 @@ SUBDIRS   = \
     adcontrols \
     adbroker \
     admachine \
+    adplugin \
     adcontroller
 
 #   adcontroller

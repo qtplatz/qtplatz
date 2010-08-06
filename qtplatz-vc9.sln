@@ -149,7 +149,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adinterface", "src\libs\adi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adcontroller", "src\libs\adcontroller\adcontroller.vcproj", "{F0E155A8-2FCE-34E9-84EB-610E79DE606D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adplugin", "src\plugins\adplugin\adplugin.vcproj", "{5838AA98-8CB5-35F1-936E-28522B8637BE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adtofms", "src\plugins\adtofms\adtofms.vcproj", "{2B4FFA7E-8545-342C-8C06-B14B8A6364E9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adplugin", "src\libs\adplugin\adplugin.vcproj", "{50C79A66-A451-36F0-BC2C-0A0609A7B9D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -277,10 +279,14 @@ Global
 		{F0E155A8-2FCE-34E9-84EB-610E79DE606D}.Debug|Win32.Build.0 = Debug|Win32
 		{F0E155A8-2FCE-34E9-84EB-610E79DE606D}.Release|Win32.ActiveCfg = Release|Win32
 		{F0E155A8-2FCE-34E9-84EB-610E79DE606D}.Release|Win32.Build.0 = Release|Win32
-		{5838AA98-8CB5-35F1-936E-28522B8637BE}.Debug|Win32.ActiveCfg = Debug|Win32
-		{5838AA98-8CB5-35F1-936E-28522B8637BE}.Debug|Win32.Build.0 = Debug|Win32
-		{5838AA98-8CB5-35F1-936E-28522B8637BE}.Release|Win32.ActiveCfg = Release|Win32
-		{5838AA98-8CB5-35F1-936E-28522B8637BE}.Release|Win32.Build.0 = Release|Win32
+		{2B4FFA7E-8545-342C-8C06-B14B8A6364E9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2B4FFA7E-8545-342C-8C06-B14B8A6364E9}.Debug|Win32.Build.0 = Debug|Win32
+		{2B4FFA7E-8545-342C-8C06-B14B8A6364E9}.Release|Win32.ActiveCfg = Release|Win32
+		{2B4FFA7E-8545-342C-8C06-B14B8A6364E9}.Release|Win32.Build.0 = Release|Win32
+		{50C79A66-A451-36F0-BC2C-0A0609A7B9D1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{50C79A66-A451-36F0-BC2C-0A0609A7B9D1}.Debug|Win32.Build.0 = Debug|Win32
+		{50C79A66-A451-36F0-BC2C-0A0609A7B9D1}.Release|Win32.ActiveCfg = Release|Win32
+		{50C79A66-A451-36F0-BC2C-0A0609A7B9D1}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
