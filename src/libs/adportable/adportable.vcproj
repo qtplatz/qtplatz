@@ -183,7 +183,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\component.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\configuration.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\constants.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ConvertUTF.c"
 				>
 			</File>
 			<File
@@ -192,6 +204,14 @@
 			</File>
 			<File
 				RelativePath="protocollifecycle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\string.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\utf.cpp"
 				>
 			</File>
 		</Filter>
@@ -279,7 +299,19 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\component.h"
+				>
+			</File>
+			<File
+				RelativePath=".\configuration.h"
+				>
+			</File>
+			<File
 				RelativePath=".\constants.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ConvertUTF.h"
 				>
 			</File>
 			<File
@@ -359,6 +391,14 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\string.h"
+				>
+			</File>
+			<File
+				RelativePath=".\utf.h"
+				>
 			</File>
 		</Filter>
 	</Files>

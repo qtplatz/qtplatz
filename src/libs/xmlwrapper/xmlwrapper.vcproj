@@ -45,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;.\..\..\libs;c:\Users\thondo\src\qtPlatz\tools;&quot;$(QTDIR)\include\ActiveQt&quot;;.\debug;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;.\..\..\libs;c:\Users\thondo\src\qtPlatz\tools;&quot;$(QTDIR)\include\ActiveQt&quot;;.\debug;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;&quot;$(QTDIR)\include\QtCore&quot;"
 				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,QT_TESTLIB_LIB,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -179,7 +179,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="xmldom.cpp"
+				RelativePath=".\msxml.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\qtxml.cpp"
 				>
 			</File>
 		</Filter>
@@ -188,6 +192,14 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\msxml.h"
+				>
+			</File>
+			<File
+				RelativePath=".\qtxml.h"
+				>
+			</File>
 			<File
 				RelativePath="xmldom.h"
 				>

@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       -= core gui
+QT  += xml
 
 TARGET = xmlwrapper
 TEMPLATE = lib
@@ -12,9 +13,12 @@ CONFIG += staticlib
 
 include(../../adilibrary.pri)
 
-SOURCES += xmldom.cpp
+SOURCES += qtxml.cpp \
+    msxml.cpp
 
-HEADERS += xmldom.h
+HEADERS += xmldom.h \
+    qtxml.h \
+    msxml.h
 
 OTHER_FILES += \
     xmlwrapper.pri

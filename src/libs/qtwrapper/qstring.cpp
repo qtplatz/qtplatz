@@ -4,21 +4,34 @@
 //////////////////////////////////////////
 
 #include "qstring.h"
-#include <string>
+#include <adportable/utf.h>
 
 using namespace qtwrapper;
 
-#if defined _NATIVE_WCHAR_T_DEFINED
-
-qstring::qstring( const std::wstring& t )
+qstring::qstring( const std::wstring& t ) 
+: impl_( QString::fromUtf16( reinterpret_cast<const UTF16 *>( t.c_str() ) ) )
 {
-   
 }
 
+QString
+qstring::copy( const std::wstring& t )
+{
+    QString res( QString::fromUtf16( reinterpret_cast<const UTF16 *>( t.c_str() ) ) );
+    return res;
+}
+
+
+wstring::wstring( const QString& t ) : impl_( wstring::copy(t) )
+{
+}
+
+std::wstring
+wstring::copy( const QString& t )
+{
+#if defined WIN32
+    return std::wstring( reinterpret_cast<const wchar_t *>( t.utf16() ) );
 #else
-
-qstring::qstring( const std::wstring& t ) : q_( QString::fromStdWString(t) )
-{
+    return t.toWStdString();
+#endif
 }
 
-#endif

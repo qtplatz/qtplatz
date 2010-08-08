@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2010 Toshinobu Hondo, All rights reserved. -->
+<!--
+   $Header$
+   $Id$
+-->
+<!---<AcquireConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="acquire.config.xsd">
+	-->
+<AcquireConfiguration>
+	<Component type="hardware" name="MassSpectrometer">
+	</Component>
+	<Component type="adplugin" name="adtofms">
+		<Component type="widget" name="adtofms::imonitor_ui" interface="adplugin::ui::IMonitor"/>
+	</Component>
+	<Component type="internal" name="sequence_editor"></Component>
+	<Componet type="widget" name="imonitor.ui.massspec" id="imonitor.ui.massspec">
+		<description>description text to be here</description>
+	</Componet>
+	
+	<Configuration name="instrument_monitor_tab">
+		<Tab>
+			<Item name="sequence_monitor" component="sequence_editor" readonly="true" option="">Sequence</Item>
+			<Item>漢字のテスト</Item>
+			<Item>Mass Spectrometer</Item>
+			<Item>Agilent 1290</Item>
+			<Item>碓 臼 渦 嘘 唄 欝 蔚 鰻 姥 厩 浦 瓜 閏 噂 云 運</Item>
+		</Tab>
+	
+	</Configuration>
+</AcquireConfiguration>

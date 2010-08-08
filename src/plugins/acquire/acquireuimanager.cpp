@@ -22,6 +22,11 @@
 #include <QPluginLoader>
 #include <QLibrary>
 #include <QtCore>
+#include <QUrl>
+
+// #include <qtwrapper/xmldom.h> // using Qt native XML parser
+#include <qtwrapper/qstring.h>
+#include <xmlwrapper/xmldom.h>
 
 namespace Acquire { 
   namespace internal {
@@ -57,24 +62,40 @@ AcquireUIManager::mainWindow() const
   return d_->mainWindow_;
 }
 
-//const AcquireManagerActions&
-//AcquireUIManager::acquireManagerActions() const
-//{
-//  return d_->actions_;
-//}
-
-
 void
 AcquireUIManager::init()
 {
-  if ( ! d_ )
-    return;
-  
-  Acquire::internal::AcquireUIManagerData& m = *d_;
+    if ( ! d_ )
+        return;
 
-  QDir dir = QCoreApplication::instance()->applicationDirPath();
-  dir.cdUp();
-  dir.cd( "lib/qtPlatz/plugins/ScienceLiaison" );
+    Acquire::internal::AcquireUIManagerData& m = *d_;
+
+    QDir dir = QCoreApplication::instance()->applicationDirPath();
+    dir.cdUp();
+    dir.cd( "lib/qtPlatz/plugins/ScienceLiaison" );
+
+    QString configFile = dir.path() + "/acquire.config.xml";
+
+    using namespace xmlwrapper;
+    using namespace xmlwrapper::msxml;
+
+    XMLDocument config;
+
+    do {
+        if ( config.load( qtwrapper::wstring( configFile ) ) ) {
+            XMLNodeList widgets = config.selectNodes( L"./AcquireConfiguration//Configuration[@type='adplugin']" );
+            XMLNodeList tabs = config.selectNodes( L"./AcquireConfiguration//Configuration[@name='instrument_monitor_tab']/Tab/Item" );
+            for ( unsigned int i = 0; i < tabs.size(); ++i ) {
+                XMLNode& node = tabs[i];
+                std::wstring name = node.attribute( L"name" );
+                std::wstring component = node.attribute( L"component" );
+                bool readOnly = node.attribute( L"readonly" ) == L"true" ? true : false;
+                std::wstring text = node.textValue();
+                std::wstring option = node.attribute( L"option" );
+            }
+        }
+    } while(0);
+  
 #if defined _DEBUG
   QString adtofms = dir.path() + "/adtofmsd.dll";
 #else

@@ -6,17 +6,26 @@
 
 #pragma once
 
-#include <string>
 #include <QString>
+#include <string>
 
 namespace qtwrapper {
 
-  class qstring {
-    QString q_;
-  public:
-    qstring( const std::wstring& );
-    inline operator QString& () { return q_; }
-  };
+    struct qstring {
+        QString impl_;
+        qstring() {}
+        qstring( const std::wstring& );
+        inline operator QString& () { return impl_; }
+        static QString copy( const std::wstring& );
+    };
+
+    struct wstring {
+        std::wstring impl_;
+        wstring() {}
+        wstring( const QString& );
+        inline operator std::wstring& () { return impl_; }
+        static std::wstring copy( const QString& );
+    };
 
 }
 

@@ -12,7 +12,9 @@ CONFIG += staticlib
 include(../../adilibrary.pri)
 
 SOURCES += qtwrapper.cpp \
-    qstring.cpp
+    qstring.cpp \
+    xmldom.cpp
 
 HEADERS += qtwrapper.h \
-    qstring.h
+    qstring.h \
+    xmldom.h

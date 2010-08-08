@@ -15,11 +15,21 @@ include(../../boost.pri)
 
 SOURCES += adportable.cpp \
     protocollifecycle.cpp \
-    lifecycle_frame.cpp
+    lifecycle_frame.cpp \
+    ConvertUTF.c \
+    utf.cpp \
+    string.cpp \
+    configuration.cpp \
+    component.cpp
 
 HEADERS += adportable.h \
     binary_search.hpp \
     array_wrapper.hpp \
     safearray.hpp \
     protocollifecycle.h \
-    lifecycle_frame.h
+    lifecycle_frame.h \
+    ConvertUTF.h \
+    utf.h \
+    string.h \
+    configuration.h \
+    component.h
