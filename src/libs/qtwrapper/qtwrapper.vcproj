@@ -186,10 +186,6 @@
 				RelativePath="qtwrapper.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\xmldom.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

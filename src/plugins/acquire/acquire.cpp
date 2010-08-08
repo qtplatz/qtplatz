@@ -16,14 +16,14 @@
 #     pragma comment(lib, "adportabled.lib")
 #     pragma comment(lib, "acewrapperd.lib")
 #     pragma comment(lib, "qtwrapperd.lib")
-#     pragma comment(lib, "msxmlwrapperd.lib")
+#     pragma comment(lib, "xmlwrapperd.lib")
 #else
 #     pragma comment(lib, "adcontroller.lib")
 #     pragma comment(lib, "adinterface.lib")
 #     pragma comment(lib, "adportable.lib")
 #     pragma comment(lib, "acewrapper.lib")
 #     pragma comment(lib, "qtwrapper.lib")
-#     pragma comment(lib, "msxmlwrapper.lib")
+#     pragma comment(lib, "xmlwrapper.lib")
 #endif
 
 #if defined ACE_WIN32
