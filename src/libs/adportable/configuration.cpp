@@ -83,3 +83,8 @@ Configuration::hasChild() const
     return ! children_.empty();
 }
 
+void
+Configuration::append( const Configuration& t )
+{
+	children_.push_back( t );
+}

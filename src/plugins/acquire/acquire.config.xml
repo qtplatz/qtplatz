@@ -1,30 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright (C) 2010 Toshinobu Hondo, All rights reserved. -->
 <!--
-   $Header$
    $Id$
 -->
 <!---<AcquireConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="acquire.config.xsd">
 	-->
-<AcquireConfiguration>
-	<Component type="hardware" name="MassSpectrometer">
-	</Component>
-	<Component type="adplugin" name="adtofms">
-		<Component type="widget" name="adtofms::imonitor_ui" interface="adplugin::ui::IMonitor"/>
-	</Component>
-	<Component type="internal" name="sequence_editor"></Component>
-	<Componet type="widget" name="imonitor.ui.massspec" id="imonitor.ui.massspec">
-		<description>description text to be here</description>
-	</Componet>
-	
+<Configuration name="acquire">
+
+ 	<Module type="adplugin" name="adtofms.dll" alternative="adtofmsd.dll">
+    <Component type="widget" name="adtofms::imonitor_ui" instance_of="adplugin.ui.iMonitor"/>
+    <Component type="widget" name="adtofms::tune_ui" instance_of="adplugin.ui.iTuneInteractive"/>
+	</Module>
+
+  <Module type="adplugin" name="agilent_hplc.dll" alternative="agilent_hplcd.dll">
+    <Component type="widget" name="agilent_hplc::imonitor_ui" instance_of="adplugin.ui.iMonitor"/>
+  </Module>
+
+  <Module type="corba" name="adics.exe">
+    <Component type="servant" name="adcontroller.manager" resolve_method="CosNaming::Name" instance_of="ControlServer::Manager"/>
+  </Module>
+
+  <Configuration name="controller" component="adcontroller.manager">
+    <!-- all this section will forwared to controller -->
+    <Module name="controller.exe" service="false"> <!-- demand load/exec if service="false" otherwise running is expected -->
+      <Component type="corba" name="controller.session.1" resolve_method="CosNaming::Name" instance_of="Instrument::Session"/>
+    </Module>
+  </Configuration>
+
 	<Configuration name="instrument_monitor_tab">
-		<Tab>
-			<Item name="sequence_monitor" component="sequence_editor" readonly="true" option="">Sequence</Item>
-			<Item>漢字のテスト</Item>
-			<Item>Mass Spectrometer</Item>
-			<Item>Agilent 1290</Item>
-			<Item>碓 臼 渦 嘘 唄 欝 蔚 鰻 姥 厩 浦 瓜 閏 噂 云 運</Item>
-		</Tab>
-	
+    <Configuration type="tab">
+      <Configuration name="tofms_monitor" component="adtofms::imonitor_ui" option="controller.session.1">質量分析計</Configuration>
+      <Configuration name="sequence_monitor" component="self::sequence_editor" readonly="true" option="">Sequence</Configuration>
+    </Configuration>
 	</Configuration>
-</AcquireConfiguration>
+
+</Configuration>

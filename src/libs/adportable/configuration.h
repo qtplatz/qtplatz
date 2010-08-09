@@ -31,6 +31,7 @@ namespace adportable {
         void attribute( const std::wstring& key, const std::wstring& value );
         bool readonly() const;
         bool hasChild() const;
+        void append( const Configuration& );
 
         inline const attributes_type& attributes() const { return attributes_; }
         inline vector_type::iterator begin() { return children_.begin(); }

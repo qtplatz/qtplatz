@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="adwidgetsd.lib QAxContainer.lib Aggregationd.lib ExtensionSystemd.lib Utilsd.lib Cored.lib QtTestd4.lib QtXmld4.lib QtGuid4.lib QtCored4.lib QtXmlPatternsd4.lib ole32.lib oleaut32.lib user32.lib gdi32.lib advapi32.lib"
+				AdditionalDependencies="adwidgetsd.lib adplugind.lib QAxContainer.lib Aggregationd.lib ExtensionSystemd.lib Utilsd.lib Cored.lib QtTestd4.lib QtXmld4.lib QtGuid4.lib QtCored4.lib QtXmlPatternsd4.lib ole32.lib oleaut32.lib user32.lib gdi32.lib advapi32.lib"
 				OutputFile="..\..\..\lib\qtPlatz\plugins\ScienceLiaison\acquired.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(TargetDir)&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;;&quot;$(ACE_ROOT)/lib&quot;"
@@ -406,6 +406,10 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
+				RelativePath=".\debug\qrc_acquire.cpp"
+				>
+			</File>
+			<File
 				RelativePath="release\qrc_acquire.cpp"
 				>
 				<FileConfiguration
@@ -416,10 +420,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\debug\qrc_acquire.cpp"
-				>
 			</File>
 			<Filter
 				Name="Debug"
@@ -1196,7 +1196,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>

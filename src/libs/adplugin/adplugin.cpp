@@ -6,7 +6,14 @@
 
 #include "adplugin.h"
 #include <QMutex>
+#include <QString>
 #include <stdlib.h>
+#include <adportable/configuration.h>
+#include <adportable/component.h>
+#include <string>
+#include <vector>
+#include "ConfigLoader.h"
+#include <qtwrapper/qstring.h>
 
 using namespace adplugin;
 
@@ -21,7 +28,11 @@ namespace adplugin {
 			manager_impl();
 
 			// manager impl
-			bool loadConfig( const wchar_t * );
+			bool loadConfig( const QString&, const wchar_t * );
+			const adportable::Configuration * getConfiguration( const wchar_t * name );
+			const adportable::Component * findComponent( const wchar_t * name );
+		private:
+			adportable::Configuration rootConfig_; // root is a place folder, which is always empty
 		};
 	}
 }
@@ -76,8 +87,32 @@ manager_impl::manager_impl()
 }
 
 bool
-manager_impl::loadConfig( const wchar_t * filename )
+manager_impl::loadConfig( const QString& filename, const wchar_t * query )
 {
-    Q_UNUSED( filename );
+	adportable::Configuration config;
+
+	if ( ConfigLoader::loadConfiguration( rootConfig_, qtwrapper::wstring( filename ), query ) ) {
+		return true;
+	}
 	return false;
 }
+
+const adportable::Configuration *
+manager_impl::getConfiguration( const wchar_t * name )
+{
+	using namespace adportable;
+
+	for ( Configuration::vector_type::iterator it = rootConfig_.begin(); it != rootConfig_.end(); ++it ) {
+		if ( name == it->name() )
+			return &(*it);
+	}
+	return 0;
+}
+
+const adportable::Component *
+manager_impl::findComponent( const wchar_t * name )
+{
+	static adportable::Component config;
+    return &config;
+}
+

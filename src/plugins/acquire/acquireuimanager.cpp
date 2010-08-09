@@ -27,6 +27,9 @@
 // #include <qtwrapper/xmldom.h> // using Qt native XML parser
 #include <qtwrapper/qstring.h>
 #include <xmlwrapper/xmldom.h>
+#include <adplugin/adplugin.h>
+#include <adportable/configuration.h>
+#include <adportable/component.h>
 
 namespace Acquire { 
   namespace internal {
@@ -75,6 +78,10 @@ AcquireUIManager::init()
     dir.cd( "lib/qtPlatz/plugins/ScienceLiaison" );
 
     QString configFile = dir.path() + "/acquire.config.xml";
+
+	adplugin::manager::instance()->loadConfig( configFile, L"./Configuration[@name='acquire']" );
+	const adportable::Configuration * p = adplugin::manager::instance()->getConfiguration( L"acquire" );
+	std::wstring name = p->name();
 
     using namespace xmlwrapper;
     using namespace xmlwrapper::msxml;

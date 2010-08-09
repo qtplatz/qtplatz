@@ -9,6 +9,13 @@
 
 #include "adplugin_global.h"
 
+class QString;
+
+namespace adportable {
+	class Configuration;
+	class Component;
+}
+
 namespace adplugin {
 
 	static const char * iid_iMonitor =             "adplugin.ui.iMonitor";
@@ -22,7 +29,9 @@ namespace adplugin {
 		static manager * instance();
 		static void dispose();
 
-		virtual bool loadConfig( const wchar_t * ) = 0;
+		virtual bool loadConfig( const QString&, const wchar_t * query ) = 0;
+		virtual const adportable::Configuration * getConfiguration( const wchar_t * name ) = 0;
+		virtual const adportable::Component * findComponent( const wchar_t * name ) = 0;
 
 	private:
         static manager * instance_;
