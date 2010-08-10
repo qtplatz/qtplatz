@@ -256,8 +256,14 @@ msxml::XMLDocument::save( const std::wstring& filename ) const
 {
    if ( pImpl_ ) {
       MSXML2::IXMLDOMDocumentPtr pidoc = pImpl_.get();
-      if ( pidoc )
-			return pidoc->save( filename.c_str() ) == S_OK ? true : false;
+	  if ( pidoc ) {
+		  try {
+			  return pidoc->save( filename.c_str() ) == S_OK ? true : false;
+		  } catch ( _com_error& e ) {
+			  std::wstring msg = e.Description();
+              assert(0);
+		  }
+	  }
    }
    return false;
 }
@@ -294,6 +300,15 @@ msxml::XMLDocument::xml( std::wstring& xml ) const
       return true;
    }
    return false;
+}
+
+std::wstring
+msxml::XMLDocument::toString() const
+{
+   MSXML2::IXMLDOMDocumentPtr pdom = pImpl_.get();
+   if ( pdom )
+	   return std::wstring( pdom->xml );
+   return L"";
 }
 
 XMLProcessingInstruction

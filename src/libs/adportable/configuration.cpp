@@ -21,6 +21,7 @@ Configuration::Configuration( const Configuration& t ) : name_( t.name_ )
                                                        , text_( t.text_ )
                                                        , attributes_( t.attributes_ )
                                                        , children_( t.children_ )  
+													   , xml_( t.xml_ )
 {
 }
 
@@ -83,8 +84,58 @@ Configuration::hasChild() const
     return ! children_.empty();
 }
 
-void
+Configuration&
 Configuration::append( const Configuration& t )
 {
 	children_.push_back( t );
+	return children_.back();
 }
+
+void
+Configuration::xml( const std::wstring& xml )
+{
+	xml_ = xml;
+}
+
+/////////////////////////////////////
+
+using namespace adportable::internal;
+
+xml_element::xml_element()
+{
+}
+
+xml_element::xml_element( const xml_element& t ) : xml_(t.xml_)
+                                                 , text_(t.text_)
+												 , attributes_(t.attributes_)  
+{
+}
+
+
+void
+xml_element::xml( const std::wstring& xml )
+{
+	xml_ = xml;
+}
+
+const std::wstring& 
+xml_element::attribute( const std::wstring& key ) const
+{
+	std::map< std::wstring, std::wstring >::const_iterator it = attributes_.find( key );
+    if ( it != attributes_.end() )
+		return it->second;
+	return __error_string;
+}
+
+void
+xml_element::attribute( const std::wstring& key, const std::wstring& value )
+{
+   attributes_[key] = value;
+}
+
+void
+xml_element::text( const std::wstring& text )
+{
+	text_ = text;
+}
+

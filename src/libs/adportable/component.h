@@ -34,6 +34,8 @@ namespace adportable {
             std::wstring name_;
             std::wstring type_;
             std::wstring interface_;
+			std::wstring loader_;
+			std::wstring module_;
         };
 
         const std::wstring& name() const;

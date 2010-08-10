@@ -94,6 +94,7 @@ namespace xmlwrapper {
       bool loadXML( const std::wstring& xml );
       
       bool xml(std::wstring& xml) const;
+	  std::wstring toString() const;
       XMLProcessingInstruction createProcessingInstruction( const std::wstring& target
 							    , const std::wstring& data);
       XMLElement documentElement();

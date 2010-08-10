@@ -79,7 +79,9 @@ AcquireUIManager::init()
 
     QString configFile = dir.path() + "/acquire.config.xml";
 
-	adplugin::manager::instance()->loadConfig( configFile, L"./Configuration[@name='acquire']" );
+	const wchar_t * query = L"/AcquireConfiguration/Configuration";
+
+	adplugin::manager::instance()->loadConfig( configFile, query );
 	const adportable::Configuration * p = adplugin::manager::instance()->getConfiguration( L"acquire" );
 	std::wstring name = p->name();
 
