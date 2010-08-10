@@ -12,26 +12,19 @@
 
 namespace adportable {
 
-	namespace internal {
+    class Module {
+    public:
+        Module( const std::wstring& xml = L"" );
+        Module( const Module& );
+        inline const std::wstring& xml() const { return xml_; }
+        inline const std::wstring& library_filename() const { return library_filename_; }
+        void xml( const std::wstring& );
+        void library_filename( const std::wstring& );
 
-		class xml_element {
-		public:
-			xml_element();
-			xml_element( const xml_element& );
-
-			const std::wstring& xml() const { return xml_; }
-			void xml( const std::wstring& );
-			const std::wstring& text() const { return text_; }
-			void text( const std::wstring& );
-
-			const std::wstring& attribute( const std::wstring& key ) const;
-			void attribute( const std::wstring& key, const std::wstring& value );
-		protected:
-			std::wstring xml_;
-			std::wstring text_;
-			std::map< std::wstring, std::wstring > attributes_;
-		};
-	}
+    private:
+        std::wstring xml_;
+        std::wstring library_filename_;
+    };
 
     class Configuration {
     public:
@@ -56,22 +49,25 @@ namespace adportable {
         bool hasChild() const;
 		Configuration& append( const Configuration& );
 		void xml( const std::wstring& );
-        
-		inline internal::xml_element& module() { return module_; }
+        void module( const Module& );
         
 		inline const std::wstring& xml() const { return xml_; }
         inline const attributes_type& attributes() const { return attributes_; }
+        inline const Module& module() const { return module_; }
         inline vector_type::iterator begin() { return children_.begin(); }
         inline vector_type::iterator end()   { return children_.end(); }
         inline vector_type::const_iterator begin() const { return children_.begin(); }
         inline vector_type::const_iterator end() const  { return children_.end(); }
+
+        static const Configuration * find( const Configuration&, const std::wstring& );
+
     private:
 		std::wstring xml_;
         std::wstring name_;
         std::wstring text_;
         attributes_type attributes_;
         std::vector< Configuration > children_;
-		internal::xml_element module_;
+        Module module_;
     };
 
 }

@@ -22,6 +22,7 @@ Configuration::Configuration( const Configuration& t ) : name_( t.name_ )
                                                        , attributes_( t.attributes_ )
                                                        , children_( t.children_ )  
 													   , xml_( t.xml_ )
+                                                       , module_( t.module_ )
 {
 }
 
@@ -97,45 +98,51 @@ Configuration::xml( const std::wstring& xml )
 	xml_ = xml;
 }
 
+void
+Configuration::module( const Module& m )
+{
+    module_ = m;
+}
+
+// static
+const Configuration *
+Configuration::find( const Configuration& config, const std::wstring& name )
+{
+    if ( config.name() == name )
+        return &config;
+    for ( Configuration::vector_type::const_iterator it = config.begin(); it != config.end(); ++it ) {
+        if ( it->name() == name )
+            return &(*it);
+    }
+    const Configuration * p = 0;
+    for ( Configuration::vector_type::const_iterator it = config.begin(); it != config.end(); ++it ) {
+        if ( p = find( *it, name ) )
+            return p;
+    }
+    return 0;
+}
+
 /////////////////////////////////////
 
-using namespace adportable::internal;
-
-xml_element::xml_element()
+Module::Module( const std::wstring& xml ) : xml_(xml)
 {
 }
 
-xml_element::xml_element( const xml_element& t ) : xml_(t.xml_)
-                                                 , text_(t.text_)
-												 , attributes_(t.attributes_)  
+Module::Module( const Module& t ) : xml_( t.xml_ )
+                                  , library_filename_( t.library_filename_ )
 {
-}
-
-
-void
-xml_element::xml( const std::wstring& xml )
-{
-	xml_ = xml;
-}
-
-const std::wstring& 
-xml_element::attribute( const std::wstring& key ) const
-{
-	std::map< std::wstring, std::wstring >::const_iterator it = attributes_.find( key );
-    if ( it != attributes_.end() )
-		return it->second;
-	return __error_string;
 }
 
 void
-xml_element::attribute( const std::wstring& key, const std::wstring& value )
+Module::xml( const std::wstring& xml )
 {
-   attributes_[key] = value;
+    xml_ = xml;
 }
 
 void
-xml_element::text( const std::wstring& text )
+Module::library_filename( const std::wstring& name )
 {
-	text_ = text;
+    library_filename_ = name;
 }
 
+////////////////////

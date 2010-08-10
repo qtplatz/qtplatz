@@ -88,6 +88,7 @@ namespace xmlwrapper {
       XMLDocument( const XMLDocument& );
       
       explicit XMLDocument( IDispatch * );
+      static std::wstring toString( const XMLElement& );
       
       bool save( const std::wstring& filename ) const;
       bool load( const std::wstring& filename );
@@ -95,6 +96,7 @@ namespace xmlwrapper {
       
       bool xml(std::wstring& xml) const;
 	  std::wstring toString() const;
+      
       XMLProcessingInstruction createProcessingInstruction( const std::wstring& target
 							    , const std::wstring& data);
       XMLElement documentElement();
@@ -103,7 +105,7 @@ namespace xmlwrapper {
       
       XMLComment createComment(const std::wstring& );
       XMLAttr createAttribute(const std::wstring& );
-      XMLNode importNode(XMLNode & node, bool deep );
+      XMLNode importNode( const XMLNode & node, bool deep );
     };
     
     class XMLElement : public XMLNode {

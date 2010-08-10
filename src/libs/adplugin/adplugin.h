@@ -29,9 +29,7 @@ namespace adplugin {
 		static manager * instance();
 		static void dispose();
 
-		virtual bool loadConfig( const QString&, const wchar_t * query ) = 0;
-		virtual const adportable::Configuration * getConfiguration( const wchar_t * name ) = 0;
-		virtual const adportable::Component * findComponent( const wchar_t * name ) = 0;
+        virtual bool loadConfig( adportable::Configuration&, const QString&, const wchar_t * query ) = 0;
 
 	private:
         static manager * instance_;

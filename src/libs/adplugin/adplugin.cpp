@@ -28,11 +28,9 @@ namespace adplugin {
 			manager_impl();
 
 			// manager impl
-			bool loadConfig( const QString&, const wchar_t * );
-			const adportable::Configuration * getConfiguration( const wchar_t * name );
-			const adportable::Component * findComponent( const wchar_t * name );
+            bool loadConfig( adportable::Configuration&, const QString&, const wchar_t * );
 		private:
-			adportable::Configuration rootConfig_; // root is a place folder, which is always empty
+            // adportable::Configuration rootConfig_; // root is a place folder, which is always empty
 		};
 	}
 }
@@ -87,16 +85,12 @@ manager_impl::manager_impl()
 }
 
 bool
-manager_impl::loadConfig( const QString& filename, const wchar_t * query )
+manager_impl::loadConfig( adportable::Configuration& config, const QString& filename, const wchar_t * query )
 {
-	adportable::Configuration config;
-
-	if ( ConfigLoader::loadConfiguration( rootConfig_, qtwrapper::wstring( filename ), query ) ) {
-		return true;
-	}
-	return false;
+    return ConfigLoader::loadConfiguration( config, qtwrapper::wstring( filename ), query );
 }
 
+/*
 const adportable::Configuration *
 manager_impl::getConfiguration( const wchar_t * name )
 {
@@ -115,4 +109,4 @@ manager_impl::findComponent( const wchar_t * name )
 	static adportable::Component config;
     return &config;
 }
-
+*/

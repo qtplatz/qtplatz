@@ -154,8 +154,15 @@ XMLNode::selectNodes(const std::wstring& query ) const
 XMLNode
 XMLNode::selectSingleNode(const std::wstring& query) const
 {
-   if ( pImpl_ )
-      return XMLNode ( pImpl_->selectSingleNode( query.c_str() ) );
+    if ( pImpl_ ) {
+        try {
+            return XMLNode ( pImpl_->selectSingleNode( query.c_str() ) );
+        } catch ( _com_error& e ) {
+#if defined _DEBUG
+            std::wstring msg = e.Description();
+#endif           
+        }
+    }
    return XMLNode();
 }
 
@@ -311,6 +318,15 @@ msxml::XMLDocument::toString() const
    return L"";
 }
 
+// static
+std::wstring
+msxml::XMLDocument::toString( const msxml::XMLElement& n )
+{
+    XMLDocument dom;
+    dom.appendChild( dom.importNode( n, true ) );
+    return dom.toString();
+}
+
 XMLProcessingInstruction
 msxml::XMLDocument::createProcessingInstruction( const std::wstring& target, const std::wstring& data )
 {
@@ -366,7 +382,7 @@ msxml::XMLDocument::createTextNode( const std::wstring& data )
 }
 
 XMLNode
-msxml::XMLDocument::importNode(XMLNode& node, bool deep)
+msxml::XMLDocument::importNode( const XMLNode& node, bool deep)
 {
     (void)deep;
    // this is workaround since MSXML4 does not has 'importNode'.

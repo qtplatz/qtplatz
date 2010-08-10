@@ -81,30 +81,20 @@ AcquireUIManager::init()
 
 	const wchar_t * query = L"/AcquireConfiguration/Configuration";
 
-	adplugin::manager::instance()->loadConfig( configFile, query );
-	const adportable::Configuration * p = adplugin::manager::instance()->getConfiguration( L"acquire" );
-	std::wstring name = p->name();
+    adportable::Configuration config;
+	adplugin::manager::instance()->loadConfig( config, configFile, query );
 
-    using namespace xmlwrapper;
-    using namespace xmlwrapper::msxml;
-
-    XMLDocument config;
-
-    do {
-        if ( config.load( qtwrapper::wstring( configFile ) ) ) {
-            XMLNodeList widgets = config.selectNodes( L"./AcquireConfiguration//Configuration[@type='adplugin']" );
-            XMLNodeList tabs = config.selectNodes( L"./AcquireConfiguration//Configuration[@name='instrument_monitor_tab']/Tab/Item" );
-            for ( unsigned int i = 0; i < tabs.size(); ++i ) {
-                XMLNode& node = tabs[i];
-                std::wstring name = node.attribute( L"name" );
-                std::wstring component = node.attribute( L"component" );
-                bool readOnly = node.attribute( L"readonly" ) == L"true" ? true : false;
-                std::wstring text = node.textValue();
-                std::wstring option = node.attribute( L"option" );
-            }
+    const adportable::Configuration * pTab = adportable::Configuration::find( config, L"instrument_monitor_tab" );
+    if ( pTab ) {
+        using namespace adportable;
+        for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
+            const std::wstring name = it->name();
+            const Module& module = it->module();
+            const std::wstring& library = module.library_filename();
+            const std::wstring& component = it->attribute( L"component" );
         }
-    } while(0);
-  
+    }
+
 #if defined _DEBUG
   QString adtofms = dir.path() + "/adtofmsd.dll";
 #else

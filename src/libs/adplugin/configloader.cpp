@@ -9,12 +9,14 @@
 #include <xmlwrapper/msxml.h>
 
 using namespace adportable;
+using namespace xmlwrapper;
 using namespace xmlwrapper::msxml;
 using namespace adplugin::internal;
 
 struct ConfigLoaderImpl {
 	static bool populate( Configuration&, const XMLNode& );
 	static bool load( Configuration&, const XMLNode& );
+    static bool resolve_module( Configuration&, const XMLNode& );
 };
 
 ConfigLoader::ConfigLoader(void)
@@ -29,8 +31,6 @@ ConfigLoader::~ConfigLoader(void)
 bool
 ConfigLoader::loadConfiguration( adportable::Configuration& config, const std::wstring& file, const std::wstring& query )
 {
-	using namespace xmlwrapper::msxml;
-
     XMLDocument dom;
 	if ( ! dom.load( file ) )
 		return false;
@@ -68,43 +68,64 @@ ConfigLoaderImpl::load( Configuration& config, const XMLNode& node )
 	if ( node.nodeName() == L"Configuration" ) {
 		// copy name="my_name"
 		config.name( node.attribute( L"name" ) );
-
-		XMLDocument dom;
-		dom.appendChild( dom.importNode( const_cast<XMLNode&>(node), true ) );
-		config.xml( dom.toString() );
-        
-#if defined _DEBUG
-		std::wstring file = L"C:/Temp/" + config.name() + L".xml";
-		dom.save( file );
-#endif
+        config.xml( XMLDocument::toString( node ) );
 
 		// populate all attributes
 		XMLNodeList attrs = node.selectNodes( L"attribute::*" );
 		for ( int i = 0; size_t(i) < attrs.size(); ++i )
 			config.attribute( attrs[i].nodeName(), attrs[i].textValue() );
 
-		// copy text value
-		config.text( node.textValue() );
+        XMLNode title_node = node.selectSingleNode( L"./title[@lang='jp']" );
+        if ( title_node ) {
+            config.text( title_node.textValue() );
+        } else {
+            if ( title_node = node.selectSingleNode( L"./title[@lang='en']" ) )
+                config.text( title_node.textValue() );
+            else
+                config.text( node.textValue() );
+        }
 
-		XMLNode module_node = node.selectSingleNode( L"./Component[@module]" );
-		if ( module_node ) {
-			std::wstring module_name = module_node.attribute( L"module" );
-			if ( ! module_name.empty() ) {
-				std::wstring query = L"//Module[@name=\'" + module_name + L"\']";
-				XMLNode module_element = node.selectSingleNode( query );
-				if ( module_element ) {
-                    XMLDocument dom;
-					dom.appendChild( dom.importNode( module_element, true ) );
-					internal::xml_element& m = config.module();
-					m.xml( dom.toString() );
-					XMLNodeList attrs = module_element.selectNodes( L"attribute::*" );
-                    for ( int i = 0; size_t(i) < attrs.size(); ++i )
-						m.attribute( attrs[i].nodeName(), attrs[i].textValue() );
-				}
-			}
-		}
-
+        resolve_module( config, node );
 		return true;
 	}
 	return false;
 }
+
+bool
+ConfigLoaderImpl::resolve_module( Configuration& config, const XMLNode& node )
+{
+    XMLNode module_attr = node.selectSingleNode( L"./Component/@module" );
+
+    if ( module_attr ) {
+
+        std::wstring module_name = module_attr.textValue();
+        if ( module_name.empty() )
+            return false;
+
+        std::wstring query = L"//Module[@name=\'" + module_name + L"\']";
+        XMLNode module_element = node.selectSingleNode( query );
+
+        if ( module_element ) {
+
+            Module module( XMLDocument::toString( module_element ) );
+            std::wstring filename = module_element.attribute( L"filename" );
+            if ( filename.empty() )
+                return false;
+            std::wstring::size_type pos = filename.find_last_of( L"$" );
+            if ( pos != std::wstring::npos ) {
+                filename = filename.substr(0, pos);
+#if defined _DEBUG
+                filename += L"d.dll";
+#else
+                filename += L".dll";
+#endif         
+            }
+            module.library_filename( filename );
+            config.module( module );
+
+            return true;
+        }
+    }
+    return false;
+}
+
