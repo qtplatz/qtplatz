@@ -97,6 +97,12 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const XMLNode& node )
 
     if ( module_attr ) {
 
+		do {
+			XMLNode ifattr = node.selectSingleNode( L"./Component/@interface" );
+			if ( ifattr )
+				config.interface( ifattr.textValue() );
+		} while (0);
+
         std::wstring module_name = module_attr.textValue();
         if ( module_name.empty() )
             return false;

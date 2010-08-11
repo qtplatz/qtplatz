@@ -9,6 +9,7 @@ SUBDIRS   = plugin_coreplugin \
             plugin_texteditor \
             plugin_locator \
             plugin_appplugin \
+            plugin_servant \
             plugin_acquire \
 #            plugin_tune \
             plugin_sequence \
@@ -32,6 +33,9 @@ plugin_texteditor.depends += plugin_coreplugin
 
 plugin_locator.subdir = locator
 plugin_locator.depends = plugin_coreplugin
+
+plugin_servant.subdir = servant
+plugin_servant.depends = plugin_coreplugin
 
 plugin_acquire.subdir = acquire
 plugin_acquire.depends = plugin_coreplugin

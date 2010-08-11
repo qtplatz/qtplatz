@@ -94,7 +94,7 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
 
 	IFactory * piFactory = qobject_cast< IFactory *> ( manager::instance()->loadLibrary( loadfile ) );
 	if ( piFactory ) {
-		QWidget * pWidget = piFactory->create_widget( config.component().c_str(), parent );
+		QWidget * pWidget = piFactory->create_widget( config.interface().c_str(), parent );
 		adplugin::ui::IMonitor * pMonitor = qobject_cast< adplugin::ui::IMonitor *> ( pWidget );
 		if ( pMonitor )
 			pMonitor->OnInitialUpdate( config.xml().c_str() );

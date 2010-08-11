@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2010 Toshinobu Hondo, All rights reserved. -->
+<!--
+   $Id$
+-->
+
+<ServantConfiguration name="servant">
+
+  <Module name="adbroker" type="corba::servant" filename="adbroker$(configuration).dll"/>
+  <Module name="adcontroller" type="corba::servant" filename="adcontroller$(configuration).dll"/>
+
+  <Configuration>
+    <Configuration name="adbroker" type="" component="">
+      <Component name="adbroker" module="adbroker"/>
+    </Configuration>
+    <Configuration name="adcontroller" type="" component="">
+      <Component name="adcontroller" module="adcontroller"/>
+    </Configuration>
+  </Configuration>
+</ServantConfiguration>

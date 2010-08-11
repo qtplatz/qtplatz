@@ -20,8 +20,8 @@ namespace adportable {
 
 namespace adplugin {
 
-	static const wchar_t * iid_iMonitor =             L"adplugin.ui.iMonitor";
-	static const wchar_t * iid_iControlMethodEditor = L"adplugin.ui.iControlMethodEditor";
+	static const wchar_t * iid_iMonitor =             L"adplugin::ui::iMonitor";
+	static const wchar_t * iid_iControlMethodEditor = L"adplugin::ui::iControlMethodEditor";
 
 	class ADPLUGINSHARED_EXPORT manager {
 	protected:

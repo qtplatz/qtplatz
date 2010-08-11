@@ -36,6 +36,10 @@ namespace adportable {
         typedef std::map<std::wstring, std::wstring> attributes_type;
 
         const std::wstring& component() const;
+
+		const std::wstring& interface() const;
+		void interface( const std::wstring& );
+
         const std::wstring& attribute( const std::wstring& key ) const;
 
         const std::wstring& name() const;
@@ -68,6 +72,7 @@ namespace adportable {
 		std::wstring xml_;
         std::wstring name_;
         std::wstring text_;
+		std::wstring interface_;  // <Component interface="value"/>
         attributes_type attributes_;
         std::vector< Configuration > children_;
         Module module_;

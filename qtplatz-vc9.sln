@@ -161,6 +161,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adplugin", "src\libs\adplug
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xmlwrapper", "src\libs\xmlwrapper\xmlwrapper.vcproj", "{8F43D793-F00D-3AB0-AA1F-12251E0BC1E9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "servant", "src\plugins\servant\servant.vcproj", "{AB4781DB-65E7-3169-824F-CDB8B5FB482D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -291,6 +293,10 @@ Global
 		{8F43D793-F00D-3AB0-AA1F-12251E0BC1E9}.Debug|Win32.Build.0 = Debug|Win32
 		{8F43D793-F00D-3AB0-AA1F-12251E0BC1E9}.Release|Win32.ActiveCfg = Release|Win32
 		{8F43D793-F00D-3AB0-AA1F-12251E0BC1E9}.Release|Win32.Build.0 = Release|Win32
+		{AB4781DB-65E7-3169-824F-CDB8B5FB482D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AB4781DB-65E7-3169-824F-CDB8B5FB482D}.Debug|Win32.Build.0 = Debug|Win32
+		{AB4781DB-65E7-3169-824F-CDB8B5FB482D}.Release|Win32.ActiveCfg = Release|Win32
+		{AB4781DB-65E7-3169-824F-CDB8B5FB482D}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

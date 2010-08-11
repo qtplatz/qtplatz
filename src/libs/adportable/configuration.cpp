@@ -23,6 +23,7 @@ Configuration::Configuration( const Configuration& t ) : name_( t.name_ )
                                                        , children_( t.children_ )  
 													   , xml_( t.xml_ )
                                                        , module_( t.module_ )
+													   , interface_(t.interface_)
 {
 }
 
@@ -30,6 +31,18 @@ const std::wstring&
 Configuration::component() const
 {
     return attribute( L"component" );
+}
+
+const std::wstring&
+Configuration::interface() const
+{
+    return interface_;  // under <Component> element
+}
+
+void
+Configuration::interface( const std::wstring& value )
+{
+	interface_ = value;
 }
 
 const std::wstring&
