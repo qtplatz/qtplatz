@@ -56,6 +56,11 @@ MainWindow::init_debug_adbroker()
 
 	if ( ! CORBA::is_nil( manager_.in() ) ) {
 
+        do {
+            Broker::Session_var broker = manager_->getSession( L"debug" );
+            broker->connect( "user", "pass", "debug" );
+        } while(0);
+
 		connect( this, SIGNAL( signal_notify_update( unsigned long ) )
 			, this, SLOT( handle_notify_update( unsigned long ) ) );
 

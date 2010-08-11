@@ -15,10 +15,10 @@ namespace acewrapper {
 	class ORBServantManager;
 }
 
-class ADBROKERSHARED_EXPORT adbroker {
+class ADBROKERSHARED_EXPORT adBroker {
 public:
-    adbroker(void);
-    ~adbroker(void);
+    adBroker(void);
+    ~adBroker(void);
 
 	static bool initialize( CORBA::ORB * orb = 0 );
 	static bool activate();
@@ -26,7 +26,4 @@ public:
 
 	static int run();
 	static void abort_server();
-
-	// static CORBA::ORB * orb();
-	// static const char * ior();
 };

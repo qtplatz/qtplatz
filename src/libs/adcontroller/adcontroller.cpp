@@ -68,21 +68,21 @@ static Receiver * __preceiver_debug;
 std::string __ior_session;
 
 void
-adcontroller::abort_server()
+adController::abort_server()
 {
 	__aborted = true;
 	deactivate();
 }
 
 bool
-adcontroller::initialize( CORBA::ORB_ptr orb )
+adController::initialize( CORBA::ORB_ptr orb )
 {
 	if ( ! orb ) {
 		int ac = 0;
 		orb = CORBA::ORB_init( ac, 0 );
 	}
 
-    ORBServant< ns_adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
+    ORBServant< adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
 	ORBServantManager * pMgr = new ORBServantManager( orb );
 	pMgr->init( 0, 0 );
 	pServant->setServantManager( pMgr );
@@ -90,9 +90,9 @@ adcontroller::initialize( CORBA::ORB_ptr orb )
 }
 
 bool
-adcontroller::activate()
+adController::activate()
 {
-    ORBServant< ns_adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
+    ORBServant< adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
 	pServant->activate();
 
 	CORBA::ORB_var orb = pServant->getServantManager()->orb();
@@ -101,9 +101,9 @@ adcontroller::activate()
 }
 
 bool
-adcontroller::deactivate()
+adController::deactivate()
 {
-	ORBServant< ns_adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
+	ORBServant< adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
 	pServant->deactivate();
 
 	iBrokerManager::instance()->terminate();
@@ -112,7 +112,7 @@ adcontroller::deactivate()
 }
 
 int
-adcontroller::run()
+adController::run()
 {
    ACE_Sched_Params fifo_sched_params( ACE_SCHED_FIFO, 
 				       ACE_Sched_Params::priority_min( ACE_SCHED_FIFO ),
@@ -142,7 +142,7 @@ adcontroller::run()
    return 0;
 }
 
-adcontroller::adcontroller()
+adController::adController()
 {
 }
 

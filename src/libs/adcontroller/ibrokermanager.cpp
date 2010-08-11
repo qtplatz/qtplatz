@@ -92,7 +92,7 @@ IBrokerManager::reactor()
 int
 IBrokerManager::handle_timeout( const ACE_Time_Value& tv, const void * )
 {
-    using namespace ns_adcontroller;
+    using namespace adcontroller;
 
     ACE_OutputCDR cdr;
 	Message msg( 0, 0, Notify_Timeout, 1 );

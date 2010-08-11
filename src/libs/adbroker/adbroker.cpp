@@ -45,35 +45,36 @@
 #include <acewrapper/acewrapper.h>
 
 #include "manager_i.h"
+#include "brokermanager.h"
 
 using namespace acewrapper;
 
 static bool __own_thread;
 
-adbroker::adbroker(void)
+adBroker::adBroker(void)
 {
 }
 
-adbroker::~adbroker(void)
+adBroker::~adBroker(void)
 {
 }
 
 void
-adbroker::abort_server()
+adBroker::abort_server()
 {
 	deactivate();
 	if ( __own_thread )
-		singleton::broker::manager::instance()->getServantManager()->fini();
+        adbroker::singleton::manager::instance()->getServantManager()->fini();
 }
 
 bool
-adbroker::initialize( CORBA::ORB_ptr orb )
+adBroker::initialize( CORBA::ORB_ptr orb )
 {
 	if ( ! orb ) {
 		int ac = 0;
 		orb = CORBA::ORB_init( ac, 0 );
 	}
-	ORBServant< manager_i > * pServant = singleton::broker::manager::instance();
+    ORBServant< adbroker::manager_i > * pServant = adbroker::singleton::manager::instance();
 	ORBServantManager * pMgr = new ORBServantManager( orb );
 	pMgr->init( 0, 0 );
 	pServant->setServantManager( pMgr );
@@ -81,9 +82,9 @@ adbroker::initialize( CORBA::ORB_ptr orb )
 }
 
 bool
-adbroker::activate()
+adBroker::activate()
 {
-	ORBServant< manager_i > * pServant = singleton::broker::manager::instance();
+    ORBServant< adbroker::manager_i > * pServant = adbroker::singleton::manager::instance();
 	pServant->activate();
 
 	CORBA::ORB_var orb = pServant->getServantManager()->orb();
@@ -92,17 +93,20 @@ adbroker::activate()
 }
 
 bool
-adbroker::deactivate()
+adBroker::deactivate()
 {
-	ORBServant< manager_i > * pServant = singleton::broker::manager::instance();
+    ORBServant< adbroker::manager_i > * pServant = adbroker::singleton::manager::instance();
 	pServant->deactivate();
+
+    // adbroker::BrokerManager::instance()->terminate();
+    adbroker::BrokerManager::terminate();
 	return true;
 }
 
 int
-adbroker::run()
+adBroker::run()
 {
-	ORBServantManager* p = singleton::broker::manager::instance()->getServantManager();
+    ORBServantManager* p = adbroker::singleton::manager::instance()->getServantManager();
 	if ( p->test_and_set_thread_flag() ) {
         __own_thread = true;
 		ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), reinterpret_cast<void *>(p) );

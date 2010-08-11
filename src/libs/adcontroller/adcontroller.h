@@ -16,9 +16,9 @@ namespace acewrapper {
 	class ORBServantManager;
 }
 
-class ADCONTROLLERSHARED_EXPORT adcontroller {
+class ADCONTROLLERSHARED_EXPORT adController {
 public:
-    adcontroller();
+    adController();
 
 	static bool initialize( CORBA::ORB * orb = 0 );
 	static bool activate();

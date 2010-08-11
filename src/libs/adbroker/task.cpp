@@ -1,21 +1,22 @@
-//////////////////////////////////////////
+//////////////////////////////////////////////
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+// Science Liaison Project
+//////////////////////////////////////////////
 
-#include "ibroker.h"
+#include "task.h"
 #include <acewrapper/mutex.hpp>
 #include <ace/Reactor.h>
 #include <ace/Thread_Manager.h>
 #include <adinterface/receiverC.h>
 #include <acewrapper/mutex.hpp>
-#include "ibrokermanager.h"
 #include "message.h"
 #include <sstream>
 #include <acewrapper/timeval.h>
 #include <iostream>
 
-iBroker::~iBroker()
+using namespace adbroker;
+
+Task::~Task()
 {
 	// this will block until a message arrives.
 	// By blocking, we know that the destruction will be
@@ -26,18 +27,13 @@ iBroker::~iBroker()
 	ACE_Message_Block::release( mblk );
 }
 
-iBroker::iBroker( size_t n_threads ) : barrier_(n_threads)
-                                     , n_threads_(n_threads) 
-{
-}
-
-void
-iBroker::reset_clock()
+Task::Task( size_t n_threads ) : barrier_(n_threads)
+                               , n_threads_(n_threads) 
 {
 }
 
 int
-iBroker::handle_timer_timeout( const ACE_Time_Value& tv, const void * )
+Task::handle_timer_timeout( const ACE_Time_Value& tv, const void * )
 {
     ACE_Message_Block * mb = new ACE_Message_Block( sizeof(tv) );
 	* reinterpret_cast< ACE_Time_Value *>( mb->wr_ptr() ) = tv;
@@ -46,7 +42,7 @@ iBroker::handle_timer_timeout( const ACE_Time_Value& tv, const void * )
 }
 
 bool
-iBroker::open()
+Task::open()
 {
 	if ( activate( THR_NEW_LWP, n_threads_ ) != - 1 )
 		return true;
@@ -54,14 +50,14 @@ iBroker::open()
 }
 
 void
-iBroker::close()
+Task::close()
 {
 	msg_queue()->deactivate();
 	ACE_Task<ACE_MT_SYNCH>::close( 0 );
 }
 
 bool
-iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver )
+Task::connect( ControlServer::Session_ptr session, Receiver_ptr receiver )
 {
 	session_data data;
 	data.session_ = ControlServer::Session::_duplicate( session );
@@ -78,7 +74,7 @@ iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver )
 }
 
 bool
-iBroker::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
+Task::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
 {
 	session_data data;
 	data.session_ = ControlServer::Session::_duplicate( session );
@@ -98,20 +94,20 @@ iBroker::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
 
 ///////////////////////////////////////////////////////////////
 bool
-iBroker::session_data::operator == ( const session_data& t ) const
+Task::session_data::operator == ( const session_data& t ) const
 {
 	return receiver_->_is_equivalent( t.receiver_.in() )
 		&& session_->_is_equivalent( t.session_.in() );
 }
 
 bool
-iBroker::session_data::operator == ( const Receiver_ptr t ) const
+Task::session_data::operator == ( const Receiver_ptr t ) const
 {
 	return receiver_->_is_equivalent( t );
 }
 
 bool
-iBroker::session_data::operator == ( const ControlServer::Session_ptr t ) const
+Task::session_data::operator == ( const ControlServer::Session_ptr t ) const
 {
 	return session_->_is_equivalent( t );
 }
@@ -119,7 +115,7 @@ iBroker::session_data::operator == ( const ControlServer::Session_ptr t ) const
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 int
-iBroker::handle_input( ACE_HANDLE )
+Task::handle_input( ACE_HANDLE )
 {
 	ACE_Message_Block *mb;
 	ACE_Time_Value zero( ACE_Time_Value::zero );
@@ -132,9 +128,9 @@ iBroker::handle_input( ACE_HANDLE )
 }
 
 int
-iBroker::svc()
+Task::svc()
 {
-	std::cout << "iBroker::svc() task started on thread :" << ACE_Thread::self() << std::endl;
+	std::cout << "Task::svc() task started on thread :" << ACE_Thread::self() << std::endl;
 
 	barrier_.wait();
 
@@ -159,9 +155,9 @@ iBroker::svc()
 }
 
 void
-iBroker::doit( ACE_Message_Block * mblk )
+Task::doit( ACE_Message_Block * mblk )
 {
-    using namespace adcontroller;
+    using namespace adbroker;
 
 	std::ostringstream o;
 

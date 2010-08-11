@@ -4,8 +4,9 @@
 //////////////////////////////////////////
 
 #include "session_i.h"
+#include "brokermanager.h"
 
-using namespace broker;
+using namespace adbroker;
 
 session_i::session_i(void)
 {
@@ -21,5 +22,8 @@ session_i::connect( const char * user, const char * pass, const char * token )
     ACE_UNUSED_ARG( user );
     ACE_UNUSED_ARG( pass );
     ACE_UNUSED_ARG( token );
+
+    adbroker::Task * pTak = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
+
     return false;
 }

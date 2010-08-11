@@ -17,17 +17,17 @@
 
 #include <boost/smart_ptr.hpp>
 
-namespace ns_adcontroller {
+namespace adcontroller {
 	class manager_i;
 }
 
 namespace singleton {
 	namespace adcontroller {
-		typedef ACE_Singleton< acewrapper::ORBServant< ns_adcontroller::manager_i >, ACE_Recursive_Thread_Mutex > manager;
+        typedef ACE_Singleton< acewrapper::ORBServant< ::adcontroller::manager_i >, ACE_Recursive_Thread_Mutex > manager;
 	}
 }
 
-namespace ns_adcontroller {
+namespace adcontroller {
 
 	class manager_i : public virtual POA_ControlServer::Manager {
 
@@ -38,7 +38,7 @@ namespace ns_adcontroller {
 		void shutdown();
 		ControlServer::Session_ptr getSession( const CORBA::WChar * );
 	private:
-		typedef std::map< std::wstring, boost::shared_ptr< ns_adcontroller::session_i > > session_map_type;
+		typedef std::map< std::wstring, boost::shared_ptr< adcontroller::session_i > > session_map_type;
 		session_map_type session_list_;
 	};
 }

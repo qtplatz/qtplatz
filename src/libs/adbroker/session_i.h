@@ -10,7 +10,7 @@
 # include "adinterface/brokerS.h"
 #pragma warning (default: 4996)
 
-namespace broker {
+namespace adbroker {
 
     class session_i : public POA_Broker::Session {
         PortableServer::ObjectId oid_;

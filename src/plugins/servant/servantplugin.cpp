@@ -66,14 +66,14 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		std::wstring name = it->name();
 		std::wstring component = it->component();
 		if ( name == L"adbroker" ) {
-			adbroker::initialize( singleton::orbServantManager::instance()->orb() );
-			adbroker::activate();
-			adbroker::run();
+            adBroker::initialize( singleton::orbServantManager::instance()->orb() );
+			adBroker::activate();
+			adBroker::run();
 		} 
 		if ( name == L"adcontroller" ) {
-			adcontroller::initialize( singleton::orbServantManager::instance()->orb() );
-			adcontroller::activate();
-			adcontroller::run();
+			adController::initialize( singleton::orbServantManager::instance()->orb() );
+			adController::activate();
+			adController::run();
 		}
 	}
 
@@ -141,9 +141,9 @@ ServantPlugin::shutdown()
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
 		std::wstring name = it->name();
 		if ( name == L"adbroker" )
-			adbroker::deactivate();
+            adBroker::deactivate();
 		if ( name == L"adcontroller" )
-			adcontroller::deactivate();
+			adController::deactivate();
 	}
 	singleton::orbServantManager::instance()->orb()->shutdown();
     singleton::orbServantManager::instance()->fini();

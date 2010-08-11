@@ -10,7 +10,7 @@ class ACE_OutputCDR;
 class ACE_InputCDR;
 class ACE_Time_Value;
 
-namespace adcontroller {
+namespace adbroker {
 
 	class Message {
 	public:

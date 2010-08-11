@@ -7,20 +7,20 @@
 #include "session_i.h"
 #include "logger_i.h"
 
-using namespace broker;
+using namespace adbroker;
 
-manager_i::manager_i(void) 
+adbroker::manager_i::manager_i(void) 
 {
 }
 
-manager_i::~manager_i(void)
+adbroker::manager_i::~manager_i(void)
 {
 }
 
 void
-manager_i::shutdown()
+adbroker::manager_i::shutdown()
 {
-	PortableServer::POA_var poa = singleton::broker::manager::instance()->getServantManager()->root_poa();
+    PortableServer::POA_var poa = adbroker::singleton::manager::instance()->getServantManager()->root_poa();
     if ( logger_i_ )
         poa->deactivate_object( logger_i_->oid() );
 }
@@ -28,14 +28,14 @@ manager_i::shutdown()
 Broker::Session_ptr
 manager_i::getSession( const CORBA::WChar * token )
 {
-	PortableServer::POA_var poa = singleton::broker::manager::instance()->getServantManager()->root_poa();
+    PortableServer::POA_var poa = ::adbroker::singleton::manager::instance()->getServantManager()->root_poa();
 
     if ( CORBA::is_nil( poa ) )
         return 0;
 
     session_map_type::iterator it = session_list_.find( token );
     if ( it == session_list_.end() ) 
-        session_list_[ token ].reset( new broker::session_i() );
+        session_list_[ token ].reset( new adbroker::session_i() );
 
     CORBA::Object_ptr obj = poa->servant_to_reference( session_list_[ token ].get() );
     return Broker::Session::_narrow( obj );
@@ -44,7 +44,7 @@ manager_i::getSession( const CORBA::WChar * token )
 Broker::Logger_ptr
 manager_i::getLogger()
 {
-	PortableServer::POA_var poa = singleton::broker::manager::instance()->getServantManager()->root_poa();
+    PortableServer::POA_var poa = ::adbroker::singleton::manager::instance()->getServantManager()->root_poa();
     if ( CORBA::is_nil( poa ) )
         return 0;
 

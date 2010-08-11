@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="C:/Users/Toshi.Hondo.000/src/qtPlatz/lib/qtPlatz\Aggregationd.lib C:/Users/Toshi.Hondo.000/src/qtPlatz/lib/qtPlatz\ExtensionSystemd.lib C:/Users/Toshi.Hondo.000/src/qtPlatz/lib/qtPlatz\Utilsd.lib C:/Users/Toshi.Hondo.000/src/qtPlatz/lib/qtPlatz/plugins/Nokia\Cored.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
+				AdditionalDependencies="Aggregationd.lib ExtensionSystemd.lib Utilsd.lib Cored.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
 				OutputFile="..\..\..\lib\qtPlatz\plugins\ScienceLiaison\servantd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(TargetDir)&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;;&quot;$(ACE_ROOT)/lib&quot;"
@@ -519,7 +519,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -528,7 +528,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -542,7 +542,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY servant.pluginspec"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies="copy;servant.pluginspec"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
@@ -553,7 +553,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY servant.pluginspec"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies="copy;servant.pluginspec"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>

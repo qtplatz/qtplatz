@@ -4,22 +4,35 @@
 //////////////////////////////////////////////
 
 #include "brokermanager.h"
+#include "task.h"
 
-BrokerManager * BrokerManager::instance_ = 0;
+using namespace adbroker;
+
+// BrokerManager * BrokerManager::instance_ = 0;
+bool BrokerManager::initialized_ = false;
 
 BrokerManager::~BrokerManager()
 {
+    delete pTask_;
 }
 
-BrokerManager::BrokerManager()
+BrokerManager::BrokerManager() : pTask_(0)
 {
+    initialized_ = true;
+    pTask_ = new Task(5);
+}
+
+bool
+BrokerManager::initialize()
+{
+    pTask_->open();
+    return true;
 }
 
 // static
-BrokerManager *
-BrokerManager::instance()
+void
+BrokerManager::terminate()
 {
-  if ( instance_ == 0 )
-	instance_ = new BrokerManager();
-  return instance_;
+    if ( initialized_ )
+        singleton::BrokerManager::instance()->pTask_->close();
 }

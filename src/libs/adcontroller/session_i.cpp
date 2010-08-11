@@ -17,7 +17,7 @@
 #include "task.h"
 
 using namespace acewrapper;
-using namespace ns_adcontroller;
+using namespace adcontroller;
 
 ////////////////////////////////////////////
 

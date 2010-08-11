@@ -11,7 +11,7 @@
 #include <acewrapper/orbservant.h>
 #include <vector>
 
-namespace ns_adcontroller {
+namespace adcontroller {
 
     class session_i : public virtual POA_ControlServer::Session {
     public:

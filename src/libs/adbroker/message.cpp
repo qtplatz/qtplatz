@@ -6,9 +6,9 @@
 #include <acewrapper/outputcdr.h>
 #include <acewrapper/inputcdr.h>
 
-using namespace adcontroller;
+using namespace adbroker;
 
-namespace adcontroller {
+namespace adbroker {
 
 	ACE_OutputCDR& operator << ( ACE_OutputCDR& cdr, const Message& m )
 	{

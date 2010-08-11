@@ -236,7 +236,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\message.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\session_i.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\task.cpp"
 				>
 			</File>
 		</Filter>
@@ -388,7 +396,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\message.h"
+				>
+			</File>
+			<File
 				RelativePath=".\session_i.h"
+				>
+			</File>
+			<File
+				RelativePath=".\task.h"
 				>
 			</File>
 		</Filter>
