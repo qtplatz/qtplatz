@@ -16,8 +16,8 @@ namespace adplugin {
 	public:
 		explicit IFactory(QObject *parent = 0) : QObject( parent ) {}
 
-		virtual QWidget * create_widget( const char * iid, QWidget * parent = 0 ) = 0;
-		virtual QObject * create_object( const char * iid, QObject * parent = 0 ) = 0;
+		virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent = 0 ) = 0;
+		virtual QObject * create_object( const wchar_t * iid, QObject * parent = 0 ) = 0;
 
     signals:
 

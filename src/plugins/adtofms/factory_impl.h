@@ -16,8 +16,8 @@ namespace adtofms {
 	public:
 		explicit factory_impl(QObject *parent = 0);
 
-		virtual QWidget * create_widget( const char * iid, QWidget * parent );
-		virtual QObject * create_object( const char * iid, QObject * parent );
+		virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent );
+		virtual QObject * create_object( const wchar_t * iid, QObject * parent );
     signals:
 
     public slots:

@@ -5,7 +5,6 @@
 
 #include "ConfigLoader.h"
 #include <adportable/configuration.h>
-#include <adportable/component.h>
 #include <xmlwrapper/msxml.h>
 
 using namespace adportable;
@@ -77,12 +76,12 @@ ConfigLoaderImpl::load( Configuration& config, const XMLNode& node )
 
         XMLNode title_node = node.selectSingleNode( L"./title[@lang='jp']" );
         if ( title_node ) {
-            config.text( title_node.textValue() );
+            config.title( title_node.textValue() );
         } else {
             if ( title_node = node.selectSingleNode( L"./title[@lang='en']" ) )
-                config.text( title_node.textValue() );
+                config.title( title_node.textValue() );
             else
-                config.text( node.textValue() );
+                config.title( node.textValue() );
         }
 
         resolve_module( config, node );

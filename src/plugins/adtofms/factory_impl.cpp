@@ -16,16 +16,16 @@ factory_impl::factory_impl(QObject *parent) :
 }
 
 QWidget *
-factory_impl::create_widget( const char * iid, QWidget * parent )
+factory_impl::create_widget( const wchar_t * iid, QWidget * parent )
 {
-	if ( std::string( iid ) == adplugin::iid_iMonitor ) {
+	if ( std::wstring( iid ) == adplugin::iid_iMonitor ) {
 		return new monitor_ui( parent );
 	}
 	return 0;
 }
 
 QObject *
-factory_impl::create_object( const char *, QObject * parent )
+factory_impl::create_object( const wchar_t *, QObject * parent )
 {
 	return 0;
 }

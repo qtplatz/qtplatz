@@ -24,12 +24,11 @@
 #include <QtCore>
 #include <QUrl>
 
-// #include <qtwrapper/xmldom.h> // using Qt native XML parser
 #include <qtwrapper/qstring.h>
 #include <xmlwrapper/xmldom.h>
 #include <adplugin/adplugin.h>
+#include <adplugin/imonitor.h>
 #include <adportable/configuration.h>
-#include <adportable/component.h>
 
 namespace Acquire { 
   namespace internal {
@@ -84,76 +83,39 @@ AcquireUIManager::init()
     adportable::Configuration config;
 	adplugin::manager::instance()->loadConfig( config, configFile, query );
 
-    const adportable::Configuration * pTab = adportable::Configuration::find( config, L"instrument_monitor_tab" );
-    if ( pTab ) {
-        using namespace adportable;
-        for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
-            const std::wstring name = it->name();
-            const Module& module = it->module();
-            const std::wstring& library = module.library_filename();
-            const std::wstring& component = it->attribute( L"component" );
-        }
+    m.mainWindow_ = new Utils::FancyMainWindow;
+
+    if ( d_ && m.mainWindow_ ) {
+
+        m.mainWindow_->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
+        m.mainWindow_->setDocumentMode( true );
+        
+        const adportable::Configuration * pTab = adportable::Configuration::find( config, L"instrument_monitor_tab" );
+        if ( pTab ) {
+            using namespace adportable;
+            using namespace adplugin;
+
+			std::wstring loadpath = qtwrapper::wstring( dir.path() );
+            // tab pages
+            for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
+                
+                const std::wstring name = it->name();
+				// const std::wstring& component = it->attribute( L"component" );
+
+                if ( it->isPlugin() ) {
+					QWidget * pWidget = manager::widget_factory( *it, loadpath.c_str(), 0 );
+                    pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
+                    QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
+                    m.dockWidgetVec_.push_back( dock );
+                } else {
+                    QWidget * pWidget = new QTextEdit( qtwrapper::qstring( it->title() ) );
+                    pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
+                    QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
+                    m.dockWidgetVec_.push_back( dock );
+                }
+            }
+        }            
     }
-
-#if defined _DEBUG
-  QString adtofms = dir.path() + "/adtofmsd.dll";
-#else
-  QString adtofms = dir.path() + "/adtofms.dll";
-#endif
-
-  QPluginLoader loader( adtofms, this );
-  if ( ! loader.load() ) {
-	  loader.setFileName( adtofms );
-	  if ( ! loader.load() ) {
-		  QString error = loader.errorString();
-	  }
-  }
-  QObject * instance = loader.instance();
-  if ( instance ) {
-	  adplugin::IFactory* piFactory = qobject_cast< adplugin::IFactory *>( instance );
-	  QWidget * pWidget = piFactory->create_widget( "adplugin.ui.IMonitor" );
-  }
-  
-  m.mainWindow_ = new Utils::FancyMainWindow;
-  if ( d_ && m.mainWindow_ ) {
-    m.mainWindow_->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
-    m.mainWindow_->setDocumentMode( true );
-    
-    QWidget * edit1 = new QTextEdit( "Sequence" );
-    edit1->setWindowTitle( tr("Sequence") );
-
-    QWidget * edit2 = new QTextEdit( "Log" );
-    edit2->setWindowTitle( tr("Log Book") );
-
-    QWidget * edit3 = new QTextEdit( "MS" );
-    edit3->setWindowTitle( tr("Autosampler") );
-
-    QWidget * edit4 = new QTextEdit( "Edit4" );
-    edit4->setWindowTitle( tr("Mass Spectrometer") );
-
-    QWidget * edit5 = new QTextEdit( "Edit 5" );
-    edit5->setWindowTitle( tr("Agilnet 1290") );
-
-    QWidget * edit6 = new QTextEdit( "Edit 6" );
-    edit6->setWindowTitle( tr("All") );
-
-    QDockWidget * dock1 = m.mainWindow_->addDockForWidget( edit1 );
-    QDockWidget * dock2 = m.mainWindow_->addDockForWidget( edit2 );
-    QDockWidget * dock3 = m.mainWindow_->addDockForWidget( edit3 );
-    QDockWidget * dock4 = m.mainWindow_->addDockForWidget( edit4 );
-    QDockWidget * dock5 = m.mainWindow_->addDockForWidget( edit5 );
-    QDockWidget * dock6 = m.mainWindow_->addDockForWidget( edit6 );
-    
-    m.dockWidgetVec_.push_back( dock1 );
-    m.dockWidgetVec_.push_back( dock2 );
-    m.dockWidgetVec_.push_back( dock3 );
-    m.dockWidgetVec_.push_back( dock4 );
-    m.dockWidgetVec_.push_back( dock5 );
-    m.dockWidgetVec_.push_back( dock6 );
-    
-    // todo
-    // set actions
-  }
 }
 
 class setTrackingEnabled {

@@ -9,11 +9,14 @@
 #include <QString>
 #include <stdlib.h>
 #include <adportable/configuration.h>
-#include <adportable/component.h>
 #include <string>
 #include <vector>
 #include "ConfigLoader.h"
 #include <qtwrapper/qstring.h>
+#include <QPluginLoader>
+#include <QLibrary>
+#include "ifactory.h"
+#include "imonitor.h"
 
 using namespace adplugin;
 
@@ -22,15 +25,19 @@ manager * manager::instance_ = 0;
 
 namespace adplugin {
 	namespace internal {
+
 		class manager_impl : public manager {
 		public:
-			~manager_impl() {}
+			~manager_impl();
 			manager_impl();
 
 			// manager impl
             bool loadConfig( adportable::Configuration&, const QString&, const wchar_t * );
+            QObject * loadLibrary( const QString& );
+			bool unloadLibrary( const QString& );
+
 		private:
-            // adportable::Configuration rootConfig_; // root is a place folder, which is always empty
+			std::map< QString, QObject * > libraries_;
 		};
 	}
 }
@@ -77,11 +84,41 @@ manager::instance()
 	return instance_;
 }
 
+// static
+QWidget *
+manager::widget_factory( const adportable::Configuration& config, const wchar_t * path, QWidget * parent )
+{
+	if ( config.module().library_filename().empty() )
+		return 0;
+	QString loadfile = qtwrapper::qstring( path ) + QString("/") + qtwrapper::qstring( config.module().library_filename() );
+
+	IFactory * piFactory = qobject_cast< IFactory *> ( manager::instance()->loadLibrary( loadfile ) );
+	if ( piFactory ) {
+		QWidget * pWidget = piFactory->create_widget( config.component().c_str(), parent );
+		adplugin::ui::IMonitor * pMonitor = qobject_cast< adplugin::ui::IMonitor *> ( pWidget );
+		if ( pMonitor )
+			pMonitor->OnInitialUpdate( config.xml().c_str() );
+		return pWidget;
+	}
+    return 0;
+}
+
+
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 
 manager_impl::manager_impl()
 {
+}
+
+manager_impl::~manager_impl()
+{
+    for ( std::map<QString, QObject *>::iterator it = libraries_.begin(); it != libraries_.end(); ++it ) {
+        if ( it->second ) {
+            QPluginLoader loader( it->first );
+            loader.unload();
+        }
+    }
 }
 
 bool
@@ -90,23 +127,30 @@ manager_impl::loadConfig( adportable::Configuration& config, const QString& file
     return ConfigLoader::loadConfiguration( config, qtwrapper::wstring( filename ), query );
 }
 
-/*
-const adportable::Configuration *
-manager_impl::getConfiguration( const wchar_t * name )
+QObject *
+manager_impl::loadLibrary( const QString& filename )
 {
-	using namespace adportable;
-
-	for ( Configuration::vector_type::iterator it = rootConfig_.begin(); it != rootConfig_.end(); ++it ) {
-		if ( name == it->name() )
-			return &(*it);
+	std::map<QString, QObject *>::iterator it = libraries_.find( filename );
+	if ( it == libraries_.end() ) {
+        QPluginLoader loader ( filename );
+        if ( loader.load() )
+            libraries_[ filename ] = loader.instance();
 	}
-	return 0;
+    if ( ( it = libraries_.find( filename ) ) != libraries_.end() )
+        return it->second;
+    return 0;
 }
 
-const adportable::Component *
-manager_impl::findComponent( const wchar_t * name )
+bool
+manager_impl::unloadLibrary( const QString& filename )
 {
-	static adportable::Component config;
-    return &config;
+	std::map<QString, QObject *>::iterator it = libraries_.find( filename );
+	if ( it != libraries_.end() ) {
+        QPluginLoader loader ( filename );
+        if ( loader.unload() ) {
+            libraries_.erase( it );
+            return true;
+        }
+	}
+    return false;
 }
-*/

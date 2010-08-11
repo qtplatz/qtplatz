@@ -183,10 +183,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\component.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\configuration.cpp"
 				>
 			</File>
@@ -297,10 +293,6 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\component.h"
-				>
 			</File>
 			<File
 				RelativePath=".\configuration.h"

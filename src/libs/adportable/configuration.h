@@ -41,8 +41,8 @@ namespace adportable {
         const std::wstring& name() const;
         void name( const std::wstring& );
 
-        const std::wstring& text() const;
-        void text( const std::wstring& );
+        const std::wstring& title() const;
+		void title( const std::wstring& );
 
         void attribute( const std::wstring& key, const std::wstring& value );
         bool readonly() const;
@@ -50,7 +50,10 @@ namespace adportable {
 		Configuration& append( const Configuration& );
 		void xml( const std::wstring& );
         void module( const Module& );
-        
+
+		bool isComponent() const;
+		bool isPlugin() const;
+
 		inline const std::wstring& xml() const { return xml_; }
         inline const attributes_type& attributes() const { return attributes_; }
         inline const Module& module() const { return module_; }

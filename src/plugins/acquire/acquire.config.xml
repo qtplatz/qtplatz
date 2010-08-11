@@ -10,12 +10,16 @@
   <Module name="adtofms.dll" type="sharedlib" filename="adtofms$(configuration).dll"/>
 
 	<Configuration name="instrument_monitor_tab">
-      <Configuration name="tofms_monitor" type="tab" component="adtofms::imonitor_ui">
+    <Configuration name="log_book" type="tab" component="self::log_book" readonly="true">
+      <title lang="jp">Log</title>
+      <title lang="en">Log</title>
+    </Configuration>
+    <Configuration name="tofms_monitor" type="tab" component="adtofms::imonitor_ui">
         <title lang="en">MassSpectrometer</title>
         <title lang="jp">質量分析計</title>
         <Component name="adtofms::imonitor_ui" type="widget" loader="adplugin" interface="adplugin::ui::iMonitor" module="adtofms.dll"/>
       </Configuration>
-      <Configuration name="sequence_monitor" type="tab" component="self::sequence_editor" readonly="true">
+        <Configuration name="sequence_monitor" type="tab" component="self::sequence_editor" readonly="true">
         <title lang="jp">Sequence</title>
         <title lang="en">Sequence</title>
       </Configuration>

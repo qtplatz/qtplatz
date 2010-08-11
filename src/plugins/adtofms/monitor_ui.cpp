@@ -13,7 +13,7 @@ monitor_ui::monitor_ui(QWidget *parent) : IMonitor(parent)
 }
 
 void
-monitor_ui::OnInitialUpdate()
+monitor_ui::OnInitialUpdate( const wchar_t * xml )
 {
 }
 

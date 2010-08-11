@@ -19,8 +19,8 @@ namespace adplugin {
 			Q_OBJECT
 		public:
 			explicit IMonitor(QWidget *parent = 0) : QWidget( parent ) {}
-			// bool connect( IController * );
-			virtual void OnInitialUpdate() = 0;
+			// 
+			virtual void OnInitialUpdate( const wchar_t * xml ) = 0;
 			virtual void OnFinalClose() = 0;
 
         signals:

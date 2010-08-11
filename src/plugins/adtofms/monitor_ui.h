@@ -18,7 +18,7 @@ namespace adtofms {
 		explicit monitor_ui(QWidget *parent = 0);
 
 		// implement IMonitor
-		virtual void OnInitialUpdate();
+		virtual void OnInitialUpdate( const wchar_t * xml = 0 );
 		virtual void OnFinalClose();
 
     signals:

@@ -54,13 +54,13 @@ Configuration::name( const std::wstring& value )
 }
 
 const std::wstring&
-Configuration::text() const
+Configuration::title() const
 {
     return text_;
 }
 
 void
-Configuration::text( const std::wstring& value )
+Configuration::title( const std::wstring& value )
 {
     text_ = value;
 }
@@ -102,6 +102,18 @@ void
 Configuration::module( const Module& m )
 {
     module_ = m;
+}
+
+bool
+Configuration::isComponent() const
+{
+	return ! component().empty();
+}
+
+bool
+Configuration::isPlugin() const
+{
+	return ! module().xml().empty();
 }
 
 // static
