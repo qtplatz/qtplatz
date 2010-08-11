@@ -119,7 +119,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
     mainWindow_->initial_update();
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
-		if ( it->name() == L"adborker" )
+		if ( it->name() == L"adbroker" )
 			mainWindow_->init_debug_adbroker();
 		if ( it->name() == L"adcontroller" )
 			mainWindow_->init_debug_adcontroller();

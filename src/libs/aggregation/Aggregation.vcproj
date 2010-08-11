@@ -104,7 +104,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
-				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
+				CommandLine="mkdir ..\..\..\bin; copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
 				ExcludedFromBuild="false"
 			/>
 		</Configuration>
@@ -198,7 +198,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
-				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
+				CommandLine="mkdir ..\..\..\bin;copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
 			/>
 		</Configuration>
 	</Configurations>
