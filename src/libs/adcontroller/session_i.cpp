@@ -86,6 +86,13 @@ session_i::disconnect( Receiver_ptr receiver )
 }
 
 CORBA::Boolean
+session_i::setConfiguration( const CORBA::WChar * xml )
+{
+	using namespace adcontroller::singleton;
+	return iBrokerManager::instance()->get<iBroker>()->setConfiguration( xml );
+}
+
+CORBA::Boolean
 session_i::initialize()
 {
 	using namespace adcontroller::singleton;

@@ -24,6 +24,8 @@
 #include <adcontroller/adcontroller.h>
 #include <adbroker/adbroker.h>
 #include <ace/Thread_Manager.h>
+#include <acewrapper/constants.h>
+#include <orbsvcs/CosNamingC.h>
 
 using namespace servant;
 using namespace servant::internal;
@@ -119,10 +121,20 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
     mainWindow_->initial_update();
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
-		if ( it->name() == L"adbroker" )
+		if ( it->name() == L"adbroker" ) {
 			mainWindow_->init_debug_adbroker();
-		if ( it->name() == L"adcontroller" )
+		}
+		if ( it->name() == L"adcontroller" ) {
 			mainWindow_->init_debug_adcontroller();
+
+			CORBA::Object_var obj;
+			obj = acewrapper::singleton::orbManager::instance()->getObject( acewrapper::constants::adcontroller::manager::name() );
+			ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
+			if ( ! CORBA::is_nil( manager ) ) {
+				ControlServer::Session_var session = manager->getSession( L"debug" );
+				session->setConfiguration( it->xml().c_str() );
+			}
+		}
 	}
     
     return true;

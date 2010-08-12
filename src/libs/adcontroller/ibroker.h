@@ -36,6 +36,7 @@ namespace adcontroller {
         void close();
         bool connect( ControlServer::Session_ptr, Receiver_ptr );
         bool disconnect( ControlServer::Session_ptr, Receiver_ptr );
+        bool setConfiguration( const wchar_t * xml );
         
         struct session_data {
             bool operator == ( const session_data& ) const;
@@ -64,6 +65,8 @@ namespace adcontroller {
         int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );
     private:
         friend class IBrokerManager;
+
+		std::wstring configXML_;
         
         ACE_Recursive_Thread_Mutex mutex_;
         ACE_Barrier barrier_;

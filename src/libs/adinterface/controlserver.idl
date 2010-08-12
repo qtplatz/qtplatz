@@ -49,6 +49,8 @@ module ControlServer {
       
       boolean connect(in Receiver receiver, in wstring token_) raises(CannotAdd);
       boolean disconnect(in Receiver receiver_);
+
+      boolean setConfiguration( in wstring xml );
       
       unsigned long get_status();
       

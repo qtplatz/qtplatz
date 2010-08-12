@@ -21,6 +21,7 @@ namespace adcontroller {
         ::CORBA::WChar * software_revision();
         ::CORBA::Boolean connect( Receiver_ptr receiver, const CORBA::WChar * token );
         ::CORBA::Boolean disconnect( Receiver_ptr receiver );
+		::CORBA::Boolean setConfiguration( const CORBA::WChar * xml );
         ::CORBA::ULong get_status();
         ::CORBA::Boolean initialize();
         ::CORBA::Boolean shutdown();

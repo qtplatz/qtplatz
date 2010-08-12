@@ -63,6 +63,15 @@ iBroker::close()
 }
 
 bool
+iBroker::setConfiguration( const wchar_t * xml )
+{
+    if ( ! configXML_.empty() )
+		return false;
+	configXML_ = xml;
+	return true;
+}
+
+bool
 iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver )
 {
 	session_data data;
