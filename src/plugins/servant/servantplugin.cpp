@@ -47,7 +47,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
     // ACE initialize
 	acewrapper::instance_manager::initialize();
-	singleton::orbServantManager::instance()->init( 0, 0 );
+	acewrapper::singleton::orbServantManager::instance()->init( 0, 0 );
     // <------
 
 	QDir dir = QCoreApplication::instance()->applicationDirPath();
@@ -66,12 +66,12 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		std::wstring name = it->name();
 		std::wstring component = it->component();
 		if ( name == L"adbroker" ) {
-            adBroker::initialize( singleton::orbServantManager::instance()->orb() );
+			adBroker::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
 			adBroker::activate();
 			adBroker::run();
 		} 
 		if ( name == L"adcontroller" ) {
-			adController::initialize( singleton::orbServantManager::instance()->orb() );
+			adController::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
 			adController::activate();
 			adController::run();
 		}
@@ -145,8 +145,8 @@ ServantPlugin::shutdown()
 		if ( name == L"adcontroller" )
 			adController::deactivate();
 	}
-	singleton::orbServantManager::instance()->orb()->shutdown();
-    singleton::orbServantManager::instance()->fini();
+	acewrapper::singleton::orbServantManager::instance()->orb()->shutdown();
+	acewrapper::singleton::orbServantManager::instance()->fini();
 	ACE_Thread_Manager::instance()->wait();
 }
 

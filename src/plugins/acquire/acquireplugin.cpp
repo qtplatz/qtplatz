@@ -279,11 +279,11 @@ AcquirePlugin::actionConnect()
 {
     int argc = 1;
 	char * argv[1] = { "" };
-    if ( singleton::orbManager::instance()->init( argc, argv ) >= 0 ) {
+	if ( acewrapper::singleton::orbManager::instance()->init( argc, argv ) >= 0 ) {
         // CosNaming::Name name = adcontroller::name();
         CosNaming::Name name = acewrapper::constants::adcontroller::manager::name();
 
-        CORBA::Object_var obj = singleton::orbManager::instance()->getObject( name );
+		CORBA::Object_var obj = acewrapper::singleton::orbManager::instance()->getObject( name );
 		if ( ! CORBA::is_nil( obj ) ) {
             ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
 			if ( ! CORBA::is_nil( manager ) ) {

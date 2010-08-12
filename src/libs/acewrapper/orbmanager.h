@@ -35,11 +35,12 @@ namespace acewrapper {
 		friend ACE_Singleton< ORBManager, ACE_Recursive_Thread_Mutex >;
 	};
 
+	namespace singleton {
+		typedef ACE_Singleton< acewrapper::ORBManager, ACE_Recursive_Thread_Mutex > orbManager;
+	}
 }
 
-namespace singleton {
-	typedef ACE_Singleton< acewrapper::ORBManager, ACE_Recursive_Thread_Mutex > orbManager;
-}
+
 
 
 

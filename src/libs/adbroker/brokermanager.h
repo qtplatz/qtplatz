@@ -24,8 +24,8 @@ namespace adbroker {
     class Task;
     class BrokerManager;
 
-    namespace singleton {
-        typedef ACE_Singleton<BrokerManager, ACE_Recursive_Thread_Mutex> BrokerManager;
+	namespace singleton {
+		typedef ACE_Singleton<BrokerManager, ACE_Recursive_Thread_Mutex> BrokerManager;
     }
 
     class ADBROKERSHARED_EXPORT BrokerManager {

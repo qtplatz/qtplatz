@@ -15,6 +15,8 @@
 #include <acewrapper/timeval.h>
 #include <iostream>
 
+using namespace adcontroller;
+
 iBroker::~iBroker()
 {
 	// this will block until a message arrives.

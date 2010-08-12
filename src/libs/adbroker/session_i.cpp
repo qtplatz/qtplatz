@@ -23,7 +23,8 @@ session_i::connect( const char * user, const char * pass, const char * token )
     ACE_UNUSED_ARG( pass );
     ACE_UNUSED_ARG( token );
 
-    adbroker::Task * pTak = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
-
+    adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
+    if ( pTask )
+		return true;
     return false;
 }

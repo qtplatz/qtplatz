@@ -82,7 +82,7 @@ adController::initialize( CORBA::ORB_ptr orb )
 		orb = CORBA::ORB_init( ac, 0 );
 	}
 
-    ORBServant< adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
+	ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
 	ORBServantManager * pMgr = new ORBServantManager( orb );
 	pMgr->init( 0, 0 );
 	pServant->setServantManager( pMgr );
@@ -92,7 +92,7 @@ adController::initialize( CORBA::ORB_ptr orb )
 bool
 adController::activate()
 {
-    ORBServant< adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
+	ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
 	pServant->activate();
 
 	CORBA::ORB_var orb = pServant->getServantManager()->orb();
@@ -103,10 +103,10 @@ adController::activate()
 bool
 adController::deactivate()
 {
-	ORBServant< adcontroller::manager_i > * pServant = singleton::adcontroller::manager::instance();
+	ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
 	pServant->deactivate();
 
-	iBrokerManager::instance()->terminate();
+	adcontroller::singleton::iBrokerManager::instance()->terminate();
 
 	return true;
 }
@@ -133,7 +133,7 @@ adController::run()
    }
    //-------------> end priority code
 
-   ORBServantManager* p = singleton::adcontroller::manager::instance()->getServantManager();
+   ORBServantManager* p = adcontroller::singleton::manager::instance()->getServantManager();
    if ( p->test_and_set_thread_flag() ) {
 	   __own_thread = true;
 	   ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), reinterpret_cast<void *>(p) );

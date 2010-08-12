@@ -12,24 +12,26 @@
 #include <ace/Reactor.h>
 #include <acewrapper/timerhandler.h>
 #include <acewrapper/eventhandler.h>
-
-#include "task.h"
 #include "message.h"
 
 //////////////////////////
 
-namespace internal {
+using namespace adcontroller;
 
-	class TimeReceiver {
-	public:
-		TimeReceiver() {}
-		int handle_input( ACE_HANDLE ) { return 0; }
-		int handle_timeout( const ACE_Time_Value& tv, const void * arg) {
-			return iBrokerManager::instance()->handle_timeout( tv, arg );
-		}
-		int handle_close( ACE_HANDLE, ACE_Reactor_Mask ) { return 0; }
-	};
+namespace adcontroller {
+	namespace internal {
 
+		class TimeReceiver {
+		public:
+			TimeReceiver() {}
+			int handle_input( ACE_HANDLE ) { return 0; }
+			int handle_timeout( const ACE_Time_Value& tv, const void * arg) {
+				return singleton::iBrokerManager::instance()->handle_timeout( tv, arg );
+			}
+			int handle_close( ACE_HANDLE, ACE_Reactor_Mask ) { return 0; }
+		};
+
+	}
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -58,7 +60,7 @@ IBrokerManager::initialize()
 		acewrapper::scoped_mutex_t<> lock( mutex_ );
 		if ( timerHandler_ == 0 ) {
 			timerHandler_ = new acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> >();
-			ACE_Reactor * reactor = iBrokerManager::instance()->reactor();
+			ACE_Reactor * reactor = singleton::iBrokerManager::instance()->reactor();
 			reactor->schedule_timer( timerHandler_, 0, ACE_Time_Value(3), ACE_Time_Value(3) );
 		}
 		pBroker_->open();

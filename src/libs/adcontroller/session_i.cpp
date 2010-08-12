@@ -14,7 +14,6 @@
 #include <acewrapper/mutex.hpp>
 #include "ibroker.h"
 #include <boost/tokenizer.hpp>
-#include "task.h"
 
 using namespace acewrapper;
 using namespace adcontroller;
@@ -53,15 +52,15 @@ session_i::software_revision()
 CORBA::Boolean
 session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
 {
-	scoped_mutex_t<> lock( iBrokerManager::instance()->mutex() );
+	scoped_mutex_t<> lock( singleton::iBrokerManager::instance()->mutex() );
 
-	iBroker * pBroker = iBrokerManager::instance()->get<iBroker>();
+	iBroker * pBroker = singleton::iBrokerManager::instance()->get<iBroker>();
 	pBroker->connect( _this(), receiver );
 
     ACE_UNUSED_ARG(token);
 
     receiver_data data;
-    data.receiver_ = Receiver::_duplicate( receiver );
+	data.receiver_ = Receiver::_duplicate( receiver );
       
     if ( std::find(receiver_set_.begin(), receiver_set_.end(), data) != receiver_set_.end() ) {
         throw ControlServer::Session::CannotAdd( L"receiver already exist" );
@@ -71,8 +70,8 @@ session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
     receiver_set_.push_back( data );
       
 	if ( receiver_set_.size() == 1 ) {
-		iBrokerManager::instance()->initialize();
-		iBrokerManager::instance()->get<iBroker>()->reset_clock();
+		singleton::iBrokerManager::instance()->initialize();
+		singleton::iBrokerManager::instance()->get<iBroker>()->reset_clock();
 	}
 
     echo( "client connected" );
@@ -89,13 +88,15 @@ session_i::disconnect( Receiver_ptr receiver )
 CORBA::Boolean
 session_i::initialize()
 {
-    return iBrokerManager::instance()->initialize();
+	using namespace adcontroller::singleton;
+	iBrokerManager::instance()->initialize();
 	return iBrokerManager::instance()->get<iBroker>()->open();
 }
 
 CORBA::Boolean
 session_i::shutdown()
 {
+	using namespace adcontroller::singleton;
 	iBrokerManager::instance()->terminate();
 	ACE_Thread_Manager::instance()->wait();
 	return true;
@@ -187,7 +188,7 @@ session_i::commit_failed()
 bool
 session_i::internal_disconnect( Receiver_ptr receiver )
 {
-    scoped_mutex_t<> lock( iBrokerManager::instance()->mutex() );
+	scoped_mutex_t<> lock( singleton::iBrokerManager::instance()->mutex() );
 
 	vector_type::iterator it = std::find(receiver_set_.begin(), receiver_set_.end(), receiver);
 

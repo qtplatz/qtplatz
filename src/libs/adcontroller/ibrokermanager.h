@@ -8,9 +8,7 @@
 #include <ace/Recursive_Thread_Mutex.h>
 #include <boost/smart_ptr.hpp>
 
-class iBroker;
 class ACE_Reactor;
-class Task;
 
 namespace acewrapper {
 	class ReactorThread;
@@ -19,35 +17,44 @@ namespace acewrapper {
     template<class T> class TimerReceiver;
 }
 
-namespace internal {
-	class TimeReceiver;
+namespace adcontroller {
+
+	class iBroker;
+
+    namespace internal {
+        class TimeReceiver;
+    }
+    
+    class IBrokerManager {
+    private:
+        ~IBrokerManager();
+        IBrokerManager();
+        IBrokerManager( const IBrokerManager& );  /* not defined */
+        
+    public:  
+        bool initialize();
+        void terminate();
+        
+        inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
+        ACE_Reactor * reactor();
+        
+        template<class T> T* get();
+        template<> iBroker * get<iBroker>() { return pBroker_; }
+        
+    private:
+        friend class ACE_Singleton<IBrokerManager, ACE_Recursive_Thread_Mutex>;
+        friend class internal::TimeReceiver;
+        int handle_timeout( const ACE_Time_Value&, const void * );
+        
+        ACE_Recursive_Thread_Mutex mutex_;
+        iBroker * pBroker_;
+        acewrapper::ReactorThread * reactor_thread_;    
+        acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> > * timerHandler_;
+    };
+
+	namespace singleton {
+		typedef ACE_Singleton<adcontroller::IBrokerManager, ACE_Recursive_Thread_Mutex> iBrokerManager;
+	}
 }
 
-class IBrokerManager {
-private:
-    ~IBrokerManager();
-    IBrokerManager();
-    IBrokerManager( const IBrokerManager& );  /* not defined */
 
-public:  
-	bool initialize();
-	void terminate();
-
-	inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
-	ACE_Reactor * reactor();
-
-	template<class T> T* get();
-	template<> iBroker * get<iBroker>() { return pBroker_; }
-      
-private:
-	friend class ACE_Singleton<IBrokerManager, ACE_Recursive_Thread_Mutex>;
-	friend class internal::TimeReceiver;
-    int handle_timeout( const ACE_Time_Value&, const void * );
-
-	ACE_Recursive_Thread_Mutex mutex_;
-	iBroker * pBroker_;
-	acewrapper::ReactorThread * reactor_thread_;    
-	acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> > * timerHandler_;
-};
-
-typedef ACE_Singleton<IBrokerManager, ACE_Recursive_Thread_Mutex> iBrokerManager;

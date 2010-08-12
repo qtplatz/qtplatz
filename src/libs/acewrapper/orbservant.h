@@ -79,10 +79,12 @@ namespace acewrapper {
 		std::string id_;
 		T impl_;
 	};
+
+	namespace singleton {
+		typedef ACE_Singleton< acewrapper::ORBServantManager, ACE_Recursive_Thread_Mutex > orbServantManager;
+	}
+
 }
 
-namespace singleton {
-	typedef ACE_Singleton< acewrapper::ORBServantManager, ACE_Recursive_Thread_Mutex > orbServantManager;
-}
 
 #endif // ORBSERVANT_H

@@ -18,15 +18,6 @@
 
 namespace adbroker {
 
-    class manager_i;
-
-    namespace singleton {
-		typedef ACE_Singleton< acewrapper::ORBServant< manager_i >, ACE_Recursive_Thread_Mutex > manager;
-	}
-}
-
-namespace adbroker {
-
     class manager_i : public virtual POA_Broker::Manager {
 
     public:
@@ -41,6 +32,10 @@ namespace adbroker {
         session_map_type session_list_;
         boost::scoped_ptr< broker::logger_i > logger_i_;
     };
+
+    namespace singleton {
+		typedef ACE_Singleton< acewrapper::ORBServant< manager_i >, ACE_Recursive_Thread_Mutex > manager;
+	}
 
 }
 

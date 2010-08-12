@@ -14,18 +14,7 @@
 #include <acewrapper/orbservant.h>
 #include <map>
 #include <string>
-
 #include <boost/smart_ptr.hpp>
-
-namespace adcontroller {
-	class manager_i;
-}
-
-namespace singleton {
-	namespace adcontroller {
-        typedef ACE_Singleton< acewrapper::ORBServant< ::adcontroller::manager_i >, ACE_Recursive_Thread_Mutex > manager;
-	}
-}
 
 namespace adcontroller {
 
@@ -41,4 +30,9 @@ namespace adcontroller {
 		typedef std::map< std::wstring, boost::shared_ptr< adcontroller::session_i > > session_map_type;
 		session_map_type session_list_;
 	};
+
+	namespace singleton {
+		typedef ACE_Singleton< acewrapper::ORBServant< ::adcontroller::manager_i >, ACE_Recursive_Thread_Mutex > manager;
+	}
+
 }

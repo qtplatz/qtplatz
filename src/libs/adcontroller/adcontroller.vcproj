@@ -243,10 +243,6 @@
 				RelativePath=".\signal_handler.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\task.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -335,10 +331,6 @@
 			</File>
 			<File
 				RelativePath=".\signal_handler.h"
-				>
-			</File>
-			<File
-				RelativePath=".\task.h"
 				>
 			</File>
 		</Filter>
