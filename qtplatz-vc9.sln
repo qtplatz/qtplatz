@@ -166,6 +166,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "servant", "src\plugins\serv
 		{A4CC3C7D-516B-3704-8CDB-2A3E987231DB} = {A4CC3C7D-516B-3704-8CDB-2A3E987231DB}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tofcontroller", "src\tofcontroller\tofcontroller.vcproj", "{13A33CBE-5109-3F62-86F3-1177334BC01A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -300,6 +302,10 @@ Global
 		{AB4781DB-65E7-3169-824F-CDB8B5FB482D}.Debug|Win32.Build.0 = Debug|Win32
 		{AB4781DB-65E7-3169-824F-CDB8B5FB482D}.Release|Win32.ActiveCfg = Release|Win32
 		{AB4781DB-65E7-3169-824F-CDB8B5FB482D}.Release|Win32.Build.0 = Release|Win32
+		{13A33CBE-5109-3F62-86F3-1177334BC01A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{13A33CBE-5109-3F62-86F3-1177334BC01A}.Debug|Win32.Build.0 = Debug|Win32
+		{13A33CBE-5109-3F62-86F3-1177334BC01A}.Release|Win32.ActiveCfg = Release|Win32
+		{13A33CBE-5109-3F62-86F3-1177334BC01A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

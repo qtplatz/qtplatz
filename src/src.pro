@@ -8,5 +8,6 @@ SUBDIRS = \
     plugins \
     instmanager \
     test_serializer \
+    tofcontroller \
     controller \
     device_emulator

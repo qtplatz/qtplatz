@@ -342,6 +342,10 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\orbLoader.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Generated Files"

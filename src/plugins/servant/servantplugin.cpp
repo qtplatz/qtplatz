@@ -26,6 +26,8 @@
 #include <ace/Thread_Manager.h>
 #include <acewrapper/constants.h>
 #include <orbsvcs/CosNamingC.h>
+#include <adplugin/orbLoader.h>
+#include <qtwrapper/qstring.h>
 
 using namespace servant;
 using namespace servant::internal;
@@ -71,12 +73,25 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 			adBroker::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
 			adBroker::activate();
 			adBroker::run();
-		} 
-		if ( name == L"adcontroller" ) {
+		} else if ( name == L"adcontroller" ) {
 			adController::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
 			adController::activate();
 			adController::run();
-		}
+        } else if ( it->attribute(L"type") == L"orbLoader" ) {
+            QDir dir = QCoreApplication::instance()->applicationDirPath();
+            dir.cdUp();
+            QString file = dir.path() + qtwrapper::qstring( it->module().library_filename() );
+            QLibrary lib( file );
+            if ( lib.load() ) {
+                typedef adplugin::orbLoader * (*function)();
+                function instance = static_cast<function>( lib.resolve( "instance" ) );
+                if ( instance ) {
+                    adplugin::orbLoader * loader = instance();
+                    if ( loader )
+                        loader->dispose();
+                }
+            }
+        }
 	}
 
     Core::ICore * core = Core::ICore::instance();

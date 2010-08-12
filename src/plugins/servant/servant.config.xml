@@ -6,8 +6,9 @@
 
 <ServantConfiguration name="servant">
 
-  <Module name="adbroker" type="corba::servant" filename="adbroker$(configuration).dll"/>
-  <Module name="adcontroller" type="corba::servant" filename="adcontroller$(configuration).dll"/>
+  <Module name="adbroker" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiaison/adbroker$(configuration).dll"/>
+  <Module name="adcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiaison/adcontroller$(configuration).dll"/>
+  <Module name="tofcontroller" type="corba::servant" filename="/lib/qtPlatz/tofcontroller$(configuration).dll"/>
 
   <Configuration>
     <Configuration name="adbroker" type="" component="">
@@ -15,6 +16,9 @@
     </Configuration>
     <Configuration name="adcontroller" type="" component="">
       <Component name="adcontroller" module="adcontroller"/>
+    </Configuration>
+    <Configuration name="tofcontoller" type="orbLoader" component="">
+      <Component name="tofcontroller" module="tofcontroller"/>
     </Configuration>
   </Configuration>
 </ServantConfiguration>
