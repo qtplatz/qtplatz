@@ -76,7 +76,7 @@ AcquireUIManager::init()
     dir.cdUp();
     dir.cd( "lib/qtPlatz/plugins/ScienceLiaison" );
 
-    QString configFile = dir.path() + "/acquire.config.xml";
+	std::wstring configFile = qtwrapper::wstring::copy( dir.path() ) + L"/acquire.config.xml";
 
 	const wchar_t * query = L"/AcquireConfiguration/Configuration";
 

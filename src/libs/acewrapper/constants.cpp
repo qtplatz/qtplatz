@@ -36,6 +36,19 @@ namespace acewrapper {
 
         }
 
+        namespace tofcontroller {
+
+            CosNaming::Name
+                manager::name() {
+                    CosNaming::Name name;
+                    name.length(1);
+                    name[0].id = CORBA::string_dup( "tofcontroller.manager" );
+                    name[0].kind = CORBA::string_dup( "" );
+                    return name;
+            }
+
+        }
+
     }
 }
 

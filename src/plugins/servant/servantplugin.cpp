@@ -5,6 +5,7 @@
 
 #include "servantplugin.h"
 #include "mainwindow.h"
+#include "servantmode.h"
 
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
@@ -13,20 +14,21 @@
 #include <coreplugin/outputpane.h>
 #include <coreplugin/navigationwidget.h>
 #include <QtCore/qplugin.h>
-
-#include "servantmode.h"
-#include <adportable/configuration.h>
-#include <adplugin/adplugin.h>
 #include <QtCore>
+#include <ace/Thread_Manager.h>
+#include <orbsvcs/CosNamingC.h>
+
+#include <adbroker/adbroker.h>
+#include <adcontroller/adcontroller.h>
+
+#include <adplugin/adplugin.h>
+#include <adplugin/orbLoader.h>
+
+#include <adportable/configuration.h>
+
 #include <acewrapper/acewrapper.h>
 #include <acewrapper/orbservant.h>
-//#include <acewrapper/orbmanager.h>
-#include <adcontroller/adcontroller.h>
-#include <adbroker/adbroker.h>
-#include <ace/Thread_Manager.h>
 #include <acewrapper/constants.h>
-#include <orbsvcs/CosNamingC.h>
-#include <adplugin/orbLoader.h>
 #include <qtwrapper/qstring.h>
 
 using namespace servant;
@@ -54,12 +56,16 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	acewrapper::singleton::orbServantManager::instance()->init( 0, 0 );
     // <------
 
-	QDir dir = QCoreApplication::instance()->applicationDirPath();
-    dir.cdUp();
-	dir.cd( "lib/qtPlatz/plugins/ScienceLiaison" );
-	QString configFile = dir.path() + "/servant.config.xml";
+	std::wstring apppath;
+	do {
+		QDir dir = QCoreApplication::instance()->applicationDirPath();
+		dir.cdUp();
+		apppath = qtwrapper::wstring::copy( dir.path() );
+	} while(0);
 
-    const wchar_t * query = L"/ServantConfiguration/Configuration";
+	std::wstring configFile = apppath + L"/lib/qtPlatz/plugins/ScienceLiaison/servant.config.xml";
+
+	const wchar_t * query = L"/ServantConfiguration/Configuration";
 
 	pConfig_ = new adportable::Configuration();
 	adportable::Configuration& config = *pConfig_;
@@ -78,19 +84,14 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 			adController::activate();
 			adController::run();
         } else if ( it->attribute(L"type") == L"orbLoader" ) {
-            QDir dir = QCoreApplication::instance()->applicationDirPath();
-            dir.cdUp();
-            QString file = dir.path() + qtwrapper::qstring( it->module().library_filename() );
-            QLibrary lib( file );
-            if ( lib.load() ) {
-                typedef adplugin::orbLoader * (*function)();
-                function instance = static_cast<function>( lib.resolve( "instance" ) );
-                if ( instance ) {
-                    adplugin::orbLoader * loader = instance();
-                    if ( loader )
-                        loader->dispose();
-                }
-            }
+			std::wstring file = apppath + it->module().library_filename();
+            it->attribute( L"fullpath", file );
+			adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
+			if ( loader ) {
+				loader.initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
+				loader.activate();
+				loader.run();
+			}
         }
 	}
 
@@ -138,8 +139,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
 		if ( it->name() == L"adbroker" ) {
 			mainWindow_->init_debug_adbroker();
-		}
-		if ( it->name() == L"adcontroller" ) {
+		} else if ( it->name() == L"adcontroller" ) {
 			mainWindow_->init_debug_adcontroller();
 
 			CORBA::Object_var obj;
@@ -167,10 +167,16 @@ ServantPlugin::shutdown()
 
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
 		std::wstring name = it->name();
-		if ( name == L"adbroker" )
+		if ( name == L"adbroker" ) {
             adBroker::deactivate();
-		if ( name == L"adcontroller" )
+		} else if ( name == L"adcontroller" ) {
 			adController::deactivate();
+        } else if ( it->attribute(L"type") == L"orbLoader" ) {
+			std::wstring file = it->attribute( L"fullpath" );
+			adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
+			if ( loader )
+				loader.deactivate();
+		}
 	}
 	acewrapper::singleton::orbServantManager::instance()->orb()->shutdown();
 	acewrapper::singleton::orbServantManager::instance()->fini();

@@ -7,7 +7,7 @@
 #ifndef TOFCONTROLLER_H
 #define TOFCONTROLLER_H
 
-// #include "tofcontroller_global.h"
+//#include "tofcontroller_global.h"
 #include <adplugin/orbLoader.h>
 
 namespace CORBA {
@@ -16,10 +16,11 @@ namespace CORBA {
 
 class SHARED_EXPORT TofController : public adplugin::orbLoader {
 protected:
-    virtual ~TofController();
 public:
+    virtual ~TofController();
     TofController();
 
+	operator bool () const { return true; }
     bool initialize( CORBA::ORB * orb = 0 );
 	bool activate();
     bool deactivate();
@@ -32,11 +33,16 @@ public:
     static bool deactivate();
 	static int run();
 	static void abort_server();
-*/
+/**/
 };
 
 extern "C" {
-    SHARED_EXPORT adplugin::orbLoader * instance();
+	__declspec(dllexport) adplugin::orbLoader * instance();
+	__declspec(dllexport) bool initialize( CORBA::ORB * orb = 0 );
+	__declspec(dllexport) bool activate();
+	__declspec(dllexport) bool deactivate();
+	__declspec(dllexport) int run();
+	__declspec(dllexport) void abort_server();
 }
 
 #endif // TOFCONTROLLER_H

@@ -17,6 +17,8 @@
 #include <QLibrary>
 #include "ifactory.h"
 #include "imonitor.h"
+#include "orbLoader.h"
+#include <boost/smart_ptr.hpp>
 
 using namespace adplugin;
 
@@ -32,12 +34,17 @@ namespace adplugin {
 			manager_impl();
 
 			// manager impl
-            bool loadConfig( adportable::Configuration&, const QString&, const wchar_t * );
-            QObject * loadLibrary( const QString& );
-			bool unloadLibrary( const QString& );
+			bool loadConfig( adportable::Configuration&, const std::wstring&, const wchar_t * );
+			QObject * loadLibrary( const std::wstring& );
+			bool unloadLibrary( const std::wstring& );
+
+			virtual adplugin::orbLoader& orbLoader( const std::wstring& name );
 
 		private:
-			std::map< QString, QObject * > libraries_;
+			typedef std::map< std::wstring, QObject * > librariesType;
+			typedef std::map< std::wstring, boost::shared_ptr<adplugin::orbLoader> > orbLoadersType;
+			librariesType libraries_;
+			orbLoadersType orbLoaders_;
 		};
 	}
 }
@@ -90,7 +97,8 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
 {
 	if ( config.module().library_filename().empty() )
 		return 0;
-	QString loadfile = qtwrapper::qstring( path ) + QString("/") + qtwrapper::qstring( config.module().library_filename() );
+
+	std::wstring loadfile = std::wstring( path ) + L"/" + config.module().library_filename();
 
 	IFactory * piFactory = qobject_cast< IFactory *> ( manager::instance()->loadLibrary( loadfile ) );
 	if ( piFactory ) {
@@ -113,27 +121,27 @@ manager_impl::manager_impl()
 
 manager_impl::~manager_impl()
 {
-    for ( std::map<QString, QObject *>::iterator it = libraries_.begin(); it != libraries_.end(); ++it ) {
+	for ( librariesType::iterator it = libraries_.begin(); it != libraries_.end(); ++it ) {
         if ( it->second ) {
-            QPluginLoader loader( it->first );
+			QPluginLoader loader( qtwrapper::qstring(it->first) );
             loader.unload();
         }
     }
 }
 
 bool
-manager_impl::loadConfig( adportable::Configuration& config, const QString& filename, const wchar_t * query )
+manager_impl::loadConfig( adportable::Configuration& config, const std::wstring& filename, const wchar_t * query )
 {
-    return ConfigLoader::loadConfiguration( config, qtwrapper::wstring( filename ), query );
+    return ConfigLoader::loadConfiguration( config, filename, query );
 }
 
 QObject *
-manager_impl::loadLibrary( const QString& filename )
+manager_impl::loadLibrary( const std::wstring& filename )
 {
-	std::map<QString, QObject *>::iterator it = libraries_.find( filename );
+	librariesType::iterator it = libraries_.find( filename );
 	if ( it == libraries_.end() ) {
-        QPluginLoader loader ( filename );
-        if ( loader.load() )
+		QPluginLoader loader ( qtwrapper::qstring::copy(filename) );
+		if ( loader.load() )
             libraries_[ filename ] = loader.instance();
 	}
     if ( ( it = libraries_.find( filename ) ) != libraries_.end() )
@@ -142,15 +150,94 @@ manager_impl::loadLibrary( const QString& filename )
 }
 
 bool
-manager_impl::unloadLibrary( const QString& filename )
+manager_impl::unloadLibrary( const std::wstring& filename )
 {
-	std::map<QString, QObject *>::iterator it = libraries_.find( filename );
+	librariesType::iterator it = libraries_.find( filename );
 	if ( it != libraries_.end() ) {
-        QPluginLoader loader ( filename );
+		QPluginLoader loader ( qtwrapper::qstring::copy(filename) );
         if ( loader.unload() ) {
             libraries_.erase( it );
             return true;
         }
 	}
     return false;
+}
+
+//////////////////////////////////////
+
+class orbLoaderImpl : public adplugin::orbLoader {
+public:
+	~orbLoaderImpl() {}
+	orbLoaderImpl() : initialize_(0)
+                    , activate_(0)
+					, deactivate_(0)
+					, run_(0)
+					, abort_server_(0) {
+	}
+
+	orbLoaderImpl( QLibrary& lib ) : initialize_(0)
+                                   , activate_(0)
+								   , deactivate_(0)
+								   , run_(0)
+								   , abort_server_(0)
+	{
+		initialize_   = static_cast<initialize_t>( lib.resolve( "initialize" ) );
+		activate_     = static_cast<activate_t>( lib.resolve( "activate" ) );
+		deactivate_   = static_cast<deactivate_t>( lib.resolve( "deactivate" ) );
+		run_          = static_cast<run_t>( lib.resolve( "run" ) );
+		abort_server_ = static_cast<abort_server_t>( lib.resolve( "abort_server" ) );
+	}
+
+	virtual operator bool () const {
+		return initialize_ && activate_ && deactivate_ && run_ && abort_server_;
+	}
+
+private:
+	typedef bool (*initialize_t)( CORBA::ORB * );
+	typedef bool (*activate_t)();
+	typedef bool (*deactivate_t)();
+	typedef bool (*run_t)();
+	typedef bool (*abort_server_t)();
+public:
+	virtual bool initialize( CORBA::ORB * orb ) { return initialize_   ? initialize_( orb ) : false; }
+	virtual bool activate()                     { return activate_     ? activate_()        : false; }
+	virtual bool deactivate()                   { return deactivate_   ? deactivate_()      : false; }
+	virtual int run()                           { return run_          ? run_()             : false; }
+	virtual void abort_server()                 { return abort_server_ ? abort_server()     : false; }
+private:
+	initialize_t   initialize_;
+	activate_t     activate_;
+	deactivate_t   deactivate_;
+	run_t          run_;
+	abort_server_t abort_server_;
+};
+
+////////////////////////////////////////
+adplugin::orbLoader&
+manager_impl::orbLoader( const std::wstring& file )
+{
+	orbLoadersType::iterator it = orbLoaders_.find( file );
+
+	if ( it != orbLoaders_.end() )
+		return *it->second;
+
+	QLibrary lib( qtwrapper::qstring::copy( file ) );
+	if ( lib.load() ) {
+		typedef adplugin::orbLoader * (*instance_t)();
+		instance_t instance = static_cast<instance_t>( lib.resolve( "instance" ) );
+		if ( instance ) {
+			boost::shared_ptr< adplugin::orbLoader > loader( instance() );
+			if ( loader )
+				orbLoaders_[ file ] = loader;
+		} else {
+			boost::shared_ptr< adplugin::orbLoader > loader( new orbLoaderImpl( lib ) );
+			if ( loader )
+				orbLoaders_[ file ] = loader;
+		}
+	}
+	if ( ( it = orbLoaders_.find( file ) ) != orbLoaders_.end() )
+		return *it->second;
+
+    static orbLoaderImpl empty;
+	return empty;
 }
