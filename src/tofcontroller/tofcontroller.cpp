@@ -78,9 +78,10 @@ TofController::deactivate()
 {
 	acewrapper::ORBServant< tofcontroller::i8tManager_i >
 		* pServant = tofcontroller::singleton::i8tManager_i::instance();
-	pServant->deactivate();
 
-	// adcontroller::singleton::iBrokerManager::instance()->terminate();
+	static_cast<tofcontroller::i8tManager_i *>(*pServant)->shutdown();
+
+	pServant->deactivate();
 
 	return true;
 }

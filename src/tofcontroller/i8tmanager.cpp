@@ -5,6 +5,7 @@
 
 #include "i8tmanager.h"
 #include "i8ttask.h"
+#include <acewrapper/mutex.hpp>
 
 using namespace tofcontroller;
 
@@ -24,15 +25,26 @@ i8tManager_i::software_revision (void)
 }
 
 CORBA::Boolean 
-i8tManager_i::connect( Receiver_ptr receiver, const CORBA::WChar * toke )
+i8tManager_i::setConfiguration( const CORBA::WChar * xml )
 {
-    return false;
+	if ( pTask_->setConfiguration( xml ) ) {
+		pTask_->open();
+		return true;
+	}
+	return false;
+}
+
+CORBA::Boolean 
+i8tManager_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
+{
+    ACE_UNUSED_ARG( token );
+	return pTask_->connect( receiver );
 }
 
 CORBA::Boolean 
 i8tManager_i::disconnect ( Receiver_ptr receiver )
 {
-    return false;
+	return pTask_->disconnect( receiver );
 }
 
 CORBA::ULong 
@@ -50,7 +62,8 @@ i8tManager_i::initialize (void)
 CORBA::Boolean 
 i8tManager_i::shutdown (void)
 {
-    return false;
+	pTask_->close();
+    return true;
 }
 
 CORBA::Boolean 

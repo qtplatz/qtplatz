@@ -48,7 +48,7 @@ namespace adportable {
         static u8string utf8( const wchar_t * );
         static u8string utf8( const u16char_t * );
         static u8string utf8( const u32char_t * );
-        static u16string utf16( const wchar_t * );
-        static u32string utf32( const wchar_t * );
+		static u16string utf16( const wchar_t * );
+		static u32string utf32( const wchar_t * );
     };
 }

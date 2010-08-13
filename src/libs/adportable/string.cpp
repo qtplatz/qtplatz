@@ -26,7 +26,7 @@ string::convert( const std::string& source )
 {
 #if defined WIN32
     size_t source_length = source.length();
-    std::wstring target( source_length + 1, L' ' );
+    std::wstring target( source_length + 1, L'\0' );
     ::MultiByteToWideChar( CP_ACP, 0, source.c_str(), source.length(), &target[0], target.size() );
 #else
     std::basic_string<UTF16> utf16 = utf::to_utf16( reinterpret_cast<const UTF8 *>(source.c_str()) );
@@ -103,5 +103,21 @@ u8string::u8string( const std::basic_string<u16char_t>& t )
 
 u8string::u8string( const std::basic_string<u32char_t>& t )
 : std::basic_string<u8char_t>( string::utf8( t.c_str() ) )
+{
+}
+
+/////////////////////////////////
+u16string::u16string()
+{
+}
+
+u16string::u16string( const std::basic_string<u16char_t>& t )
+: std::basic_string<u16char_t>( t )
+{
+}
+
+//////////////////////////////////
+u32string::u32string( const std::basic_string<u32char_t>& t )
+: std::basic_string<u32char_t>( t )
 {
 }

@@ -17,7 +17,7 @@
     <Configuration name="adcontroller" type="" component="">
       <Component name="adcontroller" module="adcontroller"/>
     </Configuration>
-    <Configuration name="tofcontoller" type="orbLoader" component="">
+    <Configuration name="tofcontoller" type="orbLoader" ns_name="tofcontroller.manager" component="">
       <Component name="tofcontroller" module="tofcontroller"/>
     </Configuration>
   </Configuration>

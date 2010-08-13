@@ -46,6 +46,12 @@ session_i::software_revision()
 }
 
 CORBA::Boolean
+session_i::setConfiguration( const CORBA::WChar * )
+{
+	return false;
+}
+
+CORBA::Boolean
 session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
 {
 	scoped_mutex_t<> lock( mutex_ );

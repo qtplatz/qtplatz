@@ -9,6 +9,10 @@
 
 #include <adplugin/imonitor.h>
 
+namespace Ui {
+    class Form;
+}
+
 namespace adtofms {
 
 	class monitor_ui : public adplugin::ui::IMonitor	{
@@ -16,6 +20,7 @@ namespace adtofms {
 		Q_INTERFACES( adplugin::ui::IMonitor )
 	public:
 		explicit monitor_ui(QWidget *parent = 0);
+        ~monitor_ui();
 
 		// implement IMonitor
 		virtual void OnInitialUpdate( const wchar_t * xml = 0 );
@@ -24,7 +29,8 @@ namespace adtofms {
     signals:
 
 	public slots:
-
+	private:
+		Ui::Form *ui;
 	};
 
 }

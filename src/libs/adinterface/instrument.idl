@@ -27,6 +27,7 @@ module Instrument {
     };
     
     wstring software_revision();  // ex. L"1.216"
+	boolean setConfiguration( in wstring xml );
     
     boolean connect(in Receiver receiver, in wstring token_) raises(CannotAdd);
     boolean disconnect(in Receiver receiver_);

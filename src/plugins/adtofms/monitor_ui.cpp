@@ -5,11 +5,19 @@
 
 #include "monitor_ui.h"
 #include <QtCore/qplugin.h>
+#include "ui_form.h"
 
 using namespace adtofms;
 
 monitor_ui::monitor_ui(QWidget *parent) : IMonitor(parent)
+                                        , ui(new Ui::Form)
 {
+    ui->setupUi(this);
+}
+
+monitor_ui::~monitor_ui()
+{
+	delete ui;
 }
 
 void

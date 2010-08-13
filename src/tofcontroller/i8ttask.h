@@ -29,6 +29,7 @@ namespace tofcontroller {
 
         inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
 
+        bool setConfiguration( const wchar_t * );
         bool open();
         void close();
         bool connect( Receiver_ptr );
@@ -60,6 +61,7 @@ namespace tofcontroller {
 
         vector_type receiver_set_;
 		Broker::Logger_var logger_;
+		std::wstring configXML_;
     };
   
 }

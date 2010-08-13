@@ -164,6 +164,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "servant", "src\plugins\servant\servant.vcproj", "{AB4781DB-65E7-3169-824F-CDB8B5FB482D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A4CC3C7D-516B-3704-8CDB-2A3E987231DB} = {A4CC3C7D-516B-3704-8CDB-2A3E987231DB}
+		{3314EBAC-8B48-319B-B093-3CBC77CA7FFF} = {3314EBAC-8B48-319B-B093-3CBC77CA7FFF}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tofcontroller", "src\tofcontroller\tofcontroller.vcproj", "{13A33CBE-5109-3F62-86F3-1177334BC01A}"

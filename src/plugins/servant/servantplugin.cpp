@@ -20,6 +20,7 @@
 
 #include <adbroker/adbroker.h>
 #include <adcontroller/adcontroller.h>
+#include <adinterface/instrumentC.h>
 
 #include <adplugin/adplugin.h>
 #include <adplugin/orbLoader.h>
@@ -30,6 +31,7 @@
 #include <acewrapper/orbservant.h>
 #include <acewrapper/constants.h>
 #include <qtwrapper/qstring.h>
+#include <adportable/string.h>
 
 using namespace servant;
 using namespace servant::internal;
@@ -148,6 +150,19 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 			if ( ! CORBA::is_nil( manager ) ) {
 				ControlServer::Session_var session = manager->getSession( L"debug" );
 				session->setConfiguration( it->xml().c_str() );
+			}
+		} else if ( it->attribute( L"type" ) == L"orbLoader" ) {
+			std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
+			if ( ! ns_name.empty() ) {
+				CosNaming::Name name;
+				name.length(1);
+				name[0].id = CORBA::string_dup( ns_name.c_str() );
+				CORBA::Object_var obj;
+				obj = acewrapper::singleton::orbManager::instance()->getObject( name );
+				Instrument::Session_var isession = Instrument::Session::_narrow( obj );
+				if ( ! CORBA::is_nil( isession ) ) {
+					isession->setConfiguration( it->xml().c_str() );
+				}
 			}
 		}
 	}

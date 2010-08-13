@@ -8,9 +8,11 @@
 #include <acewrapper/constants.h>
 #include <acewrapper/mutex.hpp>
 #include <acewrapper/timeval.h>
-#include <acewrapper/orbmanager.h>
+#include <acewrapper/orbservant.h>
 #include <adinterface/receiverC.h>
 #include <orbsvcs/CosNamingC.h>
+#include "i8tmanager.h"
+#include <acewrapper/nameservice.h>
 
 using namespace tofcontroller;
 
@@ -30,6 +32,15 @@ i8tTask::handle_timer_timeout( const ACE_Time_Value& tv, const void * )
 	* reinterpret_cast< ACE_Time_Value *>( mb->wr_ptr() ) = tv;
     this->putq( mb );
 	return 0;
+}
+
+bool
+i8tTask::setConfiguration( const wchar_t * xml )
+{
+	if ( ! configXML_.empty() )
+		return false;
+	configXML_ = xml;
+	return true;
 }
 
 bool
@@ -112,8 +123,16 @@ i8tTask::handle_input( ACE_HANDLE )
 void
 i8tTask::initialize()
 {
+	acewrapper::ORBServant< tofcontroller::i8tManager_i >
+		* pServant = tofcontroller::singleton::i8tManager_i::instance();
+	CORBA::ORB_var orb = pServant->orb();
+
 	CORBA::Object_var obj;
-	obj = acewrapper::singleton::orbManager::instance()->getObject( acewrapper::constants::adbroker::manager::name() );
+
+	CosNaming::Name name = acewrapper::constants::adbroker::manager::name();
+	CosNaming::NamingContext_var nc = acewrapper::NS::resolve_init( orb );
+	obj = acewrapper::NS::resolve_name( nc, name );
+
 	Broker::Manager_var manager = Broker::Manager::_narrow( obj.in() );
 
 	if ( ! CORBA::is_nil( manager.in() ) ) {
@@ -132,9 +151,6 @@ int
 i8tTask::svc()
 {
     initialize();
-    
-	// std::cout << "Task::svc() task started on thread :" << ACE_Thread::self() << std::endl;
-
 	barrier_.wait();
 
 	for ( ;; ) {

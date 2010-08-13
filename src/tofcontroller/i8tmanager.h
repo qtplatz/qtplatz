@@ -34,6 +34,7 @@ namespace tofcontroller {
 
 		// POA_Instrument::Session
 		CORBA::WChar * software_revision (void);
+		CORBA::Boolean setConfiguration( const CORBA::WChar * );
 		CORBA::Boolean connect( Receiver_ptr receiver, const CORBA::WChar * toke );
 		CORBA::Boolean disconnect ( Receiver_ptr receiver );
 		CORBA::ULong get_status (void);
