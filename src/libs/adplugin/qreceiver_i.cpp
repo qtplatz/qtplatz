@@ -22,7 +22,10 @@ QReceiver_i::message (::Receiver::eINSTEVENT msg, ::CORBA::ULong value)
 void
 QReceiver_i::eventLog ( const ::Receiver::LogMessage & log)
 {
-    emit signal_eventLog( log );
+    TAO_OutputCDR cdr;
+    cdr << log;
+    ACE_Message_Block * mb = cdr.begin()->clone(); //->duplicate();
+    emit signal_eventLog( mb );
 }
 
 void

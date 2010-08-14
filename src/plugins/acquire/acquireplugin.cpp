@@ -16,6 +16,7 @@
 #include <orbsvcs/CosNamingC.h>
 #include <adcontroller/adcontroller.h>
 #include <adinterface/controlserverC.h>
+#include <adinterface/receiverC.h>
 #include <acewrapper/constants.h>
 #include <utils/fancymainwindow.h>
 
@@ -41,6 +42,7 @@
 #include <QToolButton>
 #include <ace/Singleton.h>
 #include <servant/servantplugin.h>
+#include <qtwrapper/qstring.h>
 
 using namespace Acquire;
 using namespace Acquire::internal;
@@ -296,31 +298,31 @@ void
 AcquirePlugin::actionConnect()
 {
     int argc = 1;
-	char * argv[1] = { "" };
+    char * argv[1] = { "" };
     if ( adplugin::ORBManager::instance()->init( argc, argv ) >= 0 ) {
         // CosNaming::Name name = adcontroller::name();
         CosNaming::Name name = acewrapper::constants::adcontroller::manager::name();
-
+        
         CORBA::Object_var obj = adplugin::ORBManager::instance()->getObject( name );
-		if ( ! CORBA::is_nil( obj ) ) {
+        if ( ! CORBA::is_nil( obj ) ) {
             ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
-			if ( ! CORBA::is_nil( manager ) ) {
+            if ( ! CORBA::is_nil( manager ) ) {
                 session_ = manager->getSession( L"debug" );
                 if ( ! CORBA::is_nil( session_.in() ) ) {
                     receiver_i_.reset( new adplugin::QReceiver_i() );
                     session_->connect( receiver_i_.get()->_this(), L"acquire" );
                     int res;
                     res = connect( receiver_i_.get(), SIGNAL( signal_message( Receiver::eINSTEVENT, unsigned long ) )
-                        , this, SLOT( handle_message( Receiver::eINSTEVENT msg, unsigned long value ) ) );
-                    res = connect( receiver_i_.get(), SIGNAL( signal_eventLog( Receiver::LogMessage ) )
-                        , this, SLOT( handle_eventLog( Receiver::LogMessage ) ) );
+                                   , this, SLOT( handle_message( Receiver::eINSTEVENT msg, unsigned long value ) ) );
+                    res = connect( receiver_i_.get(), SIGNAL( signal_eventLog( ACE_Message_Block * ) ), this, SLOT( handle_eventLog( ACE_Message_Block * ) ) );
+                    // res = connect( receiver_i_.get(), SIGNAL( signal_eventLog( message_block_ptr ) ), this, SLOT( handle_eventLog( message_block_ptr ) ) );
                     res = connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
                     res = connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
-                        , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
+                                   , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
                 }
-			}
-		}
-	}
+            }
+        }
+    }
 }
 
 void
@@ -331,21 +333,32 @@ AcquirePlugin::actionRunStop()
 void
 AcquirePlugin::handle_message( Receiver::eINSTEVENT msg, unsigned long value )
 {
+    manager_->handle_message( msg, value );
 }
 
 void
-AcquirePlugin::handle_eventLog( Receiver::LogMessage )
+AcquirePlugin::handle_eventLog( ACE_Message_Block * mb )
 {
+    //ACE_Message_Block::release( mb );
+    Receiver::LogMessage log;
+    TAO_InputCDR cdr( mb );
+    cdr >> log;
+    
+    QString qstr( qtwrapper::qstring::copy( log.msg_.in() ) );
+    manager_->handle_eventLog( qstr );
+    ACE_Message_Block::release( mb );
 }
 
 void
 AcquirePlugin::handle_shutdown()
 {
+    manager_->handle_shutdown();
 }
 
 void
 AcquirePlugin::handle_debug_print( unsigned long priority, unsigned long category, QString text )
 {
+    manager_->handle_debug_print( priority, category, text );
 }
 
 Q_EXPORT_PLUGIN( AcquirePlugin )

@@ -35,3 +35,15 @@ void
 LogWidget::OnFinalClose()
 {
 }
+
+void
+LogWidget::handle_eventLog( QString str )
+{
+   ui->plainTextEdit->appendPlainText( str );
+}
+
+void
+LogWidget::handle_debug_print( unsigned long priority, unsigned long category, QString text )
+{
+   ui->plainTextEdit->appendPlainText( text );
+}

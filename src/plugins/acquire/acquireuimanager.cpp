@@ -69,25 +69,25 @@ AcquireUIManager::init()
 {
     if ( ! d_ )
         return;
-
+    
     Acquire::internal::AcquireUIManagerData& m = *d_;
-
+    
     QDir dir = QCoreApplication::instance()->applicationDirPath();
     dir.cdUp();
     std::wstring apppath = qtwrapper::wstring::copy( dir.path() );
     dir.cd( "lib/qtPlatz/plugins/ScienceLiaison" );
-
-	std::wstring configFile = qtwrapper::wstring::copy( dir.path() ) + L"/acquire.config.xml";
-
-	const wchar_t * query = L"/AcquireConfiguration/Configuration";
-
+    
+    std::wstring configFile = qtwrapper::wstring::copy( dir.path() ) + L"/acquire.config.xml";
+    
+    const wchar_t * query = L"/AcquireConfiguration/Configuration";
+    
     adportable::Configuration config;
-	adplugin::manager::instance()->loadConfig( config, configFile, query );
-
+    adplugin::manager::instance()->loadConfig( config, configFile, query );
+    
     m.mainWindow_ = new Utils::FancyMainWindow;
-
+    
     if ( d_ && m.mainWindow_ ) {
-
+        
         m.mainWindow_->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
         m.mainWindow_->setDocumentMode( true );
         
@@ -95,17 +95,19 @@ AcquireUIManager::init()
         if ( pTab ) {
             using namespace adportable;
             using namespace adplugin;
-
+            
             // std::wstring loadpath = qtwrapper::wstring( dir.path() );
             // tab pages
             for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
                 
                 const std::wstring name = it->name();
-				// const std::wstring& component = it->attribute( L"component" );
-
+                // const std::wstring& component = it->attribute( L"component" );
+                
                 if ( it->isPlugin() ) {
-					QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
+                    QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
                     if ( pWidget ) {
+                        connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
+                        connect( this, SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) ), pWidget, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
                         pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
                         QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
                         m.dockWidgetVec_.push_back( dock );
@@ -154,35 +156,56 @@ AcquireUIManager::OnFinalClose()
 }
 
 class setTrackingEnabled {
-  Utils::FancyMainWindow& w_;
+    Utils::FancyMainWindow& w_;
 public:
-  setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) {
-    w_.setTrackingEnabled( false );
-  }
-  ~setTrackingEnabled() {
-    w_.setTrackingEnabled( true );
-  }
+    setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) {
+        w_.setTrackingEnabled( false );
+    }
+    ~setTrackingEnabled() {
+        w_.setTrackingEnabled( true );
+    }
 };
 
 void
 AcquireUIManager::setSimpleDockWidgetArrangement()
 {
-  AcquireUIManagerData& m = *d_;
-  setTrackingEnabled lock( *m.mainWindow_ );
+    AcquireUIManagerData& m = *d_;
+    setTrackingEnabled lock( *m.mainWindow_ );
+    
+    QList< QDockWidget *> dockWidgets = m.mainWindow_->dockWidgets();
+    
+    foreach ( QDockWidget * dockWidget, dockWidgets ) {
+        dockWidget->setFloating( false );
+        m.mainWindow_->removeDockWidget( dockWidget );
+    }
+    
+    foreach ( QDockWidget * dockWidget, dockWidgets ) {
+        m.mainWindow_->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
+        dockWidget->show();
+    }
+    
+    for ( unsigned int i = 2; i < m.dockWidgetVec_.size(); ++i )
+        m.mainWindow_->tabifyDockWidget( m.dockWidgetVec_[1], m.dockWidgetVec_[i] );
+}
 
-  QList< QDockWidget *> dockWidgets = m.mainWindow_->dockWidgets();
-  
-  foreach ( QDockWidget * dockWidget, dockWidgets ) {
-    dockWidget->setFloating( false );
-    m.mainWindow_->removeDockWidget( dockWidget );
-  }
+void
+AcquireUIManager::handle_message( Receiver::eINSTEVENT msg, unsigned long value )
+{
+}
 
-  foreach ( QDockWidget * dockWidget, dockWidgets ) {
-    m.mainWindow_->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
-    dockWidget->show();
-  }
+void
+AcquireUIManager::handle_eventLog( QString str )
+{
+    emit signal_eventLog( str );
+}
 
-  for ( unsigned int i = 2; i < m.dockWidgetVec_.size(); ++i )
-    m.mainWindow_->tabifyDockWidget( m.dockWidgetVec_[1], m.dockWidgetVec_[i] );
+void
+AcquireUIManager::handle_shutdown()
+{
+}
 
+void
+AcquireUIManager::handle_debug_print( unsigned long priority, unsigned long category, QString text )
+{
+    emit signal_debug_print( priority, category, text );
 }

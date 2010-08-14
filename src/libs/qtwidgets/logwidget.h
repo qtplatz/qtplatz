@@ -30,8 +30,11 @@ namespace qtwidgets {
         void OnCreate( const adportable::Configuration& );
         void OnInitialUpdate();
         void OnFinalClose();
+    public slots:
+        void handle_eventLog( QString );
+        void handle_debug_print( unsigned long priority, unsigned long category, QString text );
 
-private:
+    private:
         Ui::LogWidget *ui;
         adportable::Configuration config_;
     };

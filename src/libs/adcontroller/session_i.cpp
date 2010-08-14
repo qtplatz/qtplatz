@@ -23,13 +23,13 @@ using namespace adcontroller;
 bool
 session_i::receiver_data::operator == ( const receiver_data& t ) const
 {
-	return receiver_->_is_equivalent( t.receiver_.in() );
+    return receiver_->_is_equivalent( t.receiver_.in() );
 }
 
 bool
 session_i::receiver_data::operator == ( const Receiver_ptr t ) const
 {
-	return receiver_->_is_equivalent( t );
+    return receiver_->_is_equivalent( t );
 }
 
 ////////////////////////////////////////////
@@ -122,7 +122,7 @@ session_i::echo( const char * msg )
     for ( vector_type::iterator it = begin(); it != end(); ++it ) {
         it->receiver_->debug_print( 0, 0, msg );
     }
-	return true;
+    return true;
 }
 
 typedef boost::tokenizer< boost::char_separator<char> > tokenizer;
@@ -146,7 +146,7 @@ session_i::shell( const char * cmdline )
 CORBA::Boolean
 session_i::prepare_for_run( const ControlMethod::Method_ptr )
 {
-	return true;
+    return true;
 }
 
 CORBA::Boolean
@@ -158,52 +158,52 @@ session_i::start_run()
 CORBA::Boolean
 session_i::suspend_run()
 {
-	return false;
+    return false;
 }
 
 CORBA::Boolean
 session_i::resume_run()
 {
-	return false;
+    return false;
 }
 
 CORBA::Boolean
 session_i::stop_run()
 {
-	return false;
+    return false;
 }
 
 /////////////////////////////////////////////
 void
 session_i::register_failed( vector_type::iterator& it )
 {
-	receiver_failed_.push_back( *it );
+    receiver_failed_.push_back( *it );
 }
 
 void
 session_i::commit_failed()
 {
-	if ( ! receiver_failed_.empty() ) {
-		for ( vector_type::iterator 
-				  it = receiver_failed_.begin(); it != receiver_failed_.end(); ++it ) {
-			internal_disconnect( it->receiver_ );
-		}
-		receiver_failed_.clear();
-	}
+    if ( ! receiver_failed_.empty() ) {
+        for ( vector_type::iterator 
+                  it = receiver_failed_.begin(); it != receiver_failed_.end(); ++it ) {
+            internal_disconnect( it->receiver_ );
+        }
+        receiver_failed_.clear();
+    }
 }
 
 bool
 session_i::internal_disconnect( Receiver_ptr receiver )
 {
-	scoped_mutex_t<> lock( singleton::iBrokerManager::instance()->mutex() );
-
-	vector_type::iterator it = std::find(receiver_set_.begin(), receiver_set_.end(), receiver);
-
-	if ( it != receiver_set_.end() ) {
-		receiver_set_.erase( it );
-		return true;
-	}
-	return false;
+    scoped_mutex_t<> lock( singleton::iBrokerManager::instance()->mutex() );
+    
+    vector_type::iterator it = std::find(receiver_set_.begin(), receiver_set_.end(), receiver);
+    
+    if ( it != receiver_set_.end() ) {
+        receiver_set_.erase( it );
+        return true;
+    }
+    return false;
 }
 
 bool

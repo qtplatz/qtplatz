@@ -9,6 +9,7 @@
 
 #include <QObject>
 #include <QWidget>
+#include <adinterface/receiverC.h>
 
 namespace Utils { class FancyMainWindow; }
 class QDockWidget;
@@ -39,8 +40,13 @@ namespace Acquire {
 
       //
     signals:
-
+        void signal_eventLog( QString );
+        void signal_debug_print( unsigned long priority, unsigned long category, QString text );
     public slots:
+        void handle_message( Receiver::eINSTEVENT msg, unsigned long value );
+        void handle_eventLog( QString );
+        void handle_shutdown();
+        void handle_debug_print( unsigned long priority, unsigned long category, QString text );
 
     private:
       AcquireUIManagerData * d_;
