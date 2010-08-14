@@ -19,27 +19,50 @@
 #include "imonitor.h"
 #include "orbLoader.h"
 #include <boost/smart_ptr.hpp>
+#include <ace/Singleton.h>
 
+#pragma warning (disable: 4996)
+#include "ace/Init_ACE.h"
+#pragma warning (default: 4996)
+
+#if defined ACE_WIN32
 #  if defined _DEBUG
 #     pragma comment(lib, "TAO_Utilsd.lib")
-//#     pragma comment(lib, "TAO_PId.lib")
+#     pragma comment(lib, "TAO_PId.lib")
 #     pragma comment(lib, "TAO_PortableServerd.lib")
-//#     pragma comment(lib, "TAO_AnyTypeCoded.lib")
+#     pragma comment(lib, "TAO_AnyTypeCoded.lib")
 #     pragma comment(lib, "TAO_CosNamingd.lib")
 #     pragma comment(lib, "TAOd.lib")
 #     pragma comment(lib, "ACEd.lib")
-#     pragma comment(lib, "acewrapperd.lib")
 #  else
+#     pragma comment(lib, "TAO_Utils.lib")
+#     pragma comment(lib, "TAO_PI.lib")
+#     pragma comment(lib, "TAO_PortableServer.lib")
+#     pragma comment(lib, "TAO_AnyTypeCode.lib")
+#     pragma comment(lib, "TAO_CosNaming.lib")
 #     pragma comment(lib, "TAO.lib")
 #     pragma comment(lib, "ACE.lib")
-#     pragma comment(lib, "acewrapper.lib")
 #  endif
+#endif
+
+#if defined WIN32
+# if defined _DEBUG
+#     pragma comment(lib, "adinterfaced.lib")
+#     pragma comment(lib, "adportabled.lib")
+#     pragma comment(lib, "acewrapperd.lib")
+#     pragma comment(lib, "qtwrapperd.lib")
+#     pragma comment(lib, "xmlwrapperd.lib")
+# else
+#     pragma comment(lib, "adinterface.lib")
+#     pragma comment(lib, "adportable.lib")
+#     pragma comment(lib, "acewrapper.lib")
+#     pragma comment(lib, "qtwrapper.lib")
+#     pragma comment(lib, "xmlwrapper.lib")
+# endif
+#endif
 
 
 using namespace adplugin;
-
-QMutex mutex;
-manager * manager::instance_ = 0;
 
 namespace adplugin {
 	namespace internal {
@@ -68,10 +91,6 @@ namespace adplugin {
 
 using namespace adplugin::internal;
 
-static void dispose_manager()
-{
-	manager::dispose();
-}
 
 manager::~manager()
 {
@@ -79,32 +98,13 @@ manager::~manager()
 
 manager::manager()
 {
-	atexit( &dispose_manager );
-}
-
-void
-manager::dispose()
-{
-	if ( instance_ ) {
-		mutex.lock();
-		if ( instance_ ) {
-			delete manager::instance_;
-			manager::instance_ = 0;
-		}
-		mutex.unlock();
-	}
 }
 
 manager *
 manager::instance()
 {
-	if ( instance_ == 0 ) {
-         mutex.lock();
-		 if ( instance_ == 0 )
-			 instance_ = new internal::manager_impl();
-		 mutex.unlock();
-	}
-	return instance_;
+    typedef ACE_Singleton< internal::manager_impl, ACE_Recursive_Thread_Mutex > impl;
+    return impl::instance();
 }
 
 // static

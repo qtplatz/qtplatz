@@ -42,7 +42,7 @@ ORBManager::init( int argc, char * argv[] )
 			}
 		}
 	}
-	return (-1);
+	return 0;
 }
 
 CORBA::ORB_ptr

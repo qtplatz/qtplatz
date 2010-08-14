@@ -9,9 +9,15 @@
 
 #include <extensionsystem/iplugin.h>
 #include <adinterface/controlserverC.h>
+#include <boost/smart_ptr.hpp>
+#include <adplugin/qreceiver_i.h>
 
 class QToolButton;
 class QAction;
+
+namespace adplugin {
+   class QReceiver_i;
+}
 
 namespace Acquire {
   namespace internal {
@@ -35,6 +41,11 @@ namespace Acquire {
 		void actionConnect();
 		void actionRunStop();
 
+        void handle_message( Receiver::eINSTEVENT msg, unsigned long value );
+        void handle_eventLog( Receiver::LogMessage );
+        void handle_shutdown();
+        void handle_debug_print( unsigned long priority, unsigned long category, QString text );
+
     private:
       AcquireUIManager * manager_;
 	  AcquireImpl * pImpl_;
@@ -54,6 +65,7 @@ namespace Acquire {
       void initialize_actions();
 
       ControlServer::Session_var session_;
+      boost::scoped_ptr< adplugin::QReceiver_i > receiver_i_;
 
     public:
       static QToolButton * toolButton( QAction * action );

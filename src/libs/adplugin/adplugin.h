@@ -44,7 +44,7 @@ namespace adplugin {
             virtual orbLoader& orbLoader( const std::wstring& name ) = 0;
             
 	private:
-        static manager * instance_;
+        // static manager * instance_;
 	};
 }
 

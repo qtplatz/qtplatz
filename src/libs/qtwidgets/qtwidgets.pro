@@ -11,6 +11,8 @@ include(../../adilibrary.pri)
 include(../../boost.pri)
 PROVIDER = ScienceLiaison
 include(../../adplugin.pri)
+INCLUDEPATH *= $(ACE_ROOT) $(TAO_ROOT)
+
 
 DEFINES += QTWIDGETS_LIBRARY
 

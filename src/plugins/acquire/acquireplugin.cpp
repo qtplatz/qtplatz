@@ -306,7 +306,18 @@ AcquirePlugin::actionConnect()
             ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
 			if ( ! CORBA::is_nil( manager ) ) {
                 session_ = manager->getSession( L"debug" );
-                // session->echo( "abc" );
+                if ( ! CORBA::is_nil( session_.in() ) ) {
+                    receiver_i_.reset( new adplugin::QReceiver_i() );
+                    session_->connect( receiver_i_.get()->_this(), L"acquire" );
+                    int res;
+                    res = connect( receiver_i_.get(), SIGNAL( signal_message( Receiver::eINSTEVENT, unsigned long ) )
+                        , this, SLOT( handle_message( Receiver::eINSTEVENT msg, unsigned long value ) ) );
+                    res = connect( receiver_i_.get(), SIGNAL( signal_eventLog( Receiver::LogMessage ) )
+                        , this, SLOT( handle_eventLog( Receiver::LogMessage ) ) );
+                    res = connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
+                    res = connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
+                        , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
+                }
 			}
 		}
 	}
@@ -317,6 +328,24 @@ AcquirePlugin::actionRunStop()
 {
 }
 
+void
+AcquirePlugin::handle_message( Receiver::eINSTEVENT msg, unsigned long value )
+{
+}
 
+void
+AcquirePlugin::handle_eventLog( Receiver::LogMessage )
+{
+}
+
+void
+AcquirePlugin::handle_shutdown()
+{
+}
+
+void
+AcquirePlugin::handle_debug_print( unsigned long priority, unsigned long category, QString text )
+{
+}
 
 Q_EXPORT_PLUGIN( AcquirePlugin )
