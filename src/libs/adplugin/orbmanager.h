@@ -4,8 +4,9 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#ifndef ORBMANAGER_H
-#define ORBMANAGER_H
+#pragma once
+
+#include "adplugin_global.h"
 
 #pragma warning (disable: 4996)
 # include <tao/ORB.h>
@@ -20,28 +21,23 @@ namespace CosNaming {
 	class Name;
 }
 
-namespace acewrapper {
+namespace adplugin {
 
-	class ORBManager {
+	class ADPLUGINSHARED_EXPORT ORBManager {
 		~ORBManager();
 		ORBManager();
 	public:
 		int init( int argc, char * argv[] );
 		CORBA::ORB_ptr orb();
 		CORBA::Object_ptr getObject( const CosNaming::Name& );
+
+        static ORBManager * instance();
+
 	private:
 		TAO_ORB_Manager * orb_;
 		ACE_Recursive_Thread_Mutex mutex_;
-		friend ACE_Singleton< ORBManager, ACE_Recursive_Thread_Mutex >;
+        friend ACE_Singleton< ORBManager, ACE_Recursive_Thread_Mutex >;
 	};
 
-	namespace singleton {
-		typedef ACE_Singleton< acewrapper::ORBManager, ACE_Recursive_Thread_Mutex > orbManager;
-	}
 }
 
-
-
-
-
-#endif // ORBMANAGER_H

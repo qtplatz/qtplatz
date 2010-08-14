@@ -23,7 +23,10 @@ namespace adtofms {
         ~monitor_ui();
 
 		// implement IMonitor
-		virtual void OnInitialUpdate( const wchar_t * xml = 0 );
+        virtual void OnCreate( const adportable::Configuration& );
+        virtual void OnInitialUpdate();
+        virtual void OnUpdate( boost::any& );
+        virtual void OnUpdate( unsigned long );
 		virtual void OnFinalClose();
 
     signals:

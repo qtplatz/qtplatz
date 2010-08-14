@@ -14,9 +14,9 @@ namespace adportable {
 
 namespace servant {
 
-  namespace internal {
-
-	class MainWindow;
+    namespace internal {
+        class MainWindow;
+    }
 
 	class ServantPlugin : public ExtensionSystem::IPlugin {
 	  Q_OBJECT
@@ -30,15 +30,13 @@ namespace servant {
 	  virtual void shutdown();
 	  
 	signals:
-	  
+
 	public slots:
+      
 
 	private:
-		MainWindow * mainWindow_;
+        internal::MainWindow * mainWindow_;
 		adportable::Configuration * pConfig_;
 	  
 	};
-
-  }
 }
-

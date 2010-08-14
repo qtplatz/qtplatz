@@ -20,6 +20,22 @@
 #include "orbLoader.h"
 #include <boost/smart_ptr.hpp>
 
+#  if defined _DEBUG
+#     pragma comment(lib, "TAO_Utilsd.lib")
+//#     pragma comment(lib, "TAO_PId.lib")
+#     pragma comment(lib, "TAO_PortableServerd.lib")
+//#     pragma comment(lib, "TAO_AnyTypeCoded.lib")
+#     pragma comment(lib, "TAO_CosNamingd.lib")
+#     pragma comment(lib, "TAOd.lib")
+#     pragma comment(lib, "ACEd.lib")
+#     pragma comment(lib, "acewrapperd.lib")
+#  else
+#     pragma comment(lib, "TAO.lib")
+#     pragma comment(lib, "ACE.lib")
+#     pragma comment(lib, "acewrapper.lib")
+#  endif
+
+
 using namespace adplugin;
 
 QMutex mutex;
@@ -98,14 +114,15 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
 	if ( config.module().library_filename().empty() )
 		return 0;
 
-	std::wstring loadfile = std::wstring( path ) + L"/" + config.module().library_filename();
+    std::wstring appbase( path );
+	std::wstring loadfile = appbase + config.module().library_filename();
 
 	IFactory * piFactory = qobject_cast< IFactory *> ( manager::instance()->loadLibrary( loadfile ) );
 	if ( piFactory ) {
 		QWidget * pWidget = piFactory->create_widget( config.interface().c_str(), parent );
-		adplugin::ui::IMonitor * pMonitor = qobject_cast< adplugin::ui::IMonitor *> ( pWidget );
-		if ( pMonitor )
-			pMonitor->OnInitialUpdate( config.xml().c_str() );
+        adplugin::LifeCycle * pLifeCycle = dynamic_cast< adplugin::LifeCycle * > ( pWidget );
+		if ( pLifeCycle )
+            pLifeCycle->OnCreate( config );
 		return pWidget;
 	}
     return 0;

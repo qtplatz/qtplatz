@@ -7,12 +7,15 @@
 	-->
 <AcquireConfiguration name="acquire">
 
-  <Module name="adtofms.dll" type="sharedlib" filename="adtofms$(configuration).dll"/>
+  <Module name="adtofms.dll" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/adtofms$(configuration).dll"/>
+  <Module name="qtwidgets.dll" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/qtwidgets$(configuration).dll"/>
 
 	<Configuration name="instrument_monitor_tab">
-    <Configuration name="log_book" type="tab" component="self::log_book" readonly="true">
+    <Configuration name="log_book" type="tab" component="qtwidgets::LogWidget" readonly="true">
       <title lang="jp">Log</title>
       <title lang="en">Log</title>
+      <Component name="qtwidgets::LogWidget" type="widget" loader="adplugin" interface="adplugin::ui::iLog" module="qtwidgets.dll"/>
+      <datasource name="broker.logger" type="cosnaming::name" interface="Broker::Logger">adbroker.manager</datasource> 
     </Configuration>
     <Configuration name="tofms_monitor" type="tab" component="adtofms::imonitor_ui">
         <title lang="en">MassSpectrometer</title>

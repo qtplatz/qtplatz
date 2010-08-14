@@ -9,7 +9,7 @@
 
 #include <QMainWindow>
 #include <utils/fancymainwindow.h>
-#include <acewrapper/orbmanager.h> // for debug object reference
+//#include <acewrapper/orbmanager.h> // for debug object reference
 #include <adinterface/receiverS.h>
 #include <adinterface/controlserverC.h>
 #include <adinterface/brokerC.h>

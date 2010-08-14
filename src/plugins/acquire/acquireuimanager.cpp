@@ -74,6 +74,7 @@ AcquireUIManager::init()
 
     QDir dir = QCoreApplication::instance()->applicationDirPath();
     dir.cdUp();
+    std::wstring apppath = qtwrapper::wstring::copy( dir.path() );
     dir.cd( "lib/qtPlatz/plugins/ScienceLiaison" );
 
 	std::wstring configFile = qtwrapper::wstring::copy( dir.path() ) + L"/acquire.config.xml";
@@ -95,7 +96,7 @@ AcquireUIManager::init()
             using namespace adportable;
             using namespace adplugin;
 
-			std::wstring loadpath = qtwrapper::wstring( dir.path() );
+            // std::wstring loadpath = qtwrapper::wstring( dir.path() );
             // tab pages
             for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
                 
@@ -103,10 +104,12 @@ AcquireUIManager::init()
 				// const std::wstring& component = it->attribute( L"component" );
 
                 if ( it->isPlugin() ) {
-					QWidget * pWidget = manager::widget_factory( *it, loadpath.c_str(), 0 );
-                    pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
-                    QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
-                    m.dockWidgetVec_.push_back( dock );
+					QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
+                    if ( pWidget ) {
+                        pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
+                        QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
+                        m.dockWidgetVec_.push_back( dock );
+                    }
                 } else {
                     QWidget * pWidget = new QTextEdit( qtwrapper::qstring( it->title() ) );
                     pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
@@ -115,6 +118,38 @@ AcquireUIManager::init()
                 }
             }
         }            
+    }
+}
+
+void
+AcquireUIManager::OnInitialUpdate()
+{
+    Acquire::internal::AcquireUIManagerData& m = *d_;
+
+    QList< QDockWidget *> dockWidgets = m.mainWindow_->dockWidgets();
+  
+    foreach ( QDockWidget * dockWidget, dockWidgets ) {
+        QObjectList list = dockWidget->children();
+        foreach ( QObject * obj, list ) {
+            adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
+            if ( pLifeCycle )
+                pLifeCycle->OnInitialUpdate();
+        }
+    }
+}
+
+void
+AcquireUIManager::OnFinalClose()
+{
+    QList< QDockWidget *> dockWidgets = d_->mainWindow_->dockWidgets();
+  
+    foreach ( QDockWidget * dockWidget, dockWidgets ) {
+        QObjectList list = dockWidget->children();
+        foreach ( QObject * obj, list ) {
+            adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
+            if ( pLifeCycle )
+                pLifeCycle->OnFinalClose();
+        }
     }
 }
 

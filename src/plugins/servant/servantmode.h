@@ -20,7 +20,7 @@ namespace servant {
 	  
 	signals:
 	  
-	  public slots:
+	public slots:
 	  
 	};
 	

@@ -9,11 +9,11 @@ SUBDIRS   = \
     adportable \
     xmlwrapper \
     qtwrapper \
+    qtwidgets \
     acewrapper \
     adwidgets \
     adcontrols \
     adbroker \
-    admachine \
     adplugin \
     adcontroller
 

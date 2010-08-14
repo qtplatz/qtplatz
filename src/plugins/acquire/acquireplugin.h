@@ -8,6 +8,7 @@
 #define ACQUIREPLUGIN_H
 
 #include <extensionsystem/iplugin.h>
+#include <adinterface/controlserverC.h>
 
 class QToolButton;
 class QAction;
@@ -24,8 +25,12 @@ namespace Acquire {
     public:
       ~AcquirePlugin();
       AcquirePlugin();
-      bool initialize(const QStringList &arguments, QString *error_message);
-      void extensionsInitialized();
+
+      // implement IPlugin
+      virtual bool initialize(const QStringList &arguments, QString *error_message);
+      virtual void extensionsInitialized();
+      virtual void shutdown();
+
     private slots:
 		void actionConnect();
 		void actionRunStop();
@@ -47,6 +52,8 @@ namespace Acquire {
       void action5();
 
       void initialize_actions();
+
+      ControlServer::Session_var session_;
 
     public:
       static QToolButton * toolButton( QAction * action );

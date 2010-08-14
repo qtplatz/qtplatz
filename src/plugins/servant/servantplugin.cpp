@@ -24,6 +24,7 @@
 
 #include <adplugin/adplugin.h>
 #include <adplugin/orbLoader.h>
+#include <adplugin/orbmanager.h>
 
 #include <adportable/configuration.h>
 
@@ -145,7 +146,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 			mainWindow_->init_debug_adcontroller();
 
 			CORBA::Object_var obj;
-			obj = acewrapper::singleton::orbManager::instance()->getObject( acewrapper::constants::adcontroller::manager::name() );
+            //obj = acewrapper::singleton::orbManager::instance()->getObject( acewrapper::constants::adcontroller::manager::name() );
+            obj = adplugin::ORBManager::instance()->getObject( acewrapper::constants::adcontroller::manager::name() );
 			ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
 			if ( ! CORBA::is_nil( manager ) ) {
 				ControlServer::Session_var session = manager->getSession( L"debug" );
@@ -158,7 +160,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 				name.length(1);
 				name[0].id = CORBA::string_dup( ns_name.c_str() );
 				CORBA::Object_var obj;
-				obj = acewrapper::singleton::orbManager::instance()->getObject( name );
+                //obj = acewrapper::singleton::orbManager::instance()->getObject( name );
+                obj = adplugin::ORBManager::instance()->getObject( name );
 				Instrument::Session_var isession = Instrument::Session::_narrow( obj );
 				if ( ! CORBA::is_nil( isession ) ) {
 					isession->setConfiguration( it->xml().c_str() );
@@ -166,7 +169,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 			}
 		}
 	}
-    
     return true;
 }
 

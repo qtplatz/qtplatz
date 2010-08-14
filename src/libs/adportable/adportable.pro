@@ -12,15 +12,15 @@ CONFIG += staticlib
 
 include(../../adilibrary.pri)
 include(../../boost.pri)
+INCLUDEPATH *= ../../libs
 
 SOURCES += adportable.cpp \
     protocollifecycle.cpp \
     lifecycle_frame.cpp \
     ConvertUTF.c \
     utf.cpp \
-    string.cpp \
-    configuration.cpp \
-    component.cpp
+#    configuration.cpp \
+    string.cpp
 
 HEADERS += adportable.h \
     binary_search.hpp \
@@ -31,5 +31,4 @@ HEADERS += adportable.h \
     ConvertUTF.h \
     utf.h \
     string.h \
-    configuration.h \
-    component.h
+    configuration.h

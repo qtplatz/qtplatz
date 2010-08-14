@@ -5,6 +5,7 @@
 
 #include "monitor_ui.h"
 #include <QtCore/qplugin.h>
+#include <adportable/configuration.h>
 #include "ui_form.h"
 
 using namespace adtofms;
@@ -21,7 +22,22 @@ monitor_ui::~monitor_ui()
 }
 
 void
-monitor_ui::OnInitialUpdate( const wchar_t * xml )
+monitor_ui::OnCreate( const adportable::Configuration& c )
+{
+}
+
+void
+monitor_ui::OnInitialUpdate()
+{
+}
+
+void
+monitor_ui::OnUpdate( boost::any& )
+{
+}
+
+void
+monitor_ui::OnUpdate( unsigned long lHint )
 {
 }
 

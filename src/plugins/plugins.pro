@@ -11,7 +11,7 @@ SUBDIRS   = plugin_coreplugin \
             plugin_appplugin \
             plugin_servant \
             plugin_acquire \
-#            plugin_tune \
+            plugin_tune \
             plugin_sequence \
             plugin_dataproc \
             plugin_help \

@@ -34,6 +34,9 @@ namespace Acquire {
       void init();
       void setSimpleDockWidgetArrangement();
 
+      void OnInitialUpdate();
+      void OnFinalClose();
+
       //
     signals:
 

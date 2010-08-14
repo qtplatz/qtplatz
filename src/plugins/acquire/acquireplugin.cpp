@@ -10,7 +10,8 @@
 #include "acquireactions.h"
 #include <adwidgets/dataplotwidget.h>
 #include <adwidgets/axis.h>
-#include <acewrapper/orbmanager.h>
+//#include <acewrapper/orbmanager.h>
+#include <adplugin/orbmanager.h>
 #include <tao/Object.h>
 #include <orbsvcs/CosNamingC.h>
 #include <adcontroller/adcontroller.h>
@@ -22,6 +23,7 @@
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
+#include <extensionsystem/pluginmanager.h>
 
 #include <QtCore/qplugin.h>
 #include <coreplugin/minisplitter.h>
@@ -38,6 +40,7 @@
 #include <QTextEdit>
 #include <QToolButton>
 #include <ace/Singleton.h>
+#include <servant/servantplugin.h>
 
 using namespace Acquire;
 using namespace Acquire::internal;
@@ -146,7 +149,17 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     mode->setContext( context );
   else
     return false;
+/**
+  QList<QObject *> objs = ExtensionSystem::PluginManager::instance()->allObjects();
+  Q_FOREACH( QObject * obj, objs ) {
+      const char * name = obj->metaObject()->className();
+      if ( name ) {
+          long x = 0;
+      }
+  }
 
+  QObject::connect(ExtensionSystem::PluginManager::instance(), SIGNAL(objectAdded(QObject*)), this, SLOT(slotObjectAdded(QObject*)));
+*/
   manager_ = new AcquireUIManager(0);
   if ( manager_ )
     manager_->init();
@@ -163,9 +176,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     if ( splitter ) {
       splitter->addWidget( manager_->mainWindow() );
       splitter->addWidget( new Core::OutputPanePlaceHolder( mode ) );
-      //splitter->addWidget( new QTextEdit("mainWindow") );
-      //splitter->addWidget( new QTextEdit("This is edit" ) );
-      
+
       splitter->setStretchFactor( 0, 10 );
       splitter->setStretchFactor( 1, 0 );
       splitter->setOrientation( Qt::Vertical ); // horizontal splitter bar
@@ -236,12 +247,12 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
     Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
     if ( splitter3 ) {
-                if ( pImpl_->timePlot_ = new adil::ui::DataplotWidget ) {
+        if ( pImpl_->timePlot_ = new adil::ui::DataplotWidget ) {
 			adil::ui::Axis axis = pImpl_->timePlot_->axisX();
 			axis.text( L"Time(min)" );
 		}
 
-                if ( pImpl_->spectrumPlot_ = new adil::ui::DataplotWidget ) {
+        if ( pImpl_->spectrumPlot_ = new adil::ui::DataplotWidget ) {
 			adil::ui::Axis axis = pImpl_->spectrumPlot_->axisX();
 			axis.text( L"m/z" );
 		}
@@ -272,6 +283,13 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 void
 AcquirePlugin::extensionsInitialized()
 {
+    manager_->OnInitialUpdate();
+}
+
+void
+AcquirePlugin::shutdown()
+{
+    manager_->OnFinalClose();
 }
 
 void
@@ -279,15 +297,15 @@ AcquirePlugin::actionConnect()
 {
     int argc = 1;
 	char * argv[1] = { "" };
-	if ( acewrapper::singleton::orbManager::instance()->init( argc, argv ) >= 0 ) {
+    if ( adplugin::ORBManager::instance()->init( argc, argv ) >= 0 ) {
         // CosNaming::Name name = adcontroller::name();
         CosNaming::Name name = acewrapper::constants::adcontroller::manager::name();
 
-		CORBA::Object_var obj = acewrapper::singleton::orbManager::instance()->getObject( name );
+        CORBA::Object_var obj = adplugin::ORBManager::instance()->getObject( name );
 		if ( ! CORBA::is_nil( obj ) ) {
             ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
 			if ( ! CORBA::is_nil( manager ) ) {
-                ControlServer::Session_var session = manager->getSession( L"debug" );
+                session_ = manager->getSession( L"debug" );
                 // session->echo( "abc" );
 			}
 		}
@@ -298,6 +316,7 @@ void
 AcquirePlugin::actionRunStop()
 {
 }
+
 
 
 Q_EXPORT_PLUGIN( AcquirePlugin )

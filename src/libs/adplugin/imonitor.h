@@ -8,27 +8,24 @@
 #define IMONITOR_H
 
 #include "adplugin_global.h"
+#include "lifecycle.h"
 #include <QWidget>
 
 namespace adplugin {
 
-    class IController;
-
-	namespace ui {
-		class ADPLUGINSHARED_EXPORT IMonitor : public QWidget	{
-			Q_OBJECT
-		public:
-			explicit IMonitor(QWidget *parent = 0) : QWidget( parent ) {}
-			// 
-			virtual void OnInitialUpdate( const wchar_t * xml ) = 0;
-			virtual void OnFinalClose() = 0;
-
+    namespace ui {
+        class ADPLUGINSHARED_EXPORT IMonitor : public QWidget // this must be on top of inherit list
+                                             , public LifeCycle {
+            Q_OBJECT
+        public:
+            explicit IMonitor(QWidget *parent = 0) : QWidget( parent ) {}
+            
         signals:
-
-		public slots:
-
-		};
-	}
+            
+	    public slots:
+                
+        };
+    }
 }
 
 Q_DECLARE_INTERFACE( adplugin::ui::IMonitor, "org.adplugin.ui.imonitor/1.0" );

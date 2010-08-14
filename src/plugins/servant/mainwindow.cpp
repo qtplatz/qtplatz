@@ -7,6 +7,7 @@
 #include "ui_mainwindow.h"
 #include <acewrapper/constants.h>
 #include <orbsvcs/CosNamingC.h>
+#include <adplugin/orbmanager.h>
 
 using namespace servant;
 using namespace servant::internal;
@@ -28,14 +29,14 @@ MainWindow::~MainWindow()
 void
 MainWindow::initial_update()
 {
-	acewrapper::singleton::orbManager::instance()->init( 0, 0 );
+    adplugin::ORBManager::instance()->init( 0, 0 );
 }
 
 void
 MainWindow::init_debug_adcontroller()
 {
 	CORBA::Object_var obj;
-	obj = acewrapper::singleton::orbManager::instance()->getObject( acewrapper::constants::adcontroller::manager::name() );
+    obj = adplugin::ORBManager::instance()->getObject( acewrapper::constants::adcontroller::manager::name() );
 	ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
 	if ( ! CORBA::is_nil( manager ) ) {
 		session_ = manager->getSession( L"debug" );
@@ -51,7 +52,7 @@ void
 MainWindow::init_debug_adbroker()
 {
 	CORBA::Object_var obj;
-	obj = acewrapper::singleton::orbManager::instance()->getObject( acewrapper::constants::adbroker::manager::name() );
+	obj = adplugin::ORBManager::instance()->getObject( acewrapper::constants::adbroker::manager::name() );
     manager_ = Broker::Manager::_narrow( obj.in() );
 
 	if ( ! CORBA::is_nil( manager_.in() ) ) {

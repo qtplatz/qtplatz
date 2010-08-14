@@ -4,13 +4,15 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#ifndef ADPORTABLE_H
-#define ADPORTABLE_H
+#ifndef QTWIDGETS_H
+#define QTWIDGETS_H
 
+#include "qtwidgets_global.h"
+#include <adplugin/adplugin.h>
 
-class Adportable {
+class QTWIDGETSSHARED_EXPORT QtWidgets {
 public:
-    Adportable();
+    QtWidgets();
 };
 
-#endif // ADPORTABLE_H
+#endif // QTWIDGETS_H

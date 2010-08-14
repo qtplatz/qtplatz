@@ -219,10 +219,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\orbmanager.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\orbservant.cpp"
 				>
 			</File>
@@ -540,10 +536,6 @@
 			</File>
 			<File
 				RelativePath=".\nameservice.h"
-				>
-			</File>
-			<File
-				RelativePath=".\orbmanager.h"
 				>
 			</File>
 			<File

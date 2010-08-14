@@ -9,13 +9,16 @@ QT       += gui
 TARGET = adplugin
 TEMPLATE = lib
 include(../../adilibrary.pri)
+include(../../boost.pri)
 
 DEFINES += ADPLUGIN_LIBRARY
 
-SOURCES += adplugin.cpp
+SOURCES += adplugin.cpp \
+    lifecycle.cpp
 
 HEADERS += adplugin.h\
         adplugin_global.h \
     imonitor.h \
     icontrolmethodeditor.h \
-    ifactory.h
+    ifactory.h \
+    lifecycle.h
