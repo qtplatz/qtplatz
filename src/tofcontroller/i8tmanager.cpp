@@ -35,6 +35,12 @@ i8tManager_i::setConfiguration( const CORBA::WChar * xml )
 }
 
 CORBA::Boolean 
+i8tManager_i::configComplete()
+{
+    return true;
+}
+
+CORBA::Boolean 
 i8tManager_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
 {
     ACE_UNUSED_ARG( token );

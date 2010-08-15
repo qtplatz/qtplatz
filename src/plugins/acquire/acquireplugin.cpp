@@ -43,6 +43,7 @@
 #include <ace/Singleton.h>
 #include <servant/servantplugin.h>
 #include <qtwrapper/qstring.h>
+#include <adinterface/eventlog_helper.h>
 
 using namespace Acquire;
 using namespace Acquire::internal;
@@ -64,6 +65,16 @@ namespace Acquire {
 		  icon_.addFile( Constants::ICON_CONNECT );
 		  icon_.addFile( Constants::ICON_CONNECT_SMALL );
 	  }
+    };
+
+    template<class T> class marchal {
+    public:
+        static T get( const ACE_Message_Block * mb ) {
+            TAO_InputCDR in( mb );
+            T t;
+            in >> t;
+            return t;
+        }
     };
 
   }
@@ -307,14 +318,15 @@ AcquirePlugin::actionConnect()
         if ( ! CORBA::is_nil( obj ) ) {
             ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
             if ( ! CORBA::is_nil( manager ) ) {
-                session_ = manager->getSession( L"debug" );
+                session_ = manager->getSession( L"acquire" );
                 if ( ! CORBA::is_nil( session_.in() ) ) {
                     receiver_i_.reset( new adplugin::QReceiver_i() );
                     session_->connect( receiver_i_.get()->_this(), L"acquire" );
+
                     int res;
                     res = connect( receiver_i_.get(), SIGNAL( signal_message( Receiver::eINSTEVENT, unsigned long ) )
                                    , this, SLOT( handle_message( Receiver::eINSTEVENT msg, unsigned long value ) ) );
-                    res = connect( receiver_i_.get(), SIGNAL( signal_eventLog( ACE_Message_Block * ) ), this, SLOT( handle_eventLog( ACE_Message_Block * ) ) );
+                    res = connect( receiver_i_.get(), SIGNAL( signal_log( QByteArray ) ), this, SLOT( handle_log( QByteArray ) ) );
                     // res = connect( receiver_i_.get(), SIGNAL( signal_eventLog( message_block_ptr ) ), this, SLOT( handle_eventLog( message_block_ptr ) ) );
                     res = connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
                     res = connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
@@ -337,16 +349,12 @@ AcquirePlugin::handle_message( Receiver::eINSTEVENT msg, unsigned long value )
 }
 
 void
-AcquirePlugin::handle_eventLog( ACE_Message_Block * mb )
+AcquirePlugin::handle_log( QByteArray qmsg )
 {
-    //ACE_Message_Block::release( mb );
-    Receiver::LogMessage log;
-    TAO_InputCDR cdr( mb );
-    cdr >> log;
-    
-    QString qstr( qtwrapper::qstring::copy( log.msg_.in() ) );
-    manager_->handle_eventLog( qstr );
-    ACE_Message_Block::release( mb );
+    TAO_InputCDR cdr( qmsg.data(), qmsg.size() );
+    ::EventLog::LogMessage msg;
+    cdr >> msg;
+    manager_->handle_eventLog( msg );
 }
 
 void

@@ -4,28 +4,38 @@
 //////////////////////////////////////////
 
 #include "ibroker.h"
-#include <acewrapper/mutex.hpp>
 #include <ace/Reactor.h>
 #include <ace/Thread_Manager.h>
 #include <adinterface/receiverC.h>
+#include <adinterface/eventlogC.h>
 #include <acewrapper/mutex.hpp>
 #include "ibrokermanager.h"
 #include "message.h"
-#include <sstream>
 #include <acewrapper/timeval.h>
+#include <acewrapper/messageblock.h>
 #include <iostream>
+#include <sstream>
+#include <adinterface/eventlog_helper.h>
+#include "marshal.hpp"
+#include "constants.h"
+#include <adportable/configuration.h>
+#include <adportable/configloader.h>
+
+#if defined _DEBUG
+# include <xmlwrapper/msxml.h>
+#endif
 
 using namespace adcontroller;
 
 iBroker::~iBroker()
 {
-	// this will block until a message arrives.
-	// By blocking, we know that the destruction will be
-	// paused until the last thread is done with the message
-	// block
-	ACE_Message_Block * mblk = 0;
+    // this will block until a message arrives.
+    // By blocking, we know that the destruction will be
+    // paused until the last thread is done with the message
+    // block
+    ACE_Message_Block * mblk = 0;
     this->getq( mblk );
-	ACE_Message_Block::release( mblk );
+    ACE_Message_Block::release( mblk );
 }
 
 iBroker::iBroker( size_t n_threads ) : barrier_(n_threads)
@@ -38,36 +48,44 @@ iBroker::reset_clock()
 {
 }
 
-int
-iBroker::handle_timer_timeout( const ACE_Time_Value& tv, const void * )
-{
-    ACE_Message_Block * mb = new ACE_Message_Block( sizeof(tv) );
-	* reinterpret_cast< ACE_Time_Value *>( mb->wr_ptr() ) = tv;
-    this->putq( mb );
-	return 0;
-}
-
 bool
 iBroker::open()
 {
-	if ( activate( THR_NEW_LWP, n_threads_ ) != - 1 )
-		return true;
-	return false;
+    if ( activate( THR_NEW_LWP, n_threads_ ) != - 1 )
+        return true;
+    return false;
 }
 
 void
 iBroker::close()
 {
-	msg_queue()->deactivate();
-	ACE_Task<ACE_MT_SYNCH>::close( 0 );
+    msg_queue()->deactivate();
+    ACE_Task<ACE_MT_SYNCH>::close( 0 );
 }
 
 bool
 iBroker::setConfiguration( const wchar_t * xml )
 {
-    if ( ! configXML_.empty() )
+    // if already has configuration, then error return
+    if ( ! config_.xml().empty() )
         return false;
-    configXML_ = xml;
+
+    const wchar_t * query = L"/";
+    adportable::ConfigLoader::loadConfigXML( config_, xml, query );
+
+#if defined _DEBUG
+    using namespace xmlwrapper::msxml;
+    XMLDocument dom;
+    dom.loadXML( xml );
+    dom.save( L"adcontroller.config.xml" );
+#endif
+
+    return true;
+}
+
+bool
+iBroker::configComplete()
+{
     return true;
 }
 
@@ -84,7 +102,23 @@ iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver )
         return false;
     
     session_set_.push_back( data );
-    
+
+    if ( session_set_.size() == 1 ) {
+        singleton::iBrokerManager::instance()->initialize();
+        singleton::iBrokerManager::instance()->get<iBroker>()->reset_clock();
+    }
+
+    do {
+        using namespace adinterface::EventLog;
+
+        LogMessageHelper log( L"A pair of session %1%, Receiver %2% has success connected" );
+        log % static_cast< void * >( session ) % static_cast<void *>(receiver);
+        ACE_Message_Block * mb = marshal< ::EventLog::LogMessage >::put( log.get(), constants::MB_EVENTLOG );
+
+        this->putq( mb );
+
+    } while(0);
+
     return true;
 }
 
@@ -157,12 +191,15 @@ iBroker::svc()
             else
                 ACE_ERROR_RETURN((LM_ERROR, "(%t) %p\n", "putq"), -1);
         }
+
         if ( mblk->msg_type() == ACE_Message_Block::MB_HANGUP ) {
             this->putq( mblk ); // forward the request to any peer threads
             break;
         }
+
         doit( mblk );
         ACE_Message_Block::release( mblk );
+
     }
     return 0;
 }
@@ -172,33 +209,67 @@ iBroker::doit( ACE_Message_Block * mblk )
 {
     using namespace adcontroller;
 
-    static int count;
+    if ( mblk->msg_type() >= ACE_Message_Block::MB_USER ) {
+        dispatch( mblk, mblk->msg_type() );
+    } else if ( mblk->msg_type() == ACE_Message_Block::MB_DATA ) {
+        Message msg;
+        ACE_InputCDR cdr( mblk ); 
+        cdr >> msg;
 
-    std::ostringstream o;
-    std::wostringstream wo;
+        std::ostringstream o;
     
-    Message msg;
-    ACE_InputCDR cdr( mblk ); 
-    cdr >> msg;
-    
-    o << "doit <" << ACE_Thread::self() << "> : src:" << msg.seqId_ << " dst:" << msg.dstId_ 
-      << " cmd:" << msg.cmdId_ << " seq:" <<  msg.seqId_;
+        o << "doit <" << ACE_Thread::self() << "> : src:" << msg.seqId_ << " dst:" << msg.dstId_ 
+          << " cmd:" << msg.cmdId_ << " seq:" <<  msg.seqId_;
 
-    wo << L"doit <" << ACE_Thread::self() << L"> : src:" << msg.seqId_ << L" dst:" << msg.dstId_ 
-        << L" cmd:" << msg.cmdId_ << L" seq:" <<  msg.seqId_;
-
-    ACE_Time_Value tv;
-    if ( msg.cmdId_ == Notify_Timeout ) {
-        cdr >> tv;
-        o << " tv=" << acewrapper::to_string( tv );
-    }
-    for ( vector_type::iterator it = begin(); it != end(); ++it ) {
-        it->session_->echo( o.str().c_str() );
-        if ( (count++ % 3) == 0) {
-            Receiver::LogMessage log;
-            log.msg_ = wo.str().c_str();
-            it->receiver_->eventLog( log );
+        ACE_Time_Value tv;
+        if ( msg.cmdId_ == Notify_Timeout ) {
+            cdr >> tv;
+            o << " tv=" << acewrapper::to_string( tv );
+            for ( vector_type::iterator it = begin(); it != end(); ++it )
+                it->session_->echo( o.str().c_str() );
         }
     }
-    
+}
+
+void
+iBroker::dispatch( ACE_Message_Block * mblk, int disp )
+{
+    switch( disp ) {
+    case constants::MB_EVENTLOG:
+        handle_dispatch( marshal< EventLog::LogMessage >::get( mblk ) );
+        break;
+    case constants::MB_TIME_VALUE:
+        handle_dispatch( marshal< ACE_Time_Value >::get( mblk ) );
+        break;
+    case constants::MB_CONNECT:
+        break;
+    default:
+        break;
+    };
+}
+
+/////////////////
+void
+iBroker::handle_dispatch( const EventLog::LogMessage& msg )
+{
+    acewrapper::scoped_mutex_t<> lock( mutex_ );    
+    for ( vector_type::iterator it = begin(); it != end(); ++it )
+        it->receiver_->log( msg );
+}
+
+void
+iBroker::handle_dispatch( const ACE_Time_Value& tv )
+{
+    using namespace adinterface::EventLog;
+    std::string tstr = acewrapper::to_string( tv );
+    std::wstring wstr( tstr.size() + 1, L'\0' );
+    std::copy( tstr.begin(), tstr.end(), wstr.begin() );
+
+    LogMessageHelper log(tv);
+    log.format( L"Time_Value: %1% got in TASK %2%" ) % wstr % ACE_Thread::self();
+    ::EventLog::LogMessage& msg = log.get();
+
+    acewrapper::scoped_mutex_t<> lock( mutex_ );    
+    for ( vector_type::iterator it = begin(); it != end(); ++it )
+        it->receiver_->log( msg );
 }

@@ -42,7 +42,7 @@ namespace servant {
 
 			// POA_Receiver
 			void message( Receiver::eINSTEVENT msg, CORBA::ULong value );
-			void eventLog( const Receiver::LogMessage& );
+            void log( const EventLog::LogMessage& );
 			void shutdown();
 			void debug_print( CORBA::Long pri, CORBA::Long cat, const char * text );
 		};

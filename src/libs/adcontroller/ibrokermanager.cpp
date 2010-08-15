@@ -13,6 +13,8 @@
 #include <acewrapper/timerhandler.h>
 #include <acewrapper/eventhandler.h>
 #include "message.h"
+#include "constants.h"
+#include "marshal.hpp"
 
 //////////////////////////
 
@@ -96,14 +98,8 @@ IBrokerManager::handle_timeout( const ACE_Time_Value& tv, const void * )
 {
     using namespace adcontroller;
 
-    ACE_OutputCDR cdr;
-	Message msg( 0, 0, Notify_Timeout, 1 );
-    cdr << msg;
-    cdr << tv.sec();
-    cdr << tv.usec();
-
 	if ( pBroker_ )
-		pBroker_->putq( cdr.begin()->duplicate() );
+        pBroker_->putq( adcontroller::marshal< ACE_Time_Value >::put( tv, constants::MB_TIME_VALUE ) );
 
 	return 0;
 }

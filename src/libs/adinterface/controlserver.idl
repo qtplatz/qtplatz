@@ -46,15 +46,18 @@ module ControlServer {
        };
        
       wstring software_revision();  // ex. L"1.216"
-      
-      boolean connect(in Receiver receiver, in wstring token_) raises(CannotAdd);
-      boolean disconnect(in Receiver receiver_);
 
       boolean setConfiguration( in wstring xml );
+      boolean configComplete();  // all 'configured' module has loaded. Servant can access sibling/child objects
+      
+      // connect establish a connection betweeen application and servant.  Hardware communiation may not be ready yet.
+      boolean connect(in Receiver receiver, in wstring token_) raises(CannotAdd);
+      boolean disconnect(in Receiver receiver_);
       
       unsigned long get_status();
       
-      boolean initialize();
+      boolean initialize();  // instruments going to 'power on', and starting up if not ready yet.
+
       // long getdata(in long pos, inout SignalObserver::Signal data);
       SignalObserver::Observer getObserver();
       boolean shutdown();  // shutdown server

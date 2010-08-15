@@ -9,9 +9,9 @@
 #include <QString>
 #include <stdlib.h>
 #include <adportable/configuration.h>
+#include <adportable/configloader.h>
 #include <string>
 #include <vector>
-#include "ConfigLoader.h"
 #include <qtwrapper/qstring.h>
 #include <QPluginLoader>
 #include <QLibrary>
@@ -149,7 +149,7 @@ manager_impl::~manager_impl()
 bool
 manager_impl::loadConfig( adportable::Configuration& config, const std::wstring& filename, const wchar_t * query )
 {
-    return ConfigLoader::loadConfiguration( config, filename, query );
+    return adportable::ConfigLoader::loadConfigFile( config, filename, query );
 }
 
 QObject *

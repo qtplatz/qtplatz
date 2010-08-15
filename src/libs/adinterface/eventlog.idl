@@ -1,0 +1,33 @@
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison / Advanced Instrumentation Project
+//////////////////////////////////////////
+
+// Logging mechanism for instrument control server.
+// This is not intend for Broker that is document server for data processing.
+// See broker.idl for details.  T.H.
+module EventLog {
+
+    enum eMSGPRIORITY { pri_DEBUG
+                        , pri_INFO     // informational
+                        , pri_ERROR    // user correctable error
+                        , pri_EXCEPT   // exception, can be recoverd. Mostly a bug
+                        , pri_PANIC // non-recoverable exception
+    };
+  
+    struct TimeValue {
+        unsigned long long sec;
+        long usec;
+    };
+    
+    struct LogMessage {
+        unsigned long logId;  // unique number for each log message, such as sequencial number
+        long priority;
+        TimeValue tv;
+        wstring msgId;        // such as 'error code' for end user
+        wstring srcId;        // source device id
+        wstring format;
+        sequence< wstring > args;
+    };
+  
+};

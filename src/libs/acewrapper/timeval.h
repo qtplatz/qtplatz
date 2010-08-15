@@ -16,6 +16,8 @@ namespace acewrapper {
   void gettimeofday(time_t& tv_sec, long& tv_usec);
   std::string to_string( time_t );
   std::string to_string( const ACE_Time_Value& );
+  std::string to_string( unsigned long long sec, unsigned long usec );
+  std::wstring to_wstring( unsigned long long sec, unsigned long usec );
 }
 
 #endif // TIMEVAL_H

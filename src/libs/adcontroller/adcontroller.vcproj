@@ -302,6 +302,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\constants.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ibroker.h"
 				>
 			</File>
@@ -311,6 +315,10 @@
 			</File>
 			<File
 				RelativePath=".\manager_i.h"
+				>
+			</File>
+			<File
+				RelativePath=".\marshal.hpp"
 				>
 			</File>
 			<File

@@ -3,6 +3,8 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
+#include "eventlog.idl"
+
 interface Receiver {
 
   enum eMSGPRIORITY { pri_DEBUG
@@ -26,21 +28,12 @@ interface Receiver {
   };
 
   struct TimeValue {
-    unsigned long sec_;
-    long usec_;
-  };
-  
-  struct LogMessage {
-    eMSGPRIORITY pri_;
-    long src_;
-    long msgId_;
-    long seqNum_;
-    TimeValue tv_;
-    wstring msg_;
+      unsigned long sec_;
+      long usec_;
   };
   
   oneway void message(in eINSTEVENT msg, in unsigned long value); // send message to client
-  oneway void eventLog(in LogMessage log);
+  oneway void log(in EventLog::LogMessage log);
   oneway void shutdown(); // called by the server before it goes away
   oneway void debug_print( in long priority, in long category, in string text );
   

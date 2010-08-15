@@ -139,6 +139,11 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     addAutoReleasedObject(mode);
 
     mainWindow_->initial_update();
+
+    // 
+    ControlServer::Session_var session;
+    std::vector< Instrument::Session_var > i8t_sessions;
+
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
 		if ( it->name() == L"adbroker" ) {
 			mainWindow_->init_debug_adbroker();
@@ -150,7 +155,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             obj = adplugin::ORBManager::instance()->getObject( acewrapper::constants::adcontroller::manager::name() );
 			ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
 			if ( ! CORBA::is_nil( manager ) ) {
-				ControlServer::Session_var session = manager->getSession( L"debug" );
+                session = manager->getSession( L"debug" );
 				session->setConfiguration( it->xml().c_str() );
 			}
 		} else if ( it->attribute( L"type" ) == L"orbLoader" ) {
@@ -165,10 +170,18 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 				Instrument::Session_var isession = Instrument::Session::_narrow( obj );
 				if ( ! CORBA::is_nil( isession ) ) {
 					isession->setConfiguration( it->xml().c_str() );
+                    i8t_sessions.push_back( isession );
 				}
 			}
 		}
 	}
+
+    if ( ! CORBA::is_nil( session ) ) {
+        for ( std::vector< Instrument::Session_var >::iterator it = i8t_sessions.begin(); it != i8t_sessions.end(); ++it )
+            (*it)->configComplete();
+        session->configComplete();
+    }
+
     return true;
 }
 

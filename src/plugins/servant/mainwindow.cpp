@@ -123,7 +123,7 @@ Receiver_i::message( Receiver::eINSTEVENT msg, CORBA::ULong value )
 }
 
 void
-Receiver_i::eventLog( const Receiver::LogMessage& )
+Receiver_i::log( const EventLog::LogMessage& )
 {
 }
 

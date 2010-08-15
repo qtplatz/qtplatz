@@ -29,19 +29,21 @@
 #include <adplugin/adplugin.h>
 #include <adplugin/imonitor.h>
 #include <adportable/configuration.h>
+#include <adinterface/eventlog_helper.h>
+#include <acewrapper/timeval.h>
 
 namespace Acquire { 
-  namespace internal {
-
-    struct AcquireUIManagerData : boost::noncopyable {
-      AcquireUIManagerData() : mainWindow_(0) {}
-      
-      Utils::FancyMainWindow* mainWindow_;
-
-      std::vector< QDockWidget * > dockWidgetVec_;
-    };
-
-  }
+    namespace internal {
+        
+        struct AcquireUIManagerData : boost::noncopyable {
+            AcquireUIManagerData() : mainWindow_(0) {}
+            
+            Utils::FancyMainWindow* mainWindow_;
+            
+            std::vector< QDockWidget * > dockWidgetVec_;
+        };
+        
+    }
 }
 
 using namespace Acquire;
@@ -49,19 +51,19 @@ using namespace Acquire::internal;
 
 AcquireUIManager::~AcquireUIManager()
 {
-  delete d_;
+    delete d_;
 }
 
 AcquireUIManager::AcquireUIManager(QObject *parent) : QObject(parent)
 						    , d_(0)
 {
-  d_ = new AcquireUIManagerData();
+    d_ = new AcquireUIManagerData();
 }
 
 QMainWindow *
 AcquireUIManager::mainWindow() const
 {
-  return d_->mainWindow_;
+    return d_->mainWindow_;
 }
 
 void
@@ -107,7 +109,6 @@ AcquireUIManager::init()
                     QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
                     if ( pWidget ) {
                         connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
-                        connect( this, SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) ), pWidget, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
                         pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
                         QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
                         m.dockWidgetVec_.push_back( dock );
@@ -194,9 +195,14 @@ AcquireUIManager::handle_message( Receiver::eINSTEVENT msg, unsigned long value 
 }
 
 void
-AcquireUIManager::handle_eventLog( QString str )
+AcquireUIManager::handle_eventLog( const ::EventLog::LogMessage& log )
 {
-    emit signal_eventLog( str );
+    using namespace adinterface::EventLog;
+    std::wstring text = LogMessageHelper::toString( log );
+    QString qtext = acewrapper::to_string( log.tv.sec, log.tv.usec ).c_str();
+    qtext += "\t";
+    qtext += qtwrapper::qstring::copy( text );
+    emit signal_eventLog( qtext );
 }
 
 void

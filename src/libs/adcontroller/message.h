@@ -12,30 +12,31 @@ class ACE_Time_Value;
 
 namespace adcontroller {
 
-	class Message {
-	public:
-		Message(unsigned long srcId = 0, unsigned long dstId = 0
-			   , unsigned long cmdId = 0, unsigned long seqId = 0 );
-		~Message(void);
-		unsigned long srcId_;
+    class Message {
+    public:
+        Message(unsigned long srcId = 0, unsigned long dstId = 0
+                , unsigned long cmdId = 0, unsigned long seqId = 0 );
+        ~Message(void);
+        unsigned long srcId_;
         unsigned long dstId_;
         unsigned long cmdId_;
-		unsigned long seqId_;
-	};
-
-	ACE_OutputCDR& operator << ( ACE_OutputCDR&, const Message& m );
-	ACE_InputCDR& operator >> ( ACE_InputCDR&, Message& m );
-	ACE_OutputCDR& operator << ( ACE_OutputCDR&, const ACE_Time_Value& m );
-	ACE_InputCDR& operator >> ( ACE_InputCDR&, ACE_Time_Value& );
-
-	enum eNotify {
-		Notify_Timeout = 512,
-		Notify_Last
-	};
-
-	enum eCommand {
-		Command_Zero = 1024,
-		Command_Last
-	};
-
+        unsigned long seqId_;
+    };
+    
+    ACE_OutputCDR& operator << ( ACE_OutputCDR&, const Message& m );
+    ACE_InputCDR& operator >> ( ACE_InputCDR&, Message& m );
+    ACE_OutputCDR& operator << ( ACE_OutputCDR&, const ACE_Time_Value& m );
+    ACE_InputCDR& operator >> ( ACE_InputCDR&, ACE_Time_Value& );
+    
+    enum eNotify {
+        Notify_Timeout = 512,
+        Notify_EventLog,
+        Notify_Last
+    };
+    
+    enum eCommand {
+        Command_None = 1024,
+        Command_Last
+    };
+    
 }

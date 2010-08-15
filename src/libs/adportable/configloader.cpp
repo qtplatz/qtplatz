@@ -10,7 +10,6 @@
 using namespace adportable;
 using namespace xmlwrapper;
 using namespace xmlwrapper::msxml;
-using namespace adplugin::internal;
 
 struct ConfigLoaderImpl {
 	static bool populate( Configuration&, const XMLNode& );
@@ -28,10 +27,30 @@ ConfigLoader::~ConfigLoader(void)
 
 // static
 bool
-ConfigLoader::loadConfiguration( adportable::Configuration& config, const std::wstring& file, const std::wstring& query )
+ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstring& file, const std::wstring& query )
 {
     XMLDocument dom;
 	if ( ! dom.load( file ) )
+		return false;
+
+	XMLNodeList list = dom.selectNodes( query );
+	if ( list.size() == 0 )
+		return false;
+
+	if ( list.size() == 1 ) {
+		if ( ConfigLoaderImpl::load( config, list[0] ) )
+			ConfigLoaderImpl::populate( config, list[0] );
+	} else
+		return false;
+	return true;
+}
+
+// static
+bool
+ConfigLoader::loadConfigXML( adportable::Configuration& config, const std::wstring& xml, const std::wstring& query )
+{
+    XMLDocument dom;
+	if ( ! dom.loadXML( xml ) )
 		return false;
 
 	XMLNodeList list = dom.selectNodes( query );

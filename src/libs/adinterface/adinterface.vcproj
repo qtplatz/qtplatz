@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(ACE_ROOT)&quot;;&quot;$(ACE_ROOT)\TAO&quot;;.\..\libs;.\debug;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;"
+				AdditionalIncludeDirectories="&quot;$(ACE_ROOT)&quot;;&quot;$(ACE_ROOT)\TAO&quot;;.\..\libs;.\debug;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(BOOST_ROOT)\include\boost-1_43&quot;"
 				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -204,6 +204,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\eventlog_helper.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\eventlogC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\eventlogS.cpp"
+				>
+			</File>
+			<File
 				RelativePath="global_constantsC.cpp"
 				>
 			</File>
@@ -229,6 +241,10 @@
 			</File>
 			<File
 				RelativePath=".\loghandlerS.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\logmessage.cpp"
 				>
 			</File>
 			<File
@@ -267,6 +283,18 @@
 			</File>
 			<File
 				RelativePath=".\brokerS.h"
+				>
+			</File>
+			<File
+				RelativePath=".\eventlog_helper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\eventlogC.h"
+				>
+			</File>
+			<File
+				RelativePath=".\eventlogS.h"
 				>
 			</File>
 			<File
@@ -506,7 +534,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>
@@ -515,7 +543,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>
@@ -560,6 +588,28 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\eventlog.idl"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>
@@ -616,7 +666,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>
@@ -625,7 +675,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>

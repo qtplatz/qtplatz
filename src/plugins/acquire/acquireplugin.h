@@ -42,9 +42,10 @@ namespace Acquire {
 		void actionRunStop();
 
         void handle_message( Receiver::eINSTEVENT msg, unsigned long value );
-        void handle_eventLog( ACE_Message_Block * );
+        void handle_log( QByteArray );
         void handle_shutdown();
         void handle_debug_print( unsigned long priority, unsigned long category, QString text );
+    signals:
 
     private:
       AcquireUIManager * manager_;

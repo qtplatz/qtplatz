@@ -183,6 +183,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\configloader.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\configuration.cpp"
 				>
 			</File>
@@ -293,6 +297,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\configloader.h"
+				>
 			</File>
 			<File
 				RelativePath=".\configuration.h"

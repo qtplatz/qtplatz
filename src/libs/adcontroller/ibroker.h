@@ -9,15 +9,20 @@
 #include <ace/Recursive_Thread_Mutex.h>
 #include <ace/Task.h>
 #include <ace/Barrier.h>
-#include <ace/Message_Queue.h>
+// #include <ace/Message_Queue.h>
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
 #include <adinterface/controlserverC.h>
 #include <vector>
+#include <adportable/configuration.h>
 
 class ACE_Recursive_Thread_Mutex;
 class ACE_Notification_Strategy;
 class ACE_Reactor;
+
+namespace EventLog {
+    struct LogMessage;
+}
 
 ///////////////////////////
 
@@ -37,6 +42,7 @@ namespace adcontroller {
         bool connect( ControlServer::Session_ptr, Receiver_ptr );
         bool disconnect( ControlServer::Session_ptr, Receiver_ptr );
         bool setConfiguration( const wchar_t * xml );
+        bool configComplete();
         
         struct session_data {
             bool operator == ( const session_data& ) const;
@@ -61,12 +67,17 @@ namespace adcontroller {
         virtual int svc();
         // 
         void doit( ACE_Message_Block * );
+        void dispatch ( ACE_Message_Block *, int disp );
         
-        int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );
+        // int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );  <-- will handle in iBrokerManager
+
+        void handle_dispatch( const EventLog::LogMessage & );
+        void handle_dispatch( const ACE_Time_Value& );
+
     private:
         friend class IBrokerManager;
 
-		std::wstring configXML_;
+        adportable::Configuration config_;
         
         ACE_Recursive_Thread_Mutex mutex_;
         ACE_Barrier barrier_;

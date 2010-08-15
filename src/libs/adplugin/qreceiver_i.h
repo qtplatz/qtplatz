@@ -30,14 +30,14 @@ namespace adplugin {
     public:
         explicit QReceiver_i(QObject *parent = 0);
 
-        virtual void message (::Receiver::eINSTEVENT msg, ::CORBA::ULong value );
-        virtual void eventLog ( const ::Receiver::LogMessage & log );
-        virtual void shutdown (void);
-        virtual void debug_print (::CORBA::Long priority, ::CORBA::Long category, const char * text);
+        virtual void message(::Receiver::eINSTEVENT msg, ::CORBA::ULong value );
+        virtual void log( const ::EventLog::LogMessage & log );
+        virtual void shutdown(void);
+        virtual void debug_print(::CORBA::Long priority, ::CORBA::Long category, const char * text);
   
     signals:
         void signal_message( Receiver::eINSTEVENT msg, unsigned long value );
-        void signal_eventLog( ACE_Message_Block * );
+        void signal_log( QByteArray );
         void signal_shutdown();
         void signal_debug_print( unsigned long priority, unsigned long category, QString text );
 

@@ -213,10 +213,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\configloader.cpp"
-				>
-			</File>
-			<File
 				RelativePath="lifecycle.cpp"
 				>
 			</File>
@@ -285,10 +281,6 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\configloader.h"
-				>
 			</File>
 			<File
 				RelativePath="icontrolmethodeditor.h"

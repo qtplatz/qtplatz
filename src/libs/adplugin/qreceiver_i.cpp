@@ -5,6 +5,8 @@
 
 #include "qreceiver_i.h"
 #include <adinterface/ReceiverS.h>
+#include <adinterface/eventlog_helper.h>
+#include <qtwrapper/qstring.h>
 
 using namespace adplugin;
 
@@ -20,12 +22,12 @@ QReceiver_i::message (::Receiver::eINSTEVENT msg, ::CORBA::ULong value)
 }
 
 void
-QReceiver_i::eventLog ( const ::Receiver::LogMessage & log)
+QReceiver_i::log( const ::EventLog::LogMessage & log )
 {
     TAO_OutputCDR cdr;
     cdr << log;
-    ACE_Message_Block * mb = cdr.begin()->clone(); //->duplicate();
-    emit signal_eventLog( mb );
+    QByteArray qarray( cdr.begin()->rd_ptr(), cdr.begin()->size() );
+    emit signal_log( qarray );
 }
 
 void

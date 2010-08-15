@@ -234,7 +234,15 @@ msxml::XMLDocument::XMLDocument()
                                 , CLSCTX_INPROC_SERVER
                                 , MSXML2::IID_IXMLDOMDocument2
                                 , reinterpret_cast<void**>( &pidoc2 ));
-   (void)hr;
+   if ( hr == 0x800401f0 ) {
+       CoInitialize(0);
+       hr = CoCreateInstance( MSXML2::CLSID_FreeThreadedDOMDocument40
+                             , NULL
+                             , CLSCTX_INPROC_SERVER
+                             , MSXML2::IID_IXMLDOMDocument2
+                             , reinterpret_cast<void**>( &pidoc2 ));
+   }
+   assert( hr == S_OK );
    if ( pidoc2 )
        pidoc2->setProperty(_bstr_t(L"SelectionLanguage"), _variant_t("XPath"));
    pImpl_ = pidoc2;

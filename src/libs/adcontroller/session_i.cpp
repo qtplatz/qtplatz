@@ -52,30 +52,28 @@ session_i::software_revision()
 CORBA::Boolean
 session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
 {
-	scoped_mutex_t<> lock( singleton::iBrokerManager::instance()->mutex() );
-
-	iBroker * pBroker = singleton::iBrokerManager::instance()->get<iBroker>();
-	pBroker->connect( _this(), receiver );
-
     ACE_UNUSED_ARG(token);
 
+    scoped_mutex_t<> lock( singleton::iBrokerManager::instance()->mutex() );
+
+    // check session_i local receiver, if already exist then error
     receiver_data data;
-	data.receiver_ = Receiver::_duplicate( receiver );
-      
+    data.receiver_ = Receiver::_duplicate( receiver );
     if ( std::find(receiver_set_.begin(), receiver_set_.end(), data) != receiver_set_.end() ) {
         throw ControlServer::Session::CannotAdd( L"receiver already exist" );
         return false;
     }
-      
-    receiver_set_.push_back( data );
-      
-	if ( receiver_set_.size() == 1 ) {
-		singleton::iBrokerManager::instance()->initialize();
-		singleton::iBrokerManager::instance()->get<iBroker>()->reset_clock();
-	}
 
-    echo( "client connected" );
-      
+    // try connect to server
+    iBroker * pBroker = singleton::iBrokerManager::instance()->get<iBroker>();
+    if ( ! pBroker->connect( _this(), receiver ) ) {
+        throw ControlServer::Session::CannotAdd( L"receiver already exist" );
+        return false;
+    }
+
+    // now, it is safe to keep a copy for connection
+    receiver_set_.push_back( data );
+    
     return true;
 }
 
@@ -88,25 +86,32 @@ session_i::disconnect( Receiver_ptr receiver )
 CORBA::Boolean
 session_i::setConfiguration( const CORBA::WChar * xml )
 {
-	using namespace adcontroller::singleton;
-	return iBrokerManager::instance()->get<iBroker>()->setConfiguration( xml );
+    using namespace adcontroller::singleton;
+    return iBrokerManager::instance()->get<iBroker>()->setConfiguration( xml );
+}
+
+CORBA::Boolean
+session_i::configComplete()
+{
+    using namespace adcontroller::singleton;
+    return iBrokerManager::instance()->get<iBroker>()->configComplete();
 }
 
 CORBA::Boolean
 session_i::initialize()
 {
-	using namespace adcontroller::singleton;
-	iBrokerManager::instance()->initialize();
-	return iBrokerManager::instance()->get<iBroker>()->open();
+    using namespace adcontroller::singleton;
+    iBrokerManager::instance()->initialize();
+    return iBrokerManager::instance()->get<iBroker>()->open();
 }
 
 CORBA::Boolean
 session_i::shutdown()
 {
-	using namespace adcontroller::singleton;
-	iBrokerManager::instance()->terminate();
-	ACE_Thread_Manager::instance()->wait();
-	return true;
+    using namespace adcontroller::singleton;
+    iBrokerManager::instance()->terminate();
+    ACE_Thread_Manager::instance()->wait();
+    return true;
 }
 
 CORBA::ULong
@@ -130,16 +135,16 @@ typedef boost::tokenizer< boost::char_separator<char> > tokenizer;
 CORBA::Boolean
 session_i::shell( const char * cmdline )
 {
-	boost::char_separator<char> separator("\t ", "");
-
-	std::string cmdLine( cmdline );
-	tokenizer commands(cmdLine, separator);
-
+    boost::char_separator<char> separator("\t ", "");
+    
+    std::string cmdLine( cmdline );
+    tokenizer commands(cmdLine, separator);
+    
     tokenizer::const_iterator cmds = commands.begin();
-
+    
     // todo
-
-	return false;
+    
+    return false;
 }
 
 //---------

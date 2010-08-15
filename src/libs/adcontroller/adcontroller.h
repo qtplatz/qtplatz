@@ -13,18 +13,18 @@ namespace CORBA {
 }
 
 namespace acewrapper {
-	class ORBServantManager;
+    class ORBServantManager;
 }
 
 class ADCONTROLLERSHARED_EXPORT adController {
 public:
     adController();
-
-	static bool initialize( CORBA::ORB * orb = 0 );
-	static bool activate();
+    
+    static bool initialize( CORBA::ORB * orb = 0 );
+    static bool activate();
     static bool deactivate();
-	static int run();
-	static void abort_server();
+    static int run();
+    static void abort_server();
 private:
 
 };

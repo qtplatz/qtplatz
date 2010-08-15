@@ -4,8 +4,7 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#ifndef ADPLUGIN_GLOBAL_H
-#define ADPLUGIN_GLOBAL_H
+#pragma once
 
 #include <QtCore/qglobal.h>
 
@@ -15,4 +14,3 @@
 #  define ADPLUGINSHARED_EXPORT Q_DECL_IMPORT
 #endif
 
-#endif // ADPLUGIN_GLOBAL_H
