@@ -70,10 +70,15 @@ iBroker::setConfiguration( const wchar_t * xml )
     if ( ! config_.xml().empty() )
         return false;
 
-    const wchar_t * query = L"/";
+    const wchar_t * query = L"//Configuration[@name='InstrumentConfiguration']";
     adportable::ConfigLoader::loadConfigXML( config_, xml, query );
-
+    
 #if defined _DEBUG
+    using namespace adportable;
+    for ( Configuration::vector_type::iterator it = config_.begin(); it != config_.end(); ++it ) {
+        Configuration & item = *it;
+        std::wstring name = item.name();
+    }
     using namespace xmlwrapper::msxml;
     XMLDocument dom;
     dom.loadXML( xml );
@@ -86,6 +91,17 @@ iBroker::setConfiguration( const wchar_t * xml )
 bool
 iBroker::configComplete()
 {
+    using namespace adportable;
+    for ( Configuration::vector_type::iterator it = config_.begin(); it != config_.end(); ++it ) {
+        Configuration & item = *it;
+        std::wstring ns = item.attribute( L"ns_name" ); // "tofcontroller.manager"
+        std::wstring type = item.attribute( L"type" ); // "object_ref"
+        std::wstring name = item.name();
+        if ( type == L"object_ref" ) {
+            // append object reference
+            long x = 0;
+        }
+    }
     return true;
 }
 
