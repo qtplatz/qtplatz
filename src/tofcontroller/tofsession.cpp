@@ -147,4 +147,10 @@ tofSession_i::tof_software_revision (void)
 void
 tofSession_i::tof_debug( const CORBA::WChar * text )
 {
+    size_t len = wcslen( text );
+    ACE_Message_Block *mb = new ACE_Message_Block( (len + 1) * sizeof(wchar_t) );
+
+    wcscpy( reinterpret_cast<wchar_t *>(mb->wr_ptr()), text );
+    mb->msg_type( constants::MB_DEBUG );
+    pTask_->putq( mb );
 }

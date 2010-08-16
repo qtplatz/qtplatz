@@ -185,6 +185,17 @@ i8tTask::doit( ACE_Message_Block * mblk )
 		case constants::MB_COMMAND:
 			dispatch_command( mblk );
 			break;
+        case constants::MB_DEBUG:
+            {
+                ::EventLog::LogMessage log;
+                log.tv.sec = 0;
+                log.tv.usec = 0;
+                log.format = reinterpret_cast<const wchar_t *>(mblk->rd_ptr());
+                for ( vector_type::iterator it = receiver_set_.begin(); it != receiver_set_.end(); ++it ) {
+                    it->receiver_->log( log );
+                }
+            }
+            break;
 		};
 	}
 }

@@ -16,11 +16,11 @@ namespace tofcontroller {
             , MB_CONNECT
             , MB_TIME_VALUE
 			, MB_COMMAND
+            , MB_DEBUG
         };
 
         enum SESSION_COMMAND {
             SESSION_INITIALIZE,
-            
             SESSION_SHUTDOWN,
         };
 

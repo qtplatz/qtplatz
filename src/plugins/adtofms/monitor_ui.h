@@ -34,9 +34,12 @@ namespace adtofms {
         virtual void OnUpdate( unsigned long );
         virtual void OnFinalClose();
         
-        signals:
+    signals:
+        void signal_pushButton_clicked();
         
     public slots:
+        void handle_clicked();
+        void on_pushButton_clicked();
     private:
         friend impl::TOF;
         adportable::Configuration config_;

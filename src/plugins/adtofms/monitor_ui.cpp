@@ -44,6 +44,7 @@ monitor_ui::monitor_ui(QWidget *parent) : IMonitor(parent)
 {
     ui->setupUi(this);
     pTof_ = new impl::TOF(*this);
+    connect( this, SIGNAL( signal_pushButton_clicked() ), this, SLOT( handle_clicked() ) );
 }
 
 monitor_ui::~monitor_ui()
@@ -95,6 +96,19 @@ monitor_ui::OnFinalClose()
 {
 }
 
+void
+monitor_ui::handle_clicked()
+{
+    pTof_->tof->tof_debug( L"monitor_ui::handle_clicked()" );
+}
+
+// call from ui
+void
+monitor_ui::on_pushButton_clicked()
+{
+    emit signal_pushButton_clicked(); 
+}
+
 // Q_EXPORT_PLUGIN( monitor_ui )
 
 /////////////////////////////////
@@ -138,7 +152,19 @@ TOF::log( const EventLog::LogMessage& log )
 {
     std::wstring text = adinterface::EventLog::LogMessageHelper::toString( log );
     if ( parent_.ui ) {
-        // parent_.ui->treeView-
+        std::string stext( text.size() + 1, '\0' );
+        std::copy( text.begin(), text.end(), stext.begin() );
+
+        TreeModel& model = *treeModel_;
+        // int row = model.findParent( remote_addr.c_str() );
+        // if ( row >= 0 ) {
+        int row = 0;
+        QModelIndex index = model.index( row, 0 );
+        int childRow = model.rowCount( index );
+        model.insertRow( childRow, index );
+        model.setData( model.index( childRow, 0, index ), "0.0.0.0" );
+        model.setData( model.index( childRow, 2, index ), stext.c_str() );
+        // }
     }
 }
 
@@ -150,5 +176,15 @@ TOF::shutdown()
 void
 TOF::debug_print( CORBA::Long pri, CORBA::Long cat, const char * text )
 {
+    TreeModel& model = *treeModel_;
+    // int row = model.findParent( remote_addr.c_str() );
+    // if ( row >= 0 ) {
+    int row = 0;
+    QModelIndex index = model.index( row, 0 );
+    int childRow = model.rowCount( index );
+    model.insertRow( childRow, index );
+    model.setData( model.index( childRow, 0, index ), "0.0.0.0" );
+    model.setData( model.index( childRow, 2, index ), text );
+    // }
 }
 
