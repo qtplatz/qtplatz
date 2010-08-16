@@ -16,28 +16,34 @@ namespace Ui {
 
 namespace adtofms {
 
-	class monitor_ui : public adplugin::ui::IMonitor	{
-		Q_OBJECT
-		Q_INTERFACES( adplugin::ui::IMonitor )
-	public:
-		explicit monitor_ui(QWidget *parent = 0);
+    namespace impl{
+        class TOF;
+    }
+    
+    class monitor_ui : public adplugin::ui::IMonitor	{
+        Q_OBJECT
+        Q_INTERFACES( adplugin::ui::IMonitor )
+    public:
+        explicit monitor_ui(QWidget *parent = 0);
         ~monitor_ui();
-
-		// implement IMonitor
+        
+        // implement IMonitor
         virtual void OnCreate( const adportable::Configuration& );
         virtual void OnInitialUpdate();
         virtual void OnUpdate( boost::any& );
         virtual void OnUpdate( unsigned long );
-		virtual void OnFinalClose();
-
-    signals:
-
-	public slots:
-	private:
-		adportable::Configuration config_;
-		Ui::Form *ui;
-	};
-
+        virtual void OnFinalClose();
+        
+        signals:
+        
+    public slots:
+    private:
+        friend impl::TOF;
+        adportable::Configuration config_;
+        impl::TOF * pTof_;
+        Ui::Form * ui;
+    };
+    
 }
 
 #endif // MONITOR_UI_H

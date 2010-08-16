@@ -143,3 +143,8 @@ tofSession_i::tof_software_revision (void)
 {
 	return CORBA::wstring_dup(L"1.0.0.0");
 }
+
+void
+tofSession_i::tof_debug( const CORBA::WChar * text )
+{
+}
