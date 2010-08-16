@@ -10,7 +10,7 @@
 #include <ace/Singleton.h>
 
 #pragma warning (disable : 4996 )
-# include <adinterface/instrumentS.h>
+# include "tofcontrollerS.h"
 #pragma warning (default : 4996 )
 
 #include <acewrapper/orbservant.h>
@@ -18,19 +18,22 @@
 
 namespace tofcontroller {
 
-	class i8tManager_i;
+	class tofSession_i;
     class i8tTask;
 
 	namespace singleton {
-		typedef ACE_Singleton< acewrapper::ORBServant< i8tManager_i >, ACE_Recursive_Thread_Mutex > i8tManager_i;
+		typedef ACE_Singleton< acewrapper::ORBServant< tofSession_i >, ACE_Recursive_Thread_Mutex > tofSession_i;
 	}
 
-	class i8tManager_i : public virtual POA_Instrument::Session {
-		i8tManager_i(void);
-		~i8tManager_i(void);
-		friend singleton::i8tManager_i;
-		friend acewrapper::ORBServant< i8tManager_i >;
+	class tofSession_i : public virtual POA_TOFInstrument::TofSession {
+		tofSession_i(void);
+		~tofSession_i(void);
+		friend singleton::tofSession_i;
+		friend acewrapper::ORBServant< tofSession_i >;
 	public:
+
+        // POA_TOFInstrument::TofSession
+		CORBA::WChar * tof_software_revision (void);
 
 		// POA_Instrument::Session
 		CORBA::WChar * software_revision (void);
@@ -52,6 +55,7 @@ namespace tofcontroller {
 		CORBA::Boolean stop_run (void);
 	private:
 		boost::scoped_ptr< i8tTask > pTask_;
+		Instrument::eInstStatus status_current_;
 	};
 
 

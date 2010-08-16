@@ -4,10 +4,12 @@
 //////////////////////////////////////////
 
 #include "nameservice.h"
+#include <adportable/string.h>
 #pragma warning (disable: 4996)
 #include <tao/ORB.h>
 #include <orbsvcs/CosNamingC.h>
 #pragma warning (default: 4996)
+
 
 using namespace acewrapper;
 
@@ -52,6 +54,29 @@ NS::resolve_name(CosNaming::NamingContext_ptr nc, const CosNaming::Name &name )
 	}
 	return obj._retn();
 }
+
+CORBA::Object_ptr
+NS::resolve_name( CORBA::ORB_ptr orb, const std::wstring& ns_name )
+{
+	CORBA::Object_var obj;
+	CosNaming::NamingContext_var nc = resolve_init( orb );
+	if ( ! CORBA::is_nil( nc.in() ) ) {
+
+		CosNaming::Name name;
+        name.length(1);
+		name[0].id = CORBA::string_dup( adportable::string::convert( ns_name ).c_str() );
+		name[0].kind = CORBA::string_dup("");
+
+		try {
+			obj = nc->resolve( name );
+		} catch ( const CosNaming::NamingContext::NotFound& ) {
+			throw;
+		}
+	}
+	return obj._retn();
+}
+
+
 
 // static
 bool

@@ -4,7 +4,7 @@
 //////////////////////////////////////////
 
 #include "tofcontroller.h"
-#include "i8tmanager.h"
+#include "tofsession.h"
 #include <acewrapper/orbservant.h>  // servant template
 #include <acewrapper/nameservice.h>
 #include <acewrapper/constants.h>
@@ -52,8 +52,8 @@ TofController::initialize( CORBA::ORB * orb )
 		orb = CORBA::ORB_init( ac, 0 );
 	}
 
-	acewrapper::ORBServant< tofcontroller::i8tManager_i >
-		* pServant = tofcontroller::singleton::i8tManager_i::instance();
+	acewrapper::ORBServant< tofcontroller::tofSession_i >
+		* pServant = tofcontroller::singleton::tofSession_i::instance();
 	acewrapper::ORBServantManager * pMgr = new acewrapper::ORBServantManager( orb );
 	pMgr->init( 0, 0 );
 	pServant->setServantManager( pMgr );
@@ -64,8 +64,8 @@ TofController::initialize( CORBA::ORB * orb )
 bool
 TofController::activate()
 {
-	acewrapper::ORBServant< tofcontroller::i8tManager_i > 
-		* pServant = tofcontroller::singleton::i8tManager_i::instance();
+	acewrapper::ORBServant< tofcontroller::tofSession_i > 
+		* pServant = tofcontroller::singleton::tofSession_i::instance();
 	pServant->activate();
 
 	CORBA::ORB_var orb = pServant->getServantManager()->orb();
@@ -76,10 +76,10 @@ TofController::activate()
 bool
 TofController::deactivate()
 {
-	acewrapper::ORBServant< tofcontroller::i8tManager_i >
-		* pServant = tofcontroller::singleton::i8tManager_i::instance();
+	acewrapper::ORBServant< tofcontroller::tofSession_i >
+		* pServant = tofcontroller::singleton::tofSession_i::instance();
 
-	static_cast<tofcontroller::i8tManager_i *>(*pServant)->shutdown();
+	static_cast<tofcontroller::tofSession_i *>(*pServant)->shutdown();
 
 	pServant->deactivate();
 

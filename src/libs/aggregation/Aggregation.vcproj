@@ -26,6 +26,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -103,8 +104,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
-				CommandLine="copy  $(TargetPath) ..\..\..\bin"
+				Description="xcopy  $(TargetPath) &quot;..\..\..\bin\&quot;"
+				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
 				ExcludedFromBuild="false"
 			/>
 		</Configuration>
@@ -198,7 +199,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
-				CommandLine="mkdir ..\..\..\bin;copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
+				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
 			/>
 		</Configuration>
 	</Configurations>

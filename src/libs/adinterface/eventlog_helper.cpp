@@ -31,6 +31,8 @@ adinterface::EventLog::LogMessageHelper::toString( const ::EventLog::LogMessage&
 
 LogMessageHelper::LogMessageHelper( const std::wstring& format )
 {
+	msg_.tv.sec = time(0);
+    msg_.tv.usec = 0;
     msg_.format = format.c_str();
 }
 

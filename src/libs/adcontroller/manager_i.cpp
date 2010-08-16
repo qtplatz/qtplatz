@@ -5,6 +5,7 @@
 
 #include "manager_i.h"
 #include "session_i.h"
+#include "ibrokermanager.h"
 
 using namespace adcontroller;
 
@@ -29,6 +30,9 @@ manager_i::getSession( const CORBA::WChar * token )
 
     if ( CORBA::is_nil( poa ) )
         return 0;
+
+    if ( session_list_.empty() )
+		adcontroller::singleton::iBrokerManager::instance()->manager_initialize();
 
     session_map_type::iterator it = session_list_.find( token );
     if ( it == session_list_.end() ) 

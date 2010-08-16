@@ -34,6 +34,7 @@ namespace tofcontroller {
         void close();
         bool connect( Receiver_ptr );
         bool disconnect( Receiver_ptr );
+
 	private:
         // ACE_Task
 		virtual int handle_input( ACE_HANDLE );
@@ -41,7 +42,10 @@ namespace tofcontroller {
 		// <--
         void doit( ACE_Message_Block * );
         int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );
-        void initialize();
+        void internal_initialize();
+
+        void dispatch_command( ACE_Message_Block * );
+        void command_initialize();
 
     private:
         ACE_Recursive_Thread_Mutex mutex_;

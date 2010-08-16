@@ -102,8 +102,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copy QtConcurrentd.dll to ..\..\..\bin"
-				CommandLine="mkdir ..\..\..\bin;&#x0D;&#x0A;copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;&#x0D;&#x0A;"
+				Description="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
+				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
 			/>
 		</Configuration>
 		<Configuration
@@ -195,8 +195,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copy QtConcurrent.dll to ..\..\..\bin"
-				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
+				Description="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
+				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
 			/>
 		</Configuration>
 	</Configurations>

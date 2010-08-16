@@ -4,6 +4,7 @@
 //////////////////////////////////////////
 
 #include "ibroker.h"
+#include "iproxy.h"
 #include <ace/Reactor.h>
 #include <ace/Thread_Manager.h>
 #include <adinterface/receiverC.h>
@@ -40,12 +41,22 @@ iBroker::~iBroker()
 
 iBroker::iBroker( size_t n_threads ) : barrier_(n_threads)
                                      , n_threads_(n_threads) 
+									 , status_current_( ControlServer::eNothing )
+									 , status_being_( ControlServer::eNothing )  
 {
 }
 
 void
 iBroker::reset_clock()
 {
+	struct invoke_reset_clock {
+		void operator ()( proxy_ptr& proxy ) {
+			proxy->reset_clock();
+		}
+	};
+
+	acewrapper::scoped_mutex_t<> lock( mutex_ );
+	std::for_each( proxies_.begin(), proxies_.end(), invoke_reset_clock() );
 }
 
 bool
@@ -70,21 +81,11 @@ iBroker::setConfiguration( const wchar_t * xml )
     if ( ! config_.xml().empty() )
         return false;
 
+	status_current_ = status_being_ = ControlServer::eNotConfigured;
+
     const wchar_t * query = L"//Configuration[@name='InstrumentConfiguration']";
     adportable::ConfigLoader::loadConfigXML( config_, xml, query );
     
-#if defined _DEBUG
-    using namespace adportable;
-    for ( Configuration::vector_type::iterator it = config_.begin(); it != config_.end(); ++it ) {
-        Configuration & item = *it;
-        std::wstring name = item.name();
-    }
-    using namespace xmlwrapper::msxml;
-    XMLDocument dom;
-    dom.loadXML( xml );
-    dom.save( L"adcontroller.config.xml" );
-#endif
-
     return true;
 }
 
@@ -94,19 +95,39 @@ iBroker::configComplete()
     using namespace adportable;
     for ( Configuration::vector_type::iterator it = config_.begin(); it != config_.end(); ++it ) {
         Configuration & item = *it;
+#if defined _DEBUG
         std::wstring ns = item.attribute( L"ns_name" ); // "tofcontroller.manager"
         std::wstring type = item.attribute( L"type" ); // "object_ref"
         std::wstring name = item.name();
-        if ( type == L"object_ref" ) {
-            // append object reference
-            long x = 0;
-        }
+#endif
+		boost::shared_ptr<iProxy> pProxy( new iProxy( *this ) );
+		if ( pProxy ) {
+			pProxy->setConfiguration( item );
+
+			acewrapper::scoped_mutex_t<> lock( mutex_ );
+			proxies_.push_back( pProxy );
+		}
     }
+	status_current_ = status_being_ = ControlServer::eConfigured;  // relevant modules are able to access.
     return true;
 }
 
 bool
-iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver )
+iBroker::initialize()
+{
+	struct invoke_initialize {
+		void operator ()( proxy_ptr& proxy ) {
+			proxy->initialize();
+		}
+	};
+
+	acewrapper::scoped_mutex_t<> lock( mutex_ );
+	std::for_each( proxies_.begin(), proxies_.end(), invoke_initialize() );
+	return true;
+}
+
+bool
+iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const wchar_t * token )
 {
     session_data data;
     data.session_ = ControlServer::Session::_duplicate( session );
@@ -119,10 +140,16 @@ iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver )
     
     session_set_.push_back( data );
 
-    if ( session_set_.size() == 1 ) {
-        singleton::iBrokerManager::instance()->initialize();
-        singleton::iBrokerManager::instance()->get<iBroker>()->reset_clock();
-    }
+	// fire connect
+	struct invoke_connect {
+        const wchar_t * token_;
+		invoke_connect( const wchar_t * token ) : token_(token) {}
+		void operator ()( proxy_ptr& proxy ) {
+			proxy->connect( token_ );
+		}
+	};
+
+	std::for_each( proxies_.begin(), proxies_.end(), invoke_connect(token) );
 
     do {
         using namespace adinterface::EventLog;
@@ -155,6 +182,19 @@ iBroker::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
     }
     return false;
 }
+
+::ControlServer::eStatus
+iBroker::getStatusCurrent()
+{
+	return status_current_;
+}
+
+::ControlServer::eStatus
+iBroker::getStatusBeging()
+{
+	return status_being_;
+}
+
 
 ///////////////////////////////////////////////////////////////
 bool
@@ -282,7 +322,7 @@ iBroker::handle_dispatch( const ACE_Time_Value& tv )
     std::copy( tstr.begin(), tstr.end(), wstr.begin() );
 
     LogMessageHelper log(tv);
-    log.format( L"Time_Value: %1% got in TASK %2%" ) % wstr % ACE_Thread::self();
+    log.format( L"Time_Value: %1% handled in TASK %2%" ) % wstr % ACE_Thread::self();
     ::EventLog::LogMessage& msg = log.get();
 
     acewrapper::scoped_mutex_t<> lock( mutex_ );    

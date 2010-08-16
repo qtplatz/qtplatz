@@ -4,6 +4,10 @@
 //////////////////////////////////////////
 
 #include "i8ttask.h"
+#include "tofsession.h"
+#include "marshal.hpp"
+#include "constants.h"
+
 #include <ace/Reactor.h>
 #include <acewrapper/constants.h>
 #include <acewrapper/mutex.hpp>
@@ -11,8 +15,8 @@
 #include <acewrapper/orbservant.h>
 #include <adinterface/receiverC.h>
 #include <orbsvcs/CosNamingC.h>
-#include "i8tmanager.h"
 #include <acewrapper/nameservice.h>
+
 
 using namespace tofcontroller;
 
@@ -121,10 +125,10 @@ i8tTask::handle_input( ACE_HANDLE )
 }
 
 void
-i8tTask::initialize()
+i8tTask::internal_initialize()
 {
-	acewrapper::ORBServant< tofcontroller::i8tManager_i >
-		* pServant = tofcontroller::singleton::i8tManager_i::instance();
+	acewrapper::ORBServant< tofcontroller::tofSession_i >
+		* pServant = tofcontroller::singleton::tofSession_i::instance();
 	CORBA::ORB_var orb = pServant->orb();
 
 	CORBA::Object_var obj;
@@ -150,7 +154,7 @@ i8tTask::initialize()
 int
 i8tTask::svc()
 {
-    initialize();
+	internal_initialize();
 	barrier_.wait();
 
 	for ( ;; ) {
@@ -176,25 +180,30 @@ i8tTask::svc()
 void
 i8tTask::doit( ACE_Message_Block * mblk )
 {
+	if ( mblk->msg_type() >= ACE_Message_Block::MB_USER ) {
+		switch( mblk->msg_type() ) {
+		case constants::MB_COMMAND:
+			dispatch_command( mblk );
+			break;
+		};
+	}
+}
+
+void
+i8tTask::dispatch_command( ACE_Message_Block * mblk )
+{
 /*
-    using namespace adbroker;
-
-	std::ostringstream o;
-
-    Message msg;
-    ACE_InputCDR cdr( mblk ); 
-    cdr >> msg;
-
-	o << "doit <" << ACE_Thread::self() << "> : src:" << msg.seqId_ << " dst:" << msg.dstId_ 
-		<< " cmd:" << msg.cmdId_ << " seq:" <<  msg.seqId_;
-
-	if ( msg.cmdId_ == Notify_Timeout ) {
-		ACE_Time_Value tv;
-        cdr >> tv;
-		o << " tv=" << acewrapper::to_string( tv );
-	}
-	for ( vector_type::iterator it = begin(); it != end(); ++it ) {
-		it->session_->echo( o.str().c_str() );
-	}
+	using namespace constants;
+	// SESSION_COMMAND cmd = static_cast<SESSION_COMMAND>( marshal<long>::get(mblk) );
+	switch( cmd ) {
+    case SESSION_INITIALIZE:
+		command_initialize();
+		break;
+	};
 */
+}
+
+void
+i8tTask::command_initialize()
+{
 }

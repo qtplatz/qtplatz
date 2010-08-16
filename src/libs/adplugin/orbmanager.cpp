@@ -62,6 +62,14 @@ ORBManager::getObject( const CosNaming::Name& name )
    return acewrapper::NS::resolve_name( nc, name );
 }
 
+CORBA::Object_ptr
+ORBManager::getObject( const std::wstring& naming )
+{
+   if ( ! orb_ )
+	   return 0;
+   return acewrapper::NS::resolve_name( orb_->orb(), naming );
+}
+
 adplugin::ORBManager * 
 ORBManager::instance()
 {

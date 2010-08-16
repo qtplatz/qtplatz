@@ -204,15 +204,45 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\i8tmanager.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\i8ttask.cpp"
 				>
 			</File>
 			<File
 				RelativePath="tofcontroller.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tofcontroller.idl"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I../libs -I$(TAO_ROOT) $(InputFileName)"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\tofcontrollerC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tofcontrollerS.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tofsession.cpp"
 				>
 			</File>
 		</Filter>
@@ -222,11 +252,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\i8tmanager.h"
+				RelativePath=".\constants.h"
 				>
 			</File>
 			<File
 				RelativePath=".\i8ttask.h"
+				>
+			</File>
+			<File
+				RelativePath=".\marshal.hpp"
 				>
 			</File>
 			<File
@@ -280,6 +314,18 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\tofcontrollerC.h"
+				>
+			</File>
+			<File
+				RelativePath=".\tofcontrollerS.h"
+				>
+			</File>
+			<File
+				RelativePath=".\tofsession.h"
+				>
 			</File>
 		</Filter>
 	</Files>

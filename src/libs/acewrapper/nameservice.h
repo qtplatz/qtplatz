@@ -20,6 +20,8 @@ namespace acewrapper {
 		static bool bind( CTX::_ptr_type nc, const CosNaming::Name& name, CORBA::Object_ptr );
 		static CORBA::Object_ptr resolve_name( CTX::_ptr_type nc, const CosNaming::Name& name );
 
+		static CORBA::Object_ptr resolve_name( CORBA::ORB_ptr orb, const std::wstring& name );
+
 		static bool register_name_service( CORBA::ORB_ptr orb, const CosNaming::Name& name, CORBA::Object_ptr obj );
 		static bool unregister_name_service( CORBA::ORB_ptr orb, const CosNaming::Name& name );
    

@@ -102,8 +102,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copy ExtensionSystemd.dll to ..\..\..\bin"
-				CommandLine="mkdir ..\..\..\bin;&#x0D;&#x0A;copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
+				Description="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
+				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
 			/>
 		</Configuration>
 		<Configuration
@@ -195,8 +195,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
-				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
+				Description="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
+				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
 			/>
 		</Configuration>
 	</Configurations>
@@ -561,6 +561,10 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
+				RelativePath=".\debug\qrc_pluginview.cpp"
+				>
+			</File>
+			<File
 				RelativePath="release\qrc_pluginview.cpp"
 				>
 				<FileConfiguration
@@ -571,10 +575,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\debug\qrc_pluginview.cpp"
-				>
 			</File>
 			<File
 				RelativePath="ui_plugindetailsview.h"

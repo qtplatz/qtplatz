@@ -108,7 +108,7 @@ adController::deactivate()
 	ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
 	pServant->deactivate();
 
-	adcontroller::singleton::iBrokerManager::instance()->terminate();
+	adcontroller::singleton::iBrokerManager::instance()->manager_terminate();
 
 	return true;
 }

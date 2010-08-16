@@ -8,6 +8,7 @@
 #define MONITOR_UI_H
 
 #include <adplugin/imonitor.h>
+#include <adportable/configuration.h>
 
 namespace Ui {
     class Form;
@@ -33,6 +34,7 @@ namespace adtofms {
 
 	public slots:
 	private:
+		adportable::Configuration config_;
 		Ui::Form *ui;
 	};
 

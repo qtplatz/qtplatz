@@ -162,17 +162,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     mode->setContext( context );
   else
     return false;
-/**
-  QList<QObject *> objs = ExtensionSystem::PluginManager::instance()->allObjects();
-  Q_FOREACH( QObject * obj, objs ) {
-      const char * name = obj->metaObject()->className();
-      if ( name ) {
-          long x = 0;
-      }
-  }
 
-  QObject::connect(ExtensionSystem::PluginManager::instance(), SIGNAL(objectAdded(QObject*)), this, SLOT(slotObjectAdded(QObject*)));
-*/
   manager_ = new AcquireUIManager(0);
   if ( manager_ )
     manager_->init();
@@ -331,6 +321,8 @@ AcquirePlugin::actionConnect()
                     res = connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
                     res = connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
                                    , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
+					if ( session_->status() <= ControlServer::eConfigured )
+						session_->initialize();
                 }
             }
         }

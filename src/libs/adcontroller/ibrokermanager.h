@@ -32,8 +32,8 @@ namespace adcontroller {
         IBrokerManager( const IBrokerManager& );  /* not defined */
         
     public:  
-        bool initialize();
-        void terminate();
+        bool manager_initialize();
+        void manager_terminate();
         
         inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
         ACE_Reactor * reactor();

@@ -28,6 +28,8 @@ namespace EventLog {
 
 namespace adcontroller {
 
+    class iProxy;
+
     class iBroker : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
         
         ~iBroker();
@@ -35,14 +37,20 @@ namespace adcontroller {
         
     public:  
         inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
-        
-        void reset_clock();
         bool open();
         void close();
-        bool connect( ControlServer::Session_ptr, Receiver_ptr );
+
+		//  instrument communication methods below
+        void reset_clock();
+		bool initialize();  // initialize hardware 
+        bool connect( ControlServer::Session_ptr, Receiver_ptr, const wchar_t * token );
         bool disconnect( ControlServer::Session_ptr, Receiver_ptr );
         bool setConfiguration( const wchar_t * xml );
         bool configComplete();
+
+		//
+		ControlServer::eStatus getStatusCurrent();
+		ControlServer::eStatus getStatusBeging(); 
         
         struct session_data {
             bool operator == ( const session_data& ) const;
@@ -82,10 +90,17 @@ namespace adcontroller {
         ACE_Recursive_Thread_Mutex mutex_;
         ACE_Barrier barrier_;
         size_t n_threads_;
-        
+
         bool internal_disconnect( ControlServer::Session_ptr );
         std::vector<session_data> session_set_;
         std::vector<session_data> session_failed_;
+
+		// 
+		typedef boost::shared_ptr< iProxy > proxy_ptr;
+		typedef std::vector< boost::shared_ptr<iProxy> > proxy_vector_type;
+		std::vector< boost::shared_ptr< iProxy > > proxies_;
+		::ControlServer::eStatus status_current_;
+		::ControlServer::eStatus status_being_;
     };
 
 } // namespace adcontroller

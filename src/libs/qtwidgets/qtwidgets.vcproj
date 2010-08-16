@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="qtwidgets"
 	ProjectGUID="{937F23D8-2A83-331A-A5DB-285C2A8ED6BA}"
+	RootNamespace="qtwidgets"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -76,7 +77,7 @@
 				AdditionalDependencies="QtTestd4.lib QtGuid4.lib QtCored4.lib"
 				OutputFile="..\..\..\lib\qtPlatz\plugins\ScienceLiaison\qtwidgetsd.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;C:/Users/thondo/src/qtPlatz/lib/qtPlatz;C:\Boost/lib;C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/ScienceLiaison;&quot;$(ACE_ROOT)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;../../../lib/qtPlatz;C:\Boost/lib;&quot;$(ACE_ROOT)\lib&quot;;&quot;$(TargetDir)&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="1"
@@ -102,8 +103,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copy qtwidgetsd.dll to ..\..\..\bin"
-				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
+				Description="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
+				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
 			/>
 		</Configuration>
 		<Configuration
@@ -169,7 +170,7 @@
 				OutputFile="..\..\..\lib\qtPlatz\plugins\ScienceLiaison\qtwidgets.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:\Boost/lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/ScienceLiaison"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;../../../lib/qtPlatz;C:\Boost/lib;&quot;$(ACE_ROOT)\lib&quot;;&quot;$(TargetDir)&quot;"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="2"
@@ -195,8 +196,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copy qtwidgets.dll to ..\..\..\bin"
-				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
+				Description="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
+				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
 			/>
 		</Configuration>
 	</Configurations>

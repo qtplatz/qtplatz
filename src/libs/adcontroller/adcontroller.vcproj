@@ -103,7 +103,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
-				CommandLine="mkdir ..\..\..\bin;&#x0D;&#x0A;copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;&#x0D;&#x0A;"
+				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
 			/>
 		</Configuration>
 		<Configuration
@@ -195,7 +195,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
-				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
+				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
 			/>
 		</Configuration>
 	</Configurations>
@@ -217,6 +217,10 @@
 			</File>
 			<File
 				RelativePath=".\ibrokermanager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\iproxy.cpp"
 				>
 			</File>
 			<File
@@ -311,6 +315,10 @@
 			</File>
 			<File
 				RelativePath=".\ibrokermanager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\iproxy.h"
 				>
 			</File>
 			<File

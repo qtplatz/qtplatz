@@ -66,7 +66,7 @@ session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
 
     // try connect to server
     iBroker * pBroker = singleton::iBrokerManager::instance()->get<iBroker>();
-    if ( ! pBroker->connect( _this(), receiver ) ) {
+	if ( ! pBroker->connect( _this(), receiver, token ) ) {
         throw ControlServer::Session::CannotAdd( L"receiver already exist" );
         return false;
     }
@@ -101,23 +101,25 @@ CORBA::Boolean
 session_i::initialize()
 {
     using namespace adcontroller::singleton;
-    iBrokerManager::instance()->initialize();
-    return iBrokerManager::instance()->get<iBroker>()->open();
+	//iBrokerManager::instance()->initialize();
+	//return iBrokerManager::instance()->get<iBroker>()->open();
+	return iBrokerManager::instance()->get<iBroker>()->initialize();
 }
 
 CORBA::Boolean
 session_i::shutdown()
 {
     using namespace adcontroller::singleton;
-    iBrokerManager::instance()->terminate();
+    iBrokerManager::instance()->manager_terminate();
     ACE_Thread_Manager::instance()->wait();
     return true;
 }
 
-CORBA::ULong
-session_i::get_status()
+::ControlServer::eStatus
+session_i::status()
 {
-    return false;
+    using namespace adcontroller::singleton;
+	return iBrokerManager::instance()->get<iBroker>()->getStatusCurrent();
 }
 
 CORBA::Boolean

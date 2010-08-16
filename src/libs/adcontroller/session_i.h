@@ -23,7 +23,7 @@ namespace adcontroller {
         ::CORBA::Boolean disconnect( Receiver_ptr receiver );
 		::CORBA::Boolean setConfiguration( const CORBA::WChar * xml );
         ::CORBA::Boolean configComplete();
-        ::CORBA::ULong get_status();
+		::ControlServer::eStatus status();
         ::CORBA::Boolean initialize();
         ::CORBA::Boolean shutdown();
         ::CORBA::Boolean echo( const CORBA::Char * msg );

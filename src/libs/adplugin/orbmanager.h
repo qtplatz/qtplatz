@@ -13,6 +13,8 @@
 # include <ace/Recursive_Thread_Mutex.h>
 #pragma warning (default: 4996)
 
+#include <string>
+
 template<class T, class M> class ACE_Singleton;
 
 class TAO_ORB_Manager;
@@ -26,10 +28,12 @@ namespace adplugin {
 	class ADPLUGINSHARED_EXPORT ORBManager {
 		~ORBManager();
 		ORBManager();
+
 	public:
 		int init( int argc, char * argv[] );
 		CORBA::ORB_ptr orb();
 		CORBA::Object_ptr getObject( const CosNaming::Name& );
+		CORBA::Object_ptr getObject( const std::wstring& );
 
         static ORBManager * instance();
 

@@ -56,15 +56,17 @@ IBrokerManager::IBrokerManager() : pBroker_(0)
 }
 
 bool
-IBrokerManager::initialize()
+IBrokerManager::manager_initialize()
 {
 	if ( timerHandler_ == 0 ) {
 		acewrapper::scoped_mutex_t<> lock( mutex_ );
 		if ( timerHandler_ == 0 ) {
+			// initialize timer
 			timerHandler_ = new acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> >();
 			ACE_Reactor * reactor = singleton::iBrokerManager::instance()->reactor();
 			reactor->schedule_timer( timerHandler_, 0, ACE_Time_Value(3), ACE_Time_Value(3) );
 		}
+		// activate task
 		pBroker_->open();
 		return true;
 	}
@@ -72,7 +74,7 @@ IBrokerManager::initialize()
 }
 
 void
-IBrokerManager::terminate()
+IBrokerManager::manager_terminate()
 {
 	if ( timerHandler_ ) {
 		acewrapper::scoped_mutex_t<> lock( mutex_ );
