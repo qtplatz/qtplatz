@@ -13,7 +13,7 @@
 #include <adinterface/receiverS.h>
 #include <QtCore/qplugin.h>
 #include <adinterface/eventlog_helper.h>
-
+#include <qtwrapper/qstring.h>
 
 using namespace adtofms;
 
@@ -99,7 +99,7 @@ monitor_ui::OnFinalClose()
 void
 monitor_ui::handle_clicked()
 {
-    pTof_->tof->tof_debug( L"monitor_ui::handle_clicked()" );
+    pTof_->tof->tof_debug( L"monitor_ui::handle_clicked()", L"monitor_ui" );
 }
 
 // call from ui
@@ -152,19 +152,26 @@ TOF::log( const EventLog::LogMessage& log )
 {
     std::wstring text = adinterface::EventLog::LogMessageHelper::toString( log );
     if ( parent_.ui ) {
-        std::string stext( text.size() + 1, '\0' );
-        std::copy( text.begin(), text.end(), stext.begin() );
 
-        TreeModel& model = *treeModel_;
-        // int row = model.findParent( remote_addr.c_str() );
-        // if ( row >= 0 ) {
-        int row = 0;
-        QModelIndex index = model.index( row, 0 );
-        int childRow = model.rowCount( index );
-        model.insertRow( childRow, index );
-        model.setData( model.index( childRow, 0, index ), "0.0.0.0" );
-        model.setData( model.index( childRow, 2, index ), stext.c_str() );
-        // }
+		QString key = qtwrapper::qstring::copy( log.srcId.in() );
+		QString qtext = qtwrapper::qstring::copy( text );
+
+		TreeModel& model = *treeModel_;
+
+		int row = model.findParent( key );
+		if ( row < 0 ) {
+			row = model.rowCount();
+            model.insertRow( row );
+            QModelIndex parentIndex = model.index( row, 0 );
+            model.setData( parentIndex, key );
+			model.setData( model.index( row, 2 ), qtext );
+		} else {
+			QModelIndex index = model.index( row, 0 );
+			int childRow = model.rowCount( index );
+			model.insertRow( childRow, index );
+			model.setData( model.index( childRow, 0, index ), key );
+			model.setData( model.index( childRow, 2, index ), qtext );
+		}
     }
 }
 

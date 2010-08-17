@@ -24,11 +24,11 @@
 #include <sstream>
 #include "eventreceiver.h"
 #include <boost/lexical_cast.hpp>
-#include <acewrapper/lifecycle_frame_serializer.h>
 #include "treemodel.h"
 #include "deviceproxy.h"
 #include "devicetext.h"
 #include "../device_emulator/reactor_thread.h"
+#include <acewrapper/lifecycle_frame_serializer.h>
 
 using namespace adportable::protocol;
 using namespace acewrapper;

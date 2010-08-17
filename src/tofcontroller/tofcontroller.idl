@@ -7,7 +7,7 @@ module TOFInstrument {
 
   interface TofSession : Instrument::Session {
       wstring tof_software_revision();
-      void tof_debug( in wstring text );
+      void tof_debug( in wstring text, in wstring key );
   };
 
 };

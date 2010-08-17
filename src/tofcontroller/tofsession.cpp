@@ -92,24 +92,28 @@ tofSession_i::echo (const char * msg)
 CORBA::Boolean 
 tofSession_i::shell (const char * cmdline)
 {
+    ACE_UNUSED_ARG( cmdline );
     return false;
 }
 
 CORBA::Boolean 
 tofSession_i::prepare_for_run ( ControlMethod::Method_ptr m )
 {
+    ACE_UNUSED_ARG( m );
     return false;
 }
 
 CORBA::Boolean 
 tofSession_i::push_back ( SampleBroker::SampleSequence_ptr s )
 {
+    ACE_UNUSED_ARG( s );
     return false;
 }
 
 CORBA::Boolean 
 tofSession_i::event_out ( CORBA::ULong event)
 {
+    ACE_UNUSED_ARG( event );
     return false;
 }
 
@@ -145,12 +149,12 @@ tofSession_i::tof_software_revision (void)
 }
 
 void
-tofSession_i::tof_debug( const CORBA::WChar * text )
+tofSession_i::tof_debug( const CORBA::WChar * text, const CORBA::WChar * key )
 {
-    size_t len = wcslen( text );
-    ACE_Message_Block *mb = new ACE_Message_Block( (len + 1) * sizeof(wchar_t) );
-
-    wcscpy( reinterpret_cast<wchar_t *>(mb->wr_ptr()), text );
+    ACE_OutputCDR cdr;
+    cdr.write_wstring( text );
+    cdr.write_wstring( key );
+    ACE_Message_Block * mb = cdr.begin()->duplicate();
     mb->msg_type( constants::MB_DEBUG );
     pTask_->putq( mb );
 }

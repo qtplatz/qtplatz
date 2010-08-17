@@ -34,7 +34,7 @@ namespace tofcontroller {
 
         // POA_TOFInstrument::TofSession
 		CORBA::WChar * tof_software_revision (void);
-        void tof_debug( const CORBA::WChar * text );
+		void tof_debug( const CORBA::WChar * text, const CORBA::WChar * key );
 
 		// POA_Instrument::Session
 		CORBA::WChar * software_revision (void);

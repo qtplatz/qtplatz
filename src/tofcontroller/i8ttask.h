@@ -15,10 +15,19 @@
 #include <adinterface/controlserverC.h>
 #include <adinterface/brokerC.h>
 #include <vector>
+#include <acewrapper/mcasthandler.h>
+#include <acewrapper/dgramhandler.h>
 
 class ACE_Recursive_Thread_Mutex;
 class ACE_Notification_Strategy;
 class ACE_Reactor;
+
+namespace acewrapper {
+    class ReactorThread;
+    class DgramHandler;
+    class McastHandler;
+    class TimerHandler;
+}
 
 namespace tofcontroller {
 	
@@ -38,13 +47,20 @@ namespace tofcontroller {
 	private:
         // ACE_Task
 		virtual int handle_input( ACE_HANDLE );
+		virtual int handle_timeout( const ACE_Time_Value& tv, const void * arg );
 		virtual int svc();
 		// <--
         void doit( ACE_Message_Block * );
-        int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );
         void internal_initialize();
+		bool internal_initialize_reactor();
+		bool internal_initialize_timer();
+		bool internal_initialize_mcast();
+		bool internal_initialize_dgram();
 
         void dispatch_command( ACE_Message_Block * );
+        void dispatch_debug( ACE_Message_Block * );
+        void dispatch_mcast( ACE_Message_Block * );
+        void dispatch_dgram( ACE_Message_Block * );
         void command_initialize();
 
     private:
@@ -66,6 +82,9 @@ namespace tofcontroller {
         vector_type receiver_set_;
 		Broker::Logger_var logger_;
 		std::wstring configXML_;
+		boost::scoped_ptr< acewrapper::ReactorThread > reactor_thread_;
+		boost::scoped_ptr< acewrapper::McastHandler > mcast_handler_;
+		boost::scoped_ptr< acewrapper::DgramHandler > dgram_handler_;
     };
   
 }

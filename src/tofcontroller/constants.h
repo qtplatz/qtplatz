@@ -17,6 +17,8 @@ namespace tofcontroller {
             , MB_TIME_VALUE
 			, MB_COMMAND
             , MB_DEBUG
+			, MB_MCAST
+			, MB_DGRAM
         };
 
         enum SESSION_COMMAND {
