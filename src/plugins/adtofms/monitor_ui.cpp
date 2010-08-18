@@ -22,7 +22,6 @@ namespace adtofms {
         
         class TOF : public POA_Receiver {
             monitor_ui& parent_;
-            TreeModel * treeModel_;
         public:
             ~TOF();
             TOF( monitor_ui& t );
@@ -41,15 +40,23 @@ namespace adtofms {
 monitor_ui::monitor_ui(QWidget *parent) : IMonitor(parent)
                                         , ui(new Ui::Form)
                                         , pTof_(0)
+                                        , treeModel_( new TreeModel )
 {
     ui->setupUi(this);
     pTof_ = new impl::TOF(*this);
     connect( this, SIGNAL( signal_pushButton_clicked() ), this, SLOT( handle_clicked() ) );
+
+    connect( this, SIGNAL( signal_log(QString, QString) ), this, SLOT( handle_log( QString, QString ) ) );
+
+    ui->treeView->setModel( treeModel_ );
+    for ( int column = 0; column < treeModel_->columnCount(); ++column )
+        ui->treeView->resizeColumnToContents( column );
 }
 
 monitor_ui::~monitor_ui()
 {
     delete ui;
+    delete treeModel_;
 }
 
 void
@@ -102,6 +109,33 @@ monitor_ui::handle_clicked()
     pTof_->tof->tof_debug( L"monitor_ui::handle_clicked()", L"monitor_ui" );
 }
 
+void
+monitor_ui::handle_log( QString qtext, QString key )
+{
+    TreeModel& model = *treeModel_;
+
+    int row = model.findParent( key );
+    if ( row < 0 ) {
+        row = model.rowCount();
+        model.insertRow( row );
+        QModelIndex parentIndex = model.index( row, 0 );
+        model.setData( parentIndex, key );
+        model.setData( model.index( row, 2 ), qtext );
+    } else {
+        QModelIndex index = model.index( row, 0 );
+        int childRow = model.rowCount( index );
+        model.insertRow( childRow, index );
+        model.setData( model.index( childRow, 0, index ), key );
+        model.setData( model.index( childRow, 2, index ), qtext );
+    }
+}
+
+void
+monitor_ui::slot_log( QString text, QString key )
+{
+    emit signal_log( text, key );
+}
+
 // call from ui
 void
 monitor_ui::on_pushButton_clicked()
@@ -117,29 +151,10 @@ using namespace adtofms::impl;
 
 TOF::~TOF()
 {
-    delete treeModel_;
 }
 
 TOF::TOF( monitor_ui& t ) : parent_(t)
-                          , treeModel_(0)
 {
-    treeModel_ = new TreeModel();
-    parent_.ui->treeView->setModel( treeModel_ );
-
-    for ( int column = 0; column < treeModel_->columnCount(); ++column )
-        parent_.ui->treeView->resizeColumnToContents( column );
-
-    //------ test --------
-    TreeModel& model = *treeModel_;
-    // int row = model.findParent( remote_addr.c_str() );
-    // if ( row >= 0 ) {
-    int row = 0;
-        QModelIndex index = model.index( row, 0 );
-        int childRow = model.rowCount( index );
-        model.insertRow( childRow, index );
-        model.setData( model.index( childRow, 0, index ), "0.0.0.0" );
-        model.setData( model.index( childRow, 2, index ), "description" );
-        // }
 }
 
 void
@@ -154,8 +169,12 @@ TOF::log( const EventLog::LogMessage& log )
     if ( parent_.ui ) {
 
 		QString key = qtwrapper::qstring::copy( log.srcId.in() );
+        if ( key.isEmpty() )
+            return;
 		QString qtext = qtwrapper::qstring::copy( text );
 
+        parent_.slot_log( qtext, key );
+        /*
 		TreeModel& model = *treeModel_;
 
 		int row = model.findParent( key );
@@ -172,6 +191,7 @@ TOF::log( const EventLog::LogMessage& log )
 			model.setData( model.index( childRow, 0, index ), key );
 			model.setData( model.index( childRow, 2, index ), qtext );
 		}
+        */
     }
 }
 
@@ -183,15 +203,5 @@ TOF::shutdown()
 void
 TOF::debug_print( CORBA::Long pri, CORBA::Long cat, const char * text )
 {
-    TreeModel& model = *treeModel_;
-    // int row = model.findParent( remote_addr.c_str() );
-    // if ( row >= 0 ) {
-    int row = 0;
-    QModelIndex index = model.index( row, 0 );
-    int childRow = model.rowCount( index );
-    model.insertRow( childRow, index );
-    model.setData( model.index( childRow, 0, index ), "0.0.0.0" );
-    model.setData( model.index( childRow, 2, index ), text );
-    // }
 }
 

@@ -128,7 +128,7 @@ DeviceProxy::check_hello_and_create( ACE_Message_Block * mb
 #if defined _DEBUG
 				// std::wstring key = adportable::string::convert( acewrapper::string( from_addr ) );
 				std::wstring text = adportable::string::convert( LifeCycleHelper::to_string( data ) );
-				task->dispatch_debug( text, p->name() );
+                task->dispatch_debug( text, p->name() );
 #endif
 				return p; // error should be handled by caller
 			}
@@ -232,8 +232,8 @@ DeviceProxy::handle_data( unsigned long clsid, TAO_InputCDR& cdr )
 		cdr >> e;
               
 		std::wostringstream o;
-		o << L"event#" << e.eventId_ << L", value=" << e.eventValue_;
-		pTask_->dispatch_debug( o.str(), name() );
+        o << L"event#" << e.eventId_ << L", value=" << e.eventValue_;
+        pTask_->dispatch_debug( o.str(), name() );
 	}
 	return true;
 }

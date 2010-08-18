@@ -7,6 +7,7 @@
 #include <adplugin/adplugin.h>
 #include <QtCore/qplugin.h>
 #include "monitor_ui.h"
+#include "debug_ui.h"
 
 using namespace adtofms;
 
@@ -20,6 +21,9 @@ factory_impl::create_widget( const wchar_t * iid, QWidget * parent )
 {
 	if ( std::wstring( iid ) == adplugin::iid_iMonitor ) {
 		return new monitor_ui( parent );
+	}
+    if ( std::wstring( iid ) == L"adplugin::ui::iMonitor2" ) {
+		return new debug_ui( parent );
 	}
 	return 0;
 }

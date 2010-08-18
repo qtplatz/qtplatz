@@ -16,13 +16,16 @@ DEFINES += ADTOFMS_LIBRARY
 SOURCES += adtofms.cpp \
     monitor_ui.cpp \
     factory_impl.cpp \
-    form.cpp
+    form.cpp \
+    debug_ui.cpp
 
 HEADERS += adtofms.h\
         adtofms_global.h \
     monitor_ui.h \
     factory_impl.h \
-    form.h
+    form.h \
+    debug_ui.h
 
 FORMS += \
-    form.ui
+    form.ui \
+    debug_ui.ui

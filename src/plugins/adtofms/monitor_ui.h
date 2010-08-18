@@ -14,6 +14,8 @@ namespace Ui {
     class Form;
 }
 
+class TreeModel;
+
 namespace adtofms {
 
     namespace impl{
@@ -36,15 +38,20 @@ namespace adtofms {
         
     signals:
         void signal_pushButton_clicked();
+        void signal_log( QString, QString );
         
     public slots:
         void handle_clicked();
         void on_pushButton_clicked();
+        void slot_log( QString, QString );
+    private slots:
+        void handle_log( QString, QString );
     private:
         friend impl::TOF;
         adportable::Configuration config_;
         impl::TOF * pTof_;
         Ui::Form * ui;
+        TreeModel * treeModel_;
     };
     
 }
