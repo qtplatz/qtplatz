@@ -15,6 +15,7 @@
 #include <adinterface/controlserverC.h>
 #include <adinterface/brokerC.h>
 #include <vector>
+#include <map>
 #include <acewrapper/mcasthandler.h>
 #include <acewrapper/dgramhandler.h>
 
@@ -30,6 +31,8 @@ namespace acewrapper {
 }
 
 namespace tofcontroller {
+
+    class DeviceProxy;
 	
     class i8tTask : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
     public:
@@ -55,13 +58,16 @@ namespace tofcontroller {
 		bool internal_initialize_reactor();
 		bool internal_initialize_timer();
 		bool internal_initialize_mcast();
-		bool internal_initialize_dgram();
 
         void dispatch_command( ACE_Message_Block * );
         void dispatch_debug( ACE_Message_Block * );
         void dispatch_mcast( ACE_Message_Block * );
         void dispatch_dgram( ACE_Message_Block * );
         void command_initialize();
+
+    public:
+        void dispatch_debug( const std::wstring& text, const std::wstring& key );
+		typedef std::map< std::wstring, boost::shared_ptr< DeviceProxy > > map_type;
 
     private:
         ACE_Recursive_Thread_Mutex mutex_;
@@ -84,7 +90,7 @@ namespace tofcontroller {
 		std::wstring configXML_;
 		boost::scoped_ptr< acewrapper::ReactorThread > reactor_thread_;
 		boost::scoped_ptr< acewrapper::McastHandler > mcast_handler_;
-		boost::scoped_ptr< acewrapper::DgramHandler > dgram_handler_;
+		map_type device_proxies_;
     };
   
 }

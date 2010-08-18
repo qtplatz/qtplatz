@@ -7,6 +7,7 @@
 #include "tofsession.h"
 #include "marshal.hpp"
 #include "constants.h"
+#include "deviceproxy.h"
 
 #include <ace/Reactor.h>
 #include <acewrapper/constants.h>
@@ -136,11 +137,6 @@ i8tTask::handle_input( ACE_HANDLE h )
 		mb->msg_type( constants::MB_MCAST );
 		res = mcast_handler_->recv( mb->wr_ptr(), size, *addr );
 
-	} else if ( dgram_handler_ && ( h == dgram_handler_->get_handle() ) ) {
-
-		mb->msg_type( constants::MB_DGRAM );
-		res = dgram_handler_->recv( mb->wr_ptr(), size, *addr );
-
 	}
 	if ( res == (-1) ) {
 		DWORD err = GetLastError();
@@ -183,7 +179,7 @@ i8tTask::internal_initialize()
 	}
 	internal_initialize_timer();
 	internal_initialize_mcast();
-	internal_initialize_dgram();
+	// internal_initialize_dgram();
 }
 
 bool
@@ -217,24 +213,6 @@ i8tTask::internal_initialize_mcast()
 		mcast_handler_.reset( new acewrapper::McastHandler() );
 		if ( mcast_handler_->open() )
 			reactor()->register_handler( mcast_handler_->get_handle(), this, ACE_Event_Handler::READ_MASK );
-	}
-	return true;
-}
-
-bool
-i8tTask::internal_initialize_dgram()
-{
-	if ( ! reactor() )
-		internal_initialize_reactor();
-
-	if ( ! dgram_handler_ ) {
-		dgram_handler_.reset( new acewrapper::DgramHandler() );
-        int port = 6000;
-        while ( ! dgram_handler_->open( port++ ) && port < 6999 )
-			;
-		if ( port >= 6999 )
-			return false;
-		reactor()->register_handler( dgram_handler_->get_handle(), this, ACE_Event_Handler::READ_MASK );
 	}
 	return true;
 }
@@ -305,6 +283,19 @@ i8tTask::dispatch_command( ACE_Message_Block * mblk )
 }
 
 void
+i8tTask::dispatch_debug( const std::wstring& text, const std::wstring& key )
+{
+	::EventLog::LogMessage log;
+	log.tv.sec = 0;
+	log.tv.usec = 0;
+	log.srcId = key.c_str();
+	log.format = text.c_str();
+	for ( vector_type::iterator it = receiver_set_.begin(); it != receiver_set_.end(); ++it ) {
+		it->receiver_->log( log );
+	}
+}
+
+void
 i8tTask::dispatch_debug( ACE_Message_Block * mblk )
 {
 	ACE_InputCDR cdr( mblk );
@@ -330,29 +321,11 @@ i8tTask::dispatch_mcast( ACE_Message_Block * mb )
 
 	std::wstring key = adportable::string::convert( acewrapper::string( from_addr ) );
 
-	using namespace adportable::protocol;
-	using namespace acewrapper;
-	LifeCycleData data;
-	LifeCycleFrame frame;
-   
-	if ( lifecycle_frame_serializer::unpack( mb, frame, data ) ) {
-		try {
-			LifeCycle_Hello& hello = boost::get< LifeCycle_Hello& >(data);
-			ACE_INET_Addr addr;
-			addr.string_to_addr( hello.ipaddr_.c_str() );
-			if ( addr.get_ip_address() == 0 ) {
-				addr = from_addr;
-				addr.set_port_number( hello.portnumber_ );
-			}
-			std::wstring text = adportable::string::convert( LifeCycleHelper::to_string( data ) );
-            ACE_OutputCDR cdr;
-            cdr.write_wstring( text.c_str() );
-            cdr.write_wstring( key.c_str() );
-            ACE_Message_Block * mblk = cdr.begin()->duplicate();
-			mblk->msg_type( constants::MB_DEBUG );
-            putq( mblk );
-			// multicast_update_device( addr, frame, data );
-		} catch ( std::bad_cast& ) {
+	DeviceProxy * proxy = DeviceProxy::check_hello_and_create( mb, from_addr, this );
+	if ( proxy && ! proxy->name().empty() ) {
+		device_proxies_[ proxy->name() ].reset( proxy );
+		if ( proxy->initialize_dgram() ) {
+			reactor()->register_handler( proxy->get_handle(), proxy, ACE_Event_Handler::READ_MASK );
 		}
 	}
 }

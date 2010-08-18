@@ -3,6 +3,12 @@
 
 #include "../libs/adinterface/instrument.idl"
 
+module TOFConstants {
+	const unsigned long ClassID_MSMethod        = 0x10010001;
+	const unsigned long ClassID_IonSourceMethod = 0x10010002;
+	const unsigned long ClassID_InstEvent       = 0x10020001;
+};
+
 module TOFInstrument {
 
   interface TofSession : Instrument::Session {
