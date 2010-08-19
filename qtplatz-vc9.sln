@@ -9,8 +9,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qtPlatz", "src\app\qtPlatz.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_serializer", "src\test_serializer\test_serializer.vcproj", "{A449910D-3EF3-31BE-B544-CC7EF69F607B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "controller", "src\controller\controller.vcproj", "{817821F6-4347-3AB2-AB58-1A4BF1D4CF6E}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "device_emulator", "src\device_emulator\device_emulator.vcproj", "{A67FE99E-EB04-3411-A5E8-7B0EBD49E09B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "phony_target2", "share\qtplatz\translations\phony_target2.vcproj", "{12E12EAC-1C7E-35E9-BE30-390598242AE9}"
@@ -192,10 +190,6 @@ Global
 		{A449910D-3EF3-31BE-B544-CC7EF69F607B}.Debug|Win32.Build.0 = Debug|Win32
 		{A449910D-3EF3-31BE-B544-CC7EF69F607B}.Release|Win32.ActiveCfg = Release|Win32
 		{A449910D-3EF3-31BE-B544-CC7EF69F607B}.Release|Win32.Build.0 = Release|Win32
-		{817821F6-4347-3AB2-AB58-1A4BF1D4CF6E}.Debug|Win32.ActiveCfg = Debug|Win32
-		{817821F6-4347-3AB2-AB58-1A4BF1D4CF6E}.Debug|Win32.Build.0 = Debug|Win32
-		{817821F6-4347-3AB2-AB58-1A4BF1D4CF6E}.Release|Win32.ActiveCfg = Release|Win32
-		{817821F6-4347-3AB2-AB58-1A4BF1D4CF6E}.Release|Win32.Build.0 = Release|Win32
 		{A67FE99E-EB04-3411-A5E8-7B0EBD49E09B}.Debug|Win32.ActiveCfg = Debug|Win32
 		{A67FE99E-EB04-3411-A5E8-7B0EBD49E09B}.Debug|Win32.Build.0 = Debug|Win32
 		{A67FE99E-EB04-3411-A5E8-7B0EBD49E09B}.Release|Win32.ActiveCfg = Release|Win32

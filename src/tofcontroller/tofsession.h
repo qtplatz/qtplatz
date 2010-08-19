@@ -35,6 +35,11 @@ namespace tofcontroller {
         // POA_TOFInstrument::TofSession
 		CORBA::WChar * tof_software_revision (void);
 		void tof_debug( const CORBA::WChar * text, const CORBA::WChar * key );
+		void setADConfigurations( const TOFInstrument::ADConfigurations& config );
+		bool getADConfigurations( TOFInstrument::ADConfigurations_out config );
+
+		void setAnalyzerDeviceData( const TOFInstrument::AnalyzerDeviceData& data );
+		bool getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData_out data );
 
 		// POA_Instrument::Session
 		CORBA::WChar * software_revision (void);

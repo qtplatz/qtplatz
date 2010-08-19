@@ -168,6 +168,8 @@ namespace adportable {
 			}
 			bool apply_command( LifeCycleCommand cmd, LifeCycleState& );
 			bool dispatch_received_data( const LifeCycleData& data, LifeCycleState&, LifeCycleCommand& );
+			void force_close();
+
 			inline unsigned short remote_sequence() const { return remote_sequence_; }
 			inline unsigned short local_sequence() const { return local_sequence_; }
 			inline unsigned short local_sequence_post_increment() { return local_sequence_++; }
@@ -184,6 +186,11 @@ namespace adportable {
 }
 
 //////////////////////
+void
+LifeCycleImpl::force_close()
+{
+	cycle_ = LifeCycle_Closed();
+}
 
 bool
 LifeCycleImpl::apply_command( LifeCycleCommand cmd, LifeCycleState& state )
@@ -471,6 +478,12 @@ void
 LifeCycle::remote_sequence( unsigned short value )
 {
 	pImpl_->remote_sequence(value);
+}
+
+void
+LifeCycle::force_close()
+{
+	pImpl_->force_close();
 }
 
 

@@ -14,6 +14,7 @@
 class ACE_Message_Block;
 class ACE_Time_Value;
 class TAO_InputCDR;
+class TAO_OutputCDR;
 
 namespace acewrapper {
     class DgramHandler;
@@ -35,6 +36,9 @@ namespace tofcontroller {
         static DeviceProxy * check_hello_and_create( ACE_Message_Block * mb
 			                                       , const ACE_INET_Addr& from
 												   , i8tTask * task);
+
+		bool prepare_data( TAO_OutputCDR& );
+		bool sendto( ACE_Message_Block * );
 
 		// ACE_Event_Handler
 		virtual ACE_HANDLE get_handle() const;

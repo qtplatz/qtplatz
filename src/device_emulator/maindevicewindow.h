@@ -25,7 +25,7 @@ namespace acewrapper {
     template<class T> class TimerReceiver;
 }
 
-class MainDeviceWindow;
+// class MainDeviceWindow;
 class ACE_Reactor;
 class ACE_Time_Value;
 class ACE_INET_Addr;
@@ -33,49 +33,53 @@ class ACE_Message_Block;
 
 class QEventReceiver;
 
-class MainDeviceWindow : public QMainWindow {
-    Q_OBJECT
+namespace device_emulator {
 
-public:
-    explicit MainDeviceWindow(QWidget *parent = 0);
-    ~MainDeviceWindow();
-    void mcast_init();
-    void initial_update();
+	class MainDeviceWindow : public QMainWindow {
+		Q_OBJECT
 
-protected:
-    void closeEvent(QCloseEvent *);
+	public:
+		explicit MainDeviceWindow(QWidget *parent = 0);
+		~MainDeviceWindow();
+		void mcast_init();
+		void initial_update();
 
-private:
-    Ui::MainDeviceWindow *ui;
+	protected:
+		void closeEvent(QCloseEvent *);
 
-    // device will handle one unicast data gram
-    boost::shared_ptr< acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> > > dgramHandler_;
+	private:
+		Ui::MainDeviceWindow *ui;
 
-    // mcast dgram, which is a counterpart to controller
-    boost::shared_ptr< acewrapper::EventHandler< acewrapper::McastReceiver<QEventReceiver> > > mcastHandler_;
-    boost::shared_ptr< acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> > > timerHandler_;
+		// device will handle one unicast data gram
+		boost::shared_ptr< acewrapper::EventHandler< acewrapper::DgramReceiver<QEventReceiver> > > dgramHandler_;
 
-	unsigned long timerId_;
-    adportable::protocol::LifeCycleFrame lifeCycleFrame_hello_;
-    adportable::protocol::LifeCycle_Hello lifeCycleData_hello_;
+		// mcast dgram, which is a counterpart to controller
+		boost::shared_ptr< acewrapper::EventHandler< acewrapper::McastReceiver<QEventReceiver> > > mcastHandler_;
+		boost::shared_ptr< acewrapper::EventHandler< acewrapper::TimerReceiver<QEventReceiver> > > timerHandler_;
 
-private slots:
-    void on_pushDisconnect_clicked();
-    void on_checkBoxAnalyzer_stateChanged(int );
-    void on_checkBoxIonSource_stateChanged(int );
-    void on_checkBoxAverager_stateChanged(int );
-    void on_dismisButton_clicked();
-    void on_pushInit_clicked();
-    void on_pushHello_clicked();
-    void on_notify_mcast( ACE_Message_Block * mb );
-    void on_notify_dgram( ACE_Message_Block * mb );
-    void on_notify_timeout( unsigned long, long );
+		unsigned long timerId_;
+		adportable::protocol::LifeCycleFrame lifeCycleFrame_hello_;
+		adportable::protocol::LifeCycle_Hello lifeCycleData_hello_;
 
-    // device_facade notifications
-    void handle_device_attached( std::string device );
-    void handle_device_detached( std::string device );
-    void handle_send_dgram( ACE_Message_Block * );
-    void handle_debug( QString );
-};
+		void dispatch_data( ACE_Message_Block * mb );
 
+		private slots:
+			void on_pushDisconnect_clicked();
+			void on_checkBoxAnalyzer_stateChanged(int );
+			void on_checkBoxIonSource_stateChanged(int );
+			void on_checkBoxAverager_stateChanged(int );
+			void on_dismisButton_clicked();
+			void on_pushInit_clicked();
+			void on_pushHello_clicked();
+			void on_notify_mcast( ACE_Message_Block * mb );
+			void on_notify_dgram( ACE_Message_Block * mb );
+			void on_notify_timeout( unsigned long, long );
+
+			// device_facade notifications
+			void handle_device_attached( std::string device );
+			void handle_device_detached( std::string device );
+			void handle_send_dgram( ACE_Message_Block * );
+			void handle_debug( QString );
+	};
+}
 #endif // MAINDEVICEWINDOW_H

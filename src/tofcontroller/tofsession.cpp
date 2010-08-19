@@ -3,8 +3,8 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "tofsession.h"
 #include "i8ttask.h"
+#include "tofsession.h"
 #include "marshal.hpp"
 #include "constants.h"
 #include <acewrapper/mutex.hpp>
@@ -158,3 +158,32 @@ tofSession_i::tof_debug( const CORBA::WChar * text, const CORBA::WChar * key )
     mb->msg_type( constants::MB_DEBUG );
     pTask_->putq( mb );
 }
+
+void
+tofSession_i::setADConfigurations( const TOFInstrument::ADConfigurations& config )
+{
+	pTask_->adConfiguration( config );
+}
+
+bool
+tofSession_i::getADConfigurations( TOFInstrument::ADConfigurations_out config )
+{
+	(void)config;
+	return true; //pTask_->adConfiguration( *config );
+}
+
+void
+tofSession_i::setAnalyzerDeviceData( const TOFInstrument::AnalyzerDeviceData& data )
+{
+	pTask_->setAnalyzerDeviceData( data );
+}
+
+bool
+tofSession_i::getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData_out data )
+{
+	data = new TOFInstrument::AnalyzerDeviceData();
+	return pTask_->getAnalyzerDeviceData( *data );
+}
+
+//////////////////////////////
+

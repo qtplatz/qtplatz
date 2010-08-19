@@ -85,16 +85,12 @@ DeviceProxy::handle_timeout( const ACE_Time_Value& current_time, const void * ac
 
             static int count = 1;        
 
-			A_Dummy_MSMethod::IonSourceMethod m;
-            A_Dummy_MSMethod::ESIMethod esi;
-
-            esi.nebulizing1_flow_ = 1.0 + double(count++) / 100;
-            esi.nebulizing2_flow_ = 2.0;
-            esi.needle1_voltage_ = 1000.0 + double(count) / 10;
-            esi.needle2_voltage_ = 2000.0;
-            m.esi_( esi );
-			tao_cdr << TOFConstants::ClassID_IonSourceMethod;
-            tao_cdr << m;
+			TOFInstrument::AnalyzerDeviceData data;
+            // todo 
+			// initialize data
+     
+			tao_cdr << TOFConstants::ClassID_AnalyzerDeviceData;
+            tao_cdr << data;
 
 			dgram_handler_->send( tao_cdr.begin()->rd_ptr(), tao_cdr.length(), remote_addr_ );
         }
@@ -136,6 +132,20 @@ DeviceProxy::check_hello_and_create( ACE_Message_Block * mb
 		}
 	}
     return 0;
+}
+
+bool
+DeviceProxy::sendto( ACE_Message_Block * mb )
+{
+	if ( ! dgram_handler_ )
+		return false;
+	size_t res = dgram_handler_->send( mb->rd_ptr(), mb->length(), remote_addr_ );
+	if ( res != (-1) && ( res == mb->length() ) ) {
+        // todo
+        // wait ack
+		return true;
+	}
+	return false;
 }
 
 bool
@@ -228,7 +238,7 @@ bool
 DeviceProxy::handle_data( unsigned long clsid, TAO_InputCDR& cdr )
 {
 	if ( clsid == TOFConstants::ClassID_InstEvent ) {
-		A_Dummy_MSMethod::InstEvent e;
+		TOFInstrument::InstEvent e;
 		cdr >> e;
               
 		std::wostringstream o;
@@ -236,4 +246,17 @@ DeviceProxy::handle_data( unsigned long clsid, TAO_InputCDR& cdr )
         pTask_->dispatch_debug( o.str(), name() );
 	}
 	return true;
+}
+
+bool
+DeviceProxy::prepare_data( TAO_OutputCDR& out )
+{
+	acewrapper::OutputCDR cdr( out );
+
+	adportable::protocol::LifeCycleData data;
+	if ( lifeCycle_.prepare_data( data ) ) {
+		acewrapper::lifecycle_frame_serializer::pack( cdr, data );
+		return true;
+	}
+	return false;
 }

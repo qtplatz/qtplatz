@@ -37,11 +37,16 @@
 // #include <ace/Singleton.h>
 #include "roleanalyzer.h"
 #include "roleaverager.h"
+#include "device_averager.h"
+#include "device_hvcontroller.h"
+
 #include "roleesi.h"
 #include "./reactor_thread.h"
 
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
+
+using namespace device_emulator;
 
 MainDeviceWindow::MainDeviceWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -116,7 +121,6 @@ MainDeviceWindow::closeEvent(QCloseEvent *)
     ACE_Thread_Manager::instance()->wait(); // barrier wait until all threads have shut down.
 }
 
-
 void
 MainDeviceWindow::on_notify_mcast( ACE_Message_Block * mb )
 {
@@ -166,6 +170,8 @@ MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
             handle_send_dgram( acewrapper::lifecycle_frame_serializer::pack( replyData ) );
 
         if ( gotCmd == DATA ) {
+            dispatch_data( mb );
+			/*
             unsigned long classid;
             cdr >> classid;
             std::ostringstream o;
@@ -197,8 +203,21 @@ MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
                 }
             }
             ui->plainTextEdit->appendPlainText( o.str().c_str() );
+			*/
         }
     }
+}
+
+
+void
+MainDeviceWindow::dispatch_data( ACE_Message_Block * mb )
+{
+    ACE_InputCDR in( mb );
+	acewrapper::InputCDR cdr( in );
+
+    unsigned long cmdId, clsId;
+	cdr >> cmdId;
+	cdr >> clsId;
 }
 
 void
@@ -297,16 +316,18 @@ void MainDeviceWindow::on_checkBoxAverager_stateChanged(int state)
 
 void MainDeviceWindow::on_checkBoxIonSource_stateChanged(int state)
 {
+/*
     typedef RoleESI TImpl;
     if ( state )
         device_facade::instance()->attach_device( device_facade_type(TImpl()) );
     else 
         device_facade::instance()->detach_device( device_facade_type(TImpl()) );
+*/
 }
 
 void MainDeviceWindow::on_checkBoxAnalyzer_stateChanged(int state)
 {
-    typedef RoleAnalyzer TImpl;
+    typedef device_hvcontroller TImpl;
     if ( state )
         device_facade::instance()->attach_device( device_facade_type(TImpl()) );
     else 
@@ -354,5 +375,5 @@ void MainDeviceWindow::on_pushDisconnect_clicked()
     using namespace adportable::protocol;
 
     LifeCycleState state;
-    device_facade::instance()->lifeCycle().apply_command( CLOSE, state );
+    device_facade::instance()->lifeCycle().force_close();
 }

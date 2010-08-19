@@ -16,6 +16,10 @@ namespace Ui {
 
 class TreeModel;
 
+namespace TOFInstrument {
+	struct AnalyzerDeviceData;
+}
+
 namespace adtofms {
 
     namespace impl{
@@ -35,7 +39,11 @@ namespace adtofms {
         virtual void OnUpdate( boost::any& );
         virtual void OnUpdate( unsigned long );
         virtual void OnFinalClose();
-        
+
+        // monitor_ui
+		void update_analyzer_device_data();
+		void display_analyzer_device_data( const TOFInstrument::AnalyzerDeviceData& );
+
     signals:
         void signal_pushButton_clicked();
         void signal_log( QString, QString );

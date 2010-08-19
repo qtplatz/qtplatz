@@ -20,44 +20,53 @@ class RoleAverager;
 class RoleAnalyzer;
 class RoleESI;
 
-typedef boost::variant<RoleAverager, RoleAnalyzer, RoleESI> device_facade_type;
+namespace device_emulator {
+	class device_averager;
+	class device_hvcontroller;
+}
 
-class DeviceFacade : public QObject {
-    Q_OBJECT
-    ~DeviceFacade();
-    DeviceFacade();
-    friend ACE_Singleton<DeviceFacade, ACE_Recursive_Thread_Mutex>;
-public:
-    // attach/detach device, return true if supported otherwise false
-    bool attach_device( device_facade_type& );
-    bool detach_device( device_facade_type& );
+typedef boost::variant<RoleAverager, device_emulator::device_averager, device_emulator::device_hvcontroller> device_facade_type;
 
-    bool initialize();
+namespace device_emulator {
 
-    typedef adportable::protocol::LifeCycleFrame LifeCycleFrame;
-    typedef adportable::protocol::LifeCycleData LifeCycleData;
+	class DeviceFacade : public QObject {
+		Q_OBJECT
+			~DeviceFacade();
+		DeviceFacade();
+		friend ACE_Singleton<DeviceFacade, ACE_Recursive_Thread_Mutex>;
+	public:
+		// attach/detach device, return true if supported otherwise false
+		bool attach_device( device_facade_type& );
+		bool detach_device( device_facade_type& );
 
-    bool handle_dgram( const LifeCycleFrame&, const LifeCycleData&, LifeCycleData& );
-    bool lifeCycleUpdate( adportable::protocol::LifeCycleCommand );
-    ACE_Message_Block * eventToController( unsigned long id, unsigned long value );
+		bool initialize();
 
-    const adportable::protocol::LifeCycle& lifeCycle() const { return lifeCycle_; }
-    adportable::protocol::LifeCycle& lifeCycle() { return lifeCycle_; }
-    const ACE_INET_Addr& get_remote_addr() const;
-    void set_remote_addr( const ACE_INET_Addr& );
+		typedef adportable::protocol::LifeCycleFrame LifeCycleFrame;
+		typedef adportable::protocol::LifeCycleData LifeCycleData;
 
-protected:
-    bool notify_dgram( ACE_Message_Block * );
+		bool handle_dgram( const LifeCycleFrame&, const LifeCycleData&, LifeCycleData& );
+		bool lifeCycleUpdate( adportable::protocol::LifeCycleCommand );
+		ACE_Message_Block * eventToController( unsigned long id, unsigned long value );
 
-private:
-    DeviceFacadeImpl * pImpl_;
-    adportable::protocol::LifeCycle lifeCycle_;
+		const adportable::protocol::LifeCycle& lifeCycle() const { return lifeCycle_; }
+		adportable::protocol::LifeCycle& lifeCycle() { return lifeCycle_; }
+		const ACE_INET_Addr& get_remote_addr() const;
+		void set_remote_addr( const ACE_INET_Addr& );
+
+	protected:
+		bool notify_dgram( ACE_Message_Block * );
+
+	private:
+		DeviceFacadeImpl * pImpl_;
+		adportable::protocol::LifeCycle lifeCycle_;
 
 signals:
-    void signal_device_attached( std::string device );
-    void signal_device_detached( std::string device );
-    void signal_dgram( ACE_Message_Block * );
-    void signal_debug( QString msg );
-};
+		void signal_device_attached( std::string device );
+		void signal_device_detached( std::string device );
+		void signal_dgram( ACE_Message_Block * );
+		void signal_debug( QString msg );
+	};
 
-typedef ACE_Singleton<DeviceFacade, ACE_Recursive_Thread_Mutex> device_facade;
+	typedef ACE_Singleton<DeviceFacade, ACE_Recursive_Thread_Mutex> device_facade;
+
+}

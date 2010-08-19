@@ -30,6 +30,12 @@ namespace acewrapper {
     class TimerHandler;
 }
 
+namespace TOFInstrument {
+    struct ADConfiguration;
+    class ADConfigurations;
+    struct AnalyzerDeviceData;
+}
+
 namespace tofcontroller {
 
     class DeviceProxy;
@@ -47,6 +53,12 @@ namespace tofcontroller {
         bool connect( Receiver_ptr );
         bool disconnect( Receiver_ptr );
 
+		void adConfiguration( const TOFInstrument::ADConfigurations& );
+		bool adConfiguration( TOFInstrument::ADConfigurations& config ) const;
+
+		void setAnalyzerDeviceData( const TOFInstrument::AnalyzerDeviceData& );
+		bool getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData& ) const;
+
 	private:
         // ACE_Task
 		virtual int handle_input( ACE_HANDLE );
@@ -63,6 +75,7 @@ namespace tofcontroller {
         void dispatch_debug( ACE_Message_Block * );
         void dispatch_mcast( ACE_Message_Block * );
         void dispatch_dgram( ACE_Message_Block * );
+		void dispatch_sendto_device( ACE_Message_Block * );
         void command_initialize();
 
     public:
@@ -91,6 +104,8 @@ namespace tofcontroller {
 		boost::scoped_ptr< acewrapper::ReactorThread > reactor_thread_;
 		boost::scoped_ptr< acewrapper::McastHandler > mcast_handler_;
 		map_type device_proxies_;
+		boost::scoped_ptr< TOFInstrument::AnalyzerDeviceData > pAnalyzerDeviceData_;
+		boost::scoped_ptr< TOFInstrument::ADConfigurations > pADConfigurations_;
     };
   
 }

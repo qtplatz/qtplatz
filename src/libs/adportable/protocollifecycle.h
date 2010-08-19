@@ -120,8 +120,9 @@ namespace adportable {
 
 		 bool validate_sequence( const LifeCycleData& );
 		 bool prepare_reply_data( LifeCycleCommand, LifeCycleData&, unsigned short remote_sequence );
-         bool prepare_data( LifeCycleData&, unsigned short flags = 0, unsigned long offset = 0 );
+		 bool prepare_data( LifeCycleData&, unsigned short flags = 0, unsigned long offset = 0 );
 
+		 void force_close();
 		 bool apply_command( LifeCycleCommand, LifeCycleState& );
 		 bool dispatch_received_data( const LifeCycleData&, adportable::protocol::LifeCycleState& nextState, adportable::protocol::LifeCycleCommand& replyCmd );
 		 bool linkdown_detected( LifeCycleState& ); /* heartbeat timeout */

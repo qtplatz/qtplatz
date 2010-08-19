@@ -20,6 +20,9 @@
 #include "roleanalyzer.h"
 #include "roleaverager.h"
 #include "roleesi.h"
+#include "device_averager.h"
+#include "device_hvcontroller.h"
+
 #include "../controller/controllerC.h"
 
 class DeviceFacadeImpl {
@@ -54,6 +57,9 @@ struct lifecycle_command_visitor : public boost::static_visitor< LifeCycleComman
 };
 
 /////////////////////////////////////////////////////////////////
+
+using namespace device_emulator;
+
 DeviceFacade::~DeviceFacade()
 {
     delete pImpl_;

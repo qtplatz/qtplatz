@@ -9,7 +9,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    MainDeviceWindow w;
+	device_emulator::MainDeviceWindow w;
+
     w.initial_update();
     w.show();
     return a.exec();

@@ -24,6 +24,10 @@
 #include <adportable/protocollifecycle.h>
 #include <acewrapper/lifecycle_frame_serializer.h>
 
+#pragma warning (disable : 4996 )
+# include "tofcontrollerC.h"
+#pragma warning (default : 4996 )
+
 using namespace tofcontroller;
 
 i8tTask::i8tTask( size_t n ) : n_threads_(n)
@@ -117,9 +121,22 @@ i8tTask::receiver_data::operator == ( const Receiver_ptr t ) const
 int
 i8tTask::handle_timeout( const ACE_Time_Value& tv, const void * )
 {
-    ACE_Message_Block * mb = new ACE_Message_Block( sizeof(tv) );
-	* reinterpret_cast< ACE_Time_Value *>( mb->wr_ptr() ) = tv;
-    this->putq( mb );
+	do {
+		ACE_Message_Block * mb = new ACE_Message_Block( sizeof( tv ) );
+		*reinterpret_cast< ACE_Time_Value *>(mb->wr_ptr()) = tv;
+		mb->wr_ptr( sizeof(tv) );
+		putq( mb );
+	} while(0);
+	do {
+		TAO_OutputCDR cdr;
+		cdr << constants::SESSION_QUERY_DEVICE;
+		cdr << TOFConstants::ClassID_AnalyzerDeviceData;
+		cdr << TOFConstants::ClassID_MSMethod;
+		cdr << TOFConstants::EOR;
+        ACE_Message_Block * mb = cdr.begin()->duplicate();
+		mb->msg_type( constants::MB_SENDTO_DEVICE );
+		this->putq( mb );
+	} while(0);
 	return 0;
 }
 
@@ -140,6 +157,7 @@ i8tTask::handle_input( ACE_HANDLE h )
 	}
 	if ( res == (-1) ) {
 		DWORD err = GetLastError();
+		(void)err;
 		ACE_Message_Block::release( mb );
 		ACE_Message_Block::release( pfrom );
 		return 0;
@@ -179,7 +197,6 @@ i8tTask::internal_initialize()
 	}
 	internal_initialize_timer();
 	internal_initialize_mcast();
-	// internal_initialize_dgram();
 }
 
 bool
@@ -248,6 +265,7 @@ i8tTask::doit( ACE_Message_Block * mblk )
 {
 	if ( mblk->msg_type() == ACE_Message_Block::MB_DATA ) {
 
+        long x = 0;
 
 	} else if ( mblk->msg_type() >= ACE_Message_Block::MB_USER ) {
 		switch( mblk->msg_type() ) {
@@ -263,23 +281,11 @@ i8tTask::doit( ACE_Message_Block * mblk )
         case constants::MB_DEBUG:
 			dispatch_debug( mblk );
             break;
+		case constants::MB_SENDTO_DEVICE:
+			dispatch_sendto_device( mblk );
+			break;
 		};
 	}
-}
-
-void
-i8tTask::dispatch_command( ACE_Message_Block * mblk )
-{
-	ACE_UNUSED_ARG(mblk);
-/*
-	using namespace constants;
-	// SESSION_COMMAND cmd = static_cast<SESSION_COMMAND>( marshal<long>::get(mblk) );
-	switch( cmd ) {
-    case SESSION_INITIALIZE:
-		command_initialize();
-		break;
-	};
-*/
 }
 
 void
@@ -339,13 +345,67 @@ i8tTask::dispatch_dgram( ACE_Message_Block * mblk )
 		std::string addr_str = acewrapper::string( addr );
 		std::wstring key( addr_str.size(), L'\0' );
 		std::copy( addr_str.begin(), addr_str.end(), key.begin() );
-
-
 	}
+}
+
+void
+i8tTask::dispatch_command( ACE_Message_Block * mblk )
+{
+	dispatch_sendto_device( mblk );
+}
+
+void
+i8tTask::dispatch_sendto_device( ACE_Message_Block * mb )
+{
+	for ( map_type::iterator it = device_proxies_.begin(); it != device_proxies_.end(); ++it )
+		it->second->sendto( mb );
 }
 
 
 void
 i8tTask::command_initialize()
 {
+}
+
+///////////////////////////////
+void
+i8tTask::adConfiguration( const TOFInstrument::ADConfigurations& v )
+{
+	acewrapper::scoped_mutex_t<> lock( mutex_ );
+	pADConfigurations_.reset( new TOFInstrument::ADConfigurations( v ) );
+}
+
+void
+i8tTask::setAnalyzerDeviceData( const TOFInstrument::AnalyzerDeviceData& d )
+{
+	acewrapper::scoped_mutex_t<> lock( mutex_ );
+    if ( pAnalyzerDeviceData_ )
+		*pAnalyzerDeviceData_ = d;
+	else
+		pAnalyzerDeviceData_.reset( new TOFInstrument::AnalyzerDeviceData( d ) );
+
+	for ( map_type::iterator it = device_proxies_.begin(); it != device_proxies_.end(); ++it ) {
+        TAO_OutputCDR cdr;
+        it->second->prepare_data( cdr );
+		const char * rp = cdr.begin()->rd_ptr();
+        char * wp = cdr.begin()->wr_ptr();
+		cdr << constants::SESSION_SENDTO_DEVICE;
+		cdr << TOFConstants::ClassID_AnalyzerDeviceData;
+		cdr << d;
+		ACE_Message_Block * mb = cdr.begin()->duplicate();
+		mb->msg_type( constants::MB_SENDTO_DEVICE );
+		putq( mb );
+	}
+}
+
+bool
+i8tTask::getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData& d ) const
+{
+	acewrapper::scoped_mutex_t<> lock( const_cast< i8tTask *>(this)->mutex() );
+
+    if ( ! pAnalyzerDeviceData_ )
+		return false;
+
+	d = *pAnalyzerDeviceData_;
+	return true;
 }
