@@ -23,6 +23,7 @@ namespace acewrapper {
     template<class T> class DgramReceiver;
     template<class T> class McastReceiver;
     template<class T> class TimerReceiver;
+    class InputCDR;
 }
 
 // class MainDeviceWindow;
@@ -61,7 +62,7 @@ namespace device_emulator {
 		adportable::protocol::LifeCycleFrame lifeCycleFrame_hello_;
 		adportable::protocol::LifeCycle_Hello lifeCycleData_hello_;
 
-		void dispatch_data( ACE_Message_Block * mb );
+        void dispatch_data( acewrapper::InputCDR& cdr ); // ACE_Message_Block * mb );
 
 		private slots:
 			void on_pushDisconnect_clicked();

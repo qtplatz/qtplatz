@@ -125,13 +125,14 @@ DeviceFacade::handle_dgram( const LifeCycleFrame& frame, const LifeCycleData& da
     LifeCycleCommand cmd = boost::apply_visitor( lifecycle_command_visitor(), data );
     assert( frame.command_ == cmd );
 
-    std::ostringstream o;
-    o << "dgram got: " << LifeCycleHelper::to_string( data );
+    do {
+        std::ostringstream o;
+        o << "dgram got: " << LifeCycleHelper::to_string( data );
+        emit signal_debug( QString( o.str().c_str()) );
+    } while(0);
 
-    emit signal_debug( QString( o.str().c_str()) );
-
-    LifeCycleState nextState;
-    LifeCycleCommand replyCmd;
+    adportable::protocol::LifeCycleState nextState;
+    adportable::protocol::LifeCycleCommand replyCmd;
 
 	lifeCycle_.dispatch_received_data( data, nextState, replyCmd );  // state may change
 	if ( lifeCycle_.validate_sequence( data ) ) {
@@ -142,9 +143,10 @@ DeviceFacade::handle_dgram( const LifeCycleFrame& frame, const LifeCycleData& da
         if ( lifeCycle_.prepare_reply_data( replyCmd, replyData, remote_sequence ) ) {
 
             lifeCycle_.apply_command( replyCmd, nextState );  // state may change
-
-			std::string rmsg = LifeCycleHelper::to_string( replyData );
-            emit signal_debug( QString( "dgram reply to controller: " ) + rmsg.c_str() );
+            do {
+                std::string rmsg = LifeCycleHelper::to_string( replyData );
+                emit signal_debug( QString( "dgram reply to controller: " ) + rmsg.c_str() );
+            } while(0);
 			return true;
 		}
 	}

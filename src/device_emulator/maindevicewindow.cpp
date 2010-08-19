@@ -148,16 +148,16 @@ MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
 {
     acewrapper::scoped_mblock_ptr<> release( mb );
 
-    using namespace adportable::protocol;
+    // using namespace adportable::protocol;
     using namespace acewrapper;
 
-    LifeCycleData data;
-    LifeCycleFrame frame;
+    adportable::protocol::LifeCycleData data;
+    adportable::protocol::LifeCycleFrame frame;
     ACE_InputCDR ace_cdr( mb );
     InputCDR cdr( ace_cdr );
     if ( lifecycle_frame_serializer::unpack( cdr, frame, data ) ) {
-        const LifeCycleCommand gotCmd = LifeCycleHelper::command( data );
-        if ( gotCmd == CONN_SYN ) {
+        const adportable::protocol::LifeCycleCommand gotCmd = adportable::protocol::LifeCycleHelper::command( data );
+        if ( gotCmd == adportable::protocol::CONN_SYN ) {
             ACE_Message_Block * mbfrom = mb->cont();
             if ( mbfrom ) {
                 ACE_INET_Addr * remote_addr = reinterpret_cast<ACE_INET_Addr *>( mbfrom->rd_ptr() );
@@ -165,43 +165,13 @@ MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
             }
         }
 
-        LifeCycleData replyData;
+        adportable::protocol::LifeCycleData replyData;
         if ( device_facade::instance()->handle_dgram( frame, data, replyData ) )
             handle_send_dgram( acewrapper::lifecycle_frame_serializer::pack( replyData ) );
 
-        if ( gotCmd == DATA ) {
-            dispatch_data( mb );
+        if ( gotCmd == adportable::protocol::DATA ) {
+            dispatch_data( cdr );
 			/*
-            unsigned long classid;
-            cdr >> classid;
-            std::ostringstream o;
-            o << "class id: " << std::hex << classid;
-
-            if ( classid == GlobalConstants::ClassID_IonSourceMethod ) {
-                // for firmware debug purpose, here we do not want to use TAO IIOP serializer
-                // so just read data from stream.
-                unsigned long ionSource;
-                cdr >> ionSource;
-                o << " type: " << ionSource;
-                if ( ionSource == A_Dummy_MSMethod::eIonSource_ESI ) {
-                    A_Dummy_MSMethod::ESIMethod m;
-                    cdr >> m.needle1_voltage_;
-                    cdr >> m.needle2_voltage_;
-                    cdr >> m.nebulizing1_flow_;
-                    cdr >> m.nebulizing2_flow_;
-                    o << " needle " << m.needle1_voltage_ << ", " << m.needle2_voltage_;
-                    o << " nebulizer " << m.nebulizing1_flow_ << ", " << m.nebulizing2_flow_;
-                } else if ( ionSource == A_Dummy_MSMethod::eIonSource_APCI ) {
-                    A_Dummy_MSMethod::APCIMethod m;
-                    cdr >> m.needle1_voltage_;
-                    cdr >> m.nebulizing1_flow_;
-                    o << " nebulizer " << m.nebulizing1_flow_ << " flow " << m.nebulizing1_flow_;
-                } else if ( ionSource == A_Dummy_MSMethod::eIonSource_DART ) {
-                    A_Dummy_MSMethod::DARTMethod m;
-                    cdr >> m.nothing_;
-                    o << " dart: nothing " << m.nothing_;
-                }
-            }
             ui->plainTextEdit->appendPlainText( o.str().c_str() );
 			*/
         }
@@ -210,10 +180,10 @@ MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
 
 
 void
-MainDeviceWindow::dispatch_data( ACE_Message_Block * mb )
+MainDeviceWindow::dispatch_data( acewrapper::InputCDR& cdr ) // ACE_Message_Block * mb )
 {
-    ACE_InputCDR in( mb );
-	acewrapper::InputCDR cdr( in );
+    // ACE_InputCDR in( mb );
+    // acewrapper::InputCDR cdr( in );
 
     unsigned long cmdId, clsId;
 	cdr >> cmdId;
