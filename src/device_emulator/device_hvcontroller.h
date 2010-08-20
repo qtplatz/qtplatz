@@ -47,6 +47,7 @@ namespace device_emulator {
 		bool instruct_handle_data( ACE_InputCDR&, unsigned long cmdId );
 
 	private:
+		bool copyIn( ACE_InputCDR&, AnalyzerDeviceData& );
 		// boost::shared_ptr< TOFInstrument::ADConfigurations > adConfig_;
 		boost::shared_ptr< AnalyzerDeviceData > data_;
 	};
