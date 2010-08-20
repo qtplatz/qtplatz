@@ -8,6 +8,8 @@
 #include <boost/variant.hpp>
 #include <acewrapper/lifecycle_frame_serializer.h>
 #include <acewrapper/outputcdr.h>
+#include <acewrapper/inputcdr.h>
+#include <boost/variant.hpp>
 
 #pragma warning (disable: 4996)
 # include <ace/Singleton.h>
@@ -17,13 +19,12 @@
 # include <ace/Stream.h>
 #pragma warning (default: 4996)
 
-#include "roleanalyzer.h"
-#include "roleaverager.h"
-#include "roleesi.h"
 #include "device_averager.h"
 #include "device_hvcontroller.h"
 
-#include "../controller/controllerC.h"
+#include "../tofcontroller/tofcontrollerC.h"
+
+using namespace device_emulator;
 
 class DeviceFacadeImpl {
 public:
@@ -37,6 +38,7 @@ public:
 	void update_heartbeat();
     bool heartbeat_timeout() const;
 	void clear_heartbeat();
+	bool handle_data( ACE_InputCDR& cdr );
 private:
     vector_type devices_;
     ACE_INET_Addr remote_addr_;
@@ -45,7 +47,9 @@ private:
 
 /////////////////////////////////////////////////////////////////
 struct deviceType_visitor : public boost::static_visitor<std::string> {
-    template<class T> std::string operator()( const T& t ) const { return t.deviceType(); }
+    template<class T> std::string operator()( const T& t ) const { 
+		return t.deviceType();
+	}
 };
 
 /////////////////////////////////////////////////////////////////
@@ -53,7 +57,9 @@ struct deviceType_visitor : public boost::static_visitor<std::string> {
 using namespace adportable::protocol;
 
 struct lifecycle_command_visitor : public boost::static_visitor< LifeCycleCommand > {
-    template<class T> LifeCycleCommand operator()( T& ) const { return T::command(); }
+    template<class T> LifeCycleCommand operator()( T& ) const {
+		return T::command();
+	}
 };
 
 /////////////////////////////////////////////////////////////////
@@ -107,14 +113,13 @@ ACE_Message_Block *
 DeviceFacade::eventToController( unsigned long id, unsigned long value )
 {
     ACE_OutputCDR cdr;
-    acewrapper::OutputCDR output( cdr );
     LifeCycleData data;
     if ( lifeCycle_.prepare_data( data, 0, 0 ) ) {
-        acewrapper::lifecycle_frame_serializer::pack( output, data );
-        output << static_cast<unsigned long>( GlobalConstants::ClassID_InstEvent );
-        output << id;
-        output << value;
-        return cdr.begin()->clone();
+        acewrapper::lifecycle_frame_serializer::pack( cdr, data );
+		cdr.write_ulong( static_cast<unsigned long>( TOFConstants::ClassID_InstEvent ) );
+		cdr.write_ulong( id );
+		cdr.write_ulong( value );
+		return cdr.begin()->duplicate();
     }
     return 0;
 }
@@ -165,6 +170,11 @@ DeviceFacade::set_remote_addr( const ACE_INET_Addr& addr )
     pImpl_->set_remote_addr( addr );
 }
 
+bool
+DeviceFacade::handle_data( ACE_InputCDR& cdr )
+{
+	return pImpl_->handle_data( cdr );
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -212,4 +222,37 @@ DeviceFacadeImpl::heartbeat_timeout() const
 			return true;
 	}
     return false;
+}
+
+namespace device_emulator {
+
+	struct handle_data_visitor : public boost::static_visitor<bool> {
+        ACE_InputCDR& cdr_;
+        unsigned long cmdId_;
+		handle_data_visitor( ACE_InputCDR& cdr, unsigned long cmdId ) : cdr_( cdr ), cmdId_(cmdId) {
+		}
+		bool operator()( device_averager& impl ) const {
+            return impl.instruct_handle_data( cdr_, cmdId_ );
+		}
+		bool operator()( device_hvcontroller& impl ) const {
+			return impl.instruct_handle_data( cdr_, cmdId_ );
+		}
+	};
+
+}
+
+bool
+DeviceFacadeImpl::handle_data( ACE_InputCDR& cdr )
+{
+	acewrapper::InputCDR in(cdr);
+	unsigned long cmdId;
+    in >> cmdId;
+
+	for ( vector_type::iterator it = devices_.begin(); it != devices_.end(); ++it ) {
+
+		ACE_InputCDR tmp(cdr);
+		if ( boost::apply_visitor( handle_data_visitor(tmp, cmdId), *it ) )
+			break;
+	}
+    return true;
 }

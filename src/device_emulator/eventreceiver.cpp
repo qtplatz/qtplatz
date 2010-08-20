@@ -61,31 +61,6 @@ QEventReceiver::handle_input( acewrapper::McastHandler& mcast, ACE_HANDLE )
     mb->length( res );
     mb->cont( pfrom );
 
-#ifdef _DEBUG
-    ACE_INET_Addr remote_addr;
-    std::ostringstream o;
-
-    do { // packet data serialize/deserialize validation
-        using namespace acewrapper;
-        using namespace adportable::protocol;
-
-        LifeCycleFrame frame;
-        LifeCycleData data;
-        lifecycle_frame_serializer::unpack( mb, frame, data );
-        try {
-            LifeCycle_Hello& hello = boost::get< LifeCycle_Hello& >(data);
-            remote_addr.string_to_addr( hello.ipaddr_.c_str() );
-            assert( remote_addr.get_port_number() == hello.portnumber_ );
-        } catch ( std::bad_cast ) {
-            ACE_Message_Block::release(mb);
-            return 0;
-        }
- 
-    } while(0);
-
-    std::cout << "handle_input mcast(" << res << ")" << o.str().c_str() << std::endl;
-#endif
-
     emit signal_mcast_input( mb );
     return 0;
 }

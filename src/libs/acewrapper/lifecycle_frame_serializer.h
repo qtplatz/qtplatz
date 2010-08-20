@@ -20,13 +20,16 @@ namespace adportable {
     }
 }
 
+/*
 namespace acewrapper {
 	class OutputCDR;
 	class InputCDR;
 }
+*/
 
 class ACE_Message_Block;
-
+class ACE_InputCDR;
+class ACE_OutputCDR;
 
 namespace acewrapper {
 
@@ -35,10 +38,12 @@ namespace acewrapper {
     lifecycle_frame_serializer();
 
     template<class T> static ACE_Message_Block * pack( const T& );
-    template<class T> static bool pack( OutputCDR&, const T& );
+	template<class T> static bool pack( ACE_OutputCDR&, const T& );
+	// template<class T> static bool pack( OutputCDR&, const T& );
 
     template<class T> static bool unpack( ACE_Message_Block *, adportable::protocol::LifeCycleFrame&, T& );
-    template<class T> static bool unpack( InputCDR&, adportable::protocol::LifeCycleFrame&, T& );
+	template<class T> static bool unpack( ACE_InputCDR&, adportable::protocol::LifeCycleFrame&, T& );
+    // template<class T> static bool unpack( InputCDR&, adportable::protocol::LifeCycleFrame&, T& );
   };
 
 }

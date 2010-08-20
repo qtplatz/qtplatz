@@ -33,6 +33,14 @@ namespace acewrapper {
 	       cdr << frame.hoffset_;
 	       cdr << frame.command_;
 	    }
+	    static void serialize( ACE_OutputCDR& cdr, const LifeCycleFrame& frame ) {
+	       cdr.write_ushort( frame.endian_mark_ );
+		   cdr.write_ushort( frame.proto_version_ );
+		   cdr.write_ushort( frame.ctrl_);
+		   cdr.write_ushort( frame.hoffset_ );
+		   cdr.write_ulong( frame.command_ );
+	    }
+
       };
 
       //-----------
@@ -43,9 +51,9 @@ namespace acewrapper {
 
       //-----------------
       class lifecycle_serializer_visitor : public boost::static_visitor< unsigned int > {
-	    OutputCDR& cdr;
+	    ACE_OutputCDR& cdr_;
 	 public:
-	    lifecycle_serializer_visitor( OutputCDR& o ) : cdr(o) {}
+	    lifecycle_serializer_visitor( ACE_OutputCDR& cdr ) : cdr_(cdr) {}
         unsigned int operator()( const LifeCycle_Hello& data ) const;
         unsigned int operator()( const LifeCycle_SYN& data ) const;
         unsigned int operator()( const LifeCycle_SYN_Ack& data ) const;
@@ -55,9 +63,9 @@ namespace acewrapper {
       };
       //-----------------
       class lifecycle_deserializer_visitor : public boost::static_visitor< void > {
-		  InputCDR& cdr;
+		  ACE_InputCDR& cdr_;
 	 public:
-	    lifecycle_deserializer_visitor( InputCDR& in ) : cdr(in) {}
+	    lifecycle_deserializer_visitor( ACE_InputCDR& in ) : cdr_(in) {}
         void operator()( LifeCycleFrame& frame ) const;
 	    void operator()( LifeCycle_Hello& data ) const;
 	    void operator()( LifeCycle_SYN& data ) const;
@@ -71,9 +79,8 @@ namespace acewrapper {
 
 
 //////////////////////////////////////////////////////////////////////////////////////
-
 template<> bool
-lifecycle_frame_serializer::pack( acewrapper::OutputCDR& cdr, const LifeCycleData& v )
+lifecycle_frame_serializer::pack( ACE_OutputCDR& cdr, const LifeCycleData& v )
 {
     LifeCycleFrame frame( boost::apply_visitor( internal::lifecycle_command_visitor(), v ) );
 
@@ -102,7 +109,7 @@ lifecycle_frame_serializer::pack( const LifeCycleData& v )
 }
 
 template<> bool
-lifecycle_frame_serializer::unpack( InputCDR& cdr, LifeCycleFrame& frame, LifeCycleData& v )
+lifecycle_frame_serializer::unpack( ACE_InputCDR& cdr, LifeCycleFrame& frame, LifeCycleData& v )
 {
 	internal::lifecycle_deserializer_visitor unpacker(cdr);
 	unpacker( frame );
@@ -147,7 +154,8 @@ namespace acewrapper {
 
         unsigned int lifecycle_serializer_visitor::operator()( const LifeCycle_Hello& data ) const
         {
-            unsigned int orign = cdr.length();
+            unsigned int orign = cdr_.length();
+            OutputCDR cdr( cdr_ );
             cdr << data.portnumber_;
             cdr << data.proto_;
             cdr << data.ipaddr_;
@@ -162,7 +170,8 @@ namespace acewrapper {
 
         unsigned int lifecycle_serializer_visitor::operator()( const LifeCycle_SYN& data ) const
         {
-            unsigned int orign = cdr.length();
+            unsigned int orign = cdr_.length();
+			OutputCDR cdr( cdr_ );
             cdr << data.sequence_;
             cdr << data.remote_sequence_;
             return cdr.length() - orign;
@@ -170,7 +179,8 @@ namespace acewrapper {
 
         unsigned int lifecycle_serializer_visitor::operator()( const LifeCycle_SYN_Ack& data ) const
         {
-            unsigned int orign = cdr.length();
+            unsigned int orign = cdr_.length();
+			OutputCDR cdr( cdr_ );
             cdr << data.sequence_;
             cdr << data.remote_sequence_;
             return cdr.length() - orign;
@@ -178,7 +188,8 @@ namespace acewrapper {
 
         unsigned int lifecycle_serializer_visitor::operator()( const LifeCycle_Data& data ) const
         {
-            unsigned int orign = cdr.length();
+            unsigned int orign = cdr_.length();
+			OutputCDR cdr( cdr_ );
             cdr << data.sequence_;
             cdr << data.flags_;
             cdr << data.offset_;
@@ -187,7 +198,8 @@ namespace acewrapper {
 
         unsigned int lifecycle_serializer_visitor::operator()( const LifeCycle_DataAck& data ) const
         {
-            unsigned int orign = cdr.length();
+            unsigned int orign = cdr_.length();
+			OutputCDR cdr( cdr_ );
             cdr << data.sequence_;
             cdr << data.remote_sequence_;
             return cdr.length() - orign;
@@ -195,7 +207,8 @@ namespace acewrapper {
 
         unsigned int lifecycle_serializer_visitor::operator()( const LifeCycle_Close& data ) const
         {
-            unsigned int orign = cdr.length();
+            unsigned int orign = cdr_.length();
+			OutputCDR cdr( cdr_ );
             cdr << data.sequence_;
             cdr << data.remote_sequence_;
             return cdr.length() - orign;
@@ -209,6 +222,7 @@ namespace acewrapper {
 
         void lifecycle_deserializer_visitor::operator()( LifeCycleFrame& frame ) const
         {
+            InputCDR cdr( cdr_ );
             cdr >> frame.endian_mark_;
             if ( frame.endian_mark_ == 0xfeff )
                 static_cast<ACE_InputCDR&>(cdr).reset_byte_order( ACE_CDR_BYTE_ORDER == 1 ? 0 : 1 );
@@ -220,6 +234,7 @@ namespace acewrapper {
 
         void lifecycle_deserializer_visitor::operator()( LifeCycle_Hello& data ) const
         {
+            InputCDR cdr( cdr_ );
             cdr >> data.portnumber_;
             cdr >> data.proto_;
             cdr >> data.ipaddr_;
@@ -233,18 +248,21 @@ namespace acewrapper {
 
         void lifecycle_deserializer_visitor::operator()( LifeCycle_SYN& data ) const
         {
+            InputCDR cdr( cdr_ );
             cdr >> data.sequence_;
             cdr >> data.remote_sequence_;
         }
 
         void lifecycle_deserializer_visitor::operator()( LifeCycle_SYN_Ack& data ) const
         {
+            InputCDR cdr( cdr_ );
             cdr >> data.sequence_;
             cdr >> data.remote_sequence_;
         }
 
         void lifecycle_deserializer_visitor::operator()( LifeCycle_Data& data ) const
         {
+            InputCDR cdr( cdr_ );
             cdr >> data.sequence_;
             cdr >> data.flags_;
             cdr >> data.offset_;
@@ -252,12 +270,14 @@ namespace acewrapper {
 
         void lifecycle_deserializer_visitor::operator()( LifeCycle_DataAck& data ) const
         {
+            InputCDR cdr( cdr_ );
             cdr >> data.sequence_;
             cdr >> data.remote_sequence_;
         }
 
         void lifecycle_deserializer_visitor::operator()( LifeCycle_Close& data ) const
         {
+            InputCDR cdr( cdr_ );
             cdr >> data.sequence_;
             cdr >> data.remote_sequence_;
         }

@@ -24,7 +24,6 @@
 # include <ace/Message_Block.h>
 # include <ace/Task.h>
 # include <ace/Reactor_Notification_Strategy.h>
-# include "../controller/controllerC.h"
 # pragma warning (default : 4996 )
 
 #include "eventreceiver.h"
@@ -33,15 +32,13 @@
 #include <sstream>
 #include <acewrapper/messageblock.h>
 #include "devicefacade.h"
-// #include <ace/Recursive_Thread_Mutex.h>
-// #include <ace/Singleton.h>
-#include "roleanalyzer.h"
-#include "roleaverager.h"
+
 #include "device_averager.h"
 #include "device_hvcontroller.h"
 
-#include "roleesi.h"
 #include "./reactor_thread.h"
+#include "../tofcontroller/tofcontrollerC.h"
+#include <adinterface/controlserverC.h>
 
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
@@ -153,8 +150,7 @@ MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
 
     adportable::protocol::LifeCycleData data;
     adportable::protocol::LifeCycleFrame frame;
-    ACE_InputCDR ace_cdr( mb );
-    InputCDR cdr( ace_cdr );
+    ACE_InputCDR cdr( mb );
     if ( lifecycle_frame_serializer::unpack( cdr, frame, data ) ) {
         const adportable::protocol::LifeCycleCommand gotCmd = adportable::protocol::LifeCycleHelper::command( data );
         if ( gotCmd == adportable::protocol::CONN_SYN ) {
@@ -169,26 +165,11 @@ MainDeviceWindow::on_notify_dgram( ACE_Message_Block * mb )
         if ( device_facade::instance()->handle_dgram( frame, data, replyData ) )
             handle_send_dgram( acewrapper::lifecycle_frame_serializer::pack( replyData ) );
 
-        if ( gotCmd == adportable::protocol::DATA ) {
-            dispatch_data( cdr );
-			/*
-            ui->plainTextEdit->appendPlainText( o.str().c_str() );
-			*/
-        }
+        if ( gotCmd == adportable::protocol::DATA )
+			device_facade::instance()->handle_data( cdr );
     }
 }
 
-
-void
-MainDeviceWindow::dispatch_data( acewrapper::InputCDR& cdr ) // ACE_Message_Block * mb )
-{
-    // ACE_InputCDR in( mb );
-    // acewrapper::InputCDR cdr( in );
-
-    unsigned long cmdId, clsId;
-	cdr >> cmdId;
-	cdr >> clsId;
-}
 
 void
 MainDeviceWindow::on_notify_timeout( unsigned long sec, long usec )
@@ -212,7 +193,7 @@ MainDeviceWindow::on_notify_timeout( unsigned long sec, long usec )
       
         if ( lifeCycle.machine_state() == LCS_ESTABLISHED ) {
             static size_t n;
-            ACE_Message_Block * mb = device_facade::instance()->eventToController( InstrumentStateMachine::event_HeartBeat, n++ );
+            ACE_Message_Block * mb = device_facade::instance()->eventToController( ControlServer::event_HeartBeat, n++ );
             dgramHandler_->send( mb->rd_ptr(), mb->length(), device_facade::instance()->get_remote_addr() );
             ACE_Message_Block::release( mb );
         }
@@ -277,7 +258,7 @@ MainDeviceWindow::initial_update()
 
 void MainDeviceWindow::on_checkBoxAverager_stateChanged(int state)
 {
-    typedef RoleAverager TImpl;
+    typedef device_averager TImpl;
     if ( state )
         device_facade::instance()->attach_device( device_facade_type(TImpl()) );
     else 
@@ -286,13 +267,7 @@ void MainDeviceWindow::on_checkBoxAverager_stateChanged(int state)
 
 void MainDeviceWindow::on_checkBoxIonSource_stateChanged(int state)
 {
-/*
-    typedef RoleESI TImpl;
-    if ( state )
-        device_facade::instance()->attach_device( device_facade_type(TImpl()) );
-    else 
-        device_facade::instance()->detach_device( device_facade_type(TImpl()) );
-*/
+    ACE_UNUSED_ARG( state );
 }
 
 void MainDeviceWindow::on_checkBoxAnalyzer_stateChanged(int state)
@@ -342,8 +317,5 @@ MainDeviceWindow::handle_debug( QString msg )
 
 void MainDeviceWindow::on_pushDisconnect_clicked()
 {
-    using namespace adportable::protocol;
-
-    LifeCycleState state;
     device_facade::instance()->lifeCycle().force_close();
 }

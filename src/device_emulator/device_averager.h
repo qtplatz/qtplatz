@@ -7,6 +7,8 @@
 #pragma once
 
 #include "device_state.h"
+class ACE_Message_Block;
+class ACE_InputCDR;
 
 namespace device_emulator {
 
@@ -21,6 +23,8 @@ namespace device_emulator {
 		struct handleIt {
 			virtual void operator()( bool ) const {}
 		};
+
+		bool instruct_handle_data( ACE_InputCDR&, unsigned long cmdId );
 
 		// trigger disarmed after current averaging
 		bool instruct_average_stop( handleIt& = handleIt() );  

@@ -15,23 +15,20 @@ class ACE_Recursive_Thread_Mutex;
 class ACE_Message_Block;
 class ACE_INET_Addr;
 class ACE_OutputCDR;
+class ACE_InputCDR;
 class DeviceFacadeImpl;
-class RoleAverager;
-class RoleAnalyzer;
-class RoleESI;
 
 namespace device_emulator {
+
 	class device_averager;
 	class device_hvcontroller;
-}
 
-typedef boost::variant<RoleAverager, device_emulator::device_averager, device_emulator::device_hvcontroller> device_facade_type;
+	typedef boost::variant< device_averager, device_hvcontroller> device_facade_type;
 
-namespace device_emulator {
 
 	class DeviceFacade : public QObject {
 		Q_OBJECT
-			~DeviceFacade();
+		~DeviceFacade();
 		DeviceFacade();
 		friend ACE_Singleton<DeviceFacade, ACE_Recursive_Thread_Mutex>;
 	public:
@@ -45,6 +42,8 @@ namespace device_emulator {
 		typedef adportable::protocol::LifeCycleData LifeCycleData;
 
 		bool handle_dgram( const LifeCycleFrame&, const LifeCycleData&, LifeCycleData& );
+        bool handle_data( ACE_InputCDR& cdr );
+
 		bool lifeCycleUpdate( adportable::protocol::LifeCycleCommand );
 		ACE_Message_Block * eventToController( unsigned long id, unsigned long value );
 
@@ -60,7 +59,7 @@ namespace device_emulator {
 		DeviceFacadeImpl * pImpl_;
 		adportable::protocol::LifeCycle lifeCycle_;
 
-signals:
+    signals:
 		void signal_device_attached( std::string device );
 		void signal_device_detached( std::string device );
 		void signal_dgram( ACE_Message_Block * );

@@ -31,6 +31,7 @@ class ACE_Reactor;
 class ACE_Time_Value;
 class ACE_INET_Addr;
 class ACE_Message_Block;
+class ACE_InputCDR;
 
 class QEventReceiver;
 
@@ -61,8 +62,6 @@ namespace device_emulator {
 		unsigned long timerId_;
 		adportable::protocol::LifeCycleFrame lifeCycleFrame_hello_;
 		adportable::protocol::LifeCycle_Hello lifeCycleData_hello_;
-
-        void dispatch_data( acewrapper::InputCDR& cdr ); // ACE_Message_Block * mb );
 
 		private slots:
 			void on_pushDisconnect_clicked();
