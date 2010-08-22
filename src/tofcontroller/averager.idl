@@ -1,0 +1,1122 @@
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison / Advanced Instrumentation Project
+//////////////////////////////////////////
+
+module AcquisitionSystem {
+
+  typedef long RESULT;
+
+  const long RESULT_SUCCESS = 0;
+
+  interface EventHandler {
+    void acqDone();
+  };
+  
+  
+  interface Averager {
+
+    RESULT connect_receiver( in EventHandler handler );
+    
+    RESULT acqDone(in long instrumentID, inout boolean done);
+    // Checks if the acquisition has terminated.
+    //
+    // Returns 'done' = TRUE if the acquisition is terminated
+    //
+    // Returns one of the following RESULT values:
+    // REULT_SUCCESS always.
+    
+    RESULT  acquire(in long instrumentID);
+    // Starts an acquisition. This function is equivalent to 'acquireEx' with 'acquireMode = 0, 
+    // acquireFlags = 0'
+    //
+    // Common return values:
+      // ERROR_INSTRUMENT_RUNNING    if the instrument is already running. 
+      // SUCCESS otherwise.
+      
+      RESULT  acquireEx(in long instrumentID, in long acquireMode, 
+			in long acquireFlags, in long acquireParams, in long reserved);
+      // Starts an acquisition.
+      //
+      // The following values must be supplied to the function:
+      //
+      // 'acquireMode'      = 0     Normal, start an acquisition and return immediatly (equivalent to 
+      //                            function 'acquire').
+      //                    = 2     Averagers only! Sets continuous accumulation and starts an 
+      //                            acquisition.
+      //            
+      // 'acquireFlags'     = 0     No flags.
+      //                    = 4     Reset timestamps (if supported). 
+      // 'acquireParams'    Unused, must be set to 0.
+      // 'reserved'         Unused, must be set to 0.
+      //
+      // Returns one of the following RESULT values:
+      // ERROR_INSTRUMENT_RUNNING if the instrument is already running. 
+      // ERROR_NOT_SUPPORTED      if the requested mode or flag is not supported by the  
+      //                                  instrument.
+      // SUCCESS                       otherwise.
+      
+      RESULT  calibrate(in long instrumentID); 
+      // Performs an auto-calibration of the instrument
+      // Equivalent to calibrateEx with 'calType' = 0
+      
+      RESULT  calibrateEx(in long instrumentID, in long calType,
+			  in long modifier, in long flags); 
+      // Performs a (partial) auto-calibration of the instrument
+      //
+      // 'calType'=  0    calibrate the entire instrument (equivalent to 'calibrate')
+      //             1    calibrate only the current channel configuration, 
+      //                  as set by 'configChannelCombination'
+      //             2    calibrate external clock timing. Requires operation in External Clock 
+      //                  (Continuous), i.e. 'clockType' = 1, as set with 'configExtClock'
+      //             3    calibrate only at the current frequency (only instruments with fine resolution 
+      //                  time bases)
+      //             4    calibrate fast, only at the current settings (if supported). 
+      //                  Note: In this mode, any change on 'fullscale', 'bandwidth limit', 'channel 
+      //                  combine', 'impedance' or 'coupling' will require a new calibration.
+      //                    
+      // 'modifier'    
+      //          ['calType' = 0]    currently unused, set to zero
+      //          ['calType' = 1]    currently unused, set to zero
+      //          ['calType' = 2]    currently unused, set to zero
+      //          ['calType' = 3]  0    = All channels
+      //                          >0    = Only specified channel (for i.e. 1 = calibrate only channel 1)
+      //          ['calType' = 4]  0    = All channels
+      //                          >0    = Only specified channel (for i.e. 1 = calibrate only channel 1)
+      //
+      // 'flags'            currently unused, set to zero 
+      //
+      // Returns one of the following RESULT values:
+      // ERROR_INSTRUMENT_RUNNING   if the instrument is currently running.
+      // ERROR_CALIBRATION_FAILED   if the requested calibration failed.
+      // ERROR_NOT_SUPPORTED        if the requested calibration is not supported by the 
+      //                                    instrument.
+      // ERROR_CANNOT_READ_THIS_CHANNEL if the requested channel is not available.
+      // ERROR_COULD_NOT_CALIBRATE  if the requested frequency is invalid ('calType' = 2 only).
+      // ERROR_ACQ_TIMEOUT          if an acquisition timed out during the calibration 
+      //                                    (e.g. no clocks provided).
+      // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+      //                                    x = parameter number.
+      // SUCCESS                         otherwise.
+      
+    RESULT  close(in long instrumentID); 
+    // Close specified instrument. Once closed, this instrument is not available anymore and
+    // need to be reenabled using 'InitWithOptions' or 'init'.
+    // Note: For freeing properly all resources, 'closeAll' must still be called when
+    // the application close, even if 'close' was called for each instrument.
+    //
+    // Returns one of the following RESULT values:
+    // SUCCESS always.
+    
+    RESULT  closeAll(); 
+    // Closes all instruments and prepares for closing of application
+    //
+    // Returns one of the following RESULT values:
+    // SUCCESS always.
+    
+    RESULT  configAvgConfig(in long instrumentID, 
+			    in long channel, in string parameterString, in any value);
+    // Configures Averagers and Analyzer (APxxx)!
+    //
+    // Configures parameter in the channel dependent averager/analyzer configuration 'channel'
+    // 'channel'        = 1...Nchan
+    //                  = 0 (selecting channel 1) is supported for backwards compatibility
+    //
+    // 'parameterString'= character string specifying the requested parameter
+    //                    Please refer to the manual for the accepted parameter strings
+    // 'value'          = value to set
+    //                    The type of the value depends on 'parameterString'
+    //                    Please refer to the manual for the required  data type as a
+    //                    function of the accepted parameters.
+    //                    NOTE to C/C++ programmers: 'ViAddr' resolves to 'void*'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_NOT_SUPPORTED        if this function is not supported by the instrument.
+    // ERROR_PARAM_STRING_INVALID if 'parameterString' is invalid.
+    // WARN_SETUP_ADAPTED         if 'value' has been adapted.
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configChannelCombination(in long instrumentID, 
+				     in long nbrConvertersPerChannel, in long usedChannels);
+    // Configures combined operation of multiple channels
+    // 
+    // 'nbrConvertersPerChannel'    = 1        all channels use 1 converter each (default)
+    //                              = 2        half of the channels use 2 converters each
+    //                              = 4        1/4  of the channels use 4 converters each
+    //
+    // 'usedChannels'        bit-field indicating which channels are used (LSbit = channel 1)
+    // The acceptable values for 'usedChannels' depend on 'nbrConvertersPerChannel' 
+    // and on the number of available channels in the digitizer:
+    // A) If 'nbrConvertersPerChannel' = 1, 'usedChannels' must reflect the fact that
+    // ALL channels are available for use. It accepts a single value for a given digitizer:
+    // 'usedChannels'        = 0x00000001    if the digitizer has 1 channel
+    //                       = 0x00000003    if the digitizer has 2 channels
+    //                       = 0x0000000f    if the digitizer has 4 channels
+    // B) If 'nbrConvertersPerChannel' = 2, 'usedChannels' must reflect the fact that
+    // only half of the channels may be used:
+    // 'usedChannels'        = 0x00000001    use channel 1 on a 2-channel digitizer
+    //                         0x00000002    use channel 2 on a 2-channel digitizer
+    //                         0x00000003    use channels 1+2 on a 4-channel digitizer
+    //                         0x00000005    use channels 1+3 on a 4-channel digitizer
+    //                         0x00000009    use channels 1+4 on a 4-channel digitizer
+    //                         0x00000006    use channels 2+3 on a 4-channel digitizer
+    //                         0x0000000a    use channels 2+4 on a 4-channel digitizer
+    //                         0x0000000c    use channels 3+4 on a 4-channel digitizer
+    // C) If 'nbrConvertersPerChannel' = 4, 'usedChannels' must reflect the fact that
+    // only 1 of the channels may be used:
+    // 'usedChannels'        = 0x00000001    use channel 1 on a 4-channel digitizer
+    //                         0x00000002    use channel 2 on a 4-channel digitizer
+    //                         0x00000004    use channel 3 on a 4-channel digitizer
+    //                         0x00000008    use channel 4 on a 4-channel digitizer
+    // NOTE: Digitizers which don't support channel combination, always use the default
+    //       'nbrConvertersPerChannel' = 1, and the single possible value of 'usedChannels'
+    // NOTE: If digitizers are combined with ASBus, the channel combination applies equally to
+    //       all participating digitizers.    
+    //
+    // Returns one of the following RESULT values:
+    // WARN_SETUP_ADAPTED         if one of the parameters has been adapted.
+    // ERROR_PARAMETER1                if 'instrumentId' is invalid.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configControlIO(in long instrumentID, in long connectorx, in long signal, in long qualifier1, in double qualifier2);
+    // Configures Control-IO connectors
+    // Typically, only a few (or no) IO connectors are present on a single digitizer
+    // 
+    // 'connector'        = 1        Front Panel I/O A (MMCX connector)
+    //                    = 2        Front Panel I/O B (MMCX connector)
+    //                    = 9        Front Panel Trigger Out (MMCX connector)
+    // 'signal'           = value depends on 'connector', refer to manual for definitions.
+    // 'qualifier1', 'qualifier2'    currently unused (set to zero!)
+    //
+    // Returns one of the following RESULT values:
+    // WARN_SETUP_ADAPTED         if one of the parameters has been adapted.
+    // ERROR_PARAMETER1                if 'instrumentId' is invalid.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configExtClock(in long instrumentID, in long clockType,
+			   in double inputThreshold, in long delayNbrSamples, 
+			   in double inputFrequency, in double sampFrequency);
+    // Configures the external clock of the digitizer
+    // 
+    // 'clockType'        = 0        Internal Clock (default at start-up)
+    //                    = 1        External Clock (continuous operation)
+    //                    = 2        External Reference (10 MHz)
+    //                    = 4        External Clock (start/stop operation)
+    // 'inputThreshold'   = input threshold for external clock or reference in mV
+    // 'delayNbrSamples'  = number of samples to acquire after trigger (for 'clockType' = 1 ONLY!)
+    // 'inputFrequency'   = frequency, in Hz, of applied clock input signal
+    // 'sampFrequency'    = frequency, in Hz, of requested sampling
+    //
+    // NOTE: When 'clockType' is set to 1 or 4, the values 'sampInterval' and 'delayTime' in the 
+    //       function 'configHorizontal' are ignored.
+    //
+    // Returns one of the following RESULT values:
+    // WARN_SETUP_ADAPTED         if one of the parameters has been adapted.
+    // ERROR_PARAMETER1                if 'instrumentId' is invalid.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configFCounter(in long instrumentID, in long signalChannel, 
+			   in long typeMes, in double targetValue, in double apertureTime, in double reserved, 
+			   in long flags);
+    // Configures the frequency counter
+    //
+    // 'signalChannel'    = 1...Nchan for signal input channel
+    // 'typeMes'          = 0        Frequency
+    //                    = 1        Period
+    //                    = 2        Totalize by Time, counts input pulses during interval defined by 
+    //                               'apertureTime'
+    //                    = 3        Totalize by Gate, counts input pulses during interval defined by 
+    //                               I/O A or B input
+    // 'targetValue'      = estimate of expected result (set to 0.0, if no estimate available)
+    // 'apertureTime'     = minimum measurement time for Frequency and Period modes
+    //                    = time gate for Totalize by Time mode
+    // 'reserved', 'flags' currently unused (set to zero!)
+    //
+    // Returns one of the following RESULT values:
+    // WARN_SETUP_ADAPTED         if one of the parameters has been adapted.
+    // ERROR_PARAMETER1                if 'instrumentId' is invalid.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configHorizontal(in long instrumentID, 
+			     in double sampInterval, in double delayTime);
+    // Configures the horizontal control parameters of the digitizer.
+    //
+    // 'sampInterval'    = sampling interval in seconds
+    // 'delayTime'       = trigger delay time in seconds, with respect to the 
+    //                     beginning of the record. 
+    //                     A positive number corresponds to trigger BEFORE the beginning 
+    //                     of the record (post-trigger recording).
+    //                     A negative number corresponds to pre-trigger recording. It
+    //                     cannot be smaller than (- sampInterval * nbrSamples), which
+    //                     corresponds to 100% pre-trigger.
+    //
+    // Returns one of the following RESULT values:
+    // WARN_SETUP_ADAPTED         if one of the parameters has been adapted.
+    // ERROR_PARAMETER1                if 'instrumentId' is invalid.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configLogicDevice(in long instrumentID, 
+			      in string deviceName, in string filePathName, in long flags);
+    // Load/Clear/SetFilePath of the on-board logic devices. ONLY useful for a module 
+    // with on-board programmable logic devices (APxxx, RCxxx, and 12-bit Digitizers).
+    //
+    // 'flags'= operation
+    //          = 0 program device, using strictly the specified path/file name
+    //          = 1 clear device
+      //          = 2 clear and program devices using appropriate files from specified path.
+      //          = 3 program device, but also look for file path in the 'AqDrv4.ini' file, if the file 
+      //              was not found. It is sufficient to specify the file name (without explicit path), 
+      //              if the file is either in the current working directory or in the directory pointed 
+      //              to by 'FPGAPATH' in 'AqDrv4.ini'.
+      //
+      // 'deviceName'   Identifies which device to program. 
+      //    ['flags' = 0 or 3] = device to program.
+      //        This string must be "Block1Devx", with 'x' = is the FPGA number to be programmed. 
+      //        For instance, in the AP200/AP201 it must be "Block1Devx", with 'x' = 1, 2, 3 or 4. 
+      //    ['flags' = 1] = device to clear, must be "Block1DevAll". 
+      //    ['flags' = 2] = unused.
+      //
+      // 'filePathName'  
+      //    ['flags' = 0 or 3] = file path and file name. 
+      //    ['flags' = 1] = unused. 
+      //    ['flags' = 2] = path (no file name !) where all .bit files can be found.
+      //
+      // Note: Most users do not need to call this function. Check the manual for further details.
+      //
+      // Returns one of the following RESULT values:
+      // ERROR_PARAM_STRING_INVALID    if 'deviceName' is invalid.
+      // ERROR_FILE_NOT_FOUND          if an FPGA file could not be found (APxxx only).
+      // ERROR_FIRMWARE_NOT_AUTHORIZED if the instrument is not authorized to use the 
+      //                                       specified 'filePathName' file.
+      // ERROR_EEPROM_DATA_INVALID     if the CPLD 'filePathName' is invalid.
+      // ERROR_FPGA_y_LOAD             if an FPGA could not be loaded (APxxx only), 
+      //                                       where 'y' = FPGA nbr. 
+      // WARN_SETUP_ADAPTED            if one of the parameters has been adapted.
+      // SUCCESS                            otherwise.
+      
+    RESULT  configMemory(in long instrumentID, in long nbrSamples, in long nbrSegments);
+    // Configures the memory control parameters of the digitizer.
+    //
+    // 'nbrSamples'        = nominal number of samples to record (per segment!)
+    // 'nbrSegments'       = number of segments to acquire
+    //                       1 corresponds to the normal single-trace acquisition mode.
+    //
+    // Returns one of the following RESULT values:
+    // WARN_SETUP_ADAPTED         if one of the parameters has been adapted.
+    // ERROR_PARAMETER1                if 'instrumentId' is invalid.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configMemoryEx(in long instrumentID, in unsigned long nbrSamplesHi, 
+			   in unsigned long nbrSamplesLo, in long nbrSegments, in long nbrBanks, in long flags);
+    // Configures the memory control parameters of the digitizer.
+    //
+    // 'nbrSamplesHi'      = reserved for future use, must be set to 0.
+    // 'nbrSamplesLo'      = nominal number of samples to record (per segment!).
+    // 'nbrSegments'       = number of segments to acquire per bank
+    //                       1 corresponds to the normal single-trace acquisition mode.
+    // 'nbrBanks'          = number of banks in which the memory will be split, 
+    //                       for buffered reading (DigSSR).
+    //                       1 corresponds to the normal acquisition mode.
+    // 'flags'             = 0 no flags. 
+    //                     = 1 force use of internal memory (for 10-bit digitizers with extended 
+    //                       memory options only).
+    //
+    // Returns one of the following RESULT values:
+    // WARN_SETUP_ADAPTED         if one of the parameters has been adapted.
+    // ERROR_PARAMETER1                if 'instrumentId' is invalid.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configMode(in long instrumentID, in long mode, in long modifier, in long flags);
+    // Configures the operational mode of the digitizer.
+    //
+    // 'mode'            = operational mode
+    //                   = 0        normal acquisition
+    //                   = 1        stream data to DPU (only in RCxxx Repeaters or SC2x0/AC2x0 Data 
+    //                              Streamers)
+    //                   = 2        averaging mode (only in Real-Time Averagers APx00 and AP240)
+    //                   = 3        dual-memory mode (only in AP101, AP201)
+    //                   = 6        frequency counter mode
+    //                   = 7        SSR mode (for AP235/AP240)
+    //
+    // 'modifier' = not used, set to 0
+    //
+    // 'flags'    ['mode' = 0]    = 0        normal
+    //                            = 1        'Start-on-Trigger' mode (if available)
+    //                            = 2        'Sequence-wrap' mode (use 'nbrSegments' > 1) 
+    //            ['mode' = 1]    = 0        normal
+    //                            = 1        autoRestart
+    //            ['mode' = 3]    = 0        acquire into memory bank 0
+    //                            = 1        acquire into memory bank 1
+    //            otherwise  unused, set to 0
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_FILE_NOT_FOUND       if an FPGA file could not be found (APxxx only).
+    // ERROR_FPGA_x_LOAD          if an FPGA could not be loaded (APxxx only), 
+    //                                    where 'x' = FPGA nbr. 
+    // ERROR_INSTRUMENT_RUNNING   if the instrument is currently running.
+    // WARN_SETUP_ADAPTED         if one of the parameters has been adapted.
+    // ERROR_PARAMETER1                if 'instrumentId' is invalid.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configMultiInput( in long instrumentID, in long channel, in long input);
+    // Configures the input multiplexer on a channel
+    //
+    //  'input'            = 0        set to input connection A
+    //                     = 1        set to input connection B
+    //
+    // NOTE: This function is only of use for instruments with an input multiplexer (i.e. more
+    //         than 1 input per channel, e.g. DP211). On the "normal" instruments with a single
+    //         input per channel, this function may be ignored.
+    //
+    // Returns one of the following RESULT values:
+    // WARN_SETUP_ADAPTED         if one of the parameters has been adapted.
+    // ERROR_PARAMETER1                if 'instrumentId' is invalid.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configSetupArray(in long instrumentID, in long channel,
+			     in long setupType, in long nbrSetupObj, out any setupData);
+    // Configures an array of setup data (typically for on-board processing)
+    //  
+    // 'setupType'        = indicates the object type (data structure) of which the setup data is 
+    //                      composed. Some objects might be simple elements, e.g. long
+    //
+    // 'nbrSetupObj'      = number of configuration objects contained in configSetupData
+    //
+    // 'setupData'        = pointer to the setup data array
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_NOT_SUPPORTED        if this function is not supported by the instrument.
+    // ERROR_BUFFER_OVERFLOW      if 'nbrSetupObj' exceeds the maximum allowed value.
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configTrigClass(in long instrumentID, in long trigClass, 
+			    in long sourcePattern, in long validatePattern, in long holdType, in double holdValue1,
+			    in double holdValue2);  
+    // Configures the trigger class control parameters of the digitizer.
+    //
+    // 'trigClass'        = 0                edge trigger
+    // 'sourcePattern'    = 0x00000001    for Channel 1
+    //                    = 0x00000002    for Channel 2
+    //                    = 0x00000004    for Channel 3
+    //                    = 0x00000008    for Channel 4    etc.
+    //                    = 0x80000000    for External Trigger
+    // The other parameters are currently ignored, except as noted below
+    // Modules with the TV-trigger option also accept 'trigClass' = 1 (TV trigger)
+    // The detailed trigger configuration is set with the function 'configTrigTV'
+    
+    RESULT  configTrigSource(in long instrumentID, in long channel, 
+			     in long trigCoupling, in long trigSlope, in double trigLevel1, in double trigLevel2);      
+    // Configures the trigger source control parameters for a specified channel in the digitizer.
+    //
+    // 'channel'        = 1... (Number of IntTrigSources) for internal trigger sources
+    //                  = -1..-(Number of ExtTrigSources) for external trigger sources
+    // 'trigCoupling'   = 0        DC
+    //                  = 1        AC
+    //                  = 2        HFreject (if available)
+    //                  = 3        DC, 50 Ohms (ext. trigger only, if available)
+    //                  = 4        AC, 50 Ohms (ext. trigger only, if available)
+    // 'trigSlope'      = 0        Positive
+    //                  = 1        Negative
+    //                  = 2        Window, transition out of window
+    //                  = 3        Window, transition into window
+    //                  = 4        HFdivide (by factor 4)
+    //                  = 5        SpikeStretcher (if available)
+    // 'trigLevel1'    (internal)    in % of Vertical Full Scale of the channel settings
+    //                 (external)    in mV
+    // 'trigLevel2'    (internal)    in % of Vertical Full Scale of the channel settings
+    //                 (external)    in mV
+    //                               'trigLevel2' is only used when Window Trigger is selected
+    // NOTE: Some of the possible states may be unavailable in some digitizers.
+    //
+    // Returns one of the following RESULT values:
+    // WARN_SETUP_ADAPTED         if one of the parameters has been adapted.
+    // ERROR_PARAMETER1                if 'instrumentId' is invalid.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configTrigTV(in long instrumentID, in long channel, 
+			 in long standard, in long field, in long line);      
+    // Configures the TV trigger control parameters for a specified channel in the digitizer.
+    //
+    // 'channel'        = -1..-(Number of ExtTrigSources) for external trigger sources
+    //                      NOTE: the TV trigger option is only available on the External Trigger input
+    // 'standard'       = 0        625 lines per frame / 50 Hz
+    //                  = 2        525 lines per frame / 60 Hz
+    // 'field'          = 1        field 1 (odd)
+    //                  = 2        field 2 (even)
+    // 'line'           = line number, depends on the 'standard' and 'field' selection:
+    //                      1 to 263    for 'standard' = 525/60Hz and 'field' = 1
+    //                      1 to 262    for 'standard' = 525/60Hz and 'field' = 2
+    //                      1 to 313    for 'standard' = 625/50Hz and 'field' = 1
+    //                    314 to 625    for 'standard' = 625/50Hz and 'field' = 2
+    //
+    // Returns one of the following RESULT values:
+    // WARN_SETUP_ADAPTED         if one of the parameters has been adapted.
+    // ERROR_PARAMETER1                if 'instrumentId' is invalid.
+    // SUCCESS                         otherwise.
+    
+    RESULT  configVertical(in long instrumentID, in long channel, 
+			   in double fullScale, in double offset, in long coupling, in long bandwidth);
+    // Configures the vertical control parameters for a specified channel in the digitizer.
+    //
+    // 'channel'        = 1...Nchan
+    //                  = -1  for Ext. Trigger Input of digitizers with programmable Trigger Full Scale
+    // 'fullScale'      = in Volts
+    // 'offset'         = in Volts
+    // 'coupling'       = 0        Ground (Averagers ONLY)
+    //                  = 1        DC, 1 MOhm
+    //                  = 2        AC, 1 MOhm
+    //                  = 3        DC,    50 Ohms
+    //                  = 4        AC, 50 Ohms
+    // 'bandwidth'      = 0        no bandwidth limit (default)
+    //                  = 1        bandwidth limit =  25 MHz
+    //                  = 2        bandwidth limit = 700 MHz
+    //                  = 3        bandwidth limit = 200 MHz
+    //                  = 4        bandwidth limit =  20 MHz
+    //                  = 5        bandwidth limit =  35 MHz
+    // NOTE: Not all bandwidth limits are available on a single instrument. In some, there is no
+    //         bandwidth limiting capability at all. In this case, use 'bandwidth' = 0.
+    //
+    // Returns one of the following RESULT values:
+    // WARN_SETUP_ADAPTED         if one of the parameters has been adapted.
+    // ERROR_PARAMETER1                if 'instrumentId' is invalid.
+    // SUCCESS                         otherwise.
+    
+    RESULT  errorMessage(in long instrumentID, in RESULT errorCode, out string errorMessage);
+    // Translates an error code into a human readable form 
+    //
+    // 'errorCode'        = Error code (returned by a function) to be translated
+    // 'errorMessage'     = Pointer to user-allocated character string (minimum size 256),
+    //                      into which the error-message text is returned
+    //
+    // NOTE: 'instrumentID' can be NULL.
+    //
+    // Returns one of the following RESULT values:
+    // SUCCESS always.
+    
+    RESULT  errorMessageEx(in long instrumentID, in RESULT errorCode, out string errorMessage);
+    // Translates an error code into a human readable form. For file errors, the returned message 
+    // will also contain the file name and the original 'ansi' error string.
+    //
+    // 'errorCode'          = Error code (returned by a function) to be translated
+    // 'errorMessage'       = Pointer to user-allocated character string (suggested size 512 bytes),
+    //                        into which the error message text will be copied.
+    // NOTE: 'instrumentID' can be NULL.
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_BUFFER_OVERFLOW    if 'errorMessageSize' is too small.
+    // SUCCESS                       otherwise.
+    
+      RESULT forceTrig(in long instrumentID);
+    // Forces a 'manual' trigger. The function returns immediately after initiating
+    // a trigger. One must therefore wait until this acquisition has terminated
+    // before reading the data, by checking the status with the 'acqDone'
+    // function. Equivalent to forceTrigEx with 'forceTrigType' = 0
+    
+     RESULT  forceTrigEx(in long instrumentID, in long forceTrigType,
+			 in long modifier, in long flags);
+    // Forces a 'manual' trigger. The function returns immediately after initiating
+    // a trigger. One must therefore wait until this acquisition has terminated
+    // before reading the data, by checking the status with the 'acqDone'
+    // or the 'waitForEndOfAcquisition' functions.
+    //
+    // 'forceTrigType'=       0    Sends a software trigger to end the (entire) acquisition. 
+    //                          In multisegment mode, the current segment is acquired, the acquisition 
+    //                          is terminated and the data and timestamps of subsequent segments are 
+    //                          invalid. The 'trigOut' Control IO will NOT generate a trigger output.
+    //                          Equivalent to 'forceTrig'.
+    //                        1    Send a software trigger similar to a hardware trigger. 
+    //                          In multisegment mode, the acquisition advances to the next segment and 
+    //                          then waits again for a trigger. If no valid triggers are provided to 
+    //                          the device, the application must call 'forceTrigEx' as many 
+    //                          times as there are segments. In this mode, 'trigOut' Control IO will    
+    //                          generate a trigger output on each successful call. Every acquired 
+    //                          segment will be valid. This mode is only supported for single 
+    //                          (i.e. non-ASBus-connected) instruments.
+    // 'modifier'               currently unused, must be zero
+    // 'flags'                  currently unused, must be zero 
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_INSTRUMENT_STOPPED          if the instrument is already stopped. 
+    // ERROR_PRETRIGGER_STILL_RUNNING    if the requested data before trigger is being 
+    //                                           acquired.
+    // ERROR_NOT_SUPPORTED               if this function is not supported by the current 
+    //                                           mode (e.g. mode Average on APxxx).
+    // ERROR_PARAMETERx                       if one of the parameters has an invalid value, where 
+    //                                           x = parameter number.
+    // SUCCESS                                otherwise.
+    
+    RESULT  getAvgConfig(in long instrumentID, 
+			 in long channel, in string parameterString, out any value);
+    // Returns a parameter from the averager/analyzer configuration
+    // See remarks under 'configAvgConfig'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAM_STRING_INVALID if 'parameterString' is invalid.
+    // ERROR_NOT_SUPPORTED        if this function is not supported by the  
+    //                                    instrument.
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getChannelCombination(in long instrumentID, 
+				  out long nbrConvertersPerChannel, out long usedChannels);
+    // Returns parameters of combined operation of multiple channels
+    // See remarks under 'configChannelCombination'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getControlIO(in long instrumentID, in long connectorx,
+			 out long signal, out long qualifier1, out double qualifier2);
+    // Returns the state of Control-IO connectors
+    // See remarks under 'configControlIO'
+    //
+    // SPECIAL CASE: If 'connector' = 0 is specified, the returned value of 'signal'
+    // is the bit-coded list of the 'connectors' which are available in the digitizer.
+    // E.g. If the connectors 1 (I/O A) and 9 (TrigOut) are present, the bits 1 and 9 of
+    // 'signal' are set, where bit 0 is the LSbit and 31 is the MSbit. 
+    // Thus, 'signal' would be equal to 0x202.
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getExtClock(in long instrumentID, out long clockType,
+			out double inputThreshold, out long delayNbrSamples,
+			out double inputFrequency, out double sampFrequency);
+    // Returns the (external) clock parameters of the digitizer
+    // See remarks under 'configExtClock'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getFCounter(in long instrumentID, out long signalChannel, 
+			out long typeMes, out double targetValue, out double apertureTime, out double reserved, 
+			out long flags);
+    // Returns the current settings of the frequency counter
+    // See remarks under 'configFCounter'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getHorizontal(in long instrumentID, 
+			  out double sampInterval, out double delayTime);
+    // Returns the current horizontal control parameters of the digitizer.
+    // See remarks under 'configHorizontal'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getInstrumentData(in long instrumentID,
+			      out string name, out long serialNbr, out long busNbr, out long slotNbr);
+    // Returns some basic data about a specified digitizer
+    //
+    // Values returned by the function:
+    //
+    // 'name'            = pointer to user-allocated string, into which the
+    //                     model name is returned (length < 32 characters)
+    // 'serialNbr'       = serial number of the digitizer
+    // 'busNbr'          = bus number where digitizer is located
+    // 'slotNbr'         = slot number where digitizer is located
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getInstrumentInfo(in long instrumentID, 
+			      in string parameterString, out any infoValue);
+    // Returns general information about a specified digitizer
+    //
+    // The following value must be supplied to the function:
+    //
+    // 'parameterString'  = character string specifying the requested parameter
+    //                      Please refer to the manual for the accepted parameter strings
+    //
+    // Value returned by the function:
+    //
+    // 'infoValue'        = value of requested parameter
+    //                      The type of the returned value depends on the parameter string
+    //                      Please refer to the manual for the required  data type as a
+    //                      function of the accepted parameter strings
+    //                      NOTE to C/C++ programmers: 'ViAddr' resolves to 'void*'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAM_STRING_INVALID if 'parameterString' is invalid.
+    // ERROR_NOT_SUPPORTED        if the requested value is not supported by the 
+    //                                    instrument.
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getMemory(in long instrumentID, 
+		      out long nbrSamples, out long nbrSegments);
+    // Returns the current memory control parameters of the digitizer.
+    // See remarks under 'configMemory'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getMemoryEx(in long instrumentID, 
+			out unsigned long nbrSamplesHi, out unsigned long nbrSamplesLo, out long nbrSegments, out long nbrBanks, 
+			out long flags);
+    // Returns the current memory control parameters of the digitizer.
+    // See remarks under 'configMemoryEx'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getMode(in long instrumentID, out long mode, out long modifier, out long flags);
+    // Returns the current operational mode of the digitizer.
+    // See remarks under 'configMode'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    
+    RESULT  getMultiInput(in long instrumentID, in long channel, out long input);
+    // Returns the multiple input configuration on a channel
+    // See remarks under 'configMultiInput'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getNbrChannels(in long instrumentID, out long nbrChannels);
+    // Returns the number of channels on the specified digitizer.
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getTrigClass(in long instrumentID, out long trigClass, 
+			 out long sourcePattern, out long validatePattern, out long holdType, out double holdValue1,
+			 out double holdValue2);
+    // Returns the current trigger class control parameters of the digitizer.
+    // See remarks under 'configTrigClass'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getTrigSource(in long instrumentID, in long channel, 
+			  out long trigCoupling, out long trigSlope, out double trigLevel1, out double trigLevel2);
+    // Returns the current trigger source control parameters for a specified channel.
+    // See remarks under 'configTrigSource'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getTrigTV(in long instrumentID, in long channel, 
+		      out long standard, out long field, out long line);      
+    // Returns the current TV trigger control parameters of the digitizer.
+    // See remarks under 'configTrigTV'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getVersion(in long instrumentID,
+		       in long versionItem, out long version);
+    // Returns version numbers associated with a specified digitizer / current device driver
+    //
+    // The following value must be supplied to the function:
+    //
+    // 'versionItem'    =   1        for version of Kernel-Mode Driver 
+    //                      2        for version of EEPROM Common Section 
+    //                      3        for version of EEPROM Digitizer Section
+    //                      4        for version of CPLD firmware
+    //
+    // Value returned by the function:
+    //
+    // 'version'        = version number.
+    //
+    // For drivers, the version number is composed of 2 parts. The upper 2 bytes represent
+    // the major version number, and the lower 2 bytes represent the minor version number. 
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  getVertical(in long instrumentID, in long channel, 
+			out double fullScale, out double offset, out long coupling, out long bandwidth);
+    // Returns the current vertical control parameters for a specified channel.
+    // See remarks under 'configVertical'
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                if one of the parameters has an invalid value, where 
+    //                                    x = parameter number.
+    // SUCCESS                         otherwise.
+    
+    RESULT  InitWithOptions(in string resourceName, in boolean IDQuery, 
+			    in boolean resetDevice, in string optionsString, out long instrumentID);
+    // Initializes an instrument with options
+    //
+    // The following values must be supplied to the function:
+    //
+    // 'resourceName'   = an ASCII string which identifies the digitizer to be initialized
+    //                    See manual for a detailed description of this string.
+    // 'IDQuery'        = currently ignored
+    // 'resetDevice'    = if set to 'TRUE', resets the digitizer after initialization
+    // 'optionsString'  = an ASCII string which specifies options. Currently, we support
+    //                    "CAL=False" to suppress calibration during the initialization
+    //                    "DMA=False" to inhibit (for diagnostics) the use of scatter-gather DMA for 
+    //                    data transfers
+    //                    "Simulate=True" for the use of simulated digitizers during application 
+    //                    development. 
+    // Values returned by the function:
+    //
+    // 'instrumentID'   = identifier for subsequent use in the other function calls.
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_INIT_STRING_INVALID        if the 'resourceName' is invalid.
+    // ERROR_INTERNAL_DEVICENO_INVALID  if the 'resourceName' contains values that are not 
+    //                                          within the expected ranges (e.g. wrong serial number).
+    // ERROR_TOO_MANY_DEVICES           if there are too many devices installed.
+    // ERROR_KERNEL_VERSION             if the instrument require a newer kernel driver.
+    // ERROR_HW_FAILURE                 if the instrument doesn't answer properly to 
+    //                                          defined requests.
+    // ERROR_HW_FAILURE_CHx             if one of the channels doesn't answer properly to 
+    //                                          defined requests, where 'x' = channel number.
+    // ERROR_PARAMETERx                      if one of the parameters has an invalid value, where 
+    //                                          'x' = parameter number.
+    // SUCCESS                               otherwise.
+    /*
+    RESULT  readCharSequence(in long instrumentID, 
+			     in long channel,             in long firstSegment,        in long nbrSegments,        
+			     in long firstSampleInSeg,    in long nbrSamplesInSeg, 
+			     in long segmentOffset,       in long arraySize,
+			     out sequence<short> waveformArray,         
+			     out sequence<double> horPos, out sequence<double> sampTime, out sequence<double> vGain, 
+			     out sequence<double> vOffset, out sequence<long> timeStampLo, out sequence<long> timeStampHi);
+    */
+    // Returns a sequence waveform as an array of byte arrays.
+    // This function is faster than a loop over 'readCharWform()' if many
+    // short segments (< 10'000 points/segment) are read. See Manual for details.
+    //
+    // The following values must be supplied to the function:
+    //
+    // 'channel'          = 1...Nchan (as returned by 'getNbrChannels' )
+    // 'firstSegment'     = requested first segment number, may assume 0 to (nbrSegments - 1),  
+    //                      as set with the function 'configMemory'
+    // 'nbrSegments'      = requested number of segments, may assume 1 to the number of 
+    //                      segments set with the function 'configMemory'
+    // 'firstSampleInSeg' = requested position of first sample in segment to read, 
+    //                      typically 0. May assume 0 to (nbrSamples - 1) as set 
+    //                      with the function 'configMemory'
+    // 'nbrSamplesInSeg'  = requested number of samples per segment, may assume 1 to the 
+    //                      number of samples as set with the function 'configMemory'
+    // 'segmentOffset'    = requested offset (in samples!) between adjacent segments in the
+    //                      destination buffer 'waveformArray'. Must be >= 'nbrSamplesInSeg'.
+    // 'arraySize'        = number of data elements in the user-allocated 'waveformArray'
+    //                      Refer to function description in the manual for the required
+    //                      array size!
+    //
+    // Values returned by the function:
+    //
+    // 'waveformArray'  = user-allocated waveform destination array of type char or byte. 
+    //                    Refer to function description in the manual for the required
+    //                    array size!
+    // 'horPos'         = user-allocated array of horizontal positions, one per segment, 
+    //                    of first (nominal) data point with respect to the origin of the 'nominal
+    //                    trigger delay' in seconds. Since the first data point is BEFORE the 
+    //                    origin, these numbers will be in the range [-sampTime, 0].
+    //                    The number of elements in the 'horPos' array MUST be >= the number 
+    //                    of segments set with the function 'configMemory'.
+    // 'sampTime'       = sampling interval in seconds
+    // 'vGain'          = vertical gain in Volts/LSB
+    // 'vOffset'        = vertical offset in Volts
+    //                    The value in Volts of a data point 'data' in the returned
+    //                    'waveformArray[]' array is computed with the formula
+    //                    V = vGain * data - vOffset
+    // 'timeStampLo' + 
+    // 'timeStampHi'    = user-allocated arrays of low and high part of the 64-bit trigger time stamps,
+    //                    one per segment, in units of picoseconds. These values are the trigger 
+    //                    times with respect to an arbitrary time origin (typically the start-time
+    //                    of the acquisition).
+    //                    The number of elements in the 'timeStampXx' arrays MUST be >= the  
+    //                    number of segments set with the function 'configMemory'.
+    //                    Intended for the computation of time differences between two waveform
+    //                    acquisitions. See manual for detailed explanations.
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_NOT_SUPPORTED          if this function is not supported by the instrument.
+    // ERROR_INSTRUMENT_RUNNING     if the instrument is running.
+    // ERROR_NO_DATA                if nothing was acquired beforehand.
+    // ERROR_PARAMETERx                  if one of the parameters has an invalid value, where 
+    //                                      'x' = parameter number.
+    // SUCCESS                           otherwise.
+    // For other errors, please see 'readData'.
+    
+    /*
+     RESULT  readCharWform(long instrumentID, long channel,
+			   long segmentNumber,        long firstSample,        long nbrSamples, 
+			   string waveformArray,        long* returnedSamples,    long* addrFirstPoint, 
+			   double* horPos,            double* sampTime,            double* vGain, 
+			   double* vOffset,            long* timeStampLo,        long* timeStampHi);
+    */
+    // Returns a waveform as a byte array.
+    //
+    // The following values must be supplied to the function:
+    //
+    // 'channel'        = 1...Nchan (as returned by 'getNbrChannels' )
+    // 'segmentNumber'  = requested segment number, may assume 0 to (nbrSegments - 1)
+    //                    as set with the function 'configMemory'
+    // 'firstSample'    = requested position of first sample to read, typically 0
+    // 'nbrSamples'     = requested number of samples, may assume 1 to the number of samples
+    //                    set with the function 'configMemory'
+    //
+    // Values returned by the function:
+    //
+    // 'waveformArray'  = user-allocated waveform destination array of type char or byte. 
+    //                    Its size MUST be at least (nbrSamples + 32), for reasons of data
+    //                    alignment.
+    // 'returnedSamples'= number of data samples actually returned
+    // 'addrFirstPoint' = the offset of the first valid data point in the destination array.
+    //                    It should always be in the range [0...31].
+    // 'horPos'         = horizontal position of first (nominal) data point with respect 
+    //                    to the origin of the 'nominal trigger delay' in seconds. Since 
+    //                    the first data point is BEFORE the origin, this number will be 
+    //                    in the range [-sampTime, 0].
+    // 'sampTime'       = sampling interval in seconds
+    // 'vGain'          = vertical gain in Volts/LSB
+    // 'vOffset'        = vertical offset in Volts
+    //                    The value in Volts of a data point 'data' in the returned
+    //                    'waveformArray[]' array is computed with the formula
+    //                    V = vGain * data - vOffset
+    // 'timeStampLo' + 
+    // 'timeStampHi'    = low and high part of the 64-bit trigger time stamp, in units of 
+    //                    picoseconds. This value is the trigger time with respect to an
+    //                    arbitrary time origin (typically the start-time of the acquisition).
+    //                    Intended for the computation of time differences between two waveform
+    //                    acquisitions. See manual for detailed explanations.
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_NOT_SUPPORTED          if this function is not supported by the instrument.
+    // ERROR_INSTRUMENT_RUNNING     if the instrument is running.
+    // ERROR_NO_DATA                if nothing was acquired beforehand.
+    // ERROR_PARAMETERx                  if one of the parameters has an invalid value, where 
+    //                                      'x' = parameter number.
+    // SUCCESS                           otherwise.
+    // For other errors, please see 'readData'.
+
+    struct AqDataDescriptor {
+      long dummy;
+    };
+
+    struct AqReadParameters {
+      long dummy;
+    };
+
+    typedef sequence<long> DataArray;
+    
+    RESULT  readData(in long instrumentID, in long channel,
+		     out AqReadParameters readPar, out DataArray dataArray, out AqDataDescriptor dataDesc,
+		     out any segDescArray);
+    // Returns a waveform and associated descriptors, in one of several possible formats
+    // This function is the preferred way of reading waveforms, since it includes the capabilities
+    // of all the other read functions, and more!
+    //
+    // The following values must be supplied to the function:
+    //
+    // 'channel'        = 1...Nchan (as returned by 'getNbrChannels' )
+    // 'readPar'        = pointer to a user-supplied structure that specifies what and how to read
+    //
+    // Values returned by the function:
+    //
+    // 'dataArray'      = user-allocated data destination array of type defined by 'readPar.dataType'
+    //                    When reading a single segment of raw data, its size MUST be at least
+    //                    (nbrSamples + 32), for reasons of data alignment. Please refer to the manual
+    //                    for additional details.
+    // 'dataDesc'       = user-allocated structure for returned data descriptor values
+    // 'segDescArray'   = user allocated array of structures for returned segment descriptor values
+    //                    This array must contain at least 'readPar.nbrSegments' elements of the
+    //                    appropriate type (typically 'AqSegmentDescriptor' or 'AqSegmentDescriptorAvg')
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_INSTRUMENT_RUNNING       if the instrument is running.
+    // ERROR_READMODE                 if 'readPar->readMode' is not valid.
+    // ERROR_NOT_SUPPORTED            if 'readPar->readMode' is not supported by the instrument.
+    // ERROR_DATATYPE                 if 'readPar->dataType' is not valid for the 
+    //                                        choosen 'readPar->readMode' or for this instrument.
+    // ERROR_FIRST_SEG                if 'readPar->firstSegment' is invalid.
+    // ERROR_NBR_SEG                  if 'readPar->nbrSegments' is invalid.
+    // ERROR_DATA_ARRAY or
+    // ERROR_NBR_SAMPLE               if 'readPar->dataArraySize' is invalid.
+    // ERROR_SEG_DESC_ARRAY           if 'readPar->segDescArraySize' is invalid.
+    // ERROR_SEG_OFF                  if 'readPar->segmentOffset' is invalid.
+    // ERROR_NBR_SEG                  if 'readPar->nbrSegments' is invalid.
+    // ERROR_BUFFER_OVERFLOW          if 'readPar->dataArraySize' is too small.
+    // ERROR_NO_DATA                  if nothing was acquired beforehand.
+    // ERROR_CANNOT_READ_THIS_CHANNEL if the requested channel is not available.
+    // ERROR_READ_TIMEOUT             if the reading encoutered a problem.
+    // WARN_READPARA_NBRSEG_ADAPTED   if 'readPar->nbrSegments' has been adapted.
+    // WARN_ACTUAL_DATASIZE_ADAPTED   if 'readPar->dataArraySize' has been adapted.
+    // WARN_READPARA_FLAGS_ADAPTED    if 'readPar->flags' has been adapted.
+    // ERROR_PARAMETERx                    if one of the parameters has an invalid value, where 
+    //                                        'x' = parameter number.
+    // SUCCESS                             otherwise.
+    
+    typedef sequence<double> double_array;
+
+    RESULT  readFCounter(in long instrumentID, out double_array result); 
+    //    Reads the frequency counter
+    // 'result'       = result of measurement, whose units depend on the measurement 'type':
+    //                  Hz     for typeMes = 0 (Frequency)
+    //                  sec    for typeMes = 1 (Period)
+    //                  counts for typeMes = 2 (Totalize)
+    //
+    // Common return values:
+    // ERROR_NOT_SUPPORTED if this function is not supported by the instrument.
+    // ERROR_NO_DATA       if the instrument has not first acquired data in the 'frequency 
+    //                             counter' mode (mode = 6).
+    // ERROR_PARAMETERx         if one of the parameters has an invalid value, where 
+    //                             'x' = parameter number.
+    // SUCCESS                  otherwise.
+    
+    RESULT  reset(in long instrumentID);
+    // Resets an instrument
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETER1                     if 'instrumentID' is invalid.
+    // SUCCESS                              otherwise.
+    
+    RESULT  resetDigitizerMemory(in long instrumentID);
+    // Resets the digitizer memory to a known default state, ONLY useful
+    // for a digitizer with the battery back-up option. 
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_INSTRUMENT_RUNNING    if the instrument is already running. 
+    // ERROR_PARAMETER1                 if 'instrumentID' is invalid.
+    // SUCCESS                          otherwise.
+    
+    RESULT  restoreInternalRegisters(in long instrumentID,
+				     in double delayOffset, in double delayScale);
+    // Restores some internal registers of an instrument, needed ONLY after power-up
+    // of a digitizer with the battery back-up option.
+    // Please refer to the manual for a detailed description of the steps required
+    // to read battery backed-up waveforms.
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                  if one of the parameters has an invalid value, where 
+    //                                      'x' = parameter number.
+    // SUCCESS                           otherwise.
+    
+    RESULT  setAttributeString(in long instrumentID, in long channel, 
+			       in string name, in string value); 
+    // Set through 'value' the value of the attribute named 'name'.
+    //
+    // 'channel'            = 1...Nchan (as returned by 'getNbrChannels' ) or
+    //                        0 if it is an attribute related to the instrument 
+    //                        itself (i.e. not to a channel).
+    // 'name'               = specify the name of the attribute to change.
+    //                        Please refer to the manual for the accepted names.
+    // 'value'              = specify the value in which the attribute will be set.
+    //                        Please refer to the manual for the accepted values.
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_ATTR_NOT_FOUND         if not found or if a wrong 'channel' is specified. 
+    // ERROR_ATTR_WRONG_TYPE        if found but not of the expected type.
+    // ERROR_ATTR_INVALID_VALUE     if 'value' is not valid.
+    // ERROR_ATTR_IS_READ_ONLY      if found but not writable.
+    // SUCCESS                           otherwise.
+    
+    RESULT  setLEDColor(in long instrumentID, in long color);
+    // Sets the front-panel LED to the desired color
+    // 'color' = 0        OFF (returns to normal 'acquisition status' indicator)
+    //           1        Green
+    //           2        Red
+    //           3        Yellow
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETERx                  if one of the parameters has an invalid value, where 
+    //                                      'x' = parameter number.
+    // SUCCESS                           otherwise.
+    
+    RESULT  setSimulationOptions(in string simOptionString);
+    // Sets one or several options which will be used by the function 'InitWithOptions',
+    // provided that the 'optionString' supplied to 'InitWithOptions' contains the
+    // string 'simulate=TRUE' (or similar).
+    // Refer to the manual for the accepted form of 'simOptionString'.
+    // The simulation options are reset to none by setting 'simOptionString' to an empty string "".
+    //
+    // Returns one of the following RESULT values:
+    // SUCCESS always.
+    
+    RESULT  stopAcquisition(in long instrumentID);
+    // Stops the acquisition immediately
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PARAMETER1                  if 'instrumentID' is invalid.
+    // SUCCESS                           otherwise.
+    
+    RESULT  stopProcessing(in long instrumentID);
+    // Stops the on-board processing immediately.(only in instruments with on-board data processing)
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_NOT_SUPPORTED      if this function is not supported by the instrument.
+    // ERROR_PARAMETERx              if one of the parameters has an invalid value, where 
+    //                                  'x' = parameter number.
+    // SUCCESS                       otherwise.
+    
+    RESULT  waitForEndOfAcquisition(in long instrumentID, in long timeout);
+    // Returns after acquisition has terminated or after timeout, whichever is shorter.
+    // 'timeout' is in milliseconds. For protection, 'timeout' is internally clipped to a
+    // range of [0, 10000] milliseconds.
+    //
+    // This function puts the calling thread into 'idle' until it returns, permitting optimal 
+    // use of the CPU by other threads.
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_OVERLOAD           if a channel/trigger overload was detected.
+    // ERROR_ACQ_TIMEOUT        if the acquisition timed out (and there was no overload). 
+    //                                  In this case, you should use either 
+    //                                  'stopAcquisition()' or 'forceTrig()' to 
+    //                                  stop the acquisition.
+    // ERROR_INSTRUMENT_STOPPED if the acquisition was not started beforehand
+    // ERROR_PARAMETERx              if one of the parameters has an invalid value, where 
+    //                                  'x' = parameter number.
+    // SUCCESS                       otherwise.
+    
+    RESULT  waitForEndOfProcessing(in long instrumentID, in long timeout);
+    // Returns after on-board processing has terminated or after timeout, whichever is shorter.
+    // 'timeout' is in milliseconds. For protection, 'timeout' is internally clipped to a
+    // range of [0, 10000] milliseconds. (only in instruments with on-board data processing)
+    //
+    // This function puts the calling thread into 'idle' until it returns, permitting optimal 
+    // use of the CPU by other threads.
+    //
+    // Returns one of the following RESULT values:
+    // ERROR_PROC_TIMEOUT        if the processing timed out. In this case, you should use 
+    //                                   'stopProcessing()' to stop the processing.
+    // ERROR_PARAMETERx               if one of the parameters has an invalid value, where 
+    //                                   'x' = parameter number.
+    // SUCCESS                        otherwise.
+  };
+};

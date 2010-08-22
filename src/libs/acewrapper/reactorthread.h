@@ -9,7 +9,7 @@
 
 class ACE_Semaphore;
 class ACE_Reactor;
-template<class T, class X> class ACE_Singleton;
+//template<class T, class X> class ACE_Singleton;
 
 namespace acewrapper {
 

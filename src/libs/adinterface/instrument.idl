@@ -35,10 +35,10 @@ module Instrument {
 
   interface Session {
       
-    exception CannotAdd {
-      wstring reason_;
-    };
-    
+      exception CannotAdd {
+          wstring reason_;
+      };
+      
     wstring software_revision();  // ex. L"1.216"
     // setConfiguration will call immedate after object activated.
 	boolean setConfiguration( in wstring xml );

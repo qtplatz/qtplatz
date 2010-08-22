@@ -12,6 +12,12 @@ InputCDR::InputCDR( ACE_InputCDR& cdr ) : impl_(cdr)
 {
 }
 
+InputCDR& InputCDR::operator >> ( bool& t )
+{
+  impl_.read_boolean( t );
+  return *this;
+}
+
 InputCDR& InputCDR::operator >> ( char& t )
 {
   impl_.read_char( t );

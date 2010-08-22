@@ -35,7 +35,9 @@ public:
 
     inline enum_state state() const { return state_; }
     void doit( enum_command );
-private:
+    virtual void activate() {}
+    virtual void deactivate() {}
+protected:
     enum_state state_;
 };
 

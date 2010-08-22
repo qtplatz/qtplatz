@@ -3,7 +3,7 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "i8ttask.h"
+#include "TOFTask.h"
 #include "tofsession.h"
 #include "marshal.hpp"
 #include "constants.h"
@@ -23,19 +23,21 @@
 
 #include <adportable/protocollifecycle.h>
 #include <acewrapper/lifecycle_frame_serializer.h>
+#include "analyzerdevicedata.h"
 
 #pragma warning (disable : 4996 )
 # include "tofcontrollerC.h"
+# include <adinterface/global_constantsC.h>
 #pragma warning (default : 4996 )
 
 using namespace tofcontroller;
 
-i8tTask::i8tTask( size_t n ) : n_threads_(n)
+TOFTask::TOFTask( size_t n ) : n_threads_(n)
                              , barrier_( n )
 {
 }
 
-i8tTask::~i8tTask(void)
+TOFTask::~TOFTask(void)
 {
     ACE_Reactor * reactor = this->reactor();
     this->reactor( 0 );
@@ -43,7 +45,7 @@ i8tTask::~i8tTask(void)
 }
 
 bool
-i8tTask::setConfiguration( const wchar_t * xml )
+TOFTask::setConfiguration( const wchar_t * xml )
 {
 	if ( ! configXML_.empty() )
 		return false;
@@ -52,7 +54,7 @@ i8tTask::setConfiguration( const wchar_t * xml )
 }
 
 bool
-i8tTask::open()
+TOFTask::open()
 {
 	if ( activate( THR_NEW_LWP, n_threads_ ) != - 1 ) {
 		return true;
@@ -61,7 +63,7 @@ i8tTask::open()
 }
 
 void
-i8tTask::close()
+TOFTask::close()
 {
     if ( reactor() )
 		reactor()->end_reactor_event_loop();
@@ -70,7 +72,7 @@ i8tTask::close()
 }
 
 bool
-i8tTask::connect( Receiver_ptr receiver )
+TOFTask::connect( Receiver_ptr receiver )
 {
 	receiver_data data;
     data.receiver_ = Receiver::_duplicate( receiver );
@@ -86,7 +88,7 @@ i8tTask::connect( Receiver_ptr receiver )
 }
 
 bool
-i8tTask::disconnect( Receiver_ptr receiver )
+TOFTask::disconnect( Receiver_ptr receiver )
 {
 	receiver_data data;
     data.receiver_ = Receiver::_duplicate( receiver );
@@ -105,13 +107,13 @@ i8tTask::disconnect( Receiver_ptr receiver )
 
 ///////////////////////////////////////////////////////////////
 bool
-i8tTask::receiver_data::operator == ( const receiver_data& t ) const
+TOFTask::receiver_data::operator == ( const receiver_data& t ) const
 {
 	return receiver_->_is_equivalent( t.receiver_.in() );
 }
 
 bool
-i8tTask::receiver_data::operator == ( const Receiver_ptr t ) const
+TOFTask::receiver_data::operator == ( const Receiver_ptr t ) const
 {
 	return receiver_->_is_equivalent( t );
 }
@@ -119,7 +121,7 @@ i8tTask::receiver_data::operator == ( const Receiver_ptr t ) const
 ////////////////////////////////////////////////////////////////
 
 int
-i8tTask::handle_timeout( const ACE_Time_Value& tv, const void * )
+TOFTask::handle_timeout( const ACE_Time_Value& tv, const void * )
 {
 	do {
 		ACE_Message_Block * mb = new ACE_Message_Block( sizeof( tv ) );
@@ -128,20 +130,20 @@ i8tTask::handle_timeout( const ACE_Time_Value& tv, const void * )
 		putq( mb );
 	} while(0);
 	do {
-		TAO_OutputCDR cdr;
+        TAO_OutputCDR cdr;
 		cdr << constants::SESSION_QUERY_DEVICE;
 		cdr << TOFConstants::ClassID_AnalyzerDeviceData;
 		cdr << TOFConstants::ClassID_MSMethod;
-		cdr << TOFConstants::EOR;
+        cdr << GlobalConstants::EOR;
         ACE_Message_Block * mb = cdr.begin()->duplicate();
-		mb->msg_type( constants::MB_SENDTO_DEVICE );
+        mb->msg_type( constants::MB_QUERY_DEVICE );
 		this->putq( mb );
 	} while(0);
 	return 0;
 }
 
 int
-i8tTask::handle_input( ACE_HANDLE h )
+TOFTask::handle_input( ACE_HANDLE h )
 {
     const size_t size = 2000;
     ACE_Message_Block * mb = new ACE_Message_Block( size );
@@ -171,7 +173,7 @@ i8tTask::handle_input( ACE_HANDLE h )
 }
 
 void
-i8tTask::internal_initialize()
+TOFTask::internal_initialize()
 {
 	acewrapper::ORBServant< tofcontroller::tofSession_i >
 		* pServant = tofcontroller::singleton::tofSession_i::instance();
@@ -200,7 +202,7 @@ i8tTask::internal_initialize()
 }
 
 bool
-i8tTask::internal_initialize_reactor()
+TOFTask::internal_initialize_reactor()
 {
 	ACE_Reactor * reactor = this->reactor();
 	if ( reactor == 0 && !reactor_thread_ ) {
@@ -213,7 +215,7 @@ i8tTask::internal_initialize_reactor()
 }
 
 bool
-i8tTask::internal_initialize_timer()
+TOFTask::internal_initialize_timer()
 {
 	if ( ! reactor() )
 		internal_initialize_reactor();
@@ -222,7 +224,7 @@ i8tTask::internal_initialize_timer()
 }
 
 bool
-i8tTask::internal_initialize_mcast()
+TOFTask::internal_initialize_mcast()
 {
 	if ( ! reactor() )
 		internal_initialize_reactor();
@@ -235,7 +237,7 @@ i8tTask::internal_initialize_mcast()
 }
 
 int
-i8tTask::svc()
+TOFTask::svc()
 {
 	internal_initialize();
 	barrier_.wait();
@@ -261,11 +263,12 @@ i8tTask::svc()
 }
 
 void
-i8tTask::doit( ACE_Message_Block * mblk )
+TOFTask::doit( ACE_Message_Block * mblk )
 {
 	if ( mblk->msg_type() == ACE_Message_Block::MB_DATA ) {
 
         long x = 0;
+        (void)x;
 
 	} else if ( mblk->msg_type() >= ACE_Message_Block::MB_USER ) {
 		switch( mblk->msg_type() ) {
@@ -282,14 +285,17 @@ i8tTask::doit( ACE_Message_Block * mblk )
 			dispatch_debug( mblk );
             break;
 		case constants::MB_SENDTO_DEVICE:
-			dispatch_sendto_device( mblk );
+            dispatch_sendto_device( mblk );
+            break;
+		case constants::MB_QUERY_DEVICE:
+            dispatch_query_device( mblk );
 			break;
 		};
 	}
 }
 
 void
-i8tTask::dispatch_debug( const std::wstring& text, const std::wstring& key )
+TOFTask::dispatch_debug( const std::wstring& text, const std::wstring& key )
 {
 	::EventLog::LogMessage log;
 	log.tv.sec = 0;
@@ -302,7 +308,7 @@ i8tTask::dispatch_debug( const std::wstring& text, const std::wstring& key )
 }
 
 void
-i8tTask::dispatch_debug( ACE_Message_Block * mblk )
+TOFTask::dispatch_debug( ACE_Message_Block * mblk )
 {
 	ACE_InputCDR cdr( mblk );
 	CORBA::WChar * text, *key;
@@ -320,7 +326,7 @@ i8tTask::dispatch_debug( ACE_Message_Block * mblk )
 }
 
 void
-i8tTask::dispatch_mcast( ACE_Message_Block * mb )
+TOFTask::dispatch_mcast( ACE_Message_Block * mb )
 {
 	ACE_Message_Block * pfrom = mb->cont();
 	ACE_INET_Addr& from_addr( *reinterpret_cast<ACE_INET_Addr *>( pfrom->rd_ptr() ) );
@@ -337,7 +343,7 @@ i8tTask::dispatch_mcast( ACE_Message_Block * mb )
 }
 
 void
-i8tTask::dispatch_dgram( ACE_Message_Block * mblk )
+TOFTask::dispatch_dgram( ACE_Message_Block * mblk )
 {
 	ACE_Message_Block * pfrom = mblk->cont();
 	if ( pfrom ) {
@@ -349,63 +355,168 @@ i8tTask::dispatch_dgram( ACE_Message_Block * mblk )
 }
 
 void
-i8tTask::dispatch_command( ACE_Message_Block * mblk )
+TOFTask::dispatch_command( ACE_Message_Block * mblk )
 {
-	dispatch_sendto_device( mblk );
+    CORBA::ULong cmd = marshal<CORBA::ULong>::get( mblk ); //SESSION_INITIALIZE, MB_COMMAND );
+
+	acewrapper::scoped_mutex_t<> lock( mutex_ );
+	for ( map_type::iterator it = device_proxies_.begin(); it != device_proxies_.end(); ++it ) {
+        TAO_OutputCDR cdr;
+        it->second->prepare_data( cdr ) << cmd;
+		it->second->sendto( cdr.begin() );
+	}
+}
+
+// this entry should be serialized, marshaling with endian management
+
+template<class T> struct sendto_device {
+    T d_;
+    sendto_device( TAO_InputCDR& in ) {
+        in >> d_;
+    }
+    bool operator ()( DeviceProxy& device, CORBA::ULong cmd, CORBA::ULong cls ) const {
+        TAO_OutputCDR cdr;
+        device.prepare_data( cdr ) << cmd;
+        cdr << cls;
+        cdr << d_;
+        return device.sendto( cdr.begin() );
+    }
+};
+
+void
+TOFTask::dispatch_sendto_device( const ACE_Message_Block * mb )
+{
+    assert( mb->msg_type() == constants::MB_SENDTO_DEVICE );
+
+    TAO_InputCDR in(mb);
+    CORBA::ULong scmd, clsid;
+    in >> scmd;
+    in >> clsid;
+
+    assert( constants::SESSION_SENDTO_DEVICE == scmd );
+    switch( clsid ) {
+    case TOFConstants::ClassID_AnalyzerDeviceData:
+        do {
+            sendto_device<TOFInstrument::AnalyzerDeviceData> sender(in);
+            acewrapper::scoped_mutex_t<> lock( mutex_ );
+            // endian & marshaling has to be manipulated one by one, because it depend on device by specification
+            for ( map_type::iterator it = device_proxies_.begin(); it != device_proxies_.end(); ++it )
+                sender( *it->second, scmd, clsid );
+        } while(0);
+        break;
+    default:
+        assert(0);
+        throw std::bad_cast( "bad data type for TOFTask::dispatch_sendto_device" );
+        break;
+    }
 }
 
 void
-i8tTask::dispatch_sendto_device( ACE_Message_Block * mb )
+TOFTask::dispatch_query_device( const ACE_Message_Block * mb )
 {
-	for ( map_type::iterator it = device_proxies_.begin(); it != device_proxies_.end(); ++it )
-		it->second->sendto( mb );
+    assert( mb->msg_type() == constants::MB_QUERY_DEVICE );
+
+    TAO_InputCDR in(mb);
+    CORBA::ULong scmd, clsid;
+    in >> scmd;
+    assert( constants::SESSION_QUERY_DEVICE == scmd );
+
+    std::vector< CORBA::ULong > vec;
+    do {
+        in >> clsid;
+        vec.push_back( clsid );
+    } while ( clsid != GlobalConstants::EOR );
+
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    // endian & marshaling has to be manipulated one by one, because it depend on device by specification
+    for ( map_type::iterator it = device_proxies_.begin(); it != device_proxies_.end(); ++it ) {
+        TAO_OutputCDR cdr;
+        it->second->prepare_data( cdr ) << scmd;
+        for ( unsigned int i = 0; i < vec.size(); ++i )
+            cdr << vec[i];
+        it->second->sendto( cdr.begin() );
+    }
 }
 
 
 void
-i8tTask::command_initialize()
+TOFTask::command_initialize()
 {
 }
 
 ///////////////////////////////
+
 void
-i8tTask::adConfiguration( const TOFInstrument::ADConfigurations& v )
+TOFTask::device_update_notification( unsigned long clsId )
+{
+	acewrapper::scoped_mutex_t<> lock( mutex_ );
+
+	for ( vector_type::iterator it = receiver_set_.begin(); it != receiver_set_.end(); ++it ) {
+        // todo: check client token in order to avoid broadcast clsid, which most of object can't understnad
+        it->receiver_->message( Receiver::SETPTS_UPDATED, clsId );
+	}
+}
+
+void
+TOFTask::controller_update_notification( unsigned long clsId )
+{
+	acewrapper::scoped_mutex_t<> lock( mutex_ );
+
+    struct command {
+        unsigned long cmdid_;
+        unsigned long clsid_;
+        command( unsigned long cmdid, unsigned long clsid ) : cmdid_(cmdid), clsid_(clsid) {}
+    };
+    ACE_Message_Block * mb = new ACE_Message_Block( sizeof( command ) );
+    *reinterpret_cast<command *>( mb->wr_ptr() ) = command( constants::SESSION_SENDTO_DEVICE, clsId);
+    mb->msg_type( constants::MB_SENDTO_DEVICE );
+    putq( mb );
+}
+
+void
+TOFTask::adConfiguration( const TOFInstrument::ADConfigurations& v )
 {
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
 	pADConfigurations_.reset( new TOFInstrument::ADConfigurations( v ) );
 }
 
 void
-i8tTask::setAnalyzerDeviceData( const TOFInstrument::AnalyzerDeviceData& d )
+TOFTask::setAnalyzerDeviceData( const TOFInstrument::AnalyzerDeviceData& d )
 {
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
     if ( pAnalyzerDeviceData_ )
-		*pAnalyzerDeviceData_ = d;
+        tofcontroller::copy_helper< TOFInstrument::AnalyzerDeviceData >::copy( *pAnalyzerDeviceData_, d );
 	else
 		pAnalyzerDeviceData_.reset( new TOFInstrument::AnalyzerDeviceData( d ) );
-
-	for ( map_type::iterator it = device_proxies_.begin(); it != device_proxies_.end(); ++it ) {
-        TAO_OutputCDR cdr;
-        it->second->prepare_data( cdr );
-		const char * rp = cdr.begin()->rd_ptr();
-        char * wp = cdr.begin()->wr_ptr();
-		cdr << constants::SESSION_SENDTO_DEVICE;
-		cdr << TOFConstants::ClassID_AnalyzerDeviceData;
-		cdr << d;
-		ACE_Message_Block * mb = cdr.begin()->duplicate();
-		mb->msg_type( constants::MB_SENDTO_DEVICE );
-		putq( mb );
-	}
 }
 
 bool
-i8tTask::getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData& d ) const
+TOFTask::getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData& d ) const
 {
-	acewrapper::scoped_mutex_t<> lock( const_cast< i8tTask *>(this)->mutex() );
+	acewrapper::scoped_mutex_t<> lock( const_cast< TOFTask *>(this)->mutex() );
 
-    if ( ! pAnalyzerDeviceData_ )
+    if ( ! pAnalyzerDeviceData_ ) {
+        d.model = CORBA::string_dup("n/a");
+        d.hardware_rev = CORBA::string_dup("n/a");
+        d.firmware_rev = CORBA::string_dup("n/a");
+        d.serailnumber = CORBA::string_dup("n/a");
+        d.positive_polarity = true;
+        d.ionguide_bias_voltage = 11;
+        d.ionguide_rf_voltage = 12;
+        d.orifice1_voltage = 13;
+        d.orifice2_voltage = 14;
+        d.orifice4_voltage = 15;
+        d.focus_lens_voltage = 16;
+        d.left_right_voltage = 17;
+        d.quad_lens_voltage = 18;
+        d.pusher_voltage = 19;
+        d.pulling_voltage = 20;
+        d.supress_voltage = 21;
+        d.pushbias_voltage = 22;
+        d.mcp_voltage = 23;
+        d.accel_voltage = 24;  // digital value
 		return false;
-
-	d = *pAnalyzerDeviceData_;
+    }
+    tofcontroller::copy_helper< TOFInstrument::AnalyzerDeviceData >::copy( d, *pAnalyzerDeviceData_ );
 	return true;
 }

@@ -17,7 +17,6 @@
 #include <vector>
 #include <map>
 #include <acewrapper/mcasthandler.h>
-#include <acewrapper/dgramhandler.h>
 
 class ACE_Recursive_Thread_Mutex;
 class ACE_Notification_Strategy;
@@ -25,7 +24,6 @@ class ACE_Reactor;
 
 namespace acewrapper {
     class ReactorThread;
-    class DgramHandler;
     class McastHandler;
     class TimerHandler;
 }
@@ -40,10 +38,10 @@ namespace tofcontroller {
 
     class DeviceProxy;
 	
-    class i8tTask : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
+    class TOFTask : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
     public:
-        i8tTask( size_t n_threads = 1 );
-        ~i8tTask(void);
+        TOFTask( size_t n_threads = 4 );
+        ~TOFTask(void);
 
         inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
 
@@ -58,6 +56,10 @@ namespace tofcontroller {
 
 		void setAnalyzerDeviceData( const TOFInstrument::AnalyzerDeviceData& );
 		bool getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData& ) const;
+        void device_update_notification( unsigned long clsid );
+        void controller_update_notification( unsigned long clsid );
+
+        // void session_update_device( boost::any& );
 
 	private:
         // ACE_Task
@@ -75,7 +77,8 @@ namespace tofcontroller {
         void dispatch_debug( ACE_Message_Block * );
         void dispatch_mcast( ACE_Message_Block * );
         void dispatch_dgram( ACE_Message_Block * );
-		void dispatch_sendto_device( ACE_Message_Block * );
+        void dispatch_sendto_device( const ACE_Message_Block * );
+        void dispatch_query_device( const ACE_Message_Block * );
         void command_initialize();
 
     public:

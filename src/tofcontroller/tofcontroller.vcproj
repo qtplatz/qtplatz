@@ -204,11 +204,29 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\deviceproxy.cpp"
+				RelativePath=".\averager.idl"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I../libs -I$(TAO_ROOT) $(InputFileName)"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I../libs -I$(TAO_ROOT) $(InputFileName)"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\i8ttask.cpp"
+				RelativePath=".\deviceproxy.cpp"
 				>
 			</File>
 			<File
@@ -249,12 +267,20 @@
 				RelativePath=".\tofsession.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\toftask.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\analyzerdevicedata.h"
+				>
+			</File>
 			<File
 				RelativePath=".\constants.h"
 				>
@@ -284,10 +310,6 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\i8ttask.h"
-				>
 			</File>
 			<File
 				RelativePath=".\marshal.hpp"
@@ -355,6 +377,10 @@
 			</File>
 			<File
 				RelativePath=".\tofsession.h"
+				>
+			</File>
+			<File
+				RelativePath=".\toftask.h"
 				>
 			</File>
 		</Filter>

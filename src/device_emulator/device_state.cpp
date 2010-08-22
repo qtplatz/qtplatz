@@ -23,6 +23,8 @@ template<> struct device_command<device_state::command_off> {
     static bool doit( device_state::enum_state& state ) {
         switch( state ) {
             case device_state::state_off: 
+                state = device_state::state_off;
+                return true;
             case device_state::state_initializing: 
             case device_state::state_diagnostic:
             case device_state::state_error:
@@ -41,7 +43,7 @@ template<> struct device_command<device_state::command_initialize> {
     static bool doit( device_state::enum_state& state ) {
         switch( state ) {
             case device_state::state_off: 
-                state = device_state::state_initializing;
+                state = device_state::state_off;
                 return true;
             case device_state::state_initializing:
             case device_state::state_diagnostic:
@@ -58,7 +60,8 @@ template<> struct device_command<device_state::command_do_diagnostic> {
     static bool doit( device_state::enum_state& state ) {
         switch( state ) {
             case device_state::state_off: 
-                break; // do nothing
+                state = device_state::state_off;
+                return true;
             case device_state::state_initializing:
                 break;
             case device_state::state_diagnostic:
@@ -80,6 +83,8 @@ template<> struct device_command<device_state::command_begin_transaction> {
     static bool doit( device_state::enum_state& state ) {
         switch( state ) {
             case device_state::state_off: 
+                state = device_state::state_off;
+                return true;
             case device_state::state_initializing: 
             case device_state::state_diagnostic:
             case device_state::state_error:
@@ -97,6 +102,8 @@ template<> struct device_command<device_state::command_commit> {
     static bool doit( device_state::enum_state& state ) {
         switch( state ) {
             case device_state::state_off:
+                state = device_state::state_off;
+                return true;
             case device_state::state_initializing:
             case device_state::state_diagnostic:
             case device_state::state_error:
@@ -115,7 +122,8 @@ template<> struct device_command<device_state::command_start> {
     static bool doit( device_state::enum_state& state ) {
         switch( state ) {
             case device_state::state_off: 
-                break; // do nothing
+                state = device_state::state_off;
+                return true;
             case device_state::state_initializing: 
                 break;
             case device_state::state_diagnostic:
@@ -136,7 +144,8 @@ template<> struct device_command<device_state::command_stop> {
     static bool doit( device_state::enum_state& state ) {
         switch( state ) {
             case device_state::state_off: 
-                break; // do nothing
+                state = device_state::state_off;
+                return true;
             case device_state::state_initializing:
                 break;
             case device_state::state_diagnostic:

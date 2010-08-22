@@ -28,7 +28,7 @@ module ControlServer {
    enum eStatus { 
       eNothing                    // Not Initialized
       , eNotConfigured            //= 0x00000001,  // no instrument := no driver software loaded
-	  , eConfigured               //= 0x00000002,  // relevant software/driver has loaded
+      , eConfigured               //= 0x00000002,  // relevant software/driver has loaded
       , eInitializing             //= 0x00000003,  // startup initializing (only at the begining after startup)
       , eStandBy                  //= 0x00000004,  // instrument is stand by state
       , ePreparingForRun          //= 0x00000005,  // preparing for next method (parameters being be set value)
@@ -39,17 +39,17 @@ module ControlServer {
    };
 
    enum eInstEvent  {
-	   event_Nothing,
-	   event_HeartBeat,
-	   event_InstStateChanged,
-	   event_ConfigChanged,
-	   event_UpdateData,
-	   event_StartIn,
-	   event_StartOut,
-	   event_InjectIn,
-	   event_InjectOut,
-	   event_EventIn,
-	   event_EventOut
+       event_Nothing,
+       event_HeartBeat,
+       event_InstStateChanged,
+       event_ConfigChanged,
+       event_UpdateData,
+       event_StartIn,
+       event_StartOut,
+       event_InjectIn,
+       event_InjectOut,
+       event_EventIn,
+       event_EventOut
    };
    
    interface Session {
@@ -67,12 +67,12 @@ module ControlServer {
       boolean connect(in Receiver receiver, in wstring token_) raises(CannotAdd);
       boolean disconnect(in Receiver receiver_);
       
-	  eStatus status();
+      eStatus status();
       
       boolean initialize();  // instruments going to 'power on', and starting up if not ready yet.
 
-      // long getdata(in long pos, inout SignalObserver::Signal data);
       SignalObserver::Observer getObserver();
+
       boolean shutdown();  // shutdown server
       boolean echo(in string msg);
       boolean shell(in string cmdline);

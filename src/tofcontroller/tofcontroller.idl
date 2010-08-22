@@ -1,96 +1,114 @@
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison / Advanced Instrumentation Project
+//////////////////////////////////////////
 // build setup
 // $(ACE_ROOT)\bin\tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputPath)
 
 #include "../libs/adinterface/instrument.idl"
+#include "../libs/adinterface/global_constants.idl"
 
 module TOFConstants {
-    const unsigned long EOR                        = 0xffffffff;
-	const unsigned long ClassID_MSMethod           = 0x10010001;
-	const unsigned long ClassID_IonSourceMethod    = 0x10010002;
-	const unsigned long ClassID_InstEvent          = 0x10020001;
-	const unsigned long ClassID_AnalyzerDeviceData = 0x10020002;
+
+    const unsigned long ClassID_AnalyzerDeviceData = 0x10020001;
+    const unsigned long ClassID_MSMethod           = GlobalConstants::ClassID_MS_BEGIN + 1;
+    const unsigned long ClassID_IonSourceMethod    = GlobalConstants::ClassID_MS_BEGIN + 2;
+
 };
 
 module TOFInstrument {
 
-	enum eIonSource {
-		eIonSource_Unknown
-		, eIonSource_ESI
-		, eIonSource_APCI   
-		, eIonSource_DART   
-	};
-
-	enum ePolarity { ePolarity_Indeterminate, ePolarity_Positive, ePolarity_Negative };
-
-	struct ESIMethod {
-		double needle1_voltage_;
-		double needle2_voltage_;
-		double nebulizing1_flow_;
-		double nebulizing2_flow_;
-	};
-
-	struct APCIMethod {
-		double needle1_voltage_;
-		double nebulizing1_flow_;
-	};
-
-	struct DARTMethod {
-		long nothing_;
-	};
-
-	union IonSourceMethod switch( eIonSource ) {
+    enum eIonSource {
+        eIonSource_Unknown
+        , eIonSource_ESI
+        , eIonSource_APCI   
+        , eIonSource_DART
+        , eIonSource_MALDI
+    };
+    
+    enum ePolarity { ePolarity_Indeterminate, ePolarity_Positive, ePolarity_Negative };
+    
+    struct ESIMethod {
+        double needle1_voltage_;
+        double needle2_voltage_;
+        double nebulizing1_flow_;
+        double nebulizing2_flow_;
+    };
+    
+    struct APCIMethod {
+        double needle1_voltage_;
+        double nebulizing1_flow_;
+    };
+    
+    struct DARTMethod {
+        long nothing_;
+    };
+    
+    union IonSourceMethod switch( eIonSource ) {
     case eIonSource_ESI: ESIMethod esi_;
-	case eIonSource_APCI: APCIMethod apci_;
-	case eIonSource_DART: DARTMethod dart_;
-	};
-
-	struct InstEvent {
-		unsigned long eventId_;
-		unsigned long eventValue_;
-	};
-
-	struct ADConfiguration {
-		boolean is_bipoler;
-		unsigned long zero_binary_value;  // offset
-		unsigned long llimit_binary_value;
-		unsigned long hlimit_binary_value;
-		double llimit_voltage;
-		double hlimit_volutage;
-	};
-	typedef sequence<ADConfiguration> ADConfigurations;
-  
-	struct AnalyzerDeviceData {
-		string model;
-		string hardware_rev;
-		string firmware_rev;
-		string serailnumber;
-		boolean positive_polarity;  // bool
-		unsigned long ionguide_bias_voltage;
-		unsigned long ionguide_rf_voltage;
-		unsigned long orifice1_voltage;
-		unsigned long orifice2_voltage;
-		unsigned long orifice4_voltage;
-		unsigned long focus_lens_voltage;
-		unsigned long left_right_voltage;
-		unsigned long quad_lens_voltage;
-		unsigned long pusher_voltage;
-		unsigned long pulling_voltage;
-		unsigned long supress_voltage;
-		unsigned long pushbias_voltage;
-		unsigned long mcp_voltage;
-		unsigned long accel_voltage;  // digital value
-	};
-
-	interface TofSession : Instrument::Session {
-		wstring tof_software_revision();
-		void tof_debug( in wstring text, in wstring key );
-
-        void setADConfigurations( in ADConfigurations config );
+    case eIonSource_APCI: APCIMethod apci_;
+    case eIonSource_DART: DARTMethod dart_;
+    };
+    
+    struct InstEvent {
+        unsigned long eventId_;
+        unsigned long eventValue_;
+    };
+    
+    struct ADConfiguration {
+        boolean is_bipoler;
+        unsigned long zero_binary_value;  // offset
+        unsigned long llimit_binary_value;
+        unsigned long hlimit_binary_value;
+        double llimit_voltage;
+        double hlimit_volutage;
+    };
+    typedef sequence<ADConfiguration> ADConfigurations;
+    
+    struct AnalyzerDeviceData {
+        string model;
+        string hardware_rev;
+        string firmware_rev;
+        string serailnumber;
+        boolean positive_polarity;  // bool
+        unsigned long ionguide_bias_voltage;
+        unsigned long ionguide_rf_voltage;
+        unsigned long orifice1_voltage;
+        unsigned long orifice2_voltage;
+        unsigned long orifice4_voltage;
+        unsigned long focus_lens_voltage;
+        unsigned long left_right_voltage;
+        unsigned long quad_lens_voltage;
+        unsigned long pusher_voltage;
+        unsigned long pulling_voltage;
+        unsigned long supress_voltage;
+        unsigned long pushbias_voltage;
+        unsigned long mcp_voltage;
+        unsigned long accel_voltage;  // digital value
+    };
+    
+    struct AveragerModelData {
+        string model;
+        string hardware_rev;
+        string firmware_rev;
+        string serailnumber;
+    };
+    
+    struct AveragerSetpts {
+        long nbrSamples;    // number of data points for waveform
+        long startDelay;    // number of data points par sampInterval
+        long sampInterval;  // pico seconds (2GHz = 500, 5GHz = 200)
+    };
+    
+    interface TofSession : Instrument::Session {
+        wstring tof_software_revision();
+        void tof_debug( in wstring text, in wstring key );
+        
+        AnalyzerDeviceData getAnalyzerDeviceData();
+        void setAnalyzerDeviceData( in AnalyzerDeviceData data );
+        
         boolean getADConfigurations( out ADConfigurations config );
-
-		void setAnalyzerDeviceData( in AnalyzerDeviceData data );
-		boolean getAnalyzerDeviceData( out AnalyzerDeviceData data );
-	};
-
-
+        void setADConfigurations( in ADConfigurations config );
+    };
+    
 };

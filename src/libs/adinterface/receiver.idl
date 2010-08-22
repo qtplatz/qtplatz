@@ -25,6 +25,8 @@ interface Receiver {
 		    , INJECT_OUT
 		    , EVENT_IN
 		    , EVENT_OUT
+            , SETPTS_UPDATED
+            , ACTUAL_UPDATED
   };
 
   struct TimeValue {

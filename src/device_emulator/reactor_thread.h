@@ -6,15 +6,14 @@
 
 #pragma once
 
-// #include <acewrapper/reactorthread.h>
+#include <acewrapper/reactorthread.h>
 class ACE_Recursive_Thread_Mutex;
 template<class T, class Mutex> class ACE_Singlegon;
 
 namespace acewrapper {
     class ReactorThread;
-}
 
-namespace singleton {
-    typedef ACE_Singleton< acewrapper::ReactorThread, ACE_Recursive_Thread_Mutex > theReactorThread;
+    namespace singleton {
+        typedef ACE_Singleton< acewrapper::ReactorThread, ACE_Recursive_Thread_Mutex > ReactorThread;
+    }
 }
-

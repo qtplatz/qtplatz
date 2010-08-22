@@ -8,13 +8,18 @@
 
 #include "device_state.h"
 #include <boost/smart_ptr.hpp>
+#include <ace/Event_Handler.h>
 
 class ACE_Message_Block;
 class ACE_InputCDR;
+class ACE_OutputCDR;
 
 namespace device_emulator {
 
 	struct AnalyzerDeviceData {
+        AnalyzerDeviceData() {}
+        AnalyzerDeviceData( const AnalyzerDeviceData& );
+        void operator = (const AnalyzerDeviceData& );
 		std::string model;
 		std::string hardware_rev;
 		std::string firmware_rev;
@@ -36,18 +41,28 @@ namespace device_emulator {
 		unsigned long accel_voltage;  // digital value
 	};
 
-	class device_hvcontroller : public device_state {
+    class device_hvcontroller : public device_state
+                              , public ACE_Event_Handler {
 	public:
 		~device_hvcontroller( void );
 		device_hvcontroller( void );
 		device_hvcontroller( const device_hvcontroller& );
-		bool operator == ( const device_hvcontroller& ) const;
+
 		const char * deviceType() const { return "analyzer"; }
 
+        // device_state
+        virtual void activate();
+        virtual void deactivate();
+
 		bool instruct_handle_data( ACE_InputCDR&, unsigned long cmdId );
+        bool instruct_copy_data( ACE_OutputCDR&, ACE_InputCDR&, unsigned long clsid );
+
+        // ACE_Event_Handler
+        virtual int handle_timeout( const ACE_Time_Value&, const void * );
 
 	private:
 		bool copyIn( ACE_InputCDR&, AnalyzerDeviceData& );
+        bool copyOut( ACE_OutputCDR&, const AnalyzerDeviceData& );
 		// boost::shared_ptr< TOFInstrument::ADConfigurations > adConfig_;
 		boost::shared_ptr< AnalyzerDeviceData > data_;
 	};

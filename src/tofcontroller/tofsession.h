@@ -19,7 +19,7 @@
 namespace tofcontroller {
 
 	class tofSession_i;
-    class i8tTask;
+    class TOFTask;
 
 	namespace singleton {
 		typedef ACE_Singleton< acewrapper::ORBServant< tofSession_i >, ACE_Recursive_Thread_Mutex > tofSession_i;
@@ -39,7 +39,7 @@ namespace tofcontroller {
 		bool getADConfigurations( TOFInstrument::ADConfigurations_out config );
 
 		void setAnalyzerDeviceData( const TOFInstrument::AnalyzerDeviceData& data );
-		bool getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData_out data );
+        TOFInstrument::AnalyzerDeviceData * getAnalyzerDeviceData();
 
 		// POA_Instrument::Session
 		CORBA::WChar * software_revision (void);
@@ -60,7 +60,7 @@ namespace tofcontroller {
 		CORBA::Boolean resume_run (void);
 		CORBA::Boolean stop_run (void);
 	private:
-		boost::scoped_ptr< i8tTask > pTask_;
+		boost::scoped_ptr< TOFTask > pTask_;
 		Instrument::eInstStatus status_current_;
 	};
 

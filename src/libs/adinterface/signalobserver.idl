@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 //////////////////////////////////////////
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
@@ -6,32 +5,95 @@
 
 module SignalObserver {
 
-	enum eTRACE_METHOD {
-		eTRACE_TRACE
-		, eTRACE_SPECTRA
-	};
+    const unsigned long wkEvent_Error           = 0x80000000;
+    const unsigned long wkEvent_Warning         = 0x40000000;  // instrument is warning state
+    const unsigned long wkEvent_Marker          = 0x20000000;  // wireing to 'marker trigger in'
+    const unsigned long wkEvent_INJECT          = 0x10000000;  // wireing to 'inject trigger in'
+    const unsigned long wkEvent_MethodStart     = 0x08000000;  // wireing to 'method start in'
+    const unsigned long wkEvent_DataWarning     = 0x04000000;  // data waring such as input over range.
+    const unsigned long wkEvent_DarkInProgress  = 0x02000000;  // dark signal acquiring
+    const unsigned long wkEvent_AcqInProgress   = 0x01000000;  // Data storing, INJ trigger disarmed
+    const unsigned long wkEvent_UserEventsMask  = 0x00ffffff;  // wiring to 'event in/out' terminal box
 
-	struct Description {
-		wstring trace_id;
-		wstring trace_display_name;
-		eTRACE_METHOD trace_method;
+    enum eTRACE_METHOD {
+        eTRACE_TRACE
+        , eTRACE_SPECTRA
+    };
+
+    enum eUpdateFrequency {
+        Realtime
+        , Friquent
+        , Sometimes
+        , HalfFull
+        , WellKnownEventsOnly
+    };
+    
+    struct Description {
+        wstring trace_id;  // unique name for the trace, can be used as 'data storage name'
+        wstring trace_display_name;
+        eTRACE_METHOD trace_method;
         wstring axis_x_label;
-		wstring axis_y_label;
-		wstring axis_x_decimals;
-		wstring axis_y_decimals;
-	};
+        wstring axis_y_label;
+        long axis_x_decimals;
+        long axis_y_decimals;
+    };
 
-	struct Signal {
-		sequence< long > data;
-	};
+    struct DataReadBuffer {
+        unsigned long pos;    // data address
+        unsigned long ndata;  // number of data in array
+        unsigned long events; // well known events
+        sequence<unsigned long> array;  // encoded data
+        any method;           // data acquisition method, sample information etc., which can be nil
+    };
+    
+    interface ObserverEvents {
+        // OnUpdateData tells you 'new data' at data number 'pos' is now ready to read
+        oneway void OnUpdateData( in long pos );
 
-	interface Observer {
+        // OnMethodChanged tells you data monitor parameter has changed at data number 'pos'
+        oneway void OnMethodChanged( in long pos );
 
-	};
+        // well known event at data number 'pos'
+        oneway void OnEvent( in unsigned long event, in long pos );
+    };
 
-	interface Session {
+    interface Observer;
 
-	};
+    typedef sequence<Observer> Observers;
+    
+    interface Observer {
 
+        // getDescription returns description
+        Description getDescription();
+        boolean setDescription( in Description desc );
+
+        // client can monitor real time events, it is optional
+        boolean connect( in ObserverEvents cb, in eUpdateFrequency frequency );
+
+        boolean isActive();
+
+        // getSblings returns Observers, which share same time base and events
+        // top level 'Observer' object represents events 'OnUpdateData', 'OnEvent'.
+        // Since thie archtecture, top level Observer for LC/MS is basically TIC or equivlent
+        // and sibling observer will be high resolution mass chromatograms or processed chromatograms.
+        Observers getSiblings();
+
+        // Instrument controller will add/remove sibling by changing method while running sequence
+        boolean addSibling( in Observer observer );
+
+        // uptime returns micro seconds since start moniring, 
+        // this number never reset to zero while running
+        void uptime( out unsigned long long usec );
+
+        boolean readData( in long pos, out DataReadBuffer dataReadBuffer );
+
+        // dataInterpreterClsid tells you object location that knows data array structure
+        // can turns into meaning full object such as spectrum or chromatogram
+        // this string can be CLSID/GUID for Microsoft COM, 
+        // IOR ifor CORBA Object
+        // or internal C++ class name that is core software can handle
+        wstring dataInterpreterClsid();
+   };
+    
 };
 

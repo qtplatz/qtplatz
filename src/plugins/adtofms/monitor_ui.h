@@ -47,13 +47,13 @@ namespace adtofms {
     signals:
         void signal_pushButton_clicked();
         void signal_log( QString, QString );
-        
+        void signal_message( unsigned long, unsigned long );        
     public slots:
         void handle_clicked();
         void on_pushButton_clicked();
-        void slot_log( QString, QString );
     private slots:
         void handle_log( QString, QString );
+        void handle_message( unsigned long, unsigned long );
     private:
         friend impl::TOF;
         adportable::Configuration config_;

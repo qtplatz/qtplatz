@@ -525,13 +525,15 @@ bool
 LifeCycle::prepare_data( LifeCycleData& data, unsigned short flags, unsigned long offset )
 {
     data = LifeCycle_Data();
-    if ( prepare_reply_data( DATA, data, 0 ) ) {
-        LifeCycle_Data& t = boost::get<LifeCycle_Data&>(data);
-        t.flags_ = flags;
-        t.offset_ = offset;
-        return true;
-    }
-    return false;
+
+	// set sequence number
+	boost::apply_visitor( lifecycle_local_sequence_writer( local_sequence_post_increment() ), data );
+
+    LifeCycle_Data& t = boost::get<LifeCycle_Data&>(data);
+    t.flags_ = flags;
+    t.offset_ = offset;
+    return true;
+
 }
 
 bool

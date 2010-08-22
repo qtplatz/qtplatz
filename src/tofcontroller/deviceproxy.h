@@ -18,15 +18,16 @@ class TAO_OutputCDR;
 
 namespace acewrapper {
     class DgramHandler;
+    class OutputCDR;
 }
 
 namespace tofcontroller {
 
-	class i8tTask;
+	class TOFTask;
 
 	class DeviceProxy : public ACE_Event_Handler {
     public:
-        DeviceProxy( const ACE_INET_Addr&, i8tTask * );
+        DeviceProxy( const ACE_INET_Addr&, TOFTask * );
 
         // void notify_timeout( const ACE_Time_Value& );
 
@@ -35,10 +36,10 @@ namespace tofcontroller {
        
         static DeviceProxy * check_hello_and_create( ACE_Message_Block * mb
 			                                       , const ACE_INET_Addr& from
-												   , i8tTask * task);
+												   , TOFTask * task);
 
-		bool prepare_data( TAO_OutputCDR& );
-		bool sendto( ACE_Message_Block * );
+        TAO_OutputCDR& prepare_data( TAO_OutputCDR& );
+		bool sendto( const ACE_Message_Block * );
 
 		// ACE_Event_Handler
 		virtual ACE_HANDLE get_handle() const;
@@ -56,7 +57,7 @@ namespace tofcontroller {
         unsigned short local_sequence_;
 
 		std::wstring name_;
-		i8tTask *pTask_;
+		TOFTask *pTask_;
 
         boost::shared_ptr< acewrapper::DgramHandler > dgram_handler_;
 

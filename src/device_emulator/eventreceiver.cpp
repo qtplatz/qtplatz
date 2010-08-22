@@ -24,27 +24,6 @@ QEventReceiver::handle_input( ACE_HANDLE )
 }
 
 int
-QEventReceiver::handle_input(acewrapper::DgramHandler& dgram, ACE_HANDLE /* h */)
-{
-    ACE_Message_Block * mb = new ACE_Message_Block( 2000 );
-    ACE_Message_Block * pfrom = new ACE_Message_Block( 512 );
-    ACE_INET_Addr * pFromAddr = new (pfrom->wr_ptr()) ACE_INET_Addr();
-
-    memset( mb->wr_ptr(), mb->size(), 2000 );
-	int res = dgram.recv( mb->wr_ptr(), mb->size(), *pFromAddr );
-    if (res == (-1)) {
-		perror("handle_input dgram.recv");
-        ACE_Message_Block::release( mb );
-        ACE_Message_Block::release( pfrom );
-        return 0;
-    }
-    mb->length( res );
-    mb->cont( pfrom );
-    emit signal_dgram_input( mb );
-    return 0;
-}
-
-int
 QEventReceiver::handle_input( acewrapper::McastHandler& mcast, ACE_HANDLE )
 {
     ACE_Message_Block * mb = new ACE_Message_Block( 2000 );
@@ -68,7 +47,6 @@ QEventReceiver::handle_input( acewrapper::McastHandler& mcast, ACE_HANDLE )
 int
 QEventReceiver::handle_timeout( const ACE_Time_Value& tv, const void * )
 {
-   emit signal_timeout( tv.sec(), tv.usec() );
    return 0;
 }
 

@@ -3,7 +3,7 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "i8ttask.h"
+#include "TOFTask.h"
 #include "tofsession.h"
 #include "marshal.hpp"
 #include "constants.h"
@@ -13,7 +13,7 @@ using namespace tofcontroller;
 
 tofSession_i::tofSession_i(void) : status_current_( Instrument::eNothing )
 {
-	pTask_.reset( new i8tTask() );
+	pTask_.reset( new TOFTask() );
 }
 
 tofSession_i::~tofSession_i(void)
@@ -70,7 +70,7 @@ CORBA::Boolean
 tofSession_i::initialize (void)
 {
 	using namespace constants;
-	ACE_Message_Block * mb = marshal<long>::put( SESSION_INITIALIZE, MB_COMMAND );
+    ACE_Message_Block * mb = marshal<CORBA::ULong>::put( CORBA::ULong(SESSION_INITIALIZE), MB_COMMAND );
     pTask_->putq( mb );
 	return true;
 }
@@ -120,25 +120,37 @@ tofSession_i::event_out ( CORBA::ULong event)
 CORBA::Boolean 
 tofSession_i::start_run (void)
 {
-    return false;
+	using namespace constants;
+    ACE_Message_Block * mb = marshal<CORBA::ULong>::put( CORBA::ULong(SESSION_START_RUN), MB_COMMAND );
+    pTask_->putq( mb );
+    return true;
 }
 
 CORBA::Boolean 
 tofSession_i::suspend_run (void)
 {
-    return false;
+	using namespace constants;
+    ACE_Message_Block * mb = marshal<CORBA::ULong>::put( CORBA::ULong(SESSION_SUSPEND_RUN), MB_COMMAND );
+    pTask_->putq( mb );
+    return true;
 }
 
 CORBA::Boolean 
 tofSession_i::resume_run (void)
 {
-    return false;
+	using namespace constants;
+    ACE_Message_Block * mb = marshal<CORBA::ULong>::put( CORBA::ULong(SESSION_RESUME_RUN), MB_COMMAND );
+    pTask_->putq( mb );
+    return true;
 }
 
 CORBA::Boolean 
 tofSession_i::stop_run (void)
 {
-    return false;
+	using namespace constants;
+    ACE_Message_Block * mb = marshal<CORBA::ULong>::put( CORBA::ULong(SESSION_STOP_RUN), MB_COMMAND );
+    pTask_->putq( mb );
+    return true;
 }
 
 ///////////  TOFInstrument::TofSession implementation
@@ -176,13 +188,15 @@ void
 tofSession_i::setAnalyzerDeviceData( const TOFInstrument::AnalyzerDeviceData& data )
 {
 	pTask_->setAnalyzerDeviceData( data );
+    pTask_->controller_update_notification( TOFConstants::ClassID_AnalyzerDeviceData );
 }
 
-bool
-tofSession_i::getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData_out data )
+TOFInstrument::AnalyzerDeviceData *
+tofSession_i::getAnalyzerDeviceData()
 {
-	data = new TOFInstrument::AnalyzerDeviceData();
-	return pTask_->getAnalyzerDeviceData( *data );
+    TOFInstrument::AnalyzerDeviceData_var p = new TOFInstrument::AnalyzerDeviceData();
+    pTask_->getAnalyzerDeviceData( *p );
+    return p._retn();
 }
 
 //////////////////////////////

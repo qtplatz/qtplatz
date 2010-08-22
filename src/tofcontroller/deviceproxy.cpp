@@ -5,7 +5,7 @@
 //////////////////////////////////////////
 
 #include "deviceproxy.h"
-#include "i8ttask.h"
+#include "TOFTask.h"
 
 #include <sstream>
 
@@ -27,7 +27,7 @@ using namespace acewrapper;
 using namespace tofcontroller;
 
 DeviceProxy::DeviceProxy( const ACE_INET_Addr& remote
-                        , i8tTask * task )
+                        , TOFTask * task )
 						: remote_addr_( remote )
 						, lifeCycle_( 0x100 ) 
 						, pTask_( task )
@@ -103,7 +103,7 @@ DeviceProxy::handle_timeout( const ACE_Time_Value& current_time, const void * ac
 DeviceProxy *
 DeviceProxy::check_hello_and_create( ACE_Message_Block * mb
 									, const ACE_INET_Addr& from_addr
-									, i8tTask * task )
+									, TOFTask * task )
 {
 	adportable::protocol::LifeCycleData data;
 	adportable::protocol::LifeCycleFrame frame;
@@ -135,7 +135,7 @@ DeviceProxy::check_hello_and_create( ACE_Message_Block * mb
 }
 
 bool
-DeviceProxy::sendto( ACE_Message_Block * mb )
+DeviceProxy::sendto( const ACE_Message_Block * mb )
 {
 	if ( ! dgram_handler_ )
 		return false;
@@ -237,26 +237,35 @@ DeviceProxy::handle_lifecycle_dgram( ACE_Message_Block * mb )
 bool
 DeviceProxy::handle_data( unsigned long clsid, TAO_InputCDR& cdr )
 {
-	if ( clsid == TOFConstants::ClassID_InstEvent ) {
+	if ( clsid == GlobalConstants::ClassID_InstEvent ) {
 		TOFInstrument::InstEvent e;
 		cdr >> e;
               
 		std::wostringstream o;
         o << L"event#" << e.eventId_ << L", value=" << e.eventValue_;
         pTask_->dispatch_debug( o.str(), name() );
-	}
+    } else if ( clsid == TOFConstants::ClassID_AnalyzerDeviceData ) {
+        TOFInstrument::AnalyzerDeviceData d;
+        cdr >> d;
+        pTask_->setAnalyzerDeviceData( d );
+        pTask_->device_update_notification( clsid );
+
+		std::wostringstream o;
+        o << L"AnalyzerDeviceData accel:" << d.accel_voltage;
+        pTask_->dispatch_debug( o.str(), name() );
+    } else {
+		std::wostringstream o;
+        o << L"Unknown clsid:" << std::hex << clsid;
+        pTask_->dispatch_debug( o.str(), name() );
+    }
 	return true;
 }
 
-bool
+TAO_OutputCDR&
 DeviceProxy::prepare_data( TAO_OutputCDR& out )
 {
-	acewrapper::OutputCDR cdr( out );
-
 	adportable::protocol::LifeCycleData data;
-	if ( lifeCycle_.prepare_data( data ) ) {
-		acewrapper::lifecycle_frame_serializer::pack( cdr, data );
-		return true;
-	}
-	return false;
+	if ( lifeCycle_.prepare_data( data ) )
+        acewrapper::lifecycle_frame_serializer::pack( out, data );
+    return out;
 }

@@ -8,20 +8,19 @@ namespace tofcontroller {
 
     template<class T> class marshal {
     public:
-        static T get( ACE_Message_Block * mb ) {
-            TAO_InputCDR in( mb );
-            T t;
-            in >> t;
+        static const T& get( ACE_Message_Block * mb ) {
+            T& t = *reinterpret_cast<T*>( mb->rd_ptr() );
+            mb->rd_ptr( sizeof(T) );
             return t;
         }
+
         static ACE_Message_Block * put( const T& t, unsigned long msg_type = 0  ) {
-            TAO_OutputCDR out;
-            out << t;
-            ACE_Message_Block * mb = out.begin()->duplicate();
+            ACE_Message_Block * mb = new ACE_Message_Block( sizeof(T) );
+            *reinterpret_cast<T*>( mb->wr_ptr() ) = t;
+            mb->wr_ptr( sizeof(T) );
             if ( msg_type >= ACE_Message_Block::MB_USER )
                 mb->msg_type( msg_type );
             return mb;
         }
     };
-
 }

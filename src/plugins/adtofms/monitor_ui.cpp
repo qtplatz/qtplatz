@@ -7,6 +7,7 @@
 #include "ui_form.h"
 #include "treemodel.h"
 #include "../../../tofcontroller/tofcontrollerC.h"
+#include "../../../tofcontroller/analyzerdevicedata.h"
 #include <adportable/configuration.h>
 #include <adplugin/orbmanager.h>
 #include <acewrapper/nameservice.h>
@@ -34,11 +35,14 @@ namespace adtofms {
             void debug_print( CORBA::Long pri, CORBA::Long cat, const char * text );
 
 			template<class T> T& get();
-			template<> TOFInstrument::AnalyzerDeviceData& get() { return adData_; }
+			template<> TOFInstrument::AnalyzerDeviceData& get() { return setpts_; }
+            TOFInstrument::AnalyzerDeviceData& getSetpts() { return setpts_; }
+            TOFInstrument::AnalyzerDeviceData& getActuals() { return actuals_; }
+            
 
 		private:
-			// TOFInstrument::ADCConfiguration adConfig_[64];
-			TOFInstrument::AnalyzerDeviceData adData_;
+            TOFInstrument::AnalyzerDeviceData actuals_;
+            TOFInstrument::AnalyzerDeviceData setpts_;
         };
 
     }
@@ -52,8 +56,8 @@ monitor_ui::monitor_ui(QWidget *parent) : IMonitor(parent)
     ui->setupUi(this);
     pTof_ = new impl::TOF(*this);
     connect( this, SIGNAL( signal_pushButton_clicked() ), this, SLOT( handle_clicked() ) );
-
     connect( this, SIGNAL( signal_log(QString, QString) ), this, SLOT( handle_log( QString, QString ) ) );
+    connect( this, SIGNAL( signal_message(unsigned long, unsigned long) ), this, SLOT( handle_message(unsigned long, unsigned long) ) );
 
     ui->treeView->setModel( treeModel_ );
     for ( int column = 0; column < treeModel_->columnCount(); ++column )
@@ -140,9 +144,13 @@ monitor_ui::handle_log( QString qtext, QString key )
 }
 
 void
-monitor_ui::slot_log( QString text, QString key )
+monitor_ui::handle_message( unsigned long msgId, unsigned long value )
 {
-    emit signal_log( text, key );
+    if ( msgId == Receiver::SETPTS_UPDATED ) {
+        if ( value == TOFConstants::ClassID_AnalyzerDeviceData ) {
+            update_analyzer_device_data();
+        }
+    }
 }
 
 // call from ui
@@ -156,12 +164,11 @@ void
 monitor_ui::update_analyzer_device_data()
 {
 	if ( pTof_ ) {
-		TOFInstrument::AnalyzerDeviceData_var data;
-		if ( pTof_->tof->getAnalyzerDeviceData( data ) )
-			pTof_->get< TOFInstrument::AnalyzerDeviceData >() = data;
+        TOFInstrument::AnalyzerDeviceData_var data = pTof_->tof->getAnalyzerDeviceData();
+        // pTof_->get< TOFInstrument::AnalyzerDeviceData >() = *data;
+        tofcontroller::copy_helper<TOFInstrument::AnalyzerDeviceData>::copy( pTof_->get<TOFInstrument::AnalyzerDeviceData>(), *data );
+        display_analyzer_device_data( *data );
 	}
-	const TOFInstrument::AnalyzerDeviceData data = pTof_->get< TOFInstrument::AnalyzerDeviceData >();
-	display_analyzer_device_data( data );
 }
 
 void
@@ -272,12 +279,32 @@ TOF::~TOF()
 
 TOF::TOF( monitor_ui& t ) : parent_(t)
 {
-	memset(&adData_, 0, sizeof(adData_));
+    setpts_.model = "model";
+    setpts_.hardware_rev = "hardware_rev";
+    setpts_.firmware_rev = "firmware_rev";
+    setpts_.serailnumber = "s/n";
+    setpts_.positive_polarity = true;
+    setpts_.ionguide_bias_voltage = 1;
+    setpts_.ionguide_rf_voltage = 2;
+    setpts_.orifice1_voltage = 3;
+    setpts_.orifice2_voltage = 4;
+    setpts_.orifice4_voltage = 5;
+    setpts_.focus_lens_voltage = 6;
+    setpts_.left_right_voltage = 7;
+    setpts_.quad_lens_voltage = 8;
+    setpts_.pusher_voltage = 9;
+    setpts_.pulling_voltage = 10;
+    setpts_.supress_voltage = 11;
+    setpts_.pushbias_voltage = 12;
+    setpts_.mcp_voltage = 13;
+    setpts_.accel_voltage = 7000;  // digital value
+    actuals_ = setpts_;
 }
 
 void
 TOF::message( Receiver::eINSTEVENT msg, CORBA::ULong value )
 {
+    emit parent_.signal_message( msg, value );
 }
 
 void
@@ -285,31 +312,11 @@ TOF::log( const EventLog::LogMessage& log )
 {
     std::wstring text = adinterface::EventLog::LogMessageHelper::toString( log );
     if ( parent_.ui ) {
-
 		QString key = qtwrapper::qstring::copy( log.srcId.in() );
         if ( key.isEmpty() )
             return;
 		QString qtext = qtwrapper::qstring::copy( text );
-
-        parent_.slot_log( qtext, key );
-        /*
-		TreeModel& model = *treeModel_;
-
-		int row = model.findParent( key );
-		if ( row < 0 ) {
-			row = model.rowCount();
-            model.insertRow( row );
-            QModelIndex parentIndex = model.index( row, 0 );
-            model.setData( parentIndex, key );
-			model.setData( model.index( row, 2 ), qtext );
-		} else {
-			QModelIndex index = model.index( row, 0 );
-			int childRow = model.rowCount( index );
-			model.insertRow( childRow, index );
-			model.setData( model.index( childRow, 0, index ), key );
-			model.setData( model.index( childRow, 2, index ), qtext );
-		}
-        */
+        emit parent_.signal_log( qtext, key );
     }
 }
 
@@ -321,5 +328,8 @@ TOF::shutdown()
 void
 TOF::debug_print( CORBA::Long pri, CORBA::Long cat, const char * text )
 {
+    ACE_UNUSED_ARG(pri);
+    ACE_UNUSED_ARG(cat);
+    ACE_UNUSED_ARG(text);
 }
 

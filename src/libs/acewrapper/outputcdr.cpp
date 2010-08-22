@@ -16,6 +16,12 @@ OutputCDR::OutputCDR( ACE_OutputCDR& cdr ) : pImpl_(0), impl_(cdr)
 {
 }
 
+OutputCDR& OutputCDR::operator << ( bool t )
+{
+    impl_.write_boolean( t );
+    return *this;
+}
+
 OutputCDR& OutputCDR::operator << ( char t )
 {
   impl_.write_char( t );

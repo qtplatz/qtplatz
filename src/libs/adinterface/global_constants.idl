@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 //////////////////////////////////////////
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
@@ -7,48 +6,16 @@
 // $(ACE_ROOT)\bin\tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputPath)
 
 module GlobalConstants {
+
+    const unsigned long EOR                     = 0xffffffff;
     const unsigned long ClassID_EventLog        = 0x00010001;
-    const unsigned long ClassID_MSMethod        = 0x10010001;
-    const unsigned long ClassID_IonSourceMethod = 0x10010002;
-    const unsigned long ClassID_InstEvent       = 0x10020001;
+    const unsigned long ClassID_InstEvent       = 0x10010002;
+    const unsigned long ClassID_MS_BEGIN        = 0x10020000;
+    const unsigned long ClassID_MS_END          = 0x1002ffff;
+
 };
 
-module Global {
-    
-    struct TaskMsg {
-        unsigned long cmdId;
-        unsigned long clsId;
-        unsigned long from;
-        unsigned long to;
-    };
-};
-
-module InstStateMachine {
-   
-   enum eInstStatus { 
-      eNothing
-      , eNotConnected             //= 0x00000001,  // no instrument := no driver software loaded
-      , eOff                      //= 0x00000002,  // software driver can be controled, but hardware is currently off
-      , eInitializing             //= 0x00000003,  // startup initializing (only at the begining after startup)
-      , eStandBy                  //= 0x00000004,  // instrument is stand by state
-      , ePreparingForRun          //= 0x00000005,  // preparing for next method (parameters being be set value)
-      , eReadyForRun              //= 0x00000006,  // method is in initial state, ready to run (INIT RUN, MS HTV is ready)
-      , eWaitingForContactClosure //= 0x00000007,  //
-      , eRunning                  //= 0x00000008,  // method is in progress
-      , eStop                     //= 0x00000009,  // stop := detector is not monitoring, pump is off
-   };
-   
-  enum eInstEvent { 
-      eventNothing
-      , event_HeartBeat
-      , event_InstStateChanged
-      , event_ConfigChanged
-      , event_UpdateData
-      , event_StartIn
-      , event_StartOut
-      , event_InjectIn
-      , event_InjectOut
-      , event_EventIn           // 32bit input event
-      , event_EventOut          // 32bit output event
-  };
+struct Time_Value {
+    unsigned long long sec;
+    unsigned long usec;
 };

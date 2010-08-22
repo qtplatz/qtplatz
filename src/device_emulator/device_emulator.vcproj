@@ -239,6 +239,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\constants.h"
+				>
+			</File>
+			<File
 				RelativePath=".\device_averager.h"
 				>
 			</File>
