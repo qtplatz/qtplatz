@@ -4,7 +4,7 @@
 //////////////////////////////////////////
 
 #include "TOFTask.h"
-#include "tofsession.h"
+#include "tofsession_i.h"
 #include "marshal.hpp"
 #include "constants.h"
 #include "deviceproxy.h"
@@ -24,6 +24,7 @@
 #include <adportable/protocollifecycle.h>
 #include <acewrapper/lifecycle_frame_serializer.h>
 #include "analyzerdevicedata.h"
+#include "tofobserver_i.h"
 
 #pragma warning (disable : 4996 )
 # include "tofcontrollerC.h"
@@ -103,6 +104,20 @@ TOFTask::disconnect( Receiver_ptr receiver )
 	}
 	return false;
 
+}
+
+SignalObserver::Observer_ptr 
+TOFTask::getObserver()
+{
+	PortableServer::POA_var poa = singleton::tofSession_i::instance()->getServantManager()->root_poa();
+  
+	if ( ! pObserver_ ) {
+		acewrapper::scoped_mutex_t<> lock( mutex_ );
+		if ( ! pObserver_ )
+			pObserver_.reset( new tofObserver_i() );
+	}
+	CORBA::Object_ptr obj = poa->servant_to_reference( pObserver_.get() );
+	return SignalObserver::Observer::_narrow( obj );
 }
 
 ///////////////////////////////////////////////////////////////

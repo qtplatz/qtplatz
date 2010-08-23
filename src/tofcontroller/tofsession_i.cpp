@@ -4,10 +4,12 @@
 //////////////////////////////////////////
 
 #include "TOFTask.h"
-#include "tofsession.h"
+#include "tofsession_i.h"
+#include "tofobserver_i.h"
 #include "marshal.hpp"
 #include "constants.h"
 #include <acewrapper/mutex.hpp>
+#include <adinterface/signalobserverC.h>
 
 using namespace tofcontroller;
 
@@ -19,8 +21,6 @@ tofSession_i::tofSession_i(void) : status_current_( Instrument::eNothing )
 tofSession_i::~tofSession_i(void)
 {
 }
-
-
 
 //////////////////////////////////
 CORBA::WChar * 
@@ -73,6 +73,12 @@ tofSession_i::initialize (void)
     ACE_Message_Block * mb = marshal<CORBA::ULong>::put( CORBA::ULong(SESSION_INITIALIZE), MB_COMMAND );
     pTask_->putq( mb );
 	return true;
+}
+
+SignalObserver::Observer_ptr
+tofSession_i::getObserver( void )
+{
+	return pTask_->getObserver();
 }
 
 CORBA::Boolean 

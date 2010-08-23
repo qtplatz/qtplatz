@@ -26,6 +26,7 @@ namespace acewrapper {
     class ReactorThread;
     class McastHandler;
     class TimerHandler;
+	template<class T> class ORBServant;
 }
 
 namespace TOFInstrument {
@@ -37,6 +38,7 @@ namespace TOFInstrument {
 namespace tofcontroller {
 
     class DeviceProxy;
+    class tofObserver_i;
 	
     class TOFTask : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
     public:
@@ -60,6 +62,7 @@ namespace tofcontroller {
         void controller_update_notification( unsigned long clsid );
 
         // void session_update_device( boost::any& );
+		SignalObserver::Observer_ptr getObserver();
 
 	private:
         // ACE_Task
@@ -109,6 +112,7 @@ namespace tofcontroller {
 		map_type device_proxies_;
 		boost::scoped_ptr< TOFInstrument::AnalyzerDeviceData > pAnalyzerDeviceData_;
 		boost::scoped_ptr< TOFInstrument::ADConfigurations > pADConfigurations_;
+		boost::scoped_ptr< tofObserver_i > pObserver_;
     };
   
 }

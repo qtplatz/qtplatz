@@ -211,7 +211,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I../libs -I$(TAO_ROOT) $(InputFileName)"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I../libs -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>
@@ -220,7 +220,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I../libs -I$(TAO_ROOT) $(InputFileName)"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I../libs -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>
@@ -264,7 +264,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\tofsession.cpp"
+				RelativePath=".\tofobserver_i.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tofsession_i.cpp"
 				>
 			</File>
 			<File
@@ -376,7 +380,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\tofsession.h"
+				RelativePath=".\tofobserver_i.h"
+				>
+			</File>
+			<File
+				RelativePath=".\tofsession_i.h"
 				>
 			</File>
 			<File

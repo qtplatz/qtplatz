@@ -35,35 +35,36 @@ module Instrument {
 
   interface Session {
       
-      exception CannotAdd {
+	  exception CannotAdd {
           wstring reason_;
       };
       
-    wstring software_revision();  // ex. L"1.216"
-    // setConfiguration will call immedate after object activated.
-	boolean setConfiguration( in wstring xml );
-    boolean configComplete();  // all 'configured' module has loaded.  Safe to access objects, but instruments may by powered off.
+	  wstring software_revision();  // ex. L"1.216"
+	  // setConfiguration will call immedate after object activated.
+	  boolean setConfiguration( in wstring xml );
+	  boolean configComplete();  // all 'configured' module has loaded.  Safe to access objects, but instruments may by powered off.
     
-    boolean connect(in Receiver receiver, in wstring token_) raises(CannotAdd);
-    boolean disconnect(in Receiver receiver_);
+	  boolean connect(in Receiver receiver, in wstring token_) raises(CannotAdd);
+	  boolean disconnect(in Receiver receiver_);
       
-    unsigned long get_status();
-    
-    boolean initialize();
-    // long getdata(in long pos, inout SignalObserver::Signal data);
+	  unsigned long get_status();
+	  SignalObserver::Observer getObserver();
+      
+	  boolean initialize();
+	  // long getdata(in long pos, inout SignalObserver::Signal data);
 
-    boolean shutdown();  // shutdown server
-    boolean echo(in string msg);
-    boolean shell(in string cmdline);
+	  boolean shutdown();  // shutdown server
+	  boolean echo(in string msg);
+	  boolean shell(in string cmdline);
     
-    boolean prepare_for_run(in ControlMethod::Method m);
-    boolean push_back( in SampleBroker::SampleSequence s);
+	  boolean prepare_for_run(in ControlMethod::Method m);
+	  boolean push_back( in SampleBroker::SampleSequence s);
     
-    boolean event_out(in unsigned long event);
-    boolean start_run();
-    boolean suspend_run();
-    boolean resume_run();
-    boolean stop_run();
+	  boolean event_out(in unsigned long event);
+	  boolean start_run();
+	  boolean suspend_run();
+	  boolean resume_run();
+	  boolean stop_run();
   };
 
 };

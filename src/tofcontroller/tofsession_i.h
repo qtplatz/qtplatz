@@ -49,6 +49,7 @@ namespace tofcontroller {
 		CORBA::Boolean disconnect ( Receiver_ptr receiver );
 		CORBA::ULong get_status (void);
 		CORBA::Boolean initialize (void);
+		SignalObserver::Observer_ptr getObserver(void);
 		CORBA::Boolean shutdown (void);
 		CORBA::Boolean echo (const char * msg);
 		CORBA::Boolean shell (const char * cmdline);

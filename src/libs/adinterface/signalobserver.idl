@@ -18,6 +18,7 @@ module SignalObserver {
     enum eTRACE_METHOD {
         eTRACE_TRACE
         , eTRACE_SPECTRA
+		, eDIAGNOSTIC  // events, LC flow/pressure profile, column oven temp profile etc.
     };
 
     enum eUpdateFrequency {
@@ -39,7 +40,8 @@ module SignalObserver {
     };
 
     struct DataReadBuffer {
-        unsigned long pos;    // data address
+		unsigned long uptime; // time in usec
+		unsigned long pos;    // data address (sequencial number for first data in this frame)
         unsigned long ndata;  // number of data in array
         unsigned long events; // well known events
         sequence<unsigned long> array;  // encoded data
@@ -72,11 +74,10 @@ module SignalObserver {
 
         boolean isActive();
 
-        // getSblings returns Observers, which share same time base and events
-        // top level 'Observer' object represents events 'OnUpdateData', 'OnEvent'.
-        // Since thie archtecture, top level Observer for LC/MS is basically TIC or equivlent
-        // and sibling observer will be high resolution mass chromatograms or processed chromatograms.
-        Observers getSiblings();
+        // getSblings returns Observers, which share time base and events.
+		// Top level 'Observer' object is responcible to issue events 'OnUpdateData', 'OnEvent', 
+        // so application does not need to hookup events for shiblings.
+		Observers getSiblings();
 
         // Instrument controller will add/remove sibling by changing method while running sequence
         boolean addSibling( in Observer observer );
