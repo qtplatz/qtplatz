@@ -4,7 +4,7 @@
 //////////////////////////////////////////
 
 #include "tofcontroller.h"
-#include "tofsession.h"
+#include "tofsession_i.h"
 #include <acewrapper/orbservant.h>  // servant template
 #include <acewrapper/nameservice.h>
 #include <acewrapper/constants.h>
