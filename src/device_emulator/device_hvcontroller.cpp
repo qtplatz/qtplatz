@@ -97,7 +97,7 @@ device_hvcontroller::instruct_handle_data( ACE_InputCDR& cdr, unsigned long cmdI
                     singleton::device_facade::instance()->putq( mb );
                 }
             }
-        } while (clsId != TOFConstants::EOR );
+        } while (clsId != GlobalConstants::EOR );
     }
 
 	return false;

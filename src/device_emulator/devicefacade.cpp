@@ -172,7 +172,7 @@ bool
 DeviceFacade::heartBeatToController( unsigned long value )
 {
     ACE_OutputCDR cdr;
-    cdr.write_ulong( static_cast<unsigned long>( TOFConstants::ClassID_InstEvent ) );
+    cdr.write_ulong( static_cast<unsigned long>( GlobalConstants::ClassID_InstEvent ) );
     cdr.write_ulong( ControlServer::event_HeartBeat );
     cdr.write_ulong( value );
     ACE_Message_Block * mb = cdr.begin()->duplicate();
