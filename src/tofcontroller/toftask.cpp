@@ -10,6 +10,7 @@
 #include "deviceproxy.h"
 
 #include <ace/Reactor.h>
+#include <ace/OS.h>
 #include <acewrapper/constants.h>
 #include <acewrapper/mutex.hpp>
 #include <acewrapper/timeval.h>
@@ -25,6 +26,7 @@
 #include <acewrapper/lifecycle_frame_serializer.h>
 #include "analyzerdevicedata.h"
 #include "tofobserver_i.h"
+#include <sstream>
 
 #pragma warning (disable : 4996 )
 # include "tofcontrollerC.h"
@@ -57,6 +59,7 @@ TOFTask::setConfiguration( const wchar_t * xml )
 bool
 TOFTask::open()
 {
+    internal_initialize();
 	if ( activate( THR_NEW_LWP, n_threads_ ) != - 1 ) {
 		return true;
 	}
@@ -190,6 +193,8 @@ TOFTask::handle_input( ACE_HANDLE h )
 void
 TOFTask::internal_initialize()
 {
+	acewrapper::scoped_mutex_t<> lock( mutex_ );
+
 	acewrapper::ORBServant< tofcontroller::tofSession_i >
 		* pServant = tofcontroller::singleton::tofSession_i::instance();
 	CORBA::ORB_var orb = pServant->orb();
@@ -206,9 +211,10 @@ TOFTask::internal_initialize()
 		logger_ = manager->getLogger();
 
 		if ( ! CORBA::is_nil( logger_.in() ) ) {
-
+			std::wostringstream o;
+			o << L"tofcontroller task id(" << ACE_OS::getpid() << L") initialized";
 			Broker::LogMessage msg;
-			msg.text = L"tofcontroller initialized";
+			msg.text = o.str().c_str();
 			logger_->log( msg );
 		}
 	}
@@ -254,7 +260,6 @@ TOFTask::internal_initialize_mcast()
 int
 TOFTask::svc()
 {
-	internal_initialize();
 	barrier_.wait();
 
 	for ( ;; ) {
