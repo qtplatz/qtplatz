@@ -17,6 +17,7 @@ namespace adcontroller {
             , MB_INITIALIZE
             , MB_CONNECT
             , MB_TIME_VALUE
+			, MB_MESSAGE
         };
         
         

@@ -8,7 +8,7 @@
 
 struct IDispatch;
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     class Font  {

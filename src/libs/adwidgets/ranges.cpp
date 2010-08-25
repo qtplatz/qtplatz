@@ -5,7 +5,7 @@
 #include "ranges.h"
 #include "import_sagraphics.h"
 
-using namespace adil::ui;
+using namespace adwidgets::ui;
 
 Ranges::~Ranges()
 {

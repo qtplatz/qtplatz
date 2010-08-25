@@ -6,7 +6,7 @@
 #include "chromatogramwidget.h"
 #include "axis.h"
 
-using namespace adil::ui;
+using namespace adwidgets::ui;
 
 ChromatogramWidget::~ChromatogramWidget()
 {

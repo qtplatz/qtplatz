@@ -29,8 +29,8 @@
 #include "dataplotimpl.h"
 #include "import_sagraphics.h"
 
-using namespace adil;
-using namespace adil::ui;
+using namespace adwidgets;
+using namespace adwidgets::ui;
 
 Dataplot::~Dataplot()
 {

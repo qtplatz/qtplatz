@@ -22,9 +22,9 @@ namespace dataproc {
                                   , processedSpectrum_(0) {
             }
 
-            adil::ui::Dataplot * ticPlot_;
-            adil::ui::Dataplot * profileSpectrum_;
-            adil::ui::Dataplot * processedSpectrum_;
+            adwidgets::ui::Dataplot * ticPlot_;
+            adwidgets::ui::Dataplot * profileSpectrum_;
+            adwidgets::ui::Dataplot * processedSpectrum_;
 
         };
     }
@@ -43,8 +43,8 @@ MSCalibrationWnd::init()
     pImpl_.reset( new MSCalibrationWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-                if ( pImpl_->processedSpectrum_ = new adil::ui::Dataplot ) {
-                        adil::ui::Axis axis = pImpl_->processedSpectrum_->axisX();
+                if ( pImpl_->processedSpectrum_ = new adwidgets::ui::Dataplot ) {
+                        adwidgets::ui::Axis axis = pImpl_->processedSpectrum_->axisX();
                         axis.text( L"m/z" );
         }
         //splitter->addWidget( pImpl_->ticPlot_ );

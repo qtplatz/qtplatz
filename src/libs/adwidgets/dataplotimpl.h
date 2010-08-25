@@ -14,7 +14,7 @@
 
 #include "import_sagraphics.h"
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     class Dataplot;

@@ -41,9 +41,11 @@ namespace Acquire {
       //
     signals:
         void signal_eventLog( QString );
+        void signal_message( unsigned long msg, unsigned long value );
         void signal_debug_print( unsigned long priority, unsigned long category, QString text );
+
     public slots:
-        void handle_message( Receiver::eINSTEVENT msg, unsigned long value );
+        void handle_message( unsigned long msg, unsigned long value );
         void handle_eventLog( const ::EventLog::LogMessage& );
         void handle_shutdown();
         void handle_debug_print( unsigned long priority, unsigned long category, QString text );

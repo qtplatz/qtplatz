@@ -10,7 +10,7 @@
 #include <boost/smart_ptr.hpp>
 #include <map>
 
-namespace adil {
+namespace adwidgets {
     class MassSpectrum;
 }
 
@@ -32,7 +32,7 @@ namespace dataproc {
 
       private:
         boost::shared_ptr<MSProcessingWndImpl> pImpl_;
-        std::map< std::wstring, boost::shared_ptr<adil::MassSpectrum> > spectra_;
+        std::map< std::wstring, boost::shared_ptr<adwidgets::MassSpectrum> > spectra_;
     };
 
   }

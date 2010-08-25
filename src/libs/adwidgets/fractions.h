@@ -10,7 +10,7 @@ namespace SAGRAPHICSLib {
 struct ISADPFractions;
 }
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     class Fractions  {

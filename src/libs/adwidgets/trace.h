@@ -14,7 +14,7 @@ struct ISADPTrace;
 }
 
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     class Annotations;
@@ -33,6 +33,7 @@ namespace adil {
       Trace( SAGRAPHICSLib::ISADPTrace * pi = 0 );
       Trace( const Trace& );
     public:
+		void operator = ( const Trace& );
 
       Annotations annotations() const;
       Fractions fractions() const;

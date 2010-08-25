@@ -5,7 +5,7 @@
 #import "../../../../SATools/bin/SAGraphicsU.dll" named_guids
 #include <atlbase.h>
 
-namespace adil {
+namespace adwidgets {
 	namespace ui {
 		namespace internal {
 			struct variant_bool {

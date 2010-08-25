@@ -190,13 +190,16 @@ AcquireUIManager::setSimpleDockWidgetArrangement()
 }
 
 void
-AcquireUIManager::handle_message( Receiver::eINSTEVENT msg, unsigned long value )
+AcquireUIManager::handle_message( unsigned long msg, unsigned long value )
 {
+	// this is debugging purpose only, 
+	// wired from AcquirePlugin::handle_message
 }
 
 void
 AcquireUIManager::handle_eventLog( const ::EventLog::LogMessage& log )
 {
+    // TODO:  This should be removed after initial debug was completed.
     using namespace adinterface::EventLog;
     std::wstring text = LogMessageHelper::toString( log );
     QString qtext = acewrapper::to_string( log.tv.sec, log.tv.usec ).c_str();

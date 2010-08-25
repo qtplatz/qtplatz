@@ -11,7 +11,7 @@ namespace SAGRAPHICSLib {
 struct ISADPAnnotations;
 }
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     class Annotations {

@@ -9,7 +9,7 @@
 
 #include "dataplotwidget.h"
 
-namespace adil {
+namespace adwidgets {
     namespace ui {
 
         class SpectrumWidget : public DataplotWidget {

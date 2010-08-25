@@ -13,7 +13,7 @@
 
 struct ISADataplot;
 
-namespace adil {
+namespace adwidgets {
 
   namespace ui {
 
@@ -28,15 +28,15 @@ namespace adil {
 
     namespace internal {
       namespace win32 {
-	class DataplotImpl;
-	typedef boost::scoped_ptr< DataplotImpl > DataplotImplPtr;
-      }
-      namespace qt {
-	class DataplotImpl; // TBD
-      }
+		  class DataplotImpl;
+		  typedef boost::scoped_ptr< DataplotImpl > DataplotImplPtr;
+	  }
+	  namespace qt {
+		  class DataplotImpl; // TBD
+	  }
     }
     
-    class Dataplot : public QWidget, boost::noncopyable {
+	class Dataplot : public QWidget, boost::noncopyable {
       Q_OBJECT
     public:
       ~Dataplot();

@@ -32,7 +32,7 @@ iProxy::setConfiguration( const adportable::Configuration& c )
             CORBA::Object_var obj = acewrapper::NS::resolve_name( orb, nsname );
             if ( ! CORBA::is_nil( obj.in() ) ) {
                 impl_ = Instrument::Session::_narrow( obj );
-                if ( ! CORBA::is_nil( obj.in() ) ) 
+				if ( ! CORBA::is_nil( obj.in() ) ) 
                     objref_ = true;
             }
         }
@@ -43,6 +43,13 @@ iProxy::setConfiguration( const adportable::Configuration& c )
 void
 iProxy::message( ::Receiver::eINSTEVENT msg, CORBA::ULong value )
 {
+    TAO_OutputCDR cdr;
+    cdr << name_.c_str();
+    cdr << msg;
+    cdr << value;
+	ACE_Message_Block * mb = cdr.begin()->duplicate();
+	mb->msg_type( constants::MB_MESSAGE );
+	broker_.putq( mb );
 }
 
 // POA_Receiver

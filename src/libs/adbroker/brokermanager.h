@@ -15,7 +15,7 @@ class BrokerSession;
 class BrokerAccessToken;
 class BrokerConfig;
 
-namespace adil {
+namespace adwidgets {
     class ElementIO;
 }
 
@@ -41,7 +41,7 @@ namespace adbroker {
         template<> Task * get<Task>() { return pTask_; }
 
         BrokerSession * getBrokerSession();
-        adil::ElementIO& getElementIO();
+        adwidgets::ElementIO& getElementIO();
   
     private:
         friend singleton::BrokerManager;

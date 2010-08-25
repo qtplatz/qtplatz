@@ -6,6 +6,7 @@
 #pragma warning (disable: 4996)
 #include "session_i.h"
 #include "adinterface/receiverC.h"
+#include "adinterface/signalobserverC.h"
 #pragma warning (default: 4996)
 
 #include <iostream>
@@ -227,8 +228,8 @@ session_i::push_back( SampleBroker::SampleSequence_ptr sequence )
     return false;
 }
 
-SignalObserver::Observer_ptr
-session_i::getObserver()
+::SignalObserver::ObserverVec *
+session_i::getObservers (void)
 {
     return 0;
 }

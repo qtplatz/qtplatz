@@ -11,7 +11,7 @@
 #include <boost/smart_ptr.hpp>
 #include <boost/noncopyable.hpp>
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     namespace internal {

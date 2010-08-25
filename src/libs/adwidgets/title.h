@@ -7,14 +7,13 @@
 #ifndef TITLE_H
 #define TITLE_H
 
-namespace adil {
-  namespace gui {
-
-	  class Title {
-	  public:
-		  Title();
-	  };
-  }
+namespace adwidgets {
+	namespace ui {
+		class Title {
+		public:
+			Title();
+		};
+	}
 }
 
 #endif // TITLE_H

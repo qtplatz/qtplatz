@@ -6,7 +6,7 @@
 #include "trace.h"
 #include "import_sagraphics.h"
 
-using namespace adil::ui;
+using namespace adwidgets::ui;
 
 Traces::~Traces()
 {
@@ -28,14 +28,24 @@ Traces::Traces( const Traces& t )
    pi_ = t.pi_;
 }
 
-Trace
-Traces::operator [] (long idx)
+void
+Traces::operator = ( const Traces& t )
 {
-  return item(idx);
+   if ( t.pi_ )
+     t.pi_->AddRef(); // AddRef first, in order to avoid unexpected release when self assignment happens
+   if ( pi_ )
+     pi_->Release();
+   pi_ = t.pi_;
 }
 
 Trace
-Traces::item(long Index)
+Traces::operator [] (long idx)
+{
+  return item( idx + 1 );  // 0 origin
+}
+
+Trace
+Traces::item(long Index) // 1 origin
 {
     CComPtr<SAGRAPHICSLib::ISADPTrace> p;
   pi_->get_Item( Index, &p );
@@ -81,7 +91,8 @@ Traces::visible() const
 void
 Traces::visible(bool newValue)
 {
-	pi_->put_Visible( internal::variant_bool::to_variant(newValue) );
+	HRESULT hr = pi_->put_Visible( internal::variant_bool::to_variant(newValue) );
+    (void)hr;
 }
 
 

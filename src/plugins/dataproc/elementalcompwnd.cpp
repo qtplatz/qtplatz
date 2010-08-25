@@ -23,9 +23,9 @@ namespace dataproc {
 			     , processedSpectrum_(0) {
       }
       
-      adil::ui::ChromatogramWidget * ticPlot_;
-      adil::ui::SpectrumWidget * profileSpectrum_;
-      adil::ui::SpectrumWidget * processedSpectrum_;
+      adwidgets::ui::ChromatogramWidget * ticPlot_;
+      adwidgets::ui::SpectrumWidget * profileSpectrum_;
+      adwidgets::ui::SpectrumWidget * processedSpectrum_;
       
     };
 
@@ -46,7 +46,7 @@ ElementalCompWnd::init()
   pImpl_.reset( new ElementalCompWndImpl );
   Core::MiniSplitter * splitter = new Core::MiniSplitter;
   if ( splitter ) {
-      if ( pImpl_->processedSpectrum_ = new adil::ui::SpectrumWidget ) {
+      if ( pImpl_->processedSpectrum_ = new adwidgets::ui::SpectrumWidget ) {
           splitter->addWidget( pImpl_->processedSpectrum_ );
           splitter->setOrientation( Qt::Vertical );
       }

@@ -5,7 +5,7 @@ namespace SAGRAPHICSLib {
 struct ISADPMarker;
 }
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     class Marker  {

@@ -22,9 +22,9 @@ namespace dataproc {
                                   , processedSpectrum_(0) {
             }
 
-            adil::ui::ChromatogramWidget * ticPlot_;
-            adil::ui::SpectrumWidget * profileSpectrum_;
-            adil::ui::SpectrumWidget * processedSpectrum_;
+            adwidgets::ui::ChromatogramWidget * ticPlot_;
+            adwidgets::ui::SpectrumWidget * profileSpectrum_;
+            adwidgets::ui::SpectrumWidget * processedSpectrum_;
 
         };
     }
@@ -42,18 +42,18 @@ MSProcessingWnd::init()
     pImpl_.reset( new MSProcessingWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( pImpl_->ticPlot_ = new adil::ui::ChromatogramWidget ) {
-            adil::ui::Axis axis = pImpl_->ticPlot_->axisX();
+        if ( pImpl_->ticPlot_ = new adwidgets::ui::ChromatogramWidget ) {
+            adwidgets::ui::Axis axis = pImpl_->ticPlot_->axisX();
             axis.text( L"Time(min)" );
         }
 
-        if ( pImpl_->profileSpectrum_ = new adil::ui::SpectrumWidget ) {
-            adil::ui::Axis axis = pImpl_->profileSpectrum_->axisX();
+        if ( pImpl_->profileSpectrum_ = new adwidgets::ui::SpectrumWidget ) {
+            adwidgets::ui::Axis axis = pImpl_->profileSpectrum_->axisX();
             axis.text( L"m/z" );
         }
 
-        if ( pImpl_->processedSpectrum_ = new adil::ui::SpectrumWidget ) {
-            adil::ui::Axis axis = pImpl_->processedSpectrum_->axisX();
+        if ( pImpl_->processedSpectrum_ = new adwidgets::ui::SpectrumWidget ) {
+            adwidgets::ui::Axis axis = pImpl_->processedSpectrum_->axisX();
             axis.text( L"m/z" );
         }
         splitter->addWidget( pImpl_->ticPlot_ );

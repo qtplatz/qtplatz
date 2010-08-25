@@ -11,7 +11,7 @@ namespace SAGRAPHICSLib {
 struct ISADPTraces;
 }
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
 	  class Trace;
@@ -22,6 +22,7 @@ namespace adil {
 		  Traces( SAGRAPHICSLib::ISADPTraces * pi = 0 );
 		  Traces( const Traces& );
 	  public:
+		  void operator = ( const Traces& );
 		  Trace item(long Index);
 		  size_t size() const;
 		  Trace add();

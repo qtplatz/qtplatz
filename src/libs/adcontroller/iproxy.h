@@ -11,6 +11,7 @@
 #include <adportable/configuration.h>
 #include <string>
 #include <boost/noncopyable.hpp>
+#include <boost/smart_ptr.hpp>
 
 namespace ControlMethod {
     struct Methohd;
@@ -23,6 +24,7 @@ namespace SampleBroker {
 namespace adcontroller {
 
     class iBroker;
+    class oProxy;
 
     class iProxy : public POA_Receiver, boost::noncopyable {
     public:

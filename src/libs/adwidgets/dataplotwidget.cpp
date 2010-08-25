@@ -9,9 +9,9 @@
 #include <bitset>
 #include <cstdlib>
 
-using namespace adil::ui;
+using namespace adwidgets::ui;
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
     namespace internal {
 

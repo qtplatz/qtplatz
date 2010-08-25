@@ -29,6 +29,7 @@ namespace EventLog {
 namespace adcontroller {
 
     class iProxy;
+    class oProxy;
 
     class iBroker : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
         
@@ -81,6 +82,7 @@ namespace adcontroller {
 
         void handle_dispatch( const EventLog::LogMessage & );
         void handle_dispatch( const ACE_Time_Value& );
+		void handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value );
 
     private:
         friend class IBrokerManager;
@@ -96,9 +98,15 @@ namespace adcontroller {
         std::vector<session_data> session_failed_;
 
 		// 
-		typedef boost::shared_ptr< iProxy > proxy_ptr;
-		typedef std::vector< boost::shared_ptr<iProxy> > proxy_vector_type;
-		std::vector< boost::shared_ptr< iProxy > > proxies_;
+		typedef boost::shared_ptr< iProxy > iproxy_ptr;
+		typedef boost::shared_ptr< oProxy > oproxy_ptr;
+
+		typedef std::vector< boost::shared_ptr<iProxy> > iproxy_vector_type;
+		typedef std::vector< boost::shared_ptr<oProxy> > oproxy_vector_type;
+
+		std::vector< boost::shared_ptr< iProxy > > iproxies_;
+		std::vector< boost::shared_ptr< oProxy > > oproxies_;
+
 		::ControlServer::eStatus status_current_;
 		::ControlServer::eStatus status_being_;
     };

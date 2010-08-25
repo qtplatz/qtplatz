@@ -4,7 +4,7 @@
 //////////////////////////////////////////
 #include "marker.h"
 #include "import_sagraphics.h"
-using namespace adil::ui;
+using namespace adwidgets::ui;
 
 Marker::~Marker()
 {

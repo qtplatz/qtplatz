@@ -11,7 +11,7 @@ namespace SAGRAPHICSLib {
     struct ISADPTitles;
 }
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
       class Title;

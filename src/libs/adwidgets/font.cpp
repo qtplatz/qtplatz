@@ -6,7 +6,7 @@
 #include "font.h"
 #include "import_sagraphics.h"
 
-using namespace adil;
+using namespace adwidgets;
 
 ui::Font::~Font()
 {

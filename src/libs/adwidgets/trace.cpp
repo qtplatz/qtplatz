@@ -14,7 +14,7 @@
 #include "font.h"
 #include "filledranges.h"
 
-using namespace adil::ui;
+using namespace adwidgets::ui;
 
 Trace::~Trace()
 {
@@ -24,7 +24,8 @@ Trace::~Trace()
 
 Trace::Trace( SAGRAPHICSLib::ISADPTrace * pi ) : pi_(pi)
 {
-  pi_->AddRef();
+  if ( pi_ )
+	  pi_->AddRef();
 }
 
 Trace::Trace( const Trace& t )
@@ -35,6 +36,17 @@ Trace::Trace( const Trace& t )
      pi_->Release();
    pi_ = t.pi_;
 }
+
+void
+Trace::operator = ( const Trace& t )
+{
+   if ( t.pi_ )
+     t.pi_->AddRef(); // AddRef first, in order to avoid unexpected release when self assignment happens
+   if ( pi_ )
+     pi_->Release();
+   pi_ = t.pi_;
+}
+
 
 Annotations
 Trace::annotations() const
@@ -87,7 +99,8 @@ Trace::visible() const
 void
 Trace::visible(bool newValue)
 {
-	pi_->put_Visible( internal::variant_bool::to_variant(newValue) );	
+	HRESULT hr = pi_->put_Visible( internal::variant_bool::to_variant(newValue) );	
+    (void)hr;
 }
 
 bool 
@@ -146,12 +159,12 @@ Trace::offsetY(double newValue)
     pi_->put_OffsetY( newValue );
 }
 
-adil::ui::Font
+adwidgets::ui::Font
 Trace::font() const
 {
 	CComPtr<IDispatch> p;
 	pi_->get_Font( &p );
-	return adil::ui::Font( p );
+	return adwidgets::ui::Font( p );
 }
 
 long

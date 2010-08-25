@@ -45,6 +45,13 @@
 #include <qtwrapper/qstring.h>
 #include <adinterface/eventlog_helper.h>
 
+#include <adwidgets/titles.h>
+#include <adwidgets/title.h>
+#include <adwidgets/dataplot.h>
+#include <adwidgets/traces.h>
+#include <adwidgets/trace.h>
+#include <adwidgets/colors.h>
+
 using namespace Acquire;
 using namespace Acquire::internal;
 
@@ -58,8 +65,8 @@ namespace Acquire {
 	  AcquireImpl() : timePlot_(0)
 		            , spectrumPlot_(0) {
 	  }
-      adil::ui::Dataplot * timePlot_;
-      adil::ui::Dataplot * spectrumPlot_;
+      adwidgets::ui::Dataplot * timePlot_;
+      adwidgets::ui::Dataplot * spectrumPlot_;
       QIcon icon_;
 	  void loadIcon() {
 		  icon_.addFile( Constants::ICON_CONNECT );
@@ -237,7 +244,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     //  [TraceWidget] | [RightPanePlaceHolder]
     Core::MiniSplitter * rightPaneSplitter = new Core::MiniSplitter;
     if ( rightPaneSplitter ) {
-      rightPaneSplitter->addWidget( new adil::TraceWidget );
+      rightPaneSplitter->addWidget( new adwidgets::TraceWidget );
       //rightPaneHSplitter->addWidget( new Core::RightPanePlaceHolder( mode ) );
       rightPaneSplitter->addWidget( new QTextEdit( "RightPanePlaceHolder" ) );
       rightPaneSplitter->setStretchFactor( 0, 1 );
@@ -250,14 +257,15 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
     Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
     if ( splitter3 ) {
-        if ( pImpl_->timePlot_ = new adil::ui::DataplotWidget ) {
-			adil::ui::Axis axis = pImpl_->timePlot_->axisX();
+        if ( pImpl_->timePlot_ = new adwidgets::ui::DataplotWidget ) {
+			adwidgets::ui::Axis axis = pImpl_->timePlot_->axisX();
 			axis.text( L"Time(min)" );
 		}
 
-        if ( pImpl_->spectrumPlot_ = new adil::ui::DataplotWidget ) {
-			adil::ui::Axis axis = pImpl_->spectrumPlot_->axisX();
+        if ( pImpl_->spectrumPlot_ = new adwidgets::ui::DataplotWidget ) {
+			adwidgets::ui::Axis axis = pImpl_->spectrumPlot_->axisX();
 			axis.text( L"m/z" );
+			this->handle_message(0, 0);
 		}
 
 		splitter3->addWidget( pImpl_->timePlot_ );
@@ -314,10 +322,10 @@ AcquirePlugin::actionConnect()
                     session_->connect( receiver_i_.get()->_this(), L"acquire" );
 
                     int res;
-                    res = connect( receiver_i_.get(), SIGNAL( signal_message( Receiver::eINSTEVENT, unsigned long ) )
-                                   , this, SLOT( handle_message( Receiver::eINSTEVENT msg, unsigned long value ) ) );
+                    res = connect( receiver_i_.get()
+						           , SIGNAL( signal_message( unsigned long, unsigned long ) )
+								   , this, SLOT( handle_message( unsigned long, unsigned long ) ) );
                     res = connect( receiver_i_.get(), SIGNAL( signal_log( QByteArray ) ), this, SLOT( handle_log( QByteArray ) ) );
-                    // res = connect( receiver_i_.get(), SIGNAL( signal_eventLog( message_block_ptr ) ), this, SLOT( handle_eventLog( message_block_ptr ) ) );
                     res = connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
                     res = connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
                                    , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
@@ -335,9 +343,39 @@ AcquirePlugin::actionRunStop()
 }
 
 void
-AcquirePlugin::handle_message( Receiver::eINSTEVENT msg, unsigned long value )
+AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value )
 {
-    manager_->handle_message( msg, value );
+    static int count;
+	count;
+	// quick debug hack
+	if ( pImpl_->timePlot_ ) {
+		adwidgets::ui::Dataplot * plot = pImpl_->timePlot_;
+	}
+	if ( pImpl_->spectrumPlot_ ) {
+		adwidgets::ui::Dataplot * plot = pImpl_->spectrumPlot_;
+		// adwidgets::ui::Titles titles = plot->titles();
+		adwidgets::ui::Traces traces = plot->traces();
+		adwidgets::ui::Trace trace;
+		if ( traces.size() < 1 ) {
+			trace = traces.add();
+			adwidgets::ui::Colors colors = plot->colors();
+		} else {
+			trace = traces[0];
+		}
+
+		const size_t nsize = 100; //100 * 1024;
+		boost::scoped_array<double> pX( new double [ nsize ] );
+		boost::scoped_array<double> pY( new double [ nsize ] );
+		for ( int i = 0; i < nsize; ++i ) {
+			pX[i] = count + i;
+			pY[i] = count + i;
+		}
+		trace.colorIndex(1);
+		trace.setXYDirect( nsize, pX.get(), pY.get() );
+		trace.visible( true );
+		traces.visible( true );
+	}
+	// manager_->handle_message( msg, value );
 }
 
 void

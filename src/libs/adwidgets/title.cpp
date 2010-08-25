@@ -5,7 +5,8 @@
 
 #include "title.h"
 
-using namespace adil::gui;
+using namespace adwidgets::ui;
+
 Title::Title()
 {
 }

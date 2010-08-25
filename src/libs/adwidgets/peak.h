@@ -10,7 +10,7 @@ namespace SAGRAPHICSLib {
 struct ISADPPeak;
 }
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     class Peak  {

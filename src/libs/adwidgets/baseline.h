@@ -10,7 +10,7 @@ namespace SAGRAPHICSLib {
 struct ISADPBaseline;
 }
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     class Baseline  {

@@ -11,7 +11,7 @@ namespace SAGRAPHICSLib {
 struct ISADPLegend;
 }
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
     class Legend	  {
     public:

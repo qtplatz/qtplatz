@@ -5,7 +5,7 @@
 #include "fractions.h"
 #include "import_sagraphics.h"
 
-using namespace adil::ui;
+using namespace adwidgets::ui;
 
 Fractions::~Fractions()
 {

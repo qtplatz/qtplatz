@@ -10,7 +10,7 @@ namespace SAGRAPHICSLib {
 struct ISADPMarkers;
 }
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     class Markers  {

@@ -11,7 +11,7 @@ namespace SAGRAPHICSLib {
     struct ISADPColors;
 }
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     class Colors  {
@@ -19,6 +19,8 @@ namespace adil {
       ~Colors();
       Colors( SAGRAPHICSLib::ISADPColors * pi = 0 );
       Colors( const Colors& );
+      void operator = ( const Colors& );
+      size_t size() const;
 
     private:
         SAGRAPHICSLib::ISADPColors * pi_;

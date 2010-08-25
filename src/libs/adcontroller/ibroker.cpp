@@ -5,6 +5,7 @@
 
 #include "ibroker.h"
 #include "iproxy.h"
+#include "oproxy.h"
 #include <ace/Reactor.h>
 #include <ace/Thread_Manager.h>
 #include <adinterface/receiverC.h>
@@ -50,13 +51,13 @@ void
 iBroker::reset_clock()
 {
 	struct invoke_reset_clock {
-		void operator ()( proxy_ptr& proxy ) {
+		void operator ()( iproxy_ptr& proxy ) {
 			proxy->reset_clock();
 		}
 	};
 
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
-	std::for_each( proxies_.begin(), proxies_.end(), invoke_reset_clock() );
+	std::for_each( iproxies_.begin(), iproxies_.end(), invoke_reset_clock() );
 }
 
 bool
@@ -105,8 +106,16 @@ iBroker::configComplete()
 			pProxy->setConfiguration( item );
 
 			acewrapper::scoped_mutex_t<> lock( mutex_ );
-			proxies_.push_back( pProxy );
+			iproxies_.push_back( pProxy );
 		}
+
+		boost::shared_ptr<oProxy> pOProxy( new oProxy( *this ) );
+		if ( pOProxy ) {
+			// pOProxy->setConfiguration( item );
+			acewrapper::scoped_mutex_t<> lock( mutex_ );
+			oproxies_.push_back( pOProxy );
+		}
+
     }
 	status_current_ = status_being_ = ControlServer::eConfigured;  // relevant modules are able to access.
     return true;
@@ -116,13 +125,13 @@ bool
 iBroker::initialize()
 {
 	struct invoke_initialize {
-		void operator ()( proxy_ptr& proxy ) {
+		void operator ()( iproxy_ptr& proxy ) {
 			proxy->initialize();
 		}
 	};
 
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
-	std::for_each( proxies_.begin(), proxies_.end(), invoke_initialize() );
+	std::for_each( iproxies_.begin(), iproxies_.end(), invoke_initialize() );
 	return true;
 }
 
@@ -144,12 +153,12 @@ iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, con
 	struct invoke_connect {
         const wchar_t * token_;
 		invoke_connect( const wchar_t * token ) : token_(token) {}
-		void operator ()( proxy_ptr& proxy ) {
+		void operator ()( iproxy_ptr& proxy ) {
 			proxy->connect( token_ );
 		}
 	};
 
-	std::for_each( proxies_.begin(), proxies_.end(), invoke_connect(token) );
+	std::for_each( iproxies_.begin(), iproxies_.end(), invoke_connect(token) );
 
     do {
         using namespace adinterface::EventLog;
@@ -299,12 +308,51 @@ iBroker::dispatch( ACE_Message_Block * mblk, int disp )
         break;
     case constants::MB_CONNECT:
         break;
+	case constants::MB_MESSAGE:
+		do {
+			ACE_InputCDR cdr( mblk );
+			ACE_CDR::WChar * name = 0;
+			ACE_CDR::ULong msgid, value;
+            
+            cdr.read_wstring( name );
+            cdr.read_ulong( msgid );
+            cdr.read_ulong( value );
+			handle_dispatch( name, msgid, value );
+		} while ( 0 );
+		break;
     default:
         break;
     };
 }
 
 /////////////////
+void
+iBroker::handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value )
+{
+    acewrapper::scoped_mutex_t<> lock( mutex_ );    
+
+	// TODO: apply barrier pattern and wait until all instrument has same state
+/*
+		    , HEARTBEAT // formerly, it was timer signal
+		    , CONFIG_CHANGED
+		    , STATE_CHANGED
+		    , METHOD_RECEIVED
+		    , METHOD_STARTED
+		    , START_IN
+		    , START_OUT
+		    , INJECT_IN
+		    , INJECT_OUT
+		    , EVENT_IN
+		    , EVENT_OUT
+            , SETPTS_UPDATED
+            , ACTUAL_UPDATED
+*/
+    // Following is just a quick debugging --> trigger spectrum display, should be removed
+	// Right code is implement SignalObserver and UpdateData event is the right place to issue event.
+	for ( vector_type::iterator it = begin(); it != end(); ++it )
+		it->receiver_->message( Receiver::eINSTEVENT(msgid), value );
+}
+
 void
 iBroker::handle_dispatch( const EventLog::LogMessage& msg )
 {

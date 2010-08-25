@@ -10,7 +10,7 @@ namespace SAGRAPHICSLib {
 struct ISADPRanges;
 }
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     class Ranges  {

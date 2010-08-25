@@ -11,7 +11,7 @@ namespace SAGRAPHICSLib {
 struct ISADPPlotRegion;
 }
 
-namespace adil {
+namespace adwidgets {
   
   namespace ui {
     

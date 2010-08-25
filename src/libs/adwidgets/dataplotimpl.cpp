@@ -17,9 +17,9 @@
 #define QCLSID_SADataplot "{1033423F-6431-46CD-9824-C1A9CAE5861E}"
 static QUuid QIID_ISADataplot(0x9bda62de,0x514e,0x4ffb,0x8d,0xcc,0xe1,0xa3,0x55,0xcf,0x6b,0xff);
 
-using namespace adil::ui::internal::win32;
+using namespace adwidgets::ui::internal::win32;
 
-DataplotImpl::DataplotImpl( adil::ui::Dataplot& dataplot ) : dataplot_( dataplot )
+DataplotImpl::DataplotImpl( adwidgets::ui::Dataplot& dataplot ) : dataplot_( dataplot )
                                                  , QAxWidget( &dataplot )
 {
 }

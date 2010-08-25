@@ -13,7 +13,7 @@ namespace SAGRAPHICSLib {
     struct ISADPAxis;
 }
 
-namespace adil {
+namespace adwidgets {
   namespace ui {
 
     class Axis  {
