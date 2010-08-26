@@ -4,28 +4,26 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#ifndef SPECTRUMWIDGET_H
-#define SPECTRUMWIDGET_H
+#pragma once
 
-// #include <adwidgets/dataplotwidget.h>
-#include "tracewidget.h"
+#include <adwidgets/dataplotwidget.h>
 
 namespace adwidgets {
     namespace ui {
 
-        class SpectrumWidget : public TraceWidget {
+        class TraceWidget : public DataplotWidget {
             Q_OBJECT
         public:
-			~SpectrumWidget();
-            explicit SpectrumWidget(QWidget *parent = 0);
+            ~TraceWidget();
+            explicit TraceWidget(QWidget *parent = 0);
+
+			void title( int index, const std::wstring& );
 
         signals:
 
         public slots:
 
         };
-
     }
 }
 
-#endif // SPECTRUMWIDGET_H

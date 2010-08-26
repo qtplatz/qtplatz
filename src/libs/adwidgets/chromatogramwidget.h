@@ -7,12 +7,12 @@
 #ifndef CHROMATOGRAMWIDGET_H
 #define CHROMATOGRAMWIDGET_H
 
-#include "dataplotwidget.h"
+#include "tracewidget.h"
 
 namespace adwidgets {
     namespace ui {
 
-        class ChromatogramWidget : public DataplotWidget {
+        class ChromatogramWidget : public TraceWidget {
             Q_OBJECT
         public:
             ~ChromatogramWidget();

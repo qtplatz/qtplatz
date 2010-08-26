@@ -4,16 +4,35 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#ifndef TITLE_H
-#define TITLE_H
+#pragma once
+
+#include <string>
+
+namespace SAGRAPHICSLib {
+	struct ISADPTitle;
+}
 
 namespace adwidgets {
 	namespace ui {
+
+        class Font;
+
 		class Title {
 		public:
-			Title();
+			~Title();
+			Title( SAGRAPHICSLib::ISADPTitle * pi = 0 );
+			void operator = ( const Title& );
+
+			std::wstring text() const;
+			void text( const std::wstring& );
+			bool visible() const;
+            void visible( bool );
+			unsigned long color() const;
+            void color( unsigned long );
+            Font font();
+		private:
+			SAGRAPHICSLib::ISADPTitle * pi_;
 		};
 	}
 }
 
-#endif // TITLE_H

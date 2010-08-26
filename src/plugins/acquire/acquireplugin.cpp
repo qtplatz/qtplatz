@@ -9,6 +9,8 @@
 #include "acquireuimanager.h"
 #include "acquireactions.h"
 #include <adwidgets/dataplotwidget.h>
+#include <adwidgets/spectrumwidget.h>
+#include <adwidgets/chromatogramwidget.h>
 #include <adwidgets/axis.h>
 //#include <acewrapper/orbmanager.h>
 #include <adplugin/orbmanager.h>
@@ -65,8 +67,8 @@ namespace Acquire {
 	  AcquireImpl() : timePlot_(0)
 		            , spectrumPlot_(0) {
 	  }
-      adwidgets::ui::Dataplot * timePlot_;
-      adwidgets::ui::Dataplot * spectrumPlot_;
+	  adwidgets::ui::ChromatogramWidget * timePlot_;
+	  adwidgets::ui::SpectrumWidget * spectrumPlot_;
       QIcon icon_;
 	  void loadIcon() {
 		  icon_.addFile( Constants::ICON_CONNECT );
@@ -257,14 +259,14 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
     Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
     if ( splitter3 ) {
-        if ( pImpl_->timePlot_ = new adwidgets::ui::DataplotWidget ) {
-			adwidgets::ui::Axis axis = pImpl_->timePlot_->axisX();
-			axis.text( L"Time(min)" );
+        if ( pImpl_->timePlot_ = new adwidgets::ui::ChromatogramWidget ) {
+			//adwidgets::ui::Axis axis = pImpl_->timePlot_->axisX();
+			//axis.text( L"Time(min)" );
 		}
 
-        if ( pImpl_->spectrumPlot_ = new adwidgets::ui::DataplotWidget ) {
-			adwidgets::ui::Axis axis = pImpl_->spectrumPlot_->axisX();
-			axis.text( L"m/z" );
+		if ( pImpl_->spectrumPlot_ = new adwidgets::ui::SpectrumWidget ) {
+			//adwidgets::ui::Axis axis = pImpl_->spectrumPlot_->axisX();
+			//axis.text( L"m/z" );
 			this->handle_message(0, 0);
 		}
 
@@ -353,7 +355,13 @@ AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, uns
 	}
 	if ( pImpl_->spectrumPlot_ ) {
 		adwidgets::ui::Dataplot * plot = pImpl_->spectrumPlot_;
-		// adwidgets::ui::Titles titles = plot->titles();
+		adwidgets::ui::Titles titles = plot->titles();
+		size_t n = titles.count();
+		adwidgets::ui::Title title = titles[0];
+        title.text( L"Title..." );
+        titles.visible( true );
+		title.visible(true);
+
 		adwidgets::ui::Traces traces = plot->traces();
 		adwidgets::ui::Trace trace;
 		if ( traces.size() < 1 ) {
@@ -370,7 +378,7 @@ AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, uns
 			pX[i] = count + i;
 			pY[i] = count + i;
 		}
-		trace.colorIndex(1);
+		trace.colorIndex(2);
 		trace.setXYDirect( nsize, pX.get(), pY.get() );
 		trace.visible( true );
 		traces.visible( true );

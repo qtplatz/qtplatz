@@ -24,7 +24,7 @@ namespace adwidgets {
 
 		  // LPUNKNOWN get__NewEnum();
 		  Title item(long Index);
-		  long count() const;
+		  size_t count() const;
 		  Title add();
 		  void remove(long Index);
 		  void clear();
@@ -38,6 +38,7 @@ namespace adwidgets {
 		  // void put_SubtitleFont(LPDISPATCH newValue);
 		  long alignment();
 		  void alignment(long newValue);
+		  Title operator [] ( int index );
 	  private:
           SAGRAPHICSLib::ISADPTitles * pi_;
 	  };

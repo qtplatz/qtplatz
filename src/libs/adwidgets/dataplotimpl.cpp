@@ -35,7 +35,7 @@ DataplotImpl::~DataplotImpl()
 }
 
 static long default_trace_color_table[] = {
-   RGB( 240, 240, 240 ), // background
+	// RGB( 240, 240, 240 ), // background
    RGB( 0, 0, 255), // blue
    RGB( 0, 255, 0), // green
    RGB( 0, 255, 255 ), // cyan
@@ -62,8 +62,8 @@ DataplotImpl::createControl()
             SAGRAPHICSLib::ISADPColorsPtr colors = pi_->Colors;
             const int nColors = sizeof(default_trace_color_table)/sizeof(default_trace_color_table[0]);
             for ( int i = 0; i < nColors; ++i ) {
-                SAGRAPHICSLib::ISADPColorPtr color = colors->GetItem(i + 1);
-                color->Value = COLORREF( default_trace_color_table[i] );
+				SAGRAPHICSLib::ISADPColorPtr color = colors->GetItem( i + 1 );
+				color->Value = COLORREF( default_trace_color_table[i] );
             }
 			return true;
 		}
