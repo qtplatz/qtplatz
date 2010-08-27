@@ -29,7 +29,7 @@ namespace adcontroller {
         ::CORBA::Boolean echo( const CORBA::Char * msg );
         ::CORBA::Boolean shell( const CORBA::Char * cmdline );
 
-		::SignalObserver::ObserverVec * getObservers(void);
+		::SignalObserver::Observer_ptr getObserver(void);
 
         ::CORBA::Boolean prepare_for_run( ControlMethod::Method_ptr m );
         ::CORBA::Boolean push_back( SampleBroker::SampleSequence_ptr s );

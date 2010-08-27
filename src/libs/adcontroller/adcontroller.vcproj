@@ -236,6 +236,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\observer_i.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\oproxy.cpp"
 				>
 			</File>
@@ -339,6 +343,10 @@
 			</File>
 			<File
 				RelativePath=".\message.h"
+				>
+			</File>
+			<File
+				RelativePath=".\observer_i.h"
 				>
 			</File>
 			<File

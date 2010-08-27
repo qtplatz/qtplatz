@@ -13,6 +13,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
 #include <adinterface/controlserverC.h>
+#include <adinterface/signalobserverC.h>
 #include <adinterface/brokerC.h>
 #include <vector>
 #include <map>
@@ -39,7 +40,13 @@ namespace tofcontroller {
 
     class DeviceProxy;
     class tofObserver_i;
-	
+	namespace internal {
+		struct observer_events_data;
+		struct receiver_data;
+	}
+
+	///////////////////////////
+
     class TOFTask : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
     public:
         TOFTask( size_t n_threads = 4 );
@@ -59,10 +66,14 @@ namespace tofcontroller {
 		void setAnalyzerDeviceData( const TOFInstrument::AnalyzerDeviceData& );
 		bool getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData& ) const;
         void device_update_notification( unsigned long clsid );
+		void device_update_data( /*argumet to be added */ );
         void controller_update_notification( unsigned long clsid );
 
         // void session_update_device( boost::any& );
 		SignalObserver::Observer_ptr getObserver();
+		bool connect ( SignalObserver::ObserverEvents_ptr
+			         , SignalObserver::eUpdateFrequency, const std::wstring& );
+		bool disconnect( SignalObserver::ObserverEvents_ptr );
 
 	private:
         // ACE_Task
@@ -93,18 +104,22 @@ namespace tofcontroller {
         ACE_Barrier barrier_;
         size_t n_threads_;
 
-        struct receiver_data {
-            bool operator == ( const receiver_data& ) const;
-            bool operator == ( const Receiver_ptr ) const;
-            receiver_data() {};
-            receiver_data( const receiver_data& t ) : receiver_(t.receiver_) {}
-            Receiver_var receiver_;
-        };
-        typedef std::vector< receiver_data > vector_type;
-        inline vector_type::iterator begin() { return receiver_set_.begin(); }
-        inline vector_type::iterator end() { return receiver_set_.end(); }
+		typedef std::vector< internal::observer_events_data > observer_events_vector_type;
 
-        vector_type receiver_set_;
+		typedef std::vector< internal::receiver_data > receiver_vector_type;
+		inline receiver_vector_type::iterator ibegin() { return receiver_set_.begin(); }
+        inline receiver_vector_type::iterator iend() { return receiver_set_.end(); }
+
+        inline observer_events_vector_type::iterator obegin() { return observer_events_set_.begin(); }
+		inline observer_events_vector_type::iterator oend() { return observer_events_set_.end(); }
+
+		// receiver
+		receiver_vector_type receiver_set_;
+
+        // observer_events
+		observer_events_vector_type observer_events_set_;
+
+		// logger
 		Broker::Logger_var logger_;
 		std::wstring configXML_;
 		boost::scoped_ptr< acewrapper::ReactorThread > reactor_thread_;

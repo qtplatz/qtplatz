@@ -11,7 +11,7 @@
 // #include "signalobserver.idl"
 module SignalObserver {
    interface Observer;
-   typedef sequence<Observer> ObserverVec;
+   // typedef sequence<Observer> ObserverVec;
 };
 
 module ControlMethod {
@@ -72,7 +72,7 @@ module ControlServer {
       
       boolean initialize();  // instruments going to 'power on', and starting up if not ready yet.
 
-	  SignalObserver::ObserverVec getObservers();
+	  SignalObserver::Observer getObserver();
 
       boolean shutdown();  // shutdown server
       boolean echo(in string msg);

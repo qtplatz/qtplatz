@@ -22,6 +22,9 @@
 #include "constants.h"
 #include <adportable/configuration.h>
 #include <adportable/configloader.h>
+#include "observer_i.h"
+#include "manager_i.h"
+#include <acewrapper/orbservant.h>
 
 #if defined _DEBUG
 # include <xmlwrapper/msxml.h>
@@ -90,28 +93,35 @@ iBroker::setConfiguration( const wchar_t * xml )
     return true;
 }
 
+
 bool
 iBroker::configComplete()
 {
     using namespace adportable;
+    int objid = 0;
     for ( Configuration::vector_type::iterator it = config_.begin(); it != config_.end(); ++it ) {
         Configuration & item = *it;
-#if defined _DEBUG
-        std::wstring ns = item.attribute( L"ns_name" ); // "tofcontroller.manager"
-        std::wstring type = item.attribute( L"type" ); // "object_ref"
-        std::wstring name = item.name();
-#endif
+
+        ++objid;
+
 		boost::shared_ptr<iProxy> pProxy( new iProxy( *this ) );
 		if ( pProxy ) {
-			pProxy->setConfiguration( item );
+			pProxy->objId( objid );
 
+			pProxy->setConfiguration( item );
 			acewrapper::scoped_mutex_t<> lock( mutex_ );
 			iproxies_.push_back( pProxy );
 		}
 
+		Instrument::Session_var iSession = pProxy->getSession();        
+
 		boost::shared_ptr<oProxy> pOProxy( new oProxy( *this ) );
 		if ( pOProxy ) {
-			// pOProxy->setConfiguration( item );
+
+			pOProxy->objId( objid );
+
+			pOProxy->setConfiguration( item );
+			pOProxy->setInstrumentSession( iSession );
 			acewrapper::scoped_mutex_t<> lock( mutex_ );
 			oproxies_.push_back( pOProxy );
 		}
@@ -128,10 +138,14 @@ iBroker::initialize()
 		void operator ()( iproxy_ptr& proxy ) {
 			proxy->initialize();
 		}
+		void operator ()( oproxy_ptr& proxy ) {
+			proxy->initialize();
+		}
 	};
 
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
 	std::for_each( iproxies_.begin(), iproxies_.end(), invoke_initialize() );
+	std::for_each( oproxies_.begin(), oproxies_.end(), invoke_initialize() );
 	return true;
 }
 
@@ -156,9 +170,13 @@ iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, con
 		void operator ()( iproxy_ptr& proxy ) {
 			proxy->connect( token_ );
 		}
+		void operator ()( oproxy_ptr& proxy ) {
+			proxy->connect( token_ );
+		}
 	};
 
 	std::for_each( iproxies_.begin(), iproxies_.end(), invoke_connect(token) );
+	std::for_each( oproxies_.begin(), oproxies_.end(), invoke_connect(token) );
 
     do {
         using namespace adinterface::EventLog;
@@ -202,6 +220,24 @@ iBroker::getStatusCurrent()
 iBroker::getStatusBeging()
 {
 	return status_being_;
+}
+
+bool
+iBroker::observer_update_data( unsigned long objid, long pos )
+{
+    ACE_OutputCDR cdr;
+    cdr.write_ulong( objid );
+    cdr.write_long( pos );
+    ACE_Message_Block * mb = cdr.begin()->duplicate();
+	mb->msg_type( constants::MB_OBSERVER_UPDATE_DATA );
+	putq( mb );
+	return true;
+}
+
+bool
+iBroker::observer_update_method( unsigned long objid, long pos )
+{
+	return true;
 }
 
 
@@ -376,4 +412,17 @@ iBroker::handle_dispatch( const ACE_Time_Value& tv )
     acewrapper::scoped_mutex_t<> lock( mutex_ );    
     for ( vector_type::iterator it = begin(); it != end(); ++it )
         it->receiver_->log( msg );
+}
+
+SignalObserver::Observer_ptr
+iBroker::getObserver()
+{
+	PortableServer::POA_var poa = adcontroller::singleton::manager::instance()->getServantManager()->root_poa();
+	if ( ! pMasterObserver_ ) {
+  		acewrapper::scoped_mutex_t<> lock( mutex_ );
+		if ( ! pMasterObserver_ )
+			pMasterObserver_.reset( new observer_i() );
+	}
+	CORBA::Object_ptr obj = poa->servant_to_reference( pMasterObserver_.get() );
+	return SignalObserver::Observer::_narrow( obj );
 }

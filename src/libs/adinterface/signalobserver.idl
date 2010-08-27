@@ -70,7 +70,7 @@ module SignalObserver {
         boolean setDescription( in Description desc );
 
         // client can monitor real time events, it is optional
-        boolean connect( in ObserverEvents cb, in eUpdateFrequency frequency );
+        boolean connect( in ObserverEvents cb, in eUpdateFrequency frequency, in wstring token );
 
         boolean isActive();
 

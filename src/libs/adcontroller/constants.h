@@ -18,6 +18,8 @@ namespace adcontroller {
             , MB_CONNECT
             , MB_TIME_VALUE
 			, MB_MESSAGE
+			, MB_OBSERVER_UPDATE_DATA    // objid, pos
+			, MB_OBSERVER_UPDATE_METHOD  // objid, pos
         };
         
         

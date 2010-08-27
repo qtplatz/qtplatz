@@ -35,6 +35,31 @@
 
 using namespace tofcontroller;
 
+namespace tofcontroller {
+	namespace internal {
+
+		struct observer_events_data {
+			bool operator == ( const observer_events_data& ) const;
+			bool operator == ( const SignalObserver::ObserverEvents_ptr ) const;
+			observer_events_data();
+			observer_events_data( const observer_events_data& );
+			SignalObserver::ObserverEvents_var cb_;
+			SignalObserver::eUpdateFrequency freq_;
+			std::wstring token_;
+		};
+
+		struct receiver_data {
+			bool operator == ( const receiver_data& ) const;
+			bool operator == ( const Receiver_ptr ) const;
+			receiver_data() {};
+			receiver_data( const receiver_data& t ) : receiver_(t.receiver_) {}
+			Receiver_var receiver_;
+		};
+
+	}
+}
+
+
 TOFTask::TOFTask( size_t n ) : n_threads_(n)
                              , barrier_( n )
 {
@@ -78,12 +103,12 @@ TOFTask::close()
 bool
 TOFTask::connect( Receiver_ptr receiver )
 {
-	receiver_data data;
+	internal::receiver_data data;
     data.receiver_ = Receiver::_duplicate( receiver );
 
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
 
-	if ( std::find(receiver_set_.begin(), receiver_set_.end(), data ) != receiver_set_.end() )
+	if ( std::find( ibegin(), iend(), data ) != iend() )
 		return false;
   
 	receiver_set_.push_back( data );
@@ -94,15 +119,15 @@ TOFTask::connect( Receiver_ptr receiver )
 bool
 TOFTask::disconnect( Receiver_ptr receiver )
 {
-	receiver_data data;
+	internal::receiver_data data;
     data.receiver_ = Receiver::_duplicate( receiver );
 
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
 
-	vector_type::iterator it = std::remove( receiver_set_.begin(), receiver_set_.end(), data );
+	receiver_vector_type::iterator it = std::remove( ibegin(), iend(), data );
 
-	if ( it != receiver_set_.end() ) {
-		receiver_set_.erase( it, receiver_set_.end() );
+	if ( it != iend() ) {
+		receiver_set_.erase( it, iend() );
 		return true;
 	}
 	return false;
@@ -117,24 +142,45 @@ TOFTask::getObserver()
 	if ( ! pObserver_ ) {
 		acewrapper::scoped_mutex_t<> lock( mutex_ );
 		if ( ! pObserver_ )
-			pObserver_.reset( new tofObserver_i() );
+			pObserver_.reset( new tofObserver_i( *this ) );
 	}
 	CORBA::Object_ptr obj = poa->servant_to_reference( pObserver_.get() );
 	return SignalObserver::Observer::_narrow( obj );
 }
 
-///////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 bool
-TOFTask::receiver_data::operator == ( const receiver_data& t ) const
+TOFTask::connect( SignalObserver::ObserverEvents_ptr cb
+				 , SignalObserver::eUpdateFrequency freq, const std::wstring& token )
 {
-	return receiver_->_is_equivalent( t.receiver_.in() );
+	acewrapper::scoped_mutex_t<> lock( mutex_ );
+	if ( std::find( obegin(), oend(), cb ) != oend() )
+		return false;
+
+	internal::observer_events_data data;
+	data.cb_ = SignalObserver::ObserverEvents::_duplicate( cb );
+    data.freq_ = freq;
+    data.token_ = token;
+  
+	observer_events_set_.push_back( data );
+	return true;
 }
 
 bool
-TOFTask::receiver_data::operator == ( const Receiver_ptr t ) const
+TOFTask::disconnect( SignalObserver::ObserverEvents_ptr cb )
 {
-	return receiver_->_is_equivalent( t );
+	acewrapper::scoped_mutex_t<> lock( mutex_ );
+
+	observer_events_vector_type::iterator it = std::remove( obegin(), oend(), cb );
+
+	if ( it != observer_events_set_.end() ) {
+		observer_events_set_.erase( it, oend() );
+		return true;
+	}
+	return false;
+
 }
+
 
 ////////////////////////////////////////////////////////////////
 
@@ -322,7 +368,7 @@ TOFTask::dispatch_debug( const std::wstring& text, const std::wstring& key )
 	log.tv.usec = 0;
 	log.srcId = key.c_str();
 	log.format = text.c_str();
-	for ( vector_type::iterator it = receiver_set_.begin(); it != receiver_set_.end(); ++it ) {
+	for ( receiver_vector_type::iterator it = ibegin(); it != iend(); ++it ) {
 		it->receiver_->log( log );
 	}
 }
@@ -340,7 +386,7 @@ TOFTask::dispatch_debug( ACE_Message_Block * mblk )
 	log.tv.usec = 0;
 	log.srcId = key;
 	log.format = text;
-	for ( vector_type::iterator it = receiver_set_.begin(); it != receiver_set_.end(); ++it ) {
+	for ( receiver_vector_type::iterator it = ibegin(); it != iend(); ++it ) {
 		it->receiver_->log( log );
 	}
 }
@@ -471,9 +517,23 @@ TOFTask::device_update_notification( unsigned long clsId )
 {
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
 
-	for ( vector_type::iterator it = receiver_set_.begin(); it != receiver_set_.end(); ++it ) {
+	for ( receiver_vector_type::iterator it = ibegin(); it != iend(); ++it ) {
         // todo: check client token in order to avoid broadcast clsid, which most of object can't understnad
         it->receiver_->message( Receiver::SETPTS_UPDATED, clsId );
+	}
+}
+
+void
+TOFTask::device_update_data( /* args to do */ )
+{
+	acewrapper::scoped_mutex_t<> lock( mutex_ );
+
+	for ( observer_events_vector_type::iterator it = obegin(); it != oend(); ++it ) {
+        // todo: check client token in order to avoid broadcast clsid, which most of object can't understnad
+		it->cb_->OnUpdateData( 0 );
+		//oneway void OnUpdateData( in long pos );
+		//oneway void OnMethodChanged( in long pos );
+		//oneway void OnEvent( in unsigned long event, in long pos );
 	}
 }
 
@@ -540,3 +600,41 @@ TOFTask::getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData& d ) const
     tofcontroller::copy_helper< TOFInstrument::AnalyzerDeviceData >::copy( d, *pAnalyzerDeviceData_ );
 	return true;
 }
+
+///////////////////////////////////////////////////////////////
+bool
+internal::receiver_data::operator == ( const receiver_data& t ) const
+{
+	return receiver_->_is_equivalent( t.receiver_.in() );
+}
+
+bool
+internal::receiver_data::operator == ( const Receiver_ptr t ) const
+{
+	return receiver_->_is_equivalent( t );
+}
+
+///////////////////////////////////////////////////////////////
+internal::observer_events_data::observer_events_data()
+{
+}
+
+internal::observer_events_data::observer_events_data( const observer_events_data& t ) 
+: cb_(t.cb_)
+, freq_(t.freq_)
+, token_(t.token_)
+{
+}
+
+bool
+internal::observer_events_data::operator == ( const observer_events_data& t ) const
+{
+	return cb_->_is_equivalent( t.cb_.in() );
+}
+
+bool
+internal::observer_events_data::operator == ( const SignalObserver::ObserverEvents_ptr t ) const
+{
+	return cb_->_is_equivalent( t );
+}
+

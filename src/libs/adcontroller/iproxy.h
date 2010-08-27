@@ -53,9 +53,13 @@ namespace adcontroller {
         bool stopRun();    // method(sequence) stop
        
         unsigned long getStatus();
+		Instrument::Session_ptr getSession();
+        void objId( unsigned long );
+		unsigned long objId() const;
 
     private:
         bool objref_;
+        unsigned long objId_;
         Instrument::Session_var impl_;
         iBroker& broker_;
         adportable::Configuration config_;

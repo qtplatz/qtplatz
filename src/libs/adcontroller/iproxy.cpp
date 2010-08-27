@@ -15,6 +15,7 @@ using namespace adcontroller;
 
 iProxy::iProxy( iBroker& t ) : broker_( t )
                              , objref_( false )
+							 , objId_(0) 
 {
 }
 
@@ -32,7 +33,7 @@ iProxy::setConfiguration( const adportable::Configuration& c )
             CORBA::Object_var obj = acewrapper::NS::resolve_name( orb, nsname );
             if ( ! CORBA::is_nil( obj.in() ) ) {
                 impl_ = Instrument::Session::_narrow( obj );
-				if ( ! CORBA::is_nil( obj.in() ) ) 
+				if ( ! CORBA::is_nil( impl_ ) ) 
                     objref_ = true;
             }
         }
@@ -114,40 +115,56 @@ iProxy::eventOut( unsigned long event )
 
 
 bool
-iProxy::prepare_for_run( const SampleBroker::SampleSequenceLine&, const ControlMethod::Method& )
+iProxy::prepare_for_run( const SampleBroker::SampleSequenceLine&, const ControlMethod::Method& m )
 {
-	return true;
+	return impl_->prepare_for_run( const_cast<ControlMethod::Method *>(&m) );
 }
 
 bool
 iProxy::startRun()
 {
-	return true;
+	return impl_->start_run();
 }
 
 bool
 iProxy::suspendRun()
 {
-	return true;
+    return impl_->suspend_run();
 }
 
 bool
 iProxy::resumeRun()
 {
-	return true;
+    return impl_->resume_run();
 }
 
 bool
 iProxy::stopRun()
 {
-	return true;
+    return impl_->stop_run();
 }
 
        
 unsigned long
 iProxy::getStatus()
 {
-	return true;
+    return impl_->get_status();
 }
 
+Instrument::Session_ptr
+iProxy::getSession()
+{
+	return Instrument::Session::_duplicate( impl_ );
+}
 
+void
+iProxy::objId( unsigned long id )
+{
+	objId_ = id;
+}
+
+unsigned long
+iProxy::objId() const
+{
+	return objId_;
+}

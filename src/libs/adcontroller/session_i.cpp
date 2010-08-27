@@ -228,8 +228,9 @@ session_i::push_back( SampleBroker::SampleSequence_ptr sequence )
     return false;
 }
 
-::SignalObserver::ObserverVec *
-session_i::getObservers (void)
+::SignalObserver::Observer *
+session_i::getObserver (void)
 {
-    return 0;
+    iBroker * pBroker = singleton::iBrokerManager::instance()->get<iBroker>();
+    return pBroker->getObserver();
 }

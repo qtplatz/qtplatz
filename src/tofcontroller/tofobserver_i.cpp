@@ -4,10 +4,11 @@
 //////////////////////////////////////////
 
 #include "tofobserver_i.h"
+#include "toftask.h"
 
 using namespace tofcontroller;
 
-tofObserver_i::tofObserver_i(void)
+tofObserver_i::tofObserver_i( TOFTask& t ) : task_(t)
 {
 }
 
@@ -28,15 +29,17 @@ tofObserver_i::setDescription ( const ::SignalObserver::Description & desc )
 }
 
 ::CORBA::Boolean
-tofObserver_i::connect ( ::SignalObserver::ObserverEvents_ptr cb,	::SignalObserver::eUpdateFrequency frequency)
+tofObserver_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
+						, ::SignalObserver::eUpdateFrequency frequency
+						, const CORBA::WChar * token )
 {
-	return false;
+	return task_.connect( cb, frequency, token );
 }
 
 ::CORBA::Boolean
 tofObserver_i::isActive (void)
 {
-	return false;
+	return true;
 }
 
 ::SignalObserver::Observers *

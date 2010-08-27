@@ -238,13 +238,16 @@ bool
 DeviceProxy::handle_data( unsigned long clsid, TAO_InputCDR& cdr )
 {
 	if ( clsid == GlobalConstants::ClassID_InstEvent ) {
+
 		TOFInstrument::InstEvent e;
 		cdr >> e;
               
 		std::wostringstream o;
         o << L"event#" << e.eventId_ << L", value=" << e.eventValue_;
         pTask_->dispatch_debug( o.str(), name() );
+
     } else if ( clsid == TOFConstants::ClassID_AnalyzerDeviceData ) {
+
         TOFInstrument::AnalyzerDeviceData d;
         cdr >> d;
         pTask_->setAnalyzerDeviceData( d );
@@ -253,10 +256,16 @@ DeviceProxy::handle_data( unsigned long clsid, TAO_InputCDR& cdr )
 		std::wostringstream o;
         o << L"AnalyzerDeviceData accel:" << d.accel_voltage;
         pTask_->dispatch_debug( o.str(), name() );
+
+		/// SignalObserver debug
+		pTask_->device_update_data();
+
     } else {
+
 		std::wostringstream o;
         o << L"Unknown clsid:" << std::hex << clsid;
         pTask_->dispatch_debug( o.str(), name() );
+
     }
 	return true;
 }

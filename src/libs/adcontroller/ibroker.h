@@ -30,6 +30,7 @@ namespace adcontroller {
 
     class iProxy;
     class oProxy;
+	class observer_i;
 
     class iBroker : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
         
@@ -52,6 +53,8 @@ namespace adcontroller {
 		//
 		ControlServer::eStatus getStatusCurrent();
 		ControlServer::eStatus getStatusBeging(); 
+		bool observer_update_data( unsigned long objid, long pos );
+		bool observer_update_method( unsigned long objid, long pos );
         
         struct session_data {
             bool operator == ( const session_data& ) const;
@@ -69,6 +72,8 @@ namespace adcontroller {
         
         void register_failed( vector_type::iterator& );
         void commit_failed();
+
+		SignalObserver::Observer_ptr getObserver();
         
     private:
         // ACE_Task
@@ -106,6 +111,8 @@ namespace adcontroller {
 
 		std::vector< boost::shared_ptr< iProxy > > iproxies_;
 		std::vector< boost::shared_ptr< oProxy > > oproxies_;
+
+		boost::shared_ptr< observer_i > pMasterObserver_;
 
 		::ControlServer::eStatus status_current_;
 		::ControlServer::eStatus status_being_;

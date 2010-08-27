@@ -7,21 +7,15 @@
 #pragma once
 
 #pragma warning (disable : 4996 )
-# include "tofcontrollerS.h"
 # include <adinterface/signalobserverS.h>
 #pragma warning (default : 4996 )
 
-//#include <acewrapper/orbservant.h>
-//#include <boost/smart_ptr.hpp>
+namespace adcontroller {
 
-namespace tofcontroller {
-
-    class TOFTask;
-
-	class tofObserver_i : public virtual POA_SignalObserver::Observer {
+	class observer_i : public virtual POA_SignalObserver::Observer {
 	public:
-		tofObserver_i( TOFTask& );
-		~tofObserver_i(void);
+		observer_i();
+		~observer_i(void);
 
 		virtual ::SignalObserver::Description * getDescription (void);
 		virtual ::CORBA::Boolean setDescription ( const ::SignalObserver::Description & desc );
@@ -35,7 +29,6 @@ namespace tofcontroller {
 		virtual ::CORBA::Boolean readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer);
 		virtual ::CORBA::WChar * dataInterpreterClsid (void);
 	private:
-		TOFTask & task_;
 	};
 
 }

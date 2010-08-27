@@ -14,7 +14,7 @@
 		<Configuration name="adcontroller" type="" component="">
 			<Component name="adcontroller" module="adcontroller"/>
 			<Configuration name="InstrumentConfiguration">
-				<Configuration name="tofcontroller" type="object_ref" ns_name="tofcontroller.manager"/>
+   			<Configuration name="tofcontroller.1" id="tof.1" type="object_ref" ns_name="tofcontroller.manager"/>
 			</Configuration>
 		</Configuration>
 		<Configuration name="tofcontoller" type="orbLoader" ns_name="tofcontroller.manager" component="">
