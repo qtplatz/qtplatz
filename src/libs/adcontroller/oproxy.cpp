@@ -42,11 +42,13 @@ oProxy::OnUpdateData ( ::CORBA::Long pos )
 void
 oProxy::OnMethodChanged ( ::CORBA::Long pos )
 {
+	broker_.observer_update_data( objId_, pos );
 }
 
 void
 oProxy::OnEvent ( ::CORBA::ULong event,	::CORBA::Long pos )
 {
+	broker_.observer_update_event( objId_, pos, event );
 }
 
 bool
@@ -98,4 +100,10 @@ unsigned long
 oProxy::objId() const
 {
 	return objId_;
+}
+
+SignalObserver::Observer_ptr
+oProxy::getObject()
+{
+	return impl_.in();
 }

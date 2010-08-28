@@ -26,11 +26,24 @@
 #include "manager_i.h"
 #include <acewrapper/orbservant.h>
 
-#if defined _DEBUG
-# include <xmlwrapper/msxml.h>
-#endif
-
 using namespace adcontroller;
+
+namespace adcontroller {
+	namespace internal {
+
+        struct session_data {
+            bool operator == ( const session_data& ) const;
+            bool operator == ( const Receiver_ptr ) const;
+            bool operator == ( const ControlServer::Session_ptr ) const;
+            ControlServer::Session_var session_;
+            Receiver_var receiver_;
+            session_data() {};
+            session_data( const session_data& t ) : session_(t.session_), receiver_(t.receiver_) {};
+        };
+
+	}
+}
+
 
 iBroker::~iBroker()
 {
@@ -98,32 +111,43 @@ bool
 iBroker::configComplete()
 {
     using namespace adportable;
+
+	SignalObserver::Observer_var masterObserver = getObserver();
+	if ( CORBA::is_nil( masterObserver.in() ) ) {
+		assert(0);
+		throw std::exception( "iBroker::configComplete - can't get master observer servant" );
+	}
+
     int objid = 0;
     for ( Configuration::vector_type::iterator it = config_.begin(); it != config_.end(); ++it ) {
         Configuration & item = *it;
 
         ++objid;
 
+		// initialize instrument proxy
 		boost::shared_ptr<iProxy> pProxy( new iProxy( *this ) );
 		if ( pProxy ) {
 			pProxy->objId( objid );
 
 			pProxy->setConfiguration( item );
+
 			acewrapper::scoped_mutex_t<> lock( mutex_ );
 			iproxies_.push_back( pProxy );
 		}
 
+		// initialize observer proxy
 		Instrument::Session_var iSession = pProxy->getSession();        
+		boost::shared_ptr<oProxy> poProxy( new oProxy( *this ) );
+		if ( poProxy ) {
 
-		boost::shared_ptr<oProxy> pOProxy( new oProxy( *this ) );
-		if ( pOProxy ) {
+			poProxy->objId( objid );
 
-			pOProxy->objId( objid );
+			poProxy->setConfiguration( item );
+			poProxy->setInstrumentSession( iSession );
 
-			pOProxy->setConfiguration( item );
-			pOProxy->setInstrumentSession( iSession );
 			acewrapper::scoped_mutex_t<> lock( mutex_ );
-			oproxies_.push_back( pOProxy );
+			oproxies_.push_back( poProxy );
+			masterObserver->addSibling( poProxy->getObject() );
 		}
 
     }
@@ -152,7 +176,7 @@ iBroker::initialize()
 bool
 iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const wchar_t * token )
 {
-    session_data data;
+	internal::session_data data;
     data.session_ = ControlServer::Session::_duplicate( session );
     data.receiver_ = Receiver::_duplicate( receiver );
     
@@ -195,13 +219,13 @@ iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, con
 bool
 iBroker::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
 {
-    session_data data;
+	internal::session_data data;
     data.session_ = ControlServer::Session::_duplicate( session );
     data.receiver_ = Receiver::_duplicate( receiver );
     
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     
-    vector_type::iterator it = std::remove( session_set_.begin(), session_set_.end(), data );
+	session_vector_type::iterator it = std::remove( session_set_.begin(), session_set_.end(), data );
     
     if ( it != session_set_.end() ) {
         session_set_.erase( it, session_set_.end() );
@@ -225,10 +249,12 @@ iBroker::getStatusBeging()
 bool
 iBroker::observer_update_data( unsigned long objid, long pos )
 {
-    ACE_OutputCDR cdr;
-    cdr.write_ulong( objid );
-    cdr.write_long( pos );
-    ACE_Message_Block * mb = cdr.begin()->duplicate();
+    ACE_Message_Block * mb = new ACE_Message_Block(128);
+    unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
+    int n = 0;
+    ulong[n++] = objid;
+    ulong[n++] = pos;
+    mb->wr_ptr( reinterpret_cast<char *>(&ulong[n]) );
 	mb->msg_type( constants::MB_OBSERVER_UPDATE_DATA );
 	putq( mb );
 	return true;
@@ -237,26 +263,50 @@ iBroker::observer_update_data( unsigned long objid, long pos )
 bool
 iBroker::observer_update_method( unsigned long objid, long pos )
 {
+    ACE_Message_Block * mb = new ACE_Message_Block(128);
+    unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
+    int n = 0;
+    ulong[n++] = objid;
+    ulong[n++] = pos;
+    mb->wr_ptr( reinterpret_cast<char *>(&ulong[n]) );
+	mb->msg_type( constants::MB_OBSERVER_UPDATE_METHOD );
+	putq( mb );
+	return true;
+}
+
+bool
+iBroker::observer_update_event( unsigned long objid, long pos, unsigned long event )
+{
+    ACE_Message_Block * mb = new ACE_Message_Block(128);
+    unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
+    int n = 0;
+    ulong[n++] = objid;
+    ulong[n++] = pos;
+    ulong[n++] = event;
+    mb->wr_ptr( reinterpret_cast<char *>(&ulong[n]) );
+	mb->msg_type( constants::MB_OBSERVER_UPDATE_EVENT );
+	putq( mb );
 	return true;
 }
 
 
 ///////////////////////////////////////////////////////////////
+
 bool
-iBroker::session_data::operator == ( const session_data& t ) const
+internal::session_data::operator == ( const session_data& t ) const
 {
     return receiver_->_is_equivalent( t.receiver_.in() )
         && session_->_is_equivalent( t.session_.in() );
 }
 
 bool
-iBroker::session_data::operator == ( const Receiver_ptr t ) const
+internal::session_data::operator == ( const Receiver_ptr t ) const
 {
     return receiver_->_is_equivalent( t );
 }
 
 bool
-iBroker::session_data::operator == ( const ControlServer::Session_ptr t ) const
+internal::session_data::operator == ( const ControlServer::Session_ptr t ) const
 {
     return session_->_is_equivalent( t );
 }
@@ -326,8 +376,8 @@ iBroker::doit( ACE_Message_Block * mblk )
         if ( msg.cmdId_ == Notify_Timeout ) {
             cdr >> tv;
             o << " tv=" << acewrapper::to_string( tv );
-            for ( vector_type::iterator it = begin(); it != end(); ++it )
-                it->session_->echo( o.str().c_str() );
+            for ( session_vector_type::iterator it = session_begin(); it != session_end(); ++it )
+				it->session_->echo( o.str().c_str() );
         }
     }
 }
@@ -355,6 +405,18 @@ iBroker::dispatch( ACE_Message_Block * mblk, int disp )
             cdr.read_ulong( value );
 			handle_dispatch( name, msgid, value );
 		} while ( 0 );
+		break;
+	case constants::MB_OBSERVER_UPDATE_DATA:
+		do {
+			unsigned long * pUlong = reinterpret_cast<unsigned long *>( mblk->rd_ptr() );
+			handle_observer_update_data( pUlong[0], pUlong[1] );
+		} while(0);
+		break;
+	case constants::MB_OBSERVER_UPDATE_METHOD:
+		do {
+			unsigned long * pUlong = reinterpret_cast<unsigned long *>( mblk->rd_ptr() );
+			handle_observer_update_method( pUlong[0], pUlong[1] );
+		} while(0);
 		break;
     default:
         break;
@@ -385,7 +447,7 @@ iBroker::handle_dispatch( const std::wstring& name, unsigned long msgid, unsigne
 */
     // Following is just a quick debugging --> trigger spectrum display, should be removed
 	// Right code is implement SignalObserver and UpdateData event is the right place to issue event.
-	for ( vector_type::iterator it = begin(); it != end(); ++it )
+	for ( session_vector_type::iterator it = session_begin(); it != session_end(); ++it )
 		it->receiver_->message( Receiver::eINSTEVENT(msgid), value );
 }
 
@@ -393,7 +455,7 @@ void
 iBroker::handle_dispatch( const EventLog::LogMessage& msg )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );    
-    for ( vector_type::iterator it = begin(); it != end(); ++it )
+    for ( session_vector_type::iterator it = session_begin(); it != session_end(); ++it )
         it->receiver_->log( msg );
 }
 
@@ -410,9 +472,28 @@ iBroker::handle_dispatch( const ACE_Time_Value& tv )
     ::EventLog::LogMessage& msg = log.get();
 
     acewrapper::scoped_mutex_t<> lock( mutex_ );    
-    for ( vector_type::iterator it = begin(); it != end(); ++it )
+    for ( session_vector_type::iterator it = session_begin(); it != session_end(); ++it )
         it->receiver_->log( msg );
 }
+
+void
+iBroker::handle_observer_update_data( unsigned long id, long pos )
+{
+	pMasterObserver_->invoke_update_data( id, pos );
+}
+
+void
+iBroker::handle_observer_update_method( unsigned long id, long pos )
+{
+	pMasterObserver_->invoke_update_method( id, pos );
+}
+
+void
+iBroker::handle_observer_update_event( unsigned long id, long pos, unsigned long event )
+{
+	pMasterObserver_->invoke_update_event( id, pos, event );
+}
+
 
 SignalObserver::Observer_ptr
 iBroker::getObserver()

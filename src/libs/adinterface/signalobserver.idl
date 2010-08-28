@@ -69,6 +69,10 @@ module SignalObserver {
         Description getDescription();
         boolean setDescription( in Description desc );
 
+		unsigned long objId();
+		void assign_objId( in unsigned long oid );
+		//void assign_objId( unsigned long objid );
+
         // client can monitor real time events, it is optional
         boolean connect( in ObserverEvents cb, in eUpdateFrequency frequency, in wstring token );
 

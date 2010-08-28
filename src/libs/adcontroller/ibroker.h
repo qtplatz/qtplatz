@@ -32,6 +32,10 @@ namespace adcontroller {
     class oProxy;
 	class observer_i;
 
+	namespace internal {
+        struct session_data;
+	}
+
     class iBroker : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
         
         ~iBroker();
@@ -55,22 +59,13 @@ namespace adcontroller {
 		ControlServer::eStatus getStatusBeging(); 
 		bool observer_update_data( unsigned long objid, long pos );
 		bool observer_update_method( unsigned long objid, long pos );
+		bool observer_update_event( unsigned long objid, long pos, unsigned long ev );
+
+		typedef std::vector<internal::session_data> session_vector_type;
+		inline session_vector_type::iterator session_begin() { return session_set_.begin(); };
+        inline session_vector_type::iterator session_end()   { return session_set_.end(); };
         
-        struct session_data {
-            bool operator == ( const session_data& ) const;
-            bool operator == ( const Receiver_ptr ) const;
-            bool operator == ( const ControlServer::Session_ptr ) const;
-            ControlServer::Session_var session_;
-            Receiver_var receiver_;
-            session_data() {};
-            session_data( const session_data& t ) : session_(t.session_), receiver_(t.receiver_) {};
-        };
-        
-        typedef std::vector<session_data> vector_type;
-        inline vector_type::iterator begin() { return session_set_.begin(); };
-        inline vector_type::iterator end()   { return session_set_.end(); };
-        
-        void register_failed( vector_type::iterator& );
+        void register_failed( session_vector_type::iterator& );
         void commit_failed();
 
 		SignalObserver::Observer_ptr getObserver();
@@ -88,6 +83,9 @@ namespace adcontroller {
         void handle_dispatch( const EventLog::LogMessage & );
         void handle_dispatch( const ACE_Time_Value& );
 		void handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value );
+        void handle_observer_update_data( unsigned long id, long pos );
+        void handle_observer_update_method( unsigned long id, long pos );
+        void handle_observer_update_event( unsigned long id, long pos, unsigned long event );
 
     private:
         friend class IBrokerManager;
@@ -99,8 +97,8 @@ namespace adcontroller {
         size_t n_threads_;
 
         bool internal_disconnect( ControlServer::Session_ptr );
-        std::vector<session_data> session_set_;
-        std::vector<session_data> session_failed_;
+		session_vector_type session_set_;
+		session_vector_type session_failed_;
 
 		// 
 		typedef boost::shared_ptr< iProxy > iproxy_ptr;

@@ -9,6 +9,7 @@
 using namespace tofcontroller;
 
 tofObserver_i::tofObserver_i( TOFTask& t ) : task_(t)
+                                           , objId_(0)
 {
 }
 
@@ -26,6 +27,18 @@ tofObserver_i::getDescription (void)
 tofObserver_i::setDescription ( const ::SignalObserver::Description & desc )
 {
 	return false;
+}
+
+CORBA::ULong
+tofObserver_i::objId()
+{
+	return objId_;
+}
+
+void
+tofObserver_i::assign_objId( CORBA::ULong oid )
+{
+	objId_ = oid;
 }
 
 ::CORBA::Boolean

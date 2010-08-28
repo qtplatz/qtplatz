@@ -35,6 +35,7 @@ namespace adcontroller {
 
         void objId( unsigned long );
 		unsigned long objId() const;
+		SignalObserver::Observer_ptr getObject();
 
     private:
 		bool objref_;

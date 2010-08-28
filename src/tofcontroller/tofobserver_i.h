@@ -25,6 +25,8 @@ namespace tofcontroller {
 
 		virtual ::SignalObserver::Description * getDescription (void);
 		virtual ::CORBA::Boolean setDescription ( const ::SignalObserver::Description & desc );
+		virtual ::CORBA::ULong objId();
+		virtual void assign_objId( CORBA::ULong oid );
 		virtual ::CORBA::Boolean connect( ::SignalObserver::ObserverEvents_ptr cb
 			                             , ::SignalObserver::eUpdateFrequency frequency
 										 , const CORBA::WChar * );
@@ -36,6 +38,7 @@ namespace tofcontroller {
 		virtual ::CORBA::WChar * dataInterpreterClsid (void);
 	private:
 		TOFTask & task_;
+        unsigned long objId_;
 	};
 
 }

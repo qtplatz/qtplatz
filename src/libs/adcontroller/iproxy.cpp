@@ -73,6 +73,9 @@ iProxy::shutdown()
 void
 iProxy::debug_print( CORBA::Long pri, CORBA::Long cat, const char * text )
 {
+	ACE_UNUSED_ARG(pri);
+	ACE_UNUSED_ARG(cat);
+	ACE_UNUSED_ARG(text);
 }
 
 
@@ -110,7 +113,9 @@ iProxy::request_shutdown()
 bool
 iProxy::eventOut( unsigned long event )
 {
-	return true;
+	if ( objref_ )
+		return impl_->event_out( event );
+	return false;
 }
 
 

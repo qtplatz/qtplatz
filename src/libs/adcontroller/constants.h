@@ -20,6 +20,7 @@ namespace adcontroller {
 			, MB_MESSAGE
 			, MB_OBSERVER_UPDATE_DATA    // objid, pos
 			, MB_OBSERVER_UPDATE_METHOD  // objid, pos
+			, MB_OBSERVER_UPDATE_EVENT   // objid, pos, event 
         };
         
         
