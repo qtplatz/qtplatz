@@ -333,6 +333,18 @@ AcquirePlugin::actionConnect()
                                    , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
 					if ( session_->status() <= ControlServer::eConfigured )
 						session_->initialize();
+					/////////////////////////
+                    /// qick test
+					observer_ = session_->getObserver();
+					if ( ! CORBA::is_nil( observer_.in() ) ) {
+						SignalObserver::Observers_var siblings = observer_->getSiblings();
+						//if ( siblings.in() ) {
+							size_t nsize = siblings->length();
+							if ( nsize >= 1 ) {
+								SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[0uL] );
+							}
+						//}
+					}
                 }
             }
         }

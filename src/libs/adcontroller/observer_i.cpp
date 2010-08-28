@@ -4,6 +4,7 @@
 //////////////////////////////////////////
 
 #include "observer_i.h"
+#include "manager_i.h"
 
 namespace adcontroller {
 
@@ -18,10 +19,14 @@ namespace adcontroller {
         };
 
 		struct sibling_data {
-			SignalObserver::Observer_var observer_;
+			SignalObserver::Observer_var observer_;  // real instrument hooked up oberver
+			SignalObserver::Observer_var cache_;     // cache observer
             unsigned long objId_;
 			sibling_data() : objId_(0) {}
-			sibling_data( const sibling_data& t ) : observer_( t.observer_ ), objId_( t.objId_ ) {}
+			sibling_data( const sibling_data& t ) : objId_( t.objId_ )
+				                                  , observer_( t.observer_ ) 
+												  , cache_( t.cache_ ) {
+			}
         };
       
 	}
@@ -83,7 +88,13 @@ observer_i::isActive (void)
 ::SignalObserver::Observers *
 observer_i::getSiblings (void)
 {
-	return 0;
+	SignalObserver::Observers_var vec( new SignalObserver::Observers );
+    vec->length( sibling_set_.size() );
+    int i = 0;
+	for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
+		(*vec)[i++] = SignalObserver::Observer::_duplicate( it->cache_.in() );
+	}
+	return vec._retn();
 }
 
 ::CORBA::Boolean
@@ -91,8 +102,20 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 {
 	internal::sibling_data data;
     data.observer_ = SignalObserver::Observer::_duplicate( observer );
-	data.objId_ = data.observer_->objId();
-	sibling_set_.push_back( data );
+
+	if ( ! CORBA::is_nil( data.observer_ ) ) {
+
+		data.objId_ = data.observer_->objId();
+
+		observer_i * pCache = new observer_i();
+		if ( pCache ) {
+			pCache->assign_objId( data.objId_ );
+			PortableServer::POA_var poa = adcontroller::singleton::manager::instance()->getServantManager()->root_poa();
+			CORBA::Object_ptr obj = poa->servant_to_reference( pCache );
+			data.cache_ = SignalObserver::Observer::_narrow( obj );
+		}
+	}
+	sibling_set_.push_back( data ); // add even nil
 	return true;
 }
 

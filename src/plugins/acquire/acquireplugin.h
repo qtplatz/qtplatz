@@ -9,6 +9,7 @@
 
 #include <extensionsystem/iplugin.h>
 #include <adinterface/controlserverC.h>
+#include <adinterface/signalobserverC.h>
 #include <boost/smart_ptr.hpp>
 #include <adplugin/qreceiver_i.h>
 
@@ -66,6 +67,10 @@ namespace Acquire {
       void initialize_actions();
 
       ControlServer::Session_var session_;
+	  SignalObserver::Observer_var observer_;
+      // for quick debug, to be removed
+	  SignalObserver::Observer_var tofCache_;
+	  // <--
       boost::scoped_ptr< adplugin::QReceiver_i > receiver_i_;
 
     public:

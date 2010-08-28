@@ -11,7 +11,7 @@
 #pragma warning (default : 4996 )
 
 #include <vector>
-#include <map>
+#include <boost/noncopyable.hpp>
 
 namespace adcontroller {
 
@@ -20,7 +20,7 @@ namespace adcontroller {
         struct sibling_data;
 	}
 
-	class observer_i : public virtual POA_SignalObserver::Observer {
+	class observer_i : public virtual POA_SignalObserver::Observer, boost::noncopyable {
 	public:
 		observer_i();
 		~observer_i(void);
@@ -56,6 +56,7 @@ namespace adcontroller {
 
 		observer_events_vector_type observer_events_set_;
 		sibling_vector_type sibling_set_;
+		SignalObserver::Observer_var source_observer_;
 
 	};
 
