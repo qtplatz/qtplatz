@@ -19,7 +19,8 @@ SOURCES += adplugin.cpp \
     lifecycle.cpp \
     qreceiver_i.cpp \
     configloader.cpp \
-    orbmanager.cpp
+    orbmanager.cpp \
+    qobserverevents_i.cpp
 
 
 HEADERS += adplugin.h\
@@ -31,4 +32,5 @@ HEADERS += adplugin.h\
     qreceiver_i.h \
     configloader.h \
     orbmanager.h \
-    orbLoader.h
+    orbLoader.h \
+    qobserverevents_i.h
