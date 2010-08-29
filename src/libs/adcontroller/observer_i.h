@@ -57,7 +57,8 @@ namespace adcontroller {
 		observer_events_vector_type observer_events_set_;
 		sibling_vector_type sibling_set_;
 		SignalObserver::Observer_var source_observer_;
-
+		SignalObserver::Description desc_;
+        unsigned long objId_;
 	};
 
 }

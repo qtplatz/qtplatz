@@ -7,25 +7,41 @@
 
 using namespace adplugin;
 
-QObserverEvents_i::QObserverEvents_i(QObject *parent) :
-    QObject(parent)
+QObserverEvents_i::QObserverEvents_i(QObject *parent) : QObject(parent)
+                                                      , freq_( SignalObserver::Friquent )
+													  , objId_(0) 
 {
+}
+
+QObserverEvents_i::QObserverEvents_i( SignalObserver::Observer_ptr ptr
+									 , const std::wstring& token
+									 , SignalObserver::eUpdateFrequency freq 
+									 , QObject *parent)	 : impl_( ptr )
+									                     , token_( token ) 
+														 , freq_( freq )
+														 , objId_(0) 
+														 , QObject(parent)
+{
+	if ( ! CORBA::is_nil( impl_.in() ) ) {
+		impl_->connect( this->_this(), freq_, token.c_str() );
+        objId_ = impl_->objId();
+	}
 }
 
 void
 QObserverEvents_i::OnUpdateData( CORBA::Long pos )
 {
-	emit signal_UpdateData( pos );
+	emit signal_UpdateData( objId_, pos );
 }
 
 void
 QObserverEvents_i::OnMethodChanged( CORBA::Long pos )
 {
-	emit signal_MethodChanged( pos );
+	emit signal_MethodChanged( objId_, pos );
 }
 
 void
 QObserverEvents_i::OnEvent( CORBA::ULong event, CORBA::Long pos )
 {
-	emit signal_Event( event, pos );
+	emit signal_Event( objId_, event, pos );
 }

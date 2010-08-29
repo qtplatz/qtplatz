@@ -17,19 +17,30 @@ namespace adplugin {
 		Q_OBJECT
 	public:
 		explicit QObserverEvents_i(QObject *parent = 0);
+		QObserverEvents_i( SignalObserver::Observer_ptr
+			             , const std::wstring& token 
+			             , SignalObserver::eUpdateFrequency freq = SignalObserver::Friquent
+						 , QObject * parent = 0 );
        
         // implements ObserverEvents
 		void OnUpdateData( CORBA::Long );
 		void OnMethodChanged( CORBA::Long );
 		void OnEvent( CORBA::ULong, CORBA::Long );
 
+        // Observer 
+		inline SignalObserver::Observer_ptr& ptr() { return impl_; }
     signals:
-        void signal_UpdateData( unsigned long );
-        void signal_MethodChanged( unsigned long );
-        void signal_Event( unsigned long, long );
+        void signal_UpdateData( unsigned long, long );
+        void signal_MethodChanged( unsigned long, long );
+		void signal_Event( unsigned long, unsigned long, long );
 
 	public slots:
 
+	private:
+		unsigned long objId_;
+		SignalObserver::eUpdateFrequency freq_;
+		std::wstring token_;
+		SignalObserver::Observer_var impl_;
     };
 }
 

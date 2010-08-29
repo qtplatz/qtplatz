@@ -528,9 +528,11 @@ TOFTask::device_update_data( /* args to do */ )
 {
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
 
+    static int pos;
+
 	for ( observer_events_vector_type::iterator it = obegin(); it != oend(); ++it ) {
         // todo: check client token in order to avoid broadcast clsid, which most of object can't understnad
-		it->cb_->OnUpdateData( 0 );
+		it->cb_->OnUpdateData( pos++ );
 		//oneway void OnUpdateData( in long pos );
 		//oneway void OnMethodChanged( in long pos );
 		//oneway void OnEvent( in unsigned long event, in long pos );

@@ -12,8 +12,9 @@
 #include <adwidgets/spectrumwidget.h>
 #include <adwidgets/chromatogramwidget.h>
 #include <adwidgets/axis.h>
-//#include <acewrapper/orbmanager.h>
 #include <adplugin/orbmanager.h>
+#include <adplugin/qreceiver_i.h>
+#include <adplugin/qobserverevents_i.h>
 #include <tao/Object.h>
 #include <orbsvcs/CosNamingC.h>
 #include <adcontroller/adcontroller.h>
@@ -334,14 +335,17 @@ AcquirePlugin::actionConnect()
 					if ( session_->status() <= ControlServer::eConfigured )
 						session_->initialize();
 					/////////////////////////
-                    /// qick test
+                    /// connect observer event sink
 					observer_ = session_->getObserver();
 					if ( ! CORBA::is_nil( observer_.in() ) ) {
 						SignalObserver::Observers_var siblings = observer_->getSiblings();
 						size_t nsize = siblings->length();
-						if ( nsize >= 1 ) {
-							SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[0uL] );
-                            tofCache_ = var;
+						for ( size_t i = 0; i < nsize; ++i ) {
+							SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[i] );
+							boost::shared_ptr<adplugin::QObserverEvents_i> sink( new adplugin::QObserverEvents_i( var, L"acquire.ui" ) );
+                            sinkVec_.push_back( sink );
+							SignalObserver::Description_var pdesc = sink->ptr()->getDescription();
+							res = connect( sink.get(), SIGNAL( signal_UpdateData( unsigned long, long ) ), this, SLOT( handle_update_data(unsigned long, long) ) );
 						}
 					}
                 }
@@ -353,6 +357,13 @@ AcquirePlugin::actionConnect()
 void
 AcquirePlugin::actionRunStop()
 {
+}
+
+void
+AcquirePlugin::handle_update_data( unsigned long objId, long pos )
+{
+   ACE_UNUSED_ARG( objId );
+   ACE_UNUSED_ARG( pos );
 }
 
 void

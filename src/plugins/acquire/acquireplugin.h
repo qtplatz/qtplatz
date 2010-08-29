@@ -11,17 +11,19 @@
 #include <adinterface/controlserverC.h>
 #include <adinterface/signalobserverC.h>
 #include <boost/smart_ptr.hpp>
-#include <adplugin/qreceiver_i.h>
+//#include <adplugin/qreceiver_i.h>
+#include <vector>
 
 class QToolButton;
 class QAction;
 
 namespace adplugin {
    class QReceiver_i;
+   class QObserverEvents_i;
 }
 
 namespace Acquire {
-  namespace internal {
+	namespace internal {
 
     class AcquireUIManager;
 	class AcquireImpl;
@@ -46,6 +48,8 @@ namespace Acquire {
         void handle_log( QByteArray );
         void handle_shutdown();
         void handle_debug_print( unsigned long priority, unsigned long category, QString text );
+
+		void handle_update_data( unsigned long objid, long pos );
     signals:
 
     private:
@@ -72,6 +76,8 @@ namespace Acquire {
 	  SignalObserver::Observer_var tofCache_;
 	  // <--
       boost::scoped_ptr< adplugin::QReceiver_i > receiver_i_;
+	  boost::scoped_ptr< adplugin::QObserverEvents_i > observer_i_;
+	  std::vector< boost::shared_ptr< adplugin::QObserverEvents_i > > sinkVec_;
 
     public:
       static QToolButton * toolButton( QAction * action );

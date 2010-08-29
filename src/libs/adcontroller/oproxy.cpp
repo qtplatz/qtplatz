@@ -75,8 +75,10 @@ oProxy::setInstrumentSession( Instrument::Session_ptr iSession )
 	iSession_ = iSession;
 	if ( ! CORBA::is_nil( iSession_ ) ) {
 		impl_ = iSession_->getObserver();
-		if ( ! CORBA::is_nil( impl_.in() ) )
+		if ( ! CORBA::is_nil( impl_.in() ) ) {
 			objref_ = true;
+			impl_->assign_objId( objId_ );
+		}
 	}
 }
 
