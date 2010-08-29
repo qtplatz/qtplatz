@@ -122,15 +122,13 @@ iBroker::configComplete()
     for ( Configuration::vector_type::iterator it = config_.begin(); it != config_.end(); ++it ) {
         Configuration & item = *it;
 
-        ++objid;
+		++objid;
 
 		// initialize instrument proxy
 		boost::shared_ptr<iProxy> pProxy( new iProxy( *this ) );
 		if ( pProxy ) {
 			pProxy->objId( objid );
-
 			pProxy->setConfiguration( item );
-
 			acewrapper::scoped_mutex_t<> lock( mutex_ );
 			iproxies_.push_back( pProxy );
 		}
@@ -139,14 +137,16 @@ iBroker::configComplete()
 		Instrument::Session_var iSession = pProxy->getSession();        
 		boost::shared_ptr<oProxy> poProxy( new oProxy( *this ) );
 		if ( poProxy ) {
-
 			poProxy->objId( objid );
-
 			poProxy->setConfiguration( item );
-			poProxy->setInstrumentSession( iSession );
-
+			if ( poProxy->setInstrumentSession( iSession ) ) { // assign objid to source objects
+				size_t n = poProxy->populateObservers( objid );
+				objid += n;
+			}
 			acewrapper::scoped_mutex_t<> lock( mutex_ );
 			oproxies_.push_back( poProxy );
+
+			// add source into the Cache
 			masterObserver->addSibling( poProxy->getObject() );
 		}
 
@@ -485,7 +485,7 @@ iBroker::handle_observer_update_data( unsigned long id, long pos )
 void
 iBroker::handle_observer_update_method( unsigned long id, long pos )
 {
-	pMasterObserver_->invoke_update_method( id, pos );
+	pMasterObserver_->invoke_method_changed( id, pos );
 }
 
 void

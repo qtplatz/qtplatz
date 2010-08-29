@@ -42,8 +42,9 @@ namespace adcontroller {
 
 using namespace adcontroller;
 
-observer_i::observer_i(void) : objId_(0)
+observer_i::observer_i( SignalObserver::Observer_ptr source ) : objId_(0)
 {
+	source_observer_ = SignalObserver::Observer::_duplicate(source);
 }
 
 observer_i::~observer_i(void)
@@ -53,13 +54,14 @@ observer_i::~observer_i(void)
 ::SignalObserver::Description * 
 observer_i::getDescription (void)
 {
-	return 0;
+    return source_observer_->getDescription();
 }
 
 ::CORBA::Boolean
 observer_i::setDescription ( const ::SignalObserver::Description & desc )
 {
     desc_ = desc;
+    source_observer_->setDescription( desc );
 	return true;
 }
 
@@ -102,10 +104,11 @@ observer_i::getSiblings (void)
 {
 	SignalObserver::Observers_var vec( new SignalObserver::Observers );
     vec->length( sibling_set_.size() );
+
     int i = 0;
-	for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
+	for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it )
 		(*vec)[i++] = SignalObserver::Observer::_duplicate( it->cache_.in() );
-	}
+
 	return vec._retn();
 }
 
@@ -118,37 +121,64 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 	if ( ! CORBA::is_nil( data.observer_ ) ) {
 
 		data.objId_ = data.observer_->objId();
-
-		data.pCache_i_.reset( new observer_i() );
+		data.pCache_i_.reset( new observer_i( data.observer_ ) );
 		if ( data.pCache_i_ ) {
 			data.pCache_i_->assign_objId( data.objId_ );
 			PortableServer::POA_var poa = adcontroller::singleton::manager::instance()->getServantManager()->root_poa();
 			CORBA::Object_ptr obj = poa->servant_to_reference( data.pCache_i_.get() );
 			data.cache_ = SignalObserver::Observer::_narrow( obj );
 		}
+		data.pCache_i_->populate_siblings();
 	}
-	sibling_set_.push_back( data ); // add even nil
+	sibling_set_.push_back( data );
 	return true;
+}
+
+void
+observer_i::populate_siblings()
+{
+	if ( CORBA::is_nil( source_observer_ ) )
+		return;
+	SignalObserver::Observers_var sourceVec = source_observer_->getSiblings();
+	if ( sourceVec.ptr() == 0 )
+		return;
+	size_t nsize = sourceVec->length();
+	for ( size_t i = 0; i < nsize; ++i ) {
+#if defined _DEBUG
+        unsigned long oid = sourceVec[i]->objId();
+		SignalObserver::Observers_var vec = sourceVec[i]->getSiblings();
+		if ( vec.ptr() )
+			size_t nn = vec->length();
+#endif
+		addSibling( sourceVec[i] );
+	}
 }
 
 void
 observer_i::uptime ( ::CORBA::ULongLong_out usec )
 {
+	if ( ! CORBA::is_nil( source_observer_ ) )
+		source_observer_->uptime( usec );
+	usec = 0;
 }
 
 ::CORBA::Boolean
 observer_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer)
 {
+	if ( ! CORBA::is_nil( source_observer_ ) )
+		return source_observer_->readData( pos, dataReadBuffer );
 	return false;
 }
 
 ::CORBA::WChar *
 observer_i::dataInterpreterClsid (void)
 {
+	if ( ! CORBA::is_nil( source_observer_ ) )
+		return source_observer_->dataInterpreterClsid();
 	return 0;
 }
 
-void
+bool
 observer_i::invoke_update_data( unsigned long objid, long pos )
 {
 	struct fire_event {
@@ -160,30 +190,66 @@ observer_i::invoke_update_data( unsigned long objid, long pos )
 		}
 	};
 
-	for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
-		if ( it->objId_ == objid )
-			it->pCache_i_->invoke_update_data( objid, pos );
+	if ( objId_ == objid ) {
+		std::for_each ( events_begin(), events_end(), fire_event( pos ) );
+		return true;
 	}
 
-	if ( objId_ == objid )
-		std::for_each ( events_begin(), events_end(), fire_event( pos ) );
+	for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
+		if ( it->pCache_i_->invoke_update_data( objid, pos ) )
+			return true;
+	}
+
+	return false;
 }
 
-void
-observer_i::invoke_update_method( unsigned long objid, long pos )
+bool
+observer_i::invoke_method_changed( unsigned long objid, long pos )
 {
-	ACE_UNUSED_ARG( objid );
-    ACE_UNUSED_ARG( pos );
-    // this method will be used when TIVO cache is implemented in future
+	struct fire_event {
+		long pos_;
+		fire_event( long pos ) : pos_(pos) {}
+		void operator()( internal::observer_events_data& d ) {
+			if ( ! CORBA::is_nil( d.events_.in() ) )
+				d.events_->OnMethodChanged( pos_ );
+		}
+	};
+
+	if ( objId_ == objid ) {
+		std::for_each ( events_begin(), events_end(), fire_event( pos ) );
+		return true;
+	}
+
+	for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
+		if ( it->pCache_i_->invoke_method_changed( objid, pos ) )
+			return true;
+	}
+	return false;
 }
 
-void
+bool
 observer_i::invoke_update_event( unsigned long objid, long pos, unsigned long event )
 {
-	ACE_UNUSED_ARG( objid );
-    ACE_UNUSED_ARG( pos );
-    ACE_UNUSED_ARG( event );
-    // this method will be used when TIVO cache is implemented in future
+	struct fire_event {
+		long pos_;
+        unsigned long event_;
+		fire_event( long pos, unsigned long event ) : pos_(pos), event_(event) {}
+		void operator()( internal::observer_events_data& d ) {
+			if ( ! CORBA::is_nil( d.events_.in() ) )
+				d.events_->OnEvent( pos_, event_ );
+		}
+	};
+
+	if ( objId_ == objid ) {
+		std::for_each ( events_begin(), events_end(), fire_event( pos, event ) );
+		return true;
+	}
+
+	for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
+		if ( it->pCache_i_->invoke_update_event( objid, pos, event ) )
+			return true;
+	}
+	return false;
 }
 
 ////////////////////////////////////////////

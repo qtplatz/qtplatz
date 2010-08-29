@@ -11,8 +11,7 @@
 # include <adinterface/signalobserverS.h>
 #pragma warning (default : 4996 )
 
-//#include <acewrapper/orbservant.h>
-//#include <boost/smart_ptr.hpp>
+#include <vector>
 
 namespace tofcontroller {
 
@@ -39,6 +38,8 @@ namespace tofcontroller {
 	private:
 		TOFTask & task_;
         unsigned long objId_;
+		SignalObserver::Description desc_;
+		std::vector< ::SignalObserver::Observer_var > siblings_;
 	};
 
 }

@@ -40,6 +40,8 @@ namespace tofcontroller {
 
     class DeviceProxy;
     class tofObserver_i;
+    class traceObserver_i;
+
 	namespace internal {
 		struct observer_events_data;
 		struct receiver_data;
@@ -128,6 +130,7 @@ namespace tofcontroller {
 		boost::scoped_ptr< TOFInstrument::AnalyzerDeviceData > pAnalyzerDeviceData_;
 		boost::scoped_ptr< TOFInstrument::ADConfigurations > pADConfigurations_;
 		boost::scoped_ptr< tofObserver_i > pObserver_;
-    };
+		std::vector< boost::shared_ptr< traceObserver_i > > pTraceObserverVec_;
+      };
   
 }

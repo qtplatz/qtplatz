@@ -22,7 +22,7 @@ namespace adcontroller {
 
 	class observer_i : public virtual POA_SignalObserver::Observer, boost::noncopyable {
 	public:
-		observer_i();
+		observer_i( SignalObserver::Observer_ptr source = 0 );
 		~observer_i(void);
 
 		virtual ::SignalObserver::Description * getDescription (void);
@@ -40,9 +40,10 @@ namespace adcontroller {
 		virtual ::CORBA::Boolean readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer);
 		virtual ::CORBA::WChar * dataInterpreterClsid (void);
 		///
-		void invoke_update_data( unsigned long objid, long pos );
-		void invoke_update_method( unsigned long objid, long pos );
-		void invoke_update_event( unsigned long objid, long pos, unsigned long event );
+        void populate_siblings();
+		bool invoke_update_data( unsigned long objid, long pos );
+		bool invoke_method_changed( unsigned long objid, long pos );
+		bool invoke_update_event( unsigned long objid, long pos, unsigned long event );
 
 	private:
 		typedef std::vector<internal::observer_events_data> observer_events_vector_type;

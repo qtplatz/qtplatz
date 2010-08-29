@@ -275,6 +275,10 @@
 				RelativePath=".\toftask.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\traceobserver_i.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -389,6 +393,10 @@
 			</File>
 			<File
 				RelativePath=".\toftask.h"
+				>
+			</File>
+			<File
+				RelativePath=".\traceobserver_i.h"
 				>
 			</File>
 		</Filter>

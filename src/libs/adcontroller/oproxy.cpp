@@ -65,12 +65,13 @@ oProxy::initialize()
 	return true;
 }
 
-void
+bool
 oProxy::setInstrumentSession( Instrument::Session_ptr iSession )
 {
+    objref_ = false;
+
 	CORBA::release( iSession_ );
 	CORBA::release( impl_ );
-    objref_ = false;
 
 	iSession_ = iSession;
 	if ( ! CORBA::is_nil( iSession_ ) ) {
@@ -78,8 +79,21 @@ oProxy::setInstrumentSession( Instrument::Session_ptr iSession )
 		if ( ! CORBA::is_nil( impl_.in() ) ) {
 			objref_ = true;
 			impl_->assign_objId( objId_ );
+			return true;
 		}
 	}
+}
+
+size_t
+oProxy::populateObservers( unsigned long objid )
+{
+	size_t nsize = 0;
+	SignalObserver::Observers_var vec = impl_->getSiblings();
+	if ( ( vec.ptr() != 0) && ( nsize = vec->length() ) > 0 ) {
+		for ( size_t i = 0; i < nsize; ++i )
+			vec[i]->assign_objId( ++objid );
+	}
+	return nsize;
 }
 
 void
@@ -92,16 +106,16 @@ oProxy::setConfiguration( const adportable::Configuration& c )
 	//std::wstring name = item.name();
 }
 
-void
-oProxy::objId( unsigned long id )
-{
-	objId_ = id;
-}
-
 unsigned long
 oProxy::objId() const
 {
 	return objId_;
+}
+
+void
+oProxy::objId( unsigned long objid )
+{
+	objId_ = objid;
 }
 
 SignalObserver::Observer_ptr

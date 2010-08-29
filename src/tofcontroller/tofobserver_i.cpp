@@ -11,6 +11,13 @@ using namespace tofcontroller;
 tofObserver_i::tofObserver_i( TOFTask& t ) : task_(t)
                                            , objId_(0)
 {
+	desc_.trace_method = SignalObserver::eTRACE_SPECTRA;
+	desc_.trace_id = CORBA::wstring_dup( L"MS.PROFILE" );
+	desc_.trace_display_name = CORBA::wstring_dup( L"Spectrum" );
+	desc_.axis_x_label = CORBA::wstring_dup( L"m/z" );
+	desc_.axis_y_label = CORBA::wstring_dup( L"Intens" );
+	desc_.axis_x_decimals = 2;
+	desc_.axis_y_decimals = 0;
 }
 
 tofObserver_i::~tofObserver_i(void)
@@ -20,13 +27,15 @@ tofObserver_i::~tofObserver_i(void)
 ::SignalObserver::Description * 
 tofObserver_i::getDescription (void)
 {
-	return 0;
+	SignalObserver::Description_var var( new SignalObserver::Description( desc_ ) );
+    return var._retn();
 }
 
 ::CORBA::Boolean
 tofObserver_i::setDescription ( const ::SignalObserver::Description & desc )
 {
-	return false;
+    desc_ = desc;
+	return true;
 }
 
 CORBA::ULong
@@ -58,13 +67,21 @@ tofObserver_i::isActive (void)
 ::SignalObserver::Observers *
 tofObserver_i::getSiblings (void)
 {
-	return 0;
+	SignalObserver::Observers_var vec( new SignalObserver::Observers );
+	vec->length( siblings_.size() );
+
+	for ( size_t i = 0; i < siblings_.size(); ++i )
+		(*vec)[i] = SignalObserver::Observer::_duplicate( siblings_[i].in() );
+
+	return vec._retn();
 }
 
 ::CORBA::Boolean
 tofObserver_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 {
-	return false;
+	::SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( observer );
+    siblings_.push_back( var );
+	return true;
 }
 
 void

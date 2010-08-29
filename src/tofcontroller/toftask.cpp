@@ -26,7 +26,9 @@
 #include <acewrapper/lifecycle_frame_serializer.h>
 #include "analyzerdevicedata.h"
 #include "tofobserver_i.h"
+#include "traceobserver_i.h"
 #include <sstream>
+#include <boost/lexical_cast.hpp>
 
 #pragma warning (disable : 4996 )
 # include "tofcontrollerC.h"
@@ -143,6 +145,36 @@ TOFTask::getObserver()
 		acewrapper::scoped_mutex_t<> lock( mutex_ );
 		if ( ! pObserver_ )
 			pObserver_.reset( new tofObserver_i( *this ) );
+
+        // add Traces
+		SignalObserver::Description desc;
+        desc.axis_x_decimals = 3;
+        desc.axis_y_decimals = 2;
+		desc.trace_display_name = CORBA::wstring_dup( L"TIC" );
+		desc.trace_id = CORBA::wstring_dup( L"MS.TIC" );
+		desc.trace_method = SignalObserver::eTRACE_TRACE;
+
+		boost::shared_ptr< traceObserver_i > p( new traceObserver_i( *this ) );
+		p->setDescription( desc );
+        pTraceObserverVec_.push_back( p );
+		do {
+			CORBA::Object_ptr obj = poa->servant_to_reference( p.get() );
+			pObserver_->addSibling( SignalObserver::Observer::_narrow( obj ) );
+		} while(0);
+
+		// add mass chromatograms
+		std::wstring trace_id = L"MS.CHROMATOGRAM.";
+		for ( int i = 0; i < 3; ++i ) {
+			boost::shared_ptr< traceObserver_i > p( new traceObserver_i( *this ) );
+			desc.trace_display_name = CORBA::wstring_dup( L"Chromatogram.%1%" );
+			desc.trace_id = CORBA::wstring_dup( (trace_id + boost::lexical_cast<std::wstring>(i + 1)).c_str() );
+			p->setDescription( desc );
+			pTraceObserverVec_.push_back( p );
+			do {
+				CORBA::Object_ptr obj = poa->servant_to_reference( p.get() );
+				pObserver_->addSibling( SignalObserver::Observer::_narrow( obj ) );
+			} while(0);
+		}
 	}
 	CORBA::Object_ptr obj = poa->servant_to_reference( pObserver_.get() );
 	return SignalObserver::Observer::_narrow( obj );
