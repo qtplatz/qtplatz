@@ -144,7 +144,7 @@ observer_i::populate_siblings()
 		return;
 	size_t nsize = sourceVec->length();
 	for ( size_t i = 0; i < nsize; ++i ) {
-#if defined _DEBUG
+#if defined _DEBUG && 0
         unsigned long oid = sourceVec[i]->objId();
 		SignalObserver::Observers_var vec = sourceVec[i]->getSiblings();
 		if ( vec.ptr() )
@@ -178,20 +178,44 @@ observer_i::dataInterpreterClsid (void)
 	return 0;
 }
 
+namespace adcontroller {
+	namespace internal {
+
+		struct fire_on_update_data {
+			static void fire( SignalObserver::ObserverEvents& oe, long pos ) {
+				oe.OnUpdateData( pos );
+			}
+		};
+		struct fire_on_method_changed {
+			static void fire( SignalObserver::ObserverEvents& oe, long pos ) {
+				oe.OnMethodChanged( pos );
+			}
+		};
+		struct fire_on_event {
+			static void fire( SignalObserver::ObserverEvents& oe, long pos, unsigned long e ) {
+				oe.OnEvent( pos, e );
+			}
+		};
+
+		template<class T> struct invoke_event_fire {
+			long pos_;
+            unsigned long event_;
+			invoke_event_fire( long pos, unsigned long e = 0 ) : pos_(pos), event_(e) {}
+			void operator()( internal::observer_events_data& d ) {
+				if ( ! CORBA::is_nil( d.events_.in() ) )
+					T::fire( *d.events_, pos_ );
+			}
+		};
+
+	}
+}
+
 bool
 observer_i::invoke_update_data( unsigned long objid, long pos )
 {
-	struct fire_event {
-		long pos_;
-		fire_event( long pos ) : pos_(pos) {}
-		void operator()( internal::observer_events_data& d ) {
-			if ( ! CORBA::is_nil( d.events_.in() ) )
-				d.events_->OnUpdateData( pos_ );
-		}
-	};
-
 	if ( objId_ == objid ) {
-		std::for_each ( events_begin(), events_end(), fire_event( pos ) );
+		using namespace adcontroller::internal;
+		std::for_each ( events_begin(), events_end(), invoke_event_fire<fire_on_update_data>( pos ) );
 		return true;
 	}
 
@@ -206,17 +230,9 @@ observer_i::invoke_update_data( unsigned long objid, long pos )
 bool
 observer_i::invoke_method_changed( unsigned long objid, long pos )
 {
-	struct fire_event {
-		long pos_;
-		fire_event( long pos ) : pos_(pos) {}
-		void operator()( internal::observer_events_data& d ) {
-			if ( ! CORBA::is_nil( d.events_.in() ) )
-				d.events_->OnMethodChanged( pos_ );
-		}
-	};
-
 	if ( objId_ == objid ) {
-		std::for_each ( events_begin(), events_end(), fire_event( pos ) );
+		using namespace adcontroller::internal;
+		std::for_each ( events_begin(), events_end(), invoke_event_fire<fire_on_method_changed>( pos ) );
 		return true;
 	}
 
