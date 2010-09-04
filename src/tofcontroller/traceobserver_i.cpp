@@ -73,8 +73,16 @@ traceObserver_i::getSiblings (void)
 ::CORBA::Boolean
 traceObserver_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 {
+    ACE_UNUSED_ARG( observer );
 	return false;
 }
+
+::SignalObserver::Observer *
+traceObserver_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
+{
+    return 0;  // this class never has sibling
+}
+
 
 void
 traceObserver_i::uptime ( ::CORBA::ULongLong_out usec )

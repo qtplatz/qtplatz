@@ -13,7 +13,7 @@
 #include "constants.h"
 #include "./reactor_thread.h"
 #include <ace/Reactor.h>
-
+#include <adportable/protocollifecycle.h>
 
 using namespace device_emulator;
 
@@ -64,10 +64,42 @@ device_averager::deactivate()
 }
 
 int
-device_averager::handle_timeout( const ACE_Time_Value&, const void * )
+device_averager::handle_timeout( const ACE_Time_Value& tv, const void * )
 {
     if ( state() <= device_state::state_initializing )
         doit( device_state::command_stop );
+
+    size_t hLen = 32;
+    size_t wformLen = 1024 * 10;
+    static size_t npos;
+
+    ACE_Message_Block * mb = new ACE_Message_Block( adportable::protocol::LifeCycle::wr_offset() + ((hLen + wformLen) * sizeof(long)));
+    size_t size = mb->size();
+    memset( mb->wr_ptr(), 0, size );
+    mb->wr_ptr( adportable::protocol::LifeCycle::wr_offset() );
+
+    long * pmeta = reinterpret_cast<long *>(mb->wr_ptr());
+    long * pdata = pmeta + hLen;
+    mb->wr_ptr( mb->size() );
+
+    *pmeta++ = TOFConstants::ClassID_ProfileData;
+    *pmeta++ = npos++;
+    *pmeta++ = tv.sec() >> 32;
+    *pmeta++ = tv.sec() & 0xffff;
+    *pmeta++ = tv.usec();
+    *pmeta++ = wformLen;
+    *pmeta++ = 12 * 1000000 / 500; // delay point 12us
+    *pmeta++ = 500; // 500ps sampling interval
+
+    // simulate noise
+    srand( int(tv.sec()) );
+    for ( size_t i = 0; i < wformLen; ++i )
+        *pdata++ = double(rand()) * 100 / RAND_MAX;
+
+    // todo: overlay chemical background, and sample peak
+
+    mb->msg_type( constants::MB_DATA_TO_CONTROLLER );
+    singleton::device_facade::instance()->putq( mb );
 
     return 0;
 }

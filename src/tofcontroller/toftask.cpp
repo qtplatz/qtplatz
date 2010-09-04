@@ -635,6 +635,37 @@ TOFTask::getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData& d ) const
 	return true;
 }
 
+void
+TOFTask::push_profile_data( ACE_Message_Block * mb )
+{
+    if ( pObserver_ )
+        pObserver_->push_profile_data( mb );
+}
+
+void
+TOFTask::observer_fire_on_update_data( long pos )
+{
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    for ( observer_events_vector_type::iterator it = obegin(); it != oend(); ++it )
+        it->cb_->OnUpdateData( pos );
+}
+
+void
+TOFTask::observer_fire_on_method_changed( long pos )
+{
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    for ( observer_events_vector_type::iterator it = obegin(); it != oend(); ++it )
+        it->cb_->OnMethodChanged( pos );
+}
+
+void
+TOFTask::observer_fire_on_event( unsigned long event, long pos )
+{
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    for ( observer_events_vector_type::iterator it = obegin(); it != oend(); ++it )
+        it->cb_->OnEvent( event, pos );
+}
+
 ///////////////////////////////////////////////////////////////
 bool
 internal::receiver_data::operator == ( const receiver_data& t ) const

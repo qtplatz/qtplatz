@@ -369,8 +369,13 @@ DeviceFacade::handleIt( ACE_Message_Block * mb )
     if ( mb->msg_type() == constants::MB_SENDTO_CONTROLLER ) {
         if ( dgram_handler_ )
             dgram_handler_->send( mb->rd_ptr(), mb->length(), get_remote_addr() );
+        return true;
+    }
 
-    } else if ( mb->msg_type() == constants::MB_HEARTBEAT_TO_CONTROLLER ) {
+    if ( lifeCycle_.machine_state() != LCS_ESTABLISHED )
+        return true;
+
+    if ( mb->msg_type() == constants::MB_HEARTBEAT_TO_CONTROLLER ) {
         ACE_OutputCDR cdr;
         ACE_InputCDR in(mb);
         LifeCycleData data;
@@ -392,9 +397,24 @@ DeviceFacade::handleIt( ACE_Message_Block * mb )
                 in.read_ulong( clsid );
                 for ( DeviceFacadeImpl::vector_type::iterator it = pImpl_->begin(); it != pImpl_->end(); ++it ) {
                     if ( boost::apply_visitor( handle_copy_visitor(cdr, in, clsid), *(*it) ) ) {
-                        dgram_handler_->send( cdr.begin()->rd_ptr(), cdr.length(), get_remote_addr() );
+                        if ( ! dgram_handler_->send( cdr.begin()->rd_ptr(), cdr.length(), get_remote_addr() ) )
+                            perror("class sent to controller: ");
                         break;
                     }
+                }
+            }
+        }
+    } else if ( mb->msg_type() == constants::MB_DATA_TO_CONTROLLER ) {
+        
+        LifeCycleData data;
+        if ( lifeCycle_.prepare_data( data, 0, 0 ) ) {
+
+            ACE_OutputCDR cdr( mb );
+            if ( acewrapper::lifecycle_frame_serializer::pack( cdr, data ) ) {
+                //char * wp2 = mb->wr_ptr();
+                size_t len = mb->length();
+                if ( ! dgram_handler_->send( mb->rd_ptr(), len, get_remote_addr() ) ) {
+                    perror("data send to controller: ");
                 }
             }
         }
@@ -499,6 +519,8 @@ DeviceFacade::handle_lifecycle_dgram( const ACE_INET_Addr& from
     if ( replyCmd != adportable::protocol::NOTHING ) {
         adportable::protocol::LifeCycleData reqData;
         if ( lifeCycle_.prepare_reply_data( replyCmd, reqData, 0 ) ) {
+            if ( replyCmd == CONN_SYN_ACK )
+                newState = adportable::protocol::LCS_ESTABLISHED;
             lifeCycle_.apply_command( replyCmd, newState );
             
             ACE_Message_Block * mb = acewrapper::lifecycle_frame_serializer::pack( reqData );

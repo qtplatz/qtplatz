@@ -46,7 +46,7 @@ DeviceProxy::get_handle() const
 int
 DeviceProxy::handle_input( ACE_HANDLE )
 {
-	const size_t size = 2000;
+    const size_t size = 1024 * sizeof(long) * 256; // maximum packet
 
 	ACE_Message_Block * mb = new ACE_Message_Block( size );
     ACE_Message_Block * pfrom = new ACE_Message_Block( sizeof( ACE_INET_Addr) );
@@ -228,7 +228,11 @@ DeviceProxy::handle_lifecycle_dgram( ACE_Message_Block * mb )
 		if ( adportable::protocol::LifeCycleHelper::command( data ) == adportable::protocol::DATA ) {
 			unsigned long clsid;
             input >> clsid;
-			handle_data( clsid, tao_input );
+            handle_data( clsid, tao_input );
+            if ( clsid == TOFConstants::ClassID_ProfileData ) {
+                mb->rd_ptr( adportable::protocol::LifeCycle::wr_offset() );  // seek to the metadata
+                pTask_->push_profile_data( mb->duplicate() );
+            }
 		}
         
 	}
@@ -259,6 +263,11 @@ DeviceProxy::handle_data( unsigned long clsid, TAO_InputCDR& cdr )
 
 		/// SignalObserver debug
 		pTask_->device_update_data();
+    } else if ( clsid == TOFConstants::ClassID_ProfileData ) {
+        size_t size = ( cdr.length() - adportable::protocol::LifeCycle::wr_offset() ) / 4;
+		std::wostringstream o;
+        o << L"TOF PROFILE DATA: len=" << size;
+        pTask_->dispatch_debug( o.str(), name() );
 
     } else {
 

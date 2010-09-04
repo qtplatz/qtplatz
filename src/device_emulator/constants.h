@@ -14,6 +14,7 @@ namespace device_emulator {
             , MB_SENDTO_CONTROLLER
             , MB_HEARTBEAT_TO_CONTROLLER
             , MB_CLASS_TO_CONTROLLER
+            , MB_DATA_TO_CONTROLLER
         };
 
 

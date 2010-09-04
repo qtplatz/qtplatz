@@ -85,6 +85,7 @@ module SignalObserver {
 
         // Instrument controller will add/remove sibling by changing method while running sequence
         boolean addSibling( in Observer observer );
+        Observer findObserver( in unsigned long objId, in boolean recursive );
 
         // uptime returns micro seconds since start moniring, 
         // this number never reset to zero while running

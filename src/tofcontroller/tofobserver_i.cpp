@@ -5,8 +5,11 @@
 
 #include "tofobserver_i.h"
 #include "toftask.h"
+#include <acewrapper/mutex.hpp>
 
 using namespace tofcontroller;
+
+//////////////////////////////////
 
 tofObserver_i::tofObserver_i( TOFTask& t ) : task_(t)
                                            , objId_(0)
@@ -76,6 +79,24 @@ tofObserver_i::getSiblings (void)
 	return vec._retn();
 }
 
+::SignalObserver::Observer *
+tofObserver_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
+{
+    for ( sibling_vector_type::iterator it = siblings_.begin(); it != siblings_.end(); ++it ) {
+        if ( (*it)->objId() == objId )
+            return SignalObserver::Observer::_duplicate( it->in() );
+    }
+
+    if ( recursive ) {
+        ::SignalObserver::Observer * pres = 0;
+        for ( sibling_vector_type::iterator it = siblings_.begin(); it != siblings_.end(); ++it ) {
+            if ( pres = (*it)->findObserver( objId, true ) )
+                return pres;
+        }
+    }
+    return 0;
+}
+
 ::CORBA::Boolean
 tofObserver_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 {
@@ -87,11 +108,53 @@ tofObserver_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 void
 tofObserver_i::uptime ( ::CORBA::ULongLong_out usec )
 {
+    ACE_UNUSED_ARG( usec );
 }
 
 ::CORBA::Boolean
 tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer)
 {
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+
+    if ( pos < 0 )
+        pos = fifo_.back();
+
+    if ( !fifo_.empty() && ( fifo_.front() <= pos && pos <= fifo_.back() ) ) {
+        int noffs = pos - fifo_.front();
+        cache_item& d = fifo_[ noffs ];
+        if ( d.pos_ != pos ) {
+            std::deque< cache_item >::iterator it = std::lower_bound( fifo_.begin(), fifo_.end(), pos );
+            if ( it != fifo_.end() )
+                d = *it;
+            else
+                return false;
+        }
+
+        TAO_InputCDR cdr( d.mb_->rd_ptr(), sizeof(unsigned long) * 32 );
+
+        TOFInstrument::AveragerData data;
+        CORBA::ULong clsid;
+        cdr >> clsid;
+        assert( clsid == TOFConstants::ClassID_ProfileData );
+        cdr >> data;
+
+        SignalObserver::DataReadBuffer_var res = new SignalObserver::DataReadBuffer;
+
+        res->pos = d.pos_;
+        res->events = data.wellKnownEvents;
+        res->method <<= data;
+        res->ndata = 1;
+        res->uptime = data.usec;
+        size_t len = d.mb_->length() / sizeof(long) - 32;
+        long * pdata = reinterpret_cast<long *>( d.mb_->rd_ptr() );
+        pdata += 32;
+        res->array.length( len );
+        for ( size_t i = 0; i < len; ++i )
+            res->array[i] = pdata[i];
+        dataReadBuffer = res._retn();
+        return true;
+    }
+
 	return false;
 }
 
@@ -99,5 +162,62 @@ tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_ou
 tofObserver_i::dataInterpreterClsid (void)
 {
 	return 0;
+}
+
+void
+tofObserver_i::push_profile_data( ACE_Message_Block * mb )
+{
+    TAO_InputCDR cdr( mb->rd_ptr(), sizeof(unsigned long) * 32 );
+    
+    TOFInstrument::AveragerData data;
+    CORBA::ULong clsid;
+    cdr >> clsid;
+    assert( clsid == TOFConstants::ClassID_ProfileData );
+
+    cdr >> data;
+
+    unsigned long prevEvents = 0;
+    do {
+        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        if ( ! fifo_.empty() )
+            prevEvents = fifo_.back().wellKnownEvents_;
+
+        fifo_.push_back( cache_item( data.npos, mb, data.wellKnownEvents ) );
+
+        if ( fifo_.size() > 64 )
+            fifo_.pop_front();
+    } while(0);
+
+    task_.observer_fire_on_update_data( data.npos );
+
+    if ( prevEvents != data.wellKnownEvents )
+      task_.observer_fire_on_event( data.wellKnownEvents, data.npos );
+
+    //void observer_fire_on_method_changed( long pos );
+}
+
+/////////////////////// cache item ////////////////////////////
+
+tofObserver_i::cache_item::~cache_item()
+{
+    ACE_Message_Block::release( mb_ );
+}
+
+tofObserver_i::cache_item::cache_item( long pos, ACE_Message_Block * mb
+                                      , unsigned long event ) : pos_(pos)
+                                                              , mb_(mb)
+                                                              , wellKnownEvents_(event)
+{
+}
+
+tofObserver_i::cache_item::cache_item( const cache_item& t ) : pos_(t.pos_), mb_(0), wellKnownEvents_(t.wellKnownEvents_)
+{
+   if ( t.mb_ )
+       mb_ = t.mb_->duplicate();
+}
+
+tofObserver_i::cache_item::operator long() const
+{
+    return pos_;
 }
 

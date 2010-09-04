@@ -71,12 +71,12 @@ src/libs/adinterface/*C.inl
 src/libs/adinterface/*S.cpp
 src/libs/adinterface/*S.h
 src/libs/adinterface/*S.inl
-src/controller/*C.cpp
-src/controller/*C.h
-src/controller/*C.inl
-src/controller/*S.cpp
-src/controller/*S.h
-src/controller/*S.inl
+src/tofcontroller/*C.cpp
+src/tofcontroller/*C.h
+src/tofcontroller/*C.inl
+src/tofcontroller/*S.cpp
+src/tofcontroller/*S.h
+src/tofcontroller/*S.inl
 
 # Binaries
 # --------

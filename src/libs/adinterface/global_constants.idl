@@ -11,6 +11,7 @@ module GlobalConstants {
     const unsigned long ClassID_EventLog        = 0x00010001;
     const unsigned long ClassID_InstEvent       = 0x10010002;
     const unsigned long ClassID_MS_BEGIN        = 0x10020000;
+    /* reagion in use by tofcontroller, reserved */
     const unsigned long ClassID_MS_END          = 0x1002ffff;
 
 };

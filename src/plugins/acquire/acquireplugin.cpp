@@ -54,6 +54,7 @@
 #include <adwidgets/traces.h>
 #include <adwidgets/trace.h>
 #include <adwidgets/colors.h>
+#include <boost/format.hpp>
 
 using namespace Acquire;
 using namespace Acquire::internal;
@@ -364,6 +365,46 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 {
    ACE_UNUSED_ARG( objId );
    ACE_UNUSED_ARG( pos );
+
+   SignalObserver::Observer_var tgt = observer_->findObserver( objId, true );
+   if ( CORBA::is_nil( tgt.in() ) )
+       return;
+
+   SignalObserver::DataReadBuffer_var rb;
+   if ( tgt->readData( pos, rb ) ) {
+
+       std::wostringstream o;
+       o << boost::wformat(L"Spectrum pos[%1%] EV:%2%") % rb->pos % rb->events;
+
+       adwidgets::ui::Dataplot * plot = pImpl_->spectrumPlot_;
+   
+       adwidgets::ui::Titles titles = plot->titles();
+       size_t n = titles.count();
+       adwidgets::ui::Title title = titles[0];
+       title.text( o.str() );
+
+		adwidgets::ui::Traces traces = plot->traces();
+		adwidgets::ui::Trace trace;
+		if ( traces.size() < 1 ) {
+			trace = traces.add();
+			adwidgets::ui::Colors colors = plot->colors();
+		} else {
+			trace = traces[0];
+		}
+
+		const size_t nsize = rb->array.length();
+		boost::scoped_array<double> pX( new double [ nsize ] );
+		boost::scoped_array<double> pY( new double [ nsize ] );
+		for ( int i = 0; i < nsize; ++i ) {
+			pX[i] = i;
+			pY[i] = rb->array[i];
+		}
+		trace.colorIndex(2);
+		trace.setXYDirect( nsize, pX.get(), pY.get() );
+		trace.visible( true );
+		traces.visible( true );
+
+   }
 }
 
 void
@@ -375,7 +416,9 @@ AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, uns
 	if ( pImpl_->timePlot_ ) {
 		adwidgets::ui::Dataplot * plot = pImpl_->timePlot_;
 	}
+
 	if ( pImpl_->spectrumPlot_ ) {
+#if 0
 		adwidgets::ui::Dataplot * plot = pImpl_->spectrumPlot_;
 		adwidgets::ui::Titles titles = plot->titles();
 		size_t n = titles.count();
@@ -404,6 +447,7 @@ AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, uns
 		trace.setXYDirect( nsize, pX.get(), pY.get() );
 		trace.visible( true );
 		traces.visible( true );
+#endif
 	}
 	// manager_->handle_message( msg, value );
 }

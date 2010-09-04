@@ -12,6 +12,7 @@
 #pragma warning (default : 4996 )
 
 #include <vector>
+#include <deque>
 
 namespace tofcontroller {
 
@@ -32,14 +33,33 @@ namespace tofcontroller {
 		virtual ::CORBA::Boolean isActive (void);
 		virtual ::SignalObserver::Observers * getSiblings (void);
 		virtual ::CORBA::Boolean addSibling ( ::SignalObserver::Observer_ptr observer);
+        virtual ::SignalObserver::Observer * findObserver( CORBA::ULong objId, CORBA::Boolean recursive );
 		virtual void uptime ( ::CORBA::ULongLong_out usec );
 		virtual ::CORBA::Boolean readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer);
 		virtual ::CORBA::WChar * dataInterpreterClsid (void);
+
+        // internal
+        void push_profile_data( ACE_Message_Block * mb );
+
 	private:
+
+        ACE_Recursive_Thread_Mutex mutex_;        
 		TOFTask & task_;
         unsigned long objId_;
 		SignalObserver::Description desc_;
-		std::vector< ::SignalObserver::Observer_var > siblings_;
+        typedef std::vector< ::SignalObserver::Observer_var > sibling_vector_type;
+        sibling_vector_type siblings_;
+
+        struct cache_item {
+            ~cache_item();
+            cache_item( long pos, ACE_Message_Block * mb, unsigned long event );
+            cache_item( const cache_item & );
+            operator long () const;
+            long pos_;
+            unsigned long wellKnownEvents_;
+            ACE_Message_Block * mb_;
+        };
+        std::deque< cache_item > fifo_;
 	};
 
 }

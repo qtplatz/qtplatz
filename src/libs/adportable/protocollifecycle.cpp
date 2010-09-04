@@ -566,3 +566,10 @@ LifeCycle::prepare_reply_data( LifeCycleCommand cmd, LifeCycleData& data, unsign
 	boost::apply_visitor( lifecycle_local_sequence_writer( local_sequence_post_increment() ), data );
 	return true;
 }
+
+// static
+size_t
+LifeCycle::wr_offset()
+{
+    return sizeof( LifeCycleFrame ) + sizeof( LifeCycle_Data );
+}

@@ -220,10 +220,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\global_constantsS.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\instrumentC.cpp"
 				>
 			</File>

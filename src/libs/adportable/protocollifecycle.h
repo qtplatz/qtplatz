@@ -121,6 +121,7 @@ namespace adportable {
 		 bool validate_sequence( const LifeCycleData& );
 		 bool prepare_reply_data( LifeCycleCommand, LifeCycleData&, unsigned short remote_sequence );
 		 bool prepare_data( LifeCycleData&, unsigned short flags = 0, unsigned long offset = 0 );
+         static size_t wr_offset();
 
 		 void force_close();
 		 bool apply_command( LifeCycleCommand, LifeCycleState& );

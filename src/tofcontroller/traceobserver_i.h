@@ -30,6 +30,7 @@ namespace tofcontroller {
 		virtual ::CORBA::Boolean isActive (void);
 		virtual ::SignalObserver::Observers * getSiblings (void);
 		virtual ::CORBA::Boolean addSibling ( ::SignalObserver::Observer_ptr observer);
+        virtual ::SignalObserver::Observer * findObserver( CORBA::ULong objId, CORBA::Boolean recursive );
 		virtual void uptime ( ::CORBA::ULongLong_out usec );
 		virtual ::CORBA::Boolean readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer);
 		virtual ::CORBA::WChar * dataInterpreterClsid (void);

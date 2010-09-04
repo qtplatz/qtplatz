@@ -134,6 +134,25 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 	return true;
 }
 
+::SignalObserver::Observer *
+observer_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
+{
+    for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
+        if ( it->cache_->objId() == objId )
+            return SignalObserver::Observer::_duplicate( it->cache_.in() );
+    }
+
+    if ( recursive ) {
+        ::SignalObserver::Observer * pres = 0;
+        for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
+            if ( pres = it->cache_->findObserver( objId, true ) )
+                return pres;
+        }
+    }
+    return 0;
+}
+
+
 void
 observer_i::populate_siblings()
 {
