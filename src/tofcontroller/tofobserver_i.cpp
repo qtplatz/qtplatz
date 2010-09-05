@@ -120,9 +120,11 @@ tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_ou
         pos = fifo_.back();
 
     if ( !fifo_.empty() && ( fifo_.front() <= pos && pos <= fifo_.back() ) ) {
-        int noffs = pos - fifo_.front();
+        int noffs = pos - fifo_.front().pos_;
+        if ( noffs < 0 || unsigned(noffs) >= fifo_.size() )
+            return false;
         cache_item& d = fifo_[ noffs ];
-        if ( d.pos_ != pos ) {
+        if ( d.pos_ != pos ) { // in case if some data lost
             std::deque< cache_item >::iterator it = std::lower_bound( fifo_.begin(), fifo_.end(), pos );
             if ( it != fifo_.end() )
                 d = *it;
@@ -138,16 +140,27 @@ tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_ou
         assert( clsid == TOFConstants::ClassID_ProfileData );
         cdr >> data;
 
+        SignalObserver::AveragerData avgr;
+        avgr.nbrSamples = data.nbrSamples;
+        avgr.sampInterval = data.sampInterval;
+        avgr.startDelay = data.startDelay;
+        avgr.wellKnownEvents = data.wellKnownEvents;
+        avgr.tstamp = data.usec;
+
         SignalObserver::DataReadBuffer_var res = new SignalObserver::DataReadBuffer;
 
         res->pos = d.pos_;
         res->events = data.wellKnownEvents;
-        res->method <<= data;
+        res->method <<= avgr;
         res->ndata = 1;
         res->uptime = data.usec;
-        size_t len = d.mb_->length() / sizeof(long) - 32;
+        size_t offs = d.mb_->rd_ptr() - d.mb_->base();
+        size_t len = ( ( d.mb_->length() - offs ) / sizeof(long) ) - 32;
         long * pdata = reinterpret_cast<long *>( d.mb_->rd_ptr() );
         pdata += 32;
+
+        assert( len == data.nbrSamples );
+
         res->array.length( len );
         for ( size_t i = 0; i < len; ++i )
             res->array[i] = pdata[i];
@@ -161,7 +174,7 @@ tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_ou
 ::CORBA::WChar *
 tofObserver_i::dataInterpreterClsid (void)
 {
-	return 0;
+    return CORBA::wstring_dup( L"tofcontroller::tofObserver_i" );
 }
 
 void
@@ -173,7 +186,6 @@ tofObserver_i::push_profile_data( ACE_Message_Block * mb )
     CORBA::ULong clsid;
     cdr >> clsid;
     assert( clsid == TOFConstants::ClassID_ProfileData );
-
     cdr >> data;
 
     unsigned long prevEvents = 0;

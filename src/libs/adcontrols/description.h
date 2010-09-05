@@ -21,7 +21,7 @@ namespace adcontrols {
        ~Description();
        Description();
        Description( const Description& );
-       Description( const std::wstring& text, const std::wstring& key );
+       Description( const std::wstring& key, const std::wstring& text );
        inline bool operator == ( const Description& t ) const;
        inline const std::wstring& text() const { return text_; }
        inline const std::wstring& key() const { return key_; }

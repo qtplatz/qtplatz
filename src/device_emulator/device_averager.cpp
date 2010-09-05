@@ -70,7 +70,7 @@ device_averager::handle_timeout( const ACE_Time_Value& tv, const void * )
         doit( device_state::command_stop );
 
     size_t hLen = 32;
-    size_t wformLen = 1024 * 10;
+    size_t wformLen = 1024 * 15;
     static size_t npos;
 
     ACE_Message_Block * mb = new ACE_Message_Block( adportable::protocol::LifeCycle::wr_offset() + ((hLen + wformLen) * sizeof(long)));
@@ -84,9 +84,9 @@ device_averager::handle_timeout( const ACE_Time_Value& tv, const void * )
 
     *pmeta++ = TOFConstants::ClassID_ProfileData;
     *pmeta++ = npos++;
-    *pmeta++ = tv.sec() >> 32;
-    *pmeta++ = tv.sec() & 0xffff;
-    *pmeta++ = tv.usec();
+    *pmeta++ = 0xffeeccdd; // tv.usec();
+    *pmeta++ = 0x12345678; // tv.sec() >> 32;
+    *pmeta++ = 0xabcdef00; // tv.sec() & 0xffff;
     *pmeta++ = wformLen;
     *pmeta++ = 12 * 1000000 / 500; // delay point 12us
     *pmeta++ = 500; // 500ps sampling interval
@@ -94,7 +94,7 @@ device_averager::handle_timeout( const ACE_Time_Value& tv, const void * )
     // simulate noise
     srand( int(tv.sec()) );
     for ( size_t i = 0; i < wformLen; ++i )
-        *pdata++ = double(rand()) * 100 / RAND_MAX;
+        *pdata++ = double(rand()) * 50 / RAND_MAX;
 
     // todo: overlay chemical background, and sample peak
 

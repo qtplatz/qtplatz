@@ -86,7 +86,7 @@ namespace adwidgets {
       double autoAnnotationThreshold() const;
       void autoAnnotationThreshold(double newValue);
 	  //void setXY(VARIANT& XArray, VARIANT& YArray);
-      void setXYDirect(long nPts, double * pX, double * pY);
+      void setXYDirect(long nPts, const double * pX, const double * pY);
       void setXYFloatDirect(long nPts, double * pX, float * pY);
       void setXYPointers(long nPts, double * pX, double * pY);
       void setXYFloatPointers(long nPts, double * pX, float * pY);

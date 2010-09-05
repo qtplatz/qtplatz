@@ -40,7 +40,7 @@ module SignalObserver {
     };
 
     struct DataReadBuffer {
-		unsigned long uptime; // time in usec
+		unsigned long long uptime; // time in usec
 		unsigned long pos;    // data address (sequencial number for first data in this frame)
         unsigned long ndata;  // number of data in array
         unsigned long events; // well known events
@@ -48,6 +48,14 @@ module SignalObserver {
         any method;           // data acquisition method, sample information etc., which can be nil
     };
     
+    struct AveragerData {
+        unsigned long long tstamp;
+        unsigned long nbrSamples;          
+        unsigned long startDelay;          
+        unsigned long sampInterval;        
+        unsigned long wellKnownEvents;     
+    };
+
     interface ObserverEvents {
         // OnUpdateData tells you 'new data' at data number 'pos' is now ready to read
         oneway void OnUpdateData( in long pos );

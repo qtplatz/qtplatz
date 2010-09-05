@@ -266,7 +266,7 @@ DeviceProxy::handle_data( unsigned long clsid, TAO_InputCDR& cdr )
     } else if ( clsid == TOFConstants::ClassID_ProfileData ) {
         size_t size = ( cdr.length() - adportable::protocol::LifeCycle::wr_offset() ) / 4;
 		std::wostringstream o;
-        o << L"TOF PROFILE DATA: len=" << size;
+        o << L"TOF PROFILE DATA: len=" << size - 32;
         pTask_->dispatch_debug( o.str(), name() );
 
     } else {

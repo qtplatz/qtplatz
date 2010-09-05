@@ -74,55 +74,55 @@ DataplotImpl::createControl()
 STDMETHODIMP
 DataplotImpl::OnMouseDown( double x, double y, short button )
 {
-    dataplot_.OnMouseDown( x, y, button );
+    dataplot_.emitOnMouseDown( x, y, button );
 	return S_OK;
 }
 
 STDMETHODIMP
 DataplotImpl::OnMouseUp( double x, double y, short button )
 {
-    dataplot_.OnMouseUp( x, y, button );
+    dataplot_.emitOnMouseUp( x, y, button );
 	return S_OK;
 }
 
 STDMETHODIMP
 DataplotImpl::OnMouseMove( double x, double y, short button )
 {
-    dataplot_.OnMouseMove( x, y, button );
+    dataplot_.emitOnMouseMove( x, y, button );
 	return S_OK;
 }
 
 STDMETHODIMP
 DataplotImpl::OnCharacter( long KeyCode )
 {
-    dataplot_.OnCharacter( KeyCode );
+    dataplot_.emitOnCharacter( KeyCode );
 	return S_OK;
 }
 
 STDMETHODIMP
 DataplotImpl::OnKeyDown( long KeyCode )
 {
-    dataplot_.OnKeyDown( KeyCode );
+    dataplot_.emitOnKeyDown( KeyCode );
 	return S_OK;
 }
 
 STDMETHODIMP
 DataplotImpl::OnSetFocus( long hWnd )
 {
-    dataplot_.OnSetFocus( hWnd );
+    dataplot_.emitOnSetFocus( hWnd );
 	return S_OK;
 }
 
 STDMETHODIMP
 DataplotImpl::OnKillFocus( long hWnd )
 {
-    dataplot_.OnKillFocus( hWnd );
+    dataplot_.emitOnKillFocus( hWnd );
 	return S_OK;
 }
 
 STDMETHODIMP
 DataplotImpl::OnMouseDblClk(double x, double y, short button )
 {
-    dataplot_.OnMouseDblClk( x, y, button );
+    dataplot_.emitOnMouseDblClk( x, y, button );
 	return S_OK;
 }

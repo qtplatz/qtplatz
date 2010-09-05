@@ -44,8 +44,8 @@ CommunityWelcomePageWidget::CommunityWelcomePageWidget(QWidget *parent) :
     ui(new Ui::CommunityWelcomePageWidget)
 {
     ui->setupUi(this);
-    ui->labsTitleLabel->setStyledText(tr("News From the Qt Labs"));
-    ui->sitesTitleLabel->setStyledText(tr("Qt Websites"));
+    ui->labsTitleLabel->setStyledText(tr("News From the qtPlatz github"));
+    ui->sitesTitleLabel->setStyledText(tr("qtPlatz Websites"));
 
     connect(ui->newsTreeWidget, SIGNAL(activated(QString)), SLOT(slotUrlClicked(QString)));
     connect(ui->sitesTreeWidget, SIGNAL(activated(QString)), SLOT(slotUrlClicked(QString)));
@@ -53,15 +53,12 @@ CommunityWelcomePageWidget::CommunityWelcomePageWidget(QWidget *parent) :
     connect(m_rssFetcher, SIGNAL(newsItemReady(QString, QString, QString)),
         ui->newsTreeWidget, SLOT(slotAddNewsItem(QString, QString, QString)));
     //: Add localized feed here only if one exists
-    m_rssFetcher->fetch(QUrl(tr("http://labs.trolltech.com/blogs/feed")));
+    //m_rssFetcher->fetch(QUrl(tr("http://labs.trolltech.com/blogs/feed")));
+    m_rssFetcher->fetch(QUrl(tr("feed://wiki.github.com/thondo/qtPlatz/wikis.atom")));
 
     QList<QPair<QString, QString> > sites;
-    sites << qMakePair(tr("Qt Home"), QString(QLatin1String("http://qt.nokia.com")));
-    sites << qMakePair(tr("Qt Labs"), QString(QLatin1String("http://labs.qt.nokia.com")));
-    sites << qMakePair(tr("Qt Git Hosting"), QString(QLatin1String("http://qt.gitorious.org")));
-    sites << qMakePair(tr("Qt Centre"), QString(QLatin1String("http://www.qtcentre.org")));
-    sites << qMakePair(tr("Qt Apps"), QString(QLatin1String("http://www.qt-apps.org")));
-    sites << qMakePair(tr("Qt for Symbian at Forum Nokia"),  QString(QLatin1String("http://discussion.forum.nokia.com/forum/forumdisplay.php?f=196")));
+    sites << qMakePair(tr("qtPlatz Home"), QString(QLatin1String("http://wiki.github.com/thondo/qtPlatz")));
+    sites << qMakePair(tr("qtPlatz Git Hosting"), QString(QLatin1String("http://github.com/thondo")));
 
     QListIterator<QPair<QString, QString> > it(sites);
     while (it.hasNext()) {

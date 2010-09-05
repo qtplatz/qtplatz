@@ -20,6 +20,7 @@
 #include <adcontroller/adcontroller.h>
 #include <adinterface/controlserverC.h>
 #include <adinterface/receiverC.h>
+#include <adinterface/signalobserverC.h>
 #include <acewrapper/constants.h>
 #include <utils/fancymainwindow.h>
 
@@ -54,7 +55,14 @@
 #include <adwidgets/traces.h>
 #include <adwidgets/trace.h>
 #include <adwidgets/colors.h>
+#include <adcontrols/massspectrum.h>
+#include <adcontrols/description.h>
+
 #include <boost/format.hpp>
+
+#if defined _DEBUG
+# include <adportable/massspectrometer.h>
+#endif
 
 using namespace Acquire;
 using namespace Acquire::internal;
@@ -157,6 +165,20 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
   Q_UNUSED(arguments);
   Q_UNUSED(error_message);
   Core::ICore * core = Core::ICore::instance();
+
+#if defined _DEBUG
+  const adportable::MassSpectrometer& ms = adportable::MassSpectrometer::get( L"InfiTOF" );
+  const adportable::MassSpectrometer::ScanLaw& scanLaw = ms.getScanLaw();
+  double tof[ 100 ];
+  double mass[ 100 ];
+  int n = 0;
+  for ( int i = 50; i < 500; i += 50 ) {
+      tof[n] = scanLaw.getTime( i );
+      mass[n] = scanLaw.getMass( tof[n] );
+      double d = mass[n] - i;
+      n++;
+  }
+#endif
 
   QList<int> context;
   if ( core ) {
@@ -261,16 +283,8 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
     Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
     if ( splitter3 ) {
-        if ( pImpl_->timePlot_ = new adwidgets::ui::ChromatogramWidget ) {
-			//adwidgets::ui::Axis axis = pImpl_->timePlot_->axisX();
-			//axis.text( L"Time(min)" );
-		}
-
-		if ( pImpl_->spectrumPlot_ = new adwidgets::ui::SpectrumWidget ) {
-			//adwidgets::ui::Axis axis = pImpl_->spectrumPlot_->axisX();
-			//axis.text( L"m/z" );
-			this->handle_message(0, 0);
-		}
+        pImpl_->timePlot_ = new adwidgets::ui::ChromatogramWidget;
+        pImpl_->spectrumPlot_ = new adwidgets::ui::SpectrumWidget;
 
 		splitter3->addWidget( pImpl_->timePlot_ );
 		splitter3->addWidget( pImpl_->spectrumPlot_ );
@@ -363,47 +377,45 @@ AcquirePlugin::actionRunStop()
 void
 AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 {
-   ACE_UNUSED_ARG( objId );
-   ACE_UNUSED_ARG( pos );
+    ACE_UNUSED_ARG( objId );
+    ACE_UNUSED_ARG( pos );
 
-   SignalObserver::Observer_var tgt = observer_->findObserver( objId, true );
-   if ( CORBA::is_nil( tgt.in() ) )
-       return;
+    SignalObserver::Observer_var tgt = observer_->findObserver( objId, true );
+    if ( CORBA::is_nil( tgt.in() ) )
+        return;
 
-   SignalObserver::DataReadBuffer_var rb;
-   if ( tgt->readData( pos, rb ) ) {
+    SignalObserver::DataReadBuffer_var rb;
+    if ( tgt->readData( pos, rb ) ) {
+        // tgt->dataInterpreterClsid(); // <-- todo
+ 
+        std::wostringstream o;
+        o << boost::wformat(L"Spectrum pos[%1%] EV:%2%") % rb->pos % rb->events;
 
-       std::wostringstream o;
-       o << boost::wformat(L"Spectrum pos[%1%] EV:%2%") % rb->pos % rb->events;
+        size_t delay = 0;
+        size_t sampInterval = 500;
+        SignalObserver::AveragerData *pavgr;
+        if ( rb->method >>= pavgr ) {
+            delay = pavgr->startDelay;
+            sampInterval = pavgr->sampInterval;
+            o << boost::wformat(L" delay:%1% nbrSamples: %2%") % pavgr->startDelay % pavgr->nbrSamples;
+        }
 
-       adwidgets::ui::Dataplot * plot = pImpl_->spectrumPlot_;
-   
-       adwidgets::ui::Titles titles = plot->titles();
-       size_t n = titles.count();
-       adwidgets::ui::Title title = titles[0];
-       title.text( o.str() );
+        manager_->handle_debug_print( 0, 0, qtwrapper::qstring::copy(o.str()) );
 
-		adwidgets::ui::Traces traces = plot->traces();
-		adwidgets::ui::Trace trace;
-		if ( traces.size() < 1 ) {
-			trace = traces.add();
-			adwidgets::ui::Colors colors = plot->colors();
-		} else {
-			trace = traces[0];
-		}
+        adcontrols::MassSpectrum ms;
+        ms.addDescription( adcontrols::Description( L"acquire.title", o.str() ) );
 
-		const size_t nsize = rb->array.length();
-		boost::scoped_array<double> pX( new double [ nsize ] );
+        const size_t nsize = rb->array.length();
+        ms.resize( nsize );
+        boost::scoped_array<double> pX( new double [ nsize ] );
 		boost::scoped_array<double> pY( new double [ nsize ] );
-		for ( int i = 0; i < nsize; ++i ) {
-			pX[i] = i;
+		for ( size_t i = 0; i < nsize; ++i ) {
+            pX[i] = ( delay + double( sampInterval * i ) ) / 1000000; // ps -> us
 			pY[i] = rb->array[i];
 		}
-		trace.colorIndex(2);
-		trace.setXYDirect( nsize, pX.get(), pY.get() );
-		trace.visible( true );
-		traces.visible( true );
-
+        ms.setMassArray( pX.get(), true ); // update acq range
+        ms.setIntensityArray( pY.get() );
+        pImpl_->spectrumPlot_->setData( ms );
    }
 }
 
@@ -412,43 +424,6 @@ AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, uns
 {
     static int count;
 	count;
-	// quick debug hack
-	if ( pImpl_->timePlot_ ) {
-		adwidgets::ui::Dataplot * plot = pImpl_->timePlot_;
-	}
-
-	if ( pImpl_->spectrumPlot_ ) {
-#if 0
-		adwidgets::ui::Dataplot * plot = pImpl_->spectrumPlot_;
-		adwidgets::ui::Titles titles = plot->titles();
-		size_t n = titles.count();
-		adwidgets::ui::Title title = titles[0];
-        title.text( L"Title..." );
-        titles.visible( true );
-		title.visible(true);
-
-		adwidgets::ui::Traces traces = plot->traces();
-		adwidgets::ui::Trace trace;
-		if ( traces.size() < 1 ) {
-			trace = traces.add();
-			adwidgets::ui::Colors colors = plot->colors();
-		} else {
-			trace = traces[0];
-		}
-
-		const size_t nsize = 100; //100 * 1024;
-		boost::scoped_array<double> pX( new double [ nsize ] );
-		boost::scoped_array<double> pY( new double [ nsize ] );
-		for ( int i = 0; i < nsize; ++i ) {
-			pX[i] = count + i;
-			pY[i] = count + i;
-		}
-		trace.colorIndex(2);
-		trace.setXYDirect( nsize, pX.get(), pY.get() );
-		trace.visible( true );
-		traces.visible( true );
-#endif
-	}
 	// manager_->handle_message( msg, value );
 }
 

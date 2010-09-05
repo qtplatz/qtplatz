@@ -433,9 +433,9 @@ Trace::setXY(VARIANT& XArray, VARIANT& YArray)
 */
 
 void
-Trace::setXYDirect(long nPts, double * pX, double * pY)
+Trace::setXYDirect(long nPts, const double * pX, const double * pY)
 {
-	pi_->SetXYDirect( nPts, pX, pY );
+	pi_->SetXYDirect( nPts, const_cast<double *>(pX), const_cast<double *>(pY) );
 }
 
 void

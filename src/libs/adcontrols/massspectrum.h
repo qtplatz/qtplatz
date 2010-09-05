@@ -32,35 +32,37 @@ namespace adcontrols {
    class Descriptions;
 
    class ADCONTROLSSHARED_EXPORT MassSpectrum {
-      public:
-	 ~MassSpectrum();
-	 MassSpectrum();
-	 MassSpectrum( const MassSpectrum& );
-	 MassSpectrum& operator = ( const MassSpectrum& );
+   public:
+       ~MassSpectrum();
+       MassSpectrum();
+       MassSpectrum( const MassSpectrum& );
+       MassSpectrum& operator = ( const MassSpectrum& );
 	 
-	 size_t size() const;
-	 void resize( size_t );
+       size_t size() const;
+       void resize( size_t );
+       const double * getMassArray() const;
+       const double * getIntensityArray() const;
+       const double * getTimeArray();
+       void setAcquisitionMassRange( double, double );
+       void setMassArray( const double *, bool setRange = false );
+       void setIntensityArray( const double * );
+       void setTimeArray( const double * );
+       const unsigned char * getColorArray() const;
+       void setColorArray( const unsigned char * );
 	 
-	 const double * getMassArray() const;
-	 const double * getIntensityArray() const;
-	 const double * getTimeArray();
-	 void setMassArray( const double * );
-	 void setIntensityArray( const double * );
-	 void setTimeArray( const double * );
-	 const unsigned char * getColorArray() const;
-	 void setColorArray( const unsigned char * );
+       template<class T> void set( const T& t );
+       template<class T> const T& get();
+       std::pair<double, double> range_x() const;
+       std::pair<double, double> range_y() const;
 	 
-	 template<class T> void set( const T& t );
-	 template<class T> const T& get();
-	 
-	 void addDescription( const Description& );
-	 const Descriptions& getDescriptions() const;
+       void addDescription( const Description& );
+       const Descriptions& getDescriptions() const;
 
-	 std::wstring saveXml() const;
-         void loadXml( const std::wstring& );
+       std::wstring saveXml() const;
+       void loadXml( const std::wstring& );
 	 
-      private:
-	 internal::MassSpectrumImpl * pImpl_;
+   private:
+       internal::MassSpectrumImpl * pImpl_;
    };
    
 }

@@ -411,7 +411,6 @@ DeviceFacade::handleIt( ACE_Message_Block * mb )
 
             ACE_OutputCDR cdr( mb );
             if ( acewrapper::lifecycle_frame_serializer::pack( cdr, data ) ) {
-                //char * wp2 = mb->wr_ptr();
                 size_t len = mb->length();
                 if ( ! dgram_handler_->send( mb->rd_ptr(), len, get_remote_addr() ) ) {
                     perror("data send to controller: ");

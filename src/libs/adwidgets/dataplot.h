@@ -111,28 +111,39 @@ namespace adwidgets {
       void moveCursorPosition(double x, double y);
       Legend legend() const;
 
+    protected slots:
+
+      virtual void OnMouseDown( double, double, short ) {}
+      virtual void OnMouseUp( double, double, short ) {}
+      virtual void OnMouseMove( double, double, short ) {}
+      virtual void OnCharacter( long ) {}
+      virtual void OnKeyDown( long ) {}
+      virtual void OnSetFocus( long ) {}
+      virtual void OnKillFocus( long ) {}
+      virtual void OnMouseDblClk(double, double, short ) {}
+
     signals:
-      void NotifyMouseDown( double x, double y, short button );
-      void NotifyMouseUp( double x, double y, short Button );
-      void NotifyMouseMove( double x, double y, short Button );
-      void NotifyCharacter( long KeyCode );
-      void NotifyKeyDown( long KeyCode );
-      void NotifySetFocus( long hWnd );
-      void NotifyKillFocus( long hWnd );
-      void NotifyMouseDblClk(double x, double y, short button );
+      void signalMouseDown( double x, double y, short button );
+      void signalMouseUp( double x, double y, short Button );
+      void signalMouseMove( double x, double y, short Button );
+      void signalCharacter( long KeyCode );
+      void signalKeyDown( long KeyCode );
+      void signalSetFocus( long hWnd );
+      void signalKillFocus( long hWnd );
+      void signalMouseDblClk(double x, double y, short button );
 	  
-      private
-	slots:
+    private:
+      // private	slots:
       friend internal::win32::DataplotImpl;
       
-      virtual void OnMouseDown(double x, double y, short button );
-      virtual void OnMouseUp( double x, double y, short Button );
-      virtual void OnMouseMove( double x, double y, short Button );
-      virtual void OnCharacter( long KeyCode );
-      virtual void OnKeyDown( long KeyCode );
-      virtual void OnSetFocus( long hWnd );
-      virtual void OnKillFocus( long hWnd );
-      virtual void OnMouseDblClk(double x, double y, short button );
+      void emitOnMouseDown(double x, double y, short button );
+      void emitOnMouseUp( double x, double y, short Button );
+      void emitOnMouseMove( double x, double y, short Button );
+      void emitOnCharacter( long KeyCode );
+      void emitOnKeyDown( long KeyCode );
+      void emitOnSetFocus( long hWnd );
+      void emitOnKillFocus( long hWnd );
+      void emitOnMouseDblClk(double x, double y, short button );
       
     private:
       internal::win32::DataplotImplPtr pImpl_;

@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="adportable"
 	ProjectGUID="{3314EBAC-8B48-319B-B093-3CBC77CA7FFF}"
+	RootNamespace="adportable"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -203,6 +204,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\massspectrometer.cpp"
+				>
+			</File>
+			<File
 				RelativePath="protocollifecycle.cpp"
 				>
 			</File>
@@ -339,6 +344,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\massspectrometer.h"
+				>
 			</File>
 			<File
 				RelativePath="protocollifecycle.h"

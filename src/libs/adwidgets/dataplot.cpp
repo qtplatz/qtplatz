@@ -38,11 +38,20 @@ Dataplot::~Dataplot()
 
 Dataplot::Dataplot(QWidget *parent) : QWidget(parent)
 {
-  // Only support win32 COM implementation so far.
-  using namespace internal;
-  pImpl_.reset( new win32::DataplotImpl(*this) );
-  if ( pImpl_ )
-    createControl();
+    // Only support win32 COM implementation so far.
+    using namespace internal;
+    pImpl_.reset( new win32::DataplotImpl(*this) );
+    if ( pImpl_ )
+        createControl();
+
+    connect( this, SIGNAL(signalMouseDown(double,double,short)),  this, SLOT(OnMouseDown(double, double, short)) );
+    connect( this, SIGNAL(signalMouseUp(double,double,short)),    this, SLOT(OnMouseUp(double, double, short)) );
+    connect( this, SIGNAL(signalMouseMove(double,double,short)),  this, SLOT(OnMouseMove(double, double, short)) );
+    connect( this, SIGNAL(signalCharacter(long)),                 this, SLOT(OnCharacter(long)) );
+    connect( this, SIGNAL(signalKeyDown(long)),                   this, SLOT(OnKeyDown(long)) );
+    connect( this, SIGNAL(signalSetFocus(long)),                  this, SLOT(OnSetFocus(long)) );
+    connect( this, SIGNAL(signalKillFocus(long)),                 this, SLOT(OnKillFocus(long)) );
+    connect( this, SIGNAL(signalMouseDblClk(double,double,short)),this, SLOT(OnMouseDblClk(double, double, short)) );
 }
 
 bool
@@ -489,49 +498,49 @@ Dataplot::legend() const
 
 //////////////////////////
 void
-Dataplot::OnMouseDown(double x, double y, short button )
+Dataplot::emitOnMouseDown(double x, double y, short button )
 {
-  emit NotifyMouseDown(x, y, button );
+  emit signalMouseDown(x, y, button );
 }
 
 void
-Dataplot::OnMouseUp( double x, double y, short button )
+Dataplot::emitOnMouseUp( double x, double y, short button )
 {
-  emit NotifyMouseUp(x, y, button );
+  emit signalMouseUp(x, y, button );
 }
 
 void
-Dataplot::OnMouseMove( double x, double y, short button )
+Dataplot::emitOnMouseMove( double x, double y, short button )
 {
-  emit NotifyMouseMove(x, y, button );
+  emit signalMouseMove(x, y, button );
 }
 
 void
-Dataplot::OnCharacter( long KeyCode )
+Dataplot::emitOnCharacter( long KeyCode )
 {
-  emit NotifyCharacter( KeyCode );
+  emit signalCharacter( KeyCode );
 }
 
 void
-Dataplot::OnKeyDown( long KeyCode )
+Dataplot::emitOnKeyDown( long KeyCode )
 {
-  emit NotifyKeyDown( KeyCode );
+  emit signalKeyDown( KeyCode );
 }
 
 void
-Dataplot::OnSetFocus( long hWnd )
+Dataplot::emitOnSetFocus( long hWnd )
 {
-  emit NotifySetFocus( hWnd );
+  emit signalSetFocus( hWnd );
 }
 
 void
-Dataplot::OnKillFocus( long hWnd )
+Dataplot::emitOnKillFocus( long hWnd )
 {
-  emit NotifyKillFocus( hWnd );
+  emit signalKillFocus( hWnd );
 }
 
 void
-Dataplot::OnMouseDblClk(double x, double y, short button )
+Dataplot::emitOnMouseDblClk(double x, double y, short button )
 {
-  emit NotifyMouseDblClk(x, y, button );
+  emit signalMouseDblClk(x, y, button );
 }

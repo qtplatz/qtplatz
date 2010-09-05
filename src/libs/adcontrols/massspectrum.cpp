@@ -13,6 +13,7 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#include <adportable/array_wrapper.hpp>
 
 #include <sstream>
 #include <vector>
@@ -35,8 +36,9 @@ namespace adcontrols {
 	    inline bool isCentroid() const { return algo_ != CentroidNone; }
 	    inline CentroidAlgorithm getCentroidAlgorithm() const { return algo_; }
 	    inline const std::pair<double, double>& getAcquisitionMassRange() const { return acqRange_; }
+        void setAcquisitionMassRange( double min, double max ) { acqRange_.first = min; acqRange_.second = max; }
 	    void setTimeArray( const double * );
-	    void setMassArray( const double * );
+	    void setMassArray( const double *, bool setrange );
 	    void setIntensityArray( const double * );
 	    void setColorArray( const unsigned char * );
 	    void resize( size_t );
@@ -140,9 +142,15 @@ MassSpectrum::getTimeArray()
 }
 
 void
-MassSpectrum::setMassArray( const double * values )
+MassSpectrum::setAcquisitionMassRange( double min, double max )
 {
-    pImpl_->setMassArray( values );
+    pImpl_->setAcquisitionMassRange( min, max );
+}
+
+void
+MassSpectrum::setMassArray( const double * values, bool setRange )
+{
+    pImpl_->setMassArray( values, setRange );
 }
 
 void
@@ -191,6 +199,22 @@ MassSpectrum::get()
 {
 }
 
+std::pair<double, double>
+MassSpectrum::range_x() const
+{
+    return pImpl_->getAcquisitionMassRange();
+}
+
+std::pair<double, double>
+MassSpectrum::range_y() const
+{
+    std::pair<double, double> yrange;
+    adportable::array_wrapper<const double> y( pImpl_->getIntensityArray(), size() );
+    yrange.first = *std::min_element( y.begin(), y.end() );
+    yrange.second = *std::max_element( y.begin(), y.end() );
+    return yrange;
+}
+
 std::wstring
 MassSpectrum::saveXml() const
 {
@@ -236,15 +260,17 @@ MassSpectrumImpl::MassSpectrumImpl( const MassSpectrumImpl& t ) : algo_(t.algo_)
 void
 MassSpectrumImpl::setTimeArray( const double * p )
 {
-  if ( tofArray_.size() != size() )
-	tofArray_.resize( size() );
-  memcpy(&tofArray_[0], p, sizeof(double) * size() );
+    if ( tofArray_.size() != size() )
+        tofArray_.resize( size() );
+    memcpy(&tofArray_[0], p, sizeof(double) * size() );
 }
 
 void
-MassSpectrumImpl::setMassArray( const double * p )
+MassSpectrumImpl::setMassArray( const double * p, bool setrange )
 {
-  memcpy(&massArray_[0], p, sizeof(double) * size() );
+    memcpy(&massArray_[0], p, sizeof(double) * size() );
+    if ( setrange )
+        setAcquisitionMassRange( massArray_[0], massArray_[ size() - 1 ] );
 }
 
 void

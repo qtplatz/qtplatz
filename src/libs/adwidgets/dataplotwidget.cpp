@@ -20,6 +20,11 @@ namespace adwidgets {
           ~DataplotWidgetImpl();
           DataplotWidgetImpl( DataplotWidget& );
 
+          const std::pair<double, double>& display_range_x() const { return maxX_; }
+          const std::pair<double, double>& display_range_y() const { return maxY_; }
+          void display_range_x( const std::pair<double, double>& t ) { maxX_ = t; }
+          void display_range_y( const std::pair<double, double>& t ) { maxY_ = t; }
+
           void OnMouseDown( double x, double y, short button );
           void OnMouseUp( double x, double y, short Button );
           void OnMouseMove( double x, double y, short Button );
@@ -62,12 +67,44 @@ DataplotWidget::~DataplotWidget()
 DataplotWidget::DataplotWidget(QWidget *parent) : Dataplot(parent)
 						, pImpl_( new internal::DataplotWidgetImpl(*this) )
 {
+    std::pair<double, double> range_x( axisX().zoomMinimum(), axisX().zoomMaximum() );
+    std::pair<double, double> range_y( axisY().zoomMinimum(), axisY().zoomMaximum() );
+    display_range_x( range_x );
+    display_range_y( range_y );
 }
 
 bool
 DataplotWidget::init()
 {
   return true;
+}
+
+const std::pair<double, double>&
+DataplotWidget::display_range_x() const
+{
+    return pImpl_->display_range_x();
+}
+
+const std::pair<double, double>&
+DataplotWidget::display_range_y() const
+{
+    return pImpl_->display_range_y();
+}
+
+void
+DataplotWidget::display_range_x( const std::pair<double, double>& t )
+{
+    pImpl_->display_range_x( t );
+    axisX().minimum( t.first );
+    axisX().maximum( t.second );
+}
+
+void
+DataplotWidget::display_range_y( const std::pair<double, double>& t )
+{
+    pImpl_->display_range_y( t );
+    axisY().minimum( t.first );
+    axisY().maximum( t.second );
 }
 
 void
@@ -91,25 +128,21 @@ DataplotWidget::OnMouseMove( double x, double y, short button )
 void
 DataplotWidget::OnCharacter( long KeyCode )
 {
-    emit NotifyCharacter( KeyCode );
 }
 
 void
 DataplotWidget::OnKeyDown( long KeyCode )
 {
-    emit NotifyKeyDown( KeyCode );
 }
 
 void
 DataplotWidget::OnSetFocus( long hWnd )
 {
-    emit NotifySetFocus( hWnd );
 }
 
 void
 DataplotWidget::OnKillFocus( long hWnd )
 {
-    emit NotifyKillFocus( hWnd );
 }
 
 void
@@ -196,9 +229,11 @@ internal::DataplotWidgetImpl::OnLButtonDown( double x, double y )
 {
     captureXY_ = std::pair<double, double>(x, y);
     widget_.cursorStyle( SAGRAPHICSLib::CS_Box );
-    Axis axis = widget_.axisX();
-    axis.enableMarker( true );
-    axis.markerPosition( x );
+
+    widget_.axisX().enableMarker( true );
+    widget_.axisX().markerPosition( x );
+    widget_.axisY().enableMarker( true );
+    widget_.axisY().markerPosition( y );
 
     // check only 'key is down' and ignore toggle (caps lock)
     unsigned short lshift = ::GetKeyState( VK_LSHIFT ) & 0x80;
@@ -231,6 +266,7 @@ internal::DataplotWidgetImpl::OnLButtonUp( double x, double y )
     widget_.cursorStyle( SAGRAPHICSLib::CS_Plus );
 
     widget_.axisX().enableMarker( false );
+    widget_.axisY().enableMarker( false );
 
     if ( bCapture_ ) {
         POINT pt;
@@ -259,7 +295,7 @@ internal::DataplotWidgetImpl::OnLButtonUp( double x, double y )
         if ( bAutoYZoom_ && zoomX ) {
             widget_.zoomXAutoscaleY( xrange.first, xrange.second );
         } else {
-            widget_.zoomXY( xrange.first, yrange.first, xrange.second, yrange.first );
+            widget_.zoomXY( xrange.first, yrange.first, xrange.second, yrange.second );
         }
     }
 }
@@ -284,6 +320,7 @@ internal::DataplotWidgetImpl::OnLButtonMove( double x, double y )
     Q_UNUSED(y);
     if ( bCapture_ ) {
         widget_.axisX().markerPosition( x );
+        widget_.axisY().markerPosition( y );
         POINT pt;
         ::GetCursorPos(&pt);
         int dx = std::abs( pt.x - capturePt_.x );

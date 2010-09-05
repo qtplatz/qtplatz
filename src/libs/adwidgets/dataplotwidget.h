@@ -15,7 +15,7 @@ namespace adwidgets {
   namespace ui {
 
     namespace internal {
-      class DataplotWidgetImpl;
+        class DataplotWidgetImpl;
     }
 
     class DataplotWidget : public Dataplot {
@@ -30,22 +30,7 @@ namespace adwidgets {
 
     private:
       bool init();
-      
-    public:
 
-      signals:
-      void NotifyLButtonDown(double x, double y, bool bShift, bool bContrl );
-      void NotifyMButtonDown(double x, double y, bool bShift, bool bContrl );
-      void NotifyRButtonDown(double x, double y, bool bShift, bool bContrl );
-      void NotifyLButtonUp(double x, double y, bool bShift, bool bContrl );
-      void NotifyMButtonUp(double x, double y, bool bShift, bool bContrl );
-      void NotifyRButtonUp(double x, double y, bool bShift, bool bContrl );
-      void NotifyLButtonMove(double x, double y);
-      void NotifyMButtonMove(double x, double y);
-      void NotifyRButtonMove(double x, double y);
-      
-      protected
-      slots:
       // Dataplot class
       virtual void OnMouseDown( double x, double y, short button );
       virtual void OnMouseUp( double x, double y, short Button );
@@ -55,8 +40,18 @@ namespace adwidgets {
       virtual void OnSetFocus( long hWnd );
       virtual void OnKillFocus( long hWnd );
       virtual void OnMouseDblClk( double x, double y, short button );
+
+    public:
+        const std::pair<double, double>& display_range_x() const;
+        const std::pair<double, double>& display_range_y() const;
+        void display_range_x( const std::pair<double, double>& );
+        void display_range_y( const std::pair<double, double>& );
+
+    signals:
+      
+    protected slots:
+
     private:
-        //boost::scoped_ptr<internal::DataplotWidgetImpl> pImpl_;
         internal::DataplotWidgetImpl * pImpl_;
     };
 

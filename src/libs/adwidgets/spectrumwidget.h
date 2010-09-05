@@ -10,6 +10,10 @@
 // #include <adwidgets/dataplotwidget.h>
 #include "tracewidget.h"
 
+namespace adcontrols {
+    class MassSpectrum;
+}
+
 namespace adwidgets {
     namespace ui {
 
@@ -18,6 +22,8 @@ namespace adwidgets {
         public:
 			~SpectrumWidget();
             explicit SpectrumWidget(QWidget *parent = 0);
+
+            void setData( const adcontrols::MassSpectrum& );
 
         signals:
 
