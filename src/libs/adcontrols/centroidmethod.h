@@ -6,12 +6,13 @@
 
 #pragma once
 
+#include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 
 namespace adcontrols {
 
-	class CentroidMethod {
+	class ADCONTROLSSHARED_EXPORT CentroidMethod {
 	public:
 
 		enum ePeakWidthMethod {

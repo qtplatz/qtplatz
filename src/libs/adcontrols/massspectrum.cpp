@@ -34,6 +34,7 @@ namespace adcontrols {
 	    inline const unsigned char * getColorArray() const { return colArray_.empty() ? 0 : &colArray_[0];}
 	    inline size_t size() const { return massArray_.size(); }
 	    inline bool isCentroid() const { return algo_ != CentroidNone; }
+        inline void setCentroid( CentroidAlgorithm algo ) { algo_ = algo; }
 	    inline CentroidAlgorithm getCentroidAlgorithm() const { return algo_; }
 	    inline const std::pair<double, double>& getAcquisitionMassRange() const { return acqRange_; }
         void setAcquisitionMassRange( double min, double max ) { acqRange_.first = min; acqRange_.second = max; }
@@ -120,8 +121,21 @@ MassSpectrum::size() const
 void
 MassSpectrum::resize( size_t n )
 {
-  pImpl_->resize( n );
+    pImpl_->resize( n );
 }
+
+bool
+MassSpectrum::isCentroid() const
+{
+    return pImpl_->isCentroid();
+}
+
+void
+MassSpectrum::setCentroid( CentroidAlgorithm algo )
+{
+    return pImpl_->setCentroid( algo );
+}
+
 
 const double *
 MassSpectrum::getMassArray() const
@@ -133,6 +147,20 @@ const double *
 MassSpectrum::getIntensityArray() const
 {
     return pImpl_->getIntensityArray();
+}
+
+void
+MassSpectrum::setMass( size_t idx, double mass )
+{
+    if ( idx < pImpl_->size() )
+        const_cast<double *>( pImpl_->getMassArray() )[idx] = mass;
+}
+
+void
+MassSpectrum::setIntensity( size_t idx, double intensity )
+{
+    if ( idx < pImpl_->size() )
+        const_cast<double *>( pImpl_->getIntensityArray() )[idx] = intensity;
 }
 
 const double *

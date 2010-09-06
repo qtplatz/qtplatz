@@ -246,6 +246,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mspeakinfoitem.cpp"
+				>
+			</File>
+			<File
 				RelativePath="tableofelements.cpp"
 				>
 			</File>
@@ -496,6 +500,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\mspeakinfoitem.h"
+				>
 			</File>
 			<File
 				RelativePath="tableofelements.h"

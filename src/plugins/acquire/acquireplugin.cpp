@@ -59,10 +59,8 @@
 #include <adcontrols/description.h>
 #include <adportable/massspectrometer.h>
 #include <boost/format.hpp>
-
-#if defined _DEBUG
-# include <adportable/massspectrometer.h>
-#endif
+#include <adcontrols/centroidprocess.h>
+#include <adcontrols/centroidmethod.h>
 
 using namespace Acquire;
 using namespace Acquire::internal;
@@ -419,7 +417,15 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 		}
         ms.setMassArray( pX.get(), true ); // update acq range
         ms.setIntensityArray( pY.get() );
+        // --
+        adcontrols::CentroidMethod method;
+        adcontrols::CentroidProcess detector;
+        detector( method, ms );
+
+        adcontrols::MassSpectrum centroid(ms);
+        detector.getCentroidSpectrum( centroid );
         pImpl_->spectrumPlot_->setData( ms );
+        // pImpl_->spectrumPlot_->setData( centroid );
    }
 }
 
