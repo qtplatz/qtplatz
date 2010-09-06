@@ -35,8 +35,9 @@ device_averager::device_averager( const device_averager& t ) : device_state( t )
 bool
 device_averager::instruct_handle_data( ACE_InputCDR& cdr, unsigned long cmdId )
 {
+    ACE_UNUSED_ARG( cdr );
 	if ( cmdId == tofcontroller::constants::SESSION_SENDTO_DEVICE ) {
-		unsigned long clsId;
+		// unsigned long clsId;
 		//cdr.read_ulong( clsId );
 	}
 	return false;
@@ -71,7 +72,7 @@ device_averager::handle_timeout( const ACE_Time_Value& tv, const void * )
         doit( device_state::command_stop );
     
     size_t hLen = 32;
-	size_t wformLen = 1024 * 15;
+    size_t nbrSamples = 1024 * 15;
     size_t sampInterval = 500;
     size_t nDelay = 12 * 1000000 / 500;
 
@@ -81,14 +82,12 @@ device_averager::handle_timeout( const ACE_Time_Value& tv, const void * )
     const TXTSpectrum * psp = 0;
 	if ( ! spectra.empty() ) {
 		const TXTSpectrum& sp = spectra[0];
-		wformLen = sp.iarray_.size();
-
-        wformLen = 15 * 1024;
-
+		nbrSamples = sp.iarray_.size();
         sampInterval = sp.sampInterval_;
         nDelay = sp.startDelay_;
 		psp = &sp;
 	}
+	size_t wformLen = (nbrSamples * 3 / 4) + 1; // 32bit -> 24bit 
 
 	ACE_Message_Block * mb = new ACE_Message_Block( adportable::protocol::LifeCycle::wr_offset() + ((hLen + wformLen) * sizeof(long)));
 	size_t size = mb->size();
@@ -96,7 +95,8 @@ device_averager::handle_timeout( const ACE_Time_Value& tv, const void * )
 	mb->wr_ptr( adportable::protocol::LifeCycle::wr_offset() );
 
 	long * pmeta = reinterpret_cast<long *>(mb->wr_ptr());
-	long * pdata = pmeta + hLen;
+	// long * pdata = pmeta + hLen;
+    unsigned char * pchar = reinterpret_cast<unsigned char *>( pmeta + hLen );
 	mb->wr_ptr( mb->size() );
 
 	*pmeta++ = TOFConstants::ClassID_ProfileData;
@@ -104,26 +104,24 @@ device_averager::handle_timeout( const ACE_Time_Value& tv, const void * )
 	*pmeta++ = 0xffeeccdd; // tv.usec();
 	*pmeta++ = 0x12345678; // tv.sec() >> 32;
 	*pmeta++ = 0xabcdef00; // tv.sec() & 0xffff;
-	*pmeta++ = wformLen;
+	*pmeta++ = nbrSamples;
 	*pmeta++ = nDelay;
 	*pmeta++ = sampInterval;
 
-	if ( psp ) {
-		double f = 1000.0 / psp->maxValue_;
-		for ( size_t i = 0; i < wformLen; ++i ) {
-            double d = psp->iarray_[i] + (psp->maxValue_ / 20.0);
-            if ( d < 0 )
-				d = 0;
-			pdata[i] = d * f;
-		}
-	}
 	// simulate noise
 	srand( int(tv.sec()) );
-	for ( size_t i = 0; i < wformLen; ++i )
-		pdata[i] += double(rand()) * 10 / RAND_MAX;
 
+	if ( psp ) {
+		double f = 1000.0 / psp->maxValue_;
+		for ( size_t i = 0; i < nbrSamples; ++i ) {
+            double d = psp->iarray_[i] + (psp->maxValue_ / 20.0);
+			long x = ( d * f ) + ( double(rand()) * 10 / RAND_MAX );
+			*pchar++ = x >> 16;
+			*pchar++ = x >> 8;
+            *pchar++ = x;
+		}
+	}
 	// todo: overlay chemical background, and sample peak
-
 	mb->msg_type( constants::MB_DATA_TO_CONTROLLER );
 	singleton::device_facade::instance()->putq( mb );
 

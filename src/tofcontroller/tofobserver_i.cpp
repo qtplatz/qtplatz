@@ -156,14 +156,18 @@ tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_ou
         res->uptime = data.usec;
         size_t offs = d.mb_->rd_ptr() - d.mb_->base();
         size_t len = ( ( d.mb_->length() - offs ) / sizeof(long) ) - 32;
-        long * pdata = reinterpret_cast<long *>( d.mb_->rd_ptr() );
-        pdata += 32;
+		unsigned char * pchar = reinterpret_cast<unsigned char *>( d.mb_->rd_ptr() );
+		pchar += 32 * sizeof(long);
 
-        assert( len == data.nbrSamples );
+		assert( len == ( data.nbrSamples * 3 / 4 + 1) );
 
-        res->array.length( len );
-        for ( size_t i = 0; i < len; ++i )
-            res->array[i] = pdata[i];
+		res->array.length( data.nbrSamples ); // 24bit signed --> 32bit signed
+		for ( size_t i = 0; i < data.nbrSamples; ++i ) {
+			res->array[i] = pchar[0] << 16 | pchar[1] << 8 | pchar[2];
+			if ( pchar[0] & 0x80 )
+				res->array[i] |= 0xff000000;
+			pchar += 3;
+		}
         dataReadBuffer = res._retn();
         return true;
     }
