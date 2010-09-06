@@ -30,6 +30,7 @@
 
 #include "../tofcontroller/tofcontrollerC.h"
 #include <adinterface/controlserverC.h>
+#include "txtspectrum.h"
 
 using namespace device_emulator;
 
@@ -554,4 +555,18 @@ DeviceFacade::handle_timeout( const ACE_Time_Value& tv, const void *)
     }
 
     return 0;
+}
+
+
+void
+DeviceFacade::register_test_spectrum( const TXTSpectrum& sp )
+{
+	spectra_.push_back( sp );
+}
+
+
+const std::vector< TXTSpectrum >& 
+DeviceFacade::test_spectra() const
+{
+	return spectra_;
 }

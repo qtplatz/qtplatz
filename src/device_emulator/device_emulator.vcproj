@@ -232,6 +232,10 @@
 				RelativePath="maindevicewindow.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\txtspectrum.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -382,6 +386,10 @@
 			</File>
 			<File
 				RelativePath=".\singleton_reaction_thread.h"
+				>
+			</File>
+			<File
+				RelativePath=".\txtspectrum.h"
 				>
 			</File>
 		</Filter>

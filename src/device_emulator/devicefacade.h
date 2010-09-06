@@ -11,6 +11,7 @@
 #include <adportable/protocollifecycle.h>
 #include <ace/Task.h>
 #include <ace/Barrier.h>
+#include <vector>
 
 template<class T, class X> class ACE_Singleton;
 class ACE_Recursive_Thread_Mutex;
@@ -29,6 +30,7 @@ namespace device_emulator {
 
 	class device_averager;
 	class device_hvcontroller;
+    class TXTSpectrum;
 
 	typedef boost::variant< device_averager, device_hvcontroller> device_facade_type;
     typedef boost::shared_ptr< device_facade_type > device_facade_ptr;
@@ -75,6 +77,9 @@ namespace device_emulator {
 		adportable::protocol::LifeCycle& lifeCycle() { return lifeCycle_; }
 		const ACE_INET_Addr& get_remote_addr() const;
 		void set_remote_addr( const ACE_INET_Addr& );
+		//  debug spectrum
+		void register_test_spectrum( const TXTSpectrum& );
+		const std::vector< TXTSpectrum >& test_spectra() const;
 
 	protected:
 		bool notify_dgram( ACE_Message_Block * );
@@ -85,7 +90,7 @@ namespace device_emulator {
         size_t n_threads_;
         boost::shared_ptr< acewrapper::DgramHandler > dgram_handler_;
         boost::shared_ptr< acewrapper::McastHandler > mcast_handler_;
-
+		std::vector< TXTSpectrum > spectra_;
 		DeviceFacadeImpl * pImpl_;
 		adportable::protocol::LifeCycle lifeCycle_;
         bool handleIt( ACE_Message_Block * );

@@ -14,6 +14,7 @@
 #include "./reactor_thread.h"
 #include <ace/Reactor.h>
 #include <adportable/protocollifecycle.h>
+#include "txtspectrum.h"
 
 using namespace device_emulator;
 
@@ -68,38 +69,63 @@ device_averager::handle_timeout( const ACE_Time_Value& tv, const void * )
 {
     if ( state() <= device_state::state_initializing )
         doit( device_state::command_stop );
-
+    
     size_t hLen = 32;
-    size_t wformLen = 1024 * 15;
-    static size_t npos;
+	size_t wformLen = 1024 * 15;
+    size_t sampInterval = 500;
+    size_t nDelay = 12 * 1000000 / 500;
 
-    ACE_Message_Block * mb = new ACE_Message_Block( adportable::protocol::LifeCycle::wr_offset() + ((hLen + wformLen) * sizeof(long)));
-    size_t size = mb->size();
-    memset( mb->wr_ptr(), 0, size );
-    mb->wr_ptr( adportable::protocol::LifeCycle::wr_offset() );
+	static size_t npos;
 
-    long * pmeta = reinterpret_cast<long *>(mb->wr_ptr());
-    long * pdata = pmeta + hLen;
-    mb->wr_ptr( mb->size() );
+	const std::vector< TXTSpectrum > spectra = device_emulator::singleton::device_facade::instance()->test_spectra();
+    const TXTSpectrum * psp = 0;
+	if ( ! spectra.empty() ) {
+		const TXTSpectrum& sp = spectra[0];
+		wformLen = sp.iarray_.size();
 
-    *pmeta++ = TOFConstants::ClassID_ProfileData;
-    *pmeta++ = npos++;
-    *pmeta++ = 0xffeeccdd; // tv.usec();
-    *pmeta++ = 0x12345678; // tv.sec() >> 32;
-    *pmeta++ = 0xabcdef00; // tv.sec() & 0xffff;
-    *pmeta++ = wformLen;
-    *pmeta++ = 12 * 1000000 / 500; // delay point 12us
-    *pmeta++ = 500; // 500ps sampling interval
+        wformLen = 15 * 1024;
 
-    // simulate noise
-    srand( int(tv.sec()) );
-    for ( size_t i = 0; i < wformLen; ++i )
-        *pdata++ = double(rand()) * 50 / RAND_MAX;
+        sampInterval = sp.sampInterval_;
+        nDelay = sp.startDelay_;
+		psp = &sp;
+	}
 
-    // todo: overlay chemical background, and sample peak
+	ACE_Message_Block * mb = new ACE_Message_Block( adportable::protocol::LifeCycle::wr_offset() + ((hLen + wformLen) * sizeof(long)));
+	size_t size = mb->size();
+	memset( mb->wr_ptr(), 0, size );
+	mb->wr_ptr( adportable::protocol::LifeCycle::wr_offset() );
 
-    mb->msg_type( constants::MB_DATA_TO_CONTROLLER );
-    singleton::device_facade::instance()->putq( mb );
+	long * pmeta = reinterpret_cast<long *>(mb->wr_ptr());
+	long * pdata = pmeta + hLen;
+	mb->wr_ptr( mb->size() );
 
-    return 0;
+	*pmeta++ = TOFConstants::ClassID_ProfileData;
+	*pmeta++ = npos++;
+	*pmeta++ = 0xffeeccdd; // tv.usec();
+	*pmeta++ = 0x12345678; // tv.sec() >> 32;
+	*pmeta++ = 0xabcdef00; // tv.sec() & 0xffff;
+	*pmeta++ = wformLen;
+	*pmeta++ = nDelay;
+	*pmeta++ = sampInterval;
+
+	if ( psp ) {
+		double f = 1000.0 / psp->maxValue_;
+		for ( size_t i = 0; i < wformLen; ++i ) {
+            double d = psp->iarray_[i] + (psp->maxValue_ / 20.0);
+            if ( d < 0 )
+				d = 0;
+			pdata[i] = d * f;
+		}
+	}
+	// simulate noise
+	srand( int(tv.sec()) );
+	for ( size_t i = 0; i < wformLen; ++i )
+		pdata[i] += double(rand()) * 10 / RAND_MAX;
+
+	// todo: overlay chemical background, and sample peak
+
+	mb->msg_type( constants::MB_DATA_TO_CONTROLLER );
+	singleton::device_facade::instance()->putq( mb );
+
+	return 0;
 }
