@@ -115,6 +115,8 @@ device_averager::handle_timeout( const ACE_Time_Value& tv, const void * )
 		double f = 1000.0 / psp->maxValue_;
 		for ( size_t i = 0; i < nbrSamples; ++i ) {
             double d = psp->iarray_[i] + (psp->maxValue_ / 20.0);
+			if ( d < (-psp->maxValue_ / 20) )
+				d = (-psp->maxValue_ / 20);
 			long x = ( d * f ) + ( double(rand()) * 10 / RAND_MAX );
 			*pchar++ = x >> 16;
 			*pchar++ = x >> 8;

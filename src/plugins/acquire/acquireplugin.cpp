@@ -57,7 +57,7 @@
 #include <adwidgets/colors.h>
 #include <adcontrols/massspectrum.h>
 #include <adcontrols/description.h>
-
+#include <adportable/massspectrometer.h>
 #include <boost/format.hpp>
 
 #if defined _DEBUG
@@ -173,9 +173,10 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
   double mass[ 100 ];
   int n = 0;
   for ( int i = 50; i < 500; i += 50 ) {
-      tof[n] = scanLaw.getTime( i );
-      mass[n] = scanLaw.getMass( tof[n] );
+      tof[n] = scanLaw.getTime( i, 0.688 );
+      mass[n] = scanLaw.getMass( tof[n], 0.688 );
       double d = mass[n] - i;
+	  assert( fabs(d) < 10e-10 );
       n++;
   }
 #endif
@@ -387,6 +388,8 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
     SignalObserver::DataReadBuffer_var rb;
     if ( tgt->readData( pos, rb ) ) {
         // tgt->dataInterpreterClsid(); // <-- todo
+		const adportable::MassSpectrometer& spectrometer = adportable::MassSpectrometer::get( L"InfiTOF" );
+		const adportable::MassSpectrometer::ScanLaw& scanLaw = spectrometer.getScanLaw();
  
         std::wostringstream o;
         o << boost::wformat(L"Spectrum pos[%1%] EV:%2%") % rb->pos % rb->events;
@@ -410,7 +413,8 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
         boost::scoped_array<double> pX( new double [ nsize ] );
 		boost::scoped_array<double> pY( new double [ nsize ] );
 		for ( size_t i = 0; i < nsize; ++i ) {
-            pX[i] = ( delay + double( sampInterval * i ) ) / 1000000; // ps -> us
+			double tof = ( delay + double( sampInterval * i ) ) / 1000000; // ps -> us
+			pX[i] = scanLaw.getMass( tof, 0.688 );
 			pY[i] = rb->array[i];
 		}
         ms.setMassArray( pX.get(), true ); // update acq range

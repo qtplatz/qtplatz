@@ -17,8 +17,8 @@ namespace adportable {
 
         class ScanLaw {
         public:
-            virtual double getMass( double secs ) const = 0;
-            virtual double getTime( double mass ) const = 0;
+            virtual double getMass( double secs, double flen = 1.0 ) const = 0;
+            virtual double getTime( double mass, double flen = 1.0 ) const = 0;
         };
 
         virtual const ScanLaw& getScanLaw() const = 0;

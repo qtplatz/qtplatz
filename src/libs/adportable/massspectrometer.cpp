@@ -35,8 +35,8 @@ namespace adportable {
         class TimeSquaredScanLaw : public MassSpectrometer::ScanLaw {
         public:
             TimeSquaredScanLaw( double timeCoefficient, double timeDelay, double acclVolt );
-            double getMass( double secs ) const;
-            double getTime( double mass ) const;
+            double getMass( double secs, double flen ) const;
+            double getTime( double mass, double flen ) const;
         private:
             double timeCoefficient_;
             double timeDelay_;
@@ -115,16 +115,16 @@ TimeSquaredScanLaw::TimeSquaredScanLaw( double timeCoefficient, double timeDelay
 }
 
 double
-TimeSquaredScanLaw::getMass( double secs ) const
+TimeSquaredScanLaw::getMass( double tof, double flen ) const
 {
-    double t = secs - timeDelay_;
+	double t = tof / flen - timeDelay_;
     double m = ( ( timeCoefficient_ * timeCoefficient_ ) * ( t * t ) ) * acclVoltage_;
     return m;
 }
 
 double
-TimeSquaredScanLaw::getTime( double mass ) const
+TimeSquaredScanLaw::getTime( double mass, double flen ) const
 {
     double v = std::sqrt( acclVoltage_ / mass ) * timeCoefficient_; // (m/s)
-    return ( 1.0 / v ) + timeDelay_;  // time(us) for 1m flight pass
+	return flen * ( 1.0 / v ) + timeDelay_;  // time(us) for 1m flight pass
 }
