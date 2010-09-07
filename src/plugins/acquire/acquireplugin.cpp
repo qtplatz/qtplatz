@@ -422,10 +422,10 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
         adcontrols::CentroidProcess detector;
         detector( method, ms );
 
-        adcontrols::MassSpectrum centroid(ms);
+        adcontrols::MassSpectrum centroid;
         detector.getCentroidSpectrum( centroid );
-        pImpl_->spectrumPlot_->setData( ms );
-        // pImpl_->spectrumPlot_->setData( centroid );
+        // pImpl_->spectrumPlot_->setData( ms );
+        pImpl_->spectrumPlot_->setData( centroid );
    }
 }
 

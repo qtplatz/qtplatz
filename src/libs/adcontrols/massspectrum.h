@@ -37,6 +37,7 @@ namespace adcontrols {
        MassSpectrum();
        MassSpectrum( const MassSpectrum& );
        MassSpectrum& operator = ( const MassSpectrum& );
+	   void clone( const MassSpectrum&, bool deep = false );
 	 
        size_t size() const;
        void resize( size_t );
@@ -56,8 +57,9 @@ namespace adcontrols {
 
        template<class T> void set( const T& t );
        template<class T> const T& get();
-       std::pair<double, double> range_x() const;
-       std::pair<double, double> range_y() const;
+       std::pair<double, double> getAcquisitionMassRange() const;
+	   double getMinIntensity() const;
+	   double getMaxIntensity() const;
 	 
        void addDescription( const Description& );
        const Descriptions& getDescriptions() const;

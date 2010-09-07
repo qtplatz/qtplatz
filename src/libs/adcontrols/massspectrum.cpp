@@ -27,6 +27,7 @@ namespace adcontrols {
 	    ~MassSpectrumImpl();
 	    MassSpectrumImpl();
 	    MassSpectrumImpl( const MassSpectrumImpl& );
+		void clone( const MassSpectrumImpl&, bool deep = false );
 	    
 	    inline const double * getTimeArray() const { return tofArray_.empty() ? 0 : &tofArray_[0]; }
 	    inline const double * getMassArray() const { return massArray_.empty() ? 0 : &massArray_[0]; }
@@ -105,11 +106,17 @@ MassSpectrum::MassSpectrum( const MassSpectrum& t ) : pImpl_(0)
 MassSpectrum&
 MassSpectrum::operator =( const MassSpectrum& t )
 {
-    if ( t.pImpl_ != pImpl_ ) { // can't assign
-      delete pImpl_;
-      pImpl_ = new MassSpectrumImpl( *t.pImpl_ );
-  }
-  return *this;
+	if ( t.pImpl_ != pImpl_ ) {
+		delete pImpl_;
+		pImpl_ = new MassSpectrumImpl( *t.pImpl_ );
+	}
+	return *this;
+}
+
+void
+MassSpectrum::clone( const MassSpectrum& t, bool deep )
+{
+	pImpl_->clone( *t.pImpl_, deep );
 }
 
 size_t
@@ -228,19 +235,23 @@ MassSpectrum::get()
 }
 
 std::pair<double, double>
-MassSpectrum::range_x() const
+MassSpectrum::getAcquisitionMassRange() const
 {
     return pImpl_->getAcquisitionMassRange();
 }
 
-std::pair<double, double>
-MassSpectrum::range_y() const
+double
+MassSpectrum::getMinIntensity() const
 {
-    std::pair<double, double> yrange;
-    adportable::array_wrapper<const double> y( pImpl_->getIntensityArray(), size() );
-    yrange.first = *std::min_element( y.begin(), y.end() );
-    yrange.second = *std::max_element( y.begin(), y.end() );
-    return yrange;
+	adportable::array_wrapper<const double> y( pImpl_->getIntensityArray(), size() );
+	return *std::min_element( y.begin(), y.end() );
+}
+
+double
+MassSpectrum::getMaxIntensity() const
+{
+	adportable::array_wrapper<const double> y( pImpl_->getIntensityArray(), size() );
+	return *std::max_element( y.begin(), y.end() );
 }
 
 std::wstring
@@ -271,26 +282,41 @@ MassSpectrumImpl::~MassSpectrumImpl()
 }
 
 MassSpectrumImpl::MassSpectrumImpl() : algo_(CentroidNone)
-				     , polarity_(PolarityIndeterminate)
+				                     , polarity_(PolarityIndeterminate)
 {
 }
 
-MassSpectrumImpl::MassSpectrumImpl( const MassSpectrumImpl& t ) : algo_(t.algo_)
-								, polarity_(t.polarity_)
-								, tofArray_(t.tofArray_)
-								, massArray_(t.massArray_)
-								, intsArray_(t.intsArray_)
-								, colArray_(t.colArray_)
-								, acqRange_(t.acqRange_)
+MassSpectrumImpl::MassSpectrumImpl( const MassSpectrumImpl& t )
 {
+	clone( t, true );
+}
+
+void
+MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
+{
+	algo_ = t.algo_;
+	polarity_ = t.polarity_;
+	acqRange_ = t.acqRange_;
+	descriptions_ = t.descriptions_;
+	if ( deep ) {
+		tofArray_ = t.tofArray_;
+		massArray_ = t.massArray_;
+		intsArray_ = t.intsArray_;
+		colArray_ = t.colArray_;
+	} else {
+		tofArray_.clear();
+		massArray_.clear();
+		intsArray_.clear();
+		colArray_.clear();
+	}
 }
 
 void
 MassSpectrumImpl::setTimeArray( const double * p )
 {
-    if ( tofArray_.size() != size() )
-        tofArray_.resize( size() );
-    memcpy(&tofArray_[0], p, sizeof(double) * size() );
+	if ( tofArray_.size() != size() )
+		tofArray_.resize( size() );
+	memcpy(&tofArray_[0], p, sizeof(double) * size() );
 }
 
 void
@@ -310,26 +336,30 @@ MassSpectrumImpl::setIntensityArray( const double * p )
 void
 MassSpectrumImpl::setColorArray( const unsigned char * p )
 {
-  if ( colArray_.size() != size() )
-	colArray_.resize( size() );
-  memcpy(&colArray_[0], p, sizeof( unsigned char ) * size() );
+	if ( colArray_.size() != size() )
+		colArray_.resize( size() );
+	memcpy(&colArray_[0], p, sizeof( unsigned char ) * size() );
 }
 
 void
 MassSpectrumImpl::resize( size_t size )
 {
-  massArray_.resize( size );
-  intsArray_.resize( size );
+	massArray_.resize( size );
+	intsArray_.resize( size );
+	if ( ! tofArray_.empty() )
+       tofArray_.resize( size );
+    if ( ! colArray_.empty() )
+       colArray_.resize( size );
 }
 
 void
 MassSpectrumImpl::addDescription( const Description& t )
 {
-  descriptions_.append( t );
+	descriptions_.append( t );
 }
 
 const Descriptions&
 MassSpectrumImpl::getDescriptions() const
 {
-  return descriptions_;
+	return descriptions_;
 }

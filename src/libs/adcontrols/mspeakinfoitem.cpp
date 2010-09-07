@@ -51,7 +51,7 @@ MSPeakInfoItem::height()
 }
 
 double
-MSPeakInfoItem::hh()
+MSPeakInfoItem::widthHH()
 {
     return hh_;
 }

@@ -36,8 +36,13 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms )
 
     adwidgets::ui::Title title = titles()[0];
     const adcontrols::Descriptions& desc_v = ms.getDescriptions();
-    if ( desc_v.size() )
-        title.text( desc_v[0].text() );
+	std::wstring ttext;
+	for ( size_t i = 0; i < desc_v.size(); ++i ) {
+        if ( i != 0 )
+			ttext += L" :: ";
+		ttext += desc_v[i].text();
+	}
+	title.text( ttext );
 
     adwidgets::ui::Trace trace;
     if ( traces().size() < 1 ) {
@@ -45,8 +50,8 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms )
     } else {
         trace = traces()[0];
     }
-    std::pair<double, double> xrange = ms.range_x();
-    std::pair<double, double> yrange = ms.range_y();
+	std::pair<double, double> xrange = ms.getAcquisitionMassRange();
+    std::pair<double, double> yrange( ms.getMinIntensity(), ms.getMaxIntensity() );
     std::pair<double, double> drange;
     drange.first = yrange.first < 0 ? yrange.first : 0;
     drange.second = yrange.second - drange.first < 250 ? 250 : yrange.second;
@@ -57,6 +62,7 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms )
     this->display_range_x( xrange );
 
     trace.colorIndex(2);
+	trace.traceStyle( ms.isCentroid() ? Trace::TS_Stick : Trace::TS_Connected );
     trace.setXYDirect( ms.size(), ms.getMassArray(), ms.getIntensityArray() );
     trace.visible( true );
     traces().visible( true );

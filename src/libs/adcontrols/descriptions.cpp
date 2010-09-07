@@ -21,30 +21,30 @@
 using namespace adcontrols;
 
 namespace adcontrols {
-   namespace internal {
+	namespace internal {
 
-      class DescriptionsImpl {
-	 public:
-         ~DescriptionsImpl() {}
-         DescriptionsImpl() {}
-         DescriptionsImpl( const DescriptionsImpl& t ) : vec_(t.vec_) {}
+		class DescriptionsImpl {
+		public:
+			~DescriptionsImpl() {}
+			DescriptionsImpl() {}
+			DescriptionsImpl( const DescriptionsImpl& t ) : vec_(t.vec_) {}
 
-	    typedef std::vector< Description > vector_type;
+			typedef std::vector< Description > vector_type;
 
-            void append( const Description& desc, bool uniq );
-	    inline size_t size() const { return vec_.size(); }
-	    inline const Description& operator []( int idx ) { return vec_[idx]; }
+			void append( const Description& desc, bool uniq );
+			inline size_t size() const { return vec_.size(); }
+			inline const Description& operator []( int idx ) { return vec_[idx]; }
 
-	 private:
-	    friend class boost::serialization::access;
-	    template<class Archiver> void serialize(Archiver& ar, const unsigned int version) {
-            if ( version >= 0 )
-                ar & BOOST_SERIALIZATION_NVP(vec_);
-	    }
-	    vector_type vec_;
-      };
-      //
-   }
+		private:
+			friend class boost::serialization::access;
+			template<class Archiver> void serialize(Archiver& ar, const unsigned int version) {
+				if ( version >= 0 )
+					ar & BOOST_SERIALIZATION_NVP(vec_);
+			}
+			vector_type vec_;
+		};
+		//
+	}
 }
 
 BOOST_CLASS_VERSION(adcontrols::Descriptions, 1)
@@ -63,6 +63,12 @@ Descriptions::Descriptions() : pImpl_(0)
 }
 
 Descriptions::Descriptions( const Descriptions& t )
+{
+	operator = ( t );
+}
+
+void
+Descriptions::operator = ( const Descriptions& t )
 {
    if ( pImpl_ != t.pImpl_ ) {
       delete pImpl_;

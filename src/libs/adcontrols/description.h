@@ -9,7 +9,7 @@
 #include "adcontrols_global.h"
 #include <string>
 #include <time.h>
-
+#include <boost/any.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -25,12 +25,15 @@ namespace adcontrols {
        inline bool operator == ( const Description& t ) const;
        inline const std::wstring& text() const { return text_; }
        inline const std::wstring& key() const { return key_; }
+	   inline const std::wstring& xml() const { return xml_; }
+	   inline void xml( const std::wstring& t ) { xml_ = t; }
 	 
    private:
        time_t tv_sec_;
        long tv_usec_;
        std::wstring key_;
        std::wstring text_;
+	   std::wstring xml_;
 	 
        friend class boost::serialization::access;
        template<class Archive>
@@ -41,6 +44,7 @@ namespace adcontrols {
                ar & BOOST_SERIALIZATION_NVP(tv_usec_);
                ar & BOOST_SERIALIZATION_NVP(key_);
                ar & BOOST_SERIALIZATION_NVP(text_);
+               ar & BOOST_SERIALIZATION_NVP(xml_);
            }
        }
 

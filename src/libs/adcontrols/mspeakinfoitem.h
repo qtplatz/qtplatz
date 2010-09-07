@@ -17,7 +17,7 @@ namespace adcontrols {
         double mass();
         double area();
         double height();
-        double hh();
+        double widthHH();
 
     private:
         double mass_;

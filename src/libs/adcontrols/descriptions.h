@@ -8,6 +8,7 @@
 
 #include "adcontrols_global.h"
 #include "description.h"
+#include <boost/smart_ptr.hpp>
 
 namespace boost {
   namespace serialization {
@@ -23,22 +24,24 @@ namespace adcontrols {
 
    class ADCONTROLSSHARED_EXPORT Descriptions {
    public:
-	 ~Descriptions();
-	 Descriptions();
-	 Descriptions( const Descriptions& );
-	 Descriptions( const std::wstring& text, const std::wstring& key );
+	   ~Descriptions();
+	   Descriptions();
+	   Descriptions( const Descriptions& );
+	   Descriptions( const std::wstring& text, const std::wstring& key );
 
-	 void append( const Description&, bool uniq = false );
-	 size_t size() const;
-	 const Description& operator [](int idx) const;
+	   void operator = ( const Descriptions& );
 
-     std::wstring saveXml() const;
-     void loadXml( const std::wstring& xml );
+	   void append( const Description&, bool uniq = false );
+	   size_t size() const;
+	   const Description& operator [](int idx) const;
+
+	   std::wstring saveXml() const;
+	   void loadXml( const std::wstring& xml );
 
    private:
-	 friend class boost::serialization::access;
-	 template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
-     internal::DescriptionsImpl * pImpl_;
+	   friend class boost::serialization::access;
+	   template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
+	   internal::DescriptionsImpl* pImpl_;
    };
 
 }

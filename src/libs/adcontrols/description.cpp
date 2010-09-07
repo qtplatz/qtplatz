@@ -23,9 +23,10 @@ Description::Description( const std::wstring& key, const std::wstring& text ) : 
 }
 
 Description::Description( const Description& t ) : tv_sec_(t.tv_sec_)
-						 , tv_usec_(t.tv_usec_)
-						 , key_(t.key_)
-						 , text_(t.text_)
+						                         , tv_usec_(t.tv_usec_)
+												 , key_(t.key_)
+												 , text_(t.text_)
+												 , xml_(t.xml_)
 {
 }
 
