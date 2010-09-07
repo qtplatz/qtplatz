@@ -21,9 +21,11 @@ namespace adwidgets {
           DataplotWidgetImpl( DataplotWidget& );
 
           const std::pair<double, double>& display_range_x() const { return maxX_; }
-          const std::pair<double, double>& display_range_y() const { return maxY_; }
+          const std::pair<double, double>& display_range_y1() const { return maxY1_;} 
+          const std::pair<double, double>& display_range_y2() const { return maxY2_; }
           void display_range_x( const std::pair<double, double>& t ) { maxX_ = t; }
-          void display_range_y( const std::pair<double, double>& t ) { maxY_ = t; }
+          void display_range_y1( const std::pair<double, double>& t ) { maxY1_ = t; }
+          void display_range_y2( const std::pair<double, double>& t ) { maxY2_ = t; }
 
           void OnMouseDown( double x, double y, short button );
           void OnMouseUp( double x, double y, short Button );
@@ -48,7 +50,8 @@ namespace adwidgets {
           bool bCapture_;
           POINT capturePt_;
           std::pair<double, double> maxX_; // low, high
-          std::pair<double, double> maxY_; // low, high
+          std::pair<double, double> maxY1_; // low, high
+          std::pair<double, double> maxY2_; // low, high
           std::pair<double, double> captureXY_;
           bool bAutoYZoom_;
           bool trackLeft_;
@@ -88,7 +91,7 @@ DataplotWidget::display_range_x() const
 const std::pair<double, double>&
 DataplotWidget::display_range_y() const
 {
-    return pImpl_->display_range_y();
+	return pImpl_->display_range_y1();
 }
 
 void
@@ -102,9 +105,17 @@ DataplotWidget::display_range_x( const std::pair<double, double>& t )
 void
 DataplotWidget::display_range_y( const std::pair<double, double>& t )
 {
-    pImpl_->display_range_y( t );
+    pImpl_->display_range_y1( t );
     axisY().minimum( t.first );
     axisY().maximum( t.second );
+}
+
+void
+DataplotWidget::display_range_y2( const std::pair<double, double>& t )
+{
+    pImpl_->display_range_y2( t );
+	axisY2().minimum( t.first );
+    axisY2().maximum( t.second );
 }
 
 void
@@ -128,21 +139,25 @@ DataplotWidget::OnMouseMove( double x, double y, short button )
 void
 DataplotWidget::OnCharacter( long KeyCode )
 {
+	(void)KeyCode;
 }
 
 void
 DataplotWidget::OnKeyDown( long KeyCode )
 {
+	(void)KeyCode;
 }
 
 void
 DataplotWidget::OnSetFocus( long hWnd )
 {
+	(void)hWnd;
 }
 
 void
 DataplotWidget::OnKillFocus( long hWnd )
 {
+	(void)hWnd;
 }
 
 void
@@ -161,7 +176,8 @@ internal::DataplotWidgetImpl::DataplotWidgetImpl( DataplotWidget& w) : widget_(w
                                                                      , captureXY_(0, 0)
                                                                      , bAutoYZoom_(false)
                                                                      , maxX_(0, 100)
-                                                                     , maxY_(0, 100)
+                                                                     , maxY1_(0, 100)
+																	 , maxY2_(0, 100)
 {
 }
   
@@ -262,7 +278,7 @@ internal::DataplotWidgetImpl::OnRButtonDown( double x, double y )
 void
 internal::DataplotWidgetImpl::OnLButtonUp( double x, double y )
 {
-    SAGRAPHICSLib::CursorStyle style = static_cast<SAGRAPHICSLib::CursorStyle>(widget_.cursorStyle());
+	//SAGRAPHICSLib::CursorStyle style = static_cast<SAGRAPHICSLib::CursorStyle>(widget_.cursorStyle());
     widget_.cursorStyle( SAGRAPHICSLib::CS_Plus );
 
     widget_.axisX().enableMarker( false );
@@ -276,7 +292,7 @@ internal::DataplotWidgetImpl::OnLButtonUp( double x, double y )
         bool zoomX(false);
         bool zoomY(false);
         std::pair<double, double> xrange( maxX_ );
-        std::pair<double, double> yrange( maxY_ );
+        std::pair<double, double> yrange( maxY1_ );
 
         if ( dx > 4 ) {
             zoomX = true;

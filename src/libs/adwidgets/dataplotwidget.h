@@ -46,6 +46,7 @@ namespace adwidgets {
         const std::pair<double, double>& display_range_y() const;
         void display_range_x( const std::pair<double, double>& );
         void display_range_y( const std::pair<double, double>& );
+        void display_range_y2( const std::pair<double, double>& );
 
     signals:
       

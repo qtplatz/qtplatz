@@ -31,37 +31,55 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) :  TraceWidget(parent)
 void
 SpectrumWidget::setData( const adcontrols::MassSpectrum& ms )
 {
-    if ( traces().size() == 0 )
-        traces().add();
+	setData( ms, 0 );
+}
 
-    adwidgets::ui::Title title = titles()[0];
-    const adcontrols::Descriptions& desc_v = ms.getDescriptions();
-	std::wstring ttext;
-	for ( size_t i = 0; i < desc_v.size(); ++i ) {
-        if ( i != 0 )
-			ttext += L" :: ";
-		ttext += desc_v[i].text();
+void
+SpectrumWidget::setData( const adcontrols::MassSpectrum& ms1, const adcontrols::MassSpectrum& ms2 )
+{
+	setData( ms1, 0, false );
+	setData( ms2, 1, true );
+}
+
+void
+SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis2 )
+{
+	while ( int(traces().size()) <= idx )
+		traces().add();
+
+	if ( idx < 3 ) {
+		adwidgets::ui::Title title = titles()[idx];
+		const adcontrols::Descriptions& desc_v = ms.getDescriptions();
+		std::wstring ttext;
+		for ( size_t i = 0; i < desc_v.size(); ++i ) {
+			if ( i != 0 )
+				ttext += L" :: ";
+			ttext += desc_v[i].text();
+		}
+		title.text( ttext );
 	}
-	title.text( ttext );
 
-    adwidgets::ui::Trace trace;
-    if ( traces().size() < 1 ) {
-        trace = traces().add();
-    } else {
-        trace = traces()[0];
-    }
+    adwidgets::ui::Trace trace = traces()[idx];
+
 	std::pair<double, double> xrange = ms.getAcquisitionMassRange();
     std::pair<double, double> yrange( ms.getMinIntensity(), ms.getMaxIntensity() );
     std::pair<double, double> drange;
     drange.first = yrange.first < 0 ? yrange.first : 0;
-    drange.second = yrange.second - drange.first < 250 ? 250 : yrange.second;
+	drange.second = yrange.second - drange.first < 50 ? 50 : yrange.second;
 
     traces().visible(false);
 
-    this->display_range_y( drange );
     this->display_range_x( xrange );
+	if ( yaxis2 ) {
+		display_range_y2( drange );
+		trace.YAxis( Trace::Y2 );
+		axisY2().visible( true );
+	} else {
+		display_range_y( drange );
+		trace.YAxis( Trace::Y1 );
+	}
 
-    trace.colorIndex(2);
+    trace.colorIndex(2 + idx);
 	trace.traceStyle( ms.isCentroid() ? Trace::TS_Stick : Trace::TS_Connected );
     trace.setXYDirect( ms.size(), ms.getMassArray(), ms.getIntensityArray() );
     trace.visible( true );

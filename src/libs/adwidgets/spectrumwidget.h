@@ -24,6 +24,10 @@ namespace adwidgets {
             explicit SpectrumWidget(QWidget *parent = 0);
 
             void setData( const adcontrols::MassSpectrum& );
+			void setData( const adcontrols::MassSpectrum&, const adcontrols::MassSpectrum& );
+
+		private:
+			void setData( const adcontrols::MassSpectrum&, int idx, bool yaxis1 = false );
 
         signals:
 

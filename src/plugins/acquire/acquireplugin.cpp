@@ -419,13 +419,14 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
         ms.setIntensityArray( pY.get() );
         // --
         adcontrols::CentroidMethod method;
-        adcontrols::CentroidProcess detector;
-        detector( method, ms );
+        method.centroidAreaIntensity( false ); // take hight
+		adcontrols::CentroidProcess peak_detector( method );
+		peak_detector( ms );
 
         adcontrols::MassSpectrum centroid;
-        detector.getCentroidSpectrum( centroid );
+		peak_detector.getCentroidSpectrum( centroid );
         // pImpl_->spectrumPlot_->setData( ms );
-        pImpl_->spectrumPlot_->setData( centroid );
+        pImpl_->spectrumPlot_->setData( ms, centroid );
    }
 }
 

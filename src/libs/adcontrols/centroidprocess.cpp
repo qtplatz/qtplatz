@@ -67,17 +67,29 @@ CentroidProcess::CentroidProcess(void) : pImpl_( new internal::CentroidProcessIm
 {
 }
 
+CentroidProcess::CentroidProcess( const CentroidMethod& method)
+  : pImpl_( new internal::CentroidProcessImpl() )
+{
+	pImpl_->setup( method );
+}
+
 bool
 CentroidProcess::operator()( const CentroidMethod& method, const MassSpectrum& profile )
 {
-    pImpl_->clear();
 	pImpl_->setup( method );
+	return (*this)( profile );
+}
+
+bool
+CentroidProcess::operator()( const MassSpectrum& profile )
+{
+    pImpl_->clear();
 	pImpl_->setup( profile );
 
 	CComPtr<SACONTROLSLib::ISAMSPeakDetect2> pi;
 	if ( pi.CoCreateInstance( SACONTROLSLib::CLSID_SAMSPeakDetect ) != S_OK )
 		return false;
-    setup( pi, method );
+	setup( pi, pImpl_->method() );
 
     CComPtr<SACONTROLSLib::ISAMassSpectrum5> pims;
     if ( pims.CoCreateInstance( SACONTROLSLib::CLSID_SAMassSpectrum ) != S_OK )

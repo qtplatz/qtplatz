@@ -41,6 +41,11 @@ namespace adwidgets {
 				TS_Point = 2
 			};
 
+			enum YAxis {
+                Y1 = 0,
+				Y2 = 1
+			};
+
 			Annotations annotations() const;
 			Fractions fractions() const;
 			Markers markers() const;

@@ -26,9 +26,11 @@ namespace adcontrols {
 
 	class ADCONTROLSSHARED_EXPORT CentroidProcess {
 	public:
-		CentroidProcess(void);
 		~CentroidProcess(void);
+		CentroidProcess(void);
+		CentroidProcess( const CentroidMethod& );
         bool operator()( const CentroidMethod&, const MassSpectrum& );
+		bool operator()( const MassSpectrum& );
         bool getCentroidSpectrum( MassSpectrum& );
 
 	private:
