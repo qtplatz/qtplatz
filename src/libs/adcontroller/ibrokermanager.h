@@ -4,8 +4,10 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
+#pragma warning(disable:4996)
 #include <ace/Singleton.h>
 #include <ace/Recursive_Thread_Mutex.h>
+#pragma warning(default:4996)
 #include <boost/smart_ptr.hpp>
 
 class ACE_Reactor;

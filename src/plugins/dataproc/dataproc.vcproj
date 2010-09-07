@@ -209,6 +209,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dataproc.cpp"
+				>
+			</File>
+			<File
 				RelativePath="dataprocessor.cpp"
 				>
 			</File>
@@ -569,6 +573,10 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
+				RelativePath=".\debug\qrc_dataproc.cpp"
+				>
+			</File>
+			<File
 				RelativePath="release\qrc_dataproc.cpp"
 				>
 				<FileConfiguration
@@ -579,10 +587,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\debug\qrc_dataproc.cpp"
-				>
 			</File>
 			<Filter
 				Name="Debug"

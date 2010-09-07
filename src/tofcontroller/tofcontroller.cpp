@@ -45,6 +45,11 @@ TofController::TofController()
 {
 }
 
+TofController::operator bool () const
+{ 
+	return true;
+}
+
 bool
 TofController::initialize( CORBA::ORB * orb )
 {

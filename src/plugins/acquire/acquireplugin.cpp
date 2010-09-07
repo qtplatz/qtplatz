@@ -16,11 +16,14 @@
 #include <adplugin/qreceiver_i.h>
 #include <adplugin/qobserverevents_i.h>
 #include <tao/Object.h>
-#include <orbsvcs/CosNamingC.h>
-#include <adcontroller/adcontroller.h>
-#include <adinterface/controlserverC.h>
-#include <adinterface/receiverC.h>
-#include <adinterface/signalobserverC.h>
+# pragma warning(disable:4996)
+# include <orbsvcs/CosNamingC.h>
+# include <adcontroller/adcontroller.h>
+# include <adinterface/controlserverC.h>
+# include <adinterface/receiverC.h>
+# include <adinterface/signalobserverC.h>
+# pragma warning(default:4996)
+
 #include <acewrapper/constants.h>
 #include <utils/fancymainwindow.h>
 

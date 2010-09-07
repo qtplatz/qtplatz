@@ -80,6 +80,8 @@ traceObserver_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 ::SignalObserver::Observer *
 traceObserver_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
 {
+    ACE_UNUSED_ARG( objId );
+	ACE_UNUSED_ARG( recursive );
     return 0;  // this class never has sibling
 }
 
@@ -87,11 +89,14 @@ traceObserver_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
 void
 traceObserver_i::uptime ( ::CORBA::ULongLong_out usec )
 {
+	ACE_UNUSED_ARG( usec );
 }
 
 ::CORBA::Boolean
 traceObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer)
 {
+	ACE_UNUSED_ARG( pos );
+	ACE_UNUSED_ARG( dataReadBuffer );
 	return false;
 }
 

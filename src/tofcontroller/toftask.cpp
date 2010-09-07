@@ -10,13 +10,10 @@
 #include "deviceproxy.h"
 
 #include <ace/Reactor.h>
-#include <ace/OS.h>
 #include <acewrapper/constants.h>
 #include <acewrapper/mutex.hpp>
 #include <acewrapper/timeval.h>
 #include <acewrapper/orbservant.h>
-#include <adinterface/receiverC.h>
-#include <orbsvcs/CosNamingC.h>
 #include <acewrapper/nameservice.h>
 #include <acewrapper/reactorthread.h>
 #include <acewrapper/ace_string.h>
@@ -32,7 +29,10 @@
 
 #pragma warning (disable : 4996 )
 # include "tofcontrollerC.h"
+# include <ace/OS.h>
 # include <adinterface/global_constantsC.h>
+# include <orbsvcs/CosNamingC.h>
+# include <adinterface/receiverC.h>
 #pragma warning (default : 4996 )
 
 using namespace tofcontroller;

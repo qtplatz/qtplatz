@@ -6,7 +6,9 @@
 
 #pragma once
 
+#pragma warning(disable:4996)
 #include "adinterface/receiverS.h"
+#pragma warning(default:4996)
 
 class receiver_i : public virtual POA_Receiver {
 public:

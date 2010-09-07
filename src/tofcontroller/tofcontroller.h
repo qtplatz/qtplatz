@@ -15,12 +15,11 @@ namespace CORBA {
 }
 
 class SHARED_EXPORT TofController : public adplugin::orbLoader {
-protected:
 public:
     virtual ~TofController();
     TofController();
 
-	operator bool () const { return true; }
+	operator bool () const;
     bool initialize( CORBA::ORB * orb = 0 );
 	bool activate();
     bool deactivate();

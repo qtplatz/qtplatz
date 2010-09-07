@@ -6,8 +6,11 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <acewrapper/constants.h>
-#include <orbsvcs/CosNamingC.h>
 #include <adplugin/orbmanager.h>
+
+#pragma warning(disable:4996)
+# include <orbsvcs/CosNamingC.h>
+#pragma warning(default:4996)
 
 using namespace servant;
 using namespace servant::internal;

@@ -135,7 +135,7 @@
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
 				AdditionalIncludeDirectories="&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;.\..\libs;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;.\debug;&quot;$(TAO_ROOT)\orbsvcs&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;"
-				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,TOFCONTROLLER_LIBRARY,QT_DLL,QT_NO_DEBUG,QT_THREAD_SUPPORT,NDEBUG"
+				PreprocessorDefinitions="QT_NO_DEBUG;NDEBUG;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;TOFCONTROLLER_LIBRARY;QT_DLL;QT_THREAD_SUPPORT;ADPLUGIN_LIBRARY"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
@@ -258,10 +258,26 @@
 			<File
 				RelativePath=".\tofcontrollerC.cpp"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WarningLevel="2"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\tofcontrollerS.cpp"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						WarningLevel="2"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\tofobserver_i.cpp"

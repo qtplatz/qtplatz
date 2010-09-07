@@ -6,12 +6,15 @@
 
 #pragma once
 
-#include <adinterface/ReceiverS.h>
-#include <adinterface/instrumentC.h>
 #include <adportable/configuration.h>
 #include <string>
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
+
+#pragma warning(disable:4996)
+#include <adinterface/ReceiverS.h>
+#include <adinterface/instrumentC.h>
+#pragma warning(default:4996)
 
 namespace ControlMethod {
     struct Methohd;

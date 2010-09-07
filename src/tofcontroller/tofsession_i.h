@@ -6,13 +6,11 @@
 
 #pragma once
 
-
-#include <ace/Singleton.h>
-
 #pragma warning (disable : 4996 )
 # include "tofcontrollerS.h"
 #pragma warning (default : 4996 )
 
+#include <ace/Singleton.h>
 #include <acewrapper/orbservant.h>
 #include <boost/smart_ptr.hpp>
 

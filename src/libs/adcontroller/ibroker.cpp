@@ -427,6 +427,7 @@ iBroker::dispatch( ACE_Message_Block * mblk, int disp )
 void
 iBroker::handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value )
 {
+    ACE_UNUSED_ARG( name );
     acewrapper::scoped_mutex_t<> lock( mutex_ );    
 
 	// TODO: apply barrier pattern and wait until all instrument has same state

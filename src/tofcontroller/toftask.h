@@ -6,18 +6,21 @@
 
 #pragma once
 
-#include <ace/Recursive_Thread_Mutex.h>
-#include <ace/Task.h>
-#include <ace/Barrier.h>
-#include <ace/Message_Queue.h>
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
-#include <adinterface/controlserverC.h>
-#include <adinterface/signalobserverC.h>
-#include <adinterface/brokerC.h>
 #include <vector>
 #include <map>
 #include <acewrapper/mcasthandler.h>
+
+#pragma warning(disable:4996)
+# include <ace/Recursive_Thread_Mutex.h>
+# include <ace/Task.h>
+# include <ace/Barrier.h>
+# include <ace/Message_Queue.h>
+# include <adinterface/controlserverC.h>
+# include <adinterface/signalobserverC.h>
+# include <adinterface/brokerC.h>
+#pragma warning(default:4996)
 
 class ACE_Recursive_Thread_Mutex;
 class ACE_Notification_Strategy;

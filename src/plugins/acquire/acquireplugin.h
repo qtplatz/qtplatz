@@ -8,10 +8,13 @@
 #define ACQUIREPLUGIN_H
 
 #include <extensionsystem/iplugin.h>
-#include <adinterface/controlserverC.h>
-#include <adinterface/signalobserverC.h>
 #include <boost/smart_ptr.hpp>
-//#include <adplugin/qreceiver_i.h>
+# pragma warning(disable:4996)
+#  pragma warning(disable:4805)
+#   include <adinterface/controlserverC.h>
+#  pragma warning(default:4805)
+# include <adinterface/signalobserverC.h>
+# pragma warning(default:4996)
 #include <vector>
 
 class QToolButton;

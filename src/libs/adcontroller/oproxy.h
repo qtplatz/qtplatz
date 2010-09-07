@@ -6,10 +6,12 @@
 
 #pragma once
 
+#pragma warning(disable:4996)
 #include <adinterface/signalobserverS.h>
 #include <adinterface/instrumentC.h>
+#pragma warning(default:4996)
+
 #include <adportable/configuration.h>
-//#include <string>
 #include <boost/noncopyable.hpp>
 
 namespace adcontroller {

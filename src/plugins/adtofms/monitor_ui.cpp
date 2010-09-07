@@ -6,12 +6,16 @@
 #include "monitor_ui.h"
 #include "ui_form.h"
 #include "treemodel.h"
+#pragma warning(disable:4996)
 #include "../../../tofcontroller/tofcontrollerC.h"
+#pragma warning(default:4996)
+#pragma warning(disable:4805)
+#include <adinterface/receiverS.h>
+#pragma warning(default:4805)
 #include "../../../tofcontroller/analyzerdevicedata.h"
 #include <adportable/configuration.h>
 #include <adplugin/orbmanager.h>
 #include <acewrapper/nameservice.h>
-#include <adinterface/receiverS.h>
 #include <QtCore/qplugin.h>
 #include <adinterface/eventlog_helper.h>
 #include <qtwrapper/qstring.h>

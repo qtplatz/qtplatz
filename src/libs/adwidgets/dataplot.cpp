@@ -5,13 +5,6 @@
 
 #include "dataplot.h"
 
-//#ifdef WIN32
-//#include <atlbase.h>
-//#include <atlcom.h>
-//#include <QAxWidget>  // Fix me, this module requre commercial license
-//#include <QUuid>
-//#endif
-
 #include <QResizeEvent>
 
 #include "axis.h"

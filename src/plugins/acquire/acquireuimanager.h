@@ -9,7 +9,11 @@
 
 #include <QObject>
 #include <QWidget>
+#pragma warning(disable:4996)
+#pragma warning(disable:4805)
 #include <adinterface/receiverC.h>
+#pragma warning(default:4805)
+#pragma warning(default:4996)
 
 namespace Utils { class FancyMainWindow; }
 class QDockWidget;

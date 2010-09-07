@@ -5,14 +5,17 @@
 
 #include "task.h"
 #include <acewrapper/mutex.hpp>
-#include <ace/Reactor.h>
-#include <ace/Thread_Manager.h>
-#include <adinterface/receiverC.h>
 #include <acewrapper/mutex.hpp>
 #include "message.h"
 #include <sstream>
 #include <acewrapper/timeval.h>
 #include <iostream>
+
+#pragma warning(disable:4996)
+# include <ace/Reactor.h>
+# include <ace/Thread_Manager.h>
+# include <adinterface/receiverC.h>
+#pragma warning(default:4996)
 
 using namespace adbroker;
 

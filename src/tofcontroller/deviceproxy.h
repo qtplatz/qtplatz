@@ -6,9 +6,11 @@
 
 #pragma once
 
+#pragma warning(disable:4996)
 #include <ace/INET_Addr.h>
 #include <ace/Event_Handler.h>
 #include <ace/Message_Queue.h>
+#pragma warning(default:4996)
 #include <adportable/protocollifecycle.h>
 
 class ACE_Message_Block;

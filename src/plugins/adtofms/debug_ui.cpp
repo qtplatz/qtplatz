@@ -1,14 +1,17 @@
 #include "debug_ui.h"
 #include "ui_debug_ui.h"
 
-#include "../../../tofcontroller/tofcontrollerC.h"
 #include <adportable/configuration.h>
 #include <adplugin/orbmanager.h>
 #include <acewrapper/nameservice.h>
-#include <adinterface/receiverS.h>
 #include <QtCore/qplugin.h>
 #include <adinterface/eventlog_helper.h>
 #include <qtwrapper/qstring.h>
+
+#pragma warning(disable:4996)
+# include "../../../tofcontroller/tofcontrollerC.h"
+# include <adinterface/receiverS.h>
+#pragma warning(default:4996)
 
 using namespace adtofms;
 

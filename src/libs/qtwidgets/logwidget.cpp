@@ -45,5 +45,7 @@ LogWidget::handle_eventLog( QString str )
 void
 LogWidget::handle_debug_print( unsigned long priority, unsigned long category, QString text )
 {
-   ui->plainTextEdit->appendPlainText( text );
+    Q_UNUSED( priority );
+    Q_UNUSED( category );
+	ui->plainTextEdit->appendPlainText( text );
 }

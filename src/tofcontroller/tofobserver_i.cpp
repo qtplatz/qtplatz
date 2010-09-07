@@ -156,6 +156,7 @@ tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_ou
         res->uptime = data.usec;
         size_t offs = d.mb_->rd_ptr() - d.mb_->base();
         size_t len = ( ( d.mb_->length() - offs ) / sizeof(long) ) - 32;
+		(void)len;
 		unsigned char * pchar = reinterpret_cast<unsigned char *>( d.mb_->rd_ptr() );
 		pchar += 32 * sizeof(long);
 

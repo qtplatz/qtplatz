@@ -9,11 +9,15 @@
 
 #include <QMainWindow>
 #include <utils/fancymainwindow.h>
-//#include <acewrapper/orbmanager.h> // for debug object reference
-#include <adinterface/receiverS.h>
-#include <adinterface/controlserverC.h>
-#include <adinterface/brokerC.h>
-#include <adinterface/loghandlerS.h>
+
+#pragma warning(disable:4996)
+#pragma warning(disable:4805)
+# include <adinterface/receiverS.h>
+#pragma warning(default:4805)
+# include <adinterface/controlserverC.h>
+# include <adinterface/brokerC.h>
+# include <adinterface/loghandlerS.h>
+#pragma warning(default:4996)
 
 namespace Ui {
     class MainWindow;

@@ -192,6 +192,8 @@ AcquireUIManager::setSimpleDockWidgetArrangement()
 void
 AcquireUIManager::handle_message( unsigned long msg, unsigned long value )
 {
+   ACE_UNUSED_ARG(msg);
+   ACE_UNUSED_ARG(value);
 	// this is debugging purpose only, 
 	// wired from AcquirePlugin::handle_message
 }

@@ -8,8 +8,11 @@
 #define ADBROKERMANAGER_H
 
 #include "adbroker_global.h"
-#include <ace/Singleton.h>
-#include <ace/Recursive_Thread_Mutex.h>
+
+#pragma warning(disable:4996)
+# include <ace/Singleton.h>
+# include <ace/Recursive_Thread_Mutex.h>
+#pragma warning(default:4996)
 
 class BrokerSession;
 class BrokerAccessToken;

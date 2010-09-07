@@ -18,6 +18,8 @@
 #     pragma comment(lib, "acewrapperd.lib")
 #     pragma comment(lib, "qtwrapperd.lib")
 #     pragma comment(lib, "xmlwrapperd.lib")
+#     pragma comment(lib, "adplugind.lib")
+#     pragma comment(lib, "QAxContainerd.lib")
 #else
 #     pragma comment(lib, "adcontroller.lib")
 #     pragma comment(lib, "adcontrols.lib")
@@ -26,6 +28,8 @@
 #     pragma comment(lib, "acewrapper.lib")
 #     pragma comment(lib, "qtwrapper.lib")
 #     pragma comment(lib, "xmlwrapper.lib")
+#     pragma comment(lib, "adplugin.lib")
+#     pragma comment(lib, "QAxContainer.lib")
 #endif
 
 #if defined ACE_WIN32

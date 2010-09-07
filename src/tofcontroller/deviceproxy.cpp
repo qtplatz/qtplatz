@@ -19,7 +19,9 @@
 #include <acewrapper/inputcdr.h>
 #include <acewrapper/ace_string.h>
 #include <adportable/string.h>
-#include "tofcontrollerC.h"
+#pragma warning(disable:4996)
+# include "tofcontrollerC.h"
+#pragma warning(default:4996)
 
 using namespace acewrapper;
 //using namespace adportable::protocol;
