@@ -34,6 +34,7 @@ static bool __own_thread = false;
 #     pragma comment(lib, "adinterface.lib")
 #     pragma comment(lib, "adportable.lib")
 #     pragma comment(lib, "acewrapper.lib")
+#     pragma comment(lib, "adplugin.lib")
 #  endif
 
 TofController::~TofController()

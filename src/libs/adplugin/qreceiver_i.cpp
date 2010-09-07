@@ -4,7 +4,6 @@
 //////////////////////////////////////////////
 
 #include "qreceiver_i.h"
-#include <adinterface/ReceiverS.h>
 #include <adinterface/eventlog_helper.h>
 #include <qtwrapper/qstring.h>
 

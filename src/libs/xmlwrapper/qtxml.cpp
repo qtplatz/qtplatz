@@ -24,6 +24,7 @@ XMLDocument::XMLDocument( const XMLDocument& t ) : impl_( t.impl_ )
 bool
 XMLDocument::save( const xmlstring& filename ) const
 {
+    (void)filename;
     return false;
 }
 

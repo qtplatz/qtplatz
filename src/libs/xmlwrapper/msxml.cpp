@@ -160,7 +160,9 @@ XMLNode::selectSingleNode(const std::wstring& query) const
         } catch ( _com_error& e ) {
 #if defined _DEBUG
             std::wstring msg = e.Description();
-#endif           
+#else
+            (void)e;
+#endif
         }
     }
    return XMLNode();

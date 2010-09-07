@@ -8,7 +8,9 @@
 
 #include "adplugin_global.h"
 #include <QObject>
-#include <adinterface/ReceiverS.h>
+# pragma warning(disable:4996)
+# include <adinterface/ReceiverS.h>
+# pragma warning(default:4996)
 
 class ACE_Message_Block;
 
