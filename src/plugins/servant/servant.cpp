@@ -39,7 +39,7 @@
 #     pragma comment(lib, "TAO_AnyTypeCode.lib")
 #     pragma comment(lib, "TAO_CosNaming.lib")
 #     pragma comment(lib, "adcontroller.lib")
-#     pragma comment(lib, "adbrokerd.lib")
+#     pragma comment(lib, "adbroker.lib")
 #     pragma comment(lib, "adinterface.lib")
 #  endif
 
