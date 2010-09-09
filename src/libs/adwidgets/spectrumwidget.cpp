@@ -57,6 +57,7 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 			ttext += desc_v[i].text();
 		}
 		title.text( ttext );
+        title.visible( true );
 	}
 
     adwidgets::ui::Trace trace = traces()[idx];
