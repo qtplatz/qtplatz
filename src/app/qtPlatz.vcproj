@@ -74,7 +74,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="ExtensionSystemd.lib Aggregationd.lib QtTestd4.lib QtGuid4.lib QtNetworkd4.lib QtCored4.lib"
-				OutputFile="..\..\bin\qtPlatz.exe"
+				OutputFile="..\..\bin\qtPlatzd.exe"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;"
 				GenerateDebugInformation="true"

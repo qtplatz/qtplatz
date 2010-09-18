@@ -11,7 +11,7 @@ DEPENDPATH += $$IDE_SOURCE_TREE/src/plugins
 
 # copy the plugin spec
 isEmpty(TARGET) {
-    error("adiplugin.pri: You must provide a TARGET")
+    error("adplugin.pri: You must provide a TARGET")
 }
 
 TARGET = $$qtLibraryTarget($$TARGET)

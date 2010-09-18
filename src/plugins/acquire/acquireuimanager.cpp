@@ -101,7 +101,7 @@ AcquireUIManager::init()
             // std::wstring loadpath = qtwrapper::wstring( dir.path() );
             // tab pages
             for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
-                
+
                 const std::wstring name = it->name();
                 // const std::wstring& component = it->attribute( L"component" );
                 
