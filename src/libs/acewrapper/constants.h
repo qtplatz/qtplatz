@@ -26,11 +26,6 @@ namespace acewrapper {
             };
         }
 
-		namespace tofcontroller {
-            struct manager {
-				static CosNaming::Name name();
-            };
-		}
     }
 
 }

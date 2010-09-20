@@ -87,9 +87,6 @@ oProxy::setConfiguration( const adportable::Configuration& c )
 {
 	config_ = c;
 	std::wstring id = c.attribute( L"id" );
-	//std::wstring ns = item.attribute( L"ns_name" ); // "tofcontroller.manager"
-	//std::wstring type = item.attribute( L"type" ); // "object_ref"
-	//std::wstring name = item.name();
 }
 
 unsigned long

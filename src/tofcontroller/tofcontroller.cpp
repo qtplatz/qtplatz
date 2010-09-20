@@ -75,7 +75,10 @@ TofController::activate()
 	pServant->activate();
 
 	CORBA::ORB_var orb = pServant->getServantManager()->orb();
-	CosNaming::Name name = acewrapper::constants::tofcontroller::manager::name();
+	CosNaming::Name name; // acewrapper::constants::tofcontroller::manager::name();
+    name.length(1);
+    name[0].id = CORBA::string_dup( "tofcontroller.session" );
+    name[0].kind = CORBA::string_dup( "" );
 	return acewrapper::NS::register_name_service( orb, name, *pServant );
 }
 

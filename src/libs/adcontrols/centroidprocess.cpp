@@ -97,9 +97,13 @@ CentroidProcess::operator()( const MassSpectrum& profile )
 
     internal::SAMassSpectrum::copy( pims, profile );
     do {
-        CComQIPtr< SACONTROLSLib::ISAMassSpectrum > piMS = pims;
-        if ( pi->Detect( piMS ) != S_OK )
+        try {
+            CComQIPtr< SACONTROLSLib::ISAMassSpectrum > piMS = pims;
+            if ( pi->Detect( piMS ) != S_OK )
+                return false;
+        } catch ( _com_error & ) {
             return false;
+        }
     } while(0);
 
 	CComPtr< SACONTROLSLib::ISAMSPeakInformation2 > piInfo = pi->PeakInformation2;

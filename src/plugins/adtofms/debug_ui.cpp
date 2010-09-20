@@ -62,7 +62,7 @@ debug_ui::OnInitialUpdate()
     // now, it is safe to access CORBA servant
     if ( adplugin::ORBManager::instance()->init( 0, 0 ) >= 0 ) {
 
-        CORBA::Object_var obj = adplugin::ORBManager::instance()->getObject( L"tofcontroller.manager" );
+        CORBA::Object_var obj = adplugin::ORBManager::instance()->getObject( L"tofcontroller.session" );
 
         if ( ! CORBA::is_nil( obj.in() )  ) {
 
