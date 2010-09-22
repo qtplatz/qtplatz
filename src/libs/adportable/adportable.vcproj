@@ -200,6 +200,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\fft.cpp"
+				>
+			</File>
+			<File
 				RelativePath="lifecycle_frame.cpp"
 				>
 			</File>
@@ -317,6 +321,10 @@
 			</File>
 			<File
 				RelativePath=".\ConvertUTF.h"
+				>
+			</File>
+			<File
+				RelativePath=".\fft.h"
 				>
 			</File>
 			<File

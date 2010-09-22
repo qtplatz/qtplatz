@@ -61,9 +61,13 @@
 #include <adcontrols/massspectrum.h>
 #include <adcontrols/description.h>
 #include <adportable/massspectrometer.h>
+#include <adportable/array_wrapper.hpp>
 #include <boost/format.hpp>
 #include <adcontrols/centroidprocess.h>
 #include <adcontrols/centroidmethod.h>
+#include <algorithm>
+#include <cmath>
+#include <adportable/fft.h>
 
 using namespace Acquire;
 using namespace Acquire::internal;
@@ -99,6 +103,8 @@ namespace Acquire {
 
   }
 }
+
+static bool reduceNoise( adcontrols::MassSpectrum& ms );
 
 // static
 QToolButton * 
@@ -426,10 +432,22 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 		adcontrols::CentroidProcess peak_detector( method );
 		peak_detector( ms );
 
+        adcontrols::MassSpectrum ms2 = ms;
+		do {
+			unsigned int tic = ::GetTickCount();
+			reduceNoise( ms2 );
+			int time = GetTickCount() - tic;
+			std::wostringstream o;
+			o << L"fft " << time << L"ms for" << ms2.size() << L"pts";
+			ms2.addDescription( adcontrols::Description( L"acquire.fft", o.str() ) );
+		} while(0);
+
         adcontrols::MassSpectrum centroid;
 		peak_detector.getCentroidSpectrum( centroid );
-        // pImpl_->spectrumPlot_->setData( ms );
-        pImpl_->spectrumPlot_->setData( ms, centroid );
+
+		// pImpl_->spectrumPlot_->setData( ms, centroid );
+		//pImpl_->spectrumPlot_->setData( ms, ms2 );
+		pImpl_->spectrumPlot_->setData( ms, ms2 );
    }
 }
 
@@ -438,6 +456,8 @@ AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, uns
 {
     static int count;
 	count;
+    (void)value;
+	(void)msg;
 	// manager_->handle_message( msg, value );
 }
 
@@ -463,3 +483,51 @@ AcquirePlugin::handle_debug_print( unsigned long priority, unsigned long categor
 }
 
 Q_EXPORT_PLUGIN( AcquirePlugin )
+
+
+///////////////////
+
+static bool
+reduceNoise( adcontrols::MassSpectrum& ms )
+{
+    size_t totalSize = ms.size();
+	size_t N = 32;
+    while ( N < ms.size() )
+		N *= 2;
+	N /= 2;
+    size_t NN = N * 2;
+
+	const double * pMass = ms.getMassArray();
+	adportable::array_wrapper<const double> pIntens( ms.getIntensityArray(), N );
+
+	std::vector< std::complex<double> > power;
+	std::vector< std::complex<double> > interferrogram;
+
+	for ( size_t i = 0; i < N; ++i )
+		power.push_back( std::complex<double>(pIntens[i]) );
+
+	adportable::fft::fourier_transform( interferrogram, power, false );
+	//adportable::fft::apodization( N/4, N/4, interferrogram );
+	adportable::fft::apodization( N/2 - N/16, N / 16, interferrogram );
+	adportable::fft::zero_filling( NN, interferrogram );
+	adportable::fft::fourier_transform( power, interferrogram, true );
+
+	std::vector<double> data;
+	std::vector<double> mass;
+	for ( int i = 0; i < int(power.size()); ++i ) {
+		data.push_back( power[i].real() + 30 ); //* (NN / N) + 20 );
+		//ms.setIntensity( i, power[i].real() * (NN / N) + 20 );
+		// ms.setIntensity( i, power[i].real() + 10 );
+	}
+
+	for ( size_t i = 0; i < N; ++i ) {
+		mass.push_back( pMass[i] );
+        mass.push_back( pMass[i] + ( pMass[i + 1] - pMass[i] ) / 2 );
+	}
+
+	ms.resize( data.size() );
+	ms.setIntensityArray( &data[0] );
+	ms.setMassArray( &mass[0] );
+
+	return true;
+}
