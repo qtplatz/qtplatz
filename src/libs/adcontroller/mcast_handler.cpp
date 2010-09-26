@@ -4,8 +4,11 @@
 //////////////////////////////////////////
 
 #include "mcast_handler.h"
-#include <ace/INET_Addr.h>
 #include <acewrapper/mcasthandler.h>
+#pragma warning(disable:4669)
+#include <ace/INET_Addr.h>
+#pragma warning(default:4669)
+
 
 mcast_handler::mcast_handler(void)
 {

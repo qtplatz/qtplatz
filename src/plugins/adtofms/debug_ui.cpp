@@ -123,6 +123,8 @@ TOF2::TOF2( debug_ui& t ) : parent_(t)
 void
 TOF2::message( Receiver::eINSTEVENT msg, CORBA::ULong value )
 {
+    (void)msg;
+    (void)value;
 }
 
 void
@@ -146,5 +148,8 @@ TOF2::shutdown()
 void
 TOF2::debug_print( CORBA::Long pri, CORBA::Long cat, const char * text )
 {
+    (void)pri;
+    (void)cat;
+    (void)text;
 }
 

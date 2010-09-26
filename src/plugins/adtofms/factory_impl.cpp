@@ -31,6 +31,7 @@ factory_impl::create_widget( const wchar_t * iid, QWidget * parent )
 QObject *
 factory_impl::create_object( const wchar_t *, QObject * parent )
 {
+    Q_UNUSED( parent );
 	return 0;
 }
 

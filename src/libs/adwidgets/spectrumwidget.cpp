@@ -38,7 +38,7 @@ void
 SpectrumWidget::setData( const adcontrols::MassSpectrum& ms1, const adcontrols::MassSpectrum& ms2 )
 {
 	setData( ms1, 0, false );
-	setData( ms2, 1, true );
+	setData( ms2, 1, ms1.isCentroid() != ms2.isCentroid() );
 }
 
 void

@@ -8,7 +8,9 @@
 
 #include "adplugin_global.h"
 #include <QObject>
+#pragma warning(disable:4996)
 #include <adinterface/signalobserverS.h>
+#pragma warning(default:4996)
 
 namespace adplugin {
 

@@ -29,6 +29,8 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
 QObject *
 factory::create_object( const wchar_t * iid, QObject * parent )
 {
+    Q_UNUSED( parent );
+    Q_UNUSED( iid );
     return 0;
 }
 

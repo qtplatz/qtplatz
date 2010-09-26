@@ -38,6 +38,7 @@ static long default_trace_color_table[] = {
 	// RGB( 240, 240, 240 ), // background
    RGB( 0, 0, 255), // blue
    RGB( 0, 255, 0), // green
+   RGB( 0, 0, 255), // blue
    RGB( 0, 255, 255 ), // cyan
    RGB( 255, 0, 0 ), // red
    RGB( 255, 0, 255 ), // magenta
