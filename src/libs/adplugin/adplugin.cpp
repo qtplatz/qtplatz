@@ -19,10 +19,10 @@
 #include "imonitor.h"
 #include "orbLoader.h"
 #include <boost/smart_ptr.hpp>
-#include <ace/Singleton.h>
 
 #pragma warning (disable: 4996)
-#include "ace/Init_ACE.h"
+#include <ace/Init_ACE.h>
+#include <ace/Singleton.h>
 #pragma warning (default: 4996)
 
 #if defined ACE_WIN32

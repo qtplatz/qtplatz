@@ -15,7 +15,7 @@ namespace adportable {
 namespace servant {
 
     namespace internal {
-        class MainWindow;
+        class ServantPluginImpl;
     }
 
 	class ServantPlugin : public ExtensionSystem::IPlugin {
@@ -35,8 +35,7 @@ namespace servant {
       
 
 	private:
-        internal::MainWindow * mainWindow_;
-		adportable::Configuration * pConfig_;
-	  
+        adportable::Configuration * pConfig_;
+        internal::ServantPluginImpl * pImpl_;
 	};
 }

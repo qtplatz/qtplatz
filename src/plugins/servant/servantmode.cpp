@@ -15,7 +15,7 @@ ServantMode::ServantMode(QObject *parent) :
     setName(tr("Servant"));
     setUniqueModeName( "Servant.Mode" );
     setIcon(QIcon(":/fancyactionbar/images/mode_Edit.png"));
-    setPriority( 97 );
+    setPriority( 999 );
 }
 
 ServantMode::~ServantMode()

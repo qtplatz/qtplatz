@@ -13,6 +13,7 @@
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
 #include <coreplugin/navigationwidget.h>
+#include <extensionsystem/pluginmanager.h>
 #include <QtCore/qplugin.h>
 #include <QtCore>
 #include <ace/Thread_Manager.h>
@@ -27,24 +28,26 @@
 #include <adplugin/orbmanager.h>
 
 #include <adportable/configuration.h>
+#include <adportable/string.h>
 
 #include <acewrapper/acewrapper.h>
 #include <acewrapper/orbservant.h>
 #include <acewrapper/constants.h>
 #include <qtwrapper/qstring.h>
-#include <adportable/string.h>
+#include "outputwindow.h"
+#include "servantpluginimpl.h"
 
 using namespace servant;
 using namespace servant::internal;
 
 ServantPlugin::~ServantPlugin()
 {
-	delete mainWindow_;
+    delete pImpl_;
 	delete pConfig_;
 }
 
-ServantPlugin::ServantPlugin() : mainWindow_(0)
-                               , pConfig_(0)
+ServantPlugin::ServantPlugin() : pConfig_( 0 )
+                               , pImpl_( 0 )
 {
 }
 
@@ -53,6 +56,10 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
     Q_UNUSED(arguments);
     Q_UNUSED(error_message);
+
+    OutputWindow * outputWindow = new OutputWindow;
+    addAutoReleasedObject( outputWindow );
+    pImpl_ = new internal::ServantPluginImpl( outputWindow );
 
     // ACE initialize
 	acewrapper::instance_manager::initialize();
@@ -108,56 +115,25 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         }
     } else
         return false;
-    
-    ServantMode * mode = new ServantMode(this);
-    if ( mode )
-        mode->setContext( context );
-    else
-        return false;
-
-	mainWindow_ = new MainWindow();
-
-	Core::MiniSplitter * splitter = new Core::MiniSplitter;
-	if ( splitter ) {
-		splitter->addWidget( mainWindow_ );
-		splitter->addWidget( new Core::OutputPanePlaceHolder( mode ) );
-        splitter->setStretchFactor( 0, 10 );
-        splitter->setStretchFactor( 1, 0 );
-		splitter->setOrientation( Qt::Vertical );
-	}
-
-	Core::MiniSplitter * splitter2 = new Core::MiniSplitter;
-	if ( splitter2 ) {
-		splitter2->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
-        splitter2->addWidget( splitter );
-        splitter2->setStretchFactor( 0, 0 );
-        splitter2->setStretchFactor( 1, 1 );
-	}
-
-    mode->setWidget( splitter2 );
-
-    addAutoReleasedObject(mode);
-
-    mainWindow_->initial_update();
 
     // 
     ControlServer::Session_var session;
     std::vector< Instrument::Session_var > i8t_sessions;
 
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
-		if ( it->name() == L"adbroker" ) {
-			mainWindow_->init_debug_adbroker();
-		} else if ( it->name() == L"adcontroller" ) {
-			mainWindow_->init_debug_adcontroller();
 
+		if ( it->name() == L"adbroker" ) {
+            pImpl_->init_debug_adbroker( this );
+		} else if ( it->name() == L"adcontroller" ) {
+            pImpl_->init_debug_adcontroller( this );
 			CORBA::Object_var obj;
-            //obj = acewrapper::singleton::orbManager::instance()->getObject( acewrapper::constants::adcontroller::manager::name() );
             obj = adplugin::ORBManager::instance()->getObject( acewrapper::constants::adcontroller::manager::name() );
 			ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
 			if ( ! CORBA::is_nil( manager ) ) {
                 session = manager->getSession( L"debug" );
 				session->setConfiguration( it->xml().c_str() );
 			}
+
 		} else if ( it->attribute( L"type" ) == L"orbLoader" ) {
 			std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
 			if ( ! ns_name.empty() ) {
@@ -188,6 +164,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 void
 ServantPlugin::extensionsInitialized()
 {
+    OutputWindow * outputWindow = ExtensionSystem::PluginManager::instance()->getObject< servant::OutputWindow >();
+    outputWindow->appendLog( L"extensionsInitialized()" );
 }
 
 void
@@ -212,5 +190,8 @@ ServantPlugin::shutdown()
 	acewrapper::singleton::orbServantManager::instance()->fini();
 	ACE_Thread_Manager::instance()->wait();
 }
+
+
+
 
 Q_EXPORT_PLUGIN( ServantPlugin )
