@@ -179,98 +179,98 @@ void
 monitor_ui::display_analyzer_device_data( const TOFInstrument::AnalyzerDeviceData& data )
 {
     TreeModel& model = *treeModel_;
-	std::string key = "AnalyzerDeviceData";
+    std::string key = "AnalyzerDeviceData";
     int row = model.findParent( key.c_str() );
     if ( row < 0 ) {
         row = model.rowCount();
         model.insertRow( row );
         QModelIndex parentIndex = model.index( row, 0 );
         model.setData( parentIndex, key.c_str() );
-	}
-	QModelIndex index = model.index( row, 0 );
-	int childRow = model.rowCount( index );
+    }
+    QModelIndex index = model.index( row, 0 );
+    int childRow = model.rowCount( index );
     if ( childRow )
         model.removeRows( 0, childRow, index );
     childRow = 0;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "positive_polarity" );
-	model.setData( model.index( childRow, 1, index ), data.positive_polarity );
-	model.setData( model.index( childRow, 2, index ), data.positive_polarity );
-
+    model.setData( model.index( childRow, 1, index ), data.positive_polarity );
+    model.setData( model.index( childRow, 2, index ), data.positive_polarity );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "model" );
-	model.setData( model.index( childRow, 1, index ), data.model.in() );
-
+    model.setData( model.index( childRow, 1, index ), data.model.in() );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "hardware_rev" );
-	model.setData( model.index( childRow, 1, index ), data.hardware_rev.in() );
-
+    model.setData( model.index( childRow, 1, index ), data.hardware_rev.in() );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "ionguide_bias_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.ionguide_bias_voltage );
-
+    model.setData( model.index( childRow, 1, index ), data.ionguide_bias_voltage );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "ionguide_rf_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.ionguide_rf_voltage );
-
+    model.setData( model.index( childRow, 1, index ), data.ionguide_rf_voltage );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "orifice1_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.orifice1_voltage );
-
+    model.setData( model.index( childRow, 1, index ), data.orifice1_voltage );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "orifice2_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.orifice2_voltage );
-
+    model.setData( model.index( childRow, 1, index ), data.orifice2_voltage );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "focus_lens_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.focus_lens_voltage );
-
+    model.setData( model.index( childRow, 1, index ), data.focus_lens_voltage );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "left_right_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.left_right_voltage );
-
+    model.setData( model.index( childRow, 1, index ), data.left_right_voltage );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "quad_lens_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.quad_lens_voltage );
-
+    model.setData( model.index( childRow, 1, index ), data.quad_lens_voltage );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "pusher_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.pusher_voltage );
-
+    model.setData( model.index( childRow, 1, index ), data.pusher_voltage );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "pulling_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.pulling_voltage );
-
+    model.setData( model.index( childRow, 1, index ), data.pulling_voltage );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "supress_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.supress_voltage );
-
+    model.setData( model.index( childRow, 1, index ), data.supress_voltage );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "pushbias_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.pushbias_voltage );
-
+    model.setData( model.index( childRow, 1, index ), data.pushbias_voltage );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "mcp_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.mcp_voltage );
-
+    model.setData( model.index( childRow, 1, index ), data.mcp_voltage );
+    
     ++childRow;
-	model.insertRow( childRow, index );
+    model.insertRow( childRow, index );
     model.setData( model.index( childRow, 0, index ), "accel_voltage" );
-	model.setData( model.index( childRow, 1, index ), data.accel_voltage );
+    model.setData( model.index( childRow, 1, index ), data.accel_voltage );
 }
 
 /////////////////////////////////

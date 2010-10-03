@@ -93,6 +93,9 @@ NS::register_name_service( CORBA::ORB_ptr orb, const CosNaming::Name& name, CORB
         return false;
 	}
 
+    if ( CORBA::is_nil( nc ) )
+        return false;
+
 	try {
 		nc->rebind( name, obj );
 	} catch ( const CosNaming::NamingContext::AlreadyBound& ex ) {

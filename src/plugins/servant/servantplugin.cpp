@@ -4,7 +4,6 @@
 //////////////////////////////////////////
 
 #include "servantplugin.h"
-#include "mainwindow.h"
 #include "servantmode.h"
 
 #include <coreplugin/icore.h>
@@ -36,6 +35,7 @@
 #include <qtwrapper/qstring.h>
 #include "outputwindow.h"
 #include "servantpluginimpl.h"
+#include <QMessageBox>
 
 using namespace servant;
 using namespace servant::internal;
@@ -87,7 +87,10 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		std::wstring component = it->component();
 		if ( name == L"adbroker" ) {
 			adBroker::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
-			adBroker::activate();
+            if ( ! adBroker::activate() ) {
+                QMessageBox mbx;
+                mbx.critical( 0, "servantplugin error", "can't activate adBroker servant" );
+            }
 			adBroker::run();
 		} else if ( name == L"adcontroller" ) {
 			adController::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
