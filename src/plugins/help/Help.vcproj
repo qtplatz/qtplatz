@@ -750,10 +750,6 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
-				RelativePath=".\debug\qrc_help.cpp"
-				>
-			</File>
-			<File
 				RelativePath="release\qrc_help.cpp"
 				>
 				<FileConfiguration
@@ -1464,7 +1460,7 @@
 			ParseFiles="false"
 			>
 			<File
-				RelativePath=".\images\mac\addtab.png"
+				RelativePath=".\images\win\addtab.png"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -1484,7 +1480,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\images\win\addtab.png"
+				RelativePath=".\images\mac\addtab.png"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

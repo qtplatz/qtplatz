@@ -2511,10 +2511,6 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
-				RelativePath=".\debug\qrc_core.cpp"
-				>
-			</File>
-			<File
 				RelativePath="release\qrc_core.cpp"
 				>
 				<FileConfiguration
@@ -2525,10 +2521,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\debug\qrc_fancyactionbar.cpp"
-				>
 			</File>
 			<File
 				RelativePath="release\qrc_fancyactionbar.cpp"

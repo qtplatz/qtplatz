@@ -162,7 +162,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="adcontrolsd.lib QtCore4.lib"
+				AdditionalDependencies="adcontrols.lib QtCore4.lib"
 				OutputFile="..\..\lib\qtPlatz\test_serializer.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
