@@ -269,6 +269,8 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
         toolBarLayout->addWidget( new QLabel( tr("BB") ) );
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addWidget( new QLabel( tr("CC") ) );
+
+        toolBarLayout->addWidget( new QLabel( tr("  ") ), 10 );
       }
       toolBarLayout->addWidget( new Utils::StyledSeparator );
       toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
