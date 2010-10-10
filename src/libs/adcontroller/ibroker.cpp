@@ -463,6 +463,7 @@ iBroker::handle_dispatch( const EventLog::LogMessage& msg )
 void
 iBroker::handle_dispatch( const ACE_Time_Value& tv )
 {
+/*
     using namespace adinterface::EventLog;
     std::string tstr = acewrapper::to_string( tv );
     std::wstring wstr( tstr.size() + 1, L'\0' );
@@ -475,6 +476,7 @@ iBroker::handle_dispatch( const ACE_Time_Value& tv )
     acewrapper::scoped_mutex_t<> lock( mutex_ );    
     for ( session_vector_type::iterator it = session_begin(); it != session_end(); ++it )
         it->receiver_->log( msg );
+*/
 }
 
 void

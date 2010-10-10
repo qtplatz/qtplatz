@@ -38,6 +38,8 @@ namespace adportable {
             TimeSquaredScanLaw( double timeCoefficient, double timeDelay, double acclVolt );
             double getMass( double secs, int type ) const;
             double getTime( double mass, int type ) const;
+            double getMass( double secs, double L ) const;
+            double getTime( double mass, double L ) const;
         private:
             double timeCoefficient_;
             double timeDelay_;
@@ -50,6 +52,8 @@ namespace adportable {
             MultiTurnScanLaw( double timeCoefficient, double timeDelay, double acclVolt );
             double getMass( double secs, int nTurn ) const;
             double getTime( double mass, int nTurn ) const;
+            double getMass( double secs, double fLength ) const;
+            double getTime( double mass, double fLength ) const;
         private:
             double timeCoefficient_;
             double timeDelay_;
@@ -151,6 +155,21 @@ TimeSquaredScanLaw::getTime( double mass, int ) const
 	return flen_ * ( 1.0 / v ) + timeDelay_;  // time(us) for 1m flight pass
 }
 
+double
+TimeSquaredScanLaw::getMass( double tof, double fLength ) const
+{
+	double t = tof / fLength - timeDelay_;
+    double m = ( ( timeCoefficient_ * timeCoefficient_ ) * ( t * t ) ) * acclVoltage_;
+    return m;
+}
+
+double
+TimeSquaredScanLaw::getTime( double mass, double fLength ) const
+{
+    double v = std::sqrt( acclVoltage_ / mass ) * timeCoefficient_; // (m/s)
+	return fLength * ( 1.0 / v ) + timeDelay_;  // time(us) for 1m flight pass
+}
+
 /////////////////////////////////////////////
 
 MultiTurnScanLaw::MultiTurnScanLaw( double timeCoefficient, double timeDelay, double acclVolt )
@@ -163,18 +182,33 @@ MultiTurnScanLaw::MultiTurnScanLaw( double timeCoefficient, double timeDelay, do
 double
 MultiTurnScanLaw::getMass( double tof, int nTurn ) const
 {
-    double L = 0.43764 + nTurn * 0.66273;
-    double t = tof / L - timeDelay_;
-    double m = ( ( timeCoefficient_ * timeCoefficient_ ) * ( t * t ) ) * acclVoltage_;
-    return m;
+    return getMass( tof, 0.43764 + nTurn * 0.66273 );
+    // double t = tof / L - timeDelay_;
+    // double m = ( ( timeCoefficient_ * timeCoefficient_ ) * ( t * t ) ) * acclVoltage_;
+    // return m;
 }
 
 double
 MultiTurnScanLaw::getTime( double mass, int nTurn ) const
 {
-    double L = 0.43764 + nTurn * 0.66273;
+    return getTime( mass, 0.43764 + nTurn * 0.66273 );
+    //double v = std::sqrt( acclVoltage_ / mass ) * timeCoefficient_; // (m/s)
+    //return L * ( 1.0 / v ) + timeDelay_;
+}
+
+double
+MultiTurnScanLaw::getMass( double tof, double fLength ) const
+{
+    double t = tof / fLength - timeDelay_;
+    double m = ( ( timeCoefficient_ * timeCoefficient_ ) * ( t * t ) ) * acclVoltage_;
+    return m;
+}
+
+double
+MultiTurnScanLaw::getTime( double mass, double fLength ) const
+{
     double v = std::sqrt( acclVoltage_ / mass ) * timeCoefficient_; // (m/s)
-    return L * ( 1.0 / v ) + timeDelay_;
+    return fLength * ( 1.0 / v ) + timeDelay_;
 }
 
 /////////////////////////////////////////////
