@@ -222,6 +222,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\chemicalformula.cpp"
+				>
+			</File>
+			<File
 				RelativePath="chromatogram.cpp"
 				>
 			</File>
@@ -317,6 +321,10 @@
 			</File>
 			<File
 				RelativePath=".\centroidprocess.h"
+				>
+			</File>
+			<File
+				RelativePath=".\chemicalformula.h"
 				>
 			</File>
 			<File

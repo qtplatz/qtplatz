@@ -22,8 +22,14 @@ module Broker {
         sequence< wstring > args;
     };
 
+    interface ChemicalFormula {
+        double getMonoIsotopicMass( in wstring formula );
+        double getChemicalMass( in wstring formula );
+    };
+
     interface Session {
         boolean connect( in string user, in string pass, in string token );
+        ChemicalFormula getChemicalFormula();
     };
 
     interface Logger {

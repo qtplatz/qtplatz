@@ -36,9 +36,10 @@ namespace adcontrols {
      public:
 		 TableOfElementsImpl();
 		 bool internalCreate();
+     public:
+		 CComPtr<ISAElementIO> pi_;
 	 private:
 		 static boost::mutex mutex_;
-		 CComPtr<ISAElementIO> pi_;
 		 std::vector< Element > elements_;
 		 std::vector< SuperAtom > superAtoms_;
 	 private:
@@ -90,6 +91,13 @@ TableOfElements::instance()
    }
    return instance_;
 }
+
+ChemicalFormula
+TableOfElements::getChemicalFormula()
+{
+    return ChemicalFormula( pImpl_->pi_ );
+}
+
 
 std::wstring
 TableOfElements::saveXml() const

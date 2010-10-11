@@ -228,6 +228,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\chemicalformula_i.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\logger_i.cpp"
 				>
 			</File>
@@ -386,6 +390,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\chemicalformula_i.h"
+				>
 			</File>
 			<File
 				RelativePath=".\logger_i.h"

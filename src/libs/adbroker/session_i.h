@@ -21,6 +21,9 @@ namespace adbroker {
         session_i(void);
         ~session_i(void);
         bool connect( const char * user, const char * pass, const char * token );
+        Broker::ChemicalFormula_ptr getChemicalFormula();
+    private:
+        Broker::ChemicalFormula_var chemicalFormula_;
     };
 
 }

@@ -4,6 +4,8 @@
 //////////////////////////////////////////
 
 #include "session_i.h"
+#include "manager_i.h"
+#include "chemicalformula_i.h"
 #include "brokermanager.h"
 
 using namespace adbroker;
@@ -27,4 +29,21 @@ session_i::connect( const char * user, const char * pass, const char * token )
     if ( pTask )
 		return true;
     return false;
+}
+
+Broker::ChemicalFormula_ptr
+session_i::getChemicalFormula()
+{
+    PortableServer::POA_var poa = ::adbroker::singleton::manager::instance()->getServantManager()->root_poa();
+
+    if ( CORBA::is_nil( poa ) )
+        return 0;
+
+    ChemicalFormula_i * p = new ChemicalFormula_i();
+    if ( p ) {
+        CORBA::Object_ptr obj = poa->servant_to_reference( p );
+        Broker::ChemicalFormula_var var = Broker::ChemicalFormula::_narrow( obj );
+        return var._retn();
+    }
+    return 0;
 }

@@ -8,6 +8,7 @@
 #define TABLEOFELEMENTS_H
 
 #include "adcontrols_global.h"
+#include "chemicalformula.h"
 #include <string>
 
 namespace adcontrols {
@@ -27,6 +28,8 @@ namespace adcontrols {
   public:
     static TableOfElements * instance();
     void dispose();
+
+    ChemicalFormula getChemicalFormula();
 
     std::wstring saveXml() const;
     void loadXml( const std::wstring& );
