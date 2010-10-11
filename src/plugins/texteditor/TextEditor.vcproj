@@ -286,6 +286,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\debug\qrc_texteditor.cpp"
+				>
+			</File>
+			<File
 				RelativePath="storagesettings.cpp"
 				>
 			</File>
@@ -1166,6 +1170,15 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
 					/>
 				</FileConfiguration>
 			</File>
