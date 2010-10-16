@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="Aggregationd.lib ExtensionSystemd.lib Utilsd.lib Cored.lib Findd.lib QtConcurrentd.lib Locatord.lib QtHelpd4.lib QtWebKitd4.lib QtTestd4.lib QtSqld4.lib QtXmld4.lib QtGuid4.lib QtNetworkd4.lib QtCored4.lib"
+				AdditionalDependencies="Aggregationd.lib ExtensionSystemd.lib Utilsd.lib Cored.lib QtConcurrentd.lib Locatord.lib QtHelpd4.lib QtWebKitd4.lib QtTestd4.lib QtSqld4.lib QtXmld4.lib QtGuid4.lib QtNetworkd4.lib QtCored4.lib"
 				OutputFile="..\..\..\lib\qtPlatz\plugins\Nokia\Helpd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;"
@@ -1460,7 +1460,7 @@
 			ParseFiles="false"
 			>
 			<File
-				RelativePath=".\images\win\addtab.png"
+				RelativePath=".\images\mac\addtab.png"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -1480,7 +1480,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\images\mac\addtab.png"
+				RelativePath=".\images\win\addtab.png"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

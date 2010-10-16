@@ -42,8 +42,11 @@ session_i::getChemicalFormula()
     ChemicalFormula_i * p = new ChemicalFormula_i();
     if ( p ) {
         CORBA::Object_ptr obj = poa->servant_to_reference( p );
-        Broker::ChemicalFormula_var var = Broker::ChemicalFormula::_narrow( obj );
-        return var._retn();
+        try {
+            Broker::ChemicalFormula_var var = Broker::ChemicalFormula::_narrow( obj );
+            return var._retn();
+        } catch ( CORBA::Exception& ) {
+        }
     }
     return 0;
 }

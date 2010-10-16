@@ -73,6 +73,7 @@ ServantPluginImpl::init_debug_adbroker( ServantPlugin * )
 			logger->register_handler( logHandler_._this() );
 
 			Broker::LogMessage msg;
+            msg.tv_sec = msg.tv_usec = 0;
 			msg.text = L"init_abroker initialized";
 			logger->log( msg );
 		}

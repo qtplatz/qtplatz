@@ -342,7 +342,8 @@ AcquirePlugin::actionConnect()
         
         CORBA::Object_var obj = adplugin::ORBManager::instance()->getObject( name );
         if ( ! CORBA::is_nil( obj ) ) {
-            ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
+            ControlServer::Manager_var manager;
+            try { manager = ControlServer::Manager::_narrow( obj ); } catch ( CORBA::Exception& ) { /**/ }
             if ( ! CORBA::is_nil( manager ) ) {
                 session_ = manager->getSession( L"acquire" );
                 if ( ! CORBA::is_nil( session_.in() ) ) {

@@ -63,9 +63,13 @@ logger_i::log( const Broker::LogMessage& msg )
     Broker::LogMessage& m = log_.back();
     m.logId = logId_++;
 
-    long usec;
-    acewrapper::gettimeofday( m.tv_sec, usec );
-    m.tv_usec = usec;
+    static const long long hlimit = (4000 - 1970) * 365LL * 1440LL * 60LL;
+
+    if ( (m.tv_sec < 0 || m.tv_sec > hlimit ) || m.tv_sec == 0 ) {
+        long usec;
+        acewrapper::gettimeofday( m.tv_sec, usec );
+        m.tv_usec = usec;
+    }
 
     if ( log_.size() > 3000 )
         log_.erase( log_.begin() + 2000, log_.end() );

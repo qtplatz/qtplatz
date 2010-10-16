@@ -508,5 +508,9 @@ iBroker::getObserver()
 			pMasterObserver_.reset( new observer_i() );
 	}
 	CORBA::Object_ptr obj = poa->servant_to_reference( pMasterObserver_.get() );
-	return SignalObserver::Observer::_narrow( obj );
+    try {
+        return SignalObserver::Observer::_narrow( obj );
+    } catch ( CORBA::Exception& ) {
+    }
+    return 0;
 }

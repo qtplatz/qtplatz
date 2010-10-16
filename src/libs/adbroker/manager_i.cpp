@@ -38,7 +38,11 @@ manager_i::getSession( const CORBA::WChar * token )
         session_list_[ token ].reset( new adbroker::session_i() );
 
     CORBA::Object_ptr obj = poa->servant_to_reference( session_list_[ token ].get() );
-    return Broker::Session::_narrow( obj );
+    try {
+        return Broker::Session::_narrow( obj );
+    } catch ( CORBA::Exception& ) {
+        return 0;
+    }
 }
 
 Broker::Logger_ptr
@@ -55,5 +59,9 @@ manager_i::getLogger()
     }
 
 	CORBA::Object_var obj = poa->servant_to_reference( logger_i_.get() );
-	return Broker::Logger::_narrow( obj );
+    try {
+        return Broker::Logger::_narrow( obj );
+    } catch ( CORBA::Exception& ) {
+        return 0;
+    }
 }

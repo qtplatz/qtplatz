@@ -5,6 +5,7 @@
 
 #include "servantplugin.h"
 #include "servantmode.h"
+#include "logger.h"
 
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
@@ -36,6 +37,7 @@
 #include "outputwindow.h"
 #include "servantpluginimpl.h"
 #include <QMessageBox>
+#include <boost/format.hpp>
 
 using namespace servant;
 using namespace servant::internal;
@@ -86,25 +88,32 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		std::wstring name = it->name();
 		std::wstring component = it->component();
 		if ( name == L"adbroker" ) {
-			adBroker::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
+            adBroker::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
             if ( ! adBroker::activate() ) {
                 QMessageBox mbx;
                 mbx.critical( 0, "servantplugin error", "can't activate adBroker servant" );
             }
-			adBroker::run();
+            adBroker::run();
 		} else if ( name == L"adcontroller" ) {
-			adController::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
-			adController::activate();
-			adController::run();
+            adController::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
+            if ( ! adController::activate() ) {
+                QMessageBox mbx;
+                mbx.critical( 0, "servantplugin error", "can't activate adController servant" );
+            }
+            adController::run();
         } else if ( it->attribute(L"type") == L"orbLoader" ) {
-			std::wstring file = apppath + it->module().library_filename();
+            std::wstring file = apppath + it->module().library_filename();
             it->attribute( L"fullpath", file );
-			adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
-			if ( loader ) {
-				loader.initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
-				loader.activate();
-				loader.run();
-			}
+            adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
+            if ( loader ) {
+                loader.initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
+                if ( ! loader.activate() ) {
+                    QMessageBox mbx;
+                    mbx.critical( 0, "servantplugin error", "can't activate servant:" + qtwrapper::qstring( file ) );
+                }
+                loader.run();
+            }
+
         }
 	}
 
@@ -146,11 +155,20 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 				CORBA::Object_var obj;
                 //obj = acewrapper::singleton::orbManager::instance()->getObject( name );
                 obj = adplugin::ORBManager::instance()->getObject( name );
-				Instrument::Session_var isession = Instrument::Session::_narrow( obj );
-				if ( ! CORBA::is_nil( isession ) ) {
-					isession->setConfiguration( it->xml().c_str() );
-                    i8t_sessions.push_back( isession );
-				}
+                try {
+                    Instrument::Session_var isession = Instrument::Session::_narrow( obj );
+                    if ( ! CORBA::is_nil( isession ) ) {
+                        isession->setConfiguration( it->xml().c_str() );
+                        i8t_sessions.push_back( isession );
+                    }
+                } catch ( CORBA::Exception& src ) {
+                    Logger log;
+                    log( (boost::format("%1% : %2%") % src._name() % src._info()).str() );
+                    log( (boost::format(" when narrowing to Instrument::Session for '%1'") % ns_name ).str() );
+                    QMessageBox mbx;
+                    mbx.critical( 0, "Servant error", QString("CORBA::Exception: ") 
+                        + ( boost::format("%1% : %2%") % src._name() % src._info()).str().c_str() );
+                }
 			}
 		}
 	}
@@ -168,7 +186,7 @@ void
 ServantPlugin::extensionsInitialized()
 {
     OutputWindow * outputWindow = ExtensionSystem::PluginManager::instance()->getObject< servant::OutputWindow >();
-    outputWindow->appendLog( L"extensionsInitialized()" );
+    outputWindow->appendLog( L"ServantPlugin::extensionsInitialized()" );
 }
 
 void
@@ -176,6 +194,7 @@ ServantPlugin::shutdown()
 {
 	adportable::Configuration& config = *pConfig_;
 
+    // todo: destriction must be reverse order
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
 		std::wstring name = it->name();
 		if ( name == L"adbroker" ) {
@@ -189,6 +208,8 @@ ServantPlugin::shutdown()
 				loader.deactivate();
 		}
 	}
+    Logger::shutdown();
+
 	acewrapper::singleton::orbServantManager::instance()->orb()->shutdown();
 	acewrapper::singleton::orbServantManager::instance()->fini();
 	ACE_Thread_Manager::instance()->wait();

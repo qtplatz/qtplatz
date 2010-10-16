@@ -7,6 +7,7 @@
 # pragma warning (disable: 4996)
 #  include <ACE/Time_Value.h>
 #  include <ACE/High_Res_Timer.h>
+#  include <ACE/OS.h>
 # pragma warning (default: 4996)
 #include <sstream>
 #include <string>
@@ -26,7 +27,8 @@ namespace acewrapper {
 
     void gettimeofday(time_t& tv_sec, long& tv_usec)
     {
-        ACE_Time_Value tv = ACE_High_Res_Timer::gettimeofday_hr();
+        // ACE_Time_Value tv = ACE_High_Res_Timer::gettimeofday_hr();
+        ACE_Time_Value tv = ACE_OS::gettimeofday();
         tv_sec = tv.sec();
         tv_usec = tv.usec();
     }

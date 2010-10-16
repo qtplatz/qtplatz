@@ -292,6 +292,7 @@ TOFTask::internal_initialize()
 			std::wostringstream o;
 			o << L"tofcontroller task id(" << ACE_OS::getpid() << L") initialized";
 			Broker::LogMessage msg;
+            msg.tv_sec = msg.tv_usec = 0;
 			msg.text = o.str().c_str();
 			logger_->log( msg );
 		}
