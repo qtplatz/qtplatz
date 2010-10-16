@@ -58,6 +58,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
     Q_UNUSED(arguments);
     Q_UNUSED(error_message);
+    int nErrors = 0;
 
     OutputWindow * outputWindow = new OutputWindow;
     addAutoReleasedObject( outputWindow );
@@ -92,6 +93,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             if ( ! adBroker::activate() ) {
                 QMessageBox mbx;
                 mbx.critical( 0, "servantplugin error", "can't activate adBroker servant" );
+                ++nErrors;
             }
             adBroker::run();
 		} else if ( name == L"adcontroller" ) {
@@ -99,6 +101,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             if ( ! adController::activate() ) {
                 QMessageBox mbx;
                 mbx.critical( 0, "servantplugin error", "can't activate adController servant" );
+                ++nErrors;
             }
             adController::run();
         } else if ( it->attribute(L"type") == L"orbLoader" ) {
@@ -110,6 +113,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                 if ( ! loader.activate() ) {
                     QMessageBox mbx;
                     mbx.critical( 0, "servantplugin error", "can't activate servant:" + qtwrapper::qstring( file ) );
+                    ++nErrors;
                 }
                 loader.run();
             }
@@ -163,11 +167,11 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                     }
                 } catch ( CORBA::Exception& src ) {
                     Logger log;
-                    log( (boost::format("%1% : %2%") % src._name() % src._info()).str() );
-                    log( (boost::format(" when narrowing to Instrument::Session for '%1'") % ns_name ).str() );
+                    log( (boost::format("CORBA::Exception for Instrument::Session(%1%) %2%") % ns_name.c_str() % src._info() ).str() );
                     QMessageBox mbx;
                     mbx.critical( 0, "Servant error", QString("CORBA::Exception: ") 
                         + ( boost::format("%1% : %2%") % src._name() % src._info()).str().c_str() );
+                    ++nErrors;
                 }
 			}
 		}
@@ -178,6 +182,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             (*it)->configComplete();
         session->configComplete();
     }
+    Logger log;
+    log( ( nErrors ? L"Servant iitialized with errors" : L"Servernt initialized successfully") );
 
     return true;
 }

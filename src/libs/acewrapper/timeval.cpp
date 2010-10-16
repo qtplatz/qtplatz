@@ -44,7 +44,7 @@ namespace acewrapper {
     std::string to_string( unsigned long long sec, unsigned long usec )
     {
         std::ostringstream o;
-        o << to_string( time_t(sec) ) << " " << std::fixed << std::setprecision(3) << double( usec ) / 1000.0;
+        o << to_string( time_t(sec) ) << " " << std::fixed << std::setw(7) << std::setfill('0') << std::setprecision(3) << double( usec ) / 1000.0;
         std::string ret = o.str();
         return ret;
     }

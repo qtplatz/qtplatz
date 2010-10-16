@@ -128,7 +128,7 @@ Receiver_i::log( const EventLog::LogMessage& log )
 
     std::wstring text = LogMessageHelper::toString( log );
     QString qtext = acewrapper::to_string( log.tv.sec, log.tv.usec ).c_str();
-    qtext += "\t";
+    qtext += "\t: ";
     qtext += qtwrapper::qstring::copy( text );
 
     emit impl_.signal_debug_print( log.priority, 0, qtext );

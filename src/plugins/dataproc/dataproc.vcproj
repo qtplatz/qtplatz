@@ -163,7 +163,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
-				AdditionalDependencies="adwidgets.lib adcontrols.lib acewrapper.lib ACE.lib Aggregation.lib ExtensionSystem.lib Utils.lib Core.lib Find.lib QtXml4.lib QtGui4.lib QtCore4.lib ole32.lib oleaut32.lib user32.lib gdi32.lib advapi32.lib"
+				AdditionalDependencies="adwidgets.lib adcontrols.lib acewrapper.lib ACE.lib Aggregation.lib ExtensionSystem.lib Utils.lib Core.lib QtXml4.lib QtGui4.lib QtCore4.lib ole32.lib oleaut32.lib user32.lib gdi32.lib advapi32.lib"
 				OutputFile="..\..\..\lib\qtPlatz\plugins\ScienceLiaison\dataproc.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
