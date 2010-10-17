@@ -62,12 +62,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     Q_UNUSED(error_message);
     int nErrors = 0;
 
-    do { 
-        adportable::debug debug;
-        debug << "ServantPlugin::initialize";
-    } while(0);
-    
-
     OutputWindow * outputWindow = new OutputWindow;
     addAutoReleasedObject( outputWindow );
     pImpl_ = new internal::ServantPluginImpl( outputWindow );
@@ -84,6 +78,11 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		apppath = qtwrapper::wstring::copy( dir.path() );
 	} while(0);
 
+    do { 
+        adportable::debug debug;
+        debug << "ServantPlugin::initialize " << __LINE__ << " " << adportable::string::convert( apppath );
+    } while(0);
+
 	std::wstring configFile = apppath + L"/lib/qtPlatz/plugins/ScienceLiaison/servant.config.xml";
 
 	const wchar_t * query = L"/ServantConfiguration/Configuration";
@@ -91,11 +90,30 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	pConfig_ = new adportable::Configuration();
 	adportable::Configuration& config = *pConfig_;
 
-	adplugin::manager::instance()->loadConfig( config, configFile, query );
+    do { 
+        adportable::debug debug;
+        debug << "ServantPlugin::initialize loading Config :" << adportable::string::convert( configFile );
+    } while(0);
+
+
+    bool res = adplugin::manager::instance()->loadConfig( config, configFile, query );
+
+    do { 
+        adportable::debug debug;
+        debug << "ServantPlugin::initialize loadConfig" << res << " " << __LINE__;
+    } while(0);
 
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
-		std::wstring name = it->name();
+        std::wstring name = it->name();
 		std::wstring component = it->component();
+        do {
+            adportable::debug debug;
+            std::wstring file = apppath + it->module().library_filename();
+            debug << "ServantPlugin name=" << adportable::string::convert( name )
+                << " component=" << adportable::string::convert( component )
+                << " fullpath=" << adportable::string::convert( file );
+        } while(0);
+
 		if ( name == L"adbroker" ) {
             adBroker::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
             if ( ! adBroker::activate() ) {
@@ -104,6 +122,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                 ++nErrors;
             }
             adBroker::run();
+            //--
 		} else if ( name == L"adcontroller" ) {
             adController::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
             if ( ! adController::activate() ) {
@@ -125,7 +144,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                 }
                 loader.run();
             }
-
         }
 	}
 

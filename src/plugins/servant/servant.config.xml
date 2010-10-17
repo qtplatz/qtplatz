@@ -4,9 +4,9 @@
    $Id$
 -->
 <ServantConfiguration name="servant">
-	<Module name="adbroker" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiaison/adbroker$(configuration).dll"/>
-	<Module name="adcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiaison/adcontroller$(configuration).dll"/>
-	<Module name="tofcontroller" type="corba::servant" filename="/lib/qtPlatz/tofcontroller$(configuration).dll"/>
+	<Module name="adbroker" type="corba::servant" filename="linked with servant -- load by path"/>
+	<Module name="adcontroller" type="corba::servant" filename="linked with servant -- load by path"/>
+	<Module name="tofcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiason/tofcontroller$(configuration).dll"/>
 	<Module name="infitofcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/MSI/infitofcontroller$(configuration).dll"/>
 	<Configuration>
 		<Configuration name="adbroker" type="" component="">

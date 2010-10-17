@@ -57,8 +57,16 @@ debug::initialize( const std::string& name )
     internal::logfile::instance()->filename( name );
 }
 
-void
+debug&
 debug::operator << ( const std::string& text )
 {
     o_ << text;
+    return *this;
+}
+
+debug&
+debug::operator << ( int n )
+{
+    o_ << n;
+    return *this;
 }
