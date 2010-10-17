@@ -200,6 +200,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\debug.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\fft.cpp"
 				>
 			</File>
@@ -321,6 +325,10 @@
 			</File>
 			<File
 				RelativePath=".\ConvertUTF.h"
+				>
+			</File>
+			<File
+				RelativePath=".\debug.h"
 				>
 			</File>
 			<File

@@ -16,8 +16,10 @@
 #include <extensionsystem/pluginmanager.h>
 #include <QtCore/qplugin.h>
 #include <QtCore>
+#pragma warning(disable:4996)
 #include <ace/Thread_Manager.h>
 #include <orbsvcs/CosNamingC.h>
+#pragma warning(default:4996)
 
 #include <adbroker/adbroker.h>
 #include <adcontroller/adcontroller.h>
@@ -29,7 +31,7 @@
 
 #include <adportable/configuration.h>
 #include <adportable/string.h>
-
+#include <adportable/debug.h>
 #include <acewrapper/acewrapper.h>
 #include <acewrapper/orbservant.h>
 #include <acewrapper/constants.h>
@@ -59,6 +61,12 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     Q_UNUSED(arguments);
     Q_UNUSED(error_message);
     int nErrors = 0;
+
+    do { 
+        adportable::debug debug;
+        debug << "ServantPlugin::initialize";
+    } while(0);
+    
 
     OutputWindow * outputWindow = new OutputWindow;
     addAutoReleasedObject( outputWindow );

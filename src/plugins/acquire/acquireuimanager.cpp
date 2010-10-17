@@ -23,6 +23,7 @@
 #include <QLibrary>
 #include <QtCore>
 #include <QUrl>
+#include <QMessageBox>
 
 #include <qtwrapper/qstring.h>
 #include <xmlwrapper/xmldom.h>
@@ -135,8 +136,13 @@ AcquireUIManager::OnInitialUpdate()
         QObjectList list = dockWidget->children();
         foreach ( QObject * obj, list ) {
             adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
-            if ( pLifeCycle )
-                pLifeCycle->OnInitialUpdate();
+            if ( pLifeCycle ) {
+                try {
+                    pLifeCycle->OnInitialUpdate();
+                } catch ( CORBA::Exception& ex ) {
+                    QMessageBox::critical( 0, QLatin1String("AcquireUIManager::OnInitialUpdate"), ex._info().c_str() );
+                }
+            }
         }
     }
 }
