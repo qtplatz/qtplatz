@@ -6,6 +6,7 @@
 #include "debug.h"
 #include <fstream>
 #include <iomanip>
+#include "string.h"
 
 using namespace adportable;
 
@@ -65,8 +66,29 @@ debug::operator << ( const std::string& text )
 }
 
 debug&
+debug::operator << ( const std::wstring& text )
+{
+    o_ << adportable::string::convert( text );
+    return *this;
+}
+
+debug&
 debug::operator << ( int n )
 {
     o_ << n;
+    return *this;
+}
+
+debug&
+debug::operator << ( double d )
+{
+    o_ << d;
+    return *this;
+}
+
+debug&
+debug::operator << ( bool b )
+{
+    o_ << b;
     return *this;
 }
