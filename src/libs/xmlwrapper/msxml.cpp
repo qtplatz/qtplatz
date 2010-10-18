@@ -5,6 +5,7 @@
 
 #import <msxml4.dll> named_guids /* , raw_interfaces_only */
 #include "xmldom.h"
+#include <adportable/debug.h>
 
 static std::wstring __string_empty;
 
@@ -245,6 +246,10 @@ msxml::XMLDocument::XMLDocument()
                              , reinterpret_cast<void**>( &pidoc2 ));
    }
    assert( hr == S_OK );
+   if ( hr != S_OK ) {
+	   adportable::debug debug;
+	   debug << "XMLDocument ctor: error: " << static_cast<unsigned long>(hr);
+   }
    if ( pidoc2 )
        pidoc2->setProperty(_bstr_t(L"SelectionLanguage"), _variant_t("XPath"));
    pImpl_ = pidoc2;

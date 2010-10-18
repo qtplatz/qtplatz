@@ -59,6 +59,13 @@ debug::initialize( const std::string& name )
 }
 
 debug&
+debug::operator << ( const char * text )
+{
+    o_ << text;
+    return *this;
+}
+
+debug&
 debug::operator << ( const std::string& text )
 {
     o_ << text;
@@ -76,6 +83,13 @@ debug&
 debug::operator << ( int n )
 {
     o_ << n;
+    return *this;
+}
+
+debug&
+debug::operator << ( unsigned long x )
+{
+	o_ << x;
     return *this;
 }
 

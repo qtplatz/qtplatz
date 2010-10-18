@@ -2,7 +2,7 @@
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
-
+#include "debug.h"
 #include "ConfigLoader.h"
 #include <adportable/configuration.h>
 #include <xmlwrapper/msxml.h>
@@ -30,8 +30,11 @@ bool
 ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstring& file, const std::wstring& query )
 {
     XMLDocument dom;
-	if ( ! dom.load( file ) )
+	if ( ! dom.load( file ) ) {
+		adportable::debug dbg;
+		dbg << "adportable::ConfigLoader::loadConfigFile(" << file << ") - load fioled";
 		return false;
+	}
 
 	XMLNodeList list = dom.selectNodes( query );
 	if ( list.size() == 0 )

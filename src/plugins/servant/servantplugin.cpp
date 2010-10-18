@@ -90,18 +90,11 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	pConfig_ = new adportable::Configuration();
 	adportable::Configuration& config = *pConfig_;
 
-    do { 
+	if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
+		error_message = new QString( "loadConfig load failed" );
         adportable::debug debug;
-        debug << "ServantPlugin::initialize loading Config :" << adportable::string::convert( configFile );
-    } while(0);
-
-
-    bool res = adplugin::manager::instance()->loadConfig( config, configFile, query );
-
-    do { 
-        adportable::debug debug;
-        debug << "ServantPlugin::initialize loadConfig" << res << " " << __LINE__;
-    } while(0);
+        debug << "ServantPlugin::initialize loadConfig failed";
+	}
 
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
         std::wstring name = it->name();

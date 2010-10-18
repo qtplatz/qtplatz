@@ -574,7 +574,7 @@
 	<Globals>
 		<Global
 			Name="QtVersion Win32"
-			Value="4.6.3"
+			Value="4.7.0"
 		/>
 	</Globals>
 </VisualStudioProject>
