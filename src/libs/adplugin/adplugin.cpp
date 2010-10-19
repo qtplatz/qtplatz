@@ -16,10 +16,12 @@
 #include <qtwrapper/qstring.h>
 #include <QPluginLoader>
 #include <QLibrary>
+#include <QDir>
 #include "ifactory.h"
 #include "imonitor.h"
 #include "orbLoader.h"
 #include <boost/smart_ptr.hpp>
+#include <fstream>
 
 #pragma warning (disable: 4996)
 #include <ace/Init_ACE.h>
@@ -80,11 +82,16 @@ namespace adplugin {
 
 			virtual adplugin::orbLoader& orbLoader( const std::wstring& name );
 
+			virtual void register_ior( const std::string& name, const std::string& ior );
+			virtual const char * lookup_ior( const std::string& name );
+
 		private:
 			typedef std::map< std::wstring, QObject * > librariesType;
 			typedef std::map< std::wstring, boost::shared_ptr<adplugin::orbLoader> > orbLoadersType;
+
 			librariesType libraries_;
 			orbLoadersType orbLoaders_;
+			std::map< std::string, std::string > iorMap_;
 		};
 	}
 }
@@ -181,6 +188,42 @@ manager_impl::unloadLibrary( const std::wstring& filename )
     return false;
 }
 
+void
+manager_impl::register_ior( const std::string& name, const std::string& ior )
+{
+	iorMap_[name] = ior;
+
+	QDir dir = QDir::home();
+	if ( ! dir.exists( ".ior" ) )
+		dir.mkdir( ".ior" );
+	dir.cd( ".ior" );
+	std::string path = dir.absolutePath().toStdString();
+	path += std::string("/") + name + ".ior";
+	std::ofstream of( path.c_str() );
+	of << ior;
+}
+
+const char *
+manager_impl::lookup_ior( const std::string& name )
+{
+#if defined _DEBUG
+	std::string path = QDir::home().absolutePath().toStdString();
+	path += std::string( "/.ior" ) + name + ".ior";
+	std::ifstream inf( path.c_str() );
+
+	if ( ! inf.fail() ) {
+		std::string ior;
+		inf >> ior;
+	}
+#endif
+
+	std::map< std::string, std::string >::iterator it = iorMap_.find( name );
+	if ( it != iorMap_.end() )
+		return it->second.c_str();
+	return 0;
+}
+
+
 //////////////////////////////////////
 
 class orbLoaderImpl : public adplugin::orbLoader {
@@ -212,13 +255,13 @@ public:
 
 private:
 	typedef bool (*initialize_t)( CORBA::ORB * );
-	typedef bool (*activate_t)();
+	typedef const char * (*activate_t)();
 	typedef bool (*deactivate_t)();
 	typedef bool (*run_t)();
 	typedef bool (*abort_server_t)();
 public:
 	virtual bool initialize( CORBA::ORB * orb ) { return initialize_   ? initialize_( orb ) : false; }
-	virtual bool activate()                     { return activate_     ? activate_()        : false; }
+	virtual const char * activate()             { return activate_     ? activate_()        : false; }
 	virtual bool deactivate()                   { return deactivate_   ? deactivate_()      : false; }
 	virtual int run()                           { return run_          ? run_()             : false; }
 	virtual void abort_server()                 { return abort_server_ ? abort_server()     : false; }

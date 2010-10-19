@@ -338,7 +338,7 @@ AcquirePlugin::actionConnect()
     char * argv[1] = { "" };
     if ( adplugin::ORBManager::instance()->init( argc, argv ) >= 0 ) {
         // CosNaming::Name name = adcontroller::name();
-        CosNaming::Name name = acewrapper::constants::adcontroller::manager::name();
+		std::string name = acewrapper::constants::adcontroller::manager::_name();
         
         CORBA::Object_var obj = adplugin::ORBManager::instance()->getObject( name );
         if ( ! CORBA::is_nil( obj ) ) {

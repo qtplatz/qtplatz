@@ -27,10 +27,14 @@ namespace adbroker {
         void shutdown();
         Broker::Session_ptr getSession( const CORBA::WChar * );
         Broker::Logger_ptr getLogger();
+		void register_ior( const char * name, const char * ior );
+        char * ior( const char * name );
+
     private:
         typedef std::map< std::wstring, boost::shared_ptr< adbroker::session_i > > session_map_type;
         session_map_type session_list_;
         boost::scoped_ptr< broker::logger_i > logger_i_;
+		std::map< std::string, std::string > iorMap_;
     };
 
     namespace singleton {

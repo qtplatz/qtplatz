@@ -6,7 +6,8 @@
 #include "nameresolver.h"
 #pragma warning (disable: 4996)
 # include <tao/Object.h>
-# include <orbsvcs/CosNamingC.h>
+// # include <orbsvcs/CosNamingC.h>
+# include <adinterface/brokerC.h>
 #pragma warning (default: 4996)
 
 using namespace acewrapper;
@@ -19,78 +20,22 @@ nameresolver::~nameresolver(void)
 {
 }
 
-CORBA::Object_ptr
-nameresolver::resolve_name( CORBA::ORB_ptr orb, const std::string& ns_name )
+//static
+Broker::Manager *
+nameresolver::getManager( CORBA::ORB_ptr orb, const std::string& ior )
 {
-	CORBA::Object_var obj;
-/*
-	CosNaming::NamingContext_var nc = resolve_init( orb );
-	if ( ! CORBA::is_nil( nc.in() ) ) {
-
-		CosNaming::Name name;
-        name.length(1);
-		name[0].id = CORBA::string_dup( adportable::string::convert( ns_name ).c_str() );
-		name[0].kind = CORBA::string_dup("");
-
-		try {
-			obj = nc->resolve( name );
-		} catch ( const CosNaming::NamingContext::NotFound& ) {
-			throw;
-		}
-	}
-*/
-	return obj._retn();
+	CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
+	return Broker::Manager::_narrow( obj );
 }
 
-
-
-// static
-bool
-nameresolver::register_name_service( const std::string& name, const std::string& ior )
+//static
+std::string
+nameresolver::ior( Broker::Manager * mgr, const char * name )
 {
-/*
-	CosNaming::NamingContext_var nc;
-	try { 
-		nc = NS::resolve_init( orb );
-	} catch ( const CORBA::Exception& ex ) {
-		ex._tao_print_exception( "register_name_service" );
-        return false;
+	if ( mgr ) {
+		CORBA::String_var str = mgr->ior( name );
+		return std::string( str );
 	}
-
-    if ( CORBA::is_nil( nc ) )
-        return false;
-
-	try {
-		nc->rebind( name, obj );
-	} catch ( const CosNaming::NamingContext::AlreadyBound& ex ) {
-		ex._tao_print_exception( "register_name_service" );
-	} catch ( const CORBA::Exception& ex ) {
-		ex._tao_print_exception( "register_name_service" );
-        return false;
-	}
-*/
-	return true;
+	return "";
 }
 
-// static
-bool
-nameresolver::unregister_name_service( const std::string& name )
-{
-/*
-	CosNaming::NamingContext_var nc;
-	try { 
-		nc = NS::resolve_init( orb );
-	} catch ( const CORBA::Exception& ex ) {
-		ex._tao_print_exception( "register_name_service" );
-        return false;
-	}
-
-	try {
-		nc->unbind( name );
-	} catch ( const CORBA::Exception& ex ) {
-		ex._tao_print_exception( "register_name_service" );
-        return false;
-	}
-*/
-	return true;
-}

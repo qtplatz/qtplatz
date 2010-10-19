@@ -34,11 +34,31 @@ ServantPluginImpl::ServantPluginImpl( OutputWindow * p ) : outputWindow_(p)
     adplugin::ORBManager::instance()->init(0, 0);
 }
 
+Broker::Manager_ptr
+getBrokerManager()
+{
+	std::string ior = adplugin::manager::instance()->lookup_ior( acewrapper::constants::adbroker::manager::_name() );
+	if ( ! ior.empty() ) {
+		CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( ior );
+		if ( !CORBA::is_nil( obj ) ) {
+			Broker::Manager_var mgr = Broker::Manager::_narrow( obj );
+            return mgr._retn();
+		}
+	}
+	return 0;
+}
+
 void
 ServantPluginImpl::init_debug_adcontroller( ServantPlugin * )
 {
+	Broker::Manager_var mgr = getBrokerManager();
 	CORBA::Object_var obj;
-    obj = adplugin::ORBManager::instance()->getObject( acewrapper::constants::adcontroller::manager::name() );
+	if ( ! CORBA::is_nil( mgr ) ) {
+		std::string ior = mgr->ior( acewrapper::constants::adcontroller::manager::_name() );
+        if ( ! ior.empty() )
+			obj = adplugin::ORBManager::instance()->string_to_object( ior );
+	}
+
 	ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
 	if ( ! CORBA::is_nil( manager ) ) {
 		session_ = manager->getSession( L"debug" );
@@ -53,9 +73,7 @@ ServantPluginImpl::init_debug_adcontroller( ServantPlugin * )
 void
 ServantPluginImpl::init_debug_adbroker( ServantPlugin * )
 {
-	CORBA::Object_var obj;
-	obj = adplugin::ORBManager::instance()->getObject( acewrapper::constants::adbroker::manager::name() );
-    manager_ = Broker::Manager::_narrow( obj.in() );
+    manager_ = getBrokerManager();
 
 	if ( ! CORBA::is_nil( manager_.in() ) ) {
 

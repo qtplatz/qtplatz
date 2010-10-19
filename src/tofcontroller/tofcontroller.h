@@ -19,20 +19,14 @@ public:
     virtual ~TofController();
     TofController();
 
-	operator bool () const;
-    bool initialize( CORBA::ORB * orb = 0 );
-	bool activate();
-    bool deactivate();
-	int run();
+	virtual operator bool () const;
+	virtual bool initialize( CORBA::ORB * orb = 0 );
+	virtual const char * activate();
+	virtual bool deactivate();
+	virtual int run();
+
 	void abort_server();
     void dispose();
-/*
-	static bool initialize( CORBA::ORB * orb = 0 );
-	static bool activate();
-    static bool deactivate();
-	static int run();
-	static void abort_server();
-/**/
 };
 
 extern "C" {

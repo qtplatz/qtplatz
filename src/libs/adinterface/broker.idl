@@ -48,7 +48,9 @@ module Broker {
 
     interface Manager {
         Session getSession( in wstring connStr );
-        Logger getLogger();     
+        Logger getLogger();
+		void register_ior( in string name, in string ior );     
+		string ior( in string name );
     };
 
 };

@@ -18,7 +18,7 @@ namespace adplugin {
 		virtual operator bool() const = 0;
 
 		virtual bool initialize( CORBA::ORB * orb = 0 ) = 0;
-        virtual bool activate() = 0;
+        virtual const char * activate() = 0;
         virtual bool deactivate() = 0;
         virtual int run() = 0;
         virtual void abort_server() = 0;

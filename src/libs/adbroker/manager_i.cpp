@@ -65,3 +65,18 @@ manager_i::getLogger()
         return 0;
     }
 }
+
+void
+manager_i::register_ior( const char * name, const char * ior )
+{
+	iorMap_[ name ] = ior;
+}
+
+char *
+manager_i::ior( const char * name )
+{
+	std::map< std::string, std::string >::iterator it = iorMap_.find( name );
+    if ( it != iorMap_.end() )
+		return CORBA::string_dup( it->second.c_str() );
+	return 0;
+}

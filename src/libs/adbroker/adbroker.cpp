@@ -83,15 +83,12 @@ adBroker::initialize( CORBA::ORB_ptr orb )
 	return true;
 }
 
-bool
+const char *
 adBroker::activate()
 {
     ORBServant< adbroker::manager_i > * pServant = adbroker::singleton::manager::instance();
 	pServant->activate();
-
-	CORBA::ORB_var orb = pServant->getServantManager()->orb();
-	CosNaming::Name name = acewrapper::constants::adbroker::manager::name();
-	return NS::register_name_service( orb.in(), name, *pServant );
+    return pServant->ior().c_str();
 }
 
 bool

@@ -108,15 +108,17 @@ adController::initialize( CORBA::ORB_ptr orb )
 	return true;
 }
 
-bool
+const char *
 adController::activate()
 {
 	ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
 	pServant->activate();
-
+    return pServant->ior().c_str();
+/*
 	CORBA::ORB_var orb = pServant->getServantManager()->orb();
     CosNaming::Name name = constants::adcontroller::manager::name();
 	return NS::register_name_service( orb, name, *pServant );
+*/
 }
 
 bool

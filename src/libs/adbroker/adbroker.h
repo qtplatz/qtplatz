@@ -21,7 +21,7 @@ public:
     ~adBroker(void);
 
 	static bool initialize( CORBA::ORB * orb = 0 );
-	static bool activate();
+	static const char * activate();
     static bool deactivate();
 
 	static int run();

@@ -7,9 +7,14 @@
 #pragma once
 
 #include <string>
+
 namespace CORBA {
    class ORB;
    class Object;
+}
+
+namespace Broker {
+	class Manager;
 }
 
 namespace acewrapper {
@@ -19,10 +24,11 @@ namespace acewrapper {
 		nameresolver(void);
 		~nameresolver(void);
 
-		static bool register_name_service( const std::string& name, const std::string& ior );
-		static bool unregister_name_service( const std::string& name );
-		static CORBA::Object * resolve_name( CORBA::ORB * orb, const std::string& name );
+		static Broker::Manager * getManager( CORBA::ORB * orb, const std::string& ior );
+		static std::string ior( Broker::Manager *, const char * name );
+		// static CORBA::Object * string_to_object( const std::string& ior );
+
 	private:
-		static bool find_ior( const std::string& name, std::string& ior );
+		// static bool find_ior( const std::string& name, std::string& ior );
 	};
 };

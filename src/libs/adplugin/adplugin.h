@@ -42,6 +42,9 @@ namespace adplugin {
             static QWidget * widget_factory( const adportable::Configuration&, const wchar_t * path, QWidget * parent = 0 );
             
             virtual orbLoader& orbLoader( const std::wstring& name ) = 0;
+
+			virtual void register_ior( const std::string& name, const std::string& ior ) = 0;
+			virtual const char * lookup_ior( const std::string& name ) = 0;
             
 	private:
         // static manager * instance_;

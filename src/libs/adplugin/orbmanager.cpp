@@ -53,6 +53,7 @@ ORBManager::orb()
    return 0;
 }
 
+#if defined USE_NAMING_SERVICE
 CORBA::Object_ptr
 ORBManager::getObject( const CosNaming::Name& name )
 {
@@ -68,6 +69,15 @@ ORBManager::getObject( const std::wstring& naming )
    if ( ! orb_ )
 	   return 0;
    return acewrapper::NS::resolve_name( orb_->orb(), naming );
+}
+#endif
+
+CORBA::Object_ptr
+ORBManager::string_to_object( const std::string& ior )
+{
+  if ( ! orb_ )
+	  return 0;
+  return orb_->orb()->string_to_object( ior.c_str() );
 }
 
 adplugin::ORBManager * 

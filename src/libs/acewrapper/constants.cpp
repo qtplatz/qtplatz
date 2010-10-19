@@ -5,13 +5,13 @@
 
 #include "constants.h"
 #pragma warning (disable: 4996)
-# include <orbsvcs/CosNamingC.h>
+// # include <orbsvcs/CosNamingC.h>
 #pragma warning (default: 4996)
 
 namespace acewrapper {
     namespace constants {
         namespace adcontroller {
-
+#if 0
             CosNaming::Name
                 manager::name() {
                     CosNaming::Name name;
@@ -20,11 +20,12 @@ namespace acewrapper {
                     name[0].kind = CORBA::string_dup( "" );
                     return name;
             }
-
+#endif
+			const char * manager::_name() { return "adcontroller.manager"; }
         }
 
         namespace adbroker {
-
+#if 0
             CosNaming::Name
                 manager::name() {
                     CosNaming::Name name;
@@ -33,7 +34,8 @@ namespace acewrapper {
                     name[0].kind = CORBA::string_dup( "" );
                     return name;
             }
-
+#endif
+			const char * manager::_name() { return "adbroker.manager"; }
         }
     }
 }
