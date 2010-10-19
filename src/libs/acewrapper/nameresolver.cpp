@@ -3,66 +3,27 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "nameservice.h"
-#include <adportable/string.h>
+#include "nameresolver.h"
 #pragma warning (disable: 4996)
-#include <tao/ORB.h>
-#include <orbsvcs/CosNamingC.h>
+# include <tao/Object.h>
+# include <orbsvcs/CosNamingC.h>
 #pragma warning (default: 4996)
-
 
 using namespace acewrapper;
 
-CosNaming::NamingContext_ptr
-NS::resolve_init( CORBA::ORB_ptr orb )
+nameresolver::nameresolver(void)
 {
-	CORBA::Object_var obj;
-	try {
-		obj = orb->resolve_initial_references( "NameService" );
-	} catch ( const CORBA::ORB::InvalidName& ) {
-		throw;
-	} catch ( const CORBA::Exception& ex ) {
-		ex._tao_print_exception( "NS::resolve_initial_references\t\n" );
-	}
-
-	CosNaming::NamingContext::_var_type ref;
-	try {
-		ref = CosNaming::NamingContext::_narrow( obj.in() );
-	} catch ( const CORBA::Exception& ex ) {
-		ex._tao_print_exception( "NS::resolve_initial_references\t\n" );
-	}
-	return ref._retn();
 }
 
+nameresolver::~nameresolver(void)
+{
+}
+
+CORBA::Object_ptr
+nameresolver::resolve_name( CORBA::ORB_ptr orb, const std::string& ns_name )
+{
+	CORBA::Object_var obj;
 /*
-bool
-NS::bind(CosNaming::NamingContext_ptr nc, const CosNaming::Name &name, CORBA::Object_ptr obj)
-{
-	if ( CORBA::is_nil( nc ) )
-		return false;
-	nc->bind( name, obj );
-	return true;
-}
-*/
-
-
-CORBA::Object_ptr
-NS::resolve_name(CosNaming::NamingContext_ptr nc, const CosNaming::Name &name )
-{
-	CORBA::Object_var obj;
-	try {
-		obj = nc->resolve( name );
-	} catch ( const CosNaming::NamingContext::NotFound& ) {
-		throw;
-	}
-	return obj._retn();
-}
-
-
-CORBA::Object_ptr
-NS::resolve_name( CORBA::ORB_ptr orb, const std::wstring& ns_name )
-{
-	CORBA::Object_var obj;
 	CosNaming::NamingContext_var nc = resolve_init( orb );
 	if ( ! CORBA::is_nil( nc.in() ) ) {
 
@@ -77,6 +38,7 @@ NS::resolve_name( CORBA::ORB_ptr orb, const std::wstring& ns_name )
 			throw;
 		}
 	}
+*/
 	return obj._retn();
 }
 
@@ -84,11 +46,9 @@ NS::resolve_name( CORBA::ORB_ptr orb, const std::wstring& ns_name )
 
 // static
 bool
-NS::register_name_service( CORBA::ORB_ptr orb, const CosNaming::Name& name, CORBA::Object_ptr obj )
+nameresolver::register_name_service( const std::string& name, const std::string& ior )
 {
-	if ( CORBA::is_nil( orb ) )
-		return false;
-
+/*
 	CosNaming::NamingContext_var nc;
 	try { 
 		nc = NS::resolve_init( orb );
@@ -108,16 +68,15 @@ NS::register_name_service( CORBA::ORB_ptr orb, const CosNaming::Name& name, CORB
 		ex._tao_print_exception( "register_name_service" );
         return false;
 	}
+*/
 	return true;
 }
 
 // static
 bool
-NS::unregister_name_service( CORBA::ORB_ptr orb, const CosNaming::Name& name )
+nameresolver::unregister_name_service( const std::string& name )
 {
-	if ( CORBA::is_nil( orb ) )
-		return false;
-
+/*
 	CosNaming::NamingContext_var nc;
 	try { 
 		nc = NS::resolve_init( orb );
@@ -132,5 +91,6 @@ NS::unregister_name_service( CORBA::ORB_ptr orb, const CosNaming::Name& name )
 		ex._tao_print_exception( "register_name_service" );
         return false;
 	}
+*/
 	return true;
 }

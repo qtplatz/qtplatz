@@ -215,6 +215,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\nameresolver.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\nameservice.cpp"
 				>
 			</File>
@@ -533,6 +537,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\nameresolver.h"
+				>
 			</File>
 			<File
 				RelativePath=".\nameservice.h"

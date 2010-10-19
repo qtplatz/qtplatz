@@ -38,7 +38,7 @@ signal_handler::sigint( int num )
    if ( pidChild == 0 ) {
       static int inProgress = 0;
       std::cerr << "################ abort " << ACE_OS::getpid() << "( signal=" << num << ") " << "##################" << std::endl;
-	  adController::abort_server();
+	  adController::_abort_server();
    } else {
       for ( int i = 0; i < 3; ++i ) {
           std::cerr << "################ kill( " << pidChild << ") ##################" << std::endl;

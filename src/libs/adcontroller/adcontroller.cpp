@@ -21,6 +21,7 @@
 #     pragma comment(lib, "adportabled.lib")
 #     pragma comment(lib, "acewrapperd.lib")
 #     pragma comment(lib, "xmlwrapperd.lib")
+#     pragma comment(lib, "adplugind.lib")
 #  else
 #     pragma comment(lib, "TAO_Utils.lib")
 #     pragma comment(lib, "TAO_PI.lib")
@@ -33,6 +34,7 @@
 #     pragma comment(lib, "adportable.lib")
 #     pragma comment(lib, "acewrapper.lib")
 #     pragma comment(lib, "xmlwrapper.lib")
+#     pragma comment(lib, "adplugin.lib")
 #  endif
 #endif
 
@@ -69,11 +71,26 @@ static bool __own_thread = false;
 static Receiver * __preceiver_debug;
 std::string __ior_session;
 
+//-----------------------------------------------
+
+adController::~adController()
+{
+}
+
+adController::adController()
+{
+}
+
+adController::operator bool () const
+{ 
+	return true;
+}
+
 void
-adController::abort_server()
+adController::_abort_server()
 {
 	__aborted = true;
-	deactivate();
+	adController::_deactivate();
 }
 
 bool
@@ -104,6 +121,12 @@ adController::activate()
 
 bool
 adController::deactivate()
+{
+	return adController::_deactivate();
+}
+
+bool
+adController::_deactivate()
 {
 	ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
 	pServant->deactivate();
@@ -144,7 +167,35 @@ adController::run()
    return 0;
 }
 
-adController::adController()
+void
+adController::abort_server()
 {
+	adController::_abort_server();
 }
 
+/////////////////////
+
+__declspec(dllexport) bool initialize( CORBA::ORB * orb )
+{
+	return adController().initialize( orb );
+}
+
+__declspec(dllexport) bool activate()
+{
+	return adController().activate();
+}
+
+__declspec(dllexport) bool deactivate()
+{
+	return adController().deactivate();
+}
+
+__declspec(dllexport) int run()
+{
+	return adController().run();
+}
+
+__declspec(dllexport) void abort_server()
+{
+	return adController().abort_server();
+}

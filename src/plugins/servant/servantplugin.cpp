@@ -96,6 +96,17 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         debug << "ServantPlugin::initialize loadConfig failed";
 	}
 
+    // --------------------------------
+	do { // adborker, it has to be on top of servant activation
+		adBroker::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
+		if ( ! adBroker::activate() ) {
+			QMessageBox mbx;
+			mbx.critical( 0, "servantplugin error", "can't activate adBroker servant" );
+			++nErrors;
+		}
+		adBroker::run();
+	} while ( 0 );
+
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
         std::wstring name = it->name();
 		std::wstring component = it->component();
@@ -108,23 +119,9 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         } while(0);
 
 		if ( name == L"adbroker" ) {
-            adBroker::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
-            if ( ! adBroker::activate() ) {
-                QMessageBox mbx;
-                mbx.critical( 0, "servantplugin error", "can't activate adBroker servant" );
-                ++nErrors;
-            }
-            adBroker::run();
-            //--
-		} else if ( name == L"adcontroller" ) {
-            adController::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
-            if ( ! adController::activate() ) {
-                QMessageBox mbx;
-                mbx.critical( 0, "servantplugin error", "can't activate adController servant" );
-                ++nErrors;
-            }
-            adController::run();
+			/* nothing */
         } else if ( it->attribute(L"type") == L"orbLoader" ) {
+			// adcontroller must be on top
             std::wstring file = apppath + it->module().library_filename();
             it->attribute( L"fullpath", file );
             adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
@@ -225,7 +222,7 @@ ServantPlugin::shutdown()
 		if ( name == L"adbroker" ) {
             adBroker::deactivate();
 		} else if ( name == L"adcontroller" ) {
-			adController::deactivate();
+			// adController::deactivate();
         } else if ( it->attribute(L"type") == L"orbLoader" ) {
 			std::wstring file = it->attribute( L"fullpath" );
 			adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );

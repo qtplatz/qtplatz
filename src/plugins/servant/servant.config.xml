@@ -4,15 +4,15 @@
    $Id$
 -->
 <ServantConfiguration name="servant">
-	<Module name="adbroker" type="corba::servant" filename="linked with servant -- load by path"/>
-	<Module name="adcontroller" type="corba::servant" filename="linked with servant -- load by path"/>
-	<Module name="tofcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiason/tofcontroller$(configuration).dll"/>
+	<Module name="adbroker" type="corba::servant" filename="-- mandetory module -- this will loaded automatically by path environment variable --"/>
+	<Module name="adcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiaison/adcontroller$(configuration).dll"/>
+	<Module name="tofcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiaison/tofcontroller$(configuration).dll"/>
 	<Module name="infitofcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/MSI/infitofcontroller$(configuration).dll"/>
 	<Configuration>
 		<Configuration name="adbroker" type="" component="">
 			<Component name="adbroker" module="adbroker"/>
 		</Configuration>
-		<Configuration name="adcontroller" type="" component="">
+		<Configuration name="adcontroller" type="orbLoader" na_name="adcontroller.manager" component="">
 			<Component name="adcontroller" module="adcontroller"/>
 			<Configuration name="InstrumentConfiguration">
 				<!-- <Configuration name="tofcontroller.1" id="tof.1" type="object_ref" ns_name="tofcontroller.session"/> -->

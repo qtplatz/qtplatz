@@ -494,6 +494,7 @@ static bool
 reduceNoise( adcontrols::MassSpectrum& ms )
 {
     size_t totalSize = ms.size();
+	(void)totalSize;
 	size_t N = 32;
     while ( N < ms.size() )
 		N *= 2;

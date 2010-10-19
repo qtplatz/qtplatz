@@ -8,6 +8,8 @@
 
 #include "adcontroller_global.h"
 
+#include <adplugin/orbLoader.h>
+
 namespace CORBA {
     class ORB;
 }
@@ -16,16 +18,32 @@ namespace acewrapper {
     class ORBServantManager;
 }
 
-class ADCONTROLLERSHARED_EXPORT adController {
+class ADCONTROLLERSHARED_EXPORT adController : public adplugin::orbLoader {
 public:
     adController();
-    
-    static bool initialize( CORBA::ORB * orb = 0 );
-    static bool activate();
-    static bool deactivate();
-    static int run();
-    static void abort_server();
+    virtual ~adController();
+
+    // impriment adplugin::orbLoader
+	virtual operator bool() const;
+	virtual bool initialize( CORBA::ORB * orb = 0 );
+	virtual bool activate();
+	virtual bool deactivate();
+	virtual int run();
+	virtual void abort_server();
+
+	// adController
+	static void _dispose();
+	static bool _deactivate();
+	static void _abort_server();
 private:
 
 };
 
+extern "C" {
+	__declspec(dllexport) adplugin::orbLoader * instance();
+	__declspec(dllexport) bool initialize( CORBA::ORB * orb = 0 );
+	__declspec(dllexport) bool activate();
+	__declspec(dllexport) bool deactivate();
+	__declspec(dllexport) int run();
+	__declspec(dllexport) void abort_server();
+}

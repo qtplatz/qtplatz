@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <adportable/configuration.h>
 #include <adportable/configloader.h>
+#include <adportable/debug.h>
 #include <string>
 #include <vector>
 #include <qtwrapper/qstring.h>
@@ -238,6 +239,20 @@ manager_impl::orbLoader( const std::wstring& file )
 	if ( it != orbLoaders_.end() )
 		return *it->second;
 
+	static orbLoaderImpl empty;
+
+    int rcode = _waccess( file.c_str(), 0 );
+	if ( rcode ) {
+		adportable::debug out;
+		const char * reason = 0;
+        if ( errno == EACCES ) reason = "access denied";
+		else if ( errno == ENOENT ) reason = "file name or path not found";
+		else if ( errno == EINVAL ) reason = "invalid parameter";
+		else reason = "n/a";
+		out << file << " access filed by " << reason;
+		return empty;
+	}
+    
 	QLibrary lib( qtwrapper::qstring::copy( file ) );
 	if ( lib.load() ) {
 		typedef adplugin::orbLoader * (*instance_t)();
@@ -254,7 +269,5 @@ manager_impl::orbLoader( const std::wstring& file )
 	}
 	if ( ( it = orbLoaders_.find( file ) ) != orbLoaders_.end() )
 		return *it->second;
-
-    static orbLoaderImpl empty;
 	return empty;
 }
