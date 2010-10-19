@@ -63,6 +63,8 @@ namespace adportable {
         inline const Module& module() const { return module_; }
         inline vector_type::iterator begin() { return children_.begin(); }
         inline vector_type::iterator end()   { return children_.end(); }
+		inline vector_type::reverse_iterator rbegin() { return children_.rbegin(); }
+        inline vector_type::reverse_iterator rend()   { return children_.rend(); }
         inline vector_type::const_iterator begin() const { return children_.begin(); }
         inline vector_type::const_iterator end() const  { return children_.end(); }
 

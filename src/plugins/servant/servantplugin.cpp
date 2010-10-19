@@ -110,13 +110,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
         std::wstring name = it->name();
 		std::wstring component = it->component();
-        do {
-            adportable::debug debug;
-            std::wstring file = apppath + it->module().library_filename();
-            debug << "ServantPlugin name=" << adportable::string::convert( name )
-                << " component=" << adportable::string::convert( component )
-                << " fullpath=" << adportable::string::convert( file );
-        } while(0);
 
 		if ( name == L"adbroker" ) {
 			/* nothing */
@@ -216,12 +209,12 @@ ServantPlugin::shutdown()
 {
 	adportable::Configuration& config = *pConfig_;
 
-    // todo: destriction must be reverse order
-	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
+    // destriction must be reverse order
+	for ( adportable::Configuration::vector_type::reverse_iterator it = config.rbegin(); it != config.rend(); ++it ) {
 		std::wstring name = it->name();
 		if ( name == L"adbroker" ) {
-            adBroker::deactivate();
-		} else if ( name == L"adcontroller" ) {
+			// adBroker::deactivate();
+			// } else if ( name == L"adcontroller" ) {
 			// adController::deactivate();
         } else if ( it->attribute(L"type") == L"orbLoader" ) {
 			std::wstring file = it->attribute( L"fullpath" );
@@ -230,6 +223,7 @@ ServantPlugin::shutdown()
 				loader.deactivate();
 		}
 	}
+	adBroker::deactivate();
     Logger::shutdown();
 
 	acewrapper::singleton::orbServantManager::instance()->orb()->shutdown();
