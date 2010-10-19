@@ -7,12 +7,13 @@
 #include <acewrapper/orbservant.h>
 #include <acewrapper/constants.h>
 #include <acewrapper/timeval.h>
+#include <acewrapper/brokerhelper.h>
+
 #include <adplugin/adplugin.h>
 #include <adplugin/orbLoader.h>
 #include <adplugin/orbmanager.h>
 #include <adinterface/eventlog_helper.h>
 #include <qtwrapper/qstring.h>
-
 
 #include "servantpluginimpl.h"
 #include "servantplugin.h"
@@ -37,15 +38,8 @@ ServantPluginImpl::ServantPluginImpl( OutputWindow * p ) : outputWindow_(p)
 Broker::Manager_ptr
 getBrokerManager()
 {
-	std::string ior = adplugin::manager::instance()->lookup_ior( acewrapper::constants::adbroker::manager::_name() );
-	if ( ! ior.empty() ) {
-		CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( ior );
-		if ( !CORBA::is_nil( obj ) ) {
-			Broker::Manager_var mgr = Broker::Manager::_narrow( obj );
-            return mgr._retn();
-		}
-	}
-	return 0;
+	std::string ior = adplugin::manager::instance()->ior( acewrapper::constants::adbroker::manager::_name() );
+    return acewrapper::brokerhelper::getManager( adplugin::ORBManager::instance()->orb(), ior );
 }
 
 void

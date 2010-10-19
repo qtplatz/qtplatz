@@ -5,8 +5,10 @@
 
 #include "logger.h"
 #include <adinterface/brokerC.h>
+#include <adplugin/adplugin.h>
 #include <adplugin/orbmanager.h>
 #include <acewrapper/constants.h>
+#include <acewrapper/brokerhelper.h>
 #include <orbsvcs/CosNamingC.h>
 #include <adportable/string.h>
 ///////-- ServantPlugin dependent -- ////////
@@ -56,8 +58,8 @@ internal::LogHost::instance()
 void
 internal::LogHost::initialize()
 {
-    CORBA::Object_var obj;
-    obj = adplugin::ORBManager::instance()->getObject( acewrapper::constants::adbroker::manager::name() );
+    std::string ior = adplugin::manager::instance()->ior(); 
+    CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( ior );
 
     try {
         Broker::Manager_var manager = Broker::Manager::_narrow( obj.in() );

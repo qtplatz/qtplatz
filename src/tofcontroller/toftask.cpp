@@ -17,10 +17,9 @@
 #include <acewrapper/nameservice.h>
 #include <acewrapper/reactorthread.h>
 #include <acewrapper/ace_string.h>
-#include <adportable/string.h>
-
-#include <adportable/protocollifecycle.h>
 #include <acewrapper/lifecycle_frame_serializer.h>
+#include <adportable/string.h>
+#include <adportable/protocollifecycle.h>
 #include "analyzerdevicedata.h"
 #include "tofobserver_i.h"
 #include "traceobserver_i.h"
@@ -276,13 +275,8 @@ TOFTask::internal_initialize()
 	acewrapper::ORBServant< tofcontroller::tofSession_i >
 		* pServant = tofcontroller::singleton::tofSession_i::instance();
 	CORBA::ORB_var orb = pServant->orb();
-
-	CORBA::Object_var obj;
-
-	CosNaming::Name name = acewrapper::constants::adbroker::manager::name();
-	CosNaming::NamingContext_var nc = acewrapper::NS::resolve_init( orb );
-	obj = acewrapper::NS::resolve_name( nc, name );
-
+    
+	CORBA::Object_var obj = orb->string_to_object( singleton::tofSession_i::instance()->broker_manager_reference() );
 	Broker::Manager_var manager = Broker::Manager::_narrow( obj.in() );
 
 	if ( ! CORBA::is_nil( manager.in() ) ) {

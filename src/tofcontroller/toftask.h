@@ -58,7 +58,6 @@ namespace tofcontroller {
         ~TOFTask(void);
 
         inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
-
         bool setConfiguration( const wchar_t * );
         bool open();
         void close();

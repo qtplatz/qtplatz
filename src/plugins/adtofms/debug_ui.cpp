@@ -3,6 +3,7 @@
 
 #include <adportable/configuration.h>
 #include <adplugin/orbmanager.h>
+#include <adplugin/adplugin.h>
 #include <acewrapper/nameservice.h>
 #include <QtCore/qplugin.h>
 #include <adinterface/eventlog_helper.h>
@@ -62,7 +63,8 @@ debug_ui::OnInitialUpdate()
     // now, it is safe to access CORBA servant
     if ( adplugin::ORBManager::instance()->init( 0, 0 ) >= 0 ) {
 
-        CORBA::Object_var obj = adplugin::ORBManager::instance()->getObject( L"tofcontroller.session" );
+        //CORBA::Object_var obj = adplugin::ORBManager::instance()->getObject( L"tofcontroller.session" );
+        CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( adplugin::manager::instance()->ior() );
 
         if ( ! CORBA::is_nil( obj.in() )  ) {
 

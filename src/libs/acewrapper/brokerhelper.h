@@ -19,10 +19,10 @@ namespace Broker {
 
 namespace acewrapper {
 
-	class nameresolver {
+	class brokerhelper {
 	public:
-		nameresolver(void);
-		~nameresolver(void);
+        brokerhelper(void);
+		~brokerhelper(void);
 
 		static Broker::Manager * getManager( CORBA::ORB * orb, const std::string& ior );
 		static std::string ior( Broker::Manager *, const char * name );

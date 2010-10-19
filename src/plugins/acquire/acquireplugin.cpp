@@ -12,6 +12,7 @@
 #include <adwidgets/spectrumwidget.h>
 #include <adwidgets/chromatogramwidget.h>
 #include <adwidgets/axis.h>
+#include <adplugin/adplugin.h>
 #include <adplugin/orbmanager.h>
 #include <adplugin/qreceiver_i.h>
 #include <adplugin/qobserverevents_i.h>
@@ -340,7 +341,8 @@ AcquirePlugin::actionConnect()
         // CosNaming::Name name = adcontroller::name();
 		std::string name = acewrapper::constants::adcontroller::manager::_name();
         
-        CORBA::Object_var obj = adplugin::ORBManager::instance()->getObject( name );
+        //CORBA::Object_var obj = adplugin::ORBManager::instance()->getObject( name );
+        CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( adplugin::manager::ior() );
         if ( ! CORBA::is_nil( obj ) ) {
             ControlServer::Manager_var manager;
             try { manager = ControlServer::Manager::_narrow( obj ); } catch ( CORBA::Exception& ) { /**/ }

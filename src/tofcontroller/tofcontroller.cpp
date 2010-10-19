@@ -23,6 +23,7 @@ static bool __own_thread = false;
 #     pragma comment(lib, "adinterfaced.lib")
 #     pragma comment(lib, "adportabled.lib")
 #     pragma comment(lib, "acewrapperd.lib")
+#     pragma comment(lib, "adplugind.lib")
 #  else
 #     pragma comment(lib, "TAO_Utils.lib")
 #     pragma comment(lib, "TAO_PI.lib")
@@ -67,6 +68,13 @@ TofController::initialize( CORBA::ORB * orb )
 	return true;
 }
 
+void
+TofController::initial_reference( const char * ior_broker_manager )
+{
+    using namespace tofcontroller;
+    singleton::tofSession_i::instance()->broker_manager_reference( ior_broker_manager );
+}
+
 const char *
 TofController::activate()
 {
@@ -74,14 +82,6 @@ TofController::activate()
 		* pServant = tofcontroller::singleton::tofSession_i::instance();
 	pServant->activate();
 	return pServant->ior().c_str();
-/*
-	CORBA::ORB_var orb = pServant->getServantManager()->orb();
-	CosNaming::Name name; // acewrapper::constants::tofcontroller::manager::name();
-    name.length(1);
-    name[0].id = CORBA::string_dup( "tofcontroller.session" );
-    name[0].kind = CORBA::string_dup( "" );
-	return acewrapper::NS::register_name_service( orb, name, *pServant );
-*/
 }
 
 bool

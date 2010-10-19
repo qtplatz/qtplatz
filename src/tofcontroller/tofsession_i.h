@@ -62,6 +62,4 @@ namespace tofcontroller {
 		boost::scoped_ptr< TOFTask > pTask_;
 		Instrument::eInstStatus status_current_;
 	};
-
-
 }

@@ -18,14 +18,12 @@ namespace acewrapper {
 
         namespace adcontroller {
             struct manager {
-				//static CosNaming::Name name();
 				static const char * _name();
             };
         }
 
         namespace adbroker {
             struct manager {
-				//static CosNaming::Name name();
 				static const char * _name();
             };
         }

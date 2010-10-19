@@ -8,6 +8,7 @@
 #include <QMutex>
 #include <QString>
 #include <stdlib.h>
+#include <acewrapper/constants.h>
 #include <adportable/configuration.h>
 #include <adportable/configloader.h>
 #include <adportable/debug.h>
@@ -136,6 +137,14 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
     return 0;
 }
 
+std::string
+manager::ior( const char * name )
+{
+    if ( name )
+        return manager::instance()->lookup_ior( name );
+    else
+        return manager::instance()->lookup_ior( acewrapper::constants::adbroker::manager::_name() );
+}
 
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
@@ -255,22 +264,25 @@ public:
 
 private:
 	typedef bool (*initialize_t)( CORBA::ORB * );
+    typedef void (*initial_reference_t)( const char * ior );
 	typedef const char * (*activate_t)();
 	typedef bool (*deactivate_t)();
 	typedef bool (*run_t)();
 	typedef bool (*abort_server_t)();
 public:
-	virtual bool initialize( CORBA::ORB * orb ) { return initialize_   ? initialize_( orb ) : false; }
-	virtual const char * activate()             { return activate_     ? activate_()        : false; }
-	virtual bool deactivate()                   { return deactivate_   ? deactivate_()      : false; }
-	virtual int run()                           { return run_          ? run_()             : false; }
-	virtual void abort_server()                 { return abort_server_ ? abort_server()     : false; }
+	virtual bool initialize( CORBA::ORB * orb )    { return initialize_   ? initialize_( orb ) : false; }
+    virtual void initial_reference( const char * ior ) { if ( initial_reference_ ) initial_reference_( ior ); }
+	virtual const char * activate()                { return activate_     ? activate_()        : false; }
+	virtual bool deactivate()                      { return deactivate_   ? deactivate_()      : false; }
+	virtual int run()                              { return run_          ? run_()             : false; }
+	virtual void abort_server()                    { return abort_server_ ? abort_server()     : false; }
 private:
-	initialize_t   initialize_;
-	activate_t     activate_;
-	deactivate_t   deactivate_;
-	run_t          run_;
-	abort_server_t abort_server_;
+	initialize_t        initialize_;
+    initial_reference_t initial_reference_;
+	activate_t          activate_;
+	deactivate_t        deactivate_;
+	run_t               run_;
+	abort_server_t      abort_server_;
 };
 
 ////////////////////////////////////////

@@ -26,6 +26,7 @@ public:
     // impriment adplugin::orbLoader
 	virtual operator bool() const;
 	virtual bool initialize( CORBA::ORB * orb = 0 );
+    virtual void initial_reference( const char * iorBroker );
 	virtual const char * activate();
 	virtual bool deactivate();
 	virtual int run();

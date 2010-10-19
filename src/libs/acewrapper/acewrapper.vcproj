@@ -187,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\brokerhelper.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\constants.cpp"
 				>
 			</File>
@@ -212,10 +216,6 @@
 			</File>
 			<File
 				RelativePath="messageblock.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\nameresolver.cpp"
 				>
 			</File>
 			<File
@@ -299,6 +299,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\brokerhelper.h"
+				>
 			</File>
 			<File
 				RelativePath="callback.h"
@@ -537,10 +541,6 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\nameresolver.h"
-				>
 			</File>
 			<File
 				RelativePath=".\nameservice.h"

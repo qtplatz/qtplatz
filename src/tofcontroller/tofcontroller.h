@@ -20,7 +20,8 @@ public:
     TofController();
 
 	virtual operator bool () const;
-	virtual bool initialize( CORBA::ORB * orb = 0 );
+    virtual bool initialize( CORBA::ORB * orb = 0 );
+    virtual void initial_reference( const char * ior_broker_manager );
 	virtual const char * activate();
 	virtual bool deactivate();
 	virtual int run();
