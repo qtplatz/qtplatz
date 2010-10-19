@@ -4,7 +4,6 @@
 #include <adportable/configuration.h>
 #include <adplugin/orbmanager.h>
 #include <adplugin/adplugin.h>
-#include <acewrapper/nameservice.h>
 #include <QtCore/qplugin.h>
 #include <adinterface/eventlog_helper.h>
 #include <qtwrapper/qstring.h>

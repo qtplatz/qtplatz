@@ -219,10 +219,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\nameservice.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\orbservant.cpp"
 				>
 			</File>
@@ -541,10 +537,6 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\nameservice.h"
-				>
 			</File>
 			<File
 				RelativePath="orbservant.h"

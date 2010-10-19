@@ -14,7 +14,6 @@
 #include <acewrapper/mutex.hpp>
 #include <acewrapper/timeval.h>
 #include <acewrapper/orbservant.h>
-#include <acewrapper/nameservice.h>
 #include <acewrapper/reactorthread.h>
 #include <acewrapper/ace_string.h>
 #include <acewrapper/lifecycle_frame_serializer.h>

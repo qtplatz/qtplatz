@@ -41,7 +41,6 @@
 # include <ace/Process_Manager.h>
 #pragma warning (default: 4996)
 
-#include <acewrapper/nameservice.h>
 #include <acewrapper/orbservant.h>
 #include <acewrapper/constants.h>
 #include <acewrapper/acewrapper.h>

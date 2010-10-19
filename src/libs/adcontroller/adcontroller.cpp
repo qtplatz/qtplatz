@@ -48,8 +48,6 @@
 # include <tao/Utils/ORB_Manager.h>
 #pragma warning (default: 4996)
 
-#include <acewrapper/nameservice.h>
-
 #include "signal_handler.h"
 #include <signal.h>
 #include <acewrapper/orbservant.h>

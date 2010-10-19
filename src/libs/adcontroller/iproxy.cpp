@@ -8,8 +8,7 @@
 #include "constants.h"
 #include "ibroker.h"
 #include "manager_i.h"
-#include <acewrapper/nameservice.h>
-
+#include <adportable/string.h>
 
 using namespace adcontroller;
 
@@ -30,13 +29,17 @@ iProxy::setConfiguration( const adportable::Configuration& c )
 
         if ( ! nsname.empty() ) {
             CORBA::ORB_var orb = adcontroller::singleton::manager::instance()->getServantManager()->orb();
-            CORBA::Object_var obj = acewrapper::NS::resolve_name( orb, nsname );
-            if ( ! CORBA::is_nil( obj.in() ) ) {
-                try {
-                    impl_ = Instrument::Session::_narrow( obj );
-                    if ( ! CORBA::is_nil( impl_ ) ) 
-                        objref_ = true;
-                } catch ( CORBA::Exception& ) {
+            CORBA::Object_var objMgr = orb->string_to_object( adcontroller::singleton::manager::instance()->broker_manager_reference() );
+            Broker::Manager_var mgr = Broker::Manager::_narrow( objMgr );
+            if ( ! CORBA::is_nil( mgr.in() ) ) {
+                CORBA::Object_var obj = orb->string_to_object( mgr->ior( adportable::string::convert( name_ ).c_str() ) ); // acewrapper::NS::resolve_name( orb, nsname );
+                if ( ! CORBA::is_nil( obj.in() ) ) {
+                    try {
+                        impl_ = Instrument::Session::_narrow( obj );
+                        if ( ! CORBA::is_nil( impl_ ) ) 
+                            objref_ = true;
+                    } catch ( CORBA::Exception& ) {
+                    }
                 }
             }
         }
