@@ -175,13 +175,23 @@ adController::abort_server()
 }
 
 /////////////////////
+__declspec(dllexport) adplugin::orbLoader * instance()
+{
+	return new adController;
+}
 
+/*
 __declspec(dllexport) bool initialize( CORBA::ORB * orb )
 {
 	return adController().initialize( orb );
 }
 
-__declspec(dllexport) bool activate()
+__declspec(dllexport) void initial_reference( const char * iorBroker )
+{
+	adController().initial_reference( iorBroker );
+}
+
+__declspec(dllexport) const char * activate()
 {
 	return adController().activate();
 }
@@ -200,3 +210,4 @@ __declspec(dllexport) void abort_server()
 {
 	return adController().abort_server();
 }
+*/

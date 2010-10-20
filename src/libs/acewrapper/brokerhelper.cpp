@@ -20,7 +20,7 @@ brokerhelper::~brokerhelper(void)
 }
 
 //static
-Broker::Manager *
+Broker::Manager_ptr
 brokerhelper::getManager( CORBA::ORB_ptr orb, const std::string& ior )
 {
 	CORBA::Object_var obj = orb->string_to_object( ior.c_str() );

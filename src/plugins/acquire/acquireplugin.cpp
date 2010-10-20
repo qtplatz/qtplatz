@@ -342,7 +342,7 @@ AcquirePlugin::actionConnect()
 		std::string name = acewrapper::constants::adcontroller::manager::_name();
         
         //CORBA::Object_var obj = adplugin::ORBManager::instance()->getObject( name );
-        CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( adplugin::manager::ior() );
+        CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( adplugin::manager::iorBroker() );
         if ( ! CORBA::is_nil( obj ) ) {
             ControlServer::Manager_var manager;
             try { manager = ControlServer::Manager::_narrow( obj ); } catch ( CORBA::Exception& ) { /**/ }

@@ -114,12 +114,18 @@ adplugin::orbLoader * instance()
 	return new TofController();
 }
 
+/*
 __declspec(dllexport) bool initialize( CORBA::ORB * orb )
 {
 	return TofController().initialize( orb );
 }
 
-__declspec(dllexport) bool activate()
+__declspec(dllexport) void initial_reference( const char * iorBroker )
+{
+	TofController().initial_reference( iorBroker );
+}
+
+__declspec(dllexport) const char * activate()
 {
 	return TofController().activate();
 }
@@ -138,3 +144,4 @@ __declspec(dllexport) void abort_server()
 {
 	return TofController().abort_server();
 }
+*/

@@ -42,9 +42,12 @@ private:
 
 extern "C" {
 	__declspec(dllexport) adplugin::orbLoader * instance();
+/*
 	__declspec(dllexport) bool initialize( CORBA::ORB * orb = 0 );
-	__declspec(dllexport) bool activate();
+    __declspec(dllexport) void initial_reference( const char * iorBroker );
+	__declspec(dllexport) const char * activate();
 	__declspec(dllexport) bool deactivate();
 	__declspec(dllexport) int run();
 	__declspec(dllexport) void abort_server();
+*/
 }

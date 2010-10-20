@@ -18,6 +18,7 @@
 #include <QPluginLoader>
 #include <QLibrary>
 #include <QDir>
+#include <QMessageBox>
 #include "ifactory.h"
 #include "imonitor.h"
 #include "orbLoader.h"
@@ -138,12 +139,15 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
 }
 
 std::string
+manager::iorBroker()
+{
+	return manager::instance()->lookup_ior( acewrapper::constants::adbroker::manager::_name() );
+}
+
+std::string
 manager::ior( const char * name )
 {
-    if ( name )
-        return manager::instance()->lookup_ior( name );
-    else
-        return manager::instance()->lookup_ior( acewrapper::constants::adbroker::manager::_name() );
+	return manager::instance()->lookup_ior( name );
 }
 
 ////////////////////////////////////////////////////////
@@ -246,20 +250,22 @@ public:
 	}
 
 	orbLoaderImpl( QLibrary& lib ) : initialize_(0)
+		                           , initial_reference_(0) 
                                    , activate_(0)
 								   , deactivate_(0)
 								   , run_(0)
 								   , abort_server_(0)
 	{
-		initialize_   = static_cast<initialize_t>( lib.resolve( "initialize" ) );
-		activate_     = static_cast<activate_t>( lib.resolve( "activate" ) );
-		deactivate_   = static_cast<deactivate_t>( lib.resolve( "deactivate" ) );
-		run_          = static_cast<run_t>( lib.resolve( "run" ) );
-		abort_server_ = static_cast<abort_server_t>( lib.resolve( "abort_server" ) );
+		initialize_        = static_cast<initialize_t>( lib.resolve( "initialize" ) );
+		initial_reference_ = static_cast<initial_reference_t>( lib.resolve( "initial_reference" ) );
+		activate_          = static_cast<activate_t>( lib.resolve( "activate" ) );
+		deactivate_        = static_cast<deactivate_t>( lib.resolve( "deactivate" ) );
+		run_               = static_cast<run_t>( lib.resolve( "run" ) );
+		abort_server_      = static_cast<abort_server_t>( lib.resolve( "abort_server" ) );
 	}
 
 	virtual operator bool () const {
-		return initialize_ && activate_ && deactivate_ && run_ && abort_server_;
+		return initialize_ && initial_reference_ && activate_ && deactivate_ && run_ && abort_server_;
 	}
 
 private:
@@ -270,12 +276,12 @@ private:
 	typedef bool (*run_t)();
 	typedef bool (*abort_server_t)();
 public:
-	virtual bool initialize( CORBA::ORB * orb )    { return initialize_   ? initialize_( orb ) : false; }
-    virtual void initial_reference( const char * ior ) { if ( initial_reference_ ) initial_reference_( ior ); }
-	virtual const char * activate()                { return activate_     ? activate_()        : false; }
-	virtual bool deactivate()                      { return deactivate_   ? deactivate_()      : false; }
-	virtual int run()                              { return run_          ? run_()             : false; }
-	virtual void abort_server()                    { return abort_server_ ? abort_server()     : false; }
+	virtual bool initialize( CORBA::ORB * orb )      { return initialize_   ? initialize_( orb ) : false; }
+	virtual void initial_reference(const char * ior) { if (initial_reference_) initial_reference_( ior ); }
+	virtual const char * activate()                  { return activate_     ? activate_()        : false; }
+	virtual bool deactivate()                        { return deactivate_   ? deactivate_()      : false; }
+	virtual int run()                                { return run_          ? run_()             : false; }
+	virtual void abort_server()                      { return abort_server_ ? abort_server()     : false; }
 private:
 	initialize_t        initialize_;
     initial_reference_t initial_reference_;
@@ -320,6 +326,8 @@ manager_impl::orbLoader( const std::wstring& file )
 			boost::shared_ptr< adplugin::orbLoader > loader( new orbLoaderImpl( lib ) );
 			if ( loader )
 				orbLoaders_[ file ] = loader;
+			else
+				QMessageBox::critical( 0, "adplugin::orbLoader", "some method(s) can not be assigned" );
 		}
 	}
 	if ( ( it = orbLoaders_.find( file ) ) != orbLoaders_.end() )

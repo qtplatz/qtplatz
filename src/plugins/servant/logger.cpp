@@ -58,7 +58,7 @@ internal::LogHost::instance()
 void
 internal::LogHost::initialize()
 {
-    std::string ior = adplugin::manager::instance()->ior(); 
+    std::string ior = adplugin::manager::instance()->iorBroker(); 
     CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( ior );
 
     try {

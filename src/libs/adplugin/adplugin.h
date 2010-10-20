@@ -34,7 +34,8 @@ namespace adplugin {
 	public:
             static manager * instance();
             static void dispose();
-            static std::string ior( const char * name = 0 ); // return broker::manager's ior
+            static std::string ior( const char * name ); // return broker::manager's ior
+            static std::string iorBroker();
             
             virtual bool loadConfig( adportable::Configuration&, const std::wstring&, const wchar_t * query ) = 0;
             virtual QObject * loadLibrary( const std::wstring& ) = 0;
