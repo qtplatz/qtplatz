@@ -22,7 +22,7 @@
       <title lang="jp">InfiTOF</title>
       <Component name="infitofui::monitor_ui" type="widget" loader="adplugin" interface="adplugin::ui::iMonitor" module="infitofui.dll"/>
     </Configuration>
-    
+    <!--
     <Configuration name="tofms_monitor" type="tab" component="adtofms::imonitor_ui">
 			<title lang="en">MassSpectrometer</title>
 			<title lang="jp">質量分析計</title>
@@ -33,6 +33,7 @@
 			<title lang="jp">質量分析計2</title>
 			<Component name="adtofms::debug_ui" type="widget" loader="adplugin" interface="adplugin::ui::iMonitor2" module="adtofms.dll"/>
 		</Configuration>
+    -->
     <Configuration name="sequence_monitor" type="tab" component="self::sequence_editor" readonly="true">
 			<title lang="jp">Sequence</title>
 			<title lang="en">Sequence</title>

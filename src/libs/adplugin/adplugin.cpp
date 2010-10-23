@@ -221,7 +221,7 @@ manager_impl::lookup_ior( const std::string& name )
 {
 #if defined _DEBUG
 	std::string path = QDir::home().absolutePath().toStdString();
-	path += std::string( "/.ior" ) + name + ".ior";
+	path += std::string( "/.ior/" ) + name + ".ior";
 	std::ifstream inf( path.c_str() );
 
 	if ( ! inf.fail() ) {

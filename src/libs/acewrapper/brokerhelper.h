@@ -14,21 +14,21 @@ namespace CORBA {
 }
 
 namespace Broker {
-	class Manager;
+    class Manager;
 }
 
 namespace acewrapper {
-
-	class brokerhelper {
-	public:
+    
+    class brokerhelper {
+    public:
         brokerhelper(void);
-		~brokerhelper(void);
-
-		static Broker::Manager * getManager( CORBA::ORB * orb, const std::string& ior );
-		static std::string ior( Broker::Manager *, const char * name );
-		// static CORBA::Object * string_to_object( const std::string& ior );
-
-	private:
-		// static bool find_ior( const std::string& name, std::string& ior );
-	};
+        ~brokerhelper(void);
+        
+        static Broker::Manager * getManager( CORBA::ORB * orb, const std::string& iorBroker );
+        static std::string ior( Broker::Manager *, const char * name );
+        static CORBA::Object * name_to_object( CORBA::ORB * orb, const std::string& name, const std::string& iorBroker );
+        
+    private:
+        // static bool find_ior( const std::string& name, std::string& ior );
+    };
 };
