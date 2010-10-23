@@ -8,7 +8,7 @@
 <AcquireConfiguration name="acquire">
 	<Module name="adtofms.dll" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/adtofms$(configuration).dll"/>
   <Module name="qtwidgets.dll" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/qtwidgets$(configuration).dll"/>
-  <Module name="infitofui.dll" type="sharedlib" filename="/lib/qtPlatz/infitofui$(configuration).dll"/>
+  <Module name="infitofui.dll" type="sharedlib" filename="/lib/qtPlatz/plugins/MSI/infitofui$(configuration).dll"/>
 	<Configuration name="instrument_monitor_tab">
 		<Configuration name="log_book" type="tab" component="qtwidgets::LogWidget" readonly="true">
 			<title lang="jp">Log</title>

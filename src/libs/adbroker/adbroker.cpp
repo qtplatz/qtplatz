@@ -44,6 +44,7 @@
 #include <acewrapper/orbservant.h>
 #include <acewrapper/constants.h>
 #include <acewrapper/acewrapper.h>
+#include <adportable/debug.h>
 
 #include "manager_i.h"
 #include "brokermanager.h"
@@ -96,7 +97,6 @@ adBroker::deactivate()
     ORBServant< adbroker::manager_i > * pServant = adbroker::singleton::manager::instance();
 	pServant->deactivate();
 
-    // adbroker::BrokerManager::instance()->terminate();
     adbroker::BrokerManager::terminate();
 	return true;
 }
@@ -108,6 +108,7 @@ adBroker::run()
 	if ( p->test_and_set_thread_flag() ) {
         __own_thread = true;
 		ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), reinterpret_cast<void *>(p) );
+        ACE_OS::sleep(0);
 	}
     return 0;
 }

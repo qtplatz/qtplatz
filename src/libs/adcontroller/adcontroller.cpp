@@ -62,7 +62,7 @@
 
 using namespace acewrapper;
 
-static int debug_flag = 1;
+static int debug_flag = 0;
 static bool __aborted = false;
 static bool __own_thread = false;
 
@@ -163,6 +163,7 @@ adController::run()
    if ( p->test_and_set_thread_flag() ) {
 	   __own_thread = true;
 	   ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), reinterpret_cast<void *>(p) );
+       ACE_OS::sleep(0);
    }
 
    return 0;

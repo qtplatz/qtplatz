@@ -6,15 +6,18 @@
 #include "manager_i.h"
 #include "session_i.h"
 #include "logger_i.h"
+#include <adportable/debug.h>
 
 using namespace adbroker;
 
 adbroker::manager_i::manager_i(void) 
 {
+    adportable::debug() << "adbroker::manager_i ctor";
 }
 
 adbroker::manager_i::~manager_i(void)
 {
+    adportable::debug() << "adbroker::~manager_i dtor";
 }
 
 void
@@ -69,6 +72,7 @@ manager_i::getLogger()
 void
 manager_i::register_ior( const char * name, const char * ior )
 {
+    adportable::debug() << "adbroker::manager_i::register_ior(" << std::string(name) << ", " << std::string(ior) << ")";
 	iorMap_[ name ] = ior;
 }
 

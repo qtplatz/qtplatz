@@ -87,32 +87,39 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
 	if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
 		error_message = new QString( "loadConfig load failed" );
-        adportable::debug debug;
-        debug << "ServantPlugin::initialize loadConfig failed";
+        adportable::debug() << "ServantPlugin::initialize loadConfig failed";
 	}
 
     // --------------------------------
     std::string iorBroker;
 	Broker::Manager_var mgr;
 	do { // adborker, it has to be on top of servant activation
-		adBroker::initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
+        CORBA::ORB_var orb = acewrapper::singleton::orbServantManager::instance()->orb();
+        adBroker::initialize( orb ); 
         iorBroker = adBroker::activate();
         if ( ! iorBroker.empty() )
 			adplugin::manager::instance()->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker );
 		adBroker::run();
-
+  
         // ---- private naming service (Broker::Manager) start ----
 		CORBA::Object_var obj = acewrapper::singleton::orbServantManager::instance()->orb()->string_to_object( iorBroker.c_str() );
 		if ( ! CORBA::is_nil( obj ) ) {
 			mgr = Broker::Manager::_narrow( obj );
 			if ( CORBA::is_nil( mgr ) ) {
-				QMessageBox::critical(0, "ServantPukgin", "Broker::Manager creation failed" );
+				QMessageBox::critical(0, "ServantPlugin", "Broker::Manager creation failed" );
                 *error_message = "Broker::Manager creation failed";
 				return false;
 			}
 		}
         // store broker's ior to self
-		mgr->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker.c_str() );
+        try {
+            mgr->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker.c_str() );
+        } catch ( CORBA::Exception& ex ) {
+            adportable::debug() << "CORBA::Exception: " << ex._info().c_str();
+            QMessageBox::critical(0, "ServantPlugin - Broker::Manager::registor_ior", ex._info().c_str() );
+            *error_message = "Broker::Manager::registor_ior exception";
+            return false;
+        }
  	} while ( 0 );
 
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
@@ -199,14 +206,17 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     Logger log;
     log( ( nErrors ? L"Servant iitialized with errors" : L"Servernt initialized successfully") );
 
+    do { adportable::debug() << "ServantPlugin::initialize() completed."; } while(0);
     return true;
 }
 
 void
 ServantPlugin::extensionsInitialized()
 {
+    do { adportable::debug() << "ServantPlugin::extensionsInitialized() entered."; } while(0);
     OutputWindow * outputWindow = ExtensionSystem::PluginManager::instance()->getObject< servant::OutputWindow >();
-    outputWindow->appendLog( L"ServantPlugin::extensionsInitialized()" );
+    if ( outputWindow )
+        outputWindow->appendLog( L"ServantPlugin::extensionsInitialized()" );
 }
 
 void
