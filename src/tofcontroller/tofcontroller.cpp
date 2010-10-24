@@ -71,7 +71,7 @@ void
 TofController::initial_reference( const char * ior_broker_manager )
 {
     using namespace tofcontroller;
-    singleton::tofSession_i::instance()->broker_manager_reference( ior_broker_manager );
+	singleton::tofSession_i::instance()->broker_manager_ior( ior_broker_manager );
 }
 
 const char *

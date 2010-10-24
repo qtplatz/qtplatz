@@ -74,8 +74,8 @@ namespace acewrapper {
 		inline operator typename T::_stub_ptr_type () { return impl_._this(); }
 		inline const std::string& ior() const { return id_; }
 		inline CORBA::ORB_ptr orb() { return pMgr_->orb(); }
-        inline void broker_manager_reference( const std::string& ior ) { ior_broker_manager_ = ior; }
-        inline const char * broker_manager_reference() const { return ior_broker_manager_.c_str(); }
+        inline void broker_manager_ior( const std::string& ior ) { ior_broker_manager_ = ior; }
+        inline const char * broker_manager_ior() const { return ior_broker_manager_.c_str(); }
 
 	private:
 		ORBServantManager * pMgr_;

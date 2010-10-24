@@ -14,7 +14,6 @@
 #     pragma comment(lib, "TAO_PId.lib")
 #     pragma comment(lib, "TAO_PortableServerd.lib")
 #     pragma comment(lib, "TAO_AnyTypeCoded.lib")
-#     pragma comment(lib, "TAO_CosNamingd.lib")
 #     pragma comment(lib, "TAOd.lib")
 #     pragma comment(lib, "ACEd.lib")
 #     pragma comment(lib, "adinterfaced.lib")
@@ -27,7 +26,6 @@
 #     pragma comment(lib, "TAO_PI.lib")
 #     pragma comment(lib, "TAO_PortableServer.lib")
 #     pragma comment(lib, "TAO_AnyTypeCode.lib")
-#     pragma comment(lib, "TAO_CosNaming.lib")
 #     pragma comment(lib, "TAO.lib")
 #     pragma comment(lib, "ACE.lib")
 #     pragma comment(lib, "adinterface.lib")
@@ -109,7 +107,7 @@ adController::initialize( CORBA::ORB_ptr orb )
 void
 adController::initial_reference( const char * iorBroker )
 {
-    adcontroller::singleton::manager::instance()->broker_manager_reference( iorBroker );
+    adcontroller::singleton::manager::instance()->broker_manager_ior( iorBroker );
 }
 
 const char *

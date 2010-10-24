@@ -275,7 +275,7 @@ TOFTask::internal_initialize()
 		* pServant = tofcontroller::singleton::tofSession_i::instance();
 	CORBA::ORB_var orb = pServant->orb();
     
-	CORBA::Object_var obj = orb->string_to_object( singleton::tofSession_i::instance()->broker_manager_reference() );
+	CORBA::Object_var obj = orb->string_to_object( singleton::tofSession_i::instance()->broker_manager_ior() );
 	Broker::Manager_var manager = Broker::Manager::_narrow( obj.in() );
 
 	if ( ! CORBA::is_nil( manager.in() ) ) {

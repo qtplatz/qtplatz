@@ -9,6 +9,8 @@
 #include "ibroker.h"
 #include "manager_i.h"
 #include <adportable/string.h>
+#include <acewrapper/brokerhelper.h>
+#include <adportable/debug.h>
 
 using namespace adcontroller;
 
@@ -25,25 +27,35 @@ iProxy::setConfiguration( const adportable::Configuration& c )
     if ( config_.attribute( L"type" ) == L"object_ref" ) { // CORBA Object
 
         name_ = config_.name();
-        std::wstring nsname = config_.attribute( L"ns_name" );
+		std::string nsname = adportable::string::convert( config_.attribute( L"ns_name" ) );
+		CORBA::ORB_var orb = adcontroller::singleton::manager::instance()->getServantManager()->orb();
+		std::string iorBroker = adcontroller::singleton::manager::instance()->broker_manager_ior();
 
         if ( ! nsname.empty() ) {
-            CORBA::ORB_var orb = adcontroller::singleton::manager::instance()->getServantManager()->orb();
-            CORBA::Object_var objMgr = orb->string_to_object( adcontroller::singleton::manager::instance()->broker_manager_reference() );
-            Broker::Manager_var mgr = Broker::Manager::_narrow( objMgr );
-            if ( ! CORBA::is_nil( mgr.in() ) ) {
-                CORBA::Object_var obj = orb->string_to_object( mgr->ior( adportable::string::convert( name_ ).c_str() ) ); // acewrapper::NS::resolve_name( orb, nsname );
-                if ( ! CORBA::is_nil( obj.in() ) ) {
-                    try {
-                        impl_ = Instrument::Session::_narrow( obj );
-                        if ( ! CORBA::is_nil( impl_ ) ) 
-                            objref_ = true;
-                    } catch ( CORBA::Exception& ) {
-                    }
-                }
-            }
-        }
-    }
+			Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, iorBroker );
+			if ( CORBA::is_nil( mgr ) )
+				throw std::exception( "iProxy::setConfiguration -- can't get Broker::Manager reference" );
+
+			std::string ior = mgr->ior( nsname.c_str() );
+			if ( ior.empty() ) {
+				adportable::debug() << "iProxy::setConfiguration -- object '" << nsname << "' not registerd";
+				throw std::exception( ( std::string("iProxy::setConfiguration -- ") + nsname + " not registerd" ).c_str() );
+			}
+
+			try {
+				// acewrapper::NS::resolve_name( orb, nsname );
+				CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
+				if ( ! CORBA::is_nil( obj.in() ) ) {
+					impl_ = Instrument::Session::_narrow( obj );
+					if ( ! CORBA::is_nil( impl_ ) ) 
+						objref_ = true;
+				} 
+			} catch ( CORBA::Exception& ex ) {
+				std::string emsg = ex._info().c_str();
+				throw std::exception( emsg.c_str() );
+			}
+		}
+	}
 }
 
 // POA_Receiver

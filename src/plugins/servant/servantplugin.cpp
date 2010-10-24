@@ -56,6 +56,35 @@ ServantPlugin::ServantPlugin() : pConfig_( 0 )
 {
 }
 
+namespace servant {
+	namespace internal {
+		class ServantUtils {
+		public:
+			static Broker::Manager_ptr initialize_broker( CORBA::ORB_ptr orb, std::string& iorBroker )	{
+				adBroker::initialize( orb ); 
+				iorBroker = adBroker::activate();
+				if ( ! iorBroker.empty() )
+					adplugin::manager::instance()->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker );
+				adBroker::run();
+  
+				// ---- private naming service (Broker::Manager) start ----
+				CORBA::Object_var obj = orb->string_to_object( iorBroker.c_str() );
+				Broker::Manager_var mgr = Broker::Manager::_narrow( obj );
+				if ( CORBA::is_nil( mgr ) )
+					return 0;
+				// store broker's ior to self
+				try {
+					mgr->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker.c_str() );
+				} catch ( CORBA::Exception& ex ) {
+					adportable::debug() << "CORBA::Exception: " << ex._info().c_str();
+					QMessageBox::critical(0, "ServantPlugin - Broker::Manager::registor_ior", ex._info().c_str() );
+				}
+				return mgr._retn();
+			}
+		};
+	}
+}
+
 bool
 ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
@@ -90,38 +119,17 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         adportable::debug() << "ServantPlugin::initialize loadConfig failed";
 	}
 
-    // --------------------------------
-    std::string iorBroker;
-	Broker::Manager_var mgr;
-	do { // adborker, it has to be on top of servant activation
-        CORBA::ORB_var orb = acewrapper::singleton::orbServantManager::instance()->orb();
-        adBroker::initialize( orb ); 
-        iorBroker = adBroker::activate();
-        if ( ! iorBroker.empty() )
-			adplugin::manager::instance()->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker );
-		adBroker::run();
-  
-        // ---- private naming service (Broker::Manager) start ----
-		CORBA::Object_var obj = acewrapper::singleton::orbServantManager::instance()->orb()->string_to_object( iorBroker.c_str() );
-		if ( ! CORBA::is_nil( obj ) ) {
-			mgr = Broker::Manager::_narrow( obj );
-			if ( CORBA::is_nil( mgr ) ) {
-				QMessageBox::critical(0, "ServantPlugin", "Broker::Manager creation failed" );
-                *error_message = "Broker::Manager creation failed";
-				return false;
-			}
-		}
-        // store broker's ior to self
-        try {
-            mgr->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker.c_str() );
-        } catch ( CORBA::Exception& ex ) {
-            adportable::debug() << "CORBA::Exception: " << ex._info().c_str();
-            QMessageBox::critical(0, "ServantPlugin - Broker::Manager::registor_ior", ex._info().c_str() );
-            *error_message = "Broker::Manager::registor_ior exception";
-            return false;
-        }
- 	} while ( 0 );
+    // ------------ Broker::Manager initialize first --------------------
+	CORBA::ORB_var orb = acewrapper::singleton::orbServantManager::instance()->orb();
+	std::string iorBroker;
+	Broker::Manager_var mgr = internal::ServantUtils::initialize_broker( orb, iorBroker );
+	if ( CORBA::is_nil( mgr ) || iorBroker.empty() ) {
+		QMessageBox::critical(0, "ServantPlugin", "Broker::Manager creation failed" );
+		*error_message = "Broker::Manager creation failed";
+		return false;
+	}
 
+	///////////////////////////////////
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
         std::wstring name = it->name();
 		std::wstring component = it->component();
@@ -132,13 +140,13 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 			// adcontroller must be on top
             std::wstring file = apppath + it->module().library_filename();
             it->attribute( L"fullpath", file );
-			std::string name = adportable::string::convert( it->attribute( L"ns_name" ) );
+			std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
             adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
             if ( loader ) {
-                loader.initialize( acewrapper::singleton::orbServantManager::instance()->orb() );
+				loader.initialize( orb );
                 loader.initial_reference( iorBroker.c_str() );
 				std::string ior = loader.activate();            // activate object
-                mgr->register_ior( name.c_str(), ior.c_str() ); // set ior to Broker::Manager
+                mgr->register_ior( ns_name.c_str(), ior.c_str() ); // set ior to Broker::Manager
                 loader.run();
             }
         }
@@ -158,22 +166,24 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     // 
     ControlServer::Session_var session;
     std::vector< Instrument::Session_var > i8t_sessions;
-
+	// CORBA::ORB_var orb = acewrapper::singleton::orbServantManager::instance()->orb();
 	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
 
 		if ( it->name() == L"adbroker" ) {
             pImpl_->init_debug_adbroker( this );
 		} else if ( it->name() == L"adcontroller" ) {
             pImpl_->init_debug_adcontroller( this );
-            // CORBA::Object_var obj;
-            std::string ior = adplugin::manager::instance()->ior( acewrapper::constants::adbroker::manager::_name() );
-            CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( ior );
+			CORBA::Object_var obj 
+				= acewrapper::brokerhelper::name_to_object( orb
+				                                           , acewrapper::constants::adcontroller::manager::_name()
+														   , adplugin::manager::iorBroker() ); 
             ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
-			if ( ! CORBA::is_nil( manager ) ) {
-                session = manager->getSession( L"debug" );
-				session->setConfiguration( it->xml().c_str() );
+			if ( CORBA::is_nil( manager ) ) {
+				error_message = new QString("ControlServer::Manager object reference failed");
+				return false;
 			}
-
+			session = manager->getSession( L"debug" );
+			session->setConfiguration( it->xml().c_str() );
 		} else if ( it->attribute( L"type" ) == L"orbLoader" ) {
 			std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
 			if ( ! ns_name.empty() ) {

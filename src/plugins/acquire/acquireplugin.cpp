@@ -175,21 +175,6 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
   Q_UNUSED(error_message);
   Core::ICore * core = Core::ICore::instance();
 
-#if defined _DEBUG
-  const adportable::MassSpectrometer& ms = adportable::MassSpectrometer::get( L"InfiTOF" );
-  const adportable::MassSpectrometer::ScanLaw& scanLaw = ms.getScanLaw();
-  double tof[ 100 ];
-  double mass[ 100 ];
-  int n = 0;
-  for ( int i = 50; i < 500; i += 50 ) {
-      tof[n] = scanLaw.getTime( i, 0.688 );
-      mass[n] = scanLaw.getMass( tof[n], 0.688 );
-      double d = mass[n] - i;
-	  assert( fabs(d) < 10e-10 );
-      n++;
-  }
-#endif
-
   QList<int> context;
   if ( core ) {
     Core::UniqueIDManager * uidm = core->uniqueIDManager();
