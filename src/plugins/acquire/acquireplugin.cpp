@@ -18,7 +18,6 @@
 #include <adplugin/qobserverevents_i.h>
 #include <tao/Object.h>
 # pragma warning(disable:4996)
-# include <orbsvcs/CosNamingC.h>
 # include <adcontroller/adcontroller.h>
 # include <adinterface/controlserverC.h>
 # include <adinterface/receiverC.h>

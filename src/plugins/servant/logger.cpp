@@ -4,12 +4,13 @@
 //////////////////////////////////////////
 
 #include "logger.h"
+#pragma warning(disable:4996)
 #include <adinterface/brokerC.h>
+#pragma warning(default:4996)
 #include <adplugin/adplugin.h>
 #include <adplugin/orbmanager.h>
 #include <acewrapper/constants.h>
 #include <acewrapper/brokerhelper.h>
-#include <orbsvcs/CosNamingC.h>
 #include <adportable/string.h>
 ///////-- ServantPlugin dependent -- ////////
 #include "outputwindow.h"

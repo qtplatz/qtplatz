@@ -19,10 +19,6 @@ template<class T, class M> class ACE_Singleton;
 
 class TAO_ORB_Manager;
 
-namespace CosNaming {
-	class Name;
-}
-
 namespace adplugin {
 
 	class ADPLUGINSHARED_EXPORT ORBManager {
@@ -32,12 +28,7 @@ namespace adplugin {
 	public:
 		int init( int argc, char * argv[] );
 		CORBA::ORB_ptr orb();
-# if defined USE_NAMING_SERVICE
-		CORBA::Object_ptr getObject( const CosNaming::Name& );
-		CORBA::Object_ptr getObject( const std::wstring& );
-# endif
 		CORBA::Object_ptr string_to_object( const std::string& ior );
-
         static ORBManager * instance();
 
 	private:

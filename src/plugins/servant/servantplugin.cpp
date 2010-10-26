@@ -18,7 +18,6 @@
 #include <QtCore>
 #pragma warning(disable:4996)
 #include <ace/Thread_Manager.h>
-#include <orbsvcs/CosNamingC.h>
 #pragma warning(default:4996)
 
 #include <adbroker/adbroker.h>

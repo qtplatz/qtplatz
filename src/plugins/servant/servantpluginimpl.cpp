@@ -19,10 +19,6 @@
 #include "servantplugin.h"
 #include "outputwindow.h"
 
-#pragma warning(disable:4996)
-# include <orbsvcs/CosNamingC.h>
-#pragma warning(default:4996)
-
 using namespace servant;
 using namespace servant::internal;
 

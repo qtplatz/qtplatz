@@ -29,7 +29,6 @@
 # include "tofcontrollerC.h"
 # include <ace/OS.h>
 # include <adinterface/global_constantsC.h>
-# include <orbsvcs/CosNamingC.h>
 # include <adinterface/receiverC.h>
 #pragma warning (default : 4996 )
 
