@@ -246,6 +246,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\massspectrometer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\massspectrometerbroker.cpp"
+				>
+			</File>
+			<File
 				RelativePath="massspectrum.cpp"
 				>
 			</File>
@@ -482,6 +490,14 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\massspectrometer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\massspectrometerbroker.h"
+				>
 			</File>
 			<File
 				RelativePath="massspectrum.h"
