@@ -20,6 +20,7 @@ namespace adcontrols {
 	public:
 		typedef MassSpectrometer * (*factory_type)(void);
 
+        static bool register_library( const std::string& sharedlib, const std::wstring& name );
 		static bool register_factory( factory_type, const std::wstring& name );
 		static factory_type find( const std::wstring& name );
 	};
