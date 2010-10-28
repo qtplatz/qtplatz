@@ -11,7 +11,9 @@
 #if defined ACE_WIN32
 #  if defined _DEBUG
 #     pragma comment(lib, "ACEd.lib")
+#     pragma comment(lib, "adportabled.lib")
 #  else
 #     pragma comment(lib, "ACE.lib")
+#     pragma comment(lib, "adportable.lib")
 #  endif
 #endif

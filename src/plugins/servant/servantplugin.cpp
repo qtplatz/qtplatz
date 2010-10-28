@@ -21,6 +21,7 @@
 #pragma warning(default:4996)
 
 #include <adbroker/adbroker.h>
+#include <adcontrols/massspectrometerbroker.h>
 #include <adcontroller/adcontroller.h>
 #include <adinterface/instrumentC.h>
 
@@ -204,7 +205,10 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                     ++nErrors;
                 }
 			}
-		}
+        } else if ( it->attribute( L"type" ) == L"MassSpectrometer" ) {
+            const std::wstring name = apppath + it->module().library_filename();
+            adcontrols::MassSpectrometerBroker::register_library( name );
+        }
 	}
 
     if ( ! CORBA::is_nil( session ) ) {
@@ -237,9 +241,7 @@ ServantPlugin::shutdown()
 	for ( adportable::Configuration::vector_type::reverse_iterator it = config.rbegin(); it != config.rend(); ++it ) {
 		std::wstring name = it->name();
 		if ( name == L"adbroker" ) {
-			// adBroker::deactivate();
-			// } else if ( name == L"adcontroller" ) {
-			// adController::deactivate();
+            /* deactivate at the end */
         } else if ( it->attribute(L"type") == L"orbLoader" ) {
 			std::wstring file = it->attribute( L"fullpath" );
 			adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );

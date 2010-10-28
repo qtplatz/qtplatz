@@ -4,6 +4,7 @@
 //////////////////////////////////////////
 
 #include "MassSpectrometerBroker.h"
+#include "MassSpectrometer.h"
 #pragma warning(disable:4996)
 #include <ace/Singleton.h>
 #include <ace/Recursive_Thread_Mutex.h>
@@ -11,6 +12,7 @@
 #include <map>
 #include <string>
 #include <QLibrary>
+#include <adportable/string.h>
 
 using namespace adcontrols;
 
@@ -28,7 +30,7 @@ namespace adcontrols {
 	public:
 		~MassSpectrometerBrokerImpl() {}
 
-        bool register_library( const std::string& sharedlib_name, const std::wstring& name );
+        bool register_library( const std::wstring& sharedlib_name );
 
 		bool register_factory( factory_type factory, const std::wstring& name ) {
 			factories_[name] = factory;
@@ -42,6 +44,8 @@ namespace adcontrols {
 			return 0;
 		}
 
+        void visit( adcontrols::MassSpectrometer& );
+
 	private:
 		std::map< std::wstring, factory_type > factories_;
 	};
@@ -50,16 +54,27 @@ namespace adcontrols {
 }
 
 bool
-MassSpectrometerBrokerImpl::register_library( const std::string& sharedlib, const std::wstring& name )
+MassSpectrometerBrokerImpl::register_library( const std::wstring& sharedlib )
 {
-    QLibrary lib( sharedlib.c_str() );
+    std::string mbs = adportable::string::convert( sharedlib );
+    QLibrary lib( mbs.c_str() );
     if ( lib.load() ) {
         typedef adcontrols::MassSpectrometer * (*instance_type)();
-        instance_type instance = static_cast<instance_type>( lib.resolve( "instance" ) );
-        if ( instance )
-            return register_factory( instance, name );
+        instance_type getMassSpectrometer = static_cast<instance_type>( lib.resolve( "getMassSpectrometer" ) );
+        if ( getMassSpectrometer ) {
+            MassSpectrometer * p = getMassSpectrometer();
+            if ( p )
+                p->accept( *this );
+        }
     }
     return false;
+}
+
+void
+MassSpectrometerBrokerImpl::visit( adcontrols::MassSpectrometer& impl )
+{
+    adcontrols::MassSpectrometerBroker::factory_type factory = impl.factory();
+    register_factory( factory, impl.name() );
 }
 
 /////////////////////////////////////////////
@@ -73,15 +88,15 @@ MassSpectrometerBroker::~MassSpectrometerBroker(void)
 }
 
 bool
-MassSpectrometerBroker::register_library( const std::string& sharedlib, const std::wstring& name )
+MassSpectrometerBroker::register_library( const std::wstring& sharedlib )
 {
-	return singleton::MassSpectrometerBrokerImpl::instance()->register_library( sharedlib, name );
+	return singleton::MassSpectrometerBrokerImpl::instance()->register_library( sharedlib );
 }
 
 bool
 MassSpectrometerBroker::register_factory( factory_type factory, const std::wstring& name )
 {
-	return singleton::MassSpectrometerBrokerImpl::instance()->register_factory( factory, name );
+    return singleton::MassSpectrometerBrokerImpl::instance()->register_factory( factory, name );
 }
 
 MassSpectrometerBroker::factory_type

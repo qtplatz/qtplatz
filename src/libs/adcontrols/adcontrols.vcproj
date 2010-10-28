@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="c:\Windows\system32\config\systemprofile\src\SATools\bin;.\..\..\libs;&quot;$(SolutionDir)tools&quot;;&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;&quot;$(ACE_ROOT)&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.\debug;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;c:\Windows\system32\config\systemprofile\src\SATools\bin;.\..\..\libs;&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;&quot;$(ACE_ROOT)&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;"
 				PreprocessorDefinitions="_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;IDE_LIBRARY_BASENAME=\&quot;lib\&quot;;WITH_TESTS;QT_NO_CAST_TO_ASCII;ADCONTROLS_LIBRARY;QT_DLL;QT_TESTLIB_LIB;QT_CORE_LIB;QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -137,7 +137,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;c:\Windows\system32\config\systemprofile\src\SATools\bin;.\..\..\libs;&quot;$(SolutionDir)tools&quot;;&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;&quot;$(ACE_ROOT)&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.\debug;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;c:\Windows\system32\config\systemprofile\src\SATools\bin;.\..\..\libs;&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;&quot;$(ACE_ROOT)&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;"
 				PreprocessorDefinitions="QT_NO_DEBUG;NDEBUG;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;IDE_LIBRARY_BASENAME=\&quot;lib\&quot;;QT_NO_CAST_TO_ASCII;ADCONTROLS_LIBRARY;QT_DLL;QT_CORE_LIB;QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -210,6 +210,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\acceptor.cpp"
+				>
+			</File>
+			<File
 				RelativePath="adcontrols.cpp"
 				>
 			</File>
@@ -265,12 +269,20 @@
 				RelativePath="tableofelements.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\visitor.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\acceptor.h"
+				>
+			</File>
 			<File
 				RelativePath="adcontrols.h"
 				>
@@ -554,6 +566,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\visitor.h"
+				>
 			</File>
 		</Filter>
 	</Files>
