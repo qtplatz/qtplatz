@@ -391,37 +391,9 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
         const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
 
         adcontrols::MassSpectrum ms;
-        if ( dataInterpreter.translate( ms, rb, spectrometer ) ) {
-            /**
-            std::wostringstream o;
-            o << boost::wformat(L"Spectrum pos[%1%] EV:%2%") % rb->pos % rb->events;
+        size_t idData = 0;
+        while ( dataInterpreter.translate( ms, rb, spectrometer, idData++ ) ) {
 
-            size_t delay = 0;
-            size_t sampInterval = 500;
-            SignalObserver::AveragerData *pavgr;
-            if ( rb->method >>= pavgr ) {
-                delay = pavgr->startDelay;
-                sampInterval = pavgr->sampInterval;
-                o << boost::wformat(L" delay:%1% nbrSamples: %2%") % pavgr->startDelay % pavgr->nbrSamples;
-            }
-
-            manager_->handle_debug_print( 0, 0, qtwrapper::qstring::copy(o.str()) );
-
-            ms.addDescription( adcontrols::Description( L"acquire.title", o.str() ) );
-
-            const size_t nsize = rb->array.length();
-            ms.resize( nsize );
-            boost::scoped_array<double> pX( new double [ nsize ] );
-            boost::scoped_array<double> pY( new double [ nsize ] );
-            for ( size_t i = 0; i < nsize; ++i ) {
-                double tof = ( delay + double( sampInterval * i ) ) / 1000000; // ps -> us
-                pX[i] = scanLaw.getMass( tof, 0.688 );
-                pY[i] = rb->array[i];
-            }
-            ms.setMassArray( pX.get(), true ); // update acq range
-            ms.setIntensityArray( pY.get() );
-            // --
-            */
             adcontrols::CentroidMethod method;
             method.centroidAreaIntensity( false ); // take hight
             adcontrols::CentroidProcess peak_detector( method );

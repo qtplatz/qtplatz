@@ -23,7 +23,8 @@ namespace adcontrols {
         ~DataInterpreter(void);
         virtual bool translate( MassSpectrum&
                                , const SignalObserver::DataReadBuffer&
-                               , const adcontrols::MassSpectrometer& ) const = 0;
+                               , const adcontrols::MassSpectrometer&
+                               , size_t idData ) const = 0;
     };
 
 }
