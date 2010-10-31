@@ -61,7 +61,8 @@
 #include <adwidgets/colors.h>
 #include <adcontrols/massspectrum.h>
 #include <adcontrols/description.h>
-#include <adportable/massspectrometer.h>
+#include <adcontrols/massspectrometer.h>
+#include <adcontrols/datainterpreter.h>
 #include <adportable/array_wrapper.hpp>
 #include <boost/format.hpp>
 #include <adcontrols/centroidprocess.h>
@@ -384,60 +385,65 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 
     SignalObserver::DataReadBuffer_var rb;
     if ( tgt->readData( pos, rb ) ) {
-        // tgt->dataInterpreterClsid(); // <-- todo
-		const adportable::MassSpectrometer& spectrometer = adportable::MassSpectrometer::get( L"InfiTOF" );
-		const adportable::MassSpectrometer::ScanLaw& scanLaw = spectrometer.getScanLaw();
- 
-        std::wostringstream o;
-        o << boost::wformat(L"Spectrum pos[%1%] EV:%2%") % rb->pos % rb->events;
-
-        size_t delay = 0;
-        size_t sampInterval = 500;
-        SignalObserver::AveragerData *pavgr;
-        if ( rb->method >>= pavgr ) {
-            delay = pavgr->startDelay;
-            sampInterval = pavgr->sampInterval;
-            o << boost::wformat(L" delay:%1% nbrSamples: %2%") % pavgr->startDelay % pavgr->nbrSamples;
-        }
-
-        manager_->handle_debug_print( 0, 0, qtwrapper::qstring::copy(o.str()) );
+        CORBA::WString_var name = tgt->dataInterpreterClsid();
+        const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() ); // L"InfiTOF"
+        // const adcontrols::MassSpectrometer::ScanLaw& scanLaw = spectrometer.getScanLaw();
+        const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
 
         adcontrols::MassSpectrum ms;
-        ms.addDescription( adcontrols::Description( L"acquire.title", o.str() ) );
+        if ( dataInterpreter.translate( ms, rb, spectrometer ) ) {
+            /**
+            std::wostringstream o;
+            o << boost::wformat(L"Spectrum pos[%1%] EV:%2%") % rb->pos % rb->events;
 
-        const size_t nsize = rb->array.length();
-        ms.resize( nsize );
-        boost::scoped_array<double> pX( new double [ nsize ] );
-		boost::scoped_array<double> pY( new double [ nsize ] );
-		for ( size_t i = 0; i < nsize; ++i ) {
-			double tof = ( delay + double( sampInterval * i ) ) / 1000000; // ps -> us
-			pX[i] = scanLaw.getMass( tof, 0.688 );
-			pY[i] = rb->array[i];
-		}
-        ms.setMassArray( pX.get(), true ); // update acq range
-        ms.setIntensityArray( pY.get() );
-        // --
-        adcontrols::CentroidMethod method;
-        method.centroidAreaIntensity( false ); // take hight
-		adcontrols::CentroidProcess peak_detector( method );
-		peak_detector( ms );
+            size_t delay = 0;
+            size_t sampInterval = 500;
+            SignalObserver::AveragerData *pavgr;
+            if ( rb->method >>= pavgr ) {
+                delay = pavgr->startDelay;
+                sampInterval = pavgr->sampInterval;
+                o << boost::wformat(L" delay:%1% nbrSamples: %2%") % pavgr->startDelay % pavgr->nbrSamples;
+            }
 
-        adcontrols::MassSpectrum ms2 = ms;
-		do {
-			unsigned int tic = ::GetTickCount();
-			reduceNoise( ms2 );
-			int time = GetTickCount() - tic;
-			std::wostringstream o;
-			o << L"fft " << time << L"ms for" << ms2.size() << L"pts";
-			ms2.addDescription( adcontrols::Description( L"acquire.fft", o.str() ) );
-		} while(0);
+            manager_->handle_debug_print( 0, 0, qtwrapper::qstring::copy(o.str()) );
 
-        adcontrols::MassSpectrum centroid;
-		peak_detector.getCentroidSpectrum( centroid );
+            ms.addDescription( adcontrols::Description( L"acquire.title", o.str() ) );
 
-		// pImpl_->spectrumPlot_->setData( ms, centroid );
-		//pImpl_->spectrumPlot_->setData( ms, ms2 );
-		pImpl_->spectrumPlot_->setData( ms, ms2 );
+            const size_t nsize = rb->array.length();
+            ms.resize( nsize );
+            boost::scoped_array<double> pX( new double [ nsize ] );
+            boost::scoped_array<double> pY( new double [ nsize ] );
+            for ( size_t i = 0; i < nsize; ++i ) {
+                double tof = ( delay + double( sampInterval * i ) ) / 1000000; // ps -> us
+                pX[i] = scanLaw.getMass( tof, 0.688 );
+                pY[i] = rb->array[i];
+            }
+            ms.setMassArray( pX.get(), true ); // update acq range
+            ms.setIntensityArray( pY.get() );
+            // --
+            */
+            adcontrols::CentroidMethod method;
+            method.centroidAreaIntensity( false ); // take hight
+            adcontrols::CentroidProcess peak_detector( method );
+            peak_detector( ms );
+
+            adcontrols::MassSpectrum ms2 = ms;
+            do {
+                unsigned int tic = ::GetTickCount();
+                reduceNoise( ms2 );
+                int time = GetTickCount() - tic;
+                std::wostringstream o;
+                o << L"fft " << time << L"ms for" << ms2.size() << L"pts";
+                ms2.addDescription( adcontrols::Description( L"acquire.fft", o.str() ) );
+            } while(0);
+
+            adcontrols::MassSpectrum centroid;
+            peak_detector.getCentroidSpectrum( centroid );
+
+            // pImpl_->spectrumPlot_->setData( ms, centroid );
+            //pImpl_->spectrumPlot_->setData( ms, ms2 );
+            pImpl_->spectrumPlot_->setData( ms, ms2 );
+        }
    }
 }
 

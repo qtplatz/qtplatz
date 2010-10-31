@@ -49,13 +49,6 @@ const MassSpectrometer&
 MassSpectrometer::get( const std::wstring& modelname )
 {
 	MassSpectrometerBroker::factory_type factory = MassSpectrometerBroker::find( modelname );
-#if 0
-    // next two line demonstrate how to install MassSpectrometer class newly developped outside qtPlatz public source
-    if ( ! factory && modelname == L"InfiTOF" ) {
-        MassSpectrometerBroker::instance()->install_factory( internal::InfiTOF::instance, L"InfiTOF" );
-        factory = MassSpectrometerBroker::instance()->find( modelname );
-    }
-#endif
 	if ( factory )
 		return *factory();
 	throw std::exception("mass spectrometer not registered");

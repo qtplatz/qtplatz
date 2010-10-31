@@ -12,6 +12,7 @@
 namespace adcontrols {
 
     class Visitor;
+    class DataInterpreter;
 
 	class ADCONTROLSSHARED_EXPORT MassSpectrometer {
 	public:
@@ -31,6 +32,7 @@ namespace adcontrols {
         virtual factory_type factory() = 0;
         virtual const wchar_t * name() const = 0;
         virtual const ScanLaw& getScanLaw() const = 0;
+        virtual const DataInterpreter& getDataInterpreter() const = 0;
 
         static const MassSpectrometer& get( const std::wstring& modelname );
 	};

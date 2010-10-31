@@ -234,6 +234,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\datainterpreter.cpp"
+				>
+			</File>
+			<File
 				RelativePath="description.cpp"
 				>
 			</File>
@@ -372,6 +376,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\datainterpreter.h"
+				>
 			</File>
 			<File
 				RelativePath="description.h"

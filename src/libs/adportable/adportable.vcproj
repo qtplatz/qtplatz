@@ -212,10 +212,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\massspectrometer.cpp"
-				>
-			</File>
-			<File
 				RelativePath="protocollifecycle.cpp"
 				>
 			</File>
@@ -360,10 +356,6 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\massspectrometer.h"
-				>
 			</File>
 			<File
 				RelativePath="protocollifecycle.h"

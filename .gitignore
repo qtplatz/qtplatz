@@ -77,6 +77,7 @@ src/tofcontroller/*C.inl
 src/tofcontroller/*S.cpp
 src/tofcontroller/*S.h
 src/tofcontroller/*S.inl
+src/app/debug.log
 
 # Binaries
 # --------
