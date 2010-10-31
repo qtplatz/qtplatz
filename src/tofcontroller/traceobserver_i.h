@@ -27,6 +27,7 @@ namespace tofcontroller {
 		virtual ::CORBA::Boolean connect( ::SignalObserver::ObserverEvents_ptr cb
 			                             , ::SignalObserver::eUpdateFrequency frequency
 										 , const CORBA::WChar * );
+        virtual ::CORBA::Boolean disconnect( ::SignalObserver::ObserverEvents_ptr cb );
 		virtual ::CORBA::Boolean isActive (void);
 		virtual ::SignalObserver::Observers * getSiblings (void);
 		virtual ::CORBA::Boolean addSibling ( ::SignalObserver::Observer_ptr observer);

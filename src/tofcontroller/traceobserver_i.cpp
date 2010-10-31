@@ -59,6 +59,12 @@ traceObserver_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
 }
 
 ::CORBA::Boolean
+traceObserver_i::disconnect ( ::SignalObserver::ObserverEvents_ptr cb )
+{
+	return task_.disconnect( cb );
+}
+
+::CORBA::Boolean
 traceObserver_i::isActive (void)
 {
 	return true;

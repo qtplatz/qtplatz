@@ -29,6 +29,14 @@ QObserverEvents_i::QObserverEvents_i( SignalObserver::Observer_ptr ptr
 }
 
 void
+QObserverEvents_i::OnClose()
+{
+	if ( ! CORBA::is_nil( impl_.in() ) ) {
+		impl_->disconnect( this->_this() );
+    }
+}
+
+void
 QObserverEvents_i::OnUpdateData( CORBA::Long pos )
 {
 	emit signal_UpdateData( objId_, pos );

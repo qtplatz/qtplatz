@@ -8,8 +8,8 @@
 
 #pragma warning (disable : 4996 )
 # include <adinterface/signalobserverS.h>
+# include <ace/Recursive_Thread_Mutex.h>
 #pragma warning (default : 4996 )
-
 #include <vector>
 #include <boost/noncopyable.hpp>
 
@@ -33,6 +33,7 @@ namespace adcontroller {
 		virtual ::CORBA::Boolean connect( ::SignalObserver::ObserverEvents_ptr cb
 			                             , ::SignalObserver::eUpdateFrequency frequency
 										 , const CORBA::WChar * );
+		virtual ::CORBA::Boolean disconnect( ::SignalObserver::ObserverEvents_ptr cb );
 		virtual ::CORBA::Boolean isActive (void);
 		virtual ::SignalObserver::Observers * getSiblings (void);
 		virtual ::CORBA::Boolean addSibling ( ::SignalObserver::Observer_ptr observer);
@@ -61,6 +62,7 @@ namespace adcontroller {
 		SignalObserver::Observer_var source_observer_;
 		SignalObserver::Description desc_;
         unsigned long objId_;
+        ACE_Recursive_Thread_Mutex mutex_;
 	};
 
 }

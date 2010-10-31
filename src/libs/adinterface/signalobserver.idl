@@ -83,6 +83,7 @@ module SignalObserver {
 
         // client can monitor real time events, it is optional
         boolean connect( in ObserverEvents cb, in eUpdateFrequency frequency, in wstring token );
+        boolean disconnect( in ObserverEvents cb );
 
         boolean isActive();
 

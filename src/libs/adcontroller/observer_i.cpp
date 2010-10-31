@@ -6,6 +6,7 @@
 #include "observer_i.h"
 #include "manager_i.h"
 #include <algorithm>
+#include <acewrapper/mutex.hpp>
 
 namespace adcontroller {
 
@@ -89,9 +90,28 @@ observer_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
     data.events_ = cb;
     data.token_ = token;
     data.freq_ = frequency;
+
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+
 	observer_events_set_.push_back( data );
 	return true;
 }
+
+::CORBA::Boolean
+observer_i::disconnect ( ::SignalObserver::ObserverEvents_ptr cb )
+{
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    
+    observer_events_vector_type::iterator it
+        = std::find(observer_events_set_.begin(), observer_events_set_.end(), cb);
+
+    if ( it != observer_events_set_.end() ) {
+        observer_events_set_.erase( it );
+        return true;
+    }
+    return false;
+}
+
 
 ::CORBA::Boolean
 observer_i::isActive (void)
@@ -105,6 +125,8 @@ observer_i::getSiblings (void)
 	SignalObserver::Observers_var vec( new SignalObserver::Observers );
     vec->length( sibling_set_.size() );
 
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+
     int i = 0;
 	for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it )
 		(*vec)[i++] = SignalObserver::Observer::_duplicate( it->cache_.in() );
@@ -117,6 +139,8 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 {
 	internal::sibling_data data;
     data.observer_ = SignalObserver::Observer::_duplicate( observer );
+
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
 
 	if ( ! CORBA::is_nil( data.observer_ ) ) {
 
@@ -137,6 +161,8 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 ::SignalObserver::Observer *
 observer_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
 {
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+
     for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
         if ( it->cache_->objId() == objId )
             return SignalObserver::Observer::_duplicate( it->cache_.in() );

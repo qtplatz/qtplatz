@@ -45,6 +45,7 @@ namespace Acquire {
 
     private slots:
 		void actionConnect();
+		void actionDisconnect();
 		void actionRunStop();
 
         void handle_message( unsigned long msg, unsigned long value );

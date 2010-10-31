@@ -315,6 +315,7 @@ AcquirePlugin::extensionsInitialized()
 void
 AcquirePlugin::shutdown()
 {
+    actionDisconnect();
     manager_->OnFinalClose();
 }
 
@@ -365,6 +366,22 @@ AcquirePlugin::actionConnect()
                 }
             }
         }
+    }
+}
+
+void
+AcquirePlugin::actionDisconnect()
+{
+    if ( ! CORBA::is_nil( session_ ) ) {
+
+        observer_ = session_->getObserver();
+        if ( ! CORBA::is_nil( observer_.in() ) ) {
+            SignalObserver::Observers_var siblings = observer_->getSiblings();
+            // size_t nsize = siblings->length();
+            for ( size_t i = 0; i < sinkVec_.size(); ++i )
+                boost::shared_ptr< adplugin::QObserverEvents_i >& sibling = sinkVec_[i];
+        }
+        session_->disconnect( receiver_i_.get()->_this() );
     }
 }
     

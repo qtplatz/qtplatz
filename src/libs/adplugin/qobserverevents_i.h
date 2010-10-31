@@ -28,6 +28,7 @@ namespace adplugin {
 		void OnUpdateData( CORBA::Long );
 		void OnMethodChanged( CORBA::Long );
 		void OnEvent( CORBA::ULong, CORBA::Long );
+        void OnClose();
 
         // Observer 
 		inline SignalObserver::Observer_ptr& ptr() { return impl_; }

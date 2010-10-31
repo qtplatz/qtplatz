@@ -63,6 +63,8 @@ namespace servant {
 			static Broker::Manager_ptr initialize_broker( CORBA::ORB_ptr orb, std::string& iorBroker )	{
 				adBroker::initialize( orb ); 
 				iorBroker = adBroker::activate();
+                // TODO: check if iorBroker is approprate or not
+
 				if ( ! iorBroker.empty() )
 					adplugin::manager::instance()->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker );
 				adBroker::run();
@@ -135,7 +137,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		std::wstring component = it->component();
 
 		if ( name == L"adbroker" ) {
-			/* nothing */
+			/* nothing, broker must be created before here */
         } else if ( it->attribute(L"type") == L"orbLoader" ) {
 			// adcontroller must be on top
             std::wstring file = apppath + it->module().library_filename();

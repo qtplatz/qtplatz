@@ -62,6 +62,12 @@ tofObserver_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
 }
 
 ::CORBA::Boolean
+tofObserver_i::disconnect ( ::SignalObserver::ObserverEvents_ptr cb )
+{
+	return task_.disconnect( cb );
+}
+
+::CORBA::Boolean
 tofObserver_i::isActive (void)
 {
 	return true;
