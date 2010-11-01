@@ -35,7 +35,7 @@ namespace servant {
       
 
 	private:
-
+		void final_close();
         adportable::Configuration * pConfig_;
         internal::ServantPluginImpl * pImpl_;
 	};

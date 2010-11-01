@@ -20,14 +20,15 @@
 		<Configuration name="adcontroller" type="orbLoader" ns_name="adcontroller.manager" component="">
 			<Component name="adcontroller" module="adcontroller"/>
 			<Configuration name="InstrumentConfiguration">
-          <!-- <Configuration name="tofcontroller.1" id="tof.1" type="object_ref" ns_name="tofcontroller.session"/> -->
 				  <Configuration name="infitofcontroller.1" id="infitof.1" type="object_ref" ns_name="infitofcontroller.session"/>
 			</Configuration>
 		</Configuration>
 
+
     <!--		<Configuration name="tofcontoller" type="orbLoader" ns_name="tofcontroller.session" component="">
 			<Component name="tofcontroller" module="tofcontroller"/>
 		</Configuration> -->
+
 
 		<Configuration name="infitofcontoller" type="orbLoader" ns_name="infitofcontroller.session" component="">
 			<Component name="infitofcontroller" module="infitofcontroller"/>

@@ -23,6 +23,7 @@
       <title lang="jp">InfiTOF</title>
       <Component name="infitofui::monitor_ui" type="widget" loader="adplugin" interface="adplugin::ui::iMonitor" module="infitofui.dll"/>
     </Configuration>
+
     <!--
     <Configuration name="tofms_monitor" type="tab" component="adtofms::imonitor_ui">
 			<title lang="en">MassSpectrometer</title>

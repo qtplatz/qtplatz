@@ -47,6 +47,7 @@ using namespace servant::internal;
 
 ServantPlugin::~ServantPlugin()
 {
+    final_close();
     delete pImpl_;
 	delete pConfig_;
 }
@@ -237,6 +238,11 @@ ServantPlugin::extensionsInitialized()
 void
 ServantPlugin::shutdown()
 {
+}
+
+void
+ServantPlugin::final_close()
+{
 	adportable::Configuration& config = *pConfig_;
 
     // destriction must be reverse order
@@ -258,8 +264,6 @@ ServantPlugin::shutdown()
 	acewrapper::singleton::orbServantManager::instance()->fini();
 	ACE_Thread_Manager::instance()->wait();
 }
-
-
 
 
 Q_EXPORT_PLUGIN( ServantPlugin )
