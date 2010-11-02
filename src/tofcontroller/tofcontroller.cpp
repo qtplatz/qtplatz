@@ -49,19 +49,16 @@ TofController::operator bool () const
 }
 
 bool
-TofController::initialize( CORBA::ORB * orb )
+TofController::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::POAManager_ptr mgr)
 {
-	if ( ! orb ) {
-		int ac = 0;
-		orb = CORBA::ORB_init( ac, 0 );
-	}
-
 	acewrapper::ORBServant< tofcontroller::tofSession_i >
 		* pServant = tofcontroller::singleton::tofSession_i::instance();
+    pServant->initialize( orb, poa, mgr );
+/*
 	acewrapper::ORBServantManager * pMgr = new acewrapper::ORBServantManager( orb );
 	pMgr->init( 0, 0 );
 	pServant->setServantManager( pMgr );
-
+*/
 	return true;
 }
 
@@ -84,27 +81,8 @@ TofController::activate()
 bool
 TofController::deactivate()
 {
-	acewrapper::ORBServant< tofcontroller::tofSession_i >
-		* pServant = tofcontroller::singleton::tofSession_i::instance();
-
-	static_cast<tofcontroller::tofSession_i *>(*pServant)->shutdown();
-
-	pServant->deactivate();
-
+	tofcontroller::singleton::tofSession_i::instance()->deactivate();
 	return true;
-}
-
-int
-TofController::run()
-{
-    return 0;
-}
-
-void
-TofController::abort_server()
-{
-	__aborted = true;
-	deactivate();
 }
 
 adplugin::orbLoader * instance()

@@ -501,7 +501,7 @@ iBroker::handle_observer_update_event( unsigned long id, long pos, unsigned long
 SignalObserver::Observer_ptr
 iBroker::getObserver()
 {
-	PortableServer::POA_var poa = adcontroller::singleton::manager::instance()->getServantManager()->root_poa();
+	PortableServer::POA_var poa = adcontroller::singleton::manager::instance()->poa();
 	if ( ! pMasterObserver_ ) {
   		acewrapper::scoped_mutex_t<> lock( mutex_ );
 		if ( ! pMasterObserver_ )

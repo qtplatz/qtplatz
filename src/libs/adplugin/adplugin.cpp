@@ -267,14 +267,19 @@ public:
 	}
 
 private:
-	typedef bool (*initialize_t)( CORBA::ORB * );
+	typedef bool (*initialize_t)( CORBA::ORB *, PortableServer::POA * poa, PortableServer::POAManager * mgr );
     typedef void (*initial_reference_t)( const char * ior );
 	typedef const char * (*activate_t)();
 	typedef bool (*deactivate_t)();
 	typedef bool (*run_t)();
 	typedef bool (*abort_server_t)();
 public:
-	virtual bool initialize( CORBA::ORB * orb )      { return initialize_   ? initialize_( orb ) : false; }
+	virtual bool initialize( CORBA::ORB * orb, PortableServer::POA * poa, PortableServer::POAManager * mgr ) {
+		if ( initialize_ )
+			return initialize_( orb, poa, mgr );
+		return false;
+	}
+	// virtual bool initialize( CORBA::ORB * orb )      { return initialize_   ? initialize_( orb ) : false; }
 	virtual void initial_reference(const char * ior) { if (initial_reference_) initial_reference_( ior ); }
 	virtual const char * activate()                  { return activate_     ? activate_()        : false; }
 	virtual bool deactivate()                        { return deactivate_   ? deactivate_()      : false; }

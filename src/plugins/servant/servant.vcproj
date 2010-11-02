@@ -209,6 +209,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\orbservantmanager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\outputwindow.cpp"
 				>
 			</File>
@@ -236,6 +240,10 @@
 			>
 			<File
 				RelativePath=".\logger.h"
+				>
+			</File>
+			<File
+				RelativePath=".\orbservantmanager.h"
 				>
 			</File>
 			<File

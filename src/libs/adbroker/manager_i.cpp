@@ -23,7 +23,7 @@ adbroker::manager_i::~manager_i(void)
 void
 adbroker::manager_i::shutdown()
 {
-    PortableServer::POA_var poa = adbroker::singleton::manager::instance()->getServantManager()->root_poa();
+    PortableServer::POA_var poa = adbroker::singleton::manager::instance()->poa();
     if ( logger_i_ )
         poa->deactivate_object( logger_i_->oid() );
 }
@@ -31,7 +31,7 @@ adbroker::manager_i::shutdown()
 Broker::Session_ptr
 manager_i::getSession( const CORBA::WChar * token )
 {
-    PortableServer::POA_var poa = ::adbroker::singleton::manager::instance()->getServantManager()->root_poa();
+    PortableServer::POA_var poa = ::adbroker::singleton::manager::instance()->poa();
 
     if ( CORBA::is_nil( poa ) )
         return 0;
@@ -51,7 +51,7 @@ manager_i::getSession( const CORBA::WChar * token )
 Broker::Logger_ptr
 manager_i::getLogger()
 {
-    PortableServer::POA_var poa = ::adbroker::singleton::manager::instance()->getServantManager()->root_poa();
+    PortableServer::POA_var poa = ::adbroker::singleton::manager::instance()->poa();
     if ( CORBA::is_nil( poa ) )
         return 0;
 

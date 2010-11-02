@@ -34,7 +34,7 @@ session_i::connect( const char * user, const char * pass, const char * token )
 Broker::ChemicalFormula_ptr
 session_i::getChemicalFormula()
 {
-    PortableServer::POA_var poa = ::adbroker::singleton::manager::instance()->getServantManager()->root_poa();
+    PortableServer::POA_var poa = ::adbroker::singleton::manager::instance()->poa();
 
     if ( CORBA::is_nil( poa ) )
         return 0;

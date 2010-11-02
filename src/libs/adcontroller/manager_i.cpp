@@ -20,13 +20,13 @@ manager_i::~manager_i(void)
 void
 manager_i::shutdown()
 {
-	PortableServer::POA_var poa = singleton::manager::instance()->getServantManager()->root_poa();
+	// PortableServer::POA_var poa = singleton::manager::instance()->poa();
 }
 
 ControlServer::Session_ptr
 manager_i::getSession( const CORBA::WChar * token )
 {
-	PortableServer::POA_var poa = singleton::manager::instance()->getServantManager()->root_poa();
+	PortableServer::POA_var poa = singleton::manager::instance()->poa(); // getServantManager()->root_poa();
 
     if ( CORBA::is_nil( poa ) )
         return 0;

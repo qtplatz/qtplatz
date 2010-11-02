@@ -63,21 +63,13 @@ void
 adBroker::abort_server()
 {
 	deactivate();
-	if ( __own_thread )
-        adbroker::singleton::manager::instance()->getServantManager()->fini();
 }
 
 bool
-adBroker::initialize( CORBA::ORB_ptr orb )
+adBroker::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::POAManager_ptr mgr )
 {
-	if ( ! orb ) {
-		int ac = 0;
-		orb = CORBA::ORB_init( ac, 0 );
-	}
     ORBServant< adbroker::manager_i > * pServant = adbroker::singleton::manager::instance();
-	ORBServantManager * pMgr = new ORBServantManager( orb );
-	pMgr->init( 0, 0 );
-	pServant->setServantManager( pMgr );
+	pServant->initialize( orb, poa, mgr );
 	return true;
 }
 
@@ -92,22 +84,22 @@ adBroker::activate()
 bool
 adBroker::deactivate()
 {
-    ORBServant< adbroker::manager_i > * pServant = adbroker::singleton::manager::instance();
-	pServant->deactivate();
-
-    adbroker::BrokerManager::terminate();
+	adbroker::BrokerManager::terminate();
+	adbroker::singleton::manager::instance()->deactivate();
 	return true;
 }
 
 int
 adBroker::run()
 {
+/*
     ORBServantManager* p = adbroker::singleton::manager::instance()->getServantManager();
 	if ( p->test_and_set_thread_flag() ) {
         __own_thread = true;
 		ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), reinterpret_cast<void *>(p) );
         ACE_OS::sleep(0);
 	}
+*/
     return 0;
 }
 

@@ -219,10 +219,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\orbservant.cpp"
-				>
-			</File>
-			<File
 				RelativePath="outputcdr.cpp"
 				>
 			</File>

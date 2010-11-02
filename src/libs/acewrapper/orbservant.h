@@ -17,6 +17,7 @@ class TAO_ORB_Manager;
 
 namespace acewrapper {
 
+#if 0
 	class ORBServantManager {
         ORBServantManager( const ORBServantManager& ); // noncopyable
 	public:
@@ -49,44 +50,62 @@ namespace acewrapper {
 		TAO_ORB_Manager * orbmgr_;
 	};
 
+	namespace singleton {
+		typedef ACE_Singleton< acewrapper::ORBServantManager, ACE_Recursive_Thread_Mutex > orbServantManager;
+	}
+#endif
 	//////////////////////////
 
 	template<class T> class ORBServant {
 	public:
 		~ORBServant() { 
-			if ( pMgr_)
-				pMgr_->fini();
-			delete pMgr_;
 		}
-		ORBServant( ORBServantManager * pMgr = 0 ) : pMgr_(pMgr) { }
 
-		ORBServantManager* getServantManager() { return pMgr_; }
-		void setServantManager( ORBServantManager * p ) { pMgr_ = p; }
+		ORBServant( ) {
+		}
 
-		inline void activate() { 
-            id_ = pMgr_->activate( &impl_ );
+		ORBServant( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::POAManager_ptr mgr ) 
+			: orb_(orb), root_poa_(poa), poa_manager_(mgr) {
+		}
+
+		void initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::POAManager_ptr mgr ) {
+			orb_ = CORBA::ORB::_duplicate(orb);
+			poa_ = PortableServer::POA::_duplicate(poa);
+			poa_manager_ = PortableServer::POAManager::_duplicate(mgr);
+		}
+
+		inline void activate() {
+			PortableServer::ObjectId_var id = this->poa_->activate_object ( &impl_ );
+			CORBA::Object_var obj = this->poa_->id_to_reference (id.in ());
+			CORBA::String_var str = this->orb_->object_to_string (obj.in ());
+            id_ = str;
         }
+
 		void deactivate() { 
-			if ( pMgr_ ) 
-				pMgr_->deactivate( id_ );
+			CORBA::Object_var object = this->orb_->string_to_object ( id_.c_str() );
+			PortableServer::ObjectId_var object_id = this->poa_->reference_to_id (object.in ());
+			this->poa_->deactivate_object ( object_id.in () );
 		}
+
 		inline operator T* () { return &impl_; }
+
+		inline CORBA::ORB_ptr orb() { return CORBA::ORB::_duplicate( orb_.in() ); }
+		inline PortableServer::POA_ptr poa() { return PortableServer::POA::_duplicate( poa_.in() ); }
+
 		inline operator typename T::_stub_ptr_type () { return impl_._this(); }
 		inline const std::string& ior() const { return id_; }
-		inline CORBA::ORB_ptr orb() { return pMgr_->orb(); }
+
         inline void broker_manager_ior( const std::string& ior ) { ior_broker_manager_ = ior; }
         inline const char * broker_manager_ior() const { return ior_broker_manager_.c_str(); }
 
 	private:
-		ORBServantManager * pMgr_;
+		CORBA::ORB_var orb_;
+		PortableServer::POA_var poa_;
+		PortableServer::POAManager_var poa_manager_;
 		std::string id_;
         std::string ior_broker_manager_;
 		T impl_;
 	};
-
-	namespace singleton {
-		typedef ACE_Singleton< acewrapper::ORBServantManager, ACE_Recursive_Thread_Mutex > orbServantManager;
-	}
 
 }
 

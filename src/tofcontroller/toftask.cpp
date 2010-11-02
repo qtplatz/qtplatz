@@ -136,7 +136,7 @@ TOFTask::disconnect( Receiver_ptr receiver )
 SignalObserver::Observer_ptr 
 TOFTask::getObserver()
 {
-	PortableServer::POA_var poa = singleton::tofSession_i::instance()->getServantManager()->root_poa();
+	PortableServer::POA_var poa = singleton::tofSession_i::instance()->poa();
   
 	if ( ! pObserver_ ) {
 		acewrapper::scoped_mutex_t<> lock( mutex_ );

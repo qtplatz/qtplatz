@@ -17,6 +17,7 @@ namespace adportable {
         ~debug(void);
         static void initialize( const std::string& filename );
 
+		std::string str() const { return o_.str(); }
         debug& operator << ( const char * );
         debug& operator << ( const std::string& );
         debug& operator << ( const std::wstring& );

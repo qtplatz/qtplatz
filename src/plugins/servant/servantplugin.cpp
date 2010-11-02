@@ -17,7 +17,8 @@
 #include <QtCore/qplugin.h>
 #include <QtCore>
 #pragma warning(disable:4996)
-#include <ace/Thread_Manager.h>
+# include <ace/Thread_Manager.h>
+# include <ace/OS.h>
 #pragma warning(default:4996)
 
 #include <adbroker/adbroker.h>
@@ -33,7 +34,7 @@
 #include <adportable/string.h>
 #include <adportable/debug.h>
 #include <acewrapper/acewrapper.h>
-#include <acewrapper/orbservant.h>
+//#include <acewrapper/orbservant.h>
 #include <acewrapper/constants.h>
 #include <acewrapper/brokerhelper.h>
 #include <qtwrapper/qstring.h>
@@ -41,6 +42,7 @@
 #include "servantpluginimpl.h"
 #include <QMessageBox>
 #include <boost/format.hpp>
+#include "orbservantmanager.h"
 
 using namespace servant;
 using namespace servant::internal;
@@ -61,14 +63,16 @@ namespace servant {
 	namespace internal {
 		class ServantUtils {
 		public:
-			static Broker::Manager_ptr initialize_broker( CORBA::ORB_ptr orb, std::string& iorBroker )	{
-				adBroker::initialize( orb ); 
+			static Broker::Manager_ptr initialize_broker( CORBA::ORB_ptr orb
+				                                        , PortableServer::POA_ptr poa
+				                                        , PortableServer::POAManager_ptr poaMgr
+														, std::string& iorBroker )	{
+				adBroker::initialize( orb, poa, poaMgr ); 
 				iorBroker = adBroker::activate();
                 // TODO: check if iorBroker is approprate or not
-
 				if ( ! iorBroker.empty() )
 					adplugin::manager::instance()->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker );
-				adBroker::run();
+				// adBroker::run();
   
 				// ---- private naming service (Broker::Manager) start ----
 				CORBA::Object_var obj = orb->string_to_object( iorBroker.c_str() );
@@ -100,7 +104,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
     // ACE initialize
 	acewrapper::instance_manager::initialize();
-	acewrapper::singleton::orbServantManager::instance()->init( 0, 0 );
     // <------
 
 	std::wstring apppath;
@@ -123,9 +126,16 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	}
 
     // ------------ Broker::Manager initialize first --------------------
-	CORBA::ORB_var orb = acewrapper::singleton::orbServantManager::instance()->orb();
+	servant::ORBServantManager * pMgr = servant::singleton::orbServantManager::instance();
+	pMgr->init( 0, 0 );
+	if ( pMgr->test_and_set_thread_flag() ) {
+		ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( servant::ORBServantManager::thread_entry ), reinterpret_cast<void *>(pMgr) );
+        ACE_OS::sleep(0);
+	}
+	//--------------------------------------------------------------------
+	//CORBA::ORB_var orb = acewrapper::singleton::orbServantManager::instance()->orb();
 	std::string iorBroker;
-	Broker::Manager_var mgr = internal::ServantUtils::initialize_broker( orb, iorBroker );
+	Broker::Manager_var mgr = internal::ServantUtils::initialize_broker( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager(), iorBroker );
 	if ( CORBA::is_nil( mgr ) || iorBroker.empty() ) {
 		QMessageBox::critical(0, "ServantPlugin", "Broker::Manager creation failed" );
 		*error_message = "Broker::Manager creation failed";
@@ -146,11 +156,11 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 			std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
             adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
             if ( loader ) {
-				loader.initialize( orb );
+				loader.initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
                 loader.initial_reference( iorBroker.c_str() );
 				std::string ior = loader.activate();            // activate object
                 mgr->register_ior( ns_name.c_str(), ior.c_str() ); // set ior to Broker::Manager
-                loader.run();
+				// loader.run();
             }
         }
 	}
@@ -177,7 +187,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		} else if ( it->name() == L"adcontroller" ) {
             pImpl_->init_debug_adcontroller( this );
 			CORBA::Object_var obj 
-				= acewrapper::brokerhelper::name_to_object( orb
+				= acewrapper::brokerhelper::name_to_object( pMgr->orb()
 				                                           , acewrapper::constants::adcontroller::manager::_name()
 														   , adplugin::manager::iorBroker() ); 
             ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
@@ -192,19 +202,20 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 			if ( ! ns_name.empty() ) {
                 //obj = acewrapper::singleton::orbManager::instance()->getObject( name );
 				CORBA::String_var ior = mgr->ior( ns_name.c_str() );
-                CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( ior.in() );
-                try {
+
+				try {
+					CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( ior.in() );                     
                     Instrument::Session_var isession = Instrument::Session::_narrow( obj );
                     if ( ! CORBA::is_nil( isession ) ) {
                         isession->setConfiguration( it->xml().c_str() );
                         i8t_sessions.push_back( isession );
                     }
                 } catch ( CORBA::Exception& src ) {
+					adportable::debug dbg;
+					dbg << "CORBA::Exceptiron while referenceing '" << ns_name.c_str() << "' by " << src._info().c_str();
                     Logger log;
-                    log( (boost::format("CORBA::Exception for Instrument::Session(%1%) %2%") % ns_name.c_str() % src._info() ).str() );
-                    QMessageBox mbx;
-                    mbx.critical( 0, "Servant error", QString("CORBA::Exception: ") 
-                        + ( boost::format("%1% : %2%") % src._name() % src._info()).str().c_str() );
+                    log( dbg.str() );
+					QMessageBox::critical( 0, "Servant error", dbg.str().c_str() );
                     ++nErrors;
                 }
 			}
@@ -260,8 +271,8 @@ ServantPlugin::final_close()
 	adBroker::deactivate();
     Logger::shutdown();
 
-	acewrapper::singleton::orbServantManager::instance()->orb()->shutdown();
-	acewrapper::singleton::orbServantManager::instance()->fini();
+	servant::singleton::orbServantManager::instance()->orb()->shutdown();
+	servant::singleton::orbServantManager::instance()->fini();
 	ACE_Thread_Manager::instance()->wait();
 }
 

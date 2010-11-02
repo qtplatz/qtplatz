@@ -90,17 +90,21 @@ adController::_abort_server()
 }
 
 bool
-adController::initialize( CORBA::ORB_ptr orb )
+adController::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::POAManager_ptr mgr )
 {
+/*
 	if ( ! orb ) {
 		int ac = 0;
 		orb = CORBA::ORB_init( ac, 0 );
 	}
-
+*/
 	ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
+    pServant->initialize( orb, poa, mgr );
+/*
 	ORBServantManager * pMgr = new ORBServantManager( orb );
 	pMgr->init( 0, 0 );
 	pServant->setServantManager( pMgr );
+*/
 	return true;
 }
 
@@ -156,14 +160,14 @@ adController::run()
 	   std::cerr << "==================================================" << std::endl;
    }
    //-------------> end priority code
-
+/*
    ORBServantManager* p = adcontroller::singleton::manager::instance()->getServantManager();
    if ( p->test_and_set_thread_flag() ) {
 	   __own_thread = true;
 	   ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), reinterpret_cast<void *>(p) );
        ACE_OS::sleep(0);
    }
-
+*/
    return 0;
 }
 

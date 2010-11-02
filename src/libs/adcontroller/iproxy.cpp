@@ -28,7 +28,7 @@ iProxy::setConfiguration( const adportable::Configuration& c )
 
         name_ = config_.name();
 		std::string nsname = adportable::string::convert( config_.attribute( L"ns_name" ) );
-		CORBA::ORB_var orb = adcontroller::singleton::manager::instance()->getServantManager()->orb();
+		CORBA::ORB_var orb = adcontroller::singleton::manager::instance()->orb();
 		std::string iorBroker = adcontroller::singleton::manager::instance()->broker_manager_ior();
 
         if ( ! nsname.empty() ) {
@@ -37,22 +37,20 @@ iProxy::setConfiguration( const adportable::Configuration& c )
 				throw std::exception( "iProxy::setConfiguration -- can't get Broker::Manager reference" );
 
 			std::string ior = mgr->ior( nsname.c_str() );
-			if ( ior.empty() ) {
+			if ( ! ior.empty() ) {
+				try {
+					// acewrapper::NS::resolve_name( orb, nsname );
+					CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
+					if ( ! CORBA::is_nil( obj.in() ) ) {
+						impl_ = Instrument::Session::_narrow( obj );
+						if ( ! CORBA::is_nil( impl_ ) ) 
+							objref_ = true;
+					} 
+				} catch ( CORBA::Exception& ex ) {
+					adportable::debug() << "adcontroller::iproxy::setConfiguration '" << nsname << "' " << ex._info().c_str();
+				}
+			} else {
 				adportable::debug() << "iProxy::setConfiguration -- object '" << nsname << "' not registerd";
-				throw std::exception( ( std::string("iProxy::setConfiguration -- ") + nsname + " not registerd" ).c_str() );
-			}
-
-			try {
-				// acewrapper::NS::resolve_name( orb, nsname );
-				CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
-				if ( ! CORBA::is_nil( obj.in() ) ) {
-					impl_ = Instrument::Session::_narrow( obj );
-					if ( ! CORBA::is_nil( impl_ ) ) 
-						objref_ = true;
-				} 
-			} catch ( CORBA::Exception& ex ) {
-				std::string emsg = ex._info().c_str();
-				throw std::exception( emsg.c_str() );
 			}
 		}
 	}

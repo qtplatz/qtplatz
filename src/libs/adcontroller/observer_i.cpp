@@ -148,7 +148,7 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 		data.pCache_i_.reset( new observer_i( data.observer_ ) );
 		if ( data.pCache_i_ ) {
 			data.pCache_i_->assign_objId( data.objId_ );
-			PortableServer::POA_var poa = adcontroller::singleton::manager::instance()->getServantManager()->root_poa();
+			PortableServer::POA_var poa = adcontroller::singleton::manager::instance()->poa();
 			CORBA::Object_ptr obj = poa->servant_to_reference( data.pCache_i_.get() );
 			data.cache_ = SignalObserver::Observer::_narrow( obj );
 		}

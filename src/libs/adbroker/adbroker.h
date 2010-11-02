@@ -11,6 +11,11 @@ namespace CORBA {
     class ORB;
 }
 
+namespace PortableServer {
+	class POA;
+	class POAManager;
+}
+
 namespace acewrapper {
 	class ORBServantManager;
 }
@@ -20,7 +25,7 @@ public:
     adBroker(void);
     ~adBroker(void);
 
-	static bool initialize( CORBA::ORB * orb = 0 );
+	static bool initialize( CORBA::ORB* orb, PortableServer::POA * poa, PortableServer::POAManager * mgr );
 	static const char * activate();
     static bool deactivate();
 
