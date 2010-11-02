@@ -28,14 +28,15 @@ ServantPluginImpl::ServantPluginImpl( OutputWindow * p ) : outputWindow_(p)
                                                          , receiver_(*this)
                                                          , logHandler_(*this)
 {
-    adplugin::ORBManager::instance()->init(0, 0);
+	//adplugin::ORBManager::instance()->init(0, 0);
 }
 
 Broker::Manager_ptr
 getBrokerManager()
 {
 	std::string ior = adplugin::manager::instance()->ior( acewrapper::constants::adbroker::manager::_name() );
-    return acewrapper::brokerhelper::getManager( adplugin::ORBManager::instance()->orb(), ior );
+	CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
+	return acewrapper::brokerhelper::getManager( orb, ior );
 }
 
 void

@@ -16,7 +16,7 @@ QObserverEvents_i::QObserverEvents_i(QObject *parent) : QObject(parent)
 QObserverEvents_i::QObserverEvents_i( SignalObserver::Observer_ptr ptr
 									 , const std::wstring& token
 									 , SignalObserver::eUpdateFrequency freq 
-									 , QObject *parent)	 : impl_( ptr )
+									 , QObject *parent)	 : impl_( SignalObserver::Observer::_duplicate(ptr) )
 									                     , token_( token ) 
 														 , freq_( freq )
 														 , objId_(0) 

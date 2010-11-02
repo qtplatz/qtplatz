@@ -59,25 +59,19 @@ debug_ui::OnCreate( const adportable::Configuration& c )
 void
 debug_ui::OnInitialUpdate()
 {
-    // now, it is safe to access CORBA servant
-    if ( adplugin::ORBManager::instance()->init( 0, 0 ) >= 0 ) {
+	CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
+	CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( adplugin::manager::instance()->iorBroker() );
 
-		CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
-		//CORBA::Object_var obj = adplugin::ORBManager::instance()->getObject( L"tofcontroller.session" );
-        CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( adplugin::manager::instance()->iorBroker() );
+	if ( ! CORBA::is_nil( obj.in() )  ) {
 
-        if ( ! CORBA::is_nil( obj.in() )  ) {
+		pTof_->tof = TOFInstrument::TofSession::_narrow( obj );
 
-            pTof_->tof = TOFInstrument::TofSession::_narrow( obj );
+		if ( ! CORBA::is_nil( pTof_->tof.in() ) ) {
+			CORBA::WString_var version_ = pTof_->tof->tof_software_revision();
+			pTof_->tof->connect( pTof_->_this(), L"adtofms.monitor_ui" );
+		}
 
-            if ( ! CORBA::is_nil( pTof_->tof.in() ) ) {
-                CORBA::WString_var version_ = pTof_->tof->tof_software_revision();
-                pTof_->tof->connect( pTof_->_this(), L"adtofms.monitor_ui" );
-            }
-
-        }
-
-    }
+	}
 }
 
 void

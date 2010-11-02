@@ -17,13 +17,14 @@ using namespace adplugin;
 ORBManager::~ORBManager()
 {
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
-	delete orb_;
+	//delete orb_;
 }
 
 ORBManager::ORBManager() : orb_(0)
 {
 }
 
+/*
 int
 ORBManager::init( int argc, char * argv[] )
 {
@@ -43,40 +44,26 @@ ORBManager::init( int argc, char * argv[] )
 	}
 	return 0;
 }
+*/
+
+void
+ORBManager::initialize( CORBA::ORB_ptr orb )
+{
+	orb_ = CORBA::ORB::_duplicate( orb );
+}
 
 CORBA::ORB_ptr
 ORBManager::orb()
 {
-   if ( orb_ )
-	   return orb_->orb();
-   return 0;
+	return CORBA::ORB::_duplicate( orb_.in() );
 }
-
-#if defined USE_NAMING_SERVICE
-CORBA::Object_ptr
-ORBManager::getObject( const CosNaming::Name& name )
-{
-   if ( ! orb_ )
-	   return 0;
-   CosNaming::NamingContext_var nc = acewrapper::NS::resolve_init( orb_->orb() );
-   return acewrapper::NS::resolve_name( nc, name );
-}
-
-CORBA::Object_ptr
-ORBManager::getObject( const std::wstring& naming )
-{
-   if ( ! orb_ )
-	   return 0;
-   return acewrapper::NS::resolve_name( orb_->orb(), naming );
-}
-#endif
 
 CORBA::Object_ptr
 ORBManager::string_to_object( const std::string& ior )
 {
-  if ( ! orb_ )
+	if ( CORBA::is_nil( orb_ ) )
 	  return 0;
-  return orb_->orb()->string_to_object( ior.c_str() );
+	return orb_->string_to_object( ior.c_str() );
 }
 
 adplugin::ORBManager * 

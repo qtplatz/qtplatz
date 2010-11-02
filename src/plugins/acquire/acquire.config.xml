@@ -17,13 +17,13 @@
 			<Component name="qtwidgets::LogWidget" type="widget" loader="adplugin" interface="adplugin::ui::iLog" module="qtwidgets.dll"/>
 			<datasource name="broker.logger" type="cosnaming::name" interface="Broker::Logger">adbroker.manager</datasource>
 		</Configuration>
-   
+<!--
     <Configuration name="infitof_monitor" type="tab" component="infitofui::monitor_ui">
       <title lang="en">InfiTOF</title>
       <title lang="jp">InfiTOF</title>
       <Component name="infitofui::monitor_ui" type="widget" loader="adplugin" interface="adplugin::ui::iMonitor" module="infitofui.dll"/>
     </Configuration>
-
+-->
     <!--
     <Configuration name="tofms_monitor" type="tab" component="adtofms::imonitor_ui">
 			<title lang="en">MassSpectrometer</title>

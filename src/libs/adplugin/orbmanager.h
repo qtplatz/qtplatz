@@ -26,13 +26,17 @@ namespace adplugin {
 		ORBManager();
 
 	public:
-		int init( int argc, char * argv[] );
+		// int init( int argc, char * argv[] );
+		void initialize( CORBA::ORB_ptr orb );
+
 		CORBA::ORB_ptr orb();
 		CORBA::Object_ptr string_to_object( const std::string& ior );
+
         static ORBManager * instance();
 
 	private:
-		TAO_ORB_Manager * orb_;
+		// TAO_ORB_Manager * orb_;
+		CORBA::ORB_var orb_;
 		ACE_Recursive_Thread_Mutex mutex_;
         friend ACE_Singleton< ORBManager, ACE_Recursive_Thread_Mutex >;
 	};

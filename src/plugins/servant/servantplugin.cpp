@@ -132,6 +132,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( servant::ORBServantManager::thread_entry ), reinterpret_cast<void *>(pMgr) );
         ACE_OS::sleep(0);
 	}
+	adplugin::ORBManager::instance()->initialize( pMgr->orb() );
+    
 	//--------------------------------------------------------------------
 	//CORBA::ORB_var orb = acewrapper::singleton::orbServantManager::instance()->orb();
 	std::string iorBroker;
