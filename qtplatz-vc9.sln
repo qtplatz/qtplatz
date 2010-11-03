@@ -133,6 +133,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "servant", "src\plugins\serv
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tofcontroller", "src\tofcontroller\tofcontroller.vcproj", "{13A33CBE-5109-3F62-86F3-1177334BC01A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0E63611D-F1FE-3CCB-9E32-59C3737F6A59} = {0E63611D-F1FE-3CCB-9E32-59C3737F6A59}
+		{36E6F345-18B7-39CC-8050-83C5BE233BDE} = {36E6F345-18B7-39CC-8050-83C5BE233BDE}
+		{91F406D4-8137-3B1B-B849-69A9AD360843} = {91F406D4-8137-3B1B-B849-69A9AD360843}
+		{5C4A25F3-9DBA-399D-A850-08D65E4E8944} = {5C4A25F3-9DBA-399D-A850-08D65E4E8944}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qtwidgets", "src\libs\qtwidgets\qtwidgets.vcproj", "{937F23D8-2A83-331A-A5DB-285C2A8ED6BA}"
 	ProjectSection(ProjectDependencies) = postProject
