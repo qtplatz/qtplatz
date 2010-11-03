@@ -4,8 +4,15 @@
 //////////////////////////////////////////
 
 #include "qobserverevents_i.h"
+#include "orbmanager.h"
 
 using namespace adplugin;
+
+QObserverEvents_i::~QObserverEvents_i()
+{
+    OnClose();
+    adplugin::ORBManager::instance()->deactivate( this->_this() );
+}
 
 QObserverEvents_i::QObserverEvents_i(QObject *parent) : QObject(parent)
                                                       , freq_( SignalObserver::Friquent )
@@ -23,7 +30,7 @@ QObserverEvents_i::QObserverEvents_i( SignalObserver::Observer_ptr ptr
 														 , QObject(parent)
 {
 	if ( ! CORBA::is_nil( impl_.in() ) ) {
-		impl_->connect( this->_this(), freq_, token.c_str() );
+        impl_->connect( this->_this(), freq_, token.c_str() );
         objId_ = impl_->objId();
 	}
 }
@@ -31,9 +38,8 @@ QObserverEvents_i::QObserverEvents_i( SignalObserver::Observer_ptr ptr
 void
 QObserverEvents_i::OnClose()
 {
-	if ( ! CORBA::is_nil( impl_.in() ) ) {
-		impl_->disconnect( this->_this() );
-    }
+    if ( ! CORBA::is_nil( impl_.in() ) )
+        impl_->disconnect( this->_this() );
 }
 
 void

@@ -12,11 +12,13 @@ namespace adportable {
 
     class debug {
         std::ostringstream o_;
+        std::string file_;
+        int line_;
     public:
-        debug(void);
+        debug(const char * file = 0, const int line = 0);
         ~debug(void);
         static void initialize( const std::string& filename );
-
+        std::string where() const;
 		std::string str() const { return o_.str(); }
         debug& operator << ( const char * );
         debug& operator << ( const std::string& );

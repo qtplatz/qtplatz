@@ -372,11 +372,11 @@ AcquirePlugin::actionDisconnect()
         observer_ = session_->getObserver();
         if ( ! CORBA::is_nil( observer_.in() ) ) {
             SignalObserver::Observers_var siblings = observer_->getSiblings();
-            // size_t nsize = siblings->length();
             for ( size_t i = 0; i < sinkVec_.size(); ++i )
-                boost::shared_ptr< adplugin::QObserverEvents_i >& sibling = sinkVec_[i];
+                sinkVec_[i]->OnClose();
         }
         session_->disconnect( receiver_i_.get()->_this() );
+        adplugin::ORBManager::instance()->deactivate( receiver_i_->_this() );
     }
 }
     

@@ -11,6 +11,7 @@
 #pragma warning (default: 4669)
 
 #include <acewrapper/mutex.hpp>
+#include <adportable/debug.h>
 
 using namespace adplugin;
 
@@ -24,38 +25,36 @@ ORBManager::ORBManager() : orb_(0)
 {
 }
 
-/*
-int
-ORBManager::init( int argc, char * argv[] )
-{
-	if ( orb_ == 0 ) {
-		acewrapper::scoped_mutex_t<> lock( mutex_ );
-		if ( orb_ == 0 ) {
-			orb_ = new TAO_ORB_Manager();
-			try {
-				if ( orb_ ) {
-					orb_->init(argc, argv);
-					return argc;
-				}
-			} catch ( CORBA::Exception& ) {
-				return (-1);
-			}
-		}
-	}
-	return 0;
-}
-*/
-
 void
-ORBManager::initialize( CORBA::ORB_ptr orb )
+ORBManager::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa )
 {
 	orb_ = CORBA::ORB::_duplicate( orb );
+    poa_ = PortableServer::POA::_duplicate( poa );
 }
 
 CORBA::ORB_ptr
 ORBManager::orb()
 {
 	return CORBA::ORB::_duplicate( orb_.in() );
+}
+
+PortableServer::POA_ptr
+ORBManager::poa()
+{
+    return PortableServer::POA::_duplicate( poa_.in() );
+}
+
+bool
+ORBManager::deactivate( CORBA::Object_ptr obj )
+{
+    try {
+        PortableServer::ObjectId_var object_id = poa_->reference_to_id( obj );
+        poa_->deactivate_object( object_id );
+    } catch ( CORBA::Exception& ex ) {
+        adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
+        return false;
+    }
+    return true;
 }
 
 CORBA::Object_ptr

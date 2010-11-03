@@ -80,11 +80,18 @@ namespace servant {
 				if ( CORBA::is_nil( mgr ) )
 					return 0;
 				// store broker's ior to self
-				try {
-					mgr->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker.c_str() );
-				} catch ( CORBA::Exception& ex ) {
-					adportable::debug() << "CORBA::Exception: " << ex._info().c_str();
-					QMessageBox::critical(0, "ServantPlugin - Broker::Manager::registor_ior", ex._info().c_str() );
+                for ( size_t nTrial = 5 ; nTrial > 0 ; ++nTrial ) {
+                    try {
+                        mgr->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker.c_str() );
+                        break;
+                    } catch ( CORBA::Exception& ex ) {
+                        adportable::debug( __FILE__, __LINE__ ) << "CORBA::Exception: " << ex._info().c_str();
+                        if ( nTrial > 0 )
+                            QMessageBox::warning(0, "ServantPlugin - Broker::Manager::registor_ior", ex._info().c_str() );
+                        else
+                            QMessageBox::critical(0, "ServantPlugin - Broker::Manager::registor_ior", ex._info().c_str() );
+                        ACE_OS::sleep(0);
+                    }
 				}
 				return mgr._retn();
 			}
@@ -132,7 +139,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( servant::ORBServantManager::thread_entry ), reinterpret_cast<void *>(pMgr) );
         ACE_OS::sleep(0);
 	}
-	adplugin::ORBManager::instance()->initialize( pMgr->orb() );
+	adplugin::ORBManager::instance()->initialize( pMgr->orb(), pMgr->root_poa() );
     
 	//--------------------------------------------------------------------
 	//CORBA::ORB_var orb = acewrapper::singleton::orbServantManager::instance()->orb();
@@ -260,22 +267,31 @@ ServantPlugin::final_close()
 
     // destriction must be reverse order
 	for ( adportable::Configuration::vector_type::reverse_iterator it = config.rbegin(); it != config.rend(); ++it ) {
-		std::wstring name = it->name();
-		if ( name == L"adbroker" ) {
-            /* deactivate at the end */
-        } else if ( it->attribute(L"type") == L"orbLoader" ) {
-			std::wstring file = it->attribute( L"fullpath" );
-			adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
-			if ( loader )
+        if ( it->attribute(L"type") == L"orbLoader" ) {
+            std::wstring file = it->attribute( L"fullpath" );
+            adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
+            if ( loader )
 				loader.deactivate();
 		}
 	}
-	adBroker::deactivate();
     Logger::shutdown();
 
-	servant::singleton::orbServantManager::instance()->orb()->shutdown();
-	servant::singleton::orbServantManager::instance()->fini();
-	ACE_Thread_Manager::instance()->wait();
+    try {
+        adBroker::deactivate();
+    } catch ( CORBA::Exception& ex ) {
+        adportable::debug dbg( __FILE__, __LINE__ );
+        dbg << ex._info().c_str();        dbg << ex._info().c_str();
+        QMessageBox::critical( 0, dbg.where().c_str(), dbg.str().c_str() );
+    }
+    try {
+        servant::singleton::orbServantManager::instance()->orb()->shutdown();
+        servant::singleton::orbServantManager::instance()->fini();
+    } catch ( CORBA::Exception& ex ) {
+        adportable::debug dbg( __FILE__, __LINE__ );
+        dbg << ex._info().c_str();        dbg << ex._info().c_str();
+        QMessageBox::critical( 0, dbg.where().c_str(), dbg.str().c_str() );
+    }
+    ACE_Thread_Manager::instance()->wait();
 }
 
 

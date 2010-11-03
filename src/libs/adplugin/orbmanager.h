@@ -10,6 +10,7 @@
 
 #pragma warning (disable: 4996)
 # include <tao/ORB.h>
+# include <tao/PortableServer/PortableServer.h>
 # include <ace/Recursive_Thread_Mutex.h>
 #pragma warning (default: 4996)
 
@@ -27,16 +28,19 @@ namespace adplugin {
 
 	public:
 		// int init( int argc, char * argv[] );
-		void initialize( CORBA::ORB_ptr orb );
+        void initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa );
 
 		CORBA::ORB_ptr orb();
+        PortableServer::POA_ptr poa();
 		CORBA::Object_ptr string_to_object( const std::string& ior );
+        bool deactivate( CORBA::Object_ptr );
 
         static ORBManager * instance();
 
 	private:
-		// TAO_ORB_Manager * orb_;
 		CORBA::ORB_var orb_;
+        PortableServer::POA_var poa_;
+
 		ACE_Recursive_Thread_Mutex mutex_;
         friend ACE_Singleton< ORBManager, ACE_Recursive_Thread_Mutex >;
 	};

@@ -23,6 +23,7 @@ namespace adplugin {
 			             , const std::wstring& token 
 			             , SignalObserver::eUpdateFrequency freq = SignalObserver::Friquent
 						 , QObject * parent = 0 );
+        ~QObserverEvents_i();
        
         // implements ObserverEvents
 		void OnUpdateData( CORBA::Long );
