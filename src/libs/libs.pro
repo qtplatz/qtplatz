@@ -2,20 +2,20 @@ TEMPLATE  = subdirs
 CONFIG   += ordered
 
 SUBDIRS   = \
-    qtconcurrent \
+    acewrapper \
+    adbroker \
+    adcontroller \
+    adcontrols \
+    adinterface \
+    adplugin \
+    adportable \
+    adwidgets \
     aggregation \
     extensionsystem \
-    utils \
-    adportable \
-    xmlwrapper \
-    qtwrapper \
     qtwidgets \
-    acewrapper \
-    adwidgets \
-    adcontrols \
-    adbroker \
-    adplugin \
-    adcontroller
+    qtwrapper \
+    utils \
+    xmlwrapper
 
 #   adcontroller
 #    interface

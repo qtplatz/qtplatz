@@ -11,7 +11,19 @@ TEMPLATE = lib
 
 DEFINES += TOFCONTROLLER_LIBRARY
 
-SOURCES += tofcontroller.cpp
+SOURCES += tofcontroller.cpp \
+           deviceproxy.cpp \
+           tofcontroller.cpp \
+           tofobserver_i.cpp \
+           tofsession_i.cpp \
+           traceobserver_i.cpp
 
 HEADERS += tofcontroller.h\
-        tofcontroller_global.h
+        tofcontroller_global.h \
+        analyzerdevicedata.h \
+        constants.h \
+        deviceproxy.h \
+        marshal.hpp \
+        tofobserver_i.h \
+        toftask.h \
+        traceobserver_i.h
