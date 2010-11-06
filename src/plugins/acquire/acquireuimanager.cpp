@@ -94,7 +94,7 @@ AcquireUIManager::init()
         m.mainWindow_->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
         m.mainWindow_->setDocumentMode( true );
         
-        const adportable::Configuration * pTab = adportable::Configuration::find( config, L"instrument_monitor_tab" );
+        const adportable::Configuration * pTab = adportable::Configuration::find( config, L"monitor_tab" );
         if ( pTab ) {
             using namespace adportable;
             using namespace adplugin;

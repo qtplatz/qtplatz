@@ -10,14 +10,13 @@
 
 namespace adtofms {
 
-	class factory_impl : public adplugin::IFactory {
-		Q_OBJECT
-		Q_INTERFACES( adplugin::IFactory )
+	class factory_impl : public adplugin::ifactory {
 	public:
-		explicit factory_impl(QObject *parent = 0);
+		explicit factory_impl();
 
 		virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent );
 		virtual QObject * create_object( const wchar_t * iid, QObject * parent );
+        virtual void release();
     signals:
 
     public slots:

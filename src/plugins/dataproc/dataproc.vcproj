@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="dataproc"
 	ProjectGUID="{E96A350A-5753-3A8B-B2E4-F9F563BD34E6}"
+	RootNamespace="dataproc"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -903,6 +904,28 @@
 			UniqueIdentifier="{E0D8C965-CC5F-43d7-AD63-FAEF0BBC0F85}-copy2build"
 			ParseFiles="false"
 			>
+			<File
+				RelativePath=".\dataproc.config.xml"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;xcopy /y /s $(ProjectDir)..\xsd\ $(TargetDir)..\"
+						Outputs="$(TargetDir)$(InputFileName);$(TargetDir)..\xsd\config.xsd"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;xcopy /y /s $(ProjectDir)..\xsd\ $(TargetDir)..\"
+						Outputs="$(TargetDir)$(InputFileName)"
+					/>
+				</FileConfiguration>
+			</File>
 			<File
 				RelativePath="dataproc.pluginspec"
 				>

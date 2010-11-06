@@ -3,40 +3,31 @@
 <!--
    $Id$
 -->
-<ServantConfiguration name="servant">
+<ServantConfiguration name="servant" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
 	<Module name="adbroker" type="corba::servant" filename="-- mandetory module -- this will loaded automatically by path environment variable --"/>
 	<Module name="adcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiaison/adcontroller$(configuration).dll"/>
-  <!--	<Module name="tofcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiaison/tofcontroller$(configuration).dll"/> -->
+	<!--	<Module name="tofcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiaison/tofcontroller$(configuration).dll"/> -->
 	<Module name="infitofcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/MSI/infitofcontroller$(configuration).dll"/>
-  <Module name="infitofspectrometer" type="adcontrols::massspectrometer" filename="/lib/qtPlatz/plugins/MSI/infitofspectrometer$(configuration).dll" />
-
-	<Configuration>
-		<Configuration name="adbroker" type="" component="">
+	<Module name="infitofspectrometer" type="adcontrols::massspectrometer" filename="/lib/qtPlatz/plugins/MSI/infitofspectrometer$(configuration).dll"/>
+	
+	<Configuration name="root_poa">
+		<Configuration name="adbroker" type="">
 			<Component name="adbroker" module="adbroker"/>
-      <Configuration>
-      </Configuration>
 		</Configuration>
-
-		<Configuration name="adcontroller" type="orbLoader" ns_name="adcontroller.manager" component="">
+		
+		<Configuration name="adcontroller" type="orbLoader" ns_name="adcontroller.manager">
 			<Component name="adcontroller" module="adcontroller"/>
 			<Configuration name="InstrumentConfiguration">
-				  <Configuration name="infitofcontroller.1" id="infitof.1" type="object_ref" ns_name="infitofcontroller.session"/>
+				<Configuration name="infitofcontroller.1" id="infitof.1" type="object_ref" ns_name="infitofcontroller.session"/>
 			</Configuration>
 		</Configuration>
 
-
-    <!--		<Configuration name="tofcontoller" type="orbLoader" ns_name="tofcontroller.session" component="">
-			<Component name="tofcontroller" module="tofcontroller"/>
-		</Configuration> -->
-
-
-		<Configuration name="infitofcontoller" type="orbLoader" ns_name="infitofcontroller.session" component="">
+		<Configuration name="infitofcontoller" type="orbLoader" ns_name="infitofcontroller.session">
 			<Component name="infitofcontroller" module="infitofcontroller"/>
 		</Configuration>
-
-    <Configuration name="infitofspectrometer" type="MassSpectrometer" component="">
-      <Component name="infitofspectrometer" module="infitofspectrometer"/>
-    </Configuration>
-
-  </Configuration>
+		
+		<Configuration name="infitofspectrometer" type="MassSpectrometer">
+			<Component name="infitofspectrometer" module="infitofspectrometer"/>
+		</Configuration>
+	</Configuration>
 </ServantConfiguration>

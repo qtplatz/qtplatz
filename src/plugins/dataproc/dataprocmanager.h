@@ -11,6 +11,10 @@
 
 class QMainWindow;
 
+namespace adportable {
+    class Configuration;
+}
+
 namespace dataproc {
   namespace internal {
 
@@ -22,8 +26,9 @@ namespace dataproc {
       explicit DataprocManager(QObject *parent = 0);
 
       QMainWindow * mainWindow() const;
-      void init();
+      void init( const adportable::Configuration&, const std::wstring& apppath );
       void setSimpleDockWidgetArrangement();
+      void OnInitialUpdate();
       
     signals:
       

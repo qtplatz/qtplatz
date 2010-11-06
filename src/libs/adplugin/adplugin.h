@@ -7,7 +7,8 @@
 #ifndef ADPLUGIN_H
 #define ADPLUGIN_H
 
-#include "adplugin_global.h"
+//#include "adplugin_global.h"
+#include "manager.h"
 #include <string>
 
 class QString;
@@ -21,41 +22,16 @@ namespace adportable {
 
 namespace adplugin {
 
-    static const wchar_t * iid_iMonitor =             L"adplugin::ui::iMonitor";
+    static const wchar_t * iid_iMonitor   =           L"adplugin::ui::iMonitor";
     static const wchar_t * iid_iControlMethodEditor = L"adplugin::ui::iControlMethodEditor";
-    static const wchar_t * iid_iLog     =             L"adplugin::ui::iLog";
+    static const wchar_t * iid_iLog       =           L"adplugin::ui::iLog";
+    static const wchar_t * iid_iSequence  =           L"adplugin::ui::iSequence";
+    static const wchar_t * iid_iSequencesForm =       L"adplugin::ui::iSequencesForm";
 
-    class orbLoader;
-
-	class ADPLUGINSHARED_EXPORT manager {
-	protected:
-            manager();
-            ~manager();
-	public:
-            static manager * instance();
-            static void dispose();
-            static std::string ior( const char * name ); // return broker::manager's ior
-            static std::string iorBroker();
-            
-            virtual bool loadConfig( adportable::Configuration&, const std::wstring&, const wchar_t * query ) = 0;
-            virtual QObject * loadLibrary( const std::wstring& ) = 0;
-            virtual bool unloadLibrary( const std::wstring& ) = 0;
-            
-            static QWidget * widget_factory( const adportable::Configuration&, const wchar_t * path, QWidget * parent = 0 );
-            
-            virtual orbLoader& orbLoader( const std::wstring& name ) = 0;
-
-			virtual void register_ior( const std::string& name, const std::string& ior ) = 0;
-            virtual const char * lookup_ior( const std::string& name ) = 0;
-            
-	private:
-        // static manager * instance_;
-	};
 }
 
-//Q_DECLARE_INTERFACE(::adplugin::ui::MonitorInterface, "MonitorInterface/1.0" );
-//Q_DECLARE_INTERFACE(::adplugin::ui::MethodInterface, "MethodInterface/1.0" );
-
-
+#define EXPORT_FACTORY( FACTORY_CLASS ) \
+    extern "C" {  __declspec(dllexport) adplugin::ifactory * ad_plugin_instance(); } \
+    adplugin::ifactory * ad_plugin_instance() { return new FACTORY_CLASS; }
 
 #endif // ADPLUGIN_H

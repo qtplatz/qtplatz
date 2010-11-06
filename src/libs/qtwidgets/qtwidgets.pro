@@ -18,12 +18,45 @@ DEFINES += QTWIDGETS_LIBRARY
 
 SOURCES += qtwidgets.cpp \
     logwidget.cpp \
-    factory.cpp
+    factory.cpp \
+    sequencewidget.cpp \
+    sequences.cpp \
+    centroidform.cpp \
+    elementalcompositionform.cpp \
+    mscalibrationform.cpp \
+    isotopeform.cpp \
+    targetingform.cpp \
+    mslockform.cpp \
+    chromatographicpeakform.cpp \
+    peakidtableform.cpp \
+    reportform.cpp
 
 HEADERS += qtwidgets.h\
         qtwidgets_global.h \
     logwidget.h \
-    factory.h
+    factory.h \
+    sequencewidget.h \
+    sequences.h \
+    centroidform.h \
+    elementalcompositionform.h \
+    mscalibrationform.h \
+    isotopeform.h \
+    targetingform.h \
+    mslockform.h \
+    chromatographicpeakform.h \
+    peakidtableform.h \
+    reportform.h
 
 FORMS += \
-    logwidget.ui
+    logwidget.ui \
+    sequencewidget.ui \
+    sequencesform.ui \
+    centroidform.ui \
+    elementalcompositionform.ui \
+    mscalibrationform.ui \
+    isotopeform.ui \
+    targetingform.ui \
+    mslockform.ui \
+    chromatographicpeakform.ui \
+    peakidtableform.ui \
+    reportform.ui

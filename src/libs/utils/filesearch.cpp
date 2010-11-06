@@ -38,7 +38,7 @@
 #include <QtCore/QRegExp>
 #include <QtCore/QCoreApplication>
 
-#include <qtconcurrent/runextensions.h>
+//#include <qtconcurrent/runextensions.h>
 
 using namespace Utils;
 

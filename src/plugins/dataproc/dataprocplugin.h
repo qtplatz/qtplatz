@@ -9,6 +9,10 @@
 #include <extensionsystem/iplugin.h>
 #include <boost/smart_ptr.hpp>
 
+namespace adportable {
+	class Configuration;
+}
+
 namespace dataproc {
     namespace internal {
 
@@ -29,6 +33,7 @@ namespace dataproc {
 
       private:
       boost::shared_ptr<DataprocManager> manager_;
+      boost::shared_ptr< adportable::Configuration > pConfig_;
 
       };
 

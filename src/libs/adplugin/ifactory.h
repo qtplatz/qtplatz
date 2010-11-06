@@ -11,20 +11,14 @@
 
 namespace adplugin {
 
-	class ADPLUGINSHARED_EXPORT IFactory : public QObject {
-		Q_OBJECT
+    class ADPLUGINSHARED_EXPORT ifactory {
 	public:
-		explicit IFactory(QObject *parent = 0) : QObject( parent ) {}
+        ifactory() {}
+        virtual ~ifactory() {}
 
 		virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent = 0 ) = 0;
 		virtual QObject * create_object( const wchar_t * iid, QObject * parent = 0 ) = 0;
-
-    signals:
-
-	public slots:
-
+        virtual void release() = 0;
 	};
+
 }
-
-Q_DECLARE_INTERFACE( adplugin::IFactory, "org.adplugin.IFactory/1.0" );
-

@@ -14,6 +14,7 @@
 #include "chromatogramwnd.h"
 
 #include <QtCore/qplugin.h>
+#include <QtCore>
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -37,8 +38,12 @@
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QToolButton>
-
+#include <QDir>
 #include <adcontrols/massspectrum.h>
+#include <qtwrapper/qstring.h>
+#include <adportable/configuration.h>
+#include <adplugin/adplugin.h>
+#include <adportable/debug.h>
 
 using namespace dataproc::internal;
 
@@ -53,19 +58,40 @@ DataprocPlugin::DataprocPlugin()
 bool
 DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
 {
-  Q_UNUSED( arguments );
+    Q_UNUSED( arguments );
 
-  Core::ICore * core = Core::ICore::instance();
+    Core::ICore * core = Core::ICore::instance();
   
-  QList<int> context;
-  if ( core ) {
-    Core::UniqueIDManager * uidm = core->uniqueIDManager();
-    if ( uidm ) {
-      context.append( uidm->uniqueIdentifier( QLatin1String("Dataproc.MainView") ) );
-      context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
+    QList<int> context;
+    if ( core ) {
+        Core::UniqueIDManager * uidm = core->uniqueIDManager();
+        if ( uidm ) {
+            context.append( uidm->uniqueIdentifier( QLatin1String("Dataproc.MainView") ) );
+            context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
+        }
+    } else
+        return false;
+
+    //-------------------------------------------------------------------------------------------
+    std::wstring apppath;
+    do {
+        QDir dir = QCoreApplication::instance()->applicationDirPath();
+        dir.cdUp();
+        apppath = qtwrapper::wstring::copy( dir.path() );
+    } while(0);
+
+    std::wstring configFile = apppath + L"/lib/qtPlatz/plugins/ScienceLiaison/dataproc.config.xml";
+
+    const wchar_t * query = L"/DataprocConfiguration/Configuration";
+
+    pConfig_.reset( new adportable::Configuration() );
+    adportable::Configuration& config = *pConfig_;
+
+    if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
+        error_message = new QString( "loadConfig load failed" );
+        adportable::debug() << "DataprocPlugin::initialize loadConfig failed";
     }
-  } else
-    return false;
+    //------------------------------------------------
 
   Core::MimeDatabase* mdb = core->mimeDatabase();
   if ( mdb ) {
@@ -82,7 +108,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
 
   manager_.reset( new DataprocManager(0) );
   if ( manager_ )
-    manager_->init();
+      manager_->init( config, apppath );
 
   // initialize_actions();
 

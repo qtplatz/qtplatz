@@ -4,6 +4,10 @@
 //////////////////////////////////////////
 
 #include "dataprocmanager.h"
+#include <adportable/Configuration.h>
+#include <adplugin/adplugin.h>
+#include <adplugin/lifecycle.h>
+#include <qtwrapper/qstring.h>
 #include <boost/noncopyable.hpp>
 
 #include <utils/fancymainwindow.h>
@@ -50,54 +54,59 @@ DataprocManager::mainWindow() const
 }
 
 void
-DataprocManager::init()
+DataprocManager::init( const adportable::Configuration& config, const std::wstring& apppath )
 {
   pImpl_->init();
 
-  QWidget * edit1 = new QTextEdit( "Sequence" );
-  edit1->setWindowTitle( tr("Centroid") );
-  
-  QWidget * edit2 = new QTextEdit( "Log" );
-  edit2->setWindowTitle( tr("Elemental Composition") );
-  
-  QWidget * edit3 = new QTextEdit( "MS" );
-  edit3->setWindowTitle( tr("Lockmass") );
-  
-  QWidget * edit4 = new QTextEdit( "Edit4" );
-  edit4->setWindowTitle( tr("Isotope") );
-  
-  QWidget * edit5 = new QTextEdit( "Edit 5" );
-  edit5->setWindowTitle( tr("MS Calibration") );
-  
-  QWidget * edit6 = new QTextEdit( "Edit 6" );
-  edit6->setWindowTitle( tr("Targeting") );
-  
-  QWidget * edit7 = new QTextEdit( "Edit 6" );
-  edit7->setWindowTitle( tr("Chromatogram") );
-  
-  QWidget * edit8 = new QTextEdit( "Edit 6" );
-  edit8->setWindowTitle( tr("Report") );
-
   DataprocManagerImpl& m = *pImpl_;
 
-    QDockWidget * dock1 = m.mainWindow_->addDockForWidget( edit1 );
-    QDockWidget * dock2 = m.mainWindow_->addDockForWidget( edit2 );
-    QDockWidget * dock3 = m.mainWindow_->addDockForWidget( edit3 );
-    QDockWidget * dock4 = m.mainWindow_->addDockForWidget( edit4 );
-    QDockWidget * dock5 = m.mainWindow_->addDockForWidget( edit5 );
-    QDockWidget * dock6 = m.mainWindow_->addDockForWidget( edit6 );
-    QDockWidget * dock7 = m.mainWindow_->addDockForWidget( edit7 );
-    QDockWidget * dock8 = m.mainWindow_->addDockForWidget( edit8 );
-    
-    m.dockWidgetVec_.push_back( dock1 );
-    m.dockWidgetVec_.push_back( dock2 );
-    m.dockWidgetVec_.push_back( dock3 );
-    m.dockWidgetVec_.push_back( dock4 );
-    m.dockWidgetVec_.push_back( dock5 );
-    m.dockWidgetVec_.push_back( dock6 );
-    m.dockWidgetVec_.push_back( dock7 );
-    m.dockWidgetVec_.push_back( dock8 );
+  const adportable::Configuration * pTab = adportable::Configuration::find( config, L"ProcessMethodEditors" );
+  if ( pTab ) {
+      using namespace adportable;
+      using namespace adplugin;
+            
+      // std::wstring loadpath = qtwrapper::wstring( dir.path() );
+      // tab pages
+      for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
 
+          const std::wstring name = it->name();
+          // const std::wstring& component = it->attribute( L"component" );
+                
+          if ( it->isPlugin() ) {
+              QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
+              if ( pWidget ) {
+                  //pWidget->setWindowTitle( tr( qtwrapper::qstring::copy(it->name())) );
+                  //connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
+                  pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
+                  QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
+                  m.dockWidgetVec_.push_back( dock );
+              } else {
+                  QWidget * edit = new QTextEdit( "Edit" );
+                  edit->setWindowTitle( qtwrapper::qstring( it->title() ) );
+                  QDockWidget * dock = m.mainWindow_->addDockForWidget( edit );
+                  m.dockWidgetVec_.push_back( dock );
+              }
+          }
+      }
+  }            
+}
+
+void
+DataprocManager::OnInitialUpdate()
+{
+    DataprocManagerImpl& m = *pImpl_;
+
+    QList< QDockWidget *> dockWidgets = m.mainWindow_->dockWidgets();
+  
+    foreach ( QDockWidget * dockWidget, dockWidgets ) {
+        QObjectList list = dockWidget->children();
+        foreach ( QObject * obj, list ) {
+            adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
+            if ( pLifeCycle ) {
+                pLifeCycle->OnInitialUpdate();
+            }
+        }
+    }
 }
 
 ///////////////////////

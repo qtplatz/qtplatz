@@ -4,6 +4,8 @@
 //////////////////////////////////////////
 
 #include "adtofms.h"
+#include "factory_impl.h"
+#include <adplugin/ifactory.h>
 
 #pragma warning (disable: 4996)
 # include "ace/Init_ACE.h"
@@ -40,3 +42,5 @@
 #     pragma comment(lib, "ACE.lib")
 #  endif
 #endif
+
+EXPORT_FACTORY( adtofms::factory_impl )

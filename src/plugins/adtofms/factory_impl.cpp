@@ -11,8 +11,7 @@
 
 using namespace adtofms;
 
-factory_impl::factory_impl(QObject *parent) :
-    adplugin::IFactory(parent)
+factory_impl::factory_impl()
 {
 }
 
@@ -35,4 +34,10 @@ factory_impl::create_object( const wchar_t *, QObject * parent )
 	return 0;
 }
 
-Q_EXPORT_PLUGIN( factory_impl )
+void
+factory_impl::release()
+{
+    delete this;
+}
+
+//Q_EXPORT_PLUGIN( factory_impl )
