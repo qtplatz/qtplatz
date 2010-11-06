@@ -905,15 +905,16 @@
 			ParseFiles="false"
 			>
 			<File
-				RelativePath=".\dataproc.config.xml"
+				RelativePath="..\xsd\config.xsd"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;xcopy /y /s $(ProjectDir)..\xsd\ $(TargetDir)..\"
-						Outputs="$(TargetDir)$(InputFileName);$(TargetDir)..\xsd\config.xsd"
+						Description="COPY config.xsd file"
+						CommandLine="copy /y $(InputPath) $(TargetDir)..\xsd\$(InputFileName)"
+						Outputs="$(TargetDir)..\xsd\$(InputFileName)"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -921,7 +922,30 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;xcopy /y /s $(ProjectDir)..\xsd\ $(TargetDir)..\"
+						Description="COPY config.xsd file"
+						CommandLine="copy /y $(InputPath) $(TargetDir)..\xsd\$(InputFileName)"
+						Outputs="$(TargetDir)..\xsd\$(InputFileName)"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\dataproc.config.xml"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						Outputs="$(TargetDir)$(InputFileName)"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
