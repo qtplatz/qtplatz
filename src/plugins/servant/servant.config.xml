@@ -4,6 +4,7 @@
    $Id$
 -->
 <ServantConfiguration name="servant" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
+<!-- <ServantConfiguration name="servant"> -->
 	<Module name="adbroker" type="corba::servant" filename="-- mandetory module -- this will loaded automatically by path environment variable --"/>
 	<Module name="adcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiaison/adcontroller$(configuration).dll"/>
 	<!--	<Module name="tofcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiaison/tofcontroller$(configuration).dll"/> -->

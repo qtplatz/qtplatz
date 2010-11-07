@@ -79,13 +79,13 @@ namespace servant {
                 if ( CORBA::is_nil( mgr ) )
                     return 0;
                 // store broker's ior to self
-                for ( size_t nTrial = 5 ; nTrial > 0 ; ++nTrial ) {
+                for ( size_t nTrial = 0; nTrial < 25 ; ++nTrial ) {
                     try {
                         mgr->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker.c_str() );
                         break;
                     } catch ( CORBA::Exception& ex ) {
                         adportable::debug( __FILE__, __LINE__ ) << "CORBA::Exception: " << ex._info().c_str();
-                        if ( nTrial > 3 )
+                        if ( nTrial > 5 )
                             QMessageBox::warning(0, "ServantPlugin - Broker::Manager::registor_ior", ex._info().c_str() );
                         else
                             QMessageBox::critical(0, "ServantPlugin - Broker::Manager::registor_ior", ex._info().c_str() );

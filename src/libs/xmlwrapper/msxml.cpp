@@ -301,6 +301,21 @@ msxml::XMLDocument::load( const std::wstring& filename )
    return false;
 }
 
+std::wstring
+msxml::XMLDocument::parseError()
+{
+    MSXML2::IXMLDOMParseErrorPtr pError = 0;
+    std::wstring reason;
+    if ( pImpl_ ) {
+        MSXML2::IXMLDOMDocument2Ptr pidoc = pImpl_.get();
+        if ( pidoc ) {
+            pError = pidoc->validate();
+            reason = pError->reason;
+        }
+    }
+    return reason;
+}
+
 
 bool
 msxml::XMLDocument::loadXML( const std::wstring& xml )

@@ -93,6 +93,7 @@ namespace xmlwrapper {
       bool save( const std::wstring& filename ) const;
       bool load( const std::wstring& filename );
       bool loadXML( const std::wstring& xml );
+      std::wstring parseError();
       
       bool xml(std::wstring& xml) const;
 	  std::wstring toString() const;

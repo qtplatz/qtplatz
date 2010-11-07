@@ -3,9 +3,11 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 #include "debug.h"
+#include <adportable/string.h>
 #include "ConfigLoader.h"
 #include <adportable/configuration.h>
 #include <xmlwrapper/msxml.h>
+#include <fstream>
 
 using namespace adportable;
 using namespace xmlwrapper;
@@ -31,14 +33,20 @@ ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstr
 {
     XMLDocument dom;
 	if ( ! dom.load( file ) ) {
+        std::wstring reason = dom.parseError();
 		adportable::debug dbg;
-		dbg << "adportable::ConfigLoader::loadConfigFile(" << file << ") - load fioled";
+        dbg << "adportable::ConfigLoader::loadConfigFile(" << file << ")" << reason;
 		return false;
 	}
 
 	XMLNodeList list = dom.selectNodes( query );
-	if ( list.size() == 0 )
+    if ( list.size() == 0 ) {
+#if defined _DEBUG
+        std::wstring xml;
+        dom.xml( xml );
+#endif
 		return false;
+    }
 
 	if ( list.size() == 1 ) {
 		if ( ConfigLoaderImpl::load( config, list[0] ) )

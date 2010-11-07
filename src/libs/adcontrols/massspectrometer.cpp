@@ -51,7 +51,7 @@ MassSpectrometer::get( const std::wstring& modelname )
 	MassSpectrometerBroker::factory_type factory = MassSpectrometerBroker::find( modelname );
 	if ( factory )
 		return *factory();
-	throw std::exception("mass spectrometer not registered");
+	throw std::exception("mass spectrometer not registered. Check servant.config.xml or configloader");
 }
 
 //////////////////////////////////////////////////////////////

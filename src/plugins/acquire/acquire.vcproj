@@ -1220,6 +1220,30 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\acquire.config.xsd"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="copy $(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						Outputs="$(TargetDir)$(InputFileName)"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="copy $(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						Outputs="$(TargetDir)$(InputFileName)"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="acquire.pluginspec"
 				>
 				<FileConfiguration
@@ -1242,6 +1266,30 @@
 						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies="acquire.pluginspec;copy"
 						Outputs="$(TargetDir)$(InputFileName)"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\xsd\config.xsd"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="COPY config.xsd"
+						CommandLine="copy /y $(InputPath) $(TargetDir)..\xsd\$(InputFileName)"
+						Outputs=" $(TargetDir)..\xsd\$(InputFileName)"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="COPY config.xsd"
+						CommandLine="copy /y $(InputPath) $(TargetDir)..\xsd\$(InputFileName)"
+						Outputs=" $(TargetDir)..\xsd\$(InputFileName)"
 					/>
 				</FileConfiguration>
 			</File>
