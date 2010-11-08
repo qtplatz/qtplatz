@@ -26,6 +26,8 @@ namespace adplugin {
         virtual void initial_reference( const char * ior ) = 0;
         virtual const char * activate() = 0;
         virtual bool deactivate() = 0;
+  
+		virtual const char * error_description() { return 0; }
     };
 
 }

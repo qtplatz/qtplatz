@@ -11,6 +11,7 @@
 #include <acewrapper/constants.h>
 #include <adportable/configloader.h>
 #include <adportable/debug.h>
+#include <adportable/string.h>
 #include <qtwrapper/qstring.h>
 #include <ace/Singleton.h>
 #include <QLibrary>
@@ -59,6 +60,7 @@ namespace adplugin {
 
         librariesType libraries_;
         orbLoadersType orbLoaders_;
+		orbLoadersType failedLoaders_;
         std::map< std::string, std::string > iorMap_;
     };
 }
@@ -191,6 +193,21 @@ manager_impl::lookup_ior( const std::string& name )
 
 //////////////////////////////////////
 ////////////////////////////////////////
+
+class ORBLoaderError : public adplugin::orbLoader {
+	std::string errmsg_;
+public:
+	ORBLoaderError::ORBLoaderError( const std::string& errmsg ) : errmsg_( errmsg ) {}
+	ORBLoaderError::~ORBLoaderError() { }
+	virtual operator bool() const { return false; }
+	virtual bool initialize( CORBA::ORB *, PortableServer::POA * , PortableServer::POAManager * ) { return false; }
+	virtual void initial_reference( const char * ) { }
+	virtual const char * activate() { return ""; }
+	virtual bool deactivate() { return false; }
+	virtual const char * error_description() { return errmsg_.c_str(); }
+};
+
+//-------------------
 adplugin::orbLoader&
 manager_impl::orbLoader( const std::wstring& file )
 {
@@ -201,14 +218,15 @@ manager_impl::orbLoader( const std::wstring& file )
 
     int rcode = _waccess( file.c_str(), 0 );
 	if ( rcode ) {
-		adportable::debug out;
+		adportable::debug dbg;
 		const char * reason = 0;
         if ( errno == EACCES ) reason = "access denied";
 		else if ( errno == ENOENT ) reason = "file name or path not found";
 		else if ( errno == EINVAL ) reason = "invalid parameter";
 		else reason = "n/a";
-		out << file << " access filed by " << reason;
-        throw std::exception( out.str().c_str() ); //return empty;
+		dbg << "error: " << reason << " '" << file << "'";
+		failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
+		return *failedLoaders_[ file ];
 	}
     
 	QLibrary lib( qtwrapper::qstring::copy( file ) );
@@ -220,10 +238,13 @@ manager_impl::orbLoader( const std::wstring& file )
 			if ( loader )
 				orbLoaders_[ file ] = loader;
 		} else {
-            QMessageBox::critical( 0, "adplugin::orbLoader", "instance can not be assigned" );
+			failedLoaders_[ file ].reset( new ORBLoaderError( "dll entry point 'instance' can not be found" ) );
+			return *failedLoaders_[ file ];
 		}
 	}
 	if ( ( it = orbLoaders_.find( file ) ) != orbLoaders_.end() )
 		return *it->second;
-    throw std::exception( "orbLoader entry can not be found" );
+
+	failedLoaders_[ file ].reset( new ORBLoaderError( "dll load failed." ) );
+	return *failedLoaders_[ file ];
 }
