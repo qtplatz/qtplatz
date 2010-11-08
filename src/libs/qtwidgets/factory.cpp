@@ -18,6 +18,7 @@
 #include "mslockform.h"
 #include "chromatographicpeakform.h"
 #include "isotopeform.h"
+#include <adplugin/lifecycle.h>
 
 using namespace qtwidgets;
 
@@ -27,27 +28,27 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
     if ( std::wstring(iid) == adplugin::iid_iLog ) {
         return new LogWidget( parent );
     } else if ( std::wstring( iid ) == adplugin::iid_iSequence ) {
-        return new qtwidgets::SequenceWidget;
+        return new qtwidgets::SequenceWidget( parent );
     } else if ( std::wstring( iid ) == adplugin::iid_iSequencesForm ) {
-        return new qtwidgets::SequencesForm;
+        return new qtwidgets::SequencesForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::CentroidForm" ) {
-        return new qtwidgets::CentroidForm;
+        return new qtwidgets::CentroidForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::ElementalCompositionForm" ) {
-        return new qtwidgets::ElementalCompositionForm;
+        return new qtwidgets::ElementalCompositionForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::IsotopeForm" ) {
-        return new qtwidgets::IsotopeForm;
+        return new qtwidgets::IsotopeForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MSCalibrationForm" ) {
-        return new qtwidgets::MSCalibrationForm;
+        return new qtwidgets::MSCalibrationForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::TargetingForm" ) {
-        return new qtwidgets::TargetingForm;
+        return new qtwidgets::TargetingForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MSLockForm" ) {
-        return new qtwidgets::MSLockForm;
+        return new qtwidgets::MSLockForm ( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::PeakMethodForm" ) {
-        return new qtwidgets::ChromatographicPeakForm;
+        return new qtwidgets::ChromatographicPeakForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::PeakIDTableForm" ) {
-        return new qtwidgets::PeakIDTableForm;
+        return new qtwidgets::PeakIDTableForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::ReportForm" ) {
-        return new qtwidgets::ReportForm;
+        return new qtwidgets::ReportForm( parent );
     }
     return 0;
 }

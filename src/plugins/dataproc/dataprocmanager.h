@@ -29,6 +29,7 @@ namespace dataproc {
       void init( const adportable::Configuration&, const std::wstring& apppath );
       void setSimpleDockWidgetArrangement();
       void OnInitialUpdate();
+      void OnFinalClose();
       
     signals:
       

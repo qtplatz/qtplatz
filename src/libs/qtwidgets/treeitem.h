@@ -13,6 +13,7 @@
 namespace qtwidgets {
 
     class TreeItem;
+
     typedef boost::shared_ptr<TreeItem> TreeItemPtr;
     
     class TreeItem {
@@ -46,5 +47,5 @@ namespace qtwidgets {
         vector_type childItems_;
         TreeItem * parentItem_;
     };
-    
+
 }

@@ -80,6 +80,9 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
                   pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
                   QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
                   m.dockWidgetVec_.push_back( dock );
+
+                  
+                  
               } else {
                   QWidget * edit = new QTextEdit( "Edit" );
                   edit->setWindowTitle( qtwrapper::qstring( it->title() ) );
@@ -104,6 +107,24 @@ DataprocManager::OnInitialUpdate()
             adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
             if ( pLifeCycle ) {
                 pLifeCycle->OnInitialUpdate();
+            }
+        }
+    }
+}
+
+void
+DataprocManager::OnFinalClose()
+{
+    DataprocManagerImpl& m = *pImpl_;
+
+    QList< QDockWidget *> dockWidgets = m.mainWindow_->dockWidgets();
+  
+    foreach ( QDockWidget * dockWidget, dockWidgets ) {
+        QObjectList list = dockWidget->children();
+        foreach ( QObject * obj, list ) {
+            adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
+            if ( pLifeCycle ) {
+                pLifeCycle->OnFinalClose();
             }
         }
     }

@@ -8,8 +8,14 @@
 #define CENTROIDFORM_H
 
 #include <QWidget>
+#include <QStandardItemModel>
 #include <adplugin/lifecycle.h>
 #include <adportable/configuration.h>
+#include <boost/smart_ptr.hpp>
+
+namespace adcontrols {
+    class CentroidMethod;
+}
 
 namespace Ui {
     class CentroidForm;
@@ -17,8 +23,10 @@ namespace Ui {
 
 namespace qtwidgets {
 
+    class StandardModel;
+
     class CentroidForm : public QWidget
-                       , adplugin::LifeCycle {
+                       , public adplugin::LifeCycle {
         Q_OBJECT
 
     public:
@@ -32,7 +40,12 @@ namespace qtwidgets {
 
     private:
         Ui::CentroidForm *ui;
+        //boost::shared_ptr<CentroidModel> model_;
+        boost::shared_ptr<adcontrols::CentroidMethod> method_;
+        boost::shared_ptr< StandardModel > model_;
         adportable::Configuration config_;
+    private:
+        void update_model();
     };
 
 }

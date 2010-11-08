@@ -29,7 +29,8 @@ SOURCES += qtwidgets.cpp \
     mslockform.cpp \
     chromatographicpeakform.cpp \
     peakidtableform.cpp \
-    reportform.cpp
+    reportform.cpp \
+    centroidmodel.cpp
 
 HEADERS += qtwidgets.h\
         qtwidgets_global.h \
@@ -45,7 +46,8 @@ HEADERS += qtwidgets.h\
     mslockform.h \
     chromatographicpeakform.h \
     peakidtableform.h \
-    reportform.h
+    reportform.h \
+    centroidmodel.h
 
 FORMS += \
     logwidget.ui \

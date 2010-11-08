@@ -13,6 +13,7 @@
       <Component type="widget" loader="adplugin" interface="adplugin::ui::iLog" module="qtwidgets"/>
       <datasource name="broker.logger" type="cosnaming::name" interface="Broker::Logger">adbroker.manager</datasource>
     </Configuration>
+
     <Configuration name="infitof_monitor" type="tab">
       <title>InfiTOF</title>
       <Component type="widget" loader="adplugin" interface="adplugin::ui::iMonitor" module="infitofui"/>

@@ -218,6 +218,13 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
 void
 DataprocPlugin::extensionsInitialized()
 {
+    manager_->OnInitialUpdate();
+}
+
+void
+DataprocPlugin::shutdown()
+{
+    manager_->OnFinalClose();
 }
 
 Q_EXPORT_PLUGIN( DataprocPlugin )
