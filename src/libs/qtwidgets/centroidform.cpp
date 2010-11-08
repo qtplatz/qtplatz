@@ -5,7 +5,7 @@
 
 #include "centroidform.h"
 #include "ui_centroidform.h"
-#include "standardmodel.h"
+//#include "standardmodel.h"
 #include <adcontrols/centroidmethod.h>
 #include <QStandardItemModel>
 
@@ -13,7 +13,7 @@ using namespace qtwidgets;
 
 CentroidForm::CentroidForm(QWidget *parent) : QWidget(parent)
                                             , ui(new Ui::CentroidForm)
-                                            , model_( new StandardModel )
+                                            , model_( new QStandardItemModel )
                                             , method_( new adcontrols::CentroidMethod ) 
 {
     ui->setupUi(this);
@@ -46,11 +46,33 @@ CentroidForm::OnFinalClose()
 void
 CentroidForm::update_model()
 {
-    StandardModel& model = *model_;
+    QStandardItemModel& model = *model_;
     // require 4 rows
-    if ( model.rowCount() < 4 )
-        model.insertRows( model.rowCount(), 4 - model.rowCount() );
+    QStandardItem * rootNode = model.invisibleRootItem();
 
+    if ( model.rowCount() == 0 ) {
+        //QList< QStandardITem * > rowItems;
+        //rowItems << new QStandardItem( "Centroid" );
+        //rowItems << new QStandardItem( "value" );
+        rootNode->setColumnCount(2);
+
+        QStandardItem * scanType = new QStandardItem( "ScanType" );
+        rootNode->appendRow( scanType );
+        ui->treeView->expand( scanType->index() );
+        
+        do {
+            scanType->appendRow( new QStandardItem( "Peak Width [Da]" ) );
+            scanType->appendRow( new QStandardItem( "Proportional [ppm]" ) );
+            scanType->appendRow( new QStandardItem( "Constant [Da]" ) );
+        } while(0);
+
+        rootNode->appendRow( new QStandardItem( "Area/Height" ) );
+        rootNode->appendRow( new QStandardItem( "Baseline Width [Da]" ) );
+        rootNode->appendRow( new QStandardItem( "Peak Centroid Fraction [%]" ) );
+    }
+    model.setItem( 0, 1, new QStandardItem( "xxx" ) );
+    model.setItem( 1, 1, new QStandardItem( "yyyy" ) );
+/*
     int row = 0;
     QModelIndex parent = model.index( row, 0 ); // parent
     model.setData( parent, "ScanType" );
@@ -84,4 +106,5 @@ CentroidForm::update_model()
     // 
     model.setData( model.index( ++row, 0 ), "Peak Centroid Fraction [%]" );
     model.setData( model.index( row, 1 ), "50.0000" );
+*/
 }

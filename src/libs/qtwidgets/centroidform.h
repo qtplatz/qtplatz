@@ -21,9 +21,9 @@ namespace Ui {
     class CentroidForm;
 }
 
-namespace qtwidgets {
+class QStandardItemModel;
 
-    class StandardModel;
+namespace qtwidgets {
 
     class CentroidForm : public QWidget
                        , public adplugin::LifeCycle {
@@ -42,7 +42,8 @@ namespace qtwidgets {
         Ui::CentroidForm *ui;
         //boost::shared_ptr<CentroidModel> model_;
         boost::shared_ptr<adcontrols::CentroidMethod> method_;
-        boost::shared_ptr< StandardModel > model_;
+        //boost::shared_ptr< StandardModel > model_;
+        boost::shared_ptr< QStandardItemModel > model_;
         adportable::Configuration config_;
     private:
         void update_model();
