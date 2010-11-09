@@ -7,6 +7,10 @@
 #include "sequencemode.h"
 #include "sequenceeditorfactory.h"
 #include "sequencemanager.h"
+#include <adplugin/adplugin.h>
+#include <adplugin/lifecycle.h>
+#include <adportable/configuration.h>
+#include <qtwrapper/qstring.h>
 
 #include <QtCore/qplugin.h>
 #include <coreplugin/icore.h>
@@ -31,8 +35,9 @@
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QToolButton>
-
 #include <QStringList>
+#include <QDir>
+#include <QtCore>
 
 using namespace sequence;
 using namespace sequence::internal;
@@ -43,6 +48,23 @@ SequencePlugin::~SequencePlugin()
 
 SequencePlugin::SequencePlugin()
 {
+}
+
+QWidget *
+SequencePlugin::CreateSequenceWidget( const std::wstring& apppath, const adportable::Configuration& config )
+{
+    const adportable::Configuration * pSeq = adportable::Configuration::find( config, L"sequence_monitor" );
+    if ( pSeq ) {
+        const std::wstring name = pSeq->name();
+        if ( pSeq->isPlugin() ) {
+            QWidget * pWidget = adplugin::manager::widget_factory( *pSeq, apppath.c_str(), 0 );
+            adplugin::LifeCycle * pLifeCycle = dynamic_cast< adplugin::LifeCycle *>( pWidget );
+            if ( pLifeCycle )
+                pLifeCycle->OnInitialUpdate();
+            return pWidget;
+        }
+    }
+    return 0;
 }
 
 bool
@@ -61,6 +83,27 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
         }
     } else
         return false;
+
+    //---------
+    QDir dir = QCoreApplication::instance()->applicationDirPath();
+    dir.cdUp();
+    std::wstring apppath = qtwrapper::wstring::copy( dir.path() );
+    dir.cd( "lib/qtPlatz/plugins/ScienceLiaison" );
+
+    adportable::Configuration acquire_config;
+    adportable::Configuration dataproc_config;
+    do {
+        std::wstring file = qtwrapper::wstring::copy( dir.path() ) + L"/acquire.config.xml";
+        const wchar_t * query = L"/AcquireConfiguration/Configuration";
+        adplugin::manager::instance()->loadConfig( acquire_config, file, query );
+    } while(0);
+    do {
+        std::wstring file = qtwrapper::wstring::copy( dir.path() ) + L"/dataproc.config.xml";
+        const wchar_t * query = L"/DataprocConfiguration/Configuration";
+        adplugin::manager::instance()->loadConfig( dataproc_config, file, query );
+    } while(0);
+    //----
+
     
     Core::MimeDatabase* mdb = core->mimeDatabase();
     if ( mdb ) {
@@ -77,7 +120,7 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     
     manager_.reset( new SequenceManager(0) );
     if ( manager_ )
-        manager_->init();
+        manager_->init( apppath, acquire_config, dataproc_config );
     
     
     //              [mainWindow]
@@ -125,6 +168,7 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
+        //////////////////
     }
     Utils::StyledBar * toolBar2 = new Utils::StyledBar;
     if ( toolBar2 ) {
@@ -152,10 +196,11 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     
     Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
     if ( splitter3 ) {
-        // QTabWidget * pTab = new QTabWidget;
-        //splitter3->addWidget( pTab );
-        //pTab->addTab( new QTextEdit, QIcon(":/acquire/images/watchpoint.png"), "Sequence" );
-        splitter3->addWidget( new QTextEdit );
+        QWidget * pSequence = CreateSequenceWidget( apppath, acquire_config );
+        if ( pSequence )
+            splitter3->addWidget( pSequence );
+        else
+            splitter3->addWidget( new QTextEdit );
     }
     
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
@@ -178,6 +223,13 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
 void
 SequencePlugin::extensionsInitialized()
 {
+    manager_->OnInitialUpdate();
+}
+
+void
+SequencePlugin::shutdown()
+{
+    manager_->OnFinalClose();
 }
 
 Q_EXPORT_PLUGIN( SequencePlugin )

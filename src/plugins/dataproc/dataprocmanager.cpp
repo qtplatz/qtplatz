@@ -81,8 +81,6 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
                   QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
                   m.dockWidgetVec_.push_back( dock );
 
-                  
-                  
               } else {
                   QWidget * edit = new QTextEdit( "Edit" );
                   edit->setWindowTitle( qtwrapper::qstring( it->title() ) );

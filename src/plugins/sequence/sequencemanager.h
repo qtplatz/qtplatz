@@ -14,7 +14,11 @@ class QDockWidget;
 class QMainWindow;
 
 namespace Utils {
-  class FancyMainWindow;
+    class FancyMainWindow;
+}
+
+namespace adportable {
+    class Configuration;
 }
 
 namespace sequence {
@@ -27,8 +31,11 @@ namespace sequence {
       explicit SequenceManager(QObject *parent = 0);
 
       QMainWindow * mainWindow() const;
-      void init();
+      void init( const std::wstring& apppath, adportable::Configuration& acquire, adportable::Configuration& dataproc );
       void setSimpleDockWidgetArrangement();
+
+      void OnInitialUpdate();
+      void OnFinalClose();
 
     signals:
 

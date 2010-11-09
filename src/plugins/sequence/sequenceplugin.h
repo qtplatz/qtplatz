@@ -10,6 +10,9 @@
 #include <extensionsystem/iplugin.h>
 #include <boost/smart_ptr.hpp>
 
+namespace adportable {
+    class Configuration;
+}
 
 namespace sequence {
   namespace internal {
@@ -24,6 +27,7 @@ namespace sequence {
 
       bool initialize(const QStringList& arguments, QString* error_message);
       void extensionsInitialized();
+      void shutdown();
 
     signals:
 
@@ -31,6 +35,7 @@ namespace sequence {
 
     private:
       boost::shared_ptr<SequenceManager> manager_;
+      QWidget * CreateSequenceWidget( const std::wstring&, const adportable::Configuration& );
     };
     //------
   }

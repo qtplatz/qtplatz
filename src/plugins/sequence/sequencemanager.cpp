@@ -4,8 +4,12 @@
 //////////////////////////////////////////
 
 #include "sequencemanager.h"
+#include <adportable/configuration.h>
+#include <adplugin/adplugin.h>
+#include <adplugin/lifecycle.h>
 #include <utils/fancymainwindow.h>
 #include <utils/styledbar.h>
+#include <qtwrapper/qstring.h>
 #include <QtCore/QHash>
 #include <QString>
 #include <QDockWidget>
@@ -33,57 +37,49 @@ SequenceManager::mainWindow() const
 }
 
 void
-SequenceManager::init()
+SequenceManager::init( const std::wstring& apppath
+                      , adportable::Configuration& acquire_config
+                      , adportable::Configuration& dataproc_config )
 {
-  mainWindow_ = new Utils::FancyMainWindow;
-  if ( mainWindow_ ) {
-    mainWindow_->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
-    mainWindow_->setDocumentMode( true );
-    
-  }
+    mainWindow_ = new Utils::FancyMainWindow;
+    if ( mainWindow_ ) {
+        mainWindow_->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
+        mainWindow_->setDocumentMode( true );
+    }
 
-  QWidget * edit1 = new QTextEdit( "Sequence" );
-  edit1->setWindowTitle( tr("Centroid") );
-  
-  QWidget * edit2 = new QTextEdit( "Log" );
-  edit2->setWindowTitle( tr("Elemental Composition") );
-  
-  QWidget * edit3 = new QTextEdit( "MS" );
-  edit3->setWindowTitle( tr("Lockmass") );
-  
-  QWidget * edit4 = new QTextEdit( "Edit4" );
-  edit4->setWindowTitle( tr("Isotope") );
-  
-  QWidget * edit5 = new QTextEdit( "Edit 5" );
-  edit5->setWindowTitle( tr("MS Calibration") );
-  
-  QWidget * edit6 = new QTextEdit( "Edit 6" );
-  edit6->setWindowTitle( tr("Targeting") );
-  
-  QWidget * edit7 = new QTextEdit( "Edit 6" );
-  edit7->setWindowTitle( tr("Chromatogram") );
-  
-  QWidget * edit8 = new QTextEdit( "Edit 6" );
-  edit8->setWindowTitle( tr("Report") );
+    Q_UNUSED( acquire_config );
 
-    QDockWidget * dock1 = mainWindow_->addDockForWidget( edit1 );
-    QDockWidget * dock2 = mainWindow_->addDockForWidget( edit2 );
-    QDockWidget * dock3 = mainWindow_->addDockForWidget( edit3 );
-    QDockWidget * dock4 = mainWindow_->addDockForWidget( edit4 );
-    QDockWidget * dock5 = mainWindow_->addDockForWidget( edit5 );
-    QDockWidget * dock6 = mainWindow_->addDockForWidget( edit6 );
-    QDockWidget * dock7 = mainWindow_->addDockForWidget( edit7 );
-    QDockWidget * dock8 = mainWindow_->addDockForWidget( edit8 );
-    
-    dockWidgetVec_.push_back( dock1 );
-    dockWidgetVec_.push_back( dock2 );
-    dockWidgetVec_.push_back( dock3 );
-    dockWidgetVec_.push_back( dock4 );
-    dockWidgetVec_.push_back( dock5 );
-    dockWidgetVec_.push_back( dock6 );
-    dockWidgetVec_.push_back( dock7 );
-    dockWidgetVec_.push_back( dock8 );
+    const adportable::Configuration * pTab
+        = adportable::Configuration::find( dataproc_config, L"ProcessMethodEditors" );
+    if ( pTab ) {
+        using namespace adportable;
+        using namespace adplugin;
+            
+        // std::wstring loadpath = qtwrapper::wstring( dir.path() );
+        // tab pages
+        for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
 
+            const std::wstring name = it->name();
+            // const std::wstring& component = it->attribute( L"component" );
+                
+            if ( it->isPlugin() ) {
+                QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
+                if ( pWidget ) {
+                    //pWidget->setWindowTitle( tr( qtwrapper::qstring::copy(it->name())) );
+                    //connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
+                    pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
+                    QDockWidget * dock = mainWindow_->addDockForWidget( pWidget );
+                    dockWidgetVec_.push_back( dock );
+
+                } else {
+                    QWidget * edit = new QTextEdit( "Edit" );
+                    edit->setWindowTitle( qtwrapper::qstring( it->title() ) );
+                    QDockWidget * dock = mainWindow_->addDockForWidget( edit );
+                    dockWidgetVec_.push_back( dock );
+                }
+            }
+        }
+    }            
 }
 
 void
@@ -112,4 +108,36 @@ SequenceManager::setSimpleDockWidgetArrangement()
 
   for ( unsigned int i = 1; i < dockWidgetVec_.size(); ++i )
     mainWindow_->tabifyDockWidget( dockWidgetVec_[0], dockWidgetVec_[i] );
+}
+
+void
+SequenceManager::OnInitialUpdate()
+{
+    QList< QDockWidget *> dockWidgets = mainWindow_->dockWidgets();
+  
+    foreach ( QDockWidget * dockWidget, dockWidgets ) {
+        QObjectList list = dockWidget->children();
+        foreach ( QObject * obj, list ) {
+            adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
+            if ( pLifeCycle ) {
+                pLifeCycle->OnInitialUpdate();
+            }
+        }
+    }
+}
+
+void
+SequenceManager::OnFinalClose()
+{
+    QList< QDockWidget *> dockWidgets = mainWindow_->dockWidgets();
+  
+    foreach ( QDockWidget * dockWidget, dockWidgets ) {
+        QObjectList list = dockWidget->children();
+        foreach ( QObject * obj, list ) {
+            adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
+            if ( pLifeCycle ) {
+                pLifeCycle->OnFinalClose();
+            }
+        }
+    }
 }

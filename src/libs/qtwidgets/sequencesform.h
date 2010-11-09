@@ -10,6 +10,9 @@
 #include <QWidget>
 #include <adplugin/lifecycle.h>
 #include <adportable/configuration.h>
+#include <boost/smart_ptr.hpp>
+
+class QStandardItemModel;
 
 namespace Ui {
     class SequencesForm;
@@ -34,7 +37,8 @@ namespace qtwidgets {
         
     private:
         Ui::SequencesForm *ui;
-        qtwidgets::SequencesModel * pModel_;
+        // qtwidgets::SequencesModel * pModel_;
+        boost::scoped_ptr< QStandardItemModel > pModel_;
         adportable::Configuration config_;
         
     };
