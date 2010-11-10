@@ -15,25 +15,7 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QGroupBox" name="groupBox">
-       <property name="title">
-        <string>GroupBox</string>
-       </property>
-       <widget class="QTextEdit" name="textEdit">
-        <property name="geometry">
-         <rect>
-          <x>23</x>
-          <y>70</y>
-          <width>351</width>
-          <height>201</height>
-         </rect>
-        </property>
-       </widget>
-      </widget>
-     </item>
-    </layout>
+    <widget class="QTreeView" name="treeView"/>
    </item>
   </layout>
  </widget>

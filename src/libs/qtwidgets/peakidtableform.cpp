@@ -5,6 +5,8 @@
 
 #include "peakidtableform.h"
 #include "ui_peakidtableform.h"
+#include <adportable/configuration.h>
+#include <QStandardItemModel>
 
 using namespace qtwidgets;
 
@@ -18,4 +20,20 @@ PeakIDTableForm::PeakIDTableForm(QWidget *parent) :
 PeakIDTableForm::~PeakIDTableForm()
 {
     delete ui;
+}
+
+void
+PeakIDTableForm::OnCreate( const adportable::Configuration& config )
+{
+    *pConfig_ = config;
+}
+
+void
+PeakIDTableForm::OnInitialUpdate()
+{
+}
+
+void
+PeakIDTableForm::OnFinalClose()
+{
 }

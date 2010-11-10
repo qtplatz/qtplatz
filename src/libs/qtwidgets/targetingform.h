@@ -8,6 +8,13 @@
 #define TARGETINGFORM_H
 
 #include <QWidget>
+#include <adplugin/lifecycle.h>
+#include <boost/smart_ptr.hpp>
+
+class QStandardItemModel;
+namespace adportable {
+    class Configuration;
+}
 
 namespace Ui {
     class TargetingForm;
@@ -16,15 +23,23 @@ namespace Ui {
 namespace qtwidgets {
 
     class TargetingForm : public QWidget
-    {
+                        , public adplugin::LifeCycle {
+
         Q_OBJECT
         
     public:
         explicit TargetingForm(QWidget *parent = 0);
         ~TargetingForm();
-        
+        // adplugin::LifeCycle
+        void OnCreate( const adportable::Configuration& );
+        void OnInitialUpdate();
+        void OnFinalClose();
+        //<--
+
     private:
         Ui::TargetingForm *ui;
+        boost::scoped_ptr< QStandardItemModel > pModel_;
+        boost::scoped_ptr< adportable::Configuration > pConfig_;
     };
 
 }

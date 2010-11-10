@@ -53,6 +53,7 @@ CentroidForm::update_model()
     if ( model.rowCount() == 0 ) {
 
         rootNode->setColumnCount(2);
+        model.setHeaderData( 0, Qt::Horizontal, "Centroid" );
 
         QStandardItem * scanType = new QStandardItem( "ScanType" );
         rootNode->appendRow( scanType );

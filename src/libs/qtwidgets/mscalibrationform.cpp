@@ -5,6 +5,8 @@
 
 #include "mscalibrationform.h"
 #include "ui_mscalibrationform.h"
+#include <adportable/configuration.h>
+#include <QStandardItemModel>
 
 using namespace qtwidgets;
 
@@ -18,4 +20,20 @@ MSCalibrationForm::MSCalibrationForm(QWidget *parent) :
 MSCalibrationForm::~MSCalibrationForm()
 {
     delete ui;
+}
+
+void
+MSCalibrationForm::OnCreate( const adportable::Configuration& config )
+{
+    *pConfig_ = config;
+}
+
+void
+MSCalibrationForm::OnInitialUpdate()
+{
+}
+
+void
+MSCalibrationForm::OnFinalClose()
+{
 }

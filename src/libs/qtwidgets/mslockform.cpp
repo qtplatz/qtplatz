@@ -5,6 +5,8 @@
 
 #include "mslockform.h"
 #include "ui_mslockform.h"
+#include <adportable/configuration.h>
+#include <QStandardItemModel>
 
 using namespace qtwidgets;
 
@@ -18,4 +20,20 @@ MSLockForm::MSLockForm(QWidget *parent) :
 MSLockForm::~MSLockForm()
 {
     delete ui;
+}
+
+void
+MSLockForm::OnCreate( const adportable::Configuration& config )
+{
+    *pConfig_ = config;
+}
+
+void
+MSLockForm::OnInitialUpdate()
+{
+}
+
+void
+MSLockForm::OnFinalClose()
+{
 }

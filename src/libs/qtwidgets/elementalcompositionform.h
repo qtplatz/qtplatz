@@ -6,8 +6,15 @@
 
 #ifndef ELEMENTALCOMPOSITIONFORM_H
 #define ELEMENTALCOMPOSITIONFORM_H
-
+              
 #include <QWidget>
+#include <adplugin/lifecycle.h>
+#include <boost/smart_ptr.hpp>
+
+class QStandardItemModel;
+namespace adportable {
+    class Configuration;
+}
 
 namespace Ui {
     class ElementalCompositionForm;
@@ -15,15 +22,27 @@ namespace Ui {
 
 namespace qtwidgets {
 
-    class ElementalCompositionForm : public QWidget {
+    class ElementalCompositionForm : public QWidget
+                                   , public adplugin::LifeCycle { 
         Q_OBJECT
 
     public:
         explicit ElementalCompositionForm(QWidget *parent = 0);
         ~ElementalCompositionForm();
 
+        // adplugin::LifeCycle
+        void OnCreate( const adportable::Configuration& );
+        void OnInitialUpdate();
+        void OnFinalClose();
+        //<--
+
+
     private:
         Ui::ElementalCompositionForm *ui;
+
+        boost::scoped_ptr< QStandardItemModel > pModel_;
+        boost::scoped_ptr< adportable::Configuration > pConfig_;
+
     };
 }
 

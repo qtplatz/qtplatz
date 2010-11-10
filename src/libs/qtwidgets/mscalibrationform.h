@@ -8,6 +8,13 @@
 #define MSCALIBRATIONFORM_H
 
 #include <QWidget>
+#include <adplugin/lifecycle.h>
+#include <boost/smart_ptr.hpp>
+
+class QStandardItemModel;
+namespace adportable {
+    class Configuration;
+}
 
 namespace Ui {
     class MSCalibrationForm;
@@ -22,8 +29,16 @@ namespace qtwidgets {
         explicit MSCalibrationForm(QWidget *parent = 0);
         ~MSCalibrationForm();
 
+        // adplugin::LifeCycle
+        void OnCreate( const adportable::Configuration& );
+        void OnInitialUpdate();
+        void OnFinalClose();
+        //<--
+
     private:
         Ui::MSCalibrationForm *ui;
+        boost::scoped_ptr< QStandardItemModel > pModel_;
+        boost::scoped_ptr< adportable::Configuration > pConfig_;
     };
 
 }

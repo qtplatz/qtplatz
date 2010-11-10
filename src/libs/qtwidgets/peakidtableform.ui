@@ -13,19 +13,11 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>120</x>
-     <y>120</y>
-     <width>46</width>
-     <height>13</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>PeakIID</string>
-   </property>
-  </widget>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QTreeView" name="treeView"/>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

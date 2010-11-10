@@ -8,6 +8,13 @@
 #define SEQUENCEWIDGET_H
 
 #include <QWidget>
+#include <adplugin/lifecycle.h>
+#include <boost/smart_ptr.hpp>
+
+class QStandardItemModel;
+namespace adportable {
+    class Configuration;
+}
 
 namespace Ui {
     class SequenceWidget;
@@ -17,16 +24,24 @@ namespace qtwidgets {
 
     class SequenceModel;
 
-    class SequenceWidget : public QWidget {
+    class SequenceWidget : public QWidget
+                                  , public adplugin::LifeCycle {
         Q_OBJECT
 
     public:
         explicit SequenceWidget(QWidget *parent = 0);
         ~SequenceWidget();
 
+        // adplugin::LifeCycle
+        void OnCreate( const adportable::Configuration& );
+        void OnInitialUpdate();
+        void OnFinalClose();
+        //<--
+
     private:
         Ui::SequenceWidget *ui;
-        qtwidgets::SequenceModel * pModel_;
+        boost::scoped_ptr< QStandardItemModel > pModel_;
+        boost::scoped_ptr< adportable::Configuration > pConfig_;
     };
 
 }
