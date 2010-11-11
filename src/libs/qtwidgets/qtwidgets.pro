@@ -30,7 +30,8 @@ SOURCES += qtwidgets.cpp \
     chromatographicpeakform.cpp \
     peakidtableform.cpp \
     reportform.cpp \
-    centroidmodel.cpp
+    centroidmodel.cpp \
+    qcomboboxdelegate.cpp
 
 HEADERS += qtwidgets.h\
         qtwidgets_global.h \
@@ -47,7 +48,8 @@ HEADERS += qtwidgets.h\
     chromatographicpeakform.h \
     peakidtableform.h \
     reportform.h \
-    centroidmodel.h
+    centroidmodel.h \
+    qcomboboxdelegate.h
 
 FORMS += \
     logwidget.ui \

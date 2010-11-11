@@ -13,6 +13,7 @@ using namespace qtwidgets;
 PeakIDTableForm::PeakIDTableForm(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::PeakIDTableForm)
+    , pConfig_( new adportable::Configuration )
 {
     ui->setupUi(this);
 }

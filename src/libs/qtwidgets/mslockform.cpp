@@ -10,9 +10,9 @@
 
 using namespace qtwidgets;
 
-MSLockForm::MSLockForm(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::MSLockForm)
+MSLockForm::MSLockForm(QWidget *parent) : QWidget(parent)
+                                        , ui(new Ui::MSLockForm)
+                                        , pConfig_( new adportable::Configuration )
 {
     ui->setupUi(this);
 }
