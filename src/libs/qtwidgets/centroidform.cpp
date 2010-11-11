@@ -49,11 +49,18 @@ CentroidForm::OnInitialUpdate()
     model.setHeaderData( 0, Qt::Horizontal, "Centroid" );
 
     QStandardItem * scanType = new QStandardItem( "ScanType" );
+    scanType->setEditable( false );
     rootNode->appendRow( scanType );
     do {
-        scanType->appendRow( new QStandardItem( "Peak Width [Da]" ) );
-        scanType->appendRow( new QStandardItem( "Proportional [ppm]" ) );
-        scanType->appendRow( new QStandardItem( "Constant [Da]" ) );
+        QStandardItem * item = new QStandardItem( "Peak Width [Da]" );
+        item->setEditable( false );
+        scanType->appendRow( item );
+        item = new QStandardItem( "Proportional [ppm]" );
+        item->setEditable( false );
+        scanType->appendRow( item );
+        item = new QStandardItem( "Constant [Da]" );
+        item->setEditable( false );        
+        scanType->appendRow( item );
     } while(0);
 
     model.insertColumn( 1, scanType->index() );
@@ -85,7 +92,13 @@ CentroidForm::update_model()
     model.setData( model.index( 0, 1, model.item( 0, 0 )->index() ), method.rsTofInDa() );
     model.setData( model.index( 1, 1, model.item( 0, 0 )->index() ), method.rsPropoInPpm() );
     model.setData( model.index( 2, 1, model.item( 0, 0 )->index() ), method.rsConstInDa() );
-    //QStandardItem * item = model.item( 0, 1 );
+    
+    do {
+        QStandardItem * item = model.itemFromIndex( model.index( 0, 0, model.item( 0, 0 )->index() ) );
+        item->setEnabled( false );
+        item = model.itemFromIndex( model.index( 0, 1, model.item( 0, 0 )->index() ) );
+        item->setEnabled( false );
+    } while(0);
 
     model.setData( model.index( 1, 1 ), qVariantFromValue( CentroidDelegate::AreaHeight( method.centroidAreaIntensity() ) ) );
 
