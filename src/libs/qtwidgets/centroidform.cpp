@@ -8,7 +8,7 @@
 #include <adcontrols/centroidmethod.h>
 #include <QStandardItemModel>
 #include "centroiddelegate.h"
-
+#include "standarditemhelper.h"
 using namespace qtwidgets;
 
 /////////////////////
@@ -48,19 +48,24 @@ CentroidForm::OnInitialUpdate()
     rootNode->setColumnCount(2);
     model.setHeaderData( 0, Qt::Horizontal, "Centroid" );
 
-    QStandardItem * scanType = new QStandardItem( "ScanType" );
-    scanType->setEditable( false );
-    rootNode->appendRow( scanType );
+    QStandardItem * scanType =
+        StandardItemHelper::appendRow( rootNode, "ScanType", qVariantFromValue( CentroidDelegate::PeakWidthMethod( method_->peakWidthMethod() ) ) );
+    //QStandardItem * scanType = new QStandardItem( "ScanType" );
+    //scanType->setEditable( false );
+    //rootNode->appendRow( scanType );
     do {
-        QStandardItem * item = new QStandardItem( "Peak Width [Da]" );
-        item->setEditable( false );
-        scanType->appendRow( item );
-        item = new QStandardItem( "Proportional [ppm]" );
-        item->setEditable( false );
-        scanType->appendRow( item );
-        item = new QStandardItem( "Constant [Da]" );
-        item->setEditable( false );        
-        scanType->appendRow( item );
+        StandardItemHelper::appendRow( scanType, "Peak Width [Da]" );
+        StandardItemHelper::appendRow( scanType, "Proportional [ppm]" );
+        StandardItemHelper::appendRow( scanType, "Constant [Da]" );
+        //QStandardItem * item = new QStandardItem( "Peak Width [Da]" );
+        //item->setEditable( false );
+        // scanType->appendRow( item );
+        //item = new QStandardItem( "Proportional [ppm]" );
+        //item->setEditable( false );
+        //scanType->appendRow( item );
+        //item = new QStandardItem( "Constant [Da]" );
+        //item->setEditable( false );        
+        //scanType->appendRow( item );
     } while(0);
 
     model.insertColumn( 1, scanType->index() );

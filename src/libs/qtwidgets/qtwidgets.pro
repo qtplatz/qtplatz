@@ -31,7 +31,10 @@ SOURCES += qtwidgets.cpp \
     peakidtableform.cpp \
     reportform.cpp \
     centroidmodel.cpp \
-    qcomboboxdelegate.cpp
+    qcomboboxdelegate.cpp \
+    elementalcompositiondelegate.cpp \
+    isotopedelegate.cpp \
+    standarditemhelper.cpp
 
 HEADERS += qtwidgets.h\
         qtwidgets_global.h \
@@ -49,7 +52,10 @@ HEADERS += qtwidgets.h\
     peakidtableform.h \
     reportform.h \
     centroidmodel.h \
-    qcomboboxdelegate.h
+    qcomboboxdelegate.h \
+    elementalcompositiondelegate.h \
+    isotopedelegate.h \
+    standarditemhelper.h
 
 FORMS += \
     logwidget.ui \
