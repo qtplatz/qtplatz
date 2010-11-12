@@ -31,7 +31,10 @@ StandardItemHelper::appendRow( QStandardItem * parent, const char * label, const
     if ( parent ) {
         parent->appendRow( item );
         QStandardItemModel& model = *item->model();
-        model.setData( model.index( item->row(), item->column() + 1, parent->index() ), qv );
+        int row = item->row();
+        int col = item->column();
+        model.setData( model.index( row, col + 1, parent->index() ), qv );
     }
     return item;
 }
+

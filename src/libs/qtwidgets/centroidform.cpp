@@ -38,8 +38,8 @@ void
 CentroidForm::OnInitialUpdate()
 {
     QStandardItemModel& model = *model_;
-    //adcontrols::CentroidMethod& method = *method_;
-    // require 4 rows
+    adcontrols::CentroidMethod& method = *method_;
+
     QStandardItem * rootNode = model.invisibleRootItem();
 
     ui->treeView->setItemDelegate( delegate_.get() );
@@ -49,34 +49,25 @@ CentroidForm::OnInitialUpdate()
 
     QStandardItem * scanType =
         StandardItemHelper::appendRow( rootNode, "ScanType", qVariantFromValue( CentroidDelegate::PeakWidthMethod( method_->peakWidthMethod() ) ) );
-    //QStandardItem * scanType = new QStandardItem( "ScanType" );
-    //scanType->setEditable( false );
-    //rootNode->appendRow( scanType );
+
     do {
         StandardItemHelper::appendRow( scanType, "Peak Width [Da]" );
-        StandardItemHelper::appendRow( scanType, "Proportional [ppm]" );
-        StandardItemHelper::appendRow( scanType, "Constant [Da]" );
-        //QStandardItem * item = new QStandardItem( "Peak Width [Da]" );
-        //item->setEditable( false );
-        // scanType->appendRow( item );
-        //item = new QStandardItem( "Proportional [ppm]" );
-        //item->setEditable( false );
-        //scanType->appendRow( item );
-        //item = new QStandardItem( "Constant [Da]" );
-        //item->setEditable( false );        
-        //scanType->appendRow( item );
+        model.insertColumn( 1, scanType->index() );
+        model.setData( model.index( 0, 1, model.item( 0, 0 )->index() ), method.rsTofInDa() );
+
+        StandardItemHelper::appendRow( scanType, "Proportional [ppm]", method.rsPropoInPpm() );
+        StandardItemHelper::appendRow( scanType, "Constant [Da]", method.rsConstInDa() );
     } while(0);
 
-    model.insertColumn( 1, scanType->index() );
+    StandardItemHelper::appendRow( rootNode, "Area/Height", qVariantFromValue( CentroidDelegate::AreaHeight( method.centroidAreaIntensity() ) ) );
+    StandardItemHelper::appendRow( rootNode, "Baseline Width [Da]", method.baselineWidth() );
+    StandardItemHelper::appendRow( rootNode, "Peak Centroid Fraction [%]", method.peakCentroidFraction() * 100 );
 
+    // update_model();
+    
+    //--------------
     ui->treeView->expand( scanType->index() );
     ui->treeView->setColumnWidth( 0, 200 );
-
-    rootNode->appendRow( new QStandardItem( "Area/Height" ) );
-    rootNode->appendRow( new QStandardItem( "Baseline Width [Da]" ) );
-    rootNode->appendRow( new QStandardItem( "Peak Centroid Fraction [%]" ) );
-
-    update_model();
 }
 
 void
@@ -105,7 +96,6 @@ CentroidForm::update_model()
     } while(0);
 
     model.setData( model.index( 1, 1 ), qVariantFromValue( CentroidDelegate::AreaHeight( method.centroidAreaIntensity() ) ) );
-
     model.setData( model.index( 2, 1 ), method.baselineWidth() );
     model.setData( model.index( 3, 1 ), method.peakCentroidFraction() * 100 );
 }

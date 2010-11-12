@@ -47,25 +47,25 @@ ElementalCompositionForm::OnInitialUpdate()
 
     model.setHeaderData( 0, Qt::Horizontal, "Elemental Composition" );
     
-    StandardItemHelper::appendRow( rootNode, "Mass", 0.00 );
-    StandardItemHelper::appendRow( rootNode
-        , "Electron Mode", qVariantFromValue( ElementalCompositionDelegate::ElectronMode(0) ) );
+    StandardItemHelper::appendRow( rootNode, "Mass", 0.00 ); // 0
+    StandardItemHelper::appendRow( rootNode, "Electron Mode", qVariantFromValue( ElementalCompositionDelegate::ElectronMode(0) ) ); // 1
 
-    QStandardItem * tolerance = 
-        StandardItemHelper::appendRow( rootNode, "Tolerance", "mDa" ); // choice of mDa/ppm
-    StandardItemHelper::appendRow( tolerance, "mDa", QVariant(5.0) );
-    StandardItemHelper::appendRow( tolerance, "ppm", QVariant(10.0) );
+    QStandardItem * tolerance = StandardItemHelper::appendRow( rootNode, "Tolerance", "mDa" ); // 2 choice of mDa/ppm
+    // model.insertColumn( 1, tolerance->index() );
+
+    StandardItemHelper::appendRow( tolerance, "mDa", 5.0 );
+    model.setData( model.index( 2, 1, model.item( 2, 0 )->index() ), 999.0 );
+
+    StandardItemHelper::appendRow( tolerance, "ppm", 10.0 );
     ui->treeView->expand( tolerance->index() );
 
-    QStandardItem * dbe = 
-        StandardItemHelper::appendRow( rootNode, "Double Bound Equivalent", "-0.5..200.0" ); // range
-    StandardItemHelper::appendRow( dbe, "Minimum", QVariant(-0.5) );
-    StandardItemHelper::appendRow( dbe, "Maximum", QVariant(200.0) );
+    QStandardItem * dbe = StandardItemHelper::appendRow( rootNode, "Double Bound Equivalent", "-0.5..200.0" ); // range
+    StandardItemHelper::appendRow( dbe, "Minimum", -0.5 );
+    StandardItemHelper::appendRow( dbe, "Maximum", 200.0 );
 
-    StandardItemHelper::appendRow( rootNode, "Maximum Results", QVariant(100) );
+    StandardItemHelper::appendRow( rootNode, "Maximum Results", 100 );
     
-    QStandardItem * constraints
-        = StandardItemHelper::appendRow( rootNode, "Composition Constraints" ); // list
+    QStandardItem * constraints = StandardItemHelper::appendRow( rootNode, "Composition Constraints", "C..H..N..O.."); // list
     ui->treeView->expand( constraints->index() );
     
     std::vector< std::string > atoms(20);
