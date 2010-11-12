@@ -17,6 +17,7 @@ CentroidForm::CentroidForm(QWidget *parent) : QWidget(parent)
                                             , ui(new Ui::CentroidForm)
                                             , model_( new QStandardItemModel )
                                             , method_( new adcontrols::CentroidMethod ) 
+                                            , delegate_( new CentroidDelegate ) 
 {
     ui->setupUi(this);
     ui->treeView->setModel( model_.get() );
@@ -40,8 +41,6 @@ CentroidForm::OnInitialUpdate()
     //adcontrols::CentroidMethod& method = *method_;
     // require 4 rows
     QStandardItem * rootNode = model.invisibleRootItem();
-
-    delegate_.reset( new CentroidDelegate(this) );
 
     ui->treeView->setItemDelegate( delegate_.get() );
 
