@@ -332,6 +332,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\is_equal.h"
+				>
+			</File>
+			<File
 				RelativePath="lifecycle_frame.h"
 				>
 				<FileConfiguration

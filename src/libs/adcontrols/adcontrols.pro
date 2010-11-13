@@ -23,7 +23,8 @@ SOURCES += massspectrum.cpp \
     adcontrols.cpp \
     chromatogram.cpp \
     element.cpp \
-    elements.cpp
+    elements.cpp \
+    mslockmethod.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -34,7 +35,8 @@ HEADERS += massspectrum.h\
     tableofelements.h \
     chromatogram.h \
     element.h \
-    elements.h
+    elements.h \
+    mslockmethod.h
 
 OTHER_FILES += \
     adcontrols.pri

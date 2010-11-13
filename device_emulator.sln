@@ -8,6 +8,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "acewrapper", "src\libs\acew
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tofcontroller", "src\tofcontroller\tofcontroller.vcproj", "{13A33CBE-5109-3F62-86F3-1177334BC01A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "device_controller", "src\device_controller\device_controller.vcproj", "{3144A6BC-122A-3318-8840-3CD6054E19F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -30,6 +32,10 @@ Global
 		{13A33CBE-5109-3F62-86F3-1177334BC01A}.Debug|Win32.Build.0 = Debug|Win32
 		{13A33CBE-5109-3F62-86F3-1177334BC01A}.Release|Win32.ActiveCfg = Release|Win32
 		{13A33CBE-5109-3F62-86F3-1177334BC01A}.Release|Win32.Build.0 = Release|Win32
+		{3144A6BC-122A-3318-8840-3CD6054E19F9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3144A6BC-122A-3318-8840-3CD6054E19F9}.Debug|Win32.Build.0 = Debug|Win32
+		{3144A6BC-122A-3318-8840-3CD6054E19F9}.Release|Win32.ActiveCfg = Release|Win32
+		{3144A6BC-122A-3318-8840-3CD6054E19F9}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

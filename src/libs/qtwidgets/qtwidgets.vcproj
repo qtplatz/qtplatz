@@ -250,6 +250,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mslockdelegate.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mslockform.cpp"
 				>
 			</File>
@@ -558,6 +562,32 @@
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
 						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;.\..\..\plugins&quot; -I&quot;$(ACE_ROOT)&quot; -I&quot;$(TAO_ROOT)&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;.\mscalibrationform.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\mslockdelegate.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;.\..\..\plugins&quot; -I&quot;$(ACE_ROOT)&quot; -I&quot;$(TAO_ROOT)&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\debug&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;.\mslockdelegate.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -D_WINDLL  -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;.\..\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;.\..\..\libs&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot; -I&quot;.\..\..\plugins&quot; -I&quot;$(ACE_ROOT)&quot; -I&quot;$(TAO_ROOT)&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;.\release&quot; -I&quot;.&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;.\mslockdelegate.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1047,6 +1077,18 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\Debug\moc_mslockdelegate.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath=".\Debug\moc_mslockform.cpp"
 					>
 					<FileConfiguration
@@ -1258,6 +1300,18 @@
 				</File>
 				<File
 					RelativePath=".\Release\moc_mscalibrationform.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Release\moc_mslockdelegate.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"

@@ -51,7 +51,6 @@ ElementalCompositionForm::OnInitialUpdate()
     StandardItemHelper::appendRow( rootNode, "Electron Mode", qVariantFromValue( ElementalCompositionDelegate::ElectronMode(0) ) ); // 1
 
     QStandardItem * tolerance = StandardItemHelper::appendRow( rootNode, "Tolerance", "mDa" ); // 2 choice of mDa/ppm
-    // model.insertColumn( 1, tolerance->index() );
 
     StandardItemHelper::appendRow( tolerance, "mDa", 5.0 );
     model.setData( model.index( 2, 1, model.item( 2, 0 )->index() ), 999.0 );
@@ -68,7 +67,7 @@ ElementalCompositionForm::OnInitialUpdate()
     QStandardItem * constraints = StandardItemHelper::appendRow( rootNode, "Composition Constraints", "C..H..N..O.."); // list
     ui->treeView->expand( constraints->index() );
     
-    std::vector< std::string > atoms(20);
+    std::vector< std::string > atoms(10);
     atoms[0] = "C";
     atoms[1] = "H";
     atoms[2] = "N";
@@ -77,8 +76,8 @@ ElementalCompositionForm::OnInitialUpdate()
 
     for ( std::vector<std::string>::iterator it = atoms.begin(); it != atoms.end(); ++it ) {
         QStandardItem * atom = StandardItemHelper::appendRow( constraints, it->c_str(), true );
-        StandardItemHelper::appendRow( atom, "Minimum", QVariant(0) );
-        StandardItemHelper::appendRow( atom, "Maximum", QVariant(100) );
+        StandardItemHelper::appendRow( atom, "Minimum", 0 );
+        StandardItemHelper::appendRow( atom, "Maximum", 100 );
     }
 }
 

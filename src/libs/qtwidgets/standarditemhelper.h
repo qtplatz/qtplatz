@@ -14,6 +14,7 @@ namespace qtwidgets {
     class StandardItemHelper {
     public:
         StandardItemHelper();
+
         static QStandardItem * appendRow( QStandardItem * parent, const char * label, bool editable = false );
         static QStandardItem * appendRow( QStandardItem * parent, const char * label, const QVariant& );
 
@@ -23,11 +24,9 @@ namespace qtwidgets {
             if ( parent ) {
                 parent->appendRow( item );
                 QStandardItemModel& model = *item->model();
-                int prow = parent->row();
-                if ( prow > 0 )
-                    model.setData( model.index( item->row(), item->column() + 1, model.index( prow, 0 ) ), value );
-                else
-                    model.setData( model.index( item->row(), item->column() + 1, parent->index() ), value );
+                if ( parent->columnCount() <= ( item->column() + 1 ) ) 
+                    model.insertColumn( item->column() + 1, parent->index() );
+                model.setData( model.index( item->row(), item->column() + 1, parent->index() ), value );
             }
             return item;
         }

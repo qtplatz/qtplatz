@@ -266,6 +266,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mslockmethod.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mspeakinfoitem.cpp"
 				>
 			</File>
@@ -544,6 +548,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\mslockmethod.h"
+				>
 			</File>
 			<File
 				RelativePath=".\mspeakinfoitem.h"

@@ -34,7 +34,8 @@ SOURCES += qtwidgets.cpp \
     qcomboboxdelegate.cpp \
     elementalcompositiondelegate.cpp \
     isotopedelegate.cpp \
-    standarditemhelper.cpp
+    standarditemhelper.cpp \
+    mslockdelegate.cpp
 
 HEADERS += qtwidgets.h\
         qtwidgets_global.h \
@@ -55,7 +56,8 @@ HEADERS += qtwidgets.h\
     qcomboboxdelegate.h \
     elementalcompositiondelegate.h \
     isotopedelegate.h \
-    standarditemhelper.h
+    standarditemhelper.h \
+    mslockdelegate.h
 
 FORMS += \
     logwidget.ui \

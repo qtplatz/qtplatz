@@ -22,6 +22,8 @@ namespace Ui {
 
 namespace qtwidgets {
 
+  class MSLockDelegate;
+
   class MSLockForm : public QWidget
                    , public adplugin::LifeCycle {
     Q_OBJECT
@@ -40,6 +42,7 @@ namespace qtwidgets {
       Ui::MSLockForm *ui;
       boost::scoped_ptr< QStandardItemModel > pModel_;
       boost::scoped_ptr< adportable::Configuration > pConfig_;
+      boost::scoped_ptr< MSLockDelegate > pDelegate_;
   };
 
 }
