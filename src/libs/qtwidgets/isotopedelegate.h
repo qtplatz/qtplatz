@@ -3,16 +3,19 @@
 
 #include <QItemDelegate>
 
-class IsotopeDelegate : public QItemDelegate
-{
-    Q_OBJECT
-public:
-    explicit IsotopeDelegate(QObject *parent = 0);
+namespace qtwidgets {
 
-signals:
+    class IsotopeDelegate : public QItemDelegate {
+        Q_OBJECT
+    public:
+        explicit IsotopeDelegate(QObject *parent = 0);
 
-public slots:
+    signals:
 
-};
+        public slots:
+
+    };
+
+}
 
 #endif // ISOTOPEDELEGATE_H

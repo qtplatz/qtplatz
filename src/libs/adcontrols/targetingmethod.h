@@ -4,20 +4,18 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#ifndef MSCALIBRATEMETHOD_H
-#define MSCALIBRATEMETHOD_H
+#ifndef TARGETINGMETHOD_H
+#define TARGETINGMETHOD_H
 
 #include "adcontrols_global.h"
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
 
 namespace adcontrols {
 
-  class ADCONTROLSSHARED_EXPORT MSCalibrateMethod {
-  public:
-    MSCalibrateMethod();
-  };
-  
+    class ADCONTROLSSHARED_EXPORT TargetingMethod {
+    public:
+        TargetingMethod();
+    };
+
 }
 
-#endif // MSCALIBRATEMETHOD_H
+#endif // TARGETINGMETHOD_H

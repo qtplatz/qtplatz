@@ -298,6 +298,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\targetingmethod.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\visitor.cpp"
 				>
 			</File>
@@ -622,6 +626,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\targetingmethod.h"
+				>
 			</File>
 			<File
 				RelativePath=".\visitor.h"

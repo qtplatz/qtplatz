@@ -6,9 +6,11 @@
 
 #pragma once
 
+#include "adcontrols_global.h"
+
 namespace adcontrols {
 
-    class MSPeakInfoItem {
+    class ADCONTROLSSHARED_EXPORT MSPeakInfoItem {
     public:
         ~MSPeakInfoItem(void);
         MSPeakInfoItem(void);

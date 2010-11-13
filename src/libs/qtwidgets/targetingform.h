@@ -16,11 +16,17 @@ namespace adportable {
     class Configuration;
 }
 
+namespace adcontrols {
+    class TargetingMethod;
+}
+
 namespace Ui {
     class TargetingForm;
 }
 
 namespace qtwidgets {
+
+    class TargetingDelegate;
 
     class TargetingForm : public QWidget
                         , public adplugin::LifeCycle {
@@ -40,6 +46,8 @@ namespace qtwidgets {
         Ui::TargetingForm *ui;
         boost::scoped_ptr< QStandardItemModel > pModel_;
         boost::scoped_ptr< adportable::Configuration > pConfig_;
+        boost::scoped_ptr< adcontrols::TargetingMethod > pMethod_;
+        boost::scoped_ptr< TargetingDelegate > pDelegate_;
     };
 
 }

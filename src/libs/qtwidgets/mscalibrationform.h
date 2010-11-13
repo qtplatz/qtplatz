@@ -12,6 +12,7 @@
 #include <boost/smart_ptr.hpp>
 
 class QStandardItemModel;
+
 namespace adportable {
     class Configuration;
 }
@@ -26,7 +27,11 @@ namespace Ui {
 
 namespace qtwidgets {
 
-    class MSCalibrationForm : public QWidget {
+    class MSCalibrateDelegate;
+
+    class MSCalibrationForm : public QWidget
+                            , public adplugin::LifeCycle {
+
         Q_OBJECT
 
     public:
@@ -43,7 +48,8 @@ namespace qtwidgets {
         Ui::MSCalibrationForm *ui;
         boost::scoped_ptr< QStandardItemModel > pModel_;
         boost::scoped_ptr< adportable::Configuration > pConfig_;
-        boost::scoped_ptr< MSCalibrateMethod > pMethod_;
+        boost::scoped_ptr< adcontrols::MSCalibrateMethod > pMethod_;
+        boost::scoped_ptr< MSCalibrateDelegate > pDelegate_;
     };
 
 }

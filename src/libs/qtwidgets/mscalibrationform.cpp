@@ -5,6 +5,7 @@
 
 #include "mscalibrationform.h"
 #include "ui_mscalibrationform.h"
+#include "mscalibratedelegate.h"
 #include <adcontrols/mscalibratemethod.h>
 #include <adportable/configuration.h>
 #include <QStandardItemModel>
@@ -17,8 +18,11 @@ MSCalibrationForm::MSCalibrationForm(QWidget *parent) :
     , pModel_( new QStandardItemModel )
     , pConfig_( new adportable::Configuration )
     , pMethod_( new adcontrols::MSCalibrateMethod ) 
+    , pDelegate_( new MSCalibrateDelegate )
 {
     ui->setupUi(this);
+    ui->treeView->setModel( pModel_.get() );
+    ui->treeView->setItemDelegate( pDelegate_.get() );
 }
 
 MSCalibrationForm::~MSCalibrationForm()
@@ -35,6 +39,14 @@ MSCalibrationForm::OnCreate( const adportable::Configuration& config )
 void
 MSCalibrationForm::OnInitialUpdate()
 {
+    QStandardItemModel& model = *pModel_;
+    adcontrols::MSCalibrateMethod& method = *pMethod_;
+
+    QStandardItem * rootNode = model.invisibleRootItem();
+
+    rootNode->setColumnCount(2);
+    model.setHeaderData( 0, Qt::Horizontal, "MSCaribrate" );
+
 }
 
 void

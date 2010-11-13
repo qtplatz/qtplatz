@@ -35,7 +35,10 @@ SOURCES += qtwidgets.cpp \
     elementalcompositiondelegate.cpp \
     isotopedelegate.cpp \
     standarditemhelper.cpp \
-    mslockdelegate.cpp
+    mslockdelegate.cpp \
+    mscalibratedelegate.cpp \
+    reportdelegate.cpp \
+    targetingdelegate.cpp
 
 HEADERS += qtwidgets.h\
         qtwidgets_global.h \
@@ -57,7 +60,10 @@ HEADERS += qtwidgets.h\
     elementalcompositiondelegate.h \
     isotopedelegate.h \
     standarditemhelper.h \
-    mslockdelegate.h
+    mslockdelegate.h \
+    mscalibratedelegate.h \
+    reportdelegate.h \
+    targetingdelegate.h
 
 FORMS += \
     logwidget.ui \

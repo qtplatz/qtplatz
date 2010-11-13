@@ -16,14 +16,20 @@ namespace adportable {
     class Configuration;
 }
 
+namespace adcontrols {
+    class ReportMethod;
+}
+
 namespace Ui {
     class ReportForm;
 }
 
 namespace qtwidgets {
 
+    class ReportDelegate;
+
     class ReportForm : public QWidget
-                                  , public adplugin::LifeCycle {
+                     , public adplugin::LifeCycle {
         Q_OBJECT
         
     public:
@@ -40,6 +46,8 @@ namespace qtwidgets {
         Ui::ReportForm *ui;
         boost::scoped_ptr< QStandardItemModel > pModel_;
         boost::scoped_ptr< adportable::Configuration > pConfig_;
+        boost::scoped_ptr< adcontrols::ReportMethod > pMethod_;
+        boost::scoped_ptr< ReportDelegate > pDelegate_;
     };
 
 }

@@ -3,10 +3,10 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#include "reportmethod.h"
+#include "reportdelegate.h"
 
-using namespace adcontrols;
+using namespace qtwidgets;
 
-ReportMethod::ReportMethod()
+ReportDelegate::ReportDelegate()
 {
 }

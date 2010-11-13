@@ -4,19 +4,18 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#ifndef REPORTMETHOD_H
-#define REPORTMETHOD_H
+#ifndef REPORTDELEGATE_H
+#define REPORTDELEGATE_H
 
-#include "adcontrols_global.h"
+#include <QItemDelegate>
 
+namespace qtwidgets {
 
-namespace adcontrols {
-
-    class ADCONTROLSSHARED_EXPORT ReportMethod {
+    class ReportDelegate : public QItemDelegate {
     public:
-        ReportMethod();
+        ReportDelegate();
     };
 
 }
 
-#endif // REPORTMETHOD_H
+#endif // REPORTDELEGATE_H

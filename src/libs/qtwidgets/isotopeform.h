@@ -27,7 +27,11 @@ namespace Ui {
 
 namespace qtwidgets {
 
-  class IsotopeForm : public QWidget  {
+  class IsotopeDelegate;
+
+  class IsotopeForm : public QWidget
+                    , public adplugin::LifeCycle {
+
       Q_OBJECT
       
   public:
@@ -45,6 +49,7 @@ namespace qtwidgets {
       boost::scoped_ptr< QStandardItemModel > pModel_;
       boost::scoped_ptr< adportable::Configuration > pConfig_;
       boost::scoped_ptr< adcontrols::IsotopeMethod > pMethod_;
+      boost::scoped_ptr< IsotopeDelegate > pDelegate_;
   };
     
 }

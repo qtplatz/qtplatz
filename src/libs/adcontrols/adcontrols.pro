@@ -30,7 +30,8 @@ SOURCES += massspectrum.cpp \
     mscalibraterefdefns.cpp \
     elementalcompositionmethod.cpp \
     isotopemethod.cpp \
-    reportmethod.cpp
+    reportmethod.cpp \
+    targetingmethod.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -48,7 +49,8 @@ HEADERS += massspectrum.h\
     mscalibraterefdefns.h \
     elementalcompositionmethod.h \
     isotopemethod.h \
-    reportmethod.h
+    reportmethod.h \
+    targetingmethod.h
 
 OTHER_FILES += \
     adcontrols.pri

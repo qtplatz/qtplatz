@@ -15,12 +15,12 @@ using namespace qtwidgets;
 
 CentroidForm::CentroidForm(QWidget *parent) : QWidget(parent)
                                             , ui(new Ui::CentroidForm)
-                                            , model_( new QStandardItemModel )
-                                            , method_( new adcontrols::CentroidMethod ) 
-                                            , delegate_( new CentroidDelegate ) 
+                                            , pModel_( new QStandardItemModel )
+                                            , pMethod_( new adcontrols::CentroidMethod ) 
+                                            , pDelegate_( new CentroidDelegate ) 
 {
     ui->setupUi(this);
-    ui->treeView->setModel( model_.get() );
+    ui->treeView->setModel( pModel_.get() );
 }
 
 CentroidForm::~CentroidForm()
@@ -37,18 +37,18 @@ CentroidForm::OnCreate( const adportable::Configuration& config )
 void
 CentroidForm::OnInitialUpdate()
 {
-    QStandardItemModel& model = *model_;
-    adcontrols::CentroidMethod& method = *method_;
+    QStandardItemModel& model = *pModel_;
+    adcontrols::CentroidMethod& method = *pMethod_;
 
     QStandardItem * rootNode = model.invisibleRootItem();
 
-    ui->treeView->setItemDelegate( delegate_.get() );
+    ui->treeView->setItemDelegate( pDelegate_.get() );
 
     rootNode->setColumnCount(2);
     model.setHeaderData( 0, Qt::Horizontal, "Centroid" );
 
     QStandardItem * scanType =
-        StandardItemHelper::appendRow( rootNode, "ScanType", qVariantFromValue( CentroidDelegate::PeakWidthMethod( method_->peakWidthMethod() ) ) );
+        StandardItemHelper::appendRow( rootNode, "ScanType", qVariantFromValue( CentroidDelegate::PeakWidthMethod( method.peakWidthMethod() ) ) );
 
     do {
         StandardItemHelper::appendRow( scanType, "Peak Width [Da]" );
@@ -79,8 +79,8 @@ CentroidForm::OnFinalClose()
 void
 CentroidForm::update_model()
 {
-    QStandardItemModel& model = *model_;
-    adcontrols::CentroidMethod& method = *method_;
+    QStandardItemModel& model = *pModel_;
+    adcontrols::CentroidMethod& method = *pMethod_;
 
     model.setData( model.index( 0, 1), qVariantFromValue( CentroidDelegate::PeakWidthMethod( method.peakWidthMethod() ) ) );
 

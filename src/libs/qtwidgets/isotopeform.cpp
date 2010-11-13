@@ -5,6 +5,8 @@
 
 #include "isotopeform.h"
 #include "ui_isotopeform.h"
+#include "isotopedelegate.h"
+#include "standarditemhelper.h"
 #include <adcontrols/isotopemethod.h>
 #include <adportable/configuration.h>
 #include <QStandardItemModel>
@@ -36,6 +38,18 @@ IsotopeForm::OnCreate( const adportable::Configuration& config )
 void
 IsotopeForm::OnInitialUpdate()
 {
+    QStandardItemModel& model = *pModel_;
+    adcontrols::IsotopeMethod& method = *pMethod_;
+
+    QStandardItem * rootNode = model.invisibleRootItem();
+
+    ui->treeView->setItemDelegate( pDelegate_.get() );
+
+    rootNode->setColumnCount(2);
+    model.setHeaderData( 0, Qt::Horizontal, "Isotope" );
+
+    QStandardItem * item = StandardItemHelper::appendRow( rootNode, "Isotope" );
+
 }
 
 void
