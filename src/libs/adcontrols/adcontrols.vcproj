@@ -250,7 +250,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\elementalcompositionmethod.cpp"
+				>
+			</File>
+			<File
 				RelativePath="elements.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\isotopemethod.cpp"
 				>
 			</File>
 			<File
@@ -266,11 +274,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mscalibratemethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\mscalibraterefdefns.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mslockmethod.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\mspeakinfoitem.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\reportmethod.cpp"
 				>
 			</File>
 			<File
@@ -464,6 +484,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\elementalcompositionmethod.h"
+				>
+			</File>
+			<File
 				RelativePath="elements.h"
 				>
 				<FileConfiguration
@@ -516,6 +540,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\isotopemethod.h"
+				>
+			</File>
+			<File
 				RelativePath=".\massspectrometer.h"
 				>
 			</File>
@@ -550,11 +578,23 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\mscalibratemethod.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mscalibraterefdefns.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mslockmethod.h"
 				>
 			</File>
 			<File
 				RelativePath=".\mspeakinfoitem.h"
+				>
+			</File>
+			<File
+				RelativePath=".\reportmethod.h"
 				>
 			</File>
 			<File

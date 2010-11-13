@@ -12,8 +12,13 @@
 #include <boost/smart_ptr.hpp>
 
 class QStandardItemModel;
+
 namespace adportable {
     class Configuration;
+}
+
+namespace adcontrols {
+    class IsotopeMethod;
 }
 
 namespace Ui {
@@ -39,6 +44,7 @@ namespace qtwidgets {
       Ui::IsotopeForm *ui;
       boost::scoped_ptr< QStandardItemModel > pModel_;
       boost::scoped_ptr< adportable::Configuration > pConfig_;
+      boost::scoped_ptr< adcontrols::IsotopeMethod > pMethod_;
   };
     
 }

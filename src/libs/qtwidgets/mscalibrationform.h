@@ -16,6 +16,10 @@ namespace adportable {
     class Configuration;
 }
 
+namespace adcontrols {
+    class MSCalibrateMethod;
+}
+
 namespace Ui {
     class MSCalibrationForm;
 }
@@ -39,6 +43,7 @@ namespace qtwidgets {
         Ui::MSCalibrationForm *ui;
         boost::scoped_ptr< QStandardItemModel > pModel_;
         boost::scoped_ptr< adportable::Configuration > pConfig_;
+        boost::scoped_ptr< MSCalibrateMethod > pMethod_;
     };
 
 }

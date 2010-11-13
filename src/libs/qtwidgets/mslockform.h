@@ -16,6 +16,10 @@ namespace adportable {
     class Configuration;
 }
 
+namespace adcontrols {
+    class MSLockMethod;
+}
+
 namespace Ui {
     class MSLockForm;
 }
@@ -43,6 +47,7 @@ namespace qtwidgets {
       boost::scoped_ptr< QStandardItemModel > pModel_;
       boost::scoped_ptr< adportable::Configuration > pConfig_;
       boost::scoped_ptr< MSLockDelegate > pDelegate_;
+      boost::scoped_ptr< adcontrols::MSLockMethod > pMethod_;
   };
 
 }

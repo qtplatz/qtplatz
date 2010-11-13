@@ -24,7 +24,13 @@ SOURCES += massspectrum.cpp \
     chromatogram.cpp \
     element.cpp \
     elements.cpp \
-    mslockmethod.cpp
+    mslockmethod.cpp \
+    cpeakmethod.cpp \
+    mscalibratemethod.cpp \
+    mscalibraterefdefns.cpp \
+    elementalcompositionmethod.cpp \
+    isotopemethod.cpp \
+    reportmethod.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -36,7 +42,13 @@ HEADERS += massspectrum.h\
     chromatogram.h \
     element.h \
     elements.h \
-    mslockmethod.h
+    mslockmethod.h \
+    cpeakmethod.h \
+    mscalibratemethod.h \
+    mscalibraterefdefns.h \
+    elementalcompositionmethod.h \
+    isotopemethod.h \
+    reportmethod.h
 
 OTHER_FILES += \
     adcontrols.pri

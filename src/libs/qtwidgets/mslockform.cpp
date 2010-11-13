@@ -8,6 +8,7 @@
 #include "mslockdelegate.h"
 #include "standarditemhelper.h"
 #include <adportable/configuration.h>
+#include <adcontrols/mslockmethod.h>
 #include <QStandardItemModel>
 
 using namespace qtwidgets;
@@ -17,6 +18,7 @@ MSLockForm::MSLockForm(QWidget *parent) : QWidget(parent)
                                         , pConfig_( new adportable::Configuration )
                                         , pModel_( new QStandardItemModel )
                                         , pDelegate_( new MSLockDelegate )
+                                        , pMethod_( new adcontrols::MSLockMethod ) 
 {
     ui->setupUi(this);
     ui->treeView->setModel( pModel_.get() );

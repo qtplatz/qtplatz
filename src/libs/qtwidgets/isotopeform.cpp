@@ -5,6 +5,7 @@
 
 #include "isotopeform.h"
 #include "ui_isotopeform.h"
+#include <adcontrols/isotopemethod.h>
 #include <adportable/configuration.h>
 #include <QStandardItemModel>
 
@@ -15,8 +16,10 @@ IsotopeForm::IsotopeForm(QWidget *parent) :
     ui(new Ui::IsotopeForm)
     , pModel_( new QStandardItemModel )
     , pConfig_( new adportable::Configuration )
+    , pMethod_( new adcontrols::IsotopeMethod ) 
 {
     ui->setupUi(this);
+    ui->treeView->setModel( pModel_.get() );
 }
 
 IsotopeForm::~IsotopeForm()

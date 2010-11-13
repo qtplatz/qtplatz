@@ -5,6 +5,7 @@
 
 #include "mscalibrationform.h"
 #include "ui_mscalibrationform.h"
+#include <adcontrols/mscalibratemethod.h>
 #include <adportable/configuration.h>
 #include <QStandardItemModel>
 
@@ -13,6 +14,9 @@ using namespace qtwidgets;
 MSCalibrationForm::MSCalibrationForm(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MSCalibrationForm)
+    , pModel_( new QStandardItemModel )
+    , pConfig_( new adportable::Configuration )
+    , pMethod_( new adcontrols::MSCalibrateMethod ) 
 {
     ui->setupUi(this);
 }
