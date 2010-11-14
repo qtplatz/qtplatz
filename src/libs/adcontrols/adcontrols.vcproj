@@ -418,6 +418,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\datafile_factory.h"
+				>
+			</File>
+			<File
 				RelativePath=".\datafilebroker.h"
 				>
 			</File>
