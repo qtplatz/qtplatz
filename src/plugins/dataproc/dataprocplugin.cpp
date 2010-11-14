@@ -93,12 +93,14 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     }
     //------------------------------------------------
 
-  Core::MimeDatabase* mdb = core->mimeDatabase();
-  if ( mdb ) {
-    if ( !mdb->addMimeTypes(":/dataproc/dataproc-mimetype.xml", error_message) )
-      return false;
-    addAutoReleasedObject( new DataprocessorFactory(this) );
-  }
+    //------------------------------------------------
+
+    Core::MimeDatabase* mdb = core->mimeDatabase();
+    if ( mdb ) {
+        if ( !mdb->addMimeTypes(":/dataproc/dataproc-mimetype.xml", error_message) )
+            return false;
+        addAutoReleasedObject( new DataprocessorFactory(this) );
+    }
 
   DataprocMode * mode = new DataprocMode(this);
   if ( mode )

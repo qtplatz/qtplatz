@@ -1228,7 +1228,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="copy $(InputFileName)"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -1238,7 +1238,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="copy $(InputFileName)"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -1278,7 +1278,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY config.xsd"
-						CommandLine="copy /y $(InputPath) $(TargetDir)..\xsd\$(InputFileName)"
+						CommandLine="copy /y $(InputPath) $(TargetDir)..\xsd\$(InputFileName)&#x0D;&#x0A;"
 						Outputs=" $(TargetDir)..\xsd\$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -1288,10 +1288,14 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY config.xsd"
-						CommandLine="copy /y $(InputPath) $(TargetDir)..\xsd\$(InputFileName)"
+						CommandLine="copy /y $(InputPath) $(TargetDir)..\xsd\$(InputFileName)&#x0D;&#x0A;"
 						Outputs=" $(TargetDir)..\xsd\$(InputFileName)"
 					/>
 				</FileConfiguration>
+				<File
+					RelativePath=".\config.h"
+					>
+				</File>
 			</File>
 		</Filter>
 	</Files>

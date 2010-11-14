@@ -10,8 +10,8 @@
 	<!--	<Module name="tofcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/ScienceLiaison/tofcontroller$(configuration).dll"/> -->
 	<Module name="infitofcontroller" type="corba::servant" filename="/lib/qtPlatz/plugins/MSI/infitofcontroller$(configuration).dll"/>
 	<Module name="infitofspectrometer" type="adcontrols::massspectrometer" filename="/lib/qtPlatz/plugins/MSI/infitofspectrometer$(configuration).dll"/>
-	
-	<Configuration name="root_poa">
+
+  <Configuration name="root_poa">
 		<Configuration name="adbroker" type="">
 			<Component name="adbroker" module="adbroker"/>
 		</Configuration>
@@ -30,5 +30,5 @@
 		<Configuration name="infitofspectrometer" type="MassSpectrometer">
 			<Component name="infitofspectrometer" module="infitofspectrometer"/>
 		</Configuration>
-	</Configuration>
+  </Configuration>
 </ServantConfiguration>

@@ -47,12 +47,20 @@ ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstr
 #endif
 		return false;
     }
+    if ( list.size() == 0 )
+        return false;
 
 	if ( list.size() == 1 ) {
-		if ( ConfigLoaderImpl::load( config, list[0] ) )
+        if ( ConfigLoaderImpl::load( config, list[0] ) )
 			ConfigLoaderImpl::populate( config, list[0] );
-	} else
-		return false;
+        return true;
+	}
+
+    for ( size_t i = 0; i < list.size(); ++i ) {
+        Configuration& child = config.append( Configuration() );
+        if ( ConfigLoaderImpl::load( child, list[i] ) )
+            ConfigLoaderImpl::populate( child, list[i] );
+    }
 	return true;
 }
 

@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="QtTestd4.lib QtGuid4.lib QtCored4.lib"
+				AdditionalDependencies="QtTestd4.lib QtGuid4.lib QtCored4.lib QtXmld4.lib"
 				OutputFile="..\..\..\lib\qtPlatz\adplugind.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:\Boost/lib,$(ACE_ROOT)/lib,../../../lib/qtPlatz"

@@ -12,18 +12,20 @@
 
 namespace adcontrols {
 
-    class MassSpectrometer;
+    class datafile_factory;
+    class datafile;
 
-    class ADCONTROLSSHARED_EXPORT MassSpectrometerBroker : public Visitor {
+    class ADCONTROLSSHARED_EXPORT datafileBroker : public Visitor {
     protected:
-        MassSpectrometerBroker(void);
-        ~MassSpectrometerBroker(void);
+        ~datafileBroker();
+        datafileBroker();
     public:
-        typedef MassSpectrometer * (*factory_type)(void);
-        
         static bool register_library( const std::wstring& sharedlib );
-        static bool register_factory( factory_type, const std::wstring& name );
-        static factory_type find( const std::wstring& name );
+        static bool register_factory( datafile_factory *, const std::wstring& name );
+        static datafile_factory* find( const std::wstring& name );
+        //
+        static datafile * open( const std::wstring& filename, bool readonly = false );
     };
     
 }
+

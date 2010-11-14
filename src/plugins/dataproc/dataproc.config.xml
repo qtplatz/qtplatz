@@ -7,47 +7,58 @@
 	-->
 <DataprocConfiguration name="dataproc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
 	<Module name="qtwidgets" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/qtwidgets$(configuration).dll"/>
+	<Module name="mc4" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/mc4$(configuration).dll"/>
+	<Module name="infitof" type="sharedlib" filename="/lib/qtPlatz/plugins/MSI/infitofspectrometer$(configuration).dll"/>
 	<Configuration name="ProcessMethodEditors">
 		<Configuration name="CentroidMethodUI">
-      <title>Centroid</title>
+			<title>Centroid</title>
 			<Component type="widget" interface="qtwidgets::CentroidForm" module="qtwidgets" loader="adplugin"/>
 		</Configuration>
 		<Configuration name="ElementalCompUI">
-      <title>Elemental Comp.</title>
+			<title>Elemental Comp.</title>
 			<Component type="widget" interface="qtwidgets::ElementalCompositionForm" module="qtwidgets" loader="adplugin"/>
 		</Configuration>
-    <Configuration name="Isotope">
-      <title>Isotope</title>
-      <Component type="widget" interface="qtwidgets::IsotopeForm" module="qtwidgets" loader="adplugin"/>
-    </Configuration>
-    <Configuration name="Targeting">
-      <title>Targeting</title>
-      <Component type="widget" interface="qtwidgets::TargetingForm" module="qtwidgets" loader="adplugin"/>
-    </Configuration>
-
-    <Configuration name="MSCalibrationUI">
-      <title>MS Calibration</title>
+		<Configuration name="Isotope">
+			<title>Isotope</title>
+			<Component type="widget" interface="qtwidgets::IsotopeForm" module="qtwidgets" loader="adplugin"/>
+		</Configuration>
+		<Configuration name="Targeting">
+			<title>Targeting</title>
+			<Component type="widget" interface="qtwidgets::TargetingForm" module="qtwidgets" loader="adplugin"/>
+		</Configuration>
+		<Configuration name="MSCalibrationUI">
+			<title>MS Calibration</title>
 			<Component type="widget" interface="qtwidgets::MSCalibrationForm" module="qtwidgets" loader="adplugin"/>
 		</Configuration>
 		<Configuration name="MSLockMassUI">
-      <title>Lock Mass</title>
+			<title>Lock Mass</title>
 			<Component type="widget" interface="qtwidgets::MSLockForm" module="qtwidgets" loader="adplugin"/>
 		</Configuration>
-    <Configuration name="PeakMethodUI">
-      <title>Chromatogram Peak Method</title>
-      <Component type="widget" interface="qtwidgets::PeakMethodForm" module="qtwidgets" loader="adplugin"/>
-    </Configuration>
-    <Configuration name="PeakIDTableUI">
-      <title>Chromatogram ID Table</title>
-      <Component type="widget" interface="qtwidgets::PeakIDTableForm" module="qtwidgets" loader="adplugin"/>
-    </Configuration>
-    <Configuration name="ReportUI">
-      <title>Report</title>
-      <Component type="widget" interface="qtwidgets::ReportForm" module="qtwidgets" loader="adplugin"/>
-    </Configuration>
-    <Configuration name="Memo">
-      <title>Memo Pad</title>
-      <Component type="widget" interface="qtwidgets::EditForm" module="qtwidgets" loader="adplugin"/>
-    </Configuration>
-  </Configuration>
+		<Configuration name="PeakMethodUI">
+			<title>Chromatogram Peak Method</title>
+			<Component type="widget" interface="qtwidgets::PeakMethodForm" module="qtwidgets" loader="adplugin"/>
+		</Configuration>
+		<Configuration name="PeakIDTableUI">
+			<title>Chromatogram ID Table</title>
+			<Component type="widget" interface="qtwidgets::PeakIDTableForm" module="qtwidgets" loader="adplugin"/>
+		</Configuration>
+		<Configuration name="ReportUI">
+			<title>Report</title>
+			<Component type="widget" interface="qtwidgets::ReportForm" module="qtwidgets" loader="adplugin"/>
+		</Configuration>
+		<Configuration name="Memo">
+			<title>Memo Pad</title>
+			<Component type="widget" interface="qtwidgets::EditForm" module="qtwidgets" loader="adplugin"/>
+		</Configuration>
+	</Configuration>
+	<Configuration name="dataproviders">
+		<Configuration name="mc4provider">
+			<pattern>*.data</pattern>
+			<Component type="dataprovider" interface="mc4::dataprovider" module="mc4" loader="adplugin"/>
+		</Configuration>
+		<Configuration name="infitofprovider">
+			<pattern>*.plt</pattern>
+			<Component type="dataprovider" interface="infitof::dataprovider" module="infitof" loader="adplugin"/>
+		</Configuration>
+	</Configuration>
 </DataprocConfiguration>

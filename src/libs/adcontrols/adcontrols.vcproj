@@ -234,6 +234,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\datafile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\datafilebroker.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\datainterpreter.cpp"
 				>
 			</File>
@@ -404,6 +412,14 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\datafile.h"
+				>
+			</File>
+			<File
+				RelativePath=".\datafilebroker.h"
+				>
 			</File>
 			<File
 				RelativePath=".\datainterpreter.h"

@@ -4,10 +4,15 @@
         <comment>binary document</comment>
     </mime-type>
 
-    <mime-type type="application/qtplatz.dataset">
+    <mime-type type="application/mc4.dataset">
         <sub-class-of type="application/octet-stream"/>
-        <comment>Mass spectrometer data file</comment>
+        <comment>MC4 data file</comment>
         <glob pattern="*.data"/>
     </mime-type>
+    <mime-type type="application/infitof.dataset">
+    <sub-class-of type="application/octet-stream"/>
+    <comment>InfiTOF data file</comment>
+    <glob pattern="*.plt"/>
+  </mime-type>
 </mime-info>
 

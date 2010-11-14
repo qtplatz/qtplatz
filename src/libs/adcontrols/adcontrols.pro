@@ -31,7 +31,8 @@ SOURCES += massspectrum.cpp \
     elementalcompositionmethod.cpp \
     isotopemethod.cpp \
     reportmethod.cpp \
-    targetingmethod.cpp
+    targetingmethod.cpp \
+    dataproviderbroker.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -50,7 +51,8 @@ HEADERS += massspectrum.h\
     elementalcompositionmethod.h \
     isotopemethod.h \
     reportmethod.h \
-    targetingmethod.h
+    targetingmethod.h \
+    dataproviderbroker.h
 
 OTHER_FILES += \
     adcontrols.pri
