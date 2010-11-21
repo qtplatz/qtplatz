@@ -5,6 +5,7 @@
 
 #include "dataprocmode.h"
 #include <coreplugin/editormanager/editormanager.h>
+#include <coreplugin/coreconstants.h>
 
 using namespace dataproc;
 using namespace dataproc::internal;
@@ -17,8 +18,8 @@ DataprocMode::~DataprocMode()
 DataprocMode::DataprocMode(QObject *parent) :
     Core::BaseMode(parent)
 {
-  setName(tr("Data processing"));
-  setUniqueModeName( "Dataproc.Mode" );
-  setIcon(QIcon(":/fancyactionbar/images/mode_Debug.png"));
-  setPriority( 97 );
+    setName(tr("Data processing"));
+    setUniqueModeName( "Edit" );  // pretending to "Editor" for Core
+    setIcon(QIcon(":/fancyactionbar/images/mode_Debug.png"));
+    setPriority( 97 );
 }

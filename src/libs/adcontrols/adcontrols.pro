@@ -32,7 +32,10 @@ SOURCES += massspectrum.cpp \
     isotopemethod.cpp \
     reportmethod.cpp \
     targetingmethod.cpp \
-    dataproviderbroker.cpp
+    dataproviderbroker.cpp \
+    datasubscriber.cpp \
+    datapublisher.cpp \
+    lcmsdataset.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -52,7 +55,10 @@ HEADERS += massspectrum.h\
     isotopemethod.h \
     reportmethod.h \
     targetingmethod.h \
-    dataproviderbroker.h
+    dataproviderbroker.h \
+    datasubscriber.h \
+    datapublisher.h \
+    lcmsdataset.h
 
 OTHER_FILES += \
     adcontrols.pri

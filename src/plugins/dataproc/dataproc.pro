@@ -26,7 +26,10 @@ SOURCES += \
     chromatogramwnd.cpp \
     dataset.cpp \
     dataprocessor.cpp \
-    dataprocessorfactory.cpp
+    dataprocessorfactory.cpp \
+    dataprocwidget.cpp \
+    navigationwidgetfactory.cpp \
+    navigationwidget.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -40,7 +43,10 @@ HEADERS += \
     dataset.h \
     dataprocessor.h \
     dataprocessorfactory.h \
-    constants.h
+    constants.h \
+    dataprocwidget.h \
+    navigationwidgetfactory.h \
+    navigationwidget.h
 
 OTHER_FILES += dataproc.pluginspec \
     dataproc_dependencies.pri \

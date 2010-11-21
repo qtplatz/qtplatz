@@ -246,6 +246,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\datapublisher.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\datasubscriber.cpp"
+				>
+			</File>
+			<File
 				RelativePath="description.cpp"
 				>
 			</File>
@@ -267,6 +275,10 @@
 			</File>
 			<File
 				RelativePath=".\isotopemethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lcmsdataset.cpp"
 				>
 			</File>
 			<File
@@ -430,6 +442,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\datapublisher.h"
+				>
+			</File>
+			<File
+				RelativePath=".\datasubscriber.h"
+				>
+			</File>
+			<File
 				RelativePath="description.h"
 				>
 				<FileConfiguration
@@ -565,6 +585,10 @@
 			</File>
 			<File
 				RelativePath=".\isotopemethod.h"
+				>
+			</File>
+			<File
+				RelativePath=".\lcmsdataset.h"
 				>
 			</File>
 			<File

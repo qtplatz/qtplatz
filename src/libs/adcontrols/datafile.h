@@ -4,6 +4,8 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
+// datafile should be corresponding to single sample
+
 #pragma once
 
 #include "adcontrols_global.h"
@@ -11,23 +13,29 @@
 
 namespace adcontrols {
     
-    class Visitor;
-    
-    class ADCONTROLSSHARED_EXPORT datafile {
+    class dataSubscriber;
+
+    class ADCONTROLSSHARED_EXPORT datafile { // visitable
     public:
         datafile(void) {}
         virtual ~datafile(void) {}
-        
+
         typedef datafile * (*factory_type)(void);
-        
-        virtual void accept( Visitor& ) = 0;
         virtual factory_type factory() = 0;
-        
+        //------
+        const std::wstring& filename() const;
+        bool readonly() const;
+        // ----- virtual methods -----
+        virtual void accept( dataSubscriber& ) = 0; // visitable
+        //---------
+
         static bool access( const std::wstring& filename );
         static datafile * open( const std::wstring& filename, bool readonly = false );
-        static void close( datafile * );
-    private:
+        static void close( datafile *& );
 
+    private:
+        std::wstring filename_;
+        bool readonly_;
     };
 
 }

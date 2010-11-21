@@ -4,8 +4,10 @@
 //////////////////////////////////////////
 
 #include "dataprocessor.h"
-#include "dataset.h"
+#include "datafileimpl.h"
 #include "constants.h"
+#include <adcontrols/datafile.h>
+#include <qtwrapper/qstring.h>
 #include <coreplugin/uniqueidmanager.h>
 
 using namespace dataproc;
@@ -15,36 +17,47 @@ Dataprocessor::~Dataprocessor()
 {
 }
 
-Dataprocessor::Dataprocessor(QObject *parent) : Core::IEditor(parent)
-					      , widget_(0)
+Dataprocessor::Dataprocessor()
 {
-  Core::UniqueIDManager* uidm = Core::UniqueIDManager::instance();
-  if ( uidm ) {
-    context_ << uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR );
-  }
+}
+
+Dataprocessor::Dataprocessor( const Dataprocessor& t ) : datafileimpl_( t.datafileimpl_ )
+{
 }
 
 // Core::IEditor
-bool
-Dataprocessor::createNew(const QString &contents )
-{
-    Q_UNUSED( contents );
-    return false;
-}
+//bool
+//Dataprocessor::createNew(const QString &contents )
+//{
+//    Q_UNUSED( contents );
+//    return false;
+//}
 
 bool
 Dataprocessor::open(const QString &fileName )
 {
-    // todo
+    adcontrols::datafile * file = adcontrols::datafile::open( qtwrapper::wstring::copy( fileName ), true );
+    if ( file ) {
+        datafileimpl_.reset( new internal::datafileimpl( file ) );
+        file->accept( *datafileimpl_ );
+        return true;
+    }
     return false;
 }
 
+//QWidget *
+//Dataprocessor::widget()
+//{
+//    return widget_;
+//}
+
 Core::IFile *
-Dataprocessor::file()
+Dataprocessor::ifile()
 {
-  return static_cast<Core::IFile *>( dataset_.get() );
+    return static_cast<Core::IFile *>( datafileimpl_.get() );
 }
 
+/*
 const char *
 Dataprocessor::kind() const
 {
@@ -54,19 +67,19 @@ Dataprocessor::kind() const
 QString
 Dataprocessor::displayName() const
 {
-  return displayName_;
+    return displayName_;
 }
 
 void
 Dataprocessor::setDisplayName(const QString &title)
 {
-  displayName_ = title;
+    displayName_ = title;
 }
 
 bool
 Dataprocessor::duplicateSupported() const
 {
-  return false;
+    return true;
 }
 
 Core::IEditor *
@@ -107,3 +120,4 @@ Dataprocessor::slotTitleChanged( const QString& title )
 {
     setDisplayName( title );
 }
+*/

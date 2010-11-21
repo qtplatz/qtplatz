@@ -7,54 +7,36 @@
 #ifndef DATAPROCESSOR_H
 #define DATAPROCESSOR_H
 
-#include <coreplugin/editormanager/ieditor.h>
+// #include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/ifile.h>
 #include <boost/smart_ptr.hpp>
 
 namespace dataproc {
-  namespace internal {
 
-    class Dataset;
+    namespace internal {
 
-    class Dataprocessor : public Core::IEditor {
-      Q_OBJECT
-    public:
-      ~Dataprocessor();
-      explicit Dataprocessor(QObject *parent = 0);
+        class datafileimpl;
 
-      // implement Core::IEditor
-      virtual bool createNew(const QString &contents = QString());
-      virtual bool open(const QString &fileName = QString());
-      virtual Core::IFile *file();
-      virtual const char *kind() const;
-      virtual QString displayName() const;
-      virtual void setDisplayName(const QString &title);
-      virtual bool duplicateSupported() const;
-      virtual IEditor *duplicate(QWidget *parent);
-      virtual QByteArray saveState() const;
-      virtual bool restoreState(const QByteArray &state);
-      virtual int currentLine() const { return 0; }
-      virtual int currentColumn() const { return 0; }
-      virtual bool isTemporary() const;
-      virtual QWidget *toolBar();
-      // end Core::IEditor
+        class Dataprocessor : QObject { //public Core::IEditor {
+            Q_OBJECT
+        public:
+            ~Dataprocessor();
+            Dataprocessor();
+            Dataprocessor( const Dataprocessor& );
 
-      // implement IContext
-      virtual QList<int> context() const { return context_; }
-      virtual QWidget * widget() { return widget_; }
-      // 
-    signals:
+            bool open( const QString& );
+            Core::IFile * ifile();
 
-    public slots:
-      void slotTitleChanged( const QString& title );
+        signals:
 
-    private:
-      QList<int> context_;
-      boost::shared_ptr< Dataset > dataset_;
-      QString displayName_;
-      QWidget * widget_;
-    };
+        public slots:
+            // void slotTitleChanged( const QString& title );
 
-  } // internal
+        private:
+            boost::shared_ptr< datafileimpl > datafileimpl_;
+        };
+
+    } // internal
 } // dataproc
 
 #endif // DATAPROCESSOR_H

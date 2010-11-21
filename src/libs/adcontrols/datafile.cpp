@@ -11,5 +11,29 @@ using namespace adcontrols;
 datafile*
 datafile::open( const std::wstring& filename, bool readonly )
 {
-    return datafileBroker::open( filename, readonly );
+    datafile * file = datafileBroker::open( filename, readonly );
+    if ( file ) {
+        file->filename_ = filename;
+        file->readonly_ = readonly;
+    }
+    return file;
+}
+
+void
+datafile::close( datafile *& file )
+{
+    delete file;
+    file = 0;
+}
+
+const std::wstring&
+datafile::filename() const
+{
+    return filename_;
+}
+
+bool
+datafile::readonly() const
+{
+    return readonly_;
 }

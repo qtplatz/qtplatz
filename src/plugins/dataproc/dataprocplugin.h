@@ -8,6 +8,7 @@
 
 #include <extensionsystem/iplugin.h>
 #include <boost/smart_ptr.hpp>
+#include <vector>
 
 namespace adportable {
 	class Configuration;
@@ -16,30 +17,35 @@ namespace adportable {
 namespace dataproc {
     namespace internal {
 
-      class DataprocManager;
+        class DataprocManager;
+        class Dataprocessor;
 
-      class DataprocPlugin : public ExtensionSystem::IPlugin {
+        class DataprocPlugin : public ExtensionSystem::IPlugin {
 
-	Q_OBJECT
-      public:
-        ~DataprocPlugin();
-        explicit DataprocPlugin();
+            Q_OBJECT
+        public:
+            ~DataprocPlugin();
+            explicit DataprocPlugin();
 
-        // implement ExtensionSystem::IPlugin
-        bool initialize(const QStringList &arguments, QString *error_message);
-        void extensionsInitialized();
-        void shutdown();
-        // <--
+            // implement ExtensionSystem::IPlugin
+            bool initialize(const QStringList &arguments, QString *error_message);
+            void extensionsInitialized();
+            void shutdown();
+            // <--
+            static DataprocPlugin * instance();
+            std::vector< boost::shared_ptr< Dataprocessor > >& getDataprocessors();
 
-      signals:
+        signals:
 
-      public slots:
+        public slots:
 
-      private:
-      boost::shared_ptr<DataprocManager> manager_;
-      boost::shared_ptr< adportable::Configuration > pConfig_;
+        private:
+            boost::shared_ptr<DataprocManager> manager_;
+            boost::shared_ptr< adportable::Configuration > pConfig_;
+            std::vector< boost::shared_ptr< Dataprocessor > > processors_;
+            static DataprocPlugin * instance_;
 
-      };
+        };
 
     }
 }

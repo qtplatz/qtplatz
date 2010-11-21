@@ -15,32 +15,35 @@ namespace Core {
 }
 
 namespace dataproc {
-  namespace internal {
 
-    class DataprocessorFactory : public Core::IEditorFactory {
-      Q_OBJECT
-    public:
-      ~DataprocessorFactory();
-      explicit DataprocessorFactory(QObject *parent = 0);
+    namespace internal {
 
-      // implement IEditorFactory
-      virtual Core::IEditor *createEditor(QWidget *parent);
-      // <---
-      // implement IFileFactory
-      virtual QStringList mimeTypes() const;
-      virtual QString kind() const;
-      virtual Core::IFile * open(const QString& filename );
-      // <---
-    signals:
+        class DataprocPlugin;
 
-    public slots:
+        class DataprocessorFactory : public Core::IFileFactory {  // Core::IEditorFactory
+            Q_OBJECT
+        public:
+            ~DataprocessorFactory();
+            explicit DataprocessorFactory( DataprocPlugin * owner );
 
-    private:
-      QString kind_;
-      QStringList mimeTypes_;
-    };
+            // implement IEditorFactory
+            // virtual Core::IEditor *createEditor(QWidget *parent);
+            // <---
+            // implement IFileFactory
+            virtual QStringList mimeTypes() const;
+            virtual QString kind() const;
+            virtual Core::IFile * open(const QString& filename );
+            // <---
+        signals:
 
-  }
+        public slots:
+
+        private:
+            QString kind_;
+            QStringList mimeTypes_;
+        };
+
+    }
 }
 
 #endif // DATAPROCESSORFACTORY_H

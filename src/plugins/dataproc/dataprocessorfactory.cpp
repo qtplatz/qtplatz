@@ -4,12 +4,13 @@
 //////////////////////////////////////////
 
 #include "dataprocessorfactory.h"
+#include "dataprocplugin.h"
 #include "dataprocessor.h"
 #include "constants.h"
-#include <coreplugin/editormanager/editormanager.h>
-#include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/ifilefactory.h>
 #include <QStringList>
+#include <adcontrols/datafile.h>
+#include <qtwrapper/qstring.h>
 
 using namespace dataproc::internal;
 
@@ -17,23 +18,10 @@ DataprocessorFactory::~DataprocessorFactory()
 {
 }
 
-DataprocessorFactory::DataprocessorFactory(QObject *parent) :
-  Core::IEditorFactory(parent)
-  , kind_( "Dataprocessor" )
+DataprocessorFactory::DataprocessorFactory( DataprocPlugin * owner ) : Core::IFileFactory( owner )
+                                                                     , kind_( "Dataprocessor" )
 {
-  mimeTypes_ << Constants::C_DATAPROCESSOR_MIMETYPE;
-}
-
-// implementation for IEditorFactory
-Core::IEditor *
-DataprocessorFactory::createEditor( QWidget * parent )
-{
-  return new Dataprocessor();
-  /*
-    DataAnalysisWindow * editorWidget = new DataAnalysisWindow( parent );
-    DataEditor * editor = new DataEditor( editorWidget );
-    return editor;
-  */
+    mimeTypes_ << Constants::C_DATAPROCESSOR_MIMETYPE;
 }
 
 // implementation for IFileFactory
@@ -41,19 +29,22 @@ DataprocessorFactory::createEditor( QWidget * parent )
 QStringList 
 DataprocessorFactory::mimeTypes() const
 {
-  return mimeTypes_;
+    return mimeTypes_;
 }
 
 QString 
 DataprocessorFactory::kind() const
 {
-  return kind_;
+    return kind_;
 }
 
 Core::IFile * 
-DataprocessorFactory::open(const QString& filename )
+DataprocessorFactory::open( const QString& filename )
 {
-  Core::EditorManager * em = Core::EditorManager::instance();
-  Core::IEditor * iface = em->openEditor( filename, kind_ );
-  return iface ? iface->file() : 0;
+    boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
+    if ( processor->open( filename ) ) {
+        DataprocPlugin::instance()->getDataprocessors().push_back( processor );
+        return processor->ifile();
+    }
+    return 0;
 }
