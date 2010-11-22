@@ -8,6 +8,7 @@
 #include "dataprocmanager.h"
 #include "dataprocessorfactory.h"
 #include "navigationwidgetfactory.h"
+#include "sessionmanager.h"
 
 #include "msprocessingwnd.h"
 #include "elementalcompwnd.h"
@@ -54,7 +55,7 @@ DataprocPlugin::~DataprocPlugin()
 {
 }
 
-DataprocPlugin::DataprocPlugin()
+DataprocPlugin::DataprocPlugin() : pSessionManager_( new SessionManager() )
 {
     instance_ = this;
 }
@@ -63,12 +64,6 @@ DataprocPlugin *
 DataprocPlugin::instance()
 {
     return instance_;
-}
-
-std::vector< boost::shared_ptr< Dataprocessor > >&
-DataprocPlugin::getDataprocessors()
-{
-    return processors_;
 }
 
 bool

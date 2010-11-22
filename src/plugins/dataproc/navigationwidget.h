@@ -12,21 +12,33 @@
 
 class QTreeView;
 class QStandardItemModel;
-class QLabel;
+class QModelIndex;
 
 namespace dataproc {
+
+    class Dataprocessor;
 
     class NavigationWidget : public QWidget {
         Q_OBJECT
     public:
         explicit NavigationWidget(QWidget *parent = 0);
 
+        bool autoSyncronization() const;
+        void setAutoSynchronization( bool sync );
+
     signals:
 
     public slots:
+        void toggleAutoSynchronization();
+        void handleSessionAdded( Dataprocessor * );
+
+    private slots:
+        void openItem(const QModelIndex &index);
+        void setCurrentFile( const QString& filepath );
+        void initView();
 
     private:
-        boost::scoped_ptr< QLabel > pTitle_;
+        bool autoSync_;
         boost::scoped_ptr< QTreeView > pTreeView_;
         boost::scoped_ptr< QStandardItemModel > pModel_;
     };

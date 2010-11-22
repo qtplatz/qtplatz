@@ -7,36 +7,40 @@
 #ifndef DATAPROCESSOR_H
 #define DATAPROCESSOR_H
 
-// #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/ifile.h>
 #include <boost/smart_ptr.hpp>
 
+namespace adcontrols {
+    class datafile;
+    class LCMSData;
+}
+
 namespace dataproc {
 
-    namespace internal {
+    class datafileimpl;
 
-        class datafileimpl;
+    class Dataprocessor : QObject { //public Core::IEditor {
+        Q_OBJECT
+    public:
+        ~Dataprocessor();
+        Dataprocessor();
 
-        class Dataprocessor : QObject { //public Core::IEditor {
-            Q_OBJECT
-        public:
-            ~Dataprocessor();
-            Dataprocessor();
-            Dataprocessor( const Dataprocessor& );
+        bool open( const QString& );
+        Core::IFile * ifile();
 
-            bool open( const QString& );
-            Core::IFile * ifile();
+        QString filename() const;
+        adcontrols::datafile& file();
+        adcontrols::LCMSData& LCMSData();
 
-        signals:
+    signals:
 
-        public slots:
+    public slots:
             // void slotTitleChanged( const QString& title );
 
-        private:
-            boost::shared_ptr< datafileimpl > datafileimpl_;
-        };
+    private:
+        boost::scoped_ptr< datafileimpl > datafileimpl_;
+    };
 
-    } // internal
 } // dataproc
 
 #endif // DATAPROCESSOR_H

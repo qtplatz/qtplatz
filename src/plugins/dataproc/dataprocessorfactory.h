@@ -24,7 +24,7 @@ namespace dataproc {
             Q_OBJECT
         public:
             ~DataprocessorFactory();
-            explicit DataprocessorFactory( DataprocPlugin * owner );
+            explicit DataprocessorFactory( QObject * owner );
 
             // implement IEditorFactory
             // virtual Core::IEditor *createEditor(QWidget *parent);

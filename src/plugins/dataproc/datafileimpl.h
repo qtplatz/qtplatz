@@ -22,52 +22,52 @@ namespace adcontrols {
 
 namespace dataproc {
 
-    namespace internal {
+    class datafileimpl : public Core::IFile
+                       , public adcontrols::dataSubscriber
+                       , boost::noncopyable {
+        Q_OBJECT
+    public:
+        ~datafileimpl();
+        explicit datafileimpl( adcontrols::datafile *, QObject *parent = 0);
 
-        class datafileimpl : public Core::IFile
-                           , public adcontrols::dataSubscriber
-                           , boost::noncopyable {
-            Q_OBJECT
-        public:
-            ~datafileimpl();
-            explicit datafileimpl( adcontrols::datafile *, QObject *parent = 0);
+        void setModified( bool val = true );
 
-            void setModified( bool val = true );
-
-            // implement Core::IFile
-            virtual bool save(const QString &fileName);
-            virtual QString fileName() const;
+        // implement Core::IFile
+        virtual bool save(const QString &fileName);
+        virtual QString fileName() const;
       
-            virtual QString defaultPath() const;
-            virtual QString suggestedFileName() const;
-            virtual QString mimeType() const;
+        virtual QString defaultPath() const;
+        virtual QString suggestedFileName() const;
+        virtual QString mimeType() const;
       
-            virtual bool isModified() const;
-            virtual bool isReadOnly() const;
-            virtual bool isSaveAsAllowed() const;
+        virtual bool isModified() const;
+        virtual bool isReadOnly() const;
+        virtual bool isSaveAsAllowed() const;
       
-            virtual void modified(ReloadBehavior *behavior);
-            virtual void checkPermissions() {}
+        virtual void modified(ReloadBehavior *behavior);
+        virtual void checkPermissions() {}
 
-            // implement adcontrols::dataSubscriber
-            virtual void subscribe( adcontrols::LCMSDataSet& );
-            // <------------------------
+        // implement adcontrols::dataSubscriber
+        virtual void subscribe( adcontrols::LCMSDataSet& );
+        // <------------------------
 
-        signals:
+        adcontrols::LCMSDataSet& LCMSDataset();
+        adcontrols::datafile& file();
 
-        public slots:
-                void modified() { setModified( true ); }
+    signals:
 
-        private:
-            const QString mimeType_;
-            const QString filename_;
-            bool modified_;
-            adcontrols::datafile* file_;
-            adcontrols::LCMSDataSet* accessor_;
-            std::vector< adcontrols::Chromatogram > ticVec_;
-        };
+    public slots:
+            void modified() { setModified( true ); }
 
-    } // namespace internal
+    private:
+        const QString mimeType_;
+        const QString filename_;
+        bool modified_;
+        adcontrols::datafile* file_;
+        adcontrols::LCMSDataSet* accessor_;
+        std::vector< adcontrols::Chromatogram > ticVec_;
+    };
+
 } // namespace dataproc
 
 

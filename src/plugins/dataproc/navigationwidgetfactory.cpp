@@ -38,11 +38,15 @@ NavigationWidgetFactory::createWidget()
     NavigationWidget *ptw = new NavigationWidget;
     n.widget = ptw;
 
-    QToolButton * filter = new QToolButton;
-    filter->setIcon( QIcon(":/dataproc/images/filtericon.png"));
-    filter->setToolTip( tr("Filter tree"));
-    filter->setPopupMode( QToolButton:: InstantPopup );
+    QToolButton * toggleSync = new QToolButton;
+    toggleSync->setIcon( QIcon(":/core/images/linkicon.png"));
+    toggleSync->setCheckable( true );
+    toggleSync->setChecked( ptw->autoSyncronization() );
+    toggleSync->setToolTip( tr("Synchronize with Editor" ) );
+    // filter->setPopupMode( QToolButton:: InstantPopup );
 
-    n.dockToolBarWidgets << filter; // << ptw->togggleSync();
+    connect( toggleSync, SIGNAL(clicked(bool)), ptw, SLOT( toggleAutoSynchronization() ) );
+
+    n.dockToolBarWidgets << toggleSync;
     return n;
 }

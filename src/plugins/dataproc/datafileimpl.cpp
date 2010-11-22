@@ -9,7 +9,7 @@
 #include <adcontrols/massspectrum.h>
 #include <qtwrapper/qstring.h>
 
-using namespace dataproc::internal;
+using namespace dataproc;
 
 datafileimpl::~datafileimpl()
 {
@@ -116,4 +116,16 @@ datafileimpl::subscribe( adcontrols::LCMSDataSet& data )
         if ( data.getTIC( i, c ) )
             ticVec_.push_back( c );
     }
+}
+
+adcontrols::LCMSDataSet&
+datafileimpl::LCMSDataset()
+{
+    return *accessor_;
+}
+
+adcontrols::datafile&
+datafileimpl::file()
+{
+    return *file_;
 }

@@ -4,7 +4,8 @@
 //////////////////////////////////////////
 
 #include "dataprocessorfactory.h"
-#include "dataprocplugin.h"
+// #include "dataprocplugin.h"
+#include "sessionmanager.h"
 #include "dataprocessor.h"
 #include "constants.h"
 #include <coreplugin/ifilefactory.h>
@@ -18,8 +19,8 @@ DataprocessorFactory::~DataprocessorFactory()
 {
 }
 
-DataprocessorFactory::DataprocessorFactory( DataprocPlugin * owner ) : Core::IFileFactory( owner )
-                                                                     , kind_( "Dataprocessor" )
+DataprocessorFactory::DataprocessorFactory( QObject * owner ) : Core::IFileFactory( owner )
+                                                              , kind_( "Dataprocessor" )
 {
     mimeTypes_ << Constants::C_DATAPROCESSOR_MIMETYPE;
 }
@@ -43,7 +44,7 @@ DataprocessorFactory::open( const QString& filename )
 {
     boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
     if ( processor->open( filename ) ) {
-        DataprocPlugin::instance()->getDataprocessors().push_back( processor );
+        SessionManager::instance()->addDataprocessor( processor );
         return processor->ifile();
     }
     return 0;

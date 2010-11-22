@@ -15,10 +15,12 @@ namespace adportable {
 }
 
 namespace dataproc {
+
+    class SessionManager;
+
     namespace internal {
 
         class DataprocManager;
-        class Dataprocessor;
 
         class DataprocPlugin : public ExtensionSystem::IPlugin {
 
@@ -32,8 +34,10 @@ namespace dataproc {
             void extensionsInitialized();
             void shutdown();
             // <--
+            SessionManager * getSessionManager();
+
             static DataprocPlugin * instance();
-            std::vector< boost::shared_ptr< Dataprocessor > >& getDataprocessors();
+            // std::vector< boost::shared_ptr< Dataprocessor > >& getDataprocessors();
 
         signals:
 
@@ -42,7 +46,7 @@ namespace dataproc {
         private:
             boost::shared_ptr<DataprocManager> manager_;
             boost::shared_ptr< adportable::Configuration > pConfig_;
-            std::vector< boost::shared_ptr< Dataprocessor > > processors_;
+            boost::scoped_ptr< SessionManager > pSessionManager_;
             static DataprocPlugin * instance_;
 
         };
