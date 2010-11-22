@@ -4,12 +4,13 @@
 //////////////////////////////////////////
 
 #include "mscalibrationwnd.h"
-
+#include "dataprocessor.h"
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 #include <adwidgets/dataplot.h>
 #include <adwidgets/axis.h>
 
+using namespace dataproc;
 using namespace dataproc::internal;
 
 namespace dataproc {
@@ -59,4 +60,9 @@ MSCalibrationWnd::init()
     //toolBarAddingLayout->addWidget( toolBar );
     toolBarAddingLayout->addWidget( splitter );
     //toolBarAddingLayout->addWidget( toolBar2 );
+}
+
+void
+MSCalibrationWnd::handleSessionAdded( Dataprocessor * )
+{
 }

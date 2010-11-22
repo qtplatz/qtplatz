@@ -11,26 +11,30 @@
 #include <boost/smart_ptr.hpp>
 
 namespace dataproc {
-  namespace internal {
 
-    class MSCalibrationWndImpl;
+    class Dataprocessor;
 
-    class MSCalibrationWnd : public QWidget {
-      Q_OBJECT
-	public:
-      explicit MSCalibrationWnd(QWidget *parent = 0);
-      void init();
+    namespace internal {
+
+        class MSCalibrationWndImpl;
+
+        class MSCalibrationWnd : public QWidget {
+            Q_OBJECT
+        public:
+            explicit MSCalibrationWnd(QWidget *parent = 0);
+            void init();
       
-    signals:
+        signals:
       
-      public slots:
+        public slots:
+            void handleSessionAdded( Dataprocessor* );
 
-      private:
-        boost::shared_ptr<MSCalibrationWndImpl> pImpl_;
+        private:
+            boost::shared_ptr<MSCalibrationWndImpl> pImpl_;
       
-    };
+        };
 
-  }
+    }
 }
 
 #endif // MSCALIBRATIONWND_H

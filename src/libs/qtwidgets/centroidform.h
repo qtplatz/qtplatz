@@ -15,6 +15,7 @@
 
 namespace adcontrols {
     class CentroidMethod;
+    class datafile;
 }
 
 namespace Ui {
@@ -49,6 +50,9 @@ namespace qtwidgets {
         adportable::Configuration config_;
     private:
         void update_model();
+
+    public slots:
+        void handleUpdateFile( adcontrols::datafile * );
     };
 
 }

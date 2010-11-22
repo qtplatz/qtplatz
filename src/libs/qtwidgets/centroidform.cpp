@@ -99,3 +99,8 @@ CentroidForm::update_model()
     model.setData( model.index( 2, 1 ), method.baselineWidth() );
     model.setData( model.index( 3, 1 ), method.peakCentroidFraction() * 100 );
 }
+
+void
+CentroidForm::handleUpdateFile( adcontrols::datafile * file )
+{
+}

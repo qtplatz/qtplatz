@@ -11,27 +11,31 @@
 #include <boost/shared_ptr.hpp>
 
 namespace dataproc {
-  namespace internal {
+
+    class Dataprocessor;
+
+    namespace internal {
     
-    class ElementalCompWndImpl;
+        class ElementalCompWndImpl;
     
-    class ElementalCompWnd : public QWidget {
-      Q_OBJECT
-	public:
-      explicit ElementalCompWnd(QWidget *parent = 0);
-      void init();
+        class ElementalCompWnd : public QWidget {
+            Q_OBJECT
+        public:
+            explicit ElementalCompWnd(QWidget *parent = 0);
+            void init();
       
-    signals:
+        signals:
       
-      public slots:
+        public slots:
+            void handleSessionAdded( Dataprocessor* );
       
-    private:
-      boost::shared_ptr<ElementalCompWndImpl> pImpl_;
+        private:
+            boost::shared_ptr<ElementalCompWndImpl> pImpl_;
       
-    };
+        };
     
-    /////////
-  }
+        /////////
+    }
 }
 
 #endif // ELEMENTALCOMPWND_H

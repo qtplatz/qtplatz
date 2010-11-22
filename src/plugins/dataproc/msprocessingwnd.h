@@ -15,27 +15,31 @@ namespace adwidgets {
 }
 
 namespace dataproc {
-  namespace internal {
 
-    class MSProcessingWndImpl;
+    class Dataprocessor;
 
-    class MSProcessingWnd : public QWidget {
-      Q_OBJECT
-	public:
-      explicit MSProcessingWnd(QWidget *parent = 0);
+    namespace internal {
 
-      void init();
+        class MSProcessingWndImpl;
+
+        class MSProcessingWnd : public QWidget {
+            Q_OBJECT
+        public:
+            explicit MSProcessingWnd(QWidget *parent = 0);
+
+            void init();
       
-    signals:
+        signals:
       
-      public slots:
+        public slots:
+            void handleSessionAdded( Dataprocessor* );
 
-      private:
-        boost::shared_ptr<MSProcessingWndImpl> pImpl_;
-        std::map< std::wstring, boost::shared_ptr<adwidgets::MassSpectrum> > spectra_;
-    };
+        private:
+            boost::shared_ptr<MSProcessingWndImpl> pImpl_;
+            std::map< std::wstring, boost::shared_ptr<adwidgets::MassSpectrum> > spectra_;
+        };
 
-  }
+    }
 }
 
 

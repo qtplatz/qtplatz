@@ -4,12 +4,14 @@
 //////////////////////////////////////////
 
 #include "msprocessingwnd.h"
+#include "dataprocessor.h"
 #include <adwidgets/chromatogramwidget.h>
 #include <adwidgets/spectrumwidget.h>
 #include <adwidgets/axis.h>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 
+using namespace dataproc;
 using namespace dataproc::internal;
 
 namespace dataproc {
@@ -69,4 +71,9 @@ MSProcessingWnd::init()
     toolBarAddingLayout->addWidget( splitter );
     //toolBarAddingLayout->addWidget( toolBar2 );
 
+}
+
+void
+MSProcessingWnd::handleSessionAdded( Dataprocessor * )
+{
 }
