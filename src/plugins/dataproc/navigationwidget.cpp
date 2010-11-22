@@ -20,15 +20,26 @@ class StandardItemHelper {
 public:
     StandardItemHelper();
 
-    template<class T> static QStandardItem * appendRow( QStandardItem * parent, const T& value ) {
-        // QStandardItem * item = new QStandardItem( label );
-        // item->setEditable( false );
+    template<class T> static QStandardItem * appendRow( QStandardItemModel& model, const T& value ) {
+        QStandardItem * item = new QStandardItem( value );
+        model.appendRow( item );
+        return item;
+    }
+
+    template<class T> static QStandardItem * appendRow( QStandardItem& parent, const T& value ) {
+        QStandardItem * item = new QStandardItem( value );
+        parent.appendRow( item );
+        return item;
+    }
+
+    template<class T> static QStandardItem * appendRow( QStandardItem& parent, const T& value, const QString& text ) {
+        QStandardItem * item = new QStandardItem( value );
         if ( parent ) {
             parent->appendRow( item );
             QStandardItemModel& model = *item->model();
             if ( parent->columnCount() <= ( item->column() + 1 ) ) 
                 model.insertColumn( item->column() + 1, parent->index() );
-            model.setData( model.index( item->row(), item->column() + 1, parent->index() ), value );
+            model.setData( model.index( item->row(), item->column() + 1, parent->index() ), text );
         }
         return item;
     }
@@ -146,9 +157,6 @@ NavigationWidget::initView()
 
     QModelIndex sessionIndex = model.index(0, 0);
 
-    // QStandardItem * rootNode = model.invisibleRootItem();
-    // rootNode->setColumnCount( 1 );
-
     // hide root folder
     view.setRootIndex(sessionIndex);
 
@@ -169,14 +177,16 @@ NavigationWidget::handleSessionAdded( Dataprocessor * processor )
     QString filename( qtwrapper::qstring::copy( file.filename() ) );
 
     QStandardItemModel& model = *pModel_;
-    
-    // int row = model.rowCount();
-    // QStandardItem * rootNode = model.invisibleRootItem();
 
-    QStandardItem * item = new QStandardItem( filename );
+    QStandardItem * item = StandardItemHelper::appendRow( model, filename );
     item->setEditable( false );
+    item->setToolTip( filename );
 
-    model.appendRow( item );
-    // QStandardItem * scanType = qtwidgets::StandardItemHelper::appendRow( rootNode, filename );
+    if ( processor->getLCMSDataset() ) {
 
+        QStandardItem * chro = StandardItemHelper::appendRow( *item, "Chromatograms" );
+        StandardItemHelper::appendRow( *chro, "TIC" );
+
+        StandardItemHelper::appendRow( *item, "Spectra" );
+    }
 }

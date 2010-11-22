@@ -4,8 +4,11 @@
 //////////////////////////////////////////
 
 #include "dataprocmanager.h"
+#include "sessionmanager.h"
+#include "dataprocessor.h"
 #include <adportable/Configuration.h>
 #include <adcontrols/datafilebroker.h>
+#include <adcontrols/datafile.h>
 #include <adplugin/adplugin.h>
 #include <adplugin/lifecycle.h>
 #include <qtwrapper/qstring.h>
@@ -26,18 +29,17 @@
 using namespace dataproc::internal;
 
 namespace dataproc {
-  namespace internal {
-    class DataprocManagerImpl : boost::noncopyable {
-    public:
-      ~DataprocManagerImpl();
-      DataprocManagerImpl();
+    namespace internal {
+        class DataprocManagerImpl : boost::noncopyable {
+        public:
+            ~DataprocManagerImpl();
+            DataprocManagerImpl();
 
-      Utils::FancyMainWindow * mainWindow_;
-      void init();
+            Utils::FancyMainWindow * mainWindow_;
+            void init();
 
-    public:
-      std::vector< QDockWidget * > dockWidgetVec_;
-
+        public:
+            //std::vector< QDockWidget * > dockWidgetVec_;
     };
   }
 }
@@ -71,23 +73,23 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
         for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
 
             const std::wstring name = it->name();
-            // const std::wstring& component = it->attribute( L"component" );
-                
+
             if ( it->isPlugin() ) {
                 QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
                 if ( pWidget ) {
-                    //pWidget->setWindowTitle( tr( qtwrapper::qstring::copy(it->name())) );
-                    //connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
-                    pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
-                    QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
-                    m.dockWidgetVec_.push_back( dock );
+                    // receive client event
+                    connect( pWidget, SIGNAL( signalApplyMethod() ), this, SLOT( handleApplyMethod() ) );
 
-                } else {
-                    QWidget * edit = new QTextEdit( "Edit" );
-                    edit->setWindowTitle( qtwrapper::qstring( it->title() ) );
-                    QDockWidget * dock = m.mainWindow_->addDockForWidget( edit );
-                    m.dockWidgetVec_.push_back( dock );
+                    // send to client
+                    connect( this, SIGNAL( signalUpdateFile( adcontrols::datafile* ) ), pWidget, SLOT( handleUpdateFile( adcontrols::datafile* ) ) );
+
+                    pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
+                    m.mainWindow_->addDockForWidget( pWidget );
                 }
+            } else {
+                QWidget * edit = new QTextEdit( "Edit" );
+                edit->setWindowTitle( qtwrapper::qstring( it->title() ) );
+                m.mainWindow_->addDockForWidget( edit );
             }
         }
     }       
@@ -103,7 +105,6 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
             adcontrols::datafileBroker::register_library( name );
         }
     }
-    
 }
 
 void
@@ -154,39 +155,52 @@ DataprocManagerImpl::DataprocManagerImpl() : mainWindow_(0)
 void
 DataprocManagerImpl::init()
 {
-  mainWindow_ = new Utils::FancyMainWindow;
-  if ( mainWindow_ ) {
-    mainWindow_->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
-    mainWindow_->setDocumentMode( true );
-    
-  }
+    mainWindow_ = new Utils::FancyMainWindow;
+    if ( mainWindow_ ) {
+        mainWindow_->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
+        mainWindow_->setDocumentMode( true );
+    }
 }
 
 void
 DataprocManager::setSimpleDockWidgetArrangement()
 {
-  class setTrackingEnabled {
-    Utils::FancyMainWindow& w_;
-  public:
-    setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) { w_.setTrackingEnabled( false ); }
-    ~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
-  };
+    class setTrackingEnabled {
+        Utils::FancyMainWindow& w_;
+    public:
+        setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) { w_.setTrackingEnabled( false ); }
+        ~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
+    };
 
-  DataprocManagerImpl& m = *pImpl_;
-  setTrackingEnabled lock( *m.mainWindow_ );
+    DataprocManagerImpl& m = *pImpl_;
+    setTrackingEnabled lock( *m.mainWindow_ );
   
-  QList< QDockWidget *> dockWidgets = m.mainWindow_->dockWidgets();
+    QList< QDockWidget *> dockWidgets = m.mainWindow_->dockWidgets();
   
-  foreach ( QDockWidget * dockWidget, dockWidgets ) {
-    dockWidget->setFloating( false );
-    m.mainWindow_->removeDockWidget( dockWidget );
-  }
+    foreach ( QDockWidget * dockWidget, dockWidgets ) {
+        dockWidget->setFloating( false );
+        m.mainWindow_->removeDockWidget( dockWidget );
+    }
 
-  foreach ( QDockWidget * dockWidget, dockWidgets ) {
-    m.mainWindow_->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
-    dockWidget->show();
-  }
+    foreach ( QDockWidget * dockWidget, dockWidgets ) {
+        m.mainWindow_->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
+        dockWidget->show();
+    }
 
-  for ( unsigned int i = 1; i < m.dockWidgetVec_.size(); ++i )
-    m.mainWindow_->tabifyDockWidget( m.dockWidgetVec_[0], m.dockWidgetVec_[i] );
+    for ( int i = 1; i < dockWidgets.size(); ++i )
+        m.mainWindow_->tabifyDockWidget( dockWidgets[0], dockWidgets[i] );
 }
+
+void
+DataprocManager::handleSessionAdded( dataproc::Dataprocessor * processor )
+{
+    adcontrols::datafile& file = processor->file();
+    emit signalUpdateFile( &file );
+}
+
+void
+DataprocManager::handleApplyMethod()
+{
+    // connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), pWidget, SLOT( handleSessionAdded( Dataprocessor* ) ) );
+}
+

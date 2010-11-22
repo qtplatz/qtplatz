@@ -4,6 +4,12 @@
 //////////////////////////////////////////
 
 #include "chromatogramwnd.h"
+#include "dataprocessor.h"
+#include <adcontrols/description.h>
+#include <adcontrols/datafile.h>
+#include <adcontrols/lcmsdataset.h>
+#include <adcontrols/chromatogram.h>
+#include <qtwrapper/qstring.h>
 
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
@@ -12,33 +18,37 @@
 #include <adwidgets/axis.h>
 #include <QTableWidget>
 
+using namespace dataproc;
 using namespace dataproc::internal;
 
 namespace dataproc {
-  namespace internal {
-    class ChromatogramWndImpl {
-    public:
-      ~ChromatogramWndImpl() {}
-      ChromatogramWndImpl() : ticPlot_(0)
-			     , profileSpectrum_(0)
-			     , processedSpectrum_(0) {
-      }
-      
-      adwidgets::ui::ChromatogramWidget * ticPlot_;
-      adwidgets::ui::ChromatogramWidget * profileSpectrum_;
-      adwidgets::ui::SpectrumWidget * processedSpectrum_;
-      
-    };
 
-    //////////
-  }
+    namespace internal {
+        class ChromatogramWndImpl {
+        public:
+            ~ChromatogramWndImpl() {}
+            ChromatogramWndImpl() : ticPlot_(0)
+                , profileSpectrum_(0)
+                , processedSpectrum_(0) {
+            }
+
+            void setData( const adcontrols::Chromatogram&, const QString& );
+      
+            adwidgets::ui::ChromatogramWidget * ticPlot_;
+            adwidgets::ui::ChromatogramWidget * profileSpectrum_;
+            adwidgets::ui::SpectrumWidget * processedSpectrum_;
+      
+        };
+
+        //////////
+    }
 }
 
 
 ChromatogramWnd::ChromatogramWnd(QWidget *parent) :
     QWidget(parent)
 {
-  init();
+    init();
 }
 
 void
@@ -65,4 +75,27 @@ ChromatogramWnd::init()
     //toolBarAddingLayout->addWidget( toolBar );
     toolBarAddingLayout->addWidget( splitter );
     //toolBarAddingLayout->addWidget( toolBar2 );
+}
+
+void
+ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
+{
+    adcontrols::datafile& file = processor->file();
+    QString filename( qtwrapper::qstring::copy( file.filename() ) );
+    adcontrols::LCMSDataSet * dset = processor->getLCMSDataset();
+    if ( dset ) {
+        adcontrols::Chromatogram c;
+        if ( dset->getTIC( 0, c ) ) {
+            c.addDescription( adcontrols::Description( L"filename", file.filename() ) );
+            pImpl_->setData( c, filename );
+        }
+    }
+}
+
+///////////////////////////
+
+void
+ChromatogramWndImpl::setData( const adcontrols::Chromatogram& c, const QString& )
+{
+    ticPlot_->setData( c );
 }

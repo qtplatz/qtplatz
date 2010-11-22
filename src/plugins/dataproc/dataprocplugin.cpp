@@ -199,16 +199,21 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
         QWidget* centralWidget = new QWidget;
         manager_->mainWindow()->setCentralWidget( centralWidget );
 
+        std::vector< QWidget * > wnd;
         Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
         if ( splitter3 ) {
             QTabWidget * pTab = new QTabWidget;
             splitter3->addWidget( pTab );
-            pTab->addTab( new MSProcessingWnd, QIcon(":/acquire/images/debugger_stepoverproc_small.png"), "MS Processing" );
-            pTab->addTab( new ElementalCompWnd, QIcon(":/acquire/images/debugger_snapshot_small.png"), "Elemental Composition" );
-            pTab->addTab( new MSCalibrationWnd, QIcon(":/acquire/images/debugger_continue_small.png"), "MS Calibration" );
-            pTab->addTab( new ChromatogramWnd,  QIcon(":/acquire/images/watchpoint.png"), "Chromatogram" );
-        }
+            wnd.push_back( new MSProcessingWnd );
+            pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_stepoverproc_small.png"), "MS Processing" );
+            wnd.push_back( new ElementalCompWnd );
+            pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_snapshot_small.png"), "Elemental Composition" );
+            wnd.push_back( new MSCalibrationWnd );
+            pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_continue_small.png"), "MS Calibration" );
+            wnd.push_back( new ChromatogramWnd );
+            pTab->addTab( wnd.back(),  QIcon(":/acquire/images/watchpoint.png"), "Chromatogram" );
 
+        }
         QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
         toolBarAddingLayout->setMargin(0);
         toolBarAddingLayout->setSpacing(0);
@@ -217,6 +222,11 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
         toolBarAddingLayout->addWidget( toolBar2 );
 
         mode->setWidget( splitter2 );
+
+        // connections
+        for ( std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it )
+            connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), *it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
+        connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), manager_.get(), SLOT( handleSessionAdded( Dataprocessor* ) ) );
 
     } while(0);
   

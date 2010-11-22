@@ -12,14 +12,14 @@
 
 namespace adcontrols {
     class datafile;
-    class LCMSData;
+    class LCMSDataSet;
 }
 
 namespace dataproc {
 
     class datafileimpl;
 
-    class Dataprocessor : QObject { //public Core::IEditor {
+    class Dataprocessor : QObject {
         Q_OBJECT
     public:
         ~Dataprocessor();
@@ -30,7 +30,7 @@ namespace dataproc {
 
         QString filename() const;
         adcontrols::datafile& file();
-        adcontrols::LCMSData& LCMSData();
+        adcontrols::LCMSDataSet* getLCMSDataset();
 
     signals:
 

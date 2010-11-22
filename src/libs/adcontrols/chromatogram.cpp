@@ -266,6 +266,25 @@ Chromatogram::addDescription( const adcontrols::Description& desc )
     pImpl_->addDescription( desc );
 }
 
+const Descriptions&
+Chromatogram::getDescriptions() const
+{
+    return pImpl_->getDescriptions();
+}
+
+double
+Chromatogram::minTime() const
+{
+    return pImpl_->getAcquisitionTimeRange().first;    
+}
+
+double
+Chromatogram::maxTime() const
+{
+    return pImpl_->getAcquisitionTimeRange().second;
+}
+
+
 // specialized template<> for boost::serialization
 // template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
 template<> void
@@ -350,3 +369,10 @@ ChromatogramImpl::addDescription( const adcontrols::Description& desc )
 {
     descriptions_.append( desc );
 }
+
+const Descriptions&
+ChromatogramImpl::getDescriptions() const
+{
+    return descriptions_;
+}
+

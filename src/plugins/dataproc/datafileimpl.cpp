@@ -118,10 +118,10 @@ datafileimpl::subscribe( adcontrols::LCMSDataSet& data )
     }
 }
 
-adcontrols::LCMSDataSet&
-datafileimpl::LCMSDataset()
+adcontrols::LCMSDataSet *
+datafileimpl::getLCMSDataset()
 {
-    return *accessor_;
+    return accessor_;
 }
 
 adcontrols::datafile&

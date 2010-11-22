@@ -9,7 +9,12 @@
 
 #include "tracewidget.h"
 
+namespace adcontrols {
+    class Chromatogram;
+}
+
 namespace adwidgets {
+
     namespace ui {
 
         class ChromatogramWidget : public TraceWidget {
@@ -21,6 +26,10 @@ namespace adwidgets {
         signals:
 
         public slots:
+            void setData( const adcontrols::Chromatogram& c );
+
+        private:
+			void setData( const adcontrols::Chromatogram&, int idx, bool yaxis1 = false );
 
         };
     }

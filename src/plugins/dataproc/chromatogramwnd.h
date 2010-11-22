@@ -10,24 +10,28 @@
 #include <boost/shared_ptr.hpp>
 
 namespace dataproc {
-  namespace internal {
 
-    class ChromatogramWndImpl;
+    class Dataprocessor;
 
-    class ChromatogramWnd : public QWidget {
-      Q_OBJECT
-	public:
-      explicit ChromatogramWnd(QWidget *parent = 0);
-      void init();
+    namespace internal {
+
+        class ChromatogramWndImpl;
+
+        class ChromatogramWnd : public QWidget {
+            Q_OBJECT
+        public:
+            explicit ChromatogramWnd(QWidget *parent = 0);
+            void init();
       
-    signals:
+        signals:
       
-      public slots:
+        public slots:
+            void handleSessionAdded( Dataprocessor* );
 
-      private:
-        boost::shared_ptr<ChromatogramWndImpl> pImpl_;
+        private:
+            boost::shared_ptr<ChromatogramWndImpl> pImpl_;
 
-    };
-  }
+        };
+    }
 }
 #endif // CHROMATOGRAMWND_H

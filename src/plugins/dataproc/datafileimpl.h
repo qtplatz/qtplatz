@@ -51,7 +51,7 @@ namespace dataproc {
         virtual void subscribe( adcontrols::LCMSDataSet& );
         // <------------------------
 
-        adcontrols::LCMSDataSet& LCMSDataset();
+        adcontrols::LCMSDataSet* getLCMSDataset();
         adcontrols::datafile& file();
 
     signals:

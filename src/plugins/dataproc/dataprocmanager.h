@@ -15,30 +15,42 @@ namespace adportable {
     class Configuration;
 }
 
+namespace adcontrols {
+    class datafile;
+}
+
 namespace dataproc {
-  namespace internal {
 
-    class DataprocManagerImpl;
+    class Dataprocessor;
 
-    class DataprocManager : public QObject {
-      Q_OBJECT
-    public:
-      explicit DataprocManager(QObject *parent = 0);
+    namespace internal {
 
-      QMainWindow * mainWindow() const;
-      void init( const adportable::Configuration&, const std::wstring& apppath );
-      void setSimpleDockWidgetArrangement();
-      void OnInitialUpdate();
-      void OnFinalClose();
+        class DataprocManagerImpl;
+
+        class DataprocManager : public QObject {
+            Q_OBJECT
+        public:
+            explicit DataprocManager(QObject *parent = 0);
+
+            QMainWindow * mainWindow() const;
+            void init( const adportable::Configuration&, const std::wstring& apppath );
+            void setSimpleDockWidgetArrangement();
+            void OnInitialUpdate();
+            void OnFinalClose();
       
-    signals:
+        signals:
+            void signalUpdateFile( adcontrols::datafile * );
       
-    public slots:
+        public slots:
+            void handleSessionAdded( Dataprocessor * );
 
-    private:
-      boost::shared_ptr<DataprocManagerImpl> pImpl_;
-    };
+        private slots:
+            void handleApplyMethod();
 
-  }
+        private:
+            boost::shared_ptr<DataprocManagerImpl> pImpl_;
+        };
+
+    }
 }
 
