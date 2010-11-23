@@ -12,14 +12,18 @@
 namespace adcontrols {
 
     class dataPublisher;
-    class LCMSDataSet;
+    class AcquiredDataset;
+    class LCMSDataset;
+    class ProcessedDataset;
 
     class ADCONTROLSSHARED_EXPORT dataSubscriber {  // visitable
     public:
         virtual ~dataSubscriber();
         dataSubscriber();
 
-        virtual void subscribe( LCMSDataSet& ) { }  // a.k.a. visit( LCMSDataSet& )
+        virtual void subscribe( LCMSDataset& ) { }
+        virtual void subscribe( ProcessedDataset& ) { }
+
     };
 
 }

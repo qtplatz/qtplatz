@@ -32,6 +32,13 @@ namespace adcontrols {
         Chromatogram( const Chromatogram& );
         Chromatogram& operator = ( const Chromatogram& );
 
+        struct seconds_t { seconds_t( double t ) : seconds(t) {} double seconds; operator double () const { return seconds; } };
+        struct minutes_t { minutes_t( double t ) : minutes(t) {} double minutes; operator double () const { return minutes; } };
+
+        static minutes_t toMinutes( const seconds_t& );
+        static seconds_t toSeconds( const minutes_t& );
+        static std::pair<double, double> toMinutes( const std::pair< seconds_t, seconds_t >& );
+
         struct Event {
             size_t index;  // index since injection, should subtract dataDelayPoint in order to access dataArray;
             unsigned long value;
@@ -51,20 +58,27 @@ namespace adcontrols {
         size_t toSampleIndex( double time, bool closest = false ) const;
         size_t toDataIndex( double time, bool closest = false ) const;
 
-        const double * getDataArray() const;
+        double getMinIntensity() const;
+        double getMaxIntensity() const;
+        size_t min_element( size_t beg = 0, size_t end = (-1) ) const;
+        size_t max_element( size_t beg = 0, size_t end = (-1) ) const;
+
+        const double * getIntensityArray() const;
         const double * getTimeArray() const;
         size_t eventsCount() const;
         const Event& getEvent( size_t idx ) const;
 
-        void setDataArray( const double * );
+        void setIntensityArray( const double * );
         void setTimeArray( const double * );
         void addEvent( const Event& );
 
-        double sampInterval() const; // seconds
-        void sampInterval( double );
+        seconds_t sampInterval() const; // seconds
+        void sampInterval( const seconds_t&  );
+
         size_t minTimePoints() const;  // equivalent to minTime count as number of points under sampInterval
-        double minTime() const;  // min, a.k.a. start delay time
-        double maxTime() const;  // min
+        seconds_t minTime() const;  // a.k.a. start delay time
+        seconds_t maxTime() const;  // 
+        std::pair<seconds_t, seconds_t> timeRange() const;
 
         // if time delay caused by tubing, compensate by this value
         // semi-micro UV cell has about 2-3uL volume, assume 1.0m x 0.1mmID tubing were used
@@ -73,9 +87,9 @@ namespace adcontrols {
         // peaks for k' < 4 if column plate number > 5000.
         double tubingDelayTime() const; // min
         void minTimePoints( size_t );
-        void minTime( double );  // min
-        void maxTime( double );  // min
-        void tubingDelayTime( double ); // min
+        void minTime( const seconds_t& );
+        void maxTime( const seconds_t& );
+        void tubingDelayTime( const seconds_t& ); // min
 
         void addDescription( const Description& );
         const Descriptions& getDescriptions() const;

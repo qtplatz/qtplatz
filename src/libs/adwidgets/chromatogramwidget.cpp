@@ -33,7 +33,7 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
 }
 
 void
-ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool yaxis1 )
+ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool yaxis2 )
 {
 	while ( int(traces().size()) <= idx )
 		traces().add();
@@ -53,15 +53,15 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool ya
 
     adwidgets::ui::Trace trace = traces()[idx];
 
-    std::pair<double, double> xrange(c.maxTime(), c.minTime());
-    // std::pair<double, double> yrange( ms.getMinIntensity(), ms.getMaxIntensity() );
-#if 0
+    std::pair<double, double> xrange( adcontrols::Chromatogram::toMinutes( c.timeRange() ) );
+    std::pair<double, double> yrange( c.getMinIntensity(), c.getMaxIntensity() );
+
     std::pair<double, double> drange;
     drange.first = yrange.first < 0 ? yrange.first : 0;
 	drange.second = yrange.second - drange.first < 50 ? 50 : yrange.second;
-#endif
+
     traces().visible(false);
-#if 0
+
     this->display_range_x( xrange );
 	if ( yaxis2 ) {
 		display_range_y2( drange );
@@ -71,10 +71,18 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool ya
 		display_range_y( drange );
 		trace.YAxis( Trace::Y1 );
 	}
-#endif
+
     trace.colorIndex(2 + idx);
     trace.traceStyle( Trace::TS_Connected );
-    // trace.setXYDirect( c.size(), ms.getMassArray(), ms.getIntensityArray() );
+    if ( c.getTimeArray() ) {
+        trace.setXYDirect( c.size(), c.getTimeArray(), c.getIntensityArray() );
+    } else {
+        boost::scoped_array<double> timearray( new double [ c.size() ] );
+        for ( size_t i = 0; i < c.size(); ++i )
+            timearray[i] = adcontrols::Chromatogram::toMinutes( c.timeFromDataIndex( i ) );
+        trace.setXYDirect( c.size(), timearray.get(), c.getIntensityArray() );
+    }
+
     trace.visible( true );
     traces().visible( true );
 }

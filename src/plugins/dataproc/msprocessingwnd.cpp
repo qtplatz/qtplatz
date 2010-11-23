@@ -5,6 +5,11 @@
 
 #include "msprocessingwnd.h"
 #include "dataprocessor.h"
+#include <adcontrols/chromatogram.h>
+#include <adcontrols/massspectrum.h>
+#include <adcontrols/description.h>
+#include <adcontrols/lcmsdataset.h>
+#include <adcontrols/datafile.h>
 #include <adwidgets/chromatogramwidget.h>
 #include <adwidgets/spectrumwidget.h>
 #include <adwidgets/axis.h>
@@ -74,6 +79,16 @@ MSProcessingWnd::init()
 }
 
 void
-MSProcessingWnd::handleSessionAdded( Dataprocessor * )
+MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 {
+    adcontrols::LCMSDataSet * dset = processor->getLCMSDataset();
+    if ( dset ) {
+        adcontrols::Chromatogram c;
+        if ( dset->getTIC( 0, c ) ) {
+            if ( c.isConstantSampledData() )
+                c.getTimeArray();
+            c.addDescription( adcontrols::Description( L"filename", processor->file().filename() ) );
+            pImpl_->ticPlot_->setData( c );
+        }
+    }
 }

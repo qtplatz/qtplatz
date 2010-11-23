@@ -35,7 +35,9 @@ SOURCES += massspectrum.cpp \
     dataproviderbroker.cpp \
     datasubscriber.cpp \
     datapublisher.cpp \
-    lcmsdataset.cpp
+    lcmsdataset.cpp \
+    acquireddataset.cpp \
+    processeddataset.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -58,7 +60,9 @@ HEADERS += massspectrum.h\
     dataproviderbroker.h \
     datasubscriber.h \
     datapublisher.h \
-    lcmsdataset.h
+    lcmsdataset.h \
+    acquireddataset.h \
+    processeddataset.h
 
 OTHER_FILES += \
     adcontrols.pri

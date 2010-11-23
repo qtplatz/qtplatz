@@ -3,14 +3,10 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "datasubscriber.h"
+#include "acquireddataset.h"
 
 using namespace adcontrols;
 
-dataSubscriber::~dataSubscriber()
-{
-}
-
-dataSubscriber::dataSubscriber()
+AcquiredDataset::AcquiredDataset()
 {
 }

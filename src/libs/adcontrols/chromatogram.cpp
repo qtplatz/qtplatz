@@ -22,76 +22,78 @@ using namespace adcontrols;
 using namespace adcontrols::internal;
 
 namespace adcontrols {
-  namespace internal {
 
-	class ChromatogramImpl {
-	public:
-	  ~ChromatogramImpl();
-	  ChromatogramImpl();
-	  ChromatogramImpl( const ChromatogramImpl& );
+    namespace internal {
+
+        class ChromatogramImpl {
+        public:
+            ~ChromatogramImpl();
+            ChromatogramImpl();
+            ChromatogramImpl( const ChromatogramImpl& );
 	  
-	  inline const double * getTimeArray() const { return timeArray_.empty() ? 0 : &timeArray_[0]; }
-	  inline const double * getDataArray() const { return dataArray_.empty() ? 0 : &dataArray_[0]; }
+            inline const double * getTimeArray() const { return timeArray_.empty() ? 0 : &timeArray_[0]; }
+            inline const double * getDataArray() const { return dataArray_.empty() ? 0 : &dataArray_[0]; }
 
-      inline const std::vector<Chromatogram::Event>& getEventVec() const { return evntVec_; }
-      inline std::vector<Chromatogram::Event>& getEventVec() { return evntVec_; }
+            inline const std::vector<Chromatogram::Event>& getEventVec() const { return evntVec_; }
+            inline std::vector<Chromatogram::Event>& getEventVec() { return evntVec_; }
 
-	  inline size_t size() const { return dataArray_.size(); }
-	  inline const std::pair<double, double>& getAcquisitionTimeRange() const { return timeRange_; }
-	  inline double samplingInterval() const { return samplingInterval_; /* seconds */ }
-      void samplingInterval( double v ) { samplingInterval_ = v; }
-      bool isConstantSampledData() const { return isConstantSampling_; }
-      void isConstantSampledData( bool b ) { isConstantSampling_ = b; }
-	  void setTimeArray( const double * );
-	  void setDataArray( const double * );
-	  void setEventArray( const unsigned long * );
-	  void resize( size_t );
-	  void addDescription( const Description& );
-	  const Descriptions& getDescriptions() const;
+            inline size_t size() const { return dataArray_.size(); }
+            inline const std::pair<double, double>& getAcquisitionTimeRange() const;
+            inline double samplingInterval() const { return samplingInterval_; /* seconds */ }
+            void samplingInterval( double v ) { samplingInterval_ = v; }
+            bool isConstantSampledData() const { return isConstantSampling_; }
+            void isConstantSampledData( bool b ) { isConstantSampling_ = b; }
+            void setTimeArray( const double * );
+            void setDataArray( const double * );
+            void setEventArray( const unsigned long * );
+            void resize( size_t );
+            void addDescription( const Description& );
+            const Descriptions& getDescriptions() const;
 
-      const std::wstring& axisLabelHorizontal() const { return axisLabelHorizontal_; }
-      const std::wstring& axisLabelVertical() const { return axisLabelVertical_; }
-      void axisLabelHorizontal( const std::wstring& v ) { axisLabelHorizontal_ = v; }
-      void axisLabelVertical( const std::wstring& v ) { axisLabelVertical_ = v; }
-      void minTime( double v ) { timeRange_.first = v; }
-      void maxTime( double v ) { timeRange_.second = v; }
-      void dataDelayPoints( size_t n ) { dataDelayPoints_ = n; }
-      size_t dataDelayPoints() const { return dataDelayPoints_; }
+            const std::wstring& axisLabelHorizontal() const { return axisLabelHorizontal_; }
+            const std::wstring& axisLabelVertical() const { return axisLabelVertical_; }
+            void axisLabelHorizontal( const std::wstring& v ) { axisLabelHorizontal_ = v; }
+            void axisLabelVertical( const std::wstring& v ) { axisLabelVertical_ = v; }
+            void minTime( double v ) { timeRange_.first = v; }
+            void maxTime( double v ) { timeRange_.second = v; }
+            void dataDelayPoints( size_t n ) { dataDelayPoints_ = n; }
+            size_t dataDelayPoints() const { return dataDelayPoints_; }
 	   
-    private:
-        static std::wstring empty_string_;  // for error return as reference
-        bool isConstantSampling_;
+        private:
+            friend Chromatogram;
+            static std::wstring empty_string_;  // for error return as reference
+            bool isConstantSampling_;
 	   
-        Descriptions descriptions_;
+            Descriptions descriptions_;
 
-        std::vector< double > dataArray_;
-        std::vector< double > timeArray_;
-        std::vector< Chromatogram::Event > evntVec_;
-        std::pair<double, double> timeRange_;
-        size_t dataDelayPoints_;
-        double samplingInterval_;
-        std::wstring axisLabelHorizontal_;
-        std::wstring axisLabelVertical_;
+            std::vector< double > dataArray_;
+            std::vector< double > timeArray_;
+            std::vector< Chromatogram::Event > evntVec_;
+            std::pair<double, double> timeRange_;
+            size_t dataDelayPoints_;
+            double samplingInterval_;
+            std::wstring axisLabelHorizontal_;
+            std::wstring axisLabelVertical_;
 	   
-        friend class boost::serialization::access;
-	  template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-		if ( version >= 0 ) {
-		  ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
-              & BOOST_SERIALIZATION_NVP(isConstantSampling_)
-              & BOOST_SERIALIZATION_NVP(timeRange_.first) 
-              & BOOST_SERIALIZATION_NVP(timeRange_.second) 
-              & BOOST_SERIALIZATION_NVP(dataDelayPoints_) 
-              & BOOST_SERIALIZATION_NVP(descriptions_)
-              & BOOST_SERIALIZATION_NVP(axisLabelHorizontal_)
-              & BOOST_SERIALIZATION_NVP(axisLabelVertical_)
-              & BOOST_SERIALIZATION_NVP(dataArray_) 
-              & BOOST_SERIALIZATION_NVP(timeArray_) 
-              & BOOST_SERIALIZATION_NVP(evntVec_) 
-              ;
-		}
-	  }
-	};
-  }
+            friend class boost::serialization::access;
+            template<class Archive> void serialize(Archive& ar, const unsigned int version) {
+                if ( version >= 0 ) {
+                    ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
+                        & BOOST_SERIALIZATION_NVP(isConstantSampling_)
+                        & BOOST_SERIALIZATION_NVP(timeRange_.first) 
+                        & BOOST_SERIALIZATION_NVP(timeRange_.second) 
+                        & BOOST_SERIALIZATION_NVP(dataDelayPoints_) 
+                        & BOOST_SERIALIZATION_NVP(descriptions_)
+                        & BOOST_SERIALIZATION_NVP(axisLabelHorizontal_)
+                        & BOOST_SERIALIZATION_NVP(axisLabelVertical_)
+                        & BOOST_SERIALIZATION_NVP(dataArray_) 
+                        & BOOST_SERIALIZATION_NVP(timeArray_) 
+                        & BOOST_SERIALIZATION_NVP(evntVec_) 
+                        ;
+                }
+            }
+        };
+    }
 }
 
 ///////////////////////////////////////////
@@ -121,6 +123,26 @@ Chromatogram::operator =( const Chromatogram& t )
   return *this;
 }
 
+/////////  static functions
+Chromatogram::seconds_t
+Chromatogram::toSeconds( const Chromatogram::minutes_t& m )
+{
+    return m.minutes * 60.0;
+}
+
+Chromatogram::minutes_t
+Chromatogram::toMinutes( const Chromatogram::seconds_t& s )
+{
+    return s.seconds / 60.0;
+}
+
+std::pair<double, double>
+Chromatogram::toMinutes( const std::pair<seconds_t, seconds_t>& pair )
+{
+    return std::make_pair( pair.first.seconds / 60.0, pair.second.seconds / 60.0 );
+}
+
+/////////////////
 size_t
 Chromatogram::size() const
 {
@@ -177,13 +199,13 @@ Chromatogram::toDataIndex( double time, bool closest ) const
 }
 
 const double *
-Chromatogram::getDataArray() const
+Chromatogram::getIntensityArray() const
 {
     return pImpl_->getDataArray();
 }
 
 void
-Chromatogram::setDataArray( const double * p )
+Chromatogram::setIntensityArray( const double * p )
 {
     pImpl_->setDataArray( p );
 }
@@ -191,7 +213,8 @@ Chromatogram::setDataArray( const double * p )
 void
 Chromatogram::setTimeArray( const double * p )
 {
-    pImpl_->setTimeArray( p );
+    ChromatogramImpl& d = *pImpl_;
+    d.setTimeArray( p );
 }
 
 void
@@ -212,14 +235,14 @@ Chromatogram::getEvent( size_t idx ) const
     return pImpl_->getEventVec()[ idx ];
 }
 
-double
+Chromatogram::seconds_t
 Chromatogram::sampInterval() const
 {
     return pImpl_->samplingInterval();
 }
 
 void
-Chromatogram::sampInterval( double v )
+Chromatogram::sampInterval( const seconds_t& v )
 {
     pImpl_->samplingInterval( v );
 }
@@ -249,13 +272,13 @@ Chromatogram::axisLabelVertical( const std::wstring& v )
 }
 
 void
-Chromatogram::minTime( double min )
+Chromatogram::minTime( const seconds_t& min )
 {
     pImpl_->minTime( min );
 }
 
 void
-Chromatogram::maxTime( double min )
+Chromatogram::maxTime( const seconds_t& min )
 {
     pImpl_->maxTime( min );
 }
@@ -272,18 +295,60 @@ Chromatogram::getDescriptions() const
     return pImpl_->getDescriptions();
 }
 
-double
+Chromatogram::seconds_t
 Chromatogram::minTime() const
 {
     return pImpl_->getAcquisitionTimeRange().first;    
 }
 
-double
+Chromatogram::seconds_t
 Chromatogram::maxTime() const
 {
     return pImpl_->getAcquisitionTimeRange().second;
 }
 
+std::pair<Chromatogram::seconds_t, Chromatogram::seconds_t>
+Chromatogram::timeRange() const
+{
+    const ChromatogramImpl& d = *pImpl_;
+    if ( d.timeRange_.second == 0 )
+        return std::pair<seconds_t, seconds_t>( d.timeRange_.first, d.timeRange_.first + ( d.size() - 1 ) * d.samplingInterval() );
+    return std::pair<seconds_t, seconds_t>( d.timeRange_.first, d.timeRange_.second );
+}
+
+size_t  // data index
+Chromatogram::min_element( size_t beg, size_t end ) const
+{
+    const ChromatogramImpl& d = *pImpl_;
+
+    if ( end >= d.size() )
+        end = d.size() - 1;
+    return std::distance( d.dataArray_.begin(), std::min_element( d.dataArray_.begin() + beg, d.dataArray_.begin() + end ) );
+}
+
+size_t   // data index
+Chromatogram::max_element( size_t beg, size_t end ) const
+{
+    const ChromatogramImpl& d = *pImpl_;
+
+    if ( end >= d.size() )
+        end = d.size() - 1;
+    return std::distance( d.dataArray_.begin(), std::max_element( d.dataArray_.begin() + beg, d.dataArray_.begin() + end ) );
+}
+
+double
+Chromatogram::getMaxIntensity() const
+{
+    const ChromatogramImpl& d = *pImpl_;
+    return *std::max_element( d.dataArray_.begin(), d.dataArray_.end() );
+}
+
+double
+Chromatogram::getMinIntensity() const
+{
+    const ChromatogramImpl& d = *pImpl_;
+    return *std::min_element( d.dataArray_.begin(), d.dataArray_.end() );
+}
 
 // specialized template<> for boost::serialization
 // template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
@@ -353,15 +418,21 @@ ChromatogramImpl::setDataArray( const double * p )
 void
 ChromatogramImpl::setTimeArray( const double * p )
 {
-    if ( timeArray_.size() != size() )
-        timeArray_.resize( size() );
-    memcpy(&timeArray_[0], p, sizeof(double) * size() );
+    if ( p ) {
+        if ( timeArray_.size() != size() )
+            timeArray_.resize( size() );
+        memcpy(&timeArray_[0], p, sizeof(double) * size() );
+        timeRange_.first = p[0];
+        timeRange_.second = p[ size() - 1 ];
+    } else {
+        timeArray_.clear();
+    }
 }
 
 void
 ChromatogramImpl::resize( size_t size )
 {
-  dataArray_.resize( size );
+    dataArray_.resize( size );
 }
 
 void
@@ -376,3 +447,8 @@ ChromatogramImpl::getDescriptions() const
     return descriptions_;
 }
 
+const std::pair<double, double>&
+ChromatogramImpl::getAcquisitionTimeRange() const
+{
+    return timeRange_;
+}

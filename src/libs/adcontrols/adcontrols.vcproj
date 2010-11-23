@@ -214,6 +214,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\acquireddataset.cpp"
+				>
+			</File>
+			<File
 				RelativePath="adcontrols.cpp"
 				>
 			</File>
@@ -310,6 +314,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\processeddataset.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\reportmethod.cpp"
 				>
 			</File>
@@ -333,6 +341,10 @@
 			>
 			<File
 				RelativePath=".\acceptor.h"
+				>
+			</File>
+			<File
+				RelativePath=".\acquireddataset.h"
 				>
 			</File>
 			<File
@@ -639,6 +651,10 @@
 			</File>
 			<File
 				RelativePath=".\mspeakinfoitem.h"
+				>
+			</File>
+			<File
+				RelativePath=".\processeddataset.h"
 				>
 			</File>
 			<File

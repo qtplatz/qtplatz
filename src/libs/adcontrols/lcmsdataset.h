@@ -7,13 +7,14 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include "acquireddataset.h"
 
 namespace adcontrols {
 
     class Chromatogram;
     class MassSpectrum;
 
-    class LCMSDataSet {
+    class LCMSDataset : public AcquiredDataset {
     public:
         // LCMSDataset();
         virtual size_t getFunctionCount() const = 0;
