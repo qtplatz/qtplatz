@@ -16,7 +16,7 @@
 #include <vector>
 
 namespace adcontrols {
-    class LCMSDataSet;
+    class LCMSDataset;
     class Chromatogram;
 }
 
@@ -48,10 +48,10 @@ namespace dataproc {
         virtual void checkPermissions() {}
 
         // implement adcontrols::dataSubscriber
-        virtual void subscribe( adcontrols::LCMSDataSet& );
+        virtual void subscribe( adcontrols::LCMSDataset& );
         // <------------------------
 
-        adcontrols::LCMSDataSet* getLCMSDataset();
+        adcontrols::LCMSDataset* getLCMSDataset();
         adcontrols::datafile& file();
 
     signals:
@@ -64,7 +64,7 @@ namespace dataproc {
         const QString filename_;
         bool modified_;
         adcontrols::datafile* file_;
-        adcontrols::LCMSDataSet* accessor_;
+        adcontrols::LCMSDataset* accessor_;
         std::vector< adcontrols::Chromatogram > ticVec_;
     };
 

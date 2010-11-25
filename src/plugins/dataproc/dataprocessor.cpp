@@ -45,7 +45,7 @@ Dataprocessor::file()
     return datafileimpl_->file();
 }
 
-adcontrols::LCMSDataSet *
+adcontrols::LCMSDataset *
 Dataprocessor::getLCMSDataset()
 {
     return datafileimpl_->getLCMSDataset();

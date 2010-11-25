@@ -107,7 +107,7 @@ datafileimpl::modified( ReloadBehavior* behavior )
 
 ///////////////////////////
 void
-datafileimpl::subscribe( adcontrols::LCMSDataSet& data )
+datafileimpl::subscribe( adcontrols::LCMSDataset& data )
 {
     accessor_ = &data;
     size_t nfcn = data.getFunctionCount();
@@ -118,7 +118,7 @@ datafileimpl::subscribe( adcontrols::LCMSDataSet& data )
     }
 }
 
-adcontrols::LCMSDataSet *
+adcontrols::LCMSDataset *
 datafileimpl::getLCMSDataset()
 {
     return accessor_;

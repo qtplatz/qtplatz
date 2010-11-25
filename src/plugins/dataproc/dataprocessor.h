@@ -12,7 +12,7 @@
 
 namespace adcontrols {
     class datafile;
-    class LCMSDataSet;
+    class LCMSDataset;
 }
 
 namespace dataproc {
@@ -30,7 +30,7 @@ namespace dataproc {
 
         QString filename() const;
         adcontrols::datafile& file();
-        adcontrols::LCMSDataSet* getLCMSDataset();
+        adcontrols::LCMSDataset* getLCMSDataset();
 
     signals:
 

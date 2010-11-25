@@ -81,7 +81,7 @@ MSProcessingWnd::init()
 void
 MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 {
-    adcontrols::LCMSDataSet * dset = processor->getLCMSDataset();
+    adcontrols::LCMSDataset * dset = processor->getLCMSDataset();
     if ( dset ) {
         adcontrols::Chromatogram c;
         if ( dset->getTIC( 0, c ) ) {

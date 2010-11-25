@@ -82,7 +82,7 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
 {
     adcontrols::datafile& file = processor->file();
     QString filename( qtwrapper::qstring::copy( file.filename() ) );
-    adcontrols::LCMSDataSet * dset = processor->getLCMSDataset();
+    adcontrols::LCMSDataset * dset = processor->getLCMSDataset();
     if ( dset ) {
         adcontrols::Chromatogram c;
         if ( dset->getTIC( 0, c ) ) {

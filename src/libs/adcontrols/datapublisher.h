@@ -15,7 +15,7 @@ namespace adcontrols {
     class dataSubscriber;
     class Chromatogram;
     class MassSpectrum;
-    class LCMSDataSet;
+    class LCMSDataset;
 
     class PDAData {
     public:
@@ -28,7 +28,7 @@ namespace adcontrols {
         virtual ~dataPublisher() {}
         dataPublisher() {}
 
-        virtual void visit( LCMSDataSet& ) { /**/ }
+        virtual void visit( LCMSDataset& ) { /**/ }
         virtual void visit( PDAData& ) { /**/ }
     };
 
