@@ -8,8 +8,8 @@
 #include "marshal.hpp"
 #include "constants.h"
 #include "deviceproxy.h"
-#include <adportable/string.h>
 #include <adportable/protocollifecycle.h>
+#include <adportable/string.h>
 
 #include <ace/Reactor.h>
 #include <acewrapper/constants.h>
