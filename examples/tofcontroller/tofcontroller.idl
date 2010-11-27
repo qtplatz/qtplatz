@@ -5,12 +5,12 @@
 // build setup
 // $(ACE_ROOT)\bin\tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputPath)
 
-#include "../libs/adinterface/instrument.idl"
-#include "../libs/adinterface/global_constants.idl"
+#include <adinterface/instrument.idl>
+#include <adinterface/global_constants.idl>
 
 module TOFConstants {
 
-    const unsigned long ClassID_AnalyzerDeviceData = 0x10020001;
+    const unsigned long ClassID_AnalyzerDeviceData = 0x10020000;
     const unsigned long ClassID_MSMethod           = GlobalConstants::ClassID_MS_BEGIN + 1;
     const unsigned long ClassID_IonSourceMethod    = GlobalConstants::ClassID_MS_BEGIN + 2;
     const unsigned long ClassID_ProfileData        = GlobalConstants::ClassID_MS_BEGIN + 3;

@@ -5,8 +5,8 @@
 // build setup
 // $(ACE_ROOT)\bin\tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputPath)
 
-#include "../libs/adinterface/instrument.idl"
-#include "../libs/adinterface/global_constants.idl"
+#include <adinterface/instrument.idl>
+#include <adinterface/global_constants.idl>
 
 module TOFConstants {
 

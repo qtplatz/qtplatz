@@ -44,6 +44,7 @@ qrc_*.cpp
 *.suo
 *vcproj.*.*.user
 *.ncb
+*.exp
 
 # MinGW generated files
 *.Debug
@@ -54,7 +55,7 @@ share/qtcreator/translations/extract-mimetypes.xq
 
 # Directories to ignore
 # ---------------------
-
+Deleted
 debug
 Debug
 lib/*
@@ -78,12 +79,12 @@ src/tofcontroller/*C.inl
 src/tofcontroller/*S.cpp
 src/tofcontroller/*S.h
 src/tofcontroller/*S.inl
-src/device_controller/*C.cpp
-src/device_controller/*C.h
-src/device_controller/*C.inl
-src/device_controller/*S.cpp
-src/device_controller/*S.h
-src/device_controller/*S.inl
+examples/device_controller/*C.cpp
+examples/device_controller/*C.h
+examples/device_controller/*C.inl
+examples/device_controller/*S.cpp
+examples/device_controller/*S.h
+examples/device_controller/*S.inl
 
 # Binaries
 # --------
