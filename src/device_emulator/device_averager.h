@@ -7,7 +7,9 @@
 #pragma once
 
 #include "device_state.h"
+#pragma warning(disable:4996)
 #include <ace/Event_Handler.h>
+#pragma warning(default:4996)
 class ACE_Message_Block;
 class ACE_InputCDR;
 class ACE_OutputCDR;

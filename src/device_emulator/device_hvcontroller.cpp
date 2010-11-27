@@ -7,7 +7,9 @@
 #include <ace/Message_Block.h>
 #include <acewrapper/inputcdr.h>
 #include <acewrapper/outputcdr.h>
+#pragma warning(disable:4996)
 #include "../tofcontroller/tofcontrollerC.h"
+#pragma warning(default:4996)
 #include "../tofcontroller/constants.h"
 #include "devicefacade.h"
 #include "constants.h"

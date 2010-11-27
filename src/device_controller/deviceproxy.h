@@ -46,6 +46,8 @@ namespace tofcontroller {
 		virtual int handle_input( ACE_HANDLE );
         virtual int handle_timeout( const ACE_Time_Value&, const void * );
 
+        const std::string& remote_addr_string() const { return remote_addr_string_; }
+
     private:
         void handle_lifecycle_mcast( const adportable::protocol::LifeCycleFrame&
 			                       , const adportable::protocol::LifeCycleData& );

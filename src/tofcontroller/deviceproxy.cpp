@@ -56,7 +56,6 @@ DeviceProxy::handle_input( ACE_HANDLE )
 
 	int res = dgram_handler_->recv( mb->wr_ptr(), size, *pFromAddr );
     if (res == (-1)) {
-       perror("handle_input dgram.recv");
        ACE_Message_Block::release( mb );
        ACE_Message_Block::release( pfrom );
        return 0;

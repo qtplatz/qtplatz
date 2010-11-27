@@ -52,6 +52,7 @@ main(int argc, char *argv[])
     acewrapper::ORBServant< tofcontroller::tofSession_i > * pServant = tofcontroller::singleton::tofSession_i::instance();
 
     ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( orb_thread_entry ), reinterpret_cast<void *>(&orbmgr) );
+    ACE_OS::sleep(1);
 
     pServant->initialize( orbmgr.orb(), orbmgr.root_poa(), orbmgr.poa_manager() );
     pServant->activate();
@@ -63,6 +64,7 @@ main(int argc, char *argv[])
         try {
             CORBA::Object_var obj = orbmgr.orb()->string_to_object( ior.c_str() );
             session = Instrument::Session::_narrow( obj.in() );
+            break;
         } catch ( CORBA::Exception& ) {
             ACE_OS::sleep(0);
         }

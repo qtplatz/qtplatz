@@ -4,6 +4,7 @@
 //////////////////////////////////////////
 #include "devicefacade.h"
 #include "constants.h"
+#include <boost/format.hpp>
 #include <vector>
 #include <sstream>
 #include <boost/variant.hpp>
@@ -368,9 +369,8 @@ bool
 DeviceFacade::handleIt( ACE_Message_Block * mb )
 {
     if ( mb->msg_type() == constants::MB_SENDTO_CONTROLLER ) {
-        if ( dgram_handler_ )
-            dgram_handler_->send( mb->rd_ptr(), mb->length(), get_remote_addr() );
-        return true;
+        dump_dgram_send( mb->rd_ptr(), mb->length(), get_remote_addr() );
+        return dgram_handler_->send( mb->rd_ptr(), mb->length(), get_remote_addr() );
     }
 
     if ( lifeCycle_.machine_state() != LCS_ESTABLISHED )
@@ -385,6 +385,7 @@ DeviceFacade::handleIt( ACE_Message_Block * mb )
             while( in.length() >= sizeof( unsigned long ) )
                 cdr.append_ulong( in );
             assert( in.length() == 0 );
+            dump_dgram_send( data, cdr.begin()->rd_ptr(), cdr.length(), get_remote_addr() );
             dgram_handler_->send( cdr.begin()->rd_ptr(), cdr.length(), get_remote_addr() );
         }
 
@@ -398,8 +399,9 @@ DeviceFacade::handleIt( ACE_Message_Block * mb )
                 in.read_ulong( clsid );
                 for ( DeviceFacadeImpl::vector_type::iterator it = pImpl_->begin(); it != pImpl_->end(); ++it ) {
                     if ( boost::apply_visitor( handle_copy_visitor(cdr, in, clsid), *(*it) ) ) {
+                        dump_dgram_send( data, cdr.begin()->rd_ptr(), cdr.length(), get_remote_addr() );
                         if ( ! dgram_handler_->send( cdr.begin()->rd_ptr(), cdr.length(), get_remote_addr() ) )
-                            perror("class sent to controller: ");
+                            signal_debug("class sent to controller -- error.");
                         break;
                     }
                 }
@@ -413,8 +415,9 @@ DeviceFacade::handleIt( ACE_Message_Block * mb )
             ACE_OutputCDR cdr( mb );
             if ( acewrapper::lifecycle_frame_serializer::pack( cdr, data ) ) {
                 size_t len = mb->length();
+                dump_dgram_send( data, mb->rd_ptr(), len, get_remote_addr() );
                 if ( ! dgram_handler_->send( mb->rd_ptr(), len, get_remote_addr() ) ) {
-                    perror("data send to controller: ");
+                    signal_debug("data send to controller -- error.");
                 }
             }
         }
@@ -456,14 +459,14 @@ DeviceFacade::handle_input( ACE_HANDLE h )
     if ( h == dgram_handler_->get_handle() ) {
 
         if ( ( rsize = dgram_handler_->recv( rbuf, sizeof(rbuf), from ) ) > 0 ) {
-
             ACE_InputCDR cdr( rbuf, rsize );
-            if ( acewrapper::lifecycle_frame_serializer::unpack( cdr, frame, data ) )
+            if ( acewrapper::lifecycle_frame_serializer::unpack( cdr, frame, data ) ) {
+                dump_dgram_recv( data, rbuf, rsize, from, cdr );
                 if ( handle_lifecycle_dgram( from, frame, data ) == adportable::protocol::DATA )
                     handle_data( cdr );
-
+            }
         } else {
-            perror("handle_input dgram.recv");
+            signal_debug( "handle_input dgram.recv error." );
         }
 
     } else if ( h == mcast_handler_->get_handle() ) {
@@ -475,7 +478,7 @@ DeviceFacade::handle_input( ACE_HANDLE h )
                 handle_lifecycle_mcast( from, frame, data );
 
         } else {
-            perror("handle_input mcast.recv");
+            signal_debug("handle_input mcast.recv error");
         }
     }
     return 0;
@@ -524,6 +527,7 @@ DeviceFacade::handle_lifecycle_dgram( const ACE_INET_Addr& from
             lifeCycle_.apply_command( replyCmd, newState );
             
             ACE_Message_Block * mb = acewrapper::lifecycle_frame_serializer::pack( reqData );
+            dump_dgram_send( mb->rd_ptr(), mb->length(), get_remote_addr() );
             dgram_handler_->send( mb->rd_ptr(), mb->length(), get_remote_addr() );
             mb->release();
         }
@@ -570,3 +574,89 @@ DeviceFacade::test_spectra() const
 {
 	return spectra_;
 }
+
+void
+DeviceFacade::dump_dgram_send( const char * data, size_t len, const ACE_INET_Addr& addr )
+{
+    ACE_TCHAR astr[1024];
+    addr.addr_to_string( astr, 1024 );
+    std::ostringstream o;
+    o << ">>dgram sendto: " << astr << "\n";
+    for ( size_t i = 0; i < len && i < 128 ; ++i ) {
+        o << boost::format( "%02x " ) % int(unsigned char (data[i]));
+        if ( i > 0 && ( i % 64 ) == 0 )
+            o << "\n";
+    }
+    o << "-->end.";
+    signal_debug( o.str().c_str() );
+}
+
+void
+DeviceFacade::dump_dgram_send( const adportable::protocol::LifeCycleData& lcd, const char * data, size_t len, const ACE_INET_Addr& addr )
+{
+    ACE_TCHAR astr[1024];
+    addr.addr_to_string( astr, 1024 );
+
+    static int dgram_count;
+    std::string msg = (boost::format("--> %1% dgram send to %2% : ") % dgram_count++ % astr).str();
+    msg += adportable::protocol::LifeCycleHelper::to_string( lcd );
+
+    if ( adportable::protocol::LifeCycleHelper::command( lcd ) == adportable::protocol::DATA ) {
+        ACE_InputCDR cdr( data, len );
+        adportable::protocol::LifeCycleData lcdata;
+        adportable::protocol::LifeCycleFrame frame;
+        if ( acewrapper::lifecycle_frame_serializer::unpack( cdr, frame, lcdata ) ) {
+            ACE_CDR::ULong cmdId, clsId;
+            cdr.read_ulong( cmdId );
+            cdr.read_ulong( clsId );
+            msg += (boost::format(" appdata[%04x %04x...]") % cmdId % clsId ).str();
+        }
+    }
+    signal_debug( msg.c_str() );
+
+    std::ostringstream o;
+    const unsigned short * udata = reinterpret_cast< const unsigned short * >(data);
+    for ( size_t i = 0; i < len/2 && i < 64; ++i ) {
+        o << boost::format( "%04x " ) % udata[i];
+        if ( i > 0 && ( i % 32 ) == 0 )
+            o << "\n";
+    }
+    o << "-->end.";
+    signal_debug( o.str().c_str() );
+}
+
+void
+DeviceFacade::dump_dgram_recv( const adportable::protocol::LifeCycleData& lcd
+                              , const char * data, size_t len
+                              , const ACE_INET_Addr& addr
+                              , const ACE_InputCDR& cdr )
+{
+    ACE_TCHAR astr[1024];
+    addr.addr_to_string( astr, 1024 );
+
+    static int dgram_count;
+    std::string msg = (boost::format("--> %1% dgram recv from %2% : ") % dgram_count++ % astr).str();
+    msg += adportable::protocol::LifeCycleHelper::to_string( lcd );
+
+    if ( adportable::protocol::LifeCycleHelper::command( lcd ) == adportable::protocol::DATA ) {
+        const adportable::protocol::LifeCycle_Data& data = boost::get< adportable::protocol::LifeCycle_Data >( lcd );
+        ACE_InputCDR temp = cdr;
+        ACE_CDR::ULong cmdId, clsId;
+        temp.read_ulong( cmdId );
+        temp.read_ulong( clsId );
+        msg += (boost::format(" cmdId(%04x), clsId(%8x)") % cmdId % clsId).str();
+    }
+    signal_debug( msg.c_str() );
+
+    const unsigned short * udata = reinterpret_cast< const unsigned short * >(data);
+    std::ostringstream o;
+    for ( size_t i = 0; i < len/2; ++i ) {
+        o << boost::format( "%04x " ) % udata[i];
+        if ( i > 0 && ( i % 32 ) == 0 )
+            o << "\n";
+    }
+    o << "<--end.";
+    signal_debug( o.str().c_str() );
+}
+
+

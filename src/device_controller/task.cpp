@@ -4,6 +4,7 @@
 //////////////////////////////////////////
 
 #include "task.h"
+#include "log.h"
 #include "tofsession_i.h"
 #include "marshal.hpp"
 #include "constants.h"
@@ -19,6 +20,7 @@
 #include <acewrapper/reactorthread.h>
 #include <acewrapper/ace_string.h>
 #include <acewrapper/lifecycle_frame_serializer.h>
+
 #include "analyzerdevicedata.h"
 #include "tofobserver_i.h"
 #include "traceobserver_i.h"
@@ -273,9 +275,13 @@ Task::internal_initialize()
 	acewrapper::ORBServant< tofcontroller::tofSession_i >
 		* pServant = tofcontroller::singleton::tofSession_i::instance();
 	CORBA::ORB_var orb = pServant->orb();
-    
-	CORBA::Object_var obj = orb->string_to_object( singleton::tofSession_i::instance()->broker_manager_ior() );
-	Broker::Manager_var manager = Broker::Manager::_narrow( obj.in() );
+
+    Broker::Manager_var manager;
+    try {
+        CORBA::Object_var obj = orb->string_to_object( singleton::tofSession_i::instance()->broker_manager_ior() );
+        manager = Broker::Manager::_narrow( obj.in() );
+    } catch ( CORBA::Exception& ) {
+    }
 
 	if ( ! CORBA::is_nil( manager.in() ) ) {
 		logger_ = manager->getLogger();
@@ -296,6 +302,8 @@ Task::internal_initialize()
 bool
 Task::internal_initialize_reactor()
 {
+    logger::print( "internal_initialize_reactor" );
+
 	ACE_Reactor * reactor = this->reactor();
 	if ( reactor == 0 && !reactor_thread_ ) {
 		reactor_thread_.reset( new acewrapper::ReactorThread() );
@@ -309,6 +317,8 @@ Task::internal_initialize_reactor()
 bool
 Task::internal_initialize_timer()
 {
+    logger::print( "internal_initialize_timer" );
+
 	if ( ! reactor() )
 		internal_initialize_reactor();
 	reactor()->schedule_timer( this, 0, ACE_Time_Value(3), ACE_Time_Value(3) );
@@ -322,8 +332,12 @@ Task::internal_initialize_mcast()
 		internal_initialize_reactor();
 	if ( ! mcast_handler_ ) {
 		mcast_handler_.reset( new acewrapper::McastHandler() );
-		if ( mcast_handler_->open() )
+        if ( mcast_handler_->open() ) {
+            logger::print( "internal_initialize_mcast -- success" );
 			reactor()->register_handler( mcast_handler_->get_handle(), this, ACE_Event_Handler::READ_MASK );
+        } else {
+            logger::print( "internal_initialize_mcast -- fail" );
+        }
 	}
 	return true;
 }
@@ -424,8 +438,13 @@ Task::dispatch_mcast( ACE_Message_Block * mb )
 
 	std::wstring key = adportable::string::convert( acewrapper::string( from_addr ) );
 
+    logger() << "dispatch_mcast :" << key;
+
 	DeviceProxy * proxy = DeviceProxy::check_hello_and_create( mb, from_addr, this );
 	if ( proxy && ! proxy->name().empty() ) {
+
+        logger() << proxy->name();
+
 		device_proxies_[ proxy->name() ].reset( proxy );
 		if ( proxy->initialize_dgram() ) {
 			reactor()->register_handler( proxy->get_handle(), proxy, ACE_Event_Handler::READ_MASK );
@@ -436,6 +455,8 @@ Task::dispatch_mcast( ACE_Message_Block * mb )
 void
 Task::dispatch_dgram( ACE_Message_Block * mblk )
 {
+    logger::print( "Task::dispatch_dgram" );
+
 	ACE_Message_Block * pfrom = mblk->cont();
 	if ( pfrom ) {
 		const ACE_INET_Addr& addr = *(reinterpret_cast< const ACE_INET_Addr *>(pfrom->rd_ptr()));
@@ -454,7 +475,13 @@ Task::dispatch_command( ACE_Message_Block * mblk )
 	for ( map_type::iterator it = device_proxies_.begin(); it != device_proxies_.end(); ++it ) {
         TAO_OutputCDR cdr;
         it->second->prepare_data( cdr ) << cmd;
-		it->second->sendto( cdr.begin() );
+        
+        const ACE_Message_Block * mb = cdr.begin();
+        logger log; 
+        log.dump( mb->length(), mb->rd_ptr() );
+        log << " sendto: " << it->first;
+
+        bool res = it->second->sendto( cdr.begin() );
 	}
 }
 

@@ -9,8 +9,12 @@
 #include <QObject>
 #include <boost/variant.hpp>
 #include <adportable/protocollifecycle.h>
+#pragma warning(disable:4996)
+#pragma warning(disable:4805)
 #include <ace/Task.h>
 #include <ace/Barrier.h>
+#pragma warning(default:4805)
+#pragma warning(default:4996)
 #include <vector>
 
 template<class T, class X> class ACE_Singleton;
@@ -85,6 +89,10 @@ namespace device_emulator {
 		bool notify_dgram( ACE_Message_Block * );
 
 	private:
+        void dump_dgram_send( const char *, size_t, const ACE_INET_Addr& );
+        void dump_dgram_send( const adportable::protocol::LifeCycleData&, const char *, size_t, const ACE_INET_Addr& );
+        void dump_dgram_recv( const adportable::protocol::LifeCycleData&, const char *, size_t, const ACE_INET_Addr&, const ACE_InputCDR& );
+
         friend singleton::device_facade;
         ACE_Barrier barrier_;
         size_t n_threads_;

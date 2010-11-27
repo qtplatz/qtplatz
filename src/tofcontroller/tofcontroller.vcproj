@@ -45,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;.\..\libs;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;.\debug;&quot;$(TAO_ROOT)\orbsvcs&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;"
+				AdditionalIncludeDirectories="$(BOOST_ROOT)\include\boost-1_43;.\..\libs;$(ACE_ROOT);$(TAO_ROOT);.\debug;$(TAO_ROOT)\orbsvcs;.\GeneratedFiles\$(ConfigurationName)"
 				PreprocessorDefinitions="_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;TOFCONTROLLER_LIBRARY;ADPLUGIN_LIBRARY;QT_DLL;QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -134,7 +134,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(BOOST_ROOT)\include\boost-1_43&quot;;.\..\libs;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;.\debug;&quot;$(TAO_ROOT)\orbsvcs&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;"
+				AdditionalIncludeDirectories="$(BOOST_ROOT)\include\boost-1_43;.\..\libs;$(ACE_ROOT);$(TAO_ROOT);.\debug;$(TAO_ROOT)\orbsvcs;.\GeneratedFiles\$(ConfigurationName)"
 				PreprocessorDefinitions="QT_NO_DEBUG;NDEBUG;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;TOFCONTROLLER_LIBRARY;QT_DLL;QT_THREAD_SUPPORT;ADPLUGIN_LIBRARY"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -421,18 +421,6 @@
 			Filter="moc;h;cpp"
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
-			<Filter
-				Name="Debug"
-				Filter="cpp;moc"
-				SourceControlFiles="false"
-				>
-			</Filter>
-			<Filter
-				Name="Release"
-				Filter="cpp;moc"
-				SourceControlFiles="false"
-				>
-			</Filter>
 		</Filter>
 	</Files>
 	<Globals>
