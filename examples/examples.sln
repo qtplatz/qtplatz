@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "device_controller", "device_controller\device_controller.vcproj", "{3144A6BC-122A-3318-8840-3CD6054E19F9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "device_emulator", "device_emulator\device_emulator.vcproj", "{A67FE99E-EB04-3411-A5E8-7B0EBD49E09B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tofcontroller", "tofcontroller\tofcontroller.vcproj", "{13A33CBE-5109-3F62-86F3-1177334BC01A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3144A6BC-122A-3318-8840-3CD6054E19F9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3144A6BC-122A-3318-8840-3CD6054E19F9}.Debug|Win32.Build.0 = Debug|Win32
+		{3144A6BC-122A-3318-8840-3CD6054E19F9}.Release|Win32.ActiveCfg = Release|Win32
+		{3144A6BC-122A-3318-8840-3CD6054E19F9}.Release|Win32.Build.0 = Release|Win32
+		{A67FE99E-EB04-3411-A5E8-7B0EBD49E09B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A67FE99E-EB04-3411-A5E8-7B0EBD49E09B}.Debug|Win32.Build.0 = Debug|Win32
+		{A67FE99E-EB04-3411-A5E8-7B0EBD49E09B}.Release|Win32.ActiveCfg = Release|Win32
+		{A67FE99E-EB04-3411-A5E8-7B0EBD49E09B}.Release|Win32.Build.0 = Release|Win32
+		{13A33CBE-5109-3F62-86F3-1177334BC01A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{13A33CBE-5109-3F62-86F3-1177334BC01A}.Debug|Win32.Build.0 = Debug|Win32
+		{13A33CBE-5109-3F62-86F3-1177334BC01A}.Release|Win32.ActiveCfg = Release|Win32
+		{13A33CBE-5109-3F62-86F3-1177334BC01A}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
