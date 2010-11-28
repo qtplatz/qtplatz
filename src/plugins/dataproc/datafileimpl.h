@@ -49,6 +49,7 @@ namespace dataproc {
 
         // implement adcontrols::dataSubscriber
         virtual void subscribe( adcontrols::LCMSDataset& );
+        virtual void subscribe( adcontrols::ProcessedDataset& );
         // <------------------------
 
         adcontrols::LCMSDataset* getLCMSDataset();

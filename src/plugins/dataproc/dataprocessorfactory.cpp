@@ -4,7 +4,6 @@
 //////////////////////////////////////////
 
 #include "dataprocessorfactory.h"
-// #include "dataprocplugin.h"
 #include "sessionmanager.h"
 #include "dataprocessor.h"
 #include "constants.h"

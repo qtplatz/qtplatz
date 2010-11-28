@@ -85,6 +85,12 @@ examples/device_controller/*C.inl
 examples/device_controller/*S.cpp
 examples/device_controller/*S.h
 examples/device_controller/*S.inl
+examples/tofcontroller/*C.cpp
+examples/tofcontroller/*C.h
+examples/tofcontroller/*C.inl
+examples/tofcontroller/*S.cpp
+examples/tofcontroller/*S.h
+examples/tofcontroller/*S.inl
 
 # Binaries
 # --------

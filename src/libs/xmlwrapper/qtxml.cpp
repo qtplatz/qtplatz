@@ -5,6 +5,7 @@
 
 #include "qtxml.h"
 #include <QFile>
+#include <qtwrapper/qstring.h>
 
 using namespace xmlwrapper;
 using namespace xmlwrapper::qtxml;
@@ -41,6 +42,12 @@ bool
 XMLDocument::loadXML( const xmlstring& xml )
 {
     return impl_.setContent( xml );
+}
+
+bool
+XMLDocument::loadXML( const std::wstring& xml )
+{
+    return impl_.setContent( qtwrapper::qstring::copy(xml) );
 }
     
 xmlstring

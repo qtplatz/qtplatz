@@ -26,6 +26,7 @@ namespace tofcontroller {
 
         enum SESSION_COMMAND {
             SESSION_INITIALIZE
+            , SESSION_PREPARE_FOR_RUN 
             , SESSION_START_RUN
             , SESSION_SUSPEND_RUN
             , SESSION_RESUME_RUN
@@ -33,6 +34,9 @@ namespace tofcontroller {
 			, SESSION_SHUTDOWN
             , SESSION_SENDTO_DEVICE  // subsequent DWORD should be class id
 			, SESSION_QUERY_DEVICE   // subsequent DWORD should be class id
+            , SESSION_REMOTE_TRIGGER
+            , SESSION_ARM_TRIGGER
+            , SESSION_DISARM_TRIGGER
         };
 
     }

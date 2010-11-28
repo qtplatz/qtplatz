@@ -12,6 +12,7 @@
 #     pragma comment(lib, "qtwrapperd.lib")
 #     pragma comment(lib, "ACEd.lib")
 #     pragma comment(lib, "QAxContainerd.lib")
+#     pragma comment(lib, "xmlwrapperd.lib")
 #else
 #     pragma comment(lib, "adwidgets.lib")
 #     pragma comment(lib, "adportable.lib")
@@ -21,4 +22,5 @@
 #     pragma comment(lib, "qtwrapper.lib")
 #     pragma comment(lib, "ACE.lib")
 #     pragma comment(lib, "QAxContainer.lib")
+#     pragma comment(lib, "xmlwrapper.lib")
 #endif
