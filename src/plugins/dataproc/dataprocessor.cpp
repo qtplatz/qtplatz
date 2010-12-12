@@ -10,6 +10,10 @@
 #include <qtwrapper/qstring.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/ifile.h>
+#include <portfolio/portfolio.h>
+#include <adcontrols/lcmsdataset.h>
+#include <adcontrols/processeddataset.h>
+
 
 using namespace dataproc;
 
@@ -28,6 +32,7 @@ Dataprocessor::open(const QString &fileName )
     if ( file ) {
         datafileimpl_.reset( new datafileimpl( file ) );
         file->accept( *datafileimpl_ );
+        file->accept( *this );
         return true;
     }
     return false;
@@ -49,4 +54,23 @@ adcontrols::LCMSDataset *
 Dataprocessor::getLCMSDataset()
 {
     return datafileimpl_->getLCMSDataset();
+}
+
+///////////////////////////
+void
+Dataprocessor::subscribe( adcontrols::LCMSDataset& data )
+{
+    size_t nfcn = data.getFunctionCount();
+    for ( size_t i = 0; i < nfcn; ++i ) {
+        adcontrols::Chromatogram c;
+        if ( data.getTIC( i, c ) )
+            ; // ticVec_.push_back( c );
+    }
+}
+
+void
+Dataprocessor::subscribe( adcontrols::ProcessedDataset& processed )
+{
+    std::wstring xml = processed.xml();
+    portfolio_.reset( new portfolio::Portfolio( xml ) );
 }

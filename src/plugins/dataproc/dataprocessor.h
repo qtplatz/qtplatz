@@ -9,17 +9,23 @@
 
 #include <coreplugin/ifile.h>
 #include <boost/smart_ptr.hpp>
+#include <adcontrols/dataSubscriber.h>
 
 namespace adcontrols {
     class datafile;
     class LCMSDataset;
 }
 
+namespace portfolio {
+    class Portfolio;
+}
+
 namespace dataproc {
 
     class datafileimpl;
 
-    class Dataprocessor : QObject {
+    class Dataprocessor : QObject
+                        , public adcontrols::dataSubscriber {
         Q_OBJECT
     public:
         ~Dataprocessor();
@@ -32,6 +38,11 @@ namespace dataproc {
         adcontrols::datafile& file();
         adcontrols::LCMSDataset* getLCMSDataset();
 
+        // implement adcontrols::dataSubscriber
+        virtual void subscribe( adcontrols::LCMSDataset& );
+        virtual void subscribe( adcontrols::ProcessedDataset& );
+        // <------------------------
+
     signals:
 
     public slots:
@@ -39,6 +50,7 @@ namespace dataproc {
 
     private:
         boost::scoped_ptr< datafileimpl > datafileimpl_;
+        boost::scoped_ptr< portfolio::Portfolio > portfolio_;
     };
 
 } // dataproc

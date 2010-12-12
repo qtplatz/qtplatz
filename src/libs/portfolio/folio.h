@@ -4,18 +4,16 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#ifndef ACQUIREDDATASET_H
-#define ACQUIREDDATASET_H
+#pragma once
 
-#include "adcontrols_global.h"
+#include "portfolio_global.h"
 
-namespace adcontrols {
+namespace portfolio {
 
-    class ADCONTROLSSHARED_EXPORT AcquiredDataset {
+    class Folio {
     public:
-        AcquiredDataset();
+        Folio();
     };
 
 }
 
-#endif // ACQUIREDDATASET_H

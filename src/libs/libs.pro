@@ -12,6 +12,7 @@ SUBDIRS   = \
     adwidgets \
     aggregation \
     extensionsystem \
+    portfolio \
     qtwidgets \
     qtwrapper \
     utils \

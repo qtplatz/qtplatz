@@ -20,6 +20,10 @@ namespace adcontrols {
     class Chromatogram;
 }
 
+namespace portfolio {
+    class Portfolio;
+}
+
 namespace dataproc {
 
     class datafileimpl : public Core::IFile

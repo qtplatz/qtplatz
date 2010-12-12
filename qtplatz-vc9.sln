@@ -135,6 +135,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qtwidgets", "src\libs\qtwid
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utils", "src\libs\utils\Utils.vcproj", "{E55B4D97-CB4C-36F6-8B5B-767DAC9D3B13}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "portfolio", "src\libs\portfolio\portfolio.vcproj", "{AF607DA2-9E5D-30C6-B7A1-99601349BCAC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -233,6 +235,10 @@ Global
 		{E55B4D97-CB4C-36F6-8B5B-767DAC9D3B13}.Debug|Win32.Build.0 = Debug|Win32
 		{E55B4D97-CB4C-36F6-8B5B-767DAC9D3B13}.Release|Win32.ActiveCfg = Release|Win32
 		{E55B4D97-CB4C-36F6-8B5B-767DAC9D3B13}.Release|Win32.Build.0 = Release|Win32
+		{AF607DA2-9E5D-30C6-B7A1-99601349BCAC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AF607DA2-9E5D-30C6-B7A1-99601349BCAC}.Debug|Win32.Build.0 = Debug|Win32
+		{AF607DA2-9E5D-30C6-B7A1-99601349BCAC}.Release|Win32.ActiveCfg = Release|Win32
+		{AF607DA2-9E5D-30C6-B7A1-99601349BCAC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

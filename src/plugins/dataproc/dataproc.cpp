@@ -13,6 +13,7 @@
 #     pragma comment(lib, "ACEd.lib")
 #     pragma comment(lib, "QAxContainerd.lib")
 #     pragma comment(lib, "xmlwrapperd.lib")
+#     pragma comment(lib, "portfoliod.lib")
 #else
 #     pragma comment(lib, "adwidgets.lib")
 #     pragma comment(lib, "adportable.lib")
@@ -23,4 +24,5 @@
 #     pragma comment(lib, "ACE.lib")
 #     pragma comment(lib, "QAxContainer.lib")
 #     pragma comment(lib, "xmlwrapper.lib")
+#     pragma comment(lib, "portfolio.lib")
 #endif

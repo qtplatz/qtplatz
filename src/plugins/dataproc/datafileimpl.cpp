@@ -9,7 +9,7 @@
 #include <adcontrols/processeddataset.h>
 #include <adcontrols/massspectrum.h>
 #include <qtwrapper/qstring.h>
-#include <xmlwrapper/qtxml.h>
+#include <portfolio/portfolio.h>
 
 using namespace dataproc;
 
@@ -124,15 +124,6 @@ void
 datafileimpl::subscribe( adcontrols::ProcessedDataset& processed )
 {
     std::wstring xml = processed.xml();
-
-    using namespace xmlwrapper::qtxml;
-
-    XMLDocument dom;
-    bool res = dom.loadXML( xml );
-    XMLElement elm = dom.documentElement();
-    xmlstring str = elm.nodeName();
-    if ( res )
-        long x = 1;
 }
 
 

@@ -14,11 +14,13 @@ CONFIG += staticlib
 include(../../adilibrary.pri)
 
 SOURCES += qtxml.cpp \
-    msxml.cpp
+    msxml.cpp \
+    xtree.cpp
 
 HEADERS += xmldom.h \
     qtxml.h \
-    msxml.h
+    msxml.h \
+    xtree.h
 
 OTHER_FILES += \
     xmlwrapper.pri
