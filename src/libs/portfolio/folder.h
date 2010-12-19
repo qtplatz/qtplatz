@@ -8,7 +8,7 @@
 
 #include "portfolio_global.h"
 #include <vector>
-#include "nodeident.h"
+#include "node.h"
 
 namespace portfolio {
 
@@ -16,14 +16,16 @@ namespace portfolio {
 
     // folder can be directory, or data (folio)
 
-    class PORTFOLIOSHARED_EXPORT Folder : public internal::NodeIdent {
+    class PORTFOLIOSHARED_EXPORT Folder : public internal::Node {
     public:
         ~Folder();
         Folder();
+        Folder( const xmlNode& );
         Folder( const Folder& );
 
-    private:
-        std::vector< Folium > folio_; // Chromatogram, Spectrum etc.
+        std::vector< Folder > folders();
+        std::vector< Folium > folio();
+        Folium selectSingleFolium( const std::wstring& );
     };
 
 }

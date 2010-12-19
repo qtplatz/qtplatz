@@ -18,6 +18,16 @@ Folium::Folium()
 }
 
 Folium::Folium( const Folium& t ) : any_( t.any_ )
+                                  , Node( t ) 
+{
+}
+
+Folium::Folium( xmlNode& n ) : Node( n )
+{
+}
+
+/*
+Folium::Folium( const boost::any& t ) : any_( t )
 {
 }
 
@@ -28,3 +38,4 @@ Folium::Folium( const adcontrols::Chromatogram& t ) : any_( boost::any(t) )
 Folium::Folium( const adcontrols::MassSpectrum& t ) : any_( boost::any(t) )
 {
 }
+*/

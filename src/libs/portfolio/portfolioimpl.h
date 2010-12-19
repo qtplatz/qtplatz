@@ -9,7 +9,7 @@
 #include <boost/any.hpp>
 #include <map>
 #include <xmlwrapper/msxml.h>
-#include "nodeident.h"
+#include "node.h"
 
 namespace portfolio {
 
@@ -20,14 +20,14 @@ namespace portfolio {
 
         // Portfolio is a root folder
 
-        class PortfolioImpl : public NodeIdent {
+        class PortfolioImpl : public Node {
         public:
             PortfolioImpl();
             PortfolioImpl( const PortfolioImpl& );
             PortfolioImpl( const std::wstring& xml );
             operator bool () const;
             const std::wstring fullpath() const;
-            Folder selectFolder();
+            std::vector<Folder> selectFolders( const std::wstring& );
 
         private:
             bool isXMLLoaded_;

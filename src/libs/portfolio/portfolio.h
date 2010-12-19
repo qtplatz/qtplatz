@@ -17,7 +17,6 @@ namespace portfolio {
     }
 
     class Folium;
-    class Folio;
     class Folder;
 
     class PORTFOLIOSHARED_EXPORT Portfolio {
@@ -27,7 +26,7 @@ namespace portfolio {
         Portfolio( const Portfolio& );
         Portfolio( const std::wstring& xml );
 
-        Folder selectFolder();
+        std::vector<Folder> folders();
      
     private:
         boost::shared_ptr< internal::PortfolioImpl > impl_;

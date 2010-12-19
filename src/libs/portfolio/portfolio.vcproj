@@ -210,15 +210,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\folio.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\folium.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\nodeident.cpp"
+				RelativePath=".\node.cpp"
 				>
 			</File>
 			<File
@@ -240,15 +236,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\folio.h"
-				>
-			</File>
-			<File
 				RelativePath=".\folium.h"
 				>
 			</File>
 			<File
-				RelativePath=".\nodeident.h"
+				RelativePath=".\node.h"
 				>
 			</File>
 			<File

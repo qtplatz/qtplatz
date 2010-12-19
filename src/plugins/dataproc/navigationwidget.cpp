@@ -7,6 +7,9 @@
 #include "dataprocessor.h"
 #include "sessionmanager.h"
 #include <adcontrols/datafile.h>
+#include <portfolio/portfolio.h>
+#include <portfolio/folder.h>
+#include <portfolio/folium.h>
 #include <qtwrapper/qstring.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/filemanager.h>
@@ -32,6 +35,12 @@ public:
         return item;
     }
 
+    template<>  static QStandardItem * appendRow( QStandardItem& parent, const std::wstring& value ) {
+        QStandardItem * item = new QStandardItem( qtwrapper::qstring::copy(value) );
+        parent.appendRow( item );
+        return item;
+    }
+
     template<class T> static QStandardItem * appendRow( QStandardItem& parent, const T& value, const QString& text ) {
         QStandardItem * item = new QStandardItem( value );
         if ( parent ) {
@@ -42,6 +51,28 @@ public:
             model.setData( model.index( item->row(), item->column() + 1, parent->index() ), text );
         }
         return item;
+    }
+};
+
+
+class PortfolioHelper {
+public:
+    static void appendFolium( QStandardItem& parent, portfolio::Folium& folium ) {
+        QStandardItem * item = StandardItemHelper::appendRow( parent, folium.name() );
+        (void)item;
+        // todo: attachments
+    }
+
+    static void appendFolder( QStandardItem& parent, portfolio::Folder& folder ) {
+        QStandardItem * item = StandardItemHelper::appendRow( parent, folder.name() );
+
+        std::vector< portfolio::Folder > folders = folder.folders();
+        for ( std::vector< portfolio::Folder >::iterator it = folders.begin(); it != folders.end(); ++it )
+            appendFolder( *item, *it );
+
+        portfolio::Folio folio = folder.folio();
+        for ( portfolio::Folio::iterator it = folio.begin(); it != folio.end(); ++it ) 
+            appendFolium( *item, *it );
     }
 };
 
@@ -182,11 +213,20 @@ NavigationWidget::handleSessionAdded( Dataprocessor * processor )
     item->setEditable( false );
     item->setToolTip( filename );
 
+    /*
     if ( processor->getLCMSDataset() ) {
-
         QStandardItem * chro = StandardItemHelper::appendRow( *item, "Chromatograms" );
         StandardItemHelper::appendRow( *chro, "TIC" );
-
         StandardItemHelper::appendRow( *item, "Spectra" );
     }
+    */
+
+    portfolio::Portfolio portfolio = processor->getPortfolio();
+    
+    std::vector< portfolio::Folder > folders = portfolio.folders();
+
+    for ( std::vector< portfolio::Folder >::iterator it = folders.begin(); it != folders.end(); ++it ) {
+        PortfolioHelper::appendFolder( *item, *it );
+    }
+
 }

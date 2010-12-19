@@ -10,10 +10,6 @@
 
 namespace portfolio {
 
-    class Folio {
-    public:
-        Folio();
-    };
 
 }
 

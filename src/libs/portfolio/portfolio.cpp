@@ -36,3 +36,8 @@ Portfolio::Portfolio( const std::wstring& xml ) : impl_( new internal::Portfolio
 {
 }
 
+std::vector< Folder >
+Portfolio::folders()
+{
+    return impl_->selectFolders( L"./folder[@folderType='directory']" );
+}

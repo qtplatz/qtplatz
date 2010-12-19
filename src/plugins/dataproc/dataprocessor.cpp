@@ -14,14 +14,13 @@
 #include <adcontrols/lcmsdataset.h>
 #include <adcontrols/processeddataset.h>
 
-
 using namespace dataproc;
 
 Dataprocessor::~Dataprocessor()
 {
 }
 
-Dataprocessor::Dataprocessor()
+Dataprocessor::Dataprocessor() : portfolio_( new portfolio::Portfolio() )
 {
 }
 
@@ -56,16 +55,25 @@ Dataprocessor::getLCMSDataset()
     return datafileimpl_->getLCMSDataset();
 }
 
+portfolio::Portfolio
+Dataprocessor::getPortfolio()
+{
+    return * portfolio_;
+}
+
 ///////////////////////////
 void
 Dataprocessor::subscribe( adcontrols::LCMSDataset& data )
 {
-    size_t nfcn = data.getFunctionCount();
+   (void)data;
+/* 
+   size_t nfcn = data.getFunctionCount();
     for ( size_t i = 0; i < nfcn; ++i ) {
         adcontrols::Chromatogram c;
         if ( data.getTIC( i, c ) )
             ; // ticVec_.push_back( c );
     }
+*/
 }
 
 void

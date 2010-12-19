@@ -22,11 +22,14 @@ PortfolioImpl::PortfolioImpl( const std::wstring& xml ) : isXMLLoaded_(false)
     if ( doc_.loadXML( xml ) ) {
         if ( node_ = doc_.selectSingleNode( L"/xtree/dataset" ) )
             isXMLLoaded_ = true;
+#ifdef _DEBUG
+        doc_.save( L"portfolio.xml" );
+#endif
     }
 }
 
 PortfolioImpl::PortfolioImpl( const PortfolioImpl& t ) : isXMLLoaded_( t.isXMLLoaded_ )
-                                                       , NodeIdent( t ) 
+                                                       , Node( t ) 
                                                        , doc_( t.doc_ )
                                                        , db_( t.db_ ) 
 {
@@ -35,6 +38,16 @@ PortfolioImpl::PortfolioImpl( const PortfolioImpl& t ) : isXMLLoaded_( t.isXMLLo
 const std::wstring
 PortfolioImpl::fullpath() const
 {
-    return NodeIdent::attribute( L"fullpath" );
+    return Node::attribute( L"fullpath" );
 }
 
+std::vector<Folder>
+PortfolioImpl::selectFolders( const std::wstring& query )
+{
+    std::vector<Folder> vec;
+    
+    xmlNodeList list = Node::selectNodes( query );
+    for ( size_t i = 0; i < list.size(); ++i )
+       vec.push_back( Folder( list[i] ) );
+    return vec;
+}

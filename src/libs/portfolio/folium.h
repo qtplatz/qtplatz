@@ -8,7 +8,7 @@
 
 #include "portfolio_global.h"
 #include <boost/any.hpp>
-#include "nodeident.h"
+#include "node.h"
 
 namespace adcontrols {
     class Chromatogram;
@@ -17,19 +17,21 @@ namespace adcontrols {
 
 namespace portfolio {
 
-    class PORTFOLIOSHARED_EXPORT Folium : public internal::NodeIdent {
+    class PORTFOLIOSHARED_EXPORT Folium : public internal::Node {
     public:
         ~Folium();
         Folium();
         Folium( const Folium& );
-
-        Folium( const::boost::any& a );
-        Folium( const adcontrols::Chromatogram& );
-        Folium( const adcontrols::MassSpectrum& );
+        Folium( xmlNode& );
+        //Folium( xmlNode&, const::boost::any& a );
+        //Folium( const adcontrols::Chromatogram& );
+        //Folium( const adcontrols::MassSpectrum& );
 
     private:
         boost::any any_;
     };
+
+    typedef std::vector< Folium > Folio;
 
 }
 

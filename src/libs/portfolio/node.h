@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "portfolio_global.h"
 #include <string>
 #include <xmlwrapper/msxml.h>
 
@@ -18,11 +19,11 @@ namespace portfolio {
 
     namespace internal {
 
-        class NodeIdent {
+        class PORTFOLIOSHARED_EXPORT Node {
         public:
-            NodeIdent();
-            NodeIdent( const NodeIdent& );
-            NodeIdent( const xmlElement& );
+            Node();
+            Node( const Node& );
+            Node( const xmlElement& );
 
             std::wstring name() const;
             void name( const std::wstring& name );
@@ -38,6 +39,8 @@ namespace portfolio {
 
             std::wstring attribute( const std::wstring& ) const;
             void setAttribute( const std::wstring& key, const std::wstring& value );
+
+            xmlNodeList selectNodes( const std::wstring& query );
 
         protected:
             xmlElement node_;

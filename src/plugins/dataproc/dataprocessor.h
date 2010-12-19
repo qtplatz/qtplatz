@@ -37,6 +37,7 @@ namespace dataproc {
         QString filename() const;
         adcontrols::datafile& file();
         adcontrols::LCMSDataset* getLCMSDataset();
+        portfolio::Portfolio getPortfolio();
 
         // implement adcontrols::dataSubscriber
         virtual void subscribe( adcontrols::LCMSDataset& );
