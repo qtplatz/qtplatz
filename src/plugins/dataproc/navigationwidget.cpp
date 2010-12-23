@@ -4,6 +4,7 @@
 //////////////////////////////////////////
 
 #include "navigationwidget.h"
+#include "navigationdelegate.h"
 #include "dataprocessor.h"
 #include "sessionmanager.h"
 #include <adcontrols/datafile.h>
@@ -59,7 +60,7 @@ class PortfolioHelper {
 public:
     static void appendFolium( QStandardItem& parent, portfolio::Folium& folium ) {
         QStandardItem * item = StandardItemHelper::appendRow( parent, folium.name() );
-        (void)item;
+        item->setData( qVariantFromValue( folium ) );
         // todo: attachments
     }
 
@@ -82,8 +83,10 @@ using namespace dataproc;
 NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
                                                     , pTreeView_( new QTreeView(this) )
                                                     , pModel_( new QStandardItemModel )
+                                                    , pDelegate_( new NavigationDelegate ) 
 {
     pTreeView_->setModel( pModel_.get() );
+    pTreeView_->setItemDelegate( pDelegate_.get() );
     setFocusProxy( pTreeView_.get() );
     initView();
 

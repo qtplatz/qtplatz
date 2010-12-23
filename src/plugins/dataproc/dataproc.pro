@@ -30,7 +30,8 @@ SOURCES += \
     dataprocwidget.cpp \
     navigationwidgetfactory.cpp \
     navigationwidget.cpp \
-    sessionmanager.cpp
+    sessionmanager.cpp \
+    navigationdelegate.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -48,7 +49,8 @@ HEADERS += \
     dataprocwidget.h \
     navigationwidgetfactory.h \
     navigationwidget.h \
-    sessionmanager.h
+    sessionmanager.h \
+    navigationdelegate.h
 
 OTHER_FILES += dataproc.pluginspec \
     dataproc_dependencies.pri \

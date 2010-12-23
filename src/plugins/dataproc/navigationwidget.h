@@ -17,6 +17,7 @@ class QModelIndex;
 namespace dataproc {
 
     class Dataprocessor;
+    class NavigationDelegate;
 
     class NavigationWidget : public QWidget {
         Q_OBJECT
@@ -41,6 +42,7 @@ namespace dataproc {
         bool autoSync_;
         boost::scoped_ptr< QTreeView > pTreeView_;
         boost::scoped_ptr< QStandardItemModel > pModel_;
+        boost::scoped_ptr< NavigationDelegate > pDelegate_;
     };
 
 }
