@@ -39,6 +39,7 @@ namespace dataproc {
         adcontrols::datafile& file();
         adcontrols::LCMSDataset* getLCMSDataset();
         portfolio::Portfolio getPortfolio();
+        void setCurrentSelection( portfolio::Folium& );
 
         // implement adcontrols::dataSubscriber
         virtual void subscribe( adcontrols::LCMSDataset& );
@@ -46,10 +47,11 @@ namespace dataproc {
         // <------------------------
 
     signals:
+        void changeSelection( portfolio::Folium& );
 
     public slots:
         // void slotTitleChanged( const QString& title );
-        void handle_foliumSelected( portfolio::Folium& );
+        void handle_changeSelection( portfolio::Folium& );
 
     private:
         boost::scoped_ptr< datafileimpl > datafileimpl_;

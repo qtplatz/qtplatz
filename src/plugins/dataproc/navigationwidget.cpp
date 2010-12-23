@@ -180,14 +180,27 @@ void
 NavigationWidget::handle_activated( const QModelIndex& index )
 {
     qDebug() << "activated: " << index.data( Qt::UserRole + 1 );
+
     if ( index.isValid() ) {
         QVariant data = index.data( Qt::UserRole + 1 );
         if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
+
             portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
 
             qDebug() << qtwrapper::qstring::copy(folium.name());
 
-            
+            Dataprocessor * processor = 0;
+            QModelIndex& parent = index.parent();
+            while ( parent.isValid() && ! qVariantCanConvert< Dataprocessor * >( parent.data( Qt::UserRole + 1 ) ) )
+                parent = parent.parent();
+
+            if ( parent.isValid() ) {
+                if ( processor = qVariantValue< Dataprocessor * >( parent.data( Qt::UserRole + 1 ) ) ) {
+                    qDebug() << "filename: " << qtwrapper::qstring( processor->file().filename() );
+                    processor->setCurrentSelection( folium );
+                }
+            }
+                        
         }
     }
 }

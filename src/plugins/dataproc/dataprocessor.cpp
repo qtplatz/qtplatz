@@ -62,6 +62,11 @@ Dataprocessor::getPortfolio()
     return * portfolio_;
 }
 
+void
+Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
+{
+}
+
 ///////////////////////////
 void
 Dataprocessor::subscribe( adcontrols::LCMSDataset& data )
@@ -85,7 +90,7 @@ Dataprocessor::subscribe( adcontrols::ProcessedDataset& processed )
 }
 
 void
-Dataprocessor::handle_foliumSelected( portfolio::Folium& folium )
+Dataprocessor::handle_changeSelection( portfolio::Folium& folium )
 {
     qDebug() << "handle_foliumSelected";
 }
