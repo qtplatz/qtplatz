@@ -18,6 +18,7 @@ namespace adcontrols {
 
 namespace portfolio {
     class Portfolio;
+    class Folium;
 }
 
 namespace dataproc {
@@ -47,7 +48,8 @@ namespace dataproc {
     signals:
 
     public slots:
-            // void slotTitleChanged( const QString& title );
+        // void slotTitleChanged( const QString& title );
+        void handle_foliumSelected( portfolio::Folium& );
 
     private:
         boost::scoped_ptr< datafileimpl > datafileimpl_;

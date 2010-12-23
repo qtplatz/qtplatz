@@ -13,6 +13,7 @@
 #include <portfolio/portfolio.h>
 #include <adcontrols/lcmsdataset.h>
 #include <adcontrols/processeddataset.h>
+#include <qdebug.h>
 
 using namespace dataproc;
 
@@ -81,4 +82,10 @@ Dataprocessor::subscribe( adcontrols::ProcessedDataset& processed )
 {
     std::wstring xml = processed.xml();
     portfolio_.reset( new portfolio::Portfolio( xml ) );
+}
+
+void
+Dataprocessor::handle_foliumSelected( portfolio::Folium& folium )
+{
+    qDebug() << "handle_foliumSelected";
 }

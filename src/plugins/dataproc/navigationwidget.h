@@ -34,9 +34,14 @@ namespace dataproc {
         void handleSessionAdded( Dataprocessor * );
 
     private slots:
-        void openItem(const QModelIndex &index);
-        void setCurrentFile( const QString& filepath );
         void initView();
+        // connecting to QAbstractItemView
+        void handle_activated( const QModelIndex& );
+        void handle_clicked( const QModelIndex& );
+        void handle_doubleClicked( const QModelIndex& );
+        void handle_entered( const QModelIndex& );
+        void handle_pressed( const QModelIndex& );
+        // void handle_currentChanged( const QModelIndex&, const QModelIndex& );
 
     private:
         bool autoSync_;
