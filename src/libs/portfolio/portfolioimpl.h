@@ -29,6 +29,9 @@ namespace portfolio {
             const std::wstring fullpath() const;
             std::vector<Folder> selectFolders( const std::wstring& );
 
+            boost::any& find( const std::wstring& id );
+            void assign( const std::wstring& id, boost::any& );
+
         private:
             bool isXMLLoaded_;
             std::map< std::wstring, boost::any > db_;

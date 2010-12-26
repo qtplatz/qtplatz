@@ -98,7 +98,7 @@ datafileBrokerImpl::register_library( const std::wstring& sharedlib )
 }
 
 void
-datafileBrokerImpl::visit( adcontrols::datafile& datafile )
+datafileBrokerImpl::visit( adcontrols::datafile& )
 {
     // factory_type factory = impl.factory();
 }

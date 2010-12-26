@@ -37,7 +37,14 @@ SOURCES += massspectrum.cpp \
     datapublisher.cpp \
     lcmsdataset.cpp \
     acquireddataset.cpp \
-    processeddataset.cpp
+    processeddataset.cpp \
+    mscalibration.cpp \
+    elementalcomposition.cpp \
+    elementalcompositioncollection.cpp \
+    lockmass.cpp \
+    processmethod.cpp \
+    msproperty.cpp \
+    processresult.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -62,7 +69,14 @@ HEADERS += massspectrum.h\
     datapublisher.h \
     lcmsdataset.h \
     acquireddataset.h \
-    processeddataset.h
+    processeddataset.h \
+    mscalibration.h \
+    elementalcomposition.h \
+    elementalcompositioncollection.h \
+    lockmass.h \
+    processmethod.h \
+    msproperty.h \
+    processresult.h
 
 OTHER_FILES += \
     adcontrols.pri

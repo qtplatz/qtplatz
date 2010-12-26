@@ -10,6 +10,7 @@
 
 #include "adcontrols_global.h"
 #include <string>
+#include <boost/any.hpp>
 
 namespace adcontrols {
     
@@ -27,6 +28,7 @@ namespace adcontrols {
         bool readonly() const;
         // ----- virtual methods -----
         virtual void accept( dataSubscriber& ) = 0; // visitable
+        virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) = 0;
         //---------
 
         static bool access( const std::wstring& filename );

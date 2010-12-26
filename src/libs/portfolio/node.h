@@ -19,12 +19,16 @@ namespace portfolio {
 
     namespace internal {
 
+        class PortfolioImpl;
+
         class PORTFOLIOSHARED_EXPORT Node {
         public:
             Node();
             Node( const Node& );
-            Node( const xmlElement& );
+        protected:
+            Node( const xmlElement&, PortfolioImpl* impl );
 
+        public:
             std::wstring name() const;
             void name( const std::wstring& name );
 
@@ -44,6 +48,7 @@ namespace portfolio {
 
         protected:
             xmlElement node_;
+            PortfolioImpl* impl_;
         };
 
     }

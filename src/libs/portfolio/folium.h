@@ -17,18 +17,23 @@ namespace adcontrols {
 
 namespace portfolio {
 
+    namespace internal {
+        class PortfolioImpl;
+    }
+
     class PORTFOLIOSHARED_EXPORT Folium : public internal::Node {
     public:
         ~Folium();
         Folium();
         Folium( const Folium& );
-        Folium( xmlNode& );
-        //Folium( xmlNode&, const::boost::any& a );
-        //Folium( const adcontrols::Chromatogram& );
-        //Folium( const adcontrols::MassSpectrum& );
+        Folium( xmlNode&, internal::PortfolioImpl * impl );
 
-    private:
-        boost::any any_;
+        std::wstring path() const;
+        std::wstring dataType() const;
+
+        bool empty() const;
+        void operator = ( boost::any& );
+        operator boost::any& ();
     };
 
     typedef std::vector< Folium > Folio;

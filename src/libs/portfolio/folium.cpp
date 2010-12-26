@@ -4,6 +4,7 @@
 //////////////////////////////////////////
 
 #include "folium.h"
+#include "portfolioimpl.h"
 #include <adcontrols/Chromatogram.h>
 #include <adcontrols/MassSpectrum.h>
 
@@ -17,13 +18,49 @@ Folium::Folium()
 {
 }
 
-Folium::Folium( const Folium& t ) : any_( t.any_ )
-                                  , Node( t ) 
+Folium::Folium( const Folium& t ) : Node( t ) 
 {
 }
 
-Folium::Folium( xmlNode& n ) : Node( n )
+Folium::Folium( xmlNode& n, internal::PortfolioImpl * impl ) : Node( n, impl )
 {
+}
+
+std::wstring
+Folium::path() const
+{
+    return attribute( L"path" );
+}
+
+std::wstring
+Folium::dataType() const
+{
+    return attribute( L"dataType" );
+}
+
+bool
+Folium::empty() const
+{
+    if ( impl_ ) {
+        boost::any& data = impl_->find( id() );
+        return data.empty();
+    }
+    return true;
+}
+
+void
+Folium::operator = ( boost::any& any )
+{
+    if ( impl_ )
+        impl_->assign( id(), any );
+}
+
+Folium::operator boost::any & ()
+{
+    if ( impl_ )
+        return impl_->find( id() );
+    static boost::any temp;
+    return temp;
 }
 
 /*

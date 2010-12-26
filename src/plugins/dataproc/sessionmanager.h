@@ -12,6 +12,10 @@
 #include <vector>
 #include <boost/smart_ptr.hpp>
 
+namespace portfolio {
+    class Folium;
+}
+
 namespace dataproc {
 
     class Dataprocessor;
@@ -51,8 +55,11 @@ namespace dataproc {
 
     signals:
         void signalSessionAdded( Dataprocessor * );
+        void signalSelectionChanged( Dataprocessor *, portfolio::Folium& );
 
     public slots:
+        void selectionChanged( Dataprocessor *, portfolio::Folium& );
+
 
     private:
         static SessionManager * instance_;

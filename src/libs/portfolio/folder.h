@@ -14,13 +14,17 @@ namespace portfolio {
 
     class Folium;
 
+    namespace internal {
+        PortfolioImpl;
+    }
+
     // folder can be directory, or data (folio)
 
     class PORTFOLIOSHARED_EXPORT Folder : public internal::Node {
     public:
         ~Folder();
         Folder();
-        Folder( const xmlNode& );
+        Folder( const xmlNode&, internal::PortfolioImpl * );
         Folder( const Folder& );
 
         std::vector< Folder > folders();

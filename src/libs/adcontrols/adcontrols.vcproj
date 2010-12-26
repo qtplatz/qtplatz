@@ -270,6 +270,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\elementalcomposition.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\elementalcompositioncollection.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\elementalcompositionmethod.cpp"
 				>
 			</File>
@@ -283,6 +291,10 @@
 			</File>
 			<File
 				RelativePath=".\lcmsdataset.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lockmass.cpp"
 				>
 			</File>
 			<File
@@ -306,6 +318,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mscalibration.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mslockmethod.cpp"
 				>
 			</File>
@@ -314,7 +330,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\msproperty.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\processeddataset.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\processmethod.cpp"
 				>
 			</File>
 			<File
@@ -540,6 +564,14 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\elementalcomposition.h"
+				>
+			</File>
+			<File
+				RelativePath=".\elementalcompositioncollection.h"
+				>
+			</File>
+			<File
 				RelativePath=".\elementalcompositionmethod.h"
 				>
 			</File>
@@ -604,6 +636,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\lockmass.h"
+				>
+			</File>
+			<File
 				RelativePath=".\massspectrometer.h"
 				>
 			</File>
@@ -646,6 +682,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mscalibration.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mslockmethod.h"
 				>
 			</File>
@@ -654,7 +694,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\msproperty.h"
+				>
+			</File>
+			<File
 				RelativePath=".\processeddataset.h"
+				>
+			</File>
+			<File
+				RelativePath=".\processmethod.h"
 				>
 			</File>
 			<File
@@ -700,7 +748,7 @@
 	<Globals>
 		<Global
 			Name="QtVersion Win32"
-			Value="4.7.0"
+			Value="4.7.1"
 		/>
 	</Globals>
 </VisualStudioProject>

@@ -47,11 +47,11 @@ namespace dataproc {
         // <------------------------
 
     signals:
-        void changeSelection( portfolio::Folium& );
+        // void changeSelection( portfolio::Folium& );
 
     public slots:
         // void slotTitleChanged( const QString& title );
-        void handle_changeSelection( portfolio::Folium& );
+        // void handle_changeSelection( portfolio::Folium& );
 
     private:
         boost::scoped_ptr< datafileimpl > datafileimpl_;

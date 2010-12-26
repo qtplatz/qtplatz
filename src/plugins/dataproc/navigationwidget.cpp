@@ -79,6 +79,11 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     layout->setContentsMargins( 0, 0, 0, 0 );
     setLayout( layout );
 
+    for ( SessionManager::vector_type::iterator it = 
+        SessionManager::instance()->begin(); it != SessionManager::instance()->end(); ++it ) {
+            handleSessionAdded( &(it->getDataprocessor()) );
+    }
+
     // connections
     connect( pModel_.get(), SIGNAL( modelReset() ), this, SLOT( initView() ) );
     // connect( pTreeView_.get(), SIGNAL(activated(const QModelIndex&)), this, SLOT(openItem(const QModelIndex&)));
@@ -86,6 +91,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     connect( pTreeView_.get(), SIGNAL(clicked(const QModelIndex&)), this, SLOT(handle_clicked(const QModelIndex&)));
     connect( pTreeView_.get(), SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(handle_doubleClicked(const QModelIndex&)));
     connect( pTreeView_.get(), SIGNAL(entered(const QModelIndex&)), this, SLOT(handle_entered(const QModelIndex&)));
+
     connect( pTreeView_.get(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(handle_currentChanged(const QModelIndex&, const QModelIndex&)));
 
     connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), this, SLOT( handleSessionAdded( Dataprocessor * ) ) );

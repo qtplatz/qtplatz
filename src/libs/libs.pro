@@ -9,6 +9,7 @@ SUBDIRS   = \
     adinterface \
     adplugin \
     adportable \
+    adutils \
     adwidgets \
     aggregation \
     extensionsystem \

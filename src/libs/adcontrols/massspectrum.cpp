@@ -4,6 +4,8 @@
 //////////////////////////////////////////
 #include "massspectrum.h"
 #include "descriptions.h"
+#include "mscalibration.h"
+#include "msproperty.h"
 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -47,6 +49,15 @@ namespace adcontrols {
 
 	    void addDescription( const Description& );
         const Descriptions& getDescriptions() const;
+
+        void setCalibration( const MSCalibration& );
+        const MSCalibration& calibration() const;
+
+        void setMSProperty( const MSProperty& );
+        const MSProperty& getMSProperty() const;
+
+        void setPolarity( MS_POLARITY polarity );
+        MS_POLARITY polarity() const;
 	    
 	 private:
 	    static std::wstring empty_string_;  // for error return as reference
@@ -54,6 +65,8 @@ namespace adcontrols {
 	    CentroidAlgorithm algo_;
 	    MS_POLARITY polarity_;	    
 	    Descriptions descriptions_;
+        MSCalibration calibration_;
+        MSProperty property_;
 
 	    std::vector< double > tofArray_;
 	    std::vector< double > massArray_;
@@ -73,6 +86,8 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP(acqRange_.first) 
                     & BOOST_SERIALIZATION_NVP(acqRange_.second) 
                     & BOOST_SERIALIZATION_NVP(descriptions_)
+                    & BOOST_SERIALIZATION_NVP(calibration_)
+                    & BOOST_SERIALIZATION_NVP(property_)
                     & BOOST_SERIALIZATION_NVP(massArray_) 
                     & BOOST_SERIALIZATION_NVP(intsArray_) 
                     & BOOST_SERIALIZATION_NVP(tofArray_) 
@@ -141,6 +156,18 @@ void
 MassSpectrum::setCentroid( CentroidAlgorithm algo )
 {
     return pImpl_->setCentroid( algo );
+}
+
+void
+MassSpectrum::setPolarity( MS_POLARITY polarity )
+{
+    pImpl_->setPolarity( polarity );
+}
+
+MS_POLARITY
+MassSpectrum::polarity() const
+{
+    return pImpl_->polarity();
 }
 
 
@@ -224,6 +251,30 @@ MassSpectrum::getDescriptions() const
   return pImpl_->getDescriptions();
 }
 
+const MSCalibration&
+MassSpectrum::calibration() const
+{
+    return pImpl_->calibration();
+}
+
+void
+MassSpectrum::setCalibration( const MSCalibration& calib )
+{
+    pImpl_->setCalibration( calib );
+}
+
+const MSProperty&
+MassSpectrum::getMSProperty() const
+{
+    return pImpl_->getMSProperty();
+}
+
+void
+MassSpectrum::setMSProperty( const MSProperty& prop )
+{
+    pImpl_->setMSProperty( prop );
+}
+
 template<class T> void
 MassSpectrum::set( const T& t )
 {
@@ -283,6 +334,9 @@ MassSpectrumImpl::~MassSpectrumImpl()
 
 MassSpectrumImpl::MassSpectrumImpl() : algo_(CentroidNone)
 				                     , polarity_(PolarityIndeterminate)
+                                     , timeSinceInjTrigger_(0)
+                                     , timeSinceFirmwareUp_(0)
+                                     , numSpectrumSinceInjTrigger_(0)   
 {
 }
 
@@ -298,6 +352,9 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 	polarity_ = t.polarity_;
 	acqRange_ = t.acqRange_;
 	descriptions_ = t.descriptions_;
+    calibration_ = t.calibration_;
+    property_ = t.property_;
+
 	if ( deep ) {
 		tofArray_ = t.tofArray_;
 		massArray_ = t.massArray_;
@@ -362,4 +419,40 @@ const Descriptions&
 MassSpectrumImpl::getDescriptions() const
 {
 	return descriptions_;
+}
+
+const MSCalibration&
+MassSpectrumImpl::calibration() const
+{
+    return calibration_;
+}
+
+void
+MassSpectrumImpl::setCalibration( const MSCalibration& calib )
+{
+    calibration_ = calib;
+}
+
+const MSProperty&
+MassSpectrumImpl::getMSProperty() const
+{
+    return property_;
+}
+
+void
+MassSpectrumImpl::setMSProperty( const MSProperty& prop )
+{
+    property_ = prop;
+}
+
+void
+MassSpectrumImpl::setPolarity( MS_POLARITY polarity )
+{
+    polarity_ = polarity;
+}
+
+MS_POLARITY
+MassSpectrumImpl::polarity() const
+{
+    return polarity_;
 }

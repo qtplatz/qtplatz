@@ -46,6 +46,11 @@ SessionManager::end()
     return sessions_.end();
 }
 
+void
+SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Folium& folium )
+{
+    emit signalSelectionChanged( dataprocessor, folium );
+}
 
 //////////// Session //////////////////
 
@@ -71,3 +76,4 @@ Session::getDataprocessor()
 {
     return *processor_;
 }
+

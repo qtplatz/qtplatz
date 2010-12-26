@@ -6,11 +6,13 @@
 #include "dataprocessor.h"
 #include "datafileimpl.h"
 #include "constants.h"
+#include "sessionmanager.h"
 #include <adcontrols/datafile.h>
 #include <qtwrapper/qstring.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/ifile.h>
 #include <portfolio/portfolio.h>
+#include <portfolio/folium.h>
 #include <adcontrols/lcmsdataset.h>
 #include <adcontrols/processeddataset.h>
 #include <qdebug.h>
@@ -65,6 +67,13 @@ Dataprocessor::getPortfolio()
 void
 Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
+    if ( folium.empty() ) {
+        qDebug() << "Dataprocessor::setCurrentSelection file: " << qtwrapper::qstring( datafileimpl_->file().filename() )
+            << "::" << qtwrapper::qstring( folium.path() )
+            << ", " << qtwrapper::qstring( folium.dataClass() );
+        folium = file().fetch( folium.path(), folium.dataType() );
+    }
+    SessionManager::instance()->selectionChanged( this, folium );
 }
 
 ///////////////////////////
@@ -89,8 +98,3 @@ Dataprocessor::subscribe( adcontrols::ProcessedDataset& processed )
     portfolio_.reset( new portfolio::Portfolio( xml ) );
 }
 
-void
-Dataprocessor::handle_changeSelection( portfolio::Folium& folium )
-{
-    qDebug() << "handle_foliumSelected";
-}

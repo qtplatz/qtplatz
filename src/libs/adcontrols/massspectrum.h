@@ -3,8 +3,8 @@
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
-#ifndef MASSSPECTRUM_H
-#define MASSSPECTRUM_H
+
+#pragma once
 
 #include "adcontrols_global.h"
 #include <boost/any.hpp>
@@ -30,6 +30,8 @@ namespace adcontrols {
    
    class Description;
    class Descriptions;
+   class MSCalibration;
+   class MSProperty;
 
    class ADCONTROLSSHARED_EXPORT MassSpectrum {
    public:
@@ -55,6 +57,15 @@ namespace adcontrols {
        bool isCentroid() const;
        void setCentroid( CentroidAlgorithm );
 
+       MS_POLARITY polarity() const;
+       void setPolarity( MS_POLARITY );
+
+       void setCalibration( const adcontrols::MSCalibration& );
+       const MSCalibration& calibration() const;
+
+       void setMSProperty( const adcontrols::MSProperty& );
+       const MSProperty& getMSProperty() const;
+
        template<class T> void set( const T& t );
        template<class T> const T& get();
        std::pair<double, double> getAcquisitionMassRange() const;
@@ -70,7 +81,9 @@ namespace adcontrols {
    private:
        internal::MassSpectrumImpl * pImpl_;
    };
+
+   typedef boost::shared_ptr<MassSpectrum> MassSpectrumPtr;   
    
 }
 
-#endif // MASSSPECTRUM_H
+

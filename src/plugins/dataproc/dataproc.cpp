@@ -4,16 +4,17 @@
 //////////////////////////////////////////
 
 #if defined _DEBUG
-#     pragma comment(lib, "adwidgetsd.lib")
-#     pragma comment(lib, "adportabled.lib")
-#     pragma comment(lib, "adplugind.lib")
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "acewrapperd.lib")
-#     pragma comment(lib, "qtwrapperd.lib")
+#     pragma comment(lib, "adwidgetsd.lib")   // dll
+#     pragma comment(lib, "adportabled.lib")  // dll
+#     pragma comment(lib, "adplugind.lib")    // dll
+#     pragma comment(lib, "adcontrolsd.lib")  // dll
+#     pragma comment(lib, "acewrapperd.lib")  // static
+#     pragma comment(lib, "qtwrapperd.lib")   // static
 #     pragma comment(lib, "ACEd.lib")
 #     pragma comment(lib, "QAxContainerd.lib")
-#     pragma comment(lib, "xmlwrapperd.lib")
-#     pragma comment(lib, "portfoliod.lib")
+#     pragma comment(lib, "xmlwrapperd.lib")  // static
+#     pragma comment(lib, "portfoliod.lib")   // dll
+#     pragma comment(lib, "adutilsd.lib")     // static
 #else
 #     pragma comment(lib, "adwidgets.lib")
 #     pragma comment(lib, "adportable.lib")
@@ -25,4 +26,5 @@
 #     pragma comment(lib, "QAxContainer.lib")
 #     pragma comment(lib, "xmlwrapper.lib")
 #     pragma comment(lib, "portfolio.lib")
+#     pragma comment(lib, "adutils.lib")
 #endif

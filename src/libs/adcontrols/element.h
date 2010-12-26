@@ -4,8 +4,7 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#ifndef ELEMENT_H
-#define ELEMENT_H
+#pragma once
 
 #include <string>
 #include <boost/serialization/nvp.hpp>
@@ -96,4 +95,4 @@ BOOST_CLASS_VERSION(adcontrols::internal::Element, 1)
 BOOST_CLASS_VERSION(adcontrols::internal::Element::Isotope, 1)
 BOOST_CLASS_VERSION(adcontrols::internal::SuperAtom, 1)
 
-#endif // ELEMENT_H
+

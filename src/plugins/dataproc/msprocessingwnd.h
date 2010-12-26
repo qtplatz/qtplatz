@@ -11,7 +11,16 @@
 #include <map>
 
 namespace adwidgets {
+    // class MassSpectrum;
+}
+
+namespace adcontrols {
     class MassSpectrum;
+    class Chromatogram;
+}
+
+namespace portfolio {
+    class Folium;
 }
 
 namespace dataproc {
@@ -28,15 +37,19 @@ namespace dataproc {
             explicit MSProcessingWnd(QWidget *parent = 0);
 
             void init();
+
+            void draw( boost::shared_ptr< adcontrols::MassSpectrum >& );
+            void draw( boost::shared_ptr< adcontrols::Chromatogram >& );
       
         signals:
       
         public slots:
             void handleSessionAdded( Dataprocessor* );
+            void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
 
         private:
             boost::shared_ptr<MSProcessingWndImpl> pImpl_;
-            std::map< std::wstring, boost::shared_ptr<adwidgets::MassSpectrum> > spectra_;
+            //std::map< std::wstring, boost::shared_ptr<adwidgets::MassSpectrum> > spectra_;
         };
 
     }

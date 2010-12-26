@@ -10,11 +10,14 @@
 #include <adcontrols/description.h>
 #include <adcontrols/lcmsdataset.h>
 #include <adcontrols/datafile.h>
+#include <adutils/processeddata.h>
+#include <portfolio/folium.h>
 #include <adwidgets/chromatogramwidget.h>
 #include <adwidgets/spectrumwidget.h>
 #include <adwidgets/axis.h>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
+#include <boost/variant.hpp>
 
 using namespace dataproc;
 using namespace dataproc::internal;
@@ -79,6 +82,20 @@ MSProcessingWnd::init()
 }
 
 void
+MSProcessingWnd::draw( adutils::MassSpectrumPtr& ptr )
+{
+    adcontrols::MassSpectrum& ms = *ptr;
+    pImpl_->profileSpectrum_->setData( ms );
+}
+
+void
+MSProcessingWnd::draw( adutils::ChromatogramPtr& ptr )
+{
+    adcontrols::Chromatogram& c = *ptr;
+    pImpl_->ticPlot_->setData( c );
+}
+
+void
 MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 {
     adcontrols::LCMSDataset * dset = processor->getLCMSDataset();
@@ -91,4 +108,24 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
             pImpl_->ticPlot_->setData( c );
         }
     }
+}
+
+struct selChanged : public boost::static_visitor<void> {
+    selChanged( MSProcessingWnd& wnd ) : wnd_(wnd) {}
+    template<typename T> void operator ()( T& ) const { }
+    template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+        wnd_.draw( ptr );
+    }
+    template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
+        wnd_.draw( ptr );
+    }
+    MSProcessingWnd& wnd_;
+};
+
+
+void
+MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
+{
+    adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+    boost::apply_visitor( selChanged(*this), data );
 }

@@ -48,6 +48,18 @@ PortfolioImpl::selectFolders( const std::wstring& query )
     
     xmlNodeList list = Node::selectNodes( query );
     for ( size_t i = 0; i < list.size(); ++i )
-       vec.push_back( Folder( list[i] ) );
+       vec.push_back( Folder( list[i], this ) );
     return vec;
+}
+
+boost::any&
+PortfolioImpl::find( const std::wstring& id )
+{
+    return db_[ id ];  // this will create a node if not exist
+}
+
+void
+PortfolioImpl::assign( const std::wstring& id, boost::any& data )
+{
+    db_[ id ] = data;
 }
