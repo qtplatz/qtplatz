@@ -222,6 +222,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\baseline.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\baselines.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\centroidmethod.cpp"
 				>
 			</File>
@@ -334,6 +342,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\peak.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\peakasymmetry.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\peakresolution.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\peaks.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\processeddataset.cpp"
 				>
 			</File>
@@ -351,6 +375,14 @@
 			</File>
 			<File
 				RelativePath=".\targetingmethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\theoreticalplate.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\timeutil.cpp"
 				>
 			</File>
 			<File
@@ -422,6 +454,14 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\baseline.h"
+				>
+			</File>
+			<File
+				RelativePath=".\baselines.h"
+				>
 			</File>
 			<File
 				RelativePath=".\centroidmethod.h"
@@ -698,6 +738,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\peak.h"
+				>
+			</File>
+			<File
+				RelativePath=".\peakasymmetry.h"
+				>
+			</File>
+			<File
+				RelativePath=".\peakresolution.h"
+				>
+			</File>
+			<File
+				RelativePath=".\peaks.h"
+				>
+			</File>
+			<File
 				RelativePath=".\processeddataset.h"
 				>
 			</File>
@@ -737,6 +793,14 @@
 			</File>
 			<File
 				RelativePath=".\targetingmethod.h"
+				>
+			</File>
+			<File
+				RelativePath=".\theoreticalplate.h"
+				>
+			</File>
+			<File
+				RelativePath=".\timeutil.h"
 				>
 			</File>
 			<File

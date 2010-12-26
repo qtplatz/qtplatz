@@ -44,7 +44,15 @@ SOURCES += massspectrum.cpp \
     lockmass.cpp \
     processmethod.cpp \
     msproperty.cpp \
-    processresult.cpp
+    processresult.cpp \
+    peak.cpp \
+    peaks.cpp \
+    baseline.cpp \
+    baselines.cpp \
+    timeutil.cpp \
+    theoreticalplate.cpp \
+    peakasymmetry.cpp \
+    peakresolution.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -76,7 +84,15 @@ HEADERS += massspectrum.h\
     lockmass.h \
     processmethod.h \
     msproperty.h \
-    processresult.h
+    processresult.h \
+    cpeak.h \
+    cpeaks.h \
+    cbaseline.h \
+    cbaselines.h \
+    timeutil.h \
+    theoreticalplate.h \
+    peakasymmetry.h \
+    peakresolution.h
 
 OTHER_FILES += \
     adcontrols.pri

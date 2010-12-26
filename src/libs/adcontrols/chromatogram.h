@@ -11,9 +11,9 @@
 #include <string>
 
 namespace boost {
-  namespace serialization {
-	class access;
-  }
+    namespace serialization {
+        class access;
+    }
 }
 
 namespace adcontrols {
