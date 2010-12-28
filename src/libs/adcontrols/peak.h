@@ -44,13 +44,10 @@ namespace adcontrols {
         const std::wstring& name() const;
         void  name(const std::wstring& );
         long  appliedFunctions() const;
+        void  appliedFunctions( long );
         long  startPos() const;
         long  topPos() const;
         long  endPos() const;
-
-        void  startPos(long, const class CMCChromatogram &);
-        void  topPos(long, const class CMCChromatogram &);
-        void  endPos(long, const class CMCChromatogram &);
 
         void  startPos(long pos, peakheight_t h);
         void  topPos(long pos,   peakheight_t h);
@@ -68,20 +65,31 @@ namespace adcontrols {
         double endHeight() const;
 
         double peakArea() const;
+        void peakArea( double );
+
         double peakHeight() const;
+        void peakHeight( double );
 
-        double CapacityFactor() const;
-        double PeakWidth() const;
-        double PeakAmount() const;
-        double MigrationTime() const;
-        double PeakEfficiency() const;
-        double MassOnColumn() const;
+        double capacityFactor() const;
+        void capacityFactor( double );
 
-        double PercentArea() const;
-        double PercentHeight() const;
-        bool IsManuallyModified() const;
-        void SetManuallyModified();
+        double peakWidth() const;
+        void peakWidth( double );
 
+        double peakAmount() const;
+        void peakAmount( double );
+
+        double peakEfficiency() const;
+        void peakEfficiency( double );
+
+        double percentArea() const;
+        void percentArea( double );
+
+        double percentHeight() const;
+        void percentHeight( double );
+
+        bool isManuallyModified() const;
+        void manuallyModified( bool );
 
     private:
         std::wstring name_;

@@ -45,8 +45,8 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( ntpBaselineStartHeight_ );
                 ar & BOOST_SERIALIZATION_NVP( ntpBaselineEndTime_ );
                 ar & BOOST_SERIALIZATION_NVP( ntpBaselineEndHeight_ );
-                ar & BOOST_SERIALIZATION_NVP( ntpPeaktopTime_ );
-                ar & BOOST_SERIALIZATION_NVP( ntpPeaktopHeight_ );
+                ar & BOOST_SERIALIZATION_NVP( ntpPeakTopTime_ );
+                ar & BOOST_SERIALIZATION_NVP( ntpPeakTopHeight_ );
             }
         }
     };

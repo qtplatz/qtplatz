@@ -5,6 +5,8 @@
 
 #include "chromatogram.h"
 #include "descriptions.h"
+#include "peaks.h"
+#include "peak.h"
 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -65,6 +67,7 @@ namespace adcontrols {
             bool isConstantSampling_;
 	   
             Descriptions descriptions_;
+            Peaks peaks_;
 
             std::vector< double > dataArray_;
             std::vector< double > timeArray_;
@@ -89,6 +92,7 @@ namespace adcontrols {
                         & BOOST_SERIALIZATION_NVP(dataArray_) 
                         & BOOST_SERIALIZATION_NVP(timeArray_) 
                         & BOOST_SERIALIZATION_NVP(evntVec_) 
+                        & BOOST_SERIALIZATION_NVP(peaks_) 
                         ;
                 }
             }
@@ -153,6 +157,18 @@ void
 Chromatogram::resize( size_t n )
 {
     pImpl_->resize( n );
+}
+
+Peaks& 
+Chromatogram::peaks()
+{
+    return pImpl_->peaks_;
+}
+
+const Peaks& 
+Chromatogram::peaks() const
+{
+    return pImpl_->peaks_;
 }
 
 bool

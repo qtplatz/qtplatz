@@ -7,6 +7,10 @@
 #include "peak.h"
 using namespace adcontrols;
 
+Peak::~Peak()
+{
+}
+
 Peak::Peak( ) : parentId_( 0 )
               , peakid_( 0 )
               , baseid_( 0 )
@@ -136,6 +140,12 @@ Peak::appliedFunctions() const
     return appliedFunctions_;
 }
 
+void
+Peak::appliedFunctions( long value )
+{
+    appliedFunctions_ = value;
+}
+
 long
 Peak::startPos() const
 {
@@ -174,16 +184,22 @@ Peak::endPos(long, const class CMCChromatogram &)
 void
 Peak::startPos( long pos, peakheight_t h )
 {
+    startPos_ = pos;
+    startHeight_ = h;
 }
 
 void
 Peak::topPos(long pos,   peakheight_t h)
 {
+    topPos_ = pos;
+    topHeight_ = h;
 }
 
 void
 Peak::endPos(long pos,   peakheight_t h)
 {
+    endPos_ = pos;
+    endHeight_ = h;
 }
 
 seconds_t
@@ -246,68 +262,104 @@ Peak::peakArea() const
     return peakArea_;
 }
 
+void
+Peak::peakArea( double value )
+{
+    peakArea_ = value;
+}
+
 double
 Peak::peakHeight() const
 {
     return peakHeight_;
 }
 
+void
+Peak::peakHeight( double value )
+{
+    peakHeight_ = value;
+}
+
 double
-Peak::CapacityFactor() const
+Peak::capacityFactor() const
 {
     return capacityFactor_;
 }
 
+void
+Peak::capacityFactor( double value )
+{
+    capacityFactor_ = value;
+}
+
 double
-Peak::PeakWidth() const
+Peak::peakWidth() const
 {
     return peakWidth_;
 }
 
+void
+Peak::peakWidth( double value )
+{
+    peakWidth_ = value;
+}
+
 double
-Peak::PeakAmount() const
+Peak::peakAmount() const
 {
     return peakAmount_;
 }
 
-double
-Peak::MigrationTime() const
+void
+Peak::peakAmount( double value )
 {
-    return migrationTime_;
+    peakAmount_ = value;
 }
 
 double
-Peak::PeakEfficiency() const
+Peak::peakEfficiency() const
 {
     return peakEfficiency_;
 }
 
-double
-Peak::MassOnColumn() const
+void
+Peak::peakEfficiency( double value )
 {
-    return massOnColumn_;
+    peakEfficiency_ = value;
 }
 
 double
-Peak::PercentArea() const
+Peak::percentArea() const
 {
     return percentArea_;
 }
 
+void
+Peak::percentArea( double value )
+{
+    percentArea_ = value;
+}
+
 double
-Peak::PercentHeight() const
+Peak::percentHeight() const
 {
     return percentHeight_;
 }
 
+void
+Peak::percentHeight( double value )
+{
+    percentHeight_ = value;
+}
+
 bool
-Peak::IsManuallyModified() const
+Peak::isManuallyModified() const
 {
     return manuallyModified_;
 }
 
 void
-Peak::SetManuallyModified()
+Peak::manuallyModified( bool f )
 {
-    manuallyModified_ = true;
+    manuallyModified_ = f;
 }

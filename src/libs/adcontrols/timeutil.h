@@ -8,11 +8,25 @@
 
 #include "adcontrols_global.h"
 #include <utility>
+#include <boost/serialization/nvp.hpp>
 
 namespace adcontrols {
 
-    struct ADCONTROLSSHARED_EXPORT seconds_t { seconds_t( double t = 0 ) : seconds(t) {} double seconds; operator double () const { return seconds; } };
-    struct ADCONTROLSSHARED_EXPORT minutes_t { minutes_t( double t = 0 ) : minutes(t) {} double minutes; operator double () const { return minutes; } };
+    struct ADCONTROLSSHARED_EXPORT seconds_t { 
+        seconds_t( double t = 0 ) : seconds(t) {} 
+        double seconds; 
+        operator double () const { return seconds; }
+    private:
+        friend class boost::serialization::access;
+        template<class Archive> void serialize(Archive& ar, const unsigned int /* version */) {
+            ar & BOOST_SERIALIZATION_NVP( seconds );
+        }
+    };
+
+    struct ADCONTROLSSHARED_EXPORT minutes_t {
+        minutes_t( double t = 0 ) : minutes(t) {}
+        double minutes; operator double () const { return minutes; }
+    };
 
     class ADCONTROLSSHARED_EXPORT Time {
         static minutes_t toMinutes( const seconds_t& );
