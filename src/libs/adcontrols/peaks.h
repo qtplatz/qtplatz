@@ -18,7 +18,6 @@
 namespace adcontrols {
 
     class Peak;
-    class Baselines;
 
     class ADCONTROLSSHARED_EXPORT Peaks {
     public:
@@ -33,8 +32,6 @@ namespace adcontrols {
 
         inline operator const vector_type& () const      { return peaks_;	      }
         inline operator vector_type& ()                  { return peaks_;	      }
-        inline const Baselines& baselines() const        { return *baselines_;     }
-        inline Baselines& baselines()                    { return *baselines_;     }
         inline vector_type::const_iterator begin() const { return peaks_.begin(); }
         inline vector_type::iterator begin()             { return peaks_.begin(); }
         inline vector_type::const_iterator end() const   { return peaks_.end();   }
@@ -47,9 +44,9 @@ namespace adcontrols {
 
     private:
 #pragma warning(disable : 4251)
-        boost::scoped_ptr<Baselines> baselines_;
         vector_type peaks_;
 #pragma warning( default : 4251)
+
         double areaTotal_;
         double heightTotal_;
         double noiseLevel_;

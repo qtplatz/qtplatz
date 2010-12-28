@@ -7,7 +7,8 @@
 #include "descriptions.h"
 #include "peaks.h"
 #include "peak.h"
-
+#include "baselines.h"
+#include "baseline.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 
@@ -68,6 +69,7 @@ namespace adcontrols {
 	   
             Descriptions descriptions_;
             Peaks peaks_;
+            Baselines baselines_;
 
             std::vector< double > dataArray_;
             std::vector< double > timeArray_;
@@ -169,6 +171,18 @@ const Peaks&
 Chromatogram::peaks() const
 {
     return pImpl_->peaks_;
+}
+
+Baselines&
+Chromatogram::baselines()
+{
+    return pImpl_->baselines_;
+}
+
+const Baselines&
+Chromatogram::baselines() const
+{
+    return pImpl_->baselines_;
 }
 
 bool

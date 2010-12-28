@@ -25,6 +25,7 @@ namespace adcontrols {
     class Description;
     class Descriptions;
     class Peaks;
+    class Baselines;
 
     class ADCONTROLSSHARED_EXPORT Chromatogram {
     public:
@@ -99,8 +100,12 @@ namespace adcontrols {
         const std::wstring& axisLabelVertical() const;
         void axisLabelHorizontal( const std::wstring& );
         void axisLabelVertical( const std::wstring& );
+
         Peaks& peaks();
         const Peaks& peaks() const;
+
+        Baselines& baselines();
+        const Baselines& baselines() const;
     
     private:
         friend class boost::serialization::access;

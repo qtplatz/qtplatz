@@ -14,12 +14,11 @@ Peaks::~Peaks()
 {
 }
 
-Peaks::Peaks() : baselines_( new Baselines )
+Peaks::Peaks()
 {
 }
 
-Peaks::Peaks( const Peaks& t ) : baselines_( new Baselines( *t.baselines_ ) )
-                               , peaks_( t.peaks_ )
+Peaks::Peaks( const Peaks& t ) : peaks_( t.peaks_ )
 {
 }
 
