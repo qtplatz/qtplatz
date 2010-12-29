@@ -20,23 +20,34 @@ using namespace dataproc;
 using namespace dataproc::internal;
 
 namespace dataproc {
-  namespace internal {
-    class ElementalCompWndImpl {
-    public:
-      ~ElementalCompWndImpl() {}
-      ElementalCompWndImpl() : ticPlot_(0)
-			     , profileSpectrum_(0)
-			     , processedSpectrum_(0) {
-      }
+    namespace internal {
+        class ElementalCompWndImpl {
+        public:
+            ~ElementalCompWndImpl() {}
+            ElementalCompWndImpl() : ticPlot_(0)
+                , profileSpectrum_(0)
+                , processedSpectrum_(0) {
+            }
       
-      adwidgets::ui::ChromatogramWidget * ticPlot_;
-      adwidgets::ui::SpectrumWidget * profileSpectrum_;
-      adwidgets::ui::SpectrumWidget * processedSpectrum_;
+            adwidgets::ui::ChromatogramWidget * ticPlot_;
+            adwidgets::ui::SpectrumWidget * profileSpectrum_;
+            adwidgets::ui::SpectrumWidget * processedSpectrum_;
       
-    };
+        };
 
-    /////////
-  }
+        //---------------------------------------------------------
+        template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
+            Wnd& wnd_;
+            selProcessed( Wnd& wnd ) : wnd_(wnd) {}
+
+            template<typename T> void operator ()( T& ) const { }
+
+            template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+                wnd_.draw2( ptr );
+            }
+        };
+        //-----
+    }
 }
 
 
@@ -80,27 +91,6 @@ ElementalCompWnd::draw2( adutils::MassSpectrumPtr& ptr )
     pImpl_->processedSpectrum_->setData( ms );
 }
 
-namespace dataproc {
-    namespace internal {
-        namespace elementalcomp {
-
-            struct selProcessed : public boost::static_visitor<void> {
-                selProcessed( ElementalCompWnd& wnd ) : wnd_(wnd) {}
-                template<typename T> void operator ()( T& ) const { }
-                template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-                    wnd_.draw2( ptr );
-                }
-                /*
-                template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
-                wnd_.draw( ptr );
-                }
-                */
-                ElementalCompWnd& wnd_;
-            };
-        }
-    }
-}
-
 void
 ElementalCompWnd::handleSessionAdded( Dataprocessor * )
 {
@@ -115,7 +105,7 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
     portfolio::Folio attachments = folium.attachments();
     for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
         adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-        boost::apply_visitor( elementalcomp::selProcessed( *this ), contents );
+        boost::apply_visitor( selProcessed<ElementalCompWnd>( *this ), contents );
     }
 }
 

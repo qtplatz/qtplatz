@@ -662,6 +662,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\selchanged.h"
+				>
+			</File>
+			<File
 				RelativePath=".\sessionmanager.h"
 				>
 				<FileConfiguration

@@ -5,6 +5,7 @@
 
 #include "chromatogramwnd.h"
 #include "dataprocessor.h"
+#include "selchanged.h"
 #include <adcontrols/description.h>
 #include <adcontrols/datafile.h>
 #include <adcontrols/lcmsdataset.h>
@@ -83,14 +84,16 @@ ChromatogramWnd::init()
 void
 ChromatogramWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
-    adcontrols::MassSpectrum& ms = *ptr;
+    (void)ptr;
+    // adcontrols::MassSpectrum& ms = *ptr;
     // pImpl_->profileSpectrum_->setData( ms );
 }
 
 void
 ChromatogramWnd::draw2( adutils::MassSpectrumPtr& ptr )
 {
-    adcontrols::MassSpectrum& ms = *ptr;
+    (void)ptr;
+    // adcontrols::MassSpectrum& ms = *ptr;
     // pImpl_->processedSpectrum_->setData( ms );
 }
 
@@ -118,45 +121,31 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
 
 namespace dataproc {
     namespace internal {
-        namespace chromatogram {
-
-            struct selChanged : public boost::static_visitor<void> {
-                selChanged( ChromatogramWnd& wnd ) : wnd_(wnd) {}
-                template<typename T> void operator ()( T& ) const { }
-                template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-                    wnd_.draw1( ptr );
-                }
-                template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
-                    wnd_.draw( ptr );
-                }
-                ChromatogramWnd& wnd_;
-            };
-            //----------------------------//
-            struct selProcessed : public boost::static_visitor<void> {
-                selProcessed( ChromatogramWnd& wnd ) : wnd_(wnd) {}
-                template<typename T> void operator ()( T& ) const { }
-                template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-                    wnd_.draw2( ptr );
-                }
-                template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
-                    wnd_.draw( ptr );
-                }
-                ChromatogramWnd& wnd_;
-            };
-        }
+        //----------------------------//
+        template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
+            selProcessed( Wnd& wnd ) : wnd_(wnd) {}
+            template<typename T> void operator ()( T& ) const { }
+            template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+                wnd_.draw2( ptr );
+            }
+            template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
+                wnd_.draw( ptr );
+            }
+            Wnd& wnd_;
+        };
     }
 }
 
 void
-ChromatogramWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
+ChromatogramWnd::handleSelectionChanged( Dataprocessor* , portfolio::Folium& folium )
 {
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-    boost::apply_visitor( chromatogram::selChanged(*this), data );
+    boost::apply_visitor( selChanged<ChromatogramWnd>(*this), data );
 
     portfolio::Folio attachments = folium.attachments();
     for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
         adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-        boost::apply_visitor( chromtogram::selProcessed( *this ), contents );
+        boost::apply_visitor( selProcessed<ChromatogramWnd>( *this ), contents );
     }
 }
 
