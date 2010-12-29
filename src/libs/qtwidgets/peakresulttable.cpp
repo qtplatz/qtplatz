@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
@@ -23,15 +22,17 @@
 **
 **************************************************************************/
 
-#ifndef QTWIDGETS_GLOBAL_H
-#define QTWIDGETS_GLOBAL_H
+#include "peakresulttable.h"
+#include "ui_peakresulttable.h"
 
-#include <QtCore/qglobal.h>
+PeakResultTable::PeakResultTable(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::PeakResultTable)
+{
+    ui->setupUi(this);
+}
 
-#if defined(QTWIDGETS_LIBRARY)
-#  define QTWIDGETSSHARED_EXPORT Q_DECL_EXPORT
-#else
-#  define QTWIDGETSSHARED_EXPORT Q_DECL_IMPORT
-#endif
-
-#endif // QTWIDGETS_GLOBAL_H
+PeakResultTable::~PeakResultTable()
+{
+    delete ui;
+}

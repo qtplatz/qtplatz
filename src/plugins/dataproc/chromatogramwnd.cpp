@@ -26,28 +26,41 @@ using namespace dataproc;
 using namespace dataproc::internal;
 
 namespace dataproc {
-
     namespace internal {
+
         class ChromatogramWndImpl {
         public:
-            ~ChromatogramWndImpl() {}
-            ChromatogramWndImpl() : ticPlot_(0)
-                , profileSpectrum_(0)
-                , processedSpectrum_(0) {
+            ~ChromatogramWndImpl() {
+                delete chroWidget_;
+                delete pTable_;
             }
-
+            ChromatogramWndImpl() : chroWidget_(0)
+                                  , pTable_(0) {
+            }
             void setData( const adcontrols::Chromatogram&, const QString& );
-      
-            adwidgets::ui::ChromatogramWidget * ticPlot_;
-            adwidgets::ui::ChromatogramWidget * profileSpectrum_;
-            adwidgets::ui::SpectrumWidget * processedSpectrum_;
-      
+            adwidgets::ui::ChromatogramWidget * chroWidget_;
+            QTableWidget * pTable_;
         };
 
-        //////////
+        //----------------------------//
+        template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
+            selProcessed( Wnd& wnd ) : wnd_(wnd) {}
+            template<typename T> void operator ()( T& ) const { }
+            template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+                wnd_.draw2( ptr );
+            }
+            template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
+                wnd_.draw( ptr );
+            }
+            Wnd& wnd_;
+        };
+        //----------------------------//
     }
 }
 
+ChromatogramWnd::~ChromatogramWnd()
+{
+}
 
 ChromatogramWnd::ChromatogramWnd(QWidget *parent) :
     QWidget(parent)
@@ -61,14 +74,12 @@ ChromatogramWnd::init()
     pImpl_.reset( new ChromatogramWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( pImpl_->ticPlot_ = new adwidgets::ui::ChromatogramWidget ) {
-            splitter->addWidget( pImpl_->ticPlot_ );
-            //splitter->addWidget( pImpl_->profileSpectrum_ );
-            //splitter->addWidget( pImpl_->processedSpectrum_ );
-            QTableWidget * pTable = new QTableWidget;
-            pTable->setRowCount(10);
-            pTable->setColumnCount(10);
-            splitter->addWidget( pTable );
+        if ( pImpl_->chroWidget_ = new adwidgets::ui::ChromatogramWidget ) {
+            splitter->addWidget( pImpl_->chroWidget_ );
+            pImpl_->pTable_ = new QTableWidget;
+            pImpl_->pTable_->setRowCount(10);
+            pImpl_->pTable_->setColumnCount(10);
+            splitter->addWidget( pImpl_->pTable_ );
             splitter->setOrientation( Qt::Vertical );
         }
     }
@@ -82,26 +93,20 @@ ChromatogramWnd::init()
 }
 
 void
-ChromatogramWnd::draw1( adutils::MassSpectrumPtr& ptr )
+ChromatogramWnd::draw1( adutils::MassSpectrumPtr& )
 {
-    (void)ptr;
-    // adcontrols::MassSpectrum& ms = *ptr;
-    // pImpl_->profileSpectrum_->setData( ms );
 }
 
 void
-ChromatogramWnd::draw2( adutils::MassSpectrumPtr& ptr )
+ChromatogramWnd::draw2( adutils::MassSpectrumPtr& )
 {
-    (void)ptr;
-    // adcontrols::MassSpectrum& ms = *ptr;
-    // pImpl_->processedSpectrum_->setData( ms );
 }
 
 void
 ChromatogramWnd::draw( adutils::ChromatogramPtr& ptr )
 {
     adcontrols::Chromatogram& c = *ptr;
-    pImpl_->ticPlot_->setData( c );
+    pImpl_->chroWidget_->setData( c );
 }
 
 void
@@ -116,23 +121,6 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
             c.addDescription( adcontrols::Description( L"filename", file.filename() ) );
             pImpl_->setData( c, filename );
         }
-    }
-}
-
-namespace dataproc {
-    namespace internal {
-        //----------------------------//
-        template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
-            selProcessed( Wnd& wnd ) : wnd_(wnd) {}
-            template<typename T> void operator ()( T& ) const { }
-            template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-                wnd_.draw2( ptr );
-            }
-            template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
-                wnd_.draw( ptr );
-            }
-            Wnd& wnd_;
-        };
     }
 }
 
@@ -155,5 +143,5 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor* , portfolio::Folium& fol
 void
 ChromatogramWndImpl::setData( const adcontrols::Chromatogram& c, const QString& )
 {
-    ticPlot_->setData( c );
+    chroWidget_->setData( c );
 }

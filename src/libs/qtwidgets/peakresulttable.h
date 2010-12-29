@@ -23,15 +23,25 @@
 **
 **************************************************************************/
 
-#ifndef QTWIDGETS_GLOBAL_H
-#define QTWIDGETS_GLOBAL_H
+#ifndef PEAKRESULTTABLE_H
+#define PEAKRESULTTABLE_H
 
-#include <QtCore/qglobal.h>
+#include <QWidget>
 
-#if defined(QTWIDGETS_LIBRARY)
-#  define QTWIDGETSSHARED_EXPORT Q_DECL_EXPORT
-#else
-#  define QTWIDGETSSHARED_EXPORT Q_DECL_IMPORT
-#endif
+namespace Ui {
+    class PeakResultTable;
+}
 
-#endif // QTWIDGETS_GLOBAL_H
+class PeakResultTable : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit PeakResultTable(QWidget *parent = 0);
+    ~PeakResultTable();
+
+private:
+    Ui::PeakResultTable *ui;
+};
+
+#endif // PEAKRESULTTABLE_H

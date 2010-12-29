@@ -1,3 +1,4 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
