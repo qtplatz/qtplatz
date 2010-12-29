@@ -38,7 +38,8 @@ namespace dataproc {
 
             void init();
 
-            void draw( boost::shared_ptr< adcontrols::MassSpectrum >& );
+            void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
+            void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
             void draw( boost::shared_ptr< adcontrols::Chromatogram >& );
       
         signals:

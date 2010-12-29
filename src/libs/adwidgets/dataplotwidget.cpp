@@ -12,53 +12,54 @@
 using namespace adwidgets::ui;
 
 namespace adwidgets {
-  namespace ui {
-    namespace internal {
+    namespace ui {
+        namespace internal {
 
-      class DataplotWidgetImpl {
-      public:
-          ~DataplotWidgetImpl();
-          DataplotWidgetImpl( DataplotWidget& );
+            class DataplotWidgetImpl {
+            public:
+                ~DataplotWidgetImpl();
+                DataplotWidgetImpl( DataplotWidget& );
 
-          const std::pair<double, double>& display_range_x() const { return maxX_; }
-          const std::pair<double, double>& display_range_y1() const { return maxY1_;} 
-          const std::pair<double, double>& display_range_y2() const { return maxY2_; }
-          void display_range_x( const std::pair<double, double>& t ) { maxX_ = t; }
-          void display_range_y1( const std::pair<double, double>& t ) { maxY1_ = t; }
-          void display_range_y2( const std::pair<double, double>& t ) { maxY2_ = t; }
+                const std::pair<double, double>& display_range_x() const { return maxX_; }
+                const std::pair<double, double>& display_range_y1() const { return maxY1_;} 
+                const std::pair<double, double>& display_range_y2() const { return maxY2_; }
+                void display_range_x( const std::pair<double, double>& t ) { maxX_ = t; }
+                void display_range_y1( const std::pair<double, double>& t ) { maxY1_ = t; }
+                void display_range_y2( const std::pair<double, double>& t ) { maxY2_ = t; }
 
-          void OnMouseDown( double x, double y, short button );
-          void OnMouseUp( double x, double y, short Button );
-          void OnMouseMove( double x, double y, short Button );
-          void OnMouseDblClk( double x, double y, short button );
-      private:
-          void OnNullButton( double x, double y );
-          void OnLButtonDown( double x, double y );
-          void OnMButtonDown( double x, double y );
-          void OnRButtonDown( double x, double y );
-          void OnLButtonUp( double x, double y );
-          void OnMButtonUp( double x, double y );
-          void OnRButtonUp( double x, double y );
-          void OnLButtonMove( double x, double y );
-          void OnMButtonMove( double x, double y );
-          void OnRButtonMove( double x, double y );
-          void OnLButtonDblClk( double x, double y );
-          void OnMButtonDblClk( double x, double y );
-          void OnRButtonDblClk( double x, double y );
+                void OnMouseDown( double x, double y, short button );
+                void OnMouseUp( double x, double y, short Button );
+                void OnMouseMove( double x, double y, short Button );
+                void OnMouseDblClk( double x, double y, short button );
+            private:
+                void OnNullButton( double x, double y );
+                void OnLButtonDown( double x, double y );
+                void OnMButtonDown( double x, double y );
+                void OnRButtonDown( double x, double y );
+                void OnLButtonUp( double x, double y );
+                void OnMButtonUp( double x, double y );
+                void OnRButtonUp( double x, double y );
+                void OnLButtonMove( double x, double y );
+                void OnMButtonMove( double x, double y );
+                void OnRButtonMove( double x, double y );
+                void OnLButtonDblClk( double x, double y );
+                void OnMButtonDblClk( double x, double y );
+                void OnRButtonDblClk( double x, double y );
 
-          DataplotWidget& widget_;
-          bool bCapture_;
-          POINT capturePt_;
-          std::pair<double, double> maxX_; // low, high
-          std::pair<double, double> maxY1_; // low, high
-          std::pair<double, double> maxY2_; // low, high
-          std::pair<double, double> captureXY_;
-          bool bAutoYZoom_;
-          bool trackLeft_;
-          bool trackRight_;
-      };
+                friend DataplotWidget;
+                DataplotWidget& widget_;
+                bool bCapture_;
+                POINT capturePt_;
+                std::pair<double, double> maxX_; // low, high
+                std::pair<double, double> maxY1_; // low, high
+                std::pair<double, double> maxY2_; // low, high
+                std::pair<double, double> captureXY_;
+                bool bAutoYZoom_;
+                bool trackLeft_;
+                bool trackRight_;
+            };
+        }
     }
-  }
 }
 
 //////////////////////////////////////////////////////////////////
@@ -68,7 +69,7 @@ DataplotWidget::~DataplotWidget()
 }
 
 DataplotWidget::DataplotWidget(QWidget *parent) : Dataplot(parent)
-						, pImpl_( new internal::DataplotWidgetImpl(*this) )
+                                                , pImpl_( new internal::DataplotWidgetImpl(*this) )
 {
     std::pair<double, double> range_x( axisX().zoomMinimum(), axisX().zoomMaximum() );
     std::pair<double, double> range_y( axisY().zoomMinimum(), axisY().zoomMaximum() );
@@ -79,7 +80,7 @@ DataplotWidget::DataplotWidget(QWidget *parent) : Dataplot(parent)
 bool
 DataplotWidget::init()
 {
-  return true;
+    return true;
 }
 
 const std::pair<double, double>&
@@ -91,7 +92,7 @@ DataplotWidget::display_range_x() const
 const std::pair<double, double>&
 DataplotWidget::display_range_y() const
 {
-	return pImpl_->display_range_y1();
+    return pImpl_->display_range_y1();
 }
 
 void
@@ -114,7 +115,7 @@ void
 DataplotWidget::display_range_y2( const std::pair<double, double>& t )
 {
     pImpl_->display_range_y2( t );
-	axisY2().minimum( t.first );
+    axisY2().minimum( t.first );
     axisY2().maximum( t.second );
 }
 
@@ -139,19 +140,19 @@ DataplotWidget::OnMouseMove( double x, double y, short button )
 void
 DataplotWidget::OnCharacter( long KeyCode )
 {
-	(void)KeyCode;
+    (void)KeyCode;
 }
 
 void
 DataplotWidget::OnKeyDown( long KeyCode )
 {
-	(void)KeyCode;
+    (void)KeyCode;
 }
 
 void
 DataplotWidget::OnSetFocus( long hWnd )
 {
-	(void)hWnd;
+    (void)hWnd;
 }
 
 void
@@ -164,6 +165,32 @@ void
 DataplotWidget::OnMouseDblClk(double x, double y, short button )
 {
     pImpl_->OnMouseDblClk( x, y, button );
+}
+
+void
+DataplotWidget::link( DataplotWidget * p )
+{
+    connect( this, SIGNAL( signalZoomXAutoscaleY(double, double) ), p, SLOT( handleZoomXAutoscaleY( double, double ) ) );
+    connect( this, SIGNAL( signalZoomXY(double, double, double, double) ), p, SLOT( handleZoomXY( double, double, double, double ) ) );
+}
+
+void
+DataplotWidget::unlink( DataplotWidget * p )
+{
+    disconnect( this, SIGNAL( signalZoomXAutoscaleY(double, double) ), p, SLOT( handleZoomXAutoscaleY( double, double ) ) );
+    disconnect( this, SIGNAL( signalZoomXY(double, double, double, double) ), p, SLOT( handleZoomXY( double, double, double, double ) ) );
+}
+
+void
+DataplotWidget::handleZoomXAutoscaleY( double x1, double x2 )
+{
+    pImpl_->widget_.zoomXAutoscaleY( x1, x2 );
+}
+
+void
+DataplotWidget::handleZoomXY( double x1, double y1, double x2, double y2 )
+{
+    pImpl_->widget_.zoomXY( x1, y1, x2, y2 );
 }
 
 ///////////////////////////////
@@ -294,14 +321,14 @@ internal::DataplotWidgetImpl::OnLButtonUp( double x, double y )
         std::pair<double, double> xrange( maxX_ );
         std::pair<double, double> yrange( maxY1_ );
 
-        if ( dx > 4 ) {
+        if ( dx > 8 ) {
             zoomX = true;
             if ( x > captureXY_.first )
                 xrange = std::pair<double, double>( captureXY_.first, x );
             else
                 xrange = std::pair<double, double>( x, captureXY_.first );
         }
-        if ( dy > 4 ) {
+        if ( dy > 8 ) {
             zoomY = true;
             if ( y > captureXY_.second )
                 yrange = std::pair<double, double>( captureXY_.second, y );
@@ -310,8 +337,10 @@ internal::DataplotWidgetImpl::OnLButtonUp( double x, double y )
         }
         if ( bAutoYZoom_ && zoomX ) {
             widget_.zoomXAutoscaleY( xrange.first, xrange.second );
+            emit widget_.signalZoomXAutoscaleY( xrange.first, xrange.second );
         } else {
             widget_.zoomXY( xrange.first, yrange.first, xrange.second, yrange.second );
+            emit widget_.signalZoomXY( xrange.first, yrange.first, xrange.second, yrange.second );
         }
     }
 }

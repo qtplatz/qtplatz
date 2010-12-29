@@ -70,6 +70,9 @@ MSProcessingWnd::init()
         splitter->addWidget( pImpl_->profileSpectrum_ );
         splitter->addWidget( pImpl_->processedSpectrum_ );
         splitter->setOrientation( Qt::Vertical );
+
+        pImpl_->profileSpectrum_->link( pImpl_->processedSpectrum_ );
+        pImpl_->processedSpectrum_->link( pImpl_->profileSpectrum_ );
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
@@ -82,10 +85,17 @@ MSProcessingWnd::init()
 }
 
 void
-MSProcessingWnd::draw( adutils::MassSpectrumPtr& ptr )
+MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
     adcontrols::MassSpectrum& ms = *ptr;
     pImpl_->profileSpectrum_->setData( ms );
+}
+
+void
+MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
+{
+    adcontrols::MassSpectrum& ms = *ptr;
+    pImpl_->processedSpectrum_->setData( ms );
 }
 
 void
@@ -114,7 +124,7 @@ struct selChanged : public boost::static_visitor<void> {
     selChanged( MSProcessingWnd& wnd ) : wnd_(wnd) {}
     template<typename T> void operator ()( T& ) const { }
     template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-        wnd_.draw( ptr );
+        wnd_.draw1( ptr );
     }
     template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
         wnd_.draw( ptr );
@@ -122,10 +132,27 @@ struct selChanged : public boost::static_visitor<void> {
     MSProcessingWnd& wnd_;
 };
 
+struct selProcessed : public boost::static_visitor<void> {
+    selProcessed( MSProcessingWnd& wnd ) : wnd_(wnd) {}
+    template<typename T> void operator ()( T& ) const { }
+    template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+        wnd_.draw2( ptr );
+    }
+    template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
+        wnd_.draw( ptr );
+    }
+    MSProcessingWnd& wnd_;
+};
 
 void
 MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
     boost::apply_visitor( selChanged(*this), data );
+
+    portfolio::Folio attachments = folium.attachments();
+    for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
+        adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
+        boost::apply_visitor( selProcessed( *this ), contents );
+    }
 }

@@ -86,3 +86,15 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
     trace.visible( true );
     traces().visible( true );
 }
+
+void
+SpectrumWidget::handleZoomXAutoscaleY( double x1, double x2 )
+{
+    DataplotWidget::handleZoomXAutoscaleY( x1, x2 );
+}
+
+void
+SpectrumWidget::handleZoomXY( double x1, double /* y1 */, double x2, double /* y2 */ )
+{
+    DataplotWidget::handleZoomXAutoscaleY( x1, x2 );
+}

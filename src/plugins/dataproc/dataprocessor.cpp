@@ -68,10 +68,14 @@ void
 Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
     if ( folium.empty() ) {
-        qDebug() << "Dataprocessor::setCurrentSelection file: " << qtwrapper::qstring( datafileimpl_->file().filename() )
-            << "::" << qtwrapper::qstring( folium.path() )
-            << ", " << qtwrapper::qstring( folium.dataClass() );
+
         folium = file().fetch( folium.path(), folium.dataType() );
+ 
+        portfolio::Folio attachs = folium.attachments();
+        for ( portfolio::Folio::iterator it = attachs.begin(); it != attachs.end(); ++it ) {
+            if ( it->empty() )
+                *it = file().fetch( it->path(), it->dataType() );
+        }
     }
     SessionManager::instance()->selectionChanged( this, folium );
 }

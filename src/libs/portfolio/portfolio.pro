@@ -16,12 +16,13 @@ SOURCES += portfolio.cpp \
     folium.cpp \
     folio.cpp \
     portfolioimpl.cpp \
-    nodeident.cpp
+    nodeident.cpp \
+    attachment.cpp
 
 HEADERS += portfolio.h\
         portfolio_global.h \
     folder.h \
     folium.h \
-    folio.h \
     portfolioimpl.h \
-    nodeident.h
+    nodeident.h \
+    attachment.h

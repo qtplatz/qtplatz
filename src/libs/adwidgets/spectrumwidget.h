@@ -32,7 +32,8 @@ namespace adwidgets {
         signals:
 
         public slots:
-
+            virtual void handleZoomXY( double x1, double y1, double x2, double y2 );
+            virtual void handleZoomXAutoscaleY( double x1, double x2 );
         };
 
     }

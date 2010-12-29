@@ -164,23 +164,6 @@ Peak::endPos() const
     return endPos_;
 }
 
-/*
-void
-Peak::startPos(long, const class CMCChromatogram &)
-{
-}
-
-void
-Peak::topPos(long, const class CMCChromatogram &)
-{
-}
-
-void
-Peak::endPos(long, const class CMCChromatogram &)
-{
-}
-*/
-
 void
 Peak::startPos( long pos, peakheight_t h )
 {
