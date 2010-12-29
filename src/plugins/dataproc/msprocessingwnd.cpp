@@ -120,39 +120,50 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
     }
 }
 
-struct selChanged : public boost::static_visitor<void> {
-    selChanged( MSProcessingWnd& wnd ) : wnd_(wnd) {}
-    template<typename T> void operator ()( T& ) const { }
-    template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-        wnd_.draw1( ptr );
-    }
-    template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
-        wnd_.draw( ptr );
-    }
-    MSProcessingWnd& wnd_;
-};
+namespace dataproc {
+    namespace internal {
+        namespace msprocessing {
 
-struct selProcessed : public boost::static_visitor<void> {
-    selProcessed( MSProcessingWnd& wnd ) : wnd_(wnd) {}
-    template<typename T> void operator ()( T& ) const { }
-    template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-        wnd_.draw2( ptr );
+            struct selChanged : public boost::static_visitor<void> {
+                selChanged( MSProcessingWnd& wnd ) : wnd_(wnd) {}
+                template<typename T> void operator ()( T& t ) const {
+                    (void)t;
+                }
+                template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+                    wnd_.draw1( ptr );
+                }
+                template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
+                    wnd_.draw( ptr );
+                }
+                MSProcessingWnd& wnd_;
+            };
+            //--------------------------//
+            struct selProcessed : public boost::static_visitor<void> {
+                selProcessed( MSProcessingWnd& wnd ) : wnd_(wnd) {}
+                template<typename T> void operator ()( T& t ) const {
+                    (void)t;
+                }
+                template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+                    wnd_.draw2( ptr );
+                }
+                template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
+                    wnd_.draw( ptr );
+                }
+                MSProcessingWnd& wnd_;
+            };
+        }
     }
-    template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
-        wnd_.draw( ptr );
-    }
-    MSProcessingWnd& wnd_;
-};
+}
 
 void
-MSProcessingWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
+MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfolio::Folium& folium )
 {
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-    boost::apply_visitor( selChanged(*this), data );
+    boost::apply_visitor( msprocessing::selChanged(*this), data );
 
     portfolio::Folio attachments = folium.attachments();
     for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
         adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-        boost::apply_visitor( selProcessed( *this ), contents );
+        boost::apply_visitor( msprocessing::selProcessed( *this ), contents );
     }
 }

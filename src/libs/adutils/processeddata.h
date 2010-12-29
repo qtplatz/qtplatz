@@ -28,13 +28,16 @@ namespace adutils {
     public:
         ProcessedData();
 
-        class Nothing { /* empty */   };
+        class Nothing { 
+        public:
+            Nothing() {}
+        };
 
-        typedef boost::variant< MassSpectrumPtr
+        typedef boost::variant< Nothing
+                              , MassSpectrumPtr
                               , ChromatogramPtr
                               , ProcessMethodPtr
                               , ElementalCompositionCollectionPtr 
-                              , Nothing
                               > value_type;
 
         static value_type toVariant( boost::any& );

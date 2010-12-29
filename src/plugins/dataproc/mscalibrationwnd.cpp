@@ -5,6 +5,7 @@
 
 #include "mscalibrationwnd.h"
 #include "dataprocessor.h"
+#include <portfolio/folium.h>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 #include <adwidgets/dataplot.h>
@@ -65,4 +66,11 @@ MSCalibrationWnd::init()
 void
 MSCalibrationWnd::handleSessionAdded( Dataprocessor * )
 {
+}
+
+void
+MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
+{
+    Q_UNUSED(processor);
+    Q_UNUSED(folium);
 }

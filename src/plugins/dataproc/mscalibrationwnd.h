@@ -10,6 +10,14 @@
 #include <QWidget>
 #include <boost/smart_ptr.hpp>
 
+namespace portfolio {
+    class Folium;
+}
+
+namespace adcontrols {
+    class MassSpectrum;
+}
+
 namespace dataproc {
 
     class Dataprocessor;
@@ -28,6 +36,7 @@ namespace dataproc {
       
         public slots:
             void handleSessionAdded( Dataprocessor* );
+            void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
 
         private:
             boost::shared_ptr<MSCalibrationWndImpl> pImpl_;

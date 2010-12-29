@@ -8,7 +8,15 @@
 #define ELEMENTALCOMPWND_H
 
 #include <QWidget>
-#include <boost/shared_ptr.hpp>
+#include <boost/smart_ptr.hpp>
+
+namespace portfolio {
+    class Folium;
+}
+
+namespace adcontrols {
+    class MassSpectrum;
+}
 
 namespace dataproc {
 
@@ -23,14 +31,17 @@ namespace dataproc {
         public:
             explicit ElementalCompWnd(QWidget *parent = 0);
             void init();
+            void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
+            void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
       
         signals:
       
         public slots:
             void handleSessionAdded( Dataprocessor* );
+            void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
       
         private:
-            boost::shared_ptr<ElementalCompWndImpl> pImpl_;
+            boost::scoped_ptr<ElementalCompWndImpl> pImpl_;
       
         };
     

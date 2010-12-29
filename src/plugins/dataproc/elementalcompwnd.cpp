@@ -5,11 +5,16 @@
 
 #include "elementalcompwnd.h"
 #include "dataprocessor.h"
+#include <adcontrols/timeutil.h>
+#include <adutils/processeddata.h>
+#include <portfolio/folium.h>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 #include <adwidgets/chromatogramwidget.h>
 #include <adwidgets/spectrumwidget.h>
 #include <adwidgets/axis.h>
+#include <boost/variant.hpp>
+#include <boost/any.hpp>
 
 using namespace dataproc;
 using namespace dataproc::internal;
@@ -62,6 +67,55 @@ ElementalCompWnd::init()
 }
 
 void
+ElementalCompWnd::draw1( adutils::MassSpectrumPtr& ptr )
+{
+    adcontrols::MassSpectrum& ms = *ptr;
+    pImpl_->profileSpectrum_->setData( ms );
+}
+
+void
+ElementalCompWnd::draw2( adutils::MassSpectrumPtr& ptr )
+{
+    adcontrols::MassSpectrum& ms = *ptr;
+    pImpl_->processedSpectrum_->setData( ms );
+}
+
+namespace dataproc {
+    namespace internal {
+        namespace elementalcomp {
+
+            struct selProcessed : public boost::static_visitor<void> {
+                selProcessed( ElementalCompWnd& wnd ) : wnd_(wnd) {}
+                template<typename T> void operator ()( T& ) const { }
+                template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+                    wnd_.draw2( ptr );
+                }
+                /*
+                template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
+                wnd_.draw( ptr );
+                }
+                */
+                ElementalCompWnd& wnd_;
+            };
+        }
+    }
+}
+
+void
 ElementalCompWnd::handleSessionAdded( Dataprocessor * )
 {
 }
+
+void
+ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfolio::Folium& folium )
+{
+    adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+    // boost::apply_visitor( selChanged(*this), data );
+
+    portfolio::Folio attachments = folium.attachments();
+    for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
+        adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
+        boost::apply_visitor( elementalcomp::selProcessed( *this ), contents );
+    }
+}
+

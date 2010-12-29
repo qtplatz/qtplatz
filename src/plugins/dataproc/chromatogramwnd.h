@@ -9,6 +9,15 @@
 #include <QWidget>
 #include <boost/shared_ptr.hpp>
 
+namespace portfolio {
+    class Folium;
+}
+
+namespace adcontrols {
+    class MassSpectrum;
+    class Chromatogram;
+}
+
 namespace dataproc {
 
     class Dataprocessor;
@@ -22,11 +31,15 @@ namespace dataproc {
         public:
             explicit ChromatogramWnd(QWidget *parent = 0);
             void init();
-      
+            void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
+            void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
+            void draw( boost::shared_ptr< adcontrols::Chromatogram >& );
+
         signals:
       
         public slots:
             void handleSessionAdded( Dataprocessor* );
+            void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
 
         private:
             boost::shared_ptr<ChromatogramWndImpl> pImpl_;

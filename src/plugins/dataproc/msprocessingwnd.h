@@ -9,6 +9,7 @@
 #include <QWidget>
 #include <boost/smart_ptr.hpp>
 #include <map>
+#include <boost/variant.hpp>
 
 namespace adwidgets {
     // class MassSpectrum;
