@@ -61,10 +61,13 @@ static COLOR_TABLE trace_color_table[] = {
     {L"chocolate",		RGB(0xd2, 0x69, 0x1e)}   // 18
     //--
     , {L"red",          RGB( 255,    0,    0) } // 0x01
-    , {L"black",        RGB(   0,    0,    0) } // 0x02
+    , {L"black",        RGB(   0,  256,    0) } // 0x02
     , {L"green",        RGB(   0,  128,    0) } // 0x03
     , {L"dardorange",   RGB(0xff, 0x8c, 0x00) } // 0x04
     , {L"deeppink",     RGB(0xff, 0x14, 0x93) } // 0x05 ( cluster target | deconvolution )
+    , {L"green",        RGB(   0,  128,    0) } // 0x06
+    , {L"green",        RGB(   0,  128,    0) } // 0x07
+    , {L"green",        RGB(   0,  128,    0) } // 0x08
     , {L"tan",          RGB( 210,  180,  140) } // tan
 };
 
@@ -97,7 +100,7 @@ DataplotImpl::createControl()
 size_t
 DataplotImpl::getControlColorIndex() const
 {
-    return 18;
+    return 17;
 }
 
 STDMETHODIMP

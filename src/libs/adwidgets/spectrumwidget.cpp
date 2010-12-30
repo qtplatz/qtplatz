@@ -111,8 +111,10 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
     if ( pColors ) {
         const size_t count = ms.size();
         boost::scoped_array< short > pColorIndices( new short [ count ] );
-        for ( size_t i = 0; i < count; ++i )
-            pColorIndices[ i ] = pColors[ i ] + getControlColorIndex();
+        for ( size_t i = 0; i < count; ++i ) {
+            short color = pColors[ i ] ? pColors[ i ] + getControlColorIndex() : idx;
+            pColorIndices[ i ] = color;
+        }
         trace.setColorIndicesDirect( count, pColorIndices.get() );
     }
 

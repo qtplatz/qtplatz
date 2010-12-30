@@ -393,9 +393,13 @@ MassSpectrumImpl::setIntensityArray( const double * p )
 void
 MassSpectrumImpl::setColorArray( const unsigned char * p )
 {
-	if ( colArray_.size() != size() )
-		colArray_.resize( size() );
-	memcpy(&colArray_[0], p, sizeof( unsigned char ) * size() );
+    if ( p ) {
+        if ( colArray_.size() != size() )
+            colArray_.resize( size() );
+        memcpy(&colArray_[0], p, sizeof( unsigned char ) * size() );
+    } else {
+        colArray_.clear();
+    }
 }
 
 void
