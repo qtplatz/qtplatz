@@ -22,13 +22,8 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
-#ifndef DATAPLOTWIDGET_H
-#define DATAPLOTWIDGET_H
+#pragma once
 
 #include "dataplot.h"
 #include <boost/smart_ptr.hpp>
@@ -47,13 +42,18 @@ namespace adwidgets {
         public:
             virtual ~DataplotWidget();
             explicit DataplotWidget(QWidget *parent = 0);
-            enum { eVK_SHIFT
+            
+            enum {
+                eVK_SHIFT
                 , eVK_CONTROL 
                 , eVK_MENU 
             };
 
             void link( DataplotWidget * );
             void unlink( DataplotWidget * );
+
+        protected:
+            size_t setControlColors( const unsigned long *, size_t n );
 
         private:
             bool init();
@@ -93,4 +93,4 @@ namespace adwidgets {
     }
 }
 
-#endif // DATAPLOTWIDGET_H
+

@@ -22,32 +22,49 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #ifndef ANNOTATIONS_H
 #define ANNOTATIONS_H
 
 namespace SAGRAPHICSLib {
-struct ISADPAnnotations;
+    struct ISADPAnnotations;
 }
 
 namespace adwidgets {
-  namespace ui {
+    namespace ui {
 
-    class Annotations {
-    public:
-      ~Annotations();
-      Annotations( SAGRAPHICSLib::ISADPAnnotations * pi = 0 );
-      Annotations( const Annotations& );
-      
-    private:
-        SAGRAPHICSLib::ISADPAnnotations * pi_;
-    };
+        class Annotation;
 
-  }
+        class Annotations {
+        public:
+            ~Annotations();
+            Annotations( SAGRAPHICSLib::ISADPAnnotations * pi = 0 );
+            Annotations( const Annotations& );
+
+            void visible( bool );
+            bool visible() const;
+            bool annotateX() const;
+            void annotateX( bool );
+            bool annotateY() const;
+            void annotateY( bool );
+            int decimalsX() const;
+            void decimalsX( int );
+            int decimalsY() const;
+            void decimalsY( int );
+            double textAngle() const;
+            void textAngle( double );
+            bool centreHorizontal() const;
+            bool centreVerticl() const;
+            void centreHorizontal( bool );
+            void centreVertical( bool );
+            Annotation add();
+            void remove( int );
+            Annotation operator [] ( int idx );
+        private:
+            SAGRAPHICSLib::ISADPAnnotations * pi_;
+        };
+
+    }
 }
 
 #endif // ANNOTATIONS_H

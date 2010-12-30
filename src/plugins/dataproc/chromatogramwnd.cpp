@@ -20,7 +20,7 @@
 #include <adwidgets/chromatogramwidget.h>
 #include <adwidgets/spectrumwidget.h>
 #include <adwidgets/axis.h>
-#include <QTableWidget>
+#include <adwidgets/peakresultwidget.h>
 
 using namespace dataproc;
 using namespace dataproc::internal;
@@ -32,14 +32,14 @@ namespace dataproc {
         public:
             ~ChromatogramWndImpl() {
                 delete chroWidget_;
-                delete pTable_;
+                delete peakWidget_;
             }
             ChromatogramWndImpl() : chroWidget_(0)
-                                  , pTable_(0) {
+                                  , peakWidget_(0) {
             }
             void setData( const adcontrols::Chromatogram&, const QString& );
             adwidgets::ui::ChromatogramWidget * chroWidget_;
-            QTableWidget * pTable_;
+            adwidgets::ui::PeakResultWidget * peakWidget_;
         };
 
         //----------------------------//
@@ -76,10 +76,8 @@ ChromatogramWnd::init()
     if ( splitter ) {
         if ( pImpl_->chroWidget_ = new adwidgets::ui::ChromatogramWidget ) {
             splitter->addWidget( pImpl_->chroWidget_ );
-            pImpl_->pTable_ = new QTableWidget;
-            pImpl_->pTable_->setRowCount(10);
-            pImpl_->pTable_->setColumnCount(10);
-            splitter->addWidget( pImpl_->pTable_ );
+            pImpl_->peakWidget_ = new adwidgets::ui::PeakResultWidget;
+            splitter->addWidget( pImpl_->peakWidget_ );
             splitter->setOrientation( Qt::Vertical );
         }
     }
@@ -107,6 +105,7 @@ ChromatogramWnd::draw( adutils::ChromatogramPtr& ptr )
 {
     adcontrols::Chromatogram& c = *ptr;
     pImpl_->chroWidget_->setData( c );
+    pImpl_->peakWidget_->setData( c );
 }
 
 void

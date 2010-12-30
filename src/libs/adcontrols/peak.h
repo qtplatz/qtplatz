@@ -114,6 +114,14 @@ namespace adcontrols {
         bool isManuallyModified() const;
         void manuallyModified( bool );
 
+        const PeakAsymmetry& asymmetry() const;
+        const PeakResolution& resolution() const;
+        const TheoreticalPlate& theoreticalPlate() const;
+
+        adcontrols::PeakAsymmetry& asymmetry();
+        PeakResolution& resolution();
+        TheoreticalPlate& theoreticalPlate();
+
     private:
         std::wstring name_;
         long parentId_;

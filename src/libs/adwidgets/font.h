@@ -22,28 +22,44 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
-#ifndef FONT_H
-#define FONT_H
+
+#pragma once
 
 struct IDispatch;
+#include <string>
 
 namespace adwidgets {
-  namespace ui {
+    namespace ui {
 
-    class Font  {
-    public:
-		~Font();
-		Font( IDispatch * pi = 0 );
-		Font( const Font& );
-    private:
-		IDispatch * pi_;
-    };
+        class Font  {
+        public:
+            ~Font();
+            Font( IDispatch * pi = 0 );
+            Font( const Font& );
 
-  }
+            bool bold() const;
+            void bold( bool );
+
+            short charset() const;
+            // HFONT hFont() const;
+            bool italic() const;
+            void italic( bool );
+
+            std::wstring name() const;
+            void name( const std::wstring& );
+
+            long long size() const;
+            void size( long long );
+
+            bool strikethrough() const;
+            bool underline() const;
+            short weight() const;
+
+        private:
+            IDispatch * pi_;
+        };
+
+    }
 }
 
-#endif // FONT_H
+

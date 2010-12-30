@@ -41,13 +41,27 @@ namespace adcontrols {
     public:
         TheoreticalPlate();
         TheoreticalPlate( const TheoreticalPlate& );
-        double NTP() const;
-        double NTPBaselineStartTime() const;
-        double NTPBaselineStartHeight() const;
-        double NTPBaselineEndTime() const;
-        double NTPBaselineEndHeight() const;
-        double NTPPeakTopTime() const;
-        double NTPPeakTopHeight() const;
+
+        double ntp() const;
+        void ntp( double );
+
+        double baselineStartTime() const;
+        void baselineStartTime( double );
+
+        double baselineStartHeight() const;
+        void baselineStartHeight( double );
+
+        double baselineEndTime() const;
+        void baselineEndTime( double );
+
+        double baselineEndHeight() const;
+        void baselineEndHeight( double );
+
+        double peakTopTime() const;
+        void peakTopTime( double );
+
+        double peakTopHeight() const;
+        void peakTopHeight( double );
 
     private:
         double ntp_;

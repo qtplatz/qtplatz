@@ -162,9 +162,7 @@ Trace::offsetY(double newValue)
 adwidgets::ui::Font
 Trace::font() const
 {
-	CComPtr<IDispatch> p;
-	pi_->get_Font( &p );
-	return adwidgets::ui::Font( p );
+    return adwidgets::ui::Font( pi_->Font );
 }
 
 long

@@ -37,15 +37,30 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT PeakResolution {
     public:
+
         PeakResolution();
         PeakResolution( const PeakResolution& );
-        double Rs() const;
-        double RsBaselineStartTime() const;
-        double RsBaselineStartHeight() const;
-        double RsBaselineEndTime() const;
-        double RsBaselineEndHeight() const;
-        double RsPeakTopTime() const;
-        double RsPeakTopHeight() const;
+
+        double resolution() const;
+        void resolution( double );
+        
+        double baselineStartTime() const;
+        void baselineStartTime( double );
+        
+        double baselineStartHeight() const;
+        void baselineStartHeight( double );
+        
+        double baselineEndTime() const;
+        void baselineEndTime( double );
+        
+        double baselineEndHeight() const;
+        void baselineEndHeight( double );
+        
+        double peakTopTime() const;
+        void peakTopTime( double );
+        
+        double peakTopHeight() const;
+        void peakTopHeight( double );
 
     private:
         double rs_;

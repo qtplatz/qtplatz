@@ -346,3 +346,41 @@ Peak::manuallyModified( bool f )
 {
     manuallyModified_ = f;
 }
+
+const PeakAsymmetry&
+Peak::asymmetry() const
+{
+    return asymmetry_;
+}
+
+adcontrols::PeakAsymmetry&
+Peak::asymmetry()
+{
+    return asymmetry_;
+}
+
+const PeakResolution&
+Peak::resolution() const
+{
+    return rs_;
+}
+
+PeakResolution&
+Peak::resolution()
+{
+    return rs_;
+}
+
+const TheoreticalPlate&
+Peak::theoreticalPlate() const
+{
+    return ntp_;
+}
+
+TheoreticalPlate&
+Peak::theoreticalPlate()
+{
+    return ntp_;
+}
+
+

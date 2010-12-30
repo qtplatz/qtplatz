@@ -22,15 +22,9 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
-#ifndef SPECTRUMWIDGET_H
-#define SPECTRUMWIDGET_H
+#pragma once
 
-// #include <adwidgets/dataplotwidget.h>
 #include "tracewidget.h"
 
 namespace adcontrols {
@@ -62,4 +56,4 @@ namespace adwidgets {
     }
 }
 
-#endif // SPECTRUMWIDGET_H
+

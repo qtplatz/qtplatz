@@ -28,44 +28,86 @@ PeakResolution::PeakResolution( const PeakResolution& t ) : rs_( t.rs_ )
 }
 
 double
-PeakResolution::Rs() const
+PeakResolution::resolution() const
 {
     return rs_;
 }
 
+void
+PeakResolution::resolution( double rs )
+{
+    rs_ = rs;
+}
+
 double
-PeakResolution::RsBaselineStartTime() const
+PeakResolution::baselineStartTime() const
 {
     return rsBaselineStartTime_;
 }
 
+void
+PeakResolution::baselineStartTime( double value )
+{
+    rsBaselineStartTime_ = value;
+}
+
 double
-PeakResolution::RsBaselineStartHeight() const
+PeakResolution::baselineStartHeight() const
 {
     return rsBaselineStartHeight_;
 }
 
+void
+PeakResolution::baselineStartHeight( double value )
+{
+    rsBaselineStartHeight_ = value;
+}
+
 double
-PeakResolution::RsBaselineEndTime() const
+PeakResolution::baselineEndTime() const
 {
     return rsBaselineEndTime_;
 }
 
+void
+PeakResolution::baselineEndTime( double value )
+{
+    rsBaselineEndTime_ = value;
+}
+
 double
-PeakResolution::RsBaselineEndHeight() const
+PeakResolution::baselineEndHeight() const
 {
     return rsBaselineEndHeight_;
 }
 
+void
+PeakResolution::baselineEndHeight( double value )
+{
+    rsBaselineEndHeight_ = value;
+}
+
 double
-PeakResolution::RsPeakTopTime() const
+PeakResolution::peakTopTime() const
 {
     return rsPeakTopTime_;
 }
 
+void
+PeakResolution::peakTopTime( double value )
+{
+    rsPeakTopTime_ = value;
+}
+
 double
-PeakResolution::RsPeakTopHeight() const
+PeakResolution::peakTopHeight() const
 {
     return rsPeakTopHeight_;
+}
+
+void
+PeakResolution::peakTopHeight( double value )
+{
+    rsPeakTopHeight_ = value;
 }
 

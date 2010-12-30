@@ -22,17 +22,44 @@
 **
 **************************************************************************/
 
-#include "peakresulttable.h"
-#include "ui_peakresulttable.h"
+#pragma once
 
-PeakResultTable::PeakResultTable(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::PeakResultTable)
-{
-    ui->setupUi(this);
+#include <QTableView>
+#include <boost/smart_ptr.hpp>
+
+namespace adcontrols {
+    class Peaks;
+    class Peak;
+    class Baselines;
+    class Chromatogram;
 }
 
-PeakResultTable::~PeakResultTable()
-{
-    delete ui;
+class QStandardItemModel;
+
+namespace adwidgets {
+    namespace ui {
+
+        class PeakResultWidget : public QTableView {
+            Q_OBJECT
+        public:
+            ~PeakResultWidget();
+            explicit PeakResultWidget(QWidget *parent = 0);
+
+        signals:
+
+        public slots:
+            void setData( const adcontrols::Peaks& );
+            void setData( const adcontrols::Chromatogram& );
+
+        private:
+            void OnInitialUpdate();
+            void OnFinalClose();
+
+            void add( const adcontrols::Peak& );
+
+        private:
+            boost::scoped_ptr< QStandardItemModel > pModel_;
+        };
+    }
 }
+

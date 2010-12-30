@@ -17,54 +17,97 @@ TheoreticalPlate::TheoreticalPlate() : ntp_(0)
 {
 }
 
-TheoreticalPlate::TheoreticalPlate( const TheoreticalPlate& t ) : ntp_( t.ntp_ )
-                                                                , ntpBaselineStartTime_( t.ntpBaselineStartTime_ )
-                                                                , ntpBaselineStartHeight_( t.ntpBaselineStartHeight_ )
-                                                                , ntpBaselineEndTime_( t.ntpBaselineEndTime_ )
-                                                                , ntpBaselineEndHeight_( t.ntpBaselineEndHeight_ )
-                                                                , ntpPeakTopTime_( t.ntpPeakTopTime_ )
-                                                                , ntpPeakTopHeight_( t.ntpPeakTopHeight_ )
+TheoreticalPlate::TheoreticalPlate( const TheoreticalPlate& t )
+    : ntp_( t.ntp_ )
+    , ntpBaselineStartTime_( t.ntpBaselineStartTime_ )
+    , ntpBaselineStartHeight_( t.ntpBaselineStartHeight_ )
+    , ntpBaselineEndTime_( t.ntpBaselineEndTime_ )
+    , ntpBaselineEndHeight_( t.ntpBaselineEndHeight_ )
+    , ntpPeakTopTime_( t.ntpPeakTopTime_ )
+    , ntpPeakTopHeight_( t.ntpPeakTopHeight_ )
 {
 }
 
 double
-TheoreticalPlate::NTP() const
+TheoreticalPlate::ntp() const
 {
     return ntp_;
 }
 
+void
+TheoreticalPlate::ntp( double value )
+{
+    ntp_ = value;
+}
+
 double
-TheoreticalPlate::NTPBaselineStartTime() const
+TheoreticalPlate::baselineStartTime() const
 {
     return ntpBaselineStartTime_;
 }
 
+void
+TheoreticalPlate::baselineStartTime( double value )
+{
+    ntpBaselineStartTime_ = value;
+}
+
 double
-TheoreticalPlate::NTPBaselineStartHeight() const
+TheoreticalPlate::baselineStartHeight() const
 {
     return ntpBaselineStartHeight_;
 }
 
+void
+TheoreticalPlate::baselineStartHeight( double value )
+{
+    ntpBaselineStartHeight_ = value;
+}
+
 double
-TheoreticalPlate::NTPBaselineEndTime() const
+TheoreticalPlate::baselineEndTime() const
 {
     return ntpBaselineEndTime_;
 }
 
+void
+TheoreticalPlate::baselineEndTime( double value )
+{
+    ntpBaselineEndTime_ = value;
+}
+
 double
-TheoreticalPlate::NTPBaselineEndHeight() const
+TheoreticalPlate::baselineEndHeight() const
 {
     return ntpBaselineEndHeight_;
 }
 
+void
+TheoreticalPlate::baselineEndHeight( double value )
+{
+    ntpBaselineEndHeight_ = value;
+}
+
 double
-TheoreticalPlate::NTPPeakTopTime() const
+TheoreticalPlate::peakTopTime() const
 {
     return ntpPeakTopTime_;
 }
 
+void
+TheoreticalPlate::peakTopTime( double value )
+{
+    ntpPeakTopTime_ = value;
+}
+
 double
-TheoreticalPlate::NTPPeakTopHeight() const
+TheoreticalPlate::peakTopHeight() const
 {
     return ntpPeakTopHeight_;
+}
+
+void
+TheoreticalPlate::peakTopHeight( double value )
+{
+    ntpPeakTopHeight_ = value;
 }

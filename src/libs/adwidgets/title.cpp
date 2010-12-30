@@ -74,5 +74,5 @@ Title::color( unsigned long c )
 Font
 Title::font()
 {
-	return Font( pi_->Font );
+    return Font( pi_->Font );
 }

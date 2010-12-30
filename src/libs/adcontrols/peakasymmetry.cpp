@@ -25,14 +25,32 @@ PeakAsymmetry::asymmetry() const
     return peakAsymmetry_;
 }
 
+void
+PeakAsymmetry::asymmetry( double value )
+{
+    peakAsymmetry_ = value;
+}
+
 double
 PeakAsymmetry::startTime() const
 {
     return peakAsymmetryStartTime_;
 }
 
+void
+PeakAsymmetry::startTime( double value )
+{
+    peakAsymmetryStartTime_ = value;
+}
+
 double
 PeakAsymmetry::endTime() const
 {
     return peakAsymmetryEndTime_;
+}
+
+void
+PeakAsymmetry::endTime( double value )
+{
+    peakAsymmetryEndTime_ = value;
 }

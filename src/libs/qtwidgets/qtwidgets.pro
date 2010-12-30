@@ -38,8 +38,7 @@ SOURCES += qtwidgets.cpp \
     mslockdelegate.cpp \
     mscalibratedelegate.cpp \
     reportdelegate.cpp \
-    targetingdelegate.cpp \
-    peakresulttable.cpp
+    targetingdelegate.cpp
 
 HEADERS += qtwidgets.h\
         qtwidgets_global.h \
@@ -64,8 +63,7 @@ HEADERS += qtwidgets.h\
     mslockdelegate.h \
     mscalibratedelegate.h \
     reportdelegate.h \
-    targetingdelegate.h \
-    peakresulttable.h
+    targetingdelegate.h
 
 FORMS += \
     logwidget.ui \
@@ -79,5 +77,4 @@ FORMS += \
     mslockform.ui \
     chromatographicpeakform.ui \
     peakidtableform.ui \
-    reportform.ui \
-    peakresulttable.ui
+    reportform.ui

@@ -50,16 +50,24 @@ Dataplot::Dataplot(QWidget *parent) : QWidget(parent)
 bool
 Dataplot::createControl()
 {
-  if ( pImpl_ ) 
-    return pImpl_->createControl();
-  return false;
+    if ( pImpl_ ) 
+        return pImpl_->createControl();
+    return false;
 }
 
 void
 Dataplot::resizeEvent(QResizeEvent * e)
 {
-  if ( pImpl_ )
-    pImpl_->resize( e->size() );
+    if ( pImpl_ )
+        pImpl_->resize( e->size() );
+}
+
+size_t
+Dataplot::getControlColorIndex() const
+{
+    if ( pImpl_ )
+        return pImpl_->getControlColorIndex();
+    return 0;
 }
 
 ///////////////////////////////////////////////////////

@@ -11,6 +11,8 @@
 #include <adwidgets/title.h>
 #include <adwidgets/colors.h>
 #include <adwidgets/color.h>
+#include <adwidgets/font.h>
+#include <adwidgets/annotations.h>
 #include <adcontrols/massspectrum.h>
 #include <adcontrols/descriptions.h>
 #include <adcontrols/description.h>
@@ -47,8 +49,16 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 	while ( int(traces().size()) <= idx )
 		traces().add();
 
+    if ( ms.isCentroid() ) { // workaround for annotation conflict with peak
+        titles()[ 0 ].text( L"." );  titles()[ 0 ].visible( true );
+        titles()[ 1 ].text( L"." );  titles()[ 1 ].visible( true );
+        titles()[ 2 ].text( L"." );  titles()[ 2 ].visible( true );
+    }
+
 	if ( idx < 3 ) {
 		adwidgets::ui::Title title = titles()[idx];
+        title.font().size( 100000 );
+        title.font().bold( false );
 		const adcontrols::Descriptions& desc_v = ms.getDescriptions();
 		std::wstring ttext;
 		for ( size_t i = 0; i < desc_v.size(); ++i ) {
@@ -56,11 +66,12 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 				ttext += L" :: ";
 			ttext += desc_v[i].text();
 		}
-		title.text( ttext );
+        title.text( ttext );
         title.visible( true );
 	}
 
     adwidgets::ui::Trace trace = traces()[idx];
+    trace.font().size( 80000 );
 
 	std::pair<double, double> xrange = ms.getAcquisitionMassRange();
     std::pair<double, double> yrange( ms.getMinIntensity(), ms.getMaxIntensity() );
@@ -80,9 +91,31 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 		trace.YAxis( Trace::Y1 );
 	}
 
-    trace.colorIndex(2 + idx);
-	trace.traceStyle( ms.isCentroid() ? Trace::TS_Stick : Trace::TS_Connected );
+    trace.colorIndex(1 + idx);
+    if ( ms.isCentroid() ) {
+        trace.traceStyle( Trace::TS_Stick );
+        trace.autoAnnotation( true );
+        adwidgets::ui::Annotations anno = trace.annotations();
+        anno.annotateX( true );
+        anno.annotateY( true );
+        anno.decimalsX( 5 );
+        anno.decimalsY( 0 );
+        anno.visible( true );
+    } else { 
+        trace.traceStyle( Trace::TS_Connected );
+        trace.autoAnnotation( false );
+    }
     trace.setXYDirect( ms.size(), ms.getMassArray(), ms.getIntensityArray() );
+
+    const unsigned char * pColors = ms.getColorArray();
+    if ( pColors ) {
+        const size_t count = ms.size();
+        boost::scoped_array< short > pColorIndices( new short [ count ] );
+        for ( size_t i = 0; i < count; ++i )
+            pColorIndices[ i ] = pColors[ i ] + getControlColorIndex();
+        trace.setColorIndicesDirect( count, pColorIndices.get() );
+    }
+
     trace.visible( true );
     traces().visible( true );
 }
