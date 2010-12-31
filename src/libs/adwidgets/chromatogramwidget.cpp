@@ -137,6 +137,7 @@ ChromatogramWidget::setPeaks(  const adcontrols::Peaks& peaks
     pks.visible(true);
 
     ui::Baselines bss = trace.baselines();
+    bss.clear();
     for ( adcontrols::Baselines::vector_type::const_iterator it = baselines.begin(); it != baselines.end(); ++it ) {
         ui::Baseline bs = bss.add();
         adutils::DataplotHelper::copy( bs, *it );

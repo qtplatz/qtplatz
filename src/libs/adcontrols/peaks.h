@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -41,6 +37,7 @@
 namespace adcontrols {
 
     class Peak;
+    class Baseline;
 
     class ADCONTROLSSHARED_EXPORT Peaks {
     public:
@@ -64,6 +61,10 @@ namespace adcontrols {
         inline size_t size() const                       { return peaks_.size();  }
         inline vector_type::iterator erase( vector_type::iterator pos )   { return peaks_.erase( pos ); }
         inline vector_type::iterator erase( vector_type::iterator beg, vector_type::iterator end )   { return peaks_.erase( beg, end ); }
+
+        // algorithms
+        vector_type::iterator find_first_peak( const Baseline& );
+        vector_type::const_iterator find_first_peak( const Baseline& ) const;
 
     private:
 #pragma warning(disable : 4251)
