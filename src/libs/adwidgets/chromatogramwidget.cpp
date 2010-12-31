@@ -40,6 +40,8 @@
 #include <adwidgets/baseline.h>
 #include <adwidgets/font.h>
 #include <adwidgets/colorindices.h>
+#include <adwidgets/annotations.h>
+#include <adwidgets/annotation.h>
 #include <adutils/dataplothelper.h>
 
 using namespace adwidgets::ui;
@@ -67,6 +69,8 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool ya
 	while ( int(traces().size()) <= idx )
 		traces().add();
 
+    titles()[0].text( L"." ); titles()[0].visible( true );
+    titles()[1].text( L"." ); titles()[1].visible( true );
 	if ( idx < 3 ) {
 		adwidgets::ui::Title title = titles()[idx];
         const adcontrols::Descriptions& desc_v = c.getDescriptions();
@@ -116,6 +120,7 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool ya
     traces().visible( true );
 
     setPeaks( c.peaks(), c.baselines(), trace );
+    setAnnotations( c.peaks(), trace );
 }
 
 void
@@ -123,7 +128,6 @@ ChromatogramWidget::setPeaks(  const adcontrols::Peaks& peaks
                              , const adcontrols::Baselines& baselines
                              , Trace& trace )
 {
-    trace.autoAnnotation( false );
     trace.font().size( 80000 );
     trace.font().bold( false );
 
@@ -147,21 +151,31 @@ ChromatogramWidget::setPeaks(  const adcontrols::Peaks& peaks
 
 }
 
+void
+ChromatogramWidget::setAnnotations( const adcontrols::Peaks& peaks, Trace& trace )
+{
+    trace.autoAnnotation( false );
+    adwidgets::ui::Annotations annos = trace.annotations();
+    annos.clear();
+
+    for ( adcontrols::Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it ) {
+        adwidgets::ui::Annotation anno = annos.add();
+        if ( ! it->name().empty() )
+            anno.value( it->name() );
+        else
+            anno.value( adcontrols::timeutil::toMinutes( it->peakTime() ).minutes );
+        anno.x( adcontrols::timeutil::toMinutes( it->peakTime() ) );
+        anno.y( it->peakHeight() );
+        anno.colorIndex( 2 );
+    }
+    annos.centreHorizontal( true );
+    annos.visible( true );
+    annos.decimalsX( 3 );
+}
+
 #if 0
 void CChromatogramView::UpdatePeaks(long traceIdx, bool active)
 {
-	SAGRAPHICSLib::ISADPPeaksPtr piPeaks = piTrace->GetPeaks();
-	if (piPeaks == NULL)
-		return;
-	piPeaks->Clear();
-	piPeaks->Visible = VARIANT_FALSE;
-
-	SAGRAPHICSLib::ISADPBaselinesPtr piBaselines = piTrace->GetBaselines();
-	if (piBaselines == NULL)
-		return;
-	piBaselines->Clear();
-	piBaselines->Visible = VARIANT_FALSE;
-
 	SAGRAPHICSLib::ISADPAnnotationsPtr piAnnos = piTrace->GetAnnotations();
 	if (piAnnos == NULL)
 		return;

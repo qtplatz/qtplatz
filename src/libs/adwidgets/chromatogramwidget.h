@@ -54,6 +54,7 @@ namespace adwidgets {
         private:
 			void setData( const adcontrols::Chromatogram&, int idx, bool yaxis1 = false );
             void setPeaks( const adcontrols::Peaks&, const adcontrols::Baselines&, Trace& );
+            void setAnnotations( const adcontrols::Peaks&, Trace& );
         };
     }
 }

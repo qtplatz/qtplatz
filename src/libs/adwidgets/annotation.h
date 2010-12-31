@@ -22,30 +22,44 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
-#ifndef ANNOTATION_H
-#define ANNOTATION_H
+
+#pragma once
+
+#include <string>
 
 namespace SAGRAPHICSLib {
     struct ISADPAnnotation;
 }
 
 namespace adwidgets {
-  namespace ui {
+    namespace ui {
+        
+        class Annotation {
+        public:
+            ~Annotation();
+            Annotation( SAGRAPHICSLib::ISADPAnnotation * pi = 0 );
+            Annotation( const Annotation& );
 
-    class Annotation {
-    public:
-      ~Annotation();
-      Annotation( SAGRAPHICSLib::ISADPAnnotation * pi = 0 );
-      Annotation( const Annotation& );
-    private:
-        SAGRAPHICSLib::ISADPAnnotation * pi_;
-    };
+            std::wstring value() const;
 
-  }
+            template<typename T> void value( const T t );
+
+            double x() const;
+            void x( double );
+
+            double y() const;
+            void y( double );
+
+            long priority() const;
+            void priority( long );
+
+            short colorIndex() const;
+            void colorIndex( short );
+            
+        private:
+            SAGRAPHICSLib::ISADPAnnotation * pi_;
+        };
+        
+    }
 }
 
-#endif // ANNOTATION_H

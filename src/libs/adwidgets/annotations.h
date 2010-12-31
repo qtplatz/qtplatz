@@ -54,12 +54,15 @@ namespace adwidgets {
             double textAngle() const;
             void textAngle( double );
             bool centreHorizontal() const;
-            bool centreVerticl() const;
             void centreHorizontal( bool );
+
+            bool centreVertical() const;
             void centreVertical( bool );
+
             Annotation add();
             void remove( int );
             Annotation operator [] ( int idx );
+            void clear();
         private:
             SAGRAPHICSLib::ISADPAnnotations * pi_;
         };

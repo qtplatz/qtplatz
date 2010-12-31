@@ -127,7 +127,7 @@ Annotations::centreHorizontal() const
 }
 
 bool
-Annotations::centreVerticl() const
+Annotations::centreVertical() const
 {
     return internal::variant_bool::to_native( pi_->CenterVertical );
 }
@@ -153,11 +153,17 @@ Annotations::add()
 void
 Annotations::remove( int idx )
 {
-    pi_->Remove( idx );
+    pi_->Remove( idx + 1 );
 }
 
 Annotation
 Annotations::operator [] ( int idx ) // 0 origin
 {
     return Annotation( pi_->Item[ idx + 1 ] );
+}
+
+void
+Annotations::clear()
+{
+    pi_->Clear();
 }
