@@ -182,6 +182,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dataplothelper.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\processeddata.cpp"
 				>
 			</File>
@@ -216,6 +220,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\dataplothelper.h"
+				>
 			</File>
 			<File
 				RelativePath=".\processeddata.h"

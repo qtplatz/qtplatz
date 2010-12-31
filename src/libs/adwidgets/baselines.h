@@ -22,31 +22,46 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
-#ifndef BASELINES_H
-#define BASELINES_H
+
+#pragma once
 
 namespace SAGRAPHICSLib {
-struct ISADPBaselines;
+    struct ISADPBaselines;
 }
 
 namespace adwidgets {
-  namespace ui {
+    namespace ui {
 
-    class Baselines  {
-    public:
-		~Baselines();
-		Baselines( SAGRAPHICSLib::ISADPBaselines * pi = 0 );
-		Baselines( const Baselines& );
-    private:
-        SAGRAPHICSLib::ISADPBaselines * pi_;
-    };
+        class Baseline;
+        
+        class Baselines  {
+        public:
+            ~Baselines();
+            Baselines( SAGRAPHICSLib::ISADPBaselines * pi = 0 );
+            Baselines( const Baselines& );
+            //
 
-  }
+            Baseline operator [] ( int idx );
+
+            size_t size() const;
+            
+            bool visible() const;
+            void visible( bool );
+            
+            short LineWidth() const;
+            void LineWidth( short );
+            
+            enum LineStyle lineStyle() const;
+            void lineStyle( LineStyle );
+            
+            Baseline add();
+            bool remove ( int idx );
+            bool clear ();
+
+        private:
+            SAGRAPHICSLib::ISADPBaselines * pi_;
+        };
+        
+    }
 }
 
-
-#endif // BASELINES_H

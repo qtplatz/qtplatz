@@ -1,4 +1,4 @@
-// This is a -*- C++ -*- header.
+// -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
@@ -7,10 +7,10 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid ScienceLiaison commercial licenses may use this file in
-** accordance with the ScienceLiaison Commercial License Agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and ScienceLiaison.
+** Licensees holding valid ScienceLiaison commercial licenses may use this
+** file in accordance with the ScienceLiaison Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and ScienceLiaison.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -25,33 +25,12 @@
 
 #pragma once
 
-namespace SAGRAPHICSLib {
-    struct ISADPPeaks;
-}
-
 namespace adwidgets {
     namespace ui {
-
-        class Peak;
-
-        class Peaks  {
-        public:
-            ~Peaks();
-            Peaks( SAGRAPHICSLib::ISADPPeaks * pi = 0 );
-            Peaks( const Peaks& );
-            
-            Peak operator [] ( int idx ); // 0- origin
-            size_t size() const;
-            bool visible() const;
-            void visible( bool );
-            Peak add();
-            void clear();
-
-        private:
-            SAGRAPHICSLib::ISADPPeaks * pi_;
+        enum ColorIndices {
+            CI_MSTarget,
+            CI_PeakMark,
+            CI_BaseMark,
         };
-
     }
 }
-
-

@@ -69,7 +69,9 @@ HEADERS += dataplot.h \
     dataplotwidget.h \
     chromatogramwidget.h \
     spectrumwidget.h \
-    tracewidget.h
+    tracewidget.h \
+    adwidgets.h \
+    colorindices.h
 
 include(../../boost.pri)
 

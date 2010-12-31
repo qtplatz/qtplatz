@@ -1,7 +1,26 @@
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the ScienceLiaison Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 #include "annotations.h"
 #include "annotation.h"
@@ -33,14 +52,6 @@ void
 Annotations::visible( bool f )
 {
     pi_->Visible = internal::variant_bool::to_variant( f );
-/*
-    CY	fontSize;
-    fontSize.Hi	= 0;
-    fontSize.Lo = 80000;
-    CComQIPtr<IFont> piFont = piTrace->Font;
-    piFont->put_Size( fontSize );
-    piFont->put_Bold( FALSE );
-*/
 }
 
 bool
@@ -146,7 +157,7 @@ Annotations::remove( int idx )
 }
 
 Annotation
-Annotations::operator [] ( int idx )
+Annotations::operator [] ( int idx ) // 0 origin
 {
-    return Annotation( pi_->Item[ idx ] );
+    return Annotation( pi_->Item[ idx + 1 ] );
 }

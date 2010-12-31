@@ -22,30 +22,95 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
-#ifndef PEAK_H
-#define PEAK_H
+
+#pragma once
 
 namespace SAGRAPHICSLib {
-struct ISADPPeak;
+    struct ISADPPeak;
 }
 
 namespace adwidgets {
-  namespace ui {
+    namespace ui {
+        
+        class Peak  {
+        public:
+            ~Peak();
+            Peak( SAGRAPHICSLib::ISADPPeak * pi = 0 );
+            Peak( const Peak& );
 
-    class Peak  {
-    public:
-		~Peak();
-		Peak( SAGRAPHICSLib::ISADPPeak * pi = 0 );
-		Peak( const Peak& );
-    private:
-        SAGRAPHICSLib::ISADPPeak * pi_;
-    };
+            bool visible() const;
+            void visible( bool );
 
-  }
+            double startX() const;
+            void startX( double );
+
+            double startY() const;
+            void startY( double );
+            
+            double endX() const;
+            void endX( double );
+            
+            double endY() const;
+            void endY( double );
+            
+            double centreX() const;
+            void centreX( double );
+            
+            double centreY() const;
+            void centreY( double );
+            
+            double baselineStartY() const;
+            void baselineStartY( double );
+            
+            double baselineEndY() const;
+            void baselineEndY( double );
+            
+            double baselineCentreY() const;
+            void baselineCentreY( double );
+            
+            bool drawBaseline() const;
+            void drawBaseline( bool );
+
+            bool drawBaselineCentre() const;
+            void drawBaselineCentre( bool );
+
+            bool peakFill() const;
+            void peakFill( bool );
+
+            short colorIndex() const;
+            void colorIndex( short );
+
+            bool marked() const;
+            void marked( bool );
+
+            short fillStyle();
+            void fillStyle( short );
+
+            short fillColorIndex();
+            void fillColorIndex( short );
+
+            enum PeakMarkerStyle startMarkerStyle() const;
+            void startMarkerStyel( PeakMarkerStyle );
+
+            enum PeakMarkerStyle endMarkerStyle() const;
+            void endMarkerStyle( PeakMarkerStyle );
+
+            enum PeakMarkerStyle centreMarkerStyle() const;
+            void centreMarkerStyle( PeakMarkerStyle );
+
+            short startMarkerColorIndex() const;
+            void startMarkerColorIndex( short );
+
+            short endMarkerColorIndex() const;
+            void endMarkerColorIndex( short );
+
+            short centreMarkerColorIndex() const;
+            void centreMarkerColroIndex( short );
+            
+        private:
+            SAGRAPHICSLib::ISADPPeak * pi_;
+        };
+        
+    }
 }
 
-#endif // PEAK_H

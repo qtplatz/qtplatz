@@ -10,6 +10,8 @@ TARGET = adutils
 TEMPLATE = lib
 CONFIG += staticlib
 
-SOURCES += adutils.cpp
+SOURCES += adutils.cpp \
+    dataplothelper.cpp
 
-HEADERS += adutils.h
+HEADERS += adutils.h \
+    dataplothelper.h

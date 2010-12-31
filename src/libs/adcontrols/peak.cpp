@@ -1,8 +1,26 @@
-// This is a -*- C++ -*- header.
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this
+** file in accordance with the ScienceLiaison Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 #include "peak.h"
 using namespace adcontrols;
@@ -20,7 +38,7 @@ Peak::Peak( ) : parentId_( 0 )
               , topPos_( 0 )
               , endPos_( 0 )
               , startTime_( 0 )
-              , topTime_( 0 )
+              , peakTime_( 0 )
               , endTime_( 0 )
               , startHeight_( 0 )
               , topHeight_( 0 )
@@ -49,7 +67,7 @@ Peak::Peak( const Peak& t ) : name_( t.name_ )
                             , topPos_( t.topPos_ )
                             , endPos_( t.endPos_ )
                             , startTime_( t.startTime_ )
-                            , topTime_( t.topTime_ )
+                            , peakTime_( t.peakTime_ )
                             , endTime_( t.endTime_ )
                             , startHeight_( t.startHeight_ )
                             , topHeight_( t.topHeight_ )
@@ -198,15 +216,15 @@ Peak::startTime( seconds_t newTime)
 }
 
 seconds_t
-Peak::topTime() const
+Peak::peakTime() const
 {
-    return topTime_;
+    return peakTime_;
 }
 
 void
-Peak::topTime( seconds_t newTime)
+Peak::peakTime( seconds_t newTime)
 {
-    topTime_ = newTime;
+    peakTime_ = newTime;
 }
 
 seconds_t

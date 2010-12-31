@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -78,8 +74,8 @@ namespace adcontrols {
 
         seconds_t startTime() const;
         void   startTime( seconds_t newTime);
-        seconds_t topTime() const;
-        void   topTime( seconds_t newTime);
+        seconds_t peakTime() const;
+        void   peakTime( seconds_t newTime);
         seconds_t endTime() const;
         void   endTime( seconds_t newTime);
 
@@ -134,7 +130,7 @@ namespace adcontrols {
         long endPos_;
     protected:
         seconds_t startTime_;
-        seconds_t topTime_;
+        seconds_t peakTime_;
         seconds_t endTime_;
         seconds_t startHeight_;
         seconds_t topHeight_;
@@ -170,7 +166,7 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP( topPos_ );
                 ar & BOOST_SERIALIZATION_NVP( endPos_ );
                 ar & BOOST_SERIALIZATION_NVP( startTime_ );
-                ar & BOOST_SERIALIZATION_NVP( topTime_ );
+                ar & BOOST_SERIALIZATION_NVP( peakTime_ );
                 ar & BOOST_SERIALIZATION_NVP( endTime_ );
                 ar & BOOST_SERIALIZATION_NVP( startHeight_ );
                 ar & BOOST_SERIALIZATION_NVP( topHeight_ );

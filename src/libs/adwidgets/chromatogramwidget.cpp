@@ -1,17 +1,46 @@
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the ScienceLiaison Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 #include "chromatogramwidget.h"
 #include <adcontrols/chromatogram.h>
 #include <adcontrols/descriptions.h>
+#include <adcontrols/peaks.h>
+#include <adcontrols/peak.h>
+#include <adcontrols/baselines.h>
+#include <adcontrols/baseline.h>
 #include <adwidgets/axis.h>
 #include <adwidgets/traces.h>
 #include <adwidgets/trace.h>
 #include <adwidgets/titles.h>
 #include <adwidgets/title.h>
-
+#include <adwidgets/peaks.h>
+#include <adwidgets/peak.h>
+#include <adwidgets/baselines.h>
+#include <adwidgets/baseline.h>
+#include <adwidgets/font.h>
+#include <adwidgets/colorindices.h>
+#include <adutils/dataplothelper.h>
 
 using namespace adwidgets::ui;
 
@@ -85,24 +114,41 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool ya
 
     trace.visible( true );
     traces().visible( true );
+
+    setPeaks( c.peaks(), c.baselines(), trace );
+}
+
+void
+ChromatogramWidget::setPeaks(  const adcontrols::Peaks& peaks
+                             , const adcontrols::Baselines& baselines
+                             , Trace& trace )
+{
+    trace.autoAnnotation( false );
+    trace.font().size( 80000 );
+    trace.font().bold( false );
+
+    ui::Peaks pks = trace.peaks();
+    pks.clear();
+    for ( adcontrols::Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it ) {
+        ui::Peak uipk = pks.add();
+        adutils::DataplotHelper::copy( uipk, *it );
+        uipk.colorIndex( this->getColorIndex( adwidgets::ui::CI_PeakMark ) );
+    }
+    pks.visible(true);
+
+    ui::Baselines bss = trace.baselines();
+    for ( adcontrols::Baselines::vector_type::const_iterator it = baselines.begin(); it != baselines.end(); ++it ) {
+        ui::Baseline bs = bss.add();
+        adutils::DataplotHelper::copy( bs, *it );
+        bs.colorIndex( this->getColorIndex( adwidgets::ui::CI_BaseMark ) );
+    }
+    bss.visible( true );
+
 }
 
 #if 0
 void CChromatogramView::UpdatePeaks(long traceIdx, bool active)
 {
-	//CMCChromatogramPtr ptr = m_vChromatograms[0];
-	CMCChromatogramPtr ptr = vChromatograms_[traceIdx - 1].ptr_;
-
-	SAGRAPHICSLib::ISADPTracesPtr piTraces = GetIDataplot()->Traces;
-	SAGRAPHICSLib::ISADPTracePtr piTrace = piTraces->GetItem(traceIdx);
-	if (piTrace == NULL)
-		return;
-
-	piTrace->AutoAnnotation = VARIANT_FALSE;
-
-	CComQIPtr<IFont> piFont = piTrace->Font;
-	piFont->put_Bold(active == true);
-
 	SAGRAPHICSLib::ISADPPeaksPtr piPeaks = piTrace->GetPeaks();
 	if (piPeaks == NULL)
 		return;

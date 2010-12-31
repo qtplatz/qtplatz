@@ -23,8 +23,7 @@
 **
 **************************************************************************/
 
-#ifndef DATAPLOT_H
-#define DATAPLOT_H
+#pragma once
 
 #include <QWidget>
 #include <boost/smart_ptr.hpp>
@@ -36,6 +35,7 @@ namespace adwidgets {
 
     namespace ui {
 
+        enum ColorIndices;
         class Titles;
         class Title;
         class Traces;
@@ -169,9 +169,9 @@ namespace adwidgets {
       
         protected:
             virtual void resizeEvent( QResizeEvent * );
-            size_t getControlColorIndex() const;
+            short getColorIndex( ColorIndices ) const;
         };
     }
 }
 
-#endif // DATAPLOT_H
+

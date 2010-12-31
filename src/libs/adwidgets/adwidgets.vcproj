@@ -301,6 +301,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\adwidgets.h"
+				>
+			</File>
+			<File
 				RelativePath="annotation.h"
 				>
 				<FileConfiguration
@@ -458,6 +462,10 @@
 			</File>
 			<File
 				RelativePath=".\color.h"
+				>
+			</File>
+			<File
+				RelativePath=".\colorindices.h"
 				>
 			</File>
 			<File

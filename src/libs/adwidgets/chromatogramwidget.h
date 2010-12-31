@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #ifndef CHROMATOGRAMWIDGET_H
 #define CHROMATOGRAMWIDGET_H
@@ -34,9 +30,13 @@
 
 namespace adcontrols {
     class Chromatogram;
+    class Peaks;
+    class Baselines;
 }
 
 namespace adwidgets {
+
+    class Trace;
 
     namespace ui {
 
@@ -53,7 +53,7 @@ namespace adwidgets {
 
         private:
 			void setData( const adcontrols::Chromatogram&, int idx, bool yaxis1 = false );
-
+            void setPeaks( const adcontrols::Peaks&, const adcontrols::Baselines&, Trace& );
         };
     }
 }

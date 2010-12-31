@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -52,7 +48,8 @@ namespace adcontrols {
 
         inline operator const vector_type& () const      {  return baselines_;    }
         inline operator vector_type& ()                  {  return baselines_;    }
-        long add(const Baseline& );
+        int add(const Baseline& );
+        int nextId( bool increment = false );
         inline vector_type::const_iterator begin() const { return baselines_.begin();  }
         inline vector_type::iterator begin()             { return baselines_.begin(); }
         inline vector_type::const_iterator end() const   { return baselines_.end(); }

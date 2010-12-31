@@ -21,10 +21,20 @@ Baselines::Baselines( const Baselines& t ) : nextId_( t.nextId_ )
 {
 }
 
-long
+int
 Baselines::add( const Baseline& t )
 {
     baselines_.push_back( t );
-    baselines_.back().baseId( nextId_++ );
     return baselines_.back().baseId();
 }
+
+int
+Baselines::nextId( bool increment )
+{
+    if ( increment )
+        ++nextId_;
+    return nextId_;
+}
+
+
+

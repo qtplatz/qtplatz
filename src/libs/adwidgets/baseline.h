@@ -22,30 +22,48 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
-#ifndef BASELINE_H
-#define BASELINE_H
+
+#pragma once
 
 namespace SAGRAPHICSLib {
-struct ISADPBaseline;
+    struct ISADPBaseline;
 }
 
 namespace adwidgets {
-  namespace ui {
+    namespace ui {
+        
+        class Baseline  {
+        public:
+            ~Baseline();
+            Baseline( SAGRAPHICSLib::ISADPBaseline * pi = 0 );
+            Baseline( const Baseline& );
 
-    class Baseline  {
-    public:
-		~Baseline();
-		Baseline( SAGRAPHICSLib::ISADPBaseline * pi = 0 );
-		Baseline( const Baseline& );
-    private:
-        SAGRAPHICSLib::ISADPBaseline * pi_;
-    };
+            bool visible() const;
+            void visible( bool );
 
-  }
+            short colorIndex() const;
+            void colorIndex( short );
+
+            double startX() const;
+            void startX( double );
+            
+            double startY() const;
+            void  startY( double );
+            
+            double endX() const;
+            void endX( double );
+            
+            double endY() const;
+            void endY( double );
+            
+            bool marked() const;
+            void marked( bool );
+            
+        private:
+            SAGRAPHICSLib::ISADPBaseline * pi_;
+        };
+        
+    }
 }
 
-#endif // BASELINE_H
+

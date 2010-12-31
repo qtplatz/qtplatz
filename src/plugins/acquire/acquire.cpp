@@ -12,23 +12,25 @@
 
 #if defined _DEBUG
 #     pragma comment(lib, "adcontrollerd.lib")
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "adinterfaced.lib")
-#     pragma comment(lib, "adportabled.lib")
-#     pragma comment(lib, "acewrapperd.lib")
-#     pragma comment(lib, "qtwrapperd.lib")
-#     pragma comment(lib, "xmlwrapperd.lib")
-#     pragma comment(lib, "adplugind.lib")
+#     pragma comment(lib, "adcontrolsd.lib")   // static
+#     pragma comment(lib, "adutilsd.lib")      // static
+#     pragma comment(lib, "adinterfaced.lib")  // static
+#     pragma comment(lib, "adportabled.lib")   // staitc
+#     pragma comment(lib, "acewrapperd.lib")   // static
+#     pragma comment(lib, "qtwrapperd.lib")    // static
+#     pragma comment(lib, "xmlwrapperd.lib")   // static
+#     pragma comment(lib, "adplugind.lib")     // dll
 #     pragma comment(lib, "QAxContainerd.lib")
 #else
 #     pragma comment(lib, "adcontroller.lib")
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "adinterface.lib")
-#     pragma comment(lib, "adportable.lib")
-#     pragma comment(lib, "acewrapper.lib")
-#     pragma comment(lib, "qtwrapper.lib")
-#     pragma comment(lib, "xmlwrapper.lib")
-#     pragma comment(lib, "adplugin.lib")
+#     pragma comment(lib, "adcontrols.lib")    // static
+#     pragma comment(lib, "adutils.lib")       // static
+#     pragma comment(lib, "adinterface.lib")   // static
+#     pragma comment(lib, "adportable.lib")    // static
+#     pragma comment(lib, "acewrapper.lib")    // static
+#     pragma comment(lib, "qtwrapper.lib")     // static
+#     pragma comment(lib, "xmlwrapper.lib")    // static
+#     pragma comment(lib, "adplugin.lib")      // dll
 #     pragma comment(lib, "QAxContainer.lib")
 #endif
 

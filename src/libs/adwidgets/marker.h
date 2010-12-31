@@ -23,26 +23,24 @@
 **
 **************************************************************************/
 
-#ifndef MARKER_H
-#define MARKER_H
+#pragma once
 
 namespace SAGRAPHICSLib {
-struct ISADPMarker;
+    struct ISADPMarker;
 }
 
 namespace adwidgets {
-  namespace ui {
-
-    class Marker  {
-    public:
-      ~Marker();
-      Marker( SAGRAPHICSLib::ISADPMarker * pi = 0 );
-      Marker( const Marker& );
-    private:
-        SAGRAPHICSLib::ISADPMarker * pi_;
-    };
-
-  }
+    namespace ui {
+        
+        class Marker  {
+        public:
+            ~Marker();
+            Marker( SAGRAPHICSLib::ISADPMarker * pi = 0 );
+            Marker( const Marker& );
+        private:
+            SAGRAPHICSLib::ISADPMarker * pi_;
+        };
+        
+    }
 }
 
-#endif // MARKER_H

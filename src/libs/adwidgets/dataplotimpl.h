@@ -23,8 +23,7 @@
 **
 **************************************************************************/
 
-#ifndef DATAPLOTIMPL_H
-#define DATAPLOTIMPL_H
+#pragma once
 
 #include <atlbase.h>
 #include <atlcom.h>
@@ -37,6 +36,7 @@ namespace adwidgets {
     namespace ui {
 
         class Dataplot;
+        enum ColorIndices;
 
         namespace internal {
             namespace win32 {
@@ -60,7 +60,7 @@ namespace adwidgets {
                     ~DataplotImpl();
                     DataplotImpl( Dataplot& parent );
                     bool createControl();
-                    size_t getControlColorIndex() const;
+                    short getColorIndex( ::adwidgets::ui::ColorIndices ) const;
 
                     SAGRAPHICSLib::ISADataplot* operator -> () { return pi_.p; };
                 private:
@@ -92,5 +92,3 @@ namespace adwidgets {
     }
 }
 
-
-#endif // DATAPLOTIMPL_H
