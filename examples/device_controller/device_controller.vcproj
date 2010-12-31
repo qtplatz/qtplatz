@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)..\..\qtPlatz\bin"
+			OutputDirectory="..\..\bin"
 			IntermediateDirectory="debug\"
 			ConfigurationType="1"
 			UseOfMFC="0"
@@ -108,7 +108,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)..\..\qtPlatz\bin"
+			OutputDirectory="..\..\bin"
 			IntermediateDirectory="release\"
 			ConfigurationType="1"
 			UseOfMFC="0"
@@ -437,7 +437,7 @@
 	<Globals>
 		<Global
 			Name="QtVersion Win32"
-			Value="4.7.0"
+			Value="4.7.1"
 		/>
 	</Globals>
 </VisualStudioProject>
