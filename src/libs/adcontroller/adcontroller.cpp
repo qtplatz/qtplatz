@@ -157,14 +157,6 @@ adController::run()
 	   std::cerr << "==================================================" << std::endl;
    }
    //-------------> end priority code
-/*
-   ORBServantManager* p = adcontroller::singleton::manager::instance()->getServantManager();
-   if ( p->test_and_set_thread_flag() ) {
-	   __own_thread = true;
-	   ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), reinterpret_cast<void *>(p) );
-       ACE_OS::sleep(0);
-   }
-*/
    return 0;
 }
 
@@ -180,34 +172,3 @@ __declspec(dllexport) adplugin::orbLoader * instance()
 	return new adController;
 }
 
-/*
-__declspec(dllexport) bool initialize( CORBA::ORB * orb )
-{
-	return adController().initialize( orb );
-}
-
-__declspec(dllexport) void initial_reference( const char * iorBroker )
-{
-	adController().initial_reference( iorBroker );
-}
-
-__declspec(dllexport) const char * activate()
-{
-	return adController().activate();
-}
-
-__declspec(dllexport) bool deactivate()
-{
-	return adController().deactivate();
-}
-
-__declspec(dllexport) int run()
-{
-	return adController().run();
-}
-
-__declspec(dllexport) void abort_server()
-{
-	return adController().abort_server();
-}
-*/

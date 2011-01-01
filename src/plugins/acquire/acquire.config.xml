@@ -7,17 +7,20 @@
 <!-- <AcquireConfiguration name="acquire"> -->
   <Module name="qtwidgets" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/qtwidgets$(configuration).dll"/>
   <Module name="infitofui" type="sharedlib" filename="/lib/qtPlatz/plugins/MSI/infitoftune$(configuration).dll"/>
+  <!-- -->
   <Configuration name="monitor_tab">
+    <!-- -->
     <Configuration name="log_book" type="tab" readonly="true">
       <title>Log</title>
       <Component type="widget" loader="adplugin" interface="adplugin::ui::iLog" module="qtwidgets"/>
       <datasource name="broker.logger" type="cosnaming::name" interface="Broker::Logger">adbroker.manager</datasource>
     </Configuration>
-
+    <!-- -->
     <Configuration name="infitof_monitor" type="tab">
       <title>InfiTOF</title>
       <Component type="widget" loader="adplugin" interface="adplugin::ui::iMonitor" module="infitofui"/>
     </Configuration>
+    <!-- -->
     <Configuration name="sequence_monitor" type="tab" readonly="true">
       <title>Sequence</title>
       <Component type="widget" loader="adplugin" interface="adplugin::ui::iSequencesForm" module="qtwidgets"/>

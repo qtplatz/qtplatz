@@ -17,6 +17,7 @@
 #include <adplugin/qreceiver_i.h>
 #include <adplugin/qobserverevents_i.h>
 #include <tao/Object.h>
+#include <ace/Singleton.h>
 # pragma warning(disable:4996)
 # include <adcontroller/adcontroller.h>
 # include <adinterface/controlserverC.h>
@@ -48,7 +49,8 @@
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QToolButton>
-#include <ace/Singleton.h>
+#include <QMessageBox>
+
 #include <servant/servantplugin.h>
 #include <qtwrapper/qstring.h>
 #include <adinterface/eventlog_helper.h>
@@ -396,49 +398,54 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
         return;
 
     SignalObserver::DataReadBuffer_var rb;
+    CORBA::Boolean res;
     if ( tgt->readData( pos, rb ) ) {
         CORBA::WString_var name = tgt->dataInterpreterClsid();
-        const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() ); // L"InfiTOF"
-        // const adcontrols::MassSpectrometer::ScanLaw& scanLaw = spectrometer.getScanLaw();
-        const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
+        try {
+            const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() ); // L"InfiTOF"
+            const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
 
-        adcontrols::MassSpectrum ms;
-        size_t idData = 0;
-        while ( dataInterpreter.translate( ms, rb, spectrometer, idData++ ) ) {
+            adcontrols::MassSpectrum ms;
+            size_t idData = 0;
+            while ( dataInterpreter.translate( ms, rb, spectrometer, idData++ ) ) {
 
-            adcontrols::CentroidMethod method;
-            method.centroidAreaIntensity( false ); // take hight
-            adcontrols::CentroidProcess peak_detector( method );
-            peak_detector( ms );
+                adcontrols::CentroidMethod method;
+                method.centroidAreaIntensity( false ); // take hight
+                adcontrols::CentroidProcess peak_detector( method );
+                peak_detector( ms );
 
-            adcontrols::MassSpectrum ms2 = ms;
-            do {
-                unsigned int tic = ::GetTickCount();
-                reduceNoise( ms2 );
-                int time = GetTickCount() - tic;
-                std::wostringstream o;
-                o << L"fft " << time << L"ms for" << ms2.size() << L"pts";
-                ms2.addDescription( adcontrols::Description( L"acquire.fft", o.str() ) );
-            } while(0);
+                adcontrols::MassSpectrum ms2 = ms;
+                do {
+                    unsigned int tic = ::GetTickCount();
+                    reduceNoise( ms2 );
+                    int time = GetTickCount() - tic;
+                    std::wostringstream o;
+                    o << L"fft " << time << L"ms for" << ms2.size() << L"pts";
+                    ms2.addDescription( adcontrols::Description( L"acquire.fft", o.str() ) );
+                } while(0);
 
-            adcontrols::MassSpectrum centroid;
-            peak_detector.getCentroidSpectrum( centroid );
+                adcontrols::MassSpectrum centroid;
+                peak_detector.getCentroidSpectrum( centroid );
 
-            // pImpl_->spectrumPlot_->setData( ms, centroid );
-            //pImpl_->spectrumPlot_->setData( ms, ms2 );
-            pImpl_->spectrumPlot_->setData( ms, ms2 );
+                // pImpl_->spectrumPlot_->setData( ms, centroid );
+                //pImpl_->spectrumPlot_->setData( ms, ms2 );
+                pImpl_->spectrumPlot_->setData( ms, ms2 );
+            }
+        } catch ( std::exception& ex ) {
+            QMessageBox::critical( 0, "acquireplugin::handle_update_data", ex.what() );
+            throw ex;
         }
-   }
+    }
 }
 
 void
 AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value )
 {
     static int count;
-	count;
+    count;
     (void)value;
-	(void)msg;
-	// manager_->handle_message( msg, value );
+    (void)msg;
+    // manager_->handle_message( msg, value );
 }
 
 void

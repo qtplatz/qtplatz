@@ -185,7 +185,7 @@ tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_ou
 ::CORBA::WChar *
 tofObserver_i::dataInterpreterClsid (void)
 {
-    return CORBA::wstring_dup( L"tofcontroller::tofObserver_i" );
+    return CORBA::wstring_dup( L"tofSpectrometer" );
 }
 
 void
