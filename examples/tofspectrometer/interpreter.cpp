@@ -24,7 +24,17 @@
 **************************************************************************/
 
 #include "interpreter.h"
+
+# pragma warning(disable: 4996)
+#  include <adinterface/signalobserverC.h>
+#  include "../tofcontroller/tofcontrollerC.h"
+# pragma warning(default: 4996)
+
 #include <adcontrols/massspectrometer.h>
+#include <adcontrols/massspectrum.h>
+#include <adcontrols/descriptions.h>
+#include <sstream>
+#include <boost/format.hpp>
 
 using namespace tofspectrometer;
 
@@ -37,11 +47,60 @@ Interpreter::Interpreter()
 }
 
 bool
-Interpreter::translate( adcontrols::MassSpectrum&
-                       , const SignalObserver::DataReadBuffer&
-                       , const adcontrols::MassSpectrometer&
+Interpreter::translate( adcontrols::MassSpectrum& ms
+                       , const SignalObserver::DataReadBuffer& rb
+                       , const adcontrols::MassSpectrometer& spectrometer
                        , size_t idData ) const
 {
+    const adcontrols::MassSpectrometer::ScanLaw& scanLaw = spectrometer.getScanLaw();
+
+    std::wostringstream o;
+    o << boost::wformat(L"Spectrum pos[%1%] EV:%2%") % rb.pos % rb.events;
+
+    size_t delay = 0;
+    size_t sampInterval = 500;
+    size_t nbrSamples = 0;
+    unsigned long wellKnownEvents = 0;
+    size_t tmstamp = 0;
+    size_t numSeg = 1;
+
+    do {
+        SignalObserver::AveragerData *pavgr;
+        if ( rb.method >>= pavgr ) {
+            delay = pavgr->startDelay;
+            sampInterval = pavgr->sampInterval;
+            o << boost::wformat(L" delay:%1% nbrSamples: %2%") % pavgr->startDelay % pavgr->nbrSamples;
+        }
+    } while(0);
+
+    TOFInstrument::AveragerData * plocal;
+    if ( rb.method >>= plocal ) {
+        delay = plocal->startDelay;
+        sampInterval = plocal->sampInterval;
+        nbrSamples = plocal->nbrSamples;
+        wellKnownEvents = plocal->wellKnownEvents;
+        tmstamp = plocal->usec;
+        // numSeg = plocal->segments.length();
+
+        o << boost::wformat(L" delay:%1% nbrSamples: %2% #seg: %3%") % delay % nbrSamples % numSeg;
+    }
+
+    ms.addDescription( adcontrols::Description( L"acquire.title", o.str() ) );
+
+    const size_t nsize = rb.array.length();
+    ms.resize( nsize );
+    boost::scoped_array<double> pX( new double [ nsize ] );
+    boost::scoped_array<double> pY( new double [ nsize ] );
+    for ( size_t i = 0; i < nsize; ++i ) {
+        double tof = ( delay + double( sampInterval * i ) ) / 1000000; // ps -> us
+        pX[i] = scanLaw.getMass( tof, 0.688 );
+        pY[i] = rb.array[i];
+    }
+    ms.setMassArray( pX.get(), true ); // update acq range
+    ms.setIntensityArray( pY.get() );
+
+    if ( idData == 0 )
+        return true;
     return false;
 }
 

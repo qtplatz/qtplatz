@@ -30,19 +30,18 @@
 #if defined WIN32
 # if defined _DEBUG
 #     pragma comment(lib, "adcontrolsd.lib")
-//#     pragma comment(lib, "adinterfaced.lib")
-//#     pragma comment(lib, "ACEd.lib")
-//#     pragma comment(lib, "TAOd.lib")
-//#     pragma comment(lib, "TAO_AnyTypeCoded.lib")
+#     pragma comment(lib, "adinterfaced.lib")
+#     pragma comment(lib, "ACEd.lib")
+#     pragma comment(lib, "TAOd.lib")
+#     pragma comment(lib, "TAO_AnyTypeCoded.lib")
 # else
 #     pragma comment(lib, "adcontrols.lib")
-//#     pragma comment(lib, "adinterface.lib")
-//#     pragma comment(lib, "ACE.lib")
-//#     pragma comment(lib, "TAO.lib")
-//#     pragma comment(lib, "TAO_AnyTypeCode.lib")
+#     pragma comment(lib, "adinterface.lib")
+#     pragma comment(lib, "ACE.lib")
+#     pragma comment(lib, "TAO.lib")
+#     pragma comment(lib, "TAO_AnyTypeCode.lib")
 # endif
 #endif
-
 
 adcontrols::MassSpectrometer *
 getMassSpectrometer()

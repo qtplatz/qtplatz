@@ -12,10 +12,10 @@ traceObserver_i::traceObserver_i( TOFTask& t ) : task_(t)
                                                , objId_(0)
 {
 	desc_.trace_method = SignalObserver::eTRACE_TRACE;
-	// desc_.trace_id = CORBA::wstring_dup( L"MS.PROFILE" );
-	// desc_.trace_display_name = CORBA::wstring_dup( L"Spectrum" );
-	// desc_.axis_x_label = CORBA::wstring_dup( L"m/z" );
-	// desc_.axis_y_label = CORBA::wstring_dup( L"Intens" );
+    desc_.trace_id = CORBA::wstring_dup( L"MS.TIC" );
+	desc_.trace_display_name = CORBA::wstring_dup( L"TIC" );
+	desc_.axis_x_label = CORBA::wstring_dup( L"min" );
+	desc_.axis_y_label = CORBA::wstring_dup( L"Intens" );
 	desc_.axis_x_decimals = 2;
 	desc_.axis_y_decimals = 0;
 }
