@@ -1,7 +1,27 @@
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison Project
-//////////////////////////////////////////
+// -*- C++ -*-
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this
+** file in accordance with the ScienceLiaison Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 #include "acquireplugin.h"
 #include "constants.h"
@@ -133,172 +153,182 @@ AcquirePlugin::AcquirePlugin() : manager_(0)
 							   , action3_(0)
 							   , action4_(0)
 							   , action5_(0)
+                               , traceBox_(0) 
 {
 }
 
 void
 AcquirePlugin::initialize_actions()
 {
-  pImpl_->loadIcon();
+    pImpl_->loadIcon();
   
-  actionConnect_ = new QAction(QIcon(Constants::ICON_CONNECT), tr("Connect to control server..."), this);
-  connect( actionConnect_, SIGNAL(triggered()), this, SLOT(actionConnect()) );
+    actionConnect_ = new QAction(QIcon(Constants::ICON_CONNECT), tr("Connect to control server..."), this);
+    connect( actionConnect_, SIGNAL(triggered()), this, SLOT(actionConnect()) );
   
-  actionRunStop_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Run / stop control..."), this);
-  connect( actionRunStop_, SIGNAL(triggered()), this, SLOT(actionRunStop()) );
+    actionRunStop_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Run / stop control..."), this);
+    connect( actionRunStop_, SIGNAL(triggered()), this, SLOT(actionRunStop()) );
   
-  action3_ = new QAction(QIcon(Constants::ICON_INTERRUPT_SMALL), tr("Interrupt sequence..."), this);
-  connect( action3_, SIGNAL(triggered()), this, SLOT(action3()) );
+    action3_ = new QAction(QIcon(Constants::ICON_INTERRUPT_SMALL), tr("Interrupt sequence..."), this);
+    connect( action3_, SIGNAL(triggered()), this, SLOT(action3()) );
   
-  action4_ = new QAction(QIcon(Constants::ICON_START_SMALL), tr("Start initial condition..."), this);
-  connect( action4_, SIGNAL(triggered()), this, SLOT(action4()) );
+    action4_ = new QAction(QIcon(Constants::ICON_START_SMALL), tr("Start initial condition..."), this);
+    connect( action4_, SIGNAL(triggered()), this, SLOT(action4()) );
   
-  action5_ = new QAction(QIcon(Constants::ICON_STOP_SMALL), tr("Stop inlet..."), this);
-  connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
+    action5_ = new QAction(QIcon(Constants::ICON_STOP_SMALL), tr("Stop inlet..."), this);
+    connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
   
-  //const AcquireManagerActions& actions = manager_->acquireManagerActions();
-  QList<int> globalcontext;
-  globalcontext << Core::Constants::C_GLOBAL_ID;
-  Core::ActionManager *am = Core::ICore::instance()->actionManager();
-  if ( am ) {
-    Core::Command * cmd = 0;
-    cmd = am->registerAction( actionConnect_, Constants::CONNECT, globalcontext );
-    cmd = am->registerAction( actionRunStop_, Constants::INITIALRUN, globalcontext );
-    cmd = am->registerAction( action3_, Constants::RUN, globalcontext );
-    cmd = am->registerAction( action4_, Constants::STOP, globalcontext );
-    cmd = am->registerAction( action5_, Constants::ACQUISITION, globalcontext );
-  }
+    //const AcquireManagerActions& actions = manager_->acquireManagerActions();
+    QList<int> globalcontext;
+    globalcontext << Core::Constants::C_GLOBAL_ID;
+    Core::ActionManager *am = Core::ICore::instance()->actionManager();
+    if ( am ) {
+        Core::Command * cmd = 0;
+        cmd = am->registerAction( actionConnect_, Constants::CONNECT, globalcontext );
+        cmd = am->registerAction( actionRunStop_, Constants::INITIALRUN, globalcontext );
+        cmd = am->registerAction( action3_, Constants::RUN, globalcontext );
+        cmd = am->registerAction( action4_, Constants::STOP, globalcontext );
+        cmd = am->registerAction( action5_, Constants::ACQUISITION, globalcontext );
+    }
 }
 
 bool
 AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 {
-  Q_UNUSED(arguments);
-  Q_UNUSED(error_message);
-  Core::ICore * core = Core::ICore::instance();
+    Q_UNUSED(arguments);
+    Q_UNUSED(error_message);
+    Core::ICore * core = Core::ICore::instance();
 
-  QList<int> context;
-  if ( core ) {
-    Core::UniqueIDManager * uidm = core->uniqueIDManager();
-    if ( uidm ) {
-      context.append( uidm->uniqueIdentifier( QLatin1String("Acquire.MainView") ) );
-      context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
-    }
-  } else
-    return false;
+    QList<int> context;
+    if ( core ) {
+        Core::UniqueIDManager * uidm = core->uniqueIDManager();
+        if ( uidm ) {
+            context.append( uidm->uniqueIdentifier( QLatin1String("Acquire.MainView") ) );
+            context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
+        }
+    } else
+        return false;
 
-  AcquireMode * mode = new AcquireMode(this);
-  if ( mode )
-    mode->setContext( context );
-  else
-    return false;
+    AcquireMode * mode = new AcquireMode(this);
+    if ( mode )
+        mode->setContext( context );
+    else
+        return false;
 
-  manager_ = new AcquireUIManager(0);
-  if ( manager_ )
-    manager_->init();
+    manager_ = new AcquireUIManager(0);
+    if ( manager_ )
+        manager_->init();
 
-  initialize_actions();
+    initialize_actions();
 
-  do {
+    do {
     
-    //              [mainWindow]
-    // splitter> ---------------------
-    //              [OutputPane]
+        //              [mainWindow]
+        // splitter> ---------------------
+        //              [OutputPane]
   
-    Core::MiniSplitter * splitter = new Core::MiniSplitter;
-    if ( splitter ) {
-      splitter->addWidget( manager_->mainWindow() );
-      splitter->addWidget( new Core::OutputPanePlaceHolder( mode ) );
+        Core::MiniSplitter * splitter = new Core::MiniSplitter;
+        if ( splitter ) {
+            splitter->addWidget( manager_->mainWindow() );
+            splitter->addWidget( new Core::OutputPanePlaceHolder( mode ) );
 
-      splitter->setStretchFactor( 0, 10 );
-      splitter->setStretchFactor( 1, 0 );
-      splitter->setOrientation( Qt::Vertical ); // horizontal splitter bar
-    }
+            splitter->setStretchFactor( 0, 10 );
+            splitter->setStretchFactor( 1, 0 );
+            splitter->setOrientation( Qt::Vertical ); // horizontal splitter bar
+        }
 
-    //
-    //         <splitter2>         [mainWindow]
-    // [Navigation] | [splitter ------------------- ]
-    //                             [OutputPane]
+        //
+        //         <splitter2>         [mainWindow]
+        // [Navigation] | [splitter ------------------- ]
+        //                             [OutputPane]
 
-    Core::MiniSplitter * splitter2 = new Core::MiniSplitter;
-    if ( splitter2 ) {
-      splitter2->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
-      splitter2->addWidget( splitter );
-      splitter2->setStretchFactor( 0, 0 );
-      splitter2->setStretchFactor( 1, 1 );
-    }
+        Core::MiniSplitter * splitter2 = new Core::MiniSplitter;
+        if ( splitter2 ) {
+            splitter2->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
+            splitter2->addWidget( splitter );
+            splitter2->setStretchFactor( 0, 0 );
+            splitter2->setStretchFactor( 1, 1 );
+        }
       
-    Utils::StyledBar * toolBar = new Utils::StyledBar;
-    if ( toolBar ) {
-      toolBar->setProperty( "topBorder", true );
-      QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-      toolBarLayout->setMargin(0);
-      toolBarLayout->setSpacing(0);
-      Core::ActionManager *am = core->actionManager();
-      if ( am ) {
-		  toolBarLayout->addWidget(toolButton(am->command(Constants::CONNECT)->action()));
-		  toolBarLayout->addWidget(toolButton(am->command(Constants::INITIALRUN)->action()));
-		  toolBarLayout->addWidget(toolButton(am->command(Constants::RUN)->action()));
-		  toolBarLayout->addWidget(toolButton(am->command(Constants::STOP)->action()));
-		  toolBarLayout->addWidget(toolButton(am->command(Constants::ACQUISITION)->action()));
-      }
-      toolBarLayout->addWidget( new Utils::StyledSeparator );
-      toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
-    }
-    Utils::StyledBar * toolBar2 = new Utils::StyledBar;
-    if ( toolBar2 ) {
-      toolBar2->setProperty( "topBorder", true );
-      QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar2 );
-      toolBarLayout->setMargin(0);
-      toolBarLayout->setSpacing(0);
-      Core::ActionManager *am = core->actionManager();
-      if ( am ) {
-        toolBarLayout->addWidget( new QLabel( tr("AA") ) );
-        toolBarLayout->addWidget( new Utils::StyledSeparator );
-        toolBarLayout->addWidget( new QLabel( tr("BB") ) );
-        toolBarLayout->addWidget( new Utils::StyledSeparator );
-        toolBarLayout->addWidget( new QLabel( tr("CC") ) );
+        Utils::StyledBar * toolBar = new Utils::StyledBar;
+        if ( toolBar ) {
+            toolBar->setProperty( "topBorder", true );
+            QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+            toolBarLayout->setMargin(0);
+            toolBarLayout->setSpacing(0);
+            Core::ActionManager *am = core->actionManager();
+            if ( am ) {
+                toolBarLayout->addWidget(toolButton(am->command(Constants::CONNECT)->action()));
+                toolBarLayout->addWidget(toolButton(am->command(Constants::INITIALRUN)->action()));
+                toolBarLayout->addWidget(toolButton(am->command(Constants::RUN)->action()));
+                toolBarLayout->addWidget(toolButton(am->command(Constants::STOP)->action()));
+                toolBarLayout->addWidget(toolButton(am->command(Constants::ACQUISITION)->action()));
+            }
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
+        }
+        Utils::StyledBar * toolBar2 = new Utils::StyledBar;
+        if ( toolBar2 ) {
+            toolBar2->setProperty( "topBorder", true );
+            QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar2 );
+            toolBarLayout->setMargin(0);
+            toolBarLayout->setSpacing(0);
+            Core::ActionManager *am = core->actionManager();
+            if ( am ) {
+                toolBarLayout->addWidget( new Utils::StyledSeparator );
+                toolBarLayout->addWidget( new QLabel( tr("Traces:") ) );
+                traceBox_ = new QComboBox;
+                traceBox_->addItem( "-----------------------------" );
+                connect( traceBox_, SIGNAL( currentIndexChanged(int) ), this, SLOT( handle_monitor_selected(int) ) );
+                connect( traceBox_, SIGNAL( activated(int) ), this, SLOT( handle_monitor_activated(int) ) );
+                toolBarLayout->addWidget( traceBox_ );
 
-        toolBarLayout->addWidget( new QLabel( tr("  ") ), 10 );
-      }
-      toolBarLayout->addWidget( new Utils::StyledSeparator );
-      toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
-    }
+                /*
+                toolBarLayout->addWidget( new QLabel( tr("AA") ) );
+                toolBarLayout->addWidget( new Utils::StyledSeparator );
+                toolBarLayout->addWidget( new QLabel( tr("BB") ) );
+                toolBarLayout->addWidget( new Utils::StyledSeparator );
+                toolBarLayout->addWidget( new QLabel( tr("CC") ) );
+                */
+                toolBarLayout->addWidget( new QLabel( tr("  ") ), 10 );
+            }
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
+        }
 
-    /*
-    //  [TraceWidget] | [RightPanePlaceHolder]
-    Core::MiniSplitter * rightPaneSplitter = new Core::MiniSplitter;
-    if ( rightPaneSplitter ) {
-      rightPaneSplitter->addWidget( new adwidgets::TraceWidget );
-      //rightPaneHSplitter->addWidget( new Core::RightPanePlaceHolder( mode ) );
-      rightPaneSplitter->addWidget( new QTextEdit( "RightPanePlaceHolder" ) );
-      rightPaneSplitter->setStretchFactor( 0, 1 );
-      rightPaneSplitter->setStretchFactor( 1, 0 );
-    }
-    */
+        /*
+        //  [TraceWidget] | [RightPanePlaceHolder]
+        Core::MiniSplitter * rightPaneSplitter = new Core::MiniSplitter;
+        if ( rightPaneSplitter ) {
+        rightPaneSplitter->addWidget( new adwidgets::TraceWidget );
+        //rightPaneHSplitter->addWidget( new Core::RightPanePlaceHolder( mode ) );
+        rightPaneSplitter->addWidget( new QTextEdit( "RightPanePlaceHolder" ) );
+        rightPaneSplitter->setStretchFactor( 0, 1 );
+        rightPaneSplitter->setStretchFactor( 1, 0 );
+        }
+        */
 
-    QWidget* centralWidget = new QWidget;
-    manager_->mainWindow()->setCentralWidget( centralWidget );
+        QWidget* centralWidget = new QWidget;
+        manager_->mainWindow()->setCentralWidget( centralWidget );
 
-    Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
-    if ( splitter3 ) {
-        pImpl_->timePlot_ = new adwidgets::ui::ChromatogramWidget;
-        pImpl_->spectrumPlot_ = new adwidgets::ui::SpectrumWidget;
+        Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
+        if ( splitter3 ) {
+            pImpl_->timePlot_ = new adwidgets::ui::ChromatogramWidget;
+            pImpl_->spectrumPlot_ = new adwidgets::ui::SpectrumWidget;
 
-		splitter3->addWidget( pImpl_->timePlot_ );
-		splitter3->addWidget( pImpl_->spectrumPlot_ );
-		splitter3->setOrientation( Qt::Vertical );
-    }
+            splitter3->addWidget( pImpl_->timePlot_ );
+            splitter3->addWidget( pImpl_->spectrumPlot_ );
+            splitter3->setOrientation( Qt::Vertical );
+        }
 
-    QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
-    toolBarAddingLayout->setMargin(0);
-    toolBarAddingLayout->setSpacing(0);
-    //toolBarAddingLayout->addWidget( rightPaneSplitter );
-    toolBarAddingLayout->addWidget( toolBar );
-    toolBarAddingLayout->addWidget( splitter3 );
-    toolBarAddingLayout->addWidget( toolBar2 );
+        QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
+        toolBarAddingLayout->setMargin(0);
+        toolBarAddingLayout->setSpacing(0);
+        //toolBarAddingLayout->addWidget( rightPaneSplitter );
+        toolBarAddingLayout->addWidget( toolBar );
+        toolBarAddingLayout->addWidget( splitter3 );
+        toolBarAddingLayout->addWidget( toolBar2 );
 
-    mode->setWidget( splitter2 );
+        mode->setWidget( splitter2 );
 
   } while(0);
   
@@ -328,12 +358,17 @@ AcquirePlugin::actionConnect()
 		= acewrapper::brokerhelper::name_to_object( adplugin::ORBManager::instance()->orb()
 		                                           , acewrapper::constants::adcontroller::manager::_name()
 												   , adplugin::manager::iorBroker() );
+
 	if ( ! CORBA::is_nil( obj ) ) {
+
 		ControlServer::Manager_var manager;
 		try { manager = ControlServer::Manager::_narrow( obj ); } catch ( CORBA::Exception& ) { /**/ }
-		if ( ! CORBA::is_nil( manager ) ) {
-			session_ = manager->getSession( L"acquire" );
+
+        if ( ! CORBA::is_nil( manager ) ) {
+
+            session_ = manager->getSession( L"acquire" );
 			if ( ! CORBA::is_nil( session_.in() ) ) {
+
 				receiver_i_.reset( new adplugin::QReceiver_i() );
 				session_->connect( receiver_i_.get()->_this(), L"acquire" );
                     
@@ -350,20 +385,39 @@ AcquirePlugin::actionConnect()
 
 				observer_ = session_->getObserver();
 				if ( ! CORBA::is_nil( observer_.in() ) ) {
+
 					SignalObserver::Observers_var siblings = observer_->getSiblings();
 					size_t nsize = siblings->length();
+
 					for ( size_t i = 0; i < nsize; ++i ) {
 						SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[i] );
 						boost::shared_ptr<adplugin::QObserverEvents_i> sink( new adplugin::QObserverEvents_i( var, L"acquire.ui" ) );
 						sinkVec_.push_back( sink );
-						SignalObserver::Description_var pdesc = sink->ptr()->getDescription();
+                        populate( var );
 						res = connect( sink.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
 							, this, SLOT( handle_update_data(unsigned long, long) ) );
+
 					}
 				}
 			}
 		}
 	}
+}
+
+void
+AcquirePlugin::populate( SignalObserver::Observer_var& observer )
+{
+    SignalObserver::Description_var topLevelDesc = observer->getDescription();
+
+    std::wstring topLevelName = topLevelDesc->trace_display_name.in();
+    traceBox_->addItem( qtwrapper::qstring( topLevelName ) );
+
+    SignalObserver::Observers_var children = observer->getSiblings();
+    for ( size_t i = 0; i < children->length(); ++i ) {
+        SignalObserver::Description_var secondLevelDesc = children[i]->getDescription();
+        std::wstring secondLevelName = children[i]->getDescription()->trace_display_name.in();
+        traceBox_->addItem( qtwrapper::qstring( L"   " + topLevelName + L"->" + secondLevelName ) );
+    }
 }
 
 void
@@ -414,6 +468,7 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
                 adcontrols::CentroidProcess peak_detector( method );
                 peak_detector( ms );
 
+#  ifdef FFT
                 adcontrols::MassSpectrum ms2 = ms;
                 do {
                     unsigned int tic = ::GetTickCount();
@@ -423,13 +478,15 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
                     o << L"fft " << time << L"ms for" << ms2.size() << L"pts";
                     ms2.addDescription( adcontrols::Description( L"acquire.fft", o.str() ) );
                 } while(0);
+#  endif
 
                 adcontrols::MassSpectrum centroid;
                 peak_detector.getCentroidSpectrum( centroid );
 
-                // pImpl_->spectrumPlot_->setData( ms, centroid );
-                //pImpl_->spectrumPlot_->setData( ms, ms2 );
+                pImpl_->spectrumPlot_->setData( ms, centroid );
+#  ifdef FFT
                 pImpl_->spectrumPlot_->setData( ms, ms2 );
+#  endif
             }
         } catch ( std::exception& ex ) {
             QMessageBox::critical( 0, "acquireplugin::handle_update_data", ex.what() );
@@ -467,6 +524,16 @@ void
 AcquirePlugin::handle_debug_print( unsigned long priority, unsigned long category, QString text )
 {
     manager_->handle_debug_print( priority, category, text );
+}
+
+void
+AcquirePlugin::handle_monitor_selected(int)
+{
+}
+
+void
+AcquirePlugin::handle_monitor_activated(int)
+{
 }
 
 Q_EXPORT_PLUGIN( AcquirePlugin )

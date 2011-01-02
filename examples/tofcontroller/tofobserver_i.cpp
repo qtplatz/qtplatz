@@ -16,7 +16,7 @@ tofObserver_i::tofObserver_i( TOFTask& t ) : task_(t)
 {
 	desc_.trace_method = SignalObserver::eTRACE_SPECTRA;
 	desc_.trace_id = CORBA::wstring_dup( L"MS.PROFILE" );
-	desc_.trace_display_name = CORBA::wstring_dup( L"Spectrum" );
+    desc_.trace_display_name = CORBA::wstring_dup( L"MS-Spectrum" );
 	desc_.axis_x_label = CORBA::wstring_dup( L"m/z" );
 	desc_.axis_y_label = CORBA::wstring_dup( L"Intens" );
 	desc_.axis_x_decimals = 2;
