@@ -55,7 +55,7 @@ traceObserver_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
 						, ::SignalObserver::eUpdateFrequency frequency
 						, const CORBA::WChar * token )
 {
-	return task_.connect( cb, frequency, token );
+    return task_.connect( cb, frequency, token );
 }
 
 ::CORBA::Boolean
@@ -109,6 +109,6 @@ traceObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_
 ::CORBA::WChar *
 traceObserver_i::dataInterpreterClsid (void)
 {
-	return 0;
+    return L"tof.trace";
 }
 

@@ -54,11 +54,6 @@ TofController::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, Port
 	acewrapper::ORBServant< tofcontroller::tofSession_i >
 		* pServant = tofcontroller::singleton::tofSession_i::instance();
     pServant->initialize( orb, poa, mgr );
-/*
-	acewrapper::ORBServantManager * pMgr = new acewrapper::ORBServantManager( orb );
-	pMgr->init( 0, 0 );
-	pServant->setServantManager( pMgr );
-*/
 	return true;
 }
 
@@ -90,34 +85,3 @@ adplugin::orbLoader * instance()
 	return new TofController();
 }
 
-/*
-__declspec(dllexport) bool initialize( CORBA::ORB * orb )
-{
-	return TofController().initialize( orb );
-}
-
-__declspec(dllexport) void initial_reference( const char * iorBroker )
-{
-	TofController().initial_reference( iorBroker );
-}
-
-__declspec(dllexport) const char * activate()
-{
-	return TofController().activate();
-}
-
-__declspec(dllexport) bool deactivate()
-{
-	return TofController().deactivate();
-}
-
-__declspec(dllexport) int run()
-{
-	return TofController().run();
-}
-
-__declspec(dllexport) void abort_server()
-{
-	return TofController().abort_server();
-}
-*/
