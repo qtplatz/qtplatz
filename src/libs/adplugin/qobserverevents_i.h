@@ -49,9 +49,9 @@ namespace adplugin {
         ~QObserverEvents_i();
        
         // implements ObserverEvents
-		void OnUpdateData( CORBA::Long );
-		void OnMethodChanged( CORBA::Long );
-		void OnEvent( CORBA::ULong, CORBA::Long );
+        void OnUpdateData( CORBA::ULong, CORBA::Long );
+        void OnMethodChanged( CORBA::ULong, CORBA::Long );
+        void OnEvent( CORBA::ULong, CORBA::ULong, CORBA::Long );
         void OnClose();
 
         // Observer 

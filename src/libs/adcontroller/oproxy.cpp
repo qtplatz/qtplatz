@@ -20,21 +20,21 @@ oProxy::oProxy( iBroker& t ) : broker_( t )
 }
 
 void
-oProxy::OnUpdateData ( ::CORBA::Long pos )
+oProxy::OnUpdateData ( ::CORBA::ULong objId, ::CORBA::Long pos )
 {
-	broker_.observer_update_data( objId_, pos );
+    broker_.observer_update_data( objId, pos );
 }
 
 void
-oProxy::OnMethodChanged ( ::CORBA::Long pos )
+oProxy::OnMethodChanged ( ::CORBA::ULong objId, ::CORBA::Long pos )
 {
-	broker_.observer_update_data( objId_, pos );
+	broker_.observer_update_data( objId, pos );
 }
 
 void
-oProxy::OnEvent ( ::CORBA::ULong event,	::CORBA::Long pos )
+oProxy::OnEvent ( ::CORBA::ULong objId, ::CORBA::ULong event,	::CORBA::Long pos )
 {
-	broker_.observer_update_event( objId_, pos, event );
+	broker_.observer_update_event( objId, pos, event );
 }
 
 bool

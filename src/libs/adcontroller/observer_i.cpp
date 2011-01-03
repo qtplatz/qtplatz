@@ -227,28 +227,29 @@ namespace adcontroller {
 	namespace internal {
 
 		struct fire_on_update_data {
-			static void fire( SignalObserver::ObserverEvents& oe, long pos ) {
-				oe.OnUpdateData( pos );
+			static void fire( SignalObserver::ObserverEvents& oe, unsigned long objId, long pos ) {
+				oe.OnUpdateData( objId, pos );
 			}
 		};
 		struct fire_on_method_changed {
-			static void fire( SignalObserver::ObserverEvents& oe, long pos ) {
-				oe.OnMethodChanged( pos );
+			static void fire( SignalObserver::ObserverEvents& oe, unsigned long objId, long pos ) {
+				oe.OnMethodChanged( objId, pos );
 			}
 		};
 		struct fire_on_event {
-			static void fire( SignalObserver::ObserverEvents& oe, long pos, unsigned long e ) {
-				oe.OnEvent( pos, e );
+			static void fire( SignalObserver::ObserverEvents& oe, unsigned long objId, long pos, unsigned long e ) {
+				oe.OnEvent( objId, pos, e );
 			}
 		};
 
 		template<class T> struct invoke_event_fire {
+            unsigned long objId_;
 			long pos_;
             unsigned long event_;
-			invoke_event_fire( long pos, unsigned long e = 0 ) : pos_(pos), event_(e) {}
+			invoke_event_fire( unsigned long objId, long pos, unsigned long e = 0 ) : objId_(objId), pos_(pos), event_(e) {}
 			void operator()( internal::observer_events_data& d ) {
 				if ( ! CORBA::is_nil( d.events_.in() ) )
-					T::fire( *d.events_, pos_ );
+                    T::fire( *d.events_, objId_,  pos_ );
 			}
 		};
 
@@ -260,7 +261,7 @@ observer_i::invoke_update_data( unsigned long objid, long pos )
 {
 	if ( objId_ == objid ) {
 		using namespace adcontroller::internal;
-		std::for_each ( events_begin(), events_end(), invoke_event_fire<fire_on_update_data>( pos ) );
+		std::for_each ( events_begin(), events_end(), invoke_event_fire<fire_on_update_data>( objid, pos ) );
 		return true;
 	}
 
@@ -277,7 +278,7 @@ observer_i::invoke_method_changed( unsigned long objid, long pos )
 {
 	if ( objId_ == objid ) {
 		using namespace adcontroller::internal;
-		std::for_each ( events_begin(), events_end(), invoke_event_fire<fire_on_method_changed>( pos ) );
+		std::for_each ( events_begin(), events_end(), invoke_event_fire<fire_on_method_changed>( objid, pos ) );
 		return true;
 	}
 
@@ -292,17 +293,18 @@ bool
 observer_i::invoke_update_event( unsigned long objid, long pos, unsigned long event )
 {
 	struct fire_event {
+        unsigned long objId_;
 		long pos_;
         unsigned long event_;
-		fire_event( long pos, unsigned long event ) : pos_(pos), event_(event) {}
+		fire_event( unsigned long objId, long pos, unsigned long event ) : objId_(objId), pos_(pos), event_(event) {}
 		void operator()( internal::observer_events_data& d ) {
 			if ( ! CORBA::is_nil( d.events_.in() ) )
-				d.events_->OnEvent( pos_, event_ );
+                d.events_->OnEvent( objId_, pos_, event_ );
 		}
 	};
 
 	if ( objId_ == objid ) {
-		std::for_each ( events_begin(), events_end(), fire_event( pos, event ) );
+		std::for_each ( events_begin(), events_end(), fire_event( objid, pos, event ) );
 		return true;
 	}
 

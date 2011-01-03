@@ -58,13 +58,13 @@ module SignalObserver {
 
     interface ObserverEvents {
         // OnUpdateData tells you 'new data' at data number 'pos' is now ready to read
-        oneway void OnUpdateData( in long pos );
+        oneway void OnUpdateData( in unsigned long objId, in long pos );
 
         // OnMethodChanged tells you data monitor parameter has changed at data number 'pos'
-        oneway void OnMethodChanged( in long pos );
+        oneway void OnMethodChanged( in unsigned long objId, in long pos );
 
         // well known event at data number 'pos'
-        oneway void OnEvent( in unsigned long event, in long pos );
+        oneway void OnEvent( in unsigned long objId, in unsigned long event, in long pos );
     };
 
     interface Observer;

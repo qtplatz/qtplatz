@@ -48,9 +48,9 @@ namespace adcontroller {
 		oProxy( iBroker& );
 
 		// POA_SignalObserver::ObserverEvents implementation
-		virtual void OnUpdateData (::CORBA::Long pos);
-		virtual void OnMethodChanged (::CORBA::Long pos);
-		virtual void OnEvent (::CORBA::ULong event,	::CORBA::Long pos);
+        virtual void OnUpdateData ( ::CORBA::ULong objId, ::CORBA::Long pos );
+        virtual void OnMethodChanged ( ::CORBA::ULong objId, ::CORBA::Long pos );
+        virtual void OnEvent ( ::CORBA::ULong objId, ::CORBA::ULong event,	::CORBA::Long pos );
 
 		// oProxy implementation
         bool initialize();

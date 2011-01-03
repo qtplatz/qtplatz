@@ -43,19 +43,19 @@ QObserverEvents_i::OnClose()
 }
 
 void
-QObserverEvents_i::OnUpdateData( CORBA::Long pos )
+QObserverEvents_i::OnUpdateData( CORBA::ULong objId, CORBA::Long pos )
 {
-	emit signal_UpdateData( objId_, pos );
+	emit signal_UpdateData( objId, pos );
 }
 
 void
-QObserverEvents_i::OnMethodChanged( CORBA::Long pos )
+QObserverEvents_i::OnMethodChanged( CORBA::ULong objId, CORBA::Long pos )
 {
-	emit signal_MethodChanged( objId_, pos );
+	emit signal_MethodChanged( objId, pos );
 }
 
 void
-QObserverEvents_i::OnEvent( CORBA::ULong event, CORBA::Long pos )
+QObserverEvents_i::OnEvent( CORBA::ULong objId, CORBA::ULong event, CORBA::Long pos )
 {
-	emit signal_Event( objId_, event, pos );
+	emit signal_Event( objId, event, pos );
 }

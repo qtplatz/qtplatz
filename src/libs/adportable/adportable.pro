@@ -21,7 +21,8 @@ SOURCES += adportable.cpp \
     utf.cpp \
 #    configuration.cpp \
     string.cpp \
-    spectrum_processor.cpp
+    spectrum_processor.cpp \
+    cache.cpp
 
 HEADERS += adportable.h \
     binary_search.hpp \
@@ -33,4 +34,5 @@ HEADERS += adportable.h \
     utf.h \
     string.h \
     configuration.h \
-    spectrum_processor.h
+    spectrum_processor.h \
+    cache.h
