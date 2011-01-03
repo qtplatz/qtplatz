@@ -416,7 +416,7 @@ AcquirePlugin::populate( SignalObserver::Observer_var& observer )
     for ( size_t i = 0; i < children->length(); ++i ) {
         SignalObserver::Description_var secondLevelDesc = children[i]->getDescription();
         std::wstring secondLevelName = children[i]->getDescription()->trace_display_name.in();
-        traceBox_->addItem( qtwrapper::qstring( L"   " + topLevelName + L"->" + secondLevelName ) );
+        traceBox_->addItem( qtwrapper::qstring( L"   " + secondLevelName ) );
     }
 }
 

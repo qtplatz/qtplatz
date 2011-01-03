@@ -20,7 +20,8 @@ SOURCES += adportable.cpp \
     ConvertUTF.c \
     utf.cpp \
 #    configuration.cpp \
-    string.cpp
+    string.cpp \
+    spectrum_processor.cpp
 
 HEADERS += adportable.h \
     binary_search.hpp \
@@ -31,4 +32,5 @@ HEADERS += adportable.h \
     ConvertUTF.h \
     utf.h \
     string.h \
-    configuration.h
+    configuration.h \
+    spectrum_processor.h
