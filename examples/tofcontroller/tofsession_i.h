@@ -16,11 +16,11 @@
 
 namespace tofcontroller {
 
-	class tofSession_i;
+    class tofSession_i;
     class TOFTask;
 
 	namespace singleton {
-		typedef ACE_Singleton< acewrapper::ORBServant< tofSession_i >, ACE_Recursive_Thread_Mutex > tofSession_i;
+        typedef ACE_Singleton< acewrapper::ORBServant< tofSession_i >, ACE_Recursive_Thread_Mutex > tofSession_i;
 	}
 
 	class tofSession_i : public virtual POA_TOFInstrument::TofSession {

@@ -211,10 +211,10 @@ tofObserver_i::push_profile_data( ACE_Message_Block * mb )
             fifo_.pop_front();
     } while(0);
 
-    task_.observer_fire_on_update_data( data.npos );
+    task_.observer_fire_on_update_data( objId_, data.npos );
 
     if ( prevEvents != data.wellKnownEvents )
-      task_.observer_fire_on_event( data.wellKnownEvents, data.npos );
+      task_.observer_fire_on_event( objId_, data.wellKnownEvents, data.npos );
 
     //void observer_fire_on_method_changed( long pos );
 }

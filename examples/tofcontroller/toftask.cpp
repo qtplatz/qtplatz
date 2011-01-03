@@ -549,22 +549,6 @@ TOFTask::device_update_notification( unsigned long clsId )
 }
 
 void
-TOFTask::device_update_data( /* args to do */ )
-{
-	acewrapper::scoped_mutex_t<> lock( mutex_ );
-
-    static int pos;
-
-	for ( observer_events_vector_type::iterator it = obegin(); it != oend(); ++it ) {
-        // todo: check client token in order to avoid broadcast clsid, which most of object can't understnad
-		it->cb_->OnUpdateData( pos++ );
-		//oneway void OnUpdateData( in long pos );
-		//oneway void OnMethodChanged( in long pos );
-		//oneway void OnEvent( in unsigned long event, in long pos );
-	}
-}
-
-void
 TOFTask::controller_update_notification( unsigned long clsId )
 {
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
@@ -636,27 +620,27 @@ TOFTask::push_profile_data( ACE_Message_Block * mb )
 }
 
 void
-TOFTask::observer_fire_on_update_data( long pos )
+TOFTask::observer_fire_on_update_data( unsigned long objId, long pos )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     for ( observer_events_vector_type::iterator it = obegin(); it != oend(); ++it )
-        it->cb_->OnUpdateData( pos );
+        it->cb_->OnUpdateData( objId, pos );
 }
 
 void
-TOFTask::observer_fire_on_method_changed( long pos )
+TOFTask::observer_fire_on_method_changed( unsigned long objId, long pos )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     for ( observer_events_vector_type::iterator it = obegin(); it != oend(); ++it )
-        it->cb_->OnMethodChanged( pos );
+        it->cb_->OnMethodChanged( objId, pos );
 }
 
 void
-TOFTask::observer_fire_on_event( unsigned long event, long pos )
+TOFTask::observer_fire_on_event( unsigned long objId, unsigned long event, long pos )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     for ( observer_events_vector_type::iterator it = obegin(); it != oend(); ++it )
-        it->cb_->OnEvent( event, pos );
+        it->cb_->OnEvent( objId, event, pos );
 }
 
 ///////////////////////////////////////////////////////////////

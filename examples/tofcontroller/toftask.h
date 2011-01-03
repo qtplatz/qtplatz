@@ -79,9 +79,9 @@ namespace tofcontroller {
 			         , SignalObserver::eUpdateFrequency, const std::wstring& );
 		bool disconnect( SignalObserver::ObserverEvents_ptr );
         void push_profile_data( ACE_Message_Block * mb );
-        void observer_fire_on_update_data( long pos );
-        void observer_fire_on_method_changed( long pos );
-        void observer_fire_on_event( unsigned long event, long pos );
+        void observer_fire_on_update_data( unsigned long objId,  long pos );
+        void observer_fire_on_method_changed( unsigned long objId, long pos );
+        void observer_fire_on_event( unsigned long objId, unsigned long event, long pos );
 
 	private:
         // ACE_Task

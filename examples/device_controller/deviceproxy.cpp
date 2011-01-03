@@ -264,7 +264,7 @@ DeviceProxy::handle_data( unsigned long clsid, TAO_InputCDR& cdr )
         pTask_->dispatch_debug( o.str(), name() );
 
 		/// SignalObserver debug
-		pTask_->device_update_data();
+        // pTask_->device_update_data();
     } else if ( clsid == TOFConstants::ClassID_ProfileData ) {
         size_t size = ( cdr.length() - adportable::protocol::LifeCycle::wr_offset() ) / 4;
 		std::wostringstream o;

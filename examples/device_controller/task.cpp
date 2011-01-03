@@ -481,7 +481,7 @@ Task::dispatch_command( ACE_Message_Block * mblk )
         log.dump( mb->length(), mb->rd_ptr() );
         log << " sendto: " << it->first;
 
-        bool res = it->second->sendto( cdr.begin() );
+        it->second->sendto( cdr.begin() );
 	}
 }
 
@@ -575,6 +575,7 @@ Task::device_update_notification( unsigned long clsId )
 	}
 }
 
+#if 0
 void
 Task::device_update_data( /* args to do */ )
 {
@@ -590,6 +591,7 @@ Task::device_update_data( /* args to do */ )
 		//oneway void OnEvent( in unsigned long event, in long pos );
 	}
 }
+#endif
 
 void
 Task::controller_update_notification( unsigned long clsId )
@@ -663,27 +665,27 @@ Task::push_profile_data( ACE_Message_Block * mb )
 }
 
 void
-Task::observer_fire_on_update_data( long pos )
+Task::observer_fire_on_update_data( unsigned long objId, long pos )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     for ( observer_events_vector_type::iterator it = obegin(); it != oend(); ++it )
-        it->cb_->OnUpdateData( pos );
+        it->cb_->OnUpdateData( objId, pos );
 }
 
 void
-Task::observer_fire_on_method_changed( long pos )
+Task::observer_fire_on_method_changed( unsigned long objId, long pos )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     for ( observer_events_vector_type::iterator it = obegin(); it != oend(); ++it )
-        it->cb_->OnMethodChanged( pos );
+        it->cb_->OnMethodChanged( objId, pos );
 }
 
 void
-Task::observer_fire_on_event( unsigned long event, long pos )
+Task::observer_fire_on_event( unsigned long objId, unsigned long event, long pos )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     for ( observer_events_vector_type::iterator it = obegin(); it != oend(); ++it )
-        it->cb_->OnEvent( event, pos );
+        it->cb_->OnEvent( objId, event, pos );
 }
 
 ///////////////////////////////////////////////////////////////
