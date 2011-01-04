@@ -44,6 +44,9 @@
 #include "observer_i.h"
 #include "manager_i.h"
 #include <acewrapper/orbservant.h>
+#if defined _DEBUG
+# include <iostream>
+#endif
 
 using namespace adcontroller;
 
@@ -165,7 +168,7 @@ iBroker::configComplete()
 			acewrapper::scoped_mutex_t<> lock( mutex_ );
 			oproxies_.push_back( poProxy );
 
-			// add source into the Cache
+			// add source into the Cache (1st layer siblings)
 			masterObserver->addSibling( poProxy->getObject() );
 		}
 
@@ -268,6 +271,9 @@ iBroker::getStatusBeging()
 bool
 iBroker::observer_update_data( unsigned long objid, long pos )
 {
+#if defined _DEBUG
+    std::cout << "\tiBroker::observer_update_data(" << objid << ", " << pos << ")" << std::endl;
+#endif
     ACE_Message_Block * mb = new ACE_Message_Block(128);
     unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
     int n = 0;
@@ -282,6 +288,9 @@ iBroker::observer_update_data( unsigned long objid, long pos )
 bool
 iBroker::observer_update_method( unsigned long objid, long pos )
 {
+#if defined _DEBUG
+    std::cout << "\toBroker::observer_update_method(" << objid << ", " << pos << ")" << std::endl;
+#endif
     ACE_Message_Block * mb = new ACE_Message_Block(128);
     unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
     int n = 0;

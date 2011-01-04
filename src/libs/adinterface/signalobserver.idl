@@ -40,6 +40,16 @@ module SignalObserver {
 		, eDIAGNOSTIC  // events, LC flow/pressure profile, column oven temp profile etc.
     };
 
+    enum eSPECTROMETER {
+        eUnknownSpectrometer
+        , eMassSpectrometer
+        , eUVSpectrometer
+        , eCDSpectrometer
+        , eIRSpectrometer
+        , eRamanSpectrometer
+        , eFluorescenceSpectrometer 
+    };
+
     enum eUpdateFrequency {
         Realtime
         , Friquent
@@ -49,9 +59,10 @@ module SignalObserver {
     };
     
     struct Description {
+        eTRACE_METHOD trace_method;
+        eSPECTROMETER spectrometer;
         wstring trace_id;  // unique name for the trace, can be used as 'data storage name'
         wstring trace_display_name;
-        eTRACE_METHOD trace_method;
         wstring axis_x_label;
         wstring axis_y_label;
         long axis_x_decimals;

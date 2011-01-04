@@ -70,6 +70,7 @@
 #include <QTextEdit>
 #include <QToolButton>
 #include <QMessageBox>
+#include <qdebug.h>
 
 #include <servant/servantplugin.h>
 #include <qtwrapper/qstring.h>
@@ -386,6 +387,7 @@ AcquirePlugin::actionConnect()
 				observer_ = session_->getObserver();
 				if ( ! CORBA::is_nil( observer_.in() ) ) {
 
+                    // connect only to 1st layer siblings ( := top shadow(cache) observer for each instrument )
 					SignalObserver::Observers_var siblings = observer_->getSiblings();
 					size_t nsize = siblings->length();
 
@@ -451,8 +453,15 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
     if ( CORBA::is_nil( tgt.in() ) )
         return;
 
+    SignalObserver::Description_var desc = tgt->getDescription();
+    CORBA::WString_var clsid = tgt->dataInterpreterClsid();
+#if defined _DEBUG && 0
+    std::cout << "\tacquirePlugin::handle_update_data(" << objId << ", " << pos << ")" << std::endl;
+#endif
+    //CORBA::WString_var traceId = desc->trace_id;
+    //SignalObserver::eTRACE_METHOD traceType = desc->trace_method;
+
     SignalObserver::DataReadBuffer_var rb;
-    CORBA::Boolean res;
     if ( tgt->readData( pos, rb ) ) {
         CORBA::WString_var name = tgt->dataInterpreterClsid();
         try {

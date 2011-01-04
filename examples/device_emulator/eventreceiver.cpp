@@ -26,9 +26,9 @@
 #include "eventreceiver.h"
 #include <acewrapper/mcasthandler.h>
 #include <acewrapper/dgramhandler.h>
-#pragma warning(disable:4996)
-#include <ace/Message_Block.h>
-#pragma warning(default:4996)
+# pragma warning(disable:4996)
+# include <ace/Message_Block.h>
+# pragma warning(default:4996)
 #include <iostream>
 #include <acewrapper/ace_string.h>
 #include <acewrapper/outputcdr.h>
@@ -68,7 +68,7 @@ QEventReceiver::handle_input( acewrapper::McastHandler& mcast, ACE_HANDLE )
 }
 
 int
-QEventReceiver::handle_timeout( const ACE_Time_Value& tv, const void * )
+QEventReceiver::handle_timeout( const ACE_Time_Value& /* tv */, const void * )
 {
    return 0;
 }

@@ -1,7 +1,27 @@
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+// -*- C++ -*-
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this
+** file in accordance with the ScienceLiaison Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 #include "TOFTask.h"
 #include "tofsession_i.h"
@@ -24,6 +44,8 @@
 #include "traceobserver_i.h"
 #include <sstream>
 #include <boost/lexical_cast.hpp>
+#include <boost/format.hpp>
+#include <adportable/spectrum_processor.h>
 
 #pragma warning (disable : 4996 )
 # include "tofcontrollerC.h"
@@ -160,11 +182,10 @@ TOFTask::getObserver()
 		} while(0);
 
 		// add mass chromatograms
-		std::wstring trace_id = L"MS.CHROMATOGRAM.";
 		for ( int i = 0; i < 3; ++i ) {
 			boost::shared_ptr< traceObserver_i > p( new traceObserver_i( *this ) );
-			desc.trace_display_name = CORBA::wstring_dup( L"Chromatogram.%1%" );
-			desc.trace_id = CORBA::wstring_dup( (trace_id + boost::lexical_cast<std::wstring>(i + 1)).c_str() );
+            desc.trace_display_name = CORBA::wstring_dup( ( boost::wformat( L"Example Chromatogram.%1%" ) % (i + 1) ).str().c_str() );
+            desc.trace_id = CORBA::wstring_dup( (boost::wformat( L"MS.CHROMATOGRAM.%1%" ) % (i + 1) ).str().c_str() );
 			p->setDescription( desc );
 			pTraceObserverVec_.push_back( p );
 			do {
@@ -615,8 +636,31 @@ TOFTask::getAnalyzerDeviceData( TOFInstrument::AnalyzerDeviceData& d ) const
 void
 TOFTask::push_profile_data( ACE_Message_Block * mb )
 {
+    TAO_InputCDR cdr( mb->rd_ptr(), sizeof(unsigned long) * 32 );
+    
+    TOFInstrument::AveragerData data;
+    CORBA::ULong clsid;
+    cdr >> clsid;
+    assert( clsid == TOFConstants::ClassID_ProfileData );
+    cdr >> data;
+    unsigned char * pchar = reinterpret_cast<unsigned char *>( mb->rd_ptr() );
+    pchar += 32 * sizeof(long);
+
+    boost::scoped_array< long > pLong( new long [ data.nbrSamples ] );
+    for ( size_t i = 0; i < data.nbrSamples; ++i ) {
+        pLong[i] = pchar[0] << 16 | pchar[1] << 8 | pchar[2];
+        if ( pchar[0] & 0x80 )
+            pLong[i] |= 0xff000000;
+        pchar += 3;
+    }
+    double dbase(0), rms(0);
+    double tic = adportable::spectrum_processor::tic( data.nbrSamples, pLong.get(), dbase, rms );
+
     if ( pObserver_ )
         pObserver_->push_profile_data( mb );
+
+    if ( pTraceObserverVec_.size() >= 1 )
+        pTraceObserverVec_[0]->push_trace_data( data.npos, tic, data.wellKnownEvents );
 }
 
 void

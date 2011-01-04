@@ -160,7 +160,7 @@ Task::getObserver()
 			CORBA::Object_ptr obj = poa->servant_to_reference( p.get() );
 			pObserver_->addSibling( SignalObserver::Observer::_narrow( obj ) );
 		} while(0);
-
+#if 0
 		// add mass chromatograms
 		std::wstring trace_id = L"MS.CHROMATOGRAM.";
 		for ( int i = 0; i < 3; ++i ) {
@@ -174,6 +174,7 @@ Task::getObserver()
 				pObserver_->addSibling( SignalObserver::Observer::_narrow( obj ) );
 			} while(0);
 		}
+#endif
 	}
 	CORBA::Object_ptr obj = poa->servant_to_reference( pObserver_.get() );
 	return SignalObserver::Observer::_narrow( obj );

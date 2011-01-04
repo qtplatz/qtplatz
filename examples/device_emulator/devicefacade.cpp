@@ -661,6 +661,7 @@ DeviceFacade::dump_dgram_recv( const adportable::protocol::LifeCycleData& lcd
 
     if ( adportable::protocol::LifeCycleHelper::command( lcd ) == adportable::protocol::DATA ) {
         const adportable::protocol::LifeCycle_Data& data = boost::get< adportable::protocol::LifeCycle_Data >( lcd );
+        (void)data;
         ACE_InputCDR temp = cdr;
         ACE_CDR::ULong cmdId, clsId;
         temp.read_ulong( cmdId );

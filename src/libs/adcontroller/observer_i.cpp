@@ -157,14 +157,14 @@ observer_i::getSiblings (void)
 observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 {
 	internal::sibling_data data;
-    data.observer_ = SignalObserver::Observer::_duplicate( observer );
+    data.observer_ = SignalObserver::Observer::_duplicate( observer ); // real observer points to instrumets
 
     acewrapper::scoped_mutex_t<> lock( mutex_ );
 
 	if ( ! CORBA::is_nil( data.observer_ ) ) {
 
 		data.objId_ = data.observer_->objId();
-		data.pCache_i_.reset( new observer_i( data.observer_ ) );
+		data.pCache_i_.reset( new observer_i( data.observer_ ) );  // shadow (cache) observer
 		if ( data.pCache_i_ ) {
 			data.pCache_i_->assign_objId( data.objId_ );
 			PortableServer::POA_var poa = adcontroller::singleton::manager::instance()->poa();
