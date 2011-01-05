@@ -100,13 +100,46 @@ void
 traceObserver_i::uptime ( ::CORBA::ULongLong_out usec )
 {
 	ACE_UNUSED_ARG( usec );
-}
+} 
 
 ::CORBA::Boolean
-traceObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer)
+traceObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer )
 {
-	ACE_UNUSED_ARG( pos );
-	ACE_UNUSED_ARG( dataReadBuffer );
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+
+    if ( pos < 0 )
+        pos = fifo_.back();
+
+    if ( !fifo_.empty() && ( fifo_.front() <= pos && pos <= fifo_.back() ) ) {
+
+        std::deque< cache_item >::iterator it = std::lower_bound( fifo_.begin(), fifo_.end(), pos );
+
+        if ( it != fifo_.end() ) {
+            SignalObserver::DataReadBuffer_var res = new SignalObserver::DataReadBuffer;
+
+            res->pos = it->pos_;
+            res->events = it->wellKnownEvents_;
+            // res->method <<= avgr;
+            size_t ndata = std::distance( it, fifo_.end() );
+            res->ndata = ndata;
+            // res->uptime = data.usec;
+            res->array.length( (sizeof(double) * ndata) / sizeof(long) );
+            double * p = reinterpret_cast<double *>( res->array.get_buffer() );
+            size_t count = 0;
+            for ( ; it != fifo_.end(); ++it ) {
+                cache_item& d = *it;
+                *p++ = d.value_;
+                ++count;
+                if ( d.wellKnownEvents_ != res->events ) {
+                    res->array.length( sizeof(double) * count / sizeof(long) );    
+                    res->ndata = count;
+                    break;
+                }
+            }
+            dataReadBuffer = res._retn();
+            return true;
+        }
+    }
 	return false;
 }
 
@@ -128,7 +161,7 @@ traceObserver_i::push_trace_data( long pos, double value, unsigned long events )
         // push data 
         fifo_.push_back( cache_item( pos, value, events ) );
         // erase obsolete data
-        if ( fifo_.size() > 64 )
+        if ( fifo_.size() > 512 )
             fifo_.pop_front();
     } while(0);
 

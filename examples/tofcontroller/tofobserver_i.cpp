@@ -139,7 +139,7 @@ tofObserver_i::uptime ( ::CORBA::ULongLong_out usec )
 }
 
 ::CORBA::Boolean
-tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer)
+tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
 
@@ -150,6 +150,7 @@ tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_ou
         int noffs = pos - fifo_.front().pos_;
         if ( noffs < 0 || unsigned(noffs) >= fifo_.size() )
             return false;
+
         cache_item& d = fifo_[ noffs ];
         if ( d.pos_ != pos ) { // in case if some data lost
             std::deque< cache_item >::iterator it = std::lower_bound( fifo_.begin(), fifo_.end(), pos );

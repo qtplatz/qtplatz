@@ -444,6 +444,49 @@ AcquirePlugin::actionRunStop()
 }
 
 void
+AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
+                               , const adcontrols::MassSpectrometer& spectrometer
+                               , const adcontrols::DataInterpreter& dataInterpreter )
+{
+    adcontrols::MassSpectrum ms;
+    size_t idData = 0;
+    while ( dataInterpreter.translate( ms, rb, spectrometer, idData++ ) ) {
+        adcontrols::CentroidMethod method;
+        method.centroidAreaIntensity( false ); // take hight
+        adcontrols::CentroidProcess peak_detector( method );
+        peak_detector( ms );
+
+#  ifdef FFT
+        adcontrols::MassSpectrum ms2 = ms;
+        do {
+            unsigned int tic = ::GetTickCount();
+            reduceNoise( ms2 );
+            int time = GetTickCount() - tic;
+            std::wostringstream o;
+            o << L"fft " << time << L"ms for" << ms2.size() << L"pts";
+            ms2.addDescription( adcontrols::Description( L"acquire.fft", o.str() ) );
+        } while(0);
+#  endif
+        adcontrols::MassSpectrum centroid;
+        peak_detector.getCentroidSpectrum( centroid );
+
+        pImpl_->spectrumPlot_->setData( ms, centroid );
+#  ifdef FFT
+        pImpl_->spectrumPlot_->setData( ms, ms2 );
+#  endif
+    } 
+}
+
+void
+AcquirePlugin::readTrace( const SignalObserver::DataReadBuffer& rb
+                         , const adcontrols::DataInterpreter& dataInterpreter )
+{
+    adcontrols::Chromatogram c;
+    while ( dataInterpreter.translate( c, rb ) )
+        ;
+}
+
+void
 AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 {
     ACE_UNUSED_ARG( objId );
@@ -455,47 +498,19 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 
     SignalObserver::Description_var desc = tgt->getDescription();
     CORBA::WString_var clsid = tgt->dataInterpreterClsid();
-#if defined _DEBUG && 0
-    std::cout << "\tacquirePlugin::handle_update_data(" << objId << ", " << pos << ")" << std::endl;
-#endif
-    //CORBA::WString_var traceId = desc->trace_id;
-    //SignalObserver::eTRACE_METHOD traceType = desc->trace_method;
 
+    CORBA::WString_var name = tgt->dataInterpreterClsid();
     SignalObserver::DataReadBuffer_var rb;
+
     if ( tgt->readData( pos, rb ) ) {
-        CORBA::WString_var name = tgt->dataInterpreterClsid();
         try {
             const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() ); // L"InfiTOF"
             const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
-
-            adcontrols::MassSpectrum ms;
-            size_t idData = 0;
-            while ( dataInterpreter.translate( ms, rb, spectrometer, idData++ ) ) {
-
-                adcontrols::CentroidMethod method;
-                method.centroidAreaIntensity( false ); // take hight
-                adcontrols::CentroidProcess peak_detector( method );
-                peak_detector( ms );
-
-#  ifdef FFT
-                adcontrols::MassSpectrum ms2 = ms;
-                do {
-                    unsigned int tic = ::GetTickCount();
-                    reduceNoise( ms2 );
-                    int time = GetTickCount() - tic;
-                    std::wostringstream o;
-                    o << L"fft " << time << L"ms for" << ms2.size() << L"pts";
-                    ms2.addDescription( adcontrols::Description( L"acquire.fft", o.str() ) );
-                } while(0);
-#  endif
-
-                adcontrols::MassSpectrum centroid;
-                peak_detector.getCentroidSpectrum( centroid );
-
-                pImpl_->spectrumPlot_->setData( ms, centroid );
-#  ifdef FFT
-                pImpl_->spectrumPlot_->setData( ms, ms2 );
-#  endif
+            if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
+                && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
+                    readMassSpectra( rb, spectrometer, dataInterpreter );
+            } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
+                readTrace( rb, dataInterpreter );
             }
         } catch ( std::exception& ex ) {
             QMessageBox::critical( 0, "acquireplugin::handle_update_data", ex.what() );

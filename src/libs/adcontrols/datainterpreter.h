@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -39,6 +35,7 @@ namespace adcontrols {
 
     class MassSpectrum;
     class MassSpectrometer;
+    class Chromatogram;
 
     class ADCONTROLSSHARED_EXPORT DataInterpreter {
     public:
@@ -48,6 +45,10 @@ namespace adcontrols {
                                , const SignalObserver::DataReadBuffer&
                                , const adcontrols::MassSpectrometer&
                                , size_t idData ) const = 0;
+
+        virtual bool translate( Chromatogram&
+                               , const SignalObserver::DataReadBuffer& ) const = 0;
+
     };
 
 }

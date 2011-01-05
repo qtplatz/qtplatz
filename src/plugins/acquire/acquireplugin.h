@@ -45,6 +45,11 @@ namespace adplugin {
    class QObserverEvents_i;
 }
 
+namespace adcontrols {
+   class MassSpectrometer;
+   class DataInterpreter;
+}
+
 namespace Acquire {
     namespace internal {
 
@@ -107,6 +112,12 @@ namespace Acquire {
             std::vector< std::wstring > trace_descriptions_;
             QComboBox * traceBox_;
             void populate( SignalObserver::Observer_var& );
+
+            void readMassSpectra( const SignalObserver::DataReadBuffer&
+                , const adcontrols::MassSpectrometer&
+                , const adcontrols::DataInterpreter& dataInterpreter );
+            void readTrace( const SignalObserver::DataReadBuffer&
+                , const adcontrols::DataInterpreter& dataInterpreter );
 
         public:
             static QToolButton * toolButton( QAction * action );
