@@ -64,7 +64,7 @@ QObserverEvents_i::OnClose()
 void
 QObserverEvents_i::OnUpdateData( CORBA::ULong objId, CORBA::Long pos )
 {
-#if defined _DEBUG
+#if defined _DEBUG && 0 // emit UpdateData
     std::cout << "emit UpdateData(" << objId << ", " << pos << ")" << std::endl;
 #endif
 	emit signal_UpdateData( objId, pos );

@@ -62,9 +62,10 @@ namespace adcontroller {
 		virtual ::CORBA::WChar * dataInterpreterClsid (void);
 		///
         void populate_siblings();
+        bool isChild( unsigned long objid );
 		bool invoke_update_data( unsigned long objid, long pos );
 		bool invoke_method_changed( unsigned long objid, long pos );
-		bool invoke_update_event( unsigned long objid, long pos, unsigned long event );
+		bool invoke_update_events( unsigned long objid, long pos, unsigned long events );
 
 	private:
 		typedef std::vector<internal::observer_events_data> observer_events_vector_type;

@@ -271,7 +271,7 @@ iBroker::getStatusBeging()
 bool
 iBroker::observer_update_data( unsigned long objid, long pos )
 {
-#if defined _DEBUG
+#if defined _DEBUG && 0
     std::cout << "\tiBroker::observer_update_data(" << objid << ", " << pos << ")" << std::endl;
 #endif
     ACE_Message_Block * mb = new ACE_Message_Block(128);
@@ -288,7 +288,7 @@ iBroker::observer_update_data( unsigned long objid, long pos )
 bool
 iBroker::observer_update_method( unsigned long objid, long pos )
 {
-#if defined _DEBUG
+#if defined _DEBUG && 0
     std::cout << "\toBroker::observer_update_method(" << objid << ", " << pos << ")" << std::endl;
 #endif
     ACE_Message_Block * mb = new ACE_Message_Block(128);
@@ -520,9 +520,9 @@ iBroker::handle_observer_update_method( unsigned long id, long pos )
 }
 
 void
-iBroker::handle_observer_update_event( unsigned long id, long pos, unsigned long event )
+iBroker::handle_observer_update_event( unsigned long id, long pos, unsigned long events )
 {
-	pMasterObserver_->invoke_update_event( id, pos, event );
+	pMasterObserver_->invoke_update_events( id, pos, events );
 }
 
 

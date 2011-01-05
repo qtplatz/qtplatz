@@ -97,7 +97,6 @@ observer_i::assign_objId( CORBA::ULong oid )
     objId_ = oid;
 }
 
-
 ::CORBA::Boolean
 observer_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
 						, ::SignalObserver::eUpdateFrequency frequency
@@ -203,19 +202,15 @@ observer_i::populate_siblings()
 {
 	if ( CORBA::is_nil( source_observer_ ) )
 		return;
+
 	SignalObserver::Observers_var sourceVec = source_observer_->getSiblings();
 	if ( sourceVec.ptr() == 0 )
 		return;
+
 	size_t nsize = sourceVec->length();
-	for ( size_t i = 0; i < nsize; ++i ) {
-#if defined _DEBUG && 0
-        unsigned long oid = sourceVec[i]->objId();
-		SignalObserver::Observers_var vec = sourceVec[i]->getSiblings();
-		if ( vec.ptr() )
-			size_t nn = vec->length();
-#endif
-		addSibling( sourceVec[i] );
-	}
+
+	for ( size_t i = 0; i < nsize; ++i )
+        addSibling( sourceVec[i] );
 }
 
 void
@@ -255,11 +250,6 @@ namespace adcontroller {
 				oe.OnMethodChanged( objId, pos );
 			}
 		};
-		struct fire_on_event {
-			static void fire( SignalObserver::ObserverEvents& oe, unsigned long objId, long pos, unsigned long e ) {
-				oe.OnEvent( objId, pos, e );
-			}
-		};
 
 		template<class T> struct invoke_event_fire {
             unsigned long objId_;
@@ -276,61 +266,70 @@ namespace adcontroller {
 }
 
 bool
+observer_i::isChild( unsigned long objid )
+{
+    for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
+        if ( it->objId_ == objid )
+            return true;
+    }
+
+    for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it )
+        if ( it->pCache_i_->isChild( objid ) )
+            return true;
+
+    return false;
+}
+
+bool
 observer_i::invoke_update_data( unsigned long objid, long pos )
 {
-	if ( objId_ == objid ) {
-		using namespace adcontroller::internal;
-		std::for_each ( events_begin(), events_end(), invoke_event_fire<fire_on_update_data>( objid, pos ) );
-		return true;
-	}
+    for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
 
-	for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
-		if ( it->pCache_i_->invoke_update_data( objid, pos ) )
-			return true;
-	}
-
+        if ( ( it->objId_ == objid ) || it->pCache_i_->isChild( objid ) ) {
+            using namespace adcontroller::internal;
+            std::for_each ( it->pCache_i_->events_begin(), it->pCache_i_->events_end(), invoke_event_fire<fire_on_update_data>( objid, pos ) );
+            return true;
+        }
+    }
 	return false;
 }
 
 bool
 observer_i::invoke_method_changed( unsigned long objid, long pos )
 {
-	if ( objId_ == objid ) {
-		using namespace adcontroller::internal;
-		std::for_each ( events_begin(), events_end(), invoke_event_fire<fire_on_method_changed>( objid, pos ) );
-		return true;
-	}
+    for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
 
-	for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
-		if ( it->pCache_i_->invoke_method_changed( objid, pos ) )
-			return true;
-	}
+        if ( ( it->objId_ == objid ) || it->pCache_i_->isChild( objid ) ) {
+            using namespace adcontroller::internal;
+            std::for_each ( it->pCache_i_->events_begin(), it->pCache_i_->events_end(), invoke_event_fire<fire_on_method_changed>( objid, pos ) );
+            return true;
+        }
+    }
 	return false;
 }
 
 bool
-observer_i::invoke_update_event( unsigned long objid, long pos, unsigned long event )
+observer_i::invoke_update_events( unsigned long objid, long pos, unsigned long events )
 {
-	struct fire_event {
+	struct fire_events {
         unsigned long objId_;
 		long pos_;
-        unsigned long event_;
-		fire_event( unsigned long objId, long pos, unsigned long event ) : objId_(objId), pos_(pos), event_(event) {}
+        unsigned long events_;
+        fire_events( unsigned long objId, long pos, unsigned long events ) : objId_(objId), pos_(pos), events_(events) {}
 		void operator()( internal::observer_events_data& d ) {
-			if ( ! CORBA::is_nil( d.events_.in() ) )
-                d.events_->OnEvent( objId_, pos_, event_ );
+            if ( ! CORBA::is_nil( d.events_.in() ) )
+                d.events_->OnEvent( objId_, pos_, events_ );
 		}
 	};
 
-	if ( objId_ == objid ) {
-		std::for_each ( events_begin(), events_end(), fire_event( objid, pos, event ) );
-		return true;
-	}
+    for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
 
-	for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
-		if ( it->pCache_i_->invoke_update_event( objid, pos, event ) )
-			return true;
-	}
+        if ( ( it->objId_ == objid ) || it->pCache_i_->isChild( objid ) ) {
+            using namespace adcontroller::internal;
+            std::for_each ( it->pCache_i_->events_begin(), it->pCache_i_->events_end(), fire_events( objid, pos, events ) );
+            return true;
+        }
+    }
 	return false;
 }
 
