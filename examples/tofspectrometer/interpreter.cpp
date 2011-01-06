@@ -32,6 +32,7 @@
 
 #include <adcontrols/massspectrometer.h>
 #include <adcontrols/massspectrum.h>
+#include <adcontrols/traceaccessor.h>
 #include <adcontrols/descriptions.h>
 #include <sstream>
 #include <boost/format.hpp>
@@ -104,3 +105,9 @@ Interpreter::translate( adcontrols::MassSpectrum& ms
     return false;
 }
 
+bool
+Interpreter::translate( adcontrols::TraceAccessor& accessor
+                       , const SignalObserver::DataReadBuffer& rb ) const
+{
+    return false;
+}

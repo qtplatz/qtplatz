@@ -35,7 +35,7 @@ namespace adcontrols {
 
     class MassSpectrometer;
     class MassSpectrum;
-    class Chromatogram;
+    class TraceAccessor;
 
     class ADCONTROLSSHARED_EXPORT DataInterpreter {
     public:
@@ -46,7 +46,7 @@ namespace adcontrols {
                                , const adcontrols::MassSpectrometer&
                                , size_t idData ) const = 0;
 
-        virtual bool translate( Chromatogram&
+        virtual bool translate( TraceAccessor&
                                , const SignalObserver::DataReadBuffer& ) const = 0;
 
     };

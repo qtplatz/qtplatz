@@ -131,7 +131,37 @@ module TOFInstrument {
         unsigned long wellKnownEvents;     // 7 <- Events
         unsigned long resv[32 - 8];
     };
-    
+
+    struct SpectrumPeakInfo {
+        float monitor_range_lower;
+        float monitor_range_upper;
+        double peakMass;
+        float peakHeight;
+        float peakArea;
+        float resolvingPower;
+        float resolvingPowerX1;
+        float resolvingPowerX2;
+        float resolvingPowerHH;
+    };
+    typedef sequence< SpectrumPeakInfo > SpectrumPeakInfoVec;
+
+    struct SpectrumProcessedData {
+        float tic;
+        float spectralBaselineLevel;
+        SpectrumPeakInfoVec info;
+    };
+
+    struct TraceDescriptor {
+        unsigned long wellKnownEvents;
+        unsigned long ndata;
+        unsigned long uptime;
+        unsigned long timeSinceInject;
+        unsigned long sampInterval;
+        unsigned long dataType;
+        // unsigned long channels;  
+        // unsigned long data[1]; // ndata * nchann
+    };
+
     interface TofSession : Instrument::Session {
         wstring tof_software_revision();
         void tof_debug( in wstring text, in wstring key );

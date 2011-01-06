@@ -659,8 +659,11 @@ TOFTask::push_profile_data( ACE_Message_Block * mb )
     if ( pObserver_ )
         pObserver_->push_profile_data( mb );
 
-    if ( pTraceObserverVec_.size() >= 1 )
-        pTraceObserverVec_[0]->push_trace_data( data.npos, tic, data.wellKnownEvents );
+    if ( pTraceObserverVec_.size() >= 1 ) {
+        TOFInstrument::TraceDescriptor desc;
+        desc.wellKnownEvents = data.wellKnownEvents;
+        pTraceObserverVec_[0]->push_trace_data( data.npos, tic, desc );
+    }
 }
 
 void

@@ -90,6 +90,7 @@
 #include <boost/format.hpp>
 #include <adcontrols/centroidprocess.h>
 #include <adcontrols/centroidmethod.h>
+#include <adcontrols/traceaccessor.h>
 #include <algorithm>
 #include <cmath>
 #include <adportable/fft.h>
@@ -481,8 +482,8 @@ void
 AcquirePlugin::readTrace( const SignalObserver::DataReadBuffer& rb
                          , const adcontrols::DataInterpreter& dataInterpreter )
 {
-    adcontrols::Chromatogram c;
-    while ( dataInterpreter.translate( c, rb ) )
+    adcontrols::TraceAccessor accessor;
+    while ( dataInterpreter.translate( accessor, rb ) )
         ;
 }
 

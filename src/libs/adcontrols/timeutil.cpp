@@ -11,6 +11,18 @@ seconds_t::seconds_t( const seconds_t& t ) : seconds( t.seconds )
 {
 }
 
+seconds_t::seconds_t( const minutes_t& t ) : seconds( timeutil::toSeconds( t ) )
+{
+}
+
+minutes_t::minutes_t( const minutes_t& t ) : minutes( t.minutes )
+{
+}
+
+minutes_t::minutes_t( const seconds_t& t ) : minutes( timeutil::toMinutes( t ).minutes )
+{
+}
+
 seconds_t
 timeutil::toSeconds( const minutes_t& m )
 {

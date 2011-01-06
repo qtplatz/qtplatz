@@ -48,7 +48,7 @@ namespace adcontrols {
                     return false;
             }
 
-            virtual bool translate( adcontrols::Chromatogram&, const SignalObserver::DataReadBuffer& ) const {
+            virtual bool translate( adcontrols::TraceAccessor&, const SignalObserver::DataReadBuffer& ) const {
                 return false;
             }
         };

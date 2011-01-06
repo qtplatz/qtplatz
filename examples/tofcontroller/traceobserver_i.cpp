@@ -115,13 +115,14 @@ traceObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_
 
         if ( it != fifo_.end() ) {
             SignalObserver::DataReadBuffer_var res = new SignalObserver::DataReadBuffer;
-
+            
             res->pos = it->pos_;
-            res->events = it->wellKnownEvents_;
-            // res->method <<= avgr;
+            TOFInstrument::TraceDescriptor desc = it->desc_;
+            res->events = desc.wellKnownEvents;
+      
             size_t ndata = std::distance( it, fifo_.end() );
             res->ndata = ndata;
-            // res->uptime = data.usec;
+
             res->array.length( (sizeof(double) * ndata) / sizeof(long) );
             double * p = reinterpret_cast<double *>( res->array.get_buffer() );
             size_t count = 0;
@@ -129,7 +130,7 @@ traceObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_
                 cache_item& d = *it;
                 *p++ = d.value_;
                 ++count;
-                if ( d.wellKnownEvents_ != res->events ) {
+                if ( ( desc.wellKnownEvents != it->desc_.wellKnownEvents ) || ( desc.sampInterval != it->desc_.sampInterval ) ) {
                     res->array.length( sizeof(double) * count / sizeof(long) );    
                     res->ndata = count;
                     break;
@@ -149,24 +150,24 @@ traceObserver_i::dataInterpreterClsid (void)
 }
 
 void
-traceObserver_i::push_trace_data( long pos, double value, unsigned long events )
+traceObserver_i::push_trace_data( long pos, double value, const TOFInstrument::TraceDescriptor& desc )
 {
     unsigned long prevEvents(0);
     do {
         acewrapper::scoped_mutex_t<> lock( mutex_ );
         // get previous events
         if ( ! fifo_.empty() )
-            prevEvents = fifo_.back().wellKnownEvents_;
+            prevEvents = fifo_.back().desc_.wellKnownEvents;
         // push data 
-        fifo_.push_back( cache_item( pos, value, events ) );
+        fifo_.push_back( cache_item( pos, value, desc ) );
         // erase obsolete data
         if ( fifo_.size() > 512 )
             fifo_.pop_front();
     } while(0);
 
     task_.observer_fire_on_update_data( objId_, pos );
-    if ( prevEvents != events )
-        task_.observer_fire_on_event( objId_, events, pos );
+    if ( prevEvents != desc.wellKnownEvents )
+        task_.observer_fire_on_event( objId_, desc.wellKnownEvents, pos );
 }
 
 /////////////////////// cache item ////////////////////////////
@@ -176,15 +177,16 @@ traceObserver_i::cache_item::~cache_item()
 }
 
 traceObserver_i::cache_item::cache_item( long pos, double value
-                                        , unsigned long events ) : pos_(pos)
-                                                                 , value_(value)
-                                                                 , wellKnownEvents_(events)
+                                        , const TOFInstrument::TraceDescriptor& desc ) 
+                                        : pos_(pos)
+                                        , value_(value)
+                                        , desc_(desc) 
 {
 }
 
 traceObserver_i::cache_item::cache_item( const cache_item& t ) : pos_(t.pos_)
                                                                , value_(t.value_)
-                                                               , wellKnownEvents_(t.wellKnownEvents_)
+                                                               , desc_( t.desc_ )
 {
 }
 
