@@ -7,6 +7,10 @@
 
 using namespace adcontrols;
 
+seconds_t::seconds_t( const seconds_t& t ) : seconds( t.seconds )
+{
+}
+
 seconds_t
 timeutil::toSeconds( const minutes_t& m )
 {

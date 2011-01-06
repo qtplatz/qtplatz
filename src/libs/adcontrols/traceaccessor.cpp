@@ -104,7 +104,7 @@ TraceAccessor::getMinimumTime() const
 }
 
 void
-TraceAccessor::setMinimumTime( const seconds_t& value ) const
+TraceAccessor::setMinimumTime( const seconds_t& value )
 {
     minTime_ = value;
 }
@@ -112,7 +112,7 @@ TraceAccessor::setMinimumTime( const seconds_t& value ) const
 void
 TraceAccessor::push_back( double value, unsigned long events, const seconds_t& s )
 {
-    isConstantSamplingInterval_ = false;
+    isConstantSampleInterval_ = false;
     traceX_.push_back( s.seconds );
     traceY_.push_back( value );
     events_.push_back( events );

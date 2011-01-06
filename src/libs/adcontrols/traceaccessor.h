@@ -50,7 +50,7 @@ namespace adcontrols {
         unsigned long sampInterval() const;
 
         const seconds_t& getMinimumTime() const;
-        void setMinimumTime( const seconds_t& ) const;
+        void setMinimumTime( const seconds_t& );
         void push_back( double value, unsigned long events, const seconds_t& );
         void push_back( double value, unsigned long events );
 

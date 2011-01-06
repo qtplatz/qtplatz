@@ -36,7 +36,8 @@
 namespace adcontrols {
 
     struct ADCONTROLSSHARED_EXPORT seconds_t { 
-        seconds_t( double t = 0 ) : seconds(t) {} 
+        seconds_t( double t = 0 ) : seconds(t) {}
+        seconds_t( const seconds_t& );
         double seconds; 
         operator double () const { return seconds; }
     private:
