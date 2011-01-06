@@ -37,6 +37,10 @@ namespace tofspectrometer {
                                , const SignalObserver::DataReadBuffer&
                                , const adcontrols::MassSpectrometer&
                                , size_t idData ) const;
+
+        virtual bool translate( adcontrols::Chromatogram&
+                               , const SignalObserver::DataReadBuffer& ) const;
+
     };
 
 }

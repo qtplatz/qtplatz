@@ -40,7 +40,8 @@ SOURCES +=  dataplot.cpp \
     dataplotwidget.cpp \
     chromatogramwidget.cpp \
     spectrumwidget.cpp \
-    tracewidget.cpp
+    tracewidget.cpp \
+    traceaccessor.cpp
 
 HEADERS += dataplot.h \
     axis.h \
@@ -71,7 +72,8 @@ HEADERS += dataplot.h \
     spectrumwidget.h \
     tracewidget.h \
     adwidgets.h \
-    colorindices.h
+    colorindices.h \
+    traceaccessor.h
 
 include(../../boost.pri)
 

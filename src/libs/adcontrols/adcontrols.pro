@@ -52,7 +52,8 @@ SOURCES += massspectrum.cpp \
     timeutil.cpp \
     theoreticalplate.cpp \
     peakasymmetry.cpp \
-    peakresolution.cpp
+    peakresolution.cpp \
+    traceaccessor.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -92,7 +93,8 @@ HEADERS += massspectrum.h\
     timeutil.h \
     theoreticalplate.h \
     peakasymmetry.h \
-    peakresolution.h
+    peakresolution.h \
+    traceaccessor.h
 
 OTHER_FILES += \
     adcontrols.pri

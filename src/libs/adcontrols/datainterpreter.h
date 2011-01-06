@@ -33,8 +33,8 @@ namespace SignalObserver {
 
 namespace adcontrols {
 
-    class MassSpectrum;
     class MassSpectrometer;
+    class MassSpectrum;
     class Chromatogram;
 
     class ADCONTROLSSHARED_EXPORT DataInterpreter {

@@ -88,11 +88,10 @@ traceObserver_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 }
 
 ::SignalObserver::Observer *
-traceObserver_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
+traceObserver_i::findObserver( CORBA::ULong /* objId */, CORBA::Boolean /* recursive */)
 {
-    ACE_UNUSED_ARG( objId );
-	ACE_UNUSED_ARG( recursive );
-    return 0;  // this class never has sibling
+    // this class does not has any siblings
+    return 0;
 }
 
 
