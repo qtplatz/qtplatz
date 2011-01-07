@@ -418,8 +418,8 @@ AcquirePlugin::populate( SignalObserver::Observer_var& observer )
     SignalObserver::Observers_var children = observer->getSiblings();
     for ( size_t i = 0; i < children->length(); ++i ) {
         SignalObserver::Description_var secondLevelDesc = children[i]->getDescription();
-        std::wstring secondLevelName = children[i]->getDescription()->trace_display_name.in();
-        traceBox_->addItem( qtwrapper::qstring( L"   " + secondLevelName ) );
+        CORBA::WString_var secondLevelName = children[i]->getDescription()->trace_display_name.in();
+        traceBox_->addItem( qtwrapper::qstring( L"   " + std::wstring( secondLevelName ) ) );
     }
 }
 
