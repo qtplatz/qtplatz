@@ -653,16 +653,23 @@ TOFTask::push_profile_data( ACE_Message_Block * mb )
             pLong[i] |= 0xff000000;
         pchar += 3;
     }
-    double dbase(0), rms(0);
-    double tic = adportable::spectrum_processor::tic( data.nbrSamples, pLong.get(), dbase, rms );
-
     if ( pObserver_ )
         pObserver_->push_profile_data( mb );
 
+    double dbase(0), rms(0);
+    double tic = adportable::spectrum_processor::tic( data.nbrSamples, pLong.get(), dbase, rms );
+    TOFInstrument::SpectrumProcessedData procData;
+    procData.tic = float( tic );
+    procData.spectralBaselineLevel = float( dbase );
+    procData.uptime = data.uptime;
+
     if ( pTraceObserverVec_.size() >= 1 ) {
         TOFInstrument::TraceDescriptor desc;
+        desc.uptime = data.uptime;
+        desc.timeSinceInject = data.timeSinceInject;
         desc.wellKnownEvents = data.wellKnownEvents;
-        pTraceObserverVec_[0]->push_trace_data( data.npos, tic, desc );
+        desc.sampInterval = 1000; // 1s
+        pTraceObserverVec_[0]->push_trace_data( data.npos, procData, desc );
     }
 }
 

@@ -114,29 +114,24 @@ traceObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_
         std::deque< cache_item >::iterator it = std::lower_bound( fifo_.begin(), fifo_.end(), pos );
 
         if ( it != fifo_.end() ) {
-            SignalObserver::DataReadBuffer_var res = new SignalObserver::DataReadBuffer;
+            SignalObserver::DataReadBuffer_var rb = new SignalObserver::DataReadBuffer;
             
-            res->pos = it->pos_;
-            TOFInstrument::TraceDescriptor desc = it->desc_;
-            res->events = desc.wellKnownEvents;
-      
-            size_t ndata = std::distance( it, fifo_.end() );
-            res->ndata = ndata;
+            rb->pos = it->pos_;
+            const TOFInstrument::TraceDescriptor& desc = it->desc_;
 
-            res->array.length( (sizeof(double) * ndata) / sizeof(long) );
-            double * p = reinterpret_cast<double *>( res->array.get_buffer() );
-            size_t count = 0;
-            for ( ; it != fifo_.end(); ++it ) {
-                cache_item& d = *it;
-                *p++ = d.value_;
-                ++count;
-                if ( ( desc.wellKnownEvents != it->desc_.wellKnownEvents ) || ( desc.sampInterval != it->desc_.sampInterval ) ) {
-                    res->array.length( sizeof(double) * count / sizeof(long) );    
-                    res->ndata = count;
-                    break;
-                }
+            rb->events = desc.wellKnownEvents;
+            rb->ndata = std::distance( it, fifo_.end() );
+
+            TOFInstrument::SpectrumProcessedDataArray ar;
+            ar.length( rb->ndata );
+            for ( size_t i = 0 ; it != fifo_.end(); ++it, ++i ) {
+                const TOFInstrument::SpectrumProcessedData& d = it->data_;
+                ar[i] = d;
             }
-            dataReadBuffer = res._retn();
+
+            rb->data <<= ar;
+
+            dataReadBuffer = rb._retn();
             return true;
         }
     }
@@ -150,7 +145,7 @@ traceObserver_i::dataInterpreterClsid (void)
 }
 
 void
-traceObserver_i::push_trace_data( long pos, double value, const TOFInstrument::TraceDescriptor& desc )
+traceObserver_i::push_trace_data( long pos, const TOFInstrument::SpectrumProcessedData& data, const TOFInstrument::TraceDescriptor& desc )
 {
     unsigned long prevEvents(0);
     do {
@@ -159,7 +154,7 @@ traceObserver_i::push_trace_data( long pos, double value, const TOFInstrument::T
         if ( ! fifo_.empty() )
             prevEvents = fifo_.back().desc_.wellKnownEvents;
         // push data 
-        fifo_.push_back( cache_item( pos, value, desc ) );
+        fifo_.push_back( cache_item( pos, data, desc ) );
         // erase obsolete data
         if ( fifo_.size() > 512 )
             fifo_.pop_front();
@@ -176,16 +171,17 @@ traceObserver_i::cache_item::~cache_item()
 {
 }
 
-traceObserver_i::cache_item::cache_item( long pos, double value
+traceObserver_i::cache_item::cache_item( long pos
+                                        , const TOFInstrument::SpectrumProcessedData& data
                                         , const TOFInstrument::TraceDescriptor& desc ) 
                                         : pos_(pos)
-                                        , value_(value)
+                                        , data_(data)
                                         , desc_(desc) 
 {
 }
 
 traceObserver_i::cache_item::cache_item( const cache_item& t ) : pos_(t.pos_)
-                                                               , value_(t.value_)
+                                                               , data_(t.data_)
                                                                , desc_( t.desc_ )
 {
 }

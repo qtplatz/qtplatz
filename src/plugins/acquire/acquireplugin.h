@@ -116,7 +116,8 @@ namespace Acquire {
             void readMassSpectra( const SignalObserver::DataReadBuffer&
                 , const adcontrols::MassSpectrometer&
                 , const adcontrols::DataInterpreter& dataInterpreter );
-            void readTrace( const SignalObserver::DataReadBuffer&
+            void readTrace( const SignalObserver::Description&
+                , const SignalObserver::DataReadBuffer&
                 , const adcontrols::DataInterpreter& dataInterpreter );
 
         public:

@@ -24,6 +24,7 @@
 
 #include "chromatogramwidget.h"
 #include <adcontrols/chromatogram.h>
+#include <adcontrols/trace.h>
 #include <adcontrols/descriptions.h>
 #include <adcontrols/peaks.h>
 #include <adcontrols/peak.h>
@@ -43,8 +44,42 @@
 #include <adwidgets/annotations.h>
 #include <adwidgets/annotation.h>
 #include <adutils/dataplothelper.h>
+#include <sstream>
 
 using namespace adwidgets::ui;
+
+namespace adwidgets {
+    namespace internal {
+        class ChromatogramWidgetImpl { 
+        public:
+            static void setTitle( adwidgets::ui::Dataplot& plot, int idx, const adcontrols::Descriptions& desc_v ) {
+                plot.titles()[0].text( L"." ); plot.titles()[0].visible( true );
+                plot.titles()[1].text( L"." ); plot.titles()[1].visible( true );
+                if ( idx < 3 ) {
+                    adwidgets::ui::Title title = plot.titles()[idx];
+                    std::wstring ttext;
+                    for ( size_t i = 0; i < desc_v.size(); ++i ) {
+                        if ( i != 0 )
+                            ttext += L" :: ";
+                        ttext += desc_v[i].text();
+                    }
+                    title.text( ttext );
+                    title.visible( true );
+                }
+            }
+
+            static void setTitle( adwidgets::ui::Dataplot& plot, int idx, const std::wstring& text ) {
+                if ( idx < 3 ) {
+                    adwidgets::ui::Title title = plot.titles()[idx];
+                    title.text( text );
+                    title.visible( true );
+                }
+            }
+
+        };
+    }
+}
+
 
 ChromatogramWidget::~ChromatogramWidget()
 {
@@ -57,10 +92,40 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : TraceWidget(parent)
     this->title( 0, L"Chromatogram" );
 }
 
+
 void
-ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
+ChromatogramWidget::setData( const adcontrols::Chromatogram& c)
 {
     setData( c, 0 );
+}
+
+void
+ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
+{
+    if ( d.size() < 2 )
+        return;
+
+	while ( int(traces().size()) <= idx )
+		traces().add();
+
+    const double * pX = d.getTimeArray();
+    const double * pY = d.getIntensityArray();
+    if ( pX == 0 || pY == 0 )
+        return;
+
+    std::pair<double, double> xrange( pX[0], pX[ d.size() - 1 ] );
+    display_range_x( xrange );
+
+    adwidgets::ui::Trace trace = traces()[idx];
+
+    trace.setXYDirect( d.size(), pX, pY );
+    trace.visible(true);
+    traces().visible(true);
+
+    std::wostringstream o;
+    o << L"Chromatogram: " << display_range_x().second << L" min";
+
+    adwidgets::internal::ChromatogramWidgetImpl::setTitle( *this, idx, o.str() );
 }
 
 void
@@ -69,20 +134,7 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool ya
 	while ( int(traces().size()) <= idx )
 		traces().add();
 
-    titles()[0].text( L"." ); titles()[0].visible( true );
-    titles()[1].text( L"." ); titles()[1].visible( true );
-	if ( idx < 3 ) {
-		adwidgets::ui::Title title = titles()[idx];
-        const adcontrols::Descriptions& desc_v = c.getDescriptions();
-		std::wstring ttext;
-		for ( size_t i = 0; i < desc_v.size(); ++i ) {
-			if ( i != 0 )
-				ttext += L" :: ";
-			ttext += desc_v[i].text();
-		}
-		title.text( ttext );
-        title.visible( true );
-	}
+    adwidgets::internal::ChromatogramWidgetImpl::setTitle( *this, idx, c.getDescriptions() );
 
     adwidgets::ui::Trace trace = traces()[idx];
 

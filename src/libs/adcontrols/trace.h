@@ -25,51 +25,38 @@
 
 #pragma once
 
-// #include <boost/smart_ptr.hpp>
 #include <adcontrols/timeutil.h>
 #include <vector>
 #include "adcontrols_global.h"
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT TraceAccessor {
+    class TraceAccessor;
+
+    class ADCONTROLSSHARED_EXPORT Trace {
     public:
-        ~TraceAccessor();
-        TraceAccessor();
-        TraceAccessor( const TraceAccessor& );
+        ~Trace();
+        Trace();
+        Trace( const Trace& );
+
+        void operator += ( const TraceAccessor& );
 
         void clear();
         size_t size() const;
-
-        long pos() const;
-        void pos( long );
-
-        bool isConstantSampleInterval() const;
-        void sampInterval( unsigned long );
-        unsigned long sampInterval() const;
-
-        const seconds_t& getMinimumTime() const;
-        void setMinimumTime( const seconds_t& );
-        void push_back( double value, unsigned long events, const seconds_t& );
-        void push_back( double value, unsigned long events );
+        void resize( size_t size );
 
         const double * getIntensityArray() const;
-        const double * getTimeArray() const;   // null if isConstantSampleInterval is set
+        const double * getTimeArray() const;   // array of miniutes
         const unsigned long * getEventsArray() const;
 
     private:
+        size_t pos_;
 
 #pragma warning(disable:4251)
         std::vector< double > traceX_;
         std::vector< double > traceY_;
         std::vector< unsigned long > events_;
 #pragma warning(default:4251)
-
-        unsigned long pos_;   // data address
-        seconds_t minTime_;  // time corresponding to pos
-        bool isConstantSampleInterval_;
-        unsigned long sampInterval_; // microseconds
     };
 
 }
-

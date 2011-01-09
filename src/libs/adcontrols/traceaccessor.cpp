@@ -31,8 +31,7 @@ TraceAccessor::~TraceAccessor()
 {
 }
 
-TraceAccessor::TraceAccessor() : size_(0)
-                               , pos_(-1)
+TraceAccessor::TraceAccessor() : pos_(-1)
                                , isConstantSampleInterval_( true )
                                , sampInterval_(0)
 {
@@ -41,7 +40,6 @@ TraceAccessor::TraceAccessor() : size_(0)
 TraceAccessor::TraceAccessor( const TraceAccessor& t ) : traceX_( t.traceX_ )
                                                        , traceY_( t.traceY_ )
                                                        , events_( t.events_ )
-                                                       , size_( t.size_ )
                                                        , minTime_( t.minTime_ )
                                                        , isConstantSampleInterval_( t.isConstantSampleInterval_ )
                                                        , sampInterval_( t.sampInterval_ )
@@ -51,19 +49,15 @@ TraceAccessor::TraceAccessor( const TraceAccessor& t ) : traceX_( t.traceX_ )
 void
 TraceAccessor::clear()
 {
-    size_ = 0;
+    traceX_.clear();
+    traceY_.clear();
+    events_.clear();
 }
 
 size_t
 TraceAccessor::size() const
 {
-    return size_;
-}
-
-void
-TraceAccessor::size( size_t size )
-{
-    size_ = size;
+    return traceY_.size();
 }
 
 long
@@ -77,7 +71,6 @@ TraceAccessor::pos( long pos )
 {
     pos_ = pos;
 }
-
 
 bool
 TraceAccessor::isConstantSampleInterval() const

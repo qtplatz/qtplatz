@@ -46,11 +46,11 @@ device_averager::~device_averager(void)
         deactivate();
 }
 
-device_averager::device_averager(void)
+device_averager::device_averager(void) : uptime_(0)
 {
 }
 
-device_averager::device_averager( const device_averager& t ) : device_state( t )
+device_averager::device_averager( const device_averager& t ) : device_state( t ), uptime_(0)
 {
 }
 
@@ -92,11 +92,16 @@ device_averager::handle_timeout( const ACE_Time_Value& tv, const void * )
 {
     if ( state() <= device_state::state_initializing )
         doit( device_state::command_stop );
+
+    if ( uptime_.sec() == 0 && uptime_.usec() == 0 )
+        uptime_ = tv;
     
     size_t hLen = 32;
     size_t nbrSamples = 1024 * 15;
+    size_t nbrAverage = 1;
     size_t sampInterval = 500;
     size_t nDelay = 12 * 1000000 / 500;
+    unsigned long wellKnownEvents = 0;
 
 	static size_t npos;
 
@@ -121,14 +126,19 @@ device_averager::handle_timeout( const ACE_Time_Value& tv, const void * )
     unsigned char * pchar = reinterpret_cast<unsigned char *>( pmeta + hLen );
 	mb->wr_ptr( mb->size() );
 
+    ACE_Time_Value tm = tv - uptime_;
+    unsigned long long uptime = tm.sec() * 1000000 + tm.usec();
+
 	*pmeta++ = TOFConstants::ClassID_ProfileData;
 	*pmeta++ = npos++;
-	*pmeta++ = 0xffeeccdd; // tv.usec();
-	*pmeta++ = 0x12345678; // tv.sec() >> 32;
-	*pmeta++ = 0xabcdef00; // tv.sec() & 0xffff;
+	*pmeta++ = unsigned long ( uptime & 0xffffffff ); // time since inject, to do
+	*pmeta++ = unsigned long ( uptime & 0xffffffff );
+	*pmeta++ = unsigned long ( uptime >> 32 );
 	*pmeta++ = nbrSamples;
+    *pmeta++ = nbrAverage;
 	*pmeta++ = nDelay;
 	*pmeta++ = sampInterval;
+    *pmeta++ = wellKnownEvents;
 
 	// simulate noise
 	srand( int(tv.sec()) );

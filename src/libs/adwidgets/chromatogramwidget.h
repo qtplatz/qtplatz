@@ -30,6 +30,7 @@
 
 namespace adcontrols {
     class Chromatogram;
+    class Trace;
     class Peaks;
     class Baselines;
 }
@@ -46,13 +47,16 @@ namespace adwidgets {
             ~ChromatogramWidget();
             explicit ChromatogramWidget(QWidget *parent = 0);
 
+            void setData( const adcontrols::Trace&, int idx = 0, bool yaxis2 = false );
+            void setData( const adcontrols::Chromatogram& );
+
         signals:
 
         public slots:
-            void setData( const adcontrols::Chromatogram& c );
+
 
         private:
-			void setData( const adcontrols::Chromatogram&, int idx, bool yaxis1 = false );
+			void setData( const adcontrols::Chromatogram&, int idx, bool yaxis2 = false );
             void setPeaks( const adcontrols::Peaks&, const adcontrols::Baselines&, Trace& );
             void setAnnotations( const adcontrols::Peaks&, Trace& );
         };

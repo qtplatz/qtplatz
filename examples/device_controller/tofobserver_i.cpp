@@ -151,7 +151,7 @@ tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_ou
         avgr.sampInterval = data.sampInterval;
         avgr.startDelay = data.startDelay;
         avgr.wellKnownEvents = data.wellKnownEvents;
-        avgr.tstamp = data.usec;
+        avgr.uptime = data.usec;
 
         SignalObserver::DataReadBuffer_var res = new SignalObserver::DataReadBuffer;
 

@@ -62,7 +62,7 @@ Interpreter::translate( adcontrols::MassSpectrum& ms
     size_t sampInterval = 500;
     size_t nbrSamples = 0;
     unsigned long wellKnownEvents = 0;
-    size_t tmstamp = 0;
+    // size_t tmstamp = 0;
     size_t numSeg = 1;
 
     do {
@@ -80,8 +80,7 @@ Interpreter::translate( adcontrols::MassSpectrum& ms
         sampInterval = plocal->sampInterval;
         nbrSamples = plocal->nbrSamples;
         wellKnownEvents = plocal->wellKnownEvents;
-        tmstamp = plocal->usec;
-        // numSeg = plocal->segments.length();
+        unsigned long long uptime = plocal->uptime;
 
         o << boost::wformat(L" delay:%1% nbrSamples: %2% #seg: %3%") % delay % nbrSamples % numSeg;
     }
@@ -109,5 +108,20 @@ bool
 Interpreter::translate( adcontrols::TraceAccessor& accessor
                        , const SignalObserver::DataReadBuffer& rb ) const
 {
-    return false;
+   accessor.pos( rb.pos );
+   unsigned long events = rb.events;
+   double sec = double( rb.uptime ) / 1000000.0; // us -> sec
+
+   TOFInstrument::SpectrumProcessedDataArray * ar;
+   if ( rb.data >>= ar ) {  // pointer not owns
+   
+       size_t ndata = ar->length();
+       for ( size_t i = 0; i < ndata; ++i ) {
+           TOFInstrument::SpectrumProcessedData& d = (*ar)[i];
+           accessor.push_back( d.tic, events, double(d.uptime) / 1000000.0 );   // in seconds
+       }
+       return true;
+   }
+   return false;
 }
+

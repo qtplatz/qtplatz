@@ -58,7 +58,7 @@ namespace tofcontroller {
 		virtual ::CORBA::Boolean readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer);
 		virtual ::CORBA::WChar * dataInterpreterClsid (void);
 
-        void push_trace_data( long pos, double value, const TOFInstrument::TraceDescriptor& );
+        void push_trace_data( long pos, const TOFInstrument::SpectrumProcessedData&, const TOFInstrument::TraceDescriptor& );
 	private:
 		TOFTask & task_;
         unsigned long objId_;
@@ -66,11 +66,11 @@ namespace tofcontroller {
 
         struct cache_item {
             ~cache_item();
-            cache_item( long pos, double value, const TOFInstrument::TraceDescriptor& );
+            cache_item( long pos, const TOFInstrument::SpectrumProcessedData&, const TOFInstrument::TraceDescriptor& );
             cache_item( const cache_item & );
             operator long () const;
             long pos_;
-            double value_;
+            TOFInstrument::SpectrumProcessedData data_;
             TOFInstrument::TraceDescriptor desc_;
         };
         std::deque< cache_item > fifo_;

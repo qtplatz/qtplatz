@@ -90,44 +90,47 @@
 #include <boost/format.hpp>
 #include <adcontrols/centroidprocess.h>
 #include <adcontrols/centroidmethod.h>
+#include <adcontrols/trace.h>
 #include <adcontrols/traceaccessor.h>
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <adportable/fft.h>
 
 using namespace Acquire;
 using namespace Acquire::internal;
 
 namespace Acquire {
-  namespace internal {
+    namespace internal {
 
-    class AcquireImpl {
-    public:
-      ~AcquireImpl() {
-      }
-	  AcquireImpl() : timePlot_(0)
-		            , spectrumPlot_(0) {
-	  }
-	  adwidgets::ui::ChromatogramWidget * timePlot_;
-	  adwidgets::ui::SpectrumWidget * spectrumPlot_;
-      QIcon icon_;
-	  void loadIcon() {
-		  icon_.addFile( Constants::ICON_CONNECT );
-		  icon_.addFile( Constants::ICON_CONNECT_SMALL );
-	  }
-    };
+        class AcquireImpl {
+        public:
+            ~AcquireImpl() {
+            }
+            AcquireImpl() : timePlot_(0)
+                , spectrumPlot_(0) {
+            }
+            std::map< std::wstring, adcontrols::Trace > traces_;
+            adwidgets::ui::ChromatogramWidget * timePlot_;
+            adwidgets::ui::SpectrumWidget * spectrumPlot_;
+            QIcon icon_;
+            void loadIcon() {
+                icon_.addFile( Constants::ICON_CONNECT );
+                icon_.addFile( Constants::ICON_CONNECT_SMALL );
+            }
+        };
 
-    template<class T> class marchal {
-    public:
-        static T get( const ACE_Message_Block * mb ) {
-            TAO_InputCDR in( mb );
-            T t;
-            in >> t;
-            return t;
-        }
-    };
+        template<class T> class marchal {
+        public:
+            static T get( const ACE_Message_Block * mb ) {
+                TAO_InputCDR in( mb );
+                T t;
+                in >> t;
+                return t;
+            }
+        };
 
-  }
+    }
 }
 
 static bool reduceNoise( adcontrols::MassSpectrum& ms );
@@ -479,12 +482,19 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
 }
 
 void
-AcquirePlugin::readTrace( const SignalObserver::DataReadBuffer& rb
+AcquirePlugin::readTrace( const SignalObserver::Description& desc
+                         , const SignalObserver::DataReadBuffer& rb
                          , const adcontrols::DataInterpreter& dataInterpreter )
 {
+    std::wstring traceId = desc.trace_id;
+
     adcontrols::TraceAccessor accessor;
-    while ( dataInterpreter.translate( accessor, rb ) )
-        ;
+    if ( dataInterpreter.translate( accessor, rb ) ) {
+        adcontrols::Trace& data = pImpl_->traces_[ std::wstring( desc.trace_id ) ];
+        data += accessor;
+        if ( data.size() >= 2 )        
+            pImpl_->timePlot_->setData( data );
+    }
 }
 
 void
@@ -499,7 +509,6 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 
     SignalObserver::Description_var desc = tgt->getDescription();
     CORBA::WString_var clsid = tgt->dataInterpreterClsid();
-
     CORBA::WString_var name = tgt->dataInterpreterClsid();
     SignalObserver::DataReadBuffer_var rb;
 
@@ -511,7 +520,7 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
                 && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
                     readMassSpectra( rb, spectrometer, dataInterpreter );
             } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
-                readTrace( rb, dataInterpreter );
+                readTrace( *desc, rb, dataInterpreter );
             }
         } catch ( std::exception& ex ) {
             QMessageBox::critical( 0, "acquireplugin::handle_update_data", ex.what() );

@@ -170,10 +170,12 @@ tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_ou
 
         SignalObserver::AveragerData avgr;
         avgr.nbrSamples = data.nbrSamples;
+        avgr.nbrAverage = data.nbrAvrg;
         avgr.sampInterval = data.sampInterval;
         avgr.startDelay = data.startDelay;
         avgr.wellKnownEvents = data.wellKnownEvents;
-        avgr.tstamp = data.usec;
+        avgr.uptime = data.uptime;
+        avgr.timeSinceInject = data.timeSinceInject;  // todo: keep most recent injection time, and subtract from this value
 
         SignalObserver::DataReadBuffer_var res = new SignalObserver::DataReadBuffer;
 
@@ -181,7 +183,7 @@ tofObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_ou
         res->events = data.wellKnownEvents;
         res->method <<= avgr;
         res->ndata = 1;
-        res->uptime = data.usec;
+        res->uptime = data.uptime;
         size_t offs = d.mb_->rd_ptr() - d.mb_->base();
         size_t len = ( ( d.mb_->length() - offs ) / sizeof(long) ) - 32;
 		(void)len;

@@ -57,6 +57,11 @@ module SignalObserver {
         , HalfFull
         , WellKnownEventsOnly
     };
+
+    struct timeval {
+        unsigned long long sec;
+        unsigned long usec;
+    };
     
     struct Description {
         eTRACE_METHOD trace_method;
@@ -75,14 +80,17 @@ module SignalObserver {
         unsigned long ndata;       // number of data in array
         unsigned long events;      // well known events
 		sequence<long> array;      // encoded data
+        any data;
         any method;                // data acquisition method, sample information etc., which can be nil
     };
     
     struct AveragerData {
-        unsigned long long tstamp;
-        unsigned long nbrSamples;          
+        unsigned long long uptime;
+        unsigned long timeSinceInject;
+        unsigned long nbrAverage;
+        unsigned long nbrSamples;     
         unsigned long startDelay;          
-        unsigned long sampInterval;        
+        unsigned long sampInterval;
         unsigned long wellKnownEvents;     
     };
 

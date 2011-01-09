@@ -386,6 +386,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\trace.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\traceaccessor.cpp"
 				>
 			</File>
@@ -805,6 +809,10 @@
 			</File>
 			<File
 				RelativePath=".\timeutil.h"
+				>
+			</File>
+			<File
+				RelativePath=".\trace.h"
 				>
 			</File>
 			<File

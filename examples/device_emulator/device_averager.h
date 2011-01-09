@@ -28,6 +28,7 @@
 #include "device_state.h"
 #pragma warning(disable:4996)
 #include <ace/Event_Handler.h>
+#include <ace/Time_Value.h>
 #pragma warning(default:4996)
 class ACE_Message_Block;
 class ACE_InputCDR;
@@ -60,7 +61,8 @@ namespace device_emulator {
 		bool instruct_average_stop( handleIt& = handleIt() );  
     
 		// trigger armed immediately
-		bool instruct_average_start();  
+		bool instruct_average_start();
+        ACE_Time_Value uptime_;
 	};
 
 }
