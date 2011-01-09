@@ -35,11 +35,13 @@ namespace device_emulator {
 		TXTSpectrum() {}
 		TXTSpectrum( const TXTSpectrum& );
 		bool load( const std::string& );
+		bool load3( const std::string& );
 
 	public:
 		std::string filename_;
 		std::vector<double> tarray_;
 		std::vector<double> iarray_;
+        std::vector<double> marray_;
 		unsigned long sampInterval_;
 		unsigned long startDelay_;
 		double minValue_;

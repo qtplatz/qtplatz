@@ -73,3 +73,41 @@ TXTSpectrum::load( const std::string& filename )
 
     return true;
 }
+
+bool
+TXTSpectrum::load3( const std::string& filename )
+{
+    iarray_.clear();
+    tarray_.clear();
+    sampInterval_ = 0;
+
+	std::ifstream in( filename.c_str() );
+    if ( in.fail() )
+		return false;
+
+    double sampInterval = 0.5e-9;
+    double tof, mz, intens;
+    double tof0 = 0.00021;
+	do {
+      in >> tof;
+      in >> mz;
+      in >> intens;
+
+      tarray_.push_back( tof0 + sampInterval * tarray_.size() );
+      iarray_.push_back( intens );
+
+	} while ( ! in.eof() );
+
+	double t0 = tarray_[0];  // seconds
+    double tz = tarray_[ tarray_.size() - 1 ];
+    size_t size = tarray_.size();
+	double x = (tz - t0) / size;
+
+    sampInterval_ = static_cast<unsigned long>( ( x * 1e12 ) + 0.5 ); // sec -> psec
+	startDelay_ = static_cast<unsigned long>( ( t0 * 1.0e12 ) / sampInterval_ + 0.5 );
+
+	minValue_ = *std::min_element( iarray_.begin(), iarray_.end() );
+	maxValue_ = *std::max_element( iarray_.begin(), iarray_.end() );
+
+    return true;
+}

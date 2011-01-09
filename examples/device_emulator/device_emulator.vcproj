@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="device_emulator"
 	ProjectGUID="{A67FE99E-EB04-3411-A5E8-7B0EBD49E09B}"
+	RootNamespace="device_emulator"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -28,6 +29,8 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+				CommandLine=""
+				Outputs=""
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -102,6 +105,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
@@ -117,6 +121,8 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+				CommandLine=""
+				Outputs=""
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -193,6 +199,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>
@@ -508,6 +515,27 @@
 						CommandLine="Rem IncrediBuild_AllowRemote&#x0D;&#x0A;Rem IncrediBuild_OutputFile .\ui_maindevicewindow.h&#x0D;&#x0A;$(QTDIR)\bin\uic.exe maindevicewindow.ui -o ui_maindevicewindow.h&#x0D;&#x0A;"
 						AdditionalDependencies="Rem;maindevicewindow.ui"
 						Outputs="ui_maindevicewindow.h"
+					/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+		<Filter
+			Name="COPY"
+			>
+			<File
+				RelativePath=".\PFTBA.txt"
+				>
+			</File>
+			<File
+				RelativePath=".\Xe.txt"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
 			</File>

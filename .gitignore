@@ -97,7 +97,9 @@ examples/tofcontroller/*S.inl
 bin/*.dll
 bin/*.exe
 bin/*.lib
+bin/*.txt
 bin/qtcreator.bin
 bin/qtcreator_process_stub*
+src/app/portfolio.xml
 share/doc/qtcreator/qtcreator.qch
 tests/manual/cplusplus/cplusplus0
