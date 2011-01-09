@@ -22,30 +22,39 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
-#ifndef MARKERS_H
-#define MARKERS_H
+
+#pragma once
 
 namespace SAGRAPHICSLib {
 struct ISADPMarkers;
 }
 
 namespace adwidgets {
-  namespace ui {
+    namespace ui {
 
-    class Markers  {
-    public:
-		~Markers();
-		Markers( SAGRAPHICSLib::ISADPMarkers * pi = 0 );
-		Markers( const Markers& );
-    private:
-        SAGRAPHICSLib::ISADPMarkers * pi_;
-    };
+        class Marker;
+        enum MarkerStyle;
+
+        class Markers  {
+        public:
+            ~Markers();
+            Markers( SAGRAPHICSLib::ISADPMarkers * pi = 0 );
+            Markers( const Markers& );
+
+            Marker operator [] ( int idx );
+
+            size_t size() const;            
+            bool visible() const;
+            void visible( bool );
+            MarkerStyle style() const;
+            void style( MarkerStyle );
+            short colorIndex() const;
+            void colorIndex( short );
+
+        private:
+            SAGRAPHICSLib::ISADPMarkers * pi_;
+        };
 
   }
 }
 
-#endif // MARKERS_H

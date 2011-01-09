@@ -21,10 +21,7 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+
 #include "marker.h"
 #include "import_sagraphics.h"
 using namespace adwidgets::ui;
@@ -48,4 +45,29 @@ Marker::Marker( const Marker& t )
      pi_->Release();
    pi_ = t.pi_;
 }
+
+short
+Marker::colorIndex() const
+{
+    return pi_->ColorIndex;
+}
+
+void
+Marker::colorIndex( short ci )
+{
+    pi_->ColorIndex = ci;
+}
+
+MarkerStyle
+Marker::style() const
+{
+    return static_cast<MarkerStyle>( pi_->Style );
+}
+
+void
+Marker::style( MarkerStyle style )
+{
+    pi_->Style = static_cast< SAGRAPHICSLib::MarkerStyle >( style );
+}
+
 

@@ -43,6 +43,8 @@
 #include <adwidgets/colorindices.h>
 #include <adwidgets/annotations.h>
 #include <adwidgets/annotation.h>
+#include <adwidgets/markers.h>
+#include <adwidgets/marker.h>
 #include <adutils/dataplothelper.h>
 #include <sstream>
 
@@ -119,6 +121,9 @@ ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
     adwidgets::ui::Trace trace = traces()[idx];
 
     trace.setXYDirect( d.size(), pX, pY );
+    Markers markers = trace.markers();
+    markers.style( MS_Circle );
+    markers.visible( true );
     trace.visible(true);
     traces().visible(true);
 

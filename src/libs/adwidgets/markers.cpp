@@ -27,6 +27,7 @@
 //////////////////////////////////////////
 
 #include "markers.h"
+#include "marker.h"
 #include "import_sagraphics.h"
 
 using namespace adwidgets::ui;
@@ -51,3 +52,50 @@ Markers::Markers( const Markers& t )
    pi_ = t.pi_;
 }
 
+short
+Markers::colorIndex() const
+{
+    return pi_->ColorIndex;
+}
+
+void
+Markers::colorIndex( short ci )
+{
+    pi_->ColorIndex = ci;
+}
+
+MarkerStyle
+Markers::style() const
+{
+    return static_cast<MarkerStyle>( pi_->Style );
+}
+
+void
+Markers::style( MarkerStyle style )
+{
+    pi_->Style = static_cast< SAGRAPHICSLib::MarkerStyle >( style );
+}
+
+Marker
+Markers::operator [] ( int idx )
+{
+    return Marker( pi_->Item[ idx + 1 ] );
+}
+
+size_t
+Markers::size() const
+{
+    return pi_->Count;
+}
+
+bool
+Markers::visible() const
+{
+    return internal::variant_bool::to_native( pi_->Visible );
+}
+
+void
+Markers::visible( bool value )
+{
+    pi_->Visible = internal::variant_bool::to_variant( value );
+}

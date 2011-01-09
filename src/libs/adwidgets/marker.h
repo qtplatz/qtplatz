@@ -31,12 +31,32 @@ namespace SAGRAPHICSLib {
 
 namespace adwidgets {
     namespace ui {
+
+        enum MarkerStyle {
+            MS_None = 0,
+            MS_Point = 1,
+            MS_Circle = 2,
+            MS_Dot = 3,
+            MS_Box = 4,
+            MS_Square = 5,
+            MS_X = 6,
+            MS_Plus = 7,
+            MS_Diamond = 8,
+            MS_FilledDiamond = 9
+        };
         
         class Marker  {
         public:
             ~Marker();
             Marker( SAGRAPHICSLib::ISADPMarker * pi = 0 );
             Marker( const Marker& );
+
+            MarkerStyle style() const;
+            void style( MarkerStyle );
+
+            short colorIndex() const;
+            void colorIndex( short );
+
         private:
             SAGRAPHICSLib::ISADPMarker * pi_;
         };
