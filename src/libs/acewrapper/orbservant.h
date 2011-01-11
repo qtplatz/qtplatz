@@ -75,6 +75,7 @@ namespace acewrapper {
 
 		inline CORBA::ORB_ptr orb() { return CORBA::ORB::_duplicate( orb_.in() ); }
 		inline PortableServer::POA_ptr poa() { return PortableServer::POA::_duplicate( poa_.in() ); }
+        inline PortableServer::POAManager_ptr poa_manager() { return PortableServer::POAManager::_duplicate( poa_manager_.in() ); }
 
 		inline operator typename T::_stub_ptr_type () { return impl_._this(); }
 		inline const std::string& ior() const { return id_; }

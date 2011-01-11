@@ -1,4 +1,4 @@
-// This is a -*- C++ -*- header.
+// -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
@@ -7,10 +7,10 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid ScienceLiaison commercial licenses may use this file in
-** accordance with the ScienceLiaison Commercial License Agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and ScienceLiaison.
+** Licensees holding valid ScienceLiaison commercial licenses may use this
+** file in accordance with the ScienceLiaison Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and ScienceLiaison.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -31,6 +31,7 @@
 #pragma warning (default : 4996 )
 #include <vector>
 #include <boost/noncopyable.hpp>
+#include <boost/smart_ptr.hpp>
 
 namespace adcontroller {
 
@@ -38,6 +39,8 @@ namespace adcontroller {
 		struct observer_events_data;
         struct sibling_data;
 	}
+
+    class Cache;
 
 	class observer_i : public virtual POA_SignalObserver::Observer, boost::noncopyable {
 	public:
@@ -63,9 +66,9 @@ namespace adcontroller {
 		///
         void populate_siblings();
         bool isChild( unsigned long objid );
-		bool invoke_update_data( unsigned long objid, long pos );
-		bool invoke_method_changed( unsigned long objid, long pos );
-		bool invoke_update_events( unsigned long objid, long pos, unsigned long events );
+		bool forward_notice_update_data( unsigned long parentId, unsigned long objid, long pos );
+		bool forward_notice_method_changed( unsigned long parentId, unsigned long objid, long pos );
+		bool forward_notice_update_events( unsigned long parentId, unsigned long objid, long pos, unsigned long events );
 
 	private:
 		typedef std::vector<internal::observer_events_data> observer_events_vector_type;
@@ -82,6 +85,7 @@ namespace adcontroller {
 		SignalObserver::Observer_var source_observer_;
 		SignalObserver::Description desc_;
         unsigned long objId_;
+        boost::scoped_ptr< Cache > cache_;
         ACE_Recursive_Thread_Mutex mutex_;
 	};
 

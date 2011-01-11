@@ -1,4 +1,4 @@
-// This is a -*- C++ -*- header.
+// -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
@@ -7,10 +7,10 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid ScienceLiaison commercial licenses may use this file in
-** accordance with the ScienceLiaison Commercial License Agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and ScienceLiaison.
+** Licensees holding valid ScienceLiaison commercial licenses may use this
+** file in accordance with the ScienceLiaison Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and ScienceLiaison.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -82,9 +78,9 @@ namespace adcontroller {
 		//
 		ControlServer::eStatus getStatusCurrent();
 		ControlServer::eStatus getStatusBeging(); 
-		bool observer_update_data( unsigned long objid, long pos );
-		bool observer_update_method( unsigned long objid, long pos );
-		bool observer_update_event( unsigned long objid, long pos, unsigned long ev );
+		bool observer_update_data( unsigned long parentId, unsigned long objid, long pos );
+		bool observer_update_method( unsigned long parentId, unsigned long objid, long pos );
+		bool observer_update_event( unsigned long parentId, unsigned long objid, long pos, unsigned long ev );
 
 		typedef std::vector<internal::session_data> session_vector_type;
 		inline session_vector_type::iterator session_begin() { return session_set_.begin(); };
@@ -108,9 +104,9 @@ namespace adcontroller {
         void handle_dispatch( const EventLog::LogMessage & );
         void handle_dispatch( const ACE_Time_Value& );
 		void handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value );
-        void handle_observer_update_data( unsigned long id, long pos );
-        void handle_observer_update_method( unsigned long id, long pos );
-        void handle_observer_update_event( unsigned long id, long pos, unsigned long event );
+        void handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos );
+        void handle_observer_update_method( unsigned long parentId, unsigned long objId, long pos );
+        void handle_observer_update_events( unsigned long parentId, unsigned long objId, long pos, unsigned long events );
 
     private:
         friend class IBrokerManager;

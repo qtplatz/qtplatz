@@ -24,6 +24,7 @@
 
 #include "observer_i.h"
 #include "manager_i.h"
+#include "cache.h"
 #include <algorithm>
 #include <acewrapper/mutex.hpp>
 
@@ -46,8 +47,8 @@ namespace adcontroller {
 
 		struct sibling_data {
 			boost::shared_ptr< observer_i > pCache_i_;
-			SignalObserver::Observer_var observer_;  // real instrument hooked up oberver
-			SignalObserver::Observer_var cache_;     // cache observer
+			SignalObserver::Observer_var observer_;  // instrument oberver ( in instrument fifo )
+			SignalObserver::Observer_var cache_;     // cache observer (in server cache)
             unsigned long objId_;
 			sibling_data() : objId_(0) {}
 			sibling_data( const sibling_data& t ) : objId_( t.objId_ )
@@ -65,6 +66,9 @@ using namespace adcontroller;
 observer_i::observer_i( SignalObserver::Observer_ptr source ) : objId_(0)
 {
 	source_observer_ = SignalObserver::Observer::_duplicate(source);
+    if ( ! CORBA::is_nil( source_observer_.in() ) ) {
+        cache_.reset( new Cache() );
+    }
 }
 
 observer_i::~observer_i(void)
@@ -222,8 +226,9 @@ observer_i::uptime ( ::CORBA::ULongLong_out usec )
 }
 
 ::CORBA::Boolean
-observer_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer)
+observer_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer )
 {
+    // TODO: Since observer_i class is a cache it require to read data from cache rather than soruce_observer_
 	if ( ! CORBA::is_nil( source_observer_ ) )
 		return source_observer_->readData( pos, dataReadBuffer );
 	return false;
@@ -245,13 +250,25 @@ namespace adcontroller {
 				oe.OnUpdateData( objId, pos );
 			}
 		};
+
 		struct fire_on_method_changed {
 			static void fire( SignalObserver::ObserverEvents& oe, unsigned long objId, long pos ) {
 				oe.OnMethodChanged( objId, pos );
 			}
 		};
 
-		template<class T> struct invoke_event_fire {
+        struct fire_events {
+            unsigned long objId_;
+            long pos_;
+            unsigned long events_;
+            fire_events( unsigned long objId, long pos, unsigned long events ) : objId_(objId), pos_(pos), events_(events) {}
+            void operator()( internal::observer_events_data& d ) {
+                if ( ! CORBA::is_nil( d.events_.in() ) )
+                    d.events_->OnEvent( objId_, pos_, events_ );
+            }
+        };
+
+        template<class T> struct invoke_event_fire {
             unsigned long objId_;
 			long pos_;
             unsigned long event_;
@@ -281,21 +298,28 @@ observer_i::isChild( unsigned long objid )
 }
 
 bool
-observer_i::invoke_update_data( unsigned long objid, long pos )
+observer_i::forward_notice_update_data( unsigned long parentId, unsigned long objId, long pos )
 {
     for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
 
-        if ( ( it->objId_ == objid ) || it->pCache_i_->isChild( objid ) ) {
+        if ( it->objId_ == parentId ) {
+
+#if defined _DEBUG
+            assert( ( it->objId_ == objId ) || ( it->pCache_i_->isChild( objId ) ) );
+#endif
+
             using namespace adcontroller::internal;
-            std::for_each ( it->pCache_i_->events_begin(), it->pCache_i_->events_end(), invoke_event_fire<fire_on_update_data>( objid, pos ) );
+            std::for_each ( it->pCache_i_->events_begin(), it->pCache_i_->events_end(), invoke_event_fire<fire_on_update_data>( objId, pos ) );
             return true;
+
         }
+
     }
 	return false;
 }
 
 bool
-observer_i::invoke_method_changed( unsigned long objid, long pos )
+observer_i::forward_notice_method_changed( unsigned long parentId, unsigned long objid, long pos )
 {
     for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
 
@@ -309,19 +333,8 @@ observer_i::invoke_method_changed( unsigned long objid, long pos )
 }
 
 bool
-observer_i::invoke_update_events( unsigned long objid, long pos, unsigned long events )
+observer_i::forward_notice_update_events( unsigned long parentId, unsigned long objid, long pos, unsigned long events )
 {
-	struct fire_events {
-        unsigned long objId_;
-		long pos_;
-        unsigned long events_;
-        fire_events( unsigned long objId, long pos, unsigned long events ) : objId_(objId), pos_(pos), events_(events) {}
-		void operator()( internal::observer_events_data& d ) {
-            if ( ! CORBA::is_nil( d.events_.in() ) )
-                d.events_->OnEvent( objId_, pos_, events_ );
-		}
-	};
-
     for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
 
         if ( ( it->objId_ == objid ) || it->pCache_i_->isChild( objid ) ) {

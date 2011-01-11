@@ -22,7 +22,8 @@ SOURCES += adcontroller.cpp \
         oproxy.cpp \
         receiver_i.cpp \
         session_i.cpp \
-        signal_handler.cpp
+        signal_handler.cpp \
+    cache.cpp
 
 HEADERS += adcontroller.h\
         adcontroller_global.h \
@@ -38,4 +39,5 @@ HEADERS += adcontroller.h\
         oproxy.h \
         receiver_i.h \
         session_i.h \
-        signal_handler.h
+        signal_handler.h \
+    cache.h

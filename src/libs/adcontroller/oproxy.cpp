@@ -1,3 +1,4 @@
+// -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
@@ -6,10 +7,10 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid ScienceLiaison commercial licenses may use this file in
-** accordance with the ScienceLiaison Commercial License Agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and ScienceLiaison.
+** Licensees holding valid ScienceLiaison commercial licenses may use this
+** file in accordance with the ScienceLiaison Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and ScienceLiaison.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -31,7 +32,6 @@ oProxy::~oProxy()
 {
 }
 
-
 oProxy::oProxy( iBroker& t ) : broker_( t )
                              , objref_(false)
 							 , objId_(0) 
@@ -41,19 +41,19 @@ oProxy::oProxy( iBroker& t ) : broker_( t )
 void
 oProxy::OnUpdateData ( ::CORBA::ULong objId, ::CORBA::Long pos )
 {
-    broker_.observer_update_data( objId, pos );
+    broker_.observer_update_data( this->objId_, objId, pos );
 }
 
 void
 oProxy::OnMethodChanged ( ::CORBA::ULong objId, ::CORBA::Long pos )
 {
-	broker_.observer_update_data( objId, pos );
+	broker_.observer_update_data( this->objId_, objId, pos );
 }
 
 void
-oProxy::OnEvent ( ::CORBA::ULong objId, ::CORBA::ULong event,	::CORBA::Long pos )
+oProxy::OnEvent ( ::CORBA::ULong objId, ::CORBA::ULong events, ::CORBA::Long pos )
 {
-	broker_.observer_update_event( objId, pos, event );
+	broker_.observer_update_event( this->objId_, objId, pos, events );
 }
 
 bool

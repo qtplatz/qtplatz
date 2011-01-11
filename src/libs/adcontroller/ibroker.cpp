@@ -269,14 +269,12 @@ iBroker::getStatusBeging()
 }
 
 bool
-iBroker::observer_update_data( unsigned long objid, long pos )
+iBroker::observer_update_data( unsigned long parentId, unsigned long objid, long pos )
 {
-#if defined _DEBUG && 0
-    std::cout << "\tiBroker::observer_update_data(" << objid << ", " << pos << ")" << std::endl;
-#endif
     ACE_Message_Block * mb = new ACE_Message_Block(128);
     unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
     int n = 0;
+    ulong[n++] = parentId;
     ulong[n++] = objid;
     ulong[n++] = pos;
     mb->wr_ptr( reinterpret_cast<char *>(&ulong[n]) );
@@ -286,14 +284,12 @@ iBroker::observer_update_data( unsigned long objid, long pos )
 }
 
 bool
-iBroker::observer_update_method( unsigned long objid, long pos )
+iBroker::observer_update_method( unsigned long parentId, unsigned long objid, long pos )
 {
-#if defined _DEBUG && 0
-    std::cout << "\toBroker::observer_update_method(" << objid << ", " << pos << ")" << std::endl;
-#endif
     ACE_Message_Block * mb = new ACE_Message_Block(128);
     unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
     int n = 0;
+    ulong[n++] = parentId;
     ulong[n++] = objid;
     ulong[n++] = pos;
     mb->wr_ptr( reinterpret_cast<char *>(&ulong[n]) );
@@ -303,14 +299,15 @@ iBroker::observer_update_method( unsigned long objid, long pos )
 }
 
 bool
-iBroker::observer_update_event( unsigned long objid, long pos, unsigned long event )
+iBroker::observer_update_event( unsigned long parentId, unsigned long objid, long pos, unsigned long events )
 {
     ACE_Message_Block * mb = new ACE_Message_Block(128);
     unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
     int n = 0;
+    ulong[n++] = parentId;
     ulong[n++] = objid;
     ulong[n++] = pos;
-    ulong[n++] = event;
+    ulong[n++] = events;
     mb->wr_ptr( reinterpret_cast<char *>(&ulong[n]) );
 	mb->msg_type( constants::MB_OBSERVER_UPDATE_EVENT );
 	putq( mb );
@@ -437,13 +434,19 @@ iBroker::dispatch( ACE_Message_Block * mblk, int disp )
 	case constants::MB_OBSERVER_UPDATE_DATA:
 		do {
 			unsigned long * pUlong = reinterpret_cast<unsigned long *>( mblk->rd_ptr() );
-			handle_observer_update_data( pUlong[0], pUlong[1] );
+			handle_observer_update_data( pUlong[0], pUlong[1], pUlong[2] );
 		} while(0);
 		break;
 	case constants::MB_OBSERVER_UPDATE_METHOD:
 		do {
 			unsigned long * pUlong = reinterpret_cast<unsigned long *>( mblk->rd_ptr() );
-			handle_observer_update_method( pUlong[0], pUlong[1] );
+			handle_observer_update_method( pUlong[0], pUlong[1], pUlong[2] );
+		} while(0);
+		break;
+    case constants::MB_OBSERVER_UPDATE_EVENT:
+		do {
+			unsigned long * pUlong = reinterpret_cast<unsigned long *>( mblk->rd_ptr() );
+			handle_observer_update_events( pUlong[0], pUlong[1], pUlong[2], pUlong[3] );
 		} while(0);
 		break;
     default:
@@ -489,40 +492,27 @@ iBroker::handle_dispatch( const EventLog::LogMessage& msg )
 }
 
 void
-iBroker::handle_dispatch( const ACE_Time_Value& tv )
+iBroker::handle_dispatch( const ACE_Time_Value& )
 {
-/*
-    using namespace adinterface::EventLog;
-    std::string tstr = acewrapper::to_string( tv );
-    std::wstring wstr( tstr.size() + 1, L'\0' );
-    std::copy( tstr.begin(), tstr.end(), wstr.begin() );
-
-    LogMessageHelper log(tv);
-    log.format( L"Time_Value: %1% handled in TASK %2%" ) % wstr % ACE_Thread::self();
-    ::EventLog::LogMessage& msg = log.get();
-
-    acewrapper::scoped_mutex_t<> lock( mutex_ );    
-    for ( session_vector_type::iterator it = session_begin(); it != session_end(); ++it )
-        it->receiver_->log( msg );
-*/
 }
 
 void
-iBroker::handle_observer_update_data( unsigned long id, long pos )
+iBroker::handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos )
 {
-	pMasterObserver_->invoke_update_data( id, pos );
+    // TODO: read data and push into cache
+	pMasterObserver_->forward_notice_update_data( parentId, objId, pos );
 }
 
 void
-iBroker::handle_observer_update_method( unsigned long id, long pos )
+iBroker::handle_observer_update_method( unsigned long parentId, unsigned long objId, long pos )
 {
-	pMasterObserver_->invoke_method_changed( id, pos );
+	pMasterObserver_->forward_notice_method_changed( parentId, objId, pos );
 }
 
 void
-iBroker::handle_observer_update_event( unsigned long id, long pos, unsigned long events )
+iBroker::handle_observer_update_events( unsigned long parentId, unsigned long objId, long pos, unsigned long events )
 {
-	pMasterObserver_->invoke_update_events( id, pos, events );
+	pMasterObserver_->forward_notice_update_events( parentId, objId, pos, events );
 }
 
 
