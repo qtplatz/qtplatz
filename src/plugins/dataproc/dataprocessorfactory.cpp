@@ -41,7 +41,10 @@ DataprocessorFactory::~DataprocessorFactory()
 DataprocessorFactory::DataprocessorFactory( QObject * owner ) : Core::IFileFactory( owner )
                                                               , kind_( "Dataprocessor" )
 {
-    mimeTypes_ << Constants::C_DATAPROCESSOR_MIMETYPE;
+    mimeTypes_ 
+        << Constants::C_DATA_MC4_MIMETYPE
+        << Constants::C_DATA_TEXT_MIMETYPE
+        << Constants::C_DATA_NATIVE_MIMETYPE;
 }
 
 // implementation for IFileFactory

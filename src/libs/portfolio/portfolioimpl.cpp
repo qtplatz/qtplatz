@@ -82,3 +82,63 @@ PortfolioImpl::assign( const std::wstring& id, boost::any& data )
 {
     db_[ id ] = data;
 }
+
+//////////////////////
+
+bool
+PortfolioImpl::create_with_fullpath( const std::wstring& fullpath )
+{
+    if ( isXMLLoaded_ )
+        return false;
+
+    using namespace xmlwrapper::msxml;
+
+    XMLProcessingInstruction inst =
+        doc_.createProcessingInstruction(L"xml", L"version='1.0' encoding='UTF-8'");
+    doc_.appendChild( inst );
+    
+    XMLComment comm =
+        doc_.createComment(L"Copyright(C) 2010-2011, Toshinobu Hondo, ScienceLiaison, All rights reserved.");
+    doc_.appendChild( comm );
+
+    XMLElement top = doc_.createElement( L"xtree" );
+    doc_.appendChild( top );
+
+    top.setAttribute( L"typeid", L"portfolio" );
+    top.setAttribute( L"impl", L"portfolio" );
+    top.setAttribute( L"create_date", L"TBD" );
+
+    XMLElement dset = top.appendChild( doc_.createElement( L"dataset" ) );
+    dset.setAttribute( L"fullpath", fullpath );
+
+    if ( node_ = doc_.selectSingleNode( L"/xtree/dataset" ) )
+        isXMLLoaded_ = true;
+
+    return isXMLLoaded_;
+}
+
+Folder
+PortfolioImpl::addFolder( const std::wstring& name )
+{
+    return Folder( Node::addFolder( name, this ), this );
+}
+
+
+
+#include <windows.h>
+std::wstring
+PortfolioImpl::newGuid()
+{
+#if defined WIN32
+    std::wstring guidString;
+    GUID guid;
+    if ( CoCreateGuid( &guid ) == S_OK ) {
+        LPOLESTR psz;
+        if ( ::StringFromCLSID( guid, &psz ) == S_OK ) {
+            guidString = psz;
+            CoTaskMemFree( psz );
+        }
+    }
+    return guidString;
+#endif
+}

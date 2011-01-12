@@ -44,13 +44,20 @@ namespace portfolio {
             PortfolioImpl();
             PortfolioImpl( const PortfolioImpl& );
             PortfolioImpl( const std::wstring& xml );
-            operator bool () const;
+            operator bool () const { return isXMLLoaded_; }
             const std::wstring fullpath() const;
             std::vector<Folder> selectFolders( const std::wstring& );
 
             boost::any& find( const std::wstring& id );
             void assign( const std::wstring& id, boost::any& );
 
+            ///////////////  creation ///////////////
+            bool create_with_fullpath( const std::wstring& );
+            Folder addFolder( const std::wstring& );
+            xmlDocument& getDocument() { return doc_; }
+
+            static std::wstring newGuid();
+     
         private:
             bool isXMLLoaded_;
             std::map< std::wstring, boost::any > db_;

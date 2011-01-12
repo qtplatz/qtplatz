@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "node.h"
+#include "portfolioimpl.h"
 
 using namespace portfolio;
 using namespace portfolio::internal;
@@ -107,4 +108,36 @@ xmlNodeList
 Node::selectNodes( const std::wstring& query )
 {
     return node_.selectNodes( query );
+}
+
+//////////////////////////
+xmlElement
+Node::addFolder( const std::wstring& name, internal::PortfolioImpl* impl )
+{
+    xmlElement child = impl->getDocument().createElement( L"folder" );
+    node_.appendChild( child );
+    child.setAttribute( L"folderType", L"directory" );
+    child.setAttribute( L"name", name );
+    return child;
+}
+
+xmlElement
+Node::addFolium( const std::wstring& name )
+{
+    xmlElement child = impl_->getDocument().createElement( L"folium" );
+    node_.appendChild( child );
+    child.setAttribute( L"folderType", L"file" );
+    child.setAttribute( L"dataId", internal::PortfolioImpl::newGuid() );
+    child.setAttribute( L"name", name );
+    return child;
+}
+
+xmlElement
+Node::addAttachment( const std::wstring& name )
+{
+    xmlElement child = impl_->getDocument().createElement( L"attachment" );
+    node_.appendChild( child );
+    child.setAttribute( L"dataId", internal::PortfolioImpl::newGuid() );
+    child.setAttribute( L"name", name );
+    return child;
 }

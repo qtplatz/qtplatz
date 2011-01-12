@@ -56,7 +56,7 @@ Folder::folders()
 Folio
 Folder::folio()
 {
-    xmlNodeList list = Node::selectNodes( L"./folder[@folderType='file']" );
+    xmlNodeList list = Node::selectNodes( L"./folder[@folderType='file']|./folium" );
     Folio folio;
     for ( size_t i = 0; i < list.size(); ++i )
         folio.push_back( Folium( list[i], impl_ ) );
@@ -67,4 +67,11 @@ Folium
 Folder::selectSingleFolium( const std::wstring& )
 {
     return Folium();
+}
+
+/////////////////////////
+Folium
+Folder::addFolium( const std::wstring& name )
+{
+    return Folium( Node::addFolium( name ), impl_ );
 }

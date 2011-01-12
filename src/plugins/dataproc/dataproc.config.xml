@@ -8,7 +8,8 @@
 <DataprocConfiguration name="dataproc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
 	<Module name="qtwidgets" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/qtwidgets$(configuration).dll"/>
 	<Module name="mc4" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/mc4$(configuration).dll"/>
-	<Module name="infitof" type="sharedlib" filename="/lib/qtPlatz/plugins/MSI/infitofspectrometer$(configuration).dll"/>
+  <Module name="adtxtfactory" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/adtxtfactory$(configuration).dll"/>
+  <Module name="infitof" type="sharedlib" filename="/lib/qtPlatz/plugins/MSI/infitofspectrometer$(configuration).dll"/>
 	<Configuration name="ProcessMethodEditors">
 		<Configuration name="CentroidMethodUI">
 			<title>Centroid</title>
@@ -60,5 +61,9 @@
 			<pattern>*.plt</pattern>
 			<Component type="dataprovider" interface="infitof::dataprovider" module="infitof" loader="adplugin"/>
 		</Configuration>
-	</Configuration>
+    <Configuration name="txtprovider">
+      <pattern>*.txt</pattern>
+      <Component type="dataprovider" interface="n/a" module="adtxtfactory" loader="adplugin"/>
+    </Configuration>
+  </Configuration>
 </DataprocConfiguration>

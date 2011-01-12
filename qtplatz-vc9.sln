@@ -146,6 +146,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adutils", "src\libs\adutils
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chromatography", "src\libs\chromatography\chromatography.vcproj", "{1715B587-7723-3C5F-BABB-571E78EFF868}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adtxtfactory", "src\libs\adtxtfactory\adtxtfactory.vcproj", "{44281D1E-7BF2-3C4A-A530-CB0C6BB4A8C7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E55C6F64-C044-34F1-BBD7-94FD1BBEB742} = {E55C6F64-C044-34F1-BBD7-94FD1BBEB742}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -256,6 +261,10 @@ Global
 		{1715B587-7723-3C5F-BABB-571E78EFF868}.Debug|Win32.Build.0 = Debug|Win32
 		{1715B587-7723-3C5F-BABB-571E78EFF868}.Release|Win32.ActiveCfg = Release|Win32
 		{1715B587-7723-3C5F-BABB-571E78EFF868}.Release|Win32.Build.0 = Release|Win32
+		{44281D1E-7BF2-3C4A-A530-CB0C6BB4A8C7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{44281D1E-7BF2-3C4A-A530-CB0C6BB4A8C7}.Debug|Win32.Build.0 = Debug|Win32
+		{44281D1E-7BF2-3C4A-A530-CB0C6BB4A8C7}.Release|Win32.ActiveCfg = Release|Win32
+		{44281D1E-7BF2-3C4A-A530-CB0C6BB4A8C7}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

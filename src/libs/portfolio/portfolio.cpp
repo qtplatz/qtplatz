@@ -58,3 +58,31 @@ Portfolio::folders()
 {
     return impl_->selectFolders( L"./folder[@folderType='directory']" );
 }
+
+/////////////
+
+bool
+Portfolio::create_with_fullpath( const std::wstring& fullpath )
+{
+    return impl_->create_with_fullpath( fullpath );
+}
+
+Folder
+Portfolio::addFolder( const std::wstring& name )
+{
+    return impl_->addFolder( name );
+}
+
+std::wstring
+Portfolio::xml() const
+{
+    std::wstring xml;
+    impl_->getDocument().xml( xml );
+    return xml;
+}
+
+bool
+Portfolio::save( const std::wstring& filename ) const
+{
+    return impl_->getDocument().save( filename );
+}

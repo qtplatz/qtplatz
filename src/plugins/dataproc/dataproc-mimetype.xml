@@ -14,7 +14,7 @@
       <comment>InfiTOF data file</comment>
       <glob pattern="*.plt"/>
     </mime-type>
-    <mime-type type="application/infitof.dataset">
+    <mime-type type="application/text.dataset">
        <sub-class-of type="application/octet-stream"/>
        <comment>Spectrum file</comment>
        <glob pattern="*.txt"/>

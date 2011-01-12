@@ -49,6 +49,9 @@ namespace portfolio {
         std::vector< Folder > folders();
         std::vector< Folium > folio();
         Folium selectSingleFolium( const std::wstring& );
+
+        // --- add/modify features
+        Folium addFolium( const std::wstring& name );
     };
 
 }

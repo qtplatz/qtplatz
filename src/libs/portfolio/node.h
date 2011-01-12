@@ -66,6 +66,11 @@ namespace portfolio {
             xmlNodeList selectNodes( const std::wstring& query );
 
         protected:
+            xmlElement addFolder( const std::wstring& name, PortfolioImpl* );
+            xmlElement addFolium( const std::wstring& name );
+            xmlElement addAttachment( const std::wstring& name );
+
+        protected:
             xmlElement node_;
             PortfolioImpl* impl_;
         };

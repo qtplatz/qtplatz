@@ -46,6 +46,15 @@ namespace portfolio {
         Portfolio( const std::wstring& xml );
 
         std::vector<Folder> folders();
+
+        // create new from scratch
+        bool create_with_fullpath( const std::wstring& fullpath );
+        Folder addFolder( const std::wstring& name );
+
+        std::wstring xml() const;
+
+        // for debugging convension
+        bool save( const std::wstring& filename ) const;
      
     private:
         boost::shared_ptr< internal::PortfolioImpl > impl_;

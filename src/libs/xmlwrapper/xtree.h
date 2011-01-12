@@ -29,6 +29,25 @@
 
 #pragma once
 
+#include "msxml.h"
+
+namespace xmlwrapper {
+    namespace msxml {
+
+        class XTree {
+        public:
+            XTree();
+            ~XTree();
+
+            XMLDocument& getDocument();
+            XMLElement create_dataset( const std::wstring& fullpath );
+        private:
+            XMLDocument dom_;
+            void create_root();
+        };
+    }
+}
+
 #if 0
 #include <map>
 #include "xmldom.h"
