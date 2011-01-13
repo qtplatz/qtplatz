@@ -60,6 +60,7 @@ namespace adtxtfactory {
 
     private:
         boost::scoped_ptr< adcontrols::ProcessedDataset > processedDataset_;
+        boost::any data_;
 
     };
 }

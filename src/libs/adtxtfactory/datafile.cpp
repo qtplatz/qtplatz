@@ -61,14 +61,23 @@ bool
 datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
     TXTSpectrum txt;
-    
-    txt.load( filename );
+
+    if ( txt.load( filename ) ) {
+        adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum );
+        pMS->resize( txt.timeArray_.size() );
+        pMS->setTimeArray( &txt.timeArray_[0] );
+        pMS->setMassArray( &txt.massArray_[0] );
+        pMS->setIntensityArray( &txt.intensArray_[0] );
+        data_ = pMS;     
+    }
 
     portfolio::Portfolio portfolio;
 
     portfolio.create_with_fullpath( filename );
     portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
     portfolio::Folium folium = spectra.addFolium( L"A Spectrum" );
+    folium.setAttribute( L"dataType", L"MassSpectrum" );
+    folium.setAttribute( L"path", L"/" );
 
     processedDataset_.reset( new adcontrols::ProcessedDataset );
     processedDataset_->xml( portfolio.xml() );
@@ -79,10 +88,9 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 boost::any
 datafile::fetch( const std::wstring& path, const std::wstring& dataType )
 {
-    boost::any any;
     (void)path;
     (void)dataType;
-    return any;
+    return data_;
 }
 
 size_t
