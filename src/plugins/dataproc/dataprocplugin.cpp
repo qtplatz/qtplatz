@@ -57,6 +57,7 @@
 #include <QtGui/QBoxLayout>
 #include <QtGui/QToolButton>
 #include <QtGui/QLabel>
+#include <QtGui/QSpacerItem>
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QToolButton>
@@ -76,6 +77,8 @@ DataprocPlugin::~DataprocPlugin()
 }
 
 DataprocPlugin::DataprocPlugin() : pSessionManager_( new SessionManager() )
+                                 , actionApply_(0)
+                                 , actionApplyAll_(0) 
 {
     instance_ = this;
 }
@@ -84,6 +87,16 @@ DataprocPlugin *
 DataprocPlugin::instance()
 {
     return instance_;
+}
+
+// static
+static QToolButton * 
+toolButton( QAction * action )
+{
+  QToolButton * button = new QToolButton;
+  if ( button )
+    button->setDefaultAction( action );
+  return button;
 }
 
 bool
@@ -203,14 +216,24 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
             toolBarLayout->setSpacing(0);
             Core::ActionManager *am = core->actionManager();
             if ( am ) {
+                QList<int> globalcontext;
+                globalcontext << Core::Constants::C_GLOBAL_ID;
+
+                actionApply_ = new QAction( QIcon( ":/dataproc/image/apply_small.png" ), tr("Apply" ), this );
+                connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) );
+                am->registerAction( actionApply_, "dataproc.connect", globalcontext );
+                toolBarLayout->addWidget( toolButton( am->command( "dataproc.connect" )->action() ) );
+                /*
                 toolBarLayout->addWidget( new QLabel( tr("AA") ) );
                 toolBarLayout->addWidget( new Utils::StyledSeparator );
                 toolBarLayout->addWidget( new QLabel( tr("BB") ) );
                 toolBarLayout->addWidget( new Utils::StyledSeparator );
                 toolBarLayout->addWidget( new QLabel( tr("CC") ) );
+                */
+                toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
             }
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
-            toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
+            //toolBarLayout->addWidget( new Utils::StyledSeparator );
+            //toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
         }
 
         /******************************************************************************
@@ -262,6 +285,16 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     return true;
 }
 
+void
+DataprocPlugin::actionApply()
+{
+    
+}
+
+void
+DataprocPlugin::actionApplyAll()
+{
+}
 
 void
 DataprocPlugin::extensionsInitialized()
@@ -274,5 +307,6 @@ DataprocPlugin::shutdown()
 {
     manager_->OnFinalClose();
 }
+
 
 Q_EXPORT_PLUGIN( DataprocPlugin )

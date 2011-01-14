@@ -22,16 +22,14 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison Project
-//////////////////////////////////////////////
 
 #pragma once
 
 #include <extensionsystem/iplugin.h>
 #include <boost/smart_ptr.hpp>
 #include <vector>
+
+class QAction;
 
 namespace adportable {
 	class Configuration;
@@ -65,11 +63,19 @@ namespace dataproc {
         signals:
 
         public slots:
+            void actionApply();
+            void actionApplyAll();
+
+        private:
 
         private:
             boost::shared_ptr<DataprocManager> manager_;
             boost::shared_ptr< adportable::Configuration > pConfig_;
             boost::scoped_ptr< SessionManager > pSessionManager_;
+
+            QAction * actionApply_;
+            QAction * actionApplyAll_;
+
             static DataprocPlugin * instance_;
 
         };
