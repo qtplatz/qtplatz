@@ -63,11 +63,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     TXTSpectrum txt;
 
     if ( txt.load( filename ) ) {
-        adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum );
-        pMS->resize( txt.timeArray_.size() );
-        pMS->setTimeArray( &txt.timeArray_[0] );
-        pMS->setMassArray( &txt.massArray_[0] );
-        pMS->setIntensityArray( &txt.intensArray_[0] );
+        adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum( txt.ms_ ) );
         data_ = pMS;     
     }
 

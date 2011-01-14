@@ -55,26 +55,26 @@ MSProperty::time( size_t pos ) // return flight time for data[pos] in seconds
     return double( instSamplingStartDelay_ + pos ) * instSamplingInterval_ * 1.0e12;  // ps -> s
 }
 
-size_t
+unsigned long
 MSProperty::instSamplingInterval() const
 {
     return instSamplingInterval_;
 }
 
 void
-MSProperty::setInstSamplingInterval( size_t value )
+MSProperty::setInstSamplingInterval( unsigned long value )
 {
    instSamplingInterval_ = value;
 }
 
-size_t
+unsigned long
 MSProperty::instSamplingStartDelay() const
 {
     return instSamplingStartDelay_;
 }
 
 void
-MSProperty::setInstSamplingStartDelay( size_t value )
+MSProperty::setInstSamplingStartDelay( unsigned long value )
 {
     instSamplingStartDelay_ = value;
 }
@@ -92,3 +92,14 @@ MSProperty::setTimeSinceInjection( unsigned long value )
     time_since_injection_ = value;
 }
 
+void
+MSProperty::setInstMassRange( const std::pair< double, double >& value )
+{
+    instMassRange_ = value;
+}
+
+const std::pair<double, double>&
+MSProperty::instMassRange() const
+{
+    return instMassRange_;
+}

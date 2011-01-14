@@ -54,25 +54,28 @@ namespace adcontrols {
 
         double time( size_t pos ); // return flight time for data[pos] in seconds
 
-        size_t instSamplingInterval() const; // ps
-        void setInstSamplingInterval( size_t ); // ps
+        unsigned long instSamplingInterval() const; // ps
+        void setInstSamplingInterval( unsigned long ); // ps
 
-        size_t instSamplingStartDelay() const;  // number of data points before record waveform in array
-        void setInstSamplingStartDelay( size_t );
+        unsigned long instSamplingStartDelay() const;  // number of data points before record waveform in array
+        void setInstSamplingStartDelay( unsigned long );
 
         unsigned long timeSinceInjection() const;
         void setTimeSinceInjection( unsigned long );
 
         // acquisition mass range, usually it is from user parameter based on theoretical calibration
-        std::pair<double, double> instMassRange() const;
+        const std::pair<double, double>& instMassRange() const;
         void setInstMassRange( const std::pair<double, double>& );
 
     private:
         unsigned long time_since_injection_; // msec
         double instAccelVoltage_;
-        size_t instNumAvrg_;
-        size_t instSamplingStartDelay_;
-        size_t instSamplingInterval_; // ps
+        unsigned long instNumAvrg_;
+        unsigned long instSamplingStartDelay_;
+        unsigned long instSamplingInterval_; // ps
+# pragma warning(disable:4251)
+        std::pair< double, double > instMassRange_;
+# pragma warning(default:4251)
 
         // bool bLockmassApplied_;
         // MSCalibration instCalib_;
@@ -91,6 +94,8 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP(instNumAvrg_);
                 ar & BOOST_SERIALIZATION_NVP(instSamplingStartDelay_);
                 ar & BOOST_SERIALIZATION_NVP(instSamplingInterval_);
+                ar & BOOST_SERIALIZATION_NVP(instMassRange_.first);
+                ar & BOOST_SERIALIZATION_NVP(instMassRange_.second);
             }
         }
 

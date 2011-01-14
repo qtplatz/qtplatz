@@ -27,6 +27,7 @@
 #define TXTSPECTRUM_H
 
 #include <vector>
+#include <adcontrols/massspectrum.h>
 
 namespace adtxtfactory {
 
@@ -34,13 +35,9 @@ namespace adtxtfactory {
     public:
         TXTSpectrum();
     public:
-        std::vector<double> timeArray_;
-        std::vector<double> intensArray_;
-        std::vector<double> massArray_;
+        adcontrols::MassSpectrum ms_;
 
         bool load( const std::wstring& );
-        unsigned long sampInterval_;
-        unsigned long startDelay_;
         double minValue_;
         double maxValue_;
     };
