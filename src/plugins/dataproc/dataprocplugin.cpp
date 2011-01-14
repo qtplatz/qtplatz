@@ -226,9 +226,6 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
                 /*
                 toolBarLayout->addWidget( new QLabel( tr("AA") ) );
                 toolBarLayout->addWidget( new Utils::StyledSeparator );
-                toolBarLayout->addWidget( new QLabel( tr("BB") ) );
-                toolBarLayout->addWidget( new Utils::StyledSeparator );
-                toolBarLayout->addWidget( new QLabel( tr("CC") ) );
                 */
                 toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
             }
