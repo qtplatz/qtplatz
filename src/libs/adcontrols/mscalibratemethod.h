@@ -22,13 +22,8 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
-#ifndef MSCALIBRATEMETHOD_H
-#define MSCALIBRATEMETHOD_H
+#pragma once
 
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
@@ -36,11 +31,45 @@
 
 namespace adcontrols {
 
-  class ADCONTROLSSHARED_EXPORT MSCalibrateMethod {
-  public:
-    MSCalibrateMethod();
-  };
+    class ADCONTROLSSHARED_EXPORT MSCalibrateMethod {
+    public:
+        ~MSCalibrateMethod();
+        MSCalibrateMethod();
+        MSCalibrateMethod( const MSCalibrateMethod& );
+
+        unsigned int polynomialDegree() const;
+        void polynomialDegree( unsigned int );
+        double massToleranceDa() const;
+        void massToleranceDa( double );
+        double minimumRAPercent() const;
+        void minimumRAPercent( double );
+        double lowMass() const;
+        void lowMass( double );
+        double highMass() const;
+        void highMass( double );
+
+    private:
+        unsigned int polynomialDegree_;
+        double massToleranceDa_;
+        double minimumRAPercent_;
+        double lowMass_;
+        double highMass_;
+
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive& ar, const unsigned int version) {
+            using namespace boost::serialization;
+            if ( version >= 0 ) {
+                ar & BOOST_SERIALIZATION_NVP(polynomialDegree_);
+                ar & BOOST_SERIALIZATION_NVP(massToleranceDa_);
+                ar & BOOST_SERIALIZATION_NVP(minimumRAPercent_);
+                ar & BOOST_SERIALIZATION_NVP(lowMass_);
+                ar & BOOST_SERIALIZATION_NVP(highMass_);
+            }
+       }
+
+    };
   
 }
 
-#endif // MSCALIBRATEMETHOD_H
+

@@ -23,11 +23,6 @@
 **
 **************************************************************************/
 
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
-
 #pragma once
 
 #include <QObject>
@@ -41,6 +36,7 @@ namespace adportable {
 
 namespace adcontrols {
     class datafile;
+    class ProcessMethod;
 }
 
 namespace dataproc {
@@ -61,9 +57,12 @@ namespace dataproc {
             void setSimpleDockWidgetArrangement();
             void OnInitialUpdate();
             void OnFinalClose();
+
+            void getProcessMethod( adcontrols::ProcessMethod& );
       
         signals:
             void signalUpdateFile( adcontrols::datafile * );
+            void signalGetProcessMethod( adcontrols::ProcessMethod& );
       
         public slots:
             void handleSessionAdded( Dataprocessor * );

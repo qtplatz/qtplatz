@@ -5,6 +5,7 @@
 
 #include "centroidform.h"
 #include "ui_centroidform.h"
+#include <adcontrols/processmethod.h>
 #include <adcontrols/centroidmethod.h>
 #include <QStandardItemModel>
 #include "centroiddelegate.h"
@@ -80,7 +81,7 @@ void
 CentroidForm::update_model()
 {
     QStandardItemModel& model = *pModel_;
-    adcontrols::CentroidMethod& method = *pMethod_;
+    const adcontrols::CentroidMethod& method = *pMethod_;
 
     model.setData( model.index( 0, 1), qVariantFromValue( CentroidDelegate::PeakWidthMethod( method.peakWidthMethod() ) ) );
 
@@ -101,6 +102,37 @@ CentroidForm::update_model()
 }
 
 void
-CentroidForm::handleUpdateFile( adcontrols::datafile * file )
+CentroidForm::update_data()
 {
+    QStandardItemModel& model = *pModel_;
+    adcontrols::CentroidMethod& method = *pMethod_;
+
+    method.peakWidthMethod( static_cast< adcontrols::CentroidMethod::ePeakWidthMethod >( model.index( 0, 1 ).data( Qt::EditRole ).toInt() ) );
+
+/*
+    model.setData( model.index( 0, 1), qVariantFromValue( CentroidDelegate::PeakWidthMethod( method.peakWidthMethod() ) ) );
+
+    model.setData( model.index( 0, 1, model.item( 0, 0 )->index() ), method.rsTofInDa() );
+    model.setData( model.index( 1, 1, model.item( 0, 0 )->index() ), method.rsPropoInPpm() );
+    model.setData( model.index( 2, 1, model.item( 0, 0 )->index() ), method.rsConstInDa() );
+    
+    do {
+        QStandardItem * item = model.itemFromIndex( model.index( 0, 0, model.item( 0, 0 )->index() ) );
+        item->setEnabled( false );
+        item = model.itemFromIndex( model.index( 0, 1, model.item( 0, 0 )->index() ) );
+        item->setEnabled( false );
+    } while(0);
+
+    model.setData( model.index( 1, 1 ), qVariantFromValue( CentroidDelegate::AreaHeight( method.centroidAreaIntensity() ) ) );
+    model.setData( model.index( 2, 1 ), method.baselineWidth() );
+    model.setData( model.index( 3, 1 ), method.peakCentroidFraction() * 100 );
+*/
+    method.peakCentroidFraction( model.index( 3, 1 ).data( Qt::EditRole ).toDouble() / 100.0 );
+}
+
+void
+CentroidForm::getContents( adcontrols::ProcessMethod& pm )
+{
+    update_data();
+    pm.appendMethod< adcontrols::CentroidMethod >( *pMethod_ );
 }

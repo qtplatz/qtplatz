@@ -64,7 +64,10 @@ namespace dataproc {
 
         public slots:
             void actionApply();
-            void actionApplyAll();
+
+        private slots:
+            void handleFeatureSelected( int );
+            void handleFeatureActivated( int );
 
         private:
 
@@ -74,7 +77,7 @@ namespace dataproc {
             boost::scoped_ptr< SessionManager > pSessionManager_;
 
             QAction * actionApply_;
-            QAction * actionApplyAll_;
+            int currentFeature_;
 
             static DataprocPlugin * instance_;
 

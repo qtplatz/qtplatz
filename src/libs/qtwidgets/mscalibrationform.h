@@ -23,12 +23,12 @@
 **
 **************************************************************************/
 
-#ifndef MSCALIBRATIONFORM_H
-#define MSCALIBRATIONFORM_H
+#pragma once
 
 #include <QWidget>
 #include <adplugin/lifecycle.h>
 #include <boost/smart_ptr.hpp>
+
 
 class QStandardItemModel;
 
@@ -38,6 +38,7 @@ namespace adportable {
 
 namespace adcontrols {
     class MSCalibrateMethod;
+    class ProcessMethod;
 }
 
 namespace Ui {
@@ -62,6 +63,8 @@ namespace qtwidgets {
         void OnInitialUpdate();
         void OnFinalClose();
         //<--
+    public slots:
+        void getContents( adcontrols::ProcessMethod& );
 
     private:
         Ui::MSCalibrationForm *ui;
@@ -73,4 +76,4 @@ namespace qtwidgets {
 
 }
 
-#endif // MSCALIBRATIONFORM_H
+

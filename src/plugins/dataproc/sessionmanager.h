@@ -22,11 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
-
 
 #ifndef SESSIONMANAGER_H
 #define SESSIONMANAGER_H
@@ -70,6 +65,7 @@ namespace dataproc {
         static SessionManager * instance();
 
         void addDataprocessor( boost::shared_ptr<Dataprocessor>& );
+        Dataprocessor * getActiveDataprocessor();
 
         typedef std::vector< Session > vector_type;
 
@@ -83,10 +79,10 @@ namespace dataproc {
     public slots:
         void selectionChanged( Dataprocessor *, portfolio::Folium& );
 
-
     private:
         static SessionManager * instance_;
         std::vector< Session > sessions_;
+        Dataprocessor * activeDataprocessor_;
     };
 
 }

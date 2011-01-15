@@ -69,7 +69,7 @@ namespace adcontrols {
     private:
 #pragma warning(disable : 4251)
         vector_type peaks_;
-#pragma warning( default : 4251)
+//#pragma warning( default : 4251)
 
         double areaTotal_;
         double heightTotal_;

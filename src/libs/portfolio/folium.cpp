@@ -80,6 +80,11 @@ Folium::operator boost::any & ()
     return temp;
 }
 
+Folium::operator bool () const
+{
+    return impl_;
+}
+
 Folio
 Folium::attachments()
 {
@@ -88,4 +93,10 @@ Folium::attachments()
     for ( size_t i = 0; i < list.size(); ++i )
         attachments.push_back( Folium( list[i], impl_ ) );
     return attachments;
+}
+
+Folium
+Folium::addAttachment( const std::wstring& name )
+{
+    return Folium( Node::addAttachment( name ), impl_ );
 }

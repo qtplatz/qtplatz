@@ -8,6 +8,7 @@
 #include "isotopedelegate.h"
 #include "standarditemhelper.h"
 #include <adcontrols/isotopemethod.h>
+#include <adcontrols/processmethod.h>
 #include <adportable/configuration.h>
 #include <QStandardItemModel>
 
@@ -55,4 +56,10 @@ IsotopeForm::OnInitialUpdate()
 void
 IsotopeForm::OnFinalClose()
 {
+}
+
+void
+IsotopeForm::getContents( adcontrols::ProcessMethod& pm )
+{
+    pm.appendMethod< adcontrols::IsotopeMethod >( *pMethod_ );
 }

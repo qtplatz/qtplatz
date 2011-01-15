@@ -46,6 +46,7 @@ namespace portfolio {
         Portfolio( const std::wstring& xml );
 
         std::vector<Folder> folders();
+        Folium findFolium( const std::wstring& id );
 
         // create new from scratch
         bool create_with_fullpath( const std::wstring& fullpath );
@@ -57,7 +58,9 @@ namespace portfolio {
         bool save( const std::wstring& filename ) const;
      
     private:
+# pragma warning(disable:4251)
         boost::shared_ptr< internal::PortfolioImpl > impl_;
+# pragma warning(default:4251)
   };
 
 }

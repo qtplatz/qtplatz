@@ -37,6 +37,7 @@ namespace adportable {
 
 namespace adcontrols {
     class TargetingMethod;
+    class ProcessMethod;
 }
 
 namespace Ui {
@@ -60,6 +61,8 @@ namespace qtwidgets {
         void OnInitialUpdate();
         void OnFinalClose();
         //<--
+    public slots:
+        void getContents( adcontrols::ProcessMethod& );
 
     private:
         Ui::TargetingForm *ui;

@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #include "elementalcompwnd.h"
 #include "dataprocessor.h"
@@ -78,27 +74,27 @@ namespace dataproc {
 ElementalCompWnd::ElementalCompWnd(QWidget *parent) :
     QWidget(parent)
 {
-  init();
+    init();
 }
 
 void
 ElementalCompWnd::init()
 {
-  pImpl_.reset( new ElementalCompWndImpl );
-  Core::MiniSplitter * splitter = new Core::MiniSplitter;
-  if ( splitter ) {
-      if ( pImpl_->processedSpectrum_ = new adwidgets::ui::SpectrumWidget ) {
-          splitter->addWidget( pImpl_->processedSpectrum_ );
-          splitter->setOrientation( Qt::Vertical );
-      }
-  }
+    pImpl_.reset( new ElementalCompWndImpl );
+    Core::MiniSplitter * splitter = new Core::MiniSplitter;
+    if ( splitter ) {
+        if ( pImpl_->processedSpectrum_ = new adwidgets::ui::SpectrumWidget ) {
+            splitter->addWidget( pImpl_->processedSpectrum_ );
+            splitter->setOrientation( Qt::Vertical );
+        }
+    }
   
-  QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
-  toolBarAddingLayout->setMargin(0);
-  toolBarAddingLayout->setSpacing(0);
-  //toolBarAddingLayout->addWidget( toolBar );
-  toolBarAddingLayout->addWidget( splitter );
-  //toolBarAddingLayout->addWidget( toolBar2 );
+    QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
+    toolBarAddingLayout->setMargin(0);
+    toolBarAddingLayout->setSpacing(0);
+    //toolBarAddingLayout->addWidget( toolBar );
+    toolBarAddingLayout->addWidget( splitter );
+    //toolBarAddingLayout->addWidget( toolBar2 );
 }
 
 void

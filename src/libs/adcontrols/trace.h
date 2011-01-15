@@ -56,7 +56,7 @@ namespace adcontrols {
         std::vector< double > traceX_;
         std::vector< double > traceY_;
         std::vector< unsigned long > events_;
-#pragma warning(default:4251)
+// #pragma warning(default:4251)
     };
 
 }

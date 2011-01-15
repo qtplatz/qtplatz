@@ -31,8 +31,14 @@
 #include <boost/smart_ptr.hpp>
 
 class QStandardItemModel;
+
 namespace adportable {
     class Configuration;
+}
+
+namespace adcontrols {
+    class ProcessMethod;
+    class ElementalCompositionMethod;
 }
 
 namespace Ui {
@@ -57,6 +63,8 @@ namespace qtwidgets {
         void OnFinalClose();
         //<--
 
+    public slots:
+        void getContents( adcontrols::ProcessMethod& );
 
     private:
         Ui::ElementalCompositionForm *ui;
@@ -64,6 +72,7 @@ namespace qtwidgets {
         boost::scoped_ptr< QStandardItemModel > pModel_;
         boost::scoped_ptr< adportable::Configuration > pConfig_;
         boost::scoped_ptr< ElementalCompositionDelegate > pDelegate_;
+        boost::scoped_ptr< adcontrols::ElementalCompositionMethod > pMethod_;
     };
 }
 

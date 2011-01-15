@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #ifndef DATAPROCESSOR_H
 #define DATAPROCESSOR_H
@@ -37,6 +33,7 @@
 namespace adcontrols {
     class datafile;
     class LCMSDataset;
+    class ProcessMethod;
 }
 
 namespace portfolio {
@@ -63,6 +60,7 @@ namespace dataproc {
         adcontrols::LCMSDataset* getLCMSDataset();
         portfolio::Portfolio getPortfolio();
         void setCurrentSelection( portfolio::Folium& );
+        void applyProcess( const adcontrols::ProcessMethod& );
 
         // implement adcontrols::dataSubscriber
         virtual void subscribe( adcontrols::LCMSDataset& );
@@ -79,6 +77,7 @@ namespace dataproc {
     private:
         boost::scoped_ptr< datafileimpl > datafileimpl_;
         boost::scoped_ptr< portfolio::Portfolio > portfolio_;
+        std::wstring idActiveFolium_;
     };
 
 } // dataproc

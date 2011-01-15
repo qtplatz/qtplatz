@@ -51,6 +51,7 @@ namespace portfolio {
         bool empty() const;
         void operator = ( boost::any& );
         operator boost::any& ();
+        operator bool () const;
 
         std::vector< Folium > attachments();
 

@@ -26,6 +26,7 @@
 #include "dataprocplugin.h"
 #include "dataprocmode.h"
 #include "dataprocmanager.h"
+#include "dataprocessor.h"
 #include "dataprocessorfactory.h"
 #include "navigationwidgetfactory.h"
 #include "sessionmanager.h"
@@ -63,6 +64,7 @@
 #include <QToolButton>
 #include <QDir>
 #include <adcontrols/massspectrum.h>
+#include <adcontrols/processmethod.h>
 #include <qtwrapper/qstring.h>
 #include <adportable/configuration.h>
 #include <adplugin/adplugin.h>
@@ -78,7 +80,7 @@ DataprocPlugin::~DataprocPlugin()
 
 DataprocPlugin::DataprocPlugin() : pSessionManager_( new SessionManager() )
                                  , actionApply_(0)
-                                 , actionApplyAll_(0) 
+                                 , currentFeature_(0)
 {
     instance_ = this;
 }
@@ -223,14 +225,19 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
                 connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) );
                 am->registerAction( actionApply_, "dataproc.connect", globalcontext );
                 toolBarLayout->addWidget( toolButton( am->command( "dataproc.connect" )->action() ) );
-                /*
-                toolBarLayout->addWidget( new QLabel( tr("AA") ) );
+                /**/
                 toolBarLayout->addWidget( new Utils::StyledSeparator );
-                */
+                /**/
+                QComboBox * features = new QComboBox;
+                features->addItem( "Centroid" );
+                features->addItem( "Isotope" );
+                features->addItem( "Calibration" );
+                toolBarLayout->addWidget( features );
+                connect( features, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleFeatureSelected(int) ) );
+                connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) );
+
                 toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
             }
-            //toolBarLayout->addWidget( new Utils::StyledSeparator );
-            //toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
         }
 
         /******************************************************************************
@@ -268,7 +275,6 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
             connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), *it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
             connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) ), *it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
         }
-
         connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), manager_.get(), SLOT( handleSessionAdded( Dataprocessor* ) ) );
         connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) ), manager_.get(), SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
 
@@ -285,13 +291,28 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
 void
 DataprocPlugin::actionApply()
 {
-    
+    adcontrols::ProcessMethod m;
+    manager_->getProcessMethod( m );
+    size_t n = m.size();
+    if ( n > 0 ) {
+        Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
+        if ( processor )
+            processor->applyProcess( m );
+    }
 }
 
 void
-DataprocPlugin::actionApplyAll()
+DataprocPlugin::handleFeatureSelected( int value )
 {
+    currentFeature_ = value;
 }
+
+void
+DataprocPlugin::handleFeatureActivated( int value )
+{
+    currentFeature_ = value;
+}
+
 
 void
 DataprocPlugin::extensionsInitialized()

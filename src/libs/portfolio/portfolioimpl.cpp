@@ -71,6 +71,15 @@ PortfolioImpl::selectFolders( const std::wstring& query )
     return vec;
 }
 
+Folium
+PortfolioImpl::selectFolium( const std::wstring& query )
+{
+    xmlNodeList list = Node::selectNodes( query );
+    if ( list.size() )
+        return Folium( list[0], this );
+    return Folium(); // empty
+}
+
 boost::any&
 PortfolioImpl::find( const std::wstring& id )
 {

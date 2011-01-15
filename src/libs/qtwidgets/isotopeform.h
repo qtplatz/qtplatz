@@ -38,6 +38,7 @@ namespace adportable {
 
 namespace adcontrols {
     class IsotopeMethod;
+    class ProcessMethod;
 }
 
 namespace Ui {
@@ -62,6 +63,8 @@ namespace qtwidgets {
         void OnInitialUpdate();
         void OnFinalClose();
         //<--
+    public slots:
+        void getContents( adcontrols::ProcessMethod& );
       
   private:
       Ui::IsotopeForm *ui;

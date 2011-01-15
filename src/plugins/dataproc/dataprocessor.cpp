@@ -35,6 +35,18 @@
 #include <portfolio/folium.h>
 #include <adcontrols/lcmsdataset.h>
 #include <adcontrols/processeddataset.h>
+#include <adcontrols/processmethod.h>
+#include <adutils/processeddata.h>
+
+#include <adcontrols/centroidmethod.h>
+#include <adcontrols/isotopemethod.h>
+#include <adcontrols/elementalcompositionmethod.h>
+#include <adcontrols/mscalibratemethod.h>
+#include <adcontrols/targetingmethod.h>
+
+#include <adcontrols/massspectrum.h>
+#include <adcontrols/centroidprocess.h>
+
 #include <qdebug.h>
 
 using namespace dataproc;
@@ -97,7 +109,79 @@ Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
                 *it = file().fetch( it->path(), it->dataType() );
         }
     }
+    idActiveFolium_ = folium.id();
     SessionManager::instance()->selectionChanged( this, folium );
+}
+
+namespace dataproc {
+    namespace internal {
+
+        // dispatch method
+        struct doSpectralProcess : public boost::static_visitor<bool> {
+            const adutils::MassSpectrumPtr& ptr_;
+            portfolio::Folium& folium;
+
+            doSpectralProcess( const adutils::MassSpectrumPtr& p, portfolio::Folium& f ) : ptr_(p), folium(f) {
+            }
+
+            template<typename T> bool operator () ( T& ) const {
+                return false;
+            }
+            template<> bool operator () ( const adcontrols::CentroidMethod& m ) const {
+                portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
+
+                adcontrols::CentroidProcess peak_detector( m );
+                peak_detector( *ptr_ );
+                adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
+                peak_detector.getCentroidSpectrum( *pCentroid );
+
+                boost::any& any = static_cast<boost::any&>( att );
+                any = pCentroid;
+
+                return true;
+            }
+        };
+
+        // dispatch data type
+        struct processIt : public boost::static_visitor<bool> {
+            const adcontrols::ProcessMethod::value_type& m_;
+            portfolio::Folium& folium_;
+
+            processIt( const adcontrols::ProcessMethod::value_type& m, portfolio::Folium& f ) : m_(m), folium_(f) {
+            }
+
+            template<typename T> bool operator ()( T& ) const {
+                return false;
+            }
+
+            template<> bool operator () ( adutils::MassSpectrumPtr& ptr ) const {
+                return boost::apply_visitor( doSpectralProcess(ptr, folium_), m_ );
+            }
+
+            template<> bool operator () ( adutils::ChromatogramPtr& ) const {
+                // todo:  add doChromatographicProcess
+                return false;
+            }
+        };
+        //-----
+    }
+}
+
+void
+Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m )
+{
+    const adcontrols::CentroidMethod * pCentroidMethod = m.find< adcontrols::CentroidMethod >();
+    (void)pCentroidMethod;
+
+    portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
+    if ( folium ) {
+        adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+     
+        for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
+            boost::apply_visitor( internal::processIt(*it, folium), data );
+
+        SessionManager::instance()->selectionChanged( this, folium );
+    }
 }
 
 ///////////////////////////

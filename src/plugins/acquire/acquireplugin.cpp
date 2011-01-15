@@ -459,6 +459,9 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
         method.centroidAreaIntensity( false ); // take hight
         adcontrols::CentroidProcess peak_detector( method );
         peak_detector( ms );
+        adcontrols::MassSpectrum centroid;
+        peak_detector.getCentroidSpectrum( centroid );
+        pImpl_->spectrumPlot_->setData( ms, centroid );
 
 #  ifdef FFT
         adcontrols::MassSpectrum ms2 = ms;
@@ -470,12 +473,6 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
             o << L"fft " << time << L"ms for" << ms2.size() << L"pts";
             ms2.addDescription( adcontrols::Description( L"acquire.fft", o.str() ) );
         } while(0);
-#  endif
-        adcontrols::MassSpectrum centroid;
-        peak_detector.getCentroidSpectrum( centroid );
-
-        pImpl_->spectrumPlot_->setData( ms, centroid );
-#  ifdef FFT
         pImpl_->spectrumPlot_->setData( ms, ms2 );
 #  endif
     } 

@@ -97,11 +97,11 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
             if ( it->isPlugin() ) {
                 QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
                 if ( pWidget ) {
-                    // receive client event
-                    connect( pWidget, SIGNAL( signalApplyMethod() ), this, SLOT( handleApplyMethod() ) );
+                    // receive client events
+                    connect( pWidget, SIGNAL( signalApplyMethod( adcontrols::ProcessMethod& ) ), this, SLOT( handleApplyMethod( adcontrols::ProcessMethod& ) ) );
 
-                    // send to client
-                    connect( this, SIGNAL( signalUpdateFile( adcontrols::datafile* ) ), pWidget, SLOT( handleUpdateFile( adcontrols::datafile* ) ) );
+                    // query process method
+                    connect( this, SIGNAL( signalGetProcessMethod( adcontrols::ProcessMethod& ) ), pWidget, SLOT( getContents( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
 
                     pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
                     m.mainWindow_->addDockForWidget( pWidget );
@@ -224,3 +224,8 @@ DataprocManager::handleApplyMethod()
     // connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), pWidget, SLOT( handleSessionAdded( Dataprocessor* ) ) );
 }
 
+void
+DataprocManager::getProcessMethod( adcontrols::ProcessMethod& pm )
+{
+    emit signalGetProcessMethod( pm );
+}

@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #ifndef NAVIGATIONWIDGET_H
 #define NAVIGATIONWIDGET_H
@@ -64,7 +60,6 @@ namespace dataproc {
         void handle_doubleClicked( const QModelIndex& );
         void handle_entered( const QModelIndex& );
         void handle_pressed( const QModelIndex& );
-        // void handle_currentChanged( const QModelIndex&, const QModelIndex& );
 
     private:
         bool autoSync_;

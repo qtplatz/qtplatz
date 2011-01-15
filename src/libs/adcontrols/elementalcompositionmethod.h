@@ -23,13 +23,15 @@
 **
 **************************************************************************/
 
-#ifndef ELEMENTALCOMPOSITIONMETHOD_H
-#define ELEMENTALCOMPOSITIONMETHOD_H
+#pragma once
 
-class ElementalCompositionMethod
-{
-public:
-    ElementalCompositionMethod();
-};
+#include "adcontrols_global.h"
 
-#endif // ELEMENTALCOMPOSITIONMETHOD_H
+namespace adcontrols {
+
+    class ADCONTROLSSHARED_EXPORT ElementalCompositionMethod {
+    public:
+        ElementalCompositionMethod();
+    };
+
+}

@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #include "sessionmanager.h"
 #include "dataprocessor.h"
@@ -35,8 +31,8 @@ using namespace dataproc;
 
 SessionManager * SessionManager::instance_ = 0;
 
-SessionManager::SessionManager(QObject *parent) :
-    QObject(parent)
+SessionManager::SessionManager(QObject *parent) : QObject(parent)
+                                                , activeDataprocessor_(0)
 {
     instance_ = this;
 }
@@ -73,7 +69,14 @@ SessionManager::end()
 void
 SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
+    activeDataprocessor_ = dataprocessor;
     emit signalSelectionChanged( dataprocessor, folium );
+}
+
+Dataprocessor *
+SessionManager::getActiveDataprocessor()
+{
+    return activeDataprocessor_;
 }
 
 //////////// Session //////////////////

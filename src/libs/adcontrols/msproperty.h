@@ -75,7 +75,7 @@ namespace adcontrols {
         unsigned long instSamplingInterval_; // ps
 # pragma warning(disable:4251)
         std::pair< double, double > instMassRange_;
-# pragma warning(default:4251)
+//# pragma warning(default:4251)
 
         // bool bLockmassApplied_;
         // MSCalibration instCalib_;

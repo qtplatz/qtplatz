@@ -28,6 +28,8 @@
 #include "dataprocessor.h"
 #include "constants.h"
 #include <coreplugin/ifilefactory.h>
+#include <coreplugin/icore.h>
+#include <coreplugin/filemanager.h>
 #include <QStringList>
 #include <adcontrols/datafile.h>
 #include <qtwrapper/qstring.h>
@@ -67,6 +69,11 @@ DataprocessorFactory::open( const QString& filename )
     boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
     if ( processor->open( filename ) ) {
         SessionManager::instance()->addDataprocessor( processor );
+
+        Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
+        if ( filemgr->addFile( processor->ifile() ) )
+            filemgr->addToRecentFiles( filename );
+
         return processor->ifile();
     }
     return 0;

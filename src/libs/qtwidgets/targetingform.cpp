@@ -26,8 +26,11 @@
 #include "ui_targetingform.h"
 #include "targetingdelegate.h"
 #include <adcontrols/targetingmethod.h>
+#include <adcontrols/processmethod.h>
 #include <adportable/configuration.h>
+#pragma warning(disable:4251)
 #include <QStandardItemModel>
+#pragma warning(default:4251)
 
 using namespace qtwidgets;
 
@@ -72,4 +75,10 @@ TargetingForm::OnInitialUpdate()
 void
 TargetingForm::OnFinalClose()
 {
+}
+
+void
+TargetingForm::getContents( adcontrols::ProcessMethod& pm )
+{
+    pm.appendMethod< adcontrols::TargetingMethod >( *pMethod_ );
 }

@@ -71,7 +71,9 @@ namespace portfolio {
             xmlElement addAttachment( const std::wstring& name );
 
         protected:
+# pragma warning (disable: 4251)
             xmlElement node_;
+# pragma warning (default: 4251)
             PortfolioImpl* impl_;
         };
 

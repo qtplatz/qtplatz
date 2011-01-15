@@ -47,6 +47,7 @@ namespace portfolio {
             operator bool () const { return isXMLLoaded_; }
             const std::wstring fullpath() const;
             std::vector<Folder> selectFolders( const std::wstring& );
+            Folium selectFolium( const std::wstring& query );
 
             boost::any& find( const std::wstring& id );
             void assign( const std::wstring& id, boost::any& );
