@@ -294,6 +294,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\isotopecluster.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\isotopemethod.cpp"
 				>
 			</File>
@@ -375,6 +379,10 @@
 			</File>
 			<File
 				RelativePath=".\reportmethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\samassspectrum.cpp"
 				>
 			</File>
 			<File
@@ -684,6 +692,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\isotopecluster.h"
+				>
+			</File>
+			<File
 				RelativePath=".\isotopemethod.h"
 				>
 			</File>
@@ -787,6 +799,10 @@
 			</File>
 			<File
 				RelativePath=".\reportmethod.h"
+				>
+			</File>
+			<File
+				RelativePath=".\samassspectrum.h"
 				>
 			</File>
 			<File

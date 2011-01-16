@@ -29,6 +29,8 @@
 #include "chemicalformula.h"
 #include <string>
 
+struct IDispatch;
+
 namespace adcontrols {
 
   namespace internal {
@@ -46,6 +48,8 @@ namespace adcontrols {
   public:
     static TableOfElements * instance();
     void dispose();
+
+    operator IDispatch * ();
 
     ChemicalFormula getChemicalFormula();
 

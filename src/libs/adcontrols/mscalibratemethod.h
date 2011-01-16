@@ -26,16 +26,21 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <boost/smart_ptr.hpp>
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
 
 namespace adcontrols {
+
+    class MSReferenceDefns;
 
     class ADCONTROLSSHARED_EXPORT MSCalibrateMethod {
     public:
         ~MSCalibrateMethod();
         MSCalibrateMethod();
         MSCalibrateMethod( const MSCalibrateMethod& );
+        MSCalibrateMethod& operator = ( const MSCalibrateMethod& );
 
         unsigned int polynomialDegree() const;
         void polynomialDegree( unsigned int );
@@ -47,6 +52,9 @@ namespace adcontrols {
         void lowMass( double );
         double highMass() const;
         void highMass( double );
+        
+        const MSReferenceDefns& refDefns();
+        void refDefns( const MSReferenceDefns& );
 
     private:
         unsigned int polynomialDegree_;
@@ -54,6 +62,8 @@ namespace adcontrols {
         double minimumRAPercent_;
         double lowMass_;
         double highMass_;
+# pragma warning(disable:4251)
+        boost::scoped_ptr<MSReferenceDefns> refDefns_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -65,6 +75,7 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP(minimumRAPercent_);
                 ar & BOOST_SERIALIZATION_NVP(lowMass_);
                 ar & BOOST_SERIALIZATION_NVP(highMass_);
+                ar & BOOST_SERIALIZATION_NVP(refDefns_);
             }
        }
 

@@ -56,7 +56,9 @@ SOURCES += massspectrum.cpp \
     traceaccessor.cpp \
     trace.cpp \
     msreference.cpp \
-    msreferences.cpp
+    msreferences.cpp \
+    isocluster.cpp \
+    samassspectrum.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -100,7 +102,9 @@ HEADERS += massspectrum.h\
     traceaccessor.h \
     trace.h \
     msreference.h \
-    msreferences.h
+    msreferences.h \
+    isocluster.h \
+    samassspectrum.h
 
 OTHER_FILES += \
     adcontrols.pri

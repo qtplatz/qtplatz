@@ -47,6 +47,7 @@ CentroidForm::OnInitialUpdate()
 
     rootNode->setColumnCount(2);
     model.setHeaderData( 0, Qt::Horizontal, "Centroid" );
+    model.setHeaderData( 1, Qt::Horizontal, "" );
 
     QStandardItem * scanType =
         StandardItemHelper::appendRow( rootNode, "ScanType", qVariantFromValue( CentroidDelegate::PeakWidthMethod( method.peakWidthMethod() ) ) );

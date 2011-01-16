@@ -34,7 +34,6 @@ MSRefFormula::~MSRefFormula()
 }
 
 MSRefFormula::MSRefFormula() : enable_(true)
-                             , useIsotopes_(false)
                              , formula_( L"" )
                              , adduct_( L"H" )
                              , loss_( L"" )
@@ -45,7 +44,6 @@ MSRefFormula::MSRefFormula() : enable_(true)
 }
 
 MSRefFormula::MSRefFormula( const MSRefFormula& t ) : enable_( t.enable_ )
-                                                    , useIsotopes_( t.useIsotopes_ )
                                                     , formula_( t.formula_ )
                                                     , adduct_( t.adduct_ )
                                                     , loss_( t.loss_ )
@@ -54,6 +52,20 @@ MSRefFormula::MSRefFormula( const MSRefFormula& t ) : enable_( t.enable_ )
                                                     , comments_( t.comments_ )
 {
 }
+
+MSRefFormula::MSRefFormula( const std::wstring& formula
+                           , bool enable
+                           , bool positive
+                           , const std::wstring& adduct
+                           , const std::wstring& loss
+                           , size_t chargeCount ) : enable_( enable )
+                                                  , formula_( formula )
+                                                  , adduct_( adduct )
+                                                  , loss_( loss )  
+                                                  , polarityPositive_( positive )
+                                                  , chargeCount_( chargeCount )
+{
+} 
 
 MSRefFormula::operator bool () const
 {
@@ -64,18 +76,6 @@ void
 MSRefFormula::enable( bool value )
 {
     enable_ = value;
-}
-
-bool 
-MSRefFormula::useIsotopes() const
-{
-    return useIsotopes_;
-}
-
-void 
-MSRefFormula::useIsotopes( bool  value )
-{
-    useIsotopes_ = value;
 }
 
 const std::wstring&
@@ -302,4 +302,28 @@ MSReferenceDefns::MSReferenceDefns()
 MSReferenceDefns::MSReferenceDefns( const MSReferenceDefns & t ) : refFormula_( t.refFormula_ )
                                                                  , refSeries_( t.refSeries_ ) 
 {
+}
+
+void
+MSReferenceDefns::addFormula( const MSRefFormula& v )
+{
+    refFormula_.push_back( v );
+}
+
+void
+MSReferenceDefns::addSeries( const MSRefSeries& v )
+{
+    refSeries_.push_back( v );
+}
+
+const std::vector< MSRefFormula >&
+MSReferenceDefns::formulae() const
+{
+    return refFormula_;
+}
+
+const std::vector< MSRefSeries >&
+MSReferenceDefns::series() const
+{
+    return refSeries_;
 }

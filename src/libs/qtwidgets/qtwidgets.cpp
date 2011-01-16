@@ -10,10 +10,12 @@
 #     pragma comment(lib, "adportabled.lib")
 #     pragma comment(lib, "adcontrolsd.lib")
 #     pragma comment(lib, "adplugind.lib")
+#     pragma comment(lib, "qtwrapperd.lib")
 # else
 #     pragma comment(lib, "adportable.lib")
 #     pragma comment(lib, "adcontrols.lib")
 #     pragma comment(lib, "adplugin.lib")
+#     pragma comment(lib, "qtwrapper.lib")
 # endif
 #endif
 

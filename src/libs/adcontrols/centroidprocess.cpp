@@ -6,6 +6,7 @@
 #include "centroidprocess.h"
 #include "centroidmethod.h"
 #include "import_sacontrols.h"
+#include "samassspectrum.h"
 #include "massspectrum.h"
 #include "mspeakinfoitem.h"
 #include "description.h"
@@ -31,12 +32,6 @@ namespace adcontrols {
     class MSPeakInfoItem;
 
 	namespace internal {
-        
-		class SAMassSpectrum {
-		public:
-            static void copy( SACONTROLSLib::ISAMassSpectrum5*, const MassSpectrum& );
-            static void copy( MassSpectrum&, SACONTROLSLib::ISAMassSpectrum5* );
-		};
 
         class CentroidProcessImpl {
         public:
@@ -167,22 +162,6 @@ CentroidProcess::setup( SACONTROLSLib::ISAMSPeakDetect* pi, const CentroidMethod
 	pi->SetBaselineWidth( method.baselineWidth() );
 	pi->SetAttenuation( method.attenuation() );
 	pi->SetPeakCentroidFraction( method.peakCentroidFraction() );
-}
-
-using namespace adcontrols::internal;
-
-void
-SAMassSpectrum::copy( SACONTROLSLib::ISAMassSpectrum5* pi, const MassSpectrum& ms)
-{
-    pi->Count = ms.size();
-    pi->IsCentroid = ms.isCentroid() ? VARIANT_TRUE : VARIANT_FALSE;
-    pi->SetIntensityArrayDirect2( reinterpret_cast<IUnknown *>(const_cast<double *>(ms.getIntensityArray())) );
-    pi->SetMassArrayDirect2( reinterpret_cast<IUnknown *>(const_cast<double *>(ms.getMassArray())) );
-}
-
-void
-SAMassSpectrum::copy( MassSpectrum&, SACONTROLSLib::ISAMassSpectrum5* )
-{
 }
 
 /////////////////////////

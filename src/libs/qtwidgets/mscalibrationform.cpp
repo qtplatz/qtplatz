@@ -25,7 +25,9 @@
 #include "mscalibrationform.h"
 #include "ui_mscalibrationform.h"
 #include "mscalibratedelegate.h"
+
 #include <adcontrols/mscalibratemethod.h>
+#include <adcontrols/msreferencedefns.h>
 #include <adcontrols/processmethod.h>
 #include <adportable/configuration.h>
 #include <QStandardItemModel>
@@ -76,6 +78,20 @@ MSCalibrationForm::OnInitialUpdate()
     StandardItemHelper::appendRow( rootNode, "Minimum RA[%]",      method.minimumRAPercent() );
     StandardItemHelper::appendRow( rootNode, "Low Mass[Da]",       method.lowMass() );
     StandardItemHelper::appendRow( rootNode, "High Mass[Da]",      method.highMass() );
+
+    //------ create Xe reference -------
+    adcontrols::MSReferenceDefns Xe;
+    Xe.addFormula( adcontrols::MSRefFormula( L"126Xe", true ) );
+    Xe.addFormula( adcontrols::MSRefFormula( L"128Xe", true ) );
+    Xe.addFormula( adcontrols::MSRefFormula( L"129Xe", false ) );
+    Xe.addFormula( adcontrols::MSRefFormula( L"130Xe", false ) );
+    Xe.addFormula( adcontrols::MSRefFormula( L"131Xe", false ) );
+    Xe.addFormula( adcontrols::MSRefFormula( L"132Xe", false ) );
+    Xe.addFormula( adcontrols::MSRefFormula( L"134Xe", false ) );
+    Xe.addFormula( adcontrols::MSRefFormula( L"136Xe", true ) );
+    // ---------------------------------
+
+    QStandardItem * refItem = StandardItemHelper::appendRow( rootNode, "Mass References", qVariantFromValue( MSCalibrateDelegate::MSReferences() ) );
 
     ui->treeView->setColumnWidth( 0, 200 );
 }

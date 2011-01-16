@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -57,6 +53,8 @@ namespace adcontrols {
 
         double getMonoIsotopicMass( const std::wstring& formula );
         double getChemicalMass( const std::wstring& formula );
+        std::wstring standardFormula( const std::wstring& formula );
+
     private:
         internal::ChemicalFormulaImpl * impl_;
     };

@@ -34,15 +34,15 @@
 
 namespace adcontrols {
 
-    class MSRefFormula {
+    class ADCONTROLSSHARED_EXPORT MSRefFormula {
     public:
         ~MSRefFormula();
         MSRefFormula();
         MSRefFormula( const MSRefFormula& );
+        MSRefFormula( const std::wstring& formula, bool enable = true, bool positive = true, const std::wstring& adduct = L"", const std::wstring& loss = L"", size_t chargeCount = 1 );
 
         operator bool () const;
         
-        bool useIsotopes() const;
         const std::wstring& formula() const;
         const std::wstring& adduct() const;
         const std::wstring& loss() const;
@@ -61,7 +61,6 @@ namespace adcontrols {
         
     private:
         bool enable_;
-        bool useIsotopes_;
         std::wstring formula_;
         std::wstring adduct_;
         std::wstring loss_;
@@ -75,7 +74,6 @@ namespace adcontrols {
             using namespace boost::serialization;
             if ( version >= 0 ) {
                 ar & BOOST_SERIALIZATION_NVP(enable_);
-                ar & BOOST_SERIALIZATION_NVP(useIsotopes_);
                 ar & BOOST_SERIALIZATION_NVP(formula_);
                 ar & BOOST_SERIALIZATION_NVP(adduct_);
                 ar & BOOST_SERIALIZATION_NVP(loss_);
@@ -87,7 +85,7 @@ namespace adcontrols {
     };
     
 
-    class MSRefSeries {
+    class ADCONTROLSSHARED_EXPORT MSRefSeries {
     public:
         ~MSRefSeries();
         MSRefSeries();
@@ -152,6 +150,11 @@ namespace adcontrols {
         ~MSReferenceDefns();
         MSReferenceDefns();
         MSReferenceDefns( const MSReferenceDefns& t );
+
+        void addFormula( const MSRefFormula& );
+        void addSeries( const MSRefSeries& );
+        const std::vector< MSRefFormula >& formulae() const;
+        const std::vector< MSRefSeries >& series() const;
 
     private:
 # pragma warning( disable: 4251 )

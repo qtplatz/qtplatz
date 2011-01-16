@@ -193,6 +193,8 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
     }
 }
 
+static void isotope();
+
 void
 Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcontrols::ProcessMethod& m )
 {
@@ -242,3 +244,4 @@ Dataprocessor::subscribe( adcontrols::ProcessedDataset& processed )
     portfolio_.reset( new portfolio::Portfolio( xml ) );
 }
 
+////////////////////////

@@ -20,6 +20,7 @@ namespace adcontrols {
             ChemicalFormulaImpl( SACONTROLSLib::ISAElementIO * );
             double getMonoIsotopicMass( const std::wstring& formula );
             double getChemicalMass( const std::wstring& formula );
+            std::wstring standardFormula( const std::wstring& formula );
 
             CComPtr<SACONTROLSLib::ISAElementIO> pi_;
 
@@ -54,6 +55,12 @@ ChemicalFormula::getChemicalMass( const std::wstring& formula )
     return impl_->getChemicalMass( formula );
 }
 
+std::wstring
+ChemicalFormula::standardFormula( const std::wstring& formula )
+{
+    return impl_->standardFormula( formula );
+}
+
 ///////////////
 using namespace adcontrols::internal;
 
@@ -83,6 +90,18 @@ ChemicalFormulaImpl::getMonoIsotopicMass( const std::wstring& formula )
         }
     }
     return 0;
+}
+
+std::wstring
+ChemicalFormulaImpl::standardFormula( const std::wstring& formula )
+{
+    if ( initialize() ) {
+        if ( piFormulaParser->Parse( pi_, formula.c_str(), 0, 0, piFormulaData ) == S_OK ) {
+            _bstr_t str = piFormulaData->StandardFormula;
+            return static_cast< wchar_t * >( str );
+        }
+    }
+    return L"";
 }
 
 bool
