@@ -31,20 +31,21 @@
 namespace dataproc {
     namespace internal {
 
-        template<class Wnd> class selChanged : public boost::static_visitor<void> {
+        template<class Wnd> class selChanged : public boost::static_visitor<bool> {
             Wnd& wnd_;
         public:
             selChanged( Wnd& wnd ) : wnd_(wnd) { }
 
-            template<typename T> void operator ()( T& ) const {
-            }
+            template<typename T> bool operator ()( T& ) const { return false; }
 
-            template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+            template<> bool operator () ( adutils::MassSpectrumPtr& ptr ) const {   
                 wnd_.draw1( ptr );
+                return true;
             }
 
-            template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
+            template<> bool operator () ( adutils::ChromatogramPtr& ptr ) const {
                 wnd_.draw( ptr );
+                return true;
             }
 
         };

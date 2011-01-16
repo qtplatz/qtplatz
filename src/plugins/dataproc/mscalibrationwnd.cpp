@@ -25,10 +25,15 @@
 #include "mscalibrationwnd.h"
 #include "dataprocessor.h"
 #include <portfolio/folium.h>
-#include <coreplugin/minisplitter.h>
-#include <QBoxLayout>
+#include <portfolio/folder.h>
+#include <adwidgets/spectrumwidget.h>
+#include <adutils/processeddata.h>
 #include <adwidgets/dataplot.h>
 #include <adwidgets/axis.h>
+
+#include <coreplugin/minisplitter.h>
+#include <QBoxLayout>
+#include <boost/any.hpp>
 
 using namespace dataproc;
 using namespace dataproc::internal;
@@ -38,14 +43,12 @@ namespace dataproc {
         class MSCalibrationWndImpl {
         public:
             ~MSCalibrationWndImpl() {}
-            MSCalibrationWndImpl() : ticPlot_(0)
-                                  , profileSpectrum_(0)
-                                  , processedSpectrum_(0) {
+            MSCalibrationWndImpl() : profileSpectrum_(0)
+                                   , processedSpectrum_(0) {
             }
 
-            adwidgets::ui::Dataplot * ticPlot_;
-            adwidgets::ui::Dataplot * profileSpectrum_;
-            adwidgets::ui::Dataplot * processedSpectrum_;
+            adwidgets::ui::SpectrumWidget * profileSpectrum_;
+            adwidgets::ui::SpectrumWidget * processedSpectrum_;
 
         };
     }
@@ -64,12 +67,10 @@ MSCalibrationWnd::init()
     pImpl_.reset( new MSCalibrationWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-                if ( pImpl_->processedSpectrum_ = new adwidgets::ui::Dataplot ) {
-                        adwidgets::ui::Axis axis = pImpl_->processedSpectrum_->axisX();
-                        axis.text( L"m/z" );
+        if ( pImpl_->processedSpectrum_ = new adwidgets::ui::SpectrumWidget ) {
+            adwidgets::ui::Axis axis = pImpl_->processedSpectrum_->axisX();
+            axis.text( L"m/z" );
         }
-        //splitter->addWidget( pImpl_->ticPlot_ );
-        //splitter->addWidget( pImpl_->profileSpectrum_ );
         splitter->addWidget( pImpl_->processedSpectrum_ );
         splitter->setOrientation( Qt::Vertical );
     }
@@ -91,5 +92,21 @@ void
 MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
     Q_UNUSED(processor);
-    Q_UNUSED(folium);
+
+    int nID(0);
+    portfolio::Folder folder = folium.getParentFolder();
+    if ( folder && folder.name() == L"MSCalibration" ) {
+        boost::any& data = folium;
+        if ( data.type() == typeid( adutils::MassSpectrumPtr ) ) {
+            adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( data );
+            pImpl_->processedSpectrum_->setData( *ptr, nID++ );
+        }
+
+        portfolio::Folio attachments = folium.attachments();
+        for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
+            adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+            pImpl_->processedSpectrum_->setData( *ptr, nID++ );
+        }
+
+    }
 }

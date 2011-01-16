@@ -57,6 +57,18 @@ public:
         parent.appendRow( item );
         return item;
     }
+
+    template<class T> static QStandardItem * findRow( QStandardItemModel& model, const T& value ) {
+        for ( int i = 0; i < model.rowCount(); ++i ) {
+            QStandardItem * item = model.item( i );
+            QVariant v = item->data( Qt::UserRole + 1 );
+            if ( qVariantCanConvert< T >( v ) ) {
+                if ( qVariantValue< T >( v ) == value )
+                    return item;
+            }
+        }
+        return 0;
+    }
 };
 
 
@@ -115,6 +127,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     connect( pTreeView_.get(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(handle_currentChanged(const QModelIndex&, const QModelIndex&)));
 
     connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), this, SLOT( handleSessionAdded( Dataprocessor * ) ) );
+    connect( SessionManager::instance(), SIGNAL( signalSessionUpdated( Dataprocessor* ) ), this, SLOT( handleSessionUpdated( Dataprocessor * ) ) );
 
     setAutoSynchronization(true);
 }
@@ -173,6 +186,24 @@ NavigationWidget::initView()
 }
 
 void
+NavigationWidget::handleSessionUpdated( Dataprocessor * processor )
+{
+    QString filename( qtwrapper::qstring::copy( processor->file().filename() ) );
+
+    QStandardItemModel& model = *pModel_;
+
+    QStandardItem * item = StandardItemHelper::findRow( model, processor );
+    if ( item ) {
+        model.removeRows( 0, item->rowCount(), item->index() );
+    
+        portfolio::Portfolio portfolio = processor->getPortfolio();
+        std::vector< portfolio::Folder > folders = portfolio.folders();
+        for ( std::vector< portfolio::Folder >::iterator it = folders.begin(); it != folders.end(); ++it )
+            PortfolioHelper::appendFolder( *item, *it );
+    }
+}
+
+void
 NavigationWidget::handleSessionAdded( Dataprocessor * processor )
 {
     adcontrols::datafile& file = processor->file();
@@ -183,14 +214,6 @@ NavigationWidget::handleSessionAdded( Dataprocessor * processor )
     QStandardItem * item = StandardItemHelper::appendRow( model, qVariantFromValue( processor ) );
     item->setEditable( false );
     item->setToolTip( filename );
-
-    /*
-    if ( processor->getLCMSDataset() ) {
-        QStandardItem * chro = StandardItemHelper::appendRow( *item, "Chromatograms" );
-        StandardItemHelper::appendRow( *chro, "TIC" );
-        StandardItemHelper::appendRow( *item, "Spectra" );
-    }
-    */
 
     portfolio::Portfolio portfolio = processor->getPortfolio();
     

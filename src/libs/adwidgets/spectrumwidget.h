@@ -42,8 +42,6 @@ namespace adwidgets {
 
             void setData( const adcontrols::MassSpectrum& );
 			void setData( const adcontrols::MassSpectrum&, const adcontrols::MassSpectrum& );
-
-		private:
 			void setData( const adcontrols::MassSpectrum&, int idx, bool yaxis1 = false );
 
         signals:

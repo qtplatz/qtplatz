@@ -127,8 +127,13 @@ PortfolioImpl::create_with_fullpath( const std::wstring& fullpath )
 }
 
 Folder
-PortfolioImpl::addFolder( const std::wstring& name )
+PortfolioImpl::addFolder( const std::wstring& name, bool uniq )
 {
+    if ( uniq ) {
+        xmlNodeList list = Node::selectNodes( L"folder[@folderType='directory'][@name=\"" + name + L"\"]" );
+        if ( list.size() > 0 )
+            return Folder( list[0], this );
+    }
     return Folder( Node::addFolder( name, this ), this );
 }
 

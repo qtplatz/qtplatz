@@ -107,26 +107,16 @@ CentroidForm::update_data()
     QStandardItemModel& model = *pModel_;
     adcontrols::CentroidMethod& method = *pMethod_;
 
-    method.peakWidthMethod( static_cast< adcontrols::CentroidMethod::ePeakWidthMethod >( model.index( 0, 1 ).data( Qt::EditRole ).toInt() ) );
+    method.peakWidthMethod( qVariantValue< CentroidDelegate::PeakWidthMethod >( model.index( 0, 1 ).data( Qt::EditRole ) ).methodValue() );
 
-/*
-    model.setData( model.index( 0, 1), qVariantFromValue( CentroidDelegate::PeakWidthMethod( method.peakWidthMethod() ) ) );
+    method.rsTofInDa( model.index( 0, 1, model.item( 0, 0 )->index() ).data( Qt::EditRole ).toDouble() );
+    method.rsPropoInPpm( model.index( 1, 1, model.item( 0, 0 )->index() ).data( Qt::EditRole ).toDouble() );
+    method.rsConstInDa( model.index( 2, 1, model.item( 0, 0 )->index() ).data( Qt::EditRole ).toDouble() );
 
-    model.setData( model.index( 0, 1, model.item( 0, 0 )->index() ), method.rsTofInDa() );
-    model.setData( model.index( 1, 1, model.item( 0, 0 )->index() ), method.rsPropoInPpm() );
-    model.setData( model.index( 2, 1, model.item( 0, 0 )->index() ), method.rsConstInDa() );
-    
-    do {
-        QStandardItem * item = model.itemFromIndex( model.index( 0, 0, model.item( 0, 0 )->index() ) );
-        item->setEnabled( false );
-        item = model.itemFromIndex( model.index( 0, 1, model.item( 0, 0 )->index() ) );
-        item->setEnabled( false );
-    } while(0);
+    CentroidDelegate::AreaHeight ah = qVariantValue<CentroidDelegate::AreaHeight>( model.index( 0, 1 ).data( Qt::EditRole ) );
+    method.centroidAreaIntensity( ah.methodValue() );
 
-    model.setData( model.index( 1, 1 ), qVariantFromValue( CentroidDelegate::AreaHeight( method.centroidAreaIntensity() ) ) );
-    model.setData( model.index( 2, 1 ), method.baselineWidth() );
-    model.setData( model.index( 3, 1 ), method.peakCentroidFraction() * 100 );
-*/
+    method.baselineWidth( model.index( 2, 1 ).data( Qt::EditRole ).toDouble() );
     method.peakCentroidFraction( model.index( 3, 1 ).data( Qt::EditRole ).toDouble() / 100.0 );
 }
 

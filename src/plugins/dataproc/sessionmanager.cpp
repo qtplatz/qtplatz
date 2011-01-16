@@ -54,6 +54,14 @@ SessionManager::addDataprocessor( boost::shared_ptr<Dataprocessor>& proc )
     emit signalSessionAdded( proc.get() );
 }
 
+void
+SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Folium& folium )
+{
+    activeDataprocessor_ = dataprocessor;
+    emit signalSessionUpdated( dataprocessor );
+    emit signalSelectionChanged( dataprocessor, folium );
+}
+
 SessionManager::vector_type::iterator
 SessionManager::begin()
 {

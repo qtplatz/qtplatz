@@ -64,8 +64,9 @@ namespace dataproc {
 
         static SessionManager * instance();
 
-        void addDataprocessor( boost::shared_ptr<Dataprocessor>& );
         Dataprocessor * getActiveDataprocessor();
+        void addDataprocessor( boost::shared_ptr<Dataprocessor>& );
+        void updateDataprocessor( Dataprocessor *, portfolio::Folium& );
 
         typedef std::vector< Session > vector_type;
 
@@ -74,6 +75,7 @@ namespace dataproc {
 
     signals:
         void signalSessionAdded( Dataprocessor * );
+        void signalSessionUpdated( Dataprocessor * );
         void signalSelectionChanged( Dataprocessor *, portfolio::Folium& );
 
     public slots:

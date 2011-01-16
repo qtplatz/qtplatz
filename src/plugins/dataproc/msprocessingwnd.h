@@ -69,9 +69,12 @@ namespace dataproc {
             void handleSessionAdded( Dataprocessor* );
             void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
 
+        private slots:
+            void ctxMenu1( const QPoint& );
+
         private:
             boost::shared_ptr<MSProcessingWndImpl> pImpl_;
-            //std::map< std::wstring, boost::shared_ptr<adwidgets::MassSpectrum> > spectra_;
+            std::wstring idActiveFolium_;
         };
 
     }

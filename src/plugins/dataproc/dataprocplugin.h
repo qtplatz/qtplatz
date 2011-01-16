@@ -77,7 +77,7 @@ namespace dataproc {
             boost::scoped_ptr< SessionManager > pSessionManager_;
 
             QAction * actionApply_;
-            int currentFeature_;
+            enum ProcessType currentFeature_;
 
             static DataprocPlugin * instance_;
 

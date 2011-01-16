@@ -40,6 +40,11 @@ Node::Node( const Node& t ) : impl_(t.impl_), node_( t.node_ )
 {
 }
 
+Node::operator bool () const 
+{
+    return impl_;
+}
+
 std::wstring
 Node::name() const
 {
@@ -108,6 +113,12 @@ xmlNodeList
 Node::selectNodes( const std::wstring& query )
 {
     return node_.selectNodes( query );
+}
+
+xmlElement
+Node::selectSingleNode( const std::wstring& query )
+{
+    return node_.selectSingleNode( query );
 }
 
 //////////////////////////

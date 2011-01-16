@@ -74,9 +74,9 @@ Portfolio::create_with_fullpath( const std::wstring& fullpath )
 }
 
 Folder
-Portfolio::addFolder( const std::wstring& name )
+Portfolio::addFolder( const std::wstring& name, bool uniq )
 {
-    return impl_->addFolder( name );
+    return impl_->addFolder( name, uniq );
 }
 
 std::wstring

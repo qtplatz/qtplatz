@@ -51,6 +51,7 @@ namespace dataproc {
     public slots:
         void toggleAutoSynchronization();
         void handleSessionAdded( Dataprocessor * );
+        void handleSessionUpdated( Dataprocessor * );
 
     private slots:
         void initView();

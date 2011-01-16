@@ -50,7 +50,7 @@ namespace portfolio {
 
         // create new from scratch
         bool create_with_fullpath( const std::wstring& fullpath );
-        Folder addFolder( const std::wstring& name );
+        Folder addFolder( const std::wstring& name, bool uniq = true );
 
         std::wstring xml() const;
 
@@ -60,7 +60,7 @@ namespace portfolio {
     private:
 # pragma warning(disable:4251)
         boost::shared_ptr< internal::PortfolioImpl > impl_;
-# pragma warning(default:4251)
+//# pragma warning(default:4251)
   };
 
 }

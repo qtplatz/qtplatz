@@ -34,6 +34,7 @@ namespace adcontrols {
     class datafile;
     class LCMSDataset;
     class ProcessMethod;
+    class MassSpectrum;
 }
 
 namespace portfolio {
@@ -42,6 +43,10 @@ namespace portfolio {
 }
 
 namespace dataproc {
+
+    namespace internal {
+        enum ProcessType;
+    }
 
     class datafileimpl;
 
@@ -61,11 +66,14 @@ namespace dataproc {
         portfolio::Portfolio getPortfolio();
         void setCurrentSelection( portfolio::Folium& );
         void applyProcess( const adcontrols::ProcessMethod& );
+        void applyCalibration( const adcontrols::ProcessMethod& );
 
         // implement adcontrols::dataSubscriber
         virtual void subscribe( adcontrols::LCMSDataset& );
         virtual void subscribe( adcontrols::ProcessedDataset& );
         // <------------------------
+    private:
+        void addCalibration( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
 
     signals:
         // void changeSelection( portfolio::Folium& );

@@ -48,6 +48,8 @@ namespace portfolio {
             Node( const xmlElement&, PortfolioImpl* impl );
 
         public:
+            operator bool () const;
+
             std::wstring name() const;
             void name( const std::wstring& name );
 
@@ -63,9 +65,9 @@ namespace portfolio {
             std::wstring attribute( const std::wstring& ) const;
             void setAttribute( const std::wstring& key, const std::wstring& value );
 
-            xmlNodeList selectNodes( const std::wstring& query );
-
         protected:
+            xmlNodeList selectNodes( const std::wstring& query );
+            xmlElement selectSingleNode( const std::wstring& query );
             xmlElement addFolder( const std::wstring& name, PortfolioImpl* );
             xmlElement addFolium( const std::wstring& name );
             xmlElement addAttachment( const std::wstring& name );
@@ -73,7 +75,6 @@ namespace portfolio {
         protected:
 # pragma warning (disable: 4251)
             xmlElement node_;
-# pragma warning (default: 4251)
             PortfolioImpl* impl_;
         };
 

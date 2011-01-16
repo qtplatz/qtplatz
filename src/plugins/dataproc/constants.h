@@ -27,12 +27,21 @@
 #define CONSTANTS_H
 
 namespace dataproc {
-  namespace Constants {
-    const char * const C_DATAPROCESSOR = "Dataprocessor";
-    const char * const C_DATA_MC4_MIMETYPE = "application/mc4.dataset";
-    const char * const C_DATA_TEXT_MIMETYPE = "application/text.dataset";
-    const char * const C_DATA_NATIVE_MIMETYPE = "application/qtplatz.dataset";
-  }
+    namespace Constants {
+        const char * const C_DATAPROCESSOR = "Dataprocessor";
+        const char * const C_DATA_MC4_MIMETYPE = "application/mc4.dataset";
+        const char * const C_DATA_TEXT_MIMETYPE = "application/text.dataset";
+        const char * const C_DATA_NATIVE_MIMETYPE = "application/qtplatz.dataset";
+
+    }
+
+    namespace internal {
+        enum ProcessType {
+            CentroidProcess
+            , IsotopeProcess
+            , CalibrationProcess
+        };
+    }
 }
 
 

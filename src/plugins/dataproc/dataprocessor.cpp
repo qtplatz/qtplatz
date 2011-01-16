@@ -33,6 +33,7 @@
 #include <coreplugin/ifile.h>
 #include <portfolio/portfolio.h>
 #include <portfolio/folium.h>
+#include <portfolio/folder.h>
 #include <adcontrols/lcmsdataset.h>
 #include <adcontrols/processeddataset.h>
 #include <adcontrols/processmethod.h>
@@ -101,12 +102,12 @@ Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
     if ( folium.empty() ) {
 
-        folium = file().fetch( folium.path(), folium.dataType() );
+        folium = file().fetch( folium.path(), folium.dataClass() );
  
         portfolio::Folio attachs = folium.attachments();
         for ( portfolio::Folio::iterator it = attachs.begin(); it != attachs.end(); ++it ) {
             if ( it->empty() )
-                *it = file().fetch( it->path(), it->dataType() );
+                *it = file().fetch( it->path(), it->dataClass() );
         }
     }
     idActiveFolium_ = folium.id();
@@ -170,9 +171,6 @@ namespace dataproc {
 void
 Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m )
 {
-    const adcontrols::CentroidMethod * pCentroidMethod = m.find< adcontrols::CentroidMethod >();
-    (void)pCentroidMethod;
-
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
     if ( folium ) {
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
@@ -182,6 +180,44 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m )
 
         SessionManager::instance()->selectionChanged( this, folium );
     }
+}
+
+void
+Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
+{
+    portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
+    if ( folium ) {
+        adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+        if ( data.type() == typeid( adutils::MassSpectrumPtr ) )
+            addCalibration( * boost::get< adutils::MassSpectrumPtr >( data ), m );
+    }
+}
+
+void
+Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcontrols::ProcessMethod& m )
+{
+    portfolio::Folder folder = portfolio_->addFolder( L"MSCalibration" );
+    portfolio::Folium folium = folder.addFolium( L"CalibrantSpectrum" );
+
+    adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
+    static_cast<boost::any>( folium ) = ms;
+
+    adcontrols::ProcessMethod method;
+    for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
+        if ( it->type() == typeid( adcontrols::CentroidMethod ) ) {
+            adcontrols::CentroidMethod centroidMethod( boost::get< adcontrols::CentroidMethod >(*it) );
+            centroidMethod.centroidAreaIntensity( false );  // force hight for easy overlay
+            method.appendMethod( centroidMethod );
+        } else if ( it->type() == typeid( adcontrols::MSCalibrateMethod ) ) {
+            method.appendMethod( boost::get< adcontrols::MSCalibrateMethod >( *it ) );
+        }
+    }
+
+    for ( adcontrols::ProcessMethod::vector_type::const_iterator it = method.begin(); it != method.end(); ++it ) {
+        boost::apply_visitor( internal::doSpectralProcess( ms, folium ), *it );
+    }
+
+    SessionManager::instance()->updateDataprocessor( this, folium );
 }
 
 ///////////////////////////

@@ -110,6 +110,9 @@ MSProcessingWnd::init()
 
         pImpl_->profileSpectrum_->link( pImpl_->processedSpectrum_ );
         pImpl_->processedSpectrum_->link( pImpl_->profileSpectrum_ );
+
+        pImpl_->processedSpectrum_->setContextMenuPolicy( Qt::CustomContextMenu );
+        connect( pImpl_->processedSpectrum_, SIGNAL( customContextMenuRequested( const QPoint& ) ), this, SLOT( ctxMenu1( const QPoint& ) ) );
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
@@ -161,11 +164,19 @@ void
 MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfolio::Folium& folium )
 {
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-    boost::apply_visitor( selChanged<MSProcessingWnd>(*this), data );
 
-    portfolio::Folio attachments = folium.attachments();
-    for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
-        adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-        boost::apply_visitor( selProcessed<MSProcessingWnd>( *this ), contents );
+    if ( boost::apply_visitor( selChanged<MSProcessingWnd>(*this), data ) ) {
+        idActiveFolium_ = folium.id();
+
+        portfolio::Folio attachments = folium.attachments();
+        for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
+            adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
+            boost::apply_visitor( selProcessed<MSProcessingWnd>( *this ), contents );
+        }
     }
+}
+
+void
+MSProcessingWnd::ctxMenu1( const QPoint& )
+{
 }

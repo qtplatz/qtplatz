@@ -38,22 +38,23 @@ namespace portfolio {
         class PortfolioImpl;
     }
 
+    class Folder;
+
     class PORTFOLIOSHARED_EXPORT Folium : public internal::Node {
     public:
         ~Folium();
         Folium();
         Folium( const Folium& );
         Folium( xmlNode&, internal::PortfolioImpl * impl );
+    public:
 
         std::wstring path() const;
-        std::wstring dataType() const;
-
         bool empty() const;
         void operator = ( boost::any& );
         operator boost::any& ();
-        operator bool () const;
 
         std::vector< Folium > attachments();
+        Folder getParentFolder();
 
         // --- create/modify
         Folium addAttachment( const std::wstring& name );

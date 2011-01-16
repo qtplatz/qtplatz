@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "folium.h"
+#include "folder.h"
 #include "portfolioimpl.h"
 
 using namespace portfolio;
@@ -47,12 +48,6 @@ std::wstring
 Folium::path() const
 {
     return attribute( L"path" );
-}
-
-std::wstring
-Folium::dataType() const
-{
-    return attribute( L"dataType" );
 }
 
 bool
@@ -80,11 +75,6 @@ Folium::operator boost::any & ()
     return temp;
 }
 
-Folium::operator bool () const
-{
-    return impl_;
-}
-
 Folio
 Folium::attachments()
 {
@@ -99,4 +89,16 @@ Folium
 Folium::addAttachment( const std::wstring& name )
 {
     return Folium( Node::addAttachment( name ), impl_ );
+}
+
+Folder
+Folium::getParentFolder()
+{
+    // std::wstring query = L"//folder[@folderType='directory']/folium[@dataId=\"" + id() + L"\"]/parent()";
+    xmlElement elmt = Node::selectSingleNode( L".." );
+    while ( elmt && elmt.attribute( L"folderType" ) != L"directory" )
+        elmt = elmt.selectSingleNode( L".." );
+    if ( elmt.nodeName() == L"folder" && elmt.attribute( L"folderType" ) == L"directory" )
+        return Folder( elmt, impl_ );
+    return Folder();
 }

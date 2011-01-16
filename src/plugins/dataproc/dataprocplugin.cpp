@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "dataprocplugin.h"
+#include "constants.h"
 #include "dataprocmode.h"
 #include "dataprocmanager.h"
 #include "dataprocessor.h"
@@ -80,7 +81,7 @@ DataprocPlugin::~DataprocPlugin()
 
 DataprocPlugin::DataprocPlugin() : pSessionManager_( new SessionManager() )
                                  , actionApply_(0)
-                                 , currentFeature_(0)
+                                 , currentFeature_( CentroidProcess )
 {
     instance_ = this;
 }
@@ -296,21 +297,25 @@ DataprocPlugin::actionApply()
     size_t n = m.size();
     if ( n > 0 ) {
         Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
-        if ( processor )
-            processor->applyProcess( m );
+        if ( processor ) {
+            if ( currentFeature_ == internal::CalibrationProcess )
+                processor->applyCalibration( m );
+            else
+                processor->applyProcess( m );
+        }
     }
 }
 
 void
 DataprocPlugin::handleFeatureSelected( int value )
 {
-    currentFeature_ = value;
+    currentFeature_ = static_cast< ProcessType >( value );
 }
 
 void
 DataprocPlugin::handleFeatureActivated( int value )
 {
-    currentFeature_ = value;
+    currentFeature_ = static_cast< ProcessType >( value );
 }
 
 
