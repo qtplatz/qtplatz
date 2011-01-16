@@ -54,7 +54,9 @@ SOURCES += massspectrum.cpp \
     peakasymmetry.cpp \
     peakresolution.cpp \
     traceaccessor.cpp \
-    trace.cpp
+    trace.cpp \
+    msreference.cpp \
+    msreferences.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -96,7 +98,9 @@ HEADERS += massspectrum.h\
     peakasymmetry.h \
     peakresolution.h \
     traceaccessor.h \
-    trace.h
+    trace.h \
+    msreference.h \
+    msreferences.h
 
 OTHER_FILES += \
     adcontrols.pri

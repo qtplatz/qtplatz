@@ -322,10 +322,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\mscalibraterefdefns.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\mscalibration.cpp"
 				>
 			</File>
@@ -339,6 +335,18 @@
 			</File>
 			<File
 				RelativePath=".\msproperty.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\msreference.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\msreferencedefns.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\msreferences.cpp"
 				>
 			</File>
 			<File
@@ -726,10 +734,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\mscalibraterefdefns.h"
-				>
-			</File>
-			<File
 				RelativePath=".\mscalibration.h"
 				>
 			</File>
@@ -743,6 +747,18 @@
 			</File>
 			<File
 				RelativePath=".\msproperty.h"
+				>
+			</File>
+			<File
+				RelativePath=".\msreference.h"
+				>
+			</File>
+			<File
+				RelativePath=".\msreferencedefns.h"
+				>
+			</File>
+			<File
+				RelativePath=".\msreferences.h"
 				>
 			</File>
 			<File
