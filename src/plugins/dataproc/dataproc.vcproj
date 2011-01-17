@@ -226,6 +226,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dataprochandler.cpp"
+				>
+			</File>
+			<File
 				RelativePath="dataprocmanager.cpp"
 				>
 			</File>
@@ -426,6 +430,10 @@
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\dataprochandler.h"
+				>
 			</File>
 			<File
 				RelativePath="dataprocmanager.h"

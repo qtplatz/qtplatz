@@ -44,6 +44,12 @@ ProcessMethod::ProcessMethod( const ProcessMethod& t ) : vec_( t.vec_ )
 }
 
 template<> void __declspec(dllexport)
+ProcessMethod::appendMethod( const ProcessMethod::value_type& v )
+{
+    vec_.push_back( v );
+}
+
+template<> void __declspec(dllexport)
 ProcessMethod::appendMethod( const adcontrols::CentroidMethod& v )
 {
     vec_.push_back( v );

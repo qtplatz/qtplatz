@@ -27,6 +27,7 @@
 #include "datafileimpl.h"
 #include "constants.h"
 #include "sessionmanager.h"
+#include "dataprochandler.h"
 #include <adcontrols/datafile.h>
 #include <qtwrapper/qstring.h>
 #include <coreplugin/uniqueidmanager.h>
@@ -131,9 +132,12 @@ namespace dataproc {
             template<> bool operator () ( const adcontrols::CentroidMethod& m ) const {
                 portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
 
+                adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
+                DataprocHandler::doCentroid( *pCentroid, *ptr_, m );
+
                 adcontrols::CentroidProcess peak_detector( m );
                 peak_detector( *ptr_ );
-                adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
+
                 peak_detector.getCentroidSpectrum( *pCentroid );
 
                 boost::any& any = static_cast<boost::any&>( att );
@@ -173,9 +177,17 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m )
 {
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
     if ( folium ) {
+        adcontrols::ProcessMethod method;
+        //------------------ remove 'calibration' from method pipeline --------------
+        for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
+            if ( it->type() != typeid( adcontrols::MSCalibrateMethod ) )
+                method.appendMethod( *it );
+        }
+        //---------------------------------------------------------------------------
+
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
      
-        for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
+        for ( adcontrols::ProcessMethod::vector_type::const_iterator it = method.begin(); it != method.end(); ++it )
             boost::apply_visitor( internal::processIt(*it, folium), data );
 
         SessionManager::instance()->selectionChanged( this, folium );
@@ -187,13 +199,24 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
 {
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
     if ( folium ) {
+        adcontrols::ProcessMethod method;
+        //----------------------- take centroid and calibration method w/ modification ----------------------
+        for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
+            if ( it->type() == typeid( adcontrols::CentroidMethod ) ) {
+                adcontrols::CentroidMethod centroidMethod( boost::get< adcontrols::CentroidMethod >(*it) );
+                centroidMethod.centroidAreaIntensity( false );  // force hight for easy overlay
+                method.appendMethod( centroidMethod );
+            } else if ( it->type() == typeid( adcontrols::MSCalibrateMethod ) ) {
+                method.appendMethod( boost::get< adcontrols::MSCalibrateMethod >( *it ) );
+            }
+        }
+        //----------------------------------------------------------------------------------------------------
+
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
         if ( data.type() == typeid( adutils::MassSpectrumPtr ) )
-            addCalibration( * boost::get< adutils::MassSpectrumPtr >( data ), m );
+            addCalibration( * boost::get< adutils::MassSpectrumPtr >( data ), method );
     }
 }
-
-static void isotope();
 
 void
 Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcontrols::ProcessMethod& m )
@@ -204,18 +227,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
     static_cast<boost::any>( folium ) = ms;
 
-    adcontrols::ProcessMethod method;
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
-        if ( it->type() == typeid( adcontrols::CentroidMethod ) ) {
-            adcontrols::CentroidMethod centroidMethod( boost::get< adcontrols::CentroidMethod >(*it) );
-            centroidMethod.centroidAreaIntensity( false );  // force hight for easy overlay
-            method.appendMethod( centroidMethod );
-        } else if ( it->type() == typeid( adcontrols::MSCalibrateMethod ) ) {
-            method.appendMethod( boost::get< adcontrols::MSCalibrateMethod >( *it ) );
-        }
-    }
-
-    for ( adcontrols::ProcessMethod::vector_type::const_iterator it = method.begin(); it != method.end(); ++it ) {
         boost::apply_visitor( internal::doSpectralProcess( ms, folium ), *it );
     }
 

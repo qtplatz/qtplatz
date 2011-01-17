@@ -32,7 +32,8 @@ SOURCES += \
     navigationwidget.cpp \
     sessionmanager.cpp \
     navigationdelegate.cpp \
-    selchanged.cpp
+    selchanged.cpp \
+    dataprochandler.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -52,7 +53,8 @@ HEADERS += \
     navigationwidget.h \
     sessionmanager.h \
     navigationdelegate.h \
-    selchanged.h
+    selchanged.h \
+    dataprochandler.h
 
 OTHER_FILES += dataproc.pluginspec \
     dataproc_dependencies.pri \

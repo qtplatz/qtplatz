@@ -53,7 +53,6 @@ namespace adcontrols {
 
         typedef std::vector< value_type > vector_type;
 
-        //void appendMethod( const CentroidMethod& );
         template<class T> void appendMethod( const T& );
         template<class T> const T* find() const;
 

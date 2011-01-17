@@ -1,16 +1,144 @@
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+// -*- C++ -*-
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this
+** file in accordance with the ScienceLiaison Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 #include "isotopemethod.h"
 
 using namespace adcontrols;
 
-IsotopeMethod::IsotopeMethod()
+IsotopeMethod::Formula::Formula() : chargeState(0)
 {
 }
+
+IsotopeMethod::Formula::Formula( const Formula& t ) : chargeState( t.chargeState )
+                                                    , formula( t.formula )
+                                                    , adduct( t.adduct )  
+{
+}
+
+/////////////////////////////////////////////////////////
 
 IsotopeMethod::~IsotopeMethod()
 {
 }
+
+IsotopeMethod::IsotopeMethod() : polarityPositive_( true )
+                               , useElectronMass_( true )
+                               , threshold_( 0.1 )
+                               , resolution_( 0.05 )   
+{
+}
+
+IsotopeMethod::IsotopeMethod( const IsotopeMethod& t ) : formulae_(t.formulae_)
+                                                       , polarityPositive_( t.polarityPositive_ )
+                                                       , useElectronMass_( t.useElectronMass_ )
+                                                       , threshold_( t.threshold_ )
+                                                       , resolution_( t.resolution_ )
+{
+}    
+
+IsotopeMethod&
+IsotopeMethod::operator = ( const IsotopeMethod& t )
+{
+    formulae_ = t.formulae_;
+    polarityPositive_ = t.polarityPositive_;
+    useElectronMass_ = t.useElectronMass_;
+    threshold_ = t.threshold_;
+    resolution_ = t.resolution_;
+    return *this;
+}
+
+void
+IsotopeMethod::clear()
+{
+    formulae_.clear();
+}
+
+size_t
+IsotopeMethod::size() const
+{
+    return formulae_.size();
+}
+
+void
+IsotopeMethod::addFormula( const Formula& t )
+{
+    formulae_.push_back( t );
+}
+
+
+const IsotopeMethod::Formula&
+IsotopeMethod::operator []( int idx )
+{
+    return formulae_[ idx ];
+}
+ 
+bool
+IsotopeMethod::polarityPositive() const
+{
+    return polarityPositive_;
+}
+
+void
+IsotopeMethod::polarityPositive( bool value )
+{
+    polarityPositive_ = value;
+}
+
+bool
+IsotopeMethod::useElectronMass() const
+{
+    return useElectronMass_;
+}
+
+void
+IsotopeMethod::useElectronMass( bool value )
+{
+    useElectronMass_ = value;
+}
+
+double
+IsotopeMethod::threshold() const
+{
+    return threshold_;
+}
+
+void
+IsotopeMethod::threshold( double value )
+{
+    threshold_ = value;
+}
+
+double
+IsotopeMethod::resolution() const
+{
+    return resolution_;
+}
+
+void
+IsotopeMethod::resolution( double value )
+{
+    resolution_ = value;
+}
+
