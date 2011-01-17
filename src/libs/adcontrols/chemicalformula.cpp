@@ -34,10 +34,6 @@ ChemicalFormula::ChemicalFormula( SACONTROLSLib::ISAElementIO * pi ) : impl_( ne
 {
 }
 
-ChemicalFormula::ChemicalFormula( const ChemicalFormula& t ) : impl_( new internal::ChemicalFormulaImpl( t.impl_->pi_ ) )
-{
-}
-
 ChemicalFormula::~ChemicalFormula(void)
 {
     delete impl_;

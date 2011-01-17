@@ -48,8 +48,8 @@ namespace adcontrols {
         ChemicalFormula( SACONTROLSLib::ISAElementIO * );
 
     public:
-        ChemicalFormula( const ChemicalFormula& );
         ~ChemicalFormula(void);
+        ChemicalFormula( const ChemicalFormula& );
 
         double getMonoIsotopicMass( const std::wstring& formula );
         double getChemicalMass( const std::wstring& formula );

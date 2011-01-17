@@ -34,6 +34,7 @@ IsotopeMethod::Formula::Formula() : chargeState(0)
 IsotopeMethod::Formula::Formula( const Formula& t ) : chargeState( t.chargeState )
                                                     , formula( t.formula )
                                                     , adduct( t.adduct )  
+                                                    , relativeAmounts( t.relativeAmounts )
 {
 }
 
@@ -88,10 +89,28 @@ IsotopeMethod::addFormula( const Formula& t )
 }
 
 
-const IsotopeMethod::Formula&
-IsotopeMethod::operator []( int idx )
+IsotopeMethod::vector_type::const_iterator
+IsotopeMethod::begin() const
 {
-    return formulae_[ idx ];
+    return formulae_.begin();
+}
+
+IsotopeMethod::vector_type::const_iterator
+IsotopeMethod::end() const
+{
+    return formulae_.end();
+}
+
+IsotopeMethod::vector_type::iterator
+IsotopeMethod::begin()
+{
+    return formulae_.begin();
+}
+
+IsotopeMethod::vector_type::iterator
+IsotopeMethod::end()
+{
+    return formulae_.end();
 }
  
 bool

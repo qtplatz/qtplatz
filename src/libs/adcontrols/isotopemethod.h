@@ -47,17 +47,23 @@ namespace adcontrols {
             std::wstring formula;
             std::wstring adduct;
             size_t chargeState;
+            double relativeAmounts;
             Formula();
             Formula( const Formula& );
-            Formula( const std::wstring& formula, const std::wstring& adduct, size_t chargeState );
+            Formula( const std::wstring& formula, const std::wstring& adduct, size_t chargeState, double relativeAmounts );
         };
 
     public:
+        typedef std::vector< Formula > vector_type;
+
         void clear();
         size_t size() const;
-
         void addFormula( const Formula& );
-        const Formula& operator []( int idx );
+
+        vector_type::iterator begin();
+        vector_type::iterator end();
+        vector_type::const_iterator begin() const;
+        vector_type::const_iterator end() const;
  
         bool polarityPositive() const;
         void polarityPositive( bool );

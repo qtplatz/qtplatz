@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "adcontrols_global.h"
+
 #include <string>
 
 namespace adcontrols {
@@ -32,7 +34,7 @@ namespace adcontrols {
     class IsotopeClusterImpl;
     class MassSpectrum;
 
-    class IsotopeCluster {
+    class ADCONTROLSSHARED_EXPORT IsotopeCluster {
     public:
         ~IsotopeCluster();
         IsotopeCluster();
