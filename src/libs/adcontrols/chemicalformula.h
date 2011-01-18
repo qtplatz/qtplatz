@@ -42,13 +42,9 @@ namespace adcontrols {
     }
 
     class ADCONTROLSSHARED_EXPORT ChemicalFormula {
-
-        friend TableOfElements;
-
-        ChemicalFormula( SACONTROLSLib::ISAElementIO * );
-
     public:
-        ~ChemicalFormula(void);
+        ~ChemicalFormula();
+        ChemicalFormula();
         ChemicalFormula( const ChemicalFormula& );
 
         double getMonoIsotopicMass( const std::wstring& formula );

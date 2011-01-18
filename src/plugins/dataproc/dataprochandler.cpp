@@ -50,19 +50,32 @@ DataprocHandler::doCentroid( adcontrols::MassSpectrum& res, const adcontrols::Ma
 bool
 DataprocHandler::doIsotope( adcontrols::MassSpectrum& res, const adcontrols::IsotopeMethod& m )
 {
-    adcontrols::ChemicalFormula chemicalFormula 
-        = adcontrols::TableOfElements::instance()->getChemicalFormula();
+    adcontrols::ChemicalFormula chemicalFormula; 
 
     adcontrols::IsotopeCluster cluster;
     cluster.clearFormulae();
 
-    for ( adcontrols::IsotopeMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
-        std::wstring stdFormula = chemicalFormula.standardFormula( it->formula );
-        cluster.addFormula( stdFormula, it->adduct, it->chargeState, it->relativeAmounts );
-    }
-    size_t nPeaks(0);
-    if ( cluster.computeFormulae( m.threshold(), true, m.resolution(), res, nPeaks, m.useElectronMass() ) ) {
-        return true;
+    if ( m.size() ) {
+
+        for ( adcontrols::IsotopeMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
+            std::wstring stdFormula = chemicalFormula.standardFormula( it->formula );
+            cluster.addFormula( stdFormula, it->adduct, it->chargeState, it->relativeAmounts );
+        }
+
+        size_t nPeaks(0);
+        if ( cluster.computeFormulae( m.threshold(), true, m.resolution(), res, nPeaks, m.useElectronMass() ) ) {
+            return true;
+        }
+
     }
     return false;
 }
+
+bool
+DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
+                                 , const adcontrols::MassSpectrum& centroid
+                                 , const adcontrols::MSCalibrateMethod& m )
+{
+    return false;
+}
+

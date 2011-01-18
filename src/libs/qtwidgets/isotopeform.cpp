@@ -42,6 +42,11 @@ IsotopeForm::OnInitialUpdate()
     QStandardItemModel& model = *pModel_;
     adcontrols::IsotopeMethod& method = *pMethod_;
 
+    //------------ add dummy data for debug ---------------
+    //-----------------------------------------------------
+    method.addFormula( adcontrols::IsotopeMethod::Formula( L"Xe", L"", 1, 1.0 ) );
+    //-----------------------------------------------------
+
     QStandardItem * rootNode = model.invisibleRootItem();
 
     ui->treeView->setItemDelegate( pDelegate_.get() );

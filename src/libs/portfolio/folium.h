@@ -58,7 +58,6 @@ namespace portfolio {
 
         // --- create/modify
         Folium addAttachment( const std::wstring& name );
-
     };
 
     typedef std::vector< Folium > Folio;

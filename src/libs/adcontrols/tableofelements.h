@@ -29,37 +29,38 @@
 #include "chemicalformula.h"
 #include <string>
 
+namespace SACONTROLSLib {
+    struct ISAElementIO;
+}
+
 struct IDispatch;
 
 namespace adcontrols {
 
-  namespace internal {
-    class TableOfElementsImpl;
-  }
+    namespace internal {
+        class TableOfElementsImpl;
+    }
 
-  class Element;
-  class Elements;
-  class SuperAtom;
-  class SuperAtoms;
+    class Element;
+    class Elements;
+    class SuperAtom;
+    class SuperAtoms;
 
-  class ADCONTROLSSHARED_EXPORT TableOfElements {
-    ~TableOfElements();
-    TableOfElements();
-  public:
-    static TableOfElements * instance();
-    void dispose();
+    class ADCONTROLSSHARED_EXPORT TableOfElements {
+        ~TableOfElements();
+        TableOfElements();
+    public:
+        static TableOfElements * instance();
+        void dispose();
 
-    operator IDispatch * ();
+        std::wstring saveXml() const;
+        void loadXml( const std::wstring& );
 
-    ChemicalFormula getChemicalFormula();
-
-    std::wstring saveXml() const;
-    void loadXml( const std::wstring& );
-
-  private:
-    static TableOfElements * instance_;
-    internal::TableOfElementsImpl * pImpl_;
-  };
+        operator SACONTROLSLib::ISAElementIO * ();
+    private:
+        static TableOfElements * instance_;
+        internal::TableOfElementsImpl * pImpl_;
+    };
 
 }
 

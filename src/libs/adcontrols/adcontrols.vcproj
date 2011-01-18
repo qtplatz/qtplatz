@@ -326,6 +326,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mscalibrateresult.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mscalibration.cpp"
 				>
 			</File>
@@ -743,6 +747,10 @@
 			</File>
 			<File
 				RelativePath=".\mscalibratemethod.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mscalibrateresult.h"
 				>
 			</File>
 			<File

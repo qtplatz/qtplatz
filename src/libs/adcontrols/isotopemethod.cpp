@@ -38,6 +38,16 @@ IsotopeMethod::Formula::Formula( const Formula& t ) : chargeState( t.chargeState
 {
 }
 
+IsotopeMethod::Formula::Formula( const std::wstring& _formula
+                                , const std::wstring& _adduct
+                                , size_t _chargeState
+                                , double _relativeAmounts ) : formula( _formula )
+                                                      , adduct( _adduct )
+                                                      , chargeState( _chargeState )
+                                                      , relativeAmounts( _relativeAmounts )
+{
+}
+
 /////////////////////////////////////////////////////////
 
 IsotopeMethod::~IsotopeMethod()

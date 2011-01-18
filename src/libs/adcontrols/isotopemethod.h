@@ -42,7 +42,7 @@ namespace adcontrols {
 
         IsotopeMethod & operator = (const IsotopeMethod & rhs);
 
-        struct Formula {
+        struct ADCONTROLSSHARED_EXPORT Formula {
         public:
             std::wstring formula;
             std::wstring adduct;

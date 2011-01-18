@@ -47,8 +47,9 @@
 #include <adcontrols/targetingmethod.h>
 
 #include <adcontrols/massspectrum.h>
+#include <adcontrols/mscalibrateresult.h>
 #include <adcontrols/centroidprocess.h>
-
+#include <stack>
 #include <qdebug.h>
 
 using namespace dataproc;
@@ -121,6 +122,7 @@ namespace dataproc {
         // dispatch method
         struct doSpectralProcess : public boost::static_visitor<bool> {
             const adutils::MassSpectrumPtr& ptr_;
+
             portfolio::Folium& folium;
 
             doSpectralProcess( const adutils::MassSpectrumPtr& p, portfolio::Folium& f ) : ptr_(p), folium(f) {
@@ -129,21 +131,37 @@ namespace dataproc {
             template<typename T> bool operator () ( T& ) const {
                 return false;
             }
+
+            template<> bool operator () ( const adcontrols::IsotopeMethod& m ) const {
+                portfolio::Folium att = folium.addAttachment( L"Isotope Cluster" );
+                adcontrols::MassSpectrumPtr pResult( new adcontrols::MassSpectrum );
+                if ( DataprocHandler::doIsotope( *pResult, m ) )
+                    static_cast< boost::any& >( att ) = pResult;
+                return true;
+            }
+
             template<> bool operator () ( const adcontrols::CentroidMethod& m ) const {
                 portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
-
                 adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
-                DataprocHandler::doCentroid( *pCentroid, *ptr_, m );
-
-                adcontrols::CentroidProcess peak_detector( m );
-                peak_detector( *ptr_ );
-
-                peak_detector.getCentroidSpectrum( *pCentroid );
-
-                boost::any& any = static_cast<boost::any&>( att );
-                any = pCentroid;
-
+                if ( DataprocHandler::doCentroid( *pCentroid, *ptr_, m ) )
+                    static_cast<boost::any&>( att ) = pCentroid;
                 return true;
+            }
+
+            template<> bool operator () ( const adcontrols::MSCalibrateMethod& m ) const {
+
+                adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
+                boost::any& data = static_cast<boost::any>( folium.attachments().front() );
+                try {
+                    adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( data );
+                    if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m ) ) {
+                        portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
+                        static_cast<boost::any&>( att ) = pResult;
+                    }
+                    return true;
+                } catch ( boost::bad_any_cast& ) {
+                }
+                return false;
             }
         };
 
@@ -227,9 +245,8 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
     static_cast<boost::any>( folium ) = ms;
 
-    for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
-        boost::apply_visitor( internal::doSpectralProcess( ms, folium ), *it );
-    }
+    for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
+        boost::apply_visitor( internal::processIt(*it, folium), *it );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
 }

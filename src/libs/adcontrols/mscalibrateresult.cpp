@@ -23,39 +23,62 @@
 **
 **************************************************************************/
 
-#ifndef DATAPROCHANDLER_H
-#define DATAPROCHANDLER_H
+#include "mscalibrateresult.h"
+#include "msreference.h"
+#include "msreferences.h"
+#include "mscalibration.h"
 
-#include <string>
-#include <vector>
+using namespace adcontrols;
 
-namespace adcontrols {
-    class MassSpectrum;
-    class Chromatogram;
-    class MSCalibrateResult;
-
-    class CentroidMethod;
-    class IsotopeMethod;
-    class MSCalibrateMethod;
+MSCalibrateResult::~MSCalibrateResult()
+{
 }
 
-namespace dataproc {
-
-    class DataprocHandler {
-    public:
-        DataprocHandler();
-
-        static bool doCentroid( adcontrols::MassSpectrum& res
-                               , const adcontrols::MassSpectrum& profile
-                               , const adcontrols::CentroidMethod& );
-
-        static bool doIsotope( adcontrols::MassSpectrum& res, const adcontrols::IsotopeMethod& );
-
-        static bool doMSCalibration( adcontrols::MSCalibrateResult& res
-                                   , const adcontrols::MassSpectrum& centroid
-                                   , const adcontrols::MSCalibrateMethod& );
-    };
-
+MSCalibrateResult::MSCalibrateResult() : references_( new MSReferences )
+                                       , calibration_( new MSCalibration ) 
+{
 }
 
-#endif // DATAPROCHANDLER_H
+MSCalibrateResult::MSCalibrateResult( const MSCalibrateResult& t )
+: references_( new MSReferences( *t.references_ ) )
+, calibration_( new MSCalibration( *t.calibration_ ) )
+{
+}
+
+
+const MSReferences&
+MSCalibrateResult::references() const
+{
+    return *references_;
+}
+
+MSReferences&
+MSCalibrateResult::references()
+{
+    return *references_;
+}
+
+void
+MSCalibrateResult::references( const MSReferences& t )
+{
+    *references_ = t;
+}
+
+const MSCalibration&
+MSCalibrateResult::calibration() const
+{
+    return *calibration_;
+}
+
+MSCalibration&
+MSCalibrateResult::calibration()
+{
+    return *calibration_;
+}
+
+void
+MSCalibrateResult::calibration( const MSCalibration& t )
+{
+    *calibration_ = t;
+}
+

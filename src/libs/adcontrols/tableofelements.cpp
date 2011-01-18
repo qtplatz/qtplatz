@@ -112,17 +112,18 @@ TableOfElements::instance()
    return instance_;
 }
 
-TableOfElements::operator IDispatch * ()
+TableOfElements::operator SACONTROLSLib::ISAElementIO * ()
 {
     return pImpl_->pi_;
 }
 
+/*
 ChemicalFormula
 TableOfElements::getChemicalFormula()
 {
     return ChemicalFormula( pImpl_->pi_ );
 }
-
+*/
 
 std::wstring
 TableOfElements::saveXml() const

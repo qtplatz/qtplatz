@@ -316,14 +316,18 @@ double
 MassSpectrum::getMinIntensity() const
 {
 	adportable::array_wrapper<const double> y( pImpl_->getIntensityArray(), size() );
-	return *std::min_element( y.begin(), y.end() );
+    if ( y )
+        return *std::min_element( y.begin(), y.end() );
+    return 0;
 }
 
 double
 MassSpectrum::getMaxIntensity() const
 {
 	adportable::array_wrapper<const double> y( pImpl_->getIntensityArray(), size() );
-	return *std::max_element( y.begin(), y.end() );
+    if ( y )
+        return *std::max_element( y.begin(), y.end() );
+    return 0;
 }
 
 std::wstring
