@@ -56,6 +56,17 @@ namespace portfolio {
         std::vector< Folium > attachments();
         Folder getParentFolder();
 
+        typedef std::vector< Folium > vector_type;
+
+        template<class T> static vector_type::iterator find_first_of( vector_type::iterator it, vector_type::iterator ite ) {
+            while ( it != ite ) {
+                if ( boost::any_cast<T&>(*it) == typeid(T) )
+                    return it;
+                ++it;
+            }
+            return ite;
+        }
+
         // --- create/modify
         Folium addAttachment( const std::wstring& name );
     };

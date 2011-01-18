@@ -149,17 +149,19 @@ namespace dataproc {
             }
 
             template<> bool operator () ( const adcontrols::MSCalibrateMethod& m ) const {
-
-                adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
-                boost::any& data = static_cast<boost::any>( folium.attachments().front() );
-                try {
-                    adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( data );
-                    if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m ) ) {
-                        portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
-                        static_cast<boost::any&>( att ) = pResult;
+                using namespace portfolio;
+                Folium::vector_type& atts = folium.attachments();
+                Folium::vector_type::iterator it = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
+                if ( it != atts.end() ) {
+                    adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>( *it ) );
+                    if ( pCentroid ) {
+                        adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
+                        if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m ) ) {
+                            portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
+                            static_cast<boost::any&>( att ) = pResult;
+                        }
+                        return true;
                     }
-                    return true;
-                } catch ( boost::bad_any_cast& ) {
                 }
                 return false;
             }
@@ -246,7 +248,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     static_cast<boost::any>( folium ) = ms;
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
-        boost::apply_visitor( internal::processIt(*it, folium), *it );
+        boost::apply_visitor( internal::doSpectralProcess( ms, folium ), *it );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
 }
