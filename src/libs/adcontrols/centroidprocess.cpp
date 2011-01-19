@@ -153,23 +153,21 @@ CentroidProcess::operator()( const MassSpectrum& profile )
             double tt = t1 + sampInterval * ( mass - *(it - 1) ) / ( *it - *(it - 1) );
             // validation
 #ifdef _DEBUG
-            double dm;
+            double cx;
             do { // centroid by time
                 adportable::timeFunctor tof( startDelay, sampInterval );
                 adportable::Moment< adportable::timeFunctor > moment( tof, profile.getIntensityArray() );
-                double cx = moment.centerX( height * pImpl_->method().peakCentroidFraction(), spos, tpos, epos );
-                // double baseLevel = ( piItem->GetBaselineEndIntensity() - piItem->GetBaselineStartIntensity()) / 2.0 + piItem->GetBaselineStartIntensity();
-                //adportable::Moment<double, const double> moment( tofarray.get(), profile.getIntensityArray() + spos, 0, tpos - spos, epos - spos );
-                //moment.thresholdLevel( pImpl_->method().peakCentroidFraction() * height + baseLevel );
-                //double cX = moment.centerX();
-                //dt = std::abs( tt - cX );
+                // todo: hight recalculate if base below zero level
+                cx = moment.centerX( height * pImpl_->method().peakCentroidFraction(), spos, tpos, epos );
             } while(0);
 
             do {
                 const MSCalibration& calib = profile.calibration();
-                double mz = std::pow( MSCalibration::compute( calib.coeffs(), tt ), 2 );
-                dm = std::abs( mz - mass ) * 1000;
-                assert( dm < 0.1 ); // 0.1mDa
+                double mz1 = std::pow( MSCalibration::compute( calib.coeffs(), tt ), 2 );
+                // double mz2 = std::pow( MSCalibration::compute( calib.coeffs(), cx ), 2 );
+                double dm1 = std::abs( mz1 - mass ) * 1000;
+                // double dm2 = std::abs( mz2 - mass ) * 1000;
+                assert( dm1 < 0.1 ); // 0.1mDa
             } while(0);
 #endif
             pImpl_->info_.push_back( MSPeakInfoItem( mass, area, height, hh, tt ) );
