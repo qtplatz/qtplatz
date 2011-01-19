@@ -97,7 +97,7 @@ TXTSpectrum::load( const std::wstring& name )
     calib.coeffs( coeffs );
 
     for ( size_t i = 0; i < massArray.size(); ++i ) {
-        double m_sqrt = a + b * timeArray[i];
+        double m_sqrt = adcontrols::MSCalibration::compute( calib.coeffs(), timeArray[i] );
         double mz = m_sqrt * m_sqrt;
         double delta = massArray[i] - mz;
         // std::cout << massArray[i] << ", " << mz << " delta= " << delta << std::endl;

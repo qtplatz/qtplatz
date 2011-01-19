@@ -38,17 +38,19 @@ namespace adcontrols {
         ~MSPeakInfoItem(void);
         MSPeakInfoItem(void);
         MSPeakInfoItem( const MSPeakInfoItem& );
-        MSPeakInfoItem( double mass, double area, double height, double hh );
+        MSPeakInfoItem( double mass, double area, double height, double hh, double time );
         double mass();
         double area();
         double height();
         double widthHH();
+        double time();
 
     private:
         double mass_;
         double area_;
         double height_;
         double hh_;
+        double time_;
     };
 
 }

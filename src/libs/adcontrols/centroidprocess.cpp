@@ -1,18 +1,43 @@
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+// -*- C++ -*-
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the ScienceLiaison Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 #include "centroidprocess.h"
 #include "centroidmethod.h"
 #include "import_sacontrols.h"
 #include "samassspectrum.h"
 #include "massspectrum.h"
+#include "msproperty.h"
 #include "mspeakinfoitem.h"
 #include "description.h"
+#include <adportable/array_wrapper.hpp>
 #include <vector>
+#include <algorithm>
 #include <boost/smart_ptr.hpp>
 #include <sstream>
+#include <cmath>
+#include <adportable/moment.hpp>
 
 /*
 #include <boost/serialization/nvp.hpp>
@@ -106,13 +131,48 @@ CentroidProcess::operator()( const MassSpectrum& profile )
 
     if ( nSize ) {
 		CComPtr< SACONTROLSLib::ISAMSPeakInformationItem2 > piItem;
+
+        adportable::array_wrapper<const double> masses( profile.getMassArray(), profile.size() );
+        adportable::array_wrapper<const double>::const_iterator it = masses.begin();
+        const double sampInterval = profile.getMSProperty().instSamplingInterval() * 1.0e-12;  // ps -> s
+        const unsigned long startDelay = profile.getMSProperty().instSamplingStartDelay();
+        
         for ( size_t i = 0; i < nSize; ++i ) {
             piItem = piInfo->Item[ i + 1 ];
             double mass = piItem->GetPeakAreaWeightedMass();
             double area = piItem->GetPeakArea();
             double height = piItem->GetPeakHeight();
             double hh = piItem->GetPeakWidthHH();
-            pImpl_->info_.push_back( MSPeakInfoItem( mass, area, height, hh ) );
+            long spos = piItem->GetPeakStartIndex();
+            long epos = piItem->GetPeakEndIndex();
+
+            it = std::lower_bound( it, masses.end(), mass );
+            size_t tpos = std::distance( masses.begin(), it );
+
+            double t1 = double( startDelay + tpos - 1 ) * sampInterval;
+            double tt = t1 + sampInterval * ( mass - *(it - 1) ) / ( *it - *(it - 1) );
+            // validation
+#ifdef _DEBUG
+            double dm;
+            do { // centroid by time
+                adportable::timeFunctor tof( startDelay, sampInterval );
+                adportable::Moment< adportable::timeFunctor > moment( tof, profile.getIntensityArray() );
+                double cx = moment.centerX( height * pImpl_->method().peakCentroidFraction(), spos, tpos, epos );
+                // double baseLevel = ( piItem->GetBaselineEndIntensity() - piItem->GetBaselineStartIntensity()) / 2.0 + piItem->GetBaselineStartIntensity();
+                //adportable::Moment<double, const double> moment( tofarray.get(), profile.getIntensityArray() + spos, 0, tpos - spos, epos - spos );
+                //moment.thresholdLevel( pImpl_->method().peakCentroidFraction() * height + baseLevel );
+                //double cX = moment.centerX();
+                //dt = std::abs( tt - cX );
+            } while(0);
+
+            do {
+                const MSCalibration& calib = profile.calibration();
+                double mz = std::pow( MSCalibration::compute( calib.coeffs(), tt ), 2 );
+                dm = std::abs( mz - mass ) * 1000;
+                assert( dm < 0.1 ); // 0.1mDa
+            } while(0);
+#endif
+            pImpl_->info_.push_back( MSPeakInfoItem( mass, area, height, hh, tt ) );
         }
     }
     return true;
@@ -133,7 +193,9 @@ CentroidProcess::getCentroidSpectrum( MassSpectrum& ms )
         for ( size_t i = 0; i < nSize; ++i ) {
 			ms.setIntensity( i, is_area ? pImpl_->info_[i].area() : pImpl_->info_[i].height() );
             ms.setMass( i, pImpl_->info_[i].mass() );
-			// todo : tof array should be calculated
+
+            // tof recalculation
+
         }
         return true;
     }

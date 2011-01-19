@@ -60,7 +60,8 @@ namespace portfolio {
 
         template<class T> static vector_type::iterator find_first_of( vector_type::iterator it, vector_type::iterator ite ) {
             while ( it != ite ) {
-                if ( boost::any_cast<T&>(*it) == typeid(T) )
+                boost::any& data = (*it);
+                if ( data.type() == typeid(T) )
                     return it;
                 ++it;
             }

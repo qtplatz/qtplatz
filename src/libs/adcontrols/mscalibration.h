@@ -50,6 +50,8 @@ namespace adcontrols {
 
         const std::vector< double >& coeffs() const;
         void coeffs( const std::vector<double>& );
+
+        static double compute( const std::vector<double>&, double time );
         
     private:
         std::string calibDate_;

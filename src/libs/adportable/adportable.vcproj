@@ -374,6 +374,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\moment.hpp"
+				>
+			</File>
+			<File
 				RelativePath="protocollifecycle.h"
 				>
 				<FileConfiguration

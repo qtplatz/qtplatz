@@ -18,10 +18,15 @@ MSPeakInfoItem::MSPeakInfoItem(void) : mass_(0)
 {
 }
 
-MSPeakInfoItem::MSPeakInfoItem( double mass, double area, double height, double hh ) : mass_(mass)
-                                                                                     , area_(area)
-                                                                                     , height_(height)
-                                                                                     , hh_(hh)
+MSPeakInfoItem::MSPeakInfoItem( double mass
+                               , double area
+                               , double height
+                               , double hh
+                               , double time ) : mass_(mass)
+                                               , area_(area)
+                                               , height_(height)
+                                               , hh_(hh)
+                                               , time_( time ) 
 {
 }  
 
