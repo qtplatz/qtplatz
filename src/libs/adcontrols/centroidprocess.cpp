@@ -188,12 +188,12 @@ CentroidProcess::getCentroidSpectrum( MassSpectrum& ms )
         ms.setCentroid( adcontrols::CentroidPeakAreaWaitedMass );
 		bool is_area = pImpl_->method().centroidAreaIntensity();
 
+        std::pair<double, double> mrange = ms.getAcquisitionMassRange();
+
         for ( size_t i = 0; i < nSize; ++i ) {
 			ms.setIntensity( i, is_area ? pImpl_->info_[i].area() : pImpl_->info_[i].height() );
             ms.setMass( i, pImpl_->info_[i].mass() );
-
-            // tof recalculation
-
+            ms.setTime( i, pImpl_->info_[i].time() );
         }
         return true;
     }

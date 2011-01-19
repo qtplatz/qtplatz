@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -39,11 +35,11 @@ namespace adcontrols {
         MSPeakInfoItem(void);
         MSPeakInfoItem( const MSPeakInfoItem& );
         MSPeakInfoItem( double mass, double area, double height, double hh, double time );
-        double mass();
-        double area();
-        double height();
-        double widthHH();
-        double time();
+        double mass() const;
+        double area() const;
+        double height() const;
+        double widthHH() const;
+        double time() const;
 
     private:
         double mass_;

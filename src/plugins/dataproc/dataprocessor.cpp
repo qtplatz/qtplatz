@@ -210,6 +210,16 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m )
         for ( adcontrols::ProcessMethod::vector_type::const_iterator it = method.begin(); it != method.end(); ++it )
             boost::apply_visitor( internal::processIt(*it, folium), data );
 
+#if defined _DEBUG
+        using namespace portfolio;
+        std::vector< Folium >& vec = folium.attachments();
+        for ( size_t i = 0; i < vec.size(); ++i ) {
+            boost::any& data = vec[i];
+            adcontrols::MassSpectrumPtr& ms = boost::any_cast< adcontrols::MassSpectrumPtr >( vec[i] );
+            std::pair<double, double> xrange = ms->getAcquisitionMassRange();
+            long x = 0;
+        }
+#endif
         SessionManager::instance()->selectionChanged( this, folium );
     }
 }

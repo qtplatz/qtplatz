@@ -99,6 +99,8 @@ namespace adcontrols {
 	    long long timeSinceFirmwareUp_; // usec
 	    unsigned long numSpectrumSinceInjTrigger_;
 	    
+        friend class MassSpectrum;
+
 	    friend class boost::serialization::access;
 	    template<class Archive> void serialize(Archive& ar, const unsigned int version) {
             if ( version >= 0 ) {
@@ -216,6 +218,15 @@ MassSpectrum::setIntensity( size_t idx, double intensity )
 {
     if ( idx < pImpl_->size() )
         const_cast<double *>( pImpl_->getIntensityArray() )[idx] = intensity;
+}
+
+void
+MassSpectrum::setTime( size_t idx, double time )
+{
+    if ( pImpl_->tofArray_.empty() )
+        pImpl_->tofArray_.resize( pImpl_->size() );
+    if ( idx < pImpl_->size() )
+        const_cast<double *>( pImpl_->getTimeArray() )[idx] = time;
 }
 
 const double *

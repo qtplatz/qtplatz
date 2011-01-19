@@ -38,27 +38,31 @@ MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t ) : mass_( t.mass_ )
 }  
 
 double
-MSPeakInfoItem::mass()
+MSPeakInfoItem::mass() const
 {
     return mass_;
 }
 
 double
-MSPeakInfoItem::area()
+MSPeakInfoItem::area() const
 {
     return area_;
 }
 
 double
-MSPeakInfoItem::height()
+MSPeakInfoItem::height() const
 {
     return height_;
 }
 
 double
-MSPeakInfoItem::widthHH()
+MSPeakInfoItem::widthHH() const
 {
     return hh_;
 }
 
-
+double
+MSPeakInfoItem::time() const
+{
+    return time_;
+}
