@@ -46,13 +46,14 @@ namespace dataproc {
             ~ElementalCompWndImpl() {}
             ElementalCompWndImpl() : ticPlot_(0)
                 , profileSpectrum_(0)
-                , processedSpectrum_(0) {
+                , processedSpectrum_(0)
+                , drawIdx_(0) {
             }
       
             adwidgets::ui::ChromatogramWidget * ticPlot_;
             adwidgets::ui::SpectrumWidget * profileSpectrum_;
             adwidgets::ui::SpectrumWidget * processedSpectrum_;
-      
+            size_t drawIdx_;
         };
 
         //---------------------------------------------------------
@@ -108,7 +109,7 @@ void
 ElementalCompWnd::draw2( adutils::MassSpectrumPtr& ptr )
 {
     adcontrols::MassSpectrum& ms = *ptr;
-    pImpl_->processedSpectrum_->setData( ms );
+    pImpl_->processedSpectrum_->setData( ms, pImpl_->drawIdx_++ );
 }
 
 void
@@ -119,6 +120,8 @@ ElementalCompWnd::handleSessionAdded( Dataprocessor * )
 void
 ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfolio::Folium& folium )
 {
+    pImpl_->drawIdx_ = 0;
+
     adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
     // boost::apply_visitor( selChanged(*this), data );
 
