@@ -54,6 +54,17 @@
 
 using namespace dataproc;
 
+namespace dataproc {
+    namespace internal {
+        struct DataprocessorImpl {
+            static adcontrols::MassSpectrumPtr findAttachedMassSpectrum( portfolio::Folium& folium );
+            static bool applyMethod( portfolio::Folium&, const adcontrols::IsotopeMethod& );
+            static bool applyMethod( portfolio::Folium&, const adcontrols::MSCalibrateMethod& );
+            static bool applyMethod( portfolio::Folium&, const adcontrols::CentroidMethod&, const adcontrols::MassSpectrum& );
+        };
+    }
+}
+
 Dataprocessor::~Dataprocessor()
 {
 }
@@ -132,38 +143,16 @@ namespace dataproc {
                 return false;
             }
 
-            template<> bool operator () ( const adcontrols::IsotopeMethod& m ) const {
-                portfolio::Folium att = folium.addAttachment( L"Isotope Cluster" );
-                adcontrols::MassSpectrumPtr pResult( new adcontrols::MassSpectrum );
-                if ( DataprocHandler::doIsotope( *pResult, m ) )
-                    static_cast< boost::any& >( att ) = pResult;
-                return true;
+            template<> bool operator () ( const adcontrols::CentroidMethod& m ) const {
+                return internal::DataprocessorImpl::applyMethod( folium, m, *ptr_ );
             }
 
-            template<> bool operator () ( const adcontrols::CentroidMethod& m ) const {
-                portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
-                adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
-                if ( DataprocHandler::doCentroid( *pCentroid, *ptr_, m ) )
-                    static_cast<boost::any&>( att ) = pCentroid;
-                return true;
+            template<> bool operator () ( const adcontrols::IsotopeMethod& m ) const {
+                return internal::DataprocessorImpl::applyMethod( folium, m );
             }
 
             template<> bool operator () ( const adcontrols::MSCalibrateMethod& m ) const {
-                using namespace portfolio;
-                Folium::vector_type& atts = folium.attachments();
-                Folium::vector_type::iterator it = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
-                if ( it != atts.end() ) {
-                    adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>( *it ) );
-                    if ( pCentroid ) {
-                        adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
-                        if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m ) ) {
-                            portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
-                            static_cast<boost::any&>( att ) = pResult;
-                        }
-                        return true;
-                    }
-                }
-                return false;
+                return internal::DataprocessorImpl::applyMethod( folium, m );
             }
         };
 
@@ -285,4 +274,63 @@ Dataprocessor::subscribe( adcontrols::ProcessedDataset& processed )
     portfolio_.reset( new portfolio::Portfolio( xml ) );
 }
 
-////////////////////////
+///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+
+adcontrols::MassSpectrumPtr
+internal::DataprocessorImpl::findAttachedMassSpectrum( portfolio::Folium& folium )
+{
+    using namespace portfolio;
+
+    adcontrols::MassSpectrumPtr ptr;
+
+    Folium::vector_type& atts = folium.attachments();
+    Folium::vector_type::iterator it = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
+    if ( it != atts.end() )
+        Folium::get< adcontrols::MassSpectrumPtr >( ptr, *it);
+
+    return ptr; // can be null
+}
+
+bool
+internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::IsotopeMethod& m )
+{
+    adcontrols::MassSpectrumPtr prev = findAttachedMassSpectrum( folium );
+    // copy centroid result if exist, for meta data copy
+    adcontrols::MassSpectrumPtr pResult( new adcontrols::MassSpectrum( *prev ) );
+    portfolio::Folium att = folium.addAttachment( L"Isotope Cluster" );
+    if ( DataprocHandler::doIsotope( *pResult, m ) )
+        static_cast< boost::any& >( att ) = pResult;
+    return true;
+}
+
+bool
+internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSCalibrateMethod& m )
+{
+    using namespace portfolio;
+    Folium::vector_type& atts = folium.attachments();
+    Folium::vector_type::iterator it = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
+    if ( it != atts.end() ) {
+        adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>( *it ) );
+        if ( pCentroid ) {
+            adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
+            if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m ) ) {
+                portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
+                static_cast<boost::any&>( att ) = pResult;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
+internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::CentroidMethod& m, const adcontrols::MassSpectrum& profile )
+{
+    portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
+    adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
+    if ( DataprocHandler::doCentroid( *pCentroid, profile, m ) )
+        static_cast<boost::any&>( att ) = pCentroid;
+    return true;
+}

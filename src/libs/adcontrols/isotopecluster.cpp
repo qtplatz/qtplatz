@@ -26,6 +26,7 @@
 #include "isotopecluster.h"
 #include "tableofelements.h"
 #include "import_sacontrols.h"
+#include "samassspectrum.h"
 
 using namespace adcontrols;
 using namespace SACONTROLSLib;
@@ -61,13 +62,14 @@ IsotopeCluster::Compute( const std::wstring& formula, double threshold, bool res
     long n;
     if ( impl_->pi_->Compute( _bstr_t( formula.c_str() ), threshold, variant_bool::to_variant( resInDa ), rp, pims, &n ) == S_OK ) {
         nPeaks = n;
+        internal::SAMassSpectrum::copy( ms, pims );
         return true;
     }
     return false;
 }
 
 bool
-IsotopeCluster::Compute( const std::wstring& formula, double threshold, bool resInDa, double rp, MassSpectrum&, const std::wstring& adduct, size_t charges, size_t& nPeaks, bool bAccountForElectrons )
+IsotopeCluster::Compute( const std::wstring& formula, double threshold, bool resInDa, double rp, MassSpectrum& ms, const std::wstring& adduct, size_t charges, size_t& nPeaks, bool bAccountForElectrons )
 {
     SACONTROLSLib::ISAMassSpectrum5Ptr pims;
     if ( pims.CreateInstance( SACONTROLSLib::CLSID_SAMassSpectrum ) != S_OK )
@@ -85,6 +87,7 @@ IsotopeCluster::Compute( const std::wstring& formula, double threshold, bool res
                                     , &n
                                     , variant_bool::to_variant( bAccountForElectrons ) ) == S_OK ) {
         nPeaks = n;
+        internal::SAMassSpectrum::copy( ms, pims );
         return true;
     }
     return false;
@@ -105,7 +108,7 @@ IsotopeCluster::addFormula( const std::wstring& formula, const std::wstring& add
 }
 
 bool
-IsotopeCluster::computeFormulae(double threshold, bool resInDa, double rp,	MassSpectrum&, size_t& nPeaks, bool bAccountForElectrons )
+IsotopeCluster::computeFormulae(double threshold, bool resInDa, double rp,	MassSpectrum& ms, size_t& nPeaks, bool bAccountForElectrons, double ra )
 {
     nPeaks = 0;
     SACONTROLSLib::ISAMassSpectrum5Ptr pims;
@@ -118,6 +121,7 @@ IsotopeCluster::computeFormulae(double threshold, bool resInDa, double rp,	MassS
                                     , variant_bool::to_variant( resInDa )
                                     , rp, pims, &n, variant_bool::to_variant( bAccountForElectrons ) ) == S_OK ) {
         nPeaks = n;
+        internal::SAMassSpectrum::copy( ms, pims, ra );
         return true;
     }
     return false;

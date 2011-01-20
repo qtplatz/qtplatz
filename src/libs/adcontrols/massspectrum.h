@@ -91,6 +91,7 @@ namespace adcontrols {
        std::pair<double, double> getAcquisitionMassRange() const;
 	   double getMinIntensity() const;
 	   double getMaxIntensity() const;
+       double getMass( size_t idx ) const;
 	 
        void addDescription( const Description& );
        const Descriptions& getDescriptions() const;

@@ -94,6 +94,7 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
     trace.font().size( 80000 );
 
 	std::pair<double, double> xrange = ms.getAcquisitionMassRange();
+
     std::pair<double, double> yrange( ms.getMinIntensity(), ms.getMaxIntensity() );
     std::pair<double, double> drange;
     drange.first = yrange.first < 0 ? yrange.first : 0;
@@ -111,7 +112,7 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 		trace.YAxis( Trace::Y1 );
 	}
 
-    trace.colorIndex(1 + idx);
+    trace.colorIndex( 1 + idx );
     if ( ms.isCentroid() ) {
         trace.traceStyle( Trace::TS_Stick );
         trace.autoAnnotation( true );

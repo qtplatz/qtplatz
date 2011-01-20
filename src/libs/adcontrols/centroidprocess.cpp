@@ -151,23 +151,29 @@ CentroidProcess::operator()( const MassSpectrum& profile )
 
             double t1 = double( startDelay + tpos - 1 ) * sampInterval;
             double tt = t1 + sampInterval * ( mass - *(it - 1) ) / ( *it - *(it - 1) );
+
             // validation
 #ifdef _DEBUG
-            double cx;
+            double cx(0);
             do { // centroid by time
+                double base = piItem->GetBaselineStartIntensity() + 
+                    ( piItem->GetBaselineStartMass() - piItem->GetBaselineEndIntensity() ) / 2;
                 adportable::timeFunctor tof( startDelay, sampInterval );
-                adportable::Moment< adportable::timeFunctor > moment( tof, profile.getIntensityArray() );
-                // todo: hight recalculate if base below zero level
-                cx = moment.centerX( height * pImpl_->method().peakCentroidFraction(), spos, tpos, epos );
+                adportable::Moment< adportable::timeFunctor > moment( tof );
+                
+                double threshold = base + height * pImpl_->method().peakCentroidFraction();
+                cx = moment.centerX( profile.getIntensityArray(), threshold, spos, tpos, epos );
             } while(0);
 
             do {
                 const MSCalibration& calib = profile.calibration();
                 double mz1 = std::pow( MSCalibration::compute( calib.coeffs(), tt ), 2 );
-                // double mz2 = std::pow( MSCalibration::compute( calib.coeffs(), cx ), 2 );
+                double mz2 = std::pow( MSCalibration::compute( calib.coeffs(), cx ), 2 );
                 double dm1 = std::abs( mz1 - mass ) * 1000;
-                // double dm2 = std::abs( mz2 - mass ) * 1000;
+                double dm2 = std::abs( mz2 - mass ) * 1000;
                 assert( dm1 < 0.1 ); // 0.1mDa
+                (void)dm2;
+                // assert( dm2 < 0.1 );
             } while(0);
 #endif
             pImpl_->info_.push_back( MSPeakInfoItem( mass, area, height, hh, tt ) );

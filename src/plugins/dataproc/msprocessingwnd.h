@@ -73,6 +73,8 @@ namespace dataproc {
             void ctxMenu1( const QPoint& );
 
         private:
+            size_t drawIdx1_;
+            size_t drawIdx2_;
             boost::shared_ptr<MSProcessingWndImpl> pImpl_;
             std::wstring idActiveFolium_;
         };

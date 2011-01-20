@@ -213,6 +213,13 @@ MassSpectrum::setMass( size_t idx, double mass )
         const_cast<double *>( pImpl_->getMassArray() )[idx] = mass;
 }
 
+double
+MassSpectrum::getMass( size_t idx ) const
+{
+    if ( idx < pImpl_->size() )
+        return pImpl_->getMassArray()[idx];
+}
+
 void
 MassSpectrum::setIntensity( size_t idx, double intensity )
 {

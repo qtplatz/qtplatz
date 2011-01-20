@@ -68,6 +68,15 @@ namespace portfolio {
             return ite;
         }
 
+        template<class T> static bool get( T& t, Folium& folium ) {
+            boost::any& data = folium;
+            if ( data.type() == typeid(T) ) {
+                t = boost::any_cast<T>(data);
+                return true;
+            }
+            return false;
+        }
+
         // --- create/modify
         Folium addAttachment( const std::wstring& name );
     };

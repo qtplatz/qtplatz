@@ -43,14 +43,15 @@ namespace adportable {
     /////////////////////////////////////////////////////
 
     template<class Fx> class Moment {
+        Fx& fx_;
     public:
-        Moment( Fx& f, const double * py ) : py_(py), fx_(f) {}
+        Moment( Fx& f ) : fx_(f) {}
 
-        double centerX( double threshold, size_t spos, size_t tpos, size_t epos ) {
-            long xL = left_bound<double>( py_, threshold, tpos, spos );
-            long xR = right_bound<double>( py_, threshold, tpos, epos );
-            double Xl = left_intersection( xL, threshold );
-            double Xr = right_intersection( xR, threshold );
+        double centerX( const double * py, double threshold, size_t spos, size_t tpos, size_t epos ) {
+            long xL = left_bound<double>( py, threshold, tpos, spos );
+            long xR = right_bound<double>( py, threshold, tpos, epos );
+            double Xl = left_intersection( py, xL, threshold );
+            double Xr = right_intersection( py, xR, threshold );
 
             double x0 = fx_( xL - 1 );
             double ma = 0;
@@ -66,7 +67,7 @@ namespace adportable {
                 //   /__|     Gy = (1/3) * h
                 //    a
                 double h = fx_( xL ) - Xl;
-                double a = py_[xL] - baseH;
+                double a = py[xL] - baseH;
                 double area = h * a / 2;
                 double Gy = h / 3;
                 double cx = fx_( xL ) - Gy - x0;
@@ -76,7 +77,7 @@ namespace adportable {
             {
                 // right triangle
                 double h = Xr - fx_( xR );
-                double a = py_[xR] - baseH;
+                double a = py[xR] - baseH;
                 double area = h * a / 2;
                 double Gy = h / 3;
                 double cx = fx_( xR ) + Gy - x0;
@@ -96,8 +97,8 @@ namespace adportable {
                 //        a                      3(a + c)
                 //
                 double h = fx_( x + 1 ) - fx_( x );
-                double a = py_[x + 1] - baseH;
-                double c = py_[x] - baseH;
+                double a = py[x + 1] - baseH;
+                double c = py[x] - baseH;
                 double Gy = (h * (a + 2 * c)) / (3 * (a + c));
                 double area = (c + a) * h / 2;
                 ta += area;
@@ -109,37 +110,34 @@ namespace adportable {
         };
 
     private:
-        double left_intersection( size_t x, double threshold ) const {
-            if (py_[x - 1] >= threshold)
+        double left_intersection( const double * py, size_t x, double threshold ) const {
+            if (py[x - 1] >= threshold)
                 return fx_( x - 1 );
-            if (py_[x] < threshold)  // should not be here, it's a bug
+            if (py[x] < threshold)  // should not be here, it's a bug
                 return fx_( x );
-            return fx_( x - 1 ) + (fx_( x ) - fx_( x - 1 ) ) * (threshold - py_[x - 1]) / (py_[ x ] - py_[ x - 1 ]);
+            return fx_( x - 1 ) + (fx_( x ) - fx_( x - 1 ) ) * (threshold - py[x - 1]) / (py[ x ] - py[ x - 1 ]);
         };
 
-        double right_intersection( size_t x, double threshold ) const {
-            if ( py_[x + 1] >= threshold )
+        double right_intersection( const double * py, size_t x, double threshold ) const {
+            if ( py[x + 1] >= threshold )
                 return fx_( x + 1 );
-            if ( py_[x] < threshold )  // should not be here, it's a bug
+            if ( py[x] < threshold )  // should not be here, it's a bug
                 return fx_( x );
-            return fx_( x ) + (double)( fx_(x + 1) - fx_(x)) * (py_[x] - threshold) / (double)(py_[x] - py_[x + 1]);
+            return fx_( x ) + (double)( fx_(x + 1) - fx_(x)) * (py[x] - threshold) / (double)(py[x] - py[x + 1]);
         };
 
         template<typename T> static size_t left_bound( const T* py, const T threshold, size_t tpos, size_t spos ) {
             size_t x = tpos - 1;
             while ((py[x] >= threshold) && x > spos)
                 --x;
-            return x + 1;
+            return x;
         };
 
         template<typename T> static size_t right_bound( const T* py, const T threshold, size_t tpos, size_t epos ) { 
             size_t x = tpos + 1;
             while ((py[x] >= threshold) && x < epos)
                 ++x;
-            return x - 1;
+            return x;
         };
-
-        const double * py_;
-        Fx& fx_;
     };
 }

@@ -44,7 +44,7 @@ namespace adcontrols {
 
         void clearFormulae();
         bool addFormula( const std::wstring& stdFormula, const std::wstring& adduct, size_t chargeState, double relativeAmount );
-        bool computeFormulae(double threshold, bool resInDa, double resolution,	MassSpectrum&, size_t& nPeaks, bool bAccountForElectrons );
+        bool computeFormulae(double threshold, bool resInDa, double resolution,	MassSpectrum&, size_t& nPeaks, bool bAccountForElectrons, double sf );
 
     private:
         IsotopeClusterImpl * impl_;

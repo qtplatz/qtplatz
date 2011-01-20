@@ -40,7 +40,7 @@ namespace adcontrols {
         public:
             SAMassSpectrum();
             static void copy( SACONTROLSLib::ISAMassSpectrum5*, const MassSpectrum& );
-            static void copy( MassSpectrum&, SACONTROLSLib::ISAMassSpectrum5* );
+            static void copy( MassSpectrum&, SACONTROLSLib::ISAMassSpectrum5*, double ra = 1.0 );
         };
 
     }

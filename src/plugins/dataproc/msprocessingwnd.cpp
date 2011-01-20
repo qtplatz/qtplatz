@@ -128,14 +128,14 @@ void
 MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
     adcontrols::MassSpectrum& ms = *ptr;
-    pImpl_->profileSpectrum_->setData( ms );
+    pImpl_->profileSpectrum_->setData( ms, drawIdx1_++ );
 }
 
 void
 MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
 {
     adcontrols::MassSpectrum& ms = *ptr;
-    pImpl_->processedSpectrum_->setData( ms );
+    pImpl_->processedSpectrum_->setData( ms, drawIdx2_++ );
 }
 
 void
@@ -163,8 +163,10 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 void
 MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfolio::Folium& folium )
 {
-    adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+    drawIdx1_ = 0;
+    drawIdx2_ = 0;
 
+    adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
     if ( boost::apply_visitor( selChanged<MSProcessingWnd>(*this), data ) ) {
         idActiveFolium_ = folium.id();
 

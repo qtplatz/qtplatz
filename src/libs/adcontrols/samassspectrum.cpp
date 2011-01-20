@@ -44,10 +44,12 @@ SAMassSpectrum::copy( SACONTROLSLib::ISAMassSpectrum5* pi, const MassSpectrum& m
 }
 
 void
-SAMassSpectrum::copy( MassSpectrum& ms, SACONTROLSLib::ISAMassSpectrum5* pi )
+SAMassSpectrum::copy( MassSpectrum& ms, SACONTROLSLib::ISAMassSpectrum5* pi, double sf )
 {
     ms.resize( pi->Count );
     ms.setCentroid( pi->IsCentroid ? CentroidPeakAreaWaitedMass : CentroidNone );
-    ms.setIntensityArray( reinterpret_cast< double * >( static_cast< IUnknown * >( pi->GetIntensityArrayDirect2() ) ) );
-    ms.setMassArray( reinterpret_cast< double * >( static_cast< IUnknown * >( pi->GetMassArrayDirect2() ) ) );
+    for ( size_t i = 0; i < ms.size(); ++i ) {
+        ms.setMass( i, pi->GetMass( i ) );
+        ms.setIntensity( i, pi->GetIntensity( i ) * sf );
+    }
 }

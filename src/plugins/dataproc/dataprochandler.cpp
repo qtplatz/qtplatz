@@ -31,6 +31,7 @@
 
 #include <adcontrols/tableofelements.h>
 #include <adcontrols/chemicalformula.h>
+#include <adcontrols/massspectrum.h>
 
 using namespace dataproc;
 
@@ -55,6 +56,10 @@ DataprocHandler::doIsotope( adcontrols::MassSpectrum& res, const adcontrols::Iso
     adcontrols::IsotopeCluster cluster;
     cluster.clearFormulae();
 
+    double ra = res.getMaxIntensity();
+    if ( ra <= 1.0 )
+        ra = 100;
+
     if ( m.size() ) {
 
         for ( adcontrols::IsotopeMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
@@ -62,8 +67,18 @@ DataprocHandler::doIsotope( adcontrols::MassSpectrum& res, const adcontrols::Iso
             cluster.addFormula( stdFormula, it->adduct, it->chargeState, it->relativeAmounts );
         }
 
+        res.resize(0);  // clear peaks
         size_t nPeaks(0);
-        if ( cluster.computeFormulae( m.threshold(), true, m.resolution(), res, nPeaks, m.useElectronMass() ) ) {
+        if ( cluster.computeFormulae( m.threshold(), true, m.resolution(), res, nPeaks, m.useElectronMass(), ra / 100 ) ) {
+            std::pair<double, double> mrange = res.getAcquisitionMassRange();
+            if ( nPeaks && mrange.second <= 1.0 ) {
+                mrange.second = res.getMassArray()[ res.size() - 1 ];
+                mrange.first = res.getMassArray()[ 0 ];
+                double d = mrange.second - mrange.first;
+                mrange.first -= d / 10;
+                mrange.second += d / 10;
+                res.setAcquisitionMassRange( mrange.first, mrange.second );
+            }
             return true;
         }
 
