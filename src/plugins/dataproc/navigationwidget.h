@@ -62,6 +62,8 @@ namespace dataproc {
         void handle_entered( const QModelIndex& );
         void handle_pressed( const QModelIndex& );
 
+        void handleContextMenuRequested( const QPoint& );
+
     private:
         bool autoSync_;
         boost::scoped_ptr< QTreeView > pTreeView_;

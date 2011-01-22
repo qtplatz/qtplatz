@@ -46,7 +46,7 @@ NavigationWidgetFactory::~NavigationWidgetFactory()
 QString
 NavigationWidgetFactory::displayName()
 {
-    return tr("Open datafiles");
+    return tr("datafiles");
 }
 
 QKeySequence

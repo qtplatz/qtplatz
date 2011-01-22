@@ -40,7 +40,7 @@ static QUuid QIID_ISADataplot(0x9bda62de,0x514e,0x4ffb,0x8d,0xcc,0xe1,0xa3,0x55,
 using namespace adwidgets::ui::internal::win32;
 
 DataplotImpl::DataplotImpl( adwidgets::ui::Dataplot& dataplot ) : dataplot_( dataplot )
-                                                 , QAxWidget( &dataplot )
+                                                                , QAxWidget( &dataplot )
 {
 }
 
@@ -95,12 +95,15 @@ bool
 DataplotImpl::createControl()
 {
     using namespace SAGRAPHICSLib;
+
     if ( this->setControl( QCLSID_SADataplot ) ) {
-        pi_.Release();
+
         if ( this->queryInterface( QIID_ISADataplot, reinterpret_cast<void **>(&pi_) ) == S_OK ) {
+
             HRESULT hr;
             hr = IDispEventSimpleImpl<100, DataplotImpl, &DIID__ISADataplotEvents>::DispEventAdvise( pi_ );
             ATLASSERT( hr == S_OK );
+
             hr = IDispEventSimpleImpl<100, DataplotImpl, &DIID__ISADataplotEvents2>::DispEventAdvise( pi_ );
             ATLASSERT( hr == S_OK );
             this->activateWindow();

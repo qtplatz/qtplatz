@@ -126,8 +126,13 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
 
     connect( pTreeView_.get(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(handle_currentChanged(const QModelIndex&, const QModelIndex&)));
 
+    pTreeView_->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect( pTreeView_.get(), SIGNAL(customContextMenuRequested( QPoint )), this, SLOT( handleContextMenuRequested( QPoint ) ) );
+
     connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), this, SLOT( handleSessionAdded( Dataprocessor * ) ) );
     connect( SessionManager::instance(), SIGNAL( signalSessionUpdated( Dataprocessor* ) ), this, SLOT( handleSessionUpdated( Dataprocessor * ) ) );
+
+
 
     setAutoSynchronization(true);
 }
@@ -279,3 +284,7 @@ NavigationWidget::handle_pressed( const QModelIndex& index )
     qDebug() << "pressed: " << index.data( Qt::UserRole + 1 );
 }
 
+void
+NavigationWidget::handleContextMenuRequested( const QPoint& )
+{
+}

@@ -62,10 +62,11 @@ namespace adwidgets {
                     bool createControl();
                     short getColorIndex( ::adwidgets::ui::ColorIndices ) const;
 
-                    SAGRAPHICSLib::ISADataplot* operator -> () { return pi_.p; };
+                    SAGRAPHICSLib::ISADataplotPtr operator -> () { return pi_; };
                 private:
                     Dataplot& dataplot_;
-                    CComPtr<SAGRAPHICSLib::ISADataplot> pi_;
+                    SAGRAPHICSLib::ISADataplotPtr pi_;
+                    // CComPtr<SAGRAPHICSLib::ISADataplot> pi_;
                 public:
                     STDMETHOD(OnMouseDown)(double x, double y, short button );
                     STDMETHOD(OnMouseUp)( double x, double y, short Button );

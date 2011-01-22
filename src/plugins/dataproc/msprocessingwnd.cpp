@@ -112,7 +112,7 @@ MSProcessingWnd::init()
         pImpl_->processedSpectrum_->link( pImpl_->profileSpectrum_ );
 
         pImpl_->processedSpectrum_->setContextMenuPolicy( Qt::CustomContextMenu );
-        connect( pImpl_->processedSpectrum_, SIGNAL( customContextMenuRequested( const QPoint& ) ), this, SLOT( ctxMenu1( const QPoint& ) ) );
+        connect( pImpl_->processedSpectrum_, SIGNAL( customContextMenuRequested( QPoint ) ), this, SLOT( ctxMenu1( QPoint ) ) );
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );

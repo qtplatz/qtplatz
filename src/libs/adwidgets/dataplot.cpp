@@ -55,6 +55,7 @@ Dataplot::Dataplot(QWidget *parent) : QWidget(parent)
     if ( pImpl_ )
         createControl();
 
+    redrawEnabled( true );
     connect( this, SIGNAL(signalMouseDown(double,double,short)),  this, SLOT(OnMouseDown(double, double, short)) );
     connect( this, SIGNAL(signalMouseUp(double,double,short)),    this, SLOT(OnMouseUp(double, double, short)) );
     connect( this, SIGNAL(signalMouseMove(double,double,short)),  this, SLOT(OnMouseMove(double, double, short)) );
@@ -304,7 +305,8 @@ Dataplot::cursorStyle() const
 void
 Dataplot::cursorStyle(long newValue)
 {
-    (*pImpl_)->put_CursorStyle( static_cast<SAGRAPHICSLib::CursorStyle>(newValue) );	
+    (*pImpl_)->PutShowCursor( VARIANT_TRUE );
+    (*pImpl_)->PutCursorStyle( static_cast<SAGRAPHICSLib::CursorStyle>(newValue) );
 }
 
 bool

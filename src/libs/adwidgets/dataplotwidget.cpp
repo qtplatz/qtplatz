@@ -21,16 +21,13 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #include "dataplotwidget.h"
 #include "import_sagraphics.h"
 #include "axis.h"
 #include <bitset>
 #include <cstdlib>
+#include <qdebug>
 
 using namespace adwidgets::ui;
 
@@ -294,7 +291,6 @@ void
 internal::DataplotWidgetImpl::OnLButtonDown( double x, double y )
 {
     captureXY_ = std::pair<double, double>(x, y);
-    widget_.cursorStyle( SAGRAPHICSLib::CS_Box );
 
     widget_.axisX().enableMarker( true );
     widget_.axisX().markerPosition( x );
@@ -328,8 +324,7 @@ internal::DataplotWidgetImpl::OnRButtonDown( double x, double y )
 void
 internal::DataplotWidgetImpl::OnLButtonUp( double x, double y )
 {
-	//SAGRAPHICSLib::CursorStyle style = static_cast<SAGRAPHICSLib::CursorStyle>(widget_.cursorStyle());
-    widget_.cursorStyle( SAGRAPHICSLib::CS_Plus );
+    widget_.cursorStyle( SAGRAPHICSLib::CS_None );
 
     widget_.axisX().enableMarker( false );
     widget_.axisY().enableMarker( false );
@@ -380,6 +375,9 @@ internal::DataplotWidgetImpl::OnRButtonUp( double x, double y )
 {
     Q_UNUSED(x);
     Q_UNUSED(y);
+
+    QPoint point( capturePt_.x, capturePt_.y );
+    emit widget_.customContextMenuRequested( point );
 }
 
 void
