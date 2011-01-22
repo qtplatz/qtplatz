@@ -33,6 +33,7 @@ MSReferences::MSReferences()
 }
 
 MSReferences::MSReferences( const MSReferences& t ) : vec_(t.vec_)
+                                                    , name_(t.name_)
 {
 }
 
@@ -58,6 +59,18 @@ MSReferences::vector_type::const_iterator
 MSReferences::end() const
 {
     return vec_.end();
+}
+
+const std::wstring&
+MSReferences::name() const
+{
+    return name_;
+}
+
+void
+MSReferences::name( const std::wstring& name )
+{
+    name_ = name;
 }
 
 size_t

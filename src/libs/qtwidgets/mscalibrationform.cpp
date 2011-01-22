@@ -28,16 +28,20 @@
 
 #include <adcontrols/mscalibratemethod.h>
 #include <adcontrols/msreferencedefns.h>
+#include <adcontrols/msreferences.h>
+#include <adcontrols/msreference.h>
 #include <adcontrols/processmethod.h>
 #include <adportable/configuration.h>
 #include <QStandardItemModel>
 #include "standarditemhelper.h"
+#include <boost/format.hpp>
+#include <qtwrapper/qstring.h>
 
 using namespace qtwidgets;
 
 MSCalibrationForm::MSCalibrationForm(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::MSCalibrationForm)
+    QWidget(parent)
+    , ui(new Ui::MSCalibrationForm)
     , pModel_( new QStandardItemModel )
     , pConfig_( new adportable::Configuration )
     , pMethod_( new adcontrols::MSCalibrateMethod ) 
@@ -68,9 +72,10 @@ MSCalibrationForm::OnInitialUpdate()
     QStandardItem * rootNode = model.invisibleRootItem();
     ui->treeView->setItemDelegate( pDelegate_.get() );
 
-    rootNode->setColumnCount(2);
+    rootNode->setColumnCount(8);
     model.setHeaderData( 0, Qt::Horizontal, "MSCaribrate" );
-    model.setHeaderData( 1, Qt::Horizontal, "" );
+    for ( int i = 1; i < rootNode->columnCount(); ++i )
+        model.setHeaderData( 1, Qt::Horizontal, "" );
 
 //----
     StandardItemHelper::appendRow( rootNode, "Polynomial[degree]", method.polynomialDegree() );
@@ -80,19 +85,74 @@ MSCalibrationForm::OnInitialUpdate()
     StandardItemHelper::appendRow( rootNode, "High Mass[Da]",      method.highMass() );
 
     //------ create Xe reference -------
-    adcontrols::MSReferenceDefns Xe;
-    Xe.addFormula( adcontrols::MSRefFormula( L"126Xe", true ) );
-    Xe.addFormula( adcontrols::MSRefFormula( L"128Xe", true ) );
-    Xe.addFormula( adcontrols::MSRefFormula( L"129Xe", false ) );
-    Xe.addFormula( adcontrols::MSRefFormula( L"130Xe", false ) );
-    Xe.addFormula( adcontrols::MSRefFormula( L"131Xe", false ) );
-    Xe.addFormula( adcontrols::MSRefFormula( L"132Xe", false ) );
-    Xe.addFormula( adcontrols::MSRefFormula( L"134Xe", false ) );
-    Xe.addFormula( adcontrols::MSRefFormula( L"136Xe", true ) );
+    adcontrols::MSReferences Xe;
+    Xe.name( L"Xe-EI-Positive" );
+    // adcontrols::MSReferenceDefns Xe;
+    do {
+        adcontrols::MSReferences& ref = Xe;
+        ref << adcontrols::MSReference( L"126Xe", true, L"", true );
+        ref << adcontrols::MSReference( L"128Xe", true, L"", false );
+        ref << adcontrols::MSReference( L"129Xe", true, L"", false );
+        ref << adcontrols::MSReference( L"130Xe", true, L"", false );
+        ref << adcontrols::MSReference( L"131Xe", true, L"", false );
+        ref << adcontrols::MSReference( L"132Xe", true, L"", false );
+        ref << adcontrols::MSReference( L"134Xe", true, L"", false );
+        ref << adcontrols::MSReference( L"136Xe", true, L"", true );
+    } while(0);
+    // ---------------------------------
+    //------ create PFTBA < tris(Perfluorobutyl)amine > reference -------
+    adcontrols::MSReferences PFTBA;
+    PFTBA.name( L"PFTBA-EI-Positive" );
+    do {
+        adcontrols::MSReferences& ref = PFTBA;
+        ref << adcontrols::MSReference( L"CF3",     true, L"H" );
+        ref << adcontrols::MSReference( L"CF3",     false, L"H" );
+        ref << adcontrols::MSReference( L"C2F4",    true, L"H" );
+        ref << adcontrols::MSReference( L"C2F5",    true, L"H" );
+        ref << adcontrols::MSReference( L"C3F5",    true, L"H" );
+        ref << adcontrols::MSReference( L"C4F9",    true, L"H" );
+        ref << adcontrols::MSReference( L"C5F10N",  true, L"H" );
+        ref << adcontrols::MSReference( L"C6F12N",  true, L"H" );
+        ref << adcontrols::MSReference( L"C7F12N",  true, L"H" );
+        ref << adcontrols::MSReference( L"C8F14N",  true, L"H" );
+        ref << adcontrols::MSReference( L"C8F16N",  true, L"H" );
+        ref << adcontrols::MSReference( L"C9F16N",  true, L"H" );
+        ref << adcontrols::MSReference( L"C9F18N",  true, L"H" );
+        ref << adcontrols::MSReference( L"C9F20N",  true, L"H" );
+        ref << adcontrols::MSReference( L"C12F22N", true, L"H" );
+        ref << adcontrols::MSReference( L"C12F24N", true, L"H" );
+    } while(0);
     // ---------------------------------
 
-    QStandardItem * refItem = StandardItemHelper::appendRow( rootNode, "Mass References", qVariantFromValue( MSCalibrateDelegate::MSReferences() ) );
+    pDelegate_->refs_[ L"Xe" ] = Xe;
+    pDelegate_->refs_[ L"PFTBA" ] = PFTBA;
 
+    pMethod_->references( PFTBA );  // set as default calibration reference
+
+    QStandardItem * refItem = StandardItemHelper::appendRow( rootNode, "Mass References", qVariantFromValue( MSCalibrateDelegate::MSReferences( "PFTBA" ) ) );
+
+    const adcontrols::MSReferences& refs = pMethod_->references();
+    size_t row(0);
+    for ( adcontrols::MSReferences::vector_type::const_iterator it = refs.begin(); it != refs.end(); ++it, ++row ) {
+
+        int col = 0;
+        std::wstring formula = it->formula();
+        if ( ! it->adduct_or_loss().empty() )
+            formula += L" " + it->adduct_or_loss();
+        StandardItemHelper::appendRow( refItem, formula );
+
+        int nCols = model.columnCount( refItem->index() );
+        if ( nCols < 8 )
+            model.insertColumns( nCols, 8, refItem->index() );
+        model.setData( model.index( row, ++col, refItem->index() ), it->polarityPositive() );
+        model.setData( model.index( row, ++col, refItem->index() ), it->exactMass() );
+/*
+        model.insertColumn( col++, it->enable() );
+        model.insertColumn( col++, it->chargeCount() );
+        model.insertColumn( col++, it->description() );
+*/
+    }
+    ui->treeView->expand( refItem->index() );
     ui->treeView->setColumnWidth( 0, 200 );
 }
 

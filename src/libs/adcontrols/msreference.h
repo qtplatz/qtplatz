@@ -38,6 +38,12 @@ namespace adcontrols {
     public:
         MSReference();
         MSReference( const MSReference& t );
+        MSReference( const std::wstring& formula
+                   , bool polarityPositive
+                   , const std::wstring& adduct_or_loss
+                   , bool enable = true
+                   , double exactMass = 0
+                   , const std::wstring& description = L"" );
 
         operator bool () const;
         bool operator < ( const MSReference& ) const;

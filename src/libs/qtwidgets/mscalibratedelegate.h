@@ -27,6 +27,12 @@
 #define MSCALIBRATEDELEGATE_H
 
 #include <QItemDelegate>
+#include <adcontrols/msreferencedefns.h>
+
+namespace adcontrols {
+    class MSReferences;
+    class MSReference;
+}
 
 namespace qtwidgets {
 
@@ -50,12 +56,20 @@ namespace qtwidgets {
         class MSReferences {
         public:
             MSReferences();
+            MSReferences( const QString& );
+
             const std::wstring& methodValue() const;
             QString displayValue() const;
+            void setCurrentValue( const std::wstring& );
         private:
-            std::vector< std::wstring > list_;
-            int curSel_;
+            std::wstring value_;
         };
+
+        std::map< std::wstring, adcontrols::MSReferences > refs_;
+        typedef std::map< std::wstring, adcontrols::MSReferences > refs_type;
+
+    private:
+
 
     };
     Q_DECLARE_METATYPE( MSCalibrateDelegate::MSReferences )

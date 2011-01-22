@@ -23,6 +23,8 @@
 **************************************************************************/
 
 #include "mscalibratedelegate.h"
+#include <adcontrols/msreferences.h>
+#include <adcontrols/msreference.h>
 #include <qtwrapper/qstring.h>
 #include <QComboBox>
 #include <QMetaType>
@@ -31,21 +33,31 @@
 
 using namespace qtwidgets;
 
-MSCalibrateDelegate::MSReferences::MSReferences() : curSel_(0)
+MSCalibrateDelegate::MSReferences::MSReferences()
 {
-    list_.push_back( L"Xe" );
+}
+
+MSCalibrateDelegate::MSReferences::MSReferences( const QString& name )
+{
+    value_ = qtwrapper::wstring( name );
 }
 
 QString
 MSCalibrateDelegate::MSReferences::displayValue() const
 {
-    return qtwrapper::qstring::copy( list_[ curSel_ ] );
+    return qtwrapper::qstring( value_ );
 }
 
 const std::wstring&
 MSCalibrateDelegate::MSReferences::methodValue() const
 {
-    return list_[ curSel_ ];
+    return value_;
+}
+
+void
+MSCalibrateDelegate::MSReferences::setCurrentValue( const std::wstring& value )
+{
+    value_ = value;
 }
 
 ///////////////////////
@@ -63,7 +75,8 @@ MSCalibrateDelegate::createEditor(QWidget *parent
     if ( qVariantCanConvert< MSReferences >( index.data() ) ) {
         QComboBox * pCombo = new QComboBox( parent );
         QStringList list;
-        list << "Xe" << "PFTBA";
+        for ( refs_type::const_iterator it = refs_.begin(); it != refs_.end(); ++it )
+            list << qtwrapper::qstring( it->first );
         pCombo->addItems( list );
         return pCombo;
     } else {
@@ -87,8 +100,10 @@ MSCalibrateDelegate::setEditorData(QWidget *editor, const QModelIndex &index) co
 {
     if ( qVariantCanConvert< MSReferences >( index.data() ) ) {
         QComboBox * p = dynamic_cast< QComboBox * >( editor );
-        MSReferences m = qVariantValue< MSReferences >( index.data() );    
-        p->setCurrentIndex( 0 ); //m.methodValue() );
+        MSReferences m = qVariantValue< MSReferences >( index.data() );
+        std::wstring refname = qtwrapper::wstring( p->currentText() );
+        // const adcontrols::MSReferenceDefns& defns = this->refDefns_[ refname ];
+        m.setCurrentValue( refname );
     } else {
         QItemDelegate::setEditorData( editor, index );
     }
@@ -101,11 +116,7 @@ MSCalibrateDelegate::setModelData( QWidget *editor
 {
     if ( qVariantCanConvert< MSReferences >( index.data() ) ) {
         QComboBox * p = dynamic_cast< QComboBox * >( editor );
-/*
-        adcontrols::CentroidMethod::ePeakWidthMethod value = 
-            static_cast<adcontrols::CentroidMethod::ePeakWidthMethod>( p->currentIndex() );
-        model->setData( index, qVariantFromValue( PeakWidthMethod( value ) ) );
-*/
+        model->setData( index, qVariantFromValue( MSReferences( p->currentText() ) ) );
     } else {
         QItemDelegate::setModelData( editor, model, index );
     }
@@ -119,3 +130,4 @@ MSCalibrateDelegate::updateEditorGeometry(QWidget *editor
     Q_UNUSED( index );
     editor->setGeometry( option.rect );
 }
+

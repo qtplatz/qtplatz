@@ -25,6 +25,8 @@
 
 #include "mscalibratemethod.h"
 #include "msreferencedefns.h"
+#include "msreferences.h"
+#include "msreference.h"
 
 using namespace adcontrols;
 
@@ -38,6 +40,7 @@ MSCalibrateMethod::MSCalibrateMethod() : polynomialDegree_(1)
                                        , lowMass_( 100.0 )
                                        , highMass_( 1000.0 )
                                        , refDefns_( new MSReferenceDefns() ) 
+                                       , references_( new MSReferences ) 
 {
 }
 
@@ -47,6 +50,7 @@ MSCalibrateMethod::MSCalibrateMethod( const MSCalibrateMethod& t ) : polynomialD
                                                                    , lowMass_( t.lowMass_ )
                                                                    , highMass_( t.highMass_ )
                                                                    , refDefns_( new MSReferenceDefns( *t.refDefns_ ) )
+                                                                   , references_( new MSReferences( *t.references_ ) )  
 {
 }
 
@@ -58,7 +62,8 @@ MSCalibrateMethod::operator = ( const MSCalibrateMethod& t )
     minimumRAPercent_ = t.minimumRAPercent_;
     lowMass_ = t.lowMass_;
     highMass_ = t.highMass_;
-    refDefns_.reset( new MSReferenceDefns( *t.refDefns_ ) );
+    (*refDefns_) = (*t.refDefns_);
+    (*references_) = (*t.references_);
     return *this;
 }
 
@@ -122,3 +127,14 @@ MSCalibrateMethod::highMass( double value )
     highMass_ = value;
 }
 
+const MSReferences&
+MSCalibrateMethod::references() const
+{
+    return *references_;
+}
+
+void
+MSCalibrateMethod::references( const MSReferences& ref )
+{
+    *references_ = ref;
+}

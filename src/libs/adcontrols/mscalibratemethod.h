@@ -34,6 +34,7 @@
 namespace adcontrols {
 
     class MSReferenceDefns;
+    class MSReferences;
 
     class ADCONTROLSSHARED_EXPORT MSCalibrateMethod {
     public:
@@ -53,8 +54,11 @@ namespace adcontrols {
         double highMass() const;
         void highMass( double );
         
-        const MSReferenceDefns& refDefns();
+        const MSReferenceDefns& refDefns() const;
         void refDefns( const MSReferenceDefns& );
+
+        const MSReferences& references() const;
+        void references( const MSReferences& );
 
     private:
         unsigned int polynomialDegree_;
@@ -64,6 +68,7 @@ namespace adcontrols {
         double highMass_;
 # pragma warning(disable:4251)
         boost::scoped_ptr<MSReferenceDefns> refDefns_;
+        boost::scoped_ptr<MSReferences> references_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -76,6 +81,7 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP(lowMass_);
                 ar & BOOST_SERIALIZATION_NVP(highMass_);
                 ar & BOOST_SERIALIZATION_NVP(refDefns_);
+                ar & BOOST_SERIALIZATION_NVP(references_);
             }
        }
 

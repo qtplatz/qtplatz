@@ -28,6 +28,8 @@
 class QStandardItem;
 class QVariant;
 
+#include <string>
+
 namespace qtwidgets {
 
     class StandardItemHelper {
@@ -35,6 +37,7 @@ namespace qtwidgets {
         StandardItemHelper();
 
         static QStandardItem * appendRow( QStandardItem * parent, const char * label, bool editable = false );
+        static QStandardItem * appendRow( QStandardItem * parent, const std::wstring& label, bool editable = false );
         static QStandardItem * appendRow( QStandardItem * parent, const char * label, const QVariant& );
 
         template<class T> static QStandardItem * appendRow( QStandardItem * parent, const char * label, const T& value ) {

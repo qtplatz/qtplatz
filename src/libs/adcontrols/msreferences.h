@@ -49,6 +49,8 @@ namespace adcontrols {
         vector_type::const_iterator begin() const;
         vector_type::const_iterator end() const;
 
+        const std::wstring& name() const;
+        void name( const std::wstring& );
         size_t size() const;
         const MSReference& operator [] ( int idx ) const;
         MSReference& operator [] ( int idx );
@@ -60,11 +62,13 @@ namespace adcontrols {
         void serialize(Archive& ar, const unsigned int version) {
             using namespace boost::serialization;
             if ( version >= 0 ) {
+                ar & BOOST_SERIALIZATION_NVP(name_);
                 ar & BOOST_SERIALIZATION_NVP(vec_);
             }
         }
 #pragma warning(disable:4251)
         vector_type vec_;
+        std::wstring name_;
     };
     
 }

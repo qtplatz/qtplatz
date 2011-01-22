@@ -24,6 +24,8 @@
 **************************************************************************/
 
 #include "msreference.h"
+#include "chemicalformula.h"
+#include <cmath>
 
 using namespace adcontrols;
 
@@ -33,11 +35,37 @@ MSReference::MSReference() : enable_( true )
 {
 }
 
-MSReference::MSReference( const MSReference& t ) : enable_( t.enable_ )
+MSReference::MSReference( const MSReference& t ) : formula_( t.formula_ )
+                                                 , enable_( t.enable_ )
                                                  , polarityPositive_( t.polarityPositive_ )
-                                                 , formula_( t.formula_ )
                                                  , adduct_or_loss_( t.adduct_or_loss_ )
+                                                 , exactMass_( t.exactMass_ ) 
                                                  , description_( t.description_ )    
+{
+    if ( exactMass_ <= DBL_EPSILON ) {
+        ChemicalFormula formula;
+        exactMass_ = formula.getMonoIsotopicMass( formula_ );
+        if ( ! adduct_or_loss_.empty() ) {
+            double adduct = formula.getMonoIsotopicMass( adduct_or_loss_ );
+            if ( polarityPositive_ )
+                exactMass_ += adduct;
+            else
+                exactMass_ -= adduct;
+        }
+    }
+}
+
+MSReference::MSReference( const std::wstring& formula
+                         , bool polarityPositive
+                         , const std::wstring& adduct_or_loss
+                         , bool enable
+                         , double exactMass
+                         , const std::wstring& description ) : formula_( formula )
+                                                             , enable_( enable )
+                                                             , polarityPositive_( polarityPositive )
+                                                             , adduct_or_loss_( adduct_or_loss )
+                                                             , exactMass_( exactMass ) 
+                                                             , description_( description )    
 {
 }
 
