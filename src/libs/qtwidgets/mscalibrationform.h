@@ -31,6 +31,8 @@
 
 
 class QStandardItemModel;
+class QStandardItem;
+class QModelIndex;
 
 namespace adportable {
     class Configuration;
@@ -65,6 +67,10 @@ namespace qtwidgets {
         //<--
     public slots:
         void getContents( adcontrols::ProcessMethod& );
+        void handleMSReferencesChanged( const QModelIndex& );
+
+    private:
+        void OnMSReferencesUpdated( const QModelIndex& );
 
     private:
         Ui::MSCalibrationForm *ui;

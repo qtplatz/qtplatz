@@ -36,6 +36,7 @@
 #include "standarditemhelper.h"
 #include <boost/format.hpp>
 #include <qtwrapper/qstring.h>
+#include <qdebug>
 
 using namespace qtwidgets;
 
@@ -50,6 +51,8 @@ MSCalibrationForm::MSCalibrationForm(QWidget *parent) :
     ui->setupUi(this);
     ui->treeView->setModel( pModel_.get() );
     ui->treeView->setItemDelegate( pDelegate_.get() );
+
+    connect( pDelegate_.get(), SIGNAL( signalMSReferencesChanged( QModelIndex ) ), this, SLOT( handleMSReferencesChanged( QModelIndex ) ) );
 }
 
 MSCalibrationForm::~MSCalibrationForm()
@@ -72,7 +75,7 @@ MSCalibrationForm::OnInitialUpdate()
     QStandardItem * rootNode = model.invisibleRootItem();
     ui->treeView->setItemDelegate( pDelegate_.get() );
 
-    rootNode->setColumnCount(8);
+    rootNode->setColumnCount(4);
     model.setHeaderData( 0, Qt::Horizontal, "MSCaribrate" );
     for ( int i = 1; i < rootNode->columnCount(); ++i )
         model.setHeaderData( 1, Qt::Horizontal, "" );
@@ -124,34 +127,16 @@ MSCalibrationForm::OnInitialUpdate()
     } while(0);
     // ---------------------------------
 
-    pDelegate_->refs_[ L"Xe" ] = Xe;
-    pDelegate_->refs_[ L"PFTBA" ] = PFTBA;
+    pDelegate_->refs_[ Xe.name() ] = Xe;
+    pDelegate_->refs_[ PFTBA.name() ] = PFTBA;
 
-    pMethod_->references( PFTBA );  // set as default calibration reference
+    pMethod_->references( Xe );  // set as default calibration reference
 
-    QStandardItem * refItem = StandardItemHelper::appendRow( rootNode, "Mass References", qVariantFromValue( MSCalibrateDelegate::MSReferences( "PFTBA" ) ) );
+    QStandardItem * refItem = 
+        StandardItemHelper::appendRow( rootNode, "Mass References", qVariantFromValue( MSCalibrateDelegate::MSReferences( pMethod_->references().name() ) ) );
 
-    const adcontrols::MSReferences& refs = pMethod_->references();
-    size_t row(0);
-    for ( adcontrols::MSReferences::vector_type::const_iterator it = refs.begin(); it != refs.end(); ++it, ++row ) {
+    OnMSReferencesUpdated( refItem->index() );
 
-        int col = 0;
-        std::wstring formula = it->formula();
-        if ( ! it->adduct_or_loss().empty() )
-            formula += L" " + it->adduct_or_loss();
-        StandardItemHelper::appendRow( refItem, formula );
-
-        int nCols = model.columnCount( refItem->index() );
-        if ( nCols < 8 )
-            model.insertColumns( nCols, 8, refItem->index() );
-        model.setData( model.index( row, ++col, refItem->index() ), it->polarityPositive() );
-        model.setData( model.index( row, ++col, refItem->index() ), it->exactMass() );
-/*
-        model.insertColumn( col++, it->enable() );
-        model.insertColumn( col++, it->chargeCount() );
-        model.insertColumn( col++, it->description() );
-*/
-    }
     ui->treeView->expand( refItem->index() );
     ui->treeView->setColumnWidth( 0, 200 );
 }
@@ -165,4 +150,43 @@ void
 MSCalibrationForm::getContents( adcontrols::ProcessMethod& pm )
 {
     pm.appendMethod< adcontrols::MSCalibrateMethod >( *pMethod_ );
+}
+
+void
+MSCalibrationForm::handleMSReferencesChanged( const QModelIndex& index )
+{
+    QStandardItemModel& model = *pModel_;
+    std::wstring refname = qVariantValue< MSCalibrateDelegate::MSReferences >( model.data( index ) ).methodValue();
+
+    qDebug() << qtwrapper::qstring::copy( refname );
+
+    const adcontrols::MSReferences& refs = pDelegate_->refs_[ refname ];
+    pMethod_->references( refs );
+    // "Mass Reference" | "PFBA-EI-Positive" ==> left of this index is the top of reference
+    OnMSReferencesUpdated( model.index( index.row(), index.column() - 1 ) );  
+}
+
+void
+MSCalibrationForm::OnMSReferencesUpdated( const QModelIndex& index )
+{
+    QStandardItemModel& model = *pModel_;
+    QStandardItem * item = model.itemFromIndex( index );
+    const adcontrols::MSReferences& refs = pMethod_->references();
+
+    if ( item->rowCount() )
+        item->removeRows( 0, item->rowCount() );
+
+    size_t row(0);
+    for ( adcontrols::MSReferences::vector_type::const_iterator it = refs.begin(); it != refs.end(); ++it, ++row ) {
+        int col = 0;
+        std::wstring formula = it->formula();
+        if ( ! it->adduct_or_loss().empty() )
+            formula += std::wstring( it->polarityPositive() ? L" + " : L" - ") + it->adduct_or_loss();
+
+        StandardItemHelper::appendRow( item, formula, true );
+        col++;
+        if ( item->columnCount() < col + 1 )
+            model.insertColumn( item->columnCount(), item->index() );
+        model.setData( model.index( row, col, index ), it->exactMass() );
+    }
 }

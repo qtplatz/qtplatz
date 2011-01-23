@@ -49,6 +49,7 @@ namespace qtwidgets {
         void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 
     signals:
+        void signalMSReferencesChanged( const QModelIndex& ) const;
 
     public slots:
 
@@ -56,7 +57,7 @@ namespace qtwidgets {
         class MSReferences {
         public:
             MSReferences();
-            MSReferences( const QString& );
+            MSReferences( const std::wstring& );
 
             const std::wstring& methodValue() const;
             QString displayValue() const;

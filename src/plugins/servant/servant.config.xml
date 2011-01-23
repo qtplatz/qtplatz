@@ -34,10 +34,11 @@
     <Configuration name="infitofcontoller" type="orbLoader" ns_name="infitofcontroller.session">
       <Component name="infitofcontroller" module="infitofcontroller"/>
     </Configuration>
-
+    <!--
     <Configuration name="tofcontoller" type="orbLoader" ns_name="tofcontroller.session">
       <Component name="tofcontroller" module="tofcontroller"/>
     </Configuration>
+    -->
 
     <!-- spectrometer -->
 		<Configuration name="infitofspectrometer" type="MassSpectrometer">

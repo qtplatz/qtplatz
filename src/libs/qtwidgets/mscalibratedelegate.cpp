@@ -37,9 +37,9 @@ MSCalibrateDelegate::MSReferences::MSReferences()
 {
 }
 
-MSCalibrateDelegate::MSReferences::MSReferences( const QString& name )
+MSCalibrateDelegate::MSReferences::MSReferences( const std::wstring& name )
 {
-    value_ = qtwrapper::wstring( name );
+    value_ = name;
 }
 
 QString
@@ -116,7 +116,8 @@ MSCalibrateDelegate::setModelData( QWidget *editor
 {
     if ( qVariantCanConvert< MSReferences >( index.data() ) ) {
         QComboBox * p = dynamic_cast< QComboBox * >( editor );
-        model->setData( index, qVariantFromValue( MSReferences( p->currentText() ) ) );
+        model->setData( index, qVariantFromValue( MSReferences( qtwrapper::wstring( p->currentText() ) ) ) );
+        emit signalMSReferencesChanged( index );
     } else {
         QItemDelegate::setModelData( editor, model, index );
     }
