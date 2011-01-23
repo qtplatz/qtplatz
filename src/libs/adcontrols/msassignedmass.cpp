@@ -29,12 +29,18 @@ using namespace adcontrols;
 
 MSAssignedMass::MSAssignedMass() : idReferences_(-1)
                                  , idMassSpectrum_(-1) 
+                                 , exactMass_( 0 ) 
+                                 , time_( 0 )
+                                 , mass_( 0 )  
 {
 }
 
 MSAssignedMass::MSAssignedMass( const MSAssignedMass& t ) : formula_( t.formula_ )
                                                           , idReferences_( t.idReferences_ )
                                                           , idMassSpectrum_( t.idMassSpectrum_ )
+                                                          , exactMass_( t.exactMass_ )
+                                                          , time_( t.time_ )
+                                                          , mass_( t.mass_ )   
 {
 }
 

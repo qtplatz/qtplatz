@@ -38,6 +38,7 @@
 #include <adcontrols/msreferences.h>
 #include <adcontrols/msreference.h>
 #include <adcontrols/msassignedmass.h>
+#include <adcontrols/mscalibration.h>
 
 using namespace dataproc;
 
@@ -108,6 +109,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     std::vector< unsigned char > colors( centroid.size() );
     memset( &colors[0], 0, colors.size() * sizeof( unsigned char ) );
 
+    std::vector< std::pair< unsigned int, adcontrols::MSReference > > calibPoints;
     size_t idReference(0);
     for ( adcontrols::MSReferences::vector_type::const_iterator it = res.references().begin(); it != res.references().end(); ++it ) {
         const adcontrols::MSReference& ref = *it;
@@ -115,21 +117,61 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
         adportable::array_wrapper<const double>::const_iterator lBound = std::lower_bound( masses.begin(), masses.end(), exactMass - tolerance );
         adportable::array_wrapper<const double>::const_iterator uBound = std::lower_bound( masses.begin(), masses.end(), exactMass + tolerance );
 
-        if ( lBound != masses.end() && uBound != masses.end() ) {
+        if ( lBound != masses.end() ) {
 
             size_t lIdx = std::distance( masses.begin(), lBound );
             size_t uIdx = std::distance( masses.begin(), uBound );
 
-            adportable::array_wrapper<const double>::const_iterator hIt = std::max_element( intens.begin() + lIdx, intens.end() + uIdx );
-            size_t idx = std::distance( intens.begin(), hIt );
-            colors[ idx ] = ref.enable() ? 1 : 0;
+            // find closest
+            size_t cIdx = lIdx;
+            for ( size_t i = lIdx + 1; i < uIdx; ++i ) {
+                double d0 = std::abs( masses[ cIdx ] - exactMass );
+                double d1 = std::abs( masses[ i ] - exactMass );
+                if ( d1 < d0 )
+                    cIdx = i;
+            }
 
+            // find highest
+            adportable::array_wrapper<const double>::const_iterator hIt = std::max_element( intens.begin() + lIdx, intens.end() + uIdx );
+
+            size_t idx = std::distance( intens.begin(), hIt );
+            if ( idx != cIdx )
+                idx = cIdx; // take closest, this is a workaround for Xe spectrum
+            
+            colors[ idx ] = ref.enable() ? 1 : 0;
             adcontrols::MSAssignedMass assigned( idReference, idx, it->formula(), it->exactMass(), times[ idx ], masses[ idx ] ); 
             res.assignedMasses() << assigned;
-
+            if ( ref.enable() )
+                calibPoints.push_back( std::make_pair( idx, *it ) );
         }
         ++idReference;
     }
+
+    do {
+        if ( calibPoints.size() == 2 ) {
+            double m1 = calibPoints[0].second.exactMass();
+            double m2 = calibPoints[1].second.exactMass();
+            double t1 = times[ calibPoints[0].first ];
+            double t2 = times[ calibPoints[1].first ];
+            // theoretical calibration  [ sqrt(m) = a + b*t ]
+            double b = ( std::sqrt( m2 ) - std::sqrt( m1 ) ) / ( t2 - t1 );
+            double a = std::sqrt( m1 ) - b * t1;
+            std::vector< double > coeffs;
+            coeffs.push_back( a );
+            coeffs.push_back( b );
+            adcontrols::MSCalibration calib;
+            calib.coeffs( coeffs );
+            res.calibration( calib );
+
+            // ------------
+            for ( adcontrols::MSAssignedMasses::vector_type::iterator it = res.assignedMasses().begin(); it != res.assignedMasses().end(); ++it ) {
+                double t = it->time();
+                double mq = adcontrols::MSCalibration::compute( coeffs, t );
+                it->mass( mq * mq );
+            }
+        }
+    } while( 0 );
+
 
     const_cast< adcontrols::MassSpectrum& >( centroid ).setColorArray( &colors[0] );
 

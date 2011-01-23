@@ -71,7 +71,7 @@ MSCalibSummaryWidget::OnInitialUpdate()
     model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "m/z(exact)" ) );
     model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "m/z(calibrated)" ) );
     model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "error(mDa)" ) );
-    model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "error(ppm)" ) );
+    model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "error(mDa) w/ before calib" ) );
 }
 
 void
@@ -115,6 +115,9 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
         const adcontrols::MSAssignedMass& a = *it;
         model.setData( model.index( a.idMassSpectrum(), col++ ), qtwrapper::qstring::copy( a.formula() ) );
         model.setData( model.index( a.idMassSpectrum(), col++ ), refIt->exactMass() );
+        model.setData( model.index( a.idMassSpectrum(), col++ ), a.mass() );
+        model.setData( model.index( a.idMassSpectrum(), col++ ), ( a.mass() - refIt->exactMass() ) * 1000 ); // mDa
+        model.setData( model.index( a.idMassSpectrum(), col++ ), ( a.mass() - masses[ a.idMassSpectrum() ] ) * 1000 ); // mDa
         model.setData( model.index( a.idMassSpectrum(), col++ ), refIt->enable() );
     }
 
