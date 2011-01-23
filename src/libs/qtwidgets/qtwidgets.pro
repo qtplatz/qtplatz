@@ -38,7 +38,9 @@ SOURCES += qtwidgets.cpp \
     mslockdelegate.cpp \
     mscalibratedelegate.cpp \
     reportdelegate.cpp \
-    targetingdelegate.cpp
+    targetingdelegate.cpp \
+    mscalibsummarywidget.cpp \
+    mscalibsummarydelegate.cpp
 
 HEADERS += qtwidgets.h\
         qtwidgets_global.h \
@@ -63,7 +65,9 @@ HEADERS += qtwidgets.h\
     mslockdelegate.h \
     mscalibratedelegate.h \
     reportdelegate.h \
-    targetingdelegate.h
+    targetingdelegate.h \
+    mscalibsummarywidget.h \
+    mscalibsummarydelegate.h
 
 FORMS += \
     logwidget.ui \

@@ -23,23 +23,32 @@
 **
 **************************************************************************/
 
-#include "qtwidgets.h"
+#ifndef MSCALIBSUMMARYDELEGATE_H
+#define MSCALIBSUMMARYDELEGATE_H
 
-#if defined WIN32
-# if defined _DEBUG
-#     pragma comment(lib, "adportabled.lib")
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "adplugind.lib")
-#     pragma comment(lib, "qtwrapperd.lib")
-# else
-#     pragma comment(lib, "adportable.lib")
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "adplugin.lib")
-#     pragma comment(lib, "qtwrapper.lib")
-# endif
-#endif
+#include <QItemDelegate>
 
+namespace qtwidgets {
 
-QtWidgets::QtWidgets()
-{
+    class MSCalibSummaryDelegate : public QItemDelegate {
+        Q_OBJECT
+    public:
+        explicit MSCalibSummaryDelegate(QObject *parent = 0);
+
+        QWidget *createEditor(QWidget *parent
+                             , const QStyleOptionViewItem &option
+                             , const QModelIndex &index) const;
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+        void setEditorData(QWidget *editor, const QModelIndex &index) const;
+        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+        void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+    signals:
+
+    public slots:
+
+    };
+
 }
+
+#endif // MSCALIBSUMMARYDELEGATE_H

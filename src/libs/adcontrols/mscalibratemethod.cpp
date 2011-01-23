@@ -35,7 +35,7 @@ MSCalibrateMethod::~MSCalibrateMethod()
 }
 
 MSCalibrateMethod::MSCalibrateMethod() : polynomialDegree_(1)
-                                       , massToleranceDa_( 4 )
+                                       , massToleranceDa_( 0.2 )
                                        , minimumRAPercent_( 2.0 )
                                        , lowMass_( 100.0 )
                                        , highMass_( 1000.0 )

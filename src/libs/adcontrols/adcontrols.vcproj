@@ -322,6 +322,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\msassignedmass.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mscalibratemethod.cpp"
 				>
 			</File>
@@ -744,6 +748,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\msassignedmass.h"
+				>
 			</File>
 			<File
 				RelativePath=".\mscalibratemethod.h"

@@ -256,7 +256,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
             pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_stepoverproc_small.png"), "MS Processing" );
             wnd.push_back( new ElementalCompWnd );
             pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_snapshot_small.png"), "Elemental Composition" );
-            wnd.push_back( new MSCalibrationWnd );
+            wnd.push_back( new MSCalibrationWnd( config, apppath ) );
             pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_continue_small.png"), "MS Calibration" );
             wnd.push_back( new ChromatogramWnd );
             pTab->addTab( wnd.back(),  QIcon(":/acquire/images/watchpoint.png"), "Chromatogram" );

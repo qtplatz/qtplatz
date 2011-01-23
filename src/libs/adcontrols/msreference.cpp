@@ -69,7 +69,8 @@ MSReference::MSReference( const std::wstring& formula
 {
 }
 
-MSReference::operator bool () const
+bool
+MSReference::enable() const
 {
     return enable_;
 }

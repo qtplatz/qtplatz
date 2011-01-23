@@ -45,9 +45,9 @@ namespace adcontrols {
                    , double exactMass = 0
                    , const std::wstring& description = L"" );
 
-        operator bool () const;
         bool operator < ( const MSReference& ) const;
 
+        bool enable() const;
         double exactMass() const;
         bool polarityPositive() const;
         const std::wstring& formula() const;

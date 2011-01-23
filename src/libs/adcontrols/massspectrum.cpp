@@ -218,6 +218,7 @@ MassSpectrum::getMass( size_t idx ) const
 {
     if ( idx < pImpl_->size() )
         return pImpl_->getMassArray()[idx];
+    return 0;
 }
 
 void
@@ -237,7 +238,7 @@ MassSpectrum::setTime( size_t idx, double time )
 }
 
 const double *
-MassSpectrum::getTimeArray()
+MassSpectrum::getTimeArray() const
 {
     return pImpl_->getTimeArray();
 }

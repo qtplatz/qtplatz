@@ -254,6 +254,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mscalibsummarydelegate.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\mscalibsummarywidget.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mslockdelegate.cpp"
 				>
 			</File>
@@ -596,6 +604,58 @@
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
 						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -D_WINDLL -D_WINDOWS -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_PLUGIN -DQT_THREAD_SUPPORT -DQTWIDGETS_LIBRARY -DUNICODE -DWIN32 -I&quot;$(ACE_ROOT)&quot; -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;$(TAO_ROOT)&quot; -I&quot;.&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\..\..\plugins&quot; -I&quot;.\release&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Users\thondo\src\qtPlatz\tools&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\mscalibsummarydelegate.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I.&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I.\debug&quot; &quot;-Ic:\Boost\include\boost-1_43&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; -D_WINDLL -D_WINDOWS -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DQTWIDGETS_LIBRARY -DUNICODE -DWIN32 -DWITH_TESTS&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I.&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I.\release&quot; &quot;-Ic:\Boost\include\boost-1_43&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; -D_WINDLL -D_WINDOWS -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_PLUGIN -DQT_THREAD_SUPPORT -DQTWIDGETS_LIBRARY -DUNICODE -DWIN32&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\mscalibsummarywidget.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I.&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I.\debug&quot; &quot;-Ic:\Boost\include\boost-1_43&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; -D_WINDLL -D_WINDOWS -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DQTWIDGETS_LIBRARY -DUNICODE -DWIN32 -DWITH_TESTS&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I.&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I.\release&quot; &quot;-Ic:\Boost\include\boost-1_43&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; -D_WINDLL -D_WINDOWS -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_PLUGIN -DQT_THREAD_SUPPORT -DQTWIDGETS_LIBRARY -DUNICODE -DWIN32&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1131,6 +1191,30 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\Debug\moc_mscalibsummarydelegate.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Debug\moc_mscalibsummarywidget.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath=".\Debug\moc_mslockdelegate.cpp"
 					>
 					<FileConfiguration
@@ -1366,6 +1450,30 @@
 				</File>
 				<File
 					RelativePath=".\Release\moc_mscalibrationform.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Release\moc_mscalibsummarydelegate.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Release\moc_mscalibsummarywidget.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"

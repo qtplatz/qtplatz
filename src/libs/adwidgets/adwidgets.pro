@@ -15,65 +15,64 @@ INCLUDEPATH += $$(SATOOLS_ROOT)/bin
 include(../../adilibrary.pri)
 
 SOURCES +=  dataplot.cpp \
-    axis.cpp \
-    traces.cpp \
-    trace.cpp \
-    titles.cpp \
-    title.cpp \
-    colors.cpp \
-    legend.cpp \
-    plotregion.cpp \
     annotations.cpp \
     annotation.cpp \
+    axis.cpp \
+    baselines.cpp \
+    baseline.cpp \
+    colors.cpp \
+    chromatogramwidget.cpp \
+    dataplotimpl.cpp \
+    dataplotwidget.cpp \
+    filledranges.cpp \
+    font.cpp \
     fractions.cpp \
     fraction.cpp \
+    legend.cpp \
     markers.cpp \
     marker.cpp \
     peaks.cpp \
     peak.cpp \
-    baselines.cpp \
-    baseline.cpp \
-    filledranges.cpp \
+    peakresultwidget.cpp \
+    plotregion.cpp \
     ranges.cpp \
-    font.cpp \
-    dataplotimpl.cpp \
-    dataplotwidget.cpp \
-    chromatogramwidget.cpp \
     spectrumwidget.cpp \
     tracewidget.cpp \
-    traceaccessor.cpp
+    traceaccessor.cpp \
+    traces.cpp \
+    trace.cpp \
+    titles.cpp \
+    title.cpp
 
 HEADERS += dataplot.h \
-    axis.h \
-    traces.h \
-    trace.h \
-    titles.h \
-    title.h \
-    colors.h \
-    legend.h \
-    import_sagraphics.h \
-    plotregion.h \
     annotations.h \
     annotation.h \
+    axis.h \
+    baselines.h \
+    baseline.h \
+    colors.h \
+    chromatogramwidget.h \
+    dataplotimpl.h \
+    dataplotwidget.h \
+    filledranges.h \
+    font.h \
     fractions.h \
     fraction.h \
+    legend.h \
     markers.h \
     marker.h \
     peaks.h \
     peak.h \
-    baselines.h \
-    baseline.h \
-    filledranges.h \
+    peakresultwidget.h \
+    plotregion.h \
     ranges.h \
-    font.h \
-    dataplotimpl.h \
-    dataplotwidget.h \
-    chromatogramwidget.h \
     spectrumwidget.h \
     tracewidget.h \
-    adwidgets.h \
-    colorindices.h \
-    traceaccessor.h
+    traceaccessor.h \
+    traces.h \
+    trace.h \
+    titles.h \
+    title.h
 
 include(../../boost.pri)
 

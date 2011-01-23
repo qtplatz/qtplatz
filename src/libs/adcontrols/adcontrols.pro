@@ -59,7 +59,8 @@ SOURCES += massspectrum.cpp \
     msreferences.cpp \
     isocluster.cpp \
     samassspectrum.cpp \
-    mscalibrateresult.cpp
+    mscalibrateresult.cpp \
+    msassignedmass.cpp
 
 HEADERS += massspectrum.h\
         adcontrols_global.h \
@@ -106,7 +107,8 @@ HEADERS += massspectrum.h\
     msreferences.h \
     isocluster.h \
     samassspectrum.h \
-    mscalibrateresult.h
+    mscalibrateresult.h \
+    msassignedmass.h
 
 OTHER_FILES += \
     adcontrols.pri

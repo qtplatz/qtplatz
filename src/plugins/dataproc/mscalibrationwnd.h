@@ -42,6 +42,10 @@ namespace adcontrols {
     class MassSpectrum;
 }
 
+namespace adportable {
+    class Configuration;
+}
+
 namespace dataproc {
 
     class Dataprocessor;
@@ -53,8 +57,9 @@ namespace dataproc {
         class MSCalibrationWnd : public QWidget {
             Q_OBJECT
         public:
-            explicit MSCalibrationWnd(QWidget *parent = 0);
-            void init();
+            // explicit MSCalibrationWnd(QWidget *parent = 0);
+            MSCalibrationWnd( const adportable::Configuration& c, const std::wstring& apppath, QWidget * parent = 0 );
+            void init( const adportable::Configuration& c, const std::wstring& apppath );
       
         signals:
       

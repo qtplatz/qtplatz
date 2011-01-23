@@ -93,9 +93,9 @@ MSCalibrationForm::OnInitialUpdate()
     // adcontrols::MSReferenceDefns Xe;
     do {
         adcontrols::MSReferences& ref = Xe;
-        ref << adcontrols::MSReference( L"126Xe", true, L"", true );
+        ref << adcontrols::MSReference( L"126Xe", true, L"", false );
         ref << adcontrols::MSReference( L"128Xe", true, L"", false );
-        ref << adcontrols::MSReference( L"129Xe", true, L"", false );
+        ref << adcontrols::MSReference( L"129Xe", true, L"", true );
         ref << adcontrols::MSReference( L"130Xe", true, L"", false );
         ref << adcontrols::MSReference( L"131Xe", true, L"", false );
         ref << adcontrols::MSReference( L"132Xe", true, L"", false );
@@ -188,5 +188,10 @@ MSCalibrationForm::OnMSReferencesUpdated( const QModelIndex& index )
         if ( item->columnCount() < col + 1 )
             model.insertColumn( item->columnCount(), item->index() );
         model.setData( model.index( row, col, index ), it->exactMass() );
+
+        col++;
+        if ( item->columnCount() < col + 1 )
+            model.insertColumn( item->columnCount(), item->index() );
+        model.setData( model.index( row, col, index ), it->enable() );
     }
 }

@@ -54,8 +54,8 @@ namespace adcontrols {
         double highMass() const;
         void highMass( double );
         
-        const MSReferenceDefns& refDefns() const;
-        void refDefns( const MSReferenceDefns& );
+        //const MSReferenceDefns& refDefns() const;
+        //void refDefns( const MSReferenceDefns& );
 
         const MSReferences& references() const;
         void references( const MSReferences& );
@@ -80,7 +80,7 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP(minimumRAPercent_);
                 ar & BOOST_SERIALIZATION_NVP(lowMass_);
                 ar & BOOST_SERIALIZATION_NVP(highMass_);
-                ar & BOOST_SERIALIZATION_NVP(refDefns_);
+                // ar & BOOST_SERIALIZATION_NVP(refDefns_);
                 ar & BOOST_SERIALIZATION_NVP(references_);
             }
        }

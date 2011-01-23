@@ -27,6 +27,7 @@
 #include "msreference.h"
 #include "msreferences.h"
 #include "mscalibration.h"
+#include "msassignedmass.h"
 
 using namespace adcontrols;
 
@@ -36,12 +37,14 @@ MSCalibrateResult::~MSCalibrateResult()
 
 MSCalibrateResult::MSCalibrateResult() : references_( new MSReferences )
                                        , calibration_( new MSCalibration ) 
+                                       , assignedMasses_( new MSAssignedMasses ) 
 {
 }
 
 MSCalibrateResult::MSCalibrateResult( const MSCalibrateResult& t )
 : references_( new MSReferences( *t.references_ ) )
 , calibration_( new MSCalibration( *t.calibration_ ) )
+, assignedMasses_( new MSAssignedMasses( *t.assignedMasses_ ) )
 {
 }
 
@@ -82,3 +85,21 @@ MSCalibrateResult::calibration( const MSCalibration& t )
     *calibration_ = t;
 }
 
+
+MSAssignedMasses&
+MSCalibrateResult::assignedMasses()
+{
+    return *assignedMasses_;
+}
+
+const MSAssignedMasses&
+MSCalibrateResult::assignedMasses() const
+{
+    return *assignedMasses_;
+}
+
+void
+MSCalibrateResult::assignedMasses( const MSAssignedMasses& t )
+{
+    *assignedMasses_ = t;
+}

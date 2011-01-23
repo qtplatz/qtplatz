@@ -32,6 +32,12 @@
 #include <adcontrols/tableofelements.h>
 #include <adcontrols/chemicalformula.h>
 #include <adcontrols/massspectrum.h>
+#include <adcontrols/mscalibrateresult.h>
+#include <adcontrols/mscalibratemethod.h>
+#include <adportable/array_wrapper.hpp>
+#include <adcontrols/msreferences.h>
+#include <adcontrols/msreference.h>
+#include <adcontrols/msassignedmass.h>
 
 using namespace dataproc;
 
@@ -91,6 +97,42 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
                                  , const adcontrols::MassSpectrum& centroid
                                  , const adcontrols::MSCalibrateMethod& m )
 {
-    return false;
+    res.calibration( centroid.calibration() );
+    res.references( m.references() );
+    double tolerance = m.massToleranceDa();
+
+    adportable::array_wrapper<const double> masses( centroid.getMassArray(), centroid.size() );
+    adportable::array_wrapper<const double> intens( centroid.getIntensityArray(), centroid.size() );
+    const double * times = centroid.getTimeArray();
+
+    std::vector< unsigned char > colors( centroid.size() );
+    memset( &colors[0], 0, colors.size() * sizeof( unsigned char ) );
+
+    size_t idReference(0);
+    for ( adcontrols::MSReferences::vector_type::const_iterator it = res.references().begin(); it != res.references().end(); ++it ) {
+        const adcontrols::MSReference& ref = *it;
+        double exactMass = ref.exactMass();
+        adportable::array_wrapper<const double>::const_iterator lBound = std::lower_bound( masses.begin(), masses.end(), exactMass - tolerance );
+        adportable::array_wrapper<const double>::const_iterator uBound = std::lower_bound( masses.begin(), masses.end(), exactMass + tolerance );
+
+        if ( lBound != masses.end() && uBound != masses.end() ) {
+
+            size_t lIdx = std::distance( masses.begin(), lBound );
+            size_t uIdx = std::distance( masses.begin(), uBound );
+
+            adportable::array_wrapper<const double>::const_iterator hIt = std::max_element( intens.begin() + lIdx, intens.end() + uIdx );
+            size_t idx = std::distance( intens.begin(), hIt );
+            colors[ idx ] = ref.enable() ? 1 : 0;
+
+            adcontrols::MSAssignedMass assigned( idReference, idx, it->formula(), it->exactMass(), times[ idx ], masses[ idx ] ); 
+            res.assignedMasses() << assigned;
+
+        }
+        ++idReference;
+    }
+
+    const_cast< adcontrols::MassSpectrum& >( centroid ).setColorArray( &colors[0] );
+
+    return true;
 }
 

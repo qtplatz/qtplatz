@@ -36,6 +36,7 @@ namespace adcontrols {
 
     class MSReferences;
     class MSCalibration;
+    class MSAssignedMasses;
 
     class ADCONTROLSSHARED_EXPORT MSCalibrateResult {
     public:
@@ -47,15 +48,19 @@ namespace adcontrols {
         MSReferences& references();
         void references( const MSReferences& );
 
+        const MSAssignedMasses& assignedMasses() const;
+        MSAssignedMasses& assignedMasses();
+        void assignedMasses( const MSAssignedMasses& );
+
         const MSCalibration& calibration() const;
         MSCalibration& calibration();
         void calibration( const MSCalibration& );
-
     private:
 
 #pragma warning( disable:4251 )
         boost::scoped_ptr< MSReferences > references_;
         boost::scoped_ptr< MSCalibration > calibration_;
+        boost::scoped_ptr< MSAssignedMasses > assignedMasses_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -64,6 +69,7 @@ namespace adcontrols {
             if ( version >= 0 ) {
                 ar & BOOST_SERIALIZATION_NVP(references_);
                 ar & BOOST_SERIALIZATION_NVP(calibration_);
+                ar & BOOST_SERIALIZATION_NVP(aassignedMasses_);
             }
         }
 

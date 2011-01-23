@@ -64,7 +64,7 @@ namespace adcontrols {
        void resize( size_t );
        const double * getMassArray() const;
        const double * getIntensityArray() const;
-       const double * getTimeArray();
+       const double * getTimeArray() const;
        void setMass( size_t idx, double mass );
        void setIntensity( size_t idx, double intensity );
        void setTime( size_t idx, double time );
