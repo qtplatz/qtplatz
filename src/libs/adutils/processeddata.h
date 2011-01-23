@@ -34,6 +34,7 @@ namespace adcontrols {
     class Chromatogram;
     class ProcessMethod;
     class ElementalCompositionCollection;
+    class MSCalibrateResult;
 }
 
 namespace adutils {
@@ -42,6 +43,7 @@ namespace adutils {
     typedef boost::shared_ptr< adcontrols::Chromatogram > ChromatogramPtr;
     typedef boost::shared_ptr< adcontrols::ProcessMethod > ProcessMethodPtr;
     typedef boost::shared_ptr< adcontrols::ElementalCompositionCollection > ElementalCompositionCollectionPtr;
+    typedef boost::shared_ptr< adcontrols::MSCalibrateResult > MSCalibrateResultPtr;
 
     class ProcessedData {
     public:
@@ -57,6 +59,7 @@ namespace adutils {
                               , ChromatogramPtr
                               , ProcessMethodPtr
                               , ElementalCompositionCollectionPtr 
+                              , MSCalibrateResultPtr 
                               > value_type;
 
         static value_type toVariant( boost::any& );

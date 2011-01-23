@@ -34,6 +34,7 @@ MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t ) : mass_( t.mass_ )
                                                           , area_( t.area_ )
                                                           , height_( t.height_ )
                                                           , hh_( t.hh_ )
+                                                          , time_( t.time_ ) 
 {
 }  
 

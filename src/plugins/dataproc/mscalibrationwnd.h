@@ -23,11 +23,6 @@
 **
 **************************************************************************/
 
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
-
 #ifndef MSCALIBRATIONWND_H
 #define MSCALIBRATIONWND_H
 
@@ -40,6 +35,7 @@ namespace portfolio {
 
 namespace adcontrols {
     class MassSpectrum;
+    class MSCalibrateResult;
 }
 
 namespace adportable {
@@ -62,6 +58,7 @@ namespace dataproc {
             void init( const adportable::Configuration& c, const std::wstring& apppath );
       
         signals:
+            void fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
       
         public slots:
             void handleSessionAdded( Dataprocessor* );

@@ -27,6 +27,7 @@
 #include <portfolio/folium.h>
 #include <portfolio/folder.h>
 #include <adcontrols/massspectrum.h>
+#include <adcontrols/mscalibrateresult.h>
 #include <adwidgets/spectrumwidget.h>
 #include <adutils/processeddata.h>
 #include <adwidgets/dataplot.h>
@@ -106,6 +107,8 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
             adplugin::LifeCycle * p = dynamic_cast< adplugin::LifeCycle * >(pImpl_->calibSummaryWidget_);
             if ( p )
                 p->OnInitialUpdate();
+            connect( this, SIGNAL( fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ),
+                pImpl_->calibSummaryWidget_, SLOT( setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ) );
             splitter->addWidget( pImpl_->calibSummaryWidget_ );
         }
 
@@ -140,12 +143,19 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
         }
 
         portfolio::Folio attachments = folium.attachments();
+        // centroid spectrum
         portfolio::Folio::iterator it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
+        if ( it == attachments.end() )
+            return;
+        adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+        pImpl_->processedSpectrum_->setData( *ptr, nID++ );
+        // it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>( ++it, attachments.end() );
 
-        while ( it != attachments.end() ) {
-            adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-            pImpl_->processedSpectrum_->setData( *ptr, nID++ );
-            it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>( ++it, attachments.end() );
+        // calib result
+        it = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
+        if ( it != attachments.end() ) {
+            adcontrols::MSCalibrateResultPtr calibResult = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
+            emit fireSetData( *calibResult, *ptr );
         }
 
     }

@@ -30,6 +30,9 @@
 #include <adcontrols/massspectrum.h>
 #include <adcontrols/msreferences.h>
 #include <adcontrols/msreference.h>
+#include <adcontrols/msassignedmass.h>
+#include <adcontrols/mscalibrateresult.h>
+#include <qtwrapper/qstring.h>
 
 using namespace qtwidgets;
 
@@ -83,18 +86,42 @@ MSCalibSummaryWidget::OnFinalClose()
 
 
 void
-MSCalibSummaryWidget::setData( const adcontrols::MassSpectrum& ms )
+MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const adcontrols::MassSpectrum& ms )
 {
+    QStandardItemModel& model = *pModel_;
+    model.removeRows( 0, model.rowCount() );
+
     if ( ! ms.isCentroid() )
         return;
 
+    model.insertRows( 0, ms.size() );
+
     const double * intensities = ms.getIntensityArray();
+    const double * times = ms.getTimeArray();
     const double * masses = ms.getMassArray();
-    
+
+    for ( size_t i = 0; i < ms.size(); ++i ) {
+        int col = 0;
+        model.setData( model.index( i, col++ ), masses[i] );
+        model.setData( model.index( i, col++ ), times[i] * 1.0e6); // s -> us
+        model.setData( model.index( i, col++ ), intensities[i] );
+    }
+
+    const adcontrols::MSReferences& ref = res.references();
+    const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
+    adcontrols::MSReferences::vector_type::const_iterator refIt = ref.begin();
+    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it, ++refIt ) {
+        int col = 3;
+        const adcontrols::MSAssignedMass& a = *it;
+        model.setData( model.index( a.idMassSpectrum(), col++ ), qtwrapper::qstring::copy( a.formula() ) );
+        model.setData( model.index( a.idMassSpectrum(), col++ ), refIt->exactMass() );
+        model.setData( model.index( a.idMassSpectrum(), col++ ), refIt->enable() );
+    }
+
 }
 
 void
-MSCalibSummaryWidget::setData( const adcontrols::MSReferences& ref )
+MSCalibSummaryWidget::setData( const adcontrols::MSReferences& )
 {
 }
 
