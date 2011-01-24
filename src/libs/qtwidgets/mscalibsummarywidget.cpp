@@ -123,8 +123,3 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 
 }
 
-void
-MSCalibSummaryWidget::setData( const adcontrols::MSReferences& )
-{
-}
-

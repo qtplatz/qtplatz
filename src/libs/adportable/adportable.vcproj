@@ -216,6 +216,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\polfit.cpp"
+				>
+			</File>
+			<File
 				RelativePath="protocollifecycle.cpp"
 				>
 			</File>
@@ -344,6 +348,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\float.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\is_equal.h"
 				>
 			</File>
@@ -375,6 +383,10 @@
 			</File>
 			<File
 				RelativePath=".\moment.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\polfit.h"
 				>
 			</File>
 			<File
