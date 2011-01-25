@@ -41,7 +41,8 @@ namespace adportable {
         };
 
     public:  
-        static int compute(const double * x, const double *y, int npts, int nterms, std::vector<double>& polinomial, double & chisqr, WeightingType mode = WEIGHTING_NONE );
+        static int fit(const double * x, const double *y, int npts, int nterms, std::vector<double>& polinomial, double & chisqr, WeightingType mode = WEIGHTING_NONE );
+        static bool fit(const double * x, const double *y, int npts, int nterms, std::vector<double>& polinomial );
     };
 }
 

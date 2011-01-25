@@ -25,13 +25,33 @@
 
 #include "polfit.h"
 #include <cmath>
+#include <limits>
 #include "float.hpp"
+# pragma warning(disable: 4100)
+# pragma warning(disable: 4996)
 #include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/lu.hpp>
+# pragma warning(default: 4100)
+# pragma warning(default: 4996)
 
 namespace adportable {
+
     namespace internal {
         static double determ( boost::numeric::ublas::matrix<double>& a, int n );
         static double weight_value( polfit::WeightingType wmode, double yi );
+        //----------------------------
+        static void normalCoefficients( int count
+                                       , const double* x, const double* y, int degree
+                                       , boost::numeric::ublas::vector<double>& xSum
+                                       , boost::numeric::ublas::vector<double>& yxSum
+                                       , boost::numeric::ublas::matrix<double>& a
+                                       , boost::numeric::ublas::vector<double>& b );
+	
+        static void normalCoefficients( int count
+                                      , const double* x, const double * y
+                                      , int degree
+                                      , boost::numeric::ublas::matrix<double>& a
+                                      , boost::numeric::ublas::vector<double>& b );
     }
 }
 
@@ -113,9 +133,6 @@ internal::determ( boost::numeric::ublas::matrix<double>& a, int n ) // double **
     } else {
         det = 0;
         for (j1 = 0; j1 < n ; j1++) {
-            // m = new double * [n - 1];
-            //for (i = 0; i < n - 1; i++)
-            //    m[i] = new double [n - 1];
             for ( i = 1; i < n; i++) {
                 j2 = 0;
                 for (j = 0; j < n; j++) {
@@ -126,11 +143,6 @@ internal::determ( boost::numeric::ublas::matrix<double>& a, int n ) // double **
                 }
             }
             det += pow(-1.0, 1.0 + j1 + 1.0) * a(0, j1) * determ(m, n - 1);
-/*
-            for (i = 0; i < n - 1; i++)
-                delete [] m[i];
-            delete [] m;
-*/
         }
     }
     return det;
@@ -138,25 +150,23 @@ internal::determ( boost::numeric::ublas::matrix<double>& a, int n ) // double **
 
 
 int 
-polfit::compute(const double *x
-                , const double *y
-                , int npts
-                , int nterms
-                , std::vector<double>& polynomial
-                , double & chisqr
-                , WeightingType wmode )
+polfit::fit( const double *x
+            , const double *y
+            , int npts
+            , int nterms
+            , std::vector<double>& polynomial
+            , double & chisqr
+            , WeightingType wmode )
 {
     int i, j, k, l, n;
     const int nmax = 2 * nterms - 1;
-    std::vector<double> sumx, sumy;
-    // double sumx[100], sumy[100];
-    // double ** array = matrix(0, 10);
+    std::vector<double> sumx(nmax), sumy(nterms);
     boost::numeric::ublas::matrix< double > array( nterms, nterms );    
 
     polynomial.clear(); 
 
-    //memset(sumx, 0, sizeof(sumx));
-    //memset(sumy, 0, sizeof(sumy));
+    memset( &sumx[0], 0, sizeof(double) * sumx.size() );
+    memset( &sumy[0], 0, sizeof(double) * sumy.size() );
     chisqr = 0;
     double chisq = 0.0;
     double xi, yi, wt, xterm, yterm, delta, xfree;
@@ -168,13 +178,13 @@ polfit::compute(const double *x
         xterm = wt;
         // DO 44 N + 1, NMAX
         for (n = 0; n < nmax; ++n) {
-            sumx.push_back( sumx[n] + xterm );
+            sumx[n] = sumx[n] + xterm;
             xterm = xterm * xi;
         }
         // DO 48 N=1, NTERMS
         yterm = wt * yi;
         for (n = 0; n < nterms; ++n) {
-            sumy.push_back( sumy[n] + yterm );
+            sumy[n] = sumy[n] + yterm;
             yterm = yterm * xi;
         }
         chisq = chisq + wt * (yi * yi);
@@ -190,20 +200,16 @@ polfit::compute(const double *x
     delta = internal::determ(array, nterms);
     if (delta == 0) {
         chisqr = 0;
-        //for (j = 0; j < nterms; ++j)
-        // a[j] = 0;
-        //matrix_free(array);
         return 0;
     } else {
         for (l = 0; l < nterms; ++l) {
             for (j = 0; j < nterms; ++j) {
                 for (k = 0; k < nterms; ++k) {
-                    n = j + k; // - 1;
+                    n = j + k;
                     array(j, k) = sumx[n];
                 }
                 array(j, l) = sumy[j];
             }
-            // a[l] = determ(array, nterms) / delta;
             polynomial.push_back( internal::determ( array, nterms ) / delta );
         }
     }
@@ -217,7 +223,6 @@ polfit::compute(const double *x
     }
     xfree = npts - nterms;
     chisqr = chisq / xfree;
-    //matrix_free(array);
     return 0;
 }
 
@@ -248,3 +253,98 @@ internal::weight_value( polfit::WeightingType wmode, double yi )
 polfit::polfit()
 {
 }
+
+////////////////////// 
+// Calculate n + 1 equeations from given x, y data
+// Compute the coefficients for these equations
+/////
+
+void
+internal::normalCoefficients( int npts
+                           , const double * xArray
+                           , const double * yArray 
+                           , int degree	// degree of polynomial 
+                           , boost::numeric::ublas::vector<double>& xSum
+                           , boost::numeric::ublas::vector<double>& yxSum
+                           , boost::numeric::ublas::matrix<double>& a			// 2 dimentional array for the a's.
+                           , boost::numeric::ublas::vector<double>& b )		// 1 dimentional array for the b's, the right hand side.
+{
+	long xCount	= degree * 2 + 1;	// 2n
+	long n		= degree + 1;		// n + 1 equations
+
+	long i;
+	for ( i = 0; i < xCount; i++ )
+		xSum[i]	= 0.0;
+
+	for ( i = 0; i < n; i++ )
+		yxSum[i] = 0.0;
+
+	// Coumpute the sums.
+	for ( i = 0; i < npts; i++ )	{
+		double x = xArray[i];
+		double y = yArray[i];
+		
+		double lastx = 1.0;
+		int j;
+        for ( j = 0; j < n; j++ )		{
+			xSum[j] += lastx;
+			yxSum[j] += y * lastx;
+			lastx *= x;
+		}
+
+		for ( ; j < xCount; j++ )		{
+			xSum[j] += lastx;
+			lastx *= x;
+		}
+	}
+
+	// Fill out cofficients matrix.
+	for ( i = 0; i < n; i++ )	{
+        for ( long j = 0; j < n; j++ )
+			a(i,j) = xSum[j+i];
+		b[i] = yxSum[i];
+	}
+}
+
+void
+internal::normalCoefficients(int count
+                           , const double* xArray
+                           , const double* yArray 
+                           , int degree	// degree of polynomial  
+                           , boost::numeric::ublas::matrix<double>& a			// 2 dimentional array for the a's.
+                           , boost::numeric::ublas::vector<double>& b )		// 1 dimentional array for the b's, the right hand side.
+{
+	long xCount	= degree * 2 + 1;	// 2n
+	long n		= degree + 1;		// n + 1 equations
+
+    boost::numeric::ublas::vector<double> xSum( xCount );
+    boost::numeric::ublas::vector<double> yxSum( n );
+
+    normalCoefficients( count, xArray, yArray, degree, xSum, yxSum, a, b );
+}
+
+////////////
+
+bool
+polfit::fit( const double* x, const double* y, int npts, int nterms, std::vector<double>& coeffs )
+{
+    if ( nterms > npts )
+        return false;
+
+    boost::numeric::ublas::vector< int > index( nterms );
+    boost::numeric::ublas::matrix<double> a( nterms, nterms );
+    boost::numeric::ublas::vector<double> b( nterms );
+
+    internal::normalCoefficients( npts, x, y, nterms - 1, a, b );
+
+    boost::numeric::ublas::permutation_matrix<> pm( a.size1() );
+    boost::numeric::ublas::lu_factorize<>( a, pm );
+    boost::numeric::ublas::lu_substitute<>( a, pm, b );
+
+    coeffs.clear();
+    for ( int i = 0; i < nterms; ++i )
+        coeffs.push_back( b[i] );
+	
+	return true;
+}
+

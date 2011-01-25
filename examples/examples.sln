@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tofcontroller", "tofcontrol
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tofspectrometer", "tofspectrometer\tofspectrometer.vcproj", "{33D4C684-A7C1-3EB6-9164-97A53CBD9AE7}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_polynomial", "test_polynomial\test_polynomial.vcproj", "{2AE4D8CF-2D6D-3821-A8E0-3AD3E0C2438B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -31,6 +33,10 @@ Global
 		{33D4C684-A7C1-3EB6-9164-97A53CBD9AE7}.Debug|Win32.Build.0 = Debug|Win32
 		{33D4C684-A7C1-3EB6-9164-97A53CBD9AE7}.Release|Win32.ActiveCfg = Release|Win32
 		{33D4C684-A7C1-3EB6-9164-97A53CBD9AE7}.Release|Win32.Build.0 = Release|Win32
+		{2AE4D8CF-2D6D-3821-A8E0-3AD3E0C2438B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2AE4D8CF-2D6D-3821-A8E0-3AD3E0C2438B}.Debug|Win32.Build.0 = Debug|Win32
+		{2AE4D8CF-2D6D-3821-A8E0-3AD3E0C2438B}.Release|Win32.ActiveCfg = Release|Win32
+		{2AE4D8CF-2D6D-3821-A8E0-3AD3E0C2438B}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
