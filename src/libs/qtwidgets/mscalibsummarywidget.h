@@ -58,7 +58,7 @@ namespace qtwidgets {
     signals:
 
     public slots:
-        void setData( const adcontrols::MSReferences& );
+        // void setData( const adcontrols::MSReferences& );
         void setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
 
     private:
