@@ -35,6 +35,7 @@
 #include <adcontrols/mscalibrateresult.h>
 #include <adcontrols/mscalibratemethod.h>
 #include <adportable/array_wrapper.hpp>
+#include <adportable/polfit.h>
 #include <adcontrols/msreferences.h>
 #include <adcontrols/msreference.h>
 #include <adcontrols/msassignedmass.h>
@@ -148,6 +149,26 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     }
 
     do {
+        std::vector<double> tmvec, msvec, coeffs;
+        for ( size_t i = 0; i < calibPoints.size(); ++i ) {
+            msvec.push_back( sqrt( calibPoints[i].second.exactMass() ) );
+            tmvec.push_back( times[ calibPoints[i].first ] );
+        }
+        size_t nterm = m.polynomialDegree() + 1;
+        if ( nterm < calibPoints.size() )
+            nterm = calibPoints.size();
+        if ( adportable::polfit::fit( &tmvec[0], &msvec[0], tmvec.size(), nterm, coeffs ) ) {
+            adcontrols::MSCalibration calib;
+            calib.coeffs( coeffs );
+            res.calibration( calib );
+
+            for ( adcontrols::MSAssignedMasses::vector_type::iterator it = res.assignedMasses().begin(); it != res.assignedMasses().end(); ++it ) {
+                double t = it->time();
+                double mq = adcontrols::MSCalibration::compute( coeffs, t );
+                it->mass( mq * mq );
+            }
+        }
+#if 0
         if ( calibPoints.size() == 2 ) {
             double m1 = calibPoints[0].second.exactMass();
             double m2 = calibPoints[1].second.exactMass();
@@ -162,14 +183,9 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
             adcontrols::MSCalibration calib;
             calib.coeffs( coeffs );
             res.calibration( calib );
-
-            // ------------
-            for ( adcontrols::MSAssignedMasses::vector_type::iterator it = res.assignedMasses().begin(); it != res.assignedMasses().end(); ++it ) {
-                double t = it->time();
-                double mq = adcontrols::MSCalibration::compute( coeffs, t );
-                it->mass( mq * mq );
-            }
         }
+#endif
+        // ------------
     } while( 0 );
 
 

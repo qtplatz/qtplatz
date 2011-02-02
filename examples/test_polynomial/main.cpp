@@ -52,7 +52,7 @@ main(int argc, char *argv[])
         terms.push_back( 1 );
 
 
-    for ( size_t nTerm = 2; nTerm <= 13; ++nTerm ) {
+    for ( size_t nTerm = 2; nTerm <= 20; ++nTerm ) {
 
         const size_t NPTS = nTerm * 2;
 
