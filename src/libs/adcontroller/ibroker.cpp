@@ -156,22 +156,23 @@ iBroker::configComplete()
 		}
 
 		// initialize observer proxy
-		Instrument::Session_var iSession = pProxy->getSession();        
-		boost::shared_ptr<oProxy> poProxy( new oProxy( *this ) );
-		if ( poProxy ) {
-			poProxy->objId( objid );
-			poProxy->setConfiguration( item );
-			if ( poProxy->setInstrumentSession( iSession ) ) { // assign objid to source objects
-				size_t n = poProxy->populateObservers( objid );
-				objid += n;
-			}
-			acewrapper::scoped_mutex_t<> lock( mutex_ );
-			oproxies_.push_back( poProxy );
+		Instrument::Session_var iSession = pProxy->getSession();
+        if ( ! CORBA::is_nil( iSession.in() ) ) {
+            boost::shared_ptr<oProxy> poProxy( new oProxy( *this ) );
+            if ( poProxy ) {
+                poProxy->objId( objid );
+                poProxy->setConfiguration( item );
+                if ( poProxy->setInstrumentSession( iSession ) ) { // assign objid to source objects
+                    size_t n = poProxy->populateObservers( objid );
+                    objid += n;
+                }
+                acewrapper::scoped_mutex_t<> lock( mutex_ );
+                oproxies_.push_back( poProxy );
 
-			// add source into the Cache (1st layer siblings)
-			masterObserver->addSibling( poProxy->getObject() );
-		}
-
+                // add source into the Cache (1st layer siblings)
+                masterObserver->addSibling( poProxy->getObject() );
+            }
+        }
     }
 	status_current_ = status_being_ = ControlServer::eConfigured;  // relevant modules are able to access.
     return true;

@@ -153,7 +153,7 @@ CentroidProcess::operator()( const MassSpectrum& profile )
             double tt = t1 + sampInterval * ( mass - *(it - 1) ) / ( *it - *(it - 1) );
 
             // validation
-#ifdef _DEBUG
+#if defined _DEBUG && 0
             double cx(0);
             do { // centroid by time
                 double base = piItem->GetBaselineStartIntensity() + 

@@ -497,8 +497,11 @@ AcquirePlugin::readTrace( const SignalObserver::Description& desc
 void
 AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 {
-    ACE_UNUSED_ARG( objId );
     ACE_UNUSED_ARG( pos );
+
+#if defined _DEBUG
+    qDebug() << "AcquirePlugin::handle_update_data(" << objId << ", " << pos << ")";
+#endif
 
     SignalObserver::Observer_var tgt = observer_->findObserver( objId, true );
     if ( CORBA::is_nil( tgt.in() ) )
