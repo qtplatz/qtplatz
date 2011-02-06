@@ -84,6 +84,9 @@ namespace adwidgets {
             virtual void handleZoomXY( double x1, double y1, double x2, double y2 );
             virtual void handleZoomXAutoscaleY( double x1, double x2 );
 
+            virtual void handleOnRButtonClick( double x, double y ) { /* do nothing */ }
+            virtual void handleOnRButtonRange( double x1, double x2, double y1, double y2 ) { /* do nothing */ }
+
         protected slots:
 
         private:

@@ -154,3 +154,13 @@ SpectrumWidget::handleZoomXY( double x1, double /* y1 */, double x2, double /* y
 {
     DataplotWidget::handleZoomXAutoscaleY( x1, x2 );
 }
+
+void
+SpectrumWidget::handleOnRButtonClick( double x, double y )
+{
+}
+
+void
+SpectrumWidget::handleOnRButtonRange( double x1, double x2, double y1, double y2 )
+{
+}

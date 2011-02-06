@@ -317,8 +317,12 @@ internal::DataplotWidgetImpl::OnMButtonDown( double x, double y )
 void
 internal::DataplotWidgetImpl::OnRButtonDown( double x, double y )
 {
-    Q_UNUSED(x);
-    Q_UNUSED(y);
+    captureXY_ = std::pair<double, double>(x, y);
+
+    widget_.axisX().enableMarker( true );
+    widget_.axisX().markerPosition( x );
+    widget_.axisY().enableMarker( true );
+    widget_.axisY().markerPosition( y );
 }
 
 void
@@ -355,7 +359,7 @@ internal::DataplotWidgetImpl::OnLButtonUp( double x, double y )
         }
         if ( bAutoYZoom_ && zoomX ) {
             widget_.zoomXAutoscaleY( xrange.first, xrange.second );
-            emit widget_.signalZoomXAutoscaleY( xrange.first, xrange.second );
+            widget_.signalZoomXAutoscaleY( xrange.first, xrange.second );
         } else {
             widget_.zoomXY( xrange.first, yrange.first, xrange.second, yrange.second );
             emit widget_.signalZoomXY( xrange.first, yrange.first, xrange.second, yrange.second );
@@ -376,8 +380,17 @@ internal::DataplotWidgetImpl::OnRButtonUp( double x, double y )
     Q_UNUSED(x);
     Q_UNUSED(y);
 
-    QPoint point( capturePt_.x, capturePt_.y );
-    emit widget_.customContextMenuRequested( point );
+    widget_.cursorStyle( SAGRAPHICSLib::CS_None );
+    widget_.axisX().enableMarker( false );
+    widget_.axisY().enableMarker( false );
+
+    POINT pt;
+    ::GetCursorPos(&pt);
+
+	if (( capturePt_.x == pt.x) && ( capturePt_.y == pt.y))
+        widget_.handleOnRButtonClick(x, y); //, bShift, bControl);
+	else
+        widget_.handleOnRButtonRange( captureXY_.first, x, captureXY_.second, y );
 }
 
 void
@@ -413,6 +426,7 @@ internal::DataplotWidgetImpl::OnRButtonMove( double x, double y )
 {
     Q_UNUSED(x);
     Q_UNUSED(y);
+    widget_.cursorStyle( SAGRAPHICSLib::CS_HorizontalLine );
 }
 
 void
