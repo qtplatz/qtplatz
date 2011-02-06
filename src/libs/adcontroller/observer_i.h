@@ -63,9 +63,11 @@ namespace adcontroller {
 		virtual void uptime ( ::CORBA::ULongLong_out usec );
 		virtual ::CORBA::Boolean readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer);
 		virtual ::CORBA::WChar * dataInterpreterClsid (void);
-		///
+		/// <-- end implementation ---
+        //--------------------------------------------
         void populate_siblings();
         bool isChild( unsigned long objid );
+        bool handle_data( unsigned long parentId, unsigned long objId, long pos );
 		bool forward_notice_update_data( unsigned long parentId, unsigned long objid, long pos );
 		bool forward_notice_method_changed( unsigned long parentId, unsigned long objid, long pos );
 		bool forward_notice_update_events( unsigned long parentId, unsigned long objid, long pos, unsigned long events );
@@ -79,6 +81,9 @@ namespace adcontroller {
 
 		inline sibling_vector_type::iterator sibling_begin() { return sibling_set_.begin(); };
         inline sibling_vector_type::iterator sibling_end()   { return sibling_set_.end(); };
+
+        observer_i * find_cache_observer( unsigned long );
+        bool write_cache( long pos, SignalObserver::DataReadBuffer_var& );
 
 		observer_events_vector_type observer_events_set_;
 		sibling_vector_type sibling_set_;

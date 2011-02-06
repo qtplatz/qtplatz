@@ -500,7 +500,7 @@ iBroker::handle_dispatch( const ACE_Time_Value& )
 void
 iBroker::handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos )
 {
-    // TODO: read data and push into cache
+    pMasterObserver_->handle_data( parentId, objId, pos );
 	pMasterObserver_->forward_notice_update_data( parentId, objId, pos );
 }
 

@@ -24,13 +24,19 @@
 **************************************************************************/
 
 #include "cache.h"
-#include <deque>
+
+#pragma warning (disable : 4996 )
+# include <adinterface/signalobserverS.h>
+# include <ace/Recursive_Thread_Mutex.h>
+#pragma warning (default : 4996 )
+
 
 namespace adcontroller {
     class CacheImpl {
     public:
         ~CacheImpl() {}
         CacheImpl() {}
+        std::deque< SignalObserver::Observer_var > queue_;
     };
 }
 
@@ -39,9 +45,50 @@ using namespace adcontroller;
 
 Cache::~Cache()
 {
-    delete impl_;
 }
 
-Cache::Cache() : impl_( new CacheImpl )
+Cache::Cache()
+{
+}
+
+bool
+Cache::write( long pos, SignalObserver::DataReadBuffer_var& rdbuf )
+{
+    if ( fifo_.size() > 1024 )
+        fifo_.pop_front();
+    fifo_.push_back( CacheItem( pos, rdbuf ) );
+    return true;
+}
+
+bool
+Cache::read( long pos, SignalObserver::DataReadBuffer_out rdbuf )
+{
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    
+    if ( pos < 0 )
+        pos = fifo_.back();
+    
+    if ( ! fifo_.empty() && ( fifo_.front() <= pos && pos <= fifo_.back() ) ) {
+        std::deque< CacheItem >::iterator it = std::lower_bound( fifo_.begin(), fifo_.end(), pos );
+        
+        if ( it != fifo_.end() ) {
+            SignalObserver::DataReadBuffer_var buf( new SignalObserver::DataReadBuffer( it->rdbuf_ ) );
+            rdbuf = buf._retn();
+            return true;
+        }
+    }
+	return false;
+}
+
+
+//////////////////////////////////////////////////
+Cache::CacheItem::CacheItem( long pos
+                            , SignalObserver::DataReadBuffer_var& rb ) : pos_( pos )
+                                                                       , rdbuf_( rb )
+{
+}
+
+Cache::CacheItem::CacheItem( const CacheItem& t ) : pos_( t.pos_ )
+                                                  , rdbuf_( t.rdbuf_ ) 
 {
 }

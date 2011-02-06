@@ -47,15 +47,15 @@ namespace adcontroller {
 
 		struct sibling_data {
 			boost::shared_ptr< observer_i > pCache_i_;
-			SignalObserver::Observer_var observer_;  // instrument oberver ( in instrument fifo )
-			SignalObserver::Observer_var cache_;     // cache observer (in server cache)
+            SignalObserver::Observer_var observer_;  // instrument oberver ( in instrument fifo )
+            SignalObserver::Observer_var cache_;     // cache observer (in server cache) := pCache_i_
             unsigned long objId_;
 			sibling_data() : objId_(0) {}
 			sibling_data( const sibling_data& t ) : objId_( t.objId_ )
-				                                  , observer_( t.observer_ ) 
 				                                  , pCache_i_( t.pCache_i_ )
-												  , cache_( t.cache_ ) {
-			}
+                                                  , observer_( t.observer_ ) 
+                                                  , cache_( t.cache_ ) {
+            }
         };
       
 	}
@@ -180,6 +180,22 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 	return true;
 }
 
+void
+observer_i::populate_siblings()
+{
+	if ( CORBA::is_nil( source_observer_ ) )
+		return;
+
+	SignalObserver::Observers_var sourceVec = source_observer_->getSiblings();
+	if ( sourceVec.ptr() == 0 )
+		return;
+
+	size_t nsize = sourceVec->length();
+
+	for ( size_t i = 0; i < nsize; ++i )
+        addSibling( sourceVec[i] );
+}
+
 ::SignalObserver::Observer *
 observer_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
 {
@@ -200,23 +216,6 @@ observer_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
     return 0;
 }
 
-
-void
-observer_i::populate_siblings()
-{
-	if ( CORBA::is_nil( source_observer_ ) )
-		return;
-
-	SignalObserver::Observers_var sourceVec = source_observer_->getSiblings();
-	if ( sourceVec.ptr() == 0 )
-		return;
-
-	size_t nsize = sourceVec->length();
-
-	for ( size_t i = 0; i < nsize; ++i )
-        addSibling( sourceVec[i] );
-}
-
 void
 observer_i::uptime ( ::CORBA::ULongLong_out usec )
 {
@@ -228,10 +227,7 @@ observer_i::uptime ( ::CORBA::ULongLong_out usec )
 ::CORBA::Boolean
 observer_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer )
 {
-    // TODO: Since observer_i class is a cache it require to read data from cache rather than soruce_observer_
-	if ( ! CORBA::is_nil( source_observer_ ) )
-		return source_observer_->readData( pos, dataReadBuffer );
-	return false;
+    return cache_->read( pos, dataReadBuffer );
 }
 
 ::CORBA::WChar *
@@ -243,6 +239,7 @@ observer_i::dataInterpreterClsid (void)
 }
 
 namespace adcontroller {
+
 	namespace internal {
 
 		struct fire_on_update_data {
@@ -282,6 +279,22 @@ namespace adcontroller {
 	}
 }
 
+observer_i *
+observer_i::find_cache_observer( unsigned long objId )
+{
+    for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
+        if ( it->objId_ == objId )
+            return it->pCache_i_.get();
+    }
+
+    observer_i * p(0);
+    for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it )
+        if ( p = it->pCache_i_->find_cache_observer( objId ) )
+            return p;
+    return 0;
+}
+
+
 bool
 observer_i::isChild( unsigned long objid )
 {
@@ -298,16 +311,32 @@ observer_i::isChild( unsigned long objid )
 }
 
 bool
+observer_i::handle_data( unsigned long /* parentId */, unsigned long objId, long pos )
+{
+    observer_i * pCache = find_cache_observer( objId );
+    if ( pCache && ! CORBA::is_nil( pCache->source_observer_.in() ) ) {
+        SignalObserver::DataReadBuffer_var rdbuf;
+        if ( pCache->source_observer_->readData( pos, rdbuf ) ) {
+            // TODO: handle wellKnownEvents and save data into datafile if necessary
+            pCache->write_cache( pos, rdbuf );
+        }
+    }
+	return false;
+}
+
+bool
 observer_i::forward_notice_update_data( unsigned long parentId, unsigned long objId, long pos )
 {
+    // this object mast be 'master observer' instance
+    assert( objId_ == 0 );
+
     for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
 
+        // send notification from child to parent
         if ( it->objId_ == parentId ) {
-
 #if defined _DEBUG
             assert( ( it->objId_ == objId ) || ( it->pCache_i_->isChild( objId ) ) );
 #endif
-
             using namespace adcontroller::internal;
             std::for_each ( it->pCache_i_->events_begin(), it->pCache_i_->events_end(), invoke_event_fire<fire_on_update_data>( objId, pos ) );
             return true;
@@ -319,7 +348,7 @@ observer_i::forward_notice_update_data( unsigned long parentId, unsigned long ob
 }
 
 bool
-observer_i::forward_notice_method_changed( unsigned long parentId, unsigned long objid, long pos )
+observer_i::forward_notice_method_changed( unsigned long /* parentId */, unsigned long objid, long pos )
 {
     for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
 
@@ -333,7 +362,7 @@ observer_i::forward_notice_method_changed( unsigned long parentId, unsigned long
 }
 
 bool
-observer_i::forward_notice_update_events( unsigned long parentId, unsigned long objid, long pos, unsigned long events )
+observer_i::forward_notice_update_events( unsigned long /* parentId */, unsigned long objid, long pos, unsigned long events )
 {
     for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
 
@@ -346,6 +375,13 @@ observer_i::forward_notice_update_events( unsigned long parentId, unsigned long 
 	return false;
 }
 
+bool
+observer_i::write_cache( long pos, SignalObserver::DataReadBuffer_var& rdbuf )
+{
+    return cache_->write( pos, rdbuf );
+}
+
+///////////////////////////////////
 ////////////////////////////////////////////
 
 bool
@@ -359,3 +395,7 @@ internal::observer_events_data::operator == ( const SignalObserver::ObserverEven
 {
 	return events_->_is_equivalent( t );
 }
+
+/////////////////////////////////////////////
+
+

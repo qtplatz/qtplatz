@@ -25,16 +25,34 @@
 
 #pragma once
 
-namespace adcontroller {
+#pragma warning (disable : 4996 )
+# include <adinterface/signalobserverS.h>
+# include <ace/Recursive_Thread_Mutex.h>
+#pragma warning (default : 4996 )
 
-    class CacheImpl;
+#include <acewrapper/mutex.hpp>
+#include <deque>
+
+namespace adcontroller {
 
     class Cache {
     public:
         ~Cache();
         Cache();
+
+        bool write( long pos, SignalObserver::DataReadBuffer_var& );
+        bool read( long pos, SignalObserver::DataReadBuffer_out );
+
+        struct CacheItem {
+            CacheItem( long pos, SignalObserver::DataReadBuffer_var& );
+            CacheItem( const CacheItem& );
+            inline operator long () const { return pos_; }
+            long pos_;
+            SignalObserver::DataReadBuffer_var rdbuf_;
+        };
     private:
-        CacheImpl * impl_;
+        std::deque< CacheItem > fifo_;
+        ACE_Recursive_Thread_Mutex mutex_;
     };
 
 }
