@@ -102,7 +102,7 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c)
 }
 
 void
-ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
+ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool /* yaxis2 */ )
 {
     if ( d.size() < 2 )
         return;

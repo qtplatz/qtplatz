@@ -158,9 +158,15 @@ SpectrumWidget::handleZoomXY( double x1, double /* y1 */, double x2, double /* y
 void
 SpectrumWidget::handleOnRButtonClick( double x, double y )
 {
+    (void)x;
+    (void)y;
 }
 
 void
 SpectrumWidget::handleOnRButtonRange( double x1, double x2, double y1, double y2 )
 {
+    (void)x1;
+    (void)x2;
+    (void)y1;
+    (void)y2;
 }

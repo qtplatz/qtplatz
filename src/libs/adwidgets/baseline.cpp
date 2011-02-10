@@ -52,7 +52,7 @@ Baseline::Baseline( const Baseline& t )
 bool 
 Baseline::visible() const
 {
-    return internal::variant_bool::to_variant( pi_->Visible );
+    return internal::variant_bool::to_native( pi_->Visible );
 }
 
 void 
