@@ -212,6 +212,12 @@ tofObserver_i::dataInterpreterClsid (void)
     return CORBA::wstring_dup( L"tofSpectrometer" );
 }
 
+CORBA::Long
+tofObserver_i::posFromTime( CORBA::ULongLong usec )
+{
+    return -1;
+}
+
 void
 tofObserver_i::push_profile_data( ACE_Message_Block * mb )
 {

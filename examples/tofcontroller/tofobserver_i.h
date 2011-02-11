@@ -57,6 +57,7 @@ namespace tofcontroller {
 		virtual void uptime ( ::CORBA::ULongLong_out usec );
 		virtual ::CORBA::Boolean readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer);
 		virtual ::CORBA::WChar * dataInterpreterClsid (void);
+        virtual ::CORBA::Long posFromTime( CORBA::ULongLong usec );
 
         // internal
         void push_profile_data( ACE_Message_Block * mb );

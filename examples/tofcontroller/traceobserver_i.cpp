@@ -144,6 +144,12 @@ traceObserver_i::dataInterpreterClsid (void)
     return CORBA::wstring_dup( L"tofSpectrometer" );  // same id as tofObserver
 }
 
+CORBA::Long
+traceObserver_i::posFromTime( CORBA::ULongLong usec )
+{
+    return -1;
+}
+
 void
 traceObserver_i::push_trace_data( long pos, const TOFInstrument::SpectrumProcessedData& data, const TOFInstrument::TraceDescriptor& desc )
 {
