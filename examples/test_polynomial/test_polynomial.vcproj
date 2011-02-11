@@ -162,11 +162,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="QtCore4.lib"
+				AdditionalDependencies="QtCore4.lib adportable.lib"
 				OutputFile="release\test_polynomial.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;C:\Users\Toshi.Hondo.000\src\qtPlatz\lib\qtPlatz"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="1"

@@ -112,3 +112,9 @@ traceObserver_i::dataInterpreterClsid (void)
 	return 0;
 }
 
+::CORBA::Long
+traceObserver_i::posFromTime( CORBA::ULongLong usec )
+{
+    (void)usec;
+    return -1;
+}

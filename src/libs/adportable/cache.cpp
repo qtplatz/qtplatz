@@ -25,6 +25,8 @@
 
 #include "cache.h"
 #include <acewrapper/mutex.hpp>
+
+# pragma warning(disable:4996)
 #include <ace/Recursive_Thread_Mutex.h>
 
 using namespace adportable;

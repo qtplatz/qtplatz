@@ -188,6 +188,13 @@ tofObserver_i::dataInterpreterClsid (void)
     return CORBA::wstring_dup( L"tofcontroller::tofObserver_i" );
 }
 
+::CORBA::Long
+tofObserver_i::posFromTime( CORBA::ULongLong usec )
+{
+    (void)usec;
+    return -1;
+}
+
 void
 tofObserver_i::push_profile_data( ACE_Message_Block * mb )
 {
