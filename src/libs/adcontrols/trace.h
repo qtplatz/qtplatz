@@ -48,9 +48,12 @@ namespace adcontrols {
         const double * getIntensityArray() const;
         const double * getTimeArray() const;   // array of miniutes
         const unsigned long * getEventsArray() const;
+        std::pair<double, double> range_y() const;
 
     private:
         size_t pos_;
+        double minY_;
+        double maxY_;
 
 #pragma warning(disable:4251)
         std::vector< double > traceX_;

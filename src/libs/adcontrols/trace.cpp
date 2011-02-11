@@ -32,7 +32,7 @@ Trace::~Trace()
 {
 }
 
-Trace::Trace() : pos_( -1 )
+Trace::Trace() : pos_( -1 ), minY_(-10), maxY_(90)
 {
 }
 
@@ -62,6 +62,13 @@ Trace::operator += ( const TraceAccessor& ta )
     const unsigned long * pE = ta.getEventsArray();
     size_t size = ta.size();
     for ( size_t i = 0; i < size; ++i ) {
+
+        if ( pY[i] > maxY_ )
+            maxY_ = pY[i];
+
+        if ( pY[i] < minY_ )
+            minY_ = pY[i];
+
         traceY_.push_back( pY[i] );
         events_.push_back( pE[i] );
         if ( pX )
@@ -115,4 +122,10 @@ Trace::getEventsArray() const
     if ( events_.empty() )
         return 0;
     return &events_[0];
+}
+
+std::pair<double, double>
+Trace::range_y() const
+{
+    return std::make_pair<double, double>( minY_, maxY_ );
 }

@@ -116,7 +116,9 @@ ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool /* yaxis2
         return;
 
     std::pair<double, double> xrange( pX[0], pX[ d.size() - 1 ] );
+    std::pair<double, double> yrange = d.range_y();
     display_range_x( xrange );
+    display_range_y( yrange );
 
     adwidgets::ui::Trace trace = traces()[idx];
 

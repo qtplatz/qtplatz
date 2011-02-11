@@ -162,7 +162,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				OutputFile="$(OutDir)\adtxtfactoryd.dll"
+				OutputFile="$(OutDir)\adtxtfactory.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;C:\Boost/lib;&quot;$(ACE_ROOT)/lib&quot;"

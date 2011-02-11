@@ -83,6 +83,7 @@
 #include <adwidgets/trace.h>
 #include <adwidgets/colors.h>
 #include <adcontrols/massspectrum.h>
+#include <adcontrols/msproperty.h>
 #include <adcontrols/description.h>
 #include <adcontrols/massspectrometer.h>
 #include <adcontrols/datainterpreter.h>
@@ -96,6 +97,8 @@
 #include <cmath>
 #include <map>
 #include <adportable/fft.h>
+
+#include <fstream>
 
 using namespace Acquire;
 using namespace Acquire::internal;
@@ -564,8 +567,7 @@ AcquirePlugin::handle_monitor_activated(int)
 void
 AcquirePlugin::handleRButtonClick( double x, double y )
 {
-    (void)x;
-    (void)y;
+    handleRButtonRange( x, x, y, y );
 }
 
 void
@@ -599,6 +601,18 @@ AcquirePlugin::handleRButtonRange( double x1, double x2, double y1, double y2 )
                 adcontrols::MassSpectrum ms;
                 size_t idData = 0;
                 dataInterpreter.translate( ms, dbuf, spectrometer, idData++ );
+
+                std::ofstream of( "C:/InfiTOF/recent_data.txt" );
+
+                const adcontrols::MSProperty& prop = ms.getMSProperty();
+                unsigned long ps = prop.instSamplingInterval();  // pico-seconds
+                unsigned long ndelay = prop.instSamplingStartDelay();
+
+                const double * msArray = ms.getMassArray();
+                const double * intArray = ms.getIntensityArray();
+                size_t nData = ms.size();
+                for ( size_t i = 0; i < nData; ++i )
+                    of << std::setprecision( 15 ) << ( double( ndelay + i ) * ps ) / 1.0e-6 << "\t" << msArray[i] << "\t" << intArray[i] << std::endl;
 
             } catch ( std::exception& ex ) {
                 QMessageBox::critical( 0, "acquireplugin::handleRButtonRange", ex.what() );
