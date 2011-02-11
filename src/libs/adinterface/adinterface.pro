@@ -58,3 +58,6 @@ GENERATED_FILES += global_constantsC.cpp \
 	receiverS.cpp \
 	samplebrokerC.cpp \
 	signalobserverS.cpp
+
+OTHER_FILES += \
+    brokertoken.idl

@@ -286,14 +286,6 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
                 connect( traceBox_, SIGNAL( currentIndexChanged(int) ), this, SLOT( handle_monitor_selected(int) ) );
                 connect( traceBox_, SIGNAL( activated(int) ), this, SLOT( handle_monitor_activated(int) ) );
                 toolBarLayout->addWidget( traceBox_ );
-
-                /*
-                toolBarLayout->addWidget( new QLabel( tr("AA") ) );
-                toolBarLayout->addWidget( new Utils::StyledSeparator );
-                toolBarLayout->addWidget( new QLabel( tr("BB") ) );
-                toolBarLayout->addWidget( new Utils::StyledSeparator );
-                toolBarLayout->addWidget( new QLabel( tr("CC") ) );
-                */
                 toolBarLayout->addWidget( new QLabel( tr("  ") ), 10 );
             }
             toolBarLayout->addWidget( new Utils::StyledSeparator );
@@ -323,6 +315,9 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
             splitter3->addWidget( pImpl_->timePlot_ );
             splitter3->addWidget( pImpl_->spectrumPlot_ );
             splitter3->setOrientation( Qt::Vertical );
+
+            connect( pImpl_->timePlot_, SIGNAL( signalRButtonClick( double, double ) ), this, SLOT( handleRButtonClick( double, double ) ) );
+            connect( pImpl_->timePlot_, SIGNAL( signalRButtonRange( double, double, double, double ) ), this, SLOT( handleRButtonRange( double, double, double, double ) ) );
         }
 
         QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
@@ -499,10 +494,6 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 {
     ACE_UNUSED_ARG( pos );
 
-#if defined _DEBUG
-    qDebug() << "AcquirePlugin::handle_update_data(" << objId << ", " << pos << ")";
-#endif
-
     SignalObserver::Observer_var tgt = observer_->findObserver( objId, true );
     if ( CORBA::is_nil( tgt.in() ) )
         return;
@@ -568,6 +559,52 @@ AcquirePlugin::handle_monitor_selected(int)
 void
 AcquirePlugin::handle_monitor_activated(int)
 {
+}
+
+void
+AcquirePlugin::handleRButtonClick( double x, double y )
+{
+    (void)x;
+    (void)y;
+}
+
+void
+AcquirePlugin::handleRButtonRange( double x1, double x2, double y1, double y2 )
+{
+    (void)x1; (void)x2; (void)y1; (void)y2;
+
+    if ( CORBA::is_nil( observer_ ) )
+        return;
+
+    SignalObserver::Observers_var siblings = observer_->getSiblings();
+    size_t nsize = siblings->length();
+
+    unsigned long long t1 = x1 * 60 * 1000 * 1000; // us
+
+    for ( size_t i = 0; i < nsize; ++i ) {
+        SignalObserver::Description_var desc = siblings[i]->getDescription();
+
+        if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
+            SignalObserver::Observer_var tgt = siblings[i];
+
+            SignalObserver::DataReadBuffer_var dbuf;
+            // todo: need calculate time to pos -- posFromTime() does not implement yet
+            tgt->readData( tgt->posFromTime( t1 ), dbuf );
+
+            CORBA::WString_var name = tgt->dataInterpreterClsid();
+
+            try {
+                const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() ); // L"InfiTOF"
+                const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
+                adcontrols::MassSpectrum ms;
+                size_t idData = 0;
+                dataInterpreter.translate( ms, dbuf, spectrometer, idData++ );
+
+            } catch ( std::exception& ex ) {
+                QMessageBox::critical( 0, "acquireplugin::handleRButtonRange", ex.what() );
+            }
+        }
+    }
 }
 
 Q_EXPORT_PLUGIN( AcquirePlugin )

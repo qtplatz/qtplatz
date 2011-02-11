@@ -8,6 +8,7 @@
 //////////////////////////////////////////
 
 interface LogHandler;
+interface BrokerEventSink;
 
 module Broker {
 
@@ -28,7 +29,7 @@ module Broker {
     };
 
     interface Session {
-        boolean connect( in string user, in string pass, in string token );
+        boolean connect( in string user, in string pass, in string token, in BrokerEventSink cb );
         ChemicalFormula getChemicalFormula();
     };
 

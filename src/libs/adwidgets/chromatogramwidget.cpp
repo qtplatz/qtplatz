@@ -231,3 +231,14 @@ ChromatogramWidget::setAnnotations( const adcontrols::Peaks& peaks, Trace& trace
     annos.decimalsX( 3 );
 }
 
+void
+ChromatogramWidget::OnRButtonClick( double x, double y )
+{
+    emit signalRButtonClick( x, y );
+}
+
+void
+ChromatogramWidget::OnRButtonRange( double x1, double x2, double y1, double y2 )
+{
+    emit signalRButtonRange( x1, x2, y1, y2 );
+}

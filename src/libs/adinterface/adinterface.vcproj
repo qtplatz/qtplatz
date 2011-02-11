@@ -184,6 +184,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\brokereventC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\brokereventS.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\brokerS.cpp"
 				>
 			</File>
@@ -271,6 +279,14 @@
 			>
 			<File
 				RelativePath=".\brokerC.h"
+				>
+			</File>
+			<File
+				RelativePath=".\brokereventC.h"
+				>
+			</File>
+			<File
+				RelativePath=".\brokereventS.h"
 				>
 			</File>
 			<File
@@ -536,6 +552,28 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\brokerevent.idl"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>

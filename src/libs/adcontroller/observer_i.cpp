@@ -238,6 +238,12 @@ observer_i::dataInterpreterClsid (void)
 	return 0;
 }
 
+CORBA::Long
+observer_i::posFromTime( CORBA::ULongLong usec )
+{
+    return -1;
+}
+
 namespace adcontroller {
 
 	namespace internal {

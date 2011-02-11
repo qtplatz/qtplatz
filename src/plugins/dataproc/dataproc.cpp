@@ -31,7 +31,6 @@
 #     pragma comment(lib, "adutilsd.lib")     // static
 #     pragma comment(lib, "acewrapperd.lib")  // static
 #     pragma comment(lib, "qtwrapperd.lib")   // static
-#     pragma comment(lib, "ACEd.lib")         // dll
 #     pragma comment(lib, "QAxContainerd.lib")
 #     pragma comment(lib, "xmlwrapperd.lib")  // static
 #     pragma comment(lib, "portfoliod.lib")   // dll
@@ -44,9 +43,31 @@
 #     pragma comment(lib, "adutils.lib")      // static
 #     pragma comment(lib, "acewrapper.lib")
 #     pragma comment(lib, "qtwrapper.lib")
-#     pragma comment(lib, "ACE.lib")
 #     pragma comment(lib, "QAxContainer.lib")
 #     pragma comment(lib, "xmlwrapper.lib")
 #     pragma comment(lib, "portfolio.lib")
 #     pragma comment(lib, "adutils.lib")
 #endif
+
+#  if defined _DEBUG
+#     pragma comment(lib, "ACEd.lib")
+#     pragma comment(lib, "TAOd.lib")
+#     pragma comment(lib, "TAO_Utilsd.lib")
+#     pragma comment(lib, "TAO_PId.lib")
+#     pragma comment(lib, "TAO_PortableServerd.lib")
+#     pragma comment(lib, "TAO_AnyTypeCoded.lib")
+#     pragma comment(lib, "adcontrollerd.lib")
+#     pragma comment(lib, "adbrokerd.lib")
+#     pragma comment(lib, "adinterfaced.lib")
+#  else
+#     pragma comment(lib, "ACE.lib")
+#     pragma comment(lib, "TAO.lib")
+#     pragma comment(lib, "TAO_Utils.lib")
+#     pragma comment(lib, "TAO_PI.lib")
+#     pragma comment(lib, "TAO_PortableServer.lib")
+#     pragma comment(lib, "TAO_AnyTypeCode.lib")
+#     pragma comment(lib, "adcontroller.lib")
+#     pragma comment(lib, "adbroker.lib")
+#     pragma comment(lib, "adinterface.lib")
+#  endif
+

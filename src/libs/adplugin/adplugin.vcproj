@@ -225,6 +225,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\qbrokersessionevent.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\qobserverevents_i.cpp"
 				>
 			</File>
@@ -407,6 +411,32 @@
 				>
 			</File>
 			<File
+				RelativePath=".\qbrokersessionevent.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\orbsvcs&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\debug&quot; &quot;-Ic:\Boost\include\boost-1_43&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; -D_WINDLL -D_WINDOWS -DADPLUGIN_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DUNICODE -DWIN32 -DWITH_TESTS&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\orbsvcs&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\debug&quot; &quot;-Ic:\Boost\include\boost-1_43&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; -D_WINDLL -D_WINDOWS -DADPLUGIN_LIBRARY -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_DLL -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DUNICODE -DWIN32&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\qobserverevents_i.h"
 				>
 				<FileConfiguration
@@ -494,6 +524,18 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\Debug\moc_qbrokersessionevent.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath=".\Debug\moc_qobserverevents_i.cpp"
 					>
 					<FileConfiguration
@@ -537,6 +579,18 @@
 				</File>
 				<File
 					RelativePath=".\Release\moc_imonitor.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Release\moc_qbrokersessionevent.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"

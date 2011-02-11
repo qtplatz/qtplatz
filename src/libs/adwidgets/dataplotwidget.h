@@ -68,6 +68,10 @@ namespace adwidgets {
             virtual void OnKillFocus( long hWnd );
             virtual void OnMouseDblClk( double x, double y, short button );
 
+        protected:
+            virtual void OnRButtonClick( double /* x */, double /* y */ ) { /* do nothing */ }
+            virtual void OnRButtonRange( double /* x1 */, double /* x2 */, double /* y1 */, double /* y2 */ ) { /* do nothing */ }
+
         public:
             const std::pair<double, double>& display_range_x() const;
             const std::pair<double, double>& display_range_y() const;
@@ -83,9 +87,6 @@ namespace adwidgets {
         public slots:
             virtual void handleZoomXY( double x1, double y1, double x2, double y2 );
             virtual void handleZoomXAutoscaleY( double x1, double x2 );
-
-            virtual void handleOnRButtonClick( double /* x */, double /* y */ ) { /* do nothing */ }
-            virtual void handleOnRButtonRange( double /* x1 */, double /* x2 */, double /* y1 */, double /* y2 */ ) { /* do nothing */ }
 
         protected slots:
 

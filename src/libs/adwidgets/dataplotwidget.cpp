@@ -388,9 +388,9 @@ internal::DataplotWidgetImpl::OnRButtonUp( double x, double y )
     ::GetCursorPos(&pt);
 
 	if (( capturePt_.x == pt.x) && ( capturePt_.y == pt.y))
-        widget_.handleOnRButtonClick(x, y); //, bShift, bControl);
+        widget_.OnRButtonClick(x, y); //, bShift, bControl);
 	else
-        widget_.handleOnRButtonRange( captureXY_.first, x, captureXY_.second, y );
+        widget_.OnRButtonRange( captureXY_.first, x, captureXY_.second, y );
 }
 
 void

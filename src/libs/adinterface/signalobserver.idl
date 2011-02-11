@@ -146,6 +146,7 @@ module SignalObserver {
         // IOR ifor CORBA Object
         // or internal C++ class name that is core software can handle
         wstring dataInterpreterClsid();
+        long posFromTime( in unsigned long long usec );
    };
     
 };

@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -41,6 +37,11 @@
 #pragma warning(default:4996)
 
 /////////////////
+
+namespace adplugin {
+    class QBrokerSessionEvent;
+}
+
 namespace servant {
 
     class OutputWindow;
@@ -49,7 +50,6 @@ namespace servant {
     namespace internal {
         
         class ServantPluginImpl;
-
         ///////////////////////////////////////////////////////////
         class LogHandler_i : public POA_LogHandler {
             ServantPluginImpl& impl_;
@@ -70,7 +70,7 @@ namespace servant {
             void debug_print( CORBA::Long pri, CORBA::Long cat, const char * text );
         };
 
-        ////
+        ///////////////////////////////////////////////////////////
         class ServantPluginImpl : public QObject {
             Q_OBJECT
 

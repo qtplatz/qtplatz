@@ -51,14 +51,18 @@ namespace adwidgets {
             void setData( const adcontrols::Chromatogram& );
 
         signals:
+            void signalRButtonClick( double x, double y );
+            void signalRButtonRange( double x1, double x2, double y1, double y2 );
 
         public slots:
-
 
         private:
 			void setData( const adcontrols::Chromatogram&, int idx, bool yaxis2 = false );
             void setPeaks( const adcontrols::Peaks&, const adcontrols::Baselines&, Trace& );
             void setAnnotations( const adcontrols::Peaks&, Trace& );
+            //
+            virtual void OnRButtonClick( double x , double y );
+            virtual void OnRButtonRange( double x1, double x2, double y1, double y2 );
         };
     }
 }

@@ -70,7 +70,7 @@ ServantPluginImpl::init_debug_adbroker( ServantPlugin * )
 
         do {
             Broker::Session_var broker = manager_->getSession( L"debug" );
-            broker->connect( "user", "pass", "debug" );
+            broker->connect( "user", "pass", "debug", 0 );
         } while(0);
 
 		connect( this, SIGNAL( signal_notify_update( unsigned long ) )

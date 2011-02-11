@@ -71,6 +71,12 @@
 #include <adplugin/adplugin.h>
 #include <adportable/debug.h>
 
+#include <acewrapper/constants.h>
+#include <acewrapper/brokerhelper.h>
+#include <adplugin/orbmanager.h>
+#include <adplugin/manager.h>
+#include <adinterface/brokerC.h>
+
 using namespace dataproc::internal;
 
 DataprocPlugin * DataprocPlugin::instance_ = 0;
@@ -318,11 +324,16 @@ DataprocPlugin::handleFeatureActivated( int value )
     currentFeature_ = static_cast< ProcessType >( value );
 }
 
-
 void
 DataprocPlugin::extensionsInitialized()
 {
     manager_->OnInitialUpdate();
+    // getBrokerManager
+    do {
+        std::string ior = adplugin::manager::instance()->ior( acewrapper::constants::adbroker::manager::_name() );
+        CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
+        Broker::Manager_var brkMgr = acewrapper::brokerhelper::getManager( orb, ior );      
+    } while(0);
 }
 
 void

@@ -22,18 +22,21 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
 #pragma warning (disable: 4996)
 # include "adinterface/brokerS.h"
+# include "adinterface/brokereventC.h"
 #pragma warning (default: 4996)
 
+#include <vector>
+
 namespace adbroker {
+
+	namespace internal {
+        struct event_sink;
+	}
 
     class session_i : public POA_Broker::Session {
         PortableServer::ObjectId oid_;
@@ -43,10 +46,18 @@ namespace adbroker {
 
         session_i(void);
         ~session_i(void);
-        bool connect( const char * user, const char * pass, const char * token );
+        bool connect( const char * user, const char * pass, const char * token, BrokerEventSink_ptr );
         Broker::ChemicalFormula_ptr getChemicalFormula();
+
     private:
         Broker::ChemicalFormula_var chemicalFormula_;
+
+        typedef std::vector<internal::event_sink> event_sink_vector_type;
+
+        event_sink_vector_type event_sink_set_;
+        inline event_sink_vector_type::iterator begin() { return event_sink_set_.begin(); };
+		inline event_sink_vector_type::iterator end()   { return event_sink_set_.end(); };
+
     };
 
 }

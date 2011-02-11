@@ -63,6 +63,7 @@ namespace adcontroller {
 		virtual void uptime ( ::CORBA::ULongLong_out usec );
 		virtual ::CORBA::Boolean readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer);
 		virtual ::CORBA::WChar * dataInterpreterClsid (void);
+        virtual ::CORBA::Long posFromTime( ::CORBA::ULongLong usec );
 		/// <-- end implementation ---
         //--------------------------------------------
         void populate_siblings();
