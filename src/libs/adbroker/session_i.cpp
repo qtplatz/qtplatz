@@ -41,6 +41,7 @@ namespace adbroker {
             }
             BrokerEventSink_var sink_;
 			std::string token_;
+            std::string user_;
             event_sink() {}
             event_sink( const event_sink& t ) : sink_( t.sink_ )
                                               , token_( t.token_ ) {
@@ -65,9 +66,7 @@ session_i::~session_i(void)
 bool
 session_i::connect( const char * user, const char * pass, const char * token, BrokerEventSink_ptr cb )
 {
-    ACE_UNUSED_ARG( user );
     ACE_UNUSED_ARG( pass );
-    ACE_UNUSED_ARG( token );
 
     adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
     if ( pTask ) {
@@ -75,9 +74,23 @@ session_i::connect( const char * user, const char * pass, const char * token, Br
             internal::event_sink sink;
             sink.sink_ = BrokerEventSink::_duplicate( cb );
             sink.token_ = token;
+            sink.user_ = user;
             event_sink_set_.push_back( sink );
         }
 		return true;
+    }
+    return false;
+}
+
+bool
+session_i::disconnect( BrokerEventSink_ptr cb )
+{
+    if ( ! CORBA::is_nil( cb ) ) {
+        event_sink_vector_type::iterator it = std::find( event_sink_set_.begin(), event_sink_set_.end(), cb );
+        if ( it != event_sink_set_.end() ) {
+            event_sink_set_.erase( it );
+            return true;
+        }
     }
     return false;
 }
@@ -100,4 +113,10 @@ session_i::getChemicalFormula()
         }
     }
     return 0;
+}
+
+bool
+session_i::addSpectrum( const CORBA::Any& rdbuf )
+{
+    return false;
 }

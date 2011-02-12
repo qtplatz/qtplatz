@@ -47,7 +47,10 @@ namespace adbroker {
         session_i(void);
         ~session_i(void);
         bool connect( const char * user, const char * pass, const char * token, BrokerEventSink_ptr );
+        bool disconnect( BrokerEventSink_ptr );
+
         Broker::ChemicalFormula_ptr getChemicalFormula();
+        bool addSpectrum( const CORBA::Any& a );
 
     private:
         Broker::ChemicalFormula_var chemicalFormula_;

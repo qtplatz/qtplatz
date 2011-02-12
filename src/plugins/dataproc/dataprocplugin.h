@@ -30,9 +30,14 @@
 #include <vector>
 
 class QAction;
+class QBrokerSessionEvent;
 
 namespace adportable {
 	class Configuration;
+}
+
+namespace Broker {
+    class Session;
 }
 
 namespace dataproc {
@@ -58,7 +63,6 @@ namespace dataproc {
             SessionManager * getSessionManager();
 
             static DataprocPlugin * instance();
-            // std::vector< boost::shared_ptr< Dataprocessor > >& getDataprocessors();
 
         signals:
 
@@ -75,6 +79,9 @@ namespace dataproc {
             boost::shared_ptr<DataprocManager> manager_;
             boost::shared_ptr< adportable::Configuration > pConfig_;
             boost::scoped_ptr< SessionManager > pSessionManager_;
+
+            QBrokerSessionEvent * pBrokerSessionEvent_;
+            Broker::Session * brokerSession_;
 
             QAction * actionApply_;
             enum ProcessType currentFeature_;

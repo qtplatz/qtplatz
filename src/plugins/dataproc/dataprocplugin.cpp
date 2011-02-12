@@ -75,7 +75,10 @@
 #include <acewrapper/brokerhelper.h>
 #include <adplugin/orbmanager.h>
 #include <adplugin/manager.h>
-#include <adinterface/brokerC.h>
+#include <adplugin/qbrokersessionevent.h>
+
+#pragma warning(disable:4996)
+# include <adinterface/brokerC.h>
 
 using namespace dataproc::internal;
 
@@ -87,7 +90,9 @@ DataprocPlugin::~DataprocPlugin()
 
 DataprocPlugin::DataprocPlugin() : pSessionManager_( new SessionManager() )
                                  , actionApply_(0)
+                                 , brokerSession_(0) 
                                  , currentFeature_( CentroidProcess )
+                                 , pBrokerSessionEvent_( 0 )
 {
     instance_ = this;
 }
@@ -327,19 +332,40 @@ DataprocPlugin::handleFeatureActivated( int value )
 void
 DataprocPlugin::extensionsInitialized()
 {
-    manager_->OnInitialUpdate();
-    // getBrokerManager
     do {
-        std::string ior = adplugin::manager::instance()->ior( acewrapper::constants::adbroker::manager::_name() );
+        std::string ior = adplugin::manager::iorBroker();
         CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
-        Broker::Manager_var brkMgr = acewrapper::brokerhelper::getManager( orb, ior );      
+        Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, ior );
+        if ( ! CORBA::is_nil( mgr ) ) {
+            brokerSession_ = mgr->getSession( L"acquire" );
+            pBrokerSessionEvent_ = new QBrokerSessionEvent;
+            brokerSession_->connect( "-user-", "-password-", "dataproc", pBrokerSessionEvent_->_this() );
+        }
     } while(0);
+
+    manager_->OnInitialUpdate();
 }
 
 void
 DataprocPlugin::shutdown()
 {
     manager_->OnFinalClose();
+
+    if ( ! CORBA::is_nil( brokerSession_ ) ) {
+
+        brokerSession_->disconnect( pBrokerSessionEvent_->_this() );
+
+        // destruct event sink object -->
+        CORBA::release( pBrokerSessionEvent_->_this() ); // delete object reference
+        adplugin::ORBManager::instance()->deactivate( pBrokerSessionEvent_ );
+
+        delete pBrokerSessionEvent_;
+        pBrokerSessionEvent_ = 0;
+        // <-- end event sink desctruction
+
+        CORBA::release( brokerSession_ );
+        brokerSession_ = 0;
+    }
 }
 
 

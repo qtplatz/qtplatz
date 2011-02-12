@@ -38,8 +38,10 @@
 #include <adplugin/qobserverevents_i.h>
 #include <tao/Object.h>
 #include <ace/Singleton.h>
+#include <adcontroller/adcontroller.h>
+
 # pragma warning(disable:4996)
-# include <adcontroller/adcontroller.h>
+# include <adinterface/brokerC.h>
 # include <adinterface/controlserverC.h>
 # include <adinterface/receiverC.h>
 # include <adinterface/signalobserverC.h>
@@ -104,15 +106,18 @@ using namespace Acquire;
 using namespace Acquire::internal;
 
 namespace Acquire {
+
     namespace internal {
 
         class AcquireImpl {
         public:
             ~AcquireImpl() {
             }
-            AcquireImpl() : timePlot_(0)
-                , spectrumPlot_(0) {
+            AcquireImpl() : timePlot_(0), spectrumPlot_(0) {
             }
+
+            Broker::Session_var brokerSession_;
+
             std::map< std::wstring, adcontrols::Trace > traces_;
             adwidgets::ui::ChromatogramWidget * timePlot_;
             adwidgets::ui::SpectrumWidget * spectrumPlot_;
@@ -344,6 +349,12 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 void
 AcquirePlugin::extensionsInitialized()
 {
+    std::string ior = adplugin::manager::iorBroker();
+	CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
+    Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, ior );
+    if ( ! CORBA::is_nil( mgr ) )
+        pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
+
     manager_->OnInitialUpdate();
 }
 
@@ -598,21 +609,24 @@ AcquirePlugin::handleRButtonRange( double x1, double x2, double y1, double y2 )
             try {
                 const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() ); // L"InfiTOF"
                 const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
-                adcontrols::MassSpectrum ms;
-                size_t idData = 0;
-                dataInterpreter.translate( ms, dbuf, spectrometer, idData++ );
 
-                std::ofstream of( "C:/InfiTOF/recent_data.txt" );
+                do {
+                    adcontrols::MassSpectrum ms;
+                    size_t idData = 0;
+                    dataInterpreter.translate( ms, dbuf, spectrometer, idData++ );
 
-                const adcontrols::MSProperty& prop = ms.getMSProperty();
-                unsigned long ps = prop.instSamplingInterval();  // pico-seconds
-                unsigned long ndelay = prop.instSamplingStartDelay();
+                    std::ofstream of( "C:/InfiTOF/recent_data.txt" );
 
-                const double * msArray = ms.getMassArray();
-                const double * intArray = ms.getIntensityArray();
-                size_t nData = ms.size();
-                for ( size_t i = 0; i < nData; ++i )
-                    of << std::setprecision( 15 ) << ( double( ndelay + i ) * ps ) / 1.0e-6 << "\t" << msArray[i] << "\t" << intArray[i] << std::endl;
+                    const adcontrols::MSProperty& prop = ms.getMSProperty();
+                    unsigned long ps = prop.instSamplingInterval();  // pico-seconds
+                    unsigned long ndelay = prop.instSamplingStartDelay();
+
+                    const double * msArray = ms.getMassArray();
+                    const double * intArray = ms.getIntensityArray();
+                    size_t nData = ms.size();
+                    for ( size_t i = 0; i < nData; ++i )
+                        of << std::setprecision( 15 ) << ( double( ndelay + i ) * ps ) / 1.0e-6 << "\t" << msArray[i] << "\t" << intArray[i] << std::endl;
+                } while(0);
 
             } catch ( std::exception& ex ) {
                 QMessageBox::critical( 0, "acquireplugin::handleRButtonRange", ex.what() );

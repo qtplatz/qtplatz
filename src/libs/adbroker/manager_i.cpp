@@ -62,7 +62,7 @@ manager_i::getSession( const CORBA::WChar * token )
 
     CORBA::Object_ptr obj = poa->servant_to_reference( session_list_[ token ].get() );
     try {
-        return Broker::Session::_narrow( obj );
+        return Broker::Session::_narrow( obj ); // return new object, refcount should be 1
     } catch ( CORBA::Exception& ) {
         return 0;
     }

@@ -30,6 +30,10 @@ QBrokerSessionEvent::QBrokerSessionEvent(QObject *parent) :
 {
 }
 
+QBrokerSessionEvent::~QBrokerSessionEvent()
+{
+}
+
 void
 QBrokerSessionEvent::message( const char * )
 {

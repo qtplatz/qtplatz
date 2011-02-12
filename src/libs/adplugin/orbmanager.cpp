@@ -57,6 +57,19 @@ ORBManager::deactivate( CORBA::Object_ptr obj )
     return true;
 }
 
+bool
+ORBManager::deactivate( PortableServer::ServantBase * p_servant )
+{
+    try {
+        PortableServer::ObjectId_var object_id = poa_->servant_to_id( p_servant );
+        poa_->deactivate_object( object_id );
+    } catch ( CORBA::Exception& ex ) {
+        adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
+        return false;
+    }
+    return true;
+}
+
 CORBA::Object_ptr
 ORBManager::string_to_object( const std::string& ior )
 {

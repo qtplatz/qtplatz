@@ -41,6 +41,7 @@ class ADPLUGINSHARED_EXPORT QBrokerSessionEvent : public QObject, public POA_Bro
     Q_OBJECT
 public:
     explicit QBrokerSessionEvent(QObject *parent = 0);
+    ~QBrokerSessionEvent();
     
     virtual void message( const char * );
 

@@ -52,6 +52,7 @@ namespace adplugin {
         Q_OBJECT
     public:
         explicit QReceiver_i(QObject *parent = 0);
+        ~QReceiver_i();
 
         virtual void message(::Receiver::eINSTEVENT msg, ::CORBA::ULong value );
         virtual void log( const ::EventLog::LogMessage & log );

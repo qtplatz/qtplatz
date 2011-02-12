@@ -30,7 +30,10 @@ module Broker {
 
     interface Session {
         boolean connect( in string user, in string pass, in string token, in BrokerEventSink cb );
+        boolean disconnect( in BrokerEventSink cb );
+
         ChemicalFormula getChemicalFormula();
+        boolean addSpectrum( in any a );
     };
 
     interface Logger {

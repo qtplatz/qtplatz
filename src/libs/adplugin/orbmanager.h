@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -57,6 +53,7 @@ namespace adplugin {
         PortableServer::POA_ptr poa();
 		CORBA::Object_ptr string_to_object( const std::string& ior );
         bool deactivate( CORBA::Object_ptr );
+        bool deactivate( PortableServer::ServantBase * );
 
         static ORBManager * instance();
 

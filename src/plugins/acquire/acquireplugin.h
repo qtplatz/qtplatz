@@ -108,7 +108,7 @@ namespace Acquire {
             ControlServer::Session_var session_;
             SignalObserver::Observer_var observer_;
             // for quick debug, to be removed
-            SignalObserver::Observer_var tofCache_;
+            // SignalObserver::Observer_var tofCache_;
             // <--
             boost::scoped_ptr< adplugin::QReceiver_i > receiver_i_;
             boost::scoped_ptr< adplugin::QObserverEvents_i > observer_i_;

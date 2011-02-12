@@ -71,7 +71,7 @@ namespace dataproc {
             void handleApplyMethod();
 
         private:
-            boost::shared_ptr<DataprocManagerImpl> pImpl_;
+            boost::scoped_ptr<DataprocManagerImpl> pImpl_;
         };
 
     }
