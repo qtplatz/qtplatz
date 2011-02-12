@@ -6,6 +6,7 @@ SUBDIRS   = \
     adbroker \
     adcontroller \
     adcontrols \
+    addatafile \
     adinterface \
     adplugin \
     adportable \

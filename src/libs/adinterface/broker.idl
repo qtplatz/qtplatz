@@ -27,6 +27,17 @@ module Broker {
         sequence< wstring > args;
     };
 
+    struct Attr {
+        wstring key;
+        wstring value;
+    };
+
+    struct Folium {
+        wstring path;
+        sequence< Attr > attrs;
+        any data;
+    };
+
     interface ChemicalFormula {
         double getMonoIsotopicMass( in wstring formula );
         double getChemicalMass( in wstring formula );
@@ -39,6 +50,7 @@ module Broker {
         ChemicalFormula getChemicalFormula();
 
         boolean addSpectrum( in SignalObserver::Observer observer, in double x1, in double x2 );
+        Folium folium( in wstring token, in wstring fileId );
     };
 
     interface Logger {

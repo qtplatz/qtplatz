@@ -1,7 +1,27 @@
-//////////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison Project
-//////////////////////////////////////////////
+// -*- C++ -*-
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this
+** file in accordance with the ScienceLiaison Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 #include "task.h"
 #include <acewrapper/mutex.hpp>
@@ -10,14 +30,44 @@
 #include <sstream>
 #include <acewrapper/timeval.h>
 #include <iostream>
+#include <adcontrols/massspectrum.h>
+#include <adcontrols/massspectrometer.h>
+#include <adcontrols/datainterpreter.h>
+//--
+#include <portfolio/portfolio.h>
+#include <portfolio/folder.h>
+#include <portfolio/folium.h>
 
 #pragma warning(disable:4996)
 # include <ace/Reactor.h>
 # include <ace/Thread_Manager.h>
-# include <adinterface/receiverC.h>
+# include <adinterface/signalobserverC.h>
 #pragma warning(default:4996)
 
 using namespace adbroker;
+
+namespace adbroker {
+    namespace internal {
+ 
+        struct portfolio_created {
+            std::wstring token;
+            portfolio_created( const std::wstring& tok ) : token( tok ) {}
+            void operator () ( Task::session_data& d ) const {
+                d.receiver_->portfolio_created( token.c_str() );
+            }
+        };
+        //--------------------------
+        struct folium_added {
+            std::wstring token_;
+            std::wstring path_;
+            std::wstring id_;
+            folium_added( const std::wstring& tok, const std::wstring& path, const std::wstring id ) : token_( tok ), path_(path), id_(id) {}
+            void operator () ( Task::session_data& d ) const {
+                d.receiver_->folium_added( token_.c_str(), path_.c_str(), id_.c_str() );
+            }
+        };
+    }
+}
 
 Task::~Task()
 {
@@ -163,8 +213,34 @@ Task::svc()
 }
 
 void
-do_addSpectrum( SignalObserver::Observer_ptr observer, double x1, double x2 )
+do_addSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_ptr observer, double x1, double x2 )
 {
+    SignalObserver::Description_var desc = observer->getDescription();
+    CORBA::WString_var clsid = observer->dataInterpreterClsid();
+
+    long pos = observer->posFromTime( unsigned long long( x1 * 60 * 1000 * 1000 ) ); // us
+    long pos2 = observer->posFromTime( unsigned long long( x2 * 60 * 1000 * 1000 ) ); // us
+
+
+    adcontrols::MassSpectrum ms;
+    SignalObserver::DataReadBuffer_var dbuf;
+
+    if ( observer->readData( pos, dbuf ) ) {
+        try {
+            const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( clsid.in() ); // L"InfiTOF"
+            const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
+            if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
+                size_t idData = 0;
+                adcontrols::MassSpectrum ms;
+                dataInterpreter.translate( ms, dbuf, spectrometer, idData++ );
+            }
+        } catch ( std::exception& ex ) {
+            std::cerr << ex.what() << std::endl;
+            return;
+        }
+        ++pos;
+    }
+    pTask->internal_addSpectrum( token, ms );
 }
 
 void
@@ -174,7 +250,8 @@ Task::doit( ACE_Message_Block * mblk )
 
     TAO_InputCDR cdr( mblk );
 
-    CORBA::WString_var msg;
+    CORBA::WString_var msg, token;
+    cdr >> token;
     cdr >> msg;
     if ( std::wstring( msg ) == L"addSpectrum" ) {
         SignalObserver::Observer_ptr observer;
@@ -182,7 +259,41 @@ Task::doit( ACE_Message_Block * mblk )
         cdr >> observer;
         cdr >> x1;
         cdr >> x2;
-        do_addSpectrum( observer, x1, x2 );
+        if ( CORBA::is_nil( observer ) ) {
+#if defined _DEBUG
+            adcontrols::MassSpectrum ms;
+            internal_addSpectrum( std::wstring(token), ms );
+#endif
+            return;
+        }
+        do_addSpectrum( this, token, observer, x1, x2 );
     }
 }
 
+portfolio::Portfolio&
+Task::getPortfolio( const std::wstring& token )
+{
+    std::map< std::wstring, boost::shared_ptr<portfolio::Portfolio> >::iterator it = portfolioVec_.find( token );
+    if ( it == portfolioVec_.end() ) {
+        portfolioVec_[ token ] = boost::shared_ptr<portfolio::Portfolio>( new portfolio::Portfolio );
+        portfolioVec_[ token ]->create_with_fullpath( token );
+
+        std::for_each( session_set_.begin(), session_set_.end(), internal::portfolio_created( token ) );
+    }
+    return *portfolioVec_[ token ];
+}
+
+void
+Task::internal_addSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& ms )
+{
+    portfolio::Portfolio& portfolio = getPortfolio( token );
+
+    portfolio::Folder folder = portfolio.addFolder( L"MassSpectra" );
+    portfolio::Folium folium = folder.addFolium( L"MassSpectrum" );
+    std::wstring id = folium.id();
+  
+    for ( vector_type::iterator it = session_set_.begin(); it != session_set_.end(); ++it ) {
+        it->receiver_->message( "addSpectrum" );
+        std::for_each( session_set_.begin(), session_set_.end(), internal::folium_added( token, L"path", id ) );
+    }
+}

@@ -57,6 +57,7 @@ namespace dataproc {
         ~Dataprocessor();
         Dataprocessor();
 
+        bool create( const QString& token );
         bool open( const QString& );
         Core::IFile * ifile();
 
@@ -67,6 +68,7 @@ namespace dataproc {
         void setCurrentSelection( portfolio::Folium& );
         void applyProcess( const adcontrols::ProcessMethod& );
         void applyCalibration( const adcontrols::ProcessMethod& );
+        void addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
 
         // implement adcontrols::dataSubscriber
         virtual void subscribe( adcontrols::LCMSDataset& );

@@ -44,7 +44,7 @@ namespace adbroker {
         void oid( const PortableServer::ObjectId& oid ) { oid_ = oid; }
         const PortableServer::ObjectId& oid() { return oid_; }
 
-        session_i(void);
+        session_i( const wchar_t * token = 0 );
         ~session_i(void);
         // implement POA_Broker::Session -->
         virtual bool connect( const char * user, const char * pass, const char * token, BrokerEventSink_ptr );
@@ -52,9 +52,12 @@ namespace adbroker {
 
         virtual Broker::ChemicalFormula_ptr getChemicalFormula();
         virtual bool addSpectrum ( SignalObserver::Observer_ptr observer, double x1, double x2);
+        virtual Broker::Folium * folium( const CORBA::WChar * token, const CORBA::WChar * fileId );
         // <---------------------------------
 
     private:
+        std::wstring token_;
+
         Broker::ChemicalFormula_var chemicalFormula_;
 
         typedef std::vector<internal::event_sink> event_sink_vector_type;

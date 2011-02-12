@@ -330,6 +330,31 @@ DataprocPlugin::handleFeatureActivated( int value )
 }
 
 void
+DataprocPlugin::handle_portfolio_created( const QString token )
+{
+    // simulate file->open()
+    boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
+    if ( processor->create( token ) ) {
+        SessionManager::instance()->addDataprocessor( processor );
+    }
+}
+
+void
+DataprocPlugin::handle_folium_added( const QString token, const QString path, const QString id )
+{
+    SessionManager::vector_type::iterator it = SessionManager::instance()->find( qtwrapper::wstring( token ) );
+    if ( it != SessionManager::instance()->end() ) {
+        
+        Broker::Folium_var any = brokerSession_->folium( qtwrapper::wstring( token ).c_str(), qtwrapper::wstring( id ).c_str() );
+
+        Dataprocessor& processor = it->getDataprocessor();
+        adcontrols::MassSpectrum ms;
+        adcontrols::ProcessMethod m;
+        processor.addSpectrum( ms, m );
+    }
+}
+
+void
 DataprocPlugin::extensionsInitialized()
 {
     do {
@@ -340,6 +365,8 @@ DataprocPlugin::extensionsInitialized()
             brokerSession_ = mgr->getSession( L"acquire" );
             pBrokerSessionEvent_ = new QBrokerSessionEvent;
             brokerSession_->connect( "-user-", "-password-", "dataproc", pBrokerSessionEvent_->_this() );
+            connect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) ), this, SLOT(handle_portfolio_created( const QString )) );
+            connect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) ), this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
         }
     } while(0);
 
@@ -354,6 +381,8 @@ DataprocPlugin::shutdown()
     if ( ! CORBA::is_nil( brokerSession_ ) ) {
 
         brokerSession_->disconnect( pBrokerSessionEvent_->_this() );
+        disconnect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) ), this, SLOT(handle_portfolio_created( const QString )) );
+        disconnect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) ), this, SLOT(handle_folim_added( const QString, const QString, const QString )) );
 
         // destruct event sink object -->
         CORBA::release( pBrokerSessionEvent_->_this() ); // delete object reference

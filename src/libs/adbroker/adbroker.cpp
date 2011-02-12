@@ -19,6 +19,7 @@
 #     pragma comment(lib, "adportabled.lib")
 #     pragma comment(lib, "acewrapperd.lib")
 #     pragma comment(lib, "adcontrolsd.lib")
+#     pragma comment(lib, "portfoliod.lib")
 #  else
 #     pragma comment(lib, "TAO_Utils.lib")
 #     pragma comment(lib, "TAO_PI.lib")
@@ -30,6 +31,7 @@
 #     pragma comment(lib, "adportable.lib")
 #     pragma comment(lib, "acewrapper.lib")
 #     pragma comment(lib, "adcontrols.lib")
+#     pragma comment(lib, "portfolio.lib")
 #  endif
 
 #pragma warning (disable: 4996)

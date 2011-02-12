@@ -23,9 +23,22 @@
 **
 **************************************************************************/
 
+#pragma once
 
-interface BrokerEventSink {
-    oneway void message( in string message ); // send message to client
-    oneway void portfolio_created( in wstring token );
-    oneway void folium_added( in wstring token, in wstring path, in wstring folderId );
-};
+#include <adcontrols/datafile_factory.h>
+
+namespace addatafile {
+
+    class datafile_factory : public adcontrols::datafile_factory {
+    public:
+        ~datafile_factory();
+        datafile_factory();
+
+        const std::wstring& name() const;
+        bool access( const std::wstring& filename ) const;
+        adcontrols::datafile * open( const std::wstring& filename, bool readonly ) const;
+        void close( adcontrols::datafile * );
+    };
+
+}
+

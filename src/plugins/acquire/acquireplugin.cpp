@@ -586,8 +586,12 @@ AcquirePlugin::handleRButtonRange( double x1, double x2, double y1, double y2 )
 {
     (void)x1; (void)x2; (void)y1; (void)y2;
 
-    if ( CORBA::is_nil( observer_ ) )
+    if ( CORBA::is_nil( observer_ ) ) {
+#if defined _DEBUG
+        pImpl_->brokerSession_->addSpectrum( 0, 0, 0 );
+#endif
         return;
+    }
 
     SignalObserver::Observers_var siblings = observer_->getSiblings();
     size_t nsize = siblings->length();

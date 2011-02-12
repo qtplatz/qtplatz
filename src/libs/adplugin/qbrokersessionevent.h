@@ -44,11 +44,13 @@ public:
     ~QBrokerSessionEvent();
     
     virtual void message( const char * );
-    virtual void addSpectrum( const wchar_t * name, const wchar_t * spectrometer, const wchar_t * id );
+    virtual void portfolio_created( const wchar_t * token );
+    virtual void folium_added( const wchar_t * token, const wchar_t * path, const wchar_t * folderId );
 
 signals:
     void signal_message( const QString );
-    void signal_addSpectrum( const QString, const QString, const QString );
+    void signal_portfolio_created( const QString );
+    void signal_folium_added( const QString, const QString, const QString );
 
 public slots:
 

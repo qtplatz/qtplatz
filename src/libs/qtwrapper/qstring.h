@@ -43,6 +43,7 @@ namespace qtwrapper {
         wstring() {}
         wstring( const QString& );
         inline operator std::wstring& () { return impl_; }
+        inline const wchar_t * c_str() const { return impl_.c_str(); }
         static std::wstring copy( const QString& );
     };
 

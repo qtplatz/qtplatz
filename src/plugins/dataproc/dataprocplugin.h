@@ -72,6 +72,8 @@ namespace dataproc {
         private slots:
             void handleFeatureSelected( int );
             void handleFeatureActivated( int );
+            void handle_portfolio_created( const QString token );
+            void handle_folium_added( const QString, const QString, const QString );
 
         private:
 

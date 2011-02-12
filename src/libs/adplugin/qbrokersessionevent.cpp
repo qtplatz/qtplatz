@@ -42,7 +42,13 @@ QBrokerSessionEvent::message( const char * msg )
 }
 
 void
-QBrokerSessionEvent::addSpectrum( const wchar_t * name, const wchar_t * spectrometer, const wchar_t * id )
+QBrokerSessionEvent::portfolio_created( const wchar_t * token )
 {
-    emit signal_addSpectrum( qtwrapper::qstring( name ), qtwrapper::qstring( spectrometer ), qtwrapper::qstring( id ) );
+    emit signal_portfolio_created( qtwrapper::qstring( token ) );
+}
+
+void
+QBrokerSessionEvent::folium_added( const wchar_t * token, const wchar_t * path, const wchar_t * id )
+{
+    emit signal_folium_added( qtwrapper::qstring( token ), qtwrapper::qstring( path ), qtwrapper::qstring( id ) );
 }

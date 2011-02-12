@@ -74,6 +74,19 @@ Dataprocessor::Dataprocessor() : portfolio_( new portfolio::Portfolio() )
 }
 
 bool
+Dataprocessor::create(const QString& token )
+{
+    adcontrols::datafile * file = adcontrols::datafile::open( qtwrapper::wstring::copy( token ), false );
+    if ( file ) {
+        datafileimpl_.reset( new datafileimpl( file ) );
+        file->accept( *datafileimpl_ );
+        file->accept( *this );
+        return true;
+    }
+    return false;
+}
+
+bool
 Dataprocessor::open(const QString &fileName )
 {
     adcontrols::datafile * file = adcontrols::datafile::open( qtwrapper::wstring::copy( fileName ), true );
@@ -251,6 +264,22 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
 
     SessionManager::instance()->updateDataprocessor( this, folium );
 }
+
+void
+Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrols::ProcessMethod& m )
+{
+    portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
+    portfolio::Folium folium = folder.addFolium( L"Spectrum" );
+
+    adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
+    static_cast<boost::any>( folium ) = ms;
+
+    for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
+        boost::apply_visitor( internal::doSpectralProcess( ms, folium ), *it );
+
+    SessionManager::instance()->updateDataprocessor( this, folium );
+}
+
 
 ///////////////////////////
 void

@@ -153,6 +153,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adtxtfactory", "src\libs\ad
 		{E55C6F64-C044-34F1-BBD7-94FD1BBEB742} = {E55C6F64-C044-34F1-BBD7-94FD1BBEB742}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "addatafile", "src\libs\addatafile\addatafile.vcproj", "{76998573-A4D7-3E33-A58F-B45C660E4040}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E55C6F64-C044-34F1-BBD7-94FD1BBEB742} = {E55C6F64-C044-34F1-BBD7-94FD1BBEB742}
+		{3314EBAC-8B48-319B-B093-3CBC77CA7FFF} = {3314EBAC-8B48-319B-B093-3CBC77CA7FFF}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -267,6 +273,10 @@ Global
 		{44281D1E-7BF2-3C4A-A530-CB0C6BB4A8C7}.Debug|Win32.Build.0 = Debug|Win32
 		{44281D1E-7BF2-3C4A-A530-CB0C6BB4A8C7}.Release|Win32.ActiveCfg = Release|Win32
 		{44281D1E-7BF2-3C4A-A530-CB0C6BB4A8C7}.Release|Win32.Build.0 = Release|Win32
+		{76998573-A4D7-3E33-A58F-B45C660E4040}.Debug|Win32.ActiveCfg = Debug|Win32
+		{76998573-A4D7-3E33-A58F-B45C660E4040}.Debug|Win32.Build.0 = Debug|Win32
+		{76998573-A4D7-3E33-A58F-B45C660E4040}.Release|Win32.ActiveCfg = Release|Win32
+		{76998573-A4D7-3E33-A58F-B45C660E4040}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

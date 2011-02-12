@@ -38,10 +38,19 @@
 #include <adinterface/brokerC.h>
 #include <adinterface/brokereventC.h>
 #include <vector>
+#include <map>
 
 class ACE_Recursive_Thread_Mutex;
 class ACE_Notification_Strategy;
 class ACE_Reactor;
+
+namespace adcontrols {
+    class MassSpectrum;
+}
+
+namespace portfolio {
+    class Portfolio;
+}
 
 namespace adbroker {
 
@@ -83,10 +92,15 @@ namespace adbroker {
         virtual int svc();
         // 
         void doit( ACE_Message_Block * );
-
         int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );
+
+    public:
+        void internal_addSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& );
+
     private:
         friend class BrokerManager;
+
+        portfolio::Portfolio& getPortfolio( const std::wstring& token );
 
         ACE_Recursive_Thread_Mutex mutex_;
         ACE_Barrier barrier_;
@@ -95,6 +109,8 @@ namespace adbroker {
         bool internal_disconnect( Broker::Session_ptr );
         std::vector<session_data> session_set_;
         std::vector<session_data> session_failed_;
+
+        std::map< std::wstring, boost::shared_ptr< portfolio::Portfolio > > portfolioVec_;
     };
 
 

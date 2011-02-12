@@ -23,9 +23,37 @@
 **
 **************************************************************************/
 
+#include "addatafile.h"
 
-interface BrokerEventSink {
-    oneway void message( in string message ); // send message to client
-    oneway void portfolio_created( in wstring token );
-    oneway void folium_added( in wstring token, in wstring path, in wstring folderId );
-};
+#  if defined _DEBUG
+#     pragma comment(lib, "adcontrolsd.lib")
+#     pragma comment(lib, "adportabled.lib")
+#     pragma comment(lib, "xmlwrapperd.lib")
+#     pragma comment(lib, "portfoliod.lib")
+#  else
+#     pragma comment(lib, "adcontrols.lib")
+#     pragma comment(lib, "adportable.lib")
+#     pragma comment(lib, "xmlwrapper.lib")
+#     pragma comment(lib, "portfolio.lib")
+#  endif
+
+#include "datafile_factory.h"
+
+#define BOOST_LIB_NAME boost_filesystem
+#include <boost/config/auto_link.hpp>
+
+
+namespace adcontrols {
+    class datafile_factory;
+}
+
+extern "C" {
+    __declspec(dllexport) adcontrols::datafile_factory * datafile_factory();
+}
+
+adcontrols::datafile_factory *
+datafile_factory()
+{
+    return new addatafile::datafile_factory();
+}
+

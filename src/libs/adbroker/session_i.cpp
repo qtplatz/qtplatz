@@ -54,9 +54,7 @@ namespace adbroker {
 
 using namespace adbroker;
 
-
-
-session_i::session_i(void)
+session_i::session_i( const wchar_t * token ) : token_(token)
 {
 }
 
@@ -77,6 +75,7 @@ session_i::connect( const char * user, const char * pass, const char * token, Br
             sink.token_ = token;
             sink.user_ = user;
             event_sink_set_.push_back( sink );
+            pTask->connect( this->_this(), cb );
         }
 		return true;
     }
@@ -89,6 +88,8 @@ session_i::disconnect( BrokerEventSink_ptr cb )
     if ( ! CORBA::is_nil( cb ) ) {
         event_sink_vector_type::iterator it = std::find( event_sink_set_.begin(), event_sink_set_.end(), cb );
         if ( it != event_sink_set_.end() ) {
+            adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
+            pTask->disconnect( this->_this(), it->sink_ );
             event_sink_set_.erase( it );
             return true;
         }
@@ -122,7 +123,8 @@ session_i::addSpectrum ( SignalObserver::Observer_ptr observer, CORBA::Double x1
     adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
     if ( pTask ) {
         TAO_OutputCDR cdr;
-        cdr << L"addSpectrun";
+        cdr << token_.c_str();
+        cdr << L"addSpectrum";
         cdr << observer;
         cdr << x1;
         cdr << x2;
@@ -131,4 +133,13 @@ session_i::addSpectrum ( SignalObserver::Observer_ptr observer, CORBA::Double x1
         return true;
     }
     return false;
+}
+
+Broker::Folium *
+session_i::folium( const CORBA::WChar * token, const CORBA::WChar * fileId )
+{
+    Broker::Folium_var folium( new Broker::Folium );
+
+
+    return folium._retn();
 }

@@ -72,6 +72,7 @@ namespace dataproc {
 
         vector_type::iterator begin();
         vector_type::iterator end();
+        vector_type::iterator find( const std::wstring& );
 
     signals:
         void signalSessionAdded( Dataprocessor * );

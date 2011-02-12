@@ -10,6 +10,7 @@
 	<Module name="mc4" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/mc4$(configuration).dll"/>
   <Module name="adtxtfactory" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/adtxtfactory$(configuration).dll"/>
   <Module name="infitof" type="sharedlib" filename="/lib/qtPlatz/plugins/MSI/infitofspectrometer$(configuration).dll"/>
+  <Module name="addatafile" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/addatafile$(configuration).dll"/>
 	<Configuration name="ProcessMethodEditors">
 		<Configuration name="CentroidMethodUI">
 			<title>Centroid</title>
@@ -64,6 +65,10 @@
     <Configuration name="txtprovider">
       <pattern>*.txt</pattern>
       <Component type="dataprovider" interface="n/a" module="adtxtfactory" loader="adplugin"/>
+    </Configuration>
+    <Configuration name="native_data_provider">
+      <pattern>*</pattern>
+      <Component type="dataprovider" interface="n/a" module="addatafile" loader="adplugin"/>
     </Configuration>
   </Configuration>
 </DataprocConfiguration>

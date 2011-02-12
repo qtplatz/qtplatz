@@ -23,9 +23,15 @@
 **
 **************************************************************************/
 
+#ifndef ADDATAFILE_GLOBAL_H
+#define ADDATAFILE_GLOBAL_H
 
-interface BrokerEventSink {
-    oneway void message( in string message ); // send message to client
-    oneway void portfolio_created( in wstring token );
-    oneway void folium_added( in wstring token, in wstring path, in wstring folderId );
-};
+#include <QtCore/qglobal.h>
+
+#if defined(ADDATAFILE_LIBRARY)
+#  define ADDATAFILESHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define ADDATAFILESHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // ADDATAFILE_GLOBAL_H

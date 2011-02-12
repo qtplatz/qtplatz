@@ -23,9 +23,48 @@
 **
 **************************************************************************/
 
+#include "datafile_factory.h"
+#include "datafile.h"
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 
-interface BrokerEventSink {
-    oneway void message( in string message ); // send message to client
-    oneway void portfolio_created( in wstring token );
-    oneway void folium_added( in wstring token, in wstring path, in wstring folderId );
-};
+using namespace addatafile;
+
+datafile_factory::~datafile_factory(void)
+{
+}
+
+datafile_factory::datafile_factory()
+{
+}
+
+void
+datafile_factory::close( adcontrols::datafile * p )
+{
+    delete p;
+}
+
+const std::wstring&
+datafile_factory::name() const
+{
+    static std::wstring name( L"text" );
+    return name;
+}
+
+bool
+datafile_factory::access( const std::wstring& filename ) const
+{
+    boost::filesystem::wpath path(filename);
+    return path.extension() == L"";
+}
+
+adcontrols::datafile *
+datafile_factory::open( const std::wstring& filename, bool readonly ) const
+{
+    datafile * p = new datafile;
+    if ( p->open( filename, readonly ) )
+        return p;
+    delete p;
+    return 0;
+}
+

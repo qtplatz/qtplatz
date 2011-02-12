@@ -26,6 +26,8 @@
 #include "sessionmanager.h"
 #include "dataprocessor.h"
 #include <boost/smart_ptr.hpp>
+#include <qtwrapper/qstring.h>
+#include <adcontrols/datafile.h>
 
 using namespace dataproc;
 
@@ -71,6 +73,17 @@ SessionManager::begin()
 SessionManager::vector_type::iterator
 SessionManager::end()
 {
+    return sessions_.end();
+}
+
+SessionManager::vector_type::iterator
+SessionManager::find( const std::wstring& token )
+{
+    for ( SessionManager::vector_type::iterator it = sessions_.begin(); it != sessions_.end(); ++it ) {
+        Dataprocessor& proc = it->getDataprocessor();
+        if ( proc.file().filename() == token )
+            return it;
+    }
     return sessions_.end();
 }
 

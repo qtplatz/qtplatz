@@ -23,9 +23,10 @@
 **
 **************************************************************************/
 
+#ifndef ADDATAFILE_H
+#define ADDATAFILE_H
 
-interface BrokerEventSink {
-    oneway void message( in string message ); // send message to client
-    oneway void portfolio_created( in wstring token );
-    oneway void folium_added( in wstring token, in wstring path, in wstring folderId );
-};
+#include "addatafile_global.h"
+
+
+#endif // ADDATAFILE_H
