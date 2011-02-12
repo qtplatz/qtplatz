@@ -10,6 +10,10 @@
 interface LogHandler;
 interface BrokerEventSink;
 
+module SignalObserver {
+    interface Observer;
+};
+
 module Broker {
 
     struct LogMessage {
@@ -33,7 +37,8 @@ module Broker {
         boolean disconnect( in BrokerEventSink cb );
 
         ChemicalFormula getChemicalFormula();
-        boolean addSpectrum( in any a );
+
+        boolean addSpectrum( in SignalObserver::Observer observer, in double x1, in double x2 );
     };
 
     interface Logger {

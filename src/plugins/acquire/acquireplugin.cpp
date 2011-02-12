@@ -600,36 +600,12 @@ AcquirePlugin::handleRButtonRange( double x1, double x2, double y1, double y2 )
         if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
             SignalObserver::Observer_var tgt = siblings[i];
 
-            SignalObserver::DataReadBuffer_var dbuf;
-            // todo: need calculate time to pos -- posFromTime() does not implement yet
-            tgt->readData( tgt->posFromTime( t1 ), dbuf );
-
-            CORBA::WString_var name = tgt->dataInterpreterClsid();
-
-            try {
-                const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() ); // L"InfiTOF"
-                const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
-
-                do {
-                    adcontrols::MassSpectrum ms;
-                    size_t idData = 0;
-                    dataInterpreter.translate( ms, dbuf, spectrometer, idData++ );
-
-                    std::ofstream of( "C:/InfiTOF/recent_data.txt" );
-
-                    const adcontrols::MSProperty& prop = ms.getMSProperty();
-                    unsigned long ps = prop.instSamplingInterval();  // pico-seconds
-                    unsigned long ndelay = prop.instSamplingStartDelay();
-
-                    const double * msArray = ms.getMassArray();
-                    const double * intArray = ms.getIntensityArray();
-                    size_t nData = ms.size();
-                    for ( size_t i = 0; i < nData; ++i )
-                        of << std::setprecision( 15 ) << ( double( ndelay + i ) * ps ) / 1.0e-6 << "\t" << msArray[i] << "\t" << intArray[i] << std::endl;
-                } while(0);
-
-            } catch ( std::exception& ex ) {
-                QMessageBox::critical( 0, "acquireplugin::handleRButtonRange", ex.what() );
+            if ( pImpl_ && ! CORBA::is_nil( pImpl_->brokerSession_ ) ) {
+                try {
+                    pImpl_->brokerSession_->addSpectrum( tgt, x1, x2 );
+                } catch ( std::exception& ex ) {
+                    QMessageBox::critical( 0, "acquireplugin::handleRButtonRange", ex.what() );
+                }
             }
         }
     }

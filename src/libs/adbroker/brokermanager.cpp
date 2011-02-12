@@ -20,6 +20,7 @@ BrokerManager::BrokerManager() : pTask_(0)
 {
     initialized_ = true;
     pTask_ = new Task(5);
+    initialize();
 }
 
 bool

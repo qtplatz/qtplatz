@@ -46,11 +46,13 @@ namespace adbroker {
 
         session_i(void);
         ~session_i(void);
-        bool connect( const char * user, const char * pass, const char * token, BrokerEventSink_ptr );
-        bool disconnect( BrokerEventSink_ptr );
+        // implement POA_Broker::Session -->
+        virtual bool connect( const char * user, const char * pass, const char * token, BrokerEventSink_ptr );
+        virtual bool disconnect( BrokerEventSink_ptr );
 
-        Broker::ChemicalFormula_ptr getChemicalFormula();
-        bool addSpectrum( const CORBA::Any& a );
+        virtual Broker::ChemicalFormula_ptr getChemicalFormula();
+        virtual bool addSpectrum ( SignalObserver::Observer_ptr observer, double x1, double x2);
+        // <---------------------------------
 
     private:
         Broker::ChemicalFormula_var chemicalFormula_;

@@ -21,13 +21,6 @@ using namespace adbroker;
 
 Task::~Task()
 {
-	// this will block until a message arrives.
-	// By blocking, we know that the destruction will be
-	// paused until the last thread is done with the message
-	// block
-	ACE_Message_Block * mblk = 0;
-    this->getq( mblk );
-	ACE_Message_Block::release( mblk );
 }
 
 Task::Task( size_t n_threads ) : barrier_(n_threads)
@@ -38,9 +31,7 @@ Task::Task( size_t n_threads ) : barrier_(n_threads)
 int
 Task::handle_timer_timeout( const ACE_Time_Value& tv, const void * )
 {
-    ACE_Message_Block * mb = new ACE_Message_Block( sizeof(tv) );
-	* reinterpret_cast< ACE_Time_Value *>( mb->wr_ptr() ) = tv;
-    this->putq( mb );
+    (void)tv;
 	return 0;
 }
 
@@ -55,16 +46,28 @@ Task::open()
 void
 Task::close()
 {
-	msg_queue()->deactivate();
-	ACE_Task<ACE_MT_SYNCH>::close( 0 );
+    do {
+        // this will block until a message arrives.
+        // By blocking, we know that the destruction will be
+        // paused until the last thread is done with the message
+        // block
+        ACE_Message_Block * mblk = new ACE_Message_Block( 0, ACE_Message_Block::MB_HANGUP );
+        putq( mblk );
+    } while (0);
+
+    this->wait();
+    this->msg_queue()->deactivate();
+    ACE_Task<ACE_MT_SYNCH>::close( 0 );
+
+    delete this;
 }
 
 bool
-Task::connect( ControlServer::Session_ptr session, Receiver_ptr receiver )
+Task::connect( Broker::Session_ptr session, BrokerEventSink_ptr receiver )
 {
 	session_data data;
-	data.session_ = ControlServer::Session::_duplicate( session );
-    data.receiver_ = Receiver::_duplicate( receiver );
+	data.session_ = Broker::Session::_duplicate( session );
+    data.receiver_ = BrokerEventSink::_duplicate( receiver );
 
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
 
@@ -77,15 +80,15 @@ Task::connect( ControlServer::Session_ptr session, Receiver_ptr receiver )
 }
 
 bool
-Task::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
+Task::disconnect( Broker::Session_ptr session, BrokerEventSink_ptr receiver )
 {
 	session_data data;
-	data.session_ = ControlServer::Session::_duplicate( session );
-    data.receiver_ = Receiver::_duplicate( receiver );
+    data.session_ = Broker::Session::_duplicate( session );
+    data.receiver_ = BrokerEventSink::_duplicate( receiver );
 
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
 
-	vector_type::iterator it = std::remove( session_set_.begin(), session_set_.end(), data );
+    vector_type::iterator it = std::remove( session_set_.begin(), session_set_.end(), data );
 
 	if ( it != session_set_.end() ) {
 		session_set_.erase( it, session_set_.end() );
@@ -104,13 +107,13 @@ Task::session_data::operator == ( const session_data& t ) const
 }
 
 bool
-Task::session_data::operator == ( const Receiver_ptr t ) const
+Task::session_data::operator == ( const BrokerEventSink_ptr t ) const
 {
 	return receiver_->_is_equivalent( t );
 }
 
 bool
-Task::session_data::operator == ( const ControlServer::Session_ptr t ) const
+Task::session_data::operator == ( const Broker::Session_ptr t ) const
 {
 	return session_->_is_equivalent( t );
 }
@@ -133,7 +136,7 @@ Task::handle_input( ACE_HANDLE )
 int
 Task::svc()
 {
-	std::cout << "Task::svc() task started on thread :" << ACE_Thread::self() << std::endl;
+    std::cerr << "Task::svc() task started on thread :" << ACE_Thread::self() << std::endl;
 
 	barrier_.wait();
 
@@ -141,14 +144,16 @@ Task::svc()
 
 		ACE_Message_Block * mblk = 0;
 
-		if ( this->getq( mblk ) == (-1) ) {
+        if ( this->getq( mblk ) == (-1) ) {
 			if ( errno == ESHUTDOWN )
-				ACE_ERROR_RETURN((LM_ERROR, "(%t) queue is deactivated\n"), 0);
+                ACE_ERROR_RETURN((LM_ERROR, "(%t) adbroker::task queue is deactivated\n"), 0);
 			else
 				ACE_ERROR_RETURN((LM_ERROR, "(%t) %p\n", "putq"), -1);
 		}
+
 		if ( mblk->msg_type() == ACE_Message_Block::MB_HANGUP ) {
-			this->putq( mblk ); // forward the request to any peer threads
+            std::cerr << "adbroker::task close on thread :" << ACE_Thread::self() << std::endl;
+            this->putq( mblk ); // forward the request to any peer threads
 			break;
 		}
 		doit( mblk );
@@ -158,26 +163,26 @@ Task::svc()
 }
 
 void
+do_addSpectrum( SignalObserver::Observer_ptr observer, double x1, double x2 )
+{
+}
+
+void
 Task::doit( ACE_Message_Block * mblk )
 {
     using namespace adbroker;
 
-	std::ostringstream o;
+    TAO_InputCDR cdr( mblk );
 
-    Message msg;
-    ACE_InputCDR cdr( mblk ); 
+    CORBA::WString_var msg;
     cdr >> msg;
-
-	o << "doit <" << ACE_Thread::self() << "> : src:" << msg.seqId_ << " dst:" << msg.dstId_ 
-		<< " cmd:" << msg.cmdId_ << " seq:" <<  msg.seqId_;
-
-	if ( msg.cmdId_ == Notify_Timeout ) {
-		ACE_Time_Value tv;
-        cdr >> tv;
-		o << " tv=" << acewrapper::to_string( tv );
-	}
-	for ( vector_type::iterator it = begin(); it != end(); ++it ) {
-		it->session_->echo( o.str().c_str() );
-	}
-
+    if ( std::wstring( msg ) == L"addSpectrum" ) {
+        SignalObserver::Observer_ptr observer;
+        double x1(0), x2(0);
+        cdr >> observer;
+        cdr >> x1;
+        cdr >> x2;
+        do_addSpectrum( observer, x1, x2 );
+    }
 }
+

@@ -27,6 +27,7 @@
 #include "manager_i.h"
 #include "chemicalformula_i.h"
 #include "brokermanager.h"
+#include "task.h"
 
 namespace adbroker {
 
@@ -116,7 +117,18 @@ session_i::getChemicalFormula()
 }
 
 bool
-session_i::addSpectrum( const CORBA::Any& rdbuf )
+session_i::addSpectrum ( SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
 {
+    adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
+    if ( pTask ) {
+        TAO_OutputCDR cdr;
+        cdr << L"addSpectrun";
+        cdr << observer;
+        cdr << x1;
+        cdr << x2;
+        ACE_Message_Block * mb = cdr.begin()->duplicate();
+        pTask->putq( mb );
+        return true;
+    }
     return false;
 }

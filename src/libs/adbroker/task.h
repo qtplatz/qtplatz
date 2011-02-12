@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison Project
-//////////////////////////////////////////////
 
 #pragma once
 
@@ -34,11 +30,13 @@
 #include <ace/Task.h>
 #include <ace/Barrier.h>
 #include <ace/Message_Queue.h>
+
 #pragma warning(default:4996)
 
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
-#include <adinterface/controlserverC.h>
+#include <adinterface/brokerC.h>
+#include <adinterface/brokereventC.h>
 #include <vector>
 
 class ACE_Recursive_Thread_Mutex;
@@ -59,15 +57,15 @@ namespace adbroker {
 
         bool open();
         void close();
-        bool connect( ControlServer::Session_ptr, Receiver_ptr );
-        bool disconnect( ControlServer::Session_ptr, Receiver_ptr );
+        bool connect( Broker::Session_ptr, BrokerEventSink_ptr );
+        bool disconnect( Broker::Session_ptr, BrokerEventSink_ptr );
 
         struct session_data {
             bool operator == ( const session_data& ) const;
-            bool operator == ( const Receiver_ptr ) const;
-            bool operator == ( const ControlServer::Session_ptr ) const;
-            ControlServer::Session_var session_;
-            Receiver_var receiver_;
+            bool operator == ( const BrokerEventSink_ptr ) const;
+            bool operator == ( const Broker::Session_ptr ) const;
+            Broker::Session_var session_;
+            BrokerEventSink_var receiver_;
             session_data() {};
             session_data( const session_data& t ) : session_(t.session_), receiver_(t.receiver_) {};
         };
@@ -94,7 +92,7 @@ namespace adbroker {
         ACE_Barrier barrier_;
         size_t n_threads_;
     
-        bool internal_disconnect( ControlServer::Session_ptr );
+        bool internal_disconnect( Broker::Session_ptr );
         std::vector<session_data> session_set_;
         std::vector<session_data> session_failed_;
     };

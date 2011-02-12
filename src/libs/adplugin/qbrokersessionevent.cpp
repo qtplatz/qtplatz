@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "qbrokersessionevent.h"
+#include <qtwrapper/qstring.h>
 
 QBrokerSessionEvent::QBrokerSessionEvent(QObject *parent) :
     QObject(parent)
@@ -35,6 +36,13 @@ QBrokerSessionEvent::~QBrokerSessionEvent()
 }
 
 void
-QBrokerSessionEvent::message( const char * )
+QBrokerSessionEvent::message( const char * msg )
 {
+    emit signal_message( QString(msg) );
+}
+
+void
+QBrokerSessionEvent::addSpectrum( const wchar_t * name, const wchar_t * spectrometer, const wchar_t * id )
+{
+    emit signal_addSpectrum( qtwrapper::qstring( name ), qtwrapper::qstring( spectrometer ), qtwrapper::qstring( id ) );
 }

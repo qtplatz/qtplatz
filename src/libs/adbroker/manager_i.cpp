@@ -57,7 +57,7 @@ manager_i::getSession( const CORBA::WChar * token )
         return 0;
 
     session_map_type::iterator it = session_list_.find( token );
-    if ( it == session_list_.end() ) 
+    if ( it == session_list_.end() )
         session_list_[ token ].reset( new adbroker::session_i() );
 
     CORBA::Object_ptr obj = poa->servant_to_reference( session_list_[ token ].get() );
