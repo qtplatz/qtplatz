@@ -63,6 +63,7 @@
 #include <coreplugin/navigationwidget.h>
 #include <coreplugin/rightpane.h>
 #include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/modemanager.h>
 #include <utils/styledbar.h>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QBoxLayout>
@@ -174,8 +175,11 @@ void
 AcquirePlugin::initialize_actions()
 {
     pImpl_->loadIcon();
+
+    QIcon connIcon = QIcon( Constants::ICON_CONNECT_SMALL );
+    connIcon.addFile( Constants::ICON_CONNECT );
   
-    actionConnect_ = new QAction(QIcon(Constants::ICON_CONNECT), tr("Connect to control server..."), this);
+    actionConnect_ = new QAction( connIcon, tr("Connect to control server..."), this);
     connect( actionConnect_, SIGNAL(triggered()), this, SLOT(actionConnect()) );
   
     actionRunStop_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Run / stop control..."), this);
@@ -197,6 +201,10 @@ AcquirePlugin::initialize_actions()
     if ( am ) {
         Core::Command * cmd = 0;
         cmd = am->registerAction( actionConnect_, Constants::CONNECT, globalcontext );
+        do {
+            Core::ICore::instance()->modeManager()->addAction( cmd, 90 );
+        } while(0);
+
         cmd = am->registerAction( actionRunStop_, Constants::INITIALRUN, globalcontext );
         cmd = am->registerAction( action3_, Constants::RUN, globalcontext );
         cmd = am->registerAction( action4_, Constants::STOP, globalcontext );
@@ -354,6 +362,10 @@ AcquirePlugin::extensionsInitialized()
     Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, ior );
     if ( ! CORBA::is_nil( mgr ) )
         pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
+
+    do {
+       
+    } while(0);
 
     manager_->OnInitialUpdate();
 }

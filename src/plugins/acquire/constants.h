@@ -41,7 +41,7 @@ namespace Acquire {
     const char * const ACQUISITION          = "Acquire.Acquisition";
 
     // icon
-    const char * const ICON_CONNECT         = ":/acquire/images/debugger_start.png";
+    const char * const ICON_CONNECT         = ":/acquire/images/debugger_continue.png";
     const char * const ICON_CONNECT_SMALL   = ":/acquire/images/debugger_continue_small.png";
     const char * const ICON_START           = ":/acquire/images/debugger_start.png";
     const char * const ICON_START_SMALL     = ":/acquire/images/debugger_start_small.png";
