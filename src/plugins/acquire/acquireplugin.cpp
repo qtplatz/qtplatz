@@ -600,7 +600,8 @@ AcquirePlugin::handleRButtonRange( double x1, double x2, double y1, double y2 )
         SignalObserver::Description_var desc = siblings[i]->getDescription();
 
         if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
-            SignalObserver::Observer_var tgt = siblings[i];
+
+            SignalObserver::Observer_var tgt = SignalObserver::Observer::_duplicate( siblings[i] );
 
             if ( pImpl_ && ! CORBA::is_nil( pImpl_->brokerSession_ ) ) {
                 try {

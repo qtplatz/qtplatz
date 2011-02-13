@@ -270,7 +270,6 @@ Task::doit( ACE_Message_Block * mblk )
         SignalObserver::Observer_ptr observer;
         double x1(0), x2(0);
         cdr >> observer;
-        observer->_add_ref(); // just a trial
         cdr >> x1;
         cdr >> x2;
 
