@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "task.h"
+#include <boost/format.hpp>
 #include <acewrapper/mutex.hpp>
 #include <acewrapper/mutex.hpp>
 #include "message.h"
@@ -31,12 +32,17 @@
 #include <acewrapper/timeval.h>
 #include <iostream>
 #include <adcontrols/massspectrum.h>
+#include <adcontrols/msproperty.h>
 #include <adcontrols/massspectrometer.h>
 #include <adcontrols/datainterpreter.h>
+#include <adcontrols/description.h>
 //--
 #include <portfolio/portfolio.h>
 #include <portfolio/folder.h>
 #include <portfolio/folium.h>
+#include <adutils/processeddata.h>
+#include <adportable/float.hpp>
+
 
 #pragma warning(disable:4996)
 # include <ace/Reactor.h>
@@ -221,8 +227,14 @@ do_addSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_pt
     long pos = observer->posFromTime( unsigned long long( x1 * 60 * 1000 * 1000 ) ); // us
     long pos2 = observer->posFromTime( unsigned long long( x2 * 60 * 1000 * 1000 ) ); // us
 
+    std::wstring text;
+    if ( pos == pos2 )
+        text = ( boost::wformat( L"Spectrum @ %.3f min" ) % x1 ).str();
+    else
+        text = ( boost::wformat( L"Spectrum range (%.3f - %.3) min" ) % x1 % x2 ).str();
 
     adcontrols::MassSpectrum ms;
+
     SignalObserver::DataReadBuffer_var dbuf;
 
     if ( observer->readData( pos, dbuf ) ) {
@@ -231,7 +243,6 @@ do_addSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_pt
             const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
             if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
                 size_t idData = 0;
-                adcontrols::MassSpectrum ms;
                 dataInterpreter.translate( ms, dbuf, spectrometer, idData++ );
             }
         } catch ( std::exception& ex ) {
@@ -240,6 +251,8 @@ do_addSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_pt
         }
         ++pos;
     }
+
+    ms.addDescription( adcontrols::Description( L"create", text ) );
     pTask->internal_addSpectrum( token, ms );
 }
 
@@ -257,15 +270,12 @@ Task::doit( ACE_Message_Block * mblk )
         SignalObserver::Observer_ptr observer;
         double x1(0), x2(0);
         cdr >> observer;
+        observer->_add_ref(); // just a trial
         cdr >> x1;
         cdr >> x2;
-        if ( CORBA::is_nil( observer ) ) {
-#if defined _DEBUG
-            adcontrols::MassSpectrum ms;
-            internal_addSpectrum( std::wstring(token), ms );
-#endif
+
+        if ( CORBA::is_nil( observer ) )
             return;
-        }
         do_addSpectrum( this, token, observer, x1, x2 );
     }
 }
@@ -284,16 +294,30 @@ Task::getPortfolio( const std::wstring& token )
 }
 
 void
-Task::internal_addSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& ms )
+Task::internal_addSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& src )
 {
     portfolio::Portfolio& portfolio = getPortfolio( token );
 
     portfolio::Folder folder = portfolio.addFolder( L"MassSpectra" );
     portfolio::Folium folium = folder.addFolium( L"MassSpectrum" );
+
+    //------->
+    adcontrols::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
+    static_cast<boost::any&>( folium ) = ms;
+    //<-------
+
     std::wstring id = folium.id();
-  
     for ( vector_type::iterator it = session_set_.begin(); it != session_set_.end(); ++it ) {
-        it->receiver_->message( "addSpectrum" );
         std::for_each( session_set_.begin(), session_set_.end(), internal::folium_added( token, L"path", id ) );
     }
+}
+
+portfolio::Folium
+Task::findFolium( const std::wstring& token, const std::wstring& id )
+{
+    portfolio::Portfolio& portfolio = getPortfolio( token );
+
+    std::wstring xml = portfolio.xml();
+
+    return portfolio.findFolium( id );
 }

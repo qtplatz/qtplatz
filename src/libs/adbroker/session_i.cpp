@@ -28,6 +28,9 @@
 #include "chemicalformula_i.h"
 #include "brokermanager.h"
 #include "task.h"
+#include <portfolio/folium.h>
+#include <adcontrols/massspectrum.h>
+#include <sstream>
 
 namespace adbroker {
 
@@ -135,11 +138,51 @@ session_i::addSpectrum ( SignalObserver::Observer_ptr observer, CORBA::Double x1
     return false;
 }
 
+namespace adbroker {
+
+    struct BrokerFoliumBuffer : public std::streambuf {
+        Broker::Folium_var var_;
+        size_t count_;
+        size_t size_;
+        unsigned char * p_;
+        BrokerFoliumBuffer() : count_(0), size_(0), p_(0), var_( new Broker::Folium ) {
+            resize();
+        }
+        void resize() { 
+            var_->serialized.length( var_->serialized.length() + 1024 * 8 );
+            size_ = var_->serialized.length();
+            p_ = var_->serialized.get_buffer();
+        }
+        virtual int_type overflow ( int_type c ) {
+            if ( count_ >= size_ )
+                resize();
+            p_[ count_++ ] = c;
+            return c;
+        }
+
+        virtual std::streamsize xsputn( const char * s, std::streamsize num ) {
+            while ( count_ + num >= size_ )
+                resize();
+            for ( int i = 0; i < num; ++i )
+                p_[ count_++ ] = *s++;
+            return num;
+        }
+    };
+}
+
 Broker::Folium *
 session_i::folium( const CORBA::WChar * token, const CORBA::WChar * fileId )
 {
-    Broker::Folium_var folium( new Broker::Folium );
+    BrokerFoliumBuffer buffer;
 
-
-    return folium._retn();
+    adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
+    if ( pTask ) {
+        adcontrols::MassSpectrumPtr ptr;
+        portfolio::Folium folium = pTask->findFolium( token, fileId );
+        if ( portfolio::Folium::get< adcontrols::MassSpectrumPtr >( ptr, folium ) ) {
+            std::ostream ostm( &buffer );
+            ptr->archive( ostm );
+        }
+    }
+    return buffer.var_._retn();
 }

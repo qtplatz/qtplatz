@@ -63,9 +63,9 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 
     portfolio.create_with_fullpath( filename );
     portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
-    portfolio::Folium folium = spectra.addFolium( L"A Spectrum" );
-    folium.setAttribute( L"dataType", L"MassSpectrum" );
-    folium.setAttribute( L"path", L"/" );
+    //portfolio::Folium folium = spectra.addFolium( L"A Spectrum" );
+    //folium.setAttribute( L"dataType", L"MassSpectrum" );
+    //folium.setAttribute( L"path", L"/" );
 
     processedDataset_.reset( new adcontrols::ProcessedDataset );
     processedDataset_->xml( portfolio.xml() );

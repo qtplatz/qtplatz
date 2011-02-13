@@ -50,6 +50,7 @@ namespace adcontrols {
 
 namespace portfolio {
     class Portfolio;
+    class Folium;
 }
 
 namespace adbroker {
@@ -85,6 +86,8 @@ namespace adbroker {
       
         void register_failed( vector_type::iterator& );
         void commit_failed();
+
+        portfolio::Folium findFolium( const std::wstring& token, const std::wstring& id );
 
     private:
         // ACE_Task

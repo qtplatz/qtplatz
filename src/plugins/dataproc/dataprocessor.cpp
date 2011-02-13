@@ -49,6 +49,8 @@
 #include <adcontrols/massspectrum.h>
 #include <adcontrols/mscalibrateresult.h>
 #include <adcontrols/centroidprocess.h>
+#include <adcontrols/descriptions.h>
+#include <adcontrols/description.h>
 #include <stack>
 #include <qdebug.h>
 
@@ -257,7 +259,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     portfolio::Folium folium = folder.addFolium( L"CalibrantSpectrum" );
 
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
-    static_cast<boost::any>( folium ) = ms;
+    static_cast<boost::any&>( folium ) = ms;
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
         boost::apply_visitor( internal::doSpectralProcess( ms, folium ), *it );
@@ -269,10 +271,16 @@ void
 Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrols::ProcessMethod& m )
 {
     portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
-    portfolio::Folium folium = folder.addFolium( L"Spectrum" );
+
+    const adcontrols::Descriptions& descs = src.getDescriptions();
+    std::wstring name;
+    for ( size_t i = 0; i < descs.size(); ++i )
+        name += descs[i].text();
+
+    portfolio::Folium folium = folder.addFolium( name );
 
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
-    static_cast<boost::any>( folium ) = ms;
+    static_cast<boost::any&>( folium ) = ms;
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
         boost::apply_visitor( internal::doSpectralProcess( ms, folium ), *it );

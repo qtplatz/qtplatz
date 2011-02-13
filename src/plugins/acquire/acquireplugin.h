@@ -28,13 +28,16 @@
 
 #include <extensionsystem/iplugin.h>
 #include <boost/smart_ptr.hpp>
+#include <vector>
+#include <map>
+
 # pragma warning(disable:4996)
 #  pragma warning(disable:4805)
 #   include <adinterface/controlserverC.h>
 #  pragma warning(default:4805)
 # include <adinterface/signalobserverC.h>
 # pragma warning(default:4996)
-#include <vector>
+
 
 class QToolButton;
 class QAction;
@@ -107,6 +110,7 @@ namespace Acquire {
 
             ControlServer::Session_var session_;
             SignalObserver::Observer_var observer_;
+            std::map< unsigned long, SignalObserver::Observer_var > observerMap_;
             // for quick debug, to be removed
             // SignalObserver::Observer_var tofCache_;
             // <--

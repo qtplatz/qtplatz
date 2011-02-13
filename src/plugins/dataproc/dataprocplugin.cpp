@@ -73,9 +73,12 @@
 
 #include <acewrapper/constants.h>
 #include <acewrapper/brokerhelper.h>
+#include <acewrapper/input_buffer.h>
 #include <adplugin/orbmanager.h>
 #include <adplugin/manager.h>
 #include <adplugin/qbrokersessionevent.h>
+
+#include <streambuf>
 
 #pragma warning(disable:4996)
 # include <adinterface/brokerC.h>
@@ -345,10 +348,17 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
     SessionManager::vector_type::iterator it = SessionManager::instance()->find( qtwrapper::wstring( token ) );
     if ( it != SessionManager::instance()->end() ) {
         
-        Broker::Folium_var any = brokerSession_->folium( qtwrapper::wstring( token ).c_str(), qtwrapper::wstring( id ).c_str() );
+        Broker::Folium_var var = brokerSession_->folium( qtwrapper::wstring( token ).c_str(), qtwrapper::wstring( id ).c_str() );
+
+        // todo check type
+        acewrapper::input_buffer ibuffer( var->serialized.get_buffer(), var->serialized.length() );
+        std::istream in( &ibuffer );
+
+        adcontrols::MassSpectrum ms;
+        ms.deserialize( in );
 
         Dataprocessor& processor = it->getDataprocessor();
-        adcontrols::MassSpectrum ms;
+
         adcontrols::ProcessMethod m;
         processor.addSpectrum( ms, m );
     }

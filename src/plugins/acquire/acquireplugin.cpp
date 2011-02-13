@@ -443,8 +443,10 @@ AcquirePlugin::actionDisconnect()
         observer_ = session_->getObserver();
         if ( ! CORBA::is_nil( observer_.in() ) ) {
             SignalObserver::Observers_var siblings = observer_->getSiblings();
-            for ( size_t i = 0; i < sinkVec_.size(); ++i )
+            for ( size_t i = 0; i < sinkVec_.size(); ++i ) {
+                disconnect( sinkVec_[i].get(), SIGNAL( signal_UpdateData( unsigned long, long ) ), this, SLOT( handle_update_data(unsigned long, long) ) );
                 sinkVec_[i]->OnClose();
+            }
         }
         session_->disconnect( receiver_i_.get()->_this() );
         adplugin::ORBManager::instance()->deactivate( receiver_i_->_this() );
@@ -508,9 +510,14 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 {
     ACE_UNUSED_ARG( pos );
 
-    SignalObserver::Observer_var tgt = observer_->findObserver( objId, true );
-    if ( CORBA::is_nil( tgt.in() ) )
-        return;
+    if ( observerMap_.find( objId ) == observerMap_.end() ) {
+        SignalObserver::Observer_var tgt = observer_->findObserver( objId, true );
+        if ( CORBA::is_nil( tgt.in() ) )
+            return;
+        observerMap_[ objId ] = tgt;
+    }
+
+    SignalObserver::Observer_ptr tgt = observerMap_[ objId ].in();
 
     SignalObserver::Description_var desc = tgt->getDescription();
     CORBA::WString_var clsid = tgt->dataInterpreterClsid();
@@ -586,17 +593,8 @@ AcquirePlugin::handleRButtonRange( double x1, double x2, double y1, double y2 )
 {
     (void)x1; (void)x2; (void)y1; (void)y2;
 
-    if ( CORBA::is_nil( observer_ ) ) {
-#if defined _DEBUG
-        pImpl_->brokerSession_->addSpectrum( 0, 0, 0 );
-#endif
-        return;
-    }
-
     SignalObserver::Observers_var siblings = observer_->getSiblings();
     size_t nsize = siblings->length();
-
-    unsigned long long t1 = x1 * 60 * 1000 * 1000; // us
 
     for ( size_t i = 0; i < nsize; ++i ) {
         SignalObserver::Description_var desc = siblings[i]->getDescription();

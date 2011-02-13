@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\input_buffer.cpp"
+				>
+			</File>
+			<File
 				RelativePath="inputcdr.cpp"
 				>
 			</File>
@@ -377,6 +381,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\input_buffer.h"
+				>
 			</File>
 			<File
 				RelativePath="inputcdr.h"

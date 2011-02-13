@@ -27,7 +27,10 @@ SOURCES += acewrapper.cpp \
     outputcdr.cpp \
     inputcdr.cpp \
     lifecycle_frame_serializer.cpp \
-    orbservant.cpp
+    orbservant.cpp \
+    outbuf.cpp \
+    inbuf.cpp \
+    input_buffer.cpp
 
 HEADERS += acewrapper.h \
     mutex.hpp \
@@ -45,7 +48,10 @@ HEADERS += acewrapper.h \
     inputcdr.h \
     serialization_inet_addr.h \
     lifecycle_frame_serializer.h \
-    orbservant.h
+    orbservant.h \
+    outbuf.h \
+    inbuf.h \
+    input_buffer.h
 
 OTHER_FILES += \
     acewrapper.pri \

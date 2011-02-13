@@ -27,15 +27,16 @@ module Broker {
         sequence< wstring > args;
     };
 
-    struct Attr {
+    struct Attrib {
         wstring key;
         wstring value;
     };
 
     struct Folium {
         wstring path;
-        sequence< Attr > attrs;
-        any data;
+        wstring class;
+        sequence< Attrib > attrib;
+        sequence< octet > serialized;
     };
 
     interface ChemicalFormula {

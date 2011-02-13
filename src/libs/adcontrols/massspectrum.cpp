@@ -27,6 +27,7 @@
 #include "descriptions.h"
 #include "mscalibration.h"
 #include "msproperty.h"
+#include <adportable/array_wrapper.hpp>
 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -36,7 +37,10 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-#include <adportable/array_wrapper.hpp>
+# pragma warning( disable: 4996 )
+# include <boost/archive/binary_oarchive.hpp>
+# include <boost/archive/binary_iarchive.hpp>
+# pragma warning( default: 4996 )
 
 #include <sstream>
 #include <vector>
@@ -354,7 +358,7 @@ MassSpectrum::saveXml() const
 {
    std::wostringstream o;
    boost::archive::xml_woarchive ar( o );
-   ar << boost::serialization::make_nvp("MssSpectrum", pImpl_);
+   ar << boost::serialization::make_nvp("MassSpectrum", pImpl_);
    return o.str();
 }
 
@@ -364,6 +368,22 @@ MassSpectrum::loadXml( const std::wstring& xml )
    std::wistringstream in( xml );
    boost::archive::xml_wiarchive ar( in );
    ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
+}
+
+bool
+MassSpectrum::archive( std::ostream& os ) const
+{
+    boost::archive::binary_oarchive ar( os );
+    ar << boost::serialization::make_nvp( "MassSpectrum", pImpl_ );
+    return true;
+}
+
+bool
+MassSpectrum::deserialize( std::istream& is )
+{
+    boost::archive::binary_iarchive ar( is );
+    ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
+    return true;
 }
       
 /////////////////////////////////////////////////////////////////////////////
