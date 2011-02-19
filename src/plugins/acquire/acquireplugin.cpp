@@ -380,55 +380,58 @@ AcquirePlugin::shutdown()
 void
 AcquirePlugin::actionConnect()
 {
-	CORBA::Object_var obj
-		= acewrapper::brokerhelper::name_to_object( adplugin::ORBManager::instance()->orb()
-		                                           , acewrapper::constants::adcontroller::manager::_name()
-												   , adplugin::manager::iorBroker() );
+    if ( CORBA::is_nil( session_.in() ) ) {
 
-	if ( ! CORBA::is_nil( obj ) ) {
+        CORBA::Object_var obj
+            = acewrapper::brokerhelper::name_to_object( adplugin::ORBManager::instance()->orb()
+                                                      , acewrapper::constants::adcontroller::manager::_name()
+                                                      , adplugin::manager::iorBroker() );
 
-		ControlServer::Manager_var manager;
-		try { manager = ControlServer::Manager::_narrow( obj ); } catch ( CORBA::Exception& ) { /**/ }
+        if ( ! CORBA::is_nil( obj ) ) {
 
-        if ( ! CORBA::is_nil( manager ) ) {
+            ControlServer::Manager_var manager;
+            try { manager = ControlServer::Manager::_narrow( obj ); } catch ( CORBA::Exception& ) { /**/ }
 
-            session_ = manager->getSession( L"acquire" );
-			if ( ! CORBA::is_nil( session_.in() ) ) {
+            if ( ! CORBA::is_nil( manager ) ) {
 
-				receiver_i_.reset( new adplugin::QReceiver_i() );
-				session_->connect( receiver_i_.get()->_this(), L"acquire" );
+                session_ = manager->getSession( L"acquire" );
+                if ( ! CORBA::is_nil( session_.in() ) ) {
+
+                    receiver_i_.reset( new adplugin::QReceiver_i() );
+                    session_->connect( receiver_i_.get()->_this(), L"acquire" );
                     
-				int res;
-				res = connect( receiver_i_.get()
-					, SIGNAL( signal_message( unsigned long, unsigned long ) )
-					, this, SLOT( handle_message( unsigned long, unsigned long ) ) );
-				res = connect( receiver_i_.get(), SIGNAL( signal_log( QByteArray ) ), this, SLOT( handle_log( QByteArray ) ) );
-				res = connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
-				res = connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
-					, this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
-				if ( session_->status() <= ControlServer::eConfigured )
-					session_->initialize();
+                    int res;
+                    res = connect( receiver_i_.get()
+                        , SIGNAL( signal_message( unsigned long, unsigned long ) )
+                        , this, SLOT( handle_message( unsigned long, unsigned long ) ) );
+                    res = connect( receiver_i_.get(), SIGNAL( signal_log( QByteArray ) ), this, SLOT( handle_log( QByteArray ) ) );
+                    res = connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
+                    res = connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
+                        , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
+                    if ( session_->status() <= ControlServer::eConfigured )
+                        session_->initialize();
 
-				observer_ = session_->getObserver();
-				if ( ! CORBA::is_nil( observer_.in() ) ) {
+                    observer_ = session_->getObserver();
+                    if ( ! CORBA::is_nil( observer_.in() ) ) {
 
-                    // connect only to 1st layer siblings ( := top shadow(cache) observer for each instrument )
-					SignalObserver::Observers_var siblings = observer_->getSiblings();
-					size_t nsize = siblings->length();
+                        // connect only to 1st layer siblings ( := top shadow(cache) observer for each instrument )
+                        SignalObserver::Observers_var siblings = observer_->getSiblings();
+                        size_t nsize = siblings->length();
 
-					for ( size_t i = 0; i < nsize; ++i ) {
-						SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[i] );
-						boost::shared_ptr<adplugin::QObserverEvents_i> sink( new adplugin::QObserverEvents_i( var, L"acquire.ui" ) );
-						sinkVec_.push_back( sink );
-                        populate( var );
-						res = connect( sink.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
-							, this, SLOT( handle_update_data(unsigned long, long) ) );
+                        for ( size_t i = 0; i < nsize; ++i ) {
+                            SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[i] );
+                            boost::shared_ptr<adplugin::QObserverEvents_i> sink( new adplugin::QObserverEvents_i( var, L"acquire.ui" ) );
+                            sinkVec_.push_back( sink );
+                            populate( var );
+                            res = connect( sink.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
+                                , this, SLOT( handle_update_data(unsigned long, long) ) );
 
-					}
-				}
-			}
-		}
-	}
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void

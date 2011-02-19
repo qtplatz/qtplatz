@@ -390,9 +390,10 @@ DataprocPlugin::shutdown()
 
     if ( ! CORBA::is_nil( brokerSession_ ) ) {
 
-        brokerSession_->disconnect( pBrokerSessionEvent_->_this() );
         disconnect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) ), this, SLOT(handle_portfolio_created( const QString )) );
-        disconnect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) ), this, SLOT(handle_folim_added( const QString, const QString, const QString )) );
+        disconnect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) ), this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
+
+        brokerSession_->disconnect( pBrokerSessionEvent_->_this() );
 
         // destruct event sink object -->
         CORBA::release( pBrokerSessionEvent_->_this() ); // delete object reference
