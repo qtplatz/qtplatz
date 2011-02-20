@@ -315,7 +315,7 @@ DataprocPlugin::actionApply()
             if ( currentFeature_ == internal::CalibrationProcess )
                 processor->applyCalibration( m );
             else
-                processor->applyProcess( m );
+                processor->applyProcess( m, currentFeature_ );
         }
     }
 }

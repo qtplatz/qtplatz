@@ -66,7 +66,7 @@ namespace dataproc {
         adcontrols::LCMSDataset* getLCMSDataset();
         portfolio::Portfolio getPortfolio();
         void setCurrentSelection( portfolio::Folium& );
-        void applyProcess( const adcontrols::ProcessMethod& );
+        void applyProcess( const adcontrols::ProcessMethod&, internal::ProcessType );
         void applyCalibration( const adcontrols::ProcessMethod& );
         void addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
 

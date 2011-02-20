@@ -44,7 +44,7 @@ IsotopeForm::OnInitialUpdate()
 
     //------------ add dummy data for debug ---------------
     //-----------------------------------------------------
-    method.addFormula( adcontrols::IsotopeMethod::Formula( L"Xe", L"", 1, 1.0 ) );
+    // method.addFormula( adcontrols::IsotopeMethod::Formula( L"Xe", L"", 1, 1.0 ) );
     //-----------------------------------------------------
 
     QStandardItem * rootNode = model.invisibleRootItem();
