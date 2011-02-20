@@ -241,9 +241,7 @@ observer_i::dataInterpreterClsid (void)
 CORBA::Long
 observer_i::posFromTime( CORBA::ULongLong usec )
 {
-    
-
-    return -1;
+    return cache_->posFromTime( usec );    
 }
 
 namespace adcontroller {

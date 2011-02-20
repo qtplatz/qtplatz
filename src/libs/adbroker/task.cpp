@@ -231,7 +231,7 @@ do_addSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_pt
     if ( pos == pos2 )
         text = ( boost::wformat( L"Spectrum @ %.3f min" ) % x1 ).str();
     else
-        text = ( boost::wformat( L"Spectrum range (%.3f - %.3) min" ) % x1 % x2 ).str();
+        text = ( boost::wformat( L"Spectrum range (%1$.3f - %2$.3f) min" ) % x1 % x2 ).str();
 
     adcontrols::MassSpectrum ms;
 

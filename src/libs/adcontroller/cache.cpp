@@ -22,7 +22,7 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-
+#pragma warning (disable : 4100)
 #include "cache.h"
 
 #pragma warning (disable : 4996 )
@@ -80,6 +80,28 @@ Cache::read( long pos, SignalObserver::DataReadBuffer_out rdbuf )
 	return false;
 }
 
+long
+Cache::posFromTime( unsigned long long usec )
+{
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+
+    struct time_compare {
+        bool operator () ( const CacheItem& lhs, unsigned long long rhs ) const {
+            return lhs.rdbuf_->uptime < rhs;
+        }
+        bool operator () ( unsigned long long lhs, const CacheItem& rhs ) const {
+            return lhs < rhs.rdbuf_->uptime;
+        }
+        bool operator () ( const CacheItem& lhs, const CacheItem& rhs ) const {
+            return lhs.rdbuf_->uptime < rhs.rdbuf_->uptime;
+        }
+    };
+
+    std::deque< CacheItem >::iterator it = std::lower_bound( fifo_.begin(), fifo_.end(), usec, time_compare() );    
+    if ( it != fifo_.end() )
+        return it->pos_;
+    return (-1);
+}
 
 //////////////////////////////////////////////////
 Cache::CacheItem::CacheItem( long pos
