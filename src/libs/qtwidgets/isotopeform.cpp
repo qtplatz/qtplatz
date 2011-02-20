@@ -68,3 +68,9 @@ IsotopeForm::getContents( adcontrols::ProcessMethod& pm )
 {
     pm.appendMethod< adcontrols::IsotopeMethod >( *pMethod_ );
 }
+
+QSize
+IsotopeForm::sizeHint() const
+{
+    return QSize( 300, 250 );
+}

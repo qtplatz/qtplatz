@@ -55,6 +55,10 @@ namespace qtwidgets {
         void OnInitialUpdate();
         void OnFinalClose();
         //<--
+
+        // QWidget
+        virtual QSize sizeHint() const;
+        //<----
     
     private:
         Ui::ChromatographicPeakForm *ui;

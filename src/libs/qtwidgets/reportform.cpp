@@ -53,3 +53,9 @@ void
 ReportForm::OnFinalClose()
 {
 }
+
+QSize
+ReportForm::sizeHint() const
+{
+    return QSize( 300, 250 );
+}

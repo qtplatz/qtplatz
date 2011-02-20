@@ -114,3 +114,9 @@ ElementalCompositionForm::getContents( adcontrols::ProcessMethod& pm )
 {
     pm.appendMethod< adcontrols::ElementalCompositionMethod >( *pMethod_ );
 }
+
+QSize
+ElementalCompositionForm::sizeHint() const
+{
+    return QSize( 300, 250 );
+}

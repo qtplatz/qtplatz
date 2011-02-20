@@ -76,3 +76,9 @@ void
 MSLockForm::OnFinalClose()
 {
 }
+
+QSize
+MSLockForm::sizeHint() const
+{
+    return QSize( 300, 250 );
+}

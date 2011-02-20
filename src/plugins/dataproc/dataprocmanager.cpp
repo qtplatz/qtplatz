@@ -43,6 +43,7 @@
 #include <QLabel>
 #include <QToolBar>
 #include <QTextEdit>
+#include <QTabBar>
 
 #include <vector>
 
@@ -103,13 +104,11 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
                     // query process method
                     connect( this, SIGNAL( signalGetProcessMethod( adcontrols::ProcessMethod& ) ), pWidget, SLOT( getContents( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
 
+                    pWidget->setMinimumHeight( 80 );
+
                     pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
                     m.mainWindow_->addDockForWidget( pWidget );
                 }
-            } else {
-                QWidget * edit = new QTextEdit( "Edit" );
-                edit->setWindowTitle( qtwrapper::qstring( it->title() ) );
-                m.mainWindow_->addDockForWidget( edit );
             }
         }
     }       
@@ -209,6 +208,10 @@ DataprocManager::setSimpleDockWidgetArrangement()
 
     for ( int i = 1; i < dockWidgets.size(); ++i )
         m.mainWindow_->tabifyDockWidget( dockWidgets[0], dockWidgets[i] );
+
+    QList< QTabBar * > tabBars = m.mainWindow_->findChildren< QTabBar * >();
+    foreach( QTabBar * tabBar, tabBars ) 
+        tabBar->setCurrentIndex( 0 );
 }
 
 void

@@ -129,7 +129,7 @@ MSCalibrationForm::OnInitialUpdate()
     pDelegate_->refs_[ Xe.name() ] = Xe;
     pDelegate_->refs_[ PFTBA.name() ] = PFTBA;
 
-    pMethod_->references( Xe );  // set as default calibration reference
+    pMethod_->references( PFTBA );  // set as default calibration reference
 
     QStandardItem * refItem = 
         StandardItemHelper::appendRow( rootNode, "Mass References", qVariantFromValue( MSCalibrateDelegate::MSReferences( pMethod_->references().name() ) ) );
@@ -193,4 +193,10 @@ MSCalibrationForm::OnMSReferencesUpdated( const QModelIndex& index )
             model.insertColumn( item->columnCount(), item->index() );
         model.setData( model.index( row, col, index ), it->enable() );
     }
+}
+
+QSize
+MSCalibrationForm::sizeHint() const
+{
+    return QSize( 300, 250 );
 }

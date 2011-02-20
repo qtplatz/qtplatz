@@ -179,7 +179,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     
         //              [mainWindow]
         // splitter> ---------------------
-        //              [OutputPane]
+        //              [OutputPane] := ServantLog etc.
   
         Core::MiniSplitter * splitter = new Core::MiniSplitter;
         if ( splitter ) {

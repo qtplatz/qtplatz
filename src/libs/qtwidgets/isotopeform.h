@@ -63,6 +63,11 @@ namespace qtwidgets {
         void OnInitialUpdate();
         void OnFinalClose();
         //<--
+
+        // QWidget
+        virtual QSize sizeHint() const;
+        //<----
+
     public slots:
         void getContents( adcontrols::ProcessMethod& );
       

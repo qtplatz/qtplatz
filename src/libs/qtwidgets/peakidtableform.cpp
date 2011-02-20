@@ -38,3 +38,9 @@ void
 PeakIDTableForm::OnFinalClose()
 {
 }
+
+QSize
+PeakIDTableForm::sizeHint() const
+{
+    return QSize( 300, 250 );
+}

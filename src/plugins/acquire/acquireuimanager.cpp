@@ -44,6 +44,7 @@
 #include <QtCore>
 #include <QUrl>
 #include <QMessageBox>
+#include <QTabBar>
 
 #include <qtwrapper/qstring.h>
 #include <xmlwrapper/xmldom.h>
@@ -129,7 +130,6 @@ AcquireUIManager::init()
                 if ( it->isPlugin() ) {
                     QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
                     if ( pWidget ) {
-                        connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
                         pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
                         QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
                         m.dockWidgetVec_.push_back( dock );
@@ -141,6 +141,7 @@ AcquireUIManager::init()
                     m.dockWidgetVec_.push_back( dock );
                 }
             }
+
         }            
     }
 }
@@ -211,8 +212,13 @@ AcquireUIManager::setSimpleDockWidgetArrangement()
         dockWidget->show();
     }
     
+    // make dockwdigets into a tab
     for ( unsigned int i = 2; i < m.dockWidgetVec_.size(); ++i )
         m.mainWindow_->tabifyDockWidget( m.dockWidgetVec_[1], m.dockWidgetVec_[i] );
+
+    QList< QTabBar * > tabBars = m.mainWindow_->findChildren< QTabBar * >();
+    foreach( QTabBar * tabBar, tabBars ) 
+        tabBar->setCurrentIndex( 0 );
 }
 
 void

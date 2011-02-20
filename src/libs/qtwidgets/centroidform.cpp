@@ -146,3 +146,9 @@ CentroidForm::getContents( adcontrols::ProcessMethod& pm )
     update_data();
     pm.appendMethod< adcontrols::CentroidMethod >( *pMethod_ );
 }
+
+QSize
+CentroidForm::sizeHint() const
+{
+    return QSize( 300, 250 );
+}
