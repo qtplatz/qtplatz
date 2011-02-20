@@ -166,14 +166,18 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
     drawIdx1_ = 0;
     drawIdx2_ = 0;
 
-    adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-    if ( boost::apply_visitor( selChanged<MSProcessingWnd>(*this), data ) ) {
-        idActiveFolium_ = folium.id();
+    portfolio::Folder folder = folium.getParentFolder();
+    if ( folder && ( folder.name() == L"Spectra" || folder.name() == L"Chromatograms" ) ) {
 
-        portfolio::Folio attachments = folium.attachments();
-        for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
-            adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-            boost::apply_visitor( selProcessed<MSProcessingWnd>( *this ), contents );
+        adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+        if ( boost::apply_visitor( selChanged<MSProcessingWnd>(*this), data ) ) {
+            idActiveFolium_ = folium.id();
+
+            portfolio::Folio attachments = folium.attachments();
+            for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
+                adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
+                boost::apply_visitor( selProcessed<MSProcessingWnd>( *this ), contents );
+            }
         }
     }
 }
