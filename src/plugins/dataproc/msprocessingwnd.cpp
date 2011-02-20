@@ -32,6 +32,7 @@
 #include <adcontrols/datafile.h>
 #include <adutils/processeddata.h>
 #include <portfolio/folium.h>
+#include <portfolio/folder.h>
 #include <adwidgets/chromatogramwidget.h>
 #include <adwidgets/spectrumwidget.h>
 #include <adwidgets/axis.h>
