@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="9,00"
+	Name="EfsTests"
+	ProjectGUID="{62B484B7-8411-3D6C-8E8C-1AFF8D8C6B6B}"
+	Keyword="Qt4VSv1.0">
+	<Platforms>
+		<Platform
+			Name="Win32" />
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory="."
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			ConfigurationType="1"
+			IntermediateDirectory="test_obj\debug\EfsTests\"
+			UseOfMfc="0">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;,&quot;$(QTDIR)\include&quot;,&quot;..\src&quot;,&quot;..\jstreams&quot;,&quot;..\btree&quot;,&quot;$(QTDIR)\include\ActiveQt&quot;,&quot;debug&quot;,$(QTDIR)\mkspecs\win32-msvc2008"
+				AdditionalOptions="-Zm200 -w34100 -w34189"
+				AssemblerListingLocation="test_obj\debug\EfsTests\"
+				BufferSecurityCheck="false"
+				DebugInformationFormat="3"
+				ExceptionHandling="1"
+				GeneratePreprocessedFile="0"
+				ObjectFile="test_obj\debug\EfsTests\"
+				Optimization ="4"
+				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_NO_DEBUG_OUTPUT,QT_DLL,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT"
+				ProgramDataBaseFileName=".\"
+				RuntimeLibrary="3"
+				RuntimeTypeInfo="true"
+				SuppressStartupBanner="true"
+				TreatWChar_tAsBuiltInType="true"
+				WarningLevel="3" />
+			<Tool
+				Name="VCCustomBuildTool" />
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="$(QTDIR)\lib\QtCored4.lib"
+				AdditionalLibraryDirectories="$(QTDIR)\lib"
+				GenerateDebugInformation="true"
+				IgnoreImportLibrary="true"
+				LinkTimeCodeGeneration="0"
+				OutputFile="dist_debug\EfsTests.exe"
+				ProgramDatabaseFile=""
+				SubSystem="1"
+				SuppressStartupBanner="true" />
+			<Tool
+				Name="VCMIDLTool"
+				DefaultCharType="0"
+				EnableErrorChecks="1"
+				WarningLevel="0" />
+			<Tool
+				Name="VCPostBuildEventTool" />
+			<Tool
+				Name="VCPreBuildEventTool" />
+			<Tool
+				Name="VCPreLinkEventTool" />
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_NO_DEBUG_OUTPUT,QT_DLL,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT,_DEBUG" />
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="."
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			ConfigurationType="1"
+			IntermediateDirectory="test_obj\release\EfsTests\"
+			UseOfMfc="0">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;,&quot;$(QTDIR)\include&quot;,&quot;..\src&quot;,&quot;..\jstreams&quot;,&quot;..\btree&quot;,&quot;$(QTDIR)\include\ActiveQt&quot;,&quot;release&quot;,$(QTDIR)\mkspecs\win32-msvc2008"
+				AdditionalOptions="-Zm200 -w34100 -w34189"
+				AssemblerListingLocation="test_obj\release\EfsTests\"
+				BufferSecurityCheck="false"
+				DebugInformationFormat="0"
+				ExceptionHandling="1"
+				GeneratePreprocessedFile="0"
+				ObjectFile="test_obj\release\EfsTests\"
+				Optimization ="2"
+				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_NO_DEBUG_OUTPUT,QT_DLL,QT_NO_DEBUG,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT,NDEBUG"
+				ProgramDataBaseFileName=".\"
+				RuntimeLibrary="2"
+				RuntimeTypeInfo="true"
+				SuppressStartupBanner="true"
+				TreatWChar_tAsBuiltInType="true"
+				WarningLevel="3" />
+			<Tool
+				Name="VCCustomBuildTool" />
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="$(QTDIR)\lib\QtCore4.lib"
+				AdditionalLibraryDirectories="$(QTDIR)\lib"
+				GenerateDebugInformation="false"
+				IgnoreImportLibrary="true"
+				LinkIncremental="1"
+				LinkTimeCodeGeneration="0"
+				OutputFile="dist_release\EfsTests.exe"
+				ProgramDatabaseFile=""
+				SubSystem="1"
+				SuppressStartupBanner="true" />
+			<Tool
+				Name="VCMIDLTool"
+				DefaultCharType="0"
+				EnableErrorChecks="1"
+				WarningLevel="0" />
+			<Tool
+				Name="VCPostBuildEventTool" />
+			<Tool
+				Name="VCPreBuildEventTool" />
+			<Tool
+				Name="VCPreLinkEventTool" />
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_NO_DEBUG_OUTPUT,QT_DLL,QT_NO_DEBUG,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT" />
+		</Configuration>
+	</Configurations>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			<File
+				RelativePath="..\src\EfsEncryptor.cpp" />
+			<File
+				RelativePath="..\src\EfsFile.cpp" />
+			<File
+				RelativePath="..\src\EfsFit.cpp" />
+			<File
+				RelativePath="..\src\EfsHeader.cpp" />
+			<File
+				RelativePath="..\src\EfsImpl.cpp" />
+			<File
+				RelativePath="..\src\EfsNameKey.cpp" />
+			<File
+				RelativePath="..\src\EfsPosixFile.cpp" />
+			<File
+				RelativePath="..\src\EfsStream.cpp" />
+			<File
+				RelativePath="..\src\EfsWin32File.cpp" />
+			<File
+				RelativePath="..\jstreams\JBufferString.cpp" />
+			<File
+				RelativePath="..\jstreams\JBufferedStream.cpp" />
+			<File
+				RelativePath="..\jstreams\JByteInputStream.cpp" />
+			<File
+				RelativePath="..\jstreams\JByteOutputStream.cpp" />
+			<File
+				RelativePath="..\jstreams\JFileInputStream.cpp" />
+			<File
+				RelativePath="..\jstreams\JFileOutputStream.cpp" />
+			<File
+				RelativePath="..\jstreams\JFileStream.cpp" />
+			<File
+				RelativePath="..\jstreams\JInputStream.cpp" />
+			<File
+				RelativePath="..\jstreams\JMappedInputStream.cpp" />
+			<File
+				RelativePath="..\jstreams\JMappedOutputStream.cpp" />
+			<File
+				RelativePath="..\jstreams\JOutputStream.cpp" />
+			<File
+				RelativePath="..\jstreams\JTempFileStream.cpp" />
+			<File
+				RelativePath="..\jstreams\JUtils.cpp" />
+			<File
+				RelativePath="main.cpp" />
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			<File
+				RelativePath="..\btree\BTree.h" />
+			<File
+				RelativePath="..\btree\BTreeAlgorithms.h" />
+			<File
+				RelativePath="..\btree\BTreeElement.h" />
+			<File
+				RelativePath="..\btree\BTreeNode.h" />
+			<File
+				RelativePath="..\src\Efs.h" />
+			<File
+				RelativePath="..\src\EfsBTreeController.h" />
+			<File
+				RelativePath="..\src\EfsCallback.h" />
+			<File
+				RelativePath="..\src\EfsConfig.h" />
+			<File
+				RelativePath="..\src\EfsDefs.h" />
+			<File
+				RelativePath="..\src\EfsEncryptor.h" />
+			<File
+				RelativePath="..\src\EfsErrorCodes.h" />
+			<File
+				RelativePath="..\src\EfsFile.h" />
+			<File
+				RelativePath="..\src\EfsFit.h" />
+			<File
+				RelativePath="..\src\EfsHeader.h" />
+			<File
+				RelativePath="..\src\EfsNameKey.h" />
+			<File
+				RelativePath="..\src\EfsPosixFile.h" />
+			<File
+				RelativePath="..\src\EfsStream.h" />
+			<File
+				RelativePath="..\src\EfsWin32File.h" />
+			<File
+				RelativePath="..\src\FreesBTree.h" />
+			<File
+				RelativePath="..\jstreams\JBufferString.h" />
+			<File
+				RelativePath="..\jstreams\JBufferedInputStream.h" />
+			<File
+				RelativePath="..\jstreams\JBufferedInputStream.inl" />
+			<File
+				RelativePath="..\jstreams\JBufferedOutputStream.h" />
+			<File
+				RelativePath="..\jstreams\JBufferedOutputStream.inl" />
+			<File
+				RelativePath="..\jstreams\JBufferedStream.h" />
+			<File
+				RelativePath="..\jstreams\JByteInputStream.h" />
+			<File
+				RelativePath="..\jstreams\JByteOutputStream.h" />
+			<File
+				RelativePath="..\jstreams\JFileInputStream.h" />
+			<File
+				RelativePath="..\jstreams\JFileOutputStream.h" />
+			<File
+				RelativePath="..\jstreams\JFileStream.h" />
+			<File
+				RelativePath="..\jstreams\JInputStream.h" />
+			<File
+				RelativePath="..\jstreams\JMappedInputStream.h" />
+			<File
+				RelativePath="..\jstreams\JMappedOutputStream.h" />
+			<File
+				RelativePath="..\jstreams\JOutputStream.h" />
+			<File
+				RelativePath="..\jstreams\JStream.h" />
+			<File
+				RelativePath="..\jstreams\JStreamWrapper.h" />
+			<File
+				RelativePath="..\jstreams\JTempFileStream.h" />
+			<File
+				RelativePath="..\jstreams\JUtils.h" />
+			<File
+				RelativePath="..\jstreams\PlatformTypes.h" />
+			<File
+				RelativePath="..\btree\RamBTreeController.h" />
+			<File
+				RelativePath="..\jstreams\SmartPtr.h" />
+			<File
+				RelativePath="..\jstreams\SmartPtr.inl" />
+			<File
+				RelativePath="..\btree\StreamBTreeController.h" />
+			<File
+				RelativePath="..\jstreams\StringStreamWrapper.h" />
+			<File
+				RelativePath="..\jstreams\StringStreamWrapper.inl" />
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
