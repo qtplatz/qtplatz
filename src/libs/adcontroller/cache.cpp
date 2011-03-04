@@ -54,6 +54,8 @@ Cache::Cache()
 bool
 Cache::write( long pos, SignalObserver::DataReadBuffer_var& rdbuf )
 {
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+
     if ( fifo_.size() > 1024 )
         fifo_.pop_front();
     fifo_.push_back( CacheItem( pos, rdbuf ) );
@@ -65,6 +67,9 @@ Cache::read( long pos, SignalObserver::DataReadBuffer_out rdbuf )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     
+    if ( fifo_.empty() )
+        return false;
+
     if ( pos < 0 )
         pos = fifo_.back();
     
@@ -83,8 +88,6 @@ Cache::read( long pos, SignalObserver::DataReadBuffer_out rdbuf )
 long
 Cache::posFromTime( unsigned long long usec )
 {
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
-
     struct time_compare {
         bool operator () ( const CacheItem& lhs, unsigned long long rhs ) const {
             return lhs.rdbuf_->uptime < rhs;
@@ -96,6 +99,8 @@ Cache::posFromTime( unsigned long long usec )
             return lhs.rdbuf_->uptime < rhs.rdbuf_->uptime;
         }
     };
+
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
 
     std::deque< CacheItem >::iterator it = std::lower_bound( fifo_.begin(), fifo_.end(), usec, time_compare() );    
     if ( it != fifo_.end() )
