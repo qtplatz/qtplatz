@@ -111,7 +111,7 @@ datafileBrokerImpl::register_library( const std::wstring& sharedlib )
         if ( ffactory ) {
             datafile_factory * pfactory = ffactory();
             if ( pfactory )
-                register_factory( pfactory, pfactory->name() );
+                register_factory( pfactory, sharedlib );
             return true;
         }
     }

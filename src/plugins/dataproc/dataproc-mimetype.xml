@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
-    <mime-type type="application/octet-stream">
+  <mime-type type="application/octet-stream">
         <comment>binary document</comment>
-    </mime-type>
-
-    <mime-type type="application/mc4.dataset">
+  </mime-type>
+  <mime-type type="application/qtplatz.dataset">
+      <sub-class-of type="application/octet-stream"/>
+      <comment>qtPlatz data file</comment>
+      <glob pattern="*.qtfolio"/>
+  </mime-type>
+  <mime-type type="application/qtplatz.dataset">
+    <sub-class-of type="application/octet-stream"/>
+    <comment>InfiTOF Spectrum</comment>
+    <glob pattern="*.qtms"/>
+  </mime-type>
+  <mime-type type="application/mc4.dataset">
         <sub-class-of type="application/octet-stream"/>
         <comment>MC4 data file</comment>
         <glob pattern="*.data"/>
@@ -14,7 +23,7 @@
       <comment>InfiTOF data file</comment>
       <glob pattern="*.plt"/>
     </mime-type>
-    <mime-type type="application/text.dataset">
+  <mime-type type="application/text.dataset">
        <sub-class-of type="application/octet-stream"/>
        <comment>Spectrum file</comment>
        <glob pattern="*.txt"/>
