@@ -329,11 +329,14 @@ internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcon
 {
     adcontrols::MassSpectrumPtr prev = findAttachedMassSpectrum( folium );
     // copy centroid result if exist, for meta data copy
-    adcontrols::MassSpectrumPtr pResult( new adcontrols::MassSpectrum( *prev ) );
-    portfolio::Folium att = folium.addAttachment( L"Isotope Cluster" );
-    if ( DataprocHandler::doIsotope( *pResult, m ) )
-        static_cast< boost::any& >( att ) = pResult;
-    return true;
+    if ( prev ) {
+        adcontrols::MassSpectrumPtr pResult( new adcontrols::MassSpectrum( *prev ) );
+        portfolio::Folium att = folium.addAttachment( L"Isotope Cluster" );
+        if ( DataprocHandler::doIsotope( *pResult, m ) )
+            static_cast< boost::any& >( att ) = pResult;
+        return true;
+    }
+    return false;
 }
 
 bool

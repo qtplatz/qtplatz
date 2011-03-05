@@ -105,11 +105,17 @@ spectrum_processor::tic( unsigned int nbrSamples, const long * praw, double& dba
     do {
         slope_counter counter(20.0);
         for ( unsigned int x = 2; x < nbrSamples - 2; ++x ) {
-            avgr( praw[x] );
-            if ( counter( convolute( reinterpret_cast<const long *>(&praw[x]) ) ) > 5 )
-                base( praw[ x - 2 ] );
-            else if ( counter.n > 5 )
-                cnt++;
+            try {
+                avgr( praw[x] );
+                if ( counter( convolute( reinterpret_cast<const long *>(&praw[x]) ) ) > 5 )
+                    base( praw[ x - 2 ] );
+                else if ( counter.n > 5 )
+                    cnt++;
+            } catch ( ... ) {
+#if defined _DEBUG
+                throw;
+#endif
+            }
         }
     } while (0);
     dbase = base.average();

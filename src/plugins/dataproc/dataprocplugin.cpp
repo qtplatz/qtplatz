@@ -65,6 +65,7 @@
 #include <QToolButton>
 #include <QDir>
 #include <adcontrols/massspectrum.h>
+#include <adcontrols/msproperty.h>
 #include <adcontrols/processmethod.h>
 #include <qtwrapper/qstring.h>
 #include <adportable/configuration.h>
@@ -77,8 +78,10 @@
 #include <adplugin/orbmanager.h>
 #include <adplugin/manager.h>
 #include <adplugin/qbrokersessionevent.h>
-
+#include <boost/format.hpp>
 #include <streambuf>
+#include <fstream>
+#include <iomanip>
 
 #pragma warning(disable:4996)
 # include <adinterface/brokerC.h>
@@ -361,6 +364,36 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
 
         adcontrols::ProcessMethod m;
         processor.addSpectrum( ms, m );
+        //---------> for quick debug
+        std::string name1( "C:/InfiTOF/" );
+        std::string name2;
+        do {
+            time_t utc;
+            time(&utc);
+            struct tm tm = *localtime( &utc );
+            name1 += ( boost::format( "%04d-%02d-%02d-%02d%02d%02d" ) % (tm.tm_year + 1900) % (tm.tm_mon + 1) % tm.tm_mday % tm.tm_hour % tm.tm_min % tm.tm_sec ).str();
+            name2 = name1;
+            name1 += ".txt";
+            name2 += ".qtms";
+        } while(0);
+
+        std::ofstream of( name1.c_str() );
+        if ( ! of.fail() ) {
+            size_t size = ms.size();
+            const double * pIntens = ms.getIntensityArray();
+            const double * pMasses = ms.getMassArray();
+            const adcontrols::MSProperty& prop = ms.getMSProperty();
+            unsigned long sampInterval = prop.instSamplingInterval();
+            unsigned long nDelay = prop.instSamplingStartDelay();
+            for ( size_t i = 0; i < size; i++ ) {
+                of << std::setprecision(12) << (double( ( nDelay + i ) * sampInterval ) * 1.0e-12 ) << "\t" << pMasses[i] << "\t" << pIntens[i] << std::endl;
+            }
+        }
+        std::ofstream of2( name2.c_str(), std::ios_base::binary | std::ios_base::out );
+        if ( ! of2.fail() ) {
+            of2.write( reinterpret_cast< const char *>( var->serialized.get_buffer() ), var->serialized.length() );
+        }
+        //<--------------
     }
 }
 
