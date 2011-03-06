@@ -28,11 +28,13 @@
 #  if defined _DEBUG
 #     pragma comment(lib, "adcontrolsd.lib")
 #     pragma comment(lib, "adportabled.lib")
+#     pragma comment(lib, "acewrapperd.lib")
 #     pragma comment(lib, "xmlwrapperd.lib")
 #     pragma comment(lib, "portfoliod.lib")
 #  else
 #     pragma comment(lib, "adcontrols.lib")
 #     pragma comment(lib, "adportable.lib")
+#     pragma comment(lib, "acewrapper.lib")
 #     pragma comment(lib, "xmlwrapper.lib")
 #     pragma comment(lib, "portfolio.lib")
 #  endif

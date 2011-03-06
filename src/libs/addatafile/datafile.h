@@ -45,6 +45,7 @@ namespace addatafile {
         datafile();
         
         bool open( const std::wstring& filename, bool readonly = false );
+        bool open_qtms( const std::wstring& filename, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
         virtual void accept( adcontrols::dataSubscriber& );

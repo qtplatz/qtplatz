@@ -47,7 +47,7 @@ datafile_factory::close( adcontrols::datafile * p )
 const std::wstring&
 datafile_factory::name() const
 {
-    static std::wstring name( L"text" );
+    static std::wstring name( L"qtfolio" );
     return name;
 }
 
@@ -61,9 +61,15 @@ datafile_factory::access( const std::wstring& filename ) const
 adcontrols::datafile *
 datafile_factory::open( const std::wstring& filename, bool readonly ) const
 {
+    boost::filesystem::wpath path(filename);
     datafile * p = new datafile;
-    if ( p->open( filename, readonly ) )
-        return p;
+    if ( path.extension() == L".qtms" ) {
+        if ( p->open_qtms( filename, readonly ) )
+            return p;
+    } else {
+        if ( p->open( filename, readonly ) )
+            return p;
+    }
     delete p;
     return 0;
 }

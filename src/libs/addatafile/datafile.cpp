@@ -34,6 +34,10 @@
 #include <portfolio/folder.h>
 #include <portfolio/folium.h>
 #include <boost/any.hpp>
+#include <boost/interprocess/file_mapping.hpp>
+#include <boost/interprocess/mapped_region.hpp>
+#include <adportable/string.h>
+#include <acewrapper/input_buffer.h>
 
 using namespace addatafile;
 
@@ -67,6 +71,40 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     //folium.setAttribute( L"dataType", L"MassSpectrum" );
     //folium.setAttribute( L"path", L"/" );
 
+    processedDataset_.reset( new adcontrols::ProcessedDataset );
+    processedDataset_->xml( portfolio.xml() );
+
+    return true;
+}
+
+bool
+datafile::open_qtms( const std::wstring& filename, bool /* readonly */ )
+{
+    // create a file mapping
+    boost::interprocess::file_mapping map( adportable::string::convert(filename).c_str(), boost::interprocess::read_only );
+
+    // map the whole file with read-only permissions in this process
+    boost::interprocess::mapped_region region( map, boost::interprocess::read_only );
+    std::size_t size = region.get_size();
+
+    acewrapper::input_buffer ibuf( static_cast<unsigned char *>(region.get_address()), size );
+    std::istream in( &ibuf );
+
+    adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum );
+    pMS->deserialize( in );
+    data_ = pMS;     
+    //-------------
+
+    portfolio::Portfolio portfolio;
+
+    portfolio.create_with_fullpath( filename );
+    portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
+
+    //----
+    portfolio::Folium folium = spectra.addFolium( filename );
+    folium.setAttribute( L"dataType", L"MassSpectrum" );
+    folium.setAttribute( L"path", L"/" );
+    //----
     processedDataset_.reset( new adcontrols::ProcessedDataset );
     processedDataset_->xml( portfolio.xml() );
 
