@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -35,6 +31,9 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/tuple/tuple.hpp>
+#include <boost/fusion/container.hpp>
+#include <boost/fusion/algorithm.hpp>
 
 #include "mscalibration.h"
 
@@ -44,6 +43,7 @@ namespace adcontrols {
     public:
         MSProperty();
         MSProperty( const MSProperty& );
+        class SamplingInfo;
 
         double accelerateVoltage() const;
         void setAccelerateVoltage( double );
@@ -63,9 +63,35 @@ namespace adcontrols {
         unsigned long timeSinceInjection() const;
         void setTimeSinceInjection( unsigned long );
 
+        const std::vector< SamplingInfo >& getSamplingInfo() const;
+        void setSamplingInfo( const std::vector< SamplingInfo >& );
+        void addSamplingInfo( const SamplingInfo& );
+
         // acquisition mass range, usually it is from user parameter based on theoretical calibration
         const std::pair<double, double>& instMassRange() const;
         void setInstMassRange( const std::pair<double, double>& );
+
+        class ADCONTROLSSHARED_EXPORT SamplingInfo {
+        public:
+            unsigned long sampInterval; // ps
+            unsigned long nSamplingDelay;
+            unsigned long nSamples;
+            unsigned long nAverage;
+            SamplingInfo();
+            SamplingInfo( unsigned long sampInterval, unsigned long nDelay, unsigned long nCount, unsigned long nAvg );
+        private:
+            friend class boost::serialization::access;
+            template<class Archive>
+            void serialize(Archive& ar, const unsigned int version) {
+                if ( version >= 0 ) {
+                    ar & BOOST_SERIALIZATION_NVP(sampInterval);
+                    ar & BOOST_SERIALIZATION_NVP(nSamplingDelay);
+                    ar & BOOST_SERIALIZATION_NVP(nSamples);
+                    ar & BOOST_SERIALIZATION_NVP(nAverage);
+                }
+            };
+
+        };
 
     private:
         unsigned long time_since_injection_; // msec
@@ -73,18 +99,12 @@ namespace adcontrols {
         unsigned long instNumAvrg_;
         unsigned long instSamplingStartDelay_;
         unsigned long instSamplingInterval_; // ps
+
+        std::vector< SamplingInfo > samplingData_;
+
 # pragma warning(disable:4251)
         std::pair< double, double > instMassRange_;
-//# pragma warning(default:4251)
 
-        // bool bLockmassApplied_;
-        // MSCalibration instCalib_;
-        // double massFactor_;
-        // double interpolateFromTime_;	// interpolation range for calibration
-        // double interpolateToTime_;		// interpolation range for calibration
-        // double instAcqCalibMax_; // 1,000 | 2,000 | 4,000 | 10,000
-        // double instTimeOffset_; // seconds
-        // double instSampIntval_; // seconds  0.5e-9, 1.0e-9, 2.0e-9 ...
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
@@ -97,12 +117,16 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP(instMassRange_.first);
                 ar & BOOST_SERIALIZATION_NVP(instMassRange_.second);
             }
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( samplingData_ );
+            }
         }
 
     };
 
 }
 
-BOOST_CLASS_VERSION(adcontrols::MSProperty, 1)
+BOOST_CLASS_VERSION(adcontrols::MSProperty, 2)
+BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 2)
 
 

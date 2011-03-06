@@ -1,7 +1,26 @@
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the ScienceLiaison Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 #include "msproperty.h"
 
@@ -19,7 +38,8 @@ MSProperty::MSProperty( const MSProperty& t ) : time_since_injection_( t.time_si
                                               , instAccelVoltage_( t.instAccelVoltage_ )
                                               , instNumAvrg_( t.instNumAvrg_ )
                                               , instSamplingStartDelay_( t.instSamplingStartDelay_ )
-                                              , instSamplingInterval_( t.instSamplingInterval_ )     
+                                              , instSamplingInterval_( t.instSamplingInterval_ )
+                                              , samplingData_( t.samplingData_ )
 {
 }
 
@@ -103,3 +123,40 @@ MSProperty::instMassRange() const
 {
     return instMassRange_;
 }
+
+const std::vector< MSProperty::SamplingInfo >&
+MSProperty::getSamplingInfo() const
+{
+    return samplingData_;
+}
+
+void
+MSProperty::setSamplingInfo( const std::vector< SamplingInfo >& v )
+{
+    samplingData_ = v;
+}
+
+void
+MSProperty::addSamplingInfo( const SamplingInfo& item )
+{
+    samplingData_.push_back( item );
+}
+
+
+MSProperty::SamplingInfo::SamplingInfo( unsigned long interval
+                                       , unsigned long ndelay
+                                       , unsigned long nsamples
+                                       , unsigned long navgr ) : sampInterval( interval )
+                                                               , nSamplingDelay( ndelay )
+                                                               , nSamples( nsamples )  
+                                                               , nAverage( navgr )
+{
+}
+ 
+MSProperty::SamplingInfo::SamplingInfo() : sampInterval( 0 )
+                                         , nSamplingDelay( 0 )
+                                         , nAverage( 0 )
+                                         , nSamples( 0 )
+{
+}
+ 
