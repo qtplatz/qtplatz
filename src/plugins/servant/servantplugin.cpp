@@ -38,7 +38,7 @@
 #include <QtCore>
 #pragma warning(disable:4996)
 # include <ace/Thread_Manager.h>
-# include <ace/OS.h>
+# include <ace/OS_NS_unistd.h>
 #pragma warning(default:4996)
 
 #include <adbroker/adbroker.h>
