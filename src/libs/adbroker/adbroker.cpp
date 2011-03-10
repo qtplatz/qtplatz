@@ -37,7 +37,7 @@
 #pragma warning (disable: 4996)
 # include <tao/Utils/ORB_Manager.h>
 # include <ace/Thread_Manager.h>
-# include <ace/OS.h>
+//# include <ace/OS.h>
 # include <ace/Process_Manager.h>
 #pragma warning (default: 4996)
 

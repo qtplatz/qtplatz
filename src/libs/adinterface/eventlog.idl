@@ -19,6 +19,8 @@ module EventLog {
         unsigned long long sec;
         long usec;
     };
+
+    typedef sequence< wstring > wstring_sequence;
     
     struct LogMessage {
         unsigned long logId;  // unique number for each log message, such as sequencial number
@@ -27,7 +29,7 @@ module EventLog {
         wstring msgId;        // such as 'error code' for end user
         wstring srcId;        // source device id
         wstring format;
-        sequence< wstring > args;
+        wstring_sequence args;
     };
   
 };

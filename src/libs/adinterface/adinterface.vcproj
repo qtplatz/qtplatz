@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="$(ACE_ROOT);$(ACE_ROOT)\TAO;.\..\libs;.\debug;.\GeneratedFiles\$(ConfigurationName);$(BOOST_ROOT)\include\boost-1_43"
+				AdditionalIncludeDirectories="&quot;$(BOOST_INCLUDE)&quot;;&quot;$(ACE_ROOT)\TAO&quot;;.\..\libs;.\debug;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(BOOST_ROOT)&quot;"
 				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -123,7 +123,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="$(ACE_ROOT);$(ACE_ROOT)\TAO;.\..\libs;.\debug;.\GeneratedFiles\$(ConfigurationName);$(BOOST_ROOT)\include\boost-1_43"
+				AdditionalIncludeDirectories="&quot;$(BOOST_INCLUDE)&quot;;&quot;$(ACE_ROOT)\TAO&quot;;.\..\libs;.\debug;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(BOOST_ROOT)&quot;"
 				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_NO_DEBUG,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -564,7 +564,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>
@@ -573,7 +573,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>

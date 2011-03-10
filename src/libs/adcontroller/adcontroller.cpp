@@ -61,7 +61,7 @@
 # include <ace/Sched_Params.h>
 # include <ace/Thread_Manager.h>
 # include <ace/Process_Manager.h>
-# include <ace/OS.h>
+//# include <ace/OS.h>
 # include <tao/Utils/ORB_Manager.h>
 #pragma warning (default: 4996)
 

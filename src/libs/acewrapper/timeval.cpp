@@ -7,7 +7,7 @@
 # pragma warning (disable: 4996)
 #  include <ACE/Time_Value.h>
 #  include <ACE/High_Res_Timer.h>
-#  include <ACE/OS.h>
+#  include <ACE/OS_NS_sys_time.h>
 # pragma warning (default: 4996)
 #include <sstream>
 #include <string>

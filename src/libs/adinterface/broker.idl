@@ -9,12 +9,12 @@
 
 interface LogHandler;
 interface BrokerEventSink;
-
-module SignalObserver {
-    interface Observer;
-};
+#include "SignalObserver.idl"
+#include "controlmethod.idl"
 
 module Broker {
+
+   typedef sequence< wstring > args_type;
 
     struct LogMessage {
         unsigned long logId;
@@ -24,19 +24,21 @@ module Broker {
         wstring msgId;
         wstring srcId;
         wstring text;
-        sequence< wstring > args;
+        args_type args;
     };
 
     struct Attrib {
         wstring key;
         wstring value;
     };
+    typedef sequence< Attrib > attrib_sequence;
+    typedef sequence< octet > octet_sequence;
 
     struct Folium {
         wstring path;
         wstring class;
-        sequence< Attrib > attrib;
-        sequence< octet > serialized;
+        attrib_sequence attrib;
+        octet_sequence serialized;
     };
 
     interface ChemicalFormula {

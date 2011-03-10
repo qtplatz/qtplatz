@@ -48,13 +48,15 @@ module ControlMethod {
     case eDouble:   double double_value_;
     case eWString:  wstring wstring_value_;
     };
+
+    typedef sequence< argument > argument_sequence;
     
     struct MethodLine {
         boolean isInitialCondition_;
         TimeValue time_;
         unsigned long type_id_;
         unsigned long unit_id_;
-        sequence< argument > arguments_;
+        argument_sequence arguments_;
     };
     
     interface Method {

@@ -73,7 +73,7 @@ namespace adcontrols {
 		 }
      };
 
-     boost::mutex TableOfElementsImpl::mutex_ = boost::mutex();
+     // boost::mutex TableOfElementsImpl::mutex_ = boost::mutex();
 
    }
 }

@@ -28,7 +28,8 @@
 #include <ace/Sched_Params.h>
 #include <ace/Thread_Manager.h>
 #include <ace/Process_Manager.h>
-#include <ace/OS.h>
+#include <ace/OS_NS_unistd.h>
+#include <ace/OS_NS_sys_wait.h>
 #pragma warning ( default : 4996 )
 
 #include "adcontroller.h"

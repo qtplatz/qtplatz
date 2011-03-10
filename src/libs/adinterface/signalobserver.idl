@@ -74,12 +74,14 @@ module SignalObserver {
         long axis_y_decimals;
     };
 
+    typedef sequence<long> long_array;
+
     struct DataReadBuffer {
 		unsigned long long uptime; // time in usec
 		unsigned long pos;         // data address (sequencial number for first data in this frame)
         unsigned long ndata;       // number of data in array
         unsigned long events;      // well known events
-		sequence<long> array;      // encoded data
+		long_array array;      // encoded data
         any data;
         any method;                // data acquisition method, sample information etc., which can be nil
     };

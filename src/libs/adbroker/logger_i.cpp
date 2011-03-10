@@ -11,7 +11,7 @@
 #include <sstream>
 #pragma warning (disable: 4996)
 # include <adinterface/loghandlerC.h>
-# include <ace/OS.h>
+# include <ace/OS_NS_time.h>
 #pragma warning (default: 4996)
 #include <iomanip>
 

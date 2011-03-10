@@ -11,6 +11,8 @@ module SampleBroker {
 
 	enum SampleType { SAMPLE_UNKNOWN, SAMPLE_STANDARD, SAMPLE_QC };
 
+    typedef sequence< wstring > wstringSequence;
+
 	struct SampleSequenceLine {
 		wstring sampleId_;
 		SampleType sampType_;
@@ -25,7 +27,7 @@ module SampleBroker {
 		double injVolume_;
         double methodTime_;
 		double istdAmount_;       // added amount of ISTD
-		sequence< wstring > userValues_;
+        wstringSequence userValues_;
 	};
 
 	struct CompoundResponse {
@@ -34,10 +36,12 @@ module SampleBroker {
 		double responce_;       // peak height or area on chromatogram
 	};
 
+    typedef sequence< CompoundResponse > CompoundResponseSequence;
+
 	struct CompoundCalibData {
 		wstring compoundName_;  // compund::detection to be unique
         wstring detection_;     // ex UV:250nm, mass:152.1708 etc.
-		sequence< CompoundResponse > responses_;
+        CompoundResponseSequence responses_;
 	};
 
 	struct CompoundData {
@@ -49,9 +53,12 @@ module SampleBroker {
 		boolean isIntStd_;
 	};
 
+    typedef sequence< CompoundData > CompoundDataSequence;
+    typedef sequence< CompoundCalibData > CompoundCalibDataSequence;
+
 	struct IDTable {
-		sequence< CompoundData > compounds_;
-		sequence< CompoundCalibData > calibResults_;
+        CompoundDataSequence compounds_;
+        CompoundCalibDataSequence calibResults_;
 	};
 
 	struct QuantMethod {
@@ -61,9 +68,11 @@ module SampleBroker {
         boolean bracketing_;
 	};
 
+    typedef sequence< SampleSequenceLine > SampleSequenceLines;
+
 	struct SampleSequenceData {
-		sequence< wstring > userColumns_;
-		sequence< SampleSequenceLine > lines_;
+        wstringSequence userColumns_;
+        SampleSequenceLines lines_;
         QuantMethod quantMethod_;
 		IDTable idTable_;
 	};
