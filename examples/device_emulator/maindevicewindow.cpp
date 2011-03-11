@@ -39,7 +39,7 @@
 #include <sstream>
 
 # pragma warning (disable : 4996 )
-# include <ace/OS.h>
+//# include <ace/OS.h>
 # include <ace/Reactor.h>
 # include <ace/Message_Block.h>
 # include <ace/Task.h>

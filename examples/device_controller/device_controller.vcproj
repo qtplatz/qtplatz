@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;c:\Boost\include\boost-1_43&quot;;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;..\..\src\libs;&quot;$(ConfigurationName)&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;$(BOOST_INCLUDE)&quot;;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;..\..\src\libs;&quot;$(ConfigurationName)&quot;"
 				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_DLL,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -136,7 +136,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;c:\Boost\include\boost-1_43&quot;;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;..\..\src\libs;&quot;$(ConfigurationName)&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;$(BOOST_INCLUDE)&quot;;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;..\..\src\libs;&quot;$(ConfigurationName)&quot;"
 				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_DLL,QT_NO_DEBUG,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -233,7 +233,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) -I../../src/libs $(InputFileName)&#x0D;&#x0A;"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -aw -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) -I../../src/libs $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>
@@ -242,7 +242,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="$(ACE_ROOT)/bin/tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) -I../../src/libs $(InputFileName)&#x0D;&#x0A;"
+						CommandLine="$(ACE_ROOT)/bin/tao_idl -aw -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) -I../../src/libs $(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(InputName)C.h;$(InputName)C.cpp;$(InputName)S.h;$(InputName)S.cpp"
 					/>
 				</FileConfiguration>

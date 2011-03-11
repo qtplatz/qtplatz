@@ -5,7 +5,7 @@
 #include <tao/ORB.h>
 #include <tao/Utils/ORB_Manager.h>
 #include <ace/Thread_Manager.h>
-#include <ace/OS.h>
+#include <ace/OS_NS_unistd.h>
 
 //////////////////
 #  if defined _DEBUG

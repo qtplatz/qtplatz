@@ -39,7 +39,7 @@
 #include <boost/lexical_cast.hpp>
 
 #pragma warning (disable: 4996)
-# include <ace/OS.h>
+# include <ace/OS_NS_unistd.h>
 # include <ace/Singleton.h>
 # include <ace/INET_Addr.h>
 # include <ace/Time_Value.h>

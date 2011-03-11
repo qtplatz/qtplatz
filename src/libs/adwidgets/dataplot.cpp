@@ -25,6 +25,7 @@
 
 #include "dataplot.h"
 #include <QResizeEvent>
+#include <QMessageBox>
 #include "axis.h"
 #include "title.h"
 #include "titles.h"
@@ -52,8 +53,11 @@ Dataplot::Dataplot(QWidget *parent) : QWidget(parent)
     // Only support win32 COM implementation so far.
     using namespace internal;
     pImpl_.reset( new win32::DataplotImpl(*this) );
-    if ( pImpl_ )
-        createControl();
+    if ( pImpl_ ) {
+        if ( ! createControl() ) {
+            QMessageBox::critical( 0, QLatin1String("Dataplot cannot be created"), "adwidgets::win32::DataplotImpl" );
+        }
+    }
 
     redrawEnabled( true );
     connect( this, SIGNAL(signalMouseDown(double,double,short)),  this, SLOT(OnMouseDown(double, double, short)) );

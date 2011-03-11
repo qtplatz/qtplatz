@@ -168,7 +168,7 @@
 				OutputFile="..\..\..\lib\qtPlatz\plugins\ScienceLiaison\acquire.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(TargetDir)&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;;&quot;$(ACE_ROOT)/lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(TargetDir)&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;;&quot;$(ACE_ROOT)/lib&quot;;&quot;$(BOOST_ROOT)/lib&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="2"

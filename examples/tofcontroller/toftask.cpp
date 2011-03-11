@@ -49,7 +49,7 @@
 
 #pragma warning (disable : 4996 )
 # include "tofcontrollerC.h"
-# include <ace/OS.h>
+# include <ace/OS_NS_unistd.h>
 # include <adinterface/global_constantsC.h>
 # include <adinterface/receiverC.h>
 #pragma warning (default : 4996 )
