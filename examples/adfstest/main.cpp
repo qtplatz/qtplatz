@@ -23,13 +23,13 @@
 **
 **************************************************************************/
 
-#ifndef ADVFS_H
-#define ADVFS_H
+#include <adfs/adfs.h>
 
+int
+main(int argc, char *argv[])
+{
+    (void)(argc);
+    (void)(argv);
 
-class advfs {
-public:
-    advfs();
-};
-
-#endif // ADVFS_H
+    adfs::disk disk = adfs::disk::create( "disk.bin" );
+}

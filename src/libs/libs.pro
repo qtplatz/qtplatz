@@ -19,7 +19,8 @@ SUBDIRS   = \
     qtwidgets \
     qtwrapper \
     utils \
-    xmlwrapper
+    xmlwrapper \
+    adfs
 
 #   adcontroller
 #    interface
