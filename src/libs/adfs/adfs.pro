@@ -13,12 +13,20 @@ CONFIG += staticlib
 SOURCES += adfs.cpp \
     superblock.cpp \
     constants.cpp \
-    inode.cpp
+    inode.cpp \
+    operations.cpp \
+    filesystem.cpp \
+    win32api.cpp \
+    posixapi.cpp
 
 HEADERS += adfs.h \
     superblock.h \
     constants.h \
-    inode.h
+    inode.h \
+    operations.h \
+    filesystem.h \
+    win32api.h \
+    posixapi.h
 unix:!symbian {
     maemo5 {
         target.path = /opt/usr/lib

@@ -27,7 +27,8 @@
 #include <boost/smart_ptr.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <boost/interprocess/managed_mapped_file.hpp>
+#include <boost/filesystem.hpp>
+#include "filesystem.h"
 #include "superblock.h"
 #include <fstream>
 
@@ -37,8 +38,7 @@ namespace adfs {
     namespace internal {
 
         class disk_image {
-            //boost::interprocess::file_mapping *mmap;
-            boost::interprocess::managed_mapped_file *mmap;
+            boost::interprocess::file_mapping *mmap;
             disk_super_block * sb;
         public:
             ~disk_image();
@@ -93,20 +93,23 @@ disk_image::disk_image() : mmap(0), sb(0)
 disk_image::disk_image( const char * filename, adfs::mode_t cmode )
 {
     std::size_t pagesize = boost::interprocess::mapped_region::get_page_size();
+    boost::filesystem::path filepath( filename );
     
     if ( cmode == adfs::disk_create ) {
-        // boost::interprocess::managed_mapped_file::remove( filename );
-        //mmap = new boost::interprocess::managed_mapped_file( boost::interprocess::open_or_create, filename, pagesize );
-        boost::interprocess::managed_mapped_file::grow( filename, pagesize );
-        boost::interprocess::managed_mapped_file map( boost::interprocess::open_or_create, filename, pagesize );
 
-/*
-        std::filebuf fbuf;
-        fbuf.open( filename, std::ios_base::in | std::ios_base::out | std::ios_base::trunc | std::ios_base::binary );
+        {
+            std::filebuf fbuf;
+            fbuf.open( filename, std::ios_base::in | std::ios_base::out | std::ios_base::trunc | std::ios_base::binary );
+        }
+
+        boost::filesystem::resize_file( filepath, pagesize );
         mmap = new boost::interprocess::file_mapping( filename, boost::interprocess::read_write );
-        boost::interprocess::mapped_region region( *mmap, boost::interprocess::read_write, pagesize );
+
+        boost::interprocess::mapped_region region( *mmap, boost::interprocess::read_write, 0, pagesize );
         sb = new ( region.get_address() ) disk_super_block;
-*/
+
+        adfs::filesystem::grow( filepath, pagesize );
+
     } else if ( cmode == adfs::disk_readonly ) {
 /*
         mmap = new boost::interprocess::file_mapping( filename, boost::interprocess::read_only );
