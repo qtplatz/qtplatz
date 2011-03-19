@@ -31,5 +31,7 @@ main(int argc, char *argv[])
     (void)(argc);
     (void)(argv);
 
-    adfs::disk disk = adfs::disk::create( "disk.bin" );
+    adfs::storage stg;
+    stg.create( "disk.adfs" );
+    stg.close();
 }

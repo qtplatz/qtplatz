@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sqlite3.c"
+				>
+			</File>
+			<File
 				RelativePath="superblock.cpp"
 				>
 			</File>
@@ -318,6 +322,10 @@
 			</File>
 			<File
 				RelativePath=".\posixapi.h"
+				>
+			</File>
+			<File
+				RelativePath=".\sqlite3.h"
 				>
 			</File>
 			<File

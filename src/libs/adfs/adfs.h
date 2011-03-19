@@ -25,23 +25,25 @@
 
 #pragma once
 
+struct sqlite3;
+
 namespace adfs {
 
-    namespace internal { class disk_image; }
-
-    enum constants {
-        MAX_NAME_LENGTH = 256
+    namespace detail {
+        class storage;
     };
 
-    class disk {
-        internal::disk_image * image;
+    class storage {
+        detail::storage * impl_;
     public:
-        ~disk();
-        disk();
-        disk( const disk& );
-        static disk mount( const char * filename, bool readonly = false );
-        static disk create( const char * filename );
+        ~storage();
+        storage();
+        storage( const storage& );
+
+        bool create( const char * filename, bool readonly = false );
+        bool close();
     };
+
 }
 
 
