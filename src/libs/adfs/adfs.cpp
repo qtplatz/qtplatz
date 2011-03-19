@@ -26,7 +26,9 @@
 #include "adfs.h"
 #include "sqlite3.h"
 #include <iostream>
-#include <windows.h>
+#include <boost/filesystem.hpp>
+#include <boost/smart_ptr.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 using namespace adfs;
 
@@ -45,10 +47,10 @@ namespace adfs { namespace detail {
         static int callback( void * NotUsed, int argc, char ** argv, char ** azColName );
 
         struct ErrMsg {
-            char * p_;
-            inline operator char ** () { return &p_; }
-            ErrMsg() : p_(0) {}
-            ~ErrMsg() { sqlite3_free( p_ ); }
+            char * p;
+            inline operator char ** () { return &p; }
+            ErrMsg() : p(0) {}
+            ~ErrMsg() { sqlite3_free( p ); }
         };
     };
 
@@ -111,6 +113,8 @@ detail::storage::close()
 bool
 detail::storage::create( const char * filename )
 {
+    boost::filesystem::remove( filename );
+
     int rc = sqlite3_open( filename, &db_ );
     if ( rc )
         return false;
@@ -131,22 +135,34 @@ detail::storage::create( const char * filename )
         long x = 0; // error
     }
 
+//#if defined TRANSACTION
+    const char * transaction = "BEGIN DEFERRED";
+    //const char * transaction = "BEGIN IMMEDIATE";
+    //const char * transaction = "BEGIN EXCLUSIVE";
+    if ( sqlite3_exec( db_, transaction, callback, 0, msg ) != SQLITE_OK )
+        std::cout << msg.p << std::endl;
+//#endif
+
     sqlite3_stmt * stmt = 0;
     const char * tail = 0;
     char * sql = "INSERT INTO zTable VALUES(?,?)";
 
-    unsigned long blob[128 * 1024];
+    const size_t N = 1;
+    const size_t nbrSamples = 32 * 1024;
+    const size_t nSpectra = 1024;
+
+    boost::scoped_array<unsigned long> blob( new unsigned long[ N * nbrSamples ] );
     
     if ( sqlite3_prepare_v2( db_, sql, -1, &stmt, &tail ) != SQLITE_OK )
         std::cout << sqlite3_errmsg( db_ );
 
-    unsigned long t0 = ::GetTickCount();
+    boost::posix_time::ptime t0( boost::posix_time::microsec_clock::local_time() );
 
-    for ( int k = 0; k < 1024; ++k ) {
+    for ( int k = 0; k < ( nSpectra / N ); ++k ) {
         if ( sqlite3_bind_int( stmt, 1, k ) != SQLITE_OK )
             std::cout << sqlite3_errmsg( db_ );
 
-        if ( sqlite3_bind_blob( stmt, 2, blob, sizeof(blob), SQLITE_STATIC) != SQLITE_OK )
+        if ( sqlite3_bind_blob( stmt, 2, blob.get(), N * (nbrSamples * sizeof(long)), SQLITE_STATIC) != SQLITE_OK )
             std::cout << sqlite3_errmsg( db_ );
 
         if ( sqlite3_step( stmt ) != SQLITE_DONE )
@@ -154,9 +170,19 @@ detail::storage::create( const char * filename )
         sqlite3_reset( stmt );
     }
     sqlite3_finalize( stmt );
-    unsigned long t1 = ::GetTickCount();
-    std::cout << "time= " << t1 - t0 << std::endl;
 
+    if ( sqlite3_exec( db_, "COMMIT", callback, 0, msg ) != SQLITE_OK )
+        std::cout << msg.p << std::endl;
+
+    boost::posix_time::ptime t1(  boost::posix_time::microsec_clock::local_time() );
+    boost::posix_time::time_duration td = t1 - t0;
+    // td.total_nanoseconds();
+
+    std::cout << "time= " << td << " " << 1024 / ( double( td.total_nanoseconds() ) / 1.0e9 ) << "spectra/s" << std::endl;
+    std::ofstream of( "adfs.log", std::ios_base::app );
+    of << transaction << " nbrSamples=" << nbrSamples / 1024 << " time= " << td << " " << 1024 / ( double( td.total_nanoseconds() ) / 1.0e9 ) << "spectra/s" << std::endl;
+    
+/*
     sqlite3_blob * pBlob = 0;
     sqlite3_int64 irow = 3;
     enum { readonly, readwrite };
@@ -172,7 +198,7 @@ detail::storage::create( const char * filename )
         unsigned long t1 = ::GetTickCount();
         std::cout << "time= " << t1 - t0 << std::endl;
     }
-
+*/
     return true;
 }
 
