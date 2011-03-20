@@ -27,6 +27,8 @@
 #define ADSQLITE_H
 
 #include <boost/noncopyable.hpp>
+#include <boost/cstdint.hpp>
+#include <boost/variant.hpp>
 #include <string>
 
 struct sqlite3;
@@ -53,6 +55,13 @@ namespace adfs {
         blob();
     };
 
+    class null { };
+    class error { };
+
+    enum step_state { sqlite_done, sqlite_row, sqlite_error };
+
+    typedef boost::variant< int, boost::int64_t, double, std::string, std::wstring, blob, null, error > result_value_type;
+
     class stmt {
     public:
         ~stmt();
@@ -67,19 +76,24 @@ namespace adfs {
         bool prepare( const std::string& );
         bool prepare( const std::wstring& );
         bool reset();
-        bool step();
+
+        step_state step();
 
         //
         bool bind_blob( int, const void *, std::size_t, void(*)(void*) = 0);
-        bool bind_double( int, double );
-        bool bind_int( int, int );
-        bool bind_int64( int, long long );
-        bool bind_null( int );
-        bool bind_text( int, const std::string&, void(*)(void*) = 0);
-        bool bind_text( int, const std::wstring&, void(*)(void*) = 0);
+        bool bind( int, double );
+        bool bind( int, int );
+        bool bind( int, boost::int64_t );
+        bool bind( int );
+        bool bind( int, const std::string&, void(*)(void*) = 0);
+        bool bind( int, const std::wstring&, void(*)(void*) = 0);
         // bool bind_value( int, const sqlite3_value* );
         bool bind_zeroblob( int, std::size_t );
         //
+        int column_count();
+        int column_type( int );
+
+        result_value_type column_value( int );
 
     private:
         sqlite& sqlite_;

@@ -24,6 +24,31 @@
 **************************************************************************/
 
 #include <adfs/adfs.h>
+#include <adfs/adsqlite.h>
+#include <iostream>
+
+struct column_print : public boost::static_visitor<void> {
+    template<typename T> void operator()( T& t ) const {
+        std::cout << t;
+    }
+};
+
+template<> void column_print::operator ()( adfs::blob& ) const
+{
+}
+
+template<> void column_print::operator ()( std::wstring& t ) const
+{
+    std::wcout << t;
+}
+
+template<> void column_print::operator ()( adfs::null& ) const
+{
+}
+
+template<> void column_print::operator ()( adfs::error& ) const
+{
+}
 
 int
 main(int argc, char *argv[])
@@ -31,7 +56,27 @@ main(int argc, char *argv[])
     (void)(argc);
     (void)(argv);
 
+    adfs::sqlite db;
+    
+    db.open( L"disk.adfs" );
+
+    adfs::stmt sql( db );
+
+    sql.prepare( "select * from zTable" );
+
+    while ( sql.step() == adfs::sqlite_row ) {
+        std::size_t size = sql.column_count();
+        std::cout << "\ncolumn_count=" << size << std::endl;
+        for ( std::size_t i = 0; i < size; ++i ) {
+            std::cout << "type:" << sql.column_type(i) << "'";
+            boost::apply_visitor( column_print(), sql.column_value(i) );
+            std::cout << "'\t";
+        }
+    };
+
+/*
     adfs::storage stg;
     stg.create( "disk.adfs" );
     stg.close();
+*/
 }

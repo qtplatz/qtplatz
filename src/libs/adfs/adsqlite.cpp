@@ -62,9 +62,7 @@ sqlite::sqlite() : db_(0)
 bool
 sqlite::open( const std::wstring& path )
 {
-    if ( sqlite3_open16( path.c_str(), &db_ ) != SQLITE_OK )
-        return false;
-    return false;
+    return sqlite3_open16( path.c_str(), &db_ ) == SQLITE_OK;
 }
 
 //////////////////////
@@ -153,10 +151,16 @@ stmt::reset()
     return sqlite3_reset( stmt_ ) == SQLITE_OK;
 }
 
-bool
+step_state
 stmt::step()
 {
-    return sqlite3_step( stmt_ ) == SQLITE_OK;
+    int rc = sqlite3_step( stmt_ );
+    switch( rc ) {
+    case SQLITE_ROW:   return sqlite_row;
+    case SQLITE_DONE:  return sqlite_done;
+    default: break;
+    }
+    return sqlite_error;
 }
 
 bool
@@ -166,37 +170,37 @@ stmt::bind_blob( int nnn, const void * blob, std::size_t size, void dtor(void*) 
 }
 
 bool
-stmt::bind_double( int nnn, double value )
+stmt::bind( int nnn, double value )
 {
     return sqlite3_bind_double( stmt_, nnn, value ) == SQLITE_OK;
 }
 
 bool
-stmt::bind_int( int nnn, int value )
+stmt::bind( int nnn, int value )
 {
     return sqlite3_bind_int64( stmt_, nnn, value ) == SQLITE_OK;
 }
 
 bool
-stmt::bind_int64( int nnn, long long value )
+stmt::bind( int nnn, boost::int64_t value )
 {
     return sqlite3_bind_int64( stmt_, nnn, value ) == SQLITE_OK;
 }
 
 bool
-stmt::bind_null( int nnn )
+stmt::bind( int nnn )
 {
     return sqlite3_bind_null( stmt_, nnn ) == SQLITE_OK;
 }
 
 bool
-stmt::bind_text( int nnn, const std::string& value, void dtor(void*) )
+stmt::bind( int nnn, const std::string& value, void dtor(void*) )
 {
     return sqlite3_bind_text( stmt_, nnn, value.c_str(), value.length(), dtor ) == SQLITE_OK;
 }
 
 bool
-stmt::bind_text( int nnn, const std::wstring& value , void dtor(void*) )
+stmt::bind( int nnn, const std::wstring& value , void dtor(void*) )
 {
     return sqlite3_bind_text16( stmt_, nnn, value.c_str(), value.length(), dtor ) == SQLITE_OK;
 }
@@ -208,3 +212,42 @@ stmt::bind_zeroblob( int nnn, std::size_t size )
     return sqlite3_bind_zeroblob( stmt_, nnn, size ) == SQLITE_OK;
 }
 
+int
+stmt::column_count()
+{
+    return sqlite3_column_count( stmt_ );
+}
+
+int
+stmt::column_type( int nCol )
+{
+/*
+#define SQLITE_INTEGER  1
+#define SQLITE_FLOAT    2
+#define SQLITE_TEXT     3
+#define SQLITE_BLOB     4
+#define SQLITE_NULL     5
+*/
+    return sqlite3_column_type( stmt_, nCol );
+}
+
+result_value_type
+stmt::column_value( int nCol )
+{
+    switch( sqlite3_column_type( stmt_, nCol ) ) {
+    case SQLITE_INTEGER: return result_value_type( sqlite3_column_int( stmt_, nCol ) );
+    case SQLITE_FLOAT:   return result_value_type( sqlite3_column_double( stmt_, nCol ) );
+    case SQLITE_TEXT:    return result_value_type( reinterpret_cast<const wchar_t*>(sqlite3_column_text16( stmt_, nCol )) );
+    case SQLITE_BLOB:    return result_value_type( blob() );
+    case SQLITE_NULL:    return result_value_type( null() );
+    default: break;
+    };
+    return result_value_type( null() );
+}
+
+///////////////////
+blob::blob()
+{
+}
+
+///////////////////
