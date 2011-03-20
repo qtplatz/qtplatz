@@ -58,6 +58,7 @@
 				ProgramDataBaseFileName=".\"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -183,6 +184,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\adsqlite.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\apiwin32.cpp"
+				>
+			</File>
+			<File
 				RelativePath="constants.cpp"
 				>
 			</File>
@@ -195,19 +204,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\posixapi.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\sqlite3.c"
 				>
 			</File>
 			<File
 				RelativePath="superblock.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\win32api.cpp"
 				>
 			</File>
 		</Filter>
@@ -241,6 +242,14 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\adsqlite.h"
+				>
+			</File>
+			<File
+				RelativePath=".\apiwin32.h"
+				>
 			</File>
 			<File
 				RelativePath="constants.h"
@@ -321,10 +330,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\posixapi.h"
-				>
-			</File>
-			<File
 				RelativePath=".\sqlite3.h"
 				>
 			</File>
@@ -353,10 +358,6 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\win32api.h"
-				>
 			</File>
 		</Filter>
 	</Files>

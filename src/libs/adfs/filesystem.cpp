@@ -30,10 +30,10 @@ using namespace adfs;
 using namespace adfs::filesystem;
 
 # if defined WIN32
-# include "win32api.h"
+# include "apiwin32.h"
 typedef adfs::filesystem::detail::win32api impl;
 # else
-# include "posixapi.h"
+# include "apiposix.h"
 typedef adfs::filesystem::detail::posixapi impl;
 # endif
 

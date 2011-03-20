@@ -25,22 +25,21 @@
 
 #pragma once
 
-struct sqlite3;
+#include <boost/filesystem/path.hpp>
 
 namespace adfs {
 
-    namespace detail {
-        class storage;
-    };
+    class sqlite;
 
     class storage {
-        detail::storage * impl_;
+        sqlite * db_;
     public:
         ~storage();
         storage();
         storage( const storage& );
 
-        bool create( const char * filename, bool readonly = false );
+        bool create( const char * filename );
+        bool open( const char * filename, bool readonly = false );
         bool close();
     };
 

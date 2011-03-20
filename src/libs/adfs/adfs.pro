@@ -16,8 +16,9 @@ SOURCES += adfs.cpp \
     inode.cpp \
     operations.cpp \
     filesystem.cpp \
-    win32api.cpp \
-    posixapi.cpp
+    apiwin32.cpp \
+    apiposix.cpp \
+    adsqlite.cpp
 
 HEADERS += adfs.h \
     superblock.h \
@@ -25,8 +26,9 @@ HEADERS += adfs.h \
     inode.h \
     operations.h \
     filesystem.h \
-    win32api.h \
-    posixapi.h
+    apiwin32.h \
+    apiposix.h \
+    adsqlite.h
 unix:!symbian {
     maemo5 {
         target.path = /opt/usr/lib
