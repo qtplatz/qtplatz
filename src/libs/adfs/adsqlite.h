@@ -36,6 +36,8 @@ struct sqlite3_stmt;
 
 namespace adfs {
 
+    enum { readonly, readwrite };
+
     class sqlite : boost::noncopyable {
         sqlite3 * db_;
     public:
@@ -51,8 +53,13 @@ namespace adfs {
     };
 
     class blob {
+        const boost::uint8_t * p_;
+        std::size_t octets_;
     public:
-        blob();
+        blob() : p_(0), octets_(0) {}
+        blob( std::size_t octets, const boost::uint8_t *p = 0 ) : p_(p), octets_( octets ) {}
+        boost::uint32_t size() const { return octets_; }
+        const boost::uint8_t * get() const { return p_; }
     };
 
     class null { };
@@ -81,15 +88,17 @@ namespace adfs {
 
         //
         bool bind_blob( int, const void *, std::size_t, void(*)(void*) = 0);
-        bool bind( int, double );
-        bool bind( int, int );
-        bool bind( int, boost::int64_t );
-        bool bind( int );
-        bool bind( int, const std::string&, void(*)(void*) = 0);
-        bool bind( int, const std::wstring&, void(*)(void*) = 0);
-        // bool bind_value( int, const sqlite3_value* );
         bool bind_zeroblob( int, std::size_t );
         //
+        struct bind_item {
+            sqlite3_stmt * stmt_;
+            int nnn_;
+            bind_item( sqlite3_stmt * stmt, int nnn ) : stmt_(stmt), nnn_(nnn) {}
+            template<typename T> bool operator = ( const T& t ); // { stmt_.bind( nnn_, t ); }
+        };
+        bind_item bind( int );
+        bind_item bind( const std::string& );
+
         int column_count();
         int column_type( int );
 
