@@ -33,10 +33,11 @@
 
 struct sqlite3;
 struct sqlite3_stmt;
+struct sqlite3_blob;
 
 namespace adfs {
 
-    enum { readonly, readwrite };
+    enum flags { readonly, readwrite };
 
     class sqlite : boost::noncopyable {
         sqlite3 * db_;
@@ -55,11 +56,19 @@ namespace adfs {
     class blob {
         const boost::uint8_t * p_;
         std::size_t octets_;
+        sqlite3_blob * pBlob_;
     public:
-        blob() : p_(0), octets_(0) {}
-        blob( std::size_t octets, const boost::uint8_t *p = 0 ) : p_(p), octets_( octets ) {}
-        boost::uint32_t size() const { return octets_; }
-        const boost::uint8_t * get() const { return p_; }
+        ~blob();
+        blob();
+        blob( std::size_t octets, const boost::uint8_t *p = 0 );
+        boost::uint32_t size() const;
+        inline const boost::uint8_t * get() const { return p_; }
+        inline operator bool () const { return pBlob_ != 0; }
+        bool close();
+        bool open( sqlite& db, const char * zDb, const char * zTable, const char * zColumn, boost::int64_t rowid, flags );
+        bool reopen( boost::int64_t rowid );
+        bool read( boost::int8_t *, std::size_t, std::size_t offset = 0 ) const;
+        bool write( const boost::int8_t *, std::size_t, std::size_t offset = 0 ) const;
     };
 
     class null { };

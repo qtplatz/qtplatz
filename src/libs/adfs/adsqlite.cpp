@@ -30,15 +30,7 @@
 #include <iostream>
 
 namespace adfs { // namespace detail {
-/*
-    class sqlite : boost::noncopyable {
-        ::sqlite3 * db_;
-    public:
-        ~sqlite();
-        sqlite();
-        bool open( const std::wstring& path );
-    };
-*/
+
     struct Msg {
         char * p;
         inline operator char ** () { return &p; }
@@ -299,5 +291,69 @@ stmt::column_value( int nCol )
 }
 
 ///////////////////
+
+blob::~blob()
+{
+    close();
+}
+
+blob::blob() : p_(0), octets_(0), pBlob_(0)
+{
+}
+
+blob::blob( std::size_t octets, const boost::uint8_t *p ) : p_(p), octets_( octets ), pBlob_(0)
+{
+}
+
+boost::uint32_t
+blob::size() const
+{ 
+    return octets_;
+}
+
+bool
+blob::close()
+{
+    if ( pBlob_ ) {
+        sqlite3_blob_close( pBlob_ );
+        pBlob_ = 0;
+    }
+    return true;
+}
+
+bool
+blob::open( sqlite& db, const char * zDb, const char * zTable, const char * zColumn, boost::int64_t rowid, flags flag )
+{
+    if ( pBlob_ )
+        close();
+
+    if ( sqlite3_blob_open( db, zDb, zTable, zColumn, rowid, static_cast<int>(flag), &pBlob_ ) == SQLITE_OK ) {
+        octets_ = sqlite3_blob_bytes( pBlob_ );
+        return true;
+    }
+    return false;
+}
+
+bool
+blob::reopen( boost::int64_t rowid )
+{
+    if ( pBlob_ && ( sqlite3_blob_reopen( pBlob_, rowid ) == SQLITE_OK ) ) {
+        octets_ = sqlite3_blob_bytes( pBlob_ );
+        return true;
+    }
+    return false;
+}
+
+bool
+blob::read( boost::int8_t * pbuf, std::size_t bufsize, std::size_t offset ) const
+{
+    return sqlite3_blob_read( pBlob_, pbuf, bufsize, offset ) == SQLITE_OK;
+}
+
+bool
+blob::write( const boost::int8_t * pbuf, std::size_t octets, std::size_t offset ) const
+{
+    return sqlite3_blob_write( pBlob_, pbuf, octets, offset ) == SQLITE_OK;
+}
 
 ///////////////////

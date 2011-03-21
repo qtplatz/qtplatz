@@ -33,7 +33,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics.hpp>
-#include <adfs/sqlite3.h>
 
 struct column_print : public boost::static_visitor<void> {
     template<typename T> void operator()( T& t ) const {
@@ -123,8 +122,8 @@ test_data_read( adfs::sqlite& db, int oid )
     assert(ok);
 
     const size_t nbrSamples = 128 * 1024;
-    boost::scoped_array<unsigned long> blob( new unsigned long [ nbrSamples ] );
-    sqlite3_blob *pBlob = 0;
+    boost::scoped_array<unsigned long> pbuf( new unsigned long [ nbrSamples ] );
+    adfs::blob blob; // sqlite3_blob *pBlob = 0;
     size_t nSpectra = 0;
     while ( sql.step() == adfs::sqlite_row ) {
         std::size_t size = sql.column_count();
@@ -135,22 +134,20 @@ test_data_read( adfs::sqlite& db, int oid )
         //boost::int32_t npos = boost::get<boost::int64_t>( sql.column_value(2) );
         //boost::int64_t time = boost::get<boost::int64_t>( sql.column_value(3) );
 
-        int rc;
-        if ( pBlob == 0 ) {
-            rc = sqlite3_blob_open( db, "main", "data0", "data", irow, adfs::readonly, &pBlob );
+        bool rc;
+        if ( ! blob ) {
+            rc = blob.open( db, "main", "data0", "data", irow, adfs::readonly );
         } else {
-            rc = sqlite3_blob_reopen( pBlob, irow );
+            rc = blob.reopen( irow );
         }
-        std::size_t nSize = sqlite3_blob_bytes( pBlob ) / sizeof( long );
+        std::size_t nSize = blob.size() / sizeof( long );
         assert( nSize == nbrSamples );
-        rc = sqlite3_blob_read( pBlob, blob.get(), nbrSamples * sizeof(long), 0 );
-        unsigned long d0 = blob.get()[0];
-        unsigned long d1 = blob.get()[ nbrSamples - 1 ];
+        rc = blob.read( reinterpret_cast<boost::int8_t *>(pbuf.get()), nbrSamples * sizeof(long), 0 );
+        unsigned long d0 = pbuf.get()[0];
+        unsigned long d1 = pbuf.get()[ nbrSamples - 1 ];
         assert( ( d0 == d1 ) && d0 == (oid * 10000) + nSpectra );
         ++nSpectra;
     };
-    if ( pBlob )
-        sqlite3_blob_close( pBlob );
     return nSpectra;
 }
 
