@@ -23,38 +23,30 @@
 **
 **************************************************************************/
 
-#ifndef FILESYSTEM_H
-#define FILESYSTEM_H
+#pragma once
 
-#include <string>
+#include <vector>
+#include "node.h"
 
 namespace adfs {
 
-    class exception {
-    public:
-        exception( const std::string& msg, const char * cat ) : message(msg), category(cat) {}
-        std::string message;
-        std::string category;
-    };
-
-    class sqlite;
     class Folium;
-    class Folder;
 
-    class filesystem {
-        sqlite * db_;
+    class Folder : public internal::Node {
     public:
-        ~filesystem();
-        filesystem();
-        bool create( const wchar_t * filename, size_t alloc = 0, size_t page_size = 8192 );
-        bool mount( const wchar_t * filename );
-        bool close();
-        //
-        Folder addFolder( const wchar_t * path );
-    private:
-        bool prealloc( size_t size );
+        ~Folder();
+        Folder();
+        // Folder( const xmlNode&, internal::PortfolioImpl * );
+        Folder( const Folder& );
+
+        std::vector< Folder > folders();
+        std::vector< Folium > folio();
+        Folium selectFolium( const std::wstring& );
+
+        // --- add/modify features
+        Folium addFolium( const std::wstring& name );
+
     };
 
-} // adfs
+}
 
-#endif // FILESYSTEM_H

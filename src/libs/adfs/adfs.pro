@@ -11,24 +11,29 @@ TEMPLATE = lib
 CONFIG += staticlib
 
 SOURCES += adfs.cpp \
-    superblock.cpp \
     constants.cpp \
-    inode.cpp \
-    operations.cpp \
     filesystem.cpp \
     apiwin32.cpp \
+    adsqlite.cpp \
+    folder.cpp \
+    folium.cpp \
+    portfolio.cpp \
+    portfolioimpl.cpp \
     apiposix.cpp \
-    adsqlite.cpp
+    node.cpp
 
 HEADERS += adfs.h \
-    superblock.h \
     constants.h \
-    inode.h \
-    operations.h \
     filesystem.h \
     apiwin32.h \
+    adsqlite.h \
+    folder.h \
+    folium.h \
+    portfolio.h \
+    portfolioimpl.h \
     apiposix.h \
-    adsqlite.h
+    node.h
+
 unix:!symbian {
     maemo5 {
         target.path = /opt/usr/lib

@@ -23,38 +23,42 @@
 **
 **************************************************************************/
 
-#ifndef FILESYSTEM_H
-#define FILESYSTEM_H
+#pragma once
 
-#include <string>
+#include <boost/smart_ptr.hpp>
+#include <vector>
 
 namespace adfs {
 
-    class exception {
-    public:
-        exception( const std::string& msg, const char * cat ) : message(msg), category(cat) {}
-        std::string message;
-        std::string category;
-    };
+    namespace internal {
+        class PortfolioImpl;
+    }
 
-    class sqlite;
     class Folium;
     class Folder;
 
-    class filesystem {
-        sqlite * db_;
+    class Portfolio {
     public:
-        ~filesystem();
-        filesystem();
-        bool create( const wchar_t * filename, size_t alloc = 0, size_t page_size = 8192 );
-        bool mount( const wchar_t * filename );
-        bool close();
-        //
-        Folder addFolder( const wchar_t * path );
+        ~Portfolio();
+        Portfolio();
+        Portfolio( const Portfolio& );
+        Portfolio( const std::wstring& xml );
+
+        std::vector<Folder> folders();
+        Folium findFolium( const std::wstring& id );
+
+        // create new from scratch
+        bool create_with_fullpath( const std::wstring& fullpath );
+        Folder addFolder( const std::wstring& name, bool uniq = true );
+
+        std::wstring xml() const;
+
+        // for debugging convension
+        bool save( const std::wstring& filename ) const;
+     
     private:
-        bool prealloc( size_t size );
-    };
+# pragma warning(disable:4251)
+        boost::shared_ptr< internal::PortfolioImpl > impl_;
+  };
 
-} // adfs
-
-#endif // FILESYSTEM_H
+}

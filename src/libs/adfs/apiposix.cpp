@@ -23,38 +23,8 @@
 **
 **************************************************************************/
 
-#ifndef FILESYSTEM_H
-#define FILESYSTEM_H
+#include "apiposix.h"
 
-#include <string>
-
-namespace adfs {
-
-    class exception {
-    public:
-        exception( const std::string& msg, const char * cat ) : message(msg), category(cat) {}
-        std::string message;
-        std::string category;
-    };
-
-    class sqlite;
-    class Folium;
-    class Folder;
-
-    class filesystem {
-        sqlite * db_;
-    public:
-        ~filesystem();
-        filesystem();
-        bool create( const wchar_t * filename, size_t alloc = 0, size_t page_size = 8192 );
-        bool mount( const wchar_t * filename );
-        bool close();
-        //
-        Folder addFolder( const wchar_t * path );
-    private:
-        bool prealloc( size_t size );
-    };
-
-} // adfs
-
-#endif // FILESYSTEM_H
+apiposix::apiposix()
+{
+}

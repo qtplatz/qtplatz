@@ -11,12 +11,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tofspectrometer", "tofspect
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_polynomial", "test_polynomial\test_polynomial.vcproj", "{2AE4D8CF-2D6D-3821-A8E0-3AD3E0C2438B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adfs", "..\src\libs\adfs\adfs.vcproj", "{5BC7054A-4731-360E-BCC9-38DFCD2A5641}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adfstest", "adfstest\adfstest.vcproj", "{97EFFFA1-91A7-37E1-B710-120090909899}"
-	ProjectSection(ProjectDependencies) = postProject
-		{5BC7054A-4731-360E-BCC9-38DFCD2A5641} = {5BC7054A-4731-360E-BCC9-38DFCD2A5641}
-	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adfs", "..\src\libs\adfs\adfs.vcproj", "{20CFBE29-DED8-3C28-9115-8F4275457008}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,14 +41,14 @@ Global
 		{2AE4D8CF-2D6D-3821-A8E0-3AD3E0C2438B}.Debug|Win32.Build.0 = Debug|Win32
 		{2AE4D8CF-2D6D-3821-A8E0-3AD3E0C2438B}.Release|Win32.ActiveCfg = Release|Win32
 		{2AE4D8CF-2D6D-3821-A8E0-3AD3E0C2438B}.Release|Win32.Build.0 = Release|Win32
-		{5BC7054A-4731-360E-BCC9-38DFCD2A5641}.Debug|Win32.ActiveCfg = Debug|Win32
-		{5BC7054A-4731-360E-BCC9-38DFCD2A5641}.Debug|Win32.Build.0 = Debug|Win32
-		{5BC7054A-4731-360E-BCC9-38DFCD2A5641}.Release|Win32.ActiveCfg = Release|Win32
-		{5BC7054A-4731-360E-BCC9-38DFCD2A5641}.Release|Win32.Build.0 = Release|Win32
 		{97EFFFA1-91A7-37E1-B710-120090909899}.Debug|Win32.ActiveCfg = Debug|Win32
 		{97EFFFA1-91A7-37E1-B710-120090909899}.Debug|Win32.Build.0 = Debug|Win32
 		{97EFFFA1-91A7-37E1-B710-120090909899}.Release|Win32.ActiveCfg = Release|Win32
 		{97EFFFA1-91A7-37E1-B710-120090909899}.Release|Win32.Build.0 = Release|Win32
+		{20CFBE29-DED8-3C28-9115-8F4275457008}.Debug|Win32.ActiveCfg = Debug|Win32
+		{20CFBE29-DED8-3C28-9115-8F4275457008}.Debug|Win32.Build.0 = Debug|Win32
+		{20CFBE29-DED8-3C28-9115-8F4275457008}.Release|Win32.ActiveCfg = Release|Win32
+		{20CFBE29-DED8-3C28-9115-8F4275457008}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -23,38 +23,63 @@
 **
 **************************************************************************/
 
-#ifndef FILESYSTEM_H
-#define FILESYSTEM_H
+#include "folder.h"
+#include "folium.h"
 
-#include <string>
+using namespace adfs;
 
-namespace adfs {
+Folder::~Folder()
+{
+}
 
-    class exception {
-    public:
-        exception( const std::string& msg, const char * cat ) : message(msg), category(cat) {}
-        std::string message;
-        std::string category;
-    };
+Folder::Folder()
+{
+}
 
-    class sqlite;
-    class Folium;
-    class Folder;
+/*
+Folder::Folder( const xmlNode& n, internal::PortfolioImpl * impl ) : Node( n, impl )
+{
+}
+*/
 
-    class filesystem {
-        sqlite * db_;
-    public:
-        ~filesystem();
-        filesystem();
-        bool create( const wchar_t * filename, size_t alloc = 0, size_t page_size = 8192 );
-        bool mount( const wchar_t * filename );
-        bool close();
-        //
-        Folder addFolder( const wchar_t * path );
-    private:
-        bool prealloc( size_t size );
-    };
+Folder::Folder( const Folder& t ) : Node( t )
+{
+}
 
-} // adfs
+std::vector< Folder >
+Folder::folders()
+{
+    // xmlNodeList list = Node::selectNodes( L"./folder[@folderType='directory']" );
+    std::vector< Folder > folders;
+/*
+    for ( size_t i = 0; i < list.size(); ++i )
+        folders.push_back( Folder( list[i], impl_ ) );
+*/
+    return folders;
+}
 
-#endif // FILESYSTEM_H
+Folio
+Folder::folio()
+{
+    // xmlNodeList list = Node::selectNodes( L"./folder[@folderType='file']|./folium" );
+    Folio folio;
+/*
+    for ( size_t i = 0; i < list.size(); ++i )
+        folio.push_back( Folium( list[i], impl_ ) );
+*/
+    return folio;
+}
+
+Folium
+Folder::selectFolium( const std::wstring& )
+{
+    return Folium();
+}
+
+/////////////////////////
+Folium
+Folder::addFolium( const std::wstring& name )
+{
+    // return Folium( Node::addFolium( name ), impl_ );
+    return Folium();
+}
