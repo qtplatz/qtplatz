@@ -49,7 +49,6 @@ namespace adfs {
         inline operator sqlite3 * () { return db_; }
 
         bool open( const std::wstring& path );
-        // bool create( const std::wstring& path );
         bool close();
     };
 

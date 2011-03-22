@@ -26,11 +26,13 @@
 #include <boost/any.hpp>
 #include <map>
 #include <vector>
+#include "adsqlite.h"
 //#include <xmlwrapper/msxml.h>
 //#include "node.h"
 
 namespace adfs {
 
+    class sqlite;
     class Folium;
     class Folder;
 
@@ -38,12 +40,12 @@ namespace adfs {
 
         // Portfolio is a root folder
 
-        class PortfolioImpl /* : public Node */ {
+        class PortfolioImpl : public adfs::sqlite { // : public Node {
         public:
             PortfolioImpl();
             PortfolioImpl( const PortfolioImpl& );
             PortfolioImpl( const std::wstring& xml );
-            operator bool () const { return isXMLLoaded_; }
+            // operator bool () const { return db_ != 0; }
             const std::wstring fullpath() const;
             std::vector<Folder> selectFolders( const std::wstring& );
             Folium selectFolium( const std::wstring& query );
@@ -59,8 +61,9 @@ namespace adfs {
             static std::wstring newGuid();
      
         private:
-            bool isXMLLoaded_;
-            std::map< std::wstring, boost::any > db_;
+            // sqlite * db_;
+            // bool isXMLLoaded_;
+            // std::map< std::wstring, boost::any > db_;
             // xmlDocument doc_;
         };
     }

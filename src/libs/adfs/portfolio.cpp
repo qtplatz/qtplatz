@@ -24,10 +24,15 @@
 **************************************************************************/
 
 #include "portfolio.h"
-#include "portfolioimpl.h"
+#include "adsqlite.h"
+
 #include "folder.h"
 #include "folium.h"
+#include "filesystem.h"
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 
+#include "internal_filesystem.h"
 //# if defined _DEBUG
 //#    pragma comment(lib, "xmlwrapperd.lib")
 //#    pragma comment(lib, "adportabled.lib")
@@ -42,44 +47,108 @@ Portfolio::~Portfolio()
 {
 }
 
-Portfolio::Portfolio() : impl_( new internal::PortfolioImpl() )
+Portfolio::Portfolio()
 {
 }
 
-Portfolio::Portfolio( const Portfolio& t ) : impl_(t.impl_)
-{
-}
-
-Portfolio::Portfolio( const std::wstring& xml ) : impl_( new internal::PortfolioImpl( xml ) )
+Portfolio::Portfolio( const Portfolio& t ) : db_(t.db_)
 {
 }
 
 std::vector< Folder >
 Portfolio::folders()
 {
-    return impl_->selectFolders( L"./folder[@folderType='directory']" );
+    return std::vector< Folder >();
+    // return impl_->selectFolders( L"./folder[@folderType='directory']" );
 }
 
 Folium
 Portfolio::findFolium( const std::wstring& id )
 {
-    return impl_->selectFolium( L"//folium[@dataId='" + id + L"']");
+    return Folium();
+    // return impl_->selectFolium( L"//folium[@dataId='" + id + L"']");
 }
 
 /////////////
+bool
+Portfolio::create( const wchar_t * filename, size_t alloc, size_t page_size )
+{
+    boost::filesystem::path filepath( filename );
 
+    if ( boost::filesystem::exists( filepath ) ) {
+        boost::system::error_code ec;
+        if ( ! boost::filesystem::remove( filepath, ec ) ) {
+            throw adfs::exception( ec.message(), ec.category().name() );
+            return false;
+        }
+    }
+
+    db_.reset( new sqlite() );
+    if ( db_->open( filepath.c_str() ) ) {
+        adfs::stmt sql( *db_ );
+        if ( page_size )
+            sql.exec( ( boost::format( "PRAGMA page_size = %1%" ) % page_size ).str() );
+        if ( alloc )
+            prealloc( alloc );
+        return internal::filesystem::format( *db_, filename );
+    }
+    db_.reset();
+    return false;
+}
+
+bool
+Portfolio::mount( const wchar_t * filename )
+{
+    if ( db_ )
+        db_.reset();
+
+    boost::filesystem::path filepath( filename );
+
+    db_.reset( new sqlite() );
+    if ( db_->open( filepath.c_str() ) )
+        return internal::filesystem::mount( *db_ );
+
+    db_.reset();
+    return false;
+}
+
+bool
+Portfolio::prealloc( size_t size )
+{
+    adfs::stmt sql( *db_ );
+
+    const size_t unit_size = 512 * 1024 * 1024;
+
+    sql.exec( "CREATE TABLE large (a BLOB)" );
+
+    while ( size > unit_size ) {
+        sql.exec( "INSERT INTO large VALUES( zeroblob(512 * 1024 * 1024) )" );
+        size -= unit_size;
+    }
+    if ( size )
+        sql.exec( ( boost::format( "INSERT INTO large VALUES( zeroblob(%1%) )" ) % size ).str() );
+
+    sql.exec( "DROP TABLE large" );
+
+    return true;
+}
+
+/*
 bool
 Portfolio::create_with_fullpath( const std::wstring& fullpath )
 {
     return impl_->create_with_fullpath( fullpath );
 }
+*/
 
 Folder
 Portfolio::addFolder( const std::wstring& name, bool uniq )
 {
-    return impl_->addFolder( name, uniq );
+    return Folder();
+    // return impl_->addFolder( name, uniq );
 }
 
+/*
 std::wstring
 Portfolio::xml() const
 {
@@ -94,4 +163,4 @@ Portfolio::save( const std::wstring& filename ) const
     // return impl_->getDocument().save( filename );
     return false;
 }
-
+*/

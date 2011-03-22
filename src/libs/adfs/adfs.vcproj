@@ -437,6 +437,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\internal_filesystem.h"
+				>
+			</File>
+			<File
 				RelativePath=".\node.h"
 				>
 			</File>

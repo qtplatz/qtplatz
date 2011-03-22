@@ -35,22 +35,10 @@
 typedef adfs::detail::win32api impl;
 #else
 #endif
-//#include <sstream>
+
+#include "internal_filesystem.h"
 
 using namespace adfs;
-
-namespace adfs { namespace internal {
-    
-    class filesystem {
-    public:
-        static bool format( sqlite& db, const std::wstring& filename );
-        static bool format_superblock( sqlite& db, const std::wstring& filename );
-        static bool format_directory( sqlite& db );
-
-        static bool mount( sqlite& db );
-    };
-}
-}
 
 filesystem::filesystem() : db_(0)
 {
