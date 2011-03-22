@@ -40,35 +40,8 @@ namespace adfs { namespace detail {
 }
 
 //////
-storage::storage() : db_(0)
-{
-}
 
-storage::storage( const storage& t ) : db_( t.db_ )
-{
-}
 
-storage::~storage()
-{
-    delete db_;
-}
-
-bool
-storage::create( const char * filename )
-{
-    boost::filesystem::path filepath( filename );
-
-    boost::filesystem::remove( filepath );
-
-    db_ = new sqlite();
-    return db_->create( filepath.c_str() );
-}
-
-bool
-storage::close()
-{
-    return db_ && db_->close();
-}
 
 ////////////////////
 ////////////////////

@@ -26,12 +26,14 @@
 #ifndef WIN32API_H
 #define WIN32API_H
 
-namespace adfs { namespace filesystem { namespace detail {
+#include <string>
+
+namespace adfs { namespace detail {
     struct win32api {
         template<class char_type> static bool resize_file( const char_type *, unsigned long long sz );
+        template<class char_type> static std::basic_string<char_type> get_login_name();
     };
 } // detail
-} // filesystem
 } // adfs
 
 #endif // WIN32API_H

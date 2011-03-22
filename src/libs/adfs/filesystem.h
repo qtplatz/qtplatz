@@ -26,16 +26,32 @@
 #ifndef FILESYSTEM_H
 #define FILESYSTEM_H
 
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
-#include <boost/filesystem.hpp>
+#include <string>
 
-namespace adfs { namespace filesystem {
+namespace adfs {
 
-    bool grow( const char *, std::size_t size );
-    bool grow( const boost::filesystem::path&, std::size_t size );
+    class exception {
+    public:
+        exception( const std::string& msg, const char * cat ) : message(msg), category(cat) {}
+        std::string message;
+        std::string category;
+    };
 
-} // filesystem
+    class sqlite;
+
+    class filesystem {
+        sqlite * db_;
+    public:
+        ~filesystem();
+        filesystem();
+        bool create( const wchar_t * filename, size_t alloc = 0, size_t page_size = 8192 );
+        bool mount( const wchar_t * filename );
+        bool create_directory( const wchar_t * path );
+        bool close();
+    private:
+        bool prealloc( size_t size );
+    };
+
 } // adfs
 
 #endif // FILESYSTEM_H

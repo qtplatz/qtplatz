@@ -25,23 +25,12 @@
 
 #pragma once
 
-// #include <boost/filesystem/path.hpp>
+#include <adfs/filesystem.h>
 
 namespace adfs {
 
     class sqlite;
-
-    class storage {
-        sqlite * db_;
-    public:
-        ~storage();
-        storage();
-        storage( const storage& );
-
-        bool create( const char * filename );
-        bool open( const char * filename, bool readonly = false );
-        bool close();
-    };
+    class file;
 
 }
 

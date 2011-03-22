@@ -28,13 +28,12 @@
 #include <boost/filesystem.hpp>
 
 using namespace adfs;
-using namespace adfs::filesystem;
-using namespace adfs::filesystem::detail;
+using namespace adfs::detail;
 
 /**
 **/
 
-namespace adfs { namespace filesystem { namespace detail { namespace winapi {
+namespace adfs { namespace detail { namespace winapi {
 
     bool resize_file( HANDLE handle, unsigned long long size ) {
         LARGE_INTEGER sz;
@@ -45,7 +44,6 @@ namespace adfs { namespace filesystem { namespace detail { namespace winapi {
             && ::CloseHandle(handle);
     }
     //------------------------------------------//
-}
 }
 }
 } // adfs
@@ -72,4 +70,24 @@ win32api::resize_file( const wchar_t * path, unsigned long long size )
                                , OPEN_EXISTING
                                , FILE_ATTRIBUTE_NORMAL, 0);
     return winapi::resize_file( handle, size );
+}
+
+template<> std::string
+win32api::get_login_name()
+{
+    char name[ 1024 ];
+    DWORD size = sizeof( name ) / sizeof( name[0] );
+    if ( GetUserNameA( name, &size ) )
+        return std::string( name );
+    return std::string();
+}
+
+template<> std::wstring
+win32api::get_login_name()
+{
+    wchar_t name[ 1024 ];
+    DWORD size = sizeof( name ) / sizeof( name[0] );
+    if ( GetUserNameW( name, &size ) )
+        return std::wstring( name );
+    return std::wstring();
 }

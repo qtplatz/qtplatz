@@ -305,11 +305,9 @@ report( std::ofstream& log, const std::vector<double>& vec, const char * heading
     return mean;
 }
 
-int
-main(int argc, char *argv[])
+void
+sqlite_access_test()
 {
-    (void)(argc);
-    (void)(argv);
     const size_t nbrSamples = 128 * 1024;
 
     std::ofstream of( "adfs.log", std::ios_base::app );
@@ -318,14 +316,14 @@ main(int argc, char *argv[])
 
     size_t nSpectra = 0;
 
-    for ( int i = 0; i < 3; ++i ) {
+    for ( int i = 0; i < 5; ++i ) {
         td_diskw.push_back( double( disk_write_test( "data.bin", of, nbrSamples, nSpectra ) ) );
         td_diskr.push_back( double( disk_read_test( "data.bin", of, nbrSamples, nSpectra ) ) );
     }
     double tdiskw = report( of, td_diskw, "disk write:", nSpectra );
     double tdiskr = report( of, td_diskr, "disk read :", nSpectra );
 
-    for ( int i = 0; i < 3; ++i ) {
+    for ( int i = 0; i < 5; ++i ) {
 
         boost::filesystem::remove( "disk.adfs" );
         do {
@@ -342,7 +340,7 @@ main(int argc, char *argv[])
     double tdbw = report( of, td_dbw, "db write:", nSpectra );
     double tdbr = report( of, td_dbr, "db read :", nSpectra );
 
-    for ( int i = 0; i < 3; ++i ) {
+    for ( int i = 0; i < 5; ++i ) {
         boost::filesystem::remove( "disk.adfs" );
         adfs::sqlite db;
         db.open( L"disk.adfs" );
@@ -358,10 +356,34 @@ main(int argc, char *argv[])
     of << "db/disk write speed reatio: " << tdiskw / tdbw << std::endl;
     of << "db/disk write w/ pre-alloc speed reatio: " << tdiskw / tdbw2 << std::endl;
     of << "db/disk read speed reatio: " << tdiskr / tdbr << std::endl;
+}
+
+void
+filesystem_test()
+{
+    try {
+        adfs::filesystem fs;
+        fs.create( L"fs.adfs" );
+    } catch ( adfs::exception& ex ) {
+        std::cout << ex.message << " on " << ex.category << std::endl;
+    }
+    do {
+        adfs::filesystem fs;
+        fs.mount( L"fs.adfs" );
+    } while(0);
+}
+
+int
+main(int argc, char *argv[])
+{
+    (void)(argc);
+    (void)(argv);
+
+    // sqlite_access_test();
+    filesystem_test();
 
 /*
     sql.prepare( "select * from data0" );
-
     while ( sql.step() == adfs::sqlite_row ) {
         std::size_t size = sql.column_count();
         std::cout << "\ncolumn_count=" << size << std::endl;

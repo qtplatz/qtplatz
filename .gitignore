@@ -103,4 +103,5 @@ bin/qtcreator_process_stub*
 src/app/*.xml
 share/doc/qtcreator/qtcreator.qch
 tests/manual/cplusplus/cplusplus0
-examples/adfstest/disk.adfs
+examples/adfstest/*.adfs
+examples/adfstest/*.bin
