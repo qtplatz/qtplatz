@@ -114,19 +114,3 @@ portfolio::addFolder( const std::wstring& name, bool uniq )
     return internal::fs::add_folder( *db_, name );
 }
 
-/*
-std::wstring
-Portfolio::xml() const
-{
-    std::wstring xml;
-    // impl_->getDocument().xml( xml );
-    return xml;
-}
-
-bool
-Portfolio::save( const std::wstring& filename ) const
-{
-    // return impl_->getDocument().save( filename );
-    return false;
-}
-*/

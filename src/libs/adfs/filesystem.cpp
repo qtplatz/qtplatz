@@ -40,6 +40,14 @@ typedef adfs::detail::win32api impl;
 
 using namespace adfs;
 
+namespace adfs { namespace internal {
+    struct dml {
+        static bool insert_dir( adfs::sqlite& db, const std::wstring& name, boost::int64_t parent_id );
+        static boost::int64_t select_dir( adfs::stmt& sql, const std::wstring& name, boost::int64_t parent_id );
+    };
+}
+}
+
 filesystem::filesystem() : db_(0)
 {
 }
@@ -174,8 +182,8 @@ internal::fs::mount( adfs::sqlite& db )
     return false;
 }
 
-static bool
-insert_dir( adfs::sqlite& db, const std::wstring& name, boost::int64_t parent_id )
+bool
+internal::dml::insert_dir( adfs::sqlite& db, const std::wstring& name, boost::int64_t parent_id )
 {
     adfs::stmt sql( db );
 
@@ -191,6 +199,20 @@ insert_dir( adfs::sqlite& db, const std::wstring& name, boost::int64_t parent_id
     // sql.bind( 6 ) = std::string("");
     return sql.step() == adfs::sqlite_done;
 }
+
+boost::int64_t
+internal::dml::select_dir( adfs::stmt& sql, const std::wstring& name, boost::int64_t parent_id )
+{
+    sql.prepare( "SELECT rowid, name, parent_id FROM directory WHERE name = ? AND parent_id = ?" );
+    sql.bind( 1 ) = name; // name
+    sql.bind( 2 ) = parent_id;
+    if ( sql.step() == adfs::sqlite_row ) {
+        boost::int64_t rowid = boost::get< boost::int64_t >( sql.column_value( 0 ) );
+        return rowid;
+    }
+    return 0;
+}
+
 
 bool
 internal::fs::format_directory( adfs::sqlite& db )
@@ -212,7 +234,7 @@ internal::fs::format_directory( adfs::sqlite& db )
     sql.reset();
 
     return sql.exec( "CREATE TABLE file(\
-                     , fileid INTEGER \
+                     fileid INTEGER \
                      , attr BLOB \
                      , data BLOB )");
 }
@@ -253,23 +275,24 @@ internal::fs::add_folder( adfs::sqlite& db, const std::wstring& name )
         boost::char_separator<wchar_t> separator( L"", L"/" );
         tokenizer_t tokens( branch, separator );
 
-        boost::int64_t parent_id = 0;
+        boost::int64_t parent_id = 0, rowid = 0;
         adfs::stmt sql( db );
 
         for ( tokenizer_t::const_iterator it = tokens.begin(); it != tokens.end(); ++it ) {
 
-            sql.prepare( "SELECT rowid, name, parent_id FROM directory WHERE name = ? AND parent_id = ?" );
-            sql.bind( 1 ) = *it; // name
-            sql.bind( 2 ) = parent_id;
-            if ( sql.step() == adfs::sqlite_row ) {
-                boost::int64_t rowid = boost::get< boost::int64_t >( sql.column_value( 0 ) );
-                parent_id = boost::get< boost::int64_t >( sql.column_value( 2 ) );
-                std::wstring name = boost::get< std::wstring >( sql.column_value( 1 ) );
-                parent_id = rowid;
-            } else
+            rowid = internal::dml::select_dir( sql, *it, parent_id );
+            if ( rowid == 0 )
                 return adfs::folder(); // error
+            parent_id = rowid;
         }
-        insert_dir( db, leaf, parent_id );
+
+        if ( rowid = internal::dml::select_dir( sql, leaf, parent_id ) ) // already exist
+            return adfs::folder( db, rowid, leaf );
+
+        if ( internal::dml::insert_dir( db, leaf, parent_id ) ) {
+            if ( rowid = internal::dml::select_dir( sql, leaf, parent_id ) )
+                return adfs::folder( db, rowid, leaf );
+        }
     }
     return adfs::folder();
 }

@@ -26,18 +26,20 @@
 #pragma once
 
 #include <vector>
-#include "node.h"
+#include <boost/cstdint.hpp>
 
 namespace adfs {
 
     class folium;
+    class sqlite;
 
-    class folder : public internal::Node {
+    class folder { // : public internal::Node {
     public:
         ~folder();
         folder();
-        // Folder( const xmlNode&, internal::PortfolioImpl * );
+
         folder( const folder& );
+        folder( sqlite&, boost::int64_t, const std::wstring& name );
 
         std::vector< folder > folders();
         std::vector< folium > folio();
@@ -45,7 +47,10 @@ namespace adfs {
 
         // --- add/modify features
         folium addFolium( const std::wstring& name );
-
+    private:
+        sqlite * db_;
+        std::wstring name_;
+        boost::int64_t rowid_;
     };
 
 }

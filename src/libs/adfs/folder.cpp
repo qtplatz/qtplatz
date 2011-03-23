@@ -36,13 +36,15 @@ folder::folder()
 {
 }
 
-/*
-folder::folder( const xmlNode& n, internal::PortfolioImpl * impl ) : Node( n, impl )
+folder::folder( const folder& t ) : db_( t.db_ )
+                                  , rowid_( t.rowid_ )
+                                  , name_( t.name_ )  
 {
 }
-*/
 
-folder::folder( const folder& t ) : Node( t )
+folder::folder( adfs::sqlite& db, boost::int64_t rowid, const std::wstring& name ) : db_( &db )
+                                                                                   , rowid_( rowid )
+                                                                                   , name_( name )  
 {
 }
 
