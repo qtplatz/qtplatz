@@ -23,20 +23,20 @@
 **
 **************************************************************************/
 
+#include "adfs.h"
 #include "filesystem.h"
 #include "adsqlite.h"
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/tokenizer.hpp>
 
 #if defined WIN32
 # include "apiwin32.h"
 typedef adfs::detail::win32api impl;
 #else
 #endif
-
-#include "internal_filesystem.h"
 
 using namespace adfs;
 
@@ -76,7 +76,7 @@ filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
                 sql.exec( ( boost::format( "PRAGMA page_size = %1%" ) % page_size ).str() );
             if ( alloc )
                 prealloc( alloc );
-            return internal::filesystem::format( *db_, filename );
+            return internal::fs::format( *db_, filename );
         }
         delete db_;
         db_ = 0;
@@ -95,7 +95,7 @@ filesystem::mount( const wchar_t * filename )
     if ( db_ = new sqlite() ) {
 
         if ( db_->open( filepath.c_str() ) )
-            return internal::filesystem::mount( *db_ );
+            return internal::fs::mount( *db_ );
 
         delete db_;
         db_ = 0;
@@ -127,14 +127,14 @@ filesystem::prealloc( size_t size )
 
 ////////////////////////
 bool
-internal::filesystem::format( adfs::sqlite& db, const std::wstring& filename )
+internal::fs::format( adfs::sqlite& db, const std::wstring& filename )
 {
     return format_superblock( db, filename ) && 
         format_directory( db );
 }
 
 bool
-internal::filesystem::format_superblock( adfs::sqlite& db, const std::wstring& filename )
+internal::fs::format_superblock( adfs::sqlite& db, const std::wstring& filename )
 {
     adfs::stmt sql( db );
     if ( ! sql.exec( 
@@ -158,7 +158,7 @@ internal::filesystem::format_superblock( adfs::sqlite& db, const std::wstring& f
 }
 
 bool
-internal::filesystem::mount( adfs::sqlite& db )
+internal::fs::mount( adfs::sqlite& db )
 {
     adfs::stmt sql( db );
     sql.prepare( "SELECT creator, magic from superblock" );
@@ -174,29 +174,102 @@ internal::filesystem::mount( adfs::sqlite& db )
     return false;
 }
 
+static bool
+insert_dir( adfs::sqlite& db, const std::wstring& name, boost::int64_t parent_id )
+{
+    adfs::stmt sql( db );
+
+    boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
+    std::string date = ( boost::format( "%1%" ) % pt ).str();
+
+    sql.prepare( "INSERT INTO directory VALUES (?,?,?,?,?,?)" );
+    sql.bind( 1 ) = name;
+    sql.bind( 2 ) = parent_id; // 
+    sql.bind( 3 ) = 1; // 1:directory, 2:file
+    sql.bind( 4 ) = date;
+    sql.bind( 5 ) = date;
+    // sql.bind( 6 ) = std::string("");
+    return sql.step() == adfs::sqlite_done;
+}
 
 bool
-internal::filesystem::format_directory( adfs::sqlite& db )
+internal::fs::format_directory( adfs::sqlite& db )
 {
     boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
     std::string date = ( boost::format( "%1%" ) % pt ).str();
 
     adfs::stmt sql( db );
 
-    sql.exec( "CREATE TABLE directory( name TEXT, parent_id INTEGER, ctime DATE )" );
-    sql.prepare( "INSERT INTO directory VALUES (?,?,?)" );
+    sql.exec( "CREATE TABLE directory( name TEXT, parent_id INTEGER, type INTEGER, ctime DATE, mtime DATE, hash INTEGER )" );
+    sql.prepare( "INSERT INTO directory VALUES (?,?,?,?,?,?)" );
     sql.bind( 1 ) = std::string("/"); // root
     sql.bind( 2 ) = 0; // for root
-    sql.bind( 3 ) = date;
+    sql.bind( 3 ) = 1; // 1:directory, 2:file
+    sql.bind( 4 ) = date;
+    sql.bind( 5 ) = date;
+    sql.bind( 6 ) = std::string("");
     sql.step();
     sql.reset();
 
-    return sql.exec( "CREATE TABLE file( name TEXT \
-                   , directory_id INTEGER \
-                   , parent_id INTEGER \
-                   , uid TEXT \
-                   , ctime DATE \
-                   , mtime DATE \
-                   , contents BLOB \
-                   , data BLOB )");
+    return sql.exec( "CREATE TABLE file(\
+                     , fileid INTEGER \
+                     , attr BLOB \
+                     , data BLOB )");
+}
+
+bool
+internal::fs::prealloc( adfs::sqlite& db, unsigned long long size )
+{
+    adfs::stmt sql( db );
+
+    const size_t unit_size = 512 * 1024 * 1024;
+
+    sql.exec( "CREATE TABLE large (a BLOB)" );
+
+    while ( size > unit_size ) {
+        sql.exec( "INSERT INTO large VALUES( zeroblob(512 * 1024 * 1024) )" );
+        size -= unit_size;
+    }
+    if ( size )
+        sql.exec( ( boost::format( "INSERT INTO large VALUES( zeroblob(%1%) )" ) % size ).str() );
+
+    sql.exec( "DROP TABLE large" );
+
+    return true;
+}
+
+adfs::folder
+internal::fs::add_folder( adfs::sqlite& db, const std::wstring& name )
+{
+    boost::filesystem::path path( name );
+    std::wstring branch = path.branch_path().c_str();
+    std::wstring leaf = path.leaf().c_str();
+
+    if ( branch.at(0) == L'/' ) { // has to be fullpath
+
+        typedef boost::tokenizer< boost::char_separator<wchar_t>
+                                , std::wstring::const_iterator
+                                , std::wstring> tokenizer_t;
+        boost::char_separator<wchar_t> separator( L"", L"/" );
+        tokenizer_t tokens( branch, separator );
+
+        boost::int64_t parent_id = 0;
+        adfs::stmt sql( db );
+
+        for ( tokenizer_t::const_iterator it = tokens.begin(); it != tokens.end(); ++it ) {
+
+            sql.prepare( "SELECT rowid, name, parent_id FROM directory WHERE name = ? AND parent_id = ?" );
+            sql.bind( 1 ) = *it; // name
+            sql.bind( 2 ) = parent_id;
+            if ( sql.step() == adfs::sqlite_row ) {
+                boost::int64_t rowid = boost::get< boost::int64_t >( sql.column_value( 0 ) );
+                parent_id = boost::get< boost::int64_t >( sql.column_value( 2 ) );
+                std::wstring name = boost::get< std::wstring >( sql.column_value( 1 ) );
+                parent_id = rowid;
+            } else
+                return adfs::folder(); // error
+        }
+        insert_dir( db, leaf, parent_id );
+    }
+    return adfs::folder();
 }

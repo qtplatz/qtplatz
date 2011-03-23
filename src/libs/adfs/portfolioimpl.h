@@ -39,7 +39,7 @@ namespace adfs {
     namespace internal {
 
         // Portfolio is a root folder
-
+#if 0
         class PortfolioImpl : public adfs::sqlite { // : public Node {
         public:
             PortfolioImpl();
@@ -66,6 +66,7 @@ namespace adfs {
             // std::map< std::wstring, boost::any > db_;
             // xmlDocument doc_;
         };
+#endif
     }
 }
 

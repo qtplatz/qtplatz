@@ -29,77 +29,83 @@
 
 using namespace adfs;
 
-Folium::~Folium()
+folium::~folium()
 {
 }
 
-Folium::Folium()
+folium::folium()
 {
 }
 
 
-Folium::Folium( const Folium& t ) : Node( t ) 
+folium::folium( const folium& t ) : Node( t ) 
 {
 }
 
 /*
-Folium::Folium( xmlNode& n, internal::PortfolioImpl * impl ) : Node( n, impl )
+folium::folium( xmlNode& n, internal::PortfolioImpl * impl ) : Node( n, impl )
 {
 }
 */
 
 std::wstring
-Folium::path() const
+folium::path() const
 {
     return attribute( L"path" );
 }
 
 bool
-Folium::empty() const
+folium::empty() const
 {
+/*
     if ( impl_ ) {
         boost::any& data = impl_->find( id() );
         return data.empty();
     }
+*/
     return true;
 }
 
 void
-Folium::operator = ( boost::any& any )
+folium::operator = ( boost::any& any )
 {
+/*
     if ( impl_ )
         impl_->assign( id(), any );
+*/
 }
 
-Folium::operator boost::any & ()
+folium::operator boost::any & ()
 {
+/*
     if ( impl_ )
         return impl_->find( id() );
+*/
     static boost::any temp;
     return temp;
 }
 
-Folio
-Folium::attachments()
+folio
+folium::attachments()
 {
     // xmlNodeList list = Node::selectNodes( L"./attachment" );
-    Folio attachments;
+    folio attachments;
 /*
     for ( size_t i = 0; i < list.size(); ++i )
-        attachments.push_back( Folium( list[i], impl_ ) );
+        attachments.push_back( folium( list[i], impl_ ) );
 */
     return attachments;
 }
 
-Folium
-Folium::addAttachment( const std::wstring& name )
+folium
+folium::addAttachment( const std::wstring& name )
 {
-    // return Folium( Node::addAttachment( name ), impl_ );
-    return Folium();
+    // return folium( Node::addAttachment( name ), impl_ );
+    return folium();
 }
 
-Folder
-Folium::getParentFolder()
+folder
+folium::getParentFolder()
 {
     // std::wstring query = L"//folder[@folderType='directory']/folium[@dataId=\"" + id() + L"\"]/parent()";
 /*
@@ -109,5 +115,5 @@ Folium::getParentFolder()
     if ( elmt.nodeName() == L"folder" && elmt.attribute( L"folderType" ) == L"directory" )
         return Folder( elmt, impl_ );
 */
-    return Folder();
+    return folder();
 }

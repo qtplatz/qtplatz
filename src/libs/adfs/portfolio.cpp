@@ -22,7 +22,7 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-
+#include "adfs.h"
 #include "portfolio.h"
 #include "adsqlite.h"
 
@@ -32,46 +32,42 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 
-#include "internal_filesystem.h"
-//# if defined _DEBUG
-//#    pragma comment(lib, "xmlwrapperd.lib")
-//#    pragma comment(lib, "adportabled.lib")
-//# else
-//#    pragma comment(lib, "xmlwrapper.lib")
-//#    pragma comment(lib, "adportable.lib")
-//# endif
+#define BOOST_LIB_NAME boost_filesystem
+#include <boost/config/auto_link.hpp>
 
 using namespace adfs;
 
-Portfolio::~Portfolio()
+portfolio::~portfolio()
 {
 }
 
-Portfolio::Portfolio()
+portfolio::portfolio()
 {
 }
 
-Portfolio::Portfolio( const Portfolio& t ) : db_(t.db_)
+portfolio::portfolio( const portfolio& t ) : db_(t.db_)
 {
 }
 
-std::vector< Folder >
-Portfolio::folders()
+std::vector< folder >
+portfolio::folders()
 {
-    return std::vector< Folder >();
+    std::vector< folder > folders;
+
+    return folders;
     // return impl_->selectFolders( L"./folder[@folderType='directory']" );
 }
 
-Folium
-Portfolio::findFolium( const std::wstring& id )
+folium
+portfolio::findFolium( const std::wstring& id )
 {
-    return Folium();
+    return folium();
     // return impl_->selectFolium( L"//folium[@dataId='" + id + L"']");
 }
 
 /////////////
 bool
-Portfolio::create( const wchar_t * filename, size_t alloc, size_t page_size )
+portfolio::create( const wchar_t * filename, size_t alloc, size_t page_size )
 {
     boost::filesystem::path filepath( filename );
 
@@ -89,15 +85,15 @@ Portfolio::create( const wchar_t * filename, size_t alloc, size_t page_size )
         if ( page_size )
             sql.exec( ( boost::format( "PRAGMA page_size = %1%" ) % page_size ).str() );
         if ( alloc )
-            prealloc( alloc );
-        return internal::filesystem::format( *db_, filename );
+            internal::fs::prealloc( *db_, alloc );
+        return internal::fs::format( *db_, filename );
     }
     db_.reset();
     return false;
 }
 
 bool
-Portfolio::mount( const wchar_t * filename )
+portfolio::mount( const wchar_t * filename )
 {
     if ( db_ )
         db_.reset();
@@ -106,46 +102,16 @@ Portfolio::mount( const wchar_t * filename )
 
     db_.reset( new sqlite() );
     if ( db_->open( filepath.c_str() ) )
-        return internal::filesystem::mount( *db_ );
+        return internal::fs::mount( *db_ );
 
     db_.reset();
     return false;
 }
 
-bool
-Portfolio::prealloc( size_t size )
+folder
+portfolio::addFolder( const std::wstring& name, bool uniq )
 {
-    adfs::stmt sql( *db_ );
-
-    const size_t unit_size = 512 * 1024 * 1024;
-
-    sql.exec( "CREATE TABLE large (a BLOB)" );
-
-    while ( size > unit_size ) {
-        sql.exec( "INSERT INTO large VALUES( zeroblob(512 * 1024 * 1024) )" );
-        size -= unit_size;
-    }
-    if ( size )
-        sql.exec( ( boost::format( "INSERT INTO large VALUES( zeroblob(%1%) )" ) % size ).str() );
-
-    sql.exec( "DROP TABLE large" );
-
-    return true;
-}
-
-/*
-bool
-Portfolio::create_with_fullpath( const std::wstring& fullpath )
-{
-    return impl_->create_with_fullpath( fullpath );
-}
-*/
-
-Folder
-Portfolio::addFolder( const std::wstring& name, bool uniq )
-{
-    return Folder();
-    // return impl_->addFolder( name, uniq );
+    return internal::fs::add_folder( *db_, name );
 }
 
 /*

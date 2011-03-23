@@ -25,11 +25,13 @@
 
 #include <adfs/adfs.h>
 #include <adfs/adsqlite.h>
+
 #include <iostream>
 #include <fstream>
 #include <boost/cstdint.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/variant.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics.hpp>
@@ -128,8 +130,11 @@ test_data_read( adfs::sqlite& db, int oid )
     while ( sql.step() == adfs::sqlite_row ) {
         std::size_t size = sql.column_count();
         (void)size;
+     
         boost::int64_t irow;
-        irow = boost::get<long long>( sql.column_value(0) );
+        adfs::column_value_type value = sql.column_value(0);
+        irow = boost::get<boost::int64_t>( value );
+
         //boost::int32_t oid = boost::get<boost::int64_t>( sql.column_value(1) );
         //boost::int32_t npos = boost::get<boost::int64_t>( sql.column_value(2) );
         //boost::int64_t time = boost::get<boost::int64_t>( sql.column_value(3) );
@@ -328,7 +333,7 @@ sqlite_access_test()
         boost::filesystem::remove( "disk.adfs" );
         do {
             adfs::sqlite db;
-            db.open( L"disk.adfs" );
+            db.open( "disk.adfs" );
 
             td_dbw.push_back( double( write_test( db, of, nbrSamples, 1024 * 8, false, nSpectra ) ) );
             td_dbr.push_back( double( read_test( db, of, nbrSamples, nSpectra ) ) );
@@ -343,7 +348,7 @@ sqlite_access_test()
     for ( int i = 0; i < 5; ++i ) {
         boost::filesystem::remove( "disk.adfs" );
         adfs::sqlite db;
-        db.open( L"disk.adfs" );
+        db.open( "disk.adfs" );
 
         td_dbw2.push_back( double( write_test( db, of, nbrSamples, 1024 * 8, true, nSpectra ) ) );
         td_dbr.push_back( double( read_test( db, of, nbrSamples, nSpectra ) ) );
@@ -362,15 +367,19 @@ void
 filesystem_test()
 {
     try {
-        adfs::filesystem fs;
-        fs.create( L"fs.adfs" );
+        adfs::portfolio portfolio;
+        portfolio.create( L"fs.adfs" );
     } catch ( adfs::exception& ex ) {
         std::cout << ex.message << " on " << ex.category << std::endl;
     }
-    do {
-        adfs::filesystem fs;
-        fs.mount( L"fs.adfs" );
-    } while(0);
+
+    adfs::portfolio portfolio;
+    if ( portfolio.mount( L"fs.adfs" ) ) {
+        portfolio.addFolder( L"/Acuiqre" );
+        portfolio.addFolder( L"/Processed" );
+        portfolio.addFolder( L"/Processed/Spectra" );
+        portfolio.addFolder( L"/Processed/Chromatograms" );
+    }
 }
 
 int

@@ -25,9 +25,17 @@
 
 #pragma once
 
-#include <adfs/filesystem.h>
+#include <adfs/portfolio.h>
+#include <adfs/folder.h>
 
 namespace adfs {
+
+    class exception {
+    public:
+        exception( const std::string& msg, const char * cat ) : message(msg), category(cat) {}
+        std::string message;
+        std::string category;
+    };
 
     class sqlite;
     class file;

@@ -25,11 +25,12 @@
 
 #include "adsqlite.h"
 #include "sqlite3.h"
-#include <boost/noncopyable.hpp>
-#include <boost/filesystem.hpp>
 #include <iostream>
 
-namespace adfs { // namespace detail {
+#include <boost/noncopyable.hpp>
+#include <boost/filesystem.hpp>
+
+namespace adfs {
 
     struct Msg {
         char * p;
@@ -52,10 +53,16 @@ sqlite::sqlite() : db_(0)
 {
 }
 
-bool
-sqlite::open( const std::wstring& path )
+template<> bool
+sqlite::open( const wchar_t * path )
 {
-    return sqlite3_open16( path.c_str(), &db_ ) == SQLITE_OK;
+    return sqlite3_open16( reinterpret_cast< const void *>(path), &db_ ) == SQLITE_OK;
+}
+
+template<> bool
+sqlite::open( const char * path )
+{
+    return sqlite3_open( path, &db_ ) == SQLITE_OK;
 }
 
 bool
@@ -233,19 +240,18 @@ stmt::bind_item::operator = ( const boost::uint64_t& v )
 template<> bool
 stmt::bind_item::operator = ( const std::string& v )
 {
-    return sqlite3_bind_text( stmt_, nnn_, v.c_str(), v.length(), 0 ) == SQLITE_OK;
+    return sqlite3_bind_text( stmt_, nnn_, v.c_str(), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
 }
 
 template<> bool
 stmt::bind_item::operator = ( const std::wstring& v )
 {
-    return sqlite3_bind_text16( stmt_, nnn_, v.c_str(), v.length(), 0 ) == SQLITE_OK;
+    return sqlite3_bind_text16( stmt_, nnn_, v.c_str(), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
 }
 
 template<> bool
 stmt::bind_item::operator = ( const blob& blob )
 {
-    // sqlite3_bind_text16( stmt_, nnn_, v.c_str(), -1, 0 );
     if ( blob.get() )
         return sqlite3_bind_blob( stmt_, nnn_, blob.get(), blob.size(), 0 ) == SQLITE_OK;
     else
@@ -264,30 +270,23 @@ stmt::column_count()
 int
 stmt::column_type( int nCol )
 {
-/*
-#define SQLITE_INTEGER  1
-#define SQLITE_FLOAT    2
-#define SQLITE_TEXT     3
-#define SQLITE_BLOB     4
-#define SQLITE_NULL     5
-*/
     std::string decl = sqlite3_column_decltype( stmt_, nCol );
     (void)decl;
     return sqlite3_column_type( stmt_, nCol );
 }
 
-result_value_type
+column_value_type
 stmt::column_value( int nCol )
 {
     switch( sqlite3_column_type( stmt_, nCol ) ) {
-    case SQLITE_INTEGER: return result_value_type( sqlite3_column_int64( stmt_, nCol ) );
-    case SQLITE_FLOAT:   return result_value_type( sqlite3_column_double( stmt_, nCol ) );
-    case SQLITE_TEXT:    return result_value_type( reinterpret_cast<const wchar_t*>(sqlite3_column_text16( stmt_, nCol )) );
-    case SQLITE_BLOB:    return result_value_type( blob() );
-    case SQLITE_NULL:    return result_value_type( null() );
+    case SQLITE_INTEGER: return column_value_type( sqlite3_column_int64( stmt_, nCol ) );
+    case SQLITE_FLOAT:   return column_value_type( sqlite3_column_double( stmt_, nCol ) );
+    case SQLITE_TEXT:    return column_value_type( reinterpret_cast<const wchar_t*>(sqlite3_column_text16( stmt_, nCol )) );
+    case SQLITE_BLOB:    return column_value_type( blob() );
+    case SQLITE_NULL:    return column_value_type( null() );
     default: break;
     };
-    return result_value_type( null() );
+    return column_value_type( null() );
 }
 
 ///////////////////

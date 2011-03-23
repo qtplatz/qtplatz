@@ -23,23 +23,15 @@
 **
 **************************************************************************/
 
-#ifndef FILESYSTEM_H
-#define FILESYSTEM_H
+#pragma once
 
 #include <string>
 
 namespace adfs {
 
-    class exception {
-    public:
-        exception( const std::string& msg, const char * cat ) : message(msg), category(cat) {}
-        std::string message;
-        std::string category;
-    };
-
     class sqlite;
-    class Folium;
-    class Folder;
+    class folium;
+    class folder;
 
     class filesystem {
         sqlite * db_;
@@ -50,11 +42,22 @@ namespace adfs {
         bool mount( const wchar_t * filename );
         bool close();
         //
-        Folder addFolder( const wchar_t * path );
+        folder addFolder( const wchar_t * path );
     private:
         bool prealloc( size_t size );
     };
 
+    namespace internal {
+        class fs {
+        public:
+            static bool format( sqlite& db, const std::wstring& filename );
+            static bool format_superblock( sqlite& db, const std::wstring& filename );
+            static bool format_directory( sqlite& db );
+            static bool mount( sqlite& db );
+            static bool prealloc( adfs::sqlite& db, unsigned long long size );
+            static folder add_folder( adfs::sqlite& db, const std::wstring& path );
+        };
+    };
+
 } // adfs
 
-#endif // FILESYSTEM_H

@@ -30,21 +30,21 @@
 
 namespace adfs {
 
-    class Folium;
+    class folium;
 
-    class Folder : public internal::Node {
+    class folder : public internal::Node {
     public:
-        ~Folder();
-        Folder();
+        ~folder();
+        folder();
         // Folder( const xmlNode&, internal::PortfolioImpl * );
-        Folder( const Folder& );
+        folder( const folder& );
 
-        std::vector< Folder > folders();
-        std::vector< Folium > folio();
-        Folium selectFolium( const std::wstring& );
+        std::vector< folder > folders();
+        std::vector< folium > folio();
+        folium selectFolium( const std::wstring& );
 
         // --- add/modify features
-        Folium addFolium( const std::wstring& name );
+        folium addFolium( const std::wstring& name );
 
     };
 

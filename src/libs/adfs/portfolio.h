@@ -29,38 +29,31 @@
 #include <vector>
 
 namespace adfs {
-/*
-    namespace internal {
-        class PortfolioImpl;
-    }
-*/
-    class Folium;
-    class Folder;
+
+    class folium;
+    class folder;
     class sqlite;
 
-    class Portfolio {
+    class portfolio {
     public:
-        ~Portfolio();
-        Portfolio();
-        Portfolio( const Portfolio& );
-        Portfolio( const std::wstring& xml );
+        ~portfolio();
+        portfolio();
+        portfolio( const portfolio& );
+        portfolio( const std::wstring& xml );
 
-        std::vector<Folder> folders();
-        Folium findFolium( const std::wstring& id );
+        std::vector<folder> folders();
+        folium findFolium( const std::wstring& id );
 
         bool create( const wchar_t * filename, size_t alloc = 0, size_t page_size = 8192 );
         bool mount( const wchar_t * filename );
         bool close();
 
-        Folder addFolder( const std::wstring& name, bool uniq = true );
+        folder addFolder( const std::wstring& name, bool uniq = true );
 
         // std::wstring xml() const;
         // for debugging convension
         // bool save( const std::wstring& filename ) const;
     private:
-        bool prealloc( size_t size );
-# pragma warning(disable:4251)
-        //boost::shared_ptr< internal::PortfolioImpl > impl_;
         boost::shared_ptr< adfs::sqlite > db_;
   };
 

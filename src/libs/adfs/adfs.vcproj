@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtPlatz"
 			IntermediateDirectory="debug\"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -51,7 +51,7 @@
 				ExceptionHandling="1"
 				RuntimeLibrary="3"
 				BufferSecurityCheck="false"
-				TreatWChar_tAsBuiltInType="false"
+				TreatWChar_tAsBuiltInType="true"
 				RuntimeTypeInfo="true"
 				AssemblerListingLocation="debug\"
 				ObjectFile="debug\"
@@ -73,7 +73,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="debug\adfs.lib"
+				OutputFile="$(OutDir)\$(ProjectName)d.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -94,7 +94,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtPlatz"
 			IntermediateDirectory="release\"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -128,7 +128,7 @@
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
-				TreatWChar_tAsBuiltInType="false"
+				TreatWChar_tAsBuiltInType="true"
 				RuntimeTypeInfo="true"
 				AssemblerListingLocation="release\"
 				ObjectFile="release\"
@@ -150,7 +150,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="release\adfs.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -211,7 +211,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\node.cpp"
+				RelativePath="node.cpp"
 				>
 			</File>
 			<File
@@ -219,7 +219,7 @@
 				>
 			</File>
 			<File
-				RelativePath="portfolioimpl.cpp"
+				RelativePath="sqlite3.c"
 				>
 			</File>
 		</Filter>
@@ -437,12 +437,30 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\internal_filesystem.h"
+				RelativePath="node.h"
 				>
-			</File>
-			<File
-				RelativePath=".\node.h"
-				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step"
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Performing Custom Build Step"
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="portfolio.h"
@@ -471,7 +489,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="portfolioimpl.h"
+				RelativePath="sqlite3.h"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

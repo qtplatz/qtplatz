@@ -28,41 +28,41 @@
 
 using namespace adfs;
 
-Folder::~Folder()
+folder::~folder()
 {
 }
 
-Folder::Folder()
+folder::folder()
 {
 }
 
 /*
-Folder::Folder( const xmlNode& n, internal::PortfolioImpl * impl ) : Node( n, impl )
+folder::folder( const xmlNode& n, internal::PortfolioImpl * impl ) : Node( n, impl )
 {
 }
 */
 
-Folder::Folder( const Folder& t ) : Node( t )
+folder::folder( const folder& t ) : Node( t )
 {
 }
 
-std::vector< Folder >
-Folder::folders()
+std::vector< folder >
+folder::folders()
 {
     // xmlNodeList list = Node::selectNodes( L"./folder[@folderType='directory']" );
-    std::vector< Folder > folders;
+    std::vector< folder > folders;
 /*
     for ( size_t i = 0; i < list.size(); ++i )
-        folders.push_back( Folder( list[i], impl_ ) );
+        folders.push_back( folder( list[i], impl_ ) );
 */
     return folders;
 }
 
-Folio
-Folder::folio()
+adfs::folio
+folder::folio()
 {
     // xmlNodeList list = Node::selectNodes( L"./folder[@folderType='file']|./folium" );
-    Folio folio;
+    adfs::folio folio;
 /*
     for ( size_t i = 0; i < list.size(); ++i )
         folio.push_back( Folium( list[i], impl_ ) );
@@ -70,16 +70,16 @@ Folder::folio()
     return folio;
 }
 
-Folium
-Folder::selectFolium( const std::wstring& )
+folium
+folder::selectFolium( const std::wstring& )
 {
-    return Folium();
+    return folium();
 }
 
 /////////////////////////
-Folium
-Folder::addFolium( const std::wstring& name )
+folium
+folder::addFolium( const std::wstring& name )
 {
     // return Folium( Node::addFolium( name ), impl_ );
-    return Folium();
+    return folium();
 }

@@ -12,6 +12,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_polynomial", "test_polynomial\test_polynomial.vcproj", "{2AE4D8CF-2D6D-3821-A8E0-3AD3E0C2438B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adfstest", "adfstest\adfstest.vcproj", "{97EFFFA1-91A7-37E1-B710-120090909899}"
+	ProjectSection(ProjectDependencies) = postProject
+		{20CFBE29-DED8-3C28-9115-8F4275457008} = {20CFBE29-DED8-3C28-9115-8F4275457008}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adfs", "..\src\libs\adfs\adfs.vcproj", "{20CFBE29-DED8-3C28-9115-8F4275457008}"
 EndProject

@@ -23,8 +23,7 @@
 **
 **************************************************************************/
 
-#ifndef ADSQLITE_H
-#define ADSQLITE_H
+#pragma once
 
 #include <boost/noncopyable.hpp>
 #include <boost/cstdint.hpp>
@@ -38,6 +37,10 @@ struct sqlite3_blob;
 namespace adfs {
 
     enum flags { readonly, readwrite };
+    enum step_state { sqlite_done, sqlite_row, sqlite_error };
+
+    class blob;
+    class null;
 
     class sqlite : boost::noncopyable {
         sqlite3 * db_;
@@ -48,7 +51,7 @@ namespace adfs {
 
         inline operator sqlite3 * () { return db_; }
 
-        bool open( const std::wstring& path );
+        template<typename char_type> bool open( const char_type * path );
         bool close();
     };
 
@@ -73,9 +76,7 @@ namespace adfs {
     class null { };
     class error { };
 
-    enum step_state { sqlite_done, sqlite_row, sqlite_error };
-
-    typedef boost::variant< int, boost::int64_t, double, std::string, std::wstring, blob, null, error > result_value_type;
+    typedef boost::variant< boost::int64_t, double, std::wstring, blob, null > column_value_type;
 
     class stmt {
     public:
@@ -110,7 +111,7 @@ namespace adfs {
         int column_count();
         int column_type( int );
 
-        result_value_type column_value( int );
+        column_value_type column_value( int );
 
     private:
         sqlite& sqlite_;
@@ -120,4 +121,3 @@ namespace adfs {
 
 }
 
-#endif // ADSQLITE_H

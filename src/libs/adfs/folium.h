@@ -32,17 +32,13 @@
 
 namespace adfs {
 
-    namespace internal {
-        class PortfolioImpl;
-    }
+    class folder;
 
-    class Folder;
-
-    class Folium : public internal::Node {
+    class folium : public internal::Node {
     public:
-        ~Folium();
-        Folium();
-        Folium( const Folium& );
+        ~folium();
+        folium();
+        folium( const folium& );
         // Folium( xmlNode&, internal::PortfolioImpl * impl );
     public:
 
@@ -51,10 +47,10 @@ namespace adfs {
         void operator = ( boost::any& );
         operator boost::any& ();
 
-        std::vector< Folium > attachments();
-        Folder getParentFolder();
+        std::vector< folium > attachments();
+        folder getParentFolder();
 
-        typedef std::vector< Folium > vector_type;
+        typedef std::vector< folium > vector_type;
 
         template<class T> static vector_type::iterator find_first_of( vector_type::iterator it, vector_type::iterator ite ) {
             while ( it != ite ) {
@@ -66,7 +62,7 @@ namespace adfs {
             return ite;
         }
 
-        template<class T> static bool get( T& t, Folium& folium ) {
+        template<class T> static bool get( T& t, folium& folium ) {
             boost::any& data = folium;
             if ( data.type() == typeid(T) ) {
                 t = boost::any_cast<T>(data);
@@ -76,10 +72,10 @@ namespace adfs {
         }
 
         // --- create/modify
-        Folium addAttachment( const std::wstring& name );
+        folium addAttachment( const std::wstring& name );
     };
 
-    typedef std::vector< Folium > Folio;
+    typedef std::vector< folium > folio;
 
 }
 
