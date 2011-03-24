@@ -34,18 +34,20 @@ namespace adfs {
     class streambuf : public std::streambuf {
         size_t count_;
         size_t size_;
+        size_t tail_;
         unsigned char * p_;
-        std::vector< boost::scoped_array<unsigned char> > vec_;
+        std::vector< boost::shared_array<unsigned char> > vec_;
 
         void resize();
     public:
         ~streambuf();
-        streambuf();
+        streambuf( std::size_t size = 0 );
+        const std::vector< boost::shared_array<unsigned char> >& vec() const { return vec_; }
 
         virtual int_type overflow ( int_type c ) {
             if ( count_ >= size_ )
                 resize();
-            p_[ count_++ ] = c;
+            p_[ count_++ - tail_ ] = c;
             return c;
         }
         virtual std::streamsize xsputn( const char * s, std::streamsize num );

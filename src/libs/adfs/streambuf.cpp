@@ -26,33 +26,36 @@
 #include "streambuf.h"
 
 using namespace adfs;
+static const size_t unit_size = 1024 * 64;
 
 streambuf::~streambuf()
 {
     delete [] p_;
 }
 
-streambuf::streambuf() : count_(0), size_(0), p_(0)
+streambuf::streambuf( std::size_t size ) : count_(0), size_(size), tail_(0), p_(0)
 {
     resize();
 }
 
 void
 streambuf::resize()
-{ 
-    unsigned char * temp = p_;
-    size_ += (1024 * 8);
-    p_ = new unsigned char [ size_ ];
-    memcpy( p_, temp, count_ );
-    delete [] temp;    
+{
+    tail_ = size_;
+    size_ += unit_size; // 64k per page
+    
+    boost::shared_array< unsigned char > p( new unsigned char [ unit_size ] );
+    vec_.push_back( p );
+    p_ = vec_.back().get();
 }
 
 std::streamsize
 streambuf::xsputn( const char * s, std::streamsize num )
 {
-    while ( count_ + num >= size_ )
-        resize();
-    for ( int i = 0; i < num; ++i )
-        p_[ count_++ ] = *s++;
+    for ( int i = 0; i < num; ++i ) {
+        if ( count_ >= size_ )
+            resize();
+        p_[ count_++ - tail_ ] = *s++;
+    }
     return num;
 }

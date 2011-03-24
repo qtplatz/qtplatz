@@ -55,6 +55,7 @@ namespace adfs {
 
         std::size_t write_attr( std::size_t size, char * pbuf );
         std::size_t write( const adfs::streambuf&, std::size_t offs = 0 );
+        std::size_t write( std::size_t size, const unsigned char *, std::size_t offs = 0 );
 
         typedef std::vector< folium > vector_type;
 
