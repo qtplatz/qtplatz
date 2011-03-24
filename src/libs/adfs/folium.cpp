@@ -27,6 +27,7 @@
 #include "folder.h"
 #include "portfolioimpl.h"
 #include "filesystem.h"
+#include "streambuf.h"
 
 using namespace adfs;
 
@@ -123,4 +124,23 @@ folder
 folium::getParentFolder()
 {
     return internal::fs::get_parent_folder( *db_, rowid_ );
+}
+
+std::size_t
+folium::write( std::size_t size, const unsigned char * p, std::size_t offs )
+{
+    if ( internal::fs::write( *db_, rowid_, size, p, offs ) )
+        return size;
+
+    // sql.prepare( "INSERT OR UPDATE fileid, data INTO file VALUES ( :fileid, :data )" );
+
+    return 0;
+}
+
+std::size_t
+folium::write( const adfs::streambuf& buffer, std::size_t offs )
+{
+    if ( internal::fs::write( *db_, rowid_, buffer.size(), buffer.p(), offs ) )
+        return buffer.size();
+    return 0;
 }

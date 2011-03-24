@@ -41,12 +41,18 @@ streambuf::streambuf( std::size_t size ) : count_(0), size_(size), tail_(0), p_(
 void
 streambuf::resize()
 {
-    tail_ = size_;
+    // tail_ = size_;
+    std::size_t osize = size_;
     size_ += unit_size; // 64k per page
-    
+    unsigned char * temp = p_;
+    p_ = new unsigned char [ size_ ];
+    memcpy( p_, temp, osize );
+    delete [] temp;
+    /*
     boost::shared_array< unsigned char > p( new unsigned char [ unit_size ] );
     vec_.push_back( p );
     p_ = vec_.back().get();
+    */
 }
 
 std::streamsize

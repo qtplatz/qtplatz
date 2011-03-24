@@ -39,6 +39,19 @@
 #include <boost/accumulators/statistics.hpp>
 #include <sstream>
 
+#if defined _DEBUG
+//#     pragma comment(lib, "adportabled.lib")  // static
+//#     pragma comment(lib, "adplugind.lib")    // dll
+#     pragma comment(lib, "adcontrolsd.lib")  // static
+//#     pragma comment(lib, "adutilsd.lib")     // static
+//#     pragma comment(lib, "acewrapperd.lib")  // static
+//#     pragma comment(lib, "qtwrapperd.lib")   // static
+//#     pragma comment(lib, "adutilsd.lib")     // static
+#else
+
+#endif
+
+
 struct column_print : public boost::static_visitor<void> {
     template<typename T> void operator()( T& t ) const {
         std::cout << t;
@@ -388,6 +401,10 @@ filesystem_test()
 
         adfs::streambuf buf;
         std::ostream ostm( &buf );
+
+        adcontrols::MassSpectrum ms;
+        ms.resize( 128 * 1024 );
+        ms.archive( ostm );
         spectrum1.write( buf );
 
         adfs::folium att1 = spectrum1.addAttachment( adfs::create_uuid() );

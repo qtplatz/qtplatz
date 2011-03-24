@@ -42,6 +42,8 @@ namespace adfs {
     public:
         ~streambuf();
         streambuf( std::size_t size = 0 );
+        inline std::size_t size() const { return size_; }
+        inline const unsigned char * p() const { return p_; }
         const std::vector< boost::shared_array<unsigned char> >& vec() const { return vec_; }
 
         virtual int_type overflow ( int_type c ) {

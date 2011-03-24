@@ -253,16 +253,13 @@ internal::fs::prealloc( adfs::sqlite& db, unsigned long long size )
     const size_t unit_size = 512 * 1024 * 1024;
 
     sql.exec( "CREATE TABLE large (a BLOB)" );
-
     while ( size > unit_size ) {
         sql.exec( "INSERT INTO large VALUES( zeroblob(512 * 1024 * 1024) )" );
         size -= unit_size;
     }
     if ( size )
         sql.exec( ( boost::format( "INSERT INTO large VALUES( zeroblob(%1%) )" ) % size ).str() );
-
     sql.exec( "DROP TABLE large" );
-
     return true;
 }
 
@@ -368,4 +365,14 @@ internal::fs::get_parent_folder( sqlite& db, boost::int64_t rowid )
     }
 
     return folder();
+}
+
+bool
+internal::fs::write( adfs::sqlite& db, boost::int64_t fileid, size_t size, const unsigned char * pbuf, size_t offs )
+{
+    adfs::stmt sql( db );
+    sql.prepare( "INSERT OR UPDATE fileid, data INTO file VALUES ( :fileid, :data )" );
+    sql.bind( 1 ) = fileid;
+    sql.bind( 2 ) = blob( size, pbuf );
+    return sql.step() == adfs::sqlite_row;
 }
