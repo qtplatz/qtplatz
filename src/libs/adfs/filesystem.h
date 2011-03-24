@@ -55,8 +55,11 @@ namespace adfs {
             static bool format_directory( sqlite& db );
             static bool mount( sqlite& db );
             static bool prealloc( adfs::sqlite& db, unsigned long long size );
-            static folder add_folder( adfs::sqlite& db, const std::wstring& path );
-            static folium add_folium( adfs::sqlite& db, boost::int64_t parent_id, const std::wstring& path );
+
+            static folder add_folder( adfs::sqlite& db, const std::wstring& fullpath );  // full path required
+            static folder get_parent_folder( adfs::sqlite& db, boost::int64_t rowid );
+            static folium add_folium( const folder&, const std::wstring& name );
+            static folium add_attachment( const folium&, const std::wstring& name );
         };
     };
 

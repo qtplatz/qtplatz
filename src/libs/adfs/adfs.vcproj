@@ -222,6 +222,10 @@
 				RelativePath="sqlite3.c"
 				>
 			</File>
+			<File
+				RelativePath=".\streambuf.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -513,6 +517,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\streambuf.h"
+				>
 			</File>
 		</Filter>
 	</Files>

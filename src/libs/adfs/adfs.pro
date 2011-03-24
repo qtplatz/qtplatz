@@ -21,7 +21,8 @@ SOURCES += adfs.cpp \
     folium.cpp \
         node.cpp \
     portfolio.cpp \
-    node.cpp
+    node.cpp \
+    streambuf.cpp
 
 HEADERS += adfs.h \
     adsqlite.h \
@@ -33,7 +34,8 @@ HEADERS += adfs.h \
     folder.h \
     folium.h \
     portfolio.h \
-    node.h
+    node.h \
+    streambuf.h
 
 unix:!symbian {
     maemo5 {

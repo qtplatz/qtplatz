@@ -27,6 +27,7 @@
 
 #include <adfs/portfolio.h>
 #include <adfs/folder.h>
+#include <adfs/folium.h>
 
 namespace adfs {
 
@@ -37,9 +38,10 @@ namespace adfs {
         std::string category;
     };
 
-    class sqlite;
-    class file;
+    //class sqlite;
+    //class file;
 
+    std::wstring create_uuid();
 }
 
 

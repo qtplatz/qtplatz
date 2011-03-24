@@ -23,32 +23,34 @@
 **
 **************************************************************************/
 
-#include "adfs.h"
-#include "sqlite3.h"
-#include <iostream>
-#include <boost/filesystem.hpp>
+#pragma once
+
+#include <streambuf>
 #include <boost/smart_ptr.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include "adsqlite.h"
+#include <vector>
 
-#if defined WIN32
-#include "apiwin32.h"
-typedef adfs::detail::win32api impl;
-#else
-#include "apiposix.h"
-typedef adfs::detail::posixapi impl;
-#endif
+namespace adfs {
 
+    class streambuf : public std::streambuf {
+        size_t count_;
+        size_t size_;
+        unsigned char * p_;
+        std::vector< boost::scoped_array<unsigned char> > vec_;
 
-std::wstring
-adfs::create_uuid()
-{
-    return impl::create_uuid();
+        void resize();
+    public:
+        ~streambuf();
+        streambuf();
+
+        virtual int_type overflow ( int_type c ) {
+            if ( count_ >= size_ )
+                resize();
+            p_[ count_++ ] = c;
+            return c;
+        }
+        virtual std::streamsize xsputn( const char * s, std::streamsize num );
+    };
+
 }
 
-//////
 
-
-
-////////////////////
-////////////////////

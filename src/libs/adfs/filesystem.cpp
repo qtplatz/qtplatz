@@ -43,16 +43,11 @@ using namespace adfs;
 
 namespace adfs { namespace internal {
 
-    enum dir_type { type_folder = 1, type_folium = 2 };
+    enum dir_type { type_folder = 1, type_folium = 2, type_attachment = 3 };
 
     struct dml {
-        static bool insert_directory_table( adfs::sqlite& db, dir_type, const std::wstring& name, boost::int64_t parent_id );
-        static boost::int64_t select_directory_table( adfs::stmt&, dir_type, const std::wstring& name, boost::int64_t parent_id );
-
-        static bool insert_folder( adfs::sqlite& db, const std::wstring& name, boost::int64_t parent_id );
-        static bool insert_folium( adfs::sqlite& db, const std::wstring& name, boost::int64_t parent_id );
-
-        static boost::int64_t select_folder( adfs::stmt& sql, const std::wstring& name, boost::int64_t parent_id );
+        static bool insert_directory( adfs::sqlite& db, dir_type, boost::int64_t parent_id, const std::wstring& name );
+        static boost::int64_t select_directory( adfs::stmt&, dir_type, boost::int64_t parent_id, const std::wstring& name );
     };
 }
 }
@@ -91,6 +86,7 @@ filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
             adfs::stmt sql( *db_ );
             if ( page_size )
                 sql.exec( ( boost::format( "PRAGMA page_size = %1%" ) % page_size ).str() );
+            sql.exec( "PRAGMA foreign_keys = ON" );
             if ( alloc )
                 prealloc( alloc );
             return internal::fs::format( *db_, filename );
@@ -192,7 +188,7 @@ internal::fs::mount( adfs::sqlite& db )
 }
 
 bool
-internal::dml::insert_directory_table( adfs::sqlite& db, dir_type type, const std::wstring& name, boost::int64_t parent_id )
+internal::dml::insert_directory( adfs::sqlite& db, dir_type type, boost::int64_t parent_id, const std::wstring& name )
 {
     adfs::stmt sql( db );
 
@@ -209,32 +205,20 @@ internal::dml::insert_directory_table( adfs::sqlite& db, dir_type type, const st
     return sql.step() == adfs::sqlite_done;
 }
 
-bool
-internal::dml::insert_folder( adfs::sqlite& db, const std::wstring& name, boost::int64_t parent_id )
-{
-    return insert_directory_table( db, type_folder, name, parent_id );
-}
-
-bool
-internal::dml::insert_folium( adfs::sqlite& db, const std::wstring& name, boost::int64_t parent_id )
-{
-    return insert_directory_table( db, type_folium, name, parent_id );
-}
-
 boost::int64_t
-internal::dml::select_folder( adfs::stmt& sql, const std::wstring& name, boost::int64_t parent_id )
+internal::dml::select_directory( adfs::stmt& sql, dir_type type, boost::int64_t parent_id, const std::wstring& name )
 {
-    sql.prepare( "SELECT rowid, type, name, parent_id FROM directory WHERE type = 1 AND name = ? AND parent_id = ?" );
-    sql.bind( 1 ) = name; // name
-    sql.bind( 2 ) = parent_id;
-    if ( sql.step() == adfs::sqlite_row ) {
-        boost::int64_t rowid = boost::get< boost::int64_t >( sql.column_value( 0 ) );
-        return rowid;
-    }
+    sql.prepare( "SELECT rowid, type, name, parent_id FROM directory WHERE type = ? AND name = ? AND parent_id = ?" );
+    sql.bind( 1 ) = static_cast< boost::int64_t>(type);
+    sql.bind( 2 ) = name; // name
+    sql.bind( 3 ) = parent_id;
+    if ( sql.step() == adfs::sqlite_row )
+        return boost::get< boost::int64_t >( sql.column_value( 0 ) );
     return 0;
 }
 
-
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
 bool
 internal::fs::format_directory( adfs::sqlite& db )
 {
@@ -255,9 +239,10 @@ internal::fs::format_directory( adfs::sqlite& db )
     sql.reset();
 
     return sql.exec( "CREATE TABLE file(\
-                     fileid INTEGER \
+                       fileid \
                      , attr BLOB \
-                     , data BLOB )");
+                     , data BLOB \
+                     , FOREIGN KEY(fileid) REFERENCES directory(rowid) )");
 }
 
 bool
@@ -301,17 +286,17 @@ internal::fs::add_folder( adfs::sqlite& db, const std::wstring& name )
 
         for ( tokenizer_t::const_iterator it = tokens.begin(); it != tokens.end(); ++it ) {
 
-            rowid = internal::dml::select_folder( sql, *it, parent_id );
+            rowid = internal::dml::select_directory( sql, type_folder, parent_id, *it );
             if ( rowid == 0 )
                 return adfs::folder(); // error
             parent_id = rowid;
         }
 
-        if ( rowid = internal::dml::select_folder( sql, leaf, parent_id ) ) // already exist
+        if ( rowid = internal::dml::select_directory( sql, type_folder, parent_id, leaf ) ) // already exist
             return adfs::folder( db, rowid, leaf );
 
-        if ( internal::dml::insert_folder( db, leaf, parent_id ) ) {
-            if ( rowid = internal::dml::select_folder( sql, leaf, parent_id ) )
+        if ( internal::dml::insert_directory( db, type_folder, parent_id, leaf ) ) {
+            if ( rowid = internal::dml::select_directory( sql, type_folder, parent_id, leaf ) )
                 return adfs::folder( db, rowid, leaf );
         }
     }
@@ -319,17 +304,68 @@ internal::fs::add_folder( adfs::sqlite& db, const std::wstring& name )
 }
 
 adfs::folium
-internal::fs::add_folium( adfs::sqlite& db, boost::int64_t parent_id, const std::wstring& name )
+internal::fs::add_folium( const folder& folder, const std::wstring& name )
 {
-    adfs::stmt sql( db );
+    adfs::stmt sql( folder.db() );
 
-    sql.prepare( ( boost::format( "SELECT rowid, type from directory WHERE rowid = %1%" ) % parent_id ).str() );
-    if ( sql.step() == adfs::sqlite_row ) {
-        boost::int64_t type = boost::get<boost::int64_t>( sql.column_value( 1 ) );
-        if ( type == 1 ) { // directory
-            // insert name into directory
-        }
+    bool validated = false;
+    if ( folder.rowid() ) {
+        sql.prepare( "SELECT type FROM directory where rowid = ?" );
+        sql.bind( 1 ) = folder.rowid();
+        if ( sql.step() == sqlite_row && boost::get<boost::int64_t>( sql.column_value( 0 ) ) == type_folder )
+            validated = true;
+    }
+
+    if ( validated ) {
+        // duplicate check
+        boost::int64_t rowid;
+        if ( rowid = dml::select_directory( sql, type_folium, folder.rowid(), name ) ) // already exist
+            return adfs::folium( folder.db(), rowid, name );
+
+        // insert
+        dml::insert_directory( folder.db(), type_folium, folder.rowid(), name );
+        rowid = dml::select_directory( sql, type_folium, folder.rowid(), name );
+
+        return adfs::folium( folder.db(), rowid, name );
     }
 
     return adfs::folium();
+}
+
+adfs::folium
+internal::fs::add_attachment( const folium& parent, const std::wstring& name )
+{
+    adfs::stmt sql( parent.db() );
+
+    // duplicate check
+    boost::int64_t rowid;
+    if ( rowid = dml::select_directory( sql, type_attachment, parent.rowid(), name ) ) // already exist
+        return adfs::folium( parent.db(), rowid, name, true );
+
+    // insert
+    dml::insert_directory( parent.db(), type_attachment, parent.rowid(), name );
+    rowid = dml::select_directory( sql, type_attachment, parent.rowid(), name );
+    return adfs::folium( parent.db(), rowid, name, true );
+}
+
+folder
+internal::fs::get_parent_folder( sqlite& db, boost::int64_t rowid )
+{
+    stmt sql( db );
+
+    sql.prepare( "SELECT rowid, name, type FROM directory WHERE rowid = (SELECT parent_id FROM directory WHERE rowid = ?)" );
+    sql.bind( 1 ) = rowid;
+
+    while ( sql.step() == sqlite_row ) {
+        boost::int64_t parent_id = boost::get<boost::int64_t>( sql.column_value( 0 ) ); // parent rawid
+        std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) ); // parent name
+        dir_type type = static_cast<dir_type>( boost::get<boost::int64_t>( sql.column_value( 2 ) ) );
+        if ( type == type_folder )
+            return folder( db, parent_id, name );
+
+        sql.reset();
+        sql.bind( 1 ) = parent_id;  // recursive search toward upper layer
+    }
+
+    return folder();
 }

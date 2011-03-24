@@ -24,7 +24,9 @@
 **************************************************************************/
 
 #include <adfs/adfs.h>
+#include <adfs/streambuf.h>
 #include <adfs/adsqlite.h>
+#include <adcontrols/massspectrum.h>
 
 #include <iostream>
 #include <fstream>
@@ -35,6 +37,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics.hpp>
+#include <sstream>
 
 struct column_print : public boost::static_visitor<void> {
     template<typename T> void operator()( T& t ) const {
@@ -377,8 +380,18 @@ filesystem_test()
     if ( portfolio.mount( L"fs.adfs" ) ) {
         portfolio.addFolder( L"/Acuiqre" );
         portfolio.addFolder( L"/Processed" );
-        portfolio.addFolder( L"/Processed/Spectra" );
         portfolio.addFolder( L"/Processed/Chromatograms" );
+
+        adfs::folder spectra = portfolio.addFolder( L"/Processed/Spectra" );
+
+        adfs::folium spectrum1 = spectra.addFolium( adfs::create_uuid() );
+
+        adfs::streambuf buf;
+        std::ostream ostm( &buf );
+        spectrum1.write( buf );
+
+        adfs::folium att1 = spectrum1.addAttachment( adfs::create_uuid() );
+        adfs::folium att2 = spectrum1.addAttachment( adfs::create_uuid() );
     }
 }
 

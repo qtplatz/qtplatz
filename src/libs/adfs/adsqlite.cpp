@@ -39,6 +39,17 @@ namespace adfs {
         ~Msg() { sqlite3_free( p ); }
     };
 
+    namespace detail {
+        struct error_log {
+            static void log( const std::string& sql, const char * msg ) {
+                std::cout << sql << "\nerror : " << msg << std::endl;
+            }
+            static void log( const std::wstring& sql, const char * msg ) {
+                std::wcout << sql << L"\nerror : " << msg << std::endl;
+            }
+        };
+    };
+
 } // adfs
 
 using namespace adfs;
@@ -90,7 +101,7 @@ stmt::begin()
     Msg msg;
     if ( sqlite3_exec( sqlite_, "BEGIN DEFERRED", callback, 0, msg ) == SQLITE_OK )
         return true;
-    std::cout << msg.p << std::endl;
+    detail::error_log::log( "BEGIN DEFERRED", msg.p );
     return false;
 }
 
@@ -100,7 +111,7 @@ stmt::commit()
     Msg msg;
     if ( sqlite3_exec( sqlite_, "COMMIT", callback, 0, msg ) == SQLITE_OK )
         return true;
-    std::cout << msg.p << std::endl;
+    detail::error_log::log( "COMMIT", msg.p );
     return false;
 }
 
@@ -110,7 +121,7 @@ stmt::rollback()
     Msg msg;
     if ( sqlite3_exec( sqlite_, "ROLLBACK", callback, 0, msg ) == SQLITE_OK )
         return true;
-    std::cout << msg.p << std::endl;
+    detail::error_log::log( "ROOLBACK", msg.p );
     return false;
 }
 
@@ -120,7 +131,7 @@ stmt::exec( const std::string& sql )
     Msg msg;
     if ( sqlite3_exec( sqlite_, sql.c_str(), callback, 0, msg ) == SQLITE_OK )
         return true;
-    std::cout << msg.p << std::endl;
+    detail::error_log::log( sql, msg.p );
     return false;
 }
 
@@ -139,7 +150,7 @@ stmt::prepare( const std::string& sql )
     const char * tail = 0;
     if ( sqlite3_prepare_v2( sqlite_, sql.c_str(), -1, &stmt_, &tail ) == SQLITE_OK )
         return true;
-    std::cout << sqlite3_errmsg( sqlite_ );
+    detail::error_log::log( sql, sqlite3_errmsg( sqlite_ ) );
     return false;
 }
 
@@ -149,7 +160,7 @@ stmt::prepare( const std::wstring& sql )
     const wchar_t * tail = 0;
     if ( sqlite3_prepare16_v2( sqlite_, sql.c_str(), -1, &stmt_, reinterpret_cast< const void ** >(&tail) ) == SQLITE_OK )
         return true;
-    std::cout << sqlite3_errmsg( sqlite_ );
+    detail::error_log::log( sql, sqlite3_errmsg( sqlite_ ) );
     return false;
 }
 

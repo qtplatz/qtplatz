@@ -28,18 +28,21 @@
 #include <string>
 #include <vector>
 #include <boost/any.hpp>
-#include "node.h"
+#include <boost/cstdint.hpp>
 
 namespace adfs {
 
     class folder;
+    class sqlite;
+    class streambuf;
 
-    class folium : public internal::Node {
+    class folium {
     public:
         ~folium();
         folium();
         folium( const folium& );
-        // Folium( xmlNode&, internal::PortfolioImpl * impl );
+        folium( sqlite&, boost::int64_t rowid, const std::wstring& name, bool is_attachment = false );
+
     public:
 
         std::wstring path() const;
@@ -49,6 +52,9 @@ namespace adfs {
 
         std::vector< folium > attachments();
         folder getParentFolder();
+
+        std::size_t write_attr( std::size_t size, char * pbuf );
+        std::size_t write( const adfs::streambuf&, std::size_t offs = 0 );
 
         typedef std::vector< folium > vector_type;
 
@@ -73,6 +79,14 @@ namespace adfs {
 
         // --- create/modify
         folium addAttachment( const std::wstring& name );
+        inline sqlite& db() const { return *db_; }
+        inline const std::wstring& name() const { return name_; }
+        inline const boost::int64_t rowid() const { return rowid_; }
+    private:
+        sqlite * db_;
+        std::wstring name_;
+        boost::int64_t rowid_;
+        bool is_attachment_;
     };
 
     typedef std::vector< folium > folio;

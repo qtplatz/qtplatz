@@ -26,6 +26,7 @@
 #include "folium.h"
 #include "folder.h"
 #include "portfolioimpl.h"
+#include "filesystem.h"
 
 using namespace adfs;
 
@@ -33,25 +34,34 @@ folium::~folium()
 {
 }
 
-folium::folium()
+folium::folium() : db_(0)
+                 , rowid_(0)
+                 , is_attachment_(false)
 {
 }
 
 
-folium::folium( const folium& t ) : Node( t ) 
+folium::folium( const folium& t ) : db_( t.db_ )
+                                  , rowid_( t.rowid_ )
+                                  , name_( t.name_ )  
+                                  , is_attachment_( t.is_attachment_ ) 
 {
 }
 
-/*
-folium::folium( xmlNode& n, internal::PortfolioImpl * impl ) : Node( n, impl )
+folium::folium( sqlite& db, boost::int64_t rowid
+               , const std::wstring& name
+               , bool is_attachment ) : db_( &db )
+                                      , rowid_( rowid )
+                                      , name_( name )  
+                                      , is_attachment_( is_attachment ) 
 {
 }
-*/
 
 std::wstring
 folium::path() const
 {
-    return attribute( L"path" );
+    // path is the unique id to open a data
+    return name_; // attribute( L"path" );
 }
 
 bool
@@ -88,32 +98,29 @@ folium::operator boost::any & ()
 folio
 folium::attachments()
 {
-    // xmlNodeList list = Node::selectNodes( L"./attachment" );
     folio attachments;
-/*
-    for ( size_t i = 0; i < list.size(); ++i )
-        attachments.push_back( folium( list[i], impl_ ) );
-*/
+
+    adfs::stmt sql( *db_ );
+    sql.prepare( "select rowid, name from directory where type = 3 and parent_id = ?" );
+    sql.bind( 1 ) = rowid_;
+
+    while ( sql.step() == adfs::sqlite_row ) {
+        attachments.push_back( adfs::folium(
+                                              *db_
+                                              , boost::get< boost::int64_t >( sql.column_value( 0 ) )
+                                              , boost::get< std::wstring >( sql.column_value( 1 ) ) ) );
+    }
     return attachments;
 }
 
 folium
 folium::addAttachment( const std::wstring& name )
 {
-    // return folium( Node::addAttachment( name ), impl_ );
-    return folium();
+    return internal::fs::add_attachment( *this, name );
 }
 
 folder
 folium::getParentFolder()
 {
-    // std::wstring query = L"//folder[@folderType='directory']/folium[@dataId=\"" + id() + L"\"]/parent()";
-/*
-    xmlElement elmt = Node::selectSingleNode( L".." );
-    while ( elmt && elmt.attribute( L"folderType" ) != L"directory" )
-        elmt = elmt.selectSingleNode( L".." );
-    if ( elmt.nodeName() == L"folder" && elmt.attribute( L"folderType" ) == L"directory" )
-        return Folder( elmt, impl_ );
-*/
-    return folder();
+    return internal::fs::get_parent_folder( *db_, rowid_ );
 }

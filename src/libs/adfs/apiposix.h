@@ -26,10 +26,17 @@
 #ifndef APIPOSIX_H
 #define APIPOSIX_H
 
-class apiposix
-{
-public:
-    apiposix();
-};
+#include <string>
+
+namespace adfs { namespace detail {
+
+    struct posixapi {
+        template<class char_type> static bool resize_file( const char_type *, unsigned long long sz );
+        template<class char_type> static std::basic_string<char_type> get_login_name();
+        static std::wstring create_uuid();
+    };
+
+} // detail
+} // adfs
 
 #endif // APIPOSIX_H

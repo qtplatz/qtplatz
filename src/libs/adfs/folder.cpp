@@ -25,6 +25,7 @@
 
 #include "folder.h"
 #include "folium.h"
+#include "filesystem.h"
 
 using namespace adfs;
 
@@ -82,6 +83,7 @@ folder::selectFolium( const std::wstring& )
 folium
 folder::addFolium( const std::wstring& name )
 {
-    // return Folium( Node::addFolium( name ), impl_ );
+    if ( db_ && rowid_ )
+        return internal::fs::add_folium( *this, name );
     return folium();
 }

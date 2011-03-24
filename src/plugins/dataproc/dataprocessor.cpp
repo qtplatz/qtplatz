@@ -303,6 +303,9 @@ Dataprocessor::subscribe( adcontrols::ProcessedDataset& processed )
 {
     std::wstring xml = processed.xml();
     portfolio_.reset( new portfolio::Portfolio( xml ) );
+#if defined _DEBUG
+    portfolio_->save( L"portfolio.xml" );
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////

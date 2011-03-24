@@ -91,3 +91,18 @@ win32api::get_login_name()
         return std::wstring( name );
     return std::wstring();
 }
+
+std::wstring
+win32api::create_uuid()
+{
+    std::wstring guidString;
+    GUID guid;
+    if ( CoCreateGuid( &guid ) == S_OK ) {
+        LPOLESTR psz;
+        if ( ::StringFromCLSID( guid, &psz ) == S_OK ) {
+            guidString = psz;
+            CoTaskMemFree( psz );
+        }
+    }
+    return guidString;
+}

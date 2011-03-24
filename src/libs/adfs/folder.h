@@ -47,6 +47,10 @@ namespace adfs {
 
         // --- add/modify features
         folium addFolium( const std::wstring& name );
+
+        inline boost::int64_t rowid() const { return rowid_; }
+        inline const std::wstring& name() const { return name_; }
+        inline sqlite& db() const { return *db_; }
     private:
         sqlite * db_;
         std::wstring name_;
