@@ -129,10 +129,9 @@ folium::getParentFolder()
 std::size_t
 folium::write( std::size_t size, const unsigned char * p, std::size_t offs )
 {
-    if ( internal::fs::write( *db_, rowid_, size, p, offs ) )
+    (void)offs;
+    if ( internal::fs::write( *db_, rowid_, size, p ) )
         return size;
-
-    // sql.prepare( "INSERT OR UPDATE fileid, data INTO file VALUES ( :fileid, :data )" );
 
     return 0;
 }
@@ -140,7 +139,8 @@ folium::write( std::size_t size, const unsigned char * p, std::size_t offs )
 std::size_t
 folium::write( const adfs::streambuf& buffer, std::size_t offs )
 {
-    if ( internal::fs::write( *db_, rowid_, buffer.size(), buffer.p(), offs ) )
+    (void)offs;
+    if ( internal::fs::write( *db_, rowid_, buffer.size(), buffer.p() ) )
         return buffer.size();
     return 0;
 }

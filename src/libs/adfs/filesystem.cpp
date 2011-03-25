@@ -48,7 +48,23 @@ namespace adfs { namespace internal {
     struct dml {
         static bool insert_directory( adfs::sqlite& db, dir_type, boost::int64_t parent_id, const std::wstring& name );
         static boost::int64_t select_directory( adfs::stmt&, dir_type, boost::int64_t parent_id, const std::wstring& name );
+        static bool update_mtime( adfs::stmt&, boost::int64_t fileid );
     };
+
+    struct scoped_transaction {
+        adfs::stmt& sql_;
+        bool commit_;
+        scoped_transaction( adfs::stmt& stmt ) : sql_(stmt), commit_(false) { 
+            sql_.begin();
+        }
+        ~scoped_transaction() { 
+            commit_ ? sql_.commit() : sql_.rollback();
+        }
+        bool mtime( boost::int64_t fileid ) { 
+            return commit_ = dml::update_mtime( sql_, fileid );
+        }
+    };
+
 }
 }
 
@@ -217,6 +233,20 @@ internal::dml::select_directory( adfs::stmt& sql, dir_type type, boost::int64_t 
     return 0;
 }
 
+bool
+internal::dml::update_mtime( adfs::stmt& sql, boost::int64_t fileid )
+{
+    boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
+    std::string date = ( boost::format( "%1%" ) % pt ).str();
+
+    if ( sql.prepare( "UPDATE directory SET mtime = :mtime WHERE rowid = :fileid" ) ) {
+        sql.bind( 1 ) = date;
+        sql.bind( 2 ) = fileid;
+        return sql.step() == adfs::sqlite_done;
+    }
+    return false;
+}
+
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 bool
@@ -227,11 +257,19 @@ internal::fs::format_directory( adfs::sqlite& db )
 
     adfs::stmt sql( db );
 
-    sql.exec( "CREATE TABLE directory( name TEXT, parent_id INTEGER, type INTEGER, ctime DATE, mtime DATE, hash INTEGER )" );
+    sql.exec( "CREATE TABLE directory( \
+               name TEXT \
+               , parent_id INTEGER \
+               , type INTEGER \
+               , ctime DATE \
+               , mtime DATE \
+               , hash INTEGER \
+               , UNIQUE( parent_id, name ) \
+               )" );
     sql.prepare( "INSERT INTO directory VALUES (?,?,?,?,?,?)" );
     sql.bind( 1 ) = std::string("/"); // root
     sql.bind( 2 ) = 0; // for root
-    sql.bind( 3 ) = 1; // 1:directory, 2:file
+    sql.bind( 3 ) = 1; // 1:directory, 2:file, 3: attachment
     sql.bind( 4 ) = date;
     sql.bind( 5 ) = date;
     sql.bind( 6 ) = std::string("");
@@ -242,6 +280,7 @@ internal::fs::format_directory( adfs::sqlite& db )
                        fileid \
                      , attr BLOB \
                      , data BLOB \
+                     , UNIQUE ( fileid ) \
                      , FOREIGN KEY(fileid) REFERENCES directory(rowid) )");
 }
 
@@ -368,11 +407,26 @@ internal::fs::get_parent_folder( sqlite& db, boost::int64_t rowid )
 }
 
 bool
-internal::fs::write( adfs::sqlite& db, boost::int64_t fileid, size_t size, const unsigned char * pbuf, size_t offs )
+internal::fs::write( adfs::sqlite& db, boost::int64_t fileid, size_t size, const unsigned char * pbuf )
 {
     adfs::stmt sql( db );
-    sql.prepare( "INSERT OR UPDATE fileid, data INTO file VALUES ( :fileid, :data )" );
-    sql.bind( 1 ) = fileid;
-    sql.bind( 2 ) = blob( size, pbuf );
-    return sql.step() == adfs::sqlite_row;
+
+    scoped_transaction update(sql);
+
+    // fileid should be UNIQUE.
+    if ( sql.prepare( "INSERT INTO file (fileid, data) VALUES ( :fileid, :data )" ) ) {
+        sql.bind( 1 ) = fileid;
+        sql.bind( 2 ) = blob( size, pbuf );
+        adfs::step_state res = sql.step();
+        if ( res == adfs::sqlite_done && update.mtime( fileid ) )
+            return true;
+
+        sql.reset();
+        if ( res == adfs::sqlite_error && sql.prepare( "UPDATE file SET data = :data WHERE fileid = :fileid" ) ) {
+            sql.bind( 1 ) = blob( size, pbuf );
+            sql.bind( 2 ) = fileid;
+            return ( sql.step() == adfs::sqlite_done ) && update.mtime( fileid );
+        }
+    }
+    return false;
 }

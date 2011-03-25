@@ -382,6 +382,7 @@ sqlite_access_test()
 void
 filesystem_test()
 {
+
     try {
         adfs::portfolio portfolio;
         portfolio.create( L"fs.adfs" );
@@ -403,6 +404,10 @@ filesystem_test()
         std::ostream ostm( &buf );
 
         adcontrols::MassSpectrum ms;
+        ms.resize( 64 * 1024 );
+        ms.archive( ostm );
+        spectrum1.write( buf );
+
         ms.resize( 128 * 1024 );
         ms.archive( ostm );
         spectrum1.write( buf );
