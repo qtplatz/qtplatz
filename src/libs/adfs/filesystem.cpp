@@ -428,7 +428,7 @@ internal::fs::select_folders( sqlite& db, boost::int64_t parent_id, std::vector<
 {
     stmt sql( db );
 
-    if ( sql.prepare( "SELECT rowid, name, ctime, mtime FROM directory WHERE parent_id = :parent_id" ) ) {
+    if ( sql.prepare( "SELECT rowid, name, ctime, mtime FROM directory WHERE type = 1 AND parent_id = :parent_id" ) ) {
 
         sql.bind( 1 ) = parent_id;
 
@@ -472,7 +472,7 @@ internal::fs::select_folio( sqlite& db, boost::int64_t parent_id, folio& folio )
 {
     stmt sql( db );
 
-    if ( sql.prepare( "SELECT rowid, name, cdate, mdate FROM directory WHERE type = 1 AND parent_id = :parent_id" ) ) {
+    if ( sql.prepare( "SELECT rowid, name, ctime, mtime FROM directory WHERE type = 2 AND parent_id = :parent_id" ) ) {
 
         sql.bind( 1 ) = parent_id;
 

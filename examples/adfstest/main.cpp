@@ -419,9 +419,37 @@ filesystem_create_test()
 }
 
 bool
+filesystem_list_attachment( const std::wstring& parent, adfs::folium& folium )
+{
+    std::wcout << parent << std::endl;
+
+    adfs::folio folio = folium.attachments();
+    for ( std::vector< adfs::folium >::iterator it = folio.begin(); it != folio.end(); ++it ) {
+        filesystem_list_attachment( parent + L"/<attachment>." + it->name(), *it );
+    }
+    return false;
+}
+
+bool
+filesystem_list_folium( const std::wstring& parent, adfs::folium& folium )
+{
+    std::wcout << parent << std::endl;
+
+    adfs::folio folio = folium.attachments();
+    for ( std::vector< adfs::folium >::iterator it = folio.begin(); it != folio.end(); ++it ) {
+        filesystem_list_attachment( parent + L"/attachment." + it->name(), *it );
+    }
+    return false;
+}
+
+bool
 filesystem_list_folder( const std::wstring& parent, adfs::folder& folder )
 {
     std::wcout << parent << std::endl;
+
+    adfs::folio folio = folder.folio();
+    for ( std::vector< adfs::folium >::iterator it = folio.begin(); it != folio.end(); ++it ) 
+        filesystem_list_folium( parent + L"/folder." + it->name(), *it );
 
     std::vector< adfs::folder > folders = folder.folders();
     for ( std::vector< adfs::folder >::iterator it = folders.begin(); it != folders.end(); ++it ) {
@@ -441,26 +469,6 @@ filesystem_access_test()
         for ( std::vector< adfs::folder >::iterator it = folders.begin(); it != folders.end(); ++it ) {
             filesystem_list_folder( std::wstring(L"/") + it->name(), *it );
         }
-        /*
-        adfs::folium spectrum1 = spectra.addFolium( adfs::create_uuid() );
-
-        adfs::ostreambuf buf;
-        std::ostream ostm( &buf );
-
-        adcontrols::MassSpectrum ms;
-        ms.resize( 64 * 1024 );
-        ms.archive( ostm );
-        spectrum1.write( buf );
-        spectrum1.dataClass( L"adcontrols::MassSpectrum" );
-        spectrum1.commit();
-
-        ms.resize( 128 * 1024 );
-        ms.archive( ostm );
-        spectrum1.write( buf );
-
-        adfs::folium att1 = spectrum1.addAttachment( adfs::create_uuid() );
-        adfs::folium att2 = spectrum1.addAttachment( adfs::create_uuid() );
-        */
     }
 }
 

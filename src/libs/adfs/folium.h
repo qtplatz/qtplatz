@@ -91,7 +91,7 @@ namespace adfs {
         bool is_attachment_;
     };
 
-    typedef std::vector< folium > folio;
+    typedef std::vector< adfs::folium > folio;
 
 }
 
