@@ -381,9 +381,8 @@ sqlite_access_test()
 }
 
 void
-filesystem_test()
+filesystem_create_test()
 {
-
     try {
         adfs::portfolio portfolio;
         portfolio.create( L"fs.adfs" );
@@ -419,6 +418,52 @@ filesystem_test()
     }
 }
 
+bool
+filesystem_list_folder( const std::wstring& parent, adfs::folder& folder )
+{
+    std::wcout << parent << std::endl;
+
+    std::vector< adfs::folder > folders = folder.folders();
+    for ( std::vector< adfs::folder >::iterator it = folders.begin(); it != folders.end(); ++it ) {
+        filesystem_list_folder( parent + L"/" + it->name(), *it );
+    }
+    return false;
+}
+
+void
+filesystem_access_test()
+{
+    adfs::portfolio portfolio;
+    if ( portfolio.mount( L"fs.adfs" ) ) {
+
+        std::vector< adfs::folder > folders = portfolio.folders();
+
+        for ( std::vector< adfs::folder >::iterator it = folders.begin(); it != folders.end(); ++it ) {
+            filesystem_list_folder( std::wstring(L"/") + it->name(), *it );
+        }
+        /*
+        adfs::folium spectrum1 = spectra.addFolium( adfs::create_uuid() );
+
+        adfs::ostreambuf buf;
+        std::ostream ostm( &buf );
+
+        adcontrols::MassSpectrum ms;
+        ms.resize( 64 * 1024 );
+        ms.archive( ostm );
+        spectrum1.write( buf );
+        spectrum1.dataClass( L"adcontrols::MassSpectrum" );
+        spectrum1.commit();
+
+        ms.resize( 128 * 1024 );
+        ms.archive( ostm );
+        spectrum1.write( buf );
+
+        adfs::folium att1 = spectrum1.addAttachment( adfs::create_uuid() );
+        adfs::folium att2 = spectrum1.addAttachment( adfs::create_uuid() );
+        */
+    }
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -426,7 +471,8 @@ main(int argc, char *argv[])
     (void)(argv);
 
     // sqlite_access_test();
-    filesystem_test();
+    filesystem_create_test();
+    filesystem_access_test();
 
 /*
     sql.prepare( "select * from data0" );

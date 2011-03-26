@@ -46,9 +46,4 @@ adfs::create_uuid()
     return impl::create_uuid();
 }
 
-//////
-
-
-
-////////////////////
 ////////////////////

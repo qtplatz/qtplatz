@@ -365,8 +365,10 @@ internal::dml::insert_folium( adfs::sqlite& db, dir_type type, boost::int64_t pa
     }
     if ( sql.prepare( "INSERT INTO file (fileid) VALUES ( :fileid )" ) ) {  // might be error due to unique constraints
         sql.bind( 1 ) = fileid;
-        if ( sql.step() == sqlite_done )
+        if ( sql.step() == sqlite_done ) {
+            sql.commit();
             return adfs::folium( db, fileid, name );
+        }
     }
 
     sql.rollback();
@@ -426,7 +428,7 @@ internal::fs::select_folders( sqlite& db, boost::int64_t parent_id, std::vector<
 {
     stmt sql( db );
 
-    if ( sql.prepare( "SELECT rowid, name, cdate, mdate FROM directory WHERE parent_id = :parent_id" ) ) {
+    if ( sql.prepare( "SELECT rowid, name, ctime, mtime FROM directory WHERE parent_id = :parent_id" ) ) {
 
         sql.bind( 1 ) = parent_id;
 
