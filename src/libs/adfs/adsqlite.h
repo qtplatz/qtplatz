@@ -37,7 +37,7 @@ struct sqlite3_blob;
 namespace adfs {
 
     enum flags { readonly, readwrite };
-    enum step_state { sqlite_done, sqlite_row, sqlite_error };
+    enum sqlite_state { sqlite_done, sqlite_row, sqlite_error };
 
     class blob;
     class null;
@@ -56,15 +56,15 @@ namespace adfs {
     };
 
     class blob {
-        const boost::uint8_t * p_;
+        const boost::int8_t * p_;
         std::size_t octets_;
         sqlite3_blob * pBlob_;
     public:
         ~blob();
         blob();
-        blob( std::size_t octets, const boost::uint8_t *p = 0 );
+        blob( std::size_t octets, const boost::int8_t *p = 0 );
         boost::uint32_t size() const;
-        inline const boost::uint8_t * get() const { return p_; }
+        inline const boost::int8_t * get() const { return p_; }
         inline operator bool () const { return pBlob_ != 0; }
         bool close();
         bool open( sqlite& db, const char * zDb, const char * zTable, const char * zColumn, boost::int64_t rowid, flags );
@@ -93,7 +93,7 @@ namespace adfs {
         bool prepare( const std::wstring& );
         bool reset();
 
-        step_state step();
+        sqlite_state step();
 
         //
         bool bind_blob( int, const void *, std::size_t, void(*)(void*) = 0);
@@ -116,6 +116,7 @@ namespace adfs {
     private:
         sqlite& sqlite_;
         sqlite3_stmt * stmt_;
+        bool transaction_active_;
         static int callback( void *, int argc, char ** argv, char ** azColName );
     };
 

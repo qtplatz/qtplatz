@@ -32,6 +32,7 @@
 #include <boost/cstdint.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/tokenizer.hpp>
+#include <adportable/string.h>
 
 #if defined WIN32
 # include "apiwin32.h"
@@ -41,6 +42,7 @@ typedef adfs::detail::win32api impl;
 
 using namespace adfs;
 
+
 namespace adfs { namespace internal {
 
     enum dir_type { type_folder = 1, type_folium = 2, type_attachment = 3 };
@@ -49,6 +51,7 @@ namespace adfs { namespace internal {
         static bool insert_directory( adfs::sqlite& db, dir_type, boost::int64_t parent_id, const std::wstring& name );
         static boost::int64_t select_directory( adfs::stmt&, dir_type, boost::int64_t parent_id, const std::wstring& name );
         static bool update_mtime( adfs::stmt&, boost::int64_t fileid );
+        static adfs::folium insert_folium( adfs::sqlite& db, dir_type, boost::int64_t dirid, const std::wstring& name );
     };
 
     struct scoped_transaction {
@@ -62,6 +65,15 @@ namespace adfs { namespace internal {
         }
         bool mtime( boost::int64_t fileid ) { 
             return commit_ = dml::update_mtime( sql_, fileid );
+        }
+    };
+
+    struct to_posix_time : public boost::static_visitor< boost::posix_time::ptime > {
+        template<typename T> boost::posix_time::ptime operator()( T& ) const { 
+            return boost::posix_time::ptime( boost::posix_time::not_a_date_time ); // error if not a wstring
+        }
+        template<> boost::posix_time::ptime operator()( const std::wstring& str ) const { 
+            return boost::posix_time::time_from_string( adportable::string::convert( str ) );
         }
     };
 
@@ -211,14 +223,15 @@ internal::dml::insert_directory( adfs::sqlite& db, dir_type type, boost::int64_t
     boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
     std::string date = ( boost::format( "%1%" ) % pt ).str();
 
-    sql.prepare( "INSERT INTO directory VALUES (?,?,?,?,?,?)" );
-    sql.bind( 1 ) = name;
-    sql.bind( 2 ) = parent_id; // 
-    sql.bind( 3 ) = boost::int64_t( type ); // 1:directory, 2:file
-    sql.bind( 4 ) = date;
-    sql.bind( 5 ) = date;
-    // sql.bind( 6 ) = std::string("");
-    return sql.step() == adfs::sqlite_done;
+    if ( sql.prepare( "INSERT INTO directory VALUES (?,?,?,?,?,NULL,NULL)" ) ) {
+        sql.bind( 1 ) = name;
+        sql.bind( 2 ) = parent_id; // 
+        sql.bind( 3 ) = boost::int64_t( type ); // 1:directory, 2:file
+        sql.bind( 4 ) = date;
+        sql.bind( 5 ) = date;
+        return sql.step() == adfs::sqlite_done;
+    }
+    return false;
 }
 
 boost::int64_t
@@ -257,30 +270,27 @@ internal::fs::format_directory( adfs::sqlite& db )
 
     adfs::stmt sql( db );
 
-    sql.exec( "CREATE TABLE directory( \
-               name TEXT \
-               , parent_id INTEGER \
-               , type INTEGER \
-               , ctime DATE \
-               , mtime DATE \
-               , hash INTEGER \
-               , UNIQUE( parent_id, name ) \
-               )" );
-    sql.prepare( "INSERT INTO directory VALUES (?,?,?,?,?,?)" );
-    sql.bind( 1 ) = std::string("/"); // root
-    sql.bind( 2 ) = 0; // for root
-    sql.bind( 3 ) = 1; // 1:directory, 2:file, 3: attachment
-    sql.bind( 4 ) = date;
-    sql.bind( 5 ) = date;
-    sql.bind( 6 ) = std::string("");
-    sql.step();
-    sql.reset();
+    if ( sql.exec( "CREATE TABLE directory( \
+                    name TEXT \
+                    , parent_id INTEGER \
+                    , type INTEGER \
+                    , ctime DATE \
+                    , mtime DATE \
+                    , hash TEXT \
+                    , attr BLOB \
+                    , UNIQUE( parent_id, name ) )" ) ) {
 
+        if ( ! internal::dml::insert_directory( db, type_folder, 0, L"/" ) )
+            throw adfs::exception( "format directory failed: can't insert root directory", "sqlite3" );
+        sql.reset();
+    }
+
+    // fileid can duplicate for attachment
     return sql.exec( "CREATE TABLE file(\
                        fileid \
                      , attr BLOB \
                      , data BLOB \
-                     , UNIQUE ( fileid ) \
+                     , UNIQUE (fileid) \
                      , FOREIGN KEY(fileid) REFERENCES directory(rowid) )");
 }
 
@@ -340,48 +350,39 @@ internal::fs::add_folder( adfs::sqlite& db, const std::wstring& name )
 }
 
 adfs::folium
+internal::dml::insert_folium( adfs::sqlite& db, dir_type type, boost::int64_t parentid, const std::wstring& name )
+{
+    adfs::stmt sql( db );
+
+    sql.begin();
+
+    boost::int64_t fileid(0);
+
+    // find or create entry on directory
+    if ( (fileid = dml::select_directory( sql, type, parentid, name )) == 0 ) {
+        if ( dml::insert_directory( db, type, parentid, name ) )
+            fileid = dml::select_directory( sql, type, parentid, name );
+    }
+    if ( sql.prepare( "INSERT INTO file (fileid) VALUES ( :fileid )" ) ) {  // might be error due to unique constraints
+        sql.bind( 1 ) = fileid;
+        if ( sql.step() == sqlite_done )
+            return adfs::folium( db, fileid, name );
+    }
+
+    sql.rollback();
+    return adfs::folium();
+}
+
+adfs::folium
 internal::fs::add_folium( const folder& folder, const std::wstring& name )
 {
-    adfs::stmt sql( folder.db() );
-
-    bool validated = false;
-    if ( folder.rowid() ) {
-        sql.prepare( "SELECT type FROM directory where rowid = ?" );
-        sql.bind( 1 ) = folder.rowid();
-        if ( sql.step() == sqlite_row && boost::get<boost::int64_t>( sql.column_value( 0 ) ) == type_folder )
-            validated = true;
-    }
-
-    if ( validated ) {
-        // duplicate check
-        boost::int64_t rowid;
-        if ( rowid = dml::select_directory( sql, type_folium, folder.rowid(), name ) ) // already exist
-            return adfs::folium( folder.db(), rowid, name );
-
-        // insert
-        dml::insert_directory( folder.db(), type_folium, folder.rowid(), name );
-        rowid = dml::select_directory( sql, type_folium, folder.rowid(), name );
-
-        return adfs::folium( folder.db(), rowid, name );
-    }
-
-    return adfs::folium();
+    return dml::insert_folium( folder.db(), type_folium, folder.rowid(), name );
 }
 
 adfs::folium
 internal::fs::add_attachment( const folium& parent, const std::wstring& name )
 {
-    adfs::stmt sql( parent.db() );
-
-    // duplicate check
-    boost::int64_t rowid;
-    if ( rowid = dml::select_directory( sql, type_attachment, parent.rowid(), name ) ) // already exist
-        return adfs::folium( parent.db(), rowid, name, true );
-
-    // insert
-    dml::insert_directory( parent.db(), type_attachment, parent.rowid(), name );
-    rowid = dml::select_directory( sql, type_attachment, parent.rowid(), name );
-    return adfs::folium( parent.db(), rowid, name, true );
+    return dml::insert_folium( parent.db(), type_attachment, parent.rowid(), name );
 }
 
 folder
@@ -407,26 +408,83 @@ internal::fs::get_parent_folder( sqlite& db, boost::int64_t rowid )
 }
 
 bool
-internal::fs::write( adfs::sqlite& db, boost::int64_t fileid, size_t size, const unsigned char * pbuf )
+internal::fs::write( adfs::sqlite& db, boost::int64_t rowid, size_t size, const boost::int8_t * pbuf )
 {
     adfs::stmt sql( db );
 
-    scoped_transaction update(sql);
-
     // fileid should be UNIQUE.
-    if ( sql.prepare( "INSERT INTO file (fileid, data) VALUES ( :fileid, :data )" ) ) {
-        sql.bind( 1 ) = fileid;
-        sql.bind( 2 ) = blob( size, pbuf );
-        adfs::step_state res = sql.step();
-        if ( res == adfs::sqlite_done && update.mtime( fileid ) )
-            return true;
+    if ( sql.prepare( "UPDATE file SET data = :data WHERE rowid = :rowid" ) ) {
+        sql.bind( 1 ) = blob( size, pbuf );
+        sql.bind( 2 ) = rowid;
+        return ( sql.step() == adfs::sqlite_done );
+    }
+    return false;
+}
 
-        sql.reset();
-        if ( res == adfs::sqlite_error && sql.prepare( "UPDATE file SET data = :data WHERE fileid = :fileid" ) ) {
-            sql.bind( 1 ) = blob( size, pbuf );
-            sql.bind( 2 ) = fileid;
-            return ( sql.step() == adfs::sqlite_done ) && update.mtime( fileid );
+bool
+internal::fs::select_folders( sqlite& db, boost::int64_t parent_id, std::vector<folder>& vec )
+{
+    stmt sql( db );
+
+    if ( sql.prepare( "SELECT rowid, name, cdate, mdate FROM directory WHERE parent_id = :parent_id" ) ) {
+
+        sql.bind( 1 ) = parent_id;
+
+        while ( sql.step() == sqlite_row ) {
+            boost::int64_t rowid = boost::get<boost::int64_t>( sql.column_value( 0 ) );
+            std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) );
+            boost::posix_time::ptime ctime = boost::apply_visitor( to_posix_time(), sql.column_value( 2 ) );
+            boost::posix_time::ptime mtime = boost::apply_visitor( to_posix_time(), sql.column_value( 3 ) );
+
+            vec.push_back( folder(db, rowid, name) );
+        }
+    }
+    return true;  
+}
+
+bool
+internal::fs::select_folium( sqlite& db, const std::wstring& id, adfs::folium& folium )
+{
+    stmt sql( db );
+
+    if ( sql.prepare( "SELECT rowid, name, cdate, mdate FROM directory WHERE type = 1 AND name = :name" ) ) {
+
+        sql.bind( 1 ) = id; // name (uuid)
+
+        if ( sql.step() == sqlite_row ) {
+
+            boost::int64_t fileid = boost::get<boost::int64_t>( sql.column_value( 0 ) );
+            std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) );
+            boost::posix_time::ptime ctime = boost::apply_visitor( to_posix_time(), sql.column_value( 2 ) );
+            boost::posix_time::ptime mtime = boost::apply_visitor( to_posix_time(), sql.column_value( 3 ) );
+
+            folium = adfs::folium( db, fileid, name );
+            return true;
         }
     }
     return false;
 }
+
+bool
+internal::fs::select_folio( sqlite& db, boost::int64_t parent_id, folio& folio )
+{
+    stmt sql( db );
+
+    if ( sql.prepare( "SELECT rowid, name, cdate, mdate FROM directory WHERE type = 1 AND parent_id = :parent_id" ) ) {
+
+        sql.bind( 1 ) = parent_id;
+
+        while ( sql.step() == sqlite_row ) {
+
+            boost::int64_t rowid = boost::get<boost::int64_t>( sql.column_value( 0 ) );
+            std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) );
+            boost::posix_time::ptime ctime = boost::apply_visitor( to_posix_time(), sql.column_value( 2 ) );
+            boost::posix_time::ptime mtime = boost::apply_visitor( to_posix_time(), sql.column_value( 3 ) );
+
+            folio.push_back( folium( db, rowid, name ) );
+        }
+        return true;
+    }
+    return false;
+}
+

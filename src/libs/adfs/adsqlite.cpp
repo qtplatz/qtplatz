@@ -88,10 +88,12 @@ sqlite::close()
 
 stmt::~stmt()
 {
+    if ( transaction_active_ )
+        rollback();
     sqlite3_finalize( stmt_ );
 }
 
-stmt::stmt( sqlite& db ) : sqlite_(db), stmt_(0)
+stmt::stmt( sqlite& db ) : sqlite_(db), stmt_(0), transaction_active_(false)
 {
 }
 
@@ -99,8 +101,10 @@ bool
 stmt::begin()
 {
     Msg msg;
-    if ( sqlite3_exec( sqlite_, "BEGIN DEFERRED", callback, 0, msg ) == SQLITE_OK )
+    if ( sqlite3_exec( sqlite_, "BEGIN DEFERRED", callback, 0, msg ) == SQLITE_OK ) {
+        transaction_active_ = true;
         return true;
+    }
     detail::error_log::log( "BEGIN DEFERRED", msg.p );
     return false;
 }
@@ -109,6 +113,7 @@ bool
 stmt::commit()
 {
     Msg msg;
+    transaction_active_ = false;
     if ( sqlite3_exec( sqlite_, "COMMIT", callback, 0, msg ) == SQLITE_OK )
         return true;
     detail::error_log::log( "COMMIT", msg.p );
@@ -119,6 +124,7 @@ bool
 stmt::rollback()
 {
     Msg msg;
+    transaction_active_ = false;
     if ( sqlite3_exec( sqlite_, "ROLLBACK", callback, 0, msg ) == SQLITE_OK )
         return true;
     detail::error_log::log( "ROOLBACK", msg.p );
@@ -170,7 +176,7 @@ stmt::reset()
     return sqlite3_reset( stmt_ ) == SQLITE_OK;
 }
 
-step_state
+sqlite_state
 stmt::step()
 {
     int rc = sqlite3_step( stmt_ );
@@ -311,7 +317,7 @@ blob::blob() : p_(0), octets_(0), pBlob_(0)
 {
 }
 
-blob::blob( std::size_t octets, const boost::uint8_t *p ) : p_(p), octets_( octets ), pBlob_(0)
+blob::blob( std::size_t octets, const boost::int8_t *p ) : p_(p), octets_( octets ), pBlob_(0)
 {
 }
 

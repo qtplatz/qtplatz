@@ -45,17 +45,20 @@ folium::folium() : db_(0)
 folium::folium( const folium& t ) : db_( t.db_ )
                                   , rowid_( t.rowid_ )
                                   , name_( t.name_ )  
-                                  , is_attachment_( t.is_attachment_ ) 
+                                  , is_attachment_( t.is_attachment_ )
+                                  , attributes( t )
 {
 }
 
-folium::folium( sqlite& db, boost::int64_t rowid
+folium::folium( sqlite& db
+               , boost::int64_t rowid
                , const std::wstring& name
                , bool is_attachment ) : db_( &db )
-                                      , rowid_( rowid )
+                                      , rowid_( rowid ) 
                                       , name_( name )  
                                       , is_attachment_( is_attachment ) 
 {
+    fetch();
 }
 
 std::wstring
@@ -102,14 +105,13 @@ folium::attachments()
     folio attachments;
 
     adfs::stmt sql( *db_ );
-    sql.prepare( "select rowid, name from directory where type = 3 and parent_id = ?" );
+    sql.prepare( "SELECT rowid, name FROM directory WHERE type = 3 AND parent_id = :parent_id" );
     sql.bind( 1 ) = rowid_;
 
     while ( sql.step() == adfs::sqlite_row ) {
-        attachments.push_back( adfs::folium(
-                                              *db_
-                                              , boost::get< boost::int64_t >( sql.column_value( 0 ) )
-                                              , boost::get< std::wstring >( sql.column_value( 1 ) ) ) );
+        boost::int64_t rowid = boost::get< boost::int64_t >( sql.column_value( 0 ) );
+        std::wstring name = boost::get< std::wstring>( sql.column_value( 1 ) );
+        attachments.push_back( adfs::folium( *db_, rowid, name ) );
     }
     return attachments;
 }
@@ -127,17 +129,17 @@ folium::getParentFolder()
 }
 
 std::size_t
-folium::write( std::size_t size, const unsigned char * p, std::size_t offs )
+folium::write( std::size_t size, const boost::int8_t * p, std::size_t offs )
 {
     (void)offs;
     if ( internal::fs::write( *db_, rowid_, size, p ) )
         return size;
-
+    commit();
     return 0;
 }
 
 std::size_t
-folium::write( const adfs::streambuf& buffer, std::size_t offs )
+folium::write( const adfs::ostreambuf& buffer, std::size_t offs )
 {
     (void)offs;
     if ( internal::fs::write( *db_, rowid_, buffer.size(), buffer.p() ) )

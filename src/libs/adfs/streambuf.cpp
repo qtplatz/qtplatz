@@ -28,24 +28,24 @@
 using namespace adfs;
 static const size_t unit_size = 1024 * 64;
 
-streambuf::~streambuf()
+ostreambuf::~ostreambuf()
 {
     delete [] p_;
 }
 
-streambuf::streambuf( std::size_t size ) : count_(0), size_(size), tail_(0), p_(0)
+ostreambuf::ostreambuf( std::size_t size ) : count_(0), size_(size), tail_(0), p_(0)
 {
     resize();
 }
 
 void
-streambuf::resize()
+ostreambuf::resize()
 {
     // tail_ = size_;
     std::size_t osize = size_;
     size_ += unit_size; // 64k per page
-    unsigned char * temp = p_;
-    p_ = new unsigned char [ size_ ];
+    boost::int8_t * temp = p_;
+    p_ = new boost::int8_t [ size_ ];
     memcpy( p_, temp, osize );
     delete [] temp;
     /*
@@ -56,7 +56,7 @@ streambuf::resize()
 }
 
 std::streamsize
-streambuf::xsputn( const char * s, std::streamsize num )
+ostreambuf::xsputn( const char * s, std::streamsize num )
 {
     for ( int i = 0; i < num; ++i ) {
         if ( count_ >= size_ )
@@ -64,4 +64,17 @@ streambuf::xsputn( const char * s, std::streamsize num )
         p_[ count_++ - tail_ ] = *s++;
     }
     return num;
+}
+
+////////////////////////
+
+istreambuf::istreambuf( boost::int8_t * p, size_t size ) : ptop_( p ), size_(size)
+{
+    setg( reinterpret_cast< char *>(ptop_), reinterpret_cast<char * >(ptop_) , reinterpret_cast<char *>(ptop_ + size_) );
+}
+
+std::streambuf::int_type
+istreambuf::underflow()
+{
+    return *gptr();
 }

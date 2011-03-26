@@ -45,7 +45,7 @@ portfolio::portfolio()
 {
 }
 
-portfolio::portfolio( const portfolio& t ) : db_(t.db_)
+portfolio::portfolio( const portfolio& t ) : db_( t.db_ )
 {
 }
 
@@ -53,16 +53,18 @@ std::vector< folder >
 portfolio::folders()
 {
     std::vector< folder > folders;
-
+    internal::fs::select_folders( *db_, 1, folders ); // find under '/' directory
     return folders;
-    // return impl_->selectFolders( L"./folder[@folderType='directory']" );
 }
 
 folium
 portfolio::findFolium( const std::wstring& id )
 {
-    return folium();
-    // return impl_->selectFolium( L"//folium[@dataId='" + id + L"']");
+    // although id is the name, it should be unique due to original xml based design
+    folium folium;
+    if ( db_ )
+        internal::fs::select_folium( *db_, id, folium );  
+    return folium;
 }
 
 /////////////
@@ -111,6 +113,7 @@ portfolio::mount( const wchar_t * filename )
 folder
 portfolio::addFolder( const std::wstring& name, bool uniq )
 {
+    (void)uniq; // always unique
     return internal::fs::add_folder( *db_, name );
 }
 

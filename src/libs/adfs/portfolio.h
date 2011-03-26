@@ -27,6 +27,7 @@
 
 #include <boost/smart_ptr.hpp>
 #include <vector>
+#include <adfs/attributes.h>
 
 namespace adfs {
 
@@ -39,7 +40,6 @@ namespace adfs {
         ~portfolio();
         portfolio();
         portfolio( const portfolio& );
-        portfolio( const std::wstring& xml );
 
         std::vector<folder> folders();
         folium findFolium( const std::wstring& id );
@@ -50,9 +50,6 @@ namespace adfs {
 
         folder addFolder( const std::wstring& name, bool uniq = true );
 
-        // std::wstring xml() const;
-        // for debugging convension
-        // bool save( const std::wstring& filename ) const;
     private:
         boost::shared_ptr< adfs::sqlite > db_;
   };

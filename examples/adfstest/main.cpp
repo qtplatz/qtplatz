@@ -40,7 +40,7 @@
 #include <sstream>
 
 #if defined _DEBUG
-//#     pragma comment(lib, "adportabled.lib")  // static
+#     pragma comment(lib, "adportabled.lib")  // static
 //#     pragma comment(lib, "adplugind.lib")    // dll
 #     pragma comment(lib, "adcontrolsd.lib")  // static
 //#     pragma comment(lib, "adutilsd.lib")     // static
@@ -48,7 +48,8 @@
 //#     pragma comment(lib, "qtwrapperd.lib")   // static
 //#     pragma comment(lib, "adutilsd.lib")     // static
 #else
-
+#     pragma comment(lib, "adportable.lib")  // static
+#     pragma comment(lib, "adcontrols.lib")  // static
 #endif
 
 
@@ -85,7 +86,7 @@ bind_data( adfs::stmt& sql, int oid, unsigned long npos, boost::int64_t uptime, 
     sql.bind( 2 ) = npos;
     sql.bind( 3 ) = uptime;
     sql.bind( 4 ) = events;
-    sql.bind( 5 ) = adfs::blob( szBlob, reinterpret_cast< const boost::uint8_t * >(blob) );
+    sql.bind( 5 ) = adfs::blob( szBlob, reinterpret_cast< const boost::int8_t * >(blob) );
 
    if ( sql.step() == adfs::sqlite_done )
        sql.reset();
@@ -392,21 +393,22 @@ filesystem_test()
 
     adfs::portfolio portfolio;
     if ( portfolio.mount( L"fs.adfs" ) ) {
-        portfolio.addFolder( L"/Acuiqre" );
-        portfolio.addFolder( L"/Processed" );
-        portfolio.addFolder( L"/Processed/Chromatograms" );
-
+        adfs::folder acquire = portfolio.addFolder( L"/Acuiqre" );
+        adfs::folder processed = portfolio.addFolder( L"/Processed" );
+        adfs::folder chrmatograms = portfolio.addFolder( L"/Processed/Chromatograms" );
         adfs::folder spectra = portfolio.addFolder( L"/Processed/Spectra" );
 
         adfs::folium spectrum1 = spectra.addFolium( adfs::create_uuid() );
 
-        adfs::streambuf buf;
+        adfs::ostreambuf buf;
         std::ostream ostm( &buf );
 
         adcontrols::MassSpectrum ms;
         ms.resize( 64 * 1024 );
         ms.archive( ostm );
         spectrum1.write( buf );
+        spectrum1.dataClass( L"adcontrols::MassSpectrum" );
+        spectrum1.commit();
 
         ms.resize( 128 * 1024 );
         ms.archive( ostm );

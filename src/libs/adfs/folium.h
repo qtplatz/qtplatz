@@ -29,14 +29,16 @@
 #include <vector>
 #include <boost/any.hpp>
 #include <boost/cstdint.hpp>
+#include "attributes.h"
 
 namespace adfs {
 
     class folder;
     class sqlite;
-    class streambuf;
+    class ostreambuf;
+    class istreambuf;
 
-    class folium {
+    class folium : public internal::attributes {
     public:
         ~folium();
         folium();
@@ -53,9 +55,8 @@ namespace adfs {
         std::vector< folium > attachments();
         folder getParentFolder();
 
-        std::size_t write_attr( std::size_t size, char * pbuf );
-        std::size_t write( const adfs::streambuf&, std::size_t offs = 0 );
-        std::size_t write( std::size_t size, const unsigned char *, std::size_t offs = 0 );
+        std::size_t write( const adfs::ostreambuf&, std::size_t offs = 0 );
+        std::size_t write( std::size_t size, const boost::int8_t *, std::size_t offs = 0 );
 
         typedef std::vector< folium > vector_type;
 
@@ -82,11 +83,11 @@ namespace adfs {
         folium addAttachment( const std::wstring& name );
         inline sqlite& db() const { return *db_; }
         inline const std::wstring& name() const { return name_; }
-        inline const boost::int64_t rowid() const { return rowid_; }
+        inline boost::int64_t rowid() const { return rowid_; }  // rowid on table 'directory'
     private:
         sqlite * db_;
         std::wstring name_;
-        boost::int64_t rowid_;
+        boost::int64_t rowid_;  // rowid on 'directory'
         bool is_attachment_;
     };
 

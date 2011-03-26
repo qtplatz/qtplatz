@@ -27,17 +27,17 @@
 
 #include <vector>
 #include <boost/cstdint.hpp>
+#include "attributes.h"
 
 namespace adfs {
 
     class folium;
     class sqlite;
 
-    class folder { // : public internal::Node {
+    class folder : public internal::attributes {
     public:
         ~folder();
         folder();
-
         folder( const folder& );
         folder( sqlite&, boost::int64_t, const std::wstring& name );
 

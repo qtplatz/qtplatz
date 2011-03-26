@@ -26,25 +26,23 @@
 #pragma once
 
 #include <streambuf>
-#include <boost/smart_ptr.hpp>
 #include <vector>
+#include <boost/cstdint.hpp>
+#include <boost/smart_ptr.hpp>
 
 namespace adfs {
 
-    class streambuf : public std::streambuf {
+    class ostreambuf : public std::streambuf {
         size_t count_;
         size_t size_;
         size_t tail_;
-        unsigned char * p_;
-        std::vector< boost::shared_array<unsigned char> > vec_;
-
+        boost::int8_t * p_;
         void resize();
     public:
-        ~streambuf();
-        streambuf( std::size_t size = 0 );
+        ~ostreambuf();
+        ostreambuf( std::size_t size = 0 );
         inline std::size_t size() const { return size_; }
-        inline const unsigned char * p() const { return p_; }
-        const std::vector< boost::shared_array<unsigned char> >& vec() const { return vec_; }
+        inline const boost::int8_t * p() const { return p_; }
 
         virtual int_type overflow ( int_type c ) {
             if ( count_ >= size_ )
@@ -53,6 +51,15 @@ namespace adfs {
             return c;
         }
         virtual std::streamsize xsputn( const char * s, std::streamsize num );
+    };
+
+    class istreambuf : public std::streambuf {
+        boost::int8_t * ptop_;
+        const size_t size_;
+    public:
+        istreambuf( boost::int8_t *, size_t size );
+    protected:
+        virtual std::streambuf::int_type underflow();
     };
 
 }

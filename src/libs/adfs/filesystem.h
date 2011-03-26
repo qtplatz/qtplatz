@@ -61,7 +61,11 @@ namespace adfs {
             static folium add_folium( const folder&, const std::wstring& name );
             static folium add_attachment( const folium&, const std::wstring& name );
 
-            static bool write( adfs::sqlite& db, boost::int64_t fileid, size_t size, const unsigned char * pbuf );
+            static bool select_folders( adfs::sqlite& db, boost::int64_t parent_id, std::vector<folder>& );
+            static bool select_folium( adfs::sqlite&, const std::wstring& id, folium& );
+            static bool select_folio( adfs::sqlite& db, boost::int64_t parent_id, folio& );
+
+            static bool write( adfs::sqlite& db, boost::int64_t fileid, size_t size, const boost::int8_t * pbuf );
         };
     };
 

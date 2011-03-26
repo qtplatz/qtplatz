@@ -195,7 +195,7 @@
 				>
 			</File>
 			<File
-				RelativePath="constants.cpp"
+				RelativePath=".\attributes.cpp"
 				>
 			</File>
 			<File
@@ -208,10 +208,6 @@
 			</File>
 			<File
 				RelativePath="folium.cpp"
-				>
-			</File>
-			<File
-				RelativePath="node.cpp"
 				>
 			</File>
 			<File
@@ -337,7 +333,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="constants.h"
+				RelativePath=".\attributes.h"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -416,32 +412,6 @@
 			</File>
 			<File
 				RelativePath="folium.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="node.h"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

@@ -33,43 +33,38 @@ folder::~folder()
 {
 }
 
-folder::folder()
+folder::folder() : db_( 0 ), rowid_( 0 )
 {
 }
 
 folder::folder( const folder& t ) : db_( t.db_ )
                                   , rowid_( t.rowid_ )
-                                  , name_( t.name_ )  
+                                  , name_( t.name_ )
+                                  , attributes( t ) 
 {
 }
 
 folder::folder( adfs::sqlite& db, boost::int64_t rowid, const std::wstring& name ) : db_( &db )
                                                                                    , rowid_( rowid )
-                                                                                   , name_( name )  
+                                                                                   , name_( name )
 {
 }
 
 std::vector< folder >
 folder::folders()
 {
-    // xmlNodeList list = Node::selectNodes( L"./folder[@folderType='directory']" );
     std::vector< folder > folders;
-/*
-    for ( size_t i = 0; i < list.size(); ++i )
-        folders.push_back( folder( list[i], impl_ ) );
-*/
+    if ( db_ && rowid_ )
+        internal::fs::select_folders( *db_, rowid_, folders );
     return folders;
 }
 
 adfs::folio
 folder::folio()
 {
-    // xmlNodeList list = Node::selectNodes( L"./folder[@folderType='file']|./folium" );
     adfs::folio folio;
-/*
-    for ( size_t i = 0; i < list.size(); ++i )
-        folio.push_back( Folium( list[i], impl_ ) );
-*/
+    if ( db_ && rowid_ )
+        internal::fs::select_folio( *db_, rowid_, folio );
     return folio;
 }
 
