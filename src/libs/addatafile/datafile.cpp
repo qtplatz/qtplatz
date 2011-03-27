@@ -91,7 +91,7 @@ datafile::open_qtms( const std::wstring& filename, bool /* readonly */ )
     std::istream in( &ibuf );
 
     adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum );
-    pMS->deserialize( in );
+    pMS->restore( in );
     data_ = pMS;     
     //-------------
 

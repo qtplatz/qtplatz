@@ -100,7 +100,9 @@ namespace adcontrols {
        void loadXml( const std::wstring& );
 
        bool archive( std::ostream& ) const;
-       bool deserialize( std::istream& );
+       bool restore( std::istream& );
+       static bool archive( std::ostream&, const MassSpectrum& );
+       static bool restore( std::istream&, MassSpectrum& );
 	 
    private:
        internal::MassSpectrumImpl * pImpl_;

@@ -410,17 +410,46 @@ internal::fs::get_parent_folder( sqlite& db, boost::int64_t rowid )
 }
 
 bool
-internal::fs::write( adfs::sqlite& db, boost::int64_t rowid, size_t size, const boost::int8_t * pbuf )
+internal::fs::write( adfs::sqlite& db, boost::int64_t rowid, size_t size, const char_t * pbuf )
 {
     adfs::stmt sql( db );
 
     // fileid should be UNIQUE.
-    if ( sql.prepare( "UPDATE file SET data = :data WHERE rowid = :rowid" ) ) {
-        sql.bind( 1 ) = blob( size, pbuf );
+    if ( sql.prepare( "UPDATE file SET data = :data WHERE fileid = :rowid" ) ) {
+        sql.bind( 1 ) = blob( size, reinterpret_cast< const boost::int8_t *> (pbuf) );
         sql.bind( 2 ) = rowid;
         return ( sql.step() == adfs::sqlite_done );
     }
     return false;
+}
+
+
+bool
+internal::fs::read( adfs::sqlite& db, boost::int64_t rowid, size_t size, char_t * pbuf )
+{
+    adfs::blob blob;
+    return blob.open( db, "main", "file", "data", rowid, adfs::readonly ) && blob.read( reinterpret_cast<boost::int8_t*>(pbuf), size );
+}
+
+std::size_t
+internal::fs::size( adfs::sqlite& db, boost::int64_t rowid )
+{
+    adfs::blob blob;
+    if ( blob.open( db, "main", "file", "data", rowid, adfs::readonly ) )
+        return blob.size();
+    return 0;
+}
+
+boost::int64_t
+internal::fs::rowid_from_fileid( adfs::sqlite& db, boost::int64_t fileid )
+{
+    adfs::stmt sql( db );
+    if ( sql.prepare( "SELECT rowid FROM file WHERE fileid = :fileid" ) ) {
+        sql.bind( 1 ) = fileid;
+        if ( sql.step() == sqlite_row )
+            return boost::get<boost::int64_t>( sql.column_value( 0 ) );
+    }
+    return 0;
 }
 
 bool

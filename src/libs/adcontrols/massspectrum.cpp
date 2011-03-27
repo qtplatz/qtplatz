@@ -379,11 +379,23 @@ MassSpectrum::archive( std::ostream& os ) const
 }
 
 bool
-MassSpectrum::deserialize( std::istream& is )
+MassSpectrum::restore( std::istream& is )
 {
     boost::archive::binary_iarchive ar( is );
     ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
     return true;
+}
+
+bool
+MassSpectrum::archive( std::ostream& os, const MassSpectrum& ms )
+{
+    return ms.archive( os );
+}
+
+bool
+MassSpectrum::restore( std::istream& is, MassSpectrum& ms )
+{
+    return ms.restore( is );
 }
       
 /////////////////////////////////////////////////////////////////////////////

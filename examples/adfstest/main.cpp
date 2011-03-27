@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include <adfs/adfs.h>
-#include <adfs/streambuf.h>
+#include <adfs/cpio.h>
 #include <adfs/adsqlite.h>
 #include <adcontrols/massspectrum.h>
 
@@ -41,12 +41,7 @@
 
 #if defined _DEBUG
 #     pragma comment(lib, "adportabled.lib")  // static
-//#     pragma comment(lib, "adplugind.lib")    // dll
 #     pragma comment(lib, "adcontrolsd.lib")  // static
-//#     pragma comment(lib, "adutilsd.lib")     // static
-//#     pragma comment(lib, "acewrapperd.lib")  // static
-//#     pragma comment(lib, "qtwrapperd.lib")   // static
-//#     pragma comment(lib, "adutilsd.lib")     // static
 #else
 #     pragma comment(lib, "adportable.lib")  // static
 #     pragma comment(lib, "adcontrols.lib")  // static
@@ -380,6 +375,11 @@ sqlite_access_test()
     of << "db/disk read speed reatio: " << tdiskr / tdbr << std::endl;
 }
 
+template<class T> struct archiver {
+    static bool archive( std::ostream& os, const T& t ) {  return T::archive( os, t );   }
+    static bool restore( std::istream& is, T& t ) { return T::restore( is, t );   }
+};
+
 void
 filesystem_create_test()
 {
@@ -398,20 +398,19 @@ filesystem_create_test()
         adfs::folder spectra = portfolio.addFolder( L"/Processed/Spectra" );
 
         adfs::folium spectrum1 = spectra.addFolium( adfs::create_uuid() );
+        adcontrols::MassSpectrum ms1;
+        ms1.resize( 64 * 1024 );
 
-        adfs::ostreambuf buf;
-        std::ostream ostm( &buf );
+        adfs::cpio<adcontrols::MassSpectrum>::copyin( ms1, spectrum1 );
 
-        adcontrols::MassSpectrum ms;
-        ms.resize( 64 * 1024 );
-        ms.archive( ostm );
-        spectrum1.write( buf );
+        adcontrols::MassSpectrum ms2;
+        adfs::cpio<adcontrols::MassSpectrum>::copyout( ms2, spectrum1 );
+
+        assert( ms2.size() == ms1.size() );
+
+        //spectrum1.write( buf );
         spectrum1.dataClass( L"adcontrols::MassSpectrum" );
         spectrum1.commit();
-
-        ms.resize( 128 * 1024 );
-        ms.archive( ostm );
-        spectrum1.write( buf );
 
         adfs::folium att1 = spectrum1.addAttachment( adfs::create_uuid() );
         adfs::folium att2 = spectrum1.addAttachment( adfs::create_uuid() );
@@ -425,7 +424,7 @@ filesystem_list_attachment( const std::wstring& parent, adfs::folium& folium )
 
     adfs::folio folio = folium.attachments();
     for ( std::vector< adfs::folium >::iterator it = folio.begin(); it != folio.end(); ++it ) {
-        filesystem_list_attachment( parent + L"/<attachment>." + it->name(), *it );
+        filesystem_list_attachment( parent + L"/attachment." + it->name(), *it );
     }
     return false;
 }
@@ -481,15 +480,4 @@ main(int argc, char *argv[])
     // sqlite_access_test();
     filesystem_create_test();
     filesystem_access_test();
-
-/*
-    sql.prepare( "select * from data0" );
-    while ( sql.step() == adfs::sqlite_row ) {
-        std::size_t size = sql.column_count();
-        std::cout << "\ncolumn_count=" << size << std::endl;
-        for ( std::size_t i = 0; i < size; ++i ) {
-            boost::apply_visitor( column_print(), sql.column_value(i) );
-        }
-    };
-*/
 }

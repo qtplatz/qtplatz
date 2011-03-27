@@ -358,7 +358,7 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
         std::istream in( &ibuffer );
 
         adcontrols::MassSpectrum ms;
-        ms.deserialize( in );
+        ms.restore( in );
 
         Dataprocessor& processor = it->getDataprocessor();
 

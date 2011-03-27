@@ -27,7 +27,6 @@
 #include "folder.h"
 #include "portfolioimpl.h"
 #include "filesystem.h"
-#include "streambuf.h"
 
 using namespace adfs;
 
@@ -129,20 +128,26 @@ folium::getParentFolder()
 }
 
 std::size_t
-folium::write( std::size_t size, const boost::int8_t * p, std::size_t offs )
+folium::write( std::size_t size, const char_t * p )
 {
-    (void)offs;
-    if ( internal::fs::write( *db_, rowid_, size, p ) )
+    if ( internal::fs::write( *db_, rowid_, size, p ) ) {
+        commit();
         return size;
-    commit();
+    }
     return 0;
 }
 
 std::size_t
-folium::write( const adfs::ostreambuf& buffer, std::size_t offs )
+folium::read( std::size_t size, char_t * p )
 {
-    (void)offs;
-    if ( internal::fs::write( *db_, rowid_, buffer.size(), buffer.p() ) )
-        return buffer.size();
+    if ( internal::fs::read( *db_, internal::fs::rowid_from_fileid( *db_, rowid_ ), size, p ) )
+        return size;
     return 0;
+}
+
+std::size_t
+folium::size() const
+{
+    size_t size = internal::fs::size( *db_, internal::fs::rowid_from_fileid( *db_, rowid_ ) );
+    return size;
 }

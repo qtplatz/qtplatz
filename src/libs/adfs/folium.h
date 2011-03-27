@@ -55,8 +55,10 @@ namespace adfs {
         std::vector< folium > attachments();
         folder getParentFolder();
 
-        std::size_t write( const adfs::ostreambuf&, std::size_t offs = 0 );
-        std::size_t write( std::size_t size, const boost::int8_t *, std::size_t offs = 0 );
+        std::size_t write( std::size_t size, const char_t * );
+        std::size_t read( std::size_t size, char_t * );
+        std::size_t size() const;
+        bool resize( const std::size_t );
 
         typedef std::vector< folium > vector_type;
 

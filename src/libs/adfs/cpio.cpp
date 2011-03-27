@@ -23,58 +23,58 @@
 **
 **************************************************************************/
 
-#include "streambuf.h"
+#include "cpio.h"
 
 using namespace adfs;
+
 static const size_t unit_size = 1024 * 64;
 
-ostreambuf::~ostreambuf()
-{
-    delete [] p_;
-}
-
-ostreambuf::ostreambuf( std::size_t size ) : count_(0), size_(size), tail_(0), p_(0)
-{
-    resize();
-}
-
-void
-ostreambuf::resize()
-{
-    // tail_ = size_;
-    std::size_t osize = size_;
-    size_ += unit_size; // 64k per page
-    boost::int8_t * temp = p_;
-    p_ = new boost::int8_t [ size_ ];
-    memcpy( p_, temp, osize );
-    delete [] temp;
-    /*
-    boost::shared_array< unsigned char > p( new unsigned char [ unit_size ] );
-    vec_.push_back( p );
-    p_ = vec_.back().get();
-    */
-}
-
 std::streamsize
-ostreambuf::xsputn( const char * s, std::streamsize num )
+detail::cpio::xsputn( const char_t * s, std::streamsize num )
 {
-    for ( int i = 0; i < num; ++i ) {
-        if ( count_ >= size_ )
-            resize();
-        p_[ count_++ - tail_ ] = *s++;
-    }
+    if ( count_ + num >= size_ )
+        resize( num );
+    for ( int i = 0; i < num; ++i )
+        p_[ count_++ ] = *s++;
     return num;
 }
 
-////////////////////////
-
-istreambuf::istreambuf( boost::int8_t * p, size_t size ) : ptop_( p ), size_(size)
+//std::char_traits<char_t>::int_type
+std::basic_streambuf<char_t>::int_type
+detail::cpio::overflow ( int_type c )
 {
-    setg( reinterpret_cast< char *>(ptop_), reinterpret_cast<char * >(ptop_) , reinterpret_cast<char *>(ptop_ + size_) );
+    if ( count_ >= size_ )
+        resize( sizeof( int_type )  );
+    p_[ count_++ ] = c;
+    return c;
 }
 
-std::streambuf::int_type
-istreambuf::underflow()
+bool
+detail::cpio::resize( size_t num )
+{
+    size_ += unit_size * ( 1 + ( num / unit_size ) );
+    char_t * pNew = new char_t[ size_ ];
+    memcpy( pNew, p_.get(), count_ );
+    p_.reset( pNew );
+    return true;
+}
+
+////
+
+detail::cpio::cpio( size_t size, char_t * p ) : size_(size), count_(size)
+{
+    if ( p ) {
+        setg( p, p, p + size );
+    } else {
+        p_.reset( new char_t [ size ] );
+        memset( p_.get(), 0, size * sizeof(char_t) );
+        setg( p_.get(), p_.get(), p_.get() + size );
+    }
+}
+
+std::basic_streambuf<char_t>::int_type
+detail::cpio::underflow()
 {
     return *gptr();
 }
+

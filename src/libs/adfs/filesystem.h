@@ -65,7 +65,10 @@ namespace adfs {
             static bool select_folium( adfs::sqlite&, const std::wstring& id, folium& );
             static bool select_folio( adfs::sqlite& db, boost::int64_t parent_id, folio& );
 
-            static bool write( adfs::sqlite& db, boost::int64_t fileid, size_t size, const boost::int8_t * pbuf );
+            static bool write( adfs::sqlite& db, boost::int64_t fileid, size_t size, const char_t * pbuf );
+            static boost::int64_t rowid_from_fileid( adfs::sqlite&, boost::int64_t fileid );
+            static bool read( adfs::sqlite& db, boost::int64_t rowid, size_t size, char_t * pbuf );
+            static std::size_t size( adfs::sqlite& db, boost::int64_t rowid );
         };
     };
 

@@ -35,6 +35,7 @@ namespace adfs {
 
     class sqlite;
     class blob;
+    typedef char char_t;
 
     namespace internal {
 
@@ -60,10 +61,10 @@ namespace adfs {
             bool fetch();
             bool commit();
 
-        protected:
             static bool archive( std::ostream&, const attributes& ); // binary
-            bool restore( attributes&, std::istream& ); // binary
+            static bool restore( std::istream&, attributes& ); // binary
 
+        protected:
             virtual inline sqlite& db() const = 0;
             virtual inline boost::int64_t rowid() const = 0;
 

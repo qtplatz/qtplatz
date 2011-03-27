@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "attributes.h"
+#include "cpio.h"
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #pragma warning (disable:4996)
@@ -33,7 +34,6 @@
 
 #include <boost/smart_ptr.hpp>
 #include "adsqlite.h"
-#include "streambuf.h"
 
 using namespace adfs;
 using namespace adfs::internal;
@@ -115,7 +115,7 @@ attributes::archive( std::ostream& os, const attributes& impl )
 }
 
 bool
-attributes::restore( attributes& impl, std::istream& is ) // binary
+attributes::restore( std::istream& is, attributes& impl ) // binary
 {
     boost::archive::binary_iarchive ar( is );
     ar >> impl;
@@ -150,9 +150,8 @@ attributes::fetch()
         if ( blob.size() ) {
             boost::scoped_array< boost::int8_t > p( new boost::int8_t [ blob.size() ] );
             if ( blob.read( p.get(), blob.size() ) ) {
-                adfs::istreambuf ibuf( p.get(), blob.size() );
-                std::istream in( &ibuf );
-                if ( restore( *this, in ) )
+                adfs::detail::cpio obuf( blob.size(), reinterpret_cast<adfs::char_t *>( p.get() ) );
+                if ( adfs::cpio<attributes>::copyout( *this, obuf ) )
                     dirty_ = false;
             }
         }
@@ -164,12 +163,11 @@ bool
 attributes::commit()
 {
     if ( dirty_ ) {
-        adfs::ostreambuf obuf;
-        std::ostream out( &obuf );
-        if ( archive( out, *this ) ) {
+        adfs::detail::cpio ibuf;
+        if ( adfs::cpio<attributes>::copyin( *this, ibuf ) ) {
             adfs::stmt sql( db() );
             if ( sql.prepare( "UPDATE directory SET attr = :attr WHERE rowid = :rowid" ) ) {
-                sql.bind( 1 ) = blob( obuf.size(), obuf.p() );
+                sql.bind( 1 ) = blob( ibuf.size(), reinterpret_cast<const boost::int8_t *>( ibuf.get() ) );
                 sql.bind( 2 ) = rowid();
                 if ( sql.step() == adfs::sqlite_done )
                     dirty_ = false;

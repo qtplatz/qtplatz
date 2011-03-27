@@ -363,7 +363,10 @@ blob::reopen( boost::int64_t rowid )
 bool
 blob::read( boost::int8_t * pbuf, std::size_t bufsize, std::size_t offset ) const
 {
-    return sqlite3_blob_read( pBlob_, pbuf, bufsize, offset ) == SQLITE_OK;
+    if ( pBlob_ && ( sqlite3_blob_read( pBlob_, pbuf, bufsize, offset ) == SQLITE_OK ) )
+        return true;
+    // detail::error_log::log( "blob_read", sqlite3_errmsg( sqlite_ ) );
+    return false;
 }
 
 bool
