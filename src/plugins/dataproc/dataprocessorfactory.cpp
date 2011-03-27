@@ -26,7 +26,10 @@
 #include "dataprocessorfactory.h"
 #include "sessionmanager.h"
 #include "dataprocessor.h"
+#include "dataproceditor.h"
 #include "constants.h"
+#include "msprocessingwnd.h"
+
 #include <coreplugin/ifilefactory.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/filemanager.h>
@@ -40,13 +43,22 @@ DataprocessorFactory::~DataprocessorFactory()
 {
 }
 
-DataprocessorFactory::DataprocessorFactory( QObject * owner ) : Core::IFileFactory( owner )
+DataprocessorFactory::DataprocessorFactory( QObject * owner ) : Core::IEditorFactory( owner ) //Core::IFileFactory( owner )
                                                               , kind_( "Dataprocessor" )
 {
     mimeTypes_ 
         << Constants::C_DATA_MC4_MIMETYPE
         << Constants::C_DATA_TEXT_MIMETYPE
         << Constants::C_DATA_NATIVE_MIMETYPE;
+}
+
+// implementation for IEditorFactory
+Core::IEditor *
+DataprocessorFactory::createEditor( QWidget * parent )
+{
+    internal::MSProcessingWnd * widget = new internal::MSProcessingWnd( parent );
+    return new DataprocEditor( widget );
+    // return 0;
 }
 
 // implementation for IFileFactory

@@ -43,15 +43,16 @@ namespace dataproc {
 
         class DataprocPlugin;
 
-        class DataprocessorFactory : public Core::IFileFactory {  // Core::IEditorFactory
+        //class DataprocessorFactory : public Core::IFileFactory {  // Core::IEditorFactory
+        class DataprocessorFactory : public Core::IEditorFactory {
             Q_OBJECT
         public:
             ~DataprocessorFactory();
             explicit DataprocessorFactory( QObject * owner );
 
             // implement IEditorFactory
-            // virtual Core::IEditor *createEditor(QWidget *parent);
-            // <---
+            virtual Core::IEditor *createEditor(QWidget *parent);
+
             // implement IFileFactory
             virtual QStringList mimeTypes() const;
             virtual QString kind() const;
