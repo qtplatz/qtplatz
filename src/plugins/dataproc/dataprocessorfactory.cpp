@@ -28,8 +28,9 @@
 #include "dataprocessor.h"
 #include "dataproceditor.h"
 #include "constants.h"
-#include "msprocessingwnd.h"
 
+#include "msprocessingwnd.h"
+#include <QTabWidget>
 #include <coreplugin/ifilefactory.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/filemanager.h>
@@ -43,8 +44,10 @@ DataprocessorFactory::~DataprocessorFactory()
 {
 }
 
-DataprocessorFactory::DataprocessorFactory( QObject * owner ) : Core::IEditorFactory( owner ) //Core::IFileFactory( owner )
+//DataprocessorFactory::DataprocessorFactory( QObject * owner ) : Core::IFileFactory( owner )
+DataprocessorFactory::DataprocessorFactory( QObject * owner ) : Core::IEditorFactory( owner )
                                                               , kind_( "Dataprocessor" )
+                                                              , editorWidget_(0) 
 {
     mimeTypes_ 
         << Constants::C_DATA_MC4_MIMETYPE
@@ -52,12 +55,20 @@ DataprocessorFactory::DataprocessorFactory( QObject * owner ) : Core::IEditorFac
         << Constants::C_DATA_NATIVE_MIMETYPE;
 }
 
+void
+DataprocessorFactory::setEditor( QWidget * p )
+{
+    editorWidget_ = p;
+}
+
 // implementation for IEditorFactory
 Core::IEditor *
 DataprocessorFactory::createEditor( QWidget * parent )
 {
-    internal::MSProcessingWnd * widget = new internal::MSProcessingWnd( parent );
-    return new DataprocEditor( widget );
+    QTabWidget * pTab = new QTabWidget;
+    editorWidget_ = pTab;
+
+    return new DataprocEditor( editorWidget_, this );
     // return 0;
 }
 

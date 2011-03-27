@@ -24,30 +24,30 @@
 **************************************************************************/
 
 #include "dataproceditor.h"
+#include "dataprocessorfactory.h"
 #include "constants.h"
 #include "msprocessingwnd.h"
 #include "datafileimpl.h"
 #include <coreplugin/uniqueidmanager.h>
 
 using namespace dataproc;
-using namespace dataproc::internal;
 
-DataprocEditor::DataprocEditor( MSProcessingWnd * widget ) : Core::IEditor( widget )
-                                                           , editorWidget_( widget )
-                                                           , file_(0)
+DataprocEditor::DataprocEditor( QWidget * widget
+                               , Core::IEditorFactory * factory ) : Core::IEditor( widget )
+                                                                  , factory_(factory)
+                                                                  , file_(0)
+                                                                  , editorWidget_( widget )
 {
-    file_ = new datafileimpl(0);
     Core::UniqueIDManager * uidm = Core::UniqueIDManager::instance();
     context_ << uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR );
 
-    connect( editorWidget_, SIGNAL( contentModified() ), file_, SLOT( modified() ) );
+    // connect( editorWidget_, SIGNAL( contentModified() ), file_, SLOT( modified() ) );
     connect( editorWidget_, SIGNAL( titleChanged(QString) ), this, SLOT( slotTitleChanged(QString) ) );
     connect( editorWidget_, SIGNAL( contentModified() ), this, SIGNAL( changed() ) );
 }
 
 DataprocEditor::~DataprocEditor()
 {
-    delete file_;
 }
 
 // implement Core::IEditor
@@ -63,7 +63,9 @@ DataprocEditor::createNew( const QString &contents )
 bool
 DataprocEditor::open( const QString &fileName )
 {
-    return true;
+    if ( factory_ && ( file_ = factory_->open( fileName ) ) )
+        return true;
+    return false;
     // return file_->open( fileName );
 }
 

@@ -159,11 +159,13 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
 
     //------------------------------------------------
 
+    DataprocessorFactory * dataprocFactory = 0;
     Core::MimeDatabase* mdb = core->mimeDatabase();
     if ( mdb ) {
         if ( !mdb->addMimeTypes(":/dataproc/dataproc-mimetype.xml", error_message) )
             return false;
-        addAutoReleasedObject( new DataprocessorFactory(this) );
+        dataprocFactory = new DataprocessorFactory( this );
+        addAutoReleasedObject( dataprocFactory );
     }
 
     DataprocMode * mode = new DataprocMode(this);
@@ -268,6 +270,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
         Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
         if ( splitter3 ) {
             QTabWidget * pTab = new QTabWidget;
+
             splitter3->addWidget( pTab );
             wnd.push_back( new MSProcessingWnd );
             pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_stepoverproc_small.png"), "MS Processing" );
@@ -278,6 +281,8 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
             wnd.push_back( new ChromatogramWnd );
             pTab->addTab( wnd.back(),  QIcon(":/acquire/images/watchpoint.png"), "Chromatogram" );
 
+            if ( dataprocFactory )
+                dataprocFactory->setEditor( pTab );
         }
         QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
         toolBarAddingLayout->setMargin(0);

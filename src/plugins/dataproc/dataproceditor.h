@@ -28,18 +28,17 @@
 
 #include <coreplugin/editormanager/ieditor.h>
 
+namespace Core { class IEditorFactory; }
+
 namespace dataproc {
 
-    namespace internal {
-        class MSProcessingWnd;
-    }
     class datafileimpl;
 
     class DataprocEditor : public Core::IEditor {
         Q_OBJECT
     public:
         ~DataprocEditor();
-        DataprocEditor( internal::MSProcessingWnd * );
+        DataprocEditor( QWidget *, Core::IEditorFactory * );
 
         // implement Core::IEditor
         virtual bool createNew( const QString &contents );
@@ -69,8 +68,9 @@ namespace dataproc {
         void slotTitleChanged( const QString& title ) { setDisplayName( title ); }
 
     private:
-        internal::MSProcessingWnd * editorWidget_;
-        datafileimpl * file_;
+        QWidget * editorWidget_;
+        Core::IEditorFactory * factory_;
+        Core::IFile * file_;
         QList<int> context_;
         QString displayName_;
     };

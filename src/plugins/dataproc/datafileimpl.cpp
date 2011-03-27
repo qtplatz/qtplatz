@@ -42,8 +42,9 @@ datafileimpl::datafileimpl( adcontrols::datafile * file
                                               , modified_(false)
                                               , file_(file)
                                               , accessor_(0) 
-                                              , filename_( qtwrapper::qstring::copy( file->filename() ) ) 
 {
+    if ( file_ )
+        filename_ = QString( qtwrapper::qstring::copy( file_->filename() ) );
 }
 
 void
