@@ -5,10 +5,10 @@
   </mime-type>
   <mime-type type="application/qtplatz.dataset">
       <sub-class-of type="application/octet-stream"/>
-      <comment>qtPlatz data file</comment>
-      <glob pattern="*.qtfolio"/>
+      <comment> qtPlatz data file</comment>
+      <glob pattern="*.adfs"/>
   </mime-type>
-  <mime-type type="application/qtplatz.dataset">
+  <mime-type type="application/infitof.data">
     <sub-class-of type="application/octet-stream"/>
     <comment>InfiTOF Spectrum</comment>
     <glob pattern="*.qtms"/>

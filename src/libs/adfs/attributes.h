@@ -64,13 +64,17 @@ namespace adfs {
             static bool archive( std::ostream&, const attributes& ); // binary
             static bool restore( std::istream&, attributes& ); // binary
 
+            typedef std::map< std::wstring, std::wstring > vector_type;
+            vector_type::const_iterator begin() const { return attrib_.begin(); }
+            vector_type::const_iterator end() const { return attrib_.end(); }
+
         protected:
             virtual inline sqlite& db() const = 0;
             virtual inline boost::int64_t rowid() const = 0;
 
         private:
             bool dirty_;
-            std::map< std::wstring, std::wstring > attrib_;
+            vector_type attrib_;
 
             template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
                 if ( version >= 0 )

@@ -68,6 +68,15 @@ folder::folio()
     return folio;
 }
 
+const adfs::folio
+folder::folio() const
+{
+    adfs::folio folio;
+    if ( db_ && rowid_ )
+        internal::fs::select_folio( *db_, rowid_, folio );
+    return folio;
+}
+
 folium
 folder::selectFolium( const std::wstring& )
 {

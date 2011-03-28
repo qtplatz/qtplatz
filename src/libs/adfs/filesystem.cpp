@@ -349,6 +349,39 @@ internal::fs::add_folder( adfs::sqlite& db, const std::wstring& name )
     return adfs::folder();
 }
 
+adfs::folder
+internal::fs::find_folder( adfs::sqlite& db, const std::wstring& name )
+{
+    boost::filesystem::path path( name );
+    std::wstring branch = path.branch_path().c_str();
+    std::wstring leaf = path.leaf().c_str();
+
+    if ( branch.at(0) == L'/' ) { // has to be fullpath
+
+        typedef boost::tokenizer< boost::char_separator<wchar_t>
+                                , std::wstring::const_iterator
+                                , std::wstring> tokenizer_t;
+        boost::char_separator<wchar_t> separator( L"", L"/" );
+        tokenizer_t tokens( branch, separator );
+
+        boost::int64_t parent_id = 0, rowid = 0;
+        adfs::stmt sql( db );
+
+        for ( tokenizer_t::const_iterator it = tokens.begin(); it != tokens.end(); ++it ) {
+
+            rowid = internal::dml::select_directory( sql, type_folder, parent_id, *it );
+            if ( rowid == 0 )
+                return adfs::folder(); // error
+            parent_id = rowid;
+        }
+
+        if ( rowid = internal::dml::select_directory( sql, type_folder, parent_id, leaf ) ) // find it
+            return adfs::folder( db, rowid, leaf );
+
+    }
+    return adfs::folder();
+}
+
 adfs::folium
 internal::dml::insert_folium( adfs::sqlite& db, dir_type type, boost::int64_t parentid, const std::wstring& name )
 {

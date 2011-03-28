@@ -31,6 +31,7 @@ namespace dataproc {
         const char * const C_DATAPROCESSOR = "Dataprocessor";
         const char * const C_DATA_MC4_MIMETYPE = "application/mc4.dataset";
         const char * const C_DATA_TEXT_MIMETYPE = "application/text.dataset";
+        const char * const C_DATA_INFITOF_MIMETYPE = "application/infitof.data";
         const char * const C_DATA_NATIVE_MIMETYPE = "application/qtplatz.dataset";
     }
 

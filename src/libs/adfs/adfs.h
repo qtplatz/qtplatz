@@ -28,6 +28,7 @@
 #include <adfs/portfolio.h>
 #include <adfs/folder.h>
 #include <adfs/folium.h>
+#include <adfs/attributes.h>
 
 namespace adfs {
 

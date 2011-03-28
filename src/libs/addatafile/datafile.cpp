@@ -36,8 +36,10 @@
 #include <boost/any.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#include <boost/lexical_cast.hpp>
 #include <adportable/string.h>
 #include <acewrapper/input_buffer.h>
+#include <adfs/adfs.h>
 
 using namespace addatafile;
 
@@ -64,9 +66,42 @@ bool
 datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
     portfolio::Portfolio portfolio;
-
     portfolio.create_with_fullpath( filename );
-    portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
+
+    struct import {
+
+        static void attributes( portfolio::Folium& dst, const adfs::folium& src ) {
+            for ( adfs::internal::attributes::vector_type::const_iterator it = src.begin(); it != src.end(); ++it )
+                dst.setAttribute( it->first, it->second );
+            dst.setAttribute( L"rowid", boost::lexical_cast<std::wstring>( src.rowid() ) );
+        }
+
+        static void folium( portfolio::Folium& dst, const adfs::folium& src ) {
+            import::attributes( dst, src );
+            adfs::folio attachments = src.attachments();
+            for ( adfs::folio::const_iterator it = attachments.begin(); it != attachments.end(); ++it ) {
+                portfolio::Folium att = dst.addAttachment( it->name() );
+                import::folium( att, *it );
+            }
+        }
+
+        static void folder( portfolio::Folder& parent, const adfs::folder& adfolder ) {
+            const adfs::folio adfolio = adfolder.folio();
+            for ( adfs::folio::const_iterator it = adfolio.begin(); it != adfolio.end(); ++it ) {
+                import::folium( parent.addFolium( it->name() ), *it );
+            }
+        }
+    };
+
+    adfs::portfolio file;
+    if ( file.mount( filename.c_str() ) ) {
+        adfs::folder processed = file.findFolder( L"/Processed/Spectra" );
+        if ( processed ) {
+            import::folder( portfolio.addFolder( L"Spectra" ), processed );
+        }
+    }
+
+    // portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
     //portfolio::Folium folium = spectra.addFolium( L"A Spectrum" );
     //folium.setAttribute( L"dataType", L"MassSpectrum" );
     //folium.setAttribute( L"path", L"/" );

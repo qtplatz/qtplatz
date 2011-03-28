@@ -43,6 +43,7 @@ namespace adfs {
 
         std::vector< folder > folders();
         std::vector< folium > folio();
+        const std::vector< folium > folio() const;
         folium selectFolium( const std::wstring& );
 
         // --- add/modify features
@@ -56,6 +57,8 @@ namespace adfs {
         std::wstring name_;
         boost::int64_t rowid_;
     };
+
+    typedef std::vector< adfs::folder > folders;
 
 }
 

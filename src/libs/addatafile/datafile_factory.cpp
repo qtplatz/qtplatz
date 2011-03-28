@@ -55,7 +55,7 @@ bool
 datafile_factory::access( const std::wstring& filename ) const
 {
     boost::filesystem::wpath path(filename);
-    return path.extension() == L"" || path.extension() == L".qtms" || path.extension() == L".qtfolio";
+    return path.extension() == L"" || path.extension() == L".qtms" || path.extension() == L".adfs";
 }
 
 adcontrols::datafile *

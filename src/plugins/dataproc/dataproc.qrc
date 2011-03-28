@@ -1,7 +1,7 @@
 <RCC>
     <qresource prefix="/dataproc">
-        <file>dataproc-mimetype.xml</file>
         <file>image/apply_small.png</file>
         <file>image/continue_small.png</file>
+        <file>dataproc-mimetype.xml</file>
     </qresource>
 </RCC>

@@ -342,10 +342,10 @@ sqlite_access_test()
 
     for ( int i = 0; i < 5; ++i ) {
 
-        boost::filesystem::remove( "disk.adfs" );
+        boost::filesystem::remove( "disk.pfolio" );
         do {
             adfs::sqlite db;
-            db.open( "disk.adfs" );
+            db.open( "disk.pfolio" );
 
             td_dbw.push_back( double( write_test( db, of, nbrSamples, 1024 * 8, false, nSpectra ) ) );
             td_dbr.push_back( double( read_test( db, of, nbrSamples, nSpectra ) ) );
@@ -358,9 +358,9 @@ sqlite_access_test()
     double tdbr = report( of, td_dbr, "db read :", nSpectra );
 
     for ( int i = 0; i < 5; ++i ) {
-        boost::filesystem::remove( "disk.adfs" );
+        boost::filesystem::remove( "disk.pfolio" );
         adfs::sqlite db;
-        db.open( "disk.adfs" );
+        db.open( "disk.pfolio" );
 
         td_dbw2.push_back( double( write_test( db, of, nbrSamples, 1024 * 8, true, nSpectra ) ) );
         td_dbr.push_back( double( read_test( db, of, nbrSamples, nSpectra ) ) );
@@ -385,13 +385,13 @@ filesystem_create_test()
 {
     try {
         adfs::portfolio portfolio;
-        portfolio.create( L"fs.adfs" );
+        portfolio.create( L"test.pfolio" );
     } catch ( adfs::exception& ex ) {
         std::cout << ex.message << " on " << ex.category << std::endl;
     }
 
     adfs::portfolio portfolio;
-    if ( portfolio.mount( L"fs.adfs" ) ) {
+    if ( portfolio.mount( L"fs.pfolio" ) ) {
         adfs::folder acquire = portfolio.addFolder( L"/Acuiqre" );
         adfs::folder processed = portfolio.addFolder( L"/Processed" );
         adfs::folder chrmatograms = portfolio.addFolder( L"/Processed/Chromatograms" );

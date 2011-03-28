@@ -117,3 +117,9 @@ portfolio::addFolder( const std::wstring& name, bool uniq )
     return internal::fs::add_folder( *db_, name );
 }
 
+folder
+portfolio::findFolder( const std::wstring& name )
+{
+    return internal::fs::find_folder( *db_, name );
+}
+

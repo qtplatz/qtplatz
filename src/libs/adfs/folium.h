@@ -53,13 +53,14 @@ namespace adfs {
         operator boost::any& ();
 
         std::vector< folium > attachments();
+        const std::vector< folium > attachments() const;
         folder getParentFolder();
 
         std::size_t write( std::size_t size, const char_t * );
         std::size_t read( std::size_t size, char_t * );
         std::size_t size() const;
         bool resize( const std::size_t );
-
+/*
         typedef std::vector< folium > vector_type;
 
         template<class T> static vector_type::iterator find_first_of( vector_type::iterator it, vector_type::iterator ite ) {
@@ -80,7 +81,7 @@ namespace adfs {
             }
             return false;
         }
-
+*/
         // --- create/modify
         folium addAttachment( const std::wstring& name );
         inline sqlite& db() const { return *db_; }

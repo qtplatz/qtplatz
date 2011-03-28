@@ -52,6 +52,7 @@ DataprocessorFactory::DataprocessorFactory( QObject * owner ) : Core::IEditorFac
     mimeTypes_ 
         << Constants::C_DATA_MC4_MIMETYPE
         << Constants::C_DATA_TEXT_MIMETYPE
+        << Constants::C_DATA_INFITOF_MIMETYPE
         << Constants::C_DATA_NATIVE_MIMETYPE;
 }
 

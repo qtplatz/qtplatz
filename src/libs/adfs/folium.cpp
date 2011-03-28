@@ -67,36 +67,35 @@ folium::path() const
     return name_; // attribute( L"path" );
 }
 
+/*
 bool
 folium::empty() const
 {
-/*
     if ( impl_ ) {
         boost::any& data = impl_->find( id() );
         return data.empty();
     }
-*/
     return true;
 }
+*/
 
+/*
 void
 folium::operator = ( boost::any& any )
 {
-/*
     if ( impl_ )
         impl_->assign( id(), any );
-*/
 }
-
+*/
+/*
 folium::operator boost::any & ()
 {
-/*
     if ( impl_ )
         return impl_->find( id() );
-*/
     static boost::any temp;
     return temp;
 }
+*/
 
 folio
 folium::attachments()
@@ -113,6 +112,12 @@ folium::attachments()
         attachments.push_back( adfs::folium( *db_, rowid, name ) );
     }
     return attachments;
+}
+
+const folio
+folium::attachments() const
+{
+    return const_cast<adfs::folium&>(*this).attachments();
 }
 
 folium
