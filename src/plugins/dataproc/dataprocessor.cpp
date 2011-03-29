@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "dataprocessor.h"
-#include "datafileimpl.h"
+#include "ifileimpl.h"
 #include "constants.h"
 #include "sessionmanager.h"
 #include "dataprochandler.h"
@@ -80,8 +80,8 @@ Dataprocessor::create(const QString& token )
 {
     adcontrols::datafile * file = adcontrols::datafile::open( qtwrapper::wstring::copy( token ), false );
     if ( file ) {
-        datafileimpl_.reset( new datafileimpl( file ) );
-        file->accept( *datafileimpl_ );
+        ifileimpl_.reset( new IFileImpl( file ) );
+        file->accept( *ifileimpl_ );
         file->accept( *this );
         return true;
     }
@@ -93,9 +93,11 @@ Dataprocessor::open(const QString &fileName )
 {
     adcontrols::datafile * file = adcontrols::datafile::open( qtwrapper::wstring::copy( fileName ), true );
     if ( file ) {
-        datafileimpl_.reset( new datafileimpl( file ) );
-        file->accept( *datafileimpl_ );
+        ifileimpl_.reset( new IFileImpl( file ) );
+        file->accept( *ifileimpl_ );
         file->accept( *this );
+        // trial, TH 
+        ifileimpl_->setModified();
         return true;
     }
     return false;
@@ -104,19 +106,19 @@ Dataprocessor::open(const QString &fileName )
 Core::IFile *
 Dataprocessor::ifile()
 {
-    return static_cast<Core::IFile *>( datafileimpl_.get() );
+    return static_cast<Core::IFile *>( ifileimpl_.get() );
 }
 
 adcontrols::datafile&
 Dataprocessor::file()
 {
-    return datafileimpl_->file();
+    return ifileimpl_->file();
 }
 
 adcontrols::LCMSDataset *
 Dataprocessor::getLCMSDataset()
 {
-    return datafileimpl_->getLCMSDataset();
+    return ifileimpl_->getLCMSDataset();
 }
 
 portfolio::Portfolio

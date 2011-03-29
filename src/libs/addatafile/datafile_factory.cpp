@@ -64,7 +64,7 @@ datafile_factory::open( const std::wstring& filename, bool readonly ) const
     boost::filesystem::wpath path(filename);
     datafile * p = new datafile;
     if ( path.extension() == L".qtms" ) {
-        if ( p->open_qtms( filename, readonly ) )
+        if ( p->open_qtms( filename, true ) )
             return p;
     } else {
         if ( p->open( filename, readonly ) )

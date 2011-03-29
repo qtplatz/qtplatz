@@ -48,7 +48,7 @@ namespace dataproc {
         enum ProcessType;
     }
 
-    class datafileimpl;
+    class IFileImpl;
 
     class Dataprocessor : QObject
                         , public adcontrols::dataSubscriber {
@@ -85,7 +85,7 @@ namespace dataproc {
         // void handle_changeSelection( portfolio::Folium& );
 
     private:
-        boost::scoped_ptr< datafileimpl > datafileimpl_;
+        boost::scoped_ptr< IFileImpl > ifileimpl_;
         boost::scoped_ptr< portfolio::Portfolio > portfolio_;
         std::wstring idActiveFolium_;
     };

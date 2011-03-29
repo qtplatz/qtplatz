@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -49,13 +45,13 @@ namespace portfolio {
 
 namespace dataproc {
 
-    class datafileimpl : public Core::IFile
+    class IFileImpl : public Core::IFile
                        , public adcontrols::dataSubscriber
                        , boost::noncopyable {
         Q_OBJECT
     public:
-        ~datafileimpl();
-        explicit datafileimpl( adcontrols::datafile *, QObject *parent = 0);
+        ~IFileImpl();
+        explicit IFileImpl( adcontrols::datafile *, QObject *parent = 0);
 
         void setModified( bool val = true );
 

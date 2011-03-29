@@ -43,6 +43,7 @@ namespace dataproc {
     signals:
 
     public slots:
+        void grabEditorManager(Core::IMode *mode);
 
     private:
 

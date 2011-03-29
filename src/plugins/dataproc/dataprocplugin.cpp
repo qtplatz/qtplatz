@@ -219,6 +219,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
             toolBarLayout->setSpacing(0);
             Core::ActionManager *am = core->actionManager();
             if ( am ) {
+                Core::ActionContainer * ac = am->actionContainer( Core::Constants::M_FILE );
                 /*
                 toolBarLayout->addWidget(toolButton(am->command(Constants::CONNECT)->action()));
                 toolBarLayout->addWidget(toolButton(am->command(Constants::INITIALRUN)->action()));

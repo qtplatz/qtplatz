@@ -31,6 +31,7 @@
 
 #include "msprocessingwnd.h"
 #include <QTabWidget>
+#include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/ifilefactory.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/filemanager.h>
@@ -90,15 +91,7 @@ DataprocessorFactory::kind() const
 Core::IFile * 
 DataprocessorFactory::open( const QString& filename )
 {
-    boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
-    if ( processor->open( filename ) ) {
-        SessionManager::instance()->addDataprocessor( processor );
-
-        Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
-        if ( filemgr->addFile( processor->ifile() ) )
-            filemgr->addToRecentFiles( filename );
-
-        return processor->ifile();
-    }
-    return 0;
+    Core::EditorManager * em = Core::EditorManager::instance();
+    Core::IEditor * iface = em->openEditor( filename, kind_ );
+    return iface ? iface->file() : 0;
 }

@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "datafileimpl.h"
+#include "ifileimpl.h"
 #include <adcontrols/lcmsdataset.h>
 #include <adcontrols/processeddataset.h>
 #include <adcontrols/massspectrum.h>
@@ -32,12 +32,13 @@
 
 using namespace dataproc;
 
-datafileimpl::~datafileimpl()
+IFileImpl::~IFileImpl()
 {
     adcontrols::datafile::close( file_ );
 }
 
-datafileimpl::datafileimpl( adcontrols::datafile * file
+
+IFileImpl::IFileImpl( adcontrols::datafile * file
                            , QObject *parent) : Core::IFile(parent)
                                               , modified_(false)
                                               , file_(file)
@@ -48,7 +49,7 @@ datafileimpl::datafileimpl( adcontrols::datafile * file
 }
 
 void
-datafileimpl::setModified( bool val )
+IFileImpl::setModified( bool val )
 {
     if ( modified_ == val )
         return;
@@ -57,44 +58,44 @@ datafileimpl::setModified( bool val )
 }
 
 bool
-datafileimpl::isModified() const
+IFileImpl::isModified() const
 {
     return modified_;
 }
 
 QString
-datafileimpl::mimeType() const
+IFileImpl::mimeType() const
 {
     return mimeType_;
 }
 
 bool
-datafileimpl::save( const QString& filename )
+IFileImpl::save( const QString& filename )
 {
     Q_UNUSED(filename);
-    return false;
+    return true;
 }
 
 QString
-datafileimpl::fileName() const
+IFileImpl::fileName() const
 {
     return filename_;
 }
 
 QString
-datafileimpl::defaultPath() const
+IFileImpl::defaultPath() const
 {
     return "C:/Data";
 }
 
 QString
-datafileimpl::suggestedFileName() const
+IFileImpl::suggestedFileName() const
 {
     return QString();
 }
 
 bool
-datafileimpl::isReadOnly() const
+IFileImpl::isReadOnly() const
 {
     if ( file_ && file_->readonly() )
         return true;
@@ -102,20 +103,20 @@ datafileimpl::isReadOnly() const
 }
 
 bool
-datafileimpl::isSaveAsAllowed() const
+IFileImpl::isSaveAsAllowed() const
 {
     return true;
 }
 
 void
-datafileimpl::modified( ReloadBehavior* behavior )
+IFileImpl::modified( ReloadBehavior* behavior )
 {
     Q_UNUSED(behavior);
 }
 
 ///////////////////////////
 void
-datafileimpl::subscribe( adcontrols::LCMSDataset& data )
+IFileImpl::subscribe( adcontrols::LCMSDataset& data )
 {
     accessor_ = &data;
     size_t nfcn = data.getFunctionCount();
@@ -127,20 +128,20 @@ datafileimpl::subscribe( adcontrols::LCMSDataset& data )
 }
 
 void
-datafileimpl::subscribe( adcontrols::ProcessedDataset& processed )
+IFileImpl::subscribe( adcontrols::ProcessedDataset& processed )
 {
     std::wstring xml = processed.xml();
 }
 
 
 adcontrols::LCMSDataset *
-datafileimpl::getLCMSDataset()
+IFileImpl::getLCMSDataset()
 {
     return accessor_;
 }
 
 adcontrols::datafile&
-datafileimpl::file()
+IFileImpl::file()
 {
     return *file_;
 }

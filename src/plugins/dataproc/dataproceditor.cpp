@@ -27,8 +27,12 @@
 #include "dataprocessorfactory.h"
 #include "constants.h"
 #include "msprocessingwnd.h"
-#include "datafileimpl.h"
+#include "ifileimpl.h"
+#include "dataprocessor.h"
+#include "sessionmanager.h"
 #include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/filemanager.h>
+#include <coreplugin/icore.h>
 
 using namespace dataproc;
 
@@ -61,12 +65,20 @@ DataprocEditor::createNew( const QString &contents )
 }
 
 bool
-DataprocEditor::open( const QString &fileName )
+DataprocEditor::open( const QString &filename )
 {
-    if ( factory_ && ( file_ = factory_->open( fileName ) ) )
-        return true;
+    boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
+    if ( processor->open( filename ) ) {
+        SessionManager::instance()->addDataprocessor( processor );
+
+        Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
+        if ( filemgr->addFile( processor->ifile() ) )
+            filemgr->addToRecentFiles( filename );
+
+        file_ = processor->ifile();
+        return file_; // processor->ifile();
+    }
     return false;
-    // return file_->open( fileName );
 }
 
 Core::IFile *

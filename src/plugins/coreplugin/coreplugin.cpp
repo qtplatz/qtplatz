@@ -63,11 +63,11 @@ bool CorePlugin::initialize(const QStringList &arguments, QString *errorMessage)
     Q_UNUSED(arguments)
     const bool success = m_mainWindow->init(errorMessage);
     if (success) {
-#if 0
+//#if 0  -- TH
         EditorManager *editorManager = m_mainWindow->editorManager();
         m_editMode = new EditMode(editorManager);
         addObject(m_editMode);
-#endif
+//#endif
     }
     return success;
 }
