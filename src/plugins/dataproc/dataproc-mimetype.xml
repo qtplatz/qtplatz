@@ -3,27 +3,31 @@
   <mime-type type="application/octet-stream">
         <comment>binary document</comment>
   </mime-type>
-  <mime-type type="application/qtplatz.dataset">
+  <mime-type type="application/adfs">
+    <alias type="text/xml"/>
       <sub-class-of type="application/octet-stream"/>
       <comment> qtPlatz data file</comment>
       <glob pattern="*.adfs"/>
+      <alias type="text/xml"/>
   </mime-type>
-  <mime-type type="application/infitof.data">
+  <mime-type type="application/qtms">
+    <alias type="text/xml"/>
     <sub-class-of type="application/octet-stream"/>
     <comment>InfiTOF Spectrum</comment>
     <glob pattern="*.qtms"/>
+    <alias type="text/xml"/>
   </mime-type>
-  <mime-type type="application/mc4.dataset">
+  <mime-type type="application/data">
         <sub-class-of type="application/octet-stream"/>
         <comment>MC4 data file</comment>
         <glob pattern="*.data"/>
     </mime-type>
-    <mime-type type="application/infitof.dataset">
+    <mime-type type="application/plt">
       <sub-class-of type="application/octet-stream"/>
       <comment>InfiTOF data file</comment>
       <glob pattern="*.plt"/>
     </mime-type>
-  <mime-type type="application/text.dataset">
+  <mime-type type="application/txt">
        <sub-class-of type="application/octet-stream"/>
        <comment>Spectrum file</comment>
        <glob pattern="*.txt"/>
