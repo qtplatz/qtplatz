@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "dataprocplugin.h"
+#include "actionmanager.h"
 #include "constants.h"
 #include "dataprocmode.h"
 #include "dataprocmanager.h"
@@ -51,6 +52,7 @@
 #include <coreplugin/navigationwidget.h>
 #include <coreplugin/rightpane.h>
 #include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/editormanager/ieditor.h>
 
 #include <utils/styledbar.h>
 #include <utils/fancymainwindow.h>
@@ -95,8 +97,9 @@ DataprocPlugin::~DataprocPlugin()
 }
 
 DataprocPlugin::DataprocPlugin() : pSessionManager_( new SessionManager() )
-                                 , actionApply_(0)
-                                 , brokerSession_(0) 
+                                 , actionApply_( 0 )
+                                 , pActionManager_( new ActionManager( this ) ) 
+                                 , brokerSession_( 0 ) 
                                  , currentFeature_( CentroidProcess )
                                  , pBrokerSessionEvent_( 0 )
 {
@@ -130,7 +133,8 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     if ( core ) {
         Core::UniqueIDManager * uidm = core->uniqueIDManager();
         if ( uidm ) {
-            context.append( uidm->uniqueIdentifier( QLatin1String("Dataproc.MainView") ) );
+            context.append( uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR ) );
+            context.append( uidm->uniqueIdentifier( Core::Constants::C_EDITORMANAGER ) );
             context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
         }
     } else
@@ -178,6 +182,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     if ( manager_ )
         manager_->init( config, apppath );
 
+    pActionManager_->initialize_actions( context );
     // initialize_actions();
 
     do {
@@ -219,7 +224,6 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
             toolBarLayout->setSpacing(0);
             Core::ActionManager *am = core->actionManager();
             if ( am ) {
-                Core::ActionContainer * ac = am->actionContainer( Core::Constants::M_FILE );
                 /*
                 toolBarLayout->addWidget(toolButton(am->command(Constants::CONNECT)->action()));
                 toolBarLayout->addWidget(toolButton(am->command(Constants::INITIALRUN)->action()));

@@ -33,6 +33,7 @@
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/filemanager.h>
 #include <coreplugin/icore.h>
+#include <coreplugin/coreconstants.h>
 
 using namespace dataproc;
 
@@ -44,6 +45,7 @@ DataprocEditor::DataprocEditor( QWidget * widget
 {
     Core::UniqueIDManager * uidm = Core::UniqueIDManager::instance();
     context_ << uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR );
+    // context_ << uidm->uniqueIdentifier( Core::Constants::C_EDITORMANAGER );
 
     // connect( editorWidget_, SIGNAL( contentModified() ), file_, SLOT( modified() ) );
     connect( editorWidget_, SIGNAL( titleChanged(QString) ), this, SLOT( slotTitleChanged(QString) ) );
@@ -96,7 +98,9 @@ DataprocEditor::kind() const
 QString
 DataprocEditor::displayName() const
 {
-    return "DataprocEditor";
+    if ( file_ )
+        return file_->fileName();
+    return "DataprocEditor::displayName()";
 }
 
 void

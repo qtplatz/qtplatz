@@ -34,7 +34,8 @@ SOURCES += \
     navigationdelegate.cpp \
     selchanged.cpp \
     dataprochandler.cpp \
-    dataproceditor.cpp
+    dataproceditor.cpp \
+    actionmanager.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -56,7 +57,8 @@ HEADERS += \
     navigationdelegate.h \
     selchanged.h \
     dataprochandler.h \
-    dataproceditor.h
+    dataproceditor.h \
+    actionmanager.h
 
 OTHER_FILES += dataproc.pluginspec \
     dataproc_dependencies.pri \

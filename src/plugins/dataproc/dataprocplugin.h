@@ -47,6 +47,7 @@ namespace dataproc {
     namespace internal {
 
         class DataprocManager;
+        class ActionManager;
 
         class DataprocPlugin : public ExtensionSystem::IPlugin {
 
@@ -81,6 +82,7 @@ namespace dataproc {
             boost::shared_ptr<DataprocManager> manager_;
             boost::shared_ptr< adportable::Configuration > pConfig_;
             boost::scoped_ptr< SessionManager > pSessionManager_;
+            boost::scoped_ptr< ActionManager > pActionManager_;
 
             QBrokerSessionEvent * pBrokerSessionEvent_;
             Broker::Session * brokerSession_;
