@@ -90,9 +90,13 @@ public:
     // helper methods
     static QString fixFileName(const QString &fileName);
 
+    QString getSaveFileName(const QString &title, const QString &pathIn,
+                            const QString &filter = QString(), QString *selectedFilter = 0);
+
     QString getSaveFileNameWithExtension(const QString &title, const QString &path,
                                     const QString &fileFilter, const QString &extension);
-    QString getSaveAsFileName(IFile *file);
+    //QString getSaveAsFileName(IFile *file);
+    QString getSaveAsFileName(IFile *file, const QString& filter = QString(), QString * selectedFilter = 0);
 
     QList<IFile *> saveModifiedFilesSilently(const QList<IFile *> &files);
     QList<IFile *> saveModifiedFiles(const QList<IFile *> &files,
@@ -100,6 +104,11 @@ public:
                                      const QString &message = QString(),
                                      const QString &alwaysSaveMessage = QString::null,
                                      bool *alwaysSave = 0);
+
+    QString fileDialogLastVisitedDirectory() const;
+    void setFileDialogLastVisitedDirectory(const QString &);
+    QString fileDialogInitialDirectory() const;
+
 
 signals:
     void currentFileChanged(const QString &filePath);
@@ -130,6 +139,7 @@ private:
 
     QString m_currentFile;
 
+    QString m_lastVisitedDirectory;
     Internal::MainWindow *m_mainWindow;
     QFileSystemWatcher *m_fileWatcher;
     QList<QPointer<IFile> > m_changedFiles;

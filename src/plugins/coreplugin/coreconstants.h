@@ -222,6 +222,8 @@ const char * const ICON_TOGGLE_SIDEBAR   = ":/core/images/sidebaricon.png";
 const char * const WIZARD_TYPE_FILE      = "QtCreator::WizardType::File";
 const char * const WIZARD_TYPE_CLASS     = "QtCreator::WizardType::Class";
 
+const char * const ALL_FILES_FILTER      = QT_TRANSLATE_NOOP("Core", "All Files (*)");
+
 } // namespace Constants
 } // namespace Core
 

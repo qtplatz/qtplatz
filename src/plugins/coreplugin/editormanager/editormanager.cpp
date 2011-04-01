@@ -73,6 +73,7 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QSplitter>
 #include <QtGui/QStackedLayout>
+#include <algorithm>
 
 Q_DECLARE_METATYPE(Core::IEditor*)
 
@@ -1076,7 +1077,33 @@ QString EditorManager::getOpenWithEditorKind(const QString &fileName,
     return selectedKind;
 }
 
-static QString formatFileFilters(const Core::ICore *core, QString *selectedFilter)
+static QString
+formatFileFilters(const Core::ICore *core, QString *selectedFilter = 0)
+{
+    if (selectedFilter)
+        selectedFilter->clear();
+
+    // Compile list of filter strings, sort, and remove duplicates (different mime types might
+    // generate the same filter).
+    QStringList filters = core->mimeDatabase()->filterStrings();
+    if (filters.empty())
+        return QString();
+    filters.sort();
+    filters.erase(std::unique(filters.begin(), filters.end()), filters.end());
+
+    static const QString allFilesFilter =
+        QCoreApplication::translate("Core", Constants::ALL_FILES_FILTER);
+    if (selectedFilter)
+        *selectedFilter = allFilesFilter;
+
+    // Prepend all files filter (instead of appending to work around a bug in Qt/Mac).
+    filters.prepend(allFilesFilter);
+
+    return filters.join(QLatin1String(";;"));
+}
+
+/*
+static QString formatFileFilters(const Core::ICore *core, QString *selectedFilter = 0)
 {
     QString rc;
     // Compile list of filter strings. If we find a glob  matching all files,
@@ -1112,6 +1139,7 @@ static QString formatFileFilters(const Core::ICore *core, QString *selectedFilte
     }
     return rc;
 }
+*/
 
 IEditor *EditorManager::openEditor(const QString &fileName, const QString &editorKind,
                                    EditorManager::OpenEditorFlags flags)
@@ -1388,7 +1416,15 @@ bool EditorManager::saveFileAs(IEditor *editor)
     if (!editor)
         return false;
 
-    QString absoluteFilePath = m_d->m_core->fileManager()->getSaveAsFileName(editor->file());
+    IFile *file = editor->file();
+    const QString &filter = formatFileFilters(m_d->m_core);
+    QString selectedFilter =
+        m_d->m_core->mimeDatabase()->findByFile( QFileInfo(file->fileName()) ).filterString();
+
+    const QString &absoluteFilePath =
+        m_d->m_core->fileManager()->getSaveAsFileName(file, filter, &selectedFilter);
+
+    // QString absoluteFilePath = m_d->m_core->fileManager()->getSaveAsFileName(editor->file());
     if (absoluteFilePath.isEmpty())
         return false;
     if (absoluteFilePath != editor->file()->fileName()) {

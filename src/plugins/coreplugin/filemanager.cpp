@@ -38,6 +38,7 @@
 #include "mimedatabase.h"
 #include "saveitemsdialog.h"
 #include "vcsmanager.h"
+#include "coreconstants.h"
 
 #include <utils/qtcassert.h>
 
@@ -406,6 +407,63 @@ QList<IFile *> FileManager::saveModifiedFiles(const QList<IFile *> &files,
     return notSaved;
 }
 
+QString
+FileManager::getSaveFileName(const QString &title, const QString &pathIn,
+                                     const QString &filter, QString *selectedFilter)
+{
+    const QString &path = pathIn.isEmpty() ? fileDialogInitialDirectory() : pathIn;
+    QString fileName;
+    bool repeat;
+    do {
+        repeat = false;
+        fileName = QFileDialog::getSaveFileName(
+            m_mainWindow, title, path, filter, selectedFilter, QFileDialog::DontConfirmOverwrite);
+        if (!fileName.isEmpty()) {
+            // If the selected filter is All Files (*) we leave the name exactly as the user
+            // specified. Otherwise the suffix must be one available in the selected filter. If
+            // the name already ends with such suffix nothing needs to be done. But if not, the
+            // first one from the filter is appended.
+            if (selectedFilter && *selectedFilter != QCoreApplication::translate(
+                    "Core", Constants::ALL_FILES_FILTER)) {
+                // Mime database creates filter strings like this: Anything here (*.foo *.bar)
+                QRegExp regExp(".*\\s+\\((.*)\\)$");
+                const int index = regExp.lastIndexIn(*selectedFilter);
+                bool suffixOk = false;
+                if (index != -1) {
+                    const QStringList &suffixes = regExp.cap(1).remove('*').split(' ');
+                    foreach (const QString &suffix, suffixes)
+                        if (fileName.endsWith(suffix)) {
+                            suffixOk = true;
+                            break;
+                        }
+                    if (!suffixOk && !suffixes.isEmpty())
+                        fileName.append(suffixes.at(0));
+                }
+            }
+            if (QFile::exists(fileName)) {
+                if (QMessageBox::warning(m_mainWindow, tr("Overwrite?"),
+                    tr("An item named '%1' already exists at this location. "
+                       "Do you want to overwrite it?").arg(fileName),
+                    QMessageBox::Yes | QMessageBox::No) == QMessageBox::No) {
+                    repeat = true;
+                }
+            }
+        }
+    } while (repeat);
+    if (!fileName.isEmpty())
+        setFileDialogLastVisitedDirectory(QFileInfo(fileName).absolutePath());
+    return fileName;
+}
+/*
+QString
+FileManager::getSaveFileNameWithExtension(const QString &title, const QString &pathIn,
+                                                  const QString &filter)
+{
+    QString selected = filter;
+    return getSaveFileName(title, pathIn, filter, &selected);
+}
+*/
+
 QString FileManager::getSaveFileNameWithExtension(const QString &title, const QString &path,
     const QString &fileFilter, const QString &extension)
 {
@@ -427,12 +485,14 @@ QString FileManager::getSaveFileNameWithExtension(const QString &title, const QS
     return fileName;
 }
 
+
 /*!
     \fn QString FileManager::getSaveAsFileName(IFile *file)
 
     Asks the user for a new file name (Save File As) for /arg file.
 */
-QString FileManager::getSaveAsFileName(IFile *file)
+//QString FileManager::getSaveAsFileName(IFile *file)
+QString FileManager::getSaveAsFileName(IFile *file, const QString &filter, QString *selectedFilter)
 {
     if (!file)
         return QLatin1String("");
@@ -446,6 +506,35 @@ QString FileManager::getSaveAsFileName(IFile *file)
         if (!defaultPath.isEmpty())
             path = defaultPath;
     }
+
+    QString filterString;
+    if (filter.isEmpty()) {
+        if (const MimeType &mt = Core::ICore::instance()->mimeDatabase()->findByFile(fi))
+            filterString = mt.filterString();
+        selectedFilter = &filterString;
+    } else {
+        filterString = filter;
+    }
+
+    absoluteFilePath = getSaveFileName(tr("Save File As"),
+        path + QDir::separator() + fileName,
+        filterString,
+        selectedFilter);
+    return absoluteFilePath;
+/*
+    if (!file)
+        return QLatin1String("");
+    QString absoluteFilePath = file->fileName();
+    const QFileInfo fi(absoluteFilePath);
+    QString fileName = fi.fileName();
+    QString path = fi.absolutePath();
+    if (absoluteFilePath.isEmpty()) {
+        fileName = file->suggestedFileName();
+        const QString defaultPath = file->defaultPath();
+        if (!defaultPath.isEmpty())
+            path = defaultPath;
+    }
+
     QString filterString;
     QString preferredSuffix;
     if (const MimeType mt = Core::ICore::instance()->mimeDatabase()->findByFile(fi)) {
@@ -458,6 +547,7 @@ QString FileManager::getSaveAsFileName(IFile *file)
         filterString,
         preferredSuffix);
     return absoluteFilePath;
+*/
 }
 
 void FileManager::changedFile(const QString &file)
@@ -602,6 +692,50 @@ QList<IFile *> FileManager::managedFiles(const QString &fileName) const
     }
     return result;
 }
+
+/*!
+
+  Returns last visited directory of a file dialog.
+
+  \sa setFileDialogLastVisitedDirectory, fileDialogInitialDirectory
+
+*/
+
+QString
+FileManager::fileDialogLastVisitedDirectory() const
+{
+    return m_lastVisitedDirectory;
+}
+
+/*!
+
+  Set the last visited directory of a file dialog that will be remembered
+  for the next one.
+
+  \sa fileDialogLastVisitedDirectory, fileDialogInitialDirectory
+
+  */
+
+void
+FileManager::setFileDialogLastVisitedDirectory(const QString &directory)
+{
+    m_lastVisitedDirectory = directory;
+}
+
+//void
+//FileManager::notifyFilesChangedInternally(const QStringList &files)
+//{
+//    emit filesChangedInternally(files);
+//}
+QString
+FileManager::fileDialogInitialDirectory() const
+{
+    if (!m_currentFile.isEmpty())
+        return QFileInfo(m_currentFile).absolutePath();
+    return m_lastVisitedDirectory;
+}
+
+
 
 FileChangeBlocker::FileChangeBlocker(const QString &fileName)
     : m_reload(false)

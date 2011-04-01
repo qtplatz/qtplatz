@@ -1,34 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
   <mime-type type="application/octet-stream">
-        <comment>binary document</comment>
+        <comment>unknown</comment>
+    <glob pattern="*.a"/>
+    <glob pattern="*.dll"/>
+    <glob pattern="*.lib"/>
+    <glob pattern="*.o"/>
+    <glob pattern="*.obj"/>
+    <glob pattern="*.out"/>
   </mime-type>
   <mime-type type="application/adfs">
-    <alias type="text/xml"/>
       <sub-class-of type="application/octet-stream"/>
       <comment> qtPlatz data file</comment>
-      <glob pattern="*.adfs"/>
-      <alias type="text/xml"/>
+    <glob pattern="*.adfs"/>
   </mime-type>
   <mime-type type="application/qtms">
-    <alias type="text/xml"/>
     <sub-class-of type="application/octet-stream"/>
     <comment>InfiTOF Spectrum</comment>
     <glob pattern="*.qtms"/>
-    <alias type="text/xml"/>
   </mime-type>
   <mime-type type="application/data">
         <sub-class-of type="application/octet-stream"/>
         <comment>MC4 data file</comment>
         <glob pattern="*.data"/>
     </mime-type>
-    <mime-type type="application/plt">
-      <sub-class-of type="application/octet-stream"/>
-      <comment>InfiTOF data file</comment>
-      <glob pattern="*.plt"/>
-    </mime-type>
   <mime-type type="application/txt">
-       <sub-class-of type="application/octet-stream"/>
+       <sub-class-of type="text/plain"/>
        <comment>Spectrum file</comment>
        <glob pattern="*.txt"/>
     </mime-type>
