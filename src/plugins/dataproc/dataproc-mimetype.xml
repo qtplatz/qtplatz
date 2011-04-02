@@ -1,23 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
   <mime-type type="application/octet-stream">
-        <comment>unknown</comment>
+    <comment>unknown</comment>
     <glob pattern="*.a"/>
-    <glob pattern="*.dll"/>
-    <glob pattern="*.lib"/>
-    <glob pattern="*.o"/>
-    <glob pattern="*.obj"/>
-    <glob pattern="*.out"/>
   </mime-type>
   <mime-type type="application/adfs">
       <sub-class-of type="application/octet-stream"/>
       <comment> qtPlatz data file</comment>
-    <glob pattern="*.adfs"/>
-  </mime-type>
-  <mime-type type="application/qtms">
-    <sub-class-of type="application/octet-stream"/>
-    <comment>InfiTOF Spectrum</comment>
-    <glob pattern="*.qtms"/>
+      <glob pattern="*.adfs"/>
+      <glob pattern="*.qtms"/>
   </mime-type>
   <mime-type type="application/data">
         <sub-class-of type="application/octet-stream"/>
