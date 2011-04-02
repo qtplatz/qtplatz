@@ -80,7 +80,7 @@ Dataprocessor::create(const QString& token )
 {
     adcontrols::datafile * file = adcontrols::datafile::open( qtwrapper::wstring::copy( token ), false );
     if ( file ) {
-        ifileimpl_.reset( new IFileImpl( file ) );
+        ifileimpl_.reset( new IFileImpl( file, *this ) );
         file->accept( *ifileimpl_ );
         file->accept( *this );
         return true;
@@ -93,11 +93,11 @@ Dataprocessor::open(const QString &fileName )
 {
     adcontrols::datafile * file = adcontrols::datafile::open( qtwrapper::wstring::copy( fileName ), true );
     if ( file ) {
-        ifileimpl_.reset( new IFileImpl( file ) );
+        ifileimpl_.reset( new IFileImpl( file, *this ) );
         file->accept( *ifileimpl_ );
         file->accept( *this );
         // trial, TH 
-        ifileimpl_->setModified();
+        // ifileimpl_->setModified();
         return true;
     }
     return false;

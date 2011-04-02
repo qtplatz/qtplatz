@@ -28,6 +28,17 @@
 using namespace adcontrols;
 
 datafile*
+datafile::create( const std::wstring& filename )
+{
+    datafile * file = datafileBroker::create( filename );
+    if ( file ) {
+        file->filename_ = filename;
+        file->readonly_ = false;
+    }
+    return file;
+}
+
+datafile*
 datafile::open( const std::wstring& filename, bool readonly )
 {
     datafile * file = datafileBroker::open( filename, readonly );

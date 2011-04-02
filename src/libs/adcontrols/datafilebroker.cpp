@@ -51,6 +51,7 @@ namespace adcontrols {
         void visit( adcontrols::datafile& );
 
         datafile * open( const std::wstring& filename, bool readonly );
+        datafile * create( const std::wstring& filename );
 
     private:
         std::map< std::wstring, boost::shared_ptr< datafile_factory > > factories_;
@@ -89,6 +90,12 @@ datafile *
 datafileBroker::open( const std::wstring& filename, bool readonly )
 {
     return singleton::datafileBrokerImpl::instance()->open( filename, readonly );
+}
+
+datafile *
+datafileBroker::create( const std::wstring& filename )
+{
+    return singleton::datafileBrokerImpl::instance()->create( filename );
 }
 
 //////////////////////////
@@ -141,6 +148,17 @@ datafileBrokerImpl::open( const std::wstring& name, bool readonly )
         if ( it->second && it->second->access( name ) ) {
             return it->second->open( name, readonly );
         }
+    }
+    return 0;
+}
+
+datafile *
+datafileBrokerImpl::create( const std::wstring& name )
+{
+    std::map< std::wstring, boost::shared_ptr<datafile_factory> >::iterator it;
+    for ( it = factories_.begin(); it != factories_.end(); ++it ) {
+        if ( it->second && it->second->access( name, adcontrols::write_access ) )
+            return it->second->open( name, false );
     }
     return 0;
 }

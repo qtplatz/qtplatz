@@ -48,9 +48,11 @@ namespace adcontrols {
         // ----- virtual methods -----
         virtual void accept( dataSubscriber& ) = 0; // visitable
         virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) = 0;
+        virtual bool update( const std::wstring& /* path */, boost::any& ) { return false; }
         //---------
 
         static bool access( const std::wstring& filename );
+        static datafile * create( const std::wstring& filename );
         static datafile * open( const std::wstring& filename, bool readonly = false );
         static void close( datafile *& );
 

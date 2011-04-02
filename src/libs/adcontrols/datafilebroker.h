@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -47,6 +43,7 @@ namespace adcontrols {
         static bool register_factory( datafile_factory *, const std::wstring& name );
         static datafile_factory* find( const std::wstring& name );
         //
+        static datafile * create( const std::wstring& filename );
         static datafile * open( const std::wstring& filename, bool readonly = false );
     };
     

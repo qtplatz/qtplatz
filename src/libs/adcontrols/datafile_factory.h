@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -35,16 +31,17 @@
 namespace adcontrols {
 
     class datafile;
+    enum access_mode { read_access = 1, write_access = 2 };
     
     class ADCONTROLSSHARED_EXPORT datafile_factory {
     public:
         datafile_factory(void) {}
         virtual ~datafile_factory(void) {}
-        
+
         typedef datafile_factory * (*factory_type)(void);
         
         virtual const std::wstring& name() const = 0;
-        virtual bool access( const std::wstring& filename ) const = 0;
+        virtual bool access( const std::wstring& filename, access_mode = read_access ) const = 0;
         virtual datafile * open( const std::wstring& filename, bool readonly = false ) const = 0;
         virtual void close( datafile * ) = 0;
     private:

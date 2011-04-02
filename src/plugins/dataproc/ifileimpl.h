@@ -45,13 +45,15 @@ namespace portfolio {
 
 namespace dataproc {
 
+    class Dataprocessor;
+
     class IFileImpl : public Core::IFile
                        , public adcontrols::dataSubscriber
                        , boost::noncopyable {
         Q_OBJECT
     public:
         ~IFileImpl();
-        explicit IFileImpl( adcontrols::datafile *, QObject *parent = 0);
+        explicit IFileImpl( adcontrols::datafile *, Dataprocessor&, QObject *parent = 0);
 
         void setModified( bool val = true );
 
@@ -81,7 +83,7 @@ namespace dataproc {
     signals:
 
     public slots:
-            void modified() { setModified( true ); }
+        void modified() { setModified( true ); }
 
     private:
         const QString mimeType_;
@@ -90,6 +92,7 @@ namespace dataproc {
         adcontrols::datafile* file_;
         adcontrols::LCMSDataset* accessor_;
         std::vector< adcontrols::Chromatogram > ticVec_;
+        Dataprocessor& dprocessor_;
     };
 
 } // namespace dataproc

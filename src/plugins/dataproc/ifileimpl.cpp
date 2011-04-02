@@ -24,11 +24,15 @@
 **************************************************************************/
 
 #include "ifileimpl.h"
+#include "dataprocessor.h"
 #include <adcontrols/lcmsdataset.h>
 #include <adcontrols/processeddataset.h>
 #include <adcontrols/massspectrum.h>
 #include <qtwrapper/qstring.h>
 #include <portfolio/portfolio.h>
+#include <portfolio/folium.h>
+#include <portfolio/folder.h>
+#include <boost/filesystem/path.hpp>
 
 using namespace dataproc;
 
@@ -39,10 +43,12 @@ IFileImpl::~IFileImpl()
 
 
 IFileImpl::IFileImpl( adcontrols::datafile * file
-                           , QObject *parent) : Core::IFile(parent)
-                                              , modified_(false)
-                                              , file_(file)
-                                              , accessor_(0) 
+                     , Dataprocessor& dprocessor
+                     , QObject *parent) : Core::IFile(parent)
+                                        , modified_(false)
+                                        , file_(file)
+                                        , dprocessor_( dprocessor ) 
+                                        , accessor_(0)
 {
     if ( file_ )
         filename_ = QString( qtwrapper::qstring::copy( file_->filename() ) );
@@ -72,7 +78,22 @@ IFileImpl::mimeType() const
 bool
 IFileImpl::save( const QString& filename )
 {
-    Q_UNUSED(filename);
+    portfolio::Portfolio portfolio = dprocessor_.getPortfolio();
+
+    boost::filesystem::path p( qtwrapper::wstring::copy( filename ) );
+    p.replace_extension( L".adfs" );
+    if ( boost::filesystem::path( qtwrapper::wstring::copy( filename_ ) ) == p ) { // same file?
+        std::cout << "save to same file" << std::endl;
+    } else {
+/*
+        std::vector< portfolio::Folder > folders = portfolio.folders();
+        for ( std::vector< portfolio::Folder >::iterator it = folders.begin(); it != folders.end(); ++it ) {
+         
+            // PortfolioHelper::appendFolder( *item, *it );
+        }
+        // portfolio::portfolio.folders();
+*/
+    }
     return true;
 }
 
@@ -145,3 +166,4 @@ IFileImpl::file()
 {
     return *file_;
 }
+

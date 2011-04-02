@@ -52,10 +52,10 @@ datafile_factory::name() const
 }
 
 bool
-datafile_factory::access( const std::wstring& filename ) const
+datafile_factory::access( const std::wstring& filename, adcontrols::access_mode mode ) const
 {
     boost::filesystem::wpath path(filename);
-    return path.extension() == L".txt";
+    return path.extension() == L".txt" && mode == adcontrols::read_access;
 }
 
 adcontrols::datafile *

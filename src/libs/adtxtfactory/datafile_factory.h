@@ -35,7 +35,7 @@ namespace adtxtfactory {
         datafile_factory(void);
 
         const std::wstring& name() const;
-        bool access( const std::wstring& filename ) const;
+        bool access( const std::wstring& filename, adcontrols::access_mode ) const;
         adcontrols::datafile * open( const std::wstring& filename, bool readonly ) const;
         void close( adcontrols::datafile * );
     };
