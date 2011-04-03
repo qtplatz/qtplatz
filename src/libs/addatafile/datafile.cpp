@@ -37,8 +37,8 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/filesystem/path.hpp>
 #include <adportable/string.h>
+#include <adportable/posix_path.h>
 #include <acewrapper/input_buffer.h>
 #include <adfs/adfs.h>
 #include <algorithm>
@@ -209,7 +209,7 @@ namespace addatafile { namespace detail {
 bool
 datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& portfolio, const adcontrols::datafile& source )
 {
-    boost::filesystem::path name( path );
+    adportable::path name( path );
     const std::vector< portfolio::Folder > folders = portfolio.folders();
 
     std::for_each( folders.begin(), folders.end(), detail::saveFolder( name, source ) );
@@ -223,9 +223,7 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 bool
 detail::saveFolder::operator () ( const portfolio::Folder& folder )
 {
-    boost::filesystem::wpath p = path / folder.name();
-    std::wstring nname = p.normalize().wstring();
-    std::wcout << L"saveFolder: " << ( path / folder.name() ).wstring() << std::endl;
+    std::wcout << L"saveFolder: " << adportable::path::posix( path / folder.name() ) << std::endl;
 
     const std::vector< portfolio::Folder > folders = folder.folders();
     std::for_each( folders.begin(), folders.end(), detail::saveFolder( path / folder.name(), source ) );

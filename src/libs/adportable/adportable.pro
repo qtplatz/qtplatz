@@ -23,7 +23,8 @@ SOURCES += adportable.cpp \
     string.cpp \
     spectrum_processor.cpp \
     cache.cpp \
-    polfit.cpp
+    polfit.cpp \
+    posix_path.cpp
 
 HEADERS += adportable.h \
     binary_search.hpp \
@@ -38,4 +39,5 @@ HEADERS += adportable.h \
     spectrum_processor.h \
     cache.h \
     float.hpp \
-    polfit.h
+    polfit.h \
+    posix_path.h

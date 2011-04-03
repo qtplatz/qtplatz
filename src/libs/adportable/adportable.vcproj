@@ -220,6 +220,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\posix_path.cpp"
+				>
+			</File>
+			<File
 				RelativePath="protocollifecycle.cpp"
 				>
 			</File>
@@ -387,6 +391,10 @@
 			</File>
 			<File
 				RelativePath=".\polfit.h"
+				>
+			</File>
+			<File
+				RelativePath=".\posix_path.h"
 				>
 			</File>
 			<File
