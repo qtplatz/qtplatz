@@ -46,6 +46,7 @@ namespace portfolio {
         Portfolio( const std::wstring& xml );
 
         std::vector<Folder> folders();
+        const std::vector<Folder> folders() const;
         Folium findFolium( const std::wstring& id );
 
         // create new from scratch

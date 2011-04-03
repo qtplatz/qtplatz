@@ -47,7 +47,7 @@ datafile::datafile()
 }
 
 void
-datafile::accept( adcontrols::dataSubscriber& sub )
+datafile::accept( adcontrols::dataSubscriber& sub ) const
 {
     // subscribe acquired dataset <LCMSDataset>
     sub.subscribe( *this );
@@ -82,7 +82,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 }
 
 boost::any
-datafile::fetch( const std::wstring& path, const std::wstring& dataType )
+datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
     (void)path;
     (void)dataType;

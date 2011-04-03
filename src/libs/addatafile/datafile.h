@@ -36,6 +36,8 @@ namespace adcontrols {
     class ProcessedDataset;
 }
 
+namespace portfolio { class Portfolio; }
+
 namespace addatafile {
 
     class datafile : public adcontrols::datafile
@@ -48,8 +50,12 @@ namespace addatafile {
         bool open_qtms( const std::wstring& filename, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
-        virtual void accept( adcontrols::dataSubscriber& );
-        virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType );
+        virtual void accept( adcontrols::dataSubscriber& ) const;
+        virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const;
+
+        // create, modify and delete methods
+        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio&, const adcontrols::datafile& );
+        virtual bool update( const std::wstring&, boost::any& ) { return false; }
 
         virtual adcontrols::datafile::factory_type factory() { return 0; }
 

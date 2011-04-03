@@ -84,15 +84,10 @@ IFileImpl::save( const QString& filename )
     p.replace_extension( L".adfs" );
     if ( boost::filesystem::path( qtwrapper::wstring::copy( filename_ ) ) == p ) { // same file?
         std::cout << "save to same file" << std::endl;
+        return this->file().saveContents( L"/Processed", portfolio, this->file() );
     } else {
-/*
-        std::vector< portfolio::Folder > folders = portfolio.folders();
-        for ( std::vector< portfolio::Folder >::iterator it = folders.begin(); it != folders.end(); ++it ) {
-         
-            // PortfolioHelper::appendFolder( *item, *it );
-        }
-        // portfolio::portfolio.folders();
-*/
+        boost::scoped_ptr< adcontrols::datafile > file( adcontrols::datafile::open( p.c_str(), false ) );
+        file->saveContents( L"/Processed", portfolio, this->file() );
     }
     return true;
 }
@@ -136,8 +131,8 @@ IFileImpl::modified( ReloadBehavior* behavior )
 }
 
 ///////////////////////////
-void
-IFileImpl::subscribe( adcontrols::LCMSDataset& data )
+bool
+IFileImpl::subscribe( const adcontrols::LCMSDataset& data )
 {
     accessor_ = &data;
     size_t nfcn = data.getFunctionCount();
@@ -146,16 +141,18 @@ IFileImpl::subscribe( adcontrols::LCMSDataset& data )
         if ( data.getTIC( i, c ) )
             ticVec_.push_back( c );
     }
+    return true;
 }
 
-void
-IFileImpl::subscribe( adcontrols::ProcessedDataset& processed )
+bool
+IFileImpl::subscribe( const adcontrols::ProcessedDataset& processed )
 {
     std::wstring xml = processed.xml();
+    return true;
 }
 
 
-adcontrols::LCMSDataset *
+const adcontrols::LCMSDataset *
 IFileImpl::getLCMSDataset()
 {
     return accessor_;

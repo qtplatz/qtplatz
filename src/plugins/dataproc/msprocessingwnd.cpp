@@ -149,7 +149,7 @@ MSProcessingWnd::draw( adutils::ChromatogramPtr& ptr )
 void
 MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 {
-    adcontrols::LCMSDataset * dset = processor->getLCMSDataset();
+    const adcontrols::LCMSDataset * dset = processor->getLCMSDataset();
     if ( dset ) {
         adcontrols::Chromatogram c;
         if ( dset->getTIC( 0, c ) ) {

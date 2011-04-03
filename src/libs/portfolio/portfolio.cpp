@@ -59,6 +59,12 @@ Portfolio::folders()
     return impl_->selectFolders( L"./folder[@folderType='directory']" );
 }
 
+const std::vector< Folder >
+Portfolio::folders() const
+{
+    return impl_->selectFolders( L"./folder[@folderType='directory']" );
+}
+
 Folium
 Portfolio::findFolium( const std::wstring& id )
 {

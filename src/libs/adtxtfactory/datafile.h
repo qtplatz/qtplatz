@@ -46,8 +46,8 @@ namespace adtxtfactory {
         bool open( const std::wstring& filename, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
-        virtual void accept( adcontrols::dataSubscriber& );
-        virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType );
+        virtual void accept( adcontrols::dataSubscriber& ) const;
+        virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const;
 
         virtual adcontrols::datafile::factory_type factory() { return 0; }
 

@@ -37,9 +37,12 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/filesystem/path.hpp>
 #include <adportable/string.h>
 #include <acewrapper/input_buffer.h>
 #include <adfs/adfs.h>
+#include <algorithm>
+#include <iostream>
 
 using namespace addatafile;
 
@@ -52,7 +55,7 @@ datafile::datafile()
 }
 
 void
-datafile::accept( adcontrols::dataSubscriber& sub )
+datafile::accept( adcontrols::dataSubscriber& sub ) const
 {
     // subscribe acquired dataset <LCMSDataset>
     sub.subscribe( *this );
@@ -142,7 +145,7 @@ datafile::open_qtms( const std::wstring& filename, bool /* readonly */ )
 }
 
 boost::any
-datafile::fetch( const std::wstring& path, const std::wstring& dataType )
+datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
     (void)path;
     (void)dataType;
@@ -178,3 +181,55 @@ datafile::getFunctionCount() const
 {
     return 1;
 }
+
+/////////////////
+namespace addatafile { namespace detail {
+
+    class datafile {
+    public:
+        static bool saveFolder( const boost::filesystem::path&, const portfolio::Folder&, const adcontrols::datafile& );
+    };
+
+    struct saveFolium {
+        bool operator () ( const portfolio::Folder& folder ) {
+            return true;
+        }
+    };
+
+    struct saveFolder {
+        const boost::filesystem::path& path;
+        const adcontrols::datafile& source;
+        saveFolder( const boost::filesystem::path& p, const adcontrols::datafile& f ) : path(p), source(f) {}
+        bool operator () ( const portfolio::Folder& folder );
+    };
+
+}
+}
+
+bool
+datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& portfolio, const adcontrols::datafile& source )
+{
+    boost::filesystem::path name( path );
+    const std::vector< portfolio::Folder > folders = portfolio.folders();
+
+    std::for_each( folders.begin(), folders.end(), detail::saveFolder( name, source ) );
+/*
+    for ( std::vector< portfolio::Folder >::const_iterator it = folders.begin(); it != folders.end(); ++it )
+        detail::datafile::saveFolder( name / it->name(), *it, source );
+*/
+    return true;
+}
+
+bool
+detail::saveFolder::operator () ( const portfolio::Folder& folder )
+{
+    boost::filesystem::wpath p = path / folder.name();
+    std::wstring nname = p.normalize().wstring();
+    std::wcout << L"saveFolder: " << ( path / folder.name() ).wstring() << std::endl;
+
+    const std::vector< portfolio::Folder > folders = folder.folders();
+    std::for_each( folders.begin(), folders.end(), detail::saveFolder( path / folder.name(), source ) );
+
+    return true;
+}
+

@@ -31,6 +31,8 @@
 #include <string>
 #include <boost/any.hpp>
 
+namespace portfolio { class Portfolio; }
+
 namespace adcontrols {
     
     class dataSubscriber;
@@ -46,9 +48,14 @@ namespace adcontrols {
         const std::wstring& filename() const;
         bool readonly() const;
         // ----- virtual methods -----
-        virtual void accept( dataSubscriber& ) = 0; // visitable
-        virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) = 0;
-        virtual bool update( const std::wstring& /* path */, boost::any& ) { return false; }
+        // 'path' parameter may accept either /Acquire and /Processed with following sub-dir structures
+        // data read operations
+        virtual void accept( dataSubscriber& ) const = 0; // visitable
+        virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const = 0;
+
+        // data update, modify operations
+        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio&, const datafile& ) { return false; }
+        virtual bool update( const std::wstring&, boost::any& ) { return false; }
         //---------
 
         static bool access( const std::wstring& filename );

@@ -53,6 +53,13 @@ Folder::folders()
     return folders;
 }
 
+const std::vector< Folder >
+Folder::folders() const
+{
+    return const_cast< Folder * >(this)->folders();
+}
+
+
 Folio
 Folder::folio()
 {
@@ -61,6 +68,12 @@ Folder::folio()
     for ( size_t i = 0; i < list.size(); ++i )
         folio.push_back( Folium( list[i], impl_ ) );
     return folio;
+}
+
+const Folio
+Folder::folio() const
+{
+    return const_cast< Folder * >(this)->folio();
 }
 
 Folium

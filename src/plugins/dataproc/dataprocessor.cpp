@@ -115,7 +115,7 @@ Dataprocessor::file()
     return ifileimpl_->file();
 }
 
-adcontrols::LCMSDataset *
+const adcontrols::LCMSDataset *
 Dataprocessor::getLCMSDataset()
 {
     return ifileimpl_->getLCMSDataset();
@@ -286,10 +286,11 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
 
 
 ///////////////////////////
-void
-Dataprocessor::subscribe( adcontrols::LCMSDataset& data )
+bool
+Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
 {
    (void)data;
+   return true;
 /* 
    size_t nfcn = data.getFunctionCount();
     for ( size_t i = 0; i < nfcn; ++i ) {
@@ -300,14 +301,15 @@ Dataprocessor::subscribe( adcontrols::LCMSDataset& data )
 */
 }
 
-void
-Dataprocessor::subscribe( adcontrols::ProcessedDataset& processed )
+bool
+Dataprocessor::subscribe( const adcontrols::ProcessedDataset& processed )
 {
     std::wstring xml = processed.xml();
     portfolio_.reset( new portfolio::Portfolio( xml ) );
 #if defined _DEBUG
     portfolio_->save( L"portfolio.xml" );
 #endif
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////

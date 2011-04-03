@@ -73,11 +73,11 @@ namespace dataproc {
         virtual void checkPermissions() {}
 
         // implement adcontrols::dataSubscriber
-        virtual void subscribe( adcontrols::LCMSDataset& );
-        virtual void subscribe( adcontrols::ProcessedDataset& );
+        virtual bool subscribe( const adcontrols::LCMSDataset& );
+        virtual bool subscribe( const adcontrols::ProcessedDataset& );
         // <------------------------
 
-        adcontrols::LCMSDataset* getLCMSDataset();
+        const adcontrols::LCMSDataset* getLCMSDataset();
         adcontrols::datafile& file();
 
     signals:
@@ -90,7 +90,7 @@ namespace dataproc {
         QString filename_;
         bool modified_;
         adcontrols::datafile* file_;
-        adcontrols::LCMSDataset* accessor_;
+        const adcontrols::LCMSDataset* accessor_;
         std::vector< adcontrols::Chromatogram > ticVec_;
         Dataprocessor& dprocessor_;
     };

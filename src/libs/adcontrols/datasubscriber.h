@@ -44,8 +44,8 @@ namespace adcontrols {
         virtual ~dataSubscriber();
         dataSubscriber();
 
-        virtual void subscribe( LCMSDataset& ) { }
-        virtual void subscribe( ProcessedDataset& ) { }
+        virtual bool subscribe( const LCMSDataset& ) { return false; }
+        virtual bool subscribe( const ProcessedDataset& ) { return false; }
 
     };
 

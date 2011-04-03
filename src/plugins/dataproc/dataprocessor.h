@@ -63,7 +63,7 @@ namespace dataproc {
 
         QString filename() const;
         adcontrols::datafile& file();
-        adcontrols::LCMSDataset* getLCMSDataset();
+        const adcontrols::LCMSDataset* getLCMSDataset();
         portfolio::Portfolio getPortfolio();
         void setCurrentSelection( portfolio::Folium& );
         void applyProcess( const adcontrols::ProcessMethod&, internal::ProcessType );
@@ -71,8 +71,8 @@ namespace dataproc {
         void addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
 
         // implement adcontrols::dataSubscriber
-        virtual void subscribe( adcontrols::LCMSDataset& );
-        virtual void subscribe( adcontrols::ProcessedDataset& );
+        virtual bool subscribe( const adcontrols::LCMSDataset& );
+        virtual bool subscribe( const adcontrols::ProcessedDataset& );
         // <------------------------
     private:
         void addCalibration( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
