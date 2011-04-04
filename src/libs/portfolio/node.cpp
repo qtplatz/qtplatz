@@ -102,6 +102,19 @@ Node::attribute( const std::wstring& key ) const
     return std::wstring();
 }
 
+std::vector< std::pair< std::wstring, std::wstring> >
+Node::attributes() const
+{
+    std::vector< std::pair< std::wstring, std::wstring> > attrs;
+    xmlNodeList list = node_.selectNodes( L"attribute::*" );
+    for ( int i = 0; i < list.size(); ++i ) {
+        std::wstring key = list[i].nodeName();
+        std::wstring value = list[i].textValue();
+        attrs.push_back( std::make_pair< std::wstring, std::wstring >( key, value ) );
+    }
+    return attrs;
+}
+
 void
 Node::setAttribute( const std::wstring& key, const std::wstring& value )
 {
@@ -152,3 +165,4 @@ Node::addAttachment( const std::wstring& name )
     child.setAttribute( L"name", name );
     return child;
 }
+

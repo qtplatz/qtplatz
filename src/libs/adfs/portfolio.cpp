@@ -103,9 +103,10 @@ portfolio::mount( const wchar_t * filename )
     boost::filesystem::path filepath( filename );
 
     db_.reset( new sqlite() );
-    if ( db_->open( filepath.c_str() ) )
-        return internal::fs::mount( *db_ );
-
+    if ( db_->open( filepath.c_str() ) ) {
+        if ( internal::fs::mount( *db_ ) )
+            return true;
+    }
     db_.reset();
     return false;
 }
@@ -118,7 +119,7 @@ portfolio::addFolder( const std::wstring& name, bool uniq )
 }
 
 folder
-portfolio::findFolder( const std::wstring& name )
+portfolio::findFolder( const std::wstring& name ) const
 {
     return internal::fs::find_folder( *db_, name );
 }

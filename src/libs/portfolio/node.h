@@ -65,6 +65,8 @@ namespace portfolio {
             std::wstring attribute( const std::wstring& ) const;
             void setAttribute( const std::wstring& key, const std::wstring& value );
 
+            std::vector< std::pair<std::wstring, std::wstring> > attributes() const;
+
         protected:
             xmlNodeList selectNodes( const std::wstring& query );
             xmlElement selectSingleNode( const std::wstring& query );

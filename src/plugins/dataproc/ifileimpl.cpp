@@ -82,12 +82,16 @@ IFileImpl::save( const QString& filename )
 
     boost::filesystem::path p( qtwrapper::wstring::copy( filename ) );
     p.replace_extension( L".adfs" );
+
     if ( boost::filesystem::path( qtwrapper::wstring::copy( filename_ ) ) == p ) { // same file?
-        std::cout << "save to same file" << std::endl;
+        // save
         return this->file().saveContents( L"/Processed", portfolio, this->file() );
+
     } else {
-        boost::scoped_ptr< adcontrols::datafile > file( adcontrols::datafile::open( p.c_str(), false ) );
-        file->saveContents( L"/Processed", portfolio, this->file() );
+        // saveFileAs -- has to create new file
+        boost::scoped_ptr< adcontrols::datafile > file( adcontrols::datafile::create( p.c_str() ) );
+        return file && file->saveContents( L"/Processed", portfolio, this->file() );
+
     }
     return true;
 }

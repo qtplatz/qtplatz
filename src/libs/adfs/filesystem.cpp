@@ -100,7 +100,7 @@ bool
 filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
 {
     boost::filesystem::path filepath( filename );
-
+/*
     if ( boost::filesystem::exists( filepath ) ) {
         boost::system::error_code ec;
         if ( ! boost::filesystem::remove( filepath, ec ) ) {
@@ -108,7 +108,7 @@ filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
             return false;
         }
     }
-
+*/
     if ( db_ = new sqlite() ) {
         if ( db_->open( filepath.c_str() ) ) {
             adfs::stmt sql( *db_ );

@@ -29,6 +29,7 @@
 #include <adcontrols/datafile.h>
 #include <adcontrols/lcmsdataset.h>
 #include <boost/smart_ptr.hpp>
+#include <adfs/adfs.h>
 
 namespace adcontrols {
     class Chromatogram;
@@ -67,6 +68,9 @@ namespace addatafile {
         virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const;
 
     private:
+        bool mounted_;
+        std::wstring filename_;
+        adfs::portfolio dbf_;
         boost::scoped_ptr< adcontrols::ProcessedDataset > processedDataset_;
         boost::any data_;
     };

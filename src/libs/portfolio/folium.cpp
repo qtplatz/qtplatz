@@ -85,6 +85,12 @@ Folium::attachments()
     return attachments;
 }
 
+const Folio
+Folium::attachments() const
+{
+    return const_cast< Folium *>(this)->attachments();
+}
+
 Folium
 Folium::addAttachment( const std::wstring& name )
 {

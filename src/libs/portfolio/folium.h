@@ -54,6 +54,7 @@ namespace portfolio {
         operator boost::any& ();
 
         std::vector< Folium > attachments();
+        const std::vector< Folium > attachments() const;
         Folder getParentFolder();
 
         typedef std::vector< Folium > vector_type;
