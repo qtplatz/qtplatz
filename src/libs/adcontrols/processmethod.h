@@ -73,6 +73,8 @@ namespace adcontrols {
 //# pragma warning(default:4251)
     };
 
+    typedef boost::shared_ptr<ProcessMethod> ProcessMethodPtr;
+
 }
 
 

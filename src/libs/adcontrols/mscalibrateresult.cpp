@@ -28,6 +28,7 @@
 #include "msreferences.h"
 #include "mscalibration.h"
 #include "msassignedmass.h"
+#include "msreference.h"
 
 using namespace adcontrols;
 

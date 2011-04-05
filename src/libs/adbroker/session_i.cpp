@@ -181,7 +181,7 @@ session_i::folium( const CORBA::WChar * token, const CORBA::WChar * fileId )
         portfolio::Folium folium = pTask->findFolium( token, fileId );
         if ( portfolio::Folium::get< adcontrols::MassSpectrumPtr >( ptr, folium ) ) {
             std::ostream ostm( &buffer );
-            ptr->archive( ostm );
+            adcontrols::MassSpectrum::archive( ostm, *ptr );
         }
     }
     return buffer.var_._retn();

@@ -17,6 +17,10 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+# pragma warning( disable: 4996 )
+# include <boost/archive/binary_oarchive.hpp>
+# include <boost/archive/binary_iarchive.hpp>
+# pragma warning( default: 4996 )
 
 #include <sstream>
 #include <vector>
@@ -398,6 +402,21 @@ Chromatogram::serialize( boost::archive::xml_wiarchive& ar, const unsigned int v
     }
 }
 
+template<> void
+Chromatogram::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
+{
+    if ( version >= 0 )
+        ar << boost::serialization::make_nvp( "Chromatogram", pImpl_ );
+}
+
+template<> void
+Chromatogram::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
+{
+    if ( version >= 0 )
+        ar >> boost::serialization::make_nvp( "Chromatogram", pImpl_ );
+}
+
+
 /////////////
 template<> void
 Chromatogram::Event::serialize( boost::archive::xml_woarchive& ar, const unsigned int)
@@ -407,6 +426,18 @@ Chromatogram::Event::serialize( boost::archive::xml_woarchive& ar, const unsigne
 
 template<> void
 Chromatogram::Event::serialize( boost::archive::xml_wiarchive& ar, const unsigned int)
+{
+    ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
+}
+
+template<> void
+Chromatogram::Event::serialize( boost::archive::binary_oarchive& ar, const unsigned int)
+{
+    ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
+}
+
+template<> void
+Chromatogram::Event::serialize( boost::archive::binary_iarchive& ar, const unsigned int)
 {
     ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
 }

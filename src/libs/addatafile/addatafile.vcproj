@@ -209,6 +209,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\copyin_visitor.cpp"
+				>
+			</File>
+			<File
 				RelativePath="datafile.cpp"
 				>
 			</File>
@@ -273,6 +277,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\copyin_visitor.h"
+				>
 			</File>
 			<File
 				RelativePath="datafile.h"

@@ -37,6 +37,10 @@ namespace boost {
     namespace serialization {
         class access;
     }
+    namespace archive { 
+        class binary_oarchive; 
+        class binary_iarchive;
+    }
 }
 
 namespace adcontrols {
@@ -133,10 +137,14 @@ namespace adcontrols {
     private:
         friend class boost::serialization::access;
         template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
+        template<> void serialize( boost::archive::binary_oarchive&, const unsigned int );
+        template<> void serialize( boost::archive::binary_iarchive&, const unsigned int );
 
         internal::ChromatogramImpl * pImpl_;
     };
-  
+
+    typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;   
+
 }
 
 #endif // CHROMATOGRAM_H

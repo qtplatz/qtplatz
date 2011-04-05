@@ -13,9 +13,11 @@ DEFINES += ADDATAFILE_LIBRARY
 
 SOURCES += addatafile.cpp \
     datafile.cpp \
-    datafile_factory.cpp
+    datafile_factory.cpp \
+    copyin_visitor.cpp
 
 HEADERS += addatafile.h\
         addatafile_global.h \
     datafile.h \
-    datafile_factory.h
+    datafile_factory.h \
+    copyin_visitor.h

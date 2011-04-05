@@ -29,6 +29,16 @@
 #include <boost/any.hpp>
 #include <string>
 
+namespace boost {
+    namespace serialization {
+        class access;
+    }
+    namespace archive { 
+        class binary_oarchive; 
+        class binary_iarchive;
+    }
+}
+
 namespace adcontrols {
 
    enum MS_POLARITY { PolarityIndeterminate
@@ -99,12 +109,15 @@ namespace adcontrols {
        std::wstring saveXml() const;
        void loadXml( const std::wstring& );
 
-       bool archive( std::ostream& ) const;
-       bool restore( std::istream& );
        static bool archive( std::ostream&, const MassSpectrum& );
        static bool restore( std::istream&, MassSpectrum& );
 	 
    private:
+       friend class boost::serialization::access;
+       template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
+       template<> void serialize( boost::archive::binary_oarchive&, const unsigned int );
+       template<> void serialize( boost::archive::binary_iarchive&, const unsigned int );
+
        internal::MassSpectrumImpl * pImpl_;
    };
 

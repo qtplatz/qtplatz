@@ -371,32 +371,36 @@ MassSpectrum::loadXml( const std::wstring& xml )
 }
 
 bool
-MassSpectrum::archive( std::ostream& os ) const
-{
-    boost::archive::binary_oarchive ar( os );
-    ar << boost::serialization::make_nvp( "MassSpectrum", pImpl_ );
-    return true;
-}
-
-bool
-MassSpectrum::restore( std::istream& is )
-{
-    boost::archive::binary_iarchive ar( is );
-    ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
-    return true;
-}
-
-bool
 MassSpectrum::archive( std::ostream& os, const MassSpectrum& ms )
 {
-    return ms.archive( os );
+    boost::archive::binary_oarchive ar( os );
+    ar << ms;
+    return true;
 }
 
 bool
 MassSpectrum::restore( std::istream& is, MassSpectrum& ms )
 {
-    return ms.restore( is );
+    boost::archive::binary_iarchive ar( is );
+    ar >> ms;
+    return true;
 }
+
+
+template<> void
+MassSpectrum::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
+{
+    if ( version >= 0 )
+        ar << boost::serialization::make_nvp( "MassSpectrum", pImpl_ );
+}
+
+template<> void
+MassSpectrum::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
+{
+    if ( version >= 0 )
+        ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
+}
+
       
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////

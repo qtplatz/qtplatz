@@ -23,43 +23,21 @@
 **
 **************************************************************************/
 
-#include "addatafile.h"
+#pragma once
 
-#  if defined _DEBUG
-#     pragma comment(lib, "acewrapperd.lib")
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "adfsd.lib")
-#     pragma comment(lib, "adportabled.lib")
-#     pragma comment(lib, "adutilsd.lib")
-#     pragma comment(lib, "portfoliod.lib")
-#     pragma comment(lib, "xmlwrapperd.lib")
-#  else
-#     pragma comment(lib, "acewrapper.lib")
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "adfs.lib")
-#     pragma comment(lib, "adportable.lib")
-#     pragma comment(lib, "adutils.lib")
-#     pragma comment(lib, "portfolio.lib")
-#     pragma comment(lib, "xmlwrapper.lib")
-#  endif
+#include <boost/any.hpp>
 
-#include "datafile_factory.h"
+namespace adfs { class folium; }
 
-#define BOOST_LIB_NAME boost_filesystem
-#include <boost/config/auto_link.hpp>
+namespace addatafile { namespace detail {
 
+    class copyin_visitor { //  : public boost::static_visitor<bool> {
+    public:
+        copyin_visitor();
+        static bool apply( boost::any&, adfs::folium& );
+    };
 
-namespace adcontrols {
-    class datafile_factory;
+}
 }
 
-extern "C" {
-    __declspec(dllexport) adcontrols::datafile_factory * datafile_factory();
-}
-
-adcontrols::datafile_factory *
-datafile_factory()
-{
-    return new addatafile::datafile_factory();
-}
 

@@ -55,6 +55,7 @@ namespace adfs {
 
     template<class archive_type> class cpio {
     public:
+
         template<class T> static bool copyin( const T& t, detail::cpio& obuf ) {
             std::ostream os( &obuf );
             return archive_type::archive( os, t );
@@ -66,16 +67,17 @@ namespace adfs {
         }
 
         template<class T> static bool copyin( const T& t, adfs::folium& f ) {
-            detail::cpio iobuf;
-            std::ostream os( &iobuf );
-            return archive_type::archive( os, t ) && f.write( iobuf.size(), iobuf.get() );
+            detail::cpio obuf;
+            std::ostream os( &obuf );
+            return archive_type::archive( os, t ) && f.write( obuf.size(), obuf.get() );
         }
 
         template<class T> static bool copyout( T& t, adfs::folium& f ) {
-            detail::cpio iobuf( f.size() );
-            std::istream is( &iobuf );
-            return f.read( iobuf.size(), iobuf.get() ) && archive_type::restore( is, t );
+            detail::cpio ibuf( f.size() );
+            std::istream is( &ibuf );
+            return f.read( ibuf.size(), ibuf.get() ) && archive_type::restore( is, t );
         }
+
     };
 
 }

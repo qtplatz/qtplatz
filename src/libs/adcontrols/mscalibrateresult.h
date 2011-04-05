@@ -31,7 +31,6 @@
 #include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
 
-
 namespace adcontrols {
 
     class MSReferences;
@@ -69,7 +68,7 @@ namespace adcontrols {
             if ( version >= 0 ) {
                 ar & BOOST_SERIALIZATION_NVP(references_);
                 ar & BOOST_SERIALIZATION_NVP(calibration_);
-                ar & BOOST_SERIALIZATION_NVP(aassignedMasses_);
+                ar & BOOST_SERIALIZATION_NVP(assignedMasses_);
             }
         }
 

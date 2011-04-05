@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "datafile.h"
+#include "copyin_visitor.h"
 #include <xmlwrapper/msxml.h>
 #include <adcontrols/datafile.h>
 #include <adcontrols/datapublisher.h>
@@ -172,7 +173,7 @@ datafile::open_qtms( const std::wstring& filename, bool /* readonly */ )
     std::istream in( &ibuf );
 
     adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum );
-    pMS->restore( in );
+    adcontrols::MassSpectrum::restore( in, *pMS );
     data_ = pMS;     
     //-------------
 
@@ -309,15 +310,16 @@ detail::saveFolium::operator () ( const portfolio::Folium& folium )
 
     // @todo: save blob
     if ( folder_ ) {
-        adfs::folium dbfolium = folder_.addFolium( folium.id() );
+        adfs::folium dbf = folder_.addFolium( folium.id() );
         // @todo: data write functor should be defined...
-        // adfs::cpio< adcontrols::MassSpectrum >::copyin( ms, folium );
+
+        detail::copyin_visitor::apply( any, dbf );
 
         // apply_visitor
 
         // save attachments -- recursive
         const portfolio::Folio folio = folium.attachments();
-        std::for_each( folio.begin(), folio.end(), detail::saveAttachment( dbfolium, filename, source_ ) );
+        std::for_each( folio.begin(), folio.end(), detail::saveAttachment( dbf, filename, source_ ) );
     }
 
     // save attachments recursively
