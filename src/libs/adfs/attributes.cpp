@@ -33,7 +33,7 @@
 #pragma warning (default:4996)
 
 #include <boost/smart_ptr.hpp>
-#include "adsqlite.h"
+#include "sqlite.h"
 
 using namespace adfs;
 using namespace adfs::internal;

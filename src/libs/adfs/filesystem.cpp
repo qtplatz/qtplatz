@@ -26,7 +26,7 @@
 #include "adfs.h"
 #include "folium.h"
 #include "filesystem.h"
-#include "adsqlite.h"
+#include "sqlite.h"
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/cstdint.hpp>

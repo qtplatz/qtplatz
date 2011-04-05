@@ -24,12 +24,12 @@
 **************************************************************************/
 
 #include "adfs.h"
+#include "sqlite.h"
 #include "sqlite3.h"
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include "adsqlite.h"
 
 #if defined WIN32
 #include "apiwin32.h"

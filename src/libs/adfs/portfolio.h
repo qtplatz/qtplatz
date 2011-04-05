@@ -51,6 +51,8 @@ namespace adfs {
 
         folder addFolder( const std::wstring& name, bool uniq = true );
 
+        inline sqlite& db() const { return *db_; }
+
     private:
         boost::shared_ptr< adfs::sqlite > db_;
   };

@@ -56,6 +56,7 @@ namespace addatafile {
 
         // create, modify and delete methods
         virtual bool saveContents( const std::wstring&, const portfolio::Portfolio&, const adcontrols::datafile& );
+        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio& );
         virtual bool update( const std::wstring&, boost::any& ) { return false; }
 
         virtual adcontrols::datafile::factory_type factory() { return 0; }

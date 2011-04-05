@@ -26,9 +26,7 @@
 #include <boost/any.hpp>
 #include <map>
 #include <vector>
-#include "adsqlite.h"
-//#include <xmlwrapper/msxml.h>
-//#include "node.h"
+#include "sqlite.h"
 
 namespace adfs {
 

@@ -42,11 +42,14 @@
 #include <adportable/posix_path.h>
 #include <acewrapper/input_buffer.h>
 #include <adfs/adfs.h>
+#include <adfs/sqlite.h>
 #include <algorithm>
 #include <iostream>
 
 /////////////////
 namespace addatafile { namespace detail {
+
+    static adcontrols::datafile * nullfile(0);
 
     struct saveAttachment {
         adfs::folium& parent_;
@@ -229,11 +232,15 @@ datafile::getFunctionCount() const
 
 ////////////////////////////////////////////////////
 
+// SaveFileAs come in here
 bool
 datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& portfolio, const adcontrols::datafile& source )
 {
     if ( ! mounted_ )
         return false;
+
+    adfs::stmt sql( dbf_.db() );
+    sql.begin();
 
     dbf_.addFolder( path );
 
@@ -242,6 +249,27 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 
     std::for_each( folders.begin(), folders.end(), detail::saveFolder( dbf_, name, source ) );
 
+    sql.commit();
+    return true;
+}
+
+bool
+datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& portfolio )
+{
+    if ( ! mounted_ )
+        return false;
+
+    adfs::stmt sql( dbf_.db() );
+    sql.begin();
+
+    dbf_.addFolder( path );
+
+    adportable::path name( path );
+    const std::vector< portfolio::Folder > folders = portfolio.folders();
+
+    std::for_each( folders.begin(), folders.end(), detail::saveFolder( dbf_, name, *detail::nullfile ) );
+
+    sql.commit();
     return true;
 }
 
@@ -275,11 +303,17 @@ detail::saveFolium::operator () ( const portfolio::Folium& folium )
     // get attributes
     std::vector< std::pair< std::wstring, std::wstring > > attrs = folium.attributes();
 
+    boost::any any = static_cast<boost::any>(folium);
+    if ( any.empty() && (&source_ != nullfile ) )
+        any = source_.fetch( folium.path(), folium.dataClass() );
+
     // @todo: save blob
     if ( folder_ ) {
         adfs::folium dbfolium = folder_.addFolium( folium.id() );
         // @todo: data write functor should be defined...
         // adfs::cpio< adcontrols::MassSpectrum >::copyin( ms, folium );
+
+        // apply_visitor
 
         // save attachments -- recursive
         const portfolio::Folio folio = folium.attachments();

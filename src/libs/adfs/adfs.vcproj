@@ -183,10 +183,6 @@
 				>
 			</File>
 			<File
-				RelativePath="adsqlite.cpp"
-				>
-			</File>
-			<File
 				RelativePath="apiposix.cpp"
 				>
 			</File>
@@ -219,6 +215,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sqlite.cpp"
+				>
+			</File>
+			<File
 				RelativePath="sqlite3.c"
 				>
 			</File>
@@ -230,32 +230,6 @@
 			>
 			<File
 				RelativePath="adfs.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="adsqlite.h"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -465,6 +439,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\sqlite.h"
+				>
 			</File>
 			<File
 				RelativePath="sqlite3.h"

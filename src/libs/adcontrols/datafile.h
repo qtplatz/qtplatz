@@ -55,6 +55,7 @@ namespace adcontrols {
 
         // data update, modify operations
         virtual bool saveContents( const std::wstring&, const portfolio::Portfolio&, const datafile& ) { return false; }
+        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio& ) { return false; }
         virtual bool update( const std::wstring&, boost::any& ) { return false; }
         //---------
 

@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 #include "adfs.h"
+#include "sqlite.h"
 #include "portfolio.h"
-#include "adsqlite.h"
 
 #include "folder.h"
 #include "folium.h"

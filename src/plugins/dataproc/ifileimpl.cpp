@@ -85,7 +85,7 @@ IFileImpl::save( const QString& filename )
 
     if ( boost::filesystem::path( qtwrapper::wstring::copy( filename_ ) ) == p ) { // same file?
         // save
-        return this->file().saveContents( L"/Processed", portfolio, this->file() );
+        return this->file().saveContents( L"/Processed", portfolio );
 
     } else {
         // saveFileAs -- has to create new file
