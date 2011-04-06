@@ -50,8 +50,9 @@ namespace portfolio {
 
         std::wstring path() const;
         bool empty() const;
-        void operator = ( boost::any& );
+        void operator = ( const boost::any& );
         operator boost::any& ();
+        operator const boost::any& () const;
 
         std::vector< Folium > attachments();
         const std::vector< Folium > attachments() const;

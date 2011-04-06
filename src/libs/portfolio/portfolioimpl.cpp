@@ -87,7 +87,7 @@ PortfolioImpl::find( const std::wstring& id )
 }
 
 void
-PortfolioImpl::assign( const std::wstring& id, boost::any& data )
+PortfolioImpl::assign( const std::wstring& id, const boost::any& data )
 {
     db_[ id ] = data;
 }

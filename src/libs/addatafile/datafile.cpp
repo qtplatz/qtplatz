@@ -304,9 +304,14 @@ detail::saveFolium::operator () ( const portfolio::Folium& folium )
     // get attributes
     std::vector< std::pair< std::wstring, std::wstring > > attrs = folium.attributes();
 
-    boost::any any = static_cast<boost::any>(folium);
+    boost::any any = static_cast<const boost::any&>( folium );
     if ( any.empty() && (&source_ != nullfile ) )
         any = source_.fetch( folium.path(), folium.dataClass() );
+
+#if defined _DEBUG
+    std::string type_name = any.type().name();
+    (void)type_name;
+#endif
 
     // @todo: save blob
     if ( folder_ ) {

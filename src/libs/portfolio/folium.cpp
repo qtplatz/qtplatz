@@ -61,13 +61,21 @@ Folium::empty() const
 }
 
 void
-Folium::operator = ( boost::any& any )
+Folium::operator = ( const boost::any& any )
 {
     if ( impl_ )
         impl_->assign( id(), any );
 }
 
 Folium::operator boost::any & ()
+{
+    if ( impl_ )
+        return impl_->find( id() );
+    static boost::any temp;
+    return temp;
+}
+
+Folium::operator const boost::any & () const
 {
     if ( impl_ )
         return impl_->find( id() );
