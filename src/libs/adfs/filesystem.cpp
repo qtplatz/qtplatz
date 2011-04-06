@@ -387,8 +387,6 @@ internal::dml::insert_folium( adfs::sqlite& db, dir_type type, boost::int64_t pa
 {
     adfs::stmt sql( db );
 
-    sql.begin();
-
     boost::int64_t fileid(0);
 
     // find or create entry on directory
@@ -398,13 +396,11 @@ internal::dml::insert_folium( adfs::sqlite& db, dir_type type, boost::int64_t pa
     }
     if ( sql.prepare( "INSERT INTO file (fileid) VALUES ( :fileid )" ) ) {  // might be error due to unique constraints
         sql.bind( 1 ) = fileid;
-        if ( sql.step() == sqlite_done ) {
-            sql.commit();
-            return adfs::folium( db, fileid, name );
-        }
-    }
 
-    sql.rollback();
+        sqlite_state res = sql.step();
+        if ( res == sqlite_done || res == sqlite_constraint )
+            return adfs::folium( db, fileid, name );
+    }
     return adfs::folium();
 }
 

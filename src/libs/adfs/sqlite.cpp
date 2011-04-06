@@ -176,6 +176,12 @@ stmt::reset()
     return sqlite3_reset( stmt_ ) == SQLITE_OK;
 }
 
+int
+stmt::errcode()
+{
+    return sqlite3_errcode( sqlite_ );
+}
+
 sqlite_state
 stmt::step()
 {
@@ -183,8 +189,10 @@ stmt::step()
     switch( rc ) {
     case SQLITE_ROW:   return sqlite_row;
     case SQLITE_DONE:  return sqlite_done;
+    case SQLITE_CONSTRAINT: return sqlite_constraint;
     default: break;
     }
+    detail::error_log::log( "", sqlite3_errmsg( sqlite_ ) );
     return sqlite_error;
 }
 
