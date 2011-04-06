@@ -27,7 +27,22 @@
 #include "isotopemethod.h"
 #include "elementalcompositionmethod.h"
 #include "mscalibratemethod.h"
+#include "msreferences.h"
+#include "msreference.h"
 #include "targetingmethod.h"
+
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/variant.hpp>
+#include <boost/serialization/base_object.hpp>
+
+# pragma warning( disable: 4996 )
+# include <boost/archive/binary_oarchive.hpp>
+# include <boost/archive/binary_iarchive.hpp>
+# pragma warning( default: 4996 )
+
 
 using namespace adcontrols;
 
@@ -168,4 +183,38 @@ ProcessMethod::vector_type::const_iterator
 ProcessMethod::end() const
 {
     return vec_.end();
+}
+
+//////////////////// serialize /////////////////
+
+template<> void
+ProcessMethod::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
+{
+    if ( version >= 0 )
+        ar << boost::serialization::make_nvp( "ProcessMethod", vec_ );
+}
+
+template<> void
+ProcessMethod::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
+{
+    if ( version >= 0 )
+        ar >> boost::serialization::make_nvp("ProcessMethod", vec_);
+}
+
+
+//////////////////// static ////////////////
+bool
+ProcessMethod::archive( std::ostream& os, const ProcessMethod& t )
+{
+    boost::archive::binary_oarchive ar( os );
+    ar << t;
+    return true;
+}
+
+bool
+ProcessMethod::restore( std::istream& is, ProcessMethod& t )
+{
+    boost::archive::binary_iarchive ar( is );
+    ar >> t;
+    return true;
 }

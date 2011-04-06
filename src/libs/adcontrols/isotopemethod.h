@@ -28,6 +28,8 @@
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
 
 #include <string>
 #include <vector>
@@ -51,6 +53,18 @@ namespace adcontrols {
             Formula();
             Formula( const Formula& );
             Formula( const std::wstring& formula, const std::wstring& adduct, size_t chargeState, double relativeAmounts );
+        private:
+            friend class boost::serialization::access;
+            template<class Archive>
+            void serialize(Archive& ar, const unsigned int version) {
+                using namespace boost::serialization;
+                if ( version >= 0 ) {
+                    ar & BOOST_SERIALIZATION_NVP(formula);
+                    ar & BOOST_SERIALIZATION_NVP(adduct);
+                    ar & BOOST_SERIALIZATION_NVP(chargeState);
+                    ar & BOOST_SERIALIZATION_NVP(relativeAmounts);
+                }
+            }
         };
 
     public:
@@ -84,6 +98,21 @@ namespace adcontrols {
         double	resolution_;	// Da
 #pragma warning( disable: 4251 )
         std::vector< Formula > formulae_;  // formula, adduct
+
+        // serialization
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive& ar, const unsigned int version) {
+            using namespace boost::serialization;
+            if ( version >= 0 ) {
+                ar & BOOST_SERIALIZATION_NVP(polarityPositive_);
+                ar & BOOST_SERIALIZATION_NVP(useElectronMass_);
+                ar & BOOST_SERIALIZATION_NVP(threshold_);
+                ar & BOOST_SERIALIZATION_NVP(resolution_);
+                ar & BOOST_SERIALIZATION_NVP(formulae_);
+            }
+       }
+
     };
 
 }

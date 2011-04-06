@@ -22,12 +22,8 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
-#ifndef CHROMATOGRAM_H
-#define CHROMATOGRAM_H
+
+#pragma once
 
 #include "adcontrols_global.h"
 #include <boost/any.hpp>
@@ -67,6 +63,9 @@ namespace adcontrols {
         static minutes_t toMinutes( const seconds_t& );
         static seconds_t toSeconds( const minutes_t& );
         static std::pair<double, double> toMinutes( const std::pair< seconds_t, seconds_t >& );
+
+        static bool archive( std::ostream&, const Chromatogram& );
+        static bool restore( std::istream&, Chromatogram& );
 
         struct Event {
             size_t index;  // index since injection, should subtract dataDelayPoint in order to access dataArray;
@@ -147,4 +146,3 @@ namespace adcontrols {
 
 }
 
-#endif // CHROMATOGRAM_H

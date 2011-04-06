@@ -72,7 +72,8 @@ copyin_visitor::apply( boost::any& a, adfs::folium& dbf )
 template<> bool
 copyin::operator ()( adutils::ProcessedData::Nothing& ) const
 {
-    return false;
+    // nothing to do here.
+    return true;
 }       
 
 template<> bool
@@ -84,36 +85,28 @@ copyin::operator ()( adcontrols::MassSpectrumPtr& p ) const
 template<> bool
 copyin::operator ()( adcontrols::ProcessMethodPtr& p ) const
 {
-    return false; //adfs::cpio< adcontrols::ProcessMethod >::copyin( *p, folium_ );
+    return adfs::cpio< adcontrols::ProcessMethod >::copyin( *p, folium_ );
 } 
 
 
 template<> bool
 copyin::operator ()( adutils::ElementalCompositionCollectionPtr& p ) const
 {
-    return false; // adfs::cpio< adcontrols::ElementalCompositionCollection >::copyin( *p, folium_ );
+    return adfs::cpio< adcontrols::ElementalCompositionCollection >::copyin( *p, folium_ );
 }       
 
 
 template<> bool
 copyin::operator ()( adcontrols::ChromatogramPtr& p ) const
 {
-    adfs::detail::cpio iobuf;
-    std::ostream os( &iobuf );
-    boost::archive::binary_oarchive ar( os );
-    ar << (*p);
-    return folium_.write( iobuf.size(), iobuf.get() );
+    return adfs::cpio< adcontrols::Chromatogram >::copyin( *p, folium_ );
 } 
 
 
 template<> bool
 copyin::operator ()( adcontrols::MSCalibrateResultPtr& p ) const
 {
-    adfs::detail::cpio iobuf;
-    std::ostream os( &iobuf );
-    boost::archive::binary_oarchive ar( os );
-    ar << (*p);
-    return folium_.write( iobuf.size(), iobuf.get() );
+    return adfs::cpio< adcontrols::MSCalibrateResult >::copyin( *p, folium_ );
 } 
 
 

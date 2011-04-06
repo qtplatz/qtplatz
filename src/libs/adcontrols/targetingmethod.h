@@ -32,11 +32,20 @@
 
 #include "adcontrols_global.h"
 
+namespace boost { namespace serialization {
+    class access;
+} }
+
 namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT TargetingMethod {
     public:
         TargetingMethod();
+
+    private:
+        friend class boost::serialization::access;
+        template<class Archive> void serialize(Archive& ar, const unsigned int version);
+
     };
 
 }

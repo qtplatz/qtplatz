@@ -71,7 +71,9 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP(assignedMasses_);
             }
         }
-
+    public:
+        static bool archive( std::ostream&, const MSCalibrateResult& );
+        static bool restore( std::istream&, MSCalibrateResult& );
     };
 
    typedef boost::shared_ptr<MSCalibrateResult> MSCalibrateResultPtr;

@@ -442,6 +442,22 @@ Chromatogram::Event::serialize( boost::archive::binary_iarchive& ar, const unsig
     ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
 }
 
+bool
+Chromatogram::archive( std::ostream& os, const Chromatogram& c )
+{
+    boost::archive::binary_oarchive ar( os );
+    ar << c;
+    return true;
+}
+
+bool
+Chromatogram::restore( std::istream& is, Chromatogram& c )
+{
+    boost::archive::binary_iarchive ar( is );
+    ar >> c;
+    return true;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////

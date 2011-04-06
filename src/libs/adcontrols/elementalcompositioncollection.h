@@ -25,11 +25,18 @@
 
 #pragma once
 
+#include "adcontrols_global.h"
+#include <string>
+
 namespace adcontrols {
 
-    class ElementalCompositionCollection {
+    class ADCONTROLSSHARED_EXPORT ElementalCompositionCollection {
     public:
         ElementalCompositionCollection();
+
+        // serialize --->
+        static bool archive( std::ostream&, const ElementalCompositionCollection& );
+        static bool restore( std::istream&, ElementalCompositionCollection& );
     };
 
 

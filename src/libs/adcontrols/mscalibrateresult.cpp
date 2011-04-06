@@ -30,6 +30,16 @@
 #include "msassignedmass.h"
 #include "msreference.h"
 
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/base_object.hpp>
+//#include <boost/archive/xml_woarchive.hpp>
+//#include <boost/archive/xml_wiarchive.hpp>
+# pragma warning( disable: 4996 )
+# include <boost/archive/binary_oarchive.hpp>
+# include <boost/archive/binary_iarchive.hpp>
+# pragma warning( default: 4996 )
+
 using namespace adcontrols;
 
 MSCalibrateResult::~MSCalibrateResult()
@@ -103,4 +113,21 @@ void
 MSCalibrateResult::assignedMasses( const MSAssignedMasses& t )
 {
     *assignedMasses_ = t;
+}
+
+////////////////  static //////////////////
+bool
+MSCalibrateResult::archive( std::ostream& os, const MSCalibrateResult& t )
+{
+    boost::archive::binary_oarchive ar( os );
+    ar << t;
+    return true;
+}
+
+bool
+MSCalibrateResult::restore( std::istream& is, MSCalibrateResult& t )
+{
+    boost::archive::binary_iarchive ar( is );
+    ar >> t;
+    return true;
 }

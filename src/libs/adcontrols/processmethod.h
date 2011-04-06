@@ -30,6 +30,9 @@
 #include <boost/smart_ptr.hpp>
 #include <vector>
 
+namespace boost { namespace serialization { class access; } }
+
+
 namespace adcontrols {
 
     class CentroidMethod;
@@ -66,11 +69,17 @@ namespace adcontrols {
         vector_type::const_iterator begin() const;
         vector_type::const_iterator end() const;
 
-    private:
+    public:
+        static bool archive( std::ostream&, const ProcessMethod& );
+        static bool restore( std::istream&, ProcessMethod& );
 
-# pragma warning(disable:4251)
+    private:
+#   pragma warning(disable:4251)
         vector_type vec_;
-//# pragma warning(default:4251)
+
+        friend class boost::serialization::access;
+        template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
+
     };
 
     typedef boost::shared_ptr<ProcessMethod> ProcessMethodPtr;
