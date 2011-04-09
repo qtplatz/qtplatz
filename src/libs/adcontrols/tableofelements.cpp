@@ -125,7 +125,7 @@ TableOfElements::getMonoIsotopicMass( const Element& e )
 {
     struct abundance_compare {
         bool operator()( const Element::Isotope& a, const Element::Isotope& b ) {
-            return a.abundance_ > b.abundance_;
+            return a.abundance_ < b.abundance_;
         }
     };
 
