@@ -53,6 +53,10 @@ namespace adcontrols {
         static TableOfElements * instance();
         void dispose();
 
+        const Element& findElement( const std::wstring& symbol ) const;
+        static double getMonoIsotopicMass( const Element& );
+        static double getChemicalMass( const Element& );
+
         std::wstring saveXml() const;
         void loadXml( const std::wstring& );
 

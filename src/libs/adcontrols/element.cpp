@@ -6,7 +6,6 @@
 #include "element.h"
 
 using namespace adcontrols;
-using namespace adcontrols::internal;
 
 Element::Element()
 {

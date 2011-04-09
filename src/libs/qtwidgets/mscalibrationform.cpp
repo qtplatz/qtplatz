@@ -90,6 +90,7 @@ MSCalibrationForm::OnInitialUpdate()
     //------ create Xe reference -------
     adcontrols::MSReferences Xe;
     Xe.name( L"Xe-EI-Positive" );
+#if 0
     // adcontrols::MSReferenceDefns Xe;
     do {
         adcontrols::MSReferences& ref = Xe;
@@ -102,6 +103,7 @@ MSCalibrationForm::OnInitialUpdate()
         ref << adcontrols::MSReference( L"134Xe", true, L"", false );
         ref << adcontrols::MSReference( L"136Xe", true, L"", true );
     } while(0);
+#endif
     // ---------------------------------
     //------ create PFTBA < tris(Perfluorobutyl)amine > reference -------
     adcontrols::MSReferences PFTBA;

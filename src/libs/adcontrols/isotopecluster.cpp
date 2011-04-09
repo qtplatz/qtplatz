@@ -135,8 +135,4 @@ IsotopeClusterImpl::~IsotopeClusterImpl()
 
 IsotopeClusterImpl::IsotopeClusterImpl()
 {
-    TableOfElements * toe = TableOfElements::instance();
-    if ( pi_.CreateInstance( SACONTROLSLib::CLSID_SAIsoCluster ) == S_OK ) {
-        pi_->ElementData = *toe;
-    }
 }

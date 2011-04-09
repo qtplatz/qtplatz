@@ -25,11 +25,12 @@
 
 #include "tableofelements.h"
 #include "element.h"
+#include <algorithm>
 
 #include <boost/thread/mutex.hpp>
 #include <boost/noncopyable.hpp>
 #include <adportable/array_wrapper.hpp>
-#include <adportable/safearray.hpp>
+#include <adportable/float.hpp>
 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -43,11 +44,9 @@
 
 #include <atlbase.h>
 #include <atlcom.h>
-#include "import_sacontrols.h"
 
 using namespace adcontrols;
 using namespace adcontrols::internal;
-using namespace SACONTROLSLib;
 
 namespace adcontrols {
    namespace internal {
@@ -56,12 +55,14 @@ namespace adcontrols {
      public:
 		 TableOfElementsImpl();
 		 bool internalCreate();
-     public:
-		 CComPtr<ISAElementIO> pi_;
+
+         const adcontrols::Element& findElement( const std::wstring& symbol ) const;
+
 	 private:
 		 static boost::mutex mutex_;
 		 std::vector< Element > elements_;
 		 std::vector< SuperAtom > superAtoms_;
+
 	 private:
 		 friend class boost::serialization::access;
 		 template<class Archive> void serialize(Archive& ar, const unsigned int version) {
@@ -112,18 +113,50 @@ TableOfElements::instance()
    return instance_;
 }
 
-TableOfElements::operator SACONTROLSLib::ISAElementIO * ()
+const adcontrols::Element&
+TableOfElements::findElement( const std::wstring& symbol ) const
 {
-    return pImpl_->pi_;
+    return pImpl_->findElement( symbol );
 }
 
-/*
-ChemicalFormula
-TableOfElements::getChemicalFormula()
+//static
+double
+TableOfElements::getMonoIsotopicMass( const Element& e )
 {
-    return ChemicalFormula( pImpl_->pi_ );
+    struct abundance_compare {
+        bool operator()( const Element::Isotope& a, const Element::Isotope& b ) {
+            return a.abundance_ > b.abundance_;
+        }
+    };
+
+    adcontrols::Element::vector_type::const_iterator it;
+    it = std::max_element( e.begin(), e.end(), abundance_compare() );
+    if ( it != e.end() )
+        return it->mass_;
+
+    return 0;
 }
-*/
+
+//static
+double
+TableOfElements::getChemicalMass( const Element& e )
+{
+    adcontrols::Element::vector_type::const_iterator it;
+    double ratio = 0;
+    double mass = 0;
+
+    for ( it = e.begin(); it != e.end(); ++it ) {
+        ratio += it->abundance_;
+        mass += it->mass_ * it->abundance_;
+    }
+
+    if ( adportable::compare<double>::approximatelyEqual( ratio, 1.0 ) )
+        return mass;
+
+    assert( adportable::compare<double>::approximatelyEqual( ratio, 1.0 ) );
+
+    return 0;
+}
 
 std::wstring
 TableOfElements::saveXml() const
@@ -542,29 +575,6 @@ namespace adcontrols {
 		   }
 	   };
 
-	   struct set_element {
-		   CComPtr< ISAElementIO > pi_;
-		   set_element( ISAElementIO * pi ) : pi_(pi) { }
-		   void operator()(const element& e) {
-			   adportable::safearray<double> vm( e.isotopeCount_, VT_R8 );
-			   adportable::safearray<float> va( e.isotopeCount_, VT_R4 );
-			   for ( int i = 0; i < e.isotopeCount_; ++i ) {
-				   vm[i] = e.ma_[i].mass_;
-				   va[i] = static_cast<float>(e.ma_[i].abund_);
-			   }
-			   vm.unlock();
-			   va.unlock();
-			   pi_->SetElement( e.symbol_, e.name_, e.atomicNumber_, e.valence_, vm.v(), va.v() );
-		   }
-	   };
-
-	   struct set_superatom {
-		   CComPtr< ISAElementIO > pi_;
-		   set_superatom( ISAElementIO * pi ) : pi_(pi) { }
-		   void operator()(const superatom& s) {
-			   pi_->SetSuperatom( s.name_, s.alias_, s.formula_, s.valence_ );
-		   }
-	   };
    }
 }
 
@@ -572,18 +582,11 @@ namespace adcontrols {
 
 TableOfElementsImpl::TableOfElementsImpl()
 {
-  HRESULT hr = pi_.CoCreateInstance( CLSID_SAElementIO );
-  if ( hr == 0x800401f0 ) { // CoInitialize has not been called. 
-	  CoInitialize(0);
-	  hr = pi_.CoCreateInstance( CLSID_SAElementIO );
-  }
-  ATLASSERT( hr == S_OK );
 }
 
 bool
 TableOfElementsImpl::internalCreate() 
 {
-  pi_->Clear();
 
 #define countof(array) (sizeof(array)/sizeof(array)[0])
 
@@ -592,14 +595,34 @@ TableOfElementsImpl::internalCreate()
   /* elements */
   array_wrapper<const element> elements( __elementTable__, countof(__elementTable__));
 
-  std::for_each( elements.begin(), elements.end(), set_element(pi_) );
+  // std::for_each( elements.begin(), elements.end(), set_element(pi_) );
   std::for_each( elements.begin(), elements.end(), set_element_vec( this->elements_ ) );
 
   /* super atoms */
   array_wrapper<const superatom> atoms( __superAtoms__, countof(__superAtoms__) );
 
-  std::for_each( atoms.begin(), atoms.end(), set_superatom(pi_) );
+  // std::for_each( atoms.begin(), atoms.end(), set_superatom(pi_) );
   std::for_each( atoms.begin(), atoms.end(), set_superatom_vec( this->superAtoms_ ) );
 
   return true;
 }
+
+const adcontrols::Element&
+TableOfElementsImpl::findElement( const std::wstring& symbol ) const
+{
+    struct element_finder {
+        const std::wstring& symbol_;
+        element_finder( const std::wstring& symbol ) : symbol_(symbol) {}
+        bool operator()( const adcontrols::Element& e ) {
+            return e.symbol() == symbol_;
+        }
+    };
+
+    std::vector< Element >::const_iterator it = std::find_if( elements_.begin(), elements_.end(), element_finder(symbol) );
+    if ( it != elements_.end() )
+        return *it;
+
+    static adcontrols::Element empty;
+    return empty;
+}
+
