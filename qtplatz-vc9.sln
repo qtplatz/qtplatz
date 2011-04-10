@@ -165,6 +165,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "addatafile", "src\libs\adda
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adfs", "src\libs\adfs\adfs.vcproj", "{20CFBE29-DED8-3C28-9115-8F4275457008}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adwplot", "src\libs\adwplot\adwplot.vcproj", "{06ED86F3-2B6C-37C7-AB48-161DB36FB68B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -287,6 +289,10 @@ Global
 		{20CFBE29-DED8-3C28-9115-8F4275457008}.Debug|Win32.Build.0 = Debug|Win32
 		{20CFBE29-DED8-3C28-9115-8F4275457008}.Release|Win32.ActiveCfg = Release|Win32
 		{20CFBE29-DED8-3C28-9115-8F4275457008}.Release|Win32.Build.0 = Release|Win32
+		{06ED86F3-2B6C-37C7-AB48-161DB36FB68B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{06ED86F3-2B6C-37C7-AB48-161DB36FB68B}.Debug|Win32.Build.0 = Debug|Win32
+		{06ED86F3-2B6C-37C7-AB48-161DB36FB68B}.Release|Win32.ActiveCfg = Release|Win32
+		{06ED86F3-2B6C-37C7-AB48-161DB36FB68B}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

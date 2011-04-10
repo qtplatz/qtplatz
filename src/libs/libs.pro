@@ -13,6 +13,7 @@ SUBDIRS   = \
     adtxtfactory \
     adutils \
     adwidgets \
+    adwplot \
     aggregation \
     extensionsystem \
     portfolio \
