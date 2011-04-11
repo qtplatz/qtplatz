@@ -23,13 +23,28 @@
 **
 **************************************************************************/
 
-#ifndef TITLES_H
-#define TITLES_H
+#pragma once
 
-class Titles
-{
-public:
-    Titles();
-};
+#include "dataplot.h"
 
-#endif // TITLES_H
+namespace adcontrols { class MassSpectrum; }
+
+namespace adwplot {
+
+    class SpectrumWidget : public Dataplot {
+        Q_OBJECT
+    public:
+        explicit SpectrumWidget(QWidget *parent = 0);
+
+        void setData( const adcontrols::MassSpectrum& );
+        void setData( const adcontrols::MassSpectrum&, const adcontrols::MassSpectrum& );
+        void setData( const adcontrols::MassSpectrum&, int idx, bool yaxis1 = false );
+
+    signals:
+
+    public slots:
+
+    };
+
+}
+

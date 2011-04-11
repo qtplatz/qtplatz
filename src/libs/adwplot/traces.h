@@ -39,8 +39,8 @@ namespace adwplot {
         size_t size() const;
         typedef std::vector< Trace > vector_type;
 
-        Trace addTrace( const std::wstring& title = L"" );
-
+        Trace add( const std::wstring& title = L"" );
+        void clear();
         vector_type::iterator begin();
         vector_type::iterator end();
         vector_type::const_iterator begin() const;

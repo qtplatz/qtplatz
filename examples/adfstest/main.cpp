@@ -25,7 +25,7 @@
 
 #include <adfs/adfs.h>
 #include <adfs/cpio.h>
-#include <adfs/adsqlite.h>
+#include <adfs/sqlite.h>
 #include <adcontrols/massspectrum.h>
 
 #include <iostream>

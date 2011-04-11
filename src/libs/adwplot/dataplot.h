@@ -26,11 +26,15 @@
 #pragma once
 
 #include <qwt_plot.h>
+#include <boost/smart_ptr.hpp>
 
 namespace adwplot {
 
     class Traces;
     class Trace;
+    class Zoomer;
+    class PlotPanner;
+    class PlotPicker;
 
     class Dataplot : public QwtPlot {
         Q_OBJECT
@@ -38,33 +42,49 @@ namespace adwplot {
         explicit Dataplot(QWidget *parent = 0);
         template<class T> T get();
 
+        void setTitle( const std::wstring& );
+
         Traces traces();
 
+        void link( Dataplot * );
+        void unlink( Dataplot * );
+
+        const std::pair<double, double>& display_range_x() const;
+        const std::pair<double, double>& display_range_y() const;
+        void display_range_x( const std::pair<double, double>& );
+        void display_range_y( const std::pair<double, double>& );
+        void display_range_y2( const std::pair<double, double>& );
+
+    private:
+        //virtual void OnMouseDown( double x, double y, short button );
+        //virtual void OnMouseUp( double x, double y, short Button );
+        //virtual void OnMouseMove( double x, double y, short Button );
+        //virtual void OnCharacter( long KeyCode );
+        //virtual void OnKeyDown( long KeyCode );
+        //virtual void OnSetFocus( long hWnd );
+        //virtual void OnKillFocus( long hWnd );
+        //virtual void OnMouseDblClk( double x, double y, short button );
+
+    protected:
+        //virtual void OnRButtonClick( double /* x */, double /* y */ ) { /* do nothing */ }
+        //virtual void OnRButtonRange( double /* x1 */, double /* x2 */, double /* y1 */, double /* y2 */ ) { /* do nothing */ }
+
     signals:
-/*
-        void signalMouseDown( double x, double y, short button );
-        void signalMouseUp( double x, double y, short Button );
-        void signalMouseMove( double x, double y, short Button );
-        void signalCharacter( long KeyCode );
-        void signalKeyDown( long KeyCode );
-        void signalSetFocus( long hWnd );
-        void signalKillFocus( long hWnd );
-        void signalMouseDblClk(double x, double y, short button );
-*/	  
+        void signalZoomXY( double x1, double y1, double x2, double y2 );
+        void signalZoomXAutoscaleY( double x1, double x2 );
+
     public slots:
+        //virtual void handleZoomXY( double x1, double y1, double x2, double y2 );
+        //virtual void handleZoomXAutoscaleY( double x1, double x2 );
+
     protected slots:
-/*
-        virtual void OnMouseDown( double, double, short ) {}
-        virtual void OnMouseUp( double, double, short ) {}
-        virtual void OnMouseMove( double, double, short ) {}
-        virtual void OnCharacter( long ) {}
-        virtual void OnKeyDown( long ) {}
-        virtual void OnSetFocus( long ) {}
-        virtual void OnKillFocus( long ) {}
-        virtual void OnMouseDblClk(double, double, short ) {}
-*/
+
     private:
         std::vector< Trace > traceVec_;
+        boost::scoped_ptr< Zoomer > zoomer1_;  // left bottom
+        boost::scoped_ptr< Zoomer > zoomer2_;  // right top
+        boost::scoped_ptr< PlotPicker > picker_;
+        boost::scoped_ptr< PlotPanner > panner_;
     };
 
 }

@@ -38,6 +38,18 @@ Traces::Traces( const Traces& t ) : plot_( t.plot_ )
 {
 }
 
+size_t
+Traces::size() const
+{
+    return plot_.get< vector_type& >().size();
+}
+
+void
+Traces::clear()
+{
+    return plot_.get< vector_type& >().clear();
+}
+
 Traces::vector_type::iterator 
 Traces::begin()
 {
@@ -63,7 +75,7 @@ Traces::end() const
 }
 
 Trace
-Traces::addTrace( const std::wstring& title )
+Traces::add( const std::wstring& title )
 {
     vector_type& traces = plot_.get< vector_type &>();
     traces.push_back( Trace( plot_, qtwrapper::qstring::copy( title ) ) );

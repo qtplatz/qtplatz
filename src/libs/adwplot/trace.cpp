@@ -59,3 +59,9 @@ Trace::setData( const double * xData, const double * yData, size_t size )
 {
     curve_->setSamples( xData, yData, size );
 }
+
+void
+Trace::setStyle( Trace::CurveStyle style )
+{
+    curve_->setStyle( static_cast<QwtPlotCurve::CurveStyle>( style ) );
+}

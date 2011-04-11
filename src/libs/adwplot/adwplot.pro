@@ -16,8 +16,10 @@ SOURCES += adwplot.cpp \
     zoomer.cpp \
     axis.cpp \
     traces.cpp \
-    title.cpp \
-    titles.cpp
+    chromatogramwidget.cpp \
+    massspectrumwidget.cpp \
+    plotpanner.cpp \
+    plotpicker.cpp
 
 HEADERS += adwplot.h \
     dataplot.h \
@@ -25,8 +27,11 @@ HEADERS += adwplot.h \
     zoomer.h \
     axis.h \
     traces.h \
-    title.h \
-    titles.h
+    chromatogramwidget.h \
+    massspectrumwidget.h \
+    plotpanner.h \
+    plotpicker.h
+
 unix:!symbian {
     maemo5 {
         target.path = /opt/usr/lib

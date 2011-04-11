@@ -23,13 +23,22 @@
 **
 **************************************************************************/
 
-#ifndef TITLE_H
-#define TITLE_H
+#pragma once
 
-class Title
-{
-public:
-    Title();
-};
+#include <qwt_plot_panner.h>
 
-#endif // TITLE_H
+namespace adwplot {
+
+    class PlotPanner : public QwtPlotPanner {
+        Q_OBJECT
+    public:
+        explicit PlotPanner( QwtPlotCanvas * canvas );
+
+    signals:
+
+    public slots:
+
+    };
+
+}
+

@@ -26,96 +26,48 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <adwplot/dataplot.h>
-#include <adwplot/traces.h>
-#include <adwplot/trace.h>
+#include <adcontrols/chromatogram.h>
+#include <adcontrols/massspectrum.h>
+#include <adwplot/chromatogramwidget.h>
+#include <adwplot/spectrumwidget.h>
 
-#include <qwt_plot.h>
 #include <qwt_symbol.h>
 #include <qwt_plot_grid.h>
 #include <qwt_plot_marker.h>
-#include <qwt_plot_curve.h>
+
 #include <qwt_legend.h>
 #include <qwt_text.h>
-#include <qwt_scale_engine.h>
-#include <qwt_picker_machine.h>
-
-#include <qwt_plot_zoomer.h>
-#include <qwt_plot_panner.h>
 
 #include <cmath>
-
-class Zoomer: public QwtPlotZoomer
-{
-public:
-    Zoomer(int xAxis, int yAxis, QwtPlotCanvas *canvas):
-        QwtPlotZoomer(xAxis, yAxis, canvas)
-    {
-        setTrackerMode(QwtPicker::AlwaysOff);
-        setRubberBand(QwtPicker::NoRubberBand);
-
-        // RightButton: zoom out by 1
-        // Ctrl+RightButton: zoom out to full size
-
-        setMousePattern(QwtEventPattern::MouseSelect2,  Qt::RightButton, Qt::ControlModifier);
-        setMousePattern(QwtEventPattern::MouseSelect3,  Qt::RightButton);
-    }
-};
+#include <boost/math/distributions/normal.hpp>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-    plot_ = new adwplot::Dataplot( this );
+    // adwplot::SpectrumWidget * plot_ = new adwplot::SpectrumWidget( this );
+    adwplot::ChromatogramWidget * plot_ = new adwplot::ChromatogramWidget( this );
 
     setContextMenuPolicy( Qt::NoContextMenu );
     setCentralWidget( plot_ );
-    plot_->setTitle( "Title 1\nTitle 2" );
+    plot_->setTitle( L"Title 1" );
 
-    QwtPlotZoomer * zoomer = new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, plot_->canvas() );
-    zoomer->setRubberBand(QwtPicker::RectRubberBand);
-    zoomer->setRubberBandPen(QColor(Qt::green));
-    zoomer->setTrackerMode(QwtPicker::ActiveOnly);
-    zoomer->setTrackerPen(QColor(Qt::white));
+    boost::math::normal p1(50.0, 1.0);
+    boost::math::normal p2(60.0, 1.2);
 
-    QwtPlotZoomer * zoomer2 = new Zoomer(QwtPlot::xTop, QwtPlot::yRight, plot_->canvas());
-    
-    QwtPanner * panner = new QwtPlotPanner( plot_->canvas() );
-    panner->setMouseButton( Qt::LeftButton, Qt::AltModifier );
+    adcontrols::Chromatogram c;
+    do {
+        std::vector<double> x, y;
+        for ( int i = 0; i < 1000; ++i ) {
+            double t = i * 0.1;
+            x.push_back( t );
+            y.push_back( boost::math::pdf(p1, t) + boost::math::pdf(p2, t) ); // probaility density function
+        }
+        c.resize( x.size() );
+        c.setTimeArray( &x[0] );
+        c.setIntensityArray( &y[0] );
+    } while(0);
+   
+    plot_->setData( c );
 
-    QwtPicker * picker = new QwtPlotPicker(QwtPlot::xBottom, QwtPlot::yLeft, QwtPlotPicker::CrossRubberBand, QwtPicker::AlwaysOn, plot_->canvas());
-    picker->setStateMachine(new QwtPickerDragPointMachine());
-    picker->setRubberBandPen(QColor(Qt::green));
-    picker->setRubberBand(QwtPicker::CrossRubberBand);
-    picker->setTrackerPen(QColor(Qt::white));
-
- // axes
-    plot_->enableAxis(QwtPlot::yRight);
-    plot_->setAxisTitle(QwtPlot::xBottom, "Normalized Frequency");
-    plot_->setAxisTitle(QwtPlot::yLeft, "Amplitude [dB]");
-    plot_->setAxisTitle(QwtPlot::yRight, "Phase [deg]");
-
-    plot_->setAxisMaxMajor(QwtPlot::xBottom, 6);
-    plot_->setAxisMaxMinor(QwtPlot::xBottom, 10);
-    plot_->setAxisScaleEngine(QwtPlot::xBottom, new QwtLog10ScaleEngine);
-
-// curves
-    adwplot::Traces traces = plot_->traces();
-    
-    adwplot::Trace trace = traces.addTrace( L"Amplitte" );
-
-    std::vector<double> x, y;
-    for ( int i = 0; i < 100; ++i ) {
-        x.push_back( i + 100 );
-        y.push_back( std::sqrt( double(i) ) );
-    }
-    trace.setData( &x[0], &y[0], x.size() );
-
-/*
-    QwtPlotCurve * curve = new QwtPlotCurve( "Amplitute" );
-    curve->setRenderHint( QwtPlotItem::RenderAntialiased );
-    curve->setPen( QPen( Qt::blue) );
-    curve->setLegendAttribute( QwtPlotCurve::LegendShowLine );
-    curve->attach( plot_ );
-  */  
 }
 
 MainWindow::~MainWindow()

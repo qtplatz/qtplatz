@@ -23,8 +23,11 @@
 **
 **************************************************************************/
 
-#include "titles.h"
+#include "plotpanner.h"
 
-Titles::Titles()
+using namespace adwplot;
+
+PlotPanner::PlotPanner( QwtPlotCanvas * canvas ) : QwtPlotPanner( canvas )
 {
+    setMouseButton( Qt::LeftButton, Qt::AltModifier );
 }

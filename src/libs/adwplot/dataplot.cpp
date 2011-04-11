@@ -26,6 +26,10 @@
 #include "dataplot.h"
 #include "trace.h"
 #include "traces.h"
+#include "zoomer.h"
+#include "plotpicker.h"
+#include "plotpanner.h"
+#include <qtwrapper/qstring.h>
 
 using namespace adwplot;
 
@@ -33,6 +37,16 @@ Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
 {
     setMargin(5);
     setCanvasBackground( QColor( Qt::lightGray ) );
+    zoomer1_.reset( new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, canvas() ) );
+    zoomer2_.reset( new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
+    picker_.reset( new PlotPicker( canvas() ) );
+    panner_.reset( new PlotPanner( canvas() ) );
+}
+
+void
+Dataplot::setTitle( const std::wstring& title )
+{
+    QwtPlot::setTitle( qtwrapper::qstring( title ) );
 }
 
 Traces

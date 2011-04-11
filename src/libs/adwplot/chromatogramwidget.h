@@ -23,28 +23,27 @@
 **
 **************************************************************************/
 
-#include <QtGui/QApplication>
-#include "mainwindow.h"
+#pragma once
 
-#if defined _DEBUG
-#     pragma comment(lib, "adwplotd.lib") // static
-#     pragma comment(lib, "qwtd.lib")
-#     pragma comment(lib, "qtwrapperd.lib")
-#     pragma comment(lib, "adcontrolsd.lib")
-#else
-#     pragma comment(lib, "adwplot.lib") // static
-#     pragma comment(lib, "qwt.lib")
-#     pragma comment(lib, "qtwrapper.lib")
-#     pragma comment(lib, "adcontrols.lib")
-#endif
+#include "dataplot.h"
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
+namespace adcontrols { class Trace; class Chromatogram; }
 
-    MainWindow w;
-    w.resize( 540, 400 );
-    w.show();
+namespace adwplot {
 
-    return a.exec();
+    class ChromatogramWidget : public Dataplot {
+        Q_OBJECT
+    public:
+        explicit ChromatogramWidget(QWidget *parent = 0);
+
+        void setData( const adcontrols::Trace&, int idx = 0, bool yaxis2 = false );
+        void setData( const adcontrols::Chromatogram& );
+
+    signals:
+
+    public slots:
+
+    };
+
 }
+

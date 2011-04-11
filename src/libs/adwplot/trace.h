@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <boost/smart_ptr.hpp>
 class QwtPlotCurve;
 class QString;
 
@@ -32,17 +33,29 @@ namespace adwplot {
 
     class Dataplot;
 
-    class Trace { // : public QwtPlotCurve {
+    class Trace { 
+        Trace();
     public:
         ~Trace();
         Trace( Dataplot& plot, const QString& );
         Trace( const Trace& );
         Trace& operator = ( const Trace& );
 
+        enum CurveStyle {
+            NoCurve,
+            Lines,
+            Sticks,
+            Steps,
+            Dots,
+        };
+
+        void setStyle( CurveStyle );
         void setData( const double * xData, const double * yData, size_t size );
+
+        inline operator QwtPlotCurve * () { return curve_.get(); }
     private:
         Dataplot* plot_;
-        QwtPlotCurve * curve_;
+        boost::shared_ptr< QwtPlotCurve > curve_;
     };
 
 }

@@ -23,28 +23,21 @@
 **
 **************************************************************************/
 
-#include <QtGui/QApplication>
-#include "mainwindow.h"
+#pragma once
 
-#if defined _DEBUG
-#     pragma comment(lib, "adwplotd.lib") // static
-#     pragma comment(lib, "qwtd.lib")
-#     pragma comment(lib, "qtwrapperd.lib")
-#     pragma comment(lib, "adcontrolsd.lib")
-#else
-#     pragma comment(lib, "adwplot.lib") // static
-#     pragma comment(lib, "qwt.lib")
-#     pragma comment(lib, "qtwrapper.lib")
-#     pragma comment(lib, "adcontrols.lib")
-#endif
+#include <qwt_plot_picker.h>
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
+namespace adwplot {
 
-    MainWindow w;
-    w.resize( 540, 400 );
-    w.show();
+    class PlotPicker : public QwtPlotPicker {
+        Q_OBJECT
+    public:
+        explicit PlotPicker( QwtPlotCanvas * canvas );
 
-    return a.exec();
+    signals:
+
+    public slots:
+
+    };
+
 }

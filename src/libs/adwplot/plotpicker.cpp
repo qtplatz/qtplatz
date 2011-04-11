@@ -23,8 +23,15 @@
 **
 **************************************************************************/
 
-#include "title.h"
+#include "plotpicker.h"
+#include <qwt_picker_machine.h>
 
-Title::Title()
+using namespace adwplot;
+
+PlotPicker::PlotPicker( QwtPlotCanvas * canvas ) : QwtPlotPicker( canvas )
 {
+    setStateMachine(new QwtPickerDragPointMachine());
+    setRubberBandPen(QColor(Qt::green));
+    setRubberBand(QwtPicker::CrossRubberBand);
+    setTrackerPen(QColor(Qt::white));
 }
