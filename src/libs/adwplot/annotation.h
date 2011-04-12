@@ -23,54 +23,33 @@
 **
 **************************************************************************/
 
-#include "dataplot.h"
-#include "annotation.h"
-#include "annotations.h"
-#include "trace.h"
-#include "traces.h"
-#include "zoomer.h"
-#include "plotpicker.h"
-#include "plotpanner.h"
-#include <qtwrapper/qstring.h>
+#pragma once
 
-using namespace adwplot;
+#include <string>
+#include <boost/smart_ptr.hpp>
+#include <QtCore>
 
-Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
-{
-    setMargin(5);
-    setCanvasBackground( QColor( Qt::lightGray ) );
-    zoomer1_.reset( new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, canvas() ) );
-    zoomer2_.reset( new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
-    picker_.reset( new PlotPicker( canvas() ) );
-    panner_.reset( new PlotPanner( canvas() ) );
+class QwtPlotMarker;
+
+namespace adwplot {
+
+    class Dataplot;
+
+    class Annotation {
+    public:
+        explicit Annotation( Dataplot&, const std::wstring&, double x = 0.0, double y = 0.0 );
+        Annotation( const Annotation& );
+
+        void setLabelAlighment( Qt::Alignment );
+
+        inline operator QwtPlotMarker * () { return marker_.get(); }
+
+    private:
+        Dataplot * plot_;
+        boost::shared_ptr< QwtPlotMarker > marker_;
+    };
+
 }
 
-void
-Dataplot::setTitle( const std::wstring& title )
-{
-    QwtPlot::setTitle( qtwrapper::qstring( title ) );
-}
 
-Traces
-Dataplot::traces()
-{
-    return Traces( *this );
-}
 
-Annotations
-Dataplot::annotations()
-{
-    return Annotations( *this );
-}
-
-template<> Traces::vector_type&
-Dataplot::get()
-{
-    return traceVec_;
-}
-
-template<> Annotations::vector_type&
-Dataplot::get()
-{
-    return annotationVec_;
-}

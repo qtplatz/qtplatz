@@ -211,7 +211,7 @@
 				>
 			</File>
 			<File
-				RelativePath="mainwindow.cpp"
+				RelativePath=".\mainwindow.cpp"
 				>
 			</File>
 		</Filter>

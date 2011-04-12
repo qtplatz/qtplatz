@@ -19,7 +19,9 @@ SOURCES += adwplot.cpp \
     chromatogramwidget.cpp \
     massspectrumwidget.cpp \
     plotpanner.cpp \
-    plotpicker.cpp
+    plotpicker.cpp \
+    annotations.cpp \
+    annotation.cpp
 
 HEADERS += adwplot.h \
     dataplot.h \
@@ -30,7 +32,9 @@ HEADERS += adwplot.h \
     chromatogramwidget.h \
     massspectrumwidget.h \
     plotpanner.h \
-    plotpicker.h
+    plotpicker.h \
+    annotations.h \
+    annotation.h
 
 unix:!symbian {
     maemo5 {

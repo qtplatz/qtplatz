@@ -35,6 +35,8 @@ namespace adwplot {
     class Zoomer;
     class PlotPanner;
     class PlotPicker;
+    class Annotation;
+    class Annotations;
 
     class Dataplot : public QwtPlot {
         Q_OBJECT
@@ -45,6 +47,7 @@ namespace adwplot {
         void setTitle( const std::wstring& );
 
         Traces traces();
+        Annotations annotations();
 
         void link( Dataplot * );
         void unlink( Dataplot * );
@@ -81,6 +84,7 @@ namespace adwplot {
 
     private:
         std::vector< Trace > traceVec_;
+        std::vector< Annotation > annotationVec_;
         boost::scoped_ptr< Zoomer > zoomer1_;  // left bottom
         boost::scoped_ptr< Zoomer > zoomer2_;  // right top
         boost::scoped_ptr< PlotPicker > picker_;

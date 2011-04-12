@@ -27,6 +27,8 @@
 #include "ui_mainwindow.h"
 
 #include <adcontrols/chromatogram.h>
+#include <adcontrols/peak.h>
+#include <adcontrols/peaks.h>
 #include <adcontrols/massspectrum.h>
 #include <adwplot/chromatogramwidget.h>
 #include <adwplot/spectrumwidget.h>
@@ -64,8 +66,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         c.resize( x.size() );
         c.setTimeArray( &x[0] );
         c.setIntensityArray( &y[0] );
+        adcontrols::Peaks& peaks = c.peaks();
+        adcontrols::Peak peak;
+        peak.peakTime( x[500] );
+        peak.peakHeight( y[500] );
+        peak.startTime( peak.peakTime() - 1.0 );
+        peak.endTime( peak.peakTime() + 1.0 );
+
+        peaks.add( peak );
+
+        peak.peakTime( x[600] );
+        peak.peakHeight( y[600] );
+        peak.startTime( peak.peakTime() - 1.0 );
+        peak.endTime( peak.peakTime() + 1.0 );
+
+        peaks.add( peak );
+
     } while(0);
-   
+
     plot_->setData( c );
 
 }

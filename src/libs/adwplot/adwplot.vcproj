@@ -183,6 +183,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\annotation.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\annotations.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\axis.cpp"
 				>
 			</File>
@@ -249,6 +257,36 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\annotation.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description=""
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description=""
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\annotations.h"
+				>
 			</File>
 			<File
 				RelativePath=".\axis.h"

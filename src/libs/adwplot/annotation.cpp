@@ -23,54 +23,37 @@
 **
 **************************************************************************/
 
-#include "dataplot.h"
 #include "annotation.h"
-#include "annotations.h"
-#include "trace.h"
-#include "traces.h"
-#include "zoomer.h"
-#include "plotpicker.h"
-#include "plotpanner.h"
+#include "dataplot.h"
 #include <qtwrapper/qstring.h>
+#include <qwt_plot_marker.h>
+#include <qwt_text.h>
 
 using namespace adwplot;
 
-Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
+Annotation::Annotation( Dataplot& plot
+                       , const std::wstring& label
+                       , double x, double y) : plot_( &plot )
+                                                     , marker_( new QwtPlotMarker )
 {
-    setMargin(5);
-    setCanvasBackground( QColor( Qt::lightGray ) );
-    zoomer1_.reset( new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, canvas() ) );
-    zoomer2_.reset( new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
-    picker_.reset( new PlotPicker( canvas() ) );
-    panner_.reset( new PlotPanner( canvas() ) );
+    marker_->setValue( x, y );
+    marker_->setLineStyle( QwtPlotMarker::NoLine );
+    marker_->setLabelAlignment( Qt::AlignRight | Qt::AlignBottom );
+    // marker_->setLinePen( QPen( Qt::green, 0, Qt::DashDotLine) )
+    QwtText text( qtwrapper::qstring::copy( label ) );
+    text.setFont( QFont("Helvetica", 9, QFont::Normal ) );
+    text.setColor( Qt::green );
+    marker_->setLabel( text );
+    marker_->attach( plot_ );
 }
+
+Annotation::Annotation( const Annotation& t ) : plot_( t.plot_ )
+                                              , marker_( t.marker_ )
+{
+} 
 
 void
-Dataplot::setTitle( const std::wstring& title )
+Annotation::setLabelAlighment( Qt::Alignment align )
 {
-    QwtPlot::setTitle( qtwrapper::qstring( title ) );
-}
-
-Traces
-Dataplot::traces()
-{
-    return Traces( *this );
-}
-
-Annotations
-Dataplot::annotations()
-{
-    return Annotations( *this );
-}
-
-template<> Traces::vector_type&
-Dataplot::get()
-{
-    return traceVec_;
-}
-
-template<> Annotations::vector_type&
-Dataplot::get()
-{
-    return annotationVec_;
+    marker_->setLabelAlignment( align );
 }

@@ -29,7 +29,9 @@
 #include "zoomer.h"
 #include "plotpicker.h"
 #include "plotpanner.h"
+#include "annotation.h"
 #include <adcontrols/massspectrum.h>
+
 
 using namespace adwplot;
 

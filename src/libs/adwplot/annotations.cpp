@@ -23,54 +23,61 @@
 **
 **************************************************************************/
 
-#include "dataplot.h"
-#include "annotation.h"
 #include "annotations.h"
-#include "trace.h"
-#include "traces.h"
-#include "zoomer.h"
-#include "plotpicker.h"
-#include "plotpanner.h"
-#include <qtwrapper/qstring.h>
+#include "annotation.h"
+#include "dataplot.h"
 
 using namespace adwplot;
 
-Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
+Annotations::Annotations( Dataplot& plot ) : plot_(plot)
 {
-    setMargin(5);
-    setCanvasBackground( QColor( Qt::lightGray ) );
-    zoomer1_.reset( new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, canvas() ) );
-    zoomer2_.reset( new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
-    picker_.reset( new PlotPicker( canvas() ) );
-    panner_.reset( new PlotPanner( canvas() ) );
+}
+
+Annotations::Annotations( const Annotations& t ) : plot_( t.plot_ )
+{
+}
+
+size_t
+Annotations::size() const
+{
+    return plot_.get< vector_type& >().size();
 }
 
 void
-Dataplot::setTitle( const std::wstring& title )
+Annotations::clear()
 {
-    QwtPlot::setTitle( qtwrapper::qstring( title ) );
+    return plot_.get< vector_type& >().clear();
 }
 
-Traces
-Dataplot::traces()
+
+Annotations::vector_type::iterator 
+Annotations::begin()
 {
-    return Traces( *this );
+    return plot_.get< vector_type& >().begin();
 }
 
-Annotations
-Dataplot::annotations()
+Annotations::vector_type::iterator
+Annotations::end()
 {
-    return Annotations( *this );
+    return plot_.get< vector_type& >().end();
 }
 
-template<> Traces::vector_type&
-Dataplot::get()
+Annotations::vector_type::const_iterator
+Annotations::begin() const
 {
-    return traceVec_;
+    return plot_.get< vector_type& >().begin();
 }
 
-template<> Annotations::vector_type&
-Dataplot::get()
+Annotations::vector_type::const_iterator
+Annotations::end() const
 {
-    return annotationVec_;
+    return plot_.get< vector_type& >().end();
+}
+
+Annotation
+Annotations::add( double x, double y, const std::wstring& title )
+{
+    vector_type& annos = plot_.get< vector_type &>();
+    annos.push_back( Annotation( plot_, title, x, y ) );
+    return annos.back();
 }

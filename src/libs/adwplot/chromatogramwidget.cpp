@@ -24,6 +24,8 @@
 **************************************************************************/
 
 #include "chromatogramwidget.h"
+#include "annotation.h"
+#include "annotations.h"
 #include "trace.h"
 #include "traces.h"
 #include "zoomer.h"
@@ -31,8 +33,11 @@
 #include "plotpanner.h"
 #include <adcontrols/trace.h>
 #include <adcontrols/chromatogram.h>
+#include <adcontrols/peaks.h>
+#include <adcontrols/peak.h>
 #include <adcontrols/descriptions.h>
 #include <adcontrols/description.h>
+#include <boost/format.hpp>
 
 using namespace adwplot;
 
@@ -92,6 +97,16 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
     Trace trace = traces().add();
 
     trace.setData( c.getTimeArray(), c.getIntensityArray(), c.size() );
+
+    const adcontrols::Peaks& peaks = c.peaks();
+    for ( adcontrols::Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it ) {
+        std::wstring label = it->name();
+        if ( label.empty() )
+            label = ( boost::wformat( L"%.3lf" ) % it->peakTime() ).str();
+        Annotation anno = annotations().add( it->peakTime(), it->peakHeight(), label );
+        anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
+    }
+    
     
 /*
 	while ( int(traces().size()) <= idx )
