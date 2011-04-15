@@ -29,12 +29,16 @@
 #include "trace.h"
 #include "traces.h"
 #include "zoomer.h"
+#include "peak.h"
+#include "baseline.h"
 #include "plotpicker.h"
 #include "plotpanner.h"
 #include <adcontrols/trace.h>
 #include <adcontrols/chromatogram.h>
 #include <adcontrols/peaks.h>
 #include <adcontrols/peak.h>
+#include <adcontrols/baselines.h>
+#include <adcontrols/baseline.h>
 #include <adcontrols/descriptions.h>
 #include <adcontrols/description.h>
 #include <boost/format.hpp>
@@ -98,86 +102,26 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
 
     trace.setData( c.getTimeArray(), c.getIntensityArray(), c.size() );
 
+    const adcontrols::Baselines& baselines = c.baselines();
+    for ( adcontrols::Baselines::vector_type::const_iterator it = baselines.begin(); it != baselines.end(); ++it )
+        setBaseline( *it );
+
     const adcontrols::Peaks& peaks = c.peaks();
-    for ( adcontrols::Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it ) {
-        std::wstring label = it->name();
-        if ( label.empty() )
-            label = ( boost::wformat( L"%.3lf" ) % it->peakTime() ).str();
-        Annotation anno = annotations().add( it->peakTime(), it->peakHeight(), label );
-        anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
-    }
-    
-    
-/*
-	while ( int(traces().size()) <= idx )
-		traces().add();
-
-    adwidgets::internal::ChromatogramWidgetImpl::setTitle( *this, idx, c.getDescriptions() );
-
-    adwidgets::ui::Trace trace = traces()[idx];
-
-    std::pair<double, double> xrange( adcontrols::Chromatogram::toMinutes( c.timeRange() ) );
-    std::pair<double, double> yrange( c.getMinIntensity(), c.getMaxIntensity() );
-
-    std::pair<double, double> drange;
-    drange.first = yrange.first < 0 ? yrange.first : 0;
-	drange.second = yrange.second - drange.first < 50 ? 50 : yrange.second;
-
-    traces().visible(false);
-
-    this->display_range_x( xrange );
-	if ( yaxis2 ) {
-		display_range_y2( drange );
-		trace.YAxis( Trace::Y2 );
-		axisY2().visible( true );
-	} else {
-		display_range_y( drange );
-		trace.YAxis( Trace::Y1 );
-	}
-
-    trace.colorIndex(2 + idx);
-    trace.traceStyle( Trace::TS_Connected );
-    if ( c.getTimeArray() ) {
-        trace.setXYDirect( c.size(), c.getTimeArray(), c.getIntensityArray() );
-    } else {
-        boost::scoped_array<double> timearray( new double [ c.size() ] );
-        for ( size_t i = 0; i < c.size(); ++i )
-            timearray[i] = adcontrols::Chromatogram::toMinutes( c.timeFromDataIndex( i ) );
-        trace.setXYDirect( c.size(), timearray.get(), c.getIntensityArray() );
-    }
-
-    trace.visible( true );
-    traces().visible( true );
-
-    setPeaks( c.peaks(), c.baselines(), trace );
-    setAnnotations( c.peaks(), trace );
+    for ( adcontrols::Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it )
+        setPeak( *it );
 }
+    
 
 void
-ChromatogramWidget::setPeaks(  const adcontrols::Peaks& peaks
-                             , const adcontrols::Baselines& baselines
-                             , Trace& trace )
+ChromatogramWidget::setPeak( const adcontrols::Peak& peak )
 {
-    trace.font().size( 80000 );
-    trace.font().bold( false );
+    std::wstring label = peak.name();
+    if ( label.empty() )
+        label = ( boost::wformat( L"%.3lf" ) % peak.peakTime() ).str();
 
-    ui::Peaks pks = trace.peaks();
-    pks.clear();
-    for ( adcontrols::Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it ) {
-        ui::Peak uipk = pks.add();
-        adutils::DataplotHelper::copy( uipk, *it );
-        uipk.colorIndex( this->getColorIndex( adwidgets::ui::CI_PeakMark ) );
-    }
-    pks.visible(true);
+    Annotation anno = annotations().add( peak.peakTime(), peak.peakHeight(), label );
+    anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 
-    ui::Baselines bss = trace.baselines();
-    bss.clear();
-    for ( adcontrols::Baselines::vector_type::const_iterator it = baselines.begin(); it != baselines.end(); ++it ) {
-        ui::Baseline bs = bss.add();
-        adutils::DataplotHelper::copy( bs, *it );
-        bs.colorIndex( this->getColorIndex( adwidgets::ui::CI_BaseMark ) );
-    }
-    bss.visible( true );
-
-*/
+    peaks_.push_back( adwplot::Peak( *this, peak ) );
 }
+

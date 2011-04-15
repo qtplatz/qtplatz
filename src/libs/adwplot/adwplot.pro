@@ -21,7 +21,10 @@ SOURCES += adwplot.cpp \
     plotpanner.cpp \
     plotpicker.cpp \
     annotations.cpp \
-    annotation.cpp
+    annotation.cpp \
+    peak.cpp \
+    baseline.cpp \
+    timedtracewidget.cpp
 
 HEADERS += adwplot.h \
     dataplot.h \
@@ -34,7 +37,10 @@ HEADERS += adwplot.h \
     plotpanner.h \
     plotpicker.h \
     annotations.h \
-    annotation.h
+    annotation.h \
+    peak.h \
+    baseline.h \
+    timedtracewidget.h
 
 unix:!symbian {
     maemo5 {

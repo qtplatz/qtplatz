@@ -23,40 +23,29 @@
 **
 **************************************************************************/
 
-#pragma once
-
+#include "baseline.h"
 #include "dataplot.h"
+#include <qwt_plot_curve.h>
+#include <adcontrols/baseline.h>
 
-namespace adcontrols {
-    class Trace;
-    class Chromatogram; 
-    class Baseline;
-    class Peak;
+using namespace adwplot;
+
+Baseline::Baseline( const Baseline& t ) : curve_( t.curve_ )
+{
 }
 
-namespace adwplot {
+Baseline::Baseline( Dataplot& plot, const adcontrols::Baseline& bs ) : plot_( &plot )
+                                                                     , curve_( new QwtPlotCurve() ) 
+{
+    curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
+    curve_->setPen( QPen( Qt::red) );
+    curve_->setStyle( QwtPlotCurve::Lines ); // continuum (or Stics)
+    curve_->attach( plot_ );
 
-    class Peak;
-    class Baseline;
-
-    class ChromatogramWidget : public Dataplot {
-        Q_OBJECT
-    public:
-        explicit ChromatogramWidget(QWidget *parent = 0);
-
-        void setData( const adcontrols::Trace&, int idx = 0, bool yaxis2 = false );
-        void setData( const adcontrols::Chromatogram& );
-        void setBaseline( const adcontrols::Baseline& );
-        void setPeak( const adcontrols::Peak& );
-
-    signals:
-
-    public slots:
-
-    private:
-        std::vector< Peak > peaks_;
-        std::vector< Baseline > baselines_;
-    };
-
+    double x[2], y[2];
+    x[0] = bs.startTime();
+    x[1] = bs.stopTime();
+    y[0] = bs.startHeight();
+    y[1] = bs.stopHeight();
+    curve_->setSamples(  x, y, 2 );
 }
-

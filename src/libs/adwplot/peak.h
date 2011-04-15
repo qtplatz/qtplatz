@@ -25,38 +25,26 @@
 
 #pragma once
 
-#include "dataplot.h"
+#include <boost/smart_ptr.hpp>
 
-namespace adcontrols {
-    class Trace;
-    class Chromatogram; 
-    class Baseline;
-    class Peak;
-}
+class QwtPlotCurve;
+
+namespace adcontrols { class Peak; }
 
 namespace adwplot {
 
-    class Peak;
-    class Baseline;
+    class Dataplot;
 
-    class ChromatogramWidget : public Dataplot {
-        Q_OBJECT
+    class Peak {
+        Peak();
     public:
-        explicit ChromatogramWidget(QWidget *parent = 0);
+        Peak( const Peak& );
+        Peak( Dataplot& plot, const adcontrols::Peak& );
 
-        void setData( const adcontrols::Trace&, int idx = 0, bool yaxis2 = false );
-        void setData( const adcontrols::Chromatogram& );
-        void setBaseline( const adcontrols::Baseline& );
-        void setPeak( const adcontrols::Peak& );
-
-    signals:
-
-    public slots:
-
+        inline operator QwtPlotCurve * () { return curve_.get(); }
     private:
-        std::vector< Peak > peaks_;
-        std::vector< Baseline > baselines_;
+        Dataplot * plot_;
+        boost::shared_ptr< QwtPlotCurve > curve_;
     };
 
 }
-

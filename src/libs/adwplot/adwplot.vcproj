@@ -195,11 +195,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\baseline.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\chromatogramwidget.cpp"
 				>
 			</File>
 			<File
 				RelativePath="dataplot.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\peak.cpp"
 				>
 			</File>
 			<File
@@ -293,6 +301,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\baseline.h"
+				>
+			</File>
+			<File
 				RelativePath=".\chromatogramwidget.h"
 				>
 				<FileConfiguration
@@ -343,6 +355,10 @@
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\peak.h"
+				>
 			</File>
 			<File
 				RelativePath=".\plotpanner.h"
