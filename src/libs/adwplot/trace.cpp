@@ -25,11 +25,13 @@
 
 #include "trace.h"
 #include "dataplot.h"
+#include "seriesdata.h"
 #include <qwt_plot_curve.h>
 
 using namespace adwplot;
 
-Trace::Trace( Dataplot& plot, const QString& title ) : plot_( &plot ), curve_( new QwtPlotCurve( title ) )
+Trace::Trace( Dataplot& plot, const QString& title ) : plot_( &plot )
+                                                     , curve_( new QwtPlotCurve( title ) )
 {
     curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
     curve_->setPen( QPen( Qt::blue) );
@@ -55,13 +57,20 @@ Trace::operator = ( const Trace& t )
 }
 
 void
+Trace::setStyle( Trace::CurveStyle style )
+{
+    curve_->setStyle( static_cast<QwtPlotCurve::CurveStyle>( style ) );
+}
+
+void
 Trace::setData( const double * xData, const double * yData, size_t size )
 {
     curve_->setSamples( xData, yData, size );
 }
 
 void
-Trace::setStyle( Trace::CurveStyle style )
+Trace::setData( SeriesData* d )
 {
-    curve_->setStyle( static_cast<QwtPlotCurve::CurveStyle>( style ) );
+    curve_->setData( d );
 }
+

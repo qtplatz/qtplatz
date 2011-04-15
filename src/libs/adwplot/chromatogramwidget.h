@@ -38,6 +38,7 @@ namespace adwplot {
 
     class Peak;
     class Baseline;
+    class SeriesData;
 
     class ChromatogramWidget : public Dataplot {
         Q_OBJECT
@@ -56,6 +57,7 @@ namespace adwplot {
     private:
         std::vector< Peak > peaks_;
         std::vector< Baseline > baselines_;
+        std::vector< boost::shared_ptr< SeriesData > > dataVec_;
     };
 
 }

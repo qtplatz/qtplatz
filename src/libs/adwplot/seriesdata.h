@@ -25,29 +25,19 @@
 
 #pragma once
 
-#include <vector>
+#include <qwt_series_data.h>
+#include <qvector.h>
 
 namespace adwplot {
 
-    class Trace;
-    class Dataplot;
-
-    class Traces {
+    class SeriesData : public QwtSeriesData<QPointF> {
     public:
-        Traces( Dataplot& );
-        Traces( const Traces& );
-        size_t size() const;
-        typedef std::vector< Trace > vector_type;
-
-        Trace add( const std::wstring& title = L"" );
-        Trace operator [] ( size_t idx );
-        void clear();
-        vector_type::iterator begin();
-        vector_type::iterator end();
-        vector_type::const_iterator begin() const;
-        vector_type::const_iterator end() const;
-    private:
-        Dataplot& plot_;
+        SeriesData();
+        // implements QwtSeriesData<>
+        virtual size_t size() const;
+        virtual QPointF sample( size_t idx ) const;
+        virtual QRectF boundingRect() const;
+        // <---
     };
 
 }

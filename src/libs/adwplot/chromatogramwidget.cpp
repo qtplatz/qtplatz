@@ -33,6 +33,7 @@
 #include "baseline.h"
 #include "plotpicker.h"
 #include "plotpanner.h"
+#include "seriesdata.h"
 #include <adcontrols/trace.h>
 #include <adcontrols/chromatogram.h>
 #include <adcontrols/peaks.h>
@@ -57,15 +58,24 @@ ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
 {
     if ( d.size() < 2 )
         return;
-/*
-	while ( int(traces().size()) <= idx )
+
+    while ( int( dataVec_.size() ) <= idx )
+        dataVec_.push_back( boost::shared_ptr< SeriesData >(new SeriesData) );
+
+	while ( int( traces().size() ) <= idx )
 		traces().add();
+
+    Trace trace = traces()[ idx ];
+    SeriesData& data = *dataVec_[ idx ];
 
     const double * pX = d.getTimeArray();
     const double * pY = d.getIntensityArray();
     if ( pX == 0 || pY == 0 )
         return;
 
+
+
+/*
     std::pair<double, double> xrange( pX[0], pX[ d.size() - 1 ] );
     std::pair<double, double> yrange = d.range_y();
     display_range_x( xrange );

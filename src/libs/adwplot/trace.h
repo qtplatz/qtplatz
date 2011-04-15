@@ -32,6 +32,7 @@ class QString;
 namespace adwplot {
 
     class Dataplot;
+    class SeriesData;
 
     class Trace { 
         Trace();
@@ -51,6 +52,7 @@ namespace adwplot {
 
         void setStyle( CurveStyle );
         void setData( const double * xData, const double * yData, size_t size );
+        void setData( SeriesData* );
 
         inline operator QwtPlotCurve * () { return curve_.get(); }
     private:

@@ -23,69 +23,10 @@
 **
 **************************************************************************/
 
-#include "traces.h"
-#include "trace.h"
-#include "dataplot.h"
-#include <qtwrapper/qstring.h>
+#include "seriesdata.h"
 
 using namespace adwplot;
 
-Traces::Traces( Dataplot& plot ) : plot_( plot )
+SeriesData::SeriesData()
 {
 }
-
-Traces::Traces( const Traces& t ) : plot_( t.plot_ )
-{
-}
-
-size_t
-Traces::size() const
-{
-    return plot_.get< vector_type& >().size();
-}
-
-void
-Traces::clear()
-{
-    return plot_.get< vector_type& >().clear();
-}
-
-Traces::vector_type::iterator 
-Traces::begin()
-{
-    return plot_.get< vector_type& >().begin();
-}
-
-Traces::vector_type::iterator
-Traces::end()
-{
-    return plot_.get< vector_type& >().end();
-}
-
-Traces::vector_type::const_iterator
-Traces::begin() const
-{
-    return plot_.get< vector_type& >().begin();
-}
-
-Traces::vector_type::const_iterator
-Traces::end() const
-{
-    return plot_.get< vector_type& >().end();
-}
-
-Trace
-Traces::add( const std::wstring& title )
-{
-    vector_type& traces = plot_.get< vector_type &>();
-    traces.push_back( Trace( plot_, qtwrapper::qstring::copy( title ) ) );
-    return traces.back();
-}
-
-Trace
-Traces::operator [] ( size_t idx )
-{
-    vector_type& traces = plot_.get< vector_type &>();
-    return traces[ idx ];
-}
-
