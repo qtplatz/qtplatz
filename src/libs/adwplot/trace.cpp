@@ -27,11 +27,15 @@
 #include "dataplot.h"
 #include "seriesdata.h"
 #include <qwt_plot_curve.h>
+#include <qtwrapper/qstring.h>
 
 using namespace adwplot;
+using qtwrapper::qstring;
 
-Trace::Trace( Dataplot& plot, const QString& title ) : plot_( &plot )
-                                                     , curve_( new QwtPlotCurve( title ) )
+Trace::Trace( Dataplot& plot
+             , const std::wstring& title ) : plot_( &plot )
+                                           , curve_( new QwtPlotCurve( qstring(title) ) )
+                                           , data_(0) 
 {
     curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
     curve_->setPen( QPen( Qt::blue) );
@@ -40,7 +44,7 @@ Trace::Trace( Dataplot& plot, const QString& title ) : plot_( &plot )
     curve_->attach( plot_ );
 }
 
-Trace::Trace( const Trace& t ) : plot_( t.plot_ ), curve_( t.curve_ )
+Trace::Trace( const Trace& t ) : plot_( t.plot_ ), curve_( t.curve_ ), data_( t.data_ )
 {
 }
 
@@ -53,6 +57,7 @@ Trace::operator = ( const Trace& t )
 {
     plot_ = t.plot_;
     curve_ = t.curve_;
+    data_ = t.data_;
     return *this;
 }
 
@@ -69,8 +74,15 @@ Trace::setData( const double * xData, const double * yData, size_t size )
 }
 
 void
-Trace::setData( SeriesData* d )
+Trace::setSeriesData( SeriesData* d )
 {
-    curve_->setData( d );
+    data_ = d;  // curve_ will delete this pointer.
+    curve_->setData( data_ );
+}
+
+SeriesData *
+Trace::getSeriesData()
+{
+    return data_;
 }
 

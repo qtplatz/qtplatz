@@ -29,55 +29,24 @@
 
 using namespace adwplot;
 
-Annotations::Annotations( Dataplot& plot ) : plot_(plot)
+Annotations::Annotations( Dataplot& plot, vector_type& vec ) : plot_(plot), vec_(vec)
 {
 }
 
-Annotations::Annotations( const Annotations& t ) : plot_( t.plot_ )
+Annotations::Annotations( const Annotations& t ) : plot_( t.plot_ ), vec_(t.vec_)
 {
-}
-
-size_t
-Annotations::size() const
-{
-    return plot_.get< vector_type& >().size();
 }
 
 void
 Annotations::clear()
 {
-    return plot_.get< vector_type& >().clear();
+    return vec_.clear();
 }
 
-
-Annotations::vector_type::iterator 
-Annotations::begin()
-{
-    return plot_.get< vector_type& >().begin();
-}
-
-Annotations::vector_type::iterator
-Annotations::end()
-{
-    return plot_.get< vector_type& >().end();
-}
-
-Annotations::vector_type::const_iterator
-Annotations::begin() const
-{
-    return plot_.get< vector_type& >().begin();
-}
-
-Annotations::vector_type::const_iterator
-Annotations::end() const
-{
-    return plot_.get< vector_type& >().end();
-}
 
 Annotation
 Annotations::add( double x, double y, const std::wstring& title )
 {
-    vector_type& annos = plot_.get< vector_type &>();
-    annos.push_back( Annotation( plot_, title, x, y ) );
-    return annos.back();
+    vec_.push_back( Annotation( plot_, title, x, y ) );
+    return vec_.back();
 }

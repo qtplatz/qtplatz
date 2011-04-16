@@ -34,20 +34,22 @@ namespace adwplot {
 
     class Traces {
     public:
-        Traces( Dataplot& );
-        Traces( const Traces& );
-        size_t size() const;
         typedef std::vector< Trace > vector_type;
 
+        Traces( Dataplot&, vector_type& );
+        Traces( const Traces& );
+        size_t size() const;
+
         Trace add( const std::wstring& title = L"" );
-        Trace operator [] ( size_t idx );
+        inline Trace& operator [] ( size_t idx ) { return vec_[ idx ]; }
         void clear();
-        vector_type::iterator begin();
-        vector_type::iterator end();
-        vector_type::const_iterator begin() const;
-        vector_type::const_iterator end() const;
+        inline vector_type::iterator begin() { return vec_.begin(); }
+        inline vector_type::iterator end() { return vec_.end(); }
+        inline vector_type::const_iterator begin() const { return vec_.begin(); }
+        inline vector_type::const_iterator end() const { return vec_.end(); }
     private:
         Dataplot& plot_;
+        vector_type& vec_;
     };
 
 }

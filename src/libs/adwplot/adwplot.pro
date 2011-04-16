@@ -25,7 +25,8 @@ SOURCES += adwplot.cpp \
     peak.cpp \
     baseline.cpp \
     timedtracewidget.cpp \
-    seriesdata.cpp
+    seriesdata.cpp \
+    seriesdatamsimpl.cpp
 
 HEADERS += adwplot.h \
     dataplot.h \
@@ -42,7 +43,8 @@ HEADERS += adwplot.h \
     peak.h \
     baseline.h \
     timedtracewidget.h \
-    seriesdata.h
+    seriesdata.h \
+    seriesdatamsimpl.h
 
 unix:!symbian {
     maemo5 {

@@ -51,26 +51,11 @@ Dataplot::setTitle( const std::wstring& title )
     QwtPlot::setTitle( qtwrapper::qstring( title ) );
 }
 
+/*
 Traces
 Dataplot::traces()
 {
     return Traces( *this );
 }
+*/
 
-Annotations
-Dataplot::annotations()
-{
-    return Annotations( *this );
-}
-
-template<> Traces::vector_type&
-Dataplot::get()
-{
-    return traceVec_;
-}
-
-template<> Annotations::vector_type&
-Dataplot::get()
-{
-    return annotationVec_;
-}

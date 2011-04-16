@@ -59,21 +59,17 @@ ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
     if ( d.size() < 2 )
         return;
 
-    while ( int( dataVec_.size() ) <= idx )
-        dataVec_.push_back( boost::shared_ptr< SeriesData >(new SeriesData) );
+    while ( int( traces_.size() ) <= idx )
+        traces_.push_back( Trace( *this, L"trace" ) );
 
-	while ( int( traces().size() ) <= idx )
-		traces().add();
+    Trace& trace = traces_[ idx ];
+    if ( ! trace.getSeriesData() )
+        trace.setSeriesData( new SeriesData );
 
-    Trace trace = traces()[ idx ];
-    SeriesData& data = *dataVec_[ idx ];
+    trace.getSeriesData()->setData( d );
 
-    const double * pX = d.getTimeArray();
-    const double * pY = d.getIntensityArray();
-    if ( pX == 0 || pY == 0 )
-        return;
-
-
+    canvas()->invalidatePaintCache();
+    canvas()->update( canvas()->contentsRect() );
 
 /*
     std::pair<double, double> xrange( pX[0], pX[ d.size() - 1 ] );
@@ -107,10 +103,15 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
     }
     setTitle( title );
 
-    traces().clear();
-    Trace trace = traces().add();
+    if ( traces_.empty() )
+        traces_.push_back( Trace( *this, title ) );
 
-    trace.setData( c.getTimeArray(), c.getIntensityArray(), c.size() );
+    Trace& trace = traces_.back();
+
+    //--
+    SeriesData * d = new SeriesData;
+    d->setData( c );
+    trace.setSeriesData( d );
 
     const adcontrols::Baselines& baselines = c.baselines();
     for ( adcontrols::Baselines::vector_type::const_iterator it = baselines.begin(); it != baselines.end(); ++it )
@@ -125,13 +126,23 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
 void
 ChromatogramWidget::setPeak( const adcontrols::Peak& peak )
 {
+    double tR = adcontrols::timeutil::toMinutes( peak.peakTime() );
+
     std::wstring label = peak.name();
     if ( label.empty() )
-        label = ( boost::wformat( L"%.3lf" ) % peak.peakTime() ).str();
+        label = ( boost::wformat( L"%.3lf" ) % tR ).str();
 
-    Annotation anno = annotations().add( peak.peakTime(), peak.peakHeight(), label );
+    Annotations annots( *this, annotations_ );
+
+    Annotation anno = annots.add( tR, peak.peakHeight(), label );
     anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 
     peaks_.push_back( adwplot::Peak( *this, peak ) );
+}
+
+void
+ChromatogramWidget::setBaseline( const adcontrols::Baseline& bs )
+{
+    baselines_.push_back( adwplot::Baseline( *this, bs ) );
 }
 

@@ -43,8 +43,10 @@ Peak::Peak( Dataplot& plot, const adcontrols::Peak& peak ) : plot_( &plot )
     curve_->attach( plot_ );
 
     double x[2], y[2];
-    x[0] = peak.startTime();
-    x[1] = peak.endTime();
+    // anno.value( adcontrols::timeutil::toMinutes( it->peakTime() ).minutes );
+
+    x[0] = adcontrols::timeutil::toMinutes( peak.startTime() );
+    x[1] = adcontrols::timeutil::toMinutes( peak.endTime() );
     y[0] = peak.startHeight();
     y[1] = peak.endHeight();
     curve_->setSamples(  x, y, 2 );

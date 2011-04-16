@@ -55,13 +55,18 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum&, const adcontrols::Mass
 void
 SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis2 )
 {
-
+/*
     while ( int(traces().size() ) <= idx )
         traces().add();
+    
+    Trace trace = traces()[ idx ];
+    if ( ! trace.getSeriesData() )
+        trace.setSeriesData( new SeriesDataMSImpl );
 
-    std::pair<double, double> xrange = ms.getAcquisitionMassRange();
-    std::pair<double, double> yrange( ms.getMinIntensity(), ms.getMaxIntensity() );
-
+    SeriesDataMSImpl * data = dynamic_cast<SeriesDataMSImpl *>( trace.getSeriesData() );
+    data->setData( ms );
+    // trace.getSeriesData()->setData( ms );
+*/
 /*
     this->display_range_x( xrange );
 	if ( yaxis2 ) {

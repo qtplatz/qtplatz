@@ -34,19 +34,22 @@ namespace adwplot {
 
     class Annotations {
     public:
-        Annotations( Dataplot& );
+        typedef std::vector< Annotation > vector_type;
+
+        Annotations( Dataplot&, vector_type& );
         Annotations( const Annotations& );
 
         typedef std::vector< Annotation > vector_type;
 
         Annotation add( double x = 0.0, double y = 0.0, const std::wstring& title = L"" );
         void clear();
-        size_t size() const;
-        vector_type::iterator begin();
-        vector_type::iterator end();
-        vector_type::const_iterator begin() const;
-        vector_type::const_iterator end() const;
+        inline size_t size() const { return vec_.size(); }
+        inline vector_type::iterator begin() { return vec_.begin(); }
+        inline vector_type::iterator end() { return vec_.end(); }
+        inline vector_type::const_iterator begin() const { return vec_.begin(); }
+        inline vector_type::const_iterator end() const { return vec_.end(); }
     private:
+        vector_type& vec_;
         Dataplot& plot_;
     };
 

@@ -46,17 +46,17 @@ namespace adwplot {
 
         void setTitle( const std::wstring& );
 
-        Traces traces();
-        Annotations annotations();
+        // Traces traces();
+        // Annotations annotations();
 
         void link( Dataplot * );
         void unlink( Dataplot * );
 
-        const std::pair<double, double>& display_range_x() const;
-        const std::pair<double, double>& display_range_y() const;
-        void display_range_x( const std::pair<double, double>& );
-        void display_range_y( const std::pair<double, double>& );
-        void display_range_y2( const std::pair<double, double>& );
+        //const std::pair<double, double>& display_range_x() const;
+        //const std::pair<double, double>& display_range_y() const;
+        //void display_range_x( const std::pair<double, double>& );
+        //void display_range_y( const std::pair<double, double>& );
+        //void display_range_y2( const std::pair<double, double>& );
 
     private:
         //virtual void OnMouseDown( double x, double y, short button );
@@ -83,8 +83,6 @@ namespace adwplot {
     protected slots:
 
     private:
-        std::vector< Trace > traceVec_;
-        std::vector< Annotation > annotationVec_;
         boost::scoped_ptr< Zoomer > zoomer1_;  // left bottom
         boost::scoped_ptr< Zoomer > zoomer2_;  // right top
         boost::scoped_ptr< PlotPicker > picker_;

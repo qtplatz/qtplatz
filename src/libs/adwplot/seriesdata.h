@@ -26,18 +26,33 @@
 #pragma once
 
 #include <qwt_series_data.h>
-#include <qvector.h>
+
+class QPointF;
+
+namespace adcontrols { class Trace; class Chromatogram; class MassSpectrum; }
 
 namespace adwplot {
 
     class SeriesData : public QwtSeriesData<QPointF> {
     public:
+        virtual ~SeriesData() {}
         SeriesData();
+        SeriesData( const SeriesData& );
+
         // implements QwtSeriesData<>
         virtual size_t size() const;
         virtual QPointF sample( size_t idx ) const;
         virtual QRectF boundingRect() const;
         // <---
+        void setData( const adcontrols::Trace& );
+        void setData( const adcontrols::Chromatogram& );
+        void setData( const adcontrols::MassSpectrum& );
+
+    protected:
+        size_t start_pos_;
+        std::pair< double, double > range_x_;
+        std::pair< double, double > range_y_;
+        std::vector< QPointF > values_;
     };
 
 }

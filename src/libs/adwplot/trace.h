@@ -38,7 +38,7 @@ namespace adwplot {
         Trace();
     public:
         ~Trace();
-        Trace( Dataplot& plot, const QString& );
+        Trace( Dataplot& plot, const std::wstring& );
         Trace( const Trace& );
         Trace& operator = ( const Trace& );
 
@@ -52,12 +52,14 @@ namespace adwplot {
 
         void setStyle( CurveStyle );
         void setData( const double * xData, const double * yData, size_t size );
-        void setData( SeriesData* );
+        void setSeriesData( SeriesData* );
+        SeriesData * getSeriesData();
 
         inline operator QwtPlotCurve * () { return curve_.get(); }
     private:
         Dataplot* plot_;
         boost::shared_ptr< QwtPlotCurve > curve_;
+        SeriesData * data_;
     };
 
 }

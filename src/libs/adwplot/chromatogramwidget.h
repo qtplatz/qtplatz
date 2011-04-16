@@ -39,6 +39,7 @@ namespace adwplot {
     class Peak;
     class Baseline;
     class SeriesData;
+    class Annotation;
 
     class ChromatogramWidget : public Dataplot {
         Q_OBJECT
@@ -55,9 +56,10 @@ namespace adwplot {
     public slots:
 
     private:
+        std::vector< Annotation > annotations_;
+        std::vector< Trace > traces_;
         std::vector< Peak > peaks_;
         std::vector< Baseline > baselines_;
-        std::vector< boost::shared_ptr< SeriesData > > dataVec_;
     };
 
 }

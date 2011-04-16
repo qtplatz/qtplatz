@@ -31,6 +31,8 @@ namespace adcontrols { class MassSpectrum; }
 
 namespace adwplot {
 
+    class Trace;
+
     class SpectrumWidget : public Dataplot {
         Q_OBJECT
     public:
@@ -39,6 +41,9 @@ namespace adwplot {
         void setData( const adcontrols::MassSpectrum& );
         void setData( const adcontrols::MassSpectrum&, const adcontrols::MassSpectrum& );
         void setData( const adcontrols::MassSpectrum&, int idx, bool yaxis1 = false );
+
+    private:
+        std::map< int, std::vector< Trace > > traces_;
 
     signals:
 

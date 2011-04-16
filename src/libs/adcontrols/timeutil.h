@@ -52,7 +52,8 @@ namespace adcontrols {
         minutes_t( double t = 0 ) : minutes(t) {}
         minutes_t( const minutes_t& );
         minutes_t( const seconds_t& );
-        double minutes; operator double () const { return minutes; }
+        double minutes; 
+        operator double () const { return minutes; }
     };
 
     struct ADCONTROLSSHARED_EXPORT timeutil {

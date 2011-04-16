@@ -30,62 +30,30 @@
 
 using namespace adwplot;
 
-Traces::Traces( Dataplot& plot ) : plot_( plot )
+Traces::Traces( Dataplot& plot, vector_type& vec ) : plot_( plot ), vec_(vec)
 {
 }
 
-Traces::Traces( const Traces& t ) : plot_( t.plot_ )
+Traces::Traces( const Traces& t ) : plot_( t.plot_ ), vec_(t.vec_)
 {
 }
 
 size_t
 Traces::size() const
 {
-    return plot_.get< vector_type& >().size();
+    return vec_.size();
 }
 
 void
 Traces::clear()
 {
-    return plot_.get< vector_type& >().clear();
-}
-
-Traces::vector_type::iterator 
-Traces::begin()
-{
-    return plot_.get< vector_type& >().begin();
-}
-
-Traces::vector_type::iterator
-Traces::end()
-{
-    return plot_.get< vector_type& >().end();
-}
-
-Traces::vector_type::const_iterator
-Traces::begin() const
-{
-    return plot_.get< vector_type& >().begin();
-}
-
-Traces::vector_type::const_iterator
-Traces::end() const
-{
-    return plot_.get< vector_type& >().end();
+    return vec_.clear();
 }
 
 Trace
 Traces::add( const std::wstring& title )
 {
-    vector_type& traces = plot_.get< vector_type &>();
-    traces.push_back( Trace( plot_, qtwrapper::qstring::copy( title ) ) );
-    return traces.back();
-}
-
-Trace
-Traces::operator [] ( size_t idx )
-{
-    vector_type& traces = plot_.get< vector_type &>();
-    return traces[ idx ];
+    vec_.push_back( Trace( plot_, title ) );
+    return vec_.back();
 }
 
