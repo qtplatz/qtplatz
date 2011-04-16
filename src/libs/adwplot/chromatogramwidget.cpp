@@ -97,29 +97,48 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
     std::wstring title;
     const adcontrols::Descriptions& desc_v = c.getDescriptions();
     for ( size_t i = 0; i < desc_v.size(); ++i ) {
-        if ( i )
+        if ( ! title.empty() )
             title += L", ";
         title += desc_v[i].text();
     }
     setTitle( title );
 
-    if ( traces_.empty() )
-        traces_.push_back( Trace( *this, title ) );
+    annotations_.clear();
+    peaks_.clear();
+    baselines_.clear();
 
+    if ( traces_.empty() ) {
+        traces_.push_back( Trace( *this, title ) );
+        traces_.back().setSeriesData( new SeriesData );
+    }
     Trace& trace = traces_.back();
 
-    //--
-    SeriesData * d = new SeriesData;
+    SeriesData * d = trace.getSeriesData();
     d->setData( c );
-    trace.setSeriesData( d );
 
+    QStack<QRectF> stack;
+    stack.push_back( d->boundingRect() );
+    zoomer1_->setZoomStack( stack );
+
+#if 0
     const adcontrols::Baselines& baselines = c.baselines();
     for ( adcontrols::Baselines::vector_type::const_iterator it = baselines.begin(); it != baselines.end(); ++it )
         setBaseline( *it );
+#endif
 
     const adcontrols::Peaks& peaks = c.peaks();
     for ( adcontrols::Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it )
         setPeak( *it );
+
+    replot();
+
+#if 0
+    canvas()->invalidatePaintCache();
+    //canvas()->update( canvas()->contentsRect() );
+    canvas()->repaint( canvas()->contentsRect() );
+#endif
+
+
 }
     
 

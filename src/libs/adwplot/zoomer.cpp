@@ -28,6 +28,7 @@
 using namespace adwplot;
 
 Zoomer::Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas ) : QwtPlotZoomer( xAxis, yAxis, canvas )
+                                                               , autoYScale_( false ) 
 {
     setTrackerMode(QwtPicker::AlwaysOff);
     setRubberBand(QwtPicker::NoRubberBand);
@@ -42,4 +43,23 @@ Zoomer::Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas ) : QwtPlotZoomer( 
     setRubberBandPen( QColor(Qt::green) );
     setTrackerMode( QwtPicker::ActiveOnly );
     setTrackerPen( QColor( Qt::white ) );
+}
+
+void
+Zoomer::autoYScale( bool f )
+{
+    autoYScale_ = f;
+}
+
+void
+Zoomer::zoom( const QRectF& rect )
+{
+    if ( autoYScale_ ) {
+        QRectF rc = zoomRect();
+        rc.setLeft( rect.left() );
+        rc.setRight( rect.right() );
+        QwtPlotZoomer::zoom( rc );
+    } else {
+        QwtPlotZoomer::zoom( rect );
+    }
 }

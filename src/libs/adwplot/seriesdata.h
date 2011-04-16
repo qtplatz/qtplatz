@@ -46,7 +46,12 @@ namespace adwplot {
         // <---
         void setData( const adcontrols::Trace& );
         void setData( const adcontrols::Chromatogram& );
-        void setData( const adcontrols::MassSpectrum& );
+
+        void setData( size_t, const double* x, const double* y );
+
+        inline void set_range_x( const std::pair<double, double>& rx ) { range_x_ = rx; }
+        inline void set_range_y( const std::pair<double, double>& ry ) { range_y_ = ry; }
+        inline void push_back( const QPointF& d ) { values_.push_back( d ); }
 
     protected:
         size_t start_pos_;

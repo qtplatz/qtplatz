@@ -46,9 +46,6 @@ namespace adwplot {
 
         void setTitle( const std::wstring& );
 
-        // Traces traces();
-        // Annotations annotations();
-
         void link( Dataplot * );
         void unlink( Dataplot * );
 
@@ -73,16 +70,13 @@ namespace adwplot {
         //virtual void OnRButtonRange( double /* x1 */, double /* x2 */, double /* y1 */, double /* y2 */ ) { /* do nothing */ }
 
     signals:
-        void signalZoomXY( double x1, double y1, double x2, double y2 );
-        void signalZoomXAutoscaleY( double x1, double x2 );
 
     public slots:
-        //virtual void handleZoomXY( double x1, double y1, double x2, double y2 );
-        //virtual void handleZoomXAutoscaleY( double x1, double x2 );
+        virtual void zoom( const QRectF& );
 
     protected slots:
 
-    private:
+    protected:
         boost::scoped_ptr< Zoomer > zoomer1_;  // left bottom
         boost::scoped_ptr< Zoomer > zoomer2_;  // right top
         boost::scoped_ptr< PlotPicker > picker_;

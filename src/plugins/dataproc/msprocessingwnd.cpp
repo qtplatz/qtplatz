@@ -33,9 +33,9 @@
 #include <adutils/processeddata.h>
 #include <portfolio/folium.h>
 #include <portfolio/folder.h>
-#include <adwidgets/chromatogramwidget.h>
-#include <adwidgets/spectrumwidget.h>
-#include <adwidgets/axis.h>
+#include <adwplot/chromatogramwidget.h>
+#include <adwplot/spectrumwidget.h>
+//#include <adwidgets/axis.h>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 #include <boost/variant.hpp>
@@ -54,9 +54,9 @@ namespace dataproc {
                                   , processedSpectrum_(0) {
             }
 
-            adwidgets::ui::ChromatogramWidget * ticPlot_;
-            adwidgets::ui::SpectrumWidget * profileSpectrum_;
-            adwidgets::ui::SpectrumWidget * processedSpectrum_;
+            adwplot::ChromatogramWidget * ticPlot_;
+            adwplot::SpectrumWidget * profileSpectrum_;
+            adwplot::SpectrumWidget * processedSpectrum_;
 
         };
 
@@ -90,19 +90,19 @@ MSProcessingWnd::init()
     pImpl_.reset( new MSProcessingWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( pImpl_->ticPlot_ = new adwidgets::ui::ChromatogramWidget ) {
-            adwidgets::ui::Axis axis = pImpl_->ticPlot_->axisX();
-            axis.text( L"Time(min)" );
+        if ( pImpl_->ticPlot_ = new adwplot::ChromatogramWidget(this) ) {
+            //adwidgets::ui::Axis axis = pImpl_->ticPlot_->axisX();
+            //axis.text( L"Time(min)" );
         }
 
-        if ( pImpl_->profileSpectrum_ = new adwidgets::ui::SpectrumWidget ) {
-            adwidgets::ui::Axis axis = pImpl_->profileSpectrum_->axisX();
-            axis.text( L"m/z" );
+        if ( pImpl_->profileSpectrum_ = new adwplot::SpectrumWidget(this) ) {
+            //adwidgets::ui::Axis axis = pImpl_->profileSpectrum_->axisX();
+            //axis.text( L"m/z" );
         }
 
-        if ( pImpl_->processedSpectrum_ = new adwidgets::ui::SpectrumWidget ) {
-            adwidgets::ui::Axis axis = pImpl_->processedSpectrum_->axisX();
-            axis.text( L"m/z" );
+        if ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) {
+            //adwidgets::ui::Axis axis = pImpl_->processedSpectrum_->axisX();
+            //axis.text( L"m/z" );
         }
         splitter->addWidget( pImpl_->ticPlot_ );
         splitter->addWidget( pImpl_->profileSpectrum_ );

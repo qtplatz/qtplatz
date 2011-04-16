@@ -36,22 +36,24 @@
 #     pragma comment(lib, "adutilsd.lib")      // static
 #     pragma comment(lib, "adinterfaced.lib")  // static
 #     pragma comment(lib, "adportabled.lib")   // staitc
+#     pragma comment(lib, "adwplotd.lib")
 #     pragma comment(lib, "acewrapperd.lib")   // static
 #     pragma comment(lib, "qtwrapperd.lib")    // static
 #     pragma comment(lib, "xmlwrapperd.lib")   // static
 #     pragma comment(lib, "adplugind.lib")     // dll
-#     pragma comment(lib, "QAxContainerd.lib")
+#     pragma comment(lib, "qwtd.lib")
 #else
 #     pragma comment(lib, "adcontroller.lib")
 #     pragma comment(lib, "adcontrols.lib")    // static
 #     pragma comment(lib, "adutils.lib")       // static
 #     pragma comment(lib, "adinterface.lib")   // static
 #     pragma comment(lib, "adportable.lib")    // static
+#     pragma comment(lib, "adwplotd.lib")
 #     pragma comment(lib, "acewrapper.lib")    // static
 #     pragma comment(lib, "qtwrapper.lib")     // static
 #     pragma comment(lib, "xmlwrapper.lib")    // static
 #     pragma comment(lib, "adplugin.lib")      // dll
-#     pragma comment(lib, "QAxContainer.lib")
+#     pragma comment(lib, "qwt.lib")
 #endif
 
 #if defined ACE_WIN32

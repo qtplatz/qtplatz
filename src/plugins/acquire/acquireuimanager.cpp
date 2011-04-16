@@ -31,7 +31,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
 
-#include <adwidgets/dataplot.h>
+#include <adwplot/dataplot.h>
 #include <QDockWidget>
 #include <utils/fancymainwindow.h>
 #include <utils/styledbar.h>

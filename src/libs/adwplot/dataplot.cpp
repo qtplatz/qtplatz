@@ -51,11 +51,20 @@ Dataplot::setTitle( const std::wstring& title )
     QwtPlot::setTitle( qtwrapper::qstring( title ) );
 }
 
-/*
-Traces
-Dataplot::traces()
+void
+Dataplot::zoom( const QRectF& rect )
 {
-    return Traces( *this );
+    if ( zoomer1_ )
+        zoomer1_->zoom( rect );
 }
-*/
+
+void
+Dataplot::link( Dataplot * p )
+{
+    connect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), p, SLOT( zoom( const QRectF& ) ) );}
+
+void
+Dataplot::unlink( Dataplot * p )
+{
+    disconnect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), p, SLOT( zoom( const QRectF& ) ) );}
 

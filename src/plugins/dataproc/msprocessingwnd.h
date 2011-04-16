@@ -31,10 +31,6 @@
 #include <map>
 #include <boost/variant.hpp>
 
-namespace adwidgets {
-    // class MassSpectrum;
-}
-
 namespace adcontrols {
     class MassSpectrum;
     class Chromatogram;

@@ -30,9 +30,9 @@
 #include <portfolio/folium.h>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
-#include <adwidgets/chromatogramwidget.h>
-#include <adwidgets/spectrumwidget.h>
-#include <adwidgets/axis.h>
+#include <adwplot/chromatogramwidget.h>
+#include <adwplot/spectrumwidget.h>
+//#include <adwidgets/axis.h>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
 
@@ -50,9 +50,9 @@ namespace dataproc {
                 , drawIdx_(0) {
             }
       
-            adwidgets::ui::ChromatogramWidget * ticPlot_;
-            adwidgets::ui::SpectrumWidget * profileSpectrum_;
-            adwidgets::ui::SpectrumWidget * processedSpectrum_;
+            adwplot::ChromatogramWidget * ticPlot_;
+            adwplot::SpectrumWidget * profileSpectrum_;
+            adwplot::SpectrumWidget * processedSpectrum_;
             size_t drawIdx_;
         };
 
@@ -84,7 +84,7 @@ ElementalCompWnd::init()
     pImpl_.reset( new ElementalCompWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( pImpl_->processedSpectrum_ = new adwidgets::ui::SpectrumWidget ) {
+        if ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) {
             splitter->addWidget( pImpl_->processedSpectrum_ );
             splitter->setOrientation( Qt::Vertical );
         }

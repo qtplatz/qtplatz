@@ -76,7 +76,7 @@ Trace::setData( const double * xData, const double * yData, size_t size )
 void
 Trace::setSeriesData( SeriesData* d )
 {
-    data_ = d;  // curve_ will delete this pointer.
+    data_ = d;  // don't delete data_.  QwtPlotCurve will delete.
     curve_->setData( data_ );
 }
 

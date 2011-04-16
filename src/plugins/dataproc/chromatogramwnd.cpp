@@ -37,10 +37,12 @@
 #include <qtwrapper/qstring.h>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
-#include <adwidgets/chromatogramwidget.h>
-#include <adwidgets/spectrumwidget.h>
-#include <adwidgets/axis.h>
+//#include <adwidgets/chromatogramwidget.h>
+//#include <adwidgets/spectrumwidget.h>
+//#include <adwidgets/axis.h>
 #include <adwidgets/peakresultwidget.h>
+#include <adwplot/chromatogramwidget.h>
+#include <adwplot/spectrumwidget.h>
 
 using namespace dataproc;
 using namespace dataproc::internal;
@@ -58,7 +60,7 @@ namespace dataproc {
                                   , peakWidget_(0) {
             }
             void setData( const adcontrols::Chromatogram&, const QString& );
-            adwidgets::ui::ChromatogramWidget * chroWidget_;
+            adwplot::ChromatogramWidget * chroWidget_;
             adwidgets::ui::PeakResultWidget * peakWidget_;
         };
 
@@ -94,7 +96,7 @@ ChromatogramWnd::init()
     pImpl_.reset( new ChromatogramWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( pImpl_->chroWidget_ = new adwidgets::ui::ChromatogramWidget ) {
+        if ( pImpl_->chroWidget_ = new adwplot::ChromatogramWidget( this ) ) {
             splitter->addWidget( pImpl_->chroWidget_ );
             pImpl_->peakWidget_ = new adwidgets::ui::PeakResultWidget;
             splitter->addWidget( pImpl_->peakWidget_ );

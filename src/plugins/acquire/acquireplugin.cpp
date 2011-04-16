@@ -28,10 +28,8 @@
 #include "acquiremode.h"
 #include "acquireuimanager.h"
 #include "acquireactions.h"
-#include <adwidgets/dataplotwidget.h>
-#include <adwidgets/spectrumwidget.h>
-#include <adwidgets/chromatogramwidget.h>
-#include <adwidgets/axis.h>
+#include <adwplot/chromatogramwidget.h>
+#include <adwplot/spectrumwidget.h>
 #include <adplugin/adplugin.h>
 #include <adplugin/orbmanager.h>
 #include <adplugin/qreceiver_i.h>
@@ -79,12 +77,12 @@
 #include <qtwrapper/qstring.h>
 #include <adinterface/eventlog_helper.h>
 
-#include <adwidgets/titles.h>
-#include <adwidgets/title.h>
-#include <adwidgets/dataplot.h>
-#include <adwidgets/traces.h>
-#include <adwidgets/trace.h>
-#include <adwidgets/colors.h>
+//#include <adwidgets/titles.h>
+//#include <adwidgets/title.h>
+//#include <adwidgets/dataplot.h>
+//#include <adwidgets/traces.h>
+//#include <adwidgets/trace.h>
+//#include <adwidgets/colors.h>
 #include <adcontrols/massspectrum.h>
 #include <adcontrols/msproperty.h>
 #include <adcontrols/description.h>
@@ -120,8 +118,8 @@ namespace Acquire {
             Broker::Session_var brokerSession_;
 
             std::map< std::wstring, adcontrols::Trace > traces_;
-            adwidgets::ui::ChromatogramWidget * timePlot_;
-            adwidgets::ui::SpectrumWidget * spectrumPlot_;
+            adwplot::ChromatogramWidget * timePlot_;
+            adwplot::SpectrumWidget * spectrumPlot_;
             QIcon icon_;
             void loadIcon() {
                 icon_.addFile( Constants::ICON_CONNECT );
@@ -325,8 +323,8 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
         Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
         if ( splitter3 ) {
-            pImpl_->timePlot_ = new adwidgets::ui::ChromatogramWidget;
-            pImpl_->spectrumPlot_ = new adwidgets::ui::SpectrumWidget;
+            pImpl_->timePlot_ = new adwplot::ChromatogramWidget;
+            pImpl_->spectrumPlot_ = new adwplot::SpectrumWidget;
 
             splitter3->addWidget( pImpl_->timePlot_ );
             splitter3->addWidget( pImpl_->spectrumPlot_ );

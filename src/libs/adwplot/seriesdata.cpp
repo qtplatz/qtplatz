@@ -54,12 +54,9 @@ SeriesData::sample( size_t i ) const
 QRectF
 SeriesData::boundingRect() const
 {
-    double left = range_x_.first;
-    double top = range_y_.second;
-    double width = range_x_.second - range_x_.first;
-    double height = range_y_.second - range_y_.first;
-
-    return QRectF( left, top, width, height );
+    QRectF rect;
+    rect.setCoords( range_x_.first, range_y_.first, range_x_.second, range_y_.second );
+    return rect;
 }
 
 void
@@ -99,13 +96,9 @@ SeriesData::setData( const adcontrols::Chromatogram& c )
 }
 
 void
-SeriesData::setData( const adcontrols::MassSpectrum& ms )
+SeriesData::setData( size_t size, const double * x, const double * y )
 {
-    range_x_ = ms.getAcquisitionMassRange();
-    range_y_ = std::pair<double, double>( ms.getMinIntensity(), ms.getMaxIntensity() );
-    const size_t size = ms.size();
-    const double * x = ms.getMassArray();
-    const double * y = ms.getIntensityArray();
+    values_.resize( size );
     for ( size_t i = 0; i < size; ++i )
         values_[i] = QPointF( x[i], y[i] );
 }

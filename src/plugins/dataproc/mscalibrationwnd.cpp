@@ -28,10 +28,8 @@
 #include <portfolio/folder.h>
 #include <adcontrols/massspectrum.h>
 #include <adcontrols/mscalibrateresult.h>
-#include <adwidgets/spectrumwidget.h>
+#include <adwplot/spectrumwidget.h>
 #include <adutils/processeddata.h>
-#include <adwidgets/dataplot.h>
-#include <adwidgets/axis.h>
 
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
@@ -53,8 +51,8 @@ namespace dataproc {
                                    , calibSummaryWidget_(0)  {
             }
 
-            adwidgets::ui::SpectrumWidget * profileSpectrum_;
-            adwidgets::ui::SpectrumWidget * processedSpectrum_;
+            adwplot::SpectrumWidget * profileSpectrum_;
+            adwplot::SpectrumWidget * processedSpectrum_;
             QWidget * calibSummaryWidget_;
 
         };
@@ -85,10 +83,7 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
         // spectrum on top
-        if ( pImpl_->processedSpectrum_ = new adwidgets::ui::SpectrumWidget ) {
-            adwidgets::ui::Axis axis = pImpl_->processedSpectrum_->axisX();
-            axis.text( L"m/z" );
-        }
+        pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this);
         splitter->addWidget( pImpl_->processedSpectrum_ );
 
         // summary table
