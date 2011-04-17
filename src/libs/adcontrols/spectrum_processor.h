@@ -25,25 +25,17 @@
 
 #pragma once
 
-namespace adportable {
+#include <vector>
 
-    class TraceMethod;
-    class TOFContinuumMassArray;
-    class SpectrumPeakInfo;
+namespace adcontrols {   namespace internal {
 
     class spectrum_processor {
     public:
-        spectrum_processor();
         static double tic( unsigned int nbrSamples, const long * praw, double& dbase, double& sd );
-        static double area( const TraceMethod&, const long * praw, size_t nbrSamples, size_t nbrAverage, const double& baseH );
-        static double resolving_power( SpectrumPeakInfo&
-                                     , const TOFContinuumMassArray&
-                                     , const TraceMethod&
-                                     , const long * data
-                                     , size_t nbrSamples
-                                     , const double& baase
-                                     , const double& mh ); 
+        static double tic( unsigned int nbrSamples, const double * praw, double& dbase, double& sd );
+        static size_t findpeaks( size_t nbrSamples, const double * intens, double dbase, std::vector< std::pair<int, int> >& );
     };
-
+	
+}								 
 }
 

@@ -77,12 +77,6 @@
 #include <qtwrapper/qstring.h>
 #include <adinterface/eventlog_helper.h>
 
-//#include <adwidgets/titles.h>
-//#include <adwidgets/title.h>
-//#include <adwidgets/dataplot.h>
-//#include <adwidgets/traces.h>
-//#include <adwidgets/trace.h>
-//#include <adwidgets/colors.h>
 #include <adcontrols/massspectrum.h>
 #include <adcontrols/msproperty.h>
 #include <adcontrols/description.h>
@@ -479,6 +473,7 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
     adcontrols::MassSpectrum ms;
     size_t idData = 0;
     while ( dataInterpreter.translate( ms, rb, spectrometer, idData++ ) ) {
+#ifdef CENTROID
         adcontrols::CentroidMethod method;
         method.centroidAreaIntensity( false ); // take hight
         adcontrols::CentroidProcess peak_detector( method );
@@ -486,6 +481,9 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
         adcontrols::MassSpectrum centroid;
         peak_detector.getCentroidSpectrum( centroid );
         pImpl_->spectrumPlot_->setData( ms, centroid );
+#else
+        pImpl_->spectrumPlot_->setData( ms, 0 );
+#endif
 
 #  ifdef FFT
         adcontrols::MassSpectrum ms2 = ms;

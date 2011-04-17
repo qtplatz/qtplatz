@@ -59,7 +59,7 @@ namespace adcontrols {
     struct ADCONTROLSSHARED_EXPORT timeutil {
         static minutes_t toMinutes( const seconds_t& );
         static seconds_t toSeconds( const minutes_t& );
-        std::pair<double, double> toMinutes( const std::pair<seconds_t, seconds_t>& pair );
+        static std::pair<double, double> toMinutes( const std::pair<seconds_t, seconds_t>& pair );
     };
 
 }

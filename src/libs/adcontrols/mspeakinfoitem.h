@@ -34,14 +34,16 @@ namespace adcontrols {
         ~MSPeakInfoItem(void);
         MSPeakInfoItem(void);
         MSPeakInfoItem( const MSPeakInfoItem& );
-        MSPeakInfoItem( double mass, double area, double height, double hh, double time );
+        MSPeakInfoItem( unsigned int idx, double mass, double area, double height, double hh, double time );
         double mass() const;
         double area() const;
         double height() const;
         double widthHH() const;
         double time() const;
+        unsigned int index() const;
 
     private:
+        unsigned int index_;
         double mass_;
         double area_;
         double height_;

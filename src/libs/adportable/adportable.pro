@@ -40,4 +40,5 @@ HEADERS += adportable.h \
     cache.h \
     float.hpp \
     polfit.h \
-    posix_path.h
+    posix_path.h \
+    differential.h

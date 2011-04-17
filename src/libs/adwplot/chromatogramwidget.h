@@ -41,6 +41,8 @@ namespace adwplot {
     class SeriesData;
     class Annotation;
 
+    namespace chromatogram_internal { class TraceData; }
+
     class ChromatogramWidget : public Dataplot {
         Q_OBJECT
     public:
@@ -57,7 +59,7 @@ namespace adwplot {
 
     private:
         std::vector< Annotation > annotations_;
-        std::vector< Trace > traces_;
+        std::vector< chromatogram_internal::TraceData > traces_;
         std::vector< Peak > peaks_;
         std::vector< Baseline > baselines_;
     };

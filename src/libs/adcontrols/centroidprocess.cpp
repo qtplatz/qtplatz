@@ -25,12 +25,12 @@
 
 #include "centroidprocess.h"
 #include "centroidmethod.h"
-#include "import_sacontrols.h"
 #include "samassspectrum.h"
 #include "massspectrum.h"
 #include "msproperty.h"
 #include "mspeakinfoitem.h"
 #include "description.h"
+#include "spectrum_processor.h"
 #include <adportable/array_wrapper.hpp>
 #include <vector>
 #include <algorithm>
@@ -38,17 +38,12 @@
 #include <sstream>
 #include <cmath>
 #include <adportable/moment.hpp>
+#include <adportable/differential.hpp>
+#include <adportable/array_wrapper.hpp>
 
-/*
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/version.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/base_object.hpp>
-*/
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-
+#include <boost/foreach.hpp>
 
 using namespace adcontrols;
 
@@ -66,6 +61,7 @@ namespace adcontrols {
             void setup( const MassSpectrum& );
 			void copy( MassSpectrum& );
 			const CentroidMethod& method() const { return method_; }
+            void findpeaks( const MassSpectrum& profile );
 
 			// result
             std::vector< MSPeakInfoItem > info_;
@@ -105,53 +101,24 @@ CentroidProcess::operator()( const MassSpectrum& profile )
 {
     pImpl_->clear();
 	pImpl_->setup( profile );
+    pImpl_->findpeaks( profile );
+    //const double * masses = profile.getMassArray();
+    //const double * intens = profile.getIntensityArray();
+/*
+    for ( size_t i = 0; i < nSize; ++i ) {
+        piItem = piInfo->Item[ i + 1 ];
+        double mass = piItem->GetPeakAreaWeightedMass();
+        double area = piItem->GetPeakArea();
+        double height = piItem->GetPeakHeight();
+        double hh = piItem->GetPeakWidthHH();
+        long spos = piItem->GetPeakStartIndex();
+        long epos = piItem->GetPeakEndIndex();
 
-	CComPtr<SACONTROLSLib::ISAMSPeakDetect2> pi;
-	if ( pi.CoCreateInstance( SACONTROLSLib::CLSID_SAMSPeakDetect ) != S_OK )
-		return false;
-	setup( pi, pImpl_->method() );
+        it = std::lower_bound( it, masses.end(), mass );
+        size_t tpos = std::distance( masses.begin(), it );
 
-    CComPtr<SACONTROLSLib::ISAMassSpectrum5> pims;
-    if ( pims.CoCreateInstance( SACONTROLSLib::CLSID_SAMassSpectrum ) != S_OK )
-        return false;
-
-    internal::SAMassSpectrum::copy( pims, profile );
-    do {
-        try {
-            CComQIPtr< SACONTROLSLib::ISAMassSpectrum > piMS = pims;
-            if ( pi->Detect( piMS ) != S_OK )
-                return false;
-        } catch ( _com_error & ) {
-            return false;
-        }
-    } while(0);
-
-	CComPtr< SACONTROLSLib::ISAMSPeakInformation2 > piInfo = pi->PeakInformation2;
-    size_t nSize = piInfo->Count;
-
-    if ( nSize ) {
-		CComPtr< SACONTROLSLib::ISAMSPeakInformationItem2 > piItem;
-
-        adportable::array_wrapper<const double> masses( profile.getMassArray(), profile.size() );
-        adportable::array_wrapper<const double>::const_iterator it = masses.begin();
-        const double sampInterval = profile.getMSProperty().instSamplingInterval() * 1.0e-12;  // ps -> s
-        const unsigned long startDelay = profile.getMSProperty().instSamplingStartDelay();
-        
-        for ( size_t i = 0; i < nSize; ++i ) {
-            piItem = piInfo->Item[ i + 1 ];
-            double mass = piItem->GetPeakAreaWeightedMass();
-            double area = piItem->GetPeakArea();
-            double height = piItem->GetPeakHeight();
-            double hh = piItem->GetPeakWidthHH();
-            long spos = piItem->GetPeakStartIndex();
-            long epos = piItem->GetPeakEndIndex();
-
-            it = std::lower_bound( it, masses.end(), mass );
-            size_t tpos = std::distance( masses.begin(), it );
-
-            double t1 = double( startDelay + tpos - 1 ) * sampInterval;
-            double tt = t1 + sampInterval * ( mass - *(it - 1) ) / ( *it - *(it - 1) );
-
+        double t1 = double( startDelay + tpos - 1 ) * sampInterval;
+        double tt = t1 + sampInterval * ( mass - *(it - 1) ) / ( *it - *(it - 1) );
             // validation
 #if defined _DEBUG && 0
             double cx(0);
@@ -179,6 +146,7 @@ CentroidProcess::operator()( const MassSpectrum& profile )
             pImpl_->info_.push_back( MSPeakInfoItem( mass, area, height, hh, tt ) );
         }
     }
+*/
     return true;
 }
 
@@ -204,30 +172,6 @@ CentroidProcess::getCentroidSpectrum( MassSpectrum& ms )
         return true;
     }
     return false;
-}
-
-void
-CentroidProcess::setup( SACONTROLSLib::ISAMSPeakDetect* pi, const CentroidMethod& method )
-{
-	if ( method.centroidAreaIntensity() )
-		pi->SetCentroidAreaIntensity();
-	else
-		pi->SetCentroidHeightIntensity();
-
-	switch(method.peakWidthMethod()) {
-	case CentroidMethod::ePeakWidthTOF:
-		pi->SetTOFPeakWidth( method.rsTofInDa(), method.rsTofAtMz() );
-		break;
-	case CentroidMethod::ePeakWidthProportional:
-		pi->SetppmPeakWidth( method.rsPropoInPpm() );
-		break;
-	case CentroidMethod::ePeakWidthConstant:
-		pi->SetDaPeakWidth( method.rsConstInDa() );
-		break;
-	}
-	pi->SetBaselineWidth( method.baselineWidth() );
-	pi->SetAttenuation( method.attenuation() );
-	pi->SetPeakCentroidFraction( method.peakCentroidFraction() );
 }
 
 /////////////////////////
@@ -263,4 +207,32 @@ CentroidProcessImpl::copy( MassSpectrum& ms )
 {
 	ms.clone( clone_, false );
 	ms.addDescription( desc_ );
+}
+
+void
+CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
+{
+    using adportable::differential;
+    using internal::spectrum_processor;
+
+    double base = 0, sd = 0;
+    spectrum_processor::tic( profile.size(), profile.getIntensityArray(), base, sd );
+
+    typedef std::pair<int, int> index_pair;
+    std::vector< index_pair > peakindex;
+    spectrum_processor::findpeaks( profile.size(), profile.getIntensityArray(), base, peakindex );
+
+    adportable::array_wrapper<const double> intens( profile.getIntensityArray(), profile.size() );
+    adportable::array_wrapper<const double> masses( profile.getMassArray(), profile.size() );
+   
+    BOOST_FOREACH( index_pair pair, peakindex ) {
+        adportable::array_wrapper<const double>::iterator it = 
+            std::max_element( intens.begin() + pair.first, intens.begin() + pair.second );
+        double h = *it;
+        size_t idx = std::distance( intens.begin(), it );
+        double t = ( profile.getMSProperty().instSamplingInterval() * ( profile.getMSProperty().instSamplingStartDelay() + idx ) ) * 1.0e12;
+        MSPeakInfoItem item( idx, masses[idx], h - base, h - base, 0, t );
+
+    }
+
 }

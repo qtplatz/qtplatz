@@ -228,10 +228,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\spectrum_processor.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\string.cpp"
 				>
 			</File>
@@ -348,6 +344,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\differential.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\fft.h"
 				>
 			</File>
@@ -448,10 +448,6 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\spectrum_processor.h"
-				>
 			</File>
 			<File
 				RelativePath=".\string.h"

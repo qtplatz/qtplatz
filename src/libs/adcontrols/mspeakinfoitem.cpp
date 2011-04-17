@@ -18,11 +18,13 @@ MSPeakInfoItem::MSPeakInfoItem(void) : mass_(0)
 {
 }
 
-MSPeakInfoItem::MSPeakInfoItem( double mass
+MSPeakInfoItem::MSPeakInfoItem( unsigned int index
+                               , double mass
                                , double area
                                , double height
                                , double hh
-                               , double time ) : mass_(mass)
+                               , double time ) : index_( index )
+                                               , mass_(mass)
                                                , area_(area)
                                                , height_(height)
                                                , hh_(hh)
@@ -30,13 +32,20 @@ MSPeakInfoItem::MSPeakInfoItem( double mass
 {
 }  
 
-MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t ) : mass_( t.mass_ )
+MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t ) : index_( t.index_ )
+                                                          , mass_( t.mass_ )
                                                           , area_( t.area_ )
                                                           , height_( t.height_ )
                                                           , hh_( t.hh_ )
                                                           , time_( t.time_ ) 
 {
 }  
+
+unsigned int
+MSPeakInfoItem::index() const
+{
+    return index_;
+}
 
 double
 MSPeakInfoItem::mass() const

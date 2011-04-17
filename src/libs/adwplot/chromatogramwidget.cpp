@@ -26,11 +26,12 @@
 #include "chromatogramwidget.h"
 #include "annotation.h"
 #include "annotations.h"
-#include "trace.h"
-#include "traces.h"
+//#include "trace.h"
+//#include "traces.h"
 #include "zoomer.h"
 #include "peak.h"
 #include "baseline.h"
+#include "plotcurve.h"
 #include "plotpicker.h"
 #include "plotpanner.h"
 #include "seriesdata.h"
@@ -44,8 +45,53 @@
 #include <adcontrols/description.h>
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
+#include <boost/smart_ptr.hpp>
+#include <queue>
 
 using namespace adwplot;
+
+namespace adwplot { namespace chromatogram_internal {
+
+    class SeriesData : public QwtSeriesData<QPointF> {
+    public:
+        virtual ~SeriesData() {
+        }
+        SeriesData( const QVector< QPointF >& v, const QRectF& rc ) : v_( v ), rect_(rc) {
+        }
+        SeriesData( const SeriesData& t ) : v_( t.v_ ) {
+        }
+        // implements QwtSeriesData<>
+        virtual size_t size() const { return v_.size(); }
+        virtual QPointF sample( size_t idx ) const { return v_[ idx ]; }
+        virtual QRectF boundingRect() const { return rect_; }
+        void boundingRect( const QRectF& rc ) { rect_ = rc; }
+    private:
+        QRectF rect_;
+        const QVector< QPointF >& v_;
+    };
+
+    struct SeriesDataImpl {
+        QVector< QPointF > d_;
+        SeriesData * series_;  // for real time trace
+        SeriesDataImpl() : series_(0) {}
+    };
+
+    class TraceData {
+    public:
+        TraceData( Dataplot& plot ) : curve_( plot ) {
+        }
+        TraceData( const TraceData& t ) : data_( t.data_ ), curve_( t.curve_ ) {
+        }
+        void setData( const adcontrols::Chromatogram& );
+        void setData( const adcontrols::Trace& );
+    private:
+        PlotCurve curve_;
+        SeriesDataImpl data_;
+    };
+  
+
+}
+}
 
 ChromatogramWidget::ChromatogramWidget(QWidget *parent) :
     Dataplot(parent)
@@ -60,36 +106,15 @@ ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
     if ( d.size() < 2 )
         return;
 
+    using chromatogram_internal::TraceData;
+
     while ( int( traces_.size() ) <= idx )
-        traces_.push_back( Trace( *this, L"trace" ) );
+        traces_.push_back( TraceData( *this ) );  // create QwtPlotCurve & Data
 
-    Trace& trace = traces_[ idx ];
-    if ( ! trace.getSeriesData() )
-        trace.setSeriesData( new SeriesData );
+    TraceData& trace = traces_[ idx ];
+    trace.setData( d );
 
-    trace.getSeriesData()->setData( d );
-
-    canvas()->invalidatePaintCache();
-    canvas()->update( canvas()->contentsRect() );
-
-/*
-    std::pair<double, double> xrange( pX[0], pX[ d.size() - 1 ] );
-    std::pair<double, double> yrange = d.range_y();
-    display_range_x( xrange );
-    display_range_y( yrange );
-
-    adwidgets::ui::Trace trace = traces()[idx];
-
-    trace.setXYDirect( d.size(), pX, pY );
-    Markers markers = trace.markers();
-    markers.style( MS_Circle );
-    markers.visible( true );
-    trace.visible(true);
-    traces().visible(true);
-
-    std::wostringstream o;
-    o << L"Chromatogram: " << display_range_x().second << L" min";
-*/
+    replot();
 }
 
 void
@@ -100,27 +125,14 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
     baselines_.clear();
     traces_.clear();
 
-    std::wstring title;
-    const adcontrols::Descriptions& desc_v = c.getDescriptions();
-    for ( size_t i = 0; i < desc_v.size(); ++i ) {
-        if ( ! title.empty() )
-            title += L", ";
-        title += desc_v[i].text();
-    }
-    setTitle( title );
+    using chromatogram_internal::TraceData;
 
-    if ( traces_.empty() ) {
-        traces_.push_back( Trace( *this, L"Chromatogram" ) );
-        traces_.back().setSeriesData( new SeriesData );
-    }
-    Trace& trace = traces_.back();
+    traces_.push_back( TraceData( *this ) );
+    TraceData& trace = traces_.back();
 
-    SeriesData * d = trace.getSeriesData();
-    d->setData( c );
+    trace.setData( c );
 
-    QStack<QRectF> stack;
-    stack.push_back( d->boundingRect() );
-    zoomer1_->setZoomStack( stack );
+    const double * intens = c.getIntensityArray();
 
 #if 0
     const adcontrols::Baselines& baselines = c.baselines();
@@ -132,7 +144,11 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
     for ( adcontrols::Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it )
         setPeak( *it );
 
-    replot();
+    std::pair< double, double > time_range = adcontrols::timeutil::toMinutes( c.timeRange() );
+    setAxisScale( QwtPlot::xBottom, time_range.first, time_range.second );
+    setAxisScale( QwtPlot::yLeft, intens[ c.min_element() ], intens[ c.max_element() ] );
+    zoomer1_->setZoomBase();
+    // replot();
 }
     
 
@@ -159,3 +175,52 @@ ChromatogramWidget::setBaseline( const adcontrols::Baseline& bs )
     baselines_.push_back( adwplot::Baseline( *this, bs ) );
 }
 
+using namespace adwplot::chromatogram_internal;
+
+void
+TraceData::setData( const adcontrols::Chromatogram& c )
+{
+    const double * intens = c.getIntensityArray();
+    const double * times = c.getTimeArray();
+    const size_t size = c.size();
+
+    data_.d_.resize( size );
+
+    if ( times ) {
+        for ( size_t i = 0; i < size; ++i )
+            data_.d_[i] = QPointF( adcontrols::Chromatogram::toMinutes( times[i] ), intens[i] );
+    } else {
+        for ( size_t i = 0; i < size; ++i )
+            data_.d_[i] = QPointF( adcontrols::Chromatogram::toMinutes( c.timeFromDataIndex( i ) ), intens[i] );
+    }
+
+    QRectF rect;
+    std::pair< double, double > time_range = adcontrols::timeutil::toMinutes( c.timeRange() );
+
+    rect.setCoords( time_range.first, intens[ c.min_element() ], time_range.second, intens[ c.max_element() ] );
+
+    curve_.p()->setData( new SeriesData( data_.d_, rect ) );
+
+}
+
+void
+TraceData::setData( const adcontrols::Trace& trace )
+{
+    if ( trace.size() <= 2 )
+        return;
+
+    const double *x = trace.getTimeArray();
+    const double *y = trace.getIntensityArray();
+    size_t current_size = data_.d_.size();
+
+    for ( size_t i = current_size; i < trace.size(); ++i )
+        data_.d_.push_back( QPointF( adcontrols::timeutil::toMinutes( x[i] ), y[i] ) );
+
+    QRectF rect;
+    rect.setCoords( data_.d_[0].x(), trace.range_y().first, data_.d_[ data_.d_.size() - 1 ].x(), trace.range_y().second );
+    if ( ! data_.series_ ) {
+        data_.series_ = new SeriesData( data_.d_, rect );
+        curve_.p()->setData( data_.series_ );
+    }
+    data_.series_->boundingRect( rect );
+}

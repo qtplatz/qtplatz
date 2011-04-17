@@ -83,6 +83,9 @@ namespace adwplot { namespace internal {
 
     class TraceData {
     public:
+        TraceData() {}
+        TraceData( const TraceData& t ) : curves_( t.curves_ ), dataMap_( t.dataMap_ ) {
+        }
         void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms );
         typedef std::map< int, SeriesDataImpl > map_type;
     private:
@@ -116,13 +119,16 @@ SpectrumWidget::zoom( const QRectF& rect )
 }
 
 void
-SpectrumWidget::setData( const adcontrols::MassSpectrum& )
+SpectrumWidget::setData( const adcontrols::MassSpectrum& ms )
 {
+    setData( ms, 0, false );
 }
 
 void
-SpectrumWidget::setData( const adcontrols::MassSpectrum&, const adcontrols::MassSpectrum& )
+SpectrumWidget::setData( const adcontrols::MassSpectrum& ms1, const adcontrols::MassSpectrum& ms2 )
 {
+    setData( ms1, 0, false );
+    setData( ms2, 1, true );
 }
 
 void
@@ -136,57 +142,19 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
     TraceData& trace = traces_[ idx ];
     trace.setData( *this, ms );
 
-    QRectF rect;
-    rect.setCoords( ms.getAcquisitionMassRange().first, ms.getMinIntensity(), ms.getAcquisitionMassRange().second, ms.getMaxIntensity() );
-    zoomer1_->setZoomBase( rect );
+    setAxisScale( QwtPlot::xBottom, ms.getAcquisitionMassRange().first, ms.getAcquisitionMassRange().second );
+    setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, ms.getMinIntensity(), ms.getMaxIntensity() );
 
-    replot();
-/*
-    this->display_range_x( xrange );
-	if ( yaxis2 ) {
-		display_range_y2( drange );
-		trace.YAxis( Trace::Y2 );
-		axisY2().visible( true );
-	} else {
-		display_range_y( drange );
-		trace.YAxis( Trace::Y1 );
-	}
-*/
-    /*
-    trace.colorIndex( 1 + idx );
-    if ( ms.isCentroid() ) {
-        trace.traceStyle( Trace::TS_Stick );
-        trace.autoAnnotation( true );
-        adwidgets::ui::Annotations anno = trace.annotations();
-        anno.annotateX( true );
-        anno.annotateY( true );
-        anno.decimalsX( 5 );
-        anno.decimalsY( 0 );
-        anno.visible( true );
-    } else { 
-        trace.traceStyle( Trace::TS_Connected );
-        trace.autoAnnotation( false );
-    }
-    trace.setXYDirect( ms.size(), ms.getMassArray(), ms.getIntensityArray() );
+    zoomer1_->setZoomBase();
+    // todo: annotations
 
-    const unsigned char * pColors = ms.getColorArray();
-    if ( pColors ) {
-        const size_t count = ms.size();
-        boost::scoped_array< short > pColorIndices( new short [ count ] );
-        for ( size_t i = 0; i < count; ++i ) {
-            short color = pColors[ i ] ? pColors[ i ] + getColorIndex( adwidgets::ui::CI_MSTarget ) : idx;
-            pColorIndices[ i ] = color;
-        }
-        trace.setColorIndicesDirect( count, pColorIndices.get() );
-    }
-
-    trace.visible( true );
-    traces().visible( true );
-*/
+    // replot();
 }
 
 //////////////////////////////////////////////////////////////////////////
-//
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
 using namespace adwplot::internal;
 
 void
@@ -226,43 +194,4 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
         dataMap_[ 0 ].setData( size, masses, intens );
         curve.p()->setData( new SeriesData( dataMap_[ 0 ].d_, rect ) );
     }
-
-/*
-    if ( ms.isCentroid() ) {
-        const unsigned char * colors = ms.getColorArray();
-        for ( size_t i = 0; i < size; ++i ) {
-            int color = colors ? colors[i] : 0;
-            if ( data_.find( color ) == data_.end() ) {
-                SeriesData * d = new SeriesData;
-                d->set_range_x( ms.getAcquisitionMassRange() );
-                d->set_range_y( std::pair<double, double>( ms.getMinIntensity(), ms.getMaxIntensity() ) );
-                data_[ color ] = d;
-            }
-            data_[ color ]->push_back( QPointF( masses[i], intens[i] ) );
-        }
-        BOOST_FOREACH( const map_type::value_type& pair, data_ ) {
-            Trace trace( plot, L"" );
-            QwtPlotCurve * curve = trace;
-            if ( pair.first != 0 && pair.first < sizeof( color_table ) / sizeof( color_table[0] ) )
-                curve->setPen( QPen( color_table[ pair.first ] ) );
-            trace.setSeriesData( pair.second );
-            trace.setStyle( Trace::Sticks );
-            traces_.push_back( trace );
-        }
-    } else {
-        for ( size_t i = 0; i < size; ++i ) {
-            if ( data_.find( 0 ) == data_.end() ) {
-                SeriesData * d = new SeriesData;
-                d->set_range_x( ms.getAcquisitionMassRange() );
-                d->set_range_y( std::pair<double, double>( ms.getMinIntensity(), ms.getMaxIntensity() ) );
-                data_[ 0 ] = d;
-            }
-        }
-        SeriesData * d = data_[ 0 ];
-        d->setData( size, masses, intens );
-        Trace trace( plot, L"" );
-        trace.setSeriesData( d );
-        traces_.push_back( trace );
-    }
-*/
 }
