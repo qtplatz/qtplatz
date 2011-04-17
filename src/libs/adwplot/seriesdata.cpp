@@ -35,6 +35,11 @@ SeriesData::SeriesData() : start_pos_(0)
     values_.reserve( 1024 * 8 ); // 8k
 }
 
+SeriesData::SeriesData( const SeriesData & t ) : start_pos_( t.start_pos_ )
+                                               , values_( t.values_ ) 
+{
+}
+
 size_t
 SeriesData::size() const
 {

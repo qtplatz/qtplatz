@@ -211,6 +211,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\plotcurve.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\plotpanner.cpp"
 				>
 			</File>
@@ -363,6 +367,32 @@
 			<File
 				RelativePath=".\peak.h"
 				>
+			</File>
+			<File
+				RelativePath=".\plotcurve.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description=""
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description=""
+						CommandLine=""
+						AdditionalDependencies=""
+						Outputs=""
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\plotpanner.h"

@@ -23,40 +23,29 @@
 **
 **************************************************************************/
 
-#pragma once
+#include <qwt_plot_curve.h>
 
-#include <qwt_series_data.h>
-
-class QPointF;
-
-namespace adcontrols { class Trace; class Chromatogram; class MassSpectrum; }
+template<class T> class QwtSeriesData;
 
 namespace adwplot {
 
-    class SeriesData : public QwtSeriesData<QPointF> {
+    class Dataplot;
+
+    class PlotCurve {
     public:
-        virtual ~SeriesData() {}
-        SeriesData();
-        SeriesData( const SeriesData& );
-
-        // implements QwtSeriesData<>
-        virtual size_t size() const;
-        virtual QPointF sample( size_t idx ) const;
-        virtual QRectF boundingRect() const;
-        // <---
-        void setData( const adcontrols::Trace& );
-        void setData( const adcontrols::Chromatogram& );
-
-        void setData( size_t, const double* x, const double* y );
-
-        inline void push_back( const QPointF& d ) { values_.push_back( d ); }
-
-    protected:
-        size_t start_pos_;
-        std::pair< double, double > range_x_;
-        std::pair< double, double > range_y_;
-        std::vector< QPointF > values_;
+        ~PlotCurve();
+        PlotCurve( Dataplot& plot, const std::wstring& = L"" );
+        PlotCurve( const PlotCurve& );
+        PlotCurve& operator = ( const PlotCurve& );
+        void setStyle( QwtPlotCurve::CurveStyle );
+        void setData( const double * xData, const double * yData, size_t size );
+        inline QwtPlotCurve * p() { return curve_; }
+    private:
+        bool ownership_;
+        QwtPlotCurve * curve_;
+        QwtSeriesData<QPointF> * series_;
     };
+
 
 }
 

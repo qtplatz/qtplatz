@@ -24,10 +24,8 @@
 **************************************************************************/
 
 #include "spectrumwidget.h"
-#include "seriesdata.h"
-#include "trace.h"
-#include "traces.h"
 #include "zoomer.h"
+#include "plotcurve.h"
 #include "plotpicker.h"
 #include "plotpanner.h"
 #include "annotation.h"
@@ -57,17 +55,39 @@ namespace adwplot { namespace internal {
         Qt::lightGray,
     };
 
+    class SeriesData : public QwtSeriesData<QPointF> {
+    public:
+        virtual ~SeriesData() {
+        }
+        SeriesData( const QVector< QPointF >& v, const QRectF& rc ) : v_( v ), rect_(rc) {
+        }
+        SeriesData( const SeriesData& t ) : v_( t.v_ ) {
+        }
+        // implements QwtSeriesData<>
+        virtual size_t size() const { return v_.size(); }
+        virtual QPointF sample( size_t idx ) const { return v_[ idx ]; }
+        virtual QRectF boundingRect() const { return rect_; }
+    private:
+        QRectF rect_;
+        const QVector< QPointF >& v_;
+    };
+
+    struct SeriesDataImpl {
+        QVector< QPointF > d_;
+        void setData( size_t size, const double * x, const double * y ) {
+            d_.resize( size );
+            for ( size_t i = 0; i < size; ++i )
+                d_[ i ] = QPointF( x[i], y[i] );
+        }
+    };
 
     class TraceData {
     public:
         void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms );
-        const QRectF& boundingRect() const { return rect_; }
+        typedef std::map< int, SeriesDataImpl > map_type;
     private:
-        adcontrols::MassSpectrum ms_;
-        QRectF rect_;
-        std::vector< Trace > traces_;
-        typedef std::map< int, SeriesData * > map_type;
-        map_type data_;
+        std::vector< PlotCurve > curves_;
+        map_type dataMap_;
     };
 
 }
@@ -89,16 +109,6 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
 void
 SpectrumWidget::zoom( const QRectF& rect )
 {
-/*
-    double m1, y1, m2, y2;
-    rect.getCoords( &m1, &y1, &m2, &y2 );
-
-    QRectF rc = zoomer1_->zoomRect();
-    double cx1, cy1, cx2, cy2;
-    rc.getCoords( &cx1, &cy1, &cx2, &cy2 );
-    rc.setCoords( m1, cy1, m2, cy2 );
-
-*/
     QRectF rc = zoomer1_->zoomRect();
     rc.setLeft( rect.left() );
     rc.setRight( rect.right() );
@@ -120,15 +130,15 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 {
     using internal::TraceData;
 
-    if ( int( traces_.size() ) <= idx )
-        traces_.resize( idx + 1 );
+    while ( int( traces_.size() ) <= idx ) 
+        traces_.push_back( TraceData() );
 
     TraceData& trace = traces_[ idx ];
     trace.setData( *this, ms );
 
-    QStack<QRectF> stack;
-    stack.push_back( trace.boundingRect() );
-    zoomer1_->setZoomStack( stack );
+    QRectF rect;
+    rect.setCoords( ms.getAcquisitionMassRange().first, ms.getMinIntensity(), ms.getAcquisitionMassRange().second, ms.getMaxIntensity() );
+    zoomer1_->setZoomBase( rect );
 
     replot();
 /*
@@ -175,22 +185,49 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 */
 }
 
-
-
+//////////////////////////////////////////////////////////////////////////
 //
 using namespace adwplot::internal;
 
 void
 TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
 {
-    traces_.clear();
-
-    ms_ = ms;
-
+    curves_.clear();
+ 
     const double * intens = ms.getIntensityArray();
     const double * masses = ms.getMassArray();
     const size_t size = ms.size();
 
+    QRectF rect;
+    rect.setCoords( ms.getAcquisitionMassRange().first, ms.getMinIntensity(), ms.getAcquisitionMassRange().second, ms.getMaxIntensity() );
+
+    if ( ms.isCentroid() ) {
+        const unsigned char * colors = ms.getColorArray();
+        if ( colors ) {
+            for ( size_t i = 0; i < size; ++i )
+                dataMap_[ colors[i] ].d_.push_back( QPointF( masses[i], intens[i] ) );
+        } else {
+            PlotCurve &curve = curves_[0];
+            curve.setStyle( QwtPlotCurve::Sticks );
+            dataMap_[ 0 ].setData( size, masses, intens );
+        }
+        BOOST_FOREACH( const map_type::value_type& pair, dataMap_ ) {
+            curves_.push_back( PlotCurve( plot ) );
+            PlotCurve& curve = curves_.back();
+            if ( pair.first != 0 && pair.first < sizeof( color_table ) / sizeof( color_table[0] ) )
+                curve.p()->setPen( QPen( color_table[ pair.first ] ) );
+            curve.p()->setData( new SeriesData( pair.second.d_, rect ) );
+            curve.p()->setStyle( QwtPlotCurve::Sticks );
+        }
+
+    } else {
+        curves_.push_back( PlotCurve( plot ) );
+        PlotCurve &curve = curves_[0];
+        dataMap_[ 0 ].setData( size, masses, intens );
+        curve.p()->setData( new SeriesData( dataMap_[ 0 ].d_, rect ) );
+    }
+
+/*
     if ( ms.isCentroid() ) {
         const unsigned char * colors = ms.getColorArray();
         for ( size_t i = 0; i < size; ++i ) {
@@ -211,7 +248,6 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
             trace.setSeriesData( pair.second );
             trace.setStyle( Trace::Sticks );
             traces_.push_back( trace );
-            rect_.setCoords( ms.getAcquisitionMassRange().first, ms.getMinIntensity(), ms.getAcquisitionMassRange().second, ms.getMaxIntensity() );
         }
     } else {
         for ( size_t i = 0; i < size; ++i ) {
@@ -221,17 +257,12 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
                 d->set_range_y( std::pair<double, double>( ms.getMinIntensity(), ms.getMaxIntensity() ) );
                 data_[ 0 ] = d;
             }
-            data_[ 0 ]->push_back( QPointF( masses[i], intens[i] ) );
         }
-        BOOST_FOREACH( const map_type::value_type& pair, data_ ) {
-            Trace trace( plot, L"" );
-            QwtPlotCurve * curve = trace;
-            if ( pair.first != 0 && pair.first < sizeof( color_table ) / sizeof( color_table[0] ) )
-                curve->setPen( QPen( color_table[ pair.first ] ) );
-            trace.setSeriesData( pair.second );
-            trace.setStyle( Trace::Lines );
-            traces_.push_back( trace );
-            rect_.setCoords( ms.getAcquisitionMassRange().first, ms.getMinIntensity(), ms.getAcquisitionMassRange().second, ms.getMaxIntensity() );
-        }
+        SeriesData * d = data_[ 0 ];
+        d->setData( size, masses, intens );
+        Trace trace( plot, L"" );
+        trace.setSeriesData( d );
+        traces_.push_back( trace );
     }
+*/
 }

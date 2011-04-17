@@ -43,6 +43,7 @@
 #include <adcontrols/descriptions.h>
 #include <adcontrols/description.h>
 #include <boost/format.hpp>
+#include <boost/foreach.hpp>
 
 using namespace adwplot;
 
@@ -94,6 +95,11 @@ ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
 void
 ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
 {
+    annotations_.clear();
+    peaks_.clear();
+    baselines_.clear();
+    traces_.clear();
+
     std::wstring title;
     const adcontrols::Descriptions& desc_v = c.getDescriptions();
     for ( size_t i = 0; i < desc_v.size(); ++i ) {
@@ -103,12 +109,8 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
     }
     setTitle( title );
 
-    annotations_.clear();
-    peaks_.clear();
-    baselines_.clear();
-
     if ( traces_.empty() ) {
-        traces_.push_back( Trace( *this, title ) );
+        traces_.push_back( Trace( *this, L"Chromatogram" ) );
         traces_.back().setSeriesData( new SeriesData );
     }
     Trace& trace = traces_.back();
@@ -125,20 +127,12 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
     for ( adcontrols::Baselines::vector_type::const_iterator it = baselines.begin(); it != baselines.end(); ++it )
         setBaseline( *it );
 #endif
-
     const adcontrols::Peaks& peaks = c.peaks();
+
     for ( adcontrols::Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it )
         setPeak( *it );
 
     replot();
-
-#if 0
-    canvas()->invalidatePaintCache();
-    //canvas()->update( canvas()->contentsRect() );
-    canvas()->repaint( canvas()->contentsRect() );
-#endif
-
-
 }
     
 
