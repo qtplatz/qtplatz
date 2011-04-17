@@ -228,6 +228,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\spectrum_processor.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\string.cpp"
 				>
 			</File>
@@ -448,6 +452,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\spectrum_processor.h"
+				>
 			</File>
 			<File
 				RelativePath=".\string.h"

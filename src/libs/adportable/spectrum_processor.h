@@ -27,7 +27,7 @@
 
 #include <vector>
 
-namespace adcontrols {   namespace internal {
+namespace adportable {
 
     class spectrum_processor {
     public:
@@ -36,6 +36,5 @@ namespace adcontrols {   namespace internal {
         static size_t findpeaks( size_t nbrSamples, const double * intens, double dbase, std::vector< std::pair<int, int> >& );
     };
 	
-}								 
 }
 

@@ -28,10 +28,10 @@
 #include <cmath>
 #include <boost/smart_ptr.hpp>
 
-using namespace adcontrols;
-using namespace adcontrols::internal;
+using namespace adportable;
 
-namespace adcontrols { namespace internal {
+
+namespace adportable { // namespace internal {
 
     static const double __norm5__ = 10;
     static const double __1st_derivative5__[] = { 0, 1, 2 };
@@ -91,8 +91,6 @@ namespace adcontrols { namespace internal {
         inline double rms() const { return std::sqrt( ( sdd / n ) - ( average() * average() ) ); }
     };
 
-
-}
 }
 
 

@@ -30,7 +30,7 @@
 #include "msproperty.h"
 #include "mspeakinfoitem.h"
 #include "description.h"
-#include "spectrum_processor.h"
+#include <adportable/spectrum_processor.h>
 #include <adportable/array_wrapper.hpp>
 #include <vector>
 #include <algorithm>
@@ -213,7 +213,7 @@ void
 CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 {
     using adportable::differential;
-    using internal::spectrum_processor;
+    using adportable::spectrum_processor;
 
     double base = 0, sd = 0;
     spectrum_processor::tic( profile.size(), profile.getIntensityArray(), base, sd );

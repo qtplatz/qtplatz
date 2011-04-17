@@ -394,10 +394,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\spectrum_processor.cpp"
-				>
-			</File>
-			<File
 				RelativePath="tableofelements.cpp"
 				>
 			</File>
@@ -797,10 +793,6 @@
 			</File>
 			<File
 				RelativePath=".\samassspectrum.h"
-				>
-			</File>
-			<File
-				RelativePath=".\spectrum_processor.h"
 				>
 			</File>
 			<File
