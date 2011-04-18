@@ -390,10 +390,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\samassspectrum.cpp"
-				>
-			</File>
-			<File
 				RelativePath="tableofelements.cpp"
 				>
 			</File>
@@ -789,10 +785,6 @@
 			</File>
 			<File
 				RelativePath=".\reportmethod.h"
-				>
-			</File>
-			<File
-				RelativePath=".\samassspectrum.h"
 				>
 			</File>
 			<File

@@ -25,7 +25,6 @@
 
 #include "centroidprocess.h"
 #include "centroidmethod.h"
-#include "samassspectrum.h"
 #include "massspectrum.h"
 #include "msproperty.h"
 #include "mspeakinfoitem.h"
