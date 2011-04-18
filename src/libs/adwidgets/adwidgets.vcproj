@@ -45,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(BOOST_INCLUDE)&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;c:\Windows\system32\config\systemprofile\src\SATools\bin;.\..\..\libs;&quot;$(SolutionDir)tools&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.\debug;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;$(ConfigurationName)&quot;"
+				AdditionalIncludeDirectories="&quot;$(BOOST_INCLUDE)&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;.\..\..\libs;&quot;$(SolutionDir)tools&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.\debug;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;$(ConfigurationName)&quot;"
 				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,QT_TESTLIB_LIB,QT_XML_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -122,7 +122,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(BOOST_INCLUDE)&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;c:\Windows\system32\config\systemprofile\src\SATools\bin;.\..\..\libs;&quot;$(SolutionDir)tools&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.\debug;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;$(ConfigurationName)&quot;"
+				AdditionalIncludeDirectories="&quot;$(BOOST_INCLUDE)&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;.\..\..\libs;&quot;$(SolutionDir)tools&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;.\debug;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;$(ConfigurationName)&quot;"
 				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,QT_NO_DEBUG,QT_XML_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -197,7 +197,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_CORE_LIB -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_THREAD_SUPPORT -DQT_XML_LIB -DUNICODE -DWIN32 -DWITH_TESTS -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include\QtXml&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;$(SolutionDir)tools&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Windows\system32\config\systemprofile\src\SATools\bin&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQT_TESTLIB_LIB -DQT_XML_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT  &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtXml&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I$(SolutionDir)tools&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I$(ConfigurationName)\.&quot; &quot;.\peakresultwidget.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -208,7 +208,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot; -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_LARGEFILE_SUPPORT -DQT_NO_CAST_TO_ASCII -DQT_NO_DEBUG -DQT_THREAD_SUPPORT -DQT_XML_LIB -DUNICODE -DWIN32 -I&quot;$(ConfigurationName)&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include\QtTest&quot; -I&quot;$(QTDIR)\include\QtXml&quot; -I&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot; -I&quot;$(SolutionDir)tools&quot; -I&quot;.\..\..\libs&quot; -I&quot;.\debug&quot; -I&quot;c:\Boost\include\boost-1_43&quot; -I&quot;c:\Windows\system32\config\systemprofile\src\SATools\bin&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQT_XML_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT  &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtXml&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I$(SolutionDir)tools&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I$(ConfigurationName)\.&quot; &quot;.\peakresultwidget.h&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>

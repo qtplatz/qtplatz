@@ -120,7 +120,7 @@ datafile::datafile() : mounted_(false)
 }
 
 void
-datafile::accept( adcontrols::dataSubscriber& sub ) const
+datafile::accept( adcontrols::dataSubscriber& sub )
 {
     if ( mounted_ ) {
         // subscribe acquired dataset <LCMSDataset>

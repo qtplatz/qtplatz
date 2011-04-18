@@ -50,7 +50,7 @@ namespace adcontrols {
         // ----- virtual methods -----
         // 'path' parameter may accept either /Acquire and /Processed with following sub-dir structures
         // data read operations
-        virtual void accept( dataSubscriber& ) const = 0; // visitable
+        virtual void accept( dataSubscriber& ) = 0; // visitable
         virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const = 0;
 
         // data update, modify operations

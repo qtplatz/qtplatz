@@ -47,7 +47,7 @@ datafile::datafile()
 }
 
 void
-datafile::accept( adcontrols::dataSubscriber& sub ) const
+datafile::accept( adcontrols::dataSubscriber& sub )
 {
     // subscribe acquired dataset <LCMSDataset>
     sub.subscribe( *this );

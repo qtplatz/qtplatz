@@ -51,7 +51,7 @@ namespace addatafile {
         bool open_qtms( const std::wstring& filename, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
-        virtual void accept( adcontrols::dataSubscriber& ) const;
+        virtual void accept( adcontrols::dataSubscriber& );
         virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const;
 
         // create, modify and delete methods

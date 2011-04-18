@@ -8,8 +8,7 @@ QT       += xml
 
 TARGET = adwidgets
 TEMPLATE = lib
-CONFIG += staticlib qaxcontainer
-INCLUDEPATH += $$(SATOOLS_ROOT)/bin
+CONFIG += staticlib
 
 #DESTDIR = $$IDE_LIBRARY_PATH
 include(../../adilibrary.pri)

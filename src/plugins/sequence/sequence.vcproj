@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="adwidgetsd.lib adcontrolsd.lib acewrapperd.lib ACEd.lib Aggregationd.lib ExtensionSystemd.lib Utilsd.lib Cored.lib QAxContainerd.lib QtTestd4.lib QtXmld4.lib QtGuid4.lib QtCored4.lib ole32.lib oleaut32.lib user32.lib gdi32.lib advapi32.lib"
+				AdditionalDependencies="adwidgetsd.lib adcontrolsd.lib acewrapperd.lib ACEd.lib Aggregationd.lib ExtensionSystemd.lib Utilsd.lib Cored.lib QtTestd4.lib QtXmld4.lib QtGuid4.lib QtCored4.lib ole32.lib oleaut32.lib user32.lib gdi32.lib advapi32.lib"
 				OutputFile="..\..\..\lib\qtPlatz\plugins\ScienceLiaison\sequenced.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(TargetDir)&quot;;&quot;$(ACE_ROOT)/lib&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;"
@@ -164,7 +164,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
-				AdditionalDependencies="adwidgets.lib adcontrols.lib acewrapper.lib ACE.lib Aggregation.lib ExtensionSystem.lib Utils.lib Core.lib QAxContainer.lib QtXml4.lib QtGui4.lib QtCore4.lib ole32.lib oleaut32.lib user32.lib gdi32.lib advapi32.lib"
+				AdditionalDependencies="adwidgets.lib adcontrols.lib acewrapper.lib ACE.lib Aggregation.lib ExtensionSystem.lib Utils.lib Core.lib QtXml4.lib QtGui4.lib QtCore4.lib ole32.lib oleaut32.lib user32.lib gdi32.lib advapi32.lib"
 				OutputFile="..\..\..\lib\qtPlatz\plugins\ScienceLiaison\sequence.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -450,6 +450,10 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
+				RelativePath=".\debug\qrc_sequence.cpp"
+				>
+			</File>
+			<File
 				RelativePath="release\qrc_sequence.cpp"
 				>
 				<FileConfiguration
@@ -460,10 +464,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\debug\qrc_sequence.cpp"
-				>
 			</File>
 			<Filter
 				Name="Debug"

@@ -8,7 +8,6 @@ QT       -= gui
 
 TARGET = adcontrols
 TEMPLATE = lib
-INCLUDEPATH += $$(SATOOLS_ROOT)/bin
 
 include(../../adilibrary.pri)
 include(../../boost.pri)
