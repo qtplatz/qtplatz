@@ -42,9 +42,6 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 
-#include <atlbase.h>
-#include <atlcom.h>
-
 using namespace adcontrols;
 using namespace adcontrols::internal;
 

@@ -29,12 +29,6 @@
 #include "chemicalformula.h"
 #include <string>
 
-namespace SACONTROLSLib {
-    struct ISAElementIO;
-}
-
-struct IDispatch;
-
 namespace adcontrols {
 
     namespace internal {
