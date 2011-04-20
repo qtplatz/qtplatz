@@ -7,16 +7,26 @@
 #include "ConfigLoader.h"
 #include <adportable/configuration.h>
 #include <xmlwrapper/msxml.h>
+#include <xmlwrapper/pugixml.hpp>
 #include <fstream>
 
+using namespace pugi;
 using namespace adportable;
 using namespace xmlwrapper;
 using namespace xmlwrapper::msxml;
 
 struct ConfigLoaderImpl {
+
+    // msxml
 	static bool populate( Configuration&, const XMLNode& );
 	static bool load( Configuration&, const XMLNode& );
     static bool resolve_module( Configuration&, const XMLNode& );
+
+    // pugi
+    static bool populate( Configuration&, const pugi::xml_node& );
+    static bool load( Configuration&, const pugi::xml_node& );
+    static bool resolve_module( Configuration&, const pugi::xml_node& );
+
 };
 
 ConfigLoader::ConfigLoader(void)
@@ -31,6 +41,7 @@ ConfigLoader::~ConfigLoader(void)
 bool
 ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstring& file, const std::wstring& query )
 {
+    
     XMLDocument dom;
 	if ( ! dom.load( file ) ) {
         std::wstring reason = dom.parseError();
@@ -41,10 +52,6 @@ ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstr
 
 	XMLNodeList list = dom.selectNodes( query );
     if ( list.size() == 0 ) {
-#if defined _DEBUG
-        std::wstring xml;
-        dom.xml( xml );
-#endif
 		return false;
     }
     if ( list.size() == 0 )
@@ -171,4 +178,5 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const XMLNode& node )
     }
     return false;
 }
+
 

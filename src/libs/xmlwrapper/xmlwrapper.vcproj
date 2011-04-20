@@ -183,6 +183,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\pugiwrapper.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\pugixml.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\qtxml.cpp"
 				>
 			</File>
@@ -194,6 +202,18 @@
 			>
 			<File
 				RelativePath=".\msxml.h"
+				>
+			</File>
+			<File
+				RelativePath=".\pugiconfig.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\pugiwrapper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\pugixml.hpp"
 				>
 			</File>
 			<File

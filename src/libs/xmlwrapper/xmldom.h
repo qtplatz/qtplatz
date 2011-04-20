@@ -29,9 +29,10 @@
 
 #pragma once
 
-#if defined WIN32
-# define USE_MSXML
-# define USE_QTXML
+#define USE_PUGIXML
+
+#if defined USE_PUGIXML
+# include "pugixml.hpp"
 #endif
 
 #if defined USE_MSXML

@@ -15,12 +15,14 @@ include(../../adilibrary.pri)
 
 SOURCES += qtxml.cpp \
     msxml.cpp \
-    xtree.cpp
+    xtree.cpp \
+    pugiwrapper.cpp
 
 HEADERS += xmldom.h \
     qtxml.h \
     msxml.h \
-    xtree.h
+    xtree.h \
+    pugiwrapper.h
 
 OTHER_FILES += \
     xmlwrapper.pri

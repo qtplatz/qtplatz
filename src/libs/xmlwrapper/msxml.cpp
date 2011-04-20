@@ -4,7 +4,7 @@
 //////////////////////////////////////////
 
 #import <msxml4.dll> named_guids /* , raw_interfaces_only */
-#include "xmldom.h"
+#include "msxml.h"
 #include <adportable/debug.h>
 
 static std::wstring __string_empty;
