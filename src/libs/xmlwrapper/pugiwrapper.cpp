@@ -24,16 +24,16 @@
 **************************************************************************/
 
 #include "pugiwrapper.h"
+#include <sstream>
 
 using namespace pugi;
 
-import_walker::import_walker( pugi::xml_document& dom ) : dom_( dom )
+std::wstring
+helper::to_wstring( const xml_node& node )
 {
+    xml_document dom;
+    dom.append_copy( node );
+    std::wostringstream o;
+    dom.save( o );
+    return o.str();
 }
-
-bool
-import_walker::for_each( pugi::xml_node& node )
-{
-    return true; // continue traversal
-}
-

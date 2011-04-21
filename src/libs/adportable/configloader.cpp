@@ -8,9 +8,11 @@
 #include <adportable/configuration.h>
 #include <xmlwrapper/msxml.h>
 #include <xmlwrapper/pugixml.hpp>
+#include <xmlwrapper/pugiwrapper.h>
 #include <fstream>
+#include <boost/foreach.hpp>
+// #include <xmlwrapper/contrib/foreach.hpp>
 
-using namespace pugi;
 using namespace adportable;
 using namespace xmlwrapper;
 using namespace xmlwrapper::msxml;
@@ -41,7 +43,6 @@ ConfigLoader::~ConfigLoader(void)
 bool
 ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstring& file, const std::wstring& query )
 {
-    
     XMLDocument dom;
 	if ( ! dom.load( file ) ) {
         std::wstring reason = dom.parseError();
@@ -178,5 +179,88 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const XMLNode& node )
     }
     return false;
 }
+
+bool
+ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
+{
+    if ( std::string( node.name() ) == "Configuration" ) {
+		// copy name="my_name"
+        config.name( pugi::as_wide( node.attribute( "name" ).value() ) );
+
+        config.xml( pugi::helper::to_wstring( node ) );
+
+		// populate all attributes
+        pugi::xpath_node_set attrs = node.select_nodes( "attribute::*" );
+
+        for ( pugi::xpath_node_set::const_iterator it = attrs.begin(); it != attrs.end(); ++it )
+            config.attribute( pugi::as_wide( it->node().name() ), pugi::as_wide( it->node().child_value() ) );
+
+        pugi::xpath_node title_node = node.select_single_node( "./title[@lang='jp']" );
+        if ( title_node ) {
+            config.title( pugi::as_wide( title_node.node().child_value() ) );
+        } else {
+            if ( title_node = node.select_single_node( "./title[@lang='en']" ) )
+                config.title( pugi::as_wide( title_node.node().child_value() ) );
+            else
+                config.title( pugi::as_wide( title_node.node().child_value() ) );
+        }
+
+        resolve_module( config, node );
+		return true;
+	}
+	return false;
+}
+
+
+bool
+ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& node )
+{
+    pugi::xpath_node module_attr = node.select_single_node( "./Component/@module" );
+
+    if ( module_attr ) {
+
+		do {
+            pugi::xpath_node ifattr = node.select_single_node( "./Component/@interface" );
+            if ( ifattr )
+                config.interface( pugi::as_wide( ifattr.node().child_value() ) );
+		} while (0);
+
+        std::string module_name = module_attr.node().child_value(); // child_value() := text_value()
+        if ( module_name.empty() )
+            return false;
+
+        std::string query = "//Module[@name=\'" + module_name + "\']";
+        pugi::xpath_node module_element = node.select_single_node( query.c_str() );
+
+        if ( module_element ) {
+            pugi::xml_document tmp;
+            tmp.append_copy( module_element.node() );
+            std::wostringstream xml;
+
+            tmp.save( xml );
+
+            Module module( xml.str() ); // XMLDocument::toString( module_element ) );
+
+            std::string filename = module_element.node().attribute( "filename" ).value();
+            if ( filename.empty() )
+                return false;
+            std::string::size_type pos = filename.find_last_of( "$" );
+            if ( pos != std::wstring::npos ) {
+                filename = filename.substr(0, pos);
+#if defined _DEBUG
+                filename += "d.dll";
+#else
+                filename += ".dll";
+#endif         
+            }
+            module.library_filename( pugi::as_wide( filename ) );
+            config.module( module );
+
+            return true;
+        }
+    }
+    return false;
+}
+
 
 

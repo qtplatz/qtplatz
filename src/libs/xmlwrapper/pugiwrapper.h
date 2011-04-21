@@ -26,14 +26,13 @@
 #pragma once
 
 #include "pugixml.hpp"
+#include <string>
 
 namespace pugi {
 
-    class import_walker : public xml_tree_walker {
+    class helper {
     public:
-        pugi::xml_document& dom_;
-        import_walker( xml_document& dom );
-        virtual bool for_each( xml_node& node );
+        static std::wstring to_wstring( const xml_node& );
     };
 
 }
