@@ -11,7 +11,6 @@
 #include <xmlwrapper/pugiwrapper.h>
 #include <fstream>
 #include <boost/foreach.hpp>
-// #include <xmlwrapper/contrib/foreach.hpp>
 
 using namespace adportable;
 using namespace xmlwrapper;
@@ -20,8 +19,8 @@ using namespace xmlwrapper::msxml;
 struct ConfigLoaderImpl {
 
     // msxml
-	static bool populate( Configuration&, const XMLNode& );
-	static bool load( Configuration&, const XMLNode& );
+    static bool populate( Configuration&, const XMLNode& );
+    static bool load( Configuration&, const XMLNode& );
     static bool resolve_module( Configuration&, const XMLNode& );
 
     // pugi
@@ -39,6 +38,9 @@ ConfigLoader::~ConfigLoader(void)
 {
 }
 
+//#define USE_MSXML
+
+#if defined USE_MSXML
 // static
 bool
 ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstring& file, const std::wstring& query )
@@ -71,7 +73,9 @@ ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstr
     }
 	return true;
 }
+#endif
 
+#if defined USE_MSXML
 // static
 bool
 ConfigLoader::loadConfigXML( adportable::Configuration& config, const std::wstring& xml, const std::wstring& query )
@@ -91,6 +95,7 @@ ConfigLoader::loadConfigXML( adportable::Configuration& config, const std::wstri
 		return false;
 	return true;
 }
+#endif
 
 /////////////////////////////////////////
 
@@ -180,6 +185,74 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const XMLNode& node )
     return false;
 }
 
+///////////////////////// using pugi interface ///////////
+
+#if ! defined USE_MSXML
+// static
+bool
+ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstring& file, const std::wstring& query )
+{
+    pugi::xml_document dom;
+    pugi::xml_parse_result result = dom.load_file( pugi::as_utf8( file ).c_str() );
+    if ( ! result ) {
+		adportable::debug dbg;
+        dbg << "adportable::ConfigLoader::loadConfigFile(" << file << ")" << result.description();
+		return false;
+	}
+
+    pugi::xpath_node_set list = dom.select_nodes( pugi::as_utf8( query ).c_str() );
+    if ( list.size() == 0 )
+		return false;
+
+	if ( list.size() == 1 ) {
+        if ( ConfigLoaderImpl::load( config, list[0].node() ) )
+            ConfigLoaderImpl::populate( config, list[0].node() );
+        return true;
+	}
+
+    for ( size_t i = 0; i < list.size(); ++i ) {
+        Configuration& child = config.append( Configuration() );
+        if ( ConfigLoaderImpl::load( child, list[i].node() ) )
+            ConfigLoaderImpl::populate( child, list[i].node() );
+    }
+	return true;
+}
+
+// static
+bool
+ConfigLoader::loadConfigXML( adportable::Configuration& config, const std::wstring& xml, const std::wstring& query )
+{
+    pugi::xml_document dom;
+    pugi::xml_parse_result result;
+    if ( ! ( result = dom.load( pugi::as_utf8( xml ).c_str() ) ) )
+		return false;
+
+    pugi::xpath_node_set list = dom.select_nodes( pugi::as_utf8( query ).c_str() );
+    if ( list.size() == 0 )
+		return false;
+
+	if ( list.size() == 1 ) {
+		if ( ConfigLoaderImpl::load( config, list[0].node() ) )
+			ConfigLoaderImpl::populate( config, list[0].node() );
+	} else
+		return false;
+	return true;
+}
+#endif  // ! USE_MSXML
+
+bool
+ConfigLoaderImpl::populate( Configuration& config, const pugi::xml_node& node )
+{
+    pugi::xpath_node_set list = node.select_nodes( "./Configuration" );
+
+    for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it ) {
+        Configuration temp;
+        if ( load( temp, it->node() ) )
+            populate( config.append( temp ), it->node() );
+	}
+	return false;
+}
+
 bool
 ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
 {
@@ -190,10 +263,9 @@ ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
         config.xml( pugi::helper::to_wstring( node ) );
 
 		// populate all attributes
-        pugi::xpath_node_set attrs = node.select_nodes( "attribute::*" );
-
-        for ( pugi::xpath_node_set::const_iterator it = attrs.begin(); it != attrs.end(); ++it )
-            config.attribute( pugi::as_wide( it->node().name() ), pugi::as_wide( it->node().child_value() ) );
+        // pugi::xpath_node_set attrs = node.select_nodes( "attribute::*" );
+        for ( pugi::xml_attribute_iterator it = node.attributes_begin(); it != node.attributes_end(); ++it )
+            config.attribute( pugi::as_wide( it->name() ), pugi::as_wide( it->value() ) );
 
         pugi::xpath_node title_node = node.select_single_node( "./title[@lang='jp']" );
         if ( title_node ) {
@@ -201,7 +273,7 @@ ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
         } else {
             if ( title_node = node.select_single_node( "./title[@lang='en']" ) )
                 config.title( pugi::as_wide( title_node.node().child_value() ) );
-            else
+            else if ( title_node = node.select_single_node( "./title" ) )
                 config.title( pugi::as_wide( title_node.node().child_value() ) );
         }
 
@@ -218,14 +290,15 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& n
     pugi::xpath_node module_attr = node.select_single_node( "./Component/@module" );
 
     if ( module_attr ) {
+        std::string name = module_attr.attribute().name();
+        std::string module_name = module_attr.attribute().value();
 
 		do {
-            pugi::xpath_node ifattr = node.select_single_node( "./Component/@interface" );
-            if ( ifattr )
-                config.interface( pugi::as_wide( ifattr.node().child_value() ) );
+            std::string interface = node.select_single_node( "./Component/@interface" ).attribute().value();
+            if ( ! interface.empty() )
+                config.interface( pugi::as_wide( interface ) );
 		} while (0);
 
-        std::string module_name = module_attr.node().child_value(); // child_value() := text_value()
         if ( module_name.empty() )
             return false;
 
@@ -233,13 +306,8 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& n
         pugi::xpath_node module_element = node.select_single_node( query.c_str() );
 
         if ( module_element ) {
-            pugi::xml_document tmp;
-            tmp.append_copy( module_element.node() );
-            std::wostringstream xml;
 
-            tmp.save( xml );
-
-            Module module( xml.str() ); // XMLDocument::toString( module_element ) );
+            Module module( pugi::helper::to_wstring( module_element.node() ) ); // import module_element into 'module'
 
             std::string filename = module_element.node().attribute( "filename" ).value();
             if ( filename.empty() )
