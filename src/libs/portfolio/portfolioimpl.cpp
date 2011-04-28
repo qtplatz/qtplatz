@@ -53,9 +53,6 @@ PortfolioImpl::PortfolioImpl( const std::wstring& xml ) : isXMLLoaded_(false)
 
 PortfolioImpl::PortfolioImpl( const PortfolioImpl& t ) : isXMLLoaded_( t.isXMLLoaded_ )
                                                        , Node( t ) 
-#if defined USE_MSXMS
-                                                       , doc_( t.doc_ )
-#endif
                                                        , db_( t.db_ ) 
 {
 }
@@ -71,31 +68,27 @@ PortfolioImpl::selectFolders( const std::wstring& query )
 {
     std::vector<Folder> vec;
 
-#if defined USE_MSXML
-    xmlNodeList list = Node::selectNodes( query );
-    for ( size_t i = 0; i < list.size(); ++i )
-       vec.push_back( Folder( list[i], this ) );
-#else
+//    xmlNodeList list = Node::selectNodes( query );
+//    for ( size_t i = 0; i < list.size(); ++i )
+//       vec.push_back( Folder( list[i], this ) );
+
     pugi::xpath_node_set list = Node::selectNodes( query );
-    for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it ) {
+    for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
         vec.push_back( Folder ( it->node(), this ) );
-    }
-#endif
+
     return vec;
 }
 
 Folium
 PortfolioImpl::selectFolium( const std::wstring& query )
 {
-#if defined USE_MSXMS
-    xmlNodeList list = Node::selectNodes( query );
-    if ( list.size() )
-        return Folium( list[0], this );
-#else
+//    xmlNodeList list = Node::selectNodes( query );
+//    if ( list.size() )
+//        return Folium( list[0], this );
+
     pugi::xpath_node_set list = Node::selectNodes( query );
     if ( list.size() )
         return Folium( list[0].node(), this );
-#endif
 
     return Folium(); // empty
 }
@@ -120,47 +113,23 @@ PortfolioImpl::create_with_fullpath( const std::wstring& fullpath )
     if ( isXMLLoaded_ )
         return false;
 
-#if defined USE_MSXML
-    using namespace xmlwrapper::msxml;
-
-    XMLProcessingInstruction inst =
-        doc_.createProcessingInstruction(L"xml", L"version='1.0' encoding='UTF-8'");
-    doc_.appendChild( inst );
-    
-    XMLComment comm =
-        doc_.createComment(L"Copyright(C) 2010-2011, Toshinobu Hondo, ScienceLiaison, All rights reserved.");
-    doc_.appendChild( comm );
-
-    XMLElement top = doc_.createElement( L"xtree" );
-    doc_.appendChild( top );
-
-    top.setAttribute( L"typeid", L"portfolio" );
-    top.setAttribute( L"impl", L"portfolio" );
-    top.setAttribute( L"create_date", L"TBD" );
-
-    XMLElement dset = top.appendChild( doc_.createElement( L"dataset" ) );
-    dset.setAttribute( L"fullpath", fullpath );
-
-    if ( node_ = doc_.selectSingleNode( L"/xtree/dataset" ) )
-        isXMLLoaded_ = true;
-#else
-
     pugi::xml_node inst = doc_.append_child( pugi::node_pi );  // processingInstruction
     inst.set_name( "xml" );
     inst.set_value( "version='1.0' encoding='UTF-8'" );
 
-/*
+    /*
     XMLProcessingInstruction inst =
         doc_.createProcessingInstruction(L"xml", L"version='1.0' encoding='UTF-8'");
     doc_.appendChild( inst );
     */  
     pugi::xml_node comm = doc_.append_child( pugi::node_comment );
     comm.set_value( "Copyright(C) 2010-2011, Toshinobu Hondo, ScienceLiaison, All rights reserved." );
-/*
+
+    /*
     XMLComment comm =
         doc_.createComment(L"Copyright(C) 2010-2011, Toshinobu Hondo, ScienceLiaison, All rights reserved.");
     doc_.appendChild( comm );
-*/
+    */
     pugi::xml_node top = doc_.append_child();
     top.set_name( "xtree" );
     top.append_attribute( "typeid" ).set_value( "portfolio" );
@@ -170,44 +139,25 @@ PortfolioImpl::create_with_fullpath( const std::wstring& fullpath )
     pugi::xml_node dset = top.append_child();
     dset.set_name( "dataset" );
     dset.append_attribute( "fullpath" ).set_value( pugi::as_utf8( fullpath ).c_str() );
-/*
-    XMLElement top = doc_.createElement( L"xtree" );
-    doc_.appendChild( top );
 
-    top.setAttribute( L"typeid", L"portfolio" );
-    top.setAttribute( L"impl", L"portfolio" );
-    top.setAttribute( L"create_date", L"TBD" );
-
-    XMLElement dset = top.appendChild( doc_.createElement( L"dataset" ) );
-    dset.setAttribute( L"fullpath", fullpath );
-*/
     pugi::xpath_node dataset = doc_.select_single_node( "/xtree/dataset" );
     if ( dataset ) {
         node_ = dataset.node();
         isXMLLoaded_ = true;
     }
-#endif
+
     return isXMLLoaded_;
 }
 
 Folder
 PortfolioImpl::addFolder( const std::wstring& name, bool uniq )
 {
-#if defined USE_MSXML
-    if ( uniq ) {
-        xmlNodeList list = Node::selectNodes( L"folder[@folderType='directory'][@name=\"" + name + L"\"]" );
-        if ( list.size() > 0 )
-            return Folder( list[0], this );
-    }
-#else
-
     if ( uniq ) {
         pugi::xpath_node_set list = Node::selectNodes( L"folder[@folderType='directory'][@name=\"" + name + L"\"]" );
         if ( list.size() > 0 )
             return Folder( list[0].node(), this );
     }
 
-#endif
     return Folder( Node::addFolder( name, this ), this );
 }
 

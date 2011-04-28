@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="xmlwrapper"
+	Name="xmlparser"
 	ProjectGUID="{8F43D793-F00D-3AB0-AA1F-12251E0BC1E9}"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
@@ -178,10 +178,6 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-			<File
-				RelativePath=".\msxml.cpp"
-				>
-			</File>
 			<File
 				RelativePath=".\pugiwrapper.cpp"
 				>

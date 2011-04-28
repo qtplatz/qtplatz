@@ -25,7 +25,6 @@
 
 #include "datafile.h"
 #include "txtspectrum.h"
-#include <xmlwrapper/msxml.h>
 #include <adcontrols/datafile.h>
 #include <adcontrols/datapublisher.h>
 #include <adcontrols/datasubscriber.h>

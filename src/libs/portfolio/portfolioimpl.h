@@ -27,7 +27,6 @@
 
 #include <boost/any.hpp>
 #include <map>
-#include <xmlwrapper/msxml.h>
 #include <xmlwrapper/pugixml.hpp>
 #include "node.h"
 

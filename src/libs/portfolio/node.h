@@ -26,9 +26,9 @@
 #pragma once
 
 #include "portfolio_global.h"
-#include <string>
-#include <xmlwrapper/msxml.h>
 #include <xmlwrapper/pugixml.hpp>
+#include <string>
+#include <vector>
 
 namespace portfolio {
 
