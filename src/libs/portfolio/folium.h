@@ -45,7 +45,8 @@ namespace portfolio {
         ~Folium();
         Folium();
         Folium( const Folium& );
-        Folium( xmlNode&, internal::PortfolioImpl * impl );
+        // Folium( xmlNode&, internal::PortfolioImpl * impl );
+        Folium( pugi::xml_node&, internal::PortfolioImpl * impl );
     public:
 
         std::wstring path() const;

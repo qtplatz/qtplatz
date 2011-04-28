@@ -28,6 +28,7 @@
 #include <boost/any.hpp>
 #include <map>
 #include <xmlwrapper/msxml.h>
+#include <xmlwrapper/pugixml.hpp>
 #include "node.h"
 
 namespace portfolio {
@@ -40,9 +41,9 @@ namespace portfolio {
         // Portfolio is a root folder
 
         class PortfolioImpl : public Node {
+            PortfolioImpl( const PortfolioImpl& );
         public:
             PortfolioImpl();
-            PortfolioImpl( const PortfolioImpl& );
             PortfolioImpl( const std::wstring& xml );
             operator bool () const { return isXMLLoaded_; }
             const std::wstring fullpath() const;
@@ -55,14 +56,21 @@ namespace portfolio {
             ///////////////  creation ///////////////
             bool create_with_fullpath( const std::wstring& );
             Folder addFolder( const std::wstring&, bool uniq );
+#if defined USE_MSXML
             xmlDocument& getDocument() { return doc_; }
-
+#else
+            pugi::xml_document& getDocument() { return doc_; }
+#endif
             static std::wstring newGuid();
      
         private:
             bool isXMLLoaded_;
             std::map< std::wstring, boost::any > db_;
+#if defined USE_MSXML
             xmlDocument doc_;
+#else
+            pugi::xml_document doc_;
+#endif
         };
     }
 }

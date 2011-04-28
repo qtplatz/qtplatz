@@ -32,9 +32,19 @@ Node::Node() : impl_(0)
 {
 }
 
+#if defined USE_MSXML
+
 Node::Node( const xmlElement& e, PortfolioImpl* impl ) : impl_(impl), node_(e)
 {
 }
+
+#else // pugi
+
+Node::Node( const pugi::xml_node& e, PortfolioImpl* impl ) : impl_(impl), node_(e)
+{
+}
+
+#endif
 
 Node::Node( const Node& t ) : impl_(t.impl_), node_( t.node_ )
 {
@@ -97,44 +107,82 @@ Node::dataClass( const std::wstring& value )
 std::wstring
 Node::attribute( const std::wstring& key ) const
 {
+#if defined USE_MSXML
     if ( node_ )
         return node_.attribute( key );
+#else
+    if ( node_ )
+        return pugi::as_wide( node_.attribute( pugi::as_utf8( key ).c_str() ).value() );
+#endif
     return std::wstring();
 }
 
 std::vector< std::pair< std::wstring, std::wstring> >
 Node::attributes() const
 {
-    std::vector< std::pair< std::wstring, std::wstring> > attrs;
+    std::vector< std::pair< std::wstring, std::wstring > > attrs;
+
+#if defined USE_MSXML
     xmlNodeList list = node_.selectNodes( L"attribute::*" );
     for ( int i = 0; i < list.size(); ++i ) {
         std::wstring key = list[i].nodeName();
         std::wstring value = list[i].textValue();
         attrs.push_back( std::make_pair< std::wstring, std::wstring >( key, value ) );
     }
+#else
+    using pugi::as_wide;
+
+    for ( pugi::xml_attribute_iterator it = node_.attributes_begin(); it != node_.attributes_end(); ++it )
+        attrs.push_back( std::make_pair<std::wstring, std::wstring>( as_wide( it->name() ), as_wide( it->value() ) ) );
+
+#endif
     return attrs;
 }
 
 void
 Node::setAttribute( const std::wstring& key, const std::wstring& value )
 {
+#if defined USE_MSXML
     if ( node_ )
         node_.setAttribute( key, value );
+#else
+    if ( node_ ) {
+        pugi::xml_attribute attr = node_.append_attribute( pugi::as_utf8( key ).c_str() );
+        attr.set_value( pugi::as_utf8( value ).c_str() );
+    }
+#endif
 }
 
+#if defined USE_XML
 xmlNodeList
 Node::selectNodes( const std::wstring& query )
 {
     return node_.selectNodes( query );
 }
+#else
+pugi::xpath_node_set
+Node::selectNodes( const std::wstring& query )
+{
+    return node_.select_nodes( pugi::as_utf8( query ).c_str() );
+}
+#endif
 
+#if defined USE_XML
 xmlElement
 Node::selectSingleNode( const std::wstring& query )
 {
     return node_.selectSingleNode( query );
 }
+#else
+pugi::xpath_node
+Node::selectSingleNode( const std::wstring& query )
+{
+    return node_.select_single_node( pugi::as_utf8( query ).c_str() );
+}
+#endif
 
 //////////////////////////
+#if defined USE_MSXML
 xmlElement
 Node::addFolder( const std::wstring& name, internal::PortfolioImpl* impl )
 {
@@ -166,3 +214,51 @@ Node::addAttachment( const std::wstring& name )
     return child;
 }
 
+#else
+
+pugi::xml_node
+Node::addFolder( const std::wstring& name, internal::PortfolioImpl* )
+{
+/*
+    xmlElement child = impl->getDocument().createElement( L"folder" );
+    node_.appendChild( child );
+    child.setAttribute( L"folderType", L"directory" );
+    child.setAttribute( L"name", name );
+    return child;
+*/
+    pugi::xml_node child = node_.append_child( "folder" );
+    child.append_attribute( "folderType" ).set_value( "directory" );
+    child.append_attribute( "name" ).set_value( pugi::as_utf8( name ).c_str() );
+    return child;
+}
+
+pugi::xml_node
+Node::addFolium( const std::wstring& name )
+{
+    // xmlElement child = impl_->getDocument().createElement( L"folium" );
+    pugi::xml_node child = node_.append_child( "folium" );
+    // node_.appendChild( child );
+    child.append_attribute( "folderType" ).set_value( "file" );
+    // child.setAttribute( L"folderType", L"file" );
+    child.append_attribute( "dataId" ).set_value( pugi::as_utf8( internal::PortfolioImpl::newGuid() ).c_str() );
+    // child.setAttribute( L"dataId", internal::PortfolioImpl::newGuid() );
+    child.append_attribute( "name" ).set_value( pugi::as_utf8( name ).c_str() );
+    // child.setAttribute( L"name", name );
+    return child;
+}
+
+pugi::xml_node
+Node::addAttachment( const std::wstring& name )
+{
+    // xmlElement child = impl_->getDocument().createElement( L"attachment" );
+    pugi::xml_node child = node_.append_child( "attachment" );
+    child.append_attribute( "dataId" ).set_value( pugi::as_utf8( internal::PortfolioImpl::newGuid() ).c_str() );
+    child.append_attribute( "name" ).set_value( pugi::as_utf8( name ).c_str() );
+    //node_.appendChild( child );
+    //child.setAttribute( L"dataId", internal::PortfolioImpl::newGuid() );
+    //child.setAttribute( L"name", name );
+    return child;
+}
+
+
+#endif

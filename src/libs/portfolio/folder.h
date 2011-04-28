@@ -29,6 +29,8 @@
 #include <vector>
 #include "node.h"
 
+namespace pugi { class xml_node; }
+
 namespace portfolio {
 
     class Folium;
@@ -43,7 +45,8 @@ namespace portfolio {
     public:
         ~Folder();
         Folder();
-        Folder( const xmlNode&, internal::PortfolioImpl * );
+        // Folder( const xmlNode&, internal::PortfolioImpl * );
+        Folder( const pugi::xml_node&, internal::PortfolioImpl * );
         Folder( const Folder& );
 
         std::vector< Folder > folders();

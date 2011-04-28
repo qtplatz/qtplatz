@@ -28,18 +28,20 @@
 #include "portfolio_global.h"
 #include <string>
 #include <xmlwrapper/msxml.h>
+#include <xmlwrapper/pugixml.hpp>
 
 namespace portfolio {
 
-    typedef xmlwrapper::msxml::XMLElement  xmlElement;
-    typedef xmlwrapper::msxml::XMLDocument xmlDocument;
-    typedef xmlwrapper::msxml::XMLNode     xmlNode;
-    typedef xmlwrapper::msxml::XMLNodeList xmlNodeList;
+//    typedef xmlwrapper::msxml::XMLElement  xmlElement;
+//    typedef xmlwrapper::msxml::XMLDocument xmlDocument;
+//    typedef xmlwrapper::msxml::XMLNode     xmlNode;
+//    typedef xmlwrapper::msxml::XMLNodeList xmlNodeList;
 
     namespace internal {
 
         class PortfolioImpl;
 
+#if defined USE_MSXML
         class PORTFOLIOSHARED_EXPORT Node {
         public:
             Node();
@@ -79,7 +81,56 @@ namespace portfolio {
             xmlElement node_;
             PortfolioImpl* impl_;
         };
+#endif
 
+#if ! defined USE_MSXML
+
+        class PORTFOLIOSHARED_EXPORT Node {
+        public:
+            Node();
+            Node( const Node& );
+        protected:
+            Node( const pugi::xml_node&, PortfolioImpl* impl );
+
+        public:
+            operator bool () const;
+
+            std::wstring name() const;
+            void name( const std::wstring& name );
+
+            std::wstring id() const;
+            void id( const std::wstring& );
+
+            bool isFolder() const;
+            void isFolder( bool );
+
+            std::wstring dataClass() const;
+            void dataClass( const std::wstring& );
+
+            std::wstring attribute( const std::wstring& ) const;
+            void setAttribute( const std::wstring& key, const std::wstring& value );
+
+            std::vector< std::pair<std::wstring, std::wstring> > attributes() const;
+
+        protected:
+
+            //xmlNodeList selectNodes( const std::wstring& query );
+            //xmlElement selectSingleNode( const std::wstring& query );
+            //xmlElement addFolder( const std::wstring& name, PortfolioImpl* );
+            //xmlElement addFolium( const std::wstring& name );
+            //xmlElement addAttachment( const std::wstring& name );
+
+            pugi::xpath_node_set selectNodes( const std::wstring& query );
+            pugi::xpath_node selectSingleNode( const std::wstring& query );
+            pugi::xml_node addFolder( const std::wstring& name, PortfolioImpl* );
+            pugi::xml_node addFolium( const std::wstring& name );
+            pugi::xml_node addAttachment( const std::wstring& name );
+
+        protected:
+            pugi::xml_node node_;
+            PortfolioImpl* impl_;
+        };
+#endif
     }
 }
 

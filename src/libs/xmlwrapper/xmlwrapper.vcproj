@@ -246,10 +246,6 @@
 					/>
 				</FileConfiguration>
 			</File>
-			<File
-				RelativePath=".\xtree.h"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>
