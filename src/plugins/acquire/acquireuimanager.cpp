@@ -47,7 +47,7 @@
 #include <QTabBar>
 
 #include <qtwrapper/qstring.h>
-#include <xmlwrapper/xmldom.h>
+// #include <xmlwrapper/xmldom.h>
 #include <adplugin/adplugin.h>
 #include <adplugin/imonitor.h>
 #include <adportable/configuration.h>

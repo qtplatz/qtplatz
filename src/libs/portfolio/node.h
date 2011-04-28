@@ -26,7 +26,7 @@
 #pragma once
 
 #include "portfolio_global.h"
-#include <xmlwrapper/pugixml.hpp>
+#include <xmlparser/pugixml.hpp>
 #include <string>
 #include <vector>
 

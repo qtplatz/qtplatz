@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtPlatz"
 			IntermediateDirectory="debug\"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -73,7 +73,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\lib\qtPlatz\xmlwrapperd.lib"
+				OutputFile="$(OutDir)\$(ProjectName)d.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -94,7 +94,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtPlatz"
 			IntermediateDirectory="release\"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -150,7 +150,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\lib\qtPlatz\xmlwrapper.lib"
+				OutputFile="$(OutDir)\$(ProjectName)d.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -197,10 +197,6 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\msxml.h"
-				>
-			</File>
-			<File
 				RelativePath=".\pugiconfig.hpp"
 				>
 			</File>
@@ -215,32 +211,6 @@
 			<File
 				RelativePath=".\qtxml.h"
 				>
-			</File>
-			<File
-				RelativePath="xmldom.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
 			</File>
 		</Filter>
 	</Files>

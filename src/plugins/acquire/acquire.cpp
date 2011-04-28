@@ -39,7 +39,7 @@
 #     pragma comment(lib, "adwplotd.lib")
 #     pragma comment(lib, "acewrapperd.lib")   // static
 #     pragma comment(lib, "qtwrapperd.lib")    // static
-#     pragma comment(lib, "xmlwrapperd.lib")   // static
+#     pragma comment(lib, "xmlparserd.lib")   // static
 #     pragma comment(lib, "adplugind.lib")     // dll
 #     pragma comment(lib, "qwtd.lib")
 #else
@@ -51,7 +51,7 @@
 #     pragma comment(lib, "adwplotd.lib")
 #     pragma comment(lib, "acewrapper.lib")    // static
 #     pragma comment(lib, "qtwrapper.lib")     // static
-#     pragma comment(lib, "xmlwrapper.lib")    // static
+#     pragma comment(lib, "xmlparser.lib")    // static
 #     pragma comment(lib, "adplugin.lib")      // dll
 #     pragma comment(lib, "qwt.lib")
 #endif

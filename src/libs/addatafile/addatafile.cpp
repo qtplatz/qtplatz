@@ -32,7 +32,7 @@
 #     pragma comment(lib, "adportabled.lib")
 #     pragma comment(lib, "adutilsd.lib")
 #     pragma comment(lib, "portfoliod.lib")
-#     pragma comment(lib, "xmlwrapperd.lib")
+#     pragma comment(lib, "xmlparserd.lib")
 #  else
 #     pragma comment(lib, "acewrapper.lib")
 #     pragma comment(lib, "adcontrols.lib")
@@ -40,7 +40,7 @@
 #     pragma comment(lib, "adportable.lib")
 #     pragma comment(lib, "adutils.lib")
 #     pragma comment(lib, "portfolio.lib")
-#     pragma comment(lib, "xmlwrapper.lib")
+#     pragma comment(lib, "xmlparser.lib")
 #  endif
 
 #include "datafile_factory.h"

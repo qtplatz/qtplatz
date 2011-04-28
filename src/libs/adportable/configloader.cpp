@@ -6,8 +6,8 @@
 #include <adportable/string.h>
 #include "ConfigLoader.h"
 #include <adportable/configuration.h>
-#include <xmlwrapper/pugixml.hpp>
-#include <xmlwrapper/pugiwrapper.h>
+#include <xmlparser/pugixml.hpp>
+#include <xmlparser/pugiwrapper.h>
 #include <fstream>
 #include <boost/foreach.hpp>
 

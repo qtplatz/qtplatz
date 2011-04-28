@@ -27,7 +27,7 @@
 
 #include <boost/any.hpp>
 #include <map>
-#include <xmlwrapper/pugixml.hpp>
+#include <xmlparser/pugixml.hpp>
 #include "node.h"
 
 namespace portfolio {

@@ -29,10 +29,10 @@
 #include <sstream>
 
 # if defined _DEBUG
-#    pragma comment(lib, "xmlwrapperd.lib")
+#    pragma comment(lib, "xmlparserd.lib")
 #    pragma comment(lib, "adportabled.lib")
 # else
-#    pragma comment(lib, "xmlwrapper.lib")
+#    pragma comment(lib, "xmlparser.lib")
 #    pragma comment(lib, "adportable.lib")
 # endif
 

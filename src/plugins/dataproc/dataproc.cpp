@@ -32,7 +32,7 @@
 #     pragma comment(lib, "adutilsd.lib")     // static
 #     pragma comment(lib, "acewrapperd.lib")  // static
 #     pragma comment(lib, "qtwrapperd.lib")   // static
-#     pragma comment(lib, "xmlwrapperd.lib")  // static
+#     pragma comment(lib, "xmlparserd.lib")  // static
 #     pragma comment(lib, "portfoliod.lib")   // dll
 #     pragma comment(lib, "adutilsd.lib")     // static
 #     pragma comment(lib, "qwtd.lib")
@@ -45,7 +45,7 @@
 #     pragma comment(lib, "adutils.lib")      // static
 #     pragma comment(lib, "acewrapper.lib")
 #     pragma comment(lib, "qtwrapper.lib")
-#     pragma comment(lib, "xmlwrapper.lib")
+#     pragma comment(lib, "xmlparser.lib")
 #     pragma comment(lib, "portfolio.lib")
 #     pragma comment(lib, "adutils.lib")
 #     pragma comment(lib, "qwt.lib")
