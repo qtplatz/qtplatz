@@ -35,15 +35,9 @@ Folder::Folder()
 {
 }
 
-#if defined USE_MSXML
-Folder::Folder( const xmlNode& n, internal::PortfolioImpl * impl ) : Node( n, impl )
-{
-}
-#else
 Folder::Folder( const pugi::xml_node& n, internal::PortfolioImpl * impl ) : Node( n, impl )
 {
 }
-#endif
 
 Folder::Folder( const Folder& t ) : Node( t )
 {
@@ -52,17 +46,12 @@ Folder::Folder( const Folder& t ) : Node( t )
 std::vector< Folder >
 Folder::folders()
 {
-#if defined USE_MSXML
-    xmlNodeList list = Node::selectNodes( L"./folder[@folderType='directory']" );
     std::vector< Folder > folders;
-    for ( size_t i = 0; i < list.size(); ++i )
-        folders.push_back( Folder( list[i], impl_ ) );
-#else
-    std::vector< Folder > folders;
+
     pugi::xpath_node_set list = node_.select_nodes( "./folder[@folderType='directory']" );
     for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
         folders.push_back( Folder( it->node(), impl_ ) );
-#endif
+
     return folders;
 }
 
@@ -77,15 +66,11 @@ Folio
 Folder::folio()
 {
     Folio folio;
-#if defined USE_MSXML
-    xmlNodeList list = Node::selectNodes( L"./folder[@folderType='file']|./folium" );
-    for ( size_t i = 0; i < list.size(); ++i )
-        folio.push_back( Folium( list[i], impl_ ) );
-#else
+
     pugi::xpath_node_set list = node_.select_nodes( "./folder[@folderType='file']|./folium" );
     for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
         folio.push_back( Folium( it->node(), impl_ ) );
-#endif
+
     return folio;
 }
 

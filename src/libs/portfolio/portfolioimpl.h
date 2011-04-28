@@ -56,21 +56,13 @@ namespace portfolio {
             ///////////////  creation ///////////////
             bool create_with_fullpath( const std::wstring& );
             Folder addFolder( const std::wstring&, bool uniq );
-#if defined USE_MSXML
-            xmlDocument& getDocument() { return doc_; }
-#else
             pugi::xml_document& getDocument() { return doc_; }
-#endif
             static std::wstring newGuid();
      
         private:
             bool isXMLLoaded_;
             std::map< std::wstring, boost::any > db_;
-#if defined USE_MSXML
-            xmlDocument doc_;
-#else
             pugi::xml_document doc_;
-#endif
         };
     }
 }

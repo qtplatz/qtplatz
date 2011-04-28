@@ -40,12 +40,6 @@ Folium::Folium( const Folium& t ) : Node( t )
 {
 }
 
-/*
-Folium::Folium( xmlNode& n, internal::PortfolioImpl * impl ) : Node( n, impl )
-{
-}
-*/
-
 Folium::Folium( pugi::xml_node& n, internal::PortfolioImpl * impl ) : Node( n, impl )
 {
 }
@@ -92,13 +86,6 @@ Folium::operator const boost::any & () const
 Folio
 Folium::attachments()
 {
-#if defined USE_MSXML
-    xmlNodeList list = Node::selectNodes( L"./attachment" );
-    Folio attachments;
-    for ( size_t i = 0; i < list.size(); ++i )
-        attachments.push_back( Folium( list[i], impl_ ) );
-    return attachments;
-#else
     Folio attachments;
 
     pugi::xpath_node_set list = Node::selectNodes( L"./attachment" );
@@ -106,7 +93,6 @@ Folium::attachments()
         attachments.push_back( Folium( it->node(), impl_ ) );
 
     return attachments;
-#endif
 }
 
 const Folio
@@ -121,21 +107,6 @@ Folium::addAttachment( const std::wstring& name )
     return Folium( Node::addAttachment( name ), impl_ );
 }
 
-#if defined USE_MSXML
-Folder
-Folium::getParentFolder()
-{
-    // std::wstring query = L"//folder[@folderType='directory']/folium[@dataId=\"" + id() + L"\"]/parent()";
-    xmlElement elmt = Node::selectSingleNode( L".." );
-    while ( elmt && elmt.attribute( L"folderType" ) != L"directory" )
-        elmt = elmt.selectSingleNode( L".." );
-    if ( elmt.nodeName() == L"folder" && elmt.attribute( L"folderType" ) == L"directory" )
-        return Folder( elmt, impl_ );
-    return Folder();
-}
-
-#else
-
 Folder
 Folium::getParentFolder()
 {
@@ -145,14 +116,6 @@ Folium::getParentFolder()
     if ( parent.name() == std::string( "folder" )
         && parent.attribute( "folderType" ).value() == std::string( "directory" ) ) 
         return Folder( parent, impl_ );
-/*    
-    pugi::xpath_node elmt = Node::selectSingleNode( L".." );
 
-    while ( elmt && elmt.attribute( "folderType" ).value() != std::string( "directory") )
-        elmt = elmt.selectSingleNode( L".." );
-    if ( elmt.nodeName() == L"folder" && elmt.attribute( L"folderType" ) == L"directory" )
-        return Folder( elmt, impl_ );
-*/
     return Folder();
 }
-#endif

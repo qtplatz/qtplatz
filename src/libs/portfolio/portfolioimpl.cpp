@@ -38,25 +38,17 @@ PortfolioImpl::PortfolioImpl() : isXMLLoaded_(false)
 
 PortfolioImpl::PortfolioImpl( const std::wstring& xml ) : isXMLLoaded_(false)
 {
-#if defined USE_MSXML
-    if ( doc_.loadXML( xml ) ) {
-        if ( node_ = doc_.selectSingleNode( L"/xtree/dataset" ) )
-            isXMLLoaded_ = true;
-//#ifdef _DEBUG
-//        doc_.save( L"portfolio.xml" );
-//#endif
-    }
-#else 
     pugi::xml_parse_result result = doc_.load( pugi::as_utf8( xml ).c_str() );
     if ( result ) {
         pugi::xpath_node node = doc_.select_single_node( "/xtree/dataset" );
         if ( node ) {
             node_ = node.node();
             isXMLLoaded_ = true;
+#if defined _DEBUG && 0
+            doc_.save_file( "portfolio-pugi.xml" );
+#endif
         }
     }
-
-#endif
 }
 
 PortfolioImpl::PortfolioImpl( const PortfolioImpl& t ) : isXMLLoaded_( t.isXMLLoaded_ )

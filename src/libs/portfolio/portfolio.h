@@ -59,9 +59,7 @@ namespace portfolio {
         bool save( const std::wstring& filename ) const;
      
     private:
-# pragma warning(disable:4251)
         boost::shared_ptr< internal::PortfolioImpl > impl_;
-//# pragma warning(default:4251)
   };
 
 }

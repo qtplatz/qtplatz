@@ -89,23 +89,13 @@ Portfolio::addFolder( const std::wstring& name, bool uniq )
 std::wstring
 Portfolio::xml() const
 {
-#if defined USE_MSXML
-    std::wstring xml;
-    impl_->getDocument().xml( xml );
-    return xml;
-#else 
     std::wostringstream o;
     impl_->getDocument().save( o );
     return o.str();
-#endif
 }
 
 bool
 Portfolio::save( const std::wstring& filename ) const
 {
-#if defined USE_MSXML
-    return impl_->getDocument().save( filename );
-#else
     return impl_->getDocument().save_file( filename.c_str() );
-#endif
 }
