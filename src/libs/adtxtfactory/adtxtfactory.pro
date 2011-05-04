@@ -9,15 +9,18 @@ QT       -= core gui
 TARGET = adtxtfactory
 TEMPLATE = lib
 
+INCLUDEPATH += ../../libs
+include (../../boost.pri)
+
 DEFINES += ADTXTFACTORY_LIBRARY
 
 SOURCES += adtxtfactory.cpp \
-    data_factory.cpp \
     datafile.cpp \
+    datafile_factory.cpp \
     txtspectrum.cpp
 
 HEADERS += adtxtfactory.h\
-        adtxtfactory_global.h \
-    data_factory.h \
+    adtxtfactory_global.h \
     datafile.h \
+    datafile_factory.h \
     txtspectrum.h

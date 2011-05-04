@@ -9,7 +9,7 @@ QT       -= gui
 TARGET = adbroker
 TEMPLATE = lib
 
-include(../../adilibrary.pri)
+include(../../qtplatz_libs.pri)
 
 DEFINES += ADBROKER_LIBRARY
 

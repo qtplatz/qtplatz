@@ -10,48 +10,46 @@ TARGET = acewrapper
 TEMPLATE = lib
 CONFIG += staticlib
 
-include(../../adilibrary.pri)
+include(../../qtplatz_libs.pri)
 include(../../boost.pri)
 include(acewrapper_dependencies.pri)
 
 SOURCES += acewrapper.cpp \
-    timeval.cpp \
-    mcastserver.cpp \
     ace_string.cpp \
-    reactorthread.cpp \
-    eventhandler.cpp \
-    mcasthandler.cpp \
+    brokerhelper.cpp \
+    constants.cpp \
     dgramhandler.cpp \
-    timerhandler.cpp \
-    messageblock.cpp \
-    outputcdr.cpp \
+    input_buffer.cpp \
     inputcdr.cpp \
     lifecycle_frame_serializer.cpp \
-    orbservant.cpp \
-    outbuf.cpp \
-    inbuf.cpp \
-    input_buffer.cpp
+    mcasthandler.cpp \
+    mcastserver.cpp \
+    messageblock.cpp \
+    outputcdr.cpp \
+    reactorthread.cpp \
+    timerhandler.cpp \
+    timeval.cpp
 
 HEADERS += acewrapper.h \
-    mutex.hpp \
-    timeval.h \
-    mcastserver.h \
-    callback.h \
     ace_string.h \
-    reactorthread.h \
-    eventhandler.h \
-    mcasthandler.h \
+    brokerhelper.h \
+    callback.h \
+    constants.h \
     dgramhandler.h \
-    timerhandler.h \
-    messageblock.h \
-    outputcdr.h \
+    eventhandler.h \
+    input_buffer.h \
     inputcdr.h \
-    serialization_inet_addr.h \
     lifecycle_frame_serializer.h \
+    mcasthandler.h \
+    mcastserver.h \
+    messageblock.h \
+    mutex.hpp \
     orbservant.h \
-    outbuf.h \
-    inbuf.h \
-    input_buffer.h
+    outputcdr.h \
+    reactorthread.h \
+    serialization_inet_addr.h \
+    timerhandler.h \
+    timeval.h
 
 OTHER_FILES += \
     acewrapper.pri \

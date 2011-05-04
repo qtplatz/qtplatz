@@ -10,8 +10,11 @@ TARGET = adutils
 TEMPLATE = lib
 CONFIG += staticlib
 
+INCLUDEPATH += ../../libs
+include (../../boost.pri)
+
 SOURCES += adutils.cpp \
-    dataplothelper.cpp
+    processeddata.cpp
 
 HEADERS += adutils.h \
-    dataplothelper.h
+    processeddata.h
