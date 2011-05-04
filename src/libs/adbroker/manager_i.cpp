@@ -26,7 +26,7 @@
 #include "manager_i.h"
 #include "session_i.h"
 #include "logger_i.h"
-#include <adportable/debug.h>
+#include <adportable/debug.hpp>
 
 using namespace adbroker;
 

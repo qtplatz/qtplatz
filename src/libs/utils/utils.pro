@@ -3,7 +3,7 @@ TARGET = Utils
 QT += gui \
     network
 DEFINES += QTCREATOR_UTILS_LIB
-include(../../adilibrary.pri)
+include(../../qtplatz_lib_dynamic.pri)
 SOURCES += reloadpromptutils.cpp \
     settingsutils.cpp \
     filesearch.cpp \

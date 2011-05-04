@@ -11,7 +11,7 @@
 #include <adplugin/orbmanager.h>
 #include <acewrapper/constants.h>
 #include <acewrapper/brokerhelper.h>
-#include <adportable/string.h>
+#include <adportable/string.hpp>
 ///////-- ServantPlugin dependent -- ////////
 #include "outputwindow.h"
 #include <extensionsystem/pluginmanager.h>

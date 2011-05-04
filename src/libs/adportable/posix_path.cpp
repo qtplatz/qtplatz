@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "posix_path.h"
+#include "posix_path.hpp"
 #include <algorithm>
 
 namespace adportable { namespace detail {

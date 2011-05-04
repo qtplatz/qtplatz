@@ -39,8 +39,8 @@
 #include <adinterface/eventlog_helper.h>
 #include "marshal.hpp"
 #include "constants.h"
-#include <adportable/configuration.h>
-#include <adportable/configloader.h>
+#include <adportable/configuration.hpp>
+#include <adportable/configloader.hpp>
 #include "observer_i.h"
 #include "manager_i.h"
 #include <acewrapper/orbservant.h>

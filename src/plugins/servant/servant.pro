@@ -8,7 +8,7 @@ TARGET = servant
 TEMPLATE = lib
 
 PROVIDER = ScienceLiaison
-include(../../adiplugin.pri)
+include(../../qtplatz_plugin.pri)
 include(servant_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
@@ -22,7 +22,7 @@ SOURCES += servant.cpp \
     mainwindow.cpp
 
 HEADERS += servant.h\
-        servant_global.h \
+    servant_global.h \
     servantplugin.h \
     servantuimanager.h \
     servantmode.h \

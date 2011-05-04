@@ -2,11 +2,9 @@ TEMPLATE  = subdirs
 CONFIG   += ordered
 
 SUBDIRS = \
-    libs \
     app \
-    adics \
+    libs \
     plugins \
-    instmanager \
     test_serializer \
     tofcontroller \
     controller \

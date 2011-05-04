@@ -3,7 +3,7 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "protocollifecycle.h"
+#include "protocollifecycle.hpp"
 #include <boost/variant.hpp>
 #include <boost/type_traits.hpp>
 #include <sstream>

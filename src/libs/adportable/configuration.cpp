@@ -3,7 +3,7 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "configuration.h"
+#include "configuration.hpp"
 
 using namespace adportable;
 

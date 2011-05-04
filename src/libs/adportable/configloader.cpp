@@ -2,10 +2,10 @@
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
-#include "debug.h"
-#include <adportable/string.h>
-#include "ConfigLoader.h"
-#include <adportable/configuration.h>
+#include "debug.hpp"
+#include <adportable/string.hpp>
+#include "configloader.hpp"
+#include <adportable/configuration.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <xmlparser/pugiwrapper.h>
 #include <fstream>

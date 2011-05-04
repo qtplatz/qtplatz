@@ -3,7 +3,7 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "lifecycle_frame.h"
+#include "lifecycle_frame.hpp"
 /*
 lifecycle_frame::lifecycle_frame() : endian_mark_(0xfffe)
 				   , protocol_version_(0x0001)

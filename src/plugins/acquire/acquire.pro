@@ -10,7 +10,7 @@ TARGET = acquire
 TEMPLATE = lib
 PROVIDER = ScienceLiaison
 
-include(../../adiplugin.pri)
+include(../../qtplatz_lib_dynamic.pri)
 include(acquire_dependencies.pri)
 
 include(../../boost.pri)

@@ -9,6 +9,8 @@ QT       -= core gui
 TARGET = adcontroller
 TEMPLATE = lib
 
+include(../../qtplatz_lib_dynamic.pri)
+
 DEFINES += ADCONTROLLER_LIBRARY
 
 SOURCES += adcontroller.cpp \

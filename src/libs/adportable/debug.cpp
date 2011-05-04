@@ -3,10 +3,10 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "debug.h"
+#include "debug.hpp"
 #include <fstream>
 #include <iomanip>
-#include "string.h"
+#include "string.hpp"
 
 using namespace adportable;
 

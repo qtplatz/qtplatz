@@ -8,7 +8,7 @@
  *
  */
 
-#include "fft.h"
+#include "fft.hpp"
 
 using namespace adportable;
 

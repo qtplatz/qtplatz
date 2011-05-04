@@ -9,35 +9,32 @@ QT       -= core gui
 TARGET = adfs
 TEMPLATE = lib
 CONFIG += staticlib
+include(../../qtplatz_lib_static.pri)
+include(../../boost.pri)
 
 SOURCES += adfs.cpp \
-    adsqlite.cpp \
-    sqlite3.c \
     apiposix.cpp \
     apiwin32.cpp \
-    constants.cpp \
+    attributes.cpp \
+    cpio.cpp \
     filesystem.cpp \
     folder.cpp \
     folium.cpp \
-        node.cpp \
     portfolio.cpp \
-    node.cpp \
-    streambuf.cpp \
-    cpio.cpp
+    sqlite.cpp \
+    sqlite3.c
 
 HEADERS += adfs.h \
-    adsqlite.h \
-        sqlite3.h \
-    apiwin32.h \
     apiposix.h \
-    constants.h \
+    apiwin32.h \
+    attributes.h \
+    cpio.h \
     filesystem.h \
     folder.h \
     folium.h \
     portfolio.h \
-    node.h \
-    streambuf.h \
-    cpio.h
+    sqlite.h \
+    sqlite3.h
 
 unix:!symbian {
     maemo5 {

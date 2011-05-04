@@ -10,7 +10,7 @@ TARGET = tune
 TEMPLATE = lib
 PROVIDER = ScienceLiaison
 
-include(../../qtPlatzplugin.pri)
+include(../../qtplatz_plugin.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 

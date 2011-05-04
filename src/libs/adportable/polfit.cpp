@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "polfit.h"
+#include "polfit.hpp"
 #include <cmath>
 #include <limits>
 #include "float.hpp"

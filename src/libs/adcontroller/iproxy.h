@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <string>
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>

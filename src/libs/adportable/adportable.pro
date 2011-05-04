@@ -11,10 +11,9 @@ TEMPLATE = lib
 CONFIG += staticlib
 include(../../qtplatz_lib_static.pri)
 include(../../boost.pri)
-INCLUDEPATH *= ../../libs
+INCLUDEPATH *= $(ACE_ROOT) ../../libs
 
 SOURCES += adportable.cpp \
-    cache.cpp \
     configloader.cpp \
     configuration.cpp \
     constants.cpp \
@@ -32,22 +31,21 @@ SOURCES += adportable.cpp \
 HEADERS += adportable.h \
     array_wrapper.hpp \
     binary_search.hpp \
-    cache.h \
-    configloader.h \
-    configuration.h \
-    constants.h \
+    configloader.hpp \
+    configuration.hpp \
+    constants.hpp \
     ConvertUTF.h \
-    debug.h \
+    debug.hpp \
     differential.hpp \
-    fft.h \
+    fft.hpp \
     float.hpp \
-    is_equal.h \
-    lifecycle_frame.h \
+    is_equal.hpp \
+    lifecycle_frame.hpp \
     moment.hpp \
-    polfit.h \
-    posix_path.h \
-    protocollifecycle.h \
+    polfit.hpp \
+    posix_path.hpp \
+    protocollifecycle.hpp \
     safearray.hpp \
-    spectrum_processor.h \
-    string.h \
-    utf.h
+    spectrum_processor.hpp \
+    string.hpp \
+    utf.hpp

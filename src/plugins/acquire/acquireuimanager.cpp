@@ -50,7 +50,7 @@
 // #include <xmlwrapper/xmldom.h>
 #include <adplugin/adplugin.h>
 #include <adplugin/imonitor.h>
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <adinterface/eventlog_helper.h>
 #include <acewrapper/timeval.h>
 

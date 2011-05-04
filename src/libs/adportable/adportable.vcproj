@@ -184,10 +184,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\cache.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\configloader.cpp"
 				>
 			</File>
@@ -246,30 +242,8 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="adportable.h"
+				RelativePath=".\adportable.hpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="array_wrapper.hpp"
@@ -324,19 +298,15 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\cache.h"
+				RelativePath=".\configloader.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\configloader.h"
+				RelativePath=".\configuration.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\configuration.h"
-				>
-			</File>
-			<File
-				RelativePath=".\constants.h"
+				RelativePath=".\constants.hpp"
 				>
 			</File>
 			<File
@@ -344,7 +314,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\debug.h"
+				RelativePath=".\debug.hpp"
 				>
 			</File>
 			<File
@@ -352,7 +322,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\fft.h"
+				RelativePath=".\fft.hpp"
 				>
 			</File>
 			<File
@@ -360,7 +330,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\is_equal.h"
+				RelativePath=".\is_equal.hpp"
 				>
 			</File>
 			<File
@@ -390,42 +360,24 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\lifecycle_frame.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\moment.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\polfit.h"
+				RelativePath=".\polfit.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\posix_path.h"
+				RelativePath=".\posix_path.hpp"
 				>
 			</File>
 			<File
-				RelativePath="protocollifecycle.h"
+				RelativePath=".\protocollifecycle.hpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="safearray.hpp"
@@ -454,15 +406,19 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\spectrum_processor.h"
+				RelativePath=".\spectrum_processor.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\string.h"
+				RelativePath=".\string.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\utf.h"
+				>
+			</File>
+			<File
+				RelativePath=".\utf.hpp"
 				>
 			</File>
 		</Filter>

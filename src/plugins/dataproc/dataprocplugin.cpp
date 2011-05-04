@@ -70,9 +70,9 @@
 #include <adcontrols/msproperty.h>
 #include <adcontrols/processmethod.h>
 #include <qtwrapper/qstring.h>
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <adplugin/adplugin.h>
-#include <adportable/debug.h>
+#include <adportable/debug.hpp>
 
 #include <acewrapper/constants.h>
 #include <acewrapper/brokerhelper.h>

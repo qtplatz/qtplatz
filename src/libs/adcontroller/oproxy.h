@@ -30,7 +30,7 @@
 #include <adinterface/instrumentC.h>
 #pragma warning(default:4996)
 
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <boost/noncopyable.hpp>
 
 namespace adcontroller {

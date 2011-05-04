@@ -9,7 +9,7 @@ QT       += xml
 TARGET = sequence
 TEMPLATE = lib
 PROVIDER = ScienceLiaison
-include(../../adiplugin.pri)
+include(../../qtplatz_lib_dynamic.pri)
 include(sequence_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)

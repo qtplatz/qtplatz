@@ -11,7 +11,7 @@ TARGET = xmlwrapper
 TEMPLATE = lib
 CONFIG += staticlib
 
-include(../../adilibrary.pri)
+include(../../qtplatz_lib_static.pri)
 
 SOURCES += qtxml.cpp \
     msxml.cpp \

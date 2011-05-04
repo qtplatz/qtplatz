@@ -20,7 +20,7 @@ SUBDIRS   = \
     qtwidgets \
     qtwrapper \
     utils \
-    xmlwrapper \
+    xmlparser \
     adfs
 
 #   adcontroller

@@ -3,8 +3,8 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "string.h"
-#include "utf.h"
+#include "string.hpp"
+#include "utf.hpp"
 
 #ifdef WIN32
 # include <Windows.h>

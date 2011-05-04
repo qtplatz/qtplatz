@@ -9,20 +9,20 @@ QT       -= core gui
 TARGET = portfolio
 TEMPLATE = lib
 
+INCLUDEPATH += ../../libs
+include(../../boost.pri)
+include(../../qtplatz_lib_dynamic.pri)
+
 DEFINES += PORTFOLIO_LIBRARY
 
 SOURCES += portfolio.cpp \
     folder.cpp \
     folium.cpp \
-    folio.cpp \
-    portfolioimpl.cpp \
-    nodeident.cpp \
-    attachment.cpp
+    node.cpp \
+    portfolioimpl.cpp
 
 HEADERS += portfolio.h\
-        portfolio_global.h \
+    portfolio_global.h \
     folder.h \
     folium.h \
-    portfolioimpl.h \
-    nodeident.h \
-    attachment.h
+    portfolioimpl.h

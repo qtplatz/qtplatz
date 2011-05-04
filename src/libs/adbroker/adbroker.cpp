@@ -43,7 +43,7 @@
 #include <acewrapper/orbservant.h>
 #include <acewrapper/constants.h>
 #include <acewrapper/acewrapper.h>
-#include <adportable/debug.h>
+#include <adportable/debug.hpp>
 
 #include "manager_i.h"
 #include "brokermanager.h"

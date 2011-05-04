@@ -6,7 +6,8 @@ QT += xml \
     script \
     svg \
     sql
-include(../../adiplugin.pri)
+#include(../../qtplatz_lib_dynamic.pri)
+include(../../nokia_plugin.pri)
 include(../../libs/utils/utils.pri)
 include(../../shared/scriptwrapper/scriptwrapper.pri)
 include(coreplugin_dependencies.pri)

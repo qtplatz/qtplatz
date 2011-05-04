@@ -28,9 +28,9 @@
 #include "constants.h"
 #include "ibroker.h"
 #include "manager_i.h"
-#include <adportable/string.h>
 #include <acewrapper/brokerhelper.h>
-#include <adportable/debug.h>
+#include <adportable/string.hpp>
+#include <adportable/debug.hpp>
 
 using namespace adcontroller;
 

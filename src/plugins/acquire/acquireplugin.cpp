@@ -91,7 +91,7 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
-#include <adportable/fft.h>
+#include <adportable/fft.hpp>
 
 #include <fstream>
 

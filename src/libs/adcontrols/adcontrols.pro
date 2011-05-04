@@ -9,105 +9,117 @@ QT       -= gui
 TARGET = adcontrols
 TEMPLATE = lib
 
-include(../../adilibrary.pri)
+include(../../qtplatz_lib_dynamic.pri)
 include(../../boost.pri)
 include(../acewrapper/acewrapper.pri)
 
 DEFINES += ADCONTROLS_LIBRARY
 
-SOURCES += massspectrum.cpp \
-    description.cpp \
-    descriptions.cpp \
-    tableofelements.cpp \
-    adcontrols.cpp \
-    chromatogram.cpp \
-    element.cpp \
-    elements.cpp \
-    mslockmethod.cpp \
-    cpeakmethod.cpp \
-    mscalibratemethod.cpp \
-    mscalibraterefdefns.cpp \
-    elementalcompositionmethod.cpp \
-    isotopemethod.cpp \
-    reportmethod.cpp \
-    targetingmethod.cpp \
-    dataproviderbroker.cpp \
-    datasubscriber.cpp \
-    datapublisher.cpp \
-    lcmsdataset.cpp \
+SOURCES += acceptor.cpp \
     acquireddataset.cpp \
-    processeddataset.cpp \
-    mscalibration.cpp \
-    elementalcomposition.cpp \
-    elementalcompositioncollection.cpp \
-    lockmass.cpp \
-    processmethod.cpp \
-    msproperty.cpp \
-    processresult.cpp \
-    peak.cpp \
-    peaks.cpp \
+    adcontrols.cpp \
     baseline.cpp \
     baselines.cpp \
-    timeutil.cpp \
-    theoreticalplate.cpp \
+    centroidmethod.cpp \
+    centroidprocess.cpp \
+    chemicalformula.cpp \
+    chromatogram.cpp \
+    datafile.cpp \
+    datafilebroker.cpp \
+    datainterpreter.cpp \
+    datapublisher.cpp \
+    datasubscriber.cpp \
+    description.cpp \
+    descriptions.cpp \
+    element.cpp \
+    elementalcomposition.cpp \
+    elementalcompositioncollection.cpp \
+    elementalcompositionmethod.cpp \
+    elements.cpp \
+    isotopecluster.cpp \
+    isotopemethod.cpp \
+    lcmsdataset.cpp \
+    lockmass.cpp \
+    massspectrometer.cpp \
+    massspectrometerbroker.cpp \
+    massspectrum.cpp \
+    msassignedmass.cpp \
+    mscalibratemethod.cpp \
+    mscalibrateresult.cpp \
+    mscalibration.cpp \
+    mslockmethod.cpp \
+    mspeakinfoitem.cpp \
+    msproperty.cpp \
+    msreference.cpp \
+    msreferencedefns.cpp \
+    msreferences.cpp \
+    peak.cpp \
     peakasymmetry.cpp \
     peakresolution.cpp \
-    traceaccessor.cpp \
+    peaks.cpp \
+    processeddataset.cpp \
+    processmethod.cpp \
+    reportmethod.cpp \
+    tableofelements.cpp \
+    targetingmethod.cpp \
+    theoreticalplate.cpp \
+    timeutil.cpp \
     trace.cpp \
-    msreference.cpp \
-    msreferences.cpp \
-    isocluster.cpp \
-    samassspectrum.cpp \
-    mscalibrateresult.cpp \
-    msassignedmass.cpp
+    traceaccessor.cpp \
+    visitor.cpp
 
-HEADERS += massspectrum.h\
-        adcontrols_global.h \
-    import_sacontrols.h \
+HEADERS += acceptor.h \
+    acquireddataset.h \
     adcontrols.h \
+    adcontrols_global.h \
+    baseline.h \
+    baselines.h \
+    centroidmethod.h \
+    centroidprocess.h \
+    chemicalformula.h \
+    chromatogram.h \
+    datafile.h \
+    datafile_factory.h \
+    datafilebroker.h \
+    datainterpreter.h \
+    datapublisher.h \
+    datasubscriber.h \
     description.h \
     descriptions.h \
-    tableofelements.h \
-    chromatogram.h \
     element.h \
-    elements.h \
-    mslockmethod.h \
-    cpeakmethod.h \
-    mscalibratemethod.h \
-    mscalibraterefdefns.h \
-    elementalcompositionmethod.h \
-    isotopemethod.h \
-    reportmethod.h \
-    targetingmethod.h \
-    dataproviderbroker.h \
-    datasubscriber.h \
-    datapublisher.h \
-    lcmsdataset.h \
-    acquireddataset.h \
-    processeddataset.h \
-    mscalibration.h \
     elementalcomposition.h \
     elementalcompositioncollection.h \
+    elementalcompositionmethod.h \
+    elements.h \
+    isotopecluster.h \
+    isotopemethod.h \
+    lcmsdataset.h \
     lockmass.h \
-    processmethod.h \
+    massspectrometer.h \
+    msassignedmass.h \
+    mscalibratemethod.h \
+    mscalibrateresult.h \
+    mscalibration.h \
+    mslockmethod.h \
+    mspeakinfoitem.h \
     msproperty.h \
-    processresult.h \
-    cpeak.h \
-    cpeaks.h \
-    cbaseline.h \
-    cbaselines.h \
-    timeutil.h \
-    theoreticalplate.h \
+    msreference.h \
+    msreferencedefns.h \
+    msreferences.h \
+    peak.h \
     peakasymmetry.h \
     peakresolution.h \
-    traceaccessor.h \
+    peaks.h \
+    processeddataset.h \
+    processmethod.h \
+    reportmethod.h \
+    tableofelements.h \
+    targetingmethod.h \
+    theoreticalplate.h \
+    timeutil.h \
     trace.h \
-    msreference.h \
-    msreferences.h \
-    isocluster.h \
-    samassspectrum.h \
-    mscalibrateresult.h \
-    msassignedmass.h
+    traceaccessor.h \
+    visitor.h
 
 OTHER_FILES += \
     adcontrols.pri

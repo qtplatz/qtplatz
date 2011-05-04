@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "spectrum_processor.h"
+#include "spectrum_processor.hpp"
 #include <adportable/differential.hpp>
 #include <cmath>
 #include <boost/smart_ptr.hpp>

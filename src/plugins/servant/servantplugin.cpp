@@ -50,9 +50,9 @@
 #include <adplugin/orbLoader.h>
 #include <adplugin/orbmanager.h>
 
-#include <adportable/configuration.h>
-#include <adportable/string.h>
-#include <adportable/debug.h>
+#include <adportable/configuration.hpp>
+#include <adportable/string.hpp>
+#include <adportable/debug.hpp>
 #include <acewrapper/acewrapper.h>
 //#include <acewrapper/orbservant.h>
 #include <acewrapper/constants.h>

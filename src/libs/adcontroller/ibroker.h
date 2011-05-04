@@ -28,7 +28,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
 #include <vector>
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 
 #pragma warning(disable:4996)
 # include <ace/Recursive_Thread_Mutex.h>
