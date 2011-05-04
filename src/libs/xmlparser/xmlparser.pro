@@ -7,22 +7,15 @@
 QT       -= core gui
 QT  += xml
 
-TARGET = xmlwrapper
+TARGET = xmlparser
 TEMPLATE = lib
 CONFIG += staticlib
 
 include(../../qtplatz_lib_static.pri)
 
-SOURCES += qtxml.cpp \
-    msxml.cpp \
-    xtree.cpp \
-    pugiwrapper.cpp
+SOURCES +=  pugiwrapper.cpp
 
-HEADERS += xmldom.h \
-    qtxml.h \
-    msxml.h \
-    xtree.h \
-    pugiwrapper.h
+HEADERS +=  pugiwrapper.h
 
 OTHER_FILES += \
-    xmlwrapper.pri
+    xmlparser.pri

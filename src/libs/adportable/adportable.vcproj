@@ -334,32 +334,6 @@
 				>
 			</File>
 			<File
-				RelativePath="lifecycle_frame.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\lifecycle_frame.hpp"
 				>
 			</File>
@@ -411,10 +385,6 @@
 			</File>
 			<File
 				RelativePath=".\string.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\utf.h"
 				>
 			</File>
 			<File

@@ -1,8 +1,8 @@
 include(../qtPlatz.pri)
 
-win32 {
-    DLLDESTDIR = $$IDE_APP_PATH
-}
+#win32 {
+#    DLLDESTDIR = $$IDE_APP_PATH
+#}
 
 DESTDIR = $$IDE_LIBRARY_PATH
 

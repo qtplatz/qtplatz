@@ -25,3 +25,4 @@ SUBDIRS   = \
 
 #   adcontroller
 #    interface
+adbroker.depends = adinterface

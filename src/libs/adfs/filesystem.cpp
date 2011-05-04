@@ -32,7 +32,7 @@
 #include <boost/cstdint.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/tokenizer.hpp>
-#include <adportable/string.h>
+#include <adportable/string.hpp>
 
 #if defined WIN32
 # include "apiwin32.h"

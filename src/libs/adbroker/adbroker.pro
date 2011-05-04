@@ -10,8 +10,13 @@ TARGET = adbroker
 TEMPLATE = lib
 
 include(../../qtplatz_lib_dynamic.pri)
-include(../acewrapper/acewrapper_dependencies.pri)
 include(../../boost.pri)
+include(../acewrapper/acewrapper_dependencies.pri)
+
+CONFIG(debug, debug|release) : LIBS += -ladinterfaced
+CONFIG(release, debug|release) : LIBS += -ladinterface
+
+message( "LIBS " $$LIBS )
 
 DEFINES += ADBROKER_LIBRARY
 
