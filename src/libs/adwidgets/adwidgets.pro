@@ -10,8 +10,7 @@ TARGET = adwidgets
 TEMPLATE = lib
 CONFIG += staticlib
 
-#DESTDIR = $$IDE_LIBRARY_PATH
-include(../../adilibrary.pri)
+include(../../qtplatz_lib_static.pri)
 
 SOURCES +=  peakresultwidget.cpp
 

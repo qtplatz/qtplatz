@@ -10,6 +10,8 @@ TARGET = adutils
 TEMPLATE = lib
 CONFIG += staticlib
 
+include(../../qtplatz_lib_static.pri)
+
 INCLUDEPATH += ../../libs
 include (../../boost.pri)
 

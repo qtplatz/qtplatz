@@ -8,6 +8,7 @@ QT       -= core gui
 
 TARGET = adtxtfactory
 TEMPLATE = lib
+include(../../qtplatz_lib_dynamic.pri)
 
 INCLUDEPATH += ../../libs
 include (../../boost.pri)
