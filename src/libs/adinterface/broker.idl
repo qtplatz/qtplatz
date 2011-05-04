@@ -9,7 +9,7 @@
 
 interface LogHandler;
 interface BrokerEventSink;
-#include "SignalObserver.idl"
+#include "signalobserver.idl"
 #include "controlmethod.idl"
 
 module Broker {

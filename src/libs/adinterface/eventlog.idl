@@ -31,5 +31,8 @@ module EventLog {
         wstring format;
         wstring_sequence args;
     };
+
+    interface dummy {
+    };
   
 };

@@ -14,6 +14,9 @@ module GlobalConstants {
     /* reagion in use by tofcontroller, reserved */
     const unsigned long ClassID_MS_END          = 0x1002ffff;
 
+    interface dummy {
+    };
+
 };
 
 struct Time_Value {
