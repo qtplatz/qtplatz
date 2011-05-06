@@ -1,0 +1,56 @@
+    Add mvsata support to SHEEVAPLUG
+
+Signed-off-by: Gérald Kerma <geraker at gmail.com>
+---
+Changes in v2:
+ * typo fixed
+ * list reordered
+
+ include/configs/sheevaplug.h |   29 +++++++++++++++++++++++++++++
+ 1 files changed, 29 insertions(+), 0 deletions(-)
+
+--- a/include/configs/sheevaplug.h
++++ b/include/configs/sheevaplug.h
+@@ -46,6 +46,7 @@
+ #include <config_cmd_default.h>
+ #define CONFIG_CMD_DHCP
+ #define CONFIG_CMD_ENV
++#define CONFIG_CMD_IDE
+ #define CONFIG_CMD_MII
+ #define CONFIG_CMD_NAND
+ #define CONFIG_CMD_PING
+@@ -98,6 +99,34 @@
+ #endif /* CONFIG_CMD_NET */
+ 
+ /*
++ * IDE Support on SATA port0
++ */
++#ifdef CONFIG_CMD_IDE
++#define __io
++#define CONFIG_CMD_EXT2
++#define CONFIG_MVSATA_IDE
++#define CONFIG_IDE_PREINIT
++#define CONFIG_MVSATA_IDE_USE_PORT0
++/* Needs byte-swapping for ATA data register */
++#define CONFIG_IDE_SWAP_IO
++/* Data, registers and alternate blocks are at the same offset */
++#define CONFIG_SYS_ATA_DATA_OFFSET	(0x0100)
++#define CONFIG_SYS_ATA_REG_OFFSET	(0x0100)
++#define CONFIG_SYS_ATA_ALT_OFFSET	(0x0100)
++/* Each 8-bit ATA register is aligned to a 4-bytes address */
++#define CONFIG_SYS_ATA_STRIDE		4
++/* Controller supports 48-bits LBA addressing */
++#define CONFIG_LBA48
++/* CONFIG_CMD_IDE requires some #defines for ATA registers */
++#define CONFIG_SYS_IDE_MAXBUS		1
++#define CONFIG_SYS_IDE_MAXDEVICE	1
++/* ATA registers base is at SATA controller base */
++#define CONFIG_SYS_ATA_BASE_ADDR	KW_SATA_BASE
++/* ATA bus 0 is Kirkwood port 1 on sheevaplug */
++#define CONFIG_SYS_ATA_IDE0_OFFSET	KW_SATA_PORT1_OFFSET
++#endif /* CONFIG_CMD_IDE */
++
++/*
+  * File system
+  */
+ #define CONFIG_CMD_EXT2
