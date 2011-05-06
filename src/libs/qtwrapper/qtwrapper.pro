@@ -12,9 +12,7 @@ CONFIG += staticlib
 include(../../qtplatz_lib_static.pri)
 
 SOURCES += qtwrapper.cpp \
-    qstring.cpp \
-    xmldom.cpp
+    qstring.cpp
 
 HEADERS += qtwrapper.h \
-    qstring.h \
-    xmldom.h
+    qstring.h

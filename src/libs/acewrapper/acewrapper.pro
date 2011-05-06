@@ -14,6 +14,8 @@ include(../../qtplatz_lib_static.pri)
 include(../../boost.pri)
 include(acewrapper_dependencies.pri)
 
+INCLUDEPATH *= $$OUT_PWD/..
+
 SOURCES += acewrapper.cpp \
     ace_string.cpp \
     brokerhelper.cpp \

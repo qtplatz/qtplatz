@@ -4,7 +4,7 @@
 //////////////////////////////////////////
 
 #include "lifecycle_frame_serializer.h"
-#include <adportable/protocollifecycle.h>
+#include <adportable/protocollifecycle.hpp>
 #include <acewrapper/OutputCDR.h>
 #include <acewrapper/InputCDR.h>
 #include <boost/variant/static_visitor.hpp>

@@ -25,7 +25,7 @@
 #include "datafilebroker.h"
 #include "datafile.h"
 #include "datafile_factory.h"
-#include <adportable/string.h>
+#include <adportable/string.hpp>
 #include <map>
 #include <boost/smart_ptr.hpp>
 #include <QLibrary>

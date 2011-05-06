@@ -7,7 +7,7 @@
 #include "ui_reportform.h"
 #include "reportdelegate.h"
 #include <adcontrols/reportmethod.h>
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <QStandardItemModel>
 
 using namespace qtwidgets;

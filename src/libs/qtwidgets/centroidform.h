@@ -29,7 +29,7 @@
 #include <QWidget>
 #include <QStandardItemModel>
 #include <adplugin/lifecycle.h>
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <boost/smart_ptr.hpp>
 
 namespace adcontrols {

@@ -15,6 +15,7 @@ include(../acewrapper/acewrapper_dependencies.pri)
 
 CONFIG(debug, debug|release) : LIBS += -ladinterfaced
 CONFIG(release, debug|release) : LIBS += -ladinterface
+INCLUDEPATH *= $$OUT_PWD/..
 
 message( "LIBS " $$LIBS )
 

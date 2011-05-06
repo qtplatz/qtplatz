@@ -4,7 +4,7 @@
 //////////////////////////////////////////
 
 #include "qstring.h"
-#include <adportable/utf.h>
+#include <adportable/utf.hpp>
 
 using namespace qtwrapper;
 

@@ -28,7 +28,7 @@
 
 #include <QWidget>
 #include <adplugin/lifecycle.h>
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <boost/smart_ptr.hpp>
 
 class QStandardItemModel;

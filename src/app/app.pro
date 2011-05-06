@@ -1,22 +1,21 @@
 include(../../qtPlatz.pri)
 include(../shared/qtsingleapplication/qtsingleapplication.pri)
-#include(../libs/extensionsystem/extensionsystem_dependencies.pri)
 
 TEMPLATE = app
 TARGET = $$IDE_APP_TARGET
 DESTDIR = $$IDE_APP_PATH
 
-include(../qtplatz_lib_dynamic.pri)
-
 SOURCES += main.cpp
 
+#include(../qtplatz_lib_dynamic.pri)
+
 include(../rpath.pri)
+
 LIBS += -L$$IDE_LIBRARY_PATH
 
 win32 {
     CONFIG(debug, debug|release):LIBS *= -lExtensionSystemd -lAggregationd
     else:LIBS *= -lExtensionSystem -lAggregation
-    #LIBS *= -l$$qtLibraryTarget(ExtensionSystem) -l$$qtLibraryTarget(Aggregation)
 
     RC_FILE = qtPlatz.rc
     target.path = /bin
@@ -39,4 +38,3 @@ win32 {
 
 OTHER_FILES += qtPlatz.rc
 
-#PRE_TARGETDEPS += $$qtLibraryTarget(ExtensionSystem) $$qtLibraryTarget(Aggregation)

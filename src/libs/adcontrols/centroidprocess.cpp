@@ -29,7 +29,7 @@
 #include "msproperty.h"
 #include "mspeakinfoitem.h"
 #include "description.h"
-#include <adportable/spectrum_processor.h>
+#include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <vector>
 #include <algorithm>

@@ -12,7 +12,7 @@
 #include <map>
 #include <string>
 #include <QLibrary>
-#include <adportable/string.h>
+#include <adportable/string.hpp>
 
 using namespace adcontrols;
 

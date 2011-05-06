@@ -9,7 +9,7 @@
 #include "standarditemhelper.h"
 #include <adcontrols/isotopemethod.h>
 #include <adcontrols/processmethod.h>
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <QStandardItemModel>
 
 using namespace qtwidgets;

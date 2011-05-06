@@ -27,7 +27,7 @@
 #include "ui_elementalcompositionform.h"
 #include "elementalcompositiondelegate.h"
 #include "standarditemhelper.h"
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <adcontrols/elementalcompositionmethod.h>
 #include <adcontrols/processmethod.h>
 #include <QStandardItemModel>

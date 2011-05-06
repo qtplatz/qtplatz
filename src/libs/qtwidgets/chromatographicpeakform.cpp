@@ -5,7 +5,7 @@
 
 #include "chromatographicpeakform.h"
 #include "ui_chromatographicpeakform.h"
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <QStandardItemModel>
 
 using namespace qtwidgets;

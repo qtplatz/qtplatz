@@ -16,58 +16,62 @@ INCLUDEPATH *= $(ACE_ROOT) $(TAO_ROOT)
 
 DEFINES += QTWIDGETS_LIBRARY
 
-SOURCES += qtwidgets.cpp \
-    logwidget.cpp \
-    factory.cpp \
-    sequencewidget.cpp \
-    sequences.cpp \
-    centroidform.cpp \
-    elementalcompositionform.cpp \
-    mscalibrationform.cpp \
-    isotopeform.cpp \
-    targetingform.cpp \
-    mslockform.cpp \
-    chromatographicpeakform.cpp \
-    peakidtableform.cpp \
-    reportform.cpp \
-    centroidmodel.cpp \
-    qcomboboxdelegate.cpp \
-    elementalcompositiondelegate.cpp \
-    isotopedelegate.cpp \
-    standarditemhelper.cpp \
-    mslockdelegate.cpp \
-    mscalibratedelegate.cpp \
-    reportdelegate.cpp \
-    targetingdelegate.cpp \
-    mscalibsummarywidget.cpp \
-    mscalibsummarydelegate.cpp
+SOURCES += centroiddelegate.cpp \
+        centroidform.cpp \
+        chromatographicpeakform.cpp \
+        elementalcompositiondelegate.cpp \
+        elementalcompositionform.cpp \
+        factory.cpp \
+        isotopedelegate.cpp \
+        isotopeform.cpp \
+        logwidget.cpp \
+        mscalibratedelegate.cpp \
+        mscalibrationform.cpp \
+        mscalibsummarydelegate.cpp \
+        mscalibsummarywidget.cpp \
+        mslockdelegate.cpp \
+        mslockform.cpp \
+        peakidtableform.cpp \
+        qtwidgets.cpp \
+        reportdelegate.cpp \
+        reportform.cpp \
+        sequencesform.cpp \
+        sequencesmodel.cpp \
+        sequencewidget.cpp \
+        standarditemhelper.cpp \
+        standardmodel.cpp \
+        targetingdelegate.cpp \
+        targetingform.cpp \
+        treeitem.cpp
 
-HEADERS += qtwidgets.h\
-        qtwidgets_global.h \
-    logwidget.h \
-    factory.h \
-    sequencewidget.h \
-    sequences.h \
-    centroidform.h \
-    elementalcompositionform.h \
-    mscalibrationform.h \
-    isotopeform.h \
-    targetingform.h \
-    mslockform.h \
-    chromatographicpeakform.h \
-    peakidtableform.h \
-    reportform.h \
-    centroidmodel.h \
-    qcomboboxdelegate.h \
-    elementalcompositiondelegate.h \
-    isotopedelegate.h \
-    standarditemhelper.h \
-    mslockdelegate.h \
-    mscalibratedelegate.h \
-    reportdelegate.h \
-    targetingdelegate.h \
-    mscalibsummarywidget.h \
-    mscalibsummarydelegate.h
+
+HEADERS += centroiddelegate.h \
+        centroidform.h \
+        chromatographicpeakform.h \
+        elementalcompositiondelegate.h \
+        elementalcompositionform.h \
+        factory.h \
+        isotopedelegate.h \
+        isotopeform.h \
+        logwidget.h \
+        mscalibratedelegate.h \
+        mscalibrationform.h \
+        mscalibsummarydelegate.h \
+        mscalibsummarywidget.h \
+        mslockdelegate.h \
+        mslockform.h \
+        peakidtableform.h \
+        qtwidgets.h \
+        reportdelegate.h \
+        reportform.h \
+        sequencesform.h \
+        sequencesmodel.h \
+        sequencewidget.h \
+        standarditemhelper.h \
+        standardmodel.h \
+        targetingdelegate.h \
+        targetingform.h \
+        treeitem.h
 
 FORMS += \
     logwidget.ui \

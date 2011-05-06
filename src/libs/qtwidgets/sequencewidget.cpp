@@ -6,7 +6,7 @@
 
 #include "sequencewidget.h"
 #include "ui_sequencewidget.h"
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <QStandardItemModel>
 
 using namespace qtwidgets;

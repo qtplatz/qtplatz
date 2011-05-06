@@ -7,7 +7,7 @@
 #include "ui_mslockform.h"
 #include "mslockdelegate.h"
 #include "standarditemhelper.h"
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <adcontrols/mslockmethod.h>
 #include <QStandardItemModel>
 

@@ -31,7 +31,7 @@
 #include <adcontrols/msreferences.h>
 #include <adcontrols/msreference.h>
 #include <adcontrols/processmethod.h>
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <QStandardItemModel>
 #include "standarditemhelper.h"
 #include <boost/format.hpp>

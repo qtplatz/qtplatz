@@ -25,7 +25,7 @@
 #pragma warning(disable:4100)
 #include "chemicalformula.h"
 #include "tableofelements.h"
-#include <adportable/string.h>
+#include <adportable/string.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>

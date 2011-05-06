@@ -37,7 +37,6 @@ tao_idlC.output = ${QMAKE_FILE_BASE}C.cpp
 tao_idlC.variable_out = GENERATED_FILES
 tao_idlC.depends = ${QMAKE_FILE_IN}
 tao_idlC.commands = tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) -I$${PWD} ${QMAKE_FILE_IN}
-#tao_idlC.depend_commands = tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) ${QMAKE_FILE_IN}
 tao_idlC.CONFIG = no_link
 QMAKE_EXTRA_COMPILERS += tao_idlC
 tao_idlC.variable_out = SOURCES
@@ -56,10 +55,10 @@ tao_idlS.variable_out = SOURCES
 
 GENERATED_FILES += \
         brokerC.cpp \
-        brokerC.cpp \
+        brokerS.cpp \
         brokereventC.cpp \
         brokereventS.cpp \
-        controlserverC.cpp \
+    controlserverC.cpp \
 	controlserverS.cpp \
 	controlmethodC.cpp \ 
 	controlmethodS.cpp \ 
@@ -69,8 +68,8 @@ GENERATED_FILES += \
 	receiverS.cpp \
 	samplebrokerC.cpp \
         samplebrokerS.cpp \
-        signalobserverC.cpp \
-        signalobserverS.cpp
+    signalobserverC.cpp \
+    signalobserverS.cpp
 
 OTHER_FILES += \
     broker.idl \

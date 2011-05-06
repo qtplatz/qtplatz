@@ -5,7 +5,7 @@
 
 #include "peakidtableform.h"
 #include "ui_peakidtableform.h"
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <QStandardItemModel>
 
 using namespace qtwidgets;

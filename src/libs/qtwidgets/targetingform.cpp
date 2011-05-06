@@ -27,7 +27,7 @@
 #include "targetingdelegate.h"
 #include <adcontrols/targetingmethod.h>
 #include <adcontrols/processmethod.h>
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #pragma warning(disable:4251)
 #include <QStandardItemModel>
 #pragma warning(default:4251)

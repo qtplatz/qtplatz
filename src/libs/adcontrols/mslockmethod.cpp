@@ -4,7 +4,7 @@
 //////////////////////////////////////////
 
 #include "mslockmethod.h"
-#include <adportable/is_equal.h>
+#include <adportable/is_equal.hpp>
 
 using namespace adcontrols;
 
