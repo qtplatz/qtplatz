@@ -26,11 +26,11 @@
 #include "adplugin.h"
 #include "lifecycle.h"
 #include "orbLoader.h"
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <acewrapper/constants.h>
-#include <adportable/configloader.h>
-#include <adportable/debug.h>
-#include <adportable/string.h>
+#include <adportable/configloader.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/string.hpp>
 #include <qtwrapper/qstring.h>
 #include <QLibrary>
 #include <QDir>

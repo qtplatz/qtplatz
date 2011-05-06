@@ -34,7 +34,7 @@
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 #include <boost/any.hpp>
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <adplugin/lifecycle.h>
 #include <adplugin/manager.h>
 

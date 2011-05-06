@@ -38,8 +38,8 @@
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-#include <adportable/string.h>
-#include <adportable/posix_path.h>
+#include <adportable/string.hpp>
+#include <adportable/posix_path.hpp>
 #include <acewrapper/input_buffer.h>
 #include <adfs/adfs.h>
 #include <adfs/sqlite.h>

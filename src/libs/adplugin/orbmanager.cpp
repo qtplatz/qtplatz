@@ -11,7 +11,7 @@
 #pragma warning (default: 4669)
 
 #include <acewrapper/mutex.hpp>
-#include <adportable/debug.h>
+#include <adportable/debug.hpp>
 
 using namespace adplugin;
 

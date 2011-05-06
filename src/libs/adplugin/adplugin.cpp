@@ -8,9 +8,9 @@
 #include <QString>
 #include <stdlib.h>
 #include <acewrapper/constants.h>
-#include <adportable/configuration.h>
-#include <adportable/configloader.h>
-#include <adportable/debug.h>
+#include <adportable/configuration.hpp>
+#include <adportable/configloader.hpp>
+#include <adportable/debug.hpp>
 #include <string>
 #include <vector>
 #include <qtwrapper/qstring.h>

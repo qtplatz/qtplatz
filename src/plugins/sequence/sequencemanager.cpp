@@ -4,7 +4,7 @@
 //////////////////////////////////////////
 
 #include "sequencemanager.h"
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <adplugin/adplugin.h>
 #include <adplugin/lifecycle.h>
 #include <utils/fancymainwindow.h>

@@ -35,7 +35,7 @@
 #include <adcontrols/mscalibrateresult.h>
 #include <adcontrols/mscalibratemethod.h>
 #include <adportable/array_wrapper.hpp>
-#include <adportable/polfit.h>
+#include <adportable/polfit.hpp>
 #include <adcontrols/msreferences.h>
 #include <adcontrols/msreference.h>
 #include <adcontrols/msassignedmass.h>

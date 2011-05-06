@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "txtspectrum.h"
-#include <adportable/string.h>
+#include <adportable/string.hpp>
 #include <adcontrols/description.h>
 #include <adcontrols/massspectrum.h>
 #include <adcontrols/msproperty.h>

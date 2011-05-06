@@ -11,6 +11,10 @@ TEMPLATE = lib
 
 DEFINES += ADDATAFILE_LIBRARY
 
+include(../../boost.pri)
+include(../../qtplatz_lib_dynamic.pri)
+INCLUDEPATH += ../
+
 SOURCES += addatafile.cpp \
     datafile.cpp \
     datafile_factory.cpp \

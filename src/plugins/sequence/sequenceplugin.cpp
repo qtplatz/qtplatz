@@ -9,7 +9,7 @@
 #include "sequencemanager.h"
 #include <adplugin/adplugin.h>
 #include <adplugin/lifecycle.h>
-#include <adportable/configuration.h>
+#include <adportable/configuration.hpp>
 #include <qtwrapper/qstring.h>
 
 #include <QtCore/qplugin.h>

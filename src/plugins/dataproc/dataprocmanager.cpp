@@ -26,7 +26,7 @@
 #include "dataprocmanager.h"
 #include "sessionmanager.h"
 #include "dataprocessor.h"
-#include <adportable/Configuration.h>
+#include <adportable/configuration.hpp>
 #include <adcontrols/datafilebroker.h>
 #include <adcontrols/datafile.h>
 #include <adplugin/adplugin.h>
