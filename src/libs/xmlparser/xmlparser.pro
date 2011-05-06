@@ -13,9 +13,14 @@ CONFIG += staticlib
 
 include(../../qtplatz_library_rule.pri)
 
-SOURCES +=  pugiwrapper.cpp
+SOURCES +=  pugiwrapper.cpp \
+#        qtxml.cpp \
+        pugixml.cpp
 
-HEADERS +=  pugiwrapper.h
+HEADERS +=  pugiconfig.hpp \
+        pugixml.hpp \
+        qtxml.h \
+        pugiwrapper.h
 
 OTHER_FILES += \
     xmlparser.pri

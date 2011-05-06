@@ -4,10 +4,9 @@ CONFIG   += ordered
 SUBDIRS   = \
     aggregation \
     extensionsystem \
-    utils \
     adfs \
-    portfolio \
     xmlparser \
+    portfolio \
     adwplot \
     qtwrapper \
     adportable \
@@ -21,5 +20,6 @@ SUBDIRS   = \
     adplugin \
     adtxtfactory \
     adwidgets \
-    adbroker
+    adbroker \
+    utils
 
