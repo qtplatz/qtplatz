@@ -11,7 +11,7 @@ TEMPLATE = lib
 
 INCLUDEPATH += ../../libs
 include(../../boost.pri)
-include(../../qtplatz_lib_dynamic.pri)
+include(../../qtplatz_library_rule.pri)
 
 DEFINES += PORTFOLIO_LIBRARY
 

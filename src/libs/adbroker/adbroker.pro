@@ -9,7 +9,7 @@ QT       -= gui
 TARGET = adbroker
 TEMPLATE = lib
 
-include(../../qtplatz_lib_dynamic.pri)
+include(../../qtplatz_library_rule.pri)
 include(../../boost.pri)
 include(../acewrapper/acewrapper_dependencies.pri)
 

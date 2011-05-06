@@ -8,7 +8,7 @@ QT       += gui
 
 TARGET = adplugin
 TEMPLATE = lib
-include(../../qtplatz_lib_dynamic.pri)
+include(../../qtplatz_library_rule.pri)
 include(../../boost.pri)
 INCLUDEPATH += $(ACE_ROOT) $(TAO_ROOT) $(TAO_ROOT)/orbsvcs
 LIBS += -L$(ACE_ROOT)/lib -L../../../lib/qtPlatz
@@ -17,12 +17,11 @@ DEFINES += ADPLUGIN_LIBRARY
 
 SOURCES += adplugin.cpp \
     lifecycle.cpp \
-    qreceiver_i.cpp \
-    configloader.cpp \
-    orbmanager.cpp \
-    qobserverevents_i.cpp \
-    qbrokersessionevent.cpp
-
+        manager.cpp \
+        orbmanager.cpp \
+        qbrokersessionevent.cpp \
+        qobserverevents_i.cpp \
+        qreceiver_i.cpp
 
 HEADERS += adplugin.h\
         adplugin_global.h \

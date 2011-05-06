@@ -11,7 +11,7 @@ TARGET = xmlparser
 TEMPLATE = lib
 CONFIG += staticlib
 
-include(../../qtplatz_lib_static.pri)
+include(../../qtplatz_library_rule.pri)
 
 SOURCES +=  pugiwrapper.cpp
 

@@ -7,7 +7,7 @@
 TARGET = qtwidgets
 TEMPLATE = lib
 # INCLUDEPATH += ../../libs ../../plugins
-include(../../qtplatz_lib_dynamic.pri)
+include(../../qtplatz_library_rule.pri)
 include(../../boost.pri)
 PROVIDER = ScienceLiaison
 include(../../adplugin.pri)

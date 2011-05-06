@@ -2,27 +2,24 @@ TEMPLATE  = subdirs
 CONFIG   += ordered
 
 SUBDIRS   = \
+    aggregation \
+    extensionsystem \
+    utils \
     adfs \
+    portfolio \
     xmlparser \
+    adwplot \
     qtwrapper \
     adportable \
     adutils \
+    adinterface \
     adcontrols \
     qtwidgets \
-    adinterface \
     acewrapper \
-    adbroker \
     adcontroller \
     addatafile \
     adplugin \
     adtxtfactory \
     adwidgets \
-    adwplot \
-    aggregation \
-    extensionsystem \
-    portfolio \
-    utils
+    adbroker
 
-#   adcontroller
-#    interface
-adbroker.depends = adinterface

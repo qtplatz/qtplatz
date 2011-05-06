@@ -9,7 +9,7 @@ QT       -= gui
 TARGET = qtwrapper
 TEMPLATE = lib
 CONFIG += staticlib
-include(../../qtplatz_lib_static.pri)
+include(../../qtplatz_library_rule.pri)
 
 SOURCES += qtwrapper.cpp \
     qstring.cpp
