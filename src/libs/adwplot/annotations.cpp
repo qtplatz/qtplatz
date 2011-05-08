@@ -23,9 +23,9 @@
 **
 **************************************************************************/
 
-#include "annotations.h"
-#include "annotation.h"
-#include "dataplot.h"
+#include "annotations.hpp"
+#include "annotation.hpp"
+#include "dataplot.hpp"
 
 using namespace adwplot;
 

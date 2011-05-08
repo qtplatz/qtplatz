@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "apiposix.h"
+#include "apiposix.hpp"
 
 namespace adfs { namespace detail { 
 

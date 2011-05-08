@@ -23,10 +23,10 @@
 **
 **************************************************************************/
 
-#include "session_i.h"
-#include "chemicalformula_i.h"
+#include "session_i.hpp"
+#include "chemicalformula_i.hpp"
 
-#include <adcontrols/tableofelements.h>
+#include <adcontrols/tableofelements.hpp>
 
 using namespace adbroker;
 

@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "session.h"
+#include "session.hpp"
 
 # pragma warning (disable: 4996)
 # include <adinterface/controlserverC.h>

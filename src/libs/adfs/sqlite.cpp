@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "sqlite.h"
+#include "sqlite.hpp"
 #include "sqlite3.h"
 #include <iostream>
 

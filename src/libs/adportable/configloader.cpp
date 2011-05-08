@@ -7,7 +7,7 @@
 #include "configloader.hpp"
 #include <adportable/configuration.hpp>
 #include <xmlparser/pugixml.hpp>
-#include <xmlparser/pugiwrapper.h>
+#include <xmlparser/pugiwrapper.hpp>
 #include <fstream>
 #include <boost/foreach.hpp>
 

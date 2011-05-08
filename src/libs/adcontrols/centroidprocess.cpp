@@ -23,12 +23,12 @@
 **
 **************************************************************************/
 
-#include "centroidprocess.h"
-#include "centroidmethod.h"
-#include "massspectrum.h"
-#include "msproperty.h"
-#include "mspeakinfoitem.h"
-#include "description.h"
+#include "centroidprocess.hpp"
+#include "centroidmethod.hpp"
+#include "massspectrum.hpp"
+#include "msproperty.hpp"
+#include "mspeakinfoitem.hpp"
+#include "description.hpp"
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <vector>

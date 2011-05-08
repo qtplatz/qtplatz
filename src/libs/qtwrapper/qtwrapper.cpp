@@ -1,4 +1,4 @@
-#include "qtwrapper.h"
+#include "qtwrapper.hpp"
 
 
 Qtwrapper::Qtwrapper()

@@ -23,21 +23,21 @@
 **
 **************************************************************************/
 
-#include "dataprocessorfactory.h"
-#include "sessionmanager.h"
-#include "dataprocessor.h"
-#include "dataproceditor.h"
-#include "constants.h"
+#include "dataprocessorfactory.hpp"
+#include "sessionmanager.hpp"
+#include "dataprocessor.hpp"
+#include "dataproceditor.hpp"
+#include "constants.hpp"
 
-#include "msprocessingwnd.h"
+#include "msprocessingwnd.hpp"
 #include <QTabWidget>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/ifilefactory.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/filemanager.h>
 #include <QStringList>
-#include <adcontrols/datafile.h>
-#include <qtwrapper/qstring.h>
+#include <adcontrols/datafile.hpp>
+#include <qtwrapper/qstring.hpp>
 
 using namespace dataproc::internal;
 

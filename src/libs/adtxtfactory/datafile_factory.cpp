@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "datafile_factory.h"
-#include "datafile.h"
+#include "datafile_factory.hpp"
+#include "datafile.hpp"
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 

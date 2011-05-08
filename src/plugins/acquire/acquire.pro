@@ -12,8 +12,10 @@ PROVIDER = ScienceLiaison
 
 include(../../qtplatz_library_rule.pri)
 include(acquire_dependencies.pri)
-
+include(../../libs/acewrapper/acewrapper_dependencies.pri)
 include(../../boost.pri)
+INCLUDEPATH += ../
+INCLUDEPATH += $$(QWT)/include
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH
 
@@ -21,23 +23,21 @@ include(../../plugins/coreplugin/coreplugin.pri)
 
 DEFINES += ACQUIRE_LIBRARY
 
-SOURCES +=  acquireplugin.cpp \
-    acquiremode.cpp \
-    acquireuimanager.cpp \
-    acquireactions.cpp \
-    session.cpp \
-    acquire.cpp \
-    orbmanager.cpp
+SOURCES += acquire.cpp \
+	acquireactions.cpp \
+	acquiremode.cpp \
+	acquireplugin.cpp \
+	acquireuimanager.cpp \
+	session.cpp
 
 HEADERS +=  acquire_global.h \
-    acquireplugin.h \
-    acquiremode.h \
-    acquireuimanager.h \
-    constants.h \
-    acquireactions.h \
-    session.h \
-    acquire.h \
-    orbmanager.h
+	acquire.hpp \
+	acquireactions.hpp \
+	acquiremode.hpp \
+	acquireplugin.hpp \
+	acquireuimanager.hpp \
+	constants.hpp \
+	session.hpp
 
 OTHER_FILES += acquire.pluginspec \
     acquire_dependencies.pri

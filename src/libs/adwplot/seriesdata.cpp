@@ -23,10 +23,10 @@
 **
 **************************************************************************/
 
-#include "seriesdata.h"
-#include <adcontrols/trace.h>
-#include <adcontrols/chromatogram.h>
-#include <adcontrols/massspectrum.h>
+#include "seriesdata.hpp"
+#include <adcontrols/trace.hpp>
+#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/massspectrum.hpp>
 
 using namespace adwplot;
 

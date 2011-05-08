@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "mscalibsummarydelegate.h"
+#include "mscalibsummarydelegate.hpp"
 
 using namespace qtwidgets;
 

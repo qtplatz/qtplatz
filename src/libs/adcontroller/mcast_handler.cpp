@@ -22,8 +22,8 @@
 **
 **************************************************************************/
 
-#include "mcast_handler.h"
-#include <acewrapper/mcasthandler.h>
+#include "mcast_handler.hpp"
+#include <acewrapper/mcasthandler.hpp>
 #pragma warning(disable:4669)
 #include <ace/INET_Addr.h>
 #pragma warning(default:4669)

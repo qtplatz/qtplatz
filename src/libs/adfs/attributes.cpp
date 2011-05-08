@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "attributes.h"
-#include "cpio.h"
+#include "attributes.hpp"
+#include "cpio.hpp"
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #pragma warning (disable:4996)
@@ -33,7 +33,7 @@
 #pragma warning (default:4996)
 
 #include <boost/smart_ptr.hpp>
-#include "sqlite.h"
+#include "sqlite.hpp"
 
 using namespace adfs;
 using namespace adfs::internal;

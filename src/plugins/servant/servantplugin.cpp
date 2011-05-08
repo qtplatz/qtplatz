@@ -41,23 +41,23 @@
 # include <ace/OS_NS_unistd.h>
 #pragma warning(default:4996)
 
-#include <adbroker/adbroker.h>
-#include <adcontrols/massspectrometerbroker.h>
-#include <adcontroller/adcontroller.h>
+#include <adbroker/adbroker.hpp>
+#include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontroller/adcontroller.hpp>
 #include <adinterface/instrumentC.h>
 
-#include <adplugin/adplugin.h>
-#include <adplugin/orbLoader.h>
-#include <adplugin/orbmanager.h>
+#include <adplugin/adplugin.hpp>
+#include <adplugin/orbLoader.hpp>
+#include <adplugin/orbmanager.hpp>
 
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
-#include <acewrapper/acewrapper.h>
+#include <acewrapper/acewrapper.hpp>
 //#include <acewrapper/orbservant.h>
-#include <acewrapper/constants.h>
-#include <acewrapper/brokerhelper.h>
-#include <qtwrapper/qstring.h>
+#include <acewrapper/constants.hpp>
+#include <acewrapper/brokerhelper.hpp>
+#include <qtwrapper/qstring.hpp>
 #include "outputwindow.h"
 #include "servantpluginimpl.h"
 #include <QMessageBox>

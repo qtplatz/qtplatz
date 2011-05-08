@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "isotopecluster.h"
-#include "tableofelements.h"
+#include "isotopecluster.hpp"
+#include "tableofelements.hpp"
 
 using namespace adcontrols;
 using namespace SACONTROLSLib;

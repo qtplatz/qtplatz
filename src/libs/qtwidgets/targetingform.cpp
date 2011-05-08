@@ -22,11 +22,11 @@
 **
 **************************************************************************/
 
-#include "targetingform.h"
+#include "targetingform.hpp"
 #include "ui_targetingform.h"
-#include "targetingdelegate.h"
-#include <adcontrols/targetingmethod.h>
-#include <adcontrols/processmethod.h>
+#include "targetingdelegate.hpp"
+#include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adportable/configuration.hpp>
 #pragma warning(disable:4251)
 #include <QStandardItemModel>

@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "tableofelements.h"
-#include "element.h"
+#include "tableofelements.hpp"
+#include "element.hpp"
 #include <algorithm>
 
 #include <boost/thread/mutex.hpp>

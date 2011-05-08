@@ -23,26 +23,26 @@
 **
 **************************************************************************/
 
-#include "chromatogramwnd.h"
-#include "dataprocessor.h"
-#include "selchanged.h"
-#include <adcontrols/description.h>
-#include <adcontrols/datafile.h>
-#include <adcontrols/lcmsdataset.h>
-#include <adcontrols/chromatogram.h>
-#include <adutils/processeddata.h>
-#include <portfolio/folium.h>
+#include "chromatogramwnd.hpp"
+#include "dataprocessor.hpp"
+#include "selchanged.hpp"
+#include <adcontrols/description.hpp>
+#include <adcontrols/datafile.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/chromatogram.hpp>
+#include <adutils/processeddata.hpp>
+#include <portfolio/folium.hpp>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
-#include <qtwrapper/qstring.h>
+#include <qtwrapper/qstring.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 //#include <adwidgets/chromatogramwidget.h>
 //#include <adwidgets/spectrumwidget.h>
 //#include <adwidgets/axis.h>
-#include <adwidgets/peakresultwidget.h>
-#include <adwplot/chromatogramwidget.h>
-#include <adwplot/spectrumwidget.h>
+#include <adwidgets/peakresultwidget.hpp>
+#include <adwplot/chromatogramwidget.hpp>
+#include <adwplot/spectrumwidget.hpp>
 
 using namespace dataproc;
 using namespace dataproc::internal;

@@ -23,22 +23,22 @@
 **
 **************************************************************************/
 
-#include "copyin_visitor.h"
+#include "copyin_visitor.hpp"
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
-#include <adutils/processeddata.h>
-#include <adfs/adfs.h>
-#include <adfs/cpio.h>
+#include <adutils/processeddata.hpp>
+#include <adfs/adfs.hpp>
+#include <adfs/cpio.hpp>
 
-#include <adcontrols/massspectrum.h>
-#include <adcontrols/chromatogram.h>
-#include <adcontrols/processmethod.h>
-#include <adcontrols/elementalcompositioncollection.h>
-#include <adcontrols/mscalibrateresult.h>
-#include <adcontrols/msreferences.h>
-#include <adcontrols/msreference.h>
-#include <adcontrols/mscalibration.h>
-#include <adcontrols/msassignedmass.h>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/elementalcompositioncollection.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adcontrols/mscalibration.hpp>
+#include <adcontrols/msassignedmass.hpp>
 
 # pragma warning( disable: 4996 )
 # include <boost/archive/binary_oarchive.hpp>

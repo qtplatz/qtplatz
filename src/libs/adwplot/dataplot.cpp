@@ -23,15 +23,15 @@
 **
 **************************************************************************/
 
-#include "dataplot.h"
-#include "annotation.h"
-#include "annotations.h"
-#include "trace.h"
-#include "traces.h"
-#include "zoomer.h"
-#include "plotpicker.h"
-#include "plotpanner.h"
-#include <qtwrapper/qstring.h>
+#include "dataplot.hpp"
+#include "annotation.hpp"
+#include "annotations.hpp"
+#include "trace.hpp"
+#include "traces.hpp"
+#include "zoomer.hpp"
+#include "plotpicker.hpp"
+#include "plotpanner.hpp"
+#include <qtwrapper/qstring.hpp>
 
 using namespace adwplot;
 

@@ -45,44 +45,45 @@ SOURCES += centroiddelegate.cpp \
         treeitem.cpp
 
 
-HEADERS += centroiddelegate.h \
-        centroidform.h \
-        chromatographicpeakform.h \
-        elementalcompositiondelegate.h \
-        elementalcompositionform.h \
-        factory.h \
-        isotopedelegate.h \
-        isotopeform.h \
-        logwidget.h \
-        mscalibratedelegate.h \
-        mscalibrationform.h \
-        mscalibsummarydelegate.h \
-        mscalibsummarywidget.h \
-        mslockdelegate.h \
-        mslockform.h \
-        peakidtableform.h \
-        qtwidgets.h \
-        reportdelegate.h \
-        reportform.h \
-        sequencesform.h \
-        sequencesmodel.h \
-        sequencewidget.h \
-        standarditemhelper.h \
-        standardmodel.h \
-        targetingdelegate.h \
-        targetingform.h \
-        treeitem.h
+HEADERS += centroiddelegate.hpp \
+        centroidform.hpp \
+        chromatographicpeakform.hpp \
+        elementalcompositiondelegate.hpp \
+        elementalcompositionform.hpp \
+        factory.hpp \
+        isotopedelegate.hpp \
+        isotopeform.hpp \
+        logwidget.hpp \
+        mscalibratedelegate.hpp \
+        mscalibrationform.hpp \
+        mscalibsummarydelegate.hpp \
+        mscalibsummarywidget.hpp \
+        mslockdelegate.hpp \
+        mslockform.hpp \
+        peakidtableform.hpp \
+        qtwidgets.hpp \
+        reportdelegate.hpp \
+        reportform.hpp \
+        sequencesform.hpp \
+        sequencesmodel.hpp \
+        sequencewidget.hpp \
+        standardite.hppelper.hpp \
+        standardmodel.hpp \
+        targetingdelegate.hpp \
+        targetingform.hpp \
+        treeitem.hpp
 
 FORMS += \
-    logwidget.ui \
-    sequencewidget.ui \
-    sequencesform.ui \
     centroidform.ui \
-    elementalcompositionform.ui \
-    mscalibrationform.ui \
-    isotopeform.ui \
-    targetingform.ui \
-    mslockform.ui \
     chromatographicpeakform.ui \
+    elementalcompositionform.ui \
+    isotopeform.ui \
+    logwidget.ui \
+    mscalibrationform.ui \
+    mslockform.ui \
     peakidtableform.ui \
-    reportform.ui
+    peakresulttable.ui \
+    reportform.ui \
+    sequencesform.ui \
+    sequencewidget.ui \
+    targetingform.ui

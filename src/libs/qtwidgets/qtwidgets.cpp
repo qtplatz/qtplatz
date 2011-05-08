@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "qtwidgets.h"
+#include "qtwidgets.hpp"
 
 #if defined WIN32
 # if defined _DEBUG

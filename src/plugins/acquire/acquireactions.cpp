@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "acquireactions.h"
+#include "acquireactions.hpp"
 #include <utils/qtcassert.h>
 #include <utils/pathchooser.h>
 

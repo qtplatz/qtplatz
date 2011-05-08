@@ -23,13 +23,13 @@
 **
 **************************************************************************/
 
-#include "spectrumwidget.h"
-#include "zoomer.h"
-#include "plotcurve.h"
-#include "plotpicker.h"
-#include "plotpanner.h"
-#include "annotation.h"
-#include <adcontrols/massspectrum.h>
+#include "spectrumwidget.hpp"
+#include "zoomer.hpp"
+#include "plotcurve.hpp"
+#include "plotpicker.hpp"
+#include "plotpanner.hpp"
+#include "annotation.hpp"
+#include <adcontrols/massspectrum.hpp>
 #include <boost/foreach.hpp>
 #include <qwt_plot_curve.h>
 

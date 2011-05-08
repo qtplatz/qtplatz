@@ -23,16 +23,16 @@
 **
 **************************************************************************/
 
-#include "datafile.h"
-#include "txtspectrum.h"
-#include <adcontrols/datafile.h>
-#include <adcontrols/datapublisher.h>
-#include <adcontrols/datasubscriber.h>
-#include <adcontrols/massspectrum.h>
-#include <adcontrols/processeddataset.h>
-#include <portfolio/portfolio.h>
-#include <portfolio/folder.h>
-#include <portfolio/folium.h>
+#include "datafile.hpp"
+#include "txtspectrum.hpp"
+#include <adcontrols/datafile.hpp>
+#include <adcontrols/datapublisher.hpp>
+#include <adcontrols/datasubscriber.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/processeddataset.hpp>
+#include <portfolio/portfolio.hpp>
+#include <portfolio/folder.hpp>
+#include <portfolio/folium.hpp>
 #include <boost/any.hpp>
 
 using namespace adtxtfactory;

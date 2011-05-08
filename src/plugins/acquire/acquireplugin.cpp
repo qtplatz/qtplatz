@@ -23,20 +23,20 @@
 **
 **************************************************************************/
 
-#include "acquireplugin.h"
-#include "constants.h"
-#include "acquiremode.h"
-#include "acquireuimanager.h"
-#include "acquireactions.h"
-#include <adwplot/chromatogramwidget.h>
-#include <adwplot/spectrumwidget.h>
-#include <adplugin/adplugin.h>
-#include <adplugin/orbmanager.h>
-#include <adplugin/qreceiver_i.h>
-#include <adplugin/qobserverevents_i.h>
+#include "acquireplugin.hpp"
+#include "constants.hpp"
+#include "acquiremode.hpp"
+#include "acquireuimanager.hpp"
+#include "acquireactions.hpp"
+#include <adwplot/chromatogramwidget.hpp>
+#include <adwplot/spectrumwidget.hpp>
+#include <adplugin/adplugin.hpp>
+#include <adplugin/orbmanager.hpp>
+#include <adplugin/qreceiver_i.hpp>
+#include <adplugin/qobserverevents_i.hpp>
 #include <tao/Object.h>
 #include <ace/Singleton.h>
-#include <adcontroller/adcontroller.h>
+#include <adcontroller/adcontroller.hpp>
 
 # pragma warning(disable:4996)
 # include <adinterface/brokerC.h>
@@ -45,8 +45,8 @@
 # include <adinterface/signalobserverC.h>
 # pragma warning(default:4996)
 
-#include <acewrapper/constants.h>
-#include <acewrapper/brokerhelper.h>
+#include <acewrapper/constants.hpp>
+#include <acewrapper/brokerhelper.hpp>
 #include <utils/fancymainwindow.h>
 
 #include <coreplugin/icore.h>
@@ -74,20 +74,20 @@
 #include <qdebug.h>
 
 #include <servant/servantplugin.h>
-#include <qtwrapper/qstring.h>
-#include <adinterface/eventlog_helper.h>
+#include <qtwrapper/qstring.hpp>
+#include <adinterface/eventlog_helper.hpp>
 
-#include <adcontrols/massspectrum.h>
-#include <adcontrols/msproperty.h>
-#include <adcontrols/description.h>
-#include <adcontrols/massspectrometer.h>
-#include <adcontrols/datainterpreter.h>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/description.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/datainterpreter.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <boost/format.hpp>
-#include <adcontrols/centroidprocess.h>
-#include <adcontrols/centroidmethod.h>
-#include <adcontrols/trace.h>
-#include <adcontrols/traceaccessor.h>
+#include <adcontrols/centroidprocess.hpp>
+#include <adcontrols/centroidmethod.hpp>
+#include <adcontrols/trace.hpp>
+#include <adcontrols/traceaccessor.hpp>
 #include <algorithm>
 #include <cmath>
 #include <map>

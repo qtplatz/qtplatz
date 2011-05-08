@@ -3,12 +3,12 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#include "mslockform.h"
+#include "mslockform.hpp"
 #include "ui_mslockform.h"
-#include "mslockdelegate.h"
-#include "standarditemhelper.h"
+#include "mslockdelegate.hpp"
+#include "standarditemhelper.hpp"
 #include <adportable/configuration.hpp>
-#include <adcontrols/mslockmethod.h>
+#include <adcontrols/mslockmethod.hpp>
 #include <QStandardItemModel>
 
 using namespace qtwidgets;

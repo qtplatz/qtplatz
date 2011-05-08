@@ -22,21 +22,21 @@
 **
 **************************************************************************/
 
-#include "mscalibrationwnd.h"
-#include "dataprocessor.h"
-#include <portfolio/folium.h>
-#include <portfolio/folder.h>
-#include <adcontrols/massspectrum.h>
-#include <adcontrols/mscalibrateresult.h>
-#include <adwplot/spectrumwidget.h>
-#include <adutils/processeddata.h>
+#include "mscalibrationwnd.hpp"
+#include "dataprocessor.hpp"
+#include <portfolio/folium.hpp>
+#include <portfolio/folder.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <adwplot/spectrumwidget.hpp>
+#include <adutils/processeddata.hpp>
 
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 #include <boost/any.hpp>
 #include <adportable/configuration.hpp>
-#include <adplugin/lifecycle.h>
-#include <adplugin/manager.h>
+#include <adplugin/lifecycle.hpp>
+#include <adplugin/manager.hpp>
 
 using namespace dataproc;
 using namespace dataproc::internal;

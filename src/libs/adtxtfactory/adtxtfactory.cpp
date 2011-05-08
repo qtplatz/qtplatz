@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "adtxtfactory.h"
+#include "adtxtfactory.hpp"
 
 #  if defined _DEBUG
 #     pragma comment(lib, "adcontrolsd.lib")
@@ -37,7 +37,7 @@
 #     pragma comment(lib, "portfolio.lib")
 #  endif
 
-#include "datafile_factory.h"
+#include "datafile_factory.hpp"
 
 #define BOOST_LIB_NAME boost_filesystem
 #include <boost/config/auto_link.hpp>

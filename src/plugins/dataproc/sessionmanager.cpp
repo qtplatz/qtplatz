@@ -23,11 +23,11 @@
 **
 **************************************************************************/
 
-#include "sessionmanager.h"
-#include "dataprocessor.h"
+#include "sessionmanager.hpp"
+#include "dataprocessor.hpp"
 #include <boost/smart_ptr.hpp>
-#include <qtwrapper/qstring.h>
-#include <adcontrols/datafile.h>
+#include <qtwrapper/qstring.hpp>
+#include <adcontrols/datafile.hpp>
 
 using namespace dataproc;
 

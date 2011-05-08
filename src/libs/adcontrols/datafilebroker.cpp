@@ -22,9 +22,9 @@
 **
 **************************************************************************/
 
-#include "datafilebroker.h"
-#include "datafile.h"
-#include "datafile_factory.h"
+#include "datafilebroker.hpp"
+#include "datafile.hpp"
+#include "datafile_factory.hpp"
 #include <adportable/string.hpp>
 #include <map>
 #include <boost/smart_ptr.hpp>

@@ -22,9 +22,9 @@
 **
 **************************************************************************/
 
-#include "folium.h"
-#include "folder.h"
-#include "portfolioimpl.h"
+#include "folium.hpp"
+#include "folder.hpp"
+#include "portfolioimpl.hpp"
 
 using namespace portfolio;
 

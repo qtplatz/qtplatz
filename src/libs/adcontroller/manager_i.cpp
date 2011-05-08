@@ -22,9 +22,9 @@
 **
 **************************************************************************/
 
-#include "manager_i.h"
-#include "session_i.h"
-#include "ibrokermanager.h"
+#include "manager_i.hpp"
+#include "session_i.hpp"
+#include "ibrokermanager.hpp"
 
 using namespace adcontroller;
 

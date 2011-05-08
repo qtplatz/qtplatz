@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "peak.h"
+#include "peak.hpp"
 using namespace adcontrols;
 
 Peak::~Peak()

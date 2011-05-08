@@ -22,10 +22,10 @@
 **
 **************************************************************************/
 
-#include "portfolio.h"
-#include "portfolioimpl.h"
-#include "folder.h"
-#include "folium.h"
+#include "portfolio.hpp"
+#include "portfolioimpl.hpp"
+#include "folder.hpp"
+#include "folium.hpp"
 #include <sstream>
 
 # if defined _DEBUG

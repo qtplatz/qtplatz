@@ -23,9 +23,9 @@
 **
 **************************************************************************/
 
-#include "manager_i.h"
-#include "session_i.h"
-#include "logger_i.h"
+#include "manager_i.hpp"
+#include "session_i.hpp"
+#include "logger_i.hpp"
 #include <adportable/debug.hpp>
 
 using namespace adbroker;

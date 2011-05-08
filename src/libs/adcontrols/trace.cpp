@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "trace.h"
-#include "traceaccessor.h"
+#include "trace.hpp"
+#include "traceaccessor.hpp"
 
 using namespace adcontrols;
 

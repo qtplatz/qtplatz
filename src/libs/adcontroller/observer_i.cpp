@@ -22,9 +22,9 @@
 **
 **************************************************************************/
 
-#include "observer_i.h"
-#include "manager_i.h"
-#include "cache.h"
+#include "observer_i.hpp"
+#include "manager_i.hpp"
+#include "cache.hpp"
 #include <algorithm>
 #include <acewrapper/mutex.hpp>
 

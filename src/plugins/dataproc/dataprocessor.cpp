@@ -23,34 +23,34 @@
 **
 **************************************************************************/
 
-#include "dataprocessor.h"
-#include "ifileimpl.h"
-#include "constants.h"
-#include "sessionmanager.h"
-#include "dataprochandler.h"
-#include <adcontrols/datafile.h>
-#include <qtwrapper/qstring.h>
+#include "dataprocessor.hpp"
+#include "ifileimpl.hpp"
+#include "constants.hpp"
+#include "sessionmanager.hpp"
+#include "dataprochandler.hpp"
+#include <adcontrols/datafile.hpp>
+#include <qtwrapper/qstring.hpp>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/ifile.h>
-#include <portfolio/portfolio.h>
-#include <portfolio/folium.h>
-#include <portfolio/folder.h>
-#include <adcontrols/lcmsdataset.h>
-#include <adcontrols/processeddataset.h>
-#include <adcontrols/processmethod.h>
-#include <adutils/processeddata.h>
+#include <portfolio/portfolio.hpp>
+#include <portfolio/folium.hpp>
+#include <portfolio/folder.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/processeddataset.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adutils/processeddata.hpp>
 
-#include <adcontrols/centroidmethod.h>
-#include <adcontrols/isotopemethod.h>
-#include <adcontrols/elementalcompositionmethod.h>
-#include <adcontrols/mscalibratemethod.h>
-#include <adcontrols/targetingmethod.h>
+#include <adcontrols/centroidmethod.hpp>
+#include <adcontrols/isotopemethod.hpp>
+#include <adcontrols/elementalcompositionmethod.hpp>
+#include <adcontrols/mscalibratemethod.hpp>
+#include <adcontrols/targetingmethod.hpp>
 
-#include <adcontrols/massspectrum.h>
-#include <adcontrols/mscalibrateresult.h>
-#include <adcontrols/centroidprocess.h>
-#include <adcontrols/descriptions.h>
-#include <adcontrols/description.h>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/centroidprocess.hpp>
+#include <adcontrols/descriptions.hpp>
+#include <adcontrols/description.hpp>
 #include <stack>
 #include <qdebug.h>
 

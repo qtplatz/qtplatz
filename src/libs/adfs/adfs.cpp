@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "adfs.h"
-#include "sqlite.h"
+#include "adfs.hpp"
+#include "sqlite.hpp"
 #include "sqlite3.h"
 #include <iostream>
 #include <boost/filesystem.hpp>
@@ -32,7 +32,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #if defined WIN32
-#include "apiwin32.h"
+#include "apiwin32.hpp"
 typedef adfs::detail::win32api impl;
 #else
 #include "apiposix.h"

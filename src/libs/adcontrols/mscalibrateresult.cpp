@@ -23,12 +23,12 @@
 **
 **************************************************************************/
 
-#include "mscalibrateresult.h"
-#include "msreference.h"
-#include "msreferences.h"
-#include "mscalibration.h"
-#include "msassignedmass.h"
-#include "msreference.h"
+#include "mscalibrateresult.hpp"
+#include "msreference.hpp"
+#include "msreferences.hpp"
+#include "mscalibration.hpp"
+#include "msassignedmass.hpp"
+#include "msreference.hpp"
 
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>

@@ -22,20 +22,20 @@
 **
 **************************************************************************/
 
-#include "mscalibrationform.h"
+#include "mscalibrationform.hpp"
 #include "ui_mscalibrationform.h"
-#include "mscalibratedelegate.h"
+#include "mscalibratedelegate.hpp"
 
-#include <adcontrols/mscalibratemethod.h>
-#include <adcontrols/msreferencedefns.h>
-#include <adcontrols/msreferences.h>
-#include <adcontrols/msreference.h>
-#include <adcontrols/processmethod.h>
+#include <adcontrols/mscalibratemethod.hpp>
+#include <adcontrols/msreferencedefns.hpp>
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adportable/configuration.hpp>
 #include <QStandardItemModel>
-#include "standarditemhelper.h"
+#include "standarditemhelper.hpp"
 #include <boost/format.hpp>
-#include <qtwrapper/qstring.h>
+#include <qtwrapper/qstring.hpp>
 #include <qdebug>
 
 using namespace qtwidgets;

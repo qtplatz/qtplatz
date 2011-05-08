@@ -22,18 +22,18 @@
 **
 **************************************************************************/
 
-#include "IBrokerManager.h"
-#include "ibroker.h"
+#include "ibrokermanager.hpp"
+#include "ibroker.hpp"
+#include "message.hpp"
+#include "constants.hpp"
+#include "marshal.hpp"
 #include <boost/noncopyable.hpp>
 #include <acewrapper/mutex.hpp>
-#include <acewrapper/reactorthread.h>
+#include <acewrapper/reactorthread.hpp>
+#include <acewrapper/timerhandler.hpp>
+#include <acewrapper/eventhandler.hpp>
 #include <ace/Thread_Manager.h>
 #include <ace/Reactor.h>
-#include <acewrapper/timerhandler.h>
-#include <acewrapper/eventhandler.h>
-#include "message.h"
-#include "constants.h"
-#include "marshal.hpp"
 
 //////////////////////////
 

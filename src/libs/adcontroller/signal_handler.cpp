@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "signal_handler.h"
+#include "signal_handler.hpp"
 #include <iostream>
 #pragma warning ( disable : 4996 )
 #include <ace/Sched_Params.h>
@@ -32,7 +32,7 @@
 #include <ace/OS_NS_sys_wait.h>
 #pragma warning ( default : 4996 )
 
-#include "adcontroller.h"
+#include "adcontroller.hpp"
 
 int signal_handler::pidChild = 0;
 int signal_handler::pidParent = 0;

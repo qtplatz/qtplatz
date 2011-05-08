@@ -23,16 +23,16 @@
 **
 **************************************************************************/
 
-#include "mscalibsummarywidget.h"
-#include "mscalibsummarydelegate.h"
+#include "mscalibsummarywidget.hpp"
+#include "mscalibsummarydelegate.hpp"
 #include <QStandardItemModel>
 #include <QStandardItem>
-#include <adcontrols/massspectrum.h>
-#include <adcontrols/msreferences.h>
-#include <adcontrols/msreference.h>
-#include <adcontrols/msassignedmass.h>
-#include <adcontrols/mscalibrateresult.h>
-#include <qtwrapper/qstring.h>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adcontrols/msassignedmass.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <qtwrapper/qstring.hpp>
 
 using namespace qtwidgets;
 

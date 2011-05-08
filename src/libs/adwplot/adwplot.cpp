@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "adwplot.h"
+#include "adwplot.hpp"
 
 #if defined _DEBUG
 # pragma comment(lib, "qwtd.lib")

@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "adcontroller.h"
+#include "adcontroller.hpp"
 #pragma warning (disable: 4996)
 #include "ace/Init_ACE.h"
 #pragma warning (default: 4996)
@@ -65,17 +65,17 @@
 # include <tao/Utils/ORB_Manager.h>
 #pragma warning (default: 4996)
 
-#include "signal_handler.h"
+#include "signal_handler.hpp"
 #include <signal.h>
-#include <acewrapper/orbservant.h>
+#include <acewrapper/orbservant.hpp>
 
 #include <iostream>
 #include <fstream>
 
-#include <acewrapper/constants.h>
+#include <acewrapper/constants.hpp>
 #include <boost/smart_ptr.hpp>
-#include "manager_i.h"
-#include "ibrokermanager.h"
+#include "manager_i.hpp"
+#include "ibrokermanager.hpp"
 
 using namespace acewrapper;
 

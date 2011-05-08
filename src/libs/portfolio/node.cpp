@@ -22,8 +22,8 @@
 **
 **************************************************************************/
 
-#include "node.h"
-#include "portfolioimpl.h"
+#include "node.hpp"
+#include "portfolioimpl.hpp"
 
 using namespace portfolio;
 using namespace portfolio::internal;

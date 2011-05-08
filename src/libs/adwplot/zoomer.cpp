@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "zoomer.h"
+#include "zoomer.hpp"
 
 using namespace adwplot;
 

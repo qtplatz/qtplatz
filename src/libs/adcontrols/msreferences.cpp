@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "msreferences.h"
-#include "msreference.h"
+#include "msreferences.hpp"
+#include "msreference.hpp"
 
 using namespace adcontrols;
 

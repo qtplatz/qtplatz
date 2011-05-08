@@ -23,23 +23,23 @@
 **
 **************************************************************************/
 
-#include "dataprochandler.h"
-#include <adcontrols/centroidprocess.h>
+#include "dataprochandler.hpp"
+#include <adcontrols/centroidprocess.hpp>
 
-#include <adcontrols/isotopecluster.h>
-#include <adcontrols/isotopemethod.h>
+#include <adcontrols/isotopecluster.hpp>
+#include <adcontrols/isotopemethod.hpp>
 
-#include <adcontrols/tableofelements.h>
-#include <adcontrols/chemicalformula.h>
-#include <adcontrols/massspectrum.h>
-#include <adcontrols/mscalibrateresult.h>
-#include <adcontrols/mscalibratemethod.h>
+#include <adcontrols/tableofelements.hpp>
+#include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/mscalibratemethod.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/polfit.hpp>
-#include <adcontrols/msreferences.h>
-#include <adcontrols/msreference.h>
-#include <adcontrols/msassignedmass.h>
-#include <adcontrols/mscalibration.h>
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adcontrols/msassignedmass.hpp>
+#include <adcontrols/mscalibration.hpp>
 
 using namespace dataproc;
 

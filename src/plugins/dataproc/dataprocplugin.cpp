@@ -23,20 +23,20 @@
 **
 **************************************************************************/
 
-#include "dataprocplugin.h"
-#include "actionmanager.h"
-#include "constants.h"
-#include "dataprocmode.h"
-#include "dataprocmanager.h"
-#include "dataprocessor.h"
-#include "dataprocessorfactory.h"
-#include "navigationwidgetfactory.h"
-#include "sessionmanager.h"
+#include "dataprocplugin.hpp"
+#include "actionmanager.hpp"
+#include "constants.hpp"
+#include "dataprocmode.hpp"
+#include "dataprocmanager.hpp"
+#include "dataprocessor.hpp"
+#include "dataprocessorfactory.hpp"
+#include "navigationwidgetfactory.hpp"
+#include "sessionmanager.hpp"
 
-#include "msprocessingwnd.h"
-#include "elementalcompwnd.h"
-#include "mscalibrationwnd.h"
-#include "chromatogramwnd.h"
+#include "msprocessingwnd.hpp"
+#include "elementalcompwnd.hpp"
+#include "mscalibrationwnd.hpp"
+#include "chromatogramwnd.hpp"
 
 #include <QtCore/qplugin.h>
 #include <QtCore>
@@ -66,20 +66,20 @@
 #include <QTextEdit>
 #include <QToolButton>
 #include <QDir>
-#include <adcontrols/massspectrum.h>
-#include <adcontrols/msproperty.h>
-#include <adcontrols/processmethod.h>
-#include <qtwrapper/qstring.h>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <qtwrapper/qstring.hpp>
 #include <adportable/configuration.hpp>
-#include <adplugin/adplugin.h>
+#include <adplugin/adplugin.hpp>
 #include <adportable/debug.hpp>
 
-#include <acewrapper/constants.h>
-#include <acewrapper/brokerhelper.h>
-#include <acewrapper/input_buffer.h>
-#include <adplugin/orbmanager.h>
-#include <adplugin/manager.h>
-#include <adplugin/qbrokersessionevent.h>
+#include <acewrapper/constants.hpp>
+#include <acewrapper/brokerhelper.hpp>
+#include <acewrapper/input_buffer.hpp>
+#include <adplugin/orbmanager.hpp>
+#include <adplugin/manager.hpp>
+#include <adplugin/qbrokersessionevent.hpp>
 #include <boost/format.hpp>
 #include <streambuf>
 #include <fstream>

@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "dataprocmode.h"
-#include "constants.h"
+#include "dataprocmode.hpp"
+#include "constants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/uniqueidmanager.h>

@@ -23,15 +23,15 @@
 **
 **************************************************************************/
 
-#include "elementalcompwnd.h"
-#include "dataprocessor.h"
-#include <adcontrols/timeutil.h>
-#include <adutils/processeddata.h>
-#include <portfolio/folium.h>
+#include "elementalcompwnd.hpp"
+#include "dataprocessor.hpp"
+#include <adcontrols/timeutil.hpp>
+#include <adutils/processeddata.hpp>
+#include <portfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
-#include <adwplot/chromatogramwidget.h>
-#include <adwplot/spectrumwidget.h>
+#include <adwplot/chromatogramwidget.hpp>
+#include <adwplot/spectrumwidget.hpp>
 //#include <adwidgets/axis.h>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>

@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "addatafile.h"
+#include "addatafile.hpp"
 
 #  if defined _DEBUG
 #     pragma comment(lib, "acewrapperd.lib")
@@ -43,7 +43,7 @@
 #     pragma comment(lib, "xmlparser.lib")
 #  endif
 
-#include "datafile_factory.h"
+#include "datafile_factory.hpp"
 
 #define BOOST_LIB_NAME boost_filesystem
 #include <boost/config/auto_link.hpp>

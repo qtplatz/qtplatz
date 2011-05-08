@@ -22,8 +22,8 @@
 **
 **************************************************************************/
 
-#include "qobserverevents_i.h"
-#include "orbmanager.h"
+#include "qobserverevents_i.hpp"
+#include "orbmanager.hpp"
 
 using namespace adplugin;
 

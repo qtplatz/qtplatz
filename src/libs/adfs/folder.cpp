@@ -23,9 +23,9 @@
 **
 **************************************************************************/
 
-#include "folder.h"
-#include "folium.h"
-#include "filesystem.h"
+#include "folder.hpp"
+#include "folium.hpp"
+#include "filesystem.hpp"
 
 using namespace adfs;
 

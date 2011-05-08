@@ -22,13 +22,13 @@
 **
 **************************************************************************/
 
-#include "centroidform.h"
+#include "centroidform.hpp"
 #include "ui_centroidform.h"
-#include <adcontrols/processmethod.h>
-#include <adcontrols/centroidmethod.h>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/centroidmethod.hpp>
 #include <QStandardItemModel>
-#include "centroiddelegate.h"
-#include "standarditemhelper.h"
+#include "centroiddelegate.hpp"
+#include "standarditemhelper.hpp"
 using namespace qtwidgets;
 
 /////////////////////

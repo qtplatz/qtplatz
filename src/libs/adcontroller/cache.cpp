@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 #pragma warning (disable : 4100)
-#include "cache.h"
+#include "cache.hpp"
 
 #pragma warning (disable : 4996 )
 # include <adinterface/signalobserverS.h>

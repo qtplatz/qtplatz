@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "isotopemethod.h"
+#include "isotopemethod.hpp"
 
 using namespace adcontrols;
 

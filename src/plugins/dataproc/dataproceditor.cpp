@@ -23,13 +23,13 @@
 **
 **************************************************************************/
 
-#include "dataproceditor.h"
-#include "dataprocessorfactory.h"
-#include "constants.h"
-#include "msprocessingwnd.h"
-#include "ifileimpl.h"
-#include "dataprocessor.h"
-#include "sessionmanager.h"
+#include "dataproceditor.hpp"
+#include "dataprocessorfactory.hpp"
+#include "constants.hpp"
+#include "msprocessingwnd.hpp"
+#include "ifileimpl.hpp"
+#include "dataprocessor.hpp"
+#include "sessionmanager.hpp"
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/filemanager.h>
 #include <coreplugin/icore.h>

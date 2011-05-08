@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "plotpicker.h"
+#include "plotpicker.hpp"
 #include <qwt_picker_machine.h>
 
 using namespace adwplot;

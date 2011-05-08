@@ -23,15 +23,15 @@
 **
 **************************************************************************/
 
-#include "dataprocmanager.h"
-#include "sessionmanager.h"
-#include "dataprocessor.h"
+#include "dataprocmanager.hpp"
+#include "sessionmanager.hpp"
+#include "dataprocessor.hpp"
 #include <adportable/configuration.hpp>
-#include <adcontrols/datafilebroker.h>
-#include <adcontrols/datafile.h>
-#include <adplugin/adplugin.h>
-#include <adplugin/lifecycle.h>
-#include <qtwrapper/qstring.h>
+#include <adcontrols/datafilebroker.hpp>
+#include <adcontrols/datafile.hpp>
+#include <adplugin/adplugin.hpp>
+#include <adplugin/lifecycle.hpp>
+#include <qtwrapper/qstring.hpp>
 #include <boost/noncopyable.hpp>
 
 #include <utils/fancymainwindow.h>

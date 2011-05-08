@@ -22,10 +22,10 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#include "navigationdelegate.h"
-#include "dataprocessor.h"
-#include <adcontrols/datafile.h>
-#include <qtwrapper/qstring.h>
+#include "navigationdelegate.hpp"
+#include "dataprocessor.hpp"
+#include <adcontrols/datafile.hpp>
+#include <qtwrapper/qstring.hpp>
 #include <qdebug.h>
 
 using namespace dataproc;

@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "centroidmethod.h"
+#include "centroidmethod.hpp"
 
 using namespace adcontrols;
 

@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "navigationwidgetfactory.h"
-#include "navigationwidget.h"
+#include "navigationwidgetfactory.hpp"
+#include "navigationwidget.hpp"
 #include <QKeySequence>
 #include <QTreeView>
 #include <QToolButton>

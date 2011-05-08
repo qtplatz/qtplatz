@@ -23,10 +23,10 @@
 **
 **************************************************************************/
 
-#include "massspectrum.h"
-#include "descriptions.h"
-#include "mscalibration.h"
-#include "msproperty.h"
+#include "massspectrum.hpp"
+#include "descriptions.hpp"
+#include "mscalibration.hpp"
+#include "msproperty.hpp"
 #include <adportable/array_wrapper.hpp>
 
 #include <boost/serialization/nvp.hpp>

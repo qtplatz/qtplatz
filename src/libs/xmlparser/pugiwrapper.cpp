@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "pugiwrapper.h"
+#include "pugiwrapper.hpp"
 #include <sstream>
 
 using namespace pugi;

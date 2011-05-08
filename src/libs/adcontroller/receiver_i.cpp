@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "receiver_i.h"
+#include "receiver_i.hpp"
 
 receiver_i::receiver_i(void)
 {

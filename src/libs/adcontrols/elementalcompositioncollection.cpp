@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "elementalcompositioncollection.h"
+#include "elementalcompositioncollection.hpp"
 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/scoped_ptr.hpp>

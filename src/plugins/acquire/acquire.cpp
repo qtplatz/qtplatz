@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "acquire.h"
+#include "acquire.hpp"
 
 # pragma warning (disable: 4996)
 # include <ace/Service_Config.h>

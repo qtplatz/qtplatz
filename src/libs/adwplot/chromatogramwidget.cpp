@@ -23,26 +23,26 @@
 **
 **************************************************************************/
 
-#include "chromatogramwidget.h"
-#include "annotation.h"
-#include "annotations.h"
+#include "chromatogramwidget.hpp"
+#include "annotation.hpp"
+#include "annotations.hpp"
 //#include "trace.h"
 //#include "traces.h"
-#include "zoomer.h"
-#include "peak.h"
-#include "baseline.h"
-#include "plotcurve.h"
-#include "plotpicker.h"
-#include "plotpanner.h"
-#include "seriesdata.h"
-#include <adcontrols/trace.h>
-#include <adcontrols/chromatogram.h>
-#include <adcontrols/peaks.h>
-#include <adcontrols/peak.h>
-#include <adcontrols/baselines.h>
-#include <adcontrols/baseline.h>
-#include <adcontrols/descriptions.h>
-#include <adcontrols/description.h>
+#include "zoomer.hpp"
+#include "peak.hpp"
+#include "baseline.hpp"
+#include "plotcurve.hpp"
+#include "plotpicker.hpp"
+#include "plotpanner.hpp"
+#include "seriesdata.hpp"
+#include <adcontrols/trace.hpp>
+#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/peaks.hpp>
+#include <adcontrols/peak.hpp>
+#include <adcontrols/baselines.hpp>
+#include <adcontrols/baseline.hpp>
+#include <adcontrols/descriptions.hpp>
+#include <adcontrols/description.hpp>
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
 #include <boost/smart_ptr.hpp>

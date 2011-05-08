@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "msreferencedefns.h"
+#include "msreferencedefns.hpp"
 
 using namespace adcontrols;
 

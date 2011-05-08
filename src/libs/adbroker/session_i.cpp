@@ -23,13 +23,13 @@
 **
 **************************************************************************/
 
-#include "session_i.h"
-#include "manager_i.h"
-#include "chemicalformula_i.h"
-#include "brokermanager.h"
-#include "task.h"
-#include <portfolio/folium.h>
-#include <adcontrols/massspectrum.h>
+#include "session_i.hpp"
+#include "manager_i.hpp"
+#include "chemicalformula_i.hpp"
+#include "brokermanager.hpp"
+#include "task.hpp"
+#include <portfolio/folium.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <sstream>
 
 namespace adbroker {

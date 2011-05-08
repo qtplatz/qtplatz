@@ -22,9 +22,9 @@
 **
 **************************************************************************/
 
-#include "sequencesform.h"
+#include "sequencesform.hpp"
 #include "ui_sequencesform.h"
-#include "sequencesmodel.h"
+#include "sequencesmodel.hpp"
 #include <QStandardItemModel>
 
 using namespace qtwidgets;

@@ -266,79 +266,35 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="adcontroller.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="adcontroller_global.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\cache.h"
+				RelativePath=".\adcontroller.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\constants.h"
+				RelativePath=".\adcontroller_global.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\ibroker.h"
+				RelativePath=".\cache.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\ibrokermanager.h"
+				RelativePath=".\constants.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\iproxy.h"
+				RelativePath=".\ibroker.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\manager_i.h"
+				RelativePath=".\ibrokermanager.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\iproxy.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\manager_i.hpp"
 				>
 			</File>
 			<File
@@ -346,31 +302,31 @@
 				>
 			</File>
 			<File
-				RelativePath=".\mcast_handler.h"
+				RelativePath=".\mcast_handler.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\message.h"
+				RelativePath=".\message.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\observer_i.h"
+				RelativePath=".\observer_i.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\oproxy.h"
+				RelativePath=".\oproxy.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\receiver_i.h"
+				RelativePath=".\receiver_i.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\session_i.h"
+				RelativePath=".\session_i.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\signal_handler.h"
+				RelativePath=".\signal_handler.hpp"
 				>
 			</File>
 		</Filter>

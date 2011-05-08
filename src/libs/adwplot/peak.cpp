@@ -23,10 +23,10 @@
 **
 **************************************************************************/
 
-#include "peak.h"
-#include "dataplot.h"
+#include "peak.hpp"
+#include "dataplot.hpp"
 #include <qwt_plot_curve.h>
-#include <adcontrols/peak.h>
+#include <adcontrols/peak.hpp>
 
 using namespace adwplot;
 

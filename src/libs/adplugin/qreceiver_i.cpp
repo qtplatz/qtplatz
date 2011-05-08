@@ -22,10 +22,10 @@
 **
 **************************************************************************/
 
-#include "qreceiver_i.h"
+#include "qreceiver_i.hpp"
 
-#include <adinterface/eventlog_helper.h>
-#include <qtwrapper/qstring.h>
+#include <adinterface/eventlog_helper.hpp>
+#include <qtwrapper/qstring.hpp>
 
 using namespace adplugin;
 

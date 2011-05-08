@@ -23,10 +23,10 @@
 **
 **************************************************************************/
 
-#include "adfs.h"
-#include "folium.h"
-#include "filesystem.h"
-#include "sqlite.h"
+#include "adfs.hpp"
+#include "folium.hpp"
+#include "filesystem.hpp"
+#include "sqlite.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/cstdint.hpp>
@@ -35,7 +35,7 @@
 #include <adportable/string.hpp>
 
 #if defined WIN32
-# include "apiwin32.h"
+# include "apiwin32.hpp"
 typedef adfs::detail::win32api impl;
 #else
 #endif

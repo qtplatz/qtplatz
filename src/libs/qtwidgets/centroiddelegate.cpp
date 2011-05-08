@@ -22,8 +22,8 @@
 **
 **************************************************************************/
 
-#include "centroiddelegate.h"
-#include <adcontrols/centroidmethod.h>
+#include "centroiddelegate.hpp"
+#include <adcontrols/centroidmethod.hpp>
 #include <QComboBox>
 #include <QDebug>
 #include <QMetaType>

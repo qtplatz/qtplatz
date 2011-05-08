@@ -22,8 +22,8 @@
 **
 **************************************************************************/
 
-#include "datafile.h"
-#include "datafilebroker.h"
+#include "datafile.hpp"
+#include "datafilebroker.hpp"
 
 using namespace adcontrols;
 

@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 #pragma warning(disable:4100)
-#include "chemicalformula.h"
-#include "tableofelements.h"
+#include "chemicalformula.hpp"
+#include "tableofelements.hpp"
 #include <adportable/string.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/spirit/include/qi.hpp>

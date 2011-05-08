@@ -17,48 +17,45 @@ include(../../plugins/coreplugin/coreplugin.pri)
 DEFINES += ANALYSIS_LIBRARY
 
 SOURCES += \
-    dataprocplugin.cpp \
-    dataprocmode.cpp \
-    dataprocmanager.cpp \
-    msprocessingwnd.cpp \
-    elementalcompwnd.cpp \
-    mscalibrationwnd.cpp \
+    actionmanager.cpp \
     chromatogramwnd.cpp \
-    dataset.cpp \
+    dataproc.cpp \
+    dataproceditor.cpp \
     dataprocessor.cpp \
     dataprocessorfactory.cpp \
-    dataprocwidget.cpp \
-    navigationwidgetfactory.cpp \
-    navigationwidget.cpp \
-    sessionmanager.cpp \
+    dataprochanler.cpp \
+    dataprocmanager.cpp \
+    dataprocmode.cpp \
+    dataprocplugin.cpp \
+    elementalcompwnd.cpp \
+    ifileimpl.cpp \
+    mscalibrationwnd.cpp \
+    msprocessingwnd.cpp \
     navigationdelegate.cpp \
-    selchanged.cpp \
-    dataprochandler.cpp \
-    dataproceditor.cpp \
-    actionmanager.cpp
+    navigationwidget.cpp \
+    navigationwidgtfactory.cpp \
+    sessionmanager.cpp
 
 HEADERS += \
     dataproc_global.h \
-    dataprocplugin.h \
-    dataprocmode.h \
-    dataprocmanager.h \
-    msprocessingwnd.h \
-    elementalcompwnd.h \
-    mscalibrationwnd.h \
-    chromatogramwnd.h \
-    dataset.h \
-    dataprocessor.h \
-    dataprocessorfactory.h \
-    constants.h \
-    dataprocwidget.h \
-    navigationwidgetfactory.h \
-    navigationwidget.h \
-    sessionmanager.h \
-    navigationdelegate.h \
-    selchanged.h \
-    dataprochandler.h \
-    dataproceditor.h \
-    actionmanager.h
+    actionmanager.hpp \
+    chromatogramwnd.hpp \
+    dataproc.hpp \
+    dataproceditor.hpp \
+    dataprocessor.hpp \
+    dataprocessorfactory.hpp \
+    dataprochanler.hpp \
+    dataprocmanager.hpp \
+    dataprocmode.hpp \
+    dataprocplugin.hpp \
+    elementalcompwnd.hpp \
+    ifileimpl.hpp \
+    mscalibrationwnd.hpp \
+    msprocessingwnd.hpp \
+    navigationdelegate.hpp \
+    navigationwidget.hpp \
+    navigationwidgtfactory.hpp \
+    sessionmanager.hpp
 
 OTHER_FILES += dataproc.pluginspec \
     dataproc_dependencies.pri \

@@ -22,9 +22,9 @@
 **
 **************************************************************************/
 
-#include "standarditemhelper.h"
+#include "standarditemhelper.hpp"
+#include <qtwrapper/qstring.hpp>
 #include <QStandardItem>
-#include <qtwrapper/qstring.h>
 
 using namespace qtwidgets;
 

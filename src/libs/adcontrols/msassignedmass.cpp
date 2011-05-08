@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "msassignedmass.h"
+#include "msassignedmass.hpp"
 
 using namespace adcontrols;
 

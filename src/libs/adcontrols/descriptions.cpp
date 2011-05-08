@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "descriptions.h"
+#include "descriptions.hpp"
 #include <sstream>
 #include <vector>
 

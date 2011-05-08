@@ -23,10 +23,10 @@
 **
 **************************************************************************/
 
-#include "traces.h"
-#include "trace.h"
-#include "dataplot.h"
-#include <qtwrapper/qstring.h>
+#include "traces.hpp"
+#include "trace.hpp"
+#include "dataplot.hpp"
+#include <qtwrapper/qstring.hpp>
 
 using namespace adwplot;
 

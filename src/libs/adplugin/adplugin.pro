@@ -25,13 +25,13 @@ SOURCES += adplugin.cpp \
 
 HEADERS += adplugin.h\
         adplugin_global.h \
-    imonitor.h \
-    icontrolmethodeditor.h \
-    ifactory.h \
-    lifecycle.h \
-    qreceiver_i.h \
-    configloader.h \
-    orbmanager.h \
-    orbLoader.h \
-    qobserverevents_i.h \
-    qbrokersessionevent.h
+    imonitor.hpp \
+    icontrolmethodeditor.hpp \
+    ifactory.hpp \
+    lifecycle.hpp \
+    qreceiver_i.hpp \
+    configloader.hpp \
+    orbmanager.hpp \
+    orbLoader.hpp \
+    qobserverevents_i.hpp \
+    qbrokersessionevent.hpp

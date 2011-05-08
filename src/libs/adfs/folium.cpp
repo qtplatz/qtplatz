@@ -23,10 +23,10 @@
 **
 **************************************************************************/
 
-#include "folium.h"
-#include "folder.h"
-#include "portfolioimpl.h"
-#include "filesystem.h"
+#include "folium.hpp"
+#include "folder.hpp"
+#include "portfolioimpl.hpp"
+#include "filesystem.hpp"
 
 using namespace adfs;
 

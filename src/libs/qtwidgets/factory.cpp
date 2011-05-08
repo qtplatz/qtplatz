@@ -23,23 +23,23 @@
 **
 **************************************************************************/
 
-#include "factory.h"
-#include <adplugin/adplugin.h>
+#include "factory.hpp"
+#include <adplugin/adplugin.hpp>
 #include <QtCore/qplugin.h>
-#include "logwidget.h"
-#include "sequencewidget.h"
-#include "sequencesform.h"
-#include "centroidform.h"
-#include "elementalcompositionform.h"
-#include "mscalibrationform.h"
-#include "peakidtableform.h"
-#include "targetingform.h"
-#include "reportform.h"
-#include "mslockform.h"
-#include "chromatographicpeakform.h"
-#include "isotopeform.h"
-#include "mscalibsummarywidget.h"
-#include <adplugin/lifecycle.h>
+#include "logwidget.hpp"
+#include "sequencewidget.hpp"
+#include "sequencesform.hpp"
+#include "centroidform.hpp"
+#include "elementalcompositionform.hpp"
+#include "mscalibrationform.hpp"
+#include "peakidtableform.hpp"
+#include "targetingform.hpp"
+#include "reportform.hpp"
+#include "mslockform.hpp"
+#include "chromatographicpeakform.hpp"
+#include "isotopeform.hpp"
+#include "mscalibsummarywidget.hpp"
+#include <adplugin/lifecycle.hpp>
 
 using namespace qtwidgets;
 

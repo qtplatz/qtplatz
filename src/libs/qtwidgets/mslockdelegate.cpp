@@ -3,7 +3,7 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#include "mslockdelegate.h"
+#include "mslockdelegate.hpp"
 
 using namespace qtwidgets;
 

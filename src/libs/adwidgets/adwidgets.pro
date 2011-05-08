@@ -14,7 +14,7 @@ include(../../qtplatz_library_rule.pri)
 
 SOURCES +=  peakresultwidget.cpp
 
-HEADERS +=  peakresultwidget.h
+HEADERS +=  peakresultwidget.hpp
 
 include(../../boost.pri)
 

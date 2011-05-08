@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "msreference.h"
-#include "chemicalformula.h"
+#include "msreference.hpp"
+#include "chemicalformula.hpp"
 #include <cmath>
 
 using namespace adcontrols;

@@ -23,10 +23,10 @@
 **
 **************************************************************************/
 
-#include "baseline.h"
-#include "dataplot.h"
+#include "baseline.hpp"
+#include "dataplot.hpp"
 #include <qwt_plot_curve.h>
-#include <adcontrols/baseline.h>
+#include <adcontrols/baseline.hpp>
 
 using namespace adwplot;
 

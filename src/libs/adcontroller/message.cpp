@@ -22,9 +22,9 @@
 **
 **************************************************************************/
 
-#include "message.h"
-#include <acewrapper/outputcdr.h>
-#include <acewrapper/inputcdr.h>
+#include "message.hpp"
+#include <acewrapper/outputcdr.hpp>
+#include <acewrapper/inputcdr.hpp>
 
 using namespace adcontroller;
 

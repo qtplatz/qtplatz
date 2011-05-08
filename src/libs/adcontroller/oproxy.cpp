@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "ibroker.h"
-#include "oproxy.h"
+#include "ibroker.hpp"
+#include "oproxy.hpp"
 
 using namespace adcontroller;
 

@@ -22,14 +22,14 @@
 **
 **************************************************************************/
 
-#include "peakresultwidget.h"
+#include "peakresultwidget.hpp"
 #include <QStandardItemModel>
-#include <adcontrols/chromatogram.h>
-#include <adcontrols/baselines.h>
-#include <adcontrols/baseline.h>
-#include <adcontrols/peaks.h>
-#include <adcontrols/peak.h>
-#include <qtwrapper/qstring.h>
+#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/baselines.hpp>
+#include <adcontrols/baseline.hpp>
+#include <adcontrols/peaks.hpp>
+#include <adcontrols/peak.hpp>
+#include <qtwrapper/qstring.hpp>
 
 using namespace adwidgets;
 using namespace adwidgets::ui;

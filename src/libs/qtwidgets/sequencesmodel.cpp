@@ -4,8 +4,8 @@
 //////////////////////////////////////////////
 
 #include <QtGui>
-#include "sequencesmodel.h"
-#include "treeitem.h"
+#include "sequencesmodel.hpp"
+#include "treeitem.hpp"
 
 using namespace qtwidgets;
 

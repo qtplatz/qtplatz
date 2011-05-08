@@ -23,15 +23,15 @@
 **
 **************************************************************************/
 
-#include "navigationwidget.h"
-#include "navigationdelegate.h"
-#include "dataprocessor.h"
-#include "sessionmanager.h"
-#include <adcontrols/datafile.h>
-#include <portfolio/portfolio.h>
-#include <portfolio/folder.h>
-#include <portfolio/folium.h>
-#include <qtwrapper/qstring.h>
+#include "navigationwidget.hpp"
+#include "navigationdelegate.hpp"
+#include "dataprocessor.hpp"
+#include "sessionmanager.hpp"
+#include <adcontrols/datafile.hpp>
+#include <portfolio/portfolio.hpp>
+#include <portfolio/folder.hpp>
+#include <portfolio/folium.hpp>
+#include <qtwrapper/qstring.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/filemanager.h>
 #include <QLabel>

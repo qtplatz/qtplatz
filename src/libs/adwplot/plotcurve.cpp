@@ -23,11 +23,11 @@
 **
 **************************************************************************/
 
-#include "plotcurve.h"
-#include "dataplot.h"
-#include "seriesdata.h"
+#include "plotcurve.hpp"
+#include "dataplot.hpp"
+#include "seriesdata.hpp"
 #include <qwt_plot_curve.h>
-#include <qtwrapper/qstring.h>
+#include <qtwrapper/qstring.hpp>
 
 using namespace adwplot;
 using qtwrapper::qstring;

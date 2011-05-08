@@ -3,7 +3,7 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#include "peakidtableform.h"
+#include "peakidtableform.hpp"
 #include "ui_peakidtableform.h"
 #include <adportable/configuration.hpp>
 #include <QStandardItemModel>

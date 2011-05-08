@@ -22,14 +22,14 @@
 **
 **************************************************************************/
 
-#include "processmethod.h"
-#include "centroidmethod.h"
-#include "isotopemethod.h"
-#include "elementalcompositionmethod.h"
-#include "mscalibratemethod.h"
-#include "msreferences.h"
-#include "msreference.h"
-#include "targetingmethod.h"
+#include "processmethod.hpp"
+#include "centroidmethod.hpp"
+#include "isotopemethod.hpp"
+#include "elementalcompositionmethod.hpp"
+#include "mscalibratemethod.hpp"
+#include "msreferences.hpp"
+#include "msreference.hpp"
+#include "targetingmethod.hpp"
 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>

@@ -22,16 +22,16 @@
 **
 **************************************************************************/
 
-#include "manager.h"
-#include "adplugin.h"
-#include "lifecycle.h"
-#include "orbLoader.h"
+#include "manager.hpp"
+#include "adplugin.hpp"
+#include "lifecycle.hpp"
+#include "orbLoader.hpp"
 #include <adportable/configuration.hpp>
-#include <acewrapper/constants.h>
+#include <acewrapper/constants.hpp>
 #include <adportable/configloader.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/string.hpp>
-#include <qtwrapper/qstring.h>
+#include <qtwrapper/qstring.hpp>
 #include <QLibrary>
 #include <QDir>
 #include <QMessageBox>

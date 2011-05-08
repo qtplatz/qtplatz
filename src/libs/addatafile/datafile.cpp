@@ -23,16 +23,16 @@
 **
 **************************************************************************/
 
-#include "datafile.h"
-#include "copyin_visitor.h"
-#include <adcontrols/datafile.h>
-#include <adcontrols/datapublisher.h>
-#include <adcontrols/datasubscriber.h>
-#include <adcontrols/massspectrum.h>
-#include <adcontrols/processeddataset.h>
-#include <portfolio/portfolio.h>
-#include <portfolio/folder.h>
-#include <portfolio/folium.h>
+#include "datafile.hpp"
+#include "copyin_visitor.hpp"
+#include <adcontrols/datafile.hpp>
+#include <adcontrols/datapublisher.hpp>
+#include <adcontrols/datasubscriber.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/processeddataset.hpp>
+#include <portfolio/portfolio.hpp>
+#include <portfolio/folder.hpp>
+#include <portfolio/folium.hpp>
 #include <boost/any.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -40,9 +40,9 @@
 #include <boost/lexical_cast.hpp>
 #include <adportable/string.hpp>
 #include <adportable/posix_path.hpp>
-#include <acewrapper/input_buffer.h>
-#include <adfs/adfs.h>
-#include <adfs/sqlite.h>
+#include <acewrapper/input_buffer.hpp>
+#include <adfs/adfs.hpp>
+#include <adfs/sqlite.hpp>
 #include <algorithm>
 #include <iostream>
 

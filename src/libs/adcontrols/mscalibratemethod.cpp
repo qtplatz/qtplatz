@@ -23,10 +23,10 @@
 **
 **************************************************************************/
 
-#include "mscalibratemethod.h"
-#include "msreferencedefns.h"
-#include "msreferences.h"
-#include "msreference.h"
+#include "mscalibratemethod.hpp"
+#include "msreferencedefns.hpp"
+#include "msreferences.hpp"
+#include "msreference.hpp"
 
 using namespace adcontrols;
 

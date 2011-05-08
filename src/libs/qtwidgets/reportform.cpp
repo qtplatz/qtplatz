@@ -3,10 +3,10 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#include "reportform.h"
+#include "reportform.hpp"
 #include "ui_reportform.h"
-#include "reportdelegate.h"
-#include <adcontrols/reportmethod.h>
+#include "reportdelegate.hpp"
+#include <adcontrols/reportmethod.hpp>
 #include <adportable/configuration.hpp>
 #include <QStandardItemModel>
 

@@ -14,7 +14,9 @@ INCLUDEPATH += dialogs \
     actionmanager \
     editormanager \
     progressmanager \
-    scriptmanager
+    scriptmanager \
+    ..
+
 DEPENDPATH += dialogs \
     actionmanager \
     editormanager \

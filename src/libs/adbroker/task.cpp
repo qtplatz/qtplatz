@@ -23,26 +23,25 @@
 **
 **************************************************************************/
 
-#include "task.h"
+#include "task.hpp"
 #include <boost/format.hpp>
 #include <acewrapper/mutex.hpp>
 #include <acewrapper/mutex.hpp>
-#include "message.h"
-#include <sstream>
-#include <acewrapper/timeval.h>
-#include <iostream>
-#include <adcontrols/massspectrum.h>
-#include <adcontrols/msproperty.h>
-#include <adcontrols/massspectrometer.h>
-#include <adcontrols/datainterpreter.h>
-#include <adcontrols/description.h>
+#include "message.hpp"
+#include <acewrapper/timeval.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/datainterpreter.hpp>
+#include <adcontrols/description.hpp>
 //--
-#include <portfolio/portfolio.h>
-#include <portfolio/folder.h>
-#include <portfolio/folium.h>
-#include <adutils/processeddata.h>
+#include <portfolio/portfolio.hpp>
+#include <portfolio/folder.hpp>
+#include <portfolio/folium.hpp>
+#include <adutils/processeddata.hpp>
 #include <adportable/float.hpp>
-
+#include <sstream>
+#include <iostream>
 
 #pragma warning(disable:4996)
 # include <ace/Reactor.h>

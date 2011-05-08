@@ -225,67 +225,23 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="adtxtfactory.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="adtxtfactory_global.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\datafile.h"
+				RelativePath=".\adtxtfactory.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\datafile_factory.h"
+				RelativePath=".\adtxtfactory_global.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\txtspectrum.h"
+				RelativePath=".\datafile.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\datafile_factory.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\txtspectrum.hpp"
 				>
 			</File>
 		</Filter>

@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "plotpanner.h"
+#include "plotpanner.hpp"
 
 using namespace adwplot;
 

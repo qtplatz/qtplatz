@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "acquiremode.h"
+#include "acquiremode.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 
 using namespace Acquire;

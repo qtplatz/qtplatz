@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "apiwin32.h"
+#include "apiwin32.hpp"
 #include <windows.h>
 #include <boost/filesystem.hpp>
 

@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "input_buffer.h"
+#include "input_buffer.hpp"
 
 using namespace acewrapper;
 

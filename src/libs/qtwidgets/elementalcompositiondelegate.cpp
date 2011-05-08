@@ -3,7 +3,7 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#include "elementalcompositiondelegate.h"
+#include "elementalcompositiondelegate.hpp"
 #include <QComboBox>
 
 using namespace qtwidgets;

@@ -298,6 +298,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\eventlog_helper.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\eventlogC.h"
 				>
 			</File>
@@ -326,30 +330,8 @@
 				>
 			</File>
 			<File
-				RelativePath="interface.h"
+				RelativePath=".\interface.hpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\loghandlerC.h"

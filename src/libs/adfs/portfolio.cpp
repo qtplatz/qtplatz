@@ -22,13 +22,13 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#include "adfs.h"
-#include "sqlite.h"
-#include "portfolio.h"
+#include "adfs.hpp"
+#include "sqlite.hpp"
+#include "portfolio.hpp"
 
-#include "folder.h"
-#include "folium.h"
-#include "filesystem.h"
+#include "folder.hpp"
+#include "folium.hpp"
+#include "filesystem.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 

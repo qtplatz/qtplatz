@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-#include "qbrokersessionevent.h"
-#include <qtwrapper/qstring.h>
+#include "qbrokersessionevent.hpp"
+#include <qtwrapper/qstring.hpp>
 
 QBrokerSessionEvent::QBrokerSessionEvent(QObject *parent) :
     QObject(parent)

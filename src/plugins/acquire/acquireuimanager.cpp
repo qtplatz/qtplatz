@@ -23,15 +23,15 @@
 **
 **************************************************************************/
 
-#include "acquireuimanager.h"
-#include "acquireactions.h"
-#include <adplugin/ifactory.h>
+#include "acquireuimanager.hpp"
+#include "acquireactions.hpp"
+#include <adplugin/ifactory.hpp>
 
 #include <boost/variant.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
 
-#include <adwplot/dataplot.h>
+#include <adwplot/dataplot.hpp>
 #include <QDockWidget>
 #include <utils/fancymainwindow.h>
 #include <utils/styledbar.h>
@@ -46,13 +46,12 @@
 #include <QMessageBox>
 #include <QTabBar>
 
-#include <qtwrapper/qstring.h>
-// #include <xmlwrapper/xmldom.h>
-#include <adplugin/adplugin.h>
-#include <adplugin/imonitor.h>
+#include <qtwrapper/qstring.hpp>
+#include <adplugin/adplugin.hpp>
+#include <adplugin/imonitor.hpp>
 #include <adportable/configuration.hpp>
-#include <adinterface/eventlog_helper.h>
-#include <acewrapper/timeval.h>
+#include <adinterface/eventlog_helper.hpp>
+#include <acewrapper/timeval.hpp>
 
 namespace Acquire { 
     namespace internal {

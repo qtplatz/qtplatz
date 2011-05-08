@@ -23,13 +23,13 @@
 **
 **************************************************************************/
 
-#include "elementalcompositionform.h"
+#include "elementalcompositionform.hpp"
 #include "ui_elementalcompositionform.h"
-#include "elementalcompositiondelegate.h"
-#include "standarditemhelper.h"
+#include "elementalcompositiondelegate.hpp"
+#include "standarditemhelper.hpp"
 #include <adportable/configuration.hpp>
-#include <adcontrols/elementalcompositionmethod.h>
-#include <adcontrols/processmethod.h>
+#include <adcontrols/elementalcompositionmethod.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <QStandardItemModel>
 
 using namespace qtwidgets;

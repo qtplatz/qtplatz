@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "actionmanager.h"
+#include "actionmanager.hpp"
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>

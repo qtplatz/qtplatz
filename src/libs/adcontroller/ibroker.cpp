@@ -22,28 +22,28 @@
 **
 **************************************************************************/
 
-#include "ibroker.h"
-#include "iproxy.h"
-#include "oproxy.h"
+#include "ibroker.hpp"
+#include "iproxy.hpp"
+#include "oproxy.hpp"
 #include <ace/Reactor.h>
 #include <ace/Thread_Manager.h>
 #include <adinterface/receiverC.h>
 #include <adinterface/eventlogC.h>
 #include <acewrapper/mutex.hpp>
-#include "ibrokermanager.h"
-#include "message.h"
-#include <acewrapper/timeval.h>
-#include <acewrapper/messageblock.h>
+#include "ibrokermanager.hpp"
+#include "message.hpp"
+#include <acewrapper/timeval.hpp>
+#include <acewrapper/messageblock.hpp>
 #include <iostream>
 #include <sstream>
-#include <adinterface/eventlog_helper.h>
+#include <adinterface/eventlog_helper.hpp>
 #include "marshal.hpp"
-#include "constants.h"
+#include "constants.hpp"
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
-#include "observer_i.h"
-#include "manager_i.h"
-#include <acewrapper/orbservant.h>
+#include "observer_i.hpp"
+#include "manager_i.hpp"
+#include <acewrapper/orbservant.hpp>
 #if defined _DEBUG
 # include <iostream>
 #endif

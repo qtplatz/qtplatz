@@ -6,47 +6,49 @@
 
 QT       -= gui
 
+include(../../boost.pri)
+INCLUDEPATH += $$(QWT)/include $$(QTDIR)/include/Qtcore $$(QTDIR)/include/QtGui $$(QTIR)/include
+INCLUDEPATH += ..
+
+message("INCLUDE=" $$(INCLUDEPATH))
+
 TARGET = adwplot
 TEMPLATE = lib
 CONFIG += staticlib
 
 SOURCES += adwplot.cpp \
-    dataplot.cpp \
-    trace.cpp \
-    zoomer.cpp \
+    annotation.cpp \
+    annotations.cpp \
     axis.cpp \
-    traces.cpp \
-    chromatogramwidget.cpp \
-    massspectrumwidget.cpp \
+    baseline.cpp \
+    chromatogramwidget.hpp \
+    dataplot.cpp \
+    peak.cpp \
+    plotcurve.cpp \
     plotpanner.cpp \
     plotpicker.cpp \
-    annotations.cpp \
-    annotation.cpp \
-    peak.cpp \
-    baseline.cpp \
-    timedtracewidget.cpp \
     seriesdata.cpp \
-    seriesdatamsimpl.cpp \
-    plotcurve.cpp
+    spectrumwidget.cpp \
+    trace.cpp \
+    traces.cpp \
+    zoomer.cpp
 
-HEADERS += adwplot.h \
-    dataplot.h \
-    trace.h \
-    zoomer.h \
-    axis.h \
-    traces.h \
-    chromatogramwidget.h \
-    massspectrumwidget.h \
-    plotpanner.h \
-    plotpicker.h \
-    annotations.h \
-    annotation.h \
-    peak.h \
-    baseline.h \
-    timedtracewidget.h \
-    seriesdata.h \
-    seriesdatamsimpl.h \
-    plotcurve.h
+HEADERS += adwplot.hpp \
+    annotation.hpp \
+    annotations.hpp \
+    axis.hpp \
+    baseline.hpp \
+    chromatogramwidget.hpp \
+    dataplot.hpp \
+    peak.hpp \
+    plotcurve.hpp \
+    plotpanner.hpp \
+    plotpicker.hpp \
+    seriesdata.hpp \
+    spectrumwidget.hpp \
+    trace.hpp \
+    traces.hpp \
+    zoomer.hpp
 
 unix:!symbian {
     maemo5 {

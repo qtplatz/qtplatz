@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "targetingmethod.h"
+#include "targetingmethod.hpp"
 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/scoped_ptr.hpp>

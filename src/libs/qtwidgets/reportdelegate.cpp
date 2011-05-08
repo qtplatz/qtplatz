@@ -3,7 +3,7 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#include "reportdelegate.h"
+#include "reportdelegate.hpp"
 
 using namespace qtwidgets;
 

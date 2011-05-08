@@ -23,15 +23,15 @@
 **
 **************************************************************************/
 
-#include "ifileimpl.h"
-#include "dataprocessor.h"
-#include <adcontrols/lcmsdataset.h>
-#include <adcontrols/processeddataset.h>
-#include <adcontrols/massspectrum.h>
-#include <qtwrapper/qstring.h>
-#include <portfolio/portfolio.h>
-#include <portfolio/folium.h>
-#include <portfolio/folder.h>
+#include "ifileimpl.hpp"
+#include "dataprocessor.hpp"
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/processeddataset.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <qtwrapper/qstring.hpp>
+#include <portfolio/portfolio.hpp>
+#include <portfolio/folium.hpp>
+#include <portfolio/folder.hpp>
 #include <boost/filesystem/path.hpp>
 
 using namespace dataproc;

@@ -23,12 +23,12 @@
 **
 **************************************************************************/
 
-#include "iproxy.h"
+#include "iproxy.hpp"
 #include "marshal.hpp"
-#include "constants.h"
-#include "ibroker.h"
-#include "manager_i.h"
-#include <acewrapper/brokerhelper.h>
+#include "constants.hpp"
+#include "ibroker.hpp"
+#include "manager_i.hpp"
+#include <acewrapper/brokerhelper.hpp>
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
 

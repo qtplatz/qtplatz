@@ -22,10 +22,10 @@
 **
 **************************************************************************/
 
-#include "mscalibratedelegate.h"
-#include <adcontrols/msreferences.h>
-#include <adcontrols/msreference.h>
-#include <qtwrapper/qstring.h>
+#include "mscalibratedelegate.hpp"
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msreference.hpp>
+#include <qtwrapper/qstring.hpp>
 #include <QComboBox>
 #include <QMetaType>
 #include <QPainter>

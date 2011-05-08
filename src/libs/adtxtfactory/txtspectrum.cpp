@@ -23,12 +23,12 @@
 **
 **************************************************************************/
 
-#include "txtspectrum.h"
+#include "txtspectrum.hpp"
 #include <adportable/string.hpp>
-#include <adcontrols/description.h>
-#include <adcontrols/massspectrum.h>
-#include <adcontrols/msproperty.h>
-#include <adcontrols/mscalibration.h>
+#include <adcontrols/description.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/mscalibration.hpp>
 #include <fstream>
 #include <algorithm>
 

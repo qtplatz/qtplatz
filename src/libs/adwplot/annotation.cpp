@@ -23,9 +23,9 @@
 **
 **************************************************************************/
 
-#include "annotation.h"
-#include "dataplot.h"
-#include <qtwrapper/qstring.h>
+#include "annotation.hpp"
+#include "dataplot.hpp"
+#include <qtwrapper/qstring.hpp>
 #include <qwt_plot_marker.h>
 #include <qwt_text.h>
 

@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "msproperty.h"
+#include "msproperty.hpp"
 
 using namespace adcontrols;
 

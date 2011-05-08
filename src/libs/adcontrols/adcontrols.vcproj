@@ -424,417 +424,223 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\acceptor.h"
+				RelativePath=".\acceptor.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\acquireddataset.h"
+				RelativePath=".\acquireddataset.hpp"
 				>
 			</File>
 			<File
-				RelativePath="adcontrols.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="adcontrols_global.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\baseline.h"
+				RelativePath=".\adcontrols.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\baselines.h"
+				RelativePath=".\adcontrols_global.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\centroidmethod.h"
+				RelativePath=".\baseline.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\centroidprocess.h"
+				RelativePath=".\baselines.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\chemicalformula.h"
+				RelativePath=".\centroidmethod.hpp"
 				>
 			</File>
 			<File
-				RelativePath="chromatogram.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\datafile.h"
+				RelativePath=".\centroidprocess.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\datafile_factory.h"
+				RelativePath=".\chemicalformula.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\datafilebroker.h"
+				RelativePath=".\chromatogram.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\datainterpreter.h"
+				RelativePath=".\cpeakmethod.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\datapublisher.h"
+				RelativePath=".\datafile.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\datasubscriber.h"
+				RelativePath=".\datafile_factory.hpp"
 				>
 			</File>
 			<File
-				RelativePath="description.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="descriptions.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="element.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\elementalcomposition.h"
+				RelativePath=".\datafilebroker.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\elementalcompositioncollection.h"
+				RelativePath=".\datainterpreter.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\elementalcompositionmethod.h"
+				RelativePath=".\datapublisher.hpp"
 				>
 			</File>
 			<File
-				RelativePath="elements.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\isotopecluster.h"
+				RelativePath=".\datasubscriber.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\isotopemethod.h"
+				RelativePath=".\description.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\lcmsdataset.h"
+				RelativePath=".\descriptions.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\lockmass.h"
+				RelativePath=".\element.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\massspectrometer.h"
+				RelativePath=".\elementalcomposition.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\massspectrometerbroker.h"
+				RelativePath=".\elementalcompositioncollection.hpp"
 				>
 			</File>
 			<File
-				RelativePath="massspectrum.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\msassignedmass.h"
+				RelativePath=".\elementalcompositionmethod.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\mscalibratemethod.h"
+				RelativePath=".\elements.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\mscalibrateresult.h"
+				RelativePath=".\isotopecluster.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\mscalibration.h"
+				RelativePath=".\isotopemethod.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\mslockmethod.h"
+				RelativePath=".\lcmsdataset.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\mspeakinfoitem.h"
+				RelativePath=".\lockmass.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\msproperty.h"
+				RelativePath=".\massspectrometer.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\msreference.h"
+				RelativePath=".\massspectrometerbroker.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\msreferencedefns.h"
+				RelativePath=".\massspectrum.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\msreferences.h"
+				RelativePath=".\msassignedmass.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\peak.h"
+				RelativePath=".\mscalibratemethod.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\peakasymmetry.h"
+				RelativePath=".\mscalibrateresult.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\peakresolution.h"
+				RelativePath=".\mscalibration.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\peaks.h"
+				RelativePath=".\mslockmethod.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\processeddataset.h"
+				RelativePath=".\mspeakinfoitem.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\processmethod.h"
+				RelativePath=".\msproperty.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\reportmethod.h"
+				RelativePath=".\msreference.hpp"
 				>
 			</File>
 			<File
-				RelativePath="tableofelements.h"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\targetingmethod.h"
+				RelativePath=".\msreferencedefns.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\theoreticalplate.h"
+				RelativePath=".\msreferences.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\timeutil.h"
+				RelativePath=".\peak.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\trace.h"
+				RelativePath=".\peakasymmetry.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\traceaccessor.h"
+				RelativePath=".\peakresolution.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\visitor.h"
+				RelativePath=".\peaks.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\processeddataset.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\processmethod.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\reportmethod.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tableofelements.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\targetingmethod.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\theoreticalplate.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\timeutil.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\trace.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\traceaccessor.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\visitor.hpp"
 				>
 			</File>
 		</Filter>

@@ -23,16 +23,15 @@
 **************************************************************************/
 
 #pragma warning (disable: 4996)
-#include "session_i.h"
+#include "session_i.hpp"
 #include "adinterface/receiverC.h"
 #include "adinterface/signalobserverC.h"
 #pragma warning (default: 4996)
 
 #include <iostream>
-#include "ibrokermanager.h"
-#include "ibroker.h"
+#include "ibrokermanager.hpp"
+#include "ibroker.hpp"
 #include <acewrapper/mutex.hpp>
-#include "ibroker.h"
 #include <boost/tokenizer.hpp>
 
 using namespace acewrapper;
