@@ -17,7 +17,7 @@ CONFIG(debug, debug|release) : LIBS += -ladinterfaced
 CONFIG(release, debug|release) : LIBS += -ladinterface
 INCLUDEPATH *= $$OUT_PWD/..
 
-message( "LIBS " $$LIBS )
+# message( "LIBS " $$LIBS )
 
 DEFINES += ADBROKER_LIBRARY
 
@@ -33,19 +33,19 @@ SOURCES += adbroker.cpp \
     session_i.cpp \
     task.cpp
 
-HEADERS += adbroker.h \
+HEADERS += adbroker.hpp \
     adbroker_global.h \
-    brokermanager.h \
-    brokerconfig.h \
-    brokermanager.h \
-    brokersession.h \
-    brokertoken.h \
-    chemicalformula_i.h \
-    logger_i.h \
-    manager_i.h \
-    message.h \
-    session_i.h \
-    task.h
+    brokermanager.hpp \
+    brokerconfig.hpp \
+    brokermanager.hpp \
+    brokersession.hpp \
+    brokertoken.hpp \
+    chemicalformula_i.hpp \
+    logger_i.hpp \
+    manager_i.hpp \
+    message.hpp \
+    session_i.hpp \
+    task.hpp
 
 OTHER_FILES += \
     adbroker.pri \

@@ -24,16 +24,16 @@ SOURCES += adfs.cpp \
     sqlite.cpp \
     sqlite3.c
 
-HEADERS += adfs.h \
-    apiposix.h \
-    apiwin32.h \
-    attributes.h \
-    cpio.h \
-    filesystem.h \
-    folder.h \
-    folium.h \
-    portfolio.h \
-    sqlite.h \
+HEADERS += adfs.hpp \
+    apiposix.hpp \
+    apiwin32.hpp \
+    attributes.hpp \
+    cpio.hpp \
+    filesystem.hpp \
+    folder.hpp \
+    folium.hpp \
+    portfolio.hpp \
+    sqlite.hpp \
     sqlite3.h
 
 unix:!symbian {

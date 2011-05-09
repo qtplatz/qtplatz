@@ -18,5 +18,5 @@ include (../../boost.pri)
 SOURCES += adutils.cpp \
     processeddata.cpp
 
-HEADERS += adutils.h \
-    processeddata.h
+HEADERS += adutils.hpp \
+    processeddata.hpp

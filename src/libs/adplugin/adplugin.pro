@@ -23,14 +23,13 @@ SOURCES += adplugin.cpp \
         qobserverevents_i.cpp \
         qreceiver_i.cpp
 
-HEADERS += adplugin.h\
+HEADERS += adplugin.hpp \
         adplugin_global.h \
     imonitor.hpp \
     icontrolmethodeditor.hpp \
     ifactory.hpp \
     lifecycle.hpp \
     qreceiver_i.hpp \
-    configloader.hpp \
     orbmanager.hpp \
     orbLoader.hpp \
     qobserverevents_i.hpp \

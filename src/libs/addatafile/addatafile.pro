@@ -20,8 +20,8 @@ SOURCES += addatafile.cpp \
     datafile_factory.cpp \
     copyin_visitor.cpp
 
-HEADERS += addatafile.h\
+HEADERS += addatafile.hpp \
         addatafile_global.h \
-    datafile.h \
-    datafile_factory.h \
-    copyin_visitor.h
+    datafile.hpp \
+    datafile_factory.hpp \
+    copyin_visitor.hpp

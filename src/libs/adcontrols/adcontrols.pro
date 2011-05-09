@@ -69,58 +69,58 @@ SOURCES += acceptor.cpp \
     traceaccessor.cpp \
     visitor.cpp
 
-HEADERS += acceptor.h \
-    acquireddataset.h \
-    adcontrols.h \
+HEADERS += acceptor.hpp \
+    acquireddataset.hpp \
+    adcontrols.hpp \
     adcontrols_global.h \
-    baseline.h \
-    baselines.h \
-    centroidmethod.h \
-    centroidprocess.h \
-    chemicalformula.h \
-    chromatogram.h \
-    datafile.h \
-    datafile_factory.h \
-    datafilebroker.h \
-    datainterpreter.h \
-    datapublisher.h \
-    datasubscriber.h \
-    description.h \
-    descriptions.h \
-    element.h \
-    elementalcomposition.h \
-    elementalcompositioncollection.h \
-    elementalcompositionmethod.h \
-    elements.h \
-    isotopecluster.h \
-    isotopemethod.h \
-    lcmsdataset.h \
-    lockmass.h \
-    massspectrometer.h \
-    msassignedmass.h \
-    mscalibratemethod.h \
-    mscalibrateresult.h \
-    mscalibration.h \
-    mslockmethod.h \
-    mspeakinfoitem.h \
-    msproperty.h \
-    msreference.h \
-    msreferencedefns.h \
-    msreferences.h \
-    peak.h \
-    peakasymmetry.h \
-    peakresolution.h \
-    peaks.h \
-    processeddataset.h \
-    processmethod.h \
-    reportmethod.h \
-    tableofelements.h \
-    targetingmethod.h \
-    theoreticalplate.h \
-    timeutil.h \
-    trace.h \
-    traceaccessor.h \
-    visitor.h
+    baseline.hpp \
+    baselines.hpp \
+    centroidmethod.hpp \
+    centroidprocess.hpp \
+    chemicalformula.hpp \
+    chromatogram.hpp \
+    datafile.hpp \
+    datafile_factory.hpp \
+    datafilebroker.hpp \
+    datainterpreter.hpp \
+    datapublisher.hpp \
+    datasubscriber.hpp \
+    description.hpp \
+    descriptions.hpp \
+    element.hpp \
+    elementalcomposition.hpp \
+    elementalcompositioncollection.hpp \
+    elementalcompositionmethod.hpp \
+    elements.hpp \
+    isotopecluster.hpp \
+    isotopemethod.hpp \
+    lcmsdataset.hpp \
+    lockmass.hpp \
+    massspectrometer.hpp \
+    msassignedmass.hpp \
+    mscalibratemethod.hpp \
+    mscalibrateresult.hpp \
+    mscalibration.hpp \
+    mslockmethod.hpp \
+    mspeakinfoitem.hpp \
+    msproperty.hpp \
+    msreference.hpp \
+    msreferencedefns.hpp \
+    msreferences.hpp \
+    peak.hpp \
+    peakasymmetry.hpp \
+    peakresolution.hpp \
+    peaks.hpp \
+    processeddataset.hpp \
+    processmethod.hpp \
+    reportmethod.hpp \
+    tableofelements.hpp \
+    targetingmethod.hpp \
+    theoreticalplate.hpp \
+    timeutil.hpp \
+    trace.hpp \
+    traceaccessor.hpp \
+    visitor.hpp
 
 OTHER_FILES += \
     adcontrols.pri

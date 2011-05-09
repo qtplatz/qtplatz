@@ -32,26 +32,26 @@ SOURCES += acewrapper.cpp \
     timerhandler.cpp \
     timeval.cpp
 
-HEADERS += acewrapper.h \
-    ace_string.h \
-    brokerhelper.h \
-    callback.h \
-    constants.h \
-    dgramhandler.h \
-    eventhandler.h \
-    input_buffer.h \
-    inputcdr.h \
-    lifecycle_frame_serializer.h \
-    mcasthandler.h \
-    mcastserver.h \
-    messageblock.h \
+HEADERS += acewrapper.hpp \
+    ace_string.hpp \
+    brokerhelper.hpp \
+    callback.hpp \
+    constants.hpp \
+    dgramhandler.hpp \
+    eventhandler.hpp \
+    input_buffer.hpp \
+    inputcdr.hpp \
+    lifecycle_frame_serializer.hpp \
+    mcasthandler.hpp \
+    mcastserver.hpp \
+    messageblock.hpp \
     mutex.hpp \
-    orbservant.h \
-    outputcdr.h \
-    reactorthread.h \
-    serialization_inet_addr.h \
-    timerhandler.h \
-    timeval.h
+    orbservant.hpp \
+    outputcdr.hpp \
+    reactorthread.hpp \
+    serialization_inet_addr.hpp \
+    timerhandler.hpp \
+    timeval.hpp
 
 OTHER_FILES += \
     acewrapper.pri \

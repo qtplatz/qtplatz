@@ -20,8 +20,8 @@ SOURCES += adtxtfactory.cpp \
     datafile_factory.cpp \
     txtspectrum.cpp
 
-HEADERS += adtxtfactory.h\
+HEADERS += adtxtfactory.hpp \
     adtxtfactory_global.h \
-    datafile.h \
-    datafile_factory.h \
-    txtspectrum.h
+    datafile.hpp \
+    datafile_factory.hpp \
+    txtspectrum.hpp

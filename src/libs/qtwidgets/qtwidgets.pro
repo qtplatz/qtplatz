@@ -65,7 +65,7 @@ HEADERS += centroiddelegate.hpp \
         sequencesform.hpp \
         sequencesmodel.hpp \
         sequencewidget.hpp \
-        standardite.hppelper.hpp \
+        standarditemhelper.hpp \
         standardmodel.hpp \
         targetingdelegate.hpp \
         targetingform.hpp \

@@ -30,19 +30,19 @@ SOURCES += adcontroller.cpp \
         signal_handler.cpp \
     cache.cpp
 
-HEADERS += adcontroller.h\
+HEADERS += adcontroller.hpp \
         adcontroller_global.h \
-        constants.h \
-        ibroker.h \
-        ibrokermanager.h \
-        iproxy.h \
-        manager_i.h \
+        constants.hpp \
+        ibroker.hpp \
+        ibrokermanager.hpp \
+        iproxy.hpp \
+        manager_i.hpp \
         marshal.hpp \
-        mcast_handler.h \
-        message.h \
-        observer_i.h \
-        oproxy.h \
-        receiver_i.h \
-        session_i.h \
-        signal_handler.h \
-    cache.h
+        mcast_handler.hpp \
+        message.hpp \
+        observer_i.hpp \
+        oproxy.hpp \
+        receiver_i.hpp \
+        session_i.hpp \
+        signal_handler.hpp \
+    cache.hpp

@@ -19,8 +19,8 @@ SOURCES +=  pugiwrapper.cpp \
 
 HEADERS +=  pugiconfig.hpp \
         pugixml.hpp \
-        qtxml.h \
-        pugiwrapper.h
+        qtxml.hpp \
+        pugiwrapper.hpp
 
 OTHER_FILES += \
     xmlparser.pri

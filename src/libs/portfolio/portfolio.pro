@@ -22,8 +22,8 @@ SOURCES += portfolio.cpp \
     node.cpp \
     portfolioimpl.cpp
 
-HEADERS += portfolio.h\
+HEADERS += portfolio.hpp \
     portfolio_global.h \
-    folder.h \
-    folium.h \
-    portfolioimpl.h
+    folder.hpp \
+    folium.hpp \
+    portfolioimpl.hpp

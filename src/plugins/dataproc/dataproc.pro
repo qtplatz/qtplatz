@@ -23,7 +23,7 @@ SOURCES += \
     dataproceditor.cpp \
     dataprocessor.cpp \
     dataprocessorfactory.cpp \
-    dataprochanler.cpp \
+    dataprochandler.cpp \
     dataprocmanager.cpp \
     dataprocmode.cpp \
     dataprocplugin.cpp \
@@ -33,18 +33,17 @@ SOURCES += \
     msprocessingwnd.cpp \
     navigationdelegate.cpp \
     navigationwidget.cpp \
-    navigationwidgtfactory.cpp \
+    navigationwidgetfactory.cpp \
     sessionmanager.cpp
 
 HEADERS += \
     dataproc_global.h \
     actionmanager.hpp \
     chromatogramwnd.hpp \
-    dataproc.hpp \
     dataproceditor.hpp \
     dataprocessor.hpp \
     dataprocessorfactory.hpp \
-    dataprochanler.hpp \
+    dataprochandler.hpp \
     dataprocmanager.hpp \
     dataprocmode.hpp \
     dataprocplugin.hpp \
@@ -54,7 +53,7 @@ HEADERS += \
     msprocessingwnd.hpp \
     navigationdelegate.hpp \
     navigationwidget.hpp \
-    navigationwidgtfactory.hpp \
+    navigationwidgetfactory.hpp \
     sessionmanager.hpp
 
 OTHER_FILES += dataproc.pluginspec \

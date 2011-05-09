@@ -21,16 +21,13 @@ SOURCES += servant.cpp \
     servantmode.cpp \
     mainwindow.cpp
 
-HEADERS += servant.h\
-    servant_global.h \
-    servantplugin.h \
-    servantuimanager.h \
-    servantmode.h \
-    mainwindow.h
+HEADERS += servant_global.h \
+	servant.hpp \
+    servantplugin.hpp \
+    servantuimanager.hpp \
+    servantmode.hpp
 
 OTHER_FILES += \
     servant.pluginspec \
     servant.config.xml
 
-FORMS += \
-    mainwindow.ui

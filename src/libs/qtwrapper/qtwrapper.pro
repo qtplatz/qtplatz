@@ -14,5 +14,5 @@ include(../../qtplatz_library.pri)
 SOURCES += qtwrapper.cpp \
     qstring.cpp
 
-HEADERS += qtwrapper.h \
-    qstring.h
+HEADERS += qtwrapper.hpp \
+    qstring.hpp

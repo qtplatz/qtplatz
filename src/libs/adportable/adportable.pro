@@ -28,7 +28,7 @@ SOURCES += adportable.cpp \
     string.cpp \
     utf.cpp
 
-HEADERS += adportable.h \
+HEADERS += adportable.hpp \
     array_wrapper.hpp \
     binary_search.hpp \
     configloader.hpp \
