@@ -459,18 +459,6 @@
 				SourceControlFiles="false"
 				>
 				<File
-					RelativePath=".\GeneratedFiles\Debug\moc_acquireactions.cpp"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath=".\Debug\moc_acquireactions.cpp"
 					>
 					<FileConfiguration
@@ -483,7 +471,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\GeneratedFiles\Debug\moc_acquiremode.cpp"
+					RelativePath=".\GeneratedFiles\Debug\moc_acquireactions.cpp"
 					>
 					<FileConfiguration
 						Name="Release|Win32"
@@ -496,6 +484,18 @@
 				</File>
 				<File
 					RelativePath=".\Debug\moc_acquiremode.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\GeneratedFiles\Debug\moc_acquiremode.cpp"
 					>
 					<FileConfiguration
 						Name="Release|Win32"
@@ -531,7 +531,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\GeneratedFiles\Debug\moc_acquireuimanager.cpp"
+					RelativePath=".\Debug\moc_acquireuimanager.cpp"
 					>
 					<FileConfiguration
 						Name="Release|Win32"
@@ -543,7 +543,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\Debug\moc_acquireuimanager.cpp"
+					RelativePath=".\GeneratedFiles\Debug\moc_acquireuimanager.cpp"
 					>
 					<FileConfiguration
 						Name="Release|Win32"
@@ -581,18 +581,6 @@
 				SourceControlFiles="false"
 				>
 				<File
-					RelativePath=".\GeneratedFiles\Release\moc_acquireactions.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath=".\Release\moc_acquireactions.cpp"
 					>
 					<FileConfiguration
@@ -605,7 +593,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\GeneratedFiles\Release\moc_acquiremode.cpp"
+					RelativePath=".\GeneratedFiles\Release\moc_acquireactions.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -618,6 +606,18 @@
 				</File>
 				<File
 					RelativePath=".\Release\moc_acquiremode.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\GeneratedFiles\Release\moc_acquiremode.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -653,7 +653,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\GeneratedFiles\Release\moc_acquireuimanager.cpp"
+					RelativePath=".\Release\moc_acquireuimanager.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -665,7 +665,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\Release\moc_acquireuimanager.cpp"
+					RelativePath=".\GeneratedFiles\Release\moc_acquireuimanager.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"

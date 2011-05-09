@@ -4,7 +4,7 @@ CONFIG   += ordered
 SUBDIRS   = \
     aggregation \
     extensionsystem \
-#    utils \
+    utils \
     adinterface \
     adfs \
     xmlparser \

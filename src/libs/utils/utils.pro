@@ -4,9 +4,10 @@ QT += gui \
     network
 DEFINES += QTCREATOR_UTILS_LIB
 include(../../qtplatz_library.pri)
+
 SOURCES += reloadpromptutils.cpp \
     settingsutils.cpp \
-    filesearch.cpp \
+#    filesearch.cpp \
     pathchooser.cpp \
     pathlisteditor.cpp \
     filewizardpage.cpp \
@@ -25,7 +26,7 @@ SOURCES += reloadpromptutils.cpp \
     submiteditorwidget.cpp \
     synchronousprocess.cpp \
     submitfieldwidget.cpp \
-    consoleprocess.cpp \
+#    consoleprocess.cpp \
     uncommentselection.cpp \
     parameteraction.cpp \
     treewidgetcolumnstretcher.cpp \
@@ -39,7 +40,7 @@ SOURCES += reloadpromptutils.cpp \
     detailswidget.cpp
 win32 { 
     SOURCES += abstractprocess_win.cpp \
-        consoleprocess_win.cpp \
+#        consoleprocess_win.cpp \
         winutils.cpp
     HEADERS += winutils.h
 }
@@ -47,7 +48,7 @@ else:SOURCES += consoleprocess_unix.cpp
 HEADERS += utils_global.h \
     reloadpromptutils.h \
     settingsutils.h \
-    filesearch.h \
+#    filesearch.h \
     listutils.h \
     pathchooser.h \
     pathlisteditor.h \
@@ -66,7 +67,7 @@ HEADERS += utils_global.h \
     savedaction.h \
     submiteditorwidget.h \
     abstractprocess.h \
-    consoleprocess.h \
+#    consoleprocess.h \
     synchronousprocess.h \
     submitfieldwidget.h \
     uncommentselection.h \
