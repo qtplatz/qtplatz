@@ -77,7 +77,7 @@
 				AdditionalDependencies="QtTestd4.lib QtGuid4.lib QtCored4.lib"
 				OutputFile="$(OutDir)\$(ProjectName)d.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz,C:\Boost/lib,C:/Users/thondo/src/qtPlatz/lib/qtPlatz/plugins/ScienceLiaison"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;C:/Users/thondo/src/qtPlatz/lib/qtPlatz;C:\Boost/lib;C:\Users\Toshi.Hondo\src\qtPlatz\lib\qtPlatz"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="0"

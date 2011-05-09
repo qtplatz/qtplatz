@@ -1,4 +1,4 @@
-include(../qtPlatz.pri)
+include(../qtplatz.pri)
 
 isEmpty(PROVIDER) {
     PROVIDER = Nokia
@@ -11,7 +11,7 @@ DEPENDPATH += $$IDE_SOURCE_TREE/src/plugins
 
 # copy the plugin spec
 isEmpty(TARGET) {
-    error("adiplugin.pri: You must provide a TARGET")
+    error("qtpluts_plugin.pri: You must provide a TARGET")
 }
 
 PLUGINSPECS = $${_PRO_FILE_PWD_}/$${TARGET}.pluginspec

@@ -1,4 +1,4 @@
-include(../../qtPlatz.pri)
+include(../../qtplatz.pri)
 
 TEMPLATE = app
 TARGET = phony_target

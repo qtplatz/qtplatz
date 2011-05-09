@@ -137,7 +137,7 @@ spectrum_processor::tic( unsigned int nbrSamples, const double * praw, double& d
 }
 
 size_t
-spectrum_processor::findpeaks( size_t nbrSamples, const double * praw, double dbase, std::vector< std::pair<int, int> >& results )
+spectrum_processor::findpeaks( size_t nbrSamples, const double * praw, double /* dbase */, std::vector< std::pair<int, int> >& results )
 {
     using adportable::differential;
 

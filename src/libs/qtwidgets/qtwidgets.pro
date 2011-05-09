@@ -7,12 +7,14 @@
 TARGET = qtwidgets
 TEMPLATE = lib
 # INCLUDEPATH += ../../libs ../../plugins
-include(../../qtplatz_library_rule.pri)
-include(../../boost.pri)
 PROVIDER = ScienceLiaison
-include(../../adplugin.pri)
+include(../../qtplatz_library.pri)
+include(../../boost.pri)
+# pragma comment(lib, "adportabled.lib")
+# pragma comment(lib, "adcontrolsd.lib")
+# pragma comment(lib, "adplugind.lib")
+# pragma comment(lib, "qtwrapperd.lib")
 INCLUDEPATH *= $(ACE_ROOT) $(TAO_ROOT)
-
 
 DEFINES += QTWIDGETS_LIBRARY
 

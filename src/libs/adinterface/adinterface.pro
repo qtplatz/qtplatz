@@ -9,9 +9,10 @@ QT       -= core gui
 TARGET = adinterface
 TEMPLATE = lib
 CONFIG += staticlib
-include(../../qtplatz_library_rule.pri)
+include(../../qtplatz_library.pri)
+include(../../boost.pri)
 
-INCLUDEPATH += $$(ACE_ROOT) $$(TAO_ROOT) ../libs
+INCLUDEPATH += $$(ACE_ROOT) $$(TAO_ROOT)
 LIBS *= -L$$(ACE_ROOT)/lib
 
 IDLFILES += \
@@ -27,9 +28,11 @@ IDLFILES += \
     signalobserver.idl \
     broker.idl
 
-SOURCES += interface.cpp
+SOURCES += interface.cpp \
+        eventlog_helper.cpp
 
-HEADERS += interface.h
+HEADERS += interface.hpp \
+        eventlog_helper.hpp
 
 tao_idlC.name = TAO_IDL_C ${QMAKE_FILE_IN}
 tao_idlC.input = IDLFILES

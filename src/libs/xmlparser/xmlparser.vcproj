@@ -201,7 +201,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\pugiwrapper.h"
+				RelativePath=".\pugiwrapper.hpp"
 				>
 			</File>
 			<File
@@ -209,7 +209,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\qtxml.h"
+				RelativePath=".\qtxml.hpp"
 				>
 			</File>
 		</Filter>

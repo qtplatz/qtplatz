@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = ExtensionSystem
 DEFINES += EXTENSIONSYSTEM_LIBRARY
-include(../../qtplatz_library_rule.pri)
+include(../../qtplatz_library.pri)
 include(extensionsystem_dependencies.pri)
 
 unix:!macx:!freebsd*:LIBS += -ldl

@@ -1,4 +1,4 @@
-include(../qtPlatz.pri)
+include(../qtplatz.pri)
 
 win32 {
     DLLDESTDIR = $$IDE_APP_PATH
@@ -17,7 +17,7 @@ contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
         target.path = /bin
         target.files = $$DESTDIR/$${TARGET}.dll
     } else {
-        target.path = /$$IDE_LIBRARY_BASENAME/qtPlatz
+        target.path = /$$IDE_LIBRARY_BASENAME/qtplatz
     }
     INSTALLS += target
 }

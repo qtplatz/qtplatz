@@ -5,16 +5,18 @@
 #-------------------------------------------------
 
 QT       -= gui
+TARGET = adwplot
+TEMPLATE = lib
+CONFIG += staticlib
 
+include(../../qtplatz_library.pri)
 include(../../boost.pri)
 INCLUDEPATH += $$(QWT)/include $$(QTDIR)/include/Qtcore $$(QTDIR)/include/QtGui $$(QTIR)/include
 INCLUDEPATH += ..
 
-message("INCLUDE=" $$(INCLUDEPATH))
 
-TARGET = adwplot
-TEMPLATE = lib
-CONFIG += staticlib
+# message("INCLUDE=" $$(INCLUDEPATH))
+
 
 SOURCES += adwplot.cpp \
     annotation.cpp \

@@ -1,4 +1,4 @@
-include(../../qtPlatz.pri)
+include(../../qtplatz.pri)
 include(../shared/qtsingleapplication/qtsingleapplication.pri)
 
 TEMPLATE = app
@@ -7,7 +7,7 @@ DESTDIR = $$IDE_APP_PATH
 
 SOURCES += main.cpp
 
-#include(../qtplatz_library_rule.pri)
+#include(../qtplatz_library.pri)
 
 include(../rpath.pri)
 
@@ -17,7 +17,7 @@ win32 {
     CONFIG(debug, debug|release):LIBS *= -lExtensionSystemd -lAggregationd
     else:LIBS *= -lExtensionSystem -lAggregation
 
-    RC_FILE = qtPlatz.rc
+    RC_FILE = qtplatz.rc
     target.path = /bin
     INSTALLS += target
 } else:macx {
@@ -36,5 +36,5 @@ win32 {
     INSTALLS    += target
 }
 
-OTHER_FILES += qtPlatz.rc
+OTHER_FILES += qtplatz.rc
 

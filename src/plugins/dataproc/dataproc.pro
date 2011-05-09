@@ -9,7 +9,7 @@ QT       += xml
 TARGET = dataproc
 TEMPLATE = lib
 PROVIDER = ScienceLiaison
-include(../../qtplatz_library_rule.pri)
+include(../../qtplatz_plugin.pri)
 include(dataproc_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)

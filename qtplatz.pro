@@ -4,7 +4,7 @@ contains(QT_VERSION, ^4\\.[0-5]\\..*) {
     error("Use at least Qt 4.6.")
 }
 
-include(qtPlatz.pri)
+include(qtplatz.pri)
 
 TEMPLATE  = subdirs
 CONFIG   += ordered

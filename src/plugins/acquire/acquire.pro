@@ -10,7 +10,7 @@ TARGET = acquire
 TEMPLATE = lib
 PROVIDER = ScienceLiaison
 
-include(../../qtplatz_library_rule.pri)
+include(../../qtplatz_plugin.pri)
 include(acquire_dependencies.pri)
 include(../../libs/acewrapper/acewrapper_dependencies.pri)
 include(../../boost.pri)

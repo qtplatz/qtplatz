@@ -6,7 +6,7 @@ QT += xml \
     script \
     svg \
     sql
-include(../../qtplatz_library_rule.pri)
+include(../../qtplatz_plugin.pri)
 include(../../libs/utils/utils.pri)
 include(../../shared/scriptwrapper/scriptwrapper.pri)
 include(coreplugin_dependencies.pri)
@@ -14,8 +14,7 @@ INCLUDEPATH += dialogs \
     actionmanager \
     editormanager \
     progressmanager \
-    scriptmanager \
-    ..
+    scriptmanager
 
 DEPENDPATH += dialogs \
     actionmanager \

@@ -65,16 +65,16 @@ macx {
 } else {
     win32 {
         contains(TEMPLATE, vc.*)|contains(TEMPLATE_PREFIX, vc):vcproj = 1
-        IDE_APP_TARGET   = qtPlatz
+        IDE_APP_TARGET   = qtplatz
     } else {
-        IDE_APP_WRAPPER  = qtPlatz
-        IDE_APP_TARGET   = qtPlatz.bin
+        IDE_APP_WRAPPER  = qtplatz
+        IDE_APP_TARGET   = qtplatz.bin
     }
-    IDE_LIBRARY_PATH = $$IDE_BUILD_TREE/$$IDE_LIBRARY_BASENAME/qtPlatz
+    IDE_LIBRARY_PATH = $$IDE_BUILD_TREE/$$IDE_LIBRARY_BASENAME/qtplatz
     IDE_PLUGIN_PATH  = $$IDE_LIBRARY_PATH/plugins
     IDE_LIBEXEC_PATH = $$IDE_APP_PATH # FIXME
-    IDE_DATA_PATH    = $$IDE_BUILD_TREE/share/qtPlatz
-    IDE_DOC_PATH     = $$IDE_BUILD_TREE/share/doc/qtPlatz
+    IDE_DATA_PATH    = $$IDE_BUILD_TREE/share/qtplatz
+    IDE_DOC_PATH     = $$IDE_BUILD_TREE/share/doc/qtplatz
     !isEqual(IDE_SOURCE_TREE, $$IDE_BUILD_TREE):copydata = 1
 }
 

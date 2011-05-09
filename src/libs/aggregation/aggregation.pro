@@ -1,7 +1,7 @@
 TEMPLATE = lib
 TARGET = Aggregation
 
-include(../../qtplatz_library_rule.pri)
+include(../../qtplatz_library.pri)
 
 DEFINES += AGGREGATION_LIBRARY
 

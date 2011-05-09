@@ -9,7 +9,7 @@ QT       -= core gui
 TARGET = adfs
 TEMPLATE = lib
 CONFIG += staticlib
-include(../../qtplatz_library_rule.pri)
+include(../../qtplatz_library.pri)
 include(../../boost.pri)
 
 SOURCES += adfs.cpp \

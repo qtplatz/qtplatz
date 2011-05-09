@@ -10,7 +10,7 @@ TARGET = acewrapper
 TEMPLATE = lib
 CONFIG += staticlib
 
-include(../../qtplatz_library_rule.pri)
+include(../../qtplatz_library.pri)
 include(../../boost.pri)
 include(acewrapper_dependencies.pri)
 

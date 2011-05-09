@@ -12,7 +12,7 @@ TEMPLATE = lib
 DEFINES += ADDATAFILE_LIBRARY
 
 include(../../boost.pri)
-include(../../qtplatz_library_rule.pri)
+include(../../qtplatz_library.pri)
 INCLUDEPATH += ../
 
 SOURCES += addatafile.cpp \

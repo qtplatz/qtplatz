@@ -8,10 +8,10 @@ QT       += gui
 
 TARGET = adplugin
 TEMPLATE = lib
-include(../../qtplatz_library_rule.pri)
+include(../../qtplatz_library.pri)
 include(../../boost.pri)
 INCLUDEPATH += $(ACE_ROOT) $(TAO_ROOT) $(TAO_ROOT)/orbsvcs
-LIBS += -L$(ACE_ROOT)/lib -L../../../lib/qtPlatz
+LIBS += -L$(ACE_ROOT)/lib
 
 DEFINES += ADPLUGIN_LIBRARY
 

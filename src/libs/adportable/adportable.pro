@@ -9,9 +9,9 @@ QT       -= core gui
 TARGET = adportable
 TEMPLATE = lib
 CONFIG += staticlib
-include(../../qtplatz_library_rule.pri)
+include(../../qtplatz_library.pri)
 include(../../boost.pri)
-INCLUDEPATH *= $(ACE_ROOT) ../../libs
+include(../acewrapper/acewrapper_dependencies.pri)
 
 SOURCES += adportable.cpp \
     configloader.cpp \
