@@ -3,7 +3,7 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "servantuimanager.h"
+#include "servantuimanager.hpp"
 
 #include <QDockWidget>
 #include <utils/fancymainwindow.h>
@@ -17,11 +17,11 @@
 #include <QtCore>
 #include <QUrl>
 
-#include <qtwrapper/qstring.h>
-#include <xmlwrapper/xmldom.h>
-#include <adplugin/adplugin.h>
-#include <adplugin/imonitor.h>
-#include <adportable/configuration.h>
+#include <qtwrapper/qstring.hpp>
+// #include <xmlwrapper/xmldom.hpp>
+#include <adplugin/adplugin.hpp>
+#include <adplugin/imonitor.hpp>
+#include <adportable/configuration.hpp>
 
 using namespace servant;
 using namespace servant::internal;
@@ -53,7 +53,7 @@ ServantUIManager::init()
 	const wchar_t * query = L"/ServantConfiguration/Configuration";
 
     adportable::Configuration config;
-	adplugin::manager::instance()->loadConfig( config, configFile, query );
+    adplugin::manager::instance()->loadConfig( config, qtwrapper::wstring( configFile ), query );
 
 	mainWindow_ = new Utils::FancyMainWindow;
 

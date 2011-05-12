@@ -46,7 +46,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories=".\..\libs;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;&quot;$(BOOST_INCLUDE)&quot;"
+				AdditionalIncludeDirectories=".\..\libs;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;&quot;$(BOOST_INCLUDE)&quot;;..\"
 				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -123,7 +123,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories=".\..\libs;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;&quot;$(BOOST_INCLUDE)&quot;"
+				AdditionalIncludeDirectories=".\..\libs;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;&quot;$(BOOST_INCLUDE)&quot;;..\"
 				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,QT_NO_DEBUG,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -763,7 +763,7 @@
 	<Globals>
 		<Global
 			Name="QtVersion Win32"
-			Value="4.7.2"
+			Value="4.7.3"
 		/>
 	</Globals>
 </VisualStudioProject>

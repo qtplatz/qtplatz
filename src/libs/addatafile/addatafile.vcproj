@@ -77,7 +77,7 @@
 				AdditionalDependencies="QtCored4.lib"
 				OutputFile="$(OutDir)\addatafiled.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;C:\Boost/lib;&quot;$(ACE_ROOT)/lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(BOOST_ROOT)/lib&quot;;&quot;$(ACE_ROOT)/lib&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="0"
@@ -167,7 +167,7 @@
 				OutputFile="$(OutDir)\addatafile.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;C:\Boost/lib;&quot;$(ACE_ROOT)/lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(BOOST_ROOT)/lib&quot;;&quot;$(ACE_ROOT)/lib&quot;"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="0"
@@ -251,7 +251,7 @@
 	<Globals>
 		<Global
 			Name="QtVersion Win32"
-			Value="4.7.2"
+			Value="4.7.3"
 		/>
 		<Global
 			Name="RccDir"

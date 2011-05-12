@@ -24,7 +24,7 @@
 **************************************************************************/
 
 
-#include "logger.h"
+#include "logger.hpp"
 #pragma warning(disable:4996)
 #include <adinterface/brokerC.h>
 #pragma warning(default:4996)
@@ -34,7 +34,7 @@
 #include <acewrapper/brokerhelper.hpp>
 #include <adportable/string.hpp>
 ///////-- ServantPlugin dependent -- ////////
-#include "outputwindow.h"
+#include "outputwindow.hpp"
 #include <extensionsystem/pluginmanager.h>
 #include <QMessageBox>
 #include <boost/format.hpp>

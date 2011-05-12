@@ -15,17 +15,26 @@ include(../../plugins/coreplugin/coreplugin.pri)
 
 DEFINES += SERVANT_LIBRARY
 
-SOURCES += servant.cpp \
-    servantplugin.cpp \
-    servantuimanager.cpp \
+SOURCES += logger.cpp \
+        orbservantmanager.cpp \
+        outputwindow.cpp \
+        servant.cpp \
     servantmode.cpp \
+    servantplugin.cpp \
+    servantpluginimpl.cpp \
+    servantuimanager.cpp \
     mainwindow.cpp
 
 HEADERS += servant_global.h \
-	servant.hpp \
+        logger.hpp \
+    orbservantmanager.hpp \
+    outputwindow.hpp \
+    servant.hpp \
+    servantmode.hpp \
     servantplugin.hpp \
+    servantpluginimpl.hpp \
     servantuimanager.hpp \
-    servantmode.hpp
+    mainwindow.hpp
 
 OTHER_FILES += \
     servant.pluginspec \

@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "outputwindow.h"
+#include "outputwindow.hpp"
 #include <QtGui/QStackedWidget>
 #include <QtGui/QPlainTextEdit>
 #include <qtwrapper/qstring.hpp>

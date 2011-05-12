@@ -3,7 +3,7 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "servantmode.h"
+#include "servantmode.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 
 using namespace servant;

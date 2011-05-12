@@ -3,7 +3,7 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "orbservantmanager.h"
+#include "orbservantmanager.hpp"
 #include <acewrapper/mutex.hpp>
 
 # pragma warning (disable: 4996)

@@ -73,7 +73,7 @@
 #include <QMessageBox>
 #include <qdebug.h>
 
-#include <servant/servantplugin.h>
+#include <servant/servantplugin.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <adinterface/eventlog_helper.hpp>
 

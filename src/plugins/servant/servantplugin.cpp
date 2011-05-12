@@ -23,9 +23,9 @@
 **
 **************************************************************************/
 
-#include "servantplugin.h"
-#include "servantmode.h"
-#include "logger.h"
+#include "servantplugin.hpp"
+#include "servantmode.hpp"
+#include "logger.hpp"
 
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
@@ -58,11 +58,11 @@
 #include <acewrapper/constants.hpp>
 #include <acewrapper/brokerhelper.hpp>
 #include <qtwrapper/qstring.hpp>
-#include "outputwindow.h"
-#include "servantpluginimpl.h"
+#include "outputwindow.hpp"
+#include "servantpluginimpl.hpp"
 #include <QMessageBox>
 #include <boost/format.hpp>
-#include "orbservantmanager.h"
+#include "orbservantmanager.hpp"
 
 using namespace servant;
 using namespace servant::internal;

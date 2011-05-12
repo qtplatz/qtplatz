@@ -35,9 +35,9 @@
 #include <adinterface/eventlog_helper.hpp>
 #include <qtwrapper/qstring.hpp>
 
-#include "servantpluginimpl.h"
-#include "servantplugin.h"
-#include "outputwindow.h"
+#include "servantpluginimpl.hpp"
+#include "servantplugin.hpp"
+#include "outputwindow.hpp"
 
 using namespace servant;
 using namespace servant::internal;

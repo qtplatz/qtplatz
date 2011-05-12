@@ -77,7 +77,7 @@
 				AdditionalDependencies="acewrapperd.lib QtTestd4.lib QtCored4.lib"
 				OutputFile="$(SolutionDir)lib\qtPlatz\adcontrolsd.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;C:\Boost/lib;&quot;$(ACE_ROOT)/lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;&quot;$(BOOST_ROOT)\lib&quot;;&quot;$(ACE_ROOT)\lib&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="1"
@@ -170,7 +170,7 @@
 				OutputFile="$(SolutionDir)lib\qtPlatz\adcontrols.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;C:\Boost/lib;&quot;$(ACE_ROOT)/lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;&quot;$(BOOST_ROOT)\lib&quot;;&quot;$(ACE_ROOT)\lib&quot;"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="2"
@@ -648,7 +648,7 @@
 	<Globals>
 		<Global
 			Name="QtVersion Win32"
-			Value="4.7.2"
+			Value="4.7.3"
 		/>
 	</Globals>
 </VisualStudioProject>
