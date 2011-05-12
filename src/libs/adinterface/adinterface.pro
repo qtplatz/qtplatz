@@ -11,9 +11,7 @@ TEMPLATE = lib
 CONFIG += staticlib
 include(../../qtplatz_library.pri)
 include(../../boost.pri)
-
-INCLUDEPATH += $$(ACE_ROOT) $$(TAO_ROOT)
-LIBS *= -L$$(ACE_ROOT)/lib
+include(adinterface_dependencies.pri)
 
 IDLFILES += \
     brokerevent.idl \
@@ -85,4 +83,5 @@ OTHER_FILES += \
     loghandler.idl \
     receiver.idl \
     samplebroker.idl \
-    signalobserver.idl
+    signalobserver.idl \
+    adinterface_dependencies.pri

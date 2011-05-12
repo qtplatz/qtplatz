@@ -11,6 +11,7 @@ TEMPLATE = lib
 
 include(../../qtplatz_library.pri)
 include(../acewrapper/acewrapper_dependencies.pri)
+include(../adinterface/adinterface_dependencies.pri)
 include(../../boost.pri)
 LIBS *= -l$$qtLibraryTarget(adinterface)
 

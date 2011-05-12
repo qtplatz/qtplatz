@@ -10,7 +10,7 @@ TARGET = adplugin
 TEMPLATE = lib
 include(../../qtplatz_library.pri)
 include(../../boost.pri)
-INCLUDEPATH += $(ACE_ROOT) $(TAO_ROOT) $(TAO_ROOT)/orbsvcs
+INCLUDEPATH += $(ACE_ROOT) $(TAO_ROOT) $(TAO_ROOT)/orbsvcs $$OUT_PWD/..
 LIBS += -L$(ACE_ROOT)/lib
 
 DEFINES += ADPLUGIN_LIBRARY

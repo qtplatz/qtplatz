@@ -9,7 +9,7 @@
 #include <string>
 // #include <boost/variant.hpp>
 #include <boost/lexical_cast.hpp>
-#include "eventlogC.h"
+#include <adinterface/eventlogC.h>
 
 namespace adinterface {
 

@@ -37,7 +37,7 @@ using namespace adwplot;
 
 Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
 {
-    setMargin(5);
+    //setMargin(5);
     setCanvasBackground( QColor( Qt::lightGray ) );
     zoomer1_.reset( new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, canvas() ) );
     zoomer2_.reset( new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
@@ -61,10 +61,12 @@ Dataplot::zoom( const QRectF& rect )
 void
 Dataplot::link( Dataplot * p )
 {
-    connect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), p, SLOT( zoom( const QRectF& ) ) );}
+    connect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), p, SLOT( zoom( const QRectF& ) ) );
+}
 
 void
 Dataplot::unlink( Dataplot * p )
 {
-    disconnect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), p, SLOT( zoom( const QRectF& ) ) );}
+    disconnect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), p, SLOT( zoom( const QRectF& ) ) );
+}
 
