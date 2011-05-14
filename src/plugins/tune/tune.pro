@@ -8,9 +8,10 @@ QT       += xml
 
 TARGET = tune
 TEMPLATE = lib
-PROVIDER = ScienceLiaison
 
+PROVIDER = ScienceLiaison
 include(../../qtplatz_plugin.pri)
+
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 

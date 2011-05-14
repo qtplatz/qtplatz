@@ -9,12 +9,14 @@ TEMPLATE = lib
 
 PROVIDER = ScienceLiaison
 include(../../qtplatz_plugin.pri)
+
 include(servant_dependencies.pri)
 include(../../libs/acewrapper/acewrapper_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 
 DEFINES += SERVANT_LIBRARY
+INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants
 
 SOURCES += logger.cpp \
         orbservantmanager.cpp \

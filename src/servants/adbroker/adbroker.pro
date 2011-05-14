@@ -9,13 +9,13 @@ QT       -= gui
 TARGET = adbroker
 TEMPLATE = lib
 
-include(../../qtplatz_library.pri)
+include(../../qtplatz_servant.pri)
 include(../../boost.pri)
-include(../acewrapper/acewrapper_dependencies.pri)
+include(../../libs/acewrapper/acewrapper_dependencies.pri)
 
 CONFIG(debug, debug|release) : LIBS += -ladinterfaced
 CONFIG(release, debug|release) : LIBS += -ladinterface
-INCLUDEPATH *= $$OUT_PWD/..
+INCLUDEPATH *= $$OUT_PWD/../../libs
 
 # message( "LIBS " $$LIBS )
 

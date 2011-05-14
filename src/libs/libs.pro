@@ -15,13 +15,11 @@ SUBDIRS   = \
     adutils \
     acewrapper \
     adplugin \
-    adcontroller \
     adcontrols \
     adwidgets \
     qtwidgets \
     adtxtfactory \
-    addatafile \
-    adbroker
+    addatafile
 
 # adfs : boost
 # xmlparser : none

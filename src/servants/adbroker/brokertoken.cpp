@@ -113,7 +113,7 @@ BrokerToken::Create( const std::wstring& ownerId
   
 //static
 BrokerToken
-BrokerToken::fromXml( const std::wstring& xml )
+BrokerToken::fromXml( const std::wstring& /* xml */ )
 {
   return BrokerToken();
 }

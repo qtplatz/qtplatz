@@ -8,14 +8,14 @@ QT       += xml
 
 TARGET = acquire
 TEMPLATE = lib
-PROVIDER = ScienceLiaison
 
+PROVIDER = ScienceLiaison
 include(../../qtplatz_plugin.pri)
+
 include(acquire_dependencies.pri)
 include(../../libs/acewrapper/acewrapper_dependencies.pri)
 include(../../boost.pri)
-INCLUDEPATH += ../
-INCLUDEPATH += $$(QWT)/include
+INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants ../ $$(QWT)/include
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH -L$$(QWT)/lib
 

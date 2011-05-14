@@ -9,11 +9,13 @@ QT       -= core gui
 TARGET = adcontroller
 TEMPLATE = lib
 
-include(../../qtplatz_library.pri)
-include(../acewrapper/acewrapper_dependencies.pri)
-include(../adinterface/adinterface_dependencies.pri)
+include(../../qtplatz_servant.pri)
+
+include(../../libs/acewrapper/acewrapper_dependencies.pri)
+include(../../libs/adinterface/adinterface_dependencies.pri)
 include(../../boost.pri)
 LIBS *= -l$$qtLibraryTarget(adinterface)
+INCLUDEPATH *= $$OUT_PWD/../../libs
 
 DEFINES += ADCONTROLLER_LIBRARY
 
