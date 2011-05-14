@@ -12,6 +12,10 @@
 #     pragma comment(lib, "qtwrapperd.lib")
 #     pragma comment(lib, "xmlparserd.lib")
 #     pragma comment(lib, "acewrapperd.lib")
+#     pragma comment(lib, "Aggregationd.lib")
+#     pragma comment(lib, "ExtensionSystemd.lib")
+#     pragma comment(lib, "Utilsd.lib")
+#     pragma comment(lib, "Cored.lib")
 #else
 #     pragma comment(lib, "adportable.lib")
 #     pragma comment(lib, "adcontrols.lib")
@@ -19,6 +23,10 @@
 #     pragma comment(lib, "qtwrapper.lib")
 #     pragma comment(lib, "xmlparser.lib")
 #     pragma comment(lib, "acewrapper.lib")
+#     pragma comment(lib, "Aggregation.lib")
+#     pragma comment(lib, "ExtensionSystem.lib")
+#     pragma comment(lib, "Utils.lib")
+#     pragma comment(lib, "Core.lib")
 #endif
 
 #  if defined _DEBUG

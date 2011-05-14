@@ -10,6 +10,7 @@ TEMPLATE = lib
 PROVIDER = ScienceLiaison
 include(../../qtplatz_plugin.pri)
 include(servant_dependencies.pri)
+include(../../libs/acewrapper/acewrapper_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 
@@ -22,8 +23,7 @@ SOURCES += logger.cpp \
     servantmode.cpp \
     servantplugin.cpp \
     servantpluginimpl.cpp \
-    servantuimanager.cpp \
-    mainwindow.cpp
+    servantuimanager.cpp
 
 HEADERS += servant_global.h \
         logger.hpp \
@@ -33,8 +33,7 @@ HEADERS += servant_global.h \
     servantmode.hpp \
     servantplugin.hpp \
     servantpluginimpl.hpp \
-    servantuimanager.hpp \
-    mainwindow.hpp
+    servantuimanager.hpp
 
 OTHER_FILES += \
     servant.pluginspec \

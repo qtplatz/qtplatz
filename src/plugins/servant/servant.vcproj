@@ -73,10 +73,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="C:/Users/Toshi.Hondo/src/qtPlatz/lib/qtplatz\Aggregationd.lib C:/Users/Toshi.Hondo/src/qtPlatz/lib/qtplatz\ExtensionSystemd.lib C:/Users/Toshi.Hondo/src/qtPlatz/lib/qtplatz\Utilsd.lib C:/Users/Toshi.Hondo/src/qtPlatz/lib/qtplatz/plugins/Nokia\Cored.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
+				AdditionalDependencies="QtTestd4.lib QtGuid4.lib QtCored4.lib"
 				OutputFile="..\..\..\lib\qtplatz\plugins\ScienceLiaison\servantd.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;&quot;$(BOOST_ROOT)\lib&quot;;&quot;$(ACE_ROOT)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;&quot;$(BOOST_ROOT)\lib&quot;;&quot;$(ACE_ROOT)\lib&quot;;../../../lib/qtplatz/plugins/Nokia"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="0"
@@ -166,7 +166,7 @@
 				OutputFile="..\..\..\lib\qtplatz\plugins\ScienceLiaison\servant.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;&quot;$(BOOST_ROOT)\lib&quot;;&quot;$(ACE_ROOT)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;&quot;$(BOOST_ROOT)\lib&quot;;&quot;$(ACE_ROOT)\lib&quot;;../../../lib/qtplatz/plugins/Nokia"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="0"
@@ -584,9 +584,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY servant.pluginspec"
-						CommandLine="copy /y servant.pluginspec c:\Users\Toshi.Hondo\src\qtPlatz\lib\qtplatz\plugins\ScienceLiaison\servant.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
 						AdditionalDependencies="copy;servant.pluginspec"
-						Outputs="c:\Users\Toshi.Hondo\src\qtPlatz\lib\qtplatz\plugins\ScienceLiaison\servant.pluginspec"
+						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -595,9 +595,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY servant.pluginspec"
-						CommandLine="copy /y servant.pluginspec c:\Users\Toshi.Hondo\src\qtPlatz\lib\qtplatz\plugins\ScienceLiaison\servant.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
 						AdditionalDependencies="copy;servant.pluginspec"
-						Outputs="c:\Users\Toshi.Hondo\src\qtPlatz\lib\qtplatz\plugins\ScienceLiaison\servant.pluginspec"
+						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
 			</File>

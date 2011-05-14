@@ -14,6 +14,7 @@ include(dataproc_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 
+INCLUDEPATH += $(QWT)/include
 DEFINES += ANALYSIS_LIBRARY
 
 SOURCES += \
@@ -56,8 +57,8 @@ HEADERS += \
     navigationwidgetfactory.hpp \
     sessionmanager.hpp
 
-OTHER_FILES += dataproc.pluginspec \
-    dataproc_dependencies.pri \
+OTHER_FILES += \
+    dataproc.pluginspec \
     application-data-mimetype.xml
 
 RESOURCES += \

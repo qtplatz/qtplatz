@@ -11,7 +11,7 @@ CONFIG += staticlib
 
 include(../../qtplatz_library.pri)
 include(../../boost.pri)
-INCLUDEPATH += $$(QWT)/include $$(QTDIR)/include/Qtcore $$(QTDIR)/include/QtGui $$(QTIR)/include
+INCLUDEPATH += $$(QWT)/include $$(QTDIR)/include/Qtcore $$(QTDIR)/include/QtGui
 INCLUDEPATH += ..
 
 

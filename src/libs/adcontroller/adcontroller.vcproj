@@ -74,7 +74,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
-				OutputFile="..\..\..\lib\qtPlatz\adcontrollerd.dll"
+				OutputFile="..\..\..\lib\qtplatz\adcontrollerd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(ACE_ROOT)/lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;../../../lib/qtplatz/plugins/ScienceLiaison"
 				GenerateDebugInformation="true"
@@ -102,8 +102,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
-				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
+				Description="copy  $(TargetPath)  &quot;..\..\..\lib\qtplatz\plugins\ScienceLiaison&quot;"
+				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\lib\qtplatz\plugins\ScienceLiaison"
 			/>
 		</Configuration>
 		<Configuration
@@ -165,7 +165,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
-				OutputFile="..\..\..\lib\qtPlatz\adcontroller.dll"
+				OutputFile="..\..\..\lib\qtplatz\adcontroller.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(ACE_ROOT)/lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;../../../lib/qtplatz/plugins/ScienceLiaison"
@@ -194,8 +194,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copy  $(TargetPath) &quot;..\..\..\bin&quot;"
-				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\bin\"
+				Description="copy  $(TargetPath)  &quot;..\..\..\lib\qtplatz\plugins\ScienceLiaison&quot;"
+				CommandLine="xcopy  /D /Y /I $(TargetPath) ..\..\..\lib\qtplatz\plugins\ScienceLiaison"
 			/>
 		</Configuration>
 	</Configurations>

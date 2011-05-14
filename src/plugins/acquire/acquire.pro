@@ -17,7 +17,7 @@ include(../../boost.pri)
 INCLUDEPATH += ../
 INCLUDEPATH += $$(QWT)/include
 
-LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH
+LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH -L$$(QWT)/lib
 
 include(../../plugins/coreplugin/coreplugin.pri)
 

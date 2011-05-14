@@ -110,20 +110,35 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adfs", "src\libs\adfs\adfs.vcproj", "{20CFBE29-DED8-3C28-9115-8F4275457008}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adwplot", "src\libs\adwplot\adwplot.vcproj", "{06ED86F3-2B6C-37C7-AB48-161DB36FB68B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D567A66B-E0B9-37FD-AD4D-39F300F26921} = {D567A66B-E0B9-37FD-AD4D-39F300F26921}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xmlparser", "src\libs\xmlparser\xmlparser.vcproj", "{8F43D793-F00D-3AB0-AA1F-12251E0BC1E9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adplugin", "src\libs\adplugin\adplugin.vcproj", "{91F406D4-8137-3B1B-B849-69A9AD360843}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8F43D793-F00D-3AB0-AA1F-12251E0BC1E9} = {8F43D793-F00D-3AB0-AA1F-12251E0BC1E9}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qtwidgets", "src\libs\qtwidgets\qtwidgets.vcproj", "{937F23D8-2A83-331A-A5DB-285C2A8ED6BA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91F406D4-8137-3B1B-B849-69A9AD360843} = {91F406D4-8137-3B1B-B849-69A9AD360843}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adwidgets", "src\libs\adwidgets\adwidgets.vcproj", "{4DCDECBE-6070-3129-AD9D-187EA5B9645B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adportable", "src\libs\adportable\adportable.vcproj", "{DE1947AB-4C0A-39BA-8305-39F925AFE9D4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "acquire", "src\plugins\acquire\acquire.vcproj", "{39B57BCE-56A1-3EC2-A285-7F664D3A1BC6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A4CC3C7D-516B-3704-8CDB-2A3E987231DB} = {A4CC3C7D-516B-3704-8CDB-2A3E987231DB}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "servant", "src\plugins\servant\servant.vcproj", "{2C324AA3-4CF6-39F6-87A4-711E6ABBB356}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A4CC3C7D-516B-3704-8CDB-2A3E987231DB} = {A4CC3C7D-516B-3704-8CDB-2A3E987231DB}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
