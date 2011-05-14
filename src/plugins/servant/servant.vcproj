@@ -577,6 +577,19 @@
 			ParseFiles="false"
 			>
 			<File
+				RelativePath=".\servant.config.xml"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						Outputs="$(TargetDir)$(InputFileName)"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="servant.pluginspec"
 				>
 				<FileConfiguration

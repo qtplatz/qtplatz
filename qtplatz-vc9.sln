@@ -140,6 +140,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adcontroller", "src\servant
 		{DE1947AB-4C0A-39BA-8305-39F925AFE9D4} = {DE1947AB-4C0A-39BA-8305-39F925AFE9D4}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "acquire", "src\plugins\acquire\acquire.vcproj", "{6950E6C1-A069-3DD4-859C-B86C4A89A833}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -262,6 +264,10 @@ Global
 		{28579B28-E02E-39FE-86A6-9A4E8C6A329A}.Debug|Win32.Build.0 = Debug|Win32
 		{28579B28-E02E-39FE-86A6-9A4E8C6A329A}.Release|Win32.ActiveCfg = Release|Win32
 		{28579B28-E02E-39FE-86A6-9A4E8C6A329A}.Release|Win32.Build.0 = Release|Win32
+		{6950E6C1-A069-3DD4-859C-B86C4A89A833}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6950E6C1-A069-3DD4-859C-B86C4A89A833}.Debug|Win32.Build.0 = Debug|Win32
+		{6950E6C1-A069-3DD4-859C-B86C4A89A833}.Release|Win32.ActiveCfg = Release|Win32
+		{6950E6C1-A069-3DD4-859C-B86C4A89A833}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
