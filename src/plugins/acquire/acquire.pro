@@ -40,6 +40,7 @@ HEADERS +=  acquire_global.h \
 	session.hpp
 
 OTHER_FILES += acquire.pluginspec \
+    acquire.config.xml \
     acquire_dependencies.pri
 
 RESOURCES += \

@@ -15,8 +15,6 @@ include(../../libs/acewrapper/acewrapper_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 
-#TODO
-#we should add copy servant.config.xml to plugin/ScienceLiaison directory
 
 DEFINES += SERVANT_LIBRARY
 INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants
