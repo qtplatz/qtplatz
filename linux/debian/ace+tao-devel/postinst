@@ -1,0 +1,10 @@
+#!/bin/sh
+
+TAO_VERSION=2.0.2
+ACE_VERSION=6.0.2
+
+if [ "$1" = "configure" ]; then
+   echo "/usr/local/lib" > /etc/ld.so.conf.d/libace+tao-6.0.2.conf
+   ldconfig
+fi
+   
