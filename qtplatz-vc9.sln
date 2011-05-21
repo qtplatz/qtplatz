@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "phony_target", "share\qtplatz\phony_target.vcproj", "{A8BFFFDD-03FC-3E7E-8BB5-1BA26FCF3D75}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qtPlatz", "src\app\qtPlatz.vcproj", "{EEA26AA0-EA24-38E6-9120-C23F80273210}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qtplatz", "src\app\qtplatz.vcproj", "{EEA26AA0-EA24-38E6-9120-C23F80273210}"
 	ProjectSection(ProjectDependencies) = postProject
 		{49F11901-8119-31DD-B53A-71E68B34B084} = {49F11901-8119-31DD-B53A-71E68B34B084}
 	EndProjectSection
@@ -141,6 +141,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adcontroller", "src\servant
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "acquire", "src\plugins\acquire\acquire.vcproj", "{6950E6C1-A069-3DD4-859C-B86C4A89A833}"
+	ProjectSection(ProjectDependencies) = postProject
+		{28579B28-E02E-39FE-86A6-9A4E8C6A329A} = {28579B28-E02E-39FE-86A6-9A4E8C6A329A}
+		{4DCDECBE-6070-3129-AD9D-187EA5B9645B} = {4DCDECBE-6070-3129-AD9D-187EA5B9645B}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

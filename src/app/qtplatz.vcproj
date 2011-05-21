@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="qtPlatz"
+	Name="qtplatz"
 	ProjectGUID="{EEA26AA0-EA24-38E6-9120-C23F80273210}"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
@@ -74,9 +74,9 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="ExtensionSystemd.lib Aggregationd.lib QtTestd4.lib QtGuid4.lib QtNetworkd4.lib QtCored4.lib"
-				OutputFile="..\..\bin\qtPlatzd.exe"
+				OutputFile="..\..\bin\qtplatzd.exe"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtplatz&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="1"
@@ -164,10 +164,10 @@
 				IgnoreImportLibrary="true"
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot; &quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
 				AdditionalDependencies="qtmain.lib ExtensionSystem.lib Aggregation.lib QtGui4.lib QtNetwork4.lib QtCore4.lib"
-				OutputFile="..\..\bin\qtPlatz.exe"
+				OutputFile="..\..\bin\qtplatz.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtplatz&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="2"
@@ -376,7 +376,7 @@
 			</Filter>
 		</Filter>
 		<File
-			RelativePath="qtPlatz.rc"
+			RelativePath="qtplatz.rc"
 			>
 		</File>
 	</Files>
