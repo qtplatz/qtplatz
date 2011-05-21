@@ -74,7 +74,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\lib\qtPlatz\adinterfaced.lib"
+				OutputFile="..\..\..\lib\qtplatz\adinterfaced.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -151,7 +151,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\lib\qtPlatz\adinterface.lib"
+				OutputFile="..\..\..\lib\qtplatz\adinterface.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool

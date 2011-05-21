@@ -162,7 +162,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="adinterfaced.lib"
+				AdditionalDependencies="adinterface.lib"
 				OutputFile="..\..\..\lib\qtplatz\plugins\ScienceLiaison\adcontroller.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

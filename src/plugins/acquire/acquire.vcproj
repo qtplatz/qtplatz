@@ -163,7 +163,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="adwidgets.lib \$(ACE_ROOT)/lib\ACE.lib Aggregation.lib ExtensionSystem.lib Utils.lib Core.lib QtXml4.lib QtGui4.lib QtCore4.lib"
+				AdditionalDependencies="adwidgets.lib $(ACE_ROOT)/lib\ACE.lib Aggregation.lib ExtensionSystem.lib Utils.lib Core.lib QtXml4.lib QtGui4.lib QtCore4.lib"
 				OutputFile="..\..\..\lib\qtplatz\plugins\ScienceLiaison\acquire.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -1243,7 +1243,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -1252,7 +1252,8 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
 			</File>
