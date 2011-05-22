@@ -48,7 +48,7 @@
 #     pragma comment(lib, "adutils.lib")       // static
 #     pragma comment(lib, "adinterface.lib")   // static
 #     pragma comment(lib, "adportable.lib")    // static
-#     pragma comment(lib, "adwplotd.lib")
+#     pragma comment(lib, "adwplot.lib")
 #     pragma comment(lib, "acewrapper.lib")    // static
 #     pragma comment(lib, "qtwrapper.lib")     // static
 #     pragma comment(lib, "xmlparser.lib")    // static
