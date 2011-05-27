@@ -283,7 +283,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
             pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_snapshot_small.png"), "Elemental Composition" );
             wnd.push_back( new MSCalibrationWnd( config, apppath ) );
             pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_continue_small.png"), "MS Calibration" );
-            wnd.push_back( new ChromatogramWnd );
+            wnd.push_back( new ChromatogramWnd( apppath ) );
             pTab->addTab( wnd.back(),  QIcon(":/acquire/images/watchpoint.png"), "Chromatogram" );
 
             if ( dataprocFactory )

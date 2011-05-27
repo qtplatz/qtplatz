@@ -37,6 +37,9 @@
 #include <qtwrapper/qstring.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
+#include <adportable/configuration.hpp>
+#include <adplugin/adplugin.hpp>
+#include <adplugin/lifecycle.hpp>
 //#include <adwidgets/chromatogramwidget.h>
 //#include <adwidgets/spectrumwidget.h>
 //#include <adwidgets/axis.h>
@@ -61,7 +64,8 @@ namespace dataproc {
             }
             void setData( const adcontrols::Chromatogram&, const QString& );
             adwplot::ChromatogramWidget * chroWidget_;
-            adwidgets::ui::PeakResultWidget * peakWidget_;
+            //adwidgets::ui::PeakResultWidget * peakWidget_;
+            QWidget * peakWidget_;
         };
 
         //----------------------------//
@@ -84,21 +88,40 @@ ChromatogramWnd::~ChromatogramWnd()
 {
 }
 
-ChromatogramWnd::ChromatogramWnd(QWidget *parent) :
-    QWidget(parent)
+ChromatogramWnd::ChromatogramWnd(const std::wstring& apppath, QWidget *parent) :  QWidget(parent)
 {
-    init();
+    init( apppath );
 }
 
 void
-ChromatogramWnd::init()
+ChromatogramWnd::init( const std::wstring& apppath )
 {
     pImpl_.reset( new ChromatogramWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
         if ( pImpl_->chroWidget_ = new adwplot::ChromatogramWidget( this ) ) {
+
+            // peak table
+            adportable::Configuration config;
+            adportable::Module module;
+#if defined _DEBUG
+            module.library_filename( L"/lib/qtPlatz/plugins/ScienceLiaison/qtwidgetsd.dll" );
+#else
+            module.library_filename( L"/lib/qtPlatz/plugins/ScienceLiaison/qtwidgets.dll" );
+#endif
+            config.module( module );
+            config.interface( L"qtwidgets::PeakResultWidget" );
+
+            pImpl_->peakWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
+            if ( pImpl_->peakWidget_ ) {
+                adplugin::LifeCycle * p = dynamic_cast< adplugin::LifeCycle * >(pImpl_->peakWidget_);
+                if ( p )
+                    p->OnInitialUpdate();
+                connect( this, SIGNAL( fireSetData( const adcontrols::Chromatogram& ) ),
+                    pImpl_->peakWidget_, SLOT( setData( const adcontrols::Chromatogram& ) ) );
+            }
+
             splitter->addWidget( pImpl_->chroWidget_ );
-            pImpl_->peakWidget_ = new adwidgets::ui::PeakResultWidget;
             splitter->addWidget( pImpl_->peakWidget_ );
             splitter->setOrientation( Qt::Vertical );
         }
@@ -127,7 +150,8 @@ ChromatogramWnd::draw( adutils::ChromatogramPtr& ptr )
 {
     adcontrols::Chromatogram& c = *ptr;
     pImpl_->chroWidget_->setData( c );
-    pImpl_->peakWidget_->setData( c );
+    emit fireSetData( c );
+    // pImpl_->peakWidget_->setData( c );
 }
 
 void

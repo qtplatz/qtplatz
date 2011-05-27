@@ -39,6 +39,7 @@
 #include "chromatographicpeakform.hpp"
 #include "isotopeform.hpp"
 #include "mscalibsummarywidget.hpp"
+#include "peakresultwidget.hpp"
 #include <adplugin/lifecycle.hpp>
 
 using namespace qtwidgets;
@@ -72,6 +73,8 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
         return new qtwidgets::ReportForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MSCalibSummaryWidget" ) {
         return new qtwidgets::MSCalibSummaryWidget( parent );
+    } else if ( std::wstring( iid ) == L"qtwidgets::PeakResultWidget" ) {
+        return new qtwidgets::PeakResultWidget( parent );
     }
     return 0;
 }

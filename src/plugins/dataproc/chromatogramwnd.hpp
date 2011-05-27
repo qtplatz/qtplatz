@@ -49,15 +49,16 @@ namespace dataproc {
         class ChromatogramWnd : public QWidget {
             Q_OBJECT
         public:
-            explicit ChromatogramWnd(QWidget *parent = 0);
+            explicit ChromatogramWnd( const std::wstring&, QWidget *parent = 0);
             ~ChromatogramWnd();
 
-            void init();
+            void init( const std::wstring& );
             void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
             void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
             void draw( boost::shared_ptr< adcontrols::Chromatogram >& );
 
         signals:
+            void fireSetData( const adcontrols::Chromatogram& );
       
         public slots:
             void handleSessionAdded( Dataprocessor* );
