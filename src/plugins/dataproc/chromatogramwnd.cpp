@@ -40,10 +40,7 @@
 #include <adportable/configuration.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
-//#include <adwidgets/chromatogramwidget.h>
-//#include <adwidgets/spectrumwidget.h>
-//#include <adwidgets/axis.h>
-#include <adwidgets/peakresultwidget.hpp>
+#include <qtwidgets/peakresultwidget.hpp>
 #include <adwplot/chromatogramwidget.hpp>
 #include <adwplot/spectrumwidget.hpp>
 

@@ -24,7 +24,6 @@
 **************************************************************************/
 
 #if defined _DEBUG
-#     pragma comment(lib, "adwidgetsd.lib")   // static
 #     pragma comment(lib, "adwplotd.lib")     // static
 #     pragma comment(lib, "adportabled.lib")  // static
 #     pragma comment(lib, "adplugind.lib")    // dll
@@ -37,7 +36,6 @@
 #     pragma comment(lib, "adutilsd.lib")     // static
 #     pragma comment(lib, "qwtd.lib")
 #else
-#     pragma comment(lib, "adwidgets.lib")
 #     pragma comment(lib, "adwplot.lib")
 #     pragma comment(lib, "adportable.lib")
 #     pragma comment(lib, "adplugin.lib")
