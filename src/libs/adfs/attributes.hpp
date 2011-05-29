@@ -42,7 +42,7 @@ namespace adfs {
         class attributes {
         public:
             attributes();
-            attributes( const attributes& );
+            attributes( const attributes& t );
 
         public:
             operator bool () const;
@@ -69,16 +69,16 @@ namespace adfs {
             vector_type::const_iterator end() const { return attrib_.end(); }
 
         protected:
-            virtual inline sqlite& db() const = 0;
-            virtual inline boost::int64_t rowid() const = 0;
+            virtual sqlite& db() const = 0;
+            virtual boost::int64_t rowid() const = 0;
 
         private:
             bool dirty_;
             vector_type attrib_;
 
             template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
-                if ( version >= 0 )
-                    ar & BOOST_SERIALIZATION_NVP(attrib_) ;
+                (void)version;
+                ar & BOOST_SERIALIZATION_NVP(attrib_) ;
             }
             friend class boost::serialization::access;
         };

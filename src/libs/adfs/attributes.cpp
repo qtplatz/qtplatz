@@ -27,10 +27,15 @@
 #include "cpio.hpp"
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-#pragma warning (disable:4996)
+
+#if defined _MSC_VER
+# pragma warning (disable:4996)
+#endif
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
-#pragma warning (default:4996)
+#if defined _MSC_VER
+# pragma warning (default:4996)
+#endif
 
 #include <boost/smart_ptr.hpp>
 #include "sqlite.hpp"
@@ -42,8 +47,8 @@ attributes::attributes() : dirty_( false )
 {
 }
 
-attributes::attributes( const attributes& t ) : attrib_( t.attrib_ )
-                                              , dirty_( t.dirty_ ) 
+attributes::attributes( const attributes& t ) : dirty_( t.dirty_ ) 
+                                              , attrib_( t.attrib_ )
 {
 }
 

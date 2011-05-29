@@ -36,48 +36,48 @@
 
 #if defined WIN32
 # include "apiwin32.hpp"
-typedef adfs::detail::win32api impl;
+  typedef adfs::detail::win32api impl;
 #else
+# include "apiposix.hpp"
+  typedef adfs::detail::posixapi impl;
 #endif
 
 using namespace adfs;
 
 
-namespace adfs { namespace internal {
+namespace adfs {
+    namespace internal {
 
-    enum dir_type { type_folder = 1, type_folium = 2, type_attachment = 3 };
+        enum dir_type { type_folder = 1, type_folium = 2, type_attachment = 3 };
 
-    struct dml {
-        static bool insert_directory( adfs::sqlite& db, dir_type, boost::int64_t parent_id, const std::wstring& name );
-        static boost::int64_t select_directory( adfs::stmt&, dir_type, boost::int64_t parent_id, const std::wstring& name );
-        static bool update_mtime( adfs::stmt&, boost::int64_t fileid );
-        static adfs::folium insert_folium( adfs::sqlite& db, dir_type, boost::int64_t dirid, const std::wstring& name );
-    };
+        struct dml {
+            static bool insert_directory( adfs::sqlite& db, dir_type, boost::int64_t parent_id, const std::wstring& name );
+            static boost::int64_t select_directory( adfs::stmt&, dir_type, boost::int64_t parent_id, const std::wstring& name );
+            static bool update_mtime( adfs::stmt&, boost::int64_t fileid );
+            static adfs::folium insert_folium( adfs::sqlite& db, dir_type, boost::int64_t dirid, const std::wstring& name );
+        };
+        
+        struct scoped_transaction {
+            adfs::stmt& sql_;
+            bool commit_;
+            scoped_transaction( adfs::stmt& stmt ) : sql_(stmt), commit_(false) { 
+                sql_.begin();
+            }
+            ~scoped_transaction() { 
+                commit_ ? sql_.commit() : sql_.rollback();
+            }
+            bool mtime( boost::int64_t fileid ) { 
+                return commit_ = dml::update_mtime( sql_, fileid );
+            }
+        };
 
-    struct scoped_transaction {
-        adfs::stmt& sql_;
-        bool commit_;
-        scoped_transaction( adfs::stmt& stmt ) : sql_(stmt), commit_(false) { 
-            sql_.begin();
-        }
-        ~scoped_transaction() { 
-            commit_ ? sql_.commit() : sql_.rollback();
-        }
-        bool mtime( boost::int64_t fileid ) { 
-            return commit_ = dml::update_mtime( sql_, fileid );
-        }
-    };
-
-    struct to_posix_time : public boost::static_visitor< boost::posix_time::ptime > {
-        template<typename T> boost::posix_time::ptime operator()( T& ) const { 
-            return boost::posix_time::ptime( boost::posix_time::not_a_date_time ); // error if not a wstring
-        }
-        template<> boost::posix_time::ptime operator()( const std::wstring& str ) const { 
-            return boost::posix_time::time_from_string( adportable::string::convert( str ) );
-        }
-    };
-
-}
+        struct to_posix_time {
+            static boost::posix_time::ptime ptime( const adfs::column_value_type& v ) {
+                return boost::posix_time::time_from_string(
+                    adportable::string::convert( boost::get<std::wstring>(v) ) );
+            }
+        };
+    }
 }
 
 filesystem::filesystem() : db_(0)
@@ -109,7 +109,8 @@ filesystem::create( const wchar_t * filename, size_t alloc, size_t page_size )
         }
     }
 */
-    if ( db_ = new sqlite() ) {
+    db_ = new sqlite();
+    if ( db_ ) {
         if ( db_->open( filepath.c_str() ) ) {
             adfs::stmt sql( *db_ );
             if ( page_size )
@@ -130,14 +131,13 @@ filesystem::mount( const wchar_t * filename )
 {
     if ( db_ )
         delete db_;
+    db_ = new sqlite();
 
     boost::filesystem::path filepath( filename );
 
-    if ( db_ = new sqlite() ) {
-
+    if ( db_ ) {
         if ( db_->open( filepath.c_str() ) )
             return internal::fs::mount( *db_ );
-
         delete db_;
         db_ = 0;
     }
@@ -316,8 +316,8 @@ adfs::folder
 internal::fs::add_folder( adfs::sqlite& db, const std::wstring& name )
 {
     boost::filesystem::path path( name );
-    std::wstring branch = path.branch_path().c_str();
-    std::wstring leaf = path.leaf().c_str();
+    std::wstring branch = path.branch_path().wstring(); //.c_str();
+    std::wstring leaf = path.leaf().wstring(); //c_str();
 
     if ( branch.at(0) == L'/' ) { // has to be fullpath
 
@@ -338,11 +338,12 @@ internal::fs::add_folder( adfs::sqlite& db, const std::wstring& name )
             parent_id = rowid;
         }
 
-        if ( rowid = internal::dml::select_directory( sql, type_folder, parent_id, leaf ) ) // already exist
+        rowid = internal::dml::select_directory( sql, type_folder, parent_id, leaf );
+        if ( rowid ) // already exist
             return adfs::folder( db, rowid, leaf );
 
         if ( internal::dml::insert_directory( db, type_folder, parent_id, leaf ) ) {
-            if ( rowid = internal::dml::select_directory( sql, type_folder, parent_id, leaf ) )
+            if ( ( rowid = internal::dml::select_directory( sql, type_folder, parent_id, leaf ) ) )
                 return adfs::folder( db, rowid, leaf );
         }
     }
@@ -353,8 +354,8 @@ adfs::folder
 internal::fs::find_folder( adfs::sqlite& db, const std::wstring& name )
 {
     boost::filesystem::path path( name );
-    std::wstring branch = path.branch_path().c_str();
-    std::wstring leaf = path.leaf().c_str();
+    std::wstring branch = path.branch_path().wstring(); // .c_str();
+    std::wstring leaf = path.leaf().wstring(); // c_str();
 
     if ( branch.at(0) == L'/' ) { // has to be fullpath
 
@@ -375,7 +376,8 @@ internal::fs::find_folder( adfs::sqlite& db, const std::wstring& name )
             parent_id = rowid;
         }
 
-        if ( rowid = internal::dml::select_directory( sql, type_folder, parent_id, leaf ) ) // find it
+        rowid = internal::dml::select_directory( sql, type_folder, parent_id, leaf );
+        if ( rowid ) // find it
             return adfs::folder( db, rowid, leaf );
 
     }
@@ -493,8 +495,10 @@ internal::fs::select_folders( sqlite& db, boost::int64_t parent_id, std::vector<
         while ( sql.step() == sqlite_row ) {
             boost::int64_t rowid = boost::get<boost::int64_t>( sql.column_value( 0 ) );
             std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) );
-            boost::posix_time::ptime ctime = boost::apply_visitor( to_posix_time(), sql.column_value( 2 ) );
-            boost::posix_time::ptime mtime = boost::apply_visitor( to_posix_time(), sql.column_value( 3 ) );
+            boost::posix_time::ptime ctime = to_posix_time::ptime( sql.column_value( 2 ) );
+            boost::posix_time::ptime mtime = to_posix_time::ptime( sql.column_value( 3 ) );
+            (void)ctime;
+            (void)mtime;
 
             vec.push_back( folder(db, rowid, name) );
         }
@@ -515,9 +519,10 @@ internal::fs::select_folium( sqlite& db, const std::wstring& id, adfs::folium& f
 
             boost::int64_t fileid = boost::get<boost::int64_t>( sql.column_value( 0 ) );
             std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) );
-            boost::posix_time::ptime ctime = boost::apply_visitor( to_posix_time(), sql.column_value( 2 ) );
-            boost::posix_time::ptime mtime = boost::apply_visitor( to_posix_time(), sql.column_value( 3 ) );
-
+            boost::posix_time::ptime ctime = to_posix_time::ptime( sql.column_value( 2 ) );
+            boost::posix_time::ptime mtime = to_posix_time::ptime( sql.column_value( 3 ) );
+            (void)ctime;
+            (void)mtime;
             folium = adfs::folium( db, fileid, name );
             return true;
         }
@@ -538,8 +543,10 @@ internal::fs::select_folio( sqlite& db, boost::int64_t parent_id, folio& folio )
 
             boost::int64_t rowid = boost::get<boost::int64_t>( sql.column_value( 0 ) );
             std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) );
-            boost::posix_time::ptime ctime = boost::apply_visitor( to_posix_time(), sql.column_value( 2 ) );
-            boost::posix_time::ptime mtime = boost::apply_visitor( to_posix_time(), sql.column_value( 3 ) );
+            boost::posix_time::ptime ctime = to_posix_time::ptime( sql.column_value( 2 ) );
+            boost::posix_time::ptime mtime = to_posix_time::ptime( sql.column_value( 3 ) );
+            (void)ctime;
+            (void)mtime;
 
             folio.push_back( folium( db, rowid, name ) );
         }

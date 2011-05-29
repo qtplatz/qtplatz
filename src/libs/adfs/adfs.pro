@@ -13,8 +13,6 @@ include(../../qtplatz_library.pri)
 include(../../boost.pri)
 
 SOURCES += adfs.cpp \
-    apiposix.cpp \
-    apiwin32.cpp \
     attributes.cpp \
     cpio.cpp \
     filesystem.cpp \
@@ -25,8 +23,6 @@ SOURCES += adfs.cpp \
     sqlite3.c
 
 HEADERS += adfs.hpp \
-    apiposix.hpp \
-    apiwin32.hpp \
     attributes.hpp \
     cpio.hpp \
     filesystem.hpp \
@@ -35,6 +31,14 @@ HEADERS += adfs.hpp \
     portfolio.hpp \
     sqlite.hpp \
     sqlite3.h
+
+win32 {
+  SOURCES += apiwin32.cpp
+  HEADERS += apiwin32.hpp
+} else {
+  SOURCES += apiposix.cpp
+  HEADERS += apiposix.hpp
+}
 
 unix:!symbian {
     maemo5 {

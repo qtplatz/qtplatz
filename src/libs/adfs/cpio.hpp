@@ -27,6 +27,7 @@
 
 #include <streambuf>
 #include <boost/smart_ptr.hpp>
+#include <adfs/folium.hpp>
 
 namespace adfs {
 

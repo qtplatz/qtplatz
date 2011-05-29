@@ -32,10 +32,10 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #if defined WIN32
-#include "apiwin32.hpp"
+# include "apiwin32.hpp"
 typedef adfs::detail::win32api impl;
 #else
-#include "apiposix.h"
+# include "apiposix.hpp"
 typedef adfs::detail::posixapi impl;
 #endif
 
