@@ -44,7 +44,8 @@ win32 {
         winutils.cpp
     HEADERS += winutils.h
 }
-else:SOURCES += consoleprocess_unix.cpp
+#else:SOURCES += consoleprocess_unix.cpp
+
 HEADERS += utils_global.h \
     reloadpromptutils.h \
     settingsutils.h \
