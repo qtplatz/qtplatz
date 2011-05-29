@@ -24,34 +24,14 @@
 **************************************************************************/
 
 #include "apiposix.hpp"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/lexical_cast.hpp>
 
-/**
-namespace adfs { namespace detail { 
-
-    bool resize_file( void * , unsigned long long ) {
-        return false;
-    }
-
-}
-} // adfs
-**/
-
-using namespace adfs;
-//using namespace adfs::detail;
-
-/**
-template<> bool
-posixapi::resize_file( const char *, unsigned long long )
-{
-    return false;
-}
-
-template<> bool
-posixapi::resize_file( const wchar_t *, unsigned long long )
-{
-    return false;
-}
-**/
+#include <cstdlib>
+#include <pwd.h>
+#include <adportable/string.hpp>
 
 namespace adfs {
     namespace detail {
@@ -65,13 +45,16 @@ namespace adfs {
         template<> std::wstring
         posixapi::get_login_name()
         {
-            return std::wstring();
+            uid_t uid = geteuid();
+            struct passwd * pw = getpwuid( uid );
+            return adportable::string::convert( pw->pw_name );
         }
         
         std::wstring
         posixapi::create_uuid()
         {
-            return std::wstring();
+            const boost::uuids::uuid id = boost::uuids::random_generator()();
+            return boost::lexical_cast<std::wstring>(id);
         }
 
     };
