@@ -70,7 +70,9 @@ GENERATED_FILES += \
 	samplebrokerC.cpp \
         samplebrokerS.cpp \
     signalobserverC.cpp \
-    signalobserverS.cpp
+    signalobserverS.cpp \
+    eventlogC.h
+
 
 OTHER_FILES += \
     broker.idl \

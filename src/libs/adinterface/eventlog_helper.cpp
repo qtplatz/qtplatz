@@ -25,7 +25,7 @@
 
 #include "eventlog_helper.hpp"
 #include <ace/Time_Value.h>
-#include "EventLogC.h"
+#include "eventlogC.h"
 #include <boost/format.hpp>
 #include <sstream>
 
