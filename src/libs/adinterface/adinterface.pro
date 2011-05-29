@@ -32,6 +32,8 @@ SOURCES += interface.cpp \
 HEADERS += interface.hpp \
         eventlog_helper.hpp
 
+PRE_TARGETDEPS += eventlogC.cpp
+
 tao_idlC.name = TAO_IDL_C ${QMAKE_FILE_IN}
 tao_idlC.input = IDLFILES
 tao_idlC.output = ${QMAKE_FILE_BASE}C.cpp
