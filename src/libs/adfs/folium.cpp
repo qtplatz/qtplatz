@@ -41,21 +41,21 @@ folium::folium() : db_(0)
 }
 
 
-folium::folium( const folium& t ) : db_( t.db_ )
-                                  , rowid_( t.rowid_ )
+folium::folium( const folium& t ) : attributes( t )
+                                  , db_( t.db_ )
                                   , name_( t.name_ )  
+                                  , rowid_( t.rowid_ )
                                   , is_attachment_( t.is_attachment_ )
-                                  , attributes( t )
 {
 }
 
 folium::folium( sqlite& db
                , boost::int64_t rowid
                , const std::wstring& name
-               , bool is_attachment ) : db_( &db )
-                                      , rowid_( rowid ) 
-                                      , name_( name )  
-                                      , is_attachment_( is_attachment ) 
+                , bool is_attachment ) : db_( &db )
+                                       , name_( name )  
+                                       , rowid_( rowid )
+                                       , is_attachment_( is_attachment ) 
 {
     fetch();
 }

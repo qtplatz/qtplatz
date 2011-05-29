@@ -50,8 +50,8 @@ namespace adfs {
         sqlite( const sqlite& );
 
         inline operator sqlite3 * () { return db_; }
-
-        template<typename char_type> bool open( const char_type * path );
+        bool open( const wchar_t * path );
+        bool open( const char * path );
         bool close();
     };
 

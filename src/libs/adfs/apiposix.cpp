@@ -25,6 +25,7 @@
 
 #include "apiposix.hpp"
 
+/**
 namespace adfs { namespace detail { 
 
     bool resize_file( void * , unsigned long long ) {
@@ -33,10 +34,12 @@ namespace adfs { namespace detail {
 
 }
 } // adfs
+**/
 
 using namespace adfs;
-using namespace adfs::detail;
+//using namespace adfs::detail;
 
+/**
 template<> bool
 posixapi::resize_file( const char *, unsigned long long )
 {
@@ -48,21 +51,28 @@ posixapi::resize_file( const wchar_t *, unsigned long long )
 {
     return false;
 }
+**/
 
-template<> std::string
-posixapi::get_login_name()
-{
-    return std::string();
-}
+namespace adfs {
+    namespace detail {
 
-template<> std::wstring
-posixapi::get_login_name()
-{
-    return std::wstring();
-}
+        template<> std::string
+        posixapi::get_login_name()
+        {
+            return std::string();
+        }
+        
+        template<> std::wstring
+        posixapi::get_login_name()
+        {
+            return std::wstring();
+        }
+        
+        std::wstring
+        posixapi::create_uuid()
+        {
+            return std::wstring();
+        }
 
-std::wstring
-posixapi::create_uuid()
-{
-    return std::wstring();
-}
+    };
+};
