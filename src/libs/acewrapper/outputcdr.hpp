@@ -29,11 +29,13 @@
 
 #pragma once
 
-#pragma warning (disable: 4996)
-# include <ace/CDR_Stream.h>
-#pragma warning (default: 4996)
 #include <string>
 #include <boost/noncopyable.hpp>
+
+# if defined _MSC_VER
+#  pragma warning (disable: 4996)
+# endif
+# include <ace/CDR_Stream.h>
 
 namespace acewrapper {
 

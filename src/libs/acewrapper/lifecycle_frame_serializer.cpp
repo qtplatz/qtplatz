@@ -99,74 +99,78 @@ namespace acewrapper {
 
 
 //////////////////////////////////////////////////////////////////////////////////////
-template<> bool
-lifecycle_frame_serializer::pack( ACE_OutputCDR& cdr, const LifeCycleData& v )
-{
-    LifeCycleFrame frame( boost::apply_visitor( internal::lifecycle_command_visitor(), v ) );
+namespace acewrapper {
 
-    internal::lifecycle_serializer::serialize(cdr, frame);
-    unsigned int size = boost::apply_visitor( internal::lifecycle_serializer_visitor(cdr), v );
+    template<> bool
+    lifecycle_frame_serializer::pack( ACE_OutputCDR& cdr, const LifeCycleData& v )
+    {
+	LifeCycleFrame frame( boost::apply_visitor( internal::lifecycle_command_visitor(), v ) );
+	
+	internal::lifecycle_serializer::serialize(cdr, frame);
+	unsigned int size = boost::apply_visitor( internal::lifecycle_serializer_visitor(cdr), v );
 	if ( size )
-		return true;
+	    return true;
 	return false;
-}
+    }
+    
+    template<> ACE_Message_Block *
+    lifecycle_frame_serializer::pack( const LifeCycleData& v )
+    {
+	ACE_OutputCDR ace_cdr;
+	OutputCDR cdr(ace_cdr);
+	
+	LifeCycleFrame frame( boost::apply_visitor( internal::lifecycle_command_visitor(), v ) );
+	
+	internal::lifecycle_serializer::serialize(cdr, frame);
+	unsigned int size = boost::apply_visitor( internal::lifecycle_serializer_visitor(cdr), v );
+	ACE_UNUSED_ARG(size);
+	
+	ACE_Message_Block * mb = cdr.begin()->clone();
+	mb->length( cdr.length() );
+	return mb;
+    }
 
-template<> ACE_Message_Block *
-lifecycle_frame_serializer::pack( const LifeCycleData& v )
-{
-    ACE_OutputCDR ace_cdr;
-    OutputCDR cdr(ace_cdr);
-
-    LifeCycleFrame frame( boost::apply_visitor( internal::lifecycle_command_visitor(), v ) );
-
-    internal::lifecycle_serializer::serialize(cdr, frame);
-    unsigned int size = boost::apply_visitor( internal::lifecycle_serializer_visitor(cdr), v );
-    ACE_UNUSED_ARG(size);
-
-    ACE_Message_Block * mb = cdr.begin()->clone();
-    mb->length( cdr.length() );
-    return mb;
-}
-
-template<> bool
-lifecycle_frame_serializer::unpack( ACE_InputCDR& cdr, LifeCycleFrame& frame, LifeCycleData& v )
-{
+    template<> bool
+    lifecycle_frame_serializer::unpack( ACE_InputCDR& cdr, LifeCycleFrame& frame, LifeCycleData& v )
+    {
 	internal::lifecycle_deserializer_visitor unpacker(cdr);
 	unpacker( frame );
-
+	
 	switch( frame.command_ ) {
-    case HELO:
-		v = LifeCycle_Hello();
-		break;
+	case HELO:
+	    v = LifeCycle_Hello();
+	    break;
 	case CONN_SYN:
-		v = LifeCycle_SYN();
-		break;
+	    v = LifeCycle_SYN();
+	    break;
 	case CONN_SYN_ACK:
-		v = LifeCycle_SYN_Ack();
-		break;
+	    v = LifeCycle_SYN_Ack();
+	    break;
 	case DATA:
-		v = LifeCycle_Data();
-		break;
+	    v = LifeCycle_Data();
+	    break;
 	case DATA_ACK:
-		v = LifeCycle_DataAck();
-		break;
+	    v = LifeCycle_DataAck();
+	    break;
 	case CLOSE:
-		v = LifeCycle_Close();
-		break;
+	    v = LifeCycle_Close();
+	    break;
 	default:
-		return false;
+	    return false;
 	}
 	boost::apply_visitor( unpacker, v );
 	return true;
-}
+    }
 
-template<> bool
-lifecycle_frame_serializer::unpack( ACE_Message_Block * mb, LifeCycleFrame& frame, LifeCycleData& v )
-{
-    ACE_InputCDR input( mb );
-    InputCDR cdr( input );
+    template<> bool
+    lifecycle_frame_serializer::unpack( ACE_Message_Block * mb, LifeCycleFrame& frame, LifeCycleData& v )
+    {
+	ACE_InputCDR input( mb );
+	InputCDR cdr( input );
 	return unpack( cdr, frame, v );
-}
+    }
+
+}; // namespace acewrapper
 
 /////////////////////////////////////////
 namespace acewrapper {

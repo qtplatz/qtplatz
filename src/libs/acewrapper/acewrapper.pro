@@ -12,6 +12,7 @@ CONFIG += staticlib
 
 include(../../qtplatz_library.pri)
 include(../../boost.pri)
+include(../../ace_tao.pri)
 include(acewrapper_dependencies.pri)
 
 INCLUDEPATH *= $$OUT_PWD/..

@@ -56,7 +56,9 @@ namespace adcontrols {
         void calibration( const MSCalibration& );
     private:
 
-#pragma warning( disable:4251 )
+# if defined _MSC_VER
+#  pragma warning( disable:4251 )
+# endif
         boost::scoped_ptr< MSReferences > references_;
         boost::scoped_ptr< MSCalibration > calibration_;
         boost::scoped_ptr< MSAssignedMasses > assignedMasses_;

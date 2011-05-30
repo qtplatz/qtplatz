@@ -49,9 +49,9 @@ MSAssignedMass::MSAssignedMass( unsigned int idReferences
                                , const std::wstring& formula
                                , double exactMass
                                , double time
-                               , double mass ) : idReferences_( idReferences )
+                               , double mass ) : formula_( formula )
+                                               , idReferences_( idReferences )
                                                , idMassSpectrum_( idMassSpectrum )
-                                               , formula_( formula )
                                                , exactMass_( exactMass )
                                                , time_( time )   
                                                , mass_( mass )

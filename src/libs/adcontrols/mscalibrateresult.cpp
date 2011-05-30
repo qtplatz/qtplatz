@@ -35,10 +35,11 @@
 #include <boost/serialization/base_object.hpp>
 //#include <boost/archive/xml_woarchive.hpp>
 //#include <boost/archive/xml_wiarchive.hpp>
-# pragma warning( disable: 4996 )
+# if defined _MSC_VER
+#  pragma warning( disable: 4996 )
+# endif
 # include <boost/archive/binary_oarchive.hpp>
 # include <boost/archive/binary_iarchive.hpp>
-# pragma warning( default: 4996 )
 
 using namespace adcontrols;
 

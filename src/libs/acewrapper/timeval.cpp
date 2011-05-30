@@ -22,21 +22,21 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #include "timeval.hpp"
-# pragma warning (disable: 4996)
-#  include <ACE/Time_Value.h>
-#  include <ACE/High_Res_Timer.h>
-#  include <ACE/OS_NS_sys_time.h>
-# pragma warning (default: 4996)
 #include <sstream>
 #include <string>
 #include <time.h>
 #include <iomanip>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
+# if defined _MSC_VER
+#  pragma warning (disable: 4996)
+# endif
+#  include <ace/Time_Value.h>
+#  include <ace/High_Res_Timer.h>
+#  include <ace/OS_NS_sys_time.h>
+
 
 namespace acewrapper {
 
@@ -59,10 +59,8 @@ namespace acewrapper {
   
     std::string to_string( time_t tm ) 
     {
-        char tbuf[64];
-        ctime_s(tbuf, sizeof(tbuf), &tm);
-        *::strrchr( tbuf, '\n' ) = '\0';
-        return std::string( tbuf );
+	boost::posix_time::ptime pt = boost::posix_time::from_time_t( tm );
+	return boost::posix_time::to_simple_string( pt );
     }
 
     std::string to_string( unsigned long long sec, unsigned long usec )

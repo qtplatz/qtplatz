@@ -112,16 +112,33 @@ TableOfElements::findElement( const std::wstring& symbol ) const
     return pImpl_->findElement( symbol );
 }
 
+namespace adcontrols {
+    namespace table_of_elements {
+
+	struct abundance_compare {
+	    bool operator()( const Element::Isotope& a, const Element::Isotope& b ) {
+		return a.abundance_ < b.abundance_;
+	    }
+	};
+
+	struct element_finder {
+	    const std::wstring& symbol_;
+	    element_finder( const std::wstring& symbol ) : symbol_(symbol) {}
+	    bool operator()( const adcontrols::Element& e ) {
+		return e.symbol() == symbol_;
+	    }
+	};
+
+
+    };
+};
+
 //static
 double
 TableOfElements::getMonoIsotopicMass( const Element& e )
 {
-    struct abundance_compare {
-        bool operator()( const Element::Isotope& a, const Element::Isotope& b ) {
-            return a.abundance_ < b.abundance_;
-        }
-    };
-    
+    using adcontrols::table_of_elements::abundance_compare;
+
     adcontrols::Element::vector_type::const_iterator it;
     it = std::max_element( e.begin(), e.end(), abundance_compare() );
     if ( it != e.end() )
@@ -603,13 +620,7 @@ TableOfElementsImpl::internalCreate()
 const adcontrols::Element&
 TableOfElementsImpl::findElement( const std::wstring& symbol ) const
 {
-    struct element_finder {
-        const std::wstring& symbol_;
-        element_finder( const std::wstring& symbol ) : symbol_(symbol) {}
-        bool operator()( const adcontrols::Element& e ) {
-            return e.symbol() == symbol_;
-        }
-    };
+    using adcontrols::table_of_elements::element_finder;
 
     std::vector< Element >::const_iterator it = std::find_if( elements_.begin(), elements_.end(), element_finder(symbol) );
     if ( it != elements_.end() )

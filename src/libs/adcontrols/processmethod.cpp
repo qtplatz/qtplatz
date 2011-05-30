@@ -60,31 +60,31 @@ ProcessMethod::ProcessMethod( const ProcessMethod& t ) : vec_( t.vec_ )
 
 namespace adcontrols {
 
-    template<> void // __declspec(dllexport)
+    template<> void Q_DECL_EXPORT
     ProcessMethod::appendMethod( const ProcessMethod::value_type& v )
     {
 	vec_.push_back( v );
     }
 
-    template<> void // __declspec(dllexport)
+    template<> void Q_DECL_EXPORT // __declspec(dllexport)
     ProcessMethod::appendMethod( const adcontrols::CentroidMethod& v )
     {
 	vec_.push_back( v );
     }
     
-    template<> void // __declspec(dllexport)
+    template<> void Q_DECL_EXPORT // __declspec(dllexport)
     ProcessMethod::appendMethod( const IsotopeMethod& v )
     {
 	vec_.push_back( v );
     }
     
-    template<> void // __declspec(dllexport)
+    template<> void Q_DECL_EXPORT // __declspec(dllexport)
     ProcessMethod::appendMethod( const ElementalCompositionMethod& v )
     {
 	vec_.push_back( v );
     }
     
-    template<> void // __declspec(dllexport)
+    template<> void Q_DECL_EXPORT // __declspec(dllexport)
     ProcessMethod::appendMethod( const MSCalibrateMethod& v )
     {
 	vec_.push_back( v );
@@ -110,31 +110,31 @@ template<class T> struct method_finder {
 
 namespace adcontrols {
 
-    template<> /* __declspec(dllexport) */ const adcontrols::CentroidMethod*
+    template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::CentroidMethod*
     ProcessMethod::find() const
     {
 	return method_finder< CentroidMethod >::find( vec_ );
     }
     
-    template<> /* __declspec(dllexport) */ const adcontrols::IsotopeMethod*
+    template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::IsotopeMethod*
     ProcessMethod::find() const
     {
 	return method_finder< IsotopeMethod >::find( vec_ );
     }
     
-    template<> /* __declspec(dllexport) */ const adcontrols::ElementalCompositionMethod*
+    template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::ElementalCompositionMethod*
     ProcessMethod::find() const
     {
 	return method_finder< ElementalCompositionMethod >::find( vec_ );
     }
 
-    template<> /* __declspec(dllexport) */ const adcontrols::MSCalibrateMethod*
+    template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::MSCalibrateMethod*
     ProcessMethod::find() const
     {
 	return method_finder< MSCalibrateMethod >::find( vec_ );
     }
     
-    template<> /* __declspec(dllexport) */ const adcontrols::TargetingMethod*
+    template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::TargetingMethod*
     ProcessMethod::find() const
     {
 	return method_finder< TargetingMethod >::find( vec_ );

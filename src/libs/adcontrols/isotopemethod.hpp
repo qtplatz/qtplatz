@@ -58,12 +58,11 @@ namespace adcontrols {
             template<class Archive>
             void serialize(Archive& ar, const unsigned int version) {
                 using namespace boost::serialization;
-                if ( version >= 0 ) {
-                    ar & BOOST_SERIALIZATION_NVP(formula);
-                    ar & BOOST_SERIALIZATION_NVP(adduct);
-                    ar & BOOST_SERIALIZATION_NVP(chargeState);
-                    ar & BOOST_SERIALIZATION_NVP(relativeAmounts);
-                }
+		(void)version;
+		ar & BOOST_SERIALIZATION_NVP(formula);
+		ar & BOOST_SERIALIZATION_NVP(adduct);
+		ar & BOOST_SERIALIZATION_NVP(chargeState);
+		ar & BOOST_SERIALIZATION_NVP(relativeAmounts);
             }
         };
 

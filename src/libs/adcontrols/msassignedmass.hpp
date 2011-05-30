@@ -92,7 +92,9 @@ namespace adcontrols {
         MSAssignedMasses& operator << ( const MSAssignedMass& );
 
     private:
-# pragma warning( disable: 4251 )
+# if defined _MSC_VER
+#  pragma warning( disable: 4251 )
+# endif
         std::vector< MSAssignedMass > vec_;
 
         friend class boost::serialization::access;
