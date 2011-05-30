@@ -37,16 +37,18 @@ folder::folder() : db_( 0 ), rowid_( 0 )
 {
 }
 
-folder::folder( const folder& t ) : db_( t.db_ )
-                                  , rowid_( t.rowid_ )
+folder::folder( const folder& t ) : attributes( t ) 
+				  , db_( t.db_ )
                                   , name_( t.name_ )
-                                  , attributes( t ) 
+                                  , rowid_( t.rowid_ )
 {
 }
 
-folder::folder( adfs::sqlite& db, boost::int64_t rowid, const std::wstring& name ) : db_( &db )
-                                                                                   , rowid_( rowid )
-                                                                                   , name_( name )
+folder::folder( adfs::sqlite& db
+		, boost::int64_t rowid
+		, const std::wstring& name ) : db_( &db )
+					     , name_( name )
+					     , rowid_( rowid )
 {
 }
 
