@@ -36,7 +36,7 @@ namespace portfolio {
     class Folium;
 
     namespace internal {
-        PortfolioImpl;
+        class PortfolioImpl;
     }
 
     // folder can be directory, or data (folio)

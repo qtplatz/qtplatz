@@ -27,10 +27,7 @@
 
 #include "portfolio_global.h"
 #include "node.hpp"
-
-namespace boost {
-    class any;
-}
+#include <boost/any.hpp>
 
 namespace portfolio {
 
@@ -45,8 +42,8 @@ namespace portfolio {
         ~Folium();
         Folium();
         Folium( const Folium& );
-        // Folium( xmlNode&, internal::PortfolioImpl * impl );
         Folium( pugi::xml_node&, internal::PortfolioImpl * impl );
+        Folium( pugi::xml_node, internal::PortfolioImpl * impl );
     public:
 
         std::wstring path() const;

@@ -51,7 +51,7 @@ wstring::copy( const QString& t )
 #if defined WIN32
     return std::wstring( reinterpret_cast<const wchar_t *>( t.utf16() ) );
 #else
-    return t.toWStdString();
+    return t.toStdWString();
 #endif
 }
 

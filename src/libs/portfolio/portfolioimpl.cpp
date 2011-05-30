@@ -51,8 +51,8 @@ PortfolioImpl::PortfolioImpl( const std::wstring& xml ) : isXMLLoaded_(false)
     }
 }
 
-PortfolioImpl::PortfolioImpl( const PortfolioImpl& t ) : isXMLLoaded_( t.isXMLLoaded_ )
-                                                       , Node( t ) 
+PortfolioImpl::PortfolioImpl( const PortfolioImpl& t ) : Node( t ) 
+                                                       , isXMLLoaded_( t.isXMLLoaded_ )
                                                        , db_( t.db_ ) 
 {
 }
@@ -82,10 +82,6 @@ PortfolioImpl::selectFolders( const std::wstring& query )
 Folium
 PortfolioImpl::selectFolium( const std::wstring& query )
 {
-//    xmlNodeList list = Node::selectNodes( query );
-//    if ( list.size() )
-//        return Folium( list[0], this );
-
     pugi::xpath_node_set list = Node::selectNodes( query );
     if ( list.size() )
         return Folium( list[0].node(), this );
@@ -161,13 +157,11 @@ PortfolioImpl::addFolder( const std::wstring& name, bool uniq )
     return Folder( Node::addFolder( name, this ), this );
 }
 
-
-
+#if defined WIN32
 #include <windows.h>
 std::wstring
 PortfolioImpl::newGuid()
 {
-#if defined WIN32
     std::wstring guidString;
     GUID guid;
     if ( CoCreateGuid( &guid ) == S_OK ) {
@@ -178,5 +172,5 @@ PortfolioImpl::newGuid()
         }
     }
     return guidString;
-#endif
 }
+#endif

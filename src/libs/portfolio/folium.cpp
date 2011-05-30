@@ -44,6 +44,10 @@ Folium::Folium( pugi::xml_node& n, internal::PortfolioImpl * impl ) : Node( n, i
 {
 }
 
+Folium::Folium( pugi::xml_node n, internal::PortfolioImpl * impl ) : Node( n, impl )
+{
+}
+
 std::wstring
 Folium::path() const
 {
