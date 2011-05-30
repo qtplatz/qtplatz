@@ -26,13 +26,18 @@
 #include "polfit.hpp"
 #include <cmath>
 #include <limits>
+#include <cstring>
 #include "float.hpp"
+# if defined _MSC_VER
 # pragma warning(disable: 4100)
 # pragma warning(disable: 4996)
+# endif
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
+# if defined _MSC_VER
 # pragma warning(default: 4100)
 # pragma warning(default: 4996)
+# endif
 
 namespace adportable {
 

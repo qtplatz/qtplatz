@@ -4,8 +4,19 @@
 //////////////////////////////////////////
 
 #include "utf.hpp"
+#include <exception>
 
 using namespace adportable;
+
+namespace adportable {
+    class exception : public std::exception {
+    public:
+	std::string text_;
+	exception( const char * text ) : text_( text ) {}
+	virtual ~exception() throw() {}
+	const char * what() const throw() { return text_.c_str(); }
+    };
+};
 
 // 16bit --> 8bit
 std::basic_string<UTF8>
@@ -21,7 +32,7 @@ utf::to_utf8( const UTF16 * sourceStart )
    UTF8 * targetStart = &res[0];
    UTF8 * targetEnd = targetStart + utf16size * 3;
    if ( ConvertUTF16toUTF8( &sourceStart, sourceEnd, &targetStart, targetEnd, strictConversion ) != conversionOK )
-       throw std::exception("ConvertUTF16toUTF8 failed");
+       throw exception( "ConvertUTF16toUTF8 failed" );
    *targetStart = '\0';
    return res;
 }
@@ -40,7 +51,7 @@ utf::to_utf8( const UTF32 * sourceStart )
    UTF8 * targetStart = &res[0];
    UTF8 * targetEnd = targetStart + utf32size * 4;
    if ( ConvertUTF32toUTF8( &sourceStart, sourceEnd, &targetStart, targetEnd, strictConversion ) != conversionOK )
-       throw std::exception("ConvertUTF32toUTF8 failed");
+       throw exception("ConvertUTF32toUTF8 failed");
    *targetStart = '\0';
    return res;
 }
@@ -59,7 +70,7 @@ utf::to_utf32( const UTF16 * sourceStart )
    UTF32 * targetStart = &res[0];
    UTF32 * targetEnd = targetStart + utf16size;
    if ( ConvertUTF16toUTF32( &sourceStart, sourceEnd, &targetStart, targetEnd, strictConversion ) != conversionOK )
-       throw std::exception("ConvertUTF16toUTF32 failed");
+       throw exception("ConvertUTF16toUTF32 failed");
    *targetStart = 0;
    return res;
 }
@@ -79,7 +90,7 @@ utf::to_utf32( const UTF8 * sourceStart )
    UTF32 * targetStart = &res[0];
    UTF32 * targetEnd = targetStart + utf8size;
    if ( ConvertUTF8toUTF32( &sourceStart, sourceEnd, &targetStart, targetEnd, strictConversion ) != conversionOK )
-       throw std::exception("ConvertUTF8toUTF32 failed");
+       throw exception("ConvertUTF8toUTF32 failed");
    *targetStart = 0;
    return res;
 }
@@ -99,7 +110,7 @@ utf::to_utf16( const UTF8 * sourceStart )
    UTF16 * targetStart = &res[0];
    UTF16 * targetEnd = targetStart + utf8size;
    if ( ConvertUTF8toUTF16( &sourceStart, sourceEnd, &targetStart, targetEnd, strictConversion ) != conversionOK )
-       throw std::exception("ConvertUTF8toUTF16 failed");
+       throw exception("ConvertUTF8toUTF16 failed");
    *targetStart = 0;
    return res;
 }
@@ -119,7 +130,7 @@ utf::to_utf16( const UTF32 * sourceStart )
    UTF16 * targetStart = &res[0];
    UTF16 * targetEnd = targetStart + utf32size;
    if ( ConvertUTF32toUTF16( &sourceStart, sourceEnd, &targetStart, targetEnd, strictConversion ) != conversionOK )
-       throw std::exception("ConvertUTF32toUTF16 failed");
+       throw exception("ConvertUTF32toUTF16 failed");
    *targetStart = 0;
    return res;
 }

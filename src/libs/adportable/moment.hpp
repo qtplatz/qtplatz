@@ -32,7 +32,7 @@
 namespace adportable {
 
     struct timeFunctor {
-        timeFunctor( size_t startDelay, double sampInterval ) : delay(startDelay), interval(sampInterval) {}
+        timeFunctor( size_t startDelay, double sampInterval ) : interval(sampInterval), delay(startDelay) {}
         double operator ()( int pos ) {
             return ( delay + pos ) * interval;
         }

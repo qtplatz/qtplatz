@@ -40,11 +40,11 @@ namespace adportable {
         }
 
         static bool essentiallyEqual( T a, T b, T epsilon = std::numeric_limits<T>::epsilon() ) {
-            return std:abs(a - b) <= ( (std::abs(a) > std::abs(b) ? std::abs(b) : std::abs(a)) * epsilon);
+            return std::abs(a - b) <= ( (std::abs(a) > std::abs(b) ? std::abs(b) : std::abs(a)) * epsilon);
         }
 
         static bool definitelyGreaterThan( T a, T b, T epsilon = std::numeric_limits<T>::epsilon() ) {
-            return ( a - b ) > ( (std:abs(a) < std:abs(b) ? std:abs(b) : std:abs(a)) * epsilon);
+            return ( a - b ) > ( (std::abs(a) < std::abs(b) ? std::abs(b) : std::abs(a)) * epsilon);
         }
 
         static bool definitelyLessThan( T a, T b, T epsilon = std::numeric_limits<T>::epsilon() ) {

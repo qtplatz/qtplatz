@@ -75,7 +75,7 @@ namespace adportable {
      // MCAST data
      struct LifeCycle_Hello {
 	   static LifeCycleCommand command() { return HELO; }
-	   static char * command_name() { return "HELO"; }
+	   static const char * command_name() { return "HELO"; }
 	   unsigned short portnumber_;
 	   std::string proto_;           // "udp"
 	   std::string ipaddr_;          // "0.0.0.0"
@@ -89,39 +89,39 @@ namespace adportable {
      
      // DGRAM data
      struct LifeCycle_SYN {
-	   static LifeCycleCommand command() { return CONN_SYN; }
-	   static char * command_name() { return "CONN_SYN"; }
-	   unsigned short sequence_;
-	   unsigned short remote_sequence_;
+	 static LifeCycleCommand command() { return CONN_SYN; }
+	 static const char * command_name() { return "CONN_SYN"; }
+	 unsigned short sequence_;
+	 unsigned short remote_sequence_;
      };
      
      struct LifeCycle_Close {
-	   static LifeCycleCommand command() { return CLOSE; }
-	   static char * command_name() { return "CLOSE"; }
-	   unsigned short sequence_;
-	   unsigned short remote_sequence_;
+	 static LifeCycleCommand command() { return CLOSE; }
+	 static const char * command_name() { return "CLOSE"; }
+	 unsigned short sequence_;
+	 unsigned short remote_sequence_;
      };
 
      struct LifeCycle_SYN_Ack {
-	   static LifeCycleCommand command() { return CONN_SYN_ACK; }
-	   static char * command_name() { return "CONN_SYN_ACK"; }
-	   unsigned short sequence_;
-	   unsigned short remote_sequence_;
+	 static LifeCycleCommand command() { return CONN_SYN_ACK; }
+	 static const char * command_name() { return "CONN_SYN_ACK"; }
+	 unsigned short sequence_;
+	 unsigned short remote_sequence_;
      };
 
      struct LifeCycle_Data {
-	   static LifeCycleCommand command() { return DATA; }
-	   static char * command_name() { return "DATA"; }
-	   unsigned short sequence_;
-       unsigned short flags_;  // bit 0 := not in use, bit 1 := fragmented data, bit 2 := last data of fragmented data
-	   unsigned long offset_;
+	 static LifeCycleCommand command() { return DATA; }
+	 static const char * command_name() { return "DATA"; }
+	 unsigned short sequence_;
+	 unsigned short flags_;  // bit 0 := not in use, bit 1 := fragmented data, bit 2 := last data of fragmented data
+	 unsigned long offset_;
      };
 
      struct LifeCycle_DataAck {
-       static LifeCycleCommand command() { return DATA_ACK; }
-	   static char * command_name() { return "DATA_ACK"; }
-	   unsigned short sequence_;
-	   unsigned short remote_sequence_;
+	 static LifeCycleCommand command() { return DATA_ACK; }
+	 static const char * command_name() { return "DATA_ACK"; }
+	 unsigned short sequence_;
+	 unsigned short remote_sequence_;
      };
 
      typedef boost::variant< LifeCycle_Hello

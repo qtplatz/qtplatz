@@ -23,10 +23,13 @@ SOURCES += adportable.cpp \
     lifecycle_frame.cpp \
     polfit.cpp \
     posix_path.cpp \
-    protocollifecycle.cpp \
     spectrum_processor.cpp \
     string.cpp \
     utf.cpp
+
+win32 {
+   SOURCES += protocollifecycle.cpp
+}
 
 HEADERS += adportable.hpp \
     array_wrapper.hpp \

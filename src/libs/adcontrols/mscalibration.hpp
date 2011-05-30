@@ -56,9 +56,7 @@ namespace adcontrols {
     private:
         std::string calibDate_;
         std::wstring calibId_;
-#pragma warning (disable:4251)
         std::vector< double > coeffs_;
-//#pragma warning (default:4251)
 
         friend class boost::serialization::access;
         template<class Archive>

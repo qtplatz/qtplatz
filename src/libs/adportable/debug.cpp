@@ -6,6 +6,7 @@
 #include "debug.hpp"
 #include <fstream>
 #include <iomanip>
+#include <cstdlib>
 #include "string.hpp"
 
 using namespace adportable;

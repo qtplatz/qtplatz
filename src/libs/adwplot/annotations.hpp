@@ -26,6 +26,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 namespace adwplot {
 
@@ -38,8 +39,6 @@ namespace adwplot {
 
         Annotations( Dataplot&, vector_type& );
         Annotations( const Annotations& );
-
-        typedef std::vector< Annotation > vector_type;
 
         Annotation add( double x = 0.0, double y = 0.0, const std::wstring& title = L"" );
         void clear();

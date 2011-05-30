@@ -101,8 +101,6 @@ namespace adcontrols {
         unsigned long instSamplingInterval_; // ps
 
         std::vector< SamplingInfo > samplingData_;
-
-# pragma warning(disable:4251)
         std::pair< double, double > instMassRange_;
 
         friend class boost::serialization::access;

@@ -61,18 +61,15 @@ namespace adcontrols {
 
     private:
         int nextId_;
-# pragma warning( disable: 4251 )
+	int baseId_;
         vector_type baselines_;
-//# pragma warning( default: 4251 )
-
 
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP( baseId_ );
-                ar & BOOST_SERIALIZATION_NVP( baselines_ );
-            }
+        void serialize(Archive& ar, const unsigned int version ) {
+	    (void)version;
+	    ar & BOOST_SERIALIZATION_NVP( baseId_ );
+	    ar & BOOST_SERIALIZATION_NVP( baselines_ );
         }
     };
 

@@ -29,11 +29,11 @@
 
 using namespace adwplot;
 
-Annotations::Annotations( Dataplot& plot, vector_type& vec ) : plot_(plot), vec_(vec)
+Annotations::Annotations( Dataplot& plot, vector_type& vec ) : vec_(vec), plot_(plot)
 {
 }
 
-Annotations::Annotations( const Annotations& t ) : plot_( t.plot_ ), vec_(t.vec_)
+Annotations::Annotations( const Annotations& t ) : vec_(t.vec_), plot_( t.plot_ )
 {
 }
 

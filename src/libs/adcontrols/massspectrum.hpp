@@ -57,13 +57,13 @@ namespace adcontrols {
       class MassSpectrumImpl;
    }
    
-   class Description;
-   class Descriptions;
-   class MSCalibration;
-   class MSProperty;
-
-   class ADCONTROLSSHARED_EXPORT MassSpectrum {
-   public:
+    class Description;
+    class Descriptions;
+    class MSCalibration;
+    class MSProperty;
+    
+    class ADCONTROLSSHARED_EXPORT MassSpectrum {
+    public:
        ~MassSpectrum();
        MassSpectrum();
        MassSpectrum( const MassSpectrum& );
@@ -112,16 +112,17 @@ namespace adcontrols {
        static bool archive( std::ostream&, const MassSpectrum& );
        static bool restore( std::istream&, MassSpectrum& );
 	 
-   private:
+    private:
        friend class boost::serialization::access;
        template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
-       template<> void serialize( boost::archive::binary_oarchive&, const unsigned int );
-       template<> void serialize( boost::archive::binary_iarchive&, const unsigned int );
 
        internal::MassSpectrumImpl * pImpl_;
-   };
+    };
 
-   typedef boost::shared_ptr<MassSpectrum> MassSpectrumPtr;   
+    template<> void MassSpectrum::serialize( boost::archive::binary_oarchive&, const unsigned int );
+    template<> void MassSpectrum::serialize( boost::archive::binary_iarchive&, const unsigned int );
+    
+    typedef boost::shared_ptr<MassSpectrum> MassSpectrumPtr;   
    
 }
 
