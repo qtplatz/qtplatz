@@ -66,7 +66,9 @@ namespace adcontrols {
         double minimumRAPercent_;
         double lowMass_;
         double highMass_;
+# if defined _MSC_VER
 # pragma warning(disable:4251)
+# endif
         boost::scoped_ptr<MSReferenceDefns> refDefns_;
         boost::scoped_ptr<MSReferences> references_;
 
@@ -74,15 +76,15 @@ namespace adcontrols {
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
             using namespace boost::serialization;
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP(polynomialDegree_);
-                ar & BOOST_SERIALIZATION_NVP(massToleranceDa_);
-                ar & BOOST_SERIALIZATION_NVP(minimumRAPercent_);
-                ar & BOOST_SERIALIZATION_NVP(lowMass_);
-                ar & BOOST_SERIALIZATION_NVP(highMass_);
-                // ar & BOOST_SERIALIZATION_NVP(refDefns_);
-                ar & BOOST_SERIALIZATION_NVP(references_);
-            }
+	    (void)version;
+	    ar & BOOST_SERIALIZATION_NVP(polynomialDegree_);
+	    ar & BOOST_SERIALIZATION_NVP(massToleranceDa_);
+	    ar & BOOST_SERIALIZATION_NVP(minimumRAPercent_);
+	    ar & BOOST_SERIALIZATION_NVP(lowMass_);
+	    ar & BOOST_SERIALIZATION_NVP(highMass_);
+	    // ar & BOOST_SERIALIZATION_NVP(refDefns_);
+	    ar & BOOST_SERIALIZATION_NVP(references_);
+
        }
 
     };

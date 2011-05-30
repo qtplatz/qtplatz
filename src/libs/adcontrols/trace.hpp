@@ -55,11 +55,9 @@ namespace adcontrols {
         double minY_;
         double maxY_;
 
-#pragma warning(disable:4251)
         std::vector< double > traceX_;
         std::vector< double > traceY_;
         std::vector< unsigned long > events_;
-// #pragma warning(default:4251)
     };
 
 }

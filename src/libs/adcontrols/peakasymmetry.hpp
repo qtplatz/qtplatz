@@ -58,11 +58,10 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP( peakAsymmetry_ );
-                ar & BOOST_SERIALIZATION_NVP( peakAsymmetryStartTime_ );
-                ar & BOOST_SERIALIZATION_NVP( peakAsymmetryEndTime_ );
-            }
+	    (void)version;
+	    ar & BOOST_SERIALIZATION_NVP( peakAsymmetry_ );
+	    ar & BOOST_SERIALIZATION_NVP( peakAsymmetryStartTime_ );
+	    ar & BOOST_SERIALIZATION_NVP( peakAsymmetryEndTime_ );
         }
 
     };

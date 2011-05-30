@@ -29,9 +29,11 @@
 #include <map>
 #include <boost/smart_ptr.hpp>
 #include <QLibrary>
+
+#if defined _MSC_VER
 # pragma warning(disable: 4996)
+#endif
 # include <ace/Singleton.h>
-# pragma warning(default: 4996)
 
 using namespace adcontrols;
 
@@ -114,7 +116,7 @@ datafileBrokerImpl::register_library( const std::wstring& sharedlib )
     QLibrary lib( mbs.c_str() );
     if ( lib.load() ) {
         typedef adcontrols::datafile_factory * (*factory_factory)();
-        factory_factory ffactory = static_cast<factory_factory>( lib.resolve( "datafile_factory" ) );
+        factory_factory ffactory = reinterpret_cast<factory_factory>( lib.resolve( "datafile_factory" ) );
         if ( ffactory ) {
             datafile_factory * pfactory = ffactory();
             if ( pfactory )

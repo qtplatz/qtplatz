@@ -37,10 +37,9 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-# pragma warning( disable: 4996 )
+
 # include <boost/archive/binary_oarchive.hpp>
 # include <boost/archive/binary_iarchive.hpp>
-# pragma warning( default: 4996 )
 
 #include <sstream>
 #include <vector>
@@ -86,8 +85,8 @@ namespace adcontrols {
             void dataDelayPoints( size_t n ) { dataDelayPoints_ = n; }
             size_t dataDelayPoints() const { return dataDelayPoints_; }
 	   
-        private:
-            friend Chromatogram;
+	    // private:
+            friend class Chromatogram;
             static std::wstring empty_string_;  // for error return as reference
             bool isConstantSampling_;
 	   
@@ -106,21 +105,20 @@ namespace adcontrols {
 	   
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-                if ( version >= 0 ) {
-                    ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
-                        & BOOST_SERIALIZATION_NVP(isConstantSampling_)
-                        & BOOST_SERIALIZATION_NVP(timeRange_.first) 
-                        & BOOST_SERIALIZATION_NVP(timeRange_.second) 
-                        & BOOST_SERIALIZATION_NVP(dataDelayPoints_) 
-                        & BOOST_SERIALIZATION_NVP(descriptions_)
-                        & BOOST_SERIALIZATION_NVP(axisLabelHorizontal_)
-                        & BOOST_SERIALIZATION_NVP(axisLabelVertical_)
-                        & BOOST_SERIALIZATION_NVP(dataArray_) 
-                        & BOOST_SERIALIZATION_NVP(timeArray_) 
-                        & BOOST_SERIALIZATION_NVP(evntVec_) 
-                        & BOOST_SERIALIZATION_NVP(peaks_) 
-                        ;
-                }
+		(void)version;
+		ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
+		    & BOOST_SERIALIZATION_NVP(isConstantSampling_)
+		    & BOOST_SERIALIZATION_NVP(timeRange_.first) 
+		    & BOOST_SERIALIZATION_NVP(timeRange_.second) 
+		    & BOOST_SERIALIZATION_NVP(dataDelayPoints_) 
+		    & BOOST_SERIALIZATION_NVP(descriptions_)
+		    & BOOST_SERIALIZATION_NVP(axisLabelHorizontal_)
+		    & BOOST_SERIALIZATION_NVP(axisLabelVertical_)
+		    & BOOST_SERIALIZATION_NVP(dataArray_) 
+		    & BOOST_SERIALIZATION_NVP(timeArray_) 
+		    & BOOST_SERIALIZATION_NVP(evntVec_) 
+		    & BOOST_SERIALIZATION_NVP(peaks_) 
+		    ;
             }
         };
     }
@@ -406,61 +404,65 @@ Chromatogram::getMinIntensity() const
 
 // specialized template<> for boost::serialization
 // template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
-template<> void
-Chromatogram::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-{
-    if ( version >= 0 ) {
-        ar << boost::serialization::make_nvp("Chromatogram", pImpl_);
+
+namespace adcontrols {
+    template<> void
+    Chromatogram::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar << boost::serialization::make_nvp("Chromatogram", pImpl_);
     }
-}
-
-template<> void
-Chromatogram::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-{
-    if ( version >= 0 ) {
-	    ar >> boost::serialization::make_nvp("Chromatogram", pImpl_);
+    
+    template<> void
+    Chromatogram::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar >> boost::serialization::make_nvp("Chromatogram", pImpl_);
     }
-}
-
-template<> void
-Chromatogram::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
-{
-    if ( version >= 0 )
-        ar << boost::serialization::make_nvp( "Chromatogram", pImpl_ );
-}
-
-template<> void
-Chromatogram::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
-{
-    if ( version >= 0 )
-        ar >> boost::serialization::make_nvp( "Chromatogram", pImpl_ );
-}
+    
+    template<> void
+    Chromatogram::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar << boost::serialization::make_nvp( "Chromatogram", pImpl_ );
+    }
+    
+    template<> void
+    Chromatogram::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar >> boost::serialization::make_nvp( "Chromatogram", pImpl_ );
+    }
+}; // namespace adcontrols
 
 
 /////////////
-template<> void
-Chromatogram::Event::serialize( boost::archive::xml_woarchive& ar, const unsigned int)
-{
-    ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
-}
+namespace adcontrols {
 
-template<> void
-Chromatogram::Event::serialize( boost::archive::xml_wiarchive& ar, const unsigned int)
-{
-    ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
-}
-
-template<> void
-Chromatogram::Event::serialize( boost::archive::binary_oarchive& ar, const unsigned int)
-{
-    ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
-}
-
-template<> void
-Chromatogram::Event::serialize( boost::archive::binary_iarchive& ar, const unsigned int)
-{
-    ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
-}
+    template<> void
+    Chromatogram::Event::serialize( boost::archive::xml_woarchive& ar, const unsigned int)
+    {
+	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
+    }
+    
+    template<> void
+    Chromatogram::Event::serialize( boost::archive::xml_wiarchive& ar, const unsigned int)
+    {
+	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
+    }
+    
+    template<> void
+    Chromatogram::Event::serialize( boost::archive::binary_oarchive& ar, const unsigned int)
+    {
+	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
+    }
+    
+    template<> void
+    Chromatogram::Event::serialize( boost::archive::binary_iarchive& ar, const unsigned int)
+    {
+	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
+    }
+}; // namespace adcontrols
 
 bool
 Chromatogram::archive( std::ostream& os, const Chromatogram& c )
@@ -488,22 +490,21 @@ ChromatogramImpl::~ChromatogramImpl()
 {
 }
 
-ChromatogramImpl::ChromatogramImpl() : dataDelayPoints_(0)
+ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true) 
+				     , dataDelayPoints_(0)
                                      , samplingInterval_(0.5)
-                                     , isConstantSampling_(true) 
 {
 }
 
-ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : dataArray_(t.dataArray_)
-																, timeArray_(t.timeArray_)
-																, evntVec_(t.evntVec_)
-																, timeRange_(t.timeRange_)
+ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : dataArray_( t.dataArray_ )
+								, timeArray_( t.timeArray_ )
+								, evntVec_( t.evntVec_ )
+								, timeRange_( t.timeRange_)
+                                                                , dataDelayPoints_ ( t.dataDelayPoints_ )   
                                                                 , samplingInterval_( t.samplingInterval_ )
                                                                 , axisLabelHorizontal_( t.axisLabelHorizontal_ )
                                                                 , axisLabelVertical_( t.axisLabelVertical_ )
-                                                                , dataDelayPoints_ ( t.dataDelayPoints_ )   
 {
-    
 }
 
 void

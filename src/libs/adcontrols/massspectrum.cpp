@@ -37,10 +37,11 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+#if defined _MSC_VER
 # pragma warning( disable: 4996 )
+#endif
 # include <boost/archive/binary_oarchive.hpp>
 # include <boost/archive/binary_iarchive.hpp>
-# pragma warning( default: 4996 )
 
 #include <sstream>
 #include <vector>
@@ -84,14 +85,14 @@ namespace adcontrols {
         void setPolarity( MS_POLARITY polarity );
         MS_POLARITY polarity() const;
 	    
-	 private:
+	  // private:
 	    static std::wstring empty_string_;  // for error return as reference
 
 	    CentroidAlgorithm algo_;
 	    MS_POLARITY polarity_;	    
 	    Descriptions descriptions_;
-        MSCalibration calibration_;
-        MSProperty property_;
+	  MSCalibration calibration_;
+	  MSProperty property_;
 
 	    std::vector< double > tofArray_;
 	    std::vector< double > massArray_;
@@ -107,7 +108,7 @@ namespace adcontrols {
 
 	    friend class boost::serialization::access;
 	    template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-            if ( version >= 0 ) {
+		(void)version;
                 ar & BOOST_SERIALIZATION_NVP(algo_) 
                     & BOOST_SERIALIZATION_NVP(polarity_) 
                     & BOOST_SERIALIZATION_NVP(acqRange_.first) 
@@ -120,7 +121,6 @@ namespace adcontrols {
                     & BOOST_SERIALIZATION_NVP(tofArray_) 
                     & BOOST_SERIALIZATION_NVP(colArray_) 
                     ;
-            }
 	    }
 	};
   }
@@ -390,15 +390,15 @@ MassSpectrum::restore( std::istream& is, MassSpectrum& ms )
 template<> void
 MassSpectrum::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
 {
-    if ( version >= 0 )
-        ar << boost::serialization::make_nvp( "MassSpectrum", pImpl_ );
+    (void)version;
+    ar << boost::serialization::make_nvp( "MassSpectrum", pImpl_ );
 }
 
 template<> void
 MassSpectrum::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
 {
-    if ( version >= 0 )
-        ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
+    (void)version;
+    ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
 }
 
       

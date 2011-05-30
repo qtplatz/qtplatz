@@ -27,10 +27,11 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
+#if defined _MSC_VER
 # pragma warning( disable: 4996 )
+#endif
 # include <boost/archive/binary_oarchive.hpp>
 # include <boost/archive/binary_iarchive.hpp>
-# pragma warning( default: 4996 )
 
 using namespace adcontrols;
 
@@ -39,21 +40,25 @@ ElementalCompositionMethod::ElementalCompositionMethod()
 }
 
 ///////////// serialize //////////////////
-template<> void
-ElementalCompositionMethod::serialize( boost::archive::binary_oarchive& /*ar*/, const unsigned int /* version */)
-{
-/*
-    if ( version >= 0 )
-        ar << boost::serialization::make_nvp( "ElementalCompositionMethod", pImpl_ );
-*/
-}
 
-template<> void
-ElementalCompositionMethod::serialize( boost::archive::binary_iarchive& /*ar*/, const unsigned int /*version*/)
-{
-/*
-    if ( version >= 0 )
-        ar >> boost::serialization::make_nvp( "ElementalCompositionMethod", pImpl_ );
-*/
-}
+namespace adcontrols {
 
+    template<> void
+    ElementalCompositionMethod::serialize( boost::archive::binary_oarchive& /*ar*/, const unsigned int /* version */)
+    {
+/*
+  if ( version >= 0 )
+  ar << boost::serialization::make_nvp( "ElementalCompositionMethod", pImpl_ );
+*/
+    }
+    
+    template<> void
+    ElementalCompositionMethod::serialize( boost::archive::binary_iarchive& /*ar*/, const unsigned int /*version*/)
+    {
+/*
+  if ( version >= 0 )
+  ar >> boost::serialization::make_nvp( "ElementalCompositionMethod", pImpl_ );
+*/
+    }
+    
+}; // namespace adcontrols

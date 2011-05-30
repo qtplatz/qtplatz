@@ -37,10 +37,11 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 
+#if defined _MSC_VER
 # pragma warning( disable : 4996 )
+#endif
 # include <boost/archive/binary_oarchive.hpp>
 # include <boost/archive/binary_iarchive.hpp>
-# pragma warning( default : 4996 )
 
 using namespace adcontrols;
 
@@ -62,8 +63,8 @@ namespace adcontrols {
 		private:
 			friend class boost::serialization::access;
 			template<class Archiver> void serialize(Archiver& ar, const unsigned int version) {
-				if ( version >= 0 )
-					ar & BOOST_SERIALIZATION_NVP(vec_);
+			    (void)version;
+			    ar & BOOST_SERIALIZATION_NVP(vec_);
 			}
 			vector_type vec_;
 		};
@@ -135,38 +136,37 @@ Descriptions::loadXml( const std::wstring& xml )
     ar >> boost::serialization::make_nvp("Descriptions", pImpl_);
 }
 
-// template<class Archiver> void serialize(Archiver& ar, const unsigned int version); // {
-template<> void
-Descriptions::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-{
-    if ( version >= 0 ) {
-        ar << boost::serialization::make_nvp("Descriptions", pImpl_);
-    }
-}
+namespace adcontrols {
 
-template<> void
-Descriptions::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-{
-    if ( version >= 0 ) {
-        ar >> boost::serialization::make_nvp("Descriptions", pImpl_);
+    template<> void
+    Descriptions::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar << boost::serialization::make_nvp("Descriptions", pImpl_);
     }
-}
-
-template<> void
-Descriptions::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
-{
-    if ( version >= 0 ) {
-        ar & *pImpl_;
+    
+    template<> void
+    Descriptions::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar >> boost::serialization::make_nvp("Descriptions", pImpl_);
     }
-}
-
-template<> void
-Descriptions::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
-{
-    if ( version >= 0 ) {
-        ar & *pImpl_;
+    
+    template<> void
+    Descriptions::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar & *pImpl_;
     }
-}
+    
+    template<> void
+    Descriptions::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar & *pImpl_;
+    }
+}; // namespace adcontrols
+//-------------------------------------------------------------------------------------------
 
 
 ////////////////////////////////////////////////////

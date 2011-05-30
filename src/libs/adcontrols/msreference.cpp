@@ -30,19 +30,19 @@
 using namespace adcontrols;
 
 MSReference::MSReference() : enable_( true )
-                           , polarityPositive_( true )
                            , exactMass_(0)  
+                           , polarityPositive_( true )
 {
 }
 
-MSReference::MSReference( const MSReference& t ) : formula_( t.formula_ )
-                                                 , enable_( t.enable_ )
-                                                 , polarityPositive_( t.polarityPositive_ )
-                                                 , adduct_or_loss_( t.adduct_or_loss_ )
+MSReference::MSReference( const MSReference& t ) : enable_( t.enable_ )
                                                  , exactMass_( t.exactMass_ ) 
+                                                 , polarityPositive_( t.polarityPositive_ )
+                                                 , formula_( t.formula_ )
+                                                 , adduct_or_loss_( t.adduct_or_loss_ )
                                                  , description_( t.description_ )    
 {
-    if ( exactMass_ <= DBL_EPSILON ) {
+    if ( exactMass_ <= std::numeric_limits<double>::epsilon() ) {
         ChemicalFormula formula;
         exactMass_ = formula.getMonoIsotopicMass( formula_ );
         if ( ! adduct_or_loss_.empty() ) {
@@ -60,11 +60,11 @@ MSReference::MSReference( const std::wstring& formula
                          , const std::wstring& adduct_or_loss
                          , bool enable
                          , double exactMass
-                         , const std::wstring& description ) : formula_( formula )
-                                                             , enable_( enable )
-                                                             , polarityPositive_( polarityPositive )
-                                                             , adduct_or_loss_( adduct_or_loss )
+                         , const std::wstring& description ) : enable_( enable )
                                                              , exactMass_( exactMass ) 
+                                                             , polarityPositive_( polarityPositive )
+                                                             , formula_( formula )
+                                                             , adduct_or_loss_( adduct_or_loss )
                                                              , description_( description )    
 {
 }

@@ -61,12 +61,14 @@ namespace adcontrols {
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
             using namespace boost::serialization;
-            if ( version >= 0 ) {
+	    (void)version;
                 ar & BOOST_SERIALIZATION_NVP(name_);
                 ar & BOOST_SERIALIZATION_NVP(vec_);
-            }
+
         }
-#pragma warning(disable:4251)
+# if defined _MSC_VER
+# pragma warning(disable:4251)
+# endif
         vector_type vec_;
         std::wstring name_;
     };

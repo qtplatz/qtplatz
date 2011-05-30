@@ -96,7 +96,9 @@ namespace adcontrols {
         bool useElectronMass_;
         double	threshold_;		// %RA
         double	resolution_;	// Da
-#pragma warning( disable: 4251 )
+# if defined _MSC_VER
+# pragma warning( disable: 4251 )
+# endif
         std::vector< Formula > formulae_;  // formula, adduct
 
         // serialization
@@ -104,13 +106,13 @@ namespace adcontrols {
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
             using namespace boost::serialization;
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP(polarityPositive_);
-                ar & BOOST_SERIALIZATION_NVP(useElectronMass_);
-                ar & BOOST_SERIALIZATION_NVP(threshold_);
-                ar & BOOST_SERIALIZATION_NVP(resolution_);
-                ar & BOOST_SERIALIZATION_NVP(formulae_);
-            }
+	    (void)version;
+	    ar & BOOST_SERIALIZATION_NVP(polarityPositive_);
+	    ar & BOOST_SERIALIZATION_NVP(useElectronMass_);
+	    ar & BOOST_SERIALIZATION_NVP(threshold_);
+	    ar & BOOST_SERIALIZATION_NVP(resolution_);
+	    ar & BOOST_SERIALIZATION_NVP(formulae_);
+
        }
 
     };

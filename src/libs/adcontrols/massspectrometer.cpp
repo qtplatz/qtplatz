@@ -75,7 +75,7 @@ namespace adcontrols {
 
         class MassSpectrometerImpl : public MassSpectrometer {
         public:
-            MassSpectrometerImpl::~MassSpectrometerImpl() {
+            ~MassSpectrometerImpl() {
                 delete impl_;
                 impl_ = 0;
                 delete scanLaw_;

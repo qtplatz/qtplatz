@@ -83,7 +83,7 @@ namespace adcontrols {
        template<class Archive>
        void serialize(Archive& ar, const unsigned int version) {
            using namespace boost::serialization;
-           if ( version >= 0 ) {
+           (void)version;
                ar & BOOST_SERIALIZATION_NVP(baselineWidth_);
                ar & BOOST_SERIALIZATION_NVP(rsConstInDa_);
                ar & BOOST_SERIALIZATION_NVP(rsPropoInPpm_);
@@ -92,7 +92,6 @@ namespace adcontrols {
 			   ar & BOOST_SERIALIZATION_NVP(attenuation_);
 			   ar & BOOST_SERIALIZATION_NVP(bCentroidAreaIntensity_);
 			   ar & BOOST_SERIALIZATION_NVP(peakCentroidFraction_);
-           }
        }
 
 	};

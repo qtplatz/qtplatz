@@ -74,7 +74,9 @@ namespace adcontrols {
         static bool restore( std::istream&, ProcessMethod& );
 
     private:
+#   if defined _MSC_VER
 #   pragma warning(disable:4251)
+#   endif
         vector_type vec_;
 
         friend class boost::serialization::access;

@@ -75,15 +75,14 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP( rs_ );
-                ar & BOOST_SERIALIZATION_NVP( rsBaselineStartTime_ );
-                ar & BOOST_SERIALIZATION_NVP( rsBaselineStartHeight_ );
-                ar & BOOST_SERIALIZATION_NVP( rsBaselineEndTime_ );
-                ar & BOOST_SERIALIZATION_NVP( rsBaselineEndHeight_ );
-                ar & BOOST_SERIALIZATION_NVP( rsPeakTopTime_ );
-                ar & BOOST_SERIALIZATION_NVP( rsPeakTopHeight_ );
-            }
+            (void)version;
+	    ar & BOOST_SERIALIZATION_NVP( rs_ );
+	    ar & BOOST_SERIALIZATION_NVP( rsBaselineStartTime_ );
+	    ar & BOOST_SERIALIZATION_NVP( rsBaselineStartHeight_ );
+	    ar & BOOST_SERIALIZATION_NVP( rsBaselineEndTime_ );
+	    ar & BOOST_SERIALIZATION_NVP( rsBaselineEndHeight_ );
+	    ar & BOOST_SERIALIZATION_NVP( rsPeakTopTime_ );
+	    ar & BOOST_SERIALIZATION_NVP( rsPeakTopHeight_ );
         }
 
     };

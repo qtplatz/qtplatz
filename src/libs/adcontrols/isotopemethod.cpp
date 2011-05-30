@@ -31,9 +31,9 @@ IsotopeMethod::Formula::Formula() : chargeState(0)
 {
 }
 
-IsotopeMethod::Formula::Formula( const Formula& t ) : chargeState( t.chargeState )
-                                                    , formula( t.formula )
+IsotopeMethod::Formula::Formula( const Formula& t ) : formula( t.formula )
                                                     , adduct( t.adduct )  
+                                                    , chargeState( t.chargeState )
                                                     , relativeAmounts( t.relativeAmounts )
 {
 }
@@ -61,11 +61,11 @@ IsotopeMethod::IsotopeMethod() : polarityPositive_( true )
 {
 }
 
-IsotopeMethod::IsotopeMethod( const IsotopeMethod& t ) : formulae_(t.formulae_)
-                                                       , polarityPositive_( t.polarityPositive_ )
+IsotopeMethod::IsotopeMethod( const IsotopeMethod& t ) : polarityPositive_( t.polarityPositive_ )
                                                        , useElectronMass_( t.useElectronMass_ )
                                                        , threshold_( t.threshold_ )
                                                        , resolution_( t.resolution_ )
+                                                       , formulae_(t.formulae_)
 {
 }    
 

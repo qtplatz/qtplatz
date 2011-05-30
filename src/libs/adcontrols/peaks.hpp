@@ -67,9 +67,7 @@ namespace adcontrols {
         vector_type::const_iterator find_first_peak( const Baseline& ) const;
 
     private:
-#pragma warning(disable : 4251)
         vector_type peaks_;
-//#pragma warning( default : 4251)
 
         double areaTotal_;
         double heightTotal_;
@@ -78,12 +76,11 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP( peaks_ );
-                ar & BOOST_SERIALIZATION_NVP( areaTotal_ );
-                ar & BOOST_SERIALIZATION_NVP( heightTotal_ );
-                ar & BOOST_SERIALIZATION_NVP( noiseLevel_ );
-            }
+            (void)version;
+	    ar & BOOST_SERIALIZATION_NVP( peaks_ );
+	    ar & BOOST_SERIALIZATION_NVP( areaTotal_ );
+	    ar & BOOST_SERIALIZATION_NVP( heightTotal_ );
+	    ar & BOOST_SERIALIZATION_NVP( noiseLevel_ );
         }
 
     };

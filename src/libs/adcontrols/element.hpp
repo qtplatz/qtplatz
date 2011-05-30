@@ -49,10 +49,9 @@ namespace adcontrols {
             friend class boost::serialization::access;
             template<class Archive>
             void serialize(Archive& ar, const unsigned int version) {
-                if ( version >= 0 ) {
-                    ar & BOOST_SERIALIZATION_NVP(mass_);
-                    ar & BOOST_SERIALIZATION_NVP(abundance_);
-                }
+		(void)version;
+		ar & BOOST_SERIALIZATION_NVP(mass_);
+		ar & BOOST_SERIALIZATION_NVP(abundance_);
             }
         };
       
@@ -78,13 +77,12 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP(name_);
-                ar & BOOST_SERIALIZATION_NVP(symbol_);
-                ar & BOOST_SERIALIZATION_NVP(atomicNumber_);
-                ar & BOOST_SERIALIZATION_NVP(valence_);
-                ar & BOOST_SERIALIZATION_NVP(isotopes_);
-            }
+	    (void)version;
+	    ar & BOOST_SERIALIZATION_NVP(name_);
+	    ar & BOOST_SERIALIZATION_NVP(symbol_);
+	    ar & BOOST_SERIALIZATION_NVP(atomicNumber_);
+	    ar & BOOST_SERIALIZATION_NVP(valence_);
+	    ar & BOOST_SERIALIZATION_NVP(isotopes_);
         }
     };
 
@@ -102,12 +100,11 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP(name_);
-                ar & BOOST_SERIALIZATION_NVP(alias_);
-                ar & BOOST_SERIALIZATION_NVP(formula_);
-                ar & BOOST_SERIALIZATION_NVP(valence_);
-            }
+	    (void)version;
+	    ar & BOOST_SERIALIZATION_NVP(name_);
+	    ar & BOOST_SERIALIZATION_NVP(alias_);
+	    ar & BOOST_SERIALIZATION_NVP(formula_);
+	    ar & BOOST_SERIALIZATION_NVP(valence_);
         }
     };
 }

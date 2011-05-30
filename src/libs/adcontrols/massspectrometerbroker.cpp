@@ -25,10 +25,12 @@
 
 #include "massspectrometerbroker.hpp"
 #include "massspectrometer.hpp"
+#if defined _MSC_VER
 #pragma warning(disable:4996)
+#endif
 #include <ace/Singleton.h>
 #include <ace/Recursive_Thread_Mutex.h>
-#pragma warning(default:4996)
+
 #include <map>
 #include <string>
 #include <QLibrary>
@@ -80,7 +82,7 @@ MassSpectrometerBrokerImpl::register_library( const std::wstring& sharedlib )
     QLibrary lib( mbs.c_str() );
     if ( lib.load() ) {
         typedef adcontrols::MassSpectrometer * (*instance_type)();
-        instance_type getMassSpectrometer = static_cast<instance_type>( lib.resolve( "getMassSpectrometer" ) );
+        instance_type getMassSpectrometer = reinterpret_cast<instance_type>( lib.resolve( "getMassSpectrometer" ) );
         if ( getMassSpectrometer ) {
             MassSpectrometer * p = getMassSpectrometer();
             if ( p )

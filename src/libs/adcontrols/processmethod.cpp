@@ -38,11 +38,11 @@
 #include <boost/serialization/variant.hpp>
 #include <boost/serialization/base_object.hpp>
 
+# if defined _MSC_VER
 # pragma warning( disable: 4996 )
+# endif
 # include <boost/archive/binary_oarchive.hpp>
 # include <boost/archive/binary_iarchive.hpp>
-# pragma warning( default: 4996 )
-
 
 using namespace adcontrols;
 
@@ -58,41 +58,44 @@ ProcessMethod::ProcessMethod( const ProcessMethod& t ) : vec_( t.vec_ )
 {
 }
 
-template<> void __declspec(dllexport)
-ProcessMethod::appendMethod( const ProcessMethod::value_type& v )
-{
-    vec_.push_back( v );
-}
+namespace adcontrols {
 
-template<> void __declspec(dllexport)
-ProcessMethod::appendMethod( const adcontrols::CentroidMethod& v )
-{
-    vec_.push_back( v );
-}
+    template<> void // __declspec(dllexport)
+    ProcessMethod::appendMethod( const ProcessMethod::value_type& v )
+    {
+	vec_.push_back( v );
+    }
 
-template<> void __declspec(dllexport)
-ProcessMethod::appendMethod( const IsotopeMethod& v )
-{
-    vec_.push_back( v );
-}
-
-template<> void __declspec(dllexport)
-ProcessMethod::appendMethod( const ElementalCompositionMethod& v )
-{
-    vec_.push_back( v );
-}
-
-template<> void __declspec(dllexport)
-ProcessMethod::appendMethod( const MSCalibrateMethod& v )
-{
-    vec_.push_back( v );
-}
-
-template<> void __declspec(dllexport)
-ProcessMethod::appendMethod( const TargetingMethod& v )
-{
-    vec_.push_back( v );
-}
+    template<> void // __declspec(dllexport)
+    ProcessMethod::appendMethod( const adcontrols::CentroidMethod& v )
+    {
+	vec_.push_back( v );
+    }
+    
+    template<> void // __declspec(dllexport)
+    ProcessMethod::appendMethod( const IsotopeMethod& v )
+    {
+	vec_.push_back( v );
+    }
+    
+    template<> void // __declspec(dllexport)
+    ProcessMethod::appendMethod( const ElementalCompositionMethod& v )
+    {
+	vec_.push_back( v );
+    }
+    
+    template<> void // __declspec(dllexport)
+    ProcessMethod::appendMethod( const MSCalibrateMethod& v )
+    {
+	vec_.push_back( v );
+    }
+    
+    template<> void // __declspec(dllexport)
+    ProcessMethod::appendMethod( const TargetingMethod& v )
+    {
+	vec_.push_back( v );
+    }
+}; // namespace adcontrols
 
 //////
 template<class T> struct method_finder {
@@ -105,35 +108,38 @@ template<class T> struct method_finder {
     }
 };
 
-template<> __declspec(dllexport) const adcontrols::CentroidMethod*
-ProcessMethod::find() const
-{
-    return method_finder< CentroidMethod >::find( vec_ );
-}
+namespace adcontrols {
 
-template<> __declspec(dllexport) const adcontrols::IsotopeMethod*
-ProcessMethod::find() const
-{
-    return method_finder< IsotopeMethod >::find( vec_ );
-}
+    template<> /* __declspec(dllexport) */ const adcontrols::CentroidMethod*
+    ProcessMethod::find() const
+    {
+	return method_finder< CentroidMethod >::find( vec_ );
+    }
+    
+    template<> /* __declspec(dllexport) */ const adcontrols::IsotopeMethod*
+    ProcessMethod::find() const
+    {
+	return method_finder< IsotopeMethod >::find( vec_ );
+    }
+    
+    template<> /* __declspec(dllexport) */ const adcontrols::ElementalCompositionMethod*
+    ProcessMethod::find() const
+    {
+	return method_finder< ElementalCompositionMethod >::find( vec_ );
+    }
 
-template<> __declspec(dllexport) const adcontrols::ElementalCompositionMethod*
-ProcessMethod::find() const
-{
-    return method_finder< ElementalCompositionMethod >::find( vec_ );
-}
-
-template<> __declspec(dllexport) const adcontrols::MSCalibrateMethod*
-ProcessMethod::find() const
-{
-    return method_finder< MSCalibrateMethod >::find( vec_ );
-}
-
-template<> __declspec(dllexport) const adcontrols::TargetingMethod*
-ProcessMethod::find() const
-{
-    return method_finder< TargetingMethod >::find( vec_ );
-}
+    template<> /* __declspec(dllexport) */ const adcontrols::MSCalibrateMethod*
+    ProcessMethod::find() const
+    {
+	return method_finder< MSCalibrateMethod >::find( vec_ );
+    }
+    
+    template<> /* __declspec(dllexport) */ const adcontrols::TargetingMethod*
+    ProcessMethod::find() const
+    {
+	return method_finder< TargetingMethod >::find( vec_ );
+    }
+}; // namespace adcontrols
 
 ///////////
 
@@ -187,20 +193,22 @@ ProcessMethod::end() const
 
 //////////////////// serialize /////////////////
 
-template<> void
-ProcessMethod::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
-{
-    if ( version >= 0 )
-        ar << boost::serialization::make_nvp( "ProcessMethod", vec_ );
-}
+namespace adcontrols {
 
-template<> void
-ProcessMethod::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
-{
-    if ( version >= 0 )
-        ar >> boost::serialization::make_nvp("ProcessMethod", vec_);
-}
-
+    template<> void
+    ProcessMethod::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar << boost::serialization::make_nvp( "ProcessMethod", vec_ );
+    }
+    
+    template<> void
+    ProcessMethod::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar >> boost::serialization::make_nvp("ProcessMethod", vec_);
+    }
+}; // namespace adcontrols
 
 //////////////////// static ////////////////
 bool

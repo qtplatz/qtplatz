@@ -136,11 +136,12 @@ namespace adcontrols {
     private:
         friend class boost::serialization::access;
         template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
-        template<> void serialize( boost::archive::binary_oarchive&, const unsigned int );
-        template<> void serialize( boost::archive::binary_iarchive&, const unsigned int );
 
         internal::ChromatogramImpl * pImpl_;
     };
+
+    template<> void Chromatogram::serialize( boost::archive::binary_oarchive&, const unsigned int );
+    template<> void Chromatogram::serialize( boost::archive::binary_iarchive&, const unsigned int );
 
     typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;   
 
