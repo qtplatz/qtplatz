@@ -27,6 +27,9 @@
 
 #include <qwt_plot.h>
 #include <boost/smart_ptr.hpp>
+#include <adwplot/zoomer.hpp>
+#include <adwplot/plotpanner.hpp>
+#include <adwplot/plotpicker.hpp>
 
 namespace adwplot {
 
@@ -35,8 +38,6 @@ namespace adwplot {
     class Zoomer;
     class PlotPanner;
     class PlotPicker;
-    class Annotation;
-    class Annotations;
 
     class Dataplot : public QwtPlot {
         Q_OBJECT
@@ -49,25 +50,9 @@ namespace adwplot {
         void link( Dataplot * );
         void unlink( Dataplot * );
 
-        //const std::pair<double, double>& display_range_x() const;
-        //const std::pair<double, double>& display_range_y() const;
-        //void display_range_x( const std::pair<double, double>& );
-        //void display_range_y( const std::pair<double, double>& );
-        //void display_range_y2( const std::pair<double, double>& );
-
     private:
-        //virtual void OnMouseDown( double x, double y, short button );
-        //virtual void OnMouseUp( double x, double y, short Button );
-        //virtual void OnMouseMove( double x, double y, short Button );
-        //virtual void OnCharacter( long KeyCode );
-        //virtual void OnKeyDown( long KeyCode );
-        //virtual void OnSetFocus( long hWnd );
-        //virtual void OnKillFocus( long hWnd );
-        //virtual void OnMouseDblClk( double x, double y, short button );
 
     protected:
-        //virtual void OnRButtonClick( double /* x */, double /* y */ ) { /* do nothing */ }
-        //virtual void OnRButtonRange( double /* x1 */, double /* x2 */, double /* y1 */, double /* y2 */ ) { /* do nothing */ }
 
     signals:
 

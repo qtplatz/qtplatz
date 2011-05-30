@@ -12,7 +12,6 @@ CONFIG += staticlib
 include(../../qtplatz_library.pri)
 include(../../boost.pri)
 include(../../qwt.pri)
-#INCLUDEPATH += $$(QWT)/include $$(QTDIR)/include/Qtcore $$(QTDIR)/include/QtGui
 INCLUDEPATH += ..
 
 # message("INCLUDE=" $$(INCLUDEPATH))
@@ -22,7 +21,7 @@ SOURCES += adwplot.cpp \
     annotations.cpp \
     axis.cpp \
     baseline.cpp \
-    chromatogramwidget.hpp \
+    chromatogramwidget.cpp \
     dataplot.cpp \
     peak.cpp \
     plotcurve.cpp \

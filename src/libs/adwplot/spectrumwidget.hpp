@@ -37,13 +37,14 @@ namespace adwplot {
         Q_OBJECT
     public:
         explicit SpectrumWidget(QWidget *parent = 0);
+	~SpectrumWidget();
 
         void setData( const adcontrols::MassSpectrum& );
         void setData( const adcontrols::MassSpectrum&, const adcontrols::MassSpectrum& );
         void setData( const adcontrols::MassSpectrum&, int idx, bool yaxis1 = false );
 
     private:
-        std::vector< internal::TraceData > traces_;
+	struct SpectrumWidgetImpl * impl_;
 
     signals:
 

@@ -33,8 +33,8 @@ using namespace adwplot;
 using qtwrapper::qstring;
 
 PlotCurve::PlotCurve( Dataplot& plot
-             , const std::wstring& title ) : curve_( new QwtPlotCurve( qstring(title) ) )
-                                           , ownership_( true ) 
+             , const std::wstring& title ) : ownership_( true ) 
+                                           , curve_( new QwtPlotCurve( qstring(title) ) )
 {
     curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
     curve_->setPen( QPen( Qt::blue) );
@@ -43,7 +43,7 @@ PlotCurve::PlotCurve( Dataplot& plot
     curve_->attach( &plot );
 }
 
-PlotCurve::PlotCurve( const PlotCurve& t ) : curve_( t.curve_ ), ownership_( t.ownership_ )
+PlotCurve::PlotCurve( const PlotCurve& t ) : ownership_( t.ownership_ ), curve_( t.curve_ )
 {
     if ( ownership_ )
         const_cast<PlotCurve&>(t).ownership_ = false;

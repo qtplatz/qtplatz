@@ -50,51 +50,62 @@
 
 using namespace adwplot;
 
-namespace adwplot { namespace chromatogram_internal {
+namespace adwplot {
+    namespace chromatogram_internal {
 
-    class SeriesData : public QwtSeriesData<QPointF> {
-    public:
-        virtual ~SeriesData() {
-        }
-        SeriesData( const QVector< QPointF >& v, const QRectF& rc ) : v_( v ), rect_(rc) {
-        }
-        SeriesData( const SeriesData& t ) : v_( t.v_ ) {
-        }
-        // implements QwtSeriesData<>
-        virtual size_t size() const { return v_.size(); }
-        virtual QPointF sample( size_t idx ) const { return v_[ idx ]; }
-        virtual QRectF boundingRect() const { return rect_; }
-        void boundingRect( const QRectF& rc ) { rect_ = rc; }
-    private:
-        QRectF rect_;
-        const QVector< QPointF >& v_;
+	class SeriesData : public QwtSeriesData<QPointF> {
+	public:
+	    virtual ~SeriesData() {
+	    }
+	    SeriesData( const QVector< QPointF >& v, const QRectF& rc ) : rect_( rc ), v_( v ) {
+	    }
+	    SeriesData( const SeriesData& t ) : v_( t.v_ ) {
+	    }
+	    // implements QwtSeriesData<>
+	    virtual size_t size() const { return v_.size(); }
+	    virtual QPointF sample( size_t idx ) const { return v_[ idx ]; }
+	    virtual QRectF boundingRect() const { return rect_; }
+	    void boundingRect( const QRectF& rc ) { rect_ = rc; }
+	private:
+	    QRectF rect_;
+	    const QVector< QPointF >& v_;
+	};
+	
+	struct SeriesDataImpl {
+	    QVector< QPointF > d_;
+	    SeriesData * series_;  // for real time trace
+	    SeriesDataImpl() : series_(0) {}
+	};
+	
+	class TraceData {
+	public:
+	    TraceData( Dataplot& plot ) : curve_( plot ) {
+	    }
+	    TraceData( const TraceData& t ) : curve_( t.curve_ ), data_( t.data_ ) {
+	    }
+	    void setData( const adcontrols::Chromatogram& );
+	    void setData( const adcontrols::Trace& );
+	private:
+	    PlotCurve curve_;
+	    SeriesDataImpl data_;
+	};
+    }
+
+    struct ChromatogramWidgetImpl {
+        std::vector< Annotation > annotations_;
+        std::vector< chromatogram_internal::TraceData > traces_;
+        std::vector< Peak > peaks_;
+        std::vector< Baseline > baselines_;	
     };
-
-    struct SeriesDataImpl {
-        QVector< QPointF > d_;
-        SeriesData * series_;  // for real time trace
-        SeriesDataImpl() : series_(0) {}
-    };
-
-    class TraceData {
-    public:
-        TraceData( Dataplot& plot ) : curve_( plot ) {
-        }
-        TraceData( const TraceData& t ) : data_( t.data_ ), curve_( t.curve_ ) {
-        }
-        void setData( const adcontrols::Chromatogram& );
-        void setData( const adcontrols::Trace& );
-    private:
-        PlotCurve curve_;
-        SeriesDataImpl data_;
-    };
-  
-
 }
+
+ChromatogramWidget::~ChromatogramWidget()
+{
+    delete impl_;
 }
 
-ChromatogramWidget::ChromatogramWidget(QWidget *parent) :
-    Dataplot(parent)
+ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
+							, impl_( new ChromatogramWidgetImpl )
 {
     setAxisTitle(QwtPlot::xBottom, "Time[min]");
     setAxisTitle(QwtPlot::yLeft, "Intensity[uV]");
@@ -103,15 +114,17 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) :
 void
 ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
 {
+    (void)yaxis2;
+
     if ( d.size() < 2 )
         return;
 
     using chromatogram_internal::TraceData;
 
-    while ( int( traces_.size() ) <= idx )
-        traces_.push_back( TraceData( *this ) );  // create QwtPlotCurve & Data
+    while ( int( impl_->traces_.size() ) <= idx )
+        impl_->traces_.push_back( TraceData( *this ) );  // create QwtPlotCurve & Data
 
-    TraceData& trace = traces_[ idx ];
+    TraceData& trace = impl_->traces_[ idx ];
     trace.setData( d );
 
     replot();
@@ -120,15 +133,15 @@ ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
 void
 ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
 {
-    annotations_.clear();
-    peaks_.clear();
-    baselines_.clear();
-    traces_.clear();
+    impl_->annotations_.clear();
+    impl_->peaks_.clear();
+    impl_->baselines_.clear();
+    impl_->traces_.clear();
 
     using chromatogram_internal::TraceData;
 
-    traces_.push_back( TraceData( *this ) );
-    TraceData& trace = traces_.back();
+    impl_->traces_.push_back( TraceData( *this ) );
+    TraceData& trace = impl_->traces_.back();
 
     trace.setData( c );
 
@@ -161,18 +174,18 @@ ChromatogramWidget::setPeak( const adcontrols::Peak& peak )
     if ( label.empty() )
         label = ( boost::wformat( L"%.3lf" ) % tR ).str();
 
-    Annotations annots( *this, annotations_ );
+    Annotations annots( *this, impl_->annotations_ );
 
     Annotation anno = annots.add( tR, peak.peakHeight(), label );
     anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 
-    peaks_.push_back( adwplot::Peak( *this, peak ) );
+    impl_->peaks_.push_back( adwplot::Peak( *this, peak ) );
 }
 
 void
 ChromatogramWidget::setBaseline( const adcontrols::Baseline& bs )
 {
-    baselines_.push_back( adwplot::Baseline( *this, bs ) );
+    impl_->baselines_.push_back( adwplot::Baseline( *this, bs ) );
 }
 
 using namespace adwplot::chromatogram_internal;

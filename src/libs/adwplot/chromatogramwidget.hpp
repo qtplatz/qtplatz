@@ -26,6 +26,9 @@
 #pragma once
 
 #include "dataplot.hpp"
+#include <adwplot/annotation.hpp>
+#include <adwplot/baseline.hpp>
+#include <adwplot/peak.hpp>
 
 namespace adcontrols {
     class Trace;
@@ -47,6 +50,7 @@ namespace adwplot {
         Q_OBJECT
     public:
         explicit ChromatogramWidget(QWidget *parent = 0);
+	~ChromatogramWidget();
 
         void setData( const adcontrols::Trace&, int idx = 0, bool yaxis2 = false );
         void setData( const adcontrols::Chromatogram& );
@@ -58,10 +62,13 @@ namespace adwplot {
     public slots:
 
     private:
+	struct ChromatogramWidgetImpl * impl_;
+/*
         std::vector< Annotation > annotations_;
         std::vector< chromatogram_internal::TraceData > traces_;
         std::vector< Peak > peaks_;
         std::vector< Baseline > baselines_;
+*/
     };
 
 }

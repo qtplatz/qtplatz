@@ -35,72 +35,83 @@
 
 using namespace adwplot;
 
-namespace adwplot { namespace internal {
+namespace adwplot {
+    namespace internal {
 
-    static Qt::GlobalColor color_table[] = {
-        Qt::blue,
-        Qt::red,
-        Qt::green,
-        Qt::cyan,
-        Qt::magenta,
-        Qt::yellow,
-        Qt::darkRed,
-        Qt::darkGreen,
-        Qt::darkBlue,
-        Qt::darkCyan,
-        Qt::darkMagenta,
-        Qt::darkYellow,
-        Qt::darkGray,
-        Qt::gray,
-        Qt::lightGray,
+	static Qt::GlobalColor color_table[] = {
+	    Qt::blue,
+	    Qt::red,
+	    Qt::green,
+	    Qt::cyan,
+	    Qt::magenta,
+	    Qt::yellow,
+	    Qt::darkRed,
+	    Qt::darkGreen,
+	    Qt::darkBlue,
+	    Qt::darkCyan,
+	    Qt::darkMagenta,
+	    Qt::darkYellow,
+	    Qt::darkGray,
+	    Qt::gray,
+	    Qt::lightGray,
+	};
+	
+	class SeriesData : public QwtSeriesData<QPointF> {
+	public:
+	    virtual ~SeriesData() {
+	    }
+	    SeriesData( const QVector< QPointF >& v, const QRectF& rc ) : rect_( rc ), v_( v ) {
+	    }
+	    SeriesData( const SeriesData& t ) : v_( t.v_ ) {
+	    }
+	    // implements QwtSeriesData<>
+	    virtual size_t size() const { return v_.size(); }
+	    virtual QPointF sample( size_t idx ) const { return v_[ idx ]; }
+	    virtual QRectF boundingRect() const { return rect_; }
+	private:
+	    QRectF rect_;
+	    const QVector< QPointF >& v_;
+	};
+	
+	struct SeriesDataImpl {
+	    QVector< QPointF > d_;
+	    void setData( size_t size, const double * x, const double * y ) {
+		d_.resize( size );
+		for ( size_t i = 0; i < size; ++i )
+		    d_[ i ] = QPointF( x[i], y[i] );
+	    }
+	};
+	
+	class TraceData {
+	public:
+	    TraceData() {}
+	    TraceData( const TraceData& t ) : curves_( t.curves_ ), dataMap_( t.dataMap_ ) {
+	    }
+	    void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms );
+	    typedef std::map< int, SeriesDataImpl > map_type;
+	private:
+	    std::vector< PlotCurve > curves_;
+	    map_type dataMap_;
+	};
+    } // namespace internal
+
+    struct SpectrumWidgetImpl {
+	std::vector< internal::TraceData > traces_;
     };
 
-    class SeriesData : public QwtSeriesData<QPointF> {
-    public:
-        virtual ~SeriesData() {
-        }
-        SeriesData( const QVector< QPointF >& v, const QRectF& rc ) : v_( v ), rect_(rc) {
-        }
-        SeriesData( const SeriesData& t ) : v_( t.v_ ) {
-        }
-        // implements QwtSeriesData<>
-        virtual size_t size() const { return v_.size(); }
-        virtual QPointF sample( size_t idx ) const { return v_[ idx ]; }
-        virtual QRectF boundingRect() const { return rect_; }
-    private:
-        QRectF rect_;
-        const QVector< QPointF >& v_;
-    };
+} // namespace adwplot
 
-    struct SeriesDataImpl {
-        QVector< QPointF > d_;
-        void setData( size_t size, const double * x, const double * y ) {
-            d_.resize( size );
-            for ( size_t i = 0; i < size; ++i )
-                d_[ i ] = QPointF( x[i], y[i] );
-        }
-    };
-
-    class TraceData {
-    public:
-        TraceData() {}
-        TraceData( const TraceData& t ) : curves_( t.curves_ ), dataMap_( t.dataMap_ ) {
-        }
-        void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms );
-        typedef std::map< int, SeriesDataImpl > map_type;
-    private:
-        std::vector< PlotCurve > curves_;
-        map_type dataMap_;
-    };
-
-}
+SpectrumWidget::~SpectrumWidget()
+{
+    delete impl_;
 }
 
 SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
+						, impl_( new SpectrumWidgetImpl )
 {
     setAxisTitle(QwtPlot::xBottom, "m/z");
     setAxisTitle(QwtPlot::yLeft, "Intensity[uV]");
-
+    
     // picker_->setRubberBand( QwtPicker::CrossRubberBand );
     // zoomer1_->setRubberBandPen( QColor(Qt::green) );
     zoomer1_->setRubberBand( QwtPicker::CrossRubberBand );
@@ -136,10 +147,10 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 {
     using internal::TraceData;
 
-    while ( int( traces_.size() ) <= idx ) 
-        traces_.push_back( TraceData() );
+    while ( int( impl_->traces_.size() ) <= idx ) 
+        impl_->traces_.push_back( TraceData() );
 
-    TraceData& trace = traces_[ idx ];
+    TraceData& trace = impl_->traces_[ idx ];
     trace.setData( *this, ms );
 
     setAxisScale( QwtPlot::xBottom, ms.getAcquisitionMassRange().first, ms.getAcquisitionMassRange().second );
