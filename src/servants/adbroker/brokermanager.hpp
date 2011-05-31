@@ -28,10 +28,14 @@
 
 #include "adbroker_global.h"
 
-#pragma warning(disable:4996)
+#if defined _MSC_VER
+#  pragma warning(disable:4996)
+#endif
 # include <ace/Singleton.h>
 # include <ace/Recursive_Thread_Mutex.h>
-#pragma warning(default:4996)
+#if defined _MSC_VER
+#  pragma warning(default:4996)
+#endif
 
 class BrokerSession;
 class BrokerAccessToken;
@@ -46,8 +50,8 @@ namespace adbroker {
     class Task;
     class BrokerManager;
 
-	namespace singleton {
-		typedef ACE_Singleton<BrokerManager, ACE_Recursive_Thread_Mutex> BrokerManager;
+    namespace singleton {
+	typedef ACE_Singleton<BrokerManager, ACE_Recursive_Thread_Mutex> BrokerManager;
     }
 
     class ADBROKERSHARED_EXPORT BrokerManager {
@@ -60,16 +64,18 @@ namespace adbroker {
         static void terminate();
 
         template<class T> T* get();
-        template<> Task * get<Task>() { return pTask_; }
 
         BrokerSession * getBrokerSession();
         adwidgets::ElementIO& getElementIO();
   
     private:
-        friend singleton::BrokerManager;
+	friend class ACE_Singleton<BrokerManager, ACE_Recursive_Thread_Mutex>;
+        // friend class singleton::BrokerManager;
         static bool initialized_;
         Task * pTask_;
     };
+
+    template<> Task * BrokerManager::get<Task>();
 
 }
 

@@ -31,6 +31,13 @@ using namespace adbroker;
 // BrokerManager * BrokerManager::instance_ = 0;
 bool BrokerManager::initialized_ = false;
 
+namespace adbroker {
+    template<> Task * BrokerManager::get<Task>()
+    { 
+	return pTask_;
+    }
+}
+
 BrokerManager::~BrokerManager()
 {
     delete pTask_;

@@ -25,13 +25,17 @@
 
 #pragma once
 
-#pragma warning(disable:4996)
+#if defined _MSC_VER
+#  pragma warning(disable:4996)
+#endif
 #include <ace/Recursive_Thread_Mutex.h>
 #include <ace/Task.h>
 #include <ace/Barrier.h>
 #include <ace/Message_Queue.h>
 
-#pragma warning(default:4996)
+#if defined _MSC_VER
+#  pragma warning(default:4996)
+#endif
 
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>

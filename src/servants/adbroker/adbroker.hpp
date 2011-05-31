@@ -31,23 +31,23 @@ namespace CORBA {
 }
 
 namespace PortableServer {
-	class POA;
-	class POAManager;
+    class POA;
+    class POAManager;
 }
 
 namespace acewrapper {
-	class ORBServantManager;
+    class ORBServantManager;
 }
 
 class ADBROKERSHARED_EXPORT adBroker {
 public:
     adBroker(void);
     ~adBroker(void);
-
-	static bool initialize( CORBA::ORB* orb, PortableServer::POA * poa, PortableServer::POAManager * mgr );
-	static const char * activate();
+    
+    static bool initialize( CORBA::ORB* orb, PortableServer::POA * poa, PortableServer::POAManager * mgr );
+    static const char * activate();
     static bool deactivate();
-
-	static int run();
-	static void abort_server();
+    
+    static int run();
+    static void abort_server();
 };
