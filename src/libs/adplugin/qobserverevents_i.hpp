@@ -27,43 +27,45 @@
 
 #include "adplugin_global.h"
 #include <QObject>
+
+#if defined _MSC_VER
 #pragma warning(disable:4996)
+#endif
 #include <adinterface/signalobserverS.h>
-#pragma warning(default:4996)
 
 namespace adplugin {
 
-	class ADPLUGINSHARED_EXPORT QObserverEvents_i : public QObject
-		                                          , public POA_SignalObserver::ObserverEvents {
-		Q_OBJECT
-	public:
-		explicit QObserverEvents_i(QObject *parent = 0);
-		QObserverEvents_i( SignalObserver::Observer_ptr
-			             , const std::wstring& token 
-			             , SignalObserver::eUpdateFrequency freq = SignalObserver::Friquent
-						 , QObject * parent = 0 );
+    class ADPLUGINSHARED_EXPORT QObserverEvents_i : public QObject
+						  , public POA_SignalObserver::ObserverEvents {
+	Q_OBJECT
+	    public:
+	explicit QObserverEvents_i(QObject *parent = 0);
+	QObserverEvents_i( SignalObserver::Observer_ptr
+			   , const std::wstring& token 
+			   , SignalObserver::eUpdateFrequency freq = SignalObserver::Friquent
+			   , QObject * parent = 0 );
         ~QObserverEvents_i();
-
+	
         // implements ObserverEvents
         void OnUpdateData( CORBA::ULong, CORBA::Long );
         void OnMethodChanged( CORBA::ULong, CORBA::Long );
         void OnEvent( CORBA::ULong, CORBA::ULong, CORBA::Long );
         void OnClose();
-
+	
         // Observer 
-		inline SignalObserver::Observer_ptr& ptr() { return impl_; }
+	inline SignalObserver::Observer_ptr& ptr() { return impl_; }
     signals:
         void signal_UpdateData( unsigned long, long );
         void signal_MethodChanged( unsigned long, long );
-		void signal_Event( unsigned long, unsigned long, long );
-
-	public slots:
-
-	private:
-		unsigned long objId_;
-		SignalObserver::eUpdateFrequency freq_;
-		std::wstring token_;
-		SignalObserver::Observer_var impl_;
+	void signal_Event( unsigned long, unsigned long, long );
+							       
+    public slots:
+	
+    private:
+	unsigned long objId_;
+	SignalObserver::eUpdateFrequency freq_;
+	std::wstring token_;
+	SignalObserver::Observer_var impl_;
     };
 }
 

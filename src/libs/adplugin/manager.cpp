@@ -39,9 +39,12 @@
 #include <map>
 #include <fstream>
 #include <boost/smart_ptr.hpp>
+#include <boost/filesystem.hpp>
 #include <QWidget>
 
+#if defined _MSC_VER
 # pragma warning(disable:4996)
+#endif
 #include <ace/Singleton.h>
 
 //----------------------------------
@@ -150,7 +153,7 @@ manager_impl::loadFactory( const std::wstring& filename )
         QLibrary lib( qtwrapper::qstring::copy(filename) );
         if ( lib.load() ) {
             typedef adplugin::ifactory * (*ad_plugin_instance_t)();
-            ad_plugin_instance_t instance = static_cast<ad_plugin_instance_t>( lib.resolve( "ad_plugin_instance" ) );
+            ad_plugin_instance_t instance = reinterpret_cast<ad_plugin_instance_t>( lib.resolve( "ad_plugin_instance" ) );
             if ( instance ) {
                 libraries_[ filename ] = instance();
             } else {
@@ -218,8 +221,8 @@ manager_impl::lookup_ior( const std::string& name )
 class ORBLoaderError : public adplugin::orbLoader {
 	std::string errmsg_;
 public:
-	ORBLoaderError::ORBLoaderError( const std::string& errmsg ) : errmsg_( errmsg ) {}
-	ORBLoaderError::~ORBLoaderError() { }
+	ORBLoaderError( const std::string& errmsg ) : errmsg_( errmsg ) {}
+	~ORBLoaderError() { }
 	virtual operator bool() const { return false; }
 	virtual bool initialize( CORBA::ORB *, PortableServer::POA * , PortableServer::POAManager * ) { return false; }
 	virtual void initial_reference( const char * ) { }
@@ -232,40 +235,36 @@ public:
 adplugin::orbLoader&
 manager_impl::orbLoader( const std::wstring& file )
 {
-	orbLoadersType::iterator it = orbLoaders_.find( file );
-
-	if ( it != orbLoaders_.end() )
-		return *it->second;
-
-    int rcode = _waccess( file.c_str(), 0 );
-	if ( rcode ) {
-		adportable::debug dbg;
-		const char * reason = 0;
-        if ( errno == EACCES ) reason = "access denied";
-		else if ( errno == ENOENT ) reason = "file name or path not found";
-		else if ( errno == EINVAL ) reason = "invalid parameter";
-		else reason = "n/a";
-		dbg << "error: " << reason << " '" << file << "'";
-		failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
-		return *failedLoaders_[ file ];
-	}
+    orbLoadersType::iterator it = orbLoaders_.find( file );
     
-	QLibrary lib( qtwrapper::qstring::copy( file ) );
-	if ( lib.load() ) {
-		typedef adplugin::orbLoader * (*instance_t)();
-		instance_t instance = static_cast<instance_t>( lib.resolve( "instance" ) );
-		if ( instance ) {
-			boost::shared_ptr< adplugin::orbLoader > loader( instance() );
-			if ( loader )
-				orbLoaders_[ file ] = loader;
-		} else {
-			failedLoaders_[ file ].reset( new ORBLoaderError( "dll entry point 'instance' can not be found" ) );
-			return *failedLoaders_[ file ];
-		}
-	}
-	if ( ( it = orbLoaders_.find( file ) ) != orbLoaders_.end() )
-		return *it->second;
+    if ( it != orbLoaders_.end() )
+	return *it->second;
 
-	failedLoaders_[ file ].reset( new ORBLoaderError( "dll load failed." ) );
+    boost::filesystem::path filepath( file );
+    boost::system::error_code ec;
+    if ( ! boost::filesystem::exists( file, ec ) ) {
+	adportable::debug dbg;
+	dbg << "error: " << ec.message() << " '" << ec.category().name() << "'";
+	failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
 	return *failedLoaders_[ file ];
+    }
+    
+    QLibrary lib( qtwrapper::qstring::copy( file ) );
+    if ( lib.load() ) {
+	typedef adplugin::orbLoader * (*instance_t)();
+	instance_t instance = reinterpret_cast<instance_t>( lib.resolve( "instance" ) );
+	if ( instance ) {
+	    boost::shared_ptr< adplugin::orbLoader > loader( instance() );
+	    if ( loader )
+		orbLoaders_[ file ] = loader;
+	} else {
+	    failedLoaders_[ file ].reset( new ORBLoaderError( "dll entry point 'instance' can not be found" ) );
+	    return *failedLoaders_[ file ];
+	}
+    }
+    if ( ( it = orbLoaders_.find( file ) ) != orbLoaders_.end() )
+	return *it->second;
+    
+    failedLoaders_[ file ].reset( new ORBLoaderError( "dll load failed." ) );
+    return *failedLoaders_[ file ];
 }

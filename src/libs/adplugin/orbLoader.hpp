@@ -25,11 +25,7 @@
 
 #pragma once
 
-#if defined(ADPLUGIN_LIBRARY)
-#  define SHARED_EXPORT __declspec(dllexport)
-#else
-#  define SHARED_EXPORT __declspec(dllimport)
-#endif
+#include "adplugin_global.h"
 
 namespace CORBA {
     class ORB;
@@ -42,17 +38,17 @@ namespace PortableServer {
 
 namespace adplugin {
 
-    class SHARED_EXPORT orbLoader {
+    class ADPLUGINSHARED_EXPORT orbLoader {
     public:
-		virtual ~orbLoader() {};
-		virtual operator bool() const = 0;
-
-		virtual bool initialize( CORBA::ORB *, PortableServer::POA * , PortableServer::POAManager * ) = 0;
+	virtual ~orbLoader() {};
+	virtual operator bool() const = 0;
+	
+	virtual bool initialize( CORBA::ORB *, PortableServer::POA * , PortableServer::POAManager * ) = 0;
         virtual void initial_reference( const char * ior ) = 0;
         virtual const char * activate() = 0;
         virtual bool deactivate() = 0;
-  
-		virtual const char * error_description() { return 0; }
+	
+	virtual const char * error_description() { return 0; }
     };
 
 }

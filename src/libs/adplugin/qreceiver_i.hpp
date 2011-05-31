@@ -27,11 +27,12 @@
 
 #include "adplugin_global.h"
 #include <QObject>
+
+#if defined _MSC_VER
 # pragma warning(disable:4996)
 # pragma warning(disable:4805)
-# include <adinterface/ReceiverS.h>
-# pragma warning(default:4805)
-# pragma warning(default:4996)
+#endif
+# include <adinterface/receiverS.h>
 
 class ACE_Message_Block;
 

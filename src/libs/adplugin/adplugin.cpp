@@ -44,10 +44,11 @@
 #include <boost/smart_ptr.hpp>
 #include <fstream>
 
-#pragma warning (disable: 4996)
+#if defined _MSC_VER
+# pragma warning (disable: 4996)
+#endif
 #include <ace/Init_ACE.h>
 #include <ace/Singleton.h>
-#pragma warning (default: 4996)
 
 #if defined ACE_WIN32
 #  if defined _DEBUG
