@@ -31,12 +31,13 @@
 #include <acewrapper/brokerhelper.hpp>
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
+#include <stdexcept>
 
 using namespace adcontroller;
 
-iProxy::iProxy( iBroker& t ) : broker_( t )
-                             , objref_( false )
-							 , objId_(0) 
+iProxy::iProxy( iBroker& t ) : objref_( false )
+                             , broker_( t )
+			     , objId_(0) 
 {
 }
 
@@ -54,7 +55,7 @@ iProxy::setConfiguration( const adportable::Configuration& c )
         if ( ! nsname.empty() ) {
 			Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, iorBroker );
 			if ( CORBA::is_nil( mgr ) )
-				throw std::exception( "iProxy::setConfiguration -- can't get Broker::Manager reference" );
+				throw std::runtime_error( "iProxy::setConfiguration -- can't get Broker::Manager reference" );
 
 			std::string ior = mgr->ior( nsname.c_str() );
 			if ( ! ior.empty() ) {

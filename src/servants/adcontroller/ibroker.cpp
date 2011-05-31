@@ -44,15 +44,17 @@
 #include "observer_i.hpp"
 #include "manager_i.hpp"
 #include <acewrapper/orbservant.hpp>
+#include <stdexcept>
 #if defined _DEBUG
 # include <iostream>
 #endif
 
+
 using namespace adcontroller;
 
 namespace adcontroller {
-	namespace internal {
-
+    namespace internal {
+	
         struct session_data {
             bool operator == ( const session_data& ) const;
             bool operator == ( const Receiver_ptr ) const;
@@ -62,8 +64,8 @@ namespace adcontroller {
             session_data() {};
             session_data( const session_data& t ) : session_(t.session_), receiver_(t.receiver_) {};
         };
-
-	}
+	
+    }
 }
 
 
@@ -80,22 +82,22 @@ iBroker::~iBroker()
 
 iBroker::iBroker( size_t n_threads ) : barrier_(n_threads)
                                      , n_threads_(n_threads) 
-									 , status_current_( ControlServer::eNothing )
-									 , status_being_( ControlServer::eNothing )  
+				     , status_current_( ControlServer::eNothing )
+				     , status_being_( ControlServer::eNothing )  
 {
 }
 
 void
 iBroker::reset_clock()
 {
-	struct invoke_reset_clock {
-		void operator ()( iproxy_ptr& proxy ) {
-			proxy->reset_clock();
-		}
-	};
-
-	acewrapper::scoped_mutex_t<> lock( mutex_ );
-	std::for_each( iproxies_.begin(), iproxies_.end(), invoke_reset_clock() );
+    struct invoke_reset_clock {
+	void operator ()( iproxy_ptr& proxy ) const {
+	    proxy->reset_clock();
+	}
+    };
+    
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::for_each( iproxies_.begin(), iproxies_.end(), invoke_reset_clock() );
 }
 
 bool
@@ -136,8 +138,8 @@ iBroker::configComplete()
 
 	SignalObserver::Observer_var masterObserver = getObserver();
 	if ( CORBA::is_nil( masterObserver.in() ) ) {
-		assert(0);
-		throw std::exception( "iBroker::configComplete - can't get master observer servant" );
+	    assert(0);
+	    throw std::runtime_error( "iBroker::configComplete - can't get master observer servant" );
 	}
 
     int objid = 0;

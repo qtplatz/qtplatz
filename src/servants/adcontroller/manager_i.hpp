@@ -25,9 +25,10 @@
 
 #pragma once
 
-#pragma warning (disable: 4996)
+#if defined _MSC_VER
+# pragma warning (disable: 4996)
+#endif
 #include "adinterface/brokerS.h"
-#pragma warning (default: 4996)
 
 #include "session_i.hpp"
 #include <acewrapper/orbservant.hpp>

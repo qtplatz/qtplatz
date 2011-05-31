@@ -29,10 +29,12 @@
 //////////////////////////////////////////
 
 #include "timerhandler.hpp"
-#pragma warning (disable: 4669)
+
+#if defined _MSC_VER
+# pragma warning (disable: 4669)
+#endif
 #include <ace/Reactor.h>
 #include <ace/Synch.h>
-#pragma warning (default: 4669)
 
 using namespace acewrapper;
 

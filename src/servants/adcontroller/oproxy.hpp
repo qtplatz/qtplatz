@@ -25,10 +25,11 @@
 
 #pragma once
 
-#pragma warning(disable:4996)
+#if defined _MSC_VER
+# pragma warning(disable:4996)
+#endif
 #include <adinterface/signalobserverS.h>
 #include <adinterface/instrumentC.h>
-#pragma warning(default:4996)
 
 #include <adportable/configuration.hpp>
 #include <boost/noncopyable.hpp>

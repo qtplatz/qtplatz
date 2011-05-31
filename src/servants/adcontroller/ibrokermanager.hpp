@@ -22,16 +22,14 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
-#pragma warning(disable:4996)
+#include <boost/smart_ptr.hpp>
+
+#if defined _MSC_VER
+# pragma warning(disable:4996)
+#endif
 #include <ace/Singleton.h>
 #include <ace/Recursive_Thread_Mutex.h>
-#pragma warning(default:4996)
-#include <boost/smart_ptr.hpp>
 
 class ACE_Reactor;
 
@@ -64,7 +62,6 @@ namespace adcontroller {
         ACE_Reactor * reactor();
         
         template<class T> T* get();
-        template<> iBroker * get<iBroker>() { return pBroker_; }
         
     private:
         friend class ACE_Singleton<IBrokerManager, ACE_Recursive_Thread_Mutex>;
@@ -77,9 +74,11 @@ namespace adcontroller {
         acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> > * timerHandler_;
     };
 
-	namespace singleton {
-		typedef ACE_Singleton<adcontroller::IBrokerManager, ACE_Recursive_Thread_Mutex> iBrokerManager;
-	}
+    template<> iBroker * IBrokerManager::get<iBroker>() { return pBroker_; }
+
+    namespace singleton {
+	typedef ACE_Singleton<adcontroller::IBrokerManager, ACE_Recursive_Thread_Mutex> iBrokerManager;
+    }
 }
 
 

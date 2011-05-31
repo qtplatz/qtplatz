@@ -34,10 +34,11 @@
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
 
-#pragma warning(disable:4996)
-#include <adinterface/ReceiverS.h>
+#if defined _MSC_VER
+# pragma warning(disable:4996)
+#endif
+#include <adinterface/receiverS.h>
 #include <adinterface/instrumentC.h>
-#pragma warning(default:4996)
 
 namespace ControlMethod {
     struct Methohd;

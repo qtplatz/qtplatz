@@ -22,16 +22,19 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+
 #ifndef TIMERHANDLER_H
 #define TIMERHANDLER_H
 
-#pragma warning (disable: 4996)
+#if defined _MSC_VER
+#  pragma warning (disable: 4996)
+#endif
+
 # include <ace/Event_Handler.h>
-#pragma warning (default: 4996)
+
+#if defined _MSC_VER
+#  pragma warning (default: 4996)
+#endif
 
 class ACE_Semaphore;
 

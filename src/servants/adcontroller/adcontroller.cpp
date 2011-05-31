@@ -23,9 +23,10 @@
 **************************************************************************/
 
 #include "adcontroller.hpp"
-#pragma warning (disable: 4996)
+#if defined _MSC_VER
+# pragma warning (disable: 4996)
+#endif
 #include "ace/Init_ACE.h"
-#pragma warning (default: 4996)
 
 #if defined ACE_WIN32
 #  if defined _DEBUG
@@ -55,15 +56,15 @@
 #  endif
 #endif
 
-#pragma warning (disable: 4996)
+#if defined _MSC_VER
+# pragma warning (disable: 4996)
+#endif
 # include <ace/SOCK_Dgram_Mcast.h>
 # include <ace/Service_Config.h>
 # include <ace/Sched_Params.h>
 # include <ace/Thread_Manager.h>
 # include <ace/Process_Manager.h>
-//# include <ace/OS.h>
 # include <tao/Utils/ORB_Manager.h>
-#pragma warning (default: 4996)
 
 #include "signal_handler.hpp"
 #include <signal.h>
@@ -81,9 +82,9 @@ using namespace acewrapper;
 
 static int debug_flag = 0;
 static bool __aborted = false;
-static bool __own_thread = false;
+//static bool __own_thread = false;
 
-static Receiver * __preceiver_debug;
+// static Receiver * __preceiver_debug;
 std::string __ior_session;
 
 //-----------------------------------------------
@@ -150,44 +151,45 @@ adController::deactivate()
 bool
 adController::_deactivate()
 {
-	adcontroller::singleton::iBrokerManager::instance()->manager_terminate();
+    adcontroller::singleton::iBrokerManager::instance()->manager_terminate();
     adcontroller::singleton::manager::instance()->deactivate();
-	return true;
+    return true;
 }
 
 int
 adController::run()
 {
-   ACE_Sched_Params fifo_sched_params( ACE_SCHED_FIFO, 
-				       ACE_Sched_Params::priority_min( ACE_SCHED_FIFO ),
-				       ACE_SCOPE_PROCESS );
-   
-   //<---- set real time priority class for this process
-   if ( debug_flag == 0 ) {
-	   if ( ACE_OS::sched_params(fifo_sched_params) == -1 ) {
-		   if ( errno == EPERM || errno == ENOTSUP ) 
-			   ACE_DEBUG((LM_DEBUG, "Warning: user's not superuser, so we'll run in the theme-shared class\n"));
-		   else
-			   ACE_ERROR_RETURN((LM_ERROR, "%p\n", "ACE_OS::sched_params()"), -1);
-	   }
-   } else {
-	   std::cerr << "==================================================" << std::endl;
-	   std::cerr << "====== running normal priority for debug =========" << std::endl;
-	   std::cerr << "==================================================" << std::endl;
-   }
-   //-------------> end priority code
-   return 0;
+    ACE_Sched_Params fifo_sched_params( ACE_SCHED_FIFO, 
+					ACE_Sched_Params::priority_min( ACE_SCHED_FIFO ),
+					ACE_SCOPE_PROCESS );
+    
+    //<---- set real time priority class for this process
+    if ( debug_flag == 0 ) {
+	if ( ACE_OS::sched_params(fifo_sched_params) == -1 ) {
+	    if ( errno == EPERM || errno == ENOTSUP ) 
+		ACE_DEBUG((LM_DEBUG, "Warning: user's not superuser, so we'll run in the theme-shared class\n"));
+	    else
+		ACE_ERROR_RETURN((LM_ERROR, "%p\n", "ACE_OS::sched_params()"), -1);
+	}
+    } else {
+	std::cerr << "==================================================" << std::endl;
+	std::cerr << "====== running normal priority for debug =========" << std::endl;
+	std::cerr << "==================================================" << std::endl;
+    }
+    //-------------> end priority code
+    return 0;
 }
 
 void
 adController::abort_server()
 {
-	adController::_abort_server();
+    adController::_abort_server();
 }
 
 /////////////////////
-__declspec(dllexport) adplugin::orbLoader * instance()
+
+Q_DECL_EXPORT adplugin::orbLoader * instance()
 {
-	return new adController;
+    return new adController;
 }
 

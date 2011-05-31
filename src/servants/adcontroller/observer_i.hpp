@@ -25,13 +25,18 @@
 
 #pragma once
 
-#pragma warning (disable : 4996 )
-# include <adinterface/signalobserverS.h>
-# include <ace/Recursive_Thread_Mutex.h>
-#pragma warning (default : 4996 )
 #include <vector>
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
+
+#if defined _MSC_VER
+# pragma warning (disable : 4996 )
+#endif
+# include <adinterface/signalobserverS.h>
+# include <ace/Recursive_Thread_Mutex.h>
+#if defined _MSC_VER
+# pragma warning (default : 4996 )
+#endif
 
 namespace adcontroller {
 

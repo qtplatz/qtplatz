@@ -24,10 +24,12 @@
 #ifndef ADCONTROLLER_GLOBAL_H
 #define ADCONTROLLER_GLOBAL_H
 
+#include <QtCore/qglobal.h>
+
 #if defined(ADCONTROLLER_LIBRARY)
-#  define ADCONTROLLERSHARED_EXPORT __declspec(dllexport)
+#  define ADCONTROLLERSHARED_EXPORT Q_DECL_EXPORT
 #else
-#  define ADCONTROLLERSHARED_EXPORT __declspec(dllimport)
+#  define ADCONTROLLERSHARED_EXPORT Q_DECL_IMPORT
 #endif
 
 #endif // ADCONTROLLER_GLOBAL_H

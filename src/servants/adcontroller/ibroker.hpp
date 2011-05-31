@@ -30,12 +30,13 @@
 #include <vector>
 #include <adportable/configuration.hpp>
 
-#pragma warning(disable:4996)
+#if defined _MSC_VER
+# pragma warning(disable:4996)
+#endif
 # include <ace/Recursive_Thread_Mutex.h>
 # include <ace/Task.h>
 # include <ace/Barrier.h>
 # include <adinterface/controlserverC.h>
-#pragma warning(default:4996)
 
 class ACE_Recursive_Thread_Mutex;
 class ACE_Notification_Strategy;
