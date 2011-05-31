@@ -92,7 +92,9 @@ logger_i::log( const Broker::LogMessage& msg )
 
     if ( (m.tv_sec < 0 || m.tv_sec > hlimit ) || m.tv_sec == 0 ) {
         long usec;
-        acewrapper::gettimeofday( m.tv_sec, usec );
+	time_t tv_sec;
+        acewrapper::gettimeofday( tv_sec, usec );
+	m.tv_sec = tv_sec;
         m.tv_usec = usec;
     }
 
@@ -132,7 +134,8 @@ logger_i::to_string( const Broker::LogMessage& msg )
     std::wostringstream o;
 
     ACE_TCHAR tbuf[128];
-    char * sp = ACE_OS::ctime_r( &msg.tv_sec, tbuf, sizeof(tbuf) );
+    time_t tv_sec = msg.tv_sec;
+    char * sp = ACE_OS::ctime_r( &tv_sec, tbuf, sizeof(tbuf) );
     while ( *sp && *sp != '\n' )
         o << *sp++;
     o << L" " << std::fixed << std::setw(7) << std::setfill(L'0') << std::setprecision(3) << double( msg.tv_usec ) / 1000.0 << "\t: ";

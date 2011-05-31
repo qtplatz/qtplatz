@@ -43,11 +43,15 @@
 #include <sstream>
 #include <iostream>
 
-#pragma warning(disable:4996)
+#if defined _MSC_VER
+# pragma warning(disable:4996)
+#endif
 # include <ace/Reactor.h>
 # include <ace/Thread_Manager.h>
 # include <adinterface/signalobserverC.h>
-#pragma warning(default:4996)
+#if defined _MSC_VER
+# pragma warning(default:4996)
+#endif
 
 using namespace adbroker;
 
@@ -223,8 +227,8 @@ do_addSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_pt
     SignalObserver::Description_var desc = observer->getDescription();
     CORBA::WString_var clsid = observer->dataInterpreterClsid();
 
-    long pos = observer->posFromTime( unsigned long long( x1 * 60 * 1000 * 1000 ) ); // us
-    long pos2 = observer->posFromTime( unsigned long long( x2 * 60 * 1000 * 1000 ) ); // us
+    long pos = observer->posFromTime( boost::uint64_t( x1 * 60 * 1000 * 1000 ) ); // us
+    long pos2 = observer->posFromTime( boost::uint64_t( x2 * 60 * 1000 * 1000 ) ); // us
 
     std::wstring text;
     if ( pos == pos2 )
