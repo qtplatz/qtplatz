@@ -56,7 +56,7 @@ namespace addatafile { namespace detail {
         const adcontrols::datafile& source_;
         const boost::filesystem::path& path_;
         saveAttachment( adfs::folium& dbfolium, const boost::filesystem::path& p, const adcontrols::datafile& f )
-            : parent_( dbfolium ), path_( p ), source_( f ) {
+            : parent_( dbfolium ), source_( f ), path_( p ) {
         }
         bool operator () ( const portfolio::Folium& folim );
     };
@@ -82,13 +82,13 @@ namespace addatafile { namespace detail {
 
     struct import {
 
-        static void attributes( portfolio::Folium& dst, const adfs::folium& src ) {
+        static void attributes( portfolio::Folium dst, const adfs::folium& src ) {
             for ( adfs::internal::attributes::vector_type::const_iterator it = src.begin(); it != src.end(); ++it )
                 dst.setAttribute( it->first, it->second );
             dst.setAttribute( L"rowid", boost::lexical_cast<std::wstring>( src.rowid() ) );
         }
 
-        static void folium( portfolio::Folium& dst, const adfs::folium& src ) {
+        static void folium( portfolio::Folium dst, const adfs::folium& src ) {
             import::attributes( dst, src );
             adfs::folio attachments = src.attachments();
             for ( adfs::folio::const_iterator it = attachments.begin(); it != attachments.end(); ++it ) {
@@ -97,7 +97,7 @@ namespace addatafile { namespace detail {
             }
         }
 
-        static void folder( portfolio::Folder& parent, const adfs::folder& adfolder ) {
+        static void folder( portfolio::Folder parent, const adfs::folder& adfolder ) {
             const adfs::folio adfolio = adfolder.folio();
             for ( adfs::folio::const_iterator it = adfolio.begin(); it != adfolio.end(); ++it ) {
                 import::folium( parent.addFolium( it->name() ), *it );
@@ -149,10 +149,10 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     filename_ = filename;
     processedDataset_.reset( new adcontrols::ProcessedDataset );
 
-    if ( mounted_ = dbf_.mount( filename.c_str() ) )
+    if ( ( mounted_ = dbf_.mount( filename.c_str() ) ) )
         return true;
 
-    if ( mounted_ = dbf_.create( filename.c_str() ) )
+    if ( ( mounted_ = dbf_.create( filename.c_str() ) ) )
         return true;
 
     return false;

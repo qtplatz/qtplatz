@@ -40,10 +40,11 @@
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msassignedmass.hpp>
 
+#if defined _MSC_VER
 # pragma warning( disable: 4996 )
+#endif
 # include <boost/archive/binary_oarchive.hpp>
 # include <boost/archive/binary_iarchive.hpp>
-# pragma warning( default: 4996 )
 
 namespace addatafile { namespace detail {
 
@@ -66,47 +67,52 @@ using namespace addatafile::detail;
 bool
 copyin_visitor::apply( boost::any& a, adfs::folium& dbf )
 {
-    return boost::apply_visitor( addatafile::detail::copyin(dbf), adutils::ProcessedData::toVariant( a ) );
+    // return boost::apply_visitor( addatafile::detail::copyin(dbf), adutils::ProcessedData::toVariant( a ) );
+    adutils::ProcessedData::value_type value = adutils::ProcessedData::toVariant( a );
+    return boost::apply_visitor( addatafile::detail::copyin(dbf), value );
 }
 
-template<> bool
-copyin::operator ()( adutils::ProcessedData::Nothing& ) const
-{
-    // nothing to do here.
-    return true;
-}       
+namespace addatafile {
+    namespace detail {
 
-template<> bool
-copyin::operator ()( adcontrols::MassSpectrumPtr& p ) const
-{
-    return adfs::cpio< adcontrols::MassSpectrum >::copyin( *p, folium_ );
-}       
-
-template<> bool
-copyin::operator ()( adcontrols::ProcessMethodPtr& p ) const
-{
-    return adfs::cpio< adcontrols::ProcessMethod >::copyin( *p, folium_ );
-} 
-
-
-template<> bool
-copyin::operator ()( adutils::ElementalCompositionCollectionPtr& p ) const
-{
-    return adfs::cpio< adcontrols::ElementalCompositionCollection >::copyin( *p, folium_ );
-}       
-
-
-template<> bool
-copyin::operator ()( adcontrols::ChromatogramPtr& p ) const
-{
-    return adfs::cpio< adcontrols::Chromatogram >::copyin( *p, folium_ );
-} 
-
-
-template<> bool
-copyin::operator ()( adcontrols::MSCalibrateResultPtr& p ) const
-{
-    return adfs::cpio< adcontrols::MSCalibrateResult >::copyin( *p, folium_ );
-} 
+	template<> bool
+	copyin::operator ()( adutils::ProcessedData::Nothing& ) const
+	{
+	    // nothing to do here.
+	    return true;
+	}       
+	
+	template<> bool
+	copyin::operator ()( adcontrols::MassSpectrumPtr& p ) const
+	{
+	    return adfs::cpio< adcontrols::MassSpectrum >::copyin( *p, folium_ );
+	}       
+	
+	template<> bool
+	copyin::operator ()( adcontrols::ProcessMethodPtr& p ) const
+	{
+	    return adfs::cpio< adcontrols::ProcessMethod >::copyin( *p, folium_ );
+	} 
+    
+	template<> bool
+	copyin::operator ()( adutils::ElementalCompositionCollectionPtr& p ) const
+	{
+	    return adfs::cpio< adcontrols::ElementalCompositionCollection >::copyin( *p, folium_ );
+	}       
+	
+	template<> bool
+	copyin::operator ()( adcontrols::ChromatogramPtr& p ) const
+	{
+	    return adfs::cpio< adcontrols::Chromatogram >::copyin( *p, folium_ );
+	} 
+	
+	
+	template<> bool
+	copyin::operator ()( adcontrols::MSCalibrateResultPtr& p ) const
+	{
+	    return adfs::cpio< adcontrols::MSCalibrateResult >::copyin( *p, folium_ );
+	} 
+    } // namespace detail
+} // namespace addatafile
 
 

@@ -25,6 +25,7 @@
 
 #include "addatafile.hpp"
 
+#if defined WIN32 && defined _MSC_VER
 #  if defined _DEBUG
 #     pragma comment(lib, "acewrapperd.lib")
 #     pragma comment(lib, "adcontrolsd.lib")
@@ -42,6 +43,7 @@
 #     pragma comment(lib, "portfolio.lib")
 #     pragma comment(lib, "xmlparser.lib")
 #  endif
+#endif
 
 #include "datafile_factory.hpp"
 
@@ -54,7 +56,7 @@ namespace adcontrols {
 }
 
 extern "C" {
-    __declspec(dllexport) adcontrols::datafile_factory * datafile_factory();
+    Q_DECL_EXPORT adcontrols::datafile_factory * datafile_factory();
 }
 
 adcontrols::datafile_factory *
