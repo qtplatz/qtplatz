@@ -74,7 +74,7 @@ namespace adcontroller {
         acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> > * timerHandler_;
     };
 
-    template<> iBroker * IBrokerManager::get<iBroker>() { return pBroker_; }
+    template<> iBroker * IBrokerManager::get<iBroker>();
     
     namespace singleton {
 	typedef ACE_Singleton<adcontroller::IBrokerManager, ACE_Recursive_Thread_Mutex> iBrokerManager;

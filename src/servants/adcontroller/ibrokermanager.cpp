@@ -55,6 +55,9 @@ namespace adcontroller {
     }
 }
 
+namespace adcontroller {
+    template<> iBroker * IBrokerManager::get<iBroker>() { return pBroker_; }
+}
 ///////////////////////////////////////////////////////////////////
 
 IBrokerManager::~IBrokerManager()

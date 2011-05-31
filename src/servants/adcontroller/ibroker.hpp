@@ -68,29 +68,29 @@ namespace adcontroller {
         bool open();
         void close();
 
-		//  instrument communication methods below
+	//  instrument communication methods below
         void reset_clock();
-		bool initialize();  // initialize hardware 
+	bool initialize();  // initialize hardware 
         bool connect( ControlServer::Session_ptr, Receiver_ptr, const wchar_t * token );
         bool disconnect( ControlServer::Session_ptr, Receiver_ptr );
         bool setConfiguration( const wchar_t * xml );
         bool configComplete();
-
-		//
-		ControlServer::eStatus getStatusCurrent();
-		ControlServer::eStatus getStatusBeging(); 
-		bool observer_update_data( unsigned long parentId, unsigned long objid, long pos );
-		bool observer_update_method( unsigned long parentId, unsigned long objid, long pos );
-		bool observer_update_event( unsigned long parentId, unsigned long objid, long pos, unsigned long ev );
-
-		typedef std::vector<internal::session_data> session_vector_type;
-		inline session_vector_type::iterator session_begin() { return session_set_.begin(); };
+	
+	//
+	ControlServer::eStatus getStatusCurrent();
+	ControlServer::eStatus getStatusBeging(); 
+	bool observer_update_data( unsigned long parentId, unsigned long objid, long pos );
+	bool observer_update_method( unsigned long parentId, unsigned long objid, long pos );
+	bool observer_update_event( unsigned long parentId, unsigned long objid, long pos, unsigned long ev );
+	
+	typedef std::vector<internal::session_data> session_vector_type;
+	inline session_vector_type::iterator session_begin() { return session_set_.begin(); };
         inline session_vector_type::iterator session_end()   { return session_set_.end(); };
         
         void register_failed( session_vector_type::iterator& );
         void commit_failed();
-
-		SignalObserver::Observer_ptr getObserver();
+	
+	SignalObserver::Observer_ptr getObserver();
         
     private:
         // ACE_Task
