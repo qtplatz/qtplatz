@@ -25,6 +25,7 @@
 
 #include "adtxtfactory.hpp"
 
+#if defined WIN32
 #  if defined _DEBUG
 #     pragma comment(lib, "adcontrolsd.lib")
 #     pragma comment(lib, "adportabled.lib")
@@ -36,19 +37,19 @@
 #     pragma comment(lib, "xmlparser.lib")
 #     pragma comment(lib, "portfolio.lib")
 #  endif
+#endif
 
 #include "datafile_factory.hpp"
 
 #define BOOST_LIB_NAME boost_filesystem
 #include <boost/config/auto_link.hpp>
 
-
 namespace adcontrols {
     class datafile_factory;
 }
 
 extern "C" {
-    __declspec(dllexport) adcontrols::datafile_factory * datafile_factory();
+    Q_DECL_EXPORT adcontrols::datafile_factory * datafile_factory();
 }
 
 adcontrols::datafile_factory *
