@@ -16,7 +16,6 @@ SUBDIRS   = \
     acewrapper \
     adplugin \
     adcontrols \
-    adwidgets \
     qtwidgets \
     adtxtfactory \
     addatafile
