@@ -183,10 +183,6 @@
 				>
 			</File>
 			<File
-				RelativePath="apiposix.cpp"
-				>
-			</File>
-			<File
 				RelativePath="apiwin32.cpp"
 				>
 			</File>

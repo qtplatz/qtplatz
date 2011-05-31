@@ -31,8 +31,7 @@
 #include <adcontrols/peak.hpp>
 #include <qtwrapper/qstring.hpp>
 
-using namespace adwidgets;
-using namespace adwidgets::ui;
+using namespace qtwidgets;
 
 PeakResultWidget::~PeakResultWidget()
 {

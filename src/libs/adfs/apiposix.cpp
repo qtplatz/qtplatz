@@ -30,8 +30,10 @@
 #include <boost/lexical_cast.hpp>
 
 #include <cstdlib>
-#include <pwd.h>
 #include <adportable/string.hpp>
+#if defined __linux__
+#include <pwd.h>
+#endif
 
 namespace adfs {
     namespace detail {

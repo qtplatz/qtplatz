@@ -66,31 +66,31 @@ namespace adcontrols {
 	vec_.push_back( v );
     }
 
-    template<> void Q_DECL_EXPORT // __declspec(dllexport)
+    template<> void Q_DECL_EXPORT
     ProcessMethod::appendMethod( const adcontrols::CentroidMethod& v )
     {
 	vec_.push_back( v );
     }
     
-    template<> void Q_DECL_EXPORT // __declspec(dllexport)
+    template<> void Q_DECL_EXPORT
     ProcessMethod::appendMethod( const IsotopeMethod& v )
     {
 	vec_.push_back( v );
     }
     
-    template<> void Q_DECL_EXPORT // __declspec(dllexport)
+    template<> void Q_DECL_EXPORT
     ProcessMethod::appendMethod( const ElementalCompositionMethod& v )
     {
 	vec_.push_back( v );
     }
     
-    template<> void Q_DECL_EXPORT // __declspec(dllexport)
+    template<> void Q_DECL_EXPORT
     ProcessMethod::appendMethod( const MSCalibrateMethod& v )
     {
 	vec_.push_back( v );
     }
     
-    template<> void // __declspec(dllexport)
+    template<> void Q_DECL_EXPORT
     ProcessMethod::appendMethod( const TargetingMethod& v )
     {
 	vec_.push_back( v );
