@@ -75,7 +75,7 @@ namespace adcontroller {
     };
 
     template<> iBroker * IBrokerManager::get<iBroker>() { return pBroker_; }
-
+    
     namespace singleton {
 	typedef ACE_Singleton<adcontroller::IBrokerManager, ACE_Recursive_Thread_Mutex> iBrokerManager;
     }

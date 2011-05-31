@@ -30,42 +30,42 @@
 
 namespace adcontroller {
 
-	namespace internal {
-
-		struct observer_events_data {
-			bool operator == ( const observer_events_data& ) const;
-			bool operator == ( const SignalObserver::ObserverEvents_ptr ) const;
-			SignalObserver::ObserverEvents_var events_;
-			std::wstring token_;
-			SignalObserver::eUpdateFrequency freq_;
-			observer_events_data() {}
-			observer_events_data( const observer_events_data& t ) : events_( t.events_ )
-				                                                  , token_( t.token_ )
-																  , freq_( t.freq_ )  {
-			}
+    namespace internal {
+	
+	struct observer_events_data {
+	    bool operator == ( const observer_events_data& ) const;
+	    bool operator == ( const SignalObserver::ObserverEvents_ptr ) const;
+	    SignalObserver::ObserverEvents_var events_;
+	    std::wstring token_;
+	    SignalObserver::eUpdateFrequency freq_;
+	    observer_events_data() {}
+	    observer_events_data( const observer_events_data& t ) : events_( t.events_ )
+								  , token_( t.token_ )
+								  , freq_( t.freq_ )  {
+	    }
         };
-
-		struct sibling_data {
-			boost::shared_ptr< observer_i > pCache_i_;
+	
+	struct sibling_data {
+	    boost::shared_ptr< observer_i > pCache_i_;
             SignalObserver::Observer_var observer_;  // instrument oberver ( in instrument fifo )
             SignalObserver::Observer_var cache_;     // cache observer (in server cache) := pCache_i_
             unsigned long objId_;
-			sibling_data() : objId_(0) {}
-			sibling_data( const sibling_data& t ) : objId_( t.objId_ )
-				                                  , pCache_i_( t.pCache_i_ )
+	    sibling_data() : objId_(0) {}
+	    sibling_data( const sibling_data& t ) : pCache_i_( t.pCache_i_ )
                                                   , observer_( t.observer_ ) 
-                                                  , cache_( t.cache_ ) {
+						  , cache_( t.cache_ )
+						  , objId_( t.objId_ ) {
             }
         };
-      
-	}
+	
+    }
 }
 
 using namespace adcontroller;
 
 observer_i::observer_i( SignalObserver::Observer_ptr source ) : objId_(0)
 {
-	source_observer_ = SignalObserver::Observer::_duplicate(source);
+    source_observer_ = SignalObserver::Observer::_duplicate(source);
     if ( ! CORBA::is_nil( source_observer_.in() ) ) {
         cache_.reset( new Cache() );
     }
@@ -103,20 +103,20 @@ observer_i::assign_objId( CORBA::ULong oid )
 
 ::CORBA::Boolean
 observer_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
-						, ::SignalObserver::eUpdateFrequency frequency
-						, const CORBA::WChar * token )
+		      , ::SignalObserver::eUpdateFrequency frequency
+		      , const CORBA::WChar * token )
 {
-	using namespace adcontroller::internal;
-
+    using namespace adcontroller::internal;
+    
     observer_events_data data;
     data.events_ = cb;
     data.token_ = token;
     data.freq_ = frequency;
-
+    
     acewrapper::scoped_mutex_t<> lock( mutex_ );
-
-	observer_events_set_.push_back( data );
-	return true;
+    
+    observer_events_set_.push_back( data );
+    return true;
 }
 
 ::CORBA::Boolean
@@ -209,7 +209,7 @@ observer_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
     if ( recursive ) {
         ::SignalObserver::Observer * pres = 0;
         for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
-            if ( pres = it->cache_->findObserver( objId, true ) )
+            if ( ( pres = it->cache_->findObserver( objId, true ) ) )
                 return pres;
         }
     }
@@ -295,7 +295,7 @@ observer_i::find_cache_observer( unsigned long objId )
 
     observer_i * p(0);
     for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it )
-        if ( p = it->pCache_i_->find_cache_observer( objId ) )
+        if ( ( p = it->pCache_i_->find_cache_observer( objId ) ) )
             return p;
     return 0;
 }

@@ -87,15 +87,45 @@ iBroker::iBroker( size_t n_threads ) : barrier_(n_threads)
 {
 }
 
+namespace adcontroller {
+    namespace ibroker {
+
+	struct invoke_reset_clock {
+	    void operator ()( iBroker::iproxy_ptr& proxy ) const {
+		proxy->reset_clock();
+	    }
+	};
+
+	struct invoke_initialize {
+	    void operator ()( iBroker::iproxy_ptr& proxy ) {
+		proxy->initialize();
+	    }
+	    void operator ()( iBroker::oproxy_ptr& proxy ) {
+		proxy->initialize();
+	    }
+	};
+
+	struct invoke_connect {
+	    const wchar_t * token_;
+	    invoke_connect( const wchar_t * token ) : token_(token) {}
+	    void operator ()( iBroker::iproxy_ptr& proxy ) {
+		proxy->connect( token_ );
+	    }
+	    void operator ()( iBroker::oproxy_ptr& proxy ) {
+		proxy->connect( token_ );
+	    }
+	};
+
+    } // namespace ibroker
+} // namespace adcontroller
+    
+	
+
 void
 iBroker::reset_clock()
 {
-    struct invoke_reset_clock {
-	void operator ()( iproxy_ptr& proxy ) const {
-	    proxy->reset_clock();
-	}
-    };
-    
+    using adcontroller::ibroker::invoke_reset_clock;
+
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     std::for_each( iproxies_.begin(), iproxies_.end(), invoke_reset_clock() );
 }
@@ -183,25 +213,18 @@ iBroker::configComplete()
 bool
 iBroker::initialize()
 {
-	struct invoke_initialize {
-		void operator ()( iproxy_ptr& proxy ) {
-			proxy->initialize();
-		}
-		void operator ()( oproxy_ptr& proxy ) {
-			proxy->initialize();
-		}
-	};
+    using adcontroller::ibroker::invoke_initialize;
 
-	acewrapper::scoped_mutex_t<> lock( mutex_ );
-	std::for_each( iproxies_.begin(), iproxies_.end(), invoke_initialize() );
-	std::for_each( oproxies_.begin(), oproxies_.end(), invoke_initialize() );
-	return true;
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::for_each( iproxies_.begin(), iproxies_.end(), invoke_initialize() );
+    std::for_each( oproxies_.begin(), oproxies_.end(), invoke_initialize() );
+    return true;
 }
 
 bool
 iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const wchar_t * token )
 {
-	internal::session_data data;
+    internal::session_data data;
     data.session_ = ControlServer::Session::_duplicate( session );
     data.receiver_ = Receiver::_duplicate( receiver );
     
@@ -211,33 +234,23 @@ iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, con
         return false;
     
     session_set_.push_back( data );
-
-	// fire connect
-	struct invoke_connect {
-        const wchar_t * token_;
-		invoke_connect( const wchar_t * token ) : token_(token) {}
-		void operator ()( iproxy_ptr& proxy ) {
-			proxy->connect( token_ );
-		}
-		void operator ()( oproxy_ptr& proxy ) {
-			proxy->connect( token_ );
-		}
-	};
-
-	std::for_each( iproxies_.begin(), iproxies_.end(), invoke_connect(token) );
-	std::for_each( oproxies_.begin(), oproxies_.end(), invoke_connect(token) );
-
+    
+    // fire connect
+    using adcontroller::ibroker::invoke_connect;
+    std::for_each( iproxies_.begin(), iproxies_.end(), invoke_connect(token) );
+    std::for_each( oproxies_.begin(), oproxies_.end(), invoke_connect(token) );
+    
     do {
         using namespace adinterface::EventLog;
-
+	
         LogMessageHelper log( L"A pair of session %1%, Receiver %2% has success connected" );
         log % static_cast< void * >( session ) % static_cast<void *>(receiver);
         ACE_Message_Block * mb = marshal< ::EventLog::LogMessage >::put( log.get(), constants::MB_EVENTLOG );
-
+	
         this->putq( mb );
-
+	
     } while(0);
-
+    
     return true;
 }
 

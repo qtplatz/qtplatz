@@ -22,13 +22,19 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#pragma warning (disable : 4100)
-#include "cache.hpp"
+#if defined _MSC_VER
+#  pragma warning (disable : 4100)
+#endif
+# include "cache.hpp"
 
-#pragma warning (disable : 4996 )
+#if defined _MSC_VER
+#  pragma warning (disable : 4996 )
+#endif
 # include <adinterface/signalobserverS.h>
 # include <ace/Recursive_Thread_Mutex.h>
-#pragma warning (default : 4996 )
+#if defined _MSC_VER
+#  pragma warning (default : 4996 )
+#endif
 
 
 namespace adcontroller {
@@ -85,20 +91,26 @@ Cache::read( long pos, SignalObserver::DataReadBuffer_out rdbuf )
 	return false;
 }
 
+namespace adcontroller {
+    namespace cache {
+	struct time_compare {
+	    bool operator () ( const Cache::CacheItem& lhs, unsigned long long rhs ) const {
+		return lhs.rdbuf_->uptime < rhs;
+	    }
+	    bool operator () ( unsigned long long lhs, const Cache::CacheItem& rhs ) const {
+		return lhs < rhs.rdbuf_->uptime;
+	    }
+	    bool operator () ( const Cache::CacheItem& lhs, const Cache::CacheItem& rhs ) const {
+		return lhs.rdbuf_->uptime < rhs.rdbuf_->uptime;
+	    }
+	};
+    } // cache
+} // adcontroller
+
 long
 Cache::posFromTime( unsigned long long usec )
 {
-    struct time_compare {
-        bool operator () ( const CacheItem& lhs, unsigned long long rhs ) const {
-            return lhs.rdbuf_->uptime < rhs;
-        }
-        bool operator () ( unsigned long long lhs, const CacheItem& rhs ) const {
-            return lhs < rhs.rdbuf_->uptime;
-        }
-        bool operator () ( const CacheItem& lhs, const CacheItem& rhs ) const {
-            return lhs.rdbuf_->uptime < rhs.rdbuf_->uptime;
-        }
-    };
+    using adcontroller::cache::time_compare;
 
     acewrapper::scoped_mutex_t<> lock( mutex_ );
 

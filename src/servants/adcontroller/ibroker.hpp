@@ -104,11 +104,19 @@ namespace adcontroller {
 
         void handle_dispatch( const EventLog::LogMessage & );
         void handle_dispatch( const ACE_Time_Value& );
-		void handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value );
+	void handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value );
         void handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos );
         void handle_observer_update_method( unsigned long parentId, unsigned long objId, long pos );
         void handle_observer_update_events( unsigned long parentId, unsigned long objId, long pos, unsigned long events );
 
+	// 
+    public:
+	typedef boost::shared_ptr< iProxy > iproxy_ptr;
+	typedef boost::shared_ptr< oProxy > oproxy_ptr;
+	
+	typedef std::vector< boost::shared_ptr<iProxy> > iproxy_vector_type;
+	typedef std::vector< boost::shared_ptr<oProxy> > oproxy_vector_type;
+	
     private:
         friend class IBrokerManager;
 
@@ -122,20 +130,13 @@ namespace adcontroller {
 		session_vector_type session_set_;
 		session_vector_type session_failed_;
 
-		// 
-		typedef boost::shared_ptr< iProxy > iproxy_ptr;
-		typedef boost::shared_ptr< oProxy > oproxy_ptr;
-
-		typedef std::vector< boost::shared_ptr<iProxy> > iproxy_vector_type;
-		typedef std::vector< boost::shared_ptr<oProxy> > oproxy_vector_type;
-
-		std::vector< boost::shared_ptr< iProxy > > iproxies_;
-		std::vector< boost::shared_ptr< oProxy > > oproxies_;
-
-		boost::shared_ptr< observer_i > pMasterObserver_;
-
-		::ControlServer::eStatus status_current_;
-		::ControlServer::eStatus status_being_;
+	std::vector< boost::shared_ptr< iProxy > > iproxies_;
+	std::vector< boost::shared_ptr< oProxy > > oproxies_;
+	
+	boost::shared_ptr< observer_i > pMasterObserver_;
+	
+	::ControlServer::eStatus status_current_;
+	::ControlServer::eStatus status_being_;
     };
 
 } // namespace adcontroller

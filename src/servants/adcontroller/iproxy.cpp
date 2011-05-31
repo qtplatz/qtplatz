@@ -36,8 +36,8 @@
 using namespace adcontroller;
 
 iProxy::iProxy( iBroker& t ) : objref_( false )
-                             , broker_( t )
 			     , objId_(0) 
+                             , broker_( t )
 {
 }
 
@@ -94,8 +94,8 @@ iProxy::message( ::Receiver::eINSTEVENT msg, CORBA::ULong value )
 void
 iProxy::log( const EventLog::LogMessage& log )
 {
-	ACE_Message_Block * mb = marshal<::EventLog::LogMessage>::put( log, constants::MB_EVENTLOG );
-	broker_.putq( mb );
+    ACE_Message_Block * mb = marshal<EventLog::LogMessage>::put( log, constants::MB_EVENTLOG );
+    broker_.putq( mb );
 }
 
 // POA_Receiver
