@@ -31,12 +31,16 @@
 #include <vector>
 #include <map>
 
-# pragma warning(disable:4996)
+#if defined _MSC_VER
+#  pragma warning(disable:4996)
 #  pragma warning(disable:4805)
-#   include <adinterface/controlserverC.h>
+#endif
+#  include <adinterface/controlserverC.h>
+#  include <adinterface/signalobserverC.h>
+#if defined _MSC_VER
 #  pragma warning(default:4805)
-# include <adinterface/signalobserverC.h>
-# pragma warning(default:4996)
+#  pragma warning(default:4996)
+#endif
 
 
 class QToolButton;

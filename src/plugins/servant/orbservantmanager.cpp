@@ -6,10 +6,14 @@
 #include "orbservantmanager.hpp"
 #include <acewrapper/mutex.hpp>
 
-# pragma warning (disable: 4996)
+#if defined _MSC_VER
+#  pragma warning (disable: 4996)
+#endif
 #  include <tao/Utils/ORB_Manager.h>
 #  include <ace/Thread_Manager.h>
-# pragma warning (default: 4996)
+#if defined _MSC_VER
+#  pragma warning (default: 4996)
+#endif
 
 using namespace servant;
 
@@ -18,12 +22,12 @@ ORBServantManager::~ORBServantManager()
 }
 
 ORBServantManager::ORBServantManager( CORBA::ORB_ptr orb
-					   , PortableServer::POA_ptr poa
-					   , PortableServer::POAManager_ptr poamanager ) : orbmgr_(0)
-					                                                 , thread_running_(false)
-																	 , init_count_(0)  
+				      , PortableServer::POA_ptr poa
+				      , PortableServer::POAManager_ptr poamanager ) : init_count_(0)  
+										    , thread_running_(false)
+										    , orbmgr_(0)
 {
-	orbmgr_ = new TAO_ORB_Manager( orb, poa, poamanager );
+    orbmgr_ = new TAO_ORB_Manager( orb, poa, poamanager );
 }
 
 int

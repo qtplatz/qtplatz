@@ -36,10 +36,15 @@
 #include <extensionsystem/pluginmanager.h>
 #include <QtCore/qplugin.h>
 #include <QtCore>
-#pragma warning(disable:4996)
+
+#if defined _MSC_VER
+#  pragma warning(disable:4996)
+#endif
 # include <ace/Thread_Manager.h>
 # include <ace/OS_NS_unistd.h>
-#pragma warning(default:4996)
+#if defined _MSC_VER
+#  pragma warning(default:4996)
+#endif
 
 #include <adbroker/adbroker.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>

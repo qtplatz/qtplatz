@@ -27,14 +27,18 @@
 
 #include <QObject>
 
-#pragma warning(disable:4996)
-#pragma warning(disable:4805)
+#if defined _MSC_VER
+#  pragma warning(disable:4996)
+#  pragma warning(disable:4805)
+#endif
 # include <adinterface/receiverS.h>
 # include <adinterface/loghandlerS.h>
-#pragma warning(default:4805)
 # include <adinterface/controlserverC.h>
 # include <adinterface/brokerC.h>
-#pragma warning(default:4996)
+#if defined _MSC_VER
+#  pragma warning(default:4996)
+#  pragma warning(default:4805)
+#endif
 
 /////////////////
 
@@ -92,8 +96,8 @@ namespace servant {
             void handle_notify_update( unsigned long lofId );
 
         signals:
-            friend Receiver_i;
-            friend LogHandler_i;
+            friend class Receiver_i;
+            friend class LogHandler_i;
             void signal_debug_print( long pri, long cat, QString );
             void signal_notify_update( unsigned long logId );
 

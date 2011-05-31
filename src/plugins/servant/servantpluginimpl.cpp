@@ -44,9 +44,9 @@ using namespace servant::internal;
 
 /////////////////////////////////
 
-ServantPluginImpl::ServantPluginImpl( OutputWindow * p ) : outputWindow_(p)
-                                                         , receiver_(*this)
+ServantPluginImpl::ServantPluginImpl( OutputWindow * p ) : receiver_(*this)
                                                          , logHandler_(*this)
+							 , outputWindow_(p)
 {
 	//adplugin::ORBManager::instance()->init(0, 0);
 }
@@ -129,7 +129,7 @@ ServantPluginImpl::handle_notify_update( unsigned long logid )
     Broker::LogMessage msg;
     if ( logger->findLog( logid, msg ) ) {
         CORBA::WString_var text = logger->to_string( msg );
-        std::wstring wtext = text;
+        std::wstring wtext = static_cast<wchar_t *>(text);
         outputWindow_->appendLog( wtext );
     }
 }

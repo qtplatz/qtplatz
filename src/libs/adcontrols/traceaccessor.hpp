@@ -58,7 +58,9 @@ namespace adcontrols {
 
     private:
 
-#pragma warning(disable:4251)
+#if defined _MSC_VER
+#  pragma warning(disable:4251)
+#endif
         std::vector< double > traceX_;
         std::vector< double > traceY_;
         std::vector< unsigned long > events_;
