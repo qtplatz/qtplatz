@@ -25,10 +25,10 @@
 
 #pragma once
 
-class QStandardItem;
 class QVariant;
 
 #include <string>
+#include <QStandardItem>
 
 namespace qtwidgets {
 

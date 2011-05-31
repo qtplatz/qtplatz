@@ -35,8 +35,8 @@ using namespace qtwidgets;
 
 CentroidForm::CentroidForm(QWidget *parent) : QWidget(parent)
                                             , ui(new Ui::CentroidForm)
-                                            , pModel_( new QStandardItemModel )
                                             , pMethod_( new adcontrols::CentroidMethod ) 
+                                            , pModel_( new QStandardItemModel )
                                             , pDelegate_( new CentroidDelegate ) 
 {
     ui->setupUi(this);

@@ -92,4 +92,4 @@ factory::release()
 {
 }
 
-EXPORT_FACTORY( factory )
+EXPORT_FACTORY( qtwidgets::factory )

@@ -39,9 +39,9 @@ namespace adplugin {
         ifactory() {}
         virtual ~ifactory() {}
 
-		virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent = 0 ) = 0;
-		virtual QObject * create_object( const wchar_t * iid, QObject * parent = 0 ) = 0;
+	virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent = 0 ) = 0;
+	virtual QObject * create_object( const wchar_t * iid, QObject * parent = 0 ) = 0;
         virtual void release() = 0;
-	};
+    };
 
 }

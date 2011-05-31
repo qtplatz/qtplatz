@@ -36,7 +36,7 @@
 #include "standarditemhelper.hpp"
 #include <boost/format.hpp>
 #include <qtwrapper/qstring.hpp>
-#include <qdebug>
+#include <qdebug.h>
 
 using namespace qtwidgets;
 

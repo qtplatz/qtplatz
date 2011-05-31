@@ -68,8 +68,9 @@ namespace qtwidgets {
 
     };
 
-    Q_DECLARE_METATYPE( CentroidDelegate::PeakWidthMethod )
-    Q_DECLARE_METATYPE( CentroidDelegate::AreaHeight )
 }
+
+Q_DECLARE_METATYPE( qtwidgets::CentroidDelegate::PeakWidthMethod )
+Q_DECLARE_METATYPE( qtwidgets::CentroidDelegate::AreaHeight )
 
 

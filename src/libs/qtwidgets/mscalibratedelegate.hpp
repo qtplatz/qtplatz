@@ -28,11 +28,8 @@
 
 #include <QItemDelegate>
 #include <adcontrols/msreferencedefns.hpp>
-
-namespace adcontrols {
-    class MSReferences;
-    class MSReference;
-}
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msreference.hpp>
 
 namespace qtwidgets {
 
@@ -73,7 +70,8 @@ namespace qtwidgets {
 
 
     };
-    Q_DECLARE_METATYPE( MSCalibrateDelegate::MSReferences )
 }
+
+Q_DECLARE_METATYPE( qtwidgets::MSCalibrateDelegate::MSReferences )
 
 #endif // MSCALIBRATEDELEGATE_H

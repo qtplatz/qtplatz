@@ -49,8 +49,17 @@ namespace adplugin {
 
 }
 
-#define EXPORT_FACTORY( FACTORY_CLASS ) \
+#if 0
+# define EXPORT_FACTORY( FACTORY_CLASS ) \
     extern "C" {  __declspec(dllexport) adplugin::ifactory * ad_plugin_instance(); } \
+    adplugin::ifactory * ad_plugin_instance() { return new FACTORY_CLASS; }
+#endif
+
+#include <qglobal.h>
+#define EXPORT_FACTORY( FACTORY_CLASS ) \
+    extern "C" {							\
+	Q_DECL_EXPORT adplugin::ifactory * ad_plugin_instance();	\
+    }									\
     adplugin::ifactory * ad_plugin_instance() { return new FACTORY_CLASS; }
 
 #endif // ADPLUGIN_H

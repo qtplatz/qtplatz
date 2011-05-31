@@ -58,7 +58,6 @@ namespace qtwidgets {
             
     };
 
-    Q_DECLARE_METATYPE( ElementalCompositionDelegate::ElectronMode )
-    
 }
 
+Q_DECLARE_METATYPE( qtwidgets::ElementalCompositionDelegate::ElectronMode )
