@@ -58,7 +58,7 @@ namespace dataproc {
     class SessionManager : public QObject {
         Q_OBJECT
         explicit SessionManager(QObject *parent = 0);
-        friend internal::DataprocPlugin;
+        friend class internal::DataprocPlugin;
     public:
         ~SessionManager();
 

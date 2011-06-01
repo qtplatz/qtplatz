@@ -23,7 +23,8 @@
 **
 **************************************************************************/
 
-#if defined _DEBUG
+#if defined _MSC_VER
+# if defined _DEBUG
 #     pragma comment(lib, "adwplotd.lib")     // static
 #     pragma comment(lib, "adportabled.lib")  // static
 #     pragma comment(lib, "adplugind.lib")    // dll
@@ -35,7 +36,7 @@
 #     pragma comment(lib, "portfoliod.lib")   // dll
 #     pragma comment(lib, "adutilsd.lib")     // static
 #     pragma comment(lib, "qwtd.lib")
-#else
+# else
 #     pragma comment(lib, "adwplot.lib")
 #     pragma comment(lib, "adportable.lib")
 #     pragma comment(lib, "adplugin.lib")
@@ -47,7 +48,7 @@
 #     pragma comment(lib, "portfolio.lib")
 #     pragma comment(lib, "adutils.lib")
 #     pragma comment(lib, "qwt.lib")
-#endif
+# endif
 
 #  if defined _DEBUG
 #     pragma comment(lib, "ACEd.lib")
@@ -70,4 +71,4 @@
 #     pragma comment(lib, "adbroker.lib")
 #     pragma comment(lib, "adinterface.lib")
 #  endif
-
+#endif

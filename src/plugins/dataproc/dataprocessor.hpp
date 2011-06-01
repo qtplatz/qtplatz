@@ -28,7 +28,8 @@
 
 #include <coreplugin/ifile.h>
 #include <boost/smart_ptr.hpp>
-#include <adcontrols/dataSubscriber.hpp>
+#include <adcontrols/datasubscriber.hpp>
+#include "constants.hpp"
 
 namespace adcontrols {
     class datafile;
@@ -43,10 +44,6 @@ namespace portfolio {
 }
 
 namespace dataproc {
-
-    namespace internal {
-        enum ProcessType;
-    }
 
     class IFileImpl;
 

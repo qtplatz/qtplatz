@@ -160,15 +160,15 @@ namespace dataproc {
                 return false;
             }
 
-            template<> bool operator () ( const adcontrols::CentroidMethod& m ) const {
+            bool operator () ( const adcontrols::CentroidMethod& m ) const {
                 return internal::DataprocessorImpl::applyMethod( folium, m, *ptr_ );
             }
 
-            template<> bool operator () ( const adcontrols::IsotopeMethod& m ) const {
+            bool operator () ( const adcontrols::IsotopeMethod& m ) const {
                 return internal::DataprocessorImpl::applyMethod( folium, m );
             }
 
-            template<> bool operator () ( const adcontrols::MSCalibrateMethod& m ) const {
+            bool operator () ( const adcontrols::MSCalibrateMethod& m ) const {
                 return internal::DataprocessorImpl::applyMethod( folium, m );
             }
         };
@@ -185,11 +185,11 @@ namespace dataproc {
                 return false;
             }
 
-            template<> bool operator () ( adutils::MassSpectrumPtr& ptr ) const {
+            bool operator () ( adutils::MassSpectrumPtr& ptr ) const {
                 return boost::apply_visitor( doSpectralProcess(ptr, folium_), m_ );
             }
 
-            template<> bool operator () ( adutils::ChromatogramPtr& ) const {
+            bool operator () ( adutils::ChromatogramPtr& ) const {
                 // todo:  add doChromatographicProcess
                 return false;
             }
@@ -323,7 +323,7 @@ internal::DataprocessorImpl::findAttachedMassSpectrum( portfolio::Folium& folium
 
     adcontrols::MassSpectrumPtr ptr;
 
-    Folium::vector_type& atts = folium.attachments();
+    Folium::vector_type atts = folium.attachments();
     Folium::vector_type::iterator it = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
     if ( it != atts.end() )
         Folium::get< adcontrols::MassSpectrumPtr >( ptr, *it);

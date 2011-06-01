@@ -36,14 +36,16 @@ namespace dataproc {
         public:
             selChanged( Wnd& wnd ) : wnd_(wnd) { }
 
-            template<typename T> bool operator ()( T& ) const { return false; }
+            template<typename T> bool operator ()( T& ) const { 
+		return false;
+	    }
 
-            template<> bool operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+            bool operator () ( adutils::MassSpectrumPtr& ptr ) const {   
                 wnd_.draw1( ptr );
                 return true;
             }
 
-            template<> bool operator () ( adutils::ChromatogramPtr& ptr ) const {
+            bool operator () ( adutils::ChromatogramPtr& ptr ) const {
                 wnd_.draw( ptr );
                 return true;
             }

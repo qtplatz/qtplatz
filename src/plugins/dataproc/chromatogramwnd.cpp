@@ -68,11 +68,12 @@ namespace dataproc {
         //----------------------------//
         template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
             selProcessed( Wnd& wnd ) : wnd_(wnd) {}
-            template<typename T> void operator ()( T& ) const { }
-            template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+            template<typename T> void operator ()( T& ) const {
+	    }
+            void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
                 wnd_.draw2( ptr );
             }
-            template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
+            void operator () ( adutils::ChromatogramPtr& ptr ) const {
                 wnd_.draw( ptr );
             }
             Wnd& wnd_;
