@@ -180,14 +180,14 @@ static inline QStringList getPluginPaths()
     pluginPath += QLatin1Char('/');
     pluginPath += QLatin1String(IDE_LIBRARY_BASENAME);
     pluginPath += QLatin1Char('/');
-    pluginPath += QLatin1String("qtPlatz");
+    pluginPath += QLatin1String("qtplatz");
     pluginPath += QLatin1Char('/');
     pluginPath += QLatin1String("plugins");
     rc.push_back(pluginPath);
     // 2) "PlugIns" (OS X)
     pluginPath = rootDirPath;
     pluginPath += QLatin1Char('/');
-    pluginPath += QLatin1String("PlugIns");
+    pluginPath += QLatin1String("plugins");
     rc.push_back(pluginPath);
     return rc;
 }
@@ -195,7 +195,7 @@ static inline QStringList getPluginPaths()
 #ifdef Q_OS_MAC
 #  define SHARE_PATH "/../Resources"
 #else
-#  define SHARE_PATH "/../share/qtPlatz"
+#  define SHARE_PATH "/../share/qtplatz"
 #endif
 
 int main(int argc, char **argv)
@@ -215,7 +215,7 @@ int main(int argc, char **argv)
     QString locale = QLocale::system().name();
     const QString &creatorTrPath = QCoreApplication::applicationDirPath()
                         + QLatin1String(SHARE_PATH "/translations");
-    if (translator.load(QLatin1String("qtPlatz_") + locale, creatorTrPath)) {
+    if (translator.load(QLatin1String("qtplatz_") + locale, creatorTrPath)) {
         const QString &qtTrPath = QLibraryInfo::location(QLibraryInfo::TranslationsPath);
         const QString &qtTrFile = QLatin1String("qt_") + locale;
         // Binary installer puts Qt tr files into creatorTrPath

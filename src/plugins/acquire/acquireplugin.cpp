@@ -508,7 +508,7 @@ AcquirePlugin::readTrace( const SignalObserver::Description& desc
                          , const SignalObserver::DataReadBuffer& rb
                          , const adcontrols::DataInterpreter& dataInterpreter )
 {
-    std::wstring traceId = desc.trace_id;
+    std::wstring traceId = static_cast<const CORBA::WChar *>( desc.trace_id );
 
     adcontrols::TraceAccessor accessor;
     if ( dataInterpreter.translate( accessor, rb ) ) {
@@ -559,7 +559,7 @@ void
 AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value )
 {
     static int count;
-    count;
+    (void)count;
     (void)value;
     (void)msg;
     // manager_->handle_message( msg, value );
