@@ -54,6 +54,7 @@ namespace dataproc {
             Q_OBJECT
         public:
             explicit ElementalCompWnd(QWidget *parent = 0);
+            ~ElementalCompWnd();
             void init();
             void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
             void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
@@ -65,7 +66,7 @@ namespace dataproc {
             void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
       
         private:
-            boost::scoped_ptr<ElementalCompWndImpl> pImpl_;
+            ElementalCompWndImpl * pImpl_;
       
         };
     

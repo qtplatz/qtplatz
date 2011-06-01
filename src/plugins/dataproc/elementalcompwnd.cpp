@@ -71,9 +71,13 @@ namespace dataproc {
     }
 }
 
+ElementalCompWnd::~ElementalCompWnd()
+{
+    delete pImpl_;
+}
 
-ElementalCompWnd::ElementalCompWnd(QWidget *parent) :
-    QWidget(parent)
+ElementalCompWnd::ElementalCompWnd(QWidget *parent) : QWidget(parent)
+						    , pImpl_(0)
 {
     init();
 }
@@ -81,7 +85,7 @@ ElementalCompWnd::ElementalCompWnd(QWidget *parent) :
 void
 ElementalCompWnd::init()
 {
-    pImpl_.reset( new ElementalCompWndImpl );
+    pImpl_ = new ElementalCompWndImpl;
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
         if ( ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {

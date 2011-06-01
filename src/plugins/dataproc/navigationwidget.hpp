@@ -42,6 +42,7 @@ namespace dataproc {
         Q_OBJECT
     public:
         explicit NavigationWidget(QWidget *parent = 0);
+	~NavigationWidget();
 
         bool autoSyncronization() const;
         void setAutoSynchronization( bool sync );
@@ -66,9 +67,9 @@ namespace dataproc {
 
     private:
         bool autoSync_;
-        boost::scoped_ptr< QTreeView > pTreeView_;
-        boost::scoped_ptr< QStandardItemModel > pModel_;
-        boost::scoped_ptr< NavigationDelegate > pDelegate_;
+        QTreeView * pTreeView_;
+        QStandardItemModel * pModel_;
+        NavigationDelegate * pDelegate_;
     };
 
 }

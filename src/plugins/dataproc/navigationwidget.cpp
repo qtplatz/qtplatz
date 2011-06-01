@@ -95,18 +95,25 @@ public:
 
 using namespace dataproc;
 
+NavigationWidget::~NavigationWidget()
+{
+    delete pDelegate_;
+    delete pModel_;
+    delete pTreeView_;
+}
+
 NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
                                                     , pTreeView_( new QTreeView(this) )
                                                     , pModel_( new QStandardItemModel )
                                                     , pDelegate_( new NavigationDelegate ) 
 {
-    pTreeView_->setModel( pModel_.get() );
-    pTreeView_->setItemDelegate( pDelegate_.get() );
-    setFocusProxy( pTreeView_.get() );
+    pTreeView_->setModel( pModel_ );
+    pTreeView_->setItemDelegate( pDelegate_ );
+    setFocusProxy( pTreeView_ );
     initView();
 
     QVBoxLayout * layout = new QVBoxLayout();
-    layout->addWidget( pTreeView_.get() );
+    layout->addWidget( pTreeView_ );
     layout->setSpacing( 0 );
     layout->setContentsMargins( 0, 0, 0, 0 );
     setLayout( layout );
@@ -117,22 +124,20 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     }
 
     // connections
-    connect( pModel_.get(), SIGNAL( modelReset() ), this, SLOT( initView() ) );
-    // connect( pTreeView_.get(), SIGNAL(activated(const QModelIndex&)), this, SLOT(openItem(const QModelIndex&)));
-    connect( pTreeView_.get(), SIGNAL(activated(const QModelIndex&)), this, SLOT(handle_activated(const QModelIndex&)));
-    connect( pTreeView_.get(), SIGNAL(clicked(const QModelIndex&)), this, SLOT(handle_clicked(const QModelIndex&)));
-    connect( pTreeView_.get(), SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(handle_doubleClicked(const QModelIndex&)));
-    connect( pTreeView_.get(), SIGNAL(entered(const QModelIndex&)), this, SLOT(handle_entered(const QModelIndex&)));
+    connect( pModel_, SIGNAL( modelReset() ), this, SLOT( initView() ) );
 
-    connect( pTreeView_.get(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(handle_currentChanged(const QModelIndex&, const QModelIndex&)));
+    connect( pTreeView_, SIGNAL(activated(const QModelIndex&)), this, SLOT(handle_activated(const QModelIndex&)));
+    connect( pTreeView_, SIGNAL(clicked(const QModelIndex&)), this, SLOT(handle_clicked(const QModelIndex&)));
+    connect( pTreeView_, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(handle_doubleClicked(const QModelIndex&)));
+    connect( pTreeView_, SIGNAL(entered(const QModelIndex&)), this, SLOT(handle_entered(const QModelIndex&)));
+
+    connect( pTreeView_, SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(handle_currentChanged(const QModelIndex&, const QModelIndex&)));
 
     pTreeView_->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect( pTreeView_.get(), SIGNAL(customContextMenuRequested( QPoint )), this, SLOT( handleContextMenuRequested( QPoint ) ) );
+    connect( pTreeView_, SIGNAL(customContextMenuRequested( QPoint )), this, SLOT( handleContextMenuRequested( QPoint ) ) );
 
     connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), this, SLOT( handleSessionAdded( Dataprocessor * ) ) );
     connect( SessionManager::instance(), SIGNAL( signalSessionUpdated( Dataprocessor* ) ), this, SLOT( handleSessionUpdated( Dataprocessor * ) ) );
-
-
 
     setAutoSynchronization(true);
 }
