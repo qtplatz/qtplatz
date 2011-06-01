@@ -28,6 +28,7 @@
 #include <extensionsystem/iplugin.h>
 #include <boost/smart_ptr.hpp>
 #include <vector>
+#include "constants.hpp"
 
 class QAction;
 class QBrokerSessionEvent;
