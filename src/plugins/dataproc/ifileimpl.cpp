@@ -89,7 +89,7 @@ IFileImpl::save( const QString& filename )
 
     } else {
         // saveFileAs -- has to create new file
-        boost::scoped_ptr< adcontrols::datafile > file( adcontrols::datafile::create( p.c_str() ) );
+        boost::scoped_ptr< adcontrols::datafile > file( adcontrols::datafile::create( p.wstring() ) );
         return file && file->saveContents( L"/Processed", portfolio, this->file() );
 
     }

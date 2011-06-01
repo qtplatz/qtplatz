@@ -249,7 +249,7 @@ NavigationWidget::handle_activated( const QModelIndex& index )
                 parent = parent.parent();
 
             if ( parent.isValid() ) {
-                if ( processor = qVariantValue< Dataprocessor * >( parent.data( Qt::UserRole + 1 ) ) ) {
+                if ( ( processor = qVariantValue< Dataprocessor * >( parent.data( Qt::UserRole + 1 ) ) ) ) {
                     qDebug() << "filename: " << qtwrapper::qstring( processor->file().filename() );
                     processor->setCurrentSelection( folium );
                 }
