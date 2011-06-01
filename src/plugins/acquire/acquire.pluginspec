@@ -1,4 +1,4 @@
-<plugin name="Acquire" version="1.0.0" compatVersion="1.3.1">
+<plugin name="acquire" version="1.0.0" compatVersion="1.3.1">
     <vendor>Science Liaison</vendor>
     <copyright>(C) 2010 Toshinobu Hondo, Ph.D.</copyright>
     <license>
