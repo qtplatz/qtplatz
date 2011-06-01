@@ -244,7 +244,7 @@ NavigationWidget::handle_activated( const QModelIndex& index )
             qDebug() << qtwrapper::qstring::copy(folium.name());
 
             Dataprocessor * processor = 0;
-            QModelIndex& parent = index.parent();
+            QModelIndex parent = index.parent();
             while ( parent.isValid() && ! qVariantCanConvert< Dataprocessor * >( parent.data( Qt::UserRole + 1 ) ) )
                 parent = parent.parent();
 

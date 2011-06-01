@@ -51,6 +51,7 @@ namespace dataproc {
             Q_OBJECT
         public:
             explicit DataprocManager(QObject *parent = 0);
+	    ~DataprocManager();
 
             QMainWindow * mainWindow() const;
             void init( const adportable::Configuration&, const std::wstring& apppath );
@@ -71,7 +72,7 @@ namespace dataproc {
             void handleApplyMethod();
 
         private:
-            boost::scoped_ptr<DataprocManagerImpl> pImpl_;
+            DataprocManagerImpl * pImpl_;
         };
 
     }

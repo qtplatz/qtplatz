@@ -65,12 +65,14 @@ namespace dataproc {
             Wnd& wnd_;
             selProcessed( Wnd& wnd ) : wnd_(wnd) {}
 
-            template<typename T> void operator ()( T& ) const { }
+            template<typename T> void operator ()( T& ) const {
+	    }
 
-            template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+            void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
                 wnd_.draw2( ptr );
             }
-            template<> void operator () ( adutils::ChromatogramPtr& ptr ) const {
+
+            void operator () ( adutils::ChromatogramPtr& ptr ) const {
                 wnd_.draw( ptr );
             }
         };
@@ -90,12 +92,12 @@ MSProcessingWnd::init()
     pImpl_.reset( new MSProcessingWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( pImpl_->ticPlot_ = new adwplot::ChromatogramWidget(this) ) {
+        if ( ( pImpl_->ticPlot_ = new adwplot::ChromatogramWidget(this) ) ) {
             //adwidgets::ui::Axis axis = pImpl_->ticPlot_->axisX();
             //axis.text( L"Time(min)" );
         }
-
-        if ( pImpl_->profileSpectrum_ = new adwplot::SpectrumWidget(this) ) {
+	
+        if ( ( pImpl_->profileSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
             //adwidgets::ui::Axis axis = pImpl_->profileSpectrum_->axisX();
             //axis.text( L"m/z" );
         }

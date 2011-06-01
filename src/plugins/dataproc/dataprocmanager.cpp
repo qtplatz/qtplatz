@@ -65,6 +65,11 @@ namespace dataproc {
   }
 }
 
+DataprocManager::~DataprocManager()
+{
+    delete pImpl_;
+}
+
 DataprocManager::DataprocManager(QObject *parent) : QObject(parent)
                                                   , pImpl_( new DataprocManagerImpl() )
 {

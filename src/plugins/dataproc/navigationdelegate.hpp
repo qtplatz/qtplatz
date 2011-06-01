@@ -51,9 +51,10 @@ namespace dataproc {
 
     };
 
-    Q_DECLARE_METATYPE( portfolio::Folium )
-    Q_DECLARE_METATYPE( portfolio::Folder )
-    Q_DECLARE_METATYPE( Dataprocessor * )
 }
+
+Q_DECLARE_METATYPE( portfolio::Folium )
+Q_DECLARE_METATYPE( portfolio::Folder )
+Q_DECLARE_METATYPE( dataproc::Dataprocessor * )
 
 #endif // NAVIGATIONDELEGATE_H

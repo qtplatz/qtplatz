@@ -63,7 +63,7 @@ namespace dataproc {
 
             template<typename T> void operator ()( T& ) const { }
 
-            template<> void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+            void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
                 wnd_.draw2( ptr );
             }
         };
@@ -84,7 +84,7 @@ ElementalCompWnd::init()
     pImpl_.reset( new ElementalCompWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) {
+        if ( ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
             splitter->addWidget( pImpl_->processedSpectrum_ );
             splitter->setOrientation( Qt::Vertical );
         }

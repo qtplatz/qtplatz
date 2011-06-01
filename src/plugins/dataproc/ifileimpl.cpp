@@ -47,8 +47,8 @@ IFileImpl::IFileImpl( adcontrols::datafile * file
                      , QObject *parent) : Core::IFile(parent)
                                         , modified_(false)
                                         , file_(file)
-                                        , dprocessor_( dprocessor ) 
                                         , accessor_(0)
+                                        , dprocessor_( dprocessor ) 
 {
     if ( file_ )
         filename_ = QString( qtwrapper::qstring::copy( file_->filename() ) );
