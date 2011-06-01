@@ -99,11 +99,11 @@ DataprocPlugin::~DataprocPlugin()
 }
 
 DataprocPlugin::DataprocPlugin() : pSessionManager_( new SessionManager() )
-                                 , actionApply_( 0 )
                                  , pActionManager_( new ActionManager( this ) ) 
-                                 , brokerSession_( 0 ) 
-                                 , currentFeature_( CentroidProcess )
                                  , pBrokerSessionEvent_( 0 )
+                                 , brokerSession_( 0 ) 
+                                 , actionApply_( 0 )
+                                 , currentFeature_( CentroidProcess )
 {
     instance_ = this;
 }
@@ -360,6 +360,7 @@ DataprocPlugin::handle_portfolio_created( const QString token )
 void
 DataprocPlugin::handle_folium_added( const QString token, const QString path, const QString id )
 {
+    Q_UNUSED( path );
     SessionManager::vector_type::iterator it = SessionManager::instance()->find( qtwrapper::wstring( token ) );
     if ( it != SessionManager::instance()->end() ) {
         
