@@ -6,11 +6,11 @@
 <!---<AcquireConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="acquire.config.xsd">
 	-->
 <DataprocConfiguration name="dataproc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
-	<Module name="qtwidgets" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/qtwidgets$(configuration).dll"/>
-	<Module name="mc4" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/mc4$(configuration).dll"/>
-  <Module name="adtxtfactory" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/adtxtfactory$(configuration).dll"/>
-  <Module name="infitof" type="sharedlib" filename="/lib/qtPlatz/plugins/MSI/infitofspectrometer$(configuration).dll"/>
-  <Module name="addatafile" type="sharedlib" filename="/lib/qtPlatz/plugins/ScienceLiaison/addatafile$(configuration).dll"/>
+	<Module name="qtwidgets" type="sharedlib" filename="/lib/qtplatz/plugins/ScienceLiaison/qtwidgets$(configuration).dll"/>
+	<Module name="mc4" type="sharedlib" filename="/lib/qtplatz/plugins/ScienceLiaison/mc4$(configuration).dll"/>
+  <Module name="adtxtfactory" type="sharedlib" filename="/lib/qtplatz/plugins/ScienceLiaison/adtxtfactory$(configuration).dll"/>
+  <Module name="infitof" type="sharedlib" filename="/lib/qtplatz/plugins/MSI/infitofspectrometer$(configuration).dll"/>
+  <Module name="addatafile" type="sharedlib" filename="/lib/qtplatz/plugins/ScienceLiaison/addatafile$(configuration).dll"/>
 	<Configuration name="ProcessMethodEditors">
 		<Configuration name="CentroidMethodUI">
 			<title>Centroid</title>

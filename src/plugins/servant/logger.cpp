@@ -25,9 +25,11 @@
 
 
 #include "logger.hpp"
-#pragma warning(disable:4996)
+#if defined _MSC_VER
+# pragma warning(disable:4996)
+#endif
 #include <adinterface/brokerC.h>
-#pragma warning(default:4996)
+
 #include <adplugin/adplugin.hpp>
 #include <adplugin/orbmanager.hpp>
 #include <acewrapper/constants.hpp>

@@ -21,9 +21,9 @@ Configuration::Configuration( const Configuration& t ) : name_( t.name_ )
                                                        , text_( t.text_ )
                                                        , attributes_( t.attributes_ )
                                                        , children_( t.children_ )  
-													   , xml_( t.xml_ )
+						       , xml_( t.xml_ )
                                                        , module_( t.module_ )
-													   , interface_(t.interface_)
+						       , interface_(t.interface_)
 {
 }
 
@@ -120,13 +120,13 @@ Configuration::module( const Module& m )
 bool
 Configuration::isComponent() const
 {
-	return ! component().empty();
+    return ! component().empty();
 }
 
 bool
 Configuration::isPlugin() const
 {
-	return ! module().xml().empty();
+    return ! module().xml().empty();
 }
 
 // static

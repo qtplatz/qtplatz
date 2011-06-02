@@ -8,6 +8,8 @@
 
 #ifdef WIN32
 # include <Windows.h>
+#else
+# include <cstdlib>
 #endif
 
 using namespace adportable;
@@ -24,14 +26,14 @@ string::~string(void)
 std::wstring
 string::convert( const std::string& source )
 {
-#if defined WIN32
     size_t source_length = source.length();
     std::wstring target( source_length + 1, L'\0' );
+#if defined WIN32
     ::MultiByteToWideChar( CP_ACP, 0, source.c_str(), source.length(), &target[0], target.size() );
 #else
-    std::basic_string<UTF16> utf16 = utf::to_utf16( reinterpret_cast<const UTF8 *>(source.c_str()) );
-    std::wstring target( utf16.length(), '\0' );
-    std::copy( utf16.begin(), utf16.end(), target.begin() );
+    size_t n = mbstowcs( &target[0], source.c_str(), target.size() );
+    if ( n != size_t(-1) )
+	target.resize( n );
 #endif
     return target;
 }
@@ -40,13 +42,13 @@ string::convert( const std::string& source )
 std::string
 string::convert( const std::wstring& source )
 {
-#if defined WIN32
     std::string target( source.length() * 3 + 1, '\0' );
+#if defined WIN32
     ::WideCharToMultiByte( CP_ACP, 0, source.c_str(), source.length(), &target[0], target.size(), 0, 0 );
 #else
-    std::basic_string<UTF8> utf8 = utf::to_utf8( reinterpret_cast<const UTF16 *>(source.c_str()) );
-    std::string target( utf8.length(), '\0' );
-    std::copy( utf8.begin(), utf8.end(), target.begin() );
+    size_t n = wcstombs( &target[0], source.c_str(), target.size() );
+    if ( n != size_t( -1 ) ) 
+	target.resize(n);
 #endif
     return target;
 }
@@ -55,7 +57,13 @@ string::convert( const std::wstring& source )
 u8string
 string::utf8( const wchar_t * p )
 {
+#if defined WIN32
     return u8string( utf::to_utf8( reinterpret_cast<const UTF16 *>(p) ) );
+#elif defined __linux__ && defined __darwin__
+    return u8string( utf::to_utf8( reinterpret_cast<const UTF32 *>(p) ) );
+#else
+    return u8string( utf::to_utf8( reinterpret_cast<const UTF32 *>(p) ) );
+#endif
 }
 
 //static

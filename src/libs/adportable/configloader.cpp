@@ -10,6 +10,10 @@
 #include <xmlparser/pugiwrapper.hpp>
 #include <fstream>
 #include <boost/foreach.hpp>
+#include <iostream>
+#if defined __linux__ || defined __darwin__
+# include <boost/filesystem.hpp>
+#endif
 
 using namespace adportable;
 
@@ -38,27 +42,27 @@ ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstr
     pugi::xml_document dom;
     pugi::xml_parse_result result = dom.load_file( pugi::as_utf8( file ).c_str() );
     if ( ! result ) {
-		adportable::debug dbg;
-        dbg << "adportable::ConfigLoader::loadConfigFile(" << file << ")" << result.description();
-		return false;
-	}
-
+	adportable::debug dbg( __FILE__, __LINE__ );
+        dbg << "adportable::ConfigLoader::loadConfigFile(\"" << file << "\")" << result.description();
+	return false;
+    }
+    
     pugi::xpath_node_set list = dom.select_nodes( pugi::as_utf8( query ).c_str() );
     if ( list.size() == 0 )
-		return false;
-
-	if ( list.size() == 1 ) {
+	return false;
+    
+    if ( list.size() == 1 ) {
         if ( ConfigLoaderImpl::load( config, list[0].node() ) )
             ConfigLoaderImpl::populate( config, list[0].node() );
         return true;
-	}
-
+    }
+    
     for ( size_t i = 0; i < list.size(); ++i ) {
         Configuration& child = config.append( Configuration() );
         if ( ConfigLoaderImpl::load( child, list[i].node() ) )
             ConfigLoaderImpl::populate( child, list[i].node() );
     }
-	return true;
+    return true;
 }
 
 // static
@@ -101,7 +105,7 @@ bool
 ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
 {
     if ( std::string( node.name() ) == "Configuration" ) {
-		// copy name="my_name"
+	// copy name="my_name"
         config.name( pugi::as_wide( node.attribute( "name" ).value() ) );
 
         config.xml( pugi::helper::to_wstring( node ) );
@@ -115,9 +119,9 @@ ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
         if ( title_node ) {
             config.title( pugi::as_wide( title_node.node().child_value() ) );
         } else {
-            if ( title_node = node.select_single_node( "./title[@lang='en']" ) )
+            if ( ( title_node = node.select_single_node( "./title[@lang='en']" ) ) )
                 config.title( pugi::as_wide( title_node.node().child_value() ) );
-            else if ( title_node = node.select_single_node( "./title" ) )
+            else if ( ( title_node = node.select_single_node( "./title" ) ) )
                 config.title( pugi::as_wide( title_node.node().child_value() ) );
         }
 
@@ -136,35 +140,49 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& n
     if ( module_attr ) {
         std::string name = module_attr.attribute().name();
         std::string module_name = module_attr.attribute().value();
-
-		do {
+	
+	do {
             std::string interface = node.select_single_node( "./Component/@interface" ).attribute().value();
             if ( ! interface.empty() )
                 config.interface( pugi::as_wide( interface ) );
-		} while (0);
-
+	} while (0);
+	
         if ( module_name.empty() )
             return false;
-
+	
         std::string query = "//Module[@name=\'" + module_name + "\']";
         pugi::xpath_node module_element = node.select_single_node( query.c_str() );
-
+	
         if ( module_element ) {
-
+	    
             Module module( pugi::helper::to_wstring( module_element.node() ) ); // import module_element into 'module'
-
+	    
             std::string filename = module_element.node().attribute( "filename" ).value();
             if ( filename.empty() )
                 return false;
             std::string::size_type pos = filename.find_last_of( "$" );
             if ( pos != std::wstring::npos ) {
                 filename = filename.substr(0, pos);
-#if defined _DEBUG
+#if defined WIN32
+#  if defined _DEBUG
                 filename += "d.dll";
-#else
+#  else
                 filename += ".dll";
-#endif         
+#  endif
+#else
+                filename += ".so";
+#endif
+
             }
+#if defined __linux__ || defined __darwin__
+	    do {
+		boost::filesystem::path path( filename );
+		boost::filesystem::path filepath = path.branch_path() / ( std::string("lib") + path.leaf().string() );
+		filename = filepath.string();
+	    } while(0);
+#endif	    
+	    std::cout << "##############" << filename;
+
             module.library_filename( pugi::as_wide( filename ) );
             config.module( module );
 

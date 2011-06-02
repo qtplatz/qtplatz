@@ -150,7 +150,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
         apppath = qtwrapper::wstring::copy( dir.path() );
     } while(0);
 
-    std::wstring configFile = apppath + L"/lib/qtPlatz/plugins/ScienceLiaison/dataproc.config.xml";
+    std::wstring configFile = apppath + L"/lib/qtplatz/plugins/ScienceLiaison/dataproc.config.xml";
 
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
 
@@ -159,7 +159,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
 
     if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
         error_message = new QString( "loadConfig load failed" );
-        adportable::debug() << "DataprocPlugin::initialize loadConfig failed";
+        adportable::debug( __FILE__, __LINE__ ) << "loadConfig" << configFile << "failed";
     }
     //------------------------------------------------
 

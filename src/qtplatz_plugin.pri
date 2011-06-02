@@ -1,4 +1,5 @@
 include(../qtplatz.pri)
+include( config.pri )
 
 isEmpty(PROVIDER) {
     PROVIDER = Nokia

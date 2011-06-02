@@ -1,4 +1,6 @@
 include(../qtplatz.pri)
+include( config.pri )
+
 
 PROVIDER = ScienceLiaison
 

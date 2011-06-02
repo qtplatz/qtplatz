@@ -35,12 +35,11 @@
 #include <QLibrary>
 #include <QDir>
 #include <QMessageBox>
-
+#include <QWidget>
 #include <map>
 #include <fstream>
 #include <boost/smart_ptr.hpp>
 #include <boost/filesystem.hpp>
-#include <QWidget>
 
 #if defined _MSC_VER
 # pragma warning(disable:4996)
@@ -243,8 +242,8 @@ manager_impl::orbLoader( const std::wstring& file )
     boost::filesystem::path filepath( file );
     boost::system::error_code ec;
     if ( ! boost::filesystem::exists( file, ec ) ) {
-	adportable::debug dbg;
-	dbg << "error: " << ec.message() << " '" << ec.category().name() << "'";
+	adportable::debug dbg(__FILE__, __LINE__);
+	dbg << "error: " << ec.message() << " for file '" << file << "'";
 	failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
 	return *failedLoaders_[ file ];
     }

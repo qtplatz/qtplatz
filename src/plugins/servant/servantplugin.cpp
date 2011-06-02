@@ -26,7 +26,6 @@
 #include "servantplugin.hpp"
 #include "servantmode.hpp"
 #include "logger.hpp"
-
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/coreconstants.h>
@@ -36,6 +35,7 @@
 #include <extensionsystem/pluginmanager.h>
 #include <QtCore/qplugin.h>
 #include <QtCore>
+#include <qdebug.h>
 
 #if defined _MSC_VER
 #  pragma warning(disable:4996)
@@ -76,12 +76,13 @@ ServantPlugin::~ServantPlugin()
 {
     final_close();
     delete pImpl_;
-	delete pConfig_;
+    delete pConfig_;
 }
 
 ServantPlugin::ServantPlugin() : pConfig_( 0 )
                                , pImpl_( 0 )
 {
+    std::cout << "ServantPlugin::CTOR" << std::endl;
 }
 
 namespace servant {
@@ -142,19 +143,22 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         QDir dir = QCoreApplication::instance()->applicationDirPath();
         dir.cdUp();
         apppath = qtwrapper::wstring::copy( dir.path() );
+	// qDebug() << "apppath:" << dir.path();
     } while(0);
     
-    std::wstring configFile = apppath + L"/lib/qtPlatz/plugins/ScienceLiaison/servant.config.xml";
-    
+    std::wstring configFile = apppath + L"/lib/qtplatz/plugins/ScienceLiaison/servant.config.xml";
+
     const wchar_t * query = L"/ServantConfiguration/Configuration";
     
     pConfig_ = new adportable::Configuration();
     adportable::Configuration& config = *pConfig_;
-    
+
+    adportable::debug( __FILE__, __LINE__ ) << "loading configuration:" << configFile;
+
     if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
-		adportable::debug dbg( __FILE__, __LINE__ );
-		dbg << "ServantPlugin::initialize loadConfig '" << configFile << "' load failed";
-		QMessageBox::warning( 0, dbg.where().c_str(), dbg.str().c_str() );
+	adportable::debug dbg( __FILE__, __LINE__ );
+	dbg << "ServantPlugin::initialize loadConfig '" << configFile << "' load failed";
+	QMessageBox::warning( 0, dbg.where().c_str(), dbg.str().c_str() );
     }
     
     // ------------ Broker::Manager initialize first --------------------
@@ -177,111 +181,113 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     }
     
     ///////////////////////////////////
-	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
-		std::wstring name = it->name();
-		std::wstring component = it->component();
-            
-		if ( name == L"adbroker" ) {
-			/* nothing, broker must be created before here */
-		} else if ( it->attribute(L"type") == L"orbLoader" ) {
-			// adcontroller must be on top
-			std::wstring file = apppath + it->module().library_filename();
-			it->attribute( L"fullpath", file );
-			std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
-			adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
-			if ( loader ) {
-				loader.initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
-				loader.initial_reference( iorBroker.c_str() );
-				std::string ior = loader.activate();            // activate object
-				mgr->register_ior( ns_name.c_str(), ior.c_str() ); // set ior to Broker::Manager
-			} else {
+    for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
+	std::wstring name = it->name();
+	std::wstring component = it->component();
+        
+	if ( name == L"adbroker" ) {
+	    /* nothing, broker must be created before here */
+	} else if ( it->attribute(L"type") == L"orbLoader" ) {
+	    // adcontroller must be on top
+	    std::wstring file = apppath + it->module().library_filename();
+	    it->attribute( L"fullpath", file );
+	    std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
+	    adportable::debug(__FILE__, __LINE__) << "orbLoader file=" << file << "\tns_name=" << ns_name;
+
+	    adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
+	    if ( loader ) {
+		loader.initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
+		loader.initial_reference( iorBroker.c_str() );
+		std::string ior = loader.activate();            // activate object
+		mgr->register_ior( ns_name.c_str(), ior.c_str() ); // set ior to Broker::Manager
+	    } else {
                 it->attribute( L"loadstatus", L"failed" );
-				QMessageBox::warning( 0, "ServantPlugin", loader.error_description() );
-			}
-		}
+		QMessageBox::warning( 0, "ServantPlugin", loader.error_description() );
+	    }
 	}
-        
-	Core::ICore * core = Core::ICore::instance();
-	QList<int> context;
-	if ( core ) {
-		Core::UniqueIDManager * uidm = core->uniqueIDManager();
-		if ( uidm ) {
-			context.append( uidm->uniqueIdentifier( QLatin1String("Servant.MainView") ) );
-			context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
-		}
-	} else
+    }
+    
+    Core::ICore * core = Core::ICore::instance();
+    QList<int> context;
+    if ( core ) {
+	Core::UniqueIDManager * uidm = core->uniqueIDManager();
+	if ( uidm ) {
+	    context.append( uidm->uniqueIdentifier( QLatin1String("Servant.MainView") ) );
+	    context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
+	}
+    } else
+	return false;
+    
+    // 
+    ControlServer::Session_var session;
+    std::vector< Instrument::Session_var > i8t_sessions;
+    
+    for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
+	
+	if ( it->name() == L"adbroker" ) {
+	    
+	    pImpl_->init_debug_adbroker( this );
+	    
+	} else if ( it->name() == L"adcontroller" ) {
+	    
+	    pImpl_->init_debug_adcontroller( this );
+	    CORBA::Object_var obj 
+		= acewrapper::brokerhelper::name_to_object( pMgr->orb()
+							    , acewrapper::constants::adcontroller::manager::_name()
+							    , adplugin::manager::iorBroker() ); 
+	    ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
+	    if ( CORBA::is_nil( manager ) ) {
+		error_message = new QString("ControlServer::Manager object reference failed");
 		return false;
-        
-	// 
-	ControlServer::Session_var session;
-	std::vector< Instrument::Session_var > i8t_sessions;
-
-	for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
-            
-		if ( it->name() == L"adbroker" ) {
-
-			pImpl_->init_debug_adbroker( this );
-
-		} else if ( it->name() == L"adcontroller" ) {
-
-			pImpl_->init_debug_adcontroller( this );
-			CORBA::Object_var obj 
-				= acewrapper::brokerhelper::name_to_object( pMgr->orb()
-				, acewrapper::constants::adcontroller::manager::_name()
-				, adplugin::manager::iorBroker() ); 
-			ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
-			if ( CORBA::is_nil( manager ) ) {
-				error_message = new QString("ControlServer::Manager object reference failed");
-				return false;
-			}
-			session = manager->getSession( L"debug" );
-			session->setConfiguration( it->xml().c_str() );
-
-		} else if ( it->attribute( L"type" ) == L"orbLoader" ) {
-
+	    }
+	    session = manager->getSession( L"debug" );
+	    session->setConfiguration( it->xml().c_str() );
+	    
+	} else if ( it->attribute( L"type" ) == L"orbLoader" ) {
+	    
             if ( it->attribute( L"loadstatus" ) == L"failed" )
                 continue;
-			std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
-			if ( ! ns_name.empty() ) {
+	    std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
+	    if ( ! ns_name.empty() ) {
                 CORBA::String_var ior = mgr->ior( ns_name.c_str() );
-				try {
-					CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( ior.in() );                     
-					Instrument::Session_var isession = Instrument::Session::_narrow( obj );
-					if ( ! CORBA::is_nil( isession ) ) {
-						isession->setConfiguration( it->xml().c_str() );
-						i8t_sessions.push_back( isession );
-					}
-				} catch ( CORBA::Exception& src ) {
-                    adportable::debug dbg;
-                    dbg << "CORBA::Exceptiron while referenceing '" << ns_name.c_str() << "' by " << src._info().c_str();
-                    Logger log;
-                    log( dbg.str() );
-                    QMessageBox::critical( 0, "Servant error", dbg.str().c_str() );
-					++nErrors;
-				}
-			}
-		} else if ( it->attribute( L"type" ) == L"MassSpectrometer" ) {
-			const std::wstring name = apppath + it->module().library_filename();
-			adcontrols::MassSpectrometerBroker::register_library( name );
+		try {
+		    CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( ior.in() );                     
+		    Instrument::Session_var isession = Instrument::Session::_narrow( obj );
+		    if ( ! CORBA::is_nil( isession ) ) {
+			isession->setConfiguration( it->xml().c_str() );
+			i8t_sessions.push_back( isession );
+		    }
+		} catch ( CORBA::Exception& src ) {
+		    adportable::debug dbg(__FILE__, __LINE__ );
+		    dbg << "CORBA::Exceptiron while referenceing '" << ns_name.c_str() << "' by " << src._info().c_str();
+		    Logger log;
+		    log( dbg.str() );
+		    QMessageBox::critical( 0, "Servant error", dbg.str().c_str() );
+		    ++nErrors;
 		}
+	    }
+	} else if ( it->attribute( L"type" ) == L"MassSpectrometer" ) {
+	    const std::wstring name = apppath + it->module().library_filename();
+	    adcontrols::MassSpectrometerBroker::register_library( name );
 	}
-        
-	if ( ! CORBA::is_nil( session ) ) {
-		for ( std::vector< Instrument::Session_var >::iterator it = i8t_sessions.begin(); it != i8t_sessions.end(); ++it )
-			(*it)->configComplete();
-		session->configComplete();
-	}
-	Logger log;
-	log( ( nErrors ? L"Servant iitialized with errors" : L"Servernt initialized successfully") );
-
-	do { adportable::debug() << "ServantPlugin::initialize() completed."; } while(0);
-	return true;
+    }
+    
+    if ( ! CORBA::is_nil( session ) ) {
+	for ( std::vector< Instrument::Session_var >::iterator it = i8t_sessions.begin(); it != i8t_sessions.end(); ++it )
+	    (*it)->configComplete();
+	session->configComplete();
+    }
+    Logger log;
+    log( ( nErrors ? L"Servant iitialized with errors" : L"Servernt initialized successfully") );
+    
+    do { adportable::debug() << "ServantPlugin::initialize() completed."; } while(0);
+    return true;
 }
 
 void
 ServantPlugin::extensionsInitialized()
 {
-    do { adportable::debug() << "ServantPlugin::extensionsInitialized() entered."; } while(0);
+    do { adportable::debug(__FILE__, __LINE__) << "ServantPlugin::extensionsInitialized() entered."; } while(0);
     OutputWindow * outputWindow = ExtensionSystem::PluginManager::instance()->getObject< servant::OutputWindow >();
     if ( outputWindow )
         outputWindow->appendLog( L"ServantPlugin::extensionsInitialized()" );

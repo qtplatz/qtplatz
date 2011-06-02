@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += xml
+# QT       += xml
 
 TARGET = dataproc
 TEMPLATE = lib
@@ -12,12 +12,15 @@ TEMPLATE = lib
 PROVIDER = ScienceLiaison
 include(../../qtplatz_plugin.pri)
 
-include(dataproc_dependencies.pri)
 include(../../libs/acewrapper/acewrapper_dependencies.pri)
 
-LIBS *= -L$$IDE_PLUGIN_PATH/Nokia
-LIBS *= -L$$(QWT)/lib
+LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
+include(../../qwt.pri)
+include(../../boost.pri)
+LIBS += -ladwplot -ladportable -ladplugin -ladcontrols -ladutils -lacewrapper -lqtwrapper -lxmlparser -lqwt
+LIBS += -lboost_filesystem
+LIBS += -lTAO -lTAO_PortableServer -lACE
 
 INCLUDEPATH *= $$OUT_PWD/../../libs
 INCLUDEPATH *= $(QWT)/include

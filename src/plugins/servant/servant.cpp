@@ -5,7 +5,8 @@
 
 #include "servant.hpp"
 
-#if defined _DEBUG
+#if defined _MSC_VER
+#  if defined _DEBUG
 #     pragma comment(lib, "adportabled.lib")
 #     pragma comment(lib, "adcontrolsd.lib")
 #     pragma comment(lib, "adplugind.lib")
@@ -16,7 +17,7 @@
 #     pragma comment(lib, "ExtensionSystemd.lib")
 #     pragma comment(lib, "Utilsd.lib")
 #     pragma comment(lib, "Cored.lib")
-#else
+#  else
 #     pragma comment(lib, "adportable.lib")
 #     pragma comment(lib, "adcontrols.lib")
 #     pragma comment(lib, "adplugin.lib")
@@ -27,7 +28,7 @@
 #     pragma comment(lib, "ExtensionSystem.lib")
 #     pragma comment(lib, "Utils.lib")
 #     pragma comment(lib, "Core.lib")
-#endif
+#  endif
 
 #  if defined _DEBUG
 #     pragma comment(lib, "ACEd.lib")
@@ -48,6 +49,7 @@
 #     pragma comment(lib, "adbroker.lib")
 #     pragma comment(lib, "adinterface.lib")
 #  endif
+#endif
 
 Servant::Servant()
 {

@@ -47,11 +47,11 @@ using namespace qtwidgets;
 QWidget *
 factory::create_widget( const wchar_t * iid, QWidget * parent )
 {
-    if ( std::wstring(iid) == adplugin::iid_iLog ) {
+    if ( std::wstring(iid) == iid_iLog ) {
         return new LogWidget( parent );
-    } else if ( std::wstring( iid ) == adplugin::iid_iSequence ) {
+    } else if ( std::wstring( iid ) == iid_iSequence ) {
         return new qtwidgets::SequenceWidget( parent );
-    } else if ( std::wstring( iid ) == adplugin::iid_iSequencesForm ) {
+    } else if ( std::wstring( iid ) == iid_iSequencesForm ) {
         return new qtwidgets::SequencesForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::CentroidForm" ) {
         return new qtwidgets::CentroidForm( parent );

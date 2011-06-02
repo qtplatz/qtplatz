@@ -39,15 +39,11 @@ namespace adportable {
 	class Component;
 }
 
-namespace adplugin {
-
-    static const wchar_t * iid_iMonitor   =           L"adplugin::ui::iMonitor";
-    static const wchar_t * iid_iControlMethodEditor = L"adplugin::ui::iControlMethodEditor";
-    static const wchar_t * iid_iLog       =           L"adplugin::ui::iLog";
-    static const wchar_t * iid_iSequence  =           L"adplugin::ui::iSequence";
-    static const wchar_t * iid_iSequencesForm =       L"adplugin::ui::iSequencesForm";
-
-}
+#define iid_iMonitor               L"adplugin::ui::iMonitor"
+#define iid_iControlMethodEditor   L"adplugin::ui::iControlMethodEditor"
+#define iid_iLog                   L"adplugin::ui::iLog"
+#define iid_iSequence              L"adplugin::ui::iSequence"
+#define iid_iSequencesForm         L"adplugin::ui::iSequencesForm"
 
 #if 0
 # define EXPORT_FACTORY( FACTORY_CLASS ) \

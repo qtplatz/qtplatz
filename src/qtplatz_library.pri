@@ -1,4 +1,5 @@
 include(../qtplatz.pri)
+include( config.pri )
 
 win32 {
     DLLDESTDIR = $$IDE_APP_PATH

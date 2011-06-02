@@ -14,7 +14,12 @@ include(servant_dependencies.pri)
 include(../../libs/acewrapper/acewrapper_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
-
+include(../../libs/adinterface/adinterface_dependencies.pri)
+LIBS *= -ladinterface -lacewrapper -ladportable -ladplugin -lqtwrapper
+LIBS *= -ladbroker        
+LIBS *= -lboost_serialization
+LIBS *= -lTAO -lTAO_PortableServer -lTAO_Utils
+#LIBS *= -lTAO_Utils -lTAO_AnyTypeCode
 
 DEFINES += SERVANT_LIBRARY
 INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants

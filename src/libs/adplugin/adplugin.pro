@@ -12,6 +12,8 @@ include(../../qtplatz_library.pri)
 include(../../boost.pri)
 INCLUDEPATH += $(ACE_ROOT) $(TAO_ROOT) $(TAO_ROOT)/orbsvcs $$OUT_PWD/..
 LIBS += -L$(ACE_ROOT)/lib
+LIBS += -lacewrapper -ladinterface -ladportable -lqtwrapper -lxmlparser
+LIBS += -lboost_filesystem
 
 DEFINES += ADPLUGIN_LIBRARY
 

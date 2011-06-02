@@ -7,8 +7,7 @@ DESTDIR = $$IDE_APP_PATH
 
 SOURCES += main.cpp
 
-#include(../qtplatz_library.pri)
-
+include(../config.pri)
 include(../rpath.pri)
 
 LIBS += -L$$IDE_LIBRARY_PATH

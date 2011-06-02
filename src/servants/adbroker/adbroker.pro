@@ -13,9 +13,11 @@ include(../../qtplatz_servant.pri)
 include(../../boost.pri)
 include(../../libs/acewrapper/acewrapper_dependencies.pri)
 
-CONFIG(debug, debug|release) : LIBS += -ladinterfaced
-CONFIG(release, debug|release) : LIBS += -ladinterface
+#CONFIG(debug, debug|release) : LIBS += -ladinterfaced
+#CONFIG(release, debug|release) : LIBS += -ladinterface
 INCLUDEPATH *= $$OUT_PWD/../../libs
+
+LIBS *= -ladinterface -ladportable -lacewrapper -ladcontrols -lportfolio
 
 # message( "LIBS " $$LIBS )
 
