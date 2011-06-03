@@ -17,9 +17,9 @@ include(../../plugins/coreplugin/coreplugin.pri)
 include(../../libs/adinterface/adinterface_dependencies.pri)
 LIBS *= -ladinterface -lacewrapper -ladportable -ladplugin -lqtwrapper
 LIBS *= -ladbroker        
-LIBS *= -lboost_serialization
+LIBS *= -lboost_serialization -lboost_date_time
 LIBS *= -lTAO -lTAO_PortableServer -lTAO_Utils
-#LIBS *= -lTAO_Utils -lTAO_AnyTypeCode
+#LIBS *= -lTAO_AnyTypeCode
 
 DEFINES += SERVANT_LIBRARY
 INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants

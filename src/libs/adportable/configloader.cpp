@@ -172,17 +172,14 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& n
 #else
                 filename += ".so";
 #endif
-
             }
-#if defined __linux__ || defined __darwin__
+#if defined __linux__ 
 	    do {
 		boost::filesystem::path path( filename );
 		boost::filesystem::path filepath = path.branch_path() / ( std::string("lib") + path.leaf().string() );
 		filename = filepath.string();
 	    } while(0);
 #endif	    
-	    std::cout << "##############" << filename;
-
             module.library_filename( pugi::as_wide( filename ) );
             config.module( module );
 

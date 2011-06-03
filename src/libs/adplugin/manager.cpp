@@ -169,48 +169,47 @@ manager_impl::loadFactory( const std::wstring& filename )
 bool
 manager_impl::unloadFactory( const std::wstring& filename )
 {
-	librariesType::iterator it = libraries_.find( filename );
-	if ( it != libraries_.end() ) {
+    librariesType::iterator it = libraries_.find( filename );
+    if ( it != libraries_.end() ) {
         if ( it->second )
             it->second->release();
         return true;
-	}
+    }
     return false;
 }
 
 void
 manager_impl::register_ior( const std::string& name, const std::string& ior )
 {
-	iorMap_[name] = ior;
-
-	QDir dir = QDir::home();
-	if ( ! dir.exists( ".ior" ) )
-		dir.mkdir( ".ior" );
-	dir.cd( ".ior" );
-	std::string path = dir.absolutePath().toStdString();
-	path += std::string("/") + name + ".ior";
-	std::ofstream of( path.c_str() );
-	of << ior;
+    iorMap_[name] = ior;
+    
+    QDir dir = QDir::home();
+    if ( ! dir.exists( ".ior" ) )
+	dir.mkdir( ".ior" );
+    dir.cd( ".ior" );
+    std::string path = dir.absolutePath().toStdString();
+    path += std::string("/") + name + ".ior";
+    std::ofstream of( path.c_str() );
+    of << ior;
 }
 
 const char *
 manager_impl::lookup_ior( const std::string& name )
 {
 #if defined _DEBUG
-	std::string path = QDir::home().absolutePath().toStdString();
-	path += std::string( "/.ior/" ) + name + ".ior";
-	std::ifstream inf( path.c_str() );
-
-	if ( ! inf.fail() ) {
-		std::string ior;
-		inf >> ior;
-	}
+    std::string path = QDir::home().absolutePath().toStdString();
+    path += std::string( "/.ior/" ) + name + ".ior";
+    std::ifstream inf( path.c_str() );
+    
+    if ( ! inf.fail() ) {
+	std::string ior;
+	inf >> ior;
+    }
 #endif
-
-	std::map< std::string, std::string >::iterator it = iorMap_.find( name );
-	if ( it != iorMap_.end() )
-		return it->second.c_str();
-	return 0;
+    std::map< std::string, std::string >::iterator it = iorMap_.find( name );
+    if ( it != iorMap_.end() )
+	return it->second.c_str();
+    return 0;
 }
 
 
@@ -218,16 +217,16 @@ manager_impl::lookup_ior( const std::string& name )
 ////////////////////////////////////////
 
 class ORBLoaderError : public adplugin::orbLoader {
-	std::string errmsg_;
+    std::string errmsg_;
 public:
-	ORBLoaderError( const std::string& errmsg ) : errmsg_( errmsg ) {}
-	~ORBLoaderError() { }
-	virtual operator bool() const { return false; }
-	virtual bool initialize( CORBA::ORB *, PortableServer::POA * , PortableServer::POAManager * ) { return false; }
-	virtual void initial_reference( const char * ) { }
-	virtual const char * activate() { return ""; }
-	virtual bool deactivate() { return false; }
-	virtual const char * error_description() { return errmsg_.c_str(); }
+    ORBLoaderError( const std::string& errmsg ) : errmsg_( errmsg ) {}
+    ~ORBLoaderError() { }
+    virtual operator bool() const { return false; }
+    virtual bool initialize( CORBA::ORB *, PortableServer::POA * , PortableServer::POAManager * ) { return false; }
+    virtual void initial_reference( const char * ) { }
+    virtual const char * activate() { return ""; }
+    virtual bool deactivate() { return false; }
+    virtual const char * error_description() { return errmsg_.c_str(); }
 };
 
 //-------------------
@@ -241,14 +240,13 @@ manager_impl::orbLoader( const std::wstring& file )
 
     boost::filesystem::path filepath( file );
     boost::system::error_code ec;
-    if ( ! boost::filesystem::exists( file, ec ) ) {
+    if ( ! boost::filesystem::exists( filepath, ec ) ) {
 	adportable::debug dbg(__FILE__, __LINE__);
 	dbg << "error: " << ec.message() << " for file '" << file << "'";
 	failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
 	return *failedLoaders_[ file ];
     }
-    
-    QLibrary lib( qtwrapper::qstring::copy( file ) );
+    QLibrary lib( filepath.string().c_str() );
     if ( lib.load() ) {
 	typedef adplugin::orbLoader * (*instance_t)();
 	instance_t instance = reinterpret_cast<instance_t>( lib.resolve( "instance" ) );
@@ -263,7 +261,11 @@ manager_impl::orbLoader( const std::wstring& file )
     }
     if ( ( it = orbLoaders_.find( file ) ) != orbLoaders_.end() )
 	return *it->second;
+
+    std::ostringstream o;
+    o << "library \"" << filepath.leaf() << "\" load failed at " << __FILE__ << " line " << __LINE__ << "\n"
+      << lib.errorString().toStdString();
     
-    failedLoaders_[ file ].reset( new ORBLoaderError( "dll load failed." ) );
+    failedLoaders_[ file ].reset( new ORBLoaderError( o.str() ) );
     return *failedLoaders_[ file ];
 }

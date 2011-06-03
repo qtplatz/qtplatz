@@ -82,7 +82,6 @@ ServantPlugin::~ServantPlugin()
 ServantPlugin::ServantPlugin() : pConfig_( 0 )
                                , pImpl_( 0 )
 {
-    std::cout << "ServantPlugin::CTOR" << std::endl;
 }
 
 namespace servant {
@@ -318,7 +317,7 @@ ServantPlugin::final_close()
         adBroker::deactivate();
     } catch ( CORBA::Exception& ex ) {
         adportable::debug dbg( __FILE__, __LINE__ );
-        dbg << ex._info().c_str();        dbg << ex._info().c_str();
+        dbg << ex._info().c_str();
         QMessageBox::critical( 0, dbg.where().c_str(), dbg.str().c_str() );
     }
     try {
