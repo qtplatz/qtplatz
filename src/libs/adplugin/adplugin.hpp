@@ -39,12 +39,6 @@ namespace adportable {
 	class Component;
 }
 
-#define iid_iMonitor               L"adplugin::ui::iMonitor"
-#define iid_iControlMethodEditor   L"adplugin::ui::iControlMethodEditor"
-#define iid_iLog                   L"adplugin::ui::iLog"
-#define iid_iSequence              L"adplugin::ui::iSequence"
-#define iid_iSequencesForm         L"adplugin::ui::iSequencesForm"
-
 #if 0
 # define EXPORT_FACTORY( FACTORY_CLASS ) \
     extern "C" {  __declspec(dllexport) adplugin::ifactory * ad_plugin_instance(); } \

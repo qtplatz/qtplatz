@@ -48,6 +48,7 @@
 
 #include <qtwrapper/qstring.hpp>
 #include <adplugin/adplugin.hpp>
+#include <adplugin/constants.hpp>
 #include <adplugin/imonitor.hpp>
 #include <adportable/configuration.hpp>
 #include <adinterface/eventlog_helper.hpp>
@@ -98,7 +99,7 @@ AcquireUIManager::init()
     QDir dir = QCoreApplication::instance()->applicationDirPath();
     dir.cdUp();
     std::wstring apppath = qtwrapper::wstring::copy( dir.path() );
-    dir.cd( "lib/qtPlatz/plugins/ScienceLiaison" );
+    dir.cd( adpluginDirectory );
     
     std::wstring configFile = qtwrapper::wstring::copy( dir.path() ) + L"/acquire.config.xml";
     
@@ -251,3 +252,4 @@ AcquireUIManager::handle_debug_print( unsigned long priority, unsigned long cate
 {
     emit signal_debug_print( priority, category, text );
 }
+

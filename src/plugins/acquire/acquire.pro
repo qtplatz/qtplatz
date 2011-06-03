@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += xml
+#QT       += xml
 
 TARGET = acquire
 TEMPLATE = lib
@@ -12,12 +12,15 @@ TEMPLATE = lib
 PROVIDER = ScienceLiaison
 include(../../qtplatz_plugin.pri)
 
-include(acquire_dependencies.pri)
 include(../../libs/acewrapper/acewrapper_dependencies.pri)
 include(../../boost.pri)
 INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants ../ $$(QWT)/include
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH -L$$(QWT)/lib
+LIBS += -ladcontroller -ladcontrols -ladutils -ladinterface
+LIBS += -ladportable -ladwplot -lacewrapper -lqtwrapper -xmlparser -ladplugin
+LIBS *= -lqwt
+LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
 
 include(../../plugins/coreplugin/coreplugin.pri)
 

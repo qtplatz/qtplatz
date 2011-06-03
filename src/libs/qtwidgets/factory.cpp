@@ -25,6 +25,7 @@
 
 #include "factory.hpp"
 #include <adplugin/adplugin.hpp>
+#include <adplugin/constants.hpp>
 #include <QtCore/qplugin.h>
 #include "logwidget.hpp"
 #include "sequencewidget.hpp"

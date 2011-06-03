@@ -61,6 +61,7 @@ IsotopeForm::OnInitialUpdate()
 {
     QStandardItemModel& model = *pModel_;
     adcontrols::IsotopeMethod& method = *pMethod_;
+    (void)method;
 
     //------------ add dummy data for debug ---------------
     //-----------------------------------------------------
@@ -75,7 +76,7 @@ IsotopeForm::OnInitialUpdate()
     model.setHeaderData( 0, Qt::Horizontal, "Isotope" );
 
     QStandardItem * item = StandardItemHelper::appendRow( rootNode, "Isotope" );
-
+    (void)item;
 }
 
 void

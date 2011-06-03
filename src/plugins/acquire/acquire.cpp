@@ -25,12 +25,14 @@
 
 #include "acquire.hpp"
 
+#if defined _MSC_VER
 # pragma warning (disable: 4996)
+#endif
 # include <ace/Service_Config.h>
 # include <ace/Process_Manager.h>
-# pragma warning (default: 4996)
 
-#if defined _DEBUG
+#if defined WIN32 && defined _MSC_VER
+#  if defined _DEBUG
 #     pragma comment(lib, "adcontrollerd.lib")
 #     pragma comment(lib, "adcontrolsd.lib")   // static
 #     pragma comment(lib, "adutilsd.lib")      // static
@@ -42,7 +44,7 @@
 #     pragma comment(lib, "xmlparserd.lib")   // static
 #     pragma comment(lib, "adplugind.lib")     // dll
 #     pragma comment(lib, "qwtd.lib")
-#else
+#  else
 #     pragma comment(lib, "adcontroller.lib")
 #     pragma comment(lib, "adcontrols.lib")    // static
 #     pragma comment(lib, "adutils.lib")       // static
@@ -54,6 +56,7 @@
 #     pragma comment(lib, "xmlparser.lib")    // static
 #     pragma comment(lib, "adplugin.lib")      // dll
 #     pragma comment(lib, "qwt.lib")
+#  endif
 #endif
 
 #if defined ACE_WIN32
