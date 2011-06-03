@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison Project
-//////////////////////////////////////////////
 
 #include "sequenceplugin.h"
 #include "sequencemode.h"
@@ -33,6 +29,7 @@
 #include "sequencemanager.h"
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
+#include <adplugin/constants.hpp>
 #include <adportable/configuration.hpp>
 #include <qtwrapper/qstring.hpp>
 
@@ -112,17 +109,18 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     QDir dir = QCoreApplication::instance()->applicationDirPath();
     dir.cdUp();
     std::wstring apppath = qtwrapper::wstring::copy( dir.path() );
-    dir.cd( "lib/qtPlatz/plugins/ScienceLiaison" );
+    dir.cd( adpluginDirectory );
+    std::wstring pluginpath = qtwrapper::wstring::copy( dir.path() );
 
     adportable::Configuration acquire_config;
     adportable::Configuration dataproc_config;
     do {
-        std::wstring file = qtwrapper::wstring::copy( dir.path() ) + L"/acquire.config.xml";
+        std::wstring file = pluginpath + L"/acquire.config.xml";
         const wchar_t * query = L"/AcquireConfiguration/Configuration";
         adplugin::manager::instance()->loadConfig( acquire_config, file, query );
     } while(0);
     do {
-        std::wstring file = qtwrapper::wstring::copy( dir.path() ) + L"/dataproc.config.xml";
+        std::wstring file = pluginpath + L"/dataproc.config.xml";
         const wchar_t * query = L"/DataprocConfiguration/Configuration";
         adplugin::manager::instance()->loadConfig( dataproc_config, file, query );
     } while(0);

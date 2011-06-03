@@ -44,16 +44,13 @@
 #include "mscalibsummarywidget.hpp"
 #include "peakresultwidget.hpp"
 #include <adplugin/lifecycle.hpp>
+#include <QMessageBox>
 
 using namespace qtwidgets;
 
 QWidget *
 factory::create_widget( const wchar_t * iid, QWidget * parent )
 {
-    adportable::debug dbg(__FILE__, __LINE__);
-    dbg << L"qtwidgets::factory::create_widget(" << iid << ")";
-    qDebug() << dbg.str().c_str();
-
     if ( std::wstring(iid) == iid_iLog ) {
         return new LogWidget( parent );
     } else if ( std::wstring( iid ) == iid_iSequence ) {
@@ -83,6 +80,9 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
     } else if ( std::wstring( iid ) == L"qtwidgets::PeakResultWidget" ) {
         return new qtwidgets::PeakResultWidget( parent );
     }
+    adportable::debug dbg(__FILE__, __LINE__);
+    dbg << "\tqtwidgets::factory::create_widget(" << std::wstring(iid) << ") -- class does not exist.";
+    QMessageBox::warning( 0, QLatin1String("qtwidgets::factory"), dbg.str().c_str() );
     return 0;
 }
 
