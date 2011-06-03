@@ -1,2 +1,3 @@
 
 CONFIG += debug
+DEFINES += DEBUG

@@ -36,8 +36,12 @@ qstring::qstring( const std::wstring& t )
 QString
 qstring::copy( const std::wstring& t )
 {
+#if defined wIN32
     QString res( QString::fromUtf16( reinterpret_cast<const UTF16 *>( t.c_str() ) ) );
     return res;
+#else
+    return QString::fromStdWString( t );
+#endif
 }
 
 

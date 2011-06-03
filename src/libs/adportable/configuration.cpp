@@ -1,9 +1,30 @@
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+// This is a -*- C++ -*- header.
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the ScienceLiaison Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 #include "configuration.hpp"
+#include "string.hpp"
 
 using namespace adportable;
 
@@ -17,13 +38,13 @@ Configuration::~Configuration(void)
 {
 }
 
-Configuration::Configuration( const Configuration& t ) : name_( t.name_ )
+Configuration::Configuration( const Configuration& t ) : xml_( t.xml_ )
+						       , name_( t.name_ )
                                                        , text_( t.text_ )
+						       , interface_(t.interface_)
                                                        , attributes_( t.attributes_ )
                                                        , children_( t.children_ )  
-						       , xml_( t.xml_ )
                                                        , module_( t.module_ )
-						       , interface_(t.interface_)
 {
 }
 
@@ -42,7 +63,7 @@ Configuration::interface() const
 void
 Configuration::interface( const std::wstring& value )
 {
-	interface_ = value;
+    interface_ = value;
 }
 
 const std::wstring&
@@ -101,14 +122,14 @@ Configuration::hasChild() const
 Configuration&
 Configuration::append( const Configuration& t )
 {
-	children_.push_back( t );
-	return children_.back();
+    children_.push_back( t );
+    return children_.back();
 }
 
 void
 Configuration::xml( const std::wstring& xml )
 {
-	xml_ = xml;
+    xml_ = xml;
 }
 
 void
@@ -141,7 +162,7 @@ Configuration::find( const Configuration& config, const std::wstring& name )
     }
     const Configuration * p = 0;
     for ( Configuration::vector_type::const_iterator it = config.begin(); it != config.end(); ++it ) {
-        if ( p = find( *it, name ) )
+        if ( ( p = find( *it, name ) ) )
             return p;
     }
     return 0;
@@ -168,6 +189,12 @@ void
 Module::library_filename( const std::wstring& name )
 {
     library_filename_ = name;
+}
+
+void
+Module::library_filename( const std::string& name )
+{
+    library_filename_ = string::convert( name );
 }
 
 ////////////////////

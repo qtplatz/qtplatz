@@ -7,8 +7,10 @@
 TARGET = qtwidgets
 TEMPLATE = lib
 PROVIDER = ScienceLiaison
-include(../../qtplatz_library.pri)
+
+include(../../qtplatz_servant.pri)
 include(../../boost.pri)
+LIBS += -ladportable -ladcontrols -ladplugin -lqtwrapper
 
 INCLUDEPATH *= $(ACE_ROOT) $(TAO_ROOT)
 

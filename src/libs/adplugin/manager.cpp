@@ -83,7 +83,7 @@ namespace adplugin {
 
         librariesType libraries_;
         orbLoadersType orbLoaders_;
-		orbLoadersType failedLoaders_;
+	orbLoadersType failedLoaders_;
         std::map< std::string, std::string > iorMap_;
     };
 }
@@ -99,20 +99,20 @@ manager::instance()
 QWidget *
 manager::widget_factory( const adportable::Configuration& config, const wchar_t * path, QWidget * parent )
 {
-	if ( config.module().library_filename().empty() )
-		return 0;
-
-    std::wstring appbase( path );
-	std::wstring loadfile = appbase + config.module().library_filename();
-
-    adplugin::ifactory * pfactory = manager::instance()->loadFactory( loadfile );
-	if ( pfactory ) {
+    if ( config.module().library_filename().empty() )
+	return 0;
+    
+    boost::filesystem::path basepath( path );
+    boost::filesystem::path loadfile = basepath / config.module().library_filename();
+    
+    adplugin::ifactory * pfactory = manager::instance()->loadFactory( loadfile.wstring() );
+    if ( pfactory ) {
         QWidget * pWidget = pfactory->create_widget( config.interface().c_str(), parent );
         adplugin::LifeCycle * pLifeCycle = dynamic_cast< adplugin::LifeCycle * > ( pWidget );
-		if ( pLifeCycle )
+	if ( pLifeCycle )
             pLifeCycle->OnCreate( config );
-		return pWidget;
-	}
+	return pWidget;
+    }
     return 0;
 }
 
@@ -147,8 +147,8 @@ manager_impl::loadConfig( adportable::Configuration& config, const std::wstring&
 adplugin::ifactory *
 manager_impl::loadFactory( const std::wstring& filename )
 {
-	librariesType::iterator it = libraries_.find( filename );
-	if ( it == libraries_.end() ) {
+    librariesType::iterator it = libraries_.find( filename );
+    if ( it == libraries_.end() ) {
         QLibrary lib( qtwrapper::qstring::copy(filename) );
         if ( lib.load() ) {
             typedef adplugin::ifactory * (*ad_plugin_instance_t)();
@@ -156,9 +156,15 @@ manager_impl::loadFactory( const std::wstring& filename )
             if ( instance ) {
                 libraries_[ filename ] = instance();
             } else {
-                QMessageBox::critical( 0, "adplugin::orbLoader", "some method(s) can not be assigned" );
+		adportable::debug dbg(__FILE__, __LINE__);
+		dbg << filename << " \"ad_plugin_instance\" cound not be found";
+                QMessageBox::critical( 0, "adplugin::orbLoader", dbg.str().c_str() );
             }
-        }
+        } else {
+	    adportable::debug dbg(__FILE__, __LINE__);
+	    dbg << "manager_impl::loadFactory(" << filename << ")" << lib.errorString().toStdString();
+	    QMessageBox::critical( 0, "adplugin::orbLoader", dbg.str().c_str() );
+	}
     }
     if ( ( it = libraries_.find( filename ) ) != libraries_.end() )
         return it->second;
@@ -255,7 +261,9 @@ manager_impl::orbLoader( const std::wstring& file )
 	    if ( loader )
 		orbLoaders_[ file ] = loader;
 	} else {
-	    failedLoaders_[ file ].reset( new ORBLoaderError( "dll entry point 'instance' can not be found" ) );
+	    adportable::debug dbg(__FILE__, __LINE__);
+	    dbg << "library: " << filepath.string() << " has no 'instance' entry";
+	    failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
 	    return *failedLoaders_[ file ];
 	}
     }

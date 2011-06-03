@@ -15,8 +15,8 @@ using namespace qtwidgets;
 
 MSLockForm::MSLockForm(QWidget *parent) : QWidget(parent)
                                         , ui(new Ui::MSLockForm)
-                                        , pConfig_( new adportable::Configuration )
                                         , pModel_( new QStandardItemModel )
+                                        , pConfig_( new adportable::Configuration )
                                         , pDelegate_( new MSLockDelegate )
                                         , pMethod_( new adcontrols::MSLockMethod ) 
 {

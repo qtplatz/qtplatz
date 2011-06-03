@@ -26,6 +26,8 @@
 #include "factory.hpp"
 #include <adplugin/adplugin.hpp>
 #include <adplugin/constants.hpp>
+#include <adportable/debug.hpp>
+#include <qdebug.h>
 #include <QtCore/qplugin.h>
 #include "logwidget.hpp"
 #include "sequencewidget.hpp"
@@ -48,6 +50,10 @@ using namespace qtwidgets;
 QWidget *
 factory::create_widget( const wchar_t * iid, QWidget * parent )
 {
+    adportable::debug dbg(__FILE__, __LINE__);
+    dbg << L"qtwidgets::factory::create_widget(" << iid << ")";
+    qDebug() << dbg.str().c_str();
+
     if ( std::wstring(iid) == iid_iLog ) {
         return new LogWidget( parent );
     } else if ( std::wstring( iid ) == iid_iSequence ) {

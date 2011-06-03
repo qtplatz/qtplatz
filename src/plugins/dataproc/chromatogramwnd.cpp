@@ -43,6 +43,7 @@
 #include <qtwidgets/peakresultwidget.hpp>
 #include <adwplot/chromatogramwidget.hpp>
 #include <adwplot/spectrumwidget.hpp>
+#include "qtwidgets_name.hpp"
 
 using namespace dataproc;
 using namespace dataproc::internal;
@@ -97,16 +98,14 @@ ChromatogramWnd::init( const std::wstring& apppath )
     pImpl_.reset( new ChromatogramWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
-        if ( pImpl_->chroWidget_ = new adwplot::ChromatogramWidget( this ) ) {
+        if ( ( pImpl_->chroWidget_ = new adwplot::ChromatogramWidget( this ) ) ) {
 
             // peak table
             adportable::Configuration config;
             adportable::Module module;
-#if defined _DEBUG
-            module.library_filename( L"/lib/qtPlatz/plugins/ScienceLiaison/qtwidgetsd.dll" );
-#else
-            module.library_filename( L"/lib/qtPlatz/plugins/ScienceLiaison/qtwidgets.dll" );
-#endif
+
+	    module.library_filename( QTWIDGETS_NAME );
+
             config.module( module );
             config.interface( L"qtwidgets::PeakResultWidget" );
 
@@ -116,7 +115,7 @@ ChromatogramWnd::init( const std::wstring& apppath )
                 if ( p )
                     p->OnInitialUpdate();
                 connect( this, SIGNAL( fireSetData( const adcontrols::Chromatogram& ) ),
-                    pImpl_->peakWidget_, SLOT( setData( const adcontrols::Chromatogram& ) ) );
+			 pImpl_->peakWidget_, SLOT( setData( const adcontrols::Chromatogram& ) ) );
             }
 
             splitter->addWidget( pImpl_->chroWidget_ );

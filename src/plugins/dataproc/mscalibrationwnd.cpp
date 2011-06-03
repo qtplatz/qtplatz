@@ -37,6 +37,7 @@
 #include <adportable/configuration.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/manager.hpp>
+#include "qtwidgets_name.hpp"
 
 using namespace dataproc;
 using namespace dataproc::internal;
@@ -89,11 +90,9 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
         // summary table
         adportable::Configuration config;
         adportable::Module module;
-#if defined _DEBUG
-        module.library_filename( L"/lib/qtPlatz/plugins/ScienceLiaison/qtwidgetsd.dll" );
-#else
-        module.library_filename( L"/lib/qtPlatz/plugins/ScienceLiaison/qtwidgets.dll" );
-#endif
+
+        module.library_filename( QTWIDGETS_NAME );
+
         config.module( module );
         config.interface( L"qtwidgets::MSCalibSummaryWidget" );
 

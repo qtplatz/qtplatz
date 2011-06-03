@@ -52,4 +52,5 @@ namespace adportable {
 	debug& operator << ( unsigned long );
     };
 
+
 }

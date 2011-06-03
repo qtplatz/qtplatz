@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -43,6 +39,7 @@ namespace adportable {
         inline const std::wstring& library_filename() const { return library_filename_; }
         void xml( const std::wstring& );
         void library_filename( const std::wstring& );
+        void library_filename( const std::string& );
 
     private:
         std::wstring xml_;
@@ -60,11 +57,11 @@ namespace adportable {
 
         const std::wstring& component() const;
 
-		const std::wstring& interface() const;
-		void interface( const std::wstring& );
-
+	const std::wstring& interface() const;
+	void interface( const std::wstring& );
+	
         const std::wstring& attribute( const std::wstring& key ) const;
-
+	
         const std::wstring& name() const;
         void name( const std::wstring& );
 
@@ -74,14 +71,14 @@ namespace adportable {
         void attribute( const std::wstring& key, const std::wstring& value );
         bool readonly() const;
         bool hasChild() const;
-		Configuration& append( const Configuration& );
-		void xml( const std::wstring& );
+	Configuration& append( const Configuration& );
+	void xml( const std::wstring& );
         void module( const Module& );
-
-		bool isComponent() const;
-		bool isPlugin() const;
-
-		inline const std::wstring& xml() const { return xml_; }
+	
+	bool isComponent() const;
+	bool isPlugin() const;
+	
+	inline const std::wstring& xml() const { return xml_; }
         inline const attributes_type& attributes() const { return attributes_; }
         inline const Module& module() const { return module_; }
         inline vector_type::iterator begin() { return children_.begin(); }
@@ -94,10 +91,10 @@ namespace adportable {
         static const Configuration * find( const Configuration&, const std::wstring& );
 
     private:
-		std::wstring xml_;
+	std::wstring xml_;
         std::wstring name_;
         std::wstring text_;
-		std::wstring interface_;  // <Component interface="value"/>
+	std::wstring interface_;  // <Component interface="value"/>
         attributes_type attributes_;
         std::vector< Configuration > children_;
         Module module_;
