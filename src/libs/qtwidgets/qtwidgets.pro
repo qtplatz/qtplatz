@@ -32,6 +32,7 @@ SOURCES += centroiddelegate.cpp \
         mslockdelegate.cpp \
         mslockform.cpp \
         peakidtableform.cpp \
+        peakresultwidget.cpp \
         qtwidgets.cpp \
         reportdelegate.cpp \
         reportform.cpp \
@@ -61,6 +62,7 @@ HEADERS += centroiddelegate.hpp \
         mslockdelegate.hpp \
         mslockform.hpp \
         peakidtableform.hpp \
+        peakresultwidget.hpp \
         qtwidgets.hpp \
         reportdelegate.hpp \
         reportform.hpp \
