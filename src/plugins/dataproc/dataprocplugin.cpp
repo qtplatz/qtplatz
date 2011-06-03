@@ -71,8 +71,9 @@
 #include <adcontrols/processmethod.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <adportable/configuration.hpp>
-#include <adplugin/adplugin.hpp>
 #include <adportable/debug.hpp>
+#include <adplugin/adplugin.hpp>
+#include <adplugin/constants.hpp>
 
 #include <acewrapper/constants.hpp>
 #include <acewrapper/brokerhelper.hpp>
@@ -144,13 +145,16 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
 
     //-------------------------------------------------------------------------------------------
     std::wstring apppath;
+    std::wstring pluginpath;
     do {
         QDir dir = QCoreApplication::instance()->applicationDirPath();
         dir.cdUp();
         apppath = qtwrapper::wstring::copy( dir.path() );
+	dir.cd( adpluginDirectory );
+	pluginpath = qtwrapper::wstring::copy( dir.path() );
     } while(0);
 
-    std::wstring configFile = apppath + L"/lib/qtplatz/plugins/ScienceLiaison/dataproc.config.xml";
+    std::wstring configFile = pluginpath + L"/dataproc.config.xml";
 
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
 

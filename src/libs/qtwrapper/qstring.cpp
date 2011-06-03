@@ -28,15 +28,14 @@
 
 using namespace qtwrapper;
 
-qstring::qstring( const std::wstring& t ) 
-: impl_( QString::fromUtf16( reinterpret_cast<const UTF16 *>( t.c_str() ) ) )
+qstring::qstring( const std::wstring& t ) : impl_( copy( t ) )
 {
 }
 
 QString
 qstring::copy( const std::wstring& t )
 {
-#if defined wIN32
+#if defined WIN32
     QString res( QString::fromUtf16( reinterpret_cast<const UTF16 *>( t.c_str() ) ) );
     return res;
 #else

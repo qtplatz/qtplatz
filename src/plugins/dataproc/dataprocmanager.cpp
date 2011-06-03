@@ -44,8 +44,11 @@
 #include <QToolBar>
 #include <QTextEdit>
 #include <QTabBar>
-
+#include <QMessageBox>
 #include <vector>
+#if defined DEBUG
+# include <iostream>
+#endif
 
 using namespace dataproc::internal;
 
@@ -95,10 +98,15 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
             
         // std::wstring loadpath = qtwrapper::wstring( dir.path() );
         // tab pages
+#ifdef DEBUG
+	std::cout << "------------- creating process method tab" << std::endl;
+#endif
         for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
 
             const std::wstring name = it->name();
-
+#if defined DEBUG
+	    std::wcout << "#####" << name << "#####" << std::endl;
+#endif
             if ( it->isPlugin() ) {
                 QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
                 if ( pWidget ) {
@@ -112,9 +120,12 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
 
                     pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
                     m.mainWindow_->addDockForWidget( pWidget );
-                }
+                } else {
+		    QMessageBox::critical(0, QLatin1String("dataprocmanager"), qtwrapper::qstring::copy(it->name()) );
+		}
             }
         }
+	std::cout << "------------- end process method tab" << std::endl;
     }       
 
     ////
