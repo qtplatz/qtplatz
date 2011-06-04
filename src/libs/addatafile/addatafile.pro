@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       -= gui
+QT -= gui core 
 
 TARGET = addatafile
 TEMPLATE = lib
@@ -12,8 +12,10 @@ TEMPLATE = lib
 DEFINES += ADDATAFILE_LIBRARY
 
 include(../../boost.pri)
-include(../../qtplatz_library.pri)
+include(../../qtplatz_servant.pri)
 INCLUDEPATH += ../
+
+LIBS += -lacewrapper -ladcontrols -ladutils -lportfolio -lxmlparser
 
 SOURCES += addatafile.cpp \
     datafile.cpp \

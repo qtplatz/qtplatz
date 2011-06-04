@@ -18,7 +18,7 @@ LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../qwt.pri)
 include(../../boost.pri)
-LIBS += -ladwplot -ladportable -ladplugin -ladcontrols -ladutils -lacewrapper -ladinterface -lqtwrapper -lxmlparser -lqwt
+LIBS += -ladwplot -ladportable -ladplugin -ladcontrols -ladutils -lacewrapper -ladinterface -lportfolio -lqtwrapper -lxmlparser -lqwt
 LIBS += -lboost_filesystem
 LIBS += -lTAO -lTAO_PortableServer -lACE
 

@@ -33,6 +33,7 @@
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
+#include <adportable/debug.hpp>
 #include <boost/any.hpp>
 
 using namespace adtxtfactory;
@@ -60,6 +61,10 @@ bool
 datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
     TXTSpectrum txt;
+
+#if defined DEBUG
+    adportable::debug(__FILE__, __LINE__) << L" datafile::open(" << filename << L")";
+#endif
 
     if ( txt.load( filename ) ) {
         adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum( txt.ms_ ) );

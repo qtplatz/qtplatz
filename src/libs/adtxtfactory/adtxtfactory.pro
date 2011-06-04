@@ -8,10 +8,11 @@ QT       -= core gui
 
 TARGET = adtxtfactory
 TEMPLATE = lib
-include(../../qtplatz_library.pri)
+include(../../qtplatz_servant.pri)
 
 INCLUDEPATH += ../../libs
 include (../../boost.pri)
+LIBS += -lboost_system
 
 DEFINES += ADTXTFACTORY_LIBRARY
 

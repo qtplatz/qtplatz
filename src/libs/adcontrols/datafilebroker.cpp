@@ -8,7 +8,7 @@
 **
 ** Licensees holding valid ScienceLiaison commercial licenses may use this file in
 ** accordance with the ScienceLiaison Commercial License Agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
+** Software or, alternativey, in accordance with the terms contained in
 ** a written agreement between you and ScienceLiaison.
 **
 ** GNU Lesser General Public License Usage
@@ -29,6 +29,7 @@
 #include <map>
 #include <boost/smart_ptr.hpp>
 #include <QLibrary>
+#include <adportable/debug.hpp>
 
 #if defined _MSC_VER
 # pragma warning(disable: 4996)
@@ -124,6 +125,7 @@ datafileBrokerImpl::register_library( const std::wstring& sharedlib )
             return true;
         }
     }
+    adportable::debug(__FILE__, __LINE__) << lib.errorString().toStdString();
     return false;
 }
 
