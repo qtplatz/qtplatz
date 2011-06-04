@@ -16,8 +16,8 @@
         <glob pattern="*.data"/>
     </mime-type>
   <mime-type type="application/txt">
-       <sub-class-of type="text/plain"/>
-       <comment>Spectrum file</comment>
+    <sub-class-of type="application/octet-stream"/>
+    <comment>Spectrum file</comment>
        <glob pattern="*.txt"/>
     </mime-type>
 </mime-info>
