@@ -35,7 +35,6 @@
 #include <portfolio/folder.hpp>
 #include <adwplot/chromatogramwidget.hpp>
 #include <adwplot/spectrumwidget.hpp>
-//#include <adwidgets/axis.h>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 #include <boost/variant.hpp>
@@ -66,7 +65,7 @@ namespace dataproc {
             selProcessed( Wnd& wnd ) : wnd_(wnd) {}
 
             template<typename T> void operator ()( T& ) const {
-	    }
+            }
 
             void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
                 wnd_.draw2( ptr );
@@ -93,18 +92,15 @@ MSProcessingWnd::init()
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
         if ( ( pImpl_->ticPlot_ = new adwplot::ChromatogramWidget(this) ) ) {
-            //adwidgets::ui::Axis axis = pImpl_->ticPlot_->axisX();
-            //axis.text( L"Time(min)" );
+            pImpl_->ticPlot_->setMinimumHeight( 80 );
         }
 	
         if ( ( pImpl_->profileSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
-            //adwidgets::ui::Axis axis = pImpl_->profileSpectrum_->axisX();
-            //axis.text( L"m/z" );
+            pImpl_->profileSpectrum_->setMinimumHeight( 80 );
         }
 
         if ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) {
-            //adwidgets::ui::Axis axis = pImpl_->processedSpectrum_->axisX();
-            //axis.text( L"m/z" );
+            pImpl_->processedSpectrum_->setMinimumHeight( 80 );
         }
         splitter->addWidget( pImpl_->ticPlot_ );
         splitter->addWidget( pImpl_->profileSpectrum_ );
