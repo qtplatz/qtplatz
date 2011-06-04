@@ -81,7 +81,7 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
         return new qtwidgets::PeakResultWidget( parent );
     }
     adportable::debug dbg(__FILE__, __LINE__);
-    dbg << "\tqtwidgets::factory::create_widget(" << std::wstring(iid) << ") -- class does not exist.";
+    dbg << "create_widget(" << std::wstring(iid) << ") -- no such class.";
     QMessageBox::warning( 0, QLatin1String("qtwidgets::factory"), dbg.str().c_str() );
     return 0;
 }

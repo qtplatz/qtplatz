@@ -163,7 +163,6 @@ manager_impl::loadFactory( const std::wstring& filename )
         } else {
 	    adportable::debug dbg(__FILE__, __LINE__);
 	    dbg << "manager_impl::loadFactory(" << filename << ")" << lib.errorString().toStdString();
-	    QMessageBox::critical( 0, "adplugin::orbLoader", dbg.str().c_str() );
 	}
     }
     if ( ( it = libraries_.find( filename ) ) != libraries_.end() )

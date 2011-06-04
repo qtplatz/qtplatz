@@ -48,10 +48,6 @@
 			<title>Report</title>
 			<Component type="widget" interface="qtwidgets::ReportForm" module="qtwidgets" loader="adplugin"/>
 		</Configuration>
-		<Configuration name="Memo">
-			<title>Memo Pad</title>
-			<Component type="widget" interface="qtwidgets::EditForm" module="qtwidgets" loader="adplugin"/>
-		</Configuration>
 	</Configuration>
 	<Configuration name="dataproviders">
 		<Configuration name="mc4provider">
