@@ -25,6 +25,10 @@
 #include "portfolioimpl.hpp"
 #include "folder.hpp"
 #include "folium.hpp"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace portfolio;
 using namespace portfolio::internal;
@@ -157,20 +161,27 @@ PortfolioImpl::addFolder( const std::wstring& name, bool uniq )
     return Folder( Node::addFolder( name, this ), this );
 }
 
-#if defined WIN32
-#include <windows.h>
 std::wstring
 PortfolioImpl::newGuid()
 {
-    std::wstring guidString;
-    GUID guid;
-    if ( CoCreateGuid( &guid ) == S_OK ) {
-        LPOLESTR psz;
-        if ( ::StringFromCLSID( guid, &psz ) == S_OK ) {
-            guidString = psz;
-            CoTaskMemFree( psz );
-        }
-    }
-    return guidString;
+    const boost::uuids::uuid id = boost::uuids::random_generator()();
+    return boost::lexical_cast<std::wstring>(id);
 }
+
+#if 0
+struct win32api {
+    std::wstring create_uuid() {
+        std::wstring guidString;
+        GUID guid;
+        if ( CoCreateGuid( &guid ) == S_OK ) {
+            LPOLESTR psz;
+            if ( ::StringFromCLSID( guid, &psz ) == S_OK ) {
+                guidString = psz;
+                CoTaskMemFree( psz );
+            }
+        }
+        return guidString;
+    }
+};
 #endif
+

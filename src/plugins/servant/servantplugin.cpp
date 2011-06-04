@@ -201,7 +201,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		mgr->register_ior( ns_name.c_str(), ior.c_str() ); // set ior to Broker::Manager
 	    } else {
                 it->attribute( L"loadstatus", L"failed" );
-		QMessageBox::warning( 0, "ServantPlugin", loader.error_description() );
+		// QMessageBox::warning( 0, "ServantPlugin", loader.error_description() );
 	    }
 	}
     }

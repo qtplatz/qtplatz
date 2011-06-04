@@ -12,7 +12,8 @@ include(../../qtplatz_servant.pri)
 
 INCLUDEPATH += ../../libs
 include (../../boost.pri)
-LIBS += -lboost_system
+LIBS += -ladcontrols -ladportable -lxmlparser -lportfolio
+LIBS += -lboost_system -lboost_filesystem
 
 DEFINES += ADTXTFACTORY_LIBRARY
 

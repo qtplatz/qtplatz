@@ -12,7 +12,8 @@ TEMPLATE = lib
 INCLUDEPATH += ../../libs
 include(../../boost.pri)
 include(../../qtplatz_library.pri)
-LIBS *= -L$$IDE_LIBRARY_PATH -l$$qtLibraryTarget(xmlparser)
+LIBS *= -L$$IDE_LIBRARY_PATH 
+LIBS += -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(adportable)
 
 win32 {
     LIBS *= -lole32

@@ -77,7 +77,7 @@ TXTSpectrum::load( const std::wstring& name )
     for ( size_t i = 0; i < size; ++i ) {
         double t = ( (startDelay * sampInterval) + (i * sampInterval) ) * 1e-12;
         double d = std::abs( timeArray[i] - t );
-        assert( d < 1.0e-9 );
+        // assert( d < 1.0e-9 );
     }
 
     ms_.resize( size );

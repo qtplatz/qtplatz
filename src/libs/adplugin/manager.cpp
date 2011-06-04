@@ -246,8 +246,8 @@ manager_impl::orbLoader( const std::wstring& file )
     boost::filesystem::path filepath( file );
     boost::system::error_code ec;
     if ( ! boost::filesystem::exists( filepath, ec ) ) {
-	adportable::debug dbg(__FILE__, __LINE__);
-	dbg << "error: " << ec.message() << " for file '" << file << "'";
+        adportable::debug dbg(__FILE__, __LINE__);
+        dbg << "file \"" << filepath.string() << "\" is requested to load library but it does not exist";
 	failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
 	return *failedLoaders_[ file ];
     }
@@ -260,8 +260,8 @@ manager_impl::orbLoader( const std::wstring& file )
 	    if ( loader )
 		orbLoaders_[ file ] = loader;
 	} else {
-	    adportable::debug dbg(__FILE__, __LINE__);
-	    dbg << "library: " << filepath.string() << " has no 'instance' entry";
+            adportable::debug dbg(__FILE__, __LINE__);
+            dbg << "library \"" << filepath.string() << "\" loaded but no \"instance()\" method";
 	    failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
 	    return *failedLoaders_[ file ];
 	}
@@ -269,10 +269,10 @@ manager_impl::orbLoader( const std::wstring& file )
     if ( ( it = orbLoaders_.find( file ) ) != orbLoaders_.end() )
 	return *it->second;
 
-    std::ostringstream o;
-    o << "library \"" << filepath.leaf() << "\" load failed at " << __FILE__ << " line " << __LINE__ << "\n"
-      << lib.errorString().toStdString();
+    // exists library but failed to load
+    adportable::debug dbg(__FILE__, __LINE__);
+    dbg << lib.errorString().toStdString();
     
-    failedLoaders_[ file ].reset( new ORBLoaderError( o.str() ) );
+    failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
     return *failedLoaders_[ file ];
 }
