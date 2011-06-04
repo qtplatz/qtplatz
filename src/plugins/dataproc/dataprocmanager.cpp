@@ -31,6 +31,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
+#include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <boost/noncopyable.hpp>
 
@@ -110,11 +111,9 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
             if ( it->isPlugin() ) {
                 QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
                 if ( pWidget ) {
-                    // receive client events
-                    connect( pWidget, SIGNAL( signalApplyMethod( adcontrols::ProcessMethod& ) ), this, SLOT( handleApplyMethod( adcontrols::ProcessMethod& ) ) );
-
                     // query process method
-                    connect( this, SIGNAL( signalGetProcessMethod( adcontrols::ProcessMethod& ) ), pWidget, SLOT( getContents( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
+                    connect( this, SIGNAL( signalGetProcessMethod( adcontrols::ProcessMethod& ) )
+                             , pWidget, SLOT( getContents( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
 
                     pWidget->setMinimumHeight( 80 );
 
@@ -234,6 +233,11 @@ DataprocManager::handleSessionAdded( dataproc::Dataprocessor * processor )
 {
     adcontrols::datafile& file = processor->file();
     emit signalUpdateFile( &file );
+}
+
+void
+DataprocManager::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium& )
+{
 }
 
 void

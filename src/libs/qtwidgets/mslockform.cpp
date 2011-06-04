@@ -82,3 +82,8 @@ MSLockForm::sizeHint() const
 {
     return QSize( 300, 250 );
 }
+
+void
+MSLockForm::getContents( adcontrols::ProcessMethod& )
+{
+}

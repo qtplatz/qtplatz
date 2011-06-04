@@ -70,3 +70,8 @@ ChromatographicPeakForm::sizeHint() const
 {
     return QSize( 300, 250 );
 }
+
+void
+ChromatographicPeakForm::getContents( adcontrols::ProcessMethod& )
+{
+}

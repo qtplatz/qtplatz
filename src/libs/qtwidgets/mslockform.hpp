@@ -37,6 +37,7 @@ namespace adportable {
 
 namespace adcontrols {
     class MSLockMethod;
+    class ProcessMethod;
 }
 
 namespace Ui {
@@ -71,6 +72,9 @@ namespace qtwidgets {
       boost::scoped_ptr< adportable::Configuration > pConfig_;
       boost::scoped_ptr< MSLockDelegate > pDelegate_;
       boost::scoped_ptr< adcontrols::MSLockMethod > pMethod_;
+
+  public slots:
+      void getContents( adcontrols::ProcessMethod& );
   };
 
 }

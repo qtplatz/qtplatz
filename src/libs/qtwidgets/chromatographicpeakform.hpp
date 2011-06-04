@@ -29,6 +29,7 @@
 #include <QWidget>
 #include <adplugin/lifecycle.hpp>
 #include <boost/smart_ptr.hpp>
+#include <adcontrols/processmethod.hpp>
 
 class QStandardItemModel;
 namespace adportable {
@@ -64,6 +65,9 @@ namespace qtwidgets {
         Ui::ChromatographicPeakForm *ui;
         boost::scoped_ptr< QStandardItemModel > pModel_;
         boost::scoped_ptr< adportable::Configuration > pConfig_;
+
+    public slots:
+        void getContents( adcontrols::ProcessMethod& );
     };
 
 }

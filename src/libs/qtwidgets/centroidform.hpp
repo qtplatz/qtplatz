@@ -77,7 +77,6 @@ namespace qtwidgets {
         void update_data();
 
     public slots:
-        // void handleUpdateFile( adcontrols::datafile * );
         void getContents( adcontrols::ProcessMethod& );
     };
 

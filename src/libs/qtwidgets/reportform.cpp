@@ -17,8 +17,8 @@ ReportForm::ReportForm(QWidget *parent) :
     ui(new Ui::ReportForm)
     , pModel_( new QStandardItemModel )
     , pConfig_( new adportable::Configuration )
-    , pDelegate_( new ReportDelegate )
     , pMethod_( new adcontrols::ReportMethod )
+    , pDelegate_( new ReportDelegate )
 {
     ui->setupUi(this);
     ui->treeView->setModel( pModel_.get() );
@@ -58,4 +58,9 @@ QSize
 ReportForm::sizeHint() const
 {
     return QSize( 300, 250 );
+}
+
+void
+ReportForm::getContents( adcontrols::ProcessMethod& )
+{
 }

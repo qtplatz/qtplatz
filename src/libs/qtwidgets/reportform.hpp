@@ -37,6 +37,7 @@ namespace adportable {
 
 namespace adcontrols {
     class ReportMethod;
+    class ProcessMethod;
 }
 
 namespace Ui {
@@ -71,6 +72,10 @@ namespace qtwidgets {
         boost::scoped_ptr< adportable::Configuration > pConfig_;
         boost::scoped_ptr< adcontrols::ReportMethod > pMethod_;
         boost::scoped_ptr< ReportDelegate > pDelegate_;
+
+    public slots:
+        void getContents( adcontrols::ProcessMethod& );
+
     };
 
 }

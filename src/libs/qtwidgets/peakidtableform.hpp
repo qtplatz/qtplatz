@@ -35,6 +35,8 @@ namespace adportable {
     class Configuration;
 }
 
+namespace adcontrols { class ProcessMethod; }
+
 namespace Ui {
     class PeakIDTableForm;
 }
@@ -63,6 +65,8 @@ namespace qtwidgets {
         Ui::PeakIDTableForm *ui;
         boost::scoped_ptr< QStandardItemModel > pModel_;
         boost::scoped_ptr< adportable::Configuration > pConfig_;
+    public slots:
+        void getContents( adcontrols::ProcessMethod& );
     };
 }
 
