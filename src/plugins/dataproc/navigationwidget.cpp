@@ -131,7 +131,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     connect( pTreeView_, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(handle_doubleClicked(const QModelIndex&)));
     connect( pTreeView_, SIGNAL(entered(const QModelIndex&)), this, SLOT(handle_entered(const QModelIndex&)));
 
-    connect( pTreeView_, SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(handle_currentChanged(const QModelIndex&, const QModelIndex&)));
+    // connect( pTreeView_, SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(handle_currentChanged(const QModelIndex&, const QModelIndex&)));
 
     pTreeView_->setContextMenuPolicy(Qt::CustomContextMenu);
     connect( pTreeView_, SIGNAL(customContextMenuRequested( QPoint )), this, SLOT( handleContextMenuRequested( QPoint ) ) );

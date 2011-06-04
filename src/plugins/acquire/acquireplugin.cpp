@@ -181,13 +181,13 @@ AcquirePlugin::initialize_actions()
     connect( actionRunStop_, SIGNAL(triggered()), this, SLOT(actionRunStop()) );
   
     action3_ = new QAction(QIcon(Constants::ICON_INTERRUPT_SMALL), tr("Interrupt sequence..."), this);
-    connect( action3_, SIGNAL(triggered()), this, SLOT(action3()) );
+    // connect( action3_, SIGNAL(triggered()), this, SLOT(action3()) );
   
     action4_ = new QAction(QIcon(Constants::ICON_START_SMALL), tr("Start initial condition..."), this);
-    connect( action4_, SIGNAL(triggered()), this, SLOT(action4()) );
+    // connect( action4_, SIGNAL(triggered()), this, SLOT(action4()) );
   
     action5_ = new QAction(QIcon(Constants::ICON_STOP_SMALL), tr("Stop inlet..."), this);
-    connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
+    // connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
   
     //const AcquireManagerActions& actions = manager_->acquireManagerActions();
     QList<int> globalcontext;
