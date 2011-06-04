@@ -29,9 +29,9 @@
 
 #if defined WIN32
 #  if defined _DEBUG
-#    define QTWIDGETS_NAME adpluginDirectoryL L"/qtwidgetsd.dll"
+#    define QTWIDGETS_NAME adpluginDirectory "/qtwidgetsd.dll"
 #  else
-#    define QTWIDGETS_NAME adpluginDirectoryL L"/qtwidgets.dll"
+#    define QTWIDGETS_NAME adpluginDirectory "/qtwidgets.dll"
 #  endif
 #elif defined __linux__
 #  define QTWIDGETS_NAME   adpluginDirectory "/libqtwidgets.so"
