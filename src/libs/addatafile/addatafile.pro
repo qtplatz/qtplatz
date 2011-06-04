@@ -15,7 +15,8 @@ include(../../boost.pri)
 include(../../qtplatz_servant.pri)
 INCLUDEPATH += ../
 
-LIBS += -lacewrapper -ladcontrols -ladutils -lportfolio -lxmlparser
+LIBS += -lacewrapper -ladcontrols -ladutils -lportfolio -lxmlparser -ladfs
+LIBS += -lboost_system -lboost_filesystem
 
 SOURCES += addatafile.cpp \
     datafile.cpp \
