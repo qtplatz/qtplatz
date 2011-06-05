@@ -28,6 +28,7 @@
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
 #include <adcontrols/datafile.hpp>
+#include <adportable/debug.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -255,7 +256,10 @@ NavigationWidget::handle_activated( const QModelIndex& index )
 
             if ( parent.isValid() ) {
                 if ( ( processor = qVariantValue< Dataprocessor * >( parent.data( Qt::UserRole + 1 ) ) ) ) {
-                    qDebug() << "filename: " << qtwrapper::qstring( processor->file().filename() );
+                    std::string tname = static_cast<boost::any&>( folium ).type().name();
+                    adportable::debug(__FILE__, __LINE__)
+                        << "filename: " << processor->file().filename()
+                        << "\tfolium(type=" << tname << ", id=" << folium.id() << ")";
                     processor->setCurrentSelection( folium );
                 }
             }
@@ -267,26 +271,29 @@ NavigationWidget::handle_activated( const QModelIndex& index )
 void
 NavigationWidget::handle_clicked( const QModelIndex& index )
 {
-    qDebug() << "clicked: " << index.data( Qt::UserRole + 1 );
+    // qDebug() << "clicked: " << index.data( Qt::UserRole + 1 );
     handle_activated( index );
 }
 
 void
 NavigationWidget::handle_doubleClicked( const QModelIndex& index )
 {
-    qDebug() << "doubleClicked: " << index.data( Qt::UserRole + 1 );
+    (void)index;
+    // qDebug() << "doubleClicked: " << index.data( Qt::UserRole + 1 );
 }
 
 void
 NavigationWidget::handle_entered( const QModelIndex& index )
 {
-    qDebug() << "entered: " << index.data( Qt::UserRole + 1 );
+    (void)index;
+    // qDebug() << "entered: " << index.data( Qt::UserRole + 1 );
 }
 
 void
 NavigationWidget::handle_pressed( const QModelIndex& index )
 {
-    qDebug() << "pressed: " << index.data( Qt::UserRole + 1 );
+    (void)index;
+    // qDebug() << "pressed: " << index.data( Qt::UserRole + 1 );
 }
 
 void

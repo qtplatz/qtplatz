@@ -155,8 +155,8 @@ MSProperty::SamplingInfo::SamplingInfo( unsigned long interval
  
 MSProperty::SamplingInfo::SamplingInfo() : sampInterval( 0 )
                                          , nSamplingDelay( 0 )
-                                         , nAverage( 0 )
                                          , nSamples( 0 )
+                                         , nAverage( 0 )
 {
 }
  

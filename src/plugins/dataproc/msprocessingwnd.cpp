@@ -30,6 +30,7 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adportable/debug.hpp>
 #include <adutils/processeddata.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
@@ -99,7 +100,7 @@ MSProcessingWnd::init()
             pImpl_->profileSpectrum_->setMinimumHeight( 80 );
         }
 
-        if ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) {
+        if ( ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
             pImpl_->processedSpectrum_->setMinimumHeight( 80 );
         }
         splitter->addWidget( pImpl_->ticPlot_ );
@@ -165,10 +166,18 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
     drawIdx1_ = 0;
     drawIdx2_ = 0;
 
+#if defined DEBUG
+    std::string typname = static_cast<boost::any&>( folium ).type().name();
+    adportable::debug(__FILE__, __LINE__) << "handleSelectionChanged: " << typname << " id=" << folium.id();
+#endif
+
     portfolio::Folder folder = folium.getParentFolder();
     if ( folder && ( folder.name() == L"Spectra" || folder.name() == L"Chromatograms" ) ) {
 
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+
+        int which = data.which();
+
         if ( boost::apply_visitor( selChanged<MSProcessingWnd>(*this), data ) ) {
             idActiveFolium_ = folium.id();
 

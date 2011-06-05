@@ -66,14 +66,13 @@ namespace adcontrols {
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
             using namespace boost::serialization;
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP(formula_);
-                ar & BOOST_SERIALIZATION_NVP(idReferences_);
-                ar & BOOST_SERIALIZATION_NVP(idMassSpectrum_);
-                ar & BOOST_SERIALIZATION_NVP(exactMass_);
-                ar & BOOST_SERIALIZATION_NVP(time_);
-                ar & BOOST_SERIALIZATION_NVP(mass_);
-            }
+            (void)version;
+            ar & BOOST_SERIALIZATION_NVP(formula_);
+            ar & BOOST_SERIALIZATION_NVP(idReferences_);
+            ar & BOOST_SERIALIZATION_NVP(idMassSpectrum_);
+            ar & BOOST_SERIALIZATION_NVP(exactMass_);
+            ar & BOOST_SERIALIZATION_NVP(time_);
+            ar & BOOST_SERIALIZATION_NVP(mass_);
         }
 
     };

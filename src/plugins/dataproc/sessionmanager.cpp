@@ -29,6 +29,10 @@
 #include <qtwrapper/qstring.hpp>
 #include <adcontrols/datafile.hpp>
 
+#include <adportable/debug.hpp>
+#include <boost/any.hpp>
+#include <portfolio/folium.hpp>
+
 using namespace dataproc;
 
 SessionManager * SessionManager::instance_ = 0;
@@ -90,6 +94,7 @@ SessionManager::find( const std::wstring& token )
 void
 SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
+    adportable::debug(__FILE__, __LINE__) << static_cast<boost::any&>(folium).type().name() << ", id=" << folium.id();
     activeDataprocessor_ = dataprocessor;
     emit signalSelectionChanged( dataprocessor, folium );
 }
