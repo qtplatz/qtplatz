@@ -39,7 +39,7 @@ tao_idlC.input = IDLFILES
 tao_idlC.output = ${QMAKE_FILE_BASE}C.cpp
 tao_idlC.variable_out = GENERATED_FILES
 tao_idlC.depends = ${QMAKE_FILE_IN}
-tao_idlC.commands = tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) -I$${PWD} ${QMAKE_FILE_IN}
+tao_idlC.commands = tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) -I$${PWD} -I. ${QMAKE_FILE_IN}
 tao_idlC.CONFIG = no_link
 QMAKE_EXTRA_COMPILERS += tao_idlC
 tao_idlC.variable_out = SOURCES
@@ -50,7 +50,7 @@ tao_idlS.input = IDLFILES
 tao_idlS.output = ${QMAKE_FILE_BASE}S.cpp
 tao_idlS.variable_out = GENERATED_FILES
 tao_idlS.depends = ${QMAKE_FILE_IN}
-tao_idlS.commands = tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) -I$${PWD} ${QMAKE_FILE_IN}
+tao_idlS.commands = tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) -I$${PWD} -I. ${QMAKE_FILE_IN}
 tao_idlS.name = TAO_IDL_S ${QMAKE_FILE_IN}
 tao_idlS.CONFIG = no_link
 QMAKE_EXTRA_COMPILERS += tao_idlS

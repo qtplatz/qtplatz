@@ -1,2 +1,2 @@
-INCLUDEPATH *= $$(QWT)/include
-LIBS *= -L$$(QWT)/lib
+INCLUDEPATH += $$(QWT)/include
+LIBS += -L$$(QWT)/lib

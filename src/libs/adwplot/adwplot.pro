@@ -14,7 +14,7 @@ include(../../boost.pri)
 include(../../qwt.pri)
 INCLUDEPATH += ..
 
-# message("INCLUDE=" $$(INCLUDEPATH))
+message("INCLUDE=" $$INCLUDEPATH)
 
 SOURCES += adwplot.cpp \
     annotation.cpp \

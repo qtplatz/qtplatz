@@ -48,8 +48,13 @@ namespace adfs {
         posixapi::get_login_name()
         {
             uid_t uid = geteuid();
+#if defined __linux__
             struct passwd * pw = getpwuid( uid );
             return adportable::string::convert( pw->pw_name );
+#endif
+#if defined __darwin__
+            return "";
+#endif
         }
         
         std::wstring
