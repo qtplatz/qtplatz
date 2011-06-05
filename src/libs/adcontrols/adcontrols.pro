@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       -= gui core thread
+QT       -= gui 
 
 TARGET = adcontrols
 TEMPLATE = lib
