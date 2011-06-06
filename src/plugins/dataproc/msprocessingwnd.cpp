@@ -166,11 +166,6 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
     drawIdx1_ = 0;
     drawIdx2_ = 0;
 
-#if defined DEBUG
-    std::string typname = static_cast<boost::any&>( folium ).type().name();
-    adportable::debug(__FILE__, __LINE__) << "handleSelectionChanged: " << typname << " id=" << folium.id();
-#endif
-
     portfolio::Folder folder = folium.getParentFolder();
     if ( folder && ( folder.name() == L"Spectra" || folder.name() == L"Chromatograms" ) ) {
 

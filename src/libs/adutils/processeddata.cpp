@@ -39,9 +39,27 @@ ProcessedData::ProcessedData()
 ProcessedData::value_type
 ProcessedData::toVariant( boost::any & a )
 {
+// See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
+#if defined __GNUC__ 
+    static const char * type_name[] = {
+	typeid( MassSpectrumPtr ).name(),
+	typeid( ChromatogramPtr ).name(), 
+	typeid( ElementalCompositionCollectionPtr ).name(),
+	typeid( ProcessMethodPtr ).name()
+    };
+
+    std::string atype = a.type().name();
+    if ( atype == type_name[ 0 ] )
+        return boost::any_cast< MassSpectrumPtr >( a );
+    else if ( atype == type_name[ 1 ] )
+        return boost::any_cast< ChromatogramPtr >( a );
+    else if ( atype == type_name[ 2 ] )
+        return boost::any_cast< ProcessMethodPtr >( a );
+    else if ( atype == type_name[ 3 ] )
+        return boost::any_cast< ElementalCompositionCollectionPtr >( a );
+#else
     if ( a.type() == typeid( MassSpectrumPtr ) )
         return boost::any_cast< MassSpectrumPtr >( a );
-
     else if ( a.type() == typeid( ChromatogramPtr ) )
         return boost::any_cast< ChromatogramPtr >( a );
 
@@ -50,6 +68,6 @@ ProcessedData::toVariant( boost::any & a )
 
     else if ( a.type() == typeid( ElementalCompositionCollectionPtr ) )
         return boost::any_cast< ElementalCompositionCollectionPtr >( a );
-
+#endif
     return Nothing();
 }
