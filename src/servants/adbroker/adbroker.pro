@@ -17,7 +17,11 @@ include(../../libs/acewrapper/acewrapper_dependencies.pri)
 #CONFIG(release, debug|release) : LIBS += -ladinterface
 INCLUDEPATH *= $$OUT_PWD/../../libs
 
-LIBS *= -ladinterface -ladportable -lacewrapper -ladcontrols -lportfolio
+LIBS += -l$$qtLibraryTarget(adinterface) \
+    -l$$qtLibraryTarget(adportable) \
+    -l$$qtLibraryTarget(acewrapper) \
+    -l$$qtLibraryTarget(adcontrols) \
+    -l$$qtLibraryTarget(portfolio)
 
 # message( "LIBS " $$LIBS )
 

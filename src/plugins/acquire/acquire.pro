@@ -17,9 +17,13 @@ include(../../boost.pri)
 INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants ../ $$(QWT)/include
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH -L$$(QWT)/lib
-LIBS += -ladcontroller -ladcontrols -ladutils -ladinterface
-LIBS += -ladportable -ladwplot -lacewrapper -lqtwrapper -xmlparser -ladplugin
-LIBS *= -lqwt
+LIBS += -l$$qtLibraryTarget(adcontroller) -l$$qtLibraryTarget(adcontrols) \
+    -l$$qtLibraryTarget(adutils) -l$$qtLibraryTarget(adinterface) \
+    -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adwplot) \
+    -l$$qtLibraryTarget(acewrapper) -l$$qtLibraryTarget(qtwrapper) \
+    -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(adplugin)
+
+LIBS *= -l$$qtLibraryTarget(qwt)
 LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
 
 include(../../plugins/coreplugin/coreplugin.pri)

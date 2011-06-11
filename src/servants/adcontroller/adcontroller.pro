@@ -16,8 +16,14 @@ include(../../libs/adinterface/adinterface_dependencies.pri)
 include(../../boost.pri)
 LIBS *= -l$$qtLibraryTarget(adinterface)
 INCLUDEPATH *= $$OUT_PWD/../../libs
-LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO -lACE
-LIBS += -lacewrapper -ladinterface -ladportable -ladplugin -lxmlparser
+LIBS += -l$$qtLibraryTarget(TAO_Utils) -l$$qtLibraryTarget(TAO_PortableServer) \
+        -l$$qtLibraryTarget(TAO) -l$$qtLibraryTarget(ACE)
+
+LIBS += -l$$qtLibraryTarget(acewrapper) \
+    -l$$qtLibraryTarget(adinterface) \
+    -l$$qtLibraryTarget(adportable) \
+    -l$$qtLibraryTarget(adplugin) \
+    -l$$qtLibraryTarget(xmlparser)
 
 DEFINES += ADCONTROLLER_LIBRARY
 

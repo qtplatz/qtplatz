@@ -15,11 +15,14 @@ include(../../libs/acewrapper/acewrapper_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../libs/adinterface/adinterface_dependencies.pri)
-LIBS *= -ladinterface -lacewrapper -ladportable -ladplugin -lqtwrapper
-LIBS *= -ladbroker        
-LIBS *= -lboost_serialization -lboost_date_time
-LIBS *= -lTAO -lTAO_PortableServer -lTAO_Utils
-#LIBS *= -lTAO_AnyTypeCode
+LIBS *= -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(acewrapper) \
+    -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adplugin) \
+    -l$$qtLibraryTarget(qtwrapper) -l$$qtLibraryTarget(adbroker)
+
+LIBS *= -l$$qtLibraryTarget(TAO) -l$$qtLibraryTarget(TAO_PortableServer) -l$$qtLibraryTarget(TAO_Utils)
+!win32 {
+  LIBS *= -lboost_serialization -lboost_date_time
+}
 
 DEFINES += SERVANT_LIBRARY
 INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants

@@ -4,13 +4,16 @@
 #
 #-------------------------------------------------
 
+QT += core gui declarative
+
 TARGET = qtwidgets
 TEMPLATE = lib
 PROVIDER = ScienceLiaison
 
 include(../../qtplatz_servant.pri)
 include(../../boost.pri)
-LIBS += -ladportable -ladcontrols -ladplugin -lqtwrapper
+LIBS += -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adcontrols) \
+    -l$$qtLibraryTarget(adplugin) -l$$qtLibraryTarget(qtwrapper)
 
 INCLUDEPATH *= $(ACE_ROOT) $(TAO_ROOT)
 
@@ -89,3 +92,9 @@ FORMS += \
     sequencesform.ui \
     sequencewidget.ui \
     targetingform.ui
+
+RESOURCES += \
+    resources.qrc
+
+OTHER_FILES += \
+    centroidmethodeditor.qml

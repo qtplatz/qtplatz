@@ -12,8 +12,14 @@ include(../../qtplatz_servant.pri)
 
 INCLUDEPATH += ../../libs
 include (../../boost.pri)
-LIBS += -ladcontrols -ladportable -lxmlparser -lportfolio
-LIBS += -lboost_system -lboost_filesystem
+LIBS += -l$$qtLibraryTarget(adcontrols) \
+    -l$$qtLibraryTarget(adportable) \
+    -l$$qtLibraryTarget(xmlparser) \
+    -l$$qtLibraryTarget(portfolio)
+
+!win32 {
+  LIBS += -lboost_system -lboost_filesystem
+}
 
 DEFINES += ADTXTFACTORY_LIBRARY
 

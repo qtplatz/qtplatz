@@ -15,8 +15,16 @@ include(../../boost.pri)
 include(../../qtplatz_servant.pri)
 INCLUDEPATH += ../
 
-LIBS += -lacewrapper -ladcontrols -ladutils -lportfolio -lxmlparser -ladfs
-LIBS += -lboost_system -lboost_filesystem
+LIBS += -l$$qtLibraryTarget(acewrapper) \
+    -l$$qtLibraryTarget(adcontrols) \
+    -l$$qtLibraryTarget(adutils) \
+    -l$$qtLibraryTarget(portfolio) \
+    -l$$qtLibraryTarget(xmlparser)
+    -l$$qtLibraryTarget(adfs)
+
+!win32 {
+  LIBS += -lboost_system -lboost_filesystem
+}
 
 SOURCES += addatafile.cpp \
     datafile.cpp \
