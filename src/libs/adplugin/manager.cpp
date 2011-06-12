@@ -104,7 +104,7 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
 	return 0;
     
     boost::filesystem::path basepath( path );
-    boost::filesystem::path loadfile = basepath / config.module().library_filename();
+    boost::filesystem::path loadfile = basepath / pluginDirectory / config.module().library_filename();
     
     adplugin::ifactory * pfactory = manager::instance()->loadFactory( loadfile.wstring() );
     if ( pfactory ) {
@@ -283,8 +283,15 @@ manager_impl::orbLoader( const std::wstring& file )
 std::wstring
 orbLoader::library_fullpath( const std::wstring& apppath, const std::wstring& library_filename )
 {
-	boost::filesystem::path path = boost::filesystem::path( apppath ) / adpluginDirectory;
-	boost::filesystem::path fullpath = path.branch_path() / library_filename; 
+	boost::filesystem::path path = boost::filesystem::path( apppath ) / pluginDirectory;
+	boost::filesystem::path fullpath = path / library_filename; 
 	return fullpath.wstring();
 }
 
+std::wstring
+orbLoader::config_fullpath( const std::wstring& apppath, const std::wstring& config_filename )
+{
+	boost::filesystem::path path = boost::filesystem::path( apppath ) / pluginDirectory;
+    boost::filesystem::path fullpath = path / config_filename; 
+	return fullpath.wstring();
+}

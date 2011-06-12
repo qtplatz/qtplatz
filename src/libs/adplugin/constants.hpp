@@ -32,7 +32,9 @@
 #define iid_iSequencesForm         L"adplugin::ui::iSequencesForm"
 
 #if defined __APPLE__
-#  define adpluginDirectory          "PlugIns/ScienceLiaison"
+#  define adpluginDirectory        "PlugIns/ScienceLiaison"
+#  define pluginDirectory          "PlugIns"
 #else
-#  define adpluginDirectory          "lib/qtplatz/plugins/ScienceLiaison"
+#  define adpluginDirectory        "lib/qtplatz/plugins/ScienceLiaison"
+#  define pluginDirectory          "lib/qtplatz/plugins"
 #endif

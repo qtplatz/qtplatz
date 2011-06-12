@@ -29,12 +29,16 @@
 
 #if defined WIN32
 #  if defined _DEBUG
-#    define QTWIDGETS_NAME adpluginDirectory "/qtwidgetsd.dll"
+#    define QTWIDGETS_NAME "/ScienceLiaison/qtwidgetsd.dll"
 #  else
-#    define QTWIDGETS_NAME adpluginDirectory "/qtwidgets.dll"
+#    define QTWIDGETS_NAME "/ScienceLiaison/qtwidgets.dll"
 #  endif
 #elif defined __linux__
-#  define QTWIDGETS_NAME   adpluginDirectory "/libqtwidgets.so"
+#  define QTWIDGETS_NAME   "/ScienceLiaison/libqtwidgets.so"
 #elif defined __APPLE__
-#  define QTWIDGETS_NAME   adpluginDirectory "/libqtwidgets.dylib"
+# if defined DEBUG
+#  define QTWIDGETS_NAME   "/ScienceLiaison/libqtwidgets_debug.dylib"
+# else
+#  define QTWIDGETS_NAME   "/ScienceLiaison/libqtwidgets.dylib"
+# endif
 #endif

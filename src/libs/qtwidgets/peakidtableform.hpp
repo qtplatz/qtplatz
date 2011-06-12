@@ -29,6 +29,7 @@
 #include <QWidget>
 #include <adplugin/lifecycle.hpp>
 #include <boost/smart_ptr.hpp>
+#include <QDeclarativeView>
 
 class QStandardItemModel;
 namespace adportable {
@@ -43,7 +44,7 @@ namespace Ui {
 
 namespace qtwidgets {
 
-    class PeakIDTableForm : public QWidget
+    class PeakIDTableForm : public QDeclarativeView
                           , public adplugin::LifeCycle {
 
         Q_OBJECT

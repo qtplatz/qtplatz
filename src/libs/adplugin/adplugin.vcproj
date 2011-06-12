@@ -320,6 +320,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\constants.hpp"
+				>
+			</File>
+			<File
 				RelativePath="icontrolmethodeditor.hpp"
 				>
 				<FileConfiguration

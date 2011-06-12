@@ -584,7 +584,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>

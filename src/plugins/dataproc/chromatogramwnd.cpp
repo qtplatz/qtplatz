@@ -104,7 +104,7 @@ ChromatogramWnd::init( const std::wstring& apppath )
             adportable::Configuration config;
             adportable::Module module;
 
-	    module.library_filename( QTWIDGETS_NAME );
+            module.library_filename( QTWIDGETS_NAME );
 
             config.module( module );
             config.interface( L"qtwidgets::PeakResultWidget" );

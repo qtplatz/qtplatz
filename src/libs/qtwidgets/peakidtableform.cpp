@@ -11,7 +11,7 @@
 using namespace qtwidgets;
 
 PeakIDTableForm::PeakIDTableForm(QWidget *parent) :
-    QWidget(parent),
+    QDeclarativeView(parent),
     ui(new Ui::PeakIDTableForm)
     , pConfig_( new adportable::Configuration )
 {
