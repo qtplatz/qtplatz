@@ -48,7 +48,7 @@ void
 PeakIDTableForm::OnCreate( const adportable::Configuration& config )
 {
     *pConfig_ = config;
-    setSource( QUrl( "qrc://files/CentroidMethodDelegate.qml" ) );
+    setSource( QUrl( "qrc:files/CentroidMethodDelegate.qml" ) );
     QList< QDeclarativeError > errors = this->errors();
     for ( QList< QDeclarativeError >::const_iterator it = errors.begin(); it != errors.end(); ++it )
         QMessageBox::warning( this, "QDeclarativeError", it->description() );
