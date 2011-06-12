@@ -75,3 +75,9 @@ void
 ChromatographicPeakForm::getContents( adcontrols::ProcessMethod& )
 {
 }
+
+void
+ChromatographicPeakForm::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = static_cast< adplugin::LifeCycle *>(this);
+}

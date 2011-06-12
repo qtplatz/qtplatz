@@ -26,6 +26,7 @@
 
 #include <QTableView>
 #include <boost/smart_ptr.hpp>
+#include <adplugin/lifecycle.hpp>
 
 namespace adcontrols {
     class Peaks;
@@ -38,26 +39,29 @@ class QStandardItemModel;
 
 namespace qtwidgets {
 
-    class PeakResultWidget : public QTableView {
-	Q_OBJECT
-        public:
-	~PeakResultWidget();
-	explicit PeakResultWidget(QWidget *parent = 0);
-	
+    class PeakResultWidget : public QTableView, public adplugin::LifeCycle {
+        Q_OBJECT
+     public:
+        ~PeakResultWidget();
+        explicit PeakResultWidget(QWidget *parent = 0);
+
+        // adplugin::LifeCycle
+        void OnCreate( const adportable::Configuration& );
+        void OnInitialUpdate();
+        void OnFinalClose();
+        
     signals:
-	    
+            
     public slots:
-	void setData( const adcontrols::Peaks& );
-	void setData( const adcontrols::Chromatogram& );
+        void setData( const adcontrols::Peaks& );
+        void setData( const adcontrols::Chromatogram& );
+        void getLifeCycle( adplugin::LifeCycle*& );
+
+    private:
+        void add( const adcontrols::Peak& );
 	
     private:
-	void OnInitialUpdate();
-	void OnFinalClose();
-	
-	void add( const adcontrols::Peak& );
-	
-    private:
-	boost::scoped_ptr< QStandardItemModel > pModel_;
+        boost::scoped_ptr< QStandardItemModel > pModel_;
     };
 }
 

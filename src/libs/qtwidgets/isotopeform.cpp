@@ -95,3 +95,9 @@ IsotopeForm::sizeHint() const
 {
     return QSize( 300, 250 );
 }
+
+void
+IsotopeForm::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = static_cast< adplugin::LifeCycle *>(this);
+}

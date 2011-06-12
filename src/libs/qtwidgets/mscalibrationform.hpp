@@ -73,6 +73,7 @@ namespace qtwidgets {
     public slots:
         void getContents( adcontrols::ProcessMethod& );
         void handleMSReferencesChanged( const QModelIndex& );
+        void getLifeCycle( adplugin::LifeCycle*& );
 
     private:
         void OnMSReferencesUpdated( const QModelIndex& );

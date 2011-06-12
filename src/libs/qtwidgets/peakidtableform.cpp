@@ -48,15 +48,15 @@ void
 PeakIDTableForm::OnCreate( const adportable::Configuration& config )
 {
     *pConfig_ = config;
+    setSource( QUrl( "qrc://files/CentroidMethodDelegate.qml" ) );
+    QList< QDeclarativeError > errors = this->errors();
+    for ( QList< QDeclarativeError >::const_iterator it = errors.begin(); it != errors.end(); ++it )
+        QMessageBox::warning( this, "QDeclarativeError", it->description() );
 }
 
 void
 PeakIDTableForm::OnInitialUpdate()
 {
-    setSource( QUrl( "qrc://files/CentroidMethodDelegate.qml" ) );
-    QList< QDeclarativeError > errors = this->errors();
-    for ( QList< QDeclarativeError >::const_iterator it = errors.begin(); it != errors.end(); ++it )
-        QMessageBox::warning( this, "QDeclarativeError", it->description() );
 }
 
 void
@@ -73,4 +73,10 @@ PeakIDTableForm::sizeHint() const
 void
 PeakIDTableForm::getContents( adcontrols::ProcessMethod& )
 {
+}
+
+void
+PeakIDTableForm::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = static_cast< adplugin::LifeCycle *>(this);
 }

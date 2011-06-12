@@ -51,7 +51,6 @@ namespace qtwidgets {
         virtual void OnCreate( const adportable::Configuration& );
         virtual void OnInitialUpdate();
         virtual void OnUpdate( boost::any& );
-        // virtual void OnUpdate( unsigned long );
         virtual void OnFinalClose();
         // <--
 
@@ -60,6 +59,7 @@ namespace qtwidgets {
     public slots:
         // void setData( const adcontrols::MSReferences& );
         void setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
+        void getLifeCycle( adplugin::LifeCycle*& );
 
     private:
         boost::scoped_ptr< QStandardItemModel > pModel_;

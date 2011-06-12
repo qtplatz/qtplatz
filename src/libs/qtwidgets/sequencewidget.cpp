@@ -60,3 +60,9 @@ void
 SequenceWidget::OnFinalClose()
 {
 }
+
+void
+SequenceWidget::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = static_cast< adplugin::LifeCycle *>(this);
+}

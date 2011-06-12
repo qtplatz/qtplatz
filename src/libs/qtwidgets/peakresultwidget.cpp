@@ -45,6 +45,11 @@ PeakResultWidget::PeakResultWidget(QWidget *parent) : QTableView(parent)
 }
 
 void
+PeakResultWidget::OnCreate( const adportable::Configuration& )
+{
+}
+
+void
 PeakResultWidget::OnInitialUpdate()
 {
     QStandardItemModel& model = *pModel_;
@@ -66,6 +71,12 @@ PeakResultWidget::OnInitialUpdate()
 void
 PeakResultWidget::OnFinalClose()
 {
+}
+
+void
+PeakResultWidget::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = static_cast< adplugin::LifeCycle *>(this);
 }
 
 void

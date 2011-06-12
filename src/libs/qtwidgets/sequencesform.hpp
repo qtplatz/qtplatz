@@ -53,6 +53,9 @@ namespace qtwidgets {
         void OnCreate( const adportable::Configuration& );
         void OnInitialUpdate();
         void OnFinalClose();
+
+    public slots:
+        void getLifeCycle( adplugin::LifeCycle*& );
         
     private:
         Ui::SequencesForm *ui;

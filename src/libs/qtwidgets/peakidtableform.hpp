@@ -68,6 +68,7 @@ namespace qtwidgets {
         boost::scoped_ptr< adportable::Configuration > pConfig_;
     public slots:
         void getContents( adcontrols::ProcessMethod& );
+        void getLifeCycle( adplugin::LifeCycle *& p );
     };
 }
 

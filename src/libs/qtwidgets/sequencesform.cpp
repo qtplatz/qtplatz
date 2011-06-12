@@ -77,3 +77,10 @@ void
 SequencesForm::OnFinalClose()
 {
 }
+
+void
+SequencesForm::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = static_cast< adplugin::LifeCycle *>(this);
+}
+

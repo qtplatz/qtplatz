@@ -120,3 +120,9 @@ ElementalCompositionForm::sizeHint() const
 {
     return QSize( 300, 250 );
 }
+
+void
+ElementalCompositionForm::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = static_cast< adplugin::LifeCycle *>(this);
+}

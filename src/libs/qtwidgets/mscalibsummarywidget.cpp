@@ -84,6 +84,11 @@ MSCalibSummaryWidget::OnFinalClose()
 {
 }
 
+void
+MSCalibSummaryWidget::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = static_cast< adplugin::LifeCycle *>(this);
+}
 
 void
 MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const adcontrols::MassSpectrum& ms )

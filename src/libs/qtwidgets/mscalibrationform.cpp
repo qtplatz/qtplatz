@@ -202,3 +202,9 @@ MSCalibrationForm::sizeHint() const
 {
     return QSize( 300, 250 );
 }
+
+void
+MSCalibrationForm::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = static_cast< adplugin::LifeCycle *>(this);
+}

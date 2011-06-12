@@ -56,6 +56,8 @@ namespace qtwidgets {
         void OnInitialUpdate();
         void OnFinalClose();
         //<--
+    public slots:
+        void getLifeCycle( adplugin::LifeCycle*& );
 
         // QWidget
         virtual QSize sizeHint() const;

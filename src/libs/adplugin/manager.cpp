@@ -132,10 +132,15 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
     adplugin::ifactory * pfactory = manager::instance()->loadFactory( loadfile.wstring() );
     if ( pfactory ) {
         QWidget * pWidget = pfactory->create_widget( config.interface().c_str(), parent );
-        adplugin::LifeCycle * pLifeCycle = dynamic_cast< adplugin::LifeCycle * > ( pWidget );
 
-        LifeCycleAccessor accessor( pWidget );
-        pLifeCycle = accessor.getLifeCycle();
+        adplugin::LifeCycle * pLifeCycle = dynamic_cast< adplugin::LifeCycle * > ( pWidget );
+        if ( pLifeCycle == 0 ) {
+            // gcc with dlopen() loaded class cannot dynamic_cast unless using RTLD_GLOBA flag.
+            // see http://gcc.gnu.org/faq.html#dso
+            // since I'd like to use QLibrary which does not apply RTLD_GLOBAL flag, use Qt's signal/slot instead
+            LifeCycleAccessor accessor( pWidget );
+            pLifeCycle = accessor.getLifeCycle();
+        }
 
         if ( pLifeCycle )
             pLifeCycle->OnCreate( config );

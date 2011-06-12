@@ -64,3 +64,9 @@ void
 ReportForm::getContents( adcontrols::ProcessMethod& )
 {
 }
+
+void
+ReportForm::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = static_cast< adplugin::LifeCycle *>(this);
+}

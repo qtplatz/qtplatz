@@ -63,6 +63,7 @@ namespace qtwidgets {
         //<--
     public slots:
         void getContents( adcontrols::ProcessMethod& );
+        void getLifeCycle( adplugin::LifeCycle*& );
 
     private:
         Ui::TargetingForm *ui;

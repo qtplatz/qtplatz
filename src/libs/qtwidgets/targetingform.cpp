@@ -28,9 +28,10 @@
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adportable/configuration.hpp>
-#pragma warning(disable:4251)
+#if defined _MSC_VER
+# pragma warning(disable:4251)
+#endif
 #include <QStandardItemModel>
-#pragma warning(default:4251)
 
 using namespace qtwidgets;
 
@@ -81,4 +82,10 @@ void
 TargetingForm::getContents( adcontrols::ProcessMethod& pm )
 {
     pm.appendMethod< adcontrols::TargetingMethod >( *pMethod_ );
+}
+
+void
+TargetingForm::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = static_cast< adplugin::LifeCycle *>(this);
 }

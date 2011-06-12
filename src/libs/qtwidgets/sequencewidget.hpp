@@ -44,7 +44,7 @@ namespace qtwidgets {
     class SequenceModel;
 
     class SequenceWidget : public QWidget
-                                  , public adplugin::LifeCycle {
+                         , public adplugin::LifeCycle {
         Q_OBJECT
 
     public:
@@ -56,6 +56,9 @@ namespace qtwidgets {
         void OnInitialUpdate();
         void OnFinalClose();
         //<--
+    public slots:
+        void getLifeCycle( adplugin::LifeCycle*& );
+
 
     private:
         Ui::SequenceWidget *ui;
