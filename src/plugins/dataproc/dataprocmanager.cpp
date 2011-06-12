@@ -134,7 +134,7 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
         using namespace adplugin;
 
         for ( Configuration::vector_type::const_iterator it = provider->begin(); it != provider->end(); ++it ) {
-            const std::wstring name = apppath + it->module().library_filename();
+            const std::wstring name = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
             adcontrols::datafileBroker::register_library( name );
         }
     }
