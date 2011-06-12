@@ -51,6 +51,7 @@
 #include <adplugin/constants.hpp>
 #include <adplugin/imonitor.hpp>
 #include <adportable/configuration.hpp>
+#include <adportable/string.hpp>
 #include <adinterface/eventlog_helper.hpp>
 #include <acewrapper/timeval.hpp>
 
@@ -99,9 +100,8 @@ AcquireUIManager::init()
     QDir dir = QCoreApplication::instance()->applicationDirPath();
     dir.cdUp();
     std::wstring apppath = qtwrapper::wstring::copy( dir.path() );
-    dir.cd( adpluginDirectory );
-    
-    std::wstring configFile = qtwrapper::wstring::copy( dir.path() ) + L"/acquire.config.xml";
+    // dir.cd( adpluginDirectory );
+    std::wstring configFile = qtwrapper::wstring::copy( dir.path() ) + L"/" adpluginDirectory L"/acquire.config.xml";
     
     const wchar_t * query = L"/AcquireConfiguration/Configuration";
     

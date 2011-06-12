@@ -26,6 +26,7 @@
 #include "adplugin.hpp"
 #include "lifecycle.hpp"
 #include "orbLoader.hpp"
+#include "constants.hpp"
 #include <adportable/configuration.hpp>
 #include <acewrapper/constants.hpp>
 #include <adportable/configloader.hpp>
@@ -282,8 +283,8 @@ manager_impl::orbLoader( const std::wstring& file )
 std::wstring
 orbLoader::library_fullpath( const std::wstring& apppath, const std::wstring& library_filename )
 {
-	boost::filesystem::path path( apppath );
-	boost::filesystem::path fullpath = path / library_filename;
+	boost::filesystem::path path = boost::filesystem::path( apppath ) / adpluginDirectory;
+	boost::filesystem::path fullpath = path.branch_path() / library_filename; 
 	return fullpath.wstring();
 }
 
