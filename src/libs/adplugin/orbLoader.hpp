@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adplugin_global.h"
+#include <string>
 
 namespace CORBA {
     class ORB;
@@ -40,15 +41,16 @@ namespace adplugin {
 
     class ADPLUGINSHARED_EXPORT orbLoader {
     public:
-	virtual ~orbLoader() {};
-	virtual operator bool() const = 0;
-	
-	virtual bool initialize( CORBA::ORB *, PortableServer::POA * , PortableServer::POAManager * ) = 0;
+		virtual ~orbLoader() {};
+		virtual operator bool() const = 0;
+		
+		virtual bool initialize( CORBA::ORB *, PortableServer::POA * , PortableServer::POAManager * ) = 0;
         virtual void initial_reference( const char * ior ) = 0;
         virtual const char * activate() = 0;
         virtual bool deactivate() = 0;
-	
-	virtual const char * error_description() { return 0; }
+		
+		virtual const char * error_description() { return 0; }
+		static std::wstring library_fullpath( const std::wstring& appdir, const std::wstring& library_filename );
     };
 
 }

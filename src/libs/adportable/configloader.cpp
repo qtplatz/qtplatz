@@ -87,7 +87,6 @@ ConfigLoader::loadConfigXML( adportable::Configuration& config, const std::wstri
 }
 
 
-
 bool
 ConfigLoaderImpl::populate( Configuration& config, const pugi::xml_node& node )
 {
@@ -164,26 +163,36 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& n
             if ( pos != std::wstring::npos ) {
                 filename = filename.substr(0, pos);
 #if defined WIN32
-#  if defined _DEBUG
+# if defined _DEBUG
                 filename += "d.dll";
-#  else
+# else
                 filename += ".dll";
-#  endif
+# endif
+#elif defined __MACH_
+# if defined DEBUG
+				filename += "_debug.dylib";
 #else
+				filename += ".dylib";
+# endif
+#else
+# if defined DEBUG
+                filename += "_debug.so";
+# else
                 filename += ".so";
+# endif
 #endif
             }
 #if defined __linux__ 
-	    do {
-		boost::filesystem::path path( filename );
-		boost::filesystem::path filepath = path.branch_path() / ( std::string("lib") + path.leaf().string() );
-		filename = filepath.string();
-	    } while(0);
+			do {
+				boost::filesystem::path path( filename );
+				boost::filesystem::path filepath = path.branch_path() / ( std::string("lib") + path.leaf().string() );
+				filename = filepath.string();
+			} while(0);
 #endif	    
-            module.library_filename( pugi::as_wide( filename ) );
-            config.module( module );
-
-            return true;
+			module.library_filename( pugi::as_wide( filename ) );
+			config.module( module );
+			
+			return true;
         }
     }
     return false;

@@ -23,7 +23,7 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
 
 !win32 {
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
-  LIBS *= -lboost_serialization -lboost_date_time
+  LIBS *= -lboost_serialization -lboost_date_time -lboost_filesystem -lboost_system
 }
 
 DEFINES += SERVANT_LIBRARY

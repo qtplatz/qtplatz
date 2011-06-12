@@ -36,6 +36,8 @@
 #include <QtCore/qplugin.h>
 #include <QtCore>
 #include <qdebug.h>
+#include <boost/filesystem.hpp>:w
+
 
 #if defined _MSC_VER
 #  pragma warning(disable:4996)
@@ -54,6 +56,7 @@
 #include <adplugin/adplugin.hpp>
 #include <adplugin/orbLoader.hpp>
 #include <adplugin/orbmanager.hpp>
+#include <adplugin/constants.hpp>
 
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
@@ -137,20 +140,17 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     acewrapper::instance_manager::initialize();
     // <------
     
-    std::wstring apppath;
+    std::wstring apppath, configFile;
+
     do {
         QDir dir = QCoreApplication::instance()->applicationDirPath();
         dir.cdUp();
         apppath = qtwrapper::wstring::copy( dir.path() );
-	// qDebug() << "apppath:" << dir.path();
+        configFile = ( boost::filesystem::path( apppath ) / adpluginDirectory / "/servant.config.xml" ).wstring();
+        // dir.cd( adpluginDirectory );
+        // configFile = qtwrapper::wstring::copy( dir.path() ) + L"/servant.config.xml";
     } while(0);
     
-#if defined Q_OS_MAC
-    std::wstring configFile = apppath + L"/PlugIns/ScienceLiaison/servant.config.xml";
-#else
-    std::wstring configFile = apppath + L"/lib/qtplatz/plugins/ScienceLiaison/servant.config.xml";
-#endif
-
     const wchar_t * query = L"/ServantConfiguration/Configuration";
     
     pConfig_ = new adportable::Configuration();
@@ -159,9 +159,9 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     adportable::debug( __FILE__, __LINE__ ) << "loading configuration:" << configFile;
 
     if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
-	adportable::debug dbg( __FILE__, __LINE__ );
-	dbg << "ServantPlugin::initialize loadConfig '" << configFile << "' load failed";
-	QMessageBox::warning( 0, dbg.where().c_str(), dbg.str().c_str() );
+		adportable::debug dbg( __FILE__, __LINE__ );
+		dbg << "ServantPlugin::initialize loadConfig '" << configFile << "' load failed";
+		QMessageBox::warning( 0, dbg.where().c_str(), dbg.str().c_str() );
     }
     
     // ------------ Broker::Manager initialize first --------------------
@@ -192,20 +192,20 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	    /* nothing, broker must be created before here */
 	} else if ( it->attribute(L"type") == L"orbLoader" ) {
 	    // adcontroller must be on top
-	    std::wstring file = apppath + it->module().library_filename();
+	    std::wstring file = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
 	    it->attribute( L"fullpath", file );
 	    std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
 	    adportable::debug(__FILE__, __LINE__) << "orbLoader file=" << file << "\tns_name=" << ns_name;
 
 	    adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
 	    if ( loader ) {
-		loader.initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
-		loader.initial_reference( iorBroker.c_str() );
-		std::string ior = loader.activate();            // activate object
-		mgr->register_ior( ns_name.c_str(), ior.c_str() ); // set ior to Broker::Manager
+			loader.initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
+			loader.initial_reference( iorBroker.c_str() );
+			std::string ior = loader.activate();            // activate object
+			mgr->register_ior( ns_name.c_str(), ior.c_str() ); // set ior to Broker::Manager
 	    } else {
-                it->attribute( L"loadstatus", L"failed" );
-		// QMessageBox::warning( 0, "ServantPlugin", loader.error_description() );
+			it->attribute( L"loadstatus", L"failed" );
+			// QMessageBox::warning( 0, "ServantPlugin", loader.error_description() );
 	    }
 	}
     }

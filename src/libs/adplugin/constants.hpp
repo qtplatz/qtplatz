@@ -31,7 +31,7 @@
 #define iid_iSequence              L"adplugin::ui::iSequence"
 #define iid_iSequencesForm         L"adplugin::ui::iSequencesForm"
 
-#if defined Q_MAC_OS
+#if defined __APPLE__
 #  define adpluginDirectory          "PlugIns/ScienceLiaison"
 #else
 #  define adpluginDirectory          "lib/qtplatz/plugins/ScienceLiaison"

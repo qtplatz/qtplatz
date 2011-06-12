@@ -276,3 +276,14 @@ manager_impl::orbLoader( const std::wstring& file )
     failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
     return *failedLoaders_[ file ];
 }
+
+
+// static
+std::wstring
+orbLoader::library_fullpath( const std::wstring& apppath, const std::wstring& library_filename )
+{
+	boost::filesystem::path path( apppath );
+	boost::filesystem::path fullpath = path / library_filename;
+	return fullpath.wstring();
+}
+

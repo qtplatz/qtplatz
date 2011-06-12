@@ -18,7 +18,7 @@ LIBS *= -l$$qtLibraryTarget(adinterface)
 INCLUDEPATH *= $$OUT_PWD/../../libs
 
 LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
-LIBS += -lboost_date_time
+LIBS += -lboost_date_time -lboost_system -lboost_filesystem
 
 LIBS += -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(adinterface) \
