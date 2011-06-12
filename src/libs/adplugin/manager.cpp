@@ -134,10 +134,8 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
         QWidget * pWidget = pfactory->create_widget( config.interface().c_str(), parent );
         adplugin::LifeCycle * pLifeCycle = dynamic_cast< adplugin::LifeCycle * > ( pWidget );
 
-        if ( pLifeCycle == 0 ) {
-            LifeCycleAccessor accessor( pWidget );
-            pLifeCycle = accessor.getLifeCycle();
-        }
+        LifeCycleAccessor accessor( pWidget );
+        pLifeCycle = accessor.getLifeCycle();
 
         if ( pLifeCycle )
             pLifeCycle->OnCreate( config );
