@@ -110,11 +110,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adplugin", "src\libs\adplug
 		{8F43D793-F00D-3AB0-AA1F-12251E0BC1E9} = {8F43D793-F00D-3AB0-AA1F-12251E0BC1E9}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qtwidgets", "src\libs\qtwidgets\qtwidgets.vcproj", "{937F23D8-2A83-331A-A5DB-285C2A8ED6BA}"
-	ProjectSection(ProjectDependencies) = postProject
-		{91F406D4-8137-3B1B-B849-69A9AD360843} = {91F406D4-8137-3B1B-B849-69A9AD360843}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adportable", "src\libs\adportable\adportable.vcproj", "{DE1947AB-4C0A-39BA-8305-39F925AFE9D4}"
 	ProjectSection(ProjectDependencies) = postProject
 		{36E6F345-18B7-39CC-8050-83C5BE233BDE} = {36E6F345-18B7-39CC-8050-83C5BE233BDE}
@@ -153,6 +148,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "acquire", "src\plugins\acqu
 	ProjectSection(ProjectDependencies) = postProject
 		{28579B28-E02E-39FE-86A6-9A4E8C6A329A} = {28579B28-E02E-39FE-86A6-9A4E8C6A329A}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qtwidgets", "src\libs\qtwidgets\qtwidgets.vcproj", "{A58C9AC0-7CAB-3A21-A126-2380AD2B9900}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -252,10 +249,6 @@ Global
 		{91F406D4-8137-3B1B-B849-69A9AD360843}.Debug|Win32.Build.0 = Debug|Win32
 		{91F406D4-8137-3B1B-B849-69A9AD360843}.Release|Win32.ActiveCfg = Release|Win32
 		{91F406D4-8137-3B1B-B849-69A9AD360843}.Release|Win32.Build.0 = Release|Win32
-		{937F23D8-2A83-331A-A5DB-285C2A8ED6BA}.Debug|Win32.ActiveCfg = Debug|Win32
-		{937F23D8-2A83-331A-A5DB-285C2A8ED6BA}.Debug|Win32.Build.0 = Debug|Win32
-		{937F23D8-2A83-331A-A5DB-285C2A8ED6BA}.Release|Win32.ActiveCfg = Release|Win32
-		{937F23D8-2A83-331A-A5DB-285C2A8ED6BA}.Release|Win32.Build.0 = Release|Win32
 		{DE1947AB-4C0A-39BA-8305-39F925AFE9D4}.Debug|Win32.ActiveCfg = Debug|Win32
 		{DE1947AB-4C0A-39BA-8305-39F925AFE9D4}.Debug|Win32.Build.0 = Debug|Win32
 		{DE1947AB-4C0A-39BA-8305-39F925AFE9D4}.Release|Win32.ActiveCfg = Release|Win32
@@ -276,6 +269,10 @@ Global
 		{6950E6C1-A069-3DD4-859C-B86C4A89A833}.Debug|Win32.Build.0 = Debug|Win32
 		{6950E6C1-A069-3DD4-859C-B86C4A89A833}.Release|Win32.ActiveCfg = Release|Win32
 		{6950E6C1-A069-3DD4-859C-B86C4A89A833}.Release|Win32.Build.0 = Release|Win32
+		{A58C9AC0-7CAB-3A21-A126-2380AD2B9900}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A58C9AC0-7CAB-3A21-A126-2380AD2B9900}.Debug|Win32.Build.0 = Debug|Win32
+		{A58C9AC0-7CAB-3A21-A126-2380AD2B9900}.Release|Win32.ActiveCfg = Release|Win32
+		{A58C9AC0-7CAB-3A21-A126-2380AD2B9900}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

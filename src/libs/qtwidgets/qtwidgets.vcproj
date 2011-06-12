@@ -3,8 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="qtwidgets"
-	ProjectGUID="{937F23D8-2A83-331A-A5DB-285C2A8ED6BA}"
-	RootNamespace="qtwidgets"
+	ProjectGUID="{A58C9AC0-7CAB-3A21-A126-2380AD2B9900}"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -18,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)\lib\qtPlatz\plugins\ScienceLiaison"
+			OutputDirectory="."
 			IntermediateDirectory="debug\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -46,8 +45,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtDeclarative&quot;;&quot;$(QTDIR)\include&quot;;..\..\libs;c:\Users\thondo\src\qtPlatz\tools;&quot;c:\Boost\include\boost-1_46&quot;;..\..\plugins;&quot;$(ACE_ROOT)&quot;;&quot;$(TAO_ROOT)&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;debug;.;&quot;c:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;"
-				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,QTWIDGETS_LIBRARY,QT_DLL,QT_PLUGIN,QT_TESTLIB_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;,&quot;$(QTDIR)\include\QtGui&quot;,&quot;$(QTDIR)\include\QtTest&quot;,&quot;$(QTDIR)\include\QtDeclarative&quot;,&quot;$(QTDIR)\include&quot;,&quot;..\..\libs&quot;,&quot;c:\Users\thondo\src\qtplatz\tools&quot;,&quot;..\..\plugins&quot;,&quot;c:\Boost\include\boost-1_46&quot;,&quot;$(ACE_ROOT)&quot;,&quot;$(TAO_ROOT)&quot;,&quot;$(QTDIR)\include\ActiveQt&quot;,&quot;debug&quot;,&quot;.&quot;,c:\Qt\4.7.3\mkspecs\win32-msvc2008"
+				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,DEBUG,QTWIDGETS_LIBRARY,QT_DLL,QT_PLUGIN,QT_DECLARATIVE_LIB,QT_TESTLIB_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
 				RuntimeLibrary="3"
@@ -66,7 +65,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,QTWIDGETS_LIBRARY,QT_DLL,QT_PLUGIN,QT_TESTLIB_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT,_DEBUG"
+				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,DEBUG,QTWIDGETS_LIBRARY,QT_DLL,QT_PLUGIN,QT_DECLARATIVE_LIB,QT_TESTLIB_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT,_DEBUG"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -74,10 +73,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="QtDeclaratived4.lib QtGuid4.lib QtCored4.lib"
-				OutputFile="$(OutDir)\$(ProjectName)d.dll"
+				AdditionalDependencies="C:/Users/thondo/src/qtplatz/lib/qtplatz\adportabled.lib C:/Users/thondo/src/qtplatz/lib/qtplatz\adcontrolsd.lib C:/Users/thondo/src/qtplatz/lib/qtplatz\adplugind.lib C:/Users/thondo/src/qtplatz/lib/qtplatz\qtwrapperd.lib QtDeclaratived4.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
+				OutputFile="..\..\..\lib\qtplatz\plugins\ScienceLiaison\qtwidgetsd.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;../../../lib/qtplatz/plugins/ScienceLiaison;&quot;$(BOOST_ROOT)/lib&quot;"
+				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtplatz/lib/qtplatz,C:/Users/thondo/src/qtplatz/lib/qtplatz/plugins/ScienceLiaison,C:\Boost/lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="0"
@@ -103,8 +102,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copy qtwidgetsdd.dll to ..\..\..\bin"
-				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -137,8 +134,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;,&quot;$(QTDIR)\include\QtGui&quot;,&quot;$(QTDIR)\include&quot;,&quot;..\..\libs&quot;,&quot;c:\Users\thondo\src\qtPlatz\tools&quot;,&quot;c:\Boost\include\boost-1_46&quot;,&quot;..\..\libs&quot;,&quot;c:\Users\thondo\src\qtPlatz\tools&quot;,&quot;..\..\plugins&quot;,&quot;$(ACE_ROOT)&quot;,&quot;$(TAO_ROOT)&quot;,&quot;$(QTDIR)\include\ActiveQt&quot;,&quot;release&quot;,&quot;.&quot;,c:\Qt\4.7.2\mkspecs\win32-msvc2008"
-				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,QTWIDGETS_LIBRARY,QT_DLL,QT_NO_DEBUG,QT_PLUGIN,QT_GUI_LIB,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT,NDEBUG"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;,&quot;$(QTDIR)\include\QtGui&quot;,&quot;$(QTDIR)\include\QtDeclarative&quot;,&quot;$(QTDIR)\include&quot;,&quot;..\..\libs&quot;,&quot;c:\Users\thondo\src\qtplatz\tools&quot;,&quot;..\..\plugins&quot;,&quot;c:\Boost\include\boost-1_46&quot;,&quot;$(ACE_ROOT)&quot;,&quot;$(TAO_ROOT)&quot;,&quot;$(QTDIR)\include\ActiveQt&quot;,&quot;release&quot;,&quot;.&quot;,c:\Qt\4.7.3\mkspecs\win32-msvc2008"
+				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,QTWIDGETS_LIBRARY,QT_DLL,QT_NO_DEBUG,QT_PLUGIN,QT_DECLARATIVE_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
@@ -157,7 +154,7 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,QTWIDGETS_LIBRARY,QT_DLL,QT_NO_DEBUG,QT_PLUGIN,QT_GUI_LIB,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT"
+				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=\&quot;lib\&quot;,QT_NO_CAST_TO_ASCII,QTWIDGETS_LIBRARY,QT_DLL,QT_NO_DEBUG,QT_PLUGIN,QT_DECLARATIVE_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -165,11 +162,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="QtGui4.lib QtCore4.lib"
+				AdditionalDependencies="adportable.lib adcontrols.lib adplugin.lib qtwrapper.lib QtDeclarative4.lib QtGui4.lib QtCore4.lib"
 				OutputFile="..\..\..\lib\qtplatz\plugins\ScienceLiaison\qtwidgets.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;../../../lib/qtplatz/plugins/ScienceLiaison;&quot;$(BOOST_ROOT)/lib&quot;"
+				AdditionalLibraryDirectories="$(QTDIR)\lib,C:/Users/thondo/src/qtplatz/lib/qtplatz,C:/Users/thondo/src/qtplatz/lib/qtplatz/plugins/ScienceLiaison,C:\Boost/lib"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="0"
@@ -195,8 +192,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copy qtwidgets.dll to ..\..\..\bin"
-				CommandLine="copy  &quot;$(TargetPath)&quot; &quot;..\..\..\bin&quot;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -273,7 +268,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\peakresultwidget.cpp"
+				RelativePath="peakresultwidget.cpp"
 				>
 			</File>
 			<File
@@ -335,7 +330,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;centroiddelegate.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -346,7 +341,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -361,7 +356,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;centroidform.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -372,14 +367,14 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\chromatographicpeakform.hpp"
+				RelativePath="chromatographicpeakform.hpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -387,7 +382,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;.\chromatographicpeakform.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -398,7 +393,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -413,7 +408,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;elementalcompositiondelegate.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -424,7 +419,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -439,7 +434,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;elementalcompositionform.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -450,7 +445,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -491,7 +486,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;isotopedelegate.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -502,7 +497,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -517,7 +512,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;isotopeform.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -528,7 +523,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -543,7 +538,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;logwidget.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -554,7 +549,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -569,7 +564,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;mscalibratedelegate.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -580,7 +575,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -595,7 +590,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;mscalibrationform.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -606,7 +601,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -621,7 +616,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;mscalibsummarydelegate.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -632,7 +627,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -647,7 +642,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;mscalibsummarywidget.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -658,7 +653,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -673,7 +668,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;mslockdelegate.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -684,7 +679,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -699,7 +694,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;mslockform.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -710,7 +705,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -725,7 +720,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;peakidtableform.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -736,14 +731,14 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\peakresultwidget.hpp"
+				RelativePath="peakresultwidget.hpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -751,7 +746,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;.\peakresultwidget.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -762,7 +757,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -770,32 +765,6 @@
 			</File>
 			<File
 				RelativePath="qtwidgets.hpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\qtwidgets_global.h"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -855,7 +824,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;reportform.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -866,7 +835,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -881,7 +850,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;sequencesform.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -892,7 +861,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -907,7 +876,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;sequencesmodel.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -918,7 +887,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -933,7 +902,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;sequencewidget.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -944,40 +913,14 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="standardite.hppelper.hpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\standarditemhelper.hpp"
+				RelativePath="standarditemhelper.hpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -1011,7 +954,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;standardmodel.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1022,7 +965,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1037,7 +980,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;targetingdelegate.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1048,7 +991,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1063,7 +1006,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot; &quot;targetingform.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1074,7 +1017,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtPlatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.2\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\thondo\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_46&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I.&quot; &quot;-Ic:\Qt\4.7.3\mkspecs\win32-msvc2008&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1112,6 +1055,26 @@
 			Filter="cpp;c;cxx;moc;h;def;odl;idl;res;"
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
+			<File
+				RelativePath=".\GeneratedFiles\qrc_resources.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
 			<File
 				RelativePath="ui_centroidform.h"
 				>
@@ -2356,6 +2319,79 @@
 						CommandLine="$(QTDIR)\bin\uic.exe targetingform.ui -o ui_targetingform.h&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe;targetingform.ui"
 						Outputs="ui_targetingform.h"
+					/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="qrc;*"
+			UniqueIdentifier="{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}"
+			ParseFiles="false"
+			>
+			<File
+				RelativePath=".\CentroidMethodDelegate.qml"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\centroidmethodeditor.qml"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="resources.qrc"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Rcc&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(InputPath);.\centroidmethodeditor.qml;.\CentroidMethodDelegate.qml"
+						Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Rcc&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\rcc.exe&quot; -name &quot;$(InputName)&quot; -no-compress &quot;$(InputPath)&quot; -o .\GeneratedFiles\qrc_$(InputName).cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(InputPath);.\centroidmethodeditor.qml;.\CentroidMethodDelegate.qml"
+						Outputs=".\GeneratedFiles\qrc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
 			</File>
