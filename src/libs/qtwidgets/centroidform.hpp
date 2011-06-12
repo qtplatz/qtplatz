@@ -78,6 +78,7 @@ namespace qtwidgets {
         void update_data();
 
     public slots:
+        void getLifeCycle( adplugin::LifeCycle *& p );
         void getContents( adcontrols::ProcessMethod& );
     };
 

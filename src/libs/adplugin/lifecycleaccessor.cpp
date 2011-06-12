@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
@@ -23,42 +22,25 @@
 **
 **************************************************************************/
 
-#ifndef LOGWIDGET_H
-#define LOGWIDGET_H
+#include "lifecycleaccessor.hpp"
 
-#include <QWidget>
-#include <adplugin/lifecycle.hpp>
-#include <adportable/configuration.hpp>
-#include <string>
+using namespace adplugin;
 
-namespace Ui {
-    class LogWidget;
+LifeCycleAccessor::LifeCycleAccessor( QObject * target ) :  pObject_( target )
+{
+    bool res;
+    res = connect( this, SIGNAL( trigger( LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( LifeCycle *& ) ) );
 }
 
-namespace qtwidgets {
-
-    class LogWidget : public QWidget
-                    , public adplugin::LifeCycle {
-        Q_OBJECT
-        
-    public:
-        explicit LogWidget(QWidget *parent = 0);
-        ~LogWidget();
-
-        // adplugin::LifeCycle
-        void OnCreate( const adportable::Configuration& );
-        void OnInitialUpdate();
-        void OnFinalClose();
-    public slots:
-        void handle_eventLog( QString );
-        void handle_debug_print( unsigned long priority, unsigned long category, QString text );
-        void getLifeCycle( adplugin::LifeCycle*& );
-
-    private:
-        Ui::LogWidget *ui;
-        adportable::Configuration config_;
-    };
-
+LifeCycleAccessor::~LifeCycleAccessor()
+{
+    disconnect( this, SIGNAL( trigger( LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( LifeCycle *& ) ) );
 }
 
-#endif // LOGWIDGET_H
+adplugin::LifeCycle *
+LifeCycleAccessor::getLifeCycle()
+{
+    LifeCycle * p = 0;
+    emit trigger( p );
+    return p;
+}

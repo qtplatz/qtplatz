@@ -69,3 +69,9 @@ LogWidget::handle_debug_print( unsigned long priority, unsigned long category, Q
     Q_UNUSED( category );
 	ui->plainTextEdit->appendPlainText( text );
 }
+
+void
+LogWidget::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = this;
+}

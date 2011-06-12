@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
@@ -23,42 +22,33 @@
 **
 **************************************************************************/
 
-#ifndef LOGWIDGET_H
-#define LOGWIDGET_H
+#ifndef LIFECYCLEACCESSOR_HPP
+#define LIFECYCLEACCESSOR_HPP
 
-#include <QWidget>
-#include <adplugin/lifecycle.hpp>
-#include <adportable/configuration.hpp>
-#include <string>
+#include <QObject>
 
-namespace Ui {
-    class LogWidget;
-}
+namespace adplugin {
 
-namespace qtwidgets {
+    class LifeCycle;
 
-    class LogWidget : public QWidget
-                    , public adplugin::LifeCycle {
+    class LifeCycleAccessor : public QObject {
         Q_OBJECT
-        
-    public:
-        explicit LogWidget(QWidget *parent = 0);
-        ~LogWidget();
-
-        // adplugin::LifeCycle
-        void OnCreate( const adportable::Configuration& );
-        void OnInitialUpdate();
-        void OnFinalClose();
-    public slots:
-        void handle_eventLog( QString );
-        void handle_debug_print( unsigned long priority, unsigned long category, QString text );
-        void getLifeCycle( adplugin::LifeCycle*& );
-
     private:
-        Ui::LogWidget *ui;
-        adportable::Configuration config_;
+        QObject * pObject_;
+    public:
+        explicit LifeCycleAccessor(QObject *target);
+        ~LifeCycleAccessor();
+
+        LifeCycle * getLifeCycle();
+
+    signals:
+        void trigger( LifeCycle *& );
+
+    public slots:
+
+
     };
 
 }
 
-#endif // LOGWIDGET_H
+#endif // LIFECYCLEACCESSOR_HPP

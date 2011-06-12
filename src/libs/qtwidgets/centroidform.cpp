@@ -96,6 +96,12 @@ CentroidForm::OnFinalClose()
 {
 }
 
+void
+CentroidForm::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = this;
+}
+
 ///
 void
 CentroidForm::update_model()

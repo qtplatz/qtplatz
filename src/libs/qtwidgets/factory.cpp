@@ -81,10 +81,8 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
     } else if ( std::wstring( iid ) == L"qtwidgets::PeakResultWidget" ) {
         pWidget = new qtwidgets::PeakResultWidget( parent );
     }
-    if ( pWidget ) {
-        adplugin::LifeCycle * p = dynamic_cast< adplugin::LifeCycle * >( pWidget );
+    if ( pWidget )
         return pWidget;
-    }
     adportable::debug dbg(__FILE__, __LINE__);
     dbg << "create_widget(" << std::wstring(iid) << ") -- no such class.";
     QMessageBox::warning( 0, QLatin1String("qtwidgets::factory"), dbg.str().c_str() );

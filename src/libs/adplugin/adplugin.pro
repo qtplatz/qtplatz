@@ -33,7 +33,8 @@ SOURCES += adplugin.cpp \
         orbmanager.cpp \
         qbrokersessionevent.cpp \
         qobserverevents_i.cpp \
-        qreceiver_i.cpp
+        qreceiver_i.cpp \
+    lifecycleaccessor.cpp
 
 HEADERS += adplugin.hpp \
         adplugin_global.h \
@@ -45,4 +46,5 @@ HEADERS += adplugin.hpp \
     orbmanager.hpp \
     orbLoader.hpp \
     qobserverevents_i.hpp \
-    qbrokersessionevent.hpp
+    qbrokersessionevent.hpp \
+    lifecycleaccessor.hpp

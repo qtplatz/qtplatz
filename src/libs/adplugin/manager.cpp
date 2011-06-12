@@ -27,6 +27,7 @@
 #include "lifecycle.hpp"
 #include "orbLoader.hpp"
 #include "constants.hpp"
+#include "lifecycleaccessor.hpp"
 #include <adportable/configuration.hpp>
 #include <acewrapper/constants.hpp>
 #include <adportable/configloader.hpp>
@@ -85,7 +86,7 @@ namespace adplugin {
 
         librariesType libraries_;
         orbLoadersType orbLoaders_;
-	orbLoadersType failedLoaders_;
+        orbLoadersType failedLoaders_;
         std::map< std::string, std::string > iorMap_;
     };
 }
@@ -97,12 +98,33 @@ manager::instance()
     return impl::instance();
 }
 
+/*
+class LifeCycleAccessor : public QObject {
+    Q_OBJECT;
+    QWidget * pWidget_;
+    adplugin::LifeCycle * pLifeCycle_;
+public:
+    LifeCycleAccessor( QWidget * pWidget ) : pWidget_( pWidget ), pLifeCycle_(0) {
+        connect( this, SIGNAL( getLifeCycle( adplugin::LifeCycle*& ) ), pWidget( getLifeCycle( adplugin::LifeCycle*& ) ) );
+        emit trigger( pLifeCycle_ );
+    }
+    ~LifeCycleAccessor() {
+        disconnect( this, SIGNAL( trigger( adplugin::LifeCycle*& ) ), pWidget( getLifeCycle( adplugin::LifeCycle*& ) ) );
+    }
+signals:
+    void trigger( adplugin::LifeCycle *& );
+
+public:
+
+};
+*/
+
 // static
 QWidget *
 manager::widget_factory( const adportable::Configuration& config, const wchar_t * path, QWidget * parent )
 {
     if ( config.module().library_filename().empty() )
-	return 0;
+        return 0;
     
     boost::filesystem::path basepath( path );
     boost::filesystem::path loadfile = basepath / pluginDirectory / config.module().library_filename();
@@ -110,7 +132,13 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
     adplugin::ifactory * pfactory = manager::instance()->loadFactory( loadfile.wstring() );
     if ( pfactory ) {
         QWidget * pWidget = pfactory->create_widget( config.interface().c_str(), parent );
-        adplugin::LifeCycle * pLifeCycle = boost::polymorphic_downcast< adplugin::LifeCycle * > ( pWidget );
+        adplugin::LifeCycle * pLifeCycle = dynamic_cast< adplugin::LifeCycle * > ( pWidget );
+
+        if ( pLifeCycle == 0 ) {
+            LifeCycleAccessor accessor( pWidget );
+            pLifeCycle = accessor.getLifeCycle();
+        }
+
         if ( pLifeCycle )
             pLifeCycle->OnCreate( config );
         return pWidget;
@@ -158,14 +186,14 @@ manager_impl::loadFactory( const std::wstring& filename )
             if ( instance ) {
                 libraries_[ filename ] = instance();
             } else {
-		adportable::debug dbg(__FILE__, __LINE__);
-		dbg << filename << " \"ad_plugin_instance\" cound not be found";
+                adportable::debug dbg(__FILE__, __LINE__);
+                dbg << filename << " \"ad_plugin_instance\" cound not be found";
                 QMessageBox::critical( 0, "adplugin::orbLoader", dbg.str().c_str() );
             }
         } else {
-	    adportable::debug dbg(__FILE__, __LINE__);
-	    dbg << "manager_impl::loadFactory(" << filename << ")" << lib.errorString().toStdString();
-	}
+            adportable::debug dbg(__FILE__, __LINE__);
+            dbg << "manager_impl::loadFactory(" << filename << ")" << lib.errorString().toStdString();
+        }
     }
     if ( ( it = libraries_.find( filename ) ) != libraries_.end() )
         return it->second;
