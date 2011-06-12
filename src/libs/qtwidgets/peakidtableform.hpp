@@ -51,7 +51,7 @@ namespace qtwidgets {
         
     public:
         explicit PeakIDTableForm(QWidget *parent = 0);
-        ~PeakIDTableForm();
+        virtual ~PeakIDTableForm();
 
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& );

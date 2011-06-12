@@ -97,4 +97,5 @@ RESOURCES += \
     resources.qrc
 
 OTHER_FILES += \
-    centroidmethodeditor.qml
+    centroidmethodeditor.qml \
+    CentroidMethodDelegate.qml

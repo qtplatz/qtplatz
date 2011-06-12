@@ -51,34 +51,39 @@ using namespace qtwidgets;
 QWidget *
 factory::create_widget( const wchar_t * iid, QWidget * parent )
 {
+    QWidget * pWidget = 0;
     if ( std::wstring(iid) == iid_iLog ) {
-        return new LogWidget( parent );
+        pWidget = new LogWidget( parent );
     } else if ( std::wstring( iid ) == iid_iSequence ) {
-        return new qtwidgets::SequenceWidget( parent );
+        pWidget = new qtwidgets::SequenceWidget( parent );
     } else if ( std::wstring( iid ) == iid_iSequencesForm ) {
-        return new qtwidgets::SequencesForm( parent );
+        pWidget = new qtwidgets::SequencesForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::CentroidForm" ) {
-        return new qtwidgets::CentroidForm( parent );
+        pWidget = new qtwidgets::CentroidForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::ElementalCompositionForm" ) {
-        return new qtwidgets::ElementalCompositionForm( parent );
+        pWidget = new qtwidgets::ElementalCompositionForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::IsotopeForm" ) {
-        return new qtwidgets::IsotopeForm( parent );
+        pWidget = new qtwidgets::IsotopeForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MSCalibrationForm" ) {
-        return new qtwidgets::MSCalibrationForm( parent );
+        pWidget = new qtwidgets::MSCalibrationForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::TargetingForm" ) {
-        return new qtwidgets::TargetingForm( parent );
+        pWidget = new qtwidgets::TargetingForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MSLockForm" ) {
-        return new qtwidgets::MSLockForm ( parent );
+        pWidget = new qtwidgets::MSLockForm ( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::PeakMethodForm" ) {
-        return new qtwidgets::ChromatographicPeakForm( parent );
+        pWidget = new qtwidgets::ChromatographicPeakForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::PeakIDTableForm" ) {
-        return new qtwidgets::PeakIDTableForm( parent );
+        pWidget = new qtwidgets::PeakIDTableForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::ReportForm" ) {
-        return new qtwidgets::ReportForm( parent );
+        pWidget = new qtwidgets::ReportForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MSCalibSummaryWidget" ) {
-        return new qtwidgets::MSCalibSummaryWidget( parent );
+        pWidget = new qtwidgets::MSCalibSummaryWidget( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::PeakResultWidget" ) {
-        return new qtwidgets::PeakResultWidget( parent );
+        pWidget = new qtwidgets::PeakResultWidget( parent );
+    }
+    if ( pWidget ) {
+        adplugin::LifeCycle * p = dynamic_cast< adplugin::LifeCycle * >( pWidget );
+        return pWidget;
     }
     adportable::debug dbg(__FILE__, __LINE__);
     dbg << "create_widget(" << std::wstring(iid) << ") -- no such class.";

@@ -27,6 +27,7 @@
 #define CENTROIDFORM_H
 
 #include <QWidget>
+#include <QDeclarativeView>
 #include <QStandardItemModel>
 #include <adplugin/lifecycle.hpp>
 #include <adportable/configuration.hpp>
@@ -48,13 +49,13 @@ namespace qtwidgets {
 
     class CentroidDelegate;
 
-    class CentroidForm : public QWidget
+    class CentroidForm : public QDeclarativeView 
                        , public adplugin::LifeCycle {
         Q_OBJECT
 
     public:
         explicit CentroidForm(QWidget *parent = 0);
-        ~CentroidForm();
+        virtual ~CentroidForm();
 
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& );

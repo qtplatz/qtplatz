@@ -36,6 +36,7 @@ namespace adplugin {
 
     class ADPLUGINSHARED_EXPORT LifeCycle {
     public:
+        virtual ~LifeCycle() {}
         virtual void OnCreate( const adportable::Configuration& ) = 0;
         virtual void OnInitialUpdate() = 0;
         virtual void OnUpdate( boost::any& ) {}

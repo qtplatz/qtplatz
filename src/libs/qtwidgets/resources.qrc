@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/files">
         <file>centroidmethodeditor.qml</file>
+        <file>CentroidMethodDelegate.qml</file>
     </qresource>
 </RCC>

@@ -41,6 +41,7 @@
 #include <fstream>
 #include <boost/smart_ptr.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/cast.hpp>
 
 #if defined _MSC_VER
 # pragma warning(disable:4996)
@@ -109,10 +110,10 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
     adplugin::ifactory * pfactory = manager::instance()->loadFactory( loadfile.wstring() );
     if ( pfactory ) {
         QWidget * pWidget = pfactory->create_widget( config.interface().c_str(), parent );
-        adplugin::LifeCycle * pLifeCycle = dynamic_cast< adplugin::LifeCycle * > ( pWidget );
-	if ( pLifeCycle )
+        adplugin::LifeCycle * pLifeCycle = boost::polymorphic_downcast< adplugin::LifeCycle * > ( pWidget );
+        if ( pLifeCycle )
             pLifeCycle->OnCreate( config );
-	return pWidget;
+        return pWidget;
     }
     return 0;
 }
