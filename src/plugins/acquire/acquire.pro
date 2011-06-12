@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-#QT       += xml
+QT       += gui
 
 TARGET = acquire
 TEMPLATE = lib
@@ -14,6 +14,8 @@ include(../../qtplatz_plugin.pri)
 
 include(../../libs/acewrapper/acewrapper_dependencies.pri)
 include(../../boost.pri)
+include(../../qwt.pri)
+
 INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants ../ $$(QWT)/include
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH -L$$(QWT)/lib
@@ -23,8 +25,8 @@ LIBS += -l$$qtLibraryTarget(adcontroller) -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(acewrapper) -l$$qtLibraryTarget(qtwrapper) \
     -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(adplugin)
 
-LIBS *= -l$$qtLibraryTarget(qwt)
 LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
+LIBS += -lboost_date_time
 
 include(../../plugins/coreplugin/coreplugin.pri)
 

@@ -13,9 +13,10 @@ include(../../qtplatz_library.pri)
 include(../../boost.pri)
 include(../acewrapper/acewrapper_dependencies.pri)
 LIBS *= -l$$qtLibraryTarget(acewrapper)
-LIBS *= -l$$qtLibraryTarget(ACE) -l$$qtLibraryTarget(adportable)
+LIBS *= -l$$qtLibraryTarget(adportable)
 !win32 {
-  LIBS *= -lboost_serialization -lboost_wserialization
+  LIBS *= -lboost_serialization -lboost_wserialization -lboost_date_time
+  LIBS *= -lACE
 }
 
 DEFINES += ADCONTROLS_LIBRARY

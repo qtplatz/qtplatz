@@ -62,7 +62,7 @@ McastHandler::send( const char * pbuf, ssize_t size )
 }
 
 int
-McastHandler::recv( char * pbuf, int bufsize, ACE_INET_Addr& remote_addr)
+McastHandler::recv( char * pbuf, ssize_t bufsize, ACE_INET_Addr& remote_addr)
 {
    return sock_mcast_.recv( pbuf, bufsize, remote_addr );
 }

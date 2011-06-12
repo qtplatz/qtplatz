@@ -22,7 +22,9 @@ LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adportable) -l$$qtLibra
     -l$$qtLibraryTarget(adcontrols) -l$$qtLibraryTarget(adutils) -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(portfolio) -l$$qtLibraryTarget(qtwrapper) \
     -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(qwt)
-LIBS += -lTAO -lTAO_PortableServer -lACE
+
+LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
+LIBS += -lboost_date_time -lboost_system -lboost_filesystem
 
 !win32 {
   LIBS += -lboost_filesystem

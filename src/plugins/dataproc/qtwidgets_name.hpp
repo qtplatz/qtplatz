@@ -35,4 +35,6 @@
 #  endif
 #elif defined __linux__
 #  define QTWIDGETS_NAME   adpluginDirectory "/libqtwidgets.so"
+#elif defined __APPLE__
+#  define QTWIDGETS_NAME   adpluginDirectory "/libqtwidgets.dylib"
 #endif

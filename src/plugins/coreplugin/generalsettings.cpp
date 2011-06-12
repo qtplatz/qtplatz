@@ -75,8 +75,10 @@ QWidget *GeneralSettings::createPage(QWidget *parent)
     m_page->colorButton->setColor(StyleHelper::baseColor());
     m_page->externalEditorEdit->setText(EditorManager::instance()->externalEditor());
     m_page->reloadBehavior->setCurrentIndex(EditorManager::instance()->reloadBehavior());
+
 #ifdef Q_OS_UNIX
-    m_page->terminalEdit->setText(ConsoleProcess::terminalEmulator(Core::ICore::instance()->settings()));
+	// not in use for qtplatz, toshi 12 June 2011
+    // m_page->terminalEdit->setText(ConsoleProcess::terminalEmulator(Core::ICore::instance()->settings()));
 #else
     m_page->terminalLabel->hide();
     m_page->terminalEdit->hide();
@@ -104,8 +106,10 @@ void GeneralSettings::apply()
     EditorManager::instance()->setExternalEditor(m_page->externalEditorEdit->text());
     EditorManager::instance()->setReloadBehavior(IFile::ReloadBehavior(m_page->reloadBehavior->currentIndex()));
 #ifdef Q_OS_UNIX
+/* disable for qtplatz, 12 June 2011, toshi
 	ConsoleProcess::setTerminalEmulator(Core::ICore::instance()->settings(),
                                         m_page->terminalEdit->text());
+*/
 #endif
 }
 
@@ -124,12 +128,14 @@ void GeneralSettings::resetExternalEditor()
     m_page->externalEditorEdit->setText(EditorManager::instance()->defaultExternalEditor());
 }
 
+/****** not in use for qtplatz, 12 June 2011, toshi
 #ifdef Q_OS_UNIX
 void GeneralSettings::resetTerminal()
 {
     m_page->terminalEdit->setText(ConsoleProcess::defaultTerminalEmulator() + QLatin1String(" -e"));
 }
 #endif
+*/
 
 void GeneralSettings::showHelpForExternalEditor()
 {

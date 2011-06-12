@@ -145,7 +145,11 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	// qDebug() << "apppath:" << dir.path();
     } while(0);
     
+#if defined Q_OS_MAC
+    std::wstring configFile = apppath + L"/PlugIns/ScienceLiaison/servant.config.xml";
+#else
     std::wstring configFile = apppath + L"/lib/qtplatz/plugins/ScienceLiaison/servant.config.xml";
+#endif
 
     const wchar_t * query = L"/ServantConfiguration/Configuration";
     

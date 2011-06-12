@@ -61,7 +61,7 @@ private slots:
     void resetExternalEditor();
     void showHelpForExternalEditor();
 #ifdef Q_OS_UNIX
-    void resetTerminal();
+    // void resetTerminal();
 #endif
 
 private:

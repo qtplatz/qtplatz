@@ -22,7 +22,10 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#pragma warning(disable:4100)
+
+#if defined _MSC_VER
+# pragma warning(disable:4100)
+#endif
 #include "chemicalformula.hpp"
 #include "tableofelements.hpp"
 #include <adportable/string.hpp>

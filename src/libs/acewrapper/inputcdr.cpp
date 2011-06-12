@@ -82,13 +82,17 @@ InputCDR& InputCDR::operator >> ( unsigned long& t )
 
 InputCDR& InputCDR::operator >> ( long long& t )
 {
-  impl_.read_longlong( t );
+  ACE_CDR::LongLong x;
+  impl_.read_longlong( x );
+  t = x;
   return *this;
 }
 
 InputCDR& InputCDR::operator >> ( unsigned long long& t )
 {
-  impl_.read_ulonglong( t );
+    ACE_CDR::ULongLong x;
+  impl_.read_ulonglong( x );
+  t = x;
   return *this;
 }
 
@@ -165,13 +169,13 @@ InputCDR::read( unsigned long * p, size_t o )
 bool
 InputCDR::read( long long * p, size_t o )
 {
-	return impl_.read_longlong_array( p, o );
+	return impl_.read_longlong_array( reinterpret_cast<ACE_CDR::LongLong *>(p), o );
 }
 
 bool
 InputCDR::read( unsigned long long * p, size_t o )
 {
-	return impl_.read_ulonglong_array( p, o );
+	return impl_.read_ulonglong_array( reinterpret_cast<ACE_CDR::ULongLong *>(p), o );
 }
 
 bool

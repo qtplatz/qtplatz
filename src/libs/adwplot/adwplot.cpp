@@ -25,10 +25,12 @@
 
 #include "adwplot.hpp"
 
-#if defined _DEBUG
-# pragma comment(lib, "qwtd.lib")
-#else
-# pragma comment(lib, "qwt.lib")
+#if defined _MSC_VER
+#  if defined _DEBUG
+#    pragma comment(lib, "qwtd.lib")
+#  else
+#    pragma comment(lib, "qwt.lib")
+#  endif
 #endif
 
 

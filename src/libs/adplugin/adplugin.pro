@@ -10,15 +10,19 @@ TARGET = adplugin
 TEMPLATE = lib
 include(../../qtplatz_library.pri)
 include(../../boost.pri)
-INCLUDEPATH += $(ACE_ROOT) $(TAO_ROOT) $(TAO_ROOT)/orbsvcs $$OUT_PWD/..
+INCLUDEPATH += $(ACE_ROOT)/include $(TAO_ROOT)/include $$OUT_PWD/..
+
 LIBS += -L$(ACE_ROOT)/lib
 LIBS += -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(adportable) \
     -l$$qtLibraryTarget(qtwrapper) \
     -l$$qtLibraryTarget(xmlparser)
+
 !win32 {
-  LIBS += -l$$qtLibraryTarget(boost_filesystem)
+  LIBS += -lACE
+  LIBS += -lTAO -lTAO_Utils -lTAO_PI -lTAO_PortableServer -lTAO_AnyTypeCode
+  LIBS += -lboost_filesystem -lboost_system
 }
 
 DEFINES += ADPLUGIN_LIBRARY

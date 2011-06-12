@@ -163,13 +163,13 @@ OutputCDR::write( const unsigned long * p, size_t o )
 bool
 OutputCDR::write( const long long * p, size_t o )
 {
-	return impl_.write_longlong_array( p, o );
+	return impl_.write_longlong_array( reinterpret_cast<const ACE_CDR::LongLong *>(p), o );
 }
 
 bool
 OutputCDR::write( const unsigned long long * p, size_t o )
 {
-	return impl_.write_ulonglong_array( p, o );
+	return impl_.write_ulonglong_array( reinterpret_cast<const ACE_CDR::ULongLong *>(p), o );
 }
 
 bool

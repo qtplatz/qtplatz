@@ -1,4 +1,4 @@
 
-CONFIG += debug
+#CONFIG += debug
 #CONFIG += release
-DEFINES += DEBUG
+#DEFINES += DEBUG

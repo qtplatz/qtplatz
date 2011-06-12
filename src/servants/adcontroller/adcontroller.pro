@@ -16,8 +16,9 @@ include(../../libs/adinterface/adinterface_dependencies.pri)
 include(../../boost.pri)
 LIBS *= -l$$qtLibraryTarget(adinterface)
 INCLUDEPATH *= $$OUT_PWD/../../libs
-LIBS += -l$$qtLibraryTarget(TAO_Utils) -l$$qtLibraryTarget(TAO_PortableServer) \
-        -l$$qtLibraryTarget(TAO) -l$$qtLibraryTarget(ACE)
+
+LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
+LIBS += -lboost_date_time
 
 LIBS += -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(adinterface) \

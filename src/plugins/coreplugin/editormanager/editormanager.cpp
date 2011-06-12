@@ -437,6 +437,7 @@ void EditorManager::init()
 
 QString EditorManager::defaultExternalEditor() const
 {
+/***** not use in qtplatz, 12 June 2011, toshi
 #ifdef Q_OS_UNIX
     return ConsoleProcess::defaultTerminalEmulator() + QLatin1String(
 # ifdef Q_OS_MAC
@@ -446,6 +447,8 @@ QString EditorManager::defaultExternalEditor() const
 #else
     return QLatin1String("notepad %f");
 #endif
+****/
+    return QLatin1String("notepad %f");
 }
 
 void EditorManager::removeEditor(IEditor *editor)
