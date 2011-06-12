@@ -29,12 +29,12 @@ using namespace adplugin;
 LifeCycleAccessor::LifeCycleAccessor( QObject * target ) :  pObject_( target )
 {
     bool res;
-    res = connect( this, SIGNAL( trigger( LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( LifeCycle *& ) ) );
+    res = connect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
 }
 
 LifeCycleAccessor::~LifeCycleAccessor()
 {
-    disconnect( this, SIGNAL( trigger( LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( LifeCycle *& ) ) );
+    disconnect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
 }
 
 adplugin::LifeCycle *

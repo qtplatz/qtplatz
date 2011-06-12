@@ -42,7 +42,7 @@ namespace adplugin {
         LifeCycle * getLifeCycle();
 
     signals:
-        void trigger( LifeCycle *& );
+        void trigger( adplugin::LifeCycle *& );
 
     public slots:
 
