@@ -76,7 +76,8 @@ HEADERS += \
 
 OTHER_FILES += \
     dataproc.pluginspec \
-    application-data-mimetype.xml
+    application-data-mimetype.xml \
+    dataproc.config.xml
 
 RESOURCES += \
     dataproc.qrc
