@@ -23,24 +23,34 @@
 **************************************************************************/
 
 #include "lifecycleaccessor.hpp"
+#include "lifecycle.hpp"
+
+// when load module by QLibrary()/dlopen() method, gcc built module does not expose RTTI information.
+// here is the workaround
 
 using namespace adplugin;
 
 LifeCycleAccessor::LifeCycleAccessor( QObject * target ) :  pObject_( target )
+                                                         , p_(0)
+                                                         , conn_( false )
 {
-    bool res;
-    res = connect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
+    p_ = dynamic_cast< adplugin::LifeCycle *>( pObject_ );
+    if ( p_ == 0 )
+        conn_ = connect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
 }
 
 LifeCycleAccessor::~LifeCycleAccessor()
 {
-    disconnect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
+    if ( conn_ )
+        disconnect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
 }
 
 adplugin::LifeCycle *
-LifeCycleAccessor::getLifeCycle()
+LifeCycleAccessor::get()
 {
-    LifeCycle * p = 0;
-    emit trigger( p );
-    return p;
+    if ( p_ )
+        return p_;
+    else
+        emit trigger( p_ );
+    return p_;
 }

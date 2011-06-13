@@ -139,7 +139,7 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
             // see http://gcc.gnu.org/faq.html#dso
             // since I'd like to use QLibrary which does not apply RTLD_GLOBAL flag, use Qt's signal/slot instead
             LifeCycleAccessor accessor( pWidget );
-            pLifeCycle = accessor.getLifeCycle();
+            pLifeCycle = accessor.get();
         }
 
         if ( pLifeCycle )

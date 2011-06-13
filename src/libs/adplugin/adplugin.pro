@@ -29,15 +29,15 @@ DEFINES += ADPLUGIN_LIBRARY
 
 SOURCES += adplugin.cpp \
     lifecycle.cpp \
-        manager.cpp \
-        orbmanager.cpp \
-        qbrokersessionevent.cpp \
-        qobserverevents_i.cpp \
-        qreceiver_i.cpp \
+    manager.cpp \
+    orbmanager.cpp \
+    qbrokersessionevent.cpp \
+    qobserverevents_i.cpp \
+    qreceiver_i.cpp \
     lifecycleaccessor.cpp
 
 HEADERS += adplugin.hpp \
-        adplugin_global.h \
+    adplugin_global.h \
     imonitor.hpp \
     icontrolmethodeditor.hpp \
     ifactory.hpp \

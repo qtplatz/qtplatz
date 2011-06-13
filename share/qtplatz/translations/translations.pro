@@ -1,4 +1,4 @@
-include(../../../qtPlatz.pri)
+include(../../../qtplatz.pri)
 
 LANGUAGES = de es fr it ja pl ru sl
 

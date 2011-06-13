@@ -31,6 +31,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
+#include <adplugin/lifecycleaccessor.hpp>
 #include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <boost/noncopyable.hpp>
@@ -150,7 +151,8 @@ DataprocManager::OnInitialUpdate()
     foreach ( QDockWidget * dockWidget, dockWidgets ) {
         QObjectList list = dockWidget->children();
         foreach ( QObject * obj, list ) {
-            adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
+            adplugin::LifeCycleAccessor accessor( obj );
+            adplugin::LifeCycle * pLifeCycle = accessor.get(); // dynamic_cast<adplugin::LifeCycle *>( obj );
             if ( pLifeCycle ) {
                 pLifeCycle->OnInitialUpdate();
             }
@@ -168,7 +170,9 @@ DataprocManager::OnFinalClose()
     foreach ( QDockWidget * dockWidget, dockWidgets ) {
         QObjectList list = dockWidget->children();
         foreach ( QObject * obj, list ) {
-            adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
+            // adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
+            adplugin::LifeCycleAccessor accessor( obj );
+            adplugin::LifeCycle * pLifeCycle = accessor.get();
             if ( pLifeCycle ) {
                 pLifeCycle->OnFinalClose();
             }

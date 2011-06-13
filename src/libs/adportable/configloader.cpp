@@ -196,7 +196,7 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& n
 # endif
 #else
 # if defined DEBUG
-                filename += "_debug.so";
+                filename += ".so";
 # else
                 filename += ".so";
 # endif

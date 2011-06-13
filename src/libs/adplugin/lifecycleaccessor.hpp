@@ -25,21 +25,24 @@
 #ifndef LIFECYCLEACCESSOR_HPP
 #define LIFECYCLEACCESSOR_HPP
 
+#include "adplugin_global.h"
 #include <QObject>
 
 namespace adplugin {
 
     class LifeCycle;
 
-    class LifeCycleAccessor : public QObject {
+    class ADPLUGINSHARED_EXPORT LifeCycleAccessor : public QObject {
         Q_OBJECT
     private:
         QObject * pObject_;
+        adplugin::LifeCycle * p_;
+        bool conn_;
     public:
         explicit LifeCycleAccessor(QObject *target);
         ~LifeCycleAccessor();
 
-        LifeCycle * getLifeCycle();
+        LifeCycle * get();
 
     signals:
         void trigger( adplugin::LifeCycle *& );
