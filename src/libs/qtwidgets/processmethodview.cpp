@@ -56,6 +56,7 @@ ProcessMethodView::OnCreate( const adportable::Configuration& config )
 
     QDeclarativeContext * ctx = rootContext();
     ctx->setContextProperty( "configXML", qtwrapper::qstring::copy( xml ) );
+    setResizeMode( QDeclarativeView::SizeRootObjectToView );
 
 #if defined DEBUG && 0
     do {
@@ -72,8 +73,7 @@ ProcessMethodView::OnCreate( const adportable::Configuration& config )
         QList< QDeclarativeError > errors = this->errors();
         for ( QList< QDeclarativeError >::const_iterator it = errors.begin(); it != errors.end(); ++it )
             QMessageBox::warning( this, "QDeclarativeError", it->description() );
-    } else
-        return;
+    }
 }
 
 void

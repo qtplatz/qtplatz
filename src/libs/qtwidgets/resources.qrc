@@ -3,5 +3,10 @@
         <file>centroidmethodeditor.qml</file>
         <file>CentroidMethodDelegate.qml</file>
         <file>qml/ProcessMethodEditor.qml</file>
+        <file>qml/content/BusyIndicator.qml</file>
+        <file>qml/content/CategoryDelegate.qml</file>
+        <file>qml/content/ScrollBar.qml</file>
+        <file>qml/content/images/busy.png</file>
+        <file>qml/content/images/scrollbar.png</file>
     </qresource>
 </RCC>

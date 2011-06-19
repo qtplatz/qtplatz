@@ -31,8 +31,6 @@
 
 #include "welcomemode.h"
 
-#include "communitywelcomepage.h"
-
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/basemode.h>
 #include <coreplugin/coreconstants.h>
