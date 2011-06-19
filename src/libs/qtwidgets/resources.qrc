@@ -2,5 +2,6 @@
     <qresource prefix="/files">
         <file>centroidmethodeditor.qml</file>
         <file>CentroidMethodDelegate.qml</file>
+        <file>qml/ProcessMethodEditor.qml</file>
     </qresource>
 </RCC>

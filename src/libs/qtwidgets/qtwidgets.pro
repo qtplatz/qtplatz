@@ -13,7 +13,8 @@ PROVIDER = ScienceLiaison
 include(../../qtplatz_servant.pri)
 include(../../boost.pri)
 LIBS += -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adcontrols) \
-    -l$$qtLibraryTarget(adplugin) -l$$qtLibraryTarget(qtwrapper)
+    -l$$qtLibraryTarget(adplugin) -l$$qtLibraryTarget(qtwrapper) \
+    -l$$qtLibraryTarget(xmlparser)
 
 INCLUDEPATH *= $(ACE_ROOT) $(TAO_ROOT)
 
@@ -46,7 +47,8 @@ SOURCES += centroiddelegate.cpp \
         standardmodel.cpp \
         targetingdelegate.cpp \
         targetingform.cpp \
-        treeitem.cpp
+        treeitem.cpp \
+    processmethodview.cpp
 
 
 HEADERS += centroiddelegate.hpp \
@@ -76,7 +78,8 @@ HEADERS += centroiddelegate.hpp \
         standardmodel.hpp \
         targetingdelegate.hpp \
         targetingform.hpp \
-        treeitem.hpp
+        treeitem.hpp \
+    processmethodview.hpp
 
 FORMS += \
     centroidform.ui \
@@ -98,4 +101,5 @@ RESOURCES += \
 
 OTHER_FILES += \
     centroidmethodeditor.qml \
-    CentroidMethodDelegate.qml
+    CentroidMethodDelegate.qml \
+    qml/ProcessMethodEditor.qml

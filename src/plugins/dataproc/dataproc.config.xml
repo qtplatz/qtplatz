@@ -12,7 +12,13 @@
 	<Module name="addatafile" type="sharedlib" filename="/ScienceLiaison/addatafile$(configuration).dll"/>
 	<Module name="infitof" type="sharedlib" filename="/MSI/infitofspectrometer$(configuration).dll"/>
 	<Configuration name="ProcessMethodEditors">
-		<Configuration name="CentroidMethodUI">
+                <Configuration name="ProcessMethodView">
+                        <title>Process Method</title>
+                        <Component type="widget" interface="qtwidgets::ProcessMethodView" module="qtwidgets" loader="adplugin">
+                            <Component type="qml" QUrl="qrc:files/qml/ProcessMethodEditor.qml" />
+                       </Component>
+                </Configuration>
+                <Configuration name="CentroidMethodUI">
 			<title>Centroid</title>
 			<Component type="widget" interface="qtwidgets::CentroidForm" module="qtwidgets" loader="adplugin"/>
 		</Configuration>

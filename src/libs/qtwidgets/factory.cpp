@@ -29,6 +29,7 @@
 #include <adportable/debug.hpp>
 #include <qdebug.h>
 #include <QtCore/qplugin.h>
+#include "processmethodview.hpp"
 #include "logwidget.hpp"
 #include "sequencewidget.hpp"
 #include "sequencesform.hpp"
@@ -80,6 +81,8 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
         pWidget = new qtwidgets::MSCalibSummaryWidget( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::PeakResultWidget" ) {
         pWidget = new qtwidgets::PeakResultWidget( parent );
+    } else if ( std::wstring( iid ) == L"qtwidgets::ProcessMethodView" ) {
+        pWidget = new qtwidgets::ProcessMethodView( parent );
     }
     if ( pWidget )
         return pWidget;
