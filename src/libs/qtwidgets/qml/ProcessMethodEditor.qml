@@ -52,7 +52,7 @@ Rectangle {
                 id: categories
                 anchors.fill: parent
                 model: methodModel
-                footer: quitButtonDelegate
+                footer: applyButtonDelegate
                 delegate: CategoryDelegate {}
                 highlight: Rectangle { color: "steelblue" }
                 highlightMoveSpeed: 9999999
@@ -64,8 +64,28 @@ Rectangle {
         }
         ListView {
             id: list
-            width: window.width - 200; height: window.heith
+            width: window.width - 200; height: window.height
             model: editModel
+            delegate: MethodEditDelegate { }
+        }
+    }
+
+    Component {
+        id: applyButtonDelegate
+        Item {
+            width: categories.width; height: 60
+            Text {
+                text: "Apply"
+                font { family: "Helvetica"; pixelSize: 16; bold: true }
+                anchors {
+                    left: parent.left; leftMargin: 15
+                    verticalCenter: parent.verticalCenter
+                }
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked:  Qt.quite()
+            }
         }
     }
 

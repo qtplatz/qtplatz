@@ -8,5 +8,6 @@
         <file>qml/content/ScrollBar.qml</file>
         <file>qml/content/images/busy.png</file>
         <file>qml/content/images/scrollbar.png</file>
+        <file>qml/content/MethodEditDelegate.qml</file>
     </qresource>
 </RCC>
