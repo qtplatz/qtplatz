@@ -17,7 +17,7 @@ include(../../boost.pri)
 include(../../qwt.pri)
 
 INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants ../ $$(QWT)/include
-PRE_TARGETDEPS += acquire.pro
+#PRE_TARGETDEPS += acquire.pro
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH
 LIBS += -l$$qtLibraryTarget(adcontroller) -l$$qtLibraryTarget(adcontrols) \

@@ -38,11 +38,12 @@
 QT_BEGIN_NAMESPACE
 class QWidget;
 class QUrl;
+class QDeclarativeView;
 QT_END_NAMESPACE
 
 namespace Welcome {
 
-struct WelcomeModePrivate;
+// struct WelcomeModePrivate;
 
 class WELCOME_EXPORT WelcomeMode : public Core::IMode
 {
@@ -69,7 +70,7 @@ private slots:
     void showClickedPage();
 
 private:
-    WelcomeModePrivate *m_d;
+    QDeclarativeView *widget_;
 };
 
 } // namespace Welcome

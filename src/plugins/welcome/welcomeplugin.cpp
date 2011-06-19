@@ -46,11 +46,13 @@
 #include <QtGui/QMenu>
 #include <QtGui/QMessageBox>
 #include <QtGui/QPushButton>
+#include <QDeclarativeView>
+#include <QDeclarativeError>
 
 using namespace Welcome::Internal;
 
 WelcomePlugin::WelcomePlugin()
-  : m_welcomeMode(0), m_communityWelcomePage(0)
+  : m_welcomeMode(0), view_(0)
 {
 }
 
@@ -60,9 +62,9 @@ WelcomePlugin::~WelcomePlugin()
         removeObject(m_welcomeMode);
         delete m_welcomeMode;
     }
-    if (m_communityWelcomePage) {
-        removeObject(m_communityWelcomePage);
-        delete m_communityWelcomePage;
+    if ( view_ ) {
+        removeObject( view_ );
+        delete view_;
     }
 }
 
@@ -76,9 +78,6 @@ bool WelcomePlugin::initialize(const QStringList &arguments, QString *error_mess
 {
     Q_UNUSED(arguments)
     Q_UNUSED(error_message)
-
-    m_communityWelcomePage = new Internal::CommunityWelcomePage;
-    addObject(m_communityWelcomePage);
 
     m_welcomeMode = new WelcomeMode;
     addObject(m_welcomeMode);

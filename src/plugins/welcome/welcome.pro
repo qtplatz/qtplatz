@@ -1,22 +1,16 @@
 TEMPLATE = lib
 TARGET = Welcome
-QT += network
+QT += declarative
 include(../../qtplatz_plugin.pri)
 include(welcome_dependencies.pri)
 HEADERS += welcomeplugin.h \
     welcomemode.h \
-    rssfetcher.h \
-    communitywelcomepagewidget.h \
-    communitywelcomepage.h \
     welcome_global.h
 SOURCES += welcomeplugin.cpp \
-    welcomemode.cpp \
-    rssfetcher.cpp \
-    communitywelcomepagewidget.cpp \
-    communitywelcomepage.cpp
+    welcomemode.cpp
 
-FORMS += welcomemode.ui \
-    communitywelcomepagewidget.ui
+FORMS += welcomemode.ui
 RESOURCES += welcome.qrc
 DEFINES += WELCOME_LIBRARY
-OTHER_FILES += Welcome.pluginspec
+OTHER_FILES += Welcome.pluginspec \
+    qml/webbrowser.qml

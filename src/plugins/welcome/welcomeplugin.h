@@ -32,12 +32,13 @@
 
 #include <extensionsystem/iplugin.h>
 
+class QDeclarativeView;
+
 namespace Welcome {
 
 class WelcomeMode;
 
 namespace Internal {
-class CommunityWelcomePage;
 
 class WelcomePlugin
   : public ExtensionSystem::IPlugin
@@ -54,7 +55,7 @@ public:
 
 private:
     WelcomeMode *m_welcomeMode;
-    Internal::CommunityWelcomePage *m_communityWelcomePage;
+    QDeclarativeView * view_;
 };
 
 } // namespace Welcome

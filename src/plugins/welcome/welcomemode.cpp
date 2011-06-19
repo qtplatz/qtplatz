@@ -49,7 +49,9 @@
 #include <QtCore/QSettings>
 #include <QtCore/QUrl>
 #include <QtCore/QDebug>
-
+#include <QDeclarativeView>
+#include <QDeclarativeError>
+#include <QMessageBox>
 #include <cstdlib>
 
 #include "ui_welcomemode.h"
@@ -77,9 +79,10 @@ WelcomeModePrivate::WelcomeModePrivate()
 }
 
 // ---  WelcomeMode
-WelcomeMode::WelcomeMode() :
-    m_d(new WelcomeModePrivate)
+WelcomeMode::WelcomeMode() : widget_(0)
 {
+    widget_ = new QDeclarativeView;
+    /*
     m_d->m_widget = new QWidget;
     QVBoxLayout *l = new QVBoxLayout(m_d->m_widget);
     l->setMargin(0);
@@ -100,15 +103,14 @@ WelcomeMode::WelcomeMode() :
     connect(pluginManager, SIGNAL(objectAdded(QObject*)), SLOT(welcomePluginAdded(QObject*)));
 
     connect(m_d->ui.feedbackButton, SIGNAL(clicked()), SLOT(slotFeedback()));
-
+*/
 }
 
 WelcomeMode::~WelcomeMode()
 {
     QSettings *settings = Core::ICore::instance()->settings();
-    settings->setValue("General/WelcomeTab", m_d->ui.stackedWidget->currentIndex());
-    delete m_d->m_widget;
-    delete m_d;
+    // settings->setValue("General/WelcomeTab", m_d->ui.stackedWidget->currentIndex());
+    delete widget_;
 }
 
 QString WelcomeMode::name() const
@@ -128,7 +130,7 @@ int WelcomeMode::priority() const
 
 QWidget* WelcomeMode::widget()
 {
-    return m_d->m_scrollArea;
+    return widget_;
 }
 
 const char* WelcomeMode::uniqueModeName() const
@@ -150,6 +152,12 @@ bool sortFunction(IWelcomePage * a, IWelcomePage *b)
 
 void WelcomeMode::initPlugins()
 {
+    widget_->setSource( QUrl( "qrc:qml/qml/webbrowser.qml" ) );
+
+    QList< QDeclarativeError> errors = widget_->errors();
+    for ( QList<QDeclarativeError>::const_iterator it = errors.begin(); it != errors.end(); ++it )
+        QMessageBox::warning( widget_, "QDeclarativeError", it->description() );
+    /*
     m_d->buttonLayout = new QHBoxLayout(m_d->ui.navFrame);
     m_d->buttonLayout->setMargin(0);
     m_d->buttonLayout->setSpacing(0);
@@ -182,11 +190,12 @@ void WelcomeMode::initPlugins()
                 break;
             }
     }
-
+*/
 }
 
 void WelcomeMode::welcomePluginAdded(QObject *obj)
 {
+    /*
     if (IWelcomePage *plugin = qobject_cast<IWelcomePage*>(obj))
     {
         QToolButton * btn = new QToolButton;
@@ -207,20 +216,25 @@ void WelcomeMode::welcomePluginAdded(QObject *obj)
         m_d->buttonMap.insert(btn, plugin->page());
         m_d->buttonLayout->insertWidget(insertPos, btn);
     }
+    */
 }
 
 void WelcomeMode::showClickedPage()
 {
+    /*
     QAbstractButton *btn = qobject_cast<QAbstractButton*>(sender());
     QMap<QAbstractButton*, QWidget*>::iterator it = m_d->buttonMap.find(btn);
     if (it.value())
         m_d->ui.stackedWidget->setCurrentWidget(it.value());
+        */
 }
 
 void WelcomeMode::slotFeedback()
 {
+    /*
     QDesktopServices::openUrl(QUrl(QLatin1String(
         "http://qt.nokia.com/forms/feedback-forms/qt-creator-user-feedback/view")));
+        */
 }
 
 
