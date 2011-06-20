@@ -152,7 +152,8 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
 std::string
 manager::iorBroker()
 {
-	return manager::instance()->lookup_ior( acewrapper::constants::adbroker::manager::_name() );
+    const char * p = manager::instance()->lookup_ior( acewrapper::constants::adbroker::manager::_name() );
+    return p ? std::string( p ) : std::string("");
 }
 
 std::string
