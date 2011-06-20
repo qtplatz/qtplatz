@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="C:/Users/Toshi.Hondo/src/qtplatz/lib/qtplatz\Aggregationd.lib C:/Users/Toshi.Hondo/src/qtplatz/lib/qtplatz\ExtensionSystemd.lib C:/Users/Toshi.Hondo/src/qtplatz/lib/qtplatz\Utilsd.lib C:/Users/Toshi.Hondo/src/qtplatz/lib/qtplatz/plugins/Nokia\Cored.lib QtDeclaratived4.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
+				AdditionalDependencies="Aggregationd.lib ExtensionSystemd.lib Utilsd.lib Cored.lib QtDeclaratived4.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
 				OutputFile="..\..\..\lib\qtplatz\plugins\Nokia\Welcomed.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;../../../lib/qtplatz/plugins/Nokia"

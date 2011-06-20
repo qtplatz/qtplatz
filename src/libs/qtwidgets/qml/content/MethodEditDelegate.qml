@@ -44,7 +44,7 @@ import QtQuick 1.0
 Item {
     id: delegate
 
-    width: delegate.ListView.view.width; height: 60
+    width: delegate.ListView.view.width; height: 160
 
     Text {
         text: name

@@ -1,2 +1,2 @@
-INCLUDEPATH += $$(ACE_ROOT) $$(TAO_ROOT)
+include(../../ace_tao.pri)
 LIBS *= -L$$(ACE_ROOT)/lib -lACE

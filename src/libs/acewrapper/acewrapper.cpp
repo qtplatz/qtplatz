@@ -23,11 +23,11 @@
 **
 **************************************************************************/
 
-#include "acewrapper.hpp"
 #pragma warning (disable: 4996)
 # include <ace/Init_ACE.h>
 # include <ace/Singleton.h>
 #pragma warning (default: 4996)
+#include "acewrapper.hpp"
 
 using namespace acewrapper;
 
