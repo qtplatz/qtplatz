@@ -14,11 +14,19 @@ include(../../qtplatz_servant.pri)
 include(../../libs/acewrapper/acewrapper_dependencies.pri)
 include(../../libs/adinterface/adinterface_dependencies.pri)
 include(../../boost.pri)
+include(../../ace_tao.pri)
 LIBS *= -l$$qtLibraryTarget(adinterface)
 INCLUDEPATH *= $$OUT_PWD/../../libs
 
-LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
-LIBS += -lboost_date_time -lboost_system -lboost_filesystem
+!win32 {
+  LIBS += -l$$qtLibraryTarget(TAO_Utils) \
+        -l$$qtLibraryTarget(TAO_PortableServer) \
+        -l$$qtLibraryTarget(TAO_AnyTypeCode) \
+        -l$$qtLibraryTarget(TAO) \
+        -l$$qtLibraryTarget(ACE)
+
+  LIBS += -lboost_date_time -lboost_system -lboost_filesystem
+}
 
 LIBS += -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(adinterface) \

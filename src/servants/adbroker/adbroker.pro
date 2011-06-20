@@ -11,14 +11,17 @@ TEMPLATE = lib
 
 include(../../qtplatz_servant.pri)
 include(../../boost.pri)
+include(../../ace_tao.pri)
 include(../../libs/acewrapper/acewrapper_dependencies.pri)
 
 #CONFIG(debug, debug|release) : LIBS += -ladinterfaced
 #CONFIG(release, debug|release) : LIBS += -ladinterface
 INCLUDEPATH *= $$OUT_PWD/../../libs
 
-LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
-LIBS += -lboost_date_time
+!win32 {
+  LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
+  LIBS += -lboost_date_time
+}
 
 LIBS += -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(adportable) \

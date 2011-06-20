@@ -10,7 +10,8 @@ TARGET = adplugin
 TEMPLATE = lib
 include(../../qtplatz_library.pri)
 include(../../boost.pri)
-INCLUDEPATH += $(ACE_ROOT)/include $(TAO_ROOT)/include $$OUT_PWD/..
+include(../../ace_tao.pri)
+INCLUDEPATH += $$OUT_PWD/..
 
 LIBS += -L$(ACE_ROOT)/lib
 LIBS += -l$$qtLibraryTarget(acewrapper) \

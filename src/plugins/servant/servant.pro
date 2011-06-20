@@ -9,6 +9,7 @@ TEMPLATE = lib
 
 PROVIDER = ScienceLiaison
 include(../../qtplatz_plugin.pri)
+include(../../ace_tao.pri)
 
 include(servant_dependencies.pri)
 include(../../libs/acewrapper/acewrapper_dependencies.pri)
