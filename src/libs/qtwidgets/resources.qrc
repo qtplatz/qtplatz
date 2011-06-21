@@ -9,5 +9,15 @@
         <file>qml/content/images/busy.png</file>
         <file>qml/content/images/scrollbar.png</file>
         <file>qml/content/MethodEditDelegate.qml</file>
+        <file>qml/content/EditCentroidMethod.qml</file>
+        <file>qml/content/EditElementalCompMethod.qml</file>
+        <file>qml/content/EditIntegrationMethod.qml</file>
+        <file>qml/content/EditIsotopeMethod.qml</file>
+        <file>qml/content/EditLockMassMethod.qml</file>
+        <file>qml/content/EditMSCalibMethod.qml</file>
+        <file>qml/content/EditPeakIdTable.qml</file>
+        <file>qml/content/EditReportMethod.qml</file>
+        <file>qml/content/EditTargetMethod.qml</file>
+        <file>qml/content/RssFeeds.qml</file>
     </qresource>
 </RCC>

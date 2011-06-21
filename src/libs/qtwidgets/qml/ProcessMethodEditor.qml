@@ -2,20 +2,8 @@ import QtQuick 1.0
 import "content"
 
 Rectangle {
-//    width: 100
- //   height: 62
     id: window
-
-    gradient: Gradient {
-        GradientStop {
-            position: 0.00;
-            color: "#000000";
-        }
-        GradientStop {
-            position: 0.95;
-            color: "#ffffff";
-        }
-    }
+    property int currentIndex: 0
 
     ListModel {
         id: methodModel
@@ -31,18 +19,47 @@ Rectangle {
         ListElement { name: "Report" }
     }
 
-    ListModel {
+    VisualItemModel {
         id: editModel
-        ListElement { name: "Centroid" }
-        ListElement { name: "MS Calibration" }
-        ListElement { name: "Elemental Comp" }
-        ListElement { name: "Isotope" }
-        ListElement { name: "Targeting" }
-        ListElement { name: "Lock mass" }
-        ListElement { name: "Chromatogram" }
-        ListElement { name: "Peak Id" }
-        ListElement { name: "Report" }
+
+        EditCentroidMethod {
+            width: editListView.width; height: editListView.height
+            id: centroidMethod
+        }
+        EditMSCalibMethod {
+            width: editListView.width; height: editListView.height
+            id: msCalibMethod
+        }
+        EditElementalCompMethod {
+            width: editListView.width; height: editListView.height
+            id: elementalCompMethod
+        }
+        EditIsotopeMethod {
+            width: editListView.width; height: editListView.height
+            id: isotopeMethod
+        }
+        EditTargetMethod {
+            width: editListView.width; height: editListView.height
+            id: targetMethod
+        }
+        EditLockMassMethod {
+            width: editListView.width; height: editListView.height
+            id: lockMassMethod
+        }
+        EditIntegrationMethod {
+            width: editListView.width; height: editListView.height
+            id: integrationMethod
+        }
+        EditPeakIdTable {
+            width: editListView.width; height: editListView.height
+            id: peakIdMethod
+        }
+        EditReportMethod {
+            width: editListView.width; height: editListView.height
+            id: reportMethod
+        }
     }
+
 
     Row {
         Rectangle {
@@ -55,18 +72,33 @@ Rectangle {
                 footer: applyButtonDelegate
                 delegate: CategoryDelegate {}
                 highlight: Rectangle { color: "steelblue" }
-                highlightMoveSpeed: 9999999
+                highlightMoveSpeed: 999999
+                onCurrentIndexChanged: {
+                    console.log( "onCurrentIndexChanged " + currentIndex )
+                    editListView.currentIndex = currentIndex
+                }
             }
             ScrollBar {
                 scrollArea: categories; height: categories.height; width: 8
                 anchors.right: categories.right
             }
         }
+
         ListView {
-            id: list
+            id: editListView
             width: window.width - 200; height: window.height
             model: editModel
-            delegate: MethodEditDelegate { }
+
+            // control the movement of the menu switching
+            snapMode: ListView.SnapOneItem
+            orientation: ListView.Vertical
+            boundsBehavior: Flickable.StopAtBounds
+            flickDeceleration: 5000
+            highlightMoveDuration: 240
+            highlightRangeMode: ListView.StrictlyEnforceRange
+        }
+        function categoryChanged() {
+
         }
     }
 
@@ -89,7 +121,7 @@ Rectangle {
         }
     }
 
-    ScrollBar { scrollArea: list; height: list.height; width: 8; anchors.right: window.right }
-    Rectangle { x: 200; height: window.height; width: 1; color: "#cccccc" }
+    // ScrollBar { scrollArea: list; height: list.height; width: 8; anchors.right: window.right }
+    // Rectangle { x: 200; height: window.height; width: 1; color: "#cccccc" }
 
 }
