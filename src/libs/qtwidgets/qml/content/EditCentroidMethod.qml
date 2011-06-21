@@ -28,13 +28,31 @@ Rectangle {
         font.family: "Vivaldi"
         horizontalAlignment: Text.AlignHCenter
     }
-
-    GridView {
-        id: grid_view1
-        x: 11
-        y: 60
-        width: 300
-        height: 126
+    /*
+    ListModel {
+        id: itemModel
+        ListElement { name: "Centroid" }
+        ListElement { name: "MS Calibration" }
+        ListElement { name: "Elemental Comp" }
+        ListElement { name: "Isotope" }
+        ListElement { name: "Targeting" }
+        ListElement { name: "Lock mass" }
+        ListElement { name: "Chromatogram" }
+        ListElement { name: "Peak Id" }
+        ListElement { name: "Report" }
     }
-
+    ListView {
+                anchors.fill: parent
+                model: itemModel
+                footer: applyButtonDelegate
+                delegate: CategoryDelegate {}
+                highlight: Rectangle { color: "steelblue" }
+                highlightMoveSpeed: 999999
+                onCurrentIndexChanged: {
+                    console.log( "onCurrentIndexChanged " + currentIndex )
+                    editListView.currentIndex = currentIndex
+                }
+            }
+    }
+    */
 }
