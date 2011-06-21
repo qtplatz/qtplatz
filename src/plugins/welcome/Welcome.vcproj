@@ -1168,9 +1168,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY Welcome.pluginspec"
-						CommandLine="copy /y Welcome.pluginspec c:\Users\Toshi.Hondo\src\qtplatz\lib\qtplatz\plugins\Nokia\Welcome.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y Welcome.pluginspec ..\..\..\lib\qtplatz\plugins\Nokia\Welcome.pluginspec&#x0D;&#x0A;"
 						AdditionalDependencies="Welcome.pluginspec;copy"
-						Outputs="c:\Users\Toshi.Hondo\src\qtplatz\lib\qtplatz\plugins\Nokia\Welcome.pluginspec"
+						Outputs="..\..\..\lib\qtplatz\plugins\Nokia\Welcome.pluginspec"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1179,9 +1179,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY Welcome.pluginspec"
-						CommandLine="copy /y Welcome.pluginspec c:\Users\Toshi.Hondo\src\qtplatz\lib\qtplatz\plugins\Nokia\Welcome.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y Welcome.pluginspec ..\..\..\lib\qtplatz\plugins\Nokia\Welcome.pluginspec&#x0D;&#x0A;"
 						AdditionalDependencies="Welcome.pluginspec;copy"
-						Outputs="c:\Users\Toshi.Hondo\src\qtplatz\lib\qtplatz\plugins\Nokia\Welcome.pluginspec"
+						Outputs="..\..\..\lib\qtplatz\plugins\Nokia\Welcome.pluginspec"
 					/>
 				</FileConfiguration>
 			</File>

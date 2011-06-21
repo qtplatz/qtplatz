@@ -100,10 +100,16 @@ RESOURCES += \
     resources.qrc
 
 OTHER_FILES += \
-    centroidmethodeditor.qml \
-    CentroidMethodDelegate.qml \
     qml/ProcessMethodEditor.qml \
     qml/content/BusyIndicator.qml \
     qml/content/CategoryDelegate.qml \
     qml/content/ScrollBar.qml \
-    qml/content/MethodEditDelegate.qml
+    qml/content/EditCentroidMethod.qml \
+    qml/content/EditElementalCompMethod.qml \
+    qml/content/EditIntegrationMethod.qml \
+    qml/content/EditIsotopeMethod.qml \
+    qml/content/EditLockMassMethod.qml \
+    qml/content/EditMSCalibMethod.qml \
+    qml/content/EditPeakIDTable.qml \
+    qml/content/EditReportMethod.qml \
+    qml/content/EditTargetMethod.qml
