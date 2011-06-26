@@ -1,10 +1,9 @@
 <RCC>
     <qresource prefix="/files">
+        <file>bezel.qml</file>
         <file>qml/ProcessMethodEditor.qml</file>
         <file>qml/content/BusyIndicator.qml</file>
         <file>qml/content/CategoryDelegate.qml</file>
-        <file>qml/content/ScrollBar.qml</file>
-        <file>qml/content/MethodEditDelegate.qml</file>
         <file>qml/content/EditCentroidMethod.qml</file>
         <file>qml/content/EditElementalCompMethod.qml</file>
         <file>qml/content/EditIntegrationMethod.qml</file>
@@ -14,6 +13,9 @@
         <file>qml/content/EditPeakIdTable.qml</file>
         <file>qml/content/EditReportMethod.qml</file>
         <file>qml/content/EditTargetMethod.qml</file>
-        <file>qml/content/RssFeeds.qml</file>
+        <file>qml/content/EditTextItem.qml</file>
+        <file>qml/content/images/busy.png</file>
+        <file>qml/content/images/scrollbar.png</file>
+        <file>qml/content/ScrollBar.qml</file>
     </qresource>
 </RCC>
