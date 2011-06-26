@@ -17,5 +17,7 @@
         <file>qml/content/images/busy.png</file>
         <file>qml/content/images/scrollbar.png</file>
         <file>qml/content/ScrollBar.qml</file>
+        <file>qml/content/images/scantype.png</file>
+        <file>qml/content/ScanType.qml</file>
     </qresource>
 </RCC>

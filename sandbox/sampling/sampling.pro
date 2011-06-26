@@ -62,7 +62,8 @@ OTHER_FILES += \
     qml/content/EditIntegrationMethod.qml \
     qml/content/EditPeakIdTable.qml \
     qml/content/EditReportMethod.qml \
-    qml/content/EditTextItem.qml
+    qml/content/EditTextItem.qml \
+    qml/content/ScanType.qml
 
 RESOURCES += \
     resources.qrc
