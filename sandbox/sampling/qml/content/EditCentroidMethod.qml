@@ -20,7 +20,8 @@ Rectangle {
             ListElement { name: "at m/z[Da]" }
         }
         delegate: Rectangle {
-            height: 25; width: parent.width
+            height: 20; width: parent.width
+            color: scanTypeDetail.color
             Text { text: name }
         }
     }
@@ -32,6 +33,8 @@ Rectangle {
         }
         delegate:  Rectangle {
             height: 20; width: parent.width
+            color: scanTypeDetail.color
+
             Text { text: name }
         }
     }
@@ -43,6 +46,7 @@ Rectangle {
         }
         delegate:  Rectangle {
             height: 20; width: parent.width
+            color: scanTypeDetail.color
             Text { text: name }
         }
     }
@@ -56,6 +60,7 @@ Rectangle {
         }
         delegate:  Rectangle {
             height: 20; width: parent.width
+            color: methodDetail
             Text { text: name }
         }
     }
@@ -66,12 +71,14 @@ Rectangle {
         anchors.top: scanType.bottom
         color: "lightgray"
         ListView {
+            id: scanTypeList
             anchors.fill: parent
             width: parent.width; height: parent.height
             model: scanTypeTof
         }
     }
     Rectangle {
+        id: methodDetail
         width: parent.width; height: parent.height - scanType.height - scanTypeDetail.height
         anchors.top: scanTypeDetail.bottom
         color: "lightgray"
