@@ -93,47 +93,31 @@ Rectangle {
     }
 
     states: [
-        // In state 'middleRight', move the image to middleRightRect
+        // In state 'scanTypeProportional', move the image to center
         State {
             name: "scanTypeProportional"
             PropertyChanges { target: userIcon; x: scanTypeProportionalRect.x; y: scanTypeProportionalRect.y }
 
             PropertyChanges {
                 target: scanTypeProportionalRect
-                x: 89
-                y: 19
-                anchors.rightMargin: 205
-                anchors.verticalCenterOffset: -94
             }
 
             PropertyChanges {
                 target: scanTypeConstantRect
-                x: 170
-                y: 20
-                anchors.bottomMargin: 206
-                anchors.leftMargin: 170
             }
         },
 
-        // In state 'bottomLeft', move the image to bottomLeftRect
+        // In state 'scanTypeConstant', move the image to right
         State {
             name: "scanTypeConstant"
             PropertyChanges { target: userIcon; x: scanTypeConstantRect.x; y: scanTypeConstantRect.y  }
 
             PropertyChanges {
                 target: scanTypeConstantRect
-                x: 203
-                y: 17
-                anchors.bottomMargin: 209
-                anchors.leftMargin: 203
             }
 
             PropertyChanges {
                 target: scanTypeProportionalRect
-                x: 110
-                y: 19
-                anchors.rightMargin: 184
-                anchors.verticalCenterOffset: -94
             }
         }
     ]
