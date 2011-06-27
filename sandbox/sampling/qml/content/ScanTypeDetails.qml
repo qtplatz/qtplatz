@@ -41,6 +41,20 @@ Rectangle {
         }
     }
 
+    states: [
+        // In state 'scanTypeProportional', move the image to center
+        State {
+            name: "scanTypeProportional"
+            PropertyChanges { target: scanTypeDetailsRect.scanTypeList; model: scanTypeProportional }
+        },
+
+        // In state 'scanTypeConstant', move the image to right
+        State {
+            name: "scanTypeConstant"
+            PropertyChanges { target: scanTypeDetailsrect.scanTypeList; model: scanTypeConstant  }
+        }
+    ]
+
     Rectangle {
         id: scanTypeDetailsRect
         width: parent.width; height: parent.height
