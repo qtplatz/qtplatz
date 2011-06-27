@@ -19,5 +19,6 @@
         <file>qml/content/ScrollBar.qml</file>
         <file>qml/content/images/scantype.png</file>
         <file>qml/content/ScanType.qml</file>
+        <file>qml/content/ScanTypeDetails.qml</file>
     </qresource>
 </RCC>

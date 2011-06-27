@@ -97,28 +97,12 @@ Rectangle {
         State {
             name: "scanTypeProportional"
             PropertyChanges { target: userIcon; x: scanTypeProportionalRect.x; y: scanTypeProportionalRect.y }
-
-            PropertyChanges {
-                target: scanTypeProportionalRect
-            }
-
-            PropertyChanges {
-                target: scanTypeConstantRect
-            }
         },
 
         // In state 'scanTypeConstant', move the image to right
         State {
             name: "scanTypeConstant"
             PropertyChanges { target: userIcon; x: scanTypeConstantRect.x; y: scanTypeConstantRect.y  }
-
-            PropertyChanges {
-                target: scanTypeConstantRect
-            }
-
-            PropertyChanges {
-                target: scanTypeProportionalRect
-            }
         }
     ]
 
