@@ -10,6 +10,7 @@ Rectangle {
 
         onStateChanged: {
             console.debug( "state:" + state )
+            scanTypeDetails.state = state
         }
     }
 
