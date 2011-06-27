@@ -39,14 +39,12 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     plot.cpp \
     centroidmethod.cpp \
-    centroidmethodmodel.cpp \
-    standarditemhelper.cpp
+    centroidmethodmodel.cpp
 
 HEADERS  += mainwindow.hpp \
     plot.hpp \
     centroidmethod.hpp \
-    centroidmethodmodel.hpp \
-    standarditemhelper.hpp
+    centroidmethodmodel.hpp
 
 OTHER_FILES += \
         qml/ProcessMethodEditor.qml \

@@ -1,6 +1,6 @@
 //
 #include "centroidmethodmodel.hpp"
-#include "standarditemhelper.hpp"
+//#include "standarditemhelper.hpp"
 #include <QDebug>
 
 CentroidMethodModel::CentroidMethodModel(QObject *parent) : QObject( parent ) // AbstractListModel( parent )
