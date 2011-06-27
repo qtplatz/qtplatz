@@ -11,16 +11,17 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 20
         Text {
+            width: 120
             id: caption
-            anchors.verticalCenter: parent.verticalCenter
             font.pointSize: 10
-            text: parent.parent.caption + ":"
+            text: name + ":"
             horizontalAlignment: Text.AlignRight
         }
-        TextEdit {
-            id: value
+        TextInput {
+            width: 60
+            id: edit
             font.pointSize: 10
-            text: parent.parent.caption
+            text: value
             horizontalAlignment: Text.AlignLeft
         }
     }

@@ -23,15 +23,15 @@ Rectangle {
     VisualDataModel {
         id: centroidModel
         model: ListModel {
-            ListElement { name: "Area/Height" }
-            ListElement { name: "Peak Centroid Fraction [%]" }
-            ListElement { name: "Baseline width[Da]" }
+            ListElement { name: "Area/Height"; value: "Area" }
+            ListElement { name: "Peak Centroid Fraction [%]"; value: "50" }
+            ListElement { name: "Baseline width[Da]"; value: "500.0" }
         }
         delegate:  Rectangle {
             height: 20; width: parent.width
             EditTextItem {
                 property string caption: name
-                property string value: value
+                //property string value: value
             }
         }
     }
