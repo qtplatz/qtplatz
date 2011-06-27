@@ -29,8 +29,10 @@ Rectangle {
         }
         delegate:  Rectangle {
             height: 20; width: parent.width
-            color: methodDetail.color
-            Text { text: name }
+            EditTextItem {
+                property string caption: name
+                property string value: value
+            }
         }
     }
 
@@ -38,7 +40,6 @@ Rectangle {
         id: methodDetail
         width: parent.width; height: parent.height - scanType.height - scanTypeDetails.height
         anchors.top: scanTypeDetails.bottom
-        color: "lightgray"
         ListView {
             anchors.fill: parent
             model: centroidModel

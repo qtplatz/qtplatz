@@ -6,13 +6,16 @@ Rectangle {
     VisualDataModel {
         id: scanTypeTof
         model: ListModel {
-            ListElement { name: "Peak width[Da]" }
-            ListElement { name: "at m/z[Da]" }
+            ListElement { name: "Peak width[Da]"; property string value: "0.1" }
+            ListElement { name: "at m/z[Da]"; property string value: "500" }
         }
         delegate: Rectangle {
             height: 20; width: parent.width
             color: scanTypeDetailsRect.color
-            Text { text: name }
+            EditTextItem {
+                property string caption: name
+                property string value: value
+            }
         }
     }
 
@@ -24,8 +27,10 @@ Rectangle {
         delegate:  Rectangle {
             height: 20; width: parent.width
             color: scanTypeDetailsRect.color
-
-            Text { text: name }
+            EditTextItem {
+                property string caption: name
+                property string value: value
+            }
         }
     }
 
@@ -37,7 +42,10 @@ Rectangle {
         delegate:  Rectangle {
             height: 20; width: parent.width
             color: scanTypeDetailsRect.color
-            Text { text: name }
+            EditTextItem {
+                property string caption: name
+                property string value: value
+            }
         }
     }
 
