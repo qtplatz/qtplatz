@@ -37,7 +37,7 @@
 #include <qwt_plot_panner.h>
 #include <qwt_plot_picker.h>
 
-#include "centroidmethod.hpp"
+#include <adcontrols/centroidmethod.hpp>
 #include "centroidmethodmodel.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -57,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
     zoomer_->setMousePattern( QwtEventPattern::MouseSelect3, Qt::RightButton );
     zoomer_->setRubberBand( QwtPicker::RectRubberBand );
 
-    pMethod_ = new CentroidMethod;
+    pMethod_ = new adcontrols::CentroidMethod;
     pModel_ = new CentroidMethodModel;
 
     QDeclarativeView * view = new QDeclarativeView;

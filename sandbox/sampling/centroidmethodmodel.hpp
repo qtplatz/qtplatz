@@ -4,7 +4,7 @@
 //#include <QAbstractListModel>
 #include <QVariant>
 #include <QStandardItemModel>
-#include "centroidmethod.hpp"
+#include <adcontrols/centroidmethod.hpp>
 #include <boost/noncopyable.hpp>
 
 class MethodItem : public QObject, boost::noncopyable {
@@ -102,7 +102,7 @@ public slots:
 
 private:
     QString peakMethod_;
-    CentroidMethod method_;
+    adcontrols::CentroidMethod method_;
     // QList< MethodItem > items_;
 };
 

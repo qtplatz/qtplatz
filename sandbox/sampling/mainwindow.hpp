@@ -28,13 +28,13 @@
 
 #include <QtGui/QMainWindow>
 #include <vector>
+#include <adcontrols/centroidmethod.hpp>
 
 class Plot;
 class QwtPlotZoomer;
 class QwtPlotPicker;
 class QwtPlotPanner;
 
-class CentroidMethod;
 class CentroidMethodModel;
 
 class MainWindow : public QMainWindow
@@ -55,7 +55,7 @@ public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    CentroidMethod * pMethod_;
+    adcontrols::CentroidMethod * pMethod_;
     CentroidMethodModel * pModel_;
 
     static double to_time( size_t );

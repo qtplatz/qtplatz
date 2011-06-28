@@ -8,7 +8,9 @@ QT       += core gui declarative
 
 TARGET = signalsampling
 TEMPLATE = app
-INCLUDEPATH += $$(BOOST_INCLUDE)
+INCLUDEPATH += $$(BOOST_INCLUDE) ../../src/libs
+LIBS += -L../../lib/qtPlatz -ladcontrolsd
+
 mac {
   QWT = /usr/local/qwt-6.0.1-svn
   INCLUDEPATH += /usr/local/qwt-6.0.1-svn/lib/qwt.framework/Headers
@@ -38,12 +40,10 @@ QMLFILES += bezel.qml \
 SOURCES += main.cpp\
         mainwindow.cpp \
     plot.cpp \
-    centroidmethod.cpp \
     centroidmethodmodel.cpp
 
 HEADERS  += mainwindow.hpp \
     plot.hpp \
-    centroidmethod.hpp \
     centroidmethodmodel.hpp
 
 OTHER_FILES += \

@@ -9,7 +9,6 @@ Rectangle {
         state: "scanTypeTof"
 
         onStateChanged: {
-            console.debug( "state:" + state )
             scanTypeDetails.state = state
         }
     }
@@ -29,10 +28,7 @@ Rectangle {
         }
         delegate:  Rectangle {
             height: 20; width: parent.width
-            EditTextItem {
-                property string caption: name
-                //property string value: value
-            }
+            EditTextItem {   }
         }
     }
 
