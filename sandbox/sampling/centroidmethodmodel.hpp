@@ -4,112 +4,61 @@
 //#include <QAbstractListModel>
 #include <QVariant>
 #include <QStandardItemModel>
+#include <QDeclarativeItem>
 #include <adcontrols/centroidmethod.hpp>
 #include <boost/noncopyable.hpp>
 
-class MethodItem : public QObject, boost::noncopyable {
+class CentroidMethodModel : public QObject {
     Q_OBJECT
+    Q_ENUMS( ScanType )
+    Q_ENUMS( AreaHeight )
+    Q_PROPERTY( ScanType scanType READ scanType WRITE scanType NOTIFY scanTypeChanged )
+    Q_PROPERTY( AreaHeight areaHeight READ areaHeight WRITE areaHeight NOTIFY areaHeightChanged )
+    Q_PROPERTY( double baseline_width READ baseline_width WRITE baseline_width )
+    Q_PROPERTY( double peak_centroid_fraction READ peak_centroid_fraction WRITE peak_centroid_fraction )
 public:
-    explicit MethodItem( QObject * parent = 0 ) : QObject( parent ) { }
-    MethodItem( const QString& name, const QVariant& item, QObject * parent = 0 ) : QObject( parent )
-      , name_(name)
-      , item_(item) {
-    }
-
-    QString name_;
-    QVariant item_;
-};
-
-
-class CentroidMethodModel : public QObject { // public QAbstractListModel {
-    Q_OBJECT
-public:
-    explicit CentroidMethodModel(QObject *parent = 0);
+    explicit CentroidMethodModel( QObject * parent = 0 );
 
     enum CentroidRoles {
         name = Qt::UserRole + 1
         , value
     };
 
-    class ScanTypeTof {
-    public:
-        double dalton() const;
-        void dalton( double );
-        double mz() const;
-        void mz(double);
-    private:
-        double width_;
-        double at_;
+    enum ScanType {
+        ScanTypeTof = adcontrols::CentroidMethod::ePeakWidthTOF
+        , ScanTypeProportional = adcontrols::CentroidMethod::ePeakWidthProportional
+        , ScanTypeConstant = adcontrols::CentroidMethod::ePeakWidthConstant
     };
 
-    class ScanTypeProportional {
-    public:
-        double ppm() const;
-        void ppm( double );
-    private:
-        double ppm_;
+    enum AreaHeight {
+        Area, Height
     };
 
-    class ScanTypeConstant {
-    public:
-        double dalton() const;
-        void dalton( double );
-    private:
-        double width_;
-    };
-    
     //------------------------
-    class ScanType {
-    public:
-        ScanType() : value_( 0 ) {}
-        QString display_value() const { return "Tof"; }
-        void value( int e ) { value_ = e; }
-    private:
-        int value_;
-    };
-
-    class AreaHeight {
-    public:
-        AreaHeight() : value_( true ) {}
-        QString display_value() const { return value_ ? "Area" : "Height"; }
-        bool value() const { return value_; }
-        void value( bool v ) { value_ = v; }
-    private:
-        bool value_;
-    };
-    //-----------------------
 
     double baseline_width() const;
     void baseline_width(double);
     double peak_centroid_fraction() const;
     void peak_centroid_fraction(double);
 
-    Q_INVOKABLE QVariant scanType() const;
-    Q_INVOKABLE void scanType( const QVariant& );
+    ScanType scanType() const;
+    void scanType( ScanType );
 
-    Q_INVOKABLE QVariant areaHeight() const;
-    Q_INVOKABLE void areaHeight( const QVariant& );
-
-    Q_INVOKABLE QList<QString> getEnumPeakMethod() const;
+    AreaHeight areaHeight() const;
+    void areaHeight( AreaHeight );
 
     //------------
     int rowCount( const QModelIndex& parent = QModelIndex() ) const;
     QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const;
 
 signals:
+    void scanTypeChanged();
+    void areaHeightChanged();
 
 public slots:
 
 private:
-    QString peakMethod_;
     adcontrols::CentroidMethod method_;
-    // QList< MethodItem > items_;
 };
-
-Q_DECLARE_METATYPE( CentroidMethodModel::AreaHeight )
-Q_DECLARE_METATYPE( CentroidMethodModel::ScanType )
-Q_DECLARE_METATYPE( CentroidMethodModel::ScanTypeTof )
-Q_DECLARE_METATYPE( CentroidMethodModel::ScanTypeConstant )
-Q_DECLARE_METATYPE( CentroidMethodModel::ScanTypeProportional )
 
 #endif // CENTROIDMETHODMODEL_HPP

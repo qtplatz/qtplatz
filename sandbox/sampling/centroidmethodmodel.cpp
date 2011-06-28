@@ -1,79 +1,56 @@
 //
 #include "centroidmethodmodel.hpp"
-//#include "standarditemhelper.hpp"
 #include <QDebug>
 
-CentroidMethodModel::CentroidMethodModel(QObject *parent) : QObject( parent ) // AbstractListModel( parent )
+CentroidMethodModel::CentroidMethodModel( QObject * parent ) : QObject( parent )
 {
-    peakMethod_ = "Tof";
-
-    // mapping of role identifiers to role property names in Declarative UI, Qt4.6 or later required
-    QHash< int, QByteArray > roles;
-    roles[ Qt::UserRole + 1 ] = "name";
-    roles[ Qt::UserRole + 2 ] = "value";
-    // setRoleNames( roles );
-
-    // items_ << MethodItem( "ScanType", qVariantFromValue( ScanType() ) );
-    // items_ << MethodItem( "Area Height", qVariantFromValue( AreaHeight() ));
-    // items_ << MethodItem( "Baseline width", qVariantFromValue( 500.0 ));
-    // items_ << MethodItem( "Peak Centroid Fraction", qVariantFromValue(50));
 }
 
-/*
-QVariant
-CentroidMethodModel::data(const QModelIndex & index, int role) const
-{
-    qDebug() << "data(" << index << " , role=" << role;
-    
-    if (index.row() < 0 || index.row() > items_.count())
-        return QVariant();
-    
-    const MethodItem item = items_[ index.row() ];
-    
-    if ( role == Qt::UserRole + 1 ) {
-        qDebug() << "\t return " << item.name_;
-        return item.name_;
-    }  else {
-        qDebug() << "\t return item_";
-        return item.item_;
-    }
- }
-
-int
-CentroidMethodModel::rowCount( const QModelIndex& ) const
-{
-    return items_.count();
-}
-*/
-
-QVariant
+CentroidMethodModel::ScanType
 CentroidMethodModel::scanType() const
 {
-    return qVariantFromValue( ScanType() );
+    return static_cast<ScanType>( method_.peakWidthMethod() );
 }
 
 void
-CentroidMethodModel::scanType( const QVariant& )
+CentroidMethodModel::scanType( const ScanType t )
 {
+    method_.peakWidthMethod( static_cast< adcontrols::CentroidMethod::ePeakWidthMethod>(t) );
 }
 
-QVariant
+CentroidMethodModel::AreaHeight
 CentroidMethodModel::areaHeight() const
 {
-    return qVariantFromValue( AreaHeight() );
+    return method_.centroidAreaIntensity() ? Area : Height;
 }
 
 void
-CentroidMethodModel::areaHeight( const QVariant& )
+CentroidMethodModel::areaHeight( AreaHeight t )
 {
+    method_.centroidAreaIntensity( t == Area ? true : false );
 }
 
-QList< QString >
-CentroidMethodModel::getEnumPeakMethod() const
+double
+CentroidMethodModel::baseline_width() const
 {
-    QList<QString> list;
-    list << "Tof" << "Proportional" << "Constant";
-    return list;
+    return method_.baselineWidth();
 }
 
+void
+CentroidMethodModel::baseline_width( double v )
+{
+    return method_.baselineWidth( v );
+}
+
+double
+CentroidMethodModel::peak_centroid_fraction() const
+{
+    return method_.peakCentroidFraction() * 100;
+}
+
+void
+CentroidMethodModel::peak_centroid_fraction( double v )
+{
+    return method_.peakCentroidFraction( v / 100 );
+}
 ////////////////////////////
