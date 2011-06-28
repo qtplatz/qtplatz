@@ -10,6 +10,7 @@ TARGET = signalsampling
 TEMPLATE = app
 INCLUDEPATH += $$(BOOST_INCLUDE) ../../src/libs
 LIBS += -L../../lib/qtPlatz -ladcontrolsd
+include(../../src/boost.pri)
 
 mac {
   QWT = /usr/local/qwt-6.0.1-svn
@@ -40,11 +41,13 @@ QMLFILES += bezel.qml \
 SOURCES += main.cpp\
         mainwindow.cpp \
     plot.cpp \
-    centroidmethodmodel.cpp
+    centroidmethodmodel.cpp \
+    mscalibratemethodmodel.cpp
 
 HEADERS  += mainwindow.hpp \
     plot.hpp \
-    centroidmethodmodel.hpp
+    centroidmethodmodel.hpp \
+    mscalibratemethodmodel.hpp
 
 OTHER_FILES += \
         qml/ProcessMethodEditor.qml \
