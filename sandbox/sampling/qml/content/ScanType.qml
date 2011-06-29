@@ -47,7 +47,7 @@ import QtQuick 1.0
 */
 
 Rectangle {
-    id: page
+    id: scanTypeRect
     width: 340; height: 280
     color: "#343434"
 
@@ -67,7 +67,7 @@ Rectangle {
         Text { text: "Tof"; font.pointSize: 22; font.family: "Monotype Corsiva"; color: "white" }
         // Clicking in here sets the state to the default state, returning the image to
         // its initial position
-        MouseArea { anchors.fill: parent; onClicked: page.state = '' }
+        MouseArea { anchors.fill: parent; onClicked: scanTypeRect.state = '' }
     }
 
     Rectangle {
@@ -79,7 +79,7 @@ Rectangle {
         // anchors.verticalCenterOffset: -100
         Text { text: "Proportional"; font.pointSize: 13; font.family: "Monotype Corsiva"; color: "white" }
         // Clicking in here sets the state to 'middleRight'
-        MouseArea { anchors.fill: parent; onClicked: page.state = 'scanTypeProportional' }
+        MouseArea { anchors.fill: parent; onClicked: scanTypeRect.state = 'scanTypeProportional' }
     }
 
     Rectangle {
@@ -90,7 +90,7 @@ Rectangle {
         color: "Transparent"; border.color: "Gray"; radius: 6
         Text { text: "Constant"; font.pointSize: 13; font.family: "Monotype Corsiva"; color: "white" }
         // Clicking in here sets the state to 'bottomLeft'
-        MouseArea { anchors.fill: parent; onClicked: page.state = 'scanTypeConstant' }
+        MouseArea { anchors.fill: parent; onClicked: scanTypeRect.state = 'scanTypeConstant' }
     }
 
     states: [

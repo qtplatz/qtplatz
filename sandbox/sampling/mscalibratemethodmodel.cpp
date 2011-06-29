@@ -28,6 +28,30 @@
 MSCalibrateMethodModel::MSCalibrateMethodModel(QObject *parent) :
     QObject(parent)
 {
+    adcontrols::MSReferences PFTBA;
+    PFTBA.name( L"PFTBA-EI-Positive" );
+    do {
+        adcontrols::MSReferences& ref = PFTBA;
+        ref << adcontrols::MSReference( L"CF3",     true, L"" );
+        ref << adcontrols::MSReference( L"C2F4",    true, L"" );
+        ref << adcontrols::MSReference( L"C2F5",    true, L"" );
+        ref << adcontrols::MSReference( L"C3F5",    true, L"" );
+        ref << adcontrols::MSReference( L"C4F9",    true, L"" );
+        ref << adcontrols::MSReference( L"C5F10N",  true, L"" );
+        ref << adcontrols::MSReference( L"C6F12N",  true, L"" );
+        ref << adcontrols::MSReference( L"C7F12N",  true, L"" );
+        ref << adcontrols::MSReference( L"C8F14N",  true, L"" );
+        ref << adcontrols::MSReference( L"C8F16N",  true, L"" );
+        ref << adcontrols::MSReference( L"C9F16N",  true, L"" );
+        ref << adcontrols::MSReference( L"C9F18N",  true, L"" );
+        ref << adcontrols::MSReference( L"C9F20N",  true, L"" );
+        ref << adcontrols::MSReference( L"C12F22N", true, L"" );
+        ref << adcontrols::MSReference( L"C12F24N", true, L"" );
+    } while(0);
+    // ---------------------------------
+
+    method_.references( PFTBA );  // set as default calibration reference
+
 }
 
 unsigned int

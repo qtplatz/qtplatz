@@ -59,7 +59,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     pMethod_ = new adcontrols::CentroidMethod;
     pModel_ = new CentroidMethodModel;
-    qmlRegisterType< CentroidMethodModel >( "com.scienceliaison.qml", 1, 0, "CentroidModel" );
+    int res = qmlRegisterType< CentroidMethodModel >( "com.scienceliaison.qml", 1, 0, "CentroidModel" );
 
 
     QDeclarativeView * view = new QDeclarativeView;

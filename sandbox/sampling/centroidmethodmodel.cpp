@@ -4,12 +4,14 @@
 
 CentroidMethodModel::CentroidMethodModel( QObject * parent ) : QObject( parent )
 {
+    method_.peakWidthMethod( adcontrols::CentroidMethod::ePeakWidthConstant );
 }
 
 CentroidMethodModel::ScanType
 CentroidMethodModel::scanType() const
 {
-    return static_cast<ScanType>( method_.peakWidthMethod() );
+    ScanType t = static_cast<ScanType>( method_.peakWidthMethod() );
+    return t;
 }
 
 void
