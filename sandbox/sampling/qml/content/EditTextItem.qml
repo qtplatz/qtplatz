@@ -23,6 +23,9 @@ Rectangle {
             font.pointSize: 10
             text: value
             horizontalAlignment: Text.AlignLeft
+            onTextChanged: {
+                console.debug( "TextInput: " + text )
+            }
         }
     }
 }
