@@ -12,8 +12,10 @@ Rectangle {
         delegate: Rectangle {
             height: 20; width: parent.width
             color: scanTypeDetailsRect.color
-            EditTextItem {   }
+            EditTextItem {
+            }
         }
+
     }
 
     VisualDataModel {

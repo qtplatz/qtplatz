@@ -40,7 +40,6 @@ namespace adcontrols {
     public:
         MSReferences();
         MSReferences( const MSReferences& );
-
         typedef MSReference value_type;
         typedef std::vector< value_type > vector_type;
 

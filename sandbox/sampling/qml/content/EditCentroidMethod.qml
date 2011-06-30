@@ -39,29 +39,30 @@ Rectangle {
 
     VisualDataModel {
         id: centroidListModel
+
         model: ListModel {
             ListElement { name: "Area/Height"; value: "Area"; }
             ListElement { name: "Peak Centroid Fraction [%]"; value: "50" }
             ListElement { name: "Baseline width[Da]"; value: "500" }
         }
         delegate:  Rectangle {
+            id: editItem
             height: 20; width: parent.width
             EditTextItem {
-
             }
         }
     }
 
     Rectangle {
         id: methodDelegate
-        width: parent.width; height: parent.height - scanType.height - scanTypeDetails.height - 20
+        width: parent.width; height: parent.height - scanType.height - scanTypeDetails.height
         anchors.top: scanTypeDetails.bottom
         ListView {
             anchors.fill: parent
             model: centroidListModel
         }
     }
-
+/*
     Rectangle {
         width: parent.width; height: 20
         anchors.top: methodDelegate.bottom
@@ -71,6 +72,6 @@ Rectangle {
             property string value: "Area"
         }
     }
-
+*/
 
 }

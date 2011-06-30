@@ -100,6 +100,10 @@ MainWindow::draw_spectrum()
     double max = boost::math::pdf( nd, to_time( 500 ) );
     const int b18fs = 0x3ffff / 16;
 
+    qDebug() << boost::math::pdf( nd, to_time( 500 ) ) / max * 100;
+    qDebug() << boost::math::pdf( nd, to_time( 500 - 5 ) ) / max * 100;
+    qDebug() << boost::math::pdf( nd, to_time( 500 - 10 ) ) / max * 100;
+
     for ( int i = 0; i < 1000; ++i ) {
         x_.push_back( to_time( i ) );
         double y = boost::math::pdf( nd, to_time( i ) ) / max;

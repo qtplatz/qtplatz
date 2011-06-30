@@ -1,6 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS = sampling \
-    qdirmodel
+    qdirmodel \
+    searchbox
 
 unix:!macx:!isEmpty(copydata):SUBDIRS += bin
