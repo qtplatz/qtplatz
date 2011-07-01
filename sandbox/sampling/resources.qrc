@@ -20,5 +20,13 @@
         <file>qml/content/images/scantype.png</file>
         <file>qml/content/ScanType.qml</file>
         <file>qml/content/ScanTypeDetails.qml</file>
+        <file>qml/content/images/busy.png</file>
+        <file>qml/content/images/clear.png</file>
+        <file>qml/content/images/lineedit-bg.png</file>
+        <file>qml/content/images/lineedit-bg-focus.png</file>
+        <file>qml/content/images/scantype.png</file>
+        <file>qml/content/images/scrollbar.png</file>
+        <file>qml/content/TextInputBox.qml</file>
+        <file>qml/content/CaptionText.qml</file>
     </qresource>
 </RCC>

@@ -65,7 +65,9 @@ OTHER_FILES += \
     qml/content/EditReportMethod.qml \
     qml/content/EditTextItem.qml \
     qml/content/ScanType.qml \
-    qml/content/ScanTypeDetails.qml
+    qml/content/ScanTypeDetails.qml \
+    qml/content/TextInputBox.qml \
+    qml/content/CaptionText.qml
 
 RESOURCES += \
     resources.qrc

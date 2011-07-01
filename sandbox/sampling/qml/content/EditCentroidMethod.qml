@@ -17,11 +17,10 @@ Rectangle {
 
     ScanType {
         id: scanType
-        width: parent.width; height: 95
+        width: parent.width; height: 94
         state: scanTypeState()
         onStateChanged: {
             scanTypeDetails.state = state
-
             if ( state == 'scanTypeProportional' )
                 centroidModel.scanType = CentroidModel.ScanTypeProportional
             else if ( state == 'scanTypeConstant' )
@@ -33,45 +32,36 @@ Rectangle {
 
     ScanTypeDetails {
         id: scanTypeDetails
-        width: parent.width; height: 60
-        anchors.top:  scanType.bottom
-    }
-
-    VisualDataModel {
-        id: centroidListModel
-
-        model: ListModel {
-            ListElement { name: "Area/Height"; value: "Area"; }
-            ListElement { name: "Peak Centroid Fraction [%]"; value: "50" }
-            ListElement { name: "Baseline width[Da]"; value: "500" }
-        }
-        delegate:  Rectangle {
-            id: editItem
-            height: 20; width: parent.width
-            EditTextItem {
-            }
-        }
+        width: parent.width; height: 70
+        anchors.top:  scanType.bottom; anchors.topMargin: 4
     }
 
     Rectangle {
         id: methodDelegate
         width: parent.width; height: parent.height - scanType.height - scanTypeDetails.height
         anchors.top: scanTypeDetails.bottom
-        ListView {
+        MouseArea {
             anchors.fill: parent
-            model: centroidListModel
+            onClicked: methodDelegate.focus = false;
         }
-    }
-/*
-    Rectangle {
-        width: parent.width; height: 20
-        anchors.top: methodDelegate.bottom
-        color: "red"
-        EditTextItem {
-            property string name: "Area/Height"
-            property string value: "Area"
-        }
-    }
-*/
+        Grid {
+            columns: 2; spacing: 5
+            anchors { top: parent.top; horizontalCenter: parent.horizontalCenter }
 
+            CaptionText { text: "Area/Height:" }
+            TextInputBox { id: item1; KeyNavigation.tab: item2; KeyNavigation.backtab: item3; focus: true
+                value: centroidModel.areaHeight == CentroidModel.Area ? "Area" : "Height"
+            }
+
+            CaptionText { text: "Peak Centroid fraction [%]:" }
+            TextInputBox { id: item2; KeyNavigation.tab: item3; KeyNavigation.backtab: item1
+                value: centroidModel.peak_centroid_fraction
+            }
+
+            CaptionText { text: "Baseline width [Da]:" }
+            TextInputBox { id: item3; KeyNavigation.tab: item1; KeyNavigation.backtab: item2
+                value: centroidModel.baseline_width
+            }
+        }
+    }
 }
