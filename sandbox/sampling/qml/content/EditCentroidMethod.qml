@@ -51,16 +51,28 @@ Rectangle {
             CaptionText { text: "Area/Height:" }
             TextInputBox { id: item1; KeyNavigation.tab: item2; KeyNavigation.backtab: item3; focus: true
                 value: centroidModel.areaHeight == CentroidModel.Area ? "Area" : "Height"
+                onAccepted: {
+                    value = text
+                    console.debug("TextInputBos::onAccepted: " + text)
+                }
             }
 
             CaptionText { text: "Peak Centroid fraction [%]:" }
             TextInputBox { id: item2; KeyNavigation.tab: item3; KeyNavigation.backtab: item1
                 value: centroidModel.peak_centroid_fraction
+                onAccepted: {
+                    value = text
+                    console.debug("TextInputBos::onAccepted: " + text)
+                }
             }
 
             CaptionText { text: "Baseline width [Da]:" }
             TextInputBox { id: item3; KeyNavigation.tab: item1; KeyNavigation.backtab: item2
                 value: centroidModel.baseline_width
+                onAccepted: {
+                    value = text
+                    console.debug("TextInputBos::onAccepted: " + text)
+                }
             }
         }
     }

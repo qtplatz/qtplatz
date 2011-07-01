@@ -44,6 +44,7 @@ FocusScope {
     id: focusScope
     width: 120; height: 24
     property string value: "Type something..."
+    signal accepted( string text )
 
     BorderImage {
         source: "images/lineedit-bg.png"
@@ -77,6 +78,9 @@ FocusScope {
         anchors { left: parent.left; leftMargin: 8; right: clear.left; rightMargin: 8; verticalCenter: parent.verticalCenter }
         focus: true
         selectByMouse: true
+        onAccepted: {
+            parent.accepted( text )
+        }
     }
 
     Image {
