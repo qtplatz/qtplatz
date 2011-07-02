@@ -22,17 +22,12 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison Project
-//////////////////////////////////////////////
 
 #ifndef REACTORTHREAD_H
 #define REACTORTHREAD_H
 
 class ACE_Semaphore;
 class ACE_Reactor;
-//template<class T, class X> class ACE_Singleton;
 
 namespace acewrapper {
 
@@ -51,7 +46,7 @@ namespace acewrapper {
         static void * thread_entry( void * me );
         void run_event_loop();
         ACE_Reactor * reactor_;
-		ACE_Semaphore * sema_;
+        ACE_Semaphore * sema_;
     };
 }
 

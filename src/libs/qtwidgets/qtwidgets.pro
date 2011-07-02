@@ -48,7 +48,8 @@ SOURCES += centroiddelegate.cpp \
         targetingdelegate.cpp \
         targetingform.cpp \
         treeitem.cpp \
-    processmethodview.cpp
+    processmethodview.cpp \
+    centroidmethodmodel.cpp
 
 
 HEADERS += centroiddelegate.hpp \
@@ -79,7 +80,8 @@ HEADERS += centroiddelegate.hpp \
         targetingdelegate.hpp \
         targetingform.hpp \
         treeitem.hpp \
-    processmethodview.hpp
+    processmethodview.hpp \
+    centroidmethodmodel.hpp
 
 FORMS += \
     centroidform.ui \

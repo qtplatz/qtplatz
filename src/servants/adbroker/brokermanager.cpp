@@ -40,7 +40,7 @@ namespace adbroker {
 
 BrokerManager::~BrokerManager()
 {
-    delete pTask_;
+    //delete pTask_;
 }
 
 BrokerManager::BrokerManager() : pTask_(0)

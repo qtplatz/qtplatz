@@ -30,16 +30,19 @@
 #include <QDeclarativeError>
 #include <QDeclarativeContext>
 #include <fstream>
+#include "centroidmethodmodel.hpp"
 
 using namespace qtwidgets;
 
 ProcessMethodView::ProcessMethodView(QWidget *parent) : QDeclarativeView(parent)
                                                       , pConfig_( new adportable::Configuration )
+  , pCentroidModel_( new CentroidMethodModel )
 {
 }
 
 ProcessMethodView::~ProcessMethodView()
 {
+    delete pConfig_;
 }
 
 void
@@ -56,6 +59,8 @@ ProcessMethodView::OnCreate( const adportable::Configuration& config )
 
     QDeclarativeContext * ctx = rootContext();
     ctx->setContextProperty( "configXML", qtwrapper::qstring::copy( xml ) );
+
+    ctx->setContextProperty( "centroidMethod", pCentroidModel_.get() );
     setResizeMode( QDeclarativeView::SizeRootObjectToView );
 
 #if defined DEBUG && 0

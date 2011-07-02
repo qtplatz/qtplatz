@@ -26,9 +26,10 @@
 #ifndef MCASTHANDLER_H
 #define MCASTHANDLER_H
 
+#if defined _MSC_VER
 #pragma warning (disable: 4996)
+#endif
 # include <ace/SOCK_Dgram_Mcast.h>
-#pragma warning (default: 4996)
 
 class ACE_INET_Addr;
 

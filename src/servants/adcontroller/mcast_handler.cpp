@@ -24,10 +24,10 @@
 
 #include "mcast_handler.hpp"
 #include <acewrapper/mcasthandler.hpp>
+#if defined _MSC_VER
 #pragma warning(disable:4669)
+#endif
 #include <ace/INET_Addr.h>
-#pragma warning(default:4669)
-
 
 mcast_handler::mcast_handler(void)
 {

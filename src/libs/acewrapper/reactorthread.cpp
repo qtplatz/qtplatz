@@ -22,20 +22,17 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison Project
-//////////////////////////////////////////////
 
 #include "reactorthread.hpp"
 
+#if defined _MSC_VER
 #pragma warning (disable : 4996)
+#endif
 #include <ace/Thread_Manager.h>
 #include <ace/Reactor.h>
 #include <ace/Singleton.h>
 #include <ace/Recursive_Thread_Mutex.h>
 #include <ace/Semaphore.h>
-#pragma warning (default: 4996)
 #include <acewrapper/mutex.hpp>
 
 #if defined _DEBUG
@@ -59,8 +56,10 @@ ReactorThread::ReactorThread() : reactor_(0)
 void
 ReactorThread::terminate()
 {
-	reactor_->end_reactor_event_loop();
-	sema_->acquire(); // end_event_loop() will release semaphore
+    if ( reactor_->reactor_event_loop_done() == 0 ) {
+        reactor_->end_reactor_event_loop();
+        sema_->acquire(); // end_event_loop() will release semaphore
+    }
 }
 
 // satic

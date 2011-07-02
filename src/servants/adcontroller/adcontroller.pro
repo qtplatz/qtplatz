@@ -19,11 +19,11 @@ LIBS *= -l$$qtLibraryTarget(adinterface)
 INCLUDEPATH *= $$OUT_PWD/../../libs
 
 !win32 {
-  LIBS += -l$$qtLibraryTarget(TAO_Utils) \
-        -l$$qtLibraryTarget(TAO_PortableServer) \
-        -l$$qtLibraryTarget(TAO_AnyTypeCode) \
-        -l$$qtLibraryTarget(TAO) \
-        -l$$qtLibraryTarget(ACE)
+  LIBS += -lTAO_Utils \
+        -lTAO_PortableServer \
+        -lTAO_AnyTypeCode \
+        -lTAO \
+        -lACE
 
   LIBS += -lboost_date_time -lboost_system -lboost_filesystem
 }

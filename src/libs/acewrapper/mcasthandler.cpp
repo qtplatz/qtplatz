@@ -24,11 +24,12 @@
 **************************************************************************/
 
 #include "mcasthandler.hpp"
+#if defined _MSC_VER
 #pragma warning (disable: 4996)
+#endif
 #include <ace/SOCK_Dgram_Mcast.h>
 #include <ace/INET_Addr.h>
 #include <ace/Default_Constants.h>
-#pragma warning (default: 4996)
 
 using namespace acewrapper;
 
