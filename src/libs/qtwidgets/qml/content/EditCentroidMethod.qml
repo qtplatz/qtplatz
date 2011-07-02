@@ -1,58 +1,79 @@
 import QtQuick 1.0
+import com.scienceliaison.qml 1.0
 
 Rectangle {
-    id: centroidMethod
-    width: 400
-    height: 200
-    gradient: Gradient {
-        GradientStop {
-            position: 0
-            color: "#ffffff"
-        }
+    width:  400; height: 300
 
-        GradientStop {
-            position: 1
-            color: "#000000"
+    function scanTypeState() {
+        console.log( "function scanTypeState():" + centroidModel.scanType )
+        if ( centroidModel.scanType  == CentroidModel.ScanTypeProportional ) {
+            return 'scanTypeProportional'
+        } else if ( centroidModel.scanType == CentroidModel.ScanTypeConstant ) {
+            return 'scanTypeConstant'
+        } else {
+            return ''
         }
     }
-    border.color: "#000000"
-    opacity: 0.8
-    smooth: true
-    Text {
-        x: 12
-        y: 0
-        text: "Centroid Method"
-        style: Text.Sunken
-        font.pointSize: 24
-        opacity: 0.5
-        font.family: "Vivaldi"
-        horizontalAlignment: Text.AlignHCenter
+
+    ScanType {
+        id: scanType
+        width: parent.width; height: 94
+        state: scanTypeState()
+        onStateChanged: {
+            scanTypeDetails.state = state
+            if ( state == 'scanTypeProportional' )
+                centroidModel.scanType = CentroidModel.ScanTypeProportional
+            else if ( state == 'scanTypeConstant' )
+                centroidModel.scanType = CentroidModel.ScanTypeConstant
+            else
+                centroidModel.scanType = CentroidModel.ScanTypeTof
+        }
     }
-    /*
-    ListModel {
-        id: itemModel
-        ListElement { name: "Centroid" }
-        ListElement { name: "MS Calibration" }
-        ListElement { name: "Elemental Comp" }
-        ListElement { name: "Isotope" }
-        ListElement { name: "Targeting" }
-        ListElement { name: "Lock mass" }
-        ListElement { name: "Chromatogram" }
-        ListElement { name: "Peak Id" }
-        ListElement { name: "Report" }
+
+    ScanTypeDetails {
+        id: scanTypeDetails
+        width: parent.width; height: 70
+        anchors.top:  scanType.bottom; anchors.topMargin: 4
     }
-    ListView {
-                anchors.fill: parent
-                model: itemModel
-                footer: applyButtonDelegate
-                delegate: CategoryDelegate {}
-                highlight: Rectangle { color: "steelblue" }
-                highlightMoveSpeed: 999999
-                onCurrentIndexChanged: {
-                    console.log( "onCurrentIndexChanged " + currentIndex )
-                    editListView.currentIndex = currentIndex
+
+    Rectangle {
+        id: methodDelegate
+        width: parent.width; height: parent.height - scanType.height - scanTypeDetails.height
+        anchors.top: scanTypeDetails.bottom
+        MouseArea {
+            anchors.fill: parent
+            onClicked: methodDelegate.focus = false;
+        }
+        Grid {
+            columns: 2; spacing: 5
+            anchors { top: parent.top; horizontalCenter: parent.horizontalCenter }
+
+            CaptionText { text: "Area/Height:" }
+            TextInputBox { id: item1; KeyNavigation.tab: item2; KeyNavigation.backtab: item3; focus: true
+                value: centroidModel.areaHeight == CentroidModel.Area ? "Area" : "Height"
+                onAccepted: {
+                    value = text
+                    console.debug("TextInputBos::onAccepted: " + text)
                 }
             }
+
+            CaptionText { text: "Peak Centroid fraction [%]:" }
+            TextInputBox { id: item2; KeyNavigation.tab: item3; KeyNavigation.backtab: item1
+                value: centroidModel.peak_centroid_fraction
+                onAccepted: {
+                    value = text
+                    console.debug("TextInputBos::onAccepted: " + text)
+                }
+            }
+
+            CaptionText { text: "Baseline width [Da]:" }
+            TextInputBox { id: item3; KeyNavigation.tab: item1; KeyNavigation.backtab: item2
+                value: centroidModel.baseline_width
+                onAccepted: {
+                    value = text
+                    console.debug("TextInputBos::onAccepted: " + text)
+                }
+            }
+        }
     }
-    */
 }

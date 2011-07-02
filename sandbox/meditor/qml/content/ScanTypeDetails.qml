@@ -63,5 +63,6 @@ Rectangle {
         snapMode: ListView.SnapOneItem; flickDeceleration: 500
         cacheBuffer: 0
         clip: true
+        highlightMoveSpeed: 4000
     }
 }

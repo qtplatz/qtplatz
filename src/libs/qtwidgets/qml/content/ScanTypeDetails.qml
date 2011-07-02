@@ -16,7 +16,7 @@ Rectangle {
     VisualItemModel {
         id: scanTypeModel
         Rectangle {
-            width: scanTypeView.width; height: scanTypeView.height
+            width: scanTypeView.width / 2.5; height: scanTypeView.height
             Grid {
                 columns: 2; spacing: 5
                 CaptionText { text: "Peak width[Da]" }
@@ -30,7 +30,7 @@ Rectangle {
             }
         }
         Rectangle {
-            width: scanTypeView.width; height: scanTypeView.height
+            width: scanTypeView.width / 2.5; height: scanTypeView.height
             Grid {
                 columns: 2; spacing: 5
                 width: scanTypeView.width; height: scanTypeView.height
@@ -41,7 +41,7 @@ Rectangle {
             }
         }
         Rectangle {
-            width: scanTypeView.width; height: scanTypeView.height
+            width: scanTypeView.width / 2.5; height: scanTypeView.height
             Grid {
                 columns: 2; spacing: 5
                 width: scanTypeView.width; height: scanTypeView.height

@@ -1,6 +1,6 @@
 TEMPLATE = subdirs
 
-SUBDIRS = sampling \
+SUBDIRS = meditor \
     qdirmodel \
     searchbox
 

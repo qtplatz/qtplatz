@@ -57,10 +57,12 @@ ProcessMethodView::OnCreate( const adportable::Configuration& config )
     if ( ! ( result = dom.load( pugi::as_utf8( xml ).c_str() ) ) )
         return;
 
+    qmlRegisterType< CentroidMethodModel >( "com.scienceliaison.qml", 1, 0, "CentroidModel" );
+
     QDeclarativeContext * ctx = rootContext();
     ctx->setContextProperty( "configXML", qtwrapper::qstring::copy( xml ) );
 
-    ctx->setContextProperty( "centroidMethod", pCentroidModel_.get() );
+    ctx->setContextProperty( "centroidModel", pCentroidModel_.get() );
     setResizeMode( QDeclarativeView::SizeRootObjectToView );
 
 #if defined DEBUG && 0

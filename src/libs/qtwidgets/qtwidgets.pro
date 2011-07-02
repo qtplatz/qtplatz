@@ -49,7 +49,9 @@ SOURCES += centroiddelegate.cpp \
         targetingform.cpp \
         treeitem.cpp \
     processmethodview.cpp \
-    centroidmethodmodel.cpp
+    centroidmethodmodel.cpp \
+    isotopemethodmodel.cpp \
+    mscalibratemethodmodel.cpp
 
 
 HEADERS += centroiddelegate.hpp \
@@ -81,7 +83,9 @@ HEADERS += centroiddelegate.hpp \
         targetingform.hpp \
         treeitem.hpp \
     processmethodview.hpp \
-    centroidmethodmodel.hpp
+    centroidmethodmodel.hpp \
+    isotopemethodmodel.hpp \
+    mscalibratemethodmodel.hpp
 
 FORMS += \
     centroidform.ui \
@@ -114,4 +118,10 @@ OTHER_FILES += \
     qml/content/EditMSCalibMethod.qml \
     qml/content/EditPeakIDTable.qml \
     qml/content/EditReportMethod.qml \
-    qml/content/EditTargetMethod.qml
+    qml/content/EditTargetMethod.qml \
+    qml/content/ScanType.qml \
+    qml/content/CaptionText.qml \
+    qml/content/TextInputBox.qml \
+    qml/content/ScanTypeDetails.qml \
+    qml/content/MethodEditDelegate.qml \
+    qml/content/EditPeakIdTable.qml

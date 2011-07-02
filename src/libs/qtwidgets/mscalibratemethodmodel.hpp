@@ -22,48 +22,21 @@
 **
 **************************************************************************/
 
-#ifndef PROCESSMETHODVIEW_HPP
-#define PROCESSMETHODVIEW_HPP
+#ifndef MSCALIBRATEMETHODMODEL_HPP
+#define MSCALIBRATEMETHODMODEL_HPP
 
-#include <QDeclarativeView>
-#include <adplugin/lifecycle.hpp>
-#include <adcontrols/processmethod.hpp>
-#include "centroiddelegate.hpp"
-#include <boost/scoped_ptr.hpp>
-#include "centroidmethodmodel.hpp">
+#include <QObject>
 
-namespace adportable { class Configuration; }
-
-namespace qtwidgets {
-
-class ProcessMethodView : public QDeclarativeView
-                        , public adplugin::LifeCycle {
-
+class MSCalibrateMethodModel : public QObject
+{
     Q_OBJECT
 public:
-    explicit ProcessMethodView(QWidget *parent = 0);
-    ~ProcessMethodView();
-
-        // adplugin::LifeCycle
-        void OnCreate( const adportable::Configuration& );
-        void OnInitialUpdate();
-        void OnFinalClose();
-        //<--
-
-        // QWidget
-        virtual QSize sizeHint() const;
+    explicit MSCalibrateMethodModel(QObject *parent = 0);
 
 signals:
 
 public slots:
-        void getContents( adcontrols::ProcessMethod& );
-        void getLifeCycle( adplugin::LifeCycle *& p );
 
-private:
-        adportable::Configuration * pConfig_;
-        boost::scoped_ptr< CentroidMethodModel > pCentroidModel_;
 };
 
-}
-
-#endif // PROCESSMETHODVIEW_HPP
+#endif // MSCALIBRATEMETHODMODEL_HPP

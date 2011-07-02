@@ -6,20 +6,21 @@
 
 QT       += core gui declarative
 
-TARGET = signalsampling
+TARGET = meditor
 TEMPLATE = app
 INCLUDEPATH += $$(BOOST_INCLUDE) ../../src/libs
-LIBS += -L../../lib/qtPlatz -ladcontrolsd
 include(../../src/boost.pri)
 
-mac {
+macx {
   QWT = /usr/local/qwt-6.0.1-svn
   INCLUDEPATH += /usr/local/qwt-6.0.1-svn/lib/qwt.framework/Headers
   LIBS += -L$$QWT/lib -lqwt_debug
-  QMAKE_LFLAGS += -F/usr/local/qwt-6.0.1-svn/lib
+  LIBS += -L../../bin/qtplatz.app/Contents/PlugIns -ladcontrols_debug
+  DESTDIR = ../../bin
 } else {
   INCLUDEPATH += $$(QWT)/include
   LIBS += -L$$(QWT)/lib -l$$qtLibraryTarget(qwt)
+  LIBS += -L../../lib/qtplatz -l$$qtLibraryTarget(adcontrols)
 }
 
 #LIBS += -framework /usr/local/qwt-6.0.1-svn/lib/qwt.framework

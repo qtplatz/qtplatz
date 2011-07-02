@@ -23,7 +23,7 @@
         <file>qml/content/images/clear.png</file>
         <file>qml/content/images/lineedit-bg-focus.png</file>
         <file>qml/content/images/lineedit-bg.png</file>
-        <file>qml/content/images/scantype.png</file>
         <file>qml/content/images/scrollbar.png</file>
+        <file>qml/content/images/scantype.png</file>
     </qresource>
 </RCC>

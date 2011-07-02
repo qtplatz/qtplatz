@@ -22,48 +22,21 @@
 **
 **************************************************************************/
 
-#ifndef PROCESSMETHODVIEW_HPP
-#define PROCESSMETHODVIEW_HPP
+#ifndef ISOTOPEMETHODMODEL_HPP
+#define ISOTOPEMETHODMODEL_HPP
 
-#include <QDeclarativeView>
-#include <adplugin/lifecycle.hpp>
-#include <adcontrols/processmethod.hpp>
-#include "centroiddelegate.hpp"
-#include <boost/scoped_ptr.hpp>
-#include "centroidmethodmodel.hpp">
+#include <QObject>
 
-namespace adportable { class Configuration; }
-
-namespace qtwidgets {
-
-class ProcessMethodView : public QDeclarativeView
-                        , public adplugin::LifeCycle {
-
+class IsotopeMethodModel : public QObject
+{
     Q_OBJECT
 public:
-    explicit ProcessMethodView(QWidget *parent = 0);
-    ~ProcessMethodView();
-
-        // adplugin::LifeCycle
-        void OnCreate( const adportable::Configuration& );
-        void OnInitialUpdate();
-        void OnFinalClose();
-        //<--
-
-        // QWidget
-        virtual QSize sizeHint() const;
+    explicit IsotopeMethodModel(QObject *parent = 0);
 
 signals:
 
 public slots:
-        void getContents( adcontrols::ProcessMethod& );
-        void getLifeCycle( adplugin::LifeCycle *& p );
 
-private:
-        adportable::Configuration * pConfig_;
-        boost::scoped_ptr< CentroidMethodModel > pCentroidModel_;
 };
 
-}
-
-#endif // PROCESSMETHODVIEW_HPP
+#endif // ISOTOPEMETHODMODEL_HPP

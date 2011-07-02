@@ -64,7 +64,7 @@ Rectangle {
         anchors { left: parent.left; top: parent.top; leftMargin: 10; topMargin: 20 }
         width: 46; height: 54
         color: "Transparent"; border.color: "Gray"; radius: 6
-        Text { text: "Tof"; font.pointSize: 22; font.family: "Monotype Corsiva"; color: "white" }
+        Text { text: "Tof"; font.pointSize: 20; font.family: "Monotype Corsiva"; color: "white" }
         // Clicking in here sets the state to the default state, returning the image to
         // its initial position
         MouseArea { anchors.fill: parent; onClicked: scanTypeRect.state = '' }
@@ -77,7 +77,7 @@ Rectangle {
         width: 46; height: 54
         color: "Transparent"; border.color: "Gray"; radius: 6
         // anchors.verticalCenterOffset: -100
-        Text { text: "Proportional"; font.pointSize: 13; font.family: "Monotype Corsiva"; color: "white" }
+        Text { text: "Proportional"; font.pointSize: 20; font.family: "Monotype Corsiva"; color: "white" }
         // Clicking in here sets the state to 'middleRight'
         MouseArea { anchors.fill: parent; onClicked: scanTypeRect.state = 'scanTypeProportional' }
     }
@@ -85,10 +85,10 @@ Rectangle {
     Rectangle {
         id: scanTypeConstantRect
 
-        anchors { right: parent.right; top: parent.top; topMargin: 20; rightMargin: 10 }
+        anchors { right: parent.right; top: parent.top; topMargin: 20; rightMargin: 40 }
         width: 46; height: 54
         color: "Transparent"; border.color: "Gray"; radius: 6
-        Text { text: "Constant"; font.pointSize: 13; font.family: "Monotype Corsiva"; color: "white" }
+        Text { text: "Constant"; font.pointSize: 20; font.family: "Monotype Corsiva"; color: "white" }
         // Clicking in here sets the state to 'bottomLeft'
         MouseArea { anchors.fill: parent; onClicked: scanTypeRect.state = 'scanTypeConstant' }
     }
