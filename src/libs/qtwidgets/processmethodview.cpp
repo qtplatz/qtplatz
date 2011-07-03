@@ -40,9 +40,15 @@ ProcessMethodView::ProcessMethodView(QWidget *parent) : QDeclarativeView(parent)
                                                       , pCentroidModel_( new CentroidMethodModel )
                                                       , pIsotopeModel_( new IsotopeMethodModel )
 {
-    adcontrols::IsotopeMethod& method = pIsotopeModel_->method();
-    method.addFormula( adcontrols::IsotopeMethod::Formula(L"C13NH11", L"H", 1, 0.5) );
-    method.addFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"Na", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"H", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"Na", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"K", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"Li", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"CH3COOH", 1, 1.0) );    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"H", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"Na", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"K", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"Li", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"CH3COOH", 1, 1.0) );
 }
 
 ProcessMethodView::~ProcessMethodView()

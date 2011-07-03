@@ -62,17 +62,22 @@ namespace qtwidgets {
         // QAbstractListModel
         int rowCount( const QModelIndex& parent = QModelIndex() ) const;
         QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const;
-        
-        adcontrols::IsotopeMethod& method() { return method_; }
+        bool setData( const QModelIndex& index, const QVariant& value, int role = Qt::EditRole );
+        Qt::ItemFlags flags( const QModelIndex& index ) const;
+        //---------------------
         const adcontrols::IsotopeMethod& method() const { return method_; }
+
+        //void insertRow( const QModelIndex& index = QModelIndex() );
+        Q_INVOKABLE void appendRow();
+
+        void appendFormula( const adcontrols::IsotopeMethod::Formula& );
 
     signals:
         void valueChanged();
                            
     public slots:
-        Q_INVOKABLE bool setData( const QModelIndex& index, const QVariant& value, int role = Qt::EditRole );
-        Q_INVOKABLE void insertRow( const QModelIndex& index = QModelIndex() );
-        Q_INVOKABLE void appendRow();
+
+
     private:
         adcontrols::IsotopeMethod method_;
     };

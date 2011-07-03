@@ -24,6 +24,7 @@
 
 #include "isotopemethodmodel.hpp"
 #include <qtwrapper/qstring.hpp>
+#include <QDebug>
 
 using namespace qtwidgets;
 
@@ -42,6 +43,12 @@ int
 IsotopeMethodModel::rowCount( const QModelIndex& ) const
 {
     return method_.size();
+}
+
+Qt::ItemFlags
+IsotopeMethodModel::flags( const QModelIndex& index ) const
+{
+    return Qt::ItemIsSelectable | Qt::ItemIsEditable;
 }
 
 QVariant
@@ -74,15 +81,24 @@ IsotopeMethodModel::setData( const QModelIndex& index, const QVariant& value, in
 }
 
 //Q_INVOKABLE
-void
+/*void
 IsotopeMethodModel::insertRow( const QModelIndex& index )
 {
+}
+*/
+
+void
+IsotopeMethodModel::appendFormula( const adcontrols::IsotopeMethod::Formula& formula )
+{
+    method_.addFormula( formula );
+    beginInsertRows( QModelIndex(), method_.size(), method_.size() );
+    endInsertRows();
 }
 
 void
 IsotopeMethodModel::appendRow()
 {
-    method_.addFormula( adcontrols::IsotopeMethod::Formula( L"--", L"Na", 1, 1.0 ) );
+    appendFormula( adcontrols::IsotopeMethod::Formula( L"---", L"Na", 1, 1.0 ));
 }
 
 bool

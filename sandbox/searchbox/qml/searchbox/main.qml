@@ -7,7 +7,10 @@ Rectangle {
 
     MouseArea {
         anchors.fill: parent
-        onClicked: page.focus = false;
+        onClicked: {
+            page.focus = false;
+            controller.fake()
+        }
     }
     Column {
         anchors { horizontalCenter: parent.horizontalCenter; verticalCenter: parent.verticalCenter }

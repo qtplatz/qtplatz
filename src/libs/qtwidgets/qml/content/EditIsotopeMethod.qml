@@ -50,7 +50,6 @@ Rectangle {
         // <--- end global parameter --------
         Rectangle {
             width:  parent.width; height: parent.height - isotopeGlobalRect.height
-            //anchors.top: isotopeGlobalRect.bottom; anchors.topMargin: 10; anchors.left: parent.left; anchors.leftMargin: 14
 
             ListView {
                 id: formulae
@@ -59,21 +58,25 @@ Rectangle {
                 header: headerDelegate
                 footer: footerDelegate
                 delegate: formulaDelegate
-                highlight: Rectangle { color: "lightsteelblue"; radius: 5; border.color: "black" }
+                highlight: Rectangle { color: "lightsteelblue" }
                 focus: true
                 onCurrentIndexChanged: {
                     console.log( "onCurrentIndexChanged: " + currentIndex )
                 }
+            }
+            ScrollBar {
+                scrollArea: formulae; height: formulae.height; width: 8
+                anchors.right: formulae.right
             }
 
             Component {
                 id: formulaDelegate
                 Item  {
                     id: delegate
-                    width: delegate.ListView.view.width; height: 26
+                    width: delegate.ListView.view.width; height: 20
                     property color textcolor: delegate.ListView.isCurrentItem ? "red" : "black"
                     Row {
-                        Text { text: formula; width: 120; color: textcolor }
+                        TextInput { text: formula; width: 120; color: textcolor }
                         Text { text: adduct; width: 120; color: textcolor }
                         Text { text: chargeState; width: 120; color: textcolor }
                         Text { text: amounts; width: 120; color: textcolor }
@@ -99,7 +102,7 @@ Rectangle {
             Component {
                 id: footerDelegate
                 Item {
-                    property string formula: isotopeModel.data( formulaDelegate.ListView.currentIndex )
+                    property string formula: "--"
                     property string adduct: "H"
                     property int chargeState: 1
                     property double amounts: 1.0
@@ -118,8 +121,7 @@ Rectangle {
                                 anchors.fill: parent
                                 onClicked: {
                                     console.debug( "formulae currentIndex: " + formulae.currentIndex )
-                                    console.debug( "isotopeMethod " + isotopeModel.resolution )
-                                    isotopeMethod.appendRow()
+                                    isotopeModel.appendRow()
                                 }
                             }
                         }
