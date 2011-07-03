@@ -11,7 +11,6 @@
         <file>qml/content/EditIsotopeMethod.qml</file>
         <file>qml/content/EditLockMassMethod.qml</file>
         <file>qml/content/EditMSCalibMethod.qml</file>
-        <file>qml/content/EditPeakIdTable.qml</file>
         <file>qml/content/EditReportMethod.qml</file>
         <file>qml/content/EditTargetMethod.qml</file>
         <file>qml/content/CaptionText.qml</file>
@@ -25,5 +24,6 @@
         <file>qml/content/images/lineedit-bg.png</file>
         <file>qml/content/images/scrollbar.png</file>
         <file>qml/content/images/scantype.png</file>
+        <file>qml/content/TitleText.qml</file>
     </qresource>
 </RCC>

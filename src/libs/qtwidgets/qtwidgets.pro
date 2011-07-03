@@ -51,7 +51,7 @@ SOURCES += centroiddelegate.cpp \
     processmethodview.cpp \
     centroidmethodmodel.cpp \
     isotopemethodmodel.cpp \
-    mscalibratemethodmodel.cpp
+    chemicalformula.cpp
 
 
 HEADERS += centroiddelegate.hpp \
@@ -85,7 +85,7 @@ HEADERS += centroiddelegate.hpp \
     processmethodview.hpp \
     centroidmethodmodel.hpp \
     isotopemethodmodel.hpp \
-    mscalibratemethodmodel.hpp
+    chemicalformula.hpp
 
 FORMS += \
     centroidform.ui \
@@ -124,4 +124,4 @@ OTHER_FILES += \
     qml/content/TextInputBox.qml \
     qml/content/ScanTypeDetails.qml \
     qml/content/MethodEditDelegate.qml \
-    qml/content/EditPeakIdTable.qml
+    qml/content/TitleText.qml

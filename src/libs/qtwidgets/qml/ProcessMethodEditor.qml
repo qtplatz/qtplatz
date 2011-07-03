@@ -9,13 +9,12 @@ Rectangle {
         id: methodModel
 
         ListElement { name: "Centroid" }
+        ListElement { name: "Isotope" }
         ListElement { name: "MS Calibration" }
         ListElement { name: "Elemental Comp" }
-        ListElement { name: "Isotope" }
         ListElement { name: "Targeting" }
         ListElement { name: "Lock mass" }
         ListElement { name: "Chromatogram" }
-        ListElement { name: "Peak Id" }
         ListElement { name: "Report" }
     }
 
@@ -26,6 +25,10 @@ Rectangle {
             width: editListView.width; height: editListView.height
             id: centroidMethod
         }
+        EditIsotopeMethod {
+            width: editListView.width; height: editListView.height
+            id: isotopeMethod
+        }
         EditMSCalibMethod {
             width: editListView.width; height: editListView.height
             id: msCalibMethod
@@ -33,10 +36,6 @@ Rectangle {
         EditElementalCompMethod {
             width: editListView.width; height: editListView.height
             id: elementalCompMethod
-        }
-        EditIsotopeMethod {
-            width: editListView.width; height: editListView.height
-            id: isotopeMethod
         }
         EditTargetMethod {
             width: editListView.width; height: editListView.height
@@ -49,10 +48,6 @@ Rectangle {
         EditIntegrationMethod {
             width: editListView.width; height: editListView.height
             id: integrationMethod
-        }
-        EditPeakIdTable {
-            width: editListView.width; height: editListView.height
-            id: peakIdMethod
         }
         EditReportMethod {
             width: editListView.width; height: editListView.height

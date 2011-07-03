@@ -22,21 +22,29 @@
 **
 **************************************************************************/
 
-#ifndef MSCALIBRATEMETHODMODEL_HPP
-#define MSCALIBRATEMETHODMODEL_HPP
+#ifndef CHEMICALFORMULAMODEL_HPP
+#define CHEMICALFORMULAMODEL_HPP
 
+#include <adcontrols/isotopemethod.hpp>
 #include <QObject>
 
-class MSCalibrateMethodModel : public QObject
+namespace qtwidgets {
+
+class ChemicalFormulaModel : public QObject
 {
     Q_OBJECT
 public:
-    explicit MSCalibrateMethodModel(QObject *parent = 0);
+    explicit ChemicalFormulaModel(QObject *parent = 0);
 
 signals:
 
 public slots:
 
+private:
+
+
 };
 
-#endif // MSCALIBRATEMETHODMODEL_HPP
+}
+
+#endif // CHEMICALFORMULAMODEL_HPP

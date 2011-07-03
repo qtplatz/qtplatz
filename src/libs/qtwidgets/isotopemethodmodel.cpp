@@ -23,8 +23,98 @@
 **************************************************************************/
 
 #include "isotopemethodmodel.hpp"
+#include <qtwrapper/qstring.hpp>
 
-IsotopeMethodModel::IsotopeMethodModel(QObject *parent) :
-    QObject(parent)
+using namespace qtwidgets;
+
+IsotopeMethodModel::IsotopeMethodModel(QObject *parent) : QAbstractListModel( parent )
 {
+    QHash< int, QByteArray > roles;
+    roles[ FormulaRole ] = "formula";    // std::wstring formula
+    roles[ AdductRole ] = "adduct";      // std::wstring adduct;
+    roles[ ChargeRole ] = "chargeState"; // size_t chargeState;
+    roles[ AmountsRole ] = "amounts";    // double relativeAmounts;
+
+    setRoleNames( roles );
+}
+
+int
+IsotopeMethodModel::rowCount( const QModelIndex& ) const
+{
+    return method_.size();
+}
+
+QVariant
+IsotopeMethodModel::data( const QModelIndex& index, int role ) const
+{
+    if ( index.row() < 0 || index.row() >= int( method_.size() ) )
+        return QVariant();
+    adcontrols::IsotopeMethod::vector_type::const_iterator formula = method_.begin() + index.row();
+
+    switch ( role ) {
+    case FormulaRole:
+        return qtwrapper::qstring::copy( formula->formula );
+    case AdductRole:
+        return qtwrapper::qstring::copy( formula->adduct );
+    case ChargeRole:
+        return int( formula->chargeState );
+    case AmountsRole:
+        return formula->relativeAmounts;
+    default:
+        break;
+    }
+    return QVariant();
+}
+
+
+bool
+IsotopeMethodModel::polarityPositive() const
+{
+    return method_.polarityPositive();
+}
+
+void
+IsotopeMethodModel::polarityPositive( bool t )
+{
+    method_.polarityPositive( t );
+    emit valueChanged();
+}
+
+bool
+IsotopeMethodModel::useElectronMass() const
+{
+    return method_.useElectronMass();
+}
+
+void
+IsotopeMethodModel::useElectronMass( bool t )
+{
+    method_.useElectronMass( t );
+    emit valueChanged();
+}
+
+double
+IsotopeMethodModel::threshold() const
+{
+    return method_.threshold();
+}
+
+void
+IsotopeMethodModel::threshold( double t )
+{
+    method_.threshold( t ) ;
+    emit valueChanged();
+}
+
+double
+IsotopeMethodModel::resolution() const
+{
+    return method_.resolution();
+}
+
+void
+IsotopeMethodModel::resolution( double t )
+{
+    method_.resolution( t );
+    emit valueChanged();
 }

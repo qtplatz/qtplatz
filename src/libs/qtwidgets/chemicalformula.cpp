@@ -22,9 +22,11 @@
 **
 **************************************************************************/
 
-#include "mscalibratemethodmodel.hpp"
+#include "chemicalformula.hpp"
 
-MSCalibrateMethodModel::MSCalibrateMethodModel(QObject *parent) :
+using namespace qtwidgets;
+
+ChemicalFormulaModel::ChemicalFormulaModel(QObject *parent) :
     QObject(parent)
 {
 }

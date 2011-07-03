@@ -25,18 +25,56 @@
 #ifndef ISOTOPEMETHODMODEL_HPP
 #define ISOTOPEMETHODMODEL_HPP
 
-#include <QObject>
+#include <adcontrols/isotopemethod.hpp>
+#include <QAbstractListModel>
 
-class IsotopeMethodModel : public QObject
-{
-    Q_OBJECT
-public:
-    explicit IsotopeMethodModel(QObject *parent = 0);
+namespace qtwidgets {
 
-signals:
+    class IsotopeMethodModel : public QAbstractListModel  {
+        Q_OBJECT
+        Q_PROPERTY( bool polarityPositive READ polarityPositive WRITE polarityPositive NOTIFY valueChanged )
+        Q_PROPERTY( bool useElectronMass READ useElectronMass WRITE useElectronMass NOTIFY valueChanged )
+        Q_PROPERTY( double resolution READ resolution WRITE resolution NOTIFY valueChanged )
+        Q_PROPERTY( double threshold READ threshold WRITE threshold NOTIFY valueChanged )
+    public:
 
-public slots:
+        enum Roles {
+            FormulaRole = Qt::UserRole + 1 // std::wstring formula;
+            , AdductRole // std::wstring adduct;
+            , ChargeRole // size_t chargeState;
+            , AmountsRole // double relativeAmounts;
+        };
 
-};
+        explicit IsotopeMethodModel(QObject *parent = 0);
+        
+        bool polarityPositive() const;
+        void polarityPositive( bool );
+        
+        bool useElectronMass() const;
+        void useElectronMass( bool );
+        
+        double threshold() const;
+        void threshold( double );
+        
+        double resolution() const;
+        void resolution( double );
+
+        // QAbstractListModel
+        int rowCount( const QModelIndex& parent = QModelIndex() ) const;
+        QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const;
+        
+        adcontrols::IsotopeMethod& method() { return method_; }
+        const adcontrols::IsotopeMethod& method() const { return method_; }
+
+    signals:
+        void valueChanged();
+                           
+    public slots:
+        
+    private:
+        adcontrols::IsotopeMethod method_;
+    };
+
+}
 
 #endif // ISOTOPEMETHODMODEL_HPP

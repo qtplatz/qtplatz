@@ -31,13 +31,17 @@
 #include <QDeclarativeContext>
 #include <fstream>
 #include "centroidmethodmodel.hpp"
+#include "isotopemethodmodel.hpp"
 
 using namespace qtwidgets;
 
 ProcessMethodView::ProcessMethodView(QWidget *parent) : QDeclarativeView(parent)
                                                       , pConfig_( new adportable::Configuration )
-  , pCentroidModel_( new CentroidMethodModel )
+                                                      , pCentroidModel_( new CentroidMethodModel )
+                                                      , pIsotopeModel_( new IsotopeMethodModel )
 {
+    adcontrols::IsotopeMethod& method = pIsotopeModel_->method();
+    method.addFormula( adcontrols::IsotopeMethod::Formula(L"C6H12", L"H", 1, 1.0) );
 }
 
 ProcessMethodView::~ProcessMethodView()
@@ -58,11 +62,12 @@ ProcessMethodView::OnCreate( const adportable::Configuration& config )
         return;
 
     qmlRegisterType< CentroidMethodModel >( "com.scienceliaison.qml", 1, 0, "CentroidModel" );
+    qmlRegisterType< IsotopeMethodModel > ( "com.scienceliaison.qml", 1, 0, "IsotopeModel" );
 
     QDeclarativeContext * ctx = rootContext();
     ctx->setContextProperty( "configXML", qtwrapper::qstring::copy( xml ) );
-
     ctx->setContextProperty( "centroidModel", pCentroidModel_.get() );
+    ctx->setContextProperty( "isotopeModel", pIsotopeModel_.get() );
     setResizeMode( QDeclarativeView::SizeRootObjectToView );
 
 #if defined DEBUG && 0

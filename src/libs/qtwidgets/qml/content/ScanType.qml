@@ -48,23 +48,29 @@ import QtQuick 1.0
 
 Rectangle {
     id: scanTypeRect
-    width: 340; height: 280
-    color: "#343434"
+    width: parent.width; height: parent.height
+    color: "#1c1c47"
 
-    Text { text: "Scan Type:"; font.pointSize: 13; font.family: "Monotype Corsiva"; color: "white" }
     Image {
         id: userIcon
         x: scanTypeTofRect.x; y: scanTypeTofRect.y
         source: "images/scantype.png"
     }
 
+    Text {
+        id: caption;
+        text: "Scan Type:"; font.pointSize: 13; font.family: "Monotype Corsiva"; color: "white"
+    }
+
     Rectangle {
         id: scanTypeTofRect
 
-        anchors { left: parent.left; top: parent.top; leftMargin: 10; topMargin: 20 }
+        anchors { left: caption.right; top: parent.top; leftMargin: 20; topMargin: 5 }
         width: 46; height: 54
         color: "Transparent"; border.color: "Gray"; radius: 6
-        Text { text: "Tof"; font.pointSize: 20; font.family: "Monotype Corsiva"; color: "white" }
+        Row {
+            Text { text: "Tof"; font.pointSize: 20; font.family: "Monotype Corsiva"; color: "white" }
+        }
         // Clicking in here sets the state to the default state, returning the image to
         // its initial position
         MouseArea { anchors.fill: parent; onClicked: scanTypeRect.state = '' }
@@ -73,7 +79,7 @@ Rectangle {
     Rectangle {
         id: scanTypeProportionalRect
 
-        anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: 20 }
+        anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: scanTypeTofRect.anchors.topMargin }
         width: 46; height: 54
         color: "Transparent"; border.color: "Gray"; radius: 6
         // anchors.verticalCenterOffset: -100
@@ -85,7 +91,7 @@ Rectangle {
     Rectangle {
         id: scanTypeConstantRect
 
-        anchors { right: parent.right; top: parent.top; topMargin: 20; rightMargin: 40 }
+        anchors { right: parent.right; top: parent.top; topMargin: scanTypeTofRect.anchors.topMargin; rightMargin: 40 }
         width: 46; height: 54
         color: "Transparent"; border.color: "Gray"; radius: 6
         Text { text: "Constant"; font.pointSize: 20; font.family: "Monotype Corsiva"; color: "white" }

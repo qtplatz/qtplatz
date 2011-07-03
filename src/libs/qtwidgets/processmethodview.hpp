@@ -30,19 +30,20 @@
 #include <adcontrols/processmethod.hpp>
 #include "centroiddelegate.hpp"
 #include <boost/scoped_ptr.hpp>
-#include "centroidmethodmodel.hpp">
+#include "centroidmethodmodel.hpp"
+#include "isotopemethodmodel.hpp"
 
 namespace adportable { class Configuration; }
 
 namespace qtwidgets {
 
-class ProcessMethodView : public QDeclarativeView
-                        , public adplugin::LifeCycle {
-
-    Q_OBJECT
-public:
-    explicit ProcessMethodView(QWidget *parent = 0);
-    ~ProcessMethodView();
+    class ProcessMethodView : public QDeclarativeView
+                            , public adplugin::LifeCycle {
+        
+        Q_OBJECT
+    public:
+        explicit ProcessMethodView(QWidget *parent = 0);
+        ~ProcessMethodView();
 
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& );
@@ -52,18 +53,19 @@ public:
 
         // QWidget
         virtual QSize sizeHint() const;
-
-signals:
-
-public slots:
+        
+    signals:
+            
+    public slots:
         void getContents( adcontrols::ProcessMethod& );
         void getLifeCycle( adplugin::LifeCycle *& p );
-
-private:
+        
+    private:
         adportable::Configuration * pConfig_;
         boost::scoped_ptr< CentroidMethodModel > pCentroidModel_;
-};
-
+        boost::scoped_ptr< IsotopeMethodModel > pIsotopeModel_;
+    };
+    
 }
 
 #endif // PROCESSMETHODVIEW_HPP
