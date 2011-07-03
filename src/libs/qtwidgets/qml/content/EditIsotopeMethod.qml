@@ -1,4 +1,5 @@
 import QtQuick 1.0
+import com.scienceliaison.qml 1.0
 
 Rectangle {
     id: isotopeMethod
@@ -8,15 +9,15 @@ Rectangle {
         TitleText { title: "Isotope"; width: parent.width }
         Rectangle {
             id: isotopeGlobalRect
-            width: parent.width; height: 140
-            anchors.top: title.bottom; anchors.topMargin: 20
+            width: parent.width; height: item1.height * 3.6
+            //anchors.top: title.bottom; anchors.topMargin: 10
             MouseArea {
                 anchors.fill: parent
                 onClicked: methodDelegate.focus = false;
             }
             Grid {
                 columns: 2; spacing: 5
-                anchors { top: parent.top; horizontalCenter: parent.horizontalCenter }
+                anchors { top: parent.top; topMargin: 2; left: parent.left; leftMargin: 40 }
 
                 CaptionText { text: "Polarity:" }
                 TextInputBox { id: item1; KeyNavigation.tab: item2; KeyNavigation.backtab: item3; focus: true
@@ -46,26 +47,86 @@ Rectangle {
                 }
             }
         }
+        // <--- end global parameter --------
         Rectangle {
-            width: parent.width; height: isotopeGlobalRect.height
-            anchors.top: isotopeGlobalRect.bottom; anchors.topMargin: 10
-            Row {
-                id: header
-                width: parent.width; height: 24
-                Text { text: "formula" } Text { text: "adduct" } Text { text: "charge" }
-            }
-            Repeater {
+            width:  parent.width; height: parent.height - isotopeGlobalRect.height
+            //anchors.top: isotopeGlobalRect.bottom; anchors.topMargin: 10; anchors.left: parent.left; anchors.leftMargin: 14
+
+            ListView {
+                id: formulae
+                anchors.fill: parent
                 model:  isotopeModel
-                anchors.top: header.bottom
-                width: parent.width; height: isotopeMethod.height - isotopeGlobalRect.height - header.height
-                delegate: Row {
-                    width: parent.width
-                    Text { text: formula }
-                    Text { text: adduct }
-                    Text { text: chargeState }
+                header: headerDelegate
+                footer: footerDelegate
+                delegate: formulaDelegate
+                highlight: Rectangle { color: "lightsteelblue"; radius: 5; border.color: "black" }
+                focus: true
+                onCurrentIndexChanged: {
+                    console.log( "onCurrentIndexChanged: " + currentIndex )
                 }
             }
-        }
 
+            Component {
+                id: formulaDelegate
+                Item  {
+                    id: delegate
+                    width: delegate.ListView.view.width; height: 26
+                    property color textcolor: delegate.ListView.isCurrentItem ? "red" : "black"
+                    Row {
+                        Text { text: formula; width: 120; color: textcolor }
+                        Text { text: adduct; width: 120; color: textcolor }
+                        Text { text: chargeState; width: 120; color: textcolor }
+                        Text { text: amounts; width: 120; color: textcolor }
+                    }
+                    MouseArea {
+                        anchors.fill: delegate
+                        onClicked: {
+                            formulae.currentIndex = index
+                            console.debug( "formlae on clicked: " + index )
+                        }
+                    }
+                }
+            }
+            Component {
+                id: headerDelegate
+                Row {
+                    Text { text: "formula"; width: 120 }
+                    Text { text: "adduct"; width: 120 }
+                    Text { text: "charge state"; width: 120 }
+                    Text { text: "relative amounts"; width: 120 }
+                }
+            }
+            Component {
+                id: footerDelegate
+                Item {
+                    property string formula: isotopeModel.data( formulaDelegate.ListView.currentIndex )
+                    property string adduct: "H"
+                    property int chargeState: 1
+                    property double amounts: 1.0
+                    Row {
+                        TextInputBox { value: formula; width: 120 }
+                        TextInputBox { value: adduct; width: 120 }
+                        TextInputBox { value: chargeState; width: 120 }
+                        TextInputBox { value: amounts; width: 120 }
+                        Rectangle {
+                            id: button
+                            width: 40; height:  24
+                            border.color: "blue"
+                            color: "lightblue"
+                            Text { text: "Add"; color: "blue"; anchors { horizontalCenter: parent.horizontalCenter; verticalCenter: parent.verticalCenter } }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    console.debug( "formulae currentIndex: " + formulae.currentIndex )
+                                    console.debug( "isotopeMethod " + isotopeModel.resolution )
+                                    isotopeMethod.appendRow()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
     }
 }

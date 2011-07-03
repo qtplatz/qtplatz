@@ -66,6 +66,24 @@ IsotopeMethodModel::data( const QModelIndex& index, int role ) const
     return QVariant();
 }
 
+//Q_INVOKABLE
+bool
+IsotopeMethodModel::setData( const QModelIndex& index, const QVariant& value, int role )
+{
+    return true;
+}
+
+//Q_INVOKABLE
+void
+IsotopeMethodModel::insertRow( const QModelIndex& index )
+{
+}
+
+void
+IsotopeMethodModel::appendRow()
+{
+    method_.addFormula( adcontrols::IsotopeMethod::Formula( L"--", L"Na", 1, 1.0 ) );
+}
 
 bool
 IsotopeMethodModel::polarityPositive() const

@@ -70,7 +70,9 @@ namespace qtwidgets {
         void valueChanged();
                            
     public slots:
-        
+        Q_INVOKABLE bool setData( const QModelIndex& index, const QVariant& value, int role = Qt::EditRole );
+        Q_INVOKABLE void insertRow( const QModelIndex& index = QModelIndex() );
+        Q_INVOKABLE void appendRow();
     private:
         adcontrols::IsotopeMethod method_;
     };

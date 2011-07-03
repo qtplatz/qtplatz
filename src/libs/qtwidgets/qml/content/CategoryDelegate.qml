@@ -75,7 +75,6 @@ Item {
     MouseArea {
         anchors.fill: delegate
         onClicked: {
-            console.log( "onClicked: index=" + index )
             delegate.ListView.view.currentIndex = index
             window.currentIndex = index;
         }

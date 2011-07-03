@@ -37,20 +37,20 @@ Rectangle {
         ScanTypeDetails {
             id: scanTypeDetails
             width: parent.width; height: 70
-            anchors.top:  scanType.bottom; anchors.topMargin: 4
+            //anchors.top:  scanType.bottom; anchors.topMargin: 4
         }
 
         Rectangle {
             id: methodDelegate
             width: parent.width; height: parent.height - scanType.height - scanTypeDetails.height
-            anchors.top: scanTypeDetails.bottom
+            //anchors.top: scanTypeDetails.bottom
             MouseArea {
                 anchors.fill: parent
                 onClicked: methodDelegate.focus = false;
             }
             Grid {
                 columns: 2; spacing: 5
-                anchors { top: parent.top; left: parent.left; leftMargin: 40 }
+                anchors { top: parent.top; left: parent.left; leftMargin: 40; topMargin: 10 }
 
                 CaptionText { text: "Area/Height:" }
                 TextInputBox { id: item1; KeyNavigation.tab: item2; KeyNavigation.backtab: item3; focus: true
