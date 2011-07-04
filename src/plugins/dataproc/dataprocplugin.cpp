@@ -66,6 +66,7 @@
 #include <QTextEdit>
 #include <QToolButton>
 #include <QDir>
+#include <QMessageBox>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
@@ -418,14 +419,18 @@ DataprocPlugin::extensionsInitialized()
 {
     do {
         std::string ior = adplugin::manager::iorBroker();
-        CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
-        Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, ior );
-        if ( ! CORBA::is_nil( mgr ) ) {
-            brokerSession_ = mgr->getSession( L"acquire" );
-            pBrokerSessionEvent_ = new QBrokerSessionEvent;
-            brokerSession_->connect( "-user-", "-password-", "dataproc", pBrokerSessionEvent_->_this() );
-            connect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) ), this, SLOT(handle_portfolio_created( const QString )) );
-            connect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) ), this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
+        if ( ! ior.empty() ) {
+            CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
+            Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, ior );
+            if ( ! CORBA::is_nil( mgr ) ) {
+                brokerSession_ = mgr->getSession( L"acquire" );
+                pBrokerSessionEvent_ = new QBrokerSessionEvent;
+                brokerSession_->connect( "-user-", "-password-", "dataproc", pBrokerSessionEvent_->_this() );
+                connect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) ), this, SLOT(handle_portfolio_created( const QString )) );
+                connect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) ), this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
+            }
+        } else {
+            QMessageBox::critical( 0, "DataprocPlugin::extensionsInitialized", "can't find ior for adbroker -- maybe servant plugin load failed.");
         }
     } while(0);
 
