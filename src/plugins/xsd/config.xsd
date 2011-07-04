@@ -77,6 +77,7 @@
 		<xs:attribute name="type"/>
 		<xs:attribute name="readonly" type="xs:boolean"/>
 		<xs:attribute name="ns_name"/>
+    <xs:attribute name="filename"/>
 		<xs:attribute name="id"/>
 	</xs:complexType>
 	<!-- ============================================================================ -->
