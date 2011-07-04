@@ -79,8 +79,6 @@
 
 using namespace acewrapper;
 
-static bool __own_thread;
-
 adBroker::adBroker(void)
 {
 }

@@ -11,11 +11,11 @@ Rectangle {
             color: "#141166";
         }
         GradientStop {
-            position: 0.30;
+            position: 0.25;
             color: "#ffffff";
         }
         GradientStop {
-            position: 0.66;
+            position: 0.85;
             color: "#ffffff";
         }
         GradientStop {
@@ -26,7 +26,7 @@ Rectangle {
     property string title: "title..."
     Text {
         color: "#131c47"
-        text: parent.title; font.family: "Handwriting - Dakota";font.pointSize: 22
+        text: parent.title; font.family: "Handwriting - Dakota";font.pointSize: 18
         anchors { horizontalCenter: parent.horizontalCenter; verticalCenter: parent.verticalCenter }
     }
 }
