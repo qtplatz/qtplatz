@@ -49,7 +49,7 @@ import QtQuick 1.0
 Rectangle {
     id: scanTypeRect
     width: parent.width; height: parent.height
-    color: "#1c1c47"
+    color: "#ffffff"
 
     Image {
         id: userIcon
@@ -59,7 +59,8 @@ Rectangle {
 
     Text {
         id: caption;
-        text: "Scan Type:"; font.pointSize: 13; font.family: "Monotype Corsiva"; color: "white"
+        text: "Scan Type:"; font.pointSize: 13; font.family: "Monotype Corsiva"; color: "navy"
+	anchors.verticalCenter: parent.verticalCenter
     }
 
     Rectangle {
@@ -68,8 +69,9 @@ Rectangle {
         anchors { left: caption.right; top: parent.top; leftMargin: 20; topMargin: 5 }
         width: 46; height: 54
         color: "Transparent"; border.color: "Gray"; radius: 6
-        Row {
-            Text { text: "Tof"; font.pointSize: 20; font.family: "Monotype Corsiva"; color: "white" }
+	Text { text: "Tof"; font.pointSize: 13; font.family: "Monotype Corsiva"; 
+	     color: "navy"
+	      anchors.verticalCenter: parent.verticalCenter
         }
         // Clicking in here sets the state to the default state, returning the image to
         // its initial position
@@ -83,7 +85,9 @@ Rectangle {
         width: 46; height: 54
         color: "Transparent"; border.color: "Gray"; radius: 6
         // anchors.verticalCenterOffset: -100
-        Text { text: "Proportional"; font.pointSize: 20; font.family: "Monotype Corsiva"; color: "white" }
+        Text { text: "Proportional"; font.pointSize: 13; font.family: "Monotype Corsiva"; color: "navy"
+	       anchors.verticalCenter: parent.verticalCenter
+	       }
         // Clicking in here sets the state to 'middleRight'
         MouseArea { anchors.fill: parent; onClicked: scanTypeRect.state = 'scanTypeProportional' }
     }
@@ -94,7 +98,9 @@ Rectangle {
         anchors { right: parent.right; top: parent.top; topMargin: scanTypeTofRect.anchors.topMargin; rightMargin: 40 }
         width: 46; height: 54
         color: "Transparent"; border.color: "Gray"; radius: 6
-        Text { text: "Constant"; font.pointSize: 20; font.family: "Monotype Corsiva"; color: "white" }
+        Text { text: "Constant"; font.pointSize: 13; font.family: "Monotype Corsiva"; color: "navy"
+	       anchors.verticalCenter: parent.verticalCenter
+	     }
         // Clicking in here sets the state to 'bottomLeft'
         MouseArea { anchors.fill: parent; onClicked: scanTypeRect.state = 'scanTypeConstant' }
     }

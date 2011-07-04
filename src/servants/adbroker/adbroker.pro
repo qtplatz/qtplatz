@@ -27,7 +27,8 @@ LIBS += -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(adportable) \
     -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(adcontrols) \
-    -l$$qtLibraryTarget(portfolio)
+    -l$$qtLibraryTarget(portfolio) \
+    -l$$qtLibraryTarget(adplugin)
 
 # message( "LIBS " $$LIBS )
 

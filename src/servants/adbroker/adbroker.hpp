@@ -25,7 +25,7 @@
 
 #pragma once
 #include "adbroker_global.h"
-#include <adplugin/orbloader.hpp>
+#include <adplugin/orbLoader.hpp>
 
 namespace CORBA {
     class ORB;
