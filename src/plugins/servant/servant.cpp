@@ -57,7 +57,6 @@
 #     pragma comment(lib, "TAO_PId.lib")
 #     pragma comment(lib, "TAO_PortableServerd.lib")
 #     pragma comment(lib, "TAO_AnyTypeCoded.lib")
-#     pragma comment(lib, "adbrokerd.lib")
 #     pragma comment(lib, "adinterfaced.lib")
 #  else
 #     pragma comment(lib, "ACE.lib")
@@ -66,7 +65,6 @@
 #     pragma comment(lib, "TAO_PI.lib")
 #     pragma comment(lib, "TAO_PortableServer.lib")
 #     pragma comment(lib, "TAO_AnyTypeCode.lib")
-#     pragma comment(lib, "adbroker.lib")
 #     pragma comment(lib, "adinterface.lib")
 #  endif
 #endif

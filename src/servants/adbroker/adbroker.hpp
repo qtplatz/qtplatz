@@ -25,6 +25,7 @@
 
 #pragma once
 #include "adbroker_global.h"
+#include <adplugin/orbloader.hpp>
 
 namespace CORBA {
     class ORB;
@@ -39,15 +40,18 @@ namespace acewrapper {
     class ORBServantManager;
 }
 
-class ADBROKERSHARED_EXPORT adBroker {
+class ADBROKERSHARED_EXPORT adBroker : public adplugin::orbLoader {
 public:
     adBroker(void);
-    ~adBroker(void);
+    virtual ~adBroker(void);
     
-    static bool initialize( CORBA::ORB* orb, PortableServer::POA * poa, PortableServer::POAManager * mgr );
-    static const char * activate();
-    static bool deactivate();
-    
-    static int run();
-    static void abort_server();
+    virtual bool initialize( CORBA::ORB* orb, PortableServer::POA * poa, PortableServer::POAManager * mgr );
+    virtual const char * activate();
+    virtual bool deactivate();
+    virtual void initial_reference( const char * );
+    virtual operator bool() const;
 };
+
+extern "C" {
+    Q_DECL_EXPORT adplugin::orbLoader * instance();
+}

@@ -5,7 +5,7 @@
 -->
 <ServantConfiguration name="servant" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
   <!-- <ServantConfiguration name="servant"> -->
-  <Module name="adbroker" type="corba::servant" filename="-- mandetory module -- this will loaded automatically by path environment variable --"/>
+  <Module name="adbroker" type="corba::servant" filename="/ScienceLiaison/adbroker$(configuration).dll"/>
   <Module name="adcontroller" type="corba::servant" filename="/ScienceLiaison/adcontroller$(configuration).dll"/>
   <!--	<Module name="tofcontroller" type="corba::servant" filename="/ScienceLiaison/tofcontroller$(configuration).dll"/> -->
   <Module name="tofspectrometer" type="adcontrols::massspectrometer" filename="/ScienceLiaison/tofspectrometer$(configuration).dll"/>
@@ -15,7 +15,7 @@
   
   <Configuration name="root_poa">
     <!-- master broker for application -->
-    <Configuration name="adbroker" type="">
+    <Configuration name="adbroker" type="orbLoader">
       <Component name="adbroker" module="adbroker"/>
     </Configuration>
     

@@ -38,6 +38,7 @@
 #     pragma comment(lib, "TAOd.lib")
 #     pragma comment(lib, "ACEd.lib")
 #     pragma comment(lib, "adinterfaced.lib")
+#     pragma comment(lib, "adplugind.lib")
 #     pragma comment(lib, "adportabled.lib")
 #     pragma comment(lib, "acewrapperd.lib")
 #     pragma comment(lib, "adcontrolsd.lib")
@@ -50,6 +51,7 @@
 #     pragma comment(lib, "TAO.lib")
 #     pragma comment(lib, "ACE.lib")
 #     pragma comment(lib, "adinterface.lib")
+#     pragma comment(lib, "adplugin.lib")
 #     pragma comment(lib, "adportable.lib")
 #     pragma comment(lib, "acewrapper.lib")
 #     pragma comment(lib, "adcontrols.lib")
@@ -87,12 +89,6 @@ adBroker::~adBroker(void)
 {
 }
 
-void
-adBroker::abort_server()
-{
-	deactivate();
-}
-
 bool
 adBroker::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::POAManager_ptr mgr )
 {
@@ -117,17 +113,18 @@ adBroker::deactivate()
 	return true;
 }
 
-int
-adBroker::run()
+void
+adBroker::initial_reference( const char * )
 {
-/*
-    ORBServantManager* p = adbroker::singleton::manager::instance()->getServantManager();
-	if ( p->test_and_set_thread_flag() ) {
-        __own_thread = true;
-		ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), reinterpret_cast<void *>(p) );
-        ACE_OS::sleep(0);
-	}
-*/
-    return 0;
+    // do nothing
 }
 
+adBroker::operator bool() const
+{
+    return true;
+}
+
+Q_DECL_EXPORT adplugin::orbLoader * instance()
+{
+    return new adBroker;
+}
