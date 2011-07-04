@@ -20,7 +20,7 @@ macx {
 } else {
   INCLUDEPATH += $$(QWT)/include
   LIBS += -L$$(QWT)/lib -l$$qtLibraryTarget(qwt)
-  LIBS += -L../../lib/qtplatz -l$$qtLibraryTarget(adcontrols)
+  LIBS += -L../../lib/qtplatz -ladcontrolsd
 }
 
 #LIBS += -framework /usr/local/qwt-6.0.1-svn/lib/qwt.framework

@@ -2,6 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS = meditor \
     qdirmodel \
-    searchbox
+    searchbox \
+    signalsampling
 
 unix:!macx:!isEmpty(copydata):SUBDIRS += bin
