@@ -121,11 +121,13 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
                     pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
                     m.mainWindow_->addDockForWidget( pWidget );
                 } else {
-		    QMessageBox::critical(0, QLatin1String("dataprocmanager"), qtwrapper::qstring::copy(it->name()) );
-		}
+                    QMessageBox::critical(0, QLatin1String("dataprocmanager"), qtwrapper::qstring::copy(it->name()) );
+                }
             }
         }
-	std::cout << "------------- end process method tab" << std::endl;
+#ifdef DEBUG
+        std::cout << "------------- end process method tab" << std::endl;
+#endif
     }       
 
     ////
