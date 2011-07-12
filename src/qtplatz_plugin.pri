@@ -50,8 +50,8 @@ contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 CONFIG += plugin plugin_with_soname
 
 !macx {
-    target.path = /$$IDE_LIBRARY_BASENAME/qtPlatz/plugins/$$PROVIDER
+    target.path = /$$IDE_LIBRARY_BASENAME/qtplatz/plugins/$$PROVIDER
     pluginspec.files += $${TARGET}.pluginspec
-    pluginspec.path = /$$IDE_LIBRARY_BASENAME/qtPlatz/plugins/$$PROVIDER
+    pluginspec.path = /$$IDE_LIBRARY_BASENAME/qtplatz/plugins/$$PROVIDER
     INSTALLS += target pluginspec
 }
