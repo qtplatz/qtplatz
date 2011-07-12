@@ -18,7 +18,6 @@ isEmpty(TARGET) {
 CONFIGSPECS = $${_PRO_FILE_PWD_}/$${TARGET}.config.xml
 exists( $$CONFIGSPECS ) {
   CONFIGXML += $$CONFIGSPECS
-  message( "config=" $$CONFIGXML )
 }
 
 PLUGINSPECS = $${_PRO_FILE_PWD_}/$${TARGET}.pluginspec

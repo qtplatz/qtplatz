@@ -8,7 +8,6 @@ LIBS += -L$$DESTDIR
 INCLUDEPATH += $$IDE_SOURCE_TREE/src/plugins
 DEPENDPATH += $$IDE_SOURCE_TREE/src/plugins
 
-# copy the plugin spec
 isEmpty(TARGET) {
     error("qtplutz_servant.pri: You must provide a TARGET")
 }
@@ -33,8 +32,7 @@ CONFIG += plugin plugin_with_soname
 
 !macx {
     target.path = /$$IDE_LIBRARY_BASENAME/qtplatz/plugins/$$PROVIDER
-    pluginspec.files += $${TARGET}.pluginspec
+    #pluginspec.files += $${TARGET}.pluginspec
     pluginspec.path = /$$IDE_LIBRARY_BASENAME/qtplatz/plugins/$$PROVIDER
     INSTALLS += target pluginspec
-    !exists( target.path ) { mkdir( target.path ) }
 }
