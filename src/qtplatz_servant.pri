@@ -1,8 +1,7 @@
 include(../qtplatz.pri)
 include( config.pri )
 
-
-PROVIDER = ScienceLiaison
+isEmpty(PROVIDER) PROVIDER = ScienceLiaison
 
 DESTDIR = $$IDE_PLUGIN_PATH/$$PROVIDER
 LIBS += -L$$DESTDIR
