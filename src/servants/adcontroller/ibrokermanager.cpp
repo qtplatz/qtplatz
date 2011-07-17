@@ -64,8 +64,9 @@ IBrokerManager::~IBrokerManager()
 {
     manager_terminate();
     ACE_Thread_Manager::instance()->wait();
-    delete pBroker_;
-    delete reactor_thread_;
+    // following classes are stopped by ACE framework
+    //delete pBroker_;
+    //delete reactor_thread_;
 }
 
 IBrokerManager::IBrokerManager() : pBroker_(0)
