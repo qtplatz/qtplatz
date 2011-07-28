@@ -55,6 +55,7 @@ namespace adplugin {
         // Observer 
         inline SignalObserver::Observer_ptr& ptr() { return impl_; }
     signals:
+        void signal_OnClose();
         void signal_UpdateData( unsigned long, long );
         void signal_MethodChanged( unsigned long, long );
         void signal_Event( unsigned long, unsigned long, long );
@@ -66,6 +67,7 @@ namespace adplugin {
         SignalObserver::eUpdateFrequency freq_;
         std::wstring token_;
         SignalObserver::Observer_var impl_;
+        bool connected_;
     };
 }
 
