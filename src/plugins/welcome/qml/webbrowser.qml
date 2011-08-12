@@ -49,11 +49,12 @@ Rectangle {
 
     property string urlString : "http://www.scienceliaison.com/"
 
-    width: 800; height: 600
+    width: 800; height: 300
     color: "#343434"
 
     FlickableWebView {
         id: webView
+        height: 280
         url: webBrowser.urlString
         onProgressChanged: header.urlChanged = false
         anchors { top: headerSpace.bottom; left: parent.left; right: parent.right; bottom: parent.bottom }
