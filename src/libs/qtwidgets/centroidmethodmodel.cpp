@@ -35,12 +35,14 @@ CentroidMethodModel::ScanType
 CentroidMethodModel::scanType() const
 {
     ScanType t = static_cast<ScanType>( method_.peakWidthMethod() );
+    qDebug() << "scanType: " << t;
     return t;
 }
 
 void
 CentroidMethodModel::scanType( const ScanType t )
 {
+    qDebug() << "scanType(" << t << ")";
     method_.peakWidthMethod( static_cast< adcontrols::CentroidMethod::ePeakWidthMethod>(t) );
 }
 

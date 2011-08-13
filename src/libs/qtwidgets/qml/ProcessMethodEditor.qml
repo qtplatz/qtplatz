@@ -1,122 +1,105 @@
 import QtQuick 1.0
+import QtDesktop 0.1
 import "content"
+import com.scienceliaison.qml 1.0
 
 Rectangle {
     id: window
-    property int currentIndex: 0
 
-    ListModel {
-        id: methodModel
+    SystemPalette { id: syspal }
+    QStyleItem { id: styleitem }
+    color: syspal.window
 
-        ListElement { name: "Centroid" }
-        ListElement { name: "Isotope" }
-        ListElement { name: "MS Calibration" }
-        ListElement { name: "Elemental Comp" }
-        ListElement { name: "Targeting" }
-        ListElement { name: "Lock mass" }
-        ListElement { name: "Chromatogram" }
-        ListElement { name: "Report" }
-    }
-
-    VisualItemModel {
-        id: editModel
-
-        EditCentroidMethod {
-            width: editListView.width; height: editListView.height
-            id: centroidMethod
+    ToolBar {
+        id: toolbar
+        width: parent.width
+        height: 20
+        Row {
+            spacing: 2
+            anchors.verticalCenter: parent.verticalCenter
+            ToolButton{
+                iconSource: "qrc:files/images/folder_new.png"
+                anchors.verticalCenter: parent.verticalCenter
+            }
         }
-        EditIsotopeMethod {
-            width: editListView.width; height: editListView.height
-            id: isotopeMethod
-        }
-        EditMSCalibMethod {
-            width: editListView.width; height: editListView.height
-            id: msCalibMethod
-        }
-        EditElementalCompMethod {
-            width: editListView.width; height: editListView.height
-            id: elementalCompMethod
-        }
-        EditTargetMethod {
-            width: editListView.width; height: editListView.height
-            id: targetMethod
-        }
-        EditLockMassMethod {
-            width: editListView.width; height: editListView.height
-            id: lockMassMethod
-        }
-        EditIntegrationMethod {
-            width: editListView.width; height: editListView.height
-            id: integrationMethod
-        }
-        EditReportMethod {
-            width: editListView.width; height: editListView.height
-            id: reportMethod
+        CheckBox {
+            id: enabledCheck
+            text: "Enabled"
+            checked: true
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
         }
     }
 
+    TabFrame {
+        id:frame
+        focus:true
+        position: "North"
+        tabbar: TabBar{ parent: frame; focus:true; KeyNavigation.tab:button1 }
 
-    Row {
-        Rectangle {
-            width: 200; height: window.height
-            color: "#efefef"
-            ListView {
-                id: categories
+        property int margins : styleitem.style == "manhattan" ? 16 : 0
+        anchors.top: toolbar.bottom
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.left: parent.left
+        anchors.margins: margins
+
+        Tab {
+            title: "Centroid"
+            EditCentroidMethod {
                 anchors.fill: parent
-                model: methodModel
-                footer: applyButtonDelegate
-                delegate: CategoryDelegate {}
-                highlight: Rectangle { color: "steelblue" }
-                highlightMoveSpeed: 999999
-                onCurrentIndexChanged: {
-                    console.log( "onCurrentIndexChanged " + currentIndex )
-                    editListView.currentIndex = currentIndex
-                }
-            }
-            ScrollBar {
-                scrollArea: categories; height: categories.height; width: 8
-                anchors.right: categories.right
+                id: centroidMethod
             }
         }
-
-        ListView {
-            id: editListView
-            width: window.width - 200; height: window.height
-            model: editModel
-
-            // control the movement of the menu switching
-            snapMode: ListView.SnapOneItem
-            orientation: ListView.Vertical
-            boundsBehavior: Flickable.StopAtBounds
-            flickDeceleration: 5000
-            highlightMoveDuration: 240
-            highlightRangeMode: ListView.StrictlyEnforceRange
-        }
-        function categoryChanged() {
-
-        }
-    }
-
-    Component {
-        id: applyButtonDelegate
-        Item {
-            width: categories.width; height: 60
-            Text {
-                text: "Apply"
-                font { family: "Helvetica"; pixelSize: 16; bold: true }
-                anchors {
-                    left: parent.left; leftMargin: 15
-                    verticalCenter: parent.verticalCenter
-                }
-            }
-            MouseArea {
+        Tab {
+            title: "Isotope"
+            EditIsotopeMethod {
                 anchors.fill: parent
-                onClicked:  Qt.quite()
+                id: isotopeMethod
+            }
+        }
+        Tab {
+            title: "MS Calib"
+            EditMSCalibMethod {
+                id: msCalibMethod
+                anchors.fill: parent
+            }
+        }
+        Tab {
+            title: "Elemental Comp."
+            EditElementalCompMethod {
+                id: elementalCompMethod
+                anchors.fill: parent
+            }
+        }
+        Tab {
+            title: "Target"
+            EditTargetMethod {
+                id: targetMethod
+                anchors.fill: parent
+            }
+        }
+        Tab {
+            title: "Lock mass"
+            EditLockMassMethod {
+                id: lockMassMethod
+                anchors.fill: parent
+            }
+        }
+        Tab {
+            title: "Integration"
+            EditIntegrationMethod {
+                id: integrationMethod
+                anchors.fill: parent
+            }
+        }
+        Tab {
+            title: "Report"
+            EditReportMethod {
+                id: reportMethod
+                anchors.fill: parent
             }
         }
     }
-
-    // ScrollBar { scrollArea: list; height: list.height; width: 8; anchors.right: window.right }
-    // Rectangle { x: 200; height: window.height; width: 1; color: "#cccccc" }
 
 }
