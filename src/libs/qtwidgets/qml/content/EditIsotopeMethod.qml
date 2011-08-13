@@ -1,4 +1,5 @@
 import QtQuick 1.0
+import QtDesktop 0.1
 import com.scienceliaison.qml 1.0
 
 Rectangle {
@@ -6,129 +7,81 @@ Rectangle {
 
     Column {
         width:  parent.width; height: parent.height
-        TitleText { title: "Isotope"; width: parent.width }
-        Rectangle {
+        Column {
             id: isotopeGlobalRect
-            width: parent.width; height: item1.height * 3.6
-            //anchors.top: title.bottom; anchors.topMargin: 10
-            MouseArea {
-                anchors.fill: parent
-                onClicked: methodDelegate.focus = false;
+            spacing: 4
+            Row {
+                CaptionText { text: "Polarity: " }
+                ButtonRow {
+                    exclusive: true
+                    CheckBox { id: positive; text: "Positive: " }
+                    CheckBox { id: negative; text: "Negative: " }
+                    checkedButton: isotopeModel.polarityPositive ? positive : negative
+                    onCheckedButtonChanged: isotopeModel.polarityPostive = positive.checked ? true : false
+                }
             }
-            Grid {
-                columns: 2; spacing: 5
-                anchors { top: parent.top; topMargin: 2; left: parent.left; leftMargin: 40 }
 
-                CaptionText { text: "Polarity:" }
-                TextInputBox { id: item1; KeyNavigation.tab: item2; KeyNavigation.backtab: item3; focus: true
-                    value: isotopeModel.polarityPositive ? "Positive" : "Negative"
-                    onAccepted: {
-                        value = text
-                        console.debug("TextInputBos::onAccepted: " + text)
-                    }
-                }
-
-                CaptionText { text: "Use Electron Mass:" }
-                TextInputBox { id: item2; KeyNavigation.tab: item3; KeyNavigation.backtab: item1
-                    value: isotopeModel.useElectronMass
-                    onAccepted: {
-                        value = text
-                        console.debug("TextInputBos::onAccepted: " + text)
-                    }
-                }
-
+            Row {
+                spacing: 8
                 CaptionText { text: "Resolution [Da]:" }
-                TextInputBox { id: item3; KeyNavigation.tab: item1; KeyNavigation.backtab: item2
+                TextInputBox {
                     value: isotopeModel.resolution
-                    onAccepted: {
-                        value = text
-                        console.debug("TextInputBos::onAccepted: " + text)
-                    }
+                    onAccepted: value = text
+                }
+                CheckBox {
+                    text: "Use Electron Mass:"
+                    checked: isotopeModel.useElectronMass ? true : false
+                    onCheckedChanged: isotopeModel.useElectronMass = checked
                 }
             }
         }
         // <--- end global parameter --------
-        Rectangle {
-            width:  parent.width; height: parent.height - isotopeGlobalRect.height
-
-            ListView {
-                id: formulae
-                anchors.fill: parent
-                model:  isotopeModel
-                header: headerDelegate
-                footer: footerDelegate
-                delegate: formulaDelegate
-                highlight: Rectangle { color: "lightsteelblue" }
+        Column {
+            width: parent.width
+            height: parent.height - isotopeGlobalRect.height
+            enabled: true
+            TableView {
+                id: table
+                width: parent.width - 16
+                height: parent.height - footer.height
+                model: isotopeModel
+                //enabled: linear.checked ? false : true
                 focus: true
+
+                TableColumn {  property: "formula";     caption: "Formula"; width: 120 }
+                TableColumn {  property: "adduct";      caption: "adduct"; width: 120 }
+                TableColumn {  property: "chargeState"; caption: "charge"; width: 120 }
+                TableColumn {  property: "amounts";     caption: "amounts"; width: 120 }
+
+                itemDelegate:
+                    TextInput {
+                        width: parent.width
+                        anchors.margins: 4
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: itemValue ? itemValue : ""
+                        color: itemSelected ? "lightcyan" : "navy"
+
+                        onFocusChanged: {
+                            table.currentIndex = rowIndex
+                        }
+                        onAccepted: {
+                            analyzerModel.segments.setProperty( rowIndex, itemProperty, text )
+                        }
+                }
                 onCurrentIndexChanged: {
-                    console.log( "onCurrentIndexChanged: " + currentIndex )
-                }
-            }
-            ScrollBar {
-                scrollArea: formulae; height: formulae.height; width: 8
-                anchors.right: formulae.right
-            }
-
-            Component {
-                id: formulaDelegate
-                Item  {
-                    id: delegate
-                    width: delegate.ListView.view.width; height: 20
-                    property color textcolor: delegate.ListView.isCurrentItem ? "red" : "black"
-                    Row {
-                        TextInput { text: formula; width: 120; color: textcolor }
-                        Text { text: adduct; width: 120; color: textcolor }
-                        Text { text: chargeState; width: 120; color: textcolor }
-                        Text { text: amounts; width: 120; color: textcolor }
-                    }
-                    MouseArea {
-                        anchors.fill: delegate
-                        onClicked: {
-                            formulae.currentIndex = index
-                            console.debug( "formlae on clicked: " + index )
-                        }
-                    }
-                }
-            }
-            Component {
-                id: headerDelegate
-                Row {
-                    Text { text: "formula"; width: 120 }
-                    Text { text: "adduct"; width: 120 }
-                    Text { text: "charge state"; width: 120 }
-                    Text { text: "relative amounts"; width: 120 }
-                }
-            }
-            Component {
-                id: footerDelegate
-                Item {
-                    property string formula: "--"
-                    property string adduct: "H"
-                    property int chargeState: 1
-                    property double amounts: 1.0
-                    Row {
-                        TextInputBox { value: formula; width: 120 }
-                        TextInputBox { value: adduct; width: 120 }
-                        TextInputBox { value: chargeState; width: 120 }
-                        TextInputBox { value: amounts; width: 120 }
-                        Rectangle {
-                            id: button
-                            width: 40; height:  24
-                            border.color: "blue"
-                            color: "lightblue"
-                            Text { text: "Add"; color: "blue"; anchors { horizontalCenter: parent.horizontalCenter; verticalCenter: parent.verticalCenter } }
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: {
-                                    console.debug( "formulae currentIndex: " + formulae.currentIndex )
-                                    isotopeModel.appendRow()
-                                }
-                            }
-                        }
-                    }
+                    console.debug( "currentIndex: " + currentIndex )
                 }
             }
 
+            Row {
+                id: footer
+                width: parent.width
+                height: 40
+                Button { text: "+"; onClicked: isotopeModel.appendRow( table.currentIndex ) }
+                Button { text: "-"; onClicked: isotopeModel.removeRow( table.currentIndex ) }
+            }
         }
+        //------------------------------------
     }
 }

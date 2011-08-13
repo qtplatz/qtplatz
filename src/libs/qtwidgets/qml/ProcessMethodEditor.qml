@@ -37,7 +37,7 @@ Rectangle {
         position: "North"
         tabbar: TabBar{ parent: frame; focus:true; KeyNavigation.tab:button1 }
 
-        property int margins : styleitem.style == "manhattan" ? 16 : 0
+        property int margins : styleitem.style == "manhattan" ? 8 : 0
         anchors.top: toolbar.bottom
         anchors.bottom: parent.bottom
         anchors.right: parent.right
@@ -55,6 +55,7 @@ Rectangle {
             title: "Isotope"
             EditIsotopeMethod {
                 anchors.fill: parent
+                anchors.topMargin: 16
                 id: isotopeMethod
             }
         }
