@@ -29,6 +29,7 @@
 #include <QMessageBox>
 #include <QDeclarativeError>
 #include <QDeclarativeContext>
+#include <QCoreApplication>
 #include <fstream>
 #include "centroidmethodmodel.hpp"
 #include "isotopemethodmodel.hpp"
@@ -84,10 +85,17 @@ ProcessMethodView::OnCreate( const adportable::Configuration& config )
     } while(0);
 #endif
 
+    QString qmlpath;
+#ifdef Q_OS_MAC
+    qmlpath = QCoreApplication::applicationDirPath() + "/../Resources";
+#else
+    qmlpath = QCoreApplication::applicationDirPath() + "/../share";
+#endif
+
     pugi::xpath_node node = dom.select_single_node( "//Component[@type='qml']" );
     if ( node ) {
         std::string source = node.node().attribute( "QUrl" ).value();
-        setSource( QUrl( source.c_str() ) );
+        setSource( QUrl::fromLocalFile( qmlpath + source.c_str() ) );
 
         QList< QDeclarativeError > errors = this->errors();
         for ( QList< QDeclarativeError >::const_iterator it = errors.begin(); it != errors.end(); ++it )

@@ -12,6 +12,7 @@ PROVIDER = ScienceLiaison
 
 include(../../qtplatz_servant.pri)
 include(../../boost.pri)
+
 LIBS += -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(adplugin) -l$$qtLibraryTarget(qtwrapper) \
     -l$$qtLibraryTarget(xmlparser)
@@ -105,23 +106,32 @@ FORMS += \
 RESOURCES += \
     resources.qrc
 
-OTHER_FILES += \
-    qml/ProcessMethodEditor.qml \
-    qml/content/BusyIndicator.qml \
-    qml/content/CategoryDelegate.qml \
-    qml/content/ScrollBar.qml \
-    qml/content/EditCentroidMethod.qml \
-    qml/content/EditElementalCompMethod.qml \
-    qml/content/EditIntegrationMethod.qml \
-    qml/content/EditIsotopeMethod.qml \
-    qml/content/EditLockMassMethod.qml \
-    qml/content/EditMSCalibMethod.qml \
-    qml/content/EditPeakIDTable.qml \
-    qml/content/EditReportMethod.qml \
-    qml/content/EditTargetMethod.qml \
-    qml/content/ScanType.qml \
-    qml/content/CaptionText.qml \
-    qml/content/TextInputBox.qml \
-    qml/content/ScanTypeDetails.qml \
-    qml/content/MethodEditDelegate.qml \
-    qml/content/TitleText.qml
+#OTHER_FILES += \
+#    qml/ProcessMethodEditor.qml \
+#    qml/content/BusyIndicator.qml \
+#    qml/content/CategoryDelegate.qml \
+#    qml/content/ScrollBar.qml \
+#    qml/content/EditCentroidMethod.qml \
+#    qml/content/EditElementalCompMethod.qml \
+#    qml/content/EditIntegrationMethod.qml \
+#    qml/content/EditIsotopeMethod.qml \
+#    qml/content/EditLockMassMethod.qml \
+#    qml/content/EditMSCalibMethod.qml \
+#    qml/content/EditPeakIDTable.qml \
+#    qml/content/EditReportMethod.qml \
+#    qml/content/EditTargetMethod.qml \
+#    qml/content/ScanType.qml \
+#    qml/content/CaptionText.qml \
+#    qml/content/TextInputBox.qml \
+#    qml/content/ScanTypeDetails.qml \
+#    qml/content/MethodEditDelegate.qml \
+#    qml/content/TitleText.qml
+
+DEPENDPATH += qml qml/content
+
+folder_01.source = qml
+folder_01.target = qml
+DEPLOYMENTFOLDERS = folder_01
+IDE_QML_PATH = $$IDE_DATA_PATH/qtwidgets
+include(../../qtplatz_qml.pri)
+qtcAddDeployment()
