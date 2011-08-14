@@ -24,9 +24,10 @@ Rectangle {
             Row {
                 spacing: 8
                 CaptionText { text: "Resolution [Da]:" }
-                TextInputBox {
+                SpinBox {
+                    singleStep: 0.01
                     value: isotopeModel.resolution
-                    onAccepted: value = text
+                    onValueChanged: isotopeModel.resolution = value
                 }
                 CheckBox {
                     text: "Use Electron Mass:"
@@ -37,6 +38,8 @@ Rectangle {
         }
         // <--- end global parameter --------
         Column {
+            anchors.top: isotopeGlobalRect.bottom
+            anchors.topMargin: 6
             width: parent.width
             height: parent.height - isotopeGlobalRect.height
             enabled: true

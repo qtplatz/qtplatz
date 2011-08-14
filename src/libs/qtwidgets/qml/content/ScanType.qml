@@ -60,7 +60,7 @@ Rectangle {
     Text {
         id: caption;
         text: "Scan Type:"; font.pointSize: 13; font.family: "Monotype Corsiva"; color: "navy"
-	anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenter: parent.verticalCenter
     }
 
     Rectangle {
@@ -69,9 +69,9 @@ Rectangle {
         anchors { left: caption.right; top: parent.top; leftMargin: 20; topMargin: 5 }
         width: 46; height: 54
         color: "Transparent"; border.color: "Gray"; radius: 6
-	Text { text: "Tof"; font.pointSize: 13; font.family: "Monotype Corsiva"; 
-	     color: "navy"
-	      anchors.verticalCenter: parent.verticalCenter
+        Text { text: "Tof"; font.pointSize: 13; font.family: "Monotype Corsiva";
+            color: "navy"
+            anchors.verticalCenter: parent.verticalCenter
         }
         // Clicking in here sets the state to the default state, returning the image to
         // its initial position

@@ -1,7 +1,8 @@
 import QtQuick 1.0
 
 Text {
-    width: 150;
+    width: 160;
+    height: parent.height
     id: caption
     font.pointSize: 12
     text: name + ":"

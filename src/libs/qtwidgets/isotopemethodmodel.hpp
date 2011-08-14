@@ -43,6 +43,7 @@ namespace qtwidgets {
             , AdductRole // std::wstring adduct;
             , ChargeRole // size_t chargeState;
             , AmountsRole // double relativeAmounts;
+            , MassRole
         };
 
         explicit IsotopeMethodModel(QObject *parent = 0);
@@ -68,9 +69,11 @@ namespace qtwidgets {
         const adcontrols::IsotopeMethod& method() const { return method_; }
 
         //void insertRow( const QModelIndex& index = QModelIndex() );
-        Q_INVOKABLE void appendRow();
+        Q_INVOKABLE void appendRow( int currentRow );
+        Q_INVOKABLE void removeRow( int currentRow );
+        Q_INVOKABLE void setProperty( int rowIndex, const QString& role, const QVariant& value );
 
-        void appendFormula( const adcontrols::IsotopeMethod::Formula& );
+        void appendFormula( const adcontrols::IsotopeMethod::Formula&, int row = (-1));
 
     signals:
         void valueChanged();

@@ -35,16 +35,21 @@ Rectangle {
         id:frame
         focus:true
         position: "North"
-        tabbar: TabBar{ parent: frame; focus:true; KeyNavigation.tab:button1 }
+        tabbar: TabBar { parent: frame; focus:true; KeyNavigation.tab: button1
+            //tabHSpace: 200
+            //tabWidth: 200
+        }
 
-        property int margins : styleitem.style == "manhattan" ? 8 : 0
+        property int margins : styleitem.style == "mac" ? 8 : 0
         anchors.top: toolbar.bottom
         anchors.bottom: parent.bottom
         anchors.right: parent.right
         anchors.left: parent.left
         anchors.margins: margins
 
+
         Tab {
+            id: tabCentroid
             title: "Centroid"
             EditCentroidMethod {
                 anchors.fill: parent
@@ -52,6 +57,7 @@ Rectangle {
             }
         }
         Tab {
+            id: tabIsotope
             title: "Isotope"
             EditIsotopeMethod {
                 anchors.fill: parent
@@ -60,6 +66,7 @@ Rectangle {
             }
         }
         Tab {
+            id: tabMsCalib
             title: "MS Calib"
             EditMSCalibMethod {
                 id: msCalibMethod
@@ -67,6 +74,7 @@ Rectangle {
             }
         }
         Tab {
+            id: tabElementalComp
             title: "Elemental Comp."
             EditElementalCompMethod {
                 id: elementalCompMethod
@@ -74,6 +82,7 @@ Rectangle {
             }
         }
         Tab {
+            id: tabTarget
             title: "Target"
             EditTargetMethod {
                 id: targetMethod
@@ -81,23 +90,10 @@ Rectangle {
             }
         }
         Tab {
+            id: tabLockmass
             title: "Lock mass"
             EditLockMassMethod {
                 id: lockMassMethod
-                anchors.fill: parent
-            }
-        }
-        Tab {
-            title: "Integration"
-            EditIntegrationMethod {
-                id: integrationMethod
-                anchors.fill: parent
-            }
-        }
-        Tab {
-            title: "Report"
-            EditReportMethod {
-                id: reportMethod
                 anchors.fill: parent
             }
         }

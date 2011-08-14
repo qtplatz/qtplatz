@@ -42,13 +42,6 @@ ProcessMethodView::ProcessMethodView(QWidget *parent) : QDeclarativeView(parent)
                                                       , pIsotopeModel_( new IsotopeMethodModel )
 {
     pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"H", 1, 1.0) );
-    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"Na", 1, 1.0) );
-    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"K", 1, 1.0) );
-    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"Li", 1, 1.0) );
-    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"CH3COOH", 1, 1.0) );    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"H", 1, 1.0) );
-    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"Na", 1, 1.0) );
-    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"K", 1, 1.0) );
-    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"Li", 1, 1.0) );
     pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"CH3COOH", 1, 1.0) );
 }
 
@@ -66,6 +59,7 @@ ProcessMethodView::OnCreate( const adportable::Configuration& config )
 
     pugi::xml_document dom;
     pugi::xml_parse_result result;
+
     if ( ! ( result = dom.load( pugi::as_utf8( xml ).c_str() ) ) )
         return;
 

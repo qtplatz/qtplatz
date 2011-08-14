@@ -226,8 +226,8 @@ DataprocManager::setSimpleDockWidgetArrangement()
         dockWidget->show();
     }
 
-    for ( int i = 1; i < dockWidgets.size(); ++i )
-        m.mainWindow_->tabifyDockWidget( dockWidgets[0], dockWidgets[i] );
+    for ( int i = 2; i < dockWidgets.size(); ++i )
+        m.mainWindow_->tabifyDockWidget( dockWidgets[1], dockWidgets[i] );
 
     QList< QTabBar * > tabBars = m.mainWindow_->findChildren< QTabBar * >();
     foreach( QTabBar * tabBar, tabBars ) 

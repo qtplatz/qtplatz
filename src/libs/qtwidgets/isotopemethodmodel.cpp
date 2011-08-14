@@ -32,10 +32,10 @@ IsotopeMethodModel::IsotopeMethodModel(QObject *parent) : QAbstractListModel( pa
 {
     QHash< int, QByteArray > roles;
     roles[ FormulaRole ] = "formula";    // std::wstring formula
-    roles[ AdductRole ] = "adduct";      // std::wstring adduct;
-    roles[ ChargeRole ] = "chargeState"; // size_t chargeState;
+    roles[ AdductRole ]  = "adduct";      // std::wstring adduct;
+    roles[ ChargeRole ]  = "chargeState"; // size_t chargeState;
     roles[ AmountsRole ] = "amounts";    // double relativeAmounts;
-
+    roles[ MassRole ]    = "mass";       // doubl mass (read only)
     setRoleNames( roles );
 }
 
@@ -46,7 +46,7 @@ IsotopeMethodModel::rowCount( const QModelIndex& ) const
 }
 
 Qt::ItemFlags
-IsotopeMethodModel::flags( const QModelIndex& index ) const
+IsotopeMethodModel::flags( const QModelIndex& ) const
 {
     return Qt::ItemIsSelectable | Qt::ItemIsEditable;
 }
@@ -56,6 +56,7 @@ IsotopeMethodModel::data( const QModelIndex& index, int role ) const
 {
     if ( index.row() < 0 || index.row() >= int( method_.size() ) )
         return QVariant();
+
     adcontrols::IsotopeMethod::vector_type::const_iterator formula = method_.begin() + index.row();
 
     switch ( role ) {
@@ -67,6 +68,8 @@ IsotopeMethodModel::data( const QModelIndex& index, int role ) const
         return int( formula->chargeState );
     case AmountsRole:
         return formula->relativeAmounts;
+    case MassRole:
+        return 999.999;
     default:
         break;
     }
@@ -77,28 +80,40 @@ IsotopeMethodModel::data( const QModelIndex& index, int role ) const
 bool
 IsotopeMethodModel::setData( const QModelIndex& index, const QVariant& value, int role )
 {
+    Q_UNUSED( index );
+    Q_UNUSED( value );
+    Q_UNUSED( role );
     return true;
 }
 
-//Q_INVOKABLE
-/*void
-IsotopeMethodModel::insertRow( const QModelIndex& index )
-{
-}
-*/
-
 void
-IsotopeMethodModel::appendFormula( const adcontrols::IsotopeMethod::Formula& formula )
+IsotopeMethodModel::appendFormula( const adcontrols::IsotopeMethod::Formula& formula, int rowIndex )
 {
+    Q_UNUSED( rowIndex );
+    beginInsertRows( QModelIndex(), method_.size() + 1, method_.size() + 1 );
     method_.addFormula( formula );
-    beginInsertRows( QModelIndex(), method_.size(), method_.size() );
     endInsertRows();
 }
 
 void
-IsotopeMethodModel::appendRow()
+IsotopeMethodModel::appendRow( int currentRow )
 {
-    appendFormula( adcontrols::IsotopeMethod::Formula( L"---", L"Na", 1, 1.0 ));
+    appendFormula( adcontrols::IsotopeMethod::Formula( L"---", L"H", 1, 1.0 ), currentRow );
+}
+
+void
+IsotopeMethodModel::removeRow( int rowIndex )
+{
+    if ( rowIndex >= 0 && unsigned( rowIndex ) < method_.size() - 1 ) {
+        method_.erase( method_.begin() + rowIndex, method_.begin() + rowIndex + 1 );
+        reset();
+    }
+}
+
+void
+IsotopeMethodModel::setProperty( int rowIndex, const QString& role, const QVariant& value )
+{
+    qDebug() << "setProperty(" << rowIndex << ", " << role << ", " << value << ")";
 }
 
 bool

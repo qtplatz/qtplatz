@@ -31,41 +31,49 @@ Rectangle {
             Row {
                 enabled: cbTof.checked ? true : false
                 CaptionText { text: "Peak Width [Da]:" }
-                TextInputBox { id: item1; KeyNavigation.tab: item3; KeyNavigation.backtab: item1
+                SpinBox {
+                    id: item1
+                    KeyNavigation.tab: item3; KeyNavigation.backtab: item1
+                    width: 60
+                    minimumValue: 0.01
+                    maximumValue: 1.00
+                    singleStep: 0.1
                     value: centroidModel.peakwidth_tof_in_da
-                    onAccepted: {
-                        value = text
-                    }
+                    onValueChanged: centroidModel.peakwidth_tof_in_da = value
                 }
 
-                CaptionText { text: "at m/z:"; width: 40 }
-                TextInputBox { id: item2; KeyNavigation.tab: item3; KeyNavigation.backtab: item1
+                CaptionText { text: "at m/z:"; width: 50 }
+                SpinBox { id: item2; KeyNavigation.tab: item3; KeyNavigation.backtab: item1
+                    width: 60
+                    minimumValue: 0
+                    maximumValue: 2000
+                    singleStep: 50
                     value: centroidModel.peakwidth_tof_at_mz
-                    onAccepted: {
-                        value = text
-                    }
+                    onValueChanged: centroidModel.peakwidth_tof_at_mz = value
                 }
             }
             Row {
                 enabled: cbPropo.checked ? true : false
                 CaptionText { text: "Proportional [ppm]:" }
-                TextInputBox { id: item3; KeyNavigation.tab: item1; KeyNavigation.backtab: item2
+                SpinBox { id: item3; KeyNavigation.tab: item1; KeyNavigation.backtab: item2
+                    width: 60
+                    minimumValue: 0
+                    maximumValue: 1000
+                    singleStep: 10
                     value: centroidModel.peakwidth_propo_in_ppm
-                    onAccepted: {
-                        value = text
-                        console.debug("TextInputBos::onAccepted: " + text)
-                    }
+                    onValueChanged: centroidModel.peakwidth_propo_in_ppm = value
                 }
             }
             Row {
                 enabled: cbConst.checked ? true : false
                 CaptionText { text: "Constant [Da]:" }
-                TextInputBox { id: item4; KeyNavigation.tab: item1; KeyNavigation.backtab: item2
+                SpinBox { id: item4; KeyNavigation.tab: item1; KeyNavigation.backtab: item2
+                    width: 60
+                    minimumValue: 0.01
+                    maximumValue: 10.0
+                    singleStep: 0.1
                     value: centroidModel.peakwidth_const_in_da
-                    onAccepted: {
-                        value = text
-                        console.debug("TextInputBos::onAccepted: " + text)
-                    }
+                    onValueChanged: centroidModel.peakwidth_const_in_da = value
                 }
             }
         }
@@ -82,25 +90,25 @@ Rectangle {
             }
         }
 
-        Grid {
-            columns: 2; spacing: 5
-
+        Row {
             CaptionText { text: "Peak Centroid fraction [%]:" }
-            TextInputBox { id: item10; KeyNavigation.tab: item3; KeyNavigation.backtab: item1
+            SpinBox { id: item10; KeyNavigation.tab: item3; KeyNavigation.backtab: item1
+                minimumValue: 10
+                maximumValue: 90
+                singleStep: 10
                 value: centroidModel.peak_centroid_fraction
-                onAccepted: {
-                    value = text
-                    console.debug("TextInputBos::onAccepted: " + text)
-                }
+                onValueChanged: centroidModel.peak_centroid_fraction = value
             }
+        }
 
+        Row {
             CaptionText { text: "Baseline width [Da]:" }
-            TextInputBox { id: item11; KeyNavigation.tab: item1; KeyNavigation.backtab: item2
+            SpinBox { id: item11; KeyNavigation.tab: item1; KeyNavigation.backtab: item2
+                minimumValue: 20
+                maximumValue: 1000
+                singleStep: 10
                 value: centroidModel.baseline_width
-                onAccepted: {
-                    value = text
-                    console.debug("TextInputBos::onAccepted: " + text)
-                }
+                onValueChanged: centroidModel.baseline_width = value
             }
         }
     }
