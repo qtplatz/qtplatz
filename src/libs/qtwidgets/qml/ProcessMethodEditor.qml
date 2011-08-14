@@ -71,6 +71,7 @@ Rectangle {
             EditMSCalibMethod {
                 id: msCalibMethod
                 anchors.fill: parent
+                anchors.topMargin: 16
             }
         }
         Tab {
@@ -79,6 +80,7 @@ Rectangle {
             EditElementalCompMethod {
                 id: elementalCompMethod
                 anchors.fill: parent
+                anchors.topMargin: 16
             }
         }
         Tab {

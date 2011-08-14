@@ -40,6 +40,7 @@ Rectangle {
         Column {
             anchors.top: isotopeGlobalRect.bottom
             anchors.topMargin: 6
+            anchors.left: parent.left; anchors.leftMargin: 8
             width: parent.width
             height: parent.height - isotopeGlobalRect.height
             enabled: true
