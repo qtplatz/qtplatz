@@ -36,11 +36,6 @@
 #include "centroidform.hpp"
 #include "elementalcompositionform.hpp"
 #include "mscalibrationform.hpp"
-#include "peakidtableform.hpp"
-#include "targetingform.hpp"
-#include "reportform.hpp"
-#include "mslockform.hpp"
-#include "chromatographicpeakform.hpp"
 #include "isotopeform.hpp"
 #include "mscalibsummarywidget.hpp"
 #include "peakresultwidget.hpp"
@@ -67,16 +62,6 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
         pWidget = new qtwidgets::IsotopeForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MSCalibrationForm" ) {
         pWidget = new qtwidgets::MSCalibrationForm( parent );
-    } else if ( std::wstring( iid ) == L"qtwidgets::TargetingForm" ) {
-        pWidget = new qtwidgets::TargetingForm( parent );
-    } else if ( std::wstring( iid ) == L"qtwidgets::MSLockForm" ) {
-        pWidget = new qtwidgets::MSLockForm ( parent );
-    } else if ( std::wstring( iid ) == L"qtwidgets::PeakMethodForm" ) {
-        pWidget = new qtwidgets::ChromatographicPeakForm( parent );
-    } else if ( std::wstring( iid ) == L"qtwidgets::PeakIDTableForm" ) {
-        pWidget = new qtwidgets::PeakIDTableForm( parent );
-    } else if ( std::wstring( iid ) == L"qtwidgets::ReportForm" ) {
-        pWidget = new qtwidgets::ReportForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MSCalibSummaryWidget" ) {
         pWidget = new qtwidgets::MSCalibSummaryWidget( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::PeakResultWidget" ) {

@@ -41,6 +41,7 @@ namespace qtwidgets {
         enum Roles {
             FormulaRole = Qt::UserRole + 1 // std::wstring formula;
             , AdductRole // std::wstring adduct;
+            , LoseRole   // std::wstring lose
             , ChargeRole // size_t chargeState;
             , AmountsRole // double relativeAmounts;
             , MassRole

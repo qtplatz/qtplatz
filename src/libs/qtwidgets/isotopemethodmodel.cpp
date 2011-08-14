@@ -33,6 +33,7 @@ IsotopeMethodModel::IsotopeMethodModel(QObject *parent) : QAbstractListModel( pa
     QHash< int, QByteArray > roles;
     roles[ FormulaRole ] = "formula";    // std::wstring formula
     roles[ AdductRole ]  = "adduct";      // std::wstring adduct;
+    roles[ LoseRole ] = "lose";
     roles[ ChargeRole ]  = "chargeState"; // size_t chargeState;
     roles[ AmountsRole ] = "amounts";    // double relativeAmounts;
     roles[ MassRole ]    = "mass";       // doubl mass (read only)
@@ -98,7 +99,7 @@ IsotopeMethodModel::appendFormula( const adcontrols::IsotopeMethod::Formula& for
 void
 IsotopeMethodModel::appendRow( int currentRow )
 {
-    appendFormula( adcontrols::IsotopeMethod::Formula( L"---", L"H", 1, 1.0 ), currentRow );
+    appendFormula( adcontrols::IsotopeMethod::Formula( L"---", L"H", L"H", 1, 1.0 ), currentRow );
 }
 
 void

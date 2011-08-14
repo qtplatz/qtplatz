@@ -12,7 +12,7 @@ Rectangle {
             id: globalScope
 
             Row {
-                spacing: 4
+                spacing: 8
                 CaptionText { text: "Mass" }
                 SpinBox {
                     width: 120
@@ -20,7 +20,7 @@ Rectangle {
             }
 
             Row {
-                spacing: 4
+                spacing: 8
                 CaptionText { text: "Electron Mode" }
                 ButtonRow {
                     exclusive: true
@@ -30,9 +30,8 @@ Rectangle {
                 }
             }
             Row {
-                spacing: 4
-                CaptionText { text: "Electron Mode:" }
-                CheckBox { id: cbx; text: "in ppm" }
+                spacing: 8
+                CaptionText { text: "Tolerance:" }
 
                 CaptionText { text: "mDa"; width: 32; enabled: cbx.checked ? false : true }
                 SpinBox { enabled: cbx.checked ? false : true    }
@@ -40,9 +39,11 @@ Rectangle {
                 CaptionText { text: "ppm"; width: 32; enabled: cbx.checked }
                 SpinBox { enabled: cbx.checked  }
 
+                CheckBox { id: cbx; text: "(ppm)"; anchors.right: parent.right }
+
             }
             Row {
-                spacing: 4
+                spacing: 8
                 CaptionText { text: "Double Bound Equivalent:" }
                 CaptionText { text: "Minimum"; width: 60 }
                 SpinBox {
