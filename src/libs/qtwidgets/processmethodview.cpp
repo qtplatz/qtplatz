@@ -40,9 +40,11 @@ ProcessMethodView::ProcessMethodView(QWidget *parent) : QDeclarativeView(parent)
                                                       , pConfig_( new adportable::Configuration )
                                                       , pCentroidModel_( new CentroidMethodModel )
                                                       , pIsotopeModel_( new IsotopeMethodModel )
+                                                      , pElementalCompModel_( new ElementalCompModel )
+                                                      , pMSCalibrateModel_( new MSCalibrateModel )
 {
-    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"H", L"H", 1, 1.0) );
-    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"CH3COOH", L"H", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"H", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"CH3COOH", 1, 1.0) );
 }
 
 ProcessMethodView::~ProcessMethodView()
@@ -65,11 +67,15 @@ ProcessMethodView::OnCreate( const adportable::Configuration& config )
 
     qmlRegisterType< CentroidMethodModel >( "com.scienceliaison.qml", 1, 0, "CentroidModel" );
     qmlRegisterType< IsotopeMethodModel > ( "com.scienceliaison.qml", 1, 0, "IsotopeModel" );
+    qmlRegisterType< ElementalCompModel > ( "com.scienceliaison.qml", 1, 0, "ElementalCompModel" );
+    qmlRegisterType< MSCalibrateModel > ( "com.scienceliaison.qml", 1, 0, "MSCalibrateModel" );
 
     QDeclarativeContext * ctx = rootContext();
     ctx->setContextProperty( "configXML", qtwrapper::qstring::copy( xml ) );
     ctx->setContextProperty( "centroidModel", pCentroidModel_.get() );
     ctx->setContextProperty( "isotopeModel", pIsotopeModel_.get() );
+    ctx->setContextProperty( "elementalCompModel", pElementalCompModel_.get() );
+    ctx->setContextProperty( "msCalibrateModel", pMSCalibrateModel_.get() );
     setResizeMode( QDeclarativeView::SizeRootObjectToView );
 
 #if defined DEBUG && 0

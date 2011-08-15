@@ -22,11 +22,15 @@
 **
 **************************************************************************/
 
-#pragma warning (disable: 4996)
+#if defined _MSC_VER
+# pragma warning (disable: 4996)
+#endif
 #include "session_i.hpp"
 #include "adinterface/receiverC.h"
 #include "adinterface/signalobserverC.h"
-#pragma warning (default: 4996)
+#if defined _MSC_VER
+# pragma warning (default: 4996)
+#endif
 
 #include <iostream>
 #include "ibrokermanager.hpp"

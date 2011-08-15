@@ -99,7 +99,7 @@ IsotopeMethodModel::appendFormula( const adcontrols::IsotopeMethod::Formula& for
 void
 IsotopeMethodModel::appendRow( int currentRow )
 {
-    appendFormula( adcontrols::IsotopeMethod::Formula( L"---", L"H", L"H", 1, 1.0 ), currentRow );
+    appendFormula( adcontrols::IsotopeMethod::Formula( L"---", L"H", 1, 1.0 ), currentRow );
 }
 
 void

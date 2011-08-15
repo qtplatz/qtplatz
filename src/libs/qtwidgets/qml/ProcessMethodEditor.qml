@@ -1,5 +1,6 @@
 import QtQuick 1.0
 import QtDesktop 0.1
+//import Qt.labs.components.native 1.0
 import "content"
 import com.scienceliaison.qml 1.0
 
@@ -89,6 +90,7 @@ Rectangle {
             EditTargetMethod {
                 id: targetMethod
                 anchors.fill: parent
+                anchors.topMargin: 16
             }
         }
         Tab {
@@ -97,6 +99,7 @@ Rectangle {
             EditLockMassMethod {
                 id: lockMassMethod
                 anchors.fill: parent
+                anchors.topMargin: 16
             }
         }
     }

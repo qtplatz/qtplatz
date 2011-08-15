@@ -48,16 +48,16 @@ namespace adcontrols {
         public:
             std::wstring formula;
             std::wstring adduct;
-            std::wstring lose;
             size_t chargeState;
             double relativeAmounts;
+            bool positive;
             Formula();
             Formula( const Formula& );
             Formula( const std::wstring& formula
                      , const std::wstring& adduct
-                     , const std::wstring& lose
                      , size_t chargeState
-                     , double relativeAmounts );
+                     , double relativeAmounts
+                     , bool positive = true );
         private:
             friend class boost::serialization::access;
             template<class Archive>
@@ -66,9 +66,9 @@ namespace adcontrols {
                 (void)version;
                 ar & BOOST_SERIALIZATION_NVP(formula);
                 ar & BOOST_SERIALIZATION_NVP(adduct);
-                ar & BOOST_SERIALIZATION_NVP(lose);
                 ar & BOOST_SERIALIZATION_NVP(chargeState);
                 ar & BOOST_SERIALIZATION_NVP(relativeAmounts);
+                ar & BOOST_SERIALIZATION_NVP(positive);
             }
         };
 

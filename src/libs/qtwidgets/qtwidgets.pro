@@ -44,7 +44,9 @@ SOURCES += centroiddelegate.cpp \
     processmethodview.cpp \
     centroidmethodmodel.cpp \
     isotopemethodmodel.cpp \
-    chemicalformula.cpp
+    chemicalformula.cpp \
+    elementalcompmodel.cpp \
+    mscalibratemodel.cpp
 
 
 HEADERS += centroiddelegate.hpp \
@@ -70,7 +72,9 @@ HEADERS += centroiddelegate.hpp \
     processmethodview.hpp \
     centroidmethodmodel.hpp \
     isotopemethodmodel.hpp \
-    chemicalformula.hpp
+    chemicalformula.hpp \
+    elementalcompmodel.hpp \
+    mscalibratemodel.hpp
 
 FORMS += \
     centroidform.ui \
