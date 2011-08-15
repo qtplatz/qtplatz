@@ -36,7 +36,6 @@
 #include "centroidform.hpp"
 #include "elementalcompositionform.hpp"
 #include "mscalibrationform.hpp"
-#include "isotopeform.hpp"
 #include "mscalibsummarywidget.hpp"
 #include "peakresultwidget.hpp"
 #include <adplugin/lifecycle.hpp>
@@ -58,8 +57,6 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
         pWidget = new qtwidgets::CentroidForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::ElementalCompositionForm" ) {
         pWidget = new qtwidgets::ElementalCompositionForm( parent );
-    } else if ( std::wstring( iid ) == L"qtwidgets::IsotopeForm" ) {
-        pWidget = new qtwidgets::IsotopeForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MSCalibrationForm" ) {
         pWidget = new qtwidgets::MSCalibrationForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MSCalibSummaryWidget" ) {

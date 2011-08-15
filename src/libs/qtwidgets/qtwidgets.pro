@@ -26,8 +26,6 @@ SOURCES += centroiddelegate.cpp \
         elementalcompositiondelegate.cpp \
         elementalcompositionform.cpp \
         factory.cpp \
-        isotopedelegate.cpp \
-        isotopeform.cpp \
         logwidget.cpp \
         mscalibratedelegate.cpp \
         mscalibrationform.cpp \
@@ -54,8 +52,6 @@ HEADERS += centroiddelegate.hpp \
         elementalcompositiondelegate.hpp \
         elementalcompositionform.hpp \
         factory.hpp \
-        isotopedelegate.hpp \
-        isotopeform.hpp \
         logwidget.hpp \
         mscalibratedelegate.hpp \
         mscalibrationform.hpp \
@@ -117,3 +113,7 @@ DEPLOYMENTFOLDERS = folder_01
 IDE_QML_PATH = $$IDE_DATA_PATH/qtwidgets
 include(../../qtplatz_qml.pri)
 qtcAddDeployment()
+
+
+
+

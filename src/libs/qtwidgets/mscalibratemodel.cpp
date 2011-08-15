@@ -24,6 +24,8 @@
 
 #include "mscalibratemodel.hpp"
 
+using namespace qtwidgets;
+
 MSCalibrateModel::MSCalibrateModel(QObject *parent) :
     QObject(parent)
 {
