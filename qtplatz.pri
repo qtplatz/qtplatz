@@ -73,7 +73,7 @@ macx {
     IDE_LIBRARY_PATH = $$IDE_BUILD_TREE/$$IDE_LIBRARY_BASENAME/qtplatz
     IDE_PLUGIN_PATH  = $$IDE_LIBRARY_PATH/plugins
     IDE_LIBEXEC_PATH = $$IDE_APP_PATH # FIXME
-    IDE_DATA_PATH    = $$IDE_BUILD_TREE/share/qtplatz
+    IDE_DATA_PATH    = $$IDE_BUILD_TREE/share
     IDE_DOC_PATH     = $$IDE_BUILD_TREE/share/doc/qtplatz
     !isEqual(IDE_SOURCE_TREE, $$IDE_BUILD_TREE):copydata = 1
 }
