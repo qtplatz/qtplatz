@@ -7,7 +7,6 @@
   <!-- <ServantConfiguration name="servant"> -->
   <Module name="adbroker" type="corba::servant" filename="/ScienceLiaison/adbroker$(configuration).dll"/>
   <Module name="adcontroller" type="corba::servant" filename="/ScienceLiaison/adcontroller$(configuration).dll"/>
-  <!--	<Module name="tofcontroller" type="corba::servant" filename="/ScienceLiaison/tofcontroller$(configuration).dll"/> -->
   <Module name="tofspectrometer" type="adcontrols::massspectrometer" filename="/ScienceLiaison/tofspectrometer$(configuration).dll"/>
   <Module name="infitofcontroller" type="corba::servant" filename="/MSI/infitofcontroller$(configuration).dll"/>
   <Module name="infitofspectrometer" type="adcontrols::massspectrometer" filename="/MSI/infitofspectrometer$(configuration).dll"/>
@@ -24,7 +23,6 @@
       <Component name="adcontroller" module="adcontroller"/>
       <Configuration name="InstrumentConfiguration">
         <Configuration name="infitofcontroller.1" id="infitof.1" type="object_ref" ns_name="infitofcontroller.session"/>
-        <Configuration name="tofcontroller.1" id="example.1" type="object_ref" ns_name="tofcontroller.session"/>
       </Configuration>
     </Configuration>
     
@@ -32,16 +30,12 @@
     <Configuration name="infitofcontoller" type="orbLoader" ns_name="infitofcontroller.session">
       <Component name="infitofcontroller" module="infitofcontroller"/>
     </Configuration>
-    <!--
-	<Configuration name="tofcontoller" type="orbLoader" ns_name="tofcontroller.session">
-	  <Component name="tofcontroller" module="tofcontroller"/>
-	</Configuration>
-	-->
     
     <!-- spectrometer -->
     <Configuration name="infitofspectrometer" type="MassSpectrometer">
       <Component name="infitofspectrometer" module="infitofspectrometer"/>
     </Configuration>
+
     <Configuration name="tofspectrometer" type="MassSpectrometer">
       <Component name="tofspectrometer" module="tofspectrometer"/>
     </Configuration>

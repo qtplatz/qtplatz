@@ -89,42 +89,7 @@ ServantPlugin::ServantPlugin() : pConfig_( 0 )
 
 namespace servant {
     namespace internal {
-        class ServantUtils {
-        public:
-#if 0
-            static Broker::Manager_ptr initialize_broker( CORBA::ORB_ptr orb
-                                                          , PortableServer::POA_ptr poa
-                                                          , PortableServer::POAManager_ptr poaMgr
-                                                          , std::string& iorBroker )	{
-                adBroker::initialize( orb, poa, poaMgr ); 
-                iorBroker = adBroker::activate();
-                // TODO: check if iorBroker is approprate or not
-                if ( ! iorBroker.empty() )
-                    adplugin::manager::instance()->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker ;)
-                
-                // ---- private naming service (Broker::Manager) start ----
-                CORBA::Object_var obj = orb->string_to_object( iorBroker.c_str() );
-                Broker::Manager_var mgr = Broker::Manager::_narrow( obj );
-                if ( CORBA::is_nil( mgr ) )
-                    return 0;
-                // store broker's ior to self
-                for ( size_t nTrial = 0; nTrial < 25 ; ++nTrial ) {
-                    try {
-                        mgr->register_ior( acewrapper::constants::adbroker::manager::_name(), iorBroker.c_str() );
-                        break;
-                    } catch ( CORBA::Exception& ex ) {
-                        adportable::debug( __FILE__, __LINE__ ) << "CORBA::Exception: " << ex._info().c_str();
-                        if ( nTrial > 5 )
-                            QMessageBox::warning(0, "ServantPlugin - Broker::Manager::registor_ior", ex._info().c_str() );
-                        else
-                            QMessageBox::critical(0, "ServantPlugin - Broker::Manager::registor_ior", ex._info().c_str() );
-                        ACE_OS::sleep(0);
-                    }
-                }
-                return mgr._retn();
-            }
-#endif
-        };
+
         struct adbroker_initializer {
             servant::ORBServantManager * pMgr_;
             std::wstring file_;
@@ -229,7 +194,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     servant::ORBServantManager * pMgr = servant::singleton::orbServantManager::instance();
     pMgr->init( 0, 0 );
     if ( pMgr->test_and_set_thread_flag() ) {
-        ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( servant::ORBServantManager::thread_entry ), reinterpret_cast<void *>(pMgr) );
+        using servant::ORBServantManager;
+        ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), pMgr );
         ACE_OS::sleep(0);
     }
     adplugin::ORBManager::instance()->initialize( pMgr->orb(), pMgr->root_poa() );
@@ -404,6 +370,7 @@ ServantPlugin::final_close()
     try {
         servant::singleton::orbServantManager::instance()->orb()->shutdown();
         servant::singleton::orbServantManager::instance()->fini();
+        servant::singleton::orbServantManager::instance()->wait();
     } catch ( CORBA::Exception& ex ) {
         adportable::debug dbg( __FILE__, __LINE__ );
         dbg << ex._info().c_str();        dbg << ex._info().c_str();
