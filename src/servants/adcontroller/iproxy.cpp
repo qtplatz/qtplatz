@@ -48,33 +48,33 @@ iProxy::setConfiguration( const adportable::Configuration& c )
     if ( config_.attribute( L"type" ) == L"object_ref" ) { // CORBA Object
 
         name_ = config_.name();
-		std::string nsname = adportable::string::convert( config_.attribute( L"ns_name" ) );
-		CORBA::ORB_var orb = adcontroller::singleton::manager::instance()->orb();
-		std::string iorBroker = adcontroller::singleton::manager::instance()->broker_manager_ior();
+        std::string nsname = adportable::string::convert( config_.attribute( L"ns_name" ) );
+        CORBA::ORB_var orb = adcontroller::singleton::manager::instance()->orb();
+        std::string iorBroker = adcontroller::singleton::manager::instance()->broker_manager_ior();
 
         if ( ! nsname.empty() ) {
-			Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, iorBroker );
-			if ( CORBA::is_nil( mgr ) )
-				throw std::runtime_error( "iProxy::setConfiguration -- can't get Broker::Manager reference" );
+            Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, iorBroker );
+            if ( CORBA::is_nil( mgr ) )
+                throw std::runtime_error( "iProxy::setConfiguration -- can't get Broker::Manager reference" );
 
-			std::string ior = mgr->ior( nsname.c_str() );
-			if ( ! ior.empty() ) {
-				try {
-					// acewrapper::NS::resolve_name( orb, nsname );
-					CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
-					if ( ! CORBA::is_nil( obj.in() ) ) {
-						impl_ = Instrument::Session::_narrow( obj );
-						if ( ! CORBA::is_nil( impl_ ) ) 
-							objref_ = true;
-					} 
-				} catch ( CORBA::Exception& ex ) {
-					adportable::debug() << "adcontroller::iproxy::setConfiguration '" << nsname << "' " << ex._info().c_str();
-				}
-			} else {
-				adportable::debug() << "iProxy::setConfiguration -- object '" << nsname << "' not registerd";
-			}
-		}
-	}
+            std::string ior = mgr->ior( nsname.c_str() );
+            if ( ! ior.empty() ) {
+                try {
+                    // acewrapper::NS::resolve_name( orb, nsname );
+                    CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
+                    if ( ! CORBA::is_nil( obj.in() ) ) {
+                        impl_ = Instrument::Session::_narrow( obj );
+                        if ( ! CORBA::is_nil( impl_ ) ) 
+                            objref_ = true;
+                    } 
+                } catch ( CORBA::Exception& ex ) {
+                    adportable::debug() << "adcontroller::iproxy::setConfiguration '" << nsname << "' " << ex._info().c_str();
+                }
+            } else {
+                adportable::debug() << "iProxy::setConfiguration -- object '" << nsname << "' not registerd";
+            }
+        }
+    }
 }
 
 // POA_Receiver
@@ -85,9 +85,9 @@ iProxy::message( ::Receiver::eINSTEVENT msg, CORBA::ULong value )
     cdr << name_.c_str();
     cdr << msg;
     cdr << value;
-	ACE_Message_Block * mb = cdr.begin()->duplicate();
-	mb->msg_type( constants::MB_MESSAGE );
-	broker_.putq( mb );
+    ACE_Message_Block * mb = cdr.begin()->duplicate();
+    mb->msg_type( constants::MB_MESSAGE );
+    broker_.putq( mb );
 }
 
 // POA_Receiver
@@ -102,17 +102,17 @@ iProxy::log( const EventLog::LogMessage& log )
 void
 iProxy::shutdown()
 {
-	// connection shoutdown ack.
-	// do nothing
+    // connection shoutdown ack.
+    // do nothing
 }
 
 // POA_Receiver
 void
 iProxy::debug_print( CORBA::Long pri, CORBA::Long cat, const char * text )
 {
-	ACE_UNUSED_ARG(pri);
-	ACE_UNUSED_ARG(cat);
-	ACE_UNUSED_ARG(text);
+    ACE_UNUSED_ARG(pri);
+    ACE_UNUSED_ARG(cat);
+    ACE_UNUSED_ARG(text);
 }
 
 
@@ -125,47 +125,47 @@ iProxy::reset_clock()
 bool
 iProxy::connect( const std::wstring& token )
 {
-	if ( objref_ )
-		return impl_->connect( this->_this(), token.c_str() );
-	return false;
+    if ( objref_ )
+        return impl_->connect( this->_this(), token.c_str() );
+    return false;
 }
 
 bool
 iProxy::initialize()
 {
     // in order to catch up all event, connect first, and then initialize
-	if ( objref_ )
-		return impl_->initialize();
-	return false;
+    if ( objref_ )
+        return impl_->initialize();
+    return false;
 }
 
 bool
 iProxy::request_shutdown()
 {
-	if ( objref_ )
-		return impl_->shutdown();
-	return false;
+    if ( objref_ )
+        return impl_->shutdown();
+    return false;
 }
 
 bool
 iProxy::eventOut( unsigned long event )
 {
-	if ( objref_ )
-		return impl_->event_out( event );
-	return false;
+    if ( objref_ )
+        return impl_->event_out( event );
+    return false;
 }
 
 
 bool
 iProxy::prepare_for_run( const SampleBroker::SampleSequenceLine&, const ControlMethod::Method& m )
 {
-	return impl_->prepare_for_run( const_cast<ControlMethod::Method *>(&m) );
+    return impl_->prepare_for_run( const_cast<ControlMethod::Method *>(&m) );
 }
 
 bool
 iProxy::startRun()
 {
-	return impl_->start_run();
+    return impl_->start_run();
 }
 
 bool
@@ -196,17 +196,17 @@ iProxy::getStatus()
 Instrument::Session_ptr
 iProxy::getSession()
 {
-	return Instrument::Session::_duplicate( impl_ );
+    return Instrument::Session::_duplicate( impl_ );
 }
 
 void
 iProxy::objId( unsigned long id )
 {
-	objId_ = id;
+    objId_ = id;
 }
 
 unsigned long
 iProxy::objId() const
 {
-	return objId_;
+    return objId_;
 }

@@ -39,25 +39,25 @@ manager_i::~manager_i(void)
 void
 manager_i::shutdown()
 {
-	// PortableServer::POA_var poa = singleton::manager::instance()->poa();
+    // PortableServer::POA_var poa = singleton::manager::instance()->poa();
 }
 
 ControlServer::Session_ptr
 manager_i::getSession( const CORBA::WChar * token )
 {
-	PortableServer::POA_var poa = singleton::manager::instance()->poa(); // getServantManager()->root_poa();
+    PortableServer::POA_var poa = singleton::manager::instance()->poa(); // getServantManager()->root_poa();
 
     if ( CORBA::is_nil( poa ) )
         return 0;
 
     if ( session_list_.empty() )
-		adcontroller::singleton::iBrokerManager::instance()->manager_initialize();
+        adcontroller::singleton::iBrokerManager::instance()->manager_initialize();
 
     session_map_type::iterator it = session_list_.find( token );
     if ( it == session_list_.end() ) 
-		session_list_[ token ].reset( new adcontroller::session_i() );
+        session_list_[ token ].reset( new adcontroller::session_i() );
 
     CORBA::Object_ptr obj = poa->servant_to_reference( session_list_[ token ].get() );
-	return ControlServer::Session::_narrow( obj );
+    return ControlServer::Session::_narrow( obj );
 }
 

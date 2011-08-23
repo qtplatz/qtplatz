@@ -357,20 +357,10 @@ ServantPlugin::final_close()
         }
     }
     Logger::shutdown();
-    /***
-    // now adBroker is in list of above vector, should be deactivated by now
-    try {
-        // adBroker::deactivate();
-    } catch ( CORBA::Exception& ex ) {
-        adportable::debug dbg( __FILE__, __LINE__ );
-        dbg << ex._info().c_str();
-        QMessageBox::critical( 0, dbg.where().c_str(), dbg.str().c_str() );
-    }
-    ***/
+
     try {
         servant::singleton::orbServantManager::instance()->orb()->shutdown();
         servant::singleton::orbServantManager::instance()->fini();
-        servant::singleton::orbServantManager::instance()->wait();
     } catch ( CORBA::Exception& ex ) {
         adportable::debug dbg( __FILE__, __LINE__ );
         dbg << ex._info().c_str();        dbg << ex._info().c_str();

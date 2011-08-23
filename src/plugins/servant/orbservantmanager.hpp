@@ -48,7 +48,8 @@ namespace servant {
 			   , PortableServer::POAManager_ptr = 0);
 	
 	int init( int ac, ACE_TCHAR * av[] );
-	bool fini( bool wait = true );
+	bool fini();
+        bool wait();
 	void run();
 	
 	CORBA::ORB_ptr orb();
@@ -60,7 +61,6 @@ namespace servant {
 	void deactivate( const std::string& id );
 	
         bool spawn();
-        bool wait();
 	
 	bool test_and_set_thread_flag();
 	static void * thread_entry( void * me );
@@ -70,7 +70,7 @@ namespace servant {
 	bool thread_running_;
         ACE_Recursive_Thread_Mutex mutex_;
 	TAO_ORB_Manager * orbmgr_;
-        ACE_thread_t threadid_;
+        ACE_thread_t t_handle_;
     };
     
     namespace singleton {

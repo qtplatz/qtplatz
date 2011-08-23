@@ -82,9 +82,6 @@ using namespace acewrapper;
 
 static int debug_flag = 0;
 static bool __aborted = false;
-//static bool __own_thread = false;
-
-// static Receiver * __preceiver_debug;
 std::string __ior_session;
 
 //-----------------------------------------------
@@ -99,33 +96,22 @@ adController::adController()
 
 adController::operator bool () const
 { 
-	return true;
+    return true;
 }
 
 void
 adController::_abort_server()
 {
-	__aborted = true;
-	adController::_deactivate();
+    __aborted = true;
+    adController::_deactivate();
 }
 
 bool
 adController::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::POAManager_ptr mgr )
 {
-/*
-	if ( ! orb ) {
-		int ac = 0;
-		orb = CORBA::ORB_init( ac, 0 );
-	}
-*/
-	ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
+    ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
     pServant->initialize( orb, poa, mgr );
-/*
-	ORBServantManager * pMgr = new ORBServantManager( orb );
-	pMgr->init( 0, 0 );
-	pServant->setServantManager( pMgr );
-*/
-	return true;
+    return true;
 }
 
 void
@@ -137,15 +123,15 @@ adController::initial_reference( const char * iorBroker )
 const char *
 adController::activate()
 {
-	ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
-	pServant->activate();
+    ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
+    pServant->activate();
     return pServant->ior().c_str();
 }
 
 bool
 adController::deactivate()
 {
-	return adController::_deactivate();
+    return adController::_deactivate();
 }
 
 bool

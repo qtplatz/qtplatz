@@ -19,6 +19,8 @@ using namespace servant;
 
 ORBServantManager::~ORBServantManager()
 {
+    delete orbmgr_;
+    ACE_DEBUG( (LM_DEBUG, "----- ORBServantManager closed cleanly ----- \n" ) );
 }
 
 ORBServantManager::ORBServantManager( CORBA::ORB_ptr orb
@@ -26,7 +28,7 @@ ORBServantManager::ORBServantManager( CORBA::ORB_ptr orb
 				      , PortableServer::POAManager_ptr poamanager ) : init_count_(0)  
 										    , thread_running_(false)
 										    , orbmgr_(0)
-                                                                                    , threadid_(0)
+                                                                                    , t_handle_(0)
 {
     orbmgr_ = new TAO_ORB_Manager( orb, poa, poamanager );
 }
@@ -42,22 +44,25 @@ ORBServantManager::init( int ac, ACE_TCHAR * av[] )
 }
 
 bool
-ORBServantManager::fini( bool wait )
+ORBServantManager::fini()
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
 
-    if ( init_count_ && --init_count_ == 0 ) {
-        if ( orbmgr_->fini() == 0 && wait )
-            return ACE_Thread::join( threadid_ ) == 0;
-    }
+    if ( init_count_ && --init_count_ == 0 )
+        return orbmgr_->fini() == 0;
+
     return false;
 }
 
 bool
 ORBServantManager::wait()
 {
-    if ( threadid_ )
-        return ACE_Thread::join( threadid_ ) == 0;
+    if ( t_handle_ ) {
+        ACE_thread_t departed;
+        ACE_THR_FUNC_RETURN status;
+        ACE_DEBUG( (LM_DEBUG, "----- ORBServantManager::wait -- join(%x)\n", t_handle_ ) );
+        return ACE_Thread::join( t_handle_, &departed, &status );
+    }
     return false;
 }
 
@@ -111,7 +116,7 @@ ORBServantManager::test_and_set_thread_flag()
 void
 ORBServantManager::run()
 {
-    threadid_ = ACE_Thread::self();
+    t_handle_ = ACE_Thread::self();
     try {
         orbmgr_->run();
         thread_running_ = false;
