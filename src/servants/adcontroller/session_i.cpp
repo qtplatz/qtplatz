@@ -69,7 +69,7 @@ session_i::session_i()
 CORBA::WChar *
 session_i::software_revision()
 {
-   return const_cast<wchar_t *>( L"1.0" );
+    return const_cast<wchar_t *>( L"1.0" );
 }
 
 CORBA::Boolean
