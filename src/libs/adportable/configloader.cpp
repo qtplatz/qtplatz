@@ -62,14 +62,14 @@ ConfigLoader::loadConfigFile( adportable::Configuration& config, const std::wstr
     pugi::xml_document dom;
     pugi::xml_parse_result result = dom.load_file( pugi::as_utf8( file ).c_str() );
     if ( ! result ) {
-    adportable::debug dbg( __FILE__, __LINE__ );
+        adportable::debug dbg( __FILE__, __LINE__ );
         dbg << "adportable::ConfigLoader::loadConfigFile(\"" << file << "\")" << result.description();
-    return false;
+        return false;
     }
     
     pugi::xpath_node_set list = dom.select_nodes( pugi::as_utf8( query ).c_str() );
     if ( list.size() == 0 )
-    return false;
+        return false;
     
     if ( list.size() == 1 ) {
         if ( ConfigLoaderImpl::load( config, list[0].node() ) )
@@ -161,13 +161,13 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& n
         std::string module_name = module_attr.attribute().value();
     
     do {
-            std::string interface = node.select_single_node( "./Component/@interface" ).attribute().value();
-            if ( ! interface.empty() )
-                config.interface( pugi::as_wide( interface ) );
+        std::string interface = node.select_single_node( "./Component/@interface" ).attribute().value();
+        if ( ! interface.empty() )
+            config.interface( pugi::as_wide( interface ) );
     } while (0);
     
-        if ( module_name.empty() )
-            return false;
+    if ( module_name.empty() )
+        return false;
     
         std::string query = "//Module[@name=\'" + module_name + "\']";
         pugi::xpath_node module_element = node.select_single_node( query.c_str() );
@@ -175,44 +175,51 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& n
         if ( module_element ) {
         
             Module module( pugi::helper::to_wstring( module_element.node() ) ); // import module_element into 'module'
-        
+
+            std::string reference = module_element.node().attribute( "reference" ).value();
+            if ( ! reference.empty() ) {
+                module.object_reference( reference );
+                config.module( module );
+            }
+
             std::string filename = module_element.node().attribute( "filename" ).value();
-            if ( filename.empty() )
-                return false;
-            std::string::size_type pos = filename.find_last_of( "$" );
-            if ( pos != std::wstring::npos ) {
-                filename = filename.substr(0, pos);
+            if ( ! filename.empty() ) {
+
+                std::string::size_type pos = filename.find_last_of( "$" );
+                if ( pos != std::wstring::npos ) {
+                    filename = filename.substr(0, pos);
 #if defined WIN32
 # if defined _DEBUG
-                filename += "d.dll";
+                    filename += "d.dll";
 # else
-                filename += ".dll";
+                    filename += ".dll";
 # endif
 #elif defined __MACH__
 # if defined DEBUG
-                filename += "_debug.dylib";
+                    filename += "_debug.dylib";
 #else
-                filename += ".dylib";
+                    filename += ".dylib";
 # endif
 #else
 # if defined DEBUG
-                filename += ".so";
+                    filename += ".so";
 # else
-                filename += ".so";
+                    filename += ".so";
 # endif
 #endif
-            }
+                }
 #if defined __linux__ || defined __MACH__
-            do {
-                boost::filesystem::path path( filename );
-                boost::filesystem::path filepath = path.branch_path() / ( std::string("lib") + path.leaf().string() );
-                filename = filepath.string();
-            } while(0);
+                do {
+                    boost::filesystem::path path( filename );
+                    boost::filesystem::path filepath = path.branch_path() / ( std::string("lib") + path.leaf().string() );
+                    filename = filepath.string();
+                } while(0);
 #endif      
-            module.library_filename( pugi::as_wide( filename ) );
-            config.module( module );
+                module.library_filename( pugi::as_wide( filename ) );
+                config.module( module );
             
-            return true;
+                return true;
+            }
         }
     }
     return false;

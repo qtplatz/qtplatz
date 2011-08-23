@@ -185,9 +185,9 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     adportable::debug( __FILE__, __LINE__ ) << "loading configuration:" << configFile;
 
     if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
-		adportable::debug dbg( __FILE__, __LINE__ );
-		dbg << "ServantPlugin::initialize loadConfig '" << configFile << "' load failed";
-		QMessageBox::warning( 0, dbg.where().c_str(), dbg.str().c_str() );
+        adportable::debug dbg( __FILE__, __LINE__ );
+        dbg << "ServantPlugin::initialize loadConfig '" << configFile << "' load failed";
+        QMessageBox::warning( 0, dbg.where().c_str(), dbg.str().c_str() );
     }
     
     // ------------ Broker::Manager initialize first --------------------
@@ -239,13 +239,13 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
 	    adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
 	    if ( loader ) {
-			loader.initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
-			loader.initial_reference( iorBroker.c_str() );
-			std::string ior = loader.activate();            // activate object
-			mgr->register_ior( ns_name.c_str(), ior.c_str() ); // set ior to Broker::Manager
+                loader.initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
+                loader.initial_reference( iorBroker.c_str() );
+                std::string ior = loader.activate();               // activate object
+                mgr->register_ior( ns_name.c_str(), ior.c_str() ); // set ior to Broker::Manager
 	    } else {
-			it->attribute( L"loadstatus", L"failed" );
-			// QMessageBox::warning( 0, "ServantPlugin", loader.error_description() );
+                it->attribute( L"loadstatus", L"failed" );
+                // QMessageBox::warning( 0, "ServantPlugin", loader.error_description() );
 	    }
 	}
     }
