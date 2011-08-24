@@ -71,6 +71,7 @@ module Broker {
     };
 
     interface Manager {
+        void shutdown();
         Session getSession( in wstring connStr );
         Logger getLogger();
         void register_ior( in string name, in string ior );     

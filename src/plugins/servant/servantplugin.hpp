@@ -26,6 +26,7 @@
 #pragma once
 
 #include <extensionsystem/iplugin.h>
+#include <adinterface/brokerC.h>
 
 namespace adportable {
     class Configuration;
@@ -52,10 +53,10 @@ namespace servant {
 	    
     public slots:
 	
-	
     private:
-	void final_close();
+        void final_close();
         adportable::Configuration * pConfig_;
         internal::ServantPluginImpl * pImpl_;
+        Broker::Manager_var broker_manager_;
     };
 }

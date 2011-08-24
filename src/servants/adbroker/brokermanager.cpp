@@ -34,7 +34,7 @@ bool BrokerManager::initialized_ = false;
 namespace adbroker {
     template<> Task * BrokerManager::get<Task>()
     { 
-	return pTask_;
+        return pTask_;
     }
 }
 

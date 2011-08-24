@@ -106,7 +106,7 @@ adBroker::activate()
 bool
 adBroker::deactivate()
 {
-	adbroker::BrokerManager::terminate();
+	adbroker::BrokerManager::terminate(); // terminate task
 	adbroker::singleton::manager::instance()->deactivate();
 	return true;
 }

@@ -25,6 +25,7 @@
 
 #include "objectdiscovery.hpp"
 #include <acewrapper/mutex.hpp>
+#include <adportable/debug.hpp>
 #include <ace/Thread.h>
 #include <ace/Log_Msg.h>
 #include <ace/Event_Handler.h>
@@ -99,16 +100,19 @@ ObjectDiscovery::event_loop()
     t_handle_ = ACE_Thread::self();
     
     reactor_->owner( t_handle_ );
-    
+    adportable::debug() << "============= ObjectDiscovery::event_loop started... ===============";
     ACE_Reactor * reactor = ACE_Reactor::instance();
-    while ( reactor->handle_events() >= 0 )
-        ;
-    ACE_DEBUG( (LM_DEBUG, "ObjectDiscovery::event_loop done") );
+    int res;
+    while ( ( res = reactor->handle_events() ) >= 0 ) {
+        adportable::debug() << "--- ObjectDiscovery::event_loop " << res;
+    }
+    adportable::debug() << "### ObjectDiscovery::event_loop done";
 }
 
 void
 ObjectDiscovery::close()
 {
+    adportable::debug() << "============= ObjectDiscovery::close() ===============";
     mcast_->close();
     dgram_->close();
     if ( t_handle_ ) {
@@ -121,6 +125,7 @@ ObjectDiscovery::close()
 bool
 ObjectDiscovery::open( u_short port )
 {
+    adportable::debug() << "============= ObjectDiscovery::open() ===============";
     return mcast_->open( port ); // || dgram_.open( port );
 }
 
@@ -136,6 +141,7 @@ ObjectDiscovery::operator()( const char * pbuf, ssize_t size, const ACE_INET_Add
 void
 ObjectDiscovery::registor_lookup( const std::string& name, const std::string& ident )
 {
+    adportable::debug() << "============= ObjectDiscovery::registor_lookup(" << name << ", " << ident << ") ===============";
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     list_[ ident ] = name;
     nlist_ = list_.size();

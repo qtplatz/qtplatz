@@ -275,33 +275,33 @@ manager_impl::orbLoader( const std::wstring& file )
     orbLoadersType::iterator it = orbLoaders_.find( file );
     
     if ( it != orbLoaders_.end() )
-	return *it->second;
+        return *it->second;
 
     boost::filesystem::path filepath( file );
     boost::system::error_code ec;
     if ( ! boost::filesystem::exists( filepath, ec ) ) {
         adportable::debug dbg(__FILE__, __LINE__);
         dbg << "file \"" << filepath.string() << "\" is requested to load library but it does not exist";
-	failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
-	return *failedLoaders_[ file ];
+        failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
+        return *failedLoaders_[ file ];
     }
     QLibrary lib( filepath.string().c_str() );
     if ( lib.load() ) {
-	typedef adplugin::orbLoader * (*instance_t)();
-	instance_t instance = reinterpret_cast<instance_t>( lib.resolve( "instance" ) );
-	if ( instance ) {
-	    boost::shared_ptr< adplugin::orbLoader > loader( instance() );
-	    if ( loader )
-		orbLoaders_[ file ] = loader;
-	} else {
+        typedef adplugin::orbLoader * (*instance_t)();
+        instance_t instance = reinterpret_cast<instance_t>( lib.resolve( "instance" ) );
+        if ( instance ) {
+            boost::shared_ptr< adplugin::orbLoader > loader( instance() );
+            if ( loader )
+                orbLoaders_[ file ] = loader;
+        } else {
             adportable::debug dbg(__FILE__, __LINE__);
             dbg << "library \"" << filepath.string() << "\" loaded but no \"instance()\" method";
-	    failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
-	    return *failedLoaders_[ file ];
-	}
+            failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
+            return *failedLoaders_[ file ];
+        }
     }
     if ( ( it = orbLoaders_.find( file ) ) != orbLoaders_.end() )
-	return *it->second;
+        return *it->second;
 
     // exists library but failed to load
     adportable::debug dbg(__FILE__, __LINE__);
