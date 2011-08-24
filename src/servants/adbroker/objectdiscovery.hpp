@@ -23,18 +23,41 @@
 **
 **************************************************************************/
 
-#pragma once
+#ifndef OBJECTDISCOVERY_H
+#define OBJECTDISCOVERY_H
 
-class ACE_Time_Value;
+#include <ace/Reactor.h>
+#include <ace/Singleton.h>
+#include <map>
+#include <string>
+
 class ACE_INET_Addr;
+class ACE_Recursive_Thread_Mutex;
 
-namespace acewrapper {
+namespace adbroker {
 
-    class Callback {
-    public:
-        virtual void operator()(const char *, int, const ACE_INET_Addr& ) { /* handle input */ }
-        virtual void operator()(const ACE_Time_Value&, const void * ) { /* handle_timeout */ }
-    };
-  
+class ObjectDiscovery {
+public:
+    ~ObjectDiscovery();
+    ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex );
+    void event_loop();
+    static void * thread_entry( void * );
+    bool open( u_short port = 0 );
+    void close();
+    void operator()( const char *, ssize_t, const ACE_INET_Addr& );
+    void registor_lookup( const std::string& name, const std::string& ident );
+    void unregistor_lookup( const std::string& ident );
+
+private:
+    ACE_thread_t t_handle_;
+    ACE_Reactor * reactor_;
+    class McastHandler * mcast_;
+    class DgramHandler * dgram_;
+    size_t nlist_;
+    ACE_Recursive_Thread_Mutex& mutex_;
+    std::map< std::string, std::string> list_;
+};
+
 }
 
+#endif // OBJECTDISCOVERY_H

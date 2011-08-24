@@ -41,6 +41,8 @@ iProxy::iProxy( iBroker& t ) : objref_( false )
 {
 }
 
+// setConfiguration call from iBroker when configComplete is called.
+// which is called when qtplatz fire 'extentionInstalled()'
 void
 iProxy::setConfiguration( const adportable::Configuration& c )
 {

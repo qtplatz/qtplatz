@@ -80,7 +80,7 @@ session_i::connect( const char * user, const char * pass, const char * token, Br
             event_sink_set_.push_back( sink );
             pTask->connect( this->_this(), cb );
         }
-		return true;
+        return true;
     }
     return false;
 }
@@ -145,14 +145,17 @@ namespace adbroker {
         size_t count_;
         size_t size_;
         unsigned char * p_;
-        BrokerFoliumBuffer() : count_(0), size_(0), p_(0), var_( new Broker::Folium ) {
+
+        BrokerFoliumBuffer() : var_( new Broker::Folium ), count_(0), size_(0), p_(0) {
             resize();
         }
+
         void resize() { 
             var_->serialized.length( var_->serialized.length() + 1024 * 8 );
             size_ = var_->serialized.length();
             p_ = var_->serialized.get_buffer();
         }
+
         virtual int_type overflow ( int_type c ) {
             if ( count_ >= size_ )
                 resize();

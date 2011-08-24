@@ -44,7 +44,8 @@ SOURCES += adbroker.cpp \
     manager_i.cpp \
     message.cpp \
     session_i.cpp \
-    task.cpp
+    task.cpp \
+    objectdiscovery.cpp
 
 HEADERS += adbroker.hpp \
     adbroker_global.h \
@@ -58,8 +59,11 @@ HEADERS += adbroker.hpp \
     manager_i.hpp \
     message.hpp \
     session_i.hpp \
-    task.hpp
+    task.hpp \
+    objectdiscovery.hpp
 
 OTHER_FILES += \
     adbroker.pri \
     adbroker_dependencies.pri
+
+

@@ -26,12 +26,15 @@
 #include "manager_i.hpp"
 #include "session_i.hpp"
 #include "logger_i.hpp"
+#include "objectdiscovery.hpp"
 #include <adportable/debug.hpp>
 #include <adportable/string.hpp>
+#include <acewrapper/mutex.hpp>
+#include <ace/Thread_Manager.h>
 
 using namespace adbroker;
 
-adbroker::manager_i::manager_i(void) 
+adbroker::manager_i::manager_i(void) : discovery_(0)
 {
     adportable::debug() << "adbroker::manager_i ctor";
 }
@@ -39,11 +42,19 @@ adbroker::manager_i::manager_i(void)
 adbroker::manager_i::~manager_i(void)
 {
     adportable::debug() << "adbroker::~manager_i dtor";
+    delete discovery_;
 }
 
 void
 adbroker::manager_i::shutdown()
 {
+    adportable::debug() << "####################################################";
+    adportable::debug() << "##### adbroker::manager::shutdown ######";
+    if ( discovery_ ) {
+        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        if ( discovery_ )
+            discovery_->close();
+    }
     PortableServer::POA_var poa = adbroker::singleton::manager::instance()->poa();
     if ( logger_i_ )
         poa->deactivate_object( logger_i_->oid() );
@@ -94,12 +105,16 @@ void
 manager_i::register_ior( const char * name, const char * ior )
 {
     adportable::debug() << "adbroker::manager_i::register_ior(" << std::string(name) << ", " << std::string(ior) << ")";
+
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
     iorMap_[ name ] = ior;
 }
 
 char *
 manager_i::ior( const char * name )
 {
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+
     std::map< std::string, std::string >::iterator it = iorMap_.find( name );
     if ( it != iorMap_.end() )
         return CORBA::string_dup( it->second.c_str() );
@@ -109,18 +124,20 @@ manager_i::ior( const char * name )
 void
 manager_i::register_lookup( const char * name, const char * ident )
 {
-    Broker::Logger_var logger = getLogger();
-    adportable::debug() << "adbroker::manager_i::register_lookup(" << std::string(name) << ", " << std::string(ident) << ")";
-    if ( ! CORBA::is_nil( logger ) ) {
-        Broker::LogMessage log;
-        log.priority = 0;
-        log.srcId = CORBA::wstring_dup( L"adBroker.manager" );
-        log.text = CORBA::wstring_dup( L"registor_lookup(%1, %2)" );
-        log.args.length(2);
-        log.args[0] = CORBA::wstring_dup( adportable::string::convert( name ).c_str() );
-        log.args[1] = CORBA::wstring_dup( adportable::string::convert( ident ).c_str() );
-        log.tv_sec = 0;
-        log.tv_usec = 0;
-        logger->log( log );
+    if ( discovery_ == 0 ) {
+        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        if ( discovery_ == 0 ) {
+            discovery_ = new ObjectDiscovery( mutex_ );
+            ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ObjectDiscovery::thread_entry ), discovery_ );
+        }
     }
+    if ( discovery_ ) {
+        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        discovery_->registor_lookup( name, ident );    
+        lookup_[ name ] = ident;
+    } while(0);
+
+    adportable::debug() << "================================================================";
+    adportable::debug() << "======== adbroker::manager_i::register_lookup(" 
+                        << std::string(name) << ", " << std::string(ident) << ")";
 }

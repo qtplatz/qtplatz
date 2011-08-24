@@ -28,16 +28,22 @@
 #include <acewrapper/orbservant.hpp>
 #include <map>
 #include <string>
+
 #if defined _MSC_VER
 # pragma warning (disable: 4996)
 #endif
+
 #include "adinterface/brokerS.h"
+
 #if defined _MSC_VER
 # pragma warning (default: 4996)
 #endif
+
 #include "logger_i.hpp"
 #include "session_i.hpp"
+#include "objectdiscovery.hpp"
 #include <boost/smart_ptr.hpp>
+#include <ace/Recursive_Thread_Mutex.h>
 
 namespace adbroker {
 
@@ -53,12 +59,16 @@ namespace adbroker {
         void register_ior( const char * name, const char * ior );
         char * ior( const char * name );
         void register_lookup( const char * name, const char * ident );
+        inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
 
     private:
         typedef std::map< std::wstring, boost::shared_ptr< adbroker::session_i > > session_map_type;
         session_map_type session_list_;
         boost::scoped_ptr< broker::logger_i > logger_i_;
         std::map< std::string, std::string > iorMap_;
+        std::map< std::string, std::string > lookup_;
+        ObjectDiscovery * discovery_;
+        ACE_Recursive_Thread_Mutex mutex_;
     };
 
     namespace singleton {

@@ -124,9 +124,9 @@ CORBA::Boolean
 session_i::initialize()
 {
     using namespace adcontroller::singleton;
-	//iBrokerManager::instance()->initialize();
-	//return iBrokerManager::instance()->get<iBroker>()->open();
-	return iBrokerManager::instance()->get<iBroker>()->initialize();
+    //iBrokerManager::instance()->initialize();
+    //return iBrokerManager::instance()->get<iBroker>()->open();
+    return iBrokerManager::instance()->get<iBroker>()->initialize();
 }
 
 CORBA::Boolean

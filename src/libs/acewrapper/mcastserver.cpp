@@ -35,7 +35,7 @@ using namespace acewrapper;
 
 McastServer::~McastServer()
 {
-   delete handler_;
+    delete reactor_;
 }
 
 McastServer::McastServer( Callback& cb, ACE_Reactor * r, u_short port ) : handler_(0)
@@ -43,11 +43,11 @@ McastServer::McastServer( Callback& cb, ACE_Reactor * r, u_short port ) : handle
 									, port_(port)
 									, callback_(cb)
 {
-   handler_ = new Handler( ACE_DEFAULT_MULTICAST_PORT
-			   , ACE_DEFAULT_MULTICAST_ADDR
-			   , *get_reactor()
-			   , callback_ );
-
+    handler_ = new Handler( ACE_DEFAULT_MULTICAST_PORT
+                            , ACE_DEFAULT_MULTICAST_ADDR
+                            , *get_reactor()
+                            , callback_ );
+    
 }
 
 ACE_Reactor *
@@ -83,7 +83,6 @@ McastServer::Handler::Handler( u_short udp_port
    }
    std::cout << "Mcast address: " << sock_addr_.get_host_addr()
 	     << " port number: " << sock_addr_.get_port_number() << std::endl;
-   
 }
 
 bool
@@ -119,32 +118,31 @@ McastServer::Handler::get_handle() const
 int
 McastServer::Handler::handle_input(ACE_HANDLE h)
 {
-   char buf[2048];
+    char buf[2048];
+    
+    memset(buf, 0, sizeof(buf));
    
-   memset(buf, 0, sizeof(buf));
-   
-   if ( h == ACE_STDIN ) {
-      assert(0);
-   } else {
-      ACE_INET_Addr remote_addr;
+    if ( h == ACE_STDIN ) {
+        assert(0);
+    } else {
+        ACE_INET_Addr remote_addr;
       
-      ssize_t result = mcast_.recv(buf, sizeof(buf), remote_addr);
-      if ( result != -1 ) {
-	 /*
-	   debug_trace(LOG_DEBUG,
-	   "received datagram from host %s(%s) on port %d bytes = %d\n",
-	   remote_addr.get_host_name(),
-	   remote_addr.get_host_addr(),
-	   remote_addr.get_port_number(),
-	   result);
-	 */
-	 
-	 callback_(buf, result, remote_addr);
-	 return 0;
-      }
-      ACE_ERROR_RETURN((LM_ERROR, "%p\n", "something a miss"), -1);
-   }
-   return 0;
+        ssize_t result = mcast_.recv(buf, sizeof(buf), remote_addr);
+        if ( result != -1 ) {
+            /*
+              debug_trace(LOG_DEBUG,
+              "received datagram from host %s(%s) on port %d bytes = %d\n",
+              remote_addr.get_host_name(),
+              remote_addr.get_host_addr(),
+              remote_addr.get_port_number(),
+              result);
+            */
+            callback_(buf, result, remote_addr);
+            return 0;
+        }
+        ACE_ERROR_RETURN((LM_ERROR, "%p\n", "something a miss"), -1);
+    }
+    return 0;
 }
 
 int
