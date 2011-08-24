@@ -181,6 +181,7 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& n
                 module.object_reference( reference );
                 module.id( module_element.node().attribute( "id" ).value() );
                 config.module( module );
+                return true;
             }
 
             std::string filename = module_element.node().attribute( "filename" ).value();
@@ -218,7 +219,6 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& n
 #endif      
                 module.library_filename( pugi::as_wide( filename ) );
                 config.module( module );
-            
                 return true;
             }
         }

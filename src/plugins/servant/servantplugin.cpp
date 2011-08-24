@@ -247,6 +247,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                 }
             } else if ( it->module().object_reference() == "lookup" ) {
                 mgr->register_lookup( ns_name.c_str(), it->module().id().c_str() );
+                it->attribute( L"loadstatus", L"deffered" );
             }
 	}
     }
@@ -289,7 +290,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	    
 	} else if ( it->attribute( L"type" ) == L"orbLoader" ) {
 	    
-            if ( it->attribute( L"loadstatus" ) == L"failed" )
+            if ( it->attribute( L"loadstatus" ) == L"failed" || it->attribute( L"loadstatus" ) == L"deffered" )
                 continue;
 	    std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
 	    if ( ! ns_name.empty() ) {
@@ -306,7 +307,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		    dbg << "CORBA::Exceptiron while referenceing '" << ns_name.c_str() << "' by " << src._info().c_str();
 		    Logger log;
 		    log( dbg.str() );
-		    QMessageBox::critical( 0, "Servant error", dbg.str().c_str() );
+		    QMessageBox::critical( 0, "ServantPlugin", dbg.str().c_str() );
 		    ++nErrors;
 		}
 	    }

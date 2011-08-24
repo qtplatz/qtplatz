@@ -176,6 +176,8 @@ Module::Module( const std::wstring& xml ) : xml_(xml)
 
 Module::Module( const Module& t ) : xml_( t.xml_ )
                                   , library_filename_( t.library_filename_ )
+                                  , object_reference_( t.object_reference_ )
+                                  , id_( t.id_ )
 {
 }
 

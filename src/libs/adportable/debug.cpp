@@ -71,7 +71,8 @@ debug::debug( const char * file, const int line ) : line_(line)
 debug::~debug(void)
 {
     using namespace internal;
-    std::ofstream of( logfile::instance()->filename().c_str(), std::ios_base::out | std::ios_base::app );
+    // std::ofstream of( logfile::instance()->filename().c_str(), std::ios_base::out | std::ios_base::app );
+    std::ofstream of( "debug.log", std::ios_base::out | std::ios_base::app );
     if ( ! file_.empty() )
         of << where();
     of << o_.str() << std::endl;
