@@ -197,4 +197,16 @@ Module::library_filename( const std::string& name )
     library_filename_ = string::convert( name );
 }
 
+void
+Module::object_reference( const std::string& name )
+{
+    object_reference_ = name;
+}
+
+void
+Module::id( const std::string& ident )
+{
+    id_ = ident;
+}
+
 ////////////////////

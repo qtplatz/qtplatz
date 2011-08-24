@@ -232,21 +232,22 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	    /* nothing, broker must be created before here */
 	} else if ( it->attribute(L"type") == L"orbLoader" ) {
 	    // adcontroller must be on top
-	    std::wstring file = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
-	    it->attribute( L"fullpath", file );
-	    std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
-	    adportable::debug(__FILE__, __LINE__) << "orbLoader file=" << file << "\tns_name=" << ns_name;
-
-	    adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
-	    if ( loader ) {
-                loader.initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
-                loader.initial_reference( iorBroker.c_str() );
-                std::string ior = loader.activate();               // activate object
-                mgr->register_ior( ns_name.c_str(), ior.c_str() ); // set ior to Broker::Manager
-	    } else {
-                it->attribute( L"loadstatus", L"failed" );
-                // QMessageBox::warning( 0, "ServantPlugin", loader.error_description() );
-	    }
+            std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
+            if ( ! it->module().library_filename().empty() ) {
+                std::wstring file = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
+                it->attribute( L"fullpath", file );
+                adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
+                if ( loader ) {
+                    loader.initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
+                    loader.initial_reference( iorBroker.c_str() );
+                    std::string ior = loader.activate();               // activate object
+                    mgr->register_ior( ns_name.c_str(), ior.c_str() ); // set ior to Broker::Manager
+                } else {
+                    it->attribute( L"loadstatus", L"failed" );
+                }
+            } else if ( it->module().object_reference() == "lookup" ) {
+                mgr->register_lookup( ns_name.c_str(), it->module().id().c_str() );
+            }
 	}
     }
     

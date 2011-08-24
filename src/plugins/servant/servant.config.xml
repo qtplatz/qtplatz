@@ -10,9 +10,8 @@
   <Module name="tofspectrometer" type="adcontrols::massspectrometer" filename="/ScienceLiaison/tofspectrometer$(configuration).dll"/>
   <!-- <Module name="infitofcontroller" type="corba::servant" reference="mcast" filename="/MSI/infitofcontroller$(configuration).dll"/>
   -->
-  <Module name="infitofcontroller" type="corba::servant" reference="mcast"/>
+  <Module name="infitofcontroller" type="corba::servant" reference="lookup" id="infitof.0000"/>
   <Module name="infitofspectrometer" type="adcontrols::massspectrometer" filename="/MSI/infitofspectrometer$(configuration).dll"/>
-
   
   <Configuration name="root_poa">
     <!-- master broker for application -->

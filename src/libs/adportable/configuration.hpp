@@ -37,16 +37,19 @@ namespace adportable {
         Module( const Module& );
         inline const std::wstring& xml() const { return xml_; }
         inline const std::wstring& library_filename() const { return library_filename_; }
-        inline const std::string& object_referance() const { return object_reference_; }
+        inline const std::string& object_reference() const { return object_reference_; }
+        inline const std::string& id() const { return id_; }
         void xml( const std::wstring& );
         void library_filename( const std::wstring& );
         void library_filename( const std::string& );
         void object_reference( const std::string& );
+        void id( const std::string& );
 
     private:
         std::wstring xml_;
         std::wstring library_filename_;
         std::string object_reference_;
+        std::string id_;
     };
 
     class Configuration {

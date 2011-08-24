@@ -50,19 +50,20 @@ namespace adbroker {
         void shutdown();
         Broker::Session_ptr getSession( const CORBA::WChar * );
         Broker::Logger_ptr getLogger();
-		void register_ior( const char * name, const char * ior );
+        void register_ior( const char * name, const char * ior );
         char * ior( const char * name );
+        void register_lookup( const char * name, const char * ident );
 
     private:
         typedef std::map< std::wstring, boost::shared_ptr< adbroker::session_i > > session_map_type;
         session_map_type session_list_;
         boost::scoped_ptr< broker::logger_i > logger_i_;
-		std::map< std::string, std::string > iorMap_;
+        std::map< std::string, std::string > iorMap_;
     };
 
     namespace singleton {
-		typedef ACE_Singleton< acewrapper::ORBServant< manager_i >, ACE_Recursive_Thread_Mutex > manager;
-	}
+        typedef ACE_Singleton< acewrapper::ORBServant< manager_i >, ACE_Recursive_Thread_Mutex > manager;
+    }
 
 }
 

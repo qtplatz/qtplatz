@@ -179,6 +179,7 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& n
             std::string reference = module_element.node().attribute( "reference" ).value();
             if ( ! reference.empty() ) {
                 module.object_reference( reference );
+                module.id( module_element.node().attribute( "id" ).value() );
                 config.module( module );
             }
 

@@ -27,6 +27,7 @@
 #include "session_i.hpp"
 #include "logger_i.hpp"
 #include <adportable/debug.hpp>
+#include <adportable/string.hpp>
 
 using namespace adbroker;
 
@@ -81,7 +82,7 @@ manager_i::getLogger()
         logger_i_->oid( *oid );
     }
 
-	CORBA::Object_var obj = poa->servant_to_reference( logger_i_.get() );
+    CORBA::Object_var obj = poa->servant_to_reference( logger_i_.get() );
     try {
         return Broker::Logger::_narrow( obj );
     } catch ( CORBA::Exception& ) {
@@ -93,14 +94,33 @@ void
 manager_i::register_ior( const char * name, const char * ior )
 {
     adportable::debug() << "adbroker::manager_i::register_ior(" << std::string(name) << ", " << std::string(ior) << ")";
-	iorMap_[ name ] = ior;
+    iorMap_[ name ] = ior;
 }
 
 char *
 manager_i::ior( const char * name )
 {
-	std::map< std::string, std::string >::iterator it = iorMap_.find( name );
+    std::map< std::string, std::string >::iterator it = iorMap_.find( name );
     if ( it != iorMap_.end() )
-		return CORBA::string_dup( it->second.c_str() );
-	return 0;
+        return CORBA::string_dup( it->second.c_str() );
+    return 0;
+}
+
+void
+manager_i::register_lookup( const char * name, const char * ident )
+{
+    Broker::Logger_var logger = getLogger();
+    adportable::debug() << "adbroker::manager_i::register_lookup(" << std::string(name) << ", " << std::string(ident) << ")";
+    if ( ! CORBA::is_nil( logger ) ) {
+        Broker::LogMessage log;
+        log.priority = 0;
+        log.srcId = CORBA::wstring_dup( L"adBroker.manager" );
+        log.text = CORBA::wstring_dup( L"registor_lookup(%1, %2)" );
+        log.args.length(2);
+        log.args[0] = CORBA::wstring_dup( adportable::string::convert( name ).c_str() );
+        log.args[1] = CORBA::wstring_dup( adportable::string::convert( ident ).c_str() );
+        log.tv_sec = 0;
+        log.tv_usec = 0;
+        logger->log( log );
+    }
 }

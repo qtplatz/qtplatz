@@ -176,7 +176,7 @@ logger_i::internal_disconnect( LogHandler_ptr handler )
     vector_type::iterator it = std::remove( handler_set_.begin(), handler_set_.end(), handler );
     if ( it != handler_set_.end() ) {
         handler_set_.erase( it );
-		return true;
-	}
-	return false;
+        return true;
+    }
+    return false;
 }
