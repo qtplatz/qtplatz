@@ -48,10 +48,13 @@ public:
     bool close();
     bool send( const char *, ssize_t );
     bool recv( char *, ssize_t bufsize, ACE_INET_Addr& );
+    void suspend();
+    void resume();
 private:
     ACE_SOCK_Dgram_Mcast sock_mcast_;
     ACE_INET_Addr sock_addr_;
     ObjectDiscovery& parent_;
+    bool suspend_;
 };
 
 class DgramHandler : public ACE_Event_Handler {
@@ -136,12 +139,10 @@ ObjectDiscovery::open( u_short port )
 }
 
 void
-ObjectDiscovery::operator()( const char * pbuf, ssize_t size, const ACE_INET_Addr& from )
+ObjectDiscovery::operator()( const char * pbuf, ssize_t, const ACE_INET_Addr& from )
 {
-    if ( size >= 5 ) { // && strncmp( pbuf, "hello", 5 ) == 0 ) {
-        std::cout << "ObjectDiscovery -- " << pbuf << std::endl;
-        std::cout << "\t recv from : " << from.get_host_addr() << ":" << from.get_port_number() << std::endl;
-    }
+    std::cout << "ObjectDiscovery -- " << pbuf << std::endl;
+    std::cout << "\t recv from : " << from.get_host_addr() << ":" << from.get_port_number() << std::endl;
 }
 
 void
@@ -150,7 +151,8 @@ ObjectDiscovery::registor_lookup( const std::string& name, const std::string& id
     adportable::debug() << "============= ObjectDiscovery::registor_lookup(" << name << ", " << ident << ") ===============";
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     list_[ ident ] = name;
-    nlist_ = list_.size();
+    if ( ( nlist_ = list_.size() ) > 0 )
+        mcast_->resume();
 }
 
 void
@@ -158,13 +160,15 @@ ObjectDiscovery::unregistor_lookup( const std::string& ident )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     list_.erase( ident );
-    nlist_ = list_.size();
+    if ( ( nlist_ = list_.size() ) == 0 )
+        mcast_->suspend();
 }
 
 //////////
 
 McastHandler::McastHandler( ObjectDiscovery& t) : sock_addr_( ACE_DEFAULT_MULTICAST_PORT, ACE_DEFAULT_MULTICAST_ADDR )
                                                 , parent_( t )
+                                                , suspend_( true )
 {
 }
 
@@ -180,6 +184,8 @@ McastHandler::handle_input( ACE_HANDLE )
     char buf[1024];
     memset( buf, 0, sizeof( buf ) );
 
+    adportable::debug() << "McastHandler::handle_input";
+
     ACE_INET_Addr remote_addr;
     ssize_t res = sock_mcast_.recv( buf, sizeof(buf), remote_addr );
     if ( res != (-1) ) {
@@ -192,7 +198,9 @@ McastHandler::handle_input( ACE_HANDLE )
 int
 McastHandler::handle_timeout( const ACE_Time_Value&, const void * )
 {
-    adportable::debug() << "handle_timeout";
+    adportable::debug() << "handle_timeout suspend ? " << suspend_;
+    if ( ! suspend_ )
+        send( "ior?", sizeof( "ior?" ) );
     return 0;
 }
 
@@ -207,8 +215,10 @@ McastHandler::open( u_short port )
 {
     if ( port )
         sock_addr_.set_port_number( port );
-    if ( sock_mcast_.join( sock_addr_ ) == (-1) )
+    if ( sock_mcast_.join( sock_addr_ ) == (-1) ) {
+        adportable::debug(__FILE__, __LINE__) << "McastHandler::open: can't subscribe to multicast group";
         return false;
+    }
     return true;
 }
 
@@ -222,6 +232,7 @@ bool
 McastHandler::send( const char * pbuf, ssize_t size )
 {
     ssize_t ret = sock_mcast_.send( pbuf, size );
+    adportable::debug() << "McastHandler::send(" << pbuf << ", " << size << ") ret=" << ret;
     return ret == size;
 }
 
@@ -229,6 +240,18 @@ bool
 McastHandler::recv( char * pbuf, ssize_t bufsize, ACE_INET_Addr& remote_addr )
 {
     return sock_mcast_.recv( pbuf, bufsize, remote_addr );
+}
+
+void
+McastHandler::suspend()
+{
+    suspend_ = true;
+}
+
+void
+McastHandler::resume()
+{
+    suspend_ = false;
 }
 
 ///////////////////////////
