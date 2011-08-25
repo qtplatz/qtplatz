@@ -59,10 +59,6 @@ adbroker::manager_i::shutdown()
         discovery_ = 0;
     }
 
-    //PortableServer::POA_var poa = adbroker::singleton::manager::instance()->poa();
-    //if ( logger_i_ )
-    //    poa->deactivate_object( logger_i_->oid() );
-
     adportable::debug() << "##### adbroker::manager::shutdown complete ######";
     adportable::debug() << "####################################################";
 }
@@ -135,6 +131,7 @@ manager_i::register_lookup( const char * name, const char * ident )
         acewrapper::scoped_mutex_t<> lock( mutex_ );
         if ( discovery_ == 0 ) {
             discovery_ = new ObjectDiscovery( mutex_ );
+            discovery_->open();
             ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ObjectDiscovery::thread_entry ), discovery_ );
         }
     }

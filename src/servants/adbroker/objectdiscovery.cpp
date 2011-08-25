@@ -113,14 +113,19 @@ ObjectDiscovery::event_loop()
         ;
 
     reactor_->cancel_timer( mcast_ );
+    reactor_->close();
 
-    adportable::debug() << "### ObjectDiscovery::event_loop done";
+    adportable::debug(__FILE__, __LINE__) << "===== ObjectDiscovery::event_loop done =====";
 }
 
 void
 ObjectDiscovery::close()
 {
     adportable::debug() << "============= ObjectDiscovery::close() ===============";
+
+    mcast_->close();
+    dgram_->close();
+
     if ( t_handle_ ) {
         reactor_->end_reactor_event_loop();
         int res = ACE_Thread::join( t_handle_, 0, 0 );
@@ -128,8 +133,6 @@ ObjectDiscovery::close()
         adportable::debug(__FILE__, __LINE__) 
             << "===== ObjectDiscovery::close join " << ( res == 0 ? "success" : "failed" );
     }
-    mcast_->close();
-    dgram_->close();
 }
 
 bool
