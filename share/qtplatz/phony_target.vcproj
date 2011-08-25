@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="phony_target"
 	ProjectGUID="{A8BFFFDD-03FC-3E7E-8BB5-1BA26FCF3D75}"
+	RootNamespace="phony_target"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>

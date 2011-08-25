@@ -244,6 +244,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\objectdiscovery.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\session_i.cpp"
 				>
 			</File>
@@ -516,6 +520,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\objectdiscovery.hpp"
+				>
 			</File>
 			<File
 				RelativePath=".\session_i.hpp"
