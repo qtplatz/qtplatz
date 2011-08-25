@@ -36,7 +36,7 @@ namespace adbroker {
 
 	namespace internal {
 
-		struct event_sink {
+        struct event_sink {
             inline bool operator == ( const event_sink& t ) const {
                 return sink_->_is_equivalent( t.sink_.in() );
             }

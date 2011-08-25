@@ -49,15 +49,20 @@ void
 adbroker::manager_i::shutdown()
 {
     adportable::debug() << "####################################################";
-    adportable::debug() << "##### adbroker::manager::shutdown ######";
+    adportable::debug() << "##### adbroker::manager::shutting down ... ######";
+
     if ( discovery_ ) {
         acewrapper::scoped_mutex_t<> lock( mutex_ );
         if ( discovery_ )
             discovery_->close();
     }
+
     PortableServer::POA_var poa = adbroker::singleton::manager::instance()->poa();
     if ( logger_i_ )
         poa->deactivate_object( logger_i_->oid() );
+
+    adportable::debug() << "##### adbroker::manager::shutdown complete ######";
+    adportable::debug() << "####################################################";
 }
 
 Broker::Session_ptr

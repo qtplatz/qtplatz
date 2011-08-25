@@ -43,6 +43,7 @@ public:
     virtual int handle_input( ACE_HANDLE );
     virtual int handle_close( ACE_HANDLE, ACE_Reactor_Mask );
     virtual ACE_HANDLE get_handle() const;
+    virtual int handle_timeout( const ACE_Time_Value&, const void * arg );
     bool open( u_short );
     bool close();
     bool send( const char *, ssize_t );
@@ -98,14 +99,18 @@ void
 ObjectDiscovery::event_loop()
 {
     t_handle_ = ACE_Thread::self();
-    
     reactor_->owner( t_handle_ );
-    adportable::debug() << "============= ObjectDiscovery::event_loop started... ===============";
-    ACE_Reactor * reactor = ACE_Reactor::instance();
-    int res;
-    while ( ( res = reactor->handle_events() ) >= 0 ) {
-        adportable::debug() << "--- ObjectDiscovery::event_loop " << res;
-    }
+
+    reactor_->register_handler( mcast_, ACE_Event_Handler::READ_MASK );
+    reactor_->register_handler( dgram_, ACE_Event_Handler::READ_MASK );
+
+    reactor_->schedule_timer( mcast_, 0, ACE_Time_Value(3), ACE_Time_Value(3) );
+
+    while ( reactor_->handle_events() >= 0 ) 
+        ;
+
+    reactor_->cancel_timer( mcast_ );
+
     adportable::debug() << "### ObjectDiscovery::event_loop done";
 }
 
@@ -113,20 +118,21 @@ void
 ObjectDiscovery::close()
 {
     adportable::debug() << "============= ObjectDiscovery::close() ===============";
-    mcast_->close();
-    dgram_->close();
     if ( t_handle_ ) {
         reactor_->end_reactor_event_loop();
         int res = ACE_Thread::join( t_handle_, 0, 0 );
-        ACE_DEBUG( (LM_DEBUG, "ObjectDiscovery::close join %s", ( res == 0 ? "success" : "failed" ) ) );
+
+        adportable::debug(__FILE__, __LINE__) 
+            << "===== ObjectDiscovery::close join " << ( res == 0 ? "success" : "failed" );
     }
+    mcast_->close();
+    dgram_->close();
 }
 
 bool
 ObjectDiscovery::open( u_short port )
 {
-    adportable::debug() << "============= ObjectDiscovery::open() ===============";
-    return mcast_->open( port ); // || dgram_.open( port );
+    return mcast_->open( port ) || dgram_.open( port );
 }
 
 void
@@ -181,6 +187,13 @@ McastHandler::handle_input( ACE_HANDLE )
         return 0;
     }
     return -1; // error
+}
+
+int
+McastHandler::handle_timeout( const ACE_Time_Value&, const void * )
+{
+    adportable::debug() << "handle_timeout";
+    return 0;
 }
 
 int
