@@ -47,12 +47,15 @@ public:
     void operator()( const char *, ssize_t, const ACE_INET_Addr& );
     void registor_lookup( const std::string& name, const std::string& ident );
     void unregistor_lookup( const std::string& ident );
+    int handle_timeout();
+    inline bool suspend() { return suspend_; }
 
 private:
     ACE_thread_t t_handle_;
     ACE_Reactor * reactor_;
     class McastHandler * mcast_;
     class DgramHandler * dgram_;
+    bool suspend_;
     size_t nlist_;
     ACE_Recursive_Thread_Mutex& mutex_;
     std::map< std::string, std::string> list_;

@@ -48,13 +48,11 @@ public:
     bool close();
     bool send( const char *, ssize_t );
     bool recv( char *, ssize_t bufsize, ACE_INET_Addr& );
-    void suspend();
-    void resume();
+
 private:
     ACE_SOCK_Dgram_Mcast sock_mcast_;
     ACE_INET_Addr sock_addr_;
     ObjectDiscovery& parent_;
-    bool suspend_;
 };
 
 class DgramHandler : public ACE_Event_Handler {
@@ -63,8 +61,10 @@ public:
     virtual int handle_input( ACE_HANDLE );
     virtual int handle_close( ACE_HANDLE, ACE_Reactor_Mask );
     virtual ACE_HANDLE get_handle() const;
+    virtual int handle_timeout( const ACE_Time_Value&, const void * arg );
     bool open( u_short );
     bool close();
+    bool send( const char *, ssize_t );
     bool send( const char *, ssize_t, const ACE_INET_Addr& );
     bool recv( char *, ssize_t bufsize, ACE_INET_Addr& );
 private:
@@ -79,6 +79,7 @@ ObjectDiscovery::ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex ) : t_handle
                                                                       , reactor_( new ACE_Reactor )
                                                                       , mcast_( new McastHandler( *this) )
                                                                       , dgram_( new DgramHandler( *this) )
+                                                                      , suspend_( false )
                                                                       , nlist_( 0 )
                                                                       , mutex_( mutex )
 {
@@ -107,12 +108,12 @@ ObjectDiscovery::event_loop()
     reactor_->register_handler( mcast_, ACE_Event_Handler::READ_MASK );
     reactor_->register_handler( dgram_, ACE_Event_Handler::READ_MASK );
 
-    reactor_->schedule_timer( mcast_, 0, ACE_Time_Value(3), ACE_Time_Value(3) );
+    reactor_->schedule_timer( dgram_, 0, ACE_Time_Value(3), ACE_Time_Value(3) );
 
     while ( reactor_->handle_events() >= 0 ) 
         ;
 
-    reactor_->cancel_timer( mcast_ );
+    reactor_->cancel_timer( dgram_ );
     reactor_->close();
 
     adportable::debug(__FILE__, __LINE__) << "===== ObjectDiscovery::event_loop done =====";
@@ -138,7 +139,8 @@ ObjectDiscovery::close()
 bool
 ObjectDiscovery::open( u_short port )
 {
-    return mcast_->open( port ); // && dgram_->open( port );
+    return dgram_->open( port );
+    // return mcast_->open( port );
 }
 
 void
@@ -148,30 +150,45 @@ ObjectDiscovery::operator()( const char * pbuf, ssize_t, const ACE_INET_Addr& fr
     std::cout << "\t recv from : " << from.get_host_addr() << ":" << from.get_port_number() << std::endl;
 }
 
+int
+ObjectDiscovery::handle_timeout()
+{
+    adportable::debug() << "ObjectDiscovery::handle_timeout() suspend =" << suspend_;
+    if ( ! suspend_ )
+        dgram_->send( "ior?", sizeof( "ior?" ) );
+    return 0;
+}
+
 void
 ObjectDiscovery::registor_lookup( const std::string& name, const std::string& ident )
 {
-    adportable::debug() << "============= ObjectDiscovery::registor_lookup(" << name << ", " << ident << ") ===============";
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     list_[ ident ] = name;
     if ( ( nlist_ = list_.size() ) > 0 )
-        mcast_->resume();
+        suspend_ = false;
+
+    adportable::debug()
+        << "============= ObjectDiscovery::registor_lookup(" << name << ", " << ident << ") ===============" << int(nlist_);
 }
 
 void
 ObjectDiscovery::unregistor_lookup( const std::string& ident )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
+    size_t n0 = list_.size();
     list_.erase( ident );
     if ( ( nlist_ = list_.size() ) == 0 )
-        mcast_->suspend();
+        suspend_ = true;
+
+    adportable::debug()
+        << "==== ObjectDiscovery::unregistor_lookup(" << ident 
+        << ") size " << int(n0) << " --> " << int(nlist_);
 }
 
 //////////
 
 McastHandler::McastHandler( ObjectDiscovery& t) : sock_addr_( ACE_DEFAULT_MULTICAST_PORT, ACE_DEFAULT_MULTICAST_ADDR )
                                                 , parent_( t )
-                                                , suspend_( true )
 {
 }
 
@@ -201,9 +218,8 @@ McastHandler::handle_input( ACE_HANDLE )
 int
 McastHandler::handle_timeout( const ACE_Time_Value&, const void * )
 {
-    adportable::debug() << "handle_timeout suspend ? " << suspend_;
-    if ( ! suspend_ )
-        send( "ior?", sizeof( "ior?" ) );
+    if ( ! parent_.suspend() )
+        return parent_.handle_timeout();
     return 0;
 }
 
@@ -245,20 +261,8 @@ McastHandler::recv( char * pbuf, ssize_t bufsize, ACE_INET_Addr& remote_addr )
     return sock_mcast_.recv( pbuf, bufsize, remote_addr );
 }
 
-void
-McastHandler::suspend()
-{
-    suspend_ = true;
-}
-
-void
-McastHandler::resume()
-{
-    suspend_ = false;
-}
-
 ///////////////////////////
-DgramHandler::DgramHandler( ObjectDiscovery& t ) : sock_addr_( 2011, "0.0.0.0" )
+DgramHandler::DgramHandler( ObjectDiscovery& t ) : sock_addr_( 7402, "0.0.0.0" )
                                                  , parent_( t )
 {
 }
@@ -270,26 +274,37 @@ DgramHandler::get_handle() const
 }
 
 int
+DgramHandler::handle_timeout( const ACE_Time_Value&, const void * )
+{
+    if ( ! parent_.suspend() )
+        return parent_.handle_timeout();
+    return 0;
+}
+
+int
 DgramHandler::handle_input( ACE_HANDLE )
 {
     char buf[2048];
     memset( buf, 0, sizeof(buf) );
+
     ACE_INET_Addr remote_addr;
 
     ssize_t res = sock_dgram_.recv( buf, sizeof(buf), remote_addr );
-    if ( res != (-1) ) {
+
+    adportable::debug() << "DgramHandler::handle_input res = " << res << " from " 
+                        << remote_addr.get_host_addr() << ":" << remote_addr.get_port_number()
+                        << "\t" << buf;
+
+    if ( res != (-1) && ( res >= 4 && strncmp(buf, "ior?", 4) == 0 ) ) {
         parent_( buf, res, remote_addr );
         return 0;
     }
     return -1; // error
-
 }
 
 int
-DgramHandler::handle_close( ACE_HANDLE h, ACE_Reactor_Mask )
+DgramHandler::handle_close( ACE_HANDLE, ACE_Reactor_Mask )
 {
-    if ( h != ACE_STDIN )
-        sock_dgram_.close();
     return 0;
 }
 
@@ -298,7 +313,13 @@ DgramHandler::open( u_short port )
 {
     if ( port )
         sock_addr_.set_port_number( port );
-    return sock_dgram_.open( sock_addr_) != (-1);
+    int res = sock_dgram_.open( sock_addr_ );
+
+    adportable::debug() << "################# DgramHandler::open " 
+                        << sock_addr_.get_host_addr() << ":" << sock_addr_.get_port_number()
+                        << " res= " << res << "###########";
+
+    return res != (-1);
 }
 
 bool
@@ -308,9 +329,20 @@ DgramHandler::close()
 }
 
 bool
+DgramHandler::send( const char * pbuf, ssize_t size )
+{
+    ssize_t ret = send( pbuf, size , sock_addr_ );
+    return ret == size;
+}
+
+bool
 DgramHandler::send( const char * pbuf, ssize_t size, const ACE_INET_Addr& to )
 {
     ssize_t ret = sock_dgram_.send( pbuf, size , const_cast<ACE_INET_Addr&>(to) );
+
+    adportable::debug() << "DgramHandler::send(" << pbuf << ", " << to.get_host_addr() << ":" 
+                        << to.get_port_number() << ") ret=" << ret;
+
     return ret == size;
 }
 
