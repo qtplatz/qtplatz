@@ -34,9 +34,11 @@
 #include <adplugin/orbmanager.hpp>
 #include <adplugin/qreceiver_i.hpp>
 #include <adplugin/qobserverevents_i.hpp>
+#include <adportable/debug.hpp>
+#include <adcontroller/adcontroller.hpp>
+
 #include <tao/Object.h>
 #include <ace/Singleton.h>
-#include <adcontroller/adcontroller.hpp>
 
 #if defined _MSC_VER
 # pragma warning(disable:4996)
@@ -153,6 +155,7 @@ AcquirePlugin::~AcquirePlugin()
 {
   delete manager_;
   delete pImpl_;
+  adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin dtor complete ===============";
 }
 
 AcquirePlugin::AcquirePlugin() : manager_(0)
@@ -368,8 +371,10 @@ AcquirePlugin::extensionsInitialized()
 void
 AcquirePlugin::shutdown()
 {
+    adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin shutting down...  ===============";
     actionDisconnect();
     manager_->OnFinalClose();
+    adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin shutdown complete ===============";
 }
 
 void

@@ -340,35 +340,44 @@ ServantPlugin::extensionsInitialized()
 void
 ServantPlugin::shutdown()
 {
+    // shut down manager internal threads,
+    // other servers may be shut down later depend on 'plugin load order'
+    broker_manager_->shutdown();
+
+    adportable::debug() << "====== ServantPlugin::shutdown() completed =======";
+}
+
+void
+ServantPlugin::final_close()
+{
+    adportable::debug() << "====== ServantPlugin::final_close ... =======";
     adportable::Configuration& config = *pConfig_;
-    
+
     // destriction must be reverse order
     for ( adportable::Configuration::vector_type::reverse_iterator it = config.rbegin(); it != config.rend(); ++it ) {
         if ( it->attribute(L"type") == L"orbLoader" ) {
             std::wstring file = it->attribute( L"fullpath" );
             qDebug() << "ServantPlugin::final_close closeing: " << qtwrapper::qstring::copy( file );
             adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
-            if ( it->name() == L"adbroker" )
-                broker_manager_->shutdown();                
             if ( loader )
                 loader.deactivate();
         }
     }
+    adportable::debug() << "====== ServantPlugin::final_close Loggor::shutdown... =======";    
     Logger::shutdown();
-}
-
-void
-ServantPlugin::final_close()
-{
     try {
+        adportable::debug() << "====== ServantPlugin::final_close orb shutdown... =======";    
         servant::singleton::orbServantManager::instance()->orb()->shutdown();
+        adportable::debug() << "====== ServantPlugin::final_close orb fini... =======";    
         servant::singleton::orbServantManager::instance()->fini();
     } catch ( CORBA::Exception& ex ) {
         adportable::debug dbg( __FILE__, __LINE__ );
         dbg << ex._info().c_str();        dbg << ex._info().c_str();
         QMessageBox::critical( 0, dbg.where().c_str(), dbg.str().c_str() );
     }
+    adportable::debug() << "====== ServantPlugin::final_close waiting threads... =======";    
     ACE_Thread_Manager::instance()->wait();
+    adportable::debug() << "====== ServantPlugin::final_close complete =======";    
 }
 
 

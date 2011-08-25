@@ -440,6 +440,8 @@ DataprocPlugin::extensionsInitialized()
 void
 DataprocPlugin::shutdown()
 {
+    adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutting down...  ===============";
+
     manager_->OnFinalClose();
 
     if ( ! CORBA::is_nil( brokerSession_ ) ) {
@@ -460,6 +462,7 @@ DataprocPlugin::shutdown()
         CORBA::release( brokerSession_ );
         brokerSession_ = 0;
     }
+    adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutdown complete ===============";
 }
 
 

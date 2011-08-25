@@ -55,11 +55,13 @@ adbroker::manager_i::shutdown()
         acewrapper::scoped_mutex_t<> lock( mutex_ );
         if ( discovery_ )
             discovery_->close();
+        delete discovery_;
+        discovery_ = 0;
     }
 
-    PortableServer::POA_var poa = adbroker::singleton::manager::instance()->poa();
-    if ( logger_i_ )
-        poa->deactivate_object( logger_i_->oid() );
+    //PortableServer::POA_var poa = adbroker::singleton::manager::instance()->poa();
+    //if ( logger_i_ )
+    //    poa->deactivate_object( logger_i_->oid() );
 
     adportable::debug() << "##### adbroker::manager::shutdown complete ######";
     adportable::debug() << "####################################################";

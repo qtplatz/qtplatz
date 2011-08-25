@@ -132,7 +132,7 @@ ObjectDiscovery::close()
 bool
 ObjectDiscovery::open( u_short port )
 {
-    return mcast_->open( port ) || dgram_.open( port );
+    return mcast_->open( port ); // && dgram_->open( port );
 }
 
 void

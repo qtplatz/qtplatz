@@ -72,7 +72,7 @@ module ControlServer {
       
       boolean initialize();  // instruments going to 'power on', and starting up if not ready yet.
 
-	  SignalObserver::Observer getObserver();
+      SignalObserver::Observer getObserver();
 
       boolean shutdown();  // shutdown server
       boolean echo(in string msg);
