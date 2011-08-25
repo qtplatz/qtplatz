@@ -53,7 +53,7 @@ public:
 private:
     ACE_thread_t t_handle_;
     ACE_Reactor * reactor_;
-    class McastHandler * mcast_;
+    // class McastHandler * mcast_;
     class DgramHandler * dgram_;
     bool suspend_;
     size_t nlist_;
