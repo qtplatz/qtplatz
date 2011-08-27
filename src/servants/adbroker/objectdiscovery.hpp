@@ -36,31 +36,30 @@ class ACE_Recursive_Thread_Mutex;
 
 namespace adbroker {
 
-class ObjectDiscovery {
-public:
-    ~ObjectDiscovery();
-    ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex );
-    void event_loop();
-    static void * thread_entry( void * );
-    bool open();
-    void close();
-    void operator()( const char *, ssize_t, const ACE_INET_Addr& );
-    void registor_lookup( const std::string& name, const std::string& ident );
-    void unregistor_lookup( const std::string& ident );
-    int handle_timeout();
-    inline bool suspend() { return suspend_; }
-    inline ACE_Reactor * reactor() { return reactor_; }
+    class ObjectDiscovery {
+    public:
+        ~ObjectDiscovery();
+        ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex );
+        void event_loop();
+        static void * thread_entry( void * );
+        bool open();
+        void close();
+        void operator()( const char *, ssize_t, const ACE_INET_Addr& );
+        void register_lookup( const std::string& name, const std::string& ident );
+        bool unregister_lookup( const std::string& ident, std::string& name );
+        int handle_timeout();
+        inline bool suspend() { return suspend_; }
+        inline ACE_Reactor * reactor() { return reactor_; }
 
-private:
-    ACE_thread_t t_handle_;
-    ACE_Reactor * reactor_;
-    // class McastHandler * mcast_;
-    class BcastHandler * bcast_;
-    bool suspend_;
-    size_t nlist_;
-    ACE_Recursive_Thread_Mutex& mutex_;
-    std::map< std::string, std::string> list_;
-};
+    private:
+        ACE_thread_t t_handle_;
+        ACE_Reactor * reactor_;
+        // class McastHandler * mcast_;
+        class BcastHandler * bcast_;
+        bool suspend_;
+        ACE_Recursive_Thread_Mutex& mutex_;
+        std::map< std::string, std::string> list_;
+    };
 
 }
 

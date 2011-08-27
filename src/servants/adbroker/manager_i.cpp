@@ -31,6 +31,7 @@
 #include <adportable/string.hpp>
 #include <acewrapper/mutex.hpp>
 #include <ace/Thread_Manager.h>
+#include <boost/foreach.hpp>
 
 using namespace adbroker;
 
@@ -54,19 +55,26 @@ namespace adbroker {
     }
 }
 
-adbroker::manager_i::manager_i(void) : discovery_(0)
+manager_i::manager_i(void) : discovery_(0)
 {
     adportable::debug() << "adbroker::manager_i ctor";
 }
 
-adbroker::manager_i::~manager_i(void)
+manager_i::~manager_i(void)
 {
     adportable::debug() << "adbroker::~manager_i dtor";
     delete discovery_;
 }
 
+manager_i *
+manager_i::instance()
+{
+    acewrapper::ORBServant< manager_i > * servant = singleton::manager::instance();
+    return (*servant);
+}
+
 void
-adbroker::manager_i::shutdown()
+manager_i::shutdown()
 {
     adportable::debug() << "####################################################";
     adportable::debug() << "##### adbroker::manager::shutting down ... ######";
@@ -127,10 +135,24 @@ manager_i::getLogger()
 void
 manager_i::register_ior( const char * name, const char * ior )
 {
-    adportable::debug() << "adbroker::manager_i::register_ior(" << std::string(name) << ", " << std::string(ior) << ")";
+    adportable::debug() << "adbroker::manager_i::register_ior("
+                        << std::string(name) << ", " << std::string(ior) << ")";
 
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     iorMap_[ name ] = ior;
+}
+
+void
+manager_i::internal_register_ior( const std::string& name, const std::string& ior )
+{
+    adportable::debug() << "adbroker::manager_i::internal_register_ior(" 
+                        << name << ", " << ior.substr(0, 20) << "... )";
+
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    iorMap_[ name ] = ior;
+
+    BOOST_FOREACH( internal::object_receiver& cb, sink_vec_ )
+        cb.sink_->object_discovered( name.c_str(), ior.c_str() );
 }
 
 char *
@@ -157,21 +179,25 @@ manager_i::register_lookup( const char * name, const char * ident )
     }
     if ( discovery_ ) {
         acewrapper::scoped_mutex_t<> lock( mutex_ );
-        discovery_->registor_lookup( name, ident );    
+        discovery_->register_lookup( name, ident );    
         lookup_[ name ] = ident;
     } while(0);
-
+#if defined DEBUG && 0
     adportable::debug() << "================================================================";
     adportable::debug() << "======== adbroker::manager_i::register_lookup(" 
                         << std::string(name) << ", " << std::string(ident) << ")";
+#endif
 }
 
 bool
-manager_i::connect( Broker::ObjectReceiver_ptr cb )
+manager_i::register_handler( Broker::ObjectReceiver_ptr cb )
 {
     if ( ! CORBA::is_nil( cb ) ) {
         internal::object_receiver sink;
         sink.sink_ = Broker::ObjectReceiver::_duplicate( cb );
+
+        acewrapper::scoped_mutex_t<> lock( mutex_ );
+
         sink_vec_.push_back( sink );
         return true;
     }
@@ -179,10 +205,14 @@ manager_i::connect( Broker::ObjectReceiver_ptr cb )
 }
 
 bool
-manager_i::disconnect( Broker::ObjectReceiver_ptr cb )
+manager_i::unregister_handler( Broker::ObjectReceiver_ptr cb )
 {
     if ( ! CORBA::is_nil( cb ) ) {
-        std::vector< internal::object_receiver >::iterator it = std::find( sink_vec_.begin(), sink_vec_.end(), cb );
+
+        acewrapper::scoped_mutex_t<> lock( mutex_ );
+
+        std::vector< internal::object_receiver >::iterator it 
+            = std::find( sink_vec_.begin(), sink_vec_.end(), cb );
         if ( it != sink_vec_.end() ) {
             sink_vec_.erase( it );
             return true;

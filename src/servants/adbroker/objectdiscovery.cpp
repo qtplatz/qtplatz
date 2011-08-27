@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "objectdiscovery.hpp"
+#include "manager_i.hpp"
 #include <acewrapper/mutex.hpp>
 #include <adportable/debug.hpp>
 #include <ace/Thread.h>
@@ -35,6 +36,8 @@
 #include <iostream>
 
 using namespace adbroker;
+
+#define IORQ "ior?"
 
 namespace adbroker {
 
@@ -56,24 +59,24 @@ namespace adbroker {
 //     ObjectDiscovery& parent_;
 // };
 
-class BcastHandler : public ACE_Event_Handler {
-public:
-    BcastHandler( ObjectDiscovery& );
-    virtual int handle_input( ACE_HANDLE );
-    virtual int handle_close( ACE_HANDLE, ACE_Reactor_Mask );
-    virtual ACE_HANDLE get_handle() const;
-    virtual int handle_timeout( const ACE_Time_Value&, const void * arg );
-    bool open();
-    bool close();
-    bool send( const char *, ssize_t );
-    bool send( const char *, ssize_t, const ACE_INET_Addr& );
-    bool recv( char *, ssize_t bufsize, ACE_INET_Addr& );
-private:
-    // ACE_SOCK_Dgram sock_dgram_;
-    ACE_SOCK_Dgram_Bcast sock_bcast_;
-    ACE_INET_Addr sock_addr_;
-    ObjectDiscovery& parent_;
-};
+    class BcastHandler : public ACE_Event_Handler {
+    public:
+        BcastHandler( ObjectDiscovery& );
+        virtual int handle_input( ACE_HANDLE );
+        virtual int handle_close( ACE_HANDLE, ACE_Reactor_Mask );
+        virtual ACE_HANDLE get_handle() const;
+        virtual int handle_timeout( const ACE_Time_Value&, const void * arg );
+        bool open();
+        bool close();
+        bool send( const char *, ssize_t );
+        bool send( const char *, ssize_t, const ACE_INET_Addr& );
+        bool recv( char *, ssize_t bufsize, ACE_INET_Addr& );
+    private:
+        // ACE_SOCK_Dgram sock_dgram_;
+        ACE_SOCK_Dgram_Bcast sock_bcast_;
+        ACE_INET_Addr sock_addr_;
+        ObjectDiscovery& parent_;
+    };
 
 } // namespace adbroker
 
@@ -82,7 +85,6 @@ ObjectDiscovery::ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex ) : t_handle
                                                                         // , mcast_( new McastHandler( *this) )
                                                                       , bcast_( new BcastHandler( *this) )
                                                                       , suspend_( false )
-                                                                      , nlist_( 0 )
                                                                       , mutex_( mutex )
 {
 }
@@ -109,7 +111,7 @@ ObjectDiscovery::event_loop()
 
     // reactor_->register_handler( mcast_, ACE_Event_Handler::READ_MASK );
     reactor_->register_handler( bcast_, ACE_Event_Handler::READ_MASK );
-    reactor_->schedule_timer( bcast_, 0, ACE_Time_Value(3), ACE_Time_Value(3) );
+    reactor_->schedule_timer( bcast_, 0, ACE_Time_Value(1), ACE_Time_Value(3) );
 
     while ( reactor_->handle_events() >= 0 ) 
         ;
@@ -147,43 +149,58 @@ ObjectDiscovery::open()
 void
 ObjectDiscovery::operator()( const char * pbuf, ssize_t, const ACE_INET_Addr& from )
 {
-    std::cout << "ObjectDiscovery: '" << pbuf << "'" << std::endl;
-    std::cout << "\t recv from : " << from.get_host_addr() << ":" << from.get_port_number() << std::endl;
+#if defined DEBUG && 0
+    std::cout << "***** ObjectDiscovery:  from " << from.get_host_addr() << ":" << from.get_port_number() << std::endl;
+#endif
+    ACE_UNUSED_ARG( from );
+    std::string reply( pbuf );
+    std::string::size_type pos = reply.find_first_of( "\r\n" );
+    
+    if ( pos != std::string::npos ) {
+
+        std::string ident = reply.substr( 0, pos );
+        std::string ior = reply.substr( pos + 1 );
+        std::string name;
+        if ( unregister_lookup( ident, name ) ) {
+            adportable::debug() << "ObjectDiscovery: name=" << name << ", " << ident 
+                                << " ior=" << ior.substr(0, 20) << "...";
+            manager_i::instance()->internal_register_ior( name, ior );
+        }
+    }
 }
 
 int
 ObjectDiscovery::handle_timeout()
 {
-    adportable::debug() << "ObjectDiscovery::handle_timeout() suspend =" << suspend_;
-    if ( ! suspend_ )
-        bcast_->send( "ior?", sizeof( "ior?" ) );
+    std::cerr << "ObjectDiscovery:handle_timeout() suspend =" << suspend_ << std::endl;
+    if ( ! suspend_ ) 
+        bcast_->send( IORQ, sizeof( IORQ ) );
     return 0;
 }
 
 void
-ObjectDiscovery::registor_lookup( const std::string& name, const std::string& ident )
+ObjectDiscovery::register_lookup( const std::string& name, const std::string& ident )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     list_[ ident ] = name;
-    if ( ( nlist_ = list_.size() ) > 0 )
-        suspend_ = false;
+    suspend_ = false;
 
-    adportable::debug()
-        << "============= ObjectDiscovery::registor_lookup(" << name << ", " << ident << ") ===============" << int(nlist_);
+    // force broadcast
+    // handle_timeout(); 
 }
 
-void
-ObjectDiscovery::unregistor_lookup( const std::string& ident )
+bool
+ObjectDiscovery::unregister_lookup( const std::string& ident, std::string& name )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );
-    size_t n0 = list_.size();
-    list_.erase( ident );
-    if ( ( nlist_ = list_.size() ) == 0 )
-        suspend_ = true;
-
-    adportable::debug()
-        << "==== ObjectDiscovery::unregistor_lookup(" << ident 
-        << ") size " << int(n0) << " --> " << int(nlist_);
+    std::map< std::string, std::string >::iterator it = list_.find( ident );
+    if ( it != list_.end() ) {
+        name = it->second;
+        // list_.erase( ident );
+        // suspend_ = list_.empty();
+        return true;
+    }
+    return false;
 }
 
 //////////
@@ -292,11 +309,11 @@ BcastHandler::handle_input( ACE_HANDLE )
 
     ssize_t res = sock_bcast_.recv( buf, sizeof(buf), remote_addr );
 
-    adportable::debug() << "BcastHandler::handle_input res = " << res << " from " 
+    adportable::debug() << "BcastHandler::handle_input from " 
                         << remote_addr.get_host_addr() << ":" << remote_addr.get_port_number()
-                        << "\t" << buf;
+                        << "\n\"" << std::string(buf).substr(0, 60) << "...\"";
 
-    if ( res != (-1) && ( res >= 4 && strncmp(buf, "ior?", 4) == 0 ) ) {
+    if ( res >= 4 && ( strncmp(buf, IORQ, sizeof(IORQ) - 1) != 0 ) ) {
         parent_( buf, res, remote_addr );
         return 0;
     }
@@ -340,7 +357,8 @@ BcastHandler::send( const char * pbuf, ssize_t size, const ACE_INET_Addr& to )
 {
     ssize_t ret = sock_bcast_.send( pbuf, size , const_cast<ACE_INET_Addr&>(to) );
 
-    adportable::debug() << "BcastHandler::send(" << pbuf << ", " << to.get_host_addr() << ":" 
+    static int count;
+    adportable::debug() << "[" << count++ << "]BcastHandler::send(" << pbuf << ", " << to.get_host_addr() << ":" 
                         << to.get_port_number() << ") ret=" << ret;
 
     return ret == size;

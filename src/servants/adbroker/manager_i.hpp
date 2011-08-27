@@ -56,15 +56,16 @@ namespace adbroker {
         ~manager_i(void);
 
         void shutdown();
-        bool connect( Broker::ObjectReceiver_ptr cb );
-        bool disconnect( Broker::ObjectReceiver_ptr cb );
+        bool register_handler( Broker::ObjectReceiver_ptr cb );
+        bool unregister_handler( Broker::ObjectReceiver_ptr cb );
         Broker::Session_ptr getSession( const CORBA::WChar * );
         Broker::Logger_ptr getLogger();
         void register_ior( const char * name, const char * ior );
         char * ior( const char * name );
         void register_lookup( const char * name, const char * ident );
         inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
-
+        static manager_i * instance();
+        void internal_register_ior( const std::string& name, const std::string& ior );
     private:
         typedef std::map< std::wstring, boost::shared_ptr< adbroker::session_i > > session_map_type;
         session_map_type session_list_;
