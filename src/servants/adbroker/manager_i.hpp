@@ -47,6 +47,8 @@
 
 namespace adbroker {
 
+    namespace internal { struct object_receiver; }
+
     class manager_i : public virtual POA_Broker::Manager {
 
     public:
@@ -54,6 +56,8 @@ namespace adbroker {
         ~manager_i(void);
 
         void shutdown();
+        bool connect( Broker::ObjectReceiver_ptr cb );
+        bool disconnect( Broker::ObjectReceiver_ptr cb );
         Broker::Session_ptr getSession( const CORBA::WChar * );
         Broker::Logger_ptr getLogger();
         void register_ior( const char * name, const char * ior );
@@ -67,6 +71,7 @@ namespace adbroker {
         boost::scoped_ptr< broker::logger_i > logger_i_;
         std::map< std::string, std::string > iorMap_;
         std::map< std::string, std::string > lookup_;
+        std::vector< internal::object_receiver > sink_vec_;
         ObjectDiscovery * discovery_;
         ACE_Recursive_Thread_Mutex mutex_;
     };

@@ -26,8 +26,7 @@
 #ifndef REACTORTHREAD_H
 #define REACTORTHREAD_H
 
-class ACE_Semaphore;
-class ACE_Reactor;
+#include <ace/Reactor.h>
 
 namespace acewrapper {
 
@@ -37,16 +36,16 @@ namespace acewrapper {
         ReactorThread();
 
         ACE_Reactor * get_reactor();
-        void terminate();
-        bool spawn();
 
-        static void spawn( ReactorThread * );
+        bool spawn();
+        bool end_reactor_event_loop();
+        bool join();
 
     private:
         static void * thread_entry( void * me );
         void run_event_loop();
         ACE_Reactor * reactor_;
-        ACE_Semaphore * sema_;
+        ACE_thread_t t_handle_;
     };
 }
 

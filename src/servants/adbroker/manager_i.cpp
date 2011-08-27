@@ -34,6 +34,26 @@
 
 using namespace adbroker;
 
+namespace adbroker {
+    namespace internal {
+
+        struct object_receiver {
+            inline bool operator == ( const object_receiver& t ) const {
+                return sink_->_is_equivalent( t.sink_.in() );
+            }
+            inline bool operator == ( const Broker::ObjectReceiver_ptr t ) const {
+                return sink_->_is_equivalent( t );
+            }
+            object_receiver() {
+            }
+            object_receiver( const object_receiver& t ) : sink_( t.sink_ ) {
+            }
+            Broker::ObjectReceiver_var sink_;
+        };
+    
+    }
+}
+
 adbroker::manager_i::manager_i(void) : discovery_(0)
 {
     adportable::debug() << "adbroker::manager_i ctor";
@@ -144,4 +164,29 @@ manager_i::register_lookup( const char * name, const char * ident )
     adportable::debug() << "================================================================";
     adportable::debug() << "======== adbroker::manager_i::register_lookup(" 
                         << std::string(name) << ", " << std::string(ident) << ")";
+}
+
+bool
+manager_i::connect( Broker::ObjectReceiver_ptr cb )
+{
+    if ( ! CORBA::is_nil( cb ) ) {
+        internal::object_receiver sink;
+        sink.sink_ = Broker::ObjectReceiver::_duplicate( cb );
+        sink_vec_.push_back( sink );
+        return true;
+    }
+    return false;
+}
+
+bool
+manager_i::disconnect( Broker::ObjectReceiver_ptr cb )
+{
+    if ( ! CORBA::is_nil( cb ) ) {
+        std::vector< internal::object_receiver >::iterator it = std::find( sink_vec_.begin(), sink_vec_.end(), cb );
+        if ( it != sink_vec_.end() ) {
+            sink_vec_.erase( it );
+            return true;
+        }
+    }
+    return false;
 }

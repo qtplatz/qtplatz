@@ -42,19 +42,20 @@ public:
     ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex );
     void event_loop();
     static void * thread_entry( void * );
-    bool open( u_short port = 0 );
+    bool open();
     void close();
     void operator()( const char *, ssize_t, const ACE_INET_Addr& );
     void registor_lookup( const std::string& name, const std::string& ident );
     void unregistor_lookup( const std::string& ident );
     int handle_timeout();
     inline bool suspend() { return suspend_; }
+    inline ACE_Reactor * reactor() { return reactor_; }
 
 private:
     ACE_thread_t t_handle_;
     ACE_Reactor * reactor_;
     // class McastHandler * mcast_;
-    class DgramHandler * dgram_;
+    class BcastHandler * bcast_;
     bool suspend_;
     size_t nlist_;
     ACE_Recursive_Thread_Mutex& mutex_;

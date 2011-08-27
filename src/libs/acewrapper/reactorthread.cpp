@@ -46,29 +46,36 @@ ReactorThread::~ReactorThread()
     delete reactor_;
 }
 
-ReactorThread::ReactorThread() : reactor_(0)
-                               , sema_(0) 
+ReactorThread::ReactorThread() : reactor_( new ACE_Reactor )
+                               , t_handle_( 0 )
 {
-    reactor_ = new ACE_Reactor();
-	sema_ = new ACE_Semaphore(0, USYNC_THREAD, 0, 0, 1); // binary semaphore, with count = 0
 }
 
-void
-ReactorThread::terminate()
+bool
+ReactorThread::end_reactor_event_loop()
 {
-    if ( reactor_->reactor_event_loop_done() == 0 ) {
-        reactor_->end_reactor_event_loop();
-        sema_->acquire(); // end_event_loop() will release semaphore
-    }
+    if ( reactor_->reactor_event_loop_done() != 0 )
+        return false;
+    reactor_->end_reactor_event_loop();
+    return true;
+}
+
+bool
+ReactorThread::spawn()
+{
+    if ( t_handle_ )
+        return false;
+    ACE_Thread_Manager::instance()->spawn( thread_entry, this );
+    return true;
 }
 
 // satic
-void
-ReactorThread::spawn( ReactorThread * pThis )
-{
-    ACE_Thread_Manager * mgr = ACE_Thread_Manager::instance();
-    mgr->spawn(ACE_THR_FUNC( thread_entry ), reinterpret_cast<void *>( pThis ) );
-}
+// void
+// ReactorThread::spawn( ReactorThread * pThis )
+// {
+//     ACE_Thread_Manager * mgr = ACE_Thread_Manager::instance();
+//     mgr->spawn(ACE_THR_FUNC( thread_entry ), reinterpret_cast<void *>( pThis ) );
+// }
 
 void *
 ReactorThread::thread_entry( void * me )
@@ -84,14 +91,22 @@ ReactorThread::thread_entry( void * me )
 void
 ReactorThread::run_event_loop()
 {
+    t_handle_ = ACE_Thread::self();
 	while ( reactor_->reactor_event_loop_done() == 0 )
 		reactor_->run_reactor_event_loop();
-	sema_->release();
 }
-
 
 ACE_Reactor *
 ReactorThread::get_reactor()
 { 
     return reactor_;
+}
+
+bool
+ReactorThread::join()
+{
+    if ( t_handle_ )
+        ACE_Thread_Manager::instance()->join( t_handle_ );
+    t_handle_ = 0;
+    return true;
 }
