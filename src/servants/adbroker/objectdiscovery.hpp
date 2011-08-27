@@ -48,7 +48,6 @@ namespace adbroker {
         void register_lookup( const std::string& name, const std::string& ident );
         bool unregister_lookup( const std::string& ident, std::string& name );
         int handle_timeout();
-        inline bool suspend() { return suspend_; }
         inline ACE_Reactor * reactor() { return reactor_; }
 
     private:

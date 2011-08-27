@@ -172,7 +172,10 @@ ObjectDiscovery::operator()( const char * pbuf, ssize_t, const ACE_INET_Addr& fr
 int
 ObjectDiscovery::handle_timeout()
 {
-    std::cerr << "ObjectDiscovery:handle_timeout() suspend =" << suspend_ << std::endl;
+#if defined DEBUG
+    std::cerr << "****** adborker::ObjectDiscovery:handle_timeout() ******** " 
+              << (suspend_ ? " suspended" : "broadcasting" ) << std::endl;
+#endif
     if ( ! suspend_ ) 
         bcast_->send( IORQ, sizeof( IORQ ) );
     return 0;
@@ -186,7 +189,7 @@ ObjectDiscovery::register_lookup( const std::string& name, const std::string& id
     suspend_ = false;
 
     // force broadcast
-    // handle_timeout(); 
+    handle_timeout(); 
 }
 
 bool
@@ -196,8 +199,8 @@ ObjectDiscovery::unregister_lookup( const std::string& ident, std::string& name 
     std::map< std::string, std::string >::iterator it = list_.find( ident );
     if ( it != list_.end() ) {
         name = it->second;
-        // list_.erase( ident );
-        // suspend_ = list_.empty();
+        list_.erase( ident );
+        suspend_ = list_.empty();
         return true;
     }
     return false;
@@ -294,9 +297,7 @@ BcastHandler::get_handle() const
 int
 BcastHandler::handle_timeout( const ACE_Time_Value&, const void * )
 {
-    if ( ! parent_.suspend() )
-        return parent_.handle_timeout();
-    return 0;
+    return parent_.handle_timeout();
 }
 
 int
