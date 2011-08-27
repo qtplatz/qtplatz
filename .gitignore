@@ -58,6 +58,7 @@ share/qtcreator/translations/extract-mimetypes.xq
 Deleted
 debug
 Debug
+bin/*
 lib/*
 lib64/*
 release
@@ -65,8 +66,11 @@ Release
 doc/html/*
 .rcc
 .pch
+share/MSI
+share/qtwidgets
 share/qtplatz/phony.c
 share/qtplatz/translations/phony.c
+share/qtplatz/translations/extract-mimetypes.xq
 src/libs/adinterface/*C.cpp
 src/libs/adinterface/*C.h
 src/libs/adinterface/*C.inl
