@@ -42,15 +42,15 @@ using namespace adcontroller;
 namespace adcontroller {
     namespace internal {
 	
-	class TimeReceiver {
-	public:
-	    TimeReceiver() {}
-	    int handle_input( ACE_HANDLE ) { return 0; }
-	    int handle_timeout( const ACE_Time_Value& tv, const void * arg) {
-		return singleton::iBrokerManager::instance()->handle_timeout( tv, arg );
-	    }
-	    int handle_close( ACE_HANDLE, ACE_Reactor_Mask ) { return 0; }
-	};
+        class TimeReceiver {
+        public:
+            TimeReceiver() {}
+            int handle_input( ACE_HANDLE ) { return 0; }
+            int handle_timeout( const ACE_Time_Value& tv, const void * arg) {
+                return singleton::iBrokerManager::instance()->handle_timeout( tv, arg );
+            }
+            int handle_close( ACE_HANDLE, ACE_Reactor_Mask ) { return 0; }
+        };
 	
     }
 }
@@ -74,7 +74,7 @@ IBrokerManager::IBrokerManager() : pBroker_(0)
 				 , timerHandler_(0) 
 {
     reactor_thread_ = new acewrapper::ReactorThread();
-    acewrapper::ReactorThread::spawn( reactor_thread_ );
+    reactor_thread_->spawn();
     pBroker_ = new iBroker( 5 );
 }
 
@@ -100,16 +100,17 @@ void
 IBrokerManager::manager_terminate()
 {
     if ( timerHandler_ ) {
-	acewrapper::scoped_mutex_t<> lock( mutex_ );
-	if ( timerHandler_ ) {
+        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        if ( timerHandler_ ) {
             timerHandler_->cancel( reactor(), timerHandler_ );
             timerHandler_->wait();
             delete timerHandler_;
-	    timerHandler_ = 0;
-	}
+            timerHandler_ = 0;
+        }
     }
     pBroker_->close();
-    reactor_thread_->terminate();
+    reactor_thread_->end_reactor_event_loop();
+    reactor_thread_->join();
 }
 
 ACE_Reactor *

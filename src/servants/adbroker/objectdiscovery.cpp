@@ -172,7 +172,7 @@ ObjectDiscovery::operator()( const char * pbuf, ssize_t, const ACE_INET_Addr& fr
 int
 ObjectDiscovery::handle_timeout()
 {
-#if defined DEBUG
+#if defined DEBUG && 0
     std::cerr << "****** adborker::ObjectDiscovery:handle_timeout() ******** " 
               << (suspend_ ? " suspended" : "broadcasting" ) << std::endl;
 #endif
