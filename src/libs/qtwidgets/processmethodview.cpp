@@ -121,8 +121,12 @@ ProcessMethodView::sizeHint() const
 
 // slot
 void
-ProcessMethodView::getContents( adcontrols::ProcessMethod& )
+ProcessMethodView::getContents( adcontrols::ProcessMethod& m )
 {
+    m.appendMethod( pCentroidModel_->method() );
+    m.appendMethod( pIsotopeModel_->method() );
+    //ctx->setContextProperty( "elementalCompModel", pElementalCompModel_.get() );
+    //ctx->setContextProperty( "msCalibrateModel", pMSCalibrateModel_.get() );
 }
 
 // slot

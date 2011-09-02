@@ -44,6 +44,8 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/foreach.hpp>
 
+#define DEBUG_CENTROID_PROCESS
+
 using namespace adcontrols;
 
 namespace adcontrols {
@@ -68,6 +70,8 @@ namespace adcontrols {
 			MassSpectrum clone_;
 			CentroidMethod method_;
 			Description desc_;
+        public:
+            MassSpectrum debug_profile_;
         };
 
 	}
@@ -101,6 +105,7 @@ CentroidProcess::operator()( const MassSpectrum& profile )
     pImpl_->clear();
 	pImpl_->setup( profile );
     pImpl_->findpeaks( profile );
+
     //const double * masses = profile.getMassArray();
     //const double * intens = profile.getIntensityArray();
 /*
@@ -153,6 +158,11 @@ bool
 CentroidProcess::getCentroidSpectrum( MassSpectrum& ms )
 {
 	pImpl_->copy( ms );
+
+#if defined DEBUG_CENTROID_PROCESS
+    ms = pImpl_->debug_profile_;
+    return true;
+#endif
 
 	size_t nSize;
 	if ( pImpl_ && ( nSize = pImpl_->info_.size() ) ) {
@@ -215,11 +225,20 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     using adportable::spectrum_processor;
 
     double base = 0, sd = 0;
-    spectrum_processor::tic( profile.size(), profile.getIntensityArray(), base, sd );
+    double tic = spectrum_processor::tic( profile.size(), profile.getIntensityArray(), base, sd );
+
+#if defined DEBUG_CENTROID_PROCESS
+    boost::scoped_array< double > pY( new double [ profile.size() ] );
+    memset( pY.get(), 0, sizeof(double) * profile.size() );
+    debug_profile_ = profile;
+    spectrum_processor::differentiation( profile.size(), pY.get(), profile.getIntensityArray(), 25 );
+    //spectrum_processor::smoozing( profile.size(), pY.get(), profile.getIntensityArray() );
+    debug_profile_.setIntensityArray( pY.get() );
+#endif
 
     typedef std::pair<int, int> index_pair;
     std::vector< index_pair > peakindex;
-    spectrum_processor::findpeaks( profile.size(), profile.getIntensityArray(), base, peakindex );
+    spectrum_processor::findpeaks( profile.size(), profile.getIntensityArray(), base, peakindex, 25 );
 
     adportable::array_wrapper<const double> intens( profile.getIntensityArray(), profile.size() );
     adportable::array_wrapper<const double> masses( profile.getMassArray(), profile.size() );

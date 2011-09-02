@@ -36,7 +36,7 @@ PlotCurve::PlotCurve( Dataplot& plot
              , const std::wstring& title ) : ownership_( true ) 
                                            , curve_( new QwtPlotCurve( qstring(title) ) )
 {
-    curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
+    // curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
     curve_->setPen( QPen( Qt::blue) );
     curve_->setStyle( QwtPlotCurve::Lines ); // continuum (or Stics)
     curve_->setLegendAttribute( QwtPlotCurve::LegendShowLine );

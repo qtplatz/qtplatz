@@ -31,6 +31,8 @@
 #include <adcontrols/mscalibration.hpp>
 #include <fstream>
 #include <algorithm>
+#include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace adtxtfactory;
 
@@ -47,16 +49,30 @@ TXTSpectrum::load( const std::wstring& name )
     if ( in.fail() )
         return false;
 
+    typedef boost::char_separator<char> separator;
+    typedef boost::tokenizer< separator > tokenizer;
+
+    separator sep( ", \t", "", boost::drop_empty_tokens );
+
     std::vector<double> timeArray, massArray, intensArray;
 
-    double time, mass, intens;
     do {
-        in >> time;
-        in >> mass;
-        in >> intens;
-        timeArray.push_back( time );
-        massArray.push_back( mass );
-        intensArray.push_back( intens );
+        double values[3];
+        std::string line;
+        if ( getline( in, line ) ) {
+
+            tokenizer tokens( line, sep );
+            int i = 0;
+            for ( tokenizer::iterator it = tokens.begin(); it != tokens.end() && i < 3; ++it, ++i ) {
+                std::string s = *it;
+                values[i] = boost::lexical_cast< double >( s );
+            }
+            if ( i == 3 ) {
+                timeArray.push_back( values[ 0 ] );
+                massArray.push_back( values[ 1 ] );
+                intensArray.push_back( values[ 2 ] );
+            }
+        }
     } while( ! in.eof() );
 
     size_t size = timeArray.size();

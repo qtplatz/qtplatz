@@ -85,6 +85,8 @@ namespace qtwidgets {
         
         AreaHeight areaHeight() const;
         void areaHeight( AreaHeight );
+
+        inline const adcontrols::CentroidMethod& method() const { return method_; }
         
     signals:
         void scanTypeChanged();

@@ -93,7 +93,9 @@ ObjectDiscovery::~ObjectDiscovery()
 {
     delete bcast_;
     // delete mcast_;
+#ifndef WIN32 // workaround to avoid clash on close app.
     delete reactor_;
+#endif
 }
 
 void *

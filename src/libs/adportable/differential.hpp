@@ -45,7 +45,7 @@ namespace adportable {
             ndiff(n, order);
         };
         inline T convolute(const T * py) const {
-            py += (n_ / 2);
+            // py += (n_ / 2);
             T fxi;
             fxi = table_->B[0] * py[0];
             for (int j = 1; j <= (n_ / 2); ++j)

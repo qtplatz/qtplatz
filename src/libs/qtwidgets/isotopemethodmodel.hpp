@@ -67,7 +67,7 @@ namespace qtwidgets {
         bool setData( const QModelIndex& index, const QVariant& value, int role = Qt::EditRole );
         Qt::ItemFlags flags( const QModelIndex& index ) const;
         //---------------------
-        const adcontrols::IsotopeMethod& method() const { return method_; }
+        inline const adcontrols::IsotopeMethod& method() const { return method_; }
 
         //void insertRow( const QModelIndex& index = QModelIndex() );
         Q_INVOKABLE void appendRow( int currentRow );

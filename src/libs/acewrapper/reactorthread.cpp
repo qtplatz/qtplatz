@@ -65,7 +65,7 @@ ReactorThread::spawn()
 {
     if ( t_handle_ )
         return false;
-    ACE_Thread_Manager::instance()->spawn( thread_entry, this );
+    ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC(thread_entry), this );
     return true;
 }
 

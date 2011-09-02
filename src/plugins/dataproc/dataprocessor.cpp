@@ -51,6 +51,7 @@
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
+#include <adportable/debug.hpp>
 #include <stack>
 #include <qdebug.h>
 
@@ -157,6 +158,7 @@ namespace dataproc {
             }
 
             template<typename T> bool operator () ( T& ) const {
+                adportable::debug(__FILE__, __LINE__) << "doSpectraolProcess( " << typeid( T ).name() << ") -- ignored";
                 return false;
             }
 

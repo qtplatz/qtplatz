@@ -28,8 +28,12 @@
 #include <cmath>
 #include <boost/smart_ptr.hpp>
 
-using namespace adportable;
+#include <boost/statechart/event.hpp>
+#include <boost/statechart/state_machine.hpp>
+#include <boost/statechart/simple_state.hpp>
+#include <boost/statechart/transition.hpp>
 
+using namespace adportable;
 
 namespace adportable { // namespace internal {
 
@@ -91,7 +95,26 @@ namespace adportable { // namespace internal {
         inline double rms() const { return std::sqrt( ( sdd / n ) - ( average() * average() ) ); }
     };
 
+    struct EvStart : boost::statechart::event< EvStart > {};
+    struct EvStop : boost::statechart::event< EvStop > {};
+    struct EvPeak : boost::statechart::event< EvPeak > {};
+    struct Active;
+    struct Stopped;
+    struct PeakFinder : boost::statechart::state_machine< PeakFinder, Active > {};
+
+    struct Active : boost::statechart::simple_state< Active, PeakFinder, Stopped > {
+        typedef boost::statechart::transition< EvStop, Active > reactions;
+        size_t spos_;
+        size_t epos_;
+        Active() : spos_(0), epos_(0) {}
+    };
+
+    struct Running : boost::statechart::simple_state< Running, Active > { };
+    struct Stopped : boost::statechart::simple_state< Stopped, Active > { };
+
 }
+
+
 
 
 double
@@ -136,16 +159,27 @@ spectrum_processor::tic( unsigned int nbrSamples, const double * praw, double& d
     return avgr.average() - dbase;
 }
 
-size_t
-spectrum_processor::findpeaks( size_t nbrSamples, const double * praw, double /* dbase */, std::vector< std::pair<int, int> >& results )
+void
+spectrum_processor::differentiation( size_t nbrSamples, double * pY, const double * intens, size_t N )
 {
     using adportable::differential;
 
-    results.clear();
+    const size_t Nhalf = N / 2;
+    differential<double> diff( N );
 
-    boost::scoped_array<double> pY( new double [ nbrSamples ] );
+    for ( unsigned int x = 0; x <= Nhalf; ++x )
+        pY[ x ] = pY[ nbrSamples - 1 - x ] = 0;
+
+    for ( unsigned int x = Nhalf; x < nbrSamples - Nhalf; ++x )
+        pY[ x ] = diff( &intens[x] );
+}
+
+void
+spectrum_processor::smoozing( size_t nbrSamples, double * pY, const double * praw, size_t N )
+{
+    using adportable::differential;
+
     double ax = 0;
-    const size_t N = 5;
     for ( size_t i = 0; i < nbrSamples; ++i ) {
         ax += praw[i];
         if ( i < (N/2) )
@@ -155,29 +189,33 @@ spectrum_processor::findpeaks( size_t nbrSamples, const double * praw, double /*
             ax -= praw[i - N];
         }
     }
+}
 
-    differential<double> diff( 5 );
-    
-    do {
-        double ss = 20.0;
-        int uc = 0, dc = 0, zc = 0;
-        const size_t width = 5;
-        const size_t pwidth = 3;
-        for ( unsigned int x = 2; x < nbrSamples - 2; ++x ) {
-            double d1 = diff( &pY[x] );
-            if ( d1 >= ss )
-                ++uc;
-            else if ( d1 < -ss )
-                ++dc;
-            else
-                ++zc;
-            if ( zc >= width )
-                uc = dc = 0;
-            if ( uc >= pwidth && dc >= pwidth ) {
-                results.push_back( std::make_pair<int, int>( x - dc + uc, x ) );
-                uc = 0;  // reduced
-            }
-        }
-    } while (0);
+size_t
+spectrum_processor::findpeaks( size_t nbrSamples, const double * pY, double dbase, std::vector< std::pair<int, int> >& results, size_t N )
+{
+    using adportable::differential;
+
+    results.clear();
+
+    const size_t Nhalf = N / 2;
+    differential<double> diff( N );
+
+    double ss = 0.1;
+    int uc = 0, dc = 0, zc = 0;
+    const size_t width = 3;
+
+    PeakFinder finder;
+    finder.initiate();
+
+    for ( unsigned int x = Nhalf; x < nbrSamples - Nhalf; ++x ) {
+        double d1 = diff( &pY[x] );
+        if ( d1 >= ss )
+            finder.process_event( EvStart() );
+        else if ( d1 < -ss )
+            finder.process_event( EvPeak() );
+        else
+            finder.process_event( EvStop() );
+    }
     return results.size();
 }

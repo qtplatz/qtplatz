@@ -33,7 +33,9 @@ namespace adportable {
     public:
         static double tic( unsigned int nbrSamples, const long * praw, double& dbase, double& sd );
         static double tic( unsigned int nbrSamples, const double * praw, double& dbase, double& sd );
-        static size_t findpeaks( size_t nbrSamples, const double * intens, double dbase, std::vector< std::pair<int, int> >& );
+        static size_t findpeaks( size_t nbrSamples, const double * intens, double dbase, std::vector< std::pair<int, int> >&, size_t N = 5 );
+        static void smoozing( size_t nbrSamples, double * result, const double * intens, size_t N = 5 );
+        static void differentiation( size_t nbrSamples, double * result, const double * intens, size_t N = 5 );
     };
 	
 }
