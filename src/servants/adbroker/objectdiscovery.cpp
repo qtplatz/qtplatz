@@ -362,7 +362,7 @@ BcastHandler::send( const char * pbuf, ssize_t size, const ACE_INET_Addr& to )
 
     static int count;
     adportable::debug() << "[" << count++ << "]BcastHandler::send(" << pbuf << ", " << to.get_host_addr() << ":" 
-                        << to.get_port_number() << ") ret=" << ret;
+                        << int(to.get_port_number()) << ") ret=" << int(ret);
 
     return ret == size;
 }
