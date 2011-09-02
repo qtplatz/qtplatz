@@ -102,7 +102,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="xcopy  /E /D /Y /I .\qml ..\..\..\share\$(ProjectName)"
+				CommandLine="xcopy  /E /D /Y /I .\qml ..\..\..\share\$(ProjectName)\qml"
 			/>
 		</Configuration>
 		<Configuration
@@ -193,7 +193,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="xcopy  /E /D /Y /I .\qml ..\..\..\share\$(ProjectName)"
+				CommandLine="xcopy  /E /D /Y /I .\qml ..\..\..\share\$(ProjectName)\qml"
 			/>
 		</Configuration>
 	</Configurations>
@@ -1844,7 +1844,7 @@
 	<Globals>
 		<Global
 			Name="QtVersion Win32"
-			Value="4.7.3"
+			Value="4.7.4"
 		/>
 		<Global
 			Name="RccDir"

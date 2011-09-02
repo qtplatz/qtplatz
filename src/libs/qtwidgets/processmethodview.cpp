@@ -94,12 +94,12 @@ ProcessMethodView::OnCreate( const adportable::Configuration& config )
 
     pugi::xpath_node node = dom.select_single_node( "//Component[@type='qml']" );
     if ( node ) {
-        std::string source = node.node().attribute( "QUrl" ).value();
-        setSource( QUrl::fromLocalFile( qmlpath + source.c_str() ) );
+        QString source = qmlpath + node.node().attribute( "QUrl" ).value();
+        setSource( QUrl::fromLocalFile( source ) );
 
         QList< QDeclarativeError > errors = this->errors();
         for ( QList< QDeclarativeError >::const_iterator it = errors.begin(); it != errors.end(); ++it )
-            QMessageBox::warning( this, "QDeclarativeError", it->description() );
+            QMessageBox::warning( this, "QDeclarativeError", it->toString() + " file: " + source );
     }
 }
 
