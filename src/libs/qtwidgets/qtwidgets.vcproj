@@ -102,6 +102,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="xcopy  /E /D /Y /I .\qml ..\..\..\share\$(ProjectName)"
 			/>
 		</Configuration>
 		<Configuration
@@ -192,6 +193,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="xcopy  /E /D /Y /I .\qml ..\..\..\share\$(ProjectName)"
 			/>
 		</Configuration>
 	</Configurations>
