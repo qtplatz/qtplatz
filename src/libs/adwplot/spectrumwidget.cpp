@@ -186,8 +186,6 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
             for ( size_t i = 0; i < size; ++i )
                 dataMap_[ colors[i] ].d_.push_back( QPointF( masses[i], intens[i] ) );
         } else {
-            PlotCurve &curve = curves_[0];
-            curve.setStyle( QwtPlotCurve::Sticks );
             dataMap_[ 0 ].setData( size, masses, intens );
         }
         BOOST_FOREACH( const map_type::value_type& pair, dataMap_ ) {

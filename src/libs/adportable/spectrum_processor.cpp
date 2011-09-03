@@ -24,14 +24,12 @@
 **************************************************************************/
 
 #include "spectrum_processor.hpp"
+#include "array_wrapper.hpp"
 #include <adportable/differential.hpp>
 #include <cmath>
 #include <boost/smart_ptr.hpp>
-
-#include <boost/statechart/event.hpp>
-#include <boost/statechart/state_machine.hpp>
-#include <boost/statechart/simple_state.hpp>
-#include <boost/statechart/transition.hpp>
+#include <boost/variant.hpp>
+#include <stack>
 
 using namespace adportable;
 
@@ -95,27 +93,7 @@ namespace adportable { // namespace internal {
         inline double rms() const { return std::sqrt( ( sdd / n ) - ( average() * average() ) ); }
     };
 
-    struct EvStart : boost::statechart::event< EvStart > {};
-    struct EvStop : boost::statechart::event< EvStop > {};
-    struct EvPeak : boost::statechart::event< EvPeak > {};
-    struct Active;
-    struct Stopped;
-    struct PeakFinder : boost::statechart::state_machine< PeakFinder, Active > {};
-
-    struct Active : boost::statechart::simple_state< Active, PeakFinder, Stopped > {
-        typedef boost::statechart::transition< EvStop, Active > reactions;
-        size_t spos_;
-        size_t epos_;
-        Active() : spos_(0), epos_(0) {}
-    };
-
-    struct Running : boost::statechart::simple_state< Running, Active > { };
-    struct Stopped : boost::statechart::simple_state< Stopped, Active > { };
-
 }
-
-
-
 
 double
 spectrum_processor::tic( unsigned int nbrSamples, const long * praw, double& dbase, double& rms )
@@ -192,7 +170,7 @@ spectrum_processor::smoozing( size_t nbrSamples, double * pY, const double * pra
 }
 
 size_t
-spectrum_processor::findpeaks( size_t nbrSamples, const double * pY, double dbase, std::vector< std::pair<int, int> >& results, size_t N )
+spectrum_processor::findpeaks( size_t nbrSamples, const double *, const double * pY, std::vector< std::pair<int, int> >& results, size_t N )
 {
     using adportable::differential;
 
@@ -201,21 +179,176 @@ spectrum_processor::findpeaks( size_t nbrSamples, const double * pY, double dbas
     const size_t Nhalf = N / 2;
     differential<double> diff( N );
 
-    double ss = 0.1;
-    int uc = 0, dc = 0, zc = 0;
-    const size_t width = 3;
-
-    PeakFinder finder;
-    finder.initiate();
+    //double ss = 0.1;
+    //int uc = 0, dc = 0, zc = 0;
+    //const size_t width = 3;
 
     for ( unsigned int x = Nhalf; x < nbrSamples - Nhalf; ++x ) {
         double d1 = diff( &pY[x] );
-        if ( d1 >= ss )
-            finder.process_event( EvStart() );
-        else if ( d1 < -ss )
-            finder.process_event( EvPeak() );
-        else
-            finder.process_event( EvStop() );
+        (void)d1;
     }
     return results.size();
 }
+
+spectrum_peakfinder::spectrum_peakfinder(double pw, double bw, WidthMethod wm ) : peakwidth_( pw )
+                                                                                , atmz_( 0 )
+                                                                                , baseline_width_( bw )
+                                                                                , width_method_( wm ) 
+{
+}
+
+namespace adportable { namespace peakfind {
+
+    const size_t stack_size = 256;
+
+    template< class T > class stack {
+        T vec_[ stack_size ];
+        T * bp_;
+        inline const T * end() const  { return &vec_[ stack_size ]; }
+        inline const T * begin() const { return &vec_[ 0 ]; }
+    public:
+        stack() : bp_( &vec_[ stack_size ] ) {   }
+        inline bool empty() const                     { return bp_ == end(); }
+        inline size_t size() const                    { return end() - bp_; }
+        inline void push( const T& t )                { if ( bp_ <= begin() ) throw std::out_of_range("overflow"); *(--bp_) = t; }
+        inline void pop()                             { if ( bp_ >= end() ) throw std::out_of_range("underflow");  ++bp_; }
+        inline const T& top() const                   { return *bp_; }
+        inline T& top()                               { return *bp_; }
+        inline const T& operator [] ( int idx ) const { return bp_[ idx ]; }
+        inline T& operator [] ( int idx )             { return bp_[ idx ]; }
+    };
+
+    enum event_type { None, Up, Down };
+
+    struct counter {
+        event_type type_;
+        size_t bpos_;
+        size_t tpos_;
+        counter( size_t pos = 0, event_type type = None ) : type_( type ), bpos_( pos ), tpos_( pos ) {}
+        counter( const counter& t ) : type_( t.type_ ), bpos_( t.bpos_ ), tpos_( t.tpos_ ) {}
+        event_type type() const { return type_; }
+        inline void operator ++ (int) { ++tpos_; }
+        inline size_t distance() const { return tpos_ - bpos_; }
+        inline void operator += ( const counter& t ) {
+            assert ( t.type_ == type_ );
+            tpos_ = t.tpos_;
+        }
+    };
+
+    struct slope_state {
+
+        stack< counter > stack_;
+        size_t width_;
+
+        slope_state() : width_( 3 ) {}
+
+        bool reduce( std::pair< counter, counter >& res ) {
+            if ( stack_[1].type() == Down && stack_.size() >= 3 ) {
+                res.first = stack_[2];
+                res.second = stack_[1];
+                counter top = stack_.top();
+                stack_.pop();
+                stack_.pop();
+                stack_.pop();
+                stack_.push( top );
+                return true;
+            }
+            return false;
+        }
+
+        bool shift_reduce( const counter& c ) {
+            // delete count if too narrow width
+            while ( stack_.top().distance() < width_ ) {
+                stack_.pop();
+                if ( stack_.empty() ) {
+                    stack_.push( c );
+                    return false;
+                }
+            }
+
+            // replace
+            if ( stack_.top().type() == c.type() )  { // marge
+                stack_.top() += c;  // marge
+                //stack_.pop();
+                //stack_.push( c );  // replace
+            }
+
+            // if (Up - Down)|(Down - Up), should push counter and wait for next state
+            if ( stack_.top().type() != c.type() )
+                stack_.push( c );
+
+            return stack_.size() >= 3;
+        };
+
+        template< class T > bool process_slope( T& t ) {
+            if ( stack_.empty() )
+                stack_.push( t );
+            else if ( stack_.top().type() == t.type() )
+                stack_.top()++;
+            else
+                return shift_reduce( t );
+            return false;
+        }
+    };
+
+
+}
+}
+
+size_t
+spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const double * pY )
+{
+    array_wrapper<const double> px( pX, nbrSamples );
+    array_wrapper<const double> py( pY, nbrSamples );
+    
+    pdebug_.resize( nbrSamples );
+    memset( &pdebug_[0], 0, sizeof(double) * nbrSamples );
+
+    array_wrapper<const double>::iterator it = std::upper_bound( px.begin(), px.end(), pX[0] + peakwidth_ );
+    size_t w = std::distance( px.begin(), it );  // make odd
+    size_t noise = 50; // assume LSB noise
+    size_t N = ( w < 5 ) ? 5 : ( w > 25 ) ? 25 : w | 0x01;
+    size_t NH = N / 2;
+
+    double slope = double( noise ) / double( w );
+    adportable::differential<double> diff( N, 1 );
+
+    peakfind::slope_state state;
+    state.width_ = w / 8;
+    if ( state.width_ < 3 )
+        state.width_ = 3;
+
+    for ( unsigned int x = NH; x < nbrSamples - NH; ++x ) {
+        double d1 = diff( &pY[x] );
+        bool reduce;
+        if ( d1 >= slope )
+            reduce = state.process_slope( peakfind::counter( x, peakfind::Up ) );
+        else if ( d1 <= (-slope ) )
+            reduce = state.process_slope( peakfind::counter( x, peakfind::Down ) );
+
+        size_t size = state.stack_.size();
+
+        pdebug_[x] = d1;
+        if ( reduce ) {
+            std::pair< peakfind::counter, peakfind::counter > peak;
+            while ( state.reduce( peak ) ) {
+                std::pair< int, int > res( peak.first.bpos_, peak.second.tpos_ );
+                results_.push_back( res );
+            }
+        }
+    }
+
+    if ( ! state.stack_.empty() ) {
+        if ( state.stack_.top().type() == peakfind::Down )
+            state.stack_.push( peakfind::counter( nbrSamples - 1, peakfind::None ) ); // dummy
+
+        std::pair< peakfind::counter, peakfind::counter > peak;
+        while ( state.reduce( peak ) ) {
+            std::pair< int, int > res( peak.first.bpos_, peak.second.tpos_ );
+            results_.push_back( res );
+        }
+    }
+
+    return 0;
+}
+

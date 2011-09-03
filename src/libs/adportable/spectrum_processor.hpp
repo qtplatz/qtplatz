@@ -33,9 +33,24 @@ namespace adportable {
     public:
         static double tic( unsigned int nbrSamples, const long * praw, double& dbase, double& sd );
         static double tic( unsigned int nbrSamples, const double * praw, double& dbase, double& sd );
-        static size_t findpeaks( size_t nbrSamples, const double * intens, double dbase, std::vector< std::pair<int, int> >&, size_t N = 5 );
+        static size_t findpeaks( size_t nbrSamples, const double *pX, const double * pY, std::vector< std::pair<int, int> >&, size_t N = 5 );
         static void smoozing( size_t nbrSamples, double * result, const double * intens, size_t N = 5 );
         static void differentiation( size_t nbrSamples, double * result, const double * intens, size_t N = 5 );
+    };
+
+    class spectrum_peakfinder {
+    public:
+        enum WidthMethod { Constant, Proportional, TOF };
+        spectrum_peakfinder( double pw = 0.1, double bw = 50, WidthMethod wm = Constant );
+        size_t operator()( size_t nbrSamples, const double *pX, const double * pY );
+
+        double peakwidth_;
+        double atmz_;
+        double baseline_width_;
+        std::vector< double > pdebug_;   // for internal debug
+        WidthMethod width_method_;
+        typedef std::pair< int, int > peakinfo_type;
+        std::vector< peakinfo_type > results_;
     };
 	
 }

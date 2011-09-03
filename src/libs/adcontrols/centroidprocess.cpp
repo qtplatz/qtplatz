@@ -44,7 +44,7 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/foreach.hpp>
 
-#define DEBUG_CENTROID_PROCESS
+// #define DEBUG_CENTROID_PROCESS
 
 using namespace adcontrols;
 
@@ -227,30 +227,41 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     double base = 0, sd = 0;
     double tic = spectrum_processor::tic( profile.size(), profile.getIntensityArray(), base, sd );
 
-#if defined DEBUG_CENTROID_PROCESS
     boost::scoped_array< double > pY( new double [ profile.size() ] );
-    memset( pY.get(), 0, sizeof(double) * profile.size() );
-    debug_profile_ = profile;
-    spectrum_processor::differentiation( profile.size(), pY.get(), profile.getIntensityArray(), 25 );
-    //spectrum_processor::smoozing( profile.size(), pY.get(), profile.getIntensityArray() );
-    debug_profile_.setIntensityArray( pY.get() );
-#endif
 
-    typedef std::pair<int, int> index_pair;
-    std::vector< index_pair > peakindex;
-    spectrum_processor::findpeaks( profile.size(), profile.getIntensityArray(), base, peakindex, 25 );
+    spectrum_processor::smoozing( profile.size(), pY.get(), profile.getIntensityArray(), 32 );
+
+    // typedef std::pair<int, int> index_pair;
+    // std::vector< index_pair > peakindex;
+
+    adportable::spectrum_peakfinder finder;
+    if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthConstant ) {
+        finder.width_method_ = adportable::spectrum_peakfinder::Constant;
+        finder.peakwidth_ = method_.rsConstInDa();
+    } else if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthProportional ) {
+        finder.width_method_ = adportable::spectrum_peakfinder::Proportional;
+        finder.peakwidth_ = method_.rsConstInDa();
+    } else if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthTOF ) {
+        finder.width_method_ = adportable::spectrum_peakfinder::TOF;
+        finder.peakwidth_ = method_.rsTofInDa();
+        finder.atmz_ = method_.rsTofAtMz();
+    }
+    finder( profile.size(), profile.getMassArray(), pY.get() ); // profile.getIntensityArray() );
 
     adportable::array_wrapper<const double> intens( profile.getIntensityArray(), profile.size() );
     adportable::array_wrapper<const double> masses( profile.getMassArray(), profile.size() );
-   
-    BOOST_FOREACH( index_pair pair, peakindex ) {
+
+    BOOST_FOREACH( adportable::spectrum_peakfinder::peakinfo_type& pair, finder.results_ ) {
         adportable::array_wrapper<const double>::iterator it = 
             std::max_element( intens.begin() + pair.first, intens.begin() + pair.second );
         double h = *it;
         size_t idx = std::distance( intens.begin(), it );
         double t = ( profile.getMSProperty().instSamplingInterval() * ( profile.getMSProperty().instSamplingStartDelay() + idx ) ) * 1.0e12;
         MSPeakInfoItem item( idx, masses[idx], h - base, h - base, 0, t );
-
+        info_.push_back( item );
     }
-
+#if defined DEBUG_CENTROID_PROCESS
+    debug_profile_ = profile;
+    debug_profile_.setIntensityArray( &finder.pdebug_[0] );
+#endif
 }
