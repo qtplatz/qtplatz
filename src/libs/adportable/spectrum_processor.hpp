@@ -36,6 +36,14 @@ namespace adportable {
         static size_t findpeaks( size_t nbrSamples, const double *pX, const double * pY, std::vector< std::pair<int, int> >&, size_t N = 5 );
         static void smoozing( size_t nbrSamples, double * result, const double * intens, size_t N = 5 );
         static void differentiation( size_t nbrSamples, double * result, const double * intens, size_t N = 5 );
+        static double area( const double * beg, const double * end, double base );
+    };
+
+    struct peakinfo {
+        size_t first;
+        size_t second;
+        double base;
+        peakinfo( size_t x1, size_t x2, double _base ) : first( x1 ), second( x2 ), base( _base ) {}
     };
 
     class spectrum_peakfinder {
@@ -49,8 +57,7 @@ namespace adportable {
         double baseline_width_;
         std::vector< double > pdebug_;   // for internal debug
         WidthMethod width_method_;
-        typedef std::pair< int, int > peakinfo_type;
-        std::vector< peakinfo_type > results_;
+        std::vector< peakinfo > results_;
     };
 	
 }

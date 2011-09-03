@@ -31,28 +31,38 @@ MSPeakInfoItem::~MSPeakInfoItem(void)
 {
 }
 
-MSPeakInfoItem::MSPeakInfoItem(void) : mass_(0)
+MSPeakInfoItem::MSPeakInfoItem(void) : peak_index_( 0 )
+                                     , peak_start_index_( 0 )
+                                     , peak_end_index_( 0 )
+                                     , base_( 0 )
+                                     , mass_(0)
                                      , area_(0)
                                      , height_(0)
                                      , hh_(0)  
 {
 }
 
-MSPeakInfoItem::MSPeakInfoItem( unsigned int index
+MSPeakInfoItem::MSPeakInfoItem( unsigned int peak_index
                                , double mass
                                , double area
                                , double height
                                , double hh
-                               , double time ) : index_( index )
+                               , double time ) : peak_index_( peak_index )
+                                               , peak_start_index_( 0 )
+                                               , peak_end_index_( 0 )
+                                               , base_( 0 )
                                                , mass_(mass)
                                                , area_(area)
                                                , height_(height)
-                                               , hh_(hh)
+                                               , hh_( hh )
                                                , time_( time ) 
 {
 }  
 
-MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t ) : index_( t.index_ )
+MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t ) : peak_index_( t.peak_index_ )
+                                                          , peak_start_index_( t.peak_start_index_ )
+                                                          , peak_end_index_( t.peak_end_index_ )
+                                                          , base_( t.base_ )
                                                           , mass_( t.mass_ )
                                                           , area_( t.area_ )
                                                           , height_( t.height_ )
@@ -62,9 +72,45 @@ MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t ) : index_( t.index_ )
 }  
 
 unsigned int
-MSPeakInfoItem::index() const
+MSPeakInfoItem::peak_index() const
 {
-    return index_;
+    return peak_index_;
+}
+
+unsigned int
+MSPeakInfoItem::peak_start_index() const
+{
+    return peak_start_index_;
+}
+
+void
+MSPeakInfoItem::peak_start_index( unsigned int idx )
+{
+    peak_start_index_ = idx;
+}
+
+unsigned int
+MSPeakInfoItem::peak_end_index() const
+{
+    return peak_end_index_;
+}
+
+void
+MSPeakInfoItem::peak_end_index( unsigned int idx )
+{
+    peak_end_index_ = idx;
+}
+
+double 
+MSPeakInfoItem::base_height() const
+{
+    return base_;
+}
+
+void
+MSPeakInfoItem::base_height( double h )
+{
+    base_ = h;
 }
 
 double

@@ -31,14 +31,16 @@
 #include "description.hpp"
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
+#include <adportable/moment.hpp>
+#include <adportable/differential.hpp>
+#include <adportable/array_wrapper.hpp>
+#include <adportable/debug.hpp>
+
 #include <vector>
 #include <algorithm>
 #include <boost/smart_ptr.hpp>
 #include <sstream>
 #include <cmath>
-#include <adportable/moment.hpp>
-#include <adportable/differential.hpp>
-#include <adportable/array_wrapper.hpp>
 
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
@@ -224,8 +226,8 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     using adportable::differential;
     using adportable::spectrum_processor;
 
-    double base = 0, sd = 0;
-    double tic = spectrum_processor::tic( profile.size(), profile.getIntensityArray(), base, sd );
+    // double base = 0, sd = 0;
+    // double tic = spectrum_processor::tic( profile.size(), profile.getIntensityArray(), base, sd );
 
     boost::scoped_array< double > pY( new double [ profile.size() ] );
 
@@ -248,20 +250,48 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     }
     finder( profile.size(), profile.getMassArray(), pY.get() ); // profile.getIntensityArray() );
 
+#if defined DEBUG_CENTROID_PROCESS
+    debug_profile_ = profile;
+    // debug_profile_.setIntensityArray( &finder.pdebug_[0] );
+#endif
+
     adportable::array_wrapper<const double> intens( profile.getIntensityArray(), profile.size() );
     adportable::array_wrapper<const double> masses( profile.getMassArray(), profile.size() );
 
-    BOOST_FOREACH( adportable::spectrum_peakfinder::peakinfo_type& pair, finder.results_ ) {
+    BOOST_FOREACH( adportable::peakinfo& pk, finder.results_ ) {
         adportable::array_wrapper<const double>::iterator it = 
-            std::max_element( intens.begin() + pair.first, intens.begin() + pair.second );
-        double h = *it;
+            std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
+        double h = *it - pk.base;
+        double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
+
         size_t idx = std::distance( intens.begin(), it );
         double t = ( profile.getMSProperty().instSamplingInterval() * ( profile.getMSProperty().instSamplingStartDelay() + idx ) ) * 1.0e12;
-        MSPeakInfoItem item( idx, masses[idx], h - base, h - base, 0, t );
+
+        double cx(0);
+        do { // centroid by time
+            double base = pk.base;
+            adportable::massArrayFunctor mass_array( profile.getMassArray(), profile.size() );
+            adportable::Moment< adportable::massArrayFunctor > moment( mass_array );
+
+            double threshold = base + h * method_.peakCentroidFraction();
+            cx = moment.centerX( profile.getIntensityArray(), threshold, pk.first, idx, pk.second );
+        } while(0);
+
+        // MSPeakInfoItem item( idx, masses[idx], a, h, 0 /* width */, t );
+        MSPeakInfoItem item( idx, cx, a, h, 0 /* width */, t );
+
+        if ( h > 20000 )
+            adportable::debug() << "centroid result: " << cx << " error: " << double( cx - masses[idx] ) * 1000;
+
+        item.peak_start_index( pk.first );
+        item.peak_end_index( pk.second );
+        item.base_height( pk.base );
+
         info_.push_back( item );
-    }
+
 #if defined DEBUG_CENTROID_PROCESS
-    debug_profile_ = profile;
-    debug_profile_.setIntensityArray( &finder.pdebug_[0] );
+        debug_profile_.setIntensity( pair.first, 50000 );
+        debug_profile_.setIntensity( pair.second, 25000 );
 #endif
+    }
 }

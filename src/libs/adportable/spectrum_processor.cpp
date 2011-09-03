@@ -169,6 +169,16 @@ spectrum_processor::smoozing( size_t nbrSamples, double * pY, const double * pra
     }
 }
 
+double
+spectrum_processor::area( const double * beg, const double * end, double base )
+{
+    double a = 0;
+    for ( const double * p = beg; p != end; ++p )
+        a += *p - base;
+    a += *end;
+    return a;
+}
+
 size_t
 spectrum_processor::findpeaks( size_t nbrSamples, const double *, const double * pY, std::vector< std::pair<int, int> >& results, size_t N )
 {
@@ -291,7 +301,6 @@ namespace adportable { namespace peakfind {
         }
     };
 
-
 }
 }
 
@@ -326,15 +335,15 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
         else if ( d1 <= (-slope ) )
             reduce = state.process_slope( peakfind::counter( x, peakfind::Down ) );
 
-        size_t size = state.stack_.size();
+        // size_t size = state.stack_.size();
 
         pdebug_[x] = d1;
         if ( reduce ) {
+
             std::pair< peakfind::counter, peakfind::counter > peak;
-            while ( state.reduce( peak ) ) {
-                std::pair< int, int > res( peak.first.bpos_, peak.second.tpos_ );
-                results_.push_back( res );
-            }
+
+            while ( state.reduce( peak ) )
+                results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, pY[ peak.first.bpos_ ] ) );
         }
     }
 
@@ -343,10 +352,9 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
             state.stack_.push( peakfind::counter( nbrSamples - 1, peakfind::None ) ); // dummy
 
         std::pair< peakfind::counter, peakfind::counter > peak;
-        while ( state.reduce( peak ) ) {
-            std::pair< int, int > res( peak.first.bpos_, peak.second.tpos_ );
-            results_.push_back( res );
-        }
+
+        while ( state.reduce( peak ) )
+            results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, pY[ peak.first.bpos_ ] ) );
     }
 
     return 0;

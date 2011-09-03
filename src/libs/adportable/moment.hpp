@@ -40,6 +40,17 @@ namespace adportable {
         size_t delay;
     };
 
+    struct massArrayFunctor {
+        massArrayFunctor( const double * masses, size_t nbrSamples ) : masses_( masses ), nbrSamples_( nbrSamples ) { }
+        double operator ()( int pos ) {
+            if ( pos >= 0 && pos < int( nbrSamples_ ) )
+                return masses_[ pos ];
+            return 0;
+        }
+        const double * masses_;
+        size_t nbrSamples_;
+    };
+
     /////////////////////////////////////////////////////
 
     template<class Fx> class Moment {
