@@ -150,6 +150,19 @@ MSCalibrationForm::OnFinalClose()
 void
 MSCalibrationForm::getContents( adcontrols::ProcessMethod& pm )
 {
+    QStandardItemModel& model = *pModel_;
+    QStandardItem * root = model.invisibleRootItem();
+
+    QVariant v = model.index( 0, 1, root->index() ).data( Qt::EditRole );
+    pMethod_->polynomialDegree( v.toInt() );
+    v = model.index( 1, 1, root->index() ).data( Qt::EditRole  );
+    pMethod_->massToleranceDa( v.toDouble() );
+    v = model.index( 2, 1, root->index() ).data( Qt::EditRole  );
+    pMethod_->minimumRAPercent( v.toDouble() );
+    v = model.index( 3, 1, root->index() ).data( Qt::EditRole  );
+    pMethod_->lowMass( v.toDouble() );
+    v = model.index( 4, 1, root->index() ).data( Qt::EditRole  );
+    pMethod_->highMass( v.toDouble() );
     pm.appendMethod< adcontrols::MSCalibrateMethod >( *pMethod_ );
 }
 

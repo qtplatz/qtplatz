@@ -29,6 +29,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/mscalibration.hpp>
+#include <adportable/debug.hpp>
 #include <fstream>
 #include <algorithm>
 #include <boost/tokenizer.hpp>
@@ -86,14 +87,19 @@ TXTSpectrum::load( const std::wstring& name )
     const double m1 = massArray.front();
     const double m2 = massArray.back();
 
-    double x = (t2 - t1) / size;
-    unsigned long sampInterval = static_cast<unsigned long>( ( x * 1e12 ) + 0.5 ); // sec -> psec
-    unsigned long startDelay = static_cast<unsigned long>( ( t1 * 1.0e12 ) / sampInterval + 0.5 );
-    
+    // double x = (t2 - t1) / size;
+    double x = timeArray[1] - timeArray[0];
+    unsigned long sampInterval = static_cast<unsigned long>( ( x * 1e12 ) + 0.5 ); // usec -> psec
+    unsigned long startDelay = static_cast<unsigned long>(  ( t1 * 1e12 /*s*/) / sampInterval + 0.5 );
+
+    // validation    
+    double tolerance = sampInterval * 1e-12;
     for ( size_t i = 0; i < size; ++i ) {
-        double t = ( (startDelay * sampInterval) + (i * sampInterval) ) * 1e-12;
-        double d = std::abs( timeArray[i] - t );
-        // assert( d < 1.0e-9 );
+        double t = ( startDelay + i ) * sampInterval * 1e-12;
+        double error = std::abs( timeArray[i] - t );
+        if ( error >= tolerance ) {
+            // adportable::debug() << "text file loader: time distance error at " << int(i) << " time: " << timeArray[i] << "(s) expected: " << t;
+        }
     }
 
     ms_.resize( size );

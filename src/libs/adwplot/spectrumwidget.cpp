@@ -151,8 +151,10 @@ SpectrumWidget::override_zoom_rect( QRectF& rc )
         using spectrumwidget::TraceData;
         BOOST_FOREACH( const TraceData& trace, impl_->traces_ ) {
             std::pair<double, double> y = trace.y_range( rc.left(), rc.right() );
-            rc.setBottom( y.first );
-            rc.setTop( y.second );
+            if ( rc.bottom() > y.first )
+                rc.setBottom( y.first );
+            if ( rc.top() < y.second )
+                rc.setTop( y.second );
         }
     }
 }
@@ -220,6 +222,7 @@ void
 TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
 {
     curves_.clear();
+    dataMap_.clear();
  
     ms_ = &ms;
     const double * intens = ms.getIntensityArray();
@@ -257,8 +260,8 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
 std::pair< double, double >
 TraceData::y_range( double left, double right ) const
 {
-    double top = 100; 
-    double bottom = 0;
+    double top = 100;
+    double bottom = -10;
     BOOST_FOREACH( const map_type::value_type& pair, dataMap_ ) {
 
         size_t idx0 = pair.second.index( left );

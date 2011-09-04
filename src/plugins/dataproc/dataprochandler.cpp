@@ -41,6 +41,12 @@
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibration.hpp>
 
+#ifdef _DEBUG
+#include <iomanip>
+#include <fstream>
+#include <adportable/string.hpp>
+#endif
+
 using namespace dataproc;
 
 DataprocHandler::DataprocHandler()
@@ -133,11 +139,13 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
             }
 
             // find highest
-            adportable::array_wrapper<const double>::const_iterator hIt = std::max_element( intens.begin() + lIdx, intens.end() + uIdx );
+            adportable::array_wrapper<const double>::const_iterator hIt = std::max_element( intens.begin() + lIdx, intens.begin() + uIdx );
 
             size_t idx = std::distance( intens.begin(), hIt );
+            /*
             if ( idx != cIdx )
                 idx = cIdx; // take closest, this is a workaround for Xe spectrum
+                */
             
             colors[ idx ] = ref.enable() ? 1 : 0;
             adcontrols::MSAssignedMass assigned( idReference, idx, it->formula(), it->exactMass(), times[ idx ], masses[ idx ] ); 
@@ -191,6 +199,38 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 
     const_cast< adcontrols::MassSpectrum& >( centroid ).setColorArray( &colors[0] );
 
+    //////////////////////
+#ifdef _DEBUG
+    do {
+        const adcontrols::MSReferences& ref = res.references();
+        const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
+
+        std::ofstream of( "massassign.txt" );
+        //of << "#,m/z(observed),time(us),intensity,formula,m/z(exact),m/z(calibrated),error(mDa),(mDa) before calib" << std::endl;
+        of << "#,m/z(observed),time(us),intensity,formula,m/z(exact),error(mDa)" << std::endl;
+        adcontrols::MSReferences::vector_type::const_iterator refIt = ref.begin();
+        for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it, ++refIt ) {
+            const adcontrols::MSAssignedMass& a = *it;
+            of << std::setprecision(8)
+                << a.idMassSpectrum() << "\t"
+                << std::fixed << centroid.getMassArray()[ a.idMassSpectrum() ] << "\t"
+                << std::scientific << centroid.getTimeArray()[ a.idMassSpectrum() ] << "\t"
+                << adportable::string::convert( a.formula() ) << "\t"
+                << std::fixed << refIt->exactMass() << "\t"
+                << std::setprecision(1) << ( centroid.getMassArray()[ a.idMassSpectrum() ] - refIt->exactMass() ) * 1000
+                //<< a.mass() << ",\t"
+                //<< ( a.mass() - refIt->exactMass() ) * 1000 << ",\t"
+                //<< ( a.mass() - masses[ a.idMassSpectrum() ] ) * 1000 << ",\t"
+                << std::endl;
+        }
+        of << "#--------------------------- centroid peak list (#,mass,intensity)--------------------------" << std::endl;
+        for ( size_t i = 0; i < centroid.size(); ++i ) {
+            of << i << "\t"
+                << std::setprecision(8) << centroid.getMass( i ) << "\t"
+                << std::setprecision(1) << centroid.getIntensityArray()[i] << std::endl;
+        }
+    } while(0);
+#endif
     return true;
 }
 
