@@ -24,19 +24,58 @@
 
 #include "lifecycleaccessor.hpp"
 #include "lifecycle.hpp"
+#include <QMetaEnum>
+#include <QDebug>
+#include <fstream>
 
 // when load module by QLibrary()/dlopen() method, gcc built module does not expose RTTI information.
 // here is the workaround
 
 using namespace adplugin;
 
+static const char * exclude_list [] = {
+    "QWidgetResizeHandler"
+    , "QAction"
+    , "QWidget"
+    , "QWidgetResizeHandler"
+    , "QAction"
+    , "QWidget"
+    , "QPropertyAnimation"
+    , "QPropertyAnimation"
+    , "QWidgetResizeHandler"
+    , "QAction"
+    , "QWidget"
+    , "QPropertyAnimation"
+    , "QPropertyAnimation"
+};
+
+static bool is_exclude( const char * name )
+{
+    if ( *name == 'Q' ) {
+        for ( int i = 0; i < sizeof( exclude_list ) / sizeof( exclude_list[0] ); ++i )
+            if ( strcmp( name, exclude_list[ i ] ) == 0 )
+                return true;
+    }
+    return false;
+};
+
 LifeCycleAccessor::LifeCycleAccessor( QObject * target ) :  pObject_( target )
                                                          , p_(0)
                                                          , conn_( false )
 {
     p_ = dynamic_cast< adplugin::LifeCycle *>( pObject_ );
-    if ( p_ == 0 )
-        conn_ = connect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
+    if ( p_ == 0 ) {
+        const char * name = target->metaObject()->className();
+        if ( ! is_exclude( name ) ) {
+            conn_ = connect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
+#if defined DEBUG
+            if ( ! conn_ ) {
+                std::ofstream of( "exclude.txt", std::ios_base::app );
+                of << "\"" << name << "\"" << std::endl;
+            }
+#endif
+        }
+    }
 }
 
 LifeCycleAccessor::~LifeCycleAccessor()

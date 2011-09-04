@@ -54,12 +54,9 @@ Zoomer::autoYScale( bool f )
 void
 Zoomer::zoom( const QRectF& rect )
 {
-    if ( autoYScale_ ) {
-        QRectF rc = zoomRect();
-        rc.setLeft( rect.left() );
-        rc.setRight( rect.right() );
-        QwtPlotZoomer::zoom( rc );
-    } else {
-        QwtPlotZoomer::zoom( rect );
-    }
+    QRectF rc( rect );
+
+    emit zoom_override( rc );
+
+    QwtPlotZoomer::zoom( rc );
 }

@@ -44,12 +44,14 @@ namespace adwplot {
         void setData( const adcontrols::MassSpectrum&, int idx, bool yaxis1 = false );
 
     private:
-	struct SpectrumWidgetImpl * impl_;
+        struct SpectrumWidgetImpl * impl_;
+        bool autoYZoom_;
 
     signals:
 
     public slots:
         virtual void zoom( const QRectF& );
+        virtual void override_zoom_rect( QRectF& );
 
     };
 

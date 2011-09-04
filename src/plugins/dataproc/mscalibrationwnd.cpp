@@ -36,6 +36,7 @@
 #include <boost/any.hpp>
 #include <adportable/configuration.hpp>
 #include <adplugin/lifecycle.hpp>
+#include <adplugin/lifecycleaccessor.hpp>
 #include <adplugin/manager.hpp>
 #include "qtwidgets_name.hpp"
 
@@ -85,6 +86,7 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
     if ( splitter ) {
         // spectrum on top
         pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this);
+
         splitter->addWidget( pImpl_->processedSpectrum_ );
 
         // summary table
@@ -98,9 +100,12 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
 
         pImpl_->calibSummaryWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() ); //, L"qtwidget::MSCalibrateSummaryWidget" );
         if ( pImpl_->calibSummaryWidget_ ) {
-            adplugin::LifeCycle * p = dynamic_cast< adplugin::LifeCycle * >(pImpl_->calibSummaryWidget_);
+            
+            adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
+            adplugin::LifeCycle * p = accessor.get(); // dynamic_cast< adplugin::LifeCycle * >(pImpl_->calibSummaryWidget_);
             if ( p )
                 p->OnInitialUpdate();
+
             connect( this, SIGNAL( fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ),
                 pImpl_->calibSummaryWidget_, SLOT( setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ) );
             splitter->addWidget( pImpl_->calibSummaryWidget_ );

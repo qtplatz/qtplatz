@@ -57,7 +57,8 @@ namespace adwplot {
     signals:
 
     public slots:
-        virtual void zoom( const QRectF& );
+        virtual void zoomed( const QRectF& ) {}
+        virtual void zoom( const QRectF& ) {}
 
     protected slots:
 

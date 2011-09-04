@@ -33,9 +33,7 @@ namespace adportable {
 
     struct timeFunctor {
         timeFunctor( size_t startDelay, double sampInterval ) : interval(sampInterval), delay(startDelay) {}
-        double operator ()( int pos ) {
-            return ( delay + pos ) * interval;
-        }
+        double operator ()( int pos ) { return ( delay + pos ) * interval; }
         double interval;
         size_t delay;
     };
@@ -57,6 +55,14 @@ namespace adportable {
         Fx& fx_;
     public:
         Moment( Fx& f ) : fx_(f) {}
+
+        double width( const double * py, double threshold, size_t spos, size_t tpos, size_t epos ) {
+            long xL = left_bound<double>( py, threshold, tpos, spos );
+            long xR = right_bound<double>( py, threshold, tpos, epos );
+            double Xl = left_intersection( py, xL, threshold );
+            double Xr = right_intersection( py, xR, threshold );
+            return Xr - Xl;
+        }
 
         double centerX( const double * py, double threshold, size_t spos, size_t tpos, size_t epos ) {
             long xL = left_bound<double>( py, threshold, tpos, spos );

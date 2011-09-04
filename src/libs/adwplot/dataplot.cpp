@@ -52,13 +52,6 @@ Dataplot::setTitle( const std::wstring& title )
 }
 
 void
-Dataplot::zoom( const QRectF& rect )
-{
-    if ( zoomer1_ )
-        zoomer1_->zoom( rect );
-}
-
-void
 Dataplot::link( Dataplot * p )
 {
     connect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), p, SLOT( zoom( const QRectF& ) ) );

@@ -107,52 +107,6 @@ CentroidProcess::operator()( const MassSpectrum& profile )
     pImpl_->clear();
 	pImpl_->setup( profile );
     pImpl_->findpeaks( profile );
-
-    //const double * masses = profile.getMassArray();
-    //const double * intens = profile.getIntensityArray();
-/*
-    for ( size_t i = 0; i < nSize; ++i ) {
-        piItem = piInfo->Item[ i + 1 ];
-        double mass = piItem->GetPeakAreaWeightedMass();
-        double area = piItem->GetPeakArea();
-        double height = piItem->GetPeakHeight();
-        double hh = piItem->GetPeakWidthHH();
-        long spos = piItem->GetPeakStartIndex();
-        long epos = piItem->GetPeakEndIndex();
-
-        it = std::lower_bound( it, masses.end(), mass );
-        size_t tpos = std::distance( masses.begin(), it );
-
-        double t1 = double( startDelay + tpos - 1 ) * sampInterval;
-        double tt = t1 + sampInterval * ( mass - *(it - 1) ) / ( *it - *(it - 1) );
-            // validation
-#if defined _DEBUG && 0
-            double cx(0);
-            do { // centroid by time
-                double base = piItem->GetBaselineStartIntensity() + 
-                    ( piItem->GetBaselineStartMass() - piItem->GetBaselineEndIntensity() ) / 2;
-                adportable::timeFunctor tof( startDelay, sampInterval );
-                adportable::Moment< adportable::timeFunctor > moment( tof );
-                
-                double threshold = base + height * pImpl_->method().peakCentroidFraction();
-                cx = moment.centerX( profile.getIntensityArray(), threshold, spos, tpos, epos );
-            } while(0);
-
-            do {
-                const MSCalibration& calib = profile.calibration();
-                double mz1 = std::pow( MSCalibration::compute( calib.coeffs(), tt ), 2 );
-                double mz2 = std::pow( MSCalibration::compute( calib.coeffs(), cx ), 2 );
-                double dm1 = std::abs( mz1 - mass ) * 1000;
-                double dm2 = std::abs( mz2 - mass ) * 1000;
-                assert( dm1 < 0.1 ); // 0.1mDa
-                (void)dm2;
-                // assert( dm2 < 0.1 );
-            } while(0);
-#endif
-            pImpl_->info_.push_back( MSPeakInfoItem( mass, area, height, hh, tt ) );
-        }
-    }
-*/
     return true;
 }
 
@@ -226,15 +180,9 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     using adportable::differential;
     using adportable::spectrum_processor;
 
-    // double base = 0, sd = 0;
-    // double tic = spectrum_processor::tic( profile.size(), profile.getIntensityArray(), base, sd );
-
+    // buffer for smoothing
     boost::scoped_array< double > pY( new double [ profile.size() ] );
-
-    spectrum_processor::smoozing( profile.size(), pY.get(), profile.getIntensityArray(), 32 );
-
-    // typedef std::pair<int, int> index_pair;
-    // std::vector< index_pair > peakindex;
+    spectrum_processor::moving_average( profile.size(), pY.get(), profile.getIntensityArray(), 32 );
 
     adportable::spectrum_peakfinder finder;
     if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthConstant ) {
@@ -268,19 +216,19 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
         double t = ( profile.getMSProperty().instSamplingInterval() * ( profile.getMSProperty().instSamplingStartDelay() + idx ) ) * 1.0e12;
 
         double cx(0);
+        double widthHH(0);
         do { // centroid by time
-            double base = pk.base;
             adportable::massArrayFunctor mass_array( profile.getMassArray(), profile.size() );
             adportable::Moment< adportable::massArrayFunctor > moment( mass_array );
 
-            double threshold = base + h * method_.peakCentroidFraction();
+            double threshold = pk.base + h * method_.peakCentroidFraction();
             cx = moment.centerX( profile.getIntensityArray(), threshold, pk.first, idx, pk.second );
+            widthHH = moment.centerX( profile.getIntensityArray(), pk.base + h * 0.5, pk.first, idx, pk.second ); // half-height
         } while(0);
 
-        // MSPeakInfoItem item( idx, masses[idx], a, h, 0 /* width */, t );
-        MSPeakInfoItem item( idx, cx, a, h, 0 /* width */, t );
+        MSPeakInfoItem item( idx, cx, a, h, widthHH, t );
 
-        if ( h > 20000 )
+        if ( h > 10000 )
             adportable::debug() << "centroid result: " << cx << " error: " << double( cx - masses[idx] ) * 1000;
 
         item.peak_start_index( pk.first );

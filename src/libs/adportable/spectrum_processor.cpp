@@ -153,10 +153,11 @@ spectrum_processor::differentiation( size_t nbrSamples, double * pY, const doubl
 }
 
 void
-spectrum_processor::smoozing( size_t nbrSamples, double * pY, const double * praw, size_t N )
+spectrum_processor::moving_average( size_t nbrSamples, double * pY, const double * praw, size_t N )
 {
     using adportable::differential;
 
+    N |= 0x01; // make odd
     double ax = 0;
     for ( size_t i = 0; i < nbrSamples; ++i ) {
         ax += praw[i];
@@ -177,27 +178,6 @@ spectrum_processor::area( const double * beg, const double * end, double base )
         a += *p - base;
     a += *end;
     return a;
-}
-
-size_t
-spectrum_processor::findpeaks( size_t nbrSamples, const double *, const double * pY, std::vector< std::pair<int, int> >& results, size_t N )
-{
-    using adportable::differential;
-
-    results.clear();
-
-    const size_t Nhalf = N / 2;
-    differential<double> diff( N );
-
-    //double ss = 0.1;
-    //int uc = 0, dc = 0, zc = 0;
-    //const size_t width = 3;
-
-    for ( unsigned int x = Nhalf; x < nbrSamples - Nhalf; ++x ) {
-        double d1 = diff( &pY[x] );
-        (void)d1;
-    }
-    return results.size();
 }
 
 spectrum_peakfinder::spectrum_peakfinder(double pw, double bw, WidthMethod wm ) : peakwidth_( pw )

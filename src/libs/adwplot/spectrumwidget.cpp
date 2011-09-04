@@ -36,7 +36,7 @@
 using namespace adwplot;
 
 namespace adwplot {
-    namespace internal {
+    namespace spectrumwidget {
 
 	static Qt::GlobalColor color_table[] = {
 	    Qt::blue,
@@ -55,48 +55,68 @@ namespace adwplot {
 	    Qt::gray,
 	    Qt::lightGray,
 	};
-	
+
+	struct SeriesDataImpl {
+        std::vector< double > x_;
+        std::vector< double > y_;
+        typedef std::vector<double> vector_type;
+
+	    void setData( size_t size, const double * x, const double * y ) {
+            x_.resize( size );
+            y_.resize( size );
+            double * xd = &x_[0];
+            double * yd = &y_[0];
+            for ( size_t i = 0; i < size; ++i ) {
+               *xd++ = *x++;
+               *yd++ = *y++;
+            }
+        }
+        void push_back( double x, double y ) {
+            x_.push_back( x );
+            y_.push_back( y );
+        }
+        size_t index( double x ) const   {  return std::distance( x_.begin(), std::lower_bound( x_.begin(), x_.end(), x ) ); }
+        double maximum_value( size_t left, size_t right ) const { return *std::max_element( y_.begin() + left, y_.begin() + right ); }
+        double minimum_value( size_t left, size_t right ) const { return *std::min_element( y_.begin() + left, y_.begin() + right ); }
+	};
+		
 	class SeriesData : public QwtSeriesData<QPointF> {
 	public:
 	    virtual ~SeriesData() {
 	    }
-	    SeriesData( const QVector< QPointF >& v, const QRectF& rc ) : rect_( rc ), v_( v ) {
-	    }
-	    SeriesData( const SeriesData& t ) : v_( t.v_ ) {
-	    }
+
+        SeriesData( const SeriesDataImpl& impl, const QRectF& rc ) : rect_( rc ), impl_( impl ) {
+        }
+
 	    // implements QwtSeriesData<>
-	    virtual size_t size() const { return v_.size(); }
-	    virtual QPointF sample( size_t idx ) const { return v_[ idx ]; }
-	    virtual QRectF boundingRect() const { return rect_; }
+        virtual size_t size() const                { return impl_.x_.size(); }
+	    virtual QPointF sample( size_t idx ) const { return QPointF( impl_.x_[ idx ], impl_.y_[ idx ] ); }
+	    virtual QRectF boundingRect() const        { return rect_; }
 	private:
 	    QRectF rect_;
-	    const QVector< QPointF >& v_;
+        const SeriesDataImpl& impl_;
 	};
 	
-	struct SeriesDataImpl {
-	    QVector< QPointF > d_;
-	    void setData( size_t size, const double * x, const double * y ) {
-		d_.resize( size );
-		for ( size_t i = 0; i < size; ++i )
-		    d_[ i ] = QPointF( x[i], y[i] );
-	    }
-	};
-	
+
 	class TraceData {
 	public:
-	    TraceData() {}
-	    TraceData( const TraceData& t ) : curves_( t.curves_ ), dataMap_( t.dataMap_ ) {
+        TraceData() : ms_( 0 ) {}
+        TraceData( const TraceData& t ) : curves_( t.curves_ ), dataMap_( t.dataMap_ ), ms_( t.ms_ ) {
 	    }
 	    void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms );
+        std::pair<double, double> y_range( double left, double right ) const;
+
 	    typedef std::map< int, SeriesDataImpl > map_type;
 	private:
 	    std::vector< PlotCurve > curves_;
 	    map_type dataMap_;
+        const adcontrols::MassSpectrum * ms_;
 	};
-    } // namespace internal
+    } // namespace spectrumwidget
 
     struct SpectrumWidgetImpl {
-	std::vector< internal::TraceData > traces_;
+        std::vector< Annotation > annotations_;
+        std::vector< spectrumwidget::TraceData > traces_;
     };
 
 } // namespace adwplot
@@ -107,26 +127,54 @@ SpectrumWidget::~SpectrumWidget()
 }
 
 SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
-						, impl_( new SpectrumWidgetImpl )
+                                                , impl_( new SpectrumWidgetImpl )
+                                                , autoYZoom_( true ) 
 {
     setAxisTitle(QwtPlot::xBottom, "m/z");
     setAxisTitle(QwtPlot::yLeft, "Intensity[uV]");
     
     // picker_->setRubberBand( QwtPicker::CrossRubberBand );
-    // zoomer1_->setRubberBandPen( QColor(Qt::green) );
-    zoomer1_->setRubberBand( QwtPicker::CrossRubberBand );
-    zoomer1_->autoYScale( true );
+    //zoomer1_->setRubberBandPen( QColor(Qt::green) );
+    //zoomer1_->setRubberBand( QwtPicker::CrossRubberBand );
+
+    // handle zoom rect by this
+    if ( zoomer1_ )
+        connect( zoomer1_.get(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
 
     zoomer2_.reset(); //  new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
 }
 
 void
+SpectrumWidget::override_zoom_rect( QRectF& rc )
+{
+    if ( autoYZoom_ ) {
+        using spectrumwidget::TraceData;
+        BOOST_FOREACH( const TraceData& trace, impl_->traces_ ) {
+            std::pair<double, double> y = trace.y_range( rc.left(), rc.right() );
+            rc.setBottom( y.first );
+            rc.setTop( y.second );
+        }
+    }
+}
+
+void
 SpectrumWidget::zoom( const QRectF& rect )
 {
-    QRectF rc = zoomer1_->zoomRect();
+    /*
+    QRectF rc;
     rc.setLeft( rect.left() );
     rc.setRight( rect.right() );
-    zoomer1_->zoom( rc );
+    if ( autoYZoom_ ) {
+        using spectrumwidget::TraceData;
+        BOOST_FOREACH( const TraceData& trace, impl_->traces_ ) {
+            std::pair<double, double> y = trace.y_range( rect.left(), rect.right() );
+            rc.setBottom( y.first );
+            rc.setTop( y.second );
+        }
+    }
+    */
+    zoomer1_->zoom( rect );
+    // static_cast< QwtPlotZoomer *>( zoomer1_.get() )->zoom( rc );
 }
 
 void
@@ -145,7 +193,7 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms1, const adcontrols::
 void
 SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis2 )
 {
-    using internal::TraceData;
+    using spectrumwidget::TraceData;
 
     while ( int( impl_->traces_.size() ) <= idx ) 
         impl_->traces_.push_back( TraceData() );
@@ -166,13 +214,14 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
-using namespace adwplot::internal;
+using namespace adwplot::spectrumwidget;
 
 void
 TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
 {
     curves_.clear();
  
+    ms_ = &ms;
     const double * intens = ms.getIntensityArray();
     const double * masses = ms.getMassArray();
     const size_t size = ms.size();
@@ -184,7 +233,7 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
         const unsigned char * colors = ms.getColorArray();
         if ( colors ) {
             for ( size_t i = 0; i < size; ++i )
-                dataMap_[ colors[i] ].d_.push_back( QPointF( masses[i], intens[i] ) );
+                dataMap_[ colors[i] ].push_back( masses[i], intens[i] );
         } else {
             dataMap_[ 0 ].setData( size, masses, intens );
         }
@@ -193,7 +242,7 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
             PlotCurve& curve = curves_.back();
             if ( pair.first != 0 && pair.first < sizeof( color_table ) / sizeof( color_table[0] ) )
                 curve.p()->setPen( QPen( color_table[ pair.first ] ) );
-            curve.p()->setData( new SeriesData( pair.second.d_, rect ) );
+            curve.p()->setData( new SeriesData( pair.second, rect ) );
             curve.p()->setStyle( QwtPlotCurve::Sticks );
         }
 
@@ -201,6 +250,27 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
         curves_.push_back( PlotCurve( plot ) );
         PlotCurve &curve = curves_[0];
         dataMap_[ 0 ].setData( size, masses, intens );
-        curve.p()->setData( new SeriesData( dataMap_[ 0 ].d_, rect ) );
+        curve.p()->setData( new SeriesData( dataMap_[ 0 ], rect ) );
     }
+}
+
+std::pair< double, double >
+TraceData::y_range( double left, double right ) const
+{
+    double top = 100; 
+    double bottom = 0;
+    BOOST_FOREACH( const map_type::value_type& pair, dataMap_ ) {
+
+        size_t idx0 = pair.second.index( left );
+        size_t idx1 = pair.second.index( right );
+        if ( idx0 < idx1 ) {
+            double min = pair.second.minimum_value( idx0, idx1 );
+            double max = pair.second.maximum_value( idx0, idx1 );
+            if ( min < bottom )
+               bottom = min;
+            if ( max > top )
+                top = max;
+        }
+    }
+    return std::make_pair<>(bottom, top);
 }

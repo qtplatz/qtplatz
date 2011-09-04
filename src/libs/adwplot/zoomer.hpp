@@ -33,12 +33,15 @@ class QwtPlotCanvas;
 namespace adwplot {
 
     class Zoomer : public QwtPlotZoomer {
+        Q_OBJECT
     public:
         Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas );
         void autoYScale( bool );
         virtual void zoom( const QRectF& );
     private:
         bool autoYScale_;
+    signals:
+        void zoom_override( QRectF& );
     };
 
 }
