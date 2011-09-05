@@ -255,12 +255,12 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
             double td = profile.getMSProperty().instSamplingInterval() * 1e-12;
             tc = t0 + td * ( cx - masses[ index ] ) / ( masses[ index + 1 ] - masses[ index ] );
             double difference = std::abs( tc - ct );
-            assert( std::abs( tc - ct ) < 1e-10 );
+            assert( std::abs( difference ) < 1e-8 );
             
         } while (0);
 
 
-        MSPeakInfoItem item( idx, cx, a, h, widthHH, tc );
+        MSPeakInfoItem item( idx, cx, a, h, widthHH, ct );
 
         if ( h > 10000 )
             adportable::debug() << "centroid result: " << cx << " error: " << double( cx - masses[idx] ) * 1000;

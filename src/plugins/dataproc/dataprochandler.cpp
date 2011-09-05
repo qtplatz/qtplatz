@@ -174,8 +174,6 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
             tmvec.push_back( times[ calibPoints[i].first ] );
         }
         size_t nterm = m.polynomialDegree() + 1;
-        if ( nterm < calibPoints.size() )
-            nterm = calibPoints.size();
         if ( adportable::polfit::fit( &tmvec[0], &msvec[0], tmvec.size(), nterm, coeffs ) ) {
             adcontrols::MSCalibration calib;
             calib.coeffs( coeffs );
@@ -206,7 +204,6 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
         // ------------
     } while( 0 );
 
-
     const_cast< adcontrols::MassSpectrum& >( centroid ).setColorArray( &colors[0] );
 
     //////////////////////
@@ -216,28 +213,34 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
         const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
 
         std::ofstream of( "massassign.txt" );
-        //of << "#,m/z(observed),time(us),intensity,formula,m/z(exact),m/z(calibrated),error(mDa),(mDa) before calib" << std::endl;
+        //of << "#\tm/z(observed)\ttime(us)\tintensity\tformula,\tm/z(exact)\tm/z(calibrated)\terror(mDa)" << std::endl;
         of << "#,m/z(observed),time(us),intensity,formula,m/z(exact),error(mDa)" << std::endl;
         adcontrols::MSReferences::vector_type::const_iterator refIt = ref.begin();
         for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it, ++refIt ) {
             const adcontrols::MSAssignedMass& a = *it;
             of << std::setprecision(8)
-                << a.idMassSpectrum() << "\t"
-                << std::fixed << centroid.getMassArray()[ a.idMassSpectrum() ] << "\t"
-                << std::scientific << centroid.getTimeArray()[ a.idMassSpectrum() ] << "\t"
-                << adportable::string::convert( a.formula() ) << "\t"
-                << std::fixed << refIt->exactMass() << "\t"
-                << std::setprecision(1) << ( centroid.getMassArray()[ a.idMassSpectrum() ] - refIt->exactMass() ) * 1000
-                //<< a.mass() << ",\t"
-                //<< ( a.mass() - refIt->exactMass() ) * 1000 << ",\t"
-                //<< ( a.mass() - masses[ a.idMassSpectrum() ] ) * 1000 << ",\t"
+                << a.idMassSpectrum() << "\t" // id
+                << std::fixed      << centroid.getMass( a.idMassSpectrum() ) << "\t"      // m/z(observed)
+                << std::scientific << centroid.getTime( a.idMassSpectrum() ) << "\t"      // tof
+                << std::scientific << centroid.getIntensity( a.idMassSpectrum() ) << "\t" // intensity
+                << std::setw(10)   << adportable::string::convert( a.formula() ) << "\t"  // formula
+                << std::fixed      << it->exactMass() << "\t"                          // mass(exact)
+                << std::fixed      << a.mass() << "\t"                                    // m/z(calibrated)
+                << std::setprecision(1) << ( a.mass() - it->exactMass() ) * 1000       // error(mDa)
                 << std::endl;
         }
         of << "#--------------------------- centroid peak list (#,mass,intensity)--------------------------" << std::endl;
         for ( size_t i = 0; i < centroid.size(); ++i ) {
-            of << i << "\t"
-                << std::setprecision(8) << centroid.getMass( i ) << "\t"
-                << std::setprecision(1) << centroid.getIntensityArray()[i] << std::endl;
+            if ( centroid.getIntensity( i ) > hMAThreshold ) {
+                
+                double mq = adcontrols::MSCalibration::compute( res.calibration().coeffs(), centroid.getTime( i ) );
+                double mass = mq * mq;
+
+                of << i << "\t"
+                    << std::setprecision(8) << centroid.getMass( i ) << "\t"
+                    << std::setprecision(8) << mass << "\t"
+                    << std::setprecision(1) << centroid.getIntensityArray()[i] << std::endl;
+            }
         }
     } while(0);
 #endif
