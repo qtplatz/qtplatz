@@ -76,6 +76,16 @@ namespace adcontrols {
             MassSpectrum debug_profile_;
         };
 
+        struct timeFunctor {
+            const std::vector< adcontrols::MSProperty::SamplingInfo>& info;
+            timeFunctor( const adcontrols::MassSpectrum& profile )
+                : info( profile.getMSProperty().getSamplingInfo() ) {
+            }
+            double operator ()( int pos ) { 
+                return adcontrols::MSProperty::toSeconds( pos, info );
+            }
+        };
+
 	}
 }
 
@@ -179,6 +189,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 {
     using adportable::differential;
     using adportable::spectrum_processor;
+    using adportable::array_wrapper;
 
     // buffer for smoothing
     boost::scoped_array< double > pY( new double [ profile.size() ] );
@@ -203,30 +214,53 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     // debug_profile_.setIntensityArray( &finder.pdebug_[0] );
 #endif
 
-    adportable::array_wrapper<const double> intens( profile.getIntensityArray(), profile.size() );
-    adportable::array_wrapper<const double> masses( profile.getMassArray(), profile.size() );
+    array_wrapper<const double> intens( profile.getIntensityArray(), profile.size() );
+    array_wrapper<const double> masses( profile.getMassArray(), profile.size() );
 
     BOOST_FOREACH( adportable::peakinfo& pk, finder.results_ ) {
         adportable::array_wrapper<const double>::iterator it = 
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
+
         double h = *it - pk.base;
         double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
 
         size_t idx = std::distance( intens.begin(), it );
-        double t = ( profile.getMSProperty().instSamplingInterval() * ( profile.getMSProperty().instSamplingStartDelay() + idx ) ) * 1.0e12;
+        // double t = ( profile.getMSProperty().instSamplingInterval() * ( profile.getMSProperty().instSamplingStartDelay() + idx ) ) * 1.0e12;
 
         double cx(0);
         double widthHH(0);
-        do { // centroid by time
+        double threshold = pk.base + h * method_.peakCentroidFraction();
+        do {
+            // centroid by mass
             adportable::massArrayFunctor mass_array( profile.getMassArray(), profile.size() );
             adportable::Moment< adportable::massArrayFunctor > moment( mass_array );
-
-            double threshold = pk.base + h * method_.peakCentroidFraction();
             cx = moment.centerX( profile.getIntensityArray(), threshold, pk.first, idx, pk.second );
             widthHH = moment.centerX( profile.getIntensityArray(), pk.base + h * 0.5, pk.first, idx, pk.second ); // half-height
         } while(0);
 
-        MSPeakInfoItem item( idx, cx, a, h, widthHH, t );
+        double ct(0), tc(0);
+        do {
+            // centroid by time
+            timeFunctor functor( profile );
+            adportable::Moment< timeFunctor > time_moment( functor );
+            ct = time_moment.centerX( profile.getIntensityArray(), threshold, pk.first, idx, pk.second );
+            // or Interpolate
+            //* pTime++ = t0 + continuumSpectrumStepTime * (mass - m0) / (m1 - m0);
+            array_wrapper<const double>::const_iterator pos = std::lower_bound( masses.begin(), masses.end(), cx );
+            size_t index = std::distance( masses.begin(), pos );
+            if ( masses[ index ] > cx )
+                --index;
+            assert( masses[ index ] < cx && cx < masses[ index + 1 ] );
+            double t0 = profile.getTime( index );
+            double td = profile.getMSProperty().instSamplingInterval() * 1e-12;
+            tc = t0 + td * ( cx - masses[ index ] ) / ( masses[ index + 1 ] - masses[ index ] );
+            double difference = std::abs( tc - ct );
+            assert( std::abs( tc - ct ) < 1e-10 );
+            
+        } while (0);
+
+
+        MSPeakInfoItem item( idx, cx, a, h, widthHH, tc );
 
         if ( h > 10000 )
             adportable::debug() << "centroid result: " << cx << " error: " << double( cx - masses[idx] ) * 1000;
