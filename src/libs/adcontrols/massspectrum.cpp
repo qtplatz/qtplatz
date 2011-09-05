@@ -225,6 +225,26 @@ MassSpectrum::getMass( size_t idx ) const
     return 0;
 }
 
+double
+MassSpectrum::getIntensity( size_t idx ) const
+{
+    if ( idx < pImpl_->size() )
+        return pImpl_->getIntensityArray()[idx];
+    return 0;
+}
+
+double
+MassSpectrum::getTime( size_t idx ) const
+{
+    if ( idx < pImpl_->size() ) {
+        const double * p = pImpl_->getTimeArray();
+        if ( p )
+            return p[ idx ];
+        return MSProperty::toSeconds( idx, pImpl_->getMSProperty().getSamplingInfo() );
+    }
+    return 0;
+}
+
 void
 MassSpectrum::setIntensity( size_t idx, double intensity )
 {
@@ -245,6 +265,18 @@ const double *
 MassSpectrum::getTimeArray() const
 {
     return pImpl_->getTimeArray();
+}
+
+size_t
+MassSpectrum::compute_profile_time_array( double * p, size_t size ) const
+{
+    if ( pImpl_->getTimeArray() ) {
+        size_t i;
+        for ( i = 0; i < size && i < pImpl_->size(); ++i )
+            *p++ = getTimeArray()[ i ];
+        return i;
+    }
+    return MSProperty::compute_profile_time_array( p, size, pImpl_->getMSProperty().getSamplingInfo() );
 }
 
 void

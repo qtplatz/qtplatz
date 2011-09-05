@@ -105,13 +105,19 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
                                  , const adcontrols::MassSpectrum& centroid
                                  , const adcontrols::MSCalibrateMethod& m )
 {
+    using adcontrols::MSProperty;
+
     res.calibration( centroid.calibration() );
     res.references( m.references() );
     double tolerance = m.massToleranceDa();
+    double hMAThreshold = centroid.getMaxIntensity() * m.minimumRAPercent() / 100;
 
     adportable::array_wrapper<const double> masses( centroid.getMassArray(), centroid.size() );
     adportable::array_wrapper<const double> intens( centroid.getIntensityArray(), centroid.size() );
-    const double * times = centroid.getTimeArray();
+    boost::scoped_array< double > times( new double [ centroid.size() ] );
+    centroid.compute_profile_time_array( times.get(), centroid.size() );
+
+    //const double * times = centroid.getTimeArray();
 
     std::vector< unsigned char > colors( centroid.size() );
     memset( &colors[0], 0, colors.size() * sizeof( unsigned char ) );
@@ -120,6 +126,9 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     size_t idReference(0);
     for ( adcontrols::MSReferences::vector_type::const_iterator it = res.references().begin(); it != res.references().end(); ++it ) {
         const adcontrols::MSReference& ref = *it;
+        if ( ! ref.enable() )
+            continue;
+
         double exactMass = ref.exactMass();
         adportable::array_wrapper<const double>::const_iterator lBound = std::lower_bound( masses.begin(), masses.end(), exactMass - tolerance );
         adportable::array_wrapper<const double>::const_iterator uBound = std::lower_bound( masses.begin(), masses.end(), exactMass + tolerance );
@@ -140,6 +149,8 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 
             // find highest
             adportable::array_wrapper<const double>::const_iterator hIt = std::max_element( intens.begin() + lIdx, intens.begin() + uIdx );
+            if ( *hIt < hMAThreshold )
+                continue;
 
             size_t idx = std::distance( intens.begin(), hIt );
             /*
@@ -176,7 +187,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
                 it->mass( mq * mq );
             }
         }
-#if 0
+
         if ( calibPoints.size() == 2 ) {
             double m1 = calibPoints[0].second.exactMass();
             double m2 = calibPoints[1].second.exactMass();
@@ -192,7 +203,6 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
             calib.coeffs( coeffs );
             res.calibration( calib );
         }
-#endif
         // ------------
     } while( 0 );
 

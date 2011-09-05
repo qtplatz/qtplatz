@@ -75,6 +75,8 @@ namespace adcontrols {
        const double * getMassArray() const;
        const double * getIntensityArray() const;
        const double * getTimeArray() const;
+       size_t compute_profile_time_array( double *, size_t ) const;
+
        void setMass( size_t idx, double mass );
        void setIntensity( size_t idx, double intensity );
        void setTime( size_t idx, double time );
@@ -102,6 +104,8 @@ namespace adcontrols {
 	   double getMinIntensity() const;
 	   double getMaxIntensity() const;
        double getMass( size_t idx ) const;
+       double getIntensity( size_t idx ) const;
+       double getTime( size_t idx ) const;
 	 
        void addDescription( const Description& );
        const Descriptions& getDescriptions() const;
