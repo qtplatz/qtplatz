@@ -93,6 +93,14 @@ TXTSpectrum::load( const std::wstring& name )
     const double m0 = massArray.front();
     const double mt = massArray.back();
 
+
+    for ( size_t i = 1; i < timeArray.size(); ++i ) {
+        if ( timeArray[ i - 1 ] > massArray[ i ] )
+            adportable::debug() << "sequence not ordered";
+        if ( massArray[ i - 1 ] > massArray[ i ] )
+            adportable::debug() << "sequence not ordered";
+    }
+
     double x = timeArray[1] - timeArray[0];
     unsigned long sampInterval = static_cast<unsigned long>( x * 1e12 + 0.5 ); // s -> psec
     const unsigned long startDelay = static_cast<unsigned long>(  ( t0 * 1e12 /*s*/) / sampInterval + 0.5 );

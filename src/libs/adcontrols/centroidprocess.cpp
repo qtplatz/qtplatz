@@ -217,63 +217,61 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     array_wrapper<const double> intens( profile.getIntensityArray(), profile.size() );
     array_wrapper<const double> masses( profile.getMassArray(), profile.size() );
 
+    double toferror = 0;
+
     BOOST_FOREACH( adportable::peakinfo& pk, finder.results_ ) {
         adportable::array_wrapper<const double>::iterator it = 
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
 
         double h = *it - pk.base;
         double a = adportable::spectrum_processor::area( intens.begin() + pk.first, intens.begin() + pk.second, pk.base );
-
         size_t idx = std::distance( intens.begin(), it );
-        // double t = ( profile.getMSProperty().instSamplingInterval() * ( profile.getMSProperty().instSamplingStartDelay() + idx ) ) * 1.0e12;
 
-        double cx(0);
-        double widthHH(0);
         double threshold = pk.base + h * method_.peakCentroidFraction();
         do {
             // centroid by mass
             adportable::massArrayFunctor mass_array( profile.getMassArray(), profile.size() );
             adportable::Moment< adportable::massArrayFunctor > moment( mass_array );
-            cx = moment.centerX( profile.getIntensityArray(), threshold, pk.first, idx, pk.second );
-            widthHH = moment.centerX( profile.getIntensityArray(), pk.base + h * 0.5, pk.first, idx, pk.second ); // half-height
+            double mass = moment.centerX( profile.getIntensityArray(), threshold, pk.first, idx, pk.second );
+
+            // if centroid mass is outside of peak start - end, it should not added into result
+            if ( masses[ pk.first ] < mass && mass < masses[ pk.second ] ) {
+                pk.mass = mass;
+                pk.width = moment.width( profile.getIntensityArray(), pk.base + h * 0.5, pk.first, idx, pk.second ); // half-height
+
+                // time interporate from mass
+                array_wrapper<const double>::const_iterator pos = std::lower_bound( masses.begin() + pk.first, masses.begin() + pk.second, mass );
+                size_t index = std::distance( masses.begin(), --pos );
+
+                assert( masses[ index ] < mass && mass < masses[ index + 1 ] );
+
+                double t0 = profile.getTime( index );
+                double td = profile.getMSProperty().instSamplingInterval() * 1e-12;
+                pk.time = t0 + td * ( mass - masses[ index ] ) / ( masses[ index + 1 ] - masses[ index ] );
+
+#if defined _DEBUG
+                // centroid by time
+                timeFunctor functor( profile );
+                adportable::Moment< timeFunctor > time_moment( functor );
+                double time = time_moment.centerX( profile.getIntensityArray(), threshold, pk.first, idx, pk.second );
+
+                double difference = std::abs( time - pk.time );
+                if ( toferror < difference )
+                    toferror = difference;
+#endif
+                // prepare resutl
+                MSPeakInfoItem item( idx, pk.mass, a, h, pk.width, pk.time );
+                item.peak_start_index( pk.first );
+                item.peak_end_index( pk.second );
+                item.base_height( pk.base );
+                info_.push_back( item );
+            }
         } while(0);
-
-        double ct(0), tc(0);
-        do {
-            // centroid by time
-            timeFunctor functor( profile );
-            adportable::Moment< timeFunctor > time_moment( functor );
-            ct = time_moment.centerX( profile.getIntensityArray(), threshold, pk.first, idx, pk.second );
-            // or Interpolate
-            //* pTime++ = t0 + continuumSpectrumStepTime * (mass - m0) / (m1 - m0);
-            array_wrapper<const double>::const_iterator pos = std::lower_bound( masses.begin(), masses.end(), cx );
-            size_t index = std::distance( masses.begin(), pos );
-            if ( masses[ index ] > cx )
-                --index;
-            assert( masses[ index ] < cx && cx < masses[ index + 1 ] );
-            double t0 = profile.getTime( index );
-            double td = profile.getMSProperty().instSamplingInterval() * 1e-12;
-            tc = t0 + td * ( cx - masses[ index ] ) / ( masses[ index + 1 ] - masses[ index ] );
-            double difference = std::abs( tc - ct );
-            assert( std::abs( difference ) < 1e-8 );
-            
-        } while (0);
-
-
-        MSPeakInfoItem item( idx, cx, a, h, widthHH, ct );
-
-        if ( h > 10000 )
-            adportable::debug() << "centroid result: " << cx << " error: " << double( cx - masses[idx] ) * 1000;
-
-        item.peak_start_index( pk.first );
-        item.peak_end_index( pk.second );
-        item.base_height( pk.base );
-
-        info_.push_back( item );
 
 #if defined DEBUG_CENTROID_PROCESS
         debug_profile_.setIntensity( pair.first, 50000 );
         debug_profile_.setIntensity( pair.second, 25000 );
 #endif
     }
+    adportable::debug() << "centroid tof interporation error: " << toferror * 1e12 << "ps";
 }

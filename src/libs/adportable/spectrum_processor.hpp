@@ -43,7 +43,11 @@ namespace adportable {
         size_t first;
         size_t second;
         double base;
-        peakinfo( size_t x1, size_t x2, double _base ) : first( x1 ), second( x2 ), base( _base ) {}
+        double mass;
+        double time;
+        double width;
+        peakinfo( size_t x1, size_t x2, double _base )
+            : first( x1 ), second( x2 ), base( _base ), mass(0), time(0), width(0) {}
     };
 
     class spectrum_peakfinder {
