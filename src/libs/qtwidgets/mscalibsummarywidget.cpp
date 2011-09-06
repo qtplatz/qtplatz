@@ -99,31 +99,44 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
     if ( ! ms.isCentroid() )
         return;
 
-    model.insertRows( 0, ms.size() );
-
     const double * intensities = ms.getIntensityArray();
     const double * times = ms.getTimeArray();
     const double * masses = ms.getMassArray();
 
+    std::vector< size_t > indecies;
     for ( size_t i = 0; i < ms.size(); ++i ) {
+        if ( intensities[i] >= res.threshold() )
+            indecies.push_back( i ); 
+    }
+
+    model.insertRows( 0, indecies.size() );
+
+    for ( size_t row = 0; row < indecies.size(); ++row ) {
+        size_t idx = indecies[ row ];
         int col = 0;
-        model.setData( model.index( i, col++ ), masses[i] );
-        model.setData( model.index( i, col++ ), times[i] * 1.0e6); // s -> us
-        model.setData( model.index( i, col++ ), intensities[i] );
+        model.setData( model.index( row, col++ ), masses[ idx ] );
+        model.setData( model.index( row, col++ ), times[ idx ] * 1.0e6); // s -> us
+        model.setData( model.index( row, col++ ), intensities[ idx ] );
     }
 
     const adcontrols::MSReferences& ref = res.references();
     const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
     adcontrols::MSReferences::vector_type::const_iterator refIt = ref.begin();
+
     for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it, ++refIt ) {
         int col = 3;
         const adcontrols::MSAssignedMass& a = *it;
-        model.setData( model.index( a.idMassSpectrum(), col++ ), qtwrapper::qstring::copy( a.formula() ) );
-        model.setData( model.index( a.idMassSpectrum(), col++ ), refIt->exactMass() );
-        model.setData( model.index( a.idMassSpectrum(), col++ ), a.mass() );
-        model.setData( model.index( a.idMassSpectrum(), col++ ), ( a.mass() - refIt->exactMass() ) * 1000 ); // mDa
-        model.setData( model.index( a.idMassSpectrum(), col++ ), ( a.mass() - masses[ a.idMassSpectrum() ] ) * 1000 ); // mDa
-        model.setData( model.index( a.idMassSpectrum(), col++ ), refIt->enable() );
+
+        std::vector< size_t >::iterator index
+            = std::lower_bound( indecies.begin(), indecies.end(), a.idMassSpectrum() );
+        size_t row = std::distance( indecies.begin(), index );
+
+        model.setData( model.index( row, col++ ), qtwrapper::qstring::copy( a.formula() ) );
+        model.setData( model.index( row, col++ ), refIt->exactMass() );
+        model.setData( model.index( row, col++ ), a.mass() );
+        model.setData( model.index( row, col++ ), ( a.mass() - refIt->exactMass() ) * 1000 ); // mDa
+        model.setData( model.index( row, col++ ), ( a.mass() - masses[ a.idMassSpectrum() ] ) * 1000 ); // mDa
+        model.setData( model.index( row, col++ ), refIt->enable() );
     }
 
 }

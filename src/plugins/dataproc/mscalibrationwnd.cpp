@@ -61,15 +61,6 @@ namespace dataproc {
     }
 }
 
-
-/*
-MSCalibrationWnd::MSCalibrationWnd(QWidget *parent) :
-    QWidget(parent)
-{
-    init();
-}
-*/
-
 MSCalibrationWnd::MSCalibrationWnd( const adportable::Configuration& c
                                    , const std::wstring& apppath, QWidget * parent ) : QWidget( parent )
 {

@@ -31,7 +31,7 @@ Zoomer::Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas ) : QwtPlotZoomer( 
                                                                , autoYScale_( false ) 
 {
     setTrackerMode(QwtPicker::AlwaysOff);
-    setRubberBand(QwtPicker::NoRubberBand);
+    // setRubberBand(QwtPicker::NoRubberBand);
 
     // RightButton: zoom out by 1
     // Ctrl+RightButton: zoom out to full size

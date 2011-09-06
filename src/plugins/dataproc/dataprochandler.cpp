@@ -174,15 +174,14 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     res.calibration( centroid.calibration() );
     res.references( m.references() );
     double tolerance = m.massToleranceDa();
-    double hRAThreshold = centroid.getMaxIntensity() * m.minimumRAPercent() / 100;
+    double threshold = centroid.getMaxIntensity() * m.minimumRAPercent() / 100;
+    res.tolerance( tolerance );
+    res.threshold( threshold );
 
     adportable::array_wrapper<const double> masses( centroid.getMassArray(), centroid.size() );
     adportable::array_wrapper<const double> intens( centroid.getIntensityArray(), centroid.size() );
-    // boost::scoped_array< double > times( new double [ centroid.size() ] );
-    // centroid.compute_profile_time_array( times.get(), centroid.size() );
 
-    //const double * times = centroid.getTimeArray();
-    internal::mass_assign mass_assign( tolerance, hRAThreshold );
+    internal::mass_assign mass_assign( tolerance, threshold );
     mass_assign( centroid, res.references() );
     res.assignedMasses( mass_assign.assignedMasses );
 
@@ -245,7 +244,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 
         adcontrols::MSReferences::vector_type::const_iterator it = res.references().begin();
         for ( size_t i = 0; i < centroid.size(); ++i ) {
-            if ( centroid.getIntensity( i ) > hRAThreshold ) {
+            if ( centroid.getIntensity( i ) > threshold ) {
                 
                 double mq = adcontrols::MSCalibration::compute( res.calibration().coeffs(), centroid.getTime( i ) );
                 double mass = mq * mq;

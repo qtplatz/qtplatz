@@ -47,17 +47,45 @@ MSCalibrateResult::~MSCalibrateResult()
 {
 }
 
-MSCalibrateResult::MSCalibrateResult() : references_( new MSReferences )
+MSCalibrateResult::MSCalibrateResult() : tolerance_(0)
+                                       , threshold_(0)
+                                       , references_( new MSReferences )
                                        , calibration_( new MSCalibration ) 
                                        , assignedMasses_( new MSAssignedMasses ) 
 {
 }
 
 MSCalibrateResult::MSCalibrateResult( const MSCalibrateResult& t )
-: references_( new MSReferences( *t.references_ ) )
+: tolerance_( t.tolerance_ )
+, threshold_( t.threshold_ )
+, references_( new MSReferences( *t.references_ ) )
 , calibration_( new MSCalibration( *t.calibration_ ) )
 , assignedMasses_( new MSAssignedMasses( *t.assignedMasses_ ) )
 {
+}
+
+double
+MSCalibrateResult::tolerance() const
+{
+    return tolerance_;
+}
+
+void
+MSCalibrateResult::tolerance( double v )
+{
+    tolerance_ = v;
+}
+
+double
+MSCalibrateResult::threshold() const
+{
+    return threshold_;
+}
+
+void
+MSCalibrateResult::threshold( double v )
+{
+    threshold_ = v;
 }
 
 

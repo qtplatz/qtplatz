@@ -90,7 +90,9 @@ namespace adwplot {
 
 	    // implements QwtSeriesData<>
         virtual size_t size() const                { return impl_.x_.size(); }
-	    virtual QPointF sample( size_t idx ) const { return QPointF( impl_.x_[ idx ], impl_.y_[ idx ] ); }
+	    virtual QPointF sample( size_t idx ) const { 
+            return QPointF( impl_.x_[ idx ], impl_.y_[ idx ] );
+        }
 	    virtual QRectF boundingRect() const        { return rect_; }
 	private:
 	    QRectF rect_;
@@ -130,18 +132,19 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
                                                 , impl_( new SpectrumWidgetImpl )
                                                 , autoYZoom_( true ) 
 {
+    zoomer2_.reset();
+
     setAxisTitle(QwtPlot::xBottom, "m/z");
-    setAxisTitle(QwtPlot::yLeft, "Intensity[uV]");
+    setAxisTitle(QwtPlot::yLeft, "Intensity");
     
     // picker_->setRubberBand( QwtPicker::CrossRubberBand );
-    //zoomer1_->setRubberBandPen( QColor(Qt::green) );
-    //zoomer1_->setRubberBand( QwtPicker::CrossRubberBand );
+    // zoomer1_->setRubberBandPen( QColor(Qt::red) );
+    // zoomer1_->setRubberBand( QwtPicker::HLineRubberBand );
 
     // handle zoom rect by this
     if ( zoomer1_ )
         connect( zoomer1_.get(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
 
-    zoomer2_.reset(); //  new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
 }
 
 void
@@ -162,21 +165,7 @@ SpectrumWidget::override_zoom_rect( QRectF& rc )
 void
 SpectrumWidget::zoom( const QRectF& rect )
 {
-    /*
-    QRectF rc;
-    rc.setLeft( rect.left() );
-    rc.setRight( rect.right() );
-    if ( autoYZoom_ ) {
-        using spectrumwidget::TraceData;
-        BOOST_FOREACH( const TraceData& trace, impl_->traces_ ) {
-            std::pair<double, double> y = trace.y_range( rect.left(), rect.right() );
-            rc.setBottom( y.first );
-            rc.setTop( y.second );
-        }
-    }
-    */
     zoomer1_->zoom( rect );
-    // static_cast< QwtPlotZoomer *>( zoomer1_.get() )->zoom( rc );
 }
 
 void

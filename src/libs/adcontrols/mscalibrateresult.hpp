@@ -43,6 +43,12 @@ namespace adcontrols {
         MSCalibrateResult();
         MSCalibrateResult( const MSCalibrateResult & t );
 
+        double threshold() const;
+        void threshold( double );
+
+        double tolerance() const;
+        void tolerance( double );
+
         const MSReferences& references() const;
         MSReferences& references();
         void references( const MSReferences& );
@@ -59,6 +65,8 @@ namespace adcontrols {
 # if defined _MSC_VER
 #  pragma warning( disable:4251 )
 # endif
+        double tolerance_;
+        double threshold_;
         boost::scoped_ptr< MSReferences > references_;
         boost::scoped_ptr< MSCalibration > calibration_;
         boost::scoped_ptr< MSAssignedMasses > assignedMasses_;
@@ -68,6 +76,8 @@ namespace adcontrols {
         void serialize(Archive& ar, const unsigned int version) {
             using namespace boost::serialization;
             if ( version >= 0 ) {
+                ar & BOOST_SERIALIZATION_NVP(tolerance_);
+                ar & BOOST_SERIALIZATION_NVP(threshold_);
                 ar & BOOST_SERIALIZATION_NVP(references_);
                 ar & BOOST_SERIALIZATION_NVP(calibration_);
                 ar & BOOST_SERIALIZATION_NVP(assignedMasses_);
