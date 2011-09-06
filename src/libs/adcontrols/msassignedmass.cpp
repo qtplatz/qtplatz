@@ -32,6 +32,7 @@ MSAssignedMass::MSAssignedMass() : idReferences_(-1)
                                  , exactMass_( 0 ) 
                                  , time_( 0 )
                                  , mass_( 0 )  
+                                 , enable_( true ) 
 {
 }
 
@@ -41,6 +42,7 @@ MSAssignedMass::MSAssignedMass( const MSAssignedMass& t ) : formula_( t.formula_
                                                           , exactMass_( t.exactMass_ )
                                                           , time_( t.time_ )
                                                           , mass_( t.mass_ )   
+                                                          , enable_( t.enable_ )
 {
 }
 
@@ -49,12 +51,14 @@ MSAssignedMass::MSAssignedMass( unsigned int idReferences
                                , const std::wstring& formula
                                , double exactMass
                                , double time
-                               , double mass ) : formula_( formula )
+                               , double mass
+                               , bool enable  ) : formula_( formula )
                                                , idReferences_( idReferences )
                                                , idMassSpectrum_( idMassSpectrum )
                                                , exactMass_( exactMass )
                                                , time_( time )   
                                                , mass_( mass )
+                                               , enable_( enable ) 
 {
 }
 
@@ -92,6 +96,12 @@ double
 MSAssignedMass::mass() const
 {
     return mass_;
+}
+
+bool
+MSAssignedMass::enable() const
+{
+    return enable_;
 }
 
 void

@@ -40,19 +40,21 @@ namespace adcontrols {
         MSAssignedMass();
         MSAssignedMass( const MSAssignedMass& );
         
-        MSAssignedMass( unsigned int idReferences, unsigned int idMasSpectrum, const std::wstring& formula, double exactMass, double time, double mass );
+        MSAssignedMass( unsigned int idReferences, unsigned int idMasSpectrum, const std::wstring& formula, double exactMass, double time, double mass, bool enable );
         const std::wstring& formula() const;
         unsigned int idReferences() const;
         unsigned int idMassSpectrum() const;
         double exactMass() const;
         double time() const;
         double mass() const;
+        bool enable() const;
         void formula( const std::wstring& );
         void idReferences( unsigned int );
         void idMassSpectrum( unsigned int );
         void exactMass( double );
         void time( double );
         void mass( double );
+        void enable( bool );
  
     private:
         std::wstring formula_;
@@ -61,6 +63,7 @@ namespace adcontrols {
         double exactMass_;
         double time_;
         double mass_;
+        bool enable_;  // if false, this peak does not use for polynomial fitting
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -73,6 +76,7 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP(exactMass_);
             ar & BOOST_SERIALIZATION_NVP(time_);
             ar & BOOST_SERIALIZATION_NVP(mass_);
+            ar & BOOST_SERIALIZATION_NVP(enable_);
         }
 
     };

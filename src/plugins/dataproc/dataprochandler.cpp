@@ -45,6 +45,7 @@
 #include <iomanip>
 #include <fstream>
 #include <adportable/string.hpp>
+#include <boost/format.hpp>
 #endif
 
 using namespace dataproc;
@@ -100,6 +101,69 @@ DataprocHandler::doIsotope( adcontrols::MassSpectrum& res, const adcontrols::Iso
     return false;
 }
 
+namespace dataproc { namespace internal {
+
+    struct mass_assign : boost::noncopyable {
+        std::vector< std::pair< unsigned int, adcontrols::MSReference > > calibPoints;
+        double tolerance;
+        double RAThreshold;
+        std::vector<unsigned char> colors;
+        adcontrols::MSAssignedMasses assignedMasses;
+
+        mass_assign( double _tolerance, double threshold ) : tolerance( _tolerance ), RAThreshold( threshold ) {
+        }
+
+        void operator()( const adcontrols::MassSpectrum& centroid, const adcontrols::MSReferences& references ) {
+            using adportable::array_wrapper;
+            using adcontrols::MSReferences;
+
+            array_wrapper<const double> masses( centroid.getMassArray(), centroid.size() );
+            array_wrapper<const double> intens( centroid.getIntensityArray(), centroid.size() );
+            colors.resize( centroid.size() );
+            memset( &colors[0], 0, centroid.size() * sizeof(unsigned char) );
+            calibPoints.clear();
+
+            size_t idReference(0);
+            for ( MSReferences::vector_type::const_iterator it = references.begin(); it != references.end(); ++it ) {
+                double exactMass = it->exactMass();
+                array_wrapper<const double>::const_iterator lBound = std::lower_bound( masses.begin(), masses.end(), exactMass - tolerance );
+                array_wrapper<const double>::const_iterator uBound = std::lower_bound( masses.begin(), masses.end(), exactMass + tolerance );
+
+                if ( lBound != masses.end() ) {
+
+                    size_t lIdx = std::distance( masses.begin(), lBound );
+                    size_t uIdx = std::distance( masses.begin(), uBound );
+
+                    // find closest
+                    size_t cIdx = lIdx;
+                    for ( size_t i = lIdx + 1; i < uIdx; ++i ) {
+                        double d0 = std::abs( masses[ cIdx ] - exactMass );
+                        double d1 = std::abs( masses[ i ] - exactMass );
+                        if ( d1 < d0 )
+                            cIdx = i;
+                    }
+
+                    // find highest
+                    array_wrapper<const double>::const_iterator hIt = std::max_element( intens.begin() + lIdx, intens.begin() + uIdx );
+                    if ( *hIt < RAThreshold )
+                        continue;
+
+                    size_t idx = std::distance( intens.begin(), hIt );
+            
+                    colors[ idx ] = it->enable() ? 1 : 0;
+                    adcontrols::MSAssignedMass assigned( idReference, idx, it->formula(), it->exactMass(), centroid.getTime( idx ), masses[ idx ], it->enable() ); 
+                    assignedMasses << assigned;
+                    if ( it->enable() )
+                        calibPoints.push_back( std::make_pair( idx, *it ) );
+                }
+                ++idReference;
+            }
+        }
+    };
+
+}
+}
+
 bool
 DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
                                  , const adcontrols::MassSpectrum& centroid
@@ -110,68 +174,23 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     res.calibration( centroid.calibration() );
     res.references( m.references() );
     double tolerance = m.massToleranceDa();
-    double hMAThreshold = centroid.getMaxIntensity() * m.minimumRAPercent() / 100;
+    double hRAThreshold = centroid.getMaxIntensity() * m.minimumRAPercent() / 100;
 
     adportable::array_wrapper<const double> masses( centroid.getMassArray(), centroid.size() );
     adportable::array_wrapper<const double> intens( centroid.getIntensityArray(), centroid.size() );
-    boost::scoped_array< double > times( new double [ centroid.size() ] );
-    centroid.compute_profile_time_array( times.get(), centroid.size() );
+    // boost::scoped_array< double > times( new double [ centroid.size() ] );
+    // centroid.compute_profile_time_array( times.get(), centroid.size() );
 
     //const double * times = centroid.getTimeArray();
-
-    std::vector< unsigned char > colors( centroid.size() );
-    memset( &colors[0], 0, colors.size() * sizeof( unsigned char ) );
-
-    std::vector< std::pair< unsigned int, adcontrols::MSReference > > calibPoints;
-    size_t idReference(0);
-    for ( adcontrols::MSReferences::vector_type::const_iterator it = res.references().begin(); it != res.references().end(); ++it ) {
-        const adcontrols::MSReference& ref = *it;
-        if ( ! ref.enable() )
-            continue;
-
-        double exactMass = ref.exactMass();
-        adportable::array_wrapper<const double>::const_iterator lBound = std::lower_bound( masses.begin(), masses.end(), exactMass - tolerance );
-        adportable::array_wrapper<const double>::const_iterator uBound = std::lower_bound( masses.begin(), masses.end(), exactMass + tolerance );
-
-        if ( lBound != masses.end() ) {
-
-            size_t lIdx = std::distance( masses.begin(), lBound );
-            size_t uIdx = std::distance( masses.begin(), uBound );
-
-            // find closest
-            size_t cIdx = lIdx;
-            for ( size_t i = lIdx + 1; i < uIdx; ++i ) {
-                double d0 = std::abs( masses[ cIdx ] - exactMass );
-                double d1 = std::abs( masses[ i ] - exactMass );
-                if ( d1 < d0 )
-                    cIdx = i;
-            }
-
-            // find highest
-            adportable::array_wrapper<const double>::const_iterator hIt = std::max_element( intens.begin() + lIdx, intens.begin() + uIdx );
-            if ( *hIt < hMAThreshold )
-                continue;
-
-            size_t idx = std::distance( intens.begin(), hIt );
-            /*
-            if ( idx != cIdx )
-                idx = cIdx; // take closest, this is a workaround for Xe spectrum
-                */
-            
-            colors[ idx ] = ref.enable() ? 1 : 0;
-            adcontrols::MSAssignedMass assigned( idReference, idx, it->formula(), it->exactMass(), times[ idx ], masses[ idx ] ); 
-            res.assignedMasses() << assigned;
-            if ( ref.enable() )
-                calibPoints.push_back( std::make_pair( idx, *it ) );
-        }
-        ++idReference;
-    }
+    internal::mass_assign mass_assign( tolerance, hRAThreshold );
+    mass_assign( centroid, res.references() );
+    res.assignedMasses( mass_assign.assignedMasses );
 
     do {
         std::vector<double> tmvec, msvec, coeffs;
-        for ( size_t i = 0; i < calibPoints.size(); ++i ) {
-            msvec.push_back( sqrt( calibPoints[i].second.exactMass() ) );
-            tmvec.push_back( times[ calibPoints[i].first ] );
+        for ( size_t i = 0; i < mass_assign.calibPoints.size(); ++i ) {
+            msvec.push_back( sqrt( mass_assign.calibPoints[i].second.exactMass() ) );
+            tmvec.push_back( centroid.getTime( mass_assign.calibPoints[i].first ) );
         }
         size_t nterm = m.polynomialDegree() + 1;
         if ( adportable::polfit::fit( &tmvec[0], &msvec[0], tmvec.size(), nterm, coeffs ) ) {
@@ -189,7 +208,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
         // ------------
     } while( 0 );
 
-    const_cast< adcontrols::MassSpectrum& >( centroid ).setColorArray( &colors[0] );
+    const_cast< adcontrols::MassSpectrum& >( centroid ).setColorArray( &mass_assign.colors[0] );
 
     //////////////////////
 #ifdef _DEBUG
@@ -198,31 +217,47 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
         const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
 
         std::ofstream of( "massassign.txt" );
-        //of << "#\tm/z(observed)\ttime(us)\tintensity\tformula,\tm/z(exact)\tm/z(calibrated)\terror(mDa)" << std::endl;
-        of << "#,m/z(observed),time(us),intensity,formula,m/z(exact),error(mDa)" << std::endl;
+        of << "#\tm/z(observed)\ttof(us)\tintensity\t\tformula,\tm/z(exact)\tm/z(calibrated)\terror(mDa)" << std::endl;
+
         adcontrols::MSReferences::vector_type::const_iterator refIt = ref.begin();
         for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it, ++refIt ) {
             const adcontrols::MSAssignedMass& a = *it;
+
+            std::string formula = adportable::string::convert( a.formula() );
             of << std::setprecision(8)
-                << a.idMassSpectrum() << "\t" // id
-                << std::fixed      << centroid.getMass( a.idMassSpectrum() ) << "\t"      // m/z(observed)
+                << std::setw(4) << a.idMassSpectrum() << "\t" // id
+                << std::setw(15) << std::fixed << centroid.getMass( a.idMassSpectrum() ) << "\t"           // m/z(observed)
                 << std::scientific << centroid.getTime( a.idMassSpectrum() ) << "\t"      // tof
-                << std::scientific << centroid.getIntensity( a.idMassSpectrum() ) << "\t" // intensity
-                << std::setw(10)   << adportable::string::convert( a.formula() ) << "\t"  // formula
-                << std::fixed      << it->exactMass() << "\t"                          // mass(exact)
-                << std::fixed      << a.mass() << "\t"                                    // m/z(calibrated)
-                << std::setprecision(1) << ( a.mass() - it->exactMass() ) * 1000       // error(mDa)
+                << std::fixed << std::setprecision( 0 ) << centroid.getIntensity( a.idMassSpectrum() ) << "\t" // intensity
+                << formula << "\t"
+                << std::setprecision(8) << std::fixed   << it->exactMass() << "\t"                             // mass(exact)
+                << std::fixed   << a.mass() << "\t"                                    // m/z(calibrated)
+                << std::setprecision(1) << ( a.mass() - it->exactMass() ) * 1000 << "\t"  // error(mDa)
+                << ( it->enable() ? "used" : "not used" ) 
                 << std::endl;
         }
+        const std::vector<double>& coeffs = res.calibration().coeffs();
+
+        of << "#--------------------------- Calibration coefficients: " << std::endl;
+        for ( size_t i = 0; i < coeffs.size(); ++i )
+            of << std::scientific << std::setprecision(14) << coeffs[i] << std::endl;
+             
         of << "#--------------------------- centroid peak list (#,mass,intensity)--------------------------" << std::endl;
+
+        adcontrols::MSReferences::vector_type::const_iterator it = res.references().begin();
         for ( size_t i = 0; i < centroid.size(); ++i ) {
-            if ( centroid.getIntensity( i ) > hMAThreshold ) {
+            if ( centroid.getIntensity( i ) > hRAThreshold ) {
                 
                 double mq = adcontrols::MSCalibration::compute( res.calibration().coeffs(), centroid.getTime( i ) );
                 double mass = mq * mq;
 
+                double error = 0;
+                if ( it != res.references().end() && std::abs( it->exactMass() - mass ) < 0.2 ) {
+                    error = ( it->exactMass() - mass ) * 1000; // mDa
+                    ++it;
+                }
                 of << i << "\t"
-                    << std::setprecision(8) << centroid.getMass( i ) << "\t"
+                    << std::setprecision(8) << std::fixed << centroid.getMass( i ) << "\t"
                     << std::setprecision(8) << mass << "\t"
                     << std::setprecision(1) << centroid.getIntensityArray()[i] << std::endl;
             }
