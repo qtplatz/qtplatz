@@ -186,7 +186,8 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     mass_assign( centroid, res.references() );
     res.assignedMasses( mass_assign.assignedMasses );
 
-    do {
+    if ( mass_assign.calibPoints.size() >= 2 ) {
+
         std::vector<double> tmvec, msvec, coeffs;
         for ( size_t i = 0; i < mass_assign.calibPoints.size(); ++i ) {
             msvec.push_back( sqrt( mass_assign.calibPoints[i].second.exactMass() ) );
@@ -204,9 +205,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
                 it->mass( mq * mq );
             }
         }
-
-        // ------------
-    } while( 0 );
+    }
 
     const_cast< adcontrols::MassSpectrum& >( centroid ).setColorArray( &mass_assign.colors[0] );
 
