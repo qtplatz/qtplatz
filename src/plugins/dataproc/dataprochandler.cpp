@@ -186,21 +186,6 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
             }
         }
 
-        if ( calibPoints.size() == 2 ) {
-            double m1 = calibPoints[0].second.exactMass();
-            double m2 = calibPoints[1].second.exactMass();
-            double t1 = times[ calibPoints[0].first ];
-            double t2 = times[ calibPoints[1].first ];
-            // theoretical calibration  [ sqrt(m) = a + b*t ]
-            double b = ( std::sqrt( m2 ) - std::sqrt( m1 ) ) / ( t2 - t1 );
-            double a = std::sqrt( m1 ) - b * t1;
-            std::vector< double > coeffs;
-            coeffs.push_back( a );
-            coeffs.push_back( b );
-            adcontrols::MSCalibration calib;
-            calib.coeffs( coeffs );
-            res.calibration( calib );
-        }
         // ------------
     } while( 0 );
 

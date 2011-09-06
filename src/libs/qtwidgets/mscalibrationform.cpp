@@ -163,6 +163,26 @@ MSCalibrationForm::getContents( adcontrols::ProcessMethod& pm )
     pMethod_->lowMass( v.toDouble() );
     v = model.index( 4, 1, root->index() ).data( Qt::EditRole  );
     pMethod_->highMass( v.toDouble() );
+
+    adcontrols::MSReferences references;
+    
+    // QModelIndex index_references = model.index( 5, 0, root->index() ); // QString("Refernces")
+    QStandardItem * item = model.item( 5 );
+    size_t nRows = item->rowCount();
+
+    for ( size_t row = 0; row < nRows; ++row ) {
+        adcontrols::MSReference reference;
+
+        QVariant formula = model.index( row, 0, item->index() ).data( Qt::EditRole );
+        QVariant mass    = model.index( row, 1, item->index() ).data( Qt::EditRole );
+        QVariant enable  = model.index( row, 2, item->index() ).data( Qt::EditRole );
+        reference.formula( qtwrapper::wstring( formula.toString() ) );
+        reference.exactMass( mass.toDouble() );
+        reference.enable( enable.toBool() );
+        references << reference;
+    }
+    pMethod_->references( references );
+
     pm.appendMethod< adcontrols::MSCalibrateMethod >( *pMethod_ );
 }
 
