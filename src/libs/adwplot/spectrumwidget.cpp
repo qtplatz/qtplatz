@@ -56,10 +56,18 @@ namespace adwplot {
 	    Qt::lightGray,
 	};
 
-	struct SeriesDataImpl {
+    struct SeriesDataImpl {
+        SeriesDataImpl() {}
+
         std::vector< double > x_;
         std::vector< double > y_;
+
         typedef std::vector<double> vector_type;
+
+        SeriesDataImpl( const SeriesDataImpl& t )
+            : x_( t.x_ )
+            , y_( t.y_ ) {
+        } 
 
 	    void setData( size_t size, const double * x, const double * y ) {
             x_.resize( size );
@@ -80,12 +88,15 @@ namespace adwplot {
         double minimum_value( size_t left, size_t right ) const { return *std::min_element( y_.begin() + left, y_.begin() + right ); }
 	};
 		
-	class SeriesData : public QwtSeriesData<QPointF> {
+    class SeriesData : public QwtSeriesData<QPointF> {
 	public:
 	    virtual ~SeriesData() {
 	    }
 
         SeriesData( const SeriesDataImpl& impl, const QRectF& rc ) : rect_( rc ), impl_( impl ) {
+        }
+
+        SeriesData( const SeriesData& t ) : rect_( t.rect_ ), impl_( t.impl_ ) {
         }
 
 	    // implements QwtSeriesData<>
@@ -96,14 +107,15 @@ namespace adwplot {
 	    virtual QRectF boundingRect() const        { return rect_; }
 	private:
 	    QRectF rect_;
-        const SeriesDataImpl& impl_;
+        SeriesDataImpl impl_;
 	};
 	
 
-	class TraceData {
+    class TraceData {
 	public:
-        TraceData() : ms_( 0 ) {}
-        TraceData( const TraceData& t ) : curves_( t.curves_ ), dataMap_( t.dataMap_ ), ms_( t.ms_ ) {
+        TraceData() {
+        }
+        TraceData( const TraceData& t ) : curves_( t.curves_ ), data_( t.data_ ) {
 	    }
 	    void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms );
         std::pair<double, double> y_range( double left, double right ) const;
@@ -111,8 +123,7 @@ namespace adwplot {
 	    typedef std::map< int, SeriesDataImpl > map_type;
 	private:
 	    std::vector< PlotCurve > curves_;
-	    map_type dataMap_;
-        const adcontrols::MassSpectrum * ms_;
+	    map_type data_;
 	};
     } // namespace spectrumwidget
 
@@ -136,10 +147,6 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
 
     setAxisTitle(QwtPlot::xBottom, "m/z");
     setAxisTitle(QwtPlot::yLeft, "Intensity");
-    
-    // picker_->setRubberBand( QwtPicker::CrossRubberBand );
-    // zoomer1_->setRubberBandPen( QColor(Qt::red) );
-    // zoomer1_->setRubberBand( QwtPicker::HLineRubberBand );
 
     // handle zoom rect by this
     if ( zoomer1_ )
@@ -211,9 +218,8 @@ void
 TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
 {
     curves_.clear();
-    dataMap_.clear();
+    data_.clear();
  
-    ms_ = &ms;
     const double * intens = ms.getIntensityArray();
     const double * masses = ms.getMassArray();
     const size_t size = ms.size();
@@ -225,11 +231,11 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
         const unsigned char * colors = ms.getColorArray();
         if ( colors ) {
             for ( size_t i = 0; i < size; ++i )
-                dataMap_[ colors[i] ].push_back( masses[i], intens[i] );
+                data_[ colors[i] ].push_back( masses[i], intens[i] );
         } else {
-            dataMap_[ 0 ].setData( size, masses, intens );
+            data_[ 0 ].setData( size, masses, intens );
         }
-        BOOST_FOREACH( const map_type::value_type& pair, dataMap_ ) {
+        BOOST_FOREACH( const map_type::value_type& pair, data_ ) {
             curves_.push_back( PlotCurve( plot ) );
             PlotCurve& curve = curves_.back();
             if ( pair.first != 0 && pair.first < sizeof( color_table ) / sizeof( color_table[0] ) )
@@ -241,8 +247,8 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
     } else {
         curves_.push_back( PlotCurve( plot ) );
         PlotCurve &curve = curves_[0];
-        dataMap_[ 0 ].setData( size, masses, intens );
-        curve.p()->setData( new SeriesData( dataMap_[ 0 ], rect ) );
+        data_[ 0 ].setData( size, masses, intens );
+        curve.p()->setData( new SeriesData( data_[ 0 ], rect ) );
     }
 }
 
@@ -251,7 +257,7 @@ TraceData::y_range( double left, double right ) const
 {
     double top = 100;
     double bottom = -10;
-    BOOST_FOREACH( const map_type::value_type& pair, dataMap_ ) {
+    BOOST_FOREACH( const map_type::value_type& pair, data_ ) {
 
         size_t idx0 = pair.second.index( left );
         size_t idx1 = pair.second.index( right );
