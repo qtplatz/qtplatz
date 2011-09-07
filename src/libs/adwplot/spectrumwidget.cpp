@@ -111,6 +111,7 @@ namespace adwplot {
 	public:
         TraceData() {  }
         TraceData( const TraceData& t ) : curves_( t.curves_ ), data_( t.data_ ) {   }
+        ~TraceData();
 	    void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms );
         std::pair<double, double> y_range( double left, double right ) const;
 
@@ -125,6 +126,8 @@ namespace adwplot {
         adcontrols::MassSpectrum centroid_;  // for annotation
         std::vector< Annotation > annotations_;
         std::vector< spectrumwidget::TraceData > traces_;
+
+        void clear();
         void update_annotations( Dataplot&, const std::pair<double, double>& );
     };
 
@@ -176,6 +179,15 @@ SpectrumWidget::zoom( const QRectF& rect )
     impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
 }
 
+
+
+void
+SpectrumWidget::clear()
+{
+    impl_->clear();
+    zoomer1_->setZoomBase();
+}
+
 void
 SpectrumWidget::setData( const adcontrols::MassSpectrum& ms )
 {
@@ -219,6 +231,12 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 //////////////////////////////////////////////////////////////////////////
 
 using namespace adwplot::spectrumwidget;
+
+TraceData::~TraceData()
+{
+    curves_.clear();
+    data_.clear();
+}
 
 void
 TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
@@ -320,4 +338,12 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
         Annotation anno = annots.add( ms.getMass( *it ), ms.getIntensity( *it ), label );
         anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
     }
+}
+
+void
+SpectrumWidgetImpl::clear()
+{
+    centroid_ = adcontrols::MassSpectrum();
+    annotations_.clear();
+    traces_.clear();
 }

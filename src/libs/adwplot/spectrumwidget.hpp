@@ -37,8 +37,9 @@ namespace adwplot {
         Q_OBJECT
     public:
         explicit SpectrumWidget(QWidget *parent = 0);
-	~SpectrumWidget();
+        ~SpectrumWidget();
 
+        void clear();
         void setData( const adcontrols::MassSpectrum& );
         void setData( const adcontrols::MassSpectrum&, const adcontrols::MassSpectrum& );
         void setData( const adcontrols::MassSpectrum&, int idx, bool yaxis1 = false );

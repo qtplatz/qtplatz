@@ -129,6 +129,7 @@ MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
     adcontrols::MassSpectrum& ms = *ptr;
     pImpl_->profileSpectrum_->setData( ms, drawIdx1_++ );
+    pImpl_->processedSpectrum_->clear();
 }
 
 void
