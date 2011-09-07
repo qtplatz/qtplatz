@@ -41,7 +41,8 @@ Annotation::Annotation( Dataplot& plot
     marker_->setLabelAlignment( Qt::AlignRight | Qt::AlignBottom );
     // marker_->setLinePen( QPen( Qt::green, 0, Qt::DashDotLine) )
     QwtText text( qtwrapper::qstring::copy( label ) );
-    text.setFont( QFont("Helvetica", 9, QFont::Normal ) );
+    //text.setFont( QFont("Helvetica", 8, QFont::Normal ) );
+    text.setFont( QFont("Calibri", 8, QFont::Normal ) );
     text.setColor( Qt::green );
     marker_->setLabel( text );
     marker_->attach( plot_ );

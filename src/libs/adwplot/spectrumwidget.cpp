@@ -29,9 +29,13 @@
 #include "plotpicker.hpp"
 #include "plotpanner.hpp"
 #include "annotation.hpp"
+#include "annotations.hpp"
 #include <adcontrols/massspectrum.hpp>
-#include <boost/foreach.hpp>
+#include <adportable/array_wrapper.hpp>
 #include <qwt_plot_curve.h>
+#include <qwt_plot_marker.h>
+#include <boost/foreach.hpp>
+#include <boost/format.hpp>
 
 using namespace adwplot;
 
@@ -90,20 +94,12 @@ namespace adwplot {
 		
     class SeriesData : public QwtSeriesData<QPointF> {
 	public:
-	    virtual ~SeriesData() {
-	    }
-
-        SeriesData( const SeriesDataImpl& impl, const QRectF& rc ) : rect_( rc ), impl_( impl ) {
-        }
-
-        SeriesData( const SeriesData& t ) : rect_( t.rect_ ), impl_( t.impl_ ) {
-        }
-
+	    virtual ~SeriesData() {   }
+        SeriesData( const SeriesDataImpl& impl, const QRectF& rc ) : rect_( rc ), impl_( impl ) {    }
+        SeriesData( const SeriesData& t ) : rect_( t.rect_ ), impl_( t.impl_ ) { }
 	    // implements QwtSeriesData<>
         virtual size_t size() const                { return impl_.x_.size(); }
-	    virtual QPointF sample( size_t idx ) const { 
-            return QPointF( impl_.x_[ idx ], impl_.y_[ idx ] );
-        }
+	    virtual QPointF sample( size_t idx ) const { return QPointF( impl_.x_[ idx ], impl_.y_[ idx ] );  }
 	    virtual QRectF boundingRect() const        { return rect_; }
 	private:
 	    QRectF rect_;
@@ -113,10 +109,8 @@ namespace adwplot {
 
     class TraceData {
 	public:
-        TraceData() {
-        }
-        TraceData( const TraceData& t ) : curves_( t.curves_ ), data_( t.data_ ) {
-	    }
+        TraceData() {  }
+        TraceData( const TraceData& t ) : curves_( t.curves_ ), data_( t.data_ ) {   }
 	    void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms );
         std::pair<double, double> y_range( double left, double right ) const;
 
@@ -128,8 +122,10 @@ namespace adwplot {
     } // namespace spectrumwidget
 
     struct SpectrumWidgetImpl {
+        adcontrols::MassSpectrum centroid_;  // for annotation
         std::vector< Annotation > annotations_;
         std::vector< spectrumwidget::TraceData > traces_;
+        void update_annotations( Dataplot&, const std::pair<double, double>& );
     };
 
 } // namespace adwplot
@@ -159,13 +155,17 @@ SpectrumWidget::override_zoom_rect( QRectF& rc )
 {
     if ( autoYZoom_ ) {
         using spectrumwidget::TraceData;
+        double bottom = rc.bottom();
+        double top = rc.top();
         BOOST_FOREACH( const TraceData& trace, impl_->traces_ ) {
             std::pair<double, double> y = trace.y_range( rc.left(), rc.right() );
-            if ( rc.bottom() > y.first )
-                rc.setBottom( y.first );
-            if ( rc.top() < y.second )
-                rc.setTop( y.second );
+            if ( bottom > y.first )
+                bottom = y.first;
+            if ( top < y.second )
+                top = y.second; // rc.setTop( y.second );
         }
+        rc.setBottom( bottom );
+        rc.setTop( top + ( top - bottom ) * 0.12 );  // increase 12% for annotation
     }
 }
 
@@ -173,6 +173,7 @@ void
 SpectrumWidget::zoom( const QRectF& rect )
 {
     zoomer1_->zoom( rect );
+    impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
 }
 
 void
@@ -199,12 +200,17 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
     TraceData& trace = impl_->traces_[ idx ];
     trace.setData( *this, ms );
 
+    double top = ms.getMaxIntensity() + ( ms.getMaxIntensity() - ms.getMinIntensity() ) * 0.12; // 12% increase
+    double bottom = ms.getMinIntensity();
     setAxisScale( QwtPlot::xBottom, ms.getAcquisitionMassRange().first, ms.getAcquisitionMassRange().second );
-    setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, ms.getMinIntensity(), ms.getMaxIntensity() );
+    setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, bottom, top );
 
     zoomer1_->setZoomBase();
     // todo: annotations
-
+    if ( ms.isCentroid() ) {
+        impl_->centroid_ = ms;
+        impl_->update_annotations( *this, ms.getAcquisitionMassRange() );
+    }
     // replot();
 }
 
@@ -224,8 +230,10 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
     const double * masses = ms.getMassArray();
     const size_t size = ms.size();
 
+    double bottom = ms.getMinIntensity();
+    double top = ms.getMaxIntensity() + ( ms.getMaxIntensity() - ms.getMinIntensity() ) * 0.12;
     QRectF rect;
-    rect.setCoords( ms.getAcquisitionMassRange().first, ms.getMinIntensity(), ms.getAcquisitionMassRange().second, ms.getMaxIntensity() );
+    rect.setCoords( ms.getAcquisitionMassRange().first, bottom, ms.getAcquisitionMassRange().second, top );
 
     if ( ms.isCentroid() ) {
         const unsigned char * colors = ms.getColorArray();
@@ -271,4 +279,45 @@ TraceData::y_range( double left, double right ) const
         }
     }
     return std::make_pair<>(bottom, top);
+}
+
+void
+SpectrumWidgetImpl::update_annotations( Dataplot& plot
+                                       , const std::pair<double, double>& range )
+{
+    using adportable::array_wrapper;
+
+    const adcontrols::MassSpectrum& ms = centroid_;
+
+    array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
+    size_t beg = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.first ) );
+    size_t end = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.second ) );
+
+    std::vector< size_t > indecies;
+    for ( size_t idx = beg; idx <= end; ++idx )
+        indecies.push_back( idx );
+
+    struct compare_priority {
+        const unsigned char * colors_;
+        const double * intensities_;
+        compare_priority( const double * intensities, const unsigned char * colors)
+            : intensities_( intensities )
+            , colors_( colors ) {
+        }
+        bool operator()( size_t idx0, size_t idx1 ) {
+            if ( colors_ && colors_[ idx0 ] != colors_[ idx1 ] )
+                return colors_[ idx0 ] > colors_[ idx1 ];
+            return intensities_[ idx0 ] > intensities_[ idx1 ];
+        }
+    };
+
+    std::sort( indecies.begin(), indecies.end(), compare_priority( ms.getIntensityArray(), ms.getColorArray() ) );
+
+    Annotations annots(plot, annotations_);
+    size_t n = 0;
+    for ( std::vector<size_t>::const_iterator it = indecies.begin(); it != indecies.end() && n <= 5; ++it, ++n ) {
+        std::wstring label = ( boost::wformat( L"%.4lf" ) % ms.getMass( *it ) ).str();
+        Annotation anno = annots.add( ms.getMass( *it ), ms.getIntensity( *it ), label );
+        anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
+    }
 }
