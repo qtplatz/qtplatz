@@ -33,8 +33,10 @@ using namespace adwplot;
 
 Annotation::Annotation( Dataplot& plot
                        , const std::wstring& label
-                       , double x, double y) : plot_( &plot )
-                                                     , marker_( new QwtPlotMarker )
+                       , double x, double y
+                       , Qt::GlobalColor color )
+                       : plot_( &plot )
+                       , marker_( new QwtPlotMarker )
 {
     marker_->setValue( x, y );
     marker_->setLineStyle( QwtPlotMarker::NoLine );
@@ -42,8 +44,8 @@ Annotation::Annotation( Dataplot& plot
     // marker_->setLinePen( QPen( Qt::green, 0, Qt::DashDotLine) )
     QwtText text( qtwrapper::qstring::copy( label ) );
     //text.setFont( QFont("Helvetica", 8, QFont::Normal ) );
-    text.setFont( QFont("Calibri", 8, QFont::Normal ) );
-    text.setColor( Qt::green );
+    text.setFont( QFont("Calibri", 9, QFont::Normal ) );
+    text.setColor( color );
     marker_->setLabel( text );
     marker_->attach( plot_ );
 }

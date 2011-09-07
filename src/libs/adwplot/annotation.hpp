@@ -37,7 +37,8 @@ namespace adwplot {
 
     class Annotation {
     public:
-        explicit Annotation( Dataplot&, const std::wstring&, double x = 0.0, double y = 0.0 );
+        explicit Annotation( Dataplot&, const std::wstring&, double x = 0.0, double y = 0.0
+            , Qt::GlobalColor color = Qt::darkGreen );
         Annotation( const Annotation& );
 
         void setLabelAlighment( Qt::Alignment );
