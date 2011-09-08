@@ -29,6 +29,7 @@
 #include <QMessageBox>
 #include <QDeclarativeError>
 #include <QDeclarativeContext>
+#include <QDeclarativeEngine>
 #include <QCoreApplication>
 #include <fstream>
 #include "centroidmethodmodel.hpp"
@@ -91,6 +92,9 @@ ProcessMethodView::OnCreate( const adportable::Configuration& config )
 #else
     qmlpath = QCoreApplication::applicationDirPath() + "/../share";
 #endif
+
+    // engine()->addImportPath( QCoreApplication::applicationDirPath() + "/../imports" );
+    // QML_IMPORT_PATH
 
     pugi::xpath_node node = dom.select_single_node( "//Component[@type='qml']" );
     if ( node ) {
