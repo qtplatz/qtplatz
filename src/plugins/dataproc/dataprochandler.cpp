@@ -41,12 +41,12 @@
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibration.hpp>
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 #include <iomanip>
 #include <fstream>
 #include <adportable/string.hpp>
 #include <boost/format.hpp>
-#endif
+//#endif
 
 using namespace dataproc;
 
@@ -207,9 +207,20 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     }
 
     const_cast< adcontrols::MassSpectrum& >( centroid ).setColorArray( &mass_assign.colors[0] );
+    
 
     //////////////////////
-#ifdef _DEBUG
+//#if defined _DEBUG && 1
+    do {
+        if ( res.calibration().coeffs().size() >= 2 ) {
+            const double * times = centroid.getTimeArray();
+            for ( size_t i = 0; i < centroid.size(); ++i ) {
+                double mq = adcontrols::MSCalibration::compute( res.calibration().coeffs(), times[i] );
+                const_cast< adcontrols::MassSpectrum& >( centroid ).setMass( i, mq * mq );
+            }
+        }
+    } while(0);
+
     do {
         const adcontrols::MSReferences& ref = res.references();
         const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
@@ -261,7 +272,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
             }
         }
     } while(0);
-#endif
+//#endif
     return true;
 }
 
