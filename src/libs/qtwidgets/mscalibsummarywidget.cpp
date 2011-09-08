@@ -119,24 +119,24 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
         model.setData( model.index( row, col++ ), intensities[ idx ] );
     }
 
-    const adcontrols::MSReferences& ref = res.references();
+    //const adcontrols::MSReferences& ref = res.references();
     const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
-    adcontrols::MSReferences::vector_type::const_iterator refIt = ref.begin();
+    // adcontrols::MSReferences::vector_type::const_iterator refIt = ref.begin();
 
-    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it, ++refIt ) {
+    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
         int col = 3;
-        const adcontrols::MSAssignedMass& a = *it;
+        // const adcontrols::MSAssignedMass& a = *it;
 
         std::vector< size_t >::iterator index
-            = std::lower_bound( indecies.begin(), indecies.end(), a.idMassSpectrum() );
+            = std::lower_bound( indecies.begin(), indecies.end(), it->idMassSpectrum() );
         size_t row = std::distance( indecies.begin(), index );
 
-        model.setData( model.index( row, col++ ), qtwrapper::qstring::copy( a.formula() ) );
-        model.setData( model.index( row, col++ ), refIt->exactMass() );
-        model.setData( model.index( row, col++ ), a.mass() );
-        model.setData( model.index( row, col++ ), ( a.mass() - refIt->exactMass() ) * 1000 ); // mDa
-        model.setData( model.index( row, col++ ), ( a.mass() - masses[ a.idMassSpectrum() ] ) * 1000 ); // mDa
-        model.setData( model.index( row, col++ ), refIt->enable() );
+        model.setData( model.index( row, col++ ), qtwrapper::qstring::copy( it->formula() ) );
+        model.setData( model.index( row, col++ ), it->exactMass() );
+        model.setData( model.index( row, col++ ), it->mass() );
+        model.setData( model.index( row, col++ ), ( it->mass() - it->exactMass() ) * 1000 ); // mDa
+        model.setData( model.index( row, col++ ), ( it->mass() - masses[ it->idMassSpectrum() ] ) * 1000 ); // mDa
+        model.setData( model.index( row, col++ ), it->enable() );
     }
 
 }

@@ -52,7 +52,7 @@ namespace dataproc {
         static bool doIsotope( adcontrols::MassSpectrum& res, const adcontrols::IsotopeMethod& );
 
         static bool doMSCalibration( adcontrols::MSCalibrateResult& res
-                                   , const adcontrols::MassSpectrum& centroid
+                                   , adcontrols::MassSpectrum& centroid
                                    , const adcontrols::MSCalibrateMethod& );
     };
 

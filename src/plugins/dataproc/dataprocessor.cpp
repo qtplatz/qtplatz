@@ -45,6 +45,7 @@
 #include <adcontrols/elementalcompositionmethod.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/mscalibration.hpp>
 
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
@@ -352,6 +353,9 @@ bool
 internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSCalibrateMethod& m )
 {
     using namespace portfolio;
+
+    adcontrols::MassSpectrumPtr& pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
+
     Folium::vector_type atts = folium.attachments();
     Folium::vector_type::iterator it = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
     if ( it != atts.end() ) {
@@ -361,6 +365,19 @@ internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcon
             if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m ) ) {
                 portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
                 static_cast<boost::any&>( att ) = pResult;
+
+                pCentroid->setCalibration( pResult->calibration() );
+
+                // update profile mass array
+                if ( pProfile ) {
+                    pProfile->setCalibration( pResult->calibration() );
+                    const std::vector<double>& coeffs = pResult->calibration().coeffs();
+                    for ( size_t i = 0; i < pProfile->size(); ++i ) {
+                         double tof = pProfile->getTime( i );
+                         double mq = adcontrols::MSCalibration::compute( coeffs, tof );
+                         pProfile->setMass( i, mq * mq );
+                    }
+                }
             }
             return true;
         }

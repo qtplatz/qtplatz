@@ -55,7 +55,9 @@ DataprocHandler::DataprocHandler()
 }
 
 bool
-DataprocHandler::doCentroid( adcontrols::MassSpectrum& res, const adcontrols::MassSpectrum& profile, const adcontrols::CentroidMethod& m )
+DataprocHandler::doCentroid( adcontrols::MassSpectrum& res
+                             , const adcontrols::MassSpectrum& profile
+                             , const adcontrols::CentroidMethod& m )
 {
     adcontrols::CentroidProcess peak_detector;
     if ( peak_detector( m, profile ) )
@@ -166,7 +168,7 @@ namespace dataproc { namespace internal {
 
 bool
 DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
-                                 , const adcontrols::MassSpectrum& centroid
+                                 , adcontrols::MassSpectrum& centroid
                                  , const adcontrols::MSCalibrateMethod& m )
 {
     using adcontrols::MSProperty;
@@ -206,20 +208,22 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
         }
     }
 
-    const_cast< adcontrols::MassSpectrum& >( centroid ).setColorArray( &mass_assign.colors[0] );
-    
-
-    //////////////////////
-//#if defined _DEBUG && 1
+    centroid.setColorArray( &mass_assign.colors[0] );
     do {
         if ( res.calibration().coeffs().size() >= 2 ) {
             const double * times = centroid.getTimeArray();
             for ( size_t i = 0; i < centroid.size(); ++i ) {
                 double mq = adcontrols::MSCalibration::compute( res.calibration().coeffs(), times[i] );
-                const_cast< adcontrols::MassSpectrum& >( centroid ).setMass( i, mq * mq );
+                centroid.setMass( i, mq * mq );
             }
         }
     } while(0);
+    
+
+    //////////////////////
+//#if defined _DEBUG && 1
+/*
+*/
 
     do {
         const adcontrols::MSReferences& ref = res.references();
