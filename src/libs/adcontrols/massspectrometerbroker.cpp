@@ -35,6 +35,7 @@
 #include <string>
 #include <QLibrary>
 #include <adportable/string.hpp>
+#include <adportable/debug.hpp>
 
 using namespace adcontrols;
 
@@ -85,10 +86,13 @@ MassSpectrometerBrokerImpl::register_library( const std::wstring& sharedlib )
         instance_type getMassSpectrometer = reinterpret_cast<instance_type>( lib.resolve( "getMassSpectrometer" ) );
         if ( getMassSpectrometer ) {
             MassSpectrometer * p = getMassSpectrometer();
-            if ( p )
+            if ( p ) {
                 p->accept( *this );
+                return true;
+            }
         }
     }
+    adportable::debug(__FILE__, __LINE__) << lib.errorString().toStdString();
     return false;
 }
 

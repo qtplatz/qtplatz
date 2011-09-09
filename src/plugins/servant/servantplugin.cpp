@@ -311,7 +311,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                 }
             }
         } else if ( it->attribute( L"type" ) == L"MassSpectrometer" ) {
-            const std::wstring name = apppath + it->module().library_filename();
+            // const std::wstring name = apppath + it->module().library_filename();
+            const std::wstring name = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
             adcontrols::MassSpectrometerBroker::register_library( name );
         }
     }
