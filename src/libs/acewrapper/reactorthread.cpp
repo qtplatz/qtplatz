@@ -29,6 +29,7 @@
 #include <ace/Singleton.h>
 #include <ace/Recursive_Thread_Mutex.h>
 #include <ace/Semaphore.h>
+#include <ace/OS.h>
 #include <acewrapper/mutex.hpp>
 #include <adportable/debug.hpp>
 
