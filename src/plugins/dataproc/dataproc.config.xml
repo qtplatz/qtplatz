@@ -32,10 +32,12 @@
       <pattern>*.data</pattern>
       <Component type="dataprovider" interface="mc4::dataprovider" module="mc4" loader="adplugin"/>
     </Configuration>
+    <!---
     <Configuration name="infitofprovider">
       <pattern>*.plt</pattern>
       <Component type="dataprovider" interface="infitof::dataprovider" module="infitof" loader="adplugin"/>
     </Configuration>
+    -->
     <Configuration name="txtprovider">
       <pattern>*.txt</pattern>
       <Component type="dataprovider" interface="n/a" module="adtxtfactory" loader="adplugin"/>

@@ -24,16 +24,13 @@
 **************************************************************************/
 
 #include "reactorthread.hpp"
-
-#if defined _MSC_VER
-#pragma warning (disable : 4996)
-#endif
 #include <ace/Thread_Manager.h>
 #include <ace/Reactor.h>
 #include <ace/Singleton.h>
 #include <ace/Recursive_Thread_Mutex.h>
 #include <ace/Semaphore.h>
 #include <acewrapper/mutex.hpp>
+#include <adportable/debug.hpp>
 
 #if defined _DEBUG
 # include <iostream>
@@ -105,8 +102,10 @@ ReactorThread::get_reactor()
 bool
 ReactorThread::join()
 {
-    if ( t_handle_ )
-        ACE_Thread_Manager::instance()->join( t_handle_ );
+    if ( t_handle_ ) {
+        if ( ACE_Thread_Manager::instance()->join( t_handle_ ) != 0 )
+            adportable::debug(__FILE__, __LINE__) << "Reactor::join(" << t_handle_ << ") call failed: " << ACE_OS::strerror( errno );
+    }
     t_handle_ = 0;
     return true;
 }

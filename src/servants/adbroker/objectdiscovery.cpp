@@ -25,15 +25,18 @@
 
 #include "objectdiscovery.hpp"
 #include "manager_i.hpp"
+
+#include <acewrapper/reactorthread.hpp>
 #include <acewrapper/mutex.hpp>
 #include <adportable/debug.hpp>
+#include <iostream>
+
 #include <ace/Thread.h>
 #include <ace/Log_Msg.h>
 #include <ace/Event_Handler.h>
 #include <ace/INET_Addr.h>
 #include <ace/SOCK_Dgram_Mcast.h>
 #include <ace/SOCK_Dgram_Bcast.h>
-#include <iostream>
 
 using namespace adbroker;
 
@@ -80,24 +83,22 @@ namespace adbroker {
 
 } // namespace adbroker
 
-ObjectDiscovery::ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex ) : t_handle_( 0 )
-                                                                      , reactor_( new ACE_Reactor )
-                                                                        // , mcast_( new McastHandler( *this) )
-                                                                      , bcast_( new BcastHandler( *this) )
-                                                                      , suspend_( false )
-                                                                      , mutex_( mutex )
+ObjectDiscovery::ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex )
+: reactor_thread_( 0 )
+, bcast_( new BcastHandler( *this) )
+, suspend_( false )
+, mutex_( mutex )
 {
 }
 
 ObjectDiscovery::~ObjectDiscovery()
 {
+    delete reactor_thread_;
     delete bcast_;
     // delete mcast_;
-#ifndef WIN32 // workaround to avoid clash on close app.
-    delete reactor_;
-#endif
 }
 
+/*
 void *
 ObjectDiscovery::thread_entry( void * me )
 {
@@ -123,29 +124,45 @@ ObjectDiscovery::event_loop()
 
     adportable::debug(__FILE__, __LINE__) << "===== ObjectDiscovery::event_loop done =====";
 }
+*/
 
 void
 ObjectDiscovery::close()
 {
-    adportable::debug() << "============= ObjectDiscovery::close() ===============";
+    adportable::debug(__FILE__, __LINE__) << "============= ObjectDiscovery::close() ===============";
 
-    // mcast_->close();
-    bcast_->close();
+    if ( reactor_thread_ == 0 )
+        return;
 
-    if ( t_handle_ ) {
-        reactor_->end_reactor_event_loop();
-        int res = ACE_Thread::join( t_handle_, 0, 0 );
-
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    if ( reactor_thread_ ) {
+        bcast_->close();
+        // mcast_->close();
+        reactor_thread_->get_reactor()->cancel_timer( bcast_ );
+        reactor_thread_->end_reactor_event_loop();
+        bool res = reactor_thread_->join();
         adportable::debug(__FILE__, __LINE__) 
-            << "===== ObjectDiscovery::close join " << ( res == 0 ? "success" : "failed" );
+            << "===== ObjectDiscovery::close(): thread->join() call " << ( res ? "success" : "fail" );
     }
 }
 
 bool
 ObjectDiscovery::open()
 {
-    return bcast_->open();
-    // return mcast_->open( port );
+    if ( reactor_thread_ )
+        return false;
+
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    if ( reactor_thread_ == 0 ) {
+        reactor_thread_ = new acewrapper::ReactorThread();
+        bcast_->open();
+        // mcast_->open( port );
+        ACE_Reactor * reactor = reactor_thread_->get_reactor();
+        reactor->register_handler( bcast_, ACE_Event_Handler::READ_MASK );
+        reactor->schedule_timer( bcast_, 0, ACE_Time_Value(1), ACE_Time_Value(3) );
+        return reactor_thread_->spawn();
+    }
+    return false;
 }
 
 void

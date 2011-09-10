@@ -26,13 +26,15 @@
 #ifndef OBJECTDISCOVERY_H
 #define OBJECTDISCOVERY_H
 
-#include <ace/Reactor.h>
-#include <ace/Singleton.h>
+//#include <ace/Reactor.h>
+// #include <ace/Singleton.h>
 #include <map>
 #include <string>
 
 class ACE_INET_Addr;
 class ACE_Recursive_Thread_Mutex;
+
+namespace acewrapper { class ReactorThread; }
 
 namespace adbroker {
 
@@ -40,20 +42,21 @@ namespace adbroker {
     public:
         ~ObjectDiscovery();
         ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex );
-        void event_loop();
-        static void * thread_entry( void * );
+        // void event_loop();
+        // static void * thread_entry( void * );
         bool open();
         void close();
-        void operator()( const char *, ssize_t, const ACE_INET_Addr& );
+        void operator()( const char *, int, const ACE_INET_Addr& );
         void register_lookup( const std::string& name, const std::string& ident );
         bool unregister_lookup( const std::string& ident, std::string& name );
         int handle_timeout();
-        inline ACE_Reactor * reactor() { return reactor_; }
+        // inline ACE_Reactor * reactor() { return reactor_; }
 
     private:
-        ACE_thread_t t_handle_;
-        ACE_Reactor * reactor_;
+        // ACE_thread_t t_handle_;
+        // ACE_Reactor * reactor_;
         // class McastHandler * mcast_;
+        acewrapper::ReactorThread * reactor_thread_;
         class BcastHandler * bcast_;
         bool suspend_;
         ACE_Recursive_Thread_Mutex& mutex_;

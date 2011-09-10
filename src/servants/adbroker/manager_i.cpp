@@ -174,7 +174,6 @@ manager_i::register_lookup( const char * name, const char * ident )
         if ( discovery_ == 0 ) {
             discovery_ = new ObjectDiscovery( mutex_ );
             discovery_->open();
-            ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ObjectDiscovery::thread_entry ), discovery_ );
         }
     }
     if ( discovery_ ) {
