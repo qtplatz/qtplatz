@@ -51,4 +51,6 @@ HEADERS += adportable.hpp \
     safearray.hpp \
     spectrum_processor.hpp \
     string.hpp \
-    utf.hpp
+    utf.hpp \
+    disable_warnings.h
+

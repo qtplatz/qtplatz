@@ -26,6 +26,7 @@
 #pragma once
 
 #include <extensionsystem/iplugin.h>
+#include <adportable/disable_warnings.h>
 #include <adinterface/brokerC.h>
 
 namespace adportable {
