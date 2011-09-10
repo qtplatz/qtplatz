@@ -26,10 +26,13 @@
 #include "spectrum_processor.hpp"
 #include "array_wrapper.hpp"
 #include <adportable/differential.hpp>
-#include <cmath>
 #include <boost/smart_ptr.hpp>
 #include <boost/variant.hpp>
+#include <cmath>
+#include <cstring> // for memset()
 #include <stack>
+#include <stdexcept>
+
 
 using namespace adportable;
 
@@ -58,7 +61,7 @@ namespace adportable { // namespace internal {
         size_t w;
         size_t n;
         double slope;
-        inline slope_counter(double _slope = 0, size_t _w = 3) : n(0), uc(0), dc(0), zc(0), bc(0), slope(_slope), w(_w) {}
+        inline slope_counter(double _slope = 0, size_t _w = 3) : uc(0), dc(0), zc(0), bc(0), w(_w), n(0), slope(_slope) {}
         inline size_t operator()(const double& d1) {
             ++n;
             if ( d1 < -slope ) {
@@ -189,99 +192,99 @@ spectrum_peakfinder::spectrum_peakfinder(double pw, double bw, WidthMethod wm ) 
 
 namespace adportable { namespace peakfind {
 
-    const size_t stack_size = 256;
+        const size_t stack_size = 256;
 
-    template< class T > class stack {
-        T vec_[ stack_size ];
-        T * bp_;
-        inline const T * end() const  { return &vec_[ stack_size ]; }
-        inline const T * begin() const { return &vec_[ 0 ]; }
-    public:
-        stack() : bp_( &vec_[ stack_size ] ) {   }
-        inline bool empty() const                     { return bp_ == end(); }
-        inline size_t size() const                    { return end() - bp_; }
-        inline void push( const T& t )                { if ( bp_ <= begin() ) throw std::out_of_range("overflow"); *(--bp_) = t; }
-        inline void pop()                             { if ( bp_ >= end() ) throw std::out_of_range("underflow");  ++bp_; }
-        inline const T& top() const                   { return *bp_; }
-        inline T& top()                               { return *bp_; }
-        inline const T& operator [] ( int idx ) const { return bp_[ idx ]; }
-        inline T& operator [] ( int idx )             { return bp_[ idx ]; }
-    };
-
-    enum event_type { None, Up, Down };
-
-    struct counter {
-        event_type type_;
-        size_t bpos_;
-        size_t tpos_;
-        counter( size_t pos = 0, event_type type = None ) : type_( type ), bpos_( pos ), tpos_( pos ) {}
-        counter( const counter& t ) : type_( t.type_ ), bpos_( t.bpos_ ), tpos_( t.tpos_ ) {}
-        event_type type() const { return type_; }
-        inline void operator ++ (int) { ++tpos_; }
-        inline size_t distance() const { return tpos_ - bpos_; }
-        inline void operator += ( const counter& t ) {
-            assert ( t.type_ == type_ );
-            tpos_ = t.tpos_;
-        }
-    };
-
-    struct slope_state {
-
-        stack< counter > stack_;
-        size_t width_;
-
-        slope_state() : width_( 3 ) {}
-
-        bool reduce( std::pair< counter, counter >& res ) {
-            if ( stack_[1].type() == Down && stack_.size() >= 3 ) {
-                res.first = stack_[2];
-                res.second = stack_[1];
-                counter top = stack_.top();
-                stack_.pop();
-                stack_.pop();
-                stack_.pop();
-                stack_.push( top );
-                return true;
-            }
-            return false;
-        }
-
-        bool shift_reduce( const counter& c ) {
-            // delete count if too narrow width
-            while ( stack_.top().distance() < width_ ) {
-                stack_.pop();
-                if ( stack_.empty() ) {
-                    stack_.push( c );
-                    return false;
-                }
-            }
-
-            // replace
-            if ( stack_.top().type() == c.type() )  { // marge
-                stack_.top() += c;  // marge
-                //stack_.pop();
-                //stack_.push( c );  // replace
-            }
-
-            // if (Up - Down)|(Down - Up), should push counter and wait for next state
-            if ( stack_.top().type() != c.type() )
-                stack_.push( c );
-
-            return stack_.size() >= 3;
+        template< class T > class stack {
+            T vec_[ stack_size ];
+            T * bp_;
+            inline const T * end() const  { return &vec_[ stack_size ]; }
+            inline const T * begin() const { return &vec_[ 0 ]; }
+        public:
+            stack() : bp_( &vec_[ stack_size ] ) {   }
+            inline bool empty() const                     { return bp_ == end(); }
+            inline size_t size() const                    { return end() - bp_; }
+            inline void push( const T& t )                { if ( bp_ <= begin() ) throw std::out_of_range("overflow"); *(--bp_) = t; }
+            inline void pop()                             { if ( bp_ >= end() ) throw std::out_of_range("underflow");  ++bp_; }
+            inline const T& top() const                   { return *bp_; }
+            inline T& top()                               { return *bp_; }
+            inline const T& operator [] ( int idx ) const { return bp_[ idx ]; }
+            inline T& operator [] ( int idx )             { return bp_[ idx ]; }
         };
 
-        template< class T > bool process_slope( T& t ) {
-            if ( stack_.empty() )
-                stack_.push( t );
-            else if ( stack_.top().type() == t.type() )
-                stack_.top()++;
-            else
-                return shift_reduce( t );
-            return false;
-        }
-    };
+        enum event_type { None, Up, Down };
 
-}
+        struct counter {
+            event_type type_;
+            size_t bpos_;
+            size_t tpos_;
+            counter( size_t pos = 0, event_type type = None ) : type_( type ), bpos_( pos ), tpos_( pos ) {}
+            counter( const counter& t ) : type_( t.type_ ), bpos_( t.bpos_ ), tpos_( t.tpos_ ) {}
+            event_type type() const { return type_; }
+            inline void operator ++ (int) { ++tpos_; }
+            inline size_t distance() const { return tpos_ - bpos_; }
+            inline void operator += ( const counter& t ) {
+                assert ( t.type_ == type_ );
+                tpos_ = t.tpos_;
+            }
+        };
+
+        template<class T=counter> struct slope_state {
+
+            stack< T > stack_;
+            size_t width_;
+
+            slope_state() : width_( 3 ) {}
+
+            bool reduce( std::pair< T, T >& res ) {
+                if ( stack_[1].type() == Down && stack_.size() >= 3 ) {
+                    res.first = stack_[2];
+                    res.second = stack_[1];
+                    counter top = stack_.top();
+                    stack_.pop();
+                    stack_.pop();
+                    stack_.pop();
+                    stack_.push( top );
+                    return true;
+                }
+                return false;
+            }
+
+            bool shift_reduce( const T& c ) {
+                // delete count if too narrow width
+                while ( stack_.top().distance() < width_ ) {
+                    stack_.pop();
+                    if ( stack_.empty() ) {
+                        stack_.push( c );
+                        return false;
+                    }
+                }
+
+                // replace
+                if ( stack_.top().type() == c.type() )  { // marge
+                    stack_.top() += c;  // marge
+                    //stack_.pop();
+                    //stack_.push( c );  // replace
+                }
+
+                // if (Up - Down)|(Down - Up), should push counter and wait for next state
+                if ( stack_.top().type() != c.type() )
+                    stack_.push( c );
+
+                return stack_.size() >= 3;
+            };
+
+            bool process_slope( const T& t ) {
+                if ( stack_.empty() )
+                    stack_.push( t );
+                else if ( stack_.top().type() == t.type() )
+                    stack_.top()++;
+                else
+                    return shift_reduce( t );
+                return false;
+            }
+        };
+
+    }
 }
 
 size_t
@@ -302,7 +305,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
     double slope = double( noise ) / double( w );
     adportable::differential<double> diff( N, 1 );
 
-    peakfind::slope_state state;
+    peakfind::slope_state<peakfind::counter> state;
     state.width_ = w / 8;
     if ( state.width_ < 3 )
         state.width_ = 3;

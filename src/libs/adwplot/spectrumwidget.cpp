@@ -264,7 +264,7 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
         BOOST_FOREACH( const map_type::value_type& pair, data_ ) {
             curves_.push_back( PlotCurve( plot ) );
             PlotCurve& curve = curves_.back();
-            if ( pair.first != 0 && pair.first < sizeof( color_table ) / sizeof( color_table[0] ) )
+            if ( pair.first != 0 && unsigned( pair.first ) < sizeof( color_table ) / sizeof( color_table[0] ) )
                 curve.p()->setPen( QPen( color_table[ pair.first ] ) );
             curve.p()->setData( new SeriesData( pair.second, rect ) );
             curve.p()->setStyle( QwtPlotCurve::Sticks );
@@ -299,6 +299,27 @@ TraceData::y_range( double left, double right ) const
     return std::make_pair<>(bottom, top);
 }
 
+namespace adwplot {
+    namespace spectrumwidget {
+
+        struct compare_priority {
+            const unsigned char * colors_;
+            const double * intensities_;
+            compare_priority( const double * intensities, const unsigned char * colors)
+                : colors_( colors )
+                , intensities_( intensities ) {
+            }
+            bool operator()( size_t idx0, size_t idx1 ) const {
+                if ( colors_ && colors_[ idx0 ] != colors_[ idx1 ] )
+                    return colors_[ idx0 ] > colors_[ idx1 ];
+                return intensities_[ idx0 ] > intensities_[ idx1 ];
+            }
+        };
+
+    }
+}
+
+
 void
 SpectrumWidgetImpl::update_annotations( Dataplot& plot
                                        , const std::pair<double, double>& range )
@@ -314,20 +335,6 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
     std::vector< size_t > indecies;
     for ( size_t idx = beg; idx <= end; ++idx )
         indecies.push_back( idx );
-
-    struct compare_priority {
-        const unsigned char * colors_;
-        const double * intensities_;
-        compare_priority( const double * intensities, const unsigned char * colors)
-            : intensities_( intensities )
-            , colors_( colors ) {
-        }
-        bool operator()( size_t idx0, size_t idx1 ) {
-            if ( colors_ && colors_[ idx0 ] != colors_[ idx1 ] )
-                return colors_[ idx0 ] > colors_[ idx1 ];
-            return intensities_[ idx0 ] > intensities_[ idx1 ];
-        }
-    };
 
     std::sort( indecies.begin(), indecies.end(), compare_priority( ms.getIntensityArray(), ms.getColorArray() ) );
 

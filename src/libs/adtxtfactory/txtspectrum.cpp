@@ -111,13 +111,13 @@ TXTSpectrum::load( const std::wstring& name )
         for ( std::vector<double>::const_iterator it = timeArray.begin() + 1; it != timeArray.end(); ++it ) {
             ++nCount;
             double x = it[ 0 ] - it[ -1 ];
-            unsigned long interval = unsigned long( x * 1e12 + 0.5 ); // s --> ps
+            unsigned long interval = static_cast<unsigned long>( x * 1e12 + 0.5 ); // s --> ps
             if ( interval > sampInterval ) {
                 segments.push_back( MSProperty::SamplingInfo(sampInterval, nDelay, nCount, 1 ) );
                 if ( it + 1 != timeArray.end() ) {
-                    sampInterval = unsigned long ( ( it[ 1 ] - it[ 0 ] ) * 1e12 + 0.5 );
+                    sampInterval = static_cast<unsigned long>( ( it[ 1 ] - it[ 0 ] ) * 1e12 + 0.5 );
                     nCount = 0;
-                    nDelay = unsigned long( ( it[ 0 ] * 1e12 ) / sampInterval + 0.5 );
+                    nDelay = static_cast<unsigned long>( ( it[ 0 ] * 1e12 ) / sampInterval + 0.5 );
                 }
             }
         }
@@ -144,7 +144,7 @@ TXTSpectrum::load( const std::wstring& name )
         if ( t1 != t2 )
             adportable::debug() << "text file loader: library calculation error at " << int(i) << " time: " << timeArray[i] << "(s) expected: " << t1 * 1e-12;
         long error = long( timeArray[i] * 1e12 + 0.5 ) - t1;
-        if ( std::abs( error ) >= tolerance ) 
+        if ( unsigned( std::abs( error ) ) >= tolerance ) 
             adportable::debug() << "text file loader: time distance error at " << int(i) << " time: " << timeArray[i] * 1e6<< "(us) error: " << error << "ps";
     }
 

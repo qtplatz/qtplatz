@@ -32,11 +32,11 @@ Node::Node() : impl_(0)
 {
 }
 
-Node::Node( const pugi::xml_node& e, PortfolioImpl* impl ) : impl_(impl), node_(e)
+Node::Node( const pugi::xml_node& e, PortfolioImpl* impl ) : node_(e), impl_(impl)
 {
 }
 
-Node::Node( const Node& t ) : impl_(t.impl_), node_( t.node_ )
+Node::Node( const Node& t ) : node_( t.node_ ), impl_(t.impl_)
 {
 }
 

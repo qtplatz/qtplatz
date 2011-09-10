@@ -102,6 +102,13 @@ debug::operator << ( const char * text )
 }
 
 debug&
+debug::operator << ( const unsigned char * text )
+{
+    o_ << text;
+    return *this;
+}
+
+debug&
 debug::operator << ( const std::string& text )
 {
     o_ << text;
@@ -116,9 +123,44 @@ debug::operator << ( const std::wstring& text )
 }
 
 debug&
+debug::operator << ( bool b )
+{
+    o_ << b;
+    return *this;
+}
+
+debug&
+debug::operator << ( char c )
+{
+    o_ << c;
+    return *this;
+}
+
+debug&
+debug::operator << ( unsigned char c )
+{
+    o_ << c;
+    return *this;
+}
+
+debug&
 debug::operator << ( int n )
 {
     o_ << n;
+    return *this;
+}
+
+debug&
+debug::operator << ( unsigned int n )
+{
+    o_ << n;
+    return *this;
+}
+
+debug&
+debug::operator << ( long x )
+{
+    o_ << x;
     return *this;
 }
 
@@ -136,9 +178,3 @@ debug::operator << ( double d )
     return *this;
 }
 
-debug&
-debug::operator << ( bool b )
-{
-    o_ << b;
-    return *this;
-}

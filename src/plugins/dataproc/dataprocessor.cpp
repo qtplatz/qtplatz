@@ -354,7 +354,7 @@ internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcon
 {
     using namespace portfolio;
 
-    adcontrols::MassSpectrumPtr& pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
+    adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
 
     Folium::vector_type atts = folium.attachments();
     Folium::vector_type::iterator it = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );

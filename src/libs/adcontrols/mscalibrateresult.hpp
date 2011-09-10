@@ -75,13 +75,11 @@ namespace adcontrols {
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
             using namespace boost::serialization;
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP(tolerance_);
-                ar & BOOST_SERIALIZATION_NVP(threshold_);
-                ar & BOOST_SERIALIZATION_NVP(references_);
-                ar & BOOST_SERIALIZATION_NVP(calibration_);
-                ar & BOOST_SERIALIZATION_NVP(assignedMasses_);
-            }
+            ar & BOOST_SERIALIZATION_NVP(tolerance_);
+            ar & BOOST_SERIALIZATION_NVP(threshold_);
+            ar & BOOST_SERIALIZATION_NVP(references_);
+            ar & BOOST_SERIALIZATION_NVP(calibration_);
+            ar & BOOST_SERIALIZATION_NVP(assignedMasses_);
         }
     public:
         static bool archive( std::ostream&, const MSCalibrateResult& );
