@@ -62,14 +62,19 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
     TXTSpectrum txt;
 
-#if defined DEBUG
-    adportable::debug(__FILE__, __LINE__) << L" datafile::open(" << filename << L")";
-#endif
-
     if ( txt.load( filename ) ) {
         adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum( txt.ms_ ) );
         data_ = pMS;     
+    } else {
+        adportable::debug(__FILE__, __LINE__) 
+            << "datafile '" << filename << "' open failed -- check file access permission";
+        return false;
     }
+
+#if defined DEBUG
+    adportable::debug(__FILE__, __LINE__) << L"datafile::open(" << filename << L") type is: " << data_.type().name(); 
+#endif
+
 
     portfolio::Portfolio portfolio;
 

@@ -247,8 +247,6 @@ NavigationWidget::handle_activated( const QModelIndex& index )
 
             portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
 
-            qDebug() << qtwrapper::qstring::copy(folium.name());
-
             Dataprocessor * processor = 0;
             QModelIndex parent = index.parent();
             while ( parent.isValid() && ! qVariantCanConvert< Dataprocessor * >( parent.data( Qt::UserRole + 1 ) ) )
@@ -258,7 +256,8 @@ NavigationWidget::handle_activated( const QModelIndex& index )
                 if ( ( processor = qVariantValue< Dataprocessor * >( parent.data( Qt::UserRole + 1 ) ) ) ) {
                     std::string tname = static_cast<boost::any&>( folium ).type().name();
                     adportable::debug(__FILE__, __LINE__)
-                        << "filename: " << processor->file().filename()
+                        << "folium name: '" << folium.name()
+                        << "'\tfilename: " << processor->file().filename()
                         << "\tfolium(type=" << tname << ", id=" << folium.id() << ")";
                     processor->setCurrentSelection( folium );
                 }

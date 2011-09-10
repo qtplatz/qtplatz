@@ -63,6 +63,8 @@ SessionManager::addDataprocessor( boost::shared_ptr<Dataprocessor>& proc )
 void
 SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
+    std::cout << "$$$$$$$$$ updateDataprocessor $$$$$$$$$$$" << std::endl;
+
     activeDataprocessor_ = dataprocessor;
     emit signalSessionUpdated( dataprocessor );
     emit signalSelectionChanged( dataprocessor, folium );

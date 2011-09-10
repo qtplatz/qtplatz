@@ -98,34 +98,6 @@ ObjectDiscovery::~ObjectDiscovery()
     // delete mcast_;
 }
 
-/*
-void *
-ObjectDiscovery::thread_entry( void * me )
-{
-    reinterpret_cast< ObjectDiscovery *>(me)->event_loop();
-    return 0;
-}
-
-void
-ObjectDiscovery::event_loop()
-{
-    t_handle_ = ACE_Thread::self();
-    reactor_->owner( t_handle_ );
-
-    // reactor_->register_handler( mcast_, ACE_Event_Handler::READ_MASK );
-    reactor_->register_handler( bcast_, ACE_Event_Handler::READ_MASK );
-    reactor_->schedule_timer( bcast_, 0, ACE_Time_Value(1), ACE_Time_Value(3) );
-
-    while ( reactor_->handle_events() >= 0 ) 
-        ;
-
-    reactor_->cancel_timer( bcast_ );
-    reactor_->close();
-
-    adportable::debug(__FILE__, __LINE__) << "===== ObjectDiscovery::event_loop done =====";
-}
-*/
-
 void
 ObjectDiscovery::close()
 {
@@ -377,8 +349,8 @@ BcastHandler::send( const char * pbuf, ssize_t size, const ACE_INET_Addr& to )
 {
     ssize_t ret = sock_bcast_.send( pbuf, size , const_cast<ACE_INET_Addr&>(to) );
 
+#if defined DEBUG && 0
     static int count;
-#if defined DEBUG
     adportable::debug() << "[" << count++ << "]BcastHandler::send(" << pbuf << ", " << to.get_host_addr() << ":" 
                         << int(to.get_port_number()) << ") ret=" << int(ret);
 #endif

@@ -28,6 +28,10 @@
 #include <boost/variant.hpp>
 #include <adutils/processeddata.hpp>
 
+#ifdef DEBUG
+# include <adportable/debug.hpp>
+#endif
+
 namespace dataproc {
     namespace internal {
 
@@ -37,8 +41,11 @@ namespace dataproc {
             selChanged( Wnd& wnd ) : wnd_(wnd) { }
 
             template<typename T> bool operator ()( T& ) const { 
-		return false;
-	    }
+#ifdef DEBUG
+                adportable::debug(__FILE__, __LINE__) << "selChanged(" << typeid(T).name() << ") will do nothing.";
+#endif
+                return false;
+            }
 
             bool operator () ( adutils::MassSpectrumPtr& ptr ) const {   
                 wnd_.draw1( ptr );

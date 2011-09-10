@@ -38,10 +38,10 @@
 using namespace dataproc;
 
 DataprocEditor::DataprocEditor( QWidget * widget
-                               , Core::IEditorFactory * factory ) : Core::IEditor( widget )
-                                                                  , factory_(factory)
-                                                                  , file_(0)
-                                                                  , editorWidget_( widget )
+                                , Core::IEditorFactory * factory ) : Core::IEditor( widget )
+                                                                   , editorWidget_( widget )
+                                                                   , factory_(factory)
+                                                                   , file_(0)
 {
     Core::UniqueIDManager * uidm = Core::UniqueIDManager::instance();
     context_ << uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR );
@@ -104,7 +104,7 @@ DataprocEditor::displayName() const
 }
 
 void
-DataprocEditor::setDisplayName(const QString &title)
+DataprocEditor::setDisplayName(const QString & /* title */)
 {
 }
 
@@ -115,7 +115,7 @@ DataprocEditor::duplicateSupported() const
 }
 
 Core::IEditor *
-DataprocEditor::duplicate(QWidget *parent)
+DataprocEditor::duplicate(QWidget * /* parent */)
 {
     return 0;
 }
@@ -127,7 +127,7 @@ DataprocEditor::saveState() const
 }
 
 bool
-DataprocEditor::restoreState(const QByteArray &state)
+DataprocEditor::restoreState(const QByteArray & /* state */ )
 {
     return true;
 }

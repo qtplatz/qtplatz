@@ -170,9 +170,13 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
     portfolio::Folder folder = folium.getParentFolder();
     if ( folder && ( folder.name() == L"Spectra" || folder.name() == L"Chromatograms" ) ) {
 
-        adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+#ifdef DEBUG
+        boost::any& any = static_cast<boost::any&>( folium );
+        std::string type = any.type().name();
+        adportable::debug(__FILE__, __LINE__) << "handleSelectionChanged got data type: " << type;
+#endif
 
-        int which = data.which();
+        adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
 
         if ( boost::apply_visitor( selChanged<MSProcessingWnd>(*this), data ) ) {
             idActiveFolium_ = folium.id();

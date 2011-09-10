@@ -51,7 +51,7 @@ TXTSpectrum::load( const std::wstring& name )
     std::string filename = adportable::string::convert( name );
 
     std::ifstream in( filename.c_str() );
-    if ( in.fail() )
+    if ( in.fail() ) 
         return false;
 
     typedef boost::char_separator<char> separator;
@@ -67,10 +67,15 @@ TXTSpectrum::load( const std::wstring& name )
         if ( getline( in, line ) ) {
 
             tokenizer tokens( line, sep );
+#if defined DEBUG && 0
+            int k = 0;
+            for ( tokenizer::iterator it = tokens.begin(); it != tokens.end(); ++it, ++k )
+                std::cout << "token[" << k << "]=" << *it << std::endl;
+#endif
             int i = 0;
             for ( tokenizer::iterator it = tokens.begin(); it != tokens.end() && i < 3; ++it, ++i ) {
-                std::string s = *it;
-                values[i] = boost::lexical_cast< double >( s );
+                const std::string& s = *it;
+                values[i] = atof( s.c_str() ); // boost::lexical_cast<double> in gcc throw bad_cast for "9999" format.
             }
             if ( i == 3 ) {
                 timeArray.push_back( values[ 0 ] );
