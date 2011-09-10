@@ -138,7 +138,7 @@ ObjectDiscovery::open()
 }
 
 void
-ObjectDiscovery::operator()( const char * pbuf, ssize_t, const ACE_INET_Addr& from )
+ObjectDiscovery::operator()( const char * pbuf, int, const ACE_INET_Addr& from )
 {
 #if defined DEBUG && 0
     std::cout << "***** ObjectDiscovery:  from " << from.get_host_addr() << ":" << from.get_port_number() << std::endl;
