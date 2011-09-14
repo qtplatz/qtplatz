@@ -1,4 +1,3 @@
-// -*- C++ -*- 
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
@@ -23,12 +22,10 @@
 **
 **************************************************************************/
 
+#include "controlmethod.idl"
+
 module SignalObserver {
     interface Observer;
-};
-
-module ControlMethod {
-    interface Method;
 };
 
 module SampleBroker {
@@ -80,9 +77,9 @@ module Instrument {
        boolean shutdown();  // shutdown server
        boolean echo(in string msg);
        boolean shell(in string cmdline);
-    
-       boolean prepare_for_run(in ControlMethod::Method m);
-       boolean push_back( in SampleBroker::SampleSequence s);
+       ControlMethod::Method get_current_method();
+       boolean prepare_for_run( in ControlMethod::Method m );
+       boolean push_back( in SampleBroker::SampleSequence s );
     
        boolean event_out(in unsigned long event);
        boolean start_run();

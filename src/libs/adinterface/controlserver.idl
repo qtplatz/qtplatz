@@ -1,21 +1,36 @@
 // This is a -*- C++ -*- header.
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//
-// build setup
-// $(ACE_ROOT)\bin\tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputPath)
-//////////////////////////////////////////
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the ScienceLiaison Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 // #include "receiver.idl"
 // #include "signalobserver.idl"
-module SignalObserver {
-   interface Observer;
-   // typedef sequence<Observer> ObserverVec;
-};
 
-module ControlMethod {
-    interface Method;
+#include "controlmethod.idl"
+
+module SignalObserver {
+    interface Observer;
+    // typedef sequence<Observer> ObserverVec;
 };
 
 module SampleBroker {
