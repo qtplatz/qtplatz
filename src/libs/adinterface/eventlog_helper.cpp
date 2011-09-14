@@ -48,17 +48,23 @@ adinterface::EventLog::LogMessageHelper::toString( const ::EventLog::LogMessage&
     return o.str();
 }
 
-LogMessageHelper::LogMessageHelper( const std::wstring& format )
+LogMessageHelper::LogMessageHelper( const std::wstring& format, 
+                                    ::EventLog::eMSGPRIORITY pri
+                                    , const std::wstring& srcId
+                                    , const std::wstring& msgId )
 {
-	msg_.tv.sec = time(0);
-    msg_.tv.usec = 0;
-    msg_.format = format.c_str();
-}
-
-LogMessageHelper::LogMessageHelper( const ACE_Time_Value& tv )
-{
+    ACE_Time_Value tv( ACE_OS::gettimeofday() );
     msg_.tv.sec = tv.sec();
     msg_.tv.usec = tv.usec();
+
+    msg_.priority = pri;
+
+    if ( ! msgId.empty() )
+        msg_.msgId = CORBA::wstring_dup( msgId.c_str() );
+    if ( ! srcId.empty() )
+        msg_.srcId = CORBA::wstring_dup( srcId.c_str() );
+    if ( ! format.empty() )
+        msg_.format = CORBA::wstring_dup( format.c_str() );
 }
 
 LogMessageHelper::LogMessageHelper( const LogMessageHelper& t ) : msg_( t.msg_ )
@@ -68,7 +74,6 @@ LogMessageHelper::LogMessageHelper( const LogMessageHelper& t ) : msg_( t.msg_ )
 LogMessageHelper&
 LogMessageHelper::format( const std::wstring& fmt )
 {
-    msg_.format = fmt.c_str();
+    msg_.format = CORBA::wstring_dup( fmt.c_str() );
     return *this;
 }
-

@@ -21,13 +21,16 @@ namespace adinterface {
         public:
             static std::wstring toString( const ::EventLog::LogMessage& );
             
-            LogMessageHelper( const std::wstring& format = L"" );
-            LogMessageHelper( const ACE_Time_Value& );
+            LogMessageHelper( const std::wstring& format = L""
+                              , ::EventLog::eMSGPRIORITY pri = ::EventLog::pri_DEBUG
+                              , const std::wstring& srcId = L""
+                              , const std::wstring& msgId = L"");
+            // LogMessageHelper( const ACE_Time_Value& );
             LogMessageHelper( const LogMessageHelper& );
             LogMessageHelper& format( const std::wstring& );
             template<class T> LogMessageHelper& operator % (const T& t) {
                 msg_.args.length( msg_.args.length() + 1 );
-                msg_.args[ msg_.args.length() - 1 ] = boost::lexical_cast< std::wstring >( t ).c_str();
+                msg_.args[ msg_.args.length() - 1 ] = CORBA::wstring_dup( boost::lexical_cast< std::wstring >( t ).c_str() );
                 return *this;
             }
 
