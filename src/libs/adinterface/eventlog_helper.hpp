@@ -25,7 +25,6 @@ namespace adinterface {
                               , ::EventLog::eMSGPRIORITY pri = ::EventLog::pri_DEBUG
                               , const std::wstring& srcId = L""
                               , const std::wstring& msgId = L"");
-            // LogMessageHelper( const ACE_Time_Value& );
             LogMessageHelper( const LogMessageHelper& );
             LogMessageHelper& format( const std::wstring& );
             template<class T> LogMessageHelper& operator % (const T& t) {
