@@ -50,8 +50,8 @@ adinterface::EventLog::LogMessageHelper::toString( const ::EventLog::LogMessage&
 
 LogMessageHelper::LogMessageHelper( const std::wstring& format, 
                                     ::EventLog::eMSGPRIORITY pri
-                                    , const std::wstring& srcId
-                                    , const std::wstring& msgId )
+                                    , const std::wstring& msgId
+                                    , const std::wstring& srcId )
 {
     ACE_Time_Value tv( ACE_OS::gettimeofday() );
     msg_.tv.sec = tv.sec();

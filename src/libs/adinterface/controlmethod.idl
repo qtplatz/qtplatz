@@ -1,11 +1,26 @@
-// This is a -*- C++ -*- header.
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//
-// build setup
-// $(ACE_ROOT)\bin\tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$(TAO_ROOT) $(InputPath)
-//////////////////////////////////////////
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this
+** file in accordance with the ScienceLiaison Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 module ControlMethod {
 
@@ -18,50 +33,45 @@ module ControlMethod {
     };
     
     struct InstInfo {
-        unsigned long type_id_;
-        unsigned long unit_id_;
-        eDeviceCategory category_;
-        wstring modelname_;
-        wstring serial_number_;
-        wstring description_;
+        unsigned long type_id;
+        unsigned long unit_id;
+        eDeviceCategory category;
+        wstring modelname;
+        wstring serial_number;
+        wstring description;
     };
     
     struct TimeValue {
         unsigned long sec_;
         unsigned long usec_;
     };
-    
-    enum eValueType {
-        eBoolean
-        , eInt32
-        , eInt64
-        , eCard32
-        , eCard64
-        , eDouble
-        , eWString
-    };
-    
-    union argument switch( eValueType ) {
-    case eBoolean:  boolean boolean_value_;
-    case eInt32:    long int32_value_;
-    case eCard32:   unsigned long card32_value_;
-    case eDouble:   double double_value_;
-    case eWString:  wstring wstring_value_;
-    };
 
-    typedef sequence< argument > argument_sequence;
+    module MethodFunc {
+        const unsigned long SampleDelay   =    1;  // autosampler sample sequence time for overwrap 
+        const unsigned long Inject        =    2;  // specify a time to inject
+        const unsigned long AcqDelay      =    3;  // acquisition delay time 
+        const unsigned long AcqStop       =    4;  // acquisition stop time
+        const unsigned long User          = 1024;  // instrument dependent method after this number
+    };
     
     struct MethodLine {
-        boolean isInitialCondition_;
-        TimeValue time_;
-        unsigned long type_id_;
-        unsigned long unit_id_;
-        argument_sequence arguments_;
+        boolean isInitialCondition;
+        TimeValue time;
+        unsigned long type_id;        // instrument model identifier
+        unsigned long unit_id;
+        unsigned long func_id;        // MethodFunc
+        any aline;
     };
-    
-    interface Method {
-        //sequence< InstInfo > iinfo_vec_;
-        //sequence< MethodLine > lines_;
+
+    typedef sequence< MethodLine > method_sequence;
+    typedef sequence< InstInfo > instinfo_sequence;
+
+    struct Method {
+        wstring subject;
+        wstring description;
+        //-----------//
+        instinfo_sequence iinfo;
+        method_sequence lines;
     };
     
 };
