@@ -1,21 +1,37 @@
 // This is a -*- C++ -*- header.
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+/**************************************************************************
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this
+** file in accordance with the ScienceLiaison Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
 
 #pragma once
 
 #include <string>
-// #include <boost/variant.hpp>
 #include <boost/lexical_cast.hpp>
 #include <adinterface/eventlogC.h>
 
 namespace adinterface {
 
     namespace EventLog {
-
-        // typedef const boost::variant< void *, unsigned long, signed long, std::wstring > var_type;
 
         class LogMessageHelper {
         public:
@@ -29,10 +45,10 @@ namespace adinterface {
             LogMessageHelper& format( const std::wstring& );
             template<class T> LogMessageHelper& operator % (const T& t) {
                 msg_.args.length( msg_.args.length() + 1 );
-                msg_.args[ msg_.args.length() - 1 ] = CORBA::wstring_dup( boost::lexical_cast< std::wstring >( t ).c_str() );
+                msg_.args[ msg_.args.length() - 1 ]
+                    = CORBA::wstring_dup( boost::lexical_cast< std::wstring >( t ).c_str() );
                 return *this;
             }
-
             inline ::EventLog::LogMessage & get() { return msg_; }
         private:
             ::EventLog::LogMessage msg_;

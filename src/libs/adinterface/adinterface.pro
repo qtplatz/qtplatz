@@ -28,10 +28,12 @@ IDLFILES += \
     broker.idl
 
 SOURCES += interface.cpp \
-        eventlog_helper.cpp
+        eventlog_helper.cpp \
+    controlmethodhelper.cpp
 
 HEADERS += interface.hpp \
-        eventlog_helper.hpp
+        eventlog_helper.hpp \
+    controlmethodhelper.hpp
 
 PRE_TARGETDEPS += eventlogC.cpp
 
@@ -92,3 +94,5 @@ OTHER_FILES += \
     samplebroker.idl \
     signalobserver.idl \
     adinterface_dependencies.pri
+
+

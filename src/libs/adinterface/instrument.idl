@@ -77,7 +77,7 @@ module Instrument {
        boolean shutdown();  // shutdown server
        boolean echo(in string msg);
        boolean shell(in string cmdline);
-       ControlMethod::Method get_current_method();
+       ControlMethod::Method getControlMethod();
        boolean prepare_for_run( in ControlMethod::Method m );
        boolean push_back( in SampleBroker::SampleSequence s );
     
