@@ -30,19 +30,34 @@
 namespace adinterface {
 
     class ControlMethodInstInfo {
-        ControlMethod::InstInfo info_;
+        ControlMethod::InstInfo& info_;
     public:
-        ControlMethodInstInfo();
-        ControlMethodInstInfo( const ControlMethodInstInfo& );
-        ControlMethodInstInfo( const ControlMethod::InstInfo& );
+        ControlMethodInstInfo( ControlMethod::InstInfo& );
+        unsigned long index() const;
+        unsigned long unit_number() const; // 0..n
+        ControlMethod::eDeviceCategory category() const;
+        const wchar_t * modelname() const;
+        const wchar_t * serial_number() const;
+        const wchar_t * description() const;
+
+        void unit_number( unsigned long );
+        void category( ControlMethod::eDeviceCategory );
+        void modelname( const std::wstring& );
+        void serial_number( const std::wstring& );
+        void description( const std::wstring& );
     };
 
     class ControlMethodLine {
-        ControlMethod::MethodLine line_;
+        ControlMethod::MethodLine& line_;
     public:
-        ControlMethodLine();
-        ControlMethodLine( const ControlMethodLine& );
-        ControlMethodLine( const ControlMethod::MethodLine& );
+        ControlMethodLine( ControlMethod::MethodLine& );
+        unsigned long index() const;
+        const wchar_t * modelname() const;
+        void modelname( const std::wstring& modelname );
+        unsigned long unitnumber() const;
+        void unitnumber( unsigned long );
+        bool isInitialCondition() const;
+        void isInitialCondition( bool );
     };
 
     class ControlMethodHelper {
@@ -59,8 +74,9 @@ namespace adinterface {
         void description( const std::wstring& );
 
         inline operator const ControlMethod::Method& () const { return method_; }
-        bool add( const ControlMethodInstInfo& );
-        bool add( const ControlMethodLine& );
+        unsigned int findInstrument( const std::wstring& modelname, unsigned long unitnumber = 0 );
+        ::ControlMethod::InstInfo& addInstrument( const std::wstring& modelname, unsigned long unitnumber = 0 );
+        ::ControlMethod::MethodLine& add( const std::wstring& modelname, unsigned long unitnumber = 0 );
     };
 }
 

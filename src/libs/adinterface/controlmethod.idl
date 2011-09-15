@@ -33,8 +33,8 @@ module ControlMethod {
     };
     
     struct InstInfo {
-        unsigned long type_id;
-        unsigned long unit_id;
+        unsigned long index;
+        unsigned long unit_number;
         eDeviceCategory category;
         wstring modelname;
         wstring serial_number;
@@ -55,12 +55,13 @@ module ControlMethod {
     };
     
     struct MethodLine {
+        wstring modelname;
+        unsigned long index;         // index to instinfo
+        unsigned long unitnumber;
         boolean isInitialCondition;
         TimeValue time;
-        unsigned long type_id;        // instrument model identifier
-        unsigned long unit_id;
-        unsigned long func_id;        // MethodFunc
-        any aline;
+        unsigned long funcid;        // MethodFunc
+        any data;
     };
 
     typedef sequence< MethodLine > method_sequence;
