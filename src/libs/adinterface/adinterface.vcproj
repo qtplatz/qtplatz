@@ -200,6 +200,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\controlmethodhelper.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\controlmethodS.cpp"
 				>
 			</File>
@@ -291,6 +295,10 @@
 			</File>
 			<File
 				RelativePath=".\brokerS.h"
+				>
+			</File>
+			<File
+				RelativePath=".\controlmethodhelper.hpp"
 				>
 			</File>
 			<File
