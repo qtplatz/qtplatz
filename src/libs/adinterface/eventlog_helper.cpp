@@ -25,6 +25,7 @@
 
 #include "eventlog_helper.hpp"
 #include <ace/Time_Value.h>
+#include <ace/OS_NS_sys_time.h>
 #include "eventlogC.h"
 #include <boost/format.hpp>
 #include <sstream>
@@ -48,8 +49,8 @@ adinterface::EventLog::LogMessageHelper::toString( const ::EventLog::LogMessage&
     return o.str();
 }
 
-LogMessageHelper::LogMessageHelper( const std::wstring& format, 
-                                    ::EventLog::eMSGPRIORITY pri
+LogMessageHelper::LogMessageHelper( const std::wstring& format
+                                   , unsigned long pri
                                     , const std::wstring& msgId
                                     , const std::wstring& srcId )
 {

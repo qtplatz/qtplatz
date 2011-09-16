@@ -38,7 +38,7 @@ namespace adinterface {
             static std::wstring toString( const ::EventLog::LogMessage& );
             
             LogMessageHelper( const std::wstring& format = L""
-                              , ::EventLog::eMSGPRIORITY pri = ::EventLog::pri_DEBUG
+                              , unsigned long pri = 0
                               , const std::wstring& msgId = L""
                               , const std::wstring& srcId = L"");
             LogMessageHelper( const LogMessageHelper& );
