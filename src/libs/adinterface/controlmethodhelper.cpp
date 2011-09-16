@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "controlmethodhelper.hpp"
+#include <adportable/debug.hpp>
 
 using namespace adinterface;
 
@@ -75,8 +76,9 @@ ControlMethodHelper::findInstrument( const std::wstring& modelname, unsigned lon
 ::ControlMethod::InstInfo&
 ControlMethodHelper::addInstrument( const std::wstring& modelname, unsigned long unitnumber )
 {
+    // adportable::debug() << "ControlMethodHelper::addInstrument(" << modelname << ", " << unitnumber << ")";
     unsigned int index;
-    if ( ( index = findInstrument( modelname, unitnumber ) ) != unsigned(-1) ) {
+    if ( ( index = findInstrument( modelname, unitnumber ) ) == unsigned(-1) ) {
         method_.iinfo.length( method_.iinfo.length() + 1 );
         ControlMethod::InstInfo& info = method_.iinfo[ method_.iinfo.length() - 1 ];
         info.index = method_.iinfo.length() - 1;
@@ -88,6 +90,8 @@ ControlMethodHelper::addInstrument( const std::wstring& modelname, unsigned long
 ::ControlMethod::MethodLine&
 ControlMethodHelper::add( const std::wstring& modelname, unsigned long unitnumber )
 {
+    // adportable::debug() << "ControlMethodHelper::add(" << modelname << ", " << unitnumber << ")";
+
     method_.lines.length( method_.lines.length() + 1 );
     ::ControlMethod::MethodLine&  line = method_.lines[ method_.lines.length() - 1 ];
 
