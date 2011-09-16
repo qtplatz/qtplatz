@@ -69,7 +69,7 @@ namespace adcontroller {
         void reset_clock();
         bool connect( const std::wstring& token );
         bool initialize();
-		bool request_shutdown();
+        bool request_shutdown();
         bool eventOut( unsigned long event );
 
         bool prepare_for_run( const SampleBroker::SampleSequenceLine&
@@ -80,9 +80,9 @@ namespace adcontroller {
         bool stopRun();    // method(sequence) stop
        
         unsigned long getStatus();
-		Instrument::Session_ptr getSession();
+        Instrument::Session_ptr getSession();
         void objId( unsigned long );
-		unsigned long objId() const;
+        unsigned long objId() const;
 
     private:
         bool objref_;

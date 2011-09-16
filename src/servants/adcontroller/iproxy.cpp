@@ -161,7 +161,7 @@ iProxy::eventOut( unsigned long event )
 bool
 iProxy::prepare_for_run( const SampleBroker::SampleSequenceLine&, const ControlMethod::Method& m )
 {
-    return impl_->prepare_for_run( const_cast<ControlMethod::Method *>(&m) );
+    return impl_->prepare_for_run( m ); //const_cast<ControlMethod::Method *>(&m) );
 }
 
 bool

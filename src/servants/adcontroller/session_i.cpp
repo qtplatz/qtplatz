@@ -174,7 +174,7 @@ session_i::shell( const char * cmdline )
 
 //---------
 CORBA::Boolean
-session_i::prepare_for_run( const ControlMethod::Method_ptr )
+session_i::prepare_for_run( const ControlMethod::Method& )
 {
     return true;
 }
