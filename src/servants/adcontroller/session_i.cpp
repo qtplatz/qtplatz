@@ -117,15 +117,16 @@ CORBA::Boolean
 session_i::configComplete()
 {
     using namespace adcontroller::singleton;
-    return iBrokerManager::instance()->get<iBroker>()->configComplete();
+    return true;  // do nothing
+    // return iBrokerManager::instance()->get<iBroker>()->configComplete();
 }
 
 CORBA::Boolean
 session_i::initialize()
 {
     using namespace adcontroller::singleton;
-    //iBrokerManager::instance()->initialize();
-    //return iBrokerManager::instance()->get<iBroker>()->open();
+
+    iBrokerManager::instance()->get<iBroker>()->configComplete();
     return iBrokerManager::instance()->get<iBroker>()->initialize();
 }
 

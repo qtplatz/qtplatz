@@ -161,7 +161,7 @@ AcquireUIManager::OnInitialUpdate()
                 try {
                     pLifeCycle->OnInitialUpdate();
                 } catch ( CORBA::Exception& ex ) {
-                    QMessageBox::critical( 0, QLatin1String("AcquireUIManager::OnInitialUpdate"), ex._info().c_str() );
+                    // QMessageBox::critical( 0, QLatin1String("AcquireUIManager::OnInitialUpdate"), ex._info().c_str() );
                 }
             }
         }

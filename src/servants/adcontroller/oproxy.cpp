@@ -60,8 +60,7 @@ bool
 oProxy::connect( const std::wstring& token )
 {
     if ( objref_ )
-	return impl_->connect( _this(), SignalObserver::Realtime, token.c_str() );
-    return false;
+        return impl_->connect( _this(), SignalObserver::Realtime, token.c_str() );
 }
 
 bool

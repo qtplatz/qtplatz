@@ -165,6 +165,9 @@ iBroker::configComplete()
 {
     using namespace adportable;
 
+    if ( status_current_ >= ControlServer::eConfigured )
+        return true;
+
     SignalObserver::Observer_var masterObserver = getObserver();
     if ( CORBA::is_nil( masterObserver.in() ) ) {
         assert(0);
@@ -181,7 +184,8 @@ iBroker::configComplete()
         boost::shared_ptr<iProxy> pProxy( new iProxy( *this ) );
         if ( pProxy ) {
             pProxy->objId( objid );
-            pProxy->setConfiguration( item );
+            if ( ! pProxy->initialConfiguration( item ) )
+                return false;
             acewrapper::scoped_mutex_t<> lock( mutex_ );
             iproxies_.push_back( pProxy );
         }

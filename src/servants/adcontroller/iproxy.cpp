@@ -36,15 +36,15 @@
 using namespace adcontroller;
 
 iProxy::iProxy( iBroker& t ) : objref_( false )
-			     , objId_(0) 
+                             , objId_(0) 
                              , broker_( t )
 {
 }
 
 // setConfiguration call from iBroker when configComplete is called.
 // which is called when qtplatz fire 'extentionInstalled()'
-void
-iProxy::setConfiguration( const adportable::Configuration& c )
+bool
+iProxy::initialConfiguration( const adportable::Configuration& c )
 {
     config_ = c;
     if ( config_.attribute( L"type" ) == L"object_ref" ) { // CORBA Object
@@ -57,7 +57,7 @@ iProxy::setConfiguration( const adportable::Configuration& c )
         if ( ! nsname.empty() ) {
             Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, iorBroker );
             if ( CORBA::is_nil( mgr ) )
-                throw std::runtime_error( "iProxy::setConfiguration -- can't get Broker::Manager reference" );
+                throw std::runtime_error( "iProxy::init_object_ref -- can't get Broker::Manager reference" );
 
             std::string ior = mgr->ior( nsname.c_str() );
             if ( ! ior.empty() ) {
@@ -66,8 +66,10 @@ iProxy::setConfiguration( const adportable::Configuration& c )
                     CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
                     if ( ! CORBA::is_nil( obj.in() ) ) {
                         impl_ = Instrument::Session::_narrow( obj );
-                        if ( ! CORBA::is_nil( impl_ ) ) 
-                            objref_ = true;
+                        if ( ! CORBA::is_nil( impl_ ) ) {
+                            if ( impl_->echo( "hello" ) )
+                                objref_ = true;
+                        }
                     } 
                 } catch ( CORBA::Exception& ex ) {
                     adportable::debug() << "adcontroller::iproxy::setConfiguration '" << nsname << "' " << ex._info().c_str();
@@ -77,6 +79,7 @@ iProxy::setConfiguration( const adportable::Configuration& c )
             }
         }
     }
+    return objref_;
 }
 
 // POA_Receiver

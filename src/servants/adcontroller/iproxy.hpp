@@ -57,7 +57,7 @@ namespace adcontroller {
     public:
         iProxy( iBroker& );
 
-        void setConfiguration( const adportable::Configuration& );
+        bool initialConfiguration( const adportable::Configuration& );
 
         // POA_Receiver
 		void message( ::Receiver::eINSTEVENT msg, CORBA::ULong value );
@@ -83,6 +83,7 @@ namespace adcontroller {
         Instrument::Session_ptr getSession();
         void objId( unsigned long );
         unsigned long objId() const;
+        inline operator bool () const { return objref_; }
 
     private:
         bool objref_;

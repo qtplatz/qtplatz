@@ -316,12 +316,12 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             adcontrols::MassSpectrometerBroker::register_library( name );
         }
     }
-
     if ( ! CORBA::is_nil( session ) ) {
-        for ( std::vector< Instrument::Session_var >::iterator it = i8t_sessions.begin(); it != i8t_sessions.end(); ++it )
-            (*it)->configComplete();
+        //for ( std::vector< Instrument::Session_var >::iterator it = i8t_sessions.begin(); it != i8t_sessions.end(); ++it )
+        // (*it)->configComplete();
         session->configComplete();
     }
+
     Logger log;
     log( ( nErrors ? L"Servant iitialized with errors" : L"Servernt initialized successfully") );
     
