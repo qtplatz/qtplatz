@@ -61,7 +61,7 @@ namespace adplugin {
         virtual void debug_print(::CORBA::Long priority, ::CORBA::Long category, const char * text);
   
     signals:
-		void signal_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value );
+        void signal_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value );
         void signal_log( QByteArray );
         void signal_shutdown();
         void signal_debug_print( unsigned long priority, unsigned long category, QString text );

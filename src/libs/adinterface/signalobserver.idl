@@ -117,9 +117,9 @@ module SignalObserver {
         Description getDescription();
         boolean setDescription( in Description desc );
 
-		unsigned long objId();
-		void assign_objId( in unsigned long oid );
-		//void assign_objId( unsigned long objid );
+        unsigned long objId();
+        void assign_objId( in unsigned long oid );
+        //void assign_objId( unsigned long objid );
 
         // client can monitor real time events, it is optional
         boolean connect( in ObserverEvents cb, in eUpdateFrequency frequency, in wstring token );
@@ -128,9 +128,9 @@ module SignalObserver {
         boolean isActive();
 
         // getSblings returns Observers, which share time base and events.
-		// Top level 'Observer' object is responcible to issue events 'OnUpdateData', 'OnEvent', 
+        // Top level 'Observer' object is responcible to issue events 'OnUpdateData', 'OnEvent', 
         // so application does not need to hookup events for shiblings.
-		Observers getSiblings();
+        Observers getSiblings();
 
         // Instrument controller will add/remove sibling by changing method while running sequence
         boolean addSibling( in Observer observer );
@@ -149,7 +149,7 @@ module SignalObserver {
         // or internal C++ class name that is core software can handle
         wstring dataInterpreterClsid();
         long posFromTime( in unsigned long long usec );
-   };
+    };
     
 };
 

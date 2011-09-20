@@ -1,7 +1,7 @@
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
-*
+**
 ** Contact: toshi.hondo@scienceliaison.com
 **
 ** Commercial Usage
@@ -32,28 +32,15 @@
 # pragma warning (default: 4996)
 #endif
 
-#include <iostream>
+#include "constants.hpp"
 #include "taskmanager.hpp"
 #include "task.hpp"
 #include <acewrapper/mutex.hpp>
 #include <boost/tokenizer.hpp>
+#include <iostream>
 
 using namespace acewrapper;
 using namespace adcontroller;
-
-////////////////////////////////////////////
-
-bool
-session_i::receiver_data::operator == ( const receiver_data& t ) const
-{
-    return receiver_->_is_equivalent( t.receiver_.in() );
-}
-
-bool
-session_i::receiver_data::operator == ( const Receiver_ptr t ) const
-{
-    return receiver_->_is_equivalent( t );
-}
 
 ////////////////////////////////////////////
 
@@ -77,33 +64,17 @@ session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
 {
     ACE_UNUSED_ARG(token);
 
-    scoped_mutex_t<> lock( iTaskManager::instance()->mutex() );
-
-    // check session_i local receiver, if already exist then error
-    receiver_data data;
-    data.receiver_ = Receiver::_duplicate( receiver );
-    if ( std::find(receiver_set_.begin(), receiver_set_.end(), data) != receiver_set_.end() ) {
+    if ( ! iTaskManager::instance()->task().connect( _this(), receiver, token ) ) {
         throw ControlServer::Session::CannotAdd( L"receiver already exist" );
         return false;
     }
-
-    // try connect to server
-    iTask * pTask = iTaskManager::instance()->get<iTask>();
-    if ( ! pTask->connect( _this(), receiver, token ) ) {
-        throw ControlServer::Session::CannotAdd( L"receiver already exist" );
-        return false;
-    }
-
-    // now, it is safe to keep a copy for connection
-    receiver_set_.push_back( data );
-    
     return true;
 }
 
 CORBA::Boolean
 session_i::disconnect( Receiver_ptr receiver )
 {
-    return internal_disconnect( receiver );
+    return iTaskManager::instance()->task().disconnect( _this(), receiver );
 }
 
 CORBA::Boolean
@@ -115,15 +86,13 @@ session_i::setConfiguration( const CORBA::WChar * xml )
 CORBA::Boolean
 session_i::configComplete()
 {
-    return true;  // do nothing
-    // return iBrokerManager::instance()->get<iBroker>()->configComplete();
+    return iTask::instance()->configComplete();
 }
 
 CORBA::Boolean
 session_i::initialize()
 {
-    iTaskManager::instance()->get<iTask>()->configComplete();
-    return iTaskManager::instance()->get<iTask>()->initialize();
+    return iTask::instance()->initialize();
 }
 
 CORBA::Boolean
@@ -137,16 +106,21 @@ session_i::shutdown()
 ::ControlServer::eStatus
 session_i::status()
 {
-    return iTaskManager::instance()->get<iTask>()->getStatusCurrent();
+    return iTaskManager::instance()->task().getStatusCurrent();
 }
 
 CORBA::Boolean
 session_i::echo( const char * msg )
 {
-    // lock required
-    for ( vector_type::iterator it = begin(); it != end(); ++it ) {
-        it->receiver_->debug_print( 0, 0, msg );
-    }
+    ACE_OutputCDR cdr;
+    using namespace adcontroller::constants;
+
+    cdr << SESSION_COMMAND_ECHO;
+    cdr << msg;
+    ACE_Message_Block * mb = cdr.begin()->duplicate();
+    mb->msg_type( MB_COMMAND );
+    iTask::instance()->putq( mb );
+
     return true;
 }
 
@@ -195,39 +169,6 @@ session_i::resume_run()
 CORBA::Boolean
 session_i::stop_run()
 {
-    return false;
-}
-
-/////////////////////////////////////////////
-void
-session_i::register_failed( vector_type::iterator& it )
-{
-    receiver_failed_.push_back( *it );
-}
-
-void
-session_i::commit_failed()
-{
-    if ( ! receiver_failed_.empty() ) {
-        for ( vector_type::iterator 
-                  it = receiver_failed_.begin(); it != receiver_failed_.end(); ++it ) {
-            internal_disconnect( it->receiver_ );
-        }
-        receiver_failed_.clear();
-    }
-}
-
-bool
-session_i::internal_disconnect( Receiver_ptr receiver )
-{
-    scoped_mutex_t<> lock( iTaskManager::instance()->mutex() );
-    
-    vector_type::iterator it = std::find(receiver_set_.begin(), receiver_set_.end(), receiver);
-    
-    if ( it != receiver_set_.end() ) {
-        receiver_set_.erase( it );
-        return true;
-    }
     return false;
 }
 

@@ -64,6 +64,7 @@ namespace adcontroller {
         ACE_Reactor * reactor();
         
         template<class T> T* get();
+        inline iTask& task() { return *pTask_; }
         
     private:
         friend class ACE_Singleton<iTaskManager, ACE_Recursive_Thread_Mutex>;

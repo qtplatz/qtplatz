@@ -38,21 +38,17 @@
 
 namespace adcontroller {
 
-	class manager_i : public virtual POA_ControlServer::Manager {
-
-	public:
-		manager_i(void);
-		~manager_i(void);
-
-		void shutdown();
-		ControlServer::Session_ptr getSession( const CORBA::WChar * );
-	private:
-		typedef std::map< std::wstring, boost::shared_ptr< adcontroller::session_i > > session_map_type;
-		session_map_type session_list_;
-	};
-
-	namespace singleton {
-		typedef ACE_Singleton< acewrapper::ORBServant< ::adcontroller::manager_i >, ACE_Recursive_Thread_Mutex > manager;
-	}
+    class manager_i : public virtual POA_ControlServer::Manager {
+        manager_i(void);
+        ~manager_i(void);
+        friend class acewrapper::ORBServant< ::adcontroller::manager_i >;
+    public:
+        void shutdown();
+        ControlServer::Session_ptr getSession( const CORBA::WChar * );
+        static acewrapper::ORBServant< manager_i > * instance();
+    private:
+        typedef std::map< std::wstring, boost::shared_ptr< adcontroller::session_i > > session_map_type;
+        session_map_type session_list_;
+    };
 
 }

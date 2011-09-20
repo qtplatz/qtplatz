@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -40,12 +36,16 @@ namespace adcontroller {
             , MB_INITIALIZE
             , MB_CONNECT
             , MB_TIME_VALUE
-			, MB_MESSAGE
-			, MB_OBSERVER_UPDATE_DATA    // objid, pos
-			, MB_OBSERVER_UPDATE_METHOD  // objid, pos
-			, MB_OBSERVER_UPDATE_EVENT   // objid, pos, event 
+            , MB_MESSAGE
+            , MB_COMMAND
+            , MB_OBSERVER_UPDATE_DATA    // objid, pos
+            , MB_OBSERVER_UPDATE_METHOD  // objid, pos
+            , MB_OBSERVER_UPDATE_EVENT   // objid, pos, event 
         };
-        
+
+        enum commands {
+            SESSION_COMMAND_ECHO = 0x100
+        };
         
     }
 }

@@ -27,6 +27,7 @@
 #include "cache.hpp"
 #include <algorithm>
 #include <acewrapper/mutex.hpp>
+#include <boost/foreach.hpp>
 
 namespace adcontroller {
 
@@ -86,13 +87,13 @@ observer_i::setDescription ( const ::SignalObserver::Description & desc )
 {
     desc_ = desc;
     source_observer_->setDescription( desc );
-	return true;
+    return true;
 }
 
 CORBA::ULong
 observer_i::objId()
 {
-	return objId_;
+    return objId_;
 }
 
 void
@@ -170,7 +171,7 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 		data.pCache_i_.reset( new observer_i( data.observer_ ) );  // shadow (cache) observer
 		if ( data.pCache_i_ ) {
 			data.pCache_i_->assign_objId( data.objId_ );
-			PortableServer::POA_var poa = adcontroller::singleton::manager::instance()->poa();
+			PortableServer::POA_var poa = adcontroller::manager_i::instance()->poa();
 			CORBA::Object_ptr obj = poa->servant_to_reference( data.pCache_i_.get() );
 			data.cache_ = SignalObserver::Observer::_narrow( obj );
 		}
@@ -244,47 +245,6 @@ observer_i::posFromTime( CORBA::ULongLong usec )
     return cache_->posFromTime( usec );    
 }
 
-namespace adcontroller {
-
-	namespace internal {
-
-		struct fire_on_update_data {
-			static void fire( SignalObserver::ObserverEvents& oe, unsigned long objId, long pos ) {
-				oe.OnUpdateData( objId, pos );
-			}
-		};
-
-		struct fire_on_method_changed {
-			static void fire( SignalObserver::ObserverEvents& oe, unsigned long objId, long pos ) {
-				oe.OnMethodChanged( objId, pos );
-			}
-		};
-
-        struct fire_events {
-            unsigned long objId_;
-            long pos_;
-            unsigned long events_;
-            fire_events( unsigned long objId, long pos, unsigned long events ) : objId_(objId), pos_(pos), events_(events) {}
-            void operator()( internal::observer_events_data& d ) {
-                if ( ! CORBA::is_nil( d.events_.in() ) )
-                    d.events_->OnEvent( objId_, pos_, events_ );
-            }
-        };
-
-        template<class T> struct invoke_event_fire {
-            unsigned long objId_;
-			long pos_;
-            unsigned long event_;
-			invoke_event_fire( unsigned long objId, long pos, unsigned long e = 0 ) : objId_(objId), pos_(pos), event_(e) {}
-			void operator()( internal::observer_events_data& d ) {
-				if ( ! CORBA::is_nil( d.events_.in() ) )
-                    T::fire( *d.events_, objId_,  pos_ );
-			}
-		};
-
-	}
-}
-
 observer_i *
 observer_i::find_cache_observer( unsigned long objId )
 {
@@ -327,58 +287,65 @@ observer_i::handle_data( unsigned long /* parentId */, unsigned long objId, long
             pCache->write_cache( pos, rdbuf );
         }
     }
-	return false;
+    return false;
 }
 
 bool
-observer_i::forward_notice_update_data( unsigned long parentId, unsigned long objId, long pos )
+observer_i::forward_observer_update_data( unsigned long parentId, unsigned long objId, long pos )
 {
     // this object mast be 'master observer' instance
     assert( objId_ == 0 );
 
-    for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
-
+    // for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
+    BOOST_FOREACH( internal::sibling_data& sibling, sibling_set_ ) {
         // send notification from child to parent
-        if ( it->objId_ == parentId ) {
+        if ( sibling.objId_ == parentId ) {
+
 #if defined _DEBUG
-            assert( ( it->objId_ == objId ) || ( it->pCache_i_->isChild( objId ) ) );
+            assert( ( sibling.objId_ == objId ) || ( sibling.pCache_i_->isChild( objId ) ) );
 #endif
             using namespace adcontroller::internal;
-            std::for_each ( it->pCache_i_->events_begin(), it->pCache_i_->events_end(), invoke_event_fire<fire_on_update_data>( objId, pos ) );
+            
+            BOOST_FOREACH( observer_events_data& o, sibling.pCache_i_->observer_events_set_ ) {
+                // todo: check frequency
+                o.events_->OnUpdateData( objId, pos );
+            }
             return true;
-
         }
-
     }
-	return false;
+    return false;
 }
 
 bool
-observer_i::forward_notice_method_changed( unsigned long /* parentId */, unsigned long objid, long pos )
+observer_i::forward_observer_update_method( unsigned long /* parentId */, unsigned long objId, long pos )
 {
-    for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
-
-        if ( ( it->objId_ == objid ) || it->pCache_i_->isChild( objid ) ) {
+    BOOST_FOREACH( internal::sibling_data& sibling, sibling_set_ ) {
+        
+        if ( ( sibling.objId_ == objId ) || sibling.pCache_i_->isChild( objId ) ) {
             using namespace adcontroller::internal;
-            std::for_each ( it->pCache_i_->events_begin(), it->pCache_i_->events_end(), invoke_event_fire<fire_on_method_changed>( objid, pos ) );
+            BOOST_FOREACH( observer_events_data& o, sibling.pCache_i_->observer_events_set_ ) {
+                o.events_->OnMethodChanged( objId, pos );
+            }            
             return true;
         }
     }
-	return false;
+    return false;
 }
 
 bool
-observer_i::forward_notice_update_events( unsigned long /* parentId */, unsigned long objid, long pos, unsigned long events )
+observer_i::forward_observer_update_events( unsigned long /* parentId */
+                                            , unsigned long objId, long pos, unsigned long events )
 {
-    for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
-
-        if ( ( it->objId_ == objid ) || it->pCache_i_->isChild( objid ) ) {
+    BOOST_FOREACH( internal::sibling_data& sibling, sibling_set_ ) {
+        if ( ( sibling.objId_ == objId ) || sibling.pCache_i_->isChild( objId ) ) {
             using namespace adcontroller::internal;
-            std::for_each ( it->pCache_i_->events_begin(), it->pCache_i_->events_end(), fire_events( objid, pos, events ) );
+            BOOST_FOREACH( observer_events_data& o, sibling.pCache_i_->observer_events_set_ ) {
+                o.events_->OnEvent( objId, pos, events );
+            }
             return true;
         }
     }
-	return false;
+    return false;
 }
 
 bool
@@ -393,13 +360,13 @@ observer_i::write_cache( long pos, SignalObserver::DataReadBuffer_var& rdbuf )
 bool
 internal::observer_events_data::operator == ( const internal::observer_events_data& t ) const
 {
-	return events_->_is_equivalent( t.events_.in() );
+    return events_->_is_equivalent( t.events_.in() );
 }
 
 bool
 internal::observer_events_data::operator == ( const SignalObserver::ObserverEvents_ptr t ) const
 {
-	return events_->_is_equivalent( t );
+    return events_->_is_equivalent( t );
 }
 
 /////////////////////////////////////////////

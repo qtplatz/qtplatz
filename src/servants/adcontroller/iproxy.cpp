@@ -51,8 +51,8 @@ iProxy::initialConfiguration( const adportable::Configuration& c )
 
         name_ = config_.name();
         std::string nsname = adportable::string::convert( config_.attribute( L"ns_name" ) );
-        CORBA::ORB_var orb = adcontroller::singleton::manager::instance()->orb();
-        std::string iorBroker = adcontroller::singleton::manager::instance()->broker_manager_ior();
+        CORBA::ORB_var orb = adcontroller::manager_i::instance()->orb();
+        std::string iorBroker = adcontroller::manager_i::instance()->broker_manager_ior();
 
         if ( ! nsname.empty() ) {
             Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, iorBroker );

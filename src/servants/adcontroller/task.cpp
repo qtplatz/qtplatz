@@ -41,15 +41,19 @@
 #include "constants.hpp"
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
+#include <adportable/debug.hpp>
 #include "observer_i.hpp"
 #include "manager_i.hpp"
 #include <acewrapper/orbservant.hpp>
+#include <boost/foreach.hpp>
 #include <stdexcept>
 #if defined _DEBUG
 # include <iostream>
 #endif
 
 using namespace adcontroller;
+
+iTask * iTask::instance_ = 0;
 
 namespace adcontroller {
     namespace internal {
@@ -60,13 +64,15 @@ namespace adcontroller {
             bool operator == ( const ControlServer::Session_ptr ) const;
             ControlServer::Session_var session_;
             Receiver_var receiver_;
-            session_data() {};
-            session_data( const session_data& t ) : session_(t.session_), receiver_(t.receiver_) {};
+            std::wstring token_;
+            session_data() {}
+            session_data( const session_data& t )
+                : session_(t.session_), receiver_(t.receiver_), token_( t.token_ ) {
+            }
         };
 	
     }
 }
-
 
 iTask::~iTask()
 {
@@ -84,6 +90,15 @@ iTask::iTask( size_t n_threads ) : barrier_(n_threads)
                                  , status_current_( ControlServer::eNothing )
                                  , status_being_( ControlServer::eNothing )  
 {
+    instance_ = this;
+}
+
+iTask *
+iTask::instance()
+{
+    if ( ! instance_ )
+        return iTaskManager::instance()->get<iTask>();
+    return instance_;
 }
 
 namespace adcontroller {
@@ -162,6 +177,12 @@ iTask::setConfiguration( const wchar_t * xml )
 bool
 iTask::configComplete()
 {
+    return true;
+}
+
+bool
+iTask::initialize_configuration()
+{
     using namespace adportable;
 
     if ( status_current_ >= ControlServer::eConfigured )
@@ -217,10 +238,13 @@ iTask::initialize()
 {
     using adcontroller::ibroker::invoke_initialize;
 
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
-    std::for_each( iproxies_.begin(), iproxies_.end(), invoke_initialize() );
-    std::for_each( oproxies_.begin(), oproxies_.end(), invoke_initialize() );
-    return true;
+    if ( initialize_configuration() ) {
+        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        std::for_each( iproxies_.begin(), iproxies_.end(), invoke_initialize() );
+        std::for_each( oproxies_.begin(), oproxies_.end(), invoke_initialize() );
+        return true;
+    }
+    return false;
 }
 
 bool
@@ -229,6 +253,7 @@ iTask::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const
     internal::session_data data;
     data.session_ = ControlServer::Session::_duplicate( session );
     data.receiver_ = Receiver::_duplicate( receiver );
+    data.token_ = token;
     
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     
@@ -390,47 +415,21 @@ iTask::svc()
             this->putq( mblk ); // forward the request to any peer threads
             break;
         }
-
-        doit( mblk );
+        dispatch( mblk );
         ACE_Message_Block::release( mblk );
-
     }
     return 0;
 }
 
 void
-iTask::doit( ACE_Message_Block * mblk )
+iTask::dispatch( ACE_Message_Block * mblk )
 {
-    using namespace adcontroller;
-
-    if ( mblk->msg_type() >= ACE_Message_Block::MB_USER ) {
-        dispatch( mblk, mblk->msg_type() );
-    } else if ( mblk->msg_type() == ACE_Message_Block::MB_DATA ) {
-        Message msg;
-        ACE_InputCDR cdr( mblk ); 
-        cdr >> msg;
-
-        std::ostringstream o;
-    
-        o << "doit <" << ACE_Thread::self() << "> : src:" << msg.seqId_ << " dst:" << msg.dstId_ 
-          << " cmd:" << msg.cmdId_ << " seq:" <<  msg.seqId_;
-
-        ACE_Time_Value tv;
-        if ( msg.cmdId_ == Notify_Timeout ) {
-            cdr >> tv;
-            o << " tv=" << acewrapper::to_string( tv );
-            for ( session_vector_type::iterator it = session_begin(); it != session_end(); ++it )
-                it->session_->echo( o.str().c_str() );
-        }
-    }
-}
-
-void
-iTask::dispatch( ACE_Message_Block * mblk, int disp )
-{
-    switch( disp ) {
+    switch( mblk->msg_type() ) {
     case constants::MB_EVENTLOG:
         handle_dispatch( marshal< EventLog::LogMessage >::get( mblk ) );
+        break;
+    case constants::MB_COMMAND:
+        handle_dispatch_command( mblk );
         break;
     case constants::MB_TIME_VALUE:
         handle_dispatch( marshal< ACE_Time_Value >::get( mblk ) );
@@ -515,29 +514,49 @@ iTask::handle_dispatch( const ACE_Time_Value& )
 }
 
 void
+iTask::handle_dispatch_command( ACE_Message_Block * mblk )
+{
+    ACE_InputCDR cdr( mblk );
+    unsigned int cmd;
+    cdr >> cmd;
+    if ( cmd == constants::SESSION_COMMAND_ECHO ) {
+        ACE_CString s;
+        cdr >> s;
+        using internal::session_data;
+        BOOST_FOREACH( session_data& d, session_set_ ) {
+            try {
+                d.receiver_->debug_print( 0, 0, s.c_str() );
+            } catch ( CORBA::Exception& ex ) {
+                adportable::debug(__FILE__, __LINE__) << "iTask::handle_dispatch_command 'echo' got an exception";
+            }
+        }
+    }
+}
+
+void
 iTask::handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos )
 {
     pMasterObserver_->handle_data( parentId, objId, pos );
-    pMasterObserver_->forward_notice_update_data( parentId, objId, pos );
+    pMasterObserver_->forward_observer_update_data( parentId, objId, pos );
 }
 
 void
 iTask::handle_observer_update_method( unsigned long parentId, unsigned long objId, long pos )
 {
-    pMasterObserver_->forward_notice_method_changed( parentId, objId, pos );
+    pMasterObserver_->forward_observer_update_method( parentId, objId, pos );
 }
 
 void
 iTask::handle_observer_update_events( unsigned long parentId, unsigned long objId, long pos, unsigned long events )
 {
-    pMasterObserver_->forward_notice_update_events( parentId, objId, pos, events );
+    pMasterObserver_->forward_observer_update_events( parentId, objId, pos, events );
 }
 
 
 SignalObserver::Observer_ptr
 iTask::getObserver()
 {
-    PortableServer::POA_var poa = adcontroller::singleton::manager::instance()->poa();
+    PortableServer::POA_var poa = adcontroller::manager_i::instance()->poa();
     if ( ! pMasterObserver_ ) {
         acewrapper::scoped_mutex_t<> lock( mutex_ );
         if ( ! pMasterObserver_ )

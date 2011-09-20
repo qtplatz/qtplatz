@@ -109,7 +109,7 @@ adController::_abort_server()
 bool
 adController::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::POAManager_ptr mgr )
 {
-    ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
+    ORBServant< adcontroller::manager_i > * pServant = adcontroller::manager_i::instance();
     pServant->initialize( orb, poa, mgr );
     return true;
 }
@@ -117,13 +117,13 @@ adController::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, Porta
 void
 adController::initial_reference( const char * iorBroker )
 {
-    adcontroller::singleton::manager::instance()->broker_manager_ior( iorBroker );
+    adcontroller::manager_i::instance()->broker_manager_ior( iorBroker );
 }
 
 const char *
 adController::activate()
 {
-    ORBServant< adcontroller::manager_i > * pServant = adcontroller::singleton::manager::instance();
+    ORBServant< adcontroller::manager_i > * pServant = adcontroller::manager_i::instance();
     pServant->activate();
     return pServant->ior().c_str();
 }
@@ -138,7 +138,7 @@ bool
 adController::_deactivate()
 {
     adcontroller::iTaskManager::instance()->manager_terminate();
-    adcontroller::singleton::manager::instance()->deactivate();
+    adcontroller::manager_i::instance()->deactivate();
     return true;
 }
 

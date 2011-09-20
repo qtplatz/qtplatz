@@ -42,9 +42,8 @@ class ACE_Recursive_Thread_Mutex;
 class ACE_Notification_Strategy;
 class ACE_Reactor;
 
-namespace EventLog {
-    struct LogMessage;
-}
+namespace EventLog { struct LogMessage; }
+// namespace adcontroller { namespace constants { enum msg_type; } }
 
 ///////////////////////////
 
@@ -60,11 +59,12 @@ namespace adcontroller {
         
         ~iTask();
         iTask( size_t n_threads = 1 );
-
+        static iTask * instance_;
         friend class iTaskManager;
         
     public:  
         inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
+        static iTask * instance();
         bool open();
         void close();
 
@@ -75,6 +75,7 @@ namespace adcontroller {
         bool disconnect( ControlServer::Session_ptr, Receiver_ptr );
         bool setConfiguration( const wchar_t * xml );
         bool configComplete();
+        bool initialize_configuration();
 	
 	//
 	ControlServer::eStatus getStatusCurrent();
@@ -98,12 +99,13 @@ namespace adcontroller {
         virtual int svc();
         // 
         void doit( ACE_Message_Block * );
-        void dispatch ( ACE_Message_Block *, int disp );
+        void dispatch ( ACE_Message_Block * );
         
         // int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );  <-- will handle in iTaskManager
 
         void handle_dispatch( const EventLog::LogMessage & );
         void handle_dispatch( const ACE_Time_Value& );
+        void handle_dispatch_command( ACE_Message_Block * );
 	void handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value );
         void handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos );
         void handle_observer_update_method( unsigned long parentId, unsigned long objId, long pos );

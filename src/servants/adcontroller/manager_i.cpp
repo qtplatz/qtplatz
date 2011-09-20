@@ -28,12 +28,24 @@
 
 using namespace adcontroller;
 
+namespace adcontroller {
+    namespace singleton {
+        typedef ACE_Singleton< acewrapper::ORBServant< ::adcontroller::manager_i >, ACE_Recursive_Thread_Mutex > manager_i;
+    }
+}
+
 manager_i::manager_i(void) 
 {
 }
 
 manager_i::~manager_i(void)
 {
+}
+
+acewrapper::ORBServant< manager_i > *
+manager_i::instance()
+{
+    return singleton::manager_i::instance();
 }
 
 void
@@ -45,7 +57,7 @@ manager_i::shutdown()
 ControlServer::Session_ptr
 manager_i::getSession( const CORBA::WChar * token )
 {
-    PortableServer::POA_var poa = singleton::manager::instance()->poa(); // getServantManager()->root_poa();
+    PortableServer::POA_var poa = manager_i::instance()->poa(); // getServantManager()->root_poa();
 
     if ( CORBA::is_nil( poa ) )
         return 0;
