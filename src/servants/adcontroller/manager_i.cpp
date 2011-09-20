@@ -25,6 +25,7 @@
 #include "manager_i.hpp"
 #include "session_i.hpp"
 #include "taskmanager.hpp"
+// #include <adinterface/brokerC.h>
 
 using namespace adcontroller;
 
@@ -87,6 +88,6 @@ manager_i::getLogger()
             logger_ = broker_manager_->getLogger();
     }
     if ( CORBA::is_nil( logger_ ) )
-        return CORBA::Logger::_duplicate( logger_ );
+        return Broker::Logger::_duplicate( logger_ );
     return 0;
 }

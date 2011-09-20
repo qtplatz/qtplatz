@@ -42,15 +42,10 @@ Logger::~Logger()
 void
 Logger::commit()
 {
-    // manager_i::instance()->getLogger();
-    std::string ior = manager_i::instance()->broker_manager_ior();
-
-    if ( msg.get().format.in() && *msg.get().format.in() != 0 ) {
-        // TAO_OutputCDR cdr;
-        // cdr << msg.get();
-        // ACE_Message_Block * mb = cdr.begin()->duplicate();
-        // mb->msg_type( constants::MB_EVENTLOG );
-        // iTask::instance()->task()->putq( mb );
+    // Broker::EventLog, that is not EventLog
+    Broker::Logger_var logger = static_cast< manager_i *>(*manager_i::instance())->getLogger();
+    if ( ! CORBA::is_nil( logger ) ) {
+        // logger->log( msg.get() );
     }
 }
 
