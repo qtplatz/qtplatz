@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
@@ -23,35 +22,26 @@
 **
 **************************************************************************/
 
-#pragma once
+#ifndef LOGGER_HPP
+#define LOGGER_HPP
 
-#if defined _MSC_VER
-# pragma warning (disable: 4996)
-#endif
-#include "adinterface/brokerS.h"
-
-#include "session_i.hpp"
-#include <acewrapper/orbservant.hpp>
-#include <map>
+#include <adinterface/eventlog_helper.hpp>
 #include <string>
-#include <boost/smart_ptr.hpp>
 
 namespace adcontroller {
 
-    class manager_i : public virtual POA_ControlServer::Manager {
-        manager_i(void);
-        ~manager_i(void);
-        friend class acewrapper::ORBServant< ::adcontroller::manager_i >;
+    class Logger  {
+        adinterface::EventLog::LogMessageHelper msg;
     public:
-        void shutdown();
-        ControlServer::Session_ptr getSession( const CORBA::WChar * );
-        static acewrapper::ORBServant< manager_i > * instance();
-        Broker::Logger_ptr getLogger();
-    private:
-        typedef std::map< std::wstring, boost::shared_ptr< adcontroller::session_i > > session_map_type;
-        session_map_type session_list_;
-        Broker::Manager_var broker_manager_;
-        Broker::Logger_var logger_;
+        ~Logger();
+        Logger( const std::wstring& format = L""
+                , ::EventLog::eMSGPRIORITY pri = ::EventLog::pri_DEBUG
+                , const std::wstring& msgId = L""
+                , const std::wstring& srcId = L"infitofd");
+        template<class T> Logger& operator % ( const T& t ) { msg % t; return *this; }
+        void commit();
     };
 
 }
+
+#endif // LOGGER_HPP

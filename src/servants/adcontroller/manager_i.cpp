@@ -73,3 +73,20 @@ manager_i::getSession( const CORBA::WChar * token )
     return ControlServer::Session::_narrow( obj );
 }
 
+Broker::Logger_ptr
+manager_i::getLogger()
+{
+    if ( CORBA::is_nil( broker_manager_ ) ) {
+        std::string ior = manager_i::instance()->broker_manager_ior();
+        if ( ior.empty() )
+            return 0;
+        CORBA::ORB_var orb = manager_i::instance()->orb();
+        CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
+        broker_manager_ = Broker::Manager::_narrow( obj );
+        if ( ! CORBA::is_nil( broker_manager_ ) )
+            logger_ = broker_manager_->getLogger();
+    }
+    if ( CORBA::is_nil( logger_ ) )
+        return CORBA::Logger::_duplicate( logger_ );
+    return 0;
+}
