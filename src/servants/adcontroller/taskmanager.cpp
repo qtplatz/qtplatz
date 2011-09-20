@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "ibrokermanager.hpp"
+#include "taskmanager.hpp"
 #include "task.hpp"
 #include "message.hpp"
 #include "constants.hpp"
@@ -40,6 +40,11 @@
 using namespace adcontroller;
 
 namespace adcontroller {
+
+    namespace singleton {
+	typedef ACE_Singleton<iTaskManager, ACE_Recursive_Thread_Mutex> iTaskManager;
+    }
+
     namespace internal {
 	
         class TimeReceiver {
@@ -47,7 +52,7 @@ namespace adcontroller {
             TimeReceiver() {}
             int handle_input( ACE_HANDLE ) { return 0; }
             int handle_timeout( const ACE_Time_Value& tv, const void * arg) {
-                return singleton::iBrokerManager::instance()->handle_timeout( tv, arg );
+                return iTaskManager::instance()->handle_timeout( tv, arg );
             }
             int handle_close( ACE_HANDLE, ACE_Reactor_Mask ) { return 0; }
         };
@@ -56,11 +61,12 @@ namespace adcontroller {
 }
 
 namespace adcontroller {
-    template<> iTask * IBrokerManager::get<iTask>() { return pTask_; }
+    template<> iTask * iTaskManager::get<iTask>() { return pTask_; }
 }
+
 ///////////////////////////////////////////////////////////////////
 
-IBrokerManager::~IBrokerManager()
+iTaskManager::~iTaskManager()
 {
     manager_terminate();
     ACE_Thread_Manager::instance()->wait();
@@ -69,24 +75,31 @@ IBrokerManager::~IBrokerManager()
     //delete reactor_thread_;
 }
 
-IBrokerManager::IBrokerManager() : pTask_(0)
-                                 , reactor_thread_(0) 
-				 , timerHandler_(0) 
+iTaskManager::iTaskManager() : pTask_(0)
+                             , reactor_thread_(0) 
+                             , timerHandler_(0) 
 {
     reactor_thread_ = new acewrapper::ReactorThread();
     reactor_thread_->spawn();
     pTask_ = new iTask( 5 );
 }
 
+// static
+iTaskManager *
+iTaskManager::instance()
+{
+    return singleton::iTaskManager::instance();
+}
+
 bool
-IBrokerManager::manager_initialize()
+iTaskManager::manager_initialize()
 {
     if ( timerHandler_ == 0 ) {
 	acewrapper::scoped_mutex_t<> lock( mutex_ );
 	if ( timerHandler_ == 0 ) {
 	    // initialize timer
 	    timerHandler_ = new acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> >();
-	    ACE_Reactor * reactor = singleton::iBrokerManager::instance()->reactor();
+	    ACE_Reactor * reactor = iTaskManager::instance()->reactor();
 	    reactor->schedule_timer( timerHandler_, 0, ACE_Time_Value(3), ACE_Time_Value(3) );
 	}
 	// activate task
@@ -97,7 +110,7 @@ IBrokerManager::manager_initialize()
 }
 
 void
-IBrokerManager::manager_terminate()
+iTaskManager::manager_terminate()
 {
     if ( timerHandler_ ) {
         acewrapper::scoped_mutex_t<> lock( mutex_ );
@@ -114,13 +127,13 @@ IBrokerManager::manager_terminate()
 }
 
 ACE_Reactor *
-IBrokerManager::reactor()
+iTaskManager::reactor()
 { 
     return reactor_thread_ ? reactor_thread_->get_reactor() : 0;
 }
 
 int
-IBrokerManager::handle_timeout( const ACE_Time_Value& tv, const void * )
+iTaskManager::handle_timeout( const ACE_Time_Value& tv, const void * )
 {
     using namespace adcontroller;
     

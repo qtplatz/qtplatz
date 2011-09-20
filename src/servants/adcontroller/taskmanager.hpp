@@ -48,13 +48,15 @@ namespace adcontroller {
         class TimeReceiver;
     }
     
-    class IBrokerManager {
+    class iTaskManager {
     private:
-        ~IBrokerManager();
-        IBrokerManager();
-        IBrokerManager( const IBrokerManager& );  /* not defined */
+        ~iTaskManager();
+        iTaskManager();
+        iTaskManager( const iTaskManager& );  /* not defined */
         
     public:  
+        static iTaskManager * instance();
+
         bool manager_initialize();
         void manager_terminate();
         
@@ -64,7 +66,7 @@ namespace adcontroller {
         template<class T> T* get();
         
     private:
-        friend class ACE_Singleton<IBrokerManager, ACE_Recursive_Thread_Mutex>;
+        friend class ACE_Singleton<iTaskManager, ACE_Recursive_Thread_Mutex>;
         friend class internal::TimeReceiver;
         int handle_timeout( const ACE_Time_Value&, const void * );
         
@@ -74,9 +76,6 @@ namespace adcontroller {
         acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> > * timerHandler_;
     };
 
-    template<> iTask * IBrokerManager::get<iTask>();
+    template<> iTask * iTaskManager::get<iTask>();
     
-    namespace singleton {
-	typedef ACE_Singleton<adcontroller::IBrokerManager, ACE_Recursive_Thread_Mutex> iBrokerManager;
-    }
 }

@@ -24,7 +24,7 @@
 
 #include "manager_i.hpp"
 #include "session_i.hpp"
-#include "ibrokermanager.hpp"
+#include "taskmanager.hpp"
 
 using namespace adcontroller;
 
@@ -51,7 +51,7 @@ manager_i::getSession( const CORBA::WChar * token )
         return 0;
 
     if ( session_list_.empty() )
-        adcontroller::singleton::iBrokerManager::instance()->manager_initialize();
+        adcontroller::iTaskManager::instance()->manager_initialize();
 
     session_map_type::iterator it = session_list_.find( token );
     if ( it == session_list_.end() ) 

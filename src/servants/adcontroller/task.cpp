@@ -30,7 +30,7 @@
 #include <adinterface/receiverC.h>
 #include <adinterface/eventlogC.h>
 #include <acewrapper/mutex.hpp>
-#include "ibrokermanager.hpp"
+#include "taskmanager.hpp"
 #include "message.hpp"
 #include <acewrapper/timeval.hpp>
 #include <acewrapper/messageblock.hpp>

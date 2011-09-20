@@ -76,7 +76,7 @@
 #include <acewrapper/constants.hpp>
 #include <boost/smart_ptr.hpp>
 #include "manager_i.hpp"
-#include "ibrokermanager.hpp"
+#include "taskmanager.hpp"
 
 using namespace acewrapper;
 
@@ -137,7 +137,7 @@ adController::deactivate()
 bool
 adController::_deactivate()
 {
-    adcontroller::singleton::iBrokerManager::instance()->manager_terminate();
+    adcontroller::iTaskManager::instance()->manager_terminate();
     adcontroller::singleton::manager::instance()->deactivate();
     return true;
 }

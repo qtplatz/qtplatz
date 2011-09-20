@@ -33,7 +33,7 @@
 #endif
 
 #include <iostream>
-#include "ibrokermanager.hpp"
+#include "taskmanager.hpp"
 #include "task.hpp"
 #include <acewrapper/mutex.hpp>
 #include <boost/tokenizer.hpp>
@@ -77,7 +77,7 @@ session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
 {
     ACE_UNUSED_ARG(token);
 
-    scoped_mutex_t<> lock( singleton::iBrokerManager::instance()->mutex() );
+    scoped_mutex_t<> lock( iTaskManager::instance()->mutex() );
 
     // check session_i local receiver, if already exist then error
     receiver_data data;
@@ -88,7 +88,7 @@ session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
     }
 
     // try connect to server
-    iTask * pTask = singleton::iBrokerManager::instance()->get<iTask>();
+    iTask * pTask = iTaskManager::instance()->get<iTask>();
     if ( ! pTask->connect( _this(), receiver, token ) ) {
         throw ControlServer::Session::CannotAdd( L"receiver already exist" );
         return false;
@@ -109,14 +109,12 @@ session_i::disconnect( Receiver_ptr receiver )
 CORBA::Boolean
 session_i::setConfiguration( const CORBA::WChar * xml )
 {
-    using namespace adcontroller::singleton;
-    return iBrokerManager::instance()->get<iTask>()->setConfiguration( xml );
+    return iTaskManager::instance()->get<iTask>()->setConfiguration( xml );
 }
 
 CORBA::Boolean
 session_i::configComplete()
 {
-    using namespace adcontroller::singleton;
     return true;  // do nothing
     // return iBrokerManager::instance()->get<iBroker>()->configComplete();
 }
@@ -124,17 +122,14 @@ session_i::configComplete()
 CORBA::Boolean
 session_i::initialize()
 {
-    using namespace adcontroller::singleton;
-
-    iBrokerManager::instance()->get<iTask>()->configComplete();
-    return iBrokerManager::instance()->get<iTask>()->initialize();
+    iTaskManager::instance()->get<iTask>()->configComplete();
+    return iTaskManager::instance()->get<iTask>()->initialize();
 }
 
 CORBA::Boolean
 session_i::shutdown()
 {
-    using namespace adcontroller::singleton;
-    iBrokerManager::instance()->manager_terminate();
+    iTaskManager::instance()->manager_terminate();
     ACE_Thread_Manager::instance()->wait();
     return true;
 }
@@ -142,8 +137,7 @@ session_i::shutdown()
 ::ControlServer::eStatus
 session_i::status()
 {
-    using namespace adcontroller::singleton;
-    return iBrokerManager::instance()->get<iTask>()->getStatusCurrent();
+    return iTaskManager::instance()->get<iTask>()->getStatusCurrent();
 }
 
 CORBA::Boolean
@@ -226,7 +220,7 @@ session_i::commit_failed()
 bool
 session_i::internal_disconnect( Receiver_ptr receiver )
 {
-    scoped_mutex_t<> lock( singleton::iBrokerManager::instance()->mutex() );
+    scoped_mutex_t<> lock( iTaskManager::instance()->mutex() );
     
     vector_type::iterator it = std::find(receiver_set_.begin(), receiver_set_.end(), receiver);
     
@@ -254,5 +248,5 @@ session_i::push_back( SampleBroker::SampleSequence_ptr sequence )
 ::SignalObserver::Observer *
 session_i::getObserver (void)
 {
-    return singleton::iBrokerManager::instance()->get<iTask>()->getObserver();
+    return iTaskManager::instance()->get<iTask>()->getObserver();
 }

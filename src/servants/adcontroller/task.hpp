@@ -60,6 +60,8 @@ namespace adcontroller {
         
         ~iTask();
         iTask( size_t n_threads = 1 );
+
+        friend class iTaskManager;
         
     public:  
         inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
@@ -116,7 +118,6 @@ namespace adcontroller {
 	typedef std::vector< boost::shared_ptr<oProxy> > oproxy_vector_type;
 	
     private:
-        friend class IBrokerManager;
 
         adportable::Configuration config_;
         

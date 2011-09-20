@@ -37,7 +37,6 @@ LIBS += -l$$qtLibraryTarget(acewrapper) \
 DEFINES += ADCONTROLLER_LIBRARY
 
 SOURCES += adcontroller.cpp \
-        ibrokermanager.cpp \
         iproxy.cpp \
         manager_i.cpp \
         mcast_handler.cpp \
@@ -48,12 +47,12 @@ SOURCES += adcontroller.cpp \
         session_i.cpp \
         signal_handler.cpp \
     cache.cpp \
-    task.cpp
+    task.cpp \
+    taskmanager.cpp
 
 HEADERS += adcontroller.hpp \
         adcontroller_global.h \
         constants.hpp \
-        ibrokermanager.hpp \
         iproxy.hpp \
         manager_i.hpp \
         marshal.hpp \
@@ -65,7 +64,14 @@ HEADERS += adcontroller.hpp \
         session_i.hpp \
         signal_handler.hpp \
     cache.hpp \
-    task.hpp
+    task.hpp \
+    taskmanager.hpp
+
+
+
+
+
+
 
 
 
