@@ -34,7 +34,7 @@
 
 #include <iostream>
 #include "ibrokermanager.hpp"
-#include "ibroker.hpp"
+#include "task.hpp"
 #include <acewrapper/mutex.hpp>
 #include <boost/tokenizer.hpp>
 
@@ -88,8 +88,8 @@ session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
     }
 
     // try connect to server
-    iBroker * pBroker = singleton::iBrokerManager::instance()->get<iBroker>();
-	if ( ! pBroker->connect( _this(), receiver, token ) ) {
+    iTask * pTask = singleton::iBrokerManager::instance()->get<iTask>();
+    if ( ! pTask->connect( _this(), receiver, token ) ) {
         throw ControlServer::Session::CannotAdd( L"receiver already exist" );
         return false;
     }
@@ -110,7 +110,7 @@ CORBA::Boolean
 session_i::setConfiguration( const CORBA::WChar * xml )
 {
     using namespace adcontroller::singleton;
-    return iBrokerManager::instance()->get<iBroker>()->setConfiguration( xml );
+    return iBrokerManager::instance()->get<iTask>()->setConfiguration( xml );
 }
 
 CORBA::Boolean
@@ -126,8 +126,8 @@ session_i::initialize()
 {
     using namespace adcontroller::singleton;
 
-    iBrokerManager::instance()->get<iBroker>()->configComplete();
-    return iBrokerManager::instance()->get<iBroker>()->initialize();
+    iBrokerManager::instance()->get<iTask>()->configComplete();
+    return iBrokerManager::instance()->get<iTask>()->initialize();
 }
 
 CORBA::Boolean
@@ -143,7 +143,7 @@ session_i::shutdown()
 session_i::status()
 {
     using namespace adcontroller::singleton;
-	return iBrokerManager::instance()->get<iBroker>()->getStatusCurrent();
+    return iBrokerManager::instance()->get<iTask>()->getStatusCurrent();
 }
 
 CORBA::Boolean
@@ -254,6 +254,5 @@ session_i::push_back( SampleBroker::SampleSequence_ptr sequence )
 ::SignalObserver::Observer *
 session_i::getObserver (void)
 {
-    iBroker * pBroker = singleton::iBrokerManager::instance()->get<iBroker>();
-    return pBroker->getObserver();
+    return singleton::iBrokerManager::instance()->get<iTask>()->getObserver();
 }

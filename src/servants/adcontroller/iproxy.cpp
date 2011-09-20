@@ -26,7 +26,7 @@
 #include "iproxy.hpp"
 #include "marshal.hpp"
 #include "constants.hpp"
-#include "ibroker.hpp"
+#include "task.hpp"
 #include "manager_i.hpp"
 #include <acewrapper/brokerhelper.hpp>
 #include <adportable/string.hpp>
@@ -35,9 +35,9 @@
 
 using namespace adcontroller;
 
-iProxy::iProxy( iBroker& t ) : objref_( false )
-                             , objId_(0) 
-                             , broker_( t )
+iProxy::iProxy( iTask& t ) : objref_( false )
+                           , objId_(0) 
+                           , task_( t )
 {
 }
 
@@ -92,7 +92,7 @@ iProxy::message( ::Receiver::eINSTEVENT msg, CORBA::ULong value )
     cdr << value;
     ACE_Message_Block * mb = cdr.begin()->duplicate();
     mb->msg_type( constants::MB_MESSAGE );
-    broker_.putq( mb );
+    task_.putq( mb );
 }
 
 // POA_Receiver
@@ -100,7 +100,7 @@ void
 iProxy::log( const EventLog::LogMessage& log )
 {
     ACE_Message_Block * mb = marshal<EventLog::LogMessage>::put( log, constants::MB_EVENTLOG );
-    broker_.putq( mb );
+    task_.putq( mb );
 }
 
 // POA_Receiver

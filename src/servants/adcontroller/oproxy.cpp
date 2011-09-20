@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "ibroker.hpp"
+#include "task.hpp"
 #include "oproxy.hpp"
 
 using namespace adcontroller;
@@ -32,28 +32,28 @@ oProxy::~oProxy()
 {
 }
 
-oProxy::oProxy( iBroker& t ) : objref_(false)
-			     , objId_(0) 
-                             , broker_( t )
+oProxy::oProxy( iTask& t ) : objref_(false)
+                           , objId_(0) 
+                           , task_( t )
 {
 }
 
 void
 oProxy::OnUpdateData ( ::CORBA::ULong objId, ::CORBA::Long pos )
 {
-    broker_.observer_update_data( this->objId_, objId, pos );
+    task_.observer_update_data( this->objId_, objId, pos );
 }
 
 void
 oProxy::OnMethodChanged ( ::CORBA::ULong objId, ::CORBA::Long pos )
 {
-    broker_.observer_update_data( this->objId_, objId, pos );
+    task_.observer_update_data( this->objId_, objId, pos );
 }
 
 void
 oProxy::OnEvent ( ::CORBA::ULong objId, ::CORBA::ULong events, ::CORBA::Long pos )
 {
-    broker_.observer_update_event( this->objId_, objId, pos, events );
+    task_.observer_update_event( this->objId_, objId, pos, events );
 }
 
 bool
@@ -61,6 +61,7 @@ oProxy::connect( const std::wstring& token )
 {
     if ( objref_ )
         return impl_->connect( _this(), SignalObserver::Realtime, token.c_str() );
+    return false;
 }
 
 bool

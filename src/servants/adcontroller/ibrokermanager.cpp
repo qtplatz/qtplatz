@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "ibrokermanager.hpp"
-#include "ibroker.hpp"
+#include "task.hpp"
 #include "message.hpp"
 #include "constants.hpp"
 #include "marshal.hpp"
@@ -56,7 +56,7 @@ namespace adcontroller {
 }
 
 namespace adcontroller {
-    template<> iBroker * IBrokerManager::get<iBroker>() { return pBroker_; }
+    template<> iTask * IBrokerManager::get<iTask>() { return pTask_; }
 }
 ///////////////////////////////////////////////////////////////////
 
@@ -69,13 +69,13 @@ IBrokerManager::~IBrokerManager()
     //delete reactor_thread_;
 }
 
-IBrokerManager::IBrokerManager() : pBroker_(0)
+IBrokerManager::IBrokerManager() : pTask_(0)
                                  , reactor_thread_(0) 
 				 , timerHandler_(0) 
 {
     reactor_thread_ = new acewrapper::ReactorThread();
     reactor_thread_->spawn();
-    pBroker_ = new iBroker( 5 );
+    pTask_ = new iTask( 5 );
 }
 
 bool
@@ -90,7 +90,7 @@ IBrokerManager::manager_initialize()
 	    reactor->schedule_timer( timerHandler_, 0, ACE_Time_Value(3), ACE_Time_Value(3) );
 	}
 	// activate task
-	pBroker_->open();
+	pTask_->open();
 	return true;
     }
     return false;
@@ -108,7 +108,7 @@ IBrokerManager::manager_terminate()
             timerHandler_ = 0;
         }
     }
-    pBroker_->close();
+    pTask_->close();
     reactor_thread_->end_reactor_event_loop();
     reactor_thread_->join();
 }
@@ -124,8 +124,8 @@ IBrokerManager::handle_timeout( const ACE_Time_Value& tv, const void * )
 {
     using namespace adcontroller;
     
-    if ( pBroker_ )
-        pBroker_->putq( adcontroller::marshal< ACE_Time_Value >::put( tv, constants::MB_TIME_VALUE ) );
+    if ( pTask_ )
+        pTask_->putq( adcontroller::marshal< ACE_Time_Value >::put( tv, constants::MB_TIME_VALUE ) );
     
     return 0;
 }

@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include "ibroker.hpp"
+#include "task.hpp"
 #include "iproxy.hpp"
 #include "oproxy.hpp"
 #include <ace/Reactor.h>
@@ -49,7 +49,6 @@
 # include <iostream>
 #endif
 
-
 using namespace adcontroller;
 
 namespace adcontroller {
@@ -69,7 +68,7 @@ namespace adcontroller {
 }
 
 
-iBroker::~iBroker()
+iTask::~iTask()
 {
     // this will block until a message arrives.
     // By blocking, we know that the destruction will be
@@ -80,10 +79,10 @@ iBroker::~iBroker()
     ACE_Message_Block::release( mblk );
 }
 
-iBroker::iBroker( size_t n_threads ) : barrier_(n_threads)
-                                     , n_threads_(n_threads) 
-				     , status_current_( ControlServer::eNothing )
-				     , status_being_( ControlServer::eNothing )  
+iTask::iTask( size_t n_threads ) : barrier_(n_threads)
+                                 , n_threads_(n_threads) 
+                                 , status_current_( ControlServer::eNothing )
+                                 , status_being_( ControlServer::eNothing )  
 {
 }
 
@@ -91,16 +90,16 @@ namespace adcontroller {
     namespace ibroker {
 
 	struct invoke_reset_clock {
-	    void operator ()( iBroker::iproxy_ptr& proxy ) const {
+	    void operator ()( iTask::iproxy_ptr& proxy ) const {
 		proxy->reset_clock();
 	    }
 	};
 
 	struct invoke_initialize {
-	    void operator ()( iBroker::iproxy_ptr& proxy ) {
+	    void operator ()( iTask::iproxy_ptr& proxy ) {
 		proxy->initialize();
 	    }
-	    void operator ()( iBroker::oproxy_ptr& proxy ) {
+	    void operator ()( iTask::oproxy_ptr& proxy ) {
 		proxy->initialize();
 	    }
 	};
@@ -108,10 +107,10 @@ namespace adcontroller {
 	struct invoke_connect {
 	    const wchar_t * token_;
 	    invoke_connect( const wchar_t * token ) : token_(token) {}
-	    void operator ()( iBroker::iproxy_ptr& proxy ) {
+	    void operator ()( iTask::iproxy_ptr& proxy ) {
 		proxy->connect( token_ );
 	    }
-	    void operator ()( iBroker::oproxy_ptr& proxy ) {
+	    void operator ()( iTask::oproxy_ptr& proxy ) {
 		proxy->connect( token_ );
 	    }
 	};
@@ -121,7 +120,7 @@ namespace adcontroller {
     
 	
 void
-iBroker::reset_clock()
+iTask::reset_clock()
 {
     using adcontroller::ibroker::invoke_reset_clock;
 
@@ -130,7 +129,7 @@ iBroker::reset_clock()
 }
 
 bool
-iBroker::open()
+iTask::open()
 {
     if ( activate( THR_NEW_LWP, n_threads_ ) != - 1 )
         return true;
@@ -138,14 +137,14 @@ iBroker::open()
 }
 
 void
-iBroker::close()
+iTask::close()
 {
     msg_queue()->deactivate();
     ACE_Task<ACE_MT_SYNCH>::close( 0 );
 }
 
 bool
-iBroker::setConfiguration( const wchar_t * xml )
+iTask::setConfiguration( const wchar_t * xml )
 {
     // if already has configuration, then error return
     if ( ! config_.xml().empty() )
@@ -161,7 +160,7 @@ iBroker::setConfiguration( const wchar_t * xml )
 
 
 bool
-iBroker::configComplete()
+iTask::configComplete()
 {
     using namespace adportable;
 
@@ -171,7 +170,7 @@ iBroker::configComplete()
     SignalObserver::Observer_var masterObserver = getObserver();
     if ( CORBA::is_nil( masterObserver.in() ) ) {
         assert(0);
-        throw std::runtime_error( "iBroker::configComplete - can't get master observer servant" );
+        throw std::runtime_error( "iTask::configComplete - can't get master observer servant" );
     }
 
     int objid = 0;
@@ -214,7 +213,7 @@ iBroker::configComplete()
 }
 
 bool
-iBroker::initialize()
+iTask::initialize()
 {
     using adcontroller::ibroker::invoke_initialize;
 
@@ -225,7 +224,7 @@ iBroker::initialize()
 }
 
 bool
-iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const wchar_t * token )
+iTask::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const wchar_t * token )
 {
     internal::session_data data;
     data.session_ = ControlServer::Session::_duplicate( session );
@@ -258,7 +257,7 @@ iBroker::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, con
 }
 
 bool
-iBroker::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
+iTask::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
 {
     internal::session_data data;
     data.session_ = ControlServer::Session::_duplicate( session );
@@ -276,19 +275,19 @@ iBroker::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
 }
 
 ::ControlServer::eStatus
-iBroker::getStatusCurrent()
+iTask::getStatusCurrent()
 {
     return status_current_;
 }
 
 ::ControlServer::eStatus
-iBroker::getStatusBeging()
+iTask::getStatusBeging()
 {
     return status_being_;
 }
 
 bool
-iBroker::observer_update_data( unsigned long parentId, unsigned long objid, long pos )
+iTask::observer_update_data( unsigned long parentId, unsigned long objid, long pos )
 {
     ACE_Message_Block * mb = new ACE_Message_Block(128);
     unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
@@ -303,7 +302,7 @@ iBroker::observer_update_data( unsigned long parentId, unsigned long objid, long
 }
 
 bool
-iBroker::observer_update_method( unsigned long parentId, unsigned long objid, long pos )
+iTask::observer_update_method( unsigned long parentId, unsigned long objid, long pos )
 {
     ACE_Message_Block * mb = new ACE_Message_Block(128);
     unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
@@ -318,7 +317,7 @@ iBroker::observer_update_method( unsigned long parentId, unsigned long objid, lo
 }
 
 bool
-iBroker::observer_update_event( unsigned long parentId, unsigned long objid, long pos, unsigned long events )
+iTask::observer_update_event( unsigned long parentId, unsigned long objid, long pos, unsigned long events )
 {
     ACE_Message_Block * mb = new ACE_Message_Block(128);
     unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
@@ -358,7 +357,7 @@ internal::session_data::operator == ( const ControlServer::Session_ptr t ) const
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 int
-iBroker::handle_input( ACE_HANDLE )
+iTask::handle_input( ACE_HANDLE )
 {
     ACE_Message_Block *mb;
     ACE_Time_Value zero( ACE_Time_Value::zero );
@@ -371,9 +370,9 @@ iBroker::handle_input( ACE_HANDLE )
 }
 
 int
-iBroker::svc()
+iTask::svc()
 {
-    std::cout << "iBroker::svc() task started on thread :" << ACE_Thread::self() << std::endl;
+    std::cout << "iTask::svc() task started on thread :" << ACE_Thread::self() << std::endl;
     
     barrier_.wait();
     
@@ -400,7 +399,7 @@ iBroker::svc()
 }
 
 void
-iBroker::doit( ACE_Message_Block * mblk )
+iTask::doit( ACE_Message_Block * mblk )
 {
     using namespace adcontroller;
 
@@ -427,7 +426,7 @@ iBroker::doit( ACE_Message_Block * mblk )
 }
 
 void
-iBroker::dispatch( ACE_Message_Block * mblk, int disp )
+iTask::dispatch( ACE_Message_Block * mblk, int disp )
 {
     switch( disp ) {
     case constants::MB_EVENTLOG:
@@ -475,35 +474,35 @@ iBroker::dispatch( ACE_Message_Block * mblk, int disp )
 
 /////////////////
 void
-iBroker::handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value )
+iTask::handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value )
 {
     ACE_UNUSED_ARG( name );
     acewrapper::scoped_mutex_t<> lock( mutex_ );    
 
-	// TODO: apply barrier pattern and wait until all instrument has same state
+    // TODO: apply barrier pattern and wait until all instrument has same state
 /*
-		    , HEARTBEAT // formerly, it was timer signal
-		    , CONFIG_CHANGED
-		    , STATE_CHANGED
-		    , METHOD_RECEIVED
-		    , METHOD_STARTED
-		    , START_IN
-		    , START_OUT
-		    , INJECT_IN
-		    , INJECT_OUT
-		    , EVENT_IN
-		    , EVENT_OUT
-            , SETPTS_UPDATED
-            , ACTUAL_UPDATED
+  , HEARTBEAT // formerly, it was timer signal
+  , CONFIG_CHANGED
+  , STATE_CHANGED
+  , METHOD_RECEIVED
+  , METHOD_STARTED
+  , START_IN
+  , START_OUT
+  , INJECT_IN
+  , INJECT_OUT
+  , EVENT_IN
+  , EVENT_OUT
+  , SETPTS_UPDATED
+  , ACTUAL_UPDATED
 */
     // Following is just a quick debugging --> trigger spectrum display, should be removed
-	// Right code is implement SignalObserver and UpdateData event is the right place to issue event.
-	for ( session_vector_type::iterator it = session_begin(); it != session_end(); ++it )
-		it->receiver_->message( Receiver::eINSTEVENT(msgid), value );
+    // Right code is implement SignalObserver and UpdateData event is the right place to issue event.
+    for ( session_vector_type::iterator it = session_begin(); it != session_end(); ++it )
+        it->receiver_->message( Receiver::eINSTEVENT(msgid), value );
 }
 
 void
-iBroker::handle_dispatch( const EventLog::LogMessage& msg )
+iTask::handle_dispatch( const EventLog::LogMessage& msg )
 {
     acewrapper::scoped_mutex_t<> lock( mutex_ );    
     for ( session_vector_type::iterator it = session_begin(); it != session_end(); ++it )
@@ -511,40 +510,40 @@ iBroker::handle_dispatch( const EventLog::LogMessage& msg )
 }
 
 void
-iBroker::handle_dispatch( const ACE_Time_Value& )
+iTask::handle_dispatch( const ACE_Time_Value& )
 {
 }
 
 void
-iBroker::handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos )
+iTask::handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos )
 {
     pMasterObserver_->handle_data( parentId, objId, pos );
-	pMasterObserver_->forward_notice_update_data( parentId, objId, pos );
+    pMasterObserver_->forward_notice_update_data( parentId, objId, pos );
 }
 
 void
-iBroker::handle_observer_update_method( unsigned long parentId, unsigned long objId, long pos )
+iTask::handle_observer_update_method( unsigned long parentId, unsigned long objId, long pos )
 {
-	pMasterObserver_->forward_notice_method_changed( parentId, objId, pos );
+    pMasterObserver_->forward_notice_method_changed( parentId, objId, pos );
 }
 
 void
-iBroker::handle_observer_update_events( unsigned long parentId, unsigned long objId, long pos, unsigned long events )
+iTask::handle_observer_update_events( unsigned long parentId, unsigned long objId, long pos, unsigned long events )
 {
-	pMasterObserver_->forward_notice_update_events( parentId, objId, pos, events );
+    pMasterObserver_->forward_notice_update_events( parentId, objId, pos, events );
 }
 
 
 SignalObserver::Observer_ptr
-iBroker::getObserver()
+iTask::getObserver()
 {
-	PortableServer::POA_var poa = adcontroller::singleton::manager::instance()->poa();
-	if ( ! pMasterObserver_ ) {
-  		acewrapper::scoped_mutex_t<> lock( mutex_ );
-		if ( ! pMasterObserver_ )
-			pMasterObserver_.reset( new observer_i() );
-	}
-	CORBA::Object_ptr obj = poa->servant_to_reference( pMasterObserver_.get() );
+    PortableServer::POA_var poa = adcontroller::singleton::manager::instance()->poa();
+    if ( ! pMasterObserver_ ) {
+        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        if ( ! pMasterObserver_ )
+            pMasterObserver_.reset( new observer_i() );
+    }
+    CORBA::Object_ptr obj = poa->servant_to_reference( pMasterObserver_.get() );
     try {
         return SignalObserver::Observer::_narrow( obj );
     } catch ( CORBA::Exception& ) {

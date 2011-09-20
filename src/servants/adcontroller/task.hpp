@@ -52,16 +52,14 @@ namespace adcontroller {
 
     class iProxy;
     class oProxy;
-	class observer_i;
+    class observer_i;
 
-	namespace internal {
-        struct session_data;
-	}
+    namespace internal {  struct session_data;  }
 
-    class iBroker : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
+    class iTask : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
         
-        ~iBroker();
-        iBroker( size_t n_threads = 1 );
+        ~iTask();
+        iTask( size_t n_threads = 1 );
         
     public:  
         inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
@@ -100,7 +98,7 @@ namespace adcontroller {
         void doit( ACE_Message_Block * );
         void dispatch ( ACE_Message_Block *, int disp );
         
-        // int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );  <-- will handle in iBrokerManager
+        // int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );  <-- will handle in iTaskManager
 
         void handle_dispatch( const EventLog::LogMessage & );
         void handle_dispatch( const ACE_Time_Value& );
@@ -127,8 +125,8 @@ namespace adcontroller {
         size_t n_threads_;
 
         bool internal_disconnect( ControlServer::Session_ptr );
-		session_vector_type session_set_;
-		session_vector_type session_failed_;
+        session_vector_type session_set_;
+        session_vector_type session_failed_;
 
 	std::vector< boost::shared_ptr< iProxy > > iproxies_;
 	std::vector< boost::shared_ptr< oProxy > > oproxies_;

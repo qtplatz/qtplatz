@@ -50,17 +50,17 @@ namespace SampleBroker {
 
 namespace adcontroller {
 
-    class iBroker;
+    class iTask;
     class oProxy;
 
     class iProxy : public POA_Receiver, boost::noncopyable {
     public:
-        iProxy( iBroker& );
+        iProxy( iTask& );
 
         bool initialConfiguration( const adportable::Configuration& );
 
         // POA_Receiver
-		void message( ::Receiver::eINSTEVENT msg, CORBA::ULong value );
+        void message( ::Receiver::eINSTEVENT msg, CORBA::ULong value );
         void log( const EventLog::LogMessage& );
         void shutdown();
         void debug_print( CORBA::Long pri, CORBA::Long cat, const char * text );
@@ -89,7 +89,7 @@ namespace adcontroller {
         bool objref_;
         unsigned long objId_;
         Instrument::Session_var impl_;
-        iBroker& broker_;
+        iTask& task_;
         adportable::Configuration config_;
         std::wstring name_;
     };

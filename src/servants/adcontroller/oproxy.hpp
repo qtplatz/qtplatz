@@ -36,35 +36,35 @@
 
 namespace adcontroller {
 
-    class iBroker;
+    class iTask;
     class iProxy;
 
-	class oProxy : public POA_SignalObserver::ObserverEvents, boost::noncopyable {
+    class oProxy : public POA_SignalObserver::ObserverEvents, boost::noncopyable {
     public:
-		~oProxy();
-		oProxy( iBroker& );
+        ~oProxy();
+        oProxy( iTask& );
 
-		// POA_SignalObserver::ObserverEvents implementation
+        // POA_SignalObserver::ObserverEvents implementation
         virtual void OnUpdateData ( ::CORBA::ULong objId, ::CORBA::Long pos );
         virtual void OnMethodChanged ( ::CORBA::ULong objId, ::CORBA::Long pos );
         virtual void OnEvent ( ::CORBA::ULong objId, ::CORBA::ULong event,	::CORBA::Long pos );
 
-		// oProxy implementation
+        // oProxy implementation
         bool initialize();
-		bool connect( const std::wstring& token );
-		bool setInstrumentSession( Instrument::Session_ptr p );
-		size_t populateObservers( unsigned long objId );
+        bool connect( const std::wstring& token );
+        bool setInstrumentSession( Instrument::Session_ptr p );
+        size_t populateObservers( unsigned long objId );
         void setConfiguration( const adportable::Configuration& );
         void objId( unsigned long objid );
-		unsigned long objId() const;
-		SignalObserver::Observer_ptr getObject();
+        unsigned long objId() const;
+        SignalObserver::Observer_ptr getObject();
 
     private:
-		bool objref_;
-		unsigned long objId_;
-		iBroker& broker_;
-		Instrument::Session_var iSession_;
-		SignalObserver::Observer_var impl_;
+        bool objref_;
+        unsigned long objId_;
+        iTask& task_;
+        Instrument::Session_var iSession_;
+        SignalObserver::Observer_var impl_;
         adportable::Configuration config_;
     };
     
