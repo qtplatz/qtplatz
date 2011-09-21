@@ -49,7 +49,7 @@ SOURCES += adcontroller.cpp \
     cache.cpp \
     task.cpp \
     taskmanager.cpp \
-    logger.cpp
+    logging.cpp
 
 HEADERS += adcontroller.hpp \
         adcontroller_global.h \
@@ -67,7 +67,7 @@ HEADERS += adcontroller.hpp \
     cache.hpp \
     task.hpp \
     taskmanager.hpp \
-    logger.hpp
+    logging.hpp
 
 
 

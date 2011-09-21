@@ -58,16 +58,17 @@ iTask * iTask::instance_ = 0;
 namespace adcontroller {
     namespace internal {
 	
-        struct session_data {
-            bool operator == ( const session_data& ) const;
+        struct receiver_data {
+            bool operator == ( const receiver_data& ) const;
             bool operator == ( const Receiver_ptr ) const;
             bool operator == ( const ControlServer::Session_ptr ) const;
             ControlServer::Session_var session_;
             Receiver_var receiver_;
             std::wstring token_;
-            session_data() {}
-            session_data( const session_data& t )
-                : session_(t.session_), receiver_(t.receiver_), token_( t.token_ ) {
+            size_t failed_;
+            receiver_data() : failed_( 0 ) {}
+            receiver_data( const receiver_data& t )
+                : session_(t.session_), receiver_(t.receiver_), token_( t.token_ ), failed_( t.failed_ ) {
             }
         };
 	
@@ -250,28 +251,28 @@ iTask::initialize()
 bool
 iTask::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const wchar_t * token )
 {
-    internal::session_data data;
+    internal::receiver_data data;
     data.session_ = ControlServer::Session::_duplicate( session );
     data.receiver_ = Receiver::_duplicate( receiver );
     data.token_ = token;
     
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     
-    if ( std::find(session_set_.begin(), session_set_.end(), data ) != session_set_.end() )
+    if ( std::find(receiver_set_.begin(), receiver_set_.end(), data ) != receiver_set_.end() )
         return false;
-    
-    session_set_.push_back( data );
+
+    receiver_set_.push_back( data );
     
     // fire connect
-    using adcontroller::ibroker::invoke_connect;
-    std::for_each( iproxies_.begin(), iproxies_.end(), invoke_connect(token) );
-    std::for_each( oproxies_.begin(), oproxies_.end(), invoke_connect(token) );
+    //using adcontroller::ibroker::invoke_connect;
+    //std::for_each( iproxies_.begin(), iproxies_.end(), invoke_connect(token) );
+    //std::for_each( oproxies_.begin(), oproxies_.end(), invoke_connect(token) );
     
     do {
         using namespace adinterface::EventLog;
 	
-        LogMessageHelper log( L"A pair of session %1%, Receiver %2% has success connected" );
-        log % static_cast< void * >( session ) % static_cast<void *>(receiver);
+        LogMessageHelper log( L"A pair of session %1%, Receiver %2% from %3% has success connected" );
+        log % static_cast< void * >( session ) % static_cast<void *>( receiver ) % token;
         ACE_Message_Block * mb = marshal< ::EventLog::LogMessage >::put( log.get(), constants::MB_EVENTLOG );
 	
         this->putq( mb );
@@ -284,16 +285,16 @@ iTask::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const
 bool
 iTask::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
 {
-    internal::session_data data;
+    internal::receiver_data data;
     data.session_ = ControlServer::Session::_duplicate( session );
     data.receiver_ = Receiver::_duplicate( receiver );
     
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     
-    session_vector_type::iterator it = std::remove( session_set_.begin(), session_set_.end(), data );
+    receiver_vector_type::iterator it = std::remove( receiver_set_.begin(), receiver_set_.end(), data );
     
-    if ( it != session_set_.end() ) {
-        session_set_.erase( it, session_set_.end() );
+    if ( it != receiver_set_.end() ) {
+        receiver_set_.erase( it, receiver_set_.end() );
         return true;
     }
     return false;
@@ -361,20 +362,20 @@ iTask::observer_update_event( unsigned long parentId, unsigned long objid, long 
 ///////////////////////////////////////////////////////////////
 
 bool
-internal::session_data::operator == ( const session_data& t ) const
+internal::receiver_data::operator == ( const receiver_data& t ) const
 {
     return receiver_->_is_equivalent( t.receiver_.in() )
         && session_->_is_equivalent( t.session_.in() );
 }
 
 bool
-internal::session_data::operator == ( const Receiver_ptr t ) const
+internal::receiver_data::operator == ( const Receiver_ptr t ) const
 {
     return receiver_->_is_equivalent( t );
 }
 
 bool
-internal::session_data::operator == ( const ControlServer::Session_ptr t ) const
+internal::receiver_data::operator == ( const ControlServer::Session_ptr t ) const
 {
     return session_->_is_equivalent( t );
 }
@@ -496,16 +497,30 @@ iTask::handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned 
 */
     // Following is just a quick debugging --> trigger spectrum display, should be removed
     // Right code is implement SignalObserver and UpdateData event is the right place to issue event.
-    for ( session_vector_type::iterator it = session_begin(); it != session_end(); ++it )
-        it->receiver_->message( Receiver::eINSTEVENT(msgid), value );
+    BOOST_FOREACH( internal::receiver_data& d, this->receiver_set_ ) {
+        try {
+            d.receiver_->message( Receiver::eINSTEVENT( msgid ), value );
+        } catch ( CORBA::Exception& ex ) {
+            d.failed_++;
+            adportable::debug(__FILE__, __LINE__) << "iTask::handle_dispatch message got an exception";
+        }
+    }
 }
 
 void
 iTask::handle_dispatch( const EventLog::LogMessage& msg )
 {
+    adportable::debug() << "iTask::handle_dispatch( EventLog: "  << msg.format.in() << " )";
+
     acewrapper::scoped_mutex_t<> lock( mutex_ );    
-    for ( session_vector_type::iterator it = session_begin(); it != session_end(); ++it )
-        it->receiver_->log( msg );
+
+    BOOST_FOREACH( internal::receiver_data& d, receiver_set_ ) {
+        try {
+            d.receiver_->log( msg );
+        } catch ( CORBA::Exception& ex ) {
+            d.failed_++;
+        }
+    }
 }
 
 void
@@ -522,11 +537,12 @@ iTask::handle_dispatch_command( ACE_Message_Block * mblk )
     if ( cmd == constants::SESSION_COMMAND_ECHO ) {
         ACE_CString s;
         cdr >> s;
-        using internal::session_data;
-        BOOST_FOREACH( session_data& d, session_set_ ) {
+        using internal::receiver_data;
+        BOOST_FOREACH( receiver_data& d, receiver_set_ ) {
             try {
                 d.receiver_->debug_print( 0, 0, s.c_str() );
             } catch ( CORBA::Exception& ex ) {
+                d.failed_++;
                 adportable::debug(__FILE__, __LINE__) << "iTask::handle_dispatch_command 'echo' got an exception";
             }
         }

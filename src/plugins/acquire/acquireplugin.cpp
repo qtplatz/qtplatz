@@ -160,11 +160,11 @@ AcquirePlugin::~AcquirePlugin()
 
 AcquirePlugin::AcquirePlugin() : manager_(0)
                                , pImpl_( new AcquireImpl() )
-							   , actionConnect_(0)
-							   , actionRunStop_(0)
-							   , action3_(0)
-							   , action4_(0)
-							   , action5_(0)
+                               , actionConnect_(0)
+                               , actionRunStop_(0)
+                               , action3_(0)
+                               , action4_(0)
+                               , action5_(0)
                                , traceBox_(0) 
 {
 }
@@ -356,15 +356,10 @@ void
 AcquirePlugin::extensionsInitialized()
 {
     std::string ior = adplugin::manager::iorBroker();
-	CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
+    CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
     Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, ior );
     if ( ! CORBA::is_nil( mgr ) )
         pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
-
-    do {
-       
-    } while(0);
-
     manager_->OnInitialUpdate();
 }
 
@@ -384,8 +379,8 @@ AcquirePlugin::actionConnect()
 
         CORBA::Object_var obj
             = acewrapper::brokerhelper::name_to_object( adplugin::ORBManager::instance()->orb()
-                                                      , acewrapper::constants::adcontroller::manager::_name()
-                                                      , adplugin::manager::iorBroker() );
+                                                        , acewrapper::constants::adcontroller::manager::_name()
+                                                        , adplugin::manager::iorBroker() );
 
         if ( ! CORBA::is_nil( obj ) ) {
 
@@ -417,6 +412,8 @@ AcquirePlugin::actionConnect()
                         // connect only to 1st layer siblings ( := top shadow(cache) observer for each instrument )
                         SignalObserver::Observers_var siblings = observer_->getSiblings();
                         size_t nsize = siblings->length();
+
+                        adportable::debug() << "acquirepllugin::actionConnect signal observer " << nsize << " siblings found";
 
                         for ( size_t i = 0; i < nsize; ++i ) {
                             SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[i] );

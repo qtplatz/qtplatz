@@ -27,7 +27,9 @@
 #include "cache.hpp"
 #include <algorithm>
 #include <acewrapper/mutex.hpp>
+#include <adportable/debug.hpp>
 #include <boost/foreach.hpp>
+#include "logging.hpp"
 
 namespace adcontroller {
 
@@ -108,11 +110,13 @@ observer_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
 		      , const CORBA::WChar * token )
 {
     using namespace adcontroller::internal;
-    
+
     observer_events_data data;
     data.events_ = cb;
     data.token_ = token;
     data.freq_ = frequency;
+
+    Logging( L"observer_i::connect from %1% frequency: %2% token: %3%" ) % (void *)cb % frequency % token;
     
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     
@@ -139,46 +143,50 @@ observer_i::disconnect ( ::SignalObserver::ObserverEvents_ptr cb )
 ::CORBA::Boolean
 observer_i::isActive (void)
 {
-	return true;
+    return true;
 }
 
 ::SignalObserver::Observers *
 observer_i::getSiblings (void)
 {
-	SignalObserver::Observers_var vec( new SignalObserver::Observers );
+    SignalObserver::Observers_var vec( new SignalObserver::Observers );
     vec->length( sibling_set_.size() );
+
+    adportable::debug() << "observer_i::getSiblings() return " << sibling_set_.size();
 
     acewrapper::scoped_mutex_t<> lock( mutex_ );
 
     int i = 0;
-	for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it )
-		(*vec)[i++] = SignalObserver::Observer::_duplicate( it->cache_.in() );
+    for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it )
+        (*vec)[i++] = SignalObserver::Observer::_duplicate( it->cache_.in() );
 
-	return vec._retn();
+    return vec._retn();
 }
 
 ::CORBA::Boolean
 observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 {
-	internal::sibling_data data;
+    internal::sibling_data data;
     data.observer_ = SignalObserver::Observer::_duplicate( observer ); // real observer points to instrumets
+
+    adportable::debug() << "observer_i::addSibling()";
 
     acewrapper::scoped_mutex_t<> lock( mutex_ );
 
-	if ( ! CORBA::is_nil( data.observer_ ) ) {
+    if ( ! CORBA::is_nil( data.observer_ ) ) {
 
-		data.objId_ = data.observer_->objId();
-		data.pCache_i_.reset( new observer_i( data.observer_ ) );  // shadow (cache) observer
-		if ( data.pCache_i_ ) {
-			data.pCache_i_->assign_objId( data.objId_ );
-			PortableServer::POA_var poa = adcontroller::manager_i::instance()->poa();
-			CORBA::Object_ptr obj = poa->servant_to_reference( data.pCache_i_.get() );
-			data.cache_ = SignalObserver::Observer::_narrow( obj );
-		}
-		data.pCache_i_->populate_siblings();
-	}
-	sibling_set_.push_back( data );
-	return true;
+        data.objId_ = data.observer_->objId();
+        data.pCache_i_.reset( new observer_i( data.observer_ ) );  // shadow (cache) observer
+        if ( data.pCache_i_ ) {
+            data.pCache_i_->assign_objId( data.objId_ );
+            PortableServer::POA_var poa = adcontroller::manager_i::instance()->poa();
+            CORBA::Object_ptr obj = poa->servant_to_reference( data.pCache_i_.get() );
+            data.cache_ = SignalObserver::Observer::_narrow( obj );
+        }
+        data.pCache_i_->populate_siblings();
+    }
+    sibling_set_.push_back( data );
+    return true;
 }
 
 void

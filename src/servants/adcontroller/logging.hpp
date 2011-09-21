@@ -30,16 +30,17 @@
 
 namespace adcontroller {
 
-    class Logger  {
+    class Logging  {
         adinterface::EventLog::LogMessageHelper msg;
     public:
-        ~Logger();
-        Logger( const std::wstring& format = L""
+        ~Logging();
+        Logging( const std::wstring& format = L""
                 , ::EventLog::eMSGPRIORITY pri = ::EventLog::pri_DEBUG
                 , const std::wstring& msgId = L""
                 , const std::wstring& srcId = L"infitofd");
-        template<class T> Logger& operator % ( const T& t ) { msg % t; return *this; }
-        void commit();
+        template<class T> Logging& operator % ( const T& t ) { msg % t; return *this; }
+        void commit_to_broker();
+        void commit_to_task();
     };
 
 }

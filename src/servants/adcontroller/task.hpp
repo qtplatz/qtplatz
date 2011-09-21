@@ -53,7 +53,7 @@ namespace adcontroller {
     class oProxy;
     class observer_i;
 
-    namespace internal {  struct session_data;  }
+    namespace internal {  struct receiver_data;  }
 
     class iTask : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
         
@@ -84,11 +84,11 @@ namespace adcontroller {
 	bool observer_update_method( unsigned long parentId, unsigned long objid, long pos );
 	bool observer_update_event( unsigned long parentId, unsigned long objid, long pos, unsigned long ev );
 	
-	typedef std::vector<internal::session_data> session_vector_type;
-	inline session_vector_type::iterator session_begin() { return session_set_.begin(); };
-        inline session_vector_type::iterator session_end()   { return session_set_.end(); };
+	typedef std::vector<internal::receiver_data> receiver_vector_type;
+	inline receiver_vector_type::iterator receiver_begin() { return receiver_set_.begin(); };
+        inline receiver_vector_type::iterator receiver_end()   { return receiver_set_.end(); };
         
-        void register_failed( session_vector_type::iterator& );
+        void register_failed( receiver_vector_type::iterator& );
         void commit_failed();
 	
 	SignalObserver::Observer_ptr getObserver();
@@ -128,8 +128,8 @@ namespace adcontroller {
         size_t n_threads_;
 
         bool internal_disconnect( ControlServer::Session_ptr );
-        session_vector_type session_set_;
-        session_vector_type session_failed_;
+        receiver_vector_type receiver_set_;
+        receiver_vector_type receiver_failed_;
 
 	std::vector< boost::shared_ptr< iProxy > > iproxies_;
 	std::vector< boost::shared_ptr< oProxy > > oproxies_;
