@@ -35,29 +35,29 @@ namespace adcontroller {
 
     namespace internal {
 	
-	struct observer_events_data {
-	    bool operator == ( const observer_events_data& ) const;
-	    bool operator == ( const SignalObserver::ObserverEvents_ptr ) const;
-	    SignalObserver::ObserverEvents_var events_;
-	    std::wstring token_;
-	    SignalObserver::eUpdateFrequency freq_;
-	    observer_events_data() {}
-	    observer_events_data( const observer_events_data& t ) : events_( t.events_ )
-								  , token_( t.token_ )
-								  , freq_( t.freq_ )  {
-	    }
+        struct observer_events_data {
+            bool operator == ( const observer_events_data& ) const;
+            bool operator == ( const SignalObserver::ObserverEvents_ptr ) const;
+            SignalObserver::ObserverEvents_var events_;
+            std::wstring token_;
+            SignalObserver::eUpdateFrequency freq_;
+            observer_events_data() {}
+            observer_events_data( const observer_events_data& t ) : events_( t.events_ )
+                                                                  , token_( t.token_ )
+                                                                  , freq_( t.freq_ )  {
+            }
         };
 	
-	struct sibling_data {
-	    boost::shared_ptr< observer_i > pCache_i_;
+        struct sibling_data {
+            boost::shared_ptr< observer_i > pCache_i_;
             SignalObserver::Observer_var observer_;  // instrument oberver ( in instrument fifo )
             SignalObserver::Observer_var cache_;     // cache observer (in server cache) := pCache_i_
             unsigned long objId_;
-	    sibling_data() : objId_(0) {}
-	    sibling_data( const sibling_data& t ) : pCache_i_( t.pCache_i_ )
+            sibling_data() : objId_(0) {}
+            sibling_data( const sibling_data& t ) : pCache_i_( t.pCache_i_ )
                                                   , observer_( t.observer_ ) 
-						  , cache_( t.cache_ )
-						  , objId_( t.objId_ ) {
+                                                  , cache_( t.cache_ )
+                                                  , objId_( t.objId_ ) {
             }
         };
 	
@@ -110,6 +110,8 @@ observer_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
 		      , const CORBA::WChar * token )
 {
     using namespace adcontroller::internal;
+
+    adportable::debug() << "observer_i::connect : " << token;
 
     observer_events_data data;
     data.events_ = cb;

@@ -10,6 +10,7 @@ module EventLog {
 
     enum eMSGPRIORITY { pri_DEBUG
                         , pri_INFO     // informational
+                        , pri_WARNING  // user correctable, correction not required
                         , pri_ERROR    // user correctable error
                         , pri_EXCEPT   // exception, can be recoverd. Mostly a bug
                         , pri_PANIC // non-recoverable exception

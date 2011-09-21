@@ -136,6 +136,16 @@ namespace Acquire {
             }
         };
 
+        class ObserverEvents_i : public POA_SignalObserver::ObserverEvents {
+        public:
+            // implements ObserverEvents
+            void OnConfigChanged( CORBA::ULong, SignalObserver::eConfigStatus );
+            void OnUpdateData( CORBA::ULong, CORBA::Long );
+            void OnMethodChanged( CORBA::ULong, CORBA::Long );
+            void OnEvent( CORBA::ULong, CORBA::ULong, CORBA::Long );
+            void OnClose();
+        };
+
     }
 }
 
@@ -403,13 +413,17 @@ AcquirePlugin::actionConnect()
                     res = connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
                     res = connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
                         , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
+
                     if ( session_->status() <= ControlServer::eConfigured )
                         session_->initialize();
 
-                    observer_ = session_->getObserver();
+                    observer_ = session_->getObserver(); // master observer
                     if ( ! CORBA::is_nil( observer_.in() ) ) {
+                        // make connection to master observer (added 21st Sep. 2011)
+                        if ( ! masterObserverSink_ )
+                            masterObserverSink_.reset( new adplugin::QObserverEvents_i( observer_, L"acquireplugin" ) );
 
-                        // connect only to 1st layer siblings ( := top shadow(cache) observer for each instrument )
+                        // connect to 1st layer siblings ( := top shadow(cache) observer for each instrument )
                         SignalObserver::Observers_var siblings = observer_->getSiblings();
                         size_t nsize = siblings->length();
 
@@ -630,11 +644,38 @@ AcquirePlugin::handleRButtonRange( double x1, double x2, double y1, double y2 )
     }
 }
 
+/////////////////////
+void
+ObserverEvents_i::OnConfigChanged( CORBA::ULong, SignalObserver::eConfigStatus status )
+{
+}
+
+void
+ObserverEvents_i::OnUpdateData( CORBA::ULong, CORBA::Long )
+{
+}
+
+void
+ObserverEvents_i::OnMethodChanged( CORBA::ULong, CORBA::Long )
+{
+}
+
+void
+ObserverEvents_i::OnEvent( CORBA::ULong, CORBA::ULong, CORBA::Long )
+{
+}
+
+void
+ObserverEvents_i::OnClose()
+{
+}
+
 Q_EXPORT_PLUGIN( AcquirePlugin )
 
 
 ///////////////////
 
+#if 0
 static bool
 reduceNoise( adcontrols::MassSpectrum& ms )
 {
@@ -680,3 +721,5 @@ reduceNoise( adcontrols::MassSpectrum& ms )
 
 	return true;
 }
+
+#endif

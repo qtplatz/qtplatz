@@ -41,8 +41,7 @@ SOURCES += acquire.cpp \
 	acquireactions.cpp \
 	acquiremode.cpp \
 	acquireplugin.cpp \
-	acquireuimanager.cpp \
-	session.cpp
+	acquireuimanager.cpp
 
 HEADERS +=  acquire_global.h \
 	acquire.hpp \
@@ -50,8 +49,7 @@ HEADERS +=  acquire_global.h \
 	acquiremode.hpp \
 	acquireplugin.hpp \
 	acquireuimanager.hpp \
-	constants.hpp \
-	session.hpp
+	constants.hpp
 
 OTHER_FILES += acquire.pluginspec \
     acquire.config.xml \

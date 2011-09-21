@@ -43,11 +43,11 @@ QObserverEvents_i::QObserverEvents_i(QObject *parent) : QObject(parent)
 QObserverEvents_i::QObserverEvents_i( SignalObserver::Observer_ptr ptr
 									 , const std::wstring& token
 									 , SignalObserver::eUpdateFrequency freq 
-									 , QObject *parent)	 : impl_( SignalObserver::Observer::_duplicate(ptr) )
+									 , QObject *parent)	 : QObject(parent)
+                                                         , impl_( SignalObserver::Observer::_duplicate(ptr) )
 									                     , token_( token ) 
 														 , freq_( freq )
 														 , objId_(0) 
-														 , QObject(parent)
 {
 	if ( ! CORBA::is_nil( impl_.in() ) ) {
         impl_->connect( this->_this(), freq_, token.c_str() );
@@ -64,6 +64,12 @@ QObserverEvents_i::OnClose()
         connected_ = false;
         emit signal_OnClose();
     }
+}
+
+void
+QObserverEvents_i::OnConfigChanged( CORBA::ULong objId, SignalObserver::eConfigStatus status )
+{
+    emit signal_ConfigChanged( objId, status );
 }
 
 void
@@ -86,3 +92,4 @@ QObserverEvents_i::OnEvent( CORBA::ULong objId, CORBA::ULong event, CORBA::Long 
 {
 	emit signal_Event( objId, event, pos );
 }
+

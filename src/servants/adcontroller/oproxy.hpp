@@ -45,6 +45,7 @@ namespace adcontroller {
         oProxy( iTask& );
 
         // POA_SignalObserver::ObserverEvents implementation
+        virtual void OnConfigChanged ( ::CORBA::ULong objId, ::SignalObserver::eConfigStatus status );
         virtual void OnUpdateData ( ::CORBA::ULong objId, ::CORBA::Long pos );
         virtual void OnMethodChanged ( ::CORBA::ULong objId, ::CORBA::Long pos );
         virtual void OnEvent ( ::CORBA::ULong objId, ::CORBA::ULong event,	::CORBA::Long pos );

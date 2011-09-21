@@ -47,6 +47,7 @@ namespace adplugin {
         ~QObserverEvents_i();
         
         // implements ObserverEvents
+        void OnConfigChanged( CORBA::ULong objId, SignalObserver::eConfigStatus );
         void OnUpdateData( CORBA::ULong, CORBA::Long );
         void OnMethodChanged( CORBA::ULong, CORBA::Long );
         void OnEvent( CORBA::ULong, CORBA::ULong, CORBA::Long );
@@ -59,14 +60,15 @@ namespace adplugin {
         void signal_UpdateData( unsigned long, long );
         void signal_MethodChanged( unsigned long, long );
         void signal_Event( unsigned long, unsigned long, long );
+        void signal_ConfigChanged( unsigned long, long );
                                                                
     public slots:
 	
     private:
-        unsigned long objId_;
-        SignalObserver::eUpdateFrequency freq_;
-        std::wstring token_;
         SignalObserver::Observer_var impl_;
+        std::wstring token_;
+        SignalObserver::eUpdateFrequency freq_;
+        unsigned long objId_;
         bool connected_;
     };
 }

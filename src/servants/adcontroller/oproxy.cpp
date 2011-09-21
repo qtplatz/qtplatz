@@ -39,6 +39,11 @@ oProxy::oProxy( iTask& t ) : objref_(false)
 }
 
 void
+oProxy::OnConfigChanged ( ::CORBA::ULong objId, ::SignalObserver::eConfigStatus status )
+{
+}
+
+void
 oProxy::OnUpdateData ( ::CORBA::ULong objId, ::CORBA::Long pos )
 {
     task_.observer_update_data( this->objId_, objId, pos );
@@ -80,10 +85,10 @@ oProxy::setInstrumentSession( Instrument::Session_ptr iSession )
     
     iSession_ = iSession;
     if ( ! CORBA::is_nil( iSession_ ) ) {
-	impl_ = iSession_->getObserver();
-	if ( ! CORBA::is_nil( impl_.in() ) ) {
-	    objref_ = true;
-	    impl_->assign_objId( objId_ );
+        impl_ = iSession_->getObserver();
+        if ( ! CORBA::is_nil( impl_.in() ) ) {
+            objref_ = true;
+            impl_->assign_objId( objId_ );
         }
     }
     return objref_;
@@ -98,8 +103,8 @@ oProxy::populateObservers( unsigned long objid )
     size_t nsize = 0;
     SignalObserver::Observers_var vec = impl_->getSiblings();
     if ( ( vec.ptr() != 0) && ( nsize = vec->length() ) > 0 ) {
-	for ( size_t i = 0; i < nsize; ++i )
-	    vec[i]->assign_objId( ++objid );
+        for ( size_t i = 0; i < nsize; ++i )
+            vec[i]->assign_objId( ++objid );
     }
     return nsize;
 }

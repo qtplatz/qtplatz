@@ -58,6 +58,11 @@ module SignalObserver {
         , WellKnownEventsOnly
     };
 
+	enum eConfigStatus {
+		Offline
+		, Online
+	};
+
     struct timeval {
         unsigned long long sec;
         unsigned long usec;
@@ -85,6 +90,8 @@ module SignalObserver {
         any data;
         any method;                // data acquisition method, sample information etc., which can be nil
     };
+
+	
     
     struct AveragerData {
         unsigned long long uptime;
@@ -97,6 +104,9 @@ module SignalObserver {
     };
 
     interface ObserverEvents {
+		// Master observer tells you if new device is up or down
+		oneway void OnConfigChanged( in unsigned long objId, in eConfigStatus status );
+
         // OnUpdateData tells you 'new data' at data number 'pos' is now ready to read
         oneway void OnUpdateData( in unsigned long objId, in long pos );
 

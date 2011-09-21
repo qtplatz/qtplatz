@@ -62,6 +62,7 @@ namespace Acquire {
 
         class AcquireUIManager;
         class AcquireImpl;
+        class ObserverEvents_i;
 
         //------------
         class AcquirePlugin : public ExtensionSystem::IPlugin {
@@ -120,6 +121,7 @@ namespace Acquire {
             // <--
             boost::scoped_ptr< adplugin::QReceiver_i > receiver_i_;
             boost::scoped_ptr< adplugin::QObserverEvents_i > observer_i_;
+            boost::shared_ptr< adplugin::QObserverEvents_i > masterObserverSink_;
             std::vector< boost::shared_ptr< adplugin::QObserverEvents_i > > sinkVec_;
             std::vector< std::wstring > trace_descriptions_;
             QComboBox * traceBox_;

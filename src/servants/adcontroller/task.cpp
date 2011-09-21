@@ -25,6 +25,7 @@
 #include "task.hpp"
 #include "iproxy.hpp"
 #include "oproxy.hpp"
+#include "logging.hpp"
 #include <ace/Reactor.h>
 #include <ace/Thread_Manager.h>
 #include <adinterface/receiverC.h>
@@ -189,10 +190,12 @@ iTask::initialize_configuration()
     if ( status_current_ >= ControlServer::eConfigured )
         return true;
 
+    Logging(L"iTask::initialize_configuration...", ::EventLog::pri_DEBUG );
+
     SignalObserver::Observer_var masterObserver = getObserver();
     if ( CORBA::is_nil( masterObserver.in() ) ) {
         assert(0);
-        throw std::runtime_error( "iTask::configComplete - can't get master observer servant" );
+        throw std::runtime_error( "iTask::initialize_configuration - can't get master observer servant" );
     }
 
     int objid = 0;
@@ -200,15 +203,19 @@ iTask::initialize_configuration()
         Configuration & item = *it;
 
         ++objid;
-
         // initialize instrument proxy
         boost::shared_ptr<iProxy> pProxy( new iProxy( *this ) );
         if ( pProxy ) {
             pProxy->objId( objid );
-            if ( ! pProxy->initialConfiguration( item ) )
+            if ( ! pProxy->initialConfiguration( item ) ) {
+                Logging(L"iTask::initialize_configuration -- instrument initialization failed for \"%1%\""
+                        , ::EventLog::pri_WARNING ) % item.name();
                 return false;
+            }
             acewrapper::scoped_mutex_t<> lock( mutex_ );
             iproxies_.push_back( pProxy );
+            Logging(L"iTask::initialize_configuration -- instrument \"%1%\" successfully initialized as objId %2%"
+                    , ::EventLog::pri_INFO )  % item.name() % objid;
         }
 
         // initialize observer proxy
@@ -220,6 +227,8 @@ iTask::initialize_configuration()
                 poProxy->setConfiguration( item );
                 if ( poProxy->setInstrumentSession( iSession ) ) { // assign objid to source objects
                     size_t n = poProxy->populateObservers( objid );
+                    Logging(L"iTask::initialize_configuration -- instrument has %1% signal observers"
+                            , ::EventLog::pri_INFO ) % item.name() % n;
                     objid += n;
                 }
                 acewrapper::scoped_mutex_t<> lock( mutex_ );
@@ -230,7 +239,14 @@ iTask::initialize_configuration()
             }
         }
     }
+
+    // fire connect
+    using adcontroller::ibroker::invoke_connect;
+    std::for_each( iproxies_.begin(), iproxies_.end(), invoke_connect(L"iTask") );
+    std::for_each( oproxies_.begin(), oproxies_.end(), invoke_connect(L"iTask") );
+
     status_current_ = status_being_ = ControlServer::eConfigured;  // relevant modules are able to access.
+    Logging(L"iTask::initialize_configuration completed.", ::EventLog::pri_INFO );
     return true;
 }
 
@@ -263,22 +279,9 @@ iTask::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const
 
     receiver_set_.push_back( data );
     
-    // fire connect
-    //using adcontroller::ibroker::invoke_connect;
-    //std::for_each( iproxies_.begin(), iproxies_.end(), invoke_connect(token) );
-    //std::for_each( oproxies_.begin(), oproxies_.end(), invoke_connect(token) );
-    
-    do {
-        using namespace adinterface::EventLog;
-	
-        LogMessageHelper log( L"A pair of session %1%, Receiver %2% from %3% has success connected" );
-        log % static_cast< void * >( session ) % static_cast<void *>( receiver ) % token;
-        ACE_Message_Block * mb = marshal< ::EventLog::LogMessage >::put( log.get(), constants::MB_EVENTLOG );
-	
-        this->putq( mb );
-	
-    } while(0);
-    
+    Logging( L"A pair of session %1%, Receiver %2% from \"%3%\" has success connected"
+             , EventLog::pri_INFO ) % static_cast< void * >( session ) % static_cast<void *>( receiver ) % token;
+
     return true;
 }
 
