@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="adcontroller"
 	ProjectGUID="{28579B28-E02E-39FE-86A6-9A4E8C6A329A}"
+	RootNamespace="adcontroller"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -212,15 +213,11 @@
 				>
 			</File>
 			<File
-				RelativePath="ibroker.cpp"
-				>
-			</File>
-			<File
-				RelativePath="ibrokermanager.cpp"
-				>
-			</File>
-			<File
 				RelativePath="iproxy.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\logging.cpp"
 				>
 			</File>
 			<File
@@ -253,6 +250,14 @@
 			</File>
 			<File
 				RelativePath="signal_handler.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\task.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\taskmanager.cpp"
 				>
 			</File>
 		</Filter>
@@ -366,58 +371,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="ibroker.hpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="ibrokermanager.hpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="iproxy.hpp"
 				>
 				<FileConfiguration
@@ -442,6 +395,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\logging.hpp"
+				>
 			</File>
 			<File
 				RelativePath="manager_i.hpp"
@@ -676,6 +633,14 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\task.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\taskmanager.hpp"
+				>
 			</File>
 		</Filter>
 	</Files>
