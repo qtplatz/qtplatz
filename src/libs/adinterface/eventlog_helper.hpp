@@ -26,7 +26,9 @@
 #pragma once
 
 #include <string>
-#include <boost/lexical_cast.hpp>
+#include <adportable/string.hpp>
+//#include <boost/lexical_cast.hpp>
+#include <boost/format.hpp>
 #include <adinterface/eventlogC.h>
 
 namespace adinterface {
@@ -35,23 +37,34 @@ namespace adinterface {
 
         class LogMessageHelper {
         public:
-            static std::wstring toString( const ::EventLog::LogMessage& );
-            
             LogMessageHelper( const std::wstring& format = L""
                               , unsigned long pri = 0
                               , const std::wstring& msgId = L""
                               , const std::wstring& srcId = L"");
             LogMessageHelper( const LogMessageHelper& );
+
             LogMessageHelper& format( const std::wstring& );
+
             template<class T> LogMessageHelper& operator % (const T& t) {
                 msg_.args.length( msg_.args.length() + 1 );
                 msg_.args[ msg_.args.length() - 1 ]
-                    = CORBA::wstring_dup( boost::lexical_cast< std::wstring >( t ).c_str() );
+                    = CORBA::wstring_dup( ( boost::wformat(L"%1%") % t ).str().c_str() );
                 return *this;
             }
+
             inline ::EventLog::LogMessage & get() { return msg_; }
+            static std::wstring toString( const ::EventLog::LogMessage& );
+            
         private:
             ::EventLog::LogMessage msg_;
         };
+
+        // template<> LogMessageHelper& LogMessageHelper::operator % (const std::string& t) {
+        //     msg_.args.length( msg_.args.length() + 1 );
+        //     msg_.args[ msg_.args.length() - 1 ]
+        //         = CORBA::wstring_dup( adportable::string::convert( t ).c_str() );
+        //     return *this;
+        // }
+        
     }
 }
