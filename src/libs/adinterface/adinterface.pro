@@ -35,7 +35,7 @@ HEADERS += interface.hpp \
         eventlog_helper.hpp \
     controlmethodhelper.hpp
 
-PRE_TARGETDEPS += eventlogC.cpp
+PRE_TARGETDEPS += eventlogC.cpp controlmethodC.cpp
 
 TAO_IDL = tao_idl
 
