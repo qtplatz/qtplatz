@@ -45,7 +45,11 @@ adinterface::EventLog::LogMessageHelper::toString( const ::EventLog::LogMessage&
         format % static_cast<const wchar_t *>( msg.args[i].in() );
 
     std::wostringstream o;
-    o << format;
+    try {
+        o << format;
+    } catch ( boost::exception& ex ) {
+        return fmt;
+    }
     return o.str();
 }
 

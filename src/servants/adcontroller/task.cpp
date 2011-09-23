@@ -227,7 +227,7 @@ iTask::initialize_configuration()
                 poProxy->setConfiguration( item );
                 if ( poProxy->setInstrumentSession( iSession ) ) { // assign objid to source objects
                     size_t n = poProxy->populateObservers( objid );
-                    Logging(L"iTask::initialize_configuration -- instrument has %1% signal observers"
+                    Logging(L"iTask::initialize_configuration -- \"%1%\" has %2% signal observers"
                             , ::EventLog::pri_INFO ) % item.name() % n;
                     objid += n;
                 }
