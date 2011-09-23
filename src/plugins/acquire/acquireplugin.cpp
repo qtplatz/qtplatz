@@ -440,7 +440,6 @@ AcquirePlugin::actionConnect()
                             populate( var );
                             // res = connect( sink.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
                             //     , this, SLOT( handle_update_data(unsigned long, long) ) );
-
                         }
                     }
                 }

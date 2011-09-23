@@ -72,7 +72,7 @@ Trace::operator += ( const TraceAccessor& ta )
         traceY_.push_back( pY[i] );
         events_.push_back( pE[i] );
         if ( pX )
-            traceX_.push_back( timeutil::toMinutes( pX[i] ) );
+            traceX_.push_back( pX[i] );
         else
             traceX_.push_back( timeutil::toMinutes( ta.getMinimumTime() + ta.sampInterval() * i ) );
     }
