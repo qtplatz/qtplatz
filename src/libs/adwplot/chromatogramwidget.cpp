@@ -160,18 +160,19 @@ ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
     while ( int( impl_->traces_.size() ) <= idx )
         impl_->traces_.push_back( TraceData<Trace>( *this ) );
 
-    QRectF rect;
+    TraceData<Trace> * trace = 0;
     try {
-        TraceData<Trace>& trace = boost::get< TraceData<Trace> >( impl_->traces_[ idx ] );
-        trace.setData( d );
-        rect = trace.get()->boundingRect();
+        trace = &boost::get< TraceData<Trace> >( impl_->traces_[ idx ] );
     } catch ( boost::bad_get& ) {
         std::cerr << "boost::bad_get at " << __FILE__ << " line: " << __LINE__ << std::endl;
     }
-
-    setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
-    setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.bottom(), rect.top() );
-    zoomer1_->setZoomBase();
+    if ( trace ) {
+        trace->setData( d );
+        QRectF rect = trace->get()->boundingRect();
+        setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
+        setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.bottom(), rect.top() );
+        zoomer1_->setZoomBase();
+    }
 }
 
 void
