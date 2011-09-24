@@ -495,6 +495,23 @@ void
 AcquirePlugin::actionSnapshot()
 {
     std::cerr << "actionSnapshot" << std::endl;
+
+    SignalObserver::Observers_var siblings = observer_->getSiblings();
+    for ( size_t i = 0; i < siblings->length(); ++i ) {
+        SignalObserver::Description_var desc = siblings[i]->getDescription();
+        if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
+            SignalObserver::Observers_var secondlayer = siblings[i]->getSiblings();
+            for ( size_t k = 0; k < secondlayer->length(); ++k ) {
+                SignalObserver::Description_var tgtdesc = secondlayer[k]->getDescription();
+                if ( tgtdesc->trace_method == SignalObserver::eTRACE_TRACE ) {
+                    unsigned long long uptime;
+                    secondlayer[k]->uptime( uptime );
+
+                    std::cerr << tgtdesc->trace_display_name.in() << " uptime: " << uptime << std::endl;
+                }
+            }
+        }
+    }
 }
 
 void
