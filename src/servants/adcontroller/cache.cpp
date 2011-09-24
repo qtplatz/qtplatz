@@ -110,9 +110,17 @@ namespace adcontroller {
 void
 Cache::uptime_range( unsigned long long& oldest, unsigned long long& newest )
 {
-    acewrapper::scoped_mutex_t<> lock( mutex_ );    
-    oldest = fifo_.front().rdbuf_->uptime;
-    newest = fifo_.back().rdbuf_->uptime;
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+
+    if ( fifo_.empty() ) {
+        oldest = newest = 0;
+    } else {
+        const Cache::CacheItem& first = fifo_.front();
+        const Cache::CacheItem& last = fifo_.back();
+        oldest = first.rdbuf_->uptime;
+        newest = last.rdbuf_->uptime;
+    }
+    // std::cerr << "Cache::uptime_range return " << oldest << ", " << newest << std::endl;    
 } 
 
 long

@@ -53,6 +53,7 @@
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
 #include <adportable/debug.hpp>
+#include <boost/filesystem/path.hpp>
 #include <stack>
 #include <qdebug.h>
 
@@ -80,7 +81,10 @@ Dataprocessor::Dataprocessor() : portfolio_( new portfolio::Portfolio() )
 bool
 Dataprocessor::create(const QString& token )
 {
-    adcontrols::datafile * file = adcontrols::datafile::open( qtwrapper::wstring::copy( token ), false );
+    boost::filesystem::path path( qtwrapper::wstring::copy( token ) );
+    path.replace_extension( L".adfs" );
+
+    adcontrols::datafile * file = adcontrols::datafile::create( path.wstring() );
     if ( file ) {
         ifileimpl_.reset( new IFileImpl( file, *this ) );
         file->accept( *ifileimpl_ );

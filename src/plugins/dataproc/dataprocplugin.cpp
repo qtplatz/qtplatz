@@ -355,8 +355,14 @@ void
 DataprocPlugin::handle_portfolio_created( const QString token )
 {
     // simulate file->open()
+#if defined DEBUG
+    qDebug() << "DataprocPlugin::handle_portfolio_created(" << token << ")";
+#endif
     boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
     if ( processor->create( token ) ) {
+#if defined DEBUG
+        qDebug() << "DataprocPlugin::handle_portfolio_created addDataprocessor(" << token << ")";
+#endif
         SessionManager::instance()->addDataprocessor( processor );
     }
 }
@@ -364,10 +370,13 @@ DataprocPlugin::handle_portfolio_created( const QString token )
 void
 DataprocPlugin::handle_folium_added( const QString token, const QString path, const QString id )
 {
+    std::cerr << "===== DataprocPlugin::handle_folium_added" << std::endl;
+
     Q_UNUSED( path );
     SessionManager::vector_type::iterator it = SessionManager::instance()->find( qtwrapper::wstring( token ) );
     if ( it != SessionManager::instance()->end() ) {
         
+        std::cerr << "===== DataprocPlugin::handle_folium_added found data" << std::endl;
         Broker::Folium_var var = brokerSession_->folium( qtwrapper::wstring( token ).c_str(), qtwrapper::wstring( id ).c_str() );
 
         // todo check type
@@ -381,6 +390,7 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
 
         adcontrols::ProcessMethod m;
         processor.addSpectrum( ms, m );
+
         //---------> for quick debug
         std::string name1( "C:/InfiTOF/" );
         std::string name2;
@@ -426,8 +436,10 @@ DataprocPlugin::extensionsInitialized()
                 brokerSession_ = mgr->getSession( L"acquire" );
                 pBrokerSessionEvent_ = new QBrokerSessionEvent;
                 brokerSession_->connect( "-user-", "-password-", "dataproc", pBrokerSessionEvent_->_this() );
-                connect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) ), this, SLOT(handle_portfolio_created( const QString )) );
-                connect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) ), this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
+                connect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) )
+                         , this, SLOT(handle_portfolio_created( const QString )) );
+                connect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) )
+                         , this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
             }
         } else {
             QMessageBox::critical( 0, "DataprocPlugin::extensionsInitialized", "can't find ior for adbroker -- maybe servant plugin load failed.");

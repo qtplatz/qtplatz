@@ -71,7 +71,7 @@ namespace adbroker {
 
         bool open();
         void close();
-        bool connect( Broker::Session_ptr, BrokerEventSink_ptr );
+        bool connect( Broker::Session_ptr, BrokerEventSink_ptr, const char * token );
         bool disconnect( Broker::Session_ptr, BrokerEventSink_ptr );
 
         struct session_data {
@@ -80,8 +80,9 @@ namespace adbroker {
             bool operator == ( const Broker::Session_ptr ) const;
             Broker::Session_var session_;
             BrokerEventSink_var receiver_;
+            std::string token_;
             session_data() {};
-            session_data( const session_data& t ) : session_(t.session_), receiver_(t.receiver_) {};
+            session_data( const session_data& t ) : session_(t.session_), receiver_(t.receiver_), token_(t.token_) {};
         };
 
         typedef std::vector<session_data> vector_type;
@@ -102,7 +103,7 @@ namespace adbroker {
         int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );
 
     public:
-        void internal_addSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& );
+        void internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& );
 
     private:
         friend class BrokerManager;

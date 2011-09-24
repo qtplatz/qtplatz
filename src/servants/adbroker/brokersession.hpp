@@ -37,12 +37,12 @@ class BrokerConfig;
 
 class BrokerSession {
 public:
-  BrokerSession();
-  BrokerSession( const BrokerConfig&, const BrokerToken& );
-
-  bool disconnect();
-  bool connect( const BrokerConfig, const std::wstring& user, const std::wstring& pass, 
-		const std::wstring& connString, const std::wstring& revision = L"" );
+    BrokerSession();
+    BrokerSession( const BrokerConfig&, const BrokerToken& );
+    
+    bool disconnect();
+    bool connect( const BrokerConfig, const std::wstring& user, const std::wstring& pass, 
+                  const std::wstring& connString, const std::wstring& revision = L"" );
 };
 
 #endif // BROKERSESSION_H

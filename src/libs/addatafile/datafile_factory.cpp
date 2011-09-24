@@ -55,7 +55,7 @@ bool
 datafile_factory::access( const std::wstring& filename, adcontrols::access_mode mode ) const
 {
     boost::filesystem::wpath path(filename);
-    if ( path.extension() == L".qtms" )
+    if ( path.extension() == L".qtms" ) // obsolete
         return mode == adcontrols::read_access;
     if ( path.extension() == L".adfs" )
         return mode == adcontrols::read_access || mode == adcontrols::write_access;

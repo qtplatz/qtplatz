@@ -40,6 +40,8 @@
 #include <portfolio/folium.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportable/float.hpp>
+#include <adportable/debug.hpp>
+#include <boost/foreach.hpp>
 #include <sstream>
 #include <iostream>
 
@@ -58,25 +60,25 @@ using namespace adbroker;
 namespace adbroker {
     namespace internal {
  
-    struct portfolio_created {
-        std::wstring token;
-        portfolio_created( const std::wstring& tok ) : token( tok ) {}
-        void operator () ( Task::session_data& d ) const {
-            d.receiver_->portfolio_created( token.c_str() );
-        }
-    };
-    //--------------------------
-    struct folium_added {
-        std::wstring token_;
-        std::wstring path_;
-        std::wstring id_;
-        folium_added( const std::wstring& tok, const std::wstring& path, const std::wstring id )
-            : token_( tok ), path_(path), id_(id) {
-        }
-        void operator () ( Task::session_data& d ) const {
-            d.receiver_->folium_added( token_.c_str(), path_.c_str(), id_.c_str() );
-        }
-    };
+        struct portfolio_created {
+            std::wstring token;
+            portfolio_created( const std::wstring& tok ) : token( tok ) {}
+            void operator () ( Task::session_data& d ) const {
+                d.receiver_->portfolio_created( token.c_str() );
+            }
+        };
+        //--------------------------
+        struct folium_added {
+            std::wstring token_;
+            std::wstring path_;
+            std::wstring id_;
+            folium_added( const std::wstring& tok, const std::wstring& path, const std::wstring id )
+                : token_( tok ), path_(path), id_(id) {
+            }
+            void operator () ( Task::session_data& d ) const {
+                d.receiver_->folium_added( token_.c_str(), path_.c_str(), id_.c_str() );
+            }
+        };
     }
 }
 
@@ -124,9 +126,10 @@ Task::close()
 }
 
 bool
-Task::connect( Broker::Session_ptr session, BrokerEventSink_ptr receiver )
+Task::connect( Broker::Session_ptr session, BrokerEventSink_ptr receiver, const char * token )
 {
     session_data data;
+    data.token_ = token;
     data.session_ = Broker::Session::_duplicate( session );
     data.receiver_ = BrokerEventSink::_duplicate( receiver );
 
@@ -223,7 +226,7 @@ Task::svc()
 }
 
 void
-do_addSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_ptr observer, double x1, double x2 )
+do_coaddSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_ptr observer, double x1, double x2 )
 {
     SignalObserver::Description_var desc = observer->getDescription();
     CORBA::WString_var clsid = observer->dataInterpreterClsid();
@@ -242,6 +245,7 @@ do_addSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_pt
     SignalObserver::DataReadBuffer_var dbuf;
 
     if ( observer->readData( pos, dbuf ) ) {
+
         try {
             const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( clsid.in() ); // L"InfiTOF"
             const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
@@ -255,9 +259,8 @@ do_addSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_pt
         }
         ++pos;
     }
-
     ms.addDescription( adcontrols::Description( L"create", text ) );
-    pTask->internal_addSpectrum( token, ms );
+    pTask->internal_coaddSpectrum( token, ms );
 }
 
 void
@@ -270,7 +273,7 @@ Task::doit( ACE_Message_Block * mblk )
     CORBA::WString_var msg, token;
     cdr >> token;
     cdr >> msg;
-    if ( std::wstring( msg ) == L"addSpectrum" ) {
+    if ( std::wstring( msg ) == L"coaddSpectrum" ) {
         SignalObserver::Observer_ptr observer;
         double x1(0), x2(0);
         cdr >> observer;
@@ -279,7 +282,7 @@ Task::doit( ACE_Message_Block * mblk )
 
         if ( CORBA::is_nil( observer ) )
             return;
-        do_addSpectrum( this, token, observer, x1, x2 );
+        do_coaddSpectrum( this, token, observer, x1, x2 );
     }
 }
 
@@ -288,16 +291,22 @@ Task::getPortfolio( const std::wstring& token )
 {
     std::map< std::wstring, boost::shared_ptr<portfolio::Portfolio> >::iterator it = portfolioVec_.find( token );
     if ( it == portfolioVec_.end() ) {
+
         portfolioVec_[ token ] = boost::shared_ptr<portfolio::Portfolio>( new portfolio::Portfolio );
         portfolioVec_[ token ]->create_with_fullpath( token );
 
-        std::for_each( session_set_.begin(), session_set_.end(), internal::portfolio_created( token ) );
+        BOOST_FOREACH( session_data& d, session_set_ ) {
+#if defined DEBUG && 0
+            adportable::debug(__FILE__, __LINE__) << "getPortfolio token=" << token << " created and fire to :" << d.token_;
+#endif
+            d.receiver_->portfolio_created( token.c_str() );
+        }
     }
     return *portfolioVec_[ token ];
 }
 
 void
-Task::internal_addSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& src )
+Task::internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& src )
 {
     portfolio::Portfolio& portfolio = getPortfolio( token );
 
@@ -310,9 +319,16 @@ Task::internal_addSpectrum( const std::wstring& token, const adcontrols::MassSpe
     //<-------
 
     std::wstring id = folium.id();
-    for ( vector_type::iterator it = session_set_.begin(); it != session_set_.end(); ++it ) {
-        std::for_each( session_set_.begin(), session_set_.end(), internal::folium_added( token, L"path", id ) );
+
+    BOOST_FOREACH( session_data& d, session_set_ ) {
+#if defined DEBUG && 0
+        std::wcerr << L"===== internal_coaddSpectrum folium id: " << id << L" token=" << token << std::endl;
+#endif
+        d.receiver_->folium_added( token.c_str(), L"path", id.c_str() );
     }
+    // for ( vector_type::iterator it = session_set_.begin(); it != session_set_.end(); ++it ) {
+    //     std::for_each( session_set_.begin(), session_set_.end(), internal::folium_added( token, L"path", id ) );
+    // }
 }
 
 portfolio::Folium

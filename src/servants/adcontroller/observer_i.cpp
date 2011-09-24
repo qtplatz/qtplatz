@@ -154,7 +154,7 @@ observer_i::getSiblings (void)
     SignalObserver::Observers_var vec( new SignalObserver::Observers );
     vec->length( sibling_set_.size() );
 
-    adportable::debug() << "observer_i::getSiblings() return " << sibling_set_.size();
+    // adportable::debug() << "observer_i::getSiblings() return " << sibling_set_.size();
 
     acewrapper::scoped_mutex_t<> lock( mutex_ );
 
@@ -239,10 +239,12 @@ observer_i::uptime ( ::CORBA::ULongLong_out usec )
 void
 observer_i::uptime_range( ::CORBA::ULongLong_out oldest, ::CORBA::ULongLong_out newest )
 {
+    std::cerr << "observer_i::uptime_range...";
     oldest = 0;
     newest = 0;
     if ( cache_ )
         cache_->uptime_range( oldest, newest );
+    // std::cerr << "observer_i::uptime_range return " << oldest << ", " << newest << std::endl;
 }
 
 ::CORBA::Boolean

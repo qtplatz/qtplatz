@@ -35,6 +35,7 @@
 #include <adplugin/qreceiver_i.hpp>
 #include <adplugin/qobserverevents_i.hpp>
 #include <adportable/debug.hpp>
+#include <adcontrols/timeutil.hpp>
 #include <adcontroller/adcontroller.hpp>
 
 #include <tao/Object.h>
@@ -494,23 +495,17 @@ AcquirePlugin::actionRunStop()
 void
 AcquirePlugin::actionSnapshot()
 {
-    std::cerr << "actionSnapshot" << std::endl;
     if ( CORBA::is_nil( observer_ ) )
         return;
-
     SignalObserver::Observers_var siblings = observer_->getSiblings();
     for ( size_t i = 0; i < siblings->length(); ++i ) {
         SignalObserver::Description_var desc = siblings[i]->getDescription();
         if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
-            SignalObserver::Observers_var secondlayer = siblings[i]->getSiblings();
-            for ( size_t k = 0; k < secondlayer->length(); ++k ) {
-                SignalObserver::Description_var tgtdesc = secondlayer[k]->getDescription();
-                if ( tgtdesc->trace_method == SignalObserver::eTRACE_TRACE ) {
-                    unsigned long long first, second;
-                    secondlayer[k]->uptime_range( first, second );
-                    std::cerr << tgtdesc->trace_display_name.in() << " uptime: " << first << ", " << second << std::endl;
-                }
-            }
+            unsigned long long first, second;
+            siblings[i]->uptime_range( first, second );
+            double m1 = double(second) / 60.0e6;
+            double m0 = double(second - 1000) / 60.0e6;  // 1s before
+            handleRButtonRange( m0, m1, 0, 0 );
         }
     }
 }
@@ -659,14 +654,14 @@ AcquirePlugin::handleRButtonRange( double x1, double x2, double y1, double y2 )
 
     for ( size_t i = 0; i < nsize; ++i ) {
         SignalObserver::Description_var desc = siblings[i]->getDescription();
-
+        
         if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
 
             SignalObserver::Observer_var tgt = SignalObserver::Observer::_duplicate( siblings[i] );
 
             if ( pImpl_ && ! CORBA::is_nil( pImpl_->brokerSession_ ) ) {
                 try {
-                    pImpl_->brokerSession_->addSpectrum( tgt, x1, x2 );
+                    pImpl_->brokerSession_->coaddSpectrum( tgt, x1, x2 );
                 } catch ( std::exception& ex ) {
                     QMessageBox::critical( 0, "acquireplugin::handleRButtonRange", ex.what() );
                 }

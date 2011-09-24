@@ -78,7 +78,7 @@ session_i::connect( const char * user, const char * pass, const char * token, Br
             sink.token_ = token;
             sink.user_ = user;
             event_sink_set_.push_back( sink );
-            pTask->connect( this->_this(), cb );
+            pTask->connect( this->_this(), cb, token );
         }
         return true;
     }
@@ -121,13 +121,14 @@ session_i::getChemicalFormula()
 }
 
 bool
-session_i::addSpectrum ( SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
+session_i::coaddSpectrum ( SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
 {
+    // std::cerr << "coaddSpectrum(" << x1 << ", " << x2 << "(min))" << std::endl;
     adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
     if ( pTask ) {
         TAO_OutputCDR cdr;
         cdr << token_.c_str();
-        cdr << L"addSpectrum";
+        cdr << L"coaddSpectrum";
         cdr << observer;
         cdr << x1;
         cdr << x2;

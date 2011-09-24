@@ -52,7 +52,7 @@ module Broker {
 
         ChemicalFormula getChemicalFormula();
 
-        boolean addSpectrum( in SignalObserver::Observer observer, in double x1, in double x2 );
+        boolean coaddSpectrum( in SignalObserver::Observer observer, in double x1, in double x2 );
         Folium folium( in wstring token, in wstring fileId );
     };
 
