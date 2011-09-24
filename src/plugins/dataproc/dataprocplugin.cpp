@@ -83,6 +83,7 @@
 #include <adplugin/manager.hpp>
 #include <adplugin/qbrokersessionevent.hpp>
 #include <boost/format.hpp>
+#include <boost/filesystem/path.hpp>
 #include <streambuf>
 #include <fstream>
 #include <iomanip>
@@ -370,10 +371,14 @@ DataprocPlugin::handle_portfolio_created( const QString token )
 void
 DataprocPlugin::handle_folium_added( const QString token, const QString path, const QString id )
 {
-    std::cerr << "===== DataprocPlugin::handle_folium_added" << std::endl;
+    qDebug() << "===== DataprocPlugin::handle_folium_added" << token << " path=" << path;
 
-    Q_UNUSED( path );
     SessionManager::vector_type::iterator it = SessionManager::instance()->find( qtwrapper::wstring( token ) );
+    if ( it == SessionManager::instance()->end() ) {
+        boost::filesystem::path path( qtwrapper::wstring::copy( token ) );
+        path.replace_extension( L".adfs" );
+        it = SessionManager::instance()->find( path.wstring() );
+    }
     if ( it != SessionManager::instance()->end() ) {
         
         std::cerr << "===== DataprocPlugin::handle_folium_added found data" << std::endl;
