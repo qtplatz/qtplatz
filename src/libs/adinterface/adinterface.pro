@@ -37,6 +37,73 @@ HEADERS += interface.hpp \
 
 PRE_TARGETDEPS += eventlogC.cpp controlmethodC.cpp
 
+QMAKE_CLEAN += brokereventS.h \
+               brokereventS.cpp \
+               brokereventS.inl \
+               brokereventC.h \
+               brokereventC.cpp \
+               brokereventC.inl \
+               controlmethodS.h \
+               controlmethodS.cpp \
+               controlmethodS.inl \
+               controlmethodC.h \
+               controlmethodC.cpp \
+               controlmethodC.inl \
+               controlserverS.h \
+               controlserverS.cpp \
+               controlserverS.inl \
+               controlserverC.h \
+               controlserverC.cpp \
+               controlserverC.inl \
+               global_constantsS.h \
+               global_constantsS.cpp \
+               global_constantsS.inl \
+               global_constantsC.h \
+               global_constantsC.cpp \
+               global_constantsC.inl \
+               eventlogS.h \
+               eventlogS.cpp \
+               eventlogS.inl \
+               eventlogC.h \
+               eventlogC.cpp \
+               eventlogC.inl \
+               instrumentS.h \
+               instrumentS.cpp \
+               instrumentS.inl \
+               instrumentC.h \
+               instrumentC.cpp \
+               instrumentC.inl \
+               loghandlerS.h \
+               loghandlerS.cpp \
+               loghandlerS.inl \
+               loghandlerC.h \
+               loghandlerC.cpp \
+               loghandlerC.inl \
+               receiverS.h \
+               receiverS.cpp \
+               receiverS.inl \
+               receiverC.h \
+               receiverC.cpp \
+               receiverC.inl \
+               samplebrokerS.h \
+               samplebrokerS.cpp \
+               samplebrokerS.inl \
+               samplebrokerC.h \
+               samplebrokerC.cpp \
+               samplebrokerC.inl \
+               signalobserverS.h \
+               signalobserverS.cpp \
+               signalobserverS.inl \
+               signalobserverC.h \
+               signalobserverC.cpp \
+               signalobserverC.inl \
+               brokerS.h \
+               brokerS.cpp \
+               brokerS.inl \
+               brokerC.h \
+               brokerC.cpp \
+               brokerC.inl
+               
 TAO_IDL = tao_idl
 
 tao_idlC.name = TAO_IDL_C ${QMAKE_FILE_IN}
