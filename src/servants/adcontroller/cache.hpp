@@ -47,6 +47,7 @@ namespace adcontroller {
         bool write( long pos, SignalObserver::DataReadBuffer_var& );
         bool read( long pos, SignalObserver::DataReadBuffer_out );
         long posFromTime( unsigned long long usec );
+        void uptime_range( unsigned long long& oldest, unsigned long long& newest );
 
         struct CacheItem {
             CacheItem( long pos, SignalObserver::DataReadBuffer_var& );

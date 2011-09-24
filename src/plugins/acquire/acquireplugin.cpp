@@ -495,6 +495,8 @@ void
 AcquirePlugin::actionSnapshot()
 {
     std::cerr << "actionSnapshot" << std::endl;
+    if ( CORBA::is_nil( observer_ ) )
+        return;
 
     SignalObserver::Observers_var siblings = observer_->getSiblings();
     for ( size_t i = 0; i < siblings->length(); ++i ) {
@@ -504,10 +506,9 @@ AcquirePlugin::actionSnapshot()
             for ( size_t k = 0; k < secondlayer->length(); ++k ) {
                 SignalObserver::Description_var tgtdesc = secondlayer[k]->getDescription();
                 if ( tgtdesc->trace_method == SignalObserver::eTRACE_TRACE ) {
-                    unsigned long long uptime;
-                    secondlayer[k]->uptime( uptime );
-
-                    std::cerr << tgtdesc->trace_display_name.in() << " uptime: " << uptime << std::endl;
+                    unsigned long long first, second;
+                    secondlayer[k]->uptime_range( first, second );
+                    std::cerr << tgtdesc->trace_display_name.in() << " uptime: " << first << ", " << second << std::endl;
                 }
             }
         }

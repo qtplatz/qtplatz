@@ -150,6 +150,9 @@ module SignalObserver {
         // this number never reset to zero while running
         void uptime( out unsigned long long usec );
 
+		// 
+        void uptime_range( out unsigned long long oldest, out unsigned long long newest );
+
         boolean readData( in long pos, out DataReadBuffer dataReadBuffer );
 
         // dataInterpreterClsid tells you object location that knows data array structure

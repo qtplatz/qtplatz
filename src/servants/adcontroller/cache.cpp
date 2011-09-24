@@ -93,19 +93,27 @@ Cache::read( long pos, SignalObserver::DataReadBuffer_out rdbuf )
 
 namespace adcontroller {
     namespace cache {
-	struct time_compare {
-	    bool operator () ( const Cache::CacheItem& lhs, unsigned long long rhs ) const {
-		return lhs.rdbuf_->uptime < rhs;
-	    }
-	    bool operator () ( unsigned long long lhs, const Cache::CacheItem& rhs ) const {
-		return lhs < rhs.rdbuf_->uptime;
-	    }
-	    bool operator () ( const Cache::CacheItem& lhs, const Cache::CacheItem& rhs ) const {
-		return lhs.rdbuf_->uptime < rhs.rdbuf_->uptime;
-	    }
-	};
+        struct time_compare {
+            bool operator () ( const Cache::CacheItem& lhs, unsigned long long rhs ) const {
+                return lhs.rdbuf_->uptime < rhs;
+            }
+            bool operator () ( unsigned long long lhs, const Cache::CacheItem& rhs ) const {
+                return lhs < rhs.rdbuf_->uptime;
+            }
+            bool operator () ( const Cache::CacheItem& lhs, const Cache::CacheItem& rhs ) const {
+                return lhs.rdbuf_->uptime < rhs.rdbuf_->uptime;
+            }
+        };
     } // cache
 } // adcontroller
+
+void
+Cache::uptime_range( unsigned long long& oldest, unsigned long long& newest )
+{
+    acewrapper::scoped_mutex_t<> lock( mutex_ );    
+    oldest = fifo_.front().rdbuf_->uptime;
+    newest = fifo_.back().rdbuf_->uptime;
+} 
 
 long
 Cache::posFromTime( unsigned long long usec )

@@ -230,9 +230,19 @@ observer_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
 void
 observer_i::uptime ( ::CORBA::ULongLong_out usec )
 {
-	if ( ! CORBA::is_nil( source_observer_ ) )
-		source_observer_->uptime( usec );
-	usec = 0;
+    usec = 0;
+    unsigned long long oldest;
+    if ( cache_ )
+        cache_->uptime_range( oldest, usec );
+}
+
+void
+observer_i::uptime_range( ::CORBA::ULongLong_out oldest, ::CORBA::ULongLong_out newest )
+{
+    oldest = 0;
+    newest = 0;
+    if ( cache_ )
+        cache_->uptime_range( oldest, newest );
 }
 
 ::CORBA::Boolean
