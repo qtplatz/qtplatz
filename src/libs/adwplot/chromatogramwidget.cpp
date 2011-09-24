@@ -46,6 +46,7 @@
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
 #include <boost/smart_ptr.hpp>
+#include <boost/variant.hpp>
 #include <queue>
 
 using namespace adwplot;
@@ -53,47 +54,81 @@ using namespace adwplot;
 namespace adwplot {
     namespace chromatogram_internal {
 
-	class SeriesData : public QwtSeriesData<QPointF> {
-	public:
-	    virtual ~SeriesData() {
-	    }
-	    SeriesData( const QVector< QPointF >& v, const QRectF& rc ) : rect_( rc ), v_( v ) {
-	    }
-	    SeriesData( const SeriesData& t ) : v_( t.v_ ) {
-	    }
-	    // implements QwtSeriesData<>
-	    virtual size_t size() const { return v_.size(); }
-	    virtual QPointF sample( size_t idx ) const { return v_[ idx ]; }
-	    virtual QRectF boundingRect() const { return rect_; }
-	    void boundingRect( const QRectF& rc ) { rect_ = rc; }
-	private:
-	    QRectF rect_;
-	    const QVector< QPointF >& v_;
-	};
-	
-	struct SeriesDataImpl {
-	    QVector< QPointF > d_;
-	    SeriesData * series_;  // for real time trace
-	    SeriesDataImpl() : series_(0) {}
-	};
-	
-	class TraceData {
-	public:
-	    TraceData( Dataplot& plot ) : curve_( plot ) {
-	    }
-	    TraceData( const TraceData& t ) : curve_( t.curve_ ), data_( t.data_ ) {
-	    }
-	    void setData( const adcontrols::Chromatogram& );
-	    void setData( const adcontrols::Trace& );
-	private:
-	    PlotCurve curve_;
-	    SeriesDataImpl data_;
-	};
+        template<class T> class series_data : public QwtSeriesData< QPointF >, boost::noncopyable {
+            T t_;
+        public:
+            series_data() {  }
+            // series_data( const T& t ) : t_( t ) {  }
+            inline operator T& () { return t_; };
+
+            // implements QwtSeriesData<>
+            virtual size_t size() const { return t_.size(); }
+            virtual QPointF sample( size_t idx ) const { 
+                using adcontrols::Chromatogram;
+                return QPointF( Chromatogram::toMinutes( t_.getTimeArray()[idx] ), t_.getIntensityArray()[idx] );
+            }
+            virtual QRectF boundingRect() const { return rect_; }
+
+            // series_data
+            void boundingRect( const QRectF& rc ) { rect_ = rc; }
+        private:
+            QRectF rect_;
+        };
+
+        // typedef boost::variant< series_data< adcontrols::Chromatogram>, series_data<adcontrols::Trace > > trace_variant;
+
+        template<class T> class TraceData {
+        public:
+            ~TraceData() {
+            }
+            TraceData( Dataplot& plot ) : curve_( plot ), data_( new series_data<T>() ) {
+            }
+            TraceData( const TraceData& t ) : curve_( t.curve_ ), data_( t.data_ ) {
+            }
+            void setData( const T& ) {
+            }
+            inline series_data<T>* get() { return data_.get(); }
+        private:
+            PlotCurve curve_;
+            boost::shared_ptr< series_data<T> > data_;  // must be shared pointer for push into vector
+        };
+
+        template<> void TraceData<adcontrols::Trace>::setData( const adcontrols::Trace& trace )
+        {
+            using adcontrols::Trace;
+            namespace ci = chromatogram_internal;
+
+            if ( trace.size() <= 2 )
+                return;
+
+            // TODO:  reractor code in order to avoid full data copy
+            static_cast<Trace&>(*data_) = trace;
+            QRectF rect;
+            rect.setCoords( data_->sample(0).x(), trace.range_y().first
+                            , data_->sample( trace.size() - 1 ).x(), trace.range_y().second );
+            data_->boundingRect( rect );
+            curve_.p()->setData( data_.get() );
+        }
+
+        template<> void TraceData<adcontrols::Chromatogram>::setData( const adcontrols::Chromatogram& c )
+        {
+            using adcontrols::Chromatogram;
+            const double * intens = c.getIntensityArray();
+
+            static_cast<Chromatogram&>(*data_) = c;
+            QRectF rect;
+            rect.setCoords( data_->sample(0).x(), intens[ c.min_element() ]
+                            , data_->sample( c.size() - 1 ).x(), intens[ c.max_element() ] );
+            data_->boundingRect( rect );
+            curve_.p()->setData( data_.get() );
+        }
+
+        typedef boost::variant< TraceData<adcontrols::Chromatogram>, TraceData<adcontrols::Trace> > trace_variant;        
     }
 
-    struct ChromatogramWidgetImpl {
+    struct ChromatogramWidgetImpl : boost::noncopyable {
         std::vector< Annotation > annotations_;
-        std::vector< chromatogram_internal::TraceData > traces_;
+        std::vector< chromatogram_internal::trace_variant > traces_;
         std::vector< Peak > peaks_;
         std::vector< Baseline > baselines_;	
     };
@@ -119,15 +154,24 @@ ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
     if ( d.size() < 2 )
         return;
 
+    using adcontrols::Trace;
     using chromatogram_internal::TraceData;
 
     while ( int( impl_->traces_.size() ) <= idx )
-        impl_->traces_.push_back( TraceData( *this ) );  // create QwtPlotCurve & Data
+        impl_->traces_.push_back( TraceData<Trace>( *this ) );
 
-    TraceData& trace = impl_->traces_[ idx ];
-    trace.setData( d );
+    QRectF rect;
+    try {
+        TraceData<Trace>& trace = boost::get< TraceData<Trace> >( impl_->traces_[ idx ] );
+        trace.setData( d );
+        rect = trace.get()->boundingRect();
+    } catch ( boost::bad_get& ) {
+        std::cerr << "boost::bad_get at " << __FILE__ << " line: " << __LINE__ << std::endl;
+    }
 
-    replot();
+    setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
+    setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.bottom(), rect.top() );
+    zoomer1_->setZoomBase();
 }
 
 void
@@ -138,10 +182,11 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
     impl_->baselines_.clear();
     impl_->traces_.clear();
 
+    using adcontrols::Chromatogram;
     using chromatogram_internal::TraceData;
 
-    impl_->traces_.push_back( TraceData( *this ) );
-    TraceData& trace = impl_->traces_.back();
+    impl_->traces_.push_back( TraceData<Chromatogram>( *this ) );
+    TraceData<Chromatogram>& trace = boost::get<TraceData<Chromatogram> >(impl_->traces_.back());
 
     trace.setData( c );
 
@@ -188,52 +233,17 @@ ChromatogramWidget::setBaseline( const adcontrols::Baseline& bs )
     impl_->baselines_.push_back( adwplot::Baseline( *this, bs ) );
 }
 
-using namespace adwplot::chromatogram_internal;
-
 void
-TraceData::setData( const adcontrols::Chromatogram& c )
+ChromatogramWidget::override_zoom_rect( QRectF& )
 {
-    const double * intens = c.getIntensityArray();
-    const double * times = c.getTimeArray();
-    const size_t size = c.size();
-
-    data_.d_.resize( size );
-
-    if ( times ) {
-        for ( size_t i = 0; i < size; ++i )
-            data_.d_[i] = QPointF( adcontrols::Chromatogram::toMinutes( times[i] ), intens[i] );
-    } else {
-        for ( size_t i = 0; i < size; ++i )
-            data_.d_[i] = QPointF( adcontrols::Chromatogram::toMinutes( c.timeFromDataIndex( i ) ), intens[i] );
-    }
-
-    QRectF rect;
-    std::pair< double, double > time_range = adcontrols::timeutil::toMinutes( c.timeRange() );
-
-    rect.setCoords( time_range.first, intens[ c.min_element() ], time_range.second, intens[ c.max_element() ] );
-
-    curve_.p()->setData( new SeriesData( data_.d_, rect ) );
-
 }
 
 void
-TraceData::setData( const adcontrols::Trace& trace )
+ChromatogramWidget::zoom( const QRectF& rect )
 {
-    if ( trace.size() <= 2 )
-        return;
-
-    const double *x = trace.getTimeArray();
-    const double *y = trace.getIntensityArray();
-    size_t current_size = data_.d_.size();
-
-    for ( size_t i = current_size; i < trace.size(); ++i )
-        data_.d_.push_back( QPointF( adcontrols::timeutil::toMinutes( x[i] ), y[i] ) );
-
-    QRectF rect;
-    rect.setCoords( data_.d_[0].x(), trace.range_y().first, data_.d_[ data_.d_.size() - 1 ].x(), trace.range_y().second );
-    if ( ! data_.series_ ) {
-        data_.series_ = new SeriesData( data_.d_, rect );
-        curve_.p()->setData( data_.series_ );
-    }
-    data_.series_->boundingRect( rect );
+    zoomer1_->zoom( rect );
 }
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+

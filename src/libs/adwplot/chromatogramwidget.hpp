@@ -44,7 +44,7 @@ namespace adwplot {
     class SeriesData;
     class Annotation;
 
-    namespace chromatogram_internal { class TraceData; }
+    // namespace chromatogram_internal { class TraceData; }
 
     class ChromatogramWidget : public Dataplot {
         Q_OBJECT
@@ -60,15 +60,11 @@ namespace adwplot {
     signals:
 
     public slots:
+        virtual void zoom( const QRectF& );
+        virtual void override_zoom_rect( QRectF& );
 
     private:
-	struct ChromatogramWidgetImpl * impl_;
-/*
-        std::vector< Annotation > annotations_;
-        std::vector< chromatogram_internal::TraceData > traces_;
-        std::vector< Peak > peaks_;
-        std::vector< Baseline > baselines_;
-*/
+        struct ChromatogramWidgetImpl * impl_;
     };
 
 }

@@ -179,8 +179,6 @@ SpectrumWidget::zoom( const QRectF& rect )
     impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
 }
 
-
-
 void
 SpectrumWidget::clear()
 {
