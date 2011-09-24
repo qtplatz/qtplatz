@@ -175,6 +175,7 @@ AcquirePlugin::AcquirePlugin() : manager_(0)
                                , action3_(0)
                                , action4_(0)
                                , action5_(0)
+                               , actionSnapshot_(0)
                                , traceBox_(0) 
 {
 }
@@ -201,6 +202,10 @@ AcquirePlugin::initialize_actions()
   
     action5_ = new QAction(QIcon(Constants::ICON_STOP_SMALL), tr("Stop inlet..."), this);
     // connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
+
+    //------------ snapshot -------------
+    actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
+    connect( actionSnapshot_, SIGNAL(triggered()), this, SLOT(actionSnapshot()) );
   
     //const AcquireManagerActions& actions = manager_->acquireManagerActions();
     QList<int> globalcontext;
@@ -217,6 +222,7 @@ AcquirePlugin::initialize_actions()
         cmd = am->registerAction( action3_, Constants::RUN, globalcontext );
         cmd = am->registerAction( action4_, Constants::STOP, globalcontext );
         cmd = am->registerAction( action5_, Constants::ACQUISITION, globalcontext );
+        cmd = am->registerAction( actionSnapshot_, "acquire.shanpshot", globalcontext );
     }
 }
 
@@ -303,6 +309,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
             toolBarLayout->setSpacing(0);
             Core::ActionManager *am = core->actionManager();
             if ( am ) {
+                toolBarLayout->addWidget( toolButton( actionSnapshot_ ) );
                 toolBarLayout->addWidget( new Utils::StyledSeparator );
                 toolBarLayout->addWidget( new QLabel( tr("Traces:") ) );
                 traceBox_ = new QComboBox;
@@ -435,11 +442,7 @@ AcquirePlugin::actionConnect()
 
                         for ( size_t i = 0; i < nsize; ++i ) {
                             SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[i] );
-                            // boost::shared_ptr<adplugin::QObserverEvents_i> sink( new adplugin::QObserverEvents_i( var, L"acquire.ui" ) );
-                            // sinkVec_.push_back( sink );
                             populate( var );
-                            // res = connect( sink.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
-                            //     , this, SLOT( handle_update_data(unsigned long, long) ) );
                         }
                     }
                 }
@@ -486,6 +489,12 @@ AcquirePlugin::actionDisconnect()
 void
 AcquirePlugin::actionRunStop()
 {
+}
+
+void
+AcquirePlugin::actionSnapshot()
+{
+    std::cerr << "actionSnapshot" << std::endl;
 }
 
 void

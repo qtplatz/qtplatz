@@ -80,6 +80,7 @@ namespace Acquire {
             void actionConnect();
             void actionDisconnect();
             void actionRunStop();
+            void actionSnapshot();
 
             void handle_message( unsigned long msg, unsigned long value );
             void handle_log( QByteArray );
@@ -104,6 +105,7 @@ namespace Acquire {
             QAction * action3_;
             QAction * action4_;
             QAction * action5_;
+            QAction * actionSnapshot_;
 
             void action1();
             void action2();
