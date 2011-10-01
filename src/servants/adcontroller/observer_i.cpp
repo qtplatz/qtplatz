@@ -231,9 +231,12 @@ void
 observer_i::uptime ( ::CORBA::ULongLong_out usec )
 {
     usec = 0;
+    unsigned long long newest;
     unsigned long long oldest;
-    if ( cache_ )
-        cache_->uptime_range( oldest, usec );
+    if ( cache_ ) {
+        cache_->uptime_range( oldest, newest );
+        usec = newest;
+    }
 }
 
 void
@@ -242,9 +245,12 @@ observer_i::uptime_range( ::CORBA::ULongLong_out oldest, ::CORBA::ULongLong_out 
     std::cerr << "observer_i::uptime_range...";
     oldest = 0;
     newest = 0;
-    if ( cache_ )
-        cache_->uptime_range( oldest, newest );
-    // std::cerr << "observer_i::uptime_range return " << oldest << ", " << newest << std::endl;
+    if ( cache_ ) {
+        unsigned long long t0, t1;
+        cache_->uptime_range( t0, t1 );
+        oldest = t0;
+        newest = t1;
+    }
 }
 
 ::CORBA::Boolean
