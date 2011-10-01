@@ -150,7 +150,7 @@ namespace Acquire {
     }
 }
 
-static bool reduceNoise( adcontrols::MassSpectrum& ms );
+// static bool reduceNoise( adcontrols::MassSpectrum& ms );
 
 // static
 QToolButton * 
@@ -501,7 +501,7 @@ AcquirePlugin::actionSnapshot()
     for ( size_t i = 0; i < siblings->length(); ++i ) {
         SignalObserver::Description_var desc = siblings[i]->getDescription();
         if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
-            unsigned long long first, second;
+            CORBA::ULongLong first, second;
             siblings[i]->uptime_range( first, second );
             double m1 = double(second) / 60.0e6;
             double m0 = double(second - 1000) / 60.0e6;  // 1s before
@@ -672,7 +672,7 @@ AcquirePlugin::handleRButtonRange( double x1, double x2, double y1, double y2 )
 
 /////////////////////
 void
-ObserverEvents_i::OnConfigChanged( CORBA::ULong, SignalObserver::eConfigStatus status )
+ObserverEvents_i::OnConfigChanged( CORBA::ULong, SignalObserver::eConfigStatus )
 {
 }
 
