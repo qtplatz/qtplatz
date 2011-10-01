@@ -149,8 +149,8 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     filename_ = filename;
     processedDataset_.reset( new adcontrols::ProcessedDataset );
 
-    if ( ( mounted_ = dbf_.mount( filename.c_str() ) ) )
-        return true;
+    if ( ( mounted_ = dbf_.mount( filename.c_str() ) ) ) 
+        return loadContents();
 
     if ( ( mounted_ = dbf_.create( filename.c_str() ) ) )
         return true;
@@ -230,6 +230,7 @@ datafile::getFunctionCount() const
     return 1;
 }
 
+
 ////////////////////////////////////////////////////
 
 // SaveFileAs come in here
@@ -273,6 +274,21 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
     return true;
 }
 
+bool
+datafile::loadContents()
+{
+    if ( ! mounted_ )
+        return false;
+
+    std::vector< adfs::folder > folders = dbf_.folders();
+        
+    
+    
+
+    return true;
+}
+
+///-------------------------------------------------------------------------------------
 bool
 detail::saveFolder::operator () ( const portfolio::Folder& folder )
 {
@@ -354,3 +370,4 @@ detail::saveAttachment::operator () ( const portfolio::Folium& folium )
     return false;
 }
 
+//////////////////////////

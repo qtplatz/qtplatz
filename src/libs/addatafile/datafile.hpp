@@ -69,6 +69,8 @@ namespace addatafile {
         virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const;
 
     private:
+        bool loadContents();
+    private:
         bool mounted_;
         std::wstring filename_;
         adfs::portfolio dbf_;

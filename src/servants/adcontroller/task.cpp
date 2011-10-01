@@ -505,7 +505,7 @@ iTask::handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned 
             d.receiver_->message( Receiver::eINSTEVENT( msgid ), value );
         } catch ( CORBA::Exception& ex ) {
             d.failed_++;
-            adportable::debug(__FILE__, __LINE__) << "iTask::handle_dispatch message got an exception";
+            adportable::debug(__FILE__, __LINE__) << "exception: " << ex._name();
         }
     }
 }
