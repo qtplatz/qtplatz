@@ -53,6 +53,26 @@ string::convert( const std::wstring& source )
     return target;
 }
 
+std::wstring
+string::wstring( const u8string& u8str )
+{
+#if defined WIN32
+    return std::wstring( reinterpret_cast< const wchar_t *>( utf::to_utf16( u8str.c_str() ).c_str() ) );
+#else
+    return std::wstring( reinterpret_cast< const wchar_t *>( utf::to_utf32( u8str.c_str() ).c_str() ) );
+#endif
+}
+
+std::wstring
+string::wstring( const u8char_t * u8 )
+{
+#if defined WIN32
+    return std::wstring( reinterpret_cast< const wchar_t *>( utf::to_utf16( u8 ).c_str() ) );
+#else
+    return std::wstring( reinterpret_cast< const wchar_t *>( utf::to_utf32( u8 ).c_str() ) );
+#endif
+}
+
 //static
 u8string
 string::utf8( const wchar_t * p )

@@ -224,7 +224,7 @@ internal::dml::insert_directory( adfs::sqlite& db, dir_type type, boost::int64_t
     std::string date = ( boost::format( "%1%" ) % pt ).str();
 
     if ( sql.prepare( "INSERT INTO directory VALUES (?,?,?,?,?,NULL,NULL)" ) ) {
-        sql.bind( 1 ) = name;
+        sql.bind( 1 ) = adportable::string::utf8( name.c_str() );
         sql.bind( 2 ) = parent_id; // 
         sql.bind( 3 ) = boost::int64_t( type ); // 1:directory, 2:file
         sql.bind( 4 ) = date;
@@ -239,7 +239,7 @@ internal::dml::select_directory( adfs::stmt& sql, dir_type type, boost::int64_t 
 {
     sql.prepare( "SELECT rowid, type, name, parent_id FROM directory WHERE type = ? AND name = ? AND parent_id = ?" );
     sql.bind( 1 ) = static_cast< boost::int64_t>(type);
-    sql.bind( 2 ) = name; // name
+    sql.bind( 2 ) = adportable::string::utf8( name.c_str() ); // name
     sql.bind( 3 ) = parent_id;
     if ( sql.step() == adfs::sqlite_row )
         return boost::get< boost::int64_t >( sql.column_value( 0 ) );
