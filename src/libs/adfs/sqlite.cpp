@@ -276,6 +276,12 @@ namespace adfs {
     {
         return sqlite3_bind_text16( stmt_, nnn_, v.c_str(), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
     }
+
+    template<> bool
+    stmt::bind_item::operator = ( const adportable::u8string& v )
+    {
+        return sqlite3_bind_text( stmt_, nnn_, reinterpret_cast<const char *>( v.c_str() ), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
+    }
     
     template<> bool
     stmt::bind_item::operator = ( const blob& blob )
