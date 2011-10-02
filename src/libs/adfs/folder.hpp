@@ -42,6 +42,7 @@ namespace adfs {
         folder( sqlite&, boost::int64_t, const std::wstring& name );
 
         std::vector< folder > folders();
+        const std::vector< folder > folders() const;
         std::vector< folium > folio();
         const std::vector< folium > folio() const;
         folium selectFolium( const std::wstring& );

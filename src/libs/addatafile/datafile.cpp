@@ -66,28 +66,9 @@ namespace addatafile { namespace detail {
 
 
     struct import {
-
-        static void attributes( portfolio::Folium dst, const adfs::folium& src ) {
-            for ( adfs::internal::attributes::vector_type::const_iterator it = src.begin(); it != src.end(); ++it )
-                dst.setAttribute( it->first, it->second );
-            dst.setAttribute( L"rowid", boost::lexical_cast<std::wstring>( src.rowid() ) );
-        }
-
-        static void folium( portfolio::Folium dst, const adfs::folium& src ) {
-            import::attributes( dst, src );
-            adfs::folio attachments = src.attachments();
-            for ( adfs::folio::const_iterator it = attachments.begin(); it != attachments.end(); ++it ) {
-                portfolio::Folium att = dst.addAttachment( it->name() );
-                import::folium( att, *it );
-            }
-        }
-
-        static void folder( portfolio::Folder parent, const adfs::folder& adfolder ) {
-            const adfs::folio adfolio = adfolder.folio();
-            for ( adfs::folio::const_iterator it = adfolio.begin(); it != adfolio.end(); ++it ) {
-                import::folium( parent.addFolium( it->name() ), *it );
-            }
-        }
+        static void attributes( portfolio::Folium dst, const adfs::folium& src );
+        static void folium( portfolio::Folium dst, const adfs::folium& src );
+        static void folder( portfolio::Folder parent, const adfs::folder& adfolder );
     };
 
 }
@@ -115,15 +96,10 @@ datafile::accept( adcontrols::dataSubscriber& sub )
         // subscribe processed dataset
         do {
             portfolio::Portfolio portfolio;
-            portfolio.create_with_fullpath( filename_ );
-
-            processedDataset_->xml( portfolio.xml() );
-            adfs::folder processed = dbf_.findFolder( L"/Processed/Spectra" );
-            if ( processed )
-                detail::import::folder( portfolio.addFolder( L"Spectra" ), processed );
-
-            if ( processedDataset_ )
+            if ( loadContents( portfolio, L"/Processed" ) && processedDataset_ ) {
+                processedDataset_->xml( portfolio.xml() );
                 sub.subscribe( *processedDataset_ );
+            }
         } while (0);
     }
 }
@@ -135,7 +111,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     processedDataset_.reset( new adcontrols::ProcessedDataset );
 
     if ( ( mounted_ = dbf_.mount( filename.c_str() ) ) ) 
-        return loadContents();
+        return true;
 
     if ( ( mounted_ = dbf_.create( filename.c_str() ) ) )
         return true;
@@ -234,8 +210,7 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 
     BOOST_FOREACH( const portfolio::Folder& folder, portfolio.folders() )
         detail::folder::save( dbf_, name, source, folder );
-    //const std::vector< portfolio::Folder > folders = portfolio.folders();
-    //std::for_each( folders.begin(), folders.end(), detail::saveFolder( dbf_, name, source ) );
+
     sql.commit();
     return true;
 }
@@ -261,15 +236,34 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 }
 
 bool
-datafile::loadContents()
+datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& query )
 {
     if ( ! mounted_ )
         return false;
 
-    std::vector< adfs::folder > folders = dbf_.folders();
-        
-    
-    
+    portfolio.create_with_fullpath( filename_ );
+    adfs::folder processed = dbf_.findFolder( query );  // L"/Processed"
+    if ( ! processed )
+        return false;
+
+    // top folder should be L"Spectra" | L"Chromatogram"
+    BOOST_FOREACH( const adfs::folder& folder, processed.folders() ) {
+        const std::wstring& name = folder.name();
+        detail::import::folder( portfolio.addFolder( name ), folder );
+    }
+
+    // std::vector< adfs::folder > folders = dbf_.folders();
+/***
+    portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
+
+    //----
+    portfolio::Folium folium = spectra.addFolium( filename );
+    folium.setAttribute( L"dataType", L"MassSpectrum" );
+    folium.setAttribute( L"path", L"/" );
+    //----
+***/
+    processedDataset_.reset( new adcontrols::ProcessedDataset );
+    processedDataset_->xml( portfolio.xml() );
 
     return true;
 }
@@ -336,7 +330,28 @@ namespace addatafile {
 
             return true;
         }
-        //---------
+
+        void import::folder( portfolio::Folder parent, const adfs::folder& adfolder )
+        {
+            BOOST_FOREACH( const adfs::folium& folium, adfolder.folio() )
+                import::folium( parent.addFolium( folium.name() ), folium );
+        }
+
+        void import::folium( portfolio::Folium dst, const adfs::folium& src )
+        {
+            BOOST_FOREACH( const adfs::folium& src_att, src.attachments() ) {
+                portfolio::Folium dst_att= dst.addAttachment( src_att.name() );
+                import::attributes( dst_att, src_att );
+            }
+        }
+
+        void import::attributes( portfolio::Folium dst, const adfs::folium& src )
+        {
+            for ( adfs::internal::attributes::vector_type::const_iterator it = src.begin(); it != src.end(); ++it )
+                dst.setAttribute( it->first, it->second );
+            dst.setAttribute( L"rowid", boost::lexical_cast<std::wstring>( src.rowid() ) );
+        }
+        //---
 
     }
 }

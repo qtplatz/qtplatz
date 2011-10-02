@@ -69,7 +69,7 @@ namespace addatafile {
         virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const;
 
     private:
-        bool loadContents();
+        bool loadContents( portfolio::Portfolio&, const std::wstring& query );
     private:
         bool mounted_;
         std::wstring filename_;

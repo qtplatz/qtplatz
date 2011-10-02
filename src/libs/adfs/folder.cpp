@@ -61,6 +61,15 @@ folder::folders()
     return folders;
 }
 
+const std::vector< folder >
+folder::folders() const
+{
+    std::vector< folder > folders;
+    if ( db_ && rowid_ )
+        internal::fs::select_folders( *db_, rowid_, folders );
+    return folders;
+}
+
 adfs::folio
 folder::folio()
 {

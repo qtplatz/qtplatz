@@ -113,23 +113,15 @@ PortfolioImpl::create_with_fullpath( const std::wstring& fullpath )
     if ( isXMLLoaded_ )
         return false;
 
-    pugi::xml_node inst = doc_.append_child( pugi::node_pi );  // processingInstruction
-    inst.set_name( "xml" );
-    inst.set_value( "version='1.0' encoding='UTF-8'" );
+    doc_.reset();
+    // pugi::xml_node inst = doc_.append_child( pugi::node_pi );  // processingInstruction
+    // inst.set_name( "xml" );
+    // inst.set_value( "version='1.0' encoding='UTF-8'" );
 
-    /*
-    XMLProcessingInstruction inst =
-        doc_.createProcessingInstruction(L"xml", L"version='1.0' encoding='UTF-8'");
-    doc_.appendChild( inst );
-    */  
     pugi::xml_node comm = doc_.append_child( pugi::node_comment );
     comm.set_value( "Copyright(C) 2010-2011, Toshinobu Hondo, ScienceLiaison, All rights reserved." );
 
-    /*
-    XMLComment comm =
-        doc_.createComment(L"Copyright(C) 2010-2011, Toshinobu Hondo, ScienceLiaison, All rights reserved.");
-    doc_.appendChild( comm );
-    */
+    // create "/xtree/dataset" entry
     pugi::xml_node top = doc_.append_child();
     top.set_name( "xtree" );
     top.append_attribute( "typeid" ).set_value( "portfolio" );
