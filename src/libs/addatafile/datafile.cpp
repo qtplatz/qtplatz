@@ -38,6 +38,7 @@
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/foreach.hpp>
 #include <adportable/string.hpp>
 #include <adportable/posix_path.hpp>
 #include <acewrapper/input_buffer.hpp>
@@ -51,34 +52,18 @@ namespace addatafile { namespace detail {
 
     static adcontrols::datafile * nullfile(0);
 
-    struct saveAttachment {
-        adfs::folium& parent_;
-        const adcontrols::datafile& source_;
-        const boost::filesystem::path& path_;
-        saveAttachment( adfs::folium& dbfolium, const boost::filesystem::path& p, const adcontrols::datafile& f )
-            : parent_( dbfolium ), source_( f ), path_( p ) {
-        }
-        bool operator () ( const portfolio::Folium& folim );
+    struct attachment {
+        static bool save( adfs::folium& parent, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
     };
 
-    struct saveFolium {
-        adfs::folder& folder_;
-        const boost::filesystem::path& path_;
-        const adcontrols::datafile& source_;
-        saveFolium( adfs::folder& folder, const boost::filesystem::path& p, const adcontrols::datafile& f )
-            : folder_( folder ), path_( p ), source_( f ) {
-        }
-        bool operator () ( const portfolio::Folium& folim );
+    struct folder {
+        static bool save( adfs::portfolio& db, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folder& );
     };
 
-    struct saveFolder {
-        adfs::portfolio& dbf;
-        const boost::filesystem::path& path;
-        const adcontrols::datafile& source;
-        saveFolder( adfs::portfolio& db, const boost::filesystem::path& p, const adcontrols::datafile& f )
-            : dbf( db ), path( p ), source( f ) {}
-        bool operator () ( const portfolio::Folder& folder );
+    struct folium {
+        static bool save( adfs::folder&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
     };
+
 
     struct import {
 
@@ -246,10 +231,11 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
     dbf_.addFolder( path );
 
     adportable::path name( path );
-    const std::vector< portfolio::Folder > folders = portfolio.folders();
 
-    std::for_each( folders.begin(), folders.end(), detail::saveFolder( dbf_, name, source ) );
-
+    BOOST_FOREACH( const portfolio::Folder& folder, portfolio.folders() )
+        detail::folder::save( dbf_, name, source, folder );
+    //const std::vector< portfolio::Folder > folders = portfolio.folders();
+    //std::for_each( folders.begin(), folders.end(), detail::saveFolder( dbf_, name, source ) );
     sql.commit();
     return true;
 }
@@ -266,9 +252,9 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
     dbf_.addFolder( path );
 
     adportable::path name( path );
-    const std::vector< portfolio::Folder > folders = portfolio.folders();
 
-    std::for_each( folders.begin(), folders.end(), detail::saveFolder( dbf_, name, *detail::nullfile ) );
+    BOOST_FOREACH( const portfolio::Folder& folder, portfolio.folders() )
+        detail::folder::save( dbf_, name, *detail::nullfile, folder );
 
     sql.commit();
     return true;
@@ -289,85 +275,70 @@ datafile::loadContents()
 }
 
 ///-------------------------------------------------------------------------------------
-bool
-detail::saveFolder::operator () ( const portfolio::Folder& folder )
-{
-    boost::filesystem::path pathname = adportable::path::posix( path / folder.name() );
 
-    std::wcout << L"saveFolder: " << pathname << std::endl;
-    adfs::folder dbfolder = dbf.addFolder( pathname.wstring() );
+namespace addatafile {
+    namespace detail {
 
-    // save all files in this folder
-    const portfolio::Folio folio = folder.folio();
-    std::for_each( folio.begin(), folio.end(), detail::saveFolium( dbfolder, pathname, source ) );
+        bool
+        attachment::save( adfs::folium& parent, const boost::filesystem::path& path, const adcontrols::datafile& source, const portfolio::Folium& folium )
+        {
+            boost::filesystem::path filename = adportable::path::posix( path / folium.id() );
+
+            adfs::folium dbThis = parent.addAttachment( folium.id() );
+            boost::any any = static_cast<const boost::any&>( folium );
+            if ( any.empty() && (&source != nullfile ) )
+                any = source.fetch( folium.path(), folium.dataClass() );
+            detail::copyin_visitor::apply( any, dbThis );
+            
+            BOOST_FOREACH( const portfolio::Folium& att, folium.attachments() )
+                save( dbThis, filename, source, att );
+            return true;
+        }
+        //------------
+
+        bool
+        folium::save( adfs::folder& folder, const boost::filesystem::path& path, const adcontrols::datafile& source, const portfolio::Folium& folium )
+        {
+            boost::filesystem::path filename = adportable::path::posix( path / folium.id() );
+
+            // get attributes
+            std::vector< std::pair< std::wstring, std::wstring > > attrs = folium.attributes();
+
+            boost::any any = static_cast<const boost::any&>( folium );
+            if ( any.empty() && (&source != nullfile ) )
+                any = source.fetch( folium.path(), folium.dataClass() );
+
+            if ( folder ) {
+                adfs::folium dbf = folder.addFolium( folium.id() );
+                detail::copyin_visitor::apply( any, dbf );
+
+                BOOST_FOREACH( const portfolio::Folium& att, folium.attachments() )
+                    detail::attachment::save( dbf, filename, source, att );
+            }
+            return true;
+        }
+
+        // struct folder {
+        bool
+        folder::save( adfs::portfolio& dbf, const boost::filesystem::path& path, const adcontrols::datafile& source, const portfolio::Folder& folder )
+        {
+            boost::filesystem::path pathname = adportable::path::posix( path / folder.name() );
+
+            adfs::folder dbThis = dbf.addFolder( pathname.wstring() );
+
+            // save all files in this folder
+            BOOST_FOREACH( const portfolio::Folium& folium, folder.folio() )
+                folium::save( dbThis, pathname, source, folium );
     
-    // recursive save for sub folders
-    const std::vector< portfolio::Folder > folders = folder.folders();
-    std::for_each( folders.begin(), folders.end(), detail::saveFolder( dbf, pathname, source ) );
+            // recursive save sub folders
+            BOOST_FOREACH( const portfolio::Folder& subfolder, folder.folders() )
+                folder::save( dbf, pathname, source, subfolder );
 
-    return true;
-}
+            return true;
+        }
+        //---------
 
-
-bool
-detail::saveFolium::operator () ( const portfolio::Folium& folium )
-{
-    boost::filesystem::path filename = adportable::path::posix( path_ / folium.id() );
-
-    std::wcout << L"saveFolium: " << filename << std::endl;
-
-    // get attributes
-    std::vector< std::pair< std::wstring, std::wstring > > attrs = folium.attributes();
-
-    boost::any any = static_cast<const boost::any&>( folium );
-    if ( any.empty() && (&source_ != nullfile ) )
-        any = source_.fetch( folium.path(), folium.dataClass() );
-
-#if defined _DEBUG
-    std::string type_name = any.type().name();
-    (void)type_name;
-#endif
-
-    // @todo: save blob
-    if ( folder_ ) {
-        adfs::folium dbf = folder_.addFolium( folium.id() );
-        // @todo: data write functor should be defined...
-
-        detail::copyin_visitor::apply( any, dbf );
-
-        // apply_visitor
-
-        // save attachments -- recursive
-        const portfolio::Folio folio = folium.attachments();
-        std::for_each( folio.begin(), folio.end(), detail::saveAttachment( dbf, filename, source_ ) );
     }
-
-    // save attachments recursively
-    return true;
-}
-
-bool
-detail::saveAttachment::operator () ( const portfolio::Folium& folium )
-{
-    boost::filesystem::path filename = adportable::path::posix( path_ / folium.id() );
-
-    std::wcout << L"saveAttachment: " << filename << std::endl;
-
-    // get attributes
-    std::vector< std::pair< std::wstring, std::wstring > > attrs = folium.attributes();
-
-    adfs::folium dbatt = parent_.addAttachment( filename.wstring() );
-    if ( dbatt ) {
-        // @todo: data write functor should be defined...
-        // adfs::cpio< adcontrols::MassSpectrum >::copyin( ms, folium );
-
-        // save attachments -- recursive
-        portfolio::Folio folio = folium.attachments();
-        std::for_each( folio.begin(), folio.end(), detail::saveAttachment( dbatt, filename, source_ ) );
-
-        return true;
-    }
-    return false;
 }
 
 //////////////////////////
