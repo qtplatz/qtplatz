@@ -188,7 +188,7 @@ internal::fs::format_superblock( adfs::sqlite& db, const std::wstring& filename 
     sql.prepare( "INSERT INTO superblock VALUES(:creator, :name, :magic, :ctime, :create_user)" );
     sql.bind( 1 ) = std::string("adfs::filesystem version(1.0)"); // creator
     sql.bind( 2 ) = filename;  // unicode
-    sql.bind( 3 ) = boost::int64_t( 0x2011031111301102 ); // 2011.03.11-01 
+    sql.bind( 3 ) = 0x2011031111301102LL; // 2011.03.11-01 
     sql.bind( 4 ) = date; // create_date;
     sql.bind( 5 ) = impl::get_login_name<char>(); // mbcs
 
@@ -209,7 +209,7 @@ internal::fs::mount( adfs::sqlite& db )
         std::wstring creator = boost::get<std::wstring>( sql.column_value( 0 ) );
         boost::int64_t magic = boost::get<boost::int64_t>( sql.column_value( 1 ) );
 
-        if ( magic == 0x2011031111301102 )
+        if ( magic == 0x2011031111301102LL )
             return true;
     }
     return false;
