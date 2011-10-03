@@ -232,42 +232,20 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\folder.h"
+				RelativePath=".\folder.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\folium.h"
+				RelativePath=".\folium.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\node.h"
+				RelativePath=".\node.hpp"
 				>
 			</File>
 			<File
-				RelativePath="portfolio.h"
+				RelativePath=".\portfolio.hpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
-						CommandLine=""
-						AdditionalDependencies=""
-						Outputs=""
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="portfolio_global.h"
@@ -296,7 +274,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\portfolioimpl.h"
+				RelativePath=".\portfolioimpl.hpp"
 				>
 			</File>
 		</Filter>

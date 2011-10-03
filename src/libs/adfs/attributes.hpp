@@ -68,9 +68,10 @@ namespace adfs {
             vector_type::const_iterator begin() const { return attrib_.begin(); }
             vector_type::const_iterator end() const { return attrib_.end(); }
 
+            virtual boost::int64_t rowid() const = 0;
+
         protected:
             virtual sqlite& db() const = 0;
-            virtual boost::int64_t rowid() const = 0;
 
         private:
             bool dirty_;

@@ -38,6 +38,9 @@ namespace portfolio {
     class Folium;
     class Folder;
 
+    typedef std::pair< std::wstring, std::wstring > attribute_type;
+    typedef std::vector< attribute_type > attributes_type;
+
     class PORTFOLIOSHARED_EXPORT Portfolio {
     public:
         ~Portfolio();
@@ -52,6 +55,7 @@ namespace portfolio {
         // create new from scratch
         bool create_with_fullpath( const std::wstring& fullpath );
         Folder addFolder( const std::wstring& name, bool uniq = true );
+        const attributes_type& attributes() const;
 
         std::wstring xml() const;
 

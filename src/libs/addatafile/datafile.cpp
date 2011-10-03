@@ -41,8 +41,10 @@
 #include <boost/foreach.hpp>
 #include <adportable/string.hpp>
 #include <adportable/posix_path.hpp>
+#include <adportable/debug.hpp>
 #include <acewrapper/input_buffer.hpp>
 #include <adfs/adfs.hpp>
+#include <adfs/attributes.hpp>
 #include <adfs/sqlite.hpp>
 #include <algorithm>
 #include <iostream>
@@ -64,9 +66,10 @@ namespace addatafile { namespace detail {
         static bool save( adfs::folder&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
     };
 
-
     struct import {
-        static void attributes( portfolio::Folium dst, const adfs::folium& src );
+        static void attributes( adfs::internal::attributes&, const portfolio::attributes_type& );
+        static void attributes( portfolio::Folium&, const adfs::internal::attributes& );
+        static void attributes( portfolio::Folder&, const adfs::internal::attributes& );
         static void folium( portfolio::Folium dst, const adfs::folium& src );
         static void folder( portfolio::Folder parent, const adfs::folder& adfolder );
     };
@@ -156,8 +159,7 @@ datafile::open_qtms( const std::wstring& filename, bool /* readonly */ )
 boost::any
 datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
-    (void)path;
-    (void)dataType;
+    adportable::debug() << "datafile::fetch(" << path << ", " << dataType << ")";
     return data_;
 }
 
@@ -215,6 +217,8 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
     return true;
 }
 
+
+// Save comes here. Thus no file name pass to here
 bool
 datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& portfolio )
 {
@@ -252,16 +256,6 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
         detail::import::folder( portfolio.addFolder( name ), folder );
     }
 
-    // std::vector< adfs::folder > folders = dbf_.folders();
-/***
-    portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
-
-    //----
-    portfolio::Folium folium = spectra.addFolium( filename );
-    folium.setAttribute( L"dataType", L"MassSpectrum" );
-    folium.setAttribute( L"path", L"/" );
-    //----
-***/
     processedDataset_.reset( new adcontrols::ProcessedDataset );
     processedDataset_->xml( portfolio.xml() );
 
@@ -279,9 +273,12 @@ namespace addatafile {
             boost::filesystem::path filename = adportable::path::posix( path / folium.id() );
 
             adfs::folium dbThis = parent.addAttachment( folium.id() );
+            import::attributes( dbThis, folium.attributes() );
+
             boost::any any = static_cast<const boost::any&>( folium );
             if ( any.empty() && (&source != nullfile ) )
                 any = source.fetch( folium.path(), folium.dataClass() );
+
             detail::copyin_visitor::apply( any, dbThis );
             
             BOOST_FOREACH( const portfolio::Folium& att, folium.attachments() )
@@ -295,15 +292,14 @@ namespace addatafile {
         {
             boost::filesystem::path filename = adportable::path::posix( path / folium.id() );
 
-            // get attributes
-            std::vector< std::pair< std::wstring, std::wstring > > attrs = folium.attributes();
-
             boost::any any = static_cast<const boost::any&>( folium );
             if ( any.empty() && (&source != nullfile ) )
                 any = source.fetch( folium.path(), folium.dataClass() );
 
             if ( folder ) {
                 adfs::folium dbf = folder.addFolium( folium.id() );
+
+                import::attributes( dbf, folium.attributes() );
                 detail::copyin_visitor::apply( any, dbf );
 
                 BOOST_FOREACH( const portfolio::Folium& att, folium.attachments() )
@@ -319,6 +315,7 @@ namespace addatafile {
             boost::filesystem::path pathname = adportable::path::posix( path / folder.name() );
 
             adfs::folder dbThis = dbf.addFolder( pathname.wstring() );
+            import::attributes( dbThis, folder.attributes() );
 
             // save all files in this folder
             BOOST_FOREACH( const portfolio::Folium& folium, folder.folio() )
@@ -339,17 +336,30 @@ namespace addatafile {
 
         void import::folium( portfolio::Folium dst, const adfs::folium& src )
         {
-            BOOST_FOREACH( const adfs::folium& src_att, src.attachments() ) {
-                portfolio::Folium dst_att= dst.addAttachment( src_att.name() );
-                import::attributes( dst_att, src_att );
-            }
+            import::attributes( dst, src );
+            BOOST_FOREACH( const adfs::folium& attachment, src.attachments() )
+                import::attributes( dst.addAttachment( attachment.name() ), attachment );
         }
 
-        void import::attributes( portfolio::Folium dst, const adfs::folium& src )
+        //---
+        void import::attributes( portfolio::Folium& d, const adfs::internal::attributes& s )
         {
-            for ( adfs::internal::attributes::vector_type::const_iterator it = src.begin(); it != src.end(); ++it )
-                dst.setAttribute( it->first, it->second );
-            dst.setAttribute( L"rowid", boost::lexical_cast<std::wstring>( src.rowid() ) );
+            for ( adfs::internal::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
+                d.setAttribute( it->first, it->second );
+            d.setAttribute( L"rowid", boost::lexical_cast<std::wstring>( s.rowid() ) );
+        }
+
+        void import::attributes( portfolio::Folder& d, const adfs::internal::attributes& s )
+        {
+            for ( adfs::internal::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
+                d.setAttribute( it->first, it->second );
+            d.setAttribute( L"rowid", boost::lexical_cast<std::wstring>( s.rowid() ) );
+        }
+
+        void import::attributes( adfs::internal::attributes& d, const portfolio::attributes_type& s )
+        {
+            BOOST_FOREACH( const portfolio::attribute_type& a, s ) 
+                d.setAttribute( a.first, a.second );
         }
         //---
 

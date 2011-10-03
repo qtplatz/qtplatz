@@ -67,7 +67,6 @@ using namespace addatafile::detail;
 bool
 copyin_visitor::apply( boost::any& a, adfs::folium& dbf )
 {
-    // return boost::apply_visitor( addatafile::detail::copyin(dbf), adutils::ProcessedData::toVariant( a ) );
     adutils::ProcessedData::value_type value = adutils::ProcessedData::toVariant( a );
     return boost::apply_visitor( addatafile::detail::copyin(dbf), value );
 }

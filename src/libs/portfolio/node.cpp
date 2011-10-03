@@ -119,8 +119,10 @@ void
 Node::setAttribute( const std::wstring& key, const std::wstring& value )
 {
     if ( node_ ) {
-        pugi::xml_attribute attr = node_.append_attribute( pugi::as_utf8( key ).c_str() );
-        attr.set_value( pugi::as_utf8( value ).c_str() );
+        pugi::xml_attribute attrib = node_.attribute( pugi::as_utf8( key ).c_str() );
+        if ( ! attrib )
+            attrib = node_.append_attribute( pugi::as_utf8( key ).c_str() );
+        attrib.set_value( pugi::as_utf8( value ).c_str() );
     }
 }
 
@@ -150,28 +152,19 @@ Node::addFolder( const std::wstring& name, internal::PortfolioImpl* )
 pugi::xml_node
 Node::addFolium( const std::wstring& name )
 {
-    // xmlElement child = impl_->getDocument().createElement( L"folium" );
     pugi::xml_node child = node_.append_child( "folium" );
-    // node_.appendChild( child );
     child.append_attribute( "folderType" ).set_value( "file" );
-    // child.setAttribute( L"folderType", L"file" );
     child.append_attribute( "dataId" ).set_value( pugi::as_utf8( internal::PortfolioImpl::newGuid() ).c_str() );
-    // child.setAttribute( L"dataId", internal::PortfolioImpl::newGuid() );
     child.append_attribute( "name" ).set_value( pugi::as_utf8( name ).c_str() );
-    // child.setAttribute( L"name", name );
     return child;
 }
 
 pugi::xml_node
 Node::addAttachment( const std::wstring& name )
 {
-    // xmlElement child = impl_->getDocument().createElement( L"attachment" );
     pugi::xml_node child = node_.append_child( "attachment" );
     child.append_attribute( "dataId" ).set_value( pugi::as_utf8( internal::PortfolioImpl::newGuid() ).c_str() );
     child.append_attribute( "name" ).set_value( pugi::as_utf8( name ).c_str() );
-    //node_.appendChild( child );
-    //child.setAttribute( L"dataId", internal::PortfolioImpl::newGuid() );
-    //child.setAttribute( L"name", name );
     return child;
 }
 
