@@ -157,9 +157,9 @@ datafile::open_qtms( const std::wstring& filename, bool /* readonly */ )
 }
 
 boost::any
-datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
+datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) const
 {
-    adportable::debug() << "datafile::fetch(" << path << ", " << dataType << ")";
+    adportable::debug() << "datafile::fetch(" << dataId << ", " << dataType << ")";
     return data_;
 }
 

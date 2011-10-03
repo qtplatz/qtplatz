@@ -138,7 +138,7 @@ Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
     if ( folium.empty() ) {
 
-        folium = file().fetch( folium.path(), folium.dataClass() );
+        folium = file().fetch( folium.id(), folium.dataClass() );
  
         portfolio::Folio attachs = folium.attachments();
         for ( portfolio::Folio::iterator it = attachs.begin(); it != attachs.end(); ++it ) {
