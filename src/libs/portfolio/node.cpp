@@ -28,6 +28,18 @@
 using namespace portfolio;
 using namespace portfolio::internal;
 
+namespace portfolio { namespace internal {
+
+    static void set_attribute( pugi::xml_node& node, const char * key, const std::string& value ) {
+        pugi::xml_attribute attrib = node.attribute( key );
+        if ( ! attrib )
+            attrib = node.append_attribute( key );
+        attrib.set_value( value.c_str() );
+    }
+
+}
+}
+
 Node::Node() : impl_(0)
 {
 }
@@ -144,8 +156,10 @@ pugi::xml_node
 Node::addFolder( const std::wstring& name, internal::PortfolioImpl* )
 {
     pugi::xml_node child = node_.append_child( "folder" );
-    child.append_attribute( "folderType" ).set_value( "directory" );
-    child.append_attribute( "name" ).set_value( pugi::as_utf8( name ).c_str() );
+    set_attribute( child, "folderType", "directory" );
+    // child.append_attribute( "folderType" ).set_value( "directory" );
+    set_attribute( child, "name", pugi::as_utf8( name ) );
+    // child.append_attribute( "name" ).set_value( pugi::as_utf8( name ).c_str() );
     return child;
 }
 
@@ -153,9 +167,9 @@ pugi::xml_node
 Node::addFolium( const std::wstring& name )
 {
     pugi::xml_node child = node_.append_child( "folium" );
-    child.append_attribute( "folderType" ).set_value( "file" );
-    child.append_attribute( "dataId" ).set_value( pugi::as_utf8( internal::PortfolioImpl::newGuid() ).c_str() );
-    child.append_attribute( "name" ).set_value( pugi::as_utf8( name ).c_str() );
+    set_attribute( child, "folderType", "file" );
+    set_attribute( child, "dataId", pugi::as_utf8( internal::PortfolioImpl::newGuid() ) );
+    set_attribute( child, "name", pugi::as_utf8( name ) );
     return child;
 }
 
@@ -163,8 +177,8 @@ pugi::xml_node
 Node::addAttachment( const std::wstring& name )
 {
     pugi::xml_node child = node_.append_child( "attachment" );
-    child.append_attribute( "dataId" ).set_value( pugi::as_utf8( internal::PortfolioImpl::newGuid() ).c_str() );
-    child.append_attribute( "name" ).set_value( pugi::as_utf8( name ).c_str() );
+    set_attribute( child, "dataId", pugi::as_utf8( internal::PortfolioImpl::newGuid() ) );
+    set_attribute( child, "name", pugi::as_utf8( name ) );
     return child;
 }
 
