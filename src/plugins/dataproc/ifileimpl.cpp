@@ -33,6 +33,7 @@
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 
 using namespace dataproc;
 
@@ -83,12 +84,22 @@ IFileImpl::save( const QString& filename )
     boost::filesystem::path p( qtwrapper::wstring::copy( filename ) );
     p.replace_extension( L".adfs" );
 
+    do {
+        boost::filesystem::path xmlfile( filename.toStdString() );
+        xmlfile.replace_extension( ".xml" );
+        boost::filesystem::remove( xmlfile );
+        pugi::xml_document dom;
+        dom.load( pugi::as_utf8( portfolio.xml() ).c_str() );
+        dom.save_file( xmlfile.string().c_str() );
+    } while(0);
+
     if ( boost::filesystem::path( qtwrapper::wstring::copy( filename_ ) ) == p ) { // same file?
         // save
         return this->file().saveContents( L"/Processed", portfolio );
 
     } else {
         // saveFileAs -- has to create new file
+        boost::filesystem::remove( boost::filesystem::path( filename.toStdString() ) );
         boost::scoped_ptr< adcontrols::datafile > file( adcontrols::datafile::create( p.wstring() ) );
         return file && file->saveContents( L"/Processed", portfolio, this->file() );
 

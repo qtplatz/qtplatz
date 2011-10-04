@@ -56,24 +56,27 @@ namespace addatafile { namespace detail {
 
     static adcontrols::datafile * nullfile(0);
 
-    struct attachment {
-        static bool save( adfs::folium& parent, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
-    };
-
     struct folder {
         static bool save( adfs::portfolio& db, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folder& );
+        static bool load( portfolio::Folder parent, const adfs::folder& adf );
     };
 
     struct folium {
         static bool save( adfs::folder&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
+        static bool load( portfolio::Folium dst, const adfs::folium& src );
+    };
+
+    struct attachment {
+        static bool save( adfs::folium& parent, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
+        static bool load( portfolio::Folium dst, const adfs::folium& adf );
     };
 
     struct import {
         static void attributes( adfs::internal::attributes&, const portfolio::attributes_type& );
         static void attributes( portfolio::Folium&, const adfs::internal::attributes& );
         static void attributes( portfolio::Folder&, const adfs::internal::attributes& );
-        static void folium( portfolio::Folium dst, const adfs::folium& src );
-        static void folder( portfolio::Folder parent, const adfs::folder& adfolder );
+        //static void folium( portfolio::Folium dst, const adfs::folium& src );
+        //static void folder( portfolio::Folder parent, const adfs::folder& adfolder );
     };
 
 }
@@ -196,9 +199,6 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 {
     if ( ! mounted_ )
         return false;
-#ifdef _DEBUG
-    std::wstring xml = portfolio.xml();
-#endif
 
     adfs::stmt sql( dbf_.db() );
     sql.begin();
@@ -250,7 +250,7 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
     // top folder should be L"Spectra" | L"Chromatograms"
     BOOST_FOREACH( const adfs::folder& folder, processed.folders() ) {
         const std::wstring& name = folder.name();
-        detail::import::folder( portfolio.addFolder( name ), folder );
+        detail::folder::load( portfolio.addFolder( name ), folder );
     }
 
     processedDataset_.reset( new adcontrols::ProcessedDataset );
@@ -326,6 +326,29 @@ namespace addatafile {
             return true;
         }
 
+        bool folder::load( portfolio::Folder parent, const adfs::folder& adfolder )
+        {
+            BOOST_FOREACH( const adfs::folium& folium, adfolder.folio() )
+                folium::load( parent.addFolium( folium.name() ), folium );
+            return true;
+        }
+
+        bool folium::load( portfolio::Folium dst, const adfs::folium& src )
+        {
+            import::attributes( dst, src );
+            BOOST_FOREACH( const adfs::folium& att, src.attachments() )
+                attachment::load( dst.addAttachment( att.name() ), att );
+            return true;
+        }
+
+        bool attachment::load( portfolio::Folium dst, const adfs::folium& src )
+        {
+            import::attributes( dst, src );
+            BOOST_FOREACH( const adfs::folium& att, src.attachments() )
+                attachment::load( dst.addAttachment( att.name() ), att );
+            return true;
+        }
+/*
         void import::folder( portfolio::Folder parent, const adfs::folder& adfolder )
         {
             BOOST_FOREACH( const adfs::folium& folium, adfolder.folio() )
@@ -338,7 +361,7 @@ namespace addatafile {
             BOOST_FOREACH( const adfs::folium& attachment, src.attachments() )
                 import::attributes( dst.addAttachment( attachment.name() ), attachment );
         }
-
+*/
         //---
         void import::attributes( portfolio::Folium& d, const adfs::internal::attributes& s )
         {

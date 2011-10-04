@@ -404,7 +404,10 @@ internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcon
 
     if ( DataprocHandler::doCentroid( *pCentroid, profile, m ) ) {
         att.assign( pCentroid, pCentroid->dataClass() );
-        
+
+        adcontrols::ProcessMethodPtr ptr( new adcontrols::ProcessMethod() );
+        ptr->appendMethod( m );
+        att.addAttachment( L"Process Method" ).assign( ptr, ptr->dataClass() );
 
         return true;
     }
