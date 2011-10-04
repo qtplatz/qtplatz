@@ -47,7 +47,6 @@ namespace adfs {
 
     public:
 
-        std::wstring path() const;
         bool empty() const;
         void operator = ( boost::any& );
         operator boost::any& ();

@@ -60,42 +60,6 @@ folium::folium( sqlite& db
     fetch();
 }
 
-std::wstring
-folium::path() const
-{
-    // path is the unique id to open a data
-    return name_; // attribute( L"path" );
-}
-
-/*
-bool
-folium::empty() const
-{
-    if ( impl_ ) {
-        boost::any& data = impl_->find( id() );
-        return data.empty();
-    }
-    return true;
-}
-*/
-
-/*
-void
-folium::operator = ( boost::any& any )
-{
-    if ( impl_ )
-        impl_->assign( id(), any );
-}
-*/
-/*
-folium::operator boost::any & ()
-{
-    if ( impl_ )
-        return impl_->find( id() );
-    static boost::any temp;
-    return temp;
-}
-*/
 
 folio
 folium::attachments()

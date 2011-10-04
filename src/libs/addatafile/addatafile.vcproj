@@ -213,6 +213,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\copyout_visitor.cpp"
+				>
+			</File>
+			<File
 				RelativePath="datafile.cpp"
 				>
 			</File>
@@ -236,6 +240,10 @@
 			</File>
 			<File
 				RelativePath=".\copyin_visitor.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\copyout_visitor.hpp"
 				>
 			</File>
 			<File

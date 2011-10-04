@@ -48,12 +48,6 @@ Folium::Folium( pugi::xml_node n, internal::PortfolioImpl * impl ) : Node( n, im
 {
 }
 
-std::wstring
-Folium::path() const
-{
-    return attribute( L"path" );
-}
-
 bool
 Folium::empty() const
 {

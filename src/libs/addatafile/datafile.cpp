@@ -25,6 +25,7 @@
 
 #include "datafile.hpp"
 #include "copyin_visitor.hpp"
+#include "copyout_visitor.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datapublisher.hpp>
 #include <adcontrols/datasubscriber.hpp>
@@ -46,6 +47,7 @@
 #include <adfs/adfs.hpp>
 #include <adfs/attributes.hpp>
 #include <adfs/sqlite.hpp>
+#include <adfs/cpio.hpp>
 #include <algorithm>
 #include <iostream>
 
@@ -122,45 +124,39 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     return false;
 }
 
-bool
-datafile::open_qtms( const std::wstring& filename, bool /* readonly */ )
-{
-    // create a file mapping
-    boost::interprocess::file_mapping map( adportable::string::convert(filename).c_str(), boost::interprocess::read_only );
-
-    // map the whole file with read-only permissions in this process
-    boost::interprocess::mapped_region region( map, boost::interprocess::read_only );
-    std::size_t size = region.get_size();
-
-    acewrapper::input_buffer ibuf( static_cast<unsigned char *>(region.get_address()), size );
-    std::istream in( &ibuf );
-
-    adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum );
-    adcontrols::MassSpectrum::restore( in, *pMS );
-    data_ = pMS;     
-    //-------------
-
-    portfolio::Portfolio portfolio;
-
-    portfolio.create_with_fullpath( filename );
-    portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
-
-    //----
-    portfolio::Folium folium = spectra.addFolium( filename );
-    folium.setAttribute( L"dataType", L"MassSpectrum" );
-    folium.setAttribute( L"path", L"/" );
-    //----
-    processedDataset_.reset( new adcontrols::ProcessedDataset );
-    processedDataset_->xml( portfolio.xml() );
-
-    return true;
-}
-
 boost::any
 datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) const
 {
-    adportable::debug() << "datafile::fetch(" << dataId << ", " << dataType << ")";
-    return data_;
+    adfs::stmt sql( dbf_.db() );
+    sql.prepare( "SELECT rowid FROM file WHERE fileid = (SELECT rowid FROM directory WHERE name = ?)" );
+    sql.bind( 1 ) = dataId;
+
+    boost::any any;
+    size_t n = 0;
+    while ( sql.step() == adfs::sqlite_row ) {
+        ++n;
+        assert( n <= 1 );  // should only be one results
+
+        boost::int64_t rowid = boost::get<boost::int64_t>( sql.column_value(0) );  // fileid
+
+        adfs::blob blob;
+        if ( rowid && blob.open( dbf_.db(), "main", "file", "data", rowid, adfs::readonly ) ) {
+            if ( blob.size() ) {
+                boost::scoped_array< boost::int8_t > p ( new boost::int8_t[ blob.size() ] );
+                if ( blob.read( p.get(), blob.size() ) ) {
+                    adfs::detail::cpio obuf( blob.size(), reinterpret_cast<adfs::char_t *>( p.get() ) );
+
+                    if ( dataType == L"MassSpectrum" ) {
+                        adcontrols::MassSpectrumPtr ptr( new adcontrols::MassSpectrum() );
+                        adfs::cpio<adcontrols::MassSpectrum>::copyout( *ptr, obuf );
+                        any = ptr;
+                    }
+                }
+            }
+        }
+
+    }
+    return any;
 }
 
 size_t
@@ -193,9 +189,7 @@ datafile::getFunctionCount() const
     return 1;
 }
 
-
 ////////////////////////////////////////////////////
-
 // SaveFileAs come in here
 bool
 datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& portfolio, const adcontrols::datafile& source )
@@ -250,14 +244,15 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
     if ( ! processed )
         return false;
 
-    // top folder should be L"Spectra" | L"Chromatogram"
+    // top folder should be L"Spectra" | L"Chromatograms"
     BOOST_FOREACH( const adfs::folder& folder, processed.folders() ) {
         const std::wstring& name = folder.name();
         detail::import::folder( portfolio.addFolder( name ), folder );
     }
 
     processedDataset_.reset( new adcontrols::ProcessedDataset );
-    processedDataset_->xml( portfolio.xml() );
+    std::wstring xml = portfolio.xml();
+    processedDataset_->xml( xml );
 
     return true;
 }
@@ -277,7 +272,7 @@ namespace addatafile {
 
             boost::any any = static_cast<const boost::any&>( folium );
             if ( any.empty() && (&source != nullfile ) )
-                any = source.fetch( folium.path(), folium.dataClass() );
+                any = source.fetch( folium.id(), folium.dataClass() );
 
             detail::copyin_visitor::apply( any, dbThis );
             
@@ -294,7 +289,7 @@ namespace addatafile {
 
             boost::any any = static_cast<const boost::any&>( folium );
             if ( any.empty() && (&source != nullfile ) )
-                any = source.fetch( folium.path(), folium.dataClass() );
+                any = source.fetch( folium.id(), folium.dataClass() );
 
             if ( folder ) {
                 adfs::folium dbf = folder.addFolium( folium.id() );
@@ -346,14 +341,12 @@ namespace addatafile {
         {
             for ( adfs::internal::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
                 d.setAttribute( it->first, it->second );
-            d.setAttribute( L"rowid", boost::lexical_cast<std::wstring>( s.rowid() ) );
         }
 
         void import::attributes( portfolio::Folder& d, const adfs::internal::attributes& s )
         {
             for ( adfs::internal::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
                 d.setAttribute( it->first, it->second );
-            d.setAttribute( L"rowid", boost::lexical_cast<std::wstring>( s.rowid() ) );
         }
 
         void import::attributes( adfs::internal::attributes& d, const portfolio::attributes_type& s )

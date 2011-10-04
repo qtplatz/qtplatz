@@ -48,7 +48,7 @@ namespace addatafile {
         datafile();
         
         bool open( const std::wstring& filename, bool readonly = false );
-        bool open_qtms( const std::wstring& filename, bool readonly = false );
+        // bool open_qtms( const std::wstring& filename, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
         virtual void accept( adcontrols::dataSubscriber& );
@@ -75,7 +75,7 @@ namespace addatafile {
         std::wstring filename_;
         adfs::portfolio dbf_;
         boost::scoped_ptr< adcontrols::ProcessedDataset > processedDataset_;
-        boost::any data_;
+        //boost::any data_;
     };
 
 }
