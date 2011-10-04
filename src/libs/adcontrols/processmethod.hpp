@@ -46,6 +46,7 @@ namespace adcontrols {
         ~ProcessMethod();
         ProcessMethod();
         ProcessMethod( const ProcessMethod& );
+        static const wchar_t * dataClass() { return L"ProcessMethod"; }
 
         typedef boost::variant< CentroidMethod
                               , IsotopeMethod

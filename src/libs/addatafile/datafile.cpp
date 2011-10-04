@@ -196,6 +196,9 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 {
     if ( ! mounted_ )
         return false;
+#ifdef _DEBUG
+    std::wstring xml = portfolio.xml();
+#endif
 
     adfs::stmt sql( dbf_.db() );
     sql.begin();

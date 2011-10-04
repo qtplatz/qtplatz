@@ -24,6 +24,9 @@
 
 #include "node.hpp"
 #include "portfolioimpl.hpp"
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/format.hpp>
+#include <string>
 
 using namespace portfolio;
 using namespace portfolio::internal;
@@ -157,9 +160,7 @@ Node::addFolder( const std::wstring& name, internal::PortfolioImpl* )
 {
     pugi::xml_node child = node_.append_child( "folder" );
     set_attribute( child, "folderType", "directory" );
-    // child.append_attribute( "folderType" ).set_value( "directory" );
     set_attribute( child, "name", pugi::as_utf8( name ) );
-    // child.append_attribute( "name" ).set_value( pugi::as_utf8( name ).c_str() );
     return child;
 }
 
@@ -170,15 +171,32 @@ Node::addFolium( const std::wstring& name )
     set_attribute( child, "folderType", "file" );
     set_attribute( child, "dataId", pugi::as_utf8( internal::PortfolioImpl::newGuid() ) );
     set_attribute( child, "name", pugi::as_utf8( name ) );
+
+    boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
+    std::string date = ( boost::format( "%1%" ) % pt ).str();
+    set_attribute( child, "ctime", date.c_str() );
+
     return child;
 }
 
 pugi::xml_node
-Node::addAttachment( const std::wstring& name )
+Node::addAttachment( const std::wstring& name, bool bUniq )
 {
+    if ( bUniq ) {
+        std::string query = "./attachment[@name=\"" + pugi::as_utf8( name ) + "\"]";
+        pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
+        for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it )
+            node_.remove_child( it->node() );
+    }
+
     pugi::xml_node child = node_.append_child( "attachment" );
     set_attribute( child, "dataId", pugi::as_utf8( internal::PortfolioImpl::newGuid() ) );
     set_attribute( child, "name", pugi::as_utf8( name ) );
+
+    boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
+    std::string date = ( boost::format( "%1%" ) % pt ).str();
+    set_attribute( child, "ctime", date.c_str() );
+
     return child;
 }
 

@@ -50,6 +50,7 @@ namespace portfolio {
         void operator = ( const boost::any& );
         operator boost::any& ();
         operator const boost::any& () const;
+        void assign( const boost::any&, const wchar_t * dataClass );
 
         std::vector< Folium > attachments();
         const std::vector< Folium > attachments() const;

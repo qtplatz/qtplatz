@@ -227,6 +227,9 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, internal::Proce
         for ( adcontrols::ProcessMethod::vector_type::const_iterator it = method.begin(); it != method.end(); ++it )
             boost::apply_visitor( internal::processIt(*it, folium), data );
 
+#ifdef _DEBUG
+        std::wstring xml = portfolio_->xml();
+#endif
         SessionManager::instance()->selectionChanged( this, folium );
     }
 }
@@ -262,7 +265,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     portfolio::Folium folium = folder.addFolium( L"CalibrantSpectrum" );
 
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
-    static_cast<boost::any&>( folium ) = ms;
+    folium.assign( ms, ms->dataClass() );
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
         boost::apply_visitor( internal::doSpectralProcess( ms, folium ), *it );
@@ -281,12 +284,15 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
         name += descs[i].text();
 
     portfolio::Folium folium = folder.addFolium( name );
-
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
-    static_cast<boost::any&>( folium ) = ms;
+    folium.assign( ms, ms->dataClass() );
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
         boost::apply_visitor( internal::doSpectralProcess( ms, folium ), *it );
+
+#if defined _DEBUG
+    std::wstring xml = portfolio_->xml();
+#endif
 
     SessionManager::instance()->updateDataprocessor( this, folium );
 }
@@ -345,9 +351,10 @@ internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcon
     // copy centroid result if exist, for meta data copy
     if ( prev ) {
         adcontrols::MassSpectrumPtr pResult( new adcontrols::MassSpectrum( *prev ) );
-        portfolio::Folium att = folium.addAttachment( L"Isotope Cluster" );
-        if ( DataprocHandler::doIsotope( *pResult, m ) )
-            static_cast< boost::any& >( att ) = pResult;
+        if ( DataprocHandler::doIsotope( *pResult, m ) ) {
+            portfolio::Folium att = folium.addAttachment( L"Isotope Cluster" );
+            att.assign( pResult, pResult->dataClass() );
+        }
         return true;
     }
     return false;
@@ -368,7 +375,7 @@ internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcon
             adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
             if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m ) ) {
                 portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
-                static_cast<boost::any&>( att ) = pResult;
+                att.assign( pResult, pResult->dataClass() );
 
                 pCentroid->setCalibration( pResult->calibration() );
 
@@ -394,7 +401,13 @@ internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcon
 {
     portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
     adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
-    if ( DataprocHandler::doCentroid( *pCentroid, profile, m ) )
-        static_cast<boost::any&>( att ) = pCentroid;
-    return true;
+
+    if ( DataprocHandler::doCentroid( *pCentroid, profile, m ) ) {
+        att.assign( pCentroid, pCentroid->dataClass() );
+        
+
+        return true;
+    }
+
+    return false;
 }

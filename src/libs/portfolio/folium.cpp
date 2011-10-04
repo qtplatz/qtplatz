@@ -81,6 +81,15 @@ Folium::operator const boost::any & () const
     return temp;
 }
 
+void
+Folium::assign( const boost::any& any, const wchar_t * dataClass )
+{
+    if ( impl_ ) {
+        impl_->assign( id(), any );
+        Node::dataClass( dataClass );
+    }
+}
+
 Folio
 Folium::attachments()
 {

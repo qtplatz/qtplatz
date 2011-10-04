@@ -42,6 +42,7 @@ namespace adcontrols {
         ~MSCalibrateResult();
         MSCalibrateResult();
         MSCalibrateResult( const MSCalibrateResult & t );
+        static const wchar_t * dataClass() { return L"MSCalibrateResult"; }
 
         double threshold() const;
         void threshold( double );
@@ -73,7 +74,7 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
+        void serialize(Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP(tolerance_);
             ar & BOOST_SERIALIZATION_NVP(threshold_);
