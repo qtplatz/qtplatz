@@ -75,8 +75,6 @@ namespace addatafile { namespace detail {
         static void attributes( adfs::internal::attributes&, const portfolio::attributes_type& );
         static void attributes( portfolio::Folium&, const adfs::internal::attributes& );
         static void attributes( portfolio::Folder&, const adfs::internal::attributes& );
-        //static void folium( portfolio::Folium dst, const adfs::folium& src );
-        //static void folder( portfolio::Folder parent, const adfs::folder& adfolder );
     };
 
 }

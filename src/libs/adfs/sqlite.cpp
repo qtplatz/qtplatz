@@ -317,7 +317,7 @@ stmt::column_value( int nCol )
     // case SQLITE_TEXT:    return column_value_type( reinterpret_cast<const wchar_t*>(sqlite3_column_text16( stmt_, nCol )) );
     case SQLITE_TEXT:    
         do {
-            const adportable::u8string utf8( sqlite3_column_text( stmt_, nCol ) );
+            const adportable::u8char_t * utf8 = sqlite3_column_text( stmt_, nCol );
             return column_value_type( adportable::string::wstring( utf8 ) );
         } while(0);
     case SQLITE_BLOB:    return column_value_type( blob() );

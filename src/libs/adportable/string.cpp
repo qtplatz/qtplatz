@@ -119,18 +119,23 @@ u8string::u8string()
 {
 }
 
+u8string::u8string( const std::wstring& t )
+  : std::basic_string<u8char_t>( string::utf8( t.c_str() ) )
+{
+}
+
 u8string::u8string( const std::basic_string<u8char_t>& t )
-: std::basic_string<u8char_t>(t)
+  : std::basic_string<u8char_t>(t)
 {
 }
 
 u8string::u8string( const std::basic_string<u16char_t>& t )
-: std::basic_string<u8char_t>( string::utf8( t.c_str() ) )
+  : std::basic_string<u8char_t>( string::utf8( t.c_str() ) )
 {
 }
 
 u8string::u8string( const std::basic_string<u32char_t>& t )
-: std::basic_string<u8char_t>( string::utf8( t.c_str() ) )
+  : std::basic_string<u8char_t>( string::utf8( t.c_str() ) )
 {
 }
 
@@ -140,12 +145,12 @@ u16string::u16string()
 }
 
 u16string::u16string( const std::basic_string<u16char_t>& t )
-: std::basic_string<u16char_t>( t )
+  : std::basic_string<u16char_t>( t )
 {
 }
 
 //////////////////////////////////
 u32string::u32string( const std::basic_string<u32char_t>& t )
-: std::basic_string<u32char_t>( t )
+  : std::basic_string<u32char_t>( t )
 {
 }
