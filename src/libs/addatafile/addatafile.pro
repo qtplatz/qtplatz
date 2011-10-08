@@ -13,16 +13,17 @@ DEFINES += ADDATAFILE_LIBRARY
 
 include(../../boost.pri)
 include(../../qtplatz_servant.pri)
-INCLUDEPATH += ../
+INCLUDEPATH += ../../libs
 
-LIBS += -l$$qtLibraryTarget(acewrapper) \
-    -l$$qtLibraryTarget(adcontrols) \
-    -l$$qtLibraryTarget(adportable) \
-    -l$$qtLibraryTarget(adutils) \
-    -l$$qtLibraryTarget(portfolio) \
-    -l$$qtLibraryTarget(xmlparser) \
-    -l$$qtLibraryTarget(adfs)
-
+LIBS += -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(xmlparser) \
+        -l$$qtLibraryTarget(acewrapper) \
+        -l$$qtLibraryTarget(adutils) \
+        -l$$qtLibraryTarget(portfolio) \
+        -l$$qtLibraryTarget(adfs) \
+        -l$$qtLibraryTarget(adportable)
+        
 !win32 {
   LIBS += -lboost_system -lboost_filesystem -lboost_serialization -lboost_date_time
 }

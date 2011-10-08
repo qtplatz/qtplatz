@@ -64,7 +64,7 @@ namespace adportable {
         static std::wstring convert( const std::string& t );
         static std::string convert( const std::wstring& t );
         static std::wstring wstring( const u8string& );
-        static std::wstring wstring( const u8char_t * );
+        static std::wstring wstring( const unsigned char * );
 
         static u8string utf8( const wchar_t * );
         static u8string utf8( const u16char_t * );

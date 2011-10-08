@@ -26,6 +26,7 @@
 #include "sqlite.hpp"
 #include "sqlite3.h"
 #include <adportable/string.hpp>
+#include <adportable/utf.hpp>
 #include <iostream>
 
 #include <boost/noncopyable.hpp>
@@ -314,11 +315,10 @@ stmt::column_value( int nCol )
     switch( sqlite3_column_type( stmt_, nCol ) ) {
     case SQLITE_INTEGER: return column_value_type( sqlite3_column_int64( stmt_, nCol ) );
     case SQLITE_FLOAT:   return column_value_type( sqlite3_column_double( stmt_, nCol ) );
-    // case SQLITE_TEXT:    return column_value_type( reinterpret_cast<const wchar_t*>(sqlite3_column_text16( stmt_, nCol )) );
     case SQLITE_TEXT:    
         do {
-            const adportable::u8char_t * utf8 = sqlite3_column_text( stmt_, nCol );
-            return column_value_type( adportable::string::wstring( utf8 ) );
+            const unsigned char * text = sqlite3_column_text( stmt_, nCol );
+            return column_value_type( adportable::string::wstring( text ) );
         } while(0);
     case SQLITE_BLOB:    return column_value_type( blob() );
     case SQLITE_NULL:    return column_value_type( null() );

@@ -5,6 +5,7 @@
 
 #include "string.hpp"
 #include "utf.hpp"
+#include <iostream>
 
 #ifdef WIN32
 # include <Windows.h>
@@ -64,7 +65,7 @@ string::wstring( const u8string& u8str )
 }
 
 std::wstring
-string::wstring( const u8char_t * u8 )
+string::wstring( const unsigned char * u8 )
 {
 #if defined WIN32
     return std::wstring( reinterpret_cast< const wchar_t *>( utf::to_utf16( u8 ).c_str() ) );
@@ -154,3 +155,4 @@ u32string::u32string( const std::basic_string<u32char_t>& t )
   : std::basic_string<u32char_t>( t )
 {
 }
+

@@ -29,6 +29,7 @@
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/elementalcompositioncollection.hpp>
+#include <adportable/debug.hpp>
 
 using namespace adutils;
 
@@ -42,24 +43,31 @@ ProcessedData::toVariant( boost::any & a )
 // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
 #if defined __GNUC__ 
     static const char * type_name[] = {
-	typeid( MassSpectrumPtr ).name(),
-	typeid( ChromatogramPtr ).name(), 
-	typeid( ElementalCompositionCollectionPtr ).name(),
-	typeid( ProcessMethodPtr ).name()
+        typeid( MassSpectrumPtr ).name(),
+        typeid( ChromatogramPtr ).name(), 
+        typeid( ElementalCompositionCollectionPtr ).name(),
+        typeid( ProcessMethodPtr ).name()
     };
 
     std::string atype = a.type().name();
+#if defined DEBUG
+    std::cerr << "toVariant lookup: " << atype << " ";
+    for ( int i = 0; i < 4; ++i )
+        std::cerr << "? " << type_name[i];
+    std::cerr << std::endl;
+#endif
     if ( atype == type_name[ 0 ] )
         return boost::any_cast< MassSpectrumPtr >( a );
     else if ( atype == type_name[ 1 ] )
         return boost::any_cast< ChromatogramPtr >( a );
     else if ( atype == type_name[ 2 ] )
-        return boost::any_cast< ProcessMethodPtr >( a );
-    else if ( atype == type_name[ 3 ] )
         return boost::any_cast< ElementalCompositionCollectionPtr >( a );
+    else if ( atype == type_name[ 3 ] )
+        return boost::any_cast< ProcessMethodPtr >( a );
 #else
     if ( a.type() == typeid( MassSpectrumPtr ) )
         return boost::any_cast< MassSpectrumPtr >( a );
+
     else if ( a.type() == typeid( ChromatogramPtr ) )
         return boost::any_cast< ChromatogramPtr >( a );
 
@@ -69,5 +77,7 @@ ProcessedData::toVariant( boost::any & a )
     else if ( a.type() == typeid( ElementalCompositionCollectionPtr ) )
         return boost::any_cast< ElementalCompositionCollectionPtr >( a );
 #endif
+    adportable::debug(__FILE__, __LINE__)
+        << "ProcessedData::toVariant( " << a.type().name() << " ) -- return Nothing()";
     return Nothing();
 }

@@ -33,6 +33,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/tokenizer.hpp>
 #include <adportable/string.hpp>
+#include <adportable/debug.hpp>
 
 #if defined WIN32
 # include "apiwin32.hpp"
@@ -172,8 +173,7 @@ internal::fs::format( adfs::sqlite& db, const std::wstring& filename )
 {
     std::wcerr << filename << std::endl;
 
-    return format_superblock( db, filename ) && 
-        format_directory( db );
+    return format_superblock( db, filename ) && format_directory( db );
 }
 
 bool
@@ -497,11 +497,15 @@ internal::fs::select_folders( sqlite& db, boost::int64_t parent_id, std::vector<
         while ( sql.step() == sqlite_row ) {
             boost::int64_t rowid = boost::get<boost::int64_t>( sql.column_value( 0 ) );
             std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) );
-            boost::posix_time::ptime ctime = to_posix_time::ptime( sql.column_value( 2 ) );
-            boost::posix_time::ptime mtime = to_posix_time::ptime( sql.column_value( 3 ) );
-            (void)ctime;
-            (void)mtime;
-
+            try {
+                boost::posix_time::ptime ctime = to_posix_time::ptime( sql.column_value( 2 ) );
+                boost::posix_time::ptime mtime = to_posix_time::ptime( sql.column_value( 3 ) );
+                (void)ctime;
+                (void)mtime;
+            } catch ( std::out_of_range& ex ) {
+                adportable::debug(__FILE__, __LINE__) << "Outof range error: " << ex.what();
+                assert(0);
+            }
             vec.push_back( folder(db, rowid, name) );
         }
     }
@@ -521,10 +525,15 @@ internal::fs::select_folium( sqlite& db, const std::wstring& id, adfs::folium& f
 
             boost::int64_t fileid = boost::get<boost::int64_t>( sql.column_value( 0 ) );
             std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) );
-            boost::posix_time::ptime ctime = to_posix_time::ptime( sql.column_value( 2 ) );
-            boost::posix_time::ptime mtime = to_posix_time::ptime( sql.column_value( 3 ) );
-            (void)ctime;
-            (void)mtime;
+            try {
+                boost::posix_time::ptime ctime = to_posix_time::ptime( sql.column_value( 2 ) );
+                boost::posix_time::ptime mtime = to_posix_time::ptime( sql.column_value( 3 ) );
+                (void)ctime;
+                (void)mtime;
+            } catch ( std::out_of_range& ex ) {
+                adportable::debug(__FILE__, __LINE__) << "Outof range error: " << ex.what();
+                assert(0);
+            }
             folium = adfs::folium( db, fileid, name );
             return true;
         }
@@ -545,11 +554,15 @@ internal::fs::select_folio( sqlite& db, boost::int64_t parent_id, folio& folio )
 
             boost::int64_t rowid = boost::get<boost::int64_t>( sql.column_value( 0 ) );
             std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) );
-            boost::posix_time::ptime ctime = to_posix_time::ptime( sql.column_value( 2 ) );
-            boost::posix_time::ptime mtime = to_posix_time::ptime( sql.column_value( 3 ) );
-            (void)ctime;
-            (void)mtime;
-
+            try {
+                boost::posix_time::ptime ctime = to_posix_time::ptime( sql.column_value( 2 ) );
+                boost::posix_time::ptime mtime = to_posix_time::ptime( sql.column_value( 3 ) );
+                (void)ctime;
+                (void)mtime;
+            } catch ( std::out_of_range& ex ) {
+                adportable::debug(__FILE__, __LINE__) << "Outof range error: " << ex.what();
+                assert(0);
+            }
             folio.push_back( folium( db, rowid, name ) );
         }
         return true;
