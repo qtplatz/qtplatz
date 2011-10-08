@@ -51,9 +51,9 @@ ProcessedData::toVariant( boost::any & a )
 
     std::string atype = a.type().name();
 #if defined DEBUG
-    std::cerr << "toVariant lookup: " << atype << " ";
+    std::cerr << "toVariant lookup: " << atype << std::endl;
     for ( int i = 0; i < 4; ++i )
-        std::cerr << "? " << type_name[i];
+        std::cerr << "\t? " << type_name[i] << std::endl;
     std::cerr << std::endl;
 #endif
     if ( atype == type_name[ 0 ] )

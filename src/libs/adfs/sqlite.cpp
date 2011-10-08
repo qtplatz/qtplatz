@@ -275,7 +275,9 @@ namespace adfs {
     template<> bool
     stmt::bind_item::operator = ( const std::wstring& v )
     {
-        return sqlite3_bind_text16( stmt_, nnn_, v.c_str(), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
+        adportable::u8string u( v );
+        return sqlite3_bind_text( stmt_, nnn_, reinterpret_cast<const char *>( u.c_str() ), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
+        //return sqlite3_bind_text16( stmt_, nnn_, v.c_str(), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
     }
 
     template<> bool
