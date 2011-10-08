@@ -23,10 +23,10 @@
 **
 **************************************************************************/
 
-#include <adfs/adfs.h>
-#include <adfs/cpio.h>
-#include <adfs/sqlite.h>
-#include <adcontrols/massspectrum.h>
+#include <adfs/adfs.hpp>
+#include <adfs/cpio.hpp>
+#include <adfs/sqlite.hpp>
+#include <adcontrols/massspectrum.hpp>
 
 #include <iostream>
 #include <fstream>
