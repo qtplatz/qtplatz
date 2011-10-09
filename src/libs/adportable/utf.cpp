@@ -5,6 +5,7 @@
 
 #include "utf.hpp"
 #include <exception>
+#include "debug.hpp"
 
 using namespace adportable;
 
@@ -17,6 +18,28 @@ namespace adportable {
 	const char * what() const throw() { return text_.c_str(); }
     };
 };
+
+std::string
+utf::to_utf8( const std::wstring& t )
+{
+#if defined WIN32    
+    std::basic_string<UTF8> u = utf::to_utf8( reinterpret_cast< const UTF16 *>( t.c_str() ) );
+#else
+    std::basic_string<UTF8> u = utf::to_utf8( reinterpret_cast< const UTF32 *>( t.c_str() ) );
+#endif
+    return std::string( reinterpret_cast< const char *>( u.c_str() ) );
+}
+
+std::wstring
+utf::to_wstring( const std::string& u8 )
+{
+#if defined WIN32    
+    std::basic_string<UTF16> w = utf::to_utf16( reinterpret_cast< const UTF8 *>( u8.c_str() ) );
+#else
+    std::basic_string<UTF32> w = utf::to_utf32( reinterpret_cast< const UTF8 *>( u8.c_str() ) );
+#endif
+    return std::wstring( reinterpret_cast< const wchar_t *>( w.c_str() ) );
+}
 
 // 16bit --> 8bit
 std::basic_string<UTF8>
@@ -89,8 +112,11 @@ utf::to_utf32( const UTF8 * sourceStart )
    const UTF8 * sourceEnd = sourceStart + utf8size;
    UTF32 * targetStart = &res[0];
    UTF32 * targetEnd = targetStart + utf8size;
-   if ( ConvertUTF8toUTF32( &sourceStart, sourceEnd, &targetStart, targetEnd, strictConversion ) != conversionOK )
+   ConversionResult success = ConvertUTF8toUTF32( &sourceStart, sourceEnd, &targetStart, targetEnd, strictConversion );
+   if ( success != conversionOK ) {
+       adportable::debug(__FILE__, __LINE__) << "ConvertUTF8toUTF32 failed. code=" << int(success);
        throw exception("ConvertUTF8toUTF32 failed");
+   }
    *targetStart = 0;
    return res;
 }

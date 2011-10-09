@@ -36,6 +36,9 @@ namespace adportable {
 
   class utf {
   public:
+      static std::string to_utf8( const std::wstring& );
+      static std::wstring to_wstring( const std::string& );
+
       static std::basic_string<UTF8> to_utf8( const UTF16 * );
       static std::basic_string<UTF8> to_utf8( const UTF32 * );
       static std::basic_string<UTF16> to_utf16( const UTF8 * );

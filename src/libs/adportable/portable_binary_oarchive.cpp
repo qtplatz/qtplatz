@@ -11,7 +11,8 @@
 #include <ostream>
 #include <boost/detail/endian.hpp>
 #include "portable_binary_oarchive.hpp"
-#include "string.hpp"
+#include "utf.hpp"
+#include <iostream>
 
 void 
 portable_binary_oarchive::save_impl(
@@ -79,10 +80,10 @@ portable_binary_oarchive::init(unsigned int flags) {
     save(static_cast<unsigned char>(m_flags >> CHAR_BIT));
 }
 
-std::basic_string<unsigned char>
-portable_binary_oarchive::to_utf8( const std::wstring& t )
+std::string
+portable_binary_oarchive::utf8( const std::wstring& t )
 {
-    return adportable::string::utf8( t.c_str() );
+    return adportable::utf::to_utf8( t );
 }
 
 #include <boost/archive/impl/archive_serializer_map.ipp>

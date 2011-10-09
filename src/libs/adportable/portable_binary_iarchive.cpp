@@ -16,12 +16,18 @@
 #include <boost/archive/archive_exception.hpp>
 
 #include "portable_binary_iarchive.hpp"
-#include "string.hpp"
+#include "utf.hpp"
+#include <iostream>
+
+void
+portable_binary_iarchive::debug_break()
+{
+}
 
 std::wstring
-portable_binary_iarchive::from_utf8( const std::basic_string<unsigned char>& u )
+portable_binary_iarchive::wstring( const std::string& u )
 {
-    return adportable::string::wstring( u );
+    return adportable::utf::to_wstring( u );
 }
 
 void 

@@ -92,7 +92,7 @@ public:
 protected:
 #endif
     unsigned int m_flags;
-    std::basic_string< unsigned char > to_utf8( const std::wstring& t );
+    std::string utf8( const std::wstring& t );
     void save_impl(const boost::intmax_t l, const char maxsize);
     // add base class to the places considered when matching
     // save function to a specific set of arguments.  Note, this didn't
@@ -109,7 +109,8 @@ protected:
     }
     #ifndef BOOST_NO_STD_WSTRING
     void save(const std::wstring & t){
-        this->primitive_base_t::save( to_utf8(t) );
+        this->primitive_base_t::save( utf8(t) );
+        // this->primitive_base_t::save( t );
     }
     #endif
     void save(const float & t){
