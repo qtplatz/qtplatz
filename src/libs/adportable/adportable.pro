@@ -22,6 +22,8 @@ SOURCES += adportable.cpp \
     fft.cpp \
     lifecycle_frame.cpp \
     polfit.cpp \
+    portable_binary_oarchive.cpp \
+    portable_binary_iarchive.cpp \
     posix_path.cpp \
     spectrum_processor.cpp \
     string.cpp \
