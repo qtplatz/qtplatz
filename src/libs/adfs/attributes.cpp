@@ -31,8 +31,10 @@
 #if defined _MSC_VER
 # pragma warning (disable:4996)
 #endif
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
+//#include <boost/archive/binary_oarchive.hpp>
+//#include <boost/archive/binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 #if defined _MSC_VER
 # pragma warning (default:4996)
 #endif
@@ -114,7 +116,8 @@ attributes::setAttribute( const std::wstring& key, const std::wstring& value )
 bool
 attributes::archive( std::ostream& os, const attributes& impl )
 {
-    boost::archive::binary_oarchive ar( os );
+    //boost::archive::binary_oarchive ar( os );
+    portable_binary_oarchive ar( os );
     ar << impl;
     return true;
 }
@@ -122,7 +125,8 @@ attributes::archive( std::ostream& os, const attributes& impl )
 bool
 attributes::restore( std::istream& is, attributes& impl ) // binary
 {
-    boost::archive::binary_iarchive ar( is );
+    // boost::archive::binary_iarchive ar( is );
+    portable_binary_iarchive ar( is );
     ar >> impl;
     return true;
 }

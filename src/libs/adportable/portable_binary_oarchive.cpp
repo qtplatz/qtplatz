@@ -11,6 +11,7 @@
 #include <ostream>
 #include <boost/detail/endian.hpp>
 #include "portable_binary_oarchive.hpp"
+#include "string.hpp"
 
 void 
 portable_binary_oarchive::save_impl(
@@ -76,6 +77,12 @@ portable_binary_oarchive::init(unsigned int flags) {
         * this << v;
     }
     save(static_cast<unsigned char>(m_flags >> CHAR_BIT));
+}
+
+std::basic_string<unsigned char>
+portable_binary_oarchive::to_utf8( const std::wstring& t )
+{
+    return adportable::string::utf8( t.c_str() );
 }
 
 #include <boost/archive/impl/archive_serializer_map.ipp>

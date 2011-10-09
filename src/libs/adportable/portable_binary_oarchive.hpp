@@ -11,6 +11,8 @@
 #pragma warning( disable : 4244 )
 #endif
 
+namespace adportable{ class u8string; }
+
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // portable_binary_oarchive.hpp
 
@@ -41,7 +43,7 @@ public:
         invalid_flags 
     } exception_code;
     portable_binary_oarchive_exception(exception_code c = invalid_flags )
-    {}
+        { (void)c; }
     virtual const char *what( ) const throw( )
     {
         const char *msg = "programmer error";
@@ -90,6 +92,7 @@ public:
 protected:
 #endif
     unsigned int m_flags;
+    std::basic_string< unsigned char > to_utf8( const std::wstring& t );
     void save_impl(const boost::intmax_t l, const char maxsize);
     // add base class to the places considered when matching
     // save function to a specific set of arguments.  Note, this didn't
@@ -106,7 +109,7 @@ protected:
     }
     #ifndef BOOST_NO_STD_WSTRING
     void save(const std::wstring & t){
-        this->primitive_base_t::save(t);
+        this->primitive_base_t::save( to_utf8(t) );
     }
     #endif
     void save(const float & t){
@@ -144,7 +147,6 @@ protected:
         const boost::archive::class_id_optional_type & /* t */, 
         int
     ){}
-
     void init(unsigned int flags);
 public:
     portable_binary_oarchive(std::ostream & os, unsigned flags = 0) :

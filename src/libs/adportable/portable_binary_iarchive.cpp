@@ -16,6 +16,13 @@
 #include <boost/archive/archive_exception.hpp>
 
 #include "portable_binary_iarchive.hpp"
+#include "string.hpp"
+
+std::wstring
+portable_binary_iarchive::from_utf8( const std::basic_string<unsigned char>& u )
+{
+    return adportable::string::wstring( u );
+}
 
 void 
 portable_binary_iarchive::load_impl(boost::intmax_t & l, char maxsize){

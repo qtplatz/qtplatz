@@ -98,6 +98,7 @@ protected:
 #endif
     unsigned int m_flags;
     void load_impl(boost::intmax_t & l, char maxsize);
+    std::wstring from_utf8( const std::basic_string<unsigned char>& );
 
     // default fall through for any types not specified here
     template<class T>
@@ -131,7 +132,9 @@ protected:
     }
     #ifndef BOOST_NO_STD_WSTRING
     void load(std::wstring & t){
-        this->primitive_base_t::load(t);
+        std::basic_string<unsigned char> u;
+        this->primitive_base_t::load(u);
+        t = from_utf8(u);
     }
     #endif
     void load(float & t){
