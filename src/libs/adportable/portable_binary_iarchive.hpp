@@ -54,7 +54,6 @@ public:
             break;
         default:
             msg = boost::archive::archive_exception::what();
-            assert(false);
             break;
         }
         return msg;
