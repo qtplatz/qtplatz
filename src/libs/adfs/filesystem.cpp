@@ -32,7 +32,7 @@
 #include <boost/cstdint.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/tokenizer.hpp>
-#include <adportable/string.hpp>
+#include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
 
 #if defined WIN32
@@ -74,8 +74,7 @@ namespace adfs {
 
         struct to_posix_time {
             static boost::posix_time::ptime ptime( const adfs::column_value_type& v ) {
-                return boost::posix_time::time_from_string(
-                    adportable::string::convert( boost::get<std::wstring>(v) ) );
+                return boost::posix_time::time_from_string( adportable::utf::to_utf8( boost::get<std::wstring>(v) ) );
             }
         };
     }
@@ -226,7 +225,7 @@ internal::dml::insert_directory( adfs::sqlite& db, dir_type type, boost::int64_t
     std::string date = ( boost::format( "%1%" ) % pt ).str();
 
     if ( sql.prepare( "INSERT INTO directory VALUES (?,?,?,?,?,NULL,NULL)" ) ) {
-        sql.bind( 1 ) = adportable::string::utf8( name.c_str() );
+        sql.bind( 1 ) = adportable::utf::to_utf8( name );
         sql.bind( 2 ) = parent_id; // 
         sql.bind( 3 ) = boost::int64_t( type ); // 1:directory, 2:file
         sql.bind( 4 ) = date;
@@ -241,7 +240,7 @@ internal::dml::select_directory( adfs::stmt& sql, dir_type type, boost::int64_t 
 {
     sql.prepare( "SELECT rowid, type, name, parent_id FROM directory WHERE type = ? AND name = ? AND parent_id = ?" );
     sql.bind( 1 ) = static_cast< boost::int64_t>(type);
-    sql.bind( 2 ) = adportable::string::utf8( name.c_str() ); // name
+    sql.bind( 2 ) = adportable::utf::to_utf8( name ); // name
     sql.bind( 3 ) = parent_id;
     if ( sql.step() == adfs::sqlite_row )
         return boost::get< boost::int64_t >( sql.column_value( 0 ) );

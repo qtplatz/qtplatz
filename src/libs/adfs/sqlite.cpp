@@ -275,16 +275,16 @@ namespace adfs {
     template<> bool
     stmt::bind_item::operator = ( const std::wstring& v )
     {
-        adportable::u8string u( v );
+        std::string u = adportable::utf::to_utf8( v );
         return sqlite3_bind_text( stmt_, nnn_, reinterpret_cast<const char *>( u.c_str() ), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
         //return sqlite3_bind_text16( stmt_, nnn_, v.c_str(), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
     }
 
-    template<> bool
-    stmt::bind_item::operator = ( const adportable::u8string& v )
-    {
-        return sqlite3_bind_text( stmt_, nnn_, reinterpret_cast<const char *>( v.c_str() ), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
-    }
+    // template<> bool
+    // stmt::bind_item::operator = ( const adportable::u8string& v )
+    // {
+    //     return sqlite3_bind_text( stmt_, nnn_, reinterpret_cast<const char *>( v.c_str() ), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
+    // }
     
     template<> bool
     stmt::bind_item::operator = ( const blob& blob )
@@ -320,7 +320,7 @@ stmt::column_value( int nCol )
     case SQLITE_TEXT:    
         do {
             const unsigned char * text = sqlite3_column_text( stmt_, nCol );
-            return column_value_type( adportable::string::wstring( text ) );
+            return column_value_type( adportable::utf::to_wstring( text ) );
         } while(0);
     case SQLITE_BLOB:    return column_value_type( blob() );
     case SQLITE_NULL:    return column_value_type( null() );

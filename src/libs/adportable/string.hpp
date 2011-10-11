@@ -29,6 +29,7 @@
 
 namespace adportable {
 
+#if 0
     typedef unsigned long	u32char_t;	/* at least 32 bits */
     typedef unsigned short	u16char_t;	/* at least 16 bits */
     typedef unsigned char	u8char_t;	/* typically 8 bits */
@@ -55,6 +56,9 @@ namespace adportable {
         u8string( const std::basic_string<u16char_t>& );
         u8string( const std::basic_string<u32char_t>& );
     };
+#endif
+
+    typedef std::string u8string;
 
     class string {
     public:
@@ -63,13 +67,13 @@ namespace adportable {
 
         static std::wstring convert( const std::string& t );
         static std::string convert( const std::wstring& t );
-        static std::wstring wstring( const u8string& );
-        static std::wstring wstring( const unsigned char * );
+        //static std::wstring wstring( const u8string& );
+        //static std::wstring wstring( const unsigned char * );
 
-        static u8string utf8( const wchar_t * );
-        static u8string utf8( const u16char_t * );
-        static u8string utf8( const u32char_t * );
-        static u16string utf16( const wchar_t * );
-        static u32string utf32( const wchar_t * );
+        //static u8string utf8( const wchar_t * );
+        //static u8string utf8( const u16char_t * );
+        //static u8string utf8( const u32char_t * );
+        //static u16string utf16( const wchar_t * );
+        //static u32string utf32( const wchar_t * );
     };
 }
