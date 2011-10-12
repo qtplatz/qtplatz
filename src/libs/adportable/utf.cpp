@@ -41,7 +41,7 @@ utf::to_utf8( const std::wstring& t )
     }
     *targetStart = '\0';
     size_t size = targetStart - &target[0];
-    target.resize( size - 1 );
+    target.resize( size );
 #else
     assert( sizeof( wchar_t ) == sizeof( UTF32 ) );
     const size_t utf32size = t.size();
@@ -56,7 +56,7 @@ utf::to_utf8( const std::wstring& t )
         throw exception("ConvertUTF32toUTF8 failed");
     *targetStart = '\0';
     size_t size = std::distance(&target[0], reinterpret_cast<char *>(targetStart));
-    target.resize( size - 1 );
+    target.resize( size );
 #endif
     return target;
 }
@@ -78,6 +78,8 @@ utf::to_wstring( const std::string& u8 )
         throw exception("ConvertUTF8toUTF16 failed");
     }
     *targetStart = 0;
+    size_t size = std::distance(&target[0], reinterpret_cast<wchar_t *>(targetStart));
+    target.resize( size );
     return target;
 #else
     assert( sizeof( wchar_t ) == sizeof( UTF32 ) );
@@ -93,6 +95,8 @@ utf::to_wstring( const std::string& u8 )
         throw exception("ConvertUTF8toUTF32 failed");
     }
     *targetStart = 0;
+    size_t size = std::distance(&target[0], reinterpret_cast<wchar_t *>(targetStart));
+    target.resize( size );
     return target;
 #endif
 }
