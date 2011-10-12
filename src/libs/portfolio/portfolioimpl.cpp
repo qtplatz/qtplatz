@@ -25,6 +25,8 @@
 #include "portfolioimpl.hpp"
 #include "folder.hpp"
 #include "folium.hpp"
+#include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -72,9 +74,6 @@ PortfolioImpl::selectFolders( const std::wstring& query )
 {
     std::vector<Folder> vec;
 
-//    xmlNodeList list = Node::selectNodes( query );
-//    for ( size_t i = 0; i < list.size(); ++i )
-//       vec.push_back( Folder( list[i], this ) );
 
     pugi::xpath_node_set list = Node::selectNodes( query );
     for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
@@ -144,12 +143,19 @@ PortfolioImpl::create_with_fullpath( const std::wstring& fullpath )
 Folder
 PortfolioImpl::addFolder( const std::wstring& name, bool uniq )
 {
+    using adportable::utf;
     if ( uniq ) {
-        pugi::xpath_node_set list = Node::selectNodes( L"folder[@folderType='directory'][@name=\"" + name + L"\"]" );
-        if ( list.size() > 0 )
-            return Folder( list[0].node(), this );
+        std::string query = std::string( "folder[@folderType='directory'][@name=\"" ) + utf::to_utf8(name) + "\"]";
+        adportable::debug() << query; 
+        try {
+            pugi::xpath_node_set list = Node::selectNodes( query );
+            if ( list.size() > 0 )
+                return Folder( list[0].node(), this );
+        } catch ( pugi::xpath_exception& ex ) {
+            adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
+            assert(0);
+        }
     }
-
     return Folder( Node::addFolder( name, this ), this );
 }
 

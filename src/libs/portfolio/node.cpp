@@ -24,6 +24,8 @@
 
 #include "node.hpp"
 #include "portfolioimpl.hpp"
+#include <adportable/debug.hpp>
+#include <adportable/utf.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <string>
@@ -144,13 +146,43 @@ Node::setAttribute( const std::wstring& key, const std::wstring& value )
 pugi::xpath_node_set
 Node::selectNodes( const std::wstring& query )
 {
-    return node_.select_nodes( pugi::as_utf8( query ).c_str() );
+    try {
+        return node_.select_nodes( pugi::as_utf8( query ).c_str() );
+    } catch ( pugi::xpath_exception& ex ) {
+        adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
+        assert(0);
+    }
+    return pugi::xpath_node_set();
+}
+
+pugi::xpath_node_set
+Node::selectNodes( const std::string& query )
+{
+    try {
+        return node_.select_nodes( query.c_str() );
+    } catch ( pugi::xpath_exception& ex ) {
+        adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
+        throw std::runtime_error( ex.what() );
+    }
+    return pugi::xpath_node_set();
 }
 
 pugi::xpath_node
 Node::selectSingleNode( const std::wstring& query )
 {
-    return node_.select_single_node( pugi::as_utf8( query ).c_str() );
+    try {
+        return node_.select_single_node( pugi::as_utf8( query ).c_str() );
+    } catch ( pugi::xpath_exception& ex ) {
+        adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
+        throw std::runtime_error( ex.what() );
+    }
+    return pugi::xpath_node();
+}
+
+pugi::xpath_node
+Node::selectSingleNode( const std::string& query )
+{
+    return node_.select_single_node( query.c_str() );
 }
 
 //////////////////////////
@@ -183,10 +215,16 @@ pugi::xml_node
 Node::addAttachment( const std::wstring& name, bool bUniq )
 {
     if ( bUniq ) {
-        std::string query = "./attachment[@name=\"" + pugi::as_utf8( name ) + "\"]";
-        pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
-        for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it )
-            node_.remove_child( it->node() );
+        using adportable::utf;
+        std::string query = "./attachment[@name=\"" + utf::to_utf8( name ) + "\"]";
+        try {
+            pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
+            for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it )
+                node_.remove_child( it->node() );
+        } catch ( pugi::xpath_exception& ex ) {
+            adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
+            assert(0);            
+        }
     }
 
     pugi::xml_node child = node_.append_child( "attachment" );

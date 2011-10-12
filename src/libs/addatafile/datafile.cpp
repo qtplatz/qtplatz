@@ -248,7 +248,11 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
     // top folder should be L"Spectra" | L"Chromatograms"
     BOOST_FOREACH( const adfs::folder& folder, processed.folders() ) {
         const std::wstring& name = folder.name();
-        detail::folder::load( portfolio.addFolder( name ), folder );
+#if defined DEBUG
+        adportable::debug() << "loadContents folder=" << name;
+#endif
+        portfolio::Folder xmlfolder = portfolio.addFolder( name );
+        detail::folder::load( xmlfolder, folder );
     }
 
     processedDataset_.reset( new adcontrols::ProcessedDataset );

@@ -74,7 +74,7 @@ Portfolio::findFolium( const std::wstring& id )
     return impl_->selectFolium( L"//folium[@dataId='" + id + L"']");
 }
 
-const attributes_type& 
+attributes_type
 Portfolio::attributes() const
 {
     return impl_->attributes();

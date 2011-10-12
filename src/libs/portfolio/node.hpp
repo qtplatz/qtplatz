@@ -66,6 +66,10 @@ namespace portfolio {
         protected:
             pugi::xpath_node_set selectNodes( const std::wstring& query );
             pugi::xpath_node selectSingleNode( const std::wstring& query );
+
+            pugi::xpath_node_set selectNodes( const std::string& query );
+            pugi::xpath_node selectSingleNode( const std::string& query );
+
             pugi::xml_node addFolder( const std::wstring& name, PortfolioImpl* );
             pugi::xml_node addFolium( const std::wstring& name );
             pugi::xml_node addAttachment( const std::wstring& name, bool bUniq = true );
