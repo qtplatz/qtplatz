@@ -36,7 +36,7 @@ QString
 qstring::copy( const std::wstring& t )
 {
 #if defined WIN32
-    QString res( QString::fromUtf16( reinterpret_cast<const UTF16 *>( t.c_str() ) ) );
+    QString res( QString::fromUtf16( reinterpret_cast<const unsigned short *>( t.c_str() ) ) );
     return res;
 #else
     return QString::fromStdWString( t );

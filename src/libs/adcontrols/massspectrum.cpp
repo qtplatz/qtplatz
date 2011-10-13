@@ -40,8 +40,11 @@
 #if defined _MSC_VER
 # pragma warning( disable: 4996 )
 #endif
-# include <boost/archive/binary_oarchive.hpp>
-# include <boost/archive/binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+
+//# include <boost/archive/binary_oarchive.hpp>
+//# include <boost/archive/binary_iarchive.hpp>
 
 #include <sstream>
 #include <vector>
@@ -405,7 +408,7 @@ MassSpectrum::loadXml( const std::wstring& xml )
 bool
 MassSpectrum::archive( std::ostream& os, const MassSpectrum& ms )
 {
-    boost::archive::binary_oarchive ar( os );
+    portable_binary_oarchive ar( os );
     ar << ms;
     return true;
 }
@@ -413,21 +416,21 @@ MassSpectrum::archive( std::ostream& os, const MassSpectrum& ms )
 bool
 MassSpectrum::restore( std::istream& is, MassSpectrum& ms )
 {
-    boost::archive::binary_iarchive ar( is );
+    portable_binary_iarchive ar( is );
     ar >> ms;
     return true;
 }
 
 
 template<> void
-MassSpectrum::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
+MassSpectrum::serialize( portable_binary_oarchive& ar, const unsigned int version )
 {
     (void)version;
     ar << boost::serialization::make_nvp( "MassSpectrum", pImpl_ );
 }
 
 template<> void
-MassSpectrum::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
+MassSpectrum::serialize( portable_binary_iarchive& ar, const unsigned int version )
 {
     (void)version;
     ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);

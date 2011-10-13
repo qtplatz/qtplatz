@@ -28,8 +28,11 @@
 #include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
 # pragma warning( disable: 4996 )
-# include <boost/archive/binary_oarchive.hpp>
-# include <boost/archive/binary_iarchive.hpp>
+//# include <boost/archive/binary_oarchive.hpp>
+//# include <boost/archive/binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+
 # pragma warning( default: 4996 )
 
 

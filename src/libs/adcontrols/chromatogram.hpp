@@ -39,6 +39,9 @@ namespace boost {
     }
 }
 
+class portable_binary_oarchive; 
+class portable_binary_iarchive;
+
 namespace adcontrols {
 
     namespace internal {
@@ -140,8 +143,8 @@ namespace adcontrols {
         internal::ChromatogramImpl * pImpl_;
     };
 
-    template<> void Chromatogram::serialize( boost::archive::binary_oarchive&, const unsigned int );
-    template<> void Chromatogram::serialize( boost::archive::binary_iarchive&, const unsigned int );
+    template<> void Chromatogram::serialize( portable_binary_oarchive&, const unsigned int );
+    template<> void Chromatogram::serialize( portable_binary_iarchive&, const unsigned int );
 
     typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;   
 

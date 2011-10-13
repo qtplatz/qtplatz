@@ -41,8 +41,10 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 
-# include <boost/archive/binary_oarchive.hpp>
-# include <boost/archive/binary_iarchive.hpp>
+//# include <boost/archive/binary_oarchive.hpp>
+//# include <boost/archive/binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 
 #include <sstream>
 #include <vector>
@@ -424,14 +426,14 @@ namespace adcontrols {
     }
     
     template<> void
-    Chromatogram::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
+    Chromatogram::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
 	(void)version;
 	ar << boost::serialization::make_nvp( "Chromatogram", pImpl_ );
     }
     
     template<> void
-    Chromatogram::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
+    Chromatogram::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
 	(void)version;
 	ar >> boost::serialization::make_nvp( "Chromatogram", pImpl_ );
@@ -455,13 +457,13 @@ namespace adcontrols {
     }
     
     template<> void
-    Chromatogram::Event::serialize( boost::archive::binary_oarchive& ar, const unsigned int)
+    Chromatogram::Event::serialize( portable_binary_oarchive& ar, const unsigned int)
     {
 	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
     }
     
     template<> void
-    Chromatogram::Event::serialize( boost::archive::binary_iarchive& ar, const unsigned int)
+    Chromatogram::Event::serialize( portable_binary_iarchive& ar, const unsigned int)
     {
 	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
     }
@@ -470,7 +472,7 @@ namespace adcontrols {
 bool
 Chromatogram::archive( std::ostream& os, const Chromatogram& c )
 {
-    boost::archive::binary_oarchive ar( os );
+    portable_binary_oarchive ar( os );
     ar << c;
     return true;
 }
@@ -478,7 +480,7 @@ Chromatogram::archive( std::ostream& os, const Chromatogram& c )
 bool
 Chromatogram::restore( std::istream& is, Chromatogram& c )
 {
-    boost::archive::binary_iarchive ar( is );
+    portable_binary_iarchive ar( is );
     ar >> c;
     return true;
 }

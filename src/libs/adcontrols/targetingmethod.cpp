@@ -30,8 +30,10 @@
 # if defined _MSC_VER
 # pragma warning( disable: 4996 )
 # endif
-# include <boost/archive/binary_oarchive.hpp>
-# include <boost/archive/binary_iarchive.hpp>
+//# include <boost/archive/binary_oarchive.hpp>
+//# include <boost/archive/binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 
 
 using namespace adcontrols;
@@ -45,7 +47,8 @@ TargetingMethod::TargetingMethod()
 namespace adcontrols {
 
     template<> void
-    TargetingMethod::serialize( boost::archive::binary_oarchive& /*ar*/, const unsigned int /* version */)
+    //TargetingMethod::serialize( portable_binary_oarchive& /*ar*/, const unsigned int /* version */)
+    TargetingMethod::serialize( portable_binary_oarchive& /*ar*/, const unsigned int /* version */)
     {
 /*
   if ( version >= 0 )
@@ -54,7 +57,8 @@ namespace adcontrols {
     }
 
     template<> void
-    TargetingMethod::serialize( boost::archive::binary_iarchive& /*ar*/, const unsigned int /*version*/)
+        //TargetingMethod::serialize( portable_binary_iarchive& /*ar*/, const unsigned int /*version*/)
+    TargetingMethod::serialize( portable_binary_iarchive& /*ar*/, const unsigned int /*version*/)
     {
 /*
   if ( version >= 0 )

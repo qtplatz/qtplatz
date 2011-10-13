@@ -40,7 +40,7 @@ utf::to_utf8( const std::wstring& t )
         throw exception( "ConvertUTF16toUTF8 failed" );
     }
     *targetStart = '\0';
-    size_t size = targetStart - &target[0];
+    size_t size = std::distance(&target[0], reinterpret_cast<char *>(targetStart));
     target.resize( size );
 #else
     assert( sizeof( wchar_t ) == sizeof( UTF32 ) );

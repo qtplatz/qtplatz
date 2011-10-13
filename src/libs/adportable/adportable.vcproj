@@ -215,6 +215,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\portable_binary_iarchive.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\portable_binary_oarchive.cpp"
+				>
+			</File>
+			<File
 				RelativePath="posix_path.cpp"
 				>
 			</File>
@@ -629,6 +637,18 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\portable_binary_archive.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\portable_binary_iarchive.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\portable_binary_oarchive.hpp"
+				>
 			</File>
 			<File
 				RelativePath="posix_path.hpp"

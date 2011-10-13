@@ -39,6 +39,9 @@ namespace boost {
     }
 }
 
+class portable_binary_oarchive;
+class portable_binary_iarchive;
+
 namespace adcontrols {
 
    enum MS_POLARITY { PolarityIndeterminate
@@ -124,8 +127,8 @@ namespace adcontrols {
        internal::MassSpectrumImpl * pImpl_;
     };
 
-    template<> void MassSpectrum::serialize( boost::archive::binary_oarchive&, const unsigned int );
-    template<> void MassSpectrum::serialize( boost::archive::binary_iarchive&, const unsigned int );
+    template<> void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );
+    template<> void MassSpectrum::serialize( portable_binary_iarchive&, const unsigned int );
     
     typedef boost::shared_ptr<MassSpectrum> MassSpectrumPtr;   
    

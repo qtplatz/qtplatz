@@ -41,8 +41,10 @@
 # if defined _MSC_VER
 # pragma warning( disable: 4996 )
 # endif
-# include <boost/archive/binary_oarchive.hpp>
-# include <boost/archive/binary_iarchive.hpp>
+//# include <boost/archive/binary_oarchive.hpp>
+//# include <boost/archive/binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 
 using namespace adcontrols;
 
@@ -196,14 +198,14 @@ ProcessMethod::end() const
 namespace adcontrols {
 
     template<> void
-    ProcessMethod::serialize( boost::archive::binary_oarchive& ar, const unsigned int version )
+    ProcessMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
 	(void)version;
 	ar << boost::serialization::make_nvp( "ProcessMethod", vec_ );
     }
     
     template<> void
-    ProcessMethod::serialize( boost::archive::binary_iarchive& ar, const unsigned int version )
+    ProcessMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
 	(void)version;
 	ar >> boost::serialization::make_nvp("ProcessMethod", vec_);
@@ -214,7 +216,7 @@ namespace adcontrols {
 bool
 ProcessMethod::archive( std::ostream& os, const ProcessMethod& t )
 {
-    boost::archive::binary_oarchive ar( os );
+    portable_binary_oarchive ar( os );
     ar << t;
     return true;
 }
@@ -222,7 +224,7 @@ ProcessMethod::archive( std::ostream& os, const ProcessMethod& t )
 bool
 ProcessMethod::restore( std::istream& is, ProcessMethod& t )
 {
-    boost::archive::binary_iarchive ar( is );
+    portable_binary_iarchive ar( is );
     ar >> t;
     return true;
 }

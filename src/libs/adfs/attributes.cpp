@@ -116,7 +116,7 @@ attributes::setAttribute( const std::wstring& key, const std::wstring& value )
 bool
 attributes::archive( std::ostream& os, const attributes& impl )
 {
-    //boost::archive::binary_oarchive ar( os );
+    //portable_binary_oarchive ar( os );
     portable_binary_oarchive ar( os );
     ar << impl;
     return true;
@@ -125,7 +125,7 @@ attributes::archive( std::ostream& os, const attributes& impl )
 bool
 attributes::restore( std::istream& is, attributes& impl ) // binary
 {
-    // boost::archive::binary_iarchive ar( is );
+    // portable_binary_iarchive ar( is );
     portable_binary_iarchive ar( is );
     ar >> impl;
     return true;

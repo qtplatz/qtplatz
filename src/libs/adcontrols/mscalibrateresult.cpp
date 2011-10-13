@@ -38,8 +38,10 @@
 # if defined _MSC_VER
 #  pragma warning( disable: 4996 )
 # endif
-# include <boost/archive/binary_oarchive.hpp>
-# include <boost/archive/binary_iarchive.hpp>
+//# include <boost/archive/binary_oarchive.hpp>
+//# include <boost/archive/binary_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 
 using namespace adcontrols;
 
@@ -148,7 +150,7 @@ MSCalibrateResult::assignedMasses( const MSAssignedMasses& t )
 bool
 MSCalibrateResult::archive( std::ostream& os, const MSCalibrateResult& t )
 {
-    boost::archive::binary_oarchive ar( os );
+    portable_binary_oarchive ar( os );
     ar << t;
     return true;
 }
@@ -156,7 +158,7 @@ MSCalibrateResult::archive( std::ostream& os, const MSCalibrateResult& t )
 bool
 MSCalibrateResult::restore( std::istream& is, MSCalibrateResult& t )
 {
-    boost::archive::binary_iarchive ar( is );
+    portable_binary_iarchive ar( is );
     ar >> t;
     return true;
 }
