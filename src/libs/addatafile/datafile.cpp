@@ -31,6 +31,8 @@
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/processeddataset.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -132,6 +134,10 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
     sql.prepare( "SELECT rowid FROM file WHERE fileid = (SELECT rowid FROM directory WHERE name = ?)" );
     sql.bind( 1 ) = dataId;
 
+#if defined DEBUG
+    adportable::debug() << "==> fetch(" << dataId << ", " << dataType << ")";
+#endif
+
     boost::any any;
     size_t n = 0;
     while ( sql.step() == adfs::sqlite_row ) {
@@ -151,11 +157,21 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
                         adcontrols::MassSpectrumPtr ptr( new adcontrols::MassSpectrum() );
                         adfs::cpio<adcontrols::MassSpectrum>::copyout( *ptr, obuf );
                         any = ptr;
+                    } else if ( dataType == L"ProcessMethod" ) {
+                        adcontrols::ProcessMethodPtr ptr( new adcontrols::ProcessMethod() );
+                        adfs::cpio<adcontrols::ProcessMethod>::copyout( *ptr, obuf );
+                        any = ptr;
+                    } else if ( dataType == L"MSCalibrateResult" ) {
+                        adcontrols::MSCalibrateResultPtr ptr( new adcontrols::MSCalibrateResult() );
+                        adfs::cpio<adcontrols::MSCalibrateResult>::copyout( *ptr, obuf );
+                        any = ptr;
+                    } else {
+                        adportable::debug(__FILE__, __LINE__)
+                            << "datafile::fetch(" << dataId << ", " << dataType;
                     }
                 }
             }
         }
-
     }
     return any;
 }
@@ -337,6 +353,11 @@ namespace addatafile {
 
         bool folium::load( portfolio::Folium dst, const adfs::folium& src )
         {
+#if defined DEBUG
+            adportable::debug() 
+                << ">> folium::load(" << src.attribute(L"name") << ") " 
+                << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
+#endif
             import::attributes( dst, src );
             BOOST_FOREACH( const adfs::folium& att, src.attachments() )
                 attachment::load( dst.addAttachment( att.name() ), att );
@@ -345,25 +366,17 @@ namespace addatafile {
 
         bool attachment::load( portfolio::Folium dst, const adfs::folium& src )
         {
+#if defined DEBUG
+            adportable::debug()
+                << " +++ attachment::load(" << src.attribute(L"name") << ") " 
+                << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
+#endif
             import::attributes( dst, src );
             BOOST_FOREACH( const adfs::folium& att, src.attachments() )
                 attachment::load( dst.addAttachment( att.name() ), att );
             return true;
         }
-/*
-        void import::folder( portfolio::Folder parent, const adfs::folder& adfolder )
-        {
-            BOOST_FOREACH( const adfs::folium& folium, adfolder.folio() )
-                import::folium( parent.addFolium( folium.name() ), folium );
-        }
 
-        void import::folium( portfolio::Folium dst, const adfs::folium& src )
-        {
-            import::attributes( dst, src );
-            BOOST_FOREACH( const adfs::folium& attachment, src.attachments() )
-                import::attributes( dst.addAttachment( attachment.name() ), attachment );
-        }
-*/
         //---
         void import::attributes( portfolio::Folium& d, const adfs::internal::attributes& s )
         {

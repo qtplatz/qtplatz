@@ -50,12 +50,6 @@ ProcessedData::toVariant( boost::any & a )
     };
 
     std::string atype = a.type().name();
-#if defined DEBUG
-    std::cerr << "toVariant lookup: " << atype << std::endl;
-    for ( int i = 0; i < 4; ++i )
-        std::cerr << "\t? " << type_name[i] << std::endl;
-    std::cerr << std::endl;
-#endif
     if ( atype == type_name[ 0 ] )
         return boost::any_cast< MassSpectrumPtr >( a );
     else if ( atype == type_name[ 1 ] )
@@ -76,6 +70,13 @@ ProcessedData::toVariant( boost::any & a )
 
     else if ( a.type() == typeid( ElementalCompositionCollectionPtr ) )
         return boost::any_cast< ElementalCompositionCollectionPtr >( a );
+#endif
+
+#if defined DEBUG
+    std::cerr << "toVariant lookup: " << atype << std::endl;
+    for ( int i = 0; i < 4; ++i )
+        std::cerr << "\t? " << type_name[i] << std::endl;
+    std::cerr << std::endl;
 #endif
     adportable::debug(__FILE__, __LINE__)
         << "ProcessedData::toVariant( " << a.type().name() << " ) -- return Nothing()";
