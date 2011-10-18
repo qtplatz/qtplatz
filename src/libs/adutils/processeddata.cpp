@@ -44,11 +44,11 @@ ProcessedData::toVariant( boost::any & a )
 // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
 #if defined __GNUC__ 
     static const char * type_name[] = {
-        typeid( MassSpectrumPtr ).name(),
-        typeid( ChromatogramPtr ).name(), 
-        typeid( ElementalCompositionCollectionPtr ).name(),
-        typeid( ProcessMethodPtr ).name()
-        typeid( MSCalibrateResultPtr ).name()
+        typeid( MassSpectrumPtr ).name()
+        , typeid( ChromatogramPtr ).name()
+        , typeid( ElementalCompositionCollectionPtr ).name()
+        , typeid( ProcessMethodPtr ).name()
+        , typeid( MSCalibrateResultPtr ).name()
     };
 
     std::string atype = a.type().name();
@@ -60,7 +60,7 @@ ProcessedData::toVariant( boost::any & a )
         return boost::any_cast< ElementalCompositionCollectionPtr >( a );
     else if ( atype == type_name[ 3 ] )
         return boost::any_cast< ProcessMethodPtr >( a );
-    else if ( a.type() == type_name[ 4 ] )
+    else if ( atype == type_name[ 4 ] )
         return boost::any_cast< MSCalibrateResultPtr >( a );
 #else
     if ( a.type() == typeid( MassSpectrumPtr ) )
