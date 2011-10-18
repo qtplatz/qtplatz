@@ -27,6 +27,8 @@
 #include "folder.hpp"
 #include "portfolioimpl.hpp"
 #include "filesystem.hpp"
+#include <adportable/debug.hpp>
+#include "attributes.hpp"
 
 using namespace adfs;
 
@@ -74,6 +76,12 @@ folium::attachments()
         boost::int64_t rowid = boost::get< boost::int64_t >( sql.column_value( 0 ) );
         std::wstring name = boost::get< std::wstring>( sql.column_value( 1 ) );
         attachments.push_back( adfs::folium( *db_, rowid, name ) );
+#if defined DEBUG
+        const folium& v = attachments.back();
+        std::wcerr << L" --> select attachments: " << name << std::endl << L"\t\t";
+        std::wcerr << L"(" << v.attribute(L"dataType") << L", " << v.attribute( L"name" ) << ")";
+        std::wcerr << std::endl;
+#endif
     }
     return attachments;
 }

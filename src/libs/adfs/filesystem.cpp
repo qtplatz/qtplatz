@@ -170,8 +170,9 @@ filesystem::prealloc( size_t size )
 bool
 internal::fs::format( adfs::sqlite& db, const std::wstring& filename )
 {
-    std::wcerr << filename << std::endl;
-
+#if defined DEBUG && 0
+    std::wcerr << L"internal::fs::format(" << filename << L")" << std::endl;
+#endif
     return format_superblock( db, filename ) && format_directory( db );
 }
 
