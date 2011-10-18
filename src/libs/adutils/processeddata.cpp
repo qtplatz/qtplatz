@@ -29,6 +29,7 @@
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/elementalcompositioncollection.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
 #include <adportable/debug.hpp>
 
 using namespace adutils;
@@ -47,6 +48,7 @@ ProcessedData::toVariant( boost::any & a )
         typeid( ChromatogramPtr ).name(), 
         typeid( ElementalCompositionCollectionPtr ).name(),
         typeid( ProcessMethodPtr ).name()
+        typeid( MSCalibrateResultPtr ).name()
     };
 
     std::string atype = a.type().name();
@@ -58,6 +60,8 @@ ProcessedData::toVariant( boost::any & a )
         return boost::any_cast< ElementalCompositionCollectionPtr >( a );
     else if ( atype == type_name[ 3 ] )
         return boost::any_cast< ProcessMethodPtr >( a );
+    else if ( a.type() == type_name[ 4 ] )
+        return boost::any_cast< MSCalibrateResultPtr >( a );
 #else
     if ( a.type() == typeid( MassSpectrumPtr ) )
         return boost::any_cast< MassSpectrumPtr >( a );
@@ -70,6 +74,9 @@ ProcessedData::toVariant( boost::any & a )
 
     else if ( a.type() == typeid( ElementalCompositionCollectionPtr ) )
         return boost::any_cast< ElementalCompositionCollectionPtr >( a );
+
+    else if ( a.type() == typeid( MSCalibrateResultPtr ) )
+        return boost::any_cast< MSCalibrateResultPtr >( a );
 #endif
 
 #if defined DEBUG
