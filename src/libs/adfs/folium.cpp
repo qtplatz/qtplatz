@@ -108,7 +108,7 @@ std::size_t
 folium::write( std::size_t size, const char_t * p )
 {
     if ( internal::fs::write( *db_, rowid_, size, p ) ) {
-        commit();
+        commit(); // commit attribute -- TODO: this api is confusing, consider change!!! TH 14th Nov 2011
         return size;
     }
     return 0;

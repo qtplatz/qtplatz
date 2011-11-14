@@ -725,7 +725,7 @@ reduceNoise( adcontrols::MassSpectrum& ms )
 	adportable::fft::fourier_transform( interferrogram, power, false );
 	//adportable::fft::apodization( N/4, N/4, interferrogram );
 	adportable::fft::apodization( N/2 - N/16, N / 16, interferrogram );
-	adportable::fft::zero_filling( NN, interferrogram );
+	// adportable::fft::zero_filling( NN, interferrogram );
 	adportable::fft::fourier_transform( power, interferrogram, true );
 
 	std::vector<double> data;

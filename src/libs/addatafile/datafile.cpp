@@ -294,6 +294,11 @@ namespace addatafile {
             adfs::folium dbThis = parent.addAttachment( folium.id() );
             import::attributes( dbThis, folium.attributes() );
 
+#ifdef _DEBUG
+            const std::wstring& dataclass = folium.dataClass();
+            const std::wstring& name = folium.name();
+#endif
+
             boost::any any = static_cast<const boost::any&>( folium );
             if ( any.empty() && (&source != nullfile ) )
                 any = source.fetch( folium.id(), folium.dataClass() );
