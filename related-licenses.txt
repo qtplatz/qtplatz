@@ -1,0 +1,20 @@
+
+QtPlatz project files are depending on following open source projects licences.
+
+Boost:
+Boost Softwaree Library License, www.boost.org/users/licnese.html
+
+SQLite:
+www.sqlite.org/copyright.html
+
+pugixml:
+MIT License, www.opensource.org/licenses/mit-license.php
+
+ACE+TAO:
+Copyright and Licensing Information for ACE(TM), TAO(TM), CIAO(TM), DAnCE(TM), and CoSMIC(TM): www.cs.wustl.edu/~schmidt/ACE-copying.html
+
+Qwt: Wwt License, Version 1.0
+qwt.sourceforge.net/qwtlicense.html (LGPL with modification)
+
+Qt: LGPL
+
