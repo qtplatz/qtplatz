@@ -37,6 +37,15 @@ namespace portfolio {
 
     class Folder;
 
+    template<class T> inline bool is_type( boost::any& a ) {
+        // see issue on boost, https://svn.boost.org/trac/boost/ticket/754
+#if defined __GNUC__
+        return std::string( a.type().name() ) == typeid( T ).name();
+#else
+        return a.type() == typeid( T );
+#endif            
+    }
+
     class PORTFOLIOSHARED_EXPORT Folium : public internal::Node {
     public:
         ~Folium();
@@ -61,7 +70,7 @@ namespace portfolio {
         template<class T> static vector_type::iterator find_first_of( vector_type::iterator it, vector_type::iterator ite ) {
             while ( it != ite ) {
                 boost::any& data = (*it);
-                if ( data.type() == typeid(T) )
+                if ( is_type<T>( data ) )
                     return it;
                 ++it;
             }
@@ -70,7 +79,7 @@ namespace portfolio {
 
         template<class T> static bool get( T& t, Folium& folium ) {
             boost::any& data = folium;
-            if ( data.type() == typeid(T) ) {
+            if ( is_type<T>( data ) ) {
                 t = boost::any_cast<T>(data);
                 return true;
             }

@@ -64,6 +64,14 @@ namespace adutils {
 
         static value_type toVariant( boost::any& );
 
+        template<class T> static bool is_type( boost::any& a ) {
+#if defined __GNUC__
+            return std::string( a.type().name() ) == typeid( T ).name();
+#else
+            return a.type() == typeid( T );
+#endif            
+        }
+
     private:
         value_type datum_;
     };

@@ -127,7 +127,9 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
     portfolio::Folder folder = folium.getParentFolder();
     if ( folder && folder.name() == L"MSCalibration" ) {
         boost::any& data = folium;
-        if ( data.type() == typeid( adutils::MassSpectrumPtr ) ) {
+
+        // if ( data.type() == typeid( adutils::MassSpectrumPtr ) ) {
+        if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) { 
             adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( data );
             pImpl_->processedSpectrum_->setData( *ptr, nID++ );
         }
