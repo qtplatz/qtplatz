@@ -204,3 +204,4 @@ void MainDeviceWindow::on_pushDisconnect_clicked()
 {
     singleton::device_facade::instance()->lifeCycle().force_close();
 }
+
