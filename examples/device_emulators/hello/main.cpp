@@ -31,23 +31,31 @@
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
 
+using boost::asio::ip::udp;
+
 class dgram_state_machine : public dgram_server, public lifecycle {
 public:
-    dgram_state_machine( boost::asio::io_service& io ) : dgram_server( io ) {
+    dgram_state_machine( boost::asio::io_service& io ) : dgram_server( io ), sock_( io ) {
+        sock_.open( udp::v4() );
     }
 
     bool operator()( const boost::asio::ip::udp::endpoint&, const char *, std::size_t );
+private:
+    udp::socket sock_;
 };
 
 bool
 dgram_state_machine::operator()( const boost::asio::ip::udp::endpoint& endpoint, const char *, std::size_t )
 {
     std::cout << "dgram_state_machine..." << std::endl;
+
+    //boost::asio::ip::udp::endpoint dest_endpoint( boost::asio::ip::address_v4::any(), 7000 );
+    boost::asio::ip::udp::endpoint dest_endpoint( endpoint.address(), 7000 );
     
     boost::array<char, 1> send_buf = {{ 0 }};
-    socket_.send_to( boost::asio::buffer( send_buf ), endpoint );
+    sock_.send_to( boost::asio::buffer( send_buf ), dest_endpoint );
 
-    std::cout << "dgram sent to: " << endpoint.address().to_string() << "/" << endpoint.port() << std::endl;
+    std::cout << "dgram sent to: " << dest_endpoint.address().to_string() << "/" << dest_endpoint.port() << std::endl;
 
     return true;
 }
@@ -60,6 +68,12 @@ int main(int argc, char *argv[])
     using boost::asio::ip::udp;
     
     boost::asio::io_service io_service;
+
+    do {
+        dgram_state_machine d( io_service );
+        udp::endpoint remote( boost::asio::ip::address::from_string( "192.168.0.130" ), 7000 );
+        d( remote, "\0", 1 );
+    } while(0);
 
     lifecycle lifecycle;
     mcast_receiver mcast( io_service

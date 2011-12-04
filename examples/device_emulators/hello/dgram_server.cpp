@@ -31,7 +31,7 @@
 using boost::asio::ip::udp;
 
 dgram_server::dgram_server( boost::asio::io_service& io_service )
-    : socket_( io_service, udp::endpoint( udp::v4(), 7000 ) )
+    : socket_( io_service, udp::endpoint( udp::v4(), 8000 ) )
 {
     start_receive();
 }

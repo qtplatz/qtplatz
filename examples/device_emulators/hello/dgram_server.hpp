@@ -33,14 +33,14 @@ public:
     dgram_server( boost::asio::io_service& );
 
 protected:
-    boost::asio::ip::udp::socket socket_;
 
 private:
     void start_receive();
     void handle_receive( const boost::system::error_code&, std::size_t );
     void handle_send( boost::shared_ptr< std::string >, const boost::system::error_code&, std::size_t );
     boost::asio::ip::udp::endpoint remote_endpoint_;
-    boost::array< char, 1 > recv_buffer_;
+    boost::array< char, 1024 > recv_buffer_;
+    boost::asio::ip::udp::socket socket_;
 };
 
 #endif // DGRAM_SERVER_HPP

@@ -51,12 +51,12 @@ dgram_server::start_receive()
 void
 dgram_server::handle_receive( const boost::system::error_code& error, std::size_t )
 {
-    if ( ! error || error == boost::asio::error::message_size ) {
+    std::cout << "received from: " 
+              << remote_endpoint_.address().to_string() 
+              << "/" << remote_endpoint_.port()
+              << std::endl;
 
-        std::cout << "received from: " 
-                  << remote_endpoint_.address().to_string() 
-                  << "/" << remote_endpoint_.port()
-                  << std::endl;
+    if ( ! error || error == boost::asio::error::message_size ) {
 
         boost::posix_time::ptime pt( boost::posix_time::second_clock::local_time() );
         boost::shared_ptr<std::string> message( new std::string( boost::posix_time::to_simple_string( pt ) ) );
