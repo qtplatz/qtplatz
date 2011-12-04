@@ -26,16 +26,19 @@
 #define DGRAM_SERVER_HPP
 
 #include <boost/asio.hpp>
+#include "lifecycle.hpp"
 
-class dgram_server
-{
+class dgram_server {
 public:
     dgram_server( boost::asio::io_service& );
+
+protected:
+    boost::asio::ip::udp::socket socket_;
+
 private:
     void start_receive();
     void handle_receive( const boost::system::error_code&, std::size_t );
     void handle_send( boost::shared_ptr< std::string >, const boost::system::error_code&, std::size_t );
-    boost::asio::ip::udp::socket socket_;
     boost::asio::ip::udp::endpoint remote_endpoint_;
     boost::array< char, 1 > recv_buffer_;
 };

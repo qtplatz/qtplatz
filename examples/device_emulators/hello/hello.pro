@@ -18,11 +18,15 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
         mcast_receiver.cpp \
-    dgram_server.cpp
+    dgram_server.cpp \
+    lifecycle.cpp
 
 HEADERS += \
     mcast_receiver.hpp \
-    dgram_server.hpp
+    dgram_server.hpp \
+    lifecycle.hpp
+
+
 
 
 

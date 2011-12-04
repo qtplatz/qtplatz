@@ -23,14 +23,17 @@
 **************************************************************************/
 
 #include "mcast_receiver.hpp"
+#include "lifecycle.hpp"
 #include <boost/bind.hpp>
 
 const short multicast_port = 20001;
 
 mcast_receiver::mcast_receiver( boost::asio::io_service& io_service
-                            , const boost::asio::ip::address& listen_address
-                            , const boost::asio::ip::address& mcast_address )
+                                , lifecycle& lifecycle
+                                , const boost::asio::ip::address& listen_address
+                                , const boost::asio::ip::address& mcast_address )
     : socket_(io_service) 
+    , lifecycle_( lifecycle )
 {
     boost::asio::ip::udp::endpoint listen_endpoint( listen_address, multicast_port );
     socket_.open( listen_endpoint.protocol() );
@@ -53,8 +56,10 @@ mcast_receiver::handle_receive_from( const boost::system::error_code& error, siz
     if ( ! error ) {
         std::cout << "'";
         std::cout.write( data_, bytes_recvd );
-        std::cout << "' send from " << sender_endpoint_.address().to_string() 
+        std::cout << "' received from " << sender_endpoint_.address().to_string() 
                   << "/" << sender_endpoint_.port() << std::endl;
+
+        lifecycle_( sender_endpoint_, data_, bytes_recvd );
         
         socket_.async_receive_from( boost::asio::buffer( data_, max_length )
                                     , sender_endpoint_

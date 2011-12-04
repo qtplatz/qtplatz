@@ -24,10 +24,34 @@
 
 #include "mcast_receiver.hpp"
 #include "dgram_server.hpp"
+#include "lifecycle.hpp"
 
 #include <QtCore/QCoreApplication>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
+#include <boost/bind.hpp>
+
+class dgram_state_machine : public dgram_server, public lifecycle {
+public:
+    dgram_state_machine( boost::asio::io_service& io ) : dgram_server( io ) {
+    }
+
+    bool operator()( const boost::asio::ip::udp::endpoint&, const char *, std::size_t );
+};
+
+bool
+dgram_state_machine::operator()( const boost::asio::ip::udp::endpoint& endpoint, const char *, std::size_t )
+{
+    std::cout << "dgram_state_machine..." << std::endl;
+    
+    boost::array<char, 1> send_buf = {{ 0 }};
+    socket_.send_to( boost::asio::buffer( send_buf ), endpoint );
+
+    std::cout << "dgram sent to: " << endpoint.address().to_string() << "/" << endpoint.port() << std::endl;
+
+    return true;
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -37,29 +61,13 @@ int main(int argc, char *argv[])
     
     boost::asio::io_service io_service;
 
+    lifecycle lifecycle;
     mcast_receiver mcast( io_service
+                          , lifecycle
                           , boost::asio::ip::address::from_string( "0.0.0.0" )
                           , boost::asio::ip::address::from_string( "224.9.9.2" ) );
-
-    dgram_server dgram( io_service );
+    dgram_state_machine dgram( io_service );
+    lifecycle.register_client( &dgram );
 
     io_service.run();
-    exit(0);
-    
-    //udb::resolver resolver( io_service );
-    //udp::resolver::query query( udp::v4(), "localhost", "hello" );
-    udp::endpoint receiver_endpoint( udp::endpoint( udp::v4(), 7000 ) );
-    
-    udp::socket socket( io_service );
-    socket.open( udp::v4() );
-
-    boost::array< char, 1 > send_buf = {{ 0 }};
-    socket.send_to( boost::asio::buffer( send_buf ), receiver_endpoint );
-    
-    boost::array< char, 128 > recv_buf;
-    udp::endpoint sender_endpoint;
-    size_t len = socket.receive_from( boost::asio::buffer( recv_buf ), sender_endpoint );
-    
-    std::cout.write( recv_buf.data(), len );
-
 }

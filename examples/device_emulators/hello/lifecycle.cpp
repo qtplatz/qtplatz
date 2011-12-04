@@ -22,27 +22,26 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "lifecycle.hpp"
 
-#include <boost/asio.hpp>
-
-class lifecycle;
-
-class mcast_receiver
+lifecycle::lifecycle()
 {
-public:
-    mcast_receiver( boost::asio::io_service&
-                    , lifecycle&
-                    , const boost::asio::ip::address& listen_address
-                    , const boost::asio::ip::address& mcast_address );
+}
 
-    void handle_receive_from( const boost::system::error_code& error, size_t bytes_recvd );
+bool
+lifecycle::operator()( const boost::asio::ip::udp::endpoint& endpoint
+                       , const char * data
+                       , std::size_t len )
+{
+    lifecycle * client = client_;
+    if ( client )
+        (*client)( endpoint, data, len);
+    return true;
+}
 
-private:
-    boost::asio::ip::udp::socket socket_;
-    boost::asio::ip::udp::endpoint sender_endpoint_;
-    lifecycle& lifecycle_;
-    enum { max_length = 1024 };
-    char data_[ max_length ];
-};
+void
+lifecycle::register_client( lifecycle * p )
+{
+    client_ = p;
+}
 
