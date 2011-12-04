@@ -22,6 +22,9 @@
 **
 **************************************************************************/
 
+#include "mcast_receiver.hpp"
+#include "dgram_server.hpp"
+
 #include <QtCore/QCoreApplication>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
@@ -33,6 +36,15 @@ int main(int argc, char *argv[])
     using boost::asio::ip::udp;
     
     boost::asio::io_service io_service;
+
+    mcast_receiver mcast( io_service
+                          , boost::asio::ip::address::from_string( "0.0.0.0" )
+                          , boost::asio::ip::address::from_string( "224.9.9.2" ) );
+
+    dgram_server dgram( io_service );
+
+    io_service.run();
+    exit(0);
     
     //udb::resolver resolver( io_service );
     //udp::resolver::query query( udp::v4(), "localhost", "hello" );
@@ -50,8 +62,4 @@ int main(int argc, char *argv[])
     
     std::cout.write( recv_buf.data(), len );
 
-    std::cout << "received from: " 
-              << sender_endpoint.address().to_string() 
-              << "/" << sender_endpoint.port()
-              << std::endl;
 }

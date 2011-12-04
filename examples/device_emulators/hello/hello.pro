@@ -16,4 +16,13 @@ LIBS *= -lboost_system -lboost_date_time
 TEMPLATE = app
 
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+        mcast_receiver.cpp \
+    dgram_server.cpp
+
+HEADERS += \
+    mcast_receiver.hpp \
+    dgram_server.hpp
+
+
+

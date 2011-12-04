@@ -27,6 +27,8 @@
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include "mcast_sender.hpp"
+#include "dgram_server.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -36,14 +38,21 @@ int main(int argc, char *argv[])
     using boost::asio::ip::udp;
 
     boost::asio::io_service io_service;
-    //udp::socket socket( io_service, udp::endpoint( udp::v4(), 7000 ) );
-    udp::endpoint local_endpoint( boost::asio::ip::address_v4::any(), 7000 );
-    udp::socket socket( io_service, local_endpoint );
+
+    mcast_sender s( io_service, boost::asio::ip::address::from_string( "224.9.9.2" ) );
+    dgram_server d( io_service );
+    io_service.run();
+
+/*
+    exit(0);
+
+    udp::endpoint bcast_endpoint( boost::asio::ip::address_v4::any(), 7000 );
+    udp::socket socket( io_service, bcast_endpoint );
     socket.set_option( boost::asio::socket_base::broadcast( true ) );
 
     std::cout << "listening on: " 
-              << local_endpoint.address().to_string() 
-              << "/" << local_endpoint.port()
+              << bcast_endpoint.address().to_string() 
+              << "/" << bcast_endpoint.port()
               << std::endl;
 
     for ( ;; ) {
@@ -63,12 +72,11 @@ int main(int argc, char *argv[])
                   << std::endl;
 
         boost::posix_time::ptime pt( boost::posix_time::second_clock::local_time() );
-        std::string message = boost::posix_time::to_simple_string( pt );
-        
+        std::string message = boost::posix_time::to_simple_string( pt );        
         boost::system::error_code ignored_error;
         socket.send_to( boost::asio::buffer( message), remote_endpoint, 0, ignored_error );
 
     }
-
+*/
     return 0;
 }
