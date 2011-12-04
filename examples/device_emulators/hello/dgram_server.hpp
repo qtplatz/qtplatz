@@ -31,6 +31,7 @@
 class dgram_server {
 public:
     dgram_server( boost::asio::io_service& );
+    boost::asio::ip::udp::socket& socket() { return socket_; }
 
 protected:
 

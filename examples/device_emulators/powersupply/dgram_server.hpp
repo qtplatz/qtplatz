@@ -30,7 +30,9 @@
 class dgram_server
 {
 public:
-    dgram_server( boost::asio::io_service& );
+    dgram_server( boost::asio::io_service&, boost::asio::ip::udp::endpoint& remote );
+    void sendto( const char *, std::size_t );
+
 private:
     void start_receive();
     void handle_receive( const boost::system::error_code&, std::size_t );

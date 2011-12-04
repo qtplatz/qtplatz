@@ -35,7 +35,7 @@ lifecycle::operator()( const boost::asio::ip::udp::endpoint& endpoint
 {
     lifecycle * client = client_;
     if ( client )
-        (*client)( endpoint, data, len);
+        (*client)( endpoint, data, len );
     return true;
 }
 

@@ -26,9 +26,48 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
+#include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "mcast_sender.hpp"
 #include "dgram_server.hpp"
+
+using boost::asio::ip::udp;
+
+class dgram_state_machine {
+public:
+    dgram_state_machine( boost::asio::io_service& io ) : io_service_( io )
+                                                       , socket_( io, udp::endpoint( udp::v4(), 7000 ) ) {
+        start_receive();
+    }
+
+    void start_receive() {
+        socket_.async_receive_from( boost::asio::buffer( recv_buffer_ )
+                                    , remote_endpoint_
+                                    , boost::bind( &dgram_state_machine::handle_receive
+                                                   , this
+                                                   , boost::asio::placeholders::error
+                                                   , boost::asio::placeholders::bytes_transferred ) );
+    }
+    
+    void handle_receive( const boost::system::error_code& error, std::size_t ) {
+        if ( ! error || error == boost::asio::error::message_size ) {
+            // should be 'connect' request
+            std::cout << "dgram_state_machine receive from: " 
+                      << remote_endpoint_.address().to_string() 
+                      << "/" << remote_endpoint_.port()
+                      << std::endl;
+            sessions_[ remote_endpoint_.port() ] =
+                boost::shared_ptr< dgram_server >( new dgram_server( io_service_, remote_endpoint_ ) );
+            start_receive();
+        }
+    }
+private:
+    boost::asio::io_service& io_service_;
+    udp::socket socket_;
+    udp::endpoint remote_endpoint_;
+    boost::array< char, 1 > recv_buffer_;
+    std::map< unsigned short, boost::shared_ptr< dgram_server > > sessions_;
+};
 
 int main(int argc, char *argv[])
 {
@@ -40,43 +79,9 @@ int main(int argc, char *argv[])
     boost::asio::io_service io_service;
 
     mcast_sender s( io_service, boost::asio::ip::address::from_string( "224.9.9.2" ) );
-    dgram_server d( io_service );
+    dgram_state_machine hello( io_service );
+    //dgram_server hello( io_service );
     io_service.run();
 
-/*
-    exit(0);
-
-    udp::endpoint bcast_endpoint( boost::asio::ip::address_v4::any(), 7000 );
-    udp::socket socket( io_service, bcast_endpoint );
-    socket.set_option( boost::asio::socket_base::broadcast( true ) );
-
-    std::cout << "listening on: " 
-              << bcast_endpoint.address().to_string() 
-              << "/" << bcast_endpoint.port()
-              << std::endl;
-
-    for ( ;; ) {
-
-        boost::array<char, 1> recv_buf;
-        udp::endpoint remote_endpoint;
-        boost::system::error_code error;
-
-        socket.receive_from( boost::asio::buffer( recv_buf ), remote_endpoint, 0, error );
-        
-        if ( error && error != boost::asio::error::message_size )
-            throw boost::system::system_error( error );
-
-        std::cout << "requested from: " 
-                  << remote_endpoint.address().to_string() 
-                  << "/" << remote_endpoint.port()
-                  << std::endl;
-
-        boost::posix_time::ptime pt( boost::posix_time::second_clock::local_time() );
-        std::string message = boost::posix_time::to_simple_string( pt );        
-        boost::system::error_code ignored_error;
-        socket.send_to( boost::asio::buffer( message), remote_endpoint, 0, ignored_error );
-
-    }
-*/
     return 0;
 }

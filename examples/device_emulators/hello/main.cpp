@@ -33,15 +33,19 @@
 
 using boost::asio::ip::udp;
 
-class dgram_state_machine : public dgram_server, public lifecycle {
+class dgram_state_machine : public lifecycle {
 public:
-    dgram_state_machine( boost::asio::io_service& io ) : dgram_server( io ), sock_( io ) {
+/*
+    dgram_state_machine( boost::asio::io_service& io ) : sock_( io ) {
         sock_.open( udp::v4() );
+    }
+*/
+    dgram_state_machine( udp::socket& s ) : sock_( s ) {
     }
 
     bool operator()( const boost::asio::ip::udp::endpoint&, const char *, std::size_t );
 private:
-    udp::socket sock_;
+    udp::socket& sock_;
 };
 
 bool
@@ -56,7 +60,7 @@ dgram_state_machine::operator()( const boost::asio::ip::udp::endpoint& endpoint,
     sock_.send_to( boost::asio::buffer( send_buf ), dest_endpoint );
 
     std::cout << "dgram sent to: " << dest_endpoint.address().to_string() << "/" << dest_endpoint.port() << std::endl;
-
+    sleep(3);
     return true;
 }
 
@@ -69,19 +73,14 @@ int main(int argc, char *argv[])
     
     boost::asio::io_service io_service;
 
-    do {
-        dgram_state_machine d( io_service );
-        udp::endpoint remote( boost::asio::ip::address::from_string( "192.168.0.130" ), 7000 );
-        d( remote, "\0", 1 );
-    } while(0);
-
     lifecycle lifecycle;
     mcast_receiver mcast( io_service
                           , lifecycle
                           , boost::asio::ip::address::from_string( "0.0.0.0" )
                           , boost::asio::ip::address::from_string( "224.9.9.2" ) );
-    dgram_state_machine dgram( io_service );
-    lifecycle.register_client( &dgram );
+    dgram_server dgram( io_service );
+    dgram_state_machine client( dgram.socket() );
+    lifecycle.register_client( &client );
 
     io_service.run();
 }

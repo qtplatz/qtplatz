@@ -29,17 +29,23 @@
 
 using boost::asio::ip::udp;
 
-dgram_server::dgram_server( boost::asio::io_service& io_service )
-    : socket_( io_service, udp::endpoint( udp::v4(), 7000 ) )
+dgram_server::dgram_server( boost::asio::io_service& io_service, boost::asio::ip::udp::endpoint& remote )
+    : socket_( io_service, udp::endpoint( udp::v4(), 7100 ) )
+    , remote_endpoint_( remote )
 {
     start_receive();
+    sendto( "connect|ack", 12 );
+}
+
+void
+dgram_server::sendto( const char * data, std::size_t len )
+{
+    socket_.send_to( boost::asio::buffer( data, len ), remote_endpoint_ );
 }
 
 void
 dgram_server::start_receive()
 {
-    std::cout << "dgram_server::start_receive" << std::endl;
-
     socket_.async_receive_from( boost::asio::buffer( recv_buffer_ )
                                 , remote_endpoint_
                                 , boost::bind( &dgram_server::handle_receive
@@ -51,12 +57,12 @@ dgram_server::start_receive()
 void
 dgram_server::handle_receive( const boost::system::error_code& error, std::size_t )
 {
-    std::cout << "received from: " 
-              << remote_endpoint_.address().to_string() 
-              << "/" << remote_endpoint_.port()
-              << std::endl;
-
     if ( ! error || error == boost::asio::error::message_size ) {
+        
+        std::cout << "dgram receive from: " 
+                  << remote_endpoint_.address().to_string() 
+                  << "/" << remote_endpoint_.port()
+                  << std::endl;
 
         boost::posix_time::ptime pt( boost::posix_time::second_clock::local_time() );
         boost::shared_ptr<std::string> message( new std::string( boost::posix_time::to_simple_string( pt ) ) );
