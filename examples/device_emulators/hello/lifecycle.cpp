@@ -33,7 +33,7 @@ lifecycle::operator()( const boost::asio::ip::udp::endpoint& endpoint
                        , const char * data
                        , std::size_t len )
 {
-    lifecycle * client = client_;
+    lifecycle * client = forward_;
     if ( client )
         (*client)( endpoint, data, len );
     return true;
@@ -42,6 +42,6 @@ lifecycle::operator()( const boost::asio::ip::udp::endpoint& endpoint
 void
 lifecycle::register_client( lifecycle * p )
 {
-    client_ = p;
+    forward_ = p;
 }
 

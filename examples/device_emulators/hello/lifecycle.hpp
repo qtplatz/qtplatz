@@ -26,16 +26,40 @@
 #define LIFECYCLE_HPP
 
 #include <boost/asio.hpp>
+#include <boost/cstdint.hpp>
 
-class lifecycle
-{
+enum LifeCycleCommand {
+    NOTHING = 0
+    , HELO         = 0xffff0720
+    , CONN_SYN     = 0x20100721
+    , CONN_SYN_ACK = 0x20100722
+    , CLOSE        = 0x20100723
+    , CLOSE_ACK    = 0x20100724
+    , DATA         = 0x20100725
+    , DATA_ACK     = 0x20100726
+};
+
+struct LifeCycleFrame {
+    boost::uint16_t endian_mark;    // 0xfffe
+    boost::uint16_t proto_version;  // 0x0001
+    boost::uint16_t ctrl;           // 0
+    boost::uint16_t hoffset;        // 8
+    boost::uint32_t command;        // CONN_SYN etc.
+    LifeCycleFrame( LifeCycleCommand cmd = NOTHING ) : endian_mark( 0xfffe )
+                                                     , proto_version( 0x0001 )
+                                                     , ctrl( 0 )
+                                                     , hoffset( 8 )
+                                                     , command( cmd ) {
+    }
+};
+
+class lifecycle {
 public:
     lifecycle();
     virtual bool operator()( const boost::asio::ip::udp::endpoint&, const char *, std::size_t );
-    // template<class T> void bind( void (T::*)(const boost::asio::ip::udp::endpoint&, const char *, std::size_t ), T* t);
     void register_client( lifecycle * );
 private:
-    lifecycle * client_;
+    lifecycle * forward_;
 };
 
 #endif // LIFECYCLE_HPP

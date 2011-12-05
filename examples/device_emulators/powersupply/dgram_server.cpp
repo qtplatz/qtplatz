@@ -23,18 +23,38 @@
 **************************************************************************/
 
 #include "dgram_server.hpp"
+#include "../hello/lifecycle.hpp"
 #include <boost/smart_ptr.hpp>
 #include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 using boost::asio::ip::udp;
 
-dgram_server::dgram_server( boost::asio::io_service& io_service, boost::asio::ip::udp::endpoint& remote )
+dgram_server::dgram_server( boost::asio::io_service& io_service
+                            , boost::asio::ip::udp::endpoint& remote
+                            , unsigned short rseq )
     : socket_( io_service, udp::endpoint( udp::v4(), 7100 ) )
     , remote_endpoint_( remote )
+    , remote_seq_( rseq )
+    , local_seq_( 0x200 )
 {
     start_receive();
-    sendto( "connect|ack", 12 );
+}
+
+void
+dgram_server::conn_syn()
+{
+    // reply CONN|SYN|ACK
+    boost::array< char, sizeof( LifeCycleFrame ) + 4 > frame;
+    new( frame.data() ) LifeCycleFrame( CONN_SYN_ACK );
+    boost::uint16_t * pseq = reinterpret_cast< boost::uint16_t *>( &frame[ sizeof(LifeCycleFrame) ] );
+    *pseq++ = local_seq_++;
+    *pseq++ = remote_seq_;
+
+    std::cout << "dgram_server: CONN_SYN_ACK reply to " 
+              << remote_endpoint_.address() << "/" 
+              << remote_endpoint_.port() << std::endl;
+    socket_.send_to( boost::asio::buffer( frame ), remote_endpoint_ );
 }
 
 void
@@ -55,8 +75,10 @@ dgram_server::start_receive()
 }
 
 void
-dgram_server::handle_receive( const boost::system::error_code& error, std::size_t )
+dgram_server::handle_receive( const boost::system::error_code& error, std::size_t len )
 {
+    const size_t fsize = sizeof( LifeCycleFrame );
+
     if ( ! error || error == boost::asio::error::message_size ) {
         
         std::cout << "dgram receive from: " 
@@ -64,23 +86,40 @@ dgram_server::handle_receive( const boost::system::error_code& error, std::size_
                   << "/" << remote_endpoint_.port()
                   << std::endl;
 
-        boost::posix_time::ptime pt( boost::posix_time::second_clock::local_time() );
-        boost::shared_ptr<std::string> message( new std::string( boost::posix_time::to_simple_string( pt ) ) );
-        
-        socket_.async_send_to( boost::asio::buffer(*message)
-                               , remote_endpoint_
-                               , boost::bind( &dgram_server::handle_send
-                                              , this
-                                              , message
-                                              , boost::asio::placeholders::error
-                                              , boost::asio::placeholders::bytes_transferred ) );
+        if ( len >= sizeof( LifeCycleFrame ) ) {
+            const LifeCycleFrame * pf = reinterpret_cast< const LifeCycleFrame *>( recv_buffer_.data() );
+
+            if ( pf->command == DATA && len >= fsize + 2 ) {
+                boost::uint16_t rseq = *reinterpret_cast< const boost::uint16_t *>( &recv_buffer_[ fsize ] );
+                if ( rseq != remote_seq_ + 1 ) {
+                    std::cout << "remote sequence got " << rseq << " while waiting " << remote_seq_ + 1 << std::endl;
+                } else {
+                    std::cout << "remote data " << rseq << " received successfully" << std::endl;
+                    const size_t flen = fsize + 4;
+                    
+                    boost::shared_array< char > dbuf( new char [ flen ] );
+                    new ( dbuf.get() ) LifeCycleFrame( DATA_ACK );
+                    boost::uint16_t * pseq = reinterpret_cast< boost::uint16_t *>( dbuf.get() + fsize );
+                    *pseq++ = local_seq_++;
+                    *pseq++ = rseq;
+                    socket_.async_send_to( boost::asio::buffer( dbuf.get(), flen )
+                                           , remote_endpoint_
+                                           , boost::bind( &dgram_server::handle_send
+                                                          , this
+                                                          , dbuf
+                                                          , boost::asio::placeholders::error
+                                                          , boost::asio::placeholders::bytes_transferred ) );
+                }
+                remote_seq_ = rseq;
+            } else if ( pf->command == CLOSE && len >= fsize + 2 ) {
+                // todo
+            }
+        }
         start_receive();
     }
 }
 
 void
-dgram_server::handle_send( boost::shared_ptr<std::string>
-                           , const boost::system::error_code&
-                           , std::size_t )
+dgram_server::handle_send( boost::shared_array<char>, const boost::system::error_code&, std::size_t )
 {
 }

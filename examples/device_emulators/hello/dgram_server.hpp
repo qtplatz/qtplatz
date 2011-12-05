@@ -39,9 +39,14 @@ private:
     void start_receive();
     void handle_receive( const boost::system::error_code&, std::size_t );
     void handle_send( boost::shared_ptr< std::string >, const boost::system::error_code&, std::size_t );
+    void handle_send_to( const boost::system::error_code& );
+    void handle_timeout( const boost::system::error_code& );
     boost::asio::ip::udp::endpoint remote_endpoint_;
     boost::array< char, 1024 > recv_buffer_;
     boost::asio::ip::udp::socket socket_;
+    boost::asio::deadline_timer timer_;
+    unsigned short local_seq_;
+    unsigned short remote_seq_;
 };
 
 #endif // DGRAM_SERVER_HPP

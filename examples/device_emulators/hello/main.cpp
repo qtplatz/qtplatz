@@ -30,38 +30,75 @@
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
+#include <set>
 
 using boost::asio::ip::udp;
 
 class dgram_state_machine : public lifecycle {
 public:
-/*
-    dgram_state_machine( boost::asio::io_service& io ) : sock_( io ) {
-        sock_.open( udp::v4() );
-    }
-*/
-    dgram_state_machine( udp::socket& s ) : sock_( s ) {
+
+    dgram_state_machine( udp::socket& s ) : socket_( s ) {
     }
 
     bool operator()( const boost::asio::ip::udp::endpoint&, const char *, std::size_t );
+
+    static const char * frame_read( const char * p, std::string& s )  {
+        size_t len = *reinterpret_cast<const boost::uint32_t *>(p);
+        p += sizeof( boost::uint32_t );
+        while( len-- )
+            s += *p++;
+        return p;
+    }
+
 private:
-    udp::socket& sock_;
+    udp::socket& socket_;
+    std::set< boost::uint16_t > ports_;
 };
 
 bool
-dgram_state_machine::operator()( const boost::asio::ip::udp::endpoint& endpoint, const char *, std::size_t )
+dgram_state_machine::operator()( const boost::asio::ip::udp::endpoint& endpoint
+                                 , const char * p
+                                 , std::size_t len )
 {
-    std::cout << "dgram_state_machine..." << std::endl;
+    std::cout << std::dec << "dgram_state_machine lifecycle forward " << len << " bytes from: "
+              << endpoint.address().to_string() << "/" << endpoint.port() << std::endl;
 
-    //boost::asio::ip::udp::endpoint dest_endpoint( boost::asio::ip::address_v4::any(), 7000 );
-    boost::asio::ip::udp::endpoint dest_endpoint( endpoint.address(), 7000 );
-    
-    boost::array<char, 1> send_buf = {{ 0 }};
-    sock_.send_to( boost::asio::buffer( send_buf ), dest_endpoint );
+    if ( len >= sizeof( LifeCycleFrame ) ) {
+        const LifeCycleFrame * pf = reinterpret_cast<const LifeCycleFrame *>(p);
+        const char * sp = p + sizeof( LifeCycleFrame );
+        while ( size_t( sp - p ) < len ) {
+            std::string s;
+            sp = frame_read( sp, s );
+            std::cout << s << ", ";
+        }
+        std::cout << std::endl;
 
-    std::cout << "dgram sent to: " << dest_endpoint.address().to_string() << "/" << dest_endpoint.port() << std::endl;
-    sleep(3);
-    return true;
+        if ( pf->command == HELO && 
+             ports_.find( endpoint.port() ) == ports_.end() ) {
+
+            // keep port# in order to avoid duplicate connection
+            ports_.insert( endpoint.port() );
+
+            boost::array< char, sizeof(LifeCycleFrame) + 4 > dbuf;
+            LifeCycleFrame * ptr = new ( dbuf.data() ) LifeCycleFrame( CONN_SYN );
+            (void)ptr;
+
+            boost::uint16_t *pseq = reinterpret_cast< boost::uint16_t * >( dbuf.data() + sizeof(LifeCycleFrame) );
+            *pseq++ = 0x100;
+            *pseq++ - 0; // remote sequence is not known yet
+
+            // Send CONN SYN request to device_ip:port = 7000 (well known #) on power supply module
+            boost::asio::ip::udp::endpoint remote_endpoint( endpoint.address(), 7000 );
+
+            // If using broadcast
+            //boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address_v4::any(), 7000 );
+            socket_.send_to( boost::asio::buffer( dbuf ), remote_endpoint );
+            std::cout << "CONN|SYN sent to: " 
+                      << remote_endpoint.address() << "/" << remote_endpoint.port() << std::endl;
+        }
+        return true;
+    }
+    return false;
 }
 
 

@@ -54,13 +54,7 @@ void
 mcast_receiver::handle_receive_from( const boost::system::error_code& error, size_t bytes_recvd )
 {
     if ( ! error ) {
-        std::cout << "'";
-        std::cout.write( data_, bytes_recvd );
-        std::cout << "' received from " << sender_endpoint_.address().to_string() 
-                  << "/" << sender_endpoint_.port() << std::endl;
-
         lifecycle_( sender_endpoint_, data_, bytes_recvd );
-        
         socket_.async_receive_from( boost::asio::buffer( data_, max_length )
                                     , sender_endpoint_
                                     , boost::bind( &mcast_receiver::handle_receive_from, this

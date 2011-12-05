@@ -26,20 +26,25 @@
 #define DGRAM_SERVER_HPP
 
 #include <boost/asio.hpp>
+#include <boost/smart_ptr.hpp>
 
 class dgram_server
 {
 public:
-    dgram_server( boost::asio::io_service&, boost::asio::ip::udp::endpoint& remote );
+    dgram_server( boost::asio::io_service&, boost::asio::ip::udp::endpoint& remote, unsigned short rseq );
     void sendto( const char *, std::size_t );
+    void conn_syn();
 
 private:
     void start_receive();
     void handle_receive( const boost::system::error_code&, std::size_t );
-    void handle_send( boost::shared_ptr< std::string >, const boost::system::error_code&, std::size_t );
+    // void handle_send( boost::shared_ptr< std::string >, const boost::system::error_code&, std::size_t );
+    void handle_send( boost::shared_array< char >, const boost::system::error_code&, std::size_t );
     boost::asio::ip::udp::socket socket_;
     boost::asio::ip::udp::endpoint remote_endpoint_;
-    boost::array< char, 1 > recv_buffer_;
+    boost::array< char, 1500 > recv_buffer_;
+    unsigned short remote_seq_;
+    unsigned short local_seq_;
 };
 
 #endif // DGRAM_SERVER_HPP

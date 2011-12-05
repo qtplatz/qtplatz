@@ -40,7 +40,6 @@ private:
     boost::asio::ip::udp::socket socket_;
     boost::asio::deadline_timer timer_;
     int message_count_;
-    std::string message_;
 };
 
 #endif // MCAST_SENDER_HPP
