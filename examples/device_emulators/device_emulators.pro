@@ -3,7 +3,9 @@ CONFIG   += ordered
 
 SUBDIRS = \
     powersupply \
-    hello
+    hello \
+    bcast
+
 
 
 
