@@ -30,6 +30,7 @@
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <set>
+#include <iostream>
 
 #define BOOST_LIB_NAME boost_system
 #include <boost/config/auto_link.hpp>
