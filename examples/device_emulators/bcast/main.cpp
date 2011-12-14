@@ -31,6 +31,9 @@
 #include <boost/bind.hpp>
 #include <set>
 
+#define BOOST_LIB_NAME boost_system
+#include <boost/config/auto_link.hpp>
+
 using boost::asio::ip::udp;
 
 class bcast_state_machine : public lifecycle {
@@ -110,8 +113,14 @@ bcast_state_machine::bcast_connect()
 
     boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address_v4::any(), 7000 );
     // send connect request to 0.0.0.0/7000
-    socket_.send_to( boost::asio::buffer( dbuf ), remote_endpoint );
-    return true;
+    std::cout << "conn|syn request to " << remote_endpoint.address() << "/" << remote_endpoint.port() << std::endl;
+    try {
+        socket_.send_to( boost::asio::buffer( dbuf ), remote_endpoint );
+        return true;
+    } catch ( std::exception& ex ) {
+        std::cerr << ex.what() << std::endl;
+    }
+    return false;
 }
 
 static bool connect_on_start = false;

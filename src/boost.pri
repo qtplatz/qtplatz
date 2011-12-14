@@ -3,7 +3,7 @@ win32 {
     isEmpty( BOOST ) {
       BOOST = C:/Boost
     }
-    INCLUDEPATH += $${BOOST}/include/boost-1_46
+    INCLUDEPATH += $${BOOST}/include/boost-1_47
     LIBS += -L$${BOOST}/lib
 } else {
     INCLUDEPATH += /usr/local/include

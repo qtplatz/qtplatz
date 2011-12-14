@@ -11,7 +11,10 @@ QT       -= gui
 TARGET = bcast
 CONFIG   += console
 CONFIG   -= app_bundle
-LIBS *= -lboost_system -lboost_date_time
+
+!win32 {
+  LIBS *= -lboost_system -lboost_date_time
+}
 
 include(../../../src/boost.pri)
 
