@@ -112,7 +112,8 @@ bcast_state_machine::bcast_connect()
     boost::array< char, sizeof(LifeCycleFrame) + 4 > dbuf;
     new ( dbuf.data() ) LifeCycleFrame( CONN_SYN );
 
-    boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address_v4::any(), 7000 );
+    //boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address_v4::any(), 7000 );
+    boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address::from_string("192.168.0.255"), 7000 );
     // send connect request to 0.0.0.0/7000
     std::cout << "conn|syn request to " << remote_endpoint.address() << "/" << remote_endpoint.port() << std::endl;
     try {
