@@ -652,10 +652,15 @@ AcquirePlugin::handleRButtonRange( double x1, double x2, double y1, double y2 )
     SignalObserver::Observers_var siblings = observer_->getSiblings();
     size_t nsize = siblings->length();
 
+#if defined DEBUG || defined _DEBUG
+    std::cout << "\nhandleRBttonRange(" << x1 << ", " << x2 << ")" << std::endl;
+#endif
+
     for ( size_t i = 0; i < nsize; ++i ) {
         SignalObserver::Description_var desc = siblings[i]->getDescription();
         
-        if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
+        if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
+             && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
 
             SignalObserver::Observer_var tgt = SignalObserver::Observer::_duplicate( siblings[i] );
 

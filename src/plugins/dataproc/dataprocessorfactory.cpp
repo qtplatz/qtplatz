@@ -95,3 +95,4 @@ DataprocessorFactory::open( const QString& filename )
     Core::IEditor * iface = em->openEditor( filename, kind_ );
     return iface ? iface->file() : 0;
 }
+

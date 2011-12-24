@@ -247,9 +247,10 @@ do_coaddSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_
     if ( observer->readData( pos, dbuf ) ) {
 
         try {
-            const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( clsid.in() ); // L"InfiTOF"
+            const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( clsid.in() );
             const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
-            if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
+            if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
+                 && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
                 size_t idData = 0;
                 dataInterpreter.translate( ms, dbuf, spectrometer, idData++ );
             }
@@ -260,6 +261,13 @@ do_coaddSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_
         ++pos;
     }
     ms.addDescription( adcontrols::Description( L"create", text ) );
+
+#if defined DEBUG || defined _DEBUG
+    std::wcout << L"\nInfo: adbroker task do_coaddSpectrum text = " << text
+               << ", ms.size = " << ms.size()
+               << std::endl;
+#endif
+
     pTask->internal_coaddSpectrum( token, ms );
 }
 
@@ -279,7 +287,6 @@ Task::doit( ACE_Message_Block * mblk )
         cdr >> observer;
         cdr >> x1;
         cdr >> x2;
-
         if ( CORBA::is_nil( observer ) )
             return;
         do_coaddSpectrum( this, token, observer, x1, x2 );
@@ -296,7 +303,7 @@ Task::getPortfolio( const std::wstring& token )
         portfolioVec_[ token ]->create_with_fullpath( token );
 
         BOOST_FOREACH( session_data& d, session_set_ ) {
-#if defined DEBUG && 0
+#if defined DEBUG // && 0
             adportable::debug(__FILE__, __LINE__) << "getPortfolio token=" << token << " created and fire to :" << d.token_;
 #endif
             d.receiver_->portfolio_created( token.c_str() );
@@ -310,7 +317,7 @@ Task::internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassS
 {
     portfolio::Portfolio& portfolio = getPortfolio( token );
 
-    portfolio::Folder folder = portfolio.addFolder( L"MassSpectra" );
+    portfolio::Folder folder = portfolio.addFolder( L"Spectra" );
     portfolio::Folium folium = folder.addFolium( L"MassSpectrum" );
 
     //------->
@@ -321,14 +328,14 @@ Task::internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassS
     std::wstring id = folium.id();
 
     BOOST_FOREACH( session_data& d, session_set_ ) {
-#if defined DEBUG && 0
-        std::wcerr << L"===== internal_coaddSpectrum folium id: " << id << L" token=" << token << std::endl;
+#if defined DEBUG // && 0
+        adportable::debug( __FILE__, __LINE__ ) 
+            << "===== internal_coaddSpectrum folium id: " << id 
+            << " token=" << token;
+        portfolio.save( L"/tmp/internal_coaddSpectrum_portfolio.xml" );
 #endif
         d.receiver_->folium_added( token.c_str(), L"path", id.c_str() );
     }
-    // for ( vector_type::iterator it = session_set_.begin(); it != session_set_.end(); ++it ) {
-    //     std::for_each( session_set_.begin(), session_set_.end(), internal::folium_added( token, L"path", id ) );
-    // }
 }
 
 portfolio::Folium

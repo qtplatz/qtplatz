@@ -123,7 +123,9 @@ session_i::getChemicalFormula()
 bool
 session_i::coaddSpectrum ( SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
 {
-    // std::cerr << "coaddSpectrum(" << x1 << ", " << x2 << "(min))" << std::endl;
+#if defined DEBUG || defined _DEBUG
+    std::cout << "coaddSpectrum(" << x1 << ", " << x2 << "(min))" << std::endl;
+#endif
     adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
     if ( pTask ) {
         TAO_OutputCDR cdr;
