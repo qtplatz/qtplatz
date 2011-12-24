@@ -292,6 +292,7 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
 
 #if defined _DEBUG
     std::wstring xml = portfolio_->xml();
+    
 #endif
 
     SessionManager::instance()->updateDataprocessor( this, folium );

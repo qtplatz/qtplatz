@@ -375,13 +375,12 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
 
     SessionManager::vector_type::iterator it = SessionManager::instance()->find( qtwrapper::wstring( token ) );
     if ( it == SessionManager::instance()->end() ) {
-        boost::filesystem::path path( qtwrapper::wstring::copy( token ) );
-        path.replace_extension( L".adfs" );
-        it = SessionManager::instance()->find( path.wstring() );
+        boost::filesystem::path xtoken( qtwrapper::wstring::copy( token ) );
+        xtoken.replace_extension( L".adfs" );
+        it = SessionManager::instance()->find( xtoken.wstring() );
     }
     if ( it != SessionManager::instance()->end() ) {
         
-        std::cerr << "===== DataprocPlugin::handle_folium_added found data" << std::endl;
         Broker::Folium_var var = brokerSession_->folium( qtwrapper::wstring( token ).c_str(), qtwrapper::wstring( id ).c_str() );
 
         // todo check type

@@ -303,7 +303,7 @@ Task::getPortfolio( const std::wstring& token )
         portfolioVec_[ token ]->create_with_fullpath( token );
 
         BOOST_FOREACH( session_data& d, session_set_ ) {
-#if defined DEBUG // && 0
+#if defined DEBUG || defined _DEBUG// && 0
             adportable::debug(__FILE__, __LINE__) << "getPortfolio token=" << token << " created and fire to :" << d.token_;
 #endif
             d.receiver_->portfolio_created( token.c_str() );

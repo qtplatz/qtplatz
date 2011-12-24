@@ -35,6 +35,10 @@
 #define BOOST_LIB_NAME boost_system
 #include <boost/config/auto_link.hpp>
 
+static bool connect_on_start = false;
+static int port = 7000;
+static std::string bcaddr = "192.168.0.255";
+
 using boost::asio::ip::udp;
 
 class bcast_state_machine : public lifecycle {
@@ -113,7 +117,7 @@ bcast_state_machine::bcast_connect()
     new ( dbuf.data() ) LifeCycleFrame( CONN_SYN );
 
     //boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address_v4::any(), 7000 );
-    boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address::from_string("192.168.0.255"), 7000 );
+    boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address::from_string( bcaddr ), 7000 );
     // send connect request to 0.0.0.0/7000
     std::cout << "conn|syn request to " << remote_endpoint.address() << "/" << remote_endpoint.port() << std::endl;
     try {
@@ -125,9 +129,6 @@ bcast_state_machine::bcast_connect()
     return false;
 }
 
-static bool connect_on_start = false;
-static int port = 7000;
-
 int main(int argc, char *argv[])
 {
     while ( --argc ) {
@@ -135,6 +136,8 @@ int main(int argc, char *argv[])
         if ( strcmp( *argv, "--connect" ) == 0 ) {
             connect_on_start = true;
             port = 8000;
+        } else if ( isdigit( *argv[0] ) ) {
+            bcaddr = *argv;
         }
     }
     using boost::asio::ip::udp;
