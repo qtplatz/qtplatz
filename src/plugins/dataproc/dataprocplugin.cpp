@@ -394,7 +394,7 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
 
         adcontrols::ProcessMethod m;
         processor.addSpectrum( ms, m );
-
+#if 0
         //---------> for quick debug
         std::string name1( "C:/InfiTOF/" );
         std::string name2;
@@ -425,6 +425,7 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
             of2.write( reinterpret_cast< const char *>( var->serialized.get_buffer() ), var->serialized.length() );
         }
         //<--------------
+#endif
     }
 }
 

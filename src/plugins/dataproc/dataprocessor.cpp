@@ -83,6 +83,7 @@ Dataprocessor::create(const QString& token )
 {
     boost::filesystem::path path( qtwrapper::wstring::copy( token ) );
     path.replace_extension( L".adfs" );
+    portfolio_->create_with_fullpath( path.wstring() );
 
     adcontrols::datafile * file = adcontrols::datafile::create( path.wstring() );
     if ( file ) {
