@@ -1,6 +1,5 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -22,33 +21,24 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
-#pragma once
+#ifndef LIFECYCLEFRAME_HPP
+#define LIFECYCLEFRAME_HPP
+
+#include <adportable/protocollifecycle.hpp>
 
 namespace adportable {
 
-  namespace protocol {
+    class LifeCycleFrame {
+    public:
+        boost::uint16_t endian_mark;    // 0xfffe
+        boost::uint16_t proto_version;  // 0x0001
+        boost::uint16_t ctrl;           // 0
+        boost::uint16_t hoffset;        // 8
+        boost::uint32_t command;        // CONN_SYN etc.
+        LifeCycleFrame( protocol::LifeCycleCommand cmd = protocol::NOTHING );
+    };
 
-     struct lifecycle_header {
-	   unsigned short endian_mark_;       // 0,1 [0xfffe]
-	   unsigned short protocol_version_;  // 2,3 [0x0001]
-     };
-
-     class lifecycle_frame {
-	public:
-	   lifecycle_frame();
-	   unsigned long frame_size;          // 8,9.a,b, frame data lengts in octets (including frame_size)
-	   unsigned long message_;
-	   unsigned char frame_data[ 1 /* frame_size in octets */ ];
-	   // additional lifecycle_frame can be here...
-     };
-
-     
-  }
 }
 
-
+#endif // LIFECYCLEFRAME_HPP

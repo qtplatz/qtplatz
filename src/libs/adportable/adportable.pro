@@ -20,14 +20,14 @@ SOURCES += adportable.cpp \
     ConvertUTF.c \
     debug.cpp \
     fft.cpp \
-    lifecycle_frame.cpp \
     polfit.cpp \
     portable_binary_oarchive.cpp \
     portable_binary_iarchive.cpp \
     posix_path.cpp \
     spectrum_processor.cpp \
     string.cpp \
-    utf.cpp
+    utf.cpp \
+    lifecycleframe.cpp
 
 win32 {
    SOURCES += protocollifecycle.cpp
@@ -45,7 +45,6 @@ HEADERS += adportable.hpp \
     fft.hpp \
     float.hpp \
     is_equal.hpp \
-    lifecycle_frame.hpp \
     moment.hpp \
     polfit.hpp \
     posix_path.hpp \
@@ -54,5 +53,6 @@ HEADERS += adportable.hpp \
     spectrum_processor.hpp \
     string.hpp \
     utf.hpp \
-    disable_warnings.h
+    disable_warnings.h \
+    lifecycleframe.hpp
 
