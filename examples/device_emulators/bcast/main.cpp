@@ -89,7 +89,7 @@ bcast_state_machine::operator()( const boost::asio::ip::udp::endpoint& endpoint
             ports_.insert( endpoint.port() );
 
             boost::array< char, sizeof(LifeCycleFrame) + 4 > dbuf;
-            LifeCycleFrame * ptr = new ( dbuf.data() ) LifeCycleFrame( CONN_SYN );
+            LifeCycleFrame * ptr = new ( dbuf.data() ) LifeCycleFrame( adportable::protocol::CONN_SYN );
             (void)ptr;
 
             boost::uint16_t *pseq = reinterpret_cast< boost::uint16_t * >( dbuf.data() + sizeof(LifeCycleFrame) );
@@ -114,7 +114,7 @@ bool
 bcast_state_machine::bcast_connect()
 {
     boost::array< char, sizeof(LifeCycleFrame) + 4 > dbuf;
-    new ( dbuf.data() ) LifeCycleFrame( CONN_SYN );
+    new ( dbuf.data() ) LifeCycleFrame( adportable::protocol::CONN_SYN );
 
     //boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address_v4::any(), 7000 );
     boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address::from_string( bcaddr ), 7000 );

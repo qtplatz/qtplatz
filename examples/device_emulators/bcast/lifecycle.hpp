@@ -27,17 +27,11 @@
 
 #include <boost/asio.hpp>
 #include <boost/cstdint.hpp>
+#include <adportable/protocollifecycle.hpp>
 
-enum LifeCycleCommand {
-    NOTHING = 0
-    , HELO         = 0xffff0720
-    , CONN_SYN     = 0x20100721
-    , CONN_SYN_ACK = 0x20100722
-    , CLOSE        = 0x20100723
-    , CLOSE_ACK    = 0x20100724
-    , DATA         = 0x20100725
-    , DATA_ACK     = 0x20100726
-};
+using adportable::protocol::LifeCycleCommand;
+using adportable::protocol::NOTHING;
+using adportable::protocol::HELO;
 
 struct LifeCycleFrame {
     boost::uint16_t endian_mark;    // 0xfffe

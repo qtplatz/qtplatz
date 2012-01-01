@@ -55,25 +55,41 @@ bcast_server::start_receive()
 void
 bcast_server::handle_receive( const boost::system::error_code& error, std::size_t len )
 {
+    using adportable::protocol::CONN_SYN;
+    using adportable::protocol::CONN_SYN_ACK;
+    using adportable::protocol::DATA;
+    using adportable::protocol::DATA_ACK;
+
     if ( ! error || error == boost::asio::error::message_size ) {
 
         const size_t fsize = sizeof( LifeCycleFrame );
 
         const LifeCycleFrame * pf = reinterpret_cast< const LifeCycleFrame *>( recv_buffer_.data() );
         if ( len >= fsize + 2 ) {
-            std::cout << "hello/bcast_server::handle_receive recv " << len << " bytes from: " 
-                      << remote_endpoint_.address().to_string() 
+            const boost::uint16_t * pseq = reinterpret_cast< const boost::uint16_t *>( &recv_buffer_[ fsize ] );
+
+            std::cout << "bcast/bcast_server::handle_receive command: " << std::hex << pf->command
+                      << " " << len 
+                      << " bytes from: " << remote_endpoint_.address().to_string() 
                       << "/" << std::dec << remote_endpoint_.port()
                       << std::endl;
-            const boost::uint16_t * pseq = reinterpret_cast< const boost::uint16_t *>( &recv_buffer_[ fsize ] );
-            if ( pf->command == CONN_SYN_ACK ) {
+
+            if ( pf->command == CONN_SYN ) {
+                std::cout << "CONN_SYN received " << " lseq: " << pseq[0] << " rseq: " << pseq[1] << std::endl;
+
+            } else if ( pf->command == CONN_SYN_ACK ) {
                 std::cout << "CONN_SYN|ACK received " << " lseq: " << pseq[0] << " rseq: " << pseq[1] << std::endl;
-                timer_.expires_from_now( boost::posix_time::seconds( 3 ) );
-                timer_.async_wait( boost::bind( &bcast_server::handle_timeout, this
-                                                , boost::asio::placeholders::error ) );
+                // timer_.expires_from_now( boost::posix_time::seconds( 3 ) );
+                // timer_.async_wait( boost::bind( &bcast_server::handle_timeout, this
+                //                                 , boost::asio::placeholders::error ) );
             } else if ( pf->command == DATA_ACK ) {
                 std::cout << "DATA|ACK received " << " lseq: " << pseq[0] << " rseq: " << pseq[1] << std::endl;
             } else if ( pf->command == DATA ) {
+                std::cout << "DATA received " << " lseq: " << pseq[0] << " rseq: " << pseq[1] << std::endl;
+            } else {
+                std::cout << "UNKNOWN received " << std::hex 
+                          << pf->command << " lseq: " << pseq[0] << " rseq: " << pseq[1] << std::endl;
+                std::cout << " CONN_SYN = " << std::hex << CONN_SYN << std::endl;
             }
         }
 
@@ -104,7 +120,7 @@ bcast_server::handle_timeout( const boost::system::error_code& error )
 {
     if ( ! error ) {
         boost::array<char, 512> dbuf;
-        new ( dbuf.data() ) LifeCycleFrame( DATA );
+        new ( dbuf.data() ) LifeCycleFrame( adportable::protocol::DATA );
         boost::uint16_t * pseq = reinterpret_cast< boost::uint16_t * >( &dbuf[ sizeof( LifeCycleFrame ) ] );
         *pseq++ = ++local_seq_;
         
