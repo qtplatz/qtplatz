@@ -94,13 +94,13 @@ bcast_state_machine::operator()( const boost::asio::ip::udp::endpoint& endpoint
 
             boost::uint16_t *pseq = reinterpret_cast< boost::uint16_t * >( dbuf.data() + sizeof(LifeCycleFrame) );
             *pseq++ = 0x100;
-            *pseq++ - 0; // remote sequence is not known yet
+            *pseq++ = 0; // remote sequence is not known yet
 
             // Send CONN SYN request to device_ip:port = 7000 (well known #) on power supply module
             boost::asio::ip::udp::endpoint remote_endpoint( endpoint.address(), 7000 );
 
             // If using broadcast
-            //boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address_v4::any(), 7000 );
+            // boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address_v4::any(), 7000 );
             socket_.send_to( boost::asio::buffer( dbuf ), remote_endpoint );
             std::cout << "CONN|SYN sent to: " 
                       << remote_endpoint.address() << "/" << remote_endpoint.port() << std::endl;

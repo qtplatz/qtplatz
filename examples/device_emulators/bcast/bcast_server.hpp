@@ -41,12 +41,14 @@ private:
     void handle_send( boost::shared_ptr< std::string >, const boost::system::error_code&, std::size_t );
     void handle_send_to( const boost::system::error_code& );
     void handle_timeout( const boost::system::error_code& );
+    bool async_send_data( const char * pbuf, std::size_t );
     boost::asio::ip::udp::endpoint remote_endpoint_;
     boost::array< char, 1024 > recv_buffer_;
     boost::asio::ip::udp::socket socket_;
     boost::asio::deadline_timer timer_;
     unsigned short local_seq_;
     unsigned short remote_seq_;
+    std::vector< char > send_buffer_;
 };
 
 #endif // BCAST_SERVER_HPP

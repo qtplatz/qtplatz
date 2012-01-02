@@ -39,8 +39,6 @@ namespace adportable {
         enum LifeCycleState {
             LCS_CLOSED
             , LCS_LISTEN
-            , LCS_SYN_RCVD
-            , LCS_SYN_SENT
             , LCS_ESTABLISHED
             , LCS_CLOSE_WAIT
         };
@@ -108,9 +106,9 @@ namespace adportable {
         struct LifeCycle_Data {
             static LifeCycleCommand command() { return DATA; }
             static const char * command_name() { return "DATA"; }
-            unsigned short sequence_;
-            unsigned short flags_;  // bit 0 := not in use, bit 1 := fragmented data, bit 2 := last data of fragmented data
-            unsigned long offset_;
+            boost::uint16_t sequence_;
+            boost::uint16_t flags_;  // bit 0:=not in use, bit 1:=fragmented data, bit 2:=last of fragmented data
+            boost::uint32_t offset_;
         };
 
         struct LifeCycle_DataAck {

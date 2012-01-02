@@ -38,6 +38,7 @@ bcast_server::bcast_server( boost::asio::io_service& io_service, int port )
 {
     boost::asio::socket_base::broadcast option(true);
     socket_.set_option( option );
+    send_buffer_.reserve( 1500 );
     start_receive();
 }
 
@@ -75,7 +76,13 @@ bcast_server::handle_receive( const boost::system::error_code& error, std::size_
                       << std::endl;
 
             if ( pf->command == CONN_SYN ) {
-                std::cout << "CONN_SYN received " << " lseq: " << pseq[0] << " rseq: " << pseq[1] << std::endl;
+                std::cout << "CONN_SYN:" << " lseq: " << pseq[0] << " rseq: " << pseq[1] << std::endl;
+                boost::array< char, sizeof( LifeCycleFrame ) + 4 > dbuf;
+                new ( dbuf.data() ) LifeCycleFrame( CONN_SYN_ACK );
+                boost::uint16_t * pack = reinterpret_cast< boost::uint16_t * >( &dbuf[ sizeof( LifeCycleFrame ) ] );
+                *pack++ = local_seq_ = 0x201;
+                *pack++ = remote_seq_ = pseq[0];
+                async_send_data( dbuf.data(), dbuf.size() );
 
             } else if ( pf->command == CONN_SYN_ACK ) {
                 std::cout << "CONN_SYN|ACK received " << " lseq: " << pseq[0] << " rseq: " << pseq[1] << std::endl;
@@ -119,6 +126,8 @@ void
 bcast_server::handle_timeout( const boost::system::error_code& error )
 {
     if ( ! error ) {
+        std::cout << "bcast/bcast_server::handle_timeout" << std::endl;
+/*
         boost::array<char, 512> dbuf;
         new ( dbuf.data() ) LifeCycleFrame( adportable::protocol::DATA );
         boost::uint16_t * pseq = reinterpret_cast< boost::uint16_t * >( &dbuf[ sizeof( LifeCycleFrame ) ] );
@@ -132,6 +141,22 @@ bcast_server::handle_timeout( const boost::system::error_code& error )
                                , remote_endpoint_
                                , boost::bind( &bcast_server::handle_send_to, this
                                               , boost::asio::placeholders::error ) );
+*/
     }
 
+}
+
+bool
+bcast_server::async_send_data( const char * pbuf, std::size_t size )
+{
+    send_buffer_.resize( size );
+    memcpy( send_buffer_.data(), pbuf, size );
+    try {
+        socket_.async_send_to( boost::asio::buffer( send_buffer_ ), remote_endpoint_
+                               , boost::bind( &bcast_server::handle_send_to, this
+                                              , boost::asio::placeholders::error ) );        
+    } catch ( std::exception& ex ) {
+        std::cout << "bcast/bcast_server::async_send_data exception: " << ex.what() << std::endl;
+    }
+    return true;
 }
