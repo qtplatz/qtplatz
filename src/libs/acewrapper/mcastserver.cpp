@@ -38,10 +38,10 @@ McastServer::~McastServer()
     delete reactor_;
 }
 
-McastServer::McastServer( Callback& cb, ACE_Reactor * r, u_short port ) : handler_(0)
-									, reactor_(r)
-									, port_(port)
-									, callback_(cb)
+McastServer::McastServer( Callback& cb, ACE_Reactor * r, u_short port ) : reactor_(r)
+                                                                        , port_(port)
+                                                                        , handler_(0)
+                                                                        , callback_(cb)
 {
     handler_ = new Handler( ACE_DEFAULT_MULTICAST_PORT
                             , ACE_DEFAULT_MULTICAST_ADDR

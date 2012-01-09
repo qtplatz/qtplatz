@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #include "outputcdr.hpp"
 
@@ -36,7 +32,7 @@ OutputCDR::~OutputCDR()
     delete pImpl_;
 }
 
-OutputCDR::OutputCDR( ACE_OutputCDR& cdr ) : pImpl_(0), impl_(cdr)
+OutputCDR::OutputCDR( ACE_OutputCDR& cdr ) : impl_(cdr), pImpl_(0)
 {
 }
 
@@ -79,6 +75,12 @@ OutputCDR& OutputCDR::operator << ( long t )
 OutputCDR& OutputCDR::operator << ( unsigned long t )
 {
   impl_.write_ulong( t );
+  return *this;
+}
+
+OutputCDR& OutputCDR::operator << ( boost::uint32_t t )
+{
+    impl_.write_ulong( t );
   return *this;
 }
 

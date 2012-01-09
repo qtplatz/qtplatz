@@ -22,15 +22,12 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
 #include <string>
 #include <boost/noncopyable.hpp>
+#include <boost/cstdint.hpp>
 
 # if defined _MSC_VER
 #  pragma warning (disable: 4996)
@@ -56,6 +53,7 @@ namespace acewrapper {
 		OutputCDR& operator << (unsigned short);
 		OutputCDR& operator << (long);
 		OutputCDR& operator << (unsigned long);
+		OutputCDR& operator << ( boost::uint32_t );
 		OutputCDR& operator << (long long);
 		OutputCDR& operator << (unsigned long long);
 		OutputCDR& operator << (float);

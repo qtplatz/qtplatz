@@ -26,11 +26,15 @@
 #ifndef MCASTSERVER_H
 #define MCASTSERVER_H
 
+#if defined _MSC_VER
 # pragma warning (disable: 4996)
+#endif
 #  include <ace/SOCK_Dgram_Mcast.h>
 #  include <ace/Event_Handler.h>
 #  include <ace/Recursive_Thread_Mutex.h>
+#if defined _MSC_VER
 # pragma warning (default: 4996)
+#endif
 
 #include <boost/utility.hpp>
 #include "callback.hpp"

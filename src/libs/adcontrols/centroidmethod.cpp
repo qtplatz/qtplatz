@@ -31,15 +31,15 @@ CentroidMethod::~CentroidMethod(void)
 {
 }
 
-CentroidMethod::CentroidMethod() : peakWidthMethod_(ePeakWidthTOF)
-                                   , peakCentroidFraction_(0.5)
-                                   , baselineWidth_(500.0)
-                                   , rsConstInDa_(1.0)
-                                   , rsPropoInPpm_(200.0)
-                                   , rsTofInDa_(0.1)
-                                   , rsTofAtMz_(600.0)
-                                   , attenuation_(5.0)
-                                   , bCentroidAreaIntensity_(true)
+CentroidMethod::CentroidMethod() : baselineWidth_(500.0)
+                                 , rsConstInDa_(1.0)
+                                 , rsPropoInPpm_(200.0)
+                                 , rsTofInDa_(0.1)
+                                 , rsTofAtMz_(600.0)
+                                 , attenuation_(5.0)
+                                 , bCentroidAreaIntensity_(true)
+                                 , peakCentroidFraction_(0.5)
+                                 , peakWidthMethod_(ePeakWidthTOF)
 {
 }
 
