@@ -31,6 +31,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <boost/smart_ptr.hpp>
+#include <adportable/debug.hpp>
 
 namespace acewrapper {
 #if defined __linux__
@@ -59,12 +60,11 @@ namespace acewrapper {
                 return true;
             }
         
-            static bool if_flags( int fd, const std::string& ifname, short& flags ) {
+            static short if_flags( int fd, const std::string& ifname ) {
                 ifreq_impl if_req( ifname );
                 if ( ioctl( fd, SIOCGIFFLAGS, if_req.p() ) < 0 )
-                    return false;
-                flags = if_req.p()->ifr_flags;
-                return true;
+                    return 0;
+                return if_req.p()->ifr_flags;
             }
         
             static bool if_broadaddr( int fd, const std::string& ifname, std::string& baddr ) {
@@ -97,17 +97,19 @@ ifconfig::broadaddr( std::vector< std::pair< std::string, std::string > >& vec )
 
 #if defined __linux__
     int fd = socket( PF_INET, SOCK_DGRAM, 0 );
-    if ( fd < 0 )
-        return 0;
+    if ( fd < 0 ) {
+        adportable::debug( __FILE__, __LINE__ ) << "socket open failed.";
+        return false;
+    }
 
     using acewrapper::os_linux::ifconfig;
 
     std::string ifname;
     for ( int idx = 1; ifconfig::if_name( fd, idx, ifname ); ++idx ) {
-        short flags = ifconfig::if_flags( fd, ifname, flags );
+        short flags = ifconfig::if_flags( fd, ifname );
         if ( flags & IFF_BROADCAST && !( flags & IFF_LOOPBACK ) ) {
             std::string bcast;
-            if ( ifconfig::if_broadaddr( fd, ifname, bcast ) )
+            if ( ifconfig::if_broadaddr( fd, ifname, bcast ) ) 
                 vec.push_back( std::make_pair<std::string, std::string>( ifname, bcast ) );
         }
     }
