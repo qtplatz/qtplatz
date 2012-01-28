@@ -92,7 +92,16 @@ bcast_server::handle_receive( const boost::system::error_code& error, std::size_
             } else if ( pf->command == DATA_ACK ) {
                 std::cout << "DATA|ACK received " << " lseq: " << pseq[0] << " rseq: " << pseq[1] << std::endl;
             } else if ( pf->command == DATA ) {
-                std::cout << "DATA received " << " lseq: " << pseq[0] << " rseq: " << pseq[1] << std::endl;
+                std::cout << "DATA received " << " lseq: " << pseq[0] << " flags: " << pseq[1] << std::endl;
+                const boost::uint32_t * data = reinterpret_cast< boost::uint32_t *>( &recv_buffer_[ fsize ] );
+                const char * pcmd = reinterpret_cast< const char *>(&data[2]);
+                std::string xcmd;
+                for ( int i = 0; i < 4; ++i )
+                    xcmd += pcmd[i];
+                std::cout << "\t" << xcmd << ": " << std::hex << std::showbase;
+                for ( size_t i = 0; i < (len - fsize) / sizeof(boost::uint32_t); ++i )
+                    std::cout << data[i] << " ";
+                std::cout << std::endl;
             } else {
                 std::cout << "UNKNOWN received " << std::hex 
                           << pf->command << " lseq: " << pseq[0] << " rseq: " << pseq[1] << std::endl;

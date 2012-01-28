@@ -37,7 +37,7 @@
 
 static bool connect_on_start = false;
 static int port = 7000;
-static std::string bcaddr = "192.168.0.255";
+static std::string bcaddr = "192.168.24.255";
 
 using boost::asio::ip::udp;
 
@@ -116,7 +116,6 @@ bcast_state_machine::bcast_connect()
     boost::array< char, sizeof(LifeCycleFrame) + 4 > dbuf;
     new ( dbuf.data() ) LifeCycleFrame( adportable::protocol::CONN_SYN );
 
-    //boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address_v4::any(), 7000 );
     boost::asio::ip::udp::endpoint remote_endpoint( boost::asio::ip::address::from_string( bcaddr ), 7000 );
     // send connect request to 0.0.0.0/7000
     std::cout << "conn|syn request to " << remote_endpoint.address() << "/" << remote_endpoint.port() << std::endl;
