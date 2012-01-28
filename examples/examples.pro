@@ -10,6 +10,8 @@ TEMPLATE  = subdirs
 CONFIG   += ordered
 INCLUDEPATH += /usr/local/include
 
-SUBDIRS = device_emulators
+SUBDIRS = device_emulators \
+    bcastaddr
 
 unix:!macx:!isEmpty(copydata):SUBDIRS += bin
+
