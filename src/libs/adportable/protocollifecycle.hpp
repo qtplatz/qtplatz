@@ -41,6 +41,8 @@ namespace adportable {
             , LCS_LISTEN
             , LCS_ESTABLISHED
             , LCS_CLOSE_WAIT
+            , LCS_SYN_RCVD
+            , LCS_SYN_SENT
         };
      
         enum LifeCycleCommand {
