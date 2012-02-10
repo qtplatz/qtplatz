@@ -54,18 +54,18 @@ namespace client {
             using boost::spirit::ascii::space;
 
             molecule =
-                +(
-                atoms          [ bind(&map_add, _val, qi::_1) ]
-            | repeated_group [ bind(&map_join, _val, qi::_1 ) ] 
-            | space
-                )
+				+(
+				atoms          [ boost::phoenix::bind(&map_add, _val, qi::_1) ]
+			  | repeated_group [ boost::phoenix::bind(&map_join, _val, qi::_1 ) ]
+			  | space
+				)
                 ;
             atoms = 
                 element >> ( qi::uint_ | qi::attr(1u) ) // default to 1
                 ;
             repeated_group %= // forces attr proparation
                 '(' >> molecule >> ')'
-                >> qi::omit[ qi::uint_[ bind( map_mul, qi::_val, qi::_1 ) ] ]
+                >> qi::omit[ qi::uint_[ boost::phoenix::bind( map_mul, qi::_val, qi::_1 ) ] ]
             ;
         }
         qi::rule<Iterator, std::pair< const wchar_t *, std::size_t >() > atoms;
