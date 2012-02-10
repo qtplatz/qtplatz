@@ -29,8 +29,8 @@
 
 #include "editorview.h"
 #include "editormanager.h"
-#include "coreimpl.h"
-#include "minisplitter.h"
+#include "../coreimpl.h"
+#include "../minisplitter.h"
 #include "openeditorsmodel.h"
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/actionmanager/actionmanager.h>

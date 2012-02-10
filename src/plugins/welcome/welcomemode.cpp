@@ -109,6 +109,7 @@ WelcomeMode::WelcomeMode() : widget_(0)
 WelcomeMode::~WelcomeMode()
 {
     QSettings *settings = Core::ICore::instance()->settings();
+    Q_UNUSED( settings );	
     // settings->setValue("General/WelcomeTab", m_d->ui.stackedWidget->currentIndex());
     delete widget_;
 }

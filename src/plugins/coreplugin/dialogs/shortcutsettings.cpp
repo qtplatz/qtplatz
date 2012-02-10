@@ -30,13 +30,13 @@
 #include "shortcutsettings.h"
 #include "ui_shortcutsettings.h"
 #include "actionmanager_p.h"
-#include "actionmanager/command.h"
+#include "../actionmanager/command.h"
 #include "command_p.h"
 #include "commandsfile.h"
-#include "coreconstants.h"
-#include "filemanager.h"
-#include "icore.h"
-#include "uniqueidmanager.h"
+#include "../coreconstants.h"
+#include "../filemanager.h"
+#include "../icore.h"
+#include "../uniqueidmanager.h"
 #include <utils/treewidgetcolumnstretcher.h>
 
 

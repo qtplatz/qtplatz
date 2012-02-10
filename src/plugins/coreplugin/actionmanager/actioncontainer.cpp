@@ -32,8 +32,8 @@
 
 #include "command_p.h"
 
-#include "coreconstants.h"
-#include "uniqueidmanager.h"
+#include "../coreconstants.h"
+#include "../uniqueidmanager.h"
 
 #include <QtCore/QDebug>
 #include <QtGui/QAction>

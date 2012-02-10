@@ -23,11 +23,13 @@
 **************************************************************************/
 
 #include "ifconfig.hpp"
+#if defined __linux__
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>
+#endif
 #include <cstdlib>
 #include <cstring>
 #include <boost/smart_ptr.hpp>

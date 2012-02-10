@@ -29,10 +29,10 @@
 
 #include "progressmanager_p.h"
 #include "progressview.h"
-#include "baseview.h"
-#include "coreconstants.h"
-#include "icore.h"
-#include "uniqueidmanager.h"
+#include "../baseview.h"
+#include "../coreconstants.h"
+#include "../icore.h"
+#include "../uniqueidmanager.h"
 
 #include <utils/qtcassert.h>
 

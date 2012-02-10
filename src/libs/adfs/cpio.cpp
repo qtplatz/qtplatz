@@ -33,7 +33,7 @@ std::streamsize
 detail::cpio::xsputn( const char_t * s, std::streamsize num )
 {
     if ( count_ + num >= size_ )
-        resize( num );
+        resize( size_t( num ) );
     for ( int i = 0; i < num; ++i )
         p_[ count_++ ] = *s++;
     return num;

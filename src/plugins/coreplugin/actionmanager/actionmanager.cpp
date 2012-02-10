@@ -28,10 +28,10 @@
 **************************************************************************/
 
 #include "actionmanager_p.h"
-#include "mainwindow.h"
+#include "../mainwindow.h"
 #include "actioncontainer_p.h"
 #include "command_p.h"
-#include "uniqueidmanager.h"
+#include "../uniqueidmanager.h"
 
 #include <coreplugin/coreconstants.h>
 

@@ -29,7 +29,7 @@
 
 #include "newdialog.h"
 #include "ui_newdialog.h"
-#include "basefilewizard.h"
+#include "../basefilewizard.h"
 
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/dialogs/iwizard.h>

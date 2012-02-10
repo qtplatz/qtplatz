@@ -33,12 +33,12 @@
 #include "openeditorsview.h"
 #include "openeditorsmodel.h"
 #include "openwithdialog.h"
-#include "filemanager.h"
-#include "icore.h"
-#include "iversioncontrol.h"
-#include "mimedatabase.h"
-#include "tabpositionindicator.h"
-#include "vcsmanager.h"
+#include "../filemanager.h"
+#include "../icore.h"
+#include "../iversioncontrol.h"
+#include "../mimedatabase.h"
+#include "../tabpositionindicator.h"
+#include "../vcsmanager.h"
 
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/modemanager.h>

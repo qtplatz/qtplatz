@@ -43,6 +43,8 @@ qrc_*.cpp
 *.pdb
 *.suo
 *vcproj.*.*.user
+*.vcxproj
+*.vcxproj.*
 *.ncb
 *.exp
 
@@ -58,6 +60,7 @@ share/qtcreator/translations/extract-mimetypes.xq
 Deleted
 debug
 Debug
+Win32
 bin/*
 lib/*
 lib64/*

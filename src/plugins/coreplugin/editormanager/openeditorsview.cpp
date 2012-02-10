@@ -31,7 +31,7 @@
 #include "editormanager.h"
 #include "editorview.h"
 #include "openeditorsmodel.h"
-#include "icore.h"
+#include "../icore.h"
 
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/filemanager.h>

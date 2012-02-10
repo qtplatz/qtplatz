@@ -65,7 +65,7 @@ DataprocessorFactory::setEditor( QWidget * p )
 
 // implementation for IEditorFactory
 Core::IEditor *
-DataprocessorFactory::createEditor( QWidget * parent )
+DataprocessorFactory::createEditor( QWidget * /* parent */)
 {
     QTabWidget * pTab = new QTabWidget;
     editorWidget_ = pTab;

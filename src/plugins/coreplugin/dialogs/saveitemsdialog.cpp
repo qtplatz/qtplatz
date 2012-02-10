@@ -28,8 +28,8 @@
 **************************************************************************/
 
 #include "saveitemsdialog.h"
-#include "mainwindow.h"
-#include "vcsmanager.h"
+#include "../mainwindow.h"
+#include "../vcsmanager.h"
 
 #include <coreplugin/ifile.h>
 

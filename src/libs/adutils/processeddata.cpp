@@ -79,7 +79,7 @@ ProcessedData::toVariant( boost::any & a )
         return boost::any_cast< MSCalibrateResultPtr >( a );
 #endif
 
-#if defined DEBUG
+#if defined DEBUG && defined __GNUC__
     std::cerr << "toVariant lookup: " << atype << std::endl;
     for ( int i = 0; i < 4; ++i )
         std::cerr << "\t? " << type_name[i] << std::endl;

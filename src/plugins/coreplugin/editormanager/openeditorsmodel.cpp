@@ -29,7 +29,7 @@
 
 #include "openeditorsmodel.h"
 #include "ieditor.h"
-#include "ifile.h"
+#include "../ifile.h"
 
 #include <QtCore/QDir>
 #include <QtGui/QIcon>

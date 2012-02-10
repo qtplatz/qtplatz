@@ -30,7 +30,7 @@
 #include "settingsdialog.h"
 
 #include <extensionsystem/pluginmanager.h>
-#include "icore.h"
+#include "../icore.h"
 
 #include <QtCore/QSettings>
 #include <QtGui/QHeaderView>
