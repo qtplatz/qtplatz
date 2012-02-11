@@ -100,8 +100,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xmlparser", "src\libs\xmlpa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adplugin", "src\libs\adplugin\adplugin.vcproj", "{91F406D4-8137-3B1B-B849-69A9AD360843}"
 	ProjectSection(ProjectDependencies) = postProject
+		{0E63611D-F1FE-3CCB-9E32-59C3737F6A59} = {0E63611D-F1FE-3CCB-9E32-59C3737F6A59}
 		{4B19B14E-3524-3673-A880-57A259EE8F62} = {4B19B14E-3524-3673-A880-57A259EE8F62}
 		{8F43D793-F00D-3AB0-AA1F-12251E0BC1E9} = {8F43D793-F00D-3AB0-AA1F-12251E0BC1E9}
+		{DE1947AB-4C0A-39BA-8305-39F925AFE9D4} = {DE1947AB-4C0A-39BA-8305-39F925AFE9D4}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adportable", "src\libs\adportable\adportable.vcproj", "{DE1947AB-4C0A-39BA-8305-39F925AFE9D4}"
@@ -126,6 +128,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adbroker", "src\servants\ad
 		{8F43D793-F00D-3AB0-AA1F-12251E0BC1E9} = {8F43D793-F00D-3AB0-AA1F-12251E0BC1E9}
 		{AF607DA2-9E5D-30C6-B7A1-99601349BCAC} = {AF607DA2-9E5D-30C6-B7A1-99601349BCAC}
 		{DE1947AB-4C0A-39BA-8305-39F925AFE9D4} = {DE1947AB-4C0A-39BA-8305-39F925AFE9D4}
+		{91F406D4-8137-3B1B-B849-69A9AD360843} = {91F406D4-8137-3B1B-B849-69A9AD360843}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adcontroller", "src\servants\adcontroller\adcontroller.vcproj", "{28579B28-E02E-39FE-86A6-9A4E8C6A329A}"
@@ -144,8 +147,15 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "acquire", "src\plugins\acqu
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qtwidgets", "src\libs\qtwidgets\qtwidgets.vcproj", "{A58C9AC0-7CAB-3A21-A126-2380AD2B9900}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E55C6F64-C044-34F1-BBD7-94FD1BBEB742} = {E55C6F64-C044-34F1-BBD7-94FD1BBEB742}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Welcome", "src\plugins\welcome\welcome.vcproj", "{DADFE08C-5145-3111-9E54-229EB5B4BB18}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A4CC3C7D-516B-3704-8CDB-2A3E987231DB} = {A4CC3C7D-516B-3704-8CDB-2A3E987231DB}
+		{E55B4D97-CB4C-36F6-8B5B-767DAC9D3B13} = {E55B4D97-CB4C-36F6-8B5B-767DAC9D3B13}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -274,6 +284,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		QtVersion = msvc2008
+		QtVersion = 4.8.0
 	EndGlobalSection
 EndGlobal

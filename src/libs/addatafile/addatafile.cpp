@@ -25,13 +25,13 @@
 
 #include "addatafile.hpp"
 
-#define BOOST_LIB_NAME boost_filesystem
-#include <boost/config/auto_link.hpp>
-#undef BOOST_LIB_NAME
+//#define BOOST_LIB_NAME boost_filesystem
+//#include <boost/config/auto_link.hpp>
+//#undef BOOST_LIB_NAME
 
-#define BOOST_LIB_NAME boost_serialize
-#include <boost/config/auto_link.hpp>
-#undef BOOST_LIB_NAME
+//#define BOOST_LIB_NAME boost_serialize
+//#include <boost/config/auto_link.hpp>
+//#undef BOOST_LIB_NAME
 
 #if defined WIN32 && defined _MSC_VER
 #  if defined _DEBUG

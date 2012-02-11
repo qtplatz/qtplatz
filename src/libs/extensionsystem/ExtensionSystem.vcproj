@@ -969,7 +969,7 @@
 	<Globals>
 		<Global
 			Name="QtVersion Win32"
-			Value="msvc2008"
+			Value="4.8.0"
 		/>
 	</Globals>
 </VisualStudioProject>
