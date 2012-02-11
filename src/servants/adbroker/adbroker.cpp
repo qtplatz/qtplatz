@@ -30,7 +30,7 @@
 # include "ace/Init_ACE.h"
 
 #if defined WIN32 && _MSC_VER
-#  if defined _DEBUG
+#  if defined _DEBUG || defined DEBUG
 #     pragma comment(lib, "TAO_Utilsd.lib")
 #     pragma comment(lib, "TAO_PId.lib")
 #     pragma comment(lib, "TAO_PortableServerd.lib")

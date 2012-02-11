@@ -43,7 +43,6 @@ qrc_*.cpp
 *.pdb
 *.suo
 *vcproj.*.*.user
-*.vcxproj
 *.vcxproj.*
 *.ncb
 *.exp

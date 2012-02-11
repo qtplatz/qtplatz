@@ -128,7 +128,7 @@ BrokerToken::fromXml( const XMLElement& )
 
 //static 
 bool 
-BrokerToken::toXml( const BrokerToken &, std::wstring& xml )
+BrokerToken::toXml( const BrokerToken &, std::wstring& /* xml */ )
 {
   return false;
 }

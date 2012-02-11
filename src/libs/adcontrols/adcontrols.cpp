@@ -22,23 +22,35 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+/*
+#define BOOST_LIB_NAME boost_iostreams
+#include <boost/config/auto_link.hpp>
+#undef BOOST_LIB_NAME
 
-//#define BOOST_LIB_NAME boost_serialization
-//#include <boost/config/auto_link.hpp>
-//#undef BOOST_LIB_NAME
+#define BOOST_LIB_NAME boost_serialization
+#include <boost/config/auto_link.hpp>
+#undef BOOST_LIB_NAME
 
-//#define BOOST_LIB_NAME boost_system
-//#include <boost/config/auto_link.hpp>
-//#undef BOOST_LIB_NAME
+#define BOOST_LIB_NAME boost_wserialization
+#include <boost/config/auto_link.hpp>
+#undef BOOST_LIB_NAME
 
+#define BOOST_LIB_NAME boost_system
+#include <boost/config/auto_link.hpp>
+#undef BOOST_LIB_NAME
+*/
 #include "ace/Init_ACE.h"
 
 #if defined ACE_WIN32
 #  if defined _DEBUG
+#     pragma comment(lib, "QtCored4.lib")
 #     pragma comment(lib, "ACEd.lib")
+#     pragma comment(lib, "acewrapperd.lib")
 #     pragma comment(lib, "adportabled.lib")
 #  else
+#     pragma comment(lib, "QtCore4.lib")
 #     pragma comment(lib, "ACE.lib")
+#     pragma comment(lib, "acewrapper.lib")
 #     pragma comment(lib, "adportable.lib")
 #  endif
 #endif

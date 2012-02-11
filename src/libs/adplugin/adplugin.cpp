@@ -44,6 +44,10 @@
 #include <boost/smart_ptr.hpp>
 #include <fstream>
 
+#define BOOST_LIB_NAME boost_filesystem
+#include <boost/config/auto_link.hpp>
+#undef BOOST_LIB_NAME
+
 #if defined _MSC_VER
 # pragma warning (disable: 4996)
 #endif
@@ -51,7 +55,7 @@
 #include <ace/Singleton.h>
 
 #if defined ACE_WIN32
-#  if defined _DEBUG
+#  if defined _DEBUG || defined DEBUG
 #     pragma comment(lib, "TAO_Utilsd.lib")
 #     pragma comment(lib, "TAO_PId.lib")
 #     pragma comment(lib, "TAO_PortableServerd.lib")
@@ -69,7 +73,7 @@
 #endif
 
 #if defined WIN32
-# if defined _DEBUG
+# if defined _DEBUG || defined DEBUG
 #     pragma comment(lib, "adinterfaced.lib")
 #     pragma comment(lib, "adportabled.lib")
 #     pragma comment(lib, "acewrapperd.lib")
