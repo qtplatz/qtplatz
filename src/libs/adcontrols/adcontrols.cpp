@@ -23,8 +23,13 @@
 **
 **************************************************************************/
 
-#define BOOST_LIB_NAME boost_serialization
-#include <boost/config/auto_link.hpp>
+//#define BOOST_LIB_NAME boost_serialization
+//#include <boost/config/auto_link.hpp>
+//#undef BOOST_LIB_NAME
+
+//#define BOOST_LIB_NAME boost_system
+//#include <boost/config/auto_link.hpp>
+//#undef BOOST_LIB_NAME
 
 #include "ace/Init_ACE.h"
 

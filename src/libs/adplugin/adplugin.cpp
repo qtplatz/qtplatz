@@ -75,7 +75,6 @@
 #     pragma comment(lib, "acewrapperd.lib")
 #     pragma comment(lib, "qtwrapperd.lib")
 #     pragma comment(lib, "xmlparserd.lib")
-#     pragma comment(lib, "libboost_filesystem-vc100-mt-1_48.lib")
 # else
 #     pragma comment(lib, "adinterface.lib")
 #     pragma comment(lib, "adportable.lib")

@@ -47,7 +47,7 @@ adinterface::EventLog::LogMessageHelper::toString( const ::EventLog::LogMessage&
     std::wostringstream o;
     try {
         o << format;
-    } catch ( boost::exception& ex ) {
+    } catch ( boost::exception& ) {
         return fmt;
     }
     return o.str();
