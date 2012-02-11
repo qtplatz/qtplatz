@@ -22,6 +22,9 @@
 **
 **************************************************************************/
 
+#if defined _MSC_VER
+# pragma warning( disable: 4996 )
+#endif
 #include "portfolioimpl.hpp"
 #include "folder.hpp"
 #include "folium.hpp"
@@ -163,7 +166,8 @@ std::wstring
 PortfolioImpl::newGuid()
 {
     const boost::uuids::uuid id = boost::uuids::random_generator()();
-    return boost::lexical_cast<std::wstring>(id);
+    std::string s = boost::lexical_cast<std::string>(id);
+	return pugi::as_wide( s );
 }
 
 #if 0
