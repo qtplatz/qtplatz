@@ -283,6 +283,13 @@ Chromatogram::addEvent( const Chromatogram::Event& e )
 const double *
 Chromatogram::getTimeArray() const
 {
+	if ( ( pImpl_->getTimeArray() == 0 ) && isConstantSampledData() ) {
+		pImpl_->timeArray_.clear();
+		const std::pair<double, double>& timerange = pImpl_->getAcquisitionTimeRange();
+		const size_t nSize = pImpl_->size();
+		for ( size_t i = 0; i < nSize; ++i ) 
+			pImpl_->timeArray_.push_back( timerange.first + i * pImpl_->samplingInterval() );
+	}
     return pImpl_->getTimeArray();
 }
 
