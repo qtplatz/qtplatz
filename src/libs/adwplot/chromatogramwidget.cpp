@@ -101,8 +101,8 @@ namespace adwplot {
             if ( trace.size() <= 2 )
                 return;
 
-            // TODO:  reractor code in order to avoid full data copy
-            static_cast<Trace&>(*data_) = trace;
+            // TODO:  refactor code in order to avoid full data copy
+			static_cast<Trace&>(*data_) = trace;
             QRectF rect;
             rect.setCoords( data_->sample(0).x(), trace.range_y().first
                             , data_->sample( trace.size() - 1 ).x(), trace.range_y().second );
@@ -181,13 +181,14 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
     impl_->annotations_.clear();
     impl_->peaks_.clear();
     impl_->baselines_.clear();
-    impl_->traces_.clear();
+	// impl_->traces_.clear();
 
     using adcontrols::Chromatogram;
     using chromatogram_internal::TraceData;
 
-    impl_->traces_.push_back( TraceData<Chromatogram>( *this ) );
-    TraceData<Chromatogram>& trace = boost::get<TraceData<Chromatogram> >(impl_->traces_.back());
+	if ( impl_->traces_.empty() )
+		impl_->traces_.push_back( TraceData<Chromatogram>( *this ) );
+	TraceData<Chromatogram>& trace = boost::get<TraceData<Chromatogram> >(impl_->traces_.back());
 
     trace.setData( c );
 
