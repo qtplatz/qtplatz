@@ -25,6 +25,14 @@
 #include <QtGui/QApplication>
 #include "mainwindow.hpp"
 
+#if defined _MSC_VER
+# if defined _DEBUG
+#  pragma comment( lib, "adcontrolsd.lib" )
+# else
+#  pragma comment( lib, "adcontrols.lib" )
+# endif
+#endif
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
