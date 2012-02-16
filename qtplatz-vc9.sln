@@ -67,6 +67,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "portfolio", "src\libs\portfolio\portfolio.vcproj", "{AF607DA2-9E5D-30C6-B7A1-99601349BCAC}"
 	ProjectSection(ProjectDependencies) = postProject
 		{8F43D793-F00D-3AB0-AA1F-12251E0BC1E9} = {8F43D793-F00D-3AB0-AA1F-12251E0BC1E9}
+		{DE1947AB-4C0A-39BA-8305-39F925AFE9D4} = {DE1947AB-4C0A-39BA-8305-39F925AFE9D4}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adutils", "src\libs\adutils\adutils.vcproj", "{D567A66B-E0B9-37FD-AD4D-39F300F26921}"
