@@ -86,9 +86,11 @@ MainWindow::molfile_open( const boost::filesystem::path& path )
 	using adcontrols::ChemicalFormula;
 	
 	CTable ctable;
+    ChemicalFormula f;
 	if ( CTFile::load_molfile( path, ctable ) ) {
-		std::wstring formula;
-		ChemicalFormula::getFormula( ctable );
+		std::wstring formula = ChemicalFormula::getFormula( ctable );
+		std::wstring stdformula = f.standardFormula( formula );
+        double m = f.getMonoIsotopicMass( formula );
         long x = 0;
 	}
 }

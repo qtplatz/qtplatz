@@ -159,7 +159,7 @@ ChemicalFormula::getFormula( const CTable& ctable )
 		const CTable::Atom& atom = ctable.atom( i );
 		const adcontrols::Element& element = toe->findElement( atom.symbol );
 		assert( ! element.symbol().empty() );
-		valences.push_back( std::make_pair<std::wstring, int>( atom.symbol, element.valence() ) );
+		valences.push_back( std::make_pair<std::wstring, int>( atom.symbol, element.valence() - 1 ) );
 	}
 
     size_t nbonds = ctable.bonds().size();
@@ -171,9 +171,14 @@ ChemicalFormula::getFormula( const CTable& ctable )
 
 	std::wostringstream formula;
 	for ( size_t i = 0; i < valences.size(); ++i ) {
-		formula << valences[ i ].first;
-		if ( valences[ i ].second > 0 )
-			formula << L"H" << valences[ i ].second << L" ";
+		const std::pair< std::wstring, int >& v = valences[ i ];
+		formula << v.first;
+		if ( v.second >= 1 ) {
+			formula << L"H";
+			if ( v.second >= 2 )
+				formula << v.second;
+			formula << L" ";
+		}
 	}
 	return formula.str();
 }
