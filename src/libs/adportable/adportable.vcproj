@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\adcontrols\ctfile.cpp"
+				>
+			</File>
+			<File
 				RelativePath="debug.cpp"
 				>
 			</File>
@@ -425,6 +429,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\adcontrols\ctfile.hpp"
+				>
 			</File>
 			<File
 				RelativePath="debug.hpp"

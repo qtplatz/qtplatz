@@ -246,6 +246,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ctable.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ctfile.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\datafile.cpp"
 				>
 			</File>
@@ -465,6 +473,10 @@
 			</File>
 			<File
 				RelativePath=".\cpeakmethod.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ctable.hpp"
 				>
 			</File>
 			<File

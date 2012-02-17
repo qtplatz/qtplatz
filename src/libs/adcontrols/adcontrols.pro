@@ -73,7 +73,9 @@ SOURCES += acceptor.cpp \
     timeutil.cpp \
     trace.cpp \
     traceaccessor.cpp \
-    visitor.cpp
+    visitor.cpp \
+    ctable.cpp \
+    ctfile.cpp
 
 HEADERS += acceptor.hpp \
     acquireddataset.hpp \
@@ -126,7 +128,9 @@ HEADERS += acceptor.hpp \
     timeutil.hpp \
     trace.hpp \
     traceaccessor.hpp \
-    visitor.hpp
+    visitor.hpp \
+    ctable.hpp \
+    ctfile.hpp
 
 OTHER_FILES += \
     adcontrols.pri
