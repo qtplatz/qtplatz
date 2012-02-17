@@ -28,6 +28,8 @@
 #endif
 #include "chemicalformula.hpp"
 #include "tableofelements.hpp"
+#include "ctable.hpp"
+#include "element.hpp"
 #include <adportable/string.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/spirit/include/qi.hpp>
@@ -145,6 +147,35 @@ std::wstring
 ChemicalFormula::standardFormula( const std::wstring& formula )
 {
     return impl_->standardFormula( formula );
+}
+
+std::wstring
+ChemicalFormula::getFormula( const CTable& ctable )
+{
+	adcontrols::TableOfElements * toe = adcontrols::TableOfElements::instance();
+	std::vector< std::pair< std::wstring, int > > valences;
+	size_t natoms = ctable.atoms().size();
+	for ( size_t i = 0; i < natoms; ++i ) {
+		const CTable::Atom& atom = ctable.atom( i );
+		const adcontrols::Element& element = toe->findElement( atom.symbol );
+		assert( ! element.symbol().empty() );
+		valences.push_back( std::make_pair<std::wstring, int>( atom.symbol, element.valence() ) );
+	}
+
+    size_t nbonds = ctable.bonds().size();
+	for ( size_t i = 0; i < nbonds; ++i ) {
+		const CTable::Bond& bond = ctable.bond( i );
+		valences[ bond.first_atom_number - 1 ].second--;
+		valences[ bond.second_atom_number - 1 ].second--;
+	}
+
+	std::wostringstream formula;
+	for ( size_t i = 0; i < valences.size(); ++i ) {
+		formula << valences[ i ].first;
+		if ( valences[ i ].second > 0 )
+			formula << L"H" << valences[ i ].second << L" ";
+	}
+	return formula.str();
 }
 
 ///////////////

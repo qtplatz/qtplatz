@@ -73,7 +73,6 @@ namespace adcontrols {
 		const Atom& atom( int ) const;
 		const Bond& bond( int ) const;
 		void clear();
-		std::wstring formula() const;
 
 	private:
 		atom_vector atoms_;

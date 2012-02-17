@@ -24,12 +24,13 @@
 
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
+#include <qtwrapper/qstring.hpp>
 #include <QDragEnterEvent>
 #include <QUrl>
 #include <QDebug>
 #include <adcontrols/ctfile.hpp>
 #include <adcontrols/ctable.hpp>
-#include <adcontrols/tableofelements.hpp>
+#include <adcontrols/chemicalformula.hpp>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -51,7 +52,7 @@ MainWindow::dragEnterEvent( QDragEnterEvent * event )
 	if ( mimeData->hasUrls() ) {
 		QList<QUrl> urlList = mimeData->urls();
 		for ( int i = 0; i < urlList.size(); ++i ) {
-			std::wstring file = urlList.at(i).toLocalFile().toStdWString();
+			std::wstring file = qtwrapper::wstring( urlList.at(i).toLocalFile() );
 			boost::filesystem::path path( file ); 
 			if ( path.extension() == L".mol" ) {
 				event->acceptProposedAction();
@@ -68,7 +69,7 @@ MainWindow::dropEvent( QDropEvent * event )
 	if ( mimeData->hasUrls() ) {
 		QList<QUrl> urlList = mimeData->urls();
 		for ( int i = 0; i < urlList.size(); ++i ) {
-			std::wstring file = urlList.at(i).toLocalFile().toStdWString();
+			std::wstring file = qtwrapper::wstring( urlList.at(i).toLocalFile() );
 			boost::filesystem::path path( file ); 
 			if ( path.extension() == L".mol" ) {
                 molfile_open( path );
@@ -80,8 +81,14 @@ MainWindow::dropEvent( QDropEvent * event )
 void
 MainWindow::molfile_open( const boost::filesystem::path& path )
 {
-	adcontrols::CTable ctable;
-	if ( adcontrols::CTFile::load_molfile( path, ctable ) ) {
-
+	using adcontrols::CTable;
+	using adcontrols::CTFile;
+	using adcontrols::ChemicalFormula;
+	
+	CTable ctable;
+	if ( CTFile::load_molfile( path, ctable ) ) {
+		std::wstring formula;
+		ChemicalFormula::getFormula( ctable );
+        long x = 0;
 	}
 }

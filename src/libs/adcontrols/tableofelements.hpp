@@ -54,7 +54,6 @@ namespace adcontrols {
         std::wstring saveXml() const;
         void loadXml( const std::wstring& );
 
-        operator SACONTROLSLib::ISAElementIO * ();
     private:
         static TableOfElements * instance_;
         internal::TableOfElementsImpl * pImpl_;

@@ -28,13 +28,13 @@ std::wstring
 string::convert( const std::string& source )
 {
     size_t source_length = source.length();
-    std::wstring target( source_length + 1, L'\0' );
+    std::wstring target( source_length, L'\0' );
 #if defined WIN32
     ::MultiByteToWideChar( CP_ACP, 0, source.c_str(), source.length(), &target[0], target.size() );
 #else
     size_t n = mbstowcs( &target[0], source.c_str(), target.size() );
     if ( n != size_t(-1) )
-	target.resize( n );
+		target.resize( n );
 #endif
     return target;
 }

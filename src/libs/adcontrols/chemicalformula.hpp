@@ -29,13 +29,10 @@
 #include <boost/smart_ptr.hpp>
 #include <string>
 
-namespace SACONTROLSLib {
-    struct ISAElementIO;
-}
-
 namespace adcontrols {
 
     class TableOfElements;
+    class CTable;
 
     namespace internal {
         class ChemicalFormulaImpl;
@@ -49,7 +46,8 @@ namespace adcontrols {
 
         double getMonoIsotopicMass( const std::wstring& formula );
         double getChemicalMass( const std::wstring& formula );
-        std::wstring standardFormula( const std::wstring& formula );
+		std::wstring standardFormula( const std::wstring& formula );
+		static std::wstring getFormula( const CTable& );
 
     private:
         internal::ChemicalFormulaImpl * impl_;

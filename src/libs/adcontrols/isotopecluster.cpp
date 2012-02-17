@@ -25,9 +25,9 @@
 
 #include "isotopecluster.hpp"
 #include "tableofelements.hpp"
+#include "massspectrum.hpp"
 
 using namespace adcontrols;
-using namespace SACONTROLSLib;
 
 namespace adcontrols {
 
@@ -50,12 +50,28 @@ IsotopeCluster::IsotopeCluster() : impl_( new IsotopeClusterImpl )
 bool
 IsotopeCluster::Compute( const std::wstring& formula, double threshold, bool resInDa, double rp, MassSpectrum& ms, size_t& nPeaks )
 {
+    (void)formula;
+	(void)threshold;
+	(void)resInDa;
+	(void)rp;
+	(void)ms;
+	(void)nPeaks;
     return false;
 }
 
 bool
 IsotopeCluster::Compute( const std::wstring& formula, double threshold, bool resInDa, double rp, MassSpectrum& ms, const std::wstring& adduct, size_t charges, size_t& nPeaks, bool bAccountForElectrons )
 {
+    (void)formula;
+	(void)threshold;
+	(void)resInDa;
+	(void)rp;
+	(void)ms;
+	(void)nPeaks;
+	(void)bAccountForElectrons;
+	(void)charges;
+	(void)adduct;
+	(void)bAccountForElectrons;
     return false;
 }
 
@@ -67,12 +83,23 @@ IsotopeCluster::clearFormulae()
 bool
 IsotopeCluster::addFormula( const std::wstring& formula, const std::wstring& adduct, size_t chargeState, double relativeAmount )
 {
+	(void)formula;
+	(void)adduct;
+	(void)chargeState;
+	(void)relativeAmount;
     return false;
 }
 
 bool
 IsotopeCluster::computeFormulae(double threshold, bool resInDa, double rp,	MassSpectrum& ms, size_t& nPeaks, bool bAccountForElectrons, double ra )
 {
+	(void)threshold;
+	(void)resInDa;
+	(void)rp;
+	(void)ms;
+	(void)nPeaks;
+	(void)bAccountForElectrons;
+	(void)ra;
     return false;
 }
 

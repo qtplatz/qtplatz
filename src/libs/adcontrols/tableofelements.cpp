@@ -125,7 +125,7 @@ namespace adcontrols {
             const std::wstring& symbol_;
             element_finder( const std::wstring& symbol ) : symbol_(symbol) {}
             bool operator()( const adcontrols::Element& e ) {
-                return e.symbol() == symbol_;
+				return symbol_.compare( e.symbol() ) == 0;
             }
         };
 
@@ -570,7 +570,7 @@ namespace adcontrols {
             set_element_vec( std::vector<Element>& v ) : vec_(v) {}
 
             void operator()( const element& e ) {
-                Element elm( e.symbol_, e.name_, e.atomicNumber_, e.valence_ );
+				Element elm( e.symbol_, e.name_, e.atomicNumber_, e.valence_ );
                 for ( int i = 0; i < e.isotopeCount_; ++i )
                     elm.addIsotope( Element::Isotope( e.ma_[i].mass_, e.ma_[i].abund_ ) );
                 vec_.push_back( elm );
