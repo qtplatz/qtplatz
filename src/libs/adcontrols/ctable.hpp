@@ -35,7 +35,7 @@ namespace adcontrols {
 		CTable();
 		CTable( const CTable& );
 
-		struct Atom {
+		struct ADCONTROLSSHARED_EXPORT Atom {
 			Atom();
 			Atom( const Atom& );
 			double x, y, z;
@@ -52,7 +52,7 @@ namespace adcontrols {
 			int exact_change_flag;
 		};
 
-		struct Bond {
+		struct ADCONTROLSSHARED_EXPORT Bond {
 			Bond();
 			Bond( const Bond& );
 			int first_atom_number;

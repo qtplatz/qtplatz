@@ -27,6 +27,8 @@
 
 #include <QMainWindow>
 #include <boost/filesystem.hpp>
+#include <vector>
+#include <adcontrols/ctable.hpp>
 
 namespace Ui {
 class MainWindow;
@@ -45,9 +47,11 @@ private:
 	void dropEvent( QDropEvent * event );
 
 	void molfile_open( const boost::filesystem::path& );    
+    void paintEvent( QPaintEvent * );
 
 private:
     Ui::MainWindow *ui;
+	std::vector< adcontrols::CTable > ctabs_;
 };
 
 #endif // MAINWINDOW_HPP

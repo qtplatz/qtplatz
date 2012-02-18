@@ -159,26 +159,47 @@ ChemicalFormula::getFormula( const CTable& ctable )
 		const CTable::Atom& atom = ctable.atom( i );
 		const adcontrols::Element& element = toe->findElement( atom.symbol );
 		assert( ! element.symbol().empty() );
-		valences.push_back( std::make_pair<std::wstring, int>( atom.symbol, element.valence() - 1 ) );
+		valences.push_back( std::make_pair<std::wstring, int>( atom.symbol, element.valence() ) );
 	}
 
     size_t nbonds = ctable.bonds().size();
 	for ( size_t i = 0; i < nbonds; ++i ) {
 		const CTable::Bond& bond = ctable.bond( i );
-		valences[ bond.first_atom_number - 1 ].second--;
-		valences[ bond.second_atom_number - 1 ].second--;
+		size_t n = bond.bond_type == 2 ? 2 : 1;
+		valences[ bond.first_atom_number - 1 ].second -= n;
+		valences[ bond.second_atom_number - 1 ].second -= n;
+	}
+
+	for ( size_t a = 0; a < valences.size(); ++a ) {
+		std::pair< std::wstring, int >& v = valences[ a ];
+		if ( v.second < 0 ) { // for example N(+)
+			BOOST_FOREACH( const adcontrols::CTable::Bond& b, ctable.bonds() ) {
+				size_t atom_number = 0;
+				if ( b.first_atom_number == a )
+					atom_number = b.second_atom_number;
+				else if ( b.second_atom_number == a )
+					atom_number = b.first_atom_number;
+				if ( atom_number && valences[ atom_number - 1 ].second > 0 ) {
+					while ( v.second < 0 || valences[ atom_number - 1 ].second > 0 ) {
+						valences[ atom_number - 1 ].second--;
+						v.second++;
+					}
+				}
+			}
+		}
 	}
 
 	std::wostringstream formula;
 	for ( size_t i = 0; i < valences.size(); ++i ) {
 		const std::pair< std::wstring, int >& v = valences[ i ];
 		formula << v.first;
+
 		if ( v.second >= 1 ) {
 			formula << L"H";
 			if ( v.second >= 2 )
 				formula << v.second;
-			formula << L" ";
 		}
+		formula << L" ";
 	}
 	return formula.str();
 }
