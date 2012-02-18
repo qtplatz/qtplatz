@@ -36,10 +36,12 @@
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
 
 using namespace adcontrols;
 
@@ -149,46 +151,62 @@ ChemicalFormula::standardFormula( const std::wstring& formula )
     return impl_->standardFormula( formula );
 }
 
+namespace adcontrols {
+
+	//struct is_connect {
+	size_t bond_connect( const CTable::Bond& bond, size_t num ) {
+		return ( bond.first_atom_number == num ) ? bond.second_atom_number
+			: ( bond.second_atom_number == num ) ? bond.first_atom_number : 0;
+	}
+}
+
 std::wstring
 ChemicalFormula::getFormula( const CTable& ctable )
 {
+	using adcontrols::CTable;
+
 	adcontrols::TableOfElements * toe = adcontrols::TableOfElements::instance();
-	std::vector< std::pair< std::wstring, int > > valences;
-	size_t natoms = ctable.atoms().size();
-	for ( size_t i = 0; i < natoms; ++i ) {
-		const CTable::Atom& atom = ctable.atom( i );
+
+	typedef std::pair< std::wstring, int > atom_valence_t;
+	std::vector< atom_valence_t > valences;
+
+	BOOST_FOREACH( const CTable::Atom& atom, ctable.atoms() ) {
 		const adcontrols::Element& element = toe->findElement( atom.symbol );
 		assert( ! element.symbol().empty() );
 		valences.push_back( std::make_pair<std::wstring, int>( atom.symbol, element.valence() ) );
 	}
 
-    size_t nbonds = ctable.bonds().size();
-	for ( size_t i = 0; i < nbonds; ++i ) {
-		const CTable::Bond& bond = ctable.bond( i );
-		size_t n = bond.bond_type == 2 ? 2 : 1;
+	BOOST_FOREACH( const CTable::Bond& bond, ctable.bonds() ) {
+		size_t n = bond.bond_type <= 3 ? bond.bond_type : 0;
 		valences[ bond.first_atom_number - 1 ].second -= n;
 		valences[ bond.second_atom_number - 1 ].second -= n;
 	}
 
-	for ( size_t a = 0; a < valences.size(); ++a ) {
-		std::pair< std::wstring, int >& v = valences[ a ];
-		if ( v.second < 0 ) { // for example N(+)
-			BOOST_FOREACH( const adcontrols::CTable::Bond& b, ctable.bonds() ) {
-				size_t atom_number = 0;
-				if ( b.first_atom_number == a )
-					atom_number = b.second_atom_number;
-				else if ( b.second_atom_number == a )
-					atom_number = b.first_atom_number;
-				if ( atom_number && valences[ atom_number - 1 ].second > 0 ) {
-					while ( v.second < 0 || valences[ atom_number - 1 ].second > 0 ) {
-						valences[ atom_number - 1 ].second--;
-						v.second++;
+	do {
+		std::vector< atom_valence_t >::iterator atomIt = valences.begin(); 
+		do {
+			// find atom that has negataive valence value
+			atomIt = std::find_if( atomIt, valences.end(), boost::bind( &atom_valence_t::second, _1) < 0 );
+			if ( atomIt != valences.end() ) {
+				size_t atom_number = std::distance( valences.begin(), atomIt ) + 1;
+
+				CTable::bond_vector::const_iterator bondIt = ctable.bonds().begin();
+				while ( bondIt != ctable.bonds().end() ) {
+					bondIt = std::find_if( bondIt, ctable.bonds().end(), boost::bind( &bond_connect, _1, atom_number ) );
+					if ( bondIt != ctable.bonds().end() ) {
+						// long x = std::distance( ctable.bonds().begin(), bondIt );
+						size_t adjacent_number = bond_connect( *bondIt, atom_number );
+						while ( valences[ adjacent_number - 1 ].second > 0 && atomIt->second < 0 ) {
+							valences[ adjacent_number - 1 ].second--;
+							atomIt->second++;
+						}
+						++bondIt;
 					}
 				}
+				++atomIt;
 			}
-		}
-	}
-
+		} while ( atomIt != valences.end() );
+	} while(0);
 	std::wostringstream formula;
 	for ( size_t i = 0; i < valences.size(); ++i ) {
 		const std::pair< std::wstring, int >& v = valences[ i ];

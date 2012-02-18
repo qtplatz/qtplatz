@@ -33,8 +33,10 @@
 #include <QDebug>
 #include <QPainter>
 #include <boost/foreach.hpp>
+#include <boost/tokenizer.hpp>
 #include <sstream>
 #include <cmath>
+#include <iomanip>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -85,19 +87,46 @@ MainWindow::dropEvent( QDropEvent * event )
 void
 MainWindow::paintEvent( QPaintEvent * )
 {
+	using adcontrols::ChemicalFormula;
+
+	if ( ctabs_.empty() )
+		return;
+
     QPainter painter( this );
+	const adcontrols::CTable& ctab = ctabs_.back();
+
+	std::wstring formula = ChemicalFormula::getFormula( ctab );
+	std::vector< std::wstring > hydrogens;
+	do {
+		typedef boost::char_separator< wchar_t > separator;
+		typedef boost::tokenizer< boost::char_separator<wchar_t>
+			, std::wstring::const_iterator
+			, std::wstring > tokenizer;
+		separator sep( L" ", L"" );
+		tokenizer tokens( formula, sep );
+		for ( tokenizer::iterator it = tokens.begin(); it != tokens.end(); ++it )
+			hydrogens.push_back( *it );
+	} while(0);
+    
+	std::wstring stdformula = ChemicalFormula().standardFormula( formula );
+	double m = ChemicalFormula().getMonoIsotopicMass( stdformula );
+	std::wostringstream label;
+	label << stdformula << "  mass: " << std::fixed << std::setprecision(10) << m;
+	painter.drawText( 16, 24, qtwrapper::qstring( label.str() ) );
+	painter.drawText( 16, 24 + 16, qtwrapper::qstring( formula ) );
+
+	// --- draw molecule --
     painter.translate( painter.window().center() );
 
-	if ( ctabs_.empty() ) {
-		return;
-	}
-	const adcontrols::CTable& ctab = ctabs_.back();
 	const double factor = 25;
-    int n = 1;
-	BOOST_FOREACH( const adcontrols::CTable::Atom& a, ctab.atoms() ) {
-		std::wostringstream o;
-        o << a.symbol << L"(" << n++ << L")";
-		painter.drawText( a.x * factor, a.y * factor, qtwrapper::qstring::copy( o.str() ) );
+	for ( size_t n = 0; n < ctab.atoms().size(); ++n ) {
+		// BOOST_FOREACH( const adcontrols::CTable::Atom& a, ctab.atoms() ) {
+		const adcontrols::CTable::Atom& a = ctab.atom( n );
+		if ( hydrogens[ n ].find( L"H" ) == std::string::npos )
+			painter.setPen( QColor( Qt::black ) );
+		else
+			painter.setPen( QColor( Qt::red ) );
+		painter.drawText( a.x * factor, a.y * factor, qtwrapper::qstring::copy( a.symbol ) );
 	}
 	BOOST_FOREACH( const adcontrols::CTable::Bond& b, ctab.bonds() ) {
 		adcontrols::CTable::Atom a1 = ctab.atom( b.first_atom_number - 1 );
@@ -160,16 +189,10 @@ MainWindow::molfile_open( const boost::filesystem::path& path )
 {
 	using adcontrols::CTable;
 	using adcontrols::CTFile;
-	using adcontrols::ChemicalFormula;
 	
 	CTable ctable;
-    ChemicalFormula f;
 	if ( CTFile::load_molfile( path, ctable ) ) {
-		std::wstring formula = ChemicalFormula::getFormula( ctable );
-		std::wstring stdformula = f.standardFormula( formula );
-        double m = f.getMonoIsotopicMass( formula );
-        long x = 0;
-        ctabs_.push_back( ctable );
+		ctabs_.push_back( ctable );
         update();
 	}
 }
