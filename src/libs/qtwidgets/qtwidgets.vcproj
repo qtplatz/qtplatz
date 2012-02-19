@@ -234,11 +234,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\isotopedelegate.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\isotopeform.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\isotopemethodmodel.cpp"
 				>
 			</File>
 			<File
 				RelativePath="logwidget.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\molwidget.cpp"
 				>
 			</File>
 			<File
@@ -486,6 +498,58 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\isotopedelegate.hpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing isotopedelegate.hpp..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I.&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing isotopedelegate.hpp..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I.&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\isotopeform.hpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing isotopeform.hpp..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I.&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing isotopeform.hpp..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I.&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\isotopemethodmodel.hpp"
 				>
 				<FileConfiguration
@@ -532,6 +596,32 @@
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
 						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I.&quot; &quot;logwidget.hpp&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\molwidget.hpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing molwidget.hpp..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I.&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing molwidget.hpp..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;  -DQT_NO_DEBUG -DNDEBUG -D_WINDOWS -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=\&quot;lib\&quot; -DQT_NO_CAST_TO_ASCII -DQTWIDGETS_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_DECLARATIVE_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include\QtDeclarative&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(ACE_ROOT)\.&quot; &quot;-I$(TAO_ROOT)\.&quot; &quot;-I.&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -980,6 +1070,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\ui_isotopeform.h"
+				>
+			</File>
+			<File
 				RelativePath="ui_logwidget.h"
 				>
 				<FileConfiguration
@@ -1187,6 +1281,30 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\Debug\moc_isotopedelegate.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Debug\moc_isotopeform.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath=".\debug\moc_isotopemethodmodel.cpp"
 					>
 					<FileConfiguration
@@ -1200,6 +1318,18 @@
 				</File>
 				<File
 					RelativePath=".\Debug\moc_logwidget.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Debug\moc_molwidget.cpp"
 					>
 					<FileConfiguration
 						Name="Release|Win32"
@@ -1421,6 +1551,30 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\Release\moc_isotopedelegate.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Release\moc_isotopeform.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath=".\Release\moc_isotopemethodmodel.cpp"
 					>
 					<FileConfiguration
@@ -1434,6 +1588,18 @@
 				</File>
 				<File
 					RelativePath=".\Release\moc_logwidget.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\Release\moc_molwidget.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1633,6 +1799,32 @@
 						CommandLine="$(QTDIR)\bin\uic.exe elementalcompositionform.ui -o ui_elementalcompositionform.h&#x0D;&#x0A;"
 						AdditionalDependencies="$(QTDIR)\bin\uic.exe;elementalcompositionform.ui"
 						Outputs="ui_elementalcompositionform.h"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\isotopeform.ui"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;.\ui_$(InputName).h&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;.\ui_$(InputName).h&quot;"
 					/>
 				</FileConfiguration>
 			</File>

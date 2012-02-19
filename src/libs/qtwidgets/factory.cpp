@@ -38,6 +38,8 @@
 #include "mscalibrationform.hpp"
 #include "mscalibsummarywidget.hpp"
 #include "peakresultwidget.hpp"
+#include "molwidget.hpp"
+#include "isotopeform.hpp"
 #include <adplugin/lifecycle.hpp>
 #include <QMessageBox>
 
@@ -65,6 +67,10 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
         pWidget = new qtwidgets::PeakResultWidget( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::ProcessMethodView" ) {
         pWidget = new qtwidgets::ProcessMethodView( parent );
+    } else if ( std::wstring( iid ) == L"qtwidgets::MolWidget" ) {
+        pWidget = new qtwidgets::MolWidget( parent );
+    } else if ( std::wstring( iid ) == L"qtwidgets::IsotopeForm" ) {
+        pWidget = new qtwidgets::IsotopeForm( parent );
     }
     if ( pWidget )
         return pWidget;

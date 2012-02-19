@@ -18,6 +18,10 @@
 	<Component type="qml" QUrl="/qtwidgets/qml/ProcessMethodEditor.qml" />
       </Component>
     </Configuration>
+    <Configuration name="IsotopeUI">
+      <title>Isotope</title>
+      <Component type="widget" interface="qtwidgets::IsotopeForm" module="qtwidgets" loader="adplugin"/>
+    </Configuration>
     <Configuration name="ElementalCompUI">
       <title>Elemental Comp.</title>
       <Component type="widget" interface="qtwidgets::ElementalCompositionForm" module="qtwidgets" loader="adplugin"/>

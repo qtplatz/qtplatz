@@ -73,6 +73,7 @@ namespace adcontrols {
 		const Atom& atom( int ) const;
 		const Bond& bond( int ) const;
 		void clear();
+		bool empty() const { return atoms_.empty(); }
 
 	private:
 		atom_vector atoms_;

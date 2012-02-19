@@ -44,7 +44,11 @@ SOURCES += centroiddelegate.cpp \
     isotopemethodmodel.cpp \
     chemicalformula.cpp \
     elementalcompmodel.cpp \
-    mscalibratemodel.cpp
+    mscalibratemodel.cpp \
+    molwidget.cpp \
+    isotopeform.cpp \
+    isotopedelegate.cpp \
+    qctable.cpp
 
 
 HEADERS += centroiddelegate.hpp \
@@ -70,7 +74,11 @@ HEADERS += centroiddelegate.hpp \
     isotopemethodmodel.hpp \
     chemicalformula.hpp \
     elementalcompmodel.hpp \
-    mscalibratemodel.hpp
+    mscalibratemodel.hpp \
+    molwidget.hpp \
+    isotopeform.hpp \
+    isotopedelegate.hpp \
+    qctable.hpp
 
 FORMS += \
     centroidform.ui \
@@ -79,7 +87,8 @@ FORMS += \
     mscalibrationform.ui \
     peakresulttable.ui \
     sequencesform.ui \
-    sequencewidget.ui
+    sequencewidget.ui \
+    isotopeform.ui
 
 RESOURCES += \
     resources.qrc
