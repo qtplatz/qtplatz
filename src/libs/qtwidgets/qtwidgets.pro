@@ -18,8 +18,7 @@ LIBS += -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(xmlparser)
 
 !win32 {
-  # LIBS *= -lboost_serialization -lboost_wserialization -lboost_date_time -lboost_system
-  LIBS *= -lboost_system
+  LIBS *= -lboost_filesystem -lboost_system
 }
 
 INCLUDEPATH *= $(ACE_ROOT) $(TAO_ROOT)
