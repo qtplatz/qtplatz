@@ -16,7 +16,7 @@ include(../acewrapper/acewrapper_dependencies.pri)
 LIBS *= -l$$qtLibraryTarget(acewrapper)
 LIBS *= -l$$qtLibraryTarget(adportable)
 !win32 {
-  LIBS *= -lboost_serialization -lboost_wserialization -lboost_date_time
+  LIBS *= -lboost_serialization -lboost_wserialization -lboost_date_time -lboost_system
   LIBS *= -lACE
 }
 

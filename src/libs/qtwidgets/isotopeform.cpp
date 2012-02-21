@@ -120,7 +120,7 @@ IsotopeForm::onMolChanged( QString key )
 		ctabs_.push_back( std::make_pair( key, ctab ) );
 
 		boost::filesystem::path path( qtwrapper::wstring::copy( key ) );
-		QString structure = qtwrapper::qstring( path.leaf().c_str() );
+        QString structure = qtwrapper::qstring::copy( path.leaf().wstring() );
 		std::wstring formula = ChemicalFormula::getFormula( ctab );
 		std::wstring stdformula = ChemicalFormula().standardFormula( formula );
 		double m = ChemicalFormula().getMonoIsotopicMass( stdformula );

@@ -26,6 +26,7 @@
 #define CTABLE_HPP
 
 #include <vector>
+#include <string>
 #include "adcontrols_global.h"
 
 namespace adcontrols {

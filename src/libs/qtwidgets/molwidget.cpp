@@ -35,7 +35,8 @@
 #include <boost/bind.hpp>
 #include <sstream>
 #include <iomanip>
-
+#include <cmath>
+#include <string>
 
 using namespace qtwidgets;
 
@@ -52,7 +53,7 @@ MolWidget::dragEnterEvent( QDragEnterEvent * event )
 	if ( mimeData->hasUrls() ) {
 		QList<QUrl> urlList = mimeData->urls();
 		for ( int i = 0; i < urlList.size(); ++i ) {
-			boost::filesystem::path path( qtwrapper::wstring( urlList.at(i).toLocalFile() ) );
+			boost::filesystem::path path( qtwrapper::wstring::copy( urlList.at(i).toLocalFile() ) );
 			if ( path.extension() == L".mol" ) {
 				event->acceptProposedAction();
 				return;

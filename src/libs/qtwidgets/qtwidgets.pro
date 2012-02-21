@@ -17,6 +17,11 @@ LIBS += -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(adplugin) -l$$qtLibraryTarget(qtwrapper) \
     -l$$qtLibraryTarget(xmlparser)
 
+!win32 {
+  # LIBS *= -lboost_serialization -lboost_wserialization -lboost_date_time -lboost_system
+  LIBS *= -lboost_system
+}
+
 INCLUDEPATH *= $(ACE_ROOT) $(TAO_ROOT)
 
 DEFINES += QTWIDGETS_LIBRARY
@@ -47,8 +52,8 @@ SOURCES += centroiddelegate.cpp \
     mscalibratemodel.cpp \
     molwidget.cpp \
     isotopeform.cpp \
-    isotopedelegate.cpp \
-    qctable.cpp
+    isotopedelegate.cpp
+
 
 
 HEADERS += centroiddelegate.hpp \
