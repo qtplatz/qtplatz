@@ -117,9 +117,7 @@ namespace adcontrols {
             double getChemicalMass( const std::wstring& formula );
             std::wstring standardFormula( const std::wstring& formula );
 
-        private:
 			static bool parse( const std::wstring& formula, client::map_type& map );
-			friend ChemicalFormula;
         };
     }
 
@@ -156,8 +154,8 @@ namespace adcontrols {
 
 	//struct is_connect {
 	size_t bond_connect( const CTable::Bond& bond, size_t num ) {
-		return ( bond.first_atom_number == num ) ? bond.second_atom_number
-			: ( bond.second_atom_number == num ) ? bond.first_atom_number : 0;
+		return ( size_t( bond.first_atom_number ) == num ) ? bond.second_atom_number
+			: ( size_t( bond.second_atom_number ) == num ) ? bond.first_atom_number : 0;
 	}
 }
 
