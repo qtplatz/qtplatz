@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include <boost/smart_ptr.hpp>
 #include <string>
+#include <map>
 
 namespace adcontrols {
 
@@ -44,10 +45,13 @@ namespace adcontrols {
         ChemicalFormula();
         ChemicalFormula( const ChemicalFormula& );
 
+		typedef std::map< const wchar_t *, size_t > elemental_composition_map_t;
+
         double getMonoIsotopicMass( const std::wstring& formula );
         double getChemicalMass( const std::wstring& formula );
 		std::wstring standardFormula( const std::wstring& formula );
 		static std::wstring getFormula( const CTable& );
+		static elemental_composition_map_t getComposition( const std::wstring& formula );
 
     private:
         internal::ChemicalFormulaImpl * impl_;

@@ -39,6 +39,8 @@ namespace adcontrols {
         ~IsotopeCluster();
         IsotopeCluster();
 
+		static bool isotopeDistribution( MassSpectrum& ms, const std::wstring& formula, size_t charges = 1, bool accountElectron = true );
+
         bool Compute( const std::wstring& stdFormula, double threshold, bool resInDa, double rp, MassSpectrum&, size_t& nPeaks );
         bool Compute( const std::wstring& stdFormula, double threshold, bool resInDa, double rp, MassSpectrum&, const std::wstring& adduct, size_t charges, size_t& nPeaks, bool bAccountForElectrons );
 

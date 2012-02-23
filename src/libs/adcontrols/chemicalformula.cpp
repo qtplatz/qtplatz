@@ -118,7 +118,8 @@ namespace adcontrols {
             std::wstring standardFormula( const std::wstring& formula );
 
         private:
-            bool parse( const std::wstring& formula, client::map_type& map );
+			static bool parse( const std::wstring& formula, client::map_type& map );
+			friend ChemicalFormula;
         };
     }
 
@@ -194,7 +195,6 @@ ChemicalFormula::getFormula( const CTable& ctable )
 				while ( bondIt != ctable.bonds().end() ) {
 					bondIt = std::find_if( bondIt, ctable.bonds().end(), boost::bind( &bond_connect, _1, atom_number ) );
 					if ( bondIt != ctable.bonds().end() ) {
-						// long x = std::distance( ctable.bonds().begin(), bondIt );
 						size_t adjacent_number = bond_connect( *bondIt, atom_number );
 						while ( valences[ adjacent_number - 1 ].second > 0 && atomIt->second < 0 ) {
 							valences[ adjacent_number - 1 ].second--;
@@ -220,6 +220,20 @@ ChemicalFormula::getFormula( const CTable& ctable )
 		formula << L" ";
 	}
 	return formula.str();
+}
+
+std::map< const wchar_t *, size_t >
+ChemicalFormula::getComposition( const std::wstring& formula )
+{
+	using internal::ChemicalFormulaImpl;
+
+	std::map< const wchar_t *, size_t > comp;
+    client::map_type map;
+	if ( ChemicalFormulaImpl::parse( formula, map ) ) {
+		BOOST_FOREACH( client::map_type::value_type& p, map )
+			comp[ p.first ] = p.second;
+	}
+    return comp;
 }
 
 ///////////////

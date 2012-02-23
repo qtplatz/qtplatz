@@ -26,6 +26,8 @@
 #include "isotopecluster.hpp"
 #include "tableofelements.hpp"
 #include "massspectrum.hpp"
+#include "chemicalformula.hpp"
+#include "element.hpp"
 
 using namespace adcontrols;
 
@@ -101,6 +103,27 @@ IsotopeCluster::computeFormulae(double threshold, bool resInDa, double rp,	MassS
 	(void)bAccountForElectrons;
 	(void)ra;
     return false;
+}
+
+bool
+IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
+									, const std::wstring& formula
+									, size_t charges, bool accountElectron ) 
+{
+    (void)charges;
+    (void)accountElectron;
+	adcontrols::TableOfElements *toe = adcontrols::TableOfElements::instance();
+	ChemicalFormula::elemental_composition_map_t ecomp = ChemicalFormula::getComposition( formula );
+    
+
+	double mass = 0;
+	for ( ChemicalFormula::elemental_composition_map_t::iterator& it = ecomp.begin(); it != ecomp.end(); ++it  ) {
+		const Element& e = toe->findElement( it->first );
+		size_t nIsotopes = e.isotopeCount();
+		for ( Element::vector_type::const_iterator iso = e.begin(); iso != e.end(); ++iso ) {
+		}
+	}
+	return true;
 }
 
 //////////////////////
