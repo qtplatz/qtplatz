@@ -121,6 +121,7 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 		const Element& e = toe->findElement( it->first );
 		size_t nIsotopes = e.isotopeCount();
 		for ( Element::vector_type::const_iterator iso = e.begin(); iso != e.end(); ++iso ) {
+           
 		}
 	}
 	return true;
