@@ -4,6 +4,7 @@ SUBDIRS = meditor \
     qdirmodel \
     searchbox \
     signalsampling \
-    molviewer
+    molviewer \
+    combination
 
 unix:!macx:!isEmpty(copydata):SUBDIRS += bin
