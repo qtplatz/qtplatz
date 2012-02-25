@@ -327,6 +327,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\combination.hpp"
+				>
+			</File>
+			<File
 				RelativePath="configloader.hpp"
 				>
 				<FileConfiguration

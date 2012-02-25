@@ -22,23 +22,7 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-/*
-#define BOOST_LIB_NAME boost_iostreams
-#include <boost/config/auto_link.hpp>
-#undef BOOST_LIB_NAME
 
-#define BOOST_LIB_NAME boost_serialization
-#include <boost/config/auto_link.hpp>
-#undef BOOST_LIB_NAME
-
-#define BOOST_LIB_NAME boost_wserialization
-#include <boost/config/auto_link.hpp>
-#undef BOOST_LIB_NAME
-
-#define BOOST_LIB_NAME boost_system
-#include <boost/config/auto_link.hpp>
-#undef BOOST_LIB_NAME
-*/
 #include "ace/Init_ACE.h"
 
 #if defined ACE_WIN32

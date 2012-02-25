@@ -28,6 +28,10 @@
 #include "massspectrum.hpp"
 #include "chemicalformula.hpp"
 #include "element.hpp"
+#include <adportable/combination.hpp>
+#ifdef _DEBUG
+#include <iostream>
+#endif
 
 using namespace adcontrols;
 
@@ -105,6 +109,21 @@ IsotopeCluster::computeFormulae(double threshold, bool resInDa, double rp,	MassS
     return false;
 }
 
+namespace adcontrols {
+	struct atom {
+		size_t idx;
+		const Element * element;
+		atom( const Element& e, size_t id ) : idx( id ), element( &e ){
+		}
+		atom( const atom& t ) : idx( t.idx ), element( t.element ) {
+		}
+		void operator = ( const atom& t ) {
+			idx = t.idx;
+			element = t.element;
+		} 
+	};
+}
+
 bool
 IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 									, const std::wstring& formula
@@ -118,12 +137,24 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
     
 	double mass = 0;
 	for ( ChemicalFormula::elemental_composition_map_t::iterator it = ecomp.begin(); it != ecomp.end(); ++it  ) {
+
+		std::vector< atom > vec;
+
 		const Element& e = toe->findElement( it->first );
-		size_t nIsotopes = e.isotopeCount();
-		for ( Element::vector_type::const_iterator iso = e.begin(); iso != e.end(); ++iso ) {
-           
-		}
-        (void)nIsotopes;
+		for ( size_t i = 0; i < e.isotopeCount(); ++i ) 
+			vec.push_back( atom( e, i ) );
+
+		size_t natom = it->second;
+		std::vector< std::vector< atom >::const_iterator > v( natom, vec.begin() );
+
+		do {
+#ifdef _DEBUG
+			for ( int i = 0; i < natom; ++i ) {
+				std::wcout << i << v[i]->element->symbol() << ", ";
+			}
+#endif
+		} while ( boost::next_mapping( v.begin(), v.end(), vec.begin(), vec.end() ) );
+
 	}
     (void)mass;
 	return true;
