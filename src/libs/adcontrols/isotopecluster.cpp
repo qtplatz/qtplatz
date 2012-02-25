@@ -113,14 +113,11 @@ namespace adcontrols {
 	struct atom {
 		size_t idx;
 		const Element * element;
-		atom( const Element& e, size_t id ) : idx( id ), element( &e ){
+		Element::vector_type::const_iterator iso;
+		atom( size_t id, const Element& e ) : idx( id ), element( &e ), iso( e.begin() + id ) {
 		}
-		atom( const atom& t ) : idx( t.idx ), element( t.element ) {
+		atom( const atom& t ) : idx( t.idx ), element( t.element ), iso( t.iso ) {
 		}
-		void operator = ( const atom& t ) {
-			idx = t.idx;
-			element = t.element;
-		} 
 	};
 }
 
@@ -142,19 +139,19 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 
 		const Element& e = toe->findElement( it->first );
 		for ( size_t i = 0; i < e.isotopeCount(); ++i ) 
-			vec.push_back( atom( e, i ) );
+			vec.push_back( atom( i, e ) );
 
 		size_t natom = it->second;
 		std::vector< std::vector< atom >::const_iterator > v( natom, vec.begin() );
-
+		std::map< size_t, size_t > combi;
 		do {
-#ifdef _DEBUG
-			for ( int i = 0; i < natom; ++i ) {
-				std::wcout << i << v[i]->element->symbol() << ", ";
-			}
-#endif
+			double m = 0;
+			for ( int i = 0; i < natom; ++i )
+				combi[ v[ i ]->idx ]++;
 		} while ( boost::next_mapping( v.begin(), v.end(), vec.begin(), vec.end() ) );
+#ifdef _DEBUG
 
+#endif
 	}
     (void)mass;
 	return true;
