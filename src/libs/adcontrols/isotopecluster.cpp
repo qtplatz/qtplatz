@@ -29,8 +29,10 @@
 #include "chemicalformula.hpp"
 #include "element.hpp"
 #include <adportable/combination.hpp>
+#include <boost/foreach.hpp>
 #ifdef _DEBUG
 #include <iostream>
+#include <iomanip>
 #endif
 
 using namespace adcontrols;
@@ -110,6 +112,7 @@ IsotopeCluster::computeFormulae(double threshold, bool resInDa, double rp,	MassS
 }
 
 namespace adcontrols {
+
 	struct atom {
 		size_t idx;
 		const Element * element;
@@ -119,6 +122,45 @@ namespace adcontrols {
 		atom( const atom& t ) : idx( t.idx ), element( t.element ), iso( t.iso ) {
 		}
 	};
+
+	struct combination {
+		template<class iterator_t>
+		static inline void init( iterator_t it, iterator_t& end, size_t nmols ) {
+			*it++ = nmols;
+			while ( it != end )
+				*it++ = 0;
+		} 
+
+		template<class iterator_t>
+		static inline bool next( iterator_t it, iterator_t& end, size_t nmols ) {
+			if ( it == end )
+				return false;
+			size_t nfree = nmols - *it;
+			if ( nfree == 0 || *(end - 1) == nfree ) {
+				if ( ( *it ) == 0 )
+					return false;
+				(*it)--;     // decriment
+				init( ++it, end, nfree + 1 );
+				return true;
+			}
+			return next( boost::next( it ), end, nfree );
+		}
+	};
+
+	struct partial_molecular_mass {
+		template<class iterator_t>
+		static std::pair<double, double> calculate( const Element& e, iterator_t it, iterator_t end ) {
+			double m = 0;
+			double a = 0;
+			for ( Element::vector_type::const_iterator iso
+				= e.begin(); it != end && iso != e.end(); ++it, ++iso ) {
+					m += (*it) * iso->mass_;
+					a += (*it) * iso->abundance_;
+			}
+			return std::make_pair( m, a );
+		}
+	};
+
 }
 
 bool
@@ -135,23 +177,29 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 	double mass = 0;
 	for ( ChemicalFormula::elemental_composition_map_t::iterator it = ecomp.begin(); it != ecomp.end(); ++it  ) {
 
-		std::vector< atom > vec;
+		const Element& element = toe->findElement( it->first );
 
-		const Element& e = toe->findElement( it->first );
-		for ( size_t i = 0; i < e.isotopeCount(); ++i ) 
-			vec.push_back( atom( i, e ) );
-
-		size_t natom = it->second;
-		std::vector< std::vector< atom >::const_iterator > v( natom, vec.begin() );
-		std::map< size_t, size_t > combi;
 		do {
-			double m = 0;
-			for ( int i = 0; i < natom; ++i )
-				combi[ v[ i ]->idx ]++;
-		} while ( boost::next_mapping( v.begin(), v.end(), vec.begin(), vec.end() ) );
-#ifdef _DEBUG
+			std::vector< size_t > counts( element.isotopeCount(), 0 );
 
-#endif
+			combination::init( counts.begin(), counts.end(), it->second );
+			do {
+				std::pair< double, double > m = partial_molecular_mass::calculate( element, counts.begin(), counts.end() );
+				std::wcout << std::setw(4) << element.symbol() << ": " 
+					<< std::setprecision( 6 ) << std::fixed << std::setw( 10 ) 
+					<< m.first << " (" << std::setprecision(4) << m.second << ")\t";
+				for ( int i = 0; i < element.isotopeCount(); ++i ) {
+					std::cout << counts[i];
+					if ( i + 1 < element.isotopeCount() )
+						std::cout << ", ";
+				}
+				std::cout << std::endl;
+
+			} while ( combination::next( counts.begin(), counts.end(), it->second ) );
+
+		} while ( 0 ); // boost::next_mapping( v.begin(), v.end(), vec.begin(), vec.end() ) );
+
+
 	}
     (void)mass;
 	return true;
