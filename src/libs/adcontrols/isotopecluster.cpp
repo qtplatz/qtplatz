@@ -30,6 +30,7 @@
 #include "element.hpp"
 #include <adportable/combination.hpp>
 #include <boost/foreach.hpp>
+#include <cmath>
 #ifdef _DEBUG
 #include <iostream>
 #include <iomanip>
@@ -155,7 +156,7 @@ namespace adcontrols {
 			for ( Element::vector_type::const_iterator iso
 				= e.begin(); it != end && iso != e.end(); ++it, ++iso ) {
 					m += (*it) * iso->mass_;
-					a += (*it) * iso->abundance_;
+					a += std::pow( iso->abundance_, int(*it) );
 			}
 			return std::make_pair( m, a );
 		}
