@@ -31,6 +31,7 @@
 #include <adportable/combination.hpp>
 #include <boost/foreach.hpp>
 #include <cmath>
+#include <numeric>
 #ifdef _DEBUG
 #include <iostream>
 #include <iomanip>
@@ -149,16 +150,52 @@ namespace adcontrols {
 	};
 
 	struct partial_molecular_mass {
-		template<class iterator_t>
-		static std::pair<double, double> calculate( const Element& e, iterator_t it, iterator_t end ) {
-			double m = 0;
-			double a = 0;
-			for ( Element::vector_type::const_iterator iso
-				= e.begin(); it != end && iso != e.end(); ++it, ++iso ) {
-					m += (*it) * iso->mass_;
-					a += std::pow( iso->abundance_, int(*it) );
+
+		static int partial_factorial( size_t n, size_t r ) {
+			unsigned long long a = n;
+			if ( r == 0 )
+				return 0;
+			while ( --n > r )
+				a *= n;
+			return int ( a / r );
+		}
+
+		static int combination( size_t n, size_t r ) {
+			unsigned long long a = n;
+			if ( r > 0 ) {
+				size_t x = n; 
+				while ( --x > ( n - r ) )
+					a *= x;
+				do {
+					a /= r;
+				} while( --r );
+				return int(a);
 			}
-			return std::make_pair( m, a );
+			return 0;
+		}
+
+		template<class iterator_t>
+		static double abundance( const Element& e, iterator_t it, iterator_t end ) {
+
+			size_t n = std::accumulate( it, end, 0 );
+			if ( n == (*it) )
+				return 1.0; // e.begin()->abundance_;
+			double a = 0;
+            ++it;
+			for ( Element::vector_type::const_iterator iso = e.begin() + 1; it != end && iso != e.end(); ++it, ++iso ) {
+				size_t nCr = combination( n, *it );
+				a += std::pow( ( iso->abundance_ / e.begin()->abundance_ ), int( *it ) ) * nCr;
+			}
+			return a;
+		}
+
+		template<class iterator_t>
+		static double calculate( const Element& e, iterator_t it, iterator_t end ) {
+			double m = 0;
+			for ( Element::vector_type::const_iterator iso = e.begin(); it != end && iso != e.end(); ++it, ++iso ) {
+					m += (*it) * iso->mass_;
+			}
+			return m;
 		}
 	};
 
@@ -185,11 +222,12 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 
 			combination::init( counts.begin(), counts.end(), it->second );
 			do {
-				std::pair< double, double > m = partial_molecular_mass::calculate( element, counts.begin(), counts.end() );
-				std::wcout << std::setw(4) << element.symbol() << ": " 
-					<< std::setprecision( 6 ) << std::fixed << std::setw( 10 ) 
-					<< m.first << " (" << std::setprecision(4) << m.second << ")\t";
-				for ( int i = 0; i < element.isotopeCount(); ++i ) {
+				double m = partial_molecular_mass::calculate( element, counts.begin(), counts.end() );
+				double a = partial_molecular_mass::abundance( element, counts.begin(), counts.end() );
+				std::wcout << std::setw(4) << element.symbol() << ": "
+ 					<< std::setprecision( 6 ) << std::fixed << std::setw( 10 ) 
+					<< m << " (" << std::setprecision(5) << a << ")\t";
+				for ( size_t i = 0; i < element.isotopeCount(); ++i ) {
 					std::cout << counts[i];
 					if ( i + 1 < element.isotopeCount() )
 						std::cout << ", ";
