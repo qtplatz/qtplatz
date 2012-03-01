@@ -248,12 +248,14 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 	}
 
 	// --- //
+	std::vector< cluster > final;
 	for ( std::vector< cluster >::const_iterator it = molecule.begin(); it != molecule.end(); ++it ) {
 
 		std::wcout << std::setw(4) << it->symbol << it->natoms;
 
 		for ( std::vector< std::pair< double, double > >::const_iterator pos = it->ma.begin(); pos != it->ma.end(); ++pos )
 			std::cout << "\t" << std::setprecision( 6 ) << std::fixed << pos->first << "(" << std::setprecision(4) << pos->second << ")\n";
+
 		std::cout << std::endl;
 	}
 
