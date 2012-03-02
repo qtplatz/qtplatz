@@ -127,17 +127,17 @@ namespace adcontrols {
 
 	struct combination {
 		template<class iterator_t>
-		static inline void init( iterator_t it, iterator_t& end, size_t nmols ) {
-			*it++ = nmols;
+		static inline void init( iterator_t it, iterator_t& end, size_t natoms ) {
+			*it++ = natoms;
 			while ( it != end )
 				*it++ = 0;
 		} 
 
 		template<class iterator_t>
-		static inline bool next( iterator_t it, iterator_t& end, size_t nmols ) {
+		static inline bool next( iterator_t it, iterator_t& end, size_t natoms ) {
 			if ( it == end )
 				return false;
-			size_t nfree = nmols - *it;
+			size_t nfree = natoms - *it;
 			if ( nfree == 0 || *(end - 1) == nfree ) {
 				if ( ( *it ) == 0 )
 					return false;
@@ -170,9 +170,9 @@ namespace adcontrols {
 
 			size_t n = std::accumulate( it, end, 0 );
 			if ( n == (*it) )
-				return e.begin()->abundance_;
+				return std::pow( e.begin()->abundance_, int( n ) );
 			double a = 0;
-            ++it;
+			++it;
 			for ( Element::vector_type::const_iterator iso = e.begin() + 1; it != end && iso != e.end(); ++it, ++iso ) {
 				size_t nCr = combination( n, *it );
 				a += std::pow( iso->abundance_, int( *it ) ) * nCr;
@@ -216,14 +216,14 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 		}
 	};
 
-	std::vector< cluster > molecule;
+	std::vector< cluster > atoms;
 
 	for ( ChemicalFormula::elemental_composition_map_t::iterator it = ecomp.begin(); it != ecomp.end(); ++it  ) {
 
 		const Element& element = toe->findElement( it->first );
 
-		molecule.push_back( cluster( it->first /* symbol */, it->second /* natoms */) );
-        cluster& cluster = molecule.back();
+		atoms.push_back( cluster( it->first /* symbol */, it->second /* natoms */) );
+        cluster& cluster = atoms.back();
 
 		std::vector< size_t > counts( element.isotopeCount(), 0 );
 
@@ -248,15 +248,19 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 	}
 
 	// --- //
-	std::vector< cluster > final;
-	for ( std::vector< cluster >::const_iterator it = molecule.begin(); it != molecule.end(); ++it ) {
+	std::vector< std::pair<double, double> > distribution;
 
-		std::wcout << std::setw(4) << it->symbol << it->natoms;
+	for ( std::vector< cluster >::iterator atom = atoms.begin(); atom != atoms.end(); ++atom ) {
+		for ( size_t n = 0; n < atom->ma.size(); ++ n ) {
+			for ( std::vector< cluster >::const_iterator it = atoms.begin(); it != atoms.end(); ++it ) {
 
-		for ( std::vector< std::pair< double, double > >::const_iterator pos = it->ma.begin(); pos != it->ma.end(); ++pos )
-			std::cout << "\t" << std::setprecision( 6 ) << std::fixed << pos->first << "(" << std::setprecision(4) << pos->second << ")\n";
-
-		std::cout << std::endl;
+				std::wcout << std::setw(4) << it->symbol << it->natoms;
+				std::vector< std::pair< double, double > >::const_iterator isotope = it->ma.begin();
+				std::cout << "\t" << std::setprecision( 6 ) << std::fixed << isotope->first 
+					<< "(" << std::setprecision(4) << isotope->second << ")" << std::endl;
+			}
+			std::rotate( atom->ma.begin(), atom->ma.begin() + 1, atom->ma.end() );
+		}
 	}
 
 	return true;
