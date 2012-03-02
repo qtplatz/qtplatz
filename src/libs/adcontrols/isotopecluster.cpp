@@ -30,6 +30,7 @@
 #include "element.hpp"
 #include <adportable/combination.hpp>
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 #include <cmath>
 #include <numeric>
 #ifdef _DEBUG
@@ -206,13 +207,28 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 	struct cluster {
 		std::wstring symbol;
 		size_t natoms;
+		size_t nrotate;
+		bool status;
 		std::vector< std::pair< double, double > > ma;
-		cluster( const std::wstring& s, size_t n ) : symbol( s ), natoms( n ) {
+		cluster( const std::wstring& s, size_t n ) : symbol( s ), natoms( n ), nrotate( 0 ) {
 		}
 		void operator = ( const cluster& t ) {
 			symbol = t.symbol;
 			natoms = t.natoms;
+			nrotate = t.nrotate;
 			ma = t.ma;
+		}
+		bool rotate() {
+			std::rotate( ma.begin(), ma.begin() + 1, ma.end() );
+			status = false;
+			if ( ++nrotate == ma.size() ) {
+				nrotate = 0;
+				status = true;
+			}
+			return status;
+		}
+		operator bool () const { 
+			return status;
 		}
 	};
 
@@ -249,20 +265,49 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 
 	// --- //
 	std::vector< std::pair<double, double> > distribution;
+	for ( ;; ) {
+		std::vector< cluster >::reverse_iterator atom = atoms.rbegin(); // atom != atoms.rend(); ++atom ) {
 
-	for ( std::vector< cluster >::iterator atom = atoms.begin(); atom != atoms.end(); ++atom ) {
 		for ( size_t n = 0; n < atom->ma.size(); ++ n ) {
+
+			std::pair< double, double > ma( 0.0, 1.0 );
 			for ( std::vector< cluster >::const_iterator it = atoms.begin(); it != atoms.end(); ++it ) {
-
-				std::wcout << std::setw(4) << it->symbol << it->natoms;
-				std::vector< std::pair< double, double > >::const_iterator isotope = it->ma.begin();
-				std::cout << "\t" << std::setprecision( 6 ) << std::fixed << isotope->first 
-					<< "(" << std::setprecision(4) << isotope->second << ")" << std::endl;
+#if defined _DEBUG
+				std::wcout << std::setw(3) << it->symbol << it->natoms;
+				const std::pair< double, double >& isotope = it->ma[ 0 ];
+				std::cout << "\t" << int ( isotope.first + 0.2 ) << "(" << std::setprecision(3) << std::fixed << isotope.second << ") ";
+#endif
+				ma.first += isotope.first;
+				ma.second *= isotope.second;
 			}
-			std::rotate( atom->ma.begin(), atom->ma.begin() + 1, atom->ma.end() );
-		}
-	}
+			if ( ma.second > 1.0e-6 )
+				distribution.push_back( ma );
 
+#if defined _DEBUG
+			std::cout << std::setprecision( 6 ) << std::fixed << ma.first << std::setprecision(3) << "(" << ma.second << ")" << std::endl;
+#endif
+			std::vector< cluster >::reverse_iterator prev = atom;
+			while ( prev->rotate() && ( atoms.rend() != prev + 1 ) )
+				prev++;
+		}
+#if defined _DEBUG
+		std::cout << std::endl;
+#endif
+		if ( *atoms.begin() )
+			break;
+	}
+	std::sort( distribution.begin(), distribution.end()
+		, boost::bind( &std::pair<double, double>::first, _1 ) < boost::bind( &std::pair<double, double>::first, _2 ) );
+
+	std::pair<double, double> pos = *std::max_element( distribution.begin(), distribution.end()
+		, boost::bind( &std::pair<double,double>::second, _1 ) < boost::bind( &std::pair<double, double>::second, _2 ) );
+	for ( std::vector< std::pair<double, double> >::iterator it = distribution.begin(); it != distribution.end(); ++it )
+		it->second /= pos.second;
+
+#if defined _DEBUG
+	for ( std::vector< std::pair<double, double> >::iterator it = distribution.begin(); it != distribution.end(); ++it )
+		std::cout << it->first << ", " << it->second << std::endl;
+#endif
 	return true;
 }
 
