@@ -129,14 +129,14 @@ namespace adcontrols {
 
 	struct combination {
 		template<class iterator_t>
-		static inline void init( iterator_t it, iterator_t& end, size_t natoms ) {
+		static inline void init( iterator_t it, iterator_t end, size_t natoms ) {
 			*it++ = natoms;
 			while ( it != end )
 				*it++ = 0;
 		} 
 
 		template<class iterator_t>
-		static inline bool next( iterator_t it, iterator_t& end, size_t natoms ) {
+		static inline bool next( iterator_t it, iterator_t end, size_t natoms ) {
 			if ( it == end )
 				return false;
 			size_t nfree = natoms - *it;
@@ -229,7 +229,7 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 {
     (void)charges;
     (void)accountElectron;
-    (void)ms;
+
 	adcontrols::TableOfElements *toe = adcontrols::TableOfElements::instance();
 	ChemicalFormula::elemental_composition_map_t ecomp = ChemicalFormula::getComposition( formula );
 
@@ -273,9 +273,10 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 
 			std::pair< double, double > ma( 0.0, 1.0 );
 			for ( std::vector< cluster >::const_iterator it = atoms.begin(); it != atoms.end(); ++it ) {
+
+				const std::pair< double, double >& isotope = it->ma[ 0 ];
 #if defined _DEBUG
 				std::wcout << std::setw(3) << it->symbol << it->natoms;
-				const std::pair< double, double >& isotope = it->ma[ 0 ];
 				std::cout << "\t" << int ( isotope.first + 0.2 ) << "(" << std::setprecision(3) << std::fixed << isotope.second << ") ";
 #endif
 				ma.first += isotope.first;
