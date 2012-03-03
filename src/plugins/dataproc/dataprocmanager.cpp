@@ -26,6 +26,7 @@
 #include "dataprocmanager.hpp"
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
+#include "dataprocplugin.hpp"
 #include <adportable/configuration.hpp>
 #include <adcontrols/datafilebroker.hpp>
 #include <adcontrols/datafile.hpp>
@@ -157,6 +158,7 @@ DataprocManager::OnInitialUpdate()
             adplugin::LifeCycle * pLifeCycle = accessor.get(); // dynamic_cast<adplugin::LifeCycle *>( obj );
             if ( pLifeCycle ) {
                 pLifeCycle->OnInitialUpdate();
+				connect( obj, SIGNAL( onMethodApply( adcontrols::ProcessMethod& ) ), this, SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
             }
         }
     }
@@ -176,10 +178,17 @@ DataprocManager::OnFinalClose()
             adplugin::LifeCycleAccessor accessor( obj );
             adplugin::LifeCycle * pLifeCycle = accessor.get();
             if ( pLifeCycle ) {
+				disconnect( obj, SIGNAL( onMethodApply( adcontrols::ProcessMethod& ) ), this, SLOT( onMethodApply( adcontrols::ProcessMethod& ) ) );
                 pLifeCycle->OnFinalClose();
             }
         }
     }
+}
+
+void
+DataprocManager::onMethodApply( adcontrols::ProcessMethod& pm )
+{
+	DataprocPlugin::instance()->applyMethod( pm );
 }
 
 ///////////////////////

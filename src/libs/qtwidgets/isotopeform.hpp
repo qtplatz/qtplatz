@@ -36,6 +36,7 @@ class QModelIndex;
 
 namespace adcontrols {
 	class ProcessMethod;
+	class IsotopeMethod;
 }
 
 namespace Ui {
@@ -65,6 +66,7 @@ namespace qtwidgets {
     
 	private:
 		Ui::IsotopeForm *ui;
+		boost::scoped_ptr< adcontrols::IsotopeMethod > pMethod_;
 		boost::scoped_ptr< QStandardItemModel > pModel_;
 		boost::scoped_ptr< IsotopeDelegate > pDelegate_;
 		std::vector< std::pair< QString, adcontrols::CTable > > ctabs_;
@@ -73,10 +75,13 @@ namespace qtwidgets {
         void getLifeCycle( adplugin::LifeCycle *& p );
         void getContents( adcontrols::ProcessMethod& );
 
-   private slots:
+    private slots:
 	   void onMolChanged( QString );
 	   void onCurrentChanged( const QModelIndex& curr, const QModelIndex& prev );
 	   void onActivated( const QModelIndex& curr );
+
+    signals:
+	   void onMethodApply( adcontrols::ProcessMethod & );
 
 	};
 

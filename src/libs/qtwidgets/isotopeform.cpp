@@ -31,6 +31,7 @@
 #include <adportable/configuration.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/isotopemethod.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/bind.hpp>
@@ -39,6 +40,7 @@ using namespace qtwidgets;
 
 IsotopeForm::IsotopeForm(QWidget *parent) :  QWidget(parent)
                                           ,  ui(new Ui::IsotopeForm)
+										  , pMethod_( new adcontrols::IsotopeMethod ) 
 										  , pModel_( new QStandardItemModel )
 										  , pDelegate_( new IsotopeDelegate )
 {
@@ -150,6 +152,7 @@ void
 IsotopeForm::onActivated( const QModelIndex& index )
 {
 	using adcontrols::CTable;
+	using adcontrols::IsotopeMethod;
 
 	int row = index.row();
 	QVariant v = index.model()->data( index.model()->index( row, 3 ), Qt::EditRole );
@@ -158,7 +161,21 @@ IsotopeForm::onActivated( const QModelIndex& index )
 		std::vector< std::pair<QString, CTable> >::iterator it
 			= std::find_if( ctabs_.begin(), ctabs_.end()
 			, boost::bind( &std::pair<QString, CTable>::first, _1 ) == key );
-        if ( it != ctabs_.end() )
+
+		if ( it != ctabs_.end() ) {
 			ui->molwidget->draw( it->second );
+
+			// forward to upper application (dataproc plugin)
+			pMethod_->clear();
+			bool positivePolarity = ui->radioPositive->isChecked();
+			std::wstring desc = qtwrapper::wstring::copy( index.model()->data( index.model()->index( row, 0 ) ).toString() );
+			std::wstring stdformula = qtwrapper::wstring::copy( index.model()->data( index.model()->index( row, 1 ) ).toString() );
+			std::wstring adduct = qtwrapper::wstring::copy( ui->lineEdit->text() );
+			pMethod_->addFormula( IsotopeMethod::Formula( desc, stdformula, adduct, 1, 1.0, positivePolarity ) );
+
+			adcontrols::ProcessMethod m;
+			m.appendMethod< IsotopeMethod >( *pMethod_ );
+			emit onMethodApply( m );
+		}
 	}
 }

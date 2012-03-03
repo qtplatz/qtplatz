@@ -46,6 +46,7 @@ namespace adcontrols {
 
         struct ADCONTROLSSHARED_EXPORT Formula {
         public:
+			std::wstring description;  // name of structure, mol file name etc.
             std::wstring formula;
             std::wstring adduct;
             size_t chargeState;
@@ -53,7 +54,8 @@ namespace adcontrols {
             bool positive;
             Formula();
             Formula( const Formula& );
-            Formula( const std::wstring& formula
+			Formula( const std::wstring& desc
+				     , const std::wstring& formula
                      , const std::wstring& adduct
                      , size_t chargeState
                      , double relativeAmounts
@@ -64,6 +66,7 @@ namespace adcontrols {
             void serialize(Archive& ar, const unsigned int version) {
                 using namespace boost::serialization;
                 (void)version;
+				ar & BOOST_SERIALIZATION_NVP(description);
                 ar & BOOST_SERIALIZATION_NVP(formula);
                 ar & BOOST_SERIALIZATION_NVP(adduct);
                 ar & BOOST_SERIALIZATION_NVP(chargeState);

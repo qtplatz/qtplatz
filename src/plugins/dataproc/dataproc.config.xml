@@ -15,7 +15,7 @@
     <Configuration name="ProcessMethodView">
       <title>Process Method</title>
       <Component type="widget" interface="qtwidgets::ProcessMethodView" module="qtwidgets" loader="adplugin">
-	<Component type="qml" QUrl="/qtwidgets/qml/ProcessMethodEditor.qml" />
+	      <Component type="qml" QUrl="/qtwidgets/qml/ProcessMethodEditor.qml" />
       </Component>
     </Configuration>
     <Configuration name="IsotopeUI">

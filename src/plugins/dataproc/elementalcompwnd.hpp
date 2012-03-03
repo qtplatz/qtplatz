@@ -40,6 +40,7 @@ namespace portfolio {
 
 namespace adcontrols {
     class MassSpectrum;
+	class ProcessMethod;
 }
 
 namespace dataproc {
@@ -64,6 +65,7 @@ namespace dataproc {
         public slots:
             void handleSessionAdded( Dataprocessor* );
             void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
+			void onApplyMethod( const adcontrols::ProcessMethod& );
       
         private:
             ElementalCompWndImpl * pImpl_;

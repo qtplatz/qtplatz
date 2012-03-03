@@ -308,6 +308,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
             connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), *it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
             connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
                      , *it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
+			connect( this, SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) ), *it, SLOT( onApplyMethod( const adcontrols::ProcessMethod& ) ) );
         }
         connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), manager_.get(), SLOT( handleSessionAdded( Dataprocessor* ) ) );
         connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
@@ -321,6 +322,12 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     addAutoReleasedObject( new NavigationWidgetFactory );
 
     return true;
+}
+
+void
+DataprocPlugin::applyMethod( const adcontrols::ProcessMethod& m )
+{
+	emit onApplyMethod( m );
 }
 
 void

@@ -44,8 +44,8 @@ ProcessMethodView::ProcessMethodView(QWidget *parent) : QDeclarativeView(parent)
                                                       , pElementalCompModel_( new ElementalCompModel )
                                                       , pMSCalibrateModel_( new MSCalibrateModel )
 {
-    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"H", 1, 1.0) );
-    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula(L"C13NH12NH2O", L"CH3COOH", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula( L"", L"C13NH12NH2O", L"H", 1, 1.0) );
+    pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula( L"", L"C13NH12NH2O", L"CH3COOH", 1, 1.0) );
 }
 
 ProcessMethodView::~ProcessMethodView()
@@ -67,16 +67,16 @@ ProcessMethodView::OnCreate( const adportable::Configuration& config )
         return;
 
     qmlRegisterType< CentroidMethodModel >( "com.scienceliaison.qml", 1, 0, "CentroidModel" );
-    qmlRegisterType< IsotopeMethodModel > ( "com.scienceliaison.qml", 1, 0, "IsotopeModel" );
+	// qmlRegisterType< IsotopeMethodModel > ( "com.scienceliaison.qml", 1, 0, "IsotopeModel" );
     qmlRegisterType< ElementalCompModel > ( "com.scienceliaison.qml", 1, 0, "ElementalCompModel" );
-    qmlRegisterType< MSCalibrateModel > ( "com.scienceliaison.qml", 1, 0, "MSCalibrateModel" );
+	// qmlRegisterType< MSCalibrateModel > ( "com.scienceliaison.qml", 1, 0, "MSCalibrateModel" );
 
     QDeclarativeContext * ctx = rootContext();
     ctx->setContextProperty( "configXML", qtwrapper::qstring::copy( xml ) );
     ctx->setContextProperty( "centroidModel", pCentroidModel_.get() );
-    ctx->setContextProperty( "isotopeModel", pIsotopeModel_.get() );
+	// ctx->setContextProperty( "isotopeModel", pIsotopeModel_.get() );
     ctx->setContextProperty( "elementalCompModel", pElementalCompModel_.get() );
-    ctx->setContextProperty( "msCalibrateModel", pMSCalibrateModel_.get() );
+	// ctx->setContextProperty( "msCalibrateModel", pMSCalibrateModel_.get() );
     setResizeMode( QDeclarativeView::SizeRootObjectToView );
 
 #if defined DEBUG && 0
@@ -128,7 +128,7 @@ void
 ProcessMethodView::getContents( adcontrols::ProcessMethod& m )
 {
     m.appendMethod( pCentroidModel_->method() );
-    m.appendMethod( pIsotopeModel_->method() );
+	// m.appendMethod( pIsotopeModel_->method() );
     //ctx->setContextProperty( "elementalCompModel", pElementalCompModel_.get() );
     //ctx->setContextProperty( "msCalibrateModel", pMSCalibrateModel_.get() );
 }

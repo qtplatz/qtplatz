@@ -26,6 +26,8 @@
 #include "elementalcompwnd.hpp"
 #include "dataprocessor.hpp"
 #include <adcontrols/timeutil.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/isotopemethod.hpp>
 #include <adutils/processeddata.hpp>
 #include <portfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
@@ -136,3 +138,9 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
     }
 }
 
+void
+ElementalCompWnd::onApplyMethod( const adcontrols::ProcessMethod& m )
+{
+	const adcontrols::IsotopeMethod * p = m.find< adcontrols::IsotopeMethod >();
+    
+}

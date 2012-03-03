@@ -37,6 +37,10 @@ namespace adportable {
 	class Configuration;
 }
 
+namespace adcontrols {
+	class ProcessMethod;
+}
+
 namespace Broker {
     class Session;
 }
@@ -64,9 +68,12 @@ namespace dataproc {
             // <--
             SessionManager * getSessionManager();
 
+			void applyMethod( const adcontrols::ProcessMethod& );
+
             static DataprocPlugin * instance();
 
         signals:
+			void onApplyMethod( const adcontrols::ProcessMethod& );
 
         public slots:
             void actionApply();

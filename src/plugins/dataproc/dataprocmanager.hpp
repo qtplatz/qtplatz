@@ -72,6 +72,8 @@ namespace dataproc {
         public slots:
             void handleSessionAdded( Dataprocessor * );
             void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );
+
+			void onMethodApply( adcontrols::ProcessMethod& );
                                                       
         private slots:
             void handleApplyMethod();

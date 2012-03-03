@@ -31,7 +31,8 @@ IsotopeMethod::Formula::Formula() : chargeState(0)
 {
 }
 
-IsotopeMethod::Formula::Formula( const Formula& t ) : formula( t.formula )
+IsotopeMethod::Formula::Formula( const Formula& t ) : description( t.description )
+                                                    , formula( t.formula )
                                                     , adduct( t.adduct )  
                                                     , chargeState( t.chargeState )
                                                     , relativeAmounts( t.relativeAmounts )
@@ -39,11 +40,13 @@ IsotopeMethod::Formula::Formula( const Formula& t ) : formula( t.formula )
 {
 }
 
-IsotopeMethod::Formula::Formula( const std::wstring& _formula
+IsotopeMethod::Formula::Formula( const std::wstring& desc
+								 , const std::wstring& _formula
                                  , const std::wstring& _adduct
                                  , size_t _chargeState
                                  , double _relativeAmounts
-                                 , bool _positive ) : formula( _formula )
+                                 , bool _positive ) : description( desc )
+								                    , formula( _formula )
                                                     , adduct( _adduct )
                                                     , chargeState( _chargeState )
                                                     , relativeAmounts( _relativeAmounts )
