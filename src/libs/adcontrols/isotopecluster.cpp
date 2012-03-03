@@ -26,6 +26,7 @@
 #include "isotopecluster.hpp"
 #include "tableofelements.hpp"
 #include "massspectrum.hpp"
+#include "description.hpp"
 #include "chemicalformula.hpp"
 #include "element.hpp"
 #include <adportable/combination.hpp>
@@ -152,8 +153,8 @@ namespace adcontrols {
 
 	struct partial_molecular_mass {
 
-		static int combination( size_t n, size_t r ) {
-			unsigned long long a = n;
+		static double combination( size_t n, size_t r ) {
+			double a = n;
 			if ( r > 0 ) {
 				size_t x = n; 
 				while ( --x > ( n - r ) )
@@ -161,7 +162,7 @@ namespace adcontrols {
 				do {
 					a /= r;
 				} while( --r );
-				return int(a);
+				return a;
 			}
 			return 0;
 		}
@@ -191,19 +192,6 @@ namespace adcontrols {
 		}
 	};
 
-}
-
-bool
-IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
-									, const std::wstring& formula
-									, size_t charges, bool accountElectron ) 
-{
-    (void)charges;
-    (void)accountElectron;
-    (void)ms;
-	adcontrols::TableOfElements *toe = adcontrols::TableOfElements::instance();
-	ChemicalFormula::elemental_composition_map_t ecomp = ChemicalFormula::getComposition( formula );
-
 	struct cluster {
 		std::wstring symbol;
 		size_t natoms;
@@ -231,6 +219,19 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 			return status;
 		}
 	};
+
+}
+
+bool
+IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
+									, const std::wstring& formula
+									, size_t charges, bool accountElectron ) 
+{
+    (void)charges;
+    (void)accountElectron;
+    (void)ms;
+	adcontrols::TableOfElements *toe = adcontrols::TableOfElements::instance();
+	ChemicalFormula::elemental_composition_map_t ecomp = ChemicalFormula::getComposition( formula );
 
 	std::vector< cluster > atoms;
 
@@ -301,13 +302,23 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 
 	std::pair<double, double> pos = *std::max_element( distribution.begin(), distribution.end()
 		, boost::bind( &std::pair<double,double>::second, _1 ) < boost::bind( &std::pair<double, double>::second, _2 ) );
-	for ( std::vector< std::pair<double, double> >::iterator it = distribution.begin(); it != distribution.end(); ++it )
+
+	ms.addDescription( adcontrols::Description( L"isocluster", formula ) );
+	ms.setCentroid( adcontrols::CentroidIsotopeSimulation );
+    ms.resize( distribution.size() );
+    
+    size_t idx = 0;
+	for ( std::vector< std::pair<double, double> >::iterator it = distribution.begin(); it != distribution.end(); ++it, ++idx ) {
 		it->second /= pos.second;
+		ms.setMass( idx, it->first );
+		ms.setIntensity( idx, it->second );
+	}
 
 #if defined _DEBUG
 	for ( std::vector< std::pair<double, double> >::iterator it = distribution.begin(); it != distribution.end(); ++it )
 		std::cout << it->first << ", " << it->second << std::endl;
 #endif
+
 	return true;
 }
 

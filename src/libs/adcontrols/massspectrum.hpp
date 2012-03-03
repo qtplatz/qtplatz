@@ -54,6 +54,7 @@ namespace adcontrols {
 			    , CentroidPeakMass
 			    , CentroidPeakAreaWaitedMass
 			    , CentroidPeakMoment
+				, CentroidIsotopeSimulation
    };
    
    namespace internal {
