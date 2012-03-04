@@ -28,13 +28,14 @@
 #include <adcontrols/timeutil.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/isotopemethod.hpp>
+#include <adcontrols/isotopecluster.hpp>
+#include <adcontrols/massspectrum.hpp>
 #include <adutils/processeddata.hpp>
 #include <portfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 #include <adwplot/chromatogramwidget.hpp>
 #include <adwplot/spectrumwidget.hpp>
-//#include <adwidgets/axis.h>
 #include <boost/variant.hpp>
 #include <boost/any.hpp>
 
@@ -141,6 +142,18 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
 void
 ElementalCompWnd::onApplyMethod( const adcontrols::ProcessMethod& m )
 {
-	const adcontrols::IsotopeMethod * p = m.find< adcontrols::IsotopeMethod >();
+	using adcontrols::IsotopeMethod;
+	using adcontrols::IsotopeCluster;
+	using adcontrols::MassSpectrum;
+
+	const IsotopeMethod * p = m.find< IsotopeMethod >();
+	if ( p ) {
+		for ( IsotopeMethod::vector_type::const_iterator it = p->begin(); it != p->end(); ++it ) {
+			MassSpectrum ms;
+			ms.setAcquisitionMassRange( 50, 500 );
+			if ( IsotopeCluster::isotopeDistribution( ms, it->formula ) ) 
+				pImpl_->processedSpectrum_->setData( ms, pImpl_->drawIdx_++ );
+		}
+	}
     
 }

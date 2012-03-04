@@ -276,7 +276,7 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 			for ( std::vector< cluster >::const_iterator it = atoms.begin(); it != atoms.end(); ++it ) {
 
 				const std::pair< double, double >& isotope = it->ma[ 0 ];
-#if defined _DEBUG
+#if defined _DEBUG && 0
 				std::wcout << std::setw(3) << it->symbol << it->natoms;
 				std::cout << " (" << int ( isotope.first + 0.2 ) << ")";
 #endif
@@ -286,14 +286,14 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
             if ( ma.second >= 1.0e-4 )
 				distribution.push_back( ma );
 
-#if defined _DEBUG
+#if defined _DEBUG && 0
 			std::cout << "\t" << int( ma.first + 0.2 ) << std::fixed << std::setprecision(3) << " (" << ma.second << ")" << std::endl;
 #endif
 			std::vector< cluster >::reverse_iterator prev = atom;
 			while ( prev->rotate() && ( atoms.rend() != prev + 1 ) )
 				prev++;
 		}
-#if defined _DEBUG
+#if defined _DEBUG && 0
 		std::cout << std::endl;
 #endif
 		if ( *atoms.begin() )
@@ -313,7 +313,7 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 	for ( std::vector< std::pair<double, double> >::iterator it = distribution.begin(); it != distribution.end(); ++it, ++idx ) {
 		it->second /= pos.second;
 		ms.setMass( idx, it->first );
-		ms.setIntensity( idx, it->second );
+		ms.setIntensity( idx, it->second * 1000 );
 	}
 
 #if defined _DEBUG
