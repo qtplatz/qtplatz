@@ -28,6 +28,7 @@
 
 #include <acewrapper/reactorthread.hpp>
 #include <acewrapper/mutex.hpp>
+#include <acewrapper/ifconfig.hpp>
 #include <adportable/debug.hpp>
 #include <iostream>
 
@@ -35,7 +36,6 @@
 #include <ace/Log_Msg.h>
 #include <ace/Event_Handler.h>
 #include <ace/INET_Addr.h>
-#include <ace/SOCK_Dgram_Mcast.h>
 #include <ace/SOCK_Dgram_Bcast.h>
 
 using namespace adbroker;
@@ -44,40 +44,31 @@ using namespace adbroker;
 
 namespace adbroker {
 
-// class McastHandler : public ACE_Event_Handler {
-// public:
-//     McastHandler( ObjectDiscovery& );
-//     virtual int handle_input( ACE_HANDLE );
-//     virtual int handle_close( ACE_HANDLE, ACE_Reactor_Mask );
-//     virtual ACE_HANDLE get_handle() const;
-//     virtual int handle_timeout( const ACE_Time_Value&, const void * arg );
-//     bool open( u_short );
-//     bool close();
-//     bool send( const char *, ssize_t );
-//     bool recv( char *, ssize_t bufsize, ACE_INET_Addr& );
+	class TimerHandler : public ACE_Event_Handler {
+	public:
+		TimerHandler( ObjectDiscovery& t ) : parent_( t ) {
+		}
+		virtual int handle_timeout( const ACE_Time_Value&, const void * ) {
+			return parent_.handle_timeout();
+		}
+	private:
+		ObjectDiscovery& parent_;
+	};
 
-// private:
-//     ACE_SOCK_Dgram_Mcast sock_mcast_;
-//     ACE_INET_Addr sock_addr_;
-//     ObjectDiscovery& parent_;
-// };
-
-    class BcastHandler : public ACE_Event_Handler {
+	class BcastHandler : public ACE_Event_Handler {
     public:
         BcastHandler( ObjectDiscovery& );
         virtual int handle_input( ACE_HANDLE );
         virtual int handle_close( ACE_HANDLE, ACE_Reactor_Mask );
         virtual ACE_HANDLE get_handle() const;
-        virtual int handle_timeout( const ACE_Time_Value&, const void * arg );
         bool open();
         bool close();
         bool send( const char *, ssize_t );
         bool send( const char *, ssize_t, const ACE_INET_Addr& );
         bool recv( char *, ssize_t bufsize, ACE_INET_Addr& );
     private:
-        // ACE_SOCK_Dgram sock_dgram_;
         ACE_SOCK_Dgram_Bcast sock_bcast_;
-        ACE_INET_Addr sock_addr_;
+		ACE_INET_Addr sock_addr_;
         ObjectDiscovery& parent_;
     };
 
@@ -85,7 +76,8 @@ namespace adbroker {
 
 ObjectDiscovery::ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex )
 : reactor_thread_( 0 )
-, bcast_( new BcastHandler( *this) )
+, timer_( new TimerHandler( *this ) )
+, bcast_( new BcastHandler( *this ) )
 , suspend_( false )
 , mutex_( mutex )
 {
@@ -95,7 +87,7 @@ ObjectDiscovery::~ObjectDiscovery()
 {
     delete reactor_thread_;
     delete bcast_;
-    // delete mcast_;
+	delete timer_;
 }
 
 void
@@ -109,7 +101,6 @@ ObjectDiscovery::close()
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     if ( reactor_thread_ ) {
         bcast_->close();
-        // mcast_->close();
         reactor_thread_->get_reactor()->cancel_timer( bcast_ );
         reactor_thread_->end_reactor_event_loop();
         bool res = reactor_thread_->join();
@@ -124,14 +115,16 @@ ObjectDiscovery::open()
     if ( reactor_thread_ )
         return false;
 
+	acewrapper::ifconfig::ifvec ifvec;
+	acewrapper::ifconfig::broadaddr( ifvec );
+
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     if ( reactor_thread_ == 0 ) {
         reactor_thread_ = new acewrapper::ReactorThread();
-        bcast_->open();
-        // mcast_->open( port );
+		bcast_->open();
         ACE_Reactor * reactor = reactor_thread_->get_reactor();
         reactor->register_handler( bcast_, ACE_Event_Handler::READ_MASK );
-        reactor->schedule_timer( bcast_, 0, ACE_Time_Value(1), ACE_Time_Value(3) );
+		reactor->schedule_timer( timer_, 0, ACE_Time_Value(1), ACE_Time_Value(3) );
         return reactor_thread_->spawn();
     }
     return false;
@@ -140,7 +133,7 @@ ObjectDiscovery::open()
 void
 ObjectDiscovery::operator()( const char * pbuf, int, const ACE_INET_Addr& from )
 {
-#if defined DEBUG && 0
+#if defined DEBUG //&& 0
     std::cout << "***** ObjectDiscovery:  from " << from.get_host_addr() << ":" << from.get_port_number() << std::endl;
 #endif
     ACE_UNUSED_ARG( from );
@@ -161,13 +154,9 @@ ObjectDiscovery::operator()( const char * pbuf, int, const ACE_INET_Addr& from )
 }
 
 int
-ObjectDiscovery::handle_timeout()
+ObjectDiscovery::handle_timeout( )
 {
-#if defined DEBUG && 0
-    std::cerr << "****** adborker::ObjectDiscovery:handle_timeout() ******** " 
-              << (suspend_ ? " suspended" : "broadcasting" ) << std::endl;
-#endif
-    if ( ! suspend_ ) 
+	if ( ! suspend_ )
         bcast_->send( IORQ, sizeof( IORQ ) );
     return 0;
 }
@@ -178,8 +167,6 @@ ObjectDiscovery::register_lookup( const std::string& name, const std::string& id
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     list_[ ident ] = name;
     suspend_ = false;
-
-    // force broadcast
     handle_timeout(); 
 }
 
@@ -199,81 +186,6 @@ ObjectDiscovery::unregister_lookup( const std::string& ident, std::string& name 
 
 //////////
 
-// McastHandler::McastHandler( ObjectDiscovery& t) : sock_addr_( ACE_DEFAULT_MULTICAST_PORT, ACE_DEFAULT_MULTICAST_ADDR )
-//                                                 , parent_( t )
-// {
-// }
-
-// ACE_HANDLE
-// McastHandler::get_handle() const
-// {
-//     return sock_mcast_.get_handle();
-// }
-
-// int
-// McastHandler::handle_input( ACE_HANDLE )
-// {
-//     char buf[1024];
-//     memset( buf, 0, sizeof( buf ) );
-
-//     adportable::debug() << "McastHandler::handle_input";
-
-//     ACE_INET_Addr remote_addr;
-//     ssize_t res = sock_mcast_.recv( buf, sizeof(buf), remote_addr );
-//     if ( res != (-1) ) {
-//         parent_( buf, res, remote_addr );
-//         return 0;
-//     }
-//     return -1; // error
-// }
-
-// int
-// McastHandler::handle_timeout( const ACE_Time_Value&, const void * )
-// {
-//     if ( ! parent_.suspend() )
-//         return parent_.handle_timeout();
-//     return 0;
-// }
-
-// int
-// McastHandler::handle_close( ACE_HANDLE, ACE_Reactor_Mask )
-// {
-//     return 0;
-// }
-
-// bool
-// McastHandler::open( u_short port )
-// {
-//     if ( port )
-//         sock_addr_.set_port_number( port );
-//     if ( sock_mcast_.join( sock_addr_ ) == (-1) ) {
-//         adportable::debug(__FILE__, __LINE__) << "McastHandler::open: can't subscribe to multicast group";
-//         return false;
-//     }
-//     return true;
-// }
-
-// bool
-// McastHandler::close()
-// {
-//     return sock_mcast_.close();
-// }
-
-// bool
-// McastHandler::send( const char * pbuf, ssize_t size )
-// {
-//     ssize_t ret = sock_mcast_.send( pbuf, size );
-//     adportable::debug() << "McastHandler::send(" << pbuf << ", " << size << ") ret=" << ret;
-//     return ret == size;
-// }
-
-// bool
-// McastHandler::recv( char * pbuf, ssize_t bufsize, ACE_INET_Addr& remote_addr )
-// {
-//     return sock_mcast_.recv( pbuf, bufsize, remote_addr );
-// }
-
-///////////////////////////
 BcastHandler::BcastHandler( ObjectDiscovery& t ) : sock_addr_( u_short(0) )
                                                  , parent_( t )
 {
@@ -282,13 +194,7 @@ BcastHandler::BcastHandler( ObjectDiscovery& t ) : sock_addr_( u_short(0) )
 ACE_HANDLE
 BcastHandler::get_handle() const
 {
-    return sock_bcast_.get_handle();
-}
-
-int
-BcastHandler::handle_timeout( const ACE_Time_Value&, const void * )
-{
-    return parent_.handle_timeout();
+	return sock_bcast_.get_handle();
 }
 
 int
@@ -339,7 +245,8 @@ BcastHandler::close()
 bool
 BcastHandler::send( const char * pbuf, ssize_t size )
 {
-    static ACE_INET_Addr to( 7402, INADDR_BROADCAST );
+	// static ACE_INET_Addr to( 7402, INADDR_BROADCAST );
+	static ACE_INET_Addr to( 7402, "192.168.24.255" );
     ssize_t ret = send( pbuf, size , to );
     return ret == size;
 }

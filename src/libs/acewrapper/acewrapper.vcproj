@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ifconfig.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\input_buffer.cpp"
 				>
 			</File>
@@ -270,6 +274,10 @@
 			</File>
 			<File
 				RelativePath=".\eventhandler.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ifconfig.hpp"
 				>
 			</File>
 			<File

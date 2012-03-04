@@ -42,25 +42,20 @@ namespace adbroker {
     public:
         ~ObjectDiscovery();
         ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex );
-        // void event_loop();
-        // static void * thread_entry( void * );
         bool open();
         void close();
         void operator()( const char *, int, const ACE_INET_Addr& );
         void register_lookup( const std::string& name, const std::string& ident );
         bool unregister_lookup( const std::string& ident, std::string& name );
         int handle_timeout();
-        // inline ACE_Reactor * reactor() { return reactor_; }
 
     private:
-        // ACE_thread_t t_handle_;
-        // ACE_Reactor * reactor_;
-        // class McastHandler * mcast_;
         acewrapper::ReactorThread * reactor_thread_;
         class BcastHandler * bcast_;
+		class TimerHandler * timer_;
         bool suspend_;
         ACE_Recursive_Thread_Mutex& mutex_;
-        std::map< std::string, std::string> list_;
+		std::map< std::string, std::string > list_;
     };
 
 }

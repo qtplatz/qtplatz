@@ -23,17 +23,31 @@
 **************************************************************************/
 
 #include "ifconfig.hpp"
+
 #if defined __linux__
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <net/if.h>
+# include <sys/ioctl.h>
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
+# include <net/if.h>
 #endif
+
+#if defined WIN32
+# include <winsock2.h>
+# include <ws2tcpip.h>
+# include <iphlpapi.h>
+# pragma comment( lib, "iphlpapi.lib" )
+# pragma comment( lib, "ws2_32.lib" )
+#endif
+
+#include <adportable/debug.hpp>
+#include <boost/smart_ptr.hpp>
+#include <boost/bind.hpp>
+
 #include <cstdlib>
 #include <cstring>
-#include <boost/smart_ptr.hpp>
-#include <adportable/debug.hpp>
+#include <string>
+#include <sstream>
 
 namespace acewrapper {
 #if defined __linux__
@@ -116,6 +130,39 @@ ifconfig::broadaddr( std::vector< std::pair< std::string, std::string > >& vec )
         }
     }
     close( fd );
+#endif
+
+#if defined WIN32
+	PMIB_IPADDRTABLE pIPAddrTable = 0;
+	DWORD dwSize = 0;
+	boost::scoped_array< char > pbuf;
+	if ( GetIpAddrTable( 0, &dwSize, 0 ) == ERROR_INSUFFICIENT_BUFFER ) {
+		pbuf.reset( new char [ dwSize ] );
+		pIPAddrTable = reinterpret_cast< MIB_IPADDRTABLE * >( pbuf.get() );
+	}
+	DWORD dwRetVal;
+	if ( ( dwRetVal = GetIpAddrTable( pIPAddrTable, &dwSize, 0 ) ) == NO_ERROR ) {
+		for ( size_t i = 0; i < pIPAddrTable->dwNumEntries; ++i ) {
+			if ( ! ( pIPAddrTable->table[ i ].wType & ( MIB_IPADDR_DISCONNECTED | MIB_IPADDR_DELETED | MIB_IPADDR_TRANSIENT ) ) ) {
+   				IN_ADDR in_addr, in_bcast;
+				in_addr.S_un.S_addr = pIPAddrTable->table[ i ].dwAddr;
+				in_bcast.S_un.S_addr = pIPAddrTable->table[ i ].dwAddr | ~pIPAddrTable->table[ i ].dwMask;
+				std::string addr = inet_ntoa( in_addr );
+				if ( addr != "127.0.0.1" ) {
+					std::ostringstream o;
+					o << i;
+					// std::string mask = inet_ntoa( in_mask );
+					std::string bcast = inet_ntoa( in_bcast );
+					if ( std::find_if( vec.begin(), vec.end(), boost::bind( &ifaddr::second, _1) == bcast ) == vec.end() )
+						vec.push_back( std::make_pair( o.str(), bcast ) );
+					// std::cout << "bcast: " << bcast << " mask: " << mask << std::endl;
+				}
+			}
+		}
+	}
+    //-------
+	return 0;
+
 #endif
     return ! vec.empty();
 }
