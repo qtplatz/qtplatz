@@ -198,12 +198,13 @@ namespace adcontrols {
 		size_t nrotate;
 		bool status;
 		std::vector< std::pair< double, double > > ma;
-		cluster( const std::wstring& s, size_t n ) : symbol( s ), natoms( n ), nrotate( 0 ) {
+		cluster( const std::wstring& s, size_t n ) : symbol( s ), natoms( n ), nrotate( 0 ), status(false) {
 		}
 		void operator = ( const cluster& t ) {
 			symbol = t.symbol;
 			natoms = t.natoms;
 			nrotate = t.nrotate;
+			status = t.status;
 			ma = t.ma;
 		}
 		bool rotate() {
@@ -248,7 +249,7 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 		do {
 			double m = partial_molecular_mass::calculate( element, counts.begin(), counts.end() );
 			double a = partial_molecular_mass::abundance( element, counts.begin(), counts.end() );
-            if ( a > 1.0e-9 )
+			if ( a >= 1.0e-4 )
 				cluster.ma.push_back( std::make_pair( m, a ) );
 #if defined _DEBUG && 0
 			std::wcout << std::setw(4) << element.symbol() << ": "
@@ -277,16 +278,16 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 				const std::pair< double, double >& isotope = it->ma[ 0 ];
 #if defined _DEBUG
 				std::wcout << std::setw(3) << it->symbol << it->natoms;
-				std::cout << "\t" << int ( isotope.first + 0.2 ) << "(" << std::setprecision(3) << std::fixed << isotope.second << ") ";
+				std::cout << " (" << int ( isotope.first + 0.2 ) << ")";
 #endif
 				ma.first += isotope.first;
 				ma.second *= isotope.second;
 			}
-			if ( ma.second > 1.0e-6 )
+            if ( ma.second >= 1.0e-4 )
 				distribution.push_back( ma );
 
 #if defined _DEBUG
-			std::cout << std::setprecision( 6 ) << std::fixed << ma.first << std::setprecision(3) << "(" << ma.second << ")" << std::endl;
+			std::cout << "\t" << int( ma.first + 0.2 ) << std::fixed << std::setprecision(3) << " (" << ma.second << ")" << std::endl;
 #endif
 			std::vector< cluster >::reverse_iterator prev = atom;
 			while ( prev->rotate() && ( atoms.rend() != prev + 1 ) )
