@@ -23,8 +23,6 @@
 **************************************************************************/
 
 #include "chemspidermanager.hpp"
-// #include "ui_chemspidermode.h"
-#include <utils/fancymainwindow.h>
 #include <utils/styledbar.h>
 
 #include <utils/fancymainwindow.h>

@@ -95,8 +95,8 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
     //-------------------------------------------------------------------------------------------
     pConfig_.reset( new adportable::Configuration() );
 
-	boost::filesystem::path path( qtwrapper::wstring( QCoreApplication::instance()->applicationDirPath() ) );
-	std::wstring apppath = path.branch_path().c_str();
+	boost::filesystem::path path( qtwrapper::wstring::copy( QCoreApplication::instance()->applicationDirPath() ) );
+	std::wstring apppath = path.branch_path().wstring(); // .c_str();
 	std::wstring cfile = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/ChemSpider.config.xml" );
 
 	if ( ! adplugin::manager::instance()->loadConfig( *pConfig_, cfile, L"/ChemSpiderConfiguration/Configuration" ) ) {

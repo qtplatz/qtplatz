@@ -28,6 +28,7 @@
 #include <QObject>
 #include <vector>
 #include <boost/smart_ptr.hpp>
+#include <utils/fancymainwindow.h>
 
 class QDockWidget;
 class QMainWindow;

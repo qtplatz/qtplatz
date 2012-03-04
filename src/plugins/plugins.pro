@@ -4,7 +4,6 @@
 TEMPLATE  = subdirs
 
 SUBDIRS   = plugin_coreplugin \
-            plugin_welcome \
             plugin_servant \
             plugin_acquire \
             plugin_sequence \
@@ -12,9 +11,6 @@ SUBDIRS   = plugin_coreplugin \
             plugin_chemspider
 
 plugin_coreplugin.subdir = coreplugin
-
-#plugin_welcome.subdir = welcome
-#plugin_welcome.depends = plugin_coreplugin
 
 plugin_chemspider.subdir = chemspider
 plugin_chemspider.depends = plugin_coreplugin
