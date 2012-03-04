@@ -1,3 +1,4 @@
+QT += webkit
 TARGET = ChemSpider
 TEMPLATE = lib
 
@@ -22,6 +23,11 @@ OTHER_FILES = ChemSpider.pluginspec \
     ChemSpider.config.xml
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH
+LIBS += -l$$qtLibraryTarget(adutils) \
+        -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(adplugin) \
+        -l$$qtLibraryTarget(qtwrapper) \
+        -l$$qtLibraryTarget(xmlparser) 
 
 RESOURCES += \
     chemspider.qrc
@@ -29,3 +35,6 @@ RESOURCES += \
 FORMS += \
     chemspidermode.ui
 
+!win32 {
+  LIBS *= -lboost_serialization -lboost_date_time -lboost_filesystem -lboost_system
+}

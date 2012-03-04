@@ -1,4 +1,4 @@
-<plugin name="chemspider" version="1.0.0" compatVersion="1.3.1">
+<plugin name="ChemSpider" version="1.0.0" compatVersion="1.3.1">
     <vendor>Science Liaison</vendor>
     <copyright>(C) 2012 Toshinobu Hondo, Ph.D.</copyright>
     <license>
