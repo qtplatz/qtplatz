@@ -37,6 +37,7 @@
 #include <ace/Event_Handler.h>
 #include <ace/INET_Addr.h>
 #include <ace/SOCK_Dgram_Bcast.h>
+#include <boost/foreach.hpp>
 
 using namespace adbroker;
 
@@ -66,7 +67,9 @@ namespace adbroker {
         bool send( const char *, ssize_t );
         bool send( const char *, ssize_t, const ACE_INET_Addr& );
         bool recv( char *, ssize_t bufsize, ACE_INET_Addr& );
+		inline acewrapper::ifconfig::ifvec& ifvec() { return ifvec_; }
     private:
+		acewrapper::ifconfig::ifvec ifvec_;
         ACE_SOCK_Dgram_Bcast sock_bcast_;
 		ACE_INET_Addr sock_addr_;
         ObjectDiscovery& parent_;
@@ -115,8 +118,7 @@ ObjectDiscovery::open()
     if ( reactor_thread_ )
         return false;
 
-	acewrapper::ifconfig::ifvec ifvec;
-	acewrapper::ifconfig::broadaddr( ifvec );
+	acewrapper::ifconfig::broadaddr( bcast_->ifvec() );
 
     acewrapper::scoped_mutex_t<> lock( mutex_ );
     if ( reactor_thread_ == 0 ) {
@@ -245,10 +247,16 @@ BcastHandler::close()
 bool
 BcastHandler::send( const char * pbuf, ssize_t size )
 {
-	// static ACE_INET_Addr to( 7402, INADDR_BROADCAST );
-	static ACE_INET_Addr to( 7402, "192.168.24.255" );
-    ssize_t ret = send( pbuf, size , to );
-    return ret == size;
+	if ( ifvec_.empty() ) {
+		static ACE_INET_Addr to( 7402, INADDR_BROADCAST );
+		ssize_t ret = send( pbuf, size , to );
+		return ret == size;
+	}
+	BOOST_FOREACH( acewrapper::ifconfig::ifaddr& ifaddr, ifvec_ ) {
+		ACE_INET_Addr to( 7402, ifaddr.second.c_str() );
+		send( pbuf, size, to );
+	}
+	return true;
 }
 
 bool
