@@ -79,7 +79,7 @@ debug::~debug(void)
     if ( ! file_.empty() )
         of << where();
     of << o_.str() << std::endl;
-    std::cout << o_.str() << std::endl;
+    std::cout << where() << o_.str() << std::endl;
 }
 
 void
@@ -93,7 +93,7 @@ debug::where() const
 {
     std::ostringstream o;
     if ( ! file_.empty() ) 
-        o << file_ << "(" << line_ << "):";
+        o << file_ << "(" << line_ << "): ";
     return o.str();
 }
 

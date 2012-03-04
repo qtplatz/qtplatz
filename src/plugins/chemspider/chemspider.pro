@@ -1,4 +1,4 @@
-QT += webkit
+#QT += webkit
 TARGET = ChemSpider
 TEMPLATE = lib
 

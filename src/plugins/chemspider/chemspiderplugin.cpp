@@ -72,18 +72,12 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
 
-	//QList<int> context;
-	//Core::UniqueIDManager * uidm = Core::ICore::instance()->uniqueIDManager();
-	//if ( uidm ) {
-	//context.append( uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR ) );
-	//}
-
     Core::ActionManager *am = Core::ICore::instance()->actionManager();
     
     QAction *action = new QAction(tr("ChemSpider action"), this);
     QList<int> globalcontext;
 	globalcontext << Core::Constants::C_GLOBAL_ID;
-    Core::Command *cmd = am->registerAction(action, Constants::ACTION_ID, globalcontext ); // Core::Context(Core::Constants::C_GLOBAL));
+    Core::Command *cmd = am->registerAction(action, Constants::ACTION_ID, globalcontext );
     cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+A")));
     connect(action, SIGNAL(triggered()), this, SLOT(triggerAction()));
     
@@ -138,11 +132,12 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
 			splitter3->addWidget( pTab );
 
 			//--- (1)
+#if ! defined __linux__
             QWebView * view = new QWebView;
 			pTab->addTab( view, QIcon(":/chemspider/image/logo_cs7.png"), "http://www.chemspider.com/" );
 			view->load( QUrl( "http://www.chemspider.com/" ) );
 			view->show();
-
+#endif
 			//--- (2)
 			//wnd.push_back( new QFrame );
 			//pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_snapshot_small.png"), "ChemSpider(2)" );
@@ -181,12 +176,8 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
 
 void ChemSpiderPlugin::extensionsInitialized()
 {
-    // Retrieve objects from the plugin manager's object pool
-    // "In the extensionsInitialized method, a plugin can be sure that all
-    //  plugins that depend on it are completely initialized."
-	// mode_->initPlugins();
-	Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
-	manager_->OnInitialUpdate();
+    Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
+    manager_->OnInitialUpdate();
 }
 
 void

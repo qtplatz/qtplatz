@@ -159,6 +159,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
     Q_UNUSED(arguments);
     int nErrors = 0;
+
+    do { adportable::debug(__FILE__, __LINE__) << "<----- ServantPlugin::initialize() ..."; } while(0);
     
     OutputWindow * outputWindow = new OutputWindow;
     addAutoReleasedObject( outputWindow );
@@ -182,14 +184,14 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     pConfig_ = new adportable::Configuration();
     adportable::Configuration& config = *pConfig_;
 
-    adportable::debug( __FILE__, __LINE__ ) << "loading configuration:" << configFile;
+    adportable::debug( __FILE__, __LINE__ ) << "loading configuration: \"" << configFile << "\"";
 
     if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
         adportable::debug dbg( __FILE__, __LINE__ );
         dbg << "ServantPlugin::initialize loadConfig '" << configFile << "' load failed";
         QMessageBox::warning( 0, dbg.where().c_str(), dbg.str().c_str() );
     }
-    
+
     // ------------ Broker::Manager initialize first --------------------
     servant::ORBServantManager * pMgr = servant::singleton::orbServantManager::instance();
     pMgr->init( 0, 0 );
@@ -199,7 +201,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         ACE_OS::sleep(0);
     }
     adplugin::ORBManager::instance()->initialize( pMgr->orb(), pMgr->root_poa() );
-    
+
     //--------------------------------------------------------------------
     //CORBA::ORB_var orb = acewrapper::singleton::orbServantManager::instance()->orb();
     std::string iorBroker;
@@ -250,7 +252,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             }
         }
     }
-    
+
     Core::ICore * core = Core::ICore::instance();
     QList<int> context;
     if ( core ) {
@@ -261,7 +263,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         }
     } else
         return false;
-    
+
     // 
     ControlServer::Session_var session;
     std::vector< Instrument::Session_var > i8t_sessions;
@@ -269,12 +271,20 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
 	
         if ( it->name() == L"adbroker" ) {
-	    
-            pImpl_->init_debug_adbroker( this );
+            try {
+                pImpl_->init_debug_adbroker( this );
+            } catch ( std::exception& ex ) {
+                adportable::debug(__FILE__, __LINE__) << ex.what();
+            }
 	    
         } else if ( it->name() == L"adcontroller" ) {
-	    
-            pImpl_->init_debug_adcontroller( this );
+            try {
+                pImpl_->init_debug_adcontroller( this );
+            } catch ( std::exception& ex ) {
+                adportable::debug(__FILE__, __LINE__) << ex.what();
+                continue;
+            }
+
             CORBA::Object_var obj 
                 = acewrapper::brokerhelper::name_to_object( pMgr->orb()
                                                             , acewrapper::constants::adcontroller::manager::_name()
@@ -286,7 +296,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             }
             session = manager->getSession( L"debug" );
             session->setConfiguration( it->xml().c_str() );
-	    
+
         } else if ( it->attribute( L"type" ) == L"orbLoader" ) {
 	    
             if ( it->attribute( L"loadstatus" ) == L"failed" || it->attribute( L"loadstatus" ) == L"deffered" )
@@ -316,16 +326,16 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             adcontrols::MassSpectrometerBroker::register_library( name );
         }
     }
-    if ( ! CORBA::is_nil( session ) ) {
-        //for ( std::vector< Instrument::Session_var >::iterator it = i8t_sessions.begin(); it != i8t_sessions.end(); ++it )
-        // (*it)->configComplete();
+
+    do { adportable::debug(__FILE__, __LINE__) << "<-- ServantPlugin::initialize() ### 3 ##"; } while(0);
+
+    if ( ! CORBA::is_nil( session ) )
         session->configComplete();
-    }
 
     Logger log;
     log( ( nErrors ? L"Servant iitialized with errors" : L"Servernt initialized successfully") );
     
-    do { adportable::debug() << "ServantPlugin::initialize() completed."; } while(0);
+    do { adportable::debug() << "----> ServantPlugin::initialize() completed."; } while(0);
     return true;
 }
 
