@@ -57,51 +57,6 @@ Rectangle {
                 id: centroidMethod
             }
         }
-        Tab {
-            id: tabIsotope
-            title: "Isotope"
-            EditIsotopeMethod {
-                anchors.fill: parent
-                anchors.topMargin: 16
-                id: isotopeMethod
-            }
-        }
-        Tab {
-            id: tabMsCalib
-            title: "MS Calib"
-            EditMSCalibMethod {
-                id: msCalibMethod
-                anchors.fill: parent
-                anchors.topMargin: 16
-            }
-        }
-        Tab {
-            id: tabElementalComp
-            title: "Elemental Comp."
-            EditElementalCompMethod {
-                id: elementalCompMethod
-                anchors.fill: parent
-                anchors.topMargin: 16
-            }
-        }
-        Tab {
-            id: tabTarget
-            title: "Target"
-            EditTargetMethod {
-                id: targetMethod
-                anchors.fill: parent
-                anchors.topMargin: 16
-            }
-        }
-        Tab {
-            id: tabLockmass
-            title: "Lock mass"
-            EditLockMassMethod {
-                id: lockMassMethod
-                anchors.fill: parent
-                anchors.topMargin: 16
-            }
-        }
     }
 
 }

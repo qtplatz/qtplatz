@@ -40,7 +40,7 @@ CentroidForm::CentroidForm(QWidget *parent) : QDeclarativeView(parent)
                                             , pDelegate_( new CentroidDelegate ) 
 {
     ui->setupUi(this);
-    ui->treeView->setModel( pModel_.get() );
+	//ui->treeView->setModel( pModel_.get() );
 }
 
 CentroidForm::~CentroidForm()
@@ -57,9 +57,9 @@ CentroidForm::OnCreate( const adportable::Configuration& config )
 void
 CentroidForm::OnInitialUpdate()
 {
-    QStandardItemModel& model = *pModel_;
+	// QStandardItemModel& model = *pModel_;
     adcontrols::CentroidMethod& method = *pMethod_;
-
+/*
     QStandardItem * rootNode = model.invisibleRootItem();
 
     ui->treeView->setItemDelegate( pDelegate_.get() );
@@ -89,6 +89,7 @@ CentroidForm::OnInitialUpdate()
     //--------------
     ui->treeView->expand( scanType->index() );
     ui->treeView->setColumnWidth( 0, 200 );
+*/
 }
 
 void
