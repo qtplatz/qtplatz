@@ -1144,6 +1144,13 @@ static QString formatFileFilters(const Core::ICore *core, QString *selectedFilte
 }
 */
 
+bool
+EditorManager::pushEditor( IEditor * ieditor )
+{
+    addEditor( ieditor );
+    return true;
+}
+
 IEditor *EditorManager::openEditor(const QString &fileName, const QString &editorKind,
                                    EditorManager::OpenEditorFlags flags)
 {

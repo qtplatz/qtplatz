@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #ifndef DATAPROCESSORFACTORY_H
 #define DATAPROCESSORFACTORY_H
@@ -34,16 +30,15 @@
 #include <QStringList>
 
 namespace Core {
-  class IEditor;
+    class IEditor;
 }
 
 namespace dataproc {
 
     namespace internal {
-
+        
         class DataprocPlugin;
-
-        // class DataprocessorFactory : public Core::IFileFactory {  // Core::IEditorFactory
+        
         class DataprocessorFactory : public Core::IEditorFactory {
             Q_OBJECT
         public:
@@ -59,6 +54,7 @@ namespace dataproc {
             virtual QStringList mimeTypes() const;
             virtual QString kind() const;
             virtual Core::IFile * open(const QString& filename );
+
             // <---
         signals:
 

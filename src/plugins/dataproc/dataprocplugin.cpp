@@ -30,6 +30,7 @@
 #include "dataprocmanager.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessorfactory.hpp"
+#include "dataproceditor.hpp"
 #include "navigationwidgetfactory.hpp"
 #include "sessionmanager.hpp"
 
@@ -43,6 +44,7 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
+#include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/mimedatabase.h>
 #include <QStringList>
@@ -105,6 +107,7 @@ DataprocPlugin::DataprocPlugin() : pSessionManager_( new SessionManager() )
                                  , pActionManager_( new ActionManager( this ) ) 
                                  , pBrokerSessionEvent_( 0 )
                                  , brokerSession_( 0 ) 
+                                 , dataprocFactory_( 0 )
                                  , actionApply_( 0 )
                                  , currentFeature_( CentroidProcess )
 {
@@ -168,13 +171,13 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
 
     //------------------------------------------------
 
-    DataprocessorFactory * dataprocFactory = 0;
+    // DataprocessorFactory * dataprocFactory = 0;
     Core::MimeDatabase* mdb = core->mimeDatabase();
     if ( mdb ) {
         if ( !mdb->addMimeTypes(":/dataproc/dataproc-mimetype.xml", error_message) )
             return false;
-        dataprocFactory = new DataprocessorFactory( this );
-        addAutoReleasedObject( dataprocFactory );
+        dataprocFactory_ = new DataprocessorFactory( this );
+        addAutoReleasedObject( dataprocFactory_ );
     }
 
     DataprocMode * mode = new DataprocMode(this);
@@ -291,8 +294,8 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
             wnd.push_back( new ChromatogramWnd( apppath ) );
             pTab->addTab( wnd.back(),  QIcon(":/acquire/images/watchpoint.png"), "Chromatogram" );
 
-            if ( dataprocFactory )
-                dataprocFactory->setEditor( pTab );
+            if ( dataprocFactory_ )
+                dataprocFactory_->setEditor( pTab );
         }
         QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
         toolBarAddingLayout->setMargin(0);
@@ -305,12 +308,15 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
 
         // connections
         for ( std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
-            connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), *it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
+            connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
+                     , *it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
             connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
                      , *it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
-			connect( this, SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) ), *it, SLOT( onApplyMethod( const adcontrols::ProcessMethod& ) ) );
+			connect( this, SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
+                     , *it, SLOT( onApplyMethod( const adcontrols::ProcessMethod& ) ) );
         }
-        connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), manager_.get(), SLOT( handleSessionAdded( Dataprocessor* ) ) );
+        connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
+                 , manager_.get(), SLOT( handleSessionAdded( Dataprocessor* ) ) );
         connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
                  , manager_.get(), SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
 
@@ -366,6 +372,21 @@ DataprocPlugin::handle_portfolio_created( const QString token )
 #if defined DEBUG
     qDebug() << "DataprocPlugin::handle_portfolio_created(" << token << ")";
 #endif
+    Core::ICore * core = Core::ICore::instance();
+    if ( core ) {
+        
+        Core::EditorManager * em = core->editorManager();
+        if ( em && dataprocFactory_ ) {
+            Core::IEditor * ie = dataprocFactory_->createEditor( 0 );
+            DataprocEditor * editor = dynamic_cast< DataprocEditor * >( ie );
+            if ( editor ) {
+                editor->portfolio_create( token );
+                em->pushEditor( editor );
+            }
+        }
+    }
+    
+/**
     boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
     if ( processor->create( token ) ) {
 #if defined DEBUG
@@ -373,6 +394,7 @@ DataprocPlugin::handle_portfolio_created( const QString token )
 #endif
         SessionManager::instance()->addDataprocessor( processor );
     }
+**/
 }
 
 void
@@ -401,38 +423,6 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
 
         adcontrols::ProcessMethod m;
         processor.addSpectrum( ms, m );
-#if 0
-        //---------> for quick debug
-        std::string name1( "C:/InfiTOF/" );
-        std::string name2;
-        do {
-            time_t utc;
-            time(&utc);
-            struct tm tm = *localtime( &utc );
-            name1 += ( boost::format( "%04d-%02d-%02d-%02d%02d%02d" ) % (tm.tm_year + 1900) % (tm.tm_mon + 1) % tm.tm_mday % tm.tm_hour % tm.tm_min % tm.tm_sec ).str();
-            name2 = name1;
-            name1 += ".txt";
-            name2 += ".qtms";
-        } while(0);
-
-        std::ofstream of( name1.c_str() );
-        if ( ! of.fail() ) {
-            size_t size = ms.size();
-            const double * pIntens = ms.getIntensityArray();
-            const double * pMasses = ms.getMassArray();
-            const adcontrols::MSProperty& prop = ms.getMSProperty();
-            unsigned long sampInterval = prop.instSamplingInterval();
-            unsigned long nDelay = prop.instSamplingStartDelay();
-            for ( size_t i = 0; i < size; i++ ) {
-                of << std::setprecision(12) << (double( ( nDelay + i ) * sampInterval ) * 1.0e-12 ) << "\t" << pMasses[i] << "\t" << pIntens[i] << std::endl;
-            }
-        }
-        std::ofstream of2( name2.c_str(), std::ios_base::binary | std::ios_base::out );
-        if ( ! of2.fail() ) {
-            of2.write( reinterpret_cast< const char *>( var->serialized.get_buffer() ), var->serialized.length() );
-        }
-        //<--------------
-#endif
     }
 }
 
@@ -454,7 +444,8 @@ DataprocPlugin::extensionsInitialized()
                          , this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
             }
         } else {
-            QMessageBox::critical( 0, "DataprocPlugin::extensionsInitialized", "can't find ior for adbroker -- maybe servant plugin load failed.");
+            QMessageBox::critical( 0, "DataprocPlugin::extensionsInitialized"
+                                   , "can't find ior for adbroker -- maybe servant plugin load failed.");
         }
     } while(0);
 
@@ -470,8 +461,11 @@ DataprocPlugin::shutdown()
 
     if ( ! CORBA::is_nil( brokerSession_ ) ) {
 
-        disconnect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) ), this, SLOT(handle_portfolio_created( const QString )) );
-        disconnect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) ), this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
+        disconnect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) )
+                    , this, SLOT(handle_portfolio_created( const QString )) );
+
+        disconnect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) )
+                    , this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
 
         brokerSession_->disconnect( pBrokerSessionEvent_->_this() );
 

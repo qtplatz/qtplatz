@@ -53,6 +53,7 @@ namespace dataproc {
 
         class DataprocManager;
         class ActionManager;
+        class DataprocessorFactory;
 
         class DataprocPlugin : public ExtensionSystem::IPlugin {
 
@@ -94,6 +95,7 @@ namespace dataproc {
 
             QBrokerSessionEvent * pBrokerSessionEvent_;
             Broker::Session * brokerSession_;
+            DataprocessorFactory * dataprocFactory_;
 
             QAction * actionApply_;
             enum ProcessType currentFeature_;

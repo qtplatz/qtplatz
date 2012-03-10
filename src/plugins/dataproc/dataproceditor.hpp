@@ -40,6 +40,7 @@ namespace dataproc {
         ~DataprocEditor();
         DataprocEditor( QWidget *, Core::IEditorFactory * );
 
+        bool portfolio_create( const QString &token );
         // implement Core::IEditor
         virtual bool createNew( const QString &contents );
         virtual bool open( const QString &fileName );
@@ -53,17 +54,13 @@ namespace dataproc {
 
         virtual QByteArray saveState() const;
         virtual bool restoreState(const QByteArray &state);
-
-        //virtual int currentLine() const { return 0; }
-        //virtual int currentColumn() const { return 0; }
-
         virtual bool isTemporary() const;
-
         virtual QWidget *toolBar();
 
         // Core::IContext
         QWidget * widget();
         QList<int> context() const;
+
     protected slots:
         void slotTitleChanged( const QString& title ) { setDisplayName( title ); }
 

@@ -112,6 +112,8 @@ public:
     };
     Q_DECLARE_FLAGS(OpenEditorFlags, OpenEditorFlag)
 
+	bool pushEditor( IEditor * );
+
     IEditor *openEditor(const QString &fileName,
                         const QString &editorKind = QString(),
                         OpenEditorFlags flags = 0);
