@@ -54,4 +54,11 @@ namespace adportable {
         debug& operator << ( double );
     };
 
+	class scope_timer {
+	public:
+		scope_timer();
+		unsigned long elapsed();
+		unsigned long t0;
+	};
+
 }

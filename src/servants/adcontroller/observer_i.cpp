@@ -69,9 +69,8 @@ using namespace adcontroller;
 observer_i::observer_i( SignalObserver::Observer_ptr source ) : objId_(0)
 {
     source_observer_ = SignalObserver::Observer::_duplicate(source);
-    if ( ! CORBA::is_nil( source_observer_.in() ) ) {
-        cache_.reset( new Cache() );
-    }
+	if ( ! CORBA::is_nil( source_observer_.in() ) )
+		cache_.reset( new Cache() );
 }
 
 observer_i::~observer_i(void)
@@ -110,8 +109,6 @@ observer_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
 		      , const CORBA::WChar * token )
 {
     using namespace adcontroller::internal;
-
-    adportable::debug() << "observer_i::connect : " << token;
 
     observer_events_data data;
     data.events_ = cb;
@@ -154,8 +151,6 @@ observer_i::getSiblings (void)
     SignalObserver::Observers_var vec( new SignalObserver::Observers );
     vec->length( sibling_set_.size() );
 
-    // adportable::debug() << "observer_i::getSiblings() return " << sibling_set_.size();
-
     acewrapper::scoped_mutex_t<> lock( mutex_ );
 
     int i = 0;
@@ -171,23 +166,30 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
     internal::sibling_data data;
     data.observer_ = SignalObserver::Observer::_duplicate( observer ); // real observer points to instrumets
 
-    adportable::debug() << "observer_i::addSibling()";
-
     acewrapper::scoped_mutex_t<> lock( mutex_ );
+	adportable::scope_timer x;
 
     if ( ! CORBA::is_nil( data.observer_ ) ) {
 
-        data.objId_ = data.observer_->objId();
+		adportable::scope_timer y;
+
+		data.objId_ = data.observer_->objId();
+
+		adportable::scope_timer z;
+
         data.pCache_i_.reset( new observer_i( data.observer_ ) );  // shadow (cache) observer
+
         if ( data.pCache_i_ ) {
             data.pCache_i_->assign_objId( data.objId_ );
             PortableServer::POA_var poa = adcontroller::manager_i::instance()->poa();
             CORBA::Object_ptr obj = poa->servant_to_reference( data.pCache_i_.get() );
             data.cache_ = SignalObserver::Observer::_narrow( obj );
         }
-        data.pCache_i_->populate_siblings();
+		data.pCache_i_->populate_siblings();
+		Logging(L"observer_i::addSibling() -- x = %1%, y = %2% z=%3%", ::EventLog::pri_INFO ) % x.elapsed() % y.elapsed() % z.elapsed();
     }
     sibling_set_.push_back( data );
+	Logging(L"observer_i::addSibling()", ::EventLog::pri_INFO );
     return true;
 }
 

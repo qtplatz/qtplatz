@@ -35,14 +35,13 @@ Logging::Logging( const std::wstring& format
                 , const std::wstring& srcId
                 , const std::wstring& msgId ) : msg( format, pri, srcId, msgId )
 {
-    adportable::debug() << format;
 }
 
 Logging::~Logging()
 {
-    commit_to_broker();
+	// commit_to_broker();
+	adportable::debug() << adinterface::EventLog::LogMessageHelper::toString( msg.get() );
 	commit_to_task();
-    adportable::debug() << adinterface::EventLog::LogMessageHelper::toString( msg.get() );
 }
 
 void
@@ -71,7 +70,6 @@ Logging::commit_to_broker()
 void
 Logging::commit_to_task()
 {
-    // Broker::EventLog, that is not EventLog
     if ( msg.get().format.in() && *msg.get().format.in() != 0 ) {
         TAO_OutputCDR cdr;
         cdr << msg.get();

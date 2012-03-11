@@ -190,7 +190,8 @@ iTask::initialize_configuration()
     if ( status_current_ >= ControlServer::eConfigured )
         return true;
 
-    Logging(L"iTask::initialize_configuration...", ::EventLog::pri_DEBUG );
+	adportable::scope_timer x;
+	Logging(L"iTask::initialize_configuration...", ::EventLog::pri_DEBUG );
 
     SignalObserver::Observer_var masterObserver = getObserver();
     if ( CORBA::is_nil( masterObserver.in() ) ) {
@@ -206,6 +207,7 @@ iTask::initialize_configuration()
         // initialize instrument proxy
         boost::shared_ptr<iProxy> pProxy( new iProxy( *this ) );
         if ( pProxy ) {
+			adportable::scope_timer timer;
             pProxy->objId( objid );
             if ( ! pProxy->initialConfiguration( item ) ) {
                 Logging(L"iTask::initialize_configuration -- instrument initialization failed for \"%1%\""
@@ -214,8 +216,8 @@ iTask::initialize_configuration()
             }
             acewrapper::scoped_mutex_t<> lock( mutex_ );
             iproxies_.push_back( pProxy );
-            Logging(L"iTask::initialize_configuration -- instrument \"%1%\" successfully initialized as objId %2%"
-                    , ::EventLog::pri_INFO )  % item.name() % objid;
+            Logging(L"iTask::initialize_configuration -- instrument \"%1%\" successfully initialized as objId %2% took %3% ms"
+                    , ::EventLog::pri_INFO )  % item.name() % objid % timer.elapsed();
         }
 
         // initialize observer proxy
@@ -223,12 +225,14 @@ iTask::initialize_configuration()
         if ( ! CORBA::is_nil( iSession.in() ) ) {
             boost::shared_ptr<oProxy> poProxy( new oProxy( *this ) );
             if ( poProxy ) {
+				adportable::scope_timer timer;
+
                 poProxy->objId( objid );
                 poProxy->setConfiguration( item );
                 if ( poProxy->setInstrumentSession( iSession ) ) { // assign objid to source objects
                     size_t n = poProxy->populateObservers( objid );
-                    Logging(L"iTask::initialize_configuration -- \"%1%\" has %2% signal observers"
-                            , ::EventLog::pri_INFO ) % item.name() % n;
+                    Logging(L"iTask::initialize_configuration -- \"%1%\" has %2% signal observers %3% ms"
+						, ::EventLog::pri_INFO ) % item.name() % n % timer.elapsed();
                     objid += n;
                 }
                 acewrapper::scoped_mutex_t<> lock( mutex_ );
@@ -246,7 +250,7 @@ iTask::initialize_configuration()
     std::for_each( oproxies_.begin(), oproxies_.end(), invoke_connect(L"iTask") );
 
     status_current_ = status_being_ = ControlServer::eConfigured;  // relevant modules are able to access.
-    Logging(L"iTask::initialize_configuration completed.", ::EventLog::pri_INFO );
+	Logging(L"iTask::initialize_configuration completed. %1% ms", ::EventLog::pri_INFO ) % x.elapsed();
     return true;
 }
 

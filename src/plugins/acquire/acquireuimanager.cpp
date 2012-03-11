@@ -241,8 +241,7 @@ AcquireUIManager::handle_eventLog( const ::EventLog::LogMessage& log )
     using namespace adinterface::EventLog;
     std::wstring text = LogMessageHelper::toString( log );
 	std::string date = acewrapper::to_string( log.tv.sec, log.tv.usec ) + "\t";
-	adportable::debug() << date << text;
-
+	// adportable::debug() << date << text;
 	QString qtext = date.c_str();
 	qtext += qtwrapper::qstring::copy( text );
 

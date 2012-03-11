@@ -81,7 +81,7 @@ iTaskManager::iTaskManager() : pTask_(0)
 {
     reactor_thread_ = new acewrapper::ReactorThread();
     reactor_thread_->spawn();
-    pTask_ = new iTask( 5 );
+    pTask_ = new iTask( 8 );
 }
 
 // static
