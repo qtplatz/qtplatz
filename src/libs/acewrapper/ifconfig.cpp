@@ -161,7 +161,7 @@ ifconfig::broadaddr( std::vector< std::pair< std::string, std::string > >& vec )
 		}
 	}
     //-------
-	return 0;
+	return !vec.empty();
 
 #endif
     return ! vec.empty();

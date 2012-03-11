@@ -81,7 +81,7 @@ using namespace Core;
 using namespace Core::Internal;
 using namespace Utils;
 
-enum { debugEditorManager=1 };
+enum { debugEditorManager=0 };
 
 static inline ExtensionSystem::PluginManager *pluginManager()
 {

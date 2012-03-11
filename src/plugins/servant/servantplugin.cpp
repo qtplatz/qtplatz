@@ -228,7 +228,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         std::wstring component = it->component();
         
         if ( name == L"adbroker" ) {
-            /* nothing, broker must be created before here */
+			/* do nothing. -- broker must be created before here */
         } else if ( it->attribute(L"type") == L"orbLoader" ) {
             // adcontroller must be on top
             std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );

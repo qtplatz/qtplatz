@@ -513,8 +513,8 @@ iTask::handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned 
 void
 iTask::handle_dispatch( const EventLog::LogMessage& msg )
 {
-    adportable::debug() << "iTask::handle_dispatch( EventLog: "  << msg.format.in() << " )";
-
+	// adportable::debug() << "iTask::handle_dispatch( EventLog: "  << msg.format.in() << " )";
+	// Logging( L"adcontroller::iTask::handle_dispatch EventLog: " + std::wstring( msg.format.in() ), ::EventLog::pri_INFO );
     acewrapper::scoped_mutex_t<> lock( mutex_ );    
 
     BOOST_FOREACH( internal::receiver_data& d, receiver_set_ ) {

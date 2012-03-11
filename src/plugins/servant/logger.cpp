@@ -125,7 +125,7 @@ Logger::~Logger(void)
         log.tv_usec = 0;
         host->logger_->log( log );
     } else {
-        // all logs before (or failed) to create Broker servant
+		// all logs before Broker servant initialized to be here
         OutputWindow * outputWindow = ExtensionSystem::PluginManager::instance()->getObject< servant::OutputWindow >();
         outputWindow->appendLog( stream_.str() );
     }

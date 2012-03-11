@@ -87,7 +87,7 @@ manager_i::getLogger()
         if ( ! CORBA::is_nil( broker_manager_ ) )
             logger_ = broker_manager_->getLogger();
     }
-    if ( CORBA::is_nil( logger_ ) )
+    if ( ! CORBA::is_nil( logger_ ) )
         return Broker::Logger::_duplicate( logger_ );
     return 0;
 }

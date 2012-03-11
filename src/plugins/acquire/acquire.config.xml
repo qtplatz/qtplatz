@@ -6,7 +6,7 @@
 <AcquireConfiguration name="acquire" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="acquire.config.xsd">
   <!-- <AcquireConfiguration name="acquire"> -->
   <Module name="qtwidgets" type="sharedlib" filename="/ScienceLiaison/qtwidgets$(configuration).dll"/>
-  <Module name="infitofui" type="sharedlib" filename="/MSI/infitoftune$(configuration).dll"/>
+  <Module name="infitofui" type="sharedlib" filename="/MSI/InfiTOF$(configuration).dll"/>
   <!-- -->
   <Configuration name="monitor_tab">
     <!-- -->

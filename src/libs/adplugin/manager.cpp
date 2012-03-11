@@ -98,27 +98,6 @@ manager::instance()
     return impl::instance();
 }
 
-/*
-class LifeCycleAccessor : public QObject {
-    Q_OBJECT;
-    QWidget * pWidget_;
-    adplugin::LifeCycle * pLifeCycle_;
-public:
-    LifeCycleAccessor( QWidget * pWidget ) : pWidget_( pWidget ), pLifeCycle_(0) {
-        connect( this, SIGNAL( getLifeCycle( adplugin::LifeCycle*& ) ), pWidget( getLifeCycle( adplugin::LifeCycle*& ) ) );
-        emit trigger( pLifeCycle_ );
-    }
-    ~LifeCycleAccessor() {
-        disconnect( this, SIGNAL( trigger( adplugin::LifeCycle*& ) ), pWidget( getLifeCycle( adplugin::LifeCycle*& ) ) );
-    }
-signals:
-    void trigger( adplugin::LifeCycle *& );
-
-public:
-
-};
-*/
-
 // static
 QWidget *
 manager::widget_factory( const adportable::Configuration& config, const wchar_t * path, QWidget * parent )

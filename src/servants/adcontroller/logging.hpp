@@ -37,7 +37,7 @@ namespace adcontroller {
         Logging( const std::wstring& format = L""
                 , ::EventLog::eMSGPRIORITY pri = ::EventLog::pri_DEBUG
                 , const std::wstring& msgId = L""
-                , const std::wstring& srcId = L"infitofd");
+                , const std::wstring& srcId = L"adcontroller");
         template<class T> Logging& operator % ( const T& t ) { msg % t; return *this; }
         void commit_to_broker();
         void commit_to_task();
