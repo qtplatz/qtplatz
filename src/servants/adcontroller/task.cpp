@@ -108,16 +108,16 @@ namespace adcontroller {
 
 	struct invoke_reset_clock {
 	    void operator ()( iTask::iproxy_ptr& proxy ) const {
-		proxy->reset_clock();
+			proxy->reset_clock();
 	    }
 	};
 
 	struct invoke_initialize {
 	    void operator ()( iTask::iproxy_ptr& proxy ) {
-		proxy->initialize();
+			proxy->initialize();
 	    }
 	    void operator ()( iTask::oproxy_ptr& proxy ) {
-		proxy->initialize();
+			proxy->initialize();
 	    }
 	};
 
@@ -125,10 +125,10 @@ namespace adcontroller {
 	    const wchar_t * token_;
 	    invoke_connect( const wchar_t * token ) : token_(token) {}
 	    void operator ()( iTask::iproxy_ptr& proxy ) {
-		proxy->connect( token_ );
+			proxy->connect( token_ );
 	    }
 	    void operator ()( iTask::oproxy_ptr& proxy ) {
-		proxy->connect( token_ );
+			proxy->connect( token_ );
 	    }
 	};
 
@@ -255,6 +255,7 @@ iTask::initialize()
 {
     using adcontroller::ibroker::invoke_initialize;
 
+    Logging(L"iTask::initialize...", ::EventLog::pri_INFO );
     if ( initialize_configuration() ) {
         acewrapper::scoped_mutex_t<> lock( mutex_ );
         std::for_each( iproxies_.begin(), iproxies_.end(), invoke_initialize() );

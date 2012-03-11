@@ -48,6 +48,7 @@
 # include <adinterface/controlserverC.h>
 # include <adinterface/receiverC.h>
 # include <adinterface/signalobserverC.h>
+# include <adinterface/eventlog_helper.hpp>
 #if defined _MSC_VER
 # pragma warning(default:4996)
 #endif
@@ -378,15 +379,11 @@ AcquirePlugin::extensionsInitialized()
     Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, ior );
     if ( ! CORBA::is_nil( mgr ) )
         pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
-	try {
-		manager_->OnInitialUpdate();
-	} catch ( CORBA::Exception& ex ) {
-		assert(0);
-	} catch ( std::exception& ex ) {
-		assert(0);
-	} catch ( ... ) {
-        assert(0);
-	}
+	manager_->OnInitialUpdate();
+
+	adinterface::EventLog::LogMessageHelper log( L"acquire extention initialized %1%" );
+	log % 1;
+	manager_->handle_eventLog( log.get() );
 }
 
 void
@@ -401,6 +398,10 @@ AcquirePlugin::shutdown()
 void
 AcquirePlugin::actionConnect()
 {
+	using adinterface::EventLog::LogMessageHelper;
+
+	do { LogMessageHelper log( L"Connecting..." );	manager_->handle_eventLog( log.get() );	} while(0);
+
     if ( CORBA::is_nil( session_.in() ) ) {
 
         CORBA::Object_var obj
@@ -420,7 +421,7 @@ AcquirePlugin::actionConnect()
 
                     receiver_i_.reset( new adplugin::QReceiver_i() );
                     session_->connect( receiver_i_.get()->_this(), L"acquire" );
-                    
+
                     int res;
                     res = connect( receiver_i_.get()
                         , SIGNAL( signal_message( unsigned long, unsigned long ) )
@@ -430,8 +431,12 @@ AcquirePlugin::actionConnect()
                     res = connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
                         , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
 
+					do { LogMessageHelper log( L"===== Initialize session... ===== " );	manager_->handle_eventLog( log.get() );	} while(0);
+
                     if ( session_->status() <= ControlServer::eConfigured )
                         session_->initialize();
+
+					do { LogMessageHelper log( L"===== Session initialized. =====" );	manager_->handle_eventLog( log.get() );	} while(0);
 
                     observer_ = session_->getObserver(); // master observer
                     if ( ! CORBA::is_nil( observer_.in() ) ) {
@@ -447,7 +452,11 @@ AcquirePlugin::actionConnect()
                         SignalObserver::Observers_var siblings = observer_->getSiblings();
                         size_t nsize = siblings->length();
 
-                        adportable::debug() << "acquirepllugin::actionConnect signal observer " << nsize << " siblings found";
+						do {
+							LogMessageHelper log( L"actionConnect signal observer %1% siblings found" );
+							log % nsize;
+							manager_->handle_eventLog( log.get() ); //dbg.str().c_str() );
+						} while(0);
 
                         for ( size_t i = 0; i < nsize; ++i ) {
                             SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[i] );

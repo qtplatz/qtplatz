@@ -64,6 +64,8 @@ namespace Acquire {
 
       void OnInitialUpdate();
       void OnFinalClose();
+	  // 
+	  void eventLog( const QString& );
 
       //
     signals:

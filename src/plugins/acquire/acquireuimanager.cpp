@@ -53,6 +53,7 @@
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
+#include <adportable/debug.hpp>
 #include <adinterface/eventlog_helper.hpp>
 #include <acewrapper/timeval.hpp>
 
@@ -229,14 +230,22 @@ AcquireUIManager::handle_message( unsigned long msg, unsigned long value )
 }
 
 void
+AcquireUIManager::eventLog( const QString& text )
+{
+	emit signal_eventLog( text );
+}
+
+void
 AcquireUIManager::handle_eventLog( const ::EventLog::LogMessage& log )
 {
-    // TODO:  This should be removed after initial debug was completed.
     using namespace adinterface::EventLog;
     std::wstring text = LogMessageHelper::toString( log );
-    QString qtext = acewrapper::to_string( log.tv.sec, log.tv.usec ).c_str();
-    qtext += "\t";
-    qtext += qtwrapper::qstring::copy( text );
+	std::string date = acewrapper::to_string( log.tv.sec, log.tv.usec ) + "\t";
+	adportable::debug() << date << text;
+
+	QString qtext = date.c_str();
+	qtext += qtwrapper::qstring::copy( text );
+
     emit signal_eventLog( qtext );
 }
 
@@ -248,6 +257,8 @@ AcquireUIManager::handle_shutdown()
 void
 AcquireUIManager::handle_debug_print( unsigned long priority, unsigned long category, QString text )
 {
-    emit signal_debug_print( priority, category, text );
+    Q_UNUSED( priority );
+    Q_UNUSED( category );
+    emit signal_eventLog( text );
 }
 
