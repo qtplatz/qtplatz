@@ -378,7 +378,15 @@ AcquirePlugin::extensionsInitialized()
     Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, ior );
     if ( ! CORBA::is_nil( mgr ) )
         pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
-    manager_->OnInitialUpdate();
+	try {
+		manager_->OnInitialUpdate();
+	} catch ( CORBA::Exception& ex ) {
+		assert(0);
+	} catch ( std::exception& ex ) {
+		assert(0);
+	} catch ( ... ) {
+        assert(0);
+	}
 }
 
 void

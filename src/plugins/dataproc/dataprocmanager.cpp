@@ -152,6 +152,15 @@ DataprocManager::OnInitialUpdate()
     QList< QDockWidget *> dockWidgets = m.mainWindow_->dockWidgets();
   
     foreach ( QDockWidget * dockWidget, dockWidgets ) {
+        QWidget * obj = dockWidget->widget();
+		adplugin::LifeCycleAccessor accessor( obj );
+		adplugin::LifeCycle * pLifeCycle = accessor.get();
+		if ( pLifeCycle ) {
+			pLifeCycle->OnInitialUpdate();
+			connect( obj, SIGNAL( onMethodApply( adcontrols::ProcessMethod& ) ), this, SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
+		}
+    }
+/*
         QObjectList list = dockWidget->children();
         foreach ( QObject * obj, list ) {
             adplugin::LifeCycleAccessor accessor( obj );
@@ -162,6 +171,7 @@ DataprocManager::OnInitialUpdate()
             }
         }
     }
+*/
 }
 
 void

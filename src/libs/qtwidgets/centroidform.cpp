@@ -36,11 +36,8 @@ using namespace qtwidgets;
 CentroidForm::CentroidForm(QWidget *parent) : QDeclarativeView(parent)
                                             , ui(new Ui::CentroidForm)
                                             , pMethod_( new adcontrols::CentroidMethod ) 
-                                            , pModel_( new QStandardItemModel )
-                                            , pDelegate_( new CentroidDelegate ) 
 {
-    ui->setupUi(this);
-	//ui->treeView->setModel( pModel_.get() );
+	ui->setupUi(this);
 }
 
 CentroidForm::~CentroidForm()
@@ -57,39 +54,40 @@ CentroidForm::OnCreate( const adportable::Configuration& config )
 void
 CentroidForm::OnInitialUpdate()
 {
-	// QStandardItemModel& model = *pModel_;
-    adcontrols::CentroidMethod& method = *pMethod_;
-/*
-    QStandardItem * rootNode = model.invisibleRootItem();
+	const adcontrols::CentroidMethod& method = *pMethod_;
 
-    ui->treeView->setItemDelegate( pDelegate_.get() );
+    // Scan Type
+    ui->doubleSpinBox_peakwidth->setValue( method.rsTofInDa() );
+    ui->doubleSpinBox_mz->setValue( method.rsTofAtMz() );
+	ui->doubleSpinBox_proportional->setValue( method.rsPropoInPpm() );
+	ui->doubleSpinBox_constant->setValue( method.rsConstInDa() );
 
-    rootNode->setColumnCount(2);
-    model.setHeaderData( 0, Qt::Horizontal, "Centroid" );
-    model.setHeaderData( 1, Qt::Horizontal, "" );
+    ui->doubleSpinBox_peakwidth->setDisabled( true );
+    ui->doubleSpinBox_mz->setDisabled( true );
+	ui->doubleSpinBox_proportional->setDisabled( true );
+    ui->doubleSpinBox_constant->setDisabled( true );
 
-    QStandardItem * scanType =
-        StandardItemHelper::appendRow( rootNode, "ScanType", qVariantFromValue( CentroidDelegate::PeakWidthMethod( method.peakWidthMethod() ) ) );
+	if ( method.peakWidthMethod() == adcontrols::CentroidMethod::ePeakWidthConstant ) {
+		ui->radioButton_constant->setChecked( true );
+		ui->doubleSpinBox_constant->setDisabled( false );
+	} else if ( method.peakWidthMethod() == adcontrols::CentroidMethod::ePeakWidthProportional ) {
+        ui->radioButton_propo->setChecked( true );
+        ui->doubleSpinBox_mz->setDisabled( true );
+	} else if ( method.peakWidthMethod() == adcontrols::CentroidMethod::ePeakWidthTOF ) {
+		ui->radioButton_tof->setChecked( true );
+		ui->doubleSpinBox_peakwidth->setDisabled( false );
+		ui->doubleSpinBox_mz->setDisabled( false );
+	}
 
-    do {
-        StandardItemHelper::appendRow( scanType, "Peak Width [Da]" );
-        model.insertColumn( 1, scanType->index() );
-        model.setData( model.index( 0, 1, model.item( 0, 0 )->index() ), method.rsTofInDa() );
+	ui->doubleSpinBox_baselinewidth->setValue( method.baselineWidth() );
 
-        StandardItemHelper::appendRow( scanType, "Proportional [ppm]", method.rsPropoInPpm() );
-        StandardItemHelper::appendRow( scanType, "Constant [Da]", method.rsConstInDa() );
-    } while(0);
+    if ( method.centroidAreaIntensity() )
+		ui->radioButton_area->setChecked( true );
+	else
+		ui->radioButton_height->setChecked( true );
 
-    StandardItemHelper::appendRow( rootNode, "Area/Height", qVariantFromValue( CentroidDelegate::AreaHeight( method.centroidAreaIntensity() ) ) );
-    StandardItemHelper::appendRow( rootNode, "Baseline Width [Da]", method.baselineWidth() );
-    StandardItemHelper::appendRow( rootNode, "Peak Centroid Fraction [%]", method.peakCentroidFraction() * 100 );
-
-    // update_model();
-    
-    //--------------
-    ui->treeView->expand( scanType->index() );
-    ui->treeView->setColumnWidth( 0, 200 );
-*/
+	ui->doubleSpinBox_centroidfraction->setValue( method.peakCentroidFraction() * 100 );
+	ui->doubleSpinBox_baselinewidth->setValue( method.baselineWidth() );
 }
 
 void
@@ -105,46 +103,26 @@ CentroidForm::getLifeCycle( adplugin::LifeCycle *& p )
 
 ///
 void
-CentroidForm::update_model()
-{
-    QStandardItemModel& model = *pModel_;
-    const adcontrols::CentroidMethod& method = *pMethod_;
-
-    model.setData( model.index( 0, 1), qVariantFromValue( CentroidDelegate::PeakWidthMethod( method.peakWidthMethod() ) ) );
-
-    model.setData( model.index( 0, 1, model.item( 0, 0 )->index() ), method.rsTofInDa() );
-    model.setData( model.index( 1, 1, model.item( 0, 0 )->index() ), method.rsPropoInPpm() );
-    model.setData( model.index( 2, 1, model.item( 0, 0 )->index() ), method.rsConstInDa() );
-    
-    do {
-        QStandardItem * item = model.itemFromIndex( model.index( 0, 0, model.item( 0, 0 )->index() ) );
-        item->setEnabled( false );
-        item = model.itemFromIndex( model.index( 0, 1, model.item( 0, 0 )->index() ) );
-        item->setEnabled( false );
-    } while(0);
-
-    model.setData( model.index( 1, 1 ), qVariantFromValue( CentroidDelegate::AreaHeight( method.centroidAreaIntensity() ) ) );
-    model.setData( model.index( 2, 1 ), method.baselineWidth() );
-    model.setData( model.index( 3, 1 ), method.peakCentroidFraction() * 100 );
-}
-
-void
 CentroidForm::update_data()
 {
-    QStandardItemModel& model = *pModel_;
-    adcontrols::CentroidMethod& method = *pMethod_;
+	adcontrols::CentroidMethod& method = *pMethod_;
 
-    method.peakWidthMethod( qVariantValue< CentroidDelegate::PeakWidthMethod >( model.index( 0, 1 ).data( Qt::EditRole ) ).methodValue() );
+    // Scan Type
+	method.rsTofInDa( ui->doubleSpinBox_peakwidth->value() );
+	method.rsTofAtMz( ui->doubleSpinBox_mz->value() );
+	method.rsPropoInPpm( ui->doubleSpinBox_proportional->value() );
+	method.rsConstInDa( ui->doubleSpinBox_constant->value() ); 
 
-    method.rsTofInDa( model.index( 0, 1, model.item( 0, 0 )->index() ).data( Qt::EditRole ).toDouble() );
-    method.rsPropoInPpm( model.index( 1, 1, model.item( 0, 0 )->index() ).data( Qt::EditRole ).toDouble() );
-    method.rsConstInDa( model.index( 2, 1, model.item( 0, 0 )->index() ).data( Qt::EditRole ).toDouble() );
+	if ( ui->radioButton_constant->isChecked() )
+		method.peakWidthMethod( adcontrols::CentroidMethod::ePeakWidthConstant );
+	else if ( ui->radioButton_propo->isChecked() )
+	    method.peakWidthMethod( adcontrols::CentroidMethod::ePeakWidthConstant );
+	else if ( ui->radioButton_tof->isChecked() )
+		method.peakWidthMethod( adcontrols::CentroidMethod::ePeakWidthTOF );
 
-    CentroidDelegate::AreaHeight ah = qVariantValue<CentroidDelegate::AreaHeight>( model.index( 0, 1 ).data( Qt::EditRole ) );
-    method.centroidAreaIntensity( ah.methodValue() );
-
-    method.baselineWidth( model.index( 2, 1 ).data( Qt::EditRole ).toDouble() );
-    method.peakCentroidFraction( model.index( 3, 1 ).data( Qt::EditRole ).toDouble() / 100.0 );
+    method.baselineWidth( ui->doubleSpinBox_baselinewidth->value() );
+	method.centroidAreaIntensity( ui->radioButton_area->isChecked() );
+	method.peakCentroidFraction( ui->doubleSpinBox_centroidfraction->value() / 100.0 );
 }
 
 void
@@ -158,4 +136,25 @@ QSize
 CentroidForm::sizeHint() const
 {
     return QSize( 300, 250 );
+}
+
+void
+CentroidForm::update()
+{
+	if ( ui->radioButton_constant->isChecked() ) {
+		ui->doubleSpinBox_peakwidth->setDisabled( true );
+		ui->doubleSpinBox_mz->setDisabled( true );
+		ui->doubleSpinBox_proportional->setDisabled( true );
+		ui->doubleSpinBox_constant->setDisabled( false );
+	} else if ( ui->radioButton_propo->isChecked() ) {
+		ui->doubleSpinBox_peakwidth->setDisabled( true );
+		ui->doubleSpinBox_mz->setDisabled( true );
+		ui->doubleSpinBox_proportional->setDisabled( false );
+		ui->doubleSpinBox_constant->setDisabled( true );
+	} else if ( ui->radioButton_tof->isChecked() ) {
+		ui->doubleSpinBox_peakwidth->setDisabled( false );
+		ui->doubleSpinBox_mz->setDisabled( false );
+		ui->doubleSpinBox_proportional->setDisabled( true );
+		ui->doubleSpinBox_constant->setDisabled( true );
+	}
 }

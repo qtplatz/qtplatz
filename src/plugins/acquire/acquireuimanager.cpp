@@ -50,6 +50,7 @@
 #include <adplugin/adplugin.hpp>
 #include <adplugin/constants.hpp>
 #include <adplugin/imonitor.hpp>
+#include <adplugin/lifecycleaccessor.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
 #include <adinterface/eventlog_helper.hpp>
@@ -129,17 +130,21 @@ AcquireUIManager::init()
                 
                 if ( it->isPlugin() ) {
                     QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
+
                     if ( pWidget ) {
+						bool res = false;
+						if ( it->interface() == L"adplugin::ui::iLog" ) {
+							res = connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
+							emit signal_eventLog( "Hello -- this is acquire plugin" );
+						}
+
                         pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
                         QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
                         m.dockWidgetVec_.push_back( dock );
                     }
-                } else {
-                    QWidget * pWidget = new QTextEdit( qtwrapper::qstring( it->title() ) );
-                    pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
-                    QDockWidget * dock = m.mainWindow_->addDockForWidget( pWidget );
-                    m.dockWidgetVec_.push_back( dock );
+
                 }
+
             }
 
         }            
@@ -154,17 +159,10 @@ AcquireUIManager::OnInitialUpdate()
     QList< QDockWidget *> dockWidgets = m.mainWindow_->dockWidgets();
   
     foreach ( QDockWidget * dockWidget, dockWidgets ) {
-        QObjectList list = dockWidget->children();
-        foreach ( QObject * obj, list ) {
-            adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
-            if ( pLifeCycle ) {
-                try {
-                    pLifeCycle->OnInitialUpdate();
-                } catch ( CORBA::Exception& ex ) {
-                    // QMessageBox::critical( 0, QLatin1String("AcquireUIManager::OnInitialUpdate"), ex._info().c_str() );
-                }
-            }
-        }
+		adplugin::LifeCycleAccessor accessor( dockWidget->widget() );
+		adplugin::LifeCycle * pLifeCycle = accessor.get();
+		if ( pLifeCycle )
+			pLifeCycle->OnInitialUpdate();
     }
 }
 
@@ -213,8 +211,8 @@ AcquireUIManager::setSimpleDockWidgetArrangement()
     }
     
     // make dockwdigets into a tab
-    for ( unsigned int i = 2; i < m.dockWidgetVec_.size(); ++i )
-        m.mainWindow_->tabifyDockWidget( m.dockWidgetVec_[1], m.dockWidgetVec_[i] );
+    for ( unsigned int i = 1; i < m.dockWidgetVec_.size(); ++i )
+		m.mainWindow_->tabifyDockWidget( m.dockWidgetVec_[0], m.dockWidgetVec_[i] );
 
     QList< QTabBar * > tabBars = m.mainWindow_->findChildren< QTabBar * >();
     foreach( QTabBar * tabBar, tabBars ) 

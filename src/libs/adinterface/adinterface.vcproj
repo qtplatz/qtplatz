@@ -302,10 +302,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\eventlog_helper.h"
-				>
-			</File>
-			<File
 				RelativePath=".\eventlog_helper.hpp"
 				>
 			</File>

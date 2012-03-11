@@ -90,17 +90,14 @@ SequenceManager::init( const std::wstring& apppath
                 QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
                 if ( pWidget ) {
                     //pWidget->setWindowTitle( tr( qtwrapper::qstring::copy(it->name())) );
-                    //connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
                     pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
                     QDockWidget * dock = mainWindow_->addDockForWidget( pWidget );
                     dockWidgetVec_.push_back( dock );
 
-                } else {
-                    QWidget * edit = new QTextEdit( "Edit" );
-                    edit->setWindowTitle( qtwrapper::qstring( it->title() ) );
-                    QDockWidget * dock = mainWindow_->addDockForWidget( edit );
-                    dockWidgetVec_.push_back( dock );
+
+
                 }
+
             }
         }
     }            

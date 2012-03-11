@@ -25,19 +25,18 @@
 
 #include "logwidget.hpp"
 #include "ui_logwidget.h"
+#include <QtGui/QPlainTextEdit>
 
 using namespace qtwidgets;
 
-LogWidget::LogWidget(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::LogWidget)
+LogWidget::LogWidget(QWidget *parent) : QWidget(parent), ui(new Ui::LogWidget)
 {
-    ui->setupUi(this);
+	ui->setupUi(this);
 }
 
 LogWidget::~LogWidget()
 {
-    delete ui;
+	delete ui;
 }
 
 void
@@ -59,13 +58,13 @@ LogWidget::OnFinalClose()
 void
 LogWidget::handle_eventLog( QString str )
 {
-   ui->plainTextEdit->appendPlainText( str );
+	ui->plainTextEdit->appendPlainText( str );
 }
 
 void
 LogWidget::handle_debug_print( unsigned long priority, unsigned long category, QString text )
 {
-    Q_UNUSED( priority );
+	Q_UNUSED( priority );
     Q_UNUSED( category );
 	ui->plainTextEdit->appendPlainText( text );
 }
@@ -73,5 +72,5 @@ LogWidget::handle_debug_print( unsigned long priority, unsigned long category, Q
 void
 LogWidget::getLifeCycle( adplugin::LifeCycle *& p )
 {
-    p = this;
+	p = this;
 }

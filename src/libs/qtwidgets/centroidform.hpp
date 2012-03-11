@@ -43,8 +43,6 @@ namespace Ui {
     class CentroidForm;
 }
 
-class QStandardItemModel;
-
 namespace qtwidgets {
 
     class CentroidDelegate;
@@ -70,16 +68,16 @@ namespace qtwidgets {
         Ui::CentroidForm *ui;
 
         boost::scoped_ptr<adcontrols::CentroidMethod> pMethod_;
-        boost::scoped_ptr< QStandardItemModel > pModel_;
-        boost::scoped_ptr< CentroidDelegate > pDelegate_;
+		// boost::scoped_ptr< CentroidDelegate > pDelegate_;
         adportable::Configuration config_;
     private:
-        void update_model();
+		// void update_model();
         void update_data();
 
     public slots:
         void getLifeCycle( adplugin::LifeCycle *& p );
         void getContents( adcontrols::ProcessMethod& );
+		virtual void update();
     };
 
 }
