@@ -43,6 +43,7 @@
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/timer.hpp>
 #include "observer_i.hpp"
 #include "manager_i.hpp"
 #include <acewrapper/orbservant.hpp>
@@ -190,7 +191,7 @@ iTask::initialize_configuration()
     if ( status_current_ >= ControlServer::eConfigured )
         return true;
 
-	adportable::scope_timer x;
+	adportable::timer x;
 	Logging(L"iTask::initialize_configuration...", ::EventLog::pri_DEBUG );
 
     SignalObserver::Observer_var masterObserver = getObserver();
@@ -207,7 +208,7 @@ iTask::initialize_configuration()
         // initialize instrument proxy
         boost::shared_ptr<iProxy> pProxy( new iProxy( *this ) );
         if ( pProxy ) {
-			adportable::scope_timer timer;
+			adportable::timer timer;
             pProxy->objId( objid );
             if ( ! pProxy->initialConfiguration( item ) ) {
                 Logging(L"iTask::initialize_configuration -- instrument initialization failed for \"%1%\""
@@ -225,7 +226,7 @@ iTask::initialize_configuration()
         if ( ! CORBA::is_nil( iSession.in() ) ) {
             boost::shared_ptr<oProxy> poProxy( new oProxy( *this ) );
             if ( poProxy ) {
-				adportable::scope_timer timer;
+				adportable::timer timer;
 
                 poProxy->objId( objid );
                 poProxy->setConfiguration( item );

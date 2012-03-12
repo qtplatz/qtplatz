@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <acewrapper/mutex.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/timer.hpp>
 #include <boost/foreach.hpp>
 #include "logging.hpp"
 
@@ -170,11 +171,11 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 
     if ( ! CORBA::is_nil( data.observer_ ) ) {
 
-		adportable::scope_timer x;
+		adportable::timer x;
 
 		data.objId_ = data.observer_->objId();
 
-		adportable::scope_timer y;
+		adportable::timer y;
 
         data.pCache_i_.reset( new observer_i( data.observer_ ) );  // shadow (cache) observer
 
