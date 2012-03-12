@@ -27,7 +27,8 @@ SOURCES += adportable.cpp \
     spectrum_processor.cpp \
     string.cpp \
     utf.cpp \
-    lifecycleframe.cpp
+    lifecycleframe.cpp \
+    timer.cpp
 
 win32 {
    SOURCES += protocollifecycle.cpp
@@ -54,5 +55,6 @@ HEADERS += adportable.hpp \
     string.hpp \
     utf.hpp \
     disable_warnings.h \
-    lifecycleframe.hpp
+    lifecycleframe.hpp \
+    timer.hpp
 

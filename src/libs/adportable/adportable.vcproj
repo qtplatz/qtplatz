@@ -239,6 +239,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\timer.cpp"
+				>
+			</File>
+			<File
 				RelativePath="utf.cpp"
 				>
 			</File>
@@ -787,6 +791,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\timer.hpp"
+				>
 			</File>
 			<File
 				RelativePath="utf.hpp"

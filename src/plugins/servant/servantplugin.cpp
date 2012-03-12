@@ -358,7 +358,7 @@ ServantPlugin::final_close()
     for ( adportable::Configuration::vector_type::reverse_iterator it = config.rbegin(); it != config.rend(); ++it ) {
         if ( it->attribute(L"type") == L"orbLoader" ) {
             std::wstring file = it->attribute( L"fullpath" );
-            qDebug() << "ServantPlugin::final_close closeing: " << qtwrapper::qstring::copy( file );
+			adportable::debug() << "ServantPlugin::final_close closeing: " << file;
             adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
             if ( loader )
                 loader.deactivate();

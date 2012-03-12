@@ -167,15 +167,14 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
     data.observer_ = SignalObserver::Observer::_duplicate( observer ); // real observer points to instrumets
 
     acewrapper::scoped_mutex_t<> lock( mutex_ );
-	adportable::scope_timer x;
 
     if ( ! CORBA::is_nil( data.observer_ ) ) {
 
-		adportable::scope_timer y;
+		adportable::scope_timer x;
 
 		data.objId_ = data.observer_->objId();
 
-		adportable::scope_timer z;
+		adportable::scope_timer y;
 
         data.pCache_i_.reset( new observer_i( data.observer_ ) );  // shadow (cache) observer
 
@@ -186,10 +185,11 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
             data.cache_ = SignalObserver::Observer::_narrow( obj );
         }
 		data.pCache_i_->populate_siblings();
-		Logging(L"observer_i::addSibling() -- x = %1%, y = %2% z=%3%", ::EventLog::pri_INFO ) % x.elapsed() % y.elapsed() % z.elapsed();
+		SignalObserver::Description_var desc = data.pCache_i_->getDescription();
+		Logging(L"observer_i::addSibling(%1%) (elapsed = %2%,%3%)", ::EventLog::pri_INFO )
+			% desc->trace_display_name.in() % x.elapsed() % y.elapsed();
     }
     sibling_set_.push_back( data );
-	Logging(L"observer_i::addSibling()", ::EventLog::pri_INFO );
     return true;
 }
 

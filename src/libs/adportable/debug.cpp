@@ -181,19 +181,3 @@ debug::operator << ( double d )
     return *this;
 }
 
-///
-scope_timer::scope_timer() : t0(0)
-{
-#if WIN32
-	t0 = ::GetTickCount();
-#endif
-}
-
-unsigned long
-scope_timer::elapsed()
-{
-#if WIN32
-	return ::GetTickCount() - t0;
-#endif
-	return 0;
-}

@@ -1,6 +1,5 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -23,37 +22,21 @@
 **
 **************************************************************************/
 
-#pragma once
+#ifndef TIMER_HPP
+#define TIMER_HPP
 
-#include <sstream>
-
-namespace boost { namespace posix_time { class ptime; } }
+#include <boost/date_time/posix_time/ptime.hpp>
 
 namespace adportable {
 
-    class debug {
-        std::ostringstream o_;
-        std::string file_;
-        int line_;
-    public:
-        debug(const char * file = 0, const int line = 0);
-        ~debug(void);
-        static void initialize( const std::string& filename );
-        std::string where() const;
-	std::string str() const { return o_.str(); }
-        debug& operator << ( const char * );
-        debug& operator << ( const unsigned char * );
-        debug& operator << ( const std::string& );
-        debug& operator << ( const std::wstring& );
-        debug& operator << ( bool );
-        debug& operator << ( char );
-        debug& operator << ( unsigned char );
-        debug& operator << ( int );
-        debug& operator << ( unsigned int );
-        debug& operator << ( long );
-        debug& operator << ( unsigned long );
-        debug& operator << ( float );
-        debug& operator << ( double );
-    };
+	class timer {
+	public:
+		timer();
+		unsigned long long elapsed() const;
+	private:
+		boost::posix_time::ptime pt;
+	};
 
 }
+
+#endif // TIMER_HPP
