@@ -217,7 +217,7 @@ iTask::initialize_configuration()
             }
             acewrapper::scoped_mutex_t<> lock( mutex_ );
             iproxies_.push_back( pProxy );
-            Logging(L"iTask::initialize_configuration -- instrument \"%1%\" successfully initialized as objId %2% took %3% ms"
+            Logging(L"iTask::initialize_configuration -- instrument \"%1%\" successfully initialized as objId %2% took %3% us"
                     , ::EventLog::pri_INFO )  % item.name() % objid % timer.elapsed();
         }
 
@@ -232,7 +232,7 @@ iTask::initialize_configuration()
                 poProxy->setConfiguration( item );
                 if ( poProxy->setInstrumentSession( iSession ) ) { // assign objid to source objects
                     size_t n = poProxy->populateObservers( objid );
-                    Logging(L"iTask::initialize_configuration -- \"%1%\" has %2% signal observers %3% ms"
+                    Logging(L"iTask::initialize_configuration -- \"%1%\" has %2% signal observers %3% us"
 						, ::EventLog::pri_INFO ) % item.name() % n % timer.elapsed();
                     objid += n;
                 }
@@ -251,7 +251,7 @@ iTask::initialize_configuration()
     std::for_each( oproxies_.begin(), oproxies_.end(), invoke_connect(L"iTask") );
 
     status_current_ = status_being_ = ControlServer::eConfigured;  // relevant modules are able to access.
-	Logging(L"iTask::initialize_configuration completed. %1% ms", ::EventLog::pri_INFO ) % x.elapsed();
+	Logging(L"iTask::initialize_configuration completed. %1% us", ::EventLog::pri_INFO ) % x.elapsed();
     return true;
 }
 

@@ -358,24 +358,27 @@ ServantPlugin::final_close()
     for ( adportable::Configuration::vector_type::reverse_iterator it = config.rbegin(); it != config.rend(); ++it ) {
         if ( it->attribute(L"type") == L"orbLoader" ) {
             std::wstring file = it->attribute( L"fullpath" );
-			adportable::debug() << "ServantPlugin::final_close closeing: " << file;
-            adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
-            if ( loader )
-                loader.deactivate();
+			if ( ! file.empty() ) {
+				adportable::debug() << "ServantPlugin::final_close closeing: " << file;
+				adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
+				if ( loader )
+					loader.deactivate();
+			}
         }
     }
     adportable::debug() << "====== ServantPlugin::final_close Loggor::shutdown... =======";    
     Logger::shutdown();
     try {
         adportable::debug() << "====== ServantPlugin::final_close orb shutdown... =======";    
-        servant::singleton::orbServantManager::instance()->orb()->shutdown();
+		servant::singleton::orbServantManager::instance()->orb()->shutdown();
         adportable::debug() << "====== ServantPlugin::final_close orb fini... =======";    
         servant::singleton::orbServantManager::instance()->fini();
     } catch ( CORBA::Exception& ex ) {
-        adportable::debug dbg( __FILE__, __LINE__ );
-        dbg << ex._info().c_str();        dbg << ex._info().c_str();
+		adportable::debug dbg( __FILE__, __LINE__ );
+		dbg << ex._info().c_str();
         QMessageBox::critical( 0, dbg.where().c_str(), dbg.str().c_str() );
-    }
+	}
+
     adportable::debug() << "====== ServantPlugin::final_close waiting threads... =======";    
     ACE_Thread_Manager::instance()->wait();
     adportable::debug() << "====== ServantPlugin::final_close complete =======";    
