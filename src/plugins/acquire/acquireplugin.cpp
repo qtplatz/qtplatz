@@ -440,12 +440,10 @@ AcquirePlugin::actionConnect()
 
                     observer_ = session_->getObserver(); // master observer
                     if ( ! CORBA::is_nil( observer_.in() ) ) {
-                        // make connection to master observer (added 21st Sep. 2011)
                         if ( ! masterObserverSink_ ) {
                             masterObserverSink_.reset( new adplugin::QObserverEvents_i( observer_, L"acquireplugin" ) );
                             connect( masterObserverSink_.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
                                      , this, SLOT( handle_update_data(unsigned long, long) ) );
-                            sinkVec_.push_back( masterObserverSink_ );
                         }
 
                         // connect to 1st layer siblings ( := top shadow(cache) observer for each instrument )
@@ -455,7 +453,7 @@ AcquirePlugin::actionConnect()
 						do {
 							LogMessageHelper log( L"actionConnect signal observer %1% siblings found" );
 							log % nsize;
-							manager_->handle_eventLog( log.get() ); //dbg.str().c_str() );
+							manager_->handle_eventLog( log.get() );
 						} while(0);
 
                         for ( size_t i = 0; i < nsize; ++i ) {
@@ -492,12 +490,10 @@ AcquirePlugin::actionDisconnect()
 
         observer_ = session_->getObserver();
         if ( ! CORBA::is_nil( observer_.in() ) ) {
-            SignalObserver::Observers_var siblings = observer_->getSiblings();
-            for ( size_t i = 0; i < sinkVec_.size(); ++i ) {
-                disconnect( sinkVec_[i].get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
-                            , this, SLOT( handle_update_data(unsigned long, long) ) );
-                sinkVec_[i]->OnClose();
-            }
+			disconnect( masterObserverSink_.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
+				, this, SLOT( handle_update_data(unsigned long, long) ) );
+			masterObserverSink_->disconnect();
+			adplugin::ORBManager::instance()->deactivate( masterObserverSink_->_this() );
         }
         session_->disconnect( receiver_i_.get()->_this() );
         adplugin::ORBManager::instance()->deactivate( receiver_i_->_this() );

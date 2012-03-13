@@ -118,13 +118,9 @@ namespace Acquire {
             ControlServer::Session_var session_;
             SignalObserver::Observer_var observer_;
             std::map< unsigned long, SignalObserver::Observer_var > observerMap_;
-            // for quick debug, to be removed
-            // SignalObserver::Observer_var tofCache_;
-            // <--
+
             boost::scoped_ptr< adplugin::QReceiver_i > receiver_i_;
-            boost::scoped_ptr< adplugin::QObserverEvents_i > observer_i_;
-            boost::shared_ptr< adplugin::QObserverEvents_i > masterObserverSink_;
-            std::vector< boost::shared_ptr< adplugin::QObserverEvents_i > > sinkVec_;
+            boost::scoped_ptr< adplugin::QObserverEvents_i > masterObserverSink_;
             std::vector< std::wstring > trace_descriptions_;
             QComboBox * traceBox_;
             void populate( SignalObserver::Observer_var& );

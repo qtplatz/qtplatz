@@ -27,16 +27,24 @@
 
 #include "adplugin_global.h"
 #include <QObject>
+#include <boost/noncopyable.hpp>
 
 #if defined _MSC_VER
-#pragma warning(disable:4996)
+# pragma warning(disable:4996)
 #endif
+
 #include <adinterface/signalobserverS.h>
+
+#if defined _MSC_VER
+# pragma warning(default:4996)
+#endif
 
 namespace adplugin {
 
+	class ObserverEvents_i;
+
     class ADPLUGINSHARED_EXPORT QObserverEvents_i : public QObject
-                                                  , public POA_SignalObserver::ObserverEvents {
+		                                          , boost::noncopyable {
         Q_OBJECT
     public:
         explicit QObserverEvents_i(QObject *parent = 0);
@@ -45,14 +53,18 @@ namespace adplugin {
                            , SignalObserver::eUpdateFrequency freq = SignalObserver::Friquent
                            , QObject * parent = 0 );
         ~QObserverEvents_i();
-        
+	private:
+		friend class ObserverEvents_i;
         // implements ObserverEvents
-        void OnConfigChanged( CORBA::ULong objId, SignalObserver::eConfigStatus );
-        void OnUpdateData( CORBA::ULong, CORBA::Long );
-        void OnMethodChanged( CORBA::ULong, CORBA::Long );
-        void OnEvent( CORBA::ULong, CORBA::ULong, CORBA::Long );
-        void OnClose();
-        
+        void onConfigChanged( CORBA::ULong objId, SignalObserver::eConfigStatus );
+        void onUpdateData( CORBA::ULong, CORBA::Long );
+        void onMethodChanged( CORBA::ULong, CORBA::Long );
+        void onEvent( CORBA::ULong, CORBA::ULong, CORBA::Long );
+		// end ObserverEvents
+	public:
+		void disconnect();
+		::SignalObserver::ObserverEvents *_this (void);
+	public:
         // Observer 
         inline SignalObserver::Observer_ptr& ptr() { return impl_; }
     signals:
@@ -65,7 +77,8 @@ namespace adplugin {
     public slots:
 	
     private:
-        SignalObserver::Observer_var impl_;
+        SignalObserver::Observer * impl_;
+		ObserverEvents_i * sink_;
         std::wstring token_;
         SignalObserver::eUpdateFrequency freq_;
         unsigned long objId_;
