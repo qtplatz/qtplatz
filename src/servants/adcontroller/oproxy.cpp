@@ -52,7 +52,7 @@ oProxy::OnUpdateData ( ::CORBA::ULong objId, ::CORBA::Long pos )
 void
 oProxy::OnMethodChanged ( ::CORBA::ULong objId, ::CORBA::Long pos )
 {
-    task_.observer_update_data( this->objId_, objId, pos );
+    task_.observer_update_method( this->objId_, objId, pos );
 }
 
 void

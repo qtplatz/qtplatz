@@ -442,8 +442,14 @@ AcquirePlugin::actionConnect()
                     if ( ! CORBA::is_nil( observer_.in() ) ) {
                         if ( ! masterObserverSink_ ) {
                             masterObserverSink_.reset( new adplugin::QObserverEvents_i( observer_, L"acquireplugin" ) );
+                            connect( masterObserverSink_.get(), SIGNAL( signal_ConfigChanged( unsigned long, long ) )
+								, this, SLOT( handle_config_changed(unsigned long, long) ) );
                             connect( masterObserverSink_.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
-                                     , this, SLOT( handle_update_data(unsigned long, long) ) );
+								, this, SLOT( handle_update_data(unsigned long, long) ) );
+                            connect( masterObserverSink_.get(), SIGNAL( signal_MethodChanged( unsigned long, long ) )
+								, this, SLOT( handle_method_changed(unsigned long, long) ) );
+                            connect( masterObserverSink_.get(), SIGNAL( signal_Event( unsigned long, unsigned long, long ) )
+								, this, SLOT( handle_event(unsigned long, unsigned long, long) ) );
                         }
 
                         // connect to 1st layer siblings ( := top shadow(cache) observer for each instrument )
@@ -609,6 +615,22 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
         }
     }
 }
+
+void
+AcquirePlugin::handle_config_changed( unsigned long objid, long pos )
+{
+}
+
+void
+AcquirePlugin::handle_method_changed( unsigned long objid, long pos )
+{
+}
+
+void
+AcquirePlugin::handle_event( unsigned long objid, unsigned long, long pos )
+{
+}
+
 
 void
 AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value )

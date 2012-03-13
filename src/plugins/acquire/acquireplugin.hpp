@@ -87,7 +87,11 @@ namespace Acquire {
             void handle_shutdown();
             void handle_debug_print( unsigned long priority, unsigned long category, QString text );
 
+            void handle_config_changed( unsigned long objid, long pos );
             void handle_update_data( unsigned long objid, long pos );
+            void handle_method_changed( unsigned long objid, long pos );
+			void handle_event( unsigned long objid, unsigned long, long pos );
+
             void handle_monitor_selected( int );
             void handle_monitor_activated( int );
 
