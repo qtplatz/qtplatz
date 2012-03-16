@@ -247,8 +247,8 @@ iTask::initialize_configuration()
 
     // fire connect
     using adcontroller::ibroker::invoke_connect;
-    std::for_each( iproxies_.begin(), iproxies_.end(), invoke_connect(L"iTask") );
-    std::for_each( oproxies_.begin(), oproxies_.end(), invoke_connect(L"iTask") );
+	std::for_each( iproxies_.begin(), iproxies_.end(), invoke_connect(L"adcontroller.iTask") );
+    std::for_each( oproxies_.begin(), oproxies_.end(), invoke_connect(L"adcontroller.iTask") );
 
     status_current_ = status_being_ = ControlServer::eConfigured;  // relevant modules are able to access.
 	Logging(L"iTask::initialize_configuration completed. %1% us", ::EventLog::pri_INFO ) % x.elapsed();
