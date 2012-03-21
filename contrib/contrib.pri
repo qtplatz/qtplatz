@@ -49,14 +49,14 @@ equals(TEST, 1) {
 }
 
 IDE_SOURCE_TREE = $$PWD
-QTPLATZ_SOURCE_TREE = $$IDE_SOURCE_TREE/../qtplatz
+QTPLATZ_SOURCE_TREE = $$IDE_SOURCE_TREE/..
 
 ######## Provider #######
-PROVIDER = MSI
+PROVIDER = ScienceLiaison
 
 isEmpty(IDE_BUILD_TREE) {
     sub_dir = $$_PRO_FILE_PWD_
-    sub_dir ~= s,^$$re_escape($$PWD),,
+    sub_dir ~= s,^$$re_escape($$PWD),,MSI
     IDE_BUILD_TREE = $$cleanPath($$OUT_PWD)
     IDE_BUILD_TREE ~= s,$$re_escape($$sub_dir)$,,
 }

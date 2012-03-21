@@ -6,8 +6,13 @@
 
 QT       -= core gui
 
+include(../../contrib.pri)
+
 TARGET = fticr
 TEMPLATE = lib
+
+INCLUDEPATH += .
+INCLUDEPATH += $$QTPLATZ_SOURCE_TREE/src
 
 DEFINES += FTICR_LIBRARY
 

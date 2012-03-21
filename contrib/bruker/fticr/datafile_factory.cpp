@@ -24,7 +24,7 @@
 
 #include "datafile_factory.hpp"
 #include "datafile.hpp"
-
+#include <adcontrols/processeddataset.hpp> // for delition of scoped_ptr<ProcessedDataset>
 #include "jcampdxparser.hpp"
 
 using namespace fticr;

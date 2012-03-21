@@ -44,7 +44,7 @@ namespace adcontrols {
 }
 
 extern "C" {
-    __declspec(dllexport) adcontrols::datafile_factory * datafile_factory();
+    FTICRSHARED_EXPORT adcontrols::datafile_factory * datafile_factory();
 }
 
 adcontrols::datafile_factory *
