@@ -9,7 +9,8 @@ SUBDIRS   = plugin_coreplugin \
             plugin_acquire \
 #            plugin_tune \
             plugin_sequence \
-            plugin_dataproc
+            plugin_dataproc \
+    chemspider
 
 plugin_coreplugin.subdir = coreplugin
 
