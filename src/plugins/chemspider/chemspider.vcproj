@@ -490,8 +490,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY $(InputFileName)"
-						CommandLine="copy /y $(InputFileName)  $(OutDir)\$(InputFileName)&#x0D;&#x0A;"
-						Outputs="$(OutDir)\$(InputFileName)"
+						CommandLine="copy /y $(InputFileName)  $(OutDir)$(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(OutDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -500,8 +500,8 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY $(InputFileName)"
-						CommandLine="copy /y $(InputFileName)  $(OutDir)\$(InputFileName)&#x0D;&#x0A;"
-						Outputs="$(OutDir)\$(InputFileName)"
+						CommandLine="copy /y $(InputFileName)  $(OutDir)$(InputFileName)&#x0D;&#x0A;"
+						Outputs="$(OutDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
 			</File>
@@ -514,9 +514,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY ChemSpider.pluginspec"
-						CommandLine="copy /y ChemSpider.pluginspec c:\Users\toshi\src\qtplatz\lib\qtplatz\plugins\ScienceLiaison\ChemSpider.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y ChemSpider.pluginspec $(OutDir)ChemSpider.pluginspec&#x0D;&#x0A;"
 						AdditionalDependencies="ChemSpider.pluginspec;copy"
-						Outputs="c:\Users\toshi\src\qtplatz\lib\qtplatz\plugins\ScienceLiaison\ChemSpider.pluginspec"
+						Outputs="$(OutDir)ChemSpider.pluginspec"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -525,9 +525,9 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY ChemSpider.pluginspec"
-						CommandLine="copy /y ChemSpider.pluginspec c:\Users\toshi\src\qtplatz\lib\qtplatz\plugins\ScienceLiaison\ChemSpider.pluginspec&#x0D;&#x0A;"
+						CommandLine="copy /y ChemSpider.pluginspec $(OutDir)ChemSpider.pluginspec"
 						AdditionalDependencies="ChemSpider.pluginspec;copy"
-						Outputs="c:\Users\toshi\src\qtplatz\lib\qtplatz\plugins\ScienceLiaison\ChemSpider.pluginspec"
+						Outputs="$(OutDir)ChemSpider.pluginspec"
 					/>
 				</FileConfiguration>
 			</File>
