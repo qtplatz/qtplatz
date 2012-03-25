@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="ChemSpider"
 	ProjectGUID="{9983F668-B807-3EBE-BBD5-8D0C900C7CC2}"
+	RootNamespace="ChemSpider"
 	Keyword="Qt4VSv1.0"
 	TargetFrameworkVersion="0"
 	>
@@ -45,13 +46,13 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;&quot;.\..\..\libs&quot;;c:\Users\toshi\src\qtplatz\tools;&quot;.\..\..\plugins&quot;;c:\Boost\include\boost-1_48;&quot;$(QTDIR)\include\ActiveQt&quot;;&quot;.\debug&quot;;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;.\GeneratedFiles&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;.\..\..\libs;.\..\..\plugins;&quot;$(BOOST_INCLUDE)&quot;;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;.\GeneratedFiles"
 				PreprocessorDefinitions="_CONSOLE,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=&quot;lib&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,DEBUG,CHEMSPIDER_LIBRARY,QT_DLL,QT_PLUGIN,QT_TESTLIB_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
 				RuntimeLibrary="3"
 				BufferSecurityCheck="false"
-				TreatWChar_tAsBuiltInType="false"
+				TreatWChar_tAsBuiltInType="true"
 				RuntimeTypeInfo="true"
 				AssemblerListingLocation="debug\"
 				ObjectFile="$(IntDir)\"
@@ -73,10 +74,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="C:/Users/toshi/src/qtplatz/lib/qtplatz\Aggregationd.lib C:/Users/toshi/src/qtplatz/lib/qtplatz\ExtensionSystemd.lib C:/Users/toshi/src/qtplatz/lib/qtplatz\Utilsd.lib Cored.lib $(QTDIR)\lib\QtTestd4.lib $(QTDIR)\lib\QtGuid4.lib $(QTDIR)\lib\QtCored4.lib"
-				OutputFile="$(OutDir)\ChemSpiderd.dll"
+				AdditionalDependencies="../../../lib/qtplatz\Aggregationd.lib ../../../lib/qtplatz\ExtensionSystemd.lib ../../../lib/qtplatz\Utilsd.lib ../../../lib/qtplatz/adplugind.lib ../../../lib/qtplatz/adportabled.lib ../../../lib/qtplatz/xmlparserd.lib ../../../lib/qtplatz/qtwrapperd.lib Cored.lib $(QTDIR)\lib\QtTestd4.lib $(QTDIR)\lib\QtGuid4.lib $(QTDIR)\lib\QtCored4.lib"
+				OutputFile="$(OutDir)ChemSpiderd.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,$(QTDIR)\lib,C:/Users/toshi/src/qtplatz/lib/qtplatz,C:/Users/toshi/src/qtplatz/lib/qtplatz/plugins/ScienceLiaison,C:\Boost/lib,C:/Users/toshi/src/qtplatz/lib/qtplatz/plugins/Nokia"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtplatz&quot;;&quot;$(BOOST_ROOT)/lib&quot;;&quot;$(TargetDir)&quot;;&quot;$(SolutionDir)lib/qtplatz/plugins/Nokia&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="0"
@@ -134,7 +135,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;&quot;.\..\..\libs&quot;;c:\Users\toshi\src\qtplatz\tools;&quot;.\..\..\plugins&quot;;c:\Boost\include\boost-1_48;&quot;$(QTDIR)\include\ActiveQt&quot;;&quot;.\release&quot;;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;&quot;.\GeneratedFiles&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtTest&quot;;&quot;$(QTDIR)\include&quot;;.\..\..\libs;.\..\..\plugins;&quot;$(BOOST_INCLUDE)&quot;;&quot;$(QTDIR)\mkspecs\win32-msvc2008&quot;;.\GeneratedFiles"
 				PreprocessorDefinitions="_CONSOLE,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,IDE_LIBRARY_BASENAME=&quot;lib&quot;,WITH_TESTS,QT_NO_CAST_TO_ASCII,DEBUG,CHEMSPIDER_LIBRARY,QT_DLL,QT_NO_DEBUG,QT_PLUGIN,QT_TESTLIB_LIB,QT_GUI_LIB,QT_CORE_LIB,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -166,7 +167,7 @@
 				OutputFile="$(OutDir)\ChemSpiderd.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,$(QTDIR)\lib,C:/Users/toshi/src/qtplatz/lib/qtplatz,C:/Users/toshi/src/qtplatz/lib/qtplatz/plugins/ScienceLiaison,C:\Boost/lib,C:/Users/toshi/src/qtplatz/lib/qtplatz/plugins/Nokia"
+				AdditionalLibraryDirectories="$(QTDIR)\lib,../../../lib/qtplatz,../../../lib/qtplatz/plugins/ScienceLiaison,$(ACE_ROOT)/lib,C:\Boost/lib,../../../lib/qtplatz/plugins/Nokia,$(QWT)/lib"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="0"
@@ -238,7 +239,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing chemspidermanager.hpp..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\toshi\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_48&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot; &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -249,7 +250,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing chemspidermanager.hpp..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_NO_DEBUG -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -DNDEBUG -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\toshi\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_48&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_NO_DEBUG -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -DNDEBUG -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot; &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -264,7 +265,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing chemspidermode.hpp..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\toshi\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_48&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot; &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -275,7 +276,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing chemspidermode.hpp..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_NO_DEBUG -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -DNDEBUG -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\toshi\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_48&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_NO_DEBUG -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -DNDEBUG -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot; &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -290,7 +291,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing chemspiderplugin.hpp..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\toshi\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_48&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\debug&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot; &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -301,7 +302,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing chemspiderplugin.hpp..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_NO_DEBUG -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -DNDEBUG -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-Ic:\Users\toshi\src\qtplatz\tools&quot; &quot;-I.\..\..\plugins&quot; &quot;-Ic:\Boost\include\boost-1_48&quot; &quot;-I$(QTDIR)\include\ActiveQt&quot; &quot;-I.\release&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_NO_DEBUG -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -DNDEBUG -D_WINDLL  &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot; &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -480,6 +481,30 @@
 			UniqueIdentifier="{E0D8C965-CC5F-43d7-AD63-FAEF0BBC0F85}-copy2build"
 			ParseFiles="false"
 			>
+			<File
+				RelativePath=".\ChemSpider.config.xml"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="COPY $(InputFileName)"
+						CommandLine="copy /y $(InputFileName)  $(OutDir)\$(InputFileName)"
+						Outputs="$(OutDir)\$(InputFileName)"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="COPY $(InputFileName)"
+						CommandLine="copy /y $(InputFileName)  $(OutDir)\$(InputFileName)"
+						Outputs="$(OutDir)\$(InputFileName)"
+					/>
+				</FileConfiguration>
+			</File>
 			<File
 				RelativePath="ChemSpider.pluginspec"
 				>

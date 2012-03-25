@@ -100,4 +100,14 @@
 			<xs:attribute name="name" use="optional"/>
 		</xs:complexType>
 	</xs:element>
+  <!-- ============================================================================ -->
+  <xs:element name="ChemSpiderConfiguration">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Module" type="ModuleType" maxOccurs="unbounded"/>
+        <xs:element name="Configuration" type="ConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="name" use="optional"/>
+    </xs:complexType>
+  </xs:element>
 </xs:schema>

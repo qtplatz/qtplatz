@@ -156,7 +156,6 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
         apppath = qtwrapper::wstring::copy( dir.path() );
     } while(0);
 
-    // std::wstring configFile = pluginpath + L"/dataproc.config.xml";
     std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/dataproc.config.xml" );
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
 

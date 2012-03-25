@@ -32,6 +32,7 @@
 class QDockWidget;
 class QMainWindow;
 namespace Utils { class FancyMainWindow; }
+namespace adportable { class Configuration; }
 
 namespace ChemSpider { namespace Internal {
 
@@ -39,11 +40,13 @@ namespace ChemSpider { namespace Internal {
 		Q_OBJECT
 	public:
 		explicit ChemSpiderManager(QObject *parent = 0);
+		void init( const adportable::Configuration&, const std::wstring& apppath );
 
         void OnInitialUpdate();
         void OnFinalClose();
 		QMainWindow * mainWindow() const;
-    
+		void setSimpleDockWidgetArrangement();
+
     signals:
     
 	public slots:

@@ -5,6 +5,8 @@
 #include <extensionsystem/iplugin.h>
 #include <boost/smart_ptr.hpp>
 
+namespace adportable { class Configuration; }
+
 namespace ChemSpider {	namespace Internal {
 
 	class ChemSpiderMode;
@@ -27,6 +29,7 @@ namespace ChemSpider {	namespace Internal {
 	private:
 		boost::scoped_ptr< ChemSpiderMode > mode_;
 		boost::scoped_ptr< ChemSpiderManager > manager_;
+		boost::scoped_ptr< adportable::Configuration > pConfig_;
 	};
 
 } // namespace Internal

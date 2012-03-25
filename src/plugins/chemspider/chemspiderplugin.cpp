@@ -26,8 +26,10 @@
 #include "chemspiderconstants.hpp"
 #include "chemspidermode.hpp"
 #include "chemspidermanager.hpp"
-#include "ui_chemspidermode.h"
-
+#include <adportable/configuration.hpp>
+#include <adportable/debug.hpp>
+#include <adplugin/adplugin.hpp>
+#include <qtwrapper/qstring.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -37,26 +39,27 @@
 #include <coreplugin/modemanager.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/minisplitter.h>
+#include <coreplugin/outputpane.h>
 
+#include <QtCore>
 #include <QtGui/QAction>
 #include <QtGui/QMessageBox>
 #include <QtGui/QMainWindow>
 #include <QtGui/QMenu>
 #include <QtGui/QTextEdit>
-
+#include <QtGui/QBoxLayout>
 #include <QtCore/QtPlugin>
+#include <QDir>
+#include <boost/filesystem.hpp>
 
 using namespace ChemSpider::Internal;
 
 ChemSpiderPlugin::ChemSpiderPlugin()
 {
-    // Create your members
 }
 
 ChemSpiderPlugin::~ChemSpiderPlugin()
 {
-    // Unregister objects from the plugin manager's object pool
-    // Delete members
 	if ( mode_ )
 		removeObject( mode_.get() );
 }
@@ -66,6 +69,12 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
+
+	//QList<int> context;
+	//Core::UniqueIDManager * uidm = Core::ICore::instance()->uniqueIDManager();
+	//if ( uidm ) {
+	//context.append( uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR ) );
+	//}
 
     Core::ActionManager *am = Core::ICore::instance()->actionManager();
     
@@ -81,34 +90,83 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
     menu->addAction(cmd);
     am->actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
 
+    //-------------------------------------------------------------------------------------------
+    pConfig_.reset( new adportable::Configuration() );
+
+	boost::filesystem::path path( qtwrapper::wstring( QCoreApplication::instance()->applicationDirPath() ) );
+	std::wstring apppath = path.branch_path().c_str();
+	std::wstring cfile = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/ChemSpider.config.xml" );
+
+	if ( ! adplugin::manager::instance()->loadConfig( *pConfig_, cfile, L"/ChemSpiderConfiguration/Configuration" ) ) {
+		adportable::debug( __FILE__, __LINE__ ) << "loadConfig" << cfile << "failed";
+	}
+    //------------------------------------------------
+
 	mode_.reset( new ChemSpiderMode( this ) );
 	if ( ! mode_ )
 		return false;
-    manager_.reset( new ChemSpiderManager(0) );
-	if ( manager_ ) {
-		QWidget * centralWidget = new QWidget;
-		if ( centralWidget ) {
-			ChemSpider::Ui_ChemSpiderMode * ui = new ChemSpider::Ui_ChemSpiderMode; // ( centralWidget );
-			ui->setupUi( centralWidget );
-			manager_->mainWindow()->setCentralWidget( centralWidget );
-		}
-	} else
-		return false;
 
+    manager_.reset( new ChemSpiderManager(0) );
+	if ( manager_ )
+		manager_->init( *pConfig_, apppath );
+	else
+		return false;
+	//------------
 	Core::MiniSplitter * splitter = new Core::MiniSplitter;
 	if ( splitter ) {
 		splitter->addWidget( manager_->mainWindow() );
-		splitter->addWidget( new QTextEdit );
+		splitter->addWidget( new Core::OutputPanePlaceHolder( mode_.get() ) );
         splitter->setStretchFactor( 0, 10 );
 		splitter->setStretchFactor( 1, 0 );
 		splitter->setOrientation( Qt::Vertical );
 	} else
 		return false;
 
-    mode_->setWidget( splitter );
+	//----------
+	do {
+		QWidget* centralWidget = new QWidget;
+		manager_->mainWindow()->setCentralWidget( centralWidget );
+
+		std::vector< QWidget * > wnd;
+		Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
+		if ( splitter3 ) {
+			QTabWidget * pTab = new QTabWidget;
+			splitter3->addWidget( pTab );
+			wnd.push_back( new QFrame );
+			pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_stepoverproc_small.png"), "ChemSpider(1)" );
+			wnd.push_back( new QFrame );
+			pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_snapshot_small.png"), "ChemSpider(2)" );
+		}
+		QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
+		toolBarAddingLayout->setMargin(0);
+		toolBarAddingLayout->setSpacing(0);
+		//toolBarAddingLayout->addWidget( toolBar );
+		toolBarAddingLayout->addWidget( splitter3 );
+		//toolBarAddingLayout->addWidget( toolBar2 );
+
+/*
+		// connections
+		for ( std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
+			connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
+				, *it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
+			connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
+				, *it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
+			connect( this, SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
+				, *it, SLOT( onApplyMethod( const adcontrols::ProcessMethod& ) ) );
+		}
+		connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
+			, manager_.get(), SLOT( handleSessionAdded( Dataprocessor* ) ) );
+		connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
+			, manager_.get(), SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
+*/
+	} while(0);
+
+    manager_->setSimpleDockWidgetArrangement();
+
+	mode_->setWidget( splitter );
 	addObject( mode_.get() );
 
-    return true;
+	return true;
 }
 
 void ChemSpiderPlugin::extensionsInitialized()

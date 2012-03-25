@@ -159,6 +159,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Welcome", "src\plugins\welc
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChemSpider", "src\plugins\chemspider\chemspider.vcproj", "{9983F668-B807-3EBE-BBD5-8D0C900C7CC2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DE1947AB-4C0A-39BA-8305-39F925AFE9D4} = {DE1947AB-4C0A-39BA-8305-39F925AFE9D4}
+		{91F406D4-8137-3B1B-B849-69A9AD360843} = {91F406D4-8137-3B1B-B849-69A9AD360843}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
