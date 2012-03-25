@@ -53,7 +53,7 @@
 
 #include <extensionsystem/pluginmanager.h>
 
-#include <utils/consoleprocess.h>
+//#include <utils/consoleprocess.h>
 #include <utils/qtcassert.h>
 
 #include <QtCore/QDebug>
@@ -79,7 +79,7 @@ Q_DECLARE_METATYPE(Core::IEditor*)
 
 using namespace Core;
 using namespace Core::Internal;
-using namespace Utils;
+//using namespace Utils;
 
 enum { debugEditorManager=0 };
 
