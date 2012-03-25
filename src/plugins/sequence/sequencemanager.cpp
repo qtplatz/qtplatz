@@ -22,15 +22,11 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
-
 #include "sequencemanager.h"
 #include <adportable/configuration.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
+#include <adplugin/lifecycleaccessor.hpp>
 #include <utils/fancymainwindow.h>
 #include <utils/styledbar.h>
 #include <qtwrapper/qstring.hpp>
@@ -93,11 +89,7 @@ SequenceManager::init( const std::wstring& apppath
                     pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
                     QDockWidget * dock = mainWindow_->addDockForWidget( pWidget );
                     dockWidgetVec_.push_back( dock );
-
-
-
                 }
-
             }
         }
     }            
@@ -106,44 +98,44 @@ SequenceManager::init( const std::wstring& apppath
 void
 SequenceManager::setSimpleDockWidgetArrangement()
 {
-  class setTrackingEnabled {
-    Utils::FancyMainWindow& w_;
-  public:
-    setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) { w_.setTrackingEnabled( false ); }
-    ~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
-  };
+	class setTrackingEnabled {
+		Utils::FancyMainWindow& w_;
+	public:
+		setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) { w_.setTrackingEnabled( false ); }
+		~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
+	};
 
-  setTrackingEnabled lock( *mainWindow_ );
+	setTrackingEnabled lock( *mainWindow_ );
   
-  QList< QDockWidget *> dockWidgets = mainWindow_->dockWidgets();
+	QList< QDockWidget *> dockWidgets = mainWindow_->dockWidgets();
   
-  foreach ( QDockWidget * dockWidget, dockWidgets ) {
-    dockWidget->setFloating( false );
-    mainWindow_->removeDockWidget( dockWidget );
-  }
+	foreach ( QDockWidget * dockWidget, dockWidgets ) {
+		dockWidget->setFloating( false );
+		mainWindow_->removeDockWidget( dockWidget );
+	}
 
-  foreach ( QDockWidget * dockWidget, dockWidgets ) {
-    mainWindow_->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
-    dockWidget->show();
-  }
+	foreach ( QDockWidget * dockWidget, dockWidgets ) {
+		mainWindow_->addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
+		dockWidget->show();
+	}
 
-  for ( unsigned int i = 1; i < dockWidgetVec_.size(); ++i )
-    mainWindow_->tabifyDockWidget( dockWidgetVec_[0], dockWidgetVec_[i] );
+	for ( unsigned int i = 1; i < dockWidgetVec_.size(); ++i )
+		mainWindow_->tabifyDockWidget( dockWidgetVec_[0], dockWidgetVec_[i] );
 }
 
 void
 SequenceManager::OnInitialUpdate()
 {
-    QList< QDockWidget *> dockWidgets = mainWindow_->dockWidgets();
-  
-    foreach ( QDockWidget * dockWidget, dockWidgets ) {
-        QObjectList list = dockWidget->children();
-        foreach ( QObject * obj, list ) {
-            adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
-            if ( pLifeCycle ) {
-                pLifeCycle->OnInitialUpdate();
-            }
-        }
+	QList< QDockWidget *> dockWidgets = mainWindow_->dockWidgets();
+
+	foreach ( QDockWidget * dockWidget, dockWidgets ) {
+        QWidget * obj = dockWidget->widget();
+		adplugin::LifeCycleAccessor accessor( obj );
+		adplugin::LifeCycle * pLifeCycle = accessor.get();
+		if ( pLifeCycle ) {
+			pLifeCycle->OnInitialUpdate();
+			// connect( obj, SIGNAL( onMethodApply( adcontrols::ProcessMethod& ) ), this, SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
+		}
     }
 }
 
@@ -151,14 +143,11 @@ void
 SequenceManager::OnFinalClose()
 {
     QList< QDockWidget *> dockWidgets = mainWindow_->dockWidgets();
-  
     foreach ( QDockWidget * dockWidget, dockWidgets ) {
-        QObjectList list = dockWidget->children();
-        foreach ( QObject * obj, list ) {
-            adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
-            if ( pLifeCycle ) {
-                pLifeCycle->OnFinalClose();
-            }
-        }
+		QWidget * obj = dockWidget->widget();
+		adplugin::LifeCycleAccessor accessor( obj );
+		adplugin::LifeCycle * pLifeCycle = accessor.get();
+		if ( pLifeCycle )
+			pLifeCycle->OnFinalClose();
     }
 }

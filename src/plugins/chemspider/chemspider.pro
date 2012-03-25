@@ -8,13 +8,24 @@ include(../../boost.pri)
 
 DEFINES += CHEMSPIDER_LIBRARY
 
-SOURCES += chemspiderplugin.cpp
+SOURCES += chemspiderplugin.cpp \
+    chemspidermode.cpp \
+    chemspidermanager.cpp
 
 HEADERS += chemspiderplugin.hpp\
         chemspider_global.hpp\
-        chemspiderconstants.hpp
+        chemspiderconstants.hpp \
+    chemspidermode.hpp \
+    chemspidermanager.hpp
 
 OTHER_FILES = ChemSpider.pluginspec
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH
+
+RESOURCES += \
+    chemspider.qrc
+
+FORMS += \
+    chemspidermode.ui \
+    chemspidermode.ui
 

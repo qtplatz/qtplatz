@@ -43,89 +43,89 @@ QT_END_NAMESPACE
 
 namespace ExtensionSystem {
 
-namespace Internal {
-    class PluginManagerPrivate;
-}
+	namespace Internal {
+		class PluginManagerPrivate;
+	}
 
-class IPlugin;
-class PluginSpec;
+	class IPlugin;
+	class PluginSpec;
 
-class EXTENSIONSYSTEM_EXPORT PluginManager : public QObject
-{
-    Q_DISABLE_COPY(PluginManager)
-    Q_OBJECT
+	class EXTENSIONSYSTEM_EXPORT PluginManager : public QObject
+	{
+		Q_DISABLE_COPY(PluginManager)
+		Q_OBJECT
 
-public:
-    static PluginManager *instance();
+	public:
+		static PluginManager *instance();
 
-    PluginManager();
-    virtual ~PluginManager();
+		PluginManager();
+		virtual ~PluginManager();
 
-    // Object pool operations
-    void addObject(QObject *obj);
-    void removeObject(QObject *obj);
-    QList<QObject *> allObjects() const;
-    template <typename T> QList<T *> getObjects() const
-    {
-        QReadLocker lock(&m_lock);
-        QList<T *> results;
-        QList<QObject *> all = allObjects();
-        QList<T *> result;
-        foreach (QObject *obj, all) {
-            result = Aggregation::query_all<T>(obj);
-            if (!result.isEmpty())
-                results += result;
-        }
-        return results;
-    }
-    template <typename T> T *getObject() const
-    {
-        QReadLocker lock(&m_lock);
-        QList<QObject *> all = allObjects();
-        T *result = 0;
-        foreach (QObject *obj, all) {
-            if ((result = Aggregation::query<T>(obj)) != 0)
-                break;
-        }
-        return result;
-    }
+		// Object pool operations
+		void addObject(QObject *obj);
+		void removeObject(QObject *obj);
+		QList<QObject *> allObjects() const;
+		template <typename T> QList<T *> getObjects() const
+		{
+			QReadLocker lock(&m_lock);
+			QList<T *> results;
+			QList<QObject *> all = allObjects();
+			QList<T *> result;
+			foreach (QObject *obj, all) {
+				result = Aggregation::query_all<T>(obj);
+				if (!result.isEmpty())
+					results += result;
+			}
+			return results;
+		}
+		template <typename T> T *getObject() const
+		{
+			QReadLocker lock(&m_lock);
+			QList<QObject *> all = allObjects();
+			T *result = 0;
+			foreach (QObject *obj, all) {
+				if ((result = Aggregation::query<T>(obj)) != 0)
+					break;
+			}
+			return result;
+		}
 
-    // Plugin operations
-    void loadPlugins();
-    QStringList pluginPaths() const;
-    void setPluginPaths(const QStringList &paths);
-    QList<PluginSpec *> plugins() const;
-    void setFileExtension(const QString &extension);
-    QString fileExtension() const;
+		// Plugin operations
+		void loadPlugins();
+		QStringList pluginPaths() const;
+		void setPluginPaths(const QStringList &paths);
+		QList<PluginSpec *> plugins() const;
+		void setFileExtension(const QString &extension);
+		QString fileExtension() const;
 
-    // command line arguments
-    QStringList arguments() const;
-    bool parseOptions(const QStringList &args,
-        const QMap<QString, bool> &appOptions,
-        QMap<QString, QString> *foundAppOptions,
-        QString *errorString);
-    static void formatOptions(QTextStream &str, int optionIndentation, int descriptionIndentation);
-    void formatPluginOptions(QTextStream &str, int optionIndentation, int descriptionIndentation) const;
-    void formatPluginVersions(QTextStream &str) const;
+		// command line arguments
+		QStringList arguments() const;
+		bool parseOptions(const QStringList &args,
+			const QMap<QString, bool> &appOptions,
+			QMap<QString, QString> *foundAppOptions,
+			QString *errorString);
+		static void formatOptions(QTextStream &str, int optionIndentation, int descriptionIndentation);
+		void formatPluginOptions(QTextStream &str, int optionIndentation, int descriptionIndentation) const;
+		void formatPluginVersions(QTextStream &str) const;
 
-    bool runningTests() const;
-    QString testDataDirectory() const;
+		bool runningTests() const;
+		QString testDataDirectory() const;
 
-signals:
-    void objectAdded(QObject *obj);
-    void aboutToRemoveObject(QObject *obj);
+    signals:
+		void objectAdded(QObject *obj);
+		void aboutToRemoveObject(QObject *obj);
 
-    void pluginsChanged();
-private slots:
-    void startTests();
+		void pluginsChanged();
+	private slots:
+		void startTests();
 
-private:
-    Internal::PluginManagerPrivate *d;
-    static PluginManager *m_instance;
-    mutable QReadWriteLock m_lock;
+	private:
+		Internal::PluginManagerPrivate *d;
+		static PluginManager *m_instance;
+		mutable QReadWriteLock m_lock;
 
-    friend class Internal::PluginManagerPrivate;
-};
+		friend class Internal::PluginManagerPrivate;
+	};
 
 } // namespace ExtensionSystem
 

@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/chemspider">
+        <file>image/logo-cs7.png</file>
+    </qresource>
+</RCC>

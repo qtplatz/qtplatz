@@ -3,7 +3,7 @@
 
 namespace ChemSpider {
 namespace Constants {
-
+const char * const MODE_CHEMSPIDER = "ChemSpider";
 const char * const ACTION_ID = "ChemSpider.Action";
 const char * const MENU_ID = "ChemSpider.Menu";
 

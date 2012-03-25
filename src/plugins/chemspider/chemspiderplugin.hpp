@@ -2,27 +2,32 @@
 #define CHEMSPIDER_HPP
 
 #include "chemspider_global.hpp"
-
 #include <extensionsystem/iplugin.h>
+#include <boost/smart_ptr.hpp>
 
-namespace ChemSpider {
-namespace Internal {
+namespace ChemSpider {	namespace Internal {
 
-class ChemSpiderPlugin : public ExtensionSystem::IPlugin
-{
-    Q_OBJECT
+	class ChemSpiderMode;
+    class ChemSpiderManager;
+
+	class ChemSpiderPlugin : public ExtensionSystem::IPlugin
+	{
+		Q_OBJECT
     
-public:
-    ChemSpiderPlugin();
-    ~ChemSpiderPlugin();
+	public:
+		ChemSpiderPlugin();
+		~ChemSpiderPlugin();
     
-    bool initialize(const QStringList &arguments, QString *errorString);
-    void extensionsInitialized();
-	// ShutdownFlag aboutToShutdown();
+		bool initialize(const QStringList &arguments, QString *errorString);
+		void extensionsInitialized();
+		// ShutdownFlag aboutToShutdown();
     
-private slots:
-    void triggerAction();
-};
+	private slots:
+		void triggerAction();
+	private:
+		boost::scoped_ptr< ChemSpiderMode > mode_;
+		boost::scoped_ptr< ChemSpiderManager > manager_;
+	};
 
 } // namespace Internal
 } // namespace ChemSpider
