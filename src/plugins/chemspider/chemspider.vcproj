@@ -141,7 +141,7 @@
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
-				TreatWChar_tAsBuiltInType="false"
+				TreatWChar_tAsBuiltInType="true"
 				RuntimeTypeInfo="true"
 				AssemblerListingLocation="release\"
 				ObjectFile="$(IntDir)\"
@@ -163,11 +163,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="C:/Users/toshi/src/qtplatz/lib/qtplatz\Aggregationd.lib C:/Users/toshi/src/qtplatz/lib/qtplatz\ExtensionSystemd.lib C:/Users/toshi/src/qtplatz/lib/qtplatz\Utilsd.lib Cored.lib $(QTDIR)\lib\QtTest4.lib $(QTDIR)\lib\QtGui4.lib $(QTDIR)\lib\QtCore4.lib"
-				OutputFile="$(OutDir)\ChemSpiderd.dll"
+				AdditionalDependencies="../../../lib/qtplatz\Aggregation.lib ../../../lib/qtplatz\ExtensionSystem.lib ../../../lib/qtplatz\Utils.lib ../../../lib/qtplatz/adplugin.lib ../../../lib/qtplatz/adportable.lib ../../../lib/qtplatz/xmlparser.lib ../../../lib/qtplatz/qtwrapper.lib Core.lib $(QTDIR)\lib\QtTest4.lib $(QTDIR)\lib\QtGui4.lib $(QTDIR)\lib\QtCore4.lib"
+				OutputFile="$(OutDir)\ChemSpider.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,../../../lib/qtplatz,../../../lib/qtplatz/plugins/ScienceLiaison,$(ACE_ROOT)/lib,C:\Boost/lib,../../../lib/qtplatz/plugins/Nokia,$(QWT)/lib"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtplatz&quot;;&quot;$(BOOST_ROOT)/lib&quot;;&quot;$(TargetDir)&quot;;&quot;$(SolutionDir)lib/qtplatz/plugins/Nokia&quot;"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="0"
@@ -490,7 +490,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY $(InputFileName)"
-						CommandLine="copy /y $(InputFileName)  $(OutDir)\$(InputFileName)"
+						CommandLine="copy /y $(InputFileName)  $(OutDir)\$(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(OutDir)\$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -500,7 +500,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="COPY $(InputFileName)"
-						CommandLine="copy /y $(InputFileName)  $(OutDir)\$(InputFileName)"
+						CommandLine="copy /y $(InputFileName)  $(OutDir)\$(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(OutDir)\$(InputFileName)"
 					/>
 				</FileConfiguration>
