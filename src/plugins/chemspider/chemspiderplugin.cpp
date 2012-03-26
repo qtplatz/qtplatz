@@ -48,6 +48,8 @@
 #include <QtGui/QMenu>
 #include <QtGui/QTextEdit>
 #include <QtGui/QBoxLayout>
+#include <QtGui/QStackedWidget>
+#include <QtWebKit/QWebView>
 #include <QtCore/QtPlugin>
 #include <QDir>
 #include <boost/filesystem.hpp>
@@ -130,12 +132,20 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
 		std::vector< QWidget * > wnd;
 		Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
 		if ( splitter3 ) {
+			//QStackedWidget * pStack = new QStackedWidget;
+			//splitter3->addWidget( pStack );
 			QTabWidget * pTab = new QTabWidget;
 			splitter3->addWidget( pTab );
-			wnd.push_back( new QFrame );
-			pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_stepoverproc_small.png"), "ChemSpider(1)" );
-			wnd.push_back( new QFrame );
-			pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_snapshot_small.png"), "ChemSpider(2)" );
+
+			//--- (1)
+            QWebView * view = new QWebView;
+			pTab->addTab( view, QIcon(":/chemspider/image/logo_cs7.png"), "http://www.chemspider.com/" );
+			view->load( QUrl( "http://www.chemspider.com/" ) );
+			view->show();
+
+			//--- (2)
+			//wnd.push_back( new QFrame );
+			//pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_snapshot_small.png"), "ChemSpider(2)" );
 		}
 		QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
 		toolBarAddingLayout->setMargin(0);
