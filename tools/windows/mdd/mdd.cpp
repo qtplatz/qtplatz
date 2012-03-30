@@ -150,7 +150,6 @@ public:
 
     bool VirtualWalk(HANDLE hProc, std::ofstream&, std::vector<class CPageInfo>&);
     bool MemoryWalk(HANDLE hProc, std::ofstream&);
-    bool VMMWalk(HANDLE hProc);
         
     static const char * getMemState(int);
     static const char * getMemProtection(int);
@@ -162,7 +161,7 @@ CProcessInfo::~CProcessInfo()
     setProcID(0);
 }
 
-CProcessInfo::CProcessInfo(DWORD procId) : procId_( procId ), mask_(0) //, hMap_(0), hMutex_(0)
+CProcessInfo::CProcessInfo(DWORD procId) : procId_( procId ), mask_(0)
 {
 	setProcID( procId );
 }
@@ -250,26 +249,6 @@ dump(const void * p, const void * pBaseAddr, size_t nBytes)
         }
     }
 	std::cout << std::endl;
-}
-
-bool
-CProcessInfo::VMMWalk(HANDLE hProc)
-{
-/*
-	if ( pvmmu_ ) {
-        for ( int i = 0; i < int(pvmmu_->ndesc_); ++i ) {
-            const vmm::descriptor * desc = pvmmu_->desc_;
-            if ( desc[i].pAddr_ ) {
-                std::cout << i << ":\t" << std::hex << std::setw(8) << desc[i].pAddr_ << "\t"
-                    << std::hex << std::setw(8) << desc[i].nResv_ << "\t"
-                    << "refcnt:" << desc[i].nReference_ << "\t"
-                    << desc[i].description << std::endl;
-            }
-		}
-		return true;
-	}
-*/
-    return false;
 }
 
 class CPageInfo {
@@ -456,20 +435,9 @@ CProcessInfo::VirtualWalk(HANDLE hProc, std::ofstream& outf, std::vector<CPageIn
                 if ( mbi2.State == MEM_FREE && mbi2.Protect == PAGE_NOACCESS )
                     nFree += mbi2.RegionSize;
             }
-            if ( bMemFree || bMemPrivate || bMemReserve ) {
-                bool bvmm = false;
-/*
-                if ( pvmmu_ ) {
-                    for ( int i = 0; i < int(pvmmu_->ndesc_); ++i ) {
-                        if ( ( pvmmu_->desc_[i].pAddr_ <= mbi.BaseAddress ) 
-                            && ( mbi.BaseAddress < static_cast<unsigned char *>(pvmmu_->desc_[i].pAddr_) + pvmmu_->desc_[i].nResv_) )
-                            bvmm = true;
-                    }
-                }
-*/
-                if ( ! bvmm ) // skip vmm controlled memory
-                    pageInfo.push_back( CPageInfo(mbi, tic) );
-            }
+
+            if ( bMemFree || bMemPrivate || bMemReserve )
+				pageInfo.push_back( CPageInfo(mbi, tic) );
 
             if ( __verbose ) {
                 CPageInfo::print_mbi( mbi );
@@ -490,6 +458,7 @@ CProcessInfo::VirtualWalk(HANDLE hProc, std::ofstream& outf, std::vector<CPageIn
                 SIZE_T cb = 0;
                 if ( ReadProcessMemory(hProc, mbi.BaseAddress, p, mbi.RegionSize, &cb) ) 
                     dump<unsigned short>(p, mbi.AllocationBase, cb);
+
                 VirtualFree(p, 0, MEM_RELEASE);
             }
         }
@@ -564,13 +533,11 @@ memory_walk(CProcessInfo& info)
         outf << tmstr << "\t";
     }
 
-    // HANDLE hProc = OpenProcess( PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, info.getProcID() );
     HANDLE hProc = OpenProcess( PROCESS_ALL_ACCESS, FALSE, info.getProcID() );
     if ( hProc ) {
-        if ( once ) {
-            once = false;
-            info.VMMWalk(hProc);
-        }
+		if ( once )
+			once = false;
+
         std::vector<CPageInfo> pageInfo;
         info.VirtualWalk(hProc, outf, pageInfo);
         info.MemoryWalk(hProc, outf);
