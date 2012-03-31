@@ -1,0 +1,261 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3CD089A6-7616-3CA0-A248-ED53E21E4FAA}</ProjectGuid>
+    <RootNamespace>adcontrols</RootNamespace>
+    <Keyword>Qt4VSv1.0</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <OutputDirectory>..\..\..\lib\qtplatz\</OutputDirectory>
+    <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+    <CharacterSet>NotSet</CharacterSet>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <IntermediateDirectory>debug\</IntermediateDirectory>
+    <PrimaryOutput>adcontrolsd</PrimaryOutput>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <OutputDirectory>..\..\..\lib\qtplatz\</OutputDirectory>
+    <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+    <CharacterSet>NotSet</CharacterSet>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <IntermediateDirectory>release\</IntermediateDirectory>
+    <PrimaryOutput>adcontrolsd</PrimaryOutput>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\lib\qtplatz\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(ConfigurationName)</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">adcontrolsd</TargetName>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</IgnoreImportLibrary>
+    <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</PostBuildEventUseInBuild>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\lib\qtplatz\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(ConfigurationName)</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">adcontrolsd</TargetName>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</IgnoreImportLibrary>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(QTDIR)\include\QtCore;$(QTDIR)\include\QtTest;$(QTDIR)\include;.\..\..\libs;.\..\..\..\tools;c:\Boost\include\boost-1_48;c:\Users\toshi\src\ACE_wrappers;c:\Users\toshi\src\ACE_wrappers\TAO;$(QTDIR)\include\ActiveQt;.\debug;c:\Qt\4.8.1\mkspecs\win32-msvc2010;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-Zm200 -w34100 -w34189 %(AdditionalOptions)</AdditionalOptions>
+      <AssemblerListingLocation>debug\</AssemblerListingLocation>
+      <BrowseInformation>false</BrowseInformation>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <PreprocessorDefinitions>_CONSOLE;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;IDE_LIBRARY_BASENAME="lib";WITH_TESTS;QT_NO_CAST_TO_ASCII;DEBUG;ADCONTROLS_LIBRARY;QT_DLL;QT_TESTLIB_LIB;QT_CORE_LIB;QT_HAVE_MMX;QT_HAVE_3DNOW;QT_HAVE_SSE;QT_HAVE_MMXEXT;QT_HAVE_SSE2;QT_THREAD_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>C:\Users\toshi\src\ACE_wrappers/lib\ACE.lib;acewrapperd.lib;adportabled.lib;$(QTDIR)\lib\QtTestd4.lib;$(QTDIR)\lib\QtCored4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;c:\Qt\4.8.1\lib;C:/Users/toshi/src/vc10/qtplatz/lib/qtplatz;C:\Boost/lib;C:\Users\toshi\src\ACE_wrappers/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreImportLibrary>true</IgnoreImportLibrary>
+      <LinkDLL>true</LinkDLL>
+      <OutputFile>$(OutDir)\adcontrolsd.dll</OutputFile>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Link>
+    <Midl>
+      <DefaultCharType>Unsigned</DefaultCharType>
+      <EnableErrorChecks>None</EnableErrorChecks>
+      <WarningLevel>0</WarningLevel>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_CONSOLE;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;IDE_LIBRARY_BASENAME="lib";WITH_TESTS;QT_NO_CAST_TO_ASCII;DEBUG;ADCONTROLS_LIBRARY;QT_DLL;QT_TESTLIB_LIB;QT_CORE_LIB;QT_HAVE_MMX;QT_HAVE_3DNOW;QT_HAVE_SSE;QT_HAVE_MMXEXT;QT_HAVE_SSE2;QT_THREAD_SUPPORT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <PostBuildEvent>
+      <Command>copy  "$(TargetPath)" "..\..\..\bin"</Command>
+      <Message>Copy adcontrolsd.dll to ..\..\..\bin</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(QTDIR)\include\QtCore;$(QTDIR)\include\QtTest;$(QTDIR)\include;.\..\..\libs;.\..\..\..\tools;c:\Boost\include\boost-1_48;c:\Users\toshi\src\ACE_wrappers;c:\Users\toshi\src\ACE_wrappers\TAO;$(QTDIR)\include\ActiveQt;.\release;c:\Qt\4.8.1\mkspecs\win32-msvc2010;.\GeneratedFiles;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-Zm200 -w34100 -w34189 %(AdditionalOptions)</AdditionalOptions>
+      <AssemblerListingLocation>release\</AssemblerListingLocation>
+      <BrowseInformation>false</BrowseInformation>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <Optimization>MaxSpeed</Optimization>
+      <PreprocessorDefinitions>_CONSOLE;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;IDE_LIBRARY_BASENAME="lib";WITH_TESTS;QT_NO_CAST_TO_ASCII;DEBUG;ADCONTROLS_LIBRARY;QT_DLL;QT_NO_DEBUG;QT_TESTLIB_LIB;QT_CORE_LIB;QT_HAVE_MMX;QT_HAVE_3DNOW;QT_HAVE_SSE;QT_HAVE_MMXEXT;QT_HAVE_SSE2;QT_THREAD_SUPPORT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>C:\Users\toshi\src\ACE_wrappers/lib\ACE.lib;acewrapperd.lib;adportabled.lib;$(QTDIR)\lib\QtTest4.lib;$(QTDIR)\lib\QtCore4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;c:\Qt\4.8.1\lib;C:/Users/toshi/src/vc10/qtplatz/lib/qtplatz;C:\Boost/lib;C:\Users\toshi\src\ACE_wrappers/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreImportLibrary>true</IgnoreImportLibrary>
+      <LinkDLL>true</LinkDLL>
+      <LinkIncremental>false</LinkIncremental>
+      <OutputFile>$(OutDir)\adcontrolsd.dll</OutputFile>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Link>
+    <Midl>
+      <DefaultCharType>Unsigned</DefaultCharType>
+      <EnableErrorChecks>None</EnableErrorChecks>
+      <WarningLevel>0</WarningLevel>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_CONSOLE;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;IDE_LIBRARY_BASENAME="lib";WITH_TESTS;QT_NO_CAST_TO_ASCII;DEBUG;ADCONTROLS_LIBRARY;QT_DLL;QT_NO_DEBUG;QT_TESTLIB_LIB;QT_CORE_LIB;QT_HAVE_MMX;QT_HAVE_3DNOW;QT_HAVE_SSE;QT_HAVE_MMXEXT;QT_HAVE_SSE2;QT_THREAD_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <PostBuildEvent>
+      <Command>copy  "$(TargetPath)" "..\..\..\bin"</Command>
+      <Message>Copy adcontrolsd.dll to ..\..\..\bin</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="acceptor.cpp" />
+    <ClCompile Include="acquireddataset.cpp" />
+    <ClCompile Include="adcontrols.cpp" />
+    <ClCompile Include="baseline.cpp" />
+    <ClCompile Include="baselines.cpp" />
+    <ClCompile Include="centroidmethod.cpp" />
+    <ClCompile Include="centroidprocess.cpp" />
+    <ClCompile Include="chemicalformula.cpp" />
+    <ClCompile Include="chromatogram.cpp" />
+    <ClCompile Include="ctable.cpp" />
+    <ClCompile Include="ctfile.cpp" />
+    <ClCompile Include="datafile.cpp" />
+    <ClCompile Include="datafilebroker.cpp" />
+    <ClCompile Include="datainterpreter.cpp" />
+    <ClCompile Include="datapublisher.cpp" />
+    <ClCompile Include="datasubscriber.cpp" />
+    <ClCompile Include="description.cpp" />
+    <ClCompile Include="descriptions.cpp" />
+    <ClCompile Include="element.cpp" />
+    <ClCompile Include="elementalcomposition.cpp" />
+    <ClCompile Include="elementalcompositioncollection.cpp" />
+    <ClCompile Include="elementalcompositionmethod.cpp" />
+    <ClCompile Include="elements.cpp" />
+    <ClCompile Include="isotopecluster.cpp" />
+    <ClCompile Include="isotopemethod.cpp" />
+    <ClCompile Include="lcmsdataset.cpp" />
+    <ClCompile Include="lockmass.cpp" />
+    <ClCompile Include="massspectrometer.cpp" />
+    <ClCompile Include="massspectrometerbroker.cpp" />
+    <ClCompile Include="massspectrum.cpp" />
+    <ClCompile Include="msassignedmass.cpp" />
+    <ClCompile Include="mscalibratemethod.cpp" />
+    <ClCompile Include="mscalibrateresult.cpp" />
+    <ClCompile Include="mscalibration.cpp" />
+    <ClCompile Include="mslockmethod.cpp" />
+    <ClCompile Include="mspeakinfoitem.cpp" />
+    <ClCompile Include="msproperty.cpp" />
+    <ClCompile Include="msreference.cpp" />
+    <ClCompile Include="msreferencedefns.cpp" />
+    <ClCompile Include="msreferences.cpp" />
+    <ClCompile Include="peak.cpp" />
+    <ClCompile Include="peakasymmetry.cpp" />
+    <ClCompile Include="peakresolution.cpp" />
+    <ClCompile Include="peaks.cpp" />
+    <ClCompile Include="processeddataset.cpp" />
+    <ClCompile Include="processmethod.cpp" />
+    <ClCompile Include="reportmethod.cpp" />
+    <ClCompile Include="tableofelements.cpp" />
+    <ClCompile Include="targetingmethod.cpp" />
+    <ClCompile Include="theoreticalplate.cpp" />
+    <ClCompile Include="timeutil.cpp" />
+    <ClCompile Include="trace.cpp" />
+    <ClCompile Include="traceaccessor.cpp" />
+    <ClCompile Include="visitor.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="acceptor.hpp" />
+    <ClInclude Include="acquireddataset.hpp" />
+    <ClInclude Include="adcontrols.hpp" />
+    <ClInclude Include="adcontrols_global.h" />
+    <ClInclude Include="baseline.hpp" />
+    <ClInclude Include="baselines.hpp" />
+    <ClInclude Include="centroidmethod.hpp" />
+    <ClInclude Include="centroidprocess.hpp" />
+    <ClInclude Include="chemicalformula.hpp" />
+    <ClInclude Include="chromatogram.hpp" />
+    <ClInclude Include="ctable.hpp" />
+    <ClInclude Include="ctfile.hpp" />
+    <ClInclude Include="datafile.hpp" />
+    <ClInclude Include="datafile_factory.hpp" />
+    <ClInclude Include="datafilebroker.hpp" />
+    <ClInclude Include="datainterpreter.hpp" />
+    <ClInclude Include="datapublisher.hpp" />
+    <ClInclude Include="datasubscriber.hpp" />
+    <ClInclude Include="description.hpp" />
+    <ClInclude Include="descriptions.hpp" />
+    <ClInclude Include="element.hpp" />
+    <ClInclude Include="elementalcomposition.hpp" />
+    <ClInclude Include="elementalcompositioncollection.hpp" />
+    <ClInclude Include="elementalcompositionmethod.hpp" />
+    <ClInclude Include="elements.hpp" />
+    <ClInclude Include="isotopecluster.hpp" />
+    <ClInclude Include="isotopemethod.hpp" />
+    <ClInclude Include="lcmsdataset.hpp" />
+    <ClInclude Include="lockmass.hpp" />
+    <ClInclude Include="massspectrometer.hpp" />
+    <ClInclude Include="msassignedmass.hpp" />
+    <ClInclude Include="mscalibratemethod.hpp" />
+    <ClInclude Include="mscalibrateresult.hpp" />
+    <ClInclude Include="mscalibration.hpp" />
+    <ClInclude Include="mslockmethod.hpp" />
+    <ClInclude Include="mspeakinfoitem.hpp" />
+    <ClInclude Include="msproperty.hpp" />
+    <ClInclude Include="msreference.hpp" />
+    <ClInclude Include="msreferencedefns.hpp" />
+    <ClInclude Include="msreferences.hpp" />
+    <ClInclude Include="peak.hpp" />
+    <ClInclude Include="peakasymmetry.hpp" />
+    <ClInclude Include="peakresolution.hpp" />
+    <ClInclude Include="peaks.hpp" />
+    <ClInclude Include="processeddataset.hpp" />
+    <ClInclude Include="processmethod.hpp" />
+    <ClInclude Include="reportmethod.hpp" />
+    <ClInclude Include="tableofelements.hpp" />
+    <ClInclude Include="targetingmethod.hpp" />
+    <ClInclude Include="theoreticalplate.hpp" />
+    <ClInclude Include="timeutil.hpp" />
+    <ClInclude Include="trace.hpp" />
+    <ClInclude Include="traceaccessor.hpp" />
+    <ClInclude Include="visitor.hpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties QtVersion_x0020_Win32="4.8.1" UicDir=".\GeneratedFiles" RccDir=".\GeneratedFiles" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
