@@ -126,8 +126,6 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
 		std::vector< QWidget * > wnd;
 		Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
 		if ( splitter3 ) {
-			//QStackedWidget * pStack = new QStackedWidget;
-			//splitter3->addWidget( pStack );
 			QTabWidget * pTab = new QTabWidget;
 			splitter3->addWidget( pTab );
 

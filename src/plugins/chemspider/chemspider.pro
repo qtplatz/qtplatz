@@ -11,13 +11,15 @@ DEFINES += CHEMSPIDER_LIBRARY
 
 SOURCES +=  chemspiderplugin.cpp \
             chemspidermode.cpp \
-            chemspidermanager.cpp
+            chemspidermanager.cpp \
+    massspecform.cpp
 
 HEADERS += chemspiderplugin.hpp\
         chemspider_global.hpp\
         chemspiderconstants.hpp \
         chemspidermode.hpp \
-        chemspidermanager.hpp
+        chemspidermanager.hpp \
+    massspecform.hpp
 
 OTHER_FILES = ChemSpider.pluginspec \
     ChemSpider.config.xml
@@ -33,7 +35,8 @@ RESOURCES += \
     chemspider.qrc
 
 FORMS += \
-    chemspidermode.ui
+    chemspidermode.ui \
+    massspecform.ui
 
 !win32 {
   LIBS *= -lboost_serialization -lboost_date_time -lboost_filesystem -lboost_system

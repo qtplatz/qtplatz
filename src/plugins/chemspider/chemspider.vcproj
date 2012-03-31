@@ -216,6 +216,10 @@
 				RelativePath="chemspiderplugin.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\massspecform.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -308,6 +312,32 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\massspecform.hpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing massspecform.hpp..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing massspecform.hpp..."
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;  &quot;$(InputPath)&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;  -D_CONSOLE -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DIDE_LIBRARY_BASENAME=&quot;lib&quot; -DWITH_TESTS -DQT_NO_CAST_TO_ASCII -DDEBUG -DCHEMSPIDER_LIBRARY -DQT_DLL -DQT_NO_DEBUG -DQT_PLUGIN -DQT_TESTLIB_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_HAVE_MMX -DQT_HAVE_3DNOW -DQT_HAVE_SSE -DQT_HAVE_MMXEXT -DQT_HAVE_SSE2 -DQT_THREAD_SUPPORT -DNDEBUG -D_WINDLL &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I$(QTDIR)\include\QtTest&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\..\..\libs&quot; &quot;-I.\..\..\plugins&quot; &quot;-I$(BOOST_INCLUDE)\.&quot; &quot;-I$(QTDIR)\mkspecs\win32-msvc2008&quot; &quot;-I.\GeneratedFiles&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
+						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
+					/>
+				</FileConfiguration>
+			</File>
 		</Filter>
 		<Filter
 			Name="Generated Files"
@@ -336,6 +366,10 @@
 			</File>
 			<File
 				RelativePath=".\GeneratedFiles\ui_chemspidermode.h"
+				>
+			</File>
+			<File
+				RelativePath=".\GeneratedFiles\ui_massspecform.h"
 				>
 			</File>
 			<Filter
@@ -379,6 +413,18 @@
 						/>
 					</FileConfiguration>
 				</File>
+				<File
+					RelativePath=".\GeneratedFiles\Debug\moc_massspecform.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
 			</Filter>
 			<Filter
 				Name="Release"
@@ -411,6 +457,18 @@
 				</File>
 				<File
 					RelativePath=".\GeneratedFiles\Release\moc_chemspiderplugin.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\GeneratedFiles\Release\moc_massspecform.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -539,6 +597,32 @@
 			>
 			<File
 				RelativePath=".\chemspidermode.ui"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing $(InputFileName)..."
+						CommandLine="&quot;$(QTDIR)\bin\uic.exe&quot; -o &quot;.\GeneratedFiles\ui_$(InputName).h&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;.\GeneratedFiles\ui_$(InputName).h&quot;"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\massspecform.ui"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
