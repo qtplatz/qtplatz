@@ -1608,13 +1608,13 @@
   <ItemGroup>
     <CustomBuild Include="Core.pluginspec">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Core.pluginspec;copy;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copy /y Core.pluginspec c:\Users\toshi\src\vc10\qtplatz\lib\qtplatz\plugins\Nokia\Core.pluginspec</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copy /y Core.pluginspec $(OutDir)Core.pluginspec</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">COPY Core.pluginspec</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">c:\Users\toshi\src\vc10\qtplatz\lib\qtplatz\plugins\Nokia\Core.pluginspec;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)Core.pluginspec;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Core.pluginspec;copy;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">copy /y Core.pluginspec c:\Users\toshi\src\vc10\qtplatz\lib\qtplatz\plugins\Nokia\Core.pluginspec</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">copy /y Core.pluginspec $(OutDir)Core.pluginspec</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">COPY Core.pluginspec</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">c:\Users\toshi\src\vc10\qtplatz\lib\qtplatz\plugins\Nokia\Core.pluginspec;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)Core.pluginspec;%(Outputs)</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

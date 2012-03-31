@@ -446,9 +446,9 @@
   <ItemGroup>
     <CustomBuild Include="dataproc.pluginspec">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copy;dataproc.pluginspec;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copy /y dataproc.pluginspec c:\Users\toshi\src\vc10\qtplatz\lib\qtplatz\plugins\ScienceLiaison\dataproc.pluginspec</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copy /y %(Identity) $(OutDir)%(Identity)</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">COPY dataproc.pluginspec</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">c:\Users\toshi\src\vc10\qtplatz\lib\qtplatz\plugins\ScienceLiaison\dataproc.pluginspec;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)%(Identity);%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">copy;dataproc.pluginspec;%(AdditionalInputs)</AdditionalInputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">copy /y dataproc.pluginspec c:\Users\toshi\src\vc10\qtplatz\lib\qtplatz\plugins\ScienceLiaison\dataproc.pluginspec</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">COPY dataproc.pluginspec</Message>
