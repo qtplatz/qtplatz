@@ -41,6 +41,10 @@ public:
     
 private:
     Ui::MassSpecForm *ui;
+
+public slots:
+	void invoke_mm_clicked();
+    void invoke_db_clicked();
 };
 
 #endif // MASSSPECFORM_HPP

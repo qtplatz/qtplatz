@@ -19,9 +19,9 @@
      <item>
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
-        <string>GroupBox</string>
+        <string>Search by mass async</string>
        </property>
-       <widget class="QPushButton" name="pushButton_2">
+       <widget class="QPushButton" name="invoke_mm">
         <property name="geometry">
          <rect>
           <x>20</x>
@@ -31,7 +31,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>PushButton</string>
+         <string>invoke</string>
         </property>
        </widget>
        <widget class="QLineEdit" name="lineEdit">
@@ -55,9 +55,9 @@
         </size>
        </property>
        <property name="title">
-        <string>GroupBox</string>
+        <string>Get databases</string>
        </property>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="invoke_db">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -67,7 +67,7 @@
          </rect>
         </property>
         <property name="text">
-         <string>PushButton</string>
+         <string>invoke</string>
         </property>
        </widget>
       </widget>

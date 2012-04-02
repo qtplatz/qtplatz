@@ -26,6 +26,7 @@
 #include "chemspiderconstants.hpp"
 #include "chemspidermode.hpp"
 #include "chemspidermanager.hpp"
+#include "massspecform.hpp"
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
 #include <adplugin/adplugin.hpp>
@@ -137,8 +138,9 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
 			view->show();
 #endif
 			//--- (2)
+            MassSpecForm * form = new MassSpecForm;
 			//wnd.push_back( new QFrame );
-			//pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_snapshot_small.png"), "ChemSpider(2)" );
+			pTab->addTab( form, QIcon(":/chemspider/image/logo_cs7.png"), "MassSpec Search" );
 		}
 		QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
 		toolBarAddingLayout->setMargin(0);
