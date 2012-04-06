@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\lib\qtPlatz\plugins\ScienceLiaison"
+			OutputDirectory="..\..\..\lib\qtplatz\plugins\ScienceLiaison\"
 			IntermediateDirectory="debug\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				OutputFile="$(OutDir)\adtxtfactoryd.dll"
+				OutputFile="$(OutDir)adtxtfactoryd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;C:\Boost/lib;&quot;$(ACE_ROOT)/lib&quot;"
 				GenerateDebugInformation="true"
@@ -106,7 +106,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\lib\qtPlatz\plugins\ScienceLiaison"
+			OutputDirectory="..\..\..\lib\qtplatz\plugins\ScienceLiaison\"
 			IntermediateDirectory="release\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -162,7 +162,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				OutputFile="$(OutDir)\adtxtfactory.dll"
+				OutputFile="$(OutDir)adtxtfactory.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;C:\Boost/lib;&quot;$(ACE_ROOT)/lib&quot;"

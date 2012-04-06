@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtplatz\"
 			IntermediateDirectory="debug\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -74,7 +74,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="QtTestd4.lib QtGuid4.lib QtCored4.lib"
-				OutputFile="..\..\..\lib\qtPlatz\adplugind.dll"
+				OutputFile="$(OutDir)adplugind.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;&quot;$(BOOST_ROOT)\lib&quot;;&quot;$(ACE_ROOT)\lib&quot;"
 				GenerateDebugInformation="true"
@@ -108,7 +108,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtplatz\"
 			IntermediateDirectory="release\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -165,7 +165,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="QtGui4.lib QtCore4.lib"
-				OutputFile="..\..\..\lib\qtPlatz\adplugin.dll"
+				OutputFile="$(OutDir)adplugin.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;&quot;$(BOOST_ROOT)\lib&quot;;&quot;$(ACE_ROOT)\lib&quot;"

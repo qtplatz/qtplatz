@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtPlatz\plugins\Nokia\"
 			IntermediateDirectory="debug\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -74,7 +74,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="Utilsd.lib Aggregationd.lib ExtensionSystemd.lib QtTestd4.lib QtScriptd4.lib QtSvgd4.lib QtSqld4.lib QtXmld4.lib QtGuid4.lib QtNetworkd4.lib QtCored4.lib"
-				OutputFile="..\..\..\lib\qtPlatz\plugins\Nokia\Cored.dll"
+				OutputFile="$(OutDir)Cored.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(TargetDir)&quot;"
 				GenerateDebugInformation="true"
@@ -106,7 +106,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtPlatz\plugins\Nokia\"
 			IntermediateDirectory="release\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -164,7 +164,7 @@
 				IgnoreImportLibrary="true"
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
 				AdditionalDependencies="Utils.lib Aggregation.lib ExtensionSystem.lib QtScript4.lib QtSvg4.lib QtSql4.lib QtXml4.lib QtGui4.lib QtNetwork4.lib QtCore4.lib"
-				OutputFile="..\..\..\lib\qtPlatz\plugins\Nokia\Core.dll"
+				OutputFile="$(OutDir)Core.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(TargetDir)&quot;"

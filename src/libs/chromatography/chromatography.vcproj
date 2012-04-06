@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtplatz\"
 			IntermediateDirectory="debug\"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -73,7 +73,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="debug\chromatography.lib"
+				OutputFile="$(OutDir)chromatography.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -94,7 +94,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtplatz\"
 			IntermediateDirectory="release\"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -150,7 +150,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="release\chromatography.lib"
+				OutputFile="$(OutDir)chromatography.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool

@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtplatz\plugins\ScienceLiaison\"
 			IntermediateDirectory="debug\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -75,7 +75,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="$(ACE_ROOT)/lib\ACEd.lib ../../../lib/qtplatz\Aggregationd.lib ../../../lib/qtplatz\ExtensionSystemd.lib ../../../lib/qtplatz\Utilsd.lib ../../../lib/qtplatz/plugins/Nokia\Cored.lib QtTestd4.lib QtXmld4.lib QtGuid4.lib QtCored4.lib"
-				OutputFile="..\..\..\lib\qtplatz\plugins\ScienceLiaison\acquired.dll"
+				OutputFile="$(OutDir)acquired.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="$(QTDIR)\lib,../../../lib/qtplatz,../../../lib/qtplatz/plugins/ScienceLiaison,$(ACE_ROOT)/lib,C:\Boost/lib,../../../lib/qtplatz/plugins/Nokia,$(QWT)/lib"
 				GenerateDebugInformation="true"
@@ -107,7 +107,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtplatz\plugins\ScienceLiaison\"
 			IntermediateDirectory="release\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -164,7 +164,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="$(ACE_ROOT)/lib\ACE.lib Aggregation.lib ExtensionSystem.lib Utils.lib Core.lib QtXml4.lib QtGui4.lib QtCore4.lib"
-				OutputFile="..\..\..\lib\qtplatz\plugins\ScienceLiaison\acquire.dll"
+				OutputFile="$(OutDir)acquire.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="$(QTDIR)\lib,../../../lib/qtplatz,../../../lib/qtplatz/plugins/ScienceLiaison,$(ACE_ROOT)/lib,C:\Boost/lib,../../../lib/qtplatz/plugins/Nokia,$(QWT)/lib"

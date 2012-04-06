@@ -164,7 +164,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="../../../lib/qtplatz\Aggregation.lib ../../../lib/qtplatz\ExtensionSystem.lib ../../../lib/qtplatz\Utils.lib ../../../lib/qtplatz/adplugin.lib ../../../lib/qtplatz/adportable.lib ../../../lib/qtplatz/xmlparser.lib ../../../lib/qtplatz/qtwrapper.lib Core.lib $(QTDIR)\lib\QtWebKit4.lib $(QTDIR)\lib\QtTest4.lib $(QTDIR)\lib\QtGui4.lib $(QTDIR)\lib\QtCore4.lib"
-				OutputFile="$(OutDir)\ChemSpider.dll"
+				OutputFile="$(OutDir)ChemSpider.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtplatz&quot;;&quot;$(BOOST_ROOT)/lib&quot;;&quot;$(TargetDir)&quot;;&quot;$(SolutionDir)lib/qtplatz/plugins/Nokia&quot;"

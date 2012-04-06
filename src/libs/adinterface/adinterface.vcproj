@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtplatz\"
 			IntermediateDirectory="debug\"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -74,7 +74,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\lib\qtplatz\adinterfaced.lib"
+				OutputFile="$(OutDir)adinterfaced.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -95,7 +95,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtplatz\"
 			IntermediateDirectory="release\"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -151,7 +151,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\lib\qtplatz\adinterface.lib"
+				OutputFile="$(OutDir)adinterface.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool

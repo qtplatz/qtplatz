@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
+			OutputDirectory="$(SolutionDir)lib\qtplatz\plugins\ScienceLiaison\"
 			IntermediateDirectory="debug\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -75,7 +75,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="adinterfaced.lib"
-				OutputFile="..\..\..\lib\qtplatz\plugins\ScienceLiaison\adcontrollerd.dll"
+				OutputFile="$(OutDir)adcontrollerd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;C:\Boost/lib;../../../lib/qtplatz;../../../lib/qtplatz/plugins/ScienceLiaison;&quot;$(ACE_ROOT)/lib&quot;"
 				GenerateDebugInformation="true"
@@ -107,7 +107,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
+			OutputDirectory="$(SolutionDir)lib\qtplatz\plugins\ScienceLiaison\"
 			IntermediateDirectory="release\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -164,7 +164,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="adinterface.lib"
-				OutputFile="..\..\..\lib\qtplatz\plugins\ScienceLiaison\adcontroller.dll"
+				OutputFile="$(OutDir)adcontroller.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;C:\Boost/lib;../../../lib/qtplatz;../../../lib/qtplatz/plugins/ScienceLiaison;&quot;$(ACE_ROOT)/lib&quot;"

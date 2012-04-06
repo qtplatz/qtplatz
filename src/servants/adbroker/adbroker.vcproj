@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
+			OutputDirectory="$(SolutionDir)lib\qtplatz\plugins\ScienceLiaison\"
 			IntermediateDirectory="debug\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				OutputFile="$(SolutionDir)lib\qtplatz\plugins\ScienceLiaison\adbrokerd.dll"
+				OutputFile="$(OutDir)adbrokerd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;&quot;$(BOOST_ROOT)\lib&quot;;&quot;$(ACE_ROOT)\lib&quot;"
 				GenerateDebugInformation="true"
@@ -108,7 +108,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
+			OutputDirectory="$(SolutionDir)lib\qtplatz\plugins\ScienceLiaison\"
 			IntermediateDirectory="release\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -165,7 +165,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
-				OutputFile="$(SolutionDir)lib\qtplatz\plugins\ScienceLiaison\adbroker.dll"
+				OutputFile="$(OutDir)adbroker.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;&quot;$(BOOST_ROOT)\lib&quot;;&quot;$(ACE_ROOT)\lib&quot;"
