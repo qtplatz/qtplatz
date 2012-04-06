@@ -73,7 +73,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)chromatography.lib"
+				OutputFile="$(OutDir)chromatographyd.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool

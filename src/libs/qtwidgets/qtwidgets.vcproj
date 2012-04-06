@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtplatz\plugins\ScienceLiaison\"
 			IntermediateDirectory="debug\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -74,7 +74,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="QtDeclaratived4.lib QtTestd4.lib QtGuid4.lib QtCored4.lib"
-				OutputFile="..\..\..\lib\qtplatz\plugins\ScienceLiaison\qtwidgetsd.dll"
+				OutputFile="$(OutDir)qtwidgetsd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;../../../lib/qtplatz;../../../lib/qtplatz/plugins/ScienceLiaison;&quot;$(BOOST_ROOT)/lib&quot;"
 				GenerateDebugInformation="true"
@@ -107,7 +107,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\..\lib\qtplatz\plugins\ScienceLiaison\"
 			IntermediateDirectory="release\"
 			ConfigurationType="2"
 			UseOfMFC="0"

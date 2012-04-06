@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				OutputFile="$(SolutionDir)lib\qtPlatz\portfoliod.dll"
+				OutputFile="$(OutDir)portfoliod.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib\qtplatz&quot;;&quot;$(BOOST_ROOT)/lib&quot;"
 				GenerateDebugInformation="true"
@@ -163,7 +163,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				OutputFile="$(SolutionDir)lib\qtPlatz\portfolio.dll"
+				OutputFile="$(OutDir)portfolio.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib\qtplatz&quot;;&quot;$(BOOST_ROOT)/lib&quot;"

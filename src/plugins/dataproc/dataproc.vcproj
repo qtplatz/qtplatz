@@ -75,7 +75,7 @@
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="adcontrolsd.lib acewrapperd.lib ACEd.lib Aggregationd.lib ExtensionSystemd.lib Cored.lib Utilsd.lib QtTestd4.lib QtXmld4.lib QtGuid4.lib QtCored4.lib ole32.lib oleaut32.lib user32.lib gdi32.lib advapi32.lib"
-				OutputFile="..\..\..\lib\qtPlatz\plugins\ScienceLiaison\dataprocd.dll"
+				OutputFile="$(OutDir)dataprocd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(QWT)/lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(BOOST_ROOT)/lib&quot;;&quot;$(TargetDir)&quot;;&quot;$(ACE_ROOT)/lib&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;"
 				GenerateDebugInformation="true"
@@ -107,6 +107,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
+			OutputDirectory="..\..\..\lib\qtplatz\plugins\ScienceLiaison\"
 			IntermediateDirectory="release\"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -164,7 +165,7 @@
 				IgnoreImportLibrary="true"
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
 				AdditionalDependencies="adcontrols.lib acewrapper.lib ACE.lib Aggregation.lib ExtensionSystem.lib Utils.lib Core.lib QtXml4.lib QtGui4.lib QtCore4.lib ole32.lib oleaut32.lib user32.lib gdi32.lib advapi32.lib"
-				OutputFile="..\..\..\lib\qtPlatz\plugins\ScienceLiaison\dataproc.dll"
+				OutputFile="$(OutDir)dataproc.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(QWT)/lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(BOOST_ROOT)/lib&quot;;&quot;$(TargetDir)&quot;;&quot;$(ACE_ROOT)/lib&quot;;&quot;$(SolutionDir)lib/qtPlatz/plugins/Nokia&quot;"
