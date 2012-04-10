@@ -1356,7 +1356,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
+						Description="echo opy /y $(InputFileName) $(TargetDir)$(InputFileName)"
 						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies=""
 						Outputs="$(TargetDir)$(InputFileName)"
@@ -1367,7 +1367,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Performing Custom Build Step"
+						Description="echo opy /y $(InputFileName) $(TargetDir)$(InputFileName)"
 						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						AdditionalDependencies=""
 						Outputs="$(TargetDir)$(InputFileName)"

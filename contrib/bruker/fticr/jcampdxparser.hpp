@@ -22,33 +22,20 @@
 **
 **************************************************************************/
 
-#include "fticr.hpp"
-#include "datafile_factory.hpp"
+#ifndef JCAMPDXPARSER_HPP
+#define JCAMPDXPARSER_HPP
 
-#if defined WIN32
-#  if defined _DEBUG
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "portfoliod.lib")
-#  else
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "portfolio.lib")
-#  endif
-#endif
+#include <string>
+#include <map>
 
-FTICR::FTICR()
-{
+namespace fticr {
+
+	class jcampdxparser {
+	public:
+		jcampdxparser();
+		bool parse_file( std::map< std::string, std::string >&, const std::wstring& fileeme );
+	};
+
 }
 
-namespace adcontrols {
-    class datafile_factory;
-}
-
-extern "C" {
-    __declspec(dllexport) adcontrols::datafile_factory * datafile_factory();
-}
-
-adcontrols::datafile_factory *
-datafile_factory()
-{
-	return new fticr::datafile_factory();
-}
+#endif // JCAMPDXPARSER_HPP

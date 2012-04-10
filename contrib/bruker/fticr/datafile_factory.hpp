@@ -22,33 +22,24 @@
 **
 **************************************************************************/
 
-#include "fticr.hpp"
-#include "datafile_factory.hpp"
+#ifndef DATAFILE_FACTORY_HPP
+#define DATAFILE_FACTORY_HPP
 
-#if defined WIN32
-#  if defined _DEBUG
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "portfoliod.lib")
-#  else
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "portfolio.lib")
-#  endif
-#endif
+#include <adcontrols/datafile_factory.hpp>
 
-FTICR::FTICR()
-{
+namespace fticr {
+
+	class datafile_factory : public adcontrols::datafile_factory {
+	public:
+		datafile_factory();
+		~datafile_factory(void);
+
+        const std::wstring& name() const;
+        bool access( const std::wstring& filename, adcontrols::access_mode ) const;
+        adcontrols::datafile * open( const std::wstring& filename, bool readonly ) const;
+        void close( adcontrols::datafile * );
+	};
+
 }
 
-namespace adcontrols {
-    class datafile_factory;
-}
-
-extern "C" {
-    __declspec(dllexport) adcontrols::datafile_factory * datafile_factory();
-}
-
-adcontrols::datafile_factory *
-datafile_factory()
-{
-	return new fticr::datafile_factory();
-}
+#endif // DATAFILE_FACTORY_HPP

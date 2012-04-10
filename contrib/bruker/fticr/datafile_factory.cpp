@@ -22,33 +22,54 @@
 **
 **************************************************************************/
 
-#include "fticr.hpp"
 #include "datafile_factory.hpp"
+#include "datafile.hpp"
 
-#if defined WIN32
-#  if defined _DEBUG
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "portfoliod.lib")
-#  else
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "portfolio.lib")
-#  endif
-#endif
+using namespace fticr;
 
-FTICR::FTICR()
+datafile_factory::datafile_factory()
 {
 }
 
-namespace adcontrols {
-    class datafile_factory;
-}
-
-extern "C" {
-    __declspec(dllexport) adcontrols::datafile_factory * datafile_factory();
-}
-
-adcontrols::datafile_factory *
-datafile_factory()
+datafile_factory::~datafile_factory(void)
 {
-	return new fticr::datafile_factory();
+}
+
+void
+datafile_factory::close( adcontrols::datafile * p )
+{
+   delete p;
+}
+
+const std::wstring&
+datafile_factory::name() const
+{
+    static std::wstring name( L"FT-ICR" );
+    return name;
+}
+
+namespace fticr {
+
+	struct fticr_data {
+        
+	};
+
+}
+
+bool
+datafile_factory::access( const std::wstring& filename, adcontrols::access_mode ) const
+{
+	return datafile::is_valid_datafile( filename );
+}
+
+adcontrols::datafile *
+datafile_factory::open( const std::wstring& filename, bool readonly ) const
+{
+	fticr::datafile * p = new fticr::datafile();
+
+	if ( p->_open( filename, readonly ) )
+		return p;
+	delete p;
+
+    return 0;
 }

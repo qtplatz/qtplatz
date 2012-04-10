@@ -22,33 +22,39 @@
 **
 **************************************************************************/
 
-#include "fticr.hpp"
-#include "datafile_factory.hpp"
+#include "jcampdxparser.hpp"
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix.hpp>
+#include <boost/fusion/include/std_pair.hpp>
+#include <string>
+#include <map>
 
-#if defined WIN32
-#  if defined _DEBUG
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "portfoliod.lib")
-#  else
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "portfolio.lib")
-#  endif
-#endif
+using namespace fticr;
 
-FTICR::FTICR()
+namespace fticr {  namespace client {
+
+	namespace qi = boost::spirit::qi;
+
+	typedef std::pair<std::string, std::string> pair_type;
+
+	template<typename Iterator>
+	struct jcampdx_parser : boost::spirit::qi::grammar< Iterator, pair_type() > {
+/*
+		jcampdx_parser() : jcampdx_parser::base_type( expr ) {
+           expr = var_;
+		}
+*/
+	};
+
+}
+}
+
+jcampdxparser::jcampdxparser()
 {
 }
 
-namespace adcontrols {
-    class datafile_factory;
-}
-
-extern "C" {
-    __declspec(dllexport) adcontrols::datafile_factory * datafile_factory();
-}
-
-adcontrols::datafile_factory *
-datafile_factory()
+bool
+jcampdxparser::parse_file( std::map< std::string, std::string >& map, const std::wstring& filename )
 {
-	return new fticr::datafile_factory();
+	return true;
 }

@@ -45,13 +45,13 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;&quot;.\debug&quot;;c:\Qt\4.8.1\vc10\mkspecs\win32-msvc2008;&quot;.\GeneratedFiles&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include&quot;;&quot;$(BOOST_INCLUDE)&quot;;..\..\..\..\qtplatz\src\libs;.\GeneratedFiles"
 				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,FTICR_LIBRARY,QT_DLL,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
 				RuntimeLibrary="3"
 				BufferSecurityCheck="false"
-				TreatWChar_tAsBuiltInType="false"
+				TreatWChar_tAsBuiltInType="true"
 				RuntimeTypeInfo="true"
 				AssemblerListingLocation="debug\"
 				ObjectFile="$(IntDir)\"
@@ -75,7 +75,7 @@
 				IgnoreImportLibrary="true"
 				OutputFile="$(OutDir)\fticrd.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,c:\Qt\4.8.1\vc10\lib"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;..\..\..\..\qtplatz\lib\qtplatz;&quot;$(BOOST_ROOT)\lib&quot;"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="0"
@@ -133,7 +133,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\include\ActiveQt&quot;;&quot;.\release&quot;;c:\Qt\4.8.1\vc10\mkspecs\win32-msvc2008;&quot;.\GeneratedFiles&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include&quot;;&quot;$(BOOST_INCLUDE)&quot;;..\..\..\..\qtplatz\src\libs;.\GeneratedFiles"
 				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,FTICR_LIBRARY,QT_DLL,QT_NO_DEBUG,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -164,7 +164,7 @@
 				OutputFile="$(OutDir)\fticr.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,c:\Qt\4.8.1\vc10\lib"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;..\..\..\..\qtplatz\lib\qtplatz;&quot;$(BOOST_ROOT)\lib&quot;"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="0"
@@ -202,7 +202,19 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\datafile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\datafile_factory.cpp"
+				>
+			</File>
+			<File
 				RelativePath="fticr.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\jcampdxparser.cpp"
 				>
 			</File>
 		</Filter>
@@ -212,6 +224,14 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\datafile.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\datafile_factory.hpp"
+				>
+			</File>
+			<File
 				RelativePath="fticr.hpp"
 				>
 			</File>
@@ -219,12 +239,16 @@
 				RelativePath="fticr_global.hpp"
 				>
 			</File>
+			<File
+				RelativePath=".\jcampdxparser.hpp"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
 		<Global
 			Name="QtVersion Win32"
-			Value="4.8.1(wchar_t)"
+			Value="4.8.0"
 		/>
 		<Global
 			Name="RccDir"

@@ -45,7 +45,6 @@ DataprocessorFactory::~DataprocessorFactory()
 {
 }
 
-//DataprocessorFactory::DataprocessorFactory( QObject * owner ) : Core::IFileFactory( owner )
 DataprocessorFactory::DataprocessorFactory( QObject * owner ) : Core::IEditorFactory( owner )
                                                               , kind_( "Dataprocessor" )
                                                               , editorWidget_(0) 
@@ -54,7 +53,8 @@ DataprocessorFactory::DataprocessorFactory( QObject * owner ) : Core::IEditorFac
         << Constants::C_DATA_MC4_MIMETYPE
         << Constants::C_DATA_TEXT_MIMETYPE
         << Constants::C_DATA_INFITOF_MIMETYPE
-        << Constants::C_DATA_NATIVE_MIMETYPE;
+        << Constants::C_DATA_NATIVE_MIMETYPE
+		<< "application/octet-stream";
 }
 
 void
