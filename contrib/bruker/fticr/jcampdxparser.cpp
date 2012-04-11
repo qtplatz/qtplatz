@@ -43,17 +43,15 @@ namespace fticr {  namespace client {
 	namespace qi = boost::spirit::qi;
 
 	typedef std::pair<std::string, std::string> pair_type;
-	// typedef std::string pair_type;
+	// typedef std::map< std::string, std::size_t > map_type;
 
-	typedef std::map< std::string, std::size_t > map_type;
-
-	void map_add( map_type& m, const std::pair<std::string, std::size_t>& p ) {
+	void map_add( pair_type& m, const std::pair<std::string, std::size_t>& p ) {
 	}
 
 	template<typename Iterator>
-	struct jcampdx_parser : boost::spirit::qi::grammar< Iterator, map_type() > {
+	struct jcampdx_parser : boost::spirit::qi::grammar< Iterator, pair_type() > {
 
-		jcampdx_parser() : jcampdx_parser::base_type( molecule ) {
+		jcampdx_parser() : jcampdx_parser::base_type( pair ) {
 			using boost::spirit::qi::_val;
 			using boost::spirit::ascii::space;
 
@@ -64,9 +62,8 @@ namespace fticr {  namespace client {
 				;
 			text = qi::lexeme[+(qi::char_)];
 		}
-		qi::rule<Iterator, std::string(), qi::ascii::space_type> text;
-		qi::rule<Iterator, std::string(), qi::ascii::space_type> text2;
-		qi::rule<Iterator, map_type()> molecule;
+		qi::rule<Iterator, pair_type()> pair;
+		qi::rule<Iterator, std::string(), qi::ascii::space_type> text, text2;
 	};
 
 /*
