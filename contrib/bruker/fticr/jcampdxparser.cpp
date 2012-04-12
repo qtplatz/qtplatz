@@ -25,14 +25,12 @@
 #include "jcampdxparser.hpp"
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
-//#include <boost/spirit/include/phoenix_core.hpp>
-//#include <boost/spirit/include/phoenix_operator.hpp>
-//#include <boost/spirit/include/phoenix_object.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
-//#include <boost/fusion/include/io.hpp>
 #include <boost/foreach.hpp>
 #include <boost/bind.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <string>
 #include <map>
 
@@ -43,47 +41,28 @@ namespace fticr {  namespace client {
 	namespace qi = boost::spirit::qi;
 
 	typedef std::pair<std::string, std::string> pair_type;
-	// typedef std::map< std::string, std::size_t > map_type;
 
-	void map_add( pair_type& m, const std::pair<std::string, std::size_t>& p ) {
+	void map_add( pair_type& m, const std::pair<std::string, std::string>& p ) {
 	}
 
 	template<typename Iterator>
-	struct jcampdx_parser : boost::spirit::qi::grammar< Iterator, pair_type() > {
-
+	struct jcampdx_parser : qi::grammar<Iterator, pair_type(), qi::ascii::space_type> {
+		// this is not conformed JCAMP-DX parser, but only work for mass calibration data 
+		// extract from Bruker's FT-ICR acqu file
 		jcampdx_parser() : jcampdx_parser::base_type( pair ) {
 			using boost::spirit::qi::_val;
 			using boost::spirit::ascii::space;
 
-			text2 =
-				+(	text//    [ boost::phoenix::bind(&map_add, _val, qi::_1) ]
-			     | space
-				)
+			pair %=
+				qi::lit("##") >> text >> '=' >> text //[ boost::phoenix::bind(&map_add, _val, qi::_1) ]
 				;
-			text = qi::lexeme[+(qi::char_)];
+			text %= +(qi::char_ - '=');  // terminate if '=' and space skipped
+			// it might be necessary to use lexeme after '=' in order to avoid strip out spaces
+			// text %= qi::lexeme[ +(qi::char_) ];
 		}
-		qi::rule<Iterator, pair_type()> pair;
-		qi::rule<Iterator, std::string(), qi::ascii::space_type> text, text2;
+		qi::rule<Iterator, pair_type(), qi::ascii::space_type> pair;
+		qi::rule<Iterator, std::string(), qi::ascii::space_type> text;
 	};
-
-/*
-	template<typename Iterator>
-	struct jcampdx_parser : qi::grammar< Iterator, pair_type(), qi::ascii::space_type > {
-
-		jcampdx_parser() : jcampdx_parser::base_type( quoted_string ) {
-			// using boost::phoenix::bind;
-			using boost::spirit::qi::_val;
-			using boost::spirit::ascii::space;
-
-			quoted_string %= qi::lexeme ['"' +( qi::char_ - '"' ) >> '"' ]
-			;
-			//expr %= qi::lit("##") >> quoted_string >> '=' >> quoted_string
-			//;
-		}
-		qi::rule<Iterator, std::string(), qi::ascii::space_type> quoted_string;
-		qi::rule<Iterator, pair_type(), qi::ascii::space_type> expr;
-	};
-*/
 }
 }
 
@@ -94,20 +73,23 @@ jcampdxparser::jcampdxparser()
 bool
 jcampdxparser::parse_file( std::map< std::string, std::string >& map, const std::wstring& filename )
 {
-	(void)filename;
 	using boost::spirit::ascii::space;
 
-	typedef std::string::const_iterator iterator_type;
+	boost::filesystem::path path( filename );
+	boost::filesystem::ifstream inf( path );
+	if ( ! inf )
+		return false;
 
+	typedef std::string::const_iterator iterator_type;
 	client::jcampdx_parser< iterator_type > grammer;
 
-	std::string s = "##\"$ABC\" = \"12345\"";
-    iterator_type it = s.begin();
-    iterator_type end = s.end();
-       
-	//std::pair< std::string, std::string > data;
-	//bool r = boost::spirit::qi::parse( it, end, grammer, data );
-	(void)map;
-	//bool r = boost::spirit::qi::phrase_parse( it, end, grammer, space, map );
+	std::string line;
+	while ( std::getline( inf, line ) ) {
+		iterator_type beg = line.begin();
+		iterator_type end = line.end();
+		std::pair< std::string, std::string > data;
+		if ( boost::spirit::qi::phrase_parse( beg, end, grammer, space, data ) )
+			map[ data.first ] = data.second;    
+	}
 	return true;
 }
