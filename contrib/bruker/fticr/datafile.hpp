@@ -59,7 +59,15 @@ namespace fticr {
 	private:
 		std::wstring filename_; // root directory name
 		boost::scoped_ptr< adcontrols::ProcessedDataset> processedDataset_;
-		std::map< std::string, std::string > acqu_;
+		struct acqu {
+			double ml1;
+			double ml2;
+			double fMax;
+			int ns;
+            double mhigh;
+			double mlow;
+		};
+        acqu acqu_;
 	};
 
 }

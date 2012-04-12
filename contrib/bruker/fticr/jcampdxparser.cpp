@@ -88,8 +88,9 @@ jcampdxparser::parse_file( std::map< std::string, std::string >& map, const std:
 		iterator_type beg = line.begin();
 		iterator_type end = line.end();
 		std::pair< std::string, std::string > data;
-		if ( boost::spirit::qi::phrase_parse( beg, end, grammer, space, data ) )
-			map[ data.first ] = data.second;    
+		if ( boost::spirit::qi::phrase_parse( beg, end, grammer, space, data ) ) {
+			map[ data.first ] = data.second;
+		}
 	}
 	return true;
 }

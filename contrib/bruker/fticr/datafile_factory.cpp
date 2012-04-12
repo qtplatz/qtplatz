@@ -31,8 +31,8 @@ using namespace fticr;
 
 datafile_factory::datafile_factory()
 {
-	std::map< std::string, std::string > map;
-	jcampdxparser::parse_file( map, L"C:/Users/thondo/Documents/Osaka-U/FTMS-DATA/100-TNT+RDX-AfterCalib/1/acqu" );
+	// std::map< std::string, std::string > map;
+	// jcampdxparser::parse_file( map, L"C:/Users/thondo/Documents/Osaka-U/FTMS-DATA/100-TNT+RDX-AfterCalib/1/acqu" );
 }
 
 datafile_factory::~datafile_factory(void)

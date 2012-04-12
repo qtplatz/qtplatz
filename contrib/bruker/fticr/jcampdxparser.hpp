@@ -33,7 +33,8 @@ namespace fticr {
 	class jcampdxparser {
 	public:
 		jcampdxparser();
-		static bool parse_file( std::map< std::string, std::string >&, const std::wstring& fileeme );
+		typedef std::map< std::string, std::string > vector_type;
+		static bool parse_file( vector_type&, const std::wstring& fileeme );
 	};
 
 }

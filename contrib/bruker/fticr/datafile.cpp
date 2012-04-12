@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "datafile.hpp"
+#include "jcampdxparser.hpp"
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <portfolio/portfolio.hpp>
@@ -31,6 +32,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/any.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace fticr {
 	struct dirwalk {
@@ -46,6 +48,7 @@ using namespace fticr;
 
 datafile::datafile()
 {
+	memset(&acqu_, 0, sizeof( acqu_ ) );
 }
 
 //virtual
@@ -120,6 +123,18 @@ datafile::_open( const std::wstring& filename, bool )
     if ( !dw )
 		return false;
     filename_ = dw.root_dir.wstring();
+	boost::filesystem::path acqu( dw.root_dir / L"acqu" );
+	if ( boost::filesystem::is_regular_file( acqu ) ) {
+		jcampdxparser::vector_type map;
+		if ( jcampdxparser::parse_file( map, acqu.wstring() ) ) {
+			try { acqu_.ml1   = boost::lexical_cast<double>( map[ "$ML1" ] );   } catch ( boost::bad_lexical_cast& ) { return false; }
+			try { acqu_.ml2   = boost::lexical_cast<double>( map[ "$ML2" ] );   } catch ( boost::bad_lexical_cast& ) { return false; }
+			try { acqu_.fMax  = boost::lexical_cast<double>( map[ "$SW_h" ] );  } catch ( boost::bad_lexical_cast& ) { return false; }
+			try { acqu_.ns    = boost::lexical_cast<int>( map[ "$NS" ] );    } catch ( boost::bad_lexical_cast& ) { return false; }
+			try { acqu_.mhigh = boost::lexical_cast<double>( map[ "$MW_high" ]);} catch ( boost::bad_lexical_cast& ) { return false; }
+			try { acqu_.mlow  = boost::lexical_cast<double>( map[ "$MW_low" ] );} catch ( boost::bad_lexical_cast& ) { return false; }
+		}
+	}
 
 	portfolio::Portfolio portfolio;
 	portfolio.create_with_fullpath( filename_ );
