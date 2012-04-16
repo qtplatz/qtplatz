@@ -26,6 +26,8 @@
 #include "jcampdxparser.hpp"
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/processeddataset.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -33,6 +35,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/any.hpp>
 #include <boost/lexical_cast.hpp>
+#include <vector>
 
 namespace fticr {
 	struct dirwalk {
@@ -68,7 +71,26 @@ boost::any
 datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
 	boost::any any;
+	boost::uint32_t x = 0;
+	std::vector< double > intens;
 
+	boost::filesystem::path fpath( path );
+	boost::uintmax_t n = boost::filesystem::file_size( path ) / 4;
+
+	adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum() );
+    pMS->resize( n );
+
+	boost::filesystem::ifstream rdfile( fpath, std::ios_base::binary );
+	boost::uintmax_t idx;
+	for ( idx = 0; idx < n && ! rdfile.eof(); ++idx ) {
+		rdfile.read( reinterpret_cast<char *>(&x), sizeof(x) );
+		pMS->setIntensity( idx, double( x ) );
+		double fraction = acqu_.fMax - acqu_.fMax * idx / n + acqu_.ml2;
+		double mz = acqu_.ml1 / fraction;
+		pMS->setMass( idx, mz );
+	}
+	pMS->setAcquisitionMassRange( acqu_.mlow, acqu_.mhigh );
+	any = pMS;     
 	return any;
 }
 
@@ -146,7 +168,8 @@ datafile::_open( const std::wstring& filename, bool )
 	for ( ; pos != last; ++pos ) {
 		boost::filesystem::path p( *pos );
 		if ( boost::filesystem::is_directory( p ) ) {
-			if ( boost::filesystem::is_regular_file( p / L"1r" ) ) {
+			boost::filesystem::path rdfile( p / L"1r" );
+			if ( boost::filesystem::is_regular_file( rdfile ) ) {
 				std::wstring title;
 				if ( boost::filesystem::is_regular_file( p / L"title" ) ) {
 					boost::filesystem::wifstream inf( p / L"title" );
@@ -156,6 +179,7 @@ datafile::_open( const std::wstring& filename, bool )
 					title = L"Spectrum " + p.leaf().wstring();
 				portfolio::Folium folium = spectra.addFolium( title );
 				folium.setAttribute( L"dataType", L"MassSpectrum" );
+				folium.id( rdfile.wstring() );
 			}
 		}
 	}
