@@ -14,7 +14,7 @@ NSIS	= $(NSIS_DIR)\makensis.exe
 
 TARGET 	= Release|Win32
 
-QTPLATZ_PATH = ..\..\..\qtplatz
+QTPLATZ_PATH = ..\..\..\..\qtplatz
 
 all:
 	@echo "	---------------------------------------------------------------------"
@@ -28,7 +28,7 @@ all:
 	@echo "	on VS-2009 command console"
 	@echo "	---------------------------------------------------------------------"
 
-world: qtplatz
+world: qtplatz contrib
 
 clean:
 	devenv $(QTPLATZ_PATH)\qtplatz-vc9.sln /Clean "$(TARGET)"
@@ -72,9 +72,6 @@ veryclean:
 #---------------------------------------
 
 clean :		
-	cd ../qtPlatz
-	devenv qtPlatz-vc9.sln /Clean
-	cd ..\MC4Utils
-	devenv MC4Utils.sln /Clean
-	cd ..\..
+	cd ../qtplatz
+	devenv qtplatz-vc9.sln /Clean
 
