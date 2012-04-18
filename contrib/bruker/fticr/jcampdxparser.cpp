@@ -23,10 +23,16 @@
 **************************************************************************/
 
 #include "jcampdxparser.hpp"
+#if defined _MSC_VER
+#pragma warning(disable:4100)
+#endif
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
+#if defined _MSC_VER
+#pragma warning(default:4100)
+#endif
 #include <boost/foreach.hpp>
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
@@ -41,9 +47,6 @@ namespace fticr {  namespace client {
 	namespace qi = boost::spirit::qi;
 
 	typedef std::pair<std::string, std::string> pair_type;
-
-	void map_add( pair_type& m, const std::pair<std::string, std::string>& p ) {
-	}
 
 	template<typename Iterator>
 	struct jcampdx_parser : qi::grammar<Iterator, pair_type(), qi::ascii::space_type> {

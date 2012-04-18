@@ -54,9 +54,9 @@ namespace adcontrols {
         virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const = 0;
 
         // data update, modify operations
-        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio&, const datafile& ) { return false; }
-        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio& ) { return false; }
-        virtual bool update( const std::wstring&, boost::any& ) { return false; }
+        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio&, const datafile& );
+        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio& );
+        virtual bool update( const std::wstring&, boost::any& );
         //---------
 
         static bool access( const std::wstring& filename );

@@ -67,3 +67,22 @@ datafile::readonly() const
 {
     return readonly_;
 }
+
+//---------------
+bool
+datafile::saveContents( const std::wstring&, const portfolio::Portfolio&, const datafile& )
+{
+	return false;
+}
+
+bool
+datafile::saveContents( const std::wstring&, const portfolio::Portfolio& )
+{
+	return false;
+}
+
+bool
+datafile::update( const std::wstring&, boost::any& )
+{ 
+	return false;
+}

@@ -74,6 +74,8 @@ datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 	boost::uint32_t x = 0;
 	std::vector< double > intens;
 
+    (void)dataType;
+
 	boost::filesystem::path fpath( path );
 	boost::uintmax_t n = boost::filesystem::file_size( path ) / 4;
 
@@ -110,7 +112,7 @@ datafile::getFunctionCount() const
 
 //virtual
 size_t
-datafile::getSpectrumCount( int fcn ) const
+datafile::getSpectrumCount( int /* fcn */ ) const
 {
 	return 0;
 }
@@ -124,14 +126,14 @@ datafile::getChromatogramCount() const
 
 //virtual
 bool
-datafile::getTIC( int fcn, adcontrols::Chromatogram& ) const
+datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& ) const
 {
 	return false;
 }
 
 //virtual
 bool
-datafile::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const
+datafile::getSpectrum( int /* fcn*/, int /*idx*/, adcontrols::MassSpectrum& ) const
 {
 	return false;
 }

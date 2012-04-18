@@ -74,7 +74,6 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="QtCored4.lib"
 				OutputFile="$(OutDir)addatafiled.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtPlatz&quot;;&quot;$(BOOST_ROOT)/lib&quot;;&quot;$(ACE_ROOT)/lib&quot;"
@@ -163,7 +162,6 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="QtCore4.lib"
 				OutputFile="$(OutDir)addatafile.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
