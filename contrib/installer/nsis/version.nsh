@@ -1,0 +1,1 @@
+!define VERSION	"v1.7.2-379-ga7d37c1"

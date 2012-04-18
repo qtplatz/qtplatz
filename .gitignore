@@ -111,3 +111,4 @@ share/doc/qtcreator/qtcreator.qch
 tests/manual/cplusplus/cplusplus0
 examples/adfstest/*.adfs
 examples/adfstest/*.bin
+contrib/installer/nsis/*.exe
