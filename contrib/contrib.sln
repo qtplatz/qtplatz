@@ -2,6 +2,8 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fticr", "bruker\fticr\fticr.vcproj", "{B20210D8-5D1F-3CCA-814C-62693030CDB1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mzxml", "mzxml\mzxml.vcproj", "{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -12,6 +14,10 @@ Global
 		{B20210D8-5D1F-3CCA-814C-62693030CDB1}.Debug|Win32.Build.0 = Debug|Win32
 		{B20210D8-5D1F-3CCA-814C-62693030CDB1}.Release|Win32.ActiveCfg = Release|Win32
 		{B20210D8-5D1F-3CCA-814C-62693030CDB1}.Release|Win32.Build.0 = Release|Win32
+		{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}.Debug|Win32.Build.0 = Debug|Win32
+		{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}.Release|Win32.ActiveCfg = Release|Win32
+		{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

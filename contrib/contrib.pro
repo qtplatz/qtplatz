@@ -4,6 +4,7 @@ CONFIG	+= ordered
 include(contrib.pri)
 
 SUBDIRS += \
-    bruker
+    bruker \
+    mzxml
 
 unix:!macx:!isEmpty(copydata):SUBDIRS += bin
