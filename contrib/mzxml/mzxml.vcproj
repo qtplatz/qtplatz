@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\..\lib\qtplatz\plugins\ScienceLiaison"
+			OutputDirectory="..\..\lib\qtplatz\plugins\ScienceLiaison"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -45,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include&quot;;\src;&quot;$(QTDIR)\include\ActiveQt&quot;;&quot;.\debug&quot;;c:\Qt\4.8.1\vc10\mkspecs\win32-msvc2008;&quot;.\GeneratedFiles&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include&quot;;&quot;$(BOOST_INCLUDE)&quot;;..\..\..\qtplatz\src\libs;.\GeneratedFiles"
 				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,MZXML_LIBRARY,QT_DLL,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -75,7 +75,7 @@
 				IgnoreImportLibrary="true"
 				OutputFile="$(OutDir)\mzxmld.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,c:\Qt\4.8.1\vc10\lib"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(BOOST_ROOT)\lib&quot;;..\..\..\qtplatz\lib\qtplatz"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="0"
@@ -105,7 +105,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\..\lib\qtplatz\plugins\ScienceLiaison"
+			OutputDirectory="..\..\lib\qtplatz\plugins\ScienceLiaison"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			UseOfMFC="0"
@@ -133,7 +133,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include&quot;;\src;&quot;$(QTDIR)\include\ActiveQt&quot;;&quot;.\release&quot;;c:\Qt\4.8.1\vc10\mkspecs\win32-msvc2008;&quot;.\GeneratedFiles&quot;"
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include&quot;;&quot;$(BOOST_INCLUDE)&quot;;..\..\..\qtplatz\src\libs;.\GeneratedFiles"
 				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,MZXML_LIBRARY,QT_DLL,QT_NO_DEBUG,QT_HAVE_MMX,QT_HAVE_3DNOW,QT_HAVE_SSE,QT_HAVE_MMXEXT,QT_HAVE_SSE2,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="1"
@@ -164,7 +164,7 @@
 				OutputFile="$(OutDir)\mzxml.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="$(QTDIR)\lib,c:\Qt\4.8.1\vc10\lib"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(BOOST_ROOT)\lib&quot;;..\..\..\qtplatz\lib\qtplatz"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile=""
 				SubSystem="0"

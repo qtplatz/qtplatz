@@ -25,10 +25,21 @@
 #ifndef DATAFILE_FACTORY_HPP
 #define DATAFILE_FACTORY_HPP
 
-class datafile_factory
-{
-public:
-    datafile_factory();
-};
+#include <adcontrols/datafile_factory.hpp>
+
+namespace mzxml {
+
+	class datafile_factory : public adcontrols::datafile_factory {
+	public:
+		datafile_factory();
+		~datafile_factory(void);
+
+        const std::wstring& name() const;
+        bool access( const std::wstring& filename, adcontrols::access_mode ) const;
+        adcontrols::datafile * open( const std::wstring& filename, bool readonly ) const;
+        void close( adcontrols::datafile * );
+	};
+
+}
 
 #endif // DATAFILE_FACTORY_HPP

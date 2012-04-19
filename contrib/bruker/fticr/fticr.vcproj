@@ -75,7 +75,7 @@
 				IgnoreImportLibrary="true"
 				OutputFile="$(OutDir)\fticrd.dll"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;..\..\..\..\qtplatz\lib\qtplatz;&quot;$(BOOST_ROOT)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(BOOST_ROOT)\lib&quot;;..\..\..\..\qtplatz\lib\qtplatz"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=""
 				SubSystem="0"

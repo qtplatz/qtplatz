@@ -24,6 +24,8 @@
 
 #include "datafile.hpp"
 
+using namespace mzxml;
+
 datafile::datafile()
 {
 }

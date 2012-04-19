@@ -25,10 +25,13 @@
 #ifndef DATAFILE_HPP
 #define DATAFILE_HPP
 
-class datafile
-{
-public:
-    datafile();
-};
+namespace mzxml {
+
+	class datafile {
+	public:
+		datafile();
+	};
+
+}
 
 #endif // DATAFILE_HPP

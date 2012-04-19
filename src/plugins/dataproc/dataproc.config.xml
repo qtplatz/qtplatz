@@ -11,6 +11,7 @@
   <Module name="adtxtfactory" type="sharedlib" filename="/ScienceLiaison/adtxtfactory$(configuration).dll"/>
   <Module name="addatafile" type="sharedlib" filename="/ScienceLiaison/addatafile$(configuration).dll"/>
   <Module name="fticr_factory" type="sharedlib" filename="/ScienceLiaison/fticr$(configuration).dll"/>
+  <Module name="mzxml_factory" type="sharedlib" filename="/ScienceLiaison/mzxml$(configuration).dll"/>
   <Module name="infitof" type="sharedlib" filename="/MSI/infitofspectrometer$(configuration).dll"/>
   <Configuration name="ProcessMethodEditors">
     <Configuration name="CentroidUI">
@@ -42,6 +43,10 @@
     <Configuration name="fticr_provider">
       <pattern>*</pattern>
       <Component type="dataprovider" interface="n/a" module="fticr_factory" loader="adplugin"/>
+    </Configuration>
+    <Configuration name="mzxml_provider">
+      <pattern>*.mzxml</pattern>
+      <Component type="dataprovider" interface="n/a" module="mzxml_factory" loader="adplugin"/>
     </Configuration>
     <Configuration name="native_data_provider">
       <pattern>*</pattern>

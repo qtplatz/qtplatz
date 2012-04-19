@@ -23,7 +23,50 @@
 **************************************************************************/
 
 #include "datafile_factory.hpp"
+#include "datafile.hpp"
+#include <adcontrols/datafile.hpp>
+#include <adcontrols/processeddataset.hpp> // for delition of scoped_ptr<ProcessedDataset>
+
+using namespace mzxml;
 
 datafile_factory::datafile_factory()
 {
+	// std::map< std::string, std::string > map;
+	// jcampdxparser::parse_file( map, L"C:/Users/thondo/Documents/Osaka-U/FTMS-DATA/100-TNT+RDX-AfterCalib/1/acqu" );
+}
+
+datafile_factory::~datafile_factory(void)
+{
+}
+
+void
+datafile_factory::close( adcontrols::datafile * p )
+{
+   delete p;
+}
+
+const std::wstring&
+datafile_factory::name() const
+{
+    static std::wstring name( L"mzXML" );
+    return name;
+}
+
+bool
+datafile_factory::access( const std::wstring& filename, adcontrols::access_mode ) const
+{
+	return true; // datafile::is_valid_datafile( filename );
+}
+
+adcontrols::datafile *
+datafile_factory::open( const std::wstring& filename, bool readonly ) const
+{
+/*
+	fticr::datafile * p = new fticr::datafile();
+
+	if ( p->_open( filename, readonly ) )
+		return p;
+	delete p;
+*/
+    return 0;
 }

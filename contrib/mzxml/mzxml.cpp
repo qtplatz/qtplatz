@@ -24,7 +24,33 @@
 
 #include "mzxml.hpp"
 
+#include "datafile_factory.hpp"
+
+#if defined WIN32
+#  if defined _DEBUG
+#     pragma comment(lib, "adcontrolsd.lib")
+#     pragma comment(lib, "portfoliod.lib")
+#  else
+#     pragma comment(lib, "adcontrols.lib")
+#     pragma comment(lib, "portfolio.lib")
+#  endif
+#endif
+
 
 mzXML::mzXML()
 {
+}
+
+namespace adcontrols {
+    class datafile_factory;
+}
+
+extern "C" {
+    MZXMLSHARED_EXPORT adcontrols::datafile_factory * datafile_factory();
+}
+
+adcontrols::datafile_factory *
+datafile_factory()
+{
+	return new mzxml::datafile_factory();
 }
