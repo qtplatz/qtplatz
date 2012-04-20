@@ -34,9 +34,23 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/any.hpp>
 #include <boost/lexical_cast.hpp>
-//#include <xmlparser/pugixml.hpp>
+// #include <xmlparser/pugixml.hpp>
+#include <QtXml/QXmlDefaultHandler>
 
 using namespace mzxml;
+
+namespace mzxml {
+
+	class XmlHandler : public QXmlDefaultHandler {
+	public:
+		bool startElement(const QString &namespaceURI, const QString &localName, const QString &qName, const QXmlAttributes &attributes);
+		bool endElement(const QString &namespaceURI, const QString &localName, const QString &qName);
+		bool characters(const QString &str);
+		bool fatalError(const QXmlParseException &exception);
+		QString errorString() const;
+	};
+
+}
 
 datafile::datafile()
 {
@@ -151,11 +165,51 @@ datafile::is_valid_datafile( const std::wstring& filename )
 				  || path.extension() == L".MZXML"
 				  ;
 
-	boost::filesystem::ifstream rdfile( path, std::ios_base::binary );
-	result = rdfile;
+	//boost::filesystem::ifstream rdfile( path, std::ios_base::binary );
+	//result = rdfile;
+	//pugi::xml_document doc;
+	//result = doc.load( rdfile );
 
-//	pugi::xml_document doc;
-//	result = doc.load_file( path.string().c_str() );
+    XmlHandler handler;
+    QXmlSimpleReader reader;
+	reader.setContentHandler( &handler );
+    reader.setErrorHandler( & handler );
+	QFile file( path.string().c_str() );
+	if ( ! file.open( QFile::ReadOnly | QFile::Text ) )
+		return false;
+	QXmlInputSource xmlInputSource( &file );
+	if ( reader.parse( &xmlInputSource, true ) ) {
+
+	}
 	return result;
 }
 
+bool
+XmlHandler::startElement(const QString &namespaceURI, const QString &localName, const QString &qName, const QXmlAttributes &attributes)
+{
+	return true;
+}
+
+bool
+XmlHandler::endElement(const QString &namespaceURI, const QString &localName, const QString &qName)
+{
+	return true;
+}
+
+bool
+XmlHandler::characters(const QString &str)
+{
+	return true;
+}
+
+bool
+XmlHandler::fatalError(const QXmlParseException &exception)
+{
+	return true;
+}
+
+QString
+XmlHandler::errorString() const
+{
+	return "Error";
+}

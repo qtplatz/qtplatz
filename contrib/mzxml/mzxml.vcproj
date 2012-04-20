@@ -73,6 +73,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
+				AdditionalDependencies="QtXmld4.lib QtCored4.lib"
 				OutputFile="$(OutDir)\mzxmld.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(BOOST_ROOT)\lib&quot;;..\..\..\qtplatz\lib\qtplatz"
