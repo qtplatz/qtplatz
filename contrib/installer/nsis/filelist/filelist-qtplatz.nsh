@@ -35,6 +35,7 @@
    ${InstallFile} "${InLiaisonPath}" "acquire.config.xml"    "lib\qtplatz\plugins\ScienceLiaison" 1 0
    ${InstallFile} "${InLiaisonPath}" "servant.config.xml"    "lib\qtplatz\plugins\ScienceLiaison" 1 0
    ${InstallFile} "${InLiaisonPath}" "dataproc.config.xml"   "lib\qtplatz\plugins\ScienceLiaison" 1 0
+   ${InstallFile} "${InLiaisonPath}" "dataproc-mimetype.xml" "lib\qtplatz\plugins\ScienceLiaison" 1 0
    ${InstallFile} "${InXSDPath}"     "config.xsd"            "lib\qtplatz\plugins\xsd"            1 0
    ;;;
    ${InstallFile} "${InLiaisonPath}" "acquire.pluginspec"    "lib\qtplatz\plugins\ScienceLiaison" 1 0

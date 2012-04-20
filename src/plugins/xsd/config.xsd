@@ -58,7 +58,7 @@
 		<xs:sequence minOccurs="0" maxOccurs="unbounded">
 			<xs:element name="Configuration" type="ConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="title" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element name="pattern" minOccurs="0" maxOccurs="unbounded"/>
+      <!-- <xs:element name="pattern" minOccurs="0" maxOccurs="unbounded"/> -->
 			<xs:element name="Component" type="ComponentType" minOccurs="0"/>
 			<xs:element name="datasource" minOccurs="0"/>
 		</xs:sequence>

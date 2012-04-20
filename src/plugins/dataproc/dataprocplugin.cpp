@@ -84,6 +84,7 @@
 #include <adplugin/orbmanager.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/qbrokersessionevent.hpp>
+#include <xmlparser/pugixml.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
 #include <streambuf>
@@ -173,9 +174,24 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     // DataprocessorFactory * dataprocFactory = 0;
     Core::MimeDatabase* mdb = core->mimeDatabase();
     if ( mdb ) {
-        if ( !mdb->addMimeTypes(":/dataproc/dataproc-mimetype.xml", error_message) )
-            return false;
-        dataprocFactory_ = new DataprocessorFactory( this );
+		// externally installed mime-types
+		std::wstring mimefile
+			= adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/dataproc-mimetype.xml" );
+		if ( ! mdb->addMimeTypes( qtwrapper::qstring( mimefile ), error_message) )
+			adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes" << mimefile << error_message;
+
+		// core mime-types
+		if ( ! mdb->addMimeTypes(":/dataproc/mimetype.xml", error_message) )
+			adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
+
+		QStringList mTypes;
+		pugi::xml_document doc;
+		if ( doc.load_file( mimefile.c_str() ) ) {
+			pugi::xpath_node_set list = doc.select_nodes( "/mime-info/mime-type" );
+			for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
+				mTypes << it->node().attribute( "type" ).value();
+		}
+		dataprocFactory_ = new DataprocessorFactory( this, mTypes );
         addAutoReleasedObject( dataprocFactory_ );
     }
 

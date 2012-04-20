@@ -1,24 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
-  <mime-type type="application/octet-stream">
-    <comment>unknown</comment>
-    <glob pattern="*.a"/>
-  </mime-type>
-  <mime-type type="application/adfs">
-      <sub-class-of type="application/octet-stream"/>
-      <comment> qtPlatz data file</comment>
-      <glob pattern="*.adfs"/>
-      <glob pattern="*.qtms"/>
+  <mime-type type="application/mzxml">
+    <sub-class-of type="application/octet-stream"/>
+    <comment>mzXML data file</comment>
+    <glob pattern="*.mzxml"/>
+    <glob pattern="*.mzdata"/>
   </mime-type>
   <mime-type type="application/data">
         <sub-class-of type="application/octet-stream"/>
         <comment>MC4 data file</comment>
         <glob pattern="*.data"/>
-    </mime-type>
-  <mime-type type="application/txt">
-    <sub-class-of type="application/octet-stream"/>
-    <comment>Spectrum file</comment>
-       <glob pattern="*.txt"/>
     </mime-type>
 </mime-info>
 

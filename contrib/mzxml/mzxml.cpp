@@ -30,9 +30,11 @@
 #  if defined _DEBUG
 #     pragma comment(lib, "adcontrolsd.lib")
 #     pragma comment(lib, "portfoliod.lib")
+// #     pragma comment(lib, "xmlparserd.lib") -- can't work since 4GB file size limitation by fopen() on windows
 #  else
 #     pragma comment(lib, "adcontrols.lib")
 #     pragma comment(lib, "portfolio.lib")
+// #     pragma comment(lib, "xmlparser.lib")
 #  endif
 #endif
 

@@ -25,11 +25,37 @@
 #ifndef DATAFILE_HPP
 #define DATAFILE_HPP
 
+#include <adcontrols/datafile.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/processeddataset.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/smart_ptr.hpp>
+#include <map>
+#include <string>
+
 namespace mzxml {
 
-	class datafile {
+	class datafile : public adcontrols::datafile
+		           , public adcontrols::LCMSDataset
+				   , boost::noncopyable {
 	public:
 		datafile();
+
+		//--------- implement adcontrols::datafile ----------------
+		virtual void accept( adcontrols::dataSubscriber& );
+		virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const;
+		virtual adcontrols::datafile::factory_type factory();
+		virtual size_t getFunctionCount() const;
+		virtual size_t getSpectrumCount( int fcn = 0 ) const;
+		virtual size_t getChromatogramCount() const;
+		virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const;
+		virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const;
+		//<-------------------------------------
+		bool _open( const std::wstring&, bool );
+		static bool is_valid_datafile( const std::wstring& );
+	private:
+		std::wstring filename_; // root directory name
+		boost::scoped_ptr< adcontrols::ProcessedDataset> processedDataset_;
 	};
 
 }

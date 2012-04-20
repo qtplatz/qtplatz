@@ -33,23 +33,18 @@
   </Configuration>
   <Configuration name="dataproviders">
     <Configuration name="mc4provider">
-      <pattern>*.data</pattern>
       <Component type="dataprovider" interface="mc4::dataprovider" module="mc4" loader="adplugin"/>
     </Configuration>
     <Configuration name="txtprovider">
-      <pattern>*.txt</pattern>
       <Component type="dataprovider" interface="n/a" module="adtxtfactory" loader="adplugin"/>
     </Configuration>
     <Configuration name="fticr_provider">
-      <pattern>*</pattern>
       <Component type="dataprovider" interface="n/a" module="fticr_factory" loader="adplugin"/>
     </Configuration>
     <Configuration name="mzxml_provider">
-      <pattern>*.mzxml</pattern>
       <Component type="dataprovider" interface="n/a" module="mzxml_factory" loader="adplugin"/>
     </Configuration>
     <Configuration name="native_data_provider">
-      <pattern>*</pattern>
       <Component type="dataprovider" interface="n/a" module="addatafile" loader="adplugin"/>
     </Configuration>
   </Configuration>

@@ -55,7 +55,7 @@ datafile_factory::name() const
 bool
 datafile_factory::access( const std::wstring& filename, adcontrols::access_mode ) const
 {
-	return true; // datafile::is_valid_datafile( filename );
+	return datafile::is_valid_datafile( filename );
 }
 
 adcontrols::datafile *

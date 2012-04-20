@@ -43,7 +43,7 @@ namespace dataproc {
             Q_OBJECT
         public:
             ~DataprocessorFactory();
-            explicit DataprocessorFactory( QObject * owner );
+            explicit DataprocessorFactory( QObject * owner, const QStringList& );
 
             void setEditor( QWidget * );
 
@@ -54,7 +54,6 @@ namespace dataproc {
             virtual QStringList mimeTypes() const;
             virtual QString kind() const;
             virtual Core::IFile * open(const QString& filename );
-
             // <---
         signals:
 
