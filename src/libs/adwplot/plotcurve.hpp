@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include <qwt_plot_curve.h>
+#include <boost/smart_ptr.hpp>
 
 template<class T> class QwtSeriesData;
 
@@ -39,10 +40,9 @@ namespace adwplot {
         PlotCurve& operator = ( const PlotCurve& );
         void setStyle( QwtPlotCurve::CurveStyle );
         void setData( const double * xData, const double * yData, size_t size );
-        inline QwtPlotCurve * p() { return curve_; }
+		inline QwtPlotCurve * p() { return curve_.get(); }
     private:
-        bool ownership_;
-        QwtPlotCurve * curve_;
+		boost::shared_ptr< QwtPlotCurve > curve_;
         QwtSeriesData<QPointF> * series_;
     };
 

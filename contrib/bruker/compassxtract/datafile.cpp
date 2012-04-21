@@ -186,6 +186,19 @@ datafile::_open( const std::wstring& filename, bool )
     return true;
 }
 
+/*
+FirstLineIntensity         float Intensity of the first line saved for each spectrum
+HighResolutionMass         float High resolution mass of each spectrum
+IonPolarity                int   Polarity of each spectrum (0 = positive, 1 = negative, 2 = both, 255 = unknown)
+MaxIntensity               float Maximum intensity of each spectrum
+MSLevel                    int   The MS level of each spectrum (MS = 1, MSMS = 2, …)
+MSPrecursor                float Each MSMS spectrum’s precursor mass
+MZMeasurementIntervalEnd   float Measured mass range, last values
+MZMeasurementIntervalStart float Measured mass range, first values
+RetentionTime              float The retention time of each spectrum in seconds
+SumIntensity               float Sum of all intensities (aka Total Ion Current)
+*/
+
 // virtual
 bool
 datafile::getTIC( int fcn, adcontrols::Chromatogram& c ) const
