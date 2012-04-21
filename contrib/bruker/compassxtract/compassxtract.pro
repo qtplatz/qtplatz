@@ -20,12 +20,14 @@ DEFINES += COMPASSXTRACT_LIBRARY
 
 SOURCES += compassxtract.cpp \
     datafile_factory.cpp \
-    datafile.cpp
+    datafile.cpp \
+    safearray.cpp
 
 HEADERS += compassxtract.hpp\
         compassxtract_global.hpp \
     datafile_factory.hpp \
-    datafile.hpp
+    datafile.hpp \
+    safearray.hpp
 
 symbian {
     MMP_RULES += EXPORTUNFROZEN
