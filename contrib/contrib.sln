@@ -4,6 +4,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fticr", "bruker\fticr\fticr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mzxml", "mzxml\mzxml.vcproj", "{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compassxtract", "bruker\compassxtract\compassxtract.vcproj", "{B1FFC0E8-6277-3EB4-AB1F-1B3862EC7BC5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -18,6 +20,10 @@ Global
 		{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}.Debug|Win32.Build.0 = Debug|Win32
 		{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}.Release|Win32.ActiveCfg = Release|Win32
 		{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}.Release|Win32.Build.0 = Release|Win32
+		{B1FFC0E8-6277-3EB4-AB1F-1B3862EC7BC5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B1FFC0E8-6277-3EB4-AB1F-1B3862EC7BC5}.Debug|Win32.Build.0 = Debug|Win32
+		{B1FFC0E8-6277-3EB4-AB1F-1B3862EC7BC5}.Release|Win32.ActiveCfg = Release|Win32
+		{B1FFC0E8-6277-3EB4-AB1F-1B3862EC7BC5}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

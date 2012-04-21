@@ -12,6 +12,7 @@
   <Module name="addatafile" type="sharedlib" filename="/ScienceLiaison/addatafile$(configuration).dll"/>
   <Module name="fticr_factory" type="sharedlib" filename="/ScienceLiaison/fticr$(configuration).dll"/>
   <Module name="mzxml_factory" type="sharedlib" filename="/ScienceLiaison/mzxml$(configuration).dll"/>
+  <Module name="CompassXtract" type="sharedlib" filename="/ScienceLiaison/compassxtract$(configuration).dll"/>
   <Module name="infitof" type="sharedlib" filename="/MSI/infitofspectrometer$(configuration).dll"/>
   <Configuration name="ProcessMethodEditors">
     <Configuration name="CentroidUI">
@@ -43,6 +44,9 @@
     </Configuration>
     <Configuration name="mzxml_provider">
       <Component type="dataprovider" interface="n/a" module="mzxml_factory" loader="adplugin"/>
+    </Configuration>
+    <Configuration name="compassxtract_provider">
+      <Component type="dataprovider" interface="n/a" module="CompassXtract" loader="adplugin"/>
     </Configuration>
     <Configuration name="native_data_provider">
       <Component type="dataprovider" interface="n/a" module="addatafile" loader="adplugin"/>
