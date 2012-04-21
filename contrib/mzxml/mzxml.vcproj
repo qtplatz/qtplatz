@@ -162,6 +162,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
+				AdditionalDependencies="QtXml4.lib QtCore4.lib"
 				OutputFile="$(OutDir)\mzxml.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
