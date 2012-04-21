@@ -25,6 +25,7 @@
    ${InstallFile} "${InLiaisonPath}" "adtxtfactory.dll"      "lib\qtplatz\plugins\ScienceLiaison" 1 0
    ${InstallFile} "${InLiaisonPath}" "addatafile.dll"        "lib\qtplatz\plugins\ScienceLiaison" 1 0
    ${InstallFile} "${InLiaisonPath}" "fticr.dll"             "lib\qtplatz\plugins\ScienceLiaison" 1 0
+   ${InstallFile} "${InLiaisonPath}" "compassxtract.dll"     "lib\qtplatz\plugins\ScienceLiaison" 1 0
    ;;
    ;; acquire plugin
    ${InstallFile} "${InLiaisonPath}" "acquire.dll"           "lib\qtplatz\plugins\ScienceLiaison" 1 0
