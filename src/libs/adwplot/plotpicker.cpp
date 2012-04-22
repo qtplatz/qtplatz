@@ -30,8 +30,8 @@ using namespace adwplot;
 
 PlotPicker::PlotPicker( QwtPlotCanvas * canvas ) : QwtPlotPicker( canvas )
 {
-    setStateMachine(new QwtPickerDragPointMachine());
-    //setRubberBandPen(QColor(Qt::green));
-    //setRubberBand(QwtPicker::CrossRubberBand);
-    //setTrackerPen(QColor(Qt::white));
+    setStateMachine( new QwtPickerDragPointMachine() );
+	setRubberBandPen( QColor(Qt::green) );
+	setRubberBand(QwtPicker::CrossRubberBand);
+    setTrackerPen(QColor(Qt::white));
 }

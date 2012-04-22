@@ -61,8 +61,9 @@ namespace adwplot {
 			}
 			~series_data() {
 			}
-            inline operator T& () { return t_; };
-
+			inline operator T& () {
+				return t_;
+			};
             // implements QwtSeriesData<>
             virtual size_t size() const { return t_.size(); }
             virtual QPointF sample( size_t idx ) const { 
@@ -79,18 +80,19 @@ namespace adwplot {
         public:
             ~TraceData() {
             }
-			TraceData( Dataplot& plot ) : curve_( plot ), d_series_(0) { // 
+			TraceData( Dataplot& plot ) : curve_( plot ) { // 
             }
-			TraceData( const TraceData& t ) : curve_( t.curve_ ), d_series_( t.d_series_ ) {
+			TraceData( const TraceData& t ) : curve_( t.curve_ ), rect_( t.rect_ ) {
             }
             void setData( const T& ) {
             }
-			const QRectF boundingRect() const { 
-				return d_series_ ? d_series_->boundingRect() : QRectF();
+			const QRectF& boundingRect() const { 
+				return rect_;
 			};
         private:
             PlotCurve curve_;
-            series_data< T > * d_series_; // delete by QwtPlotCurve
+			QRectF rect_;
+            // series_data< T > * d_series_; // delete by QwtPlotCurve
         };
 
         template<> void TraceData<adcontrols::Trace>::setData( const adcontrols::Trace& trace )
@@ -103,10 +105,9 @@ namespace adwplot {
 
             // TODO:  refactor code in order to avoid full data copy
 			series_data< Trace > * d_trace = new series_data< Trace >( trace );
-            QRectF rect;
-			rect.setCoords( d_trace->sample(0).x(), trace.range_y().first
+			rect_.setCoords( d_trace->sample(0).x(), trace.range_y().first
 				          , d_trace->sample( trace.size() - 1 ).x(), trace.range_y().second );
-			d_trace->boundingRect( rect );
+			d_trace->boundingRect( rect_ );
 			curve_.p()->setData( d_trace );
         }
 
@@ -116,10 +117,8 @@ namespace adwplot {
             const double * intens = c.getIntensityArray();
 
 			series_data< Chromatogram > * d_series = new series_data< Chromatogram >( c );
-			// static_cast< adcontrols::Chromatogram& >(*d_series) = c;
-            QRectF rect;
-			rect.setCoords( d_series->sample(0).x(), intens[ c.min_element() ], d_series->sample( c.size() - 1 ).x(), intens[ c.max_element() ] );
-			d_series->boundingRect( rect );
+			rect_.setCoords( d_series->sample(0).x(), intens[ c.min_element() ], d_series->sample( c.size() - 1 ).x(), intens[ c.max_element() ] );
+			d_series->boundingRect( rect_ );
 			curve_.p()->setData( d_series );
         }
 
