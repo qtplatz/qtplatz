@@ -62,7 +62,9 @@ namespace adwplot {
     public slots:
         virtual void zoom( const QRectF& );
         virtual void override_zoom_rect( QRectF& );
-
+		virtual void moved( const QPointF& );
+		virtual void selected( const QPointF& );
+		virtual void selected( const QRectF& );
     private:
         struct ChromatogramWidgetImpl * impl_;
     };

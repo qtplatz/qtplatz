@@ -32,6 +32,7 @@
 #include "plotcurve.hpp"
 #include <qwt_plot_picker.h>
 #include <qwt_plot_panner.h>
+#include <qwt_picker_machine.h>
 #include "seriesdata.hpp"
 #include <adcontrols/trace.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -92,7 +93,6 @@ namespace adwplot {
         private:
             PlotCurve curve_;
 			QRectF rect_;
-            // series_data< T > * d_series_; // delete by QwtPlotCurve
         };
 
         template<> void TraceData<adcontrols::Trace>::setData( const adcontrols::Trace& trace )
@@ -143,6 +143,15 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
 {
     setAxisTitle(QwtPlot::xBottom, "Time[min]");
     setAxisTitle(QwtPlot::yLeft, "Intensity[uV]");
+
+	if ( picker_ ) {
+		picker_->setStateMachine( new QwtPickerClickPointMachine() );
+
+		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
+		connect( picker_.get(), SIGNAL( selected( const QPointF& ) ), this, SLOT( selected( const QPointF& ) ) );
+		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
+        picker_->setEnabled( true );
+	}
 }
 
 void
@@ -243,6 +252,23 @@ void
 ChromatogramWidget::zoom( const QRectF& rect )
 {
     zoomer1_->zoom( rect );
+}
+
+void
+ChromatogramWidget::moved( const QPointF& pos )
+{
+	std::cout << "moved( " << pos.x() << ", " << pos.y() << ")" << std::endl;
+}
+
+void
+ChromatogramWidget::selected( const QPointF& pos )
+{
+	std::cout << "selected( " << pos.x() << ", " << pos.y() << ")" << std::endl;
+}
+
+void
+ChromatogramWidget::selected( const QRectF& rect )
+{
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -38,14 +38,21 @@ using namespace adwplot;
 
 Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
 {
-    //setMargin(5);
     setCanvasBackground( QColor( Qt::lightGray ) );
+
+	// zoomer
     zoomer1_.reset( new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, canvas() ) );
-    zoomer2_.reset( new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
+	// zoomer2_.reset( new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
 
+	// picker
     picker_.reset( new QwtPlotPicker( canvas() ) );
-	picker_->setStateMachine( new QwtPickerDragPointMachine() );
+	// picker_->setStateMachine( new QwtPickerDragPointMachine() );
+	// picker_->setStateMachine( new QwtPickerClickPointMachine() );
+	picker_->setTrackerMode( QwtPicker::ActiveOnly );
+	picker_->setTrackerPen( QColor( Qt::red ) );
+	picker_->setMousePattern( QwtEventPattern::MouseSelect1,  Qt::LeftButton, Qt::ControlModifier );
 
+	// panner
     panner_.reset( new QwtPlotPanner( canvas() ) );
 	panner_->setMouseButton( Qt::LeftButton, Qt::AltModifier );
 }

@@ -34,6 +34,7 @@
 #include <qwt_plot_panner.h>
 #include <qwt_plot_curve.h>
 #include <qwt_plot_marker.h>
+#include <qwt_picker_machine.h>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
@@ -154,8 +155,10 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
         connect( zoomer1_.get(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
 
 	if ( picker_ ) {
+		picker_->setStateMachine( new QwtPickerDragPointMachine() );
 		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
 		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
+		picker_->setEnabled( true );
 	}
 }
 
@@ -188,11 +191,13 @@ SpectrumWidget::zoom( const QRectF& rect )
 void
 SpectrumWidget::moved( const QPointF& pos )
 {
+	std::cout << "SpectrumWidget::moved( " << pos.x() << ", " << pos.y() << ")" << std::endl;
 }
 
 void
-SpectrumWidget::selected( const QRectF& rect )
+SpectrumWidget::selected( const QRectF& pos )
 {
+	std::cout << "SpectrumWidget::selected( " << pos.x() << ", " << pos.y() << ")" << std::endl;
 }
 
 void

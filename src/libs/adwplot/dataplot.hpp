@@ -59,6 +59,9 @@ namespace adwplot {
         virtual void zoomed( const QRectF& ) {}
         virtual void zoom( const QRectF& ) {}
 
+		//virtual void moved( const QPointF& ) {}
+		//virtual void selected( const QRectF& ) {}
+
     protected slots:
 
     protected:
