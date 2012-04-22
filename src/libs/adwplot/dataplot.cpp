@@ -29,8 +29,9 @@
 #include "trace.hpp"
 #include "traces.hpp"
 #include "zoomer.hpp"
-#include "plotpicker.hpp"
-#include "plotpanner.hpp"
+#include <qwt_plot_picker.h>
+#include <qwt_plot_panner.h>
+#include <qwt_picker_machine.h>
 #include <qtwrapper/qstring.hpp>
 
 using namespace adwplot;
@@ -41,8 +42,12 @@ Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
     setCanvasBackground( QColor( Qt::lightGray ) );
     zoomer1_.reset( new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, canvas() ) );
     zoomer2_.reset( new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
-    picker_.reset( new PlotPicker( canvas() ) );
-    panner_.reset( new PlotPanner( canvas() ) );
+
+    picker_.reset( new QwtPlotPicker( canvas() ) );
+	picker_->setStateMachine( new QwtPickerDragPointMachine() );
+
+    panner_.reset( new QwtPlotPanner( canvas() ) );
+	panner_->setMouseButton( Qt::LeftButton, Qt::AltModifier );
 }
 
 void

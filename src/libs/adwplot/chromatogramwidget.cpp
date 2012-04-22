@@ -30,8 +30,8 @@
 #include "peak.hpp"
 #include "baseline.hpp"
 #include "plotcurve.hpp"
-#include "plotpicker.hpp"
-#include "plotpanner.hpp"
+#include <qwt_plot_picker.h>
+#include <qwt_plot_panner.h>
 #include "seriesdata.hpp"
 #include <adcontrols/trace.hpp>
 #include <adcontrols/chromatogram.hpp>

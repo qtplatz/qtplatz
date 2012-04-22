@@ -54,6 +54,8 @@ namespace adwplot {
         virtual void zoom( const QRectF& );
         virtual void override_zoom_rect( QRectF& );
 
+		virtual void moved( const QPointF& );
+		virtual void selected( const QRectF& );
     };
 
 }

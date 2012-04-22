@@ -26,12 +26,12 @@
 #include "spectrumwidget.hpp"
 #include "zoomer.hpp"
 #include "plotcurve.hpp"
-#include "plotpicker.hpp"
-#include "plotpanner.hpp"
 #include "annotation.hpp"
 #include "annotations.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/array_wrapper.hpp>
+#include <qwt_plot_picker.h>
+#include <qwt_plot_panner.h>
 #include <qwt_plot_curve.h>
 #include <qwt_plot_marker.h>
 #include <boost/foreach.hpp>
@@ -143,6 +143,8 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
                                                 , autoYZoom_( true ) 
 {
     zoomer2_.reset();
+	zoomer1_->setRubberBand( QwtPicker::RectRubberBand );
+	zoomer1_->setRubberBandPen( QColor(Qt::red) );
 
     setAxisTitle(QwtPlot::xBottom, "m/z");
     setAxisTitle(QwtPlot::yLeft, "Intensity");
@@ -151,6 +153,10 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
     if ( zoomer1_ )
         connect( zoomer1_.get(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
 
+	if ( picker_ ) {
+		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
+		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
+	}
 }
 
 void
@@ -177,6 +183,16 @@ SpectrumWidget::zoom( const QRectF& rect )
 {
     zoomer1_->zoom( rect );
     impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
+}
+
+void
+SpectrumWidget::moved( const QPointF& pos )
+{
+}
+
+void
+SpectrumWidget::selected( const QRectF& rect )
+{
 }
 
 void

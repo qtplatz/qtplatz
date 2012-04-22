@@ -28,16 +28,15 @@
 #include <qwt_plot.h>
 #include <boost/smart_ptr.hpp>
 #include <adwplot/zoomer.hpp>
-#include <adwplot/plotpanner.hpp>
-#include <adwplot/plotpicker.hpp>
+
+class QwtPlotPanner;
+class QwtPlotPicker;
 
 namespace adwplot {
 
     class Traces;
     class Trace;
     class Zoomer;
-    class PlotPanner;
-    class PlotPicker;
 
     class Dataplot : public QwtPlot {
         Q_OBJECT
@@ -65,8 +64,8 @@ namespace adwplot {
     protected:
         boost::scoped_ptr< Zoomer > zoomer1_;  // left bottom
         boost::scoped_ptr< Zoomer > zoomer2_;  // right top
-        boost::scoped_ptr< PlotPicker > picker_;
-        boost::scoped_ptr< PlotPanner > panner_;
+        boost::scoped_ptr< QwtPlotPicker > picker_;
+        boost::scoped_ptr< QwtPlotPanner > panner_;
     };
 
 }
