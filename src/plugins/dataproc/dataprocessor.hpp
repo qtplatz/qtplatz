@@ -43,9 +43,12 @@ namespace portfolio {
     class Folium;
 }
 
+namespace SignalObserver { class Observer; }
+
 namespace dataproc {
 
     class IFileImpl;
+	class datafileObserver_i;
 
     class Dataprocessor : QObject
                         , public adcontrols::dataSubscriber {
@@ -58,7 +61,8 @@ namespace dataproc {
         bool open( const QString& );
         Core::IFile * ifile();
 
-        QString filename() const;
+        // QString filename() const;
+		const std::wstring& filename() const;
         adcontrols::datafile& file();
         const adcontrols::LCMSDataset* getLCMSDataset();
         portfolio::Portfolio getPortfolio();
@@ -66,6 +70,7 @@ namespace dataproc {
         void applyProcess( const adcontrols::ProcessMethod&, internal::ProcessType );
         void applyCalibration( const adcontrols::ProcessMethod& );
         void addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
+		SignalObserver::Observer * observer();
 
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& );
@@ -84,6 +89,7 @@ namespace dataproc {
     private:
         boost::scoped_ptr< IFileImpl > ifileimpl_;
         boost::scoped_ptr< portfolio::Portfolio > portfolio_;
+		boost::scoped_ptr< datafileObserver_i > fileObserver_;
         std::wstring idActiveFolium_;
     };
 

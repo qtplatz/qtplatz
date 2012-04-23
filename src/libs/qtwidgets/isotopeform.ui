@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>643</width>
-    <height>348</height>
+    <width>814</width>
+    <height>200</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -27,7 +27,7 @@
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>60</height>
+         <height>50</height>
         </size>
        </property>
        <property name="font">
@@ -45,8 +45,8 @@
        <widget class="QGroupBox" name="groupBox">
         <property name="geometry">
          <rect>
-          <x>20</x>
-          <y>10</y>
+          <x>0</x>
+          <y>0</y>
           <width>171</width>
           <height>41</height>
          </rect>
@@ -54,7 +54,7 @@
         <property name="title">
          <string>Polarity</string>
         </property>
-        <widget class="QWidget" name="">
+        <widget class="QWidget" name="layoutWidget">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -87,21 +87,21 @@
        <widget class="QCheckBox" name="checkBox">
         <property name="geometry">
          <rect>
-          <x>200</x>
-          <y>30</y>
-          <width>148</width>
+          <x>310</x>
+          <y>0</y>
+          <width>111</width>
           <height>19</height>
          </rect>
         </property>
         <property name="text">
-         <string>Account electron mass</string>
+         <string>electron mass</string>
         </property>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
-          <x>360</x>
-          <y>10</y>
+          <x>170</x>
+          <y>0</y>
           <width>135</width>
           <height>44</height>
          </rect>
@@ -130,19 +130,19 @@
        <item>
         <widget class="QTreeView" name="treeView"/>
        </item>
-       <item>
-        <widget class="qtwidgets::MolWidget" name="molwidget" native="true">
-         <property name="minimumSize">
-          <size>
-           <width>260</width>
-           <height>260</height>
-          </size>
-         </property>
-        </widget>
-       </item>
       </layout>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="qtwidgets::MolWidget" name="molwidget" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>200</width>
+       <height>120</height>
+      </size>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

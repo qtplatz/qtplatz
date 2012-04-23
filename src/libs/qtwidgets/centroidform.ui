@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>200</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -87,10 +87,10 @@
           <double>0.001000000000000</double>
          </property>
          <property name="singleStep">
-          <double>0.100000000000000</double>
+          <double>0.010000000000000</double>
          </property>
          <property name="value">
-          <double>0.100000000000000</double>
+          <double>0.010000000000000</double>
          </property>
         </widget>
        </item>
@@ -315,7 +315,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

@@ -128,3 +128,9 @@ datafile::getFunctionCount() const
     return 1;
 }
 
+size_t
+datafile::posFromTime( double ) const
+{
+	return 0;
+}
+

@@ -53,6 +53,7 @@ namespace fticr {
 		virtual size_t getChromatogramCount() const;
 		virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const;
 		virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const;
+        virtual size_t posFromTime( double ) const;
 		//<-------------------------------------
 		bool _open( const std::wstring&, bool );
 		static bool is_valid_datafile( const std::wstring& );

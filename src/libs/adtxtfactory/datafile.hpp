@@ -57,6 +57,7 @@ namespace adtxtfactory {
         virtual size_t getChromatogramCount() const;
         virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const;
         virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const;
+		virtual size_t posFromTime( double ) const;
 
     private:
         boost::scoped_ptr< adcontrols::ProcessedDataset > processedDataset_;

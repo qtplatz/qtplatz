@@ -49,12 +49,16 @@ namespace adwplot {
         bool autoYZoom_;
 
     signals:
+        void onMoved( const QPointF& );
+		void onSelected( const QPointF& );
+		void onSelected( const QRectF& );
 
     public slots:
         virtual void zoom( const QRectF& );
         virtual void override_zoom_rect( QRectF& );
 
 		virtual void moved( const QPointF& );
+		virtual void selected( const QPointF& );
 		virtual void selected( const QRectF& );
     };
 

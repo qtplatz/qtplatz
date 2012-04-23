@@ -67,11 +67,10 @@ namespace dataproc {
             void extensionsInitialized();
             void shutdown();
             // <--
-            SessionManager * getSessionManager();
+			inline static DataprocPlugin * DataprocPlugin::instance() { return instance_; }
 
 			void applyMethod( const adcontrols::ProcessMethod& );
-
-            static DataprocPlugin * instance();
+			void onSelectTimeOnChromatogram( double min );
 
         signals:
 			void onApplyMethod( const adcontrols::ProcessMethod& );

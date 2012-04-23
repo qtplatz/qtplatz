@@ -190,6 +190,12 @@ datafile::_open( const std::wstring& filename, bool )
     return true;
 }
 
+size_t
+datafile::posFromTime( double ) const
+{
+	return 0;
+}
+
 //static
 bool
 datafile::is_valid_datafile( const std::wstring& filename )

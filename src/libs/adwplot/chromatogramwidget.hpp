@@ -58,6 +58,9 @@ namespace adwplot {
         void setPeak( const adcontrols::Peak& );
 
     signals:
+		void onMoved( const QPointF& );
+		void onSelected( const QPointF& );
+		void onSelected( const QRectF& );
 
     public slots:
         virtual void zoom( const QRectF& );

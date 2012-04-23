@@ -206,6 +206,12 @@ datafile::getFunctionCount() const
     return 1;
 }
 
+size_t
+datafile::posFromTime( double x ) const
+{
+	return 0;
+}
+
 ////////////////////////////////////////////////////
 // SaveFileAs come in here
 bool

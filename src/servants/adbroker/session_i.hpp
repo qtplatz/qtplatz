@@ -58,7 +58,7 @@ namespace adbroker {
         virtual bool coaddSpectrum ( SignalObserver::Observer_ptr observer, double x1, double x2);
         virtual Broker::Folium * folium( const CORBA::WChar * token, const CORBA::WChar * fileId );
         // <---------------------------------
-
+		virtual bool coaddSpectrumEx( const CORBA::WChar * token, SignalObserver::Observer_ptr observer, double x1, double x2);
     private:
         std::wstring token_;
 

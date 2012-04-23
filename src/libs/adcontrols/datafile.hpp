@@ -45,11 +45,11 @@ namespace adcontrols {
         typedef datafile * (*factory_type)(void);
         virtual factory_type factory() = 0;
         //------
-        const std::wstring& filename() const;
         bool readonly() const;
         // ----- virtual methods -----
         // 'path' parameter may accept either /Acquire and /Processed with following sub-dir structures
         // data read operations
+		virtual const std::wstring& filename() const;
         virtual void accept( dataSubscriber& ) = 0; // visitable
         virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const = 0;
 

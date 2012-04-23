@@ -57,6 +57,7 @@ void
 SessionManager::addDataprocessor( boost::shared_ptr<Dataprocessor>& proc )
 {
     sessions_.push_back( Session( proc ) );
+	activeDataprocessor_ = proc.get();
     emit signalSessionAdded( proc.get() );
 }
 

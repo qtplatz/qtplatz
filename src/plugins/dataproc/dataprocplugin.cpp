@@ -72,6 +72,8 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/description.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
@@ -113,12 +115,6 @@ DataprocPlugin::DataprocPlugin() : pSessionManager_( new SessionManager() )
                                  , currentFeature_( CentroidProcess )
 {
     instance_ = this;
-}
-
-DataprocPlugin *
-DataprocPlugin::instance()
-{
-    return instance_;
 }
 
 // static
@@ -439,6 +435,45 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
         adcontrols::ProcessMethod m;
         processor.addSpectrum( ms, m );
     }
+}
+
+void
+DataprocPlugin::onSelectTimeOnChromatogram( double x )
+{
+	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
+	if ( brokerSession_ && dp ) {
+		// TODO:  observer access has object delete twince, that will cause debug assertion failuer
+		// SignalObserver::Observer_var observer = dp->observer();
+		// const std::wstring& token = dp->filename();
+		// trial -- create signal observer for datafile and pass it to Broker for long term process
+		// this is too expensive for single spectrum draw
+#if 0
+		brokerSession_->coaddSpectrumEx( token.c_str(), observer, x, x );
+#endif
+		const adcontrols::LCMSDataset * dset = dp->getLCMSDataset();
+		if ( dset ) {
+			// CORBA::Long pos = observer->posFromTime( x * 60 * 1000000 );
+			long pos = dset->posFromTime( x );
+			adcontrols::MassSpectrum ms;
+			if ( dset->getSpectrum( 0, pos, ms ) ) { // got spectrum
+				adcontrols::ProcessMethod m;
+				std::wostringstream text;
+				text << L"Spectrum @ " << std::fixed << std::setprecision(3) << x;
+				ms.addDescription( adcontrols::Description( L"create", text.str() ) );
+				dp->addSpectrum( ms, m );
+				/*
+				SessionManager::vector_type::iterator it = SessionManager::instance()->find( token );
+				if ( it == SessionManager::instance()->end() ) {
+					boost::filesystem::path xtoken( qtwrapper::wstring::copy( token ) );
+					xtoken.replace_extension( L".adfs" );
+					it = SessionManager::instance()->find( xtoken.wstring() );
+				}
+				Dataprocessor& processor = it->getDataprocessor();
+
+				*/
+			}
+		}
+	}
 }
 
 void

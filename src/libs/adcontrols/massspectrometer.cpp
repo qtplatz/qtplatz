@@ -63,9 +63,9 @@ namespace adcontrols {
         public:
             DataInterpreter(void) {  }
             ~DataInterpreter(void) {  }
-            virtual bool translate( adcontrols::MassSpectrum&, const SignalObserver::DataReadBuffer&
-                , const adcontrols::MassSpectrometer&, size_t /* idData */ ) const {
-                    return false;
+			virtual bool translate( adcontrols::MassSpectrum&, const SignalObserver::DataReadBuffer&
+				, const adcontrols::MassSpectrometer&, size_t /* idData */ ) const {
+					return false;
             }
 
             virtual bool translate( adcontrols::TraceAccessor&, const SignalObserver::DataReadBuffer& ) const {
@@ -91,7 +91,7 @@ namespace adcontrols {
                 return &instance;
             }
             virtual const wchar_t * name() const {
-                return L"default";
+				return L"default";
             }
             virtual const MassSpectrometer::ScanLaw& getScanLaw() const {
                 return * scanLaw_;

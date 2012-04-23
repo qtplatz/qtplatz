@@ -28,6 +28,7 @@
 #include "constants.hpp"
 #include "sessionmanager.hpp"
 #include "dataprochandler.hpp"
+#include "datafileobserver_i.hpp"
 #include <adcontrols/datafile.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <coreplugin/uniqueidmanager.h>
@@ -53,6 +54,7 @@
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
 #include <adportable/debug.hpp>
+#include <adplugin/orbmanager.hpp>
 #include <boost/filesystem/path.hpp>
 #include <stack>
 #include <qdebug.h>
@@ -103,8 +105,6 @@ Dataprocessor::open(const QString &fileName )
         ifileimpl_.reset( new IFileImpl( file, *this ) );
         file->accept( *ifileimpl_ );
         file->accept( *this );
-        // trial, TH 
-        // ifileimpl_->setModified();
         return true;
     }
     return false;
@@ -120,6 +120,12 @@ adcontrols::datafile&
 Dataprocessor::file()
 {
     return ifileimpl_->file();
+}
+
+const std::wstring&
+Dataprocessor::filename() const
+{
+	return ifileimpl_->file().filename();
 }
 
 const adcontrols::LCMSDataset *
@@ -299,13 +305,26 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
     SessionManager::instance()->updateDataprocessor( this, folium );
 }
 
+SignalObserver::Observer_ptr
+Dataprocessor::observer()
+{
+	adplugin::ORBManager * mgr = adplugin::ORBManager::instance();
+	if ( mgr && fileObserver_ ) {
+		CORBA::Object_var obj = mgr->poa()->servant_to_reference( fileObserver_.get() );
+		return SignalObserver::Observer::_narrow( obj );
+	}
+	return 0;
+}
 
 ///////////////////////////
 bool
 Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
 {
-   (void)data;
-   return true;
+	// datafile has a raw (acquired) data stream
+	// data should point same object with ifileimpl_;
+	fileObserver_.reset( new datafileObserver_i( data ) );
+    
+	return true;
 /* 
    size_t nfcn = data.getFunctionCount();
     for ( size_t i = 0; i < nfcn; ++i ) {

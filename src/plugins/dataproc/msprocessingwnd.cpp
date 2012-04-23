@@ -24,7 +24,10 @@
 **************************************************************************/
 
 #include "msprocessingwnd.hpp"
+#include "dataprocplugin.hpp"
 #include "dataprocessor.hpp"
+#include "sessionmanager.hpp"
+#include "datafileobserver_i.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/description.hpp>
@@ -94,14 +97,17 @@ MSProcessingWnd::init()
     if ( splitter ) {
         if ( ( pImpl_->ticPlot_ = new adwplot::ChromatogramWidget(this) ) ) {
             pImpl_->ticPlot_->setMinimumHeight( 80 );
+			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnChromatogram( const QPointF& ) ) );
         }
 	
         if ( ( pImpl_->profileSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
             pImpl_->profileSpectrum_->setMinimumHeight( 80 );
+			connect( pImpl_->profileSpectrum_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnProfile( const QPointF& ) ) );
         }
 
         if ( ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
             pImpl_->processedSpectrum_->setMinimumHeight( 80 );
+			connect( pImpl_->processedSpectrum_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnProcessed( const QPointF& ) ) );
         }
         splitter->addWidget( pImpl_->ticPlot_ );
         splitter->addWidget( pImpl_->profileSpectrum_ );
@@ -193,4 +199,23 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
 void
 MSProcessingWnd::ctxMenu1( const QPoint& )
 {
+}
+
+void
+MSProcessingWnd::selectedOnChromatogram( const QPointF& pos )
+{
+	std::cout << "MSProcessingWnd::selectedOnChromatogram: " << pos.x() << ", " << pos.y() << std::endl;
+	DataprocPlugin::instance()->onSelectTimeOnChromatogram( pos.x() ); 
+}
+
+void
+MSProcessingWnd::selectedOnProfile( const QPointF& pos )
+{
+	std::cout << "MSProcessingWnd::selectedOnProfile: " << pos.x() << ", " << pos.y() << std::endl;
+}
+
+void
+MSProcessingWnd::selectedOnProcessed( const QPointF& pos )
+{
+	std::cout << "MSProcessingWnd::selectedOnProcessed: " << pos.x() << ", " << pos.y() << std::endl;
 }

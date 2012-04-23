@@ -214,6 +214,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\datafileobserver_i.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\dataproc.cpp"
 				>
 			</File>
@@ -360,6 +364,10 @@
 						Outputs=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\datafileobserver_i.hpp"
+				>
 			</File>
 			<File
 				RelativePath=".\dataproc_global.h"
@@ -1349,7 +1357,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="echo copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -1359,7 +1367,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="echo copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
-						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)"
+						CommandLine="copy /y $(InputFileName) $(TargetDir)$(InputFileName)&#x0D;&#x0A;"
 						Outputs="$(TargetDir)$(InputFileName)"
 					/>
 				</FileConfiguration>

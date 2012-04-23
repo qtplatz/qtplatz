@@ -26,6 +26,7 @@
 #include "task.hpp"
 #include <boost/format.hpp>
 #include <acewrapper/mutex.hpp>
+#include <acewrapper/input_buffer.hpp>
 #include <acewrapper/mutex.hpp>
 #include "message.hpp"
 #include <acewrapper/timeval.hpp>
@@ -245,21 +246,29 @@ do_coaddSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_
     SignalObserver::DataReadBuffer_var dbuf;
 
     if ( observer->readData( pos, dbuf ) ) {
-
-        try {
-            const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( clsid.in() );
-            const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
-            if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
-                 && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
-                size_t idData = 0;
-                dataInterpreter.translate( ms, dbuf, spectrometer, idData++ );
-            }
-        } catch ( std::exception& ex ) {
-            std::cerr << ex.what() << std::endl;
-            return;
-        }
-        ++pos;
-    }
+		try {
+			const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( clsid.in() );
+			const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
+			if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
+				&& desc->spectrometer == SignalObserver::eMassSpectrometer ) {
+					size_t idData = 0;
+					if ( ! dataInterpreter.translate( ms, dbuf, spectrometer, idData++ ) ) { // <-- acquire
+						//------- call from dataproc -----
+						if ( std::wstring( clsid.in() ) == L"adcontrols::MassSpectrum" ) {
+							acewrapper::input_buffer ibuffer( reinterpret_cast< unsigned char * >(dbuf->array.get_buffer())
+								, dbuf->array.length() * sizeof( CORBA::Long )  );
+							std::istream in( &ibuffer );
+							adcontrols::MassSpectrum::restore( in, ms );
+						}
+						//------------
+					}
+			}
+		} catch ( std::exception& ex ) {
+			std::cerr << ex.what() << std::endl;
+			return;
+		}
+		++pos;
+	}
     ms.addDescription( adcontrols::Description( L"create", text ) );
 
 #if defined DEBUG || defined _DEBUG
@@ -290,7 +299,7 @@ Task::doit( ACE_Message_Block * mblk )
         if ( CORBA::is_nil( observer ) )
             return;
         do_coaddSpectrum( this, token, observer, x1, x2 );
-    }
+	}
 }
 
 portfolio::Portfolio&

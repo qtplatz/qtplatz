@@ -141,6 +141,27 @@ session_i::coaddSpectrum ( SignalObserver::Observer_ptr observer, CORBA::Double 
     return false;
 }
 
+bool
+session_i::coaddSpectrumEx( const CORBA::WChar * token, SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
+{
+#if defined DEBUG || defined _DEBUG
+    std::cout << "coaddSpectrumEx(" << x1 << ", " << x2 << "(min))" << std::endl;
+#endif
+    adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
+    if ( pTask ) {
+        TAO_OutputCDR cdr;
+		cdr << token; // token_.c_str();
+		cdr << L"coaddSpectrum";
+        cdr << observer;
+        cdr << x1;
+        cdr << x2;
+        ACE_Message_Block * mb = cdr.begin()->duplicate();
+        pTask->putq( mb );
+        return true;
+    }
+    return false;
+}
+
 namespace adbroker {
 
     struct BrokerFoliumBuffer : public std::streambuf {

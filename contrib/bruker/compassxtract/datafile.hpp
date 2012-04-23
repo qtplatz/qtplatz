@@ -41,6 +41,7 @@ namespace compassxtract {
 		datafile();
 
 		//--------- implement adcontrols::datafile ----------------
+		virtual const std::wstring& filename() const;
 		virtual void accept( adcontrols::dataSubscriber& );
 		virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const;
 		virtual adcontrols::datafile::factory_type factory();
@@ -49,12 +50,15 @@ namespace compassxtract {
 		virtual size_t getChromatogramCount() const;
 		virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const;
 		virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const;
+		virtual size_t posFromTime( double ) const;
 		//<-------------------------------------
 		bool _open( const std::wstring&, bool );
 		static bool is_valid_datafile( const std::wstring& );
 	private:
+		bool getTIC();
 		std::wstring filename_; // root directory name
 		boost::scoped_ptr< adcontrols::ProcessedDataset> processedDataset_;
+		boost::scoped_ptr< adcontrols::Chromatogram > pTIC_;
 		EDAL::IMSAnalysis2Ptr pAnalysis_;
 	};
 

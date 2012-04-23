@@ -29,6 +29,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adportable/array_wrapper.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -74,6 +75,13 @@ datafile::datafile()
 {
 }
 
+// virtual
+const std::wstring&
+datafile::filename() const
+{
+	return filename_;
+}
+
 //virtual
 void
 datafile::accept( adcontrols::dataSubscriber& sub )
@@ -90,6 +98,8 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 boost::any
 datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
+    (void)path;
+	(void)dataType;
 	boost::any any;
 
 	return any;
@@ -123,10 +133,43 @@ datafile::getChromatogramCount() const
 	return 0;
 }
 
+#if defined _MSC_VER
+# pragma warning(disable:4482)
+#endif
 //virtual
 bool
-datafile::getSpectrum( int /* fcn*/, int /*idx*/, adcontrols::MassSpectrum& ) const
+datafile::getSpectrum( int /* fcn*/, int pos, adcontrols::MassSpectrum& ms ) const
 {
+	try {
+		EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis_->GetMSSpectrumCollection();
+		EDAL::IMSSpectrumPtr pSpectrum = pSpectra->GetItem( pos + 1 ); // 1-origin
+
+		if ( pSpectrum->Polarity == EDAL::SpectrumPolarity::IonPolarity_Negative )
+			ms.setPolarity( adcontrols::MS_POLARITY::PolarityNegative );
+		else if ( pSpectrum->Polarity == EDAL::SpectrumPolarity::IonPolarity_Positive )
+			ms.setPolarity( adcontrols::MS_POLARITY::PolarityPositive );
+		else
+			ms.setPolarity( adcontrols::MS_POLARITY::PolarityIndeterminate );
+		adcontrols::MSProperty prop = ms.getMSProperty();
+		prop.setTimeSinceInjection( pSpectrum->RetentionTime * 60 * 1000000 ); // usec
+        ms.setMSProperty( prop ); // <- end of prop set
+
+		_variant_t vMasses, vIntens;
+		pSpectrum->GetMassIntensityValues( EDAL::SpectrumType_Profile, &vMasses, &vIntens );
+
+		SafeArray sa_masses( vMasses );
+        ms.resize( sa_masses.size() );
+        ms.setMassArray( reinterpret_cast< const double *>( sa_masses.p() ) );
+    
+		SafeArray sa_intensities( vIntens );
+        ms.setIntensityArray( reinterpret_cast< const double *>( sa_intensities.p() ) );
+
+        ms.setAcquisitionMassRange( ms.getMass( 0 ), ms.getMass( ms.size() - 1 ) );
+
+		return true;
+
+	} catch ( _com_error&  ) {
+	}
 	return false;
 }
 
@@ -135,6 +178,7 @@ datafile::getSpectrum( int /* fcn*/, int /*idx*/, adcontrols::MassSpectrum& ) co
 bool
 datafile::_open( const std::wstring& filename, bool )
 {
+	filename_ = filename;
 	boost::filesystem::path rpath = filename_d::root_name( filename );
 
 	portfolio::Portfolio portfolio;
@@ -146,6 +190,8 @@ datafile::_open( const std::wstring& filename, bool )
 	if ( ( hr = pAnalysis_.CreateInstance( L"EDAL.MSAnalysis" ) ) == S_OK ) {
 		try  {
 			if ( ( hr = pAnalysis_->Open( _bstr_t( rpath.wstring().c_str() ) ) ) == S_OK ) {
+
+				filename_ = rpath.wstring();
 
 				// this is basic information retrievable
 				// right from the analysis
@@ -171,9 +217,6 @@ datafile::_open( const std::wstring& filename, bool )
 				EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis_->GetMSSpectrumCollection();
 				size_t n = pSpectra->Count;
 				(void)n;
-				// trial
-				// adcontrols::ChromatogramPtr pC( new adcontrols::Chromatogram() );
-				// getTIC( 0, *pC );
             }
         } catch(_com_error& ex ) {
 			::MessageBox(NULL, ex.ErrorMessage(), L"Problem", MB_OK);
@@ -204,7 +247,8 @@ bool
 datafile::getTIC( int fcn, adcontrols::Chromatogram& c ) const
 {
 	(void)fcn;
-    CComBSTR strSumIntensities( L"SumIntensity" );
+
+	CComBSTR strSumIntensities( L"SumIntensity" );
 	CComBSTR strRetentionTime(  L"RetentionTime" );
 
 	if( pAnalysis_->HasAnalysisData( &strSumIntensities ) )	{
@@ -219,22 +263,26 @@ datafile::getTIC( int fcn, adcontrols::Chromatogram& c ) const
 		SafeArray sTimes( vTimes );
 		c.setTimeArray( reinterpret_cast< const double *>( sTimes.p() ) );
 	}
-
-/*
-		// get spectrum collection
-		EDAL::IMSSpectrumCollectionPtr sc = pAnalysis->MSSpectrumCollection;
-
-		// get spectrum with highest TIC (we've remembered the index of this)
-		EDAL::IMSSpectrum2Ptr s = sc->GetItem( index );
-
-		// put out information
-		std::cout << "Dumping spectrum #" << counter+1 << " with TIC " << highestValue << ":" << std::endl;
-
-		// dump only this spectrum using the normale functions
-		DumpSpectrum( s );
-	}
-*/
 	return true;
+}
+
+bool
+datafile::getTIC()
+{
+	pTIC_.reset( new adcontrols::Chromatogram() );
+	return getTIC( 0, *pTIC_ );
+}
+
+size_t
+datafile::posFromTime( double minutes ) const
+{
+	using adportable::array_wrapper;
+	if ( ! pTIC_ )
+		const_cast< datafile *>(this)->getTIC();
+	array_wrapper< const double > times( pTIC_->getTimeArray(), pTIC_->size() );
+	array_wrapper< const double >::iterator it = std::lower_bound( times.begin(), times.end(), minutes );
+	long pos = std::distance( times.begin(), it );
+	return pos;
 }
 
 //static

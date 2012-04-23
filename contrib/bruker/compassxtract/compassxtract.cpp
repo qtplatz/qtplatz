@@ -14,13 +14,16 @@
 ** GNU Lesser General Public License Usage
 **
 ** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 as published by the Free Software
+** General Public License version 2.1 as published by the Free Software/ 
 ** Foundation and appearing in the file LICENSE.TXT included in the
 ** packaging of this file.  Please review the following information to
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+
+// This module is depending on CompassXtract 3.1.2, Bruker Daltonics
+// http://www.bdal.com/nc/library/downloads-patches.html?tx_abdownloads_pi1%5Bcategory_uid%5D=34
 
 #include "compassxtract.hpp"
 #include "datafile_factory.hpp"
