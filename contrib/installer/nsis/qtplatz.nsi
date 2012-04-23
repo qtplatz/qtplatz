@@ -139,6 +139,8 @@ Section "!Application" App
 	!include "filelist\filelist-ecrion.nsh"
 	!include "filelist\filelist-microsoft.nsh"
 	!include "filelist\filelist-qtplatz.nsh"
+;;; -- optional --
+	!include "filelist\filelist-bruker.nsh"
 
 	; Store installation folder and shortcut folder
    	WriteRegStr HKLM "${RegInstDirKey}" "Installation Directory" $INSTDIR

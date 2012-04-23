@@ -1,1 +1,0 @@
-!define VERSION	"v1.7.2-391-ge816b2d"
