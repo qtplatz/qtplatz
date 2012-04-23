@@ -191,13 +191,13 @@ SpectrumWidget::zoom( const QRectF& rect )
 void
 SpectrumWidget::moved( const QPointF& pos )
 {
-	std::cout << "SpectrumWidget::moved( " << pos.x() << ", " << pos.y() << ")" << std::endl;
+	//std::cout << "SpectrumWidget::moved( " << pos.x() << ", " << pos.y() << ")" << std::endl;
 }
 
 void
 SpectrumWidget::selected( const QPointF& pos )
 {
-	std::cout << "SpectrumWidget::selected( " << pos.x() << ", " << pos.y() << ")" << std::endl;
+	//std::cout << "SpectrumWidget::selected( " << pos.x() << ", " << pos.y() << ")" << std::endl;
 	emit onSelected( pos );
 }
 
