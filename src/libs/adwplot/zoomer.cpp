@@ -66,7 +66,6 @@ Zoomer::zoom( const QRectF& rect )
 void
 Zoomer::widgetMousePressEvent( QMouseEvent * event )
 {
-
 	QwtPlotPicker::widgetMousePressEvent( event );
 }
 
