@@ -40,6 +40,11 @@ namespace adwplot {
         virtual void zoom( const QRectF& );
     private:
         bool autoYScale_;
+		virtual void widgetMousePressEvent( QMouseEvent * );
+		virtual void widgetMouseReleaseEvent( QMouseEvent * );
+		virtual void widgetMouseDoubleClickEvent( QMouseEvent * );
+		virtual void widgetMouseMoveEvent( QMouseEvent * );
+
     signals:
         void zoom_override( QRectF& );
     };

@@ -50,7 +50,7 @@ namespace adwplot {
         Q_OBJECT
     public:
         explicit ChromatogramWidget(QWidget *parent = 0);
-	~ChromatogramWidget();
+		~ChromatogramWidget();
 
         void setData( const adcontrols::Trace&, int idx = 0, bool yaxis2 = false );
         void setData( const adcontrols::Chromatogram& );

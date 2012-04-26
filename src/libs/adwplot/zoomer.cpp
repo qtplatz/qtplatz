@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "zoomer.hpp"
+#include <QMouseEvent>
 
 using namespace adwplot;
 
@@ -37,7 +38,7 @@ Zoomer::Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas ) : QwtPlotZoomer( 
     // Ctrl+RightButton: zoom out to full size
 
     setMousePattern( QwtEventPattern::MouseSelect2,  Qt::RightButton, Qt::ControlModifier );
-    setMousePattern( QwtEventPattern::MouseSelect3,  Qt::RightButton );
+	// setMousePattern( QwtEventPattern::MouseSelect3,  Qt::NoButton );
 
     setRubberBand( QwtPicker::RectRubberBand );
     setRubberBandPen( QColor(Qt::green) );
@@ -60,3 +61,37 @@ Zoomer::zoom( const QRectF& rect )
 
     QwtPlotZoomer::zoom( rc );
 }
+
+// virtual
+void
+Zoomer::widgetMousePressEvent( QMouseEvent * event )
+{
+
+	QwtPlotPicker::widgetMousePressEvent( event );
+}
+
+// virtual
+void
+Zoomer::widgetMouseReleaseEvent( QMouseEvent * event )
+{
+	QwtPlotZoomer::widgetMouseReleaseEvent( event );
+}
+
+// virtual
+void
+Zoomer::widgetMouseDoubleClickEvent( QMouseEvent * event )
+{
+    if ( mouseMatch( MouseSelect1, event ) )
+		QwtPlotZoomer::zoom( -1 );
+	else
+		QwtPlotPicker::widgetMouseDoubleClickEvent( event );
+}
+
+// virtual
+void
+Zoomer::widgetMouseMoveEvent( QMouseEvent * event )
+{
+	QwtPlotPicker::widgetMouseMoveEvent( event );
+}
+
+
