@@ -124,7 +124,7 @@ Section "!Application" App
 	FileWrite $UninstallFileVariable "|Comment|Uninstall file for ${AppName}$\r$\n"
 	
 	;; Add PATH environment variable
-	${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\bin"
+	;;; ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\bin"
 
 	${EnvVarUpdate} $0 "QML_IMPORT_PATH" "A" "HKLM" "$INSTDIR\imports"
 
