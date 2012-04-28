@@ -69,6 +69,7 @@
 #include <QToolButton>
 #include <QDir>
 #include <QMessageBox>
+#include <QProgressBar>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
@@ -396,16 +397,6 @@ DataprocPlugin::handle_portfolio_created( const QString token )
             }
         }
     }
-    
-/**
-    boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
-    if ( processor->create( token ) ) {
-#if defined DEBUG
-        qDebug() << "DataprocPlugin::handle_portfolio_created addDataprocessor(" << token << ")";
-#endif
-        SessionManager::instance()->addDataprocessor( processor );
-    }
-**/
 }
 
 void
@@ -438,45 +429,6 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
 }
 
 void
-DataprocPlugin::onSelectTimeOnChromatogram( double x )
-{
-	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
-	if ( brokerSession_ && dp ) {
-		// TODO:  observer access has object delete twince, that will cause debug assertion failuer
-		// SignalObserver::Observer_var observer = dp->observer();
-		// const std::wstring& token = dp->filename();
-		// trial -- create signal observer for datafile and pass it to Broker for long term process
-		// this is too expensive for single spectrum draw
-#if 0
-		brokerSession_->coaddSpectrumEx( token.c_str(), observer, x, x );
-#endif
-		const adcontrols::LCMSDataset * dset = dp->getLCMSDataset();
-		if ( dset ) {
-			// CORBA::Long pos = observer->posFromTime( x * 60 * 1000000 );
-			long pos = dset->posFromTime( x );
-			adcontrols::MassSpectrum ms;
-			if ( dset->getSpectrum( 0, pos, ms ) ) { // got spectrum
-				adcontrols::ProcessMethod m;
-				std::wostringstream text;
-				text << L"Spectrum @ " << std::fixed << std::setprecision(3) << ms.getMSProperty().timeSinceInjection() / 60.0e6;
-				ms.addDescription( adcontrols::Description( L"create", text.str() ) );
-				dp->addSpectrum( ms, m );
-				/*
-				SessionManager::vector_type::iterator it = SessionManager::instance()->find( token );
-				if ( it == SessionManager::instance()->end() ) {
-					boost::filesystem::path xtoken( qtwrapper::wstring::copy( token ) );
-					xtoken.replace_extension( L".adfs" );
-					it = SessionManager::instance()->find( xtoken.wstring() );
-				}
-				Dataprocessor& processor = it->getDataprocessor();
-
-				*/
-			}
-		}
-	}
-}
-
-void
 DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
@@ -490,14 +442,23 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 		if ( dset ) {
 			long pos1 = dset->posFromTime( x1 );
 			long pos2 = dset->posFromTime( x2 );
+            if ( pos1 > pos2 )
+				std::swap( pos1, pos2 );
+
 			adcontrols::MassSpectrum ms;
 			if ( dset->getSpectrum( 0, pos1++, ms ) ) {
 				double t1 = ms.getMSProperty().timeSinceInjection() / 60.0e6; // usec -> min
 				std::wostringstream text;
 				if ( pos2 > pos1 ) {
+                    QProgressBar progressBar;
+                    progressBar.setRange( pos1, pos2 );
+                    progressBar.setVisible( true );
+
 					adcontrols::MassSpectrum a;
-					while ( pos1 < pos2	&& dset->getSpectrum( 0, pos1++, a ) )
+					while ( pos1 < pos2	&& dset->getSpectrum( 0, pos1++, a ) ) {
+                        progressBar.setValue( pos1 );
 						ms += a;
+					}
 					double t2 = a.getMSProperty().timeSinceInjection() / 60.0e6; // usec -> min
 					text << L"Spectrum (" << std::fixed << std::setprecision(3) << t1 << " - " << t2 << ")";
 				} else {

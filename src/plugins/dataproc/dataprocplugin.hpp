@@ -70,7 +70,6 @@ namespace dataproc {
 			inline static DataprocPlugin * DataprocPlugin::instance() { return instance_; }
 
 			void applyMethod( const adcontrols::ProcessMethod& );
-			void onSelectTimeOnChromatogram( double min );
 			void onSelectTimeRangeOnChromatogram( double x1, double x2 );
 
         signals:

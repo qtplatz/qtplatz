@@ -146,7 +146,6 @@ datafile::getChromatogramCount() const
 bool
 datafile::getSpectrum( int /* fcn*/, int pos, adcontrols::MassSpectrum& ms ) const
 {
-	std::cout << "compassxtract::datafile::getSpectrum( 0, " << pos << ")" << std::endl;
 	try {
 		EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis_->GetMSSpectrumCollection();
 		EDAL::IMSSpectrumPtr pSpectrum = pSpectra->GetItem( pos + 1 ); // 1-origin

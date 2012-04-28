@@ -205,8 +205,7 @@ MSProcessingWnd::ctxMenu1( const QPoint& )
 void
 MSProcessingWnd::selectedOnChromatogram( const QPointF& pos )
 {
-	std::cout << "MSProcessingWnd::selectedOnChromatogram: " << pos.x() << ", " << pos.y() << std::endl;
-	DataprocPlugin::instance()->onSelectTimeOnChromatogram( pos.x() ); 
+	DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( pos.x(), pos.x() ); 
 }
 
 void
