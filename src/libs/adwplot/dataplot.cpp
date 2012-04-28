@@ -29,6 +29,7 @@
 #include "trace.hpp"
 #include "traces.hpp"
 #include "zoomer.hpp"
+#include "picker.hpp"
 #include <qwt_plot_picker.h>
 #include <qwt_plot_panner.h>
 #include <qwt_picker_machine.h>
@@ -41,17 +42,12 @@ Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
     setCanvasBackground( QColor( Qt::lightGray ) );
 
 	// zoomer
-    zoomer1_.reset( new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, canvas() ) );
+	zoomer1_.reset( new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, canvas() ) );
 	// zoomer2_.reset( new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
 
 	// picker
-    picker_.reset( new QwtPlotPicker( canvas() ) );
+	picker_.reset( new Picker( canvas() ) );
 	// picker_->setStateMachine( new QwtPickerDragPointMachine() );
-	// picker_->setStateMachine( new QwtPickerClickPointMachine() );
-	picker_->setTrackerMode( QwtPicker::ActiveOnly );
-	picker_->setTrackerPen( QColor( Qt::red ) );
-	picker_->setMousePattern( QwtEventPattern::MouseSelect1,  Qt::LeftButton, Qt::ControlModifier );
-
 	// panner
     panner_.reset( new QwtPlotPanner( canvas() ) );
 	panner_->setMouseButton( Qt::LeftButton, Qt::AltModifier );

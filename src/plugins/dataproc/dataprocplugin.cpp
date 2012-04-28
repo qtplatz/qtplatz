@@ -458,7 +458,7 @@ DataprocPlugin::onSelectTimeOnChromatogram( double x )
 			if ( dset->getSpectrum( 0, pos, ms ) ) { // got spectrum
 				adcontrols::ProcessMethod m;
 				std::wostringstream text;
-				text << L"Spectrum @ " << std::fixed << std::setprecision(3) << x;
+				text << L"Spectrum @ " << std::fixed << std::setprecision(3) << ms.getMSProperty().timeSinceInjection() / 60.0e6;
 				ms.addDescription( adcontrols::Description( L"create", text.str() ) );
 				dp->addSpectrum( ms, m );
 				/*
@@ -471,6 +471,41 @@ DataprocPlugin::onSelectTimeOnChromatogram( double x )
 				Dataprocessor& processor = it->getDataprocessor();
 
 				*/
+			}
+		}
+	}
+}
+
+void
+DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
+{
+	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
+	if ( brokerSession_ && dp ) {
+		// TODO:  observer access has object delete twince, that will cause debug assertion failuer
+		// SignalObserver::Observer_var observer = dp->observer();
+#if 0
+		brokerSession_->coaddSpectrumEx( token.c_str(), observer, x, x );
+#endif
+		const adcontrols::LCMSDataset * dset = dp->getLCMSDataset();
+		if ( dset ) {
+			long pos1 = dset->posFromTime( x1 );
+			long pos2 = dset->posFromTime( x2 );
+			adcontrols::MassSpectrum ms;
+			if ( dset->getSpectrum( 0, pos1++, ms ) ) {
+				double t1 = ms.getMSProperty().timeSinceInjection() / 60.0e6; // usec -> min
+				std::wostringstream text;
+				if ( pos2 > pos1 ) {
+					adcontrols::MassSpectrum a;
+					while ( pos1 < pos2	&& dset->getSpectrum( 0, pos1++, a ) )
+						ms += a;
+					double t2 = a.getMSProperty().timeSinceInjection() / 60.0e6; // usec -> min
+					text << L"Spectrum (" << std::fixed << std::setprecision(3) << t1 << " - " << t2 << ")";
+				} else {
+					text << L"Spectrum @ " << std::fixed << std::setprecision(3) << t1 << "min";
+				}
+				adcontrols::ProcessMethod m;
+				ms.addDescription( adcontrols::Description( L"create", text.str() ) );
+				dp->addSpectrum( ms, m );
 			}
 		}
 	}

@@ -34,11 +34,11 @@ Zoomer::Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas ) : QwtPlotZoomer( 
     setTrackerMode(QwtPicker::AlwaysOff);
     // setRubberBand(QwtPicker::NoRubberBand);
 
-    // RightButton: zoom out by 1
-    // Ctrl+RightButton: zoom out to full size
+	// LeftButton: zoom out by 1
+	// setMousePattern( QwtEventPattern::MouseSelect2,  Qt::LeftButton );
 
-    setMousePattern( QwtEventPattern::MouseSelect2,  Qt::RightButton, Qt::ControlModifier );
-	// setMousePattern( QwtEventPattern::MouseSelect3,  Qt::NoButton );
+	// Ctrl+RightButton: zoom out to full size
+	setMousePattern( QwtEventPattern::MouseSelect3,  Qt::LeftButton, Qt::ControlModifier );
 
     setRubberBand( QwtPicker::RectRubberBand );
     setRubberBandPen( QColor(Qt::green) );
@@ -80,7 +80,7 @@ Zoomer::widgetMouseReleaseEvent( QMouseEvent * event )
 void
 Zoomer::widgetMouseDoubleClickEvent( QMouseEvent * event )
 {
-    if ( mouseMatch( MouseSelect1, event ) )
+	if ( mouseMatch( MouseSelect1, event ) )
 		QwtPlotZoomer::zoom( -1 );
 	else
 		QwtPlotPicker::widgetMouseDoubleClickEvent( event );

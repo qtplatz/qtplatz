@@ -48,7 +48,8 @@ HEADERS += adwplot.hpp \
     spectrumwidget.hpp \
     trace.hpp \
     traces.hpp \
-    zoomer.hpp
+    zoomer.hpp \
+    plotpicker.hpp
 
 unix:!symbian {
     maemo5 {

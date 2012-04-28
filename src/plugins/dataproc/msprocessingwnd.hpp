@@ -68,6 +68,7 @@ namespace dataproc {
         private slots:
             void ctxMenu1( const QPoint& );
 			void selectedOnChromatogram( const QPointF& );
+			void selectedOnChromatogram( const QRectF& );
 			void selectedOnProfile( const QPointF& );
 			void selectedOnProcessed( const QPointF& );
 

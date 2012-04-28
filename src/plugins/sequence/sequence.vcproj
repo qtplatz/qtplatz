@@ -450,10 +450,6 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
-				RelativePath=".\debug\qrc_sequence.cpp"
-				>
-			</File>
-			<File
 				RelativePath="release\qrc_sequence.cpp"
 				>
 				<FileConfiguration
@@ -464,6 +460,10 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\debug\qrc_sequence.cpp"
+				>
 			</File>
 			<Filter
 				Name="Debug"
@@ -711,7 +711,7 @@
 	<Globals>
 		<Global
 			Name="QtVersion Win32"
-			Value="4.8.0"
+			Value="4.8.1"
 		/>
 	</Globals>
 </VisualStudioProject>

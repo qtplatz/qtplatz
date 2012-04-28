@@ -72,6 +72,8 @@ namespace adcontrols {
        MassSpectrum();
        MassSpectrum( const MassSpectrum& );
        MassSpectrum& operator = ( const MassSpectrum& );
+	   MassSpectrum& operator += ( const MassSpectrum& );
+
 	   void clone( const MassSpectrum&, bool deep = false );
        static const wchar_t * dataClass() { return L"MassSpectrum"; }
 	 

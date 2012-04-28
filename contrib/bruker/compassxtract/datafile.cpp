@@ -123,6 +123,12 @@ datafile::getFunctionCount() const
 size_t
 datafile::getSpectrumCount( int /* fcn */ ) const
 {
+	try {
+		EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis_->GetMSSpectrumCollection();
+		return pSpectra->Count;
+	} catch(_com_error& ex ) {
+		::MessageBox(NULL, ex.ErrorMessage(), L"compassxtract::datafile::getSpectrumCount", MB_OK);
+	}
 	return 0;
 }
 
@@ -140,6 +146,7 @@ datafile::getChromatogramCount() const
 bool
 datafile::getSpectrum( int /* fcn*/, int pos, adcontrols::MassSpectrum& ms ) const
 {
+	std::cout << "compassxtract::datafile::getSpectrum( 0, " << pos << ")" << std::endl;
 	try {
 		EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis_->GetMSSpectrumCollection();
 		EDAL::IMSSpectrumPtr pSpectrum = pSpectra->GetItem( pos + 1 ); // 1-origin
@@ -150,8 +157,9 @@ datafile::getSpectrum( int /* fcn*/, int pos, adcontrols::MassSpectrum& ms ) con
 			ms.setPolarity( adcontrols::MS_POLARITY::PolarityPositive );
 		else
 			ms.setPolarity( adcontrols::MS_POLARITY::PolarityIndeterminate );
+
 		adcontrols::MSProperty prop = ms.getMSProperty();
-		prop.setTimeSinceInjection( pSpectrum->RetentionTime * 60 * 1000000 ); // usec
+		prop.setTimeSinceInjection( pSpectrum->RetentionTime /* sec */ * 1.0e6 ); // usec
         ms.setMSProperty( prop ); // <- end of prop set
 
 		_variant_t vMasses, vIntens;
@@ -167,8 +175,9 @@ datafile::getSpectrum( int /* fcn*/, int pos, adcontrols::MassSpectrum& ms ) con
         ms.setAcquisitionMassRange( ms.getMass( 0 ), ms.getMass( ms.size() - 1 ) );
 
 		return true;
-
-	} catch ( _com_error&  ) {
+	} catch(_com_error& ex ) {
+		::MessageBox(NULL, ex.ErrorMessage(), L"compassxtract::datafile::getSpectrum", MB_OK);
+		return false;
 	}
 	return false;
 }
@@ -219,7 +228,7 @@ datafile::_open( const std::wstring& filename, bool )
 				(void)n;
             }
         } catch(_com_error& ex ) {
-			::MessageBox(NULL, ex.ErrorMessage(), L"Problem", MB_OK);
+			::MessageBox(NULL, ex.ErrorMessage(), L"compassxtract::datafile::is_valid_datafile", MB_OK);
 			return false;
         }
     }
@@ -232,7 +241,7 @@ datafile::_open( const std::wstring& filename, bool )
 /*
 FirstLineIntensity         float Intensity of the first line saved for each spectrum
 HighResolutionMass         float High resolution mass of each spectrum
-IonPolarity                int   Polarity of each spectrum (0 = positive, 1 = negative, 2 = both, 255 = unknown)
+IonPlo1arity                int   Polarity of each spectrum (0 = positive, 1 = negative, 2 = both, 255 = unknown)
 MaxIntensity               float Maximum intensity of each spectrum
 MSLevel                    int   The MS level of each spectrum (MS = 1, MSMS = 2, …)
 MSPrecursor                float Each MSMS spectrum’s precursor mass
@@ -259,6 +268,7 @@ datafile::getTIC( int fcn, adcontrols::Chromatogram& c ) const
 	}
 
 	if( pAnalysis_->HasAnalysisData( &strRetentionTime ) )	{
+		// array of seconds
 		_variant_t vTimes = pAnalysis_->GetAnalysisData( &strRetentionTime );
 		SafeArray sTimes( vTimes );
 		c.setTimeArray( reinterpret_cast< const double *>( sTimes.p() ) );
@@ -279,8 +289,9 @@ datafile::posFromTime( double minutes ) const
 	using adportable::array_wrapper;
 	if ( ! pTIC_ )
 		const_cast< datafile *>(this)->getTIC();
+	double t = adcontrols::Chromatogram::toSeconds( minutes );
 	array_wrapper< const double > times( pTIC_->getTimeArray(), pTIC_->size() );
-	array_wrapper< const double >::iterator it = std::lower_bound( times.begin(), times.end(), minutes );
+	array_wrapper< const double >::iterator it = std::lower_bound( times.begin(), times.end(), t );
 	long pos = std::distance( times.begin(), it );
 	return pos;
 }
@@ -301,6 +312,10 @@ datafile::is_valid_datafile( const std::wstring& filename )
 			// and check for success
 			hr = pAnalysis->Open( _bstr_t( rpath.wstring().c_str() ) );
 			return hr == S_OK; // 
+		} catch(_com_error& ex ) {
+			::MessageBox(NULL, ex.ErrorMessage(), L"compassxtract -- error", MB_OK);
+		}
+
 /*
             if( SUCCEEDED(hr) )  {
 
@@ -332,9 +347,6 @@ datafile::is_valid_datafile( const std::wstring& filename )
                 DumpSpectra(pSpectra);
             }
 */
-        } catch(_com_error& ex ) {
-			::MessageBox(NULL, ex.ErrorMessage(), L"Problem", MB_OK);
-        }
     }
 	return false;
 }

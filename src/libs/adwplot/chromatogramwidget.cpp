@@ -27,6 +27,7 @@
 #include "annotation.hpp"
 #include "annotations.hpp"
 #include "zoomer.hpp"
+#include "picker.hpp"
 #include "peak.hpp"
 #include "baseline.hpp"
 #include "plotcurve.hpp"
@@ -145,7 +146,7 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
     setAxisTitle(QwtPlot::yLeft, "Intensity[uV]");
 
 	if ( picker_ ) {
-		picker_->setStateMachine( new QwtPickerClickPointMachine() );
+		// picker_->setStateMachine( new QwtPickerClickPointMachine() );
 
 		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
 		connect( picker_.get(), SIGNAL( selected( const QPointF& ) ), this, SLOT( selected( const QPointF& ) ) );

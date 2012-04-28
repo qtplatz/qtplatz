@@ -94,8 +94,8 @@ namespace adcontrols {
 	    CentroidAlgorithm algo_;
 	    MS_POLARITY polarity_;	    
 	    Descriptions descriptions_;
-	  MSCalibration calibration_;
-	  MSProperty property_;
+		MSCalibration calibration_;
+		MSProperty property_;
 
 	    std::vector< double > tofArray_;
 	    std::vector< double > massArray_;
@@ -154,6 +154,19 @@ MassSpectrum::operator =( const MassSpectrum& t )
 	if ( t.pImpl_ != pImpl_ ) {
 		delete pImpl_;
 		pImpl_ = new MassSpectrumImpl( *t.pImpl_ );
+	}
+	return *this;
+}
+
+MassSpectrum&
+MassSpectrum::operator += ( const MassSpectrum& t )
+{
+    const size_t nSize = size();
+	if ( t.size() >= nSize && std::abs( t.getMass(0) - getMass(0) ) <= 1.0e-9 ) {
+		const double * src = t.getIntensityArray();
+		double * dst = &pImpl_->intsArray_[0];
+		for ( size_t i = 0; i < nSize; ++i )
+			*dst++ += *src++;
 	}
 	return *this;
 }

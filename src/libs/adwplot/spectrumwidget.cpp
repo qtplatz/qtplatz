@@ -25,6 +25,7 @@
 
 #include "spectrumwidget.hpp"
 #include "zoomer.hpp"
+#include "picker.hpp"
 #include "plotcurve.hpp"
 #include "annotation.hpp"
 #include "annotations.hpp"

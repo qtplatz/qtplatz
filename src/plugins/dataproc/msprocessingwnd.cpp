@@ -98,6 +98,7 @@ MSProcessingWnd::init()
         if ( ( pImpl_->ticPlot_ = new adwplot::ChromatogramWidget(this) ) ) {
             pImpl_->ticPlot_->setMinimumHeight( 80 );
 			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnChromatogram( const QPointF& ) ) );
+			connect( pImpl_->ticPlot_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnChromatogram( const QRectF& ) ) );
         }
 	
         if ( ( pImpl_->profileSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
@@ -206,6 +207,12 @@ MSProcessingWnd::selectedOnChromatogram( const QPointF& pos )
 {
 	std::cout << "MSProcessingWnd::selectedOnChromatogram: " << pos.x() << ", " << pos.y() << std::endl;
 	DataprocPlugin::instance()->onSelectTimeOnChromatogram( pos.x() ); 
+}
+
+void
+MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
+{
+	DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() ); 
 }
 
 void

@@ -112,10 +112,10 @@ ChromatogramWnd::init( const std::wstring& apppath )
             pImpl_->peakWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
             if ( pImpl_->peakWidget_ ) {
                 adplugin::LifeCycle * p = dynamic_cast< adplugin::LifeCycle * >(pImpl_->peakWidget_);
-                if ( p )
-                    p->OnInitialUpdate();
-                connect( this, SIGNAL( fireSetData( const adcontrols::Chromatogram& ) ),
-			 pImpl_->peakWidget_, SLOT( setData( const adcontrols::Chromatogram& ) ) );
+				if ( p )
+					p->OnInitialUpdate();
+				connect( this, SIGNAL( fireSetData( const adcontrols::Chromatogram& ) ),
+					pImpl_->peakWidget_, SLOT( setData( const adcontrols::Chromatogram& ) ) );
             }
 
             splitter->addWidget( pImpl_->chroWidget_ );

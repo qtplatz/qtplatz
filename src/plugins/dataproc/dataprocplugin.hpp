@@ -71,6 +71,7 @@ namespace dataproc {
 
 			void applyMethod( const adcontrols::ProcessMethod& );
 			void onSelectTimeOnChromatogram( double min );
+			void onSelectTimeRangeOnChromatogram( double x1, double x2 );
 
         signals:
 			void onApplyMethod( const adcontrols::ProcessMethod& );

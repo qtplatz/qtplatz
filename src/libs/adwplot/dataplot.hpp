@@ -30,13 +30,13 @@
 #include <adwplot/zoomer.hpp>
 
 class QwtPlotPanner;
-class QwtPlotPicker;
 
 namespace adwplot {
 
     class Traces;
     class Trace;
     class Zoomer;
+	class Picker;
 
     class Dataplot : public QwtPlot {
         Q_OBJECT
@@ -67,7 +67,7 @@ namespace adwplot {
     protected:
         boost::scoped_ptr< Zoomer > zoomer1_;  // left bottom
         boost::scoped_ptr< Zoomer > zoomer2_;  // right top
-        boost::scoped_ptr< QwtPlotPicker > picker_;
+        boost::scoped_ptr< Picker > picker_;
         boost::scoped_ptr< QwtPlotPanner > panner_;
     };
 
