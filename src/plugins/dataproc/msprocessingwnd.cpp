@@ -41,6 +41,7 @@
 #include <adwplot/spectrumwidget.hpp>
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
+#include <QMenu>
 #include <boost/variant.hpp>
 #include "selchanged.hpp"
 
@@ -119,16 +120,13 @@ MSProcessingWnd::init()
         pImpl_->processedSpectrum_->link( pImpl_->profileSpectrum_ );
 
         pImpl_->processedSpectrum_->setContextMenuPolicy( Qt::CustomContextMenu );
-        connect( pImpl_->processedSpectrum_, SIGNAL( customContextMenuRequested( QPoint ) ), this, SLOT( ctxMenu1( QPoint ) ) );
+		connect( pImpl_->processedSpectrum_, SIGNAL( customContextMenuRequested( QPoint ) ), this, SLOT( onCustomMenuOnProcessedSpectrum( const QPoint& ) ) );
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
     toolBarAddingLayout->setMargin(0);
     toolBarAddingLayout->setSpacing(0);
-    //toolBarAddingLayout->addWidget( toolBar );
     toolBarAddingLayout->addWidget( splitter );
-    //toolBarAddingLayout->addWidget( toolBar2 );
-
 }
 
 void
@@ -198,8 +196,20 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
 }
 
 void
-MSProcessingWnd::ctxMenu1( const QPoint& )
+MSProcessingWnd::onCustomMenuOnProcessedSpectrum( const QPoint& pos )
 {
+	QPoint globalPos = pImpl_->processedSpectrum_->mapToGlobal(pos);
+    // for QAbstractScrollArea and derived classes you would use:
+    // QPoint globalPos = myWidget->viewport()->mapToGlobal(pos); 
+
+    QMenu myMenu;
+    myMenu.addAction("Menu Item 1");
+    myMenu.addAction("Menu Item 2");
+
+	QAction* selectedItem = myMenu.exec( globalPos );
+    if (selectedItem)    {
+        // something was chosen, do stuff
+    }
 }
 
 void

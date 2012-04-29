@@ -28,6 +28,8 @@
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adutils/processeddata.hpp>
 #include <adportable/debug.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
@@ -39,7 +41,12 @@
 #include <QTreeView>
 #include <QStandardItemModel>
 #include <QVBoxLayout>
+#include <QMenu>
+#include <QFileDialog>
 #include <QDebug>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <iomanip>
 
 class StandardItemHelper {
 public:
@@ -88,6 +95,14 @@ public:
 		return 0;
 	}
 
+	static dataproc::Dataprocessor * findDataprocessor( const QModelIndex& index ) {
+		QModelIndex parent = index.parent();
+		while ( parent.isValid() && ! qVariantCanConvert< dataproc::Dataprocessor * >( parent.data( Qt::UserRole + 1 ) ) )
+			parent = parent.parent();
+		if ( parent.isValid() )
+			return qVariantValue< dataproc::Dataprocessor * >( parent.data( Qt::UserRole + 1 ) );
+		return 0;
+	}
 };
 
 
@@ -150,14 +165,11 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     connect( pTreeView_, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(handle_doubleClicked(const QModelIndex&)));
     connect( pTreeView_, SIGNAL(entered(const QModelIndex&)), this, SLOT(handle_entered(const QModelIndex&)));
 
-    // connect( pTreeView_, SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(handle_currentChanged(const QModelIndex&, const QModelIndex&)));
-
     pTreeView_->setContextMenuPolicy(Qt::CustomContextMenu);
     connect( pTreeView_, SIGNAL(customContextMenuRequested( QPoint )), this, SLOT( handleContextMenuRequested( QPoint ) ) );
 
     connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), this, SLOT( handleSessionAdded( Dataprocessor * ) ) );
 	connect( SessionManager::instance(), SIGNAL( signalSessionUpdated( Dataprocessor*, portfolio::Folium& ) ), this, SLOT( handleSessionUpdated( Dataprocessor *, portfolio::Folium& ) ) );
-	// connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) ), this, SLOT( handleSelectionChanged( Dataprocessor *, portfolio::Folium& ) ) );
 
     setAutoSynchronization(true);
 }
@@ -273,22 +285,15 @@ NavigationWidget::handle_activated( const QModelIndex& index )
 
             portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
 
-            Dataprocessor * processor = 0;
-            QModelIndex parent = index.parent();
-            while ( parent.isValid() && ! qVariantCanConvert< Dataprocessor * >( parent.data( Qt::UserRole + 1 ) ) )
-                parent = parent.parent();
-
-            if ( parent.isValid() ) {
-                if ( ( processor = qVariantValue< Dataprocessor * >( parent.data( Qt::UserRole + 1 ) ) ) ) {
-                    std::string tname = static_cast<boost::any&>( folium ).type().name();
-                    adportable::debug(__FILE__, __LINE__)
-                        << "folium name: '" << folium.name()
-                        << "'\tfilename: " << processor->file().filename()
-                        << "\tfolium(type=" << tname << ", id=" << folium.id() << ")";
-                    processor->setCurrentSelection( folium );
-                }
-            }
-                        
+			Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
+			if ( processor ) {
+				std::string tname = static_cast<boost::any&>( folium ).type().name();
+				adportable::debug(__FILE__, __LINE__)
+					<< "folium name: '" << folium.name()
+					<< "'\tfilename: " << processor->file().filename()
+					<< "\tfolium(type=" << tname << ", id=" << folium.id() << ")";
+				processor->setCurrentSelection( folium );
+			}
         }
     }
 }
@@ -296,7 +301,6 @@ NavigationWidget::handle_activated( const QModelIndex& index )
 void
 NavigationWidget::handle_clicked( const QModelIndex& index )
 {
-    // qDebug() << "clicked: " << index.data( Qt::UserRole + 1 );
     handle_activated( index );
 }
 
@@ -304,24 +308,64 @@ void
 NavigationWidget::handle_doubleClicked( const QModelIndex& index )
 {
     (void)index;
-    // qDebug() << "doubleClicked: " << index.data( Qt::UserRole + 1 );
 }
 
 void
 NavigationWidget::handle_entered( const QModelIndex& index )
 {
     (void)index;
-    // qDebug() << "entered: " << index.data( Qt::UserRole + 1 );
 }
 
 void
 NavigationWidget::handle_pressed( const QModelIndex& index )
 {
     (void)index;
-    // qDebug() << "pressed: " << index.data( Qt::UserRole + 1 );
 }
 
 void
-NavigationWidget::handleContextMenuRequested( const QPoint& )
+NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 {
+	QPoint globalPos = pTreeView_->mapToGlobal(pos);
+	// QPoint globalPos = this->pTreeView_->viewport()->mapToGlobal(pos);
+    // for QAbstractScrollArea and derived classes you would use:
+    // QPoint globalPos = myWidget->viewport()->mapToGlobal(pos); 
+
+	QModelIndex index = pTreeView_->currentIndex();
+	Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
+
+	QVariant data = pModel_->data( index, Qt::UserRole + 1 );
+	if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
+		portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
+		if ( processor && folium.getParentFolder().name() == L"Spectra" ) {
+			portfolio::Folio atts = folium.attachments();
+			portfolio::Folio::iterator it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(atts.begin(), atts.end());
+			if ( it == atts.end() )
+				return;
+			adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+			if ( ptr && ptr->isCentroid() ) {
+				QMenu menu;
+				menu.addAction("Save centroid spectrum as...");
+				QAction* selectedItem = menu.exec( globalPos );
+				if (selectedItem) {
+
+					boost::filesystem::path path( processor->file().filename() );
+					while ( ! boost::filesystem::is_directory( path ) )
+						path = path.branch_path();
+					QString dir = qtwrapper::qstring::copy( path.wstring() );
+					QString name = qtwrapper::qstring::copy( folium.name() );
+					QString filename = 
+						QFileDialog::getSaveFileName( this, tr("Save centroid spectrum"), dir, tr("Documents (*.txt)") );
+					boost::filesystem::path dstfile( qtwrapper::wstring::copy( filename ) );
+					const double * masses = ptr->getMassArray();
+					const double * intens = ptr->getIntensityArray();
+					boost::filesystem::ofstream of( dstfile );
+					for ( size_t n = 0; n < ptr->size(); ++n ) {
+						of << std::fixed << std::setprecision( 14 ) << *masses++ << ",\t"
+							<< std::scientific << std::setprecision(7) << *intens++ << std::endl;
+					}
+				}
+			}
+		}
+	}
+    
 }
