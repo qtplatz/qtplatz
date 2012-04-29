@@ -145,8 +145,7 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
                                                 , autoYZoom_( true ) 
 {
     zoomer2_.reset();
-	zoomer1_->setRubberBand( QwtPicker::RectRubberBand );
-	zoomer1_->setRubberBandPen( QColor(Qt::red) );
+	zoomer1_->autoYScale( autoYZoom_ );
 
     setAxisTitle(QwtPlot::xBottom, "m/z");
     setAxisTitle(QwtPlot::yLeft, "Intensity");
@@ -192,6 +191,7 @@ SpectrumWidget::zoom( const QRectF& rect )
 void
 SpectrumWidget::moved( const QPointF& pos )
 {
+	(void)pos;
 	//std::cout << "SpectrumWidget::moved( " << pos.x() << ", " << pos.y() << ")" << std::endl;
 }
 

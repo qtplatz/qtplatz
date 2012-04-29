@@ -433,9 +433,9 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( brokerSession_ && dp ) {
+#if 0
 		// TODO:  observer access has object delete twince, that will cause debug assertion failuer
 		// SignalObserver::Observer_var observer = dp->observer();
-#if 0
 		brokerSession_->coaddSpectrumEx( token.c_str(), observer, x, x );
 #endif
 		const adcontrols::LCMSDataset * dset = dp->getLCMSDataset();

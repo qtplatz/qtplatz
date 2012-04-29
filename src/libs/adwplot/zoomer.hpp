@@ -40,10 +40,18 @@ namespace adwplot {
         virtual void zoom( const QRectF& );
     private:
         bool autoYScale_;
-		virtual void widgetMousePressEvent( QMouseEvent * );
-		virtual void widgetMouseReleaseEvent( QMouseEvent * );
+		enum { HLineRubberBand, VLineRubberBand, RectRubberBand } rubberBand_;
+	protected:
+		// virtual void widgetMousePressEvent( QMouseEvent * );
+		// virtual void widgetMouseReleaseEvent( QMouseEvent * );
 		virtual void widgetMouseDoubleClickEvent( QMouseEvent * );
-		virtual void widgetMouseMoveEvent( QMouseEvent * );
+		// virtual void widgetMouseMoveEvent( QMouseEvent * );
+
+		// QwtPlotZoomer
+		virtual bool accept( QPolygon & ) const;
+
+		// QwtPicker
+		virtual void drawRubberBand( QPainter * ) const;
 
     signals:
         void zoom_override( QRectF& );
