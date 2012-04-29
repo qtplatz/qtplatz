@@ -76,7 +76,7 @@ namespace dataproc {
 
     signals:
         void signalSessionAdded( Dataprocessor * );
-        void signalSessionUpdated( Dataprocessor * );
+		void signalSessionUpdated( Dataprocessor *, portfolio::Folium& );
         void signalSelectionChanged( Dataprocessor *, portfolio::Folium& );
 
     public slots:

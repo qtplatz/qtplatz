@@ -70,6 +70,24 @@ public:
         }
         return 0;
     }
+
+	static QStandardItem * findFolium( QStandardItem * item, const std::wstring& id ) {
+
+		for ( int i = 0; i < item->rowCount(); ++i ) {
+			QStandardItem * child = item->child( i );
+			QVariant v = child->data( Qt::UserRole + 1 );
+			if ( qVariantCanConvert< portfolio::Folium >( v ) ) {
+				if ( qVariantValue< portfolio::Folium >( v ).id() == id )
+					return child;
+			} else if ( qVariantCanConvert< portfolio::Folder >( v ) && child->hasChildren() ) {
+				QStandardItem * res = findFolium( child, id );
+				if ( res )
+					return res;
+			}
+		}
+		return 0;
+	}
+
 };
 
 
@@ -138,7 +156,8 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     connect( pTreeView_, SIGNAL(customContextMenuRequested( QPoint )), this, SLOT( handleContextMenuRequested( QPoint ) ) );
 
     connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), this, SLOT( handleSessionAdded( Dataprocessor * ) ) );
-    connect( SessionManager::instance(), SIGNAL( signalSessionUpdated( Dataprocessor* ) ), this, SLOT( handleSessionUpdated( Dataprocessor * ) ) );
+	connect( SessionManager::instance(), SIGNAL( signalSessionUpdated( Dataprocessor*, portfolio::Folium& ) ), this, SLOT( handleSessionUpdated( Dataprocessor *, portfolio::Folium& ) ) );
+	// connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) ), this, SLOT( handleSelectionChanged( Dataprocessor *, portfolio::Folium& ) ) );
 
     setAutoSynchronization(true);
 }
@@ -197,7 +216,7 @@ NavigationWidget::initView()
 }
 
 void
-NavigationWidget::handleSessionUpdated( Dataprocessor * processor )
+NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Folium& folium )
 {
     QString filename( qtwrapper::qstring::copy( processor->file().filename() ) );
 
@@ -212,6 +231,13 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor )
         for ( std::vector< portfolio::Folder >::iterator it = folders.begin(); it != folders.end(); ++it )
             PortfolioHelper::appendFolder( *item, *it );
     }
+	// set selected
+	if ( item = StandardItemHelper::findRow( model, processor ) ) {
+		QStandardItem * leaf = StandardItemHelper::findFolium( item, folium.id() );
+		if ( leaf )
+			pTreeView_->setCurrentIndex( leaf->index() );
+		processor->setCurrentSelection( folium );
+	}
 }
 
 void

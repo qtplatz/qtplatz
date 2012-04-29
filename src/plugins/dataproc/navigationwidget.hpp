@@ -33,6 +33,8 @@ class QTreeView;
 class QStandardItemModel;
 class QModelIndex;
 
+namespace portfolio { class Folium; }
+
 namespace dataproc {
 
     class Dataprocessor;
@@ -52,7 +54,8 @@ namespace dataproc {
     public slots:
         void toggleAutoSynchronization();
         void handleSessionAdded( Dataprocessor * );
-        void handleSessionUpdated( Dataprocessor * );
+		void handleSessionUpdated( Dataprocessor *, portfolio::Folium& );
+		// void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );
 
     private slots:
         void initView();

@@ -68,8 +68,8 @@ SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Fo
     std::cout << "$$$$$$$$$ updateDataprocessor $$$$$$$$$$$" << std::endl;
 #endif
     activeDataprocessor_ = dataprocessor;
-    emit signalSessionUpdated( dataprocessor );
-    emit signalSelectionChanged( dataprocessor, folium );
+	emit signalSessionUpdated( dataprocessor, folium );
+	// emit signalSelectionChanged( dataprocessor, folium );
 }
 
 SessionManager::vector_type::iterator
