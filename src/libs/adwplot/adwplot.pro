@@ -25,8 +25,6 @@ SOURCES += adwplot.cpp \
     dataplot.cpp \
     peak.cpp \
     plotcurve.cpp \
-    plotpanner.cpp \
-    plotpicker.cpp \
     seriesdata.cpp \
     spectrumwidget.cpp \
     trace.cpp \
@@ -44,8 +42,6 @@ HEADERS += adwplot.hpp \
     dataplot.hpp \
     peak.hpp \
     plotcurve.hpp \
-    plotpanner.hpp \
-    plotpicker.hpp \
     seriesdata.hpp \
     spectrumwidget.hpp \
     trace.hpp \

@@ -67,7 +67,7 @@ namespace dataproc {
             void extensionsInitialized();
             void shutdown();
             // <--
-			inline static DataprocPlugin * DataprocPlugin::instance() { return instance_; }
+			inline static DataprocPlugin * instance() { return instance_; }
 
 			void applyMethod( const adcontrols::ProcessMethod& );
 			void onSelectTimeRangeOnChromatogram( double x1, double x2 );
