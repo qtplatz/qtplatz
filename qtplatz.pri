@@ -1,4 +1,4 @@
-CONFIG += debug
+#CONFIG += debug
 
 defineReplace(cleanPath) {
     win32:1 ~= s|\\\\|/|g
