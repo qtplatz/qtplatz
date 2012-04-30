@@ -30,14 +30,21 @@
 #include "traces.hpp"
 #include "zoomer.hpp"
 #include "picker.hpp"
-#include <qwt_plot_picker.h>
-#include <qwt_plot_panner.h>
+#include "panner.hpp"
 #include <qwt_picker_machine.h>
 #include <qtwrapper/qstring.hpp>
+#include <algorithm>
+#include <boost/foreach.hpp>
 
 using namespace adwplot;
 
+Dataplot::~Dataplot()
+{
+	unlink();
+}
+
 Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
+                                    , linkedzoom_inprocess_( false )
 {
     setCanvasBackground( QColor( Qt::lightGray ) );
 
@@ -49,7 +56,7 @@ Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
 	picker_.reset( new Picker( canvas() ) );
 	// picker_->setStateMachine( new QwtPickerDragPointMachine() );
 	// panner
-    panner_.reset( new QwtPlotPanner( canvas() ) );
+    panner_.reset( new Panner( canvas() ) );
 	panner_->setMouseButton( Qt::LeftButton, Qt::AltModifier );
 }
 
@@ -59,15 +66,98 @@ Dataplot::setTitle( const std::wstring& title )
     QwtPlot::setTitle( qtwrapper::qstring( title ) );
 }
 
+//virtual method
 void
-Dataplot::link( Dataplot * p )
+Dataplot::zoom( const QRectF& rect )
 {
-    connect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), p, SLOT( zoom( const QRectF& ) ) );
+	zoomer1_->zoom( rect );
+}
+
+// private
+void
+Dataplot::zoom( const QRectF& rect, const Dataplot& origin )
+{
+	if ( this == &origin )
+		return;
+	linkedzoom_inprocess_ = true;
+	zoomer1_->zoom( rect ); // will emit onZoomed
+	linkedzoom_inprocess_ = false;
 }
 
 void
-Dataplot::unlink( Dataplot * p )
+Dataplot::panne( int dx, int dy, const Dataplot& origin )
 {
-    disconnect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), p, SLOT( zoom( const QRectF& ) ) );
+	if ( this != &origin )
+		panner_->panne( dx, dy );
+}
+
+//virtual slot
+void
+Dataplot::onZoomed( const QRectF& rect )
+{
+	if ( plotlink_ && ! linkedzoom_inprocess_ ) {
+		BOOST_FOREACH( plotlink::value_type plot, *plotlink_ ) {
+			plot->zoom( rect, *this );
+		}
+	}
+}
+
+//virtual slot
+void
+Dataplot::onPanned( int dx, int dy )
+{
+	if ( plotlink_ && ! linkedzoom_inprocess_ ) {
+		BOOST_FOREACH( plotlink::value_type plot, *plotlink_ ) {
+			plot->panne( dx, dy, *this );
+		}
+	}
+}
+
+void
+Dataplot::link( Dataplot * p )
+{
+	if ( ! plotlink_ ) {
+		connect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), this, SLOT( onZoomed( const QRectF& ) ) );
+		connect( panner_.get(), SIGNAL( panned( int, int ) ), this, SLOT( onPanned( int, int ) ) );
+	}
+
+	if ( plotlink_ && p->plotlink_ ) {
+		// marge into this->plotlink_
+		plotlink_->insert( plotlink_->end(), p->plotlink_->begin(), p->plotlink_->end() );
+
+		// update all plotlink in the marged list
+		for ( plotlink::iterator it = p->plotlink_->begin(); it != p->plotlink_->end(); ++it )
+			(*it)->plotlink_ = plotlink_;
+
+	} else if ( plotlink_ && ! p->plotlink_ ) {
+
+		p->plotlink_ = plotlink_;
+		if ( std::find( plotlink_->begin(), plotlink_->end(), p ) == plotlink_->end() )
+			plotlink_->push_back( p );
+
+	} else if ( ! plotlink_ && p->plotlink_ ) {
+
+		plotlink_ = p->plotlink_;
+		if ( std::find( plotlink_->begin(), plotlink_->end(), this ) == plotlink_->end() )
+			plotlink_->push_back( this );
+
+	} else if ( ! plotlink_ && ! p->plotlink_ ) {
+		plotlink_.reset( new plotlink );
+		plotlink_->push_back( this );
+		plotlink_->push_back( p );
+	}
+	// size_t n = plotlink_->size();
+	// connect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), p, SLOT( zoom( const QRectF& ) ) );
+}
+
+void
+Dataplot::unlink()
+{
+	if ( plotlink_ ) {
+		disconnect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), this, SLOT( onZoomed( const QRectF& ) ) );
+		disconnect( panner_.get(), SIGNAL( panned( int, int ) ), this, SLOT( onPanned( int, int ) ) );
+		plotlink_->erase( std::remove( plotlink_->begin(), plotlink_->end(), this ) );
+		plotlink_.reset();
+	}
 }
 

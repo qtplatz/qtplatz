@@ -53,10 +53,11 @@ namespace adwplot {
 		void onSelected( const QPointF& );
 		void onSelected( const QRectF& );
 
-    public slots:
+	private:
         virtual void zoom( const QRectF& );
-        virtual void override_zoom_rect( QRectF& );
 
+    public slots:
+		virtual void override_zoom_rect( QRectF& );
 		virtual void moved( const QPointF& );
 		virtual void selected( const QPointF& );
 		virtual void selected( const QRectF& );

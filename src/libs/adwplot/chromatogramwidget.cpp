@@ -247,6 +247,7 @@ ChromatogramWidget::setBaseline( const adcontrols::Baseline& bs )
 void
 ChromatogramWidget::override_zoom_rect( QRectF& )
 {
+	// update rect if auto Y scale and/or apply minimum zoom etc.
 }
 
 void

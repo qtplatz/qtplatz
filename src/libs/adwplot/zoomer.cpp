@@ -26,6 +26,7 @@
 #include "zoomer.hpp"
 #include <QMouseEvent>
 #include <qwt_painter.h>
+#include <QDebug>
 
 using namespace adwplot;
 
@@ -59,31 +60,8 @@ Zoomer::zoom( const QRectF& rect )
 {
     QRectF rc( rect );
     emit zoom_override( rc );
-    QwtPlotZoomer::zoom( rc );
+	QwtPlotZoomer::zoom( rc );
 }
-
-#if 0
-// virtual
-void
-Zoomer::widgetMousePressEvent( QMouseEvent * event )
-{
-	QwtPlotPicker::widgetMousePressEvent( event );
-}
-
-// virtual
-void
-Zoomer::widgetMouseMoveEvent( QMouseEvent * event )
-{
-	QwtPlotPicker::widgetMouseMoveEvent( event );
-}
-
-// virtual
-void
-Zoomer::widgetMouseReleaseEvent( QMouseEvent * event )
-{
-	QwtPlotZoomer::widgetMouseReleaseEvent( event );
-}
-#endif
 
 // virtual
 void
