@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "chromatography.hpp"
+#include <adcontrols/peakmethod.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
 
@@ -35,6 +36,7 @@ namespace chromatogr { namespace internal {
             void clear();
             inline const adcontrols::Peaks & getPeaks() const { return peaks_; }
         private:
+            adcontrols::PeakMethod method_;
             adcontrols::Peaks peaks_;
         };
     }
@@ -73,8 +75,9 @@ ChromatographyImpl::clear()
 }
 
 bool
-ChromatographyImpl::setup( const adcontrols::PeakMethod& )
+ChromatographyImpl::setup( const adcontrols::PeakMethod& m )
 {
+    method_ = m;
     return false;
 }
 

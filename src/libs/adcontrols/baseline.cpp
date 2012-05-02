@@ -70,19 +70,19 @@ Baseline::startPos() const
 }
 
 void
-Baseline::StartPos( long value )
+Baseline::startPos( long value )
 {
     startPos_ = value;
 }
        
 long
-Baseline::StopPos() const
+Baseline::stopPos() const
 {
     return stopPos_;
 }
 
 void
-Baseline::StopPos( long value )
+Baseline::stopPos( long value )
 {
     stopPos_ = value;
 }

@@ -45,10 +45,10 @@ namespace adcontrols {
         void baseId( long );
 
         long startPos() const;
-        void StartPos( long );
+        void startPos( long );
        
-        long StopPos() const;
-        void StopPos( long );
+        long stopPos() const;
+        void stopPos( long );
 
         bool isManuallyModified() const;
         void manuallyModified( bool );
