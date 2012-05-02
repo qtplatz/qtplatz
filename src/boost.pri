@@ -7,4 +7,5 @@ win32 {
     LIBS += -L$${BOOST}/lib
 } else {
     INCLUDEPATH += /usr/local/include
+    LIBS += -L/usr/local/lib
 }

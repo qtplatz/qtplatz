@@ -1,41 +1,50 @@
 
-QTDIR = /usr/local/Qt/4.8.0
+QTDIR = /usr/local/Qt/4.8.1
 DEST  = /Volumes/qtplatz
 
-QTDLLS = \
-	QtCLucene4.dylib \
-	QtCore4.dylib \
-	QtDeclarative4.dylib \
-	QtGui4.dylib \
-	QtHelp4.dylib \
-	QtMultimedia4.dylib \
-	QtNetwork4.dylib \
-	QtOpenGL4.dylib \
-	QtScript4.dylib \
-	QtScriptTools4.dylib \
-	QtSql4.dylib \
-	QtSvg4.dylib \
-	QtWebKit4.dylib \
-	QtXml4.dylib \
-	QtXmlPatterns4.dylib \
-	phonon4.dylib
+ACE_VERSION = 6.0.0
+TAO_VERSION = 1.6.6
 
-all: /Volumes/qtplatz /Volumes/qtplatz/qtplatz.app
+LIBDIRIN = /usr/local/lib
+LIBDIROUT = /Volumes/qtplatz/qtplatz.app/Contents/PlugIns
 
+TAO_LIBS = \
+	libTAO \
+	libTAO_Utils \
+	libTAO_PI \
+	libTAO_PortableServer \
+	libTAO_AnyTypeCode
+
+BOOST_LIBS = \
+	libboost_serialization \
+	libboost_wserialization \
+	libboost_date_time \
+	libboost_system \
+	libboost_filesystem
+
+all: /Volumes/qtplatz/qtplatz.app
 
 /Volumes/qtplatz/qtplatz.app: /Volumes/qtplatz
-	echo cd ../../../bin; tar cf - ./qtplatz.app | (cd /Volumes/qtplatz; tar xvf -)
-	for i in $(QTDLLS) ; do \
-		cp -p $(QTDIR)/$$i $(DEST)/qtplatz.app/Contents/PlugIns ; \
+	cd ../../../bin; tar cf - ./qtplatz.app | (cd /Volumes/qtplatz; tar xvf -)
+	for i in ${BOOST_LIBS} ; do \
+	  cp -p ${LIBDIRIN}/$$i.dylib ${LIBDIROUT}; \
+	done
+	cp -p ${LIBDIRIN}/libACE-${ACE_VERSION}.dylib ${LIBDIROUT}
+	( cd ${LIBDIROUT}; ln -s libACE-${ACE_VERSION}.dylib libACE.dylib )
+	for i in ${TAO_LIBS} ; do \
+	  cp -p ${LIBDIRIN}/$$i.${TAO_VERSION}.dylib ${LIBDIROUT}; \
+	  ( cd ${LIBDIROUT}; ln -s $$i.${TAO_VERSION}.dylib $$i.dylib ); \
 	done
 
+deploy:
+	macdeployqt /Volumes/qtplatz/qtplatz.app
 
 /Volumes/qtplatz: ./qtplatz.dmg
 	open ./qtplatz.dmg
-	sleep 3
+	sleep 2
 
 qtplatz.dmg:
-	hdiutil create -megabytes 200 -fs HFS+ -volname qtplatz ./qtplatz
+	hdiutil create -megabytes 300 -fs HFS+ -volname qtplatz ./qtplatz
 
 clean: eject
 	-rm -f ./qtplatz.dmg

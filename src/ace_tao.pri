@@ -4,4 +4,5 @@ win32 {
 } else {
       INCLUDEPATH *= /usr/local/ace
       INCLUDEPATH *= /usr/local/tao
+      LIBS += -L/usr/local/lib
 }
