@@ -31,6 +31,10 @@
       <title>MS Calibration</title>
       <Component type="widget" interface="qtwidgets::MSCalibrationForm" module="qtwidgets" loader="adplugin"/>
     </Configuration>
+    <Configuration name="PeakMethodUI">
+      <title>Peak Find</title>
+      <Component type="widget" interface="qtwidgets::PeakMethodForm" module="qtwidgets" loader="adplugin"/>
+    </Configuration>
   </Configuration>
   <Configuration name="dataproviders">
     <Configuration name="mc4provider">

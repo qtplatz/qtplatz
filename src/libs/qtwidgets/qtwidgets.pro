@@ -51,7 +51,9 @@ SOURCES += centroiddelegate.cpp \
     mscalibratemodel.cpp \
     molwidget.cpp \
     isotopeform.cpp \
-    isotopedelegate.cpp
+    isotopedelegate.cpp \
+    peakmethodform.cpp \
+    peakmethoddelegate.cpp
 
 
 
@@ -82,7 +84,9 @@ HEADERS += centroiddelegate.hpp \
     molwidget.hpp \
     isotopeform.hpp \
     isotopedelegate.hpp \
-    qctable.hpp
+    qctable.hpp \
+    peakmethodform.hpp \
+    peakmethoddelegate.hpp
 
 FORMS += \
     centroidform.ui \
@@ -92,7 +96,8 @@ FORMS += \
     peakresulttable.ui \
     sequencesform.ui \
     sequencewidget.ui \
-    isotopeform.ui
+    isotopeform.ui \
+    peakmethodform.ui
 
 RESOURCES += \
     resources.qrc

@@ -30,6 +30,7 @@
 #include "msreferences.hpp"
 #include "msreference.hpp"
 #include "targetingmethod.hpp"
+#include "peakmethod.hpp"
 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -97,6 +98,13 @@ namespace adcontrols {
     {
 	vec_.push_back( v );
     }
+
+    template<> void Q_DECL_EXPORT
+    ProcessMethod::appendMethod( const PeakMethod& v )
+    {
+	vec_.push_back( v );
+    }
+
 }; // namespace adcontrols
 
 //////

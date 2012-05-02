@@ -40,6 +40,7 @@
 #include "peakresultwidget.hpp"
 #include "molwidget.hpp"
 #include "isotopeform.hpp"
+#include "peakmethodform.hpp"
 #include <adplugin/lifecycle.hpp>
 #include <QMessageBox>
 
@@ -71,6 +72,8 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
         pWidget = new qtwidgets::MolWidget( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::IsotopeForm" ) {
         pWidget = new qtwidgets::IsotopeForm( parent );
+    } else if ( std::wstring( iid ) == L"qtwidgets::PeakMethodForm" ) {
+        pWidget = new qtwidgets::PeakMethodForm( parent );
     }
     if ( pWidget )
         return pWidget;

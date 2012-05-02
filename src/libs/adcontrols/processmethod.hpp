@@ -40,6 +40,7 @@ namespace adcontrols {
     class ElementalCompositionMethod;
     class MSCalibrateMethod;
     class TargetingMethod;
+	class PeakMethod;
 
     class ADCONTROLSSHARED_EXPORT ProcessMethod {
     public:
@@ -53,6 +54,7 @@ namespace adcontrols {
                               , ElementalCompositionMethod
                               , MSCalibrateMethod
                               , TargetingMethod 
+							  , PeakMethod 
                               > value_type;
 
         typedef std::vector< value_type > vector_type;

@@ -47,6 +47,7 @@
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/mscalibration.hpp>
+#include <adcontrols/peakmethod.hpp>
 
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mscalibrateresult.hpp>

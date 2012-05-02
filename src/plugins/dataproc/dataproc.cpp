@@ -28,7 +28,8 @@
 #     pragma comment(lib, "adwplotd.lib")     // static
 #     pragma comment(lib, "adportabled.lib")  // static
 #     pragma comment(lib, "adplugind.lib")    // dll
-#     pragma comment(lib, "adcontrolsd.lib")  // static
+#     pragma comment(lib, "adcontrolsd.lib")  // dll
+#     pragma comment(lib, "chromatogrd.lib")  // dll
 #     pragma comment(lib, "adutilsd.lib")     // static
 #     pragma comment(lib, "acewrapperd.lib")  // static
 #     pragma comment(lib, "qtwrapperd.lib")   // static
@@ -41,7 +42,8 @@
 #     pragma comment(lib, "adportable.lib")
 #     pragma comment(lib, "adplugin.lib")
 #     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "adutils.lib")      // static
+#     pragma comment(lib, "chromatogr.lib")
+#     pragma comment(lib, "adutils.lib")
 #     pragma comment(lib, "acewrapper.lib")
 #     pragma comment(lib, "qtwrapper.lib")
 #     pragma comment(lib, "xmlparser.lib")
