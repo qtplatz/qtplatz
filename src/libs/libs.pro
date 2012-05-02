@@ -18,7 +18,8 @@ SUBDIRS   = \
     adcontrols \
     qtwidgets \
     adtxtfactory \
-    addatafile
+    addatafile \
+    chromatography
 
 # adfs : boost
 # xmlparser : none
