@@ -9,6 +9,11 @@ QT       -= core gui
 TARGET = chromatogr
 TEMPLATE = lib
 
+include(../../qtplatz_library.pri)
+include(../../boost.pri)
+LIBS += -l$$qtLibraryTarget(adportable)
+LIBS += -l$$qtLibraryTarget(adcontrols)
+
 DEFINES += CHROMATOGR_LIBRARY
 
 SOURCES += chromatogr.cpp
@@ -16,21 +21,3 @@ SOURCES += chromatogr.cpp
 HEADERS += chromatogr.hpp\
         chromatogr_global.hpp
 
-symbian {
-    MMP_RULES += EXPORTUNFROZEN
-    TARGET.UID3 = 0xEB5FDD68
-    TARGET.CAPABILITY = 
-    TARGET.EPOCALLOWDLLDATA = 1
-    addFiles.sources = chromatogr.dll
-    addFiles.path = !:/sys/bin
-    DEPLOYMENT += addFiles
-}
-
-unix:!symbian {
-    maemo5 {
-        target.path = /opt/usr/lib
-    } else {
-        target.path = /usr/lib
-    }
-    INSTALLS += target
-}
