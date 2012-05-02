@@ -16,8 +16,10 @@ LIBS += -l$$qtLibraryTarget(adcontrols)
 
 DEFINES += CHROMATOGR_LIBRARY
 
-SOURCES += chromatogr.cpp
+SOURCES += chromatogr.cpp \
+    chromatography.cpp
 
 HEADERS += chromatogr.hpp\
-        chromatogr_global.hpp
+        chromatogr_global.hpp \
+    chromatography.hpp
 
