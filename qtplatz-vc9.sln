@@ -73,8 +73,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "portfolio", "src\libs\portf
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adutils", "src\libs\adutils\adutils.vcproj", "{D567A66B-E0B9-37FD-AD4D-39F300F26921}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chromatography", "src\libs\chromatography\chromatography.vcproj", "{1715B587-7723-3C5F-BABB-571E78EFF868}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "adtxtfactory", "src\libs\adtxtfactory\adtxtfactory.vcproj", "{44281D1E-7BF2-3C4A-A530-CB0C6BB4A8C7}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E55C6F64-C044-34F1-BBD7-94FD1BBEB742} = {E55C6F64-C044-34F1-BBD7-94FD1BBEB742}
@@ -161,6 +159,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChemSpider", "src\plugins\c
 		{91F406D4-8137-3B1B-B849-69A9AD360843} = {91F406D4-8137-3B1B-B849-69A9AD360843}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chromatogr", "src\libs\chromatogr\chromatogr.vcproj", "{25498FB0-3046-3CC7-8F2F-6768C94E0217}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -227,10 +227,6 @@ Global
 		{D567A66B-E0B9-37FD-AD4D-39F300F26921}.Debug|Win32.Build.0 = Debug|Win32
 		{D567A66B-E0B9-37FD-AD4D-39F300F26921}.Release|Win32.ActiveCfg = Release|Win32
 		{D567A66B-E0B9-37FD-AD4D-39F300F26921}.Release|Win32.Build.0 = Release|Win32
-		{1715B587-7723-3C5F-BABB-571E78EFF868}.Debug|Win32.ActiveCfg = Debug|Win32
-		{1715B587-7723-3C5F-BABB-571E78EFF868}.Debug|Win32.Build.0 = Debug|Win32
-		{1715B587-7723-3C5F-BABB-571E78EFF868}.Release|Win32.ActiveCfg = Release|Win32
-		{1715B587-7723-3C5F-BABB-571E78EFF868}.Release|Win32.Build.0 = Release|Win32
 		{44281D1E-7BF2-3C4A-A530-CB0C6BB4A8C7}.Debug|Win32.ActiveCfg = Debug|Win32
 		{44281D1E-7BF2-3C4A-A530-CB0C6BB4A8C7}.Debug|Win32.Build.0 = Debug|Win32
 		{44281D1E-7BF2-3C4A-A530-CB0C6BB4A8C7}.Release|Win32.ActiveCfg = Release|Win32
@@ -283,6 +279,10 @@ Global
 		{9983F668-B807-3EBE-BBD5-8D0C900C7CC2}.Debug|Win32.Build.0 = Debug|Win32
 		{9983F668-B807-3EBE-BBD5-8D0C900C7CC2}.Release|Win32.ActiveCfg = Release|Win32
 		{9983F668-B807-3EBE-BBD5-8D0C900C7CC2}.Release|Win32.Build.0 = Release|Win32
+		{25498FB0-3046-3CC7-8F2F-6768C94E0217}.Debug|Win32.ActiveCfg = Debug|Win32
+		{25498FB0-3046-3CC7-8F2F-6768C94E0217}.Debug|Win32.Build.0 = Debug|Win32
+		{25498FB0-3046-3CC7-8F2F-6768C94E0217}.Release|Win32.ActiveCfg = Release|Win32
+		{25498FB0-3046-3CC7-8F2F-6768C94E0217}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

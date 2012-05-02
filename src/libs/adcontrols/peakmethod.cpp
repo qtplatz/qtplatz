@@ -214,4 +214,22 @@ PeakMethod::theoreticalPlateMethod( chromatography::ePeakWidthMethod t )
     theoreticalPlateMethod_ = t;
 }
 
+//----------------
+PeakMethod::TimedEvent::~TimedEvent()
+{
+}
 
+PeakMethod::TimedEvent::TimedEvent( minutes_t t
+								   , adcontrols::chromatography::ePeakEvent e
+								   , double v ) : minutes_( t )
+								                , event_( e )
+												, value_( v )
+{
+} 
+
+PeakMethod::TimedEvent::TimedEvent( const TimedEvent& t ) : minutes_( t.minutes_ )
+                                                          , event_( t.event_ )
+														  , value_( t.value_ )
+{
+}
+  

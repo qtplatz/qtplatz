@@ -378,6 +378,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\peakmethod.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\peakresolution.cpp"
 				>
 			</File>
@@ -609,6 +613,10 @@
 			</File>
 			<File
 				RelativePath=".\peakasymmetry.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\peakmethod.hpp"
 				>
 			</File>
 			<File

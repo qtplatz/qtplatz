@@ -78,7 +78,7 @@ namespace chromatogr {
         static bool tRetention_lsq( const Integrator::chromatogram& c, adcontrols::Peak& pk );
         static bool tRetention_moment( const Integrator::chromatogram& c, adcontrols::Peak& pk );
         static bool cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselines& bss );
-        static adcontrols::Peak peak( const Integrator::chromatogram& c, int spos, int epos, int epos, unsigned long flags );
+        static adcontrols::Peak peak( const Integrator::chromatogram& c, int spos, int tpos, int epos, unsigned long flags );
     };
 
     class baselineHelper {
