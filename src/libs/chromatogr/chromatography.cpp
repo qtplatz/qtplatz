@@ -23,7 +23,64 @@
 **************************************************************************/
 
 #include "chromatography.hpp"
+#include <adcontrols/peaks.hpp>
+#include <adcontrols/peak.hpp>
 
-Chromatography::Chromatography()
+namespace chromatogr { namespace internal {
+
+        class ChromatographyImpl {
+        public:
+            bool setup( const adcontrols::PeakMethod& );
+            bool findPeaks( const adcontrols::Chromatogram& );
+            void clear();
+            inline const adcontrols::Peaks & getPeaks() const { return peaks_; }
+        private:
+            adcontrols::Peaks peaks_;
+        };
+    }
+}
+
+using namespace chromatogr;
+
+Chromatography::~Chromatography()
+{
+    delete pImpl_;
+}
+
+Chromatography::Chromatography() : pImpl_( new internal::ChromatographyImpl() )
 {
 }
+
+bool
+Chromatography::operator()( const adcontrols::PeakMethod& method, const adcontrols::Chromatogram& c )
+{
+    pImpl_->clear();
+    pImpl_->setup( method );
+    return pImpl_->findPeaks( c );
+}
+
+const adcontrols::Peaks&
+Chromatography::getPeaks() const 
+{
+    return pImpl_->getPeaks();
+}
+
+////
+using namespace chromatogr::internal;
+void
+ChromatographyImpl::clear()
+{
+}
+
+bool
+ChromatographyImpl::setup( const adcontrols::PeakMethod& )
+{
+    return false;
+}
+
+bool
+ChromatographyImpl::findPeaks( const adcontrols::Chromatogram& )
+{
+    return false;
+}
+

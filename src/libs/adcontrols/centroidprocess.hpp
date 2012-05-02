@@ -49,7 +49,6 @@ namespace adcontrols {
 
 	private:
         internal::CentroidProcessImpl* pImpl_;
-        //static void setup( SACONTROLSLib::ISAMSPeakDetect*, const CentroidMethod& );
 	};
 
 }

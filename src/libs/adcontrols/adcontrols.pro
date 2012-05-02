@@ -62,6 +62,7 @@ SOURCES += acceptor.cpp \
     msreferences.cpp \
     peak.cpp \
     peakasymmetry.cpp \
+    peakmethod.cpp \
     peakresolution.cpp \
     peaks.cpp \
     processeddataset.cpp \
@@ -117,6 +118,7 @@ HEADERS += acceptor.hpp \
     msreferences.hpp \
     peak.hpp \
     peakasymmetry.hpp \
+    peakmethod.hpp \
     peakresolution.hpp \
     peaks.hpp \
     processeddataset.hpp \

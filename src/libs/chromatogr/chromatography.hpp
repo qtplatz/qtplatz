@@ -25,10 +25,29 @@
 #ifndef CHROMATOGRAPHY_HPP
 #define CHROMATOGRAPHY_HPP
 
-class Chromatography
-{
-public:
-    Chromatography();
-};
+namespace adcontrols {
+    class Chromatogram;
+    class Peak;
+    class Peaks;
+    class PeakMethod;
+}
+
+namespace chromatogr {
+
+    namespace internal { class ChromatographyImpl; }
+
+    class Chromatography {
+    public:
+        Chromatography();
+        ~Chromatography();
+
+        // peak finder
+        bool operator()( const adcontrols::PeakMethod&, const adcontrols::Chromatogram& );
+        const adcontrols::Peaks& getPeaks() const;
+
+        internal::ChromatographyImpl * pImpl_;
+    };
+    
+}
 
 #endif // CHROMATOGRAPHY_HPP
