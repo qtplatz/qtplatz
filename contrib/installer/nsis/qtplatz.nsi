@@ -130,7 +130,7 @@ Section "!Application" App
 
 ;-------------------------------- define path -------------------------
 	!define InQtPlatz   "..\..\..\..\qtplatz"
-	!define InQtPath    "C:\Qt\4.8.0\vc9"
+	!define InQtPath    "C:\Qt\4.8.1"
 	!define InVC90Path  "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT"
 ;-------------------------------
 
