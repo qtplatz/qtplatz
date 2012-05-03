@@ -107,9 +107,9 @@ namespace adcontrols {
         seconds_t sampInterval() const; // seconds
         void sampInterval( const seconds_t&  );
 
-        size_t minTimePoints() const;  // equivalent to minTime count as number of points under sampInterval
-        seconds_t minTime() const;  // a.k.a. start delay time
-        seconds_t maxTime() const;  // 
+        size_t minimumTimePoints() const;  // equivalent to minTime count as number of points under sampInterval
+        seconds_t minimumTime() const;  // a.k.a. start delay time
+		seconds_t maximumTime() const;  // 
         std::pair<seconds_t, seconds_t> timeRange() const;
 
         // if time delay caused by tubing, compensate by this value
@@ -118,9 +118,9 @@ namespace adcontrols {
         // When flowrate is 400uL still 1.2seconds delay, which is larger than peak width on 
         // peaks for k' < 4 if column plate number > 5000.
         double tubingDelayTime() const; // min
-        void minTimePoints( size_t );
-        void minTime( const seconds_t& );
-        void maxTime( const seconds_t& );
+        void minimumTimePoints( size_t );
+        void minimumTime( const seconds_t& );
+        void maximumTime( const seconds_t& );
         void tubingDelayTime( const seconds_t& ); // min
 
         void addDescription( const Description& );

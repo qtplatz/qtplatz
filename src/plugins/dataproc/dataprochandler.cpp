@@ -291,9 +291,9 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 bool
 DataprocHandler::doFindPeaks( adcontrols::PeakResult& r, const adcontrols::Chromatogram& c, const adcontrols::PeakMethod& m )
 {
-	chromatogr::Chromatography peakfinder;
+	chromatogr::Chromatography peakfinder( m );
 
-	if ( peakfinder( m, c ) ) {
+	if ( peakfinder( c ) ) {
         r.baselines() = peakfinder.getBaselines();
         r.peaks() = peakfinder.getPeaks();
 		return true;

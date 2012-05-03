@@ -62,6 +62,13 @@ namespace adcontrols {
         inline vector_type::iterator erase( vector_type::iterator pos )   { return peaks_.erase( pos ); }
         inline vector_type::iterator erase( vector_type::iterator beg, vector_type::iterator end )   { return peaks_.erase( beg, end ); }
 
+        double areaTotal() const;
+		void areaTotal( double );
+		double heightTotal() const;
+		void heightTotal( double );
+		double noiseLevel() const;
+		void noiseLevel( double );
+
         // algorithms
         vector_type::iterator find_first_peak( const Baseline& );
         vector_type::const_iterator find_first_peak( const Baseline& ) const;

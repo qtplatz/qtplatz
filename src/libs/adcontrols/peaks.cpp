@@ -69,3 +69,39 @@ Peaks::find_first_peak( const Baseline& bs )
     }
     return end();
 }
+
+double
+Peaks::areaTotal() const
+{
+	return areaTotal_;
+}
+
+void
+Peaks::areaTotal( double v )
+{
+	areaTotal_ = v;
+}
+
+double
+Peaks::heightTotal() const
+{
+	return heightTotal_;
+}
+
+void
+Peaks::heightTotal( double v )
+{
+	heightTotal_ = v;
+}
+
+double
+Peaks::noiseLevel() const
+{
+	return noiseLevel_;
+}
+
+void
+Peaks::noiseLevel( double v ) 
+{
+   noiseLevel_ = v;
+}

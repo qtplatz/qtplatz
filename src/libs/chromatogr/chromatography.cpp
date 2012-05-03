@@ -23,11 +23,13 @@
 **************************************************************************/
 
 #include "chromatography.hpp"
+#include "integrator.hpp"
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
 #include <adcontrols/baselines.hpp>
 #include <adcontrols/baseline.hpp>
+#include <adcontrols/chromatogram.hpp>
 
 namespace chromatogr { namespace internal {
 
@@ -57,11 +59,23 @@ Chromatography::Chromatography() : pImpl_( new internal::ChromatographyImpl() )
 {
 }
 
+Chromatography::Chromatography( const adcontrols::PeakMethod& method ) : pImpl_( new internal::ChromatographyImpl() )
+{
+	pImpl_->setup( method );
+}
+
 bool
 Chromatography::operator()( const adcontrols::PeakMethod& method, const adcontrols::Chromatogram& c )
 {
-    pImpl_->clear();
     pImpl_->setup( method );
+    pImpl_->clear();
+    return pImpl_->findPeaks( c );
+}
+
+bool
+Chromatography::operator()( const adcontrols::Chromatogram& c )
+{
+    pImpl_->clear();
     return pImpl_->findPeaks( c );
 }
 
@@ -92,8 +106,48 @@ ChromatographyImpl::setup( const adcontrols::PeakMethod& m )
 }
 
 bool
-ChromatographyImpl::findPeaks( const adcontrols::Chromatogram& )
+ChromatographyImpl::findPeaks( const adcontrols::Chromatogram& c )
 {
-    return false;
+	using adcontrols::Peaks;
+	using adcontrols::Baselines;
+
+	Integrator integrator;
+
+    integrator.minimum_width( method_.minimumWidth() * 60.0 ); // min -> sec
+    integrator.slope_sensitivity( method_.slope() );  // uV/sec -> uV/sec
+	integrator.drift( method_.drift() / 60.0 );  // uV/min -> uV/sec
+
+	integrator.timeOffset( c.minimumTime() );
+    integrator.samping_interval( c.sampInterval() ); // sec
+	const size_t nSize = c.size();
+	const double * y = c.getIntensityArray();
+
+	for ( size_t i = 0; i < nSize; ++i ) {
+		integrator << *y++;
+	}
+
+	integrator.close( method_, peaks_ );
+    
+	size_t N = 0;
+    double sd = 0;
+	// CChromatography::estimateNoise(c, peaks, N, sd);
+	// peaks.noiseLevel_ = sd;
+
+    double heightTotal = 0;
+	double areaTotal = 0;
+
+	for ( Peaks::vector_type::const_iterator it = peaks_.begin(); it != peaks_.end(); ++it ) {
+		heightTotal += it->peakHeight();
+		areaTotal += it->peakArea();
+	}
+    peaks_.heightTotal( heightTotal );
+    peaks_.areaTotal( areaTotal );
+
+	for ( Peaks::vector_type::iterator it = peaks_.begin(); it != peaks_.end(); ++it ) {
+		it->percentArea(  ( it->peakArea() / areaTotal ) * 100 );
+		it->percentHeight( ( it->peakHeight() / heightTotal ) * 100 );
+	}
+
+    return true;
 }
 

@@ -336,13 +336,13 @@ Chromatogram::axisLabelVertical( const std::wstring& v )
 }
 
 void
-Chromatogram::minTime( const seconds_t& min )
+Chromatogram::minimumTime( const seconds_t& min )
 {
     pImpl_->minTime( min );
 }
 
 void
-Chromatogram::maxTime( const seconds_t& min )
+Chromatogram::maximumTime( const seconds_t& min )
 {
     pImpl_->maxTime( min );
 }
@@ -360,13 +360,13 @@ Chromatogram::getDescriptions() const
 }
 
 Chromatogram::seconds_t
-Chromatogram::minTime() const
+Chromatogram::minimumTime() const
 {
     return pImpl_->getAcquisitionTimeRange().first;    
 }
 
 Chromatogram::seconds_t
-Chromatogram::maxTime() const
+Chromatogram::maximumTime() const
 {
     return pImpl_->getAcquisitionTimeRange().second;
 }
