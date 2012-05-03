@@ -160,18 +160,6 @@ DataprocManager::OnInitialUpdate()
 			connect( obj, SIGNAL( onMethodApply( adcontrols::ProcessMethod& ) ), this, SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
 		}
     }
-/*
-        QObjectList list = dockWidget->children();
-        foreach ( QObject * obj, list ) {
-            adplugin::LifeCycleAccessor accessor( obj );
-            adplugin::LifeCycle * pLifeCycle = accessor.get(); // dynamic_cast<adplugin::LifeCycle *>( obj );
-            if ( pLifeCycle ) {
-                pLifeCycle->OnInitialUpdate();
-				connect( obj, SIGNAL( onMethodApply( adcontrols::ProcessMethod& ) ), this, SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
-            }
-        }
-    }
-*/
 }
 
 void
@@ -184,7 +172,6 @@ DataprocManager::OnFinalClose()
     foreach ( QDockWidget * dockWidget, dockWidgets ) {
         QObjectList list = dockWidget->children();
         foreach ( QObject * obj, list ) {
-            // adplugin::LifeCycle * pLifeCycle = dynamic_cast<adplugin::LifeCycle *>( obj );
             adplugin::LifeCycleAccessor accessor( obj );
             adplugin::LifeCycle * pLifeCycle = accessor.get();
             if ( pLifeCycle ) {

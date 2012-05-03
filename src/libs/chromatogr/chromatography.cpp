@@ -26,6 +26,8 @@
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
+#include <adcontrols/baselines.hpp>
+#include <adcontrols/baseline.hpp>
 
 namespace chromatogr { namespace internal {
 
@@ -35,9 +37,11 @@ namespace chromatogr { namespace internal {
             bool findPeaks( const adcontrols::Chromatogram& );
             void clear();
             inline const adcontrols::Peaks & getPeaks() const { return peaks_; }
+            inline const adcontrols::Baselines & getBaselines() const { return baselines_; }
         private:
             adcontrols::PeakMethod method_;
             adcontrols::Peaks peaks_;
+            adcontrols::Baselines baselines_;
         };
     }
 }
@@ -65,6 +69,12 @@ const adcontrols::Peaks&
 Chromatography::getPeaks() const 
 {
     return pImpl_->getPeaks();
+}
+
+const adcontrols::Baselines&
+Chromatography::getBaselines() const 
+{
+    return pImpl_->getBaselines();
 }
 
 ////

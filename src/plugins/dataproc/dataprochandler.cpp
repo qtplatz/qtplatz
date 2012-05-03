@@ -34,12 +34,19 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
+#include <adcontrols/peaks.hpp>
+#include <adcontrols/peak.hpp>
+#include <adcontrols/baselines.hpp>
+#include <adcontrols/baseline.hpp>
+#include <adcontrols/peakresult.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/polfit.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibration.hpp>
+#include <adcontrols/peakresult.hpp>
+#include <chromatogr/chromatography.hpp>
 
 //#ifdef _DEBUG
 #include <iomanip>
@@ -60,8 +67,8 @@ DataprocHandler::doCentroid( adcontrols::MassSpectrum& res
                              , const adcontrols::CentroidMethod& m )
 {
     adcontrols::CentroidProcess peak_detector;
-    if ( peak_detector( m, profile ) )
-        return peak_detector.getCentroidSpectrum( res );
+	if ( peak_detector( m, profile ) )
+		return peak_detector.getCentroidSpectrum( res );
     return false;
 }
 
@@ -280,3 +287,16 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     return true;
 }
 
+// static
+bool
+DataprocHandler::doFindPeaks( adcontrols::PeakResult& r, const adcontrols::Chromatogram& c, const adcontrols::PeakMethod& m )
+{
+	chromatogr::Chromatography peakfinder;
+
+	if ( peakfinder( m, c ) ) {
+        r.baselines() = peakfinder.getBaselines();
+        r.peaks() = peakfinder.getPeaks();
+		return true;
+	}
+	return false;
+}

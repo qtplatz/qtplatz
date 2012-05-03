@@ -62,15 +62,14 @@ namespace dataproc {
             }
             void setData( const adcontrols::Chromatogram&, const QString& );
             adwplot::ChromatogramWidget * chroWidget_;
-            //adwidgets::ui::PeakResultWidget * peakWidget_;
-            QWidget * peakWidget_;
+			QWidget * peakWidget_; // adplutin::manager::widget_factory will make a widget
         };
 
         //----------------------------//
         template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
             selProcessed( Wnd& wnd ) : wnd_(wnd) {}
             template<typename T> void operator ()( T& ) const {
-	    }
+			}
             void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
                 wnd_.draw2( ptr );
             }

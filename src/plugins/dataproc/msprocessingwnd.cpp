@@ -201,15 +201,16 @@ MSProcessingWnd::onCustomMenuOnProcessedSpectrum( const QPoint& pos )
 	QPoint globalPos = pImpl_->processedSpectrum_->mapToGlobal(pos);
     // for QAbstractScrollArea and derived classes you would use:
     // QPoint globalPos = myWidget->viewport()->mapToGlobal(pos); 
-
+/*
     QMenu myMenu;
     myMenu.addAction("Menu Item 1");
     myMenu.addAction("Menu Item 2");
 
-	QAction* selectedItem = myMenu.exec( globalPos );
+	// QAction* selectedItem = myMenu.exec( globalPos );
     if (selectedItem)    {
         // something was chosen, do stuff
     }
+*/
 }
 
 void

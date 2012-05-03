@@ -22,39 +22,51 @@
 **
 **************************************************************************/
 
-#ifndef CHROMATOGRAPHY_HPP
-#define CHROMATOGRAPHY_HPP
+#ifndef PEAKRESULT_HPP
+#define PEAKRESULT_HPP
 
-#include "chromatogr_global.hpp"
+#include "adcontrols_global.h"
+#include <boost/smart_ptr.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/scoped_ptr.hpp>
+#include <boost/serialization/version.hpp>
 
 namespace adcontrols {
-    class Chromatogram;
-    class Peak;
+
     class Peaks;
-	class Baseline;
 	class Baselines;
-    class PeakMethod;
-}
 
-namespace chromatogr {
+    class ADCONTROLSSHARED_EXPORT PeakResult {
+	public:
+		~PeakResult();
+		PeakResult();
+		PeakResult( const PeakResult& );
+		PeakResult( const Baselines&, const Peaks& );
+		const wchar_t * dataClass() const { return L"PeakResult"; }
 
-    namespace internal { class ChromatographyImpl; }
+		const Baselines& baselines() const;
+		Baselines& baselines();
 
-    class CHROMATOGRSHARED_EXPORT Chromatography {
-    public:
-        ~Chromatography();
-        Chromatography();
-		Chromatography( const adcontrols::PeakMethod& );
+		const Peaks& peaks() const;
+		Peaks& peaks();
 
-        // peak finder
-        bool operator()( const adcontrols::PeakMethod&, const adcontrols::Chromatogram& );
-        bool operator()( const adcontrols::Chromatogram& );
-		const adcontrols::Baselines& getBaselines() const;
-        const adcontrols::Peaks& getPeaks() const;
 	private:
-        internal::ChromatographyImpl * pImpl_;
-    };
-    
+		boost::scoped_ptr< Baselines > baselines_;
+		boost::scoped_ptr< Peaks > peaks_;
+
+        friend class boost::serialization::access;
+		template<class Archive>
+        void serialize(Archive& ar, const unsigned int ) {
+            using namespace boost::serialization;
+            ar & BOOST_SERIALIZATION_NVP(baselines_);
+            ar & BOOST_SERIALIZATION_NVP(peaks_);
+        }
+	public:
+		static bool archive( std::ostream&, const PeakResult& );
+		static bool restore( std::istream&, PeakResult& );
+	};
+
+	typedef boost::shared_ptr<PeakResult> PeakResultPtr;
 }
 
-#endif // CHROMATOGRAPHY_HPP
+#endif // PEAKRESULT_HPP

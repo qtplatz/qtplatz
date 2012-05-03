@@ -51,6 +51,7 @@
 
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/peakresult.hpp>
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
@@ -69,6 +70,7 @@ namespace dataproc {
             static bool applyMethod( portfolio::Folium&, const adcontrols::IsotopeMethod& );
             static bool applyMethod( portfolio::Folium&, const adcontrols::MSCalibrateMethod& );
             static bool applyMethod( portfolio::Folium&, const adcontrols::CentroidMethod&, const adcontrols::MassSpectrum& );
+			static bool applyMethod( portfolio::Folium&, const adcontrols::PeakMethod&, const adcontrols::Chromatogram& );
         };
     }
 }
@@ -188,6 +190,26 @@ namespace dataproc {
             }
         };
 
+        // dispatch method
+        struct doChromatogramProcess : public boost::static_visitor<bool> {
+			const adutils::ChromatogramPtr& ptr_;
+
+            portfolio::Folium& folium;
+
+            doChromatogramProcess( const adutils::ChromatogramPtr& p, portfolio::Folium& f ) : ptr_(p), folium(f) {
+            }
+
+            template<typename T> bool operator () ( T& ) const {
+                adportable::debug(__FILE__, __LINE__) << "doChromatogramProcess( " << typeid( T ).name() << ") -- ignored";
+                return false;
+            }
+
+            bool operator () ( const adcontrols::PeakMethod& m ) const {
+                return internal::DataprocessorImpl::applyMethod( folium, m, *ptr_ );
+            }
+        };
+
+
         // dispatch data type
         struct processIt : public boost::static_visitor<bool> {
             const adcontrols::ProcessMethod::value_type& m_;
@@ -239,7 +261,23 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, internal::Proce
         std::wstring xml = portfolio_->xml();
 #endif
         SessionManager::instance()->selectionChanged( this, folium );
-    }
+
+	} else {
+		// no selected folium, peak find to raw TIC
+		if ( procType == internal::PeakFindProcess ) {
+			Dataprocessor * d_processor = SessionManager::instance()->getActiveDataprocessor();
+			if ( d_processor ) {
+				const adcontrols::LCMSDataset * dataset = d_processor->getLCMSDataset();
+				if ( dataset ) {
+					adcontrols::Chromatogram c;
+					if ( dataset->getTIC( 0, c ) ) {
+						c.addDescription( adcontrols::Description( L"Create", L"TIC" ) );
+						d_processor->addChromatogram( c, m );
+					}
+				}
+			}
+		}
+	}
 }
 
 void
@@ -299,8 +337,31 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
         boost::apply_visitor( internal::doSpectralProcess( ms, folium ), *it );
 
 #if defined _DEBUG
-    std::wstring xml = portfolio_->xml();
-    
+	std::wstring xml = portfolio_->xml();
+#endif
+
+    SessionManager::instance()->updateDataprocessor( this, folium );
+}
+
+void
+Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcontrols::ProcessMethod& m )
+{
+    portfolio::Folder folder = portfolio_->addFolder( L"Chromatograms" );
+
+    const adcontrols::Descriptions& descs = src.getDescriptions();
+    std::wstring name;
+    for ( size_t i = 0; i < descs.size(); ++i )
+        name += descs[i].text();
+
+    portfolio::Folium folium = folder.addFolium( name );
+    adutils::ChromatogramPtr c( new adcontrols::Chromatogram( src ) );  // profile, deep copy
+	folium.assign( c, c->dataClass() );
+
+    for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
+		boost::apply_visitor( internal::doChromatogramProcess( c, folium ), *it );
+
+#if defined _DEBUG
+	std::wstring xml = portfolio_->xml();
 #endif
 
     SessionManager::instance()->updateDataprocessor( this, folium );
@@ -435,4 +496,24 @@ internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcon
     }
 
     return false;
+}
+
+
+// static
+bool
+internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::PeakMethod& m, const adcontrols::Chromatogram& c )
+{
+    portfolio::Folium att = folium.addAttachment( L"Peak Result" );
+	adcontrols::PeakResultPtr pResult( new adcontrols::PeakResult() );
+
+	if ( DataprocHandler::doFindPeaks( *pResult, c, m ) ) {
+		att.assign( pResult, pResult->dataClass() );
+
+        adcontrols::ProcessMethodPtr ptr( new adcontrols::ProcessMethod() );
+        ptr->appendMethod( m );
+        att.addAttachment( L"Process Method" ).assign( ptr, ptr->dataClass() );
+
+        return true;
+    }
+	return false;
 }

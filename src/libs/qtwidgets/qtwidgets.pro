@@ -80,7 +80,6 @@ HEADERS += centroiddelegate.hpp \
     isotopemethodmodel.hpp \
     chemicalformula.hpp \
     elementalcompmodel.hpp \
-    mscalibratemodel.hpp \
     molwidget.hpp \
     isotopeform.hpp \
     isotopedelegate.hpp \

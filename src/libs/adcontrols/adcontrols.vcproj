@@ -386,6 +386,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\peakresult.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\peaks.cpp"
 				>
 			</File>
@@ -473,10 +477,6 @@
 			</File>
 			<File
 				RelativePath=".\chromatogram.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\cpeakmethod.hpp"
 				>
 			</File>
 			<File
@@ -621,6 +621,10 @@
 			</File>
 			<File
 				RelativePath=".\peakresolution.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\peakresult.hpp"
 				>
 			</File>
 			<File

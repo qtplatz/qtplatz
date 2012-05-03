@@ -277,6 +277,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
                 features->addItem( "Centroid" );
                 features->addItem( "Isotope" );
                 features->addItem( "Calibration" );
+                features->addItem( "Find peaks" );
                 toolBarLayout->addWidget( features );
                 connect( features, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleFeatureSelected(int) ) );
                 connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) );
@@ -359,7 +360,7 @@ DataprocPlugin::actionApply()
         if ( processor ) {
             if ( currentFeature_ == internal::CalibrationProcess )
                 processor->applyCalibration( m );
-            else
+			else
                 processor->applyProcess( m, currentFeature_ );
         }
     }
@@ -381,12 +382,8 @@ void
 DataprocPlugin::handle_portfolio_created( const QString token )
 {
     // simulate file->open()
-#if defined DEBUG
-    qDebug() << "DataprocPlugin::handle_portfolio_created(" << token << ")";
-#endif
     Core::ICore * core = Core::ICore::instance();
     if ( core ) {
-        
         Core::EditorManager * em = core->editorManager();
         if ( em && dataprocFactory_ ) {
             Core::IEditor * ie = dataprocFactory_->createEditor( 0 );

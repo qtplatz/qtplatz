@@ -36,6 +36,7 @@ namespace adcontrols {
     class LCMSDataset;
     class ProcessMethod;
     class MassSpectrum;
+	class Chromatogram;
 }
 
 namespace portfolio {
@@ -70,6 +71,7 @@ namespace dataproc {
         void applyProcess( const adcontrols::ProcessMethod&, internal::ProcessType );
         void applyCalibration( const adcontrols::ProcessMethod& );
         void addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
+		void addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
 		SignalObserver::Observer * observer();
 
         // implement adcontrols::dataSubscriber

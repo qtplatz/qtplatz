@@ -33,7 +33,6 @@
 #include "centroidmethodmodel.hpp"
 #include "isotopemethodmodel.hpp"
 #include "elementalcompmodel.hpp"
-#include "mscalibratemodel.hpp"
 
 namespace adportable { class Configuration; }
 
@@ -67,7 +66,6 @@ namespace qtwidgets {
         boost::scoped_ptr< CentroidMethodModel > pCentroidModel_;
         boost::scoped_ptr< IsotopeMethodModel > pIsotopeModel_;
         boost::scoped_ptr< ElementalCompModel > pElementalCompModel_;
-        boost::scoped_ptr< MSCalibrateModel > pMSCalibrateModel_;
     };
     
 }

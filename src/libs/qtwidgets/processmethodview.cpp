@@ -42,7 +42,6 @@ ProcessMethodView::ProcessMethodView(QWidget *parent) : QDeclarativeView(parent)
                                                       , pCentroidModel_( new CentroidMethodModel )
                                                       , pIsotopeModel_( new IsotopeMethodModel )
                                                       , pElementalCompModel_( new ElementalCompModel )
-                                                      , pMSCalibrateModel_( new MSCalibrateModel )
 {
     pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula( L"", L"C13NH12NH2O", L"H", 1, 1.0) );
     pIsotopeModel_->appendFormula( adcontrols::IsotopeMethod::Formula( L"", L"C13NH12NH2O", L"CH3COOH", 1, 1.0) );
