@@ -32,7 +32,7 @@ Baselines::~Baselines()
 {
 }
 
-Baselines::Baselines() : nextId_(0)
+Baselines::Baselines() : nextId_(1)
 {
 }
 
@@ -45,7 +45,10 @@ int
 Baselines::add( const Baseline& t )
 {
     baselines_.push_back( t );
-    return baselines_.back().baseId();
+
+	Baseline& bs = baselines_.back();
+	bs.baseId( nextId_++ );
+	return bs.baseId();
 }
 
 int

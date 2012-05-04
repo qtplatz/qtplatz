@@ -211,7 +211,7 @@ Integrator::operator << ( double adval )
 }
 
 void
-Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks )
+Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks, adcontrols::Baselines& baselines )
 {
 	if ( !stack_.empty() ) {
 		if ( (stack_[0] == PKTOP) || (stack_[0] == PKVAL) ) {
@@ -236,6 +236,7 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks 
     updatePeakParameters( mth );
 
     peaks = peaks_;
+	baselines = baselines_;
 }
 
 void

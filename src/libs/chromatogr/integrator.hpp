@@ -122,7 +122,7 @@ namespace chromatogr {
         void timeOffset( double peaktime );
         
         void operator << ( double v );  // analogue input
-        void close( const class adcontrols::PeakMethod&, adcontrols::Peaks& );
+		void close( const class adcontrols::PeakMethod&, adcontrols::Peaks&, adcontrols::Baselines& );
         void offIntegration( bool f ) { offIntegration_ = f; }
         bool offIntegration() const { return offIntegration_; }
         

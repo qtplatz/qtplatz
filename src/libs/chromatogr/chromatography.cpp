@@ -125,7 +125,7 @@ ChromatographyImpl::findPeaks( const adcontrols::Chromatogram& c )
 	for ( size_t i = 0; i < nSize; ++i )
 		integrator << *y++;
 
-	integrator.close( method_, peaks_ );
+	integrator.close( method_, peaks_, baselines_ );
     
 	size_t N = 0;
     double sd = 0;
