@@ -41,10 +41,11 @@ namespace adwplot {
         Peak( const Peak& );
         Peak( Dataplot& plot, const adcontrols::Peak& );
 
-        inline operator QwtPlotCurve * () { return curve_.get(); }
+		// inline operator QwtPlotCurve * () { return curve_.get(); }
     private:
         Dataplot * plot_;
-        boost::shared_ptr< QwtPlotCurve > curve_;
+		boost::shared_ptr< QwtPlotCurve > curve_;
+		boost::shared_ptr< QwtPlotCurve > bar_;
     };
 
 }

@@ -35,6 +35,7 @@ namespace adcontrols {
     class ProcessMethod;
     class ElementalCompositionCollection;
     class MSCalibrateResult;
+	class PeakResult;
 }
 
 namespace adutils {
@@ -44,6 +45,7 @@ namespace adutils {
     typedef boost::shared_ptr< adcontrols::ProcessMethod > ProcessMethodPtr;
     typedef boost::shared_ptr< adcontrols::ElementalCompositionCollection > ElementalCompositionCollectionPtr;
     typedef boost::shared_ptr< adcontrols::MSCalibrateResult > MSCalibrateResultPtr;
+    typedef boost::shared_ptr< adcontrols::PeakResult > PeakResultPtr;
 
     class ProcessedData {
     public:
@@ -60,6 +62,7 @@ namespace adutils {
                               , ProcessMethodPtr
                               , ElementalCompositionCollectionPtr 
                               , MSCalibrateResultPtr 
+							  , PeakResultPtr 
                               > value_type;
 
         static value_type toVariant( boost::any& );

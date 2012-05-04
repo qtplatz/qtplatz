@@ -49,6 +49,7 @@ ProcessedData::toVariant( boost::any & a )
         , typeid( ElementalCompositionCollectionPtr ).name()
         , typeid( ProcessMethodPtr ).name()
         , typeid( MSCalibrateResultPtr ).name()
+        , typeid( PeakResultPtr ).name()
     };
 
     std::string atype = a.type().name();
@@ -62,6 +63,8 @@ ProcessedData::toVariant( boost::any & a )
         return boost::any_cast< ProcessMethodPtr >( a );
     else if ( atype == type_name[ 4 ] )
         return boost::any_cast< MSCalibrateResultPtr >( a );
+    else if ( atype == type_name[ 5 ] )
+		return boost::any_cast< PeakResultPtr >( a );
 #else
     if ( a.type() == typeid( MassSpectrumPtr ) )
         return boost::any_cast< MassSpectrumPtr >( a );
@@ -77,6 +80,9 @@ ProcessedData::toVariant( boost::any & a )
 
     else if ( a.type() == typeid( MSCalibrateResultPtr ) )
         return boost::any_cast< MSCalibrateResultPtr >( a );
+
+    else if ( a.type() == typeid( PeakResultPtr ) )
+        return boost::any_cast< PeakResultPtr >( a );
 #endif
 
 #if defined DEBUG && defined __GNUC__

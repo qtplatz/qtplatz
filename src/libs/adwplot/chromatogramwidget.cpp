@@ -37,12 +37,14 @@
 #include "seriesdata.hpp"
 #include <adcontrols/trace.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/peakresult.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
 #include <adcontrols/baselines.hpp>
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
+#include <adportable/debug.hpp>
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
 #include <boost/smart_ptr.hpp>
@@ -219,7 +221,19 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
     zoomer1_->setZoomBase();
     // replot();
 }
-    
+
+void
+ChromatogramWidget::setData( const adcontrols::PeakResult& r )
+{
+	using adcontrols::Peaks;
+	using adcontrols::Baselines;
+
+	for ( Baselines::vector_type::const_iterator it = r.baselines().begin(); it != r.baselines().end(); ++it )
+		setBaseline( *it );
+
+	for ( Peaks::vector_type::const_iterator it = r.peaks().begin(); it != r.peaks().end(); ++it )
+		setPeak( *it );
+}    
 
 void
 ChromatogramWidget::setPeak( const adcontrols::Peak& peak )
@@ -232,7 +246,7 @@ ChromatogramWidget::setPeak( const adcontrols::Peak& peak )
 
     Annotations annots( *this, impl_->annotations_ );
 
-    Annotation anno = annots.add( tR, peak.peakHeight(), label );
+	Annotation anno = annots.add( tR, peak.topHeight(), label );
     anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 
     impl_->peaks_.push_back( adwplot::Peak( *this, peak ) );

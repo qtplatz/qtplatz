@@ -208,9 +208,6 @@ Integrator::operator << ( double adval )
 		d2 = diff2( &data0_[ pos ] );
 		pkfind(posc_++, d1, d2);
 	}
-
-	//data1_.push_back( d1 ); // for debug
-	//data2_.push_back( d2 ); // for debug
 }
 
 void
@@ -222,7 +219,6 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks 
 			pkreduce();
 		}
 	}
-	// std::sort( peaks.begin(), peaks.end(), CMCPeak::PredicatesTime );
 
 	assignBaseline();
 	reduceBaselines();
@@ -238,6 +234,7 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks 
     peakHelper::cleanup_baselines( peaks_, baselines_ );
 
     updatePeakParameters( mth );
+
     peaks = peaks_;
 }
 
@@ -296,23 +293,10 @@ Integrator::updatePeakParameters( const adcontrols::PeakMethod& method )
         // Peak width
 		// TailingFactor
 
-        // seconds -> minutes
-        pk.peakTime ( pk.peakTime() / 60.0 );
-        pk.startTime ( pk.startTime() / 60.0 );
-        pk.endTime ( pk.endTime() / 60.0 );
-        pk.peakWidth( pk.peakWidth() / 60.0 );
-
         // k'
 		if ( method.t0() >= 0.001 )
 			pk.capacityFactor( ( pk.peakTime() - method.t0() ) / method.t0() );
 	}
-
-	for ( Baselines::vector_type::iterator ibs = baselines_.begin(); ibs != baselines_.end(); ++ibs ) {
-        ibs->startTime( ibs->startTime() / 60.0 );
-        ibs->stopTime( ibs->stopTime() / 60.0 );
-	}
-   
-		
 }
 
 void
@@ -381,47 +365,6 @@ Integrator::pkfind(long pos, double df1, double df2)
 			pksta();			/* Peak start */
 		}
 	}
-  
-	// debug_trace(LOG_DEBUG, "pkfind(%3d) stf=%d, uc=%d, dc=%d d=%g, df1=%g, df2=%g", pos, stf_, uc_, dc_, rdata_.v_[pos], df1, df2);
-
-
-#if 0
-	if (PeakFindEvents() & PkFuncID(PeakMethod_Shoulder)) {
-		if (df2 < 0) {	/* pkval push */
-			if ( m_d2sta && (m_d2last > 0) ) { /* + -> - */
-				if (((SHSP == PKSHSTACKSIZE) && 
-					(stack[SP].stat == PKTOP) && (stack[SP].pos < m_d2sta)) || 
-					(SHSP < 3 && shstack[SHSP].stat == PKTOP && shstack[SHSP].pos < m_d2sta)) {
-						d = m_pChromatogram->Values()[m_d2sta];
-						SHPUSH(PKVAL, m_d2sta, d, PeakFindEvents());
-						pkshreduce(-1, 0, 0);
-						m_d2sta = 0;
-				}
-			} else {
-				if (df2 < m_d2last)  // find min (valay)
-					m_d2sta = pos;
-			}
-		} else if (df2 > 0) {	/* pktop push */
-			if ( m_d2sta && (m_d2last < 0) ) { /* - -> + */
-				if (SHSP <= 2 && shstack[SHSP].stat == PKVAL) {
-					shstack[SHSP].pos = find_vallay_or_top(shstack[SHSP].pos, m_d2sta, PKSTA);
-					shstack[SHSP].d = m_pChromatogram->Values()[shstack[SHSP].pos];
-				}
-				if ((SHSP < 3 && shstack[SHSP].stat != PKTOP && 
-					stack[SP].pos < m_d2sta && shstack[SHSP].pos < m_d2sta) ||
-					(SHSP == PKSHSTACKSIZE && stack[SP].stat != PKTOP)) {
-						d = m_pChromatogram->Values()[m_d2sta];
-						SHPUSH(PKTOP, m_d2sta, d, PeakFindEvents());
-						m_d2sta = 0;
-				}
-			} else {
-				if (df2 > m_d2last) // find max (top)
-					m_d2sta = pos;
-			}
-		}
-	}
-	m_d2last = df2;
-#endif
 }
 
 void

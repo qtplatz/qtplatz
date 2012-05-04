@@ -113,7 +113,7 @@ ChromatographyImpl::findPeaks( const adcontrols::Chromatogram& c )
 
 	Integrator integrator;
 
-    integrator.minimum_width( method_.minimumWidth() * 60.0 ); // min -> sec
+	integrator.minimum_width( method_.minimumWidth() * 60.0 ); // min -> sec
     integrator.slope_sensitivity( method_.slope() );  // uV/sec -> uV/sec
 	integrator.drift( method_.drift() / 60.0 );  // uV/min -> uV/sec
 
@@ -122,16 +122,13 @@ ChromatographyImpl::findPeaks( const adcontrols::Chromatogram& c )
 	const size_t nSize = c.size();
 	const double * y = c.getIntensityArray();
 
-	for ( size_t i = 0; i < nSize; ++i ) {
+	for ( size_t i = 0; i < nSize; ++i )
 		integrator << *y++;
-	}
 
 	integrator.close( method_, peaks_ );
     
 	size_t N = 0;
     double sd = 0;
-	// CChromatography::estimateNoise(c, peaks, N, sd);
-	// peaks.noiseLevel_ = sd;
 
     double heightTotal = 0;
 	double areaTotal = 0;

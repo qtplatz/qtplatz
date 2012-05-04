@@ -45,6 +45,7 @@
 //# include <boost/archive/binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
+#include <adportable/float.hpp>
 
 #include <sstream>
 #include <vector>
@@ -503,8 +504,8 @@ ChromatogramImpl::~ChromatogramImpl()
 }
 
 ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true) 
-				     , dataDelayPoints_(0)
-                                     , samplingInterval_(0.5)
+                                     , dataDelayPoints_(0)
+                                     , samplingInterval_(0)
 {
 }
 
@@ -526,7 +527,7 @@ ChromatogramImpl::setDataArray( const double * p )
 }
 
 void
-ChromatogramImpl::setTimeArray( const double * p )
+ChromatogramImpl::setTimeArray( const double * p ) // array of second
 {
     if ( p ) {
         if ( timeArray_.size() != size() )
@@ -534,6 +535,8 @@ ChromatogramImpl::setTimeArray( const double * p )
         memcpy(&timeArray_[0], p, sizeof(double) * size() );
         timeRange_.first = p[0];
         timeRange_.second = p[ size() - 1 ];
+		if ( adportable::compare<double>::essentiallyEqual( samplingInterval_, 0 ) )
+			samplingInterval_ = ( timeRange_.second - timeRange_.first ) / ( size() - 1 );
     } else {
         timeArray_.clear();
     }

@@ -33,6 +33,7 @@
 namespace adcontrols {
     class Trace;
     class Chromatogram; 
+	class PeakResult;
     class Baseline;
     class Peak;
 }
@@ -54,6 +55,8 @@ namespace adwplot {
 
         void setData( const adcontrols::Trace&, int idx = 0, bool yaxis2 = false );
         void setData( const adcontrols::Chromatogram& );
+		void setData( const adcontrols::PeakResult& );
+	private:
         void setBaseline( const adcontrols::Baseline& );
         void setPeak( const adcontrols::Peak& );
 

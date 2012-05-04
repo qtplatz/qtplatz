@@ -70,6 +70,9 @@ namespace dataproc {
             selProcessed( Wnd& wnd ) : wnd_(wnd) {}
 
             template<typename T> void operator ()( T& ) const {
+#if defined _DEBUG && defined DEBUG
+				adportable::debug() << typeid(T).name();
+#endif
             }
 
             void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
@@ -79,6 +82,11 @@ namespace dataproc {
             void operator () ( adutils::ChromatogramPtr& ptr ) const {
                 wnd_.draw( ptr );
             }
+
+			void operator () ( adutils::PeakResultPtr& ptr ) const {
+                wnd_.draw( ptr );
+            }
+
         };
         //-----
     }
@@ -149,6 +157,12 @@ MSProcessingWnd::draw( adutils::ChromatogramPtr& ptr )
 {
     adcontrols::Chromatogram& c = *ptr;
     pImpl_->ticPlot_->setData( c );
+}
+
+void
+MSProcessingWnd::draw( adutils::PeakResultPtr& ptr )
+{
+	pImpl_->ticPlot_->setData( *ptr );
 }
 
 void

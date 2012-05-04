@@ -31,23 +31,28 @@
 using namespace adwplot;
 
 Peak::Peak( const Peak& t ) : curve_( t.curve_ )
+                            , bar_( t.bar_ )
 {
 }
 
 Peak::Peak( Dataplot& plot, const adcontrols::Peak& peak ) : plot_( &plot )
                                                            , curve_( new QwtPlotCurve() ) 
+														   , bar_( new QwtPlotCurve() ) 
 {
-    curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
     curve_->setPen( QPen( Qt::red) );
     curve_->setStyle( QwtPlotCurve::Lines ); // continuum (or Stics)
     curve_->attach( plot_ );
 
     double x[2], y[2];
-    // anno.value( adcontrols::timeutil::toMinutes( it->peakTime() ).minutes );
-
-    x[0] = adcontrols::timeutil::toMinutes( peak.startTime() );
+/*
+	x[0] = adcontrols::timeutil::toMinutes( peak.startTime() );
     x[1] = adcontrols::timeutil::toMinutes( peak.endTime() );
     y[0] = peak.startHeight();
     y[1] = peak.endHeight();
+*/
+	x[0] = x[1] = adcontrols::timeutil::toMinutes( peak.peakTime() );
+    y[0] = 0; 
+	y[1] = peak.topHeight();
+    
     curve_->setSamples(  x, y, 2 );
 }

@@ -37,8 +37,7 @@ Baseline::Baseline( const Baseline& t ) : curve_( t.curve_ )
 Baseline::Baseline( Dataplot& plot, const adcontrols::Baseline& bs ) : plot_( &plot )
                                                                      , curve_( new QwtPlotCurve() ) 
 {
-    curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
-    curve_->setPen( QPen( Qt::red) );
+	curve_->setPen( QPen( Qt::red) );
     curve_->setStyle( QwtPlotCurve::Lines ); // continuum (or Stics)
     curve_->attach( plot_ );
 
