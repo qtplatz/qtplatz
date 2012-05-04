@@ -36,6 +36,7 @@ namespace portfolio {
 namespace adcontrols {
     class MassSpectrum;
     class Chromatogram;
+	class PeakResult;
 }
 
 namespace dataproc {
@@ -56,9 +57,10 @@ namespace dataproc {
             void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
             void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
             void draw( boost::shared_ptr< adcontrols::Chromatogram >& );
+			void draw( boost::shared_ptr< adcontrols::PeakResult >& );
 
         signals:
-            void fireSetData( const adcontrols::Chromatogram& );
+			void fireSetData( const adcontrols::PeakResult& );
       
         public slots:
             void handleSessionAdded( Dataprocessor* );

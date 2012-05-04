@@ -30,6 +30,9 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/peakresult.hpp>
+#include <adcontrols/peaks.hpp>
+#include <adcontrols/peak.hpp>
 #include <adutils/processeddata.hpp>
 #include <portfolio/folium.hpp>
 #include <boost/variant.hpp>
@@ -76,6 +79,9 @@ namespace dataproc {
             void operator () ( adutils::ChromatogramPtr& ptr ) const {
                 wnd_.draw( ptr );
             }
+			void operator () ( adutils::PeakResultPtr& ptr ) const {
+                wnd_.draw( ptr );
+            }
             Wnd& wnd_;
         };
         //----------------------------//
@@ -113,8 +119,8 @@ ChromatogramWnd::init( const std::wstring& apppath )
                 adplugin::LifeCycle * p = dynamic_cast< adplugin::LifeCycle * >(pImpl_->peakWidget_);
 				if ( p )
 					p->OnInitialUpdate();
-				connect( this, SIGNAL( fireSetData( const adcontrols::Chromatogram& ) ),
-					pImpl_->peakWidget_, SLOT( setData( const adcontrols::Chromatogram& ) ) );
+				connect( this, SIGNAL( fireSetData( const adcontrols::PeakResult& ) ),
+					pImpl_->peakWidget_, SLOT( setData( const adcontrols::PeakResult& ) ) );
             }
 
             splitter->addWidget( pImpl_->chroWidget_ );
@@ -146,8 +152,17 @@ ChromatogramWnd::draw( adutils::ChromatogramPtr& ptr )
 {
     adcontrols::Chromatogram& c = *ptr;
     pImpl_->chroWidget_->setData( c );
-    emit fireSetData( c );
-    // pImpl_->peakWidget_->setData( c );
+	if ( c.peaks().size() ) {
+		adcontrols::PeakResult r( c.baselines(), c.peaks() );
+		emit fireSetData( r );
+	}
+}
+
+void
+ChromatogramWnd::draw( adutils::PeakResultPtr& ptr )
+{
+	pImpl_->chroWidget_->setData( *ptr );
+    emit fireSetData( *ptr );
 }
 
 void

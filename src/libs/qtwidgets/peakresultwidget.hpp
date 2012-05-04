@@ -33,6 +33,7 @@ namespace adcontrols {
     class Peak;
     class Baselines;
     class Chromatogram;
+    class PeakResult;
 }
 
 class QStandardItemModel;
@@ -54,7 +55,7 @@ namespace qtwidgets {
             
     public slots:
         void setData( const adcontrols::Peaks& );
-        void setData( const adcontrols::Chromatogram& );
+		void setData( const adcontrols::PeakResult& );
         void getLifeCycle( adplugin::LifeCycle*& );
 
     private:

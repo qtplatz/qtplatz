@@ -25,6 +25,7 @@
 #include "peakresultwidget.hpp"
 #include <QStandardItemModel>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/peakresult.hpp>
 #include <adcontrols/baselines.hpp>
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/peaks.hpp>
@@ -91,9 +92,9 @@ PeakResultWidget::setData( const adcontrols::Peaks& peaks )
 }
 
 void
-PeakResultWidget::setData( const adcontrols::Chromatogram& c )
+PeakResultWidget::setData( const adcontrols::PeakResult& result )
 {
-    setData( c.peaks() );
+    setData( result.peaks() );
 }
 
 void
