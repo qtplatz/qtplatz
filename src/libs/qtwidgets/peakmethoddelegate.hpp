@@ -26,6 +26,7 @@
 #define PEAKMETHODDELEGATE_HPP
 
 #include <QItemDelegate>
+#include <adcontrols/peakmethod.hpp>
 
 namespace qtwidgets {
 
@@ -33,13 +34,33 @@ namespace qtwidgets {
 		Q_OBJECT
 	public:
 		explicit PeakMethodDelegate(QObject *parent = 0);
+
+        QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+        void setEditorData(QWidget *editor, const QModelIndex &index) const;
+        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+        void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
     
     signals:
     
 	public slots:
-    
+
+	public:
+		class PharmacopoeiaEnum {
+		public:
+			PharmacopoeiaEnum( adcontrols::chromatography::ePharmacopoeia t = adcontrols::chromatography::ePHARMACOPOEIA_JP );
+			adcontrols::chromatography::ePharmacopoeia methodValue() const;
+            QString displayValue() const;
+			void setCurrentValue( adcontrols::chromatography::ePharmacopoeia );
+        private:
+			adcontrols::chromatography::ePharmacopoeia value_;
+		};
 	};
 
 }
+
+Q_DECLARE_METATYPE( qtwidgets::PeakMethodDelegate::PharmacopoeiaEnum )
+
 
 #endif // PEAKMETHODDELEGATE_HPP

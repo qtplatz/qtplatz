@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "peakmethoddelegate.hpp"
+#include <QComboBox>
 
 using namespace qtwidgets;
 
@@ -30,3 +31,95 @@ PeakMethodDelegate::PeakMethodDelegate(QObject *parent) :
     QItemDelegate(parent)
 {
 }
+
+QWidget *
+PeakMethodDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+	if ( qVariantCanConvert< PharmacopoeiaEnum >( index.data() ) ) {
+        QComboBox * pCombo = new QComboBox( parent );
+        QStringList list;
+		list << "Not specified" << "EP" << "JP" << "USP";
+        pCombo->addItems( list );
+        return pCombo;
+    } else {
+		return QItemDelegate::createEditor( parent, option, index );
+	}
+}
+
+void
+PeakMethodDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    if ( qVariantCanConvert< PharmacopoeiaEnum >( index.data() ) ) {
+		PharmacopoeiaEnum e = qVariantValue< PharmacopoeiaEnum >( index.data() );
+		drawDisplay( painter, option, option.rect, e.displayValue() );
+    } else {
+        QItemDelegate::paint( painter, option, index );
+    }
+}
+
+void
+PeakMethodDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+{
+    if ( qVariantCanConvert< PharmacopoeiaEnum >( index.data() ) ) {
+		using adcontrols::chromatography::ePharmacopoeia;
+
+        QComboBox * p = dynamic_cast< QComboBox * >( editor );
+		PharmacopoeiaEnum e = qVariantValue< PharmacopoeiaEnum >( index.data() );
+		e.setCurrentValue( static_cast< ePharmacopoeia > ( p->currentIndex() ) );
+    } else {
+        QItemDelegate::setEditorData( editor, index );
+    }
+}
+
+void
+PeakMethodDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+{
+	if ( qVariantCanConvert< PharmacopoeiaEnum >( index.data() ) ) {
+		using adcontrols::chromatography::ePharmacopoeia;
+        QComboBox * p = dynamic_cast< QComboBox * >( editor );
+		model->setData( index, qVariantFromValue( PharmacopoeiaEnum( static_cast< ePharmacopoeia >( p->currentIndex() ) ) ) );
+		// emit signalMSReferencesChanged( index );
+    } else {
+        QItemDelegate::setModelData( editor, model, index );
+    }
+}
+
+void
+PeakMethodDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+	Q_UNUSED( index );
+    editor->setGeometry( option.rect );
+}
+
+////
+
+PeakMethodDelegate::PharmacopoeiaEnum::PharmacopoeiaEnum( adcontrols::chromatography::ePharmacopoeia t ) : value_( t )
+{
+}
+
+adcontrols::chromatography::ePharmacopoeia
+PeakMethodDelegate::PharmacopoeiaEnum::methodValue() const
+{
+	return value_;
+}
+
+QString
+PeakMethodDelegate::PharmacopoeiaEnum::displayValue() const
+{
+	switch ( value_ ) {
+		case adcontrols::chromatography::ePHARMACOPOEIA_NotSpcified: return "Not specified";
+		case adcontrols::chromatography::ePHARMACOPOEIA_EP: return "EP";
+		case adcontrols::chromatography::ePHARMACOPOEIA_JP: return "JP";
+		case adcontrols::chromatography::ePHARMACOPOEIA_USP: return "USP";
+		default:
+			break;
+	}
+	return "Not specified";
+}
+
+void
+PeakMethodDelegate::PharmacopoeiaEnum::setCurrentValue( adcontrols::chromatography::ePharmacopoeia v )
+{
+	value_ = v;
+}
+

@@ -74,7 +74,7 @@ PeakMethodForm::OnInitialUpdate()
     QStandardItem * rootNode = model.invisibleRootItem();
     ui->treeView->setItemDelegate( pDelegate_.get() );
 
-    rootNode->setColumnCount(4);
+    rootNode->setColumnCount(2);
     model.setHeaderData( 0, Qt::Horizontal, "Peak Method" );
     for ( int i = 1; i < rootNode->columnCount(); ++i )
         model.setHeaderData( 1, Qt::Horizontal, "" );
@@ -87,14 +87,14 @@ PeakMethodForm::OnInitialUpdate()
     StandardItemHelper::appendRow( rootNode, "Minimum Area[uV*s]",   method.minimumArea() );
     StandardItemHelper::appendRow( rootNode, "Peak width doubling time[min]"
                                                                    , method.doubleWidthTime() );
-    StandardItemHelper::appendRow( rootNode, "Pharmacopoeia",        method.pharmacopoeia() );
+
+	StandardItemHelper::appendRow( rootNode, "Pharmacopoeia", qVariantFromValue( PeakMethodDelegate::PharmacopoeiaEnum( method.pharmacopoeia() ) ) );
+
     StandardItemHelper::appendRow( rootNode, "Theoretical Plate calculation method"
 		                                                           , method.theoreticalPlateMethod() );
     StandardItemHelper::appendRow( rootNode, "Peak width calculation method"
 		                                                           , method.peakWidthMethod() );
 
-    // OnMSReferencesUpdated( refItem->index() );
-	// ui->treeView->expand( refItem->index() );
 	ui->treeView->setColumnWidth( 0, 240 );
 	ui->treeView->setColumnWidth( 1, 100 );
 }
@@ -109,9 +109,7 @@ PeakMethodForm::getContents( adcontrols::ProcessMethod& pm )
 {
     QStandardItemModel& model = *pModel_;
     QStandardItem * root = model.invisibleRootItem();
-
-/*  todo: copy peakmethod from ui to pm
-
+/*
     QVariant v = model.index( 0, 1, root->index() ).data( Qt::EditRole );
     pMethod_->polynomialDegree( v.toInt() );
     v = model.index( 1, 1, root->index() ).data( Qt::EditRole  );

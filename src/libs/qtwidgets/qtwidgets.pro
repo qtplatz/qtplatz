@@ -53,7 +53,8 @@ SOURCES += centroiddelegate.cpp \
     isotopeform.cpp \
     isotopedelegate.cpp \
     peakmethodform.cpp \
-    peakmethoddelegate.cpp
+    peakmethoddelegate.cpp \
+    targetform.cpp
 
 
 
@@ -85,7 +86,8 @@ HEADERS += centroiddelegate.hpp \
     isotopedelegate.hpp \
     qctable.hpp \
     peakmethodform.hpp \
-    peakmethoddelegate.hpp
+    peakmethoddelegate.hpp \
+    targetform.hpp
 
 FORMS += \
     centroidform.ui \
@@ -96,7 +98,8 @@ FORMS += \
     sequencesform.ui \
     sequencewidget.ui \
     isotopeform.ui \
-    peakmethodform.ui
+    peakmethodform.ui \
+    targetform.ui
 
 RESOURCES += \
     resources.qrc
