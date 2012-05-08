@@ -280,8 +280,16 @@ NavigationWidget::handle_activated( const QModelIndex& index )
     qDebug() << "activated: " << index.data( Qt::UserRole + 1 );
 
     if ( index.isValid() ) {
+
         QVariant data = index.data( Qt::UserRole + 1 );
-        if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
+
+		if ( qVariantCanConvert< portfolio::Folder >( data ) ) {
+			// folder (Spectra|Chromatograms)
+			portfolio::Folder folder = qVariantValue< portfolio::Folder >( data );
+			Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
+			processor->setCurrentSelection( folder );
+
+		} else if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
 
             portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
 
@@ -380,7 +388,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 				QString dir = qtwrapper::qstring::copy( path.wstring() );
 				QString name = qtwrapper::qstring::copy( folium.name() );
 				QString filename = 
-					QFileDialog::getSaveFileName( this, tr("Save centroid spectrum"), dir, tr("Documents (*.txt)") );
+					QFileDialog::getSaveFileName( this, tr("Save spectrum"), dir, tr("Documents (*.txt)") );
 				boost::filesystem::path dstfile( qtwrapper::wstring::copy( filename ) );
 				boost::filesystem::ofstream of( dstfile );
 

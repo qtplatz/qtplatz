@@ -42,6 +42,7 @@ namespace adcontrols {
 namespace portfolio {
     class Portfolio;
     class Folium;
+	class Folder;
 }
 
 namespace SignalObserver { class Observer; }
@@ -68,6 +69,7 @@ namespace dataproc {
         const adcontrols::LCMSDataset* getLCMSDataset();
         portfolio::Portfolio getPortfolio();
         void setCurrentSelection( portfolio::Folium& );
+		void setCurrentSelection( portfolio::Folder& );
         void applyProcess( const adcontrols::ProcessMethod&, internal::ProcessType );
         void applyCalibration( const adcontrols::ProcessMethod& );
         void addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );

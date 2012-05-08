@@ -144,6 +144,12 @@ Dataprocessor::getPortfolio()
 }
 
 void
+Dataprocessor::setCurrentSelection( portfolio::Folder& folder )
+{
+	idActiveFolium_ = folder.id();
+}
+
+void
 Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
     if ( folium.empty() ) {
@@ -239,6 +245,7 @@ void
 Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, internal::ProcessType procType )
 {
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
+
     if ( folium ) {
         adcontrols::ProcessMethod method;
         //------------------ remove 'calibration' from method pipeline --------------
@@ -261,7 +268,6 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, internal::Proce
         std::wstring xml = portfolio_->xml();
 #endif
         SessionManager::instance()->selectionChanged( this, folium );
-
 	} else {
 		// no selected folium, peak find to raw TIC
 		if ( procType == internal::PeakFindProcess ) {
