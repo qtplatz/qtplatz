@@ -325,7 +325,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     SessionManager::instance()->updateDataprocessor( this, folium );
 }
 
-void
+portfolio::Folium
 Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrols::ProcessMethod& m )
 {
     portfolio::Folder folder = portfolio_->addFolder( L"Spectra" );
@@ -347,9 +347,10 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
 #endif
 
     SessionManager::instance()->updateDataprocessor( this, folium );
+	return folium;
 }
 
-void
+portfolio::Folium
 Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcontrols::ProcessMethod& m )
 {
     portfolio::Folder folder = portfolio_->addFolder( L"Chromatograms" );
@@ -366,11 +367,8 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
 		boost::apply_visitor( internal::doChromatogramProcess( c, folium ), *it );
 
-#if defined _DEBUG
-	std::wstring xml = portfolio_->xml();
-#endif
-
     SessionManager::instance()->updateDataprocessor( this, folium );
+	return folium;
 }
 
 SignalObserver::Observer_ptr

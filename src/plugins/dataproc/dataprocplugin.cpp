@@ -87,6 +87,7 @@
 #include <adplugin/orbmanager.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/qbrokersessionevent.hpp>
+#include <portfolio/folium.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
@@ -439,11 +440,10 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 		if ( dset ) {
 			long pos1 = dset->posFromTime( x1 );
 			long pos2 = dset->posFromTime( x2 );
-            if ( pos1 > pos2 )
-				std::swap( pos1, pos2 );
+			long pos = pos1;
 
 			adcontrols::MassSpectrum ms;
-			if ( dset->getSpectrum( 0, pos1++, ms ) ) {
+			if ( dset->getSpectrum( 0, pos++, ms ) ) {
 				double t1 = ms.getMSProperty().timeSinceInjection() / 60.0e6; // usec -> min
 				std::wostringstream text;
 				if ( pos2 > pos1 ) {
@@ -452,8 +452,8 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                     progressBar.setVisible( true );
 
 					adcontrols::MassSpectrum a;
-					while ( pos1 < pos2	&& dset->getSpectrum( 0, pos1++, a ) ) {
-                        progressBar.setValue( pos1 );
+					while ( pos1 < pos2	&& dset->getSpectrum( 0, pos++, a ) ) {
+						progressBar.setValue( pos );
 						ms += a;
 					}
 					double t2 = a.getMSProperty().timeSinceInjection() / 60.0e6; // usec -> min
@@ -463,7 +463,18 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 				}
 				adcontrols::ProcessMethod m;
 				ms.addDescription( adcontrols::Description( L"create", text.str() ) );
-				dp->addSpectrum( ms, m );
+				portfolio::Folium folium = dp->addSpectrum( ms, m );
+
+				// add centroid spectrum if exist
+				if ( folium && pos1 == pos2 && dset->getFunctionCount() >= 2 ) {
+					adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
+					if ( dset->getSpectrum( 1, pos1, *pCentroid ) ) {
+						portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
+                        att.assign( pCentroid, pCentroid->dataClass() );
+
+						SessionManager::instance()->updateDataprocessor( dp, folium );
+					}
+				}
 			}
 		}
 	}

@@ -55,6 +55,7 @@ namespace adcontrols {
 			    , CentroidPeakAreaWaitedMass
 			    , CentroidPeakMoment
 				, CentroidIsotopeSimulation
+				, CentroidNative // instrument manufacturer's native algorithm 
    };
    
    namespace internal {

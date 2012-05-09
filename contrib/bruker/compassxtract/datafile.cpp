@@ -116,7 +116,7 @@ datafile::factory()
 size_t
 datafile::getFunctionCount() const
 {
-	return 1;
+	return 2;
 }
 
 //virtual
@@ -144,7 +144,7 @@ datafile::getChromatogramCount() const
 #endif
 //virtual
 bool
-datafile::getSpectrum( int /* fcn*/, int pos, adcontrols::MassSpectrum& ms ) const
+datafile::getSpectrum( int fcn, int pos, adcontrols::MassSpectrum& ms ) const
 {
 	try {
 		EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis_->GetMSSpectrumCollection();
@@ -162,7 +162,13 @@ datafile::getSpectrum( int /* fcn*/, int pos, adcontrols::MassSpectrum& ms ) con
         ms.setMSProperty( prop ); // <- end of prop set
 
 		_variant_t vMasses, vIntens;
-		pSpectrum->GetMassIntensityValues( EDAL::SpectrumType_Profile, &vMasses, &vIntens );
+		if ( fcn == 1 ) {
+			pSpectrum->GetMassIntensityValues( EDAL::SpectrumType_Line, &vMasses, &vIntens );
+			ms.setCentroid( adcontrols::CentroidNative );
+		} else { // fcn == 0
+			pSpectrum->GetMassIntensityValues( EDAL::SpectrumType_Profile, &vMasses, &vIntens );
+			ms.setCentroid( adcontrols::CentroidNone );  // profile
+		}
 
 		SafeArray sa_masses( vMasses );
         ms.resize( sa_masses.size() );

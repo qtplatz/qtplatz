@@ -54,7 +54,7 @@ namespace addatafile { namespace detail {
         adfs::folium& folium_;
         copyout( adfs::folium& f ) : folium_( f ) {}
 
-        template<typename T>  bool operator ()( T& t ) const { 
+        template<typename T>  bool operator ()( T& ) const { 
             throw boost::bad_any_cast();
         }
     };
