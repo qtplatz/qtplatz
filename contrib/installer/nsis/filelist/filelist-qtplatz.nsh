@@ -50,6 +50,7 @@
    ${InstallFile} "${InBinPath}"    "ExtensionSystem.dll"    "bin" 1 0
    ${InstallFile} "${InBinPath}"    "Utils.dll"              "bin" 1 0
    ${InstallFile} "${InBinPath}"    "adcontrols.dll"         "bin" 1 0
+   ${InstallFile} "${InBinPath}"    "chromatogr.dll"         "bin" 1 0
    ${InstallFile} "${InBinPath}"    "adplugin.dll"           "bin" 1 0
    ${InstallFile} "${InBinPath}"    "portfolio.dll"          "bin" 1 0
 
