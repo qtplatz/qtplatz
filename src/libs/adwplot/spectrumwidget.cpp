@@ -131,6 +131,7 @@ namespace adwplot {
 
         void clear();
         void update_annotations( Dataplot&, const std::pair<double, double>& );
+		void clear_annotations();
     };
 
 } // namespace adwplot
@@ -247,6 +248,7 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
     // todo: annotations
     if ( ms.isCentroid() ) {
         impl_->centroid_ = ms;
+        impl_->clear_annotations();
         impl_->update_annotations( *this, ms.getAcquisitionMassRange() );
     }
     // replot();
@@ -345,6 +347,11 @@ namespace adwplot {
     }
 }
 
+void
+SpectrumWidgetImpl::clear_annotations()
+{
+	annotations_.clear();
+}
 
 void
 SpectrumWidgetImpl::update_annotations( Dataplot& plot
