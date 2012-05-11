@@ -177,8 +177,10 @@ double
 spectrum_processor::area( const double * beg, const double * end, double base )
 {
     double a = 0;
-    for ( const double * p = beg; p != end; ++p )
-        a += *p - base;
+	for ( const double * p = beg; p != end; ++p ) {
+		if ( *p > base )
+			a += *p - base;
+	}
     a += *end;
     return a;
 }
@@ -310,6 +312,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
     if ( state.width_ < 3 )
         state.width_ = 3;
 
+	averager base;
     for ( unsigned int x = NH; x < nbrSamples - NH; ++x ) {
         double d1 = diff( &pY[x] );
         bool reduce;
@@ -317,8 +320,8 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
             reduce = state.process_slope( peakfind::counter( x, peakfind::Up ) );
         else if ( d1 <= (-slope ) )
             reduce = state.process_slope( peakfind::counter( x, peakfind::Down ) );
-
-        // size_t size = state.stack_.size();
+		else
+			base( py[ x ] );
 
         pdebug_[x] = d1;
         if ( reduce ) {
@@ -327,6 +330,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
 
             while ( state.reduce( peak ) )
                 results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, pY[ peak.first.bpos_ ] ) );
+
         }
     }
 

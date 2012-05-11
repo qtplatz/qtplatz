@@ -191,10 +191,6 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     using adportable::spectrum_processor;
     using adportable::array_wrapper;
 
-    // buffer for smoothing
-    boost::scoped_array< double > pY( new double [ profile.size() ] );
-    spectrum_processor::moving_average( profile.size(), pY.get(), profile.getIntensityArray(), 32 );
-
     adportable::spectrum_peakfinder finder;
     if ( method_.peakWidthMethod() == CentroidMethod::ePeakWidthConstant ) {
         finder.width_method_ = adportable::spectrum_peakfinder::Constant;
@@ -207,7 +203,15 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
         finder.peakwidth_ = method_.rsTofInDa();
         finder.atmz_ = method_.rsTofAtMz();
     }
-    finder( profile.size(), profile.getMassArray(), pY.get() ); // profile.getIntensityArray() );
+
+    // buffer for smoothing
+    boost::scoped_array< double > pY( new double [ profile.size() ] );
+    int nAverage = 3;
+	while ( ( profile.getMass( nAverage ) - profile.getMass( 0 ) ) < finder.peakwidth_ )
+		++nAverage;
+
+	spectrum_processor::moving_average( profile.size(), pY.get(), profile.getIntensityArray(), nAverage );
+    finder( profile.size(), profile.getMassArray(), pY.get() );
 
 #if defined DEBUG_CENTROID_PROCESS
     debug_profile_ = profile;
