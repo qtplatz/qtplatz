@@ -320,8 +320,6 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
             reduce = state.process_slope( peakfind::counter( x, peakfind::Up ) );
         else if ( d1 <= (-slope ) )
             reduce = state.process_slope( peakfind::counter( x, peakfind::Down ) );
-		else
-			base( py[ x ] );
 
         pdebug_[x] = d1;
         if ( reduce ) {
@@ -329,7 +327,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
             std::pair< peakfind::counter, peakfind::counter > peak;
 
             while ( state.reduce( peak ) )
-                results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, pY[ peak.first.bpos_ ] ) );
+				results_.push_back( peakinfo( peak.first.bpos_, peak.second.tpos_, pY[ peak.first.bpos_ ] ) );
 
         }
     }
