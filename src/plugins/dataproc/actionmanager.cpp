@@ -56,18 +56,7 @@ ActionManager::initialize_actions( const QList<int>& context )
     Core::ICore * core = Core::ICore::instance();
     Core::ActionManager *am = core->actionManager();
 
-    //Save As Action
-#if 0
-    saveAsAction_ = new QAction( this );
-    connect( saveAsAction_, SIGNAL(triggered()), this, SLOT(saveFileAs()));
-    am->registerAction( saveAsAction_, Core::Constants::SAVEAS, context );
-#endif
-    // saveAsAction_->setText( "File Save XXX As..." );
-
     importFile_ = new QAction( this );
-    //am->registerAction( saveAsAction_, Core::Constants::SAVEAS, context );    
-    //connect( saveAsAction_, SIGNAL(triggered()), this, SLOT(saveFileAs()));
-//
 /*
     actionApply_ = new QAction( QIcon( ":/dataproc/image/apply_small.png" ), tr("Apply" ), this );
     connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) );

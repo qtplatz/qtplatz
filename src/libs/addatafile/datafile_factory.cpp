@@ -47,7 +47,7 @@ datafile_factory::close( adcontrols::datafile * p )
 const std::wstring&
 datafile_factory::name() const
 {
-    static std::wstring name( L"qtfolio" );
+	static std::wstring name( L"addatafile" );
     return name;
 }
 

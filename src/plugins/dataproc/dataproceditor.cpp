@@ -72,11 +72,6 @@ DataprocEditor::portfolio_create( const QString& token )
     boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
     if ( processor->create( token ) ) {
         SessionManager::instance()->addDataprocessor( processor );
-/*
-        Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
-        if ( filemgr->addFile( processor->ifile() ) )
-            filemgr->addToRecentFiles( filename );
-*/
         file_ = processor->ifile();
         return file_;
     }

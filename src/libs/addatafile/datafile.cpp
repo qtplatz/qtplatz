@@ -26,13 +26,15 @@
 #include "datafile.hpp"
 #include "copyin_visitor.hpp"
 #include "copyout_visitor.hpp"
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datapublisher.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/peakresult.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adcontrols/mscalibrateresult.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -157,6 +159,14 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
                         adcontrols::MassSpectrumPtr ptr( new adcontrols::MassSpectrum() );
                         adfs::cpio<adcontrols::MassSpectrum>::copyout( *ptr, obuf );
                         any = ptr;
+					} else if ( dataType == L"Chromatogram" ) {
+						adcontrols::ChromatogramPtr ptr( new adcontrols::Chromatogram() );
+						adfs::cpio<adcontrols::Chromatogram>::copyout( *ptr, obuf );
+                        any = ptr;
+					} else if ( dataType == L"PeakResult" ) {
+						adcontrols::PeakResultPtr ptr( new adcontrols::PeakResult() );
+						adfs::cpio<adcontrols::PeakResult>::copyout( *ptr, obuf );
+                        any = ptr;
                     } else if ( dataType == L"ProcessMethod" ) {
                         adcontrols::ProcessMethodPtr ptr( new adcontrols::ProcessMethod() );
                         adfs::cpio<adcontrols::ProcessMethod>::copyout( *ptr, obuf );
@@ -167,7 +177,8 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
                         any = ptr;
                     } else {
                         adportable::debug(__FILE__, __LINE__)
-                            << "datafile::fetch(" << dataId << ", " << dataType;
+							<< "Error: unknown data type in datafile::fetch(" << dataId << ", " << dataType;
+						assert(0);
                     }
                 }
             }
@@ -209,6 +220,7 @@ datafile::getFunctionCount() const
 size_t
 datafile::posFromTime( double x ) const
 {
+	(void)x;
 	return 0;
 }
 
@@ -303,13 +315,19 @@ namespace addatafile {
 #ifdef _DEBUG
             const std::wstring& dataclass = folium.dataClass();
             const std::wstring& name = folium.name();
+			(void)dataclass;
+			(void)name;
 #endif
 
             boost::any any = static_cast<const boost::any&>( folium );
             if ( any.empty() && (&source != nullfile ) )
                 any = source.fetch( folium.id(), folium.dataClass() );
-
-            detail::copyin_visitor::apply( any, dbThis );
+			try {
+				detail::copyin_visitor::apply( any, dbThis );
+			} catch ( boost::bad_any_cast& ) {
+				assert( 0 );
+				return false;
+			}
             
             BOOST_FOREACH( const portfolio::Folium& att, folium.attachments() )
                 save( dbThis, filename, source, att );

@@ -32,6 +32,7 @@
 
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/peakresult.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/elementalcompositioncollection.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
@@ -43,8 +44,6 @@
 #if defined _MSC_VER
 # pragma warning( disable: 4996 )
 #endif
-//# include <boost/archive/binary_oarchive.hpp>
-//# include <boost/archive/binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 
@@ -106,7 +105,12 @@ namespace addatafile {
 	{
 	    return adfs::cpio< adcontrols::Chromatogram >::copyin( *p, folium_ );
 	} 
-	
+
+	template<> bool
+	copyin::operator ()( adcontrols::PeakResultPtr& p ) const
+	{
+		return adfs::cpio< adcontrols::PeakResult >::copyin( *p, folium_ );
+	} 
 	
 	template<> bool
 	copyin::operator ()( adcontrols::MSCalibrateResultPtr& p ) const
