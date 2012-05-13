@@ -290,9 +290,6 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
     }
 
     processedDataset_.reset( new adcontrols::ProcessedDataset );
-#if defined DEBUG
-    portfolio.save( L"/tmp/loadcontents.xml" );
-#endif    
     std::wstring xml = portfolio.xml();
     processedDataset_->xml( xml );
 
@@ -312,16 +309,15 @@ namespace addatafile {
             adfs::folium dbThis = parent.addAttachment( folium.id() );
             import::attributes( dbThis, folium.attributes() );
 
-#ifdef _DEBUG
+#if defined DEBUG
             const std::wstring& dataclass = folium.dataClass();
             const std::wstring& name = folium.name();
-			(void)dataclass;
-			(void)name;
+			adportable::debug( __FILE__, __LINE__ ) << "addatafile::detail::attachment::save(" << dataclass << ", " << name << ")";
 #endif
-
             boost::any any = static_cast<const boost::any&>( folium );
             if ( any.empty() && (&source != nullfile ) )
                 any = source.fetch( folium.id(), folium.dataClass() );
+
 			try {
 				detail::copyin_visitor::apply( any, dbThis );
 			} catch ( boost::bad_any_cast& ) {
@@ -331,6 +327,7 @@ namespace addatafile {
             
             BOOST_FOREACH( const portfolio::Folium& att, folium.attachments() )
                 save( dbThis, filename, source, att );
+
             return true;
         }
         //------------

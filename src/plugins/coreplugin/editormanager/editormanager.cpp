@@ -1429,7 +1429,8 @@ bool EditorManager::saveFileAs(IEditor *editor)
     IFile *file = editor->file();
     const QString &filter = formatFileFilters(m_d->m_core);
     QString selectedFilter =
-        m_d->m_core->mimeDatabase()->findByFile( QFileInfo(file->fileName()) ).filterString();
+		// m_d->m_core->mimeDatabase()->findByFile( QFileInfo(file->fileName()) ).filterString();
+		m_d->m_core->mimeDatabase()->findByFile( QFileInfo(file->suggestedFileName()) ).filterString(); // TH modified for data import, 13 May 2012
 
     const QString &absoluteFilePath =
         m_d->m_core->fileManager()->getSaveAsFileName(file, filter, &selectedFilter);

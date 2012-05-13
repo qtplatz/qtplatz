@@ -31,7 +31,9 @@
 #include <coreplugin/editormanager/ieditor.h>
 
 #include <coreplugin/coreconstants.h>
+#include <QIcon>
 //#include <coreplugin/mimedatabase.h>
+#include <coreplugin/coreconstants.h>
 //#include <QStringList>
 //#include "dataprocplugin.h"
 
@@ -52,17 +54,14 @@ bool
 ActionManager::initialize_actions( const QList<int>& context )
 {
     //context_ = context;
-
+#if 0
     Core::ICore * core = Core::ICore::instance();
     Core::ActionManager *am = core->actionManager();
 
-    importFile_ = new QAction( this );
-/*
-    actionApply_ = new QAction( QIcon( ":/dataproc/image/apply_small.png" ), tr("Apply" ), this );
-    connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) );
-    am->registerAction( actionApply_, "dataproc.connect", globalcontext );
-    toolBarLayout->addWidget( toolButton( am->command( "dataproc.connect" )->action() ) );
-*/
+	saveAsAction_ = new QAction( QIcon( ":/dataproc/image/apply_small.png" ), tr("SaveAs" ), this );
+	am->registerAction( saveAsAction_, Core::Constants::SAVEAS, context );
+    connect( saveAsAction_, SIGNAL( triggered() ), this, SLOT( saveFileAs() ) );
+#endif
     return true;
 }
 
@@ -71,33 +70,6 @@ ActionManager::initialize_actions( const QList<int>& context )
 bool
 ActionManager::saveFileAs() // Core::IEditor *editor )
 {
-/*
-    if (!editor)
-        editor = currentEditor();
-    if (!editor)
-        return false;
-
-    QString absoluteFilePath = m_d->m_core->fileManager()->getSaveAsFileName(editor->file());
-    if (absoluteFilePath.isEmpty())
-        return false;
-    if (absoluteFilePath != editor->file()->fileName()) {
-        const QList<IEditor *> existList = editorsForFileName(absoluteFilePath);
-        if (!existList.isEmpty()) {
-            closeEditors(existList, false);
-        }
-    }
-
-    m_d->m_core->fileManager()->blockFileChange(editor->file());
-    const bool success = editor->file()->save(absoluteFilePath);
-    m_d->m_core->fileManager()->unblockFileChange(editor->file());
-    editor->file()->checkPermissions();
-
-    if (success && !editor->isTemporary())
-        m_d->m_core->fileManager()->addToRecentFiles(editor->file()->fileName());
-
-    updateActions();
-    return success;
-*/
     return false;
 }
 

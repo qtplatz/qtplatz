@@ -122,7 +122,9 @@ IFileImpl::defaultPath() const
 QString
 IFileImpl::suggestedFileName() const
 {
-    return QString();
+	boost::filesystem::path path( file_->filename() );
+	path.replace_extension( L".adfs" );
+	return qtwrapper::qstring( path.wstring() );
 }
 
 bool
