@@ -27,15 +27,24 @@ DEFINES += QTWIDGETS_LIBRARY
 
 SOURCES += centroiddelegate.cpp \
         centroidform.cpp \
+        centroidmethodmodel.cpp \
         elementalcompositiondelegate.cpp \
+        elementalcompmodel.cpp \
         elementalcompositionform.cpp \
         factory.cpp \
+        isotopedelegate.cpp \
+        isotopeform.cpp \
+        isotopemethodmodel.cpp \
         logwidget.cpp \
         mscalibratedelegate.cpp \
         mscalibrationform.cpp \
         mscalibsummarydelegate.cpp \
         mscalibsummarywidget.cpp \
+        peakmethoddelegate.cpp \
         peakresultwidget.cpp \
+        peakmethodform.cpp \
+        peakresultwidget.cpp \
+        processmethodview.cpp \
         qtwidgets.cpp \
         sequencesform.cpp \
         sequencesmodel.cpp \
@@ -43,20 +52,7 @@ SOURCES += centroiddelegate.cpp \
         standarditemhelper.cpp \
         standardmodel.cpp \
         treeitem.cpp \
-    processmethodview.cpp \
-    centroidmethodmodel.cpp \
-    isotopemethodmodel.cpp \
-    chemicalformula.cpp \
-    elementalcompmodel.cpp \
-    mscalibratemodel.cpp \
-    molwidget.cpp \
-    isotopeform.cpp \
-    isotopedelegate.cpp \
-    peakmethodform.cpp \
-    peakmethoddelegate.cpp \
-    targetform.cpp
-
-
+        chemicalformula.cpp 
 
 HEADERS += centroiddelegate.hpp \
         centroidform.hpp \

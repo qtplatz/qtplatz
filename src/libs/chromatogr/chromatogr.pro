@@ -26,4 +26,3 @@ HEADERS += chromatogr.hpp \
            differential.hpp \
            averager.hpp \
            integrator.hpp
-
