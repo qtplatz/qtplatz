@@ -36,6 +36,7 @@ SOURCES += centroiddelegate.cpp \
         isotopeform.cpp \
         isotopemethodmodel.cpp \
         logwidget.cpp \
+        molwidget.cpp \
         mscalibratedelegate.cpp \
         mscalibrationform.cpp \
         mscalibsummarydelegate.cpp \
@@ -43,7 +44,6 @@ SOURCES += centroiddelegate.cpp \
         peakmethoddelegate.cpp \
         peakresultwidget.cpp \
         peakmethodform.cpp \
-        peakresultwidget.cpp \
         processmethodview.cpp \
         qtwidgets.cpp \
         sequencesform.cpp \
@@ -72,18 +72,17 @@ HEADERS += centroiddelegate.hpp \
         standarditemhelper.hpp \
         standardmodel.hpp \
         treeitem.hpp \
-    processmethodview.hpp \
-    centroidmethodmodel.hpp \
-    isotopemethodmodel.hpp \
-    chemicalformula.hpp \
-    elementalcompmodel.hpp \
-    molwidget.hpp \
-    isotopeform.hpp \
-    isotopedelegate.hpp \
-    qctable.hpp \
-    peakmethodform.hpp \
-    peakmethoddelegate.hpp \
-    targetform.hpp
+        processmethodview.hpp \
+        centroidmethodmodel.hpp \
+        isotopemethodmodel.hpp \
+        chemicalformula.hpp \
+        elementalcompmodel.hpp \
+        molwidget.hpp \
+        isotopeform.hpp \
+        isotopedelegate.hpp \
+        qctable.hpp \
+        peakmethodform.hpp \
+        peakmethoddelegate.hpp
 
 FORMS += \
     centroidform.ui \
@@ -94,8 +93,7 @@ FORMS += \
     sequencesform.ui \
     sequencewidget.ui \
     isotopeform.ui \
-    peakmethodform.ui \
-    targetform.ui
+    peakmethodform.ui
 
 RESOURCES += \
     resources.qrc
