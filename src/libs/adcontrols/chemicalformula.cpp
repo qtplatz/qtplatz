@@ -59,7 +59,7 @@ namespace adcontrols {
             L"Cs", L"Ba", L"Lu", L"Hf", L"Ta", L"W",  L"Re", L"Os", L"Ir", L"Pt", L"Au", L"Hg", L"Tl", L"Pb", L"Bi", L"Po", L"At", L"Rn",
             L"Fr", L"Ra", L"Ac", L"Th", L"Pa", L"U",  L"Np", L"Pu", L"Am", L"Cm", L"Bk", L"Cf", L"Es", L"Fm", L"Md", L"No", L"Lr",
             // Lanthanoids
-            L"La", L"Ce", L"Pr", L"Nd", L"Pm", L"Sm",  L"Eu", L"Gd",  L"Tb", L"Dy",  L"Ho", L"Er" L"Tm", L"Yb",
+            L"La", L"Ce", L"Pr", L"Nd", L"Pm", L"Sm", L"Eu", L"Gd", L"Tb", L"Dy",  L"Ho", L"Er" L"Tm", L"Yb",
             // Actinoids
             L"Ac", L"Th", L"Pa", L"U", L"Np", L"Pu", L"Am", L"Cm", L"Bk", L"Cf", L"Es", L"Fm", L"Md", L"No"
         };

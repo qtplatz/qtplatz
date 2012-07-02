@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="../../../lib/qtplatz\Aggregationd.lib ../../../lib/qtplatz\ExtensionSystemd.lib ../../../lib/qtplatz\Utilsd.lib ../../../lib/qtplatz/adplugind.lib ../../../lib/qtplatz/adportabled.lib ../../../lib/qtplatz/xmlparserd.lib ../../../lib/qtplatz/qtwrapperd.lib Cored.lib $(QTDIR)\lib\QtTestd4.lib $(QTDIR)\lib\QtGuid4.lib $(QTDIR)\lib\QtCored4.lib $(QTDIR)\lib\QtWebKitd4.lib"
+				AdditionalDependencies="../../../lib/qtplatz\Aggregationd.lib ../../../lib/qtplatz\ExtensionSystemd.lib ../../../lib/qtplatz\Utilsd.lib ../../../lib/qtplatz/adplugind.lib ../../../lib/qtplatz/adportabled.lib ../../../lib/qtplatz/xmlparserd.lib ../../../lib/qtplatz/qtwrapperd.lib Cored.lib $(QTDIR)\lib\QtTestd4.lib $(QTDIR)\lib\QtGuid4.lib $(QTDIR)\lib\QtCored4.lib $(QTDIR)\lib\QtWebKitd4.lib $(QTDIR)\lib\QtNetworkd4.lib"
 				OutputFile="$(OutDir)ChemSpiderd.dll"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(SolutionDir)lib/qtplatz&quot;;&quot;$(BOOST_ROOT)/lib&quot;;&quot;$(TargetDir)&quot;;&quot;$(SolutionDir)lib/qtplatz/plugins/Nokia&quot;"
@@ -163,7 +163,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="../../../lib/qtplatz\Aggregation.lib ../../../lib/qtplatz\ExtensionSystem.lib ../../../lib/qtplatz\Utils.lib ../../../lib/qtplatz/adplugin.lib ../../../lib/qtplatz/adportable.lib ../../../lib/qtplatz/xmlparser.lib ../../../lib/qtplatz/qtwrapper.lib Core.lib $(QTDIR)\lib\QtWebKit4.lib $(QTDIR)\lib\QtTest4.lib $(QTDIR)\lib\QtGui4.lib $(QTDIR)\lib\QtCore4.lib"
+				AdditionalDependencies="../../../lib/qtplatz\Aggregation.lib ../../../lib/qtplatz\ExtensionSystem.lib ../../../lib/qtplatz\Utils.lib ../../../lib/qtplatz/adplugin.lib ../../../lib/qtplatz/adportable.lib ../../../lib/qtplatz/xmlparser.lib ../../../lib/qtplatz/qtwrapper.lib Core.lib $(QTDIR)\lib\QtWebKit4.lib $(QTDIR)\lib\QtTest4.lib $(QTDIR)\lib\QtGui4.lib $(QTDIR)\lib\QtCore4.lib $(QTDIr)\lib\QtNetwork4.lib"
 				OutputFile="$(OutDir)ChemSpider.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

@@ -24,6 +24,7 @@
 
 #include "massspecform.hpp"
 #include "ui_massspecform.h"
+#include <QtNetwork/QtNetwork>
 #include <iostream>
 #include <istream>
 #include <ostream>
