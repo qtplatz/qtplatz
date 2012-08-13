@@ -33,6 +33,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <numeric>
+#include <iostream>
 #include <boost/utility.hpp>
 #include <boost/math/special_functions/factorials.hpp>
 
@@ -57,6 +58,29 @@ struct term {
 	}
 };
 
+struct partial_molecular_mass {
+	static double combination( size_t n, size_t r ) {
+		double a = n;
+		if ( r > 0 ) {
+			size_t x = n; 
+			while ( --x > ( n - r ) )
+				a *= x;
+			do {
+				a /= r;
+			} while( --r );
+			return a;
+		}
+		return 0;
+	}
+
+	static double factorial( size_t n ) {
+        double d = n;
+		while ( n-- != 1 )
+			d = d * n;
+		return d;
+	}
+};
+
 int
 main(int argc, char *argv[])
 {
@@ -70,9 +94,12 @@ main(int argc, char *argv[])
     // (x + y)^n = x^k * y^(n - k)
     // (n,k) = nCk
 	// double nCk = boost::n! / ( n - k )! * k!;
-    int nterm = 2;
-    for ( int k = 1; k <= nterm; ++k ) 
-		std::cout << nterm << ", " << k << ", " << boost::math::factorial( nterm ) << std::endl;
+    int nterm = 100;
+	for ( int k = 1; k <= nterm; ++k ) {
+		double nCk = partial_molecular_mass::factorial( nterm ) / 
+			( partial_molecular_mass::factorial( nterm - k ) * partial_molecular_mass::factorial( k ) );
+		std::cout << nterm << ", " << k << ", " << nCk << ", " << partial_molecular_mass::combination( nterm, k ) << std::endl;
+	}
 
     return 0;
 }
