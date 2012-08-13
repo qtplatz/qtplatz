@@ -5,6 +5,7 @@ SUBDIRS = meditor \
     searchbox \
     signalsampling \
     molviewer \
-    combination
+    combination \
+    polynomial_expansion
 
 unix:!macx:!isEmpty(copydata):SUBDIRS += bin
