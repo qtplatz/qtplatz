@@ -9,11 +9,10 @@ QT       += gui
 TARGET = adplugin
 TEMPLATE = lib
 include(../../qtplatz_library.pri)
-include(../../boost.pri)
 include(../../ace_tao.pri)
+include(../../boost.pri)
 INCLUDEPATH += $$OUT_PWD/..
 
-LIBS += -L$(ACE_ROOT)/lib
 LIBS += -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(adportable) \
