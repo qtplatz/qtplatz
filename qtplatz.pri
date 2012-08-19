@@ -1,4 +1,3 @@
-#CONFIG += debug
 
 defineReplace(cleanPath) {
     win32:1 ~= s|\\\\|/|g
@@ -66,7 +65,8 @@ macx {
     IDE_LIBEXEC_PATH = $$IDE_APP_PATH/$${IDE_APP_TARGET}.app/Contents/Resources
     IDE_DATA_PATH    = $$IDE_APP_PATH/$${IDE_APP_TARGET}.app/Contents/Resources
     IDE_DOC_PATH     = $$IDE_DATA_PATH/doc
-    contains(QT_CONFIG, ppc):CONFIG += ppc x86
+#    contains(QT_CONFIG, ppc):CONFIG += ppc x86
+    CONFIG += m64
     copydata = 1
 } else {
     win32 {
