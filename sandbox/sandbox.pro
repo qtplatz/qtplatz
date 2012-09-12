@@ -6,6 +6,8 @@ SUBDIRS = meditor \
     signalsampling \
     molviewer \
     combination \
-    polynomial_expansion
+    polynomial_expansion \
+    boost_ssl_server \
+    boost_ssl_client
 
 unix:!macx:!isEmpty(copydata):SUBDIRS += bin

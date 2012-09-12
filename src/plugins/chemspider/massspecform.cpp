@@ -28,6 +28,7 @@
 #include <iostream>
 #include <istream>
 #include <ostream>
+#include <fstream>
 #include <string>
 #define _WIN32_WINNT 0x0700
 #include <boost/asio.hpp>
@@ -46,6 +47,8 @@ MassSpecForm::~MassSpecForm()
     delete ui;
 }
 
+// ChemSpider security token: 9cb99bff-6565-4e8d-b403-56da3d0d378e
+
 static const char * getdatabase = 
 "<?xml version=\"1.0\" encoding=\"utf-8\"?> \
 <soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"> \
@@ -58,6 +61,8 @@ void
 MassSpecForm::invoke_db_clicked()
 {
 	using boost::asio::ip::tcp;
+
+	std::ofstream of( "response.txt", std::ios_base::out );
 
 	boost::asio::io_service io_service;
 /*
@@ -102,8 +107,10 @@ MassSpecForm::invoke_db_clicked()
 	std::istream response_stream( &response );
 	std::string html;
 	while ( response_stream ) {
-		if ( std::getline( response_stream, html ) )
+		if ( std::getline( response_stream, html ) ) {
 			ui->textBrowser->append( html.c_str() );
+			of << html.c_str();
+		}
 	} 
 }
 
