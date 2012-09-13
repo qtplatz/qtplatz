@@ -6,6 +6,6 @@ win32 {
     INCLUDEPATH += $${BOOST}/include/boost-1_50
     LIBS += -L$${BOOST}/lib
 } else {
-    INCLUDEPATH += /usr/local/include
-    LIBS += -L/usr/local/lib
+    INCLUDEPATH += /usr/local/boost-1_50/include
+    LIBS += -L/usr/local/boost-1_50/lib
 }

@@ -26,6 +26,7 @@ moc_*.cpp
 ui_*.h
 qrc_*.cpp
 *.log
+*.adfs
 
 # qtcreator generated files
 *.pro.user
