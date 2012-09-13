@@ -6,6 +6,11 @@
 
 QT       += core
 QT       -= gui
+win32 {
+  DEFINES += _WIN32_WINNT=0X0501
+} else {
+}
+
 include(../../src/boost.pri)
 include(../../src/openssl.pri)
 
