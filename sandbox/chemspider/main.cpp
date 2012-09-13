@@ -115,6 +115,13 @@ main(int argc, char *argv[])
 		std::cout << ex.what();
 	}
 
+	std::string line;
+	while ( std::getline( response_stream, line ) ) {
+		if ( line == "\n" || line == "\r" )
+			break;
+		std::cout << line << std::endl;
+	}
+
 	do {
 		std::ofstream of( "response.xml" );
 		of << &response;
