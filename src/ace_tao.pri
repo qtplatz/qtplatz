@@ -3,5 +3,5 @@ win32 {
       INCLUDEPATH *= $$(TAO_ROOT)
 } else {
       INCLUDEPATH *= $$(ACE_ROOT)/include
-      LIBS += -L$$(ACE_ROOT)/lib
+      QMAKE_LFLAGS += -L$$(ACE_ROOT)/lib -R$$(ACE_ROOT)/lib
 }
