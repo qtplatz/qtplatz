@@ -9,6 +9,6 @@ win32 {
       LIBS += -L$${BOOST}/lib
 } else {
       INCLUDEPATH += /usr/local/$${BOOST_VERSION}/include
-      QMAKE_LFLAGS += -L/usr/local/$${BOOST_VERSION}/lib -R/usr/local/$${BOOST_VERSION}/lib
+      QMAKE_LFLAGS += -L/usr/local/$${BOOST_VERSION}/lib
 }
 
