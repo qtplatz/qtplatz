@@ -44,6 +44,8 @@ qrc_*.cpp
 *.pdb
 *.suo
 *vcproj.*.*.user
+*.sdf
+*.sln
 *.vcxproj
 *.vcxproj.*
 *.ncb
