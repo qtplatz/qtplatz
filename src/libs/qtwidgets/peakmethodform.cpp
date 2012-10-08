@@ -38,10 +38,10 @@ using namespace qtwidgets;
 
 PeakMethodForm::PeakMethodForm(QWidget *parent) : QWidget(parent)
                                                 , ui(new Ui::PeakMethodForm)
-												, pModel_( new QStandardItemModel )
-												, pConfig_( new adportable::Configuration )
-												, pMethod_( new adcontrols::PeakMethod ) 
-												, pDelegate_( new PeakMethodDelegate )
+						, pModel_( new QStandardItemModel )
+						, pConfig_( new adportable::Configuration )
+						, pMethod_( new adcontrols::PeakMethod ) 
+						, pDelegate_( new PeakMethodDelegate )
 {
     ui->setupUi(this);
     ui->treeView->setModel( pModel_.get() );
@@ -109,6 +109,7 @@ PeakMethodForm::getContents( adcontrols::ProcessMethod& pm )
 {
     QStandardItemModel& model = *pModel_;
     QStandardItem * root = model.invisibleRootItem();
+    (void)root;
 /*
     QVariant v = model.index( 0, 1, root->index() ).data( Qt::EditRole );
     pMethod_->polynomialDegree( v.toInt() );
