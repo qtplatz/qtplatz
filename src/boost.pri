@@ -2,9 +2,7 @@ BOOST_VERSION=boost-1_51
 
 win32 {
       BOOST = $$(BOOST_ROOT)
-      iSEmpty( BOOST ) {
-      	       BOOST = C:/Boost
-      }
+      isEmpty( BOOST ) BOOST = C:/Boost
       INCLUDEPATH += $${BOOST}/include/$${BOOST_VERSION}
       LIBS += -L$${BOOST}/lib
 } else {
