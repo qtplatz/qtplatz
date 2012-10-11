@@ -117,6 +117,7 @@ DataprocPlugin::DataprocPlugin() : pSessionManager_( new SessionManager() )
                                  , currentFeature_( CentroidProcess )
 {
     instance_ = this;
+    ACE::init();
 }
 
 // static

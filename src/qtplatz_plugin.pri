@@ -15,12 +15,12 @@ isEmpty(TARGET) {
     error("qtpluts_plugin.pri: You must provide a TARGET")
 }
 
-CONFIGSPECS = $${_PRO_FILE_PWD_}/$${TARGET}.config.xml
-exists( $$CONFIGSPECS ) {
-  CONFIGXML += $$CONFIGSPECS
+PLUGINSPECS = $${_PRO_FILE_PWD_}/$${TARGET}.pluginspec
+CONFIGFILE = $${_PRO_FILE_PWD_}/$${TARGET}.config.xml
+exists( $$CONFIGFILE ) {
+  PLUGINSPECS += $$CONFIGFILE
 }
 
-PLUGINSPECS = $${_PRO_FILE_PWD_}/$${TARGET}.pluginspec
 copy2build.input = PLUGINSPECS CONFIGXML
 copy2build.output = $$DESTDIR/${QMAKE_FUNC_FILE_IN_stripSrcDir}
 isEmpty(vcproj):copy2build.variable_out = PRE_TARGETDEPS

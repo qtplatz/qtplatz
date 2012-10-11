@@ -109,7 +109,7 @@ TAO_IDL = tao_idl
 tao_idlC.name = TAO_IDL_C ${QMAKE_FILE_IN}
 tao_idlC.input = IDLFILES
 tao_idlC.output = ${QMAKE_FILE_BASE}C.cpp
-tao_idlC.variable_out = GENERATED_FILES
+isEmpty(vcproj):tao_idlC.variable_out = GENERATED_FILES
 tao_idlC.depends = ${QMAKE_FILE_IN}
 tao_idlC.commands = $${TAO_IDL} -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) -I$${PWD} -I. ${QMAKE_FILE_IN}
 tao_idlC.CONFIG = no_link
