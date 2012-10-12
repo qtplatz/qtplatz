@@ -6,7 +6,7 @@ include(extensionsystem_dependencies.pri)
 
 unix:!macx:!freebsd*:LIBS += -ldl
 
-win32 {
+!isEmpty(vcproj) {
   DEFINES	+= IDE_TEST_DIR=\"$$IDE_SOURCE_TREE\"
 } else {
   DEFINES	+= IDE_TEST_DIR=\\\"$$IDE_SOURCE_TREE\\\"
