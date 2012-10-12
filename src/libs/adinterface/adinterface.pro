@@ -29,137 +29,49 @@ IDLFILES += \
 
 SOURCES += interface.cpp \
         eventlog_helper.cpp \
-    controlmethodhelper.cpp
+    	controlmethodhelper.cpp
 
 HEADERS += interface.hpp \
         eventlog_helper.hpp \
-    controlmethodhelper.hpp
+        controlmethodhelper.hpp
 
-PRE_TARGETDEPS += eventlogC.cpp controlmethodC.cpp
+for(idl, IDLFILES): PRE_TARGETDEPS += $$replace( idl, ".idl", "C.cpp" )
 
-QMAKE_CLEAN += brokereventS.h \
-               brokereventS.cpp \
-               brokereventS.inl \
-               brokereventC.h \
-               brokereventC.cpp \
-               brokereventC.inl \
-               controlmethodS.h \
-               controlmethodS.cpp \
-               controlmethodS.inl \
-               controlmethodC.h \
-               controlmethodC.cpp \
-               controlmethodC.inl \
-               controlserverS.h \
-               controlserverS.cpp \
-               controlserverS.inl \
-               controlserverC.h \
-               controlserverC.cpp \
-               controlserverC.inl \
-               global_constantsS.h \
-               global_constantsS.cpp \
-               global_constantsS.inl \
-               global_constantsC.h \
-               global_constantsC.cpp \
-               global_constantsC.inl \
-               eventlogS.h \
-               eventlogS.cpp \
-               eventlogS.inl \
-               eventlogC.h \
-               eventlogC.cpp \
-               eventlogC.inl \
-               instrumentS.h \
-               instrumentS.cpp \
-               instrumentS.inl \
-               instrumentC.h \
-               instrumentC.cpp \
-               instrumentC.inl \
-               loghandlerS.h \
-               loghandlerS.cpp \
-               loghandlerS.inl \
-               loghandlerC.h \
-               loghandlerC.cpp \
-               loghandlerC.inl \
-               receiverS.h \
-               receiverS.cpp \
-               receiverS.inl \
-               receiverC.h \
-               receiverC.cpp \
-               receiverC.inl \
-               samplebrokerS.h \
-               samplebrokerS.cpp \
-               samplebrokerS.inl \
-               samplebrokerC.h \
-               samplebrokerC.cpp \
-               samplebrokerC.inl \
-               signalobserverS.h \
-               signalobserverS.cpp \
-               signalobserverS.inl \
-               signalobserverC.h \
-               signalobserverC.cpp \
-               signalobserverC.inl \
-               brokerS.h \
-               brokerS.cpp \
-               brokerS.inl \
-               brokerC.h \
-               brokerC.cpp \
-               brokerC.inl
-               
 TAO_IDL = tao_idl
 
 tao_idlC.name = TAO_IDL_C ${QMAKE_FILE_IN}
 tao_idlC.input = IDLFILES
 tao_idlC.output = ${QMAKE_FILE_BASE}C.cpp
-isEmpty(vcproj):tao_idlC.variable_out = GENERATED_FILES
-tao_idlC.depends = ${QMAKE_FILE_IN}
+tao_idlC.clean = ${QMAKE_FILE_BASE}C.cpp ${QMAKE_FILE_BASE}C.h ${QMAKE_FILE_BASE}C.inl
 tao_idlC.commands = $${TAO_IDL} -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) -I$${PWD} -I. ${QMAKE_FILE_IN}
 tao_idlC.CONFIG = no_link
+tao_idlC.depends = ${QMAKE_FILE_IN}
+isEmpty(vcproj): tao_idlC.variable_out = SOURCES
 QMAKE_EXTRA_COMPILERS += tao_idlC
-tao_idlC.variable_out = SOURCES
 
-## following is the workaournd for qmake, which does not support multiple output on qake_extra_compiler
+## following is the workaournd for qmake, which does not support multiple output on qmake_extra_compiler
 
 tao_idlS.input = IDLFILES
 tao_idlS.output = ${QMAKE_FILE_BASE}S.cpp
-tao_idlS.variable_out = GENERATED_FILES
-tao_idlS.depends = ${QMAKE_FILE_IN}
-tao_idlS.commands = tao_idl -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) -I$${PWD} -I. ${QMAKE_FILE_IN}
+tao_idlS.clean = ${QMAKE_FILE_BASE}S.cpp ${QMAKE_FILE_BASE}S.h ${QMAKE_FILE_BASE}S.inl
+tao_idlS.commands = @echo ===> tao_idl ${QMAKE_FILE_IN}
 tao_idlS.name = TAO_IDL_S ${QMAKE_FILE_IN}
 tao_idlS.CONFIG = no_link
+tao_idlS.depends = ${QMAKE_FILE_IN}
+isEmpty(vcproj): tao_idlS.variable_out = SOURCES
 QMAKE_EXTRA_COMPILERS += tao_idlS
-tao_idlS.variable_out = SOURCES
-
-GENERATED_FILES += \
-        brokerC.cpp \
-        brokerS.cpp \
-        brokereventC.cpp \
-        brokereventS.cpp \
-    controlserverC.cpp \
-	controlserverS.cpp \
-	controlmethodC.cpp \ 
-	controlmethodS.cpp \ 
-	global_constantsC.cpp \
-	global_constantsS.cpp \
-	receiverC.cpp \
-	receiverS.cpp \
-	samplebrokerC.cpp \
-        samplebrokerS.cpp \
-    signalobserverC.cpp \
-    signalobserverS.cpp \
-    eventlogC.h
-
 
 OTHER_FILES += \
-    broker.idl \
-    brokerevent.idl \
-    controlmethod.idl \
-    controlserver.idl \
-    eventlog.idl \
-    global_constants.idl \
-    instrument.idl \
-    loghandler.idl \
-    receiver.idl \
-    samplebroker.idl \
-    signalobserver.idl \
     adinterface_dependencies.pri
 
+!isEmpty(vcproj) {
+  for(idl, IDLFILES): OBJECTIVE_SOURCES += $$replace( idl, ".idl", "C.cpp" )
+  for(idl, IDLFILES): OBJECTIVE_SOURCES += $$replace( idl, ".idl", "S.cpp" )
+  INCREDIBUILD_XGE += tao_idlC
+#  idl_cc.input = OBJECTIVE_SOURCES
+#  idl_cc.commands = ${QMAKE_RUN_CXX} ${QMAKE_FILE_IN}
+#  idl_cc.variable_out = OBJECTS
+#  idl_cc.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_IN_BASE}$${first(QMAKE_EXT_OBJ)}
+#  QMAKE_EXTRA_COMPILERS += idl_cc
+}
 
