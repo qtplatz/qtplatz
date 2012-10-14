@@ -27,6 +27,8 @@ ui_*.h
 qrc_*.cpp
 *.log
 *.adfs
+src/libs/adinterface/*.cxx
+qtplatz.opensdf
 
 # qtcreator generated files
 *.pro.user
