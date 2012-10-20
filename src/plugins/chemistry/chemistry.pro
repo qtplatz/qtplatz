@@ -45,11 +45,4 @@ win32 {
     for(file, FILES) {
        QMAKE_POST_LINK +=$$quote(cmd /c copy /y $${file} $${dest}$$escape_expand(\\n\\t))
     }
-#    copy2app.input = FILES
-#    copy2app.output = $$IDE_APP_PATH #/${QMAKE_FUNC_FILE_IN_stripSrcDir}
-#    isEmpty(vcproj):copy2app.variable_out = PRE_TARGETDEPS
-#    copy2app.commands = $${QMAKE_COPY} ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
-#    copy2app.name = COPY ${QMAKE_FILE_IN}
-#    copy2app.CONFIG += no_link no_clean
-#    QMAKE_EXTRA_COMPILERS += copy2app
 }
