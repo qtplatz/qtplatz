@@ -148,22 +148,6 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
 		//toolBarAddingLayout->addWidget( toolBar );
 		toolBarAddingLayout->addWidget( splitter3 );
 		//toolBarAddingLayout->addWidget( toolBar2 );
-
-/*
-		// connections
-		for ( std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
-			connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-				, *it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
-			connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-				, *it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
-			connect( this, SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
-				, *it, SLOT( onApplyMethod( const adcontrols::ProcessMethod& ) ) );
-		}
-		connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-			, manager_.get(), SLOT( handleSessionAdded( Dataprocessor* ) ) );
-		connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-			, manager_.get(), SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
-*/
 	} while(0);
 
     manager_->setSimpleDockWidgetArrangement();
@@ -174,7 +158,8 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
 	return true;
 }
 
-void ChemSpiderPlugin::extensionsInitialized()
+void
+ChemSpiderPlugin::extensionsInitialized()
 {
     Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
     manager_->OnInitialUpdate();

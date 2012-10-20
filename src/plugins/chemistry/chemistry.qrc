@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/chmistry">
+        <file>images/babel130.png</file>
+    </qresource>
+</RCC>
