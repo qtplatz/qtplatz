@@ -22,33 +22,43 @@
 **
 **************************************************************************/
 
-#include "sdfileview.hpp"
-#include "ui_sdfileview.h"
+#ifndef CHEMEDITORFACTORY_HPP
+#define CHEMEDITORFACTORY_HPP
 
-#include <openbabel/babelconfig.h>
-#include <openbabel/obconversion.h>
-#include <openbabel/mol.h>
+#include <coreplugin/editormanager/ieditorfactory.h>
+#include <QStringList>
 
-SDFileView::SDFileView(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::SDFileView)
-{
-    ui->setupUi(this);
-#if 0
-	OpenBabel::OBConversion obconversion;
-    OpenBabel::OBMol mol;
-    std::string fname = "Z:/SkyDrive/MOL/common-names.sdf";
-	OpenBabel::OBFormat * informat = obconversion.FormatFromExt( fname.c_str() );
-	obconversion.SetInFormat( informat );
-	bool noteatend = obconversion.ReadFile( &mol, fname );
-	while ( noteatend ) {
-		std::string formula = mol.GetFormula();
-		break;
-	}
-#endif
+namespace Core { class IEditor; }
+
+namespace Chemistry { namespace Internal {
+
+	class ChemEditorFactory : public Core::IEditorFactory {
+		Q_OBJECT
+	public:
+        ~ChemEditorFactory();
+		explicit ChemEditorFactory(QObject * owner, const QStringList& );
+
+        void setEditor( QWidget * );
+
+		// implement IEditorFactory
+		virtual Core::IEditor *createEditor(QWidget *parent);
+		
+		// implement IFileFactory
+		virtual QStringList mimeTypes() const;
+		virtual QString kind() const;
+		virtual Core::IFile * open(const QString& filename );
+		// <---
+    signals:
+    
+	public slots:
+
+	private:
+		QString kind_;
+		QStringList mimeTypes_;
+		QWidget * editorWidget_;
+	};
+
+}
 }
 
-SDFileView::~SDFileView()
-{
-    delete ui;
-}
+#endif // CHEMEDITORFACTORY_HPP

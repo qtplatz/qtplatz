@@ -1,5 +1,6 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -22,33 +23,16 @@
 **
 **************************************************************************/
 
-#include "sdfileview.hpp"
-#include "ui_sdfileview.h"
+#ifndef CONSTANTS_HPP
+#define CONSTANTS_HPP
 
-#include <openbabel/babelconfig.h>
-#include <openbabel/obconversion.h>
-#include <openbabel/mol.h>
-
-SDFileView::SDFileView(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::SDFileView)
-{
-    ui->setupUi(this);
-#if 0
-	OpenBabel::OBConversion obconversion;
-    OpenBabel::OBMol mol;
-    std::string fname = "Z:/SkyDrive/MOL/common-names.sdf";
-	OpenBabel::OBFormat * informat = obconversion.FormatFromExt( fname.c_str() );
-	obconversion.SetInFormat( informat );
-	bool noteatend = obconversion.ReadFile( &mol, fname );
-	while ( noteatend ) {
-		std::string formula = mol.GetFormula();
-		break;
-	}
-#endif
+namespace Chemistry {
+    namespace Constants {
+        const char * const C_CHEM_EDITOR = "ChemEditor";
+        const char * const C_SDF_MIMETYPE = "application/sdf";
+        const char * const C_MOL_MIMETYPE = "application/mol";
+    }
 }
 
-SDFileView::~SDFileView()
-{
-    delete ui;
-}
+
+#endif // CONSTANTS_HPP

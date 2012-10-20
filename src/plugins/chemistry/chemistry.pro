@@ -14,14 +14,20 @@ DEFINES += CHEMISTRY_LIBRARY
 SOURCES += chemistryplugin.cpp \
     chemistrymode.cpp \
     chemistrymanager.cpp \
-    sdfileview.cpp
+    sdfileview.cpp \
+    chemeditor.cpp \
+    chemeditorfactory.cpp \
+    chemfile.cpp
 
 HEADERS += chemistryplugin.hpp\
         chemistry_global.hpp\
         chemistryconstants.hpp \
     	chemistrymode.hpp \
     	chemistrymanager.hpp \
-    	sdfileview.hpp
+    	sdfileview.hpp \
+    chemeditor.hpp \
+    chemeditorfactory.hpp \
+    chemfile.hpp
 
 OTHER_FILES = Chemistry.pluginspec
 

@@ -80,7 +80,6 @@ HEADERS += centroiddelegate.hpp \
         molwidget.hpp \
         isotopeform.hpp \
         isotopedelegate.hpp \
-        qctable.hpp \
         peakmethodform.hpp \
         peakmethoddelegate.hpp
 
@@ -95,8 +94,7 @@ FORMS += \
     isotopeform.ui \
     peakmethodform.ui
 
-RESOURCES += \
-    resources.qrc
+RESOURCES +=
 
 #OTHER_FILES += \
 #    qml/ProcessMethodEditor.qml \
