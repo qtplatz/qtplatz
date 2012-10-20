@@ -25,11 +25,26 @@
 #include "sdfileview.hpp"
 #include "ui_sdfileview.h"
 
+#include <openbabel/babelconfig.h>
+#include <openbabel/obconversion.h>
+#include <openbabel/mol.h>
+
 SDFileView::SDFileView(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SDFileView)
 {
     ui->setupUi(this);
+
+	OpenBabel::OBConversion obconversion;
+    OpenBabel::OBMol mol;
+    std::string fname = "Z:/SkyDrive/MOL/common-names.sdf";
+	OpenBabel::OBFormat * informat = obconversion.FormatFromExt( fname.c_str() );
+	obconversion.SetInFormat( informat );
+	bool noteatend = obconversion.ReadFile( &mol, fname );
+	while ( noteatend ) {
+		std::string formula = mol.GetFormula();
+		break;
+	}
 }
 
 SDFileView::~SDFileView()

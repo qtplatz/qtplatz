@@ -24,7 +24,7 @@
 #ifndef CHEMISTRY_H
 #define CHEMISTRY_H
 
-#include "chemistry_global.h"
+#include "chemistry_global.hpp"
 #include <extensionsystem/iplugin.h>
 #include <boost/smart_ptr.hpp>
 

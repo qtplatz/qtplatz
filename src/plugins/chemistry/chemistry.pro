@@ -39,12 +39,17 @@ FORMS += \
     sdfileview.ui
 
 win32 {
-    # for(file, OPENBABEL_DLLS)  FILE += $$replace(file, /, $$QMAKE_DIR_SEP)
-    copy2build.input = OPENBABEL_DLLS
-    copy2build.output = $$IDE_APP_PATH
-    isEmpty(vcproj):copy2build.variable_out = PRE_TARGETDEPS
-    copy2build.commands = $${QMAKE_COPY} \"${QMAKE_FILE_IN}\" \"${QMAKE_FILE_OUT}\"
-    copy2build.name = COPY ${QMAKE_FILE_IN}
-    copy2build.CONFIG += no_link no_clean
-    QMAKE_EXTRA_COMPILERS += copy2build
+    for(file, OPENBABEL_DLLS ) FILES += $$replace(file, /, $$QMAKE_DIR_SEP)
+    for(file, OPENBABEL_FILES) FILES += $$replace(file, /, $$QMAKE_DIR_SEP)
+    dest = $$replace(IDE_APP_PATH, /, $$QMAKE_DIR_SEP)
+    for(file, FILES) {
+       QMAKE_POST_LINK +=$$quote(cmd /c copy /y $${file} $${dest}$$escape_expand(\\n\\t))
+    }
+#    copy2app.input = FILES
+#    copy2app.output = $$IDE_APP_PATH #/${QMAKE_FUNC_FILE_IN_stripSrcDir}
+#    isEmpty(vcproj):copy2app.variable_out = PRE_TARGETDEPS
+#    copy2app.commands = $${QMAKE_COPY} ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
+#    copy2app.name = COPY ${QMAKE_FILE_IN}
+#    copy2app.CONFIG += no_link no_clean
+#    QMAKE_EXTRA_COMPILERS += copy2app
 }
