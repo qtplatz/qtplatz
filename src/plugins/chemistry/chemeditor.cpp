@@ -51,9 +51,8 @@ ChemEditor::ChemEditor( QWidget * widget
 {
     Core::UniqueIDManager * uidm = Core::UniqueIDManager::instance();
     context_ << uidm->uniqueIdentifier( Constants::C_CHEM_EDITOR );
-
-    connect( editorWidget_, SIGNAL( titleChanged(QString) ), this, SLOT( slotTitleChanged(QString) ) );
-    connect( editorWidget_, SIGNAL( contentModified() ), this, SIGNAL( changed() ) );
+	//connect( editorWidget_, SIGNAL( titleChanged(QString) ), this, SLOT( slotTitleChanged(QString) ) );
+	//connect( editorWidget_, SIGNAL( contentModified() ), this, SIGNAL( changed() ) );
 }
 
 ChemEditor::~ChemEditor()
@@ -80,29 +79,9 @@ ChemEditor::open( const QString &qfilename )
 		Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
         if ( filemgr->addFile( file_.get() ) )
 			filemgr->addToRecentFiles( qfilename );
-
+		return true;
 	}
-	// OpenBabel::OBMol mol;
-	//obconversion.SetInFormat( informat );
-	//bool noteatend = obconversion.ReadFile( &mol, fname );
-	//while ( noteatend ) {
-	//std::string formula = mol.GetFormula();
-	//break;
-   //}
-/*
-    boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
-    if ( processor->open( filename ) ) {
-        SessionManager::instance()->addDataprocessor( processor );
-
-        Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
-        if ( filemgr->addFile( processor->ifile() ) )
-            filemgr->addToRecentFiles( filename );
-
-        file_ = processor->ifile();
-        return file_; // processor->ifile();
-    }
-*/
-	return true;
+	return false;
 }
 
 Core::IFile *

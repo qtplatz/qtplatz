@@ -30,6 +30,8 @@
 
 namespace Core { class IEditor; }
 
+class QTabWidget;
+
 namespace Chemistry { namespace Internal {
 
 	class ChemEditorFactory : public Core::IEditorFactory {
@@ -37,8 +39,7 @@ namespace Chemistry { namespace Internal {
 	public:
         ~ChemEditorFactory();
 		explicit ChemEditorFactory(QObject * owner, const QStringList& );
-
-        void setEditor( QWidget * );
+		void setEditor( QTabWidget * );
 
 		// implement IEditorFactory
 		virtual Core::IEditor *createEditor(QWidget *parent);
@@ -55,7 +56,7 @@ namespace Chemistry { namespace Internal {
 	private:
 		QString kind_;
 		QStringList mimeTypes_;
-		QWidget * editorWidget_;
+		QTabWidget * tabWidget_;
 	};
 
 }

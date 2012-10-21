@@ -25,6 +25,7 @@
 #include "chemeditorfactory.hpp"
 #include "chemeditor.hpp"
 #include "constants.hpp"
+#include "sdfileview.hpp"
 
 #include <QTabWidget>
 #include <coreplugin/editormanager/editormanager.h>
@@ -46,7 +47,7 @@ ChemEditorFactory::ChemEditorFactory( QObject * owner,
                                       const QStringList& types ) : Core::IEditorFactory( owner )
                                                                  , mimeTypes_ ( types ) 
 																 , kind_( Constants::C_CHEM_EDITOR )
-                                                                 , editorWidget_(0) 
+                                                                 , tabWidget_(0) 
 {
     mimeTypes_ 
         << Constants::C_SDF_MIMETYPE
@@ -55,19 +56,31 @@ ChemEditorFactory::ChemEditorFactory( QObject * owner,
 }
 
 void
-ChemEditorFactory::setEditor( QWidget * p )
+ChemEditorFactory::setEditor( QTabWidget * p )
 {
-    editorWidget_ = p;
+	tabWidget_ = p;
+
+	{
+	SDFileView * view = new SDFileView;
+	tabWidget_->addTab( view, tr("SDFileView") ); // tab[0]
+	}
+	{
+	SDFileView * view = new SDFileView;
+	tabWidget_->addTab( view, tr("SDFileView") ); // tab[0]
+	}
+
 }
 
 // implementation for IEditorFactory
 Core::IEditor *
-ChemEditorFactory::createEditor( QWidget * /* parent */)
+ChemEditorFactory::createEditor( QWidget * parent )
 {
-    QTabWidget * pTab = new QTabWidget;
-    editorWidget_ = pTab;
-
-    return new ChemEditor( editorWidget_, this );
+    if ( tabWidget_ ) {
+		SDFileView * view = new SDFileView;
+		//tabWidget_->addTab( view, tr("SDF View") );
+		return new ChemEditor( view, this );
+	}
+	return 0;
 }
 
 // implementation for IFileFactory

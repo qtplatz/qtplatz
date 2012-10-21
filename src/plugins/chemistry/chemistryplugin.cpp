@@ -102,6 +102,8 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 		context.append( uidm->uniqueIdentifier( Core::Constants::C_EDITORMANAGER ) );
         mode_->setContext( context );
 	} while( 0 );
+
+    ChemEditorFactory * editorFactory(0);
     do {
        Core::MimeDatabase * mdb = Core::ICore::instance()->mimeDatabase();
        if ( ! mdb )
@@ -110,9 +112,13 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 		   adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes: " << errorString;
 
        QStringList mtypes;
-       mtypes << "application/sdf" << "application/mdl";
-       addAutoReleasedObject( new ChemEditorFactory( this, mtypes ) );
+       mtypes << "application/sdf"
+		      << "application/mdl";
+	   if ( ! ( editorFactory = new ChemEditorFactory( this, mtypes ) ) )
+		   return false;
+	   addAutoReleasedObject( editorFactory );
 	} while( 0 );
+
 	//<-------
 	do {
 		manager_.reset( new ChemistryManager( 0 ) );
@@ -142,9 +148,10 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 		if ( splitter3 ) {
 			QTabWidget * pTab = new QTabWidget;
 			splitter3->addWidget( pTab );
-			SDFileView * view = new SDFileView;
-			pTab->addTab( view, tr("SDFileView") ); // tab[0]
-			view->show();
+			editorFactory->setEditor( pTab );
+			// SDFileView * view = new SDFileView;
+			// pTab->addTab( view, tr("SDFileView") ); // tab[0]
+			// view->show();
 		}
 		QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
 		toolBarAddingLayout->setMargin(0);

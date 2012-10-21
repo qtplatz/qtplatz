@@ -58,8 +58,7 @@ ChemFile::open( const QString& qfilename, const OpenBabel::OBFormat * informat )
 		obconversion_->SetInFormat( const_cast< OpenBabel::OBFormat *>( informat ) );
 		return true;
 	}
-
-	return true;
+	return false;
 }
 
 void
