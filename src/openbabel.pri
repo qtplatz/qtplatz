@@ -1,11 +1,13 @@
 
 include ( ./cleanpath.pri )
+OPENBABEL_SRC = $$(OPENBABEL_SRC)    # copy from env
+OPENBABEL_ROOT = $$(OPENBABEL_ROOT)  # copy from env
 
-isEmpty( $$OPENBABEL_SRC ) {
+isEmpty( OPENBABEL_SRC ) {
     win32: OPENBABEL_SRC = $$cleanPath( $$PWD/../../openbabel )
 }
 
-isEmpty( $$OPENBABEL_ROOT ) {
+isEmpty( OPENBABEL_ROOT ) {
     win32: OPENBABEL_ROOT = $${OPENBABEL_SRC}/windows-vc2008/install
     else: OPENBABEL_ROOT = /usr/local/openbabel
 }
