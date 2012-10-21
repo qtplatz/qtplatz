@@ -32,6 +32,15 @@
 #include <coreplugin/coreconstants.h>
 #include <QWidget>
 
+#ifdef _MSC_VER
+#pragma warning( disable: 4100 )
+#endif
+#include <openbabel/obconversion.h>
+#include <openbabel/mol.h>
+#ifdef _MSC_VER
+#pragma warning( default: 4100 )
+#endif
+
 using namespace Chemistry::Internal;
 
 ChemEditor::ChemEditor( QWidget * widget
@@ -62,8 +71,24 @@ ChemEditor::createNew( const QString &contents )
 }
 
 bool
-ChemEditor::open( const QString &filename )
+ChemEditor::open( const QString &qfilename )
 {
+	std::string filename( qfilename.toStdString() );
+
+	file_.reset( new ChemFile );
+    if ( file_->open( qfilename, 0 ) ) {
+		Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
+        if ( filemgr->addFile( file_.get() ) )
+			filemgr->addToRecentFiles( qfilename );
+
+	}
+	// OpenBabel::OBMol mol;
+	//obconversion.SetInFormat( informat );
+	//bool noteatend = obconversion.ReadFile( &mol, fname );
+	//while ( noteatend ) {
+	//std::string formula = mol.GetFormula();
+	//break;
+   //}
 /*
     boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
     if ( processor->open( filename ) ) {
@@ -77,13 +102,13 @@ ChemEditor::open( const QString &filename )
         return file_; // processor->ifile();
     }
 */
-    return false;
+	return true;
 }
 
 Core::IFile *
 ChemEditor::file()
 {
-    return file_;
+    return file_.get();
 }
 
 const char *

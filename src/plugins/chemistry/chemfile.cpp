@@ -23,10 +23,9 @@
 **************************************************************************/
 
 #include "chemfile.hpp"
-// #include "dataprocessor.hpp"
-// #include <adcontrols/lcmsdataset.hpp>
-// #include <adcontrols/processeddataset.hpp>
-// #include <adcontrols/massspectrum.hpp>
+#include <openbabel/babelconfig.h>
+#include <openbabel/obconversion.h>
+
 #include <qtwrapper/qstring.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folium.hpp>
@@ -41,19 +40,26 @@ ChemFile::~ChemFile()
     // adcontrols::datafile::close( file_ );
 }
 
-
-//ChemFile::ChemFile( adcontrols::datafile * file
-//                    , Dataprocessor& dprocessor
-//                    , QObject *parent) : Core::IFile( parent )
-//                                       , modified_( false )
-//                                       , file_( file )
-//                                       , accessor_( 0 )
-//                                       , dprocessor_( dprocessor ) 
 ChemFile::ChemFile( QObject * parent ) : Core::IFile( parent )
-	                                   , modified_( false )
+	                                                            , modified_( false )
+																, obconversion_( new OpenBabel::OBConversion() )
 {
-//    if ( file_ )
-//        filename_ = QString( qtwrapper::qstring::copy( file_->filename() ) );
+}
+
+bool
+ChemFile::open( const QString& qfilename, const OpenBabel::OBFormat * informat )
+{
+    qfilename_ = qfilename;
+	filename_ = qfilename_.toStdString();
+    if ( informat == 0 )
+		informat = OpenBabel::OBConversion::FormatFromExt( filename_.c_str() );
+
+	if ( informat ) {
+		obconversion_->SetInFormat( const_cast< OpenBabel::OBFormat *>( informat ) );
+		return true;
+	}
+
+	return true;
 }
 
 void
@@ -78,42 +84,15 @@ ChemFile::mimeType() const
 }
 
 bool
-ChemFile::save( const QString& filename )
+ChemFile::save( const QString& /* filename */ )
 {
-/*
-    portfolio::Portfolio portfolio = dprocessor_.getPortfolio();
-
-    boost::filesystem::path p( qtwrapper::wstring::copy( filename ) );
-    p.replace_extension( L".adfs" );
-
-    do {
-        boost::filesystem::path xmlfile( filename.toStdString() );
-        xmlfile.replace_extension( ".xml" );
-        boost::filesystem::remove( xmlfile );
-        pugi::xml_document dom;
-        dom.load( pugi::as_utf8( portfolio.xml() ).c_str() );
-        dom.save_file( xmlfile.string().c_str() );
-    } while(0);
-
-    if ( boost::filesystem::path( qtwrapper::wstring::copy( filename_ ) ) == p ) { // same file?
-        // save
-        return this->file().saveContents( L"/Processed", portfolio );
-
-    } else {
-        // saveFileAs -- has to create new file
-        boost::filesystem::remove( boost::filesystem::path( filename.toStdString() ) );
-        boost::scoped_ptr< adcontrols::datafile > file( adcontrols::datafile::create( p.wstring() ) );
-        return file && file->saveContents( L"/Processed", portfolio, this->file() );
-
-    }
-*/
     return true;
 }
 
 QString
 ChemFile::fileName() const
 {
-    return filename_;
+    return qfilename_;
 }
 
 QString

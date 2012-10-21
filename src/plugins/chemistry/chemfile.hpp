@@ -28,15 +28,19 @@
 #include <coreplugin/ifile.h>
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
-#include <vector>
+
+namespace OpenBabel {
+	class OBConversion;
+	class OBFormat;
+}
 
 namespace Chemistry { namespace Internal {
     
-    class ChemFile : public Core::IFile  {
+	class ChemFile : public Core::IFile, boost::noncopyable  {
         Q_OBJECT
     public:
         ~ChemFile();
-        explicit ChemFile( QObject *parent = 0);
+		explicit ChemFile( QObject *parent = 0 );
         
         void setModified( bool bal = true );
 
@@ -52,8 +56,12 @@ namespace Chemistry { namespace Internal {
         virtual bool isReadOnly() const;
         virtual bool isSaveAsAllowed() const;
       
-        virtual void modified(ReloadBehavior *behavior);
+        virtual void modified( ReloadBehavior *behavior );
         virtual void checkPermissions() {}
+		// <---------
+		bool open( const QString& filename, const OpenBabel::OBFormat * );
+		inline OpenBabel::OBConversion& obconversion() { return *obconversion_; }
+		inline const OpenBabel::OBConversion& obconversion() const { return *obconversion_; }
 
     signals:
         
@@ -61,8 +69,10 @@ namespace Chemistry { namespace Internal {
         void modified() { setModified( true ); }
     private:
         const QString mimeType_;
-        QString filename_;
+        QString qfilename_;
+		std::string filename_;
         bool modified_;
+		boost::scoped_ptr< OpenBabel::OBConversion > obconversion_;
     };
     
 }

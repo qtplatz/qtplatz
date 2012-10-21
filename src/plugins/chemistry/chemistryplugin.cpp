@@ -26,7 +26,10 @@
 #include "chemistryconstants.hpp"
 #include "chemistrymode.hpp"
 #include "chemistrymanager.hpp"
+#include "chemeditorfactory.hpp"
 #include "sdfileview.hpp"
+#include "constants.hpp"
+#include <adportable/debug.hpp>
 
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
@@ -34,6 +37,7 @@
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
+#include <coreplugin/mimedatabase.h>
 #include <coreplugin/modemanager.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/minisplitter.h>
@@ -68,6 +72,7 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
+
     Core::ActionManager *am = Core::ICore::instance()->actionManager();
     
     QAction *action = new QAction(tr("Chemistry action"), this);
@@ -89,11 +94,33 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 		mode_.reset( new ChemistryMode( this ) );
 		if ( ! mode_ )
 			return false;
+		QList<int> context;
+		Core::UniqueIDManager * uidm = Core::ICore::instance()->uniqueIDManager();
+		if ( ! uidm )
+			return false;
+		context.append( uidm->uniqueIdentifier( Constants::C_CHEM_EDITOR ) );
+		context.append( uidm->uniqueIdentifier( Core::Constants::C_EDITORMANAGER ) );
+        mode_->setContext( context );
+	} while( 0 );
+    do {
+       Core::MimeDatabase * mdb = Core::ICore::instance()->mimeDatabase();
+       if ( ! mdb )
+		   return false;
+       if ( ! mdb->addMimeTypes( ":/chemistry/mimetype.xml", errorString ) )
+		   adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes: " << errorString;
+
+       QStringList mtypes;
+       mtypes << "application/sdf" << "application/mdl";
+       addAutoReleasedObject( new ChemEditorFactory( this, mtypes ) );
+	} while( 0 );
+	//<-------
+	do {
 		manager_.reset( new ChemistryManager( 0 ) );
 		if ( ! manager_ )
 			return false;
 		manager_->init();
 	} while( 0 );
+
 	//-----------------
 	Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( ! splitter )

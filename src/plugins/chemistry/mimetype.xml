@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
+  <mime-type type="application/sdf">
+      <sub-class-of type="application/txt"/>
+      <comment>MDL Structure-data file</comment>
+      <glob pattern="*.sdf"/>
+  </mime-type>
+  <mime-type type="application/mol">
+    <sub-class-of type="application/txt"/>
+    <comment>MDL MOL file</comment>
+       <glob pattern="*.mol"/>
+    </mime-type>
+</mime-info>

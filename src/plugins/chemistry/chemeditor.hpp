@@ -26,10 +26,13 @@
 #define CHEMEDITOR_HPP
 
 #include <coreplugin/editormanager/ieditor.h>
+#include <boost/smart_ptr.hpp>
 
 namespace Core { class IEditorFactory; }
 
 namespace Chemistry { namespace Internal {
+
+	class ChemFile;
 
 	class ChemEditor : public Core::IEditor {
 		Q_OBJECT
@@ -63,7 +66,8 @@ namespace Chemistry { namespace Internal {
     private:
         QWidget * editorWidget_;
         Core::IEditorFactory * factory_;
-        Core::IFile * file_;
+		// Core::IFile * file_;
+		boost::scoped_ptr< ChemFile > file_;
         QList<int> context_;
         QString displayName_;
    };
