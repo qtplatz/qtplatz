@@ -1,10 +1,10 @@
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fticr", "bruker\fticr\fticr.vcproj", "{B20210D8-5D1F-3CCA-814C-62693030CDB1}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fticr", "bruker\fticr\fticr.vcxproj", "{B20210D8-5D1F-3CCA-814C-62693030CDB1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mzxml", "mzxml\mzxml.vcproj", "{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mzxml", "mzxml\mzxml.vcxproj", "{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compassxtract", "bruker\compassxtract\compassxtract.vcproj", "{B1FFC0E8-6277-3EB4-AB1F-1B3862EC7BC5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compassxtract", "bruker\compassxtract\compassxtract.vcxproj", "{B1FFC0E8-6277-3EB4-AB1F-1B3862EC7BC5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
