@@ -18,11 +18,11 @@ win32 {
     LIBS += -L$${OPENBABEL_ROOT}/bin 
     LIBS += -lopenbabel-2
 } else {
-    INCLUDEPATH += /usr/local/include/openbabel-2.0
+    INCLUDEPATH += /usr/local/include/openbabel-2.0 \
+    		   /usr/include/openbabel-2.0
     QMAKE_LFLAGS += -L/usr/local/lib
     LIBS += -lopenbabel
 }
-
 
 win32 {
     OPENBABEL_EXTLIB_DIR = $${OPENBABEL_SRC}/windows-vc2008/libs/i386
