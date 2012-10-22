@@ -38,7 +38,7 @@ namespace dataproc {
         Q_OBJECT
     public:
         ~DataprocEditor();
-        DataprocEditor( QWidget *, Core::IEditorFactory * );
+        DataprocEditor( Core::IEditorFactory * );
 
         bool portfolio_create( const QString &token );
         // implement Core::IEditor
@@ -65,7 +65,7 @@ namespace dataproc {
         void slotTitleChanged( const QString& title ) { setDisplayName( title ); }
 
     private:
-        QWidget * editorWidget_;
+		QWidget * widget_;  // dummy
         Core::IEditorFactory * factory_;
         Core::IFile * file_;
         QList<int> context_;

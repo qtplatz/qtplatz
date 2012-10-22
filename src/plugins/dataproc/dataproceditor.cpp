@@ -37,9 +37,8 @@
 
 using namespace dataproc;
 
-DataprocEditor::DataprocEditor( QWidget * widget
-                                , Core::IEditorFactory * factory ) : Core::IEditor( widget )
-                                                                   , editorWidget_( widget )
+DataprocEditor::DataprocEditor( Core::IEditorFactory * factory ) : Core::IEditor( 0 )
+                                                                   , widget_( new QWidget ) // dummy for Core::EditorManager
                                                                    , factory_(factory)
                                                                    , file_(0)
 {
@@ -48,12 +47,13 @@ DataprocEditor::DataprocEditor( QWidget * widget
     // context_ << uidm->uniqueIdentifier( Core::Constants::C_EDITORMANAGER );
 
     // connect( editorWidget_, SIGNAL( contentModified() ), file_, SLOT( modified() ) );
-    connect( editorWidget_, SIGNAL( titleChanged(QString) ), this, SLOT( slotTitleChanged(QString) ) );
-    connect( editorWidget_, SIGNAL( contentModified() ), this, SIGNAL( changed() ) );
+	//connect( editorWidget_, SIGNAL( titleChanged(QString) ), this, SLOT( slotTitleChanged(QString) ) );
+	//connect( editorWidget_, SIGNAL( contentModified() ), this, SIGNAL( changed() ) );
 }
 
 DataprocEditor::~DataprocEditor()
 {
+	delete widget_;
 }
 
 // implement Core::IEditor
@@ -163,7 +163,7 @@ DataprocEditor::toolBar()
 QWidget *
 DataprocEditor::widget()
 {
-    return editorWidget_;
+    return widget_;
 }
 
 QList<int>

@@ -67,11 +67,7 @@ DataprocessorFactory::setEditor( QWidget * p )
 Core::IEditor *
 DataprocessorFactory::createEditor( QWidget * /* parent */)
 {
-    QTabWidget * pTab = new QTabWidget;
-    editorWidget_ = pTab;
-
-    return new DataprocEditor( editorWidget_, this );
-    // return 0;
+    return new DataprocEditor( this );
 }
 
 // implementation for IFileFactory
