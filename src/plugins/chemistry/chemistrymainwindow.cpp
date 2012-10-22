@@ -48,17 +48,21 @@
 #include <QResizeEvent>
 #include <qstackedwidget.h>
 #include <QtGui/QVBoxLayout>
-#include <QtGui/QHBoxlayout>
+#include <QtGui/QHBoxLayout>
 #include <QtGui/QToolButton>
 #include <QtGui/QTextEdit>
 #include <QtGui/qlabel.h>
 #include <QtGui/qicon.h>
 #include <qdebug.h>
 
-#pragma warning(disable:4100)
+#if defined _MSC_VER
+#  pragma warning(disable:4100)
+#endif
 #include <openbabel/mol.h>
-#pragma warning(default:4100)
 #include <openbabel/fingerprint.h>
+#if defined _MSC_VER
+#  pragma warning(default:4100)
+#endif
 
 #include <boost/foreach.hpp>
 #include <boost/bind.hpp>

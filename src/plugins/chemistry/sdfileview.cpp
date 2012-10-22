@@ -26,7 +26,7 @@
 #include "ui_sdfileview.h"
 #include "sdfilemodel.hpp"
 #include "sdfiledelegate.hpp"
-
+#include <adchem/mol.hpp>
 #include <openbabel/obconversion.h>
 #include <openbabel/mol.h>
 

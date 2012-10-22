@@ -30,7 +30,7 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 #include <string>
-//#include <openbabel/mol.h>
+#include <adchem/mol.hpp>
 
 class QModelIndex;
 class QByteArray;
