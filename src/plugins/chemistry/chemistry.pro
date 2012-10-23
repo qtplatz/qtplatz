@@ -17,7 +17,8 @@ SOURCES += chemistryplugin.cpp \
     sdfileview.cpp \
     chemeditor.cpp \
     chemeditorfactory.cpp \
-    chemfile.cpp
+    chemfile.cpp \
+    chemistrymainwindow.cpp
 
 HEADERS += chemistryplugin.hpp\
         chemistry_global.hpp\
@@ -27,7 +28,8 @@ HEADERS += chemistryplugin.hpp\
     	sdfileview.hpp \
     chemeditor.hpp \
     chemeditorfactory.hpp \
-    chemfile.hpp
+    chemfile.hpp \
+    chemistrymainwindow.hpp
 
 OTHER_FILES = Chemistry.pluginspec
 

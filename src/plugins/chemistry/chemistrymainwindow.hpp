@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -22,20 +22,27 @@
 **
 **************************************************************************/
 
-#include "chemspidermode.hpp"
-#include "chemspiderconstants.hpp"
+#ifndef CHEMISTRYMAINWINDOW_HPP
+#define CHEMISTRYMAINWINDOW_HPP
 
-using namespace ChemSpider::Internal;
+#include "chemistry_global.hpp"
+#include <utils/fancymainwindow.h>
 
-ChemSpiderMode::ChemSpiderMode(QObject *parent) : Core::BaseMode(parent)
-{
-	setName(tr("ChemSpider"));
-	setUniqueModeName( "ChemSpiderMode" );
-	setIcon( QIcon(":/chemspider/image/logo-cs7.png") );
-	setPriority( 980 );
+namespace Chemistry { namespace Internal {
+
+	class ChemistryMainWindow : public Utils::FancyMainWindow {
+		Q_OBJECT
+	public:
+        ~ChemistryMainWindow();
+		explicit ChemistryMainWindow();
+    
+    signals:
+    
+	public slots:
+    
+	};
+
+}
 }
 
-ChemSpiderMode::~ChemSpiderMode()
-{
-}
-
+#endif // CHEMISTRYMAINWINDOW_HPP

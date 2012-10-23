@@ -26,6 +26,7 @@
 #include "chemistryconstants.hpp"
 #include "chemistrymode.hpp"
 #include "chemistrymanager.hpp"
+#include "chemistrymainwindow.hpp"
 #include "chemeditorfactory.hpp"
 #include "sdfileview.hpp"
 #include "constants.hpp"
@@ -90,18 +91,9 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 	//--- add configuration xml loading if necessary
     //---
     //---
-	do {
-		mode_.reset( new ChemistryMode( this ) );
-		if ( ! mode_ )
-			return false;
-		QList<int> context;
-		Core::UniqueIDManager * uidm = Core::ICore::instance()->uniqueIDManager();
-		if ( ! uidm )
-			return false;
-		context.append( uidm->uniqueIdentifier( Constants::C_CHEM_EDITOR ) );
-		context.append( uidm->uniqueIdentifier( Core::Constants::C_EDITORMANAGER ) );
-        mode_->setContext( context );
-	} while( 0 );
+	mode_.reset( new ChemistryMode( this ) );
+	if ( ! mode_ )
+		return false;
 
     ChemEditorFactory * editorFactory(0);
     do {
