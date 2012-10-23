@@ -1,8 +1,6 @@
 <RCC>
-    <qresource prefix="/chemistry/images">
-        <file>images/babel130.png</file>
-    </qresource>
     <qresource prefix="/chemistry">
         <file>mimetype.xml</file>
+        <file>images/carbendazim.png</file>
     </qresource>
 </RCC>
