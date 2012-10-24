@@ -120,7 +120,6 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 
 	Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
 	mainWindow_->activateLayout();
-
 	QWidget * widget = mainWindow_->createContents( mode_.get() );
 	mode_->setWidget( widget );
     addObject( mode_.get() );

@@ -23,19 +23,30 @@
 **************************************************************************/
 
 #include "chemistrymainwindow.hpp"
+#include "sdfileview.hpp"
+#include <coreplugin/actionmanager/actioncontainer.h>
+#include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/actionmanager/command.h>
+#include <coreplugin/imode.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/findplaceholder.h>
 #include <coreplugin/rightpane.h>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
 #include <coreplugin/navigationwidget.h>
+#include <coreplugin/coreconstants.h>
+#include <coreplugin/icore.h>
 #include <utils/styledbar.h>
 
 #include <QDockWidget>
 #include <qmenu.h>
 #include <QResizeEvent>
 #include <qstackedwidget.h>
-#include <QVBoxLayout>
+#include <QtGui/QVBoxLayout>
+#include <QtGui/QHBoxlayout>
+#include <QToolButton>
+#include <QtGui/QTextEdit>
+#include <QtGui/qlabel.h>
 
 namespace Chemistry { namespace Internal {
 
@@ -45,6 +56,9 @@ namespace Chemistry { namespace Internal {
         setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) { w_.setTrackingEnabled( false ); }
         ~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
     };
+
+	static QToolButton * toolButton( const char * id );
+
 } // Internal
 }
 
@@ -66,7 +80,7 @@ ChemistryMainWindow::ChemistryMainWindow() : toolBar_( new QWidget )
 void
 ChemistryMainWindow::OnInitialUpdate()
 {
-	setSimpleDockWidgetArrangement();
+	//setSimpleDockWidgetArrangement();
 }
 
 void
@@ -95,17 +109,21 @@ ChemistryMainWindow::createContents( Core::IMode * mode )
 	documentAndRightPane->setStretchFactor( 0, 1 );
     documentAndRightPane->setStretchFactor( 1, 0 );
 
-    Utils::StyledBar * chemToolBar = new Utils::StyledBar;
-    chemToolBar->setProperty( "topBorder", true );
-    QHBoxLayout * chemToolBarLayout = new QHBoxLayout( chemToolBar );
-    chemToolBarLayout->setMargin( 0 );
-    chemToolBarLayout->setSpacing( 0 );
-	chemToolBarLayout->addWidget( toolBar_ );
-	chemToolBarLayout->addWidget( new Utils::StyledSeparator );
+    Utils::StyledBar * toolBar = new Utils::StyledBar;
+	toolBar->setProperty( "topBorder", true );
+	QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+	toolBarLayout->setMargin( 0 );
+	toolBarLayout->setSpacing( 0 );
+	toolBarLayout->addWidget( toolBar_ );
+	toolBarLayout_->addWidget( new QLabel( tr("Alchemy") ) );
+	toolBarLayout_->addWidget( new Utils::StyledSeparator );
+	toolBarLayout_->addWidget( new QLabel( tr("Chemistry") ) );
+	toolBarLayout_->addWidget( new Utils::StyledSeparator );
+	toolBarLayout_->addWidget( new QLabel( tr("Physics") ) );
 	//
 	QDockWidget * dock = new QDockWidget( "Chemistry Toolbar" );
 	dock->setObjectName( QLatin1String( "Chemistry Toolbar" ) );
-    dock->setWidget( chemToolBar );
+	// dock->setWidget( toolBar );
 	dock->setFeatures( QDockWidget::NoDockWidgetFeatures );
 	dock->setAllowedAreas( Qt::BottomDockWidgetArea );
 	dock->setTitleBarWidget( new QWidget( dock ) );
@@ -113,6 +131,7 @@ ChemistryMainWindow::createContents( Core::IMode * mode )
 	addDockWidget( Qt::BottomDockWidgetArea, dock );
 	setToolBarDockWidget( dock );
 
+	//---------- centraol widget ------------
 	QWidget * centralWidget = new QWidget;
 	setCentralWidget( centralWidget );
 
@@ -126,9 +145,9 @@ ChemistryMainWindow::createContents( Core::IMode * mode )
 
 	// Right-side window with editor, output etc.
 	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
-	mainWindowSplitter->addWidget( this );
     QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
     outputPane->setObjectName( QLatin1String( "ChemistryOutputPanePlaceHolder" ) );
+	mainWindowSplitter->addWidget( this );
     mainWindowSplitter->addWidget( outputPane );
 	mainWindowSplitter->setStretchFactor( 0, 10 );
 	mainWindowSplitter->setStretchFactor( 1, 0 );
@@ -141,6 +160,8 @@ ChemistryMainWindow::createContents( Core::IMode * mode )
     splitter->setStretchFactor( 0, 0 );
     splitter->setStretchFactor( 1, 1 );
     splitter->setObjectName( QLatin1String( "ChemistryModeWidget" ) );
+
+	createDockWidgets();
 
 	return splitter;
 }
@@ -166,6 +187,7 @@ ChemistryMainWindow::setSimpleDockWidgetArrangement()
 	}
 
 	QDockWidget * toolBarDock = toolBarDockWidget();
+
 	toolBarDock->show();
 	update();
 }
@@ -174,4 +196,60 @@ void
 ChemistryMainWindow::setToolBarDockWidget( QDockWidget * dock )
 {
 	toolBarDockWidget_ = dock;
+}
+
+QDockWidget *
+ChemistryMainWindow::createDockWidget( QWidget * widget )
+{
+	QDockWidget * dockWidget = addDockForWidget( widget );
+	dockWidget->setObjectName( widget->objectName() );
+	addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
+#if 0
+	QAction * toggleViewAction = dockWidget->toggleViewAction();
+	QList<int> globalContext;
+	globalContext << Core::Constants::C_GLOBAL_ID;
+	// Core::Command * cmd = Core::ActionManager::registerAction( toggleViewAction, "Chemistry." + widget->objectName(), globalContext );
+#endif
+
+	return dockWidget;
+}
+
+void
+ChemistryMainWindow::createDockWidgets()
+{
+	QWidget * widget = new SDFileView;
+	widget->setObjectName( "dummy" );
+	createDockWidget( widget );
+
+    widget = new QTextEdit;
+	widget->setObjectName( "text" );
+    createDockWidget( widget );
+}
+
+void
+ChemistryMainWindow::createToolbar()
+{
+	QWidget * toolbarContainer = new QWidget;
+	QHBoxLayout * hbox = new QHBoxLayout( toolbarContainer );
+    hbox->setMargin( 0 );
+    hbox->setSpacing( 0 );
+    hbox->addWidget( toolButton( "STOP" ) ); // should create action in 'plugin' with icon
+}
+
+// static
+QToolButton * 
+ChemistryMainWindow::toolButton( QAction * action )
+{
+	QToolButton * button = new QToolButton;
+	if ( button )
+		button->setDefaultAction( action );
+	return button;
+}
+
+// static
+QToolButton * 
+ChemistryMainWindow::toolButton( const char * id )
+{
+	Core::ActionManager * mgr = Core::ICore::instance()->actionManager();
+	return toolButton( mgr->command(id)->action() );
 }

@@ -33,6 +33,8 @@ namespace Core { class IMode; }
 
 class QHBoxLayout;
 class QWidget;
+class QToolButton;
+class QAction;
 
 namespace Chemistry { namespace Internal {
 
@@ -46,6 +48,9 @@ namespace Chemistry { namespace Internal {
 		void OnInitialUpdate();
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
+		QDockWidget * createDockWidget( QWidget * );
+		static QToolButton * toolButton( const char * );
+		static QToolButton * toolButton( QAction * );
     
     signals:
     
@@ -58,7 +63,8 @@ namespace Chemistry { namespace Internal {
 
 		void setToolBarDockWidget( QDockWidget * dock );
 		QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
-        
+		void createDockWidgets();
+		void createToolbar();
 	};
 
 }
