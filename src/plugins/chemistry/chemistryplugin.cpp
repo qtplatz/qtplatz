@@ -25,7 +25,6 @@
 #include "chemistryplugin.hpp"
 #include "chemistryconstants.hpp"
 #include "chemistrymode.hpp"
-#include "chemistrymanager.hpp"
 #include "chemistrymainwindow.hpp"
 #include "chemeditorfactory.hpp"
 #include "sdfileview.hpp"
@@ -52,6 +51,7 @@
 #include <QtGui/QBoxLayout>
 #include <QtGui/QStackedWidget>
 #include <qtextedit.h>
+#include <qwidget.h>
 
 using namespace Chemistry::Internal;
 
@@ -113,46 +113,16 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 
 	//<-------
 	do {
-		manager_.reset( new ChemistryManager( 0 ) );
-		if ( ! manager_ )
+		mainWindow_.reset( new ChemistryMainWindow() );
+		if ( ! mainWindow_ )
 			return false;
-		manager_->init();
 	} while( 0 );
 
-	//-----------------
-	Core::MiniSplitter * splitter = new Core::MiniSplitter;
-    if ( ! splitter )
-        return false;
-	do {
-        splitter->addWidget( manager_->mainWindow() );
-        splitter->addWidget( new Core::OutputPanePlaceHolder( mode_.get() ) );
-        splitter->setStretchFactor( 0, 10 );
-        splitter->setStretchFactor( 1, 0 );
-        splitter->setOrientation( Qt::Vertical );
-	} while( 0 );
+	Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
+	mainWindow_->activateLayout();
 
-	do {
-		QWidget* centralWidget = new QWidget;
-		manager_->mainWindow()->setCentralWidget( centralWidget );
-        
-		std::vector< QWidget * > wnd;
-		Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
-		if ( splitter3 ) {
-			QTabWidget * pTab = new QTabWidget;
-			splitter3->addWidget( pTab );
-			editorFactory->setEditor( pTab );
-			// SDFileView * view = new SDFileView;
-			// pTab->addTab( view, tr("SDFileView") ); // tab[0]
-			// view->show();
-		}
-		QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
-		toolBarAddingLayout->setMargin(0);
-		toolBarAddingLayout->setSpacing(0);
-		toolBarAddingLayout->addWidget( splitter3 );
-    } while(0);
-
-	manager_->setSimpleDockWidgetArrangement();
-	mode_->setWidget( splitter );
+	QWidget * widget = mainWindow_->createContents( mode_.get() );
+	mode_->setWidget( widget );
     addObject( mode_.get() );
 
     return true;
@@ -161,8 +131,7 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 void
 ChemistryPlugin::extensionsInitialized()
 {
-    Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
-    manager_->OnInitialUpdate();
+	mainWindow_->OnInitialUpdate();
 }
 
 void

@@ -13,7 +13,6 @@ DEFINES += CHEMISTRY_LIBRARY
 
 SOURCES += chemistryplugin.cpp \
     chemistrymode.cpp \
-    chemistrymanager.cpp \
     sdfileview.cpp \
     chemeditor.cpp \
     chemeditorfactory.cpp \
@@ -24,7 +23,6 @@ HEADERS += chemistryplugin.hpp\
         chemistry_global.hpp\
         chemistryconstants.hpp \
     	chemistrymode.hpp \
-    	chemistrymanager.hpp \
     	sdfileview.hpp \
     chemeditor.hpp \
     chemeditorfactory.hpp \

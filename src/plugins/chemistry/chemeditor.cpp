@@ -50,7 +50,7 @@ ChemEditor::ChemEditor( QWidget * widget
                                                            , file_(0)
 {
     Core::UniqueIDManager * uidm = Core::UniqueIDManager::instance();
-    context_ << uidm->uniqueIdentifier( Constants::C_CHEM_EDITOR );
+    context_ << uidm->uniqueIdentifier( Constants::C_CHEM_MODE );
 	//connect( editorWidget_, SIGNAL( titleChanged(QString) ), this, SLOT( slotTitleChanged(QString) ) );
 	//connect( editorWidget_, SIGNAL( contentModified() ), this, SIGNAL( changed() ) );
 }

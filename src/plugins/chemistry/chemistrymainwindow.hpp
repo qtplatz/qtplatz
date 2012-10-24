@@ -27,6 +27,12 @@
 
 #include "chemistry_global.hpp"
 #include <utils/fancymainwindow.h>
+#include <qlayout.h>
+
+namespace Core { class IMode; }
+
+class QHBoxLayout;
+class QWidget;
 
 namespace Chemistry { namespace Internal {
 
@@ -35,11 +41,24 @@ namespace Chemistry { namespace Internal {
 	public:
         ~ChemistryMainWindow();
 		explicit ChemistryMainWindow();
+
+		QWidget * createContents( Core::IMode * );
+		void OnInitialUpdate();
+		void activateLayout();
+		void setSimpleDockWidgetArrangement();
     
     signals:
     
 	public slots:
-    
+
+	private:
+		QWidget * toolBar_;
+		QHBoxLayout * toolBarLayout_;
+		QDockWidget * toolBarDockWidget_;
+
+		void setToolBarDockWidget( QDockWidget * dock );
+		QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
+        
 	};
 
 }

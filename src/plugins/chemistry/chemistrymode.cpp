@@ -35,14 +35,13 @@ using namespace Chemistry::Internal;
 ChemistryMode::ChemistryMode( QObject * parent )
 {
 	setName( tr("Chemistry") );
-    setUniqueModeName( "ChemistryMode" );
+	setUniqueModeName( Chemistry::Constants::C_CHEM_MODE );
     setIcon( QIcon( ":/chemistry/images/carbendazim.png" ) );
 	setPriority( 960 );
 	
 	QList<int> contexts = QList<int>() <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier( Chemistry::Constants::C_CHEM_EDITOR ) <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDIT_MODE ) <<
         Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDITORMANAGER ) <<
+        Core::UniqueIDManager::instance()->uniqueIdentifier( Chemistry::Constants::C_CHEM_MODE ) <<
         Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE );
     setContext( contexts );
 
@@ -53,4 +52,16 @@ ChemistryMode::ChemistryMode( QObject * parent )
 
 ChemistryMode::~ChemistryMode()
 {
+}
+
+void
+ChemistryMode::grabEditorManager(Core::IMode *mode)
+{
+    if (mode != this)
+        return;
+
+    Core::EditorManager * em = Core::EditorManager::instance();
+    
+    if ( em->currentEditor() )
+        em->currentEditor()->widget()->setFocus();
 }

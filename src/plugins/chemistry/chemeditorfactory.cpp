@@ -75,12 +75,8 @@ ChemEditorFactory::setEditor( QTabWidget * p )
 Core::IEditor *
 ChemEditorFactory::createEditor( QWidget * parent )
 {
-    if ( tabWidget_ ) {
-		SDFileView * view = new SDFileView;
-		//tabWidget_->addTab( view, tr("SDF View") );
-		return new ChemEditor( view, this );
-	}
-	return 0;
+	SDFileView * view = new SDFileView;
+	return new ChemEditor( view, this );
 }
 
 // implementation for IFileFactory

@@ -31,7 +31,7 @@
 namespace Chemistry { namespace Internal {
 
   class ChemistryMode;
-  class ChemistryManager;
+  class ChemistryMainWindow;
 
   class ChemistryPlugin : public ExtensionSystem::IPlugin {
     Q_OBJECT
@@ -44,7 +44,7 @@ namespace Chemistry { namespace Internal {
     void extensionsInitialized();
   private:
 	  boost::scoped_ptr< ChemistryMode > mode_;
-	  boost::scoped_ptr< ChemistryManager > manager_;
+	  boost::scoped_ptr< ChemistryMainWindow > mainWindow_;
     
   private slots:
     void triggerAction();
