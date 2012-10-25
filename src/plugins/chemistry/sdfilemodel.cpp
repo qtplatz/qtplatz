@@ -1,0 +1,193 @@
+/**************************************************************************
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Science Liaison / Advanced Instrumentation Project
+*
+** Contact: toshi.hondo@scienceliaison.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the ScienceLiaison Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and ScienceLiaison.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
+
+#include "sdfilemodel.hpp"
+#include "chemfile.hpp"
+#if defined _MSC_VER
+# pragma warning( disable: 4100 )
+#endif
+# include <openbabel/babelconfig.h>
+# include <openbabel/mol.h>
+#if defined _MSC_VER
+# pragma warning( default: 4100 )
+#endif
+
+#include <boost/foreach.hpp>
+#include <iostream>
+
+using namespace chemistry;
+
+SDFileModel::SDFileModel(QObject *parent) : QAbstractTableModel( parent )
+{
+}
+
+int
+SDFileModel::rowCount( const QModelIndex& parent ) const
+{
+	(void)parent;
+	return data_.size();
+}
+
+int
+SDFileModel::columnCount( const QModelIndex& parent ) const
+{
+	(void)parent;
+	if ( ! data_.empty() )
+		return attributes( data_[0] ).size();
+	return 3;
+}
+
+QVariant
+SDFileModel::data( const QModelIndex& index, int role ) const
+{
+	using OpenBabel::OBMol;
+
+	if ( ! index.isValid() )
+		return QVariant();
+
+	const OpenBabel::OBMol& mol = data_[ index.row() ];
+
+	if ( role == Qt::DisplayRole ) {
+		if ( index.column() == 0 )
+			return QString( "<MOL>" );
+		else if ( index.column() == 1 )
+			return QString::fromStdString( const_cast<OBMol&>(mol).GetFormula() );
+		else if ( index.column() == 2 )
+			return QVariant( const_cast<OBMol&>(mol).GetExactMass() );
+	}
+    return QVariant();
+}
+
+QVariant
+SDFileModel::headerData( int section, Qt::Orientation orientation, int role ) const
+{
+	if ( role != Qt::DisplayRole )
+		return QVariant();
+	if ( orientation == Qt::Horizontal ) {
+        switch( section ) {
+		case 0: return tr( "MOL" );
+		case 1: return tr( "Formula" );
+		case 2: return tr( "m/z" );
+		}
+
+		if ( ! data_.empty() ) {
+            int n = section - 3;
+			std::vector< attribute_type > attrs = attributes( data_[0] );
+            if ( attrs.size() > n )
+				return QString::fromStdString( attrs[n].first );
+		}
+	}
+	return QVariant();
+}
+
+Qt::ItemFlags
+SDFileModel::flags( const QModelIndex& index ) const
+{
+	if ( ! index.isValid() )
+		return Qt::ItemIsEnabled;
+	return QAbstractTableModel::flags( index ) | Qt::ItemIsEditable;
+}
+
+bool 
+SDFileModel::setData( const QModelIndex& index, const QVariant& value, int role )
+{
+	if ( index.isValid() && role == Qt::EditRole ) {
+		int row = index.row();
+
+		// set data here
+
+		emit( dataChanged( index, index ) );
+		
+		return true;
+	}
+	return false;
+}
+
+bool 
+SDFileModel::insertRows( int position, int rows, const QModelIndex& index )
+{
+	(void)index;
+     beginInsertRows( QModelIndex(), position, position + rows - 1 );
+
+	 for (int row = 0; row < rows; ++row ) {
+          // todo add data 
+	 }
+     endInsertRows();
+	 return true;
+}
+
+bool 
+SDFileModel::removeRows( int position, int rows, const QModelIndex& index )
+{
+    (void)index;
+    beginRemoveRows( QModelIndex(), position, position + rows - 1 );
+
+    for ( int row = 0; row < rows; ++row ) {
+		// todo: remove data
+	}
+    endRemoveRows();
+	return true;
+}
+
+void
+SDFileModel::file( boost::shared_ptr< ChemFile >& file )
+{
+	file_ = file;
+	data_.clear();
+
+    OpenBabel::OBMol mol;
+	size_t nread = 0;
+    while ( file->Read( mol ) ) {
+		data_.push_back( mol );
+
+		if ( ++nread >= 50 )
+			break;
+#if 0
+		std::vector< attribute_type > attrs = attributes( mol );
+		BOOST_FOREACH( const attribute_type& x, attrs ) {
+			std::cout << x.first << ", " << x.second << std::endl;
+		}
+#endif
+	}
+	// headerDataChanged( Qt::Horizontal, 0, -1 );
+}
+
+// static
+std::vector< std::pair< std::string, std::string > >
+SDFileModel::attributes( const OpenBabel::OBMol& mol )
+{
+    using OpenBabel::OBMol;
+
+	std::vector< std::pair< std::string, std::string > > attrs;
+	for ( OpenBabel::OBDataIterator it = const_cast<OBMol&>(mol).BeginData(); it != const_cast<OBMol&>(mol).EndData(); ++it ) {
+		const OpenBabel::OBGenericData& data = **it;
+		if ( data.GetDataType() == OpenBabel::OBGenericDataType::PairData ) {
+			const OpenBabel::OBPairData& pair = static_cast<const OpenBabel::OBPairData& >( data );
+			std::string key = pair.GetAttribute();
+			std::string value = pair.GetValue();
+			attrs.push_back( std::make_pair< std::string, std::string >( key, value ) );
+		}
+	}
+	return attrs;
+}

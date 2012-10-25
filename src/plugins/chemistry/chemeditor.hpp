@@ -30,15 +30,16 @@
 
 namespace Core { class IEditorFactory; }
 
-namespace Chemistry { namespace Internal {
+namespace chemistry {
 
 	class ChemFile;
+	class SDFileView;
 
 	class ChemEditor : public Core::IEditor {
 		Q_OBJECT
 	public:
         ~ChemEditor();
-		explicit ChemEditor( QWidget *, Core::IEditorFactory * );
+		explicit ChemEditor( SDFileView *, Core::IEditorFactory * );
   
             // implement Core::IEditor
         virtual bool createNew( const QString &contents );
@@ -64,15 +65,13 @@ namespace Chemistry { namespace Internal {
         void slotTitleChanged( const QString& title ) { setDisplayName( title ); }
 
     private:
-        QWidget * editorWidget_;
+        SDFileView * sdfileView_;
         Core::IEditorFactory * factory_;
-		// Core::IFile * file_;
-		boost::scoped_ptr< ChemFile > file_;
+		boost::shared_ptr< ChemFile > file_;
         QList<int> context_;
         QString displayName_;
    };
 
-}
 }
 
 #endif // CHEMEDITOR_HPP

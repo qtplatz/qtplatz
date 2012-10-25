@@ -36,7 +36,7 @@ class QWidget;
 class QToolButton;
 class QAction;
 
-namespace Chemistry { namespace Internal {
+namespace chemistry { 
 
 	class ChemistryMainWindow : public Utils::FancyMainWindow {
 		Q_OBJECT
@@ -45,6 +45,8 @@ namespace Chemistry { namespace Internal {
 		explicit ChemistryMainWindow();
 
 		QWidget * createContents( Core::IMode * );
+		void createActions();
+
 		void OnInitialUpdate();
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
@@ -55,11 +57,14 @@ namespace Chemistry { namespace Internal {
     signals:
     
 	public slots:
+		void actionSearch();
 
 	private:
 		QWidget * toolBar_;
 		QHBoxLayout * toolBarLayout_;
 		QDockWidget * toolBarDockWidget_;
+
+		QAction * actionSearch_;
 
 		void setToolBarDockWidget( QDockWidget * dock );
 		QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
@@ -67,7 +72,6 @@ namespace Chemistry { namespace Internal {
 		void createToolbar();
 	};
 
-}
 }
 
 #endif // CHEMISTRYMAINWINDOW_HPP

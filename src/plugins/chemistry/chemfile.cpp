@@ -23,8 +23,15 @@
 **************************************************************************/
 
 #include "chemfile.hpp"
+#if defined _MSC_VER
+# pragma warning( disable: 4100 )
+#endif
 #include <openbabel/babelconfig.h>
 #include <openbabel/obconversion.h>
+#include <openbabel/mol.h>
+#if defined _MSC_VER
+# pragma warning( default: 4100 )
+#endif
 
 #include <qtwrapper/qstring.hpp>
 #include <portfolio/portfolio.hpp>
@@ -33,7 +40,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 
-using namespace Chemistry::Internal;
+using namespace chemistry;
 
 ChemFile::~ChemFile()
 {
@@ -41,14 +48,16 @@ ChemFile::~ChemFile()
 }
 
 ChemFile::ChemFile( QObject * parent ) : Core::IFile( parent )
-	                                                            , modified_( false )
-																, obconversion_( new OpenBabel::OBConversion() )
+	                                   , modified_( false )
+									   , obconversion_( new OpenBabel::OBConversion() )
+									   , nread_( 0 )
 {
 }
 
 bool
 ChemFile::open( const QString& qfilename, const OpenBabel::OBFormat * informat )
 {
+	nread_ = 0;
     qfilename_ = qfilename;
 	filename_ = qfilename_.toStdString();
     if ( informat == 0 )
@@ -59,6 +68,14 @@ ChemFile::open( const QString& qfilename, const OpenBabel::OBFormat * informat )
 		return true;
 	}
 	return false;
+}
+
+bool
+ChemFile::Read( OpenBabel::OBMol& mol )
+{
+	if ( nread_++ == 0 )
+		return obconversion_->ReadFile( &mol, filename_ );
+	return obconversion_->Read( &mol );
 }
 
 void

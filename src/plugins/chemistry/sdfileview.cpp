@@ -24,16 +24,27 @@
 
 #include "sdfileview.hpp"
 #include "ui_sdfileview.h"
+#include "sdfilemodel.hpp"
 
+#ifdef _MSC_VER
+# pragma warning( disable: 4100 )
+#endif
 #include <openbabel/babelconfig.h>
 #include <openbabel/obconversion.h>
 #include <openbabel/mol.h>
+#ifdef _MSC_VER
+# pragma warning( default: 4100 )
+#endif
 
-SDFileView::SDFileView(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::SDFileView)
+using namespace chemistry;
+
+SDFileView::SDFileView(QWidget *parent) :  QWidget(parent)
+	                                    , ui(new Ui::SDFileView)
+										, model_( new SDFileModel() )
 {
     ui->setupUi(this);
+	ui->tableView->setModel( model_ );
+
 #if 0
 	OpenBabel::OBConversion obconversion;
     OpenBabel::OBMol mol;
@@ -50,5 +61,12 @@ SDFileView::SDFileView(QWidget *parent) :
 
 SDFileView::~SDFileView()
 {
+	delete model_;
     delete ui;
+}
+
+void
+SDFileView::file( boost::shared_ptr< ChemFile >& file )
+{
+	model_->file( file );
 }

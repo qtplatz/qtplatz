@@ -26,21 +26,31 @@
 #define SDFILEVIEW_HPP
 
 #include <QWidget>
+#include <boost/shared_ptr.hpp>
 
 namespace Ui {
 class SDFileView;
 }
 
-class SDFileView : public QWidget
-{
-    Q_OBJECT
+namespace chemistry {
+
+	class SDFileModel;
+	class ChemFile;
+
+	class SDFileView : public QWidget {
+		Q_OBJECT
     
-public:
-    explicit SDFileView(QWidget *parent = 0);
-    ~SDFileView();
+	public:
+		explicit SDFileView(QWidget *parent = 0);
+		~SDFileView();
+
+		void file( boost::shared_ptr<ChemFile>& );
     
-private:
-    Ui::SDFileView *ui;
-};
+	private:
+		Ui::SDFileView *ui;
+		SDFileModel * model_;
+	};
+
+}
 
 #endif // SDFILEVIEW_HPP

@@ -1,4 +1,4 @@
-TARGET = Chemistry
+TARGET = chemistry
 TEMPLATE = lib
 
 PROVIDER = ScienceLiaison
@@ -9,7 +9,7 @@ include(../../openbabel.pri)
 
 DEFINES += CHEMISTRY_LIBRARY
 
-# Chemistry files
+# chemistry files
 
 SOURCES += chemistryplugin.cpp \
     chemistrymode.cpp \
@@ -17,7 +17,8 @@ SOURCES += chemistryplugin.cpp \
     chemeditor.cpp \
     chemeditorfactory.cpp \
     chemfile.cpp \
-    chemistrymainwindow.cpp
+    chemistrymainwindow.cpp \
+    sdfilemodel.cpp
 
 HEADERS += chemistryplugin.hpp\
         chemistry_global.hpp\
@@ -27,9 +28,10 @@ HEADERS += chemistryplugin.hpp\
     chemeditor.hpp \
     chemeditorfactory.hpp \
     chemfile.hpp \
-    chemistrymainwindow.hpp
+    chemistrymainwindow.hpp \
+    sdfilemodel.hpp
 
-OTHER_FILES = Chemistry.pluginspec
+OTHER_FILES = chemistry.pluginspec
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH
 LIBS += -l$$qtLibraryTarget(adutils) \

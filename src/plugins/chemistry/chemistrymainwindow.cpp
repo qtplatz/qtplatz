@@ -44,11 +44,12 @@
 #include <qstackedwidget.h>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QHBoxlayout>
-#include <QToolButton>
+#include <QtGui/QToolButton>
 #include <QtGui/QTextEdit>
 #include <QtGui/qlabel.h>
+#include <QtGui/qicon.h>
 
-namespace Chemistry { namespace Internal {
+namespace chemistry {
 
     class setTrackingEnabled {
         Utils::FancyMainWindow& w_;
@@ -57,23 +58,19 @@ namespace Chemistry { namespace Internal {
         ~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
     };
 
-	static QToolButton * toolButton( const char * id );
-
-} // Internal
 }
 
-using namespace Chemistry::Internal;
+using namespace chemistry;
 
 ChemistryMainWindow::~ChemistryMainWindow()
 {
 }
 
-ChemistryMainWindow::ChemistryMainWindow() : toolBar_( new QWidget )
-	                                       , toolBarLayout_( new QHBoxLayout( toolBar_ ) )
+ChemistryMainWindow::ChemistryMainWindow() : toolBar_( 0 )
+	                                       , actionSearch_( 0 )
+	                                       , toolBarLayout_( 0 )
 										   , toolBarDockWidget_( 0 )
 {
-	toolBarLayout_->setMargin( 0 );
-    toolBarLayout_->setSpacing( 0 );
 }
 
 
@@ -86,6 +83,13 @@ ChemistryMainWindow::OnInitialUpdate()
 void
 ChemistryMainWindow::activateLayout()
 {
+}
+
+void
+ChemistryMainWindow::createActions()
+{
+	actionSearch_ = new QAction( QIcon( ":/chemistry/images/search.png" ), tr("Search"), this );
+    connect( actionSearch_, SIGNAL( triggered() ), this, SLOT( actionSearch_ ) );
 }
 
 QWidget *
@@ -114,12 +118,11 @@ ChemistryMainWindow::createContents( Core::IMode * mode )
 	QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
 	toolBarLayout->setMargin( 0 );
 	toolBarLayout->setSpacing( 0 );
-	toolBarLayout->addWidget( toolBar_ );
-	toolBarLayout_->addWidget( new QLabel( tr("Alchemy") ) );
-	toolBarLayout_->addWidget( new Utils::StyledSeparator );
-	toolBarLayout_->addWidget( new QLabel( tr("Chemistry") ) );
-	toolBarLayout_->addWidget( new Utils::StyledSeparator );
-	toolBarLayout_->addWidget( new QLabel( tr("Physics") ) );
+	// toolBarLayout->addWidget( toolBar_ );
+	toolBarLayout->addWidget( toolButton( actionSearch_ ) );
+	toolBarLayout->addWidget( new QLabel( tr("Alchemy") ) );
+	toolBarLayout->addWidget( new QLabel( tr("Chemistry") ) );
+	toolBarLayout->addWidget( new QLabel( tr("Physics") ) );
 	//
 	QDockWidget * dock = new QDockWidget( "Chemistry Toolbar" );
 	dock->setObjectName( QLatin1String( "Chemistry Toolbar" ) );
@@ -142,6 +145,8 @@ ChemistryMainWindow::createContents( Core::IMode * mode )
     centralLayout->addWidget( documentAndRightPane );
 	centralLayout->setStretch( 0, 1 );
 	centralLayout->setStretch( 1, 0 );
+
+	centralLayout->addWidget( toolBar );
 
 	// Right-side window with editor, output etc.
 	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
@@ -169,7 +174,7 @@ ChemistryMainWindow::createContents( Core::IMode * mode )
 void
 ChemistryMainWindow::setSimpleDockWidgetArrangement()
 {
-	Chemistry::Internal::setTrackingEnabled x( *this );
+	chemistry::setTrackingEnabled x( *this );
 
 	QList< QDockWidget *> dockWidgets = this->dockWidgets();
     foreach ( QDockWidget * dockWidget, dockWidgets ) {
@@ -252,4 +257,10 @@ ChemistryMainWindow::toolButton( const char * id )
 {
 	Core::ActionManager * mgr = Core::ICore::instance()->actionManager();
 	return toolButton( mgr->command(id)->action() );
+}
+
+// slot
+void
+ChemistryMainWindow::actionSearch()
+{
 }

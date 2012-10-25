@@ -26,7 +26,7 @@
 #ifndef CONSTANTS_HPP
 #define CONSTANTS_HPP
 
-namespace Chemistry {
+namespace chemistry {
     namespace Constants {
         const char * const C_CHEM_MODE    = "ChemistryMode";
 		const char * const C_CHEM_EDITOR  = "ChemEditor";

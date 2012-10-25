@@ -36,8 +36,7 @@
 #include <adcontrols/datafile.hpp>
 #include <qtwrapper/qstring.hpp>
 
-using namespace Chemistry;
-using namespace Chemistry::Internal;
+using namespace chemistry;
 
 ChemEditorFactory::~ChemEditorFactory()
 {
@@ -55,26 +54,11 @@ ChemEditorFactory::ChemEditorFactory( QObject * owner,
 		<< "application/octet-stream";
 }
 
-void
-ChemEditorFactory::setEditor( QTabWidget * p )
-{
-	tabWidget_ = p;
-
-	{
-	SDFileView * view = new SDFileView;
-	tabWidget_->addTab( view, tr("SDFileView") ); // tab[0]
-	}
-	{
-	SDFileView * view = new SDFileView;
-	tabWidget_->addTab( view, tr("SDFileView") ); // tab[0]
-	}
-
-}
-
 // implementation for IEditorFactory
 Core::IEditor *
 ChemEditorFactory::createEditor( QWidget * parent )
 {
+    (void)parent;
 	SDFileView * view = new SDFileView;
 	return new ChemEditor( view, this );
 }

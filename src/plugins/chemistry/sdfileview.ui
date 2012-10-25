@@ -30,9 +30,12 @@
     <number>4</number>
    </property>
    <item>
-    <widget class="QTreeView" name="treeView">
-     <property name="sortingEnabled">
-      <bool>true</bool>
+    <widget class="QTableView" name="tableView">
+     <property name="font">
+      <font>
+       <family>Calibri</family>
+       <pointsize>10</pointsize>
+      </font>
      </property>
     </widget>
    </item>

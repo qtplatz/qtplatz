@@ -30,18 +30,18 @@
 #include <coreplugin/modemanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 
-using namespace Chemistry::Internal;
+using namespace chemistry;
 
-ChemistryMode::ChemistryMode( QObject * parent )
+ChemistryMode::ChemistryMode( QObject * /* parent */ )
 {
 	setName( tr("Chemistry") );
-	setUniqueModeName( Chemistry::Constants::C_CHEM_MODE );
+	setUniqueModeName( Constants::C_CHEM_MODE );
     setIcon( QIcon( ":/chemistry/images/carbendazim.png" ) );
 	setPriority( 960 );
 	
 	QList<int> contexts = QList<int>() <<
         Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDITORMANAGER ) <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier( Chemistry::Constants::C_CHEM_MODE ) <<
+        Core::UniqueIDManager::instance()->uniqueIdentifier( chemistry::Constants::C_CHEM_MODE ) <<
         Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE );
     setContext( contexts );
 

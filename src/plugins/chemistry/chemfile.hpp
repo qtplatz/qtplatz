@@ -32,9 +32,10 @@
 namespace OpenBabel {
 	class OBConversion;
 	class OBFormat;
+	class OBMol;
 }
 
-namespace Chemistry { namespace Internal {
+namespace chemistry {
     
 	class ChemFile : public Core::IFile, boost::noncopyable  {
         Q_OBJECT
@@ -62,6 +63,8 @@ namespace Chemistry { namespace Internal {
 		bool open( const QString& filename, const OpenBabel::OBFormat * );
 		inline OpenBabel::OBConversion& obconversion() { return *obconversion_; }
 		inline const OpenBabel::OBConversion& obconversion() const { return *obconversion_; }
+		const std::string& filename() const { return filename_; }
+		bool Read( OpenBabel::OBMol& );
 
     signals:
         
@@ -72,9 +75,10 @@ namespace Chemistry { namespace Internal {
         QString qfilename_;
 		std::string filename_;
         bool modified_;
+		size_t nread_;
 		boost::scoped_ptr< OpenBabel::OBConversion > obconversion_;
     };
     
 }
-}
+
 #endif // CHEMFILE_HPP

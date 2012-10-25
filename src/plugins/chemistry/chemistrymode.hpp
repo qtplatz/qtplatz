@@ -27,7 +27,7 @@
 
 #include <coreplugin/basemode.h>
 
-namespace Chemistry { namespace Internal {
+namespace chemistry {
 
 	class ChemistryMode : public Core::BaseMode {
 		Q_OBJECT
@@ -41,7 +41,6 @@ namespace Chemistry { namespace Internal {
 
 	};
 
-}
 }
 
 #endif // CHEMISTRYMODE_HPP

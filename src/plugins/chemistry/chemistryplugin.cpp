@@ -53,7 +53,7 @@
 #include <qtextedit.h>
 #include <qwidget.h>
 
-using namespace Chemistry::Internal;
+using namespace chemistry;
 
 ChemistryPlugin::ChemistryPlugin()
 {
@@ -120,6 +120,7 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 
 	Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
 	mainWindow_->activateLayout();
+	mainWindow_->createActions();
 	QWidget * widget = mainWindow_->createContents( mode_.get() );
 	mode_->setWidget( widget );
     addObject( mode_.get() );

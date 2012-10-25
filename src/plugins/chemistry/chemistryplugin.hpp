@@ -28,30 +28,29 @@
 #include <extensionsystem/iplugin.h>
 #include <boost/smart_ptr.hpp>
 
-namespace Chemistry { namespace Internal {
+namespace chemistry { 
 
   class ChemistryMode;
   class ChemistryMainWindow;
 
   class ChemistryPlugin : public ExtensionSystem::IPlugin {
-    Q_OBJECT
-    
+	  Q_OBJECT
+		  
   public:
-    ChemistryPlugin();
-    ~ChemistryPlugin();
-    
-    bool initialize(const QStringList &arguments, QString *errorString);
-    void extensionsInitialized();
+	  ChemistryPlugin();
+	  ~ChemistryPlugin();
+	  
+	  bool initialize(const QStringList &arguments, QString *errorString);
+	  void extensionsInitialized();
   private:
 	  boost::scoped_ptr< ChemistryMode > mode_;
 	  boost::scoped_ptr< ChemistryMainWindow > mainWindow_;
-    
+	  
   private slots:
-    void triggerAction();
+	  void triggerAction();
   };
-
-} // namespace Internal
-} // namespace Chemistry
+	  
+} // namespace chemistry
 
 #endif // CHEMISTRY_H
 

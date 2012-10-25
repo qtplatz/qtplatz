@@ -1,4 +1,4 @@
-<plugin name="Chemistry" version="1.0.0" compatVersion="1.3.1">
+<plugin name="chemistry" version="1.0.0" compatVersion="1.3.1">
     <vendor>ScienceLiaison</vendor>
     <copyright>(C) 2012,2013 Toshinobu Hondo, Ph.D.</copyright>
     <license>

@@ -2,5 +2,6 @@
     <qresource prefix="/chemistry">
         <file>mimetype.xml</file>
         <file>images/carbendazim.png</file>
+        <file>images/search.png</file>
     </qresource>
 </RCC>

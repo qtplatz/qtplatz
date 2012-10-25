@@ -25,6 +25,7 @@
 #include "chemeditor.hpp"
 #include "chemeditorfactory.hpp"
 #include "chemfile.hpp"
+#include "sdfileview.hpp"
 #include "constants.hpp"
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/filemanager.h>
@@ -33,21 +34,22 @@
 #include <QWidget>
 
 #ifdef _MSC_VER
-#pragma warning( disable: 4100 )
+#  pragma warning( disable: 4100 )
 #endif
+
 #include <openbabel/obconversion.h>
 #include <openbabel/mol.h>
+
 #ifdef _MSC_VER
-#pragma warning( default: 4100 )
+#  pragma warning( default: 4100 )
 #endif
 
-using namespace Chemistry::Internal;
+using namespace chemistry;
 
-ChemEditor::ChemEditor( QWidget * widget
-                        , Core::IEditorFactory * factory ) : Core::IEditor( widget )
-                                                           , editorWidget_( widget )
+ChemEditor::ChemEditor( SDFileView * view
+                        , Core::IEditorFactory * factory ) : Core::IEditor( view )
+                                                           , sdfileView_( view )
                                                            , factory_( factory )
-                                                           , file_(0)
 {
     Core::UniqueIDManager * uidm = Core::UniqueIDManager::instance();
     context_ << uidm->uniqueIdentifier( Constants::C_CHEM_MODE );
@@ -76,9 +78,7 @@ ChemEditor::open( const QString &qfilename )
 
 	file_.reset( new ChemFile );
     if ( file_->open( qfilename, 0 ) ) {
-		Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
-        if ( filemgr->addFile( file_.get() ) )
-			filemgr->addToRecentFiles( qfilename );
+		sdfileView_->file( file_ );
 		return true;
 	}
 	return false;
@@ -152,7 +152,7 @@ ChemEditor::toolBar()
 QWidget *
 ChemEditor::widget()
 {
-    return editorWidget_;
+	return sdfileView_;
 }
 
 QList<int>
