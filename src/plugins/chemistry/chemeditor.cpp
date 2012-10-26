@@ -33,9 +33,7 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/coreconstants.h>
 #include <QWidget>
-
-//#include <openbabel/obconversion.h>
-//#include <openbabel/mol.h>
+#include <qdebug.h>
 
 using namespace chemistry;
 
@@ -68,14 +66,14 @@ ChemEditor::createNew( const QString &contents )
 bool
 ChemEditor::open( const QString &qfilename )
 {
-	std::string filename( qfilename.toStdString() );
+    std::string filename( qfilename.toStdString() );
 
-	file_.reset( new ChemFile );
+    file_.reset( new ChemFile );
     if ( file_->open( qfilename, 0 ) ) {
-		sdfileView_->file( file_ );
-		return true;
-	}
-	return false;
+	sdfileView_->file( file_ );
+	return true;
+    }
+    return false;
 }
 
 Core::IFile *

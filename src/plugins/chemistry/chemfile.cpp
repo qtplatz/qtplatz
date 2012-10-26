@@ -40,6 +40,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <iostream>
+#include <QDebug>
 
 using namespace chemistry;
 
@@ -49,54 +50,59 @@ ChemFile::~ChemFile()
 }
 
 ChemFile::ChemFile( QObject * parent ) : Core::IFile( parent )
-	                                   , modified_( false )
-									   , obconversion_( new OpenBabel::OBConversion() )
-									   , nread_( 0 )
-									   , filesize_( 0 )
+				       , modified_( false )
+				       , nread_( 0 )
+				       , obconversion_( new OpenBabel::OBConversion() )
+				       , filesize_( 0 )
 {
 }
 
 bool
 ChemFile::open( const QString& qfilename, const OpenBabel::OBFormat * informat )
 {
-	nread_ = 0;
+    nread_ = 0;
     qfilename_ = qfilename;
-	filename_ = qfilename_.toStdString();
-    if ( informat == 0 )
-		informat = OpenBabel::OBConversion::FormatFromExt( filename_.c_str() );
-
-	if ( ! boost::filesystem::exists( filename_ ) )
-		return false;
-	filesize_ = boost::filesystem::file_size( filename_ );
-
-	if ( informat ) {
-		obconversion_->SetInFormat( const_cast< OpenBabel::OBFormat *>( informat ) );
-		return true;
+    filename_ = qfilename_.toStdString();
+    if ( informat == 0 ) {
+	informat = OpenBabel::OBConversion::FormatFromExt( filename_.c_str() );
+	if ( informat == 0 ) {
+	    qDebug() << "ChemFile: " << qfilename << " format from ext could not be identified";
+	    return false;
 	}
+    }
+    
+    if ( ! boost::filesystem::exists( filename_ ) ) {
+	qDebug() << "ChemFile: " << qfilename << " does not exist";
 	return false;
+    }
+
+    filesize_ = boost::filesystem::file_size( filename_ );
+    
+    obconversion_->SetInFormat( const_cast< OpenBabel::OBFormat *>( informat ) );
+    return true;
 }
 
 unsigned long long
 ChemFile::tellg() const
 {
-	std::istream * stream = obconversion_->GetInStream();
+    std::istream * stream = obconversion_->GetInStream();
     if ( stream )
-		return stream->tellg();
-	return 0;
+	return stream->tellg();
+    return 0;
 }
 
 unsigned long long
 ChemFile::fsize() const
 {
-	return filesize_;
+    return filesize_;
 }
 
 bool
 ChemFile::Read( OpenBabel::OBMol& mol )
 {
-	if ( nread_++ == 0 )
-		return obconversion_->ReadFile( &mol, filename_ );
-	return obconversion_->Read( &mol );
+    if ( nread_++ == 0 )
+	return obconversion_->ReadFile( &mol, filename_ );
+    return obconversion_->Read( &mol );
 }
 
 void
@@ -144,7 +150,7 @@ ChemFile::suggestedFileName() const
 //	boost::filesystem::path path( file_->filename() );
 //	path.replace_extension( L".sdf" );
 //	return qtwrapper::qstring( path.wstring() );
-	return "xyz.sdf";
+    return "xyz.sdf";
 }
 
 bool
@@ -153,7 +159,7 @@ ChemFile::isReadOnly() const
 //    if ( file_ && file_->readonly() )
 //        return true;
 //    return false;
-	return true;
+    return true;
 }
 
 bool
