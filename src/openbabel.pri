@@ -50,5 +50,6 @@ win32 {
 			$${OPENBABEL_ROOT}/bin/plugin_ops.obf
 } else {
     OPENBABEL_LIBDIR = /usr/local/lib
-    macx:OPENBABEL_DLLS   = $${OPENBABEL_LIBDIR}/libopenbabel.4.0.0.dylib
+    macx: OPENBABEL_DLLS   = $${OPENBABEL_LIBDIR}/libopenbabel.4.0.0.dylib
+    linux-*: OPENBABEL_DLLS = 
 }
