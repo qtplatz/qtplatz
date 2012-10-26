@@ -24,22 +24,36 @@
 
 #include "sdfilemodel.hpp"
 #include "chemfile.hpp"
+#include "svgitem.hpp"
+
 #if defined _MSC_VER
 # pragma warning( disable: 4100 )
 #endif
 # include <openbabel/babelconfig.h>
 # include <openbabel/mol.h>
+# include <openbabel/obconversion.h>
 #if defined _MSC_VER
 # pragma warning( default: 4100 )
 #endif
 
 #include <boost/foreach.hpp>
 #include <iostream>
+#include <qstring.h>
+#include <qwidget.h>
+#include <qgraphicsscene.h>
+#include <qgraphicsview.h>
+#include <QGraphicsItem>
+#include <QGraphicsSvgItem>
+#include <QtSvg/qsvgwidget.h>
 
 using namespace chemistry;
 
 SDFileModel::SDFileModel(QObject *parent) : QAbstractTableModel( parent )
 {
+	QHash< int, QByteArray > roles;
+    roles[ 0 ] = "MOL";
+    roles[ 1 ] = "Formula";
+    roles[ 2 ] = "Exact mass";
 }
 
 int
@@ -67,14 +81,22 @@ SDFileModel::data( const QModelIndex& index, int role ) const
 		return QVariant();
 
 	const OpenBabel::OBMol& mol = data_[ index.row() ];
+    const size_t nfixed = 3;
 
 	if ( role == Qt::DisplayRole ) {
-		if ( index.column() == 0 )
-			return QString( "<MOL>" );
-		else if ( index.column() == 1 )
+		if ( index.column() == 0 ) {
+			SvgItem svg;
+			toSvg( svg, mol );
+			return QVariant::fromValue( svg );
+		} else if ( index.column() == 1 ) {
 			return QString::fromStdString( const_cast<OBMol&>(mol).GetFormula() );
-		else if ( index.column() == 2 )
+		} else if ( index.column() == 2 ) {
 			return QVariant( const_cast<OBMol&>(mol).GetExactMass() );
+		} else {
+			std::vector< attribute_type > attrs = attributes( mol );
+			if ( index.column() - nfixed < attrs.size() )
+				return QString::fromStdString( attrs[ index.column() - nfixed ].second );
+		}
 	}
     return QVariant();
 }
@@ -153,24 +175,18 @@ SDFileModel::removeRows( int position, int rows, const QModelIndex& index )
 void
 SDFileModel::file( boost::shared_ptr< ChemFile >& file )
 {
+	beginResetModel();
+
 	file_ = file;
 	data_.clear();
-
     OpenBabel::OBMol mol;
 	size_t nread = 0;
     while ( file->Read( mol ) ) {
 		data_.push_back( mol );
-
-		if ( ++nread >= 50 )
+		if ( ++nread >= 5 )
 			break;
-#if 0
-		std::vector< attribute_type > attrs = attributes( mol );
-		BOOST_FOREACH( const attribute_type& x, attrs ) {
-			std::cout << x.first << ", " << x.second << std::endl;
-		}
-#endif
 	}
-	// headerDataChanged( Qt::Horizontal, 0, -1 );
+    endResetModel();
 }
 
 // static
@@ -190,4 +206,13 @@ SDFileModel::attributes( const OpenBabel::OBMol& mol )
 		}
 	}
 	return attrs;
+}
+
+bool
+SDFileModel::toSvg( SvgItem& item, const OpenBabel::OBMol& mol )
+{
+	OpenBabel::OBConversion conv;
+	conv.SetOutFormat( "svg" );
+    item.svg_ = conv.WriteString( const_cast< OpenBabel::OBMol *>(&mol) ).c_str();
+	return true;
 }

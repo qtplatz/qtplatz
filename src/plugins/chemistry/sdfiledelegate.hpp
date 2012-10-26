@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -22,37 +22,30 @@
 **
 **************************************************************************/
 
-#ifndef SDFILEVIEW_HPP
-#define SDFILEVIEW_HPP
+#ifndef SDFILEDELEGATE_HPP
+#define SDFILEDELEGATE_HPP
 
-#include <QWidget>
-#include <boost/shared_ptr.hpp>
-
-namespace Ui {
-class SDFileView;
-}
+#include <QItemDelegate>
 
 namespace chemistry {
 
-	class SDFileModel;
-	class SDFileDelegate;
-	class ChemFile;
-
-	class SDFileView : public QWidget {
+	class SDFileDelegate : public QItemDelegate {
 		Q_OBJECT
-    
 	public:
-		explicit SDFileView(QWidget *parent = 0);
-		~SDFileView();
-
-		void file( boost::shared_ptr<ChemFile>& );
+		explicit SDFileDelegate(QObject *parent = 0);
     
-	private:
-		Ui::SDFileView *ui;
-		SDFileModel * model_;
-		SDFileDelegate * delegate_;
+        QWidget * createEditor( QWidget *, const QStyleOptionViewItem&, const QModelIndex& ) const;
+        void paint( QPainter * painter, const QStyleOptionViewItem&, const QModelIndex& ) const;
+		void setEditorData( QWidget * edigor, const QModelIndex& index ) const;
+        void setModelData( QWidget * editor, QAbstractItemModel * model, const QModelIndex& ) const;
+		void updateEditorGeometry( QWidget * editor, const QStyleOptionViewItem&, const QModelIndex& ) const;
+
+    signals:
+    
+	public slots:
+    
 	};
 
 }
 
-#endif // SDFILEVIEW_HPP
+#endif // SDFILEDELEGATE_HPP

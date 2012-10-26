@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -22,37 +22,39 @@
 **
 **************************************************************************/
 
-#ifndef SDFILEVIEW_HPP
-#define SDFILEVIEW_HPP
+#include "svgitem.hpp"
+#include <qpainter.h>
+#include <qrect.h>
+#include <qpalette.h>
+#include <qsvgrenderer.h>
+#include <QtCore/QDebug>
 
-#include <QWidget>
-#include <boost/shared_ptr.hpp>
+using namespace chemistry;
 
-namespace Ui {
-class SDFileView;
+SvgItem::SvgItem()
+{
 }
 
-namespace chemistry {
-
-	class SDFileModel;
-	class SDFileDelegate;
-	class ChemFile;
-
-	class SDFileView : public QWidget {
-		Q_OBJECT
-    
-	public:
-		explicit SDFileView(QWidget *parent = 0);
-		~SDFileView();
-
-		void file( boost::shared_ptr<ChemFile>& );
-    
-	private:
-		Ui::SDFileView *ui;
-		SDFileModel * model_;
-		SDFileDelegate * delegate_;
-	};
-
+SvgItem::SvgItem( const SvgItem& t ) : svg_( t.svg_ )
+{
 }
 
-#endif // SDFILEVIEW_HPP
+void
+SvgItem::paint( QPainter * painter, const QRect& rect, const QPalette& palette ) const 
+{
+	painter->save();
+
+	qDebug() << rect.x() << ", " << rect.y() << ", " << rect.x() + rect.width() << ", " << rect.y() + rect.height();
+
+	// painter->setRenderHint( QPainter::Antialiasing, true );
+	QSvgRenderer renderer( svg_ );
+	// QRectF rc = renderer.boundsOnElement( "topsvg" );
+
+	painter->translate( rect.x(), rect.y() / 4 );
+	
+	painter->setViewport( rect );
+
+	renderer.render( painter, rect );
+
+	painter->restore();
+}

@@ -1,3 +1,5 @@
+QT     += core gui svg
+contains(QT_CONFIG, opengl) QT += opengl
 TARGET = chemistry
 TEMPLATE = lib
 
@@ -18,7 +20,9 @@ SOURCES += chemistryplugin.cpp \
     chemeditorfactory.cpp \
     chemfile.cpp \
     chemistrymainwindow.cpp \
-    sdfilemodel.cpp
+    sdfilemodel.cpp \
+    sdfiledelegate.cpp \
+    svgitem.cpp
 
 HEADERS += chemistryplugin.hpp\
         chemistry_global.hpp\
@@ -29,7 +33,9 @@ HEADERS += chemistryplugin.hpp\
     chemeditorfactory.hpp \
     chemfile.hpp \
     chemistrymainwindow.hpp \
-    sdfilemodel.hpp
+    sdfilemodel.hpp \
+    sdfiledelegate.hpp \
+    svgitem.hpp
 
 OTHER_FILES = chemistry.pluginspec
 

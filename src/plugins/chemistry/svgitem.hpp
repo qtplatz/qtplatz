@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -22,37 +22,30 @@
 **
 **************************************************************************/
 
-#ifndef SDFILEVIEW_HPP
-#define SDFILEVIEW_HPP
+#ifndef SVGITEM_HPP
+#define SVGITEM_HPP
 
-#include <QWidget>
-#include <boost/shared_ptr.hpp>
+#include <qbytearray.h>
+#include <qmetatype.h>
 
-namespace Ui {
-class SDFileView;
-}
+class QPainter;
+class QRect;
+class QPalette;
+enum EditMode;
 
 namespace chemistry {
 
-	class SDFileModel;
-	class SDFileDelegate;
-	class ChemFile;
-
-	class SDFileView : public QWidget {
-		Q_OBJECT
-    
+	class SvgItem {
 	public:
-		explicit SDFileView(QWidget *parent = 0);
-		~SDFileView();
+		QByteArray svg_;
 
-		void file( boost::shared_ptr<ChemFile>& );
-    
-	private:
-		Ui::SDFileView *ui;
-		SDFileModel * model_;
-		SDFileDelegate * delegate_;
+		SvgItem();
+		SvgItem( const SvgItem& );
+		void paint( QPainter *, const QRect&, const QPalette& ) const;
 	};
 
 }
 
-#endif // SDFILEVIEW_HPP
+Q_DECLARE_METATYPE( chemistry::SvgItem )
+
+#endif // SVGITEM_HPP

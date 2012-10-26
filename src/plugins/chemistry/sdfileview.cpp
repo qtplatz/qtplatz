@@ -25,6 +25,7 @@
 #include "sdfileview.hpp"
 #include "ui_sdfileview.h"
 #include "sdfilemodel.hpp"
+#include "sdfiledelegate.hpp"
 
 #ifdef _MSC_VER
 # pragma warning( disable: 4100 )
@@ -41,26 +42,17 @@ using namespace chemistry;
 SDFileView::SDFileView(QWidget *parent) :  QWidget(parent)
 	                                    , ui(new Ui::SDFileView)
 										, model_( new SDFileModel() )
+										, delegate_( new SDFileDelegate )
 {
     ui->setupUi(this);
 	ui->tableView->setModel( model_ );
-
-#if 0
-	OpenBabel::OBConversion obconversion;
-    OpenBabel::OBMol mol;
-    std::string fname = "Z:/SkyDrive/MOL/common-names.sdf";
-	OpenBabel::OBFormat * informat = obconversion.FormatFromExt( fname.c_str() );
-	obconversion.SetInFormat( informat );
-	bool noteatend = obconversion.ReadFile( &mol, fname );
-	while ( noteatend ) {
-		std::string formula = mol.GetFormula();
-		break;
-	}
-#endif
+	ui->tableView->setItemDelegate( delegate_ );
+	ui->tableView->verticalHeader()->setDefaultSectionSize( 80 );
 }
 
 SDFileView::~SDFileView()
 {
+	delete delegate_;
 	delete model_;
     delete ui;
 }

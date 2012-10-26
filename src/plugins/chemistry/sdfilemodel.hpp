@@ -32,12 +32,14 @@
 #include <string>
 
 class QModelIndex;
+class QByteArray;
 
 namespace OpenBabel { class OBMol; }
 
 namespace chemistry {
 
 	class ChemFile;
+	class SvgItem;
 
 	class SDFileModel : public QAbstractTableModel {
 		Q_OBJECT
@@ -61,6 +63,7 @@ namespace chemistry {
 	public slots:
 
 	private:
+		static bool toSvg( SvgItem&, const OpenBabel::OBMol& );
 		boost::shared_ptr< ChemFile > file_;
 		std::vector< OpenBabel::OBMol > data_;
 		static std::vector< attribute_type > attributes( const OpenBabel::OBMol& );
