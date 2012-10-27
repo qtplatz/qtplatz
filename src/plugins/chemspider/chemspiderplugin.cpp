@@ -161,7 +161,7 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
 void
 ChemSpiderPlugin::extensionsInitialized()
 {
-    Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
+    // Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
     manager_->OnInitialUpdate();
 }
 

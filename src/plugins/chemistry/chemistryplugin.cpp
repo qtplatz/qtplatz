@@ -131,6 +131,7 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 void
 ChemistryPlugin::extensionsInitialized()
 {
+	Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
 	mainWindow_->OnInitialUpdate();
 }
 

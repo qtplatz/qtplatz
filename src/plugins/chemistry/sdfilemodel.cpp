@@ -183,10 +183,15 @@ SDFileModel::file( boost::shared_ptr< ChemFile >& file )
 	size_t nread = 0;
     while ( file->Read( mol ) ) {
 		data_.push_back( mol );
-		if ( ++nread >= 5 )
+		if ( ++nread >= 1 )
 			break;
 	}
-    endResetModel();
+    data_.push_back( mol );
+    data_.push_back( mol );
+	data_.push_back( mol );
+	data_.push_back( mol );
+	data_.push_back( mol );
+	endResetModel();
 }
 
 // static

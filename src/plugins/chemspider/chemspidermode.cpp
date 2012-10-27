@@ -32,7 +32,7 @@ ChemSpiderMode::ChemSpiderMode(QObject *parent) : Core::BaseMode(parent)
 	setName(tr("ChemSpider"));
 	setUniqueModeName( "ChemSpiderMode" );
 	setIcon( QIcon(":/chemspider/image/logo-cs7.png") );
-	setPriority( 980 );
+	setPriority( 20 );
 }
 
 ChemSpiderMode::~ChemSpiderMode()
