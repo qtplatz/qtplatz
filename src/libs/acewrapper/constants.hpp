@@ -39,7 +39,7 @@ namespace acewrapper {
             struct manager {
 		static const char * _name();
             };
-	    unsigned short OBJECTDISCOVERY_PORT = 7402;
+	    const unsigned short OBJECTDISCOVERY_PORT = 7402;
 	}
 
     }
