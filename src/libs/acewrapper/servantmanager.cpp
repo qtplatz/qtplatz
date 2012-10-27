@@ -23,9 +23,146 @@
 **************************************************************************/
 
 #include "servantmanager.hpp"
+#include "mutex.hpp"
+#include <adportable/debug.hpp>
 
 using namespace acewrapper;
 
-ServantManager::ServantManager()
+#if defined _MSC_VER
+#  pragma warning (disable: 4996)
+#endif
+
+#  include <tao/Utils/ORB_Manager.h>
+#  include <ace/Thread_Manager.h>
+
+#if defined _MSC_VER
+#  pragma warning (default: 4996)
+#endif
+
+// static
+ServantManager *
+ServantManager::instance()
 {
+    return singleton::ServantManager::instance();
 }
+
+ServantManager::~ServantManager()
+{
+    delete orbmgr_;
+    adportable::debug(__FILE__, __LINE__) << "***** ServantManager dtor complete";    
+}
+
+ServantManager::ServantManager( CORBA::ORB_ptr orb
+                        , PortableServer::POA_ptr poa
+                        , PortableServer::POAManager_ptr poamanager ) : init_count_(0)  
+                                                                      , thread_running_(false)
+                                                                      , orbmgr_(0)
+                                                                      , threadid_(0)
+{
+    orbmgr_ = new TAO_ORB_Manager( orb, poa, poamanager );
+}
+
+int
+ServantManager::init( int ac, ACE_TCHAR * av[] )
+{
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+
+    if ( init_count_++ == 0 )
+        return orbmgr_->init( ac, av );
+
+    return 0;
+}
+
+int
+ServantManager::fini()
+{
+    acewrapper::scoped_mutex_t<> lock( mutex_ );
+
+    if ( init_count_ && --init_count_ == 0 )
+        return orbmgr_->fini();
+
+    return 0;
+}
+
+void
+ServantManager::shutdown()
+{
+    orbmgr_->fini();
+    ACE_Thread::join( threadid_, 0, 0 );
+}
+
+CORBA::ORB_ptr
+ServantManager::orb()
+{
+    return orbmgr_->orb();
+}
+
+PortableServer::POA_ptr
+ServantManager::root_poa()
+{
+    return orbmgr_->root_poa();
+}
+
+PortableServer::POA_ptr
+ServantManager::child_poa()
+{
+    return orbmgr_->child_poa();
+}
+
+PortableServer::POAManager_ptr
+ServantManager::poa_manager()
+{
+    return orbmgr_->poa_manager();
+}
+
+std::string
+ServantManager::activate( PortableServer::Servant servant )
+{
+    CORBA::String_var id = orbmgr_->activate( servant );
+    return std::string ( id.in() );
+}
+
+void
+ServantManager::deactivate( const std::string& id )
+{
+    orbmgr_->deactivate( id.c_str() );
+}
+
+void
+ServantManager::run()
+{
+    threadid_ = ACE_Thread::self();
+    try {
+	adportable::debug(__FILE__, __LINE__) << "-----> ServantManager thread started.";
+        orbmgr_->run();
+    } catch ( ... ) {
+        thread_running_ = false;
+        throw;
+    }
+    adportable::debug(__FILE__, __LINE__) << "-----> ServantManager thread terminated.";
+}
+
+// static
+void *
+ServantManager::thread_entry( void * me )
+{
+    ServantManager * pThis = reinterpret_cast< ServantManager * >( me );
+    if ( pThis && pThis->orbmgr_ )
+        pThis->run();
+    return 0;
+}
+
+bool
+ServantManager::spawn()
+{
+    if ( ! thread_running_ ) {
+	acewrapper::scoped_mutex_t<> lock( mutex_ );
+	if ( ! thread_running_ ) {
+	    thread_running_ = true;
+	    ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC(ServantManager::thread_entry), this );
+	    return true;
+	}
+    }
+    return false; // already running
+}
+
