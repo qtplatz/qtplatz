@@ -31,16 +31,16 @@ namespace acewrapper {
 
         namespace adcontroller {
             struct manager {
-				static const char * _name();
+		static const char * _name();
             };
         }
 
         namespace adbroker {
             struct manager {
-				static const char * _name();
+		static const char * _name();
             };
-			static unsigned short OBJECTDISCOVERY_PORT = 7402;
-		}
+	    unsigned short OBJECTDISCOVERY_PORT = 7402;
+	}
 
     }
 
