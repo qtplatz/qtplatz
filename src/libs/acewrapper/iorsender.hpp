@@ -25,10 +25,50 @@
 #ifndef IORSENDER_HPP
 #define IORSENDER_HPP
 
-class iorSender
-{
-public:
-    iorSender();
-};
+#include <boost/noncopyable.hpp>
+#include <boost/asio.hpp>
+#include <boost/array.hpp>
+#include <ace/Singleton.h>
+#include <ace/Recursive_Thread_Mutex.h>
+#include <vector>
+#include <string>
+#include <map>
+
+namespace acewrapper {
+
+    class iorSender : boost::noncopyable {
+	iorSender();
+    public:
+	static iorSender * instance();
+	bool open( unsigned short port = 0 );
+	void close();
+
+	void register_lookup( const std::string& ior, const std::string& ident );
+	void unregister_lookup( const std::string& ident );
+
+	bool spawn();
+
+        friend class ACE_Singleton< iorSender, ACE_Recursive_Thread_Mutex >;
+    private:
+	static void * thread_entry( void * );
+
+	void start_receive();
+	void handle_timeout( const boost::system::error_code& );
+	void handle_receive( const boost::system::error_code&, std::size_t );
+	void handle_sendto( const boost::system::error_code& );
+
+	bool thread_running_;
+	ACE_thread_t t_handle_;
+	boost::asio::io_service io_service_;
+	boost::asio::ip::udp::socket socket_;
+	boost::asio::ip::udp::endpoint sender_endpoint_;
+	boost::array< char, 1024u > recv_buffer_;
+	std::vector< char > send_buffer_;
+	std::map< std::string, std::string > iorvec_;
+	std::map< std::string, std::string >::iterator nextIor_;
+	ACE_Recursive_Thread_Mutex mutex_;
+    };
+
+}
 
 #endif // IORSENDER_HPP
