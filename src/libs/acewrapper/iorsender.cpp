@@ -136,15 +136,12 @@ iorSender::handle_receive( const boost::system::error_code& error, std::size_t l
 
 	if ( std::strncmp( query, "ior?", len ) == 0 ) {
 
-	    std::cout << "***** iorSender::handle_receive query='" << recv_buffer_.data()
-		      << "' has " << iorvec_.size() << " iors" 
-		      << " from " << sender_endpoint_.address().to_string() << "." << sender_endpoint_.port()
-		      << std::endl;
-
 	    if ( iorvec_.empty() )
 		return;
+
 	    if ( nextIor_ != iorvec_.end() ) // still remain
 		return;
+
 	    nextIor_ = iorvec_.begin();
 	    handle_sendto( boost::system::error_code() ); // force sendto
 	} 
@@ -161,7 +158,9 @@ iorSender::handle_sendto( const boost::system::error_code& error )
 	    send_buffer_.resize( reply.size() + 1 );
 	    std::strcpy( &send_buffer_[0], reply.c_str() );
 
-	    std::cout << "***** iorSender::handle_sendto *****\n" << &send_buffer_[0] << std::endl;
+	    std::cout << "***** iorSender::handle_sendto(" 
+		      << sender_endpoint_.address().to_string() << "." << sender_endpoint_.port()
+		      << ")*****\n" << &send_buffer_[0] << std::endl;
 
 	    socket_.async_send_to( boost::asio::buffer( send_buffer_ )
 				   , sender_endpoint_
