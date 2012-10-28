@@ -76,7 +76,7 @@ void
 iorSender::register_lookup( const std::string& ior, const std::string& ident )
 {
     iorvec_[ ident ] = ior;
-    std::cout << "register_lookup: " << ident << " size=" << iorvec_.size() << std::endl;
+    std::cout << "## register_lookup: " << ident << " size=" << iorvec_.size() << std::endl;
 }
 
 void
@@ -90,7 +90,7 @@ iorSender::unregister_lookup( const std::string& ident )
 void
 iorSender::start_receive()
 {
-    std::cout << "***** iorSender start_receive from: "
+    std::cout << "## iorSender start_receive from: "
 	      << sender_endpoint_.address().to_string() 
 	      << ":" << sender_endpoint_.port() << std::endl;
 
@@ -134,6 +134,8 @@ iorSender::handle_receive( const boost::system::error_code& error, std::size_t l
 
 	const char * query = recv_buffer_.data();
 
+	std::cout << "## iorSender::handle_receive " << query << " ##" << std::endl;
+
 	if ( std::strncmp( query, "ior?", len ) == 0 ) {
 
 	    if ( iorvec_.empty() )
@@ -158,9 +160,9 @@ iorSender::handle_sendto( const boost::system::error_code& error )
 	    send_buffer_.resize( reply.size() + 1 );
 	    std::strcpy( &send_buffer_[0], reply.c_str() );
 
-	    std::cout << "***** iorSender::handle_sendto(" 
+	    std::cout << "## iorSender::handle_sendto(" 
 		      << sender_endpoint_.address().to_string() << "." << sender_endpoint_.port()
-		      << ")*****\n" << &send_buffer_[0] << std::endl;
+		      << ") ##\n" << &send_buffer_[0] << std::endl;
 
 	    socket_.async_send_to( boost::asio::buffer( send_buffer_ )
 				   , sender_endpoint_
