@@ -234,7 +234,7 @@ iTask::initialize_configuration()
                     size_t n = poProxy->populateObservers( objid );
                     Logging(L"iTask::initialize_configuration -- \"%1%\" has %2% signal observers %3% us"
 						, ::EventLog::pri_INFO ) % item.name() % n % timer.elapsed();
-                    objid += n;./h
+                    objid += n;
                 }
                 acewrapper::scoped_mutex_t<> lock( mutex_ );
                 oproxies_.push_back( poProxy );
