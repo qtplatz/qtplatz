@@ -22,30 +22,23 @@
 **
 **************************************************************************/
 
-#ifndef SVGITEM_HPP
-#define SVGITEM_HPP
+#ifndef MASSDEFECTMETHOD_HPP
+#define MASSDEFECTMETHOD_HPP
 
-#include <qbytearray.h>
-#include <qmetatype.h>
-
-class QPainter;
-class QRect;
-class QPalette;
-enum EditMode;
+#include <vector>
 
 namespace chemistry {
 
-	class SvgItem {
+	class MassDefectMethod {
 	public:
-		QByteArray svg_;
-		
-		SvgItem();
-		SvgItem( const SvgItem& );
-		void paint( QPainter *, const QRect&, const QPalette& ) const;
+		MassDefectMethod();
+	private:
+		bool isPositiveMode_;
+		double tolerance_;  // Da
+		std::vector< std::string > adducts_;
+		std::vector< std::string > loss_;
 	};
 
 }
 
-Q_DECLARE_METATYPE( chemistry::SvgItem )
-
-#endif // SVGITEM_HPP
+#endif // MASSDEFECTMETHOD_HPP

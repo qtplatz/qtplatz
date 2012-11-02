@@ -45,10 +45,11 @@
 #include <QGraphicsItem>
 #include <QGraphicsSvgItem>
 #include <QtSvg/qsvgwidget.h>
+#include <qprogressdialog.h>
 
 using namespace chemistry;
 
-SDFileModel::SDFileModel(QObject *parent) : QAbstractTableModel( parent )
+SDFileModel::SDFileModel( QObject *parent ) : QAbstractTableModel( parent )
 {
 	QHash< int, QByteArray > roles;
     roles[ 0 ] = "MOL";
@@ -120,6 +121,10 @@ SDFileModel::headerData( int section, Qt::Orientation orientation, int role ) co
 				return QString::fromStdString( attrs[n].first );
 		}
 	}
+	if ( orientation == Qt::Vertical ) {
+		return section;
+	}
+
 	return QVariant();
 }
 
@@ -136,7 +141,7 @@ SDFileModel::setData( const QModelIndex& index, const QVariant& value, int role 
 {
 	if ( index.isValid() && role == Qt::EditRole ) {
 		int row = index.row();
-
+		(void)row;
 		// set data here
 
 		emit( dataChanged( index, index ) );
@@ -175,22 +180,22 @@ SDFileModel::removeRows( int position, int rows, const QModelIndex& index )
 void
 SDFileModel::file( boost::shared_ptr< ChemFile >& file )
 {
-	beginResetModel();
+	QProgressDialog progress( "Fetching data...", "Cancel", 0, 1000 );
 
+	progress.setWindowModality( Qt::WindowModal );
+	progress.show();
+
+	beginResetModel();
 	file_ = file;
 	data_.clear();
     OpenBabel::OBMol mol;
-	size_t nread = 0;
-    while ( file->Read( mol ) ) {
+	while ( file->Read( mol ) && !progress.wasCanceled() ) {
 		data_.push_back( mol );
-		if ( ++nread >= 1 )
-			break;
+		progress.setValue( data_.size() );
+#if defined _DEBUG && 0
+		if ( data_.size() > 25 ) break;
+#endif
 	}
-    data_.push_back( mol );
-    data_.push_back( mol );
-	data_.push_back( mol );
-	data_.push_back( mol );
-	data_.push_back( mol );
 	endResetModel();
 }
 
@@ -220,4 +225,19 @@ SDFileModel::toSvg( SvgItem& item, const OpenBabel::OBMol& mol )
 	conv.SetOutFormat( "svg" );
     item.svg_ = conv.WriteString( const_cast< OpenBabel::OBMol *>(&mol) ).c_str();
 	return true;
+}
+
+const std::vector< OpenBabel::OBMol >&
+SDFileModel::data() const
+{
+	return data_;
+}
+
+void
+SDFileModel::data( const std::vector< OpenBabel::OBMol >& v)
+{
+	beginResetModel();
+	data_.clear();
+	data_ = v;
+    endResetModel();
 }

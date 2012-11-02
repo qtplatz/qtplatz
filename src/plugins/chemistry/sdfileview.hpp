@@ -32,6 +32,18 @@ namespace Ui {
 class SDFileView;
 }
 
+#ifdef _MSC_VER
+# pragma warning( disable: 4100 )
+#endif
+#include <openbabel/mol.h>
+#ifdef _MSC_VER
+# pragma warning( default: 4100 )
+#endif
+
+namespace { OpenBabel::OBMol; }
+
+class QModelIndex;
+
 namespace chemistry {
 
 	class SDFileModel;
@@ -46,6 +58,13 @@ namespace chemistry {
 		~SDFileView();
 
 		void file( boost::shared_ptr<ChemFile>& );
+		void setData( const std::vector< OpenBabel::OBMol >& );
+
+    signals:
+		void rawClicked( int, const SDFileModel* );
+
+	private slots:
+		void handleRawClicked( int );
     
 	private:
 		Ui::SDFileView *ui;

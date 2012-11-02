@@ -37,17 +37,22 @@
 # pragma warning( default: 4100 )
 #endif
 
+#include <qdebug.h>
+
 using namespace chemistry;
 
 SDFileView::SDFileView(QWidget *parent) :  QWidget(parent)
 	                                    , ui(new Ui::SDFileView)
-										, model_( new SDFileModel() )
+										, model_( new SDFileModel( this ) )
 										, delegate_( new SDFileDelegate )
 {
     ui->setupUi(this);
 	ui->tableView->setModel( model_ );
 	ui->tableView->setItemDelegate( delegate_ );
 	ui->tableView->verticalHeader()->setDefaultSectionSize( 80 );
+    ui->tableView->horizontalHeader()->setDefaultSectionSize( 200 );
+
+	connect( ui->tableView->verticalHeader(), SIGNAL( sectionClicked( int ) ), this, SLOT( handleRawClicked( int ) ) );
 }
 
 SDFileView::~SDFileView()
@@ -61,4 +66,16 @@ void
 SDFileView::file( boost::shared_ptr< ChemFile >& file )
 {
 	model_->file( file );
+}
+
+void
+SDFileView::setData( const std::vector< OpenBabel::OBMol >& v )
+{
+	model_->data( v );
+}
+
+void
+SDFileView::handleRawClicked( int raw )
+{
+	emit rawClicked( raw, model_ );
 }

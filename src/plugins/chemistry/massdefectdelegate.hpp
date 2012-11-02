@@ -22,30 +22,35 @@
 **
 **************************************************************************/
 
-#ifndef SVGITEM_HPP
-#define SVGITEM_HPP
+#ifndef MASSDEFECTDELEGATE_HPP
+#define MASSDEFECTDELEGATE_HPP
 
-#include <qbytearray.h>
-#include <qmetatype.h>
-
+#include <QItemDelegate>
 class QPainter;
-class QRect;
-class QPalette;
-enum EditMode;
+class QStyleOptionView;
+class QStyleOptionViewItem;
+class QModelIndex;
+class QModelItem;
 
 namespace chemistry {
 
-	class SvgItem {
+	class MassDefectDelegate : public QItemDelegate {
+		Q_OBJECT
 	public:
-		QByteArray svg_;
-		
-		SvgItem();
-		SvgItem( const SvgItem& );
-		void paint( QPainter *, const QRect&, const QPalette& ) const;
+		explicit MassDefectDelegate(QObject *parent = 0);
+
+		QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const;
+		void paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index );
+		void setEditorData( QWidget * edditor, const QModelIndex& index ) const;
+		void setModelData( QWidget *editor, QAbstractItemModel * model, const QModelIndex& index );
+		void updateEditorGeometry( QWidget * editor, const QStyleOptionViewItem& option, const QModelIndex& index ) const;
+    
+    signals:
+    
+	public slots:
+    
 	};
 
 }
 
-Q_DECLARE_METATYPE( chemistry::SvgItem )
-
-#endif // SVGITEM_HPP
+#endif // MASSDEFECTDELEGATE_HPP

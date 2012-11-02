@@ -22,7 +22,10 @@ SOURCES += chemistryplugin.cpp \
     chemistrymainwindow.cpp \
     sdfilemodel.cpp \
     sdfiledelegate.cpp \
-    svgitem.cpp
+    svgitem.cpp \
+    massdefectform.cpp \
+    massdefectdelegate.cpp \
+    massdefectmethod.cpp
 
 HEADERS += chemistryplugin.hpp\
         chemistry_global.hpp\
@@ -35,7 +38,10 @@ HEADERS += chemistryplugin.hpp\
     chemistrymainwindow.hpp \
     sdfilemodel.hpp \
     sdfiledelegate.hpp \
-    svgitem.hpp
+    svgitem.hpp \
+    massdefectform.hpp \
+    massdefectdelegate.hpp \
+    massdefectmethod.hpp
 
 OTHER_FILES = chemistry.pluginspec
 
@@ -50,7 +56,8 @@ RESOURCES += \
     chemistry.qrc
 
 FORMS += \
-    sdfileview.ui
+    sdfileview.ui \
+    massdefectform.ui
 
 win32 {
     for(file, OPENBABEL_DLLS ) FILES += $$replace(file, /, $$QMAKE_DIR_SEP)

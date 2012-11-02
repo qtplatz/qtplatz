@@ -38,6 +38,8 @@ class QAction;
 
 namespace chemistry { 
 
+    class SDFileModel;
+
 	class ChemistryMainWindow : public Utils::FancyMainWindow {
 		Q_OBJECT
 	public:
@@ -53,13 +55,16 @@ namespace chemistry {
 		QDockWidget * createDockWidget( QWidget * );
 		static QToolButton * toolButton( const char * );
 		static QToolButton * toolButton( QAction * );
+		static ChemistryMainWindow * instance();
     
     signals:
     
 	public slots:
 		void actionSearch();
+		void handleViewDetails( int raw, const SDFileModel * );
 
 	private:
+		static ChemistryMainWindow * instance_;
 		QWidget * toolBar_;
 		QHBoxLayout * toolBarLayout_;
 		QDockWidget * toolBarDockWidget_;

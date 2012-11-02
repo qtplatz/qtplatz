@@ -22,30 +22,41 @@
 **
 **************************************************************************/
 
-#ifndef SVGITEM_HPP
-#define SVGITEM_HPP
+#include "massdefectdelegate.hpp"
 
-#include <qbytearray.h>
-#include <qmetatype.h>
+using namespace chemistry;
 
-class QPainter;
-class QRect;
-class QPalette;
-enum EditMode;
-
-namespace chemistry {
-
-	class SvgItem {
-	public:
-		QByteArray svg_;
-		
-		SvgItem();
-		SvgItem( const SvgItem& );
-		void paint( QPainter *, const QRect&, const QPalette& ) const;
-	};
-
+MassDefectDelegate::MassDefectDelegate(QObject *parent) :  QItemDelegate(parent)
+{
 }
 
-Q_DECLARE_METATYPE( chemistry::SvgItem )
+QWidget * 
+MassDefectDelegate::createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const
+{
+	return QItemDelegate::createEditor( parent, option, index );
+}
 
-#endif // SVGITEM_HPP
+void
+MassDefectDelegate::paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index )
+{
+	QItemDelegate::paint( painter, option, index );
+}
+
+void
+MassDefectDelegate::setEditorData( QWidget * editor, const QModelIndex& index ) const
+{
+	QItemDelegate::setEditorData( editor, index );
+}
+
+void
+MassDefectDelegate::setModelData( QWidget *editor, QAbstractItemModel * model, const QModelIndex& index )
+{
+	QItemDelegate::setModelData(editor, model, index );
+}
+
+void
+MassDefectDelegate::updateEditorGeometry( QWidget * editor, const QStyleOptionViewItem& option, const QModelIndex& index ) const
+{
+	QItemDelegate::updateEditorGeometry( editor, option, index );
+}
+

@@ -24,6 +24,8 @@
 
 #include "chemistrymainwindow.hpp"
 #include "sdfileview.hpp"
+#include "sdfilemodel.hpp"
+#include "massdefectform.hpp"
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -49,6 +51,17 @@
 #include <QtGui/qlabel.h>
 #include <QtGui/qicon.h>
 
+#ifdef _MSC_VER
+# pragma warning( disable: 4100 )
+#endif
+//#include <openbabel/obconversion.h>
+#include <openbabel/mol.h>
+#ifdef _MSC_VER
+# pragma warning( default: 4100 )
+#endif
+
+#include <boost/foreach.hpp>
+
 namespace chemistry {
 
     class setTrackingEnabled {
@@ -62,6 +75,8 @@ namespace chemistry {
 
 using namespace chemistry;
 
+ChemistryMainWindow * ChemistryMainWindow::instance_ = 0;
+
 ChemistryMainWindow::~ChemistryMainWindow()
 {
 }
@@ -71,6 +86,7 @@ ChemistryMainWindow::ChemistryMainWindow() : toolBar_( 0 )
 	                                       , toolBarLayout_( 0 )
 										   , toolBarDockWidget_( 0 )
 {
+	instance_ = this;
 }
 
 
@@ -223,12 +239,13 @@ void
 ChemistryMainWindow::createDockWidgets()
 {
 	QWidget * widget = new SDFileView;
-	widget->setObjectName( "dummy" );
+	widget->setObjectName( "details" );
 	createDockWidget( widget );
 
-    widget = new QTextEdit;
-	widget->setObjectName( "text" );
-    createDockWidget( widget );
+    MassDefectForm * form = new MassDefectForm;
+	form->setObjectName( "massdefect" );
+    form->OnInitialUpdate();
+	createDockWidget( form );
 }
 
 void
@@ -263,4 +280,36 @@ ChemistryMainWindow::toolButton( const char * id )
 void
 ChemistryMainWindow::actionSearch()
 {
+}
+
+void
+ChemistryMainWindow::handleViewDetails( int raw, const SDFileModel * model )
+{
+    SDFileView * view = 0;
+	foreach( QDockWidget * dock, dockWidgets() ) {
+		if ( dock->objectName() == "details" ) {
+			view = dynamic_cast< SDFileView *>( dock->widget() );
+			break;
+		}
+	}
+    if ( view ) {
+		std::vector< OpenBabel::OBMol > details;
+		const std::vector< OpenBabel::OBMol >& data = model->data();
+        if ( raw >= 0 && data.size() > raw ) {
+			const OpenBabel::OBMol& target = data[ raw ];
+			double m = const_cast< OpenBabel::OBMol& >( target ).GetExactMass();
+            BOOST_FOREACH( const OpenBabel::OBMol& mol, data ) {
+				double mz = const_cast< OpenBabel::OBMol& >(mol).GetExactMass();
+				if ( m - 0.1 < mz && mz < m + 0.1 )
+					details.push_back( mol );
+			}
+		}
+		view->setData( details );
+	}
+}
+
+ChemistryMainWindow *
+ChemistryMainWindow::instance()
+{
+	return instance_;
 }

@@ -49,26 +49,19 @@ template<class T> void debug_draw_rect( QPainter * painter, const T& rect, const
 
 
 void
-SvgItem::paint( QPainter * painter, const QRect& rect, const QPalette& palette ) const 
+SvgItem::paint( QPainter * painter, const QRect& rect, const QPalette& /* palette */ ) const 
 {
 	painter->save();
 
-	// painter->setRenderHint( QPainter::Antialiasing, true );
 	QSvgRenderer renderer( svg_ );
-	QRectF source = renderer.boundsOnElement( "topsvg" );
-	QSize sz = renderer.defaultSize();
-	double factor = sz.width() / renderer.viewBox().width();
+	// QRectF source = renderer.boundsOnElement( "topsvg" );
+
 	painter->translate( rect.x(), rect.y() );
-    
-	double sf = std::min( double( rect.width() ) / source.width(), double( rect.height() ) / source.height() );
-	painter->scale( sf / factor, sf / factor );
+	QRectF viewport = painter->viewport();
+	painter->scale( 100 / viewport.width(), 100 / viewport.height() );  // aspect 1:2 := 100x100 vbox
 
 	QRect target( 0, 0, rect.width(), rect.height() );
-	// painter->setViewport( target );
-	// debug_draw_rect( painter, source, palette.foreground() );
-
-	renderer.setViewBox( source );
-
+	// renderer.setViewBox( target ); // <-- this will fix size on device
 	renderer.render( painter, target );
 
 	painter->restore();

@@ -33,6 +33,7 @@
 
 class QModelIndex;
 class QByteArray;
+class QProgressBar;
 
 namespace OpenBabel { class OBMol; }
 
@@ -44,7 +45,7 @@ namespace chemistry {
 	class SDFileModel : public QAbstractTableModel {
 		Q_OBJECT
 	public:
-		explicit SDFileModel(QObject *parent = 0);
+		explicit SDFileModel( QObject *parent = 0 );
 
 		int rowCount( const QModelIndex& parent ) const;
 		int columnCount( const QModelIndex& parent ) const;
@@ -55,6 +56,9 @@ namespace chemistry {
 		bool insertRows( int position, int rows, const QModelIndex& index = QModelIndex() );
 		bool removeRows( int position, int rows, const QModelIndex& index = QModelIndex() );
 
+		const std::vector< OpenBabel::OBMol >& data() const;
+		void data( const std::vector< OpenBabel::OBMol >& );
+
 		//----
 		void file( boost::shared_ptr< ChemFile >& );
 		typedef std::pair< std::string, std::string> attribute_type;
@@ -64,10 +68,9 @@ namespace chemistry {
 
 	private:
 		static bool toSvg( SvgItem&, const OpenBabel::OBMol& );
+		static std::vector< attribute_type > attributes( const OpenBabel::OBMol& );
 		boost::shared_ptr< ChemFile > file_;
 		std::vector< OpenBabel::OBMol > data_;
-		static std::vector< attribute_type > attributes( const OpenBabel::OBMol& );
-
 	};
 
 }

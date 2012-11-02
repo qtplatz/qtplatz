@@ -22,30 +22,47 @@
 **
 **************************************************************************/
 
-#ifndef SVGITEM_HPP
-#define SVGITEM_HPP
+#ifndef MASSDEFECTFORM_HPP
+#define MASSDEFECTFORM_HPP
 
-#include <qbytearray.h>
-#include <qmetatype.h>
+#include <QWidget>
+#include <boost/smart_ptr.hpp>
 
-class QPainter;
-class QRect;
-class QPalette;
-enum EditMode;
+namespace Ui {
+class MassDefectForm;
+}
+
+namespace adportable {
+	class Configuration;
+}
+
+class QStandardItemModel;
 
 namespace chemistry {
 
-	class SvgItem {
+	class MassDefectMethod;
+	class MassDefectDelegate;
+
+	class MassDefectForm : public QWidget {
+		Q_OBJECT
+    
 	public:
-		QByteArray svg_;
-		
-		SvgItem();
-		SvgItem( const SvgItem& );
-		void paint( QPainter *, const QRect&, const QPalette& ) const;
+		explicit MassDefectForm(QWidget *parent = 0);
+		~MassDefectForm();
+
+		// adplugin::LifeCycle
+		void OnCreate( const adportable::Configuration& );
+		void OnInitialUpdate();
+		void OnFinalClose();
+
+	private:
+		Ui::MassDefectForm *ui;
+		boost::scoped_ptr< QStandardItemModel > model_;
+		boost::scoped_ptr< adportable::Configuration > config_;
+		boost::scoped_ptr< chemistry::MassDefectMethod > method_;
+		boost::scoped_ptr< chemistry::MassDefectDelegate > delegate_;
 	};
 
 }
 
-Q_DECLARE_METATYPE( chemistry::SvgItem )
-
-#endif // SVGITEM_HPP
+#endif // MASSDEFECTFORM_HPP
