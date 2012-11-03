@@ -36,8 +36,8 @@ using namespace chemistry;
 MassDefectForm::MassDefectForm(QWidget *parent) : QWidget(parent)
 	                                            , ui(new Ui::MassDefectForm)
 												, model_( new QStandardItemModel )
-												, delegate_( new MassDefectDelegate )
 												, method_( new MassDefectMethod )
+												, delegate_( new MassDefectDelegate )
 {
     ui->setupUi(this);
 	ui->treeView->setModel( model_.get() );
@@ -58,7 +58,7 @@ void
 MassDefectForm::OnInitialUpdate()
 {
 	QStandardItemModel& model = *model_;
-    MassDefectMethod& method = *method_;
+    //MassDefectMethod& method = *method_;
 
     QStandardItem * rootNode = model.invisibleRootItem();
     rootNode->setColumnCount( 2 );

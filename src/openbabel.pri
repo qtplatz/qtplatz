@@ -16,12 +16,13 @@ win32 {
     INCLUDEPATH += $${OPENBABEL_ROOT}/include/openbabel-2.0 \
 		   $${OPENBABEL_SRC}/windows-vc2008/include
     LIBS += -L$${OPENBABEL_ROOT}/bin 
+    LIBS += -lopenbabel-2
 } else {
-    INCLUDEPATH += /usr/local/openbabel/include
-    QMAKE_LFLAGS += -L/usr/local/openbabel/lib
+    INCLUDEPATH += /usr/local/include/openbabel-2.0
+    QMAKE_LFLAGS += -L/usr/local/lib
+    LIBS += -lopenbabel
 }
 
-LIBS += -lopenbabel-2
 
 win32 {
     OPENBABEL_EXTLIB_DIR = $${OPENBABEL_SRC}/windows-vc2008/libs/i386

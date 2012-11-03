@@ -44,8 +44,8 @@ ChemEditorFactory::~ChemEditorFactory()
 
 ChemEditorFactory::ChemEditorFactory( QObject * owner, 
                                       const QStringList& types ) : Core::IEditorFactory( owner )
-                                                                 , mimeTypes_ ( types ) 
 																 , kind_( Constants::C_CHEM_EDITOR )
+                                                                 , mimeTypes_ ( types ) 
                                                                  , tabWidget_(0) 
 {
     mimeTypes_ 

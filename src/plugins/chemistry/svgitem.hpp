@@ -31,7 +31,7 @@
 class QPainter;
 class QRect;
 class QPalette;
-enum EditMode;
+// enum EditMode;
 
 namespace chemistry {
 

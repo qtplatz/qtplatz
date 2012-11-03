@@ -82,9 +82,9 @@ ChemistryMainWindow::~ChemistryMainWindow()
 }
 
 ChemistryMainWindow::ChemistryMainWindow() : toolBar_( 0 )
-	                                       , actionSearch_( 0 )
 	                                       , toolBarLayout_( 0 )
 										   , toolBarDockWidget_( 0 )
+	                                       , actionSearch_( 0 )
 {
 	instance_ = this;
 }
@@ -295,7 +295,7 @@ ChemistryMainWindow::handleViewDetails( int raw, const SDFileModel * model )
     if ( view ) {
 		std::vector< OpenBabel::OBMol > details;
 		const std::vector< OpenBabel::OBMol >& data = model->data();
-        if ( raw >= 0 && data.size() > raw ) {
+        if ( raw >= 0 && data.size() > unsigned( raw ) ) {
 			const OpenBabel::OBMol& target = data[ raw ];
 			double m = const_cast< OpenBabel::OBMol& >( target ).GetExactMass();
             BOOST_FOREACH( const OpenBabel::OBMol& mol, data ) {

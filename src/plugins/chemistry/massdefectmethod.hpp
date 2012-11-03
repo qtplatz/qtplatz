@@ -26,6 +26,7 @@
 #define MASSDEFECTMETHOD_HPP
 
 #include <vector>
+#include <string>
 
 namespace chemistry {
 

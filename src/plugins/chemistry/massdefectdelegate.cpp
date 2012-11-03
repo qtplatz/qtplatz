@@ -37,7 +37,7 @@ MassDefectDelegate::createEditor( QWidget * parent, const QStyleOptionViewItem& 
 }
 
 void
-MassDefectDelegate::paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index )
+MassDefectDelegate::paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
 {
 	QItemDelegate::paint( painter, option, index );
 }
@@ -49,7 +49,7 @@ MassDefectDelegate::setEditorData( QWidget * editor, const QModelIndex& index ) 
 }
 
 void
-MassDefectDelegate::setModelData( QWidget *editor, QAbstractItemModel * model, const QModelIndex& index )
+MassDefectDelegate::setModelData( QWidget *editor, QAbstractItemModel * model, const QModelIndex& index ) const
 {
 	QItemDelegate::setModelData(editor, model, index );
 }

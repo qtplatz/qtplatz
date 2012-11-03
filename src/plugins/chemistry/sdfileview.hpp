@@ -40,7 +40,7 @@ class SDFileView;
 # pragma warning( default: 4100 )
 #endif
 
-namespace { OpenBabel::OBMol; }
+namespace OpenBabel { class OBMol; }
 
 class QModelIndex;
 

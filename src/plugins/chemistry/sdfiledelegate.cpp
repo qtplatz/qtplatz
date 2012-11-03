@@ -44,7 +44,7 @@ void
 SDFileDelegate::paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
 {
 	if ( index.column() == 0 && qVariantCanConvert< SvgItem >( index.data() ) ) {
-		SvgItem& svg = qVariantValue< SvgItem >( index.data() );
+		SvgItem svg = qVariantValue< SvgItem >( index.data() );
 		svg.paint( painter, option.rect, option.palette );
 	} else {
 		QItemDelegate::paint( painter, option, index );

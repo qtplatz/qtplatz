@@ -26,8 +26,8 @@
 
 using namespace chemistry;
 
-MassDefectMethod::MassDefectMethod() : tolerance_(0.1) // Da
-	                                 , isPositiveMode_( true )
+MassDefectMethod::MassDefectMethod() : isPositiveMode_( true )
+	                                 , tolerance_( 0.1 ) // Da
 {
 	adducts_.push_back( "H" );
 }

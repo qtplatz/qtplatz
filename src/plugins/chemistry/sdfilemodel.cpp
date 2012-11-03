@@ -29,9 +29,10 @@
 #if defined _MSC_VER
 # pragma warning( disable: 4100 )
 #endif
-# include <openbabel/babelconfig.h>
+
 # include <openbabel/mol.h>
 # include <openbabel/obconversion.h>
+
 #if defined _MSC_VER
 # pragma warning( default: 4100 )
 #endif
@@ -117,7 +118,7 @@ SDFileModel::headerData( int section, Qt::Orientation orientation, int role ) co
 		if ( ! data_.empty() ) {
             int n = section - 3;
 			std::vector< attribute_type > attrs = attributes( data_[0] );
-            if ( attrs.size() > n )
+            if ( attrs.size() > unsigned(n) )
 				return QString::fromStdString( attrs[n].first );
 		}
 	}
@@ -139,6 +140,8 @@ SDFileModel::flags( const QModelIndex& index ) const
 bool 
 SDFileModel::setData( const QModelIndex& index, const QVariant& value, int role )
 {
+    (void)value;
+
 	if ( index.isValid() && role == Qt::EditRole ) {
 		int row = index.row();
 		(void)row;

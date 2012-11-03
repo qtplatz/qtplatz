@@ -30,12 +30,11 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 #include <string>
+#include <openbabel/mol.h>
 
 class QModelIndex;
 class QByteArray;
 class QProgressBar;
-
-namespace OpenBabel { class OBMol; }
 
 namespace chemistry {
 
