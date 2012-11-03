@@ -9,7 +9,7 @@ isEmpty( OPENBABEL_SRC ) {
 
 isEmpty( OPENBABEL_ROOT ) {
     win32: OPENBABEL_ROOT = $${OPENBABEL_SRC}/windows-vc2008/install
-    else: OPENBABEL_ROOT = /usr/local/openbabel
+    else:  OPENBABEL_ROOT = /usr/local/openbabel
 }
 
 win32 {
@@ -48,4 +48,7 @@ win32 {
 			$${OPENBABEL_ROOT}/bin/plugin_fingerprints.obf \
 			$${OPENBABEL_ROOT}/bin/plugin_forcefields.obf \
 			$${OPENBABEL_ROOT}/bin/plugin_ops.obf
+} else {
+    OPENBABEL_LIBDIR = /usr/local/lib
+    OPENBABEL_DLLS   = $${OPENBABEL_LIBDIR}/libopenbabel.4.0.0.dylib
 }

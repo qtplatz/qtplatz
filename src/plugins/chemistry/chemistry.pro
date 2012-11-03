@@ -32,16 +32,16 @@ HEADERS += chemistryplugin.hpp\
         chemistryconstants.hpp \
     	chemistrymode.hpp \
     	sdfileview.hpp \
-    chemeditor.hpp \
-    chemeditorfactory.hpp \
-    chemfile.hpp \
-    chemistrymainwindow.hpp \
-    sdfilemodel.hpp \
-    sdfiledelegate.hpp \
-    svgitem.hpp \
-    massdefectform.hpp \
-    massdefectdelegate.hpp \
-    massdefectmethod.hpp
+        chemeditor.hpp \
+        chemeditorfactory.hpp \
+        chemfile.hpp \
+        chemistrymainwindow.hpp \
+        sdfilemodel.hpp \
+        sdfiledelegate.hpp \
+        svgitem.hpp \
+        massdefectform.hpp \
+        massdefectdelegate.hpp \
+        massdefectmethod.hpp
 
 OTHER_FILES = chemistry.pluginspec
 
@@ -65,5 +65,11 @@ win32 {
     dest = $$replace(IDE_APP_PATH, /, $$QMAKE_DIR_SEP)
     for(file, FILES) {
        QMAKE_POST_LINK +=$$quote(cmd /c copy /y $${file} $${dest}$$escape_expand(\\n\\t))
+    }
+} else {
+    for(file, OPENBABEL_DLLS ) FILES += $$replace(file, /, $$QMAKE_DIR_SEP)
+    dest = $$replace(IDE_LIBRARY_PATH, /, $$QMAKE_DIR_SEP)
+    for(file, FILES) {
+       QMAKE_POST_LINK +=$$quote($(COPY) $${file} $${dest}$$escape_expand(\\n\\t))
     }
 }

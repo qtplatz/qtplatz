@@ -1,14 +1,22 @@
 
-QTDIR = /usr/local/Qt/4.8.1
+QTDIR = /usr/local/qt/4.8.3
 DEST  = /Volumes/qtplatz
 
-ACE_VERSION = 6.0.0
-TAO_VERSION = 1.6.6
+ACE_VERSION = 6.1.4
+TAO_VERSION = 2.1.4
+BOOST_VERSION = 1_51
+OPENBABEL_VERSION = 4.0.0
+
+LIBDIR_OPENBABEL = /usr/local/lib
+LIBDIR_ACETAO    = /usr/local/ace+tao/${ACE_VERSION}/lib
+LIBDIR_BOOST     = /usr/local/boost-${BOOST_VERSION}/lib
 
 LIBDIRIN = /usr/local/lib
 LIBDIROUT = /Volumes/qtplatz/qtplatz.app/Contents/PlugIns
+FRAMEWORKS = /Volumes/qtplatz/qtplatz.app/Contents/Frameworks
 
 TAO_LIBS = \
+	libACE \
 	libTAO \
 	libTAO_Utils \
 	libTAO_PI \
@@ -22,18 +30,15 @@ BOOST_LIBS = \
 	libboost_system \
 	libboost_filesystem
 
+OPENBABEL_LIBS = libopenbabel
+
 all: /Volumes/qtplatz/qtplatz.app
 
 /Volumes/qtplatz/qtplatz.app: /Volumes/qtplatz
 	cd ../../../bin; tar cf - ./qtplatz.app | (cd /Volumes/qtplatz; tar xvf -)
-	for i in ${BOOST_LIBS} ; do \
-	  cp -p ${LIBDIRIN}/$$i.dylib ${LIBDIROUT}; \
-	done
-	cp -p ${LIBDIRIN}/libACE-${ACE_VERSION}.dylib ${LIBDIROUT}
-	( cd ${LIBDIROUT}; ln -s libACE-${ACE_VERSION}.dylib libACE.dylib )
+	macdeployqt /Volumes/qtplatz/qtplatz.app
 	for i in ${TAO_LIBS} ; do \
-	  cp -p ${LIBDIRIN}/$$i.${TAO_VERSION}.dylib ${LIBDIROUT}; \
-	  ( cd ${LIBDIROUT}; ln -s $$i.${TAO_VERSION}.dylib $$i.dylib ); \
+	  cp -p ${LIBDIR_ACETAO}/$$i.dylib ${FRAMEWORKS}; \
 	done
 
 deploy:
