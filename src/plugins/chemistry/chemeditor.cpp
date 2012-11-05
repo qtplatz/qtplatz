@@ -55,13 +55,13 @@ ChemEditor::ChemEditor( SDFileView * view
     Core::UniqueIDManager * uidm = Core::UniqueIDManager::instance();
     context_ << uidm->uniqueIdentifier( Constants::C_CHEM_MODE );
 	connect( sdfileView_, SIGNAL( rawClicked( int, const SDFileModel* ) ), ChemistryMainWindow::instance(), SLOT( handleViewDetails( int, const SDFileModel* ) ) );
-	//connect( editorWidget_, SIGNAL( titleChanged(QString) ), this, SLOT( slotTitleChanged(QString) ) );
-	//connect( editorWidget_, SIGNAL( contentModified() ), this, SIGNAL( changed() ) );
+	connect( sdfileView_, SIGNAL( rawClicked( int, const SDFileModel* ) ), ChemistryMainWindow::instance(), SLOT( handleViewFragments( int, const SDFileModel* ) ) );
 }
 
 ChemEditor::~ChemEditor()
 {
 }
+
 
 // implement Core::IEditor
 bool

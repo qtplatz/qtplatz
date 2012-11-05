@@ -52,7 +52,7 @@ namespace chemistry {
 		void OnInitialUpdate();
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
-		QDockWidget * createDockWidget( QWidget * );
+		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
 		static QToolButton * toolButton( const char * );
 		static QToolButton * toolButton( QAction * );
 		static ChemistryMainWindow * instance();
@@ -62,6 +62,7 @@ namespace chemistry {
 	public slots:
 		void actionSearch();
 		void handleViewDetails( int raw, const SDFileModel * );
+		void handleViewFragments( int raw, const SDFileModel * );
 
 	private:
 		static ChemistryMainWindow * instance_;

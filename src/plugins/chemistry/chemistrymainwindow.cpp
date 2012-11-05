@@ -50,17 +50,20 @@
 #include <QtGui/QTextEdit>
 #include <QtGui/qlabel.h>
 #include <QtGui/qicon.h>
+#include <qdebug.h>
 
 #ifdef _MSC_VER
 # pragma warning( disable: 4100 )
 #endif
-//#include <openbabel/obconversion.h>
 #include <openbabel/mol.h>
+#include <openbabel/fingerprint.h>
 #ifdef _MSC_VER
 # pragma warning( default: 4100 )
 #endif
 
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
+#include <algorithm>
 
 namespace chemistry {
 
@@ -70,6 +73,18 @@ namespace chemistry {
         setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) { w_.setTrackingEnabled( false ); }
         ~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
     };
+
+    class Chopper {
+	public:
+		static std::vector< OpenBabel::OBBond * > chop( OpenBabel::OBMol& mol ) {
+            std::vector< OpenBabel::OBBond * > results;
+			for ( OpenBabel::OBBondIterator it = mol.BeginBonds(); it != mol.EndBonds(); ++it ) {
+				if ( ! ( (*it)->IsAromatic() || (*it)->IsDouble() ) )
+					results.push_back( *it );
+			}
+			return results;
+		}
+	};
 
 }
 
@@ -93,7 +108,7 @@ ChemistryMainWindow::ChemistryMainWindow() : toolBar_( 0 )
 void
 ChemistryMainWindow::OnInitialUpdate()
 {
-	//setSimpleDockWidgetArrangement();
+	setSimpleDockWidgetArrangement();
 }
 
 void
@@ -198,14 +213,14 @@ ChemistryMainWindow::setSimpleDockWidgetArrangement()
 		removeDockWidget( dockWidget );
 	}
   
+    size_t npos = 0;
     foreach ( QDockWidget * dockWidget, dockWidgets ) {
-		int area = Qt::BottomDockWidgetArea;
-		QVariant p = dockWidget->property( "Chemistry.Default.Area" );
-		if ( p.isValid() ) 
-			area = Qt::DockWidgetArea( p.toInt() );
-		addDockWidget( Qt::DockWidgetArea( area ), dockWidget );
+		addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
 		dockWidget->show();
+        if ( npos++ > 1 )
+			tabifyDockWidget( dockWidgets[1], dockWidget );
 	}
+
 
 	QDockWidget * toolBarDock = toolBarDockWidget();
 
@@ -220,10 +235,15 @@ ChemistryMainWindow::setToolBarDockWidget( QDockWidget * dock )
 }
 
 QDockWidget *
-ChemistryMainWindow::createDockWidget( QWidget * widget )
+ChemistryMainWindow::createDockWidget( QWidget * widget, const QString& title )
 {
 	QDockWidget * dockWidget = addDockForWidget( widget );
 	dockWidget->setObjectName( widget->objectName() );
+    if ( title.isEmpty() )
+		dockWidget->setWindowTitle( widget->objectName() );
+	else
+		dockWidget->setWindowTitle( title );
+
 	addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
 #if 0
 	QAction * toggleViewAction = dockWidget->toggleViewAction();
@@ -246,6 +266,10 @@ ChemistryMainWindow::createDockWidgets()
 	form->setObjectName( "massdefect" );
     form->OnInitialUpdate();
 	createDockWidget( form );
+
+    QWidget * fragments = new SDFileView;
+	fragments->setObjectName( "fragments" );
+    createDockWidget( fragments, "Fragments" );
 }
 
 void
@@ -307,6 +331,46 @@ ChemistryMainWindow::handleViewDetails( int raw, const SDFileModel * model )
 		view->setData( details );
 	}
 }
+
+void
+ChemistryMainWindow::handleViewFragments( int raw, const SDFileModel * model )
+{
+    SDFileView * view = 0;
+	foreach( QDockWidget * dock, dockWidgets() ) {
+		if ( dock->objectName() == "fragments" ) {
+			view = dynamic_cast< SDFileView *>( dock->widget() );
+			break;
+		}
+	}
+
+	if ( view && ( raw >= 0 && model->data().size() > unsigned( raw ) ) ) {
+		using OpenBabel::OBMol;
+		using OpenBabel::OBBond;
+
+		OBMol mol = model->data()[ raw ];
+		std::vector< OBMol > fragments;
+    
+        fragments.push_back( mol );
+        std::vector< OBBond * > res = Chopper::chop( mol );
+        BOOST_FOREACH( OBBond * bond, res ) {
+			mol.DeleteBond( bond );
+			std::vector< OBMol > sub = mol.Separate();
+            BOOST_FOREACH( OBMol& m, sub )
+				fragments.push_back( m );
+		}
+#if defined WIN32
+		std::sort( fragments.begin(), fragments.end()
+                   , boost::bind( &OBMol::GetExactMass, _2, true ) < boost::bind( &OBMol::GetExactMass, _1, true ) );
+		// fix following
+		std::vector< OBMol >::iterator pos = 
+            std::unique( fragments.begin(), fragments.end()
+                         , boost::bind( &OBMol::GetFormula, _1) == boost::bind( &OBMol::GetFormula, _2 ) );
+        fragments.erase( pos, fragments.end() );
+#endif
+		view->setData( fragments );
+	}
+}
+
 
 ChemistryMainWindow *
 ChemistryMainWindow::instance()

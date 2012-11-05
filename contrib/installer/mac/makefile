@@ -32,7 +32,10 @@ BOOST_LIBS = \
 
 OPENBABEL_LIBS = libopenbabel
 
-all: /Volumes/qtplatz/qtplatz.app
+all: qtplatz.dmg
+	macdeployqt ../../../bin/qtplatz.app -dmg
+
+#all: /Volumes/qtplatz/qtplatz.app
 
 /Volumes/qtplatz/qtplatz.app: /Volumes/qtplatz
 	cd ../../../bin; tar cf - ./qtplatz.app | (cd /Volumes/qtplatz; tar xvf -)
