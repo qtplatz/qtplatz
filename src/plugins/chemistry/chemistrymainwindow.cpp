@@ -26,6 +26,9 @@
 #include "sdfileview.hpp"
 #include "sdfilemodel.hpp"
 #include "massdefectform.hpp"
+#include <adchem/chopper.hpp>
+#include <adchem/mol.hpp>
+
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -73,18 +76,6 @@ namespace chemistry {
         setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) { w_.setTrackingEnabled( false ); }
         ~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
     };
-
-    class Chopper {
-	public:
-		static std::vector< OpenBabel::OBBond * > chop( OpenBabel::OBMol& mol ) {
-            std::vector< OpenBabel::OBBond * > results;
-			for ( OpenBabel::OBBondIterator it = mol.BeginBonds(); it != mol.EndBonds(); ++it ) {
-				if ( ! ( (*it)->IsAromatic() || (*it)->IsDouble() ) )
-					results.push_back( *it );
-			}
-			return results;
-		}
-	};
 
 }
 
@@ -324,7 +315,7 @@ ChemistryMainWindow::handleViewDetails( int raw, const SDFileModel * model )
 			double m = const_cast< OpenBabel::OBMol& >( target ).GetExactMass();
             BOOST_FOREACH( const OpenBabel::OBMol& mol, data ) {
 				double mz = const_cast< OpenBabel::OBMol& >(mol).GetExactMass();
-				if ( m - 0.1 < mz && mz < m + 0.1 )
+				if ( m - 0.01 < mz && mz < m + 0.01 )
 					details.push_back( mol );
 			}
 		}
@@ -350,23 +341,30 @@ ChemistryMainWindow::handleViewFragments( int raw, const SDFileModel * model )
 		OBMol mol = model->data()[ raw ];
 		std::vector< OBMol > fragments;
     
-        fragments.push_back( mol );
-        std::vector< OBBond * > res = Chopper::chop( mol );
-        BOOST_FOREACH( OBBond * bond, res ) {
-			mol.DeleteBond( bond );
-			std::vector< OBMol > sub = mol.Separate();
-            BOOST_FOREACH( OBMol& m, sub )
-				fragments.push_back( m );
+        std::vector< int > indecies = adchem::Chopper::chop( mol );
+		while ( ! indecies.empty() ) {
+			BOOST_FOREACH( int index, indecies ) {
+                OBMol dup( mol );
+				std::pair< OBMol, OBMol > sub = adchem::Chopper::split( dup, index );
+				std::ostringstream o;
+				o << std::fixed << mol.GetExactMass() - sub.first.GetExactMass();
+				adchem::Mol::SetAttribute( sub.first, "loss(m/z)", o.str() );
+				adchem::Mol::SetAttribute( sub.first, "loss", sub.second.GetFormula() );
+				fragments.push_back( sub.first );
+			}
+			mol = adchem::Chopper::split( mol, indecies[ 0 ] ).first;
+			indecies = adchem::Chopper::chop( mol );
 		}
-#if defined WIN32
+
+		using adchem::Mol;
+
 		std::sort( fragments.begin(), fragments.end()
-                   , boost::bind( &OBMol::GetExactMass, _2, true ) < boost::bind( &OBMol::GetExactMass, _1, true ) );
-		// fix following
-		std::vector< OBMol >::iterator pos = 
-            std::unique( fragments.begin(), fragments.end()
-                         , boost::bind( &OBMol::GetFormula, _1) == boost::bind( &OBMol::GetFormula, _2 ) );
-        fragments.erase( pos, fragments.end() );
-#endif
+			, boost::bind( &Mol::GetExactMass, _2, true ) < boost::bind( &Mol::GetExactMass, _1, true ) );
+
+		fragments.erase( 
+			std::unique( fragments.begin(), fragments.end()
+			, boost::bind( &Mol::GetFormula, _1) == boost::bind( &Mol::GetFormula, _2 ) )
+			, fragments.end() );
 		view->setData( fragments );
 	}
 }

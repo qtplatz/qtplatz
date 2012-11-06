@@ -19,7 +19,8 @@ SUBDIRS   = \
     qtwidgets \
     adtxtfactory \
     addatafile \
-    chromatogr
+    chromatogr \
+    adchem
 
 # adfs : boost
 # xmlparser : none

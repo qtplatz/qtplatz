@@ -67,9 +67,9 @@ namespace chemistry {
 
 	private:
 		static bool toSvg( SvgItem&, const OpenBabel::OBMol& );
-		static std::vector< attribute_type > attributes( const OpenBabel::OBMol& );
 		boost::shared_ptr< ChemFile > file_;
 		std::vector< OpenBabel::OBMol > data_;
+		std::vector< std::string > excludes_;
 	};
 
 }

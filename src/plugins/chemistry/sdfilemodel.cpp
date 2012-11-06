@@ -25,19 +25,21 @@
 #include "sdfilemodel.hpp"
 #include "chemfile.hpp"
 #include "svgitem.hpp"
+#include <adchem/mol.hpp>
 
 #if defined _MSC_VER
 # pragma warning( disable: 4100 )
 #endif
-
 # include <openbabel/mol.h>
 # include <openbabel/obconversion.h>
-
 #if defined _MSC_VER
 # pragma warning( default: 4100 )
 #endif
 
+#include <adchem/mol.hpp>
+
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 #include <iostream>
 #include <qstring.h>
 #include <qwidget.h>
@@ -56,6 +58,12 @@ SDFileModel::SDFileModel( QObject *parent ) : QAbstractTableModel( parent )
     roles[ 0 ] = "MOL";
     roles[ 1 ] = "Formula";
     roles[ 2 ] = "Exact mass";
+
+	excludes_.push_back( "PartialCharges" );
+	excludes_.push_back( "Formula" );
+	excludes_.push_back( "MOL Chiral Flag" );
+    excludes_.push_back( "Mol Weight" );
+	excludes_.push_back( "TOLERANCE (Yes Exampt)" );
 }
 
 int
@@ -70,7 +78,7 @@ SDFileModel::columnCount( const QModelIndex& parent ) const
 {
 	(void)parent;
 	if ( ! data_.empty() )
-		return attributes( data_[0] ).size();
+		return adchem::Mol::attributes( data_[0], excludes_ ).size() + 3;
 	return 3;
 }
 
@@ -95,7 +103,7 @@ SDFileModel::data( const QModelIndex& index, int role ) const
 		} else if ( index.column() == 2 ) {
 			return QVariant( const_cast<OBMol&>(mol).GetExactMass() );
 		} else {
-			std::vector< attribute_type > attrs = attributes( mol );
+			std::vector< attribute_type > attrs = adchem::Mol::attributes( mol, excludes_ );
 			if ( index.column() - nfixed < attrs.size() )
 				return QString::fromStdString( attrs[ index.column() - nfixed ].second );
 		}
@@ -117,7 +125,7 @@ SDFileModel::headerData( int section, Qt::Orientation orientation, int role ) co
 
 		if ( ! data_.empty() ) {
             int n = section - 3;
-			std::vector< attribute_type > attrs = attributes( data_[0] );
+			std::vector< attribute_type > attrs = adchem::Mol::attributes( data_[0], excludes_ );
             if ( attrs.size() > unsigned(n) )
 				return QString::fromStdString( attrs[n].first );
 		}
@@ -193,32 +201,20 @@ SDFileModel::file( boost::shared_ptr< ChemFile >& file )
 	data_.clear();
     OpenBabel::OBMol mol;
 	while ( file->Read( mol ) && !progress.wasCanceled() ) {
+/*
+		std::vector< OpenBabel::OBMol >::iterator pos
+		  = std::find_if( data_.begin(), data_.end(), boost::bind( &adchem::Mol::GetExactMass, _1, true ) );
+		data_.insert( pos, mol );
+*/
 		data_.push_back( mol );
 		progress.setValue( data_.size() );
 #if defined _DEBUG && 0
 		if ( data_.size() > 25 ) break;
 #endif
 	}
+    using adchem::Mol;
+	//std::sort( data_.begin(), data_.end(), boost::bind( &Mol::GetExactMass, _2, true ) < boost::bind( &Mol::GetExactMass, _1, true ) );
 	endResetModel();
-}
-
-// static
-std::vector< std::pair< std::string, std::string > >
-SDFileModel::attributes( const OpenBabel::OBMol& mol )
-{
-    using OpenBabel::OBMol;
-
-	std::vector< std::pair< std::string, std::string > > attrs;
-	for ( OpenBabel::OBDataIterator it = const_cast<OBMol&>(mol).BeginData(); it != const_cast<OBMol&>(mol).EndData(); ++it ) {
-		const OpenBabel::OBGenericData& data = **it;
-		if ( data.GetDataType() == OpenBabel::OBGenericDataType::PairData ) {
-			const OpenBabel::OBPairData& pair = static_cast<const OpenBabel::OBPairData& >( data );
-			std::string key = pair.GetAttribute();
-			std::string value = pair.GetValue();
-			attrs.push_back( std::make_pair< std::string, std::string >( key, value ) );
-		}
-	}
-	return attrs;
 }
 
 bool

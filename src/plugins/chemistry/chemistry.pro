@@ -46,11 +46,12 @@ HEADERS += chemistryplugin.hpp\
 OTHER_FILES = chemistry.pluginspec
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH
-LIBS += -l$$qtLibraryTarget(adutils) \
-        -l$$qtLibraryTarget(adportable) \
-        -l$$qtLibraryTarget(adplugin) \
-        -l$$qtLibraryTarget(qtwrapper) \
-        -l$$qtLibraryTarget(xmlparser) 
+LIBS += -l$$qtLibraryTarget( adutils ) \
+        -l$$qtLibraryTarget( adportable ) \
+        -l$$qtLibraryTarget( adplugin ) \
+        -l$$qtLibraryTarget( qtwrapper ) \
+        -l$$qtLibraryTarget( xmlparser ) \
+	-l$$qtLibraryTarget( adchem )
 
 RESOURCES += \
     chemistry.qrc
