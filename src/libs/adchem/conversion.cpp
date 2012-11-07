@@ -24,16 +24,37 @@
 
 #include "conversion.hpp"
 
+#include <openbabel/obconversion.h>
+#include <openbabel/mol.h>
+
 using namespace adchem;
+
+Conversion::~Conversion()
+{
+}
 
 Conversion::Conversion()
 {
 }
 
-Conversion::Conversion( const OpenBabel::OBConversion& t ) : OpenBabel::OBConversion( t )
+Conversion::Conversion( const Conversion& t )
 {
 }
 
-Conversion::Conversion( const Conversion& t ) : OpenBabel::OBConversion( t )
+//static
+std::string
+Conversion::toSVG( const OpenBabel::OBMol& mol )
 {
+	OpenBabel::OBConversion conv;
+	conv.SetOutFormat( "svg" );
+	return conv.WriteString( const_cast< OpenBabel::OBMol *>(&mol) );
+}
+
+//static
+std::string
+Conversion::toSMILES( const OpenBabel::OBMol& mol )
+{
+	OpenBabel::OBConversion conv;
+	conv.SetOutFormat( "smiles" );
+	return conv.WriteString( const_cast< OpenBabel::OBMol *>(&mol) );
 }

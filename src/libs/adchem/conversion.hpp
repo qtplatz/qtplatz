@@ -25,23 +25,20 @@
 #ifndef CONVERSION_HPP
 #define CONVERSION_HPP
 
-#ifdef _MSC_VER
-# pragma warning( disable: 4100 )
-#endif
+#include <string>
 
-#include <openbabel/obconversion.h>
-
-#ifdef _MSC_VER
-# pragma warning( default: 4100 )
-#endif
+namespace OpenBabel { class OBMol; }
 
 namespace adchem {
 
-	class Conversion : public OpenBabel::OBConversion {
+	class Conversion {
 	public:
+		virtual ~Conversion();
 		Conversion();
-		Conversion( const OpenBabel::OBConversion& );
         Conversion( const Conversion& );
+
+		static std::string toSVG( const OpenBabel::OBMol& );
+		static std::string toSMILES( const OpenBabel::OBMol& );
 	};
 
 }

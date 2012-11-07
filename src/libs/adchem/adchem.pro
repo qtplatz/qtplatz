@@ -9,6 +9,7 @@ QT       -= core gui
 TARGET = adchem
 TEMPLATE = lib
 CONFIG += staticlib
+win32: QMAKE_CXXFLAGS += -wd4100
 
 include(../../qtplatz_library.pri)
 include(../../boost.pri)

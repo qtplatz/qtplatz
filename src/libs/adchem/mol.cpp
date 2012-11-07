@@ -31,15 +31,19 @@ Mol::~Mol()
 {
 }
 
-Mol::Mol()
+Mol::Mol() : dirty_(true), exactmass_( 0 )
 {
 }
 
 Mol::Mol( const Mol& t ) : mol_( t.mol_ ? new OpenBabel::OBMol( *t.mol_ ) : 0 )
+	                     , dirty_( t.dirty_ )
+						 , exactmass_( t.exactmass_ )
 {
 }
 
 Mol::Mol( const OpenBabel::OBMol& mol ) : mol_( new OpenBabel::OBMol( mol ) )
+	                     , dirty_( true )
+						 , exactmass_( 0 )
 {
 }
 
@@ -47,14 +51,55 @@ Mol&
 Mol::operator = ( const OpenBabel::OBMol& t )
 {
 	mol_.reset( new OpenBabel::OBMol( t ) );
+	dirty_ = true;
 	return *this;
+}
+
+Mol&
+Mol::operator = ( const Mol& t )
+{
+/*
+    if ( ! mol_ ) 
+		mol_.reset( new OpenBabel::OBMol( *t.mol_ ) );
+	else if ( mol_.get() != t.mol_.get() )
+		*mol_ = *t.mol_;
+*/
+    mol_ = t.mol_; // CAUTION -- This shareing the instance, in order to improve sort speed by avoiding OBMol copy
+	dirty_ = t.dirty_;
+	exactmass_ = t.exactmass_;
+	return * this;
+}
+
+void
+Mol::setAttribute( const std::string& key, const std::string& value )
+{
+	SetAttribute( *this, key, value );
+}
+
+Mol::operator OpenBabel::OBMol& ()
+{
+	if ( ! mol_ )
+		mol_.reset( new OpenBabel::OBMol() );
+	return *mol_;
+}
+
+Mol::operator const OpenBabel::OBMol& () const
+{
+	if ( ! mol_ )
+		const_cast< Mol * >(this)->mol_.reset( new OpenBabel::OBMol() );
+	return *mol_;
 }
 
 double
 Mol::getExactMass( bool implicitH ) const
 {
-	if ( mol_ )
-		return const_cast< OpenBabel::OBMol& >( *mol_ ).GetExactMass( implicitH );
+	if ( mol_ ) {
+		if ( dirty_ ) {
+			const_cast< Mol* >(this)->exactmass_ = const_cast< OpenBabel::OBMol& >(*mol_).GetExactMass( implicitH );
+			const_cast< Mol* >(this)->dirty_ = false;
+		}
+		return exactmass_;
+	}
 	return 0;
 }
 

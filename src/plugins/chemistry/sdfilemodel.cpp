@@ -26,14 +26,15 @@
 #include "chemfile.hpp"
 #include "svgitem.hpp"
 #include <adchem/mol.hpp>
+#include <adchem/conversion.hpp>
 
 #if defined _MSC_VER
-# pragma warning( disable: 4100 )
+#  pragma warning(disable:4100)
 #endif
-# include <openbabel/mol.h>
-# include <openbabel/obconversion.h>
+#include <openbabel/mol.h>
+#include <openbabel/parsmart.h>
 #if defined _MSC_VER
-# pragma warning( default: 4100 )
+#  pragma warning(default:4100)
 #endif
 
 #include <adchem/mol.hpp>
@@ -49,6 +50,8 @@
 #include <QGraphicsSvgItem>
 #include <QtSvg/qsvgwidget.h>
 #include <qprogressdialog.h>
+#include <qdebug.h>
+#include <set>
 
 using namespace chemistry;
 
@@ -63,7 +66,9 @@ SDFileModel::SDFileModel( QObject *parent ) : QAbstractTableModel( parent )
 	excludes_.push_back( "Formula" );
 	excludes_.push_back( "MOL Chiral Flag" );
     excludes_.push_back( "Mol Weight" );
-	excludes_.push_back( "TOLERANCE (Yes Exampt)" );
+	excludes_.push_back( "TOLERANCE (Yes  Exampt)" );
+
+    excludes_.push_back( "CdId" );
 }
 
 int
@@ -78,7 +83,7 @@ SDFileModel::columnCount( const QModelIndex& parent ) const
 {
 	(void)parent;
 	if ( ! data_.empty() )
-		return adchem::Mol::attributes( data_[0], excludes_ ).size() + 3;
+		return adchem::Mol::attributes( static_cast< const OpenBabel::OBMol &>(data_[0]), excludes_ ).size() + 3;
 	return 3;
 }
 
@@ -191,49 +196,63 @@ SDFileModel::removeRows( int position, int rows, const QModelIndex& index )
 void
 SDFileModel::file( boost::shared_ptr< ChemFile >& file )
 {
+    using adchem::Mol;
+	using adchem::Conversion;
+
 	QProgressDialog progress( "Fetching data...", "Cancel", 0, 1000 );
 
 	progress.setWindowModality( Qt::WindowModal );
+	progress.setMaximum( file->fsize() );
 	progress.show();
 
+	std::set< std::string > set;
 	beginResetModel();
 	file_ = file;
 	data_.clear();
-    OpenBabel::OBMol mol;
-	while ( file->Read( mol ) && !progress.wasCanceled() ) {
+	Mol mol; // OpenBabel::OBMol mol;
+	while ( file->Read( static_cast< OpenBabel::OBMol& >(mol) ) && !progress.wasCanceled() ) {
+		//duplicate check
+		std::string smiles = Conversion::toSMILES( mol );
+        if ( set.find( smiles ) == set.end() ) {
+			set.insert( smiles );
+			Mol::SetAttribute( mol, "SMILES", Conversion::toSMILES( mol ) );
+			data_.push_back( mol );
+			//-- trial code
+			OpenBabel::OBSmartsPattern sp;
+			sp.Init( smiles );
+			sp.Match( mol );
+			std::vector< std::vector< int > > maplist = sp.GetUMapList();
 /*
-		std::vector< OpenBabel::OBMol >::iterator pos
-		  = std::find_if( data_.begin(), data_.end(), boost::bind( &adchem::Mol::GetExactMass, _1, true ) );
-		data_.insert( pos, mol );
+			qDebug() << "---------------";
+            BOOST_FOREACH( const std::vector<int>& v, maplist ) {
+                BOOST_FOREACH( int x, v ) {
+					qDebug() << x;
+				}
+				qDebug() << "--";
+			}
+			//--
 */
-		data_.push_back( mol );
-		progress.setValue( data_.size() );
-#if defined _DEBUG && 0
-		if ( data_.size() > 25 ) break;
-#endif
+		}
+		progress.setValue( file->tellg() );
 	}
-    using adchem::Mol;
-	//std::sort( data_.begin(), data_.end(), boost::bind( &Mol::GetExactMass, _2, true ) < boost::bind( &Mol::GetExactMass, _1, true ) );
 	endResetModel();
 }
 
 bool
 SDFileModel::toSvg( SvgItem& item, const OpenBabel::OBMol& mol )
 {
-	OpenBabel::OBConversion conv;
-	conv.SetOutFormat( "svg" );
-    item.svg_ = conv.WriteString( const_cast< OpenBabel::OBMol *>(&mol) ).c_str();
+	item.svg_ = adchem::Conversion::toSVG( mol ).c_str();
 	return true;
 }
 
-const std::vector< OpenBabel::OBMol >&
+const std::vector< adchem::Mol >&
 SDFileModel::data() const
 {
 	return data_;
 }
 
 void
-SDFileModel::data( const std::vector< OpenBabel::OBMol >& v)
+SDFileModel::data( const std::vector< adchem::Mol >& v)
 {
 	beginResetModel();
 	data_.clear();

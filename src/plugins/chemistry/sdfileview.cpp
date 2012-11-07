@@ -27,15 +27,8 @@
 #include "sdfilemodel.hpp"
 #include "sdfiledelegate.hpp"
 
-#ifdef _MSC_VER
-# pragma warning( disable: 4100 )
-#endif
-#include <openbabel/babelconfig.h>
 #include <openbabel/obconversion.h>
 #include <openbabel/mol.h>
-#ifdef _MSC_VER
-# pragma warning( default: 4100 )
-#endif
 
 #include <qdebug.h>
 
@@ -69,7 +62,7 @@ SDFileView::file( boost::shared_ptr< ChemFile >& file )
 }
 
 void
-SDFileView::setData( const std::vector< OpenBabel::OBMol >& v )
+SDFileView::setData( const std::vector< adchem::Mol >& v )
 {
 	model_->data( v );
 }

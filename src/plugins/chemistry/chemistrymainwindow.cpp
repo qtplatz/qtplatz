@@ -55,14 +55,10 @@
 #include <QtGui/qicon.h>
 #include <qdebug.h>
 
-#ifdef _MSC_VER
-# pragma warning( disable: 4100 )
-#endif
+#pragma warning(disable:4100)
 #include <openbabel/mol.h>
+#pragma warning(default:4100)
 #include <openbabel/fingerprint.h>
-#ifdef _MSC_VER
-# pragma warning( default: 4100 )
-#endif
 
 #include <boost/foreach.hpp>
 #include <boost/bind.hpp>
@@ -308,13 +304,13 @@ ChemistryMainWindow::handleViewDetails( int raw, const SDFileModel * model )
 		}
 	}
     if ( view ) {
-		std::vector< OpenBabel::OBMol > details;
-		const std::vector< OpenBabel::OBMol >& data = model->data();
+		std::vector< adchem::Mol > details;
+		const std::vector< adchem::Mol >& data = model->data();
         if ( raw >= 0 && data.size() > unsigned( raw ) ) {
-			const OpenBabel::OBMol& target = data[ raw ];
-			double m = const_cast< OpenBabel::OBMol& >( target ).GetExactMass();
-            BOOST_FOREACH( const OpenBabel::OBMol& mol, data ) {
-				double mz = const_cast< OpenBabel::OBMol& >(mol).GetExactMass();
+			// const adchem::Mol& target = data[ raw ];
+			double m = data[ raw ].getExactMass();
+            BOOST_FOREACH( const adchem::Mol& mol, data ) {
+				double mz = mol.getExactMass();
 				if ( m - 0.01 < mz && mz < m + 0.01 )
 					details.push_back( mol );
 			}
@@ -337,9 +333,10 @@ ChemistryMainWindow::handleViewFragments( int raw, const SDFileModel * model )
 	if ( view && ( raw >= 0 && model->data().size() > unsigned( raw ) ) ) {
 		using OpenBabel::OBMol;
 		using OpenBabel::OBBond;
+		using adchem::Mol;
 
-		OBMol mol = model->data()[ raw ];
-		std::vector< OBMol > fragments;
+		Mol mol = model->data()[ raw ];
+		std::vector< Mol > fragments;
     
         std::vector< int > indecies = adchem::Chopper::chop( mol );
 		while ( ! indecies.empty() ) {
@@ -347,7 +344,7 @@ ChemistryMainWindow::handleViewFragments( int raw, const SDFileModel * model )
                 OBMol dup( mol );
 				std::pair< OBMol, OBMol > sub = adchem::Chopper::split( dup, index );
 				std::ostringstream o;
-				o << std::fixed << mol.GetExactMass() - sub.first.GetExactMass();
+				o << std::fixed << mol.getExactMass() - sub.first.GetExactMass();
 				adchem::Mol::SetAttribute( sub.first, "loss(m/z)", o.str() );
 				adchem::Mol::SetAttribute( sub.first, "loss", sub.second.GetFormula() );
 				fragments.push_back( sub.first );
@@ -359,7 +356,7 @@ ChemistryMainWindow::handleViewFragments( int raw, const SDFileModel * model )
 		using adchem::Mol;
 
 		std::sort( fragments.begin(), fragments.end()
-			, boost::bind( &Mol::GetExactMass, _2, true ) < boost::bind( &Mol::GetExactMass, _1, true ) );
+			, boost::bind( &Mol::getExactMass, _2, true ) < boost::bind( &Mol::getExactMass, _1, true ) );
 
 		fragments.erase( 
 			std::unique( fragments.begin(), fragments.end()

@@ -34,22 +34,29 @@ namespace OpenBabel { class OBMol; }
 namespace adchem {
 
 	class Mol {
-		boost::scoped_ptr< OpenBabel::OBMol > mol_;
+		boost::shared_ptr< OpenBabel::OBMol > mol_;
 	public:
         ~Mol();
 		Mol();
         Mol( const Mol& );
 		Mol( const OpenBabel::OBMol& );
 		Mol& operator = ( const OpenBabel::OBMol& );
+        Mol& operator = ( const Mol& );
 
 		double getExactMass( bool implicitH = true ) const;
         std::string getFormula() const;
+		void setAttribute( const std::string& key, const std::string& value );
+		operator OpenBabel::OBMol& ();
+		operator const OpenBabel::OBMol& () const;
 
 		static double GetExactMass( const OpenBabel::OBMol&, bool implicitH = true );
 		static std::string GetFormula( const OpenBabel::OBMol& );
 		static void SetAttribute( OpenBabel::OBMol&, const std::string& key, const std::string& value );
 		static std::vector< std::pair< std::string, std::string > > attributes( const OpenBabel::OBMol& mol
 			, const std::vector< std::string >& excludes = std::vector< std::string >() );
+	private:
+		bool dirty_;
+		double exactmass_;
 	};
 
 }

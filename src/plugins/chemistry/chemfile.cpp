@@ -23,14 +23,14 @@
 **************************************************************************/
 
 #include "chemfile.hpp"
-#if defined _MSC_VER
-# pragma warning( disable: 4100 )
-#endif
-#include <openbabel/babelconfig.h>
+
 #include <openbabel/obconversion.h>
+#if defined _MSC_VER
+#pragma warning(disable:4100)
+#endif
 #include <openbabel/mol.h>
 #if defined _MSC_VER
-# pragma warning( default: 4100 )
+#pragma warning(default:4100)
 #endif
 
 #include <qtwrapper/qstring.hpp>
@@ -39,6 +39,7 @@
 #include <portfolio/folder.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <iostream>
 
 using namespace chemistry;
 
@@ -51,6 +52,7 @@ ChemFile::ChemFile( QObject * parent ) : Core::IFile( parent )
 	                                   , modified_( false )
 									   , obconversion_( new OpenBabel::OBConversion() )
 									   , nread_( 0 )
+									   , filesize_( 0 )
 {
 }
 
@@ -63,11 +65,30 @@ ChemFile::open( const QString& qfilename, const OpenBabel::OBFormat * informat )
     if ( informat == 0 )
 		informat = OpenBabel::OBConversion::FormatFromExt( filename_.c_str() );
 
+	if ( ! boost::filesystem::exists( filename_ ) )
+		return false;
+	filesize_ = boost::filesystem::file_size( filename_ );
+
 	if ( informat ) {
 		obconversion_->SetInFormat( const_cast< OpenBabel::OBFormat *>( informat ) );
 		return true;
 	}
 	return false;
+}
+
+unsigned long long
+ChemFile::tellg() const
+{
+	std::istream * stream = obconversion_->GetInStream();
+    if ( stream )
+		return stream->tellg();
+	return 0;
+}
+
+unsigned long long
+ChemFile::fsize() const
+{
+	return filesize_;
 }
 
 bool

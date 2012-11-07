@@ -65,6 +65,8 @@ namespace chemistry {
 		inline const OpenBabel::OBConversion& obconversion() const { return *obconversion_; }
 		const std::string& filename() const { return filename_; }
 		bool Read( OpenBabel::OBMol& );
+        unsigned long long tellg() const;
+        unsigned long long fsize() const;
 
     signals:
         
@@ -77,6 +79,7 @@ namespace chemistry {
         bool modified_;
 		size_t nread_;
 		boost::scoped_ptr< OpenBabel::OBConversion > obconversion_;
+		unsigned long long filesize_;
     };
     
 }

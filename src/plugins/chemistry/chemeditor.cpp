@@ -34,16 +34,8 @@
 #include <coreplugin/coreconstants.h>
 #include <QWidget>
 
-#ifdef _MSC_VER
-#  pragma warning( disable: 4100 )
-#endif
-
-#include <openbabel/obconversion.h>
-#include <openbabel/mol.h>
-
-#ifdef _MSC_VER
-#  pragma warning( default: 4100 )
-#endif
+//#include <openbabel/obconversion.h>
+//#include <openbabel/mol.h>
 
 using namespace chemistry;
 

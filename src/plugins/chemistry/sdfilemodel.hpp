@@ -30,11 +30,14 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 #include <string>
-#include <openbabel/mol.h>
+//#include <openbabel/mol.h>
 
 class QModelIndex;
 class QByteArray;
 class QProgressBar;
+
+namespace adchem { class Mol; }
+namespace OpenBabel { class OBMol; }
 
 namespace chemistry {
 
@@ -55,8 +58,8 @@ namespace chemistry {
 		bool insertRows( int position, int rows, const QModelIndex& index = QModelIndex() );
 		bool removeRows( int position, int rows, const QModelIndex& index = QModelIndex() );
 
-		const std::vector< OpenBabel::OBMol >& data() const;
-		void data( const std::vector< OpenBabel::OBMol >& );
+		const std::vector< adchem::Mol >& data() const;
+		void data( const std::vector< adchem::Mol >& );
 
 		//----
 		void file( boost::shared_ptr< ChemFile >& );
@@ -68,7 +71,7 @@ namespace chemistry {
 	private:
 		static bool toSvg( SvgItem&, const OpenBabel::OBMol& );
 		boost::shared_ptr< ChemFile > file_;
-		std::vector< OpenBabel::OBMol > data_;
+		std::vector< adchem::Mol > data_;
 		std::vector< std::string > excludes_;
 	};
 
