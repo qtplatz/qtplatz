@@ -1,4 +1,4 @@
-BOOST_VERSION=boost-1_51
+BOOST_VERSION=boost-1_52
 
 win32 {
       BOOST = $$(BOOST_ROOT)
