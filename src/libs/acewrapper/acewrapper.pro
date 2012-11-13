@@ -31,7 +31,8 @@ SOURCES += acewrapper.cpp \
     reactorthread.cpp \
     timerhandler.cpp \
     timeval.cpp \
-    ifconfig.cpp
+    ifconfig.cpp \
+    servantmanager.cpp
 
 HEADERS += acewrapper.hpp \
     ace_string.hpp \
@@ -53,7 +54,8 @@ HEADERS += acewrapper.hpp \
     serialization_inet_addr.hpp \
     timerhandler.hpp \
     timeval.hpp \
-    ifconfig.hpp
+    ifconfig.hpp \
+    servantmanager.hpp
 
 OTHER_FILES += \
     acewrapper.pri \
