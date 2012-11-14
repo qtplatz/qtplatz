@@ -25,7 +25,7 @@
 
 #include "objectdiscovery.hpp"
 #include "manager_i.hpp"
-
+#include <acewrapper/constants.hpp>
 #include <acewrapper/reactorthread.hpp>
 #include <acewrapper/mutex.hpp>
 #include <acewrapper/ifconfig.hpp>
@@ -247,13 +247,15 @@ BcastHandler::close()
 bool
 BcastHandler::send( const char * pbuf, ssize_t size )
 {
+    const unsigned int sport = acewrapper::constants::adbroker::OBJECTDISCOVERY_PORT;
+
 	if ( ifvec_.empty() ) {
-		static ACE_INET_Addr to( 7402, INADDR_BROADCAST );
+		static ACE_INET_Addr to( sport, INADDR_BROADCAST );
 		ssize_t ret = send( pbuf, size , to );
 		return ret == size;
 	}
 	BOOST_FOREACH( acewrapper::ifconfig::ifaddr& ifaddr, ifvec_ ) {
-		ACE_INET_Addr to( 7402, ifaddr.second.c_str() );
+		ACE_INET_Addr to( sport, ifaddr.second.c_str() );
 		send( pbuf, size, to );
 	}
 	return true;
