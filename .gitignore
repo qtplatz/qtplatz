@@ -104,6 +104,8 @@ examples/tofcontroller/*C.inl
 examples/tofcontroller/*S.cpp
 examples/tofcontroller/*S.h
 examples/tofcontroller/*S.inl
+src/plugins/chemistry/portfolio.xml
+src/app/exclude.txt
 
 # Binaries
 # --------

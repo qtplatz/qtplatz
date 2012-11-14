@@ -11,6 +11,8 @@
   <!-- <Module name="infitofcontroller" type="corba::servant" reference="mcast" filename="/MSI/infitofcontroller$(configuration).dll"/> -->
   <Module name="infitofcontroller" type="corba::servant" reference="lookup" id="infitof.0000"/>
   <Module name="infitofspectrometer" type="adcontrols::massspectrometer" filename="/MSI/infitofspectrometer$(configuration).dll"/>
+  <Module name="hmqcontroller" type="corba::servant" reference="lookup" id="HMSQ.0000"/>
+  <Module name="hmqspectrometer" type="adcontrols::massspectrometer" filename="/HORIBA_STEC/infitofspectrometer$(configuration).dll"/>
   
   <Configuration name="root_poa">
     <!-- master broker for application -->
@@ -31,14 +33,21 @@
       <Component name="infitofcontroller" module="infitofcontroller"/>
     </Configuration>
     
-    <!-- spectrometer -->
+    <!-- spectrometer InfiTOF -->
     <Configuration name="infitofspectrometer" type="MassSpectrometer">
       <Component name="infitofspectrometer" module="infitofspectrometer"/>
     </Configuration>
 
+    <!-- spectrometer InfiTOF (old) -->
     <Configuration name="tofspectrometer" type="MassSpectrometer">
       <Component name="tofspectrometer" module="tofspectrometer"/>
     </Configuration>
+
+    <!-- spectrometer HMSQ HORIBA STEC's tiny quadrupole spectrometer -->
+    <Configuration name="hmqspectrometer" type="MassSpectrometer">
+      <Component name="hmqspectrometer" module="hmqspectrometer"/>
+    </Configuration>
+
     <!-- end configuration -->
   </Configuration>
 </ServantConfiguration>
