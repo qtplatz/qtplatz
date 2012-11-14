@@ -213,7 +213,7 @@ iTask::initialize_configuration()
             if ( ! pProxy->initialConfiguration( item ) ) {
                 Logging(L"iTask::initialize_configuration -- instrument initialization failed for \"%1%\""
                         , ::EventLog::pri_WARNING ) % item.name();
-                return false;
+				continue; //return false;
             }
             acewrapper::scoped_mutex_t<> lock( mutex_ );
             iproxies_.push_back( pProxy );

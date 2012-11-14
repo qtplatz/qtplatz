@@ -59,11 +59,10 @@ iProxy::initialConfiguration( const adportable::Configuration& c )
             if ( CORBA::is_nil( mgr ) )
                 throw std::runtime_error( "iProxy::init_object_ref -- can't get Broker::Manager reference" );
 
-            std::string ior = mgr->ior( nsname.c_str() );
-            if ( ! ior.empty() ) {
+			CORBA::String_var ior = mgr->ior( nsname.c_str() );
+			if ( ior.in() != 0 ) {
                 try {
-                    // acewrapper::NS::resolve_name( orb, nsname );
-                    CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
+					CORBA::Object_var obj = orb->string_to_object( ior.in() );
                     if ( ! CORBA::is_nil( obj.in() ) ) {
                         impl_ = Instrument::Session::_narrow( obj );
                         if ( ! CORBA::is_nil( impl_ ) ) {

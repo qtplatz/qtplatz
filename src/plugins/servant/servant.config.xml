@@ -25,6 +25,7 @@
       <Component name="adcontroller" module="adcontroller"/>
       <Configuration name="InstrumentConfiguration">
         <Configuration name="infitofcontroller.1" id="infitof.1" type="object_ref" ns_name="infitofcontroller.session"/>
+        <Configuration name="hmqcontroller.1" id="hmq.1" type="object_ref" ns_name="hmqcontroller.session"/>        
       </Configuration>
     </Configuration>
     
