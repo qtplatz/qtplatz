@@ -7,6 +7,7 @@
   <!-- <AcquireConfiguration name="acquire"> -->
   <Module name="qtwidgets" type="sharedlib" filename="/ScienceLiaison/qtwidgets$(configuration).dll"/>
   <Module name="infitofui" type="sharedlib" filename="/MSI/InfiTOF$(configuration).dll"/>
+  <Module name="hmqui" type="sharedlib" filename="/HORIBA_STEC/hmqtune$(configuration).dll"/>  
   <!-- -->
   <Configuration name="monitor_tab">
     <!-- -->
@@ -20,6 +21,11 @@
       <title>InfiTOF</title>
       <Component type="widget" loader="adplugin" interface="adplugin::ui::iMonitor" module="infitofui"/>
     </Configuration>
+    <!-- -->
+    <Configuration name="hmq_monitor" type="tab">
+      <title>HMSQ</title>
+      <Component type="widget" loader="adplugin" interface="adplugin::ui::iMonitor" module="hmqui"/>
+    </Configuration>    
     <!-- -->
     <Configuration name="sequence_monitor" type="tab" readonly="true">
       <title>Sequence</title>
