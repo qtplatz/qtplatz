@@ -8,6 +8,7 @@ include(../../qtplatz_plugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../boost.pri)
 include(../../openbabel.pri)
+include(../../ace_tao.pri)
 
 DEFINES += CHEMISTRY_LIBRARY
 

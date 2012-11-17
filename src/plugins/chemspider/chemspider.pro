@@ -3,9 +3,10 @@ TARGET = ChemSpider
 TEMPLATE = lib
 
 PROVIDER = ScienceLiaison
-include(../../qtplatz_plugin.pri)
-include(../../plugins/coreplugin/coreplugin.pri)
-include(../../boost.pri)
+include( ../../qtplatz_plugin.pri )
+include( ../../plugins/coreplugin/coreplugin.pri )
+include( ../../boost.pri )
+include( ../../ace_tao.pri )
 
 DEFINES += CHEMSPIDER_LIBRARY
 

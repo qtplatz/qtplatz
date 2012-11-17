@@ -1,2 +1,2 @@
-include(../../boost.pri)
-
+include( ../../boost.pri )
+include( ../../ace_tao.pri )

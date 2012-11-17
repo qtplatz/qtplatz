@@ -11,8 +11,8 @@ TEMPLATE = lib
 
 PROVIDER = ScienceLiaison
 include(../../qtplatz_plugin.pri)
-
 include(sequence_dependencies.pri)
+
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 #LIBS += -ladplugin -ladportable -ladcontrols -lacewrapper -lqtwrapper

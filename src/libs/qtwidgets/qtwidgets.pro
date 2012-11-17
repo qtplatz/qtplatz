@@ -12,6 +12,7 @@ PROVIDER = ScienceLiaison
 
 include(../../qtplatz_servant.pri)
 include(../../boost.pri)
+include( ../../ace_tao.pri )
 
 LIBS += -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(adplugin) -l$$qtLibraryTarget(qtwrapper) \
