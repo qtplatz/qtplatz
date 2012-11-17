@@ -11,6 +11,8 @@ TEMPLATE = lib
 
 include(../../qtplatz_library.pri)
 include(../../boost.pri)
+include(../../ace_tao.pri)
+
 LIBS += -l$$qtLibraryTarget(adportable)
 LIBS += -l$$qtLibraryTarget(adcontrols)
 

@@ -13,6 +13,8 @@ DEFINES += ADDATAFILE_LIBRARY
 
 include(../../boost.pri)
 include(../../qtplatz_servant.pri)
+include(../../ace_tao.pri)
+
 INCLUDEPATH += ../../libs
 
 LIBS += -l$$qtLibraryTarget(adcontrols) \
