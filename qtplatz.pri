@@ -16,8 +16,6 @@ defineReplace(targetPath) {
     return($$replace(1, /, $$QMAKE_DIR_SEP))
 }
 
-win32: QMAKE_CXXFLAGS += -DWIN32_WINNT=0x0701
-
 # For use in custom compilers which just copy files
 win32:i_flag = i
 defineReplace(stripSrcDir) {
