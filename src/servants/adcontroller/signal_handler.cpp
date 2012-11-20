@@ -24,18 +24,11 @@
 
 #include "signal_handler.hpp"
 #include <iostream>
-#if defined _MSC_VER
-# pragma warning ( disable : 4996 )
-#endif
 #include <ace/Sched_Params.h>
 #include <ace/Thread_Manager.h>
 #include <ace/Process_Manager.h>
 #include <ace/OS_NS_unistd.h>
 #include <ace/OS_NS_sys_wait.h>
-#if defined _MSC_VER
-# pragma warning ( default : 4996 )
-#endif
-
 #include "adcontroller.hpp"
 
 int signal_handler::pidChild = 0;

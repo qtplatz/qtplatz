@@ -22,9 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#if defined _MSC_VER
-#  pragma warning (disable : 4100)
-#endif
 # include "cache.hpp"
 # include <adinterface/signalobserverS.h>
 # include <ace/Recursive_Thread_Mutex.h>

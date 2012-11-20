@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "adbroker.hpp"
-# include "ace/Init_ACE.h"
+#include "ace/Init_ACE.h"
 
 #if defined WIN32 && _MSC_VER
 #  if defined _DEBUG || defined DEBUG

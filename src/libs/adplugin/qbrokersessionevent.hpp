@@ -29,13 +29,7 @@
 #include "adplugin_global.h"
 
 #include <QObject>
-
-//#if defined _MSC_VER
-//# pragma warning(disable:4996)
-//# pragma warning(disable:4805)
-//#endif
-
-# include <adinterface/brokereventS.h>
+#include <adinterface/brokereventS.h>
 
 class ACE_Message_Block;
 
