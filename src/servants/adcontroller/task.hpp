@@ -30,9 +30,6 @@
 #include <vector>
 #include <adportable/configuration.hpp>
 
-#if defined _MSC_VER
-# pragma warning(disable:4996)
-#endif
 # include <ace/Recursive_Thread_Mutex.h>
 # include <ace/Task.h>
 # include <ace/Barrier.h>
