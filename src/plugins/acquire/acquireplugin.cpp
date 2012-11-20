@@ -509,16 +509,24 @@ AcquirePlugin::actionDisconnect()
 void
 AcquirePlugin::actionInitRun()
 {
+    if ( ! CORBA::is_nil( session_ ) ) {
+        ControlMethod::Method m;
+        session_->prepare_for_run( m );
+    }
 }
 
 void
 AcquirePlugin::actionRun()
 {
+    if ( ! CORBA::is_nil( session_ ) )
+        session_->start_run();
 }
 
 void
 AcquirePlugin::actionStop()
 {
+    if ( ! CORBA::is_nil( session_ ) )
+        session_->stop_run();
 }
 
 void
