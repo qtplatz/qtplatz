@@ -136,15 +136,30 @@ session_i::shell( const char * cmdline )
 
 //---------
 CORBA::Boolean
-session_i::prepare_for_run( const ControlMethod::Method& )
+session_i::prepare_for_run( const ControlMethod::Method& m )
 {
+    TAO_OutputCDR cdr;
+    using namespace adcontroller::constants;
+
+    cdr << SESSION_COMMAND_INITRUN;
+    cdr << m;
+    ACE_Message_Block * mb = cdr.begin()->duplicate();
+    mb->msg_type( MB_COMMAND );
+    iTask::instance()->putq( mb );
     return true;
 }
 
 CORBA::Boolean
 session_i::start_run()
 {
-    return false;
+    ACE_OutputCDR cdr;
+    using namespace adcontroller::constants;
+
+    cdr << SESSION_COMMAND_STARTRUN;
+    ACE_Message_Block * mb = cdr.begin()->duplicate();
+    mb->msg_type( MB_COMMAND );
+    iTask::instance()->putq( mb );
+    return true;
 }
 
 CORBA::Boolean
@@ -162,7 +177,14 @@ session_i::resume_run()
 CORBA::Boolean
 session_i::stop_run()
 {
-    return false;
+    ACE_OutputCDR cdr;
+    using namespace adcontroller::constants;
+
+    cdr << SESSION_COMMAND_STOPRUN;
+    ACE_Message_Block * mb = cdr.begin()->duplicate();
+    mb->msg_type( MB_COMMAND );
+    iTask::instance()->putq( mb );
+    return true;
 }
 
 bool

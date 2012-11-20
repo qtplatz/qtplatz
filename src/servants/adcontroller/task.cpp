@@ -132,6 +132,13 @@ namespace adcontroller {
 			proxy->connect( token_ );
 	    }
 	};
+/* todo --
+    struct invoke_command {
+        void operator()( iTaks::iproxy_ptr& proxy ) {
+            proxy->command( 
+        }
+    };
+*/
 
     } // namespace ibroker
 } // namespace adcontroller
@@ -540,7 +547,7 @@ iTask::handle_dispatch( const ACE_Time_Value& )
 void
 iTask::handle_dispatch_command( ACE_Message_Block * mblk )
 {
-    ACE_InputCDR cdr( mblk );
+    TAO_InputCDR cdr( mblk );
     unsigned int cmd;
     cdr >> cmd;
     if ( cmd == constants::SESSION_COMMAND_ECHO ) {
@@ -555,6 +562,12 @@ iTask::handle_dispatch_command( ACE_Message_Block * mblk )
                 adportable::debug(__FILE__, __LINE__) << "iTask::handle_dispatch_command 'echo' got an exception";
             }
         }
+    } else if ( ( cmd == constants::SESSION_COMMAND_INITRUN ) ||
+                ( cmd == constants::SESSION_COMMAND_STARTRUN ) ||
+                ( cmd == constants::SESSION_COMMAND_STOPRUN ) ) {
+        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        // std::for_each( iproxies_.begin(), iproxies_.end(), invoke_command( cmd, mblk ) );
+        // std::for_each( oproxies_.begin(), oproxies_.end(), invoke_command( cmd, mblk ) );
     }
 }
 
