@@ -196,13 +196,13 @@ AcquirePlugin::initialize_actions()
     actionInitRun_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Preparing"), this);
     connect( actionInitRun_, SIGNAL(triggered()), this, SLOT(actionInitRun()) );
   
-    actionRun_ = new QAction(QIcon(Constants::ICON_INTERRUPT_SMALL), tr("Run"), this);
+    actionRun_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Run"), this);
     connect( actionRun_, SIGNAL(triggered()), this, SLOT(actionRun()) );
   
-    actionStop_ = new QAction(QIcon(Constants::ICON_START_SMALL), tr("Stop"), this);
+    actionStop_ = new QAction(QIcon(Constants::ICON_STOP_SMALL), tr("Stop"), this);
     connect( actionStop_, SIGNAL(triggered()), this, SLOT(actionStop()) );
   
-    action5_ = new QAction(QIcon(Constants::ICON_STOP_SMALL), tr("Stop inlet..."), this);
+    action5_ = new QAction(QIcon(Constants::ICON_INTERRUPT_SMALL), tr("Stop inlet..."), this);
     // connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
 
     //------------ snapshot -------------
