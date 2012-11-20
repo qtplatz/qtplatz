@@ -30,9 +30,6 @@
 #include <iomanip>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-# if defined _MSC_VER
-#  pragma warning (disable: 4996)
-# endif
 #  include <ace/Time_Value.h>
 #  include <ace/High_Res_Timer.h>
 #  include <ace/OS_NS_sys_time.h>

@@ -27,9 +27,6 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-# if defined _MSC_VER
-#  pragma warning( disable: 4996 )
-# endif
 #include "ace_string.hpp"
 #include <sstream>
 #include <ace/INET_Addr.h>

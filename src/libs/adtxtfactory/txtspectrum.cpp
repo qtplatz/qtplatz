@@ -34,9 +34,6 @@
 #include <algorithm>
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
-#if defined _MSC_VER
-# pragma warning (disable: 4819)
-#endif
 #include <boost/numeric/interval.hpp>
 
 using namespace adtxtfactory;

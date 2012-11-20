@@ -29,9 +29,6 @@
 #include <boost/noncopyable.hpp>
 #include <boost/cstdint.hpp>
 
-# if defined _MSC_VER
-#  pragma warning (disable: 4996)
-# endif
 # include <ace/CDR_Stream.h>
 
 namespace acewrapper {

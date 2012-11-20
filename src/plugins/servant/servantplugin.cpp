@@ -38,15 +38,8 @@
 #include <qdebug.h>
 #include <boost/filesystem.hpp>
 
-
-#if defined _MSC_VER
-#  pragma warning(disable:4996)
-#endif
 # include <ace/Thread_Manager.h>
 # include <ace/OS_NS_unistd.h>
-#if defined _MSC_VER
-#  pragma warning(default:4996)
-#endif
 
 #include <adbroker/adbroker.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>

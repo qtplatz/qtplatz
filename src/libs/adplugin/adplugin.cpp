@@ -48,9 +48,6 @@
 #include <boost/config/auto_link.hpp>
 #undef BOOST_LIB_NAME
 
-#if defined _MSC_VER
-# pragma warning (disable: 4996)
-#endif
 #include <ace/Init_ACE.h>
 #include <ace/Singleton.h>
 

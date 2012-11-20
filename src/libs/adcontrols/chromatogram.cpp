@@ -33,7 +33,7 @@
 #include <boost/serialization/version.hpp>
 
 #if defined _MSC_VER
-# pragma warning(disable : 4996 )
+// # pragma warning(disable : 4996 )
 #endif
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>

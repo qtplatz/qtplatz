@@ -26,13 +26,7 @@
 #ifndef REACTORTHREAD_H
 #define REACTORTHREAD_H
 
-#if defined _MSC_VER
-# pragma warning (disable : 4996)
-#endif
 #include <ace/Reactor.h>
-#if defined _MSC_VER
-# pragma warning (default : 4996)
-#endif
 
 namespace acewrapper {
 

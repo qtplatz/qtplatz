@@ -23,9 +23,6 @@
 **
 **************************************************************************/
 
-#if defined _MSC_VER
-#pragma warning (disable: 4996)
-#endif
 # include <ace/Init_ACE.h>
 # include <ace/Singleton.h>
 #include "acewrapper.hpp"

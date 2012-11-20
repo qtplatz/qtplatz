@@ -34,9 +34,6 @@
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
 
-#if defined _MSC_VER
-# pragma warning(disable:4996)
-#endif
 #include <adinterface/receiverS.h>
 #include <adinterface/instrumentC.h>
 

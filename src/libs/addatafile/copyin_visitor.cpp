@@ -41,9 +41,6 @@
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msassignedmass.hpp>
 
-#if defined _MSC_VER
-# pragma warning( disable: 4996 )
-#endif
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 

@@ -46,15 +46,9 @@
 #include <sstream>
 #include <iostream>
 
-#if defined _MSC_VER
-# pragma warning(disable:4996)
-#endif
 # include <ace/Reactor.h>
 # include <ace/Thread_Manager.h>
 # include <adinterface/signalobserverC.h>
-#if defined _MSC_VER
-# pragma warning(default:4996)
-#endif
 
 using namespace adbroker;
 

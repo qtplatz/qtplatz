@@ -26,16 +26,8 @@
 #ifndef DGRAMHANDLER_H
 #define DGRAMHANDLER_H
 
-#if defined _MSC_VER
-# pragma warning (disable: 4996)
-#endif
-
 # include <ace/SOCK_Dgram.h>
 # include <ace/Event_Handler.h>
-
-#if defined _MSC_VER
-# pragma warning (default: 4996)
-#endif
 
 class ACE_INET_Addr;
 

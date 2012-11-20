@@ -41,17 +41,12 @@
 #include <tao/Object.h>
 #include <ace/Singleton.h>
 
-#if defined _MSC_VER
-# pragma warning(disable:4996)
-#endif
 # include <adinterface/brokerC.h>
 # include <adinterface/controlserverC.h>
 # include <adinterface/receiverC.h>
 # include <adinterface/signalobserverC.h>
 # include <adinterface/eventlog_helper.hpp>
-#if defined _MSC_VER
-# pragma warning(default:4996)
-#endif
+
 #include <acewrapper/constants.hpp>
 #include <acewrapper/brokerhelper.hpp>
 #include <utils/fancymainwindow.h>

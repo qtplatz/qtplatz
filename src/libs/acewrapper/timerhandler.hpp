@@ -26,15 +26,7 @@
 #ifndef TIMERHANDLER_H
 #define TIMERHANDLER_H
 
-#if defined _MSC_VER
-#  pragma warning (disable: 4996)
-#endif
-
 # include <ace/Event_Handler.h>
-
-#if defined _MSC_VER
-#  pragma warning (default: 4996)
-#endif
 
 class ACE_Semaphore;
 

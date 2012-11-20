@@ -25,14 +25,7 @@
 #ifndef DATAFILEOBSERVER_I_HPP
 #define DATAFILEOBSERVER_I_HPP
 
-#if defined _MSC_VER
-# pragma warning (disable : 4996 )
-#endif
-# include <adinterface/signalobserverS.h>
-#if defined _MSC_VER
-# pragma warning (default : 4996 )
-#endif
-
+#include <adinterface/signalobserverS.h>
 #include <boost/smart_ptr.hpp>
 
 namespace adcontrols {

@@ -25,9 +25,6 @@
 
 #include "acquire.hpp"
 
-#if defined _MSC_VER
-# pragma warning (disable: 4996)
-#endif
 # include <ace/Service_Config.h>
 # include <ace/Process_Manager.h>
 

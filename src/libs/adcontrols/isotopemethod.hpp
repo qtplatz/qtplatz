@@ -108,9 +108,6 @@ namespace adcontrols {
         double	threshold_;		// %RA
         double	resolution_;	// Da
 
-# if defined _MSC_VER
-# pragma warning( disable: 4251 )
-# endif
         std::vector< Formula > formulae_;  // formula, adduct
 
         // serialization

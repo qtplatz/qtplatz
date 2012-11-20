@@ -65,9 +65,6 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP(vec_);
 
         }
-# if defined _MSC_VER
-# pragma warning(disable:4251)
-# endif
         vector_type vec_;
         std::wstring name_;
     };

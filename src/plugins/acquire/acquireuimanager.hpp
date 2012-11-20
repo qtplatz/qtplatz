@@ -28,15 +28,7 @@
 
 #include <QObject>
 #include <QWidget>
-#if defined _MSC_VER
-#pragma warning(disable:4996)
-#pragma warning(disable:4805)
-#endif
 #include <adinterface/receiverC.h>
-#if defined _MSC_VER
-#pragma warning(default:4805)
-#pragma warning(default:4996)
-#endif
 
 namespace Utils { class FancyMainWindow; }
 class QDockWidget;

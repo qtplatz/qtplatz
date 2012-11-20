@@ -157,9 +157,6 @@ namespace adcontrols {
         const std::vector< MSRefSeries >& series() const;
 
     private:
-# if defined _MSC_VER
-# pragma warning( disable: 4251 )
-# endif
         std::vector< MSRefFormula > refFormula_;
         std::vector< MSRefSeries > refSeries_;
 

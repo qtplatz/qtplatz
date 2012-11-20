@@ -28,16 +28,8 @@
 
 using namespace acewrapper;
 
-#if defined _MSC_VER
-#  pragma warning (disable: 4996)
-#endif
-
 #  include <tao/Utils/ORB_Manager.h>
 #  include <ace/Thread_Manager.h>
-
-#if defined _MSC_VER
-#  pragma warning (default: 4996)
-#endif
 
 // static
 ServantManager *
