@@ -30,6 +30,7 @@
 #include <ace/Thread_Manager.h>
 #include <adinterface/receiverC.h>
 #include <adinterface/eventlogC.h>
+#include <adinterface/samplebrokerC.h>
 #include <acewrapper/mutex.hpp>
 #include "taskmanager.hpp"
 #include "message.hpp"
@@ -48,6 +49,7 @@
 #include "manager_i.hpp"
 #include <acewrapper/orbservant.hpp>
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 #include <stdexcept>
 #if defined _DEBUG
 # include <iostream>
@@ -104,53 +106,13 @@ iTask::instance()
     return instance_;
 }
 
-namespace adcontroller {
-    namespace ibroker {
-
-	struct invoke_reset_clock {
-	    void operator ()( iTask::iproxy_ptr& proxy ) const {
-			proxy->reset_clock();
-	    }
-	};
-
-	struct invoke_initialize {
-	    void operator ()( iTask::iproxy_ptr& proxy ) {
-			proxy->initialize();
-	    }
-	    void operator ()( iTask::oproxy_ptr& proxy ) {
-			proxy->initialize();
-	    }
-	};
-
-	struct invoke_connect {
-	    const wchar_t * token_;
-	    invoke_connect( const wchar_t * token ) : token_(token) {}
-	    void operator ()( iTask::iproxy_ptr& proxy ) {
-			proxy->connect( token_ );
-	    }
-	    void operator ()( iTask::oproxy_ptr& proxy ) {
-			proxy->connect( token_ );
-	    }
-	};
-/* todo --
-    struct invoke_command {
-        void operator()( iTaks::iproxy_ptr& proxy ) {
-            proxy->command( 
-        }
-    };
-*/
-
-    } // namespace ibroker
-} // namespace adcontroller
-    
-	
 void
 iTask::reset_clock()
 {
-    using adcontroller::ibroker::invoke_reset_clock;
+    using adcontroller::iTask;
 
     acewrapper::scoped_mutex_t<> lock( mutex_ );
-    std::for_each( iproxies_.begin(), iproxies_.end(), invoke_reset_clock() );
+    std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::reset_clock, _1 ) );
 }
 
 bool
@@ -253,9 +215,10 @@ iTask::initialize_configuration()
     }
 
     // fire connect
-    using adcontroller::ibroker::invoke_connect;
-	std::for_each( iproxies_.begin(), iproxies_.end(), invoke_connect(L"adcontroller.iTask") );
-    std::for_each( oproxies_.begin(), oproxies_.end(), invoke_connect(L"adcontroller.iTask") );
+    using adcontroller::iProxy;
+    using adcontroller::oProxy;
+    std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::connect, _1, L"adcontroller.iTask" ) );
+    std::for_each( oproxies_.begin(), oproxies_.end(), boost::bind( &oProxy::connect, _1, L"adcontroller.iTask" ) );
 
     status_current_ = status_being_ = ControlServer::eConfigured;  // relevant modules are able to access.
 	Logging(L"iTask::initialize_configuration completed. %1% us", ::EventLog::pri_INFO ) % x.elapsed();
@@ -265,13 +228,14 @@ iTask::initialize_configuration()
 bool
 iTask::initialize()
 {
-    using adcontroller::ibroker::invoke_initialize;
+    using adcontroller::iProxy;
+    using adcontroller::oProxy;
 
     Logging(L"iTask::initialize...", ::EventLog::pri_INFO );
     if ( initialize_configuration() ) {
         acewrapper::scoped_mutex_t<> lock( mutex_ );
-        std::for_each( iproxies_.begin(), iproxies_.end(), invoke_initialize() );
-        std::for_each( oproxies_.begin(), oproxies_.end(), invoke_initialize() );
+        std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::initialize, _1 ) );
+        std::for_each( oproxies_.begin(), oproxies_.end(), boost::bind( &oProxy::initialize, _1 ) );
         return true;
     }
     return false;
@@ -533,7 +497,7 @@ iTask::handle_dispatch( const EventLog::LogMessage& msg )
     BOOST_FOREACH( internal::receiver_data& d, receiver_set_ ) {
         try {
             d.receiver_->log( msg );
-        } catch ( CORBA::Exception& ex ) {
+        } catch ( CORBA::Exception& ) {
             d.failed_++;
         }
     }
@@ -562,12 +526,17 @@ iTask::handle_dispatch_command( ACE_Message_Block * mblk )
                 adportable::debug(__FILE__, __LINE__) << "iTask::handle_dispatch_command 'echo' got an exception";
             }
         }
-    } else if ( ( cmd == constants::SESSION_COMMAND_INITRUN ) ||
-                ( cmd == constants::SESSION_COMMAND_STARTRUN ) ||
-                ( cmd == constants::SESSION_COMMAND_STOPRUN ) ) {
+    } else if ( cmd == constants::SESSION_COMMAND_INITRUN ) {
         acewrapper::scoped_mutex_t<> lock( mutex_ );
-        // std::for_each( iproxies_.begin(), iproxies_.end(), invoke_command( cmd, mblk ) );
-        // std::for_each( oproxies_.begin(), oproxies_.end(), invoke_command( cmd, mblk ) );
+        SampleBroker::SampleSequenceLine s;
+        ControlMethod::Method m;
+        std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::prepare_for_run, _1, s, m ) );
+    } else if ( cmd == constants::SESSION_COMMAND_STARTRUN ) {
+        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::startRun, _1 ) );
+    } else if ( cmd == constants::SESSION_COMMAND_STOPRUN )  {
+        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::stopRun, _1 ) );
     }
 }
 
