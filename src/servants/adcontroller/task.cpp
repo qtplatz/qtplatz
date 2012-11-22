@@ -217,8 +217,8 @@ iTask::initialize_configuration()
     // fire connect
     using adcontroller::iProxy;
     using adcontroller::oProxy;
-    std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::connect, _1, L"adcontroller.iTask" ) );
-    std::for_each( oproxies_.begin(), oproxies_.end(), boost::bind( &oProxy::connect, _1, L"adcontroller.iTask" ) );
+    std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::connect, _1, L"adcontroller.iTask(i)" ) );
+    std::for_each( oproxies_.begin(), oproxies_.end(), boost::bind( &oProxy::connect, _1, L"adcontroller.iTask(o)" ) );
 
     status_current_ = status_being_ = ControlServer::eConfigured;  // relevant modules are able to access.
 	Logging(L"iTask::initialize_configuration completed. %1% us", ::EventLog::pri_INFO ) % x.elapsed();
@@ -270,6 +270,13 @@ iTask::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
     data.receiver_ = Receiver::_duplicate( receiver );
     
     acewrapper::scoped_mutex_t<> lock( mutex_ );
+
+    do { // disconnecting proxies
+        using adcontroller::iProxy;
+        using adcontroller::oProxy;
+        std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::disconnect, _1 ) );
+        std::for_each( oproxies_.begin(), oproxies_.end(), boost::bind( &oProxy::disconnect, _1 ) );
+    } while ( 0 );
     
     receiver_vector_type::iterator it = std::remove( receiver_set_.begin(), receiver_set_.end(), data );
     
@@ -521,7 +528,7 @@ iTask::handle_dispatch_command( ACE_Message_Block * mblk )
         BOOST_FOREACH( receiver_data& d, receiver_set_ ) {
             try {
                 d.receiver_->debug_print( 0, 0, s.c_str() );
-            } catch ( CORBA::Exception& ex ) {
+            } catch ( CORBA::Exception& ) {
                 d.failed_++;
                 adportable::debug(__FILE__, __LINE__) << "iTask::handle_dispatch_command 'echo' got an exception";
             }

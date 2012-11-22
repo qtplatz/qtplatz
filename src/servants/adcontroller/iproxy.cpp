@@ -135,6 +135,14 @@ iProxy::connect( const std::wstring& token )
 }
 
 bool
+iProxy::disconnect()
+{
+    if ( objref_ )
+        return impl_->disconnect( this->_this() );
+    return false;
+}
+
+bool
 iProxy::initialize()
 {
     if ( objref_ )

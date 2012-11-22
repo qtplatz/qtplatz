@@ -41,6 +41,8 @@ oProxy::oProxy( iTask& t ) : objref_(false)
 void
 oProxy::OnConfigChanged ( ::CORBA::ULong objId, ::SignalObserver::eConfigStatus status )
 {
+    (void)objId;
+    (void)status;
 }
 
 void
@@ -66,6 +68,14 @@ oProxy::connect( const std::wstring& token )
 {
     if ( objref_ )
         return impl_->connect( _this(), SignalObserver::Realtime, token.c_str() );
+    return false;
+}
+
+bool
+oProxy::disconnect()
+{
+    if ( objref_ )
+        return impl_->disconnect( _this() );
     return false;
 }
 

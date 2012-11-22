@@ -65,6 +65,7 @@ namespace adcontroller {
         // iProxy
         void reset_clock();
         bool connect( const std::wstring& token );
+        bool disconnect();
         bool initialize();
         bool request_shutdown();
         bool eventOut( unsigned long event );
