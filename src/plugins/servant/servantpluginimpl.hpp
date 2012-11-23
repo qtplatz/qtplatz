@@ -27,18 +27,10 @@
 
 #include <QObject>
 
-#if defined _MSC_VER
-#  pragma warning(disable:4996)
-#  pragma warning(disable:4805)
-#endif
 # include <adinterface/receiverS.h>
 # include <adinterface/loghandlerS.h>
 # include <adinterface/controlserverC.h>
 # include <adinterface/brokerC.h>
-#if defined _MSC_VER
-#  pragma warning(default:4996)
-#  pragma warning(default:4805)
-#endif
 
 /////////////////
 

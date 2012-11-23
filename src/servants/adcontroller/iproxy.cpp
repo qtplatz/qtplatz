@@ -135,9 +135,16 @@ iProxy::connect( const std::wstring& token )
 }
 
 bool
+iProxy::disconnect()
+{
+    if ( objref_ )
+        return impl_->disconnect( this->_this() );
+    return false;
+}
+
+bool
 iProxy::initialize()
 {
-    // in order to catch up all event, connect first, and then initialize
     if ( objref_ )
         return impl_->initialize();
     return false;
@@ -163,31 +170,41 @@ iProxy::eventOut( unsigned long event )
 bool
 iProxy::prepare_for_run( const SampleBroker::SampleSequenceLine&, const ControlMethod::Method& m )
 {
-    return impl_->prepare_for_run( m ); //const_cast<ControlMethod::Method *>(&m) );
+    if ( objref_ )
+        return impl_->prepare_for_run( m );
+    return false;
 }
 
 bool
 iProxy::startRun()
 {
-    return impl_->start_run();
+    if ( objref_ )
+        return impl_->start_run();
+    return false;
 }
 
 bool
 iProxy::suspendRun()
 {
-    return impl_->suspend_run();
+    if ( objref_ )
+        return impl_->suspend_run();
+    return false;
 }
 
 bool
 iProxy::resumeRun()
 {
-    return impl_->resume_run();
+    if ( objref_ )
+        return impl_->resume_run();
+    return false;
 }
 
 bool
 iProxy::stopRun()
 {
-    return impl_->stop_run();
+    if ( objref_ )
+        return impl_->stop_run();
+    return false;
 }
 
        

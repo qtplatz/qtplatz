@@ -45,6 +45,9 @@ namespace adcontroller {
 
         enum commands {
             SESSION_COMMAND_ECHO = 0x100
+            , SESSION_COMMAND_INITRUN
+            , SESSION_COMMAND_STARTRUN
+            , SESSION_COMMAND_STOPRUN
         };
         
     }

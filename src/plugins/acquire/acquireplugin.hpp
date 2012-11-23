@@ -31,17 +31,8 @@
 #include <vector>
 #include <map>
 
-#if defined _MSC_VER
-#  pragma warning(disable:4996)
-#  pragma warning(disable:4805)
-#endif
 #  include <adinterface/controlserverC.h>
 #  include <adinterface/signalobserverC.h>
-#if defined _MSC_VER
-#  pragma warning(default:4805)
-#  pragma warning(default:4996)
-#endif
-
 
 class QToolButton;
 class QAction;
@@ -79,8 +70,10 @@ namespace Acquire {
         private slots:
             void actionConnect();
             void actionDisconnect();
-            void actionRunStop();
             void actionSnapshot();
+            void actionInitRun();
+            void actionRun();
+            void actionStop();
 
             void handle_message( unsigned long msg, unsigned long value );
             void handle_log( QByteArray );
@@ -105,17 +98,11 @@ namespace Acquire {
             AcquireImpl * pImpl_;
 
             QAction * actionConnect_;
-            QAction * actionRunStop_;
-            QAction * action3_;
-            QAction * action4_;
+            QAction * actionRun_;
+            QAction * actionInitRun_;
+            QAction * actionStop_;
             QAction * action5_;
             QAction * actionSnapshot_;
-
-            void action1();
-            void action2();
-            void action3();
-            void action4();
-            void action5();
 
             void initialize_actions();
 

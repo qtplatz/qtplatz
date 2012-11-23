@@ -23,9 +23,6 @@
 **************************************************************************/
 
 #include "adcontroller.hpp"
-#if defined _MSC_VER
-# pragma warning (disable: 4996)
-#endif
 #include "ace/Init_ACE.h"
 
 #if defined ACE_WIN32
@@ -56,9 +53,6 @@
 #  endif
 #endif
 
-#if defined _MSC_VER
-# pragma warning (disable: 4996)
-#endif
 # include <ace/SOCK_Dgram_Mcast.h>
 # include <ace/Service_Config.h>
 # include <ace/Sched_Params.h>

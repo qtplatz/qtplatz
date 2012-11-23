@@ -28,9 +28,6 @@
 #include <acewrapper/mutex.hpp>
 #include <adportable/debug.hpp>
 
-#if defined _MSC_VER
-#pragma warning (disable: 4669)
-#endif
 # include <tao/Utils/ORB_Manager.h>
 
 using namespace adplugin;

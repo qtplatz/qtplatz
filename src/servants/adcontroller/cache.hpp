@@ -25,14 +25,8 @@
 
 #pragma once
 
-#if defined _MSC_VER
-#  pragma warning (disable : 4996 )
-#endif
-# include <adinterface/signalobserverS.h>
-# include <ace/Recursive_Thread_Mutex.h>
-#if defined _MSC_VER
-#  pragma warning (default : 4996 )
-#endif
+#include <adinterface/signalobserverS.h>
+#include <ace/Recursive_Thread_Mutex.h>
 
 #include <acewrapper/mutex.hpp>
 #include <deque>

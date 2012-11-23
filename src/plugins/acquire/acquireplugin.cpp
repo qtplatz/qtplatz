@@ -41,17 +41,12 @@
 #include <tao/Object.h>
 #include <ace/Singleton.h>
 
-#if defined _MSC_VER
-# pragma warning(disable:4996)
-#endif
 # include <adinterface/brokerC.h>
 # include <adinterface/controlserverC.h>
 # include <adinterface/receiverC.h>
 # include <adinterface/signalobserverC.h>
 # include <adinterface/eventlog_helper.hpp>
-#if defined _MSC_VER
-# pragma warning(default:4996)
-#endif
+
 #include <acewrapper/constants.hpp>
 #include <acewrapper/brokerhelper.hpp>
 #include <utils/fancymainwindow.h>
@@ -173,9 +168,9 @@ AcquirePlugin::~AcquirePlugin()
 AcquirePlugin::AcquirePlugin() : manager_(0)
                                , pImpl_( new AcquireImpl() )
                                , actionConnect_(0)
-                               , actionRunStop_(0)
-                               , action3_(0)
-                               , action4_(0)
+                               , actionRun_(0)
+                               , actionInitRun_(0)
+                               , actionStop_(0)
                                , action5_(0)
                                , actionSnapshot_(0)
                                , traceBox_(0) 
@@ -193,16 +188,16 @@ AcquirePlugin::initialize_actions()
     actionConnect_ = new QAction( connIcon, tr("Connect to control server..."), this);
     connect( actionConnect_, SIGNAL(triggered()), this, SLOT(actionConnect()) );
   
-    actionRunStop_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Run / stop control..."), this);
-    connect( actionRunStop_, SIGNAL(triggered()), this, SLOT(actionRunStop()) );
+    actionInitRun_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Preparing"), this);
+    connect( actionInitRun_, SIGNAL(triggered()), this, SLOT(actionInitRun()) );
   
-    action3_ = new QAction(QIcon(Constants::ICON_INTERRUPT_SMALL), tr("Interrupt sequence..."), this);
-    // connect( action3_, SIGNAL(triggered()), this, SLOT(action3()) );
+    actionRun_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Run"), this);
+    connect( actionRun_, SIGNAL(triggered()), this, SLOT(actionRun()) );
   
-    action4_ = new QAction(QIcon(Constants::ICON_START_SMALL), tr("Start initial condition..."), this);
-    // connect( action4_, SIGNAL(triggered()), this, SLOT(action4()) );
+    actionStop_ = new QAction(QIcon(Constants::ICON_STOP_SMALL), tr("Stop"), this);
+    connect( actionStop_, SIGNAL(triggered()), this, SLOT(actionStop()) );
   
-    action5_ = new QAction(QIcon(Constants::ICON_STOP_SMALL), tr("Stop inlet..."), this);
+    action5_ = new QAction(QIcon(Constants::ICON_INTERRUPT_SMALL), tr("Stop inlet..."), this);
     // connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
 
     //------------ snapshot -------------
@@ -220,9 +215,9 @@ AcquirePlugin::initialize_actions()
             Core::ICore::instance()->modeManager()->addAction( cmd, 90 );
         } while(0);
 
-        cmd = am->registerAction( actionRunStop_, Constants::INITIALRUN, globalcontext );
-        cmd = am->registerAction( action3_, Constants::RUN, globalcontext );
-        cmd = am->registerAction( action4_, Constants::STOP, globalcontext );
+        cmd = am->registerAction( actionInitRun_, Constants::INITIALRUN, globalcontext );
+        cmd = am->registerAction( actionRun_, Constants::RUN, globalcontext );
+        cmd = am->registerAction( actionStop_, Constants::STOP, globalcontext );
         cmd = am->registerAction( action5_, Constants::ACQUISITION, globalcontext );
         cmd = am->registerAction( actionSnapshot_, "acquire.shanpshot", globalcontext );
     }
@@ -507,8 +502,26 @@ AcquirePlugin::actionDisconnect()
 }
     
 void
-AcquirePlugin::actionRunStop()
+AcquirePlugin::actionInitRun()
 {
+    if ( ! CORBA::is_nil( session_ ) ) {
+        ControlMethod::Method m;
+        session_->prepare_for_run( m );
+    }
+}
+
+void
+AcquirePlugin::actionRun()
+{
+    if ( ! CORBA::is_nil( session_ ) )
+        session_->start_run();
+}
+
+void
+AcquirePlugin::actionStop()
+{
+    if ( ! CORBA::is_nil( session_ ) )
+        session_->stop_run();
 }
 
 void
@@ -619,16 +632,22 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 void
 AcquirePlugin::handle_config_changed( unsigned long objid, long pos )
 {
+    (void)objid;
+    (void)pos;
 }
 
 void
 AcquirePlugin::handle_method_changed( unsigned long objid, long pos )
 {
+    (void)objid;
+    (void)pos;
 }
 
 void
 AcquirePlugin::handle_event( unsigned long objid, unsigned long, long pos )
 {
+    (void)objid;
+    (void)pos;
 }
 
 

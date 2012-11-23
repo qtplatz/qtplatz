@@ -31,14 +31,9 @@
 
 #include <deque>
 #include <vector>
-#if defined _MSC_VER
-#pragma warning (disable: 4996)
-#endif
+
 # include "adinterface/brokerS.h"
 # include <ace/Recursive_Thread_Mutex.h>
-#if defined _MSC_VER
-#pragma warning (default: 4996)
-#endif
 
 namespace broker {
 

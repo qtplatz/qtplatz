@@ -29,14 +29,8 @@
 #include <algorithm>
 #include <assert.h>
 #include <sstream>
-#if defined _MSC_VER
-# pragma warning (disable: 4996)
-#endif
 # include <adinterface/loghandlerC.h>
 # include <ace/OS_NS_time.h>
-#if defined _MSC_VER
-# pragma warning (default: 4996)
-#endif
 #include <iomanip>
 
 using namespace broker;

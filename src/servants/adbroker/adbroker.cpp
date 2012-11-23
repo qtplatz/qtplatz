@@ -24,10 +24,7 @@
 **************************************************************************/
 
 #include "adbroker.hpp"
-#if defined _MSC_VER
-#pragma warning (disable: 4996)
-#endif
-# include "ace/Init_ACE.h"
+#include "ace/Init_ACE.h"
 
 #if defined WIN32 && _MSC_VER
 #  if defined _DEBUG || defined DEBUG
@@ -59,15 +56,9 @@
 #  endif
 #endif
 
-#if defined _MSC_VER
-#  pragma warning (disable: 4996)
-#endif
 # include <tao/Utils/ORB_Manager.h>
 # include <ace/Thread_Manager.h>
 # include <ace/Process_Manager.h>
-#if defined _MSC_VER
-#  pragma warning (default: 4996)
-#endif
 
 #include <acewrapper/orbservant.hpp>
 #include <acewrapper/constants.hpp>

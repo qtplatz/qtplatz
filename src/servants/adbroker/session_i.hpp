@@ -25,14 +25,9 @@
 
 #pragma once
 
-#if defined _MSC_VER
-#  pragma warning (disable: 4996)
-#endif
 # include "adinterface/brokerS.h"
 # include "adinterface/brokereventC.h"
-#if defined _MSC_VER
-#pragma warning (default: 4996)
-#endif
+
 
 #include <vector>
 

@@ -28,16 +28,7 @@
 #include <acewrapper/orbservant.hpp>
 #include <map>
 #include <string>
-
-#if defined _MSC_VER
-# pragma warning (disable: 4996)
-#endif
-
 #include "adinterface/brokerS.h"
-
-#if defined _MSC_VER
-# pragma warning (default: 4996)
-#endif
 
 #include "logger_i.hpp"
 #include "session_i.hpp"
