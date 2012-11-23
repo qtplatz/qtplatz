@@ -313,9 +313,13 @@ observer_i::handle_data( unsigned long /* parentId */, unsigned long objId, long
     observer_i * pCache = find_cache_observer( objId );
     if ( pCache && ! CORBA::is_nil( pCache->source_observer_.in() ) ) {
         SignalObserver::DataReadBuffer_var rdbuf;
-        if ( pCache->source_observer_->readData( pos, rdbuf ) ) {
-            // TODO: handle wellKnownEvents and save data into datafile if necessary
-            pCache->write_cache( pos, rdbuf );
+        try {
+            if ( pCache->source_observer_->readData( pos, rdbuf ) ) {
+                // TODO: handle wellKnownEvents and save data into datafile if necessary
+                pCache->write_cache( pos, rdbuf );
+            }
+        } catch ( CORBA::Exception& ex ) {
+            Logging( L"Exception: observer_i::handle_data \"%1%\"\t while readData from %2% at pos %3%" ) % ex._info().c_str() % objId % pos;
         }
     }
     return false;
