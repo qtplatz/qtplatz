@@ -25,6 +25,7 @@
 
 #include "trace.hpp"
 #include "traceaccessor.hpp"
+#include <iostream>
 
 using namespace adcontrols;
 
@@ -37,6 +38,8 @@ Trace::Trace() : pos_( -1 ), minY_(-10), maxY_(90)
 }
 
 Trace::Trace( const Trace& t ) : pos_( t.pos_ )
+                               , minY_( t.minY_ )
+                               , maxY_( t.maxY_ )
                                , traceX_( t.traceX_ )
                                , traceY_( t.traceY_ )
                                , events_( t.events_ )

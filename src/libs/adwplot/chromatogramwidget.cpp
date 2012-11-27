@@ -108,8 +108,8 @@ namespace adwplot {
 
             // TODO:  refactor code in order to avoid full data copy
 			series_data< Trace > * d_trace = new series_data< Trace >( trace );
-			rect_.setCoords( d_trace->sample(0).x(), trace.range_y().first
-				          , d_trace->sample( trace.size() - 1 ).x(), trace.range_y().second );
+			rect_.setCoords( d_trace->sample(0).x(), trace.range_y().second
+				          , d_trace->sample( trace.size() - 1 ).x(), trace.range_y().first );
 			d_trace->boundingRect( rect_ );
 			curve_.p()->setData( d_trace );
         }
