@@ -233,6 +233,8 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 {
     using spectrumwidget::TraceData;
 
+    bool addedTrace = impl_->traces_.size() <= size_t( idx );
+
     while ( int( impl_->traces_.size() ) <= idx ) 
         impl_->traces_.push_back( TraceData() );
 
@@ -244,7 +246,12 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
     setAxisScale( QwtPlot::xBottom, ms.getAcquisitionMassRange().first, ms.getAcquisitionMassRange().second );
     setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, bottom, top );
 
+    QRectF z = zoomer1_->zoomRect();
+
     zoomer1_->setZoomBase();
+    if ( ! addedTrace )
+        zoomer1_->zoom( z );
+
     // todo: annotations
     if ( ms.isCentroid() ) {
         impl_->centroid_ = ms;
