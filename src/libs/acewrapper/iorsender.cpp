@@ -26,6 +26,7 @@
 #include <acewrapper/constants.hpp>
 #include <acewrapper/ifconfig.hpp>
 #include <acewrapper/mutex.hpp>
+#include <adportable/debug.hpp>
 #include <boost/bind.hpp>
 #include <ace/Thread.h>
 #include <ace/Thread_Manager.h>
@@ -76,7 +77,9 @@ void
 iorSender::register_lookup( const std::string& ior, const std::string& ident )
 {
     iorvec_[ ident ] = ior;
+#ifdef _DEBUG
     std::cout << "## register_lookup: " << ident << " size=" << iorvec_.size() << std::endl;
+#endif
 }
 
 void
@@ -84,16 +87,17 @@ iorSender::unregister_lookup( const std::string& ident )
 {
     std::map< std::string, std::string>::iterator it = iorvec_.find( ident );
     if ( it != iorvec_.end() ) 
-	iorvec_.erase( it );
+        iorvec_.erase( it );
 }
 
 void
 iorSender::start_receive()
 {
+#if defined _DEBUG
     std::cout << "## iorSender start_receive from: "
 	      << sender_endpoint_.address().to_string() 
 	      << ":" << sender_endpoint_.port() << std::endl;
-
+#endif
     socket_.async_receive_from( boost::asio::buffer( recv_buffer_ )
 				, sender_endpoint_
 				, boost::bind( &iorSender::handle_receive
@@ -109,7 +113,9 @@ void
 iorSender::handle_timeout( const boost::system::error_code& error )
 {
     if ( ! error ) {
-	std::cout << "********** iorSender::handle_timeout: " << error << std::endl;
+#if defined _DEBUG || defined DEBUG
+        std::cout << "********** iorSender::handle_timeout: " << error << std::endl;
+#endif
 #if defined DEBUG && 0
 	recv_timer_.expires_from_now( boost::posix_time::seconds( 3 ) );
 	recv_timer_.async_wait( boost::bind( &iorSender::handle_timeout, this, boost::asio::placeholders::error ) );
@@ -122,7 +128,7 @@ iorSender::handle_timeout( const boost::system::error_code& error )
 					      , boost::asio::placeholders::error ) );
 #endif
     } else {
-	std::cout << "ERROR *** iorSender::handle_timeout: " << error << std::endl;
+        adportable::debug( __FILE__, __LINE__ ) << "ERROR *** iorSender::handle_timeout: " << error;
     }
 
 }
@@ -134,7 +140,7 @@ iorSender::handle_receive( const boost::system::error_code& error, std::size_t l
 
 	const char * query = recv_buffer_.data();
 
-	std::cout << "## iorSender::handle_receive " << query << " ##" << std::endl;
+    adportable::debug( __FILE__, __LINE__ ) << "## iorSender::handle_receive " << query << " ##";
 
 	if ( std::strncmp( query, "ior?", len ) == 0 ) {
 
@@ -160,9 +166,9 @@ iorSender::handle_sendto( const boost::system::error_code& error )
 	    send_buffer_.resize( reply.size() + 1 );
 	    std::strcpy( &send_buffer_[0], reply.c_str() );
 
-	    std::cout << "## iorSender::handle_sendto(" 
-		      << sender_endpoint_.address().to_string() << "." << sender_endpoint_.port()
-		      << ") ##\n" << &send_buffer_[0] << std::endl;
+        adportable::debug( __FILE__, __LINE__ ) << "## iorSender::handle_sendto("
+            << sender_endpoint_.address().to_string() << "." << sender_endpoint_.port()
+            << ") ##\n" << &send_buffer_[0];
 
 	    socket_.async_send_to( boost::asio::buffer( send_buffer_ )
 				   , sender_endpoint_
