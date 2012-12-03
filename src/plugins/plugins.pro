@@ -11,6 +11,8 @@ SUBDIRS   = plugin_coreplugin \
             plugin_chemspider \
             plugin_chemistry
 
+linux-arm-*: SUBDIRS -= plugin_chemspider plugin_chemistry
+
 plugin_coreplugin.subdir = coreplugin
 
 plugin_chemspider.subdir = chemspider
