@@ -34,11 +34,12 @@ using boost::asio::ip::udp;
 static const u_short dstport = acewrapper::constants::adbroker::OBJECTDISCOVERY_PORT;
 
 iorQuery::iorQuery( boost::asio::io_service& io_service
-                    , handle_reply& handler) : io_service_( io_service )
-                                             , handle_reply_( handler )
-                                             , socket_( io_service_, udp::endpoint( udp::v4(), 0 ) )
-                                             , timer_( io_service_ )
-                                             , interval_( 3000 )
+                    , boost::function<void (const std::string&, const std::string&)> handler )
+    : io_service_( io_service )
+    , handle_reply_( handler )
+    , socket_( io_service_, udp::endpoint( udp::v4(), 0 ) )
+    , timer_( io_service_ )
+    , interval_( 3000 )
 {
     socket_.set_option( boost::asio::socket_base::broadcast( true ) );
 }

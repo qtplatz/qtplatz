@@ -28,6 +28,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
+#include <boost/function.hpp>
 #if defined _MSC_VER
 # include <cstrint>
 #else
@@ -36,13 +37,12 @@
 
 namespace acewrapper {
 
+    template<class T> struct ior_query_reply {};
+
     class iorQuery : boost::noncopyable {
     public:
-        struct handle_reply {
-            void operator()( const std::string& ident, const std::string& ior ) const;
-        };
-
-        iorQuery( boost::asio::io_service& io_service, handle_reply& );
+        iorQuery( boost::asio::io_service& io_service
+                  , boost::function<void (const std::string&, const std::string&)> );
         bool open();
         void close();
     private:
@@ -51,9 +51,8 @@ namespace acewrapper {
         void handle_receive( const boost::system::error_code&, std::size_t );
         void initiate_timer();
         void start_receive();
-
         boost::asio::io_service& io_service_;
-        handle_reply& handle_reply_;
+        boost::function<void (const std::string&, const std::string&)> handle_reply_;
         boost::asio::ip::udp::socket socket_;
         boost::asio::ip::udp::endpoint endpoint_;
         boost::array< char, 1500u > recv_buffer_;
