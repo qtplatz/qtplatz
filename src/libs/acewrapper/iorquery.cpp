@@ -67,6 +67,7 @@ iorQuery::open()
     timer_.cancel();
     initiate_timer();
     start_receive();
+    send_query();
     return true;
 }
 
