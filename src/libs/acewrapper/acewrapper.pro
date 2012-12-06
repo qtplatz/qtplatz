@@ -35,7 +35,8 @@ SOURCES += acewrapper.cpp \
     timeval.cpp \
     ifconfig.cpp \
     servantmanager.cpp \
-    iorsender.cpp
+    iorsender.cpp \
+    iorquery.cpp
 
 HEADERS += acewrapper.hpp \
     ace_string.hpp \
@@ -59,7 +60,8 @@ HEADERS += acewrapper.hpp \
     timeval.hpp \
     ifconfig.hpp \
     servantmanager.hpp \
-    iorsender.hpp
+    iorsender.hpp \
+    iorquery.hpp
 
 OTHER_FILES += \
     acewrapper.pri \

@@ -43,10 +43,9 @@ static const u_short dstport = acewrapper::constants::adbroker::OBJECTDISCOVERY_
 
 using boost::asio::ip::udp;
 
-iorSender::iorSender() : thread_running_( false )
-		       , t_handle_( 0 )
-		       , socket_( io_service_, udp::endpoint( udp::v4(), dstport ) )
+iorSender::iorSender() : socket_( io_service_, udp::endpoint( udp::v4(), dstport ) )
 		       , nextIor_( iorvec_.end() )
+                       , thread_( 0 )
 {
     send_buffer_.reserve( 1500 );
     socket_.set_option( boost::asio::socket_base::broadcast( true ) );
@@ -66,10 +65,14 @@ iorSender::iorSender() : thread_running_( false )
 void
 iorSender::close()
 {
-    if ( t_handle_ ) {
-	io_service_.stop();
-	ACE_Thread::join( t_handle_, 0, 0 );
-	t_handle_ = 0;
+    if ( thread_ ) {
+        boost::mutex::scoped_lock lock( mutex_ );
+        if ( thread_ ) {
+            io_service_.stop();
+            thread_->join();
+            delete thread_;
+            thread_ = 0;
+        }
     }
 }
 
@@ -77,9 +80,6 @@ void
 iorSender::register_lookup( const std::string& ior, const std::string& ident )
 {
     iorvec_[ ident ] = ior;
-#ifdef _DEBUG
-    std::cout << "## register_lookup: " << ident << " size=" << iorvec_.size() << std::endl;
-#endif
 }
 
 void
@@ -140,7 +140,7 @@ iorSender::handle_receive( const boost::system::error_code& error, std::size_t l
 
 	const char * query = recv_buffer_.data();
 
-    adportable::debug( __FILE__, __LINE__ ) << "## iorSender::handle_receive " << query << " ##";
+        adportable::debug( __FILE__, __LINE__ ) << "## iorSender::handle_receive (" << query << ") ##";
 
 	if ( std::strncmp( query, "ior?", len ) == 0 ) {
 
@@ -166,9 +166,10 @@ iorSender::handle_sendto( const boost::system::error_code& error )
 	    send_buffer_.resize( reply.size() + 1 );
 	    std::strcpy( &send_buffer_[0], reply.c_str() );
 
-        adportable::debug( __FILE__, __LINE__ ) << "## iorSender::handle_sendto("
-            << sender_endpoint_.address().to_string() << "." << sender_endpoint_.port()
-            << ") ##\n" << &send_buffer_[0];
+            adportable::debug( __FILE__, __LINE__ ) << "## iorSender::handle_sendto("
+                                                    << sender_endpoint_.address().to_string()
+                                                    << "." << sender_endpoint_.port()
+                                                    << ") ##\n" << &send_buffer_[0];
 
 	    socket_.async_send_to( boost::asio::buffer( send_buffer_ )
 				   , sender_endpoint_
@@ -184,27 +185,14 @@ iorSender::handle_sendto( const boost::system::error_code& error )
 bool
 iorSender::spawn()
 {
-    if ( ! thread_running_ ) {
-	acewrapper::scoped_mutex_t<> lock( mutex_ );
-	if ( ! thread_running_ ) {
-	    thread_running_ = true;
-	    ::ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( iorSender::thread_entry ), this );
+    if ( thread_ == 0 ) {
+        boost::mutex::scoped_lock lock( mutex_ );
+	if ( thread_ == 0 ) {
+            thread_ = new boost::thread( boost::bind( & boost::asio::io_service::run, &io_service_ ) );
 	    return true;
 	}
     }
     return false;
-}
-
-// static
-void *
-iorSender::thread_entry( void * )
-{
-    iorSender * pThis = instance();
-    pThis->t_handle_ = ACE_Thread::self();
-
-    pThis->io_service_.run();
-
-    return 0;
 }
 
 // static

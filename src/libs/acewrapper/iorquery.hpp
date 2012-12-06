@@ -22,54 +22,45 @@
 **
 **************************************************************************/
 
-#ifndef IORSENDER_HPP
-#define IORSENDER_HPP
+#ifndef IORQUERY_HPP
+#define IORQUERY_HPP
 
 #include <boost/noncopyable.hpp>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
-#include <boost/thread.hpp>
-#include <vector>
-#include <string>
-#include <map>
-
-template<class T, class M> class ACE_Singleton;
-class ACE_Recursive_Thread_Mutex;
+#if defined _MSC_VER
+# include <cstrint>
+#else
+# include <tr1/cstdint>
+#endif
 
 namespace acewrapper {
 
-    class iorSender : boost::noncopyable {
-	iorSender();
+    class iorQuery : boost::noncopyable {
     public:
-	static iorSender * instance();
-	bool open( unsigned short port = 0 );
-	void close();
+        struct handle_reply {
+            void operator()( const std::string& ident, const std::string& ior ) const;
+        };
 
-	void register_lookup( const std::string& ior, const std::string& ident );
-	void unregister_lookup( const std::string& ident );
-
-	bool spawn();
-
-        friend class ACE_Singleton< iorSender, ACE_Recursive_Thread_Mutex >;
+        iorQuery( boost::asio::io_service& io_service, handle_reply& );
+        bool open();
+        void close();
     private:
-	static void * thread_entry( void * );
+        void send_query();
+        void handle_timeout( const boost::system::error_code& );
+        void handle_receive( const boost::system::error_code&, std::size_t );
+        void initiate_timer();
+        void start_receive();
 
-	void start_receive();
-	void handle_timeout( const boost::system::error_code& );
-	void handle_receive( const boost::system::error_code&, std::size_t );
-	void handle_sendto( const boost::system::error_code& );
-
-	boost::asio::io_service io_service_;
-	boost::asio::ip::udp::socket socket_;
-	boost::asio::ip::udp::endpoint sender_endpoint_;
-	boost::array< char, 1024u > recv_buffer_;
-	std::vector< char > send_buffer_;
-	std::map< std::string, std::string > iorvec_;
-	std::map< std::string, std::string >::iterator nextIor_;
-        boost::mutex mutex_;
-        boost::thread * thread_;
+        boost::asio::io_service& io_service_;
+        handle_reply& handle_reply_;
+        boost::asio::ip::udp::socket socket_;
+        boost::asio::ip::udp::endpoint endpoint_;
+        boost::array< char, 1500u > recv_buffer_;
+        boost::asio::deadline_timer timer_;
+        std::size_t interval_;
     };
 
 }
 
-#endif // IORSENDER_HPP
+#endif // IORQUERY_HPP
