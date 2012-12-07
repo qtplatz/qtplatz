@@ -240,6 +240,7 @@ SDFileModel::file( boost::shared_ptr< ChemFile >& file )
 		    BOOST_FOREACH( const std::vector< int >& matches, maplist ) {
 			OpenBabel::OBMol& omol = static_cast<OpenBabel::OBMol&>(mol);
 			OpenBabel::OBBond * b1 = omol.GetBond( matches[0] );
+            (void)b1;
 		    }
 		}
 	    }

@@ -415,7 +415,7 @@ AcquirePlugin::actionConnect()
                 if ( ! CORBA::is_nil( session_.in() ) ) {
 
                     receiver_i_.reset( new adplugin::QReceiver_i() );
-                    session_->connect( receiver_i_.get()->_this(), L"acquire" );
+                    session_->connect( receiver_i_.get()->_this(), "acquire" );
 
                     int res;
                     res = connect( receiver_i_.get()
@@ -436,7 +436,7 @@ AcquirePlugin::actionConnect()
                     observer_ = session_->getObserver(); // master observer
                     if ( ! CORBA::is_nil( observer_.in() ) ) {
                         if ( ! masterObserverSink_ ) {
-                            masterObserverSink_.reset( new adplugin::QObserverEvents_i( observer_, L"acquireplugin" ) );
+                            masterObserverSink_.reset( new adplugin::QObserverEvents_i( observer_, "acquireplugin" ) );
                             connect( masterObserverSink_.get(), SIGNAL( signal_ConfigChanged( unsigned long, long ) )
 								, this, SLOT( handle_config_changed(unsigned long, long) ) );
                             connect( masterObserverSink_.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )

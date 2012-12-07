@@ -30,7 +30,7 @@
 #include <boost/array.hpp>
 #include <boost/function.hpp>
 #if defined _MSC_VER
-# include <cstrint>
+# include <cstdint>
 #else
 # include <tr1/cstdint>
 #endif

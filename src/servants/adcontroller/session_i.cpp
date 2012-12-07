@@ -53,7 +53,7 @@ session_i::software_revision()
 }
 
 CORBA::Boolean
-session_i::connect( Receiver_ptr receiver, const CORBA::WChar * token )
+session_i::connect( Receiver_ptr receiver, const CORBA::Char * token )
 {
     ACE_UNUSED_ARG(token);
 

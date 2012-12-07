@@ -127,7 +127,7 @@ iProxy::reset_clock()
 }
 
 bool
-iProxy::connect( const std::wstring& token )
+iProxy::connect( const std::string& token )
 {
     if ( objref_ )
         return impl_->connect( this->_this(), token.c_str() );

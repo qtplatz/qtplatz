@@ -40,7 +40,7 @@ namespace adplugin {
     public:
         explicit QObserverEvents_i(QObject *parent = 0);
         QObserverEvents_i( SignalObserver::Observer_ptr
-                           , const std::wstring& token 
+                           , const std::string& token 
                            , SignalObserver::eUpdateFrequency freq = SignalObserver::Friquent
                            , QObject * parent = 0 );
         ~QObserverEvents_i();
@@ -70,7 +70,7 @@ namespace adplugin {
     private:
         SignalObserver::Observer * impl_;
 		ObserverEvents_i * sink_;
-        std::wstring token_;
+        std::string token_;
         SignalObserver::eUpdateFrequency freq_;
         unsigned long objId_;
         bool connected_;

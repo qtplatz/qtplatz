@@ -79,7 +79,7 @@ datafileObserver_i::assign_objId( CORBA::ULong oid )
 ::CORBA::Boolean
 datafileObserver_i::connect( ::SignalObserver::ObserverEvents_ptr /* cb */
 							, ::SignalObserver::eUpdateFrequency /* frequency */
-							, const CORBA::WChar * )
+							, const CORBA::Char * )
 {
 	return false;
 }

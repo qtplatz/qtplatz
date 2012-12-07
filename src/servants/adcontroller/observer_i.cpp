@@ -40,7 +40,7 @@ namespace adcontroller {
             bool operator == ( const observer_events_data& ) const;
             bool operator == ( const SignalObserver::ObserverEvents_ptr ) const;
             SignalObserver::ObserverEvents_var events_;
-            std::wstring token_;
+            std::string token_;
             SignalObserver::eUpdateFrequency freq_;
             observer_events_data() {}
             observer_events_data( const observer_events_data& t ) : events_( t.events_ )
@@ -107,7 +107,7 @@ observer_i::assign_objId( CORBA::ULong oid )
 ::CORBA::Boolean
 observer_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
 		      , ::SignalObserver::eUpdateFrequency frequency
-		      , const CORBA::WChar * token )
+		      , const CORBA::Char * token )
 {
     using namespace adcontroller::internal;
 

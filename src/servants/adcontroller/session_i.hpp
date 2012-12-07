@@ -38,7 +38,7 @@ namespace adcontroller {
         session_i();
       
         ::CORBA::WChar * software_revision();
-        ::CORBA::Boolean connect( Receiver_ptr receiver, const CORBA::WChar * token );
+        ::CORBA::Boolean connect( Receiver_ptr receiver, const CORBA::Char * token );
         ::CORBA::Boolean disconnect( Receiver_ptr receiver );
         ::CORBA::Boolean setConfiguration( const CORBA::WChar * xml );
         ::CORBA::Boolean configComplete();

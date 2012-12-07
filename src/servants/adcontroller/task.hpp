@@ -68,7 +68,7 @@ namespace adcontroller {
 	//  instrument communication methods below
         void reset_clock();
 	bool initialize();  // initialize hardware 
-        bool connect( ControlServer::Session_ptr, Receiver_ptr, const wchar_t * token );
+        bool connect( ControlServer::Session_ptr, Receiver_ptr, const char * token );
         bool disconnect( ControlServer::Session_ptr, Receiver_ptr );
         bool setConfiguration( const wchar_t * xml );
         bool configComplete();

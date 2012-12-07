@@ -72,7 +72,7 @@ QObserverEvents_i::QObserverEvents_i(QObject *parent) : QObject(parent)
 }
 
 QObserverEvents_i::QObserverEvents_i( SignalObserver::Observer_ptr ptr
-									 , const std::wstring& token
+									 , const std::string& token
 									 , SignalObserver::eUpdateFrequency freq 
 									 , QObject *parent)	 : QObject(parent)
                                                          , impl_( SignalObserver::Observer::_duplicate(ptr) )

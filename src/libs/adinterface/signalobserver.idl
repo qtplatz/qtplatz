@@ -131,7 +131,7 @@ module SignalObserver {
         //void assign_objId( unsigned long objid );
 
         // client can monitor real time events, it is optional
-        boolean connect( in ObserverEvents cb, in eUpdateFrequency frequency, in wstring token );
+        boolean connect( in ObserverEvents cb, in eUpdateFrequency frequency, in string token );
         boolean disconnect( in ObserverEvents cb );
 
         boolean isActive();

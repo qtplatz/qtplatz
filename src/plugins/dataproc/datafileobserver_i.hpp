@@ -46,7 +46,7 @@ namespace dataproc {
 		virtual void assign_objId( CORBA::ULong oid );
 		virtual ::CORBA::Boolean connect( ::SignalObserver::ObserverEvents_ptr cb
 			                             , ::SignalObserver::eUpdateFrequency frequency
-										 , const CORBA::WChar * );
+										 , const CORBA::Char * );
 		virtual ::CORBA::Boolean disconnect( ::SignalObserver::ObserverEvents_ptr cb );
 		virtual ::CORBA::Boolean isActive (void);
 		virtual ::SignalObserver::Observers * getSiblings (void);

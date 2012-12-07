@@ -68,7 +68,7 @@ namespace adcontroller {
             bool operator == ( const ControlServer::Session_ptr ) const;
             ControlServer::Session_var session_;
             Receiver_var receiver_;
-            std::wstring token_;
+            std::string token_;
             size_t failed_;
             receiver_data() : failed_( 0 ) {}
             receiver_data( const receiver_data& t )
@@ -217,8 +217,8 @@ iTask::initialize_configuration()
     // fire connect
     using adcontroller::iProxy;
     using adcontroller::oProxy;
-    std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::connect, _1, L"adcontroller.iTask(i)" ) );
-    std::for_each( oproxies_.begin(), oproxies_.end(), boost::bind( &oProxy::connect, _1, L"adcontroller.iTask(o)" ) );
+    std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::connect, _1, "adcontroller.iTask(i)" ) );
+    std::for_each( oproxies_.begin(), oproxies_.end(), boost::bind( &oProxy::connect, _1, "adcontroller.iTask(o)" ) );
 
     status_current_ = status_being_ = ControlServer::eConfigured;  // relevant modules are able to access.
 	Logging(L"iTask::initialize_configuration completed. %1% us", ::EventLog::pri_INFO ) % x.elapsed();
@@ -242,7 +242,7 @@ iTask::initialize()
 }
 
 bool
-iTask::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const wchar_t * token )
+iTask::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const char * token )
 {
     internal::receiver_data data;
     data.session_ = ControlServer::Session::_duplicate( session );

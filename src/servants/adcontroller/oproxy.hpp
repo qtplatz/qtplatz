@@ -49,7 +49,7 @@ namespace adcontroller {
 
         // oProxy implementation
         bool initialize();
-        bool connect( const std::wstring& token );
+        bool connect( const std::string& token );
         bool disconnect();
         bool setInstrumentSession( Instrument::Session_ptr p );
         size_t populateObservers( unsigned long objId );

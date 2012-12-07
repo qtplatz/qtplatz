@@ -80,7 +80,7 @@ module ControlServer {
       boolean configComplete();  // all 'configured' module has loaded. Servant can access sibling/child objects
       
       // connect establish a connection betweeen application and servant.  Hardware communiation may not be ready yet.
-      boolean connect(in Receiver receiver, in wstring token_) raises(CannotAdd);
+      boolean connect(in Receiver receiver, in string token) raises(CannotAdd);
       boolean disconnect(in Receiver receiver_);
       
       eStatus status();

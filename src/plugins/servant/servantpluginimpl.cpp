@@ -77,7 +77,7 @@ ServantPluginImpl::init_debug_adcontroller( ServantPlugin * )
 		connect( this, SIGNAL( signal_debug_print( long, long, QString ) )
 			, this, SLOT( handle_debug_print( long, long, QString ) ) );
 
-		session_->connect( receiver_._this(), L"debug" );
+		session_->connect( receiver_._this(), "debug" );
 	}
 }
 

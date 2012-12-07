@@ -53,6 +53,7 @@ ActionManager::ActionManager(QObject *parent) : QObject(parent)
 bool
 ActionManager::initialize_actions( const QList<int>& context )
 {
+    (void)context;
     //context_ = context;
 #if 0
     Core::ICore * core = Core::ICore::instance();

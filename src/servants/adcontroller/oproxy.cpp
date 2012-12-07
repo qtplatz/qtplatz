@@ -64,7 +64,7 @@ oProxy::OnEvent ( ::CORBA::ULong objId, ::CORBA::ULong events, ::CORBA::Long pos
 }
 
 bool
-oProxy::connect( const std::wstring& token )
+oProxy::connect( const std::string& token )
 {
     if ( objref_ )
         return impl_->connect( _this(), SignalObserver::Realtime, token.c_str() );
