@@ -31,55 +31,55 @@
 
 namespace adcontrols {
 
-	class ADCONTROLSSHARED_EXPORT CTable {
-	public:
-		CTable();
-		CTable( const CTable& );
+    class ADCONTROLSSHARED_EXPORT CTable {
+    public:
+        CTable();
+        CTable( const CTable& );
 
-		struct ADCONTROLSSHARED_EXPORT Atom {
-			Atom();
-			Atom( const Atom& );
-			double x, y, z;
-			std::wstring symbol;
+        struct ADCONTROLSSHARED_EXPORT Atom {
+            Atom();
+            Atom( const Atom& );
+            double x, y, z;
+            std::wstring symbol;
             int mass_difference;
-			int charge;
-			int atom_stereo_parity;
-			int hydrogen_count;
-			int stereo_care_box;
-			int valence;
-			int H0;
-			int atom_atom_mapping_number;
-			int inversion_retention_flag;
-			int exact_change_flag;
-		};
+            int charge;
+            int atom_stereo_parity;
+            int hydrogen_count;
+            int stereo_care_box;
+            int valence;
+            int H0;
+            int atom_atom_mapping_number;
+            int inversion_retention_flag;
+            int exact_change_flag;
+        };
 
-		struct ADCONTROLSSHARED_EXPORT Bond {
-			Bond();
-			Bond( const Bond& );
-			int first_atom_number;
-			int second_atom_number;
-			int bond_type;
-			int bond_stereo;
-			int bond_topology;
-			int reacting_center_status;
-		};
-		typedef std::vector< Atom > atom_vector;
-		typedef std::vector< Bond > bond_vector;
+        struct ADCONTROLSSHARED_EXPORT Bond {
+            Bond();
+            Bond( const Bond& );
+            int first_atom_number;
+            int second_atom_number;
+            int bond_type;
+            int bond_stereo;
+            int bond_topology;
+            int reacting_center_status;
+        };
+        typedef std::vector< Atom > atom_vector;
+        typedef std::vector< Bond > bond_vector;
 
-	public:
-		const atom_vector& atoms() const;
-		const bond_vector& bonds() const;
-		void operator << ( const Atom& );
-		void operator << ( const Bond& );
-		const Atom& atom( int ) const;
-		const Bond& bond( int ) const;
-		void clear();
-		bool empty() const { return atoms_.empty(); }
+    public:
+        const atom_vector& atoms() const;
+        const bond_vector& bonds() const;
+        void operator << ( const Atom& );
+        void operator << ( const Bond& );
+        const Atom& atom( int ) const;
+        const Bond& bond( int ) const;
+        void clear();
+        bool empty() const { return atoms_.empty(); }
 
-	private:
-		atom_vector atoms_;
+    private:
+        atom_vector atoms_;
         bond_vector bonds_;
-	};
+    };
 }
 
 #endif // CTABLE_HPP

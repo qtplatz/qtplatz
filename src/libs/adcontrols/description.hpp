@@ -53,19 +53,17 @@ namespace adcontrols {
        long tv_usec_;
        std::wstring key_;
        std::wstring text_;
-	   std::wstring xml_;
+       std::wstring xml_;
 	 
        friend class boost::serialization::access;
        template<class Archive>
-       void serialize(Archive& ar, const unsigned int version) {
+           void serialize(Archive& ar, const unsigned int /* version */) {
            using namespace boost::serialization;
-           if ( version >= 0 ) {
-               ar & BOOST_SERIALIZATION_NVP(tv_sec_);
-               ar & BOOST_SERIALIZATION_NVP(tv_usec_);
-               ar & BOOST_SERIALIZATION_NVP(key_);
-               ar & BOOST_SERIALIZATION_NVP(text_);
-               ar & BOOST_SERIALIZATION_NVP(xml_);
-           }
+           ar & BOOST_SERIALIZATION_NVP(tv_sec_);
+           ar & BOOST_SERIALIZATION_NVP(tv_usec_);
+           ar & BOOST_SERIALIZATION_NVP(key_);
+           ar & BOOST_SERIALIZATION_NVP(text_);
+           ar & BOOST_SERIALIZATION_NVP(xml_);
        }
 
    };

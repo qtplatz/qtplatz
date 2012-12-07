@@ -52,7 +52,7 @@ static const char * exclude_list [] = {
 static bool is_exclude( const char * name )
 {
     if ( *name == 'Q' ) {
-        for ( int i = 0; i < sizeof( exclude_list ) / sizeof( exclude_list[0] ); ++i )
+        for ( std::size_t i = 0; i < sizeof( exclude_list ) / sizeof( exclude_list[0] ); ++i )
             if ( strcmp( name, exclude_list[ i ] ) == 0 )
                 return true;
     }

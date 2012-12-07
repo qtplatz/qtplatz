@@ -24,10 +24,10 @@
 **************************************************************************/
 
 #include "brokerhelper.hpp"
-#pragma warning (disable: 4996)
+// #pragma warning (disable: 4996)
 # include <tao/Object.h>
 # include <adinterface/brokerC.h>
-#pragma warning (default: 4996)
+// #pragma warning (default: 4996)
 
 using namespace acewrapper;
 

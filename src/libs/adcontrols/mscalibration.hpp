@@ -60,12 +60,10 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP(calibDate_);
-                ar & BOOST_SERIALIZATION_NVP(calibId_);
-                ar & BOOST_SERIALIZATION_NVP(coeffs_);
-            }
+        void serialize(Archive& ar, const unsigned int /*version*/) {
+            ar & BOOST_SERIALIZATION_NVP(calibDate_);
+            ar & BOOST_SERIALIZATION_NVP(calibId_);
+            ar & BOOST_SERIALIZATION_NVP(coeffs_);
         }
     };
 

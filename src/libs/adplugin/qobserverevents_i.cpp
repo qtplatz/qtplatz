@@ -63,41 +63,41 @@ QObserverEvents_i::~QObserverEvents_i()
 }
 
 QObserverEvents_i::QObserverEvents_i(QObject *parent) : QObject(parent)
+                                                      , impl_( 0 )
+                                                      , sink_( 0 ) 
                                                       , freq_( SignalObserver::Friquent )
-													  , impl_( 0 )
-													  , sink_( 0 ) 
-													  , objId_(0) 
+                                                      , objId_(0) 
                                                       , connected_( false ) 
 {
 }
 
 QObserverEvents_i::QObserverEvents_i( SignalObserver::Observer_ptr ptr
-									 , const std::string& token
-									 , SignalObserver::eUpdateFrequency freq 
-									 , QObject *parent)	 : QObject(parent)
-                                                         , impl_( SignalObserver::Observer::_duplicate(ptr) )
-														 , sink_( new ObserverEvents_i( *this ) ) 
-									                     , token_( token ) 
-														 , freq_( freq )
-														 , objId_(0) 
+                                      , const std::string& token
+                                      , SignalObserver::eUpdateFrequency freq 
+                                      , QObject *parent)	 : QObject(parent)
+                                                                 , impl_( SignalObserver::Observer::_duplicate(ptr) )
+                                                                 , sink_( new ObserverEvents_i( *this ) ) 
+                                                                 , token_( token ) 
+                                                                 , freq_( freq )
+                                                                 , objId_(0) 
 {
-	if ( ! CORBA::is_nil( impl_ ) ) {
-		impl_->connect( sink_->_this(), freq_, token.c_str() );
+    if ( ! CORBA::is_nil( impl_ ) ) {
+        impl_->connect( sink_->_this(), freq_, token.c_str() );
         connected_ = true;
         objId_ = impl_->objId();
-	}
+    }
 }
 
 void
 QObserverEvents_i::disconnect()
 {
     if ( ! CORBA::is_nil( impl_ ) && connected_ ) {
-		connected_ = false;
-		try {
-			impl_->disconnect( sink_->_this() );
-		} catch ( CORBA::Exception& ex ) {
-			adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
-		}
+        connected_ = false;
+        try {
+            impl_->disconnect( sink_->_this() );
+        } catch ( CORBA::Exception& ex ) {
+            adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
+        }
         emit signal_OnClose();
     }
 }
@@ -105,7 +105,7 @@ QObserverEvents_i::disconnect()
 ::SignalObserver::ObserverEvents *
 QObserverEvents_i::_this (void)
 {
-	return sink_ ? sink_->_this() : 0;
+    return sink_ ? sink_->_this() : 0;
 }
 
 void
@@ -120,18 +120,18 @@ QObserverEvents_i::onUpdateData( CORBA::ULong objId, CORBA::Long pos )
 #if defined _DEBUG && 0 // emit UpdateData
     std::cout << "emit UpdateData(" << objId << ", " << pos << ")" << std::endl;
 #endif
-	emit signal_UpdateData( objId, pos );
+    emit signal_UpdateData( objId, pos );
 }
 
 void
 QObserverEvents_i::onMethodChanged( CORBA::ULong objId, CORBA::Long pos )
 {
-	emit signal_MethodChanged( objId, pos );
+    emit signal_MethodChanged( objId, pos );
 }
 
 void
 QObserverEvents_i::onEvent( CORBA::ULong objId, CORBA::ULong event, CORBA::Long pos )
 {
-	emit signal_Event( objId, event, pos );
+    emit signal_Event( objId, event, pos );
 }
 

@@ -315,7 +315,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
 	averager base;
     for ( unsigned int x = NH; x < nbrSamples - NH; ++x ) {
         double d1 = diff( &pY[x] );
-        bool reduce;
+        bool reduce = false;
         if ( d1 >= slope )
             reduce = state.process_slope( peakfind::counter( x, peakfind::Up ) );
         else if ( d1 <= (-slope ) )

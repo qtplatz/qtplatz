@@ -82,13 +82,11 @@ namespace adcontrols {
         private:
             friend class boost::serialization::access;
             template<class Archive>
-            void serialize(Archive& ar, const unsigned int version) {
-                if ( version >= 0 ) {
-                    ar & BOOST_SERIALIZATION_NVP(sampInterval);
-                    ar & BOOST_SERIALIZATION_NVP(nSamplingDelay);
-                    ar & BOOST_SERIALIZATION_NVP(nSamples);
-                    ar & BOOST_SERIALIZATION_NVP(nAverage);
-                }
+            void serialize(Archive& ar, const unsigned int /*version*/) {
+                ar & BOOST_SERIALIZATION_NVP(sampInterval);
+                ar & BOOST_SERIALIZATION_NVP(nSamplingDelay);
+                ar & BOOST_SERIALIZATION_NVP(nSamples);
+                ar & BOOST_SERIALIZATION_NVP(nAverage);
             };
 
         };
@@ -110,15 +108,13 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP(time_since_injection_);
-                ar & BOOST_SERIALIZATION_NVP(instAccelVoltage_);
-                ar & BOOST_SERIALIZATION_NVP(instNumAvrg_);
-                ar & BOOST_SERIALIZATION_NVP(instSamplingStartDelay_);
-                ar & BOOST_SERIALIZATION_NVP(instSamplingInterval_);
-                ar & BOOST_SERIALIZATION_NVP(instMassRange_.first);
-                ar & BOOST_SERIALIZATION_NVP(instMassRange_.second);
-            }
+            ar & BOOST_SERIALIZATION_NVP(time_since_injection_);
+            ar & BOOST_SERIALIZATION_NVP(instAccelVoltage_);
+            ar & BOOST_SERIALIZATION_NVP(instNumAvrg_);
+            ar & BOOST_SERIALIZATION_NVP(instSamplingStartDelay_);
+            ar & BOOST_SERIALIZATION_NVP(instSamplingInterval_);
+            ar & BOOST_SERIALIZATION_NVP(instMassRange_.first);
+            ar & BOOST_SERIALIZATION_NVP(instMassRange_.second);
             if ( version >= 2 ) {
                 ar & BOOST_SERIALIZATION_NVP( samplingData_ );
             }

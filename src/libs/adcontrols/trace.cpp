@@ -49,7 +49,7 @@ Trace::Trace( const Trace& t ) : pos_( t.pos_ )
 void 
 Trace::operator += ( const TraceAccessor& ta )
 {
-    if ( pos_ == (-1) ) {
+    if ( pos_ == size_t(-1) ) {
         pos_ = ta.pos();
     } else {
         // check if data array is continued
