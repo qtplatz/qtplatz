@@ -51,7 +51,6 @@ namespace adinterface {
                     = CORBA::wstring_dup( ( boost::wformat(L"%1%") % t ).str().c_str() );
                 return *this;
             }
-
             inline ::EventLog::LogMessage & get() { return msg_; }
             static std::wstring toString( const ::EventLog::LogMessage& );
             
@@ -59,12 +58,13 @@ namespace adinterface {
             ::EventLog::LogMessage msg_;
         };
 
-        // template<> LogMessageHelper& LogMessageHelper::operator % (const std::string& t) {
-        //     msg_.args.length( msg_.args.length() + 1 );
-        //     msg_.args[ msg_.args.length() - 1 ]
-        //         = CORBA::wstring_dup( adportable::string::convert( t ).c_str() );
-        //     return *this;
-        // }
+        template<> LogMessageHelper& LogMessageHelper::operator % (const std::string& t) {
+            msg_.args.length( msg_.args.length() + 1 ); // add an argument in vector
+            std::wstring ws;
+            ws.assign( t.begin(), t.end() );
+            msg_.args[ msg_.args.length() - 1 ] = CORBA::wstring_dup( ws.c_str() );
+            return *this;
+        }
         
     }
 }
