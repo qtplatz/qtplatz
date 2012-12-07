@@ -30,6 +30,20 @@
 #include <boost/format.hpp>
 #include <sstream>
 
+namespace adinterface { namespace EventLog {
+
+        template<> LogMessageHelper& LogMessageHelper::operator % (const std::string& t)
+        {
+            msg_.args.length( msg_.args.length() + 1 ); // add an argument in vector
+            std::wstring ws;
+            ws.assign( t.begin(), t.end() );
+            msg_.args[ msg_.args.length() - 1 ] = CORBA::wstring_dup( ws.c_str() );
+            return *this;
+        }
+        
+    }
+}
+
 using namespace adinterface;
 using namespace adinterface::EventLog;
 
@@ -82,3 +96,4 @@ LogMessageHelper::format( const std::wstring& fmt )
     msg_.format = CORBA::wstring_dup( fmt.c_str() );
     return *this;
 }
+
