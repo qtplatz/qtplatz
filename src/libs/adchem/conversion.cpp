@@ -37,7 +37,7 @@ Conversion::Conversion()
 {
 }
 
-Conversion::Conversion( const Conversion& t )
+Conversion::Conversion( const Conversion& )
 {
 }
 

@@ -76,17 +76,15 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP( manuallyModified_ );
-                ar & BOOST_SERIALIZATION_NVP( baseId_ );
-                ar & BOOST_SERIALIZATION_NVP( startPos_ );
-                ar & BOOST_SERIALIZATION_NVP( stopPos_ );
-                ar & BOOST_SERIALIZATION_NVP( startHeight_ );
-                ar & BOOST_SERIALIZATION_NVP( stopHeight_ );
-                ar & BOOST_SERIALIZATION_NVP( startTime_ );
-                ar & BOOST_SERIALIZATION_NVP( stopTime_ );
-            }
+        void serialize(Archive& ar, const unsigned int /*version*/) {
+            ar & BOOST_SERIALIZATION_NVP( manuallyModified_ );
+            ar & BOOST_SERIALIZATION_NVP( baseId_ );
+            ar & BOOST_SERIALIZATION_NVP( startPos_ );
+            ar & BOOST_SERIALIZATION_NVP( stopPos_ );
+            ar & BOOST_SERIALIZATION_NVP( startHeight_ );
+            ar & BOOST_SERIALIZATION_NVP( stopHeight_ );
+            ar & BOOST_SERIALIZATION_NVP( startTime_ );
+            ar & BOOST_SERIALIZATION_NVP( stopTime_ );
         }
 
     };

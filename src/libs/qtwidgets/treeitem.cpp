@@ -31,12 +31,13 @@
 
 using namespace qtwidgets;
 
-TreeItem::TreeItem(const std::vector<QVariant> &data, TreeItem *parent) : parentItem_(parent)
-                                                                        , itemData_(data)
+TreeItem::TreeItem(const std::vector<QVariant> &data, TreeItem *parent) : itemData_(data)
+                                                                        , parentItem_(parent)
 {
 }
 
-TreeItem::TreeItem( const TreeItem& t ) : parentItem_(t.parentItem_), itemData_(t.itemData_)
+TreeItem::TreeItem( const TreeItem& t ) : itemData_(t.itemData_)
+                                        , parentItem_(t.parentItem_)
 {
 }
 

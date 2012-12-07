@@ -33,12 +33,12 @@ namespace adchem {
 
 	class Conversion {
 	public:
-		virtual ~Conversion();
-		Conversion();
-        Conversion( const Conversion& );
-
-		static std::string toSVG( const OpenBabel::OBMol& );
-		static std::string toSMILES( const OpenBabel::OBMol& );
+            virtual ~Conversion();
+            Conversion();
+            Conversion( const Conversion& );
+            
+            static std::string toSVG( const OpenBabel::OBMol& );
+            static std::string toSMILES( const OpenBabel::OBMol& );
 	};
 
 }
