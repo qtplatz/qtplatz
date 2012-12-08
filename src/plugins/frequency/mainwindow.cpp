@@ -113,7 +113,8 @@ MainWindow::createContents( Core::IMode * mode )
 	    
     QWidget * editorAndFindWidget = new QWidget;
 	editorAndFindWidget->setLayout( editorHolderLayout );
-	editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) );
+	//editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) );
+    editorHolderLayout->addWidget( new QTextEdit );
 	editorHolderLayout->addWidget( new Core::FindToolBarPlaceHolder( editorAndFindWidget ) );
 
 	Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
@@ -160,7 +161,7 @@ MainWindow::createContents( Core::IMode * mode )
 	// Right-side window with editor, output etc.
 	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
     QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
-    outputPane->setObjectName( QLatin1String( "ChemistryOutputPanePlaceHolder" ) );
+    outputPane->setObjectName( QLatin1String( "FrequencyOutputPanePlaceHolder" ) );
 	mainWindowSplitter->addWidget( this );
     mainWindowSplitter->addWidget( outputPane );
 	mainWindowSplitter->setStretchFactor( 0, 10 );
@@ -173,7 +174,7 @@ MainWindow::createContents( Core::IMode * mode )
     splitter->addWidget( mainWindowSplitter );
     splitter->setStretchFactor( 0, 0 );
     splitter->setStretchFactor( 1, 1 );
-    splitter->setObjectName( QLatin1String( "ChemistryModeWidget" ) );
+    splitter->setObjectName( QLatin1String( "FrequencyModeWidget" ) );
 
 	createDockWidgets();
 
