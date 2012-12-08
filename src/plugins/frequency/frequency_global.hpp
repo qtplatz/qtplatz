@@ -1,0 +1,13 @@
+#ifndef FREQUENCY_GLOBAL_HPP
+#define FREQUENCY_GLOBAL_HPP
+
+#include <QtGlobal>
+
+#if defined(FREQUENCY_LIBRARY)
+#  define FREQUENCYSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define FREQUENCYSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // FREQUENCY_GLOBAL_H
+

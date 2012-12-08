@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/frequency">
+        <file>images/mode_frequency.png</file>
+    </qresource>
+</RCC>
