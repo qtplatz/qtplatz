@@ -1,7 +1,7 @@
 QWT = $$(QWT)
 isEmpty( QWT ) {
-    win32: QWT = C:/Qwt-6.0.2-svn
-    macx|linux-*: QWT = /usr/local/qwt-6.0.2-svn
+    win32: QWT = C:/Qwt-6.0.3-svn
+    macx|linux-*: QWT = /usr/local/qwt-6.0.3-svn
 }
 
 macx {
