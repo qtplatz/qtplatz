@@ -16,5 +16,5 @@ win32 {
       LIBS += -L$$(ACE_ROOT)\\lib
 } else {
       INCLUDEPATH *= $$(ACE_ROOT)/include
-      LIBS += -L$$(ACE_ROOT)/lib
+      LIBS *= -L$$(ACE_ROOT)/lib
 }
