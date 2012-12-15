@@ -39,54 +39,8 @@
 
 #if defined __APPLE__
 # include "../../src/libs/acewrapper/ifconfig_macosx.hpp"
-#endif
-
-#if defined __linux__
-class ifconfig {
-
-    class ifreq_impl {
-        ifreq if_req;
-        inline void clear() { memset( &if_req, 0, sizeof(ifreq) ); }
-    public:
-        ifreq_impl( int idx ) { clear(); if_req.ifr_ifindex = idx; }
-        ifreq_impl( const std::string& ifname ) { 
-            clear(); 
-            strncpy( if_req.ifr_name, ifname.c_str(), IFNAMSIZ );            
-        }
-        inline ifreq * p() { return &if_req; }
-    };
-
-public:
-
-    static bool if_name( int fd, int idx, std::string& name ) {
-        ifreq_impl if_req( idx );
-        if ( ioctl( fd, SIOCGIFNAME, if_req.p() ) < 0 )
-            return false;
-        name = if_req.p()->ifr_name;
-        return true;
-    }
-
-    static bool if_flags( int fd, const std::string& ifname, short& flags ) {
-        ifreq_impl if_req( ifname );
-        if ( ioctl( fd, SIOCGIFFLAGS, if_req.p() ) < 0 )
-            return false;
-        flags = if_req.p()->ifr_flags;
-        return true;
-    }
-
-    static bool if_broadaddr( int fd, const std::string& ifname, std::string& baddr ) {
-        ifreq_impl if_req( ifname );
-        if ( ioctl( fd, SIOCGIFBRDADDR, if_req.p() ) == 0 ) {
-            if ( if_req.p()->ifr_broadaddr.sa_family == AF_INET ) {
-                const sockaddr_in * ipv4 = reinterpret_cast< const sockaddr_in *>(&(if_req.p()->ifr_broadaddr));
-                const in_addr& addr = ipv4->sin_addr;
-                baddr = inet_ntoa( addr );
-                return true;
-            }
-        }
-        return 0;
-    }
-};
+#elif defined __linux__
+# include "../../src/libs/acewrapper/ifconfig_linux.hpp"
 #endif
 
 int
@@ -94,76 +48,19 @@ main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-#if defined __APPLE__
     typedef std::pair< std::string, std::string > name_addr_pair_t;
     std::vector< name_addr_pair_t > baddrs;
-
-    if ( acewrapper::macosx::ifconfig::if_broadaddrs( baddrs ) ) {
-        
+    bool res;
+#if defined __APPLE__
+    res = acewrapper::macosx::ifconfig::if_broadaddrs( baddrs );
+#else
+    res = acewrapper::os_linux::ifconfig::if_broadaddrs( baddrs );
+#endif
+    if ( res ) {
         BOOST_FOREACH( const name_addr_pair_t& addr, baddrs )
             std::cout << "baddrs: " << addr.first << "\t" << addr.second << std::endl;
     }
-#endif
-
-#if defined __linux__
-    int fd = socket( PF_INET, SOCK_DGRAM, 0 );
-    if ( fd < 0 ) {
-        std::cerr << "error: opening socket" << std::endl;
-        return 0;
-    }
-
-    std::string name;
-    for ( int idx = 1; ifconfig::if_name( fd, idx, name ); ++idx ) {
-        short flags;
-        if ( ifconfig::if_flags( fd, name, flags ) ) {
-            std::cout << name << ", flags=" << std::hex << std::showbase << flags << " ";
-            if ( flags & IFF_UP )
-                std::cout << "UP ";
-            if ( flags & IFF_BROADCAST )
-                std::cout << "BROADCAST ";
-            if ( flags & IFF_DEBUG )
-                std::cout << "DEBUG ";
-            if ( flags & IFF_LOOPBACK )
-                std::cout << "LOOPBACK ";
-            if ( flags & IFF_POINTOPOINT )
-                std::cout << "POINTTOPOINT ";
-            if ( flags & IFF_RUNNING )
-                std::cout << "RUNNING ";
-            if ( flags & IFF_NOARP )
-                std::cout << "NOARP ";
-            if ( flags & IFF_PROMISC )
-                std::cout << "PROMISC ";
-            if ( flags & IFF_NOTRAILERS )
-                std::cout << "NOTRAILERS ";
-            if ( flags & IFF_ALLMULTI )
-                std::cout << "ALLMULTI ";
-            if ( flags & IFF_MASTER )
-                std::cout << "MASTER ";
-            if ( flags & IFF_SLAVE )
-                std::cout << "SLAVE ";
-            if ( flags & IFF_MULTICAST )
-                std::cout << "MULTICAST ";
-            if ( flags & IFF_PORTSEL )
-                std::cout << "PORTSEL ";
-            if ( flags & IFF_AUTOMEDIA )
-                std::cout << "AUTOMEDIA ";
-            if ( flags & IFF_DYNAMIC )
-                std::cout << "DYNAMIC ";
-            // if ( flags & IFF_LOWER_UP )
-            //     std::cout << "LOWER_UP ";
-            // if ( flags & IFF_DORMANT )
-            //     std::cout << "DORMANT ";
-            // if ( flags & IFF_ECHO )
-            //     std::cout << "ECHO ";
-            if ( flags & IFF_BROADCAST ) {
-                std::string baddr;
-                if ( ifconfig::if_broadaddr( fd, name, baddr ) )
-                    std::cout << " BCAST:" << baddr;
-            }
-            std::cout << std::endl;
-        }
-    }
-#endif
+    std::cout << "----------------" << std::endl;
 }
 
 
