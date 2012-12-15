@@ -24,14 +24,6 @@
 
 #include "ifconfig.hpp"
 
-#if defined WIN32
-# include <winsock2.h>
-# include <ws2tcpip.h>
-# include <iphlpapi.h>
-# pragma comment( lib, "iphlpapi.lib" )
-# pragma comment( lib, "ws2_32.lib" )
-#endif
-
 #include <adportable/debug.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/bind.hpp>
@@ -43,9 +35,14 @@
 
 #if defined __APPLE__
 # include "ifconfig_macosx.hpp"
-#endif
-#if defined __linux__
+#elif defined __linux__
 # include "ifconfig_linux.hpp"
+#elif defined WIN32
+# include <winsock2.h>
+# include <ws2tcpip.h>
+# include <iphlpapi.h>
+# pragma comment( lib, "iphlpapi.lib" )
+# pragma comment( lib, "ws2_32.lib" )
 #endif
 
 using namespace acewrapper;
