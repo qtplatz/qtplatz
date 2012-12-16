@@ -78,6 +78,22 @@ namespace acewrapper {
                 }
                 return 0;
             }
+
+            static bool if_broadaddrs( std::vector< std::pair< std::string, std::string > >& vec ) {
+                int fd = socket( PF_INET, SOCK_DGRAM, 0 );
+                if ( fd < 0 )
+                    return false;
+                std::string ifname;
+                for ( int idx = 1; ifconfig::if_name( fd, idx, ifname ); ++idx ) {
+                    short flags = ifconfig::if_flags( fd, ifname );
+                    if ( flags & IFF_BROADCAST && !( flags & IFF_LOOPBACK ) ) {
+                        std::string bcast;
+                        if ( ifconfig::if_broadaddr( fd, ifname, bcast ) ) 
+                            vec.push_back( std::make_pair<std::string, std::string>( ifname, bcast ) );
+                    }
+                }
+                close( fd );
+            }
         };
     } // namespace os_linux
 }

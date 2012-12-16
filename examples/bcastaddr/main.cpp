@@ -35,7 +35,13 @@
 #include <cstdlib>
 #include <cstdio>
 #include <string>
+#include <boost/foreach.hpp>
 
+#if defined __APPLE__
+# include "../../src/libs/acewrapper/ifconfig_macosx.hpp"
+#endif
+
+#if defined __linux__
 class ifconfig {
 
     class ifreq_impl {
@@ -81,12 +87,25 @@ public:
         return 0;
     }
 };
+#endif
 
 int
 main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
+#if defined __APPLE__
+    typedef std::pair< std::string, std::string > name_addr_pair_t;
+    std::vector< name_addr_pair_t > baddrs;
+
+    if ( acewrapper::macosx::ifconfig::if_broadaddrs( baddrs ) ) {
+        
+        BOOST_FOREACH( const name_addr_pair_t& addr, baddrs )
+            std::cout << "baddrs: " << addr.first << "\t" << addr.second << std::endl;
+    }
+#endif
+
+#if defined __linux__
     int fd = socket( PF_INET, SOCK_DGRAM, 0 );
     if ( fd < 0 ) {
         std::cerr << "error: opening socket" << std::endl;
@@ -144,6 +163,7 @@ main(int argc, char *argv[])
             std::cout << std::endl;
         }
     }
+#endif
 }
 
 

@@ -59,6 +59,8 @@ HEADERS += acewrapper.hpp \
     timerhandler.hpp \
     timeval.hpp \
     ifconfig.hpp \
+    ifconfig_macosx.hpp \
+    ifconfig_linux.hpp \
     servantmanager.hpp \
     iorsender.hpp \
     iorquery.hpp

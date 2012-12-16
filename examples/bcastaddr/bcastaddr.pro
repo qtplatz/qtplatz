@@ -11,6 +11,7 @@ QT       -= gui
 TARGET = bcastaddr
 CONFIG   += console
 CONFIG   -= app_bundle
+include(../../src/boost.pri)
 
 TEMPLATE = app
 

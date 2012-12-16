@@ -57,28 +57,11 @@ ifconfig::broadaddr( std::vector< std::pair< std::string, std::string > >& vec )
     vec.clear();
 
 #if defined __linux__
-    int fd = socket( PF_INET, SOCK_DGRAM, 0 );
-    if ( fd < 0 ) {
-        adportable::debug( __FILE__, __LINE__ ) << "socket open failed.";
-        return false;
-    }
-
-    using acewrapper::os_linux::ifconfig;
-
-    std::string ifname;
-    for ( int idx = 1; ifconfig::if_name( fd, idx, ifname ); ++idx ) {
-        short flags = ifconfig::if_flags( fd, ifname );
-        if ( flags & IFF_BROADCAST && !( flags & IFF_LOOPBACK ) ) {
-            std::string bcast;
-            if ( ifconfig::if_broadaddr( fd, ifname, bcast ) ) 
-                vec.push_back( std::make_pair<std::string, std::string>( ifname, bcast ) );
-        }
-    }
-    close( fd );
+    return acewrapper::os_linux::ifconfig::if_broadaddrs( vec );
 #endif
 
 #if defined __APPLE__
-    
+    return acewrapper::macosx::ifconfig::if_broadaddrs( vec );
 #endif
 
 #if defined WIN32
