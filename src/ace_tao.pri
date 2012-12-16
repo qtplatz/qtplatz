@@ -1,4 +1,5 @@
 ACE_ROOT = $$(ACE_ROOT)
+TAO_ROOT = $$(TAO_ROOT)
 
 isEmpty( ACE_ROOT ) {
   win32 { 
@@ -11,10 +12,10 @@ isEmpty( ACE_ROOT ) {
 }
 
 win32 {
-      INCLUDEPATH *= $$(ACE_ROOT)
-      INCLUDEPATH *= $$(TAO_ROOT)
-      LIBS += -L$$(ACE_ROOT)\\lib
+      INCLUDEPATH *= $${ACE_ROOT}
+      INCLUDEPATH *= $${TAO_ROOT}
+      LIBS += -L$${ACE_ROOT}\\lib
 } else {
-      INCLUDEPATH *= $$(ACE_ROOT)/include
-      LIBS *= -L$$(ACE_ROOT)/lib
+      INCLUDEPATH *= $${ACE_ROOT}/include
+      LIBS *= -L$${ACE_ROOT}/lib
 }
