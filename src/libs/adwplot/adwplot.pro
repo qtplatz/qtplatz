@@ -27,6 +27,7 @@ SOURCES += adwplot.cpp \
     plotcurve.cpp \
     seriesdata.cpp \
     spectrumwidget.cpp \
+    tracewidget.cpp \
     trace.cpp \
     traces.cpp \
     zoomer.cpp \
@@ -44,6 +45,7 @@ HEADERS += adwplot.hpp \
     plotcurve.hpp \
     seriesdata.hpp \
     spectrumwidget.hpp \
+    tracewidget.hpp \
     trace.hpp \
     traces.hpp \
     zoomer.hpp \
