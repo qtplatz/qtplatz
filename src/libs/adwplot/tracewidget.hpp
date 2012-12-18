@@ -40,7 +40,7 @@ namespace adwplot {
         ~TraceWidget();
 
         void clear();
-        void setData( int idx, std::size_t, const double * px, const double * py );
+        void setData( std::size_t, const double * px, const double * py, int idx = 0 );
 
     private:
         struct TraceWidgetImpl * impl_;

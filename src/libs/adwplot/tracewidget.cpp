@@ -29,7 +29,6 @@
 #include "plotcurve.hpp"
 #include "annotation.hpp"
 #include "annotations.hpp"
-// #include <adcontrols/massspectrum.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <qwt_plot_picker.h>
 #include <qwt_plot_panner.h>
@@ -144,12 +143,12 @@ TraceWidget::~TraceWidget()
 
 TraceWidget::TraceWidget(QWidget *parent) : Dataplot(parent)
                                                 , impl_( new TraceWidgetImpl )
-                                                , autoYZoom_( true ) 
+                                                , autoYZoom_( false ) 
 {
     zoomer2_.reset();
 	zoomer1_->autoYScale( autoYZoom_ );
 
-    setAxisTitle(QwtPlot::xBottom, "m/z");
+    setAxisTitle(QwtPlot::xBottom, "Time(microsecond)");
     setAxisTitle(QwtPlot::yLeft, "Intensity");
 
     // handle zoom rect by this
@@ -215,21 +214,8 @@ TraceWidget::clear()
     zoomer1_->setZoomBase();
 }
 
-// void
-// TraceWidget::setData( const adcontrols::MassSpectrum& ms )
-// {
-//     setData( ms, 0, false );
-// }
-
-// void
-// TraceWidget::setData( const adcontrols::MassSpectrum& ms1, const adcontrols::MassSpectrum& ms2 )
-// {
-//     setData( ms1, 0, false );
-//     setData( ms2, 1, true );
-// }
-
 void
-TraceWidget::setData( int idx, std::size_t n, const double * px, const double * py )
+TraceWidget::setData( std::size_t n, const double * px, const double * py, int idx )
 {
     using tracewidget::TraceData;
 
@@ -241,10 +227,15 @@ TraceWidget::setData( int idx, std::size_t n, const double * px, const double * 
     TraceData& trace = impl_->traces_[ idx ];
     trace.setData( *this, n, px, py );
 
+    adportable::array_wrapper< const double > pY( py, n );
+    std::pair<const double *, const double *> minmax = std::minmax_element( pY.begin(), pY.end() );
+    double minimum = *minmax.first;
+    double maximum = *minmax.second;
+
     // double top = 0; // ms.getMaxIntensity() + ( ms.getMaxIntensity() - ms.getMinIntensity() ) * 0.12; // 12% increase
     // double bottom = 0; // ms.getMinIntensity();
-    // setAxisScale( QwtPlot::xBottom, ms.getAcquisitionMassRange().first, ms.getAcquisitionMassRange().second );
-    // setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, bottom, top );
+    setAxisScale( QwtPlot::xBottom, px[ 0 ], px[ n - 1 ] );
+    setAxisScale( QwtPlot::yLeft, minimum, maximum );
 
     QRectF z = zoomer1_->zoomRect();
 
