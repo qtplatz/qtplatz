@@ -215,7 +215,7 @@ TraceWidget::clear()
 }
 
 void
-TraceWidget::setData( std::size_t n, const double * px, const double * py, int idx )
+TraceWidget::setData( std::size_t n, const double * px, const double * py, int idx, bool axisRight )
 {
     using tracewidget::TraceData;
 
@@ -232,10 +232,11 @@ TraceWidget::setData( std::size_t n, const double * px, const double * py, int i
     double minimum = *minmax.first;
     double maximum = *minmax.second;
 
-    // double top = 0; // ms.getMaxIntensity() + ( ms.getMaxIntensity() - ms.getMinIntensity() ) * 0.12; // 12% increase
-    // double bottom = 0; // ms.getMinIntensity();
     setAxisScale( QwtPlot::xBottom, px[ 0 ], px[ n - 1 ] );
-    setAxisScale( QwtPlot::yLeft, minimum, maximum );
+    if ( axisRight )
+        setAxisScale( QwtPlot::yRight, minimum, maximum );
+    else
+        setAxisScale( QwtPlot::yLeft, minimum, maximum );
 
     QRectF z = zoomer1_->zoomRect();
 
