@@ -12,9 +12,10 @@ LIBS += -L$${QTPLATZ_BUILD_TREE}/lib/qtplatz
 
 PROVIDER = ScienceLiaison
 
-#TARGET = fticr
-TARGET = $$qtLibraryTarget($$TARGET)
 TEMPLATE = lib
+TARGET = fticr
+TARGET = $$qtLibraryTarget($$TARGET)
+
 
 INCLUDEPATH += .
 INCLUDEPATH += $$QTPLATZ_SOURCE_TREE/src

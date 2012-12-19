@@ -6,13 +6,12 @@
 
 QT       -= core gui
 
-#TARGET = mzxml
+TARGET = mzxml
 TEMPLATE = lib
-
-include(../contrib.pri)
 
 TARGET = $$qtLibraryTarget($$TARGET)
-TEMPLATE = lib
+
+include(../contrib.pri)
 
 INCLUDEPATH += .
 INCLUDEPATH += $$QTPLATZ_SOURCE_TREE/src

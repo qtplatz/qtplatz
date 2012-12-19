@@ -7,6 +7,7 @@
 QT       -= core gui
 TARGET = compassxtract
 TEMPLATE = lib
+TARGET = $$qtLibraryTarget( $$TARGET )
 
 include(../../contrib.pri)
 include(../../../src/boost.pri)
