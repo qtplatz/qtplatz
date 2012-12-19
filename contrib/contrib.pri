@@ -1,6 +1,3 @@
-
-# CONFIG += debug
-
 defineReplace(cleanPath) {
     win32:1 ~= s|\\\\|/|g
     contains(1, ^/.*):pfx = /
@@ -49,14 +46,13 @@ equals(TEST, 1) {
 }
 
 IDE_SOURCE_TREE = $$PWD
-QTPLATZ_SOURCE_TREE = $$IDE_SOURCE_TREE/..
+QTPLATZ_SOURCE_TREE = $$cleanPath( $$$$IDE_SOURCE_TREE/.. )
 
-######## Provider #######
 PROVIDER = ScienceLiaison
 
 isEmpty(IDE_BUILD_TREE) {
     sub_dir = $$_PRO_FILE_PWD_
-    sub_dir ~= s,^$$re_escape($$PWD),,MSI
+    sub_dir ~= s,^$$re_escape($$PWD),,
     IDE_BUILD_TREE = $$cleanPath($$OUT_PWD)
     IDE_BUILD_TREE ~= s,$$re_escape($$sub_dir)$,,
 }
@@ -65,32 +61,29 @@ macx {
     IDE_APP_TARGET   = "qtplatz"
     IDE_APP_PATH     = $$QTPLATZ_SOURCE_TREE/bin
     IDE_LIBRARY_PATH = $$IDE_APP_PATH/$${IDE_APP_TARGET}.app/Contents/PlugIns
-    IDE_STATICLIB_PATH = $$IDE_BUILD_TREE/lib
-    IDE_PLUGIN_PATH  = $$IDE_APP_PATH/$${IDE_APP_TARGET}.app/Contents/PlugIns
+    IDE_PLUGIN_PATH  = $$IDE_LIBRARY_PATH
     IDE_LIBEXEC_PATH = $$IDE_APP_PATH/$${IDE_APP_TARGET}.app/Contents/Resources
     IDE_DATA_PATH    = $$IDE_APP_PATH/$${IDE_APP_TARGET}.app/Contents/Resources
-    IDE_DOC_PATH     = $$IDE_DATA_PATH/doc/MSI
+    IDE_DOC_PATH     = $$IDE_DATA_PATH/doc
     QTPLATZ_BUILD_TREE = $$QTPLATZ_SOURCE_TREE
-    QTPLATZ_PLUGIN_PATH = $$IDE_PLUGIN_PATH
+    QTPLATZ_PLUGIN_PATH = $$IDE_LIBRARY_PATH
     contains(QT_CONFIG, ppc):CONFIG += ppc x86
     copydata = 1
 } else {
     win32 {
         contains(TEMPLATE, vc.*)|contains(TEMPLATE_PREFIX, vc):vcproj = 1
-        IDE_APP_TARGET   = qtplatz
+        IDE_APP_TARGET   = qtPlatz
     } else {
-        IDE_APP_WRAPPER  = qtplatz
-        IDE_APP_TARGET   = qtplatz.bin
+        IDE_APP_WRAPPER  = qtPlatz
+        IDE_APP_TARGET   = qtPlatz.bin
     }
-    IDE_LIBRARY_PATH =   $$IDE_BUILD_TREE/$$IDE_LIBRARY_BASENAME
-    IDE_STATICLIB_PATH = $$IDE_BUILD_TREE/lib
-#    IDE_PLUGIN_PATH  = $$IDE_LIBRARY_PATH/plugins
+    IDE_LIBRARY_PATH = $$IDE_BUILD_TREE/$$IDE_LIBRARY_BASENAME/qtplatz
+    IDE_PLUGIN_PATH  = $$IDE_LIBRARY_PATH/plugins
     IDE_LIBEXEC_PATH = $$IDE_APP_PATH # FIXME
-    IDE_DATA_PATH    = $$IDE_BUILD_TREE/share/MSI
-    IDE_DOC_PATH     = $$IDE_BUILD_TREE/share/doc/MSI
-    QTPLATZ_BUILD_TREE   = $$QTPLATZ_SOURCE_TREE
-    QTPLATZ_LIBRARY_PATH = $$IDE_BUILD_TREE/$$IDE_LIBRARY_BASENAME/$$IDE_APP_TARGET
-    QTPLATZ_PLUGIN_PATH  = $$QTPLATZ_BUILD_TREE/lib/qtplatz/plugins
+    IDE_DATA_PATH    = $$IDE_BUILD_TREE/share/qtPlatz
+    IDE_DOC_PATH     = $$IDE_BUILD_TREE/share/doc/qtPlatz
+    QTPLATZ_BUILD_TREE = $$QTPLATZ_SOURCE_TREE
+    QTPLATZ_PLUGIN_PATH = $$QTPLATZ_BUILD_TREE/lib/qtplatz/plugins
     !isEqual(IDE_SOURCE_TREE, $$IDE_BUILD_TREE):copydata = 1
 }
 
@@ -103,12 +96,12 @@ IDE_BUILD_TREE = $$(QTC_BUILD)
 isEmpty(IDE_BUILD_TREE):IDE_BUILD_TREE=$$QTPLATZ_BUILD_TREE
 
 INCLUDEPATH += \
-    $$IDE_SOURCE_TREE/src/libs \
-    $$QTPLATZ_SOURCE_TREE/src/libs
+    $$QTPLATZ_SOURCE_TREE/src/libs \
+    $$QTPLATZ_SOURCE_TREE/tools
 
 DEPENDPATH += \
-    $$IDE_SOURCE_TREE/src/libs \
-    $$QTPLATZ_SOURCE_TREE/src/libs
+    $$QTPLATZ_SOURCE_TREE/src/libs \
+    $$QTPLATZ_SOURCE_TREE/tools
 
 LIBS += -L$$IDE_LIBRARY_PATH
 
@@ -137,3 +130,5 @@ linux-g++-* {
 # Handle S60 support: default on Windows, conditionally built on other platforms.
 win32:SUPPORT_QT_S60=1
 else:SUPPORT_QT_S60 = $$(QTCREATOR_WITH_S60)
+
+win32: QMAKE_CXXFLAGS = -D_WIN32_WINNT=0x0501

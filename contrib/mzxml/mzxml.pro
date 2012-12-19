@@ -9,7 +9,7 @@ QT       -= core gui
 #TARGET = mzxml
 TEMPLATE = lib
 
-include(../../contrib.pri)
+include(../contrib.pri)
 
 TARGET = $$qtLibraryTarget($$TARGET)
 TEMPLATE = lib

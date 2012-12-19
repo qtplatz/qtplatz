@@ -1,34 +1,34 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fticr", "bruker\fticr\fticr.vcxproj", "{B20210D8-5D1F-3CCA-814C-62693030CDB1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mzxml", "C:/Users/thondo/src/qtplatz/contrib/mzxml\mzxml.vcxproj", "{3DD8F11B-0F66-3752-AA99-529A1915C116}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mzxml", "mzxml\mzxml.vcxproj", "{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fticr", "C:/Users/thondo/src/qtplatz/contrib/bruker/fticr\fticr.vcxproj", "{77149842-12F6-38B1-AB1D-CB22664DBB63}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compassxtract", "bruker\compassxtract\compassxtract.vcxproj", "{B1FFC0E8-6277-3EB4-AB1F-1B3862EC7BC5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compassxtract", "C:/Users/thondo/src/qtplatz/contrib/bruker/compassxtract\compassxtract.vcxproj", "{7C0878C5-AFC9-3364-8C38-1042AD028EFD}"
 EndProject
 Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
-		Release|Win32 = Release|Win32
+	GlobalSection(SolutionConfiguration) = preSolution
+		ConfigName.0 = Debug|Win32
+		ConfigName.1 = Release|Win32
 	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B20210D8-5D1F-3CCA-814C-62693030CDB1}.Debug|Win32.ActiveCfg = Debug|Win32
-		{B20210D8-5D1F-3CCA-814C-62693030CDB1}.Debug|Win32.Build.0 = Debug|Win32
-		{B20210D8-5D1F-3CCA-814C-62693030CDB1}.Release|Win32.ActiveCfg = Release|Win32
-		{B20210D8-5D1F-3CCA-814C-62693030CDB1}.Release|Win32.Build.0 = Release|Win32
-		{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}.Debug|Win32.ActiveCfg = Debug|Win32
-		{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}.Debug|Win32.Build.0 = Debug|Win32
-		{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}.Release|Win32.ActiveCfg = Release|Win32
-		{88DF3EB8-06E8-3701-9DDF-B9A5AEC1F1DF}.Release|Win32.Build.0 = Release|Win32
-		{B1FFC0E8-6277-3EB4-AB1F-1B3862EC7BC5}.Debug|Win32.ActiveCfg = Debug|Win32
-		{B1FFC0E8-6277-3EB4-AB1F-1B3862EC7BC5}.Debug|Win32.Build.0 = Debug|Win32
-		{B1FFC0E8-6277-3EB4-AB1F-1B3862EC7BC5}.Release|Win32.ActiveCfg = Release|Win32
-		{B1FFC0E8-6277-3EB4-AB1F-1B3862EC7BC5}.Release|Win32.Build.0 = Release|Win32
+	GlobalSection(ProjectDependencies) = postSolution
 	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
+	GlobalSection(ProjectConfiguration) = postSolution
+		{3DD8F11B-0F66-3752-AA99-529A1915C116}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3DD8F11B-0F66-3752-AA99-529A1915C116}.Debug|Win32.Build.0 = Debug|Win32
+		{3DD8F11B-0F66-3752-AA99-529A1915C116}.Release|Win32.ActiveCfg = Release|Win32
+		{3DD8F11B-0F66-3752-AA99-529A1915C116}.Release|Win32.Build.0 = Release|Win32
+		{77149842-12F6-38B1-AB1D-CB22664DBB63}.Debug|Win32.ActiveCfg = Debug|Win32
+		{77149842-12F6-38B1-AB1D-CB22664DBB63}.Debug|Win32.Build.0 = Debug|Win32
+		{77149842-12F6-38B1-AB1D-CB22664DBB63}.Release|Win32.ActiveCfg = Release|Win32
+		{77149842-12F6-38B1-AB1D-CB22664DBB63}.Release|Win32.Build.0 = Release|Win32
+		{7C0878C5-AFC9-3364-8C38-1042AD028EFD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7C0878C5-AFC9-3364-8C38-1042AD028EFD}.Debug|Win32.Build.0 = Debug|Win32
+		{7C0878C5-AFC9-3364-8C38-1042AD028EFD}.Release|Win32.ActiveCfg = Release|Win32
+		{7C0878C5-AFC9-3364-8C38-1042AD028EFD}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		QtVersion = 4.8.1
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
 	EndGlobalSection
 EndGlobal

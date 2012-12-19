@@ -5,16 +5,16 @@
 #-------------------------------------------------
 
 QT       -= core gui
+TARGET = compassxtract
+TEMPLATE = lib
 
 include(../../contrib.pri)
-
-#TARGET = compassxtract
-TARGET = $$qtLibraryTarget($$TARGET)
-TEMPLATE = lib
+include(../../../src/boost.pri)
+LIBS += -L$${QTPLATZ_BUILD_TREE}/lib/qtplatz
 
 INCLUDEPATH += .
 INCLUDEPATH += $$QTPLATZ_SOURCE_TREE/src
-INCLUDEPATH += \"C:/Program Files (x86)/Bruker Daltonik/CompassXtract\"
+INCLUDEPATH += "C:\Program Files (x86)\Bruker Daltonik\CompassXtract"
 
 DESTDIR = $$QTPLATZ_PLUGIN_PATH/$$PROVIDER
 DEFINES += COMPASSXTRACT_LIBRARY

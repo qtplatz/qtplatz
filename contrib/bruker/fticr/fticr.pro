@@ -7,6 +7,10 @@
 QT       -= core gui
 
 include(../../contrib.pri)
+include(../../../src/boost.pri)
+LIBS += -L$${QTPLATZ_BUILD_TREE}/lib/qtplatz
+
+PROVIDER = ScienceLiaison
 
 #TARGET = fticr
 TARGET = $$qtLibraryTarget($$TARGET)
