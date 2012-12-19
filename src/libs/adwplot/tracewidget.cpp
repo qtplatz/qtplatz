@@ -114,8 +114,7 @@ namespace adwplot {
             TraceData() {  }
             TraceData( const TraceData& t ) : curves_( t.curves_ ), data_( t.data_ ) {   }
             ~TraceData();
-            // void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms );
-            void setData( Dataplot& plot, std::size_t size, const double * x, const double * y );
+            void setData( Dataplot& plot, std::size_t size, const double * x, const double * y, bool y2, int idx );
             std::pair<double, double> y_range( double left, double right ) const;
 
             typedef std::map< int, SeriesDataImpl > map_type;
@@ -160,6 +159,18 @@ TraceWidget::TraceWidget(QWidget *parent) : Dataplot(parent)
 		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
 		picker_->setEnabled( true );
 	}
+}
+
+void
+TraceWidget::xBottomTitle( const std::string& title )
+{
+    setAxisTitle(QwtPlot::xBottom, title.c_str() );
+}
+
+void
+TraceWidget::yLeftTitle( const std::string& title )
+{
+    setAxisTitle(QwtPlot::yLeft, title.c_str() );
 }
 
 void
@@ -225,7 +236,7 @@ TraceWidget::setData( std::size_t n, const double * px, const double * py, int i
         impl_->traces_.push_back( TraceData() );
 
     TraceData& trace = impl_->traces_[ idx ];
-    trace.setData( *this, n, px, py );
+    trace.setData( *this, n, px, py, axisRight, idx );
 
     adportable::array_wrapper< const double > pY( py, n );
     std::pair<const double *, const double *> minmax = std::minmax_element( pY.begin(), pY.end() );
@@ -233,9 +244,10 @@ TraceWidget::setData( std::size_t n, const double * px, const double * py, int i
     double maximum = *minmax.second;
 
     setAxisScale( QwtPlot::xBottom, px[ 0 ], px[ n - 1 ] );
-    if ( axisRight )
+    if ( axisRight ) {
+        enableAxis( QwtPlot::yRight );
         setAxisScale( QwtPlot::yRight, minimum, maximum );
-    else
+    } else
         setAxisScale( QwtPlot::yLeft, minimum, maximum );
 
     QRectF z = zoomer1_->zoomRect();
@@ -258,24 +270,21 @@ TraceData::~TraceData()
 }
 
 void
-TraceData::setData( Dataplot& plot, std::size_t size, const double * x, const double * y )
+TraceData::setData( Dataplot& plot, std::size_t size, const double * x, const double * y, bool y2, int idx )
 {
     curves_.clear();
     data_.clear();
  
-    // const double * intens = ms.getIntensityArray();
-    // const double * masses = ms.getMassArray();
-    // const size_t size = ms.size();
-
-    // double bottom = ms.getMinIntensity();
-    // double top = ms.getMaxIntensity() + ( ms.getMaxIntensity() - ms.getMinIntensity() ) * 0.12;
     QRectF rect;
-    // rect.setCoords( ms.getAcquisitionMassRange().first, bottom, ms.getAcquisitionMassRange().second, top );
 
     curves_.push_back( PlotCurve( plot ) );
     PlotCurve &curve = curves_[0];
     data_[ 0 ].setData( size, x, y );
     curve.p()->setData( new SeriesData( data_[ 0 ], rect ) );
+    if ( y2 )
+        curve.p()->setYAxis( QwtPlot::yRight );
+    if ( idx )
+        curve.p()->setPen( QPen( color_table[ idx ] ) );
 }
 
 std::pair< double, double >

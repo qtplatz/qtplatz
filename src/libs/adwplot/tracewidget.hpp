@@ -41,6 +41,8 @@ namespace adwplot {
 
         void clear();
         void setData( std::size_t, const double * px, const double * py, int idx = 0, bool axisRight = false );
+        void xBottomTitle( const std::string& );
+        void yLeftTitle( const std::string& );
 
     private:
         struct TraceWidgetImpl * impl_;
