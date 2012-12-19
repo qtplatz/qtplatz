@@ -247,7 +247,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 array_wrapper<const double>::const_iterator pos = std::lower_bound( masses.begin() + pk.first, masses.begin() + pk.second, mass );
                 size_t index = std::distance( masses.begin(), --pos );
 
-                assert( masses[ index ] < mass && mass < masses[ index + 1 ] );
+                // assert( masses[ index ] < mass && mass < masses[ index + 1 ] );
 
                 double t0 = profile.getTime( index );
                 double td = profile.getMSProperty().instSamplingInterval() * 1e-12;
