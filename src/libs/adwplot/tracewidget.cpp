@@ -37,6 +37,7 @@
 #include <qwt_picker_machine.h>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
+#include <algorithm>
 
 using namespace adwplot;
 
@@ -239,9 +240,14 @@ TraceWidget::setData( std::size_t n, const double * px, const double * py, int i
     trace.setData( *this, n, px, py, axisRight, idx );
 
     adportable::array_wrapper< const double > pY( py, n );
+#if defined __linux__
+    double minimum = *std::min_element( pY.begin(), pY.end() );
+    double maximum = *std::max_element( pY.begin(), pY.end() );
+#else
     std::pair<const double *, const double *> minmax = std::minmax_element( pY.begin(), pY.end() );
     double minimum = *minmax.first;
     double maximum = *minmax.second;
+#endif
 
     setAxisScale( QwtPlot::xBottom, px[ 0 ], px[ n - 1 ] );
     if ( axisRight ) {
