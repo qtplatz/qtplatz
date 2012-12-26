@@ -249,7 +249,7 @@ SDFileModel::file( boost::shared_ptr< ChemFile >& file )
     }
   
     std::sort( data_.begin(), data_.end()
-	       , boost::bind( &Mol::getExactMass, _2, true ) < boost::bind( &Mol::getExactMass, _1, true ) );
+        , boost::bind( &Mol::getExactMass, _2, true ) < boost::bind( &Mol::getExactMass, _1, true ) );
     size_t cnt = 0;
     double prev = 0;
     BOOST_FOREACH( const Mol& mol, data_ ) {

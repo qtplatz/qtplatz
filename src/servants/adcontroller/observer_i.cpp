@@ -81,7 +81,12 @@ observer_i::~observer_i(void)
 ::SignalObserver::Description * 
 observer_i::getDescription (void)
 {
-    return source_observer_->getDescription();
+    try {
+        return source_observer_->getDescription();
+    } catch ( CORBA::Exception& ex ) {
+        adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
+    }
+    return 0;
 }
 
 ::CORBA::Boolean

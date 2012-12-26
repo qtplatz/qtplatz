@@ -29,13 +29,6 @@
       </Configuration>
     </Configuration>
     
-    <!-- loading individual instrument controllsers -->
-    <!--    
-    <Configuration name="infitofcontoller" type="orbLoader" ns_name="infitofcontroller.session">
-      <Component name="infitofcontroller" module="infitofcontroller"/>
-    </Configuration>
-    -->    
-    
     <!-- spectrometer InfiTOF -->
     <Configuration name="infitofspectrometer" type="MassSpectrometer">
       <Component name="infitofspectrometer" module="infitofspectrometer"/>
@@ -46,15 +39,22 @@
       <Component name="tofspectrometer" module="tofspectrometer"/>
     </Configuration>
 
+    <Configuration name="hmqspectrometer" type="MassSpectrometer">
+      <Component name="hmqspectrometer" module="hmqspectrometer"/>
+    </Configuration>
+
+    <!-- loading individual instrument controllsers -->
+    
     <!-- spectrometer HMSQ HORIBA STEC's tiny quadrupole spectrometer -->
     <Configuration name="hmqcontoller" type="orbLoader" ns_name="hmqcontroller.session">
       <Component name="hmqcontroller" module="hmqcontroller"/>
     </Configuration>    
     
-    <Configuration name="hmqspectrometer" type="MassSpectrometer">
-      <Component name="hmqspectrometer" module="hmqspectrometer"/>
+    <!-- spectrometer FDMA InfiTOF time-of-flight spectrometer -->
+    <Configuration name="infitofcontoller" type="orbLoader" ns_name="infitofcontroller.session">
+      <Component name="infitofcontroller" module="infitofcontroller"/>
     </Configuration>
-
+    
     <!-- end configuration -->
   </Configuration>
 </ServantConfiguration>
