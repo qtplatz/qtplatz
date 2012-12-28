@@ -240,7 +240,7 @@ TraceWidget::setData( std::size_t n, const double * px, const double * py, int i
     trace.setData( *this, n, px, py, axisRight, idx );
 
     adportable::array_wrapper< const double > pY( py, n );
-#if defined __linux__
+#if defined __linux__ || defined __APPLE__
     double minimum = *std::min_element( pY.begin(), pY.end() );
     double maximum = *std::max_element( pY.begin(), pY.end() );
 #else

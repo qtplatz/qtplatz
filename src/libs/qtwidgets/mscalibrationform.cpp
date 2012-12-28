@@ -31,7 +31,10 @@
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/tableofelements.hpp>
+#include <adcontrols/element.hpp>
 #include <adportable/configuration.hpp>
+
 #include <QStandardItemModel>
 #include "standarditemhelper.hpp"
 #include <boost/format.hpp>
@@ -90,20 +93,29 @@ MSCalibrationForm::OnInitialUpdate()
     //------ create Xe reference -------
     adcontrols::MSReferences Xe;
     Xe.name( L"Xe-EI-Positive" );
-#if 0
-    // adcontrols::MSReferenceDefns Xe;
     do {
         adcontrols::MSReferences& ref = Xe;
-        ref << adcontrols::MSReference( L"126Xe", true, L"", false );
-        ref << adcontrols::MSReference( L"128Xe", true, L"", false );
-        ref << adcontrols::MSReference( L"129Xe", true, L"", true );
-        ref << adcontrols::MSReference( L"130Xe", true, L"", false );
-        ref << adcontrols::MSReference( L"131Xe", true, L"", false );
-        ref << adcontrols::MSReference( L"132Xe", true, L"", false );
-        ref << adcontrols::MSReference( L"134Xe", true, L"", false );
-        ref << adcontrols::MSReference( L"136Xe", true, L"", true );
+        const adcontrols::Element& element = adcontrols::TableOfElements::instance()->findElement( L"Xe" );
+        for ( adcontrols::Element::vector_type::const_iterator it = element.begin(); it != element.end(); ++it ) {
+            std::wstring formula = ( boost::wformat( L"%1%Xe" ) % int( it->mass_ + 0.5 ) ).str();
+            bool enable = it->abundance_ > 0.01;
+            ref << adcontrols::MSReference( formula, true, L"", enable, it->mass_ );
+        }
     } while(0);
-#endif
+
+    //------ create Ar reference -------
+    adcontrols::MSReferences Ar;
+    Ar.name( L"Ar-EI-Positive" );
+    do {
+        adcontrols::MSReferences& ref = Ar;
+        const adcontrols::Element& element = adcontrols::TableOfElements::instance()->findElement( L"Ar" );
+        for ( adcontrols::Element::vector_type::const_iterator it = element.begin(); it != element.end(); ++it ) {
+            std::wstring formula = ( boost::wformat( L"%1%Ar" ) % int( it->mass_ + 0.5 ) ).str();
+            bool enable = it->abundance_ > 0.01;
+            ref << adcontrols::MSReference( formula, true, L"", enable, it->mass_ );
+        }
+    } while(0);
+
     // ---------------------------------
     //------ create PFTBA < tris(Perfluorobutyl)amine > reference -------
     adcontrols::MSReferences PFTBA;
@@ -128,6 +140,7 @@ MSCalibrationForm::OnInitialUpdate()
     } while(0);
     // ---------------------------------
 
+    pDelegate_->refs_[ Ar.name() ] = Ar;
     pDelegate_->refs_[ Xe.name() ] = Xe;
     pDelegate_->refs_[ PFTBA.name() ] = PFTBA;
 

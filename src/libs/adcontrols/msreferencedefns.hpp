@@ -70,17 +70,15 @@ namespace adcontrols {
         
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
+        void serialize(Archive& ar, const unsigned int /* version */) {
             using namespace boost::serialization;
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP(enable_);
-                ar & BOOST_SERIALIZATION_NVP(formula_);
-                ar & BOOST_SERIALIZATION_NVP(adduct_);
-                ar & BOOST_SERIALIZATION_NVP(loss_);
-                ar & BOOST_SERIALIZATION_NVP(polarityPositive_);
-                ar & BOOST_SERIALIZATION_NVP(chargeCount_);
-                ar & BOOST_SERIALIZATION_NVP(comments_);
-            }
+            ar & BOOST_SERIALIZATION_NVP(enable_);
+            ar & BOOST_SERIALIZATION_NVP(formula_);
+            ar & BOOST_SERIALIZATION_NVP(adduct_);
+            ar & BOOST_SERIALIZATION_NVP(loss_);
+            ar & BOOST_SERIALIZATION_NVP(polarityPositive_);
+            ar & BOOST_SERIALIZATION_NVP(chargeCount_);
+            ar & BOOST_SERIALIZATION_NVP(comments_);
         }
     };
     
@@ -127,20 +125,18 @@ namespace adcontrols {
         
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
+        void serialize(Archive& ar, const unsigned int /* version*/) {
             using namespace boost::serialization;
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP(enable_);
-                ar & BOOST_SERIALIZATION_NVP(repeat_);
-                ar & BOOST_SERIALIZATION_NVP(endGroup_);
-                ar & BOOST_SERIALIZATION_NVP(adduct_);
-                ar & BOOST_SERIALIZATION_NVP(loss_);
-                ar & BOOST_SERIALIZATION_NVP(polarityPositive_);
-                ar & BOOST_SERIALIZATION_NVP(chargeCount_);
-                ar & BOOST_SERIALIZATION_NVP(lowMass_);
-                ar & BOOST_SERIALIZATION_NVP(highMass_);
-                ar & BOOST_SERIALIZATION_NVP(comments_);
-            }
+            ar & BOOST_SERIALIZATION_NVP(enable_);
+            ar & BOOST_SERIALIZATION_NVP(repeat_);
+            ar & BOOST_SERIALIZATION_NVP(endGroup_);
+            ar & BOOST_SERIALIZATION_NVP(adduct_);
+            ar & BOOST_SERIALIZATION_NVP(loss_);
+            ar & BOOST_SERIALIZATION_NVP(polarityPositive_);
+            ar & BOOST_SERIALIZATION_NVP(chargeCount_);
+            ar & BOOST_SERIALIZATION_NVP(lowMass_);
+            ar & BOOST_SERIALIZATION_NVP(highMass_);
+            ar & BOOST_SERIALIZATION_NVP(comments_);
         }
     };
 
@@ -162,12 +158,10 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
+        void serialize(Archive& ar, const unsigned int /*version*/) {
             using namespace boost::serialization;
-            if ( version >= 0 ) {
-                ar & BOOST_SERIALIZATION_NVP(refFormula_);
-                ar & BOOST_SERIALIZATION_NVP(refSeries_);
-            }
+            ar & BOOST_SERIALIZATION_NVP(refFormula_);
+            ar & BOOST_SERIALIZATION_NVP(refSeries_);
         }
 
     };
