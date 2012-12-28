@@ -143,7 +143,7 @@ TraceWidget::~TraceWidget()
 
 TraceWidget::TraceWidget(QWidget *parent) : Dataplot(parent)
                                                 , impl_( new TraceWidgetImpl )
-                                                , autoYZoom_( false ) 
+                                                , autoYZoom_( true ) 
 {
     zoomer2_.reset();
 	zoomer1_->autoYScale( autoYZoom_ );
