@@ -7,5 +7,22 @@
         <file>images/debugger_continue_small.png</file>
         <file>images/debugger_continue_32.png</file>
         <file>images/debugger_continue.png</file>
+        <file>images/Button Add.png</file>
+        <file>images/Button Cancel.png</file>
+        <file>images/Button Close.png</file>
+        <file>images/Button Delete.png</file>
+        <file>images/Button Fast Forward.png</file>
+        <file>images/Button First.png</file>
+        <file>images/Button Help.png</file>
+        <file>images/Button Info.png</file>
+        <file>images/Button Last.png</file>
+        <file>images/Button Next.png</file>
+        <file>images/Button Pause.png</file>
+        <file>images/Button Play.png</file>
+        <file>images/Button Previous.png</file>
+        <file>images/Button Refresh.png</file>
+        <file>images/Button Reload.png</file>
+        <file>images/Button Rewind.png</file>
+        <file>images/Button Stop.png</file>
     </qresource>
 </RCC>
