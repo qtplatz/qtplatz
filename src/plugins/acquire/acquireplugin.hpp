@@ -74,6 +74,7 @@ namespace Acquire {
             void actionInitRun();
             void actionRun();
             void actionStop();
+            void actionInject();
 
             void handle_message( unsigned long msg, unsigned long value );
             void handle_log( QByteArray );
@@ -101,8 +102,8 @@ namespace Acquire {
             QAction * actionRun_;
             QAction * actionInitRun_;
             QAction * actionStop_;
-            QAction * action5_;
             QAction * actionSnapshot_;
+            QAction * actionInject_;
 
             void initialize_actions();
 

@@ -171,8 +171,8 @@ AcquirePlugin::AcquirePlugin() : manager_(0)
                                , actionRun_(0)
                                , actionInitRun_(0)
                                , actionStop_(0)
-                               , action5_(0)
                                , actionSnapshot_(0)
+                               , actionInject_(0)
                                , traceBox_(0) 
 {
 }
@@ -182,20 +182,20 @@ AcquirePlugin::initialize_actions()
 {
     pImpl_->loadIcon();
 
-    actionConnect_ = new QAction( QIcon(":/acquire/images/Button Add.png"), tr("Connect to control server..."), this);
+    actionConnect_ = new QAction( QIcon(":/acquire/images/Button Refresh.png"), tr("Connect to control server..."), this);
     connect( actionConnect_, SIGNAL(triggered()), this, SLOT(actionConnect()) );
   
-    actionInitRun_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Preparing"), this);
+    actionInitRun_ = new QAction(QIcon(":/acquire/images/Button Last.png"), tr("Preparing"), this);
     connect( actionInitRun_, SIGNAL(triggered()), this, SLOT(actionInitRun()) );
   
-    actionRun_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Run"), this);
+    actionRun_ = new QAction(QIcon(":/acquire/images/Button Play.png"), tr("Run"), this);
     connect( actionRun_, SIGNAL(triggered()), this, SLOT(actionRun()) );
   
-    actionStop_ = new QAction(QIcon(Constants::ICON_STOP_SMALL), tr("Stop"), this);
+    actionStop_ = new QAction(QIcon(":/acquire/images/Button Stop.png"), tr("Stop"), this);
     connect( actionStop_, SIGNAL(triggered()), this, SLOT(actionStop()) );
   
-    action5_ = new QAction(QIcon(Constants::ICON_INTERRUPT_SMALL), tr("Stop inlet..."), this);
-    // connect( action5_, SIGNAL(triggered()), this, SLOT(action5()) );
+    actionInject_ = new QAction(QIcon(":/acquire/images/Button Add.png"), tr("Inject (recording data)"), this);
+    connect( actionInject_, SIGNAL(triggered()), this, SLOT(actionInject()) );
 
     //------------ snapshot -------------
     actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
@@ -215,7 +215,7 @@ AcquirePlugin::initialize_actions()
         cmd = am->registerAction( actionInitRun_, Constants::INITIALRUN, globalcontext );
         cmd = am->registerAction( actionRun_, Constants::RUN, globalcontext );
         cmd = am->registerAction( actionStop_, Constants::STOP, globalcontext );
-        cmd = am->registerAction( action5_, Constants::ACQUISITION, globalcontext );
+        cmd = am->registerAction( actionInject_, Constants::ACQUISITION, globalcontext );
         cmd = am->registerAction( actionSnapshot_, "acquire.shanpshot", globalcontext );
     }
 }
@@ -519,6 +519,13 @@ AcquirePlugin::actionStop()
 {
     if ( ! CORBA::is_nil( session_ ) )
         session_->stop_run();
+}
+
+void
+AcquirePlugin::actionInject()
+{
+    if ( ! CORBA::is_nil( session_ ) )
+        session_->event_out( ControlServer::event_InjectOut ); // simulate inject out to modules
 }
 
 void
