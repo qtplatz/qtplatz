@@ -182,10 +182,7 @@ AcquirePlugin::initialize_actions()
 {
     pImpl_->loadIcon();
 
-    QIcon connIcon = QIcon( Constants::ICON_CONNECT_SMALL );
-    connIcon.addFile( Constants::ICON_CONNECT );
-  
-    actionConnect_ = new QAction( connIcon, tr("Connect to control server..."), this);
+    actionConnect_ = new QAction( QIcon(":/acquire/images/Button Add.png"), tr("Connect to control server..."), this);
     connect( actionConnect_, SIGNAL(triggered()), this, SLOT(actionConnect()) );
   
     actionInitRun_ = new QAction(QIcon(Constants::ICON_RUN_SMALL), tr("Preparing"), this);
