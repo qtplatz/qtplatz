@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -28,12 +28,9 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/lexical_cast.hpp>
-
 #include <cstdlib>
 #include <adportable/string.hpp>
-#if defined __linux__
 #include <pwd.h>
-#endif
 
 namespace adfs {
     namespace detail {
@@ -41,20 +38,17 @@ namespace adfs {
         template<> std::string
         posixapi::get_login_name()
         {
-            return std::string();
+            uid_t uid = geteuid();
+            struct passwd * pw = getpwuid( uid );
+            return pw->pw_name;
         }
         
         template<> std::wstring
         posixapi::get_login_name()
         {
             uid_t uid = geteuid();
-#if defined __linux__
             struct passwd * pw = getpwuid( uid );
             return adportable::string::convert( pw->pw_name );
-#endif
-#if defined __darwin__
-            return "";
-#endif
         }
         
         std::wstring

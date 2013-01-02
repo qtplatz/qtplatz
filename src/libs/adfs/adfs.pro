@@ -11,6 +11,7 @@ TEMPLATE = lib
 CONFIG += staticlib
 include(../../qtplatz_library.pri)
 include(../../boost.pri)
+QMAKE_CFLAGS += -DSQLITE_THREADSAFE
 
 SOURCES += adfs.cpp \
     attributes.cpp \
