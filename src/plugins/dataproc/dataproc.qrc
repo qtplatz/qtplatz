@@ -3,5 +3,6 @@
         <file>image/apply_small.png</file>
         <file>image/continue_small.png</file>
         <file>mimetype.xml</file>
+        <file>image/ViewResults.png</file>
     </qresource>
 </RCC>

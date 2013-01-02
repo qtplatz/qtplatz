@@ -18,6 +18,6 @@ SequenceMode::SequenceMode(QObject *parent) :
 {
   setName(tr("Sequence"));
   setUniqueModeName( "Sequence.Mode" );
-  setIcon(QIcon(":/fancyactionbar/images/mode_Edit.png"));
+  setIcon(QIcon(":/sequence/images/DefineControls.png"));
   setPriority( 96 );
 }

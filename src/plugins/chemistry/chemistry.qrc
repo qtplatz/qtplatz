@@ -3,5 +3,7 @@
         <file>mimetype.xml</file>
         <file>images/carbendazim.png</file>
         <file>images/search.png</file>
+        <file>images/applications-science-3.png</file>
+        <file>images/laboratory.png</file>
     </qresource>
 </RCC>

@@ -24,5 +24,6 @@
         <file>images/Button Reload.png</file>
         <file>images/Button Rewind.png</file>
         <file>images/Button Stop.png</file>
+        <file>images/RunControl.png</file>
     </qresource>
 </RCC>

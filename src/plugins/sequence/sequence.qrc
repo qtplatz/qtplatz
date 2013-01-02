@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/sequence">
         <file>sequence-mimetype.xml</file>
+        <file>images/DefineControls.png</file>
     </qresource>
 </RCC>

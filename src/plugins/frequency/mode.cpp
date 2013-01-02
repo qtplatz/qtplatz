@@ -36,7 +36,7 @@ Mode::Mode(QObject * /* parent */)
 {
 	setName( tr("Frequency") );
 	setUniqueModeName( Constants::C_FREQ_MODE );
-    setIcon( QIcon( ":/frequency/images/mode_frequency.png" ) );
+    setIcon( QIcon( ":/frequency/images/applications-education-mathematics.png" ) );
 	setPriority( 960 );
 	
 	QList<int> contexts = QList<int>() <<

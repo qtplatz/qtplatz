@@ -42,9 +42,9 @@ DataprocMode::~DataprocMode()
 DataprocMode::DataprocMode(QObject *parent) :
     Core::BaseMode(parent)
 {
-    setName(tr("Data processing"));
+    setName(tr("Processing"));
     setUniqueModeName( Core::Constants::MODE_EDIT );  // pretending to "Editor" for Core
-    setIcon(QIcon(":/fancyactionbar/images/mode_Debug.png"));
+    setIcon(QIcon(":/dataproc/image/ViewResults.png"));
     setPriority( 97 );
 
     QList<int> contexts = QList<int>() <<

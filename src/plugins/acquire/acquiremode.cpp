@@ -39,6 +39,6 @@ AcquireMode::AcquireMode(QObject *parent) :
 {
     setName(tr("Acquire"));
     setUniqueModeName( "Acquire.Mode" );
-    setIcon(QIcon(":/fancyactionbar/images/mode_Debug.png"));
+    setIcon(QIcon(":/acquire/images/RunControl.png"));
     setPriority( 99 );
 }

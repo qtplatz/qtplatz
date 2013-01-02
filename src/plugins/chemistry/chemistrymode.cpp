@@ -36,7 +36,7 @@ ChemistryMode::ChemistryMode( QObject * /* parent */ )
 {
 	setName( tr("Chemistry") );
 	setUniqueModeName( Constants::C_CHEM_MODE );
-    setIcon( QIcon( ":/chemistry/images/carbendazim.png" ) );
+    setIcon( QIcon( ":/chemistry/images/applications-science-3.png" ) );
 	setPriority( 960 );
 	
 	QList<int> contexts = QList<int>() <<
