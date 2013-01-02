@@ -51,19 +51,17 @@ namespace sequence {
             bool initialize(const QStringList& arguments, QString* error_message);
             void extensionsInitialized();
             void shutdown();
-
-        signals:
-
-        public slots:
-
         private:
-            boost::scoped_ptr< MainWindow > mainWindow_;
+            // boost::scoped_ptr< MainWindow > mainWindow_;
+            MainWindow * mainWindow_;
             boost::scoped_ptr< Mode > mode_;
-
             boost::shared_ptr<SequenceManager> manager_;
             QWidget * CreateSequenceWidget( const std::wstring&, const adportable::Configuration& );
+
+        signals:
+        public slots:
+
         };
-        //------
     }
 }
 

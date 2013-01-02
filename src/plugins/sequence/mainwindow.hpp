@@ -49,6 +49,7 @@ namespace sequence {
 		void createActions();
 
 		void OnInitialUpdate();
+        void OnFinalClose();
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
         void createDockWidgets(const std::wstring& path, adportable::Configuration& acquire, adportable::Configuration& dproc );

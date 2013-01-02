@@ -128,6 +128,19 @@ MainWindow::OnInitialUpdate()
 }
 
 void
+MainWindow::OnFinalClose()
+{
+    QList< QDockWidget *> widgets = dockWidgets();
+    foreach ( QDockWidget * widget, widgets ) {
+		QWidget * obj = widget->widget();
+		adplugin::LifeCycleAccessor accessor( obj );
+		adplugin::LifeCycle * pLifeCycle = accessor.get();
+		if ( pLifeCycle )
+			pLifeCycle->OnFinalClose();
+    }
+}
+
+void
 MainWindow::activateLayout()
 {
 }
@@ -172,8 +185,8 @@ MainWindow::createContents( Core::IMode * mode )
 	toolBarLayout->addWidget( new QLabel( tr("Chemistry") ) );
 	toolBarLayout->addWidget( new QLabel( tr("Physics") ) );
 	//
-	QDockWidget * dock = new QDockWidget( "Chemistry Toolbar" );
-	dock->setObjectName( QLatin1String( "Chemistry Toolbar" ) );
+	QDockWidget * dock = new QDockWidget( "Sequence Toolbar" );
+	dock->setObjectName( QLatin1String( "Sequence Toolbar" ) );
 	// dock->setWidget( toolBar );
 	dock->setFeatures( QDockWidget::NoDockWidgetFeatures );
 	dock->setAllowedAreas( Qt::BottomDockWidgetArea );
@@ -199,7 +212,7 @@ MainWindow::createContents( Core::IMode * mode )
 	// Right-side window with editor, output etc.
 	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
     QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
-    outputPane->setObjectName( QLatin1String( "FrequencyOutputPanePlaceHolder" ) );
+    outputPane->setObjectName( QLatin1String( "SequenceOutputPanePlaceHolder" ) );
 	mainWindowSplitter->addWidget( this );
     mainWindowSplitter->addWidget( outputPane );
 	mainWindowSplitter->setStretchFactor( 0, 10 );
@@ -212,7 +225,7 @@ MainWindow::createContents( Core::IMode * mode )
     splitter->addWidget( mainWindowSplitter );
     splitter->setStretchFactor( 0, 0 );
     splitter->setStretchFactor( 1, 1 );
-    splitter->setObjectName( QLatin1String( "FrequencyModeWidget" ) );
+    splitter->setObjectName( QLatin1String( "SequenceModeWidget" ) );
 
 	return splitter;
 }

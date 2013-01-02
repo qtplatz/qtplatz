@@ -27,20 +27,16 @@ DEFINES += SEQUENCE_LIBRARY
 SOURCES +=  sequenceplugin.cpp \
     sequenceeditor.cpp \
     sequenceeditorfactory.cpp \
-    sequencemode.cpp \
     sequence.cpp \
-    sequencemanager.cpp \
     mainwindow.cpp \
     mode.cpp
 
 HEADERS += sequence_global.h \
     sequence.hpp \
     sequenceplugin.hpp \
-    sequencemode.hpp \
     sequenceeditorfactory.hpp \
     sequenceeditor.hpp \
     constants.hpp \
-    sequencemanager.hpp \
     mainwindow.hpp \
     mode.hpp
 

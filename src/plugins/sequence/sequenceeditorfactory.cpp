@@ -2,9 +2,9 @@
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
-#include "sequenceeditorfactory.h"
-#include "sequenceeditor.h"
-#include "constants.h"
+#include "sequenceeditorfactory.hpp"
+#include "sequenceeditor.hpp"
+#include "constants.hpp"
 
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>

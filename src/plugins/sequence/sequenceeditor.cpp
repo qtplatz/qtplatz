@@ -3,9 +3,9 @@
 // Science Liaison / Advanced Instrumentation Project
 //////////////////////////////////////////
 
-#include "sequenceeditor.h"
-#include "sequence.h"
-#include "constants.h"
+#include "sequenceeditor.hpp"
+#include "sequence.hpp"
+#include "constants.hpp"
 #include <coreplugin/uniqueidmanager.h>
 
 using namespace sequence;

@@ -27,7 +27,6 @@
 #include "mode.hpp"
 #include "mainwindow.hpp"
 #include "sequenceeditorfactory.hpp"
-#include "sequencemanager.hpp"
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/constants.hpp>
@@ -65,12 +64,14 @@
 using namespace sequence;
 using namespace sequence::internal;
 
-SequencePlugin::~SequencePlugin()
+SequencePlugin::SequencePlugin() : mainWindow_( new MainWindow )
 {
 }
 
-SequencePlugin::SequencePlugin()
+SequencePlugin::~SequencePlugin()
 {
+    if ( mode_ )
+        removeObject( mode_.get() );
 }
 
 QWidget *
@@ -140,7 +141,7 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     if ( ! mode_ )
         return false;
     
-    mainWindow_.reset( new MainWindow );
+    // mainWindow_.reset( new MainWindow );
     if ( ! mainWindow_ )
         return false;
 
@@ -267,7 +268,7 @@ SequencePlugin::extensionsInitialized()
 void
 SequencePlugin::shutdown()
 {
-    // manager_->OnFinalClose();
+    mainWindow_->OnFinalClose();
 }
 
 Q_EXPORT_PLUGIN( SequencePlugin )
