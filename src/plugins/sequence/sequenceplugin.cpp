@@ -23,10 +23,11 @@
 **
 **************************************************************************/
 
-#include "sequenceplugin.h"
-#include "sequencemode.h"
-#include "sequenceeditorfactory.h"
-#include "sequencemanager.h"
+#include "sequenceplugin.hpp"
+#include "mode.hpp"
+#include "mainwindow.hpp"
+#include "sequenceeditorfactory.hpp"
+#include "sequencemanager.hpp"
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/constants.hpp>
@@ -45,6 +46,7 @@
 #include <coreplugin/navigationwidget.h>
 #include <coreplugin/rightpane.h>
 #include <coreplugin/actionmanager/actionmanager.h>
+#include <coreplugin/modemanager.h>
 
 #include <utils/styledbar.h>
 #include <utils/fancymainwindow.h>
@@ -119,13 +121,13 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
         const wchar_t * query = L"/AcquireConfiguration/Configuration";
         adplugin::manager::instance()->loadConfig( acquire_config, file, query );
     } while(0);
+
     do {
         std::wstring file = pluginpath + L"/dataproc.config.xml";
         const wchar_t * query = L"/DataprocConfiguration/Configuration";
         adplugin::manager::instance()->loadConfig( dataproc_config, file, query );
     } while(0);
     //----
-
     
     Core::MimeDatabase* mdb = core->mimeDatabase();
     if ( mdb ) {
@@ -133,18 +135,32 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
             return false;
         addAutoReleasedObject( new SequenceEditorFactory(this) );
     }
-    
-    SequenceMode * mode = new SequenceMode(this);
-    if ( mode )
-        mode->setContext( context );
-    else
+
+    mode_.reset( new Mode( this ) );
+    if ( ! mode_ )
         return false;
     
+    mainWindow_.reset( new MainWindow );
+    if ( ! mainWindow_ )
+        return false;
+
+    Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
+    mainWindow_->activateLayout();
+    mainWindow_->createActions();
+    QWidget * widget = mainWindow_->createContents( mode_.get() );
+    mainWindow_->createDockWidgets( apppath, acquire_config, dataproc_config );
+
+    mode_->setWidget( widget );
+    addObject( mode_.get() );
+
+    return true;
+
+#if 0    
+    mode_->setContext( context );
     manager_.reset( new SequenceManager(0) );
     if ( manager_ )
         manager_->init( apppath, acquire_config, dataproc_config );
-    
-    
+
     //              [mainWindow]
     // splitter> ---------------------
     //              [OutputPane]
@@ -158,7 +174,7 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
         splitter->setStretchFactor( 1, 0 );
         splitter->setOrientation( Qt::Vertical ); // horizontal splitter bar
     }
-    
+
     //////////////////////////////////////////////////////////////
     //
     //         <splitter2>         [mainWindow]
@@ -238,20 +254,20 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     manager_->setSimpleDockWidgetArrangement();
     addAutoReleasedObject(mode);
     //////////////////////////////////
-
+#endif
     return true;
 }
 
 void
 SequencePlugin::extensionsInitialized()
 {
-    manager_->OnInitialUpdate();
+    mainWindow_->OnInitialUpdate();
 }
 
 void
 SequencePlugin::shutdown()
 {
-    manager_->OnFinalClose();
+    // manager_->OnFinalClose();
 }
 
 Q_EXPORT_PLUGIN( SequencePlugin )

@@ -32,6 +32,7 @@
 #include <coreplugin/basemode.h>
 
 namespace sequence {
+
   namespace internal {
     class SequenceMode : public Core::BaseMode {
       Q_OBJECT

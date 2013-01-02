@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
@@ -22,46 +21,20 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison Project
-//////////////////////////////////////////////
 
-#ifndef SEQUENCEPLUGIN_H
-#define SEQUENCEPLUGIN_H
-
-#include <extensionsystem/iplugin.h>
-#include <boost/smart_ptr.hpp>
-
-namespace adportable {
-    class Configuration;
-}
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
 
 namespace sequence {
-  namespace internal {
 
-    class SequenceManager;
-
-    class SequencePlugin : public ExtensionSystem::IPlugin {
-      Q_OBJECT;
-    public:
-      ~SequencePlugin();
-      explicit SequencePlugin();
-
-      bool initialize(const QStringList& arguments, QString* error_message);
-      void extensionsInitialized();
-      void shutdown();
-
-    signals:
-
-    public slots:
-
-    private:
-      boost::shared_ptr<SequenceManager> manager_;
-      QWidget * CreateSequenceWidget( const std::wstring&, const adportable::Configuration& );
-    };
-    //------
-  }
+    namespace Constants {
+        const char * const C_SEQUENCE = "Sequence";
+        const char * const C_SEQUENCE_MIMETYPE = "application/qtplatz.sequence";
+        const char * const C_CTRLMETHOD_MIMETYPE = "application/qtplatz.ctrlmethod";
+        const char * const C_PROCMETHOD_MIMETYPE = "application/qtplatz.procmethod";
+        const char * const C_SEQUENCE_MODE = "SequenceMode";
+        const char * const C_SEQUENCE_EDITOR = "SequenceEditor";
+    }
 }
 
-#endif // SEQUENCEPLUGIN_H
+#endif // CONSTANTS_H

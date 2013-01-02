@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -22,17 +22,25 @@
 **
 **************************************************************************/
 
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#ifndef MODE_HPP
+#define MODE_HPP
+
+#include <coreplugin/basemode.h>
 
 namespace sequence {
 
-  namespace Constants {
-    const char * const C_SEQUENCE = "Sequence";
-    const char * const C_SEQUENCE_MIMETYPE = "application/qtplatz.sequence";
-    const char * const C_CTRLMETHOD_MIMETYPE = "application/qtplatz.ctrlmethod";
-    const char * const C_PROCMETHOD_MIMETYPE = "application/qtplatz.procmethod";
-  }
+    class Mode : public Core::BaseMode {
+        Q_OBJECT
+    public:
+        explicit Mode(QObject *parent = 0);
+        ~Mode();
+    
+    signals:
+    
+    public slots:
+    
+    };
+
 }
 
-#endif // CONSTANTS_H
+#endif // MODE_HPP

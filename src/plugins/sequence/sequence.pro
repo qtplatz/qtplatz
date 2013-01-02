@@ -29,16 +29,20 @@ SOURCES +=  sequenceplugin.cpp \
     sequenceeditorfactory.cpp \
     sequencemode.cpp \
     sequence.cpp \
-    sequencemanager.cpp
+    sequencemanager.cpp \
+    mainwindow.cpp \
+    mode.cpp
 
 HEADERS += sequence_global.h \
-    sequenceplugin.h \
-    sequenceeditor.h \
-    sequenceeditorfactory.h \
-    sequencemode.h \
-    constants.h \
-    sequence.h \
-    sequencemanager.h
+    sequence.hpp \
+    sequenceplugin.hpp \
+    sequencemode.hpp \
+    sequenceeditorfactory.hpp \
+    sequenceeditor.hpp \
+    constants.hpp \
+    sequencemanager.hpp \
+    mainwindow.hpp \
+    mode.hpp
 
 OTHER_FILES += sequence.pluginspec \
     sequence-mimetype.xml \
