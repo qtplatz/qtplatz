@@ -24,6 +24,7 @@
 
 #include "sequence.hpp"
 #include "schema.hpp"
+#include <boost/foreach.hpp>
 
 using namespace adsequence;
 
@@ -54,5 +55,66 @@ sequence::schema( const adsequence::schema& t )
 {
     delete schema_;
     schema_ = new adsequence::schema( t );
+    lines_.clear();
+}
+
+line_t&
+sequence::operator [] ( size_t row )
+{
+    if ( lines_.size() > row )
+        return lines_[ row ];
+    throw std::exception();
+}
+
+const line_t&
+sequence::operator [] ( size_t row ) const
+{
+    if ( lines_.size() > row )
+        return lines_[ row ];
+    throw std::exception();
+}
+
+void
+sequence::operator << ( const line_t& t )
+{
+    lines_.push_back( t );
+}
+
+void
+sequence::make_line( line_t& line ) const
+{
+    const adsequence::schema& schema = *schema_;
+
+    line.clear();
+    for ( schema::vector_type::const_iterator
+              it = schema.begin(); it != schema.end(); ++it ) {
+        switch ( it->type() ) {
+        case COLUMN_INT:
+            line.push_back( int(0) );
+            break;
+        case COLUMN_DOUBLE:
+            line.push_back( double(0) );
+            break;
+        case COLUMN_VARCHAR:
+            line.push_back( std::wstring(L"") );
+            break;
+        case COLUMN_BLOB:
+            line.push_back( blob() );
+        case COLUMN_SAMPLE_TYPE:
+            line.push_back( int(0) );
+            break;
+        }
+    }
+}
+
+size_t
+sequence::size() const
+{
+    return lines_.size();
+}
+
+void
+sequence::clear()
+{
     lines_.clear();
 }

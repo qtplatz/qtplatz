@@ -37,14 +37,25 @@ namespace adsequence {
 
     typedef std::vector< char > blob;
     typedef boost::variant< int, double, std::wstring, blob > cdata_t;
+    typedef std::vector< cdata_t > line_t;
 
     class ADSEQUENCESHARED_EXPORT sequence {
     public:
         ~sequence();
         sequence();
         sequence( const sequence& );
+
         const adsequence::schema& schema() const;
         void schema( const adsequence::schema& );
+
+        size_t size() const;
+        void clear();
+
+        void make_line( line_t& ) const;
+
+        line_t& operator [] ( size_t row );
+        const line_t& operator [] ( size_t row ) const;
+        void operator << ( const line_t& );
 
     private:
         adsequence::schema * schema_;

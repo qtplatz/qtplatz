@@ -26,6 +26,7 @@
 
 #include "adsequence_global.hpp"
 #include <vector>
+#include <string>
 
 namespace adsequence {
 
