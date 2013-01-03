@@ -20,7 +20,8 @@ SUBDIRS   = \
     adtxtfactory \
     addatafile \
     chromatogr \
-    adchem
+    adchem \
+    adsequence
 
 # adfs : boost
 # xmlparser : none
