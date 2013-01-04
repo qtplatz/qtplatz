@@ -27,6 +27,8 @@
 #include "mode.hpp"
 #include "mainwindow.hpp"
 #include "sequenceeditorfactory.hpp"
+#include <adextension/isequence.hpp>
+#include <adextension/ieditorfactory.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/constants.hpp>
@@ -60,11 +62,42 @@
 #include <QStringList>
 #include <QDir>
 #include <QtCore>
+#include <vector>
+#include <algorithm>
+
+namespace sequence { namespace internal {
+
+	class SequenceAdapter : public adextension::iSequence {
+        SequencePlugin& plugin_;
+		std::vector< adextension::iEditorFactory * > factories_;
+	public:
+		~SequenceAdapter() {
+            for ( size_t i = 0; i < factories_.size(); ++i )
+				delete factories_[ i ];
+		}
+		SequenceAdapter( SequencePlugin& plugin ) : plugin_( plugin ) {
+		}
+		virtual void addEditorFactory( adextension::iEditorFactory * p ) {
+			factories_.push_back( p );
+		};
+		virtual void removeEditorFactory( adextension::iEditorFactory * p ) {
+			factories_.erase( std::remove( factories_.begin(), factories_.end(), p ) );
+		};
+		//
+		typedef std::vector< adextension::iEditorFactory * > vector_type;
+		size_t size() const { return factories_.size(); }
+		vector_type::iterator begin() { return factories_.begin(); }
+		vector_type::iterator end() { return factories_.end(); }
+	};
+
+  }
+}
 
 using namespace sequence;
 using namespace sequence::internal;
 
 SequencePlugin::SequencePlugin() : mainWindow_( new MainWindow )
+                                 , adapter_( new SequenceAdapter( *this ) )
 {
 }
 
@@ -72,8 +105,12 @@ SequencePlugin::~SequencePlugin()
 {
     if ( mode_ )
         removeObject( mode_.get() );
+
+	if ( adapter_ )
+		removeObject( adapter_.get() );
 }
 
+/*
 QWidget *
 SequencePlugin::CreateSequenceWidget( const std::wstring& apppath, const adportable::Configuration& config )
 {
@@ -90,6 +127,7 @@ SequencePlugin::CreateSequenceWidget( const std::wstring& apppath, const adporta
     }
     return 0;
 }
+*/
 
 bool
 SequencePlugin::initialize(const QStringList& arguments, QString* error_message)

@@ -1,6 +1,6 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -22,10 +22,7 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
+
 #ifndef SEQUENCE_H
 #define SEQUENCE_H
 
@@ -40,7 +37,7 @@ namespace sequence {
       ~Sequence();
       explicit Sequence(QObject *parent = 0);
       
-            void setModified( bool val = true );
+	  void setModified( bool val = true );
 
       // implement Core::IFile
       virtual bool save(const QString &fileName);

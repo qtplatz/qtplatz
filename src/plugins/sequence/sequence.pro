@@ -15,12 +15,13 @@ include(sequence_dependencies.pri)
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
-#LIBS += -ladplugin -ladportable -ladcontrols -lacewrapper -lqtwrapper
+
 LIBS += -l$$qtLibraryTarget(adcontroller) -l$$qtLibraryTarget(adcontrols) \
-    -l$$qtLibraryTarget(adutils) -l$$qtLibraryTarget(adinterface) \
-    -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adwplot) \
-    -l$$qtLibraryTarget(acewrapper) -l$$qtLibraryTarget(qtwrapper) \
-    -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(adplugin)
+	-l$$qtLibraryTarget(adutils)      -l$$qtLibraryTarget(adinterface) \
+	-l$$qtLibraryTarget(adportable)   -l$$qtLibraryTarget(adwplot) \
+	-l$$qtLibraryTarget(acewrapper)   -l$$qtLibraryTarget(qtwrapper) \
+	-l$$qtLibraryTarget(xmlparser)    -l$$qtLibraryTarget(adplugin) \
+	-l$$qtLibraryTarget(adextension)
 
 DEFINES += SEQUENCE_LIBRARY
 

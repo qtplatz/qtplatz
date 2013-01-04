@@ -29,3 +29,7 @@ using namespace adextension;
 iEditorFactory::iEditorFactory()
 {
 }
+
+iEditorFactory::~iEditorFactory()
+{
+}

@@ -31,7 +31,8 @@ namespace adextension {
 
     class iEditorFactory {
     public:
-        iEditorFactory();
+		iEditorFactory();
+		virtual ~iEditorFactory();
         virtual QWidget * createEditor( QWidget * pearent = 0 ) = 0;
     };
 

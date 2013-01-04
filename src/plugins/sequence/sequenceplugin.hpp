@@ -29,6 +29,8 @@
 #include <extensionsystem/iplugin.h>
 #include <boost/smart_ptr.hpp>
 
+namespace adextension { class iSequence; }
+
 namespace adportable {
     class Configuration;
 }
@@ -52,12 +54,9 @@ namespace sequence {
             void extensionsInitialized();
             void shutdown();
         private:
-            // boost::scoped_ptr< MainWindow > mainWindow_;
             MainWindow * mainWindow_;
             boost::scoped_ptr< Mode > mode_;
-            boost::shared_ptr<SequenceManager> manager_;
-            QWidget * CreateSequenceWidget( const std::wstring&, const adportable::Configuration& );
-
+			boost::scoped_ptr< adextension::iSequence > adapter_;
         signals:
         public slots:
 

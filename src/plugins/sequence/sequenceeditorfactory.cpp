@@ -29,12 +29,7 @@ SequenceEditorFactory::SequenceEditorFactory(QObject *parent) :
 Core::IEditor *
 SequenceEditorFactory::createEditor( QWidget * parent )
 {
-  return new SequenceEditor();
-  /*
-    DataAnalysisWindow * editorWidget = new DataAnalysisWindow( parent );
-    DataEditor * editor = new DataEditor( editorWidget );
-    return editor;
-  */
+	return new SequenceEditor();
 }
 
 // implementation for IFileFactory

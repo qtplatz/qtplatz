@@ -99,7 +99,7 @@ MainWindow::createDockWidgets( const std::wstring& path
         // tab pages
         for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
             
-            const std::wstring name = it->name();
+			const std::wstring name = it->name();
             // const std::wstring& component = it->attribute( L"component" );
             
             if ( it->isPlugin() ) {
@@ -164,8 +164,8 @@ MainWindow::createContents( Core::IMode * mode )
 	    
     QWidget * editorAndFindWidget = new QWidget;
 	editorAndFindWidget->setLayout( editorHolderLayout );
-	//editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) );
-    editorHolderLayout->addWidget( new QTextEdit );
+	// editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) );
+	editorHolderLayout->addWidget( new QTextEdit );
 	editorHolderLayout->addWidget( new Core::FindToolBarPlaceHolder( editorAndFindWidget ) );
 
 	Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
