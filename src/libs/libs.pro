@@ -5,20 +5,21 @@ SUBDIRS   = \
     aggregation \
     extensionsystem \
     utils \
-    adinterface \
-    adfs \
-    xmlparser \
-    adwplot \
     adportable \
+    adextension \
+    adinterface \
+    adcontrols \
+    adtxtfactory \
+    adfs \
+    addatafile \
+    adwplot \
+    adplugin \
+    adutils \
+    xmlparser \
     qtwrapper \
     portfolio \
-    adutils \
     acewrapper \
-    adplugin \
-    adcontrols \
     qtwidgets \
-    adtxtfactory \
-    addatafile \
     chromatogr \
     adchem \
     adsequence

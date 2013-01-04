@@ -52,6 +52,7 @@ qtplatz.opensdf
 *.vcxproj.*
 *.ncb
 *.exp
+exclude.txt
 
 # MinGW generated files
 *.Debug
