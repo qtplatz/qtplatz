@@ -22,20 +22,10 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "ieditorfactory.hpp"
 
-#include <QObject>
-#include "adextension_global.hpp"
+using namespace adextension;
 
-namespace adextension {
-
-    class iEditorFactory;
-
-    class ADEXTENSIONSHARED_EXPORT iSequence : public QObject {
-        Q_OBJECT
-    public:
-        virtual void addEditorFactory( iEditorFactory * ) = 0;
-        virtual void removeEditorFactory( iEditorFactory * ) = 0;
-    };
-
+iEditorFactory::iEditorFactory()
+{
 }

@@ -22,20 +22,19 @@
 **
 **************************************************************************/
 
-#pragma once
+#ifndef IEDITORFACTORY_HPP
+#define IEDITORFACTORY_HPP
 
-#include <QObject>
-#include "adextension_global.hpp"
+class QWidget;
 
 namespace adextension {
 
-    class iEditorFactory;
-
-    class ADEXTENSIONSHARED_EXPORT iSequence : public QObject {
-        Q_OBJECT
+    class iEditorFactory {
     public:
-        virtual void addEditorFactory( iEditorFactory * ) = 0;
-        virtual void removeEditorFactory( iEditorFactory * ) = 0;
+        iEditorFactory();
+        virtual QWidget * createEditor( QWidget * pearent = 0 ) = 0;
     };
 
 }
+
+#endif // IEDITORFACTORY_HPP

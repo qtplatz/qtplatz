@@ -14,11 +14,13 @@ include(../../qtplatz_library.pri)
 DEFINES += ADEXTENSION_LIBRARY
 
 SOURCES += adextension.cpp \
-           isequence.cpp
+           isequence.cpp \
+    ieditorfactory.cpp
 
 HEADERS += adextension.hpp\
            adextension_global.hpp \
-           isequence.hpp
+           isequence.hpp \
+    ieditorfactory.hpp
 
 unix:!symbian {
     maemo5 {
