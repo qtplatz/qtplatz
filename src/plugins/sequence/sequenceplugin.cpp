@@ -155,8 +155,8 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     std::wstring apppath = qtwrapper::wstring::copy( dir.path() );
     dir.cd( adpluginDirectory );
     std::wstring pluginpath = qtwrapper::wstring::copy( dir.path() );
-
-    adportable::Configuration acquire_config;
+	/*
+	adportable::Configuration acquire_config;
     adportable::Configuration dataproc_config;
     do {
         std::wstring file = pluginpath + L"/acquire.config.xml";
@@ -170,6 +170,7 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
         adplugin::manager::instance()->loadConfig( dataproc_config, file, query );
     } while(0);
     //----
+   */
     
     Core::MimeDatabase* mdb = core->mimeDatabase();
     if ( mdb ) {
