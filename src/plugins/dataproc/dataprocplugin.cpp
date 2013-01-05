@@ -132,24 +132,10 @@ DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
                                  , pBrokerSessionEvent_( 0 )
                                  , brokerSession_( 0 ) 
                                  , dataprocFactory_( 0 )
-                                   //, actionApply_( 0 )
-                                   //, currentFeature_( CentroidProcess )
 {
     instance_ = this;
     ACE::init();
 }
-
-/*
-// static
-static QToolButton * 
-toolButton( QAction * action )
-{
-  QToolButton * button = new QToolButton;
-  if ( button )
-    button->setDefaultAction( action );
-  return button;
-}
-*/
 
 bool
 DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
@@ -190,7 +176,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     //------------------------------------------------
 
     install_dataprovider( config, apppath );
-    install_editorfactories( config, apppath, factories_ );
+	install_editorfactories( config, apppath, factories_ );
 
     //------------------------------------------------
 
@@ -250,37 +236,6 @@ DataprocPlugin::applyMethod( const adcontrols::ProcessMethod& m )
 {
 	emit onApplyMethod( m );
 }
-
-/*
-void
-DataprocPlugin::actionApply()
-{
-    adcontrols::ProcessMethod m;
-    manager_->getProcessMethod( m );
-    size_t n = m.size();
-    if ( n > 0 ) {
-        Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
-        if ( processor ) {
-            if ( currentFeature_ == CalibrationProcess )
-                processor->applyCalibration( m );
-			else
-                processor->applyProcess( m, currentFeature_ );
-        }
-    }
-}
-*/
-
-// void
-// DataprocPlugin::handleFeatureSelected( int value )
-// {
-//     // currentFeature_ = static_cast< ProcessType >( value );
-// }
-
-// void
-// DataprocPlugin::handleFeatureActivated( int value )
-// {
-//     currentFeature_ = static_cast< ProcessType >( value );
-// }
 
 void
 DataprocPlugin::handle_portfolio_created( const QString token )
@@ -386,11 +341,12 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 void
 DataprocPlugin::extensionsInitialized()
 {
-    using adextension::iSequence;
-    QList< iSequence * > adapters = ExtensionSystem::PluginManager::instance()->getObjects< iSequence >();
-    BOOST_FOREACH( iSequence * adapter, adapters ) {
-        adapter->addEditorFactory( 0 );
-    }
+	using adextension::iSequence;
+	QList< iSequence * > adapters = ExtensionSystem::PluginManager::instance()->getObjects< iSequence >();
+	BOOST_FOREACH( iSequence * adapter, adapters ) {
+		BOOST_FOREACH( EditorFactory * factory, factories_ )
+			adapter->addEditorFactory( factory );
+	}
 
     do {
         std::string ior = adplugin::manager::iorBroker();
@@ -411,8 +367,7 @@ DataprocPlugin::extensionsInitialized()
                                    , "can't find ior for adbroker -- maybe servant plugin load failed.");
         }
     } while(0);
-    // manager_->OnInitialUpdate();
-    mainWindow_->OnInitialUpdate();
+	mainWindow_->OnInitialUpdate();
 }
 
 void
@@ -454,7 +409,7 @@ DataprocPlugin::shutdown()
 }
 
 // static
-void
+bool
 DataprocPlugin::install_dataprovider( const adportable::Configuration& config, const std::wstring& apppath )
 {
     const adportable::Configuration * provider = adportable::Configuration::find( config, L"dataproviders" );
@@ -463,10 +418,12 @@ DataprocPlugin::install_dataprovider( const adportable::Configuration& config, c
             const std::wstring name = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
             adcontrols::datafileBroker::register_library( name );
         }
+		return true;
     }
+	return false;
 }
 
-void
+bool
 DataprocPlugin::install_editorfactories( const adportable::Configuration& config
                                          , const std::wstring& apppath
                                          , std::vector< EditorFactory * >& factories )
@@ -477,7 +434,9 @@ DataprocPlugin::install_editorfactories( const adportable::Configuration& config
     if ( tab ) {
         for ( Configuration::vector_type::const_iterator it = tab->begin(); it != tab->end(); ++it )
             factories.push_back( new EditorFactory( *it, apppath ) );
+		return true;
     }
+	return false;
 }
 
 void

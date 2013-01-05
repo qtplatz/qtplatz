@@ -68,17 +68,18 @@
 namespace sequence { namespace internal {
 
 	class SequenceAdapter : public adextension::iSequence {
-        SequencePlugin& plugin_;
+		MainWindow& mainWindow_;
 		std::vector< adextension::iEditorFactory * > factories_;
 	public:
 		~SequenceAdapter() {
             for ( size_t i = 0; i < factories_.size(); ++i )
 				delete factories_[ i ];
 		}
-		SequenceAdapter( SequencePlugin& plugin ) : plugin_( plugin ) {
+		SequenceAdapter( MainWindow& mainWindow ) : mainWindow_( mainWindow ) {
 		}
 		virtual void addEditorFactory( adextension::iEditorFactory * p ) {
-			factories_.push_back( p );
+			factories_.push_back( p ); // keep pointer for delete on close
+			mainWindow_.createDockWidget( *p );
 		};
 		virtual void removeEditorFactory( adextension::iEditorFactory * p ) {
 			std::vector< adextension::iEditorFactory * >::iterator it = std::remove( factories_.begin(), factories_.end(), p );
@@ -99,7 +100,7 @@ using namespace sequence;
 using namespace sequence::internal;
 
 SequencePlugin::SequencePlugin() : mainWindow_( new MainWindow )
-                                 , adapter_( new SequenceAdapter( *this ) )
+                                 , adapter_( new SequenceAdapter( *mainWindow_ ) )
 {
 }
 
@@ -194,113 +195,11 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     mainWindow_->activateLayout();
     mainWindow_->createActions();
     QWidget * widget = mainWindow_->createContents( mode_.get() );
-    mainWindow_->createDockWidgets( apppath, acquire_config, dataproc_config );
+	// mainWindow_->createDockWidgets( apppath, acquire_config, dataproc_config );
 
     mode_->setWidget( widget );
     addObject( mode_.get() );
 
-    return true;
-
-#if 0    
-    mode_->setContext( context );
-    manager_.reset( new SequenceManager(0) );
-    if ( manager_ )
-        manager_->init( apppath, acquire_config, dataproc_config );
-
-    //              [mainWindow]
-    // splitter> ---------------------
-    //              [OutputPane]
-    
-    Core::MiniSplitter * splitter = new Core::MiniSplitter;
-    if ( splitter ) {
-        splitter->addWidget( manager_->mainWindow() );
-        splitter->addWidget( new Core::OutputPanePlaceHolder( mode ) );
-        
-        splitter->setStretchFactor( 0, 10 );
-        splitter->setStretchFactor( 1, 0 );
-        splitter->setOrientation( Qt::Vertical ); // horizontal splitter bar
-    }
-
-    //////////////////////////////////////////////////////////////
-    //
-    //         <splitter2>         [mainWindow]
-    // [Navigation] | [splitter ------------------- ]
-    //                             [OutputPane]
-    Core::MiniSplitter * splitter2 = new Core::MiniSplitter;
-    if ( splitter2 ) {
-        splitter2->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
-        splitter2->addWidget( splitter );
-        splitter2->setStretchFactor( 0, 0 );
-        splitter2->setStretchFactor( 1, 1 );
-    }
-    
-    Utils::StyledBar * toolBar = new Utils::StyledBar;
-    if ( toolBar ) {
-        toolBar->setProperty( "topBorder", true );
-        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin(0);
-        toolBarLayout->setSpacing(0);
-        Core::ActionManager *am = core->actionManager();
-        if ( am ) {
-            /*
-              toolBarLayout->addWidget(toolButton(am->command(Constants::CONNECT)->action()));
-              toolBarLayout->addWidget(toolButton(am->command(Constants::INITIALRUN)->action()));
-              toolBarLayout->addWidget(toolButton(am->command(Constants::RUN)->action()));
-              toolBarLayout->addWidget(toolButton(am->command(Constants::STOP)->action()));
-              toolBarLayout->addWidget(toolButton(am->command(Constants::ACQUISITION)->action()));
-            */
-        }
-        toolBarLayout->addWidget( new Utils::StyledSeparator );
-        toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
-        //////////////////
-    }
-    Utils::StyledBar * toolBar2 = new Utils::StyledBar;
-    if ( toolBar2 ) {
-        toolBar2->setProperty( "topBorder", true );
-        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar2 );
-        toolBarLayout->setMargin(0);
-        toolBarLayout->setSpacing(0);
-        Core::ActionManager *am = core->actionManager();
-        if ( am ) {
-            toolBarLayout->addWidget( new QLabel( tr("AA") ) );
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
-            toolBarLayout->addWidget( new QLabel( tr("BB") ) );
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
-            toolBarLayout->addWidget( new QLabel( tr("CC") ) );
-        }
-        toolBarLayout->addWidget( new Utils::StyledSeparator );
-        toolBarLayout->addWidget( new QLabel( tr("Threads:") ) );
-    }
-    
-    /******************************************************************************
-     */
-    
-    QWidget* centralWidget = new QWidget;
-    manager_->mainWindow()->setCentralWidget( centralWidget );
-    
-    Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
-    if ( splitter3 ) {
-        QWidget * pSequence = CreateSequenceWidget( apppath, acquire_config );
-        if ( pSequence )
-            splitter3->addWidget( pSequence );
-        else
-            splitter3->addWidget( new QTextEdit );
-    }
-    
-    QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
-    toolBarAddingLayout->setMargin(0);
-    toolBarAddingLayout->setSpacing(0);
-    toolBarAddingLayout->addWidget( toolBar );
-    toolBarAddingLayout->addWidget( splitter3 );
-    toolBarAddingLayout->addWidget( toolBar2 );
-    
-    mode->setWidget( splitter2 );
-    
-    //////////////////////////////////
-    manager_->setSimpleDockWidgetArrangement();
-    addAutoReleasedObject(mode);
-    //////////////////////////////////
-#endif
     return true;
 }
 

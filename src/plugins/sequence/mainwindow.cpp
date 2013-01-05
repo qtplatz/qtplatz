@@ -24,6 +24,7 @@
 
 #include "mainwindow.hpp"
 #include "sequenceplugin.hpp"
+#include <adextension/ieditorfactory.hpp>
 #include <adportable/configuration.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
@@ -79,8 +80,27 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , toolBarDockWidget_( 0 )
                                         , actionConnect_ ( 0 )
 {
+	setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
+    setDocumentMode( true );
 }
 
+void
+MainWindow::createDockWidget( adextension::iEditorFactory& factory )
+{
+	QWidget * pWidget = factory.createEditor( 0 );
+	if ( pWidget ) {
+		createDockWidget( pWidget, factory.title() );
+
+		adplugin::LifeCycleAccessor accessor( pWidget );
+		adplugin::LifeCycle * pLifeCycle = accessor.get();
+		if ( pLifeCycle )
+			pLifeCycle->OnInitialUpdate();
+
+		setSimpleDockWidgetArrangement();
+	}
+}
+
+/*
 void
 MainWindow::createDockWidgets( const std::wstring& path
                                , adportable::Configuration& acquire
@@ -110,11 +130,12 @@ MainWindow::createDockWidgets( const std::wstring& path
         }
     }            
 }
-
+*/
 
 void
 MainWindow::OnInitialUpdate()
 {
+/*
     setSimpleDockWidgetArrangement();
 
 	QList< QDockWidget *> widgets = dockWidgets();
@@ -125,6 +146,7 @@ MainWindow::OnInitialUpdate()
 		if ( pLifeCycle )
 			pLifeCycle->OnInitialUpdate();
     }
+*/	
 }
 
 void

@@ -34,6 +34,7 @@ class QToolButton;
 class QAction;
 
 namespace adportable { class Configuration; }
+namespace adextension { class iEditorFactory; }
 namespace ControlMethod{ struct Method; }
 namespace Core { class IMode; }
 
@@ -52,7 +53,8 @@ namespace sequence {
         void OnFinalClose();
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
-        void createDockWidgets(const std::wstring& path, adportable::Configuration& acquire, adportable::Configuration& dproc );
+		void createDockWidget( adextension::iEditorFactory& );
+		// void createDockWidgets( const std::wstring& path, adportable::Configuration& acquire, adportable::Configuration& dproc );
 
 		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
 

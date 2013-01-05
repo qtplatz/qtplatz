@@ -103,8 +103,8 @@ namespace dataproc {
         std::vector< EditorFactory * > factories_;
         static DataprocPlugin * instance_;
         
-        static void install_dataprovider( const adportable::Configuration&, const std::wstring& );
-        static void install_editorfactories( const adportable::Configuration&, const std::wstring&, std::vector< EditorFactory * >& );
+        static bool install_dataprovider( const adportable::Configuration&, const std::wstring& );
+        static bool install_editorfactories( const adportable::Configuration&, const std::wstring&, std::vector< EditorFactory * >& );
         static void delete_editorfactories( std::vector< EditorFactory * >& );
     };
 }
