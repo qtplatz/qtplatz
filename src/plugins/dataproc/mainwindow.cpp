@@ -194,9 +194,8 @@ MainWindow::createContents( Core::IMode * mode
                          , *it, SLOT( handleSessionAdded( Dataprocessor* ) ) ) );
         assert( connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
                          , *it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) ) );
-        using adcontrols::ProcessMethod;
-        assert( connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const ProcessMethod& ) )
-                         , *it, SLOT( onApplyMethod( const ProcessMethod& ) ) ) );
+        assert( connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
+                         , *it, SLOT( onApplyMethod( const adcontrols::ProcessMethod& ) ) ) );
     }
     assert( connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
                      , this, SLOT( handleSessionAdded( Dataprocessor* ) ) ) );
