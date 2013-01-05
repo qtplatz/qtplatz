@@ -25,15 +25,21 @@
 #ifndef IEDITORFACTORY_HPP
 #define IEDITORFACTORY_HPP
 
+#include "adextension_global.hpp"
+
 class QWidget;
+class QString;
 
 namespace adextension {
 
-    class iEditorFactory {
+    class ADEXTENSIONSHARED_EXPORT iEditorFactory {
     public:
+        enum METHOD_TYPE { PROCESS_METHOD, CONTROL_METHOD };
 		iEditorFactory();
 		virtual ~iEditorFactory();
         virtual QWidget * createEditor( QWidget * pearent = 0 ) = 0;
+        virtual QString title() const = 0;
+        virtual METHOD_TYPE method_type() const { return PROCESS_METHOD; }
     };
 
 }

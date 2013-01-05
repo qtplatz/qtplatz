@@ -40,38 +40,36 @@
 #include <boost/any.hpp>
 
 using namespace dataproc;
-using namespace dataproc::internal;
 
 namespace dataproc {
-    namespace internal {
-        class ElementalCompWndImpl {
-        public:
-            ~ElementalCompWndImpl() {}
-            ElementalCompWndImpl() : ticPlot_(0)
-                , profileSpectrum_(0)
-                , processedSpectrum_(0)
-                , drawIdx_(0) {
-            }
+
+    class ElementalCompWndImpl {
+    public:
+        ~ElementalCompWndImpl() {}
+        ElementalCompWndImpl() : ticPlot_(0)
+                               , profileSpectrum_(0)
+                               , processedSpectrum_(0)
+                               , drawIdx_(0) {
+        }
       
-            adwplot::ChromatogramWidget * ticPlot_;
-            adwplot::SpectrumWidget * profileSpectrum_;
-            adwplot::SpectrumWidget * processedSpectrum_;
-            size_t drawIdx_;
-        };
+        adwplot::ChromatogramWidget * ticPlot_;
+        adwplot::SpectrumWidget * profileSpectrum_;
+        adwplot::SpectrumWidget * processedSpectrum_;
+        size_t drawIdx_;
+    };
 
-        //---------------------------------------------------------
-        template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
-            Wnd& wnd_;
-            selProcessed( Wnd& wnd ) : wnd_(wnd) {}
+    //---------------------------------------------------------
+    template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
+        Wnd& wnd_;
+        selProcessed( Wnd& wnd ) : wnd_(wnd) {}
 
-            template<typename T> void operator ()( T& ) const { }
+        template<typename T> void operator ()( T& ) const { }
 
-            void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-                wnd_.draw2( ptr );
-            }
-        };
-        //-----
-    }
+        void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+            wnd_.draw2( ptr );
+        }
+    };
+
 }
 
 ElementalCompWnd::~ElementalCompWnd()
@@ -80,7 +78,7 @@ ElementalCompWnd::~ElementalCompWnd()
 }
 
 ElementalCompWnd::ElementalCompWnd(QWidget *parent) : QWidget(parent)
-						    , pImpl_(0)
+                                                    , pImpl_(0)
 {
     init();
 }

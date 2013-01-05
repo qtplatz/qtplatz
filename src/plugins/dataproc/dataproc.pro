@@ -18,11 +18,13 @@ LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../qwt.pri)
 include(../../boost.pri)
+
 LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adplugin) \
-    -l$$qtLibraryTarget(adcontrols) -l$$qtLibraryTarget(adutils) -l$$qtLibraryTarget(acewrapper) \
-    -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(portfolio) -l$$qtLibraryTarget(qtwrapper) \
-    -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(qwt) \
-    -l$$qtLibraryTarget(chromatogr)
+        -l$$qtLibraryTarget(adcontrols) -l$$qtLibraryTarget(adutils) -l$$qtLibraryTarget(acewrapper) \
+        -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(portfolio) -l$$qtLibraryTarget(qtwrapper) \
+        -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(qwt) \
+        -l$$qtLibraryTarget(chromatogr) \
+        -l$$qtLibraryTarget(adextension)
 
 !win32 {
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
@@ -42,7 +44,6 @@ SOURCES += \
     dataprocessorfactory.cpp \
     dataprochandler.cpp \
     dataprocmanager.cpp \
-    dataprocmode.cpp \
     dataprocplugin.cpp \
     elementalcompwnd.cpp \
     ifileimpl.cpp \
@@ -52,7 +53,9 @@ SOURCES += \
     navigationwidget.cpp \
     navigationwidgetfactory.cpp \
     sessionmanager.cpp \
-    datafileobserver_i.cpp
+    datafileobserver_i.cpp \
+    mainwindow.cpp \
+    mode.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -63,7 +66,6 @@ HEADERS += \
     dataprocessorfactory.hpp \
     dataprochandler.hpp \
     dataprocmanager.hpp \
-    dataprocmode.hpp \
     dataprocplugin.hpp \
     elementalcompwnd.hpp \
     ifileimpl.hpp \
@@ -73,7 +75,9 @@ HEADERS += \
     navigationwidget.hpp \
     navigationwidgetfactory.hpp \
     sessionmanager.hpp \
-    datafileobserver_i.hpp
+    datafileobserver_i.hpp \
+    mainwindow.hpp \
+    mode.hpp
 
 OTHER_FILES += \
     dataproc.pluginspec \

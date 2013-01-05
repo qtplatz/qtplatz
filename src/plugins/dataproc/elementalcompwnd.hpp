@@ -1,6 +1,6 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -23,11 +23,6 @@
 **
 **************************************************************************/
 
-//////////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison Project
-//////////////////////////////////////////////
-
 #ifndef ELEMENTALCOMPWND_H
 #define ELEMENTALCOMPWND_H
 
@@ -47,33 +42,29 @@ namespace dataproc {
 
     class Dataprocessor;
 
-    namespace internal {
+    class ElementalCompWndImpl;
     
-        class ElementalCompWndImpl;
+    class ElementalCompWnd : public QWidget {
+        Q_OBJECT
+    public:
+        explicit ElementalCompWnd(QWidget *parent = 0);
+        ~ElementalCompWnd();
+        void init();
+        void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
+      
+    signals:
+      
+    public slots:
+        void handleSessionAdded( Dataprocessor* );
+        void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
+        void onApplyMethod( const adcontrols::ProcessMethod& );
+      
+    private:
+        ElementalCompWndImpl * pImpl_;
+      
+    };
     
-        class ElementalCompWnd : public QWidget {
-            Q_OBJECT
-        public:
-            explicit ElementalCompWnd(QWidget *parent = 0);
-            ~ElementalCompWnd();
-            void init();
-            void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
-            void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
-      
-        signals:
-      
-        public slots:
-            void handleSessionAdded( Dataprocessor* );
-            void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
-			void onApplyMethod( const adcontrols::ProcessMethod& );
-      
-        private:
-            ElementalCompWndImpl * pImpl_;
-      
-        };
-    
-        /////////
-    }
 }
 
 #endif // ELEMENTALCOMPWND_H

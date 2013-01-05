@@ -37,39 +37,39 @@ namespace adcontrols {
     class MassSpectrum;
     class Chromatogram;
 	class PeakResult;
+    class ProcessMethod;
 }
 
 namespace dataproc {
 
     class Dataprocessor;
 
-    namespace internal {
-
-        class ChromatogramWndImpl;
-
-        class ChromatogramWnd : public QWidget {
-            Q_OBJECT
-        public:
-            explicit ChromatogramWnd( const std::wstring&, QWidget *parent = 0);
-            ~ChromatogramWnd();
-
-            void init( const std::wstring& );
-            void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
-            void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
-            void draw( boost::shared_ptr< adcontrols::Chromatogram >& );
-			void draw( boost::shared_ptr< adcontrols::PeakResult >& );
-
-        signals:
-			void fireSetData( const adcontrols::PeakResult& );
-      
-        public slots:
-            void handleSessionAdded( Dataprocessor* );
-            void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
-
-        private:
-            boost::shared_ptr<ChromatogramWndImpl> pImpl_;
-
-        };
-    }
+    class ChromatogramWndImpl;
+    
+    class ChromatogramWnd : public QWidget {
+        Q_OBJECT
+    public:
+        explicit ChromatogramWnd( const std::wstring&, QWidget *parent = 0);
+        ~ChromatogramWnd();
+        
+        void init( const std::wstring& );
+        void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw( boost::shared_ptr< adcontrols::Chromatogram >& );
+        void draw( boost::shared_ptr< adcontrols::PeakResult >& );
+        
+    signals:
+        void fireSetData( const adcontrols::PeakResult& );
+                                                         
+    public slots:
+        void handleSessionAdded( Dataprocessor* );
+        void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
+        void onApplyMethod( const adcontrols::ProcessMethod& );
+        
+    private:
+        boost::shared_ptr<ChromatogramWndImpl> pImpl_;
+        
+    };
 }
+
 #endif // CHROMATOGRAMWND_H

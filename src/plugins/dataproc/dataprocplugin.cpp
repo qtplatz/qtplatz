@@ -26,39 +26,53 @@
 #include "dataprocplugin.hpp"
 #include "actionmanager.hpp"
 #include "constants.hpp"
-#include "dataprocmode.hpp"
+#include "mode.hpp"
 #include "dataprocmanager.hpp"
+#include "mainwindow.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessorfactory.hpp"
 #include "dataproceditor.hpp"
 #include "navigationwidgetfactory.hpp"
 #include "sessionmanager.hpp"
 
-#include "msprocessingwnd.hpp"
-#include "elementalcompwnd.hpp"
-#include "mscalibrationwnd.hpp"
-#include "chromatogramwnd.hpp"
+#include <acewrapper/brokerhelper.hpp>
+#include <acewrapper/constants.hpp>
+#include <acewrapper/input_buffer.hpp>
+#include <adcontrols/datafilebroker.hpp>
+#include <adcontrols/description.hpp>
+#include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adextension/isequence.hpp>
+#include <adextension/ieditorfactory.hpp>
+#include <adplugin/adplugin.hpp>
+#include <adplugin/constants.hpp>
+#include <adplugin/manager.hpp>
+#include <adplugin/orbmanager.hpp>
+#include <adplugin/qbrokersessionevent.hpp>
+#include <adportable/configuration.hpp>
+#include <adportable/debug.hpp>
+#include <portfolio/folium.hpp>
+#include <qtwrapper/qstring.hpp>
+#include <xmlparser/pugixml.hpp>
 
-#include <QtCore/qplugin.h>
-#include <QtCore>
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/mimedatabase.h>
-#include <QStringList>
-
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
 #include <coreplugin/navigationwidget.h>
 #include <coreplugin/rightpane.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/editormanager/ieditor.h>
-
+#include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
 #include <utils/fancymainwindow.h>
-
+#include <QStringList>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QBoxLayout>
 #include <QtGui/QToolButton>
@@ -70,53 +84,62 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QProgressBar>
-#include <adcontrols/massspectrum.hpp>
-#include <adcontrols/msproperty.hpp>
-#include <adcontrols/processmethod.hpp>
-#include <adcontrols/lcmsdataset.hpp>
-#include <adcontrols/description.hpp>
-#include <qtwrapper/qstring.hpp>
-#include <adportable/configuration.hpp>
-#include <adportable/debug.hpp>
-#include <adplugin/adplugin.hpp>
-#include <adplugin/constants.hpp>
+#include <QtCore/qplugin.h>
+#include <QtCore>
 
-#include <acewrapper/constants.hpp>
-#include <acewrapper/brokerhelper.hpp>
-#include <acewrapper/input_buffer.hpp>
-#include <adplugin/orbmanager.hpp>
-#include <adplugin/manager.hpp>
-#include <adplugin/qbrokersessionevent.hpp>
-#include <portfolio/folium.hpp>
-#include <xmlparser/pugixml.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/foreach.hpp>
 #include <streambuf>
 #include <fstream>
 #include <iomanip>
 
 #include <adinterface/brokerC.h>
 
-using namespace dataproc::internal;
+namespace dataproc {
+    class EditorFactory : public adextension::iEditorFactory {
+        std::wstring path_;
+        adportable::Configuration config_;
+    public:
+        EditorFactory( const adportable::Configuration& config, const std::wstring& path ) : path_( path )
+                                                                                           , config_( config ) {
+        }
+        virtual QWidget * createEditor( QWidget * parent = 0 ) {
+            if ( config_.isPlugin() )
+                return adplugin::manager::widget_factory( config_, path_.c_str(), parent );
+            return 0;
+        }
+        virtual QString title() const {
+            return qtwrapper::qstring::copy( config_.title() );
+        }
+    };
+}
+
+using namespace dataproc;
 
 DataprocPlugin * DataprocPlugin::instance_ = 0;
 
 DataprocPlugin::~DataprocPlugin()
 {
+    if ( mode_ )
+        removeObject( mode_.get() );
+    delete_editorfactories( factories_ );
 }
 
-DataprocPlugin::DataprocPlugin() : pSessionManager_( new SessionManager() )
+DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
+                                 , pSessionManager_( new SessionManager() )
                                  , pActionManager_( new ActionManager( this ) ) 
                                  , pBrokerSessionEvent_( 0 )
                                  , brokerSession_( 0 ) 
                                  , dataprocFactory_( 0 )
-                                 , actionApply_( 0 )
-                                 , currentFeature_( CentroidProcess )
+                                   //, actionApply_( 0 )
+                                   //, currentFeature_( CentroidProcess )
 {
     instance_ = this;
     ACE::init();
 }
 
+/*
 // static
 static QToolButton * 
 toolButton( QAction * action )
@@ -126,6 +149,7 @@ toolButton( QAction * action )
     button->setDefaultAction( action );
   return button;
 }
+*/
 
 bool
 DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
@@ -165,6 +189,9 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     }
     //------------------------------------------------
 
+    install_dataprovider( config, apppath );
+    install_editorfactories( config, apppath, factories_ );
+
     //------------------------------------------------
 
     // DataprocessorFactory * dataprocFactory = 0;
@@ -191,152 +218,28 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
         addAutoReleasedObject( dataprocFactory_ );
     }
 
-    DataprocMode * mode = new DataprocMode(this);
-    if ( mode )
-        mode->setContext( context );
-    else
+    mode_.reset( new dataproc::Mode( this ) );
+    if ( ! mode_ )
         return false;
+    mode_->setContext( context );
 
-    manager_.reset( new DataprocManager(0) );
-    if ( manager_ )
-        manager_->init( config, apppath );
+    // manager_.reset( new DataprocManager(0) );
+    // if ( manager_ )
+    //     manager_->init( config, apppath );
 
     pActionManager_->initialize_actions( context );
     // initialize_actions();
+    if ( ! mainWindow_ )
+        return false;
 
-    do {
+    mainWindow_->activateLayout();
+    mainWindow_->createActions();
+
+    QWidget * widget = mainWindow_->createContents( mode_.get(), config, apppath );
     
-        //              [mainWindow]
-        // splitter> ---------------------
-        //              [OutputPane] := ServantLog etc.
-  
-        Core::MiniSplitter * splitter = new Core::MiniSplitter;
-        if ( splitter ) {
-            splitter->addWidget( manager_->mainWindow() );
-            splitter->addWidget( new Core::OutputPanePlaceHolder( mode ) );
-            //splitter->addWidget( new QTextEdit("mainWindow") );
-            //splitter->addWidget( new QTextEdit("This is edit" ) );
-      
-            splitter->setStretchFactor( 0, 10 );
-            splitter->setStretchFactor( 1, 0 );
-            splitter->setOrientation( Qt::Vertical ); // horizontal splitter bar
-        }
+    mode_->setWidget( widget );
 
-        //
-        //         <splitter2>         [mainWindow]
-        // [Navigation] | [splitter ------------------- ]
-        //                             [OutputPane]
-
-        Core::MiniSplitter * splitter2 = new Core::MiniSplitter;
-        if ( splitter2 ) {
-            splitter2->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
-            splitter2->addWidget( splitter );
-            splitter2->setStretchFactor( 0, 0 );
-            splitter2->setStretchFactor( 1, 1 );
-        }
-      
-        Utils::StyledBar * toolBar = new Utils::StyledBar;
-        if ( toolBar ) {
-            toolBar->setProperty( "topBorder", true );
-            QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-            toolBarLayout->setMargin(0);
-            toolBarLayout->setSpacing(0);
-            Core::ActionManager *am = core->actionManager();
-            if ( am ) {
-                /*
-                toolBarLayout->addWidget(toolButton(am->command(Constants::CONNECT)->action()));
-                toolBarLayout->addWidget(toolButton(am->command(Constants::INITIALRUN)->action()));
-                toolBarLayout->addWidget(toolButton(am->command(Constants::RUN)->action()));
-                toolBarLayout->addWidget(toolButton(am->command(Constants::STOP)->action()));
-                toolBarLayout->addWidget(toolButton(am->command(Constants::ACQUISITION)->action()));
-                */
-            }
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
-            toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
-        }
-        Utils::StyledBar * toolBar2 = new Utils::StyledBar;
-        if ( toolBar2 ) {
-            toolBar2->setProperty( "topBorder", true );
-            QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar2 );
-            toolBarLayout->setMargin(0);
-            toolBarLayout->setSpacing(0);
-            Core::ActionManager *am = core->actionManager();
-            if ( am ) {
-                QList<int> globalcontext;
-                globalcontext << Core::Constants::C_GLOBAL_ID;
-
-                actionApply_ = new QAction( QIcon( ":/dataproc/image/apply_small.png" ), tr("Apply" ), this );
-                connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) );
-                am->registerAction( actionApply_, "dataproc.connect", globalcontext );
-                toolBarLayout->addWidget( toolButton( am->command( "dataproc.connect" )->action() ) );
-                /**/
-                toolBarLayout->addWidget( new Utils::StyledSeparator );
-                /**/
-                QComboBox * features = new QComboBox;
-                features->addItem( "Centroid" );
-                features->addItem( "Isotope" );
-                features->addItem( "Calibration" );
-                features->addItem( "Find peaks" );
-                toolBarLayout->addWidget( features );
-                connect( features, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleFeatureSelected(int) ) );
-                connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) );
-
-                toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
-            }
-        }
-
-        /******************************************************************************
-        */
-
-        QWidget* centralWidget = new QWidget;
-        manager_->mainWindow()->setCentralWidget( centralWidget );
-
-        std::vector< QWidget * > wnd;
-        Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
-        if ( splitter3 ) {
-            QTabWidget * pTab = new QTabWidget;
-
-            splitter3->addWidget( pTab );
-            wnd.push_back( new MSProcessingWnd );
-            pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_stepoverproc_small.png"), "MS Processing" );
-            wnd.push_back( new ElementalCompWnd );
-            pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_snapshot_small.png"), "Elemental Composition" );
-            wnd.push_back( new MSCalibrationWnd( config, apppath ) );
-            pTab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_continue_small.png"), "MS Calibration" );
-            wnd.push_back( new ChromatogramWnd( apppath ) );
-            pTab->addTab( wnd.back(),  QIcon(":/acquire/images/watchpoint.png"), "Chromatogram" );
-
-            if ( dataprocFactory_ )
-                dataprocFactory_->setEditor( pTab );
-        }
-        QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
-        toolBarAddingLayout->setMargin(0);
-        toolBarAddingLayout->setSpacing(0);
-        toolBarAddingLayout->addWidget( toolBar );
-        toolBarAddingLayout->addWidget( splitter3 );
-        toolBarAddingLayout->addWidget( toolBar2 );
-
-        mode->setWidget( splitter2 );
-
-        // connections
-        for ( std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
-            connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-                     , *it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
-            connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-                     , *it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
-			connect( this, SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
-                     , *it, SLOT( onApplyMethod( const adcontrols::ProcessMethod& ) ) );
-        }
-        connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-                 , manager_.get(), SLOT( handleSessionAdded( Dataprocessor* ) ) );
-        connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-                 , manager_.get(), SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
-
-    } while(0);
-  
-    manager_->setSimpleDockWidgetArrangement();
-    addAutoReleasedObject(mode);
-
+    addObject( mode_.get() );
     addAutoReleasedObject( new NavigationWidgetFactory );
 
     return true;
@@ -348,6 +251,7 @@ DataprocPlugin::applyMethod( const adcontrols::ProcessMethod& m )
 	emit onApplyMethod( m );
 }
 
+/*
 void
 DataprocPlugin::actionApply()
 {
@@ -357,25 +261,26 @@ DataprocPlugin::actionApply()
     if ( n > 0 ) {
         Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
         if ( processor ) {
-            if ( currentFeature_ == internal::CalibrationProcess )
+            if ( currentFeature_ == CalibrationProcess )
                 processor->applyCalibration( m );
 			else
                 processor->applyProcess( m, currentFeature_ );
         }
     }
 }
+*/
 
-void
-DataprocPlugin::handleFeatureSelected( int value )
-{
-    currentFeature_ = static_cast< ProcessType >( value );
-}
+// void
+// DataprocPlugin::handleFeatureSelected( int value )
+// {
+//     // currentFeature_ = static_cast< ProcessType >( value );
+// }
 
-void
-DataprocPlugin::handleFeatureActivated( int value )
-{
-    currentFeature_ = static_cast< ProcessType >( value );
-}
+// void
+// DataprocPlugin::handleFeatureActivated( int value )
+// {
+//     currentFeature_ = static_cast< ProcessType >( value );
+// }
 
 void
 DataprocPlugin::handle_portfolio_created( const QString token )
@@ -481,6 +386,12 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 void
 DataprocPlugin::extensionsInitialized()
 {
+    using adextension::iSequence;
+    QList< iSequence * > adapters = ExtensionSystem::PluginManager::instance()->getObjects< iSequence >();
+    BOOST_FOREACH( iSequence * adapter, adapters ) {
+        adapter->addEditorFactory( 0 );
+    }
+
     do {
         std::string ior = adplugin::manager::iorBroker();
         if ( ! ior.empty() ) {
@@ -500,14 +411,23 @@ DataprocPlugin::extensionsInitialized()
                                    , "can't find ior for adbroker -- maybe servant plugin load failed.");
         }
     } while(0);
-
-    manager_->OnInitialUpdate();
+    // manager_->OnInitialUpdate();
+    mainWindow_->OnInitialUpdate();
 }
 
 void
 DataprocPlugin::shutdown()
 {
     adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutting down...  ===============";
+
+    QList< adextension::iSequence * > adapters =
+        ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
+    BOOST_FOREACH( adextension::iSequence * adapter, adapters ) {
+        for ( size_t i = 0; i < factories_.size(); ++i )
+            adapter->removeEditorFactory( factories_[i] );
+    }
+
+    mainWindow_->OnFinalClose();
 
     manager_->OnFinalClose();
 
@@ -535,5 +455,39 @@ DataprocPlugin::shutdown()
     adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutdown complete ===============";
 }
 
+// static
+void
+DataprocPlugin::install_dataprovider( const adportable::Configuration& config, const std::wstring& apppath )
+{
+    const adportable::Configuration * provider = adportable::Configuration::find( config, L"dataproviders" );
+    if ( provider ) {
+        for ( adportable::Configuration::vector_type::const_iterator it = provider->begin(); it != provider->end(); ++it ) {
+            const std::wstring name = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
+            adcontrols::datafileBroker::register_library( name );
+        }
+    }
+}
+
+void
+DataprocPlugin::install_editorfactories( const adportable::Configuration& config
+                                         , const std::wstring& apppath
+                                         , std::vector< EditorFactory * >& factories )
+{
+    using adportable::Configuration;
+
+    const Configuration * tab = Configuration::find( config, L"ProcessMethodEditors" );    
+    if ( tab ) {
+        for ( Configuration::vector_type::const_iterator it = tab->begin(); it != tab->end(); ++it )
+            factories.push_back( new EditorFactory( *it, apppath ) );
+    }
+}
+
+void
+DataprocPlugin::delete_editorfactories( std::vector< EditorFactory * >& factories )
+{
+    for ( size_t i = 0; i < factories.size(); ++i )
+        delete factories[ i ];
+    factories.clear();
+}
 
 Q_EXPORT_PLUGIN( DataprocPlugin )

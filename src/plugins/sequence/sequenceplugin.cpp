@@ -172,8 +172,13 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     if ( mdb ) {
         if ( !mdb->addMimeTypes(":/sequence/sequence-mimetype.xml", error_message) )
             return false;
-        addAutoReleasedObject( new SequenceEditorFactory(this) );
     }
+    // expose editor factory for sequence (table)
+    addAutoReleasedObject( new SequenceEditorFactory(this) );
+
+    // expose SequenceAdapter for method editor factories
+    if ( adapter_ )
+        addObject( adapter_.get() );
 
     mode_.reset( new Mode( this ) );
     if ( ! mode_ )

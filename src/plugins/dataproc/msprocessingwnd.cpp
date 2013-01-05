@@ -46,50 +46,47 @@
 #include "selchanged.hpp"
 
 using namespace dataproc;
-using namespace dataproc::internal;
 
 namespace dataproc {
-    namespace internal {
-        class MSProcessingWndImpl {
-        public:
-            ~MSProcessingWndImpl() {}
-            MSProcessingWndImpl() : ticPlot_(0)
-                                  , profileSpectrum_(0)
-                                  , processedSpectrum_(0) {
-            }
-
-            adwplot::ChromatogramWidget * ticPlot_;
-            adwplot::SpectrumWidget * profileSpectrum_;
-            adwplot::SpectrumWidget * processedSpectrum_;
-
-        };
-
-        //---------------------------------------------------------
-        template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
-            Wnd& wnd_;
-            selProcessed( Wnd& wnd ) : wnd_(wnd) {}
-
-            template<typename T> void operator ()( T& ) const {
+    class MSProcessingWndImpl {
+    public:
+        ~MSProcessingWndImpl() {}
+        MSProcessingWndImpl() : ticPlot_(0)
+                              , profileSpectrum_(0)
+                              , processedSpectrum_(0) {
+        }
+        
+        adwplot::ChromatogramWidget * ticPlot_;
+        adwplot::SpectrumWidget * profileSpectrum_;
+        adwplot::SpectrumWidget * processedSpectrum_;
+        
+    };
+    
+    //---------------------------------------------------------
+    template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
+        Wnd& wnd_;
+        selProcessed( Wnd& wnd ) : wnd_(wnd) {}
+        
+        template<typename T> void operator ()( T& ) const {
 #if defined _DEBUG && defined DEBUG
-				adportable::debug() << typeid(T).name();
+            adportable::debug() << typeid(T).name();
 #endif
-            }
+        }
+        
+        void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+            wnd_.draw2( ptr );
+        }
+        
+        void operator () ( adutils::ChromatogramPtr& ptr ) const {
+            wnd_.draw( ptr );
+        }
+        
+        void operator () ( adutils::PeakResultPtr& ptr ) const {
+            wnd_.draw( ptr );
+        }
+        
+    };
 
-            void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-                wnd_.draw2( ptr );
-            }
-
-            void operator () ( adutils::ChromatogramPtr& ptr ) const {
-                wnd_.draw( ptr );
-            }
-
-			void operator () ( adutils::PeakResultPtr& ptr ) const {
-                wnd_.draw( ptr );
-            }
-
-        };
-        //-----
-    }
 }
 
 MSProcessingWnd::MSProcessingWnd(QWidget *parent) :
@@ -210,9 +207,15 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
 }
 
 void
+MSProcessingWnd::onApplyMethod( const adcontrols::ProcessMethod& )
+{
+}
+
+void
 MSProcessingWnd::onCustomMenuOnProcessedSpectrum( const QPoint& pos )
 {
 	QPoint globalPos = pImpl_->processedSpectrum_->mapToGlobal(pos);
+    (void)globalPos;
     // for QAbstractScrollArea and derived classes you would use:
     // QPoint globalPos = myWidget->viewport()->mapToGlobal(pos); 
 /*

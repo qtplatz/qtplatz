@@ -36,6 +36,7 @@ namespace portfolio {
 namespace adcontrols {
     class MassSpectrum;
     class MSCalibrateResult;
+    class ProcessMethod;
 }
 
 namespace adportable {
@@ -46,30 +47,28 @@ namespace dataproc {
 
     class Dataprocessor;
 
-    namespace internal {
+    class MSCalibrationWndImpl;
 
-        class MSCalibrationWndImpl;
-
-        class MSCalibrationWnd : public QWidget {
-            Q_OBJECT
+    class MSCalibrationWnd : public QWidget {
+        Q_OBJECT
         public:
-            // explicit MSCalibrationWnd(QWidget *parent = 0);
-            MSCalibrationWnd( const adportable::Configuration& c, const std::wstring& apppath, QWidget * parent = 0 );
-            void init( const adportable::Configuration& c, const std::wstring& apppath );
+        // explicit MSCalibrationWnd(QWidget *parent = 0);
+        MSCalibrationWnd( const adportable::Configuration& c, const std::wstring& apppath, QWidget * parent = 0 );
+        void init( const adportable::Configuration& c, const std::wstring& apppath );
       
-        signals:
-            void fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
+    signals:
+        void fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
       
-        public slots:
-            void handleSessionAdded( Dataprocessor* );
-            void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
+    public slots:
+        void handleSessionAdded( Dataprocessor* );
+        void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
+        void onApplyMethod( const adcontrols::ProcessMethod& );
 
-        private:
-            boost::shared_ptr<MSCalibrationWndImpl> pImpl_;
+    private:
+        boost::shared_ptr<MSCalibrationWndImpl> pImpl_;
       
-        };
+    };
 
-    }
 }
 
 #endif // MSCALIBRATIONWND_H

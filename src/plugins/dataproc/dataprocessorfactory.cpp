@@ -39,7 +39,7 @@
 #include <adcontrols/datafile.hpp>
 #include <qtwrapper/qstring.hpp>
 
-using namespace dataproc::internal;
+using namespace dataproc;
 
 DataprocessorFactory::~DataprocessorFactory()
 {
@@ -47,8 +47,8 @@ DataprocessorFactory::~DataprocessorFactory()
 
 DataprocessorFactory::DataprocessorFactory( QObject * owner, 
 										    const QStringList& types ) : Core::IEditorFactory( owner )
-											                           , mimeTypes_ ( types ) 
 																	   , kind_( "Dataprocessor" )
+											                           , mimeTypes_ ( types ) 
 																	   , editorWidget_(0) 
 {
     mimeTypes_ 

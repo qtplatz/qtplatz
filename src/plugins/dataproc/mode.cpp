@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "dataprocmode.hpp"
+#include "mode.hpp"
 #include "constants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
@@ -32,14 +32,13 @@
 #include <coreplugin/editormanager/ieditor.h>
 
 using namespace dataproc;
-using namespace dataproc::internal;
 
-DataprocMode::~DataprocMode()
+Mode::~Mode()
 {
     Core::EditorManager::instance()->setParent(0);
 }
 
-DataprocMode::DataprocMode(QObject *parent) :
+Mode::Mode(QObject *parent) :
     Core::BaseMode(parent)
 {
     setName(tr("Processing"));
@@ -59,7 +58,7 @@ DataprocMode::DataprocMode(QObject *parent) :
 }
 
 void
-DataprocMode::grabEditorManager(Core::IMode *mode)
+Mode::grabEditorManager(Core::IMode *mode)
 {
     if (mode != this)
         return;

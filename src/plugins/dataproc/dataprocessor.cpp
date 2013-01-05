@@ -64,15 +64,15 @@
 using namespace dataproc;
 
 namespace dataproc {
-    namespace internal {
-        struct DataprocessorImpl {
-            static adcontrols::MassSpectrumPtr findAttachedMassSpectrum( portfolio::Folium& folium );
-            static bool applyMethod( portfolio::Folium&, const adcontrols::IsotopeMethod& );
-            static bool applyMethod( portfolio::Folium&, const adcontrols::MSCalibrateMethod& );
-            static bool applyMethod( portfolio::Folium&, const adcontrols::CentroidMethod&, const adcontrols::MassSpectrum& );
-			static bool applyMethod( portfolio::Folium&, const adcontrols::PeakMethod&, const adcontrols::Chromatogram& );
-        };
-    }
+
+    struct DataprocessorImpl {
+        static adcontrols::MassSpectrumPtr findAttachedMassSpectrum( portfolio::Folium& folium );
+        static bool applyMethod( portfolio::Folium&, const adcontrols::IsotopeMethod& );
+        static bool applyMethod( portfolio::Folium&, const adcontrols::MSCalibrateMethod& );
+        static bool applyMethod( portfolio::Folium&, const adcontrols::CentroidMethod&, const adcontrols::MassSpectrum& );
+        static bool applyMethod( portfolio::Folium&, const adcontrols::PeakMethod&, const adcontrols::Chromatogram& );
+    };
+
 }
 
 Dataprocessor::~Dataprocessor()
@@ -167,82 +167,80 @@ Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 }
 
 namespace dataproc {
-    namespace internal {
 
-        // dispatch method
-        struct doSpectralProcess : public boost::static_visitor<bool> {
-            const adutils::MassSpectrumPtr& ptr_;
+    // dispatch method
+    struct doSpectralProcess : public boost::static_visitor<bool> {
+        const adutils::MassSpectrumPtr& ptr_;
 
-            portfolio::Folium& folium;
+        portfolio::Folium& folium;
 
-            doSpectralProcess( const adutils::MassSpectrumPtr& p, portfolio::Folium& f ) : ptr_(p), folium(f) {
-            }
+        doSpectralProcess( const adutils::MassSpectrumPtr& p, portfolio::Folium& f ) : ptr_(p), folium(f) {
+        }
 
-            template<typename T> bool operator () ( T& ) const {
-                adportable::debug(__FILE__, __LINE__) << "doSpectraolProcess( " << typeid( T ).name() << ") -- ignored";
-                return false;
-            }
+        template<typename T> bool operator () ( T& ) const {
+            adportable::debug(__FILE__, __LINE__) << "doSpectraolProcess( " << typeid( T ).name() << ") -- ignored";
+            return false;
+        }
 
-            bool operator () ( const adcontrols::CentroidMethod& m ) const {
-                return internal::DataprocessorImpl::applyMethod( folium, m, *ptr_ );
-            }
+        bool operator () ( const adcontrols::CentroidMethod& m ) const {
+            return DataprocessorImpl::applyMethod( folium, m, *ptr_ );
+        }
 
-            bool operator () ( const adcontrols::IsotopeMethod& m ) const {
-                return internal::DataprocessorImpl::applyMethod( folium, m );
-            }
+        bool operator () ( const adcontrols::IsotopeMethod& m ) const {
+            return DataprocessorImpl::applyMethod( folium, m );
+        }
 
-            bool operator () ( const adcontrols::MSCalibrateMethod& m ) const {
-                return internal::DataprocessorImpl::applyMethod( folium, m );
-            }
-        };
+        bool operator () ( const adcontrols::MSCalibrateMethod& m ) const {
+            return DataprocessorImpl::applyMethod( folium, m );
+        }
+    };
 
-        // dispatch method
-        struct doChromatogramProcess : public boost::static_visitor<bool> {
-			const adutils::ChromatogramPtr& ptr_;
+    // dispatch method
+    struct doChromatogramProcess : public boost::static_visitor<bool> {
+        const adutils::ChromatogramPtr& ptr_;
 
-            portfolio::Folium& folium;
+        portfolio::Folium& folium;
 
-            doChromatogramProcess( const adutils::ChromatogramPtr& p, portfolio::Folium& f ) : ptr_(p), folium(f) {
-            }
+        doChromatogramProcess( const adutils::ChromatogramPtr& p, portfolio::Folium& f ) : ptr_(p), folium(f) {
+        }
 
-            template<typename T> bool operator () ( T& ) const {
-                adportable::debug(__FILE__, __LINE__) << "doChromatogramProcess( " << typeid( T ).name() << ") -- ignored";
-                return false;
-            }
+        template<typename T> bool operator () ( T& ) const {
+            adportable::debug(__FILE__, __LINE__) << "doChromatogramProcess( " << typeid( T ).name() << ") -- ignored";
+            return false;
+        }
 
-            bool operator () ( const adcontrols::PeakMethod& m ) const {
-                return internal::DataprocessorImpl::applyMethod( folium, m, *ptr_ );
-            }
-        };
+        bool operator () ( const adcontrols::PeakMethod& m ) const {
+            return DataprocessorImpl::applyMethod( folium, m, *ptr_ );
+        }
+    };
 
 
-        // dispatch data type
-        struct processIt : public boost::static_visitor<bool> {
-            const adcontrols::ProcessMethod::value_type& m_;
-            portfolio::Folium& folium_;
+    // dispatch data type
+    struct processIt : public boost::static_visitor<bool> {
+        const adcontrols::ProcessMethod::value_type& m_;
+        portfolio::Folium& folium_;
 
-            processIt( const adcontrols::ProcessMethod::value_type& m, portfolio::Folium& f ) : m_(m), folium_(f) {
-            }
+        processIt( const adcontrols::ProcessMethod::value_type& m, portfolio::Folium& f ) : m_(m), folium_(f) {
+        }
 
-            template<typename T> bool operator ()( T& ) const {
-                return false;
-            }
+        template<typename T> bool operator ()( T& ) const {
+            return false;
+        }
 
-            bool operator () ( adutils::MassSpectrumPtr& ptr ) const {
-                return boost::apply_visitor( doSpectralProcess(ptr, folium_), m_ );
-            }
+        bool operator () ( adutils::MassSpectrumPtr& ptr ) const {
+            return boost::apply_visitor( doSpectralProcess(ptr, folium_), m_ );
+        }
 
-            bool operator () ( adutils::ChromatogramPtr& ) const {
-                // todo:  add doChromatographicProcess
-                return false;
-            }
-        };
-        //-----
-    }
+        bool operator () ( adutils::ChromatogramPtr& ) const {
+            // todo:  add doChromatographicProcess
+            return false;
+        }
+    };
+    //-----
 }
 
 void
-Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, internal::ProcessType procType )
+Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType procType )
 {
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
 
@@ -254,7 +252,7 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, internal::Proce
                 method.appendMethod( *it );
 
             // check and add Isotop method
-            if ( it->type() == typeid( adcontrols::IsotopeMethod ) && procType == internal::IsotopeProcess )
+            if ( it->type() == typeid( adcontrols::IsotopeMethod ) && procType == IsotopeProcess )
                 method.appendMethod( *it );
         }
         //---------------------------------------------------------------------------
@@ -262,7 +260,7 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, internal::Proce
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
      
         for ( adcontrols::ProcessMethod::vector_type::const_iterator it = method.begin(); it != method.end(); ++it )
-            boost::apply_visitor( internal::processIt(*it, folium), data );
+            boost::apply_visitor( processIt(*it, folium), data );
 
 #ifdef _DEBUG
         std::wstring xml = portfolio_->xml();
@@ -270,7 +268,7 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, internal::Proce
         SessionManager::instance()->selectionChanged( this, folium );
 	} else {
 		// no selected folium, peak find to raw TIC
-		if ( procType == internal::PeakFindProcess ) {
+		if ( procType == PeakFindProcess ) {
 			Dataprocessor * d_processor = SessionManager::instance()->getActiveDataprocessor();
 			if ( d_processor ) {
 				const adcontrols::LCMSDataset * dataset = d_processor->getLCMSDataset();
@@ -320,7 +318,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     folium.assign( ms, ms->dataClass() );
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
-        boost::apply_visitor( internal::doSpectralProcess( ms, folium ), *it );
+        boost::apply_visitor( doSpectralProcess( ms, folium ), *it );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
 }
@@ -340,7 +338,7 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
     folium.assign( ms, ms->dataClass() );
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
-        boost::apply_visitor( internal::doSpectralProcess( ms, folium ), *it );
+        boost::apply_visitor( doSpectralProcess( ms, folium ), *it );
 
 #if defined _DEBUG
 	std::wstring xml = portfolio_->xml();
@@ -365,7 +363,7 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
 	folium.assign( c, c->dataClass() );
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
-		boost::apply_visitor( internal::doChromatogramProcess( c, folium ), *it );
+		boost::apply_visitor( doChromatogramProcess( c, folium ), *it );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
 	return folium;
@@ -417,7 +415,7 @@ Dataprocessor::subscribe( const adcontrols::ProcessedDataset& processed )
 ///////////////////////////////////////////////////////////////////
 
 adcontrols::MassSpectrumPtr
-internal::DataprocessorImpl::findAttachedMassSpectrum( portfolio::Folium& folium )
+DataprocessorImpl::findAttachedMassSpectrum( portfolio::Folium& folium )
 {
     using namespace portfolio;
 
@@ -432,7 +430,7 @@ internal::DataprocessorImpl::findAttachedMassSpectrum( portfolio::Folium& folium
 }
 
 bool
-internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::IsotopeMethod& m )
+DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::IsotopeMethod& m )
 {
     adcontrols::MassSpectrumPtr prev = findAttachedMassSpectrum( folium );
     // copy centroid result if exist, for meta data copy
@@ -448,7 +446,7 @@ internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcon
 }
 
 bool
-internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSCalibrateMethod& m )
+DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSCalibrateMethod& m )
 {
     using namespace portfolio;
 
@@ -484,7 +482,7 @@ internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcon
 }
 
 bool
-internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::CentroidMethod& m, const adcontrols::MassSpectrum& profile )
+DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::CentroidMethod& m, const adcontrols::MassSpectrum& profile )
 {
     portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
     adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
@@ -505,7 +503,7 @@ internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcon
 
 // static
 bool
-internal::DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::PeakMethod& m, const adcontrols::Chromatogram& c )
+DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::PeakMethod& m, const adcontrols::Chromatogram& c )
 {
     portfolio::Folium att = folium.addAttachment( L"Peak Result" );
 	adcontrols::PeakResultPtr pResult( new adcontrols::PeakResult() );

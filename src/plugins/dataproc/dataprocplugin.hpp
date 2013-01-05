@@ -48,61 +48,65 @@ namespace Broker {
 namespace dataproc {
 
     class SessionManager;
+    class EditorFactory;
+    class MainWindow;
+    class Mode;
 
-    namespace internal {
-
-        class DataprocManager;
-        class ActionManager;
-        class DataprocessorFactory;
-
-        class DataprocPlugin : public ExtensionSystem::IPlugin {
-
-            Q_OBJECT
-        public:
-            ~DataprocPlugin();
-            explicit DataprocPlugin();
-
-            // implement ExtensionSystem::IPlugin
-            bool initialize(const QStringList &arguments, QString *error_message);
-            void extensionsInitialized();
-            void shutdown();
-            // <--
-			inline static DataprocPlugin * instance() { return instance_; }
-
-			void applyMethod( const adcontrols::ProcessMethod& );
-			void onSelectTimeRangeOnChromatogram( double x1, double x2 );
-
-        signals:
-			void onApplyMethod( const adcontrols::ProcessMethod& );
-
-        public slots:
-            void actionApply();
-
-        private slots:
-            void handleFeatureSelected( int );
-            void handleFeatureActivated( int );
-            void handle_portfolio_created( const QString token );
-            void handle_folium_added( const QString, const QString, const QString );
-
-        private:
-
-        private:
-            boost::shared_ptr<DataprocManager> manager_;
-            boost::shared_ptr< adportable::Configuration > pConfig_;
-            boost::scoped_ptr< SessionManager > pSessionManager_;
-            boost::scoped_ptr< ActionManager > pActionManager_;
-
-            QBrokerSessionEvent * pBrokerSessionEvent_;
-            Broker::Session * brokerSession_;
-            DataprocessorFactory * dataprocFactory_;
-
-            QAction * actionApply_;
-            enum ProcessType currentFeature_;
-
-            static DataprocPlugin * instance_;
-
-        };
-
-    }
+    class DataprocManager;
+    class ActionManager;
+    class DataprocessorFactory;
+    
+    class DataprocPlugin : public ExtensionSystem::IPlugin {
+        
+        Q_OBJECT
+    public:
+        ~DataprocPlugin();
+        explicit DataprocPlugin();
+        
+        // implement ExtensionSystem::IPlugin
+        bool initialize(const QStringList &arguments, QString *error_message);
+        void extensionsInitialized();
+        void shutdown();
+        // <--
+        inline static DataprocPlugin * instance() { return instance_; }
+        
+        void applyMethod( const adcontrols::ProcessMethod& );
+        void onSelectTimeRangeOnChromatogram( double x1, double x2 );
+        DataprocessorFactory * dataprocessorFactory() { return dataprocFactory_; }
+        
+    signals:
+        void onApplyMethod( const adcontrols::ProcessMethod& );
+                                                              
+    public slots:
+        // void actionApply();
+            
+    private slots:
+        //void handleFeatureSelected( int );
+        //void handleFeatureActivated( int );
+        void handle_portfolio_created( const QString token );
+        void handle_folium_added( const QString, const QString, const QString );
+        
+    private:
+        
+    private:
+        boost::shared_ptr<DataprocManager> manager_;
+        dataproc::MainWindow * mainWindow_;
+        boost::scoped_ptr< dataproc::Mode > mode_;
+        boost::shared_ptr< adportable::Configuration > pConfig_;
+        boost::scoped_ptr< SessionManager > pSessionManager_;
+        boost::scoped_ptr< ActionManager > pActionManager_;
+        
+        QBrokerSessionEvent * pBrokerSessionEvent_;
+        Broker::Session * brokerSession_;
+        DataprocessorFactory * dataprocFactory_;
+        
+        // QAction * actionApply_;
+        std::vector< EditorFactory * > factories_;
+        static DataprocPlugin * instance_;
+        
+        static void install_dataprovider( const adportable::Configuration&, const std::wstring& );
+        static void install_editorfactories( const adportable::Configuration&, const std::wstring&, std::vector< EditorFactory * >& );
+        static void delete_editorfactories( std::vector< EditorFactory * >& );
+    };
 }
 

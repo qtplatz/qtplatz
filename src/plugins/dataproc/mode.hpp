@@ -22,47 +22,31 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// Science Liaison / Advanced Instrumentation Project
+//////////////////////////////////////////
 
-#ifndef DATAPROCESSORFACTORY_H
-#define DATAPROCESSORFACTORY_H
+#pragma once
 
-#include <coreplugin/editormanager/ieditorfactory.h>
-#include <QStringList>
-
-namespace Core {
-    class IEditor;
-}
+#include <coreplugin/basemode.h>
 
 namespace dataproc {
 
-    class DataprocPlugin;
-        
-    class DataprocessorFactory : public Core::IEditorFactory {
+    class Mode : public Core::BaseMode {
         Q_OBJECT
     public:
-        ~DataprocessorFactory();
-        explicit DataprocessorFactory( QObject * owner, const QStringList& );
+        ~Mode();
+        explicit Mode( QObject * parent = 0 );
 
-        void setEditor( QWidget * );
-
-        // implement IEditorFactory
-        virtual Core::IEditor *createEditor(QWidget *parent);
-
-        // implement IFileFactory
-        virtual QStringList mimeTypes() const;
-        virtual QString kind() const;
-        virtual Core::IFile * open(const QString& filename );
-        // <---
     signals:
 
     public slots:
+        void grabEditorManager(Core::IMode *mode);
 
     private:
-        QString kind_;
-        QStringList mimeTypes_;
-        QWidget * editorWidget_;
-    };
 
+    };
 }
 
-#endif // DATAPROCESSORFACTORY_H
+

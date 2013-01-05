@@ -35,6 +35,7 @@ namespace adcontrols {
     class MassSpectrum;
     class Chromatogram;
 	class PeakResult;
+    class ProcessMethod;
 }
 
 namespace portfolio {
@@ -45,44 +46,42 @@ namespace dataproc {
 
     class Dataprocessor;
 
-    namespace internal {
+    class MSProcessingWndImpl;
 
-        class MSProcessingWndImpl;
-
-        class MSProcessingWnd : public QWidget {
-            Q_OBJECT
+    class MSProcessingWnd : public QWidget {
+        Q_OBJECT
         public:
-            explicit MSProcessingWnd(QWidget *parent = 0);
+        explicit MSProcessingWnd(QWidget *parent = 0);
 
-            void init();
+        void init();
 
-            void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
-            void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
-            void draw( boost::shared_ptr< adcontrols::Chromatogram >& );
-			void draw( boost::shared_ptr< adcontrols::PeakResult >& );
+        void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw( boost::shared_ptr< adcontrols::Chromatogram >& );
+        void draw( boost::shared_ptr< adcontrols::PeakResult >& );
       
-        signals:
+    signals:
       
-        public slots:
-            void handleSessionAdded( Dataprocessor* );
-            void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
+    public slots:
+        void handleSessionAdded( Dataprocessor* );
+        void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
+        void onApplyMethod( const adcontrols::ProcessMethod& );
 
-        private slots:
-			void onCustomMenuOnProcessedSpectrum( const QPoint& );
+    private slots:
+        void onCustomMenuOnProcessedSpectrum( const QPoint& );
 
-			void selectedOnChromatogram( const QPointF& );
-			void selectedOnChromatogram( const QRectF& );
-			void selectedOnProfile( const QPointF& );
-			void selectedOnProcessed( const QPointF& );
+        void selectedOnChromatogram( const QPointF& );
+        void selectedOnChromatogram( const QRectF& );
+        void selectedOnProfile( const QPointF& );
+        void selectedOnProcessed( const QPointF& );
 
-        private:
-            size_t drawIdx1_;
-            size_t drawIdx2_;
-            boost::shared_ptr<MSProcessingWndImpl> pImpl_;
-            std::wstring idActiveFolium_;
-        };
+    private:
+        size_t drawIdx1_;
+        size_t drawIdx2_;
+        boost::shared_ptr<MSProcessingWndImpl> pImpl_;
+        std::wstring idActiveFolium_;
+    };
 
-    }
 }
 
 

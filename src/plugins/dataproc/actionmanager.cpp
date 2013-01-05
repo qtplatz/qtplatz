@@ -38,7 +38,6 @@
 //#include "dataprocplugin.h"
 
 using namespace dataproc;
-using namespace dataproc::internal;
 
 ActionManager::ActionManager(QObject *parent) : QObject(parent)
                                               , saveAction_( 0 )

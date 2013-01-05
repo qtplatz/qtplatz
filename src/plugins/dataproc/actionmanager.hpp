@@ -30,7 +30,7 @@
 
 class QAction;
 
-namespace dataproc { namespace internal {
+namespace dataproc {
 
     class ActionManager : public QObject {
         Q_OBJECT
@@ -53,8 +53,6 @@ namespace dataproc { namespace internal {
         bool importFile();
 
     };
-
-}
 }
 
 

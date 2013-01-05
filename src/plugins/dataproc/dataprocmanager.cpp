@@ -53,22 +53,21 @@
 # include <iostream>
 #endif
 
-using namespace dataproc::internal;
+using namespace dataproc;
 
 namespace dataproc {
-    namespace internal {
-        class DataprocManagerImpl : boost::noncopyable {
-        public:
-            ~DataprocManagerImpl();
-            DataprocManagerImpl();
 
-            Utils::FancyMainWindow * mainWindow_;
-            void init();
+    class DataprocManagerImpl : boost::noncopyable {
+    public:
+        ~DataprocManagerImpl();
+        DataprocManagerImpl();
 
-        public:
-            //std::vector< QDockWidget * > dockWidgetVec_;
+        Utils::FancyMainWindow * mainWindow_;
+        void init();
+
+    public:
+        //std::vector< QDockWidget * > dockWidgetVec_;
     };
-  }
 }
 
 DataprocManager::~DataprocManager()

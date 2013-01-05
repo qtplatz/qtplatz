@@ -70,7 +70,7 @@ namespace dataproc {
         portfolio::Portfolio getPortfolio();
         void setCurrentSelection( portfolio::Folium& );
 		void setCurrentSelection( portfolio::Folder& );
-        void applyProcess( const adcontrols::ProcessMethod&, internal::ProcessType );
+        void applyProcess( const adcontrols::ProcessMethod&, enum ProcessType );
         void applyCalibration( const adcontrols::ProcessMethod& );
 		portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
 		portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );

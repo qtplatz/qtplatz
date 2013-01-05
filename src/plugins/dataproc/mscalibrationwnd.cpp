@@ -41,24 +41,22 @@
 #include "qtwidgets_name.hpp"
 
 using namespace dataproc;
-using namespace dataproc::internal;
 
 namespace dataproc {
-    namespace internal {
-        class MSCalibrationWndImpl {
-        public:
-            ~MSCalibrationWndImpl() {}
-            MSCalibrationWndImpl() : profileSpectrum_(0)
-                                   , processedSpectrum_(0)
-                                   , calibSummaryWidget_(0)  {
-            }
+    
+    class MSCalibrationWndImpl {
+    public:
+        ~MSCalibrationWndImpl() {}
+        MSCalibrationWndImpl() : profileSpectrum_(0)
+                               , processedSpectrum_(0)
+                               , calibSummaryWidget_(0)  {
+        }
 
-            adwplot::SpectrumWidget * profileSpectrum_;
-            adwplot::SpectrumWidget * processedSpectrum_;
-            QWidget * calibSummaryWidget_;
+        adwplot::SpectrumWidget * profileSpectrum_;
+        adwplot::SpectrumWidget * processedSpectrum_;
+        QWidget * calibSummaryWidget_;
 
-        };
-    }
+    };
 }
 
 MSCalibrationWnd::MSCalibrationWnd( const adportable::Configuration& c
@@ -151,4 +149,9 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
         }
 
     }
+}
+
+void
+MSCalibrationWnd::onApplyMethod( const adcontrols::ProcessMethod& )
+{
 }

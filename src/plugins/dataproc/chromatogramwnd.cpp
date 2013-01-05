@@ -49,43 +49,40 @@
 #include "qtwidgets_name.hpp"
 
 using namespace dataproc;
-using namespace dataproc::internal;
 
 namespace dataproc {
-    namespace internal {
 
-        class ChromatogramWndImpl {
-        public:
-            ~ChromatogramWndImpl() {
-                delete chroWidget_;
-                delete peakWidget_;
-            }
-            ChromatogramWndImpl() : chroWidget_(0)
-                                  , peakWidget_(0) {
-            }
-            void setData( const adcontrols::Chromatogram&, const QString& );
-            adwplot::ChromatogramWidget * chroWidget_;
-			QWidget * peakWidget_; // adplutin::manager::widget_factory will make a widget
-        };
+    class ChromatogramWndImpl {
+    public:
+        ~ChromatogramWndImpl() {
+            delete chroWidget_;
+            delete peakWidget_;
+        }
+        ChromatogramWndImpl() : chroWidget_(0)
+                              , peakWidget_(0) {
+        }
+        void setData( const adcontrols::Chromatogram&, const QString& );
+        adwplot::ChromatogramWidget * chroWidget_;
+        QWidget * peakWidget_; // adplutin::manager::widget_factory will make a widget
+    };
 
-        //----------------------------//
-        template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
-            selProcessed( Wnd& wnd ) : wnd_(wnd) {}
-            template<typename T> void operator ()( T& ) const {
-			}
-            void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-                wnd_.draw2( ptr );
-            }
-            void operator () ( adutils::ChromatogramPtr& ptr ) const {
-                wnd_.draw( ptr );
-            }
-			void operator () ( adutils::PeakResultPtr& ptr ) const {
-                wnd_.draw( ptr );
-            }
-            Wnd& wnd_;
-        };
-        //----------------------------//
-    }
+    //----------------------------//
+    template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
+        selProcessed( Wnd& wnd ) : wnd_(wnd) {}
+        template<typename T> void operator ()( T& ) const {
+        }
+        void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+            wnd_.draw2( ptr );
+        }
+        void operator () ( adutils::ChromatogramPtr& ptr ) const {
+            wnd_.draw( ptr );
+        }
+        void operator () ( adutils::PeakResultPtr& ptr ) const {
+            wnd_.draw( ptr );
+        }
+        Wnd& wnd_;
+    };
+
 }
 
 ChromatogramWnd::~ChromatogramWnd()
@@ -193,6 +190,10 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor* , portfolio::Folium& fol
     }
 }
 
+void
+ChromatogramWnd::onApplyMethod( const adcontrols::ProcessMethod& )
+{
+}
 
 ///////////////////////////
 
@@ -201,3 +202,4 @@ ChromatogramWndImpl::setData( const adcontrols::Chromatogram& c, const QString& 
 {
     chroWidget_->setData( c );
 }
+

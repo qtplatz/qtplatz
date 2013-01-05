@@ -110,7 +110,7 @@ DataprocHandler::doIsotope( adcontrols::MassSpectrum& res, const adcontrols::Iso
     return false;
 }
 
-namespace dataproc { namespace internal {
+namespace dataproc {
 
     struct mass_assign : boost::noncopyable {
         std::vector< std::pair< unsigned int, adcontrols::MSReference > > calibPoints;
@@ -171,7 +171,6 @@ namespace dataproc { namespace internal {
     };
 
 }
-}
 
 bool
 DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
@@ -190,7 +189,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     adportable::array_wrapper<const double> masses( centroid.getMassArray(), centroid.size() );
     adportable::array_wrapper<const double> intens( centroid.getIntensityArray(), centroid.size() );
 
-    internal::mass_assign mass_assign( tolerance, threshold );
+    mass_assign mass_assign( tolerance, threshold );
     mass_assign( centroid, res.references() );
     res.assignedMasses( mass_assign.assignedMasses );
 

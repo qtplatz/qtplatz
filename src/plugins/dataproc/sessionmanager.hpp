@@ -39,10 +39,8 @@ namespace dataproc {
     class Dataprocessor;
     class DataprocPlugin;
     
-    namespace internal {
-        class Session;
-        class DataprocPlugin;
-    }
+    class Session;
+    class DataprocPlugin;
 
     class Session {
     public:
@@ -58,7 +56,7 @@ namespace dataproc {
     class SessionManager : public QObject {
         Q_OBJECT
         explicit SessionManager(QObject *parent = 0);
-        friend class internal::DataprocPlugin;
+        friend class DataprocPlugin;
     public:
         ~SessionManager();
 

@@ -47,41 +47,38 @@ namespace dataproc {
     
     class Dataprocessor;
     
-    namespace internal {
-        
-        class DataprocManagerImpl;
-        
-        class DataprocManager : public QObject {
-            Q_OBJECT
-            public:
-            explicit DataprocManager(QObject *parent = 0);
+    class DataprocManagerImpl;
+    
+    class DataprocManager : public QObject {
+        Q_OBJECT
+        public:
+        explicit DataprocManager(QObject *parent = 0);
 	    ~DataprocManager();
-            
-            QMainWindow * mainWindow() const;
-            void init( const adportable::Configuration&, const std::wstring& apppath );
-            void setSimpleDockWidgetArrangement();
-            void OnInitialUpdate();
-            void OnFinalClose();
-            
-            void getProcessMethod( adcontrols::ProcessMethod& );
-            
-        signals:
-            void signalUpdateFile( adcontrols::datafile * );
-            void signalGetProcessMethod( adcontrols::ProcessMethod& );
-                                                                     
-        public slots:
-            void handleSessionAdded( Dataprocessor * );
-            void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );
-
-			void onMethodApply( adcontrols::ProcessMethod& );
-                                                      
-        private slots:
-            void handleApplyMethod();
-            
-        private:
-            DataprocManagerImpl * pImpl_;
-        };
-
-    }
+        
+        QMainWindow * mainWindow() const;
+        void init( const adportable::Configuration&, const std::wstring& apppath );
+        void setSimpleDockWidgetArrangement();
+        void OnInitialUpdate();
+        void OnFinalClose();
+        
+        void getProcessMethod( adcontrols::ProcessMethod& );
+        
+    signals:
+        void signalUpdateFile( adcontrols::datafile * );
+        void signalGetProcessMethod( adcontrols::ProcessMethod& );
+                                                                 
+    public slots:
+        void handleSessionAdded( Dataprocessor * );
+        void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );
+        
+        void onMethodApply( adcontrols::ProcessMethod& );
+                                                        
+    private slots:
+        void handleApplyMethod();
+        
+    private:
+        DataprocManagerImpl * pImpl_;
+    };
+    
 }
 

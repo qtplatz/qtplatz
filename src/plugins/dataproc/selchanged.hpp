@@ -33,32 +33,30 @@
 #endif
 
 namespace dataproc {
-    namespace internal {
 
-        template<class Wnd> class selChanged : public boost::static_visitor<bool> {
-            Wnd& wnd_;
-        public:
-            selChanged( Wnd& wnd ) : wnd_(wnd) { }
+    template<class Wnd> class selChanged : public boost::static_visitor<bool> {
+        Wnd& wnd_;
+    public:
+        selChanged( Wnd& wnd ) : wnd_(wnd) { }
 
-            template<typename T> bool operator ()( T& ) const { 
+        template<typename T> bool operator ()( T& ) const { 
 #ifdef DEBUG
-                adportable::debug(__FILE__, __LINE__) << "selChanged(" << typeid(T).name() << ") will do nothing.";
+            adportable::debug(__FILE__, __LINE__) << "selChanged(" << typeid(T).name() << ") will do nothing.";
 #endif
-                return false;
-            }
+            return false;
+        }
 
-            bool operator () ( adutils::MassSpectrumPtr& ptr ) const {   
-                wnd_.draw1( ptr );
-                return true;
-            }
+        bool operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+            wnd_.draw1( ptr );
+            return true;
+        }
 
-            bool operator () ( adutils::ChromatogramPtr& ptr ) const {
-                wnd_.draw( ptr );
-                return true;
-            }
+        bool operator () ( adutils::ChromatogramPtr& ptr ) const {
+            wnd_.draw( ptr );
+            return true;
+        }
 
-        };
+    };
 
-    }
 }
 
