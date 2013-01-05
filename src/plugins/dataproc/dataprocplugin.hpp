@@ -89,10 +89,9 @@ namespace dataproc {
     private:
         
     private:
-        boost::shared_ptr<DataprocManager> manager_;
         dataproc::MainWindow * mainWindow_;
         boost::scoped_ptr< dataproc::Mode > mode_;
-        boost::shared_ptr< adportable::Configuration > pConfig_;
+        boost::scoped_ptr< adportable::Configuration > pConfig_;
         boost::scoped_ptr< SessionManager > pSessionManager_;
         boost::scoped_ptr< ActionManager > pActionManager_;
         

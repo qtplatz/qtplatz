@@ -81,7 +81,9 @@ namespace sequence { namespace internal {
 			factories_.push_back( p );
 		};
 		virtual void removeEditorFactory( adextension::iEditorFactory * p ) {
-			factories_.erase( std::remove( factories_.begin(), factories_.end(), p ) );
+			std::vector< adextension::iEditorFactory * >::iterator it = std::remove( factories_.begin(), factories_.end(), p );
+			if ( it != factories_.end() )
+				factories_.erase( it );
 		};
 		//
 		typedef std::vector< adextension::iEditorFactory * > vector_type;

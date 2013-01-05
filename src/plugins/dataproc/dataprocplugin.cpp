@@ -429,9 +429,7 @@ DataprocPlugin::shutdown()
 
     mainWindow_->OnFinalClose();
 
-    manager_->OnFinalClose();
-
-    if ( ! CORBA::is_nil( brokerSession_ ) ) {
+	if ( ! CORBA::is_nil( brokerSession_ ) ) {
 
         disconnect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) )
                     , this, SLOT(handle_portfolio_created( const QString )) );
