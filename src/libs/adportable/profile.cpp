@@ -61,9 +61,10 @@ namespace adportable { namespace detail {
 	}
 #else
 	struct posixapi {
-		template<class char_type> static std::string user_data_dir();
+		template<class char_type> static std::basic_string<char_type> user_data_dir();
 	};
-	template<> std::string posixapi::user_data_dir()
+
+    template<> std::string posixapi::user_data_dir()
 	{
 		struct passwd * pw = getpwuid( geteuid() );
         return pw->pw_dir;
