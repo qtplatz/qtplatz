@@ -39,6 +39,8 @@ namespace ControlMethod{ struct Method; }
 namespace Core { class IMode; }
 
 namespace sequence {
+    
+    class SequenceWidget;
 
     class MainWindow : public Utils::FancyMainWindow {
         Q_OBJECT
@@ -67,6 +69,7 @@ namespace sequence {
 		QHBoxLayout * toolBarLayout_;
         QDockWidget * toolBarDockWidget_;
         QAction * actionConnect_;
+        SequenceWidget * sequenceWidget_;
 
 		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
 		QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }

@@ -21,7 +21,7 @@ LIBS += -l$$qtLibraryTarget(adcontroller) -l$$qtLibraryTarget(adcontrols) \
 	-l$$qtLibraryTarget(adportable)   -l$$qtLibraryTarget(adwplot) \
 	-l$$qtLibraryTarget(acewrapper)   -l$$qtLibraryTarget(qtwrapper) \
 	-l$$qtLibraryTarget(xmlparser)    -l$$qtLibraryTarget(adplugin) \
-	-l$$qtLibraryTarget(adextension)
+	-l$$qtLibraryTarget(adextension)  -l$$qtLibraryTarget(adsequence)
 
 DEFINES += SEQUENCE_LIBRARY
 
@@ -30,7 +30,9 @@ SOURCES +=  sequenceplugin.cpp \
     sequenceeditorfactory.cpp \
     sequence.cpp \
     mainwindow.cpp \
-    mode.cpp
+    mode.cpp \
+    sequencewidget.cpp \
+    sequencedelegate.cpp
 
 HEADERS += sequence_global.h \
     sequence.hpp \
@@ -39,7 +41,9 @@ HEADERS += sequence_global.h \
     sequenceeditor.hpp \
     constants.hpp \
     mainwindow.hpp \
-    mode.hpp
+    mode.hpp \
+    sequencewidget.hpp \
+    sequencedelegate.hpp
 
 OTHER_FILES += sequence.pluginspec \
     sequence-mimetype.xml \
@@ -47,3 +51,6 @@ OTHER_FILES += sequence.pluginspec \
 
 RESOURCES += \
     sequence.qrc
+
+FORMS += \
+    sequencewidget.ui

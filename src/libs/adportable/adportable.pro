@@ -28,7 +28,8 @@ SOURCES += adportable.cpp \
     string.cpp \
     utf.cpp \
     lifecycleframe.cpp \
-    timer.cpp
+    timer.cpp \
+    profile.cpp
 
 win32 {
    SOURCES += protocollifecycle.cpp
@@ -56,5 +57,6 @@ HEADERS += adportable.hpp \
     utf.hpp \
     disable_warnings.h \
     lifecycleframe.hpp \
-    timer.hpp
+    timer.hpp \
+    profile.hpp
 

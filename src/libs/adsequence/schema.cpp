@@ -29,7 +29,7 @@ using namespace adsequence;
 schema::schema()
 {
     schema_.push_back( column( "samp_type",      "Sample type",     COLUMN_SAMPLE_TYPE ) );
-    schema_.push_back( column( "vial_num",       "Vial#",           COLUMN_INT ) );
+    schema_.push_back( column( "vial_num",       "Vial#",           COLUMN_VARCHAR ) );
     schema_.push_back( column( "samp_id",        "Sample Id",       COLUMN_INT ) ); // data file
     schema_.push_back( column( "injvol",         "Inj.(uL)",        COLUMN_DOUBLE ) );
     schema_.push_back( column( "run_length",     "Run length(min)", COLUMN_DOUBLE ) );

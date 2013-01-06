@@ -24,6 +24,7 @@
 
 #include "mainwindow.hpp"
 #include "sequenceplugin.hpp"
+#include "sequencewidget.hpp"
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
 #include <adportable/configuration.hpp>
@@ -81,6 +82,7 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , toolBarLayout_( 0 )
                                         , toolBarDockWidget_( 0 )
                                         , actionConnect_ ( 0 )
+                                        , sequenceWidget_( 0 )
 {
 	setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
     setDocumentMode( true );
@@ -92,10 +94,10 @@ MainWindow::OnInitialUpdate()
 	using adextension::iSequence;
 	QList< iSequence * > visitables = ExtensionSystem::PluginManager::instance()->getObjects< iSequence >();
 	BOOST_FOREACH( iSequence * v, visitables ) {
-        QWidget * widget;
 		for ( size_t i = 0; i < v->size(); ++i ) {
 			adextension::iEditorFactory& factory = (*v)[i];
-			if ( widget = factory.createEditor( 0 ) ) {
+            QWidget * widget = factory.createEditor( 0 );
+			if ( widget ) {
 				createDockWidget( widget, factory.title() );
                 adplugin::LifeCycleAccessor accessor( widget );
                 adplugin::LifeCycle * pLifeCycle = accessor.get();
@@ -104,13 +106,17 @@ MainWindow::OnInitialUpdate()
             }
         }
     }
-
+    if ( sequenceWidget_ )
+        sequenceWidget_->OnInitialUpdate();
     setSimpleDockWidgetArrangement();
 }
 
 void
 MainWindow::OnFinalClose()
 {
+    if ( sequenceWidget_ )
+        sequenceWidget_->OnFinalClose();
+
     QList< QDockWidget *> widgets = dockWidgets();
     foreach ( QDockWidget * widget, widgets ) {
 		QWidget * obj = widget->widget();
@@ -146,7 +152,7 @@ MainWindow::createContents( Core::IMode * mode )
     QWidget * editorAndFindWidget = new QWidget;
 	editorAndFindWidget->setLayout( editorHolderLayout );
 	// editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) );
-	editorHolderLayout->addWidget( new QTextEdit );
+	editorHolderLayout->addWidget( sequenceWidget_ = new SequenceWidget );
 	editorHolderLayout->addWidget( new Core::FindToolBarPlaceHolder( editorAndFindWidget ) );
 
 	Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
