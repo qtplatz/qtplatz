@@ -27,9 +27,56 @@
 
 #if defined WIN32
 # include <shlobj.h> // see ShGetFolderLocation API
+namespace adportable { namespace detail { struct winapi; } }
+typedef adportable::detail::winapi impl;
 #else
 # include <pwd.h>
+namespace adportable { namespace detail { struct posixapi; } }
+typedef adportable::detail::posixapi impl;
 #endif
+
+namespace adportable { namespace detail {
+
+#if defined WIN32
+	struct winapi {
+		template<class char_type> static std::basic_string<char_type> user_data_dir();
+	};
+	template<> std::string winapi::user_data_dir()
+	{
+		char path[ MAX_PATH ];
+		HRESULT hr
+			= SHGetFolderPathA( 0, CSIDL_PERSONAL | CSIDL_FLAG_CREATE, NULL, SHGFP_TYPE_CURRENT, path );
+		if ( hr == S_OK )
+			return path;
+		return std::string(); // return empty by means of error
+	}
+	template<> std::wstring winapi::user_data_dir()
+	{
+		wchar_t path[ MAX_PATH ];
+		HRESULT hr
+			= SHGetFolderPathW( 0, CSIDL_PERSONAL | CSIDL_FLAG_CREATE, NULL, SHGFP_TYPE_CURRENT, path );
+		if ( hr == S_OK )
+			return path;
+		return std::wstring(); // return empty by means of error
+	}
+#else
+	struct posixapi {
+		template<class char_type> static std::string user_data_dir();
+	};
+	template<> std::string posixapi::user_data_dir()
+	{
+		struct passwd * pw = getpwuid( geteuid() );
+        return pw->pw_dir;
+	}
+	template<> std::wstring posixapi::user_data_dir()
+	{
+		struct passwd * pw = getpwuid( geteuid() );
+        return adportable::string::convert( pw->pw_dir );
+	}
+#endif
+
+}
+}
 
 namespace adportable {
 
@@ -38,47 +85,15 @@ namespace adportable {
     }
     
     template<> std::string
-    profile::user_login_name()
-    {
-#if WIN32
-        
-#else
-        struct passwd * pw = getpwuid( geteuid() );
-        return pw->pw_name;
-#endif
-    }
-    
-    template<> std::wstring
-    profile::user_login_name()
-    {
-#if WIN32
-        
-#else
-        struct passwd * pw = getpwuid( geteuid() );
-        return adportable::string::convert( pw->pw_name );
-#endif
-    }
-    
-    template<> std::string
     profile::user_data_dir()
     {
-#if WIN32
-        
-#else
-        struct passwd * pw = getpwuid( geteuid() );
-        return pw->pw_dir;
-#endif
+		return impl::user_data_dir<char>();
     }
 
     template<> std::wstring
     profile::user_data_dir()
     {
-#if WIN32
-        
-#else
-        struct passwd * pw = getpwuid( geteuid() );
-        return adportable::string::convert( pw->pw_dir );
-#endif
+		return impl::user_data_dir<wchar_t>();
     }
 }
 
