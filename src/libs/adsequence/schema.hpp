@@ -56,6 +56,8 @@ namespace adsequence {
 
         typedef std::vector< column > vector_type;
 
+		size_t size() const;
+		const column& operator [] ( size_t idx ) const;
         vector_type::iterator begin();
         vector_type::iterator end();
         vector_type::const_iterator begin() const;

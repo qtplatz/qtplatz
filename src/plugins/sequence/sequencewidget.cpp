@@ -35,11 +35,12 @@
 #include <boost/format.hpp>
 #include <algorithm>
 #include <assert.h>
+#include <QMessageBox>
 
 using namespace sequence;
 
-SequenceWidget::SequenceWidget(QWidget *parent) : QWidget(parent)
-                                                , ui(new Ui::SequenceWidget)
+SequenceWidget::SequenceWidget(QWidget *parent) : QWidget( parent )
+                                                , ui( new Ui::SequenceWidget )
                                                 , model_( new QStandardItemModel )
                                                 , delegate_( new SequenceDelegate )
                                                 , sequence_( new adsequence::sequence )
@@ -89,6 +90,16 @@ SequenceWidget::showContextMenu( const QPoint& pt )
 {
     QMenu menu;
 
+    if ( ui->treeView->indexAt( pt ).isValid() ) {
+        const adsequence::schema& schema = sequence_->schema();
+        QModelIndex index = ui->treeView->currentIndex();
+        if ( size_t( index.column() ) < schema.size() ) {
+			const adsequence::column& column = schema[ index.column() ];
+            if ( column.name() == "name_control" || column.name() == "name_process" )
+                menu.addAction( "Browse...", this, SLOT( browse() ) );
+        }
+    }
+
     menu.addAction( "Add new line", this, SLOT( addLine() ) );
     menu.addAction( "Delete line", this, SLOT( delLine() ) );
 	menu.exec( ui->treeView->mapToGlobal( pt ) );
@@ -126,4 +137,11 @@ SequenceWidget::delLine()
 {
     QModelIndex index = ui->treeView->currentIndex();
     model_->removeRows( index.row(), 1 );
+}
+
+void
+SequenceWidget::browse()
+{
+	QModelIndex index = ui->treeView->currentIndex();
+	QMessageBox::warning( 0, "SequenceWidget::browse", index.data().toString() );
 }

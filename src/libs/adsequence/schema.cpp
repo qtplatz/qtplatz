@@ -41,6 +41,18 @@ schema::schema( const schema& t ) : schema_( t.schema_ )
 {
 }
 
+size_t
+schema::size() const
+{
+	return schema_.size();
+}
+
+const column&
+schema::operator [] ( size_t idx ) const
+{
+	return schema_[ idx ];
+}
+
 schema::vector_type::iterator
 schema::begin()
 {

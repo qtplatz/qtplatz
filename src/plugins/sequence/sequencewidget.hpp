@@ -35,6 +35,7 @@ class SequenceWidget;
 }
 
 class QStandardItemModel;
+class QModelIndex;
 
 namespace sequence {
 
@@ -59,6 +60,7 @@ namespace sequence {
         void showContextMenu( const QPoint& );
         void addLine();
         void delLine();
+        void browse();
     };
 }
 
