@@ -53,10 +53,6 @@ namespace sequence {
         void OnFinalClose();
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
-		void createDockWidget( adextension::iEditorFactory& );
-		// void createDockWidgets( const std::wstring& path, adportable::Configuration& acquire, adportable::Configuration& dproc );
-
-		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
 
 		static QToolButton * toolButton( const char * );
 		static QToolButton * toolButton( QAction * );
@@ -72,6 +68,7 @@ namespace sequence {
         QDockWidget * toolBarDockWidget_;
         QAction * actionConnect_;
 
+		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
 		QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
         void setToolBarDockWidget( QDockWidget * dock );
         void createToolbar();

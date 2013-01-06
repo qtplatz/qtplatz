@@ -27,6 +27,7 @@
 
 #include <extensionsystem/iplugin.h>
 #include <boost/smart_ptr.hpp>
+#include <memory>
 #include <vector>
 #include "constants.hpp"
 
@@ -55,6 +56,7 @@ namespace dataproc {
     class DataprocManager;
     class ActionManager;
     class DataprocessorFactory;
+    class iSequenceImpl;
     
     class DataprocPlugin : public ExtensionSystem::IPlugin {
         
@@ -78,11 +80,8 @@ namespace dataproc {
         void onApplyMethod( const adcontrols::ProcessMethod& );
                                                               
     public slots:
-        // void actionApply();
             
     private slots:
-        //void handleFeatureSelected( int );
-        //void handleFeatureActivated( int );
         void handle_portfolio_created( const QString token );
         void handle_folium_added( const QString, const QString, const QString );
         
@@ -100,11 +99,11 @@ namespace dataproc {
         DataprocessorFactory * dataprocFactory_;
         
         // QAction * actionApply_;
-        std::vector< EditorFactory * > factories_;
-        static DataprocPlugin * instance_;
+        std::unique_ptr< iSequenceImpl > iSequence_;
+		static DataprocPlugin * instance_;
         
         static bool install_dataprovider( const adportable::Configuration&, const std::wstring& );
-        static bool install_editorfactories( const adportable::Configuration&, const std::wstring&, std::vector< EditorFactory * >& );
+        static bool install_isequence( const adportable::Configuration&, const std::wstring&, iSequenceImpl& );
         static void delete_editorfactories( std::vector< EditorFactory * >& );
     };
 }

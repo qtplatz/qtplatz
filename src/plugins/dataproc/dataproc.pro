@@ -55,7 +55,9 @@ SOURCES += \
     sessionmanager.cpp \
     datafileobserver_i.cpp \
     mainwindow.cpp \
-    mode.cpp
+    mode.cpp \
+    editorfactory.cpp \
+    isequenceimpl.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -77,7 +79,9 @@ HEADERS += \
     sessionmanager.hpp \
     datafileobserver_i.hpp \
     mainwindow.hpp \
-    mode.hpp
+    mode.hpp \
+    editorfactory.hpp \
+    isequenceimpl.hpp
 
 OTHER_FILES += \
     dataproc.pluginspec \

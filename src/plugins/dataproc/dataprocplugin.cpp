@@ -28,10 +28,12 @@
 #include "constants.hpp"
 #include "mode.hpp"
 #include "dataprocmanager.hpp"
-#include "mainwindow.hpp"
+#include "editorfactory.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessorfactory.hpp"
 #include "dataproceditor.hpp"
+#include "isequenceimpl.hpp"
+#include "mainwindow.hpp"
 #include "navigationwidgetfactory.hpp"
 #include "sessionmanager.hpp"
 
@@ -44,7 +46,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adextension/isequence.hpp>
+// #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adplugin/constants.hpp>
@@ -55,6 +57,7 @@
 #include <adportable/debug.hpp>
 #include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <qtwrapper/application.hpp>
 #include <xmlparser/pugixml.hpp>
 
 #include <coreplugin/icore.h>
@@ -96,25 +99,6 @@
 
 #include <adinterface/brokerC.h>
 
-namespace dataproc {
-    class EditorFactory : public adextension::iEditorFactory {
-        std::wstring path_;
-        adportable::Configuration config_;
-    public:
-        EditorFactory( const adportable::Configuration& config, const std::wstring& path ) : path_( path )
-                                                                                           , config_( config ) {
-        }
-        virtual QWidget * createEditor( QWidget * parent = 0 ) {
-            if ( config_.isPlugin() )
-                return adplugin::manager::widget_factory( config_, path_.c_str(), parent );
-            return 0;
-        }
-        virtual QString title() const {
-            return qtwrapper::qstring::copy( config_.title() );
-        }
-    };
-}
-
 using namespace dataproc;
 
 DataprocPlugin * DataprocPlugin::instance_ = 0;
@@ -123,7 +107,9 @@ DataprocPlugin::~DataprocPlugin()
 {
     if ( mode_ )
         removeObject( mode_.get() );
-    delete_editorfactories( factories_ );
+
+    if ( iSequence_ )
+        removeObject( iSequence_.get() );
 }
 
 DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
@@ -156,13 +142,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
         return false;
 
     //-------------------------------------------------------------------------------------------
-    std::wstring apppath;
-    do {
-        QDir dir = QCoreApplication::instance()->applicationDirPath();
-        dir.cdUp();
-        apppath = qtwrapper::wstring::copy( dir.path() );
-    } while(0);
-
+	std::wstring apppath = qtwrapper::application::path( L".." ); // "remove 'bin' from "~/qtplatz/bin"
     std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/dataproc.config.xml" );
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
 
@@ -176,7 +156,11 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     //------------------------------------------------
 
     install_dataprovider( config, apppath );
-	install_editorfactories( config, apppath, factories_ );
+
+    iSequence_.reset( new iSequenceImpl );
+    if ( iSequence_ && install_isequence( config, apppath, *iSequence_ ) ) {
+        addObject( iSequence_.get() );
+    }
 
     //------------------------------------------------
 
@@ -209,10 +193,6 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
         return false;
     mode_->setContext( context );
 
-    // manager_.reset( new DataprocManager(0) );
-    // if ( manager_ )
-    //     manager_->init( config, apppath );
-
     pActionManager_->initialize_actions( context );
     // initialize_actions();
     if ( ! mainWindow_ )
@@ -220,9 +200,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
 
     mainWindow_->activateLayout();
     mainWindow_->createActions();
-
     QWidget * widget = mainWindow_->createContents( mode_.get(), config, apppath );
-    
     mode_->setWidget( widget );
 
     addObject( mode_.get() );
@@ -341,13 +319,14 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 void
 DataprocPlugin::extensionsInitialized()
 {
+/*
 	using adextension::iSequence;
 	QList< iSequence * > adapters = ExtensionSystem::PluginManager::instance()->getObjects< iSequence >();
 	BOOST_FOREACH( iSequence * adapter, adapters ) {
 		BOOST_FOREACH( EditorFactory * factory, factories_ )
 			adapter->addEditorFactory( factory );
 	}
-
+*/
     do {
         std::string ior = adplugin::manager::iorBroker();
         if ( ! ior.empty() ) {
@@ -374,14 +353,14 @@ void
 DataprocPlugin::shutdown()
 {
     adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutting down...  ===============";
-
+/*
     QList< adextension::iSequence * > adapters =
         ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
     BOOST_FOREACH( adextension::iSequence * adapter, adapters ) {
         for ( size_t i = 0; i < factories_.size(); ++i )
             adapter->removeEditorFactory( factories_[i] );
     }
-
+*/
     mainWindow_->OnFinalClose();
 
 	if ( ! CORBA::is_nil( brokerSession_ ) ) {
@@ -424,19 +403,17 @@ DataprocPlugin::install_dataprovider( const adportable::Configuration& config, c
 }
 
 bool
-DataprocPlugin::install_editorfactories( const adportable::Configuration& config
-                                         , const std::wstring& apppath
-                                         , std::vector< EditorFactory * >& factories )
+DataprocPlugin::install_isequence( const adportable::Configuration& config
+                                   , const std::wstring& apppath
+                                   , iSequenceImpl& impl )
 {
     using adportable::Configuration;
-
     const Configuration * tab = Configuration::find( config, L"ProcessMethodEditors" );    
     if ( tab ) {
         for ( Configuration::vector_type::const_iterator it = tab->begin(); it != tab->end(); ++it )
-            factories.push_back( new EditorFactory( *it, apppath ) );
-		return true;
+			impl << iSequenceImpl::iEditorFactoryPtr( new EditorFactory( *it, apppath ) );
     }
-	return false;
+	return impl.size();
 }
 
 void

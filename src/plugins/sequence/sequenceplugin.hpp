@@ -31,10 +31,6 @@
 
 namespace adextension { class iSequence; }
 
-namespace adportable {
-    class Configuration;
-}
-
 namespace sequence {
 
     class Mode;
@@ -56,7 +52,6 @@ namespace sequence {
         private:
             MainWindow * mainWindow_;
             boost::scoped_ptr< Mode > mode_;
-			boost::scoped_ptr< adextension::iSequence > adapter_;
         signals:
         public slots:
 

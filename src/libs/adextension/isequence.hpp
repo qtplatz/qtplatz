@@ -34,8 +34,11 @@ namespace adextension {
     class ADEXTENSIONSHARED_EXPORT iSequence : public QObject {
         Q_OBJECT
     public:
-        virtual void addEditorFactory( iEditorFactory * ) = 0;
-        virtual void removeEditorFactory( iEditorFactory * ) = 0;
+        typedef iEditorFactory* iterator;
+        typedef iEditorFactory& reference;
+
+        virtual size_t size() const = 0;
+        virtual reference operator [] ( size_t idx ) = 0;
     };
 
 }

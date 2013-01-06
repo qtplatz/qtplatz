@@ -27,8 +27,6 @@
 #include "mode.hpp"
 #include "mainwindow.hpp"
 #include "sequenceeditorfactory.hpp"
-#include <adextension/isequence.hpp>
-#include <adextension/ieditorfactory.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/constants.hpp>
@@ -65,52 +63,48 @@
 #include <vector>
 #include <algorithm>
 
-namespace sequence { namespace internal {
+// namespace sequence { namespace internal {
 
-	class SequenceAdapter : public adextension::iSequence {
-		MainWindow& mainWindow_;
-		std::vector< adextension::iEditorFactory * > factories_;
-	public:
-		~SequenceAdapter() {
-            for ( size_t i = 0; i < factories_.size(); ++i )
-				delete factories_[ i ];
-		}
-		SequenceAdapter( MainWindow& mainWindow ) : mainWindow_( mainWindow ) {
-		}
-		virtual void addEditorFactory( adextension::iEditorFactory * p ) {
-			factories_.push_back( p ); // keep pointer for delete on close
-			mainWindow_.createDockWidget( *p );
-		};
-		virtual void removeEditorFactory( adextension::iEditorFactory * p ) {
-			std::vector< adextension::iEditorFactory * >::iterator it = std::remove( factories_.begin(), factories_.end(), p );
-			if ( it != factories_.end() )
-				factories_.erase( it );
-		};
-		//
-		typedef std::vector< adextension::iEditorFactory * > vector_type;
-		size_t size() const { return factories_.size(); }
-		vector_type::iterator begin() { return factories_.begin(); }
-		vector_type::iterator end() { return factories_.end(); }
-	};
+// 	class SequenceAdapter : public adextension::iSequence {
+// 		MainWindow& mainWindow_;
+// 		std::vector< adextension::iEditorFactory * > factories_;
+// 	public:
+// 		~SequenceAdapter() {
+//             for ( size_t i = 0; i < factories_.size(); ++i )
+// 				delete factories_[ i ];
+// 		}
+// 		SequenceAdapter( MainWindow& mainWindow ) : mainWindow_( mainWindow ) {
+// 		}
+// 		virtual void addEditorFactory( adextension::iEditorFactory * p ) {
+// 			factories_.push_back( p ); // keep pointer for delete on close
+// 			mainWindow_.createDockWidget( *p );
+// 		};
+// 		virtual void removeEditorFactory( adextension::iEditorFactory * p ) {
+// 			std::vector< adextension::iEditorFactory * >::iterator it = std::remove( factories_.begin(), factories_.end(), p );
+// 			if ( it != factories_.end() )
+// 				factories_.erase( it );
+// 		};
+// 		//
+// 		typedef std::vector< adextension::iEditorFactory * > vector_type;
+// 		size_t size() const { return factories_.size(); }
+// 		vector_type::iterator begin() { return factories_.begin(); }
+// 		vector_type::iterator end() { return factories_.end(); }
+// 	};
 
-  }
-}
+//   }
+// }
 
 using namespace sequence;
 using namespace sequence::internal;
 
 SequencePlugin::SequencePlugin() : mainWindow_( new MainWindow )
-                                 , adapter_( new SequenceAdapter( *mainWindow_ ) )
 {
 }
 
 SequencePlugin::~SequencePlugin()
 {
-    if ( mode_ )
+	if ( mode_ )
         removeObject( mode_.get() );
-
-	if ( adapter_ )
-		removeObject( adapter_.get() );
 }
 
 /*
@@ -179,10 +173,6 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     }
     // expose editor factory for sequence (table)
     addAutoReleasedObject( new SequenceEditorFactory(this) );
-
-    // expose SequenceAdapter for method editor factories
-    if ( adapter_ )
-        addObject( adapter_.get() );
 
     mode_.reset( new Mode( this ) );
     if ( ! mode_ )

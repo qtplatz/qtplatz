@@ -24,6 +24,7 @@
 
 #include "mainwindow.hpp"
 #include "sequenceplugin.hpp"
+#include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
 #include <adportable/configuration.hpp>
 #include <adplugin/adplugin.hpp>
@@ -42,6 +43,7 @@
 #include <coreplugin/navigationwidget.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
+#include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
 
 #include <QDockWidget>
@@ -55,7 +57,7 @@
 #include <QtGui/qlabel.h>
 #include <QtGui/qicon.h>
 #include <qdebug.h>
-
+#include <boost/foreach.hpp>
 
 namespace sequence {
 
@@ -85,68 +87,25 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
 }
 
 void
-MainWindow::createDockWidget( adextension::iEditorFactory& factory )
-{
-	QWidget * pWidget = factory.createEditor( 0 );
-	if ( pWidget ) {
-		createDockWidget( pWidget, factory.title() );
-
-		adplugin::LifeCycleAccessor accessor( pWidget );
-		adplugin::LifeCycle * pLifeCycle = accessor.get();
-		if ( pLifeCycle )
-			pLifeCycle->OnInitialUpdate();
-
-		setSimpleDockWidgetArrangement();
-	}
-}
-
-/*
-void
-MainWindow::createDockWidgets( const std::wstring& path
-                               , adportable::Configuration& acquire
-                               , adportable::Configuration& dataproc )
-{
-    setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
-    setDocumentMode( true );
-
-    const adportable::Configuration * pTab
-        = adportable::Configuration::find( dataproc, L"ProcessMethodEditors" );
-    if ( pTab ) {
-        using namespace adportable;
-        using namespace adplugin;
-        
-        // std::wstring loadpath = qtwrapper::wstring( dir.path() );
-        // tab pages
-        for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
-            
-			const std::wstring name = it->name();
-            // const std::wstring& component = it->attribute( L"component" );
-            
-            if ( it->isPlugin() ) {
-                QWidget * pWidget = manager::widget_factory( *it, path.c_str(), 0 );
-                if ( pWidget )
-                    createDockWidget( pWidget, qtwrapper::qstring( it->title() ) );
-            }
-        }
-    }            
-}
-*/
-
-void
 MainWindow::OnInitialUpdate()
 {
-/*
-    setSimpleDockWidgetArrangement();
-
-	QList< QDockWidget *> widgets = dockWidgets();
-	foreach ( QDockWidget * widget, widgets ) {
-        QWidget * obj = widget->widget();
-		adplugin::LifeCycleAccessor accessor( obj );
-		adplugin::LifeCycle * pLifeCycle = accessor.get();
-		if ( pLifeCycle )
-			pLifeCycle->OnInitialUpdate();
+	using adextension::iSequence;
+	QList< iSequence * > visitables = ExtensionSystem::PluginManager::instance()->getObjects< iSequence >();
+	BOOST_FOREACH( iSequence * v, visitables ) {
+        QWidget * widget;
+		for ( size_t i = 0; i < v->size(); ++i ) {
+			adextension::iEditorFactory& factory = (*v)[i];
+			if ( widget = factory.createEditor( 0 ) ) {
+				createDockWidget( widget, factory.title() );
+                adplugin::LifeCycleAccessor accessor( widget );
+                adplugin::LifeCycle * pLifeCycle = accessor.get();
+                if ( pLifeCycle )
+                    pLifeCycle->OnInitialUpdate();
+            }
+        }
     }
-*/	
+
+    setSimpleDockWidgetArrangement();
 }
 
 void
