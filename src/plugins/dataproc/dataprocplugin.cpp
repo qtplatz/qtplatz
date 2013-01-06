@@ -411,7 +411,7 @@ DataprocPlugin::install_isequence( const adportable::Configuration& config
     const Configuration * tab = Configuration::find( config, L"ProcessMethodEditors" );    
     if ( tab ) {
         for ( Configuration::vector_type::const_iterator it = tab->begin(); it != tab->end(); ++it )
-			impl << iSequenceImpl::iEditorFactoryPtr( new EditorFactory( *it, apppath ) );
+			impl << iEditorFactoryPtr( new EditorFactory( *it, apppath ) );
     }
 	return impl.size();
 }

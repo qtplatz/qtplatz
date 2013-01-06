@@ -32,8 +32,9 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/fusion/container.hpp>
-#include <boost/fusion/algorithm.hpp>
+
+//#include <boost/fusion/container.hpp>
+//#include <boost/fusion/algorithm.hpp>
 
 #include "mscalibration.hpp"
 

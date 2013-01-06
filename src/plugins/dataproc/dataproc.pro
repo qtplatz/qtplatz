@@ -30,6 +30,7 @@ LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adportable) -l$$qtLibra
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
   LIBS += -lboost_date_time -lboost_system -lboost_filesystem
 }
+macx: QMAKE_CXXFLAGS += -std=c++11
 
 INCLUDEPATH *= $$OUT_PWD/../../libs
 INCLUDEPATH *= $(QWT)/include
