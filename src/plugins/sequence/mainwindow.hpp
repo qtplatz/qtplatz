@@ -27,14 +27,18 @@
 
 #include <utils/fancymainwindow.h>
 #include <boost/smart_ptr.hpp>
+#include <map>
 
 class QHBoxLayout;
 class QWidget;
 class QToolButton;
 class QAction;
+class QLineEdit;
 
 namespace adportable { class Configuration; }
+namespace adplugin   { class LifeCycle; }
 namespace adextension { class iEditorFactory; }
+namespace adsequence  { class sequence; }
 namespace ControlMethod{ struct Method; }
 namespace Core { class IMode; }
 
@@ -63,6 +67,8 @@ namespace sequence {
     signals:
             
     public slots:
+        void handleControlMethodName( const QString& );
+        void handleProcessMethodName( const QString& );
 
     private:
 		QWidget * toolBar_;
@@ -70,6 +76,12 @@ namespace sequence {
         QDockWidget * toolBarDockWidget_;
         QAction * actionConnect_;
         SequenceWidget * sequenceWidget_;
+        QLineEdit * ctrlMethodName_;
+        QLineEdit * procMethodName_;
+        boost::scoped_ptr< adsequence::sequence > sequence_;
+        boost::scoped_ptr< ControlMethod::Method > defaultControlMethod_;
+        std::map< std::string, boost::shared_ptr< ControlMethod::Method > > controlMethods_;
+        std::vector< adplugin::LifeCycle * > editors_;
 
 		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
 		QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }

@@ -35,11 +35,13 @@
 #include <boost/format.hpp>
 #include <algorithm>
 #include <assert.h>
+#include <QMessageBox>
+#include <QDebug>
 
 using namespace sequence;
 
-SequenceWidget::SequenceWidget(QWidget *parent) : QWidget(parent)
-                                                , ui(new Ui::SequenceWidget)
+SequenceWidget::SequenceWidget(QWidget *parent) : QWidget( parent )
+                                                , ui( new Ui::SequenceWidget )
                                                 , model_( new QStandardItemModel )
                                                 , delegate_( new SequenceDelegate )
                                                 , sequence_( new adsequence::sequence )
@@ -51,6 +53,8 @@ SequenceWidget::SequenceWidget(QWidget *parent) : QWidget(parent)
 
     assert( connect( ui->treeView, SIGNAL( customContextMenuRequested( const QPoint& ) )
                       , this, SLOT( showContextMenu( const QPoint& ) ) ) );
+    assert( connect( ui->treeView, SIGNAL( signalCurrentChanged( const QModelIndex&, const QModelIndex& ) )
+        , this, SLOT( handleCurrentChanged( const QModelIndex&, const QModelIndex& ) ) ) );
 }
 
 SequenceWidget::~SequenceWidget()
@@ -85,9 +89,38 @@ SequenceWidget::OnFinalClose()
 }
 
 void
+SequenceWidget::setSequence( const adsequence::sequence& s )
+{
+    *sequence_ = s;
+    // todo:
+    // if schema is not same with previous, then GUI layout should be changed
+    // if control & process method configurations were changed, also change dock widget
+}
+
+void
+SequenceWidget::handleCurrentChanged( const QModelIndex& curr, const QModelIndex& /* prev */ )
+{
+    int row = curr.row();
+    emit controlMethodSelected( model_->index( row, 5 ).data().toString() );
+    emit processMethodSelected( model_->index( row, 6 ).data().toString() );
+}
+
+void
 SequenceWidget::showContextMenu( const QPoint& pt )
 {
     QMenu menu;
+
+    if ( ui->treeView->indexAt( pt ).isValid() ) {
+        const adsequence::schema& schema = sequence_->schema();
+        QModelIndex index = ui->treeView->currentIndex();
+        if ( size_t( index.column() ) < schema.size() ) {
+			const adsequence::column& column = schema[ index.column() ];
+            if ( column.name() == "name_control" || column.name() == "name_process" ) {
+                menu.addAction( "Browse...", this, SLOT( browse() ) );
+                menu.addAction( "Save As...", this, SLOT( saveAs() ) );
+            }
+        }
+    }
 
     menu.addAction( "Add new line", this, SLOT( addLine() ) );
     menu.addAction( "Delete line", this, SLOT( delLine() ) );
@@ -126,4 +159,18 @@ SequenceWidget::delLine()
 {
     QModelIndex index = ui->treeView->currentIndex();
     model_->removeRows( index.row(), 1 );
+}
+
+void
+SequenceWidget::browse()
+{
+	QModelIndex index = ui->treeView->currentIndex();
+	QMessageBox::warning( 0, "SequenceWidget::browse", index.data().toString() );
+}
+
+void
+SequenceWidget::saveAs()
+{
+	QModelIndex index = ui->treeView->currentIndex();
+	QMessageBox::warning( 0, "SequenceWidget::saveAs", index.data().toString() );
 }

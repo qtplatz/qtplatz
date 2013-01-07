@@ -1,6 +1,5 @@
-// -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -62,37 +61,6 @@
 #include <QtCore>
 #include <vector>
 #include <algorithm>
-
-// namespace sequence { namespace internal {
-
-// 	class SequenceAdapter : public adextension::iSequence {
-// 		MainWindow& mainWindow_;
-// 		std::vector< adextension::iEditorFactory * > factories_;
-// 	public:
-// 		~SequenceAdapter() {
-//             for ( size_t i = 0; i < factories_.size(); ++i )
-// 				delete factories_[ i ];
-// 		}
-// 		SequenceAdapter( MainWindow& mainWindow ) : mainWindow_( mainWindow ) {
-// 		}
-// 		virtual void addEditorFactory( adextension::iEditorFactory * p ) {
-// 			factories_.push_back( p ); // keep pointer for delete on close
-// 			mainWindow_.createDockWidget( *p );
-// 		};
-// 		virtual void removeEditorFactory( adextension::iEditorFactory * p ) {
-// 			std::vector< adextension::iEditorFactory * >::iterator it = std::remove( factories_.begin(), factories_.end(), p );
-// 			if ( it != factories_.end() )
-// 				factories_.erase( it );
-// 		};
-// 		//
-// 		typedef std::vector< adextension::iEditorFactory * > vector_type;
-// 		size_t size() const { return factories_.size(); }
-// 		vector_type::iterator begin() { return factories_.begin(); }
-// 		vector_type::iterator end() { return factories_.end(); }
-// 	};
-
-//   }
-// }
 
 using namespace sequence;
 using namespace sequence::internal;

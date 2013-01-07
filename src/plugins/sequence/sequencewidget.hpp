@@ -35,6 +35,7 @@ class SequenceWidget;
 }
 
 class QStandardItemModel;
+class QModelIndex;
 
 namespace sequence {
 
@@ -48,6 +49,7 @@ namespace sequence {
 
         void OnInitialUpdate();
         void OnFinalClose();
+        void setSequence( const adsequence::sequence& );
     
     private:
         Ui::SequenceWidget *ui;
@@ -56,9 +58,16 @@ namespace sequence {
         boost::scoped_ptr< adsequence::sequence > sequence_;
 
     private slots:
+        void handleCurrentChanged( const QModelIndex&, const QModelIndex& );
         void showContextMenu( const QPoint& );
         void addLine();
         void delLine();
+        void browse();
+        void saveAs();
+
+    signals:
+        void controlMethodSelected( const QString& );
+        void processMethodSelected( const QString& );
     };
 }
 

@@ -85,12 +85,19 @@
       </layout>
      </item>
      <item>
-      <widget class="QTreeView" name="treeView"/>
+      <widget class="SequenceView" name="treeView"/>
      </item>
     </layout>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SequenceView</class>
+   <extends>QTreeView</extends>
+   <header>sequenceview.hpp</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

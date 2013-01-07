@@ -27,10 +27,13 @@
 #include "sequencewidget.hpp"
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
+#include <adinterface/controlmethodC.h>
 #include <adportable/configuration.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
+#include <adsequence/sequence.hpp>
+#include <adsequence/schema.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -57,6 +60,7 @@
 #include <QtGui/QTextEdit>
 #include <QtGui/qlabel.h>
 #include <QtGui/qicon.h>
+#include <QtGui/qlineedit.h>
 #include <qdebug.h>
 #include <boost/foreach.hpp>
 
@@ -83,6 +87,10 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , toolBarDockWidget_( 0 )
                                         , actionConnect_ ( 0 )
                                         , sequenceWidget_( 0 )
+                                        , ctrlMethodName_( 0 )
+                                        , procMethodName_( 0 )
+                                        , sequence_( new adsequence::sequence )
+                                        , defaultControlMethod_( new ControlMethod::Method )
 {
 	setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
     setDocumentMode( true );
@@ -101,13 +109,23 @@ MainWindow::OnInitialUpdate()
 				createDockWidget( widget, factory.title() );
                 adplugin::LifeCycleAccessor accessor( widget );
                 adplugin::LifeCycle * pLifeCycle = accessor.get();
-                if ( pLifeCycle )
+                if ( pLifeCycle ) {
                     pLifeCycle->OnInitialUpdate();
+                    editors_.push_back( pLifeCycle );
+                }
             }
         }
     }
-    if ( sequenceWidget_ )
+
+    ControlMethod::Method m;
+    BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ )
+        editor->OnUpdate( boost::any( &m ) );  // to get value, set pointer
+
+    if ( sequenceWidget_ ) {
         sequenceWidget_->OnInitialUpdate();
+        assert( connect( sequenceWidget_, SIGNAL( controlMethodSelected( const QString& ) ), this, SLOT( handleControlMethodName( const QString& ) ) ) );
+        assert( connect( sequenceWidget_, SIGNAL( processMethodSelected( const QString& ) ), this, SLOT( handleProcessMethodName( const QString& ) ) ) );
+    }
     setSimpleDockWidgetArrangement();
 }
 
@@ -150,69 +168,89 @@ MainWindow::createContents( Core::IMode * mode )
 	editorHolderLayout->setSpacing( 0 );
 	    
     QWidget * editorAndFindWidget = new QWidget;
-	editorAndFindWidget->setLayout( editorHolderLayout );
-	// editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) );
-	editorHolderLayout->addWidget( sequenceWidget_ = new SequenceWidget );
-	editorHolderLayout->addWidget( new Core::FindToolBarPlaceHolder( editorAndFindWidget ) );
+    if ( editorAndFindWidget ) {
+        editorAndFindWidget->setLayout( editorHolderLayout );
+        // editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) );
+        editorHolderLayout->addWidget( sequenceWidget_ = new SequenceWidget );
+        editorHolderLayout->addWidget( new Core::FindToolBarPlaceHolder( editorAndFindWidget ) );
+    }
 
-	Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
-    documentAndRightPane->addWidget( editorAndFindWidget );
-    documentAndRightPane->addWidget( new Core::RightPanePlaceHolder( mode ) );
-	documentAndRightPane->setStretchFactor( 0, 1 );
-    documentAndRightPane->setStretchFactor( 1, 0 );
+    Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
+    if ( documentAndRightPane ) {
+        documentAndRightPane->addWidget( editorAndFindWidget );
+        documentAndRightPane->addWidget( new Core::RightPanePlaceHolder( mode ) );
+        documentAndRightPane->setStretchFactor( 0, 1 );
+        documentAndRightPane->setStretchFactor( 1, 0 );
+    }
 
     Utils::StyledBar * toolBar = new Utils::StyledBar;
-	toolBar->setProperty( "topBorder", true );
-	QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-	toolBarLayout->setMargin( 0 );
-	toolBarLayout->setSpacing( 0 );
-	// toolBarLayout->addWidget( toolBar_ );
-	// toolBarLayout->addWidget( toolButton( actionSearch_ ) );
-	toolBarLayout->addWidget( new QLabel( tr("Alchemy") ) );
-	toolBarLayout->addWidget( new QLabel( tr("Chemistry") ) );
-	toolBarLayout->addWidget( new QLabel( tr("Physics") ) );
-	//
-	QDockWidget * dock = new QDockWidget( "Sequence Toolbar" );
-	dock->setObjectName( QLatin1String( "Sequence Toolbar" ) );
-	// dock->setWidget( toolBar );
-	dock->setFeatures( QDockWidget::NoDockWidgetFeatures );
-	dock->setAllowedAreas( Qt::BottomDockWidgetArea );
-	dock->setTitleBarWidget( new QWidget( dock ) );
-	dock->setProperty( "manaaged_dockwidget", QLatin1String( "true" ) );
-	addDockWidget( Qt::BottomDockWidgetArea, dock );
-	setToolBarDockWidget( dock );
+    if ( toolBar ) {
+        toolBar->setProperty( "topBorder", true );
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setSpacing( 0 );
+        // toolBarLayout->addWidget( toolBar_ );
+        // toolBarLayout->addWidget( toolButton( actionSearch_ ) );
+        toolBarLayout->addItem( new QSpacerItem( 40, 20 ) );
+        toolBarLayout->addWidget( new QLabel( tr("Control Method: ") ) );
+        toolBarLayout->addWidget( ctrlMethodName_ = new QLineEdit );
+        ctrlMethodName_->setReadOnly( true );
 
-	//---------- centraol widget ------------
+        toolBarLayout->addItem( new QSpacerItem( 40, 20 ) );
+        toolBarLayout->addWidget( new QLabel( tr("Process Method: ") ) );
+        toolBarLayout->addWidget( procMethodName_ = new QLineEdit );
+        procMethodName_->setReadOnly( true );
+
+        toolBarLayout->addItem( new QSpacerItem( 40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum ) );
+        //
+        QDockWidget * dock = new QDockWidget( "Sequence Toolbar" );
+        dock->setObjectName( QLatin1String( "Sequence Toolbar" ) );
+        // dock->setWidget( toolBar );
+        dock->setFeatures( QDockWidget::NoDockWidgetFeatures );
+        dock->setAllowedAreas( Qt::BottomDockWidgetArea );
+        dock->setTitleBarWidget( new QWidget( dock ) );
+        dock->setProperty( "manaaged_dockwidget", QLatin1String( "true" ) );
+        addDockWidget( Qt::BottomDockWidgetArea, dock );
+        setToolBarDockWidget( dock );
+    }
+
+	//---------- central widget ------------
 	QWidget * centralWidget = new QWidget;
-	setCentralWidget( centralWidget );
+    if ( centralWidget ) {
+        setCentralWidget( centralWidget );
 
-	QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
-	centralWidget->setLayout( centralLayout );
-	centralLayout->setMargin( 0 );
-	centralLayout->setSpacing( 0 );
-    centralLayout->addWidget( documentAndRightPane );
-	centralLayout->setStretch( 0, 1 );
-	centralLayout->setStretch( 1, 0 );
+        QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
+        centralWidget->setLayout( centralLayout );
+        centralLayout->setMargin( 0 );
+        centralLayout->setSpacing( 0 );
+        centralLayout->addWidget( documentAndRightPane ); // [0]
+        centralLayout->setStretch( 0, 1 );
+        centralLayout->setStretch( 1, 0 );
 
-	centralLayout->addWidget( toolBar );
+        centralLayout->addWidget( toolBar );              // [1]
+    }
 
 	// Right-side window with editor, output etc.
 	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
-    QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
-    outputPane->setObjectName( QLatin1String( "SequenceOutputPanePlaceHolder" ) );
-	mainWindowSplitter->addWidget( this );
-    mainWindowSplitter->addWidget( outputPane );
-	mainWindowSplitter->setStretchFactor( 0, 10 );
-	mainWindowSplitter->setStretchFactor( 1, 0 );
-	mainWindowSplitter->setOrientation( Qt::Vertical );
+    if ( mainWindowSplitter ) {
+        QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
+        outputPane->setObjectName( QLatin1String( "SequenceOutputPanePlaceHolder" ) );
+        mainWindowSplitter->addWidget( this );
+        mainWindowSplitter->addWidget( outputPane );
+        mainWindowSplitter->setStretchFactor( 0, 10 );
+        mainWindowSplitter->setStretchFactor( 1, 0 );
+        mainWindowSplitter->setOrientation( Qt::Vertical );
+    }
 
 	// Navigation and right-side window
-	Core::MiniSplitter * splitter = new Core::MiniSplitter;
-	splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
-    splitter->addWidget( mainWindowSplitter );
-    splitter->setStretchFactor( 0, 0 );
-    splitter->setStretchFactor( 1, 1 );
-    splitter->setObjectName( QLatin1String( "SequenceModeWidget" ) );
+	Core::MiniSplitter * splitter = new Core::MiniSplitter;               // entier this view
+    if ( splitter ) {
+        splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) ); // navegate
+        splitter->addWidget( mainWindowSplitter );                            // *this + ontput
+        splitter->setStretchFactor( 0, 0 );
+        splitter->setStretchFactor( 1, 1 );
+        splitter->setObjectName( QLatin1String( "SequenceModeWidget" ) );
+    }
 
 	return splitter;
 }
@@ -261,6 +299,18 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title )
     addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
 
     return dockWidget;
+}
+
+void
+MainWindow::handleControlMethodName( const QString& name )
+{
+    ctrlMethodName_->setText( name );
+}
+
+void
+MainWindow::handleProcessMethodName( const QString& name )
+{
+    procMethodName_->setText( name );
 }
 
 void

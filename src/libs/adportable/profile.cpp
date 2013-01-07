@@ -69,7 +69,8 @@ namespace adportable { namespace detail {
 		struct passwd * pw = getpwuid( geteuid() );
         return pw->pw_dir;
 	}
-	template<> std::wstring posixapi::user_data_dir()
+
+    template<> std::wstring posixapi::user_data_dir()
 	{
 		struct passwd * pw = getpwuid( geteuid() );
         return adportable::string::convert( pw->pw_dir );

@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -22,15 +22,15 @@
 **
 **************************************************************************/
 
-#ifndef SEQUENCE_GLOBAL_H
-#define SEQUENCE_GLOBAL_H
+#include "sequenceview.hpp"
+#include "sequencewidget.hpp"
 
-#include <QtCore/qglobal.h>
+SequenceView::SequenceView(QWidget *parent) : QTreeView(parent)
+{
+}
 
-#if defined(SEQUENCE_LIBRARY)
-#  define SEQUENCESHARED_EXPORT Q_DECL_EXPORT
-#else
-#  define SEQUENCESHARED_EXPORT Q_DECL_IMPORT
-#endif
-
-#endif // SEQUENCE_GLOBAL_H
+void
+SequenceView::currentChanged( const QModelIndex& curr, const QModelIndex& prev )
+{
+    emit signalCurrentChanged( curr, prev );
+}
