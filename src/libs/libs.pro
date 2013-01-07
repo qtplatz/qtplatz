@@ -8,12 +8,12 @@ SUBDIRS   = \
     adportable \
     adextension \
     adinterface \
+    xmlparser \
     portfolio \
     adutils \
     acewrapper \
     adcontrols \
     chromatogr \
-    xmlparser \
     adtxtfactory \
     adfs \
     addatafile \

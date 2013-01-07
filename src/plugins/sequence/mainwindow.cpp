@@ -118,8 +118,10 @@ MainWindow::OnInitialUpdate()
     }
 
     ControlMethod::Method m;
-    BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ )
-        editor->OnUpdate( boost::any( &m ) );  // to get value, set pointer
+    BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ ) {
+        boost::any any( static_cast<ControlMethod::Method *>(&m) );
+        editor->OnUpdate( any );  // to get value, set pointer
+    }
 
     if ( sequenceWidget_ ) {
         sequenceWidget_->OnInitialUpdate();

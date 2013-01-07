@@ -25,29 +25,14 @@
 
 #include "sequence.hpp"
 
-#if defined _DEBUG
-#     pragma comment(lib, "adportabled.lib")
-#     pragma comment(lib, "adplugind.lib")
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "acewrapperd.lib")
-#     pragma comment(lib, "qtwrapperd.lib")
-#else
-#     pragma comment(lib, "adportable.lib")
-#     pragma comment(lib, "adplugin.lib")
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "acewrapper.lib")
-#     pragma comment(lib, "qtwrapper.lib")
-#endif
-
 using namespace sequence::internal;
 
 Sequence::~Sequence()
 {
 }
 
-Sequence::Sequence(QObject *parent) :
-    Core::IFile(parent)
-    , modified_(true)
+Sequence::Sequence(QObject *parent) : Core::IFile(parent)
+                                    , modified_(true)
 {
 }
 
