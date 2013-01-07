@@ -8,19 +8,19 @@ SUBDIRS   = \
     adportable \
     adextension \
     adinterface \
+    portfolio \
+    adutils \
+    acewrapper \
     adcontrols \
+    chromatogr \
+    xmlparser \
     adtxtfactory \
     adfs \
     addatafile \
     adwplot \
-    adplugin \
-    adutils \
-    xmlparser \
     qtwrapper \
-    portfolio \
-    acewrapper \
+    adplugin \
     qtwidgets \
-    chromatogr \
     adchem \
     adsequence
 
