@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
-    <mime-type type="application/qtplatz.sequence">
-        <sub-class-of type="text/plain"/>
+    <mime-type type="application/sequ">
+        <sub-class-of type="application/octet-stream"/>
         <comment>Sample sequence</comment>
         <glob pattern="*.sequ"/>
     </mime-type>
-    <mime-type type="application/qtplatz-ctrlmethod">
-      <sub-class-of type="text/plain"/>
+    <mime-type type="application/cmth">
+      <sub-class-of type="application/octet-stream"/>
         <comment>Control Method</comment>
         <glob pattern="*.cmth"/>
     </mime-type>
-    <mime-type type="application/qtplatz-procmethod">
-        <sub-class-of type="text/plain"/>
+    <mime-type type="application/pmth">
+        <sub-class-of type="application/octet-stream"/>
         <comment>Process Method</comment>
         <glob pattern="*.pmth"/>
     </mime-type>

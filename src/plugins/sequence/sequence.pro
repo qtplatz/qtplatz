@@ -36,7 +36,7 @@ DEFINES += SEQUENCE_LIBRARY
 SOURCES +=  sequenceplugin.cpp \
     sequenceeditor.cpp \
     sequenceeditorfactory.cpp \
-    sequence.cpp \
+    sequencefile.cpp \
     mainwindow.cpp \
     mode.cpp \
     sequencewidget.cpp \
@@ -44,7 +44,7 @@ SOURCES +=  sequenceplugin.cpp \
     sequenceview.cpp
 
 HEADERS += sequence_global.h \
-    sequence.hpp \
+    sequencefile.hpp \
     sequenceplugin.hpp \
     sequenceeditorfactory.hpp \
     sequenceeditor.hpp \

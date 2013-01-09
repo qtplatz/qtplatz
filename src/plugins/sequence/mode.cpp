@@ -35,14 +35,17 @@ using namespace sequence;
 Mode::Mode(QObject *parent) :  Core::BaseMode(parent)
 {
     setName( tr("Sequence" ) );
-    setUniqueModeName( "Sequence.Mode" );
+    setUniqueModeName( sequence::Constants::C_SEQUENCE_MODE );
     setIcon(QIcon(":/sequence/images/DefineControls.png"));
     setPriority( 90 );
 
-	QList<int> contexts = QList<int>() <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDITORMANAGER ) <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier( sequence::Constants::C_SEQUENCE_MODE ) <<
-        Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE );
+    QList<int> contexts = QList<int>() 
+        << Core::UniqueIDManager::instance()->uniqueIdentifier( sequence::Constants::C_SEQUENCE_MODE )
+        //<< Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDIT_MODE )
+        //<< Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDITORMANAGER )
+        //<< Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE )
+        ;
+        
     setContext( contexts );
 
     Core::ModeManager *modeManager = Core::ModeManager::instance();
@@ -52,4 +55,14 @@ Mode::Mode(QObject *parent) :  Core::BaseMode(parent)
 Mode::~Mode()
 {
     Core::EditorManager::instance()->setParent( 0 );
+}
+
+void
+Mode::grabEditorManager( Core::IMode * mode )
+{
+    if ( mode != this )
+        return;
+    Core::EditorManager * em = Core::EditorManager::instance();
+    if ( em && em->currentEditor() )
+        em->currentEditor()->widget()->setFocus();
 }

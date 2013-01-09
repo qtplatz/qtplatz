@@ -38,6 +38,7 @@ namespace sequence {
     signals:
     
     public slots:
+        void grabEditorManager( Core::IMode * mode );
     
     };
 

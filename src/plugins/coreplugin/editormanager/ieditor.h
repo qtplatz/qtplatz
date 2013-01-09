@@ -65,6 +65,8 @@ public:
 
     virtual QWidget *toolBar() = 0;
 
+	virtual const char * uniqueModeName() const { return 0; }  // TH added in order to place editor in other mode pane
+
 signals:
     void changed();
 };

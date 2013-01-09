@@ -56,6 +56,7 @@ namespace dataproc {
         virtual bool restoreState(const QByteArray &state);
         virtual bool isTemporary() const;
         virtual QWidget *toolBar();
+        virtual const char * uniqueModeName() const;
 
         // Core::IContext
         QWidget * widget();

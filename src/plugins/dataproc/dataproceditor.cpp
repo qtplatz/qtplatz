@@ -159,6 +159,12 @@ DataprocEditor::toolBar()
     return 0;
 }
 
+const char * 
+DataprocEditor::uniqueModeName() const
+{
+    return dataproc::Constants::C_DATAPROC_MODE;
+}
+
 // Core::IContext
 QWidget *
 DataprocEditor::widget()

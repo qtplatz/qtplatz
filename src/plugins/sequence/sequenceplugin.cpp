@@ -37,15 +37,16 @@
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
+#include <coreplugin/editormanager/editormanager.h>
+#include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/mimedatabase.h>
-
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
 #include <coreplugin/navigationwidget.h>
 #include <coreplugin/rightpane.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/modemanager.h>
-
+#include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
 #include <utils/fancymainwindow.h>
 
@@ -75,25 +76,6 @@ SequencePlugin::~SequencePlugin()
         removeObject( mode_.get() );
 }
 
-/*
-QWidget *
-SequencePlugin::CreateSequenceWidget( const std::wstring& apppath, const adportable::Configuration& config )
-{
-    const adportable::Configuration * pSeq = adportable::Configuration::find( config, L"sequence_monitor" );
-    if ( pSeq ) {
-        const std::wstring name = pSeq->name();
-        if ( pSeq->isPlugin() ) {
-            QWidget * pWidget = adplugin::manager::widget_factory( *pSeq, apppath.c_str(), 0 );
-            adplugin::LifeCycle * pLifeCycle = dynamic_cast< adplugin::LifeCycle *>( pWidget );
-            if ( pLifeCycle )
-                pLifeCycle->OnInitialUpdate();
-            return pWidget;
-        }
-    }
-    return 0;
-}
-*/
-
 bool
 SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
 {
@@ -117,22 +99,6 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     std::wstring apppath = qtwrapper::wstring::copy( dir.path() );
     dir.cd( adpluginDirectory );
     std::wstring pluginpath = qtwrapper::wstring::copy( dir.path() );
-	/*
-	adportable::Configuration acquire_config;
-    adportable::Configuration dataproc_config;
-    do {
-        std::wstring file = pluginpath + L"/acquire.config.xml";
-        const wchar_t * query = L"/AcquireConfiguration/Configuration";
-        adplugin::manager::instance()->loadConfig( acquire_config, file, query );
-    } while(0);
-
-    do {
-        std::wstring file = pluginpath + L"/dataproc.config.xml";
-        const wchar_t * query = L"/DataprocConfiguration/Configuration";
-        adplugin::manager::instance()->loadConfig( dataproc_config, file, query );
-    } while(0);
-    //----
-   */
     
     Core::MimeDatabase* mdb = core->mimeDatabase();
     if ( mdb ) {
@@ -166,6 +132,14 @@ void
 SequencePlugin::extensionsInitialized()
 {
     mainWindow_->OnInitialUpdate();
+#if 0
+    Core::EditorManager * em = Core::ICore::instance()->editorManager();
+    SequenceEditorFactory * factory = ExtensionSystem::PluginManager::instance()->getObject< SequenceEditorFactory >();
+    if ( em && factory ) {
+        Core::IEditor * ieditor = factory->createEditor( 0 );
+        em->pushEditor( ieditor );
+    }
+#endif
 }
 
 void

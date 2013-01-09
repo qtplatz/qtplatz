@@ -905,7 +905,7 @@ Core::IEditor *EditorManager::activateEditor(Core::Internal::EditorView *view, C
     if (!(flags & NoActivate)) {
         setCurrentEditor(editor, (flags & IgnoreNavigationHistory));
         if (!(flags & NoModeSwitch))
-            ensureEditorManagerVisible();
+            ensureEditorManagerVisible( editor->uniqueModeName() );  // TH added in order to place editor in different mode
         if (isVisible())
             editor->widget()->setFocus();
     }
@@ -1221,10 +1221,10 @@ QStringList EditorManager::getOpenFileNames() const
     return files;
 }
 
-void EditorManager::ensureEditorManagerVisible()
+void EditorManager::ensureEditorManagerVisible( const char * uniqueModeName )
 {
     if (!isVisible())
-        m_d->m_core->modeManager()->activateMode(Constants::MODE_EDIT);
+        m_d->m_core->modeManager()->activateMode( uniqueModeName ? uniqueModeName : Constants::MODE_EDIT );  // TH modified 9th January 2013
 }
 
 IEditor *EditorManager::openEditorWithContents(const QString &editorKind,
@@ -1566,7 +1566,7 @@ void EditorManager::goBackInNavigationHistory()
 {
     currentEditorView()->goBackInNavigationHistory();
     updateActions();
-    ensureEditorManagerVisible();
+    ensureEditorManagerVisible( 0 );  // TH
     return;
 }
 
@@ -1574,7 +1574,7 @@ void EditorManager::goForwardInNavigationHistory()
 {
     currentEditorView()->goForwardInNavigationHistory();
     updateActions();
-    ensureEditorManagerVisible();
+    ensureEditorManagerVisible( 0 ); // TH
 }
 
 OpenEditorsWindow *EditorManager::windowPopup() const
@@ -1664,7 +1664,7 @@ bool EditorManager::restoreState(const QByteArray &state)
     m_d->m_splitter->restoreState(splitterstates);
 
     // splitting and stuff results in focus trouble, that's why we set the focus again after restoration
-    ensureEditorManagerVisible();
+    // ensureEditorManagerVisible(); // TH
     if (m_d->m_currentEditor) {
         m_d->m_currentEditor->widget()->setFocus();
     } else if (Core::Internal::SplitterOrView *view = currentSplitterOrView()) {

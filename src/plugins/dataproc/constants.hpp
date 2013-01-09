@@ -30,6 +30,7 @@ namespace dataproc {
 
     namespace Constants {
         const char * const C_DATAPROCESSOR = "Dataprocessor";
+        const char * const C_DATAPROC_MODE = "Dataproc.Mode";
         const char * const C_DATA_TEXT_MIMETYPE = "application/txt";
         const char * const C_DATA_NATIVE_MIMETYPE = "application/adfs";
     }

@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #ifndef SEQUENCEEDITOR_H
 #define SEQUENCEEDITOR_H
@@ -36,7 +32,7 @@
 namespace sequence {
   namespace internal {
 
-    class Sequence;
+    class SequenceFile;
 
     class SequenceEditor : public Core::IEditor {
       Q_OBJECT
@@ -58,11 +54,13 @@ namespace sequence {
       virtual int currentColumn() const { return 0; }
       virtual bool isTemporary() const;
       virtual QWidget *toolBar();
+      // TH added on 9th Jaunary 2013 in order to place editor in specific mode
+      virtual const char * uniqueModeName() const;
       // <-- end Core::IEditor
 
       // implement IContext
-      virtual QList<int> context() const { return context_; }
-      virtual QWidget * widget() { return widget_; }
+      virtual QList<int> context() const;
+      virtual QWidget * widget();
       // <--
 
     signals:
@@ -72,8 +70,8 @@ namespace sequence {
 
     private:
       QList<int> context_;
-      boost::shared_ptr< Sequence > sequence_;
-      QString displayName_;
+      boost::shared_ptr< SequenceFile > file_;
+      QString displayName_;  // this will shows on Navigator's 'Open Documents' pane
       QWidget * widget_;
     };
 

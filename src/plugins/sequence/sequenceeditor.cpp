@@ -23,21 +23,27 @@
 **************************************************************************/
 
 #include "sequenceeditor.hpp"
-#include "sequence.hpp"
+#include "sequencefile.hpp"
 #include "constants.hpp"
+#include "sequencewidget.hpp"
 #include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/filemanager.h>
+#include <coreplugin/icore.h>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
+#include <qtwrapper/qstring.hpp>
 
 using namespace sequence;
 using namespace sequence::internal;
 
-SequenceEditor::SequenceEditor(QObject *parent) :
-    Core::IEditor(parent)
-    , widget_(0)
+SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
+                                                , widget_( new QWidget ) // dummy pointer for EditorManager
+                                                , displayName_( "Sequence Editor" )
 {
-  Core::UniqueIDManager* uidm = Core::UniqueIDManager::instance();
-  if ( uidm ) {
-    context_ << uidm->uniqueIdentifier( Constants::C_SEQUENCE );
-  }
+    Core::UniqueIDManager* uidm = Core::UniqueIDManager::instance();
+    if ( uidm )
+        context_ << uidm->uniqueIdentifier( Constants::C_SEQUENCE );
+    file_.reset( new SequenceFile(0) );
 }
 
 // Core::IEditor
@@ -45,39 +51,61 @@ bool
 SequenceEditor::createNew(const QString &contents )
 {
     Q_UNUSED( contents );
-    return false;
+    file_.reset( new SequenceFile(0) );
+    return true;
+}
+
+const char *
+SequenceEditor::uniqueModeName() const 
+{
+    return sequence::Constants::C_SEQUENCE_MODE;
 }
 
 bool
 SequenceEditor::open(const QString &fileName )
 {
-    Q_UNUSED( fileName );
-    // todo
+    boost::filesystem::path path( qtwrapper::wstring::copy( fileName ) );
+
+    if ( boost::filesystem::exists( path ) ) {
+        // open(path)
+        // load( sequence_ )
+        file_.reset( new SequenceFile( fileName ) );
+
+        Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
+        if ( filemgr && filemgr->addFile( file_.get() ) )
+            filemgr->addToRecentFiles( fileName );
+        
+        return true;
+    }
+
     return false;
 }
 
 Core::IFile *
 SequenceEditor::file()
 {
-  return static_cast<Core::IFile *>( sequence_.get() );
+    return static_cast<Core::IFile *>( file_.get() );
 }
 
 const char *
 SequenceEditor::kind() const
 {
-  return Constants::C_SEQUENCE;
+    return Constants::C_SEQUENCE;
 }
 
 QString
 SequenceEditor::displayName() const
 {
-  return displayName_;
+    // displayName shows on "Open Documents" pane in Navigator
+    if ( file_ )
+        return file_->fileName();
+    return "SequenceEditor";
 }
 
 void
 SequenceEditor::setDisplayName(const QString &title)
 {
-  displayName_ = title;
+    displayName_ = title;
 }
 
 bool
@@ -118,6 +146,19 @@ SequenceEditor::toolBar()
   return 0;
 }
 // end Core::IEditor
+
+// implement IContext
+QList<int>
+SequenceEditor::context() const
+{ 
+    return context_;
+}
+
+QWidget *
+SequenceEditor::widget()
+{ 
+    return widget_;
+}
 
 void
 SequenceEditor::slotTitleChanged( const QString& title )

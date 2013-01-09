@@ -36,18 +36,15 @@ SequenceEditorFactory::~SequenceEditorFactory()
 {
 }
 
-SequenceEditorFactory::SequenceEditorFactory(QObject *parent) :
-    Core::IEditorFactory(parent)
-    , kind_( Constants::C_SEQUENCE )
+SequenceEditorFactory::SequenceEditorFactory(QObject *parent) :  Core::IEditorFactory(parent)
+                                                              , kind_( Constants::C_SEQUENCE )
 {
-  mimeTypes_ << Constants::C_SEQUENCE_MIMETYPE;
-  // mimeTypes_ << Constants::C_CTRLMETHOD_MIMETYPE;
-  // mimeTypes_ << Constants::C_PROCMETHOD_MIMETYPE;
+    mimeTypes_ << Constants::C_SEQUENCE_MIMETYPE;
 }
 
 // implementation for IEditorFactory
 Core::IEditor *
-SequenceEditorFactory::createEditor( QWidget * parent )
+SequenceEditorFactory::createEditor( QWidget * )
 {
 	return new SequenceEditor();
 }

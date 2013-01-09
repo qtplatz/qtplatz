@@ -126,7 +126,7 @@ public:
     QStringList getOpenFileNames() const;
     QString getOpenWithEditorKind(const QString &fileName, bool *isExternalEditor = 0) const;
 
-    void ensureEditorManagerVisible();
+    void ensureEditorManagerVisible( const char * uniqueModeName );  // TH modified, 9th January 2013
     bool hasEditor(const QString &fileName) const;
     QList<IEditor *> editorsForFileName(const QString &filename) const;
     QList<IEditor *> editorsForFile(IFile *file) const;

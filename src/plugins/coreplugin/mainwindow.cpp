@@ -809,6 +809,7 @@ static IFileFactory *findFileFactory(const QList<IFileFactory*> &fileFactories,
 void MainWindow::openFiles(const QStringList &fileNames)
 {
     bool needToSwitchToEditor = false;
+    const char * uniqueModeName = 0;
     QList<IFileFactory*> nonEditorFileFactories = getNonEditorFileFactories();
 
     foreach (const QString &fileName, fileNames) {
@@ -818,12 +819,14 @@ void MainWindow::openFiles(const QStringList &fileNames)
             fileFactory->open(absoluteFilePath);
         } else {
             IEditor *editor = editorManager()->openEditor(absoluteFilePath);
-            if (editor)
+            if (editor) {
                 needToSwitchToEditor = true;
+                uniqueModeName = editor->uniqueModeName();
+            }
         }
     }
     if (needToSwitchToEditor)
-        editorManager()->ensureEditorManagerVisible();
+        editorManager()->ensureEditorManagerVisible( uniqueModeName );
 }
 
 void MainWindow::setFocusToEditor()
@@ -1212,8 +1215,8 @@ void MainWindow::openRecentFile()
         return;
     QString fileName = action->data().toString();
     if (!fileName.isEmpty()) {
-        editorManager()->openEditor(fileName);
-        editorManager()->ensureEditorManagerVisible();
+        IEditor * editor = editorManager()->openEditor(fileName);  // TH change for editor in different mode, 9th January 2013
+        editorManager()->ensureEditorManagerVisible( editor->uniqueModeName() ); // TH ibid
     }
 }
 
