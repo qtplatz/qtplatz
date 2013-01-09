@@ -63,11 +63,13 @@ bool CorePlugin::initialize(const QStringList &arguments, QString *errorMessage)
     Q_UNUSED(arguments)
     const bool success = m_mainWindow->init(errorMessage);
     if (success) {
+#if 0   // TH, modified
 		//---> delete following 3 lines in order to remove "Edit", TH
         EditorManager *editorManager = m_mainWindow->editorManager();
         m_editMode = new EditMode(editorManager);
         addObject(m_editMode);
 		//<---
+#endif
     }
     return success;
 }

@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "chemeditor.hpp"
+#include "constants.hpp"
 #include "chemeditorfactory.hpp"
 #include "chemfile.hpp"
 #include "sdfileview.hpp"
@@ -138,6 +139,12 @@ QWidget *
 ChemEditor::toolBar()
 {
     return 0;
+}
+
+const char * 
+ChemEditor::uniqueModeName() const
+{
+    return Constants::C_CHEM_MODE;
 }
 
 // Core::IContext
