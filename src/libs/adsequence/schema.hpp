@@ -25,6 +25,9 @@
 #pragma once
 
 #include "adsequence_global.hpp"
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/string.hpp>
 #include <vector>
 #include <string>
 
@@ -47,6 +50,13 @@ namespace adsequence {
         std::string name_;
         std::string display_name_;
         COLUMN_TYPE type_;
+
+        friend class boost::serialization::access;
+        template<class Archive> void serialize( Archive& ar, const unsigned int ) {
+            ar & name_
+               & display_name_
+               & type_;
+        }
     };
 
     class ADSEQUENCESHARED_EXPORT schema {
@@ -66,6 +76,12 @@ namespace adsequence {
 
     private:
         vector_type schema_;
+
+        friend class boost::serialization::access;
+        template<class Archive> void serialize( Archive& ar, const unsigned int ) {
+            ar & schema_;
+        }
+
     };
 
 }

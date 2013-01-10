@@ -38,10 +38,11 @@ namespace sequence {
       Q_OBJECT
     public:
       ~SequenceFile();
-      explicit SequenceFile(QObject *parent = 0);
+      explicit SequenceFile( QObject *parent = 0 );
       explicit SequenceFile( const QString& path );
+      bool load( const QString& path = "" );
       
-	  void setModified( bool val = true );
+      void setModified( bool val = true );
 
       // implement Core::IFile
       virtual bool save(const QString &fileName);
@@ -57,6 +58,10 @@ namespace sequence {
       
       virtual void modified(ReloadBehavior *behavior);
       virtual void checkPermissions() {}
+
+      // 
+      adsequence::sequence& adsequence() { return *adsequence_; }
+      const adsequence::sequence& adsequence() const { return *adsequence_; }
 
     signals:
 

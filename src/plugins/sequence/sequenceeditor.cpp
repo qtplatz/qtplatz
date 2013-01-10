@@ -37,13 +37,14 @@ using namespace sequence;
 using namespace sequence::internal;
 
 SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
-                                                , widget_( new QWidget ) // dummy pointer for EditorManager
+                                                , widget_( new SequenceWidget )
                                                 , displayName_( "Sequence Editor" )
 {
     Core::UniqueIDManager* uidm = Core::UniqueIDManager::instance();
     if ( uidm )
         context_ << uidm->uniqueIdentifier( Constants::C_SEQUENCE );
     file_.reset( new SequenceFile(0) );
+    widget_->OnInitialUpdate();
 }
 
 // Core::IEditor
@@ -65,15 +66,23 @@ bool
 SequenceEditor::open(const QString &fileName )
 {
     boost::filesystem::path path( qtwrapper::wstring::copy( fileName ) );
-
+    
     if ( boost::filesystem::exists( path ) ) {
+
         // open(path)
         // load( sequence_ )
         file_.reset( new SequenceFile( fileName ) );
 
-        Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
-        if ( filemgr && filemgr->addFile( file_.get() ) )
-            filemgr->addToRecentFiles( fileName );
+        if ( file_->load() ) {
+
+            widget_->setSequenceName( fileName );
+            widget_->setSequence( file_->adsequence() );
+
+            Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
+            if ( filemgr && filemgr->addFile( file_.get() ) )
+                filemgr->addToRecentFiles( fileName );
+
+        }
         
         return true;
     }

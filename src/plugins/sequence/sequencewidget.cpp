@@ -98,6 +98,18 @@ SequenceWidget::setSequence( const adsequence::sequence& s )
 }
 
 void
+SequenceWidget::setSequenceName( const QString& name )
+{
+    ui->lineEditName->setText( name );
+}
+
+void
+SequenceWidget::setDataSaveIn( const QString& dir )
+{
+    ui->lineEditDataDir->setText( dir );
+}
+
+void
 SequenceWidget::handleCurrentChanged( const QModelIndex& curr, const QModelIndex& /* prev */ )
 {
     int row = curr.row();

@@ -16,6 +16,10 @@ include(../../boost.pri)
   LIBS += -lboost_date_time -lboost_system -lboost_wserialization -lboost_serialization 
 }
 
+#LIBS += -L$$IDE_LIBRARY_PATH
+LIBS += -l$$qtLibraryTarget( adportable )
+
+
 DEFINES += ADSEQUENCE_LIBRARY
 
 SOURCES += adsequence.cpp \

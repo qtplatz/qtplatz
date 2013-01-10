@@ -50,6 +50,8 @@ namespace sequence {
         void OnInitialUpdate();
         void OnFinalClose();
         void setSequence( const adsequence::sequence& );
+        void setSequenceName( const QString& );
+        void setDataSaveIn( const QString& );
     
     private:
         Ui::SequenceWidget *ui;

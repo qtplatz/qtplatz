@@ -23,12 +23,16 @@ LIBS += -l$$qtLibraryTarget(adcontroller) -l$$qtLibraryTarget(adcontrols) \
 	-l$$qtLibraryTarget(xmlparser)    -l$$qtLibraryTarget(adplugin) \
 	-l$$qtLibraryTarget(adextension)  -l$$qtLibraryTarget(adsequence)
 
-LIBS += -l$$qtLibraryTarget( TAO ) \
+!win32 {
+  LIBS += -lTAO -lTAO_Utils -lTAO_PI -lTAO_PortableServer -lTAO_AnyTypeCode -lACE
+} else {
+  LIBS += -l$$qtLibraryTarget( TAO ) \
         -l$$qtLibraryTarget( TAO_Utils ) \
         -l$$qtLibraryTarget( TAO_PI ) \
         -l$$qtLibraryTarget( TAO_PortableServer ) \
         -l$$qtLibraryTarget( TAO_AnyTypeCode ) \
         -l$$qtLibraryTarget( ACE )
+}
 
 
 DEFINES += SEQUENCE_LIBRARY

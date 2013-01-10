@@ -27,7 +27,11 @@
 #include "constants.hpp"
 #include <adportable/profile.hpp>
 #include <adsequence/sequence.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+#include <qtwrapper/qstring.hpp>
 #include <boost/filesystem/path.hpp>
+#include <fstream>
 
 using namespace sequence::internal;
 
@@ -71,13 +75,42 @@ SequenceFile::mimeType() const
 }
 
 bool
+SequenceFile::load( const QString& filename )
+{
+    boost::filesystem::path path; //( qtwrapper::wstring::copy( filename_ ) );
+    if ( filename.isEmpty() )
+        path = qtwrapper::wstring::copy( filename_ );
+    else
+        path = qtwrapper::wstring::copy( filename );
+
+    std::ifstream inf( path.string().c_str() );
+    portable_binary_iarchive ar( inf );
+
+    adsequence::sequence s;
+
+    ar >> s;
+
+    if ( ! filename.isEmpty() )
+        filename_ = filename;
+
+    setModified( false );
+    return true;
+}
+
+bool
 SequenceFile::save( const QString& filename )
 {
-    if ( filename.isEmpty() ) {
-        // save filename_;
-    } else {
-        // save as filename
-    }
+    if ( ! filename.isEmpty() ) // save as
+        filename_ = filename; // replace filename
+
+    boost::filesystem::path path( qtwrapper::wstring::copy( filename_ ) );
+
+    std::ofstream of( path.string().c_str() );
+    portable_binary_oarchive ar( of );
+
+    ar << (*adsequence_);
+
+    setModified( false );
     return true;
 }
 

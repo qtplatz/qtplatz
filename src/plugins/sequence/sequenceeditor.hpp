@@ -30,52 +30,55 @@
 #include <boost/smart_ptr.hpp>
 
 namespace sequence {
-  namespace internal {
 
-    class SequenceFile;
+    class SequenceWidget;
 
-    class SequenceEditor : public Core::IEditor {
-      Q_OBJECT
-    public:
-      explicit SequenceEditor(QObject *parent = 0);
+    namespace internal {
 
-      // implement Core::IEditor
-      virtual bool createNew(const QString &contents = QString());
-      virtual bool open(const QString &fileName = QString());
-      virtual Core::IFile *file();
-      virtual const char *kind() const;
-      virtual QString displayName() const;
-      virtual void setDisplayName(const QString &title);
-      virtual bool duplicateSupported() const;
-      virtual IEditor *duplicate(QWidget *parent);
-      virtual QByteArray saveState() const;
-      virtual bool restoreState(const QByteArray &state);
-      virtual int currentLine() const { return 0; }
-      virtual int currentColumn() const { return 0; }
-      virtual bool isTemporary() const;
-      virtual QWidget *toolBar();
-      // TH added on 9th Jaunary 2013 in order to place editor in specific mode
-      virtual const char * uniqueModeName() const;
-      // <-- end Core::IEditor
+        class SequenceFile;
 
-      // implement IContext
-      virtual QList<int> context() const;
-      virtual QWidget * widget();
-      // <--
-
-    signals:
-
-    public slots:
-      void slotTitleChanged( const QString& title );
-
-    private:
-      QList<int> context_;
-      boost::shared_ptr< SequenceFile > file_;
-      QString displayName_;  // this will shows on Navigator's 'Open Documents' pane
-      QWidget * widget_;
-    };
-
-  } // internal
+        class SequenceEditor : public Core::IEditor {
+            Q_OBJECT
+        public:
+            explicit SequenceEditor(QObject *parent = 0);
+            
+            // implement Core::IEditor
+            virtual bool createNew(const QString &contents = QString());
+            virtual bool open(const QString &fileName = QString());
+            virtual Core::IFile *file();
+            virtual const char *kind() const;
+            virtual QString displayName() const;
+            virtual void setDisplayName(const QString &title);
+            virtual bool duplicateSupported() const;
+            virtual IEditor *duplicate(QWidget *parent);
+            virtual QByteArray saveState() const;
+            virtual bool restoreState(const QByteArray &state);
+            virtual int currentLine() const { return 0; }
+            virtual int currentColumn() const { return 0; }
+            virtual bool isTemporary() const;
+            virtual QWidget *toolBar();
+            // TH added on 9th Jaunary 2013 in order to place editor in specific mode
+            virtual const char * uniqueModeName() const;
+            // <-- end Core::IEditor
+            
+            // implement IContext
+            virtual QList<int> context() const;
+            virtual QWidget * widget();
+            // <--
+            
+        signals:
+            
+        public slots:
+                void slotTitleChanged( const QString& title );
+                
+        private:
+            QList<int> context_;
+            boost::shared_ptr< SequenceFile > file_;
+            QString displayName_;  // this will shows on Navigator's 'Open Documents' pane
+            SequenceWidget * widget_;
+        };
+        
+    } // internal
 } // sequence
 
 #endif // SEQUENCEEDITOR_H

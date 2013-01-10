@@ -118,3 +118,4 @@ sequence::clear()
 {
     lines_.clear();
 }
+

@@ -26,10 +26,21 @@
 #define SEQUENCE_HPP
 
 #include "adsequence_global.hpp"
+#include "schema.hpp"
+
 #include <boost/variant.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/variant.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/string.hpp>
 #include <string>
 #include <vector>
 #include <map>
+
+namespace boost { namespace serialization { class access; } }
+class portable_binary_oarchive;
+class portable_binary_iarchive;
 
 namespace adsequence {
 
@@ -62,6 +73,14 @@ namespace adsequence {
         std::vector< std::vector< cdata_t > > lines_;
         std::map< std::wstring, blob > control_methods_;
         std::map< std::wstring, blob > process_methods_;
+
+        friend class boost::serialization::access;
+        template<class Archiver> void serialize( Archiver& ar, const unsigned int /* version */ ) {
+            ar & schema_
+                & lines_
+                & control_methods_
+                & process_methods_;
+        }
     };
 
 }

@@ -172,8 +172,8 @@ MainWindow::createContents( Core::IMode * mode )
     QWidget * editorAndFindWidget = new QWidget;
     if ( editorAndFindWidget ) {
         editorAndFindWidget->setLayout( editorHolderLayout );
-        // editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) );
-        editorHolderLayout->addWidget( sequenceWidget_ = new SequenceWidget );
+        editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) );
+        // editorHolderLayout->addWidget( sequenceWidget_ = new SequenceWidget );
         editorHolderLayout->addWidget( new Core::FindToolBarPlaceHolder( editorAndFindWidget ) );
     }
 
