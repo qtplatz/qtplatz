@@ -124,7 +124,7 @@ MainWindow::OnInitialUpdate()
     }
 
     if ( sequenceWidget_ ) {
-        sequenceWidget_->OnInitialUpdate();
+        // sequenceWidget_->OnInitialUpdate();
         assert( connect( sequenceWidget_, SIGNAL( controlMethodSelected( const QString& ) ), this, SLOT( handleControlMethodName( const QString& ) ) ) );
         assert( connect( sequenceWidget_, SIGNAL( processMethodSelected( const QString& ) ), this, SLOT( handleProcessMethodName( const QString& ) ) ) );
     }
@@ -173,7 +173,6 @@ MainWindow::createContents( Core::IMode * mode )
     if ( editorAndFindWidget ) {
         editorAndFindWidget->setLayout( editorHolderLayout );
         editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) );
-        // editorHolderLayout->addWidget( sequenceWidget_ = new SequenceWidget );
         editorHolderLayout->addWidget( new Core::FindToolBarPlaceHolder( editorAndFindWidget ) );
     }
 

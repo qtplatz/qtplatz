@@ -46,7 +46,7 @@ SequenceEditorFactory::SequenceEditorFactory(QObject *parent) :  Core::IEditorFa
 Core::IEditor *
 SequenceEditorFactory::createEditor( QWidget * )
 {
-	return new SequenceEditor();
+    return new SequenceEditor();
 }
 
 // implementation for IFileFactory
@@ -54,7 +54,7 @@ SequenceEditorFactory::createEditor( QWidget * )
 QStringList 
 SequenceEditorFactory::mimeTypes() const
 {
-  return mimeTypes_;
+    return mimeTypes_;
 }
 
 QString 

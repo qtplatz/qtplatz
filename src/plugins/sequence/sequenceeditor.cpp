@@ -26,6 +26,8 @@
 #include "sequencefile.hpp"
 #include "constants.hpp"
 #include "sequencewidget.hpp"
+#include <adsequence/sequence.hpp>
+#include <adsequence/schema.hpp>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/filemanager.h>
 #include <coreplugin/icore.h>
@@ -34,17 +36,16 @@
 #include <qtwrapper/qstring.hpp>
 
 using namespace sequence;
-using namespace sequence::internal;
 
 SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
-                                                , widget_( new SequenceWidget )
                                                 , displayName_( "Sequence Editor" )
+                                                , file_( new SequenceFile( *this ) )
+                                                , widget_( new SequenceWidget( file_->adsequence().schema(), 0 ) )
 {
     Core::UniqueIDManager* uidm = Core::UniqueIDManager::instance();
     if ( uidm )
         context_ << uidm->uniqueIdentifier( Constants::C_SEQUENCE );
-    file_.reset( new SequenceFile(0) );
-    widget_->OnInitialUpdate();
+    widget_->OnInitialUpdate( file_->adsequence().schema() );
 }
 
 // Core::IEditor
@@ -52,7 +53,6 @@ bool
 SequenceEditor::createNew(const QString &contents )
 {
     Q_UNUSED( contents );
-    file_.reset( new SequenceFile(0) );
     return true;
 }
 
@@ -63,27 +63,18 @@ SequenceEditor::uniqueModeName() const
 }
 
 bool
-SequenceEditor::open(const QString &fileName )
+SequenceEditor::open( const QString &fileName )
 {
     boost::filesystem::path path( qtwrapper::wstring::copy( fileName ) );
     
-    if ( boost::filesystem::exists( path ) ) {
+    if ( boost::filesystem::exists( path ) && file_->load( fileName ) ) {
 
-        // open(path)
-        // load( sequence_ )
-        file_.reset( new SequenceFile( fileName ) );
+        widget_->setSequenceName( fileName );
 
-        if ( file_->load() ) {
+        Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
+        if ( filemgr && filemgr->addFile( file_ ) )
+            filemgr->addToRecentFiles( fileName );
 
-            widget_->setSequenceName( fileName );
-            widget_->setSequence( file_->adsequence() );
-
-            Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
-            if ( filemgr && filemgr->addFile( file_.get() ) )
-                filemgr->addToRecentFiles( fileName );
-
-        }
-        
         return true;
     }
 
@@ -93,7 +84,7 @@ SequenceEditor::open(const QString &fileName )
 Core::IFile *
 SequenceEditor::file()
 {
-    return static_cast<Core::IFile *>( file_.get() );
+    return static_cast<Core::IFile *>( file_ );
 }
 
 const char *
@@ -173,4 +164,12 @@ void
 SequenceEditor::slotTitleChanged( const QString& title )
 {
     setDisplayName( title );
+}
+
+////
+
+void
+SequenceEditor::getSequence( adsequence::sequence& sequence ) const
+{
+    widget_->getSequence( sequence );
 }

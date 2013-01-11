@@ -27,7 +27,6 @@
 
 #include "adsequence_global.hpp"
 #include "schema.hpp"
-
 #include <boost/variant.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/variant.hpp>
@@ -75,11 +74,11 @@ namespace adsequence {
         std::map< std::wstring, blob > process_methods_;
 
         friend class boost::serialization::access;
-        template<class Archiver> void serialize( Archiver& ar, const unsigned int /* version */ ) {
-            ar & schema_
-                & lines_
-                & control_methods_
-                & process_methods_;
+        template<class Archiver> void serialize( Archiver& ar, const unsigned int /*version*/ ) {
+            ar & BOOST_SERIALIZATION_NVP( schema_ )
+                & BOOST_SERIALIZATION_NVP( lines_ )
+                & BOOST_SERIALIZATION_NVP( control_methods_ )
+                & BOOST_SERIALIZATION_NVP( process_methods_ );
         }
     };
 

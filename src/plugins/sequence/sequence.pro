@@ -25,6 +25,7 @@ LIBS += -l$$qtLibraryTarget(adcontroller) -l$$qtLibraryTarget(adcontrols) \
 
 !win32 {
   LIBS += -lTAO -lTAO_Utils -lTAO_PI -lTAO_PortableServer -lTAO_AnyTypeCode -lACE
+  LIBS += -lboost_serialization
 } else {
   LIBS += -l$$qtLibraryTarget( TAO ) \
         -l$$qtLibraryTarget( TAO_Utils ) \

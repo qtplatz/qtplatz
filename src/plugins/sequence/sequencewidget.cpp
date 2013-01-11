@@ -25,6 +25,7 @@
 #include "sequencewidget.hpp"
 #include "ui_sequencewidget.h"
 #include "sequencedelegate.hpp"
+#include "sequencefile.hpp"
 #include <adportable/profile.hpp>
 #include <adsequence/sequence.hpp>
 #include <adsequence/schema.hpp>
@@ -40,11 +41,12 @@
 
 using namespace sequence;
 
-SequenceWidget::SequenceWidget(QWidget *parent) : QWidget( parent )
-                                                , ui( new Ui::SequenceWidget )
-                                                , model_( new QStandardItemModel )
-                                                , delegate_( new SequenceDelegate )
-                                                , sequence_( new adsequence::sequence )
+SequenceWidget::SequenceWidget( const adsequence::schema& schema
+                                , QWidget *parent) : QWidget( parent )
+                                                   , ui( new Ui::SequenceWidget )
+                                                   , model_( new QStandardItemModel )
+                                                   , delegate_( new SequenceDelegate )
+                                                   , schema_( new adsequence::schema( schema ) )
 {
     ui->setupUi(this);
     ui->treeView->setModel( model_.get() );
@@ -52,9 +54,10 @@ SequenceWidget::SequenceWidget(QWidget *parent) : QWidget( parent )
     ui->treeView->setContextMenuPolicy( Qt::CustomContextMenu );
 
     assert( connect( ui->treeView, SIGNAL( customContextMenuRequested( const QPoint& ) )
-                      , this, SLOT( showContextMenu( const QPoint& ) ) ) );
+                     , this, SLOT( showContextMenu( const QPoint& ) ) ) );
+
     assert( connect( ui->treeView, SIGNAL( signalCurrentChanged( const QModelIndex&, const QModelIndex& ) )
-        , this, SLOT( handleCurrentChanged( const QModelIndex&, const QModelIndex& ) ) ) );
+                     , this, SLOT( handleCurrentChanged( const QModelIndex&, const QModelIndex& ) ) ) );
 }
 
 SequenceWidget::~SequenceWidget()
@@ -63,10 +66,8 @@ SequenceWidget::~SequenceWidget()
 }
 
 void
-SequenceWidget::OnInitialUpdate()
+SequenceWidget::OnInitialUpdate( const adsequence::schema& schema )
 {
-    const adsequence::schema& schema = sequence_->schema();
-
     boost::filesystem::path dir( adportable::profile::user_data_dir<char>() );
     dir /= "data";
 
@@ -86,15 +87,6 @@ SequenceWidget::OnInitialUpdate()
 void
 SequenceWidget::OnFinalClose()
 {
-}
-
-void
-SequenceWidget::setSequence( const adsequence::sequence& s )
-{
-    *sequence_ = s;
-    // todo:
-    // if schema is not same with previous, then GUI layout should be changed
-    // if control & process method configurations were changed, also change dock widget
 }
 
 void
@@ -123,7 +115,7 @@ SequenceWidget::showContextMenu( const QPoint& pt )
     QMenu menu;
 
     if ( ui->treeView->indexAt( pt ).isValid() ) {
-        const adsequence::schema& schema = sequence_->schema();
+        const adsequence::schema& schema = *schema_;
         QModelIndex index = ui->treeView->currentIndex();
         if ( size_t( index.column() ) < schema.size() ) {
 			const adsequence::column& column = schema[ index.column() ];
@@ -137,13 +129,14 @@ SequenceWidget::showContextMenu( const QPoint& pt )
     menu.addAction( "Add new line", this, SLOT( addLine() ) );
     menu.addAction( "Delete line", this, SLOT( delLine() ) );
 	menu.exec( ui->treeView->mapToGlobal( pt ) );
+
 }
 
 void
 SequenceWidget::addLine()
 {
     QStandardItemModel& model = *model_;
-    const adsequence::schema& schema = sequence_->schema();
+    const adsequence::schema& schema = *schema_;
 
     size_t row = model.rowCount();
     model.insertRow( row );
@@ -186,3 +179,16 @@ SequenceWidget::saveAs()
 	QModelIndex index = ui->treeView->currentIndex();
 	QMessageBox::warning( 0, "SequenceWidget::saveAs", index.data().toString() );
 }
+
+void
+SequenceWidget::getSequence( adsequence::sequence& seq ) const
+{
+    seq.clear();
+    
+}
+
+void
+SequenceWidget::setSequence( const adsequence::sequence& )
+{
+}
+

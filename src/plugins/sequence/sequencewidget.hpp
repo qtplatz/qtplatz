@@ -28,7 +28,7 @@
 #include <QWidget>
 #include <boost/smart_ptr.hpp>
 
-namespace adsequence { class sequence; }
+namespace adsequence { class sequence; class schema; }
 
 namespace Ui {
 class SequenceWidget;
@@ -37,27 +37,32 @@ class SequenceWidget;
 class QStandardItemModel;
 class QModelIndex;
 
+namespace adsequence { class schema; }
+
 namespace sequence {
 
     class SequenceDelegate;
+    class SequenceFile;
 
     class SequenceWidget : public QWidget {
         Q_OBJECT
     public:
-        explicit SequenceWidget(QWidget *parent = 0);
+        explicit SequenceWidget( const adsequence::schema&, QWidget *parent = 0 );
         ~SequenceWidget();
 
-        void OnInitialUpdate();
+        void OnInitialUpdate( const adsequence::schema& );
         void OnFinalClose();
-        void setSequence( const adsequence::sequence& );
         void setSequenceName( const QString& );
         void setDataSaveIn( const QString& );
+
+        void getSequence( adsequence::sequence& ) const;
+        void setSequence( const adsequence::sequence& );
     
     private:
         Ui::SequenceWidget *ui;
         boost::scoped_ptr< QStandardItemModel > model_;
         boost::scoped_ptr< SequenceDelegate > delegate_;
-        boost::scoped_ptr< adsequence::sequence > sequence_;
+        boost::scoped_ptr< adsequence::schema > schema_;
 
     private slots:
         void handleCurrentChanged( const QModelIndex&, const QModelIndex& );

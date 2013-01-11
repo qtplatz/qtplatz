@@ -32,16 +32,16 @@
 namespace adsequence { class sequence; }
 
 namespace sequence {
-  namespace internal {
+
+    class SequenceEditor;
 
     class SequenceFile : public Core::IFile {
       Q_OBJECT
     public:
       ~SequenceFile();
-      explicit SequenceFile( QObject *parent = 0 );
-      explicit SequenceFile( const QString& path );
-      bool load( const QString& path = "" );
-      
+      explicit SequenceFile( const SequenceEditor&, QObject *parent = 0 );
+
+      bool load( const QString& path );
       void setModified( bool val = true );
 
       // implement Core::IFile
@@ -60,8 +60,8 @@ namespace sequence {
       virtual void checkPermissions() {}
 
       // 
-      adsequence::sequence& adsequence() { return *adsequence_; }
-      const adsequence::sequence& adsequence() const { return *adsequence_; }
+      adsequence::sequence& adsequence();
+      const adsequence::sequence& adsequence() const;
 
     signals:
 
@@ -69,6 +69,7 @@ namespace sequence {
         void modified() { setModified( true ); }
 
     private:
+        const SequenceEditor& editor_;
         const QString mimeType_;
         QString defaultPath_;
         QString filename_;
@@ -76,7 +77,6 @@ namespace sequence {
         boost::scoped_ptr< adsequence::sequence > adsequence_;
     };
 
-  }
 }
 
 #endif // SEQUENCEFILE_H

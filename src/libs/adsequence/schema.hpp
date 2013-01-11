@@ -53,9 +53,9 @@ namespace adsequence {
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
-            ar & name_
-               & display_name_
-               & type_;
+            ar & BOOST_SERIALIZATION_NVP( name_ )
+               & BOOST_SERIALIZATION_NVP( display_name_ )
+               & BOOST_SERIALIZATION_NVP( type_ );
         }
     };
 
@@ -79,7 +79,7 @@ namespace adsequence {
 
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int ) {
-            ar & schema_;
+            ar & BOOST_SERIALIZATION_NVP( schema_ );
         }
 
     };

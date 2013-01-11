@@ -24,35 +24,36 @@
 **************************************************************************/
 
 #include "sequencefile.hpp"
+#include "sequenceeditor.hpp"
 #include "constants.hpp"
 #include <adportable/profile.hpp>
 #include <adsequence/sequence.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <boost/filesystem/path.hpp>
 #include <fstream>
+#include <qmessagebox.h>
 
-using namespace sequence::internal;
+using namespace sequence;
 
 SequenceFile::~SequenceFile()
 {
 }
 
-SequenceFile::SequenceFile(QObject *parent) : Core::IFile( parent )
-                                    , modified_( false )
-                                    , adsequence_( new adsequence::sequence )
-                                    , mimeType_( sequence::Constants::C_SEQUENCE_MIMETYPE )
+SequenceFile::SequenceFile( const SequenceEditor& editor
+                            , QObject *parent ) : Core::IFile( parent )
+                                                , editor_( editor )
+                                                , mimeType_( sequence::Constants::C_SEQUENCE_MIMETYPE )
+                                                , modified_( false )
+                                                , adsequence_( new adsequence::sequence )
 {
     boost::filesystem::path dir( adportable::profile::user_data_dir<char>() );
     dir /= "data";
     defaultPath_ = dir.string().c_str();
     // filename_ = ( dir /= "default.sequ" ).string().c_str();
-}
-
-SequenceFile::SequenceFile( const QString& path )
-{
-    filename_ = path;
 }
 
 void
@@ -77,18 +78,17 @@ SequenceFile::mimeType() const
 bool
 SequenceFile::load( const QString& filename )
 {
-    boost::filesystem::path path; //( qtwrapper::wstring::copy( filename_ ) );
-    if ( filename.isEmpty() )
-        path = qtwrapper::wstring::copy( filename_ );
-    else
-        path = qtwrapper::wstring::copy( filename );
+    boost::filesystem::path path = qtwrapper::wstring::copy( filename );
 
     std::ifstream inf( path.string().c_str() );
-    portable_binary_iarchive ar( inf );
 
-    adsequence::sequence s;
-
-    ar >> s;
+    try {
+        // portable_binary_iarchive ar( inf );
+        boost::archive::xml_iarchive ar( inf );
+        ar >> BOOST_SERIALIZATION_NVP(*adsequence_);
+    } catch ( std::exception& ex ) {
+        QMessageBox::warning( 0, "SequenceFile", "FILE OPEN FAILED" );
+    }
 
     if ( ! filename.isEmpty() )
         filename_ = filename;
@@ -100,17 +100,22 @@ SequenceFile::load( const QString& filename )
 bool
 SequenceFile::save( const QString& filename )
 {
+    editor_.getSequence( *adsequence_ );
+
     if ( ! filename.isEmpty() ) // save as
         filename_ = filename; // replace filename
 
     boost::filesystem::path path( qtwrapper::wstring::copy( filename_ ) );
+    std::ofstream outf( path.string().c_str() );
 
-    std::ofstream of( path.string().c_str() );
-    portable_binary_oarchive ar( of );
-
-    ar << (*adsequence_);
-
-    setModified( false );
+    try {
+        // portable_binary_oarchive ar( outf );
+        boost::archive::xml_oarchive ar( outf );
+        ar << BOOST_SERIALIZATION_NVP(*adsequence_);
+        setModified( false );
+    } catch ( std::exception& ex ) {
+        QMessageBox::warning( 0, "SequenceFile", "FILE SAVE FAILED" );
+    }
     return true;
 }
 
@@ -148,4 +153,16 @@ void
 SequenceFile::modified( ReloadBehavior* behavior )
 {
     Q_UNUSED(behavior);
+}
+
+adsequence::sequence&
+SequenceFile::adsequence()
+{
+    return * adsequence_;
+}
+
+const adsequence::sequence&
+SequenceFile::adsequence() const
+{
+    return * adsequence_;
 }
