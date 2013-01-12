@@ -80,12 +80,12 @@ sequence::operator << ( const line_t& t )
     lines_.push_back( t );
 }
 
-void
-sequence::make_line( line_t& line ) const
+adsequence::line_t
+sequence::make_line() const
 {
     const adsequence::schema& schema = *schema_;
 
-    line.clear();
+    adsequence::line_t line;
     for ( schema::vector_type::const_iterator
               it = schema.begin(); it != schema.end(); ++it ) {
         switch ( it->type() ) {
@@ -100,11 +100,13 @@ sequence::make_line( line_t& line ) const
             break;
         case COLUMN_BLOB:
             line.push_back( blob() );
+            break;
         case COLUMN_SAMPLE_TYPE:
             line.push_back( int(0) );
             break;
         }
     }
+    return line;
 }
 
 size_t

@@ -61,10 +61,11 @@ namespace adsequence {
         size_t size() const;
         void clear();
 
-        void make_line( line_t& ) const;
+        line_t make_line() const;
 
         line_t& operator [] ( size_t row );
         const line_t& operator [] ( size_t row ) const;
+
         void operator << ( const line_t& );
 
     private:

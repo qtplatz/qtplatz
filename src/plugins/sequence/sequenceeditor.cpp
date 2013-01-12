@@ -111,39 +111,39 @@ SequenceEditor::setDisplayName(const QString &title)
 bool
 SequenceEditor::duplicateSupported() const
 {
-  return false;
+    return false;
 }
 
 Core::IEditor *
 SequenceEditor::duplicate(QWidget *parent)
 {
-  Q_UNUSED( parent );
-  return 0;
+    Q_UNUSED( parent );
+    return 0;
 }
 
 QByteArray
 SequenceEditor::saveState() const
 {
-  return QByteArray();
+    return QByteArray();
 }
 
 bool
 SequenceEditor::restoreState(const QByteArray &state)
 {
-  Q_UNUSED( state );
-  return false;
+    Q_UNUSED( state );
+    return false;
 }
 
 bool
 SequenceEditor::isTemporary() const
 {
-  return false;
+    return false;
 }
 
 QWidget *
 SequenceEditor::toolBar()
 {
-  return 0;
+    return 0;
 }
 // end Core::IEditor
 

@@ -29,6 +29,7 @@
 #include <adportable/profile.hpp>
 #include <adsequence/sequence.hpp>
 #include <adsequence/schema.hpp>
+#include <qtwrapper/qstring.hpp>
 #include <QTreeView>
 #include <QStandardItemModel>
 #include <QMenu>
@@ -180,11 +181,55 @@ SequenceWidget::saveAs()
 	QMessageBox::warning( 0, "SequenceWidget::saveAs", index.data().toString() );
 }
 
+namespace sequence {
+    
+    struct cdata_visitor_let : public boost::static_visitor<void> {
+        QVariant v_;
+        cdata_visitor_let( const QVariant& v ) : v_( v ) {}
+        template<typename T> void operator()(T& t) {
+            t = v_;
+        }
+    };
+}
+
 void
 SequenceWidget::getSequence( adsequence::sequence& seq ) const
 {
+    QStandardItemModel& model = *model_;
+    const adsequence::schema& schema = seq.schema();
+
     seq.clear();
-    
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+
+        adsequence::line_t line;
+
+        for ( int col = 0; col < model.columnCount(); ++col ) {
+
+            QVariant v = model.index( row, col ).data( Qt::EditRole );
+
+            switch ( schema[ col ].type() ) {
+            case adsequence::COLUMN_INT:
+                line.push_back( v.toInt() );
+                break;
+            case adsequence::COLUMN_DOUBLE:
+                line.push_back( v.toDouble() );
+                break;
+            case adsequence::COLUMN_VARCHAR:
+                line.push_back( qtwrapper::wstring::copy( v.toString() ) );
+                break;
+            case adsequence::COLUMN_BLOB:
+                line.push_back( adsequence::blob() );
+                break;
+            case adsequence::COLUMN_SAMPLE_TYPE:
+                line.push_back( v.toInt() );
+                break;
+            }
+
+        }
+        seq << line;
+    }
+
 }
 
 void
