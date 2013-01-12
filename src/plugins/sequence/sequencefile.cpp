@@ -100,17 +100,15 @@ SequenceFile::load( const QString& filename )
 
     using adsequence::sequence;
     do {
-        const sequence::method_vector_type& ctrlmap = adsequence_->getControlMethod();
-        for ( sequence::method_vector_type::const_iterator it = ctrlmap.begin(); it != ctrlmap.end(); ++it ) {
-            const std::vector<char>& vec = *it->second;
-            serializer::restore( ctrlmethods_[ it->first ], vec );
-        }
+        sequence::method_vector_type& ctrlmap = adsequence_->getControlMethod();
+        for ( sequence::method_vector_type::const_iterator it = ctrlmap.begin(); it != ctrlmap.end(); ++it )
+            serializer::restore( ctrlmethods_[ it->first ], it->second );
     } while(0);
 
     do {
-        const sequence::method_vector_type& procmap = adsequence_->getProcessMethod();
+        sequence::method_vector_type& procmap = adsequence_->getProcessMethod();
         for ( sequence::method_vector_type::const_iterator it = procmap.begin(); it != procmap.end(); ++it )
-            serializer::restore( procmethods_[ it->first ], *it->second );
+            serializer::restore( procmethods_[ it->first ], it->second );
     } while(0);
 
     if ( ! filename.isEmpty() )
@@ -130,12 +128,14 @@ SequenceFile::save( const QString& filename )
     
     for ( control_method_map_type::const_iterator it = ctrlmethods_.begin(); it != ctrlmethods_.end(); ++it ) {
         adsequence::sequence::method_vector_type& ctrlmap = adsequence().getControlMethod();
-        serializer::archive( ctrlmap[ it->first ], *it->second );
+        if ( it->second )
+            serializer::archive( ctrlmap[ it->first ], *it->second );
     }
 
     for ( process_method_map_type::const_iterator it = procmethods_.begin(); it != procmethods_.end(); ++it ) {
         adsequence::sequence::method_vector_type& procmap = adsequence().getProcessMethod();
-        serializer::archive( procmap[ it->first ], *it->second );
+        if ( it->second )
+            serializer::archive( procmap[ it->first ], *it->second );
     }
 
     //-------

@@ -52,13 +52,6 @@ serializer::archive( std::vector<char>& vec, const ControlMethod::Method& m )
 }
 
 bool
-serializer::restore( ControlMethod::Method& m, const std::vector<char>& vec )
-{
-    TAO_InputCDR cdr( &vec[0], vec.size() );
-    return cdr >> m;
-}
-
-bool
 serializer::archive( std::vector<char>& vec, const adcontrols::ProcessMethod& m )
 {
     vec.clear();
@@ -68,9 +61,32 @@ serializer::archive( std::vector<char>& vec, const adcontrols::ProcessMethod& m 
 }
 
 bool
+serializer::restore( ControlMethod::Method& m, const std::vector<char>& vec )
+{
+    TAO_InputCDR cdr( &vec[0], vec.size() );
+    return cdr >> m;
+}
+
+bool
 serializer::restore( adcontrols::ProcessMethod& m, const std::vector<char>& vec )
 {
     adsequence::streambuf ibuf( const_cast<std::vector<char>&>(vec) );
     std::istream is( &ibuf );
     return adcontrols::ProcessMethod::restore( is, m );
+}
+
+bool
+serializer::restore( boost::shared_ptr<ControlMethod::Method>& ptr, const std::vector<char>& vec )
+{
+    if ( ! ptr )
+        ptr.reset( new ControlMethod::Method() );
+    return restore( *ptr, vec );
+}
+
+bool
+serializer::restore( boost::shared_ptr< adcontrols::ProcessMethod>& ptr, const std::vector<char>& vec )
+{
+    if ( ! ptr )
+        ptr.reset( new adcontrols::ProcessMethod() );
+    return restore( *ptr, vec );
 }
