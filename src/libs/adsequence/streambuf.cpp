@@ -1,6 +1,5 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -23,28 +22,27 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "streambuf.hpp"
 
-#include "adplugin_global.h"
-#include <boost/any.hpp>
+using namespace adsequence;
 
-namespace adportable {
-    class Configuration;
+std::streamsize
+streambuf::xsputn( const char * s, std::streamsize num )
+{
+    for ( int i = 0; i < num; ++i )
+        vec_.push_back( *s++ );
+    return num;
 }
 
-namespace adplugin {
-
-    class ADPLUGINSHARED_EXPORT LifeCycle {
-    public:
-        virtual ~LifeCycle() {}
-        virtual void OnCreate( const adportable::Configuration& ) = 0;
-        virtual void OnInitialUpdate() = 0;
-        virtual void OnFinalClose() = 0;
-        virtual void onUpdate( boost::any& ) {}
-        virtual bool getContents( boost::any& ) const { return false; }
-        virtual bool setContents( boost::any& ) { return false; }
-    };
-
+std::basic_streambuf<char>::int_type
+streambuf::overflow ( int_type c )
+{
+    vec_.push_back( c );
+    return c;
 }
 
-
+std::basic_streambuf<char>::int_type
+streambuf::underflow()
+{
+    return ( gptr() == egptr() ) ? traits_type::eof() : traits_type::to_int_type( *gptr() );
+}

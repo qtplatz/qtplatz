@@ -46,7 +46,8 @@ SOURCES +=  sequenceplugin.cpp \
     mode.cpp \
     sequencewidget.cpp \
     sequencedelegate.cpp \
-    sequenceview.cpp
+    sequenceview.cpp \
+    serializer.cpp
 
 HEADERS += sequence_global.h \
     sequencefile.hpp \
@@ -58,7 +59,8 @@ HEADERS += sequence_global.h \
     mode.hpp \
     sequencewidget.hpp \
     sequencedelegate.hpp \
-    sequenceview.hpp
+    sequenceview.hpp \
+    serializer.hpp
 
 OTHER_FILES += sequence.pluginspec \
     sequence-mimetype.xml \

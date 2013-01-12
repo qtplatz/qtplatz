@@ -28,8 +28,12 @@
 
 #include <coreplugin/ifile.h>
 #include <boost/smart_ptr.hpp>
+#include <map>
+#include <string>
 
 namespace adsequence { class sequence; }
+namespace adcontrols { class ProcessMethod; }
+namespace ControlMethod { struct Method; }
 
 namespace sequence {
 
@@ -74,7 +78,11 @@ namespace sequence {
         QString defaultPath_;
         QString filename_;
         bool modified_;
+        typedef std::map< std::wstring, boost::shared_ptr< ControlMethod::Method > > control_method_map_type;
+        typedef std::map< std::wstring, boost::shared_ptr< adcontrols::ProcessMethod > > process_method_map_type;
         boost::scoped_ptr< adsequence::sequence > adsequence_;
+        control_method_map_type ctrlmethods_;
+        process_method_map_type procmethods_;
     };
 
 }

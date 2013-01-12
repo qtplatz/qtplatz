@@ -26,15 +26,20 @@
 #include "sequencefile.hpp"
 #include "sequenceeditor.hpp"
 #include "constants.hpp"
+#include "serializer.hpp"
+#include <adcontrols/processmethod.hpp>
 #include <adportable/profile.hpp>
 #include <adsequence/sequence.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
+//
+//#include <adportable/portable_binary_oarchive.hpp>
+//#include <adportable/portable_binary_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
+//
 #include <qtwrapper/qstring.hpp>
 #include <boost/filesystem/path.hpp>
 #include <fstream>
+#include <iostream>
 #include <qmessagebox.h>
 
 using namespace sequence;
@@ -78,6 +83,9 @@ SequenceFile::mimeType() const
 bool
 SequenceFile::load( const QString& filename )
 {
+    ctrlmethods_.clear();
+    procmethods_.clear();
+
     boost::filesystem::path path = qtwrapper::wstring::copy( filename );
 
     std::ifstream inf( path.string().c_str() );
@@ -89,6 +97,21 @@ SequenceFile::load( const QString& filename )
     } catch ( std::exception& ex ) {
         QMessageBox::warning( 0, "SequenceFile", "FILE OPEN FAILED" );
     }
+
+    using adsequence::sequence;
+    do {
+        const sequence::method_vector_type& ctrlmap = adsequence_->getControlMethod();
+        for ( sequence::method_vector_type::const_iterator it = ctrlmap.begin(); it != ctrlmap.end(); ++it ) {
+            const std::vector<char>& vec = *it->second;
+            serializer::restore( ctrlmethods_[ it->first ], vec );
+        }
+    } while(0);
+
+    do {
+        const sequence::method_vector_type& procmap = adsequence_->getProcessMethod();
+        for ( sequence::method_vector_type::const_iterator it = procmap.begin(); it != procmap.end(); ++it )
+            serializer::restore( procmethods_[ it->first ], *it->second );
+    } while(0);
 
     if ( ! filename.isEmpty() )
         filename_ = filename;
@@ -104,7 +127,18 @@ SequenceFile::save( const QString& filename )
 
     if ( ! filename.isEmpty() ) // save as
         filename_ = filename; // replace filename
+    
+    for ( control_method_map_type::const_iterator it = ctrlmethods_.begin(); it != ctrlmethods_.end(); ++it ) {
+        adsequence::sequence::method_vector_type& ctrlmap = adsequence().getControlMethod();
+        serializer::archive( ctrlmap[ it->first ], *it->second );
+    }
 
+    for ( process_method_map_type::const_iterator it = procmethods_.begin(); it != procmethods_.end(); ++it ) {
+        adsequence::sequence::method_vector_type& procmap = adsequence().getProcessMethod();
+        serializer::archive( procmap[ it->first ], *it->second );
+    }
+
+    //-------
     boost::filesystem::path path( qtwrapper::wstring::copy( filename_ ) );
     std::ofstream outf( path.string().c_str() );
 

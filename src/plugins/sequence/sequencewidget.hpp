@@ -27,6 +27,7 @@
 
 #include <QWidget>
 #include <boost/smart_ptr.hpp>
+#include <map>
 
 namespace adsequence { class sequence; class schema; }
 
@@ -38,6 +39,8 @@ class QStandardItemModel;
 class QModelIndex;
 
 namespace adsequence { class schema; }
+namespace adcontrols { class ProcessMethod; }
+namespace ControlMethod { struct Method; }
 
 namespace sequence {
 
@@ -73,6 +76,7 @@ namespace sequence {
         void saveAs();
 
     signals:
+        void currentChanged( size_t currLine, size_t prevLine );
         void controlMethodSelected( const QString& );
         void processMethodSelected( const QString& );
     };

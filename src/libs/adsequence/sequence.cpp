@@ -121,3 +121,26 @@ sequence::clear()
     lines_.clear();
 }
 
+sequence::method_vector_type&
+sequence::getControlMethod()
+{
+    return control_methods_;
+}
+
+const sequence::method_vector_type&
+sequence::getControlMethod() const
+{
+    return control_methods_;
+}
+
+sequence::method_vector_type&
+sequence::getProcessMethod()
+{
+    return process_methods_;
+}
+
+const sequence::method_vector_type&
+sequence::getProcessMethod() const
+{
+    return process_methods_;
+}

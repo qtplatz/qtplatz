@@ -39,6 +39,7 @@ namespace sequence {
     class SequenceEditor : public Core::IEditor {
         Q_OBJECT
     public:
+        ~SequenceEditor();
         explicit SequenceEditor(QObject *parent = 0);
         
         // implement Core::IEditor
@@ -56,8 +57,8 @@ namespace sequence {
         virtual int currentColumn() const { return 0; }
         virtual bool isTemporary() const;
         virtual QWidget *toolBar();
-        // TH added on 9th Jaunary 2013 in order to place editor in specific mode
-        virtual const char * uniqueModeName() const;
+        virtual const char * uniqueModeName() const;  // enforce editor in specific mode
+
         // <-- end Core::IEditor
         
         // implement IContext

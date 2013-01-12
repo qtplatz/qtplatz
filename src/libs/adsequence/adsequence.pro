@@ -24,12 +24,14 @@ DEFINES += ADSEQUENCE_LIBRARY
 
 SOURCES += adsequence.cpp \
     schema.cpp \
-    sequence.cpp
+    sequence.cpp \
+    streambuf.cpp
 
 HEADERS += adsequence.hpp\
         adsequence_global.hpp \
     schema.hpp \
-    sequence.hpp
+    sequence.hpp \
+    streambuf.hpp
 
 symbian {
     MMP_RULES += EXPORTUNFROZEN

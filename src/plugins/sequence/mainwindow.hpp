@@ -35,6 +35,7 @@ class QToolButton;
 class QAction;
 class QLineEdit;
 
+namespace adcontrols { class ProcessMethod; }
 namespace adportable { class Configuration; }
 namespace adplugin   { class LifeCycle; }
 namespace adextension { class iEditorFactory; }
@@ -60,10 +61,15 @@ namespace sequence {
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
 
+        bool getControlMethod( ControlMethod::Method& ) const;
+        bool setControlMethod( const ControlMethod::Method& );
+        bool getProcessMethod( adcontrols::ProcessMethod& ) const;
+        bool setProcessMethod( const adcontrols::ProcessMethod& );
+
 		static QToolButton * toolButton( const char * );
 		static QToolButton * toolButton( QAction * );
 		static MainWindow * instance();
-        
+
     signals:
             
     public slots:
@@ -71,6 +77,7 @@ namespace sequence {
         void handleProcessMethodName( const QString& );
 
     private:
+        static MainWindow * instance_;
 		QWidget * toolBar_;
 		QHBoxLayout * toolBarLayout_;
         QDockWidget * toolBarDockWidget_;

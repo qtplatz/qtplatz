@@ -1,6 +1,5 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -23,28 +22,30 @@
 **
 **************************************************************************/
 
-#pragma once
+#ifndef STREAMBUF_HPP
+#define STREAMBUF_HPP
 
-#include "adplugin_global.h"
-#include <boost/any.hpp>
+#include <streambuf>
+#include <vector>
+#include "adsequence_global.hpp"
 
-namespace adportable {
-    class Configuration;
-}
+namespace adsequence {
 
-namespace adplugin {
+    typedef char char_t;
 
-    class ADPLUGINSHARED_EXPORT LifeCycle {
+    class ADSEQUENCESHARED_EXPORT streambuf : public std::basic_streambuf<char_t> {
+        std::vector<char_t>& vec_;
     public:
-        virtual ~LifeCycle() {}
-        virtual void OnCreate( const adportable::Configuration& ) = 0;
-        virtual void OnInitialUpdate() = 0;
-        virtual void OnFinalClose() = 0;
-        virtual void onUpdate( boost::any& ) {}
-        virtual bool getContents( boost::any& ) const { return false; }
-        virtual bool setContents( boost::any& ) { return false; }
+        ~streambuf() {}
+        streambuf( std::vector<char_t>& t ) : vec_( t ) {
+            setg( &vec_[ 0 ], &vec_[ 0 ], &vec_[0] + vec_.size() );
+        }
+    protected:
+        virtual std::streamsize xsputn( const char * s, std::streamsize num );
+        virtual std::basic_streambuf<char_t>::int_type overflow( int_type c );
+        virtual std::basic_streambuf<char_t>::int_type underflow();
     };
 
 }
 
-
+#endif // STREAMBUF_HPP

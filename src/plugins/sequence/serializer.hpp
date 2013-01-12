@@ -1,6 +1,5 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -23,28 +22,26 @@
 **
 **************************************************************************/
 
-#pragma once
+#ifndef SERIALIZER_HPP
+#define SERIALIZER_HPP
 
-#include "adplugin_global.h"
-#include <boost/any.hpp>
+#include <vector>
 
-namespace adportable {
-    class Configuration;
-}
+namespace ControlMethod { struct Method; }
+namespace adcontrols { class ProcessMethod; }
 
-namespace adplugin {
+namespace sequence {
 
-    class ADPLUGINSHARED_EXPORT LifeCycle {
+    class serializer {
     public:
-        virtual ~LifeCycle() {}
-        virtual void OnCreate( const adportable::Configuration& ) = 0;
-        virtual void OnInitialUpdate() = 0;
-        virtual void OnFinalClose() = 0;
-        virtual void onUpdate( boost::any& ) {}
-        virtual bool getContents( boost::any& ) const { return false; }
-        virtual bool setContents( boost::any& ) { return false; }
+        serializer();
+        static bool archive( std::vector<char>&, const ControlMethod::Method& );
+        static bool restore( ControlMethod::Method&, const std::vector<char>& );
+
+        static bool archive( std::vector<char>&, const adcontrols::ProcessMethod& );
+        static bool restore( adcontrols::ProcessMethod&, const std::vector<char>& );
     };
 
 }
 
-
+#endif // SERIALIZER_HPP

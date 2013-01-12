@@ -37,6 +37,12 @@
 
 using namespace sequence;
 
+SequenceEditor::~SequenceEditor()
+{
+    delete file_;
+    delete widget_;
+}
+
 SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
                                                 , displayName_( "Sequence Editor" )
                                                 , file_( new SequenceFile( *this ) )
@@ -130,20 +136,20 @@ SequenceEditor::saveState() const
 bool
 SequenceEditor::restoreState(const QByteArray &state)
 {
-    Q_UNUSED( state );
-    return false;
+  Q_UNUSED( state );
+  return false;
 }
 
 bool
 SequenceEditor::isTemporary() const
 {
-    return false;
+  return false;
 }
 
 QWidget *
 SequenceEditor::toolBar()
 {
-    return 0;
+  return 0;
 }
 // end Core::IEditor
 

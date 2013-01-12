@@ -25,6 +25,7 @@
 #include "mainwindow.hpp"
 #include "sequenceplugin.hpp"
 #include "sequencewidget.hpp"
+#include <adcontrols/processmethod.hpp>
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
 #include <adinterface/controlmethodC.h>
@@ -77,6 +78,8 @@ namespace sequence {
 
 using namespace sequence;
 
+MainWindow * MainWindow::instance_ = 0;
+
 MainWindow::~MainWindow()
 {
 }
@@ -92,6 +95,7 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , sequence_( new adsequence::sequence )
                                         , defaultControlMethod_( new ControlMethod::Method )
 {
+    instance_ = this;
 	setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
     setDocumentMode( true );
 }
@@ -117,16 +121,17 @@ MainWindow::OnInitialUpdate()
         }
     }
 
-    ControlMethod::Method m;
-    BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ ) {
-        boost::any any( static_cast<ControlMethod::Method *>(&m) );
-        editor->OnUpdate( any );  // to get value, set pointer
-    }
+    // load GUI defined default values for get configuration
+    getControlMethod( *defaultControlMethod_ );
 
     if ( sequenceWidget_ ) {
-        // sequenceWidget_->OnInitialUpdate();
-        assert( connect( sequenceWidget_, SIGNAL( controlMethodSelected( const QString& ) ), this, SLOT( handleControlMethodName( const QString& ) ) ) );
-        assert( connect( sequenceWidget_, SIGNAL( processMethodSelected( const QString& ) ), this, SLOT( handleProcessMethodName( const QString& ) ) ) );
+
+        assert( connect( sequenceWidget_, SIGNAL( controlMethodSelected( const QString& ) )
+                         , this, SLOT( handleControlMethodName( const QString& ) ) ) );
+
+        assert( connect( sequenceWidget_, SIGNAL( processMethodSelected( const QString& ) )
+                         , this, SLOT( handleProcessMethodName( const QString& ) ) ) );
+
     }
     setSimpleDockWidgetArrangement();
 }
@@ -302,6 +307,42 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title )
     return dockWidget;
 }
 
+bool
+MainWindow::getControlMethod( ControlMethod::Method& m ) const
+{
+    boost::any any( m );  
+    BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ )
+        editor->getContents( any ); // read values from UI
+    return true;
+}
+
+bool
+MainWindow::setControlMethod( const ControlMethod::Method& m )
+{
+    boost::any any( m );  
+    BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ )
+        editor->setContents( any );
+    return true;
+}
+
+bool
+MainWindow::getProcessMethod( adcontrols::ProcessMethod& m ) const
+{
+    boost::any any( m );  
+    BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ )
+        editor->getContents( any ); // read values from UI
+    return true;
+}
+
+bool
+MainWindow::setProcessMethod( const adcontrols::ProcessMethod& m )
+{
+    boost::any any( m );  
+    BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ )
+        editor->setContents( any );
+    return true;
+}
+
 void
 MainWindow::handleControlMethodName( const QString& name )
 {
@@ -322,6 +363,12 @@ MainWindow::createToolbar()
     hbox->setMargin( 0 );
     hbox->setSpacing( 0 );
     hbox->addWidget( toolButton( "STOP" ) ); // should create action in 'plugin' with icon
+}
+
+MainWindow *
+MainWindow::instance()
+{
+    return instance_;
 }
 
 // static

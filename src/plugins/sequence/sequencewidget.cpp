@@ -26,6 +26,9 @@
 #include "ui_sequencewidget.h"
 #include "sequencedelegate.hpp"
 #include "sequencefile.hpp"
+#include "mainwindow.hpp"
+#include <adcontrols/processmethod.hpp>
+#include <adinterface/controlmethodC.h>
 #include <adportable/profile.hpp>
 #include <adsequence/sequence.hpp>
 #include <adsequence/schema.hpp>
@@ -103,11 +106,31 @@ SequenceWidget::setDataSaveIn( const QString& dir )
 }
 
 void
-SequenceWidget::handleCurrentChanged( const QModelIndex& curr, const QModelIndex& /* prev */ )
+SequenceWidget::handleCurrentChanged( const QModelIndex& curr, const QModelIndex& prev )
 {
-    int row = curr.row();
-    emit controlMethodSelected( model_->index( row, 5 ).data().toString() );
-    emit processMethodSelected( model_->index( row, 6 ).data().toString() );
+/*
+    // save previous data
+    do {
+        ControlMethod::Method cmth;
+        adcontrols::ProcessMethod pmth;
+        int row = prev.row();
+        std::wstring ctrlname = qtwrapper::wstring( model_->index( row, 5 ).data().toString() );
+        MainWindow::instance()->getControlMethod( cmth );
+        // ctrlmethods_[ ctrlname ] = cmth;
+
+        std::wstring procname = qtwrapper::wstring( model_->index( row, 6 ).data().toString() );
+        MainWindow::instance()->getProcessMethod( pmth );
+        // procmethods_[ procname ] = pmth;
+
+    } while( 0 );
+*/
+    // update for new line
+    do {
+        // display method names on center tool bar
+        int row = curr.row();
+        emit controlMethodSelected( model_->index( row, 5 ).data().toString() );
+        emit processMethodSelected( model_->index( row, 6 ).data().toString() );
+    } while( 0 );
 }
 
 void
@@ -233,7 +256,39 @@ SequenceWidget::getSequence( adsequence::sequence& seq ) const
 }
 
 void
-SequenceWidget::setSequence( const adsequence::sequence& )
+SequenceWidget::setSequence( const adsequence::sequence& seq )
 {
+    QStandardItemModel& model = *model_;
+    const adsequence::schema& schema = seq.schema();
+
+    model.removeRows( 0, model.rowCount() );
+
+    for ( size_t row = 0; row < seq.size(); ++row ) {
+
+        model.insertRow( row );
+
+        const adsequence::line_t& line = seq[ row ];
+        
+        for ( size_t col = 0; col < schema.size(); ++col ) {
+
+            switch ( schema[ col ].type() ) {
+            case adsequence::COLUMN_INT:
+                model.setData( model.index( row, col++ ), boost::get<int>( line[ col ] ) );
+                break;
+            case adsequence::COLUMN_DOUBLE:
+                model.setData( model.index( row, col++ ), boost::get<double>( line[ col ] ) );
+                break;
+            case adsequence::COLUMN_VARCHAR:
+                model.setData( model.index( row, col++ ), qtwrapper::qstring::copy( boost::get<std::wstring>( line[ col ] ) ) );
+                break;
+            case adsequence::COLUMN_BLOB:
+                break;
+            case adsequence::COLUMN_SAMPLE_TYPE:
+                model.setData( model.index( row, col++ ), boost::get<int>( line[ col ] ) );
+                break;
+            } // switch
+            
+        }
+    }
 }
 

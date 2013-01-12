@@ -27,6 +27,7 @@
 
 #include "adsequence_global.hpp"
 #include "schema.hpp"
+#include <boost/smart_ptr.hpp>
 #include <boost/variant.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/variant.hpp>
@@ -38,8 +39,7 @@
 #include <map>
 
 namespace boost { namespace serialization { class access; } }
-class portable_binary_oarchive;
-class portable_binary_iarchive;
+namespace adcontrols { class ProcessMethod; }
 
 namespace adsequence {
 
@@ -68,9 +68,16 @@ namespace adsequence {
 
         void operator << ( const line_t& );
 
+        typedef std::map< std::wstring, blob> method_vector_type;
+        method_vector_type& getControlMethod();
+        const method_vector_type& getControlMethod() const;
+        method_vector_type& getProcessMethod();
+        const method_vector_type& getProcessMethod() const;
+
     private:
         adsequence::schema * schema_;
         std::vector< std::vector< cdata_t > > lines_;
+
         std::map< std::wstring, blob > control_methods_;
         std::map< std::wstring, blob > process_methods_;
 
