@@ -45,12 +45,12 @@ namespace ControlMethod { struct Method; }
 namespace sequence {
 
     class SequenceDelegate;
-    class SequenceFile;
+    class SequenceEditor;
 
     class SequenceWidget : public QWidget {
         Q_OBJECT
     public:
-        explicit SequenceWidget( const adsequence::schema&, QWidget *parent = 0 );
+        explicit SequenceWidget( const adsequence::schema&, SequenceEditor&, QWidget *parent = 0 );
         ~SequenceWidget();
 
         void OnInitialUpdate( const adsequence::schema& );
@@ -66,6 +66,7 @@ namespace sequence {
         boost::scoped_ptr< QStandardItemModel > model_;
         boost::scoped_ptr< SequenceDelegate > delegate_;
         boost::scoped_ptr< adsequence::schema > schema_;
+        SequenceEditor& editor_;
 
     private slots:
         void handleCurrentChanged( const QModelIndex&, const QModelIndex& );

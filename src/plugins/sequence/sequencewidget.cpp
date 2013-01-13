@@ -25,6 +25,7 @@
 #include "sequencewidget.hpp"
 #include "ui_sequencewidget.h"
 #include "sequencedelegate.hpp"
+#include "sequenceeditor.hpp"
 #include "sequencefile.hpp"
 #include "mainwindow.hpp"
 #include <adcontrols/processmethod.hpp>
@@ -46,11 +47,13 @@
 using namespace sequence;
 
 SequenceWidget::SequenceWidget( const adsequence::schema& schema
+                                , SequenceEditor& editor
                                 , QWidget *parent) : QWidget( parent )
                                                    , ui( new Ui::SequenceWidget )
                                                    , model_( new QStandardItemModel )
                                                    , delegate_( new SequenceDelegate )
                                                    , schema_( new adsequence::schema( schema ) )
+                                                   , editor_( editor )
 {
     ui->setupUi(this);
     ui->treeView->setModel( model_.get() );
@@ -106,7 +109,7 @@ SequenceWidget::setDataSaveIn( const QString& dir )
 }
 
 void
-SequenceWidget::handleCurrentChanged( const QModelIndex& curr, const QModelIndex& prev )
+SequenceWidget::handleCurrentChanged( const QModelIndex& curr, const QModelIndex& )
 {
 /*
     // save previous data
@@ -181,6 +184,7 @@ SequenceWidget::addLine()
         else if ( it->name() == "name_process" ) 
             model.setData( model.index( row, col++ ), "default.proc" ); // should be text
     }
+    editor_.setModified( true );
 }
 
 void
@@ -188,6 +192,7 @@ SequenceWidget::delLine()
 {
     QModelIndex index = ui->treeView->currentIndex();
     model_->removeRows( index.row(), 1 );
+    editor_.setModified( true );
 }
 
 void

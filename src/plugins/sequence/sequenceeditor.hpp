@@ -66,6 +66,7 @@ namespace sequence {
         virtual QWidget * widget();
         // <--
         void getSequence( adsequence::sequence& ) const;
+        void setModified( bool );
 
     signals:
         

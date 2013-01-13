@@ -46,7 +46,8 @@ SequenceEditor::~SequenceEditor()
 SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
                                                 , displayName_( "Sequence Editor" )
                                                 , file_( new SequenceFile( *this ) )
-                                                , widget_( new SequenceWidget( file_->adsequence().schema(), 0 ) )
+                                                , widget_( new SequenceWidget( file_->adsequence().schema()
+                                                                               , *this, 0 ) )
 {
     Core::UniqueIDManager* uidm = Core::UniqueIDManager::instance();
     if ( uidm )
@@ -178,4 +179,10 @@ void
 SequenceEditor::getSequence( adsequence::sequence& sequence ) const
 {
     widget_->getSequence( sequence );
+}
+
+void
+SequenceEditor::setModified( bool modified )
+{
+    file_->setModified( modified );
 }
