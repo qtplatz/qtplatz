@@ -33,7 +33,7 @@ namespace {
 
 	struct sample_type {
 		static const char * name( /* adsequence::SAMPLE_TYPE */ int typ ) {
-		    if ( typ < sizeof( list ) / sizeof( list[0] ) )
+		    if ( size_t( typ ) < sizeof( list ) / sizeof( list[0] ) )
 				return list[ typ ];
 			return "unknown";
 		}
@@ -42,6 +42,7 @@ namespace {
 				if ( std::strcmp( a, name ) == 0 )
 					return static_cast< adsequence::SAMPLE_TYPE >( std::distance( list[0], a ) );
 			}
+            return adsequence::SAMPLE_TYPE_UNKNOWN;
 		}
 	};
 

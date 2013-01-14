@@ -27,8 +27,7 @@
 
 #include <QItemDelegate>
 #include <boost/smart_ptr.hpp>
-
-namespace adsequence { class schema; }
+#include <adsequence/schema.hpp>
 
 namespace sequence {
 
