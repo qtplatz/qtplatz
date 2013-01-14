@@ -23,10 +23,50 @@
 **************************************************************************/
 
 #include "sequencedelegate.hpp"
+#include <adsequence/schema.hpp>
+#include <boost/foreach.hpp>
+#include <boost/format.hpp>
+#include <algorithm>
+
+namespace {
+	static const char * list[] = { "UNK", "STD", "QC" };
+
+	struct sample_type {
+		static const char * name( /* adsequence::SAMPLE_TYPE */ int typ ) {
+		    if ( typ < sizeof( list ) / sizeof( list[0] ) )
+				return list[ typ ];
+			return "unknown";
+		}
+		static adsequence::SAMPLE_TYPE value( const char * name ) {
+			BOOST_FOREACH( const char * a, list ) {
+				if ( std::strcmp( a, name ) == 0 )
+					return static_cast< adsequence::SAMPLE_TYPE >( std::distance( list[0], a ) );
+			}
+		}
+	};
+
+    static struct string_format_t {
+		const char * variable_name;
+		const char * format;
+	} string_format [] = {
+		{ "injvol", "%.1lf" }, { "run_length", "%.2lf" }
+	};
+
+	struct double_value {
+		static std::string toString( const double& value, const std::string& variable ) {
+			BOOST_FOREACH( const string_format_t& a, string_format ) {
+				if ( variable == a.variable_name )
+					return ( boost::format( a.format ) % value ).str();
+			}
+			return ( boost::format( "%.3lf" ) % value ).str();
+		}
+	};
+}
 
 using namespace sequence;
 
-SequenceDelegate::SequenceDelegate(QObject *parent) : QItemDelegate(parent)
+SequenceDelegate::SequenceDelegate( QObject *parent ) : QItemDelegate( parent )
+	                                                  , schema_( new adsequence::schema )
 {
 }
 
@@ -41,9 +81,23 @@ SequenceDelegate::createEditor( QWidget *parent
 void
 SequenceDelegate::paint(QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
 {
-    //std::string value = ( boost::format( "%.3lf" ) % index.data().toDouble() ).str();
-    //drawDisplay( painter, option, option.rect, value.c_str() );
-    QItemDelegate::paint( painter, option, index );
+	if ( schema_ && schema_->size() > size_t( index.column() ) ) {
+
+		const adsequence::column& column = (*schema_)[ index.column() ];
+
+		if ( column.type() == adsequence::COLUMN_SAMPLE_TYPE ) {
+			drawDisplay( painter, option, option.rect, sample_type::name( index.data( Qt::EditRole ).toInt() ) );
+		} else if ( column.type() == adsequence::COLUMN_INT ) {
+			QItemDelegate::paint( painter, option, index );
+		} else if ( column.type() == adsequence::COLUMN_DOUBLE ) {
+			double value = index.data( Qt::EditRole ).toDouble();
+			drawDisplay( painter, option, option.rect, double_value::toString( value, column.name() ).c_str() );
+		} else if ( column.type() == adsequence::COLUMN_VARCHAR ) {
+			QItemDelegate::paint( painter, option, index );
+		}
+		return;
+	}
+	QItemDelegate::paint( painter, option, index );
 }
 
 void
@@ -62,7 +116,7 @@ SequenceDelegate::setModelData( QWidget * editor
 }
 
 void
-SequenceDelegate::updateEditorGeometry(QWidget * editor
+SequenceDelegate::updateEditorGeometry( QWidget * editor
                                        , const QStyleOptionViewItem& option
                                        , const QModelIndex &index ) const
 {
@@ -70,3 +124,14 @@ SequenceDelegate::updateEditorGeometry(QWidget * editor
     editor->setGeometry( option.rect );
 }
 
+void
+SequenceDelegate::schema( const adsequence::schema& schema )
+{
+	schema_.reset( new adsequence::schema( schema ) );
+}
+
+const adsequence::schema&
+SequenceDelegate::schema() const
+{
+	return * schema_;
+}

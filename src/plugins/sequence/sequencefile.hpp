@@ -67,13 +67,20 @@ namespace sequence {
       adsequence::sequence& adsequence();
       const adsequence::sequence& adsequence() const;
 
+      void removeProcessMethod( const std::wstring& );
+	  void removeControlMethod( const std::wstring& );
+	  const adcontrols::ProcessMethod * getProcessMethod( const std::wstring& ) const;
+	  const ControlMethod::Method * getControlMethod( const std::wstring& ) const;
+	  void setProcessMethod( const std::wstring&, const adcontrols::ProcessMethod& );
+	  void setControlMethod( const std::wstring&, const ControlMethod::Method& );
+
     signals:
 
     protected slots:
         void modified() { setModified( true ); }
 
     private:
-        const SequenceEditor& editor_;
+		const SequenceEditor& editor_;
         const QString mimeType_;
         QString defaultPath_;
         QString filename_;

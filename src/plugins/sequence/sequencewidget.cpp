@@ -47,13 +47,11 @@
 using namespace sequence;
 
 SequenceWidget::SequenceWidget( const adsequence::schema& schema
-                                , SequenceEditor& editor
                                 , QWidget *parent) : QWidget( parent )
                                                    , ui( new Ui::SequenceWidget )
                                                    , model_( new QStandardItemModel )
                                                    , delegate_( new SequenceDelegate )
                                                    , schema_( new adsequence::schema( schema ) )
-                                                   , editor_( editor )
 {
     ui->setupUi(this);
     ui->treeView->setModel( model_.get() );
@@ -111,22 +109,6 @@ SequenceWidget::setDataSaveIn( const QString& dir )
 void
 SequenceWidget::handleCurrentChanged( const QModelIndex& curr, const QModelIndex& )
 {
-/*
-    // save previous data
-    do {
-        ControlMethod::Method cmth;
-        adcontrols::ProcessMethod pmth;
-        int row = prev.row();
-        std::wstring ctrlname = qtwrapper::wstring( model_->index( row, 5 ).data().toString() );
-        MainWindow::instance()->getControlMethod( cmth );
-        // ctrlmethods_[ ctrlname ] = cmth;
-
-        std::wstring procname = qtwrapper::wstring( model_->index( row, 6 ).data().toString() );
-        MainWindow::instance()->getProcessMethod( pmth );
-        // procmethods_[ procname ] = pmth;
-
-    } while( 0 );
-*/
     // update for new line
     do {
         // display method names on center tool bar
@@ -170,9 +152,9 @@ SequenceWidget::addLine()
     size_t col = 0;
     for ( adsequence::schema::vector_type::const_iterator it = schema.begin(); it != schema.end(); ++it ) {
         if ( it->type() == adsequence::COLUMN_SAMPLE_TYPE ) // samp_type
-            model.setData( model.index( row, col++ ), "UNKNOWN" );
+			model.setData( model.index( row, col++ ), int( adsequence::SAMPLE_TYPE_UNKNOWN ) );
         else if ( it->name() == "vial_num" )
-            model.setData( model.index( row, col++ ), (boost::format( "%d" ) % (row + 1)).str().c_str() );
+			model.setData( model.index( row, col++ ), (boost::format( "CStk0:0-%03d" ) % (row + 1)).str().c_str() );
         else if ( it->name() == "samp_id" ) 
             model.setData( model.index( row, col++ ), (boost::format( "RUN_%03d" ) % row).str().c_str() );
         else if ( it->name() == "injvol" ) 
@@ -180,11 +162,11 @@ SequenceWidget::addLine()
         else if ( it->name() == "run_length" ) 
             model.setData( model.index( row, col++ ), double( 1.0 ) ); // should be text
         else if ( it->name() == "name_control" ) 
-            model.setData( model.index( row, col++ ), "default.ctrl" ); // should be text
+            model.setData( model.index( row, col++ ), "default.cmth" ); // should be text
         else if ( it->name() == "name_process" ) 
-            model.setData( model.index( row, col++ ), "default.proc" ); // should be text
+            model.setData( model.index( row, col++ ), "default.pmth" ); // should be text
     }
-    editor_.setModified( true );
+	emit lineAdded( row );
 }
 
 void
@@ -192,7 +174,7 @@ SequenceWidget::delLine()
 {
     QModelIndex index = ui->treeView->currentIndex();
     model_->removeRows( index.row(), 1 );
-    editor_.setModified( true );
+    emit lineDeleted( index.row() );
 }
 
 void
@@ -246,9 +228,6 @@ SequenceWidget::getSequence( adsequence::sequence& seq ) const
             case adsequence::COLUMN_VARCHAR:
                 line.push_back( qtwrapper::wstring::copy( v.toString() ) );
                 break;
-            case adsequence::COLUMN_BLOB:
-                line.push_back( adsequence::blob() );
-                break;
             case adsequence::COLUMN_SAMPLE_TYPE:
                 line.push_back( v.toInt() );
                 break;
@@ -274,22 +253,22 @@ SequenceWidget::setSequence( const adsequence::sequence& seq )
 
         const adsequence::line_t& line = seq[ row ];
         
-        for ( size_t col = 0; col < schema.size(); ++col ) {
-
+		for ( size_t col = 0; col < schema.size(); ++col ) {
             switch ( schema[ col ].type() ) {
             case adsequence::COLUMN_INT:
-                model.setData( model.index( row, col++ ), boost::get<int>( line[ col ] ) );
+                model.setData( model.index( row, col ), boost::get<int>( line[ col ] ) );
                 break;
             case adsequence::COLUMN_DOUBLE:
-                model.setData( model.index( row, col++ ), boost::get<double>( line[ col ] ) );
+                model.setData( model.index( row, col ), boost::get<double>( line[ col ] ) );
                 break;
             case adsequence::COLUMN_VARCHAR:
-                model.setData( model.index( row, col++ ), qtwrapper::qstring::copy( boost::get<std::wstring>( line[ col ] ) ) );
-                break;
-            case adsequence::COLUMN_BLOB:
+				{
+					std::wstring varchar = boost::get< std::wstring >( line[ col ] );
+					model.setData( model.index( row, col ), qtwrapper::qstring::copy( varchar ) );
+				}
                 break;
             case adsequence::COLUMN_SAMPLE_TYPE:
-                model.setData( model.index( row, col++ ), boost::get<int>( line[ col ] ) );
+                model.setData( model.index( row, col ), boost::get<int>( line[ col ] ) );
                 break;
             } // switch
             

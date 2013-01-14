@@ -28,13 +28,16 @@
 #include "constants.hpp"
 #include "serializer.hpp"
 #include <adcontrols/processmethod.hpp>
+#include <adinterface/controlmethodC.h>
 #include <adportable/profile.hpp>
 #include <adsequence/sequence.hpp>
 //
 //#include <adportable/portable_binary_oarchive.hpp>
 //#include <adportable/portable_binary_iarchive.hpp>
+#include <boost/serialization/nvp.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
+#include <boost/format.hpp>
 //
 #include <qtwrapper/qstring.hpp>
 #include <boost/filesystem/path.hpp>
@@ -77,7 +80,7 @@ SequenceFile::isModified() const
 QString
 SequenceFile::mimeType() const
 {
-  return mimeType_;
+	return mimeType_;
 }
 
 bool
@@ -87,16 +90,9 @@ SequenceFile::load( const QString& filename )
     procmethods_.clear();
 
     boost::filesystem::path path = qtwrapper::wstring::copy( filename );
-
     std::ifstream inf( path.string().c_str() );
-
-    try {
-        // portable_binary_iarchive ar( inf );
-        boost::archive::xml_iarchive ar( inf );
-        ar >> BOOST_SERIALIZATION_NVP(*adsequence_);
-    } catch ( std::exception& ex ) {
-        QMessageBox::warning( 0, "SequenceFile", "FILE OPEN FAILED" );
-    }
+	if ( ! adsequence::sequence::xml_restore( inf, *adsequence_ ) )
+		QMessageBox::warning( 0, "SequenceFile", ( boost::format( "FILE %1% OPEN FAILED" ) % path.string() ).str().c_str() );
 
     using adsequence::sequence;
     do {
@@ -114,7 +110,8 @@ SequenceFile::load( const QString& filename )
     if ( ! filename.isEmpty() )
         filename_ = filename;
 
-    setModified( false );
+	// editor_.setSequence( *adsequence_ );
+	setModified( true );
     return true;
 }
 
@@ -141,16 +138,10 @@ SequenceFile::save( const QString& filename )
     //-------
     boost::filesystem::path path( qtwrapper::wstring::copy( filename_ ) );
     std::ofstream outf( path.string().c_str() );
+	if ( ! adsequence::sequence::xml_archive( outf, *adsequence_ ) )
+		QMessageBox::warning( 0, "SequenceFile", ( boost::format( "FILE %1% SAVE FAILED" ) % path.string() ).str().c_str() );
 
-    try {
-        // portable_binary_oarchive ar( outf );
-        boost::archive::xml_oarchive ar( outf );
-        ar << BOOST_SERIALIZATION_NVP(*adsequence_);
-        setModified( false );
-    } catch ( std::exception& ex ) {
-        QMessageBox::warning( 0, "SequenceFile", "FILE SAVE FAILED" );
-    }
-    return true;
+	return true;
 }
 
 QString
@@ -200,3 +191,52 @@ SequenceFile::adsequence() const
 {
     return * adsequence_;
 }
+
+void
+SequenceFile::removeProcessMethod( const std::wstring& name )
+{
+	process_method_map_type::iterator it = procmethods_.find ( name );
+    if ( it != procmethods_.end() )
+		procmethods_.erase( it );
+}
+
+void
+SequenceFile::removeControlMethod( const std::wstring& name )
+{
+	control_method_map_type::iterator it = ctrlmethods_.find ( name );
+	if ( it != ctrlmethods_.end() )
+		ctrlmethods_.erase( it );
+}
+
+const adcontrols::ProcessMethod *
+SequenceFile::getProcessMethod( const std::wstring& name ) const
+{
+	process_method_map_type::const_iterator it = procmethods_.find( name );
+	if ( it == procmethods_.end() )
+		return 0;
+	return it->second.get();
+}
+
+const ControlMethod::Method *
+SequenceFile::getControlMethod( const std::wstring& name ) const
+{
+	control_method_map_type::const_iterator it = ctrlmethods_.find( name );
+	if ( it == ctrlmethods_.end() )
+		return 0;
+	return it->second.get();
+}
+
+void
+SequenceFile::setProcessMethod( const std::wstring& name, const adcontrols::ProcessMethod& m )
+{
+	using adcontrols::ProcessMethod;
+	procmethods_[ name ] = boost::shared_ptr< ProcessMethod >( new ProcessMethod( m ) );
+}
+
+void
+SequenceFile::setControlMethod( const std::wstring& name, const ControlMethod::Method& m )
+{
+	using ControlMethod::Method;
+	ctrlmethods_[ name ] = boost::shared_ptr< Method >( new Method( m ) );
+}
+

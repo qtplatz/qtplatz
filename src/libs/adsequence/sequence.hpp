@@ -46,7 +46,7 @@ namespace adsequence {
     class schema;
 
     typedef std::vector< char > blob;
-    typedef boost::variant< int, double, std::wstring, blob > cdata_t;
+    typedef boost::variant< int, double, std::wstring > cdata_t;
     typedef std::vector< cdata_t > line_t;
 
     class ADSEQUENCESHARED_EXPORT sequence {
@@ -69,10 +69,17 @@ namespace adsequence {
         void operator << ( const line_t& );
 
         typedef std::map< std::wstring, blob> method_vector_type;
-        method_vector_type& getControlMethod();
+
+		method_vector_type& getControlMethod();
         const method_vector_type& getControlMethod() const;
-        method_vector_type& getProcessMethod();
+
+		method_vector_type& getProcessMethod();
         const method_vector_type& getProcessMethod() const;
+
+		static bool xml_archive( std::ostream&, const sequence& );
+		static bool xml_restore( std::istream&, sequence& );
+		static bool archive( std::ostream&, const sequence& );
+		static bool restore( std::istream&, sequence& );
 
     private:
         adsequence::schema * schema_;
@@ -83,10 +90,10 @@ namespace adsequence {
 
         friend class boost::serialization::access;
         template<class Archiver> void serialize( Archiver& ar, const unsigned int /*version*/ ) {
-            ar & BOOST_SERIALIZATION_NVP( schema_ )
-                & BOOST_SERIALIZATION_NVP( lines_ )
-                & BOOST_SERIALIZATION_NVP( control_methods_ )
-                & BOOST_SERIALIZATION_NVP( process_methods_ );
+            ar & BOOST_SERIALIZATION_NVP( schema_ );
+			ar & BOOST_SERIALIZATION_NVP( lines_ );
+			ar & BOOST_SERIALIZATION_NVP( control_methods_ );
+			ar & BOOST_SERIALIZATION_NVP( process_methods_ );
         }
     };
 

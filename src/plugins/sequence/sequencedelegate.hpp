@@ -26,6 +26,9 @@
 #define SEQUENCEDELEGATE_HPP
 
 #include <QItemDelegate>
+#include <boost/smart_ptr.hpp>
+
+namespace adsequence { class schema; }
 
 namespace sequence {
 
@@ -39,7 +42,13 @@ namespace sequence {
         void setEditorData(QWidget *editor, const QModelIndex &index) const;
         void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
         void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-       
+
+		void schema( const adsequence::schema& );
+        const adsequence::schema& schema() const;
+
+	private:
+		boost::scoped_ptr< adsequence::schema > schema_;
+
     signals:
         void valueChanged( const QModelIndex& ) const;
             

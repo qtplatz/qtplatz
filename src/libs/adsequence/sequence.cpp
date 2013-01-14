@@ -25,6 +25,11 @@
 #include "sequence.hpp"
 #include "schema.hpp"
 #include <boost/foreach.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 
 using namespace adsequence;
 
@@ -89,20 +94,14 @@ sequence::make_line() const
     for ( schema::vector_type::const_iterator
               it = schema.begin(); it != schema.end(); ++it ) {
         switch ( it->type() ) {
-        case COLUMN_INT:
-            line.push_back( int(0) );
+        case COLUMN_INT:  case COLUMN_SAMPLE_TYPE:
+			line.push_back( int(0) );
             break;
         case COLUMN_DOUBLE:
             line.push_back( double(0) );
             break;
         case COLUMN_VARCHAR:
             line.push_back( std::wstring(L"") );
-            break;
-        case COLUMN_BLOB:
-            line.push_back( blob() );
-            break;
-        case COLUMN_SAMPLE_TYPE:
-            line.push_back( int(0) );
             break;
         }
     }
@@ -144,3 +143,56 @@ sequence::getProcessMethod() const
 {
     return process_methods_;
 }
+
+//static
+bool
+sequence::xml_archive( std::ostream& out, const sequence& sequence )
+{
+	try {
+		boost::archive::xml_oarchive ar( out );
+		ar << BOOST_SERIALIZATION_NVP( sequence );
+	} catch ( std::exception& ) {
+		return false;
+	}
+	return true;
+}
+
+//static
+bool
+sequence::xml_restore( std::istream& in, sequence& sequence )
+{
+	try {
+		boost::archive::xml_iarchive ar( in );
+		ar >> BOOST_SERIALIZATION_NVP( sequence );
+	} catch ( std::exception& ) {
+		return false;
+	}
+	return true;
+}
+
+//static
+bool
+sequence::archive( std::ostream& out, const sequence& sequence )
+{
+	try {
+		portable_binary_oarchive ar( out );
+		ar << sequence;
+	} catch ( std::exception& ) {
+		return false;
+	}
+	return true;
+}
+
+//static
+bool
+sequence::restore( std::istream& in, sequence& sequence )
+{
+	try {
+		portable_binary_iarchive ar( in );
+		ar >> sequence;
+	} catch ( std::exception& ) {
+		return false;
+	}
+	return true;
+}
+

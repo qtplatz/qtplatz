@@ -26,6 +26,7 @@
 #include "sequencefile.hpp"
 #include "constants.hpp"
 #include "sequencewidget.hpp"
+#include "mainwindow.hpp"
 #include <adsequence/sequence.hpp>
 #include <adsequence/schema.hpp>
 #include <coreplugin/uniqueidmanager.h>
@@ -46,13 +47,17 @@ SequenceEditor::~SequenceEditor()
 SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
                                                 , displayName_( "Sequence Editor" )
                                                 , file_( new SequenceFile( *this ) )
-                                                , widget_( new SequenceWidget( file_->adsequence().schema()
-                                                                               , *this, 0 ) )
+                                                , widget_( new SequenceWidget( file_->adsequence().schema(), 0 ) )
 {
     Core::UniqueIDManager* uidm = Core::UniqueIDManager::instance();
     if ( uidm )
         context_ << uidm->uniqueIdentifier( Constants::C_SEQUENCE );
+
     widget_->OnInitialUpdate( file_->adsequence().schema() );
+
+    connect( widget_, SIGNAL( lineAdded( size_t ) ), this, SLOT( onLineAdded( size_t ) ) );
+	connect( widget_, SIGNAL( lineDeleted( size_t ) ), this, SLOT( onLineDeleted( size_t ) ) );
+
 }
 
 // Core::IEditor
@@ -69,12 +74,32 @@ SequenceEditor::uniqueModeName() const
     return sequence::Constants::C_SEQUENCE_MODE;
 }
 
+namespace sequence {
+
+	struct print_visitor : public boost::static_visitor<void> {
+		template< class T > void operator () ( const T& t ) const {
+			std::wcout << t << L", ";
+		}
+	};
+
+}
+
 bool
 SequenceEditor::open( const QString &fileName )
 {
     boost::filesystem::path path( qtwrapper::wstring::copy( fileName ) );
     
     if ( boost::filesystem::exists( path ) && file_->load( fileName ) ) {
+		// debug
+		for ( std::size_t i = 0; i < file_->adsequence().size(); ++i ) {
+			const adsequence::line_t& line = file_->adsequence()[i];
+			for ( size_t c = 0; c < line.size(); ++c )
+				boost::apply_visitor( print_visitor(), line[c] );
+			std::cout << std::endl;
+		}
+		//debug
+
+		setSequence( file_->adsequence() );
 
         widget_->setSequenceName( fileName );
 
@@ -137,20 +162,20 @@ SequenceEditor::saveState() const
 bool
 SequenceEditor::restoreState(const QByteArray &state)
 {
-  Q_UNUSED( state );
-  return false;
+	Q_UNUSED( state );
+	return false;
 }
 
 bool
 SequenceEditor::isTemporary() const
 {
-  return false;
+	return false;
 }
 
 QWidget *
 SequenceEditor::toolBar()
 {
-  return 0;
+	return 0;
 }
 // end Core::IEditor
 
@@ -174,6 +199,11 @@ SequenceEditor::slotTitleChanged( const QString& title )
 }
 
 ////
+void
+SequenceEditor::setSequence( const adsequence::sequence& sequence )
+{
+	widget_->setSequence( sequence );
+}
 
 void
 SequenceEditor::getSequence( adsequence::sequence& sequence ) const
@@ -182,7 +212,33 @@ SequenceEditor::getSequence( adsequence::sequence& sequence ) const
 }
 
 void
+SequenceEditor::getDefault( adcontrols::ProcessMethod& m ) const
+{
+	MainWindow::instance()->getProcessMethod( m );
+}
+
+void
+SequenceEditor::getDefault( ControlMethod::Method& m ) const
+{
+	MainWindow::instance()->getControlMethod( m );
+}
+
+void
 SequenceEditor::setModified( bool modified )
 {
     file_->setModified( modified );
 }
+
+void
+SequenceEditor::onLineAdded( size_t row )
+{
+	file_->setModified( true );
+}
+
+void
+SequenceEditor::onLineDeleted( size_t row )
+{
+	file_->setModified( true );
+}
+
+

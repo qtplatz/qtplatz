@@ -30,6 +30,8 @@
 #include <boost/smart_ptr.hpp>
 
 namespace adsequence { class sequence; }
+namespace adcontrols { class ProcessMethod; }
+namespace ControlMethod { struct Method; }
 
 namespace sequence {
 
@@ -65,13 +67,22 @@ namespace sequence {
         virtual QList<int> context() const;
         virtual QWidget * widget();
         // <--
+		void setSequence( const adsequence::sequence& );
         void getSequence( adsequence::sequence& ) const;
-        void setModified( bool );
+
+		void getDefault( adcontrols::ProcessMethod& ) const;
+        void getDefault( ControlMethod::Method& ) const;
+
+		void setModified( bool );
 
     signals:
         
     public slots:
         void slotTitleChanged( const QString& title );
+
+    private slots:
+		void onLineAdded( size_t row );
+		void onLineDeleted( size_t prevRow );
             
     private:
         QList<int> context_;

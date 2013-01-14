@@ -132,14 +132,14 @@ void
 SequencePlugin::extensionsInitialized()
 {
     mainWindow_->OnInitialUpdate();
-#if 0
-    Core::EditorManager * em = Core::ICore::instance()->editorManager();
-    SequenceEditorFactory * factory = ExtensionSystem::PluginManager::instance()->getObject< SequenceEditorFactory >();
-    if ( em && factory ) {
-        Core::IEditor * ieditor = factory->createEditor( 0 );
-        em->pushEditor( ieditor );
+/*
+	Core::EditorManager * em = Core::ICore::instance()->editorManager();
+	SequenceEditorFactory * factory = ExtensionSystem::PluginManager::instance()->getObject< SequenceEditorFactory >();
+    if ( factory ) {
+		Core::IEditor * ieditor = factory->createEditor( 0 );
+		em->pushEditor( ieditor );
     }
-#endif
+*/
 }
 
 void
