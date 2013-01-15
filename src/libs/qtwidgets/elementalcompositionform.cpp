@@ -109,6 +109,18 @@ ElementalCompositionForm::OnFinalClose()
 {
 }
 
+bool
+ElementalCompositionForm::getContents( boost::any& ) const
+{
+    return false;
+}
+
+bool
+ElementalCompositionForm::setContents( boost::any& )
+{
+    return false;
+}
+
 void
 ElementalCompositionForm::getContents( adcontrols::ProcessMethod& pm )
 {

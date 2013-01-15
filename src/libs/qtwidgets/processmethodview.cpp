@@ -116,6 +116,19 @@ ProcessMethodView::OnFinalClose()
 {
 }
 
+bool
+ProcessMethodView::getContents( boost::any& ) const
+{
+    return false;
+}
+
+bool
+ProcessMethodView::setContents( boost::any& )
+{
+    return false;
+}
+
+
 QSize
 ProcessMethodView::sizeHint() const
 {

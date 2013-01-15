@@ -59,6 +59,8 @@ namespace qtwidgets {
         void OnCreate( const adportable::Configuration& );
         void OnInitialUpdate();
         void OnFinalClose();
+        bool getContents( boost::any& ) const;
+        bool setContents( boost::any& );
 
         // QWidget
         virtual QSize sizeHint() const;

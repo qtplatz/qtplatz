@@ -61,6 +61,9 @@ namespace qtwidgets {
 		//virtual void OnUpdate( boost::any& );
 		//virtual void OnUpdate( unsigned long );
         virtual void OnFinalClose();
+        bool getContents( boost::any& ) const;
+        bool setContents( boost::any& );
+
 		// <--
 
     

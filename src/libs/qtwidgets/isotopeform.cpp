@@ -101,6 +101,28 @@ IsotopeForm::getLifeCycle( adplugin::LifeCycle *& p )
     p = this;
 }
 
+bool
+IsotopeForm::getContents( boost::any& a ) const
+{
+    if ( a.type() != typeid( adcontrols::ProcessMethod ) )
+        return false;
+    adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >(a);
+    pm.appendMethod( *pMethod_ );
+    return true;
+}
+
+bool
+IsotopeForm::setContents( boost::any& a )
+{
+    if ( a.type() != typeid( adcontrols::ProcessMethod ) )
+        return false;
+    adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >(a);
+    const adcontrols::IsotopeMethod* p = pm.find< adcontrols::IsotopeMethod >();
+    *pMethod_ = *p;
+    return true;
+}
+
+
 void
 IsotopeForm::getContents( adcontrols::ProcessMethod& pm )
 {

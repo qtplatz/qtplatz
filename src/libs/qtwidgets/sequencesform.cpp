@@ -78,6 +78,19 @@ SequencesForm::OnFinalClose()
 {
 }
 
+bool
+SequencesForm::getContents( boost::any& ) const
+{
+    return false;
+}
+
+bool
+SequencesForm::setContents( boost::any& )
+{
+    return false;
+}
+
+
 void
 SequencesForm::getLifeCycle( adplugin::LifeCycle *& p )
 {

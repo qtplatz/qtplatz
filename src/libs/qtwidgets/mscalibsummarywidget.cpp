@@ -84,6 +84,19 @@ MSCalibSummaryWidget::OnFinalClose()
 {
 }
 
+bool
+MSCalibSummaryWidget::getContents( boost::any& ) const
+{
+    return false;
+}
+
+bool
+MSCalibSummaryWidget::setContents( boost::any& )
+{
+    return false;
+}
+
+
 void
 MSCalibSummaryWidget::getLifeCycle( adplugin::LifeCycle *& p )
 {

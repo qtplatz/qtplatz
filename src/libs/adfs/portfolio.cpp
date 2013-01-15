@@ -88,7 +88,8 @@ portfolio::create( const wchar_t * filename, size_t alloc, size_t page_size )
             sql.exec( ( boost::format( "PRAGMA page_size = %1%" ) % page_size ).str() );
         if ( alloc )
             internal::fs::prealloc( *db_, alloc );
-        return internal::fs::format( *db_, filename );
+        bool res = internal::fs::format( *db_, filename );
+        return res;
     }
     db_.reset();
     return false;

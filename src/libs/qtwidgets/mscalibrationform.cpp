@@ -160,6 +160,18 @@ MSCalibrationForm::OnFinalClose()
 {
 }
 
+bool
+MSCalibrationForm::getContents( boost::any& ) const
+{
+    return false;
+}
+
+bool
+MSCalibrationForm::setContents( boost::any& )
+{
+    return false;
+}
+
 void
 MSCalibrationForm::getContents( adcontrols::ProcessMethod& pm )
 {

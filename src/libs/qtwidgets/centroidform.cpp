@@ -95,6 +95,18 @@ CentroidForm::OnFinalClose()
 {
 }
 
+bool
+CentroidForm::getContents( boost::any& ) const
+{
+    return false;
+}
+
+bool
+CentroidForm::setContents( boost::any& )
+{
+    return false;
+}
+
 void
 CentroidForm::getLifeCycle( adplugin::LifeCycle *& p )
 {

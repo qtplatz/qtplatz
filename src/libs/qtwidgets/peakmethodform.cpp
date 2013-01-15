@@ -104,6 +104,18 @@ PeakMethodForm::OnFinalClose()
 {
 }
 
+bool
+PeakMethodForm::getContents( boost::any& ) const
+{
+    return false;
+}
+
+bool
+PeakMethodForm::setContents( boost::any& )
+{
+    return false;
+}
+
 void
 PeakMethodForm::getContents( adcontrols::ProcessMethod& pm )
 {

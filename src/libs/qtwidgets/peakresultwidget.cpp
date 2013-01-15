@@ -74,6 +74,19 @@ PeakResultWidget::OnFinalClose()
 {
 }
 
+bool
+PeakResultWidget::getContents( boost::any& ) const
+{
+    return false;
+}
+
+bool
+PeakResultWidget::setContents( boost::any& )
+{
+    return false;
+}
+
+
 void
 PeakResultWidget::getLifeCycle( adplugin::LifeCycle *& p )
 {
