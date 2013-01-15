@@ -62,9 +62,12 @@ namespace sequence {
 		void setSimpleDockWidgetArrangement();
 
         bool getControlMethod( ControlMethod::Method& ) const;
-        bool setControlMethod( const ControlMethod::Method& );
         bool getProcessMethod( adcontrols::ProcessMethod& ) const;
+
+        bool setControlMethod( const ControlMethod::Method& );
         bool setProcessMethod( const adcontrols::ProcessMethod& );
+        void setControlMethodName( const QString& );
+        void setProcessMethodName( const QString& );
 
 		static QToolButton * toolButton( const char * );
 		static QToolButton * toolButton( QAction * );
@@ -73,8 +76,6 @@ namespace sequence {
     signals:
             
     public slots:
-        void handleControlMethodName( const QString& );
-        void handleProcessMethodName( const QString& );
 
     private:
         static MainWindow * instance_;
@@ -82,12 +83,10 @@ namespace sequence {
 		QHBoxLayout * toolBarLayout_;
         QDockWidget * toolBarDockWidget_;
         QAction * actionConnect_;
-        SequenceWidget * sequenceWidget_;
         QLineEdit * ctrlMethodName_;
         QLineEdit * procMethodName_;
-        boost::scoped_ptr< adsequence::sequence > sequence_;
         boost::scoped_ptr< ControlMethod::Method > defaultControlMethod_;
-        std::map< std::string, boost::shared_ptr< ControlMethod::Method > > controlMethods_;
+
         std::vector< adplugin::LifeCycle * > editors_;
 
 		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );

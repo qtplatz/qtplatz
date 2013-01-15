@@ -28,6 +28,7 @@
 
 #include <coreplugin/editormanager/ieditor.h>
 #include <boost/smart_ptr.hpp>
+#include <map>
 
 namespace adsequence { class sequence; }
 namespace adcontrols { class ProcessMethod; }
@@ -55,8 +56,8 @@ namespace sequence {
         virtual IEditor *duplicate(QWidget *parent);
         virtual QByteArray saveState() const;
         virtual bool restoreState(const QByteArray &state);
-        virtual int currentLine() const { return 0; }
-        virtual int currentColumn() const { return 0; }
+        virtual int currentLine() const;
+        virtual int currentColumn() const;
         virtual bool isTemporary() const;
         virtual QWidget *toolBar();
         virtual const char * uniqueModeName() const;  // enforce editor in specific mode
@@ -83,12 +84,17 @@ namespace sequence {
     private slots:
 		void onLineAdded( size_t row );
 		void onLineDeleted( size_t prevRow );
+        void onCurrentChanged( size_t row, size_t column );
             
     private:
+        void methodSaveToMap( size_t row );
+        void methodSetToDock( size_t row );
         QList<int> context_;
         QString displayName_;  // this will shows on Navigator's 'Open Documents' pane
         SequenceFile * file_;
         SequenceWidget * widget_;
+        size_t currRow_;
+        size_t currCol_;
     };
     
 } // sequence

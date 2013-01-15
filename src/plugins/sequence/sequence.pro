@@ -21,7 +21,8 @@ LIBS += -l$$qtLibraryTarget(adcontroller) -l$$qtLibraryTarget(adcontrols) \
 	-l$$qtLibraryTarget(adportable)   -l$$qtLibraryTarget(adwplot) \
 	-l$$qtLibraryTarget(acewrapper)   -l$$qtLibraryTarget(qtwrapper) \
 	-l$$qtLibraryTarget(xmlparser)    -l$$qtLibraryTarget(adplugin) \
-	-l$$qtLibraryTarget(adextension)  -l$$qtLibraryTarget(adsequence)
+	-l$$qtLibraryTarget(adextension)  -l$$qtLibraryTarget(adsequence) \
+        -l$$qtLibraryTarget(adfs)
 
 !win32 {
   LIBS += -lTAO -lTAO_Utils -lTAO_PI -lTAO_PortableServer -lTAO_AnyTypeCode -lACE

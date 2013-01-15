@@ -31,6 +31,7 @@
 #include <adplugin/constants.hpp>
 #include <adportable/configuration.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <qtwrapper/application.hpp>
 
 #include <QtCore/qplugin.h>
 #include <coreplugin/icore.h>
@@ -82,29 +83,29 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     Q_UNUSED( arguments );
     
     Core::ICore * core = Core::ICore::instance();
+    if ( core == 0 )
+        return false;
     
     QList<int> context;
-    if ( core ) {
-        Core::UniqueIDManager * uidm = core->uniqueIDManager();
-        if ( uidm ) {
-            context.append( uidm->uniqueIdentifier( QLatin1String("Sequence.MainView") ) );
-            context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
-        }
-    } else
-        return false;
+    Core::UniqueIDManager * uidm = core->uniqueIDManager();
+    if ( uidm ) {
+        context.append( uidm->uniqueIdentifier( QLatin1String("Sequence.MainView") ) );
+        context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
+    }
 
     //---------
-    QDir dir = QCoreApplication::instance()->applicationDirPath();
-    dir.cdUp();
-    std::wstring apppath = qtwrapper::wstring::copy( dir.path() );
-    dir.cd( adpluginDirectory );
-    std::wstring pluginpath = qtwrapper::wstring::copy( dir.path() );
+    std::wstring pluginpath = qtwrapper::application::path( L".." );  // remove 'bin' from "~/qtplatz/bin"
     
     Core::MimeDatabase* mdb = core->mimeDatabase();
-    if ( mdb ) {
-        if ( !mdb->addMimeTypes(":/sequence/sequence-mimetype.xml", error_message) )
-            return false;
+    if ( ! ( mdb && mdb->addMimeTypes(":/sequence/sequence-mimetype.xml", error_message) ) )
+        return false;
+
+    Core::ActionManager * am = core->actionManager();
+    if ( am ) {
+        Core::ActionContainer * ac = am->actionContainer( Core::Constants::M_FILE_NEW );
+        // connect( ac, SIGNAL( triggered( bool ) ), this, SLOT( createNew() ) );
     }
+
     // expose editor factory for sequence (table)
     addAutoReleasedObject( new SequenceEditorFactory(this) );
 
@@ -112,7 +113,6 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     if ( ! mode_ )
         return false;
     
-    // mainWindow_.reset( new MainWindow );
     if ( ! mainWindow_ )
         return false;
 
@@ -120,7 +120,6 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     mainWindow_->activateLayout();
     mainWindow_->createActions();
     QWidget * widget = mainWindow_->createContents( mode_.get() );
-	// mainWindow_->createDockWidgets( apppath, acquire_config, dataproc_config );
 
     mode_->setWidget( widget );
     addObject( mode_.get() );

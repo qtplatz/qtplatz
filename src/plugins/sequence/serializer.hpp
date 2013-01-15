@@ -30,6 +30,7 @@
 
 namespace ControlMethod { struct Method; }
 namespace adcontrols { class ProcessMethod; }
+namespace adfs { namespace detail { class cpio; } }
 
 namespace sequence {
 
@@ -43,6 +44,9 @@ namespace sequence {
         static bool archive( std::vector<char>&, const adcontrols::ProcessMethod& );
         static bool restore( adcontrols::ProcessMethod&, const std::vector<char>& );
         static bool restore( boost::shared_ptr<adcontrols::ProcessMethod>&, const std::vector<char>& );
+
+        static bool archive( adfs::detail::cpio&, const ControlMethod::Method& );
+        static bool restore( boost::shared_ptr< ControlMethod::Method>&, const adfs::detail::cpio& );
     };
 
 }

@@ -60,13 +60,14 @@ namespace sequence {
 
         void getSequence( adsequence::sequence& ) const;
         void setSequence( const adsequence::sequence& );
+        QString getControlMethodName( size_t row ) const;
+        QString getProcessMethodName( size_t row ) const;
     
     private:
         Ui::SequenceWidget *ui;
         boost::scoped_ptr< QStandardItemModel > model_;
         boost::scoped_ptr< SequenceDelegate > delegate_;
         boost::scoped_ptr< adsequence::schema > schema_;
-
     private slots:
         void handleCurrentChanged( const QModelIndex&, const QModelIndex& );
         void showContextMenu( const QPoint& );
@@ -76,11 +77,9 @@ namespace sequence {
         void saveAs();
 
     signals:
-        void currentChanged( size_t currLine, size_t prevLine );
+        void currentChanged( size_t row, size_t col );
 		void lineAdded( size_t row );
 		void lineDeleted( size_t row );
-        void controlMethodSelected( const QString& );
-        void processMethodSelected( const QString& );
     };
 }
 

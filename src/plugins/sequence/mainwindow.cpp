@@ -89,10 +89,8 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , toolBarLayout_( 0 )
                                         , toolBarDockWidget_( 0 )
                                         , actionConnect_ ( 0 )
-                                        , sequenceWidget_( 0 )
                                         , ctrlMethodName_( 0 )
                                         , procMethodName_( 0 )
-                                        , sequence_( new adsequence::sequence )
                                         , defaultControlMethod_( new ControlMethod::Method )
 {
     instance_ = this;
@@ -104,9 +102,12 @@ void
 MainWindow::OnInitialUpdate()
 {
 	using adextension::iSequence;
-	QList< iSequence * > visitables = ExtensionSystem::PluginManager::instance()->getObjects< iSequence >();
+
+    QList< iSequence * > visitables = ExtensionSystem::PluginManager::instance()->getObjects< iSequence >();
+
 	BOOST_FOREACH( iSequence * v, visitables ) {
-		for ( size_t i = 0; i < v->size(); ++i ) {
+
+        for ( size_t i = 0; i < v->size(); ++i ) {
 			adextension::iEditorFactory& factory = (*v)[i];
             QWidget * widget = factory.createEditor( 0 );
 			if ( widget ) {
@@ -124,31 +125,22 @@ MainWindow::OnInitialUpdate()
     // load GUI defined default values for get configuration
     getControlMethod( *defaultControlMethod_ );
 
-    if ( sequenceWidget_ ) {
-
-        assert( connect( sequenceWidget_, SIGNAL( controlMethodSelected( const QString& ) )
-                         , this, SLOT( handleControlMethodName( const QString& ) ) ) );
-
-        assert( connect( sequenceWidget_, SIGNAL( processMethodSelected( const QString& ) )
-                         , this, SLOT( handleProcessMethodName( const QString& ) ) ) );
-
-    }
     setSimpleDockWidgetArrangement();
 }
 
 void
 MainWindow::OnFinalClose()
 {
-    if ( sequenceWidget_ )
-        sequenceWidget_->OnFinalClose();
-
     QList< QDockWidget *> widgets = dockWidgets();
+
     foreach ( QDockWidget * widget, widgets ) {
-		QWidget * obj = widget->widget();
+
+        QWidget * obj = widget->widget();
 		adplugin::LifeCycleAccessor accessor( obj );
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
 		if ( pLifeCycle )
 			pLifeCycle->OnFinalClose();
+
     }
 }
 
@@ -344,13 +336,13 @@ MainWindow::setProcessMethod( const adcontrols::ProcessMethod& m )
 }
 
 void
-MainWindow::handleControlMethodName( const QString& name )
+MainWindow::setControlMethodName( const QString& name )
 {
     ctrlMethodName_->setText( name );
 }
 
 void
-MainWindow::handleProcessMethodName( const QString& name )
+MainWindow::setProcessMethodName( const QString& name )
 {
     procMethodName_->setText( name );
 }

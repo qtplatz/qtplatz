@@ -41,11 +41,15 @@ serializer::archive( std::vector<char>& vec, const ControlMethod::Method& m )
     vec.clear();
 
     TAO_OutputCDR cdr;
-
     cdr << m;
-    for ( const ACE_Message_Block * mblk = cdr.begin(); mblk; mblk = mblk->next() ) {
-        vec.resize( vec.size() + mblk->size() );
-        std::copy( mblk->rd_ptr(), mblk->rd_ptr() + mblk->size(), vec.begin() + vec.size() );
+
+    size_t len = cdr.begin()->total_length();
+    vec.resize( len );
+
+    std::vector< char >::iterator it = vec.begin();
+    for ( const ACE_Message_Block * mblk = cdr.begin(); mblk; mblk = mblk->cont() ) {
+        std::copy( mblk->base(), mblk->base() + mblk->length(), it );
+        it += mblk->length();
     }
 
     return true;

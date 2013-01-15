@@ -27,6 +27,8 @@
 #include "constants.hpp"
 #include "sequencewidget.hpp"
 #include "mainwindow.hpp"
+#include <adcontrols/processmethod.hpp>
+#include <adinterface/controlmethodC.h>
 #include <adsequence/sequence.hpp>
 #include <adsequence/schema.hpp>
 #include <coreplugin/uniqueidmanager.h>
@@ -48,16 +50,18 @@ SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
                                                 , displayName_( "Sequence Editor" )
                                                 , file_( new SequenceFile( *this ) )
                                                 , widget_( new SequenceWidget( file_->adsequence().schema(), 0 ) )
+                                                , currRow_( 0 )
+                                                , currCol_( 0 )
 {
     Core::UniqueIDManager* uidm = Core::UniqueIDManager::instance();
     if ( uidm )
-        context_ << uidm->uniqueIdentifier( Constants::C_SEQUENCE );
+        context_ << uidm->uniqueIdentifier( Constants::C_SEQUENCE_EDITOR );
 
     widget_->OnInitialUpdate( file_->adsequence().schema() );
 
-    connect( widget_, SIGNAL( lineAdded( size_t ) ), this, SLOT( onLineAdded( size_t ) ) );
-	connect( widget_, SIGNAL( lineDeleted( size_t ) ), this, SLOT( onLineDeleted( size_t ) ) );
-
+    assert( connect( widget_, SIGNAL( lineAdded( size_t ) ), this, SLOT( onLineAdded( size_t ) ) ) );
+    assert( connect( widget_, SIGNAL( lineDeleted( size_t ) ), this, SLOT( onLineDeleted( size_t ) ) ) );
+    assert( connect( widget_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( onCurrentChanged( size_t, size_t ) ) ) );
 }
 
 // Core::IEditor
@@ -74,32 +78,14 @@ SequenceEditor::uniqueModeName() const
     return sequence::Constants::C_SEQUENCE_MODE;
 }
 
-namespace sequence {
-
-	struct print_visitor : public boost::static_visitor<void> {
-		template< class T > void operator () ( const T& t ) const {
-			std::wcout << t << L", ";
-		}
-	};
-
-}
-
 bool
 SequenceEditor::open( const QString &fileName )
 {
     boost::filesystem::path path( qtwrapper::wstring::copy( fileName ) );
     
     if ( boost::filesystem::exists( path ) && file_->load( fileName ) ) {
-		// debug
-		for ( std::size_t i = 0; i < file_->adsequence().size(); ++i ) {
-			const adsequence::line_t& line = file_->adsequence()[i];
-			for ( size_t c = 0; c < line.size(); ++c )
-				boost::apply_visitor( print_visitor(), line[c] );
-			std::cout << std::endl;
-		}
-		//debug
 
-		setSequence( file_->adsequence() );
+        setSequence( file_->adsequence() );
 
         widget_->setSequenceName( fileName );
 
@@ -122,7 +108,7 @@ SequenceEditor::file()
 const char *
 SequenceEditor::kind() const
 {
-    return Constants::C_SEQUENCE;
+    return Constants::C_SEQUENCE_EDITOR;
 }
 
 QString
@@ -166,6 +152,18 @@ SequenceEditor::restoreState(const QByteArray &state)
 	return false;
 }
 
+int
+SequenceEditor::currentLine() const
+{
+    return currRow_ + 1;
+}
+
+int
+SequenceEditor::currentColumn() const
+{
+    return currCol_ + 1;
+}
+
 bool
 SequenceEditor::isTemporary() const
 {
@@ -202,7 +200,8 @@ SequenceEditor::slotTitleChanged( const QString& title )
 void
 SequenceEditor::setSequence( const adsequence::sequence& sequence )
 {
-	widget_->setSequence( sequence );
+    widget_->setSequence( sequence );
+    onCurrentChanged( 0, 0 );
 }
 
 void
@@ -230,15 +229,65 @@ SequenceEditor::setModified( bool modified )
 }
 
 void
-SequenceEditor::onLineAdded( size_t row )
+SequenceEditor::onLineAdded( size_t /* row */)
 {
 	file_->setModified( true );
 }
 
 void
-SequenceEditor::onLineDeleted( size_t row )
+    SequenceEditor::onLineDeleted( size_t /* row */)
 {
 	file_->setModified( true );
 }
 
+void
+SequenceEditor::onCurrentChanged( size_t row, size_t column )
+{
+    methodSaveToMap( currRow_ );
+    currRow_ = row;
+    currCol_ = column;
+    methodSetToDock( currRow_ );
 
+}
+
+void
+SequenceEditor::methodSaveToMap( size_t row )
+{
+    std::wstring ctrlname = qtwrapper::wstring( widget_->getControlMethodName( row ) );
+    if ( ! ctrlname.empty() ) {
+        ControlMethod::Method ctrl;
+        MainWindow::instance()->getControlMethod( ctrl );
+        file_->setControlMethod( ctrlname, ctrl );
+    }
+
+    std::wstring procname = qtwrapper::wstring( widget_->getProcessMethodName( row ) );
+    if ( ! procname.empty() ) {
+        adcontrols::ProcessMethod proc;
+        MainWindow::instance()->getProcessMethod( proc );
+        file_->setProcessMethod( procname, proc );
+    }
+}
+
+void
+SequenceEditor::methodSetToDock( size_t row )
+{
+    QString qctrlname = widget_->getControlMethodName( row );
+    QString qprocname = widget_->getProcessMethodName( row );
+
+    MainWindow::instance()->setControlMethodName( qctrlname );  // GUI updateGUI (middle bar on MainWindow) update
+    MainWindow::instance()->setProcessMethodName( qprocname );  // GUI updateGUI (middle bar on MainWindow) update
+
+    std::wstring ctrlname = qtwrapper::wstring( qctrlname );
+    if ( ! ctrlname.empty() ) {
+        const ControlMethod::Method * p = file_->getControlMethod( ctrlname );
+        if ( p )
+            MainWindow::instance()->setControlMethod( *p );
+    }
+
+    std::wstring procname = qtwrapper::wstring( qprocname );
+    if ( ! procname.empty() ) {
+        const adcontrols::ProcessMethod * p = file_->getProcessMethod( procname );
+        if ( p )
+            MainWindow::instance()->setProcessMethod( *p );
+    }
+}

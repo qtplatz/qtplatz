@@ -39,6 +39,7 @@
 #include <QMenu>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
+#include <boost/bind.hpp>
 #include <algorithm>
 #include <assert.h>
 #include <QMessageBox>
@@ -109,13 +110,7 @@ SequenceWidget::setDataSaveIn( const QString& dir )
 void
 SequenceWidget::handleCurrentChanged( const QModelIndex& curr, const QModelIndex& )
 {
-    // update for new line
-    do {
-        // display method names on center tool bar
-        int row = curr.row();
-        emit controlMethodSelected( model_->index( row, 5 ).data().toString() );
-        emit processMethodSelected( model_->index( row, 6 ).data().toString() );
-    } while( 0 );
+    emit currentChanged( curr.row(), curr.column() );
 }
 
 void
@@ -276,3 +271,32 @@ SequenceWidget::setSequence( const adsequence::sequence& seq )
     }
 }
 
+QString
+SequenceWidget::getControlMethodName( size_t row ) const
+{
+    QStandardItemModel& model = *model_;
+    const adsequence::schema& schema = *schema_;
+
+    adsequence::schema::vector_type::const_iterator it
+        = std::find_if( schema.begin(), schema.end(), boost::bind(&adsequence::column::name, _1 ) == "name_control" );
+    if ( it != schema.end() ) {
+        size_t col = std::distance( schema.begin(), it );
+        return model.index( row, col ).data( Qt::EditRole ).toString();
+    }
+    return QString();
+}
+
+QString
+SequenceWidget::getProcessMethodName( size_t row ) const
+{
+    QStandardItemModel& model = *model_;
+    const adsequence::schema& schema = *schema_;
+
+    adsequence::schema::vector_type::const_iterator it
+        = std::find_if( schema.begin(), schema.end(), boost::bind(&adsequence::column::name, _1 ) == "name_process" );
+    if ( it != schema.end() ) {
+        size_t col = std::distance( schema.begin(), it );
+        return model.index( row, col ).data( Qt::EditRole ).toString();
+    }
+    return QString();
+}

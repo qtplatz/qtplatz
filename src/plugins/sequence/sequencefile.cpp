@@ -28,22 +28,23 @@
 #include "constants.hpp"
 #include "serializer.hpp"
 #include <adcontrols/processmethod.hpp>
+#include <adfs/adfs.hpp>
+#include <adfs/cpio.hpp>
+#include <adfs/sqlite.hpp>
 #include <adinterface/controlmethodC.h>
 #include <adportable/profile.hpp>
 #include <adsequence/sequence.hpp>
 //
-//#include <adportable/portable_binary_oarchive.hpp>
-//#include <adportable/portable_binary_iarchive.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/format.hpp>
-//
-#include <qtwrapper/qstring.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
+#include <qtwrapper/qstring.hpp>
+#include <qmessagebox.h>
 #include <fstream>
 #include <iostream>
-#include <qmessagebox.h>
 
 using namespace sequence;
 
@@ -90,10 +91,56 @@ SequenceFile::load( const QString& filename )
     procmethods_.clear();
 
     boost::filesystem::path path = qtwrapper::wstring::copy( filename );
-    std::ifstream inf( path.string().c_str() );
-	if ( ! adsequence::sequence::xml_restore( inf, *adsequence_ ) )
-		QMessageBox::warning( 0, "SequenceFile", ( boost::format( "FILE %1% OPEN FAILED" ) % path.string() ).str().c_str() );
+    adfs::portfolio file;
+    try {
+        if ( ! file.mount( path.wstring().c_str() ) )
+            return false;
+    } catch ( adfs::exception& ex ) {
+        QMessageBox::warning( 0, "SequenceFile", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
+        return false;
+    }
 
+    do {
+        // .sequ file should have only one folium under /Sequence folder
+        adfs::folder folder = file.findFolder( L"/Sequence" );
+        std::vector< adfs::folium > folio = folder.folio();
+        if ( folio.empty() )
+            return false;
+        adfs::folium& folium = *folio.begin();  // take first one.
+        adfs::cpio< adsequence::sequence >::copyout( *adsequence_, folium );
+    } while( 0 );
+
+    do {
+        adfs::folder folder = file.findFolder( L"/ProcessMethod" );
+
+        std::vector< adfs::folium > folio = folder.folio();
+        for ( std::vector< adfs::folium >::iterator it = folio.begin(); it != folio.end(); ++it ) {
+            boost::shared_ptr< adcontrols::ProcessMethod > ptr( new adcontrols::ProcessMethod );
+            adfs::cpio< adcontrols::ProcessMethod >::copyout( *ptr, *it );
+            procmethods_[ it->name() ] = ptr;
+        }
+    } while ( 0 );
+    
+    do {
+        adfs::folder folder = file.addFolder( L"/ControlMethod" );
+
+        std::vector< adfs::folium > folio = folder.folio();
+        for ( std::vector< adfs::folium >::iterator it = folio.begin(); it != folio.end(); ++it ) {
+            // adfs::cpio< ControlMethod::Method >::copyin( *it->second, folium );
+            std::vector< char> ibuf( it->size() );
+            it->read( ibuf.size(), &ibuf[0] );
+
+            boost::shared_ptr< ControlMethod::Method > ptr( new ControlMethod::Method );
+            serializer::restore( *ptr, ibuf );
+            ctrlmethods_[ it->name() ] = ptr;
+        }
+    } while ( 0 );
+
+#if 0
+    std::ifstream inf( path.string().c_str() );
+    if ( ! adsequence::sequence::xml_restore( inf, *adsequence_ ) )
+        QMessageBox::warning( 0, "SequenceFile", ( boost::format( "FILE %1% OPEN FAILED" ) % path.string() ).str().c_str() );
+    
     using adsequence::sequence;
     do {
         sequence::method_vector_type& ctrlmap = adsequence_->getControlMethod();
@@ -106,12 +153,11 @@ SequenceFile::load( const QString& filename )
         for ( sequence::method_vector_type::const_iterator it = procmap.begin(); it != procmap.end(); ++it )
             serializer::restore( procmethods_[ it->first ], it->second );
     } while(0);
+#endif
 
     if ( ! filename.isEmpty() )
         filename_ = filename;
-
-	// editor_.setSequence( *adsequence_ );
-	setModified( true );
+    setModified( true );
     return true;
 }
 
@@ -119,27 +165,61 @@ bool
 SequenceFile::save( const QString& filename )
 {
     editor_.getSequence( *adsequence_ );
-
+    
     if ( ! filename.isEmpty() ) // save as
         filename_ = filename; // replace filename
-    
-    for ( control_method_map_type::const_iterator it = ctrlmethods_.begin(); it != ctrlmethods_.end(); ++it ) {
-        adsequence::sequence::method_vector_type& ctrlmap = adsequence().getControlMethod();
-        if ( it->second )
-            serializer::archive( ctrlmap[ it->first ], *it->second );
-    }
 
-    for ( process_method_map_type::const_iterator it = procmethods_.begin(); it != procmethods_.end(); ++it ) {
-        adsequence::sequence::method_vector_type& procmap = adsequence().getProcessMethod();
-        if ( it->second )
-            serializer::archive( procmap[ it->first ], *it->second );
-    }
-
-    //-------
     boost::filesystem::path path( qtwrapper::wstring::copy( filename_ ) );
+    path.replace_extension( ".sequ" );
+
+    adfs::portfolio file;
+    try {
+        if ( ! file.create( path.wstring().c_str() ) )
+            return false;
+    } catch ( adfs::exception& ex ) {
+        QMessageBox::warning( 0, "SequenceFile", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
+        return false;
+    }
+
+    do {
+        adfs::folder folder = file.addFolder( L"/Sequence" );
+        adfs::folium folium = folder.addFolium( adfs::create_uuid() );
+        adfs::cpio< adsequence::sequence >::copyin( *adsequence_, folium );
+        folium.dataClass( L"adsequence::sequence" );
+        folium.commit();
+    } while( 0 );
+
+    do {
+        adfs::folder folder = file.addFolder( L"/ProcessMethod" );
+
+        for ( process_method_map_type::const_iterator it = procmethods_.begin(); it != procmethods_.end(); ++it ) {
+            adfs::folium folium = folder.addFolium( it->first );
+            adfs::cpio< adcontrols::ProcessMethod >::copyin( *it->second, folium );
+            folium.dataClass( L"adcontrols::ProcessMethod" );
+            folium.commit();
+        }
+    } while ( 0 );
+    
+    do {
+        adfs::folder folder = file.addFolder( L"/ControlMethod" );
+        for ( control_method_map_type::const_iterator it = ctrlmethods_.begin(); it != ctrlmethods_.end(); ++it ) {
+            adfs::folium folium = folder.addFolium( it->first );
+            
+            // adfs::cpio< ControlMethod::Method >::copyin( *it->second, folium );
+            std::vector< char > obuf;
+            serializer::archive( obuf, *it->second );
+            folium.write( obuf.size(), &obuf[0] );
+
+            folium.dataClass( L"ControlMethod::Method" );
+            folium.commit();
+        }
+    } while ( 0 );
+    
+#if 0 // old code
     std::ofstream outf( path.string().c_str() );
 	if ( ! adsequence::sequence::xml_archive( outf, *adsequence_ ) )
-		QMessageBox::warning( 0, "SequenceFile", ( boost::format( "FILE %1% SAVE FAILED" ) % path.string() ).str().c_str() );
+            QMessageBox::warning( 0, "SequenceFile", ( boost::format( "FILE %1% SAVE FAILED" ) % path.string() ).str().c_str() );
+#endif
 
 	return true;
 }
