@@ -103,6 +103,81 @@ ControlMethodHelper::add( const std::wstring& modelname, unsigned long unitnumbe
     return line;
 }
 
+
+// static
+ControlMethod::MethodLine *
+ControlMethodHelper::findFirst( ControlMethod::Method& method, const std::wstring& modelname, unsigned long unitnumber )
+{
+    size_t nlines = method.lines.length();
+    for ( size_t i = 0; i < nlines; ++i ) {
+        ControlMethod::MethodLine& line = method.lines[ i ];
+        if ( modelname == line.modelname.in() && unitnumber == line.unitnumber )
+            return &line;
+    }
+    return 0;
+}
+
+// static
+const ControlMethod::MethodLine *
+ControlMethodHelper::findFirst( const ControlMethod::Method& method, const std::wstring& modelname, unsigned long unitnumber )
+{
+    size_t nlines = method.lines.length();
+    for ( size_t i = 0; i < nlines; ++i ) {
+        const ControlMethod::MethodLine& line = method.lines[ i ];
+        if ( modelname == line.modelname.in() && unitnumber == line.unitnumber )
+            return &line;
+    }
+    return 0;
+}
+
+// static
+const ControlMethod::MethodLine *
+ControlMethodHelper::findNext( const ControlMethod::Method& method, const ControlMethod::MethodLine * line )
+{
+    if ( line ) {
+        size_t nlines = method.lines.length();
+        if ( line >= &method.lines[0] && line < &method.lines[ nlines ] ) {
+            for ( size_t i = size_t( line - &method.lines[0] ); i < nlines; ++i ) {
+                if ( line->modelname.in() == method.lines[i].modelname.in()
+                    && line->unitnumber == method.lines[i].unitnumber )
+                    return &method.lines[i];
+            }
+        }
+    }
+    return 0;
+}
+
+ControlMethod::MethodLine *
+ControlMethodHelper::findNext( ControlMethod::Method& method, const ControlMethod::MethodLine * line )
+{
+    if ( line ) {
+        size_t nlines = method.lines.length();
+        if ( line >= &method.lines[0] && line < &method.lines[ nlines ] ) {
+            for ( size_t i = size_t( line - &method.lines[0] ); i < nlines; ++i ) {
+                if ( line->modelname.in() == method.lines[i].modelname.in()
+                    && line->unitnumber == method.lines[i].unitnumber )
+                    return &method.lines[i];
+            }
+        }
+    }
+    return 0;
+}
+
+// static
+bool
+ControlMethodHelper::append( ControlMethod::Method& method, const ControlMethod::MethodLine& line
+                           , const std::wstring& modelname, unsigned long unitnumber )
+{
+    size_t n = method.lines.length();
+    method.lines.length( n + 1 );
+    method.lines[ n ] = line;
+    method.lines[ n ].unitnumber = unitnumber;
+    method.lines[ n ].modelname = CORBA::wstring_dup( modelname.c_str() );
+
+    return true;
+}
+
+
 /////////////////
 unsigned long
 ControlMethodLine::index() const
@@ -187,3 +262,4 @@ ControlMethodInstInfo::description() const
 {
     return info_.description.in();
 }
+

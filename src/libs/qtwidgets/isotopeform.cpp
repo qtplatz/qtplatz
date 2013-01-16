@@ -118,7 +118,8 @@ IsotopeForm::setContents( boost::any& a )
         return false;
     adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >(a);
     const adcontrols::IsotopeMethod* p = pm.find< adcontrols::IsotopeMethod >();
-    *pMethod_ = *p;
+    if ( p )
+        *pMethod_ = *p;
     return true;
 }
 
