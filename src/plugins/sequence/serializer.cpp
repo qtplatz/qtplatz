@@ -24,6 +24,7 @@
 
 #include "serializer.hpp"
 #include <tao/CDR.h>
+#include <ace/FILE_Connector.h>
 #include <adinterface/controlmethodC.h>
 #include <adsequence/sequence.hpp>
 #include <adsequence/streambuf.hpp>
@@ -43,14 +44,34 @@ serializer::archive( std::vector<char>& vec, const ControlMethod::Method& m )
     TAO_OutputCDR cdr;
     cdr << m;
 
+    // ACE_FILE_Connector connector;
+    // ACE_FILE_IO file;
+    // ACE_FILE_Addr addr;
+    ACE_MEM_Connector connector;
+    ACE_MEM_Stream stream;
+    ACE_MEM_Addr addr;
+
+    connector.connect( stream );
+
     size_t len = cdr.begin()->total_length();
     vec.resize( len );
 
     std::vector< char >::iterator it = vec.begin();
     for ( const ACE_Message_Block * mblk = cdr.begin(); mblk; mblk = mblk->cont() ) {
+
+        stream.send( mblk->rd_ptr(), mblk->length() );
+
         std::copy( mblk->base(), mblk->base() + mblk->length(), it );
         it += mblk->length();
     }
+
+
+    do {
+    TAO_InputCDR in( static_cast< const char *>( &vec[0] ), vec.size() );
+    ControlMethod::Method mm;
+    in >> mm;
+    std::cout << "serializer::archive store " << mm.lines.length() << std::endl;
+    } while(0);
 
     return true;
 }

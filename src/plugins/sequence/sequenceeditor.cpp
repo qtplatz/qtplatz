@@ -28,7 +28,14 @@
 #include "sequencewidget.hpp"
 #include "mainwindow.hpp"
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/centroidmethod.hpp>
+#include <adcontrols/isotopemethod.hpp>
+#include <adcontrols/elementalcompositionmethod.hpp>
+#include <adcontrols/mscalibratemethod.hpp>
+#include <adcontrols/peakmethod.hpp>
+#include <adcontrols/targetingmethod.hpp>
 #include <adinterface/controlmethodC.h>
+#include <adinterface/controlmethodhelper.hpp>
 #include <adsequence/sequence.hpp>
 #include <adsequence/schema.hpp>
 #include <coreplugin/uniqueidmanager.h>
@@ -86,7 +93,6 @@ SequenceEditor::open( const QString &fileName )
     if ( boost::filesystem::exists( path ) && file_->load( fileName ) ) {
 
         setSequence( file_->adsequence() );
-
         widget_->setSequenceName( fileName );
 
         Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
@@ -201,7 +207,9 @@ void
 SequenceEditor::setSequence( const adsequence::sequence& sequence )
 {
     widget_->setSequence( sequence );
-    onCurrentChanged( 0, 0 );
+    currRow_ = 0;
+    if ( sequence.size() > 0 )
+        saveToWidget( currRow_ );
 }
 
 void
@@ -235,7 +243,7 @@ SequenceEditor::onLineAdded( size_t /* row */)
 }
 
 void
-    SequenceEditor::onLineDeleted( size_t /* row */)
+SequenceEditor::onLineDeleted( size_t /* row */)
 {
 	file_->setModified( true );
 }
@@ -243,33 +251,44 @@ void
 void
 SequenceEditor::onCurrentChanged( size_t row, size_t column )
 {
-    methodSaveToMap( currRow_ );
+    saveToObject( currRow_ ); // Widget --> IFile
     currRow_ = row;
     currCol_ = column;
-    methodSetToDock( currRow_ );
-
+    saveToWidget( row ); // IFile --> Widget
 }
 
 void
-SequenceEditor::methodSaveToMap( size_t row )
+SequenceEditor::saveToObject( size_t row )
 {
     std::wstring ctrlname = qtwrapper::wstring( widget_->getControlMethodName( row ) );
     if ( ! ctrlname.empty() ) {
-        ControlMethod::Method ctrl;
-        MainWindow::instance()->getControlMethod( ctrl );
-        file_->setControlMethod( ctrlname, ctrl );
+        const ControlMethod::Method * pCM = file_->getControlMethod( ctrlname );
+        ControlMethod::Method tmp;
+        if ( pCM ) {
+            // each device method editor only update own reagin, so existing method should be preserved
+            // for all existing methods
+            tmp = *pCM;
+        }
+        MainWindow::instance()->getControlMethod( tmp );
+
+        std::wcout << L"TO OBJECT: (" << ctrlname << L") subject: " << tmp.subject.in() << " " << tmp.lines.length() << "lines" << std::endl;
+
+        file_->setControlMethod( ctrlname, tmp );
     }
 
     std::wstring procname = qtwrapper::wstring( widget_->getProcessMethodName( row ) );
     if ( ! procname.empty() ) {
-        adcontrols::ProcessMethod proc;
-        MainWindow::instance()->getProcessMethod( proc );
-        file_->setProcessMethod( procname, proc );
+        const adcontrols::ProcessMethod * pPM = file_->getProcessMethod( procname );
+        adcontrols::ProcessMethod tmp;
+        if ( pPM )
+            tmp = *pPM;
+        MainWindow::instance()->getProcessMethod( tmp );
+        file_->setProcessMethod( procname, tmp );
     }
 }
 
 void
-SequenceEditor::methodSetToDock( size_t row )
+SequenceEditor::saveToWidget( size_t row )
 {
     QString qctrlname = widget_->getControlMethodName( row );
     QString qprocname = widget_->getProcessMethodName( row );
@@ -280,8 +299,10 @@ SequenceEditor::methodSetToDock( size_t row )
     std::wstring ctrlname = qtwrapper::wstring( qctrlname );
     if ( ! ctrlname.empty() ) {
         const ControlMethod::Method * p = file_->getControlMethod( ctrlname );
-        if ( p )
+        if ( p ) {
+            std::wcout << L"TO WIDGET: (" << ctrlname << L") subject: " << p->subject.in() << " " << p->lines.length() << "lines" << std::endl;
             MainWindow::instance()->setControlMethod( *p );
+        }
     }
 
     std::wstring procname = qtwrapper::wstring( qprocname );

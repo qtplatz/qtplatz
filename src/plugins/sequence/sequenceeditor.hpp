@@ -87,8 +87,8 @@ namespace sequence {
         void onCurrentChanged( size_t row, size_t column );
             
     private:
-        void methodSaveToMap( size_t row );
-        void methodSetToDock( size_t row );
+        void saveToObject( size_t row );
+        void saveToWidget( size_t row );
         QList<int> context_;
         QString displayName_;  // this will shows on Navigator's 'Open Documents' pane
         SequenceFile * file_;

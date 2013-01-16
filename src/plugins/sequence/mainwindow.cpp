@@ -302,7 +302,7 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title )
 bool
 MainWindow::getControlMethod( ControlMethod::Method& m ) const
 {
-    boost::any any( m );  
+    boost::any any( &m );  
     BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ )
         editor->getContents( any ); // read values from UI
     return true;

@@ -126,34 +126,20 @@ SequenceFile::load( const QString& filename )
 
         std::vector< adfs::folium > folio = folder.folio();
         for ( std::vector< adfs::folium >::iterator it = folio.begin(); it != folio.end(); ++it ) {
-            // adfs::cpio< ControlMethod::Method >::copyin( *it->second, folium );
             std::vector< char> ibuf( it->size() );
             it->read( ibuf.size(), &ibuf[0] );
-
             boost::shared_ptr< ControlMethod::Method > ptr( new ControlMethod::Method );
             serializer::restore( *ptr, ibuf );
+            // dubug
+            ptr->subject = CORBA::wstring_dup( it->name().c_str() );
+            //
             ctrlmethods_[ it->name() ] = ptr;
+            std::wcout << L"Loading control method: ['" << ptr->subject.in() << L"'] has " 
+                << ptr->lines.length() << " lines in " 
+                << it->size() << " bytes"
+                << std::endl;
         }
     } while ( 0 );
-
-#if 0
-    std::ifstream inf( path.string().c_str() );
-    if ( ! adsequence::sequence::xml_restore( inf, *adsequence_ ) )
-        QMessageBox::warning( 0, "SequenceFile", ( boost::format( "FILE %1% OPEN FAILED" ) % path.string() ).str().c_str() );
-    
-    using adsequence::sequence;
-    do {
-        sequence::method_vector_type& ctrlmap = adsequence_->getControlMethod();
-        for ( sequence::method_vector_type::const_iterator it = ctrlmap.begin(); it != ctrlmap.end(); ++it )
-            serializer::restore( ctrlmethods_[ it->first ], it->second );
-    } while(0);
-
-    do {
-        sequence::method_vector_type& procmap = adsequence_->getProcessMethod();
-        for ( sequence::method_vector_type::const_iterator it = procmap.begin(); it != procmap.end(); ++it )
-            serializer::restore( procmethods_[ it->first ], it->second );
-    } while(0);
-#endif
 
     if ( ! filename.isEmpty() )
         filename_ = filename;
@@ -205,13 +191,18 @@ SequenceFile::save( const QString& filename )
         for ( control_method_map_type::const_iterator it = ctrlmethods_.begin(); it != ctrlmethods_.end(); ++it ) {
             adfs::folium folium = folder.addFolium( it->first );
             
-            // adfs::cpio< ControlMethod::Method >::copyin( *it->second, folium );
             std::vector< char > obuf;
             serializer::archive( obuf, *it->second );
             folium.write( obuf.size(), &obuf[0] );
 
             folium.dataClass( L"ControlMethod::Method" );
             folium.commit();
+
+            std::wcout << L"Saving control method: ['" << it->second->subject.in() << L"'] has "
+                << it->second->lines.length() << " lines in "
+                << obuf.size() << " bytes"
+                << std::endl;
+
         }
     } while ( 0 );
     
@@ -317,6 +308,6 @@ void
 SequenceFile::setControlMethod( const std::wstring& name, const ControlMethod::Method& m )
 {
 	using ControlMethod::Method;
-	ctrlmethods_[ name ] = boost::shared_ptr< Method >( new Method( m ) );
+    ctrlmethods_[ name ] = boost::shared_ptr< Method >( new Method( m ) );
 }
 
