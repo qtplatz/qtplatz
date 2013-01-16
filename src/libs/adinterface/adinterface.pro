@@ -29,11 +29,13 @@ IDLFILES += \
 
 SOURCES += interface.cpp \
         eventlog_helper.cpp \
-    	controlmethodhelper.cpp
+    	controlmethodhelper.cpp \
+        controlmethodaccessor.cpp
 
 HEADERS += interface.hpp \
         eventlog_helper.hpp \
-        controlmethodhelper.hpp
+        controlmethodhelper.hpp \
+        controlmethodaccessor.hpp
 
 for(idl, IDLFILES): PRE_TARGETDEPS += $$replace( idl, ".idl", "C.cpp" )
 

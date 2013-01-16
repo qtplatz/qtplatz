@@ -100,6 +100,9 @@ SequenceEditor::open( const QString &fileName )
             filemgr->addToRecentFiles( fileName );
 
         return true;
+    } else {
+        widget_->setSequenceName( fileName );
+        return true;
     }
 
     return false;
