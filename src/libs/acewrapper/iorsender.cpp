@@ -93,11 +93,6 @@ iorSender::unregister_lookup( const std::string& ident )
 void
 iorSender::start_receive()
 {
-#if defined _DEBUG
-    std::cout << "## iorSender start_receive from: "
-	      << sender_endpoint_.address().to_string() 
-	      << ":" << sender_endpoint_.port() << std::endl;
-#endif
     socket_.async_receive_from( boost::asio::buffer( recv_buffer_ )
 				, sender_endpoint_
 				, boost::bind( &iorSender::handle_receive
@@ -113,9 +108,6 @@ void
 iorSender::handle_timeout( const boost::system::error_code& error )
 {
     if ( ! error ) {
-#if defined _DEBUG || defined DEBUG
-        std::cout << "********** iorSender::handle_timeout: " << error << std::endl;
-#endif
 #if defined DEBUG && 0
 	recv_timer_.expires_from_now( boost::posix_time::seconds( 3 ) );
 	recv_timer_.async_wait( boost::bind( &iorSender::handle_timeout, this, boost::asio::placeholders::error ) );
