@@ -24,50 +24,17 @@
 
 #include "serializer.hpp"
 #include <tao/CDR.h>
-#include <ace/CDR_Stream.h>
-#include <ace/MEM_Connector.h>
+#include <ace/Message_Block.h>
 #include <adinterface/controlmethodC.h>
 #include <adsequence/sequence.hpp>
 #include <adsequence/streambuf.hpp>
 #include <adcontrols/processmethod.hpp>
 
-// #include <boost/serialization/vector.hpp>
-// #include <adportable/portable_binary_oarchive.hpp>
-// #include <adportable/portable_binary_iarchive.hpp>
-
-#if 0
-namespace sequence {
-
-    class vector_array {
-        vector< std::vector<char> > vec;
-    public:
-        void append( ACE_Message_Block * mb ) {
-            vec.push_back( std::vector<char> );
-            std::vector<char>& buf = vec.back();
-            buf.resize( mb->length() );
-            std::copy( mb->rd_ptr(), mb->rd_ptr() + mb->length(), buf.begin() );
-        }
-
-        typedef vector< std::vector< char > > vector_type;
-        
-        vector< std::vector< char > >::const_iterator begin() const {
-            return vec.begin();
-        }
-
-        vector< std::vector< char > >::const_iterator end() const {
-            return vec.end();
-        }
-
-    private:
-        firend class boost::serialization::access;
-        template<class Archive> void serialize( Archive& ar, const unsigned int /* version */ ) {
-            ar & BOOST_SERIALIZATION_NVP( vec );
-        }
-        
-    };
-
-}
-#endif
+#include <boost/serialization/vector.hpp>
+//#include <boost/serialization/split_free.hpp>
+//#include <adportable/portable_binary_oarchive.hpp>
+//#include <adportable/portable_binary_iarchive.hpp>
+#include <cstdio>
 
 using namespace sequence;
 
@@ -78,73 +45,33 @@ serializer::serializer()
 bool
 serializer::archive( std::vector<char>& vec, const ControlMethod::Method& m )
 {
-    vec.clear();
-
     TAO_OutputCDR cdr;
     cdr << m;
 
-    ACE_MEM_Connector connector;
-    ACE_MEM_Stream stream;
-    ACE_MEM_Addr addr; //( ACE_DEFAUT_SERVER_PORT );
-    
-    if ( connector.connect( stream, addr.get_remote_addr() ) == -1 )
-        return false;
+    size_t len = cdr.begin()->total_size();
 
-    char buf[1024];
+    vec.resize( len );
+    std::vector<char>::iterator it = vec.begin();
     for ( const ACE_Message_Block * mblk = cdr.begin(); mblk; mblk = mblk->cont() ) {
-        stream.send( mblk->rd_ptr(), mblk->length() );
-        size_t len;
-        while ( ( len = stream.recv( buf, sizeof(buf) ) ) > 0 ) {
-            for ( size_t i = 0; i < len; ++i )
-                vec.push_back( buf[i] );
-        }
+        std::copy( mblk->rd_ptr(), mblk->rd_ptr() + mblk->length(), it );
+        it += mblk->length();
     }
 
-    // vector_array v;
-    // std::vector< char >::iterator it = vec.begin();
-
-    // for ( const ACE_Message_Block * mblk = cdr.begin(); mblk; mblk = mblk->cont() )
-    //     v.append( mblk );
-
-    // adsequence::streambuf obuf( vec );
-    // std::ostream o( &buf );
-    // portable_binary_oarchive ar( o );
-    // ar << v;
-
+#if defined DEBUG || defined _DEBUG
+    ControlMethod::Method x;
+    assert( restore( x, vec ) );
+#endif
     return true;
 }
 
 bool
 serializer::restore( ControlMethod::Method& m, const std::vector<char>& vec )
 {
-    ACE_MEM_Connector connector;
-    ACE_MEM_Stream stream;
-    ACE_MEM_Addr addr; //( ACE_DEFAUT_SERVER_PORT );
-
-    if ( connector.connect( stream, addr.get_remote_addr() ) == -1 )
-        return false;
-
-    // size_t size = stream.recv( &vec[0], vec.size() );
-    // assert( size == vec.size() );
-
-    ACE_Message_Block mb( ACE_CDR::MAX_ALIGNMENT + vec.size() );
-    // ACE_CDR::mb_aligin( &mb );
+    ACE_Message_Block mb( vec.size() + 512 );
+    ACE_CDR::mb_align( &mb );
     mb.copy( &vec[0], vec.size() );
-
-    TAO_InputCDR cdr( &mb );
-    return cdr >> m;
-
-    // adsequence::streambuf ibuf( vec );
-    // std::istream in( &ibuf );
-    // portable_binary_iarchive ar( in );
-    
-    // vector_array v;
-    // ar >> v;
-
-    // ACE_Message_Block mb;
-    // for ( vector_array::vector_type::const_iterator it = v.begin(); it != v.end(); ++it ) {
-    //     mb.
-    // }
+    TAO_InputCDR in( &mb );
+    return in >> m;
 }
 
 bool
