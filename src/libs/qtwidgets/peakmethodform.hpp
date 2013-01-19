@@ -67,6 +67,8 @@ namespace qtwidgets {
         void getLifeCycle( adplugin::LifeCycle*& );
 		//--
 		// void peakMethodChanged( const QModelIndex& );
+    signals:
+		void apply( adcontrols::ProcessMethod& );
 
 	private:
 		Ui::PeakMethodForm *ui;

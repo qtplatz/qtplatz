@@ -37,6 +37,8 @@
 class QToolButton;
 class QAction;
 class QComboBox;
+class QPointF;
+class QRectF;
 
 namespace adplugin {
    class QReceiver_i;
@@ -89,12 +91,16 @@ namespace Acquire {
             void handle_monitor_selected( int );
             void handle_monitor_activated( int );
 
-            void handleRButtonClick( double x, double y );
-            void handleRButtonRange( double x1, double x2, double y1, double y2 );
+			void handleSelected( const QPointF& );
+			void handleSelected( const QRectF& );
+
 
         signals:
-
+        // 
         private:
+            void selectPoint( double x, double y );
+            void selectRange( double x1, double x2, double y1, double y2 );
+
             AcquireUIManager * manager_;
             AcquireImpl * pImpl_;
 

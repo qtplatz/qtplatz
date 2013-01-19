@@ -73,6 +73,8 @@ namespace qtwidgets {
     public slots:
         void getContents( adcontrols::ProcessMethod& );
         void getLifeCycle( adplugin::LifeCycle*& );
+    signals:
+	    void apply( adcontrols::ProcessMethod & );
 
     private:
         Ui::ElementalCompositionForm *ui;

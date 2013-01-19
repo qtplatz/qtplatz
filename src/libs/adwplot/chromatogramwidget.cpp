@@ -149,7 +149,6 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
 
 	if ( picker_ ) {
 		// picker_->setStateMachine( new QwtPickerClickPointMachine() );
-
 		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
 		connect( picker_.get(), SIGNAL( selected( const QPointF& ) ), this, SLOT( selected( const QPointF& ) ) );
 		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );

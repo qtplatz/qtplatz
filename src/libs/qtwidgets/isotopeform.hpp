@@ -84,7 +84,7 @@ namespace qtwidgets {
 	   void onActivated( const QModelIndex& curr );
 
     signals:
-	   void onMethodApply( adcontrols::ProcessMethod & );
+	   void apply( adcontrols::ProcessMethod & );
 
 	};
 

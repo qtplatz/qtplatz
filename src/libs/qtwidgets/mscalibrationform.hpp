@@ -78,6 +78,9 @@ namespace qtwidgets {
         void handleMSReferencesChanged( const QModelIndex& );
         void getLifeCycle( adplugin::LifeCycle*& );
 
+    signals:
+	   void apply( adcontrols::ProcessMethod & );
+
     private:
         void OnMSReferencesUpdated( const QModelIndex& );
 

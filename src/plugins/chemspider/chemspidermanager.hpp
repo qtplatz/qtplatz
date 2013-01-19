@@ -34,6 +34,7 @@ class QDockWidget;
 class QMainWindow;
 namespace Utils { class FancyMainWindow; }
 namespace adportable { class Configuration; }
+namespace adcontrols { class ProcessMethod; }
 
 namespace ChemSpider { namespace Internal {
 
@@ -49,8 +50,10 @@ namespace ChemSpider { namespace Internal {
 		void setSimpleDockWidgetArrangement();
 
     signals:
-    
+		void signalGetProcessMethod( adcontrols::ProcessMethod& );
+
 	public slots:
+		void handleApply( adcontrols::ProcessMethod& );
 
 	private:
 		boost::scoped_ptr< Utils::FancyMainWindow > mainWindow_;    

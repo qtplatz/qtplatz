@@ -143,7 +143,9 @@ SequenceFile::load( const QString& filename )
 
     if ( ! filename.isEmpty() )
         filename_ = filename;
-    setModified( true );
+    setModified( false );
+	emit changed();
+
     return true;
 }
 

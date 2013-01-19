@@ -65,10 +65,13 @@ SequenceEditor::SequenceEditor(QObject *parent) : Core::IEditor(parent)
         context_ << uidm->uniqueIdentifier( Constants::C_SEQUENCE_EDITOR );
 
     widget_->OnInitialUpdate( file_->adsequence().schema() );
-
-    assert( connect( widget_, SIGNAL( lineAdded( size_t ) ), this, SLOT( onLineAdded( size_t ) ) ) );
-    assert( connect( widget_, SIGNAL( lineDeleted( size_t ) ), this, SLOT( onLineDeleted( size_t ) ) ) );
-    assert( connect( widget_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( onCurrentChanged( size_t, size_t ) ) ) );
+    bool res;	
+	res = connect( widget_, SIGNAL( lineAdded( size_t ) ), this, SLOT( onLineAdded( size_t ) ) );
+	assert( res );
+	res = connect( widget_, SIGNAL( lineDeleted( size_t ) ), this, SLOT( onLineDeleted( size_t ) ) );
+	assert( res );
+	res = connect( widget_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( onCurrentChanged( size_t, size_t ) ) );
+	assert( res );
 }
 
 // Core::IEditor

@@ -59,11 +59,14 @@ SequenceWidget::SequenceWidget( const adsequence::schema& schema
     ui->treeView->setItemDelegate( delegate_.get() );
     ui->treeView->setContextMenuPolicy( Qt::CustomContextMenu );
 
-    assert( connect( ui->treeView, SIGNAL( customContextMenuRequested( const QPoint& ) )
-                     , this, SLOT( showContextMenu( const QPoint& ) ) ) );
+	bool res;
+    res = connect( ui->treeView, SIGNAL( customContextMenuRequested( const QPoint& ) )
+		          , this, SLOT( showContextMenu( const QPoint& ) ) );
+	assert( res );
 
-    assert( connect( ui->treeView, SIGNAL( signalCurrentChanged( const QModelIndex&, const QModelIndex& ) )
-                     , this, SLOT( handleCurrentChanged( const QModelIndex&, const QModelIndex& ) ) ) );
+	res = connect( ui->treeView, SIGNAL( signalCurrentChanged( const QModelIndex&, const QModelIndex& ) )
+		          , this, SLOT( handleCurrentChanged( const QModelIndex&, const QModelIndex& ) ) );
+	assert( res );
 }
 
 SequenceWidget::~SequenceWidget()

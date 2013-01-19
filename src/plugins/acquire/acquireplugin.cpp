@@ -341,8 +341,11 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
             splitter3->addWidget( pImpl_->spectrumPlot_ );
             splitter3->setOrientation( Qt::Vertical );
 
-            connect( pImpl_->timePlot_, SIGNAL( signalRButtonClick( double, double ) ), this, SLOT( handleRButtonClick( double, double ) ) );
-            connect( pImpl_->timePlot_, SIGNAL( signalRButtonRange( double, double, double, double ) ), this, SLOT( handleRButtonRange( double, double, double, double ) ) );
+			bool res;
+			res = connect( pImpl_->timePlot_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( handleSelected( const QPointF& ) ) );
+			assert( res );
+			res = connect( pImpl_->timePlot_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( handleSelected( const QRectF& ) ) );
+			assert( res );
         }
 
         QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
@@ -541,7 +544,7 @@ AcquirePlugin::actionSnapshot()
             siblings[i]->uptime_range( first, second );
             double m1 = double(second) / 60.0e6;
             double m0 = double(second - 1000) / 60.0e6;  // 1s before
-            handleRButtonRange( m0, m1, 0, 0 );
+			selectRange( m0, m1, 0, 0 );
         }
     }
 }
@@ -697,13 +700,19 @@ AcquirePlugin::handle_monitor_activated(int)
 }
 
 void
-AcquirePlugin::handleRButtonClick( double x, double y )
+AcquirePlugin::handleSelected( const QPointF& pt )
 {
-    handleRButtonRange( x, x, y, y );
+	selectRange( pt.x(), pt.x(), pt.y(), pt.y() );
 }
 
 void
-AcquirePlugin::handleRButtonRange( double x1, double x2, double y1, double y2 )
+AcquirePlugin::handleSelected( const QRectF& rc )
+{
+	selectRange( rc.x(), rc.x() + rc.width(), rc.y(), rc.y() + rc.height() );
+}
+
+void
+AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
 {
     (void)x1; (void)x2; (void)y1; (void)y2;
 

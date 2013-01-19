@@ -147,12 +147,13 @@ MainWindow::createContents( Core::IMode * mode
             globalcontext << Core::Constants::C_GLOBAL_ID;
             
             actionApply_ = new QAction( QIcon( ":/dataproc/image/apply_small.png" ), tr("Apply" ), this );
-            assert( connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) ) );
+			bool res = connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) );
+			assert( res );
             am->registerAction( actionApply_, "dataproc.connect", globalcontext );
             toolBarLayout->addWidget( toolButton( am->command( "dataproc.connect" )->action() ) );
             /**/
             toolBarLayout->addWidget( new Utils::StyledSeparator );
-            /**/
+			/**/
             QComboBox * features = new QComboBox;
             features->addItem( "Centroid" );
             features->addItem( "Isotope" );
@@ -160,9 +161,10 @@ MainWindow::createContents( Core::IMode * mode
             features->addItem( "Find peaks" );
             toolBarLayout->addWidget( features );
 
-            assert( connect( features, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleFeatureSelected(int) ) ) );
-            assert( connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) ) );
-
+            bool r = connect( features, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleFeatureSelected(int) ) );
+			assert( r );
+			r = connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) );
+			assert( r );
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
         }
     }
@@ -190,17 +192,23 @@ MainWindow::createContents( Core::IMode * mode
     }
 
     for ( std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
-        assert( connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-                         , *it, SLOT( handleSessionAdded( Dataprocessor* ) ) ) );
-        assert( connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-                         , *it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) ) );
-        assert( connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
-                         , *it, SLOT( onApplyMethod( const adcontrols::ProcessMethod& ) ) ) );
+		bool r;
+		r = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
+			        , *it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
+		assert( r );
+		r = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
+                         , *it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
+		assert( r );
+		r = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
+                         , *it, SLOT( onApplyMethod( const adcontrols::ProcessMethod& ) ) );
+		assert( r );
     }
-    assert( connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-                     , this, SLOT( handleSessionAdded( Dataprocessor* ) ) ) );
-    assert( connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-                     , this, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) ) );
+	bool res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
+                     , this, SLOT( handleSessionAdded( Dataprocessor* ) ) );
+	assert( res );
+	res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
+                     , this, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
+	assert( res );
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
     toolBarAddingLayout->setMargin(0);
@@ -415,7 +423,8 @@ MainWindow::OnInitialUpdate()
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
 		if ( pLifeCycle ) {
 			pLifeCycle->OnInitialUpdate();
-			connect( obj, SIGNAL( onMethodApply( ProcessMethod& ) ), this, SLOT( onMethodApply( ProcessMethod& ) ), Qt::DirectConnection );
+			bool res = connect( obj, SIGNAL( apply( adcontrols::ProcessMethod& ) ), this, SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
+			assert( res );
 		}
     }
     setSimpleDockWidgetArrangement();

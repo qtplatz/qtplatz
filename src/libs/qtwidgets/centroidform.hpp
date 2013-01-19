@@ -80,6 +80,9 @@ namespace qtwidgets {
         void getLifeCycle( adplugin::LifeCycle *& p );
         void getContents( adcontrols::ProcessMethod& );
 		virtual void update();
+
+    signals:
+         void apply( adcontrols::ProcessMethod& );
     };
 
 }

@@ -100,7 +100,8 @@ ChemSpiderManager::OnInitialUpdate()
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
 		if ( pLifeCycle ) {
 			pLifeCycle->OnInitialUpdate();
-			connect( obj, SIGNAL( onMethodApply( adcontrols::ProcessMethod& ) ), this, SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
+			bool res = connect( obj, SIGNAL( apply( adcontrols::ProcessMethod& ) ), this, SLOT( handleApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
+			assert( res );
 		}
     }
 }
@@ -133,4 +134,10 @@ ChemSpiderManager::setSimpleDockWidgetArrangement()
 	QList< QTabBar * > tabBars = mainWindow_->findChildren< QTabBar * >();
     foreach( QTabBar * tabBar, tabBars ) 
 		tabBar->setCurrentIndex( 0 );
+}
+
+void
+ChemSpiderManager::handleApply( adcontrols::ProcessMethod& )
+{
+	// not implemented
 }
