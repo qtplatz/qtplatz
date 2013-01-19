@@ -198,7 +198,6 @@ SpectrumWidget::moved( const QPointF& pos )
 void
 SpectrumWidget::selected( const QPointF& pos )
 {
-	//std::cout << "SpectrumWidget::selected( " << pos.x() << ", " << pos.y() << ")" << std::endl;
 	emit onSelected( pos );
 }
 

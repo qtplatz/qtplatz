@@ -272,14 +272,12 @@ ChromatogramWidget::zoom( const QRectF& rect )
 void
 ChromatogramWidget::moved( const QPointF& pos )
 {
-	std::cout << "moved( " << pos.x() << ", " << pos.y() << ")" << std::endl;
 	emit onMoved( pos );
 }
 
 void
 ChromatogramWidget::selected( const QPointF& pos )
 {
-	std::cout << "selected( " << pos.x() << ", " << pos.y() << ")" << std::endl;
 	emit onSelected( pos );
 }
 
