@@ -149,7 +149,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     pConfig_.reset( new adportable::Configuration() );
     adportable::Configuration& config = *pConfig_;
 
-    if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
+	if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
         error_message = new QString( "loadConfig load failed" );
         adportable::debug( __FILE__, __LINE__ ) << "loadConfig" << configFile << "failed";
     }
