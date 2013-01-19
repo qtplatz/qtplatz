@@ -52,7 +52,7 @@ SequenceFile::~SequenceFile()
 {
 }
 
-SequenceFile::SequenceFile( const SequenceEditor& editor
+SequenceFile::SequenceFile( SequenceEditor& editor
                             , QObject *parent ) : Core::IFile( parent )
                                                 , editor_( editor )
                                                 , mimeType_( sequence::Constants::C_SEQUENCE_MIMETYPE )
@@ -206,12 +206,8 @@ SequenceFile::save( const QString& filename )
         }
     } while ( 0 );
     
-#if 0 // old code
-    std::ofstream outf( path.string().c_str() );
-	if ( ! adsequence::sequence::xml_archive( outf, *adsequence_ ) )
-            QMessageBox::warning( 0, "SequenceFile", ( boost::format( "FILE %1% SAVE FAILED" ) % path.string() ).str().c_str() );
-#endif
-
+	editor_.setModified( false );
+    emit changed();
 	return true;
 }
 
@@ -230,7 +226,7 @@ SequenceFile::defaultPath() const
 QString
 SequenceFile::suggestedFileName() const
 {
-    return QString();
+    return filename_;
 }
 
 bool

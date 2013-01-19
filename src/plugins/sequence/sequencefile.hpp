@@ -43,7 +43,7 @@ namespace sequence {
       Q_OBJECT
     public:
       ~SequenceFile();
-      explicit SequenceFile( const SequenceEditor&, QObject *parent = 0 );
+      explicit SequenceFile( SequenceEditor&, QObject *parent = 0 );
 
       bool load( const QString& path );
       void setModified( bool val = true );
@@ -80,7 +80,7 @@ namespace sequence {
         void modified() { setModified( true ); }
 
     private:
-		const SequenceEditor& editor_;
+		SequenceEditor& editor_;
         const QString mimeType_;
         QString defaultPath_;
         QString filename_;

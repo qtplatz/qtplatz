@@ -41,8 +41,8 @@ Mode::Mode(QObject *parent) :  Core::BaseMode(parent)
 
     QList<int> contexts = QList<int>() 
         << Core::UniqueIDManager::instance()->uniqueIdentifier( sequence::Constants::C_SEQUENCE_MODE )
-        //<< Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDIT_MODE )
-        //<< Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDITORMANAGER )
+        << Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDIT_MODE )
+        << Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_EDITORMANAGER )
         //<< Core::UniqueIDManager::instance()->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE )
         ;
         

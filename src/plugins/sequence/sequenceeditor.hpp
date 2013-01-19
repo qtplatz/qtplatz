@@ -76,7 +76,10 @@ namespace sequence {
 
 		void setModified( bool );
 
+        // interface to SequenceFile
+
     signals:
+        void fileNameChanged( const QString&, const QString& );
         
     public slots:
         void slotTitleChanged( const QString& title );
