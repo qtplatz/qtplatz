@@ -30,12 +30,6 @@
 #include <adsequence/streambuf.hpp>
 #include <adcontrols/processmethod.hpp>
 
-#include <boost/serialization/vector.hpp>
-//#include <boost/serialization/split_free.hpp>
-//#include <adportable/portable_binary_oarchive.hpp>
-//#include <adportable/portable_binary_iarchive.hpp>
-#include <cstdio>
-
 using namespace sequence;
 
 serializer::serializer()
