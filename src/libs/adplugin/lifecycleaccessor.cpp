@@ -66,15 +66,8 @@ LifeCycleAccessor::LifeCycleAccessor( QObject * target ) :  pObject_( target )
     p_ = dynamic_cast< adplugin::LifeCycle *>( pObject_ );
     if ( p_ == 0 ) {
         const char * name = target->metaObject()->className();
-        if ( ! is_exclude( name ) ) {
+        if ( ! is_exclude( name ) )
             conn_ = connect( this, SIGNAL( trigger( adplugin::LifeCycle *& ) ), pObject_, SLOT( getLifeCycle( adplugin::LifeCycle *& ) ) );
-#if defined DEBUG
-            if ( ! conn_ ) {
-                std::ofstream of( "exclude.txt", std::ios_base::app );
-                of << "\"" << name << "\"" << std::endl;
-            }
-#endif
-        }
     }
 }
 

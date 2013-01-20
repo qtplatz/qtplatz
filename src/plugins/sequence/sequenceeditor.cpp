@@ -281,7 +281,8 @@ SequenceEditor::saveToObject( size_t row )
         }
         MainWindow::instance()->getControlMethod( tmp );
 
-        std::wcout << L"TO OBJECT: (" << ctrlname << L") subject: " << tmp.subject.in() << " " << tmp.lines.length() << " lines" << std::endl;
+        std::wcout << L"TO OBJECT: (" << ctrlname << L") subject: " 
+                   << tmp.subject.in() << " " << tmp.lines.length() << " lines" << std::endl;
 
         file_->setControlMethod( ctrlname, tmp );
     }
@@ -310,7 +311,8 @@ SequenceEditor::saveToWidget( size_t row )
     if ( ! ctrlname.empty() ) {
         const ControlMethod::Method * p = file_->getControlMethod( ctrlname );
         if ( p ) {
-            std::wcout << L"TO WIDGET: (" << ctrlname << L") subject: " << p->subject.in() << " " << p->lines.length() << " line(s)" << std::endl;
+            std::wcout << L"TO WIDGET: (" << ctrlname << L") subject: " 
+                       << p->subject.in() << " " << p->lines.length() << " line(s)" << std::endl;
             MainWindow::instance()->setControlMethod( *p );
         }
     }

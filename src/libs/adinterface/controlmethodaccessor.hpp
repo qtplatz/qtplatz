@@ -41,8 +41,14 @@ namespace adinterface {
         }
         
         bool getContents( const T& t, boost::any& a ) const {
+#if defined __GNUC__ 
+            // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
+            if ( std::strcmp( a.type().name(), typeid( ::ControlMethod::Method * ).name() ) != 0 )
+                return false;
+#else
             if ( a.type() != typeid( ::ControlMethod::Method * ) )
                 return false;
+#endif
             ::ControlMethod::Method * m = boost::any_cast< ::ControlMethod::Method * >( a );
             if ( m ) {
                 ::ControlMethod::MethodLine * line = ControlMethodHelper::findFirst( *m, instId_, unitnumber_ );
@@ -62,8 +68,14 @@ namespace adinterface {
         }
 
         bool setContents( T& t, boost::any& a ) {
+#if defined __GNUC__ 
+            // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
+            if ( std::strcmp( a.type().name(), typeid( ::ControlMethod::Method ).name() ) != 0 )
+                return false;
+#else
             if ( a.type() != typeid( ::ControlMethod::Method ) )
                 return false;
+#endif
             const ::ControlMethod::Method& m = boost::any_cast< const ::ControlMethod::Method& >( a );
             const ::ControlMethod::MethodLine * line = ControlMethodHelper::findFirst( m, instId_, unitnumber_ );
             if ( line ) {

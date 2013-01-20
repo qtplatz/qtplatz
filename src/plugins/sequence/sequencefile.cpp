@@ -156,7 +156,7 @@ SequenceFile::save( const QString& filename )
     
     if ( ! filename.isEmpty() ) // save as
         filename_ = filename; // replace filename
-
+    
     boost::filesystem::path path( qtwrapper::wstring::copy( filename_ ) );
     path.replace_extension( ".sequ" );
 
