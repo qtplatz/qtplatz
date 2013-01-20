@@ -62,7 +62,7 @@ namespace sequence {
         void setSequence( const adsequence::sequence& );
         QString getControlMethodName( size_t row ) const;
         QString getProcessMethodName( size_t row ) const;
-    
+
     private:
         Ui::SequenceWidget *ui;
         boost::scoped_ptr< QStandardItemModel > model_;

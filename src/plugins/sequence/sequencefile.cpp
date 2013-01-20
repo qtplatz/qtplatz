@@ -219,6 +219,14 @@ SequenceFile::fileName() const
     return filename_;
 }
 
+void
+SequenceFile::fileName( const QString& filename )
+{
+	filename_ = filename;
+	editor_.setModified( true );
+	emit changed();
+}
+
 QString
 SequenceFile::defaultPath() const
 {

@@ -67,6 +67,8 @@ namespace sequence {
       adsequence::sequence& adsequence();
       const adsequence::sequence& adsequence() const;
 
+	  void fileName( const QString& );
+
       void removeProcessMethod( const std::wstring& );
 	  void removeControlMethod( const std::wstring& );
 	  const adcontrols::ProcessMethod * getProcessMethod( const std::wstring& ) const;

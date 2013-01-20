@@ -79,7 +79,11 @@ bool
 SequenceEditor::createNew(const QString &contents )
 {
     Q_UNUSED( contents );
-    return true;
+	widget_->OnInitialUpdate( file_->adsequence().schema() );
+	widget_->setSequenceName( "default.sequ" );
+	file_->fileName( "default.sequ" );
+    
+	return true;
 }
 
 const char *
@@ -277,7 +281,7 @@ SequenceEditor::saveToObject( size_t row )
         }
         MainWindow::instance()->getControlMethod( tmp );
 
-        std::wcout << L"TO OBJECT: (" << ctrlname << L") subject: " << tmp.subject.in() << " " << tmp.lines.length() << "lines" << std::endl;
+        std::wcout << L"TO OBJECT: (" << ctrlname << L") subject: " << tmp.subject.in() << " " << tmp.lines.length() << " lines" << std::endl;
 
         file_->setControlMethod( ctrlname, tmp );
     }
@@ -306,7 +310,7 @@ SequenceEditor::saveToWidget( size_t row )
     if ( ! ctrlname.empty() ) {
         const ControlMethod::Method * p = file_->getControlMethod( ctrlname );
         if ( p ) {
-            std::wcout << L"TO WIDGET: (" << ctrlname << L") subject: " << p->subject.in() << " " << p->lines.length() << "lines" << std::endl;
+            std::wcout << L"TO WIDGET: (" << ctrlname << L") subject: " << p->subject.in() << " " << p->lines.length() << " line(s)" << std::endl;
             MainWindow::instance()->setControlMethod( *p );
         }
     }

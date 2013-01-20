@@ -90,7 +90,8 @@ SequenceWidget::OnInitialUpdate( const adsequence::schema& schema )
     for ( adsequence::schema::vector_type::const_iterator it = schema.begin(); it != schema.end(); ++it )
         model_->setHeaderData( std::distance( schema.begin(), it ), Qt::Horizontal, it->display_name().c_str() );
 
-    addLine();
+	for ( int i = 0; i < 10; ++i )
+		addLine();
 }
 
 void

@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "sequenceplugin.hpp"
+#include "constants.hpp"
 #include "mode.hpp"
 #include "mainwindow.hpp"
 #include "sequenceeditorfactory.hpp"
@@ -102,8 +103,12 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
 
     Core::ActionManager * am = core->actionManager();
     if ( am ) {
-        Core::ActionContainer * ac = am->actionContainer( Core::Constants::M_FILE_NEW );
-        // connect( ac, SIGNAL( triggered( bool ) ), this, SLOT( createNew() ) );
+        Core::Command* cmd = am->registerAction( new QAction(this)
+                                                 , "SequencePlugin.FILE_NEW"
+                                                 , QList<int>() << Core::Constants::C_GLOBAL_ID );
+        cmd->action()->setText("New Sample Sequence");
+        am->actionContainer( Core::Constants::M_FILE)->addAction( cmd );
+        connect( cmd->action(), SIGNAL( triggered(bool) ), this, SLOT( handleFileNew( bool ) ) );
     }
 
     // expose editor factory for sequence (table)
@@ -130,21 +135,34 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
 void
 SequencePlugin::extensionsInitialized()
 {
-    mainWindow_->OnInitialUpdate();
-/*
-	Core::EditorManager * em = Core::ICore::instance()->editorManager();
-	SequenceEditorFactory * factory = ExtensionSystem::PluginManager::instance()->getObject< SequenceEditorFactory >();
-    if ( factory ) {
-		Core::IEditor * ieditor = factory->createEditor( 0 );
-		em->pushEditor( ieditor );
-    }
-*/
+	mainWindow_->OnInitialUpdate();
 }
 
 void
 SequencePlugin::shutdown()
 {
     mainWindow_->OnFinalClose();
+}
+
+void
+SequencePlugin::handleFileNew( bool )
+{
+	Core::EditorManager * em = Core::ICore::instance()->editorManager();
+    if ( em ) {
+        QString pattern;
+        QString contents = "";
+		Core::IEditor * editor = em->openEditorWithContents( Constants::C_SEQUENCE, &pattern, contents );
+		em->activateEditor( editor );
+    }
+/*
+    internal::SequenceEditorFactory * factory =
+		ExtensionSystem::PluginManager::instance()->getObject< sequence::internal::SequenceEditorFactory >();
+	if ( factory ) {
+		Core::IEditor * editor = factory->createEditor( 0 );
+		if ( editor )
+			editor->createNew();
+	}
+*/
 }
 
 Q_EXPORT_PLUGIN( SequencePlugin )

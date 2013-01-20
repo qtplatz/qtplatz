@@ -53,7 +53,9 @@ namespace sequence {
             MainWindow * mainWindow_;
             boost::scoped_ptr< Mode > mode_;
         signals:
-        public slots:
+
+        private slots:
+			void handleFileNew( bool );
 
         };
     }
