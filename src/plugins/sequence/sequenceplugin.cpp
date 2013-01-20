@@ -150,19 +150,9 @@ SequencePlugin::handleFileNew( bool )
 	Core::EditorManager * em = Core::ICore::instance()->editorManager();
     if ( em ) {
         QString pattern;
-        QString contents = "";
-		Core::IEditor * editor = em->openEditorWithContents( Constants::C_SEQUENCE, &pattern, contents );
+		Core::IEditor * editor = em->openEditorWithContents( Constants::C_SEQUENCE, &pattern, "" );
 		em->activateEditor( editor );
     }
-/*
-    internal::SequenceEditorFactory * factory =
-		ExtensionSystem::PluginManager::instance()->getObject< sequence::internal::SequenceEditorFactory >();
-	if ( factory ) {
-		Core::IEditor * editor = factory->createEditor( 0 );
-		if ( editor )
-			editor->createNew();
-	}
-*/
 }
 
 Q_EXPORT_PLUGIN( SequencePlugin )
