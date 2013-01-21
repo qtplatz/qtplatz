@@ -46,6 +46,9 @@
 #include <fstream>
 #include <iostream>
 
+// debug
+#include <adfs/sqlite3.h>
+
 using namespace sequence;
 
 SequenceFile::~SequenceFile()
@@ -144,7 +147,7 @@ SequenceFile::load( const QString& filename )
     if ( ! filename.isEmpty() )
         filename_ = filename;
     setModified( false );
-	emit changed();
+    emit changed();
 
     return true;
 }
@@ -176,6 +179,7 @@ SequenceFile::save( const QString& filename )
         adfs::cpio< adsequence::sequence >::copyin( *adsequence_, folium );
         folium.dataClass( L"adsequence::sequence" );
         folium.commit();
+
     } while( 0 );
 
     do {
@@ -209,10 +213,11 @@ SequenceFile::save( const QString& filename )
         }
     } while ( 0 );
 
-	file.close();
-	editor_.setModified( false );
+    file.close();
+
+    editor_.setModified( false );
     emit changed();
-	return true;
+    return true;
 }
 
 QString
@@ -224,9 +229,9 @@ SequenceFile::fileName() const
 void
 SequenceFile::fileName( const QString& filename )
 {
-	filename_ = filename;
-	editor_.setModified( true );
-	emit changed();
+    filename_ = filename;
+    editor_.setModified( true );
+    emit changed();
 }
 
 QString

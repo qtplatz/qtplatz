@@ -16,17 +16,25 @@ include(sequence_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 
-LIBS += -l$$qtLibraryTarget(adcontroller) -l$$qtLibraryTarget(adcontrols) \
-	-l$$qtLibraryTarget(adutils)      -l$$qtLibraryTarget(adinterface) \
-	-l$$qtLibraryTarget(adportable)   -l$$qtLibraryTarget(adwplot) \
-	-l$$qtLibraryTarget(acewrapper)   -l$$qtLibraryTarget(qtwrapper) \
-	-l$$qtLibraryTarget(xmlparser)    -l$$qtLibraryTarget(adplugin) \
-	-l$$qtLibraryTarget(adextension)  -l$$qtLibraryTarget(adsequence) \
-        -l$$qtLibraryTarget(adfs)
+# Link order caution: adportable should be linked after adfs for utf::to_utf8 reference
+
+LIBS += -l$$qtLibraryTarget(adcontroller) \
+        -l$$qtLibraryTarget(adcontrols) \
+	-l$$qtLibraryTarget(adutils) \
+        -l$$qtLibraryTarget(adinterface) \
+	-l$$qtLibraryTarget(adwplot) \
+	-l$$qtLibraryTarget(acewrapper) \
+        -l$$qtLibraryTarget(qtwrapper) \
+	-l$$qtLibraryTarget(xmlparser) \
+        -l$$qtLibraryTarget(adplugin) \
+	-l$$qtLibraryTarget(adextension) \
+        -l$$qtLibraryTarget(adsequence) \
+        -l$$qtLibraryTarget(adfs) \
+	-l$$qtLibraryTarget(adportable)
 
 !win32 {
   LIBS += -lTAO -lTAO_Utils -lTAO_PI -lTAO_PortableServer -lTAO_AnyTypeCode -lACE
-  LIBS += -lboost_serialization
+  LIBS += -lboost_system -lboost_filesystem -lboost_serialization
 } else {
   LIBS += -l$$qtLibraryTarget( TAO ) \
         -l$$qtLibraryTarget( TAO_Utils ) \
