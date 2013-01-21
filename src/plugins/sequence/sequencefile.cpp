@@ -171,6 +171,7 @@ SequenceFile::save( const QString& filename )
 
     do {
         adfs::folder folder = file.addFolder( L"/Sequence" );
+
         adfs::folium folium = folder.addFolium( adfs::create_uuid() );
         adfs::cpio< adsequence::sequence >::copyin( *adsequence_, folium );
         folium.dataClass( L"adsequence::sequence" );
@@ -207,7 +208,8 @@ SequenceFile::save( const QString& filename )
 
         }
     } while ( 0 );
-    
+
+	file.close();
 	editor_.setModified( false );
     emit changed();
 	return true;

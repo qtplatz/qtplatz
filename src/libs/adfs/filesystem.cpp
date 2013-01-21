@@ -53,7 +53,8 @@ namespace adfs {
 
         struct dml {
             static bool insert_directory( adfs::sqlite& db, dir_type, boost::int64_t parent_id, const std::wstring& name );
-            static boost::int64_t select_directory( adfs::stmt&, dir_type, boost::int64_t parent_id, const std::wstring& name );
+			//static boost::int64_t select_directory( adfs::stmt&, dir_type, boost::int64_t parent_id, const std::wstring& name );
+			static boost::int64_t select_directory( adfs::sqlite&, dir_type, boost::int64_t parent_id, const std::wstring& name );
             static bool update_mtime( adfs::stmt&, boost::int64_t fileid );
             static adfs::folium insert_folium( adfs::sqlite& db, dir_type, boost::int64_t dirid, const std::wstring& name );
         };
@@ -237,8 +238,10 @@ internal::dml::insert_directory( adfs::sqlite& db, dir_type type, boost::int64_t
 }
 
 boost::int64_t
-internal::dml::select_directory( adfs::stmt& sql, dir_type type, boost::int64_t parent_id, const std::wstring& name )
+//internal::dml::select_directory( adfs::stmt& sql, dir_type type, boost::int64_t parent_id, const std::wstring& name )
+internal::dml::select_directory( adfs::sqlite& db, dir_type type, boost::int64_t parent_id, const std::wstring& name )
 {
+    adfs::stmt sql( db );
     sql.prepare( "SELECT rowid, type, name, parent_id FROM directory WHERE type = ? AND name = ? AND parent_id = ?" );
     sql.bind( 1 ) = static_cast< boost::int64_t>(type);
     sql.bind( 2 ) = adportable::utf::to_utf8( name ); // name
@@ -330,22 +333,21 @@ internal::fs::add_folder( adfs::sqlite& db, const std::wstring& name )
         tokenizer_t tokens( branch, separator );
 
         boost::int64_t parent_id = 0, rowid = 0;
-        adfs::stmt sql( db );
 
         for ( tokenizer_t::const_iterator it = tokens.begin(); it != tokens.end(); ++it ) {
-
-            rowid = internal::dml::select_directory( sql, type_folder, parent_id, *it );
+			// adfs::stmt sql( db );
+			rowid = internal::dml::select_directory( db, type_folder, parent_id, *it );
             if ( rowid == 0 )
                 return adfs::folder(); // error
             parent_id = rowid;
         }
 
-        rowid = internal::dml::select_directory( sql, type_folder, parent_id, leaf );
+		rowid = internal::dml::select_directory( db, type_folder, parent_id, leaf );
         if ( rowid ) // already exist
             return adfs::folder( db, rowid, leaf );
 
         if ( internal::dml::insert_directory( db, type_folder, parent_id, leaf ) ) {
-            if ( ( rowid = internal::dml::select_directory( sql, type_folder, parent_id, leaf ) ) )
+			if ( ( rowid = internal::dml::select_directory( db, type_folder, parent_id, leaf ) ) )
                 return adfs::folder( db, rowid, leaf );
         }
     }
@@ -368,17 +370,17 @@ internal::fs::find_folder( adfs::sqlite& db, const std::wstring& name )
         tokenizer_t tokens( branch, separator );
 
         boost::int64_t parent_id = 0, rowid = 0;
-        adfs::stmt sql( db );
+		// adfs::stmt sql( db );
 
         for ( tokenizer_t::const_iterator it = tokens.begin(); it != tokens.end(); ++it ) {
 
-            rowid = internal::dml::select_directory( sql, type_folder, parent_id, *it );
+			rowid = internal::dml::select_directory( db, type_folder, parent_id, *it );
             if ( rowid == 0 )
                 return adfs::folder(); // error
             parent_id = rowid;
         }
 
-        rowid = internal::dml::select_directory( sql, type_folder, parent_id, leaf );
+		rowid = internal::dml::select_directory( db, type_folder, parent_id, leaf );
         if ( rowid ) // find it
             return adfs::folder( db, rowid, leaf );
 
@@ -389,15 +391,15 @@ internal::fs::find_folder( adfs::sqlite& db, const std::wstring& name )
 adfs::folium
 internal::dml::insert_folium( adfs::sqlite& db, dir_type type, boost::int64_t parentid, const std::wstring& name )
 {
-    adfs::stmt sql( db );
-
     boost::int64_t fileid(0);
 
     // find or create entry on directory
-    if ( (fileid = dml::select_directory( sql, type, parentid, name )) == 0 ) {
+	if ( (fileid = dml::select_directory( db, type, parentid, name )) == 0 ) {
         if ( dml::insert_directory( db, type, parentid, name ) )
-            fileid = dml::select_directory( sql, type, parentid, name );
+            fileid = dml::select_directory( db, type, parentid, name );
     }
+
+	adfs::stmt sql( db );
     if ( sql.prepare( "INSERT INTO file (fileid) VALUES ( :fileid )" ) ) {  // might be error due to unique constraints
         sql.bind( 1 ) = fileid;
 
