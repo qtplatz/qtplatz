@@ -82,8 +82,12 @@ bool
 sqlite::close()
 {
     sqlite3 * temp = db_;
-    db_ = 0;
-    return sqlite3_close( temp ) == SQLITE_OK;
+	if ( sqlite3_close( temp ) == SQLITE_OK ) {
+		db_ = 0;
+		return true;
+	}
+	assert( 0 );
+	return false;
 }
 
 //////////////////////
