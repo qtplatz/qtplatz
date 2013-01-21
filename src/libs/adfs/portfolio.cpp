@@ -69,6 +69,14 @@ portfolio::findFolium( const std::wstring& id )
 
 /////////////
 bool
+portfolio::close()
+{
+	if ( db_ )
+		return db_->close();
+	return false;
+}
+
+bool
 portfolio::create( const wchar_t * filename, size_t alloc, size_t page_size )
 {
     boost::filesystem::path filepath( filename );
