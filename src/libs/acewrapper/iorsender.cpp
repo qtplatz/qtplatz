@@ -33,6 +33,8 @@
 
 using namespace acewrapper;
 
+enum { debug_ior_sender = 0 };
+
 namespace acewrapper { namespace singleton {
 	typedef ACE_Singleton< iorSender, ACE_Recursive_Thread_Mutex > iorSender;
     }
@@ -132,7 +134,8 @@ iorSender::handle_receive( const boost::system::error_code& error, std::size_t l
 
 	const char * query = recv_buffer_.data();
 
-        adportable::debug( __FILE__, __LINE__ ) << "## iorSender::handle_receive (" << query << ") ##";
+        if ( debug_ior_sender )
+            adportable::debug( __FILE__, __LINE__ ) << "## iorSender::handle_receive (" << query << ") ##";
 
 	if ( std::strncmp( query, "ior?", len ) == 0 ) {
 
@@ -158,10 +161,11 @@ iorSender::handle_sendto( const boost::system::error_code& error )
 	    send_buffer_.resize( reply.size() + 1 );
 	    std::strcpy( &send_buffer_[0], reply.c_str() );
 
-            adportable::debug( __FILE__, __LINE__ ) << "## iorSender::handle_sendto("
-                                                    << sender_endpoint_.address().to_string()
-                                                    << "." << sender_endpoint_.port()
-                                                    << ") ##\n" << &send_buffer_[0];
+            if ( debug_ior_sender )
+                adportable::debug( __FILE__, __LINE__ ) << "## iorSender::handle_sendto("
+                                                        << sender_endpoint_.address().to_string()
+                                                        << "." << sender_endpoint_.port()
+                                                        << ") ##\n" << &send_buffer_[0];
 
 	    socket_.async_send_to( boost::asio::buffer( send_buffer_ )
 				   , sender_endpoint_
