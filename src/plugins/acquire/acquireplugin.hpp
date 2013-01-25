@@ -46,8 +46,9 @@ namespace adplugin {
 }
 
 namespace adcontrols {
-   class MassSpectrometer;
-   class DataInterpreter;
+    class MassSpectrometer;
+    class DataInterpreter;
+    class MassSpectrum;
 }
 
 namespace Acquire {
@@ -116,6 +117,7 @@ namespace Acquire {
             ControlServer::Session_var session_;
             SignalObserver::Observer_var observer_;
             std::map< unsigned long, SignalObserver::Observer_var > observerMap_;
+            std::map< unsigned long, boost::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
 
             boost::scoped_ptr< adplugin::QReceiver_i > receiver_i_;
             boost::scoped_ptr< adplugin::QObserverEvents_i > masterObserverSink_;
@@ -124,8 +126,9 @@ namespace Acquire {
             void populate( SignalObserver::Observer_var& );
 
             void readMassSpectra( const SignalObserver::DataReadBuffer&
-                , const adcontrols::MassSpectrometer&
-                , const adcontrols::DataInterpreter& dataInterpreter );
+                                  , const adcontrols::MassSpectrometer&
+                                  , const adcontrols::DataInterpreter& dataInterpreter
+                                  , unsigned long objId );
             void readTrace( const SignalObserver::Description&
                 , const SignalObserver::DataReadBuffer&
                 , const adcontrols::DataInterpreter& dataInterpreter );

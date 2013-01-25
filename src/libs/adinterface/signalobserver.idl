@@ -86,7 +86,7 @@ module SignalObserver {
         unsigned long pos;         // data address (sequencial number for first data in this frame)
         unsigned long ndata;       // number of data in array
         unsigned long events;      // well known events
-        long_array array;      // encoded data
+        long_array array;          // encoded data
         any data;
         any method;                // data acquisition method, sample information etc., which can be nil
     };

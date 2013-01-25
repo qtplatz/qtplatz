@@ -551,10 +551,15 @@ AcquirePlugin::actionSnapshot()
 
 void
 AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
-                               , const adcontrols::MassSpectrometer& spectrometer
-                               , const adcontrols::DataInterpreter& dataInterpreter )
+                                , const adcontrols::MassSpectrometer& spectrometer
+                                , const adcontrols::DataInterpreter& dataInterpreter
+                                , unsigned long objid )
 {
-    adcontrols::MassSpectrum ms;
+    if ( ! rdmap_[ objid ] )
+        rdmap_[ objid ].reset( new adcontrols::MassSpectrum );
+
+    adcontrols::MassSpectrum& ms = *rdmap_[ objid ];
+
     size_t idData = 0;
     while ( dataInterpreter.translate( ms, rb, spectrometer, idData++ ) ) {
 #ifdef CENTROID
@@ -568,19 +573,6 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
 #else
         pImpl_->spectrumPlot_->setData( ms, 0 );
 #endif
-
-#  ifdef FFT
-        adcontrols::MassSpectrum ms2 = ms;
-        do {
-            unsigned int tic = ::GetTickCount();
-            reduceNoise( ms2 );
-            int time = GetTickCount() - tic;
-            std::wostringstream o;
-            o << L"fft " << time << L"ms for" << ms2.size() << L"pts";
-            ms2.addDescription( adcontrols::Description( L"acquire.fft", o.str() ) );
-        } while(0);
-        pImpl_->spectrumPlot_->setData( ms, ms2 );
-#  endif
     } 
 }
 
@@ -623,12 +615,18 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
         try {
             const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() ); // L"InfiTOF"
             const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
+
             if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
-                && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
-                    readMassSpectra( rb, spectrometer, dataInterpreter );
+                 && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
+
+                readMassSpectra( rb, spectrometer, dataInterpreter, objId );
+
             } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
+
                 readTrace( *desc, rb, dataInterpreter );
+
             }
+
         } catch ( std::exception& ex ) {
             QMessageBox::critical( 0, "acquireplugin::handle_update_data", ex.what() );
             throw ex;
