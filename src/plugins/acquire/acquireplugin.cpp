@@ -438,15 +438,15 @@ AcquirePlugin::actionConnect()
                         if ( ! masterObserverSink_ ) {
                             masterObserverSink_.reset( new adplugin::QObserverEvents_i( observer_, "acquireplugin" ) );
                             connect( masterObserverSink_.get(), SIGNAL( signal_ConfigChanged( unsigned long, long ) )
-								, this, SLOT( handle_config_changed(unsigned long, long) ) );
+                                     , this, SLOT( handle_config_changed(unsigned long, long) ) );
                             connect( masterObserverSink_.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
-								, this, SLOT( handle_update_data(unsigned long, long) ) );
+                                     , this, SLOT( handle_update_data(unsigned long, long) ) );
                             connect( masterObserverSink_.get(), SIGNAL( signal_MethodChanged( unsigned long, long ) )
-								, this, SLOT( handle_method_changed(unsigned long, long) ) );
+                                     , this, SLOT( handle_method_changed(unsigned long, long) ) );
                             connect( masterObserverSink_.get(), SIGNAL( signal_Event( unsigned long, unsigned long, long ) )
-								, this, SLOT( handle_event(unsigned long, unsigned long, long) ) );
+                                     , this, SLOT( handle_event(unsigned long, unsigned long, long) ) );
                         }
-
+                        
                         // connect to 1st layer siblings ( := top shadow(cache) observer for each instrument )
                         SignalObserver::Observers_var siblings = observer_->getSiblings();
                         size_t nsize = siblings->length();
@@ -562,6 +562,9 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
 
     size_t idData = 0;
     while ( dataInterpreter.translate( ms, rb, spectrometer, idData++ ) ) {
+
+        std::cout << "AcquirePlugin::readMassSpectra: " << objid << ", " << idData << std::endl;
+
 #ifdef CENTROID
         adcontrols::CentroidMethod method;
         method.centroidAreaIntensity( false ); // take hight

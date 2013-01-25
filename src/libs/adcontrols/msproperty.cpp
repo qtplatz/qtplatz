@@ -189,6 +189,13 @@ MSProperty::toSeconds( size_t idx, const std::vector<SamplingInfo>& segments )
     return 0.0;
 }
 
+//static
+double
+MSProperty::toSeconds( size_t idx, const SamplingInfo& info )
+{
+    return ( info.nSamplingDelay + idx ) * info.sampInterval * 1e-12;
+}
+
 size_t
 MSProperty::compute_profile_time_array( double * p, std::size_t size, const std::vector<SamplingInfo>& segments )
 {

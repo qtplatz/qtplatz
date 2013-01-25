@@ -94,6 +94,7 @@ namespace adcontrols {
 
         static std::vector<SamplingInfo>::const_iterator findSamplingInfo( size_t idx, const std::vector<SamplingInfo>& segments );
         static double toSeconds( size_t idx, const std::vector<SamplingInfo>& segments );
+        static double toSeconds( size_t idx, const SamplingInfo& info );
         static size_t compute_profile_time_array( double * p, size_t, const std::vector<SamplingInfo>& segments );
 
     private:
