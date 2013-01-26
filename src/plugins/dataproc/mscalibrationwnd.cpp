@@ -60,7 +60,7 @@ namespace dataproc {
 }
 
 MSCalibrationWnd::MSCalibrationWnd( const adportable::Configuration& c
-                                   , const std::wstring& apppath, QWidget * parent ) : QWidget( parent )
+                                    , const std::wstring& apppath, QWidget * parent ) : QWidget( parent )
 {
     init( c, apppath );
 }
@@ -81,20 +81,16 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
         // summary table
         adportable::Configuration config;
         adportable::Module module;
-
         module.library_filename( QTWIDGETS_NAME );
-
         config.module( module );
         config.interface( L"qtwidgets::MSCalibSummaryWidget" );
+        pImpl_->calibSummaryWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
 
-        pImpl_->calibSummaryWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() ); //, L"qtwidget::MSCalibrateSummaryWidget" );
         if ( pImpl_->calibSummaryWidget_ ) {
-            
             adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
-            adplugin::LifeCycle * p = accessor.get(); // dynamic_cast< adplugin::LifeCycle * >(pImpl_->calibSummaryWidget_);
+            adplugin::LifeCycle * p = accessor.get();
             if ( p )
                 p->OnInitialUpdate();
-
             connect( this, SIGNAL( fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ),
                 pImpl_->calibSummaryWidget_, SLOT( setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ) );
             splitter->addWidget( pImpl_->calibSummaryWidget_ );
@@ -104,11 +100,10 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
+
     toolBarAddingLayout->setMargin(0);
     toolBarAddingLayout->setSpacing(0);
-    //toolBarAddingLayout->addWidget( toolBar );
     toolBarAddingLayout->addWidget( splitter );
-    //toolBarAddingLayout->addWidget( toolBar2 );
 }
 
 void
@@ -126,7 +121,6 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
     if ( folder && folder.name() == L"MSCalibration" ) {
         boost::any& data = folium;
 
-        // if ( data.type() == typeid( adutils::MassSpectrumPtr ) ) {
         if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) { 
             adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( data );
             pImpl_->processedSpectrum_->setData( *ptr, nID++ );
@@ -137,9 +131,9 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
         portfolio::Folio::iterator it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
         if ( it == attachments.end() )
             return;
+
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
         pImpl_->processedSpectrum_->setData( *ptr, nID++ );
-        // it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>( ++it, attachments.end() );
 
         // calib result
         it = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());

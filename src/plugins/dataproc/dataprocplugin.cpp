@@ -124,7 +124,7 @@ DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
 }
 
 bool
-DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
+DataprocPlugin::initialize( const QStringList& arguments, QString* error_message )
 {
     Q_UNUSED( arguments );
 
@@ -142,7 +142,7 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
         return false;
 
     //-------------------------------------------------------------------------------------------
-	std::wstring apppath = qtwrapper::application::path( L".." ); // "remove 'bin' from "~/qtplatz/bin"
+	std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
     std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/dataproc.config.xml" );
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
 
@@ -194,10 +194,6 @@ DataprocPlugin::initialize(const QStringList& arguments, QString* error_message)
     mode_->setContext( context );
 
     pActionManager_->initialize_actions( context );
-    // initialize_actions();
-    if ( ! mainWindow_ )
-        return false;
-
     mainWindow_->activateLayout();
     mainWindow_->createActions();
     QWidget * widget = mainWindow_->createContents( mode_.get(), config, apppath );
