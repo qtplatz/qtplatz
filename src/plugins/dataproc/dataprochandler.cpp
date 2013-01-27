@@ -227,10 +227,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     
 
     //////////////////////
-//#if defined _DEBUG && 1
-/*
-*/
-
+#if defined _DEBUG && 0
     do {
         const adcontrols::MSReferences& ref = res.references();
         const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
@@ -282,7 +279,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
             }
         }
     } while(0);
-//#endif
+#endif
     return true;
 }
 

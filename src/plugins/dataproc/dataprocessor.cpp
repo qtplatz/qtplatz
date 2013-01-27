@@ -254,6 +254,13 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType pro
             // check and add Isotop method
             if ( it->type() == typeid( adcontrols::IsotopeMethod ) && procType == IsotopeProcess )
                 method.appendMethod( *it );
+
+#if defined DEBUG
+            if ( std::strcmp( it->type().name(), typeid( adcontrols::MSCalibrateMethod ).name() ) == 0 )
+                assert( it->type() == typeid( adcontrols::MSCalibrateMethod ) );
+            if ( std::strcmp( it->type().name(), typeid( adcontrols::IsotopeMethod ).name() ) == 0 )
+                assert( it->type() == typeid( adcontrols::IsotopeMethod ) );
+#endif
         }
         //---------------------------------------------------------------------------
 
@@ -292,6 +299,12 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
         adcontrols::ProcessMethod method;
         //----------------------- take centroid and calibration method w/ modification ----------------------
         for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
+#if defined DEBUG
+            if ( std::strcmp( it->type().name(), typeid( adcontrols::MSCalibrateMethod ).name() ) == 0 ) {
+                assert( it->type() == typeid( adcontrols::MSCalibrateMethod ) );
+                std::cout << "----- Dataprocessor::applyCalibration --- MSCalibrateMethod type check passed" << std::endl;
+            }
+#endif
             if ( it->type() == typeid( adcontrols::CentroidMethod ) ) {
                 adcontrols::CentroidMethod centroidMethod( boost::get< adcontrols::CentroidMethod >(*it) );
                 centroidMethod.centroidAreaIntensity( false );  // force hight for easy overlay
@@ -387,11 +400,10 @@ Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
 	// datafile has a raw (acquired) data stream
 	// data should point same object with ifileimpl_;
 	fileObserver_.reset( new datafileObserver_i( data ) );
-    
 	return true;
 /* 
    size_t nfcn = data.getFunctionCount();
-    for ( size_t i = 0; i < nfcn; ++i ) {
+   for ( size_t i = 0; i < nfcn; ++i ) {
         adcontrols::Chromatogram c;
         if ( data.getTIC( i, c ) )
             ; // ticVec_.push_back( c );
@@ -405,7 +417,7 @@ Dataprocessor::subscribe( const adcontrols::ProcessedDataset& processed )
     std::wstring xml = processed.xml();
     portfolio_.reset( new portfolio::Portfolio( xml ) );
 #if defined _DEBUG
-    portfolio_->save( L"portfolio.xml" );
+    // portfolio_->save( L"portfolio.xml" );
 #endif
     return true;
 }
@@ -461,17 +473,18 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
             if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m ) ) {
                 portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
                 att.assign( pResult, pResult->dataClass() );
-
+                
+                // rewrite calibration := change m/z asssing on the spectrum
                 pCentroid->setCalibration( pResult->calibration() );
-
+                
                 // update profile mass array
                 if ( pProfile ) {
                     pProfile->setCalibration( pResult->calibration() );
                     const std::vector<double>& coeffs = pResult->calibration().coeffs();
                     for ( size_t i = 0; i < pProfile->size(); ++i ) {
-                         double tof = pProfile->getTime( i );
-                         double mq = adcontrols::MSCalibration::compute( coeffs, tof );
-                         pProfile->setMass( i, mq * mq );
+                        double tof = pProfile->getTime( i );
+                        double mq = adcontrols::MSCalibration::compute( coeffs, tof );
+                        pProfile->setMass( i, mq * mq );
                     }
                 }
             }
