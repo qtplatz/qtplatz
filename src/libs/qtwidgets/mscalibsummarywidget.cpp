@@ -200,6 +200,7 @@ void
 MSCalibSummaryWidget::handleClearFormulae()
 {
     inProgress_ = true;
+    bool modified = false;
     QStandardItemModel& model = *pModel_;
     for ( int row = 0; row < model.rowCount(); ++row ) {
         QString formula = model.data( model.index( row, c_formula ) ).toString();
@@ -208,9 +209,13 @@ MSCalibSummaryWidget::handleClearFormulae()
             model.setData( model.index( row, c_exact_mass ), "" );
             model.setData( model.index( row, c_mass_error_mDa ), "" );
             model.setData( model.index( row, c_is_enable ), "" );
+            modified = true;
         }
     }
     inProgress_ = false;
+
+    if ( modified )
+        emit dataChanged();
 }
 
 void
