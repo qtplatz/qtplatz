@@ -34,6 +34,20 @@
 #include <adcontrols/mscalibrateresult.hpp>
 #include <qtwrapper/qstring.hpp>
 
+namespace qtwidgets {
+
+    enum {
+        c_mass
+        , c_time
+        , c_intensity
+        , c_formula
+        , c_exact_mass
+        , c_mass_error_mDa
+        , c_is_enable
+        , c_number_of_columns
+    };
+}
+
 using namespace qtwidgets;
 
 MSCalibSummaryWidget::~MSCalibSummaryWidget()
@@ -63,15 +77,12 @@ MSCalibSummaryWidget::OnInitialUpdate()
     tableView.setRowHeight( 0, 7 );
     rootNode->setColumnCount( 10 );
     
-    int col = 0;
-    model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "m/z(observed)" ) );
-    model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "time(us)" ) );
-    model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "Intensity" ) );
-    model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "formula" ) );
-    model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "m/z(exact)" ) );
-    model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "m/z(calibrated)" ) );
-    model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "error(mDa)" ) );
-    model.setHeaderData( col++, Qt::Horizontal, QObject::tr( "error(mDa) w/ before calib" ) );
+    model.setHeaderData( c_mass, Qt::Horizontal, QObject::tr( "m/z(calibrated)" ) );
+    model.setHeaderData( c_time, Qt::Horizontal, QObject::tr( "time(us)" ) );
+    model.setHeaderData( c_intensity, Qt::Horizontal, QObject::tr( "Intensity" ) );
+    model.setHeaderData( c_formula, Qt::Horizontal, QObject::tr( "formula" ) );
+    model.setHeaderData( c_exact_mass, Qt::Horizontal, QObject::tr( "m/z(exact)" ) );
+    model.setHeaderData( c_mass_error_mDa, Qt::Horizontal, QObject::tr( "error(mDa)" ) );
 }
 
 void
@@ -126,10 +137,9 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 
     for ( size_t row = 0; row < indecies.size(); ++row ) {
         size_t idx = indecies[ row ];
-        int col = 0;
-        model.setData( model.index( row, col++ ), masses[ idx ] );
-        model.setData( model.index( row, col++ ), times[ idx ] * 1.0e6); // s -> us
-        model.setData( model.index( row, col++ ), intensities[ idx ] );
+        model.setData( model.index( row, c_mass ), masses[ idx ] );
+        model.setData( model.index( row, c_time ), times[ idx ] * 1.0e6); // s -> us
+        model.setData( model.index( row, c_intensity ), intensities[ idx ] );
     }
 
     //const adcontrols::MSReferences& ref = res.references();
@@ -137,19 +147,14 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
     // adcontrols::MSReferences::vector_type::const_iterator refIt = ref.begin();
 
     for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
-        int col = 3;
-        // const adcontrols::MSAssignedMass& a = *it;
-
         std::vector< size_t >::iterator index
             = std::lower_bound( indecies.begin(), indecies.end(), it->idMassSpectrum() );
         size_t row = std::distance( indecies.begin(), index );
 
-        model.setData( model.index( row, col++ ), qtwrapper::qstring::copy( it->formula() ) );
-        model.setData( model.index( row, col++ ), it->exactMass() );
-        model.setData( model.index( row, col++ ), it->mass() );
-        model.setData( model.index( row, col++ ), ( it->mass() - it->exactMass() ) * 1000 ); // mDa
-        model.setData( model.index( row, col++ ), ( it->mass() - masses[ it->idMassSpectrum() ] ) * 1000 ); // mDa
-        model.setData( model.index( row, col++ ), it->enable() );
+        model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );
+        model.setData( model.index( row, c_exact_mass ), it->exactMass() );
+        model.setData( model.index( row, c_mass_error_mDa ), ( it->mass() - it->exactMass() ) * 1000 ); // mDa
+        model.setData( model.index( row, c_is_enable ), it->enable() );
     }
 
 }

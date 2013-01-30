@@ -55,6 +55,17 @@ MSCalibrationForm::MSCalibrationForm(QWidget *parent) :
     ui->treeView->setModel( pModel_.get() );
     ui->treeView->setItemDelegate( pDelegate_.get() );
 
+    ui->spinPolynomials->setMinimum( 1 );
+    ui->spinPolynomials->setMaximum( 9 );
+    ui->spinHighMass->setMinimum( 1.0 );
+    ui->spinHighMass->setMaximum( 10000.0 );
+    ui->spinLowMass->setMinimum( 1.0 );
+    ui->spinLowMass->setMaximum( 10000.0 );
+    ui->spinMassTolerance->setMinimum( 0.0 );
+    ui->spinMassTolerance->setMaximum( 1000.0 );
+    ui->spinMinimumRA->setMinimum( 0.0 );
+    ui->spinMinimumRA->setMaximum( 99.9 );
+
     connect( pDelegate_.get(), SIGNAL( signalMSReferencesChanged( QModelIndex ) ), this, SLOT( handleMSReferencesChanged( QModelIndex ) ) );
 }
 
@@ -78,21 +89,26 @@ MSCalibrationForm::OnInitialUpdate()
     QStandardItem * rootNode = model.invisibleRootItem();
     ui->treeView->setItemDelegate( pDelegate_.get() );
 
-    rootNode->setColumnCount(4);
+    rootNode->setColumnCount(3);
     model.setHeaderData( 0, Qt::Horizontal, "MSCaribrate" );
-    for ( int i = 1; i < rootNode->columnCount(); ++i )
-        model.setHeaderData( 1, Qt::Horizontal, "" );
+    model.setHeaderData( 1, Qt::Horizontal, "exact mass" );
+    model.setHeaderData( 2, Qt::Horizontal, "enable" );
 
+    ui->spinPolynomials->setValue( method.polynomialDegree() );
+    ui->spinMassTolerance->setValue( method.massToleranceDa() );
+    ui->spinMinimumRA->setValue( method.minimumRAPercent() );
+    ui->spinLowMass->setValue( method.lowMass() );
+    ui->spinHighMass->setValue( method.highMass() );
 //----
-    StandardItemHelper::appendRow( rootNode, "Polynomial[degree]", method.polynomialDegree() );
-    StandardItemHelper::appendRow( rootNode, "Mass Tolerance[Da]", method.massToleranceDa() );
-    StandardItemHelper::appendRow( rootNode, "Minimum RA[%]",      method.minimumRAPercent() );
-    StandardItemHelper::appendRow( rootNode, "Low Mass[Da]",       method.lowMass() );
-    StandardItemHelper::appendRow( rootNode, "High Mass[Da]",      method.highMass() );
+    //StandardItemHelper::appendRow( rootNode, "Polynomial[degree]", method.polynomialDegree() );
+    //StandardItemHelper::appendRow( rootNode, "Mass Tolerance[Da]", method.massToleranceDa() );
+    //StandardItemHelper::appendRow( rootNode, "Minimum RA[%]",      method.minimumRAPercent() );
+    //StandardItemHelper::appendRow( rootNode, "Low Mass[Da]",       method.lowMass() );
+    //StandardItemHelper::appendRow( rootNode, "High Mass[Da]",      method.highMass() );
 
     //------ create Xe reference -------
     adcontrols::MSReferences Xe;
-    Xe.name( L"Xe-EI-Positive" );
+    Xe.name( L"Xe-EI" );
     do {
         adcontrols::MSReferences& ref = Xe;
         const adcontrols::Element& element = adcontrols::TableOfElements::instance()->findElement( L"Xe" );
@@ -105,7 +121,7 @@ MSCalibrationForm::OnInitialUpdate()
 
     //------ create Ar reference -------
     adcontrols::MSReferences Ar;
-    Ar.name( L"Ar-EI-Positive" );
+    Ar.name( L"Ar-EI" );
     do {
         adcontrols::MSReferences& ref = Ar;
         const adcontrols::Element& element = adcontrols::TableOfElements::instance()->findElement( L"Ar" );
@@ -119,7 +135,7 @@ MSCalibrationForm::OnInitialUpdate()
     // ---------------------------------
     //------ create PFTBA < tris(Perfluorobutyl)amine > reference -------
     adcontrols::MSReferences PFTBA;
-    PFTBA.name( L"PFTBA-EI-Positive" );
+    PFTBA.name( L"PFTBA-EI" );
     do {
         adcontrols::MSReferences& ref = PFTBA;
         ref << adcontrols::MSReference( L"CF3",     true,  L"", true );
@@ -178,6 +194,12 @@ MSCalibrationForm::getContents( adcontrols::ProcessMethod& pm )
     QStandardItemModel& model = *pModel_;
     QStandardItem * root = model.invisibleRootItem();
 
+    pMethod_->polynomialDegree( ui->spinPolynomials->value() );
+    pMethod_->massToleranceDa( ui->spinMassTolerance->value() );
+    pMethod_->minimumRAPercent( ui->spinMinimumRA->value() );
+    pMethod_->lowMass( ui->spinLowMass->value() );
+    pMethod_->highMass( ui->spinHighMass->value() );
+    /*
     QVariant v = model.index( 0, 1, root->index() ).data( Qt::EditRole );
     pMethod_->polynomialDegree( v.toInt() );
     v = model.index( 1, 1, root->index() ).data( Qt::EditRole  );
@@ -188,11 +210,11 @@ MSCalibrationForm::getContents( adcontrols::ProcessMethod& pm )
     pMethod_->lowMass( v.toDouble() );
     v = model.index( 4, 1, root->index() ).data( Qt::EditRole  );
     pMethod_->highMass( v.toDouble() );
-
+    */
     adcontrols::MSReferences references;
     
     // QModelIndex index_references = model.index( 5, 0, root->index() ); // QString("Refernces")
-    QStandardItem * item = model.item( 5 );
+    QStandardItem * item = model.item( 0 );
     size_t nRows = item->rowCount();
 
     for ( size_t row = 0; row < nRows; ++row ) {
