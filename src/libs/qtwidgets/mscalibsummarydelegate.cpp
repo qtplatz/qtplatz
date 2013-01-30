@@ -98,6 +98,7 @@ MSCalibSummaryDelegate::setModelData( QWidget *editor
     }
 */
     QItemDelegate::setModelData( editor, model, index );
+    emit valueChanged( index );
 }
 
 void

@@ -27,12 +27,14 @@
 #include "mscalibsummarydelegate.hpp"
 #include <QStandardItemModel>
 #include <QStandardItem>
+#include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <qmenu.h>
 
 namespace qtwidgets {
 
@@ -57,9 +59,13 @@ MSCalibSummaryWidget::~MSCalibSummaryWidget()
 MSCalibSummaryWidget::MSCalibSummaryWidget(QWidget *parent) : QTableView(parent)
                                                             , pModel_( new QStandardItemModel )
                                                             , pDelegate_( new MSCalibSummaryDelegate ) 
+                                                            , inProgress_( false )
 {
     this->setModel( pModel_.get() );
     this->setItemDelegate( pDelegate_.get() );
+    this->setContextMenuPolicy( Qt::CustomContextMenu );
+    connect( this, SIGNAL( customContextMenuRequested( const QPoint& ) ), this, SLOT( showContextMenu( const QPoint& ) ) );
+    connect( pDelegate_.get(), SIGNAL( valueChanged( const QModelIndex& ) ), this, SLOT( handleValueChanged( const QModelIndex& ) ) );
 }
 
 void
@@ -75,7 +81,7 @@ MSCalibSummaryWidget::OnInitialUpdate()
 
     QStandardItem * rootNode = model.invisibleRootItem();
     tableView.setRowHeight( 0, 7 );
-    rootNode->setColumnCount( 10 );
+    rootNode->setColumnCount( 7 );
     
     model.setHeaderData( c_mass, Qt::Horizontal, QObject::tr( "m/z(calibrated)" ) );
     model.setHeaderData( c_time, Qt::Horizontal, QObject::tr( "time(us)" ) );
@@ -83,6 +89,7 @@ MSCalibSummaryWidget::OnInitialUpdate()
     model.setHeaderData( c_formula, Qt::Horizontal, QObject::tr( "formula" ) );
     model.setHeaderData( c_exact_mass, Qt::Horizontal, QObject::tr( "m/z(exact)" ) );
     model.setHeaderData( c_mass_error_mDa, Qt::Horizontal, QObject::tr( "error(mDa)" ) );
+    model.setHeaderData( c_is_enable, Qt::Horizontal, QObject::tr( "enable" ) );
 }
 
 void
@@ -159,3 +166,70 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 
 }
 
+void
+MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
+{
+    QMenu menu;
+
+    if ( this->indexAt( pt ).isValid() ) {
+        QModelIndex index = this->currentIndex();
+        if ( index.column() == c_formula )
+            menu.addAction( "Erase", this, SLOT( handleEraseFormula() ) );
+    }
+    menu.addAction( "Clear formulae", this, SLOT( handleClearFormulae() ) );
+    menu.addAction( "Update calibration", this, SLOT( handleUpdateCalibration() ) );
+    menu.exec( this->mapToGlobal( pt ) );
+}
+
+
+void
+MSCalibSummaryWidget::handleEraseFormula()
+{
+    QModelIndex index = this->currentIndex();
+    //model_->removeRows( index.row(), 1 );
+    //emit lineDeleted( index.row() );
+}
+
+void
+MSCalibSummaryWidget::handleUpdateCalibration()
+{
+    emit applyTriggered();
+}
+
+void
+MSCalibSummaryWidget::handleClearFormulae()
+{
+    inProgress_ = true;
+    QStandardItemModel& model = *pModel_;
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        QString formula = model.data( model.index( row, c_formula ) ).toString();
+        if ( ! formula.isEmpty()  ) {
+            model.setData( model.index( row, c_formula ), "" );
+            model.setData( model.index( row, c_exact_mass ), "" );
+            model.setData( model.index( row, c_mass_error_mDa ), "" );
+            model.setData( model.index( row, c_is_enable ), "" );
+        }
+    }
+    inProgress_ = false;
+}
+
+void
+MSCalibSummaryWidget::handleValueChanged( const QModelIndex& index )
+{
+    QStandardItemModel& model = *pModel_;
+
+    if ( inProgress_ )
+        return;
+
+    if ( index.column() == c_formula ) {
+        std::wstring formula = qtwrapper::wstring( index.data( Qt::EditRole ).toString() );
+        if ( ! formula.empty() ) {
+            adcontrols::ChemicalFormula cformula;
+            double exactMass = cformula.getMonoIsotopicMass( formula );
+            // update exact mass
+            model.setData( model.index( index.row(), c_exact_mass ), exactMass );
+            model.setData( model.index( index.row(), c_is_enable ), true );
+            emit dataChanged();
+        }
+    }
+}

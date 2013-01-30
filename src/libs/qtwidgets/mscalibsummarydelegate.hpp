@@ -44,6 +44,7 @@ namespace qtwidgets {
         void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 
     signals:
+        void valueChanged( const QModelIndex& ) const;
 
     public slots:
 

@@ -56,19 +56,27 @@ namespace qtwidgets {
         bool setContents( boost::any& );
 
         // <--
-
     signals:
+        void dataChanged();
+        void applyTriggered();
 
     public slots:
-        // void setData( const adcontrols::MSReferences& );
         void setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
         void getLifeCycle( adplugin::LifeCycle*& );
+        void showContextMenu( const QPoint& );
+
+   private slots:
+        void handleEraseFormula();
+        void handleUpdateCalibration();
+        void handleClearFormulae();
+        void handleValueChanged( const QModelIndex& );
 
     private:
         boost::scoped_ptr< QStandardItemModel > pModel_;
         boost::scoped_ptr< MSCalibSummaryDelegate > pDelegate_;
         boost::scoped_ptr< adcontrols::MSReferences > pReferences_;
         boost::scoped_ptr< adcontrols::MassSpectrum > pCalibrantSpectrum_;
+        bool inProgress_;
     };
 
 }
