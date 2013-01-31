@@ -9,8 +9,9 @@ SUBDIRS   = plugin_coreplugin \
             plugin_sequence \
             plugin_dataproc \
             plugin_chemspider \
-            plugin_chemistry \
-    frequency
+            plugin_chemistry
+
+#    frequency
 
 linux-arm-*: SUBDIRS -= plugin_chemspider plugin_chemistry
 
