@@ -73,11 +73,13 @@ ServantPlugin::~ServantPlugin()
     final_close();
     delete pImpl_;
     delete pConfig_;
+    ACE::fini();
 }
 
 ServantPlugin::ServantPlugin() : pConfig_( 0 )
                                , pImpl_( 0 )
 {
+    ACE::init();
 }
 
 namespace servant {
