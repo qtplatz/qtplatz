@@ -138,10 +138,10 @@ serialport::handle_read( const boost::system::error_code& error, std::size_t byt
 void
 serialport::handle_write( const boost::system::error_code& error, std::size_t bytes_transferred )
 {
-    if ( ! error ) {
-        if ( outbuf_.size() == bytes_transferred )
+    if ( !error ) {
+        if ( outbuf_.size() == bytes_transferred ) {
             outbuf_.clear();
-        else
+        } else
             std::cout << bytes_transferred << " octets written but rquired " << outbuf_.size() << std::endl;
     }
 }
