@@ -37,13 +37,27 @@
 #include <QTreeView>
 #include <QStandardItemModel>
 #include <QMenu>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/bind.hpp>
+#include <sstream>
 #include <algorithm>
 #include <assert.h>
 #include <QMessageBox>
 #include <QDebug>
+
+namespace sequence {
+    struct date_string {
+        static std::string string( const boost::gregorian::date& dt ) {
+            const std::locale fmt( std::locale::classic(), new boost::gregorian::date_facet( "%Y-%m-%d" ) );
+            std::ostringstream os;
+            os.imbue( fmt );
+            os << dt;
+            return os.str();
+        }
+    };
+}
 
 using namespace sequence;
 
@@ -59,14 +73,14 @@ SequenceWidget::SequenceWidget( const adsequence::schema& schema
     ui->treeView->setItemDelegate( delegate_.get() );
     ui->treeView->setContextMenuPolicy( Qt::CustomContextMenu );
 
-	bool res;
+    bool res;
     res = connect( ui->treeView, SIGNAL( customContextMenuRequested( const QPoint& ) )
-		          , this, SLOT( showContextMenu( const QPoint& ) ) );
-	assert( res );
+                   , this, SLOT( showContextMenu( const QPoint& ) ) );
+    assert( res );
 
-	res = connect( ui->treeView, SIGNAL( signalCurrentChanged( const QModelIndex&, const QModelIndex& ) )
-		          , this, SLOT( handleCurrentChanged( const QModelIndex&, const QModelIndex& ) ) );
-	assert( res );
+    res = connect( ui->treeView, SIGNAL( signalCurrentChanged( const QModelIndex&, const QModelIndex& ) )
+                   , this, SLOT( handleCurrentChanged( const QModelIndex&, const QModelIndex& ) ) );
+    assert( res );
 }
 
 SequenceWidget::~SequenceWidget()
@@ -79,6 +93,7 @@ SequenceWidget::OnInitialUpdate( const adsequence::schema& schema )
 {
     boost::filesystem::path dir( adportable::profile::user_data_dir<char>() );
     dir /= "data";
+    dir /= date_string::string( boost::posix_time::second_clock::local_time().date() );
 
     ui->lineEditName->setText( ( dir / "sequence.sequ" ).string().c_str() );
     ui->lineEditDataDir->setText( dir.string().c_str() );
@@ -89,9 +104,9 @@ SequenceWidget::OnInitialUpdate( const adsequence::schema& schema )
 
     for ( adsequence::schema::vector_type::const_iterator it = schema.begin(); it != schema.end(); ++it )
         model_->setHeaderData( std::distance( schema.begin(), it ), Qt::Horizontal, it->display_name().c_str() );
-
-	for ( int i = 0; i < 10; ++i )
-		addLine();
+    
+    for ( int i = 0; i < 10; ++i )
+        addLine();
 }
 
 void
@@ -126,7 +141,7 @@ SequenceWidget::showContextMenu( const QPoint& pt )
         const adsequence::schema& schema = *schema_;
         QModelIndex index = ui->treeView->currentIndex();
         if ( size_t( index.column() ) < schema.size() ) {
-			const adsequence::column& column = schema[ index.column() ];
+            const adsequence::column& column = schema[ index.column() ];
             if ( column.name() == "name_control" || column.name() == "name_process" ) {
                 menu.addAction( "Browse...", this, SLOT( browse() ) );
                 menu.addAction( "Save As...", this, SLOT( saveAs() ) );
@@ -136,7 +151,7 @@ SequenceWidget::showContextMenu( const QPoint& pt )
 
     menu.addAction( "Add new line", this, SLOT( addLine() ) );
     menu.addAction( "Delete line", this, SLOT( delLine() ) );
-	menu.exec( ui->treeView->mapToGlobal( pt ) );
+    menu.exec( ui->treeView->mapToGlobal( pt ) );
 
 }
 
@@ -151,21 +166,21 @@ SequenceWidget::addLine()
     size_t col = 0;
     for ( adsequence::schema::vector_type::const_iterator it = schema.begin(); it != schema.end(); ++it ) {
         if ( it->type() == adsequence::COLUMN_SAMPLE_TYPE ) // samp_type
-			model.setData( model.index( row, col++ ), int( adsequence::SAMPLE_TYPE_UNKNOWN ) );
+            model.setData( model.index( row, col++ ), int( adsequence::SAMPLE_TYPE_UNKNOWN ) );
         else if ( it->name() == "vial_num" )
-			model.setData( model.index( row, col++ ), (boost::format( "CStk0:0-%03d" ) % (row + 1)).str().c_str() );
+            model.setData( model.index( row, col++ ), (boost::format( "CStk0:0-%03d" ) % (row + 1)).str().c_str() );
         else if ( it->name() == "samp_id" ) 
             model.setData( model.index( row, col++ ), (boost::format( "RUN_%03d" ) % row).str().c_str() );
         else if ( it->name() == "injvol" ) 
-            model.setData( model.index( row, col++ ), double( 1.0 ) ); // should be text
+            model.setData( model.index( row, col++ ), double( 1.0 ) );
         else if ( it->name() == "run_length" ) 
-            model.setData( model.index( row, col++ ), double( 1.0 ) ); // should be text
+            model.setData( model.index( row, col++ ), double( 1.0 ) );
         else if ( it->name() == "name_control" ) 
-            model.setData( model.index( row, col++ ), "default.cmth" ); // should be text
+            model.setData( model.index( row, col++ ), (boost::format( "default-%02d.cmth" ) % (row + 1) ).str().c_str() );
         else if ( it->name() == "name_process" ) 
-            model.setData( model.index( row, col++ ), "default.pmth" ); // should be text
+            model.setData( model.index( row, col++ ), (boost::format( "default-%02d.pmth" ) % (row + 1) ).str().c_str() );
     }
-	emit lineAdded( row );
+    emit lineAdded( row );
 }
 
 void
@@ -179,15 +194,15 @@ SequenceWidget::delLine()
 void
 SequenceWidget::browse()
 {
-	QModelIndex index = ui->treeView->currentIndex();
-	QMessageBox::warning( 0, "SequenceWidget::browse", index.data().toString() );
+    QModelIndex index = ui->treeView->currentIndex();
+    QMessageBox::warning( 0, "SequenceWidget::browse", index.data().toString() );
 }
 
 void
 SequenceWidget::saveAs()
 {
-	QModelIndex index = ui->treeView->currentIndex();
-	QMessageBox::warning( 0, "SequenceWidget::saveAs", index.data().toString() );
+    QModelIndex index = ui->treeView->currentIndex();
+    QMessageBox::warning( 0, "SequenceWidget::saveAs", index.data().toString() );
 }
 
 namespace sequence {
@@ -252,7 +267,7 @@ SequenceWidget::setSequence( const adsequence::sequence& seq )
 
         const adsequence::line_t& line = seq[ row ];
         
-		for ( size_t col = 0; col < schema.size(); ++col ) {
+        for ( size_t col = 0; col < schema.size(); ++col ) {
             switch ( schema[ col ].type() ) {
             case adsequence::COLUMN_INT:
                 model.setData( model.index( row, col ), boost::get<int>( line[ col ] ) );
@@ -261,11 +276,11 @@ SequenceWidget::setSequence( const adsequence::sequence& seq )
                 model.setData( model.index( row, col ), boost::get<double>( line[ col ] ) );
                 break;
             case adsequence::COLUMN_VARCHAR:
-				{
-					std::wstring varchar = boost::get< std::wstring >( line[ col ] );
-					model.setData( model.index( row, col ), qtwrapper::qstring::copy( varchar ) );
-				}
-                break;
+            {
+                std::wstring varchar = boost::get< std::wstring >( line[ col ] );
+                model.setData( model.index( row, col ), qtwrapper::qstring::copy( varchar ) );
+            }
+            break;
             case adsequence::COLUMN_SAMPLE_TYPE:
                 model.setData( model.index( row, col ), boost::get<int>( line[ col ] ) );
                 break;

@@ -174,14 +174,14 @@ SequenceFile::save( const QString& filename )
 
     do {
         adfs::folder folder = file.addFolder( L"/Sequence" );
-
+#if 0
         adfs::folium folium = folder.addFolium( adfs::create_uuid() );
         adfs::cpio< adsequence::sequence >::copyin( *adsequence_, folium );
         folium.dataClass( L"adsequence::sequence" );
         folium.commit();
-
+#endif
     } while( 0 );
-
+#if 0
     do {
         adfs::folder folder = file.addFolder( L"/ProcessMethod" );
 
@@ -212,9 +212,10 @@ SequenceFile::save( const QString& filename )
 
         }
     } while ( 0 );
-
-    file.close();
-
+#endif
+    // --> debug
+    int res = sqlite3_close( file.db() );
+    // <---
     editor_.setModified( false );
     emit changed();
     return true;
