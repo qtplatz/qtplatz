@@ -45,6 +45,7 @@ namespace adportable {
         void write ( const char *, std::size_t );
         void async_writeln( const char *, std::size_t );
         void async_write( const char *, std::size_t );
+        void async_write( const std::string& );
 
     private:
         boost::asio::serial_port port_;

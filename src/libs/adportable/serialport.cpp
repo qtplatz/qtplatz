@@ -76,6 +76,12 @@ serialport::write( const char * data, std::size_t length )
 }
 
 void
+serialport::async_write( const std::string& data )
+{
+    async_write( data.c_str(), data.size() );
+}
+
+void
 serialport::async_write( const char * data, std::size_t length )
 {
     if ( ! inbuf_.empty() ) {
