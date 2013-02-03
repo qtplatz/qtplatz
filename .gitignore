@@ -120,6 +120,10 @@ bin/qtcreator_process_stub*
 src/app/*.xml
 share/doc/qtcreator/qtcreator.qch
 tests/manual/cplusplus/cplusplus0
+contrib/installer/nsis/*.exe
 examples/adfstest/*.adfs
 examples/adfstest/*.bin
-contrib/installer/nsis/*.exe
+examples/bcastaddr/bcastaddr
+examples/device_emulators/bcast/bcast
+examples/device_emulators/hello/hello
+examples/device_emulators/powersupply/powersupply

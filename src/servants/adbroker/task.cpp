@@ -226,6 +226,9 @@ do_coaddSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_
     SignalObserver::Description_var desc = observer->getDescription();
     CORBA::WString_var clsid = observer->dataInterpreterClsid();
 
+    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( clsid.in() );
+    const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
+
     long pos = observer->posFromTime( boost::uint64_t( x1 * 60 * 1000 * 1000 ) ); // us
     long pos2 = observer->posFromTime( boost::uint64_t( x2 * 60 * 1000 * 1000 ) ); // us
 
@@ -241,8 +244,6 @@ do_coaddSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_
 
     if ( observer->readData( pos, dbuf ) ) {
 		try {
-			const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( clsid.in() );
-			const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
 			if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
 				&& desc->spectrometer == SignalObserver::eMassSpectrometer ) {
 					size_t idData = 0;

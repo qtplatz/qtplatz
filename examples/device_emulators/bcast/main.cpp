@@ -37,7 +37,7 @@
 
 static bool connect_on_start = false;
 static int port = 7000;
-static std::string bcaddr = "192.168.24.255";
+static std::string bcaddr = "192.168.71.255";
 
 using boost::asio::ip::udp;
 
