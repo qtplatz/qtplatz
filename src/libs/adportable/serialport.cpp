@@ -36,28 +36,37 @@ serialport::serialport( boost::asio::io_service& io_service
                         , const char * device_name
                         , unsigned int baud_rate ) : port_( io_service )
 {
-    port_.open( device_name );
-
-    if ( ! port_.is_open() ) {
-        std::cout << "device open failed" << std::endl;
-        return;
-    }
-
-    typedef boost::asio::serial_port_base asio_serial;
-
-    port_.set_option( asio_serial::baud_rate( baud_rate ) );
-    // in order to change option from application
-    // use operator boost::asio::serial_port& () for access port_ directory
-    port_.set_option( asio_serial::flow_control( asio_serial::flow_control::none ) );
-    port_.set_option( asio_serial::parity( asio_serial::parity::none ) );
-    port_.set_option( asio_serial::stop_bits( asio_serial::stop_bits::one ) );
-    port_.set_option( asio_serial::character_size( 8 ) );
+    if ( device_name )
+        open( device_name, baud_rate );
 }
 
 void
 serialport::close()
 {
     port_.close();
+}
+
+bool
+serialport::open( const std::string& device_name, unsigned int baud_rate )
+{
+    port_.open( device_name );
+
+    if ( ! port_.is_open() )
+        return false;
+
+    if ( baud_rate > 0 ) {
+        typedef boost::asio::serial_port_base asio_serial;
+        
+        port_.set_option( asio_serial::baud_rate( baud_rate ) );
+
+        // application can override options using 'operator boost::asio::serial_port& ()'
+        port_.set_option( asio_serial::flow_control( asio_serial::flow_control::none ) );
+        port_.set_option( asio_serial::parity( asio_serial::parity::none ) );
+        port_.set_option( asio_serial::stop_bits( asio_serial::stop_bits::one ) );
+        port_.set_option( asio_serial::character_size( 8 ) );
+
+    }
+    return true;
 }
 
 void

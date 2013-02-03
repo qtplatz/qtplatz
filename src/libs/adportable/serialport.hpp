@@ -24,6 +24,9 @@
 
 #include <boost/asio.hpp>
 #include <boost/function.hpp>
+#include <string>
+
+#pragma once
 
 namespace boost { namespace system { class error_code; } }
 
@@ -31,12 +34,13 @@ namespace adportable {
 
     class serialport {
     public:
-        serialport( boost::asio::io_service& io_service, const char * device_name, unsigned int baud_rate );
+        serialport( boost::asio::io_service& io_service, const char * device_name = 0, unsigned int baud_rate = 115200 );
         inline operator boost::asio::serial_port& () { return port_; }
 
         void async_reader( boost::function< void (const char *, std::size_t) > reader );
         void start();
         void close();
+        bool open( const std::string& device_name, unsigned int baud_rate = 0 );
 
         void write ( const char *, std::size_t );
         void async_writeln( const char *, std::size_t );
