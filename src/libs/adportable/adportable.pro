@@ -52,8 +52,9 @@ HEADERS += adportable.hpp \
     polfit.hpp \
     posix_path.hpp \
     protocollifecycle.hpp \
-    serialport.hpp \
     safearray.hpp \
+    semaphore.hpp \
+    serialport.hpp \
     spectrum_processor.hpp \
     string.hpp \
     utf.hpp \
