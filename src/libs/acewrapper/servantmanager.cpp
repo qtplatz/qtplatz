@@ -128,6 +128,7 @@ ServantManager::run()
 	adportable::debug(__FILE__, __LINE__) << "-----> ServantManager thread started.";
         orbmgr_->run();
     } catch ( ... ) {
+        adportable::debug(__FILE__, __LINE__) << "-----> ServantManager got an exception (...).";
         thread_running_ = false;
         throw;
     }
