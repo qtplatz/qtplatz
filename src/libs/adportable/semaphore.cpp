@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
@@ -23,25 +22,56 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "semaphore.hpp"
 
-#include <boost/thread/condition.hpp>
-#include <boost/thread/mutex.hpp>
+using namespace adportable;
 
-namespace adportable {
+semaphore::semaphore() : count_( 0 )
+{
+}
 
-    class semaphore {
-    public:
-        semaphore();
-        void notify();
-        void wait();
-        bool trywait();
-        bool timed_wait( unsigned long milliseconds );
-        inline boost::mutex& mutex() { return mutex_; }
-        inline boost::condition_variable& cond() { return condition_; }
-    private:
-        boost::mutex mutex_;
-        boost::condition_variable condition_;
-        unsigned long count_;
-    };
+void
+semaphore::notify()
+{
+    boost::mutex::scoped_lock lock( mutex_ );
+    ++count_;
+    condition_.notify_one();
+}
+
+void
+semaphore::wait()
+{
+    // what will happen if a thread try notify() call while another thread is in wait() ???
+    // so this is not safe in general
+    boost::mutex::scoped_lock lock( mutex_ );
+    while( !count_ )
+        condition_.wait( lock );
+    --count_;
+}
+
+bool
+semaphore::trywait()
+{
+    boost::mutex::scoped_lock lock( mutex_ );
+    if ( count_ ) {
+        --count_;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool
+semaphore::timed_wait( unsigned long milliseconds )
+{
+    boost::system_time abs_time
+        = boost::get_system_time() + boost::posix_time::milliseconds( milliseconds );
+    boost::mutex::scoped_lock lock( mutex_ );
+    while ( !count_ ) {
+        if ( condition_.timed_wait( lock, abs_time ) ) {
+            --count_;
+            return true;
+        }
+    }
+    return false;
 }

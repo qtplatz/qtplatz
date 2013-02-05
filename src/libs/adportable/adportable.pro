@@ -24,6 +24,7 @@ SOURCES += adportable.cpp \
     portable_binary_oarchive.cpp \
     portable_binary_iarchive.cpp \
     posix_path.cpp \
+    semaphore.cpp \
     serialport.cpp \
     spectrum_processor.cpp \
     string.cpp \
