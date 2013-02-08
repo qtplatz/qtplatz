@@ -29,6 +29,7 @@
 #include <boost/system/system_error.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
+#include "debug.hpp"
 
 using namespace adportable;
 
@@ -138,14 +139,16 @@ serialport::handle_read( const boost::system::error_code& error, std::size_t byt
 void
 serialport::handle_write( const boost::system::error_code& error, std::size_t bytes_transferred )
 {
-    std::cout << "handle_write " << bytes_transferred << " octets written but rquired " << outbuf_.size() << std::endl;
     if ( !error ) {
         boost::mutex::scoped_lock lock( mutex_ );
         if ( outbuf_.size() == bytes_transferred ) {
             outbuf_.clear();
             cond_.notify_one();        
         } else
-            std::cout << bytes_transferred << " octets written but rquired " << outbuf_.size() << std::endl;
-    }
+            adportable::debug(__FILE__, __LINE__ ) 
+                << bytes_transferred << " octets written but rquired " << outbuf_.size();
+        
+    } else 
+        adportable::debug(__FILE__, __LINE__) << "handle_write: " << error;
 }
 
