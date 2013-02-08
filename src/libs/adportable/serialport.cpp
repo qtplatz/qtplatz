@@ -72,22 +72,13 @@ serialport::open( const std::string& device_name, unsigned int baud_rate )
 void
 serialport::write( const char * data, std::size_t length )
 {
-    boost::asio::write( port_, boost::asio::buffer( data, length ) );
+     boost::asio::write( port_, boost::asio::buffer( data, length ) );
 }
 
-void
-serialport::async_write( const std::string& data )
+bool
+serialport::write( const char * data, std::size_t length, unsigned long milliseconds )
 {
-    async_write( data.c_str(), data.size() );
-}
-
-void
-serialport::async_write( const char * data, std::size_t length )
-{
-    if ( ! inbuf_.empty() ) {
-        reader_( inbuf_.c_str(), inbuf_.size() );
-        inbuf_.clear();
-    }
+    boost::mutex::scoped_lock lock( mutex_ );
     outbuf_ = std::string( data, length );
     boost::asio::async_write( port_
                               , boost::asio::buffer( &outbuf_[0], outbuf_.size() )
@@ -96,14 +87,8 @@ serialport::async_write( const char * data, std::size_t length )
                                              , boost::asio::placeholders::error
                                              , boost::asio::placeholders::bytes_transferred )
         );
-}
-
-void
-serialport::async_writeln( const char * data, std::size_t length )
-{
-    std::string s( data, length );
-    s += "\r\n";
-    async_write( s.c_str(), length + 2 );
+    boost::system_time timeout( boost::get_system_time() + boost::posix_time::milliseconds( milliseconds ) );
+    return cond_.timed_wait( lock, timeout );
 }
 
 void
@@ -153,9 +138,12 @@ serialport::handle_read( const boost::system::error_code& error, std::size_t byt
 void
 serialport::handle_write( const boost::system::error_code& error, std::size_t bytes_transferred )
 {
+    std::cout << "handle_write " << bytes_transferred << " octets written but rquired " << outbuf_.size() << std::endl;
     if ( !error ) {
+        boost::mutex::scoped_lock lock( mutex_ );
         if ( outbuf_.size() == bytes_transferred ) {
             outbuf_.clear();
+            cond_.notify_one();        
         } else
             std::cout << bytes_transferred << " octets written but rquired " << outbuf_.size() << std::endl;
     }

@@ -24,6 +24,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/function.hpp>
+#include <boost/thread.hpp>
 #include <string>
 
 #pragma once
@@ -43,11 +44,11 @@ namespace adportable {
         bool open( const std::string& device_name, unsigned int baud_rate = 0 );
 
         void write ( const char *, std::size_t );
-        void async_writeln( const char *, std::size_t );
-        void async_write( const char *, std::size_t );
-        void async_write( const std::string& );
+        bool write ( const char *, std::size_t, unsigned long milliseconds );
 
     private:
+        boost::mutex mutex_;
+        boost::condition_variable cond_;
         boost::asio::serial_port port_;
         boost::asio::streambuf read_buffer_;
         boost::function< void (const char *, std::size_t) > reader_;
