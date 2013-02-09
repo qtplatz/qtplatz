@@ -56,9 +56,14 @@ namespace qtwidgets {
         bool setContents( boost::any& );
 
         // <--
+    protected:
+        // reimplement QTableView
+        virtual void currentChanged( const QModelIndex&, const QModelIndex& );
+
     signals:
-        void dataChanged();
+        void valueChanged();
         void applyTriggered();
+        void currentChanged( size_t row );
 
     public slots:
         void setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
@@ -77,6 +82,7 @@ namespace qtwidgets {
         boost::scoped_ptr< adcontrols::MSReferences > pReferences_;
         boost::scoped_ptr< adcontrols::MassSpectrum > pCalibrantSpectrum_;
         bool inProgress_;
+        std::vector< size_t > indecies_;
     };
 
 }

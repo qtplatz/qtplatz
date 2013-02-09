@@ -75,7 +75,6 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
     if ( splitter ) {
         // spectrum on top
         pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this);
-
         splitter->addWidget( pImpl_->processedSpectrum_ );
 
         // summary table
@@ -86,13 +85,17 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
         config.interface( L"qtwidgets::MSCalibSummaryWidget" );
         pImpl_->calibSummaryWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
 
+        connect( pImpl_->calibSummaryWidget_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );
+
         if ( pImpl_->calibSummaryWidget_ ) {
             adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
             adplugin::LifeCycle * p = accessor.get();
             if ( p )
                 p->OnInitialUpdate();
+
             connect( this, SIGNAL( fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ),
                 pImpl_->calibSummaryWidget_, SLOT( setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ) );
+
             splitter->addWidget( pImpl_->calibSummaryWidget_ );
         }
 
@@ -116,14 +119,17 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 {
     Q_UNUSED(processor);
 
+    enum { idx_profile, idx_centroid };
+
     int nID(0);
     portfolio::Folder folder = folium.getParentFolder();
     if ( folder && folder.name() == L"MSCalibration" ) {
         boost::any& data = folium;
 
+        // profile spectrum
         if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) { 
             adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( data );
-            pImpl_->processedSpectrum_->setData( *ptr, nID++ );
+            pImpl_->processedSpectrum_->setData( *ptr, idx_profile );
         }
 
         portfolio::Folio attachments = folium.attachments();
@@ -133,7 +139,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
             return;
 
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-        pImpl_->processedSpectrum_->setData( *ptr, nID++ );
+        pImpl_->processedSpectrum_->setData( *ptr, idx_centroid );
 
         // calib result
         it = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
@@ -146,6 +152,18 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 }
 
 void
-MSCalibrationWnd::onApplyMethod( const adcontrols::ProcessMethod& )
+MSCalibrationWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 {
+}
+
+void
+MSCalibrationWnd::handleSelSummary( size_t idx )
+{
+    adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
+    adplugin::LifeCycle * p = accessor.get();
+    if ( p ) {
+        adutils::MassSpectrumPtr ptr;
+        boost::any any( ptr );
+        p->getContents( any );
+    }
 }

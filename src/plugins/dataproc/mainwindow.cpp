@@ -63,9 +63,11 @@
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QToolButton>
+#include <QtGui/QTabWidget>
 #include <QtGui/QTextEdit>
-#include <QtGui/qlabel.h>
-#include <QtGui/qicon.h>
+#include <QtGui/QLabel>
+#include <QtGui/QIcon>
+#include <QtGui/QLineEdit>
 #include <qdebug.h>
 
 namespace dataproc {
@@ -90,6 +92,11 @@ MainWindow::MainWindow( QWidget *parent ) :  Utils::FancyMainWindow(parent)
                                           , toolBarDockWidget_( 0 )
                                           , actionSearch_( 0 )
                                           , actionApply_( 0 )
+                                          , actionSelMSProcess_( 0 )
+                                          , actionSelElementalComp_( 0 )
+                                          , actionSelMSCalibration_( 0 )
+                                          , actionSelChromatogram_( 0 )
+                                          , stack_( 0 )
                                           , currentFeature_( CentroidProcess )
 {
 }
@@ -106,22 +113,9 @@ MainWindow::createActions()
     //connect( actionConnect_, SIGNAL( triggered() ), this, SLOT( actionConnect_ ) );
 }
 
-QWidget *
-MainWindow::createContents( Core::IMode * mode
-                            , const adportable::Configuration& config, const std::wstring& apppath )
+Utils::StyledBar *
+MainWindow::createStyledBarTop()
 {
-    setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
-    setDocumentMode( true );
-    setDockNestingEnabled( true );
-
-    Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
-
-    // documentAndRightPane->addWidget( monitorView_ = HmqSignalMonitorView::Create() /* editorAndFindWidget */ );
-    documentAndRightPane->addWidget( new QTextEdit );
-    documentAndRightPane->addWidget( new Core::RightPanePlaceHolder( mode ) );
-    documentAndRightPane->setStretchFactor( 0, 1 );
-    documentAndRightPane->setStretchFactor( 1, 0 );
-
     Utils::StyledBar * toolBar = new Utils::StyledBar;
     if ( toolBar ) {
         toolBar->setProperty( "topBorder", true );
@@ -130,12 +124,42 @@ MainWindow::createContents( Core::IMode * mode
         toolBarLayout->setSpacing( 0 );
         Core::ActionManager * am = Core::ICore::instance()->actionManager();
         if ( am ) {
-            // toolBarLayout->addWidget(toolButton(am->command(Constants::CONNECT)->action()));
+            QList<int> globalcontext;
+            globalcontext << Core::Constants::C_GLOBAL_ID;
+
+            actionSelMSProcess_ = new QAction( "MS Process", this );
+            connect( actionSelMSProcess_, SIGNAL( triggered() ), this, SLOT( actionSelMSProcess() ) );
+            am->registerAction( actionSelMSProcess_, "dataproc.selMSProcess", globalcontext );
+            toolBarLayout->addWidget( toolButton( actionSelMSProcess_ ) );
+
+            actionSelElementalComp_ = new QAction( "Elemental Comp", this );
+            connect( actionSelElementalComp_, SIGNAL( triggered() ), this, SLOT( actionSelElementalComp() ) );
+            am->registerAction( actionSelMSProcess_, "dataproc.selElementalComp", globalcontext );
+            toolBarLayout->addWidget( toolButton( actionSelElementalComp_ ) );
+
+            actionSelMSCalibration_ = new QAction( "MS Calibration", this );
+            connect( actionSelMSCalibration_, SIGNAL( triggered() ), this, SLOT( actionSelMSCalibration() ) );
+            am->registerAction( actionSelMSProcess_, "dataproc.selMSCalibration", globalcontext );
+            toolBarLayout->addWidget( toolButton( actionSelMSCalibration_ ) );
+
+            actionSelChromatogram_ = new QAction( "Chromatogram", this );
+            connect( actionSelChromatogram_, SIGNAL( triggered() ), this, SLOT( actionSelChromatogram() ) );
+            am->registerAction( actionSelChromatogram_, "dataproc.selChromatogram", globalcontext );
+            toolBarLayout->addWidget( toolButton( actionSelChromatogram_ ) );
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
+        toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
         toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
+        toolBarLayout->addWidget( new QLineEdit );
     }
+    return toolBar;
+}
+
+Utils::StyledBar *
+MainWindow::createStyledBarMiddle()
+{
     Utils::StyledBar * toolBar2 = new Utils::StyledBar;
+
     if ( toolBar2 ) {
         toolBar2->setProperty( "topBorder", true );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar2 );
@@ -147,13 +171,13 @@ MainWindow::createContents( Core::IMode * mode
             globalcontext << Core::Constants::C_GLOBAL_ID;
             
             actionApply_ = new QAction( QIcon( ":/dataproc/image/apply_small.png" ), tr("Apply" ), this );
-			bool res = connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) );
-			assert( res );
+            bool res = connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) );
+            assert( res );
             am->registerAction( actionApply_, "dataproc.connect", globalcontext );
             toolBarLayout->addWidget( toolButton( am->command( "dataproc.connect" )->action() ) );
             /**/
             toolBarLayout->addWidget( new Utils::StyledSeparator );
-			/**/
+            /**/
             QComboBox * features = new QComboBox;
             features->addItem( "Centroid" );
             features->addItem( "Isotope" );
@@ -162,12 +186,25 @@ MainWindow::createContents( Core::IMode * mode
             toolBarLayout->addWidget( features );
 
             bool r = connect( features, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleFeatureSelected(int) ) );
-			assert( r );
-			r = connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) );
-			assert( r );
+            assert( r );
+            r = connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) );
+            assert( r );
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
         }
     }
+    return toolBar2;
+}
+
+QWidget *
+MainWindow::createContents( Core::IMode * mode
+                            , const adportable::Configuration& config, const std::wstring& apppath )
+{
+    setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
+    setDocumentMode( true );
+    setDockNestingEnabled( true );
+
+    Utils::StyledBar * toolBar1 = createStyledBarTop();
+    Utils::StyledBar * toolBar2 = createStyledBarMiddle();
 
     //---------- central widget ------------
     QWidget * centralWidget = new QWidget;
@@ -176,61 +213,52 @@ MainWindow::createContents( Core::IMode * mode
     std::vector< QWidget * > wnd;
     Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
     if ( splitter3 ) {
-        QTabWidget * tab = new QTabWidget;
-        splitter3->addWidget( tab );
+        stack_ = new QStackedWidget;
+        splitter3->addWidget( stack_ );
 
         wnd.push_back( new MSProcessingWnd );
-        tab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_stepoverproc_small.png"), "MS Processing" );
+        stack_->addWidget( wnd.back() );
+
         wnd.push_back( new ElementalCompWnd );
-        tab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_snapshot_small.png"), "Elemental Composition" );
+        stack_->addWidget( wnd.back() );
+
         wnd.push_back( new MSCalibrationWnd( config, apppath ) );
-        tab->addTab( wnd.back(), QIcon(":/acquire/images/debugger_continue_small.png"), "MS Calibration" );
+        stack_->addWidget( wnd.back() );
+
         wnd.push_back( new ChromatogramWnd( apppath ) );
-        tab->addTab( wnd.back(),  QIcon(":/acquire/images/watchpoint.png"), "Chromatogram" );
-        if ( DataprocPlugin::instance()->dataprocessorFactory() )
-            DataprocPlugin::instance()->dataprocessorFactory()->setEditor( tab );
+        stack_->addWidget( wnd.back() );
     }
 
     for ( std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
-		bool r;
-		r = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-			        , *it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
-		assert( r );
-		r = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-                         , *it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
-		assert( r );
-		r = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
-                         , *it, SLOT( onApplyMethod( const adcontrols::ProcessMethod& ) ) );
-		assert( r );
+        bool r;
+        r = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
+                     , *it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
+        assert( r );
+        r = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
+                     , *it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
+        assert( r );
+        r = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
+                     , *it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );
+        assert( r );
     }
-	bool res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-                     , this, SLOT( handleSessionAdded( Dataprocessor* ) ) );
-	assert( res );
-	res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-                     , this, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
-	assert( res );
+    bool res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
+                        , this, SLOT( handleSessionAdded( Dataprocessor* ) ) );
+    assert( res );
+    res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
+                   , this, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
+    assert( res );
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
     toolBarAddingLayout->setMargin(0);
     toolBarAddingLayout->setSpacing(0);
-    toolBarAddingLayout->addWidget( toolBar );
-    toolBarAddingLayout->addWidget( splitter3 );
-    toolBarAddingLayout->addWidget( toolBar2 );
-    
-    QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
-    centralWidget->setLayout( centralLayout );
-    centralLayout->setMargin( 0 );
-    centralLayout->setSpacing( 0 );
-    centralLayout->addWidget( documentAndRightPane );
-    centralLayout->setStretch( 0, 1 );
-    centralLayout->setStretch( 1, 0 );
-
-    centralLayout->addWidget( toolBar );
+    toolBarAddingLayout->addWidget( toolBar1 );  // top most toolbar
+    toolBarAddingLayout->addWidget( splitter3 ); // Spectra|chrmatogram pane
+    toolBarAddingLayout->addWidget( toolBar2 );  // middle toolbar
 
     // Right-side window with editor, output etc.
     Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
     QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
-    outputPane->setObjectName( QLatin1String( "HmsqOutputPanePlaceHolder" ) );
+    outputPane->setObjectName( QLatin1String( "OutputPanePlaceHolder" ) );
     mainWindowSplitter->addWidget( this );
     mainWindowSplitter->addWidget( outputPane );
     mainWindowSplitter->setStretchFactor( 0, 10 );
@@ -243,7 +271,7 @@ MainWindow::createContents( Core::IMode * mode
     splitter->addWidget( mainWindowSplitter );
     splitter->setStretchFactor( 0, 0 );
     splitter->setStretchFactor( 1, 1 );
-    splitter->setObjectName( QLatin1String( "HmsqModeWidget" ) );
+    splitter->setObjectName( QLatin1String( "ModeWidget" ) );
 
     createDockWidgets( config, apppath );
 
@@ -353,39 +381,6 @@ MainWindow::toolButton( const char * id )
     return toolButton( mgr->command(id)->action() );
 }
 
-/*
-void
-MainWindow::setData( const adcontrols::MassSpectrum& ms )
-{
-    if ( monitorView_ )
-        monitorView_->setData( ms );
-}
-
-void
-MainWindow::setData( const adcontrols::Trace& trace, const std::wstring& traceId )
-{
-    if ( monitorView_ )
-        monitorView_->setData( trace, traceId );
-}
-
-void
-MainWindow::setRF( const HMQSignal::hmqDATA& data )
-{
-    if ( monitorView_ )
-        monitorView_->setRF( data );
-}
-
-void
-MainWindow::setMethod( const ControlMethod::Method& m )
-{
-}
-
-void
-MainWindow::onDataChanged( const dataMediator* mediator )
-{
-}
-*/
-
 void
 MainWindow::handleSessionAdded( dataproc::Dataprocessor * processor )
 {
@@ -484,3 +479,28 @@ MainWindow::handleFeatureActivated( int value )
 {
     currentFeature_ = static_cast< ProcessType >( value );
 }
+
+void
+MainWindow::actionSelMSProcess()
+{
+    stack_->setCurrentIndex( 0 );
+}
+
+void
+MainWindow::actionSelElementalComp()
+{
+    stack_->setCurrentIndex( 1 );
+}
+
+void
+MainWindow::actionSelMSCalibration()
+{
+    stack_->setCurrentIndex( 2 );
+}
+
+void
+MainWindow::actionSelChromatogram()
+{
+    stack_->setCurrentIndex( 3 );
+}
+

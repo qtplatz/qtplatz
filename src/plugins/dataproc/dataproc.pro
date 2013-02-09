@@ -12,12 +12,11 @@ TEMPLATE = lib
 PROVIDER = ScienceLiaison
 include(../../qtplatz_plugin.pri)
 
-include(../../libs/acewrapper/acewrapper_dependencies.pri)
-
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../qwt.pri)
 include(../../boost.pri)
+include(../../ace_tao.pri)
 
 LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adcontrols) -l$$qtLibraryTarget(adutils) -l$$qtLibraryTarget(acewrapper) \

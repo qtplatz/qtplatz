@@ -70,3 +70,4 @@ NavigationWidgetFactory::createWidget()
     n.dockToolBarWidgets << toggleSync;
     return n;
 }
+

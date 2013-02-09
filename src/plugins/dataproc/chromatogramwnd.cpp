@@ -191,7 +191,7 @@ ChromatogramWnd::handleSelectionChanged( Dataprocessor* , portfolio::Folium& fol
 }
 
 void
-ChromatogramWnd::onApplyMethod( const adcontrols::ProcessMethod& )
+ChromatogramWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 {
 }
 

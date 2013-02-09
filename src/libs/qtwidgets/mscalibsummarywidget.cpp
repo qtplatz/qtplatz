@@ -33,8 +33,10 @@
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
+#include <adutils/processeddata.hpp>
 #include <qtwrapper/qstring.hpp>
-#include <qmenu.h>
+#include <QMenu>
+#include <boost/any.hpp>
 
 namespace qtwidgets {
 
@@ -103,8 +105,13 @@ MSCalibSummaryWidget::OnFinalClose()
 }
 
 bool
-MSCalibSummaryWidget::getContents( boost::any& ) const
+MSCalibSummaryWidget::getContents( boost::any& any ) const
 {
+    if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( any ) && pCalibrantSpectrum_ ) {
+        adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( any );
+        ptr = adutils::MassSpectrumPtr( new adcontrols::MassSpectrum( *pCalibrantSpectrum_ ) );
+        return true;
+    }
     return false;
 }
 
@@ -134,29 +141,39 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
     const double * times = ms.getTimeArray();
     const double * masses = ms.getMassArray();
 
-    std::vector< size_t > indecies;
+    indecies_.clear();
     for ( size_t i = 0; i < ms.size(); ++i ) {
         if ( intensities[i] >= res.threshold() )
-            indecies.push_back( i ); 
+            indecies_.push_back( i ); 
     }
 
-    model.insertRows( 0, indecies.size() );
+    pCalibrantSpectrum_.reset( new adcontrols::MassSpectrum );
+    pCalibrantSpectrum_->clone( ms ); // shallow copy
+    pCalibrantSpectrum_->resize( indecies_.size() );
+    const unsigned char * colors = ms.getColorArray();
 
-    for ( size_t row = 0; row < indecies.size(); ++row ) {
-        size_t idx = indecies[ row ];
+    model.insertRows( 0, indecies_.size() );
+    std::vector< unsigned char > color_table( indecies_.size() );
+    
+    for ( size_t row = 0; row < indecies_.size(); ++row ) {
+        size_t idx = indecies_[ row ];
         model.setData( model.index( row, c_mass ), masses[ idx ] );
         model.setData( model.index( row, c_time ), times[ idx ] * 1.0e6); // s -> us
         model.setData( model.index( row, c_intensity ), intensities[ idx ] );
-    }
 
-    //const adcontrols::MSReferences& ref = res.references();
+        pCalibrantSpectrum_->setMass( row, masses[ idx ] );
+        pCalibrantSpectrum_->setTime( row, times[ idx ] );
+        pCalibrantSpectrum_->setIntensity( row, intensities[ idx ] );
+        color_table[ row ] = colors[ idx ];
+    }
+    pCalibrantSpectrum_->setColorArray( &color_table[ 0 ] );
+
     const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
-    // adcontrols::MSReferences::vector_type::const_iterator refIt = ref.begin();
 
     for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
         std::vector< size_t >::iterator index
-            = std::lower_bound( indecies.begin(), indecies.end(), it->idMassSpectrum() );
-        size_t row = std::distance( indecies.begin(), index );
+            = std::lower_bound( indecies_.begin(), indecies_.end(), it->idMassSpectrum() );
+        size_t row = std::distance( indecies_.begin(), index );
 
         model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );
         model.setData( model.index( row, c_exact_mass ), it->exactMass() );
@@ -215,7 +232,7 @@ MSCalibSummaryWidget::handleClearFormulae()
     inProgress_ = false;
 
     if ( modified )
-        emit dataChanged();
+        emit valueChanged();
 }
 
 void
@@ -234,7 +251,14 @@ MSCalibSummaryWidget::handleValueChanged( const QModelIndex& index )
             // update exact mass
             model.setData( model.index( index.row(), c_exact_mass ), exactMass );
             model.setData( model.index( index.row(), c_is_enable ), true );
-            emit dataChanged();
+            emit valueChanged();
         }
     }
+}
+
+void
+MSCalibSummaryWidget::currentChanged( const QModelIndex& index, const QModelIndex& prev )
+{
+    (void)prev;
+    emit currentChanged( index.row() );
 }

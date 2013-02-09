@@ -49,7 +49,7 @@ DataprocessorFactory::DataprocessorFactory( QObject * owner,
 										    const QStringList& types ) : Core::IEditorFactory( owner )
 																	   , kind_( "Dataprocessor" )
 											                           , mimeTypes_ ( types ) 
-																	   , editorWidget_(0) 
+                                                                       //, editorWidget_(0)
 {
     mimeTypes_ 
         << Constants::C_DATA_TEXT_MIMETYPE
@@ -57,11 +57,13 @@ DataprocessorFactory::DataprocessorFactory( QObject * owner,
 		<< "application/octet-stream";
 }
 
+/*
 void
 DataprocessorFactory::setEditor( QWidget * p )
 {
     editorWidget_ = p;
 }
+*/
 
 // implementation for IEditorFactory
 Core::IEditor *

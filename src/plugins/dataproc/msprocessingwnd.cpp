@@ -125,7 +125,8 @@ MSProcessingWnd::init()
         pImpl_->processedSpectrum_->link( pImpl_->profileSpectrum_ );
 
         pImpl_->processedSpectrum_->setContextMenuPolicy( Qt::CustomContextMenu );
-		connect( pImpl_->processedSpectrum_, SIGNAL( customContextMenuRequested( QPoint ) ), this, SLOT( onCustomMenuOnProcessedSpectrum( const QPoint& ) ) );
+		connect( pImpl_->processedSpectrum_, SIGNAL( customContextMenuRequested( QPoint ) )
+                 , this, SLOT( handleCustomMenuOnProcessedSpectrum( const QPoint& ) ) );
     }
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
@@ -207,12 +208,12 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
 }
 
 void
-MSProcessingWnd::onApplyMethod( const adcontrols::ProcessMethod& )
+MSProcessingWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 {
 }
 
 void
-MSProcessingWnd::onCustomMenuOnProcessedSpectrum( const QPoint& pos )
+MSProcessingWnd::handleCustomMenuOnProcessedSpectrum( const QPoint& pos )
 {
 	QPoint globalPos = pImpl_->processedSpectrum_->mapToGlobal(pos);
     (void)globalPos;

@@ -315,14 +315,6 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 void
 DataprocPlugin::extensionsInitialized()
 {
-/*
-	using adextension::iSequence;
-	QList< iSequence * > adapters = ExtensionSystem::PluginManager::instance()->getObjects< iSequence >();
-	BOOST_FOREACH( iSequence * adapter, adapters ) {
-		BOOST_FOREACH( EditorFactory * factory, factories_ )
-			adapter->addEditorFactory( factory );
-	}
-*/
     do {
         std::string ior = adplugin::manager::iorBroker();
         if ( ! ior.empty() ) {
@@ -349,14 +341,7 @@ void
 DataprocPlugin::shutdown()
 {
     adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutting down...  ===============";
-/*
-    QList< adextension::iSequence * > adapters =
-        ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
-    BOOST_FOREACH( adextension::iSequence * adapter, adapters ) {
-        for ( size_t i = 0; i < factories_.size(); ++i )
-            adapter->removeEditorFactory( factories_[i] );
-    }
-*/
+
     mainWindow_->OnFinalClose();
 
 	if ( ! CORBA::is_nil( brokerSession_ ) ) {

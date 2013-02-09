@@ -29,21 +29,21 @@
 using namespace dataproc;
 
 EditorFactory::EditorFactory( const adportable::Configuration& config
-	                         , const std::wstring& path ) : path_( path )
-							                              , config_( config )
+                              , const std::wstring& path ) : path_( path )
+                                                           , config_( config )
 {
 }
 
 QWidget *
 EditorFactory::createEditor( QWidget * parent )
 {
-	if ( config_.isPlugin() )
-		return adplugin::manager::widget_factory( config_, path_.c_str(), parent );
-	return 0;
+    if ( config_.isPlugin() )
+        return adplugin::manager::widget_factory( config_, path_.c_str(), parent );
+    return 0;
 }
 
 QString
 EditorFactory::title() const
 {
-	return qtwrapper::qstring::copy( config_.title() );
+    return qtwrapper::qstring::copy( config_.title() );
 }

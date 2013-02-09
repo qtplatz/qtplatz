@@ -43,7 +43,7 @@ namespace dataproc {
         ~DataprocessorFactory();
         explicit DataprocessorFactory( QObject * owner, const QStringList& );
 
-        void setEditor( QWidget * );
+        // void setEditor( QWidget * );
 
         // implement IEditorFactory
         virtual Core::IEditor *createEditor(QWidget *parent);
@@ -60,7 +60,6 @@ namespace dataproc {
     private:
         QString kind_;
         QStringList mimeTypes_;
-        QWidget * editorWidget_;
     };
 
 }

@@ -32,10 +32,12 @@ namespace adportable { class Configuration; }
 namespace adcontrols { class datafile; class ProcessMethod; }
 namespace portfolio { class Folium; }
 namespace Core { class IMode; }
+namespace Utils { class StyledBar; }
 class QHBoxLayout;
 class QWidget;
 class QToolButton;
 class QAction;
+class QStackedWidget;
 
 namespace dataproc {
 
@@ -75,20 +77,33 @@ namespace dataproc {
         void handleFeatureSelected( int );
         void handleFeatureActivated( int );
 
-    private:
-		QWidget * toolBar_;
-		QHBoxLayout * toolBarLayout_;
-		QDockWidget * toolBarDockWidget_;
+        void actionSelMSProcess();
+        void actionSelElementalComp();
+        void actionSelMSCalibration();
+        void actionSelChromatogram();
 
-		QAction * actionSearch_;
+    private:
+        QWidget * toolBar_;
+        QHBoxLayout * toolBarLayout_;
+        QDockWidget * toolBarDockWidget_;
+
+        QAction * actionSearch_;
         QAction * actionApply_;
+        QAction * actionSelMSProcess_;
+        QAction * actionSelElementalComp_;
+        QAction * actionSelMSCalibration_;
+        QAction * actionSelChromatogram_;
+        QStackedWidget * stack_;
+
         enum ProcessType currentFeature_;
 
-		void setToolBarDockWidget( QDockWidget * dock );
-		QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
-		void createToolbar();
-		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
-		void createDockWidgets( const adportable::Configuration&, const std::wstring& apppath );
+        void setToolBarDockWidget( QDockWidget * dock );
+        QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
+        void createToolbar();
+        QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
+        void createDockWidgets( const adportable::Configuration&, const std::wstring& apppath );
+        Utils::StyledBar * createStyledBarTop();
+        Utils::StyledBar * createStyledBarMiddle();
     };
 
 }

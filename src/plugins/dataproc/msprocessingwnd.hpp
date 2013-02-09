@@ -65,10 +65,10 @@ namespace dataproc {
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
-        void onApplyMethod( const adcontrols::ProcessMethod& );
+        void handleApplyMethod( const adcontrols::ProcessMethod& );
 
     private slots:
-        void onCustomMenuOnProcessedSpectrum( const QPoint& );
+        void handleCustomMenuOnProcessedSpectrum( const QPoint& );
 
         void selectedOnChromatogram( const QPointF& );
         void selectedOnChromatogram( const QRectF& );

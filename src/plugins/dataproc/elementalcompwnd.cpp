@@ -138,7 +138,7 @@ ElementalCompWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfo
 }
 
 void
-ElementalCompWnd::onApplyMethod( const adcontrols::ProcessMethod& m )
+ElementalCompWnd::handleApplyMethod( const adcontrols::ProcessMethod& m )
 {
 	using adcontrols::IsotopeMethod;
 	using adcontrols::IsotopeCluster;

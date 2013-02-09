@@ -38,9 +38,6 @@ namespace dataproc {
 
     class Dataprocessor;
     class DataprocPlugin;
-    
-    class Session;
-    class DataprocPlugin;
 
     class Session {
     public:

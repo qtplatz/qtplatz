@@ -64,7 +64,7 @@ namespace dataproc {
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
-        void onApplyMethod( const adcontrols::ProcessMethod& );
+        void handleApplyMethod( const adcontrols::ProcessMethod& );
         
     private:
         boost::shared_ptr<ChromatogramWndImpl> pImpl_;
