@@ -112,8 +112,36 @@ MSCalibSummaryWidget::getContents( boost::any& any ) const
         ptr = adutils::MassSpectrumPtr( new adcontrols::MassSpectrum( *pCalibrantSpectrum_ ) );
         return true;
     }
+    if ( adutils::ProcessedData::is_type< boost::shared_ptr< adcontrols::MSAssignedMasses > >( any ) ) {
+        boost::shared_ptr< adcontrols::MSAssignedMasses > ptr
+            = boost::any_cast< boost::shared_ptr< adcontrols::MSAssignedMasses > >( any );
+        ptr.reset( new adcontrols::MSAssignedMasses );
+        getAssignedMasses( *ptr );
+        return true;
+    }
     return false;
 }
+
+void
+MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
+{
+    QStandardItemModel& model = *pModel_;
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        QString formula = model.data( model.index( row, c_formula ) ).toString();
+        std::wstring wformula = qtwrapper::wstring( formula );
+        if ( ! formula.isEmpty()  ) {
+            if ( model.index( row, c_is_enable ).data( Qt::EditRole ).toBool() ) {
+                double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble();
+                double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+                double exact_mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
+                adcontrols::MSAssignedMass assigned( unsigned(row), unsigned(row), wformula, exact_mass, time, mass, true );
+                t << assigned;
+            }
+        }
+    }    
+}
+
 
 bool
 MSCalibSummaryWidget::setContents( boost::any& )

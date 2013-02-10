@@ -33,6 +33,7 @@ namespace adcontrols {
     class MassSpectrum;
     class MSReferences;
     class MSCalibrateResult;
+    class MSAssignedMasses;
 }
 
 class QStandardItemModel;
@@ -83,6 +84,7 @@ namespace qtwidgets {
         boost::scoped_ptr< adcontrols::MassSpectrum > pCalibrantSpectrum_;
         bool inProgress_;
         std::vector< size_t > indecies_;
+        void getAssignedMasses( adcontrols::MSAssignedMasses& ) const;
     };
 
 }
