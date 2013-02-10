@@ -63,8 +63,10 @@ namespace dataproc {
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
+
     private slots:
         void handleSelSummary( size_t );
+        void handleManuallyAssigned();
 
     private:
         boost::shared_ptr<MSCalibrationWndImpl> pImpl_;

@@ -63,8 +63,8 @@ namespace qtwidgets {
 
     signals:
         void valueChanged();
-        void applyTriggered();
         void currentChanged( size_t row );
+        void applyTriggered();
 
     public slots:
         void setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );

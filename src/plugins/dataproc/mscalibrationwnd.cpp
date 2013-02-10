@@ -28,6 +28,7 @@
 #include <portfolio/folder.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/msassignedmass.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adutils/processeddata.hpp>
 
@@ -35,6 +36,7 @@
 #include <QBoxLayout>
 #include <boost/any.hpp>
 #include <adportable/configuration.hpp>
+#include <adportable/debug.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adplugin/manager.hpp>
@@ -85,8 +87,11 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
         config.interface( L"qtwidgets::MSCalibSummaryWidget" );
         pImpl_->calibSummaryWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
 
-        connect( pImpl_->calibSummaryWidget_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );
-
+        bool res;
+        res = connect( pImpl_->calibSummaryWidget_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );
+        assert(res);
+        res = connect( pImpl_->calibSummaryWidget_, SIGNAL( applyTriggered() ), this, SLOT( handleManuallyAssigned() ) );
+        assert(res);
         if ( pImpl_->calibSummaryWidget_ ) {
             adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
             adplugin::LifeCycle * p = accessor.get();
@@ -121,7 +126,6 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 
     enum { idx_profile, idx_centroid };
 
-    int nID(0);
     portfolio::Folder folder = folium.getParentFolder();
     if ( folder && folder.name() == L"MSCalibration" ) {
         boost::any& data = folium;
@@ -159,11 +163,29 @@ MSCalibrationWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 void
 MSCalibrationWnd::handleSelSummary( size_t idx )
 {
+    (void)idx;
     adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
         adutils::MassSpectrumPtr ptr;
         boost::any any( ptr );
         p->getContents( any );
+    }
+}
+
+void
+MSCalibrationWnd::handleManuallyAssigned()
+{
+    adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
+    adplugin::LifeCycle * p = accessor.get();
+    if ( p ) {
+        boost::shared_ptr< adcontrols::MSAssignedMasses > ptr;
+        boost::any any( ptr );
+        p->getContents( any );
+        if ( ptr ) {
+            for ( adcontrols::MSAssignedMasses::vector_type::iterator it = ptr->begin(); it != ptr->end(); ++it ) {
+                adportable::debug(__FILE__, __LINE__) << it->formula();
+            }
+        }
     }
 }
