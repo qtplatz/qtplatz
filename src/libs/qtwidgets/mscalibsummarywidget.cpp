@@ -109,13 +109,12 @@ MSCalibSummaryWidget::getContents( boost::any& any ) const
 {
     if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( any ) && pCalibrantSpectrum_ ) {
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( any );
-        ptr = adutils::MassSpectrumPtr( new adcontrols::MassSpectrum( *pCalibrantSpectrum_ ) );
+        *ptr = *pCalibrantSpectrum_;
         return true;
     }
     if ( adutils::ProcessedData::is_type< boost::shared_ptr< adcontrols::MSAssignedMasses > >( any ) ) {
         boost::shared_ptr< adcontrols::MSAssignedMasses > ptr
             = boost::any_cast< boost::shared_ptr< adcontrols::MSAssignedMasses > >( any );
-        ptr.reset( new adcontrols::MSAssignedMasses );
         getAssignedMasses( *ptr );
         return true;
     }

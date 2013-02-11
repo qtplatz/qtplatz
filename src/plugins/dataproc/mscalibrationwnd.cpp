@@ -167,7 +167,7 @@ MSCalibrationWnd::handleSelSummary( size_t idx )
     adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
-        adutils::MassSpectrumPtr ptr;
+		adutils::MassSpectrumPtr ptr( new adcontrols::MassSpectrum );
         boost::any any( ptr );
         p->getContents( any );
     }
@@ -179,7 +179,7 @@ MSCalibrationWnd::handleManuallyAssigned()
     adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
-        boost::shared_ptr< adcontrols::MSAssignedMasses > ptr;
+		boost::shared_ptr< adcontrols::MSAssignedMasses > ptr( new adcontrols::MSAssignedMasses );
         boost::any any( ptr );
         p->getContents( any );
         if ( ptr ) {
