@@ -136,7 +136,7 @@ MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
                 double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble();
                 double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
                 double exact_mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
-                adcontrols::MSAssignedMass assigned( unsigned(row), unsigned(row), wformula, exact_mass, time, mass, true );
+                adcontrols::MSAssignedMass assigned( row, indecies_[ row ], wformula, exact_mass, time, mass, true );
                 t << assigned;
             }
         }
