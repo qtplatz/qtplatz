@@ -329,6 +329,24 @@ MassSpectrum::setColorArray( const unsigned char * values )
 }
 
 void
+MassSpectrum::setColor( size_t idx, unsigned char color )
+{
+    if ( idx < pImpl_->size() ) {
+        if ( pImpl_->getColorArray() == 0 )
+            pImpl_->colArray_.resize( pImpl_->size() );
+        const_cast< unsigned char *>( pImpl_->getColorArray() )[ idx ] = color;
+    }
+}
+
+int
+MassSpectrum::getColor( size_t idx ) const
+{
+    if ( idx < pImpl_->size() && pImpl_->getColorArray() )
+        return pImpl_->getColorArray()[ idx ];
+    return -1;
+}
+
+void
 MassSpectrum::addDescription( const Description& t )
 {
   pImpl_->addDescription( t );

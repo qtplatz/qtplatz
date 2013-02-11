@@ -57,6 +57,8 @@ namespace dataproc {
         adwplot::SpectrumWidget * profileSpectrum_;
         adwplot::SpectrumWidget * processedSpectrum_;
         QWidget * calibSummaryWidget_;
+        
+        portfolio::Folium folium_;
 
     };
 }
@@ -80,7 +82,7 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
         splitter->addWidget( pImpl_->processedSpectrum_ );
 
         // summary table
-        adportable::Configuration config;
+		adportable::Configuration config;
         adportable::Module module;
         module.library_filename( QTWIDGETS_NAME );
         config.module( module );
@@ -123,13 +125,14 @@ void
 MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
     Q_UNUSED(processor);
-
+	
     enum { idx_profile, idx_centroid };
 
     portfolio::Folder folder = folium.getParentFolder();
     if ( folder && folder.name() == L"MSCalibration" ) {
-        boost::any& data = folium;
 
+        pImpl_->folium_ = folium;
+        boost::any& data = folium;
         // profile spectrum
         if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) { 
             adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( data );
@@ -138,7 +141,8 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 
         portfolio::Folio attachments = folium.attachments();
         // centroid spectrum
-        portfolio::Folio::iterator it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
+        portfolio::Folio::iterator it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin()
+                                                                                                      , attachments.end());
         if ( it == attachments.end() )
             return;
 
@@ -170,6 +174,7 @@ MSCalibrationWnd::handleSelSummary( size_t idx )
 		adutils::MassSpectrumPtr ptr( new adcontrols::MassSpectrum );
         boost::any any( ptr );
         p->getContents( any );
+        pImpl_->processedSpectrum_->setData( *ptr, 1 );
     }
 }
 
@@ -184,7 +189,7 @@ MSCalibrationWnd::handleManuallyAssigned()
         p->getContents( any );
         if ( ptr ) {
             for ( adcontrols::MSAssignedMasses::vector_type::iterator it = ptr->begin(); it != ptr->end(); ++it ) {
-                adportable::debug(__FILE__, __LINE__) << it->formula();
+				adportable::debug(__FILE__, __LINE__) << it->formula();
             }
         }
     }

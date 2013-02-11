@@ -110,6 +110,8 @@ MSCalibSummaryWidget::getContents( boost::any& any ) const
     if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( any ) && pCalibrantSpectrum_ ) {
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( any );
         *ptr = *pCalibrantSpectrum_;
+		int row = currentIndex().row();
+		ptr->setColor( row, 4 );
         return true;
     }
     if ( adutils::ProcessedData::is_type< boost::shared_ptr< adcontrols::MSAssignedMasses > >( any ) ) {

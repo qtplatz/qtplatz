@@ -39,14 +39,12 @@ namespace adcontrols {
     class ProcessMethod;
 }
 
-namespace adportable {
-    class Configuration;
-}
+namespace adportable {  class Configuration; }
+namespace portfolio  { class folium; }
 
 namespace dataproc {
 
     class Dataprocessor;
-
     class MSCalibrationWndImpl;
 
     class MSCalibrationWnd : public QWidget {
@@ -70,7 +68,6 @@ namespace dataproc {
 
     private:
         boost::shared_ptr<MSCalibrationWndImpl> pImpl_;
-      
     };
 
 }
