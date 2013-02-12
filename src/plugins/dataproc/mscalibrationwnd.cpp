@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "mscalibrationwnd.hpp"
+#include "mainwindow.hpp"
 #include "dataprocessor.hpp"
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
@@ -184,13 +185,9 @@ MSCalibrationWnd::handleManuallyAssigned()
     adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
-		boost::shared_ptr< adcontrols::MSAssignedMasses > ptr( new adcontrols::MSAssignedMasses );
-        boost::any any( ptr );
-        p->getContents( any );
-        if ( ptr ) {
-            for ( adcontrols::MSAssignedMasses::vector_type::iterator it = ptr->begin(); it != ptr->end(); ++it ) {
-				adportable::debug(__FILE__, __LINE__) << it->formula();
-            }
-        }
+        boost::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
+        boost::any any( assigned );
+        if ( p->getContents( any ) )
+            MainWindow::instance()->applyCalibration( *assigned );
     }
 }

@@ -69,6 +69,7 @@ namespace dataproc {
         static adcontrols::MassSpectrumPtr findAttachedMassSpectrum( portfolio::Folium& folium );
         static bool applyMethod( portfolio::Folium&, const adcontrols::IsotopeMethod& );
         static bool applyMethod( portfolio::Folium&, const adcontrols::MSCalibrateMethod& );
+        static bool applyMethod( portfolio::Folium&, const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses& );
         static bool applyMethod( portfolio::Folium&, const adcontrols::CentroidMethod&, const adcontrols::MassSpectrum& );
         static bool applyMethod( portfolio::Folium&, const adcontrols::PeakMethod&, const adcontrols::Chromatogram& );
     };
@@ -301,7 +302,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
         for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
 #if defined DEBUG
             if ( std::strcmp( it->type().name(), typeid( adcontrols::MSCalibrateMethod ).name() ) == 0 ) {
-                assert( it->type() == typeid( adcontrols::MSCalibrateMethod ) );
+				assert( it->type() == typeid( adcontrols::MSCalibrateMethod ) );
                 std::cout << "----- Dataprocessor::applyCalibration --- MSCalibrateMethod type check passed" << std::endl;
             }
 #endif
@@ -334,6 +335,55 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
         boost::apply_visitor( doSpectralProcess( ms, folium ), *it );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
+}
+
+void
+Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
+                                 , const adcontrols::MSAssignedMasses& assigned )
+{
+    portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
+
+    if ( folium ) {
+        adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+        if ( data.type() != typeid( adutils::MassSpectrumPtr ) )
+            return;
+        adutils::MassSpectrumPtr profile( boost::get< adutils::MassSpectrumPtr >( data ) );
+
+        portfolio::Folio attachments = folium.attachments();
+        portfolio::Folio::iterator it
+            = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
+        if ( it == attachments.end() )
+            return;
+        
+		adutils::MassSpectrumPtr centroid = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+
+		const adcontrols::MSCalibrateMethod * pCalibMethod = m.find< adcontrols::MSCalibrateMethod >();
+        if ( pCalibMethod )
+			addCalibration( *profile, *centroid, *pCalibMethod, assigned );
+    }
+}
+
+void
+Dataprocessor::addCalibration( const adcontrols::MassSpectrum& profile
+                               , const adcontrols::MassSpectrum& centroid
+                               , const adcontrols::MSCalibrateMethod& calibMethod
+                               , const adcontrols::MSAssignedMasses& assigned )
+{
+    portfolio::Folder folder = portfolio_->addFolder( L"MSCalibration" );
+    portfolio::Folium folium = folder.addFolium( L"CalibrantSpectrum" );
+    
+    adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( profile ) );  // deep copy
+    folium.assign( ms, ms->dataClass() );
+
+    // copy centroid spectrum, which manually assigned by user and result stored in 'assined'
+    portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
+    adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum( centroid ) ); // deep copy
+    att.assign( pCentroid, pCentroid->dataClass() );
+
+    // todo: process method to be added
+    
+    if ( DataprocessorImpl::applyMethod( folium, calibMethod, assigned ) ) 
+        SessionManager::instance()->updateDataprocessor( this, folium );
 }
 
 portfolio::Folium
@@ -495,7 +545,49 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
 }
 
 bool
-DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::CentroidMethod& m, const adcontrols::MassSpectrum& profile )
+DataprocessorImpl::applyMethod( portfolio::Folium& folium
+                                , const adcontrols::MSCalibrateMethod& m
+                                , const adcontrols::MSAssignedMasses& assigned )
+{
+    using namespace portfolio;
+
+    adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
+
+    Folium::vector_type atts = folium.attachments();
+    Folium::vector_type::iterator it = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
+
+    if ( it != atts.end() ) {
+        adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>( *it ) );
+        if ( pCentroid ) {
+            adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
+            if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m, assigned ) ) {
+                portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
+                att.assign( pResult, pResult->dataClass() );
+                
+                // rewrite calibration := change m/z asssing on the spectrum
+                pCentroid->setCalibration( pResult->calibration() );
+                
+                // update profile mass array
+                if ( pProfile ) {
+                    pProfile->setCalibration( pResult->calibration() );
+                    const std::vector<double>& coeffs = pResult->calibration().coeffs();
+                    for ( size_t i = 0; i < pProfile->size(); ++i ) {
+                        double tof = pProfile->getTime( i );
+                        double mq = adcontrols::MSCalibration::compute( coeffs, tof );
+                        pProfile->setMass( i, mq * mq );
+                    }
+                }
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
+DataprocessorImpl::applyMethod( portfolio::Folium& folium
+                                , const adcontrols::CentroidMethod& m
+                                , const adcontrols::MassSpectrum& profile )
 {
     portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
     adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
@@ -519,16 +611,16 @@ bool
 DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::PeakMethod& m, const adcontrols::Chromatogram& c )
 {
     portfolio::Folium att = folium.addAttachment( L"Peak Result" );
-	adcontrols::PeakResultPtr pResult( new adcontrols::PeakResult() );
-
-	if ( DataprocHandler::doFindPeaks( *pResult, c, m ) ) {
-		att.assign( pResult, pResult->dataClass() );
-
+    adcontrols::PeakResultPtr pResult( new adcontrols::PeakResult() );
+    
+    if ( DataprocHandler::doFindPeaks( *pResult, c, m ) ) {
+        att.assign( pResult, pResult->dataClass() );
+        
         adcontrols::ProcessMethodPtr ptr( new adcontrols::ProcessMethod() );
         ptr->appendMethod( m );
         att.addAttachment( L"Process Method" ).assign( ptr, ptr->dataClass() );
-
+        
         return true;
     }
-	return false;
+    return false;
 }

@@ -36,13 +36,16 @@ namespace adcontrols {
     class LCMSDataset;
     class ProcessMethod;
     class MassSpectrum;
-	class Chromatogram;
+    class Chromatogram;
+    class MSAssignedMasses;
+    class MSCalibrateMethod;
+    class CentroidMethod;
 }
 
 namespace portfolio {
     class Portfolio;
     class Folium;
-	class Folder;
+    class Folder;
 }
 
 namespace SignalObserver { class Observer; }
@@ -50,7 +53,7 @@ namespace SignalObserver { class Observer; }
 namespace dataproc {
 
     class IFileImpl;
-	class datafileObserver_i;
+    class datafileObserver_i;
 
     class Dataprocessor : QObject
                         , public adcontrols::dataSubscriber {
@@ -69,12 +72,13 @@ namespace dataproc {
         const adcontrols::LCMSDataset* getLCMSDataset();
         portfolio::Portfolio getPortfolio();
         void setCurrentSelection( portfolio::Folium& );
-		void setCurrentSelection( portfolio::Folder& );
+        void setCurrentSelection( portfolio::Folder& );
         void applyProcess( const adcontrols::ProcessMethod&, enum ProcessType );
         void applyCalibration( const adcontrols::ProcessMethod& );
-		portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
-		portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
-		SignalObserver::Observer * observer();
+        void applyCalibration( const adcontrols::ProcessMethod&, const adcontrols::MSAssignedMasses&  );
+        portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
+        portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
+        SignalObserver::Observer * observer();
 
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& );
@@ -82,6 +86,9 @@ namespace dataproc {
         // <------------------------
     private:
         void addCalibration( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
+        void addCalibration( const adcontrols::MassSpectrum& profile
+                             , const adcontrols::MassSpectrum& centroid
+                             , const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses& );
 
     signals:
         // void changeSelection( portfolio::Folium& );

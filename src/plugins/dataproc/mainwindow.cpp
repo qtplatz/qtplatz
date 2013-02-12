@@ -101,6 +101,12 @@ MainWindow::MainWindow( QWidget *parent ) :  Utils::FancyMainWindow(parent)
 {
 }
 
+MainWindow *
+MainWindow::instance()
+{
+    return DataprocPlugin::instance()->mainWindow();
+}
+
 void
 MainWindow::activateLayout()
 {
@@ -462,9 +468,21 @@ MainWindow::actionApply()
         if ( processor ) {
             if ( currentFeature_ == CalibrationProcess )
                 processor->applyCalibration( m );
-			else
+            else
                 processor->applyProcess( m, currentFeature_ );
         }
+    }
+}
+
+void
+MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned )
+{
+    adcontrols::ProcessMethod m;
+    getProcessMethod( m );
+    if ( m.size() > 0 ) {
+        Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
+        if ( processor )
+            processor->applyCalibration( m, assigned );
     }
 }
 

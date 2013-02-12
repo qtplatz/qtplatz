@@ -29,7 +29,7 @@
 #include "constants.hpp"
 
 namespace adportable { class Configuration; }
-namespace adcontrols { class datafile; class ProcessMethod; }
+namespace adcontrols { class datafile; class ProcessMethod; class MSAssignedMasses; }
 namespace portfolio { class Folium; }
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
@@ -45,22 +45,26 @@ namespace dataproc {
 
     class MainWindow : public Utils::FancyMainWindow {
         Q_OBJECT
-    public:
+        public:
         ~MainWindow();
         explicit MainWindow(QWidget *parent = 0);
 
-		QWidget * createContents( Core::IMode *, const adportable::Configuration&, const std::wstring& apppath );
-		void createActions();
-
-		void activateLayout();
-		void setSimpleDockWidgetArrangement();
-
-		static QToolButton * toolButton( const char * );
-		static QToolButton * toolButton( QAction * );
-
+        static MainWindow * instance();
+        
+        QWidget * createContents( Core::IMode *, const adportable::Configuration&, const std::wstring& apppath );
+        void createActions();
+        
+        void activateLayout();
+        void setSimpleDockWidgetArrangement();
+        
+        static QToolButton * toolButton( const char * );
+        static QToolButton * toolButton( QAction * );
+        
         void getProcessMethod( adcontrols::ProcessMethod& );
         void OnInitialUpdate();
         void OnFinalClose();
+
+        void applyCalibration( const adcontrols::MSAssignedMasses& );
         
     signals:
         void signalUpdateFile( adcontrols::datafile * );

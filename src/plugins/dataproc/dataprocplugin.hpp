@@ -70,6 +70,7 @@ namespace dataproc {
         void shutdown();
         // <--
         inline static DataprocPlugin * instance() { return instance_; }
+        inline static MainWindow * mainWindow() { return instance_ ? instance_->mainWindow_ : 0; }
         
         void applyMethod( const adcontrols::ProcessMethod& );
         void onSelectTimeRangeOnChromatogram( double x1, double x2 );
@@ -98,7 +99,7 @@ namespace dataproc {
         DataprocessorFactory * dataprocFactory_;
         
         boost::scoped_ptr< iSequenceImpl > iSequence_;
-		static DataprocPlugin * instance_;
+        static DataprocPlugin * instance_;
         
         static bool install_dataprovider( const adportable::Configuration&, const std::wstring& );
         static bool install_isequence( const adportable::Configuration&, const std::wstring&, iSequenceImpl& );

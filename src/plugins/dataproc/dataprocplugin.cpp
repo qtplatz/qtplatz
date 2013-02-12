@@ -46,7 +46,6 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
-// #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adplugin/constants.hpp>
@@ -142,14 +141,14 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
         return false;
 
     //-------------------------------------------------------------------------------------------
-	std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
+    std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
     std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/dataproc.config.xml" );
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
 
     pConfig_.reset( new adportable::Configuration() );
     adportable::Configuration& config = *pConfig_;
 
-	if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
+    if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
         error_message = new QString( "loadConfig load failed" );
         adportable::debug( __FILE__, __LINE__ ) << "loadConfig" << configFile << "failed";
     }
@@ -167,24 +166,24 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     // DataprocessorFactory * dataprocFactory = 0;
     Core::MimeDatabase* mdb = core->mimeDatabase();
     if ( mdb ) {
-		// externally installed mime-types
-		std::wstring mimefile
-			= adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/dataproc-mimetype.xml" );
-		if ( ! mdb->addMimeTypes( qtwrapper::qstring( mimefile ), error_message) )
-			adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes" << mimefile << error_message;
+        // externally installed mime-types
+        std::wstring mimefile
+            = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/dataproc-mimetype.xml" );
+        if ( ! mdb->addMimeTypes( qtwrapper::qstring( mimefile ), error_message) )
+            adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes" << mimefile << error_message;
 
-		// core mime-types
-		if ( ! mdb->addMimeTypes(":/dataproc/mimetype.xml", error_message) )
-			adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
+        // core mime-types
+        if ( ! mdb->addMimeTypes(":/dataproc/mimetype.xml", error_message) )
+            adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
 
-		QStringList mTypes;
-		pugi::xml_document doc;
-		if ( doc.load_file( mimefile.c_str() ) ) {
-			pugi::xpath_node_set list = doc.select_nodes( "/mime-info/mime-type" );
-			for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
-				mTypes << it->node().attribute( "type" ).value();
-		}
-		dataprocFactory_ = new DataprocessorFactory( this, mTypes );
+        QStringList mTypes;
+        pugi::xml_document doc;
+        if ( doc.load_file( mimefile.c_str() ) ) {
+            pugi::xpath_node_set list = doc.select_nodes( "/mime-info/mime-type" );
+            for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
+                mTypes << it->node().attribute( "type" ).value();
+        }
+        dataprocFactory_ = new DataprocessorFactory( this, mTypes );
         addAutoReleasedObject( dataprocFactory_ );
     }
 

@@ -33,12 +33,13 @@ namespace adcontrols {
     class MassSpectrum;
     class Chromatogram;
     class MSCalibrateResult;
-	class PeakResult;
+    class MSAssignedMasses;
+    class PeakResult;
 
     class CentroidMethod;
     class IsotopeMethod;
     class MSCalibrateMethod;
-	class PeakMethod;
+    class PeakMethod;
 }
 
 namespace dataproc {
@@ -54,9 +55,15 @@ namespace dataproc {
         static bool doIsotope( adcontrols::MassSpectrum& res, const adcontrols::IsotopeMethod& );
 
         static bool doMSCalibration( adcontrols::MSCalibrateResult& res
-                                   , adcontrols::MassSpectrum& centroid
-                                   , const adcontrols::MSCalibrateMethod& );
-		static bool doFindPeaks( adcontrols::PeakResult&, const adcontrols::Chromatogram& , const adcontrols::PeakMethod& ); 
+                                     , adcontrols::MassSpectrum& centroid
+                                     , const adcontrols::MSCalibrateMethod& );
+
+        static bool doMSCalibration( adcontrols::MSCalibrateResult& res
+                                     , adcontrols::MassSpectrum& centroid
+                                     , const adcontrols::MSCalibrateMethod&
+                                     , const adcontrols::MSAssignedMasses& );
+
+        static bool doFindPeaks( adcontrols::PeakResult&, const adcontrols::Chromatogram& , const adcontrols::PeakMethod& ); 
     };
 
 }

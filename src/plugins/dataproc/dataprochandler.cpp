@@ -283,16 +283,74 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     return true;
 }
 
+bool
+DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
+                                  , adcontrols::MassSpectrum& centroid
+                                  , const adcontrols::MSCalibrateMethod& m
+                                  , const adcontrols::MSAssignedMasses& assigned )
+{
+    using adcontrols::MSProperty;
+
+    res.calibration( centroid.calibration() );
+    res.references( m.references() );
+    double tolerance = m.massToleranceDa();
+    double threshold = centroid.getMaxIntensity() * m.minimumRAPercent() / 100;
+    res.tolerance( tolerance );
+    res.threshold( threshold );
+
+    adportable::array_wrapper<const double> masses( centroid.getMassArray(), centroid.size() );
+    adportable::array_wrapper<const double> intens( centroid.getIntensityArray(), centroid.size() );
+
+    mass_assign mass_assign( tolerance, threshold );
+    mass_assign( centroid, res.references() );
+    res.assignedMasses( mass_assign.assignedMasses );
+
+    if ( mass_assign.calibPoints.size() >= 2 ) {
+
+        std::vector<double> tmvec, msvec, coeffs;
+        for ( size_t i = 0; i < mass_assign.calibPoints.size(); ++i ) {
+            msvec.push_back( sqrt( mass_assign.calibPoints[i].second.exactMass() ) );
+            tmvec.push_back( centroid.getTime( mass_assign.calibPoints[i].first ) );
+        }
+        size_t nterm = m.polynomialDegree() + 1;
+        if ( adportable::polfit::fit( &tmvec[0], &msvec[0], tmvec.size(), nterm, coeffs ) ) {
+            adcontrols::MSCalibration calib;
+            calib.coeffs( coeffs );
+            res.calibration( calib );
+
+            for ( adcontrols::MSAssignedMasses::vector_type::iterator
+                      it = res.assignedMasses().begin(); it != res.assignedMasses().end(); ++it ) {
+                double t = it->time();
+                double mq = adcontrols::MSCalibration::compute( coeffs, t );
+                it->mass( mq * mq );
+            }
+        }
+    }
+
+    centroid.setColorArray( &mass_assign.colors[0] );
+    do {
+        if ( res.calibration().coeffs().size() >= 2 ) {
+            const double * times = centroid.getTimeArray();
+            for ( size_t i = 0; i < centroid.size(); ++i ) {
+                double mq = adcontrols::MSCalibration::compute( res.calibration().coeffs(), times[i] );
+                centroid.setMass( i, mq * mq );
+            }
+        }
+    } while(0);
+
+    return true;
+}
+
 // static
 bool
 DataprocHandler::doFindPeaks( adcontrols::PeakResult& r, const adcontrols::Chromatogram& c, const adcontrols::PeakMethod& m )
 {
-	chromatogr::Chromatography peakfinder( m );
-
-	if ( peakfinder( c ) ) {
+    chromatogr::Chromatography peakfinder( m );
+    
+    if ( peakfinder( c ) ) {
         r.baselines() = peakfinder.getBaselines();
         r.peaks() = peakfinder.getPeaks();
-		return true;
-	}
-	return false;
+        return true;
+    }
+    return false;
 }
