@@ -37,7 +37,7 @@ ChemistryMode::ChemistryMode( QObject * /* parent */ )
 	setName( tr("ChemistryMode") );
 	setUniqueModeName( Constants::C_CHEM_MODE );
     setIcon( QIcon( ":/chemistry/images/applications-science-3.png" ) );
-	setPriority( 960 );
+	setPriority( 40 );
 	
 	QList<int> contexts = QList<int>() <<
         Core::UniqueIDManager::instance()->uniqueIdentifier( chemistry::Constants::C_CHEM_MODE ) <<
