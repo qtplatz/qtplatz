@@ -139,7 +139,7 @@ MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
                 double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
                 double exact_mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
                 bool flag = model.index( row, c_flags ).data( Qt::EditRole ).toBool();
-                adcontrols::MSAssignedMass assigned( row, indecies_[ row ], wformula, exact_mass, time, mass, true, unsigned( flag ) );
+                adcontrols::MSAssignedMass assigned( -1, indecies_[ row ], wformula, exact_mass, time, mass, true, unsigned( flag ) );
                 t << assigned;
             }
         }
@@ -188,9 +188,9 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
     std::vector< unsigned char > color_table( indecies_.size() );
     
     for ( size_t row = 0; row < indecies_.size(); ++row ) {
-        size_t idx = indecies_[ row ];
+        size_t idx = indecies_[ row ]; // peak index on original centroid spectrum (before RA threasholded)
         model.setData( model.index( row, c_mass ), masses[ idx ] );
-        model.setData( model.index( row, c_time ), times[ idx ] * 1.0e6); // s -> us
+        model.setData( model.index( row, c_time ), times[ idx ] * 1.0e6 ); // s -> us
         model.setData( model.index( row, c_intensity ), intensities[ idx ] );
 
         pCalibrantSpectrum_->setMass( row, masses[ idx ] );
@@ -211,6 +211,7 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
         model.setData( model.index( row, c_exact_mass ), it->exactMass() );
         model.setData( model.index( row, c_mass_error_mDa ), ( it->mass() - it->exactMass() ) * 1000 ); // mDa
         model.setData( model.index( row, c_is_enable ), it->enable() );
+        model.setData( model.index( row, c_flags ), bool( it->flags() ) );
     }
 
 }

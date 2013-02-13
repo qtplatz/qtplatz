@@ -53,25 +53,25 @@ using namespace adcontrols;
 namespace adcontrols {
 
     class MSPeakInfoItem;
-
-	namespace internal {
-
+    
+    namespace internal {
+        
         class CentroidProcessImpl {
         public:
             CentroidProcessImpl() {}
-			void clear();
+            void clear();
             void setup( const CentroidMethod& );
             void setup( const MassSpectrum& );
-			void copy( MassSpectrum& );
-			const CentroidMethod& method() const { return method_; }
+            void copy( MassSpectrum& );
+            const CentroidMethod& method() const { return method_; }
             void findpeaks( const MassSpectrum& profile );
 
-			// result
+            // result
             std::vector< MSPeakInfoItem > info_;
-		private:
-			MassSpectrum clone_;
-			CentroidMethod method_;
-			Description desc_;
+        private:
+            MassSpectrum clone_;
+            CentroidMethod method_;
+            Description desc_;
         public:
             MassSpectrum debug_profile_;
         };
@@ -85,8 +85,8 @@ namespace adcontrols {
                 return adcontrols::MSProperty::toSeconds( pos, info );
             }
         };
-
-	}
+        
+    }
 }
 
 CentroidProcess::~CentroidProcess(void)
