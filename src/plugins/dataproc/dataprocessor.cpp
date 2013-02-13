@@ -74,6 +74,19 @@ namespace dataproc {
         static bool applyMethod( portfolio::Folium&, const adcontrols::PeakMethod&, const adcontrols::Chromatogram& );
     };
 
+    struct methodselector {
+        const adcontrols::ProcessMethod& m;
+        methodselector( const adcontrols::ProcessMethod& _m ) : m(_m) {}
+        template<class T> bool append( adcontrols::ProcessMethod& method ) {
+            const T * p = m.find<T>();
+            if ( p ) {
+                method.appendMethod( *p );
+                return true;
+            }
+            assert( p );
+            return false;
+        }
+    };
 }
 
 Dataprocessor::~Dataprocessor()
@@ -247,49 +260,45 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType pro
 
     if ( folium ) {
         adcontrols::ProcessMethod method;
-        //------------------ remove 'calibration' from method pipeline --------------
-        for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
-            if ( it->type() != typeid( adcontrols::MSCalibrateMethod ) )
-                method.appendMethod( *it );
 
-            // check and add Isotop method
-            if ( it->type() == typeid( adcontrols::IsotopeMethod ) && procType == IsotopeProcess )
-                method.appendMethod( *it );
+        methodselector selector( m );
 
-#if defined DEBUG
-            if ( std::strcmp( it->type().name(), typeid( adcontrols::MSCalibrateMethod ).name() ) == 0 )
-                assert( it->type() == typeid( adcontrols::MSCalibrateMethod ) );
-            if ( std::strcmp( it->type().name(), typeid( adcontrols::IsotopeMethod ).name() ) == 0 )
-                assert( it->type() == typeid( adcontrols::IsotopeMethod ) );
-#endif
+        if ( procType == CentroidProcess ) {
+            selector.append< adcontrols::CentroidMethod >( method );
+        } else if ( procType == IsotopeProcess ) {
+            selector.append< adcontrols::CentroidMethod >( method );
+            selector.append< adcontrols::IsotopeMethod >( method );
+        } else if ( procType == CalibrationProcess ) {
+            // should not be here
+        } else if ( procType == PeakFindProcess ) {
+            selector.append< adcontrols::PeakMethod >( method );
         }
-        //---------------------------------------------------------------------------
 
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
      
         for ( adcontrols::ProcessMethod::vector_type::const_iterator it = method.begin(); it != method.end(); ++it )
             boost::apply_visitor( processIt(*it, folium), data );
-
+        
 #ifdef _DEBUG
         std::wstring xml = portfolio_->xml();
 #endif
         SessionManager::instance()->selectionChanged( this, folium );
-	} else {
-		// no selected folium, peak find to raw TIC
-		if ( procType == PeakFindProcess ) {
-			Dataprocessor * d_processor = SessionManager::instance()->getActiveDataprocessor();
-			if ( d_processor ) {
-				const adcontrols::LCMSDataset * dataset = d_processor->getLCMSDataset();
-				if ( dataset ) {
-					adcontrols::Chromatogram c;
-					if ( dataset->getTIC( 0, c ) ) {
-						c.addDescription( adcontrols::Description( L"Create", L"TIC" ) );
-						d_processor->addChromatogram( c, m );
-					}
-				}
-			}
-		}
-	}
+    } else {
+        // no selected folium, peak find to raw TIC
+        if ( procType == PeakFindProcess ) {
+            Dataprocessor * d_processor = SessionManager::instance()->getActiveDataprocessor();
+            if ( d_processor ) {
+                const adcontrols::LCMSDataset * dataset = d_processor->getLCMSDataset();
+                if ( dataset ) {
+                    adcontrols::Chromatogram c;
+                    if ( dataset->getTIC( 0, c ) ) {
+                        c.addDescription( adcontrols::Description( L"Create", L"TIC" ) );
+                        d_processor->addChromatogram( c, m );
+                    }
+                }
+            }
+        }
+    }
 }
 
 void
@@ -297,24 +306,21 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
 {
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
     if ( folium ) {
+        //----------------------- take centroid and calibration method w/ modification ---------------------
+        const adcontrols::MSCalibrateMethod * pCalibMethod = m.find< adcontrols::MSCalibrateMethod >();
+        assert( pCalibMethod );
+        const adcontrols::CentroidMethod * pCentroidMethod = m.find< adcontrols::CentroidMethod >();
+        assert( pCentroidMethod );
+
+        if ( pCentroidMethod == 0 || pCalibMethod == 0 )
+            return;
+        
+        adcontrols::CentroidMethod centroidMethod( *pCentroidMethod );
+        centroidMethod.centroidAreaIntensity( false );  // force hight for easy overlay
+
         adcontrols::ProcessMethod method;
-        //----------------------- take centroid and calibration method w/ modification ----------------------
-        for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
-#if defined DEBUG
-            if ( std::strcmp( it->type().name(), typeid( adcontrols::MSCalibrateMethod ).name() ) == 0 ) {
-				assert( it->type() == typeid( adcontrols::MSCalibrateMethod ) );
-                std::cout << "----- Dataprocessor::applyCalibration --- MSCalibrateMethod type check passed" << std::endl;
-            }
-#endif
-            if ( it->type() == typeid( adcontrols::CentroidMethod ) ) {
-                adcontrols::CentroidMethod centroidMethod( boost::get< adcontrols::CentroidMethod >(*it) );
-                centroidMethod.centroidAreaIntensity( false );  // force hight for easy overlay
-                method.appendMethod( centroidMethod );
-            } else if ( it->type() == typeid( adcontrols::MSCalibrateMethod ) ) {
-                method.appendMethod( boost::get< adcontrols::MSCalibrateMethod >( *it ) );
-            }
-        }
-        //----------------------------------------------------------------------------------------------------
+        method.appendMethod( centroidMethod );
+        method.appendMethod( *pCalibMethod );
 
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
         if ( data.type() == typeid( adutils::MassSpectrumPtr ) )
@@ -355,11 +361,11 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
         if ( it == attachments.end() )
             return;
         
-		adutils::MassSpectrumPtr centroid = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-
-		const adcontrols::MSCalibrateMethod * pCalibMethod = m.find< adcontrols::MSCalibrateMethod >();
+        adutils::MassSpectrumPtr centroid = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+        
+        const adcontrols::MSCalibrateMethod * pCalibMethod = m.find< adcontrols::MSCalibrateMethod >();
         if ( pCalibMethod )
-			addCalibration( *profile, *centroid, *pCalibMethod, assigned );
+            addCalibration( *profile, *centroid, *pCalibMethod, assigned );
     }
 }
 

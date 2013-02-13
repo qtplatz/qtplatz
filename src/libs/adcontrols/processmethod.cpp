@@ -120,32 +120,39 @@ namespace adcontrols {
     template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::CentroidMethod*
     ProcessMethod::find() const
     {
-	return method_finder< CentroidMethod >::find( vec_ );
+        return method_finder< CentroidMethod >::find( vec_ );
     }
     
     template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::IsotopeMethod*
     ProcessMethod::find() const
     {
-	return method_finder< IsotopeMethod >::find( vec_ );
+        return method_finder< IsotopeMethod >::find( vec_ );
     }
     
     template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::ElementalCompositionMethod*
     ProcessMethod::find() const
     {
-	return method_finder< ElementalCompositionMethod >::find( vec_ );
+        return method_finder< ElementalCompositionMethod >::find( vec_ );
     }
-
+    
     template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::MSCalibrateMethod*
     ProcessMethod::find() const
     {
-	return method_finder< MSCalibrateMethod >::find( vec_ );
+        return method_finder< MSCalibrateMethod >::find( vec_ );
     }
     
     template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::TargetingMethod*
     ProcessMethod::find() const
     {
-	return method_finder< TargetingMethod >::find( vec_ );
+        return method_finder< TargetingMethod >::find( vec_ );
     }
+
+    template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::PeakMethod*
+    ProcessMethod::find() const
+    {
+        return method_finder< PeakMethod >::find( vec_ );
+    }
+
 }; // namespace adcontrols
 
 ///////////
