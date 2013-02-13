@@ -33,6 +33,7 @@ MSAssignedMass::MSAssignedMass() : idReferences_(-1)
                                  , time_( 0 )
                                  , mass_( 0 )  
                                  , enable_( true ) 
+                                 , flags_( 0 )
 {
 }
 
@@ -43,29 +44,26 @@ MSAssignedMass::MSAssignedMass( const MSAssignedMass& t ) : formula_( t.formula_
                                                           , time_( t.time_ )
                                                           , mass_( t.mass_ )   
                                                           , enable_( t.enable_ )
+                                                          , flags_( t.flags_ )
 {
 }
 
 MSAssignedMass::MSAssignedMass( unsigned int idReferences
-                               , unsigned int idMassSpectrum
-                               , const std::wstring& formula
-                               , double exactMass
-                               , double time
-                               , double mass
-                               , bool enable  ) : formula_( formula )
-                                               , idReferences_( idReferences )
-                                               , idMassSpectrum_( idMassSpectrum )
-                                               , exactMass_( exactMass )
-                                               , time_( time )   
-                                               , mass_( mass )
-                                               , enable_( enable ) 
+                                , unsigned int idMassSpectrum
+                                , const std::wstring& formula
+                                , double exactMass
+                                , double time
+                                , double mass
+                                , bool enable
+                                , unsigned int flags  ) : formula_( formula )
+                                                        , idReferences_( idReferences )
+                                                        , idMassSpectrum_( idMassSpectrum )
+                                                        , exactMass_( exactMass )
+                                                        , time_( time )   
+                                                        , mass_( mass )
+                                                        , enable_( enable ) 
+                                                        , flags_( flags )
 {
-}
-
-const std::wstring&
-MSAssignedMass::formula() const
-{
-    return formula_;
 }
 
 unsigned int
@@ -74,10 +72,22 @@ MSAssignedMass::idReferences() const
     return idReferences_;
 }
 
+void
+MSAssignedMass::idReferences( unsigned int value )
+{
+    idReferences_ = value;
+}
+
 unsigned int
 MSAssignedMass::idMassSpectrum() const
 {
     return idMassSpectrum_;
+}
+
+void
+MSAssignedMass::idMassSpectrum( unsigned int value )
+{
+    idMassSpectrum_ = value;
 }
 
 double
@@ -86,16 +96,34 @@ MSAssignedMass::exactMass() const
     return exactMass_;
 }
 
+void
+MSAssignedMass::exactMass( double value )
+{
+    exactMass_ = value;
+}
+
 double
 MSAssignedMass::time() const
 {
     return time_;
 }
 
+void
+MSAssignedMass::time( double value )
+{
+    time_ = value;
+}
+
 double
 MSAssignedMass::mass() const
 {
     return mass_;
+}
+
+void
+MSAssignedMass::mass( double value )
+{
+    mass_ = value;
 }
 
 bool
@@ -105,39 +133,33 @@ MSAssignedMass::enable() const
 }
 
 void
+MSAssignedMass::enable( bool value )
+{
+    enable_ = value;
+}
+
+unsigned int
+MSAssignedMass::flags() const
+{
+    return flags_;
+}
+
+void
+MSAssignedMass::flags( unsigned int value )
+{
+    flags_ = value;
+}
+
+const std::wstring&
+MSAssignedMass::formula() const
+{
+    return formula_;
+}
+
+void
 MSAssignedMass::formula( const std::wstring& value )
 {
     formula_ = value;
-}
-
-void
-MSAssignedMass::idReferences( unsigned int value )
-{
-    idReferences_ = value;
-}
-
-void
-MSAssignedMass::idMassSpectrum( unsigned int value )
-{
-    idMassSpectrum_ = value;
-}
-
-void
-MSAssignedMass::exactMass( double value )
-{
-    exactMass_ = value;
-}
-
-void
-MSAssignedMass::time( double value )
-{
-    time_ = value;
-}
-
-void
-MSAssignedMass::mass( double value )
-{
-    mass_ = value;
 }
 
 /////////////////////

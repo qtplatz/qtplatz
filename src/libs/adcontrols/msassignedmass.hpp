@@ -40,7 +40,9 @@ namespace adcontrols {
         MSAssignedMass();
         MSAssignedMass( const MSAssignedMass& );
         
-        MSAssignedMass( unsigned int idReferences, unsigned int idMasSpectrum, const std::wstring& formula, double exactMass, double time, double mass, bool enable );
+        MSAssignedMass( unsigned int idReferences, unsigned int idMasSpectrum
+                        , const std::wstring& formula, double exactMass, double time, double mass
+                        , bool enable, unsigned int flags = 0 );
         const std::wstring& formula() const;
         unsigned int idReferences() const;
         unsigned int idMassSpectrum() const;
@@ -48,6 +50,7 @@ namespace adcontrols {
         double time() const;
         double mass() const;
         bool enable() const;
+        unsigned int flags() const;
         void formula( const std::wstring& );
         void idReferences( unsigned int );
         void idMassSpectrum( unsigned int );
@@ -55,6 +58,7 @@ namespace adcontrols {
         void time( double );
         void mass( double );
         void enable( bool );
+        void flags( unsigned int );
  
     private:
         std::wstring formula_;
@@ -64,12 +68,12 @@ namespace adcontrols {
         double time_;
         double mass_;
         bool enable_;  // if false, this peak does not use for polynomial fitting
+        unsigned int flags_;
 
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
             using namespace boost::serialization;
-            (void)version;
             ar & BOOST_SERIALIZATION_NVP(formula_);
             ar & BOOST_SERIALIZATION_NVP(idReferences_);
             ar & BOOST_SERIALIZATION_NVP(idMassSpectrum_);
@@ -77,9 +81,12 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP(time_);
             ar & BOOST_SERIALIZATION_NVP(mass_);
             ar & BOOST_SERIALIZATION_NVP(enable_);
+            if ( version >= 1 )
+                ar & BOOST_SERIALIZATION_NVP( flags_ );
         }
 
     };
+
 
     class ADCONTROLSSHARED_EXPORT MSAssignedMasses {
     public:
@@ -111,5 +118,7 @@ namespace adcontrols {
 
 
 }
+
+BOOST_CLASS_VERSION( adcontrols::MSAssignedMass, 1 )
 
 #endif // MSASSIGNEDMASS_H

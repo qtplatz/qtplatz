@@ -48,6 +48,7 @@ namespace qtwidgets {
         , c_exact_mass
         , c_mass_error_mDa
         , c_is_enable
+        , c_flags
         , c_number_of_columns
     };
 }
@@ -83,7 +84,7 @@ MSCalibSummaryWidget::OnInitialUpdate()
 
     QStandardItem * rootNode = model.invisibleRootItem();
     tableView.setRowHeight( 0, 7 );
-    rootNode->setColumnCount( 7 );
+    rootNode->setColumnCount( c_number_of_columns );
     
     model.setHeaderData( c_mass, Qt::Horizontal, QObject::tr( "m/z(calibrated)" ) );
     model.setHeaderData( c_time, Qt::Horizontal, QObject::tr( "time(us)" ) );
@@ -92,6 +93,7 @@ MSCalibSummaryWidget::OnInitialUpdate()
     model.setHeaderData( c_exact_mass, Qt::Horizontal, QObject::tr( "m/z(exact)" ) );
     model.setHeaderData( c_mass_error_mDa, Qt::Horizontal, QObject::tr( "error(mDa)" ) );
     model.setHeaderData( c_is_enable, Qt::Horizontal, QObject::tr( "enable" ) );
+    model.setHeaderData( c_flags, Qt::Horizontal, QObject::tr( "flags" ) );
 }
 
 void
@@ -110,8 +112,8 @@ MSCalibSummaryWidget::getContents( boost::any& any ) const
     if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( any ) && pCalibrantSpectrum_ ) {
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( any );
         *ptr = *pCalibrantSpectrum_;
-		int row = currentIndex().row();
-		ptr->setColor( row, 2 );
+        int row = currentIndex().row();
+        ptr->setColor( row, 2 );
         return true;
     }
     if ( adutils::ProcessedData::is_type< boost::shared_ptr< adcontrols::MSAssignedMasses > >( any ) ) {
@@ -136,7 +138,8 @@ MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
                 double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble();
                 double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
                 double exact_mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
-                adcontrols::MSAssignedMass assigned( row, indecies_[ row ], wformula, exact_mass, time, mass, true );
+                bool flag = model.index( row, c_flags ).data( Qt::EditRole ).toBool();
+                adcontrols::MSAssignedMass assigned( row, indecies_[ row ], wformula, exact_mass, time, mass, true, unsigned( flag ) );
                 t << assigned;
             }
         }
@@ -255,6 +258,7 @@ MSCalibSummaryWidget::handleClearFormulae()
             model.setData( model.index( row, c_exact_mass ), "" );
             model.setData( model.index( row, c_mass_error_mDa ), "" );
             model.setData( model.index( row, c_is_enable ), "" );
+            model.setData( model.index( row, c_flags ), "" );
             modified = true;
         }
     }
@@ -280,6 +284,7 @@ MSCalibSummaryWidget::handleValueChanged( const QModelIndex& index )
             // update exact mass
             model.setData( model.index( index.row(), c_exact_mass ), exactMass );
             model.setData( model.index( index.row(), c_is_enable ), true );
+            model.setData( model.index( index.row(), c_flags ), true );
             emit valueChanged();
         }
     }
