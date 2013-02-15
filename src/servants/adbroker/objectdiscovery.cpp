@@ -77,12 +77,11 @@ namespace adbroker {
 
 } // namespace adbroker
 
-ObjectDiscovery::ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex )
-: reactor_thread_( 0 )
-, timer_( new TimerHandler( *this ) )
-, bcast_( new BcastHandler( *this ) )
-, suspend_( false )
-, mutex_( mutex )
+ObjectDiscovery::ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex ) : reactor_thread_( 0 )
+                                                                      , bcast_( new BcastHandler( *this ) )
+                                                                      , timer_( new TimerHandler( *this ) )
+                                                                      , suspend_( false )
+                                                                      , mutex_( mutex )
 {
 }
 
@@ -136,7 +135,8 @@ void
 ObjectDiscovery::operator()( const char * pbuf, int, const ACE_INET_Addr& from )
 {
 #if defined DEBUG //&& 0
-    std::cout << "***** ObjectDiscovery:  from " << from.get_host_addr() << ":" << from.get_port_number() << std::endl;
+    adportable::debug(__FILE__, __LINE__) 
+        << "***** ObjectDiscovery:  from " << from.get_host_addr() << ":" << from.get_port_number();
 #endif
     ACE_UNUSED_ARG( from );
     std::string reply( pbuf );
@@ -208,11 +208,11 @@ BcastHandler::handle_input( ACE_HANDLE )
     ACE_INET_Addr remote_addr;
 
     ssize_t res = sock_bcast_.recv( buf, sizeof(buf), remote_addr );
-
-    adportable::debug() << "BcastHandler::handle_input from " 
+#if defined DEBUG && 0
+    adportable::debug(__FILE__, __LINE__) << "BcastHandler::handle_input from " 
                         << remote_addr.get_host_addr() << ":" << remote_addr.get_port_number()
                         << "\n\"" << std::string(buf).substr(0, 60) << "...\"";
-
+#endif
     if ( res >= 4 && ( strncmp(buf, IORQ, sizeof(IORQ) - 1) != 0 ) ) {
         parent_( buf, res, remote_addr );
         return 0;

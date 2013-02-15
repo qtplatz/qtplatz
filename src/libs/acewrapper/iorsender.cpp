@@ -132,23 +132,23 @@ iorSender::handle_receive( const boost::system::error_code& error, std::size_t l
 {
     if ( ! error || error == boost::asio::error::message_size ) {
 
-	const char * query = recv_buffer_.data();
+        const char * query = recv_buffer_.data();
 
         if ( debug_ior_sender )
-            adportable::debug( __FILE__, __LINE__ ) << "## iorSender::handle_receive (" << query << ") ##";
+            adportable::debug( __FILE__, __LINE__ ) << "## handle_receive (" << query << ") ##";
 
-	if ( std::strncmp( query, "ior?", len ) == 0 ) {
+        if ( std::strncmp( query, "ior?", len ) == 0 ) {
 
-	    if ( iorvec_.empty() )
-		return;
+            if ( iorvec_.empty() )
+                return;
 
-	    if ( nextIor_ != iorvec_.end() ) // still remain
-		return;
+            if ( nextIor_ != iorvec_.end() ) // still remain
+                return;
 
-	    nextIor_ = iorvec_.begin();
-	    handle_sendto( boost::system::error_code() ); // force sendto
-	} 
-	start_receive();
+            nextIor_ = iorvec_.begin();
+            handle_sendto( boost::system::error_code() ); // force sendto
+        } 
+        start_receive();
     }
 }
 
@@ -156,25 +156,25 @@ void
 iorSender::handle_sendto( const boost::system::error_code& error )
 {
     if ( ! error ) {
-	if ( nextIor_ != iorvec_.end() ) {
-	    std::string reply( nextIor_->first + "\n" + nextIor_->second );
-	    send_buffer_.resize( reply.size() + 1 );
-	    std::strcpy( &send_buffer_[0], reply.c_str() );
+        if ( nextIor_ != iorvec_.end() ) {
+            std::string reply( nextIor_->first + "\n" + nextIor_->second );
+            send_buffer_.resize( reply.size() + 1 );
+            std::strcpy( &send_buffer_[0], reply.c_str() );
 
             if ( debug_ior_sender )
-                adportable::debug( __FILE__, __LINE__ ) << "## iorSender::handle_sendto("
+                adportable::debug( __FILE__, __LINE__ ) << "## handle_sendto("
                                                         << sender_endpoint_.address().to_string()
                                                         << "." << sender_endpoint_.port()
                                                         << ") ##\n" << &send_buffer_[0];
 
-	    socket_.async_send_to( boost::asio::buffer( send_buffer_ )
-				   , sender_endpoint_
-				   , boost::bind( &iorSender::handle_sendto
-						  , this
-						  , boost::asio::placeholders::error ) );	    
+            socket_.async_send_to( boost::asio::buffer( send_buffer_ )
+                                   , sender_endpoint_
+                                   , boost::bind( &iorSender::handle_sendto
+                                                  , this
+                                                  , boost::asio::placeholders::error ) );	    
 
-	    ++nextIor_;
-	}
+            ++nextIor_;
+        }
     }
 }
 
