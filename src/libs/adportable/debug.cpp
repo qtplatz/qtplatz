@@ -32,17 +32,20 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
+#include <boost/noncopyable.hpp>
 
 using namespace adportable;
 
 namespace adportable {
     namespace internal {
 
-        class logfile {
+        class logfile : boost::noncopyable {
             static logfile * instance_;
             std::string filename_;
-            logfile() : filename_( "debug.log" ) {}
-            ~logfile() {}
+            logfile() : filename_( "debug.log" ) {
+            }
+            ~logfile() {
+            }
         public:
             static logfile * instance() {
                 if ( instance_ == 0 ) {
@@ -54,7 +57,9 @@ namespace adportable {
             static void dispose() {
                 delete instance_;
             }
-            const std::string& filename() const { return filename_; }
+            const std::string& filename() const {
+                return filename_;
+            }
             void filename( const std::string& filename ) {
                 filename_ = filename;
             }
@@ -74,8 +79,8 @@ debug::debug( const char * file, const int line ) : line_(line)
 debug::~debug(void)
 {
     using namespace internal;
-    // std::ofstream of( logfile::instance()->filename().c_str(), std::ios_base::out | std::ios_base::app );
-    std::ofstream of( "debug.log", std::ios_base::out | std::ios_base::app );
+    std::ofstream of( logfile::instance()->filename().c_str(), std::ios_base::out | std::ios_base::app );
+    // std::ofstream of( "debug.log", std::ios_base::out | std::ios_base::app );
     if ( ! file_.empty() )
         of << where();
     of << o_.str() << std::endl;
