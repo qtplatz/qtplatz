@@ -77,7 +77,8 @@ SOURCES += acceptor.cpp \
     visitor.cpp \
     ctable.cpp \
     ctfile.cpp \
-    peakresult.cpp
+    peakresult.cpp \
+    waveform.cpp
 
 HEADERS += acceptor.hpp \
     acquireddataset.hpp \
@@ -134,7 +135,8 @@ HEADERS += acceptor.hpp \
     visitor.hpp \
     ctable.hpp \
     ctfile.hpp \
-    peakresult.hpp
+    peakresult.hpp \
+    waveform.hpp
 
 OTHER_FILES += \
     adcontrols.pri

@@ -33,6 +33,7 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adutils/processeddata.hpp>
 #include <portfolio/folium.hpp>
@@ -141,6 +142,11 @@ MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
     adcontrols::MassSpectrum& ms = *ptr;
     pImpl_->profileSpectrum_->setData( ms, drawIdx1_++ );
     pImpl_->processedSpectrum_->clear();
+	//---> for debug
+    adcontrols::MassSpectrum ms2( ms );
+    adcontrols::waveform::fft::reduceNoise( ms2 );
+	pImpl_->profileSpectrum_->setData( ms2, drawIdx1_++ );
+	// <--
 }
 
 void

@@ -111,14 +111,15 @@ namespace adwplot {
 
     class TraceData {
 	public:
-        TraceData() {  }
-        TraceData( const TraceData& t ) : curves_( t.curves_ ), data_( t.data_ ) {   }
+        TraceData( int idx ) : idx_( idx ) {  }
+		TraceData( const TraceData& t ) : idx_( t.idx_ ), curves_( t.curves_ ), data_( t.data_ ) {   }
         ~TraceData();
 	    void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms );
         std::pair<double, double> y_range( double left, double right ) const;
 
 	    typedef std::map< int, SeriesDataImpl > map_type;
 	private:
+		int idx_;
 	    std::vector< PlotCurve > curves_;
 	    map_type data_;
 	};
@@ -235,7 +236,7 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
     bool addedTrace = impl_->traces_.size() <= size_t( idx );
 
     while ( int( impl_->traces_.size() ) <= idx ) 
-        impl_->traces_.push_back( TraceData() );
+		impl_->traces_.push_back( TraceData( impl_->traces_.size() ) );
 
     TraceData& trace = impl_->traces_[ idx ];
     trace.setData( *this, ms );
