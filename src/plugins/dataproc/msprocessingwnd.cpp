@@ -41,6 +41,7 @@
 #include <adwplot/chromatogramwidget.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <coreplugin/minisplitter.h>
+#include <qwt_scale_widget.h>
 #include <QBoxLayout>
 #include <QMenu>
 #include <boost/variant.hpp>
@@ -121,6 +122,11 @@ MSProcessingWnd::init()
         splitter->addWidget( pImpl_->profileSpectrum_ );
         splitter->addWidget( pImpl_->processedSpectrum_ );
         splitter->setOrientation( Qt::Vertical );
+
+		//static_cast<QwtPlot *>( pImpl_->profileSpectrum_ )->axisWidget( QwtPlot::yLeft )->setMargin( 80 );
+		//static_cast<QwtPlot *>( pImpl_->processedSpectrum_ )->axisWidget( QwtPlot::yLeft )->setMargin( 80 );
+		//static_cast<QwtPlot *>( pImpl_->profileSpectrum_ )->axisWidget( QwtPlot::yLeft )->scaleDraw()->setLength( 300 );
+		//static_cast<QwtPlot *>( pImpl_->processedSpectrum_ )->axisWidget( QwtPlot::yLeft )->scaleDraw()->setLength( 300 );
 
         pImpl_->profileSpectrum_->link( pImpl_->processedSpectrum_ );
         pImpl_->processedSpectrum_->link( pImpl_->profileSpectrum_ );

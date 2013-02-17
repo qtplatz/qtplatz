@@ -32,6 +32,7 @@
 #include "picker.hpp"
 #include "panner.hpp"
 #include <qwt_picker_machine.h>
+#include <qwt_scale_widget.h>
 #include <qtwrapper/qstring.hpp>
 #include <algorithm>
 #include <boost/foreach.hpp>

@@ -300,7 +300,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
 
     array_wrapper<const double>::iterator it = std::upper_bound( px.begin(), px.end(), pX[0] + peakwidth_ );
     size_t w = std::distance( px.begin(), it );  // make odd
-    size_t noise = 50; // assume LSB noise
+    size_t noise = 5; // assume LSB noise
     size_t N = ( w < 5 ) ? 5 : ( w > 25 ) ? 25 : w | 0x01;
     size_t NH = N / 2;
 

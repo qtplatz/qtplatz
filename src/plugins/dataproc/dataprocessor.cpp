@@ -48,7 +48,7 @@
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/peakmethod.hpp>
-
+#include <adcontrols/waveform.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/peakresult.hpp>
@@ -598,7 +598,10 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
     portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
     adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
 
-    if ( DataprocHandler::doCentroid( *pCentroid, profile, m ) ) {
+	adcontrols::MassSpectrum profile2( profile );
+	adcontrols::waveform::fft::reduceNoise( profile2 );
+
+    if ( DataprocHandler::doCentroid( *pCentroid, profile2, m ) ) {
         att.assign( pCentroid, pCentroid->dataClass() );
 
         adcontrols::ProcessMethodPtr ptr( new adcontrols::ProcessMethod() );

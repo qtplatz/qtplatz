@@ -29,6 +29,7 @@
 #include "msproperty.hpp"
 #include "mspeakinfoitem.hpp"
 #include "description.hpp"
+#include "waveform.hpp"
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/moment.hpp>
@@ -108,6 +109,7 @@ bool
 CentroidProcess::operator()( const CentroidMethod& method, const MassSpectrum& profile )
 {
 	pImpl_->setup( method );
+	adcontrols::MassSpectrum ms( profile );
 	return (*this)( profile );
 }
 
@@ -209,6 +211,8 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     int nAverage = 3;
 	while ( ( profile.getMass( nAverage ) - profile.getMass( 0 ) ) < finder.peakwidth_ )
 		++nAverage;
+    if ( nAverage >= 26 )
+		nAverage = 25;
 
 	spectrum_processor::moving_average( profile.size(), pY.get(), profile.getIntensityArray(), nAverage );
     finder( profile.size(), profile.getMassArray(), pY.get() );

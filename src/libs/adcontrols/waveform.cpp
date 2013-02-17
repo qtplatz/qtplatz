@@ -43,28 +43,27 @@ waveform::fft::reduceNoise( adcontrols::MassSpectrum& ms )
 	size_t N = 32;
     while ( N < ms.size() )
 		N *= 2;
-	N /= 2;
-	// size_t NN = N * 2;
+	const size_t NN = ms.size();
 
-	const double * pMass = ms.getMassArray();
+	// const double * pMass = ms.getMassArray();
 	adportable::array_wrapper<const double> pIntens( ms.getIntensityArray(), N );
 
 	std::vector< std::complex<double> > spc( N );
 	std::vector< std::complex<double> > fft( N );
-
-	for ( size_t i = 0; i < N; ++i )
-		spc[ i ] = std::complex<double>( pIntens[i] );
+	size_t n;
+	for ( n = 0; n < N && n < NN; ++n )
+		spc[ n ] = std::complex<double>( pIntens[ n ] );
+	while ( n < N )
+		spc[ n++ ] = pIntens[ NN - 1 ];
 
 	adportable::fft::fourier_transform( fft, spc, false );
 	adportable::fft::apodization( N/2 - N/16, N / 16, fft );
-	// adportable::fft::zero_filling( NN, interferrogram );
 	adportable::fft::fourier_transform( spc, fft, true );
 
 	std::vector<double> data( N );
-	for ( size_t i = 0; i < spc.size(); ++i )
-		data[ i ] = spc[i].real(); //* (NN / N) + 20 );
+	for ( size_t i = 0; i < NN; ++i )
+		data[ i ] = spc[i].real();
 
-	ms.resize( data.size() );
 	ms.setIntensityArray( &data[0] );
 
 	return true;

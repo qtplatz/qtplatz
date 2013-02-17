@@ -305,9 +305,11 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
             curve.p()->setStyle( QwtPlotCurve::Sticks );
         }
 
-    } else {
+    } else { // Profile
         curves_.push_back( PlotCurve( plot ) );
         PlotCurve &curve = curves_[0];
+        if ( idx_ )
+            curve.p()->setPen( QPen( color_table[ idx_ ] ) );
         data_[ 0 ].setData( size, masses, intens );
         curve.p()->setData( new SeriesData( data_[ 0 ], rect ) );
     }
