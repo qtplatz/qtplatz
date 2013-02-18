@@ -60,6 +60,7 @@ namespace qtwidgets {
     protected:
         // reimplement QTableView
         virtual void currentChanged( const QModelIndex&, const QModelIndex& );
+        virtual void keyPressEvent( QKeyEvent * event );
 
     signals:
         void valueChanged();
@@ -74,6 +75,7 @@ namespace qtwidgets {
    private slots:
         void handleEraseFormula();
         void handleUpdateCalibration();
+        void handleCopyToClipboard();
         void handleClearFormulae();
         void handleValueChanged( const QModelIndex& );
 

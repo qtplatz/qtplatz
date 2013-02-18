@@ -37,6 +37,9 @@
 #include <qtwrapper/qstring.hpp>
 #include <QMenu>
 #include <boost/any.hpp>
+#include <qapplication.h>
+#include <qclipboard.h>
+#include <QKeyEvent>
 
 namespace qtwidgets {
 
@@ -229,6 +232,7 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
     }
     menu.addAction( "Clear formulae", this, SLOT( handleClearFormulae() ) );
     menu.addAction( "Update calibration", this, SLOT( handleUpdateCalibration() ) );
+    menu.addAction( "Copy", this, SLOT( handleCopyToClipboard() ) );
     menu.exec( this->mapToGlobal( pt ) );
 }
 
@@ -296,5 +300,44 @@ void
 MSCalibSummaryWidget::currentChanged( const QModelIndex& index, const QModelIndex& prev )
 {
     (void)prev;
+    scrollTo( index, QAbstractItemView::EnsureVisible );
     emit currentChanged( index.row() );
+}
+
+void
+MSCalibSummaryWidget::handleCopyToClipboard()
+{
+    QStandardItemModel& model = *pModel_;
+    QModelIndexList list = selectionModel()->selectedIndexes();
+
+    qSort( list );
+    QString copy_table;
+
+    if ( list.size() < 1 )
+        return;
+    QModelIndex last = list.last();
+    QModelIndex prev = list.first();
+    list.removeFirst();
+    for ( int i = 0; i < list.size(); ++i ) {
+        QString text = model.data( prev ).toString();
+        copy_table.append( text );
+        QModelIndex index = list.at( i );
+        if ( index.row() == prev.row() )
+            copy_table.append( '\t' );
+        else
+            copy_table.append( '\n' );
+        prev = index;
+    }
+    copy_table.append( model.data( list.last() ).toString() );
+    QApplication::clipboard()->setText( copy_table );
+}
+
+void
+MSCalibSummaryWidget::keyPressEvent( QKeyEvent * event )
+{
+    if ( event->matches( QKeySequence::Copy ) ) {
+        handleCopyToClipboard();
+    } else {
+        QTableView::keyPressEvent( event );
+    }
 }
