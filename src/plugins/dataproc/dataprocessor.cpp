@@ -42,20 +42,21 @@
 #include <adutils/processeddata.hpp>
 
 #include <adcontrols/centroidmethod.hpp>
-#include <adcontrols/isotopemethod.hpp>
-#include <adcontrols/elementalcompositionmethod.hpp>
-#include <adcontrols/mscalibratemethod.hpp>
-#include <adcontrols/targetingmethod.hpp>
-#include <adcontrols/mscalibration.hpp>
-#include <adcontrols/peakmethod.hpp>
-#include <adcontrols/waveform.hpp>
-#include <adcontrols/massspectrum.hpp>
-#include <adcontrols/mscalibrateresult.hpp>
-#include <adcontrols/peakresult.hpp>
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
 #include <adportable/debug.hpp>
+#include <adcontrols/elementalcompositionmethod.hpp>
+#include <adcontrols/isotopemethod.hpp>
+#include <adcontrols/mscalibratemethod.hpp>
+#include <adcontrols/mscalibration.hpp>
+#include <adcontrols/peakmethod.hpp>
+#include <adcontrols/waveform.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/peakresult.hpp>
+#include <adcontrols/targetingmethod.hpp>
 #include <adplugin/orbmanager.hpp>
 #include <boost/filesystem/path.hpp>
 #include <stack>
@@ -335,6 +336,9 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     portfolio::Folium folium = folder.addFolium( L"CalibrantSpectrum" );
 
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
+    // workaround for unsure acquired mass range (before calibration)
+    ms->setAcquisitionMassRange( 1.0, 1000.0 );
+    //
     folium.assign( ms, ms->dataClass() );
 
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
@@ -543,6 +547,10 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
                         pProfile->setMass( i, mq * mq );
                     }
                 }
+            } else {
+                // set centroid result for user manual peak assign possible
+                portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
+                att.assign( pResult, pResult->dataClass() );
             }
             return true;
         }
@@ -567,6 +575,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
         if ( pCentroid ) {
             adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
             if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m, assigned ) ) {
+
                 portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
                 att.assign( pResult, pResult->dataClass() );
                 
@@ -577,10 +586,15 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
                 if ( pProfile ) {
                     pProfile->setCalibration( pResult->calibration() );
                     const std::vector<double>& coeffs = pResult->calibration().coeffs();
-                    for ( size_t i = 0; i < pProfile->size(); ++i ) {
-                        double tof = pProfile->getTime( i );
-                        double mq = adcontrols::MSCalibration::compute( coeffs, tof );
-                        pProfile->setMass( i, mq * mq );
+                    if ( ! coeffs.empty() ) {
+                        for ( size_t i = 0; i < pProfile->size(); ++i ) {
+                            double tof = pProfile->getTime( i );
+                            double mq = adcontrols::MSCalibration::compute( coeffs, tof );
+                            if ( mq > 0.0 )
+                                pProfile->setMass( i, mq * mq );
+                            else
+                                pProfile->setMass( i, -( mq * mq ) );
+                        }
                     }
                 }
             }

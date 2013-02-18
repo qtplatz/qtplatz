@@ -207,7 +207,8 @@ namespace dataproc {
             for ( adcontrols::MSAssignedMasses::vector_type::iterator it = masses.begin(); it != masses.end(); ++it ) {
                 double t = it->time();
                 double mq = adcontrols::MSCalibration::compute( calib.coeffs(), t );
-                it->mass( mq * mq );
+                if ( mq > 0.0 )
+                    it->mass( mq * mq );
             }
         }
 
@@ -215,7 +216,8 @@ namespace dataproc {
             const double * times = centroid.getTimeArray();
             for ( size_t i = 0; i < centroid.size(); ++i ) {
                 double mq = adcontrols::MSCalibration::compute( calib.coeffs(), times[i] );
-                centroid.setMass( i, mq * mq );
+                if ( mq > 0.0 )
+                    centroid.setMass( i, mq * mq );
             }
         }
 
@@ -295,9 +297,6 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     res.tolerance( tolerance );
     res.threshold( threshold );
 
-    adportable::array_wrapper<const double> masses( centroid.getMassArray(), centroid.size() );
-    adportable::array_wrapper<const double> intens( centroid.getIntensityArray(), centroid.size() );
-
     mass_assign mass_assign( tolerance, threshold );
     adcontrols::MSAssignedMasses assignedMasses = mass_assign( centroid, res.references() );
 
@@ -328,23 +327,48 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 {
     using adcontrols::MSProperty;
 
-    mass_calibrator calibrator( centroid );    
+    const double tolerance = m.massToleranceDa();
+    const double threshold = centroid.getMaxIntensity() * m.minimumRAPercent() / 100;
+    res.tolerance( tolerance );  // set tolerance in result
+    res.threshold( threshold );  // set threshold in result
+
+    mass_calibrator calibrator( centroid );
     adcontrols::MSCalibration calib;
-    if ( calibrator.calibrate( assigned, m.polynomialDegree() + 1, calib ) )
-        calibrator.update( centroid, calib );
+    if ( ! calibrator.calibrate( assigned, m.polynomialDegree() + 1, calib ) )
+        return false;
 
-    res.calibration( centroid.calibration() );
     res.references( m.references() );
-    double tolerance = m.massToleranceDa();
-    double threshold = centroid.getMaxIntensity() * m.minimumRAPercent() / 100;
-    res.tolerance( tolerance );
-    res.threshold( threshold );
+    res.calibration( calib );
+    calibrator.update( centroid, calib ); // m/z assign based on manually determined peaks
 
-    adportable::array_wrapper<const double> masses( centroid.getMassArray(), centroid.size() );
-    adportable::array_wrapper<const double> intens( centroid.getIntensityArray(), centroid.size() );
+    // continue auto-assign
+    mass_assign mass_assign( tolerance, threshold );
+    adcontrols::MSAssignedMasses assignedMasses = mass_assign( centroid, m.references() );
 
+    // populate manually assigned peaks
+    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
+        if ( it->flags() )
+            assignedMasses << *it;
+    }
+
+    if ( calibrator.calibrate( assignedMasses, m.polynomialDegree() + 1, calib ) ) {
+        calibrator.update( assignedMasses, calib );
+        calibrator.update( centroid, calib );
+        res.calibration( calib );
+        res.assignedMasses( assignedMasses );
+
+        std::vector< unsigned char > colors( centroid.size() );
+        mass_assign.make_color_array( colors.data(), assignedMasses, centroid.size() );
+        centroid.setColorArray( colors.data() );
+        return true;
+    }
+    return false;
+
+#if 0
     mass_assign assign( tolerance, threshold );
     adcontrols::MSAssignedMasses assignedMasses = assign( centroid, res.references() );
+    if ( assignedMasses.exist( 
+
     for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
         if ( it->flags() )
             assignedMasses << *it;
@@ -352,6 +376,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     // todo: meke assindMasses unique
 
     if ( calibrator.calibrate( assigned, m.polynomialDegree() + 1, calib ) ) {
+
         calibrator.update( assignedMasses, calib );
         calibrator.update( centroid, calib );
         res.calibration( calib );
@@ -363,6 +388,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
         return true;
     }
     return false;
+#endif
 }
 
 

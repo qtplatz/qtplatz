@@ -135,7 +135,7 @@ MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
         std::wstring wformula = qtwrapper::wstring( formula );
         if ( ! formula.isEmpty()  ) {
             if ( model.index( row, c_is_enable ).data( Qt::EditRole ).toBool() ) {
-                double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble();
+                double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble() / 1.0e6; // us -> s
                 double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
                 double exact_mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
                 bool flag = model.index( row, c_flags ).data( Qt::EditRole ).toBool();
@@ -196,9 +196,10 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
         pCalibrantSpectrum_->setMass( row, masses[ idx ] );
         pCalibrantSpectrum_->setTime( row, times[ idx ] );
         pCalibrantSpectrum_->setIntensity( row, intensities[ idx ] );
-        color_table[ row ] = colors[ idx ];
+        if ( colors )
+            color_table[ row ] = colors[ idx ];
     }
-    pCalibrantSpectrum_->setColorArray( &color_table[ 0 ] );
+    pCalibrantSpectrum_->setColorArray( color_table.data() );
 
     const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
 
