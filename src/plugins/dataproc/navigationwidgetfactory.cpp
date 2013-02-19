@@ -42,7 +42,7 @@ NavigationWidgetFactory::~NavigationWidgetFactory()
 QString
 NavigationWidgetFactory::displayName()
 {
-    return tr("datafiles");
+    return tr("Processing files");
 }
 
 QKeySequence

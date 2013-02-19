@@ -173,17 +173,17 @@ MainWindow::createStyledBarMiddle()
         toolBarLayout->setSpacing(0);
         Core::ActionManager * am = Core::ICore::instance()->actionManager();
         if ( am ) {
-            QList<int> globalcontext;
-            globalcontext << Core::Constants::C_GLOBAL_ID;
+            QList<int> context;
+            context << Core::Constants::C_GLOBAL_ID;
             
             actionApply_ = new QAction( QIcon( ":/dataproc/image/apply_small.png" ), tr("Apply" ), this );
             bool res = connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) );
             assert( res );
-            am->registerAction( actionApply_, "dataproc.connect", globalcontext );
-            toolBarLayout->addWidget( toolButton( am->command( "dataproc.connect" )->action() ) );
-            /**/
+            am->registerAction( actionApply_, "dataproc.apply", context );
+            toolBarLayout->addWidget( toolButton( am->command( "dataproc.apply" )->action() ) );
+
             toolBarLayout->addWidget( new Utils::StyledSeparator );
-            /**/
+
             QComboBox * features = new QComboBox;
             features->addItem( "Centroid" );
             features->addItem( "Isotope" );

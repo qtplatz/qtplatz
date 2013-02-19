@@ -37,6 +37,7 @@
 #include <qtwrapper/qstring.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/filemanager.h>
+#include <coreplugin/modemanager.h>
 #include <QLabel>
 #include <QTreeView>
 #include <QStandardItemModel>
@@ -272,6 +273,8 @@ NavigationWidget::handleSessionAdded( Dataprocessor * processor )
         PortfolioHelper::appendFolder( *item, *it );
     }
 
+    Core::ModeManager::instance()->activateMode( dataproc::Constants::C_DATAPROC_MODE );
+    
 }
 
 void

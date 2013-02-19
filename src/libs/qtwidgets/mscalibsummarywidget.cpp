@@ -33,8 +33,10 @@
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/mscalibration.hpp>
 #include <adutils/processeddata.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <boost/format.hpp>
 #include <QMenu>
 #include <boost/any.hpp>
 #include <qapplication.h>
@@ -232,7 +234,6 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
     }
     menu.addAction( "Clear formulae", this, SLOT( handleClearFormulae() ) );
     menu.addAction( "Update calibration", this, SLOT( handleUpdateCalibration() ) );
-    menu.addAction( "Copy", this, SLOT( handleCopyToClipboard() ) );
     menu.exec( this->mapToGlobal( pt ) );
 }
 
@@ -311,12 +312,45 @@ MSCalibSummaryWidget::handleCopyToClipboard()
     QModelIndexList list = selectionModel()->selectedIndexes();
 
     qSort( list );
-    QString copy_table;
-
     if ( list.size() < 1 )
         return;
+
+    QString copy_table;
+    QString heading;
+
+    if ( pCalibrantSpectrum_ ) {
+        const adcontrols::MSCalibration& calib = pCalibrantSpectrum_->calibration();
+        heading.append( "Calibration date:\t" );
+        heading.append( calib.date().c_str() );
+        heading.append( "\tid\t" );
+        heading.append( qtwrapper::qstring( calib.calibId() ) );
+        heading.append( '\n' );
+        heading.append( "SQRT( m/z ) = " );
+        for ( size_t i = 0; i < calib.coeffs().size(); ++i ) {
+            QString term = ( boost::format( "%c x %.14lf" ) % char( 'a' + i ) % calib.coeffs()[ i ] ).str().c_str();
+            heading.append( '\t' );
+            heading.append( term );
+        }
+    }
+    
     QModelIndex last = list.last();
     QModelIndex prev = list.first();
+
+    do {
+        QModelIndex index;
+        for ( int i = 0; i < list.size() && index.row() == prev.row(); ++i ) {
+            QModelIndex index = list.at( i );
+            QString text = model.headerData( index.column(), Qt::Horizontal ).toString();
+            if ( i )
+                heading.append( '\t' );
+            heading.append( text );
+        }
+    } while ( 0 );
+
+
+    copy_table.append( heading );
+    copy_table.append( '\n' );
+
     list.removeFirst();
     for ( int i = 0; i < list.size(); ++i ) {
         QString text = model.data( prev ).toString();
