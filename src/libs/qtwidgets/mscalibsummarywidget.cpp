@@ -327,29 +327,33 @@ MSCalibSummaryWidget::handleCopyToClipboard()
         heading.append( '\n' );
         heading.append( "SQRT( m/z ) = " );
         for ( size_t i = 0; i < calib.coeffs().size(); ++i ) {
-            QString term = ( boost::format( "%c x %.14lf" ) % char( 'a' + i ) % calib.coeffs()[ i ] ).str().c_str();
+            QString term = i ? ( boost::format( "%c*X^%d" ) % char( 'a' + i ) % ( i ) ).str().c_str() : "a";
             heading.append( '\t' );
             heading.append( term );
         }
+        heading.append( '\n' );
+        for ( size_t i = 0; i < calib.coeffs().size(); ++i ) {
+            QString term = ( boost::format( "%.14lf" ) % calib.coeffs()[ i ] ).str().c_str();
+            heading.append( '\t' );
+            heading.append( term );
+        }
+        heading.append( '\n' );
     }
     
     QModelIndex last = list.last();
     QModelIndex prev = list.first();
 
     do {
-        QModelIndex index;
-        for ( int i = 0; i < list.size() && index.row() == prev.row(); ++i ) {
-            QModelIndex index = list.at( i );
-            QString text = model.headerData( index.column(), Qt::Horizontal ).toString();
-            if ( i )
-                heading.append( '\t' );
+        for ( size_t column = prev.column(); column < c_number_of_columns; ++column ) {
+            QString text = model.headerData( column, Qt::Horizontal ).toString();
             heading.append( text );
+            if ( column < c_number_of_columns )
+                heading.append( '\t' );
         }
+        heading.append( '\n' );
     } while ( 0 );
 
-
     copy_table.append( heading );
-    copy_table.append( '\n' );
 
     list.removeFirst();
     for ( int i = 0; i < list.size(); ++i ) {

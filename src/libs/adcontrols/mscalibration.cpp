@@ -81,6 +81,9 @@ MSCalibration::coeffs( const std::vector<double>& v )
 double
 MSCalibration::compute( const std::vector<double>& v, double t )
 {
+    if ( v.empty() )
+        return 0;
+
     switch ( v.size() ) {
     case 1:
         return v[0];
