@@ -38,12 +38,25 @@ Trace::Trace() : pos_( -1 ), minY_(-10), maxY_(90)
 }
 
 Trace::Trace( const Trace& t ) : pos_( t.pos_ )
+                               , ulimits_( 4096 )
                                , minY_( t.minY_ )
                                , maxY_( t.maxY_ )
                                , traceX_( t.traceX_ )
                                , traceY_( t.traceY_ )
                                , events_( t.events_ )
 {
+}
+
+void
+Trace::nlimits( size_t n )
+{
+    ulimits_ = n;
+}
+
+size_t
+Trace::nlimits() const
+{
+    return ulimits_;
 }
 
 void 
@@ -78,6 +91,12 @@ Trace::operator += ( const TraceAccessor& ta )
             traceX_.push_back( pX[i] );
         else
             traceX_.push_back( timeutil::toMinutes( ta.getMinimumTime() + ta.sampInterval() * i ) );
+    }
+    if ( traceX_.size() > ulimits_ ) {
+        const size_t n = ulimits_ / 4;
+        traceX_.erase( traceX_.begin(), traceX_.begin() + n );
+        traceY_.erase( traceY_.begin(), traceY_.begin() + n );
+        events_.erase( events_.begin(), events_.begin() + n );
     }
 }
 
