@@ -44,6 +44,8 @@ namespace adcontrols {
         void clear();
         size_t size() const;
         void resize( size_t size );
+        void nlimits( size_t n );
+        size_t nlimits() const;
 
         const double * getIntensityArray() const;
         const double * getTimeArray() const;   // array of miniutes
@@ -52,6 +54,7 @@ namespace adcontrols {
 
     private:
         size_t pos_;
+        size_t ulimits_;
         double minY_;
         double maxY_;
 
