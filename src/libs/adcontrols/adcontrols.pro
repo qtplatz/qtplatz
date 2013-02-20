@@ -78,7 +78,9 @@ SOURCES += acceptor.cpp \
     ctable.cpp \
     ctfile.cpp \
     peakresult.cpp \
-    waveform.cpp
+    waveform.cpp \
+    annotation.cpp \
+    annotations.cpp
 
 HEADERS += acceptor.hpp \
     acquireddataset.hpp \
@@ -108,6 +110,7 @@ HEADERS += acceptor.hpp \
     lcmsdataset.hpp \
     lockmass.hpp \
     massspectrometer.hpp \
+    massspectrum.hpp \
     msassignedmass.hpp \
     mscalibratemethod.hpp \
     mscalibrateresult.hpp \
@@ -136,7 +139,9 @@ HEADERS += acceptor.hpp \
     ctable.hpp \
     ctfile.hpp \
     peakresult.hpp \
-    waveform.hpp
+    waveform.hpp \
+    annotation.hpp \
+    annotations.hpp
 
 OTHER_FILES += \
     adcontrols.pri
