@@ -331,8 +331,13 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
 void
 Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcontrols::ProcessMethod& m )
 {
+    const adcontrols::Descriptions& descs = src.getDescriptions();
+    std::wstring name;
+    for ( size_t i = 0; i < descs.size(); ++i )
+        name += descs[i].text();
+    
     portfolio::Folder folder = portfolio_->addFolder( L"MSCalibration" );
-    portfolio::Folium folium = folder.addFolium( L"CalibrantSpectrum" );
+    portfolio::Folium folium = folder.addFolium( name );
 
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
     adcontrols::waveform::fft::lowpass_filter( *ms );
