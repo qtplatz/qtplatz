@@ -548,7 +548,7 @@ internal::fs::select_folio( sqlite& db, boost::int64_t parent_id, folio& folio )
 {
     stmt sql( db );
 
-    if ( sql.prepare( "SELECT rowid, name, ctime, mtime FROM directory WHERE type = 2 AND parent_id = :parent_id" ) ) {
+    if ( sql.prepare( "SELECT rowid, name, ctime, mtime FROM directory WHERE type = 2 AND parent_id = :parent_id order by rowid asc" ) ) {
 
         sql.bind( 1 ) = parent_id;
 

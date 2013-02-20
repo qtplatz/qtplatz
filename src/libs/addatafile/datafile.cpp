@@ -395,7 +395,7 @@ namespace addatafile {
 
         bool attachment::load( portfolio::Folium dst, const adfs::folium& src )
         {
-#if defined DEBUG
+#if defined DEBUG && 0
             adportable::debug()
                 << " +++ attachment::load(" << src.attribute(L"name") << ") " 
                 << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
