@@ -309,12 +309,11 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
     if ( folium ) {
         //----------------------- take centroid and calibration method w/ modification ---------------------
         const adcontrols::MSCalibrateMethod * pCalibMethod = m.find< adcontrols::MSCalibrateMethod >();
-        assert( pCalibMethod );
         const adcontrols::CentroidMethod * pCentroidMethod = m.find< adcontrols::CentroidMethod >();
-        assert( pCentroidMethod );
-
-        if ( pCentroidMethod == 0 || pCalibMethod == 0 )
+        if ( pCentroidMethod == 0 || pCalibMethod == 0 ) {
+            assert( pCalibMethod && pCentroidMethod );
             return;
+        }
         
         adcontrols::CentroidMethod centroidMethod( *pCentroidMethod );
         centroidMethod.centroidAreaIntensity( false );  // force hight for easy overlay
@@ -336,6 +335,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     portfolio::Folium folium = folder.addFolium( L"CalibrantSpectrum" );
 
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
+    adcontrols::waveform::fft::lowpass_filter( *ms );
     // workaround for unsure acquired mass range (before calibration)
     ms->setAcquisitionMassRange( 1.0, 1000.0 );
     //
@@ -612,10 +612,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
     portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
     adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
 
-	adcontrols::MassSpectrum profile2( profile );
-	adcontrols::waveform::fft::reduceNoise( profile2 );
-
-    if ( DataprocHandler::doCentroid( *pCentroid, profile2, m ) ) {
+    if ( DataprocHandler::doCentroid( *pCentroid, profile, m ) ) {
         att.assign( pCentroid, pCentroid->dataClass() );
 
         adcontrols::ProcessMethodPtr ptr( new adcontrols::ProcessMethod() );

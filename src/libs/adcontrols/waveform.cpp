@@ -24,6 +24,7 @@
 
 #include "waveform.hpp"
 #include "massspectrum.hpp"
+#include "msproperty.hpp"
 #include <adportable/array_wrapper.hpp>
 #include <adportable/fft.hpp>
 #include <vector>
@@ -36,16 +37,24 @@ waveform::waveform()
 }
 
 bool
-waveform::fft::reduceNoise( adcontrols::MassSpectrum& ms )
+waveform::fft::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
 {
+    if ( ms.isCentroid() )
+        return false;
+
     size_t totalSize = ms.size();
 	(void)totalSize;
 	size_t N = 32;
     while ( N < ms.size() )
 		N *= 2;
 	const size_t NN = ms.size();
+    unsigned long sampIntval = ms.getMSProperty().instSamplingInterval(); // ps
+    if ( sampIntval == 0 )
+        sampIntval = unsigned long( ( ( ms.getTime( ms.size() - 1 ) - ms.getTime( 0 ) ) / ms.size() ) * 1.0e12 ); // ps
+    const double T = N * double(sampIntval) * 1.0e-12;  // time full scale in seconds.  Freq = n/T (Hz)
+    // power spectrum has N/2 points and is n/T Hz horizontal axis  := data[N/2] = (N/2)/T Hz
+    size_t cutoff = size_t( T * freq );
 
-	// const double * pMass = ms.getMassArray();
 	adportable::array_wrapper<const double> pIntens( ms.getIntensityArray(), N );
 
 	std::vector< std::complex<double> > spc( N );
@@ -57,7 +66,10 @@ waveform::fft::reduceNoise( adcontrols::MassSpectrum& ms )
 		spc[ n++ ] = pIntens[ NN - 1 ];
 
 	adportable::fft::fourier_transform( fft, spc, false );
-	adportable::fft::apodization( N/2 - N/16, N / 16, fft );
+    // appodization
+    for ( int i = cutoff; i < N - cutoff; ++i )
+        fft[ i ] = 0;
+    //adportable::fft::apodization( N/2 - N/16, N / 16, fft );
 	adportable::fft::fourier_transform( spc, fft, true );
 
 	std::vector<double> data( N );

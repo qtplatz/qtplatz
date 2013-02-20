@@ -150,7 +150,7 @@ MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
     pImpl_->processedSpectrum_->clear();
 	//---> for debug
     adcontrols::MassSpectrum ms2( ms );
-    adcontrols::waveform::fft::reduceNoise( ms2 );
+    adcontrols::waveform::fft::lowpass_filter( ms2 );
 	pImpl_->profileSpectrum_->setData( ms2, drawIdx1_++ );
 	// <--
 }

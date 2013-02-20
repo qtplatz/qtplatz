@@ -35,11 +35,11 @@ namespace adcontrols {
 		waveform();
 
 		struct ADCONTROLSSHARED_EXPORT fft {
-			static bool reduceNoise( MassSpectrum& );
+            static bool lowpass_filter( MassSpectrum&, double freq = 100.0e6 /* 100MHz */ );
 		};
 
         struct savitzky_golay {
-			static bool reduceNoise( MassSpectrum& );
+            static bool lowpass_filter( MassSpectrum& );
 		};
 	};
 
