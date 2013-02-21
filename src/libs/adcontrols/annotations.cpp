@@ -23,7 +23,71 @@
 **************************************************************************/
 
 #include "annotations.hpp"
+#include <boost/bind.hpp>
+#include <algorithm>
+
+using namespace adcontrols;
 
 annotations::annotations()
 {
+}
+
+annotations::annotations( const annotations& t ) : vec_( t.vec_ )
+{
+}
+
+size_t
+annotations::size() const
+{
+    return vec_.size();
+}
+
+bool
+annotations::empty() const
+{
+    return vec_.empty();
+}
+
+void
+annotations::clear()
+{
+    vec_.clear();
+}
+
+annotations::operator const annotations::vector_type& () const
+{
+    return vec_;
+}
+
+annotations&
+annotations::operator << ( const annotation& t )
+{
+    vec_.push_back( t );
+    return *this;
+}
+
+const annotation&
+annotations::operator [] ( size_t idx ) const
+{
+    return vec_[ idx ];
+}
+
+annotation&
+annotations::operator [] ( size_t idx )
+{
+    return vec_[ idx ];
+}
+
+void
+annotations::sort( enum OrderBy item )
+{
+    if ( item == Priority ) {
+        std::sort( vec_.begin(), vec_.end()
+                   , boost::bind( &annotation::priority, _1 ) < boost::bind( &annotation::priority, _2 ) );
+        
+    } else if ( item == Index ) {
+        std::sort( vec_.begin(), vec_.end()
+                   , boost::bind( &annotation::index, _1 ) < boost::bind( &annotation::index, _2 ) );
+
+    }
 }

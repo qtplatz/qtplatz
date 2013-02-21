@@ -22,13 +22,48 @@
 **
 **************************************************************************/
 
-#ifndef ANNOTATIONS_HPP
-#define ANNOTATIONS_HPP
+#pragma once
 
-class annotations
-{
-public:
-    annotations();
-};
+#include "adcontrols_global.h"
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
+#include <vector>
+#include "annotation.hpp"
 
-#endif // ANNOTATIONS_HPP
+namespace adcontrols {
+
+    class annotation;
+
+    class ADCONTROLSSHARED_EXPORT annotations {
+    public:
+        annotations();
+        annotations( const annotations& );
+        typedef std::vector< annotation > vector_type;
+        enum OrderBy {
+            Priority, Index
+        };
+
+        size_t size() const;
+        bool empty() const;
+        void clear();
+        void sort( OrderBy order = Priority );
+        operator const vector_type& () const;
+        annotations& operator << ( const annotation& );
+        const annotation& operator [] ( size_t ) const;
+        annotation& operator [] ( size_t );
+        inline vector_type::iterator begin() { return vec_.begin(); }
+        inline vector_type::iterator end() { return vec_.end(); }
+        inline vector_type::const_iterator begin() const { return vec_.begin(); }
+        inline vector_type::const_iterator end() const { return vec_.begin(); }
+    private:
+        vector_type vec_;
+        friend class boost::serialization::access;
+        template<class Archive>
+            void serialize( Archive& ar, const unsigned int /* version */) {
+            ar & BOOST_SERIALIZATION_NVP( vec_ );
+        }
+
+    };
+
+}
+

@@ -24,6 +24,121 @@
 
 #include "annotation.hpp"
 
-annotation::annotation()
+using namespace adcontrols;
+
+annotation::annotation() : type_( dataText )
+                         , index_( -1 )
+                         , priority_( 0 )
+                         , x_( 0 )
+                         , y_( 0 )
+                         , w_( 0 )
+                         , h_( 0 )
 {
 }
+
+annotation::annotation( const annotation& t ) : type_( t.type_ )
+                                              , index_( t.index_ )
+                                              , priority_( t.priority_ )
+                                              , text_( t.text_ )
+                                              , x_( t.x_ )
+                                              , y_( t.y_ )
+                                              , w_( t.w_ )
+                                              , h_( t.h_ )
+{
+}
+
+annotation::annotation( const std::wstring& text
+                        , int idx
+                        , enum dataType typ ) : type_( typ )
+                                              , index_( idx )
+                                              , priority_( 0 )
+                                              , text_( text )
+                                              , x_( 0 ), y_( 0 )
+                                              , w_( 0 ), h_( 0 )
+{
+}
+
+
+const std::wstring&
+annotation::text() const
+{
+    return text_;
+}
+
+void
+annotation::text( const std::wstring& text )
+{
+    text_ = text;
+}
+ 
+const int
+annotation::index() const
+{
+    return index_;
+}
+
+void
+annotation::index( int idx )
+{
+    index_ = idx;
+}
+
+
+const enum annotation::dataType
+annotation::type() const
+{
+    return type_;
+}
+
+void
+annotation::dataType( enum dataType t )
+{
+    type_ = t;
+}
+
+int
+annotation::priority() const
+{
+    return priority_;
+}
+
+void
+annotation::priority( int pri )
+{
+    priority_ = pri;
+}
+
+
+double
+annotation::x() const
+{
+    return x_;
+}
+
+double 
+annotation::y() const
+{
+    return y_;
+}
+
+double
+annotation::width() const
+{
+    return w_;
+}
+
+double
+annotation::height() const
+{
+    return h_;
+}
+
+void
+annotation::rect( double x, double y, double width, double height )
+{
+    x_ = x;
+    y_ = y;
+    w_ = width;
+    h_ = height;
+}
+
