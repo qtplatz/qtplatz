@@ -136,6 +136,8 @@ namespace adcontrols {
 	};
   }
 }
+
+BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 1 )
 ///////////////////////////////////////////
 
 using namespace adcontrols;

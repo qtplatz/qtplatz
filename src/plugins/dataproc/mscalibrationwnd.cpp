@@ -134,10 +134,12 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 	
     enum { idx_profile, idx_centroid };
 
+
     portfolio::Folder folder = folium.getParentFolder();
     if ( folder && folder.name() == L"MSCalibration" ) {
 
         pImpl_->folium_ = folium;
+
         boost::any& data = folium;
         // profile spectrum
         if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) { 
@@ -206,7 +208,16 @@ MSCalibrationWnd::handleValueChanged()
         boost::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
         boost::any any( assigned );
         if ( p->getContents( any ) ) {
-            // update annotation
+            portfolio::Folium& folium = pImpl_->folium_;
+            portfolio::Folio attachments = folium.attachments();
+            // calib result
+            portfolio::Folio::iterator it
+                = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
+            if ( it != attachments.end() ) {
+                adutils::MSCalibrateResultPtr result = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
+                result->assignedMasses( *assigned );
+            }
+            // todo: update annotation
         }
     }
 }

@@ -28,7 +28,6 @@
 #include "adcontrols_global.h"
 
 #include <boost/any.hpp>
-#include <boost/serialization/version.hpp>
 #include <string>
 
 namespace boost {
@@ -146,5 +145,4 @@ namespace adcontrols {
    
 }
 
-BOOST_CLASS_VERSION( adcontrols::MassSpectrum, 1 )
 

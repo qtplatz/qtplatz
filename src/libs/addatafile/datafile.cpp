@@ -136,8 +136,8 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
     sql.prepare( "SELECT rowid FROM file WHERE fileid = (SELECT rowid FROM directory WHERE name = ?)" );
     sql.bind( 1 ) = dataId;
 
-#if defined DEBUG
-    adportable::debug() << "==> fetch(" << dataId << ", " << dataType << ")";
+#if defined DEBUG && 0
+    adportable::debug(__FILE__, __LINE__) << "==> fetch(" << dataId << ", " << dataType << ")";
 #endif
 
     boost::any any;
@@ -177,8 +177,8 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
                         any = ptr;
                     } else {
                         adportable::debug(__FILE__, __LINE__)
-							<< "Error: unknown data type in datafile::fetch(" << dataId << ", " << dataType;
-						assert(0);
+                            << "Error: unknown data type in datafile::fetch(" << dataId << ", " << dataType;
+                        assert(0);
                     }
                 }
             }
@@ -282,8 +282,8 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
     // top folder should be L"Spectra" | L"Chromatograms"
     BOOST_FOREACH( const adfs::folder& folder, processed.folders() ) {
         const std::wstring& name = folder.name();
-#if defined DEBUG
-        adportable::debug() << "----------- loadContents folder=" << name;
+#if defined DEBUG && 0
+        adportable::debug(__FILE__, __LINE__) << "----------- loadContents folder=" << name;
 #endif
         portfolio::Folder xmlfolder = portfolio.addFolder( name );
         detail::folder::load( xmlfolder, folder );
@@ -309,10 +309,10 @@ namespace addatafile {
             adfs::folium dbThis = parent.addAttachment( folium.id() );
             import::attributes( dbThis, folium.attributes() );
 
-#if defined DEBUG
+#if defined DEBUG && 0
             const std::wstring& dataclass = folium.dataClass();
             const std::wstring& name = folium.name();
-			adportable::debug( __FILE__, __LINE__ ) << "addatafile::detail::attachment::save(" << dataclass << ", " << name << ")";
+            adportable::debug( __FILE__, __LINE__ ) << "addatafile::detail::attachment::save(" << dataclass << ", " << name << ")";
 #endif
             boost::any any = static_cast<const boost::any&>( folium );
             if ( any.empty() && (&source != nullfile ) )
@@ -382,8 +382,8 @@ namespace addatafile {
 
         bool folium::load( portfolio::Folium dst, const adfs::folium& src )
         {
-#if defined DEBUG
-            adportable::debug() 
+#if defined DEBUG && 0
+            adportable::debug(__FILE__, __LINE__) 
                 << ">> folium::load(" << src.attribute(L"name") << ") " 
                 << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
 #endif
@@ -396,7 +396,7 @@ namespace addatafile {
         bool attachment::load( portfolio::Folium dst, const adfs::folium& src )
         {
 #if defined DEBUG && 0
-            adportable::debug()
+            adportable::debug(__FILE__, __LINE__)
                 << " +++ attachment::load(" << src.attribute(L"name") << ") " 
                 << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
 #endif
