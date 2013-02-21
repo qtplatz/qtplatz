@@ -1,6 +1,5 @@
-// -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -123,10 +122,10 @@ MSProcessingWnd::init()
         splitter->addWidget( pImpl_->processedSpectrum_ );
         splitter->setOrientation( Qt::Vertical );
 
-		//static_cast<QwtPlot *>( pImpl_->profileSpectrum_ )->axisWidget( QwtPlot::yLeft )->setMargin( 80 );
-		//static_cast<QwtPlot *>( pImpl_->processedSpectrum_ )->axisWidget( QwtPlot::yLeft )->setMargin( 80 );
-		//static_cast<QwtPlot *>( pImpl_->profileSpectrum_ )->axisWidget( QwtPlot::yLeft )->scaleDraw()->setLength( 300 );
-		//static_cast<QwtPlot *>( pImpl_->processedSpectrum_ )->axisWidget( QwtPlot::yLeft )->scaleDraw()->setLength( 300 );
+        //static_cast<QwtPlot *>( pImpl_->profileSpectrum_ )->axisWidget( QwtPlot::yLeft )->setMargin( 80 );
+        //static_cast<QwtPlot *>( pImpl_->processedSpectrum_ )->axisWidget( QwtPlot::yLeft )->setMargin( 80 );
+        //static_cast<QwtPlot *>( pImpl_->profileSpectrum_ )->axisWidget( QwtPlot::yLeft )->scaleDraw()->setLength( 300 );
+        //static_cast<QwtPlot *>( pImpl_->processedSpectrum_ )->axisWidget( QwtPlot::yLeft )->scaleDraw()->setLength( 300 );
 
         pImpl_->profileSpectrum_->link( pImpl_->processedSpectrum_ );
         pImpl_->processedSpectrum_->link( pImpl_->profileSpectrum_ );
@@ -148,11 +147,11 @@ MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
     adcontrols::MassSpectrum& ms = *ptr;
     pImpl_->profileSpectrum_->setData( ms, drawIdx1_++ );
     pImpl_->processedSpectrum_->clear();
-	//---> for debug
+    //---> for debug
     adcontrols::MassSpectrum ms2( ms );
-    adcontrols::waveform::fft::lowpass_filter( ms2 );
-	pImpl_->profileSpectrum_->setData( ms2, drawIdx1_++ );
-	// <--
+    adcontrols::waveform::fft::lowpass_filter( ms2, 100.0e6 );  // 100MHz low pass filter
+    pImpl_->profileSpectrum_->setData( ms2, drawIdx1_++ );
+    // <--
 }
 
 void
@@ -172,7 +171,7 @@ MSProcessingWnd::draw( adutils::ChromatogramPtr& ptr )
 void
 MSProcessingWnd::draw( adutils::PeakResultPtr& ptr )
 {
-	pImpl_->ticPlot_->setData( *ptr );
+    pImpl_->ticPlot_->setData( *ptr );
 }
 
 void
@@ -206,7 +205,7 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
 #endif
 
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-
+        
         if ( boost::apply_visitor( selChanged<MSProcessingWnd>(*this), data ) ) {
             idActiveFolium_ = folium.id();
 
@@ -227,7 +226,7 @@ MSProcessingWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 void
 MSProcessingWnd::handleCustomMenuOnProcessedSpectrum( const QPoint& pos )
 {
-	QPoint globalPos = pImpl_->processedSpectrum_->mapToGlobal(pos);
+    QPoint globalPos = pImpl_->processedSpectrum_->mapToGlobal(pos);
     (void)globalPos;
     // for QAbstractScrollArea and derived classes you would use:
     // QPoint globalPos = myWidget->viewport()->mapToGlobal(pos); 
@@ -246,23 +245,23 @@ MSProcessingWnd::handleCustomMenuOnProcessedSpectrum( const QPoint& pos )
 void
 MSProcessingWnd::selectedOnChromatogram( const QPointF& pos )
 {
-	DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( pos.x(), pos.x() ); 
+    DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( pos.x(), pos.x() ); 
 }
 
 void
 MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
 {
-	DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() ); 
+    DataprocPlugin::instance()->onSelectTimeRangeOnChromatogram( rect.x(), rect.x() + rect.width() ); 
 }
 
 void
 MSProcessingWnd::selectedOnProfile( const QPointF& pos )
 {
-	std::cout << "MSProcessingWnd::selectedOnProfile: " << pos.x() << ", " << pos.y() << std::endl;
+    adportable::debug(__FILE__, __LINE__) << "MSProcessingWnd::selectedOnProfile: " << pos.x() << ", " << pos.y();
 }
 
 void
 MSProcessingWnd::selectedOnProcessed( const QPointF& pos )
 {
-	std::cout << "MSProcessingWnd::selectedOnProcessed: " << pos.x() << ", " << pos.y() << std::endl;
+    adportable::debug(__FILE__, __LINE__) << "MSProcessingWnd::selectedOnProcessed: " << pos.x() << ", " << pos.y();
 }

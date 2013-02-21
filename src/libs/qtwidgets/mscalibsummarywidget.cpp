@@ -117,10 +117,16 @@ MSCalibSummaryWidget::getContents( boost::any& any ) const
     if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( any ) && pCalibrantSpectrum_ ) {
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( any );
         *ptr = *pCalibrantSpectrum_;
-        int row = currentIndex().row();
-        ptr->setColor( row, 2 );
+
+        QStandardItemModel& model = *pModel_;
+        for ( int row = 0; row < model.rowCount(); ++row ) {
+            QString formula = model.data( model.index( row, c_formula ) ).toString();
+            ptr->setColor( row, formula.isEmpty() ? 0 : 1 );
+        }
+        ptr->setColor(currentIndex().row(), 2 );
         return true;
     }
+
     if ( adutils::ProcessedData::is_type< boost::shared_ptr< adcontrols::MSAssignedMasses > >( any ) ) {
         boost::shared_ptr< adcontrols::MSAssignedMasses > ptr
             = boost::any_cast< boost::shared_ptr< adcontrols::MSAssignedMasses > >( any );

@@ -179,7 +179,7 @@ MSCalibrationWnd::handleSelSummary( size_t idx )
     adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
-		adutils::MassSpectrumPtr ptr( new adcontrols::MassSpectrum );
+        adutils::MassSpectrumPtr ptr( new adcontrols::MassSpectrum );
         boost::any any( ptr );
         p->getContents( any );
         pImpl_->processedSpectrum_->setData( *ptr, 1 );
@@ -210,6 +210,8 @@ MSCalibrationWnd::handleValueChanged()
         if ( p->getContents( any ) ) {
             portfolio::Folium& folium = pImpl_->folium_;
             portfolio::Folio attachments = folium.attachments();
+            
+
             // calib result
             portfolio::Folio::iterator it
                 = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
@@ -217,6 +219,36 @@ MSCalibrationWnd::handleValueChanged()
                 adutils::MSCalibrateResultPtr result = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
                 result->assignedMasses( *assigned );
             }
+
+            // retreive centroid spectrum
+            it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
+            if ( it != attachments.end() ) {
+                adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+                if ( ptr->isCentroid() ) {
+                    // replace centroid spectrum with colored
+                    std::vector< unsigned char > color_table( ptr->size() );
+                    memset( color_table.data(), 0, color_table.size() );
+                    const unsigned char * colors = ptr->getColorArray();
+                    if ( colors ) 
+                        std::copy( colors, colors + ptr->size(), color_table.begin() );
+
+                    using adcontrols::MSAssignedMasses;
+                    
+                    for ( MSAssignedMasses::vector_type::const_iterator it = assigned->begin(); it != assigned->end(); ++it ) {
+                        if ( ! it->formula().empty() )
+                            color_table[ it->idMassSpectrum() ] = 1;
+                        else
+                            color_table[ it->idMassSpectrum() ] = 0;
+                    }
+                    ptr->setColorArray( color_table.data() );
+                    // pImpl_->processedSpectrum_->setData( *ptr, 1 ); 
+                }
+            }
+            // over write with current selected peak
+            adutils::MassSpectrumPtr ptr( new adcontrols::MassSpectrum );
+            boost::any any( ptr );
+            p->getContents( any );  // got spectrum with size reduced by RA threshold
+            pImpl_->processedSpectrum_->setData( *ptr, 1 ); 
             // todo: update annotation
         }
     }
