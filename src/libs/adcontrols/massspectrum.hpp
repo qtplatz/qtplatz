@@ -26,7 +26,9 @@
 #pragma once
 
 #include "adcontrols_global.h"
+
 #include <boost/any.hpp>
+#include <boost/serialization/version.hpp>
 #include <string>
 
 namespace boost {
@@ -66,6 +68,7 @@ namespace adcontrols {
     class Descriptions;
     class MSCalibration;
     class MSProperty;
+    class annotations;
     
     class ADCONTROLSSHARED_EXPORT MassSpectrum {
     public:
@@ -120,6 +123,9 @@ namespace adcontrols {
         void addDescription( const Description& );
         const Descriptions& getDescriptions() const;
 
+        void setAnnotations( const annotations& );
+        const annotations& getAnnotations() const;
+
         std::wstring saveXml() const;
         void loadXml( const std::wstring& );
         
@@ -140,4 +146,5 @@ namespace adcontrols {
    
 }
 
+BOOST_CLASS_VERSION( adcontrols::MassSpectrum, 1 )
 

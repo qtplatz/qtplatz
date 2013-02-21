@@ -93,8 +93,13 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
         bool res;
         res = connect( pImpl_->calibSummaryWidget_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );
         assert(res);
+
         res = connect( pImpl_->calibSummaryWidget_, SIGNAL( applyTriggered() ), this, SLOT( handleManuallyAssigned() ) );
         assert(res);
+
+        res = connect( pImpl_->calibSummaryWidget_, SIGNAL( valueChanged() ), this, SLOT( handleValueChanged() ) );
+        assert(res);
+
         if ( pImpl_->calibSummaryWidget_ ) {
             adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
             adplugin::LifeCycle * p = accessor.get();
@@ -189,5 +194,19 @@ MSCalibrationWnd::handleManuallyAssigned()
         boost::any any( assigned );
         if ( p->getContents( any ) )
             MainWindow::instance()->applyCalibration( *assigned );
+    }
+}
+
+void
+MSCalibrationWnd::handleValueChanged()
+{
+    adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
+    adplugin::LifeCycle * p = accessor.get();
+    if ( p ) {
+        boost::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
+        boost::any any( assigned );
+        if ( p->getContents( any ) ) {
+            // update annotation
+        }
     }
 }

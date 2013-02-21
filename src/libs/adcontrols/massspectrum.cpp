@@ -27,6 +27,7 @@
 #include "descriptions.hpp"
 #include "mscalibration.hpp"
 #include "msproperty.hpp"
+#include "annotations.hpp"
 #include <adportable/array_wrapper.hpp>
 
 #include <boost/serialization/nvp.hpp>
@@ -84,6 +85,13 @@ namespace adcontrols {
 
         void setPolarity( MS_POLARITY polarity );
         MS_POLARITY polarity() const;
+
+        void setAnnotations( const annotations& a ) {
+            annotations_ = a;
+        }
+        const annotations& getAnnotations() const {
+            return annotations_;
+        }
 	    
 	  // private:
 	    static std::wstring empty_string_;  // for error return as reference
@@ -93,6 +101,7 @@ namespace adcontrols {
 	    Descriptions descriptions_;
 		MSCalibration calibration_;
 		MSProperty property_;
+        annotations annotations_;
 
 	    std::vector< double > tofArray_;
 	    std::vector< double > massArray_;
@@ -108,19 +117,21 @@ namespace adcontrols {
 
 	    friend class boost::serialization::access;
 	    template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-		(void)version;
-                ar & BOOST_SERIALIZATION_NVP(algo_) 
-                    & BOOST_SERIALIZATION_NVP(polarity_) 
-                    & BOOST_SERIALIZATION_NVP(acqRange_.first) 
-                    & BOOST_SERIALIZATION_NVP(acqRange_.second) 
-                    & BOOST_SERIALIZATION_NVP(descriptions_)
-                    & BOOST_SERIALIZATION_NVP(calibration_)
-                    & BOOST_SERIALIZATION_NVP(property_)
-                    & BOOST_SERIALIZATION_NVP(massArray_) 
-                    & BOOST_SERIALIZATION_NVP(intsArray_) 
-                    & BOOST_SERIALIZATION_NVP(tofArray_) 
-                    & BOOST_SERIALIZATION_NVP(colArray_) 
-                    ;
+            ar & BOOST_SERIALIZATION_NVP(algo_)
+                & BOOST_SERIALIZATION_NVP(polarity_)
+                & BOOST_SERIALIZATION_NVP(acqRange_.first)
+                & BOOST_SERIALIZATION_NVP(acqRange_.second)
+                & BOOST_SERIALIZATION_NVP(descriptions_)
+                & BOOST_SERIALIZATION_NVP(calibration_)
+                & BOOST_SERIALIZATION_NVP(property_)
+                & BOOST_SERIALIZATION_NVP(massArray_)
+                & BOOST_SERIALIZATION_NVP(intsArray_)
+                & BOOST_SERIALIZATION_NVP(tofArray_)
+                & BOOST_SERIALIZATION_NVP(colArray_)
+                ;
+            if ( version >= 1 ) {
+                ar & BOOST_SERIALIZATION_NVP( annotations_ );
+            }
 	    }
 	};
   }
@@ -382,6 +393,18 @@ MassSpectrum::setMSProperty( const MSProperty& prop )
     pImpl_->setMSProperty( prop );
 }
 
+void
+MassSpectrum::setAnnotations( const annotations& annots )
+{
+    pImpl_->setAnnotations( annots );
+}
+
+const annotations&
+MassSpectrum::getAnnotations() const
+{
+    return pImpl_->getAnnotations();
+}
+
 template<class T> void
 MassSpectrum::set( const T& t )
 {
@@ -503,11 +526,13 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 		massArray_ = t.massArray_;
 		intsArray_ = t.intsArray_;
 		colArray_ = t.colArray_;
+        annotations_ = t.annotations_;
 	} else {
 		tofArray_.clear();
 		massArray_.clear();
 		intsArray_.clear();
-		colArray_.clear();
+        colArray_.clear();
+        annotations_.clear();
 	}
 }
 

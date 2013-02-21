@@ -65,6 +65,7 @@ namespace dataproc {
     private slots:
         void handleSelSummary( size_t );
         void handleManuallyAssigned();
+        void handleValueChanged();
 
     private:
         boost::shared_ptr<MSCalibrationWndImpl> pImpl_;

@@ -79,6 +79,7 @@ namespace adcontrols {
                 & BOOST_SERIALIZATION_NVP( y_ )
                 & BOOST_SERIALIZATION_NVP( w_ )
                 & BOOST_SERIALIZATION_NVP( h_ )
+                ;
         }
     };
 
