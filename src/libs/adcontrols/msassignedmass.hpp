@@ -51,6 +51,7 @@ namespace adcontrols {
         double mass() const;
         bool enable() const;
         unsigned int flags() const;
+        unsigned int mode() const;
         void formula( const std::wstring& );
         void idReferences( unsigned int );
         void idMassSpectrum( unsigned int );
@@ -59,6 +60,7 @@ namespace adcontrols {
         void mass( double );
         void enable( bool );
         void flags( unsigned int );
+        void mode( unsigned int );
  
     private:
         std::wstring formula_;
@@ -69,6 +71,7 @@ namespace adcontrols {
         double mass_;
         bool enable_;  // if false, this peak does not use for polynomial fitting
         unsigned int flags_;
+        unsigned int mode_; // number of turns for InfiTOF, linear|reflectron for MALDI and/or any analyzer mode
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -83,6 +86,8 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP(enable_);
             if ( version >= 1 )
                 ar & BOOST_SERIALIZATION_NVP( flags_ );
+            if ( version >= 2 )
+                ar & BOOST_SERIALIZATION_NVP( mode_ );
         }
 
     };
@@ -116,9 +121,8 @@ namespace adcontrols {
 
     };
 
-
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSAssignedMass, 1 )
+BOOST_CLASS_VERSION( adcontrols::MSAssignedMass, 2 )
 
 #endif // MSASSIGNEDMASS_H
