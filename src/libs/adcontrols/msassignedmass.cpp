@@ -34,6 +34,7 @@ MSAssignedMass::MSAssignedMass() : idReferences_(-1)
                                  , mass_( 0 )  
                                  , enable_( true ) 
                                  , flags_( 0 )
+                                 , mode_( 0 )
 {
 }
 
@@ -45,6 +46,7 @@ MSAssignedMass::MSAssignedMass( const MSAssignedMass& t ) : formula_( t.formula_
                                                           , mass_( t.mass_ )   
                                                           , enable_( t.enable_ )
                                                           , flags_( t.flags_ )
+                                                          , mode_( t.mode_ )
 {
 }
 
@@ -55,7 +57,8 @@ MSAssignedMass::MSAssignedMass( unsigned int idReferences
                                 , double time
                                 , double mass
                                 , bool enable
-                                , unsigned int flags  ) : formula_( formula )
+                                , unsigned int flags
+                                , unsigned int mode ) : formula_( formula )
                                                         , idReferences_( idReferences )
                                                         , idMassSpectrum_( idMassSpectrum )
                                                         , exactMass_( exactMass )
@@ -63,6 +66,7 @@ MSAssignedMass::MSAssignedMass( unsigned int idReferences
                                                         , mass_( mass )
                                                         , enable_( enable ) 
                                                         , flags_( flags )
+                                                        , mode_( mode )
 {
 }
 

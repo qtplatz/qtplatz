@@ -42,7 +42,7 @@ namespace adcontrols {
         
         MSAssignedMass( unsigned int idReferences, unsigned int idMasSpectrum
                         , const std::wstring& formula, double exactMass, double time, double mass
-                        , bool enable, unsigned int flags = 0 );
+                        , bool enable, unsigned int flags = 0, unsigned int mode = 0 );
         const std::wstring& formula() const;
         unsigned int idReferences() const;
         unsigned int idMassSpectrum() const;
