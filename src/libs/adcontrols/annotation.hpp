@@ -45,10 +45,10 @@ namespace adcontrols {
         const std::wstring& text() const;
         void text( const std::wstring& text );
 
-        const int index() const;
+        int index() const;
         void index( int );
 
-        const dataType type() const;
+        dataType type() const;
         void dataType( dataType );
 
         int priority() const;

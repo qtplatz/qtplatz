@@ -103,7 +103,7 @@ namespace adcontrols {
         MS_POLARITY polarity() const;
         void setPolarity( MS_POLARITY );
         
-        void setCalibration( const adcontrols::MSCalibration& );
+        void setCalibration( const adcontrols::MSCalibration&, bool assignMasses = false );
         const MSCalibration& calibration() const;
         
         void setMSProperty( const adcontrols::MSProperty& );

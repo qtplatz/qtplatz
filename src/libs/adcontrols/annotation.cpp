@@ -71,7 +71,7 @@ annotation::text( const std::wstring& text )
     text_ = text;
 }
  
-const int
+int
 annotation::index() const
 {
     return index_;
@@ -84,7 +84,7 @@ annotation::index( int idx )
 }
 
 
-const enum annotation::dataType
+enum annotation::dataType
 annotation::type() const
 {
     return type_;
