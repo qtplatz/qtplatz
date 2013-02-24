@@ -148,10 +148,22 @@ MSAssignedMass::flags() const
     return flags_;
 }
 
+unsigned int
+MSAssignedMass::mode() const
+{
+    return mode_;
+}
+
 void
 MSAssignedMass::flags( unsigned int value )
 {
     flags_ = value;
+}
+
+void
+MSAssignedMass::mode( unsigned int value )
+{
+    mode_ = value;
 }
 
 const std::wstring&
