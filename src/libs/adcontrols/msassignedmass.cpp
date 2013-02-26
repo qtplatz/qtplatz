@@ -24,7 +24,9 @@
 **************************************************************************/
 
 #include "msassignedmass.hpp"
+#include <adportable/float.hpp>
 #include <boost/bind.hpp>
+
 
 using namespace adcontrols;
 
@@ -196,11 +198,22 @@ MSAssignedMasses::operator << ( const MSAssignedMass& t )
     return *this;
 }
 
+namespace adcontrols { namespace internal {
+        struct pred {
+            const MSAssignedMass& t_;
+            pred( const MSAssignedMass& t ) : t_( t ) {}
+            bool operator () ( const MSAssignedMass& a ) const { 
+                return adportable::compare<double>::essentiallyEqual( t_.exactMass(), a.exactMass() );
+            }
+        };
+    }
+}
+
 bool
 MSAssignedMasses::operator += ( const MSAssignedMass& t )
 {
-    if ( std::find_if( vec_.begin(), vec_.end(), boost::bind( &MSAssignedMass::formula, _1 ) == t.formula() ) == vec_.end() ) {
-        *this << t;
+    if ( std::find_if( vec_.begin(), vec_.end(), internal::pred( t ) ) == vec_.end() ) {
+        vec_.push_back( t );
         return true;
     }
     return false;

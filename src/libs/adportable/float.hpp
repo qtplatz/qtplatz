@@ -32,7 +32,7 @@ namespace adportable {
 
     template<typename T> struct compare {
 
-        static bool is_equal( T a, T b, T epsilon = std::numeric_limits<T>::epsilon() ) {
+        static bool is_equal( T a, T b ) {
             return std::abs( a - b ) < std::numeric_limits<T>::epsilon();
         }
 
