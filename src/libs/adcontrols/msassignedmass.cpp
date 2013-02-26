@@ -219,6 +219,14 @@ MSAssignedMasses::operator += ( const MSAssignedMass& t )
     return false;
 }
 
+MSAssignedMasses&
+MSAssignedMasses::operator += ( const MSAssignedMasses& t )
+{
+    for ( vector_type::const_iterator it = t.begin(); it != t.end(); ++it )
+        *this += *it;
+    return *this;
+}
+
 MSAssignedMasses::vector_type::iterator
 MSAssignedMasses::begin()
 {

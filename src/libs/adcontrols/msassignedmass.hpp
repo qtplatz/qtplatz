@@ -105,6 +105,7 @@ namespace adcontrols {
         vector_type::const_iterator begin() const;
         vector_type::const_iterator end() const;
         MSAssignedMasses& operator << ( const MSAssignedMass& );
+        MSAssignedMasses& operator += ( const MSAssignedMasses& );
         bool operator += ( const MSAssignedMass& );
 
     private:
