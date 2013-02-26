@@ -105,11 +105,9 @@ namespace adcontrols {
         vector_type::const_iterator begin() const;
         vector_type::const_iterator end() const;
         MSAssignedMasses& operator << ( const MSAssignedMass& );
+        bool operator += ( const MSAssignedMass& );
 
     private:
-# if defined _MSC_VER
-#  pragma warning( disable: 4251 )
-# endif
         std::vector< MSAssignedMass > vec_;
 
         friend class boost::serialization::access;

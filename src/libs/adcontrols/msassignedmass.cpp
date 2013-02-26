@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "msassignedmass.hpp"
+#include <boost/bind.hpp>
 
 using namespace adcontrols;
 
@@ -193,6 +194,16 @@ MSAssignedMasses::operator << ( const MSAssignedMass& t )
 {
     vec_.push_back( t );
     return *this;
+}
+
+bool
+MSAssignedMasses::operator += ( const MSAssignedMass& t )
+{
+    if ( std::find_if( vec_.begin(), vec_.end(), boost::bind( &MSAssignedMass::formula, _1 ) == t.formula() ) == vec_.end() ) {
+        *this << t;
+        return true;
+    }
+    return false;
 }
 
 MSAssignedMasses::vector_type::iterator
