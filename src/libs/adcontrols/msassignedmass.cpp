@@ -203,7 +203,8 @@ namespace adcontrols { namespace internal {
             const MSAssignedMass& t_;
             pred( const MSAssignedMass& t ) : t_( t ) {}
             bool operator () ( const MSAssignedMass& a ) const { 
-                return adportable::compare<double>::essentiallyEqual( t_.exactMass(), a.exactMass() );
+                return t_.mode() == a.mode() &&
+                    adportable::compare<double>::essentiallyEqual( t_.exactMass(), a.exactMass() );
             }
         };
     }
