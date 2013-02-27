@@ -385,7 +385,8 @@ MassSpectrum::setCalibration( const MSCalibration& calib, bool assignMasses )
         for ( size_t i = 0; i < pImpl_->size(); ++i ) {
             double tof = getTime( i );
             double mq = MSCalibration::compute( calib.coeffs(), tof );
-            setMass( i, mq * mq );
+            if ( mq > 0.0 )
+                setMass( i, mq * mq );
         }
     }
 }
