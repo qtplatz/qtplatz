@@ -1,5 +1,5 @@
 
-QTDIR = /usr/local/qt/4.8.3
+QTDIR = /usr/local/qt/4.8.4
 DEST  = /Volumes/qtplatz
 
 ACE_VERSION = 6.1.4
@@ -32,10 +32,10 @@ BOOST_LIBS = \
 
 OPENBABEL_LIBS = libopenbabel
 
-all: qtplatz.dmg
-	macdeployqt ../../../bin/qtplatz.app -dmg
+installer: /Volumes/qtplatz/qtplatz.app
 
-#all: /Volumes/qtplatz/qtplatz.app
+all:
+	/usr/local/qt/4.8.4/bin/macdeployqt ../../../bin/qtplatz.app -verbose=2 -dmg
 
 /Volumes/qtplatz/qtplatz.app: /Volumes/qtplatz
 	cd ../../../bin; tar cf - ./qtplatz.app | (cd /Volumes/qtplatz; tar xvf -)
