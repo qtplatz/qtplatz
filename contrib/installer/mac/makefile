@@ -39,13 +39,13 @@ all:
 
 /Volumes/qtplatz/qtplatz.app: /Volumes/qtplatz
 	cd ../../../bin; tar cf - ./qtplatz.app | (cd /Volumes/qtplatz; tar xvf -)
-	macdeployqt /Volumes/qtplatz/qtplatz.app
+	-mkdir -p ${FRAMEWORKS}
 	for i in ${TAO_LIBS} ; do \
 	  cp -p ${LIBDIR_ACETAO}/$$i.dylib ${FRAMEWORKS}; \
 	done
 
 deploy:
-	macdeployqt /Volumes/qtplatz/qtplatz.app
+	/usr/local/qt/4.8.4/bin/macdeployqt /Volumes/qtplatz/qtplatz.app -verbose=2
 
 /Volumes/qtplatz: ./qtplatz.dmg
 	open ./qtplatz.dmg
@@ -59,3 +59,6 @@ clean: eject
 
 eject:
 	-umount /Volumes/qtplatz
+
+mount:
+	open ./qtplatz.dmg
