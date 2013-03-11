@@ -21,7 +21,8 @@ TAO_LIBS = \
 	libTAO_Utils \
 	libTAO_PI \
 	libTAO_PortableServer \
-	libTAO_AnyTypeCode
+	libTAO_AnyTypeCode \
+	libTAO_CodecFactory
 
 BOOST_LIBS = \
 	libboost_serialization \
@@ -43,8 +44,6 @@ all:
 	for i in ${TAO_LIBS} ; do \
 	  cp -p ${LIBDIR_ACETAO}/$$i.dylib ${FRAMEWORKS}; \
 	done
-
-deploy:
 	/usr/local/qt/4.8.4/bin/macdeployqt /Volumes/qtplatz/qtplatz.app -verbose=2
 
 /Volumes/qtplatz: ./qtplatz.dmg
