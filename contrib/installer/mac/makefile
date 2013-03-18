@@ -1,5 +1,5 @@
 
-QTDIR = /usr/local/qt/4.8.3
+QTDIR = /usr/local/qt/4.8.4
 DEST  = /Volumes/qtplatz
 
 ACE_VERSION = 6.1.4
@@ -21,7 +21,8 @@ TAO_LIBS = \
 	libTAO_Utils \
 	libTAO_PI \
 	libTAO_PortableServer \
-	libTAO_AnyTypeCode
+	libTAO_AnyTypeCode \
+	libTAO_CodecFactory
 
 BOOST_LIBS = \
 	libboost_serialization \
@@ -32,20 +33,18 @@ BOOST_LIBS = \
 
 OPENBABEL_LIBS = libopenbabel
 
-all: qtplatz.dmg
-	macdeployqt ../../../bin/qtplatz.app -dmg
+installer: /Volumes/qtplatz/qtplatz.app
 
-#all: /Volumes/qtplatz/qtplatz.app
+all:
+	/usr/local/qt/4.8.4/bin/macdeployqt ../../../bin/qtplatz.app -verbose=2 -dmg
 
 /Volumes/qtplatz/qtplatz.app: /Volumes/qtplatz
 	cd ../../../bin; tar cf - ./qtplatz.app | (cd /Volumes/qtplatz; tar xvf -)
-	macdeployqt /Volumes/qtplatz/qtplatz.app
+	-mkdir -p ${FRAMEWORKS}
 	for i in ${TAO_LIBS} ; do \
 	  cp -p ${LIBDIR_ACETAO}/$$i.dylib ${FRAMEWORKS}; \
 	done
-
-deploy:
-	macdeployqt /Volumes/qtplatz/qtplatz.app
+	/usr/local/qt/4.8.4/bin/macdeployqt /Volumes/qtplatz/qtplatz.app -verbose=2
 
 /Volumes/qtplatz: ./qtplatz.dmg
 	open ./qtplatz.dmg
@@ -59,3 +58,6 @@ clean: eject
 
 eject:
 	-umount /Volumes/qtplatz
+
+mount:
+	open ./qtplatz.dmg
