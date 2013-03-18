@@ -15,7 +15,7 @@ uInitrd: rootfs/usr/bin/qemu-arm-static rootfs/boot/mkinitrd.sh
 #	sudo debootstrap --verbose --foreign --arch=armel --variant=minbase --include=module-init-tools,udev,vim-tiny,bzip2,devio,mtd-utils	squeeze rootfs http://ftp.jp.debian.org/debian
 
 rootfs: 
-	sudo debootstrap --verbose --foreign --arch=armel --variant=minbase --include=module-init-tools,udev,vim-tiny,bzip2,devio,mtd-utils	squeeze rootfs http://ftp.jp.debian.org/debian
+	sudo debootstrap --verbose --foreign --arch=armel --variant=minbase --include=module-init-tools,udev,vim-tiny,bzip2,devio,mtd-utils,initramfs-tools,uboot-mkimage	squeeze rootfs http://ftp.jp.debian.org/debian
 	sudo cp -p /usr/bin/qemu-arm-static ./rootfs/usr/bin
 	sudo chroot rootfs ./debootstrap/debootstrap --second-stage
 
