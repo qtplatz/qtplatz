@@ -6,7 +6,7 @@ isEmpty( ACE_ROOT ) {
     ACE_ROOT = C:/ACE_wrappers
     TAO_ROOT = $${ACE_ROOT}
   } else {
-    ACE_ROOT = /usr/local/ace+tao/6.1.4
+    ACE_ROOT = /usr/local/ace+tao/6.1.8
     TAO_ROOT = $${ACE_ROOT}
   }
 }
