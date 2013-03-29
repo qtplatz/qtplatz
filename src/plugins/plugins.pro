@@ -1,19 +1,32 @@
 # USE .subdir AND .depends !
 # OTHERWISE PLUGINS WILL BUILD IN WRONG ORDER (DIRECTORIES ARE COMPILED IN PARALLEL)
 
+include(../config.pri)
+
 TEMPLATE  = subdirs
 
 SUBDIRS   = plugin_coreplugin \
-            plugin_servant \
-            plugin_acquire \
-            plugin_sequence \
-            plugin_dataproc \
-            plugin_chemspider \
-            plugin_chemistry
+            plugin_servant
 
-#    frequency
+contains( QTPLATZ_CONFIG, Acquire ) {
+  SUBDIRS += plugin_acquire
+}
 
-linux-arm-*: SUBDIRS -= plugin_chemspider plugin_chemistry
+contains( QTPLATZ_CONFIG, Sequence ) {
+  SUBDIRS += plugin_sequence
+}
+
+contains( QTPLATZ_CONFIG, Dataproc ) {
+  SUBDIRS += plugin_sequence
+}
+
+contains( QTPLATZ_CONFIG, ChemSpider ) {
+  SUBDIRS += plugin_chemspider
+}
+
+contains( QTPLATZ_CONFIG, Chemistry ) {
+  SUBDIRS += plugin_chemistry
+}
 
 plugin_coreplugin.subdir = coreplugin
 

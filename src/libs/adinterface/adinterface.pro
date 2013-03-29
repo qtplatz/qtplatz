@@ -40,7 +40,7 @@ HEADERS += interface.hpp \
 for(idl, IDLFILES): PRE_TARGETDEPS += $$replace( idl, ".idl", "C.cpp" )
 
 TAO_IDL = tao_idl
-IDL_FLAGS = -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$$(TAO_ROOT) -I$${PWD} -I.
+IDL_FLAGS = -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h -I$${TAO_ROOT} -I$${PWD} -I.
 
 tao_idlC.CONFIG += no_link
 tao_idlC.dependency_type = TYPE_C

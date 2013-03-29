@@ -1,4 +1,5 @@
-BOOST_VERSION=boost-1_53
+
+include( config.pri )
 
 BOOST_ROOT=$$(BOOST_ROOT)
 isEmpty( BOOST_ROOT ) {
