@@ -45,6 +45,7 @@ namespace adportable {
             logfile() : filename_( "debug.log" ) {
             }
             ~logfile() {
+	      instance_ = 0;
             }
         public:
             static logfile * instance() {
@@ -55,7 +56,7 @@ namespace adportable {
                 return instance_;
             }
             static void dispose() {
-                delete instance_;
+	      delete instance_;
             }
             const std::string& filename() const {
                 return filename_;
@@ -69,7 +70,6 @@ namespace adportable {
 
 internal::logfile * internal::logfile::instance_ = 0;
 
-
 debug::debug( const char * file, const int line ) : line_(line)
 {
     if ( file )
@@ -79,11 +79,12 @@ debug::debug( const char * file, const int line ) : line_(line)
 debug::~debug(void)
 {
     using namespace internal;
-    std::ofstream of( logfile::instance()->filename().c_str(), std::ios_base::out | std::ios_base::app );
-    // std::ofstream of( "debug.log", std::ios_base::out | std::ios_base::app );
-    if ( ! file_.empty() )
+    if ( logfile::instance() && !file_.empty() ) {
+      std::ofstream of( logfile::instance()->filename().c_str(), std::ios_base::out | std::ios_base::app );
+      if ( ! file_.empty() )
         of << where();
-    of << o_.str() << std::endl;
+      of << o_.str() << std::endl;
+    }
     std::cout << where() << o_.str() << std::endl;
 }
 
