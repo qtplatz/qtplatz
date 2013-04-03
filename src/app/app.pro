@@ -1,5 +1,6 @@
 include(../../qtplatz.pri)
 include(../shared/qtsingleapplication/qtsingleapplication.pri)
+include(../version.pri)
 
 TEMPLATE = app
 TARGET = $$IDE_APP_TARGET

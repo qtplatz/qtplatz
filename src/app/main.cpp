@@ -27,6 +27,7 @@
 **
 **************************************************************************/
 
+#include "version.h"
 #include "qtsingleapplication.h"
 
 #include <extensionsystem/pluginmanager.h>
@@ -45,23 +46,25 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QApplication>
 #include <QtGui/QMainWindow>
+#include <iostream>
 
 enum { OptionIndent = 4, DescriptionIndent = 24 };
 
-static const char *appNameC = "Qt Platz";
+static const char *appNameC = "QtPlatz";
 static const char *corePluginNameC = "Core";
 static const char *fixedOptionsC =
-" [OPTION]... [FILE]...\n"
-"Options:\n"
-"    -help               Display this help\n"
-"    -version            Display program version\n"
-"    -client             Attempt to connect to already running instance\n";
+  " [OPTION]... [FILE]...\n"
+  "Options:\n"
+  "    --help               Display this help\n"
+  "    --version            Display program version\n"
+  "    -v                  Display program version in short form\n";
 
 static const char *HELP_OPTION1 = "-h";
 static const char *HELP_OPTION2 = "-help";
 static const char *HELP_OPTION3 = "/h";
 static const char *HELP_OPTION4 = "--help";
-static const char *VERSION_OPTION = "-version";
+static const char *VERSION_OPTION = "--version";
+static const char *SHORT_VERSION_OPTION = "-v";
 static const char *CLIENT_OPTION = "-client";
 
 typedef QList<ExtensionSystem::PluginSpec *> PluginSpecSet;
@@ -108,10 +111,15 @@ static void printVersion(const ExtensionSystem::PluginSpec *coreplugin,
 {
     QString version;
     QTextStream str(&version);
-    str << '\n' << appNameC << ' ' << coreplugin->version()<< " based on Qt " << qVersion() << "\n\n";
+    str << '\n' << appNameC << ' ' << VERSION << " based on Qt " << qVersion() << "\n\n";
     pm.formatPluginVersions(str);
     str << '\n' << coreplugin->copyright() << '\n';
     displayHelpText(version);
+}
+
+static void printShortVersion()
+{
+  std::cout << VERSION << std::endl;
 }
 
 static void printHelp(const QString &a0, const ExtensionSystem::PluginManager &pm)
@@ -244,6 +252,7 @@ int main(int argc, char **argv)
         appOptions.insert(QLatin1String(HELP_OPTION3), false);
         appOptions.insert(QLatin1String(HELP_OPTION4), false);
         appOptions.insert(QLatin1String(VERSION_OPTION), false);
+        appOptions.insert(QLatin1String(SHORT_VERSION_OPTION), false);
         appOptions.insert(QLatin1String(CLIENT_OPTION), false);
         QString errorMessage;
         if (!pluginManager.parseOptions(arguments,
@@ -273,6 +282,10 @@ int main(int argc, char **argv)
     if (coreplugin->hasError()) {
         displayError(msgCoreLoadFailure(coreplugin->errorString()));
         return 1;
+    }
+    if (foundAppOptions.contains(QLatin1String(SHORT_VERSION_OPTION))) {
+        printShortVersion();
+	return 0;
     }
     if (foundAppOptions.contains(QLatin1String(VERSION_OPTION))) {
         printVersion(coreplugin, pluginManager);
