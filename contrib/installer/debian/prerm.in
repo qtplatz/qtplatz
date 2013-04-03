@@ -1,0 +1,24 @@
+#!/bin/sh
+
+TAO_VERSION=2.1.8
+TAO_FILES="libTAO.so \
+    libTAO_Utils.so \
+    libTAO_PI.so \
+    libTAO_AnyTypeCode.so \
+    libTAO_PortableServer.so \
+    libTAO_CodecFactory.so \
+    libTAO_Codeset.so \
+    libTAO_Compression.so \
+    libTAO_ZIOP.so \
+    libTAO_RTCORBA.so"
+
+if [ "$1" = "upgrade" -o "$1" = "remove" ]; then
+    echo removing...
+
+    for i in $TAO_FILES
+    do
+      rm -f /opt/lib/$i.1
+    done
+    rm -f /opt/lib/libTAO_PI.so
+    rm -f /opt/lib/libTAO_Codeset.so
+fi

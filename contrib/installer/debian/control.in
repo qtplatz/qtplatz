@@ -1,0 +1,8 @@
+Package: qtplatz
+Version: 1.3.1
+Section: base
+Priority: optional
+Architecture: i386
+Depends: bash (>= 2.05a-11)
+Maintainer: T. Hondo <toshi.hondo@qtplatz.com>
+Description: HORIBA STEC Quadrupole Prototype Evaluation Package
