@@ -17,7 +17,7 @@ contains( QTPLATZ_CONFIG, Sequence ) {
 }
 
 contains( QTPLATZ_CONFIG, Dataproc ) {
-  SUBDIRS += plugin_sequence
+  SUBDIRS += plugin_dataproc
 }
 
 contains( QTPLATZ_CONFIG, ChemSpider ) {
