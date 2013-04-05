@@ -29,7 +29,10 @@ LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adportable) -l$$qtLibra
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
   LIBS += -lboost_date_time -lboost_system -lboost_filesystem
 }
-macx: QMAKE_CXXFLAGS += -std=c++11
+
+# define BOOST_NO_CXX11_RVALUE_REFERENCES is a workaround on clang++ shipped 
+# with Apple which does not provide std::move
+macx: QMAKE_CXXFLAGS += -std=c++11 -DBOOST_NO_CXX11_RVALUE_REFERENCES
 
 INCLUDEPATH *= $$OUT_PWD/../../libs
 INCLUDEPATH *= $(QWT)/include
