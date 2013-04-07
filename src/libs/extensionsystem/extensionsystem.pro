@@ -1,3 +1,5 @@
+#QT += core gui widgets
+QT += widgets
 TEMPLATE = lib
 TARGET = ExtensionSystem
 DEFINES += EXTENSIONSYSTEM_LIBRARY

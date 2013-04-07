@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui declarative
+QT += core gui widgets
 
 TARGET = qtwidgets
 TEMPLATE = lib

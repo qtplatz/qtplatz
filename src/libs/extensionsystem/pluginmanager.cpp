@@ -421,7 +421,7 @@ void PluginManager::formatPluginVersions(QTextStream &str) const
 
 void PluginManager::startTests()
 {
-#ifdef WITH_TESTS
+#if defined WITH_TESTS && 0
     foreach (PluginSpec *pluginSpec, d->testSpecs) {
         const QMetaObject *mo = pluginSpec->plugin()->metaObject();
         QStringList methods;

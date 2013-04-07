@@ -78,9 +78,15 @@ PluginView::PluginView(PluginManager *manager, QWidget *parent)
 {
     m_ui->setupUi(this);
     QHeaderView *header = m_ui->pluginWidget->header();
+#if QT_VERSION < 0x050000
     header->setResizeMode(0, QHeaderView::ResizeToContents);
     header->setResizeMode(1, QHeaderView::ResizeToContents);
     header->setResizeMode(2, QHeaderView::ResizeToContents);
+#else
+    header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+#endif
     m_ui->pluginWidget->sortItems(1, Qt::AscendingOrder);
     p->manager = manager;
     connect(p->manager, SIGNAL(pluginsChanged()), this, SLOT(updateList()));
