@@ -67,7 +67,8 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
     } else if ( std::wstring( iid ) == L"qtwidgets::PeakResultWidget" ) {
         pWidget = new qtwidgets::PeakResultWidget( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::ProcessMethodView" ) {
-        pWidget = new qtwidgets::ProcessMethodView( parent );
+        assert( 0 );
+        // pWidget = new qtwidgets::ProcessMethodView( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MolWidget" ) {
         pWidget = new qtwidgets::MolWidget( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::IsotopeForm" ) {

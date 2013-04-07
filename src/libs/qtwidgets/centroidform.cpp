@@ -33,7 +33,7 @@ using namespace qtwidgets;
 
 /////////////////////
 
-CentroidForm::CentroidForm(QWidget *parent) : QDeclarativeView(parent)
+CentroidForm::CentroidForm(QWidget *parent) : QWidget(parent)
                                             , ui(new Ui::CentroidForm)
                                             , pMethod_( new adcontrols::CentroidMethod ) 
 {

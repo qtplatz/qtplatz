@@ -25,7 +25,7 @@
 #ifndef PROCESSMETHODVIEW_HPP
 #define PROCESSMETHODVIEW_HPP
 
-#include <QDeclarativeView>
+// #include <QDeclarativeView>
 #include <adplugin/lifecycle.hpp>
 #include <adcontrols/processmethod.hpp>
 #include "centroiddelegate.hpp"
@@ -38,7 +38,7 @@ namespace adportable { class Configuration; }
 
 namespace qtwidgets {
 
-    class ProcessMethodView : public QDeclarativeView
+    class ProcessMethodView : public QWidget
                             , public adplugin::LifeCycle {
         
         Q_OBJECT

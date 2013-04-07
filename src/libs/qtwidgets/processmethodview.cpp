@@ -27,9 +27,9 @@
 #include <adportable/configuration.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <QMessageBox>
-#include <QDeclarativeError>
-#include <QDeclarativeContext>
-#include <QDeclarativeEngine>
+//#include <QDeclarativeError>
+//#include <QDeclarativeContext>
+//#include <QDeclarativeEngine>
 #include <QCoreApplication>
 #include <fstream>
 #include "centroidmethodmodel.hpp"
@@ -37,7 +37,7 @@
 
 using namespace qtwidgets;
 
-ProcessMethodView::ProcessMethodView(QWidget *parent) : QDeclarativeView(parent)
+ProcessMethodView::ProcessMethodView(QWidget *parent) : QWidget(parent)
                                                       , pConfig_( new adportable::Configuration )
                                                       , pCentroidModel_( new CentroidMethodModel )
                                                       , pIsotopeModel_( new IsotopeMethodModel )

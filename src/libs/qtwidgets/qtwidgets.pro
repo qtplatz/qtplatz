@@ -45,7 +45,7 @@ SOURCES += centroiddelegate.cpp \
         peakmethoddelegate.cpp \
         peakresultwidget.cpp \
         peakmethodform.cpp \
-        processmethodview.cpp \
+        # processmethodview.cpp \
         qtwidgets.cpp \
         sequencesform.cpp \
         sequencesmodel.cpp \
@@ -73,7 +73,7 @@ HEADERS += centroiddelegate.hpp \
         standarditemhelper.hpp \
         standardmodel.hpp \
         treeitem.hpp \
-        processmethodview.hpp \
+        # processmethodview.hpp \
         centroidmethodmodel.hpp \
         isotopemethodmodel.hpp \
         chemicalformula.hpp \
@@ -97,11 +97,11 @@ FORMS += \
 
 RESOURCES +=
 
-DEPENDPATH += qml qml/content
+#DEPENDPATH += qml qml/content
 
-folder_01.source = qml
-folder_01.target = qml
-DEPLOYMENTFOLDERS = folder_01
-IDE_QML_PATH = $$IDE_DATA_PATH/qtwidgets
-include(../../qtplatz_qml.pri)
-qtcAddDeployment()
+#folder_01.source = qml
+#folder_01.target = qml
+#DEPLOYMENTFOLDERS = folder_01
+#IDE_QML_PATH = $$IDE_DATA_PATH/qtwidgets
+#include(../../qtplatz_qml.pri)
+#qtcAddDeployment()

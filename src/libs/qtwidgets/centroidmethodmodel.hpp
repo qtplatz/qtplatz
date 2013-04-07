@@ -29,7 +29,7 @@
 
 #include <QVariant>
 #include <QStandardItemModel>
-#include <QDeclarativeItem>
+// #include <QDeclarativeItem>
 #include <adcontrols/centroidmethod.hpp>
 #include <boost/noncopyable.hpp>
 
