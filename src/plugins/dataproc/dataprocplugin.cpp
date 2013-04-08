@@ -75,11 +75,20 @@
 #include <utils/styledbar.h>
 #include <utils/fancymainwindow.h>
 #include <QStringList>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QBoxLayout>
-#include <QtGui/QToolButton>
-#include <QtGui/QLabel>
-#include <QtGui/QSpacerItem>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QHBoxLayout>
+# include <QtWidgets/QBoxLayout>
+# include <QtWidgets/QToolButton>
+# include <QtWidgets/QLabel>
+# include <QtWidgets/QSpacerItem>
+#else
+# include <QtGui/QHBoxLayout>
+# include <QtGui/QBoxLayout>
+# include <QtGui/QToolButton>
+# include <QtGui/QLabel>
+# include <QtGui/QSpacerItem>
+#endif
+
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QToolButton>

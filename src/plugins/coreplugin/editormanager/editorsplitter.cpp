@@ -40,9 +40,9 @@
 
 #include <utils/qtcassert.h>
 
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QMenu>
-#include <QtGui/QApplication>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QApplication>
 
 using namespace Core;
 using namespace Core::Internal;

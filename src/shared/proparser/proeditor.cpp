@@ -33,7 +33,7 @@
 #include "procommandmanager.h"
 #include "proxml.h"
 
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QClipboard>
 

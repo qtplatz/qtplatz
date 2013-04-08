@@ -45,17 +45,28 @@
 #include <utils/styledbar.h>
 
 #include <QtCore/QDebug>
-
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QComboBox>
 #include <QtGui/QFocusEvent>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QMenu>
 #include <QtGui/QPainter>
-#include <QtGui/QPushButton>
-#include <QtGui/QToolButton>
-#include <QtGui/QStackedWidget>
+
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QAction>
+# include <QtWidgets/QApplication>
+# include <QtWidgets/QComboBox>
+# include <QtWidgets/QHBoxLayout>
+# include <QtWidgets/QMenu>
+# include <QtWidgets/QPushButton>
+# include <QtWidgets/QToolButton>
+# include <QtWidgets/QStackedWidget>
+#else
+# include <QtGui/QAction>
+# include <QtGui/QApplication>
+# include <QtGui/QComboBox>
+# include <QtGui/QHBoxLayout>
+# include <QtGui/QMenu>
+# include <QtGui/QPushButton>
+# include <QtGui/QToolButton>
+# include <QtGui/QStackedWidget>
+#endif
 
 using namespace Core;
 using namespace Core::Internal;

@@ -32,7 +32,11 @@
 
 #include "utils_global.h"
 
-#include <QtGui/QWizardPage>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QWizardPage>
+#else
+# include <QtGui/QWizardPage>
+#endif
 
 namespace Utils {
 

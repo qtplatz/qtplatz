@@ -34,7 +34,7 @@
 #include "ui_valueeditor.h"
 
 #include <QtCore/QList>
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 #include <QtCore/QPointer>
 
 QT_BEGIN_NAMESPACE

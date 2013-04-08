@@ -40,9 +40,15 @@
 #include <extensionsystem/pluginmanager.h>
 
 #include <QtCore/QSettings>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QStatusBar>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QHBoxLayout>
+# include <QtWidgets/QLabel>
+# include <QtWidgets/QStatusBar>
+#else
+# include <QtGui/QHBoxLayout>
+# include <QtGui/QLabel>
+# include <QtGui/QStatusBar>
+#endif
 
 using namespace Core;
 using namespace Core::Internal;

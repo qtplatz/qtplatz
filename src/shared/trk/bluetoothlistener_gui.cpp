@@ -31,8 +31,8 @@
 #include "bluetoothlistener.h"
 #include "communicationstarter.h"
 
-#include <QtGui/QMessageBox>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QPushButton>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDebug>
 

@@ -18,7 +18,7 @@
 #include <adplugin/adplugin.h>
 #include <QtCore/qplugin.h>
 #include <adinterface/eventlog_helper.h>
-#include <qtwrapper/qstring.h>
+#include <QtCore/qstring.h>
 
 using namespace adtofms;
 

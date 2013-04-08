@@ -30,7 +30,11 @@
 #include "filewizarddialog.h"
 #include "filewizardpage.h"
 
-#include <QtGui/QAbstractButton>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QAbstractButton>
+#else
+# include <QtGui/QAbstractButton>
+#endif
 
 namespace Utils {
 

@@ -29,12 +29,19 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
-
-#include <QtGui/QAction>
-#include <QtGui/QAbstractButton>
-#include <QtGui/QRadioButton>
-#include <QtGui/QCheckBox>
-#include <QtGui/QLineEdit>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QAction>
+# include <QtWidgets/QAbstractButton>
+# include <QtWidgets/QRadioButton>
+# include <QtWidgets/QCheckBox>
+# include <QtWidgets/QLineEdit>
+#else
+# include <QtGui/QAction>
+# include <QtGui/QAbstractButton>
+# include <QtGui/QRadioButton>
+# include <QtGui/QCheckBox>
+# include <QtGui/QLineEdit>
+#endif
 
 using namespace Utils;
 #if 0

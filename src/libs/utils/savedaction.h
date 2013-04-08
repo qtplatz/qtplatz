@@ -35,8 +35,13 @@
 #include <QtCore/QString>
 #include <QtCore/QVariant>
 #include <QtCore/QList>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QAction>
+#else
+# include <QtGui/QAction>
+#endif
 
-#include <QtGui/QAction>
+
 
 QT_BEGIN_NAMESPACE
 class QSettings;

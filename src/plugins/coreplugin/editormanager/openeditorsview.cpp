@@ -40,12 +40,21 @@
 #include <utils/qtcassert.h>
 
 #include <QtCore/QTimer>
-#include <QtGui/QMenu>
 #include <QtGui/QPainter>
-#include <QtGui/QStyle>
-#include <QtGui/QStyleOption>
-#include <QtGui/QHeaderView>
 #include <QtGui/QKeyEvent>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QMenu>
+# include <QtWidgets/QStyle>
+# include <QtWidgets/QStyleOption>
+# include <QtWidgets/QHeaderView>
+#else
+# include <QtGui/QMenu>
+# include <QtGui/QStyle>
+# include <QtGui/QStyleOption>
+# include <QtGui/QHeaderView>
+#endif
+
+
 #ifdef Q_WS_MAC
 #include <qmacstyle_mac.h>
 #endif

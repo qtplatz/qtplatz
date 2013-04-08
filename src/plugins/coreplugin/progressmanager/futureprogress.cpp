@@ -31,11 +31,17 @@
 #include "progresspie.h"
 
 #include <QtGui/QColor>
+#if QT_VERSION >= 0x050100
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QProgressBar>
+#include <QtWidgets/QHBoxLayout>
+#else
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QMenu>
 #include <QtGui/QProgressBar>
 #include <QtGui/QHBoxLayout>
-
+#endif
 
 using namespace Core;
 

@@ -24,10 +24,10 @@ isEmpty( QWT ) {
 }
 
 QTPLATZ_CONFIG += Acquire
-#QTPLATZ_CONFIG += Sequence
-#QTPLATZ_CONFIG += Dataproc
-#QTPLATZ_CONFIG += ChemSpider
-#QTPLATZ_CONFIG += Chemistry
+QTPLATZ_CONFIG += Sequence
+QTPLATZ_CONFIG += Dataproc
+QTPLATZ_CONFIG += ChemSpider
+QTPLATZ_CONFIG += Chemistry
 
 # no chemistry for ARM platform
 linux-arm-*: QTPLATZ_CONFIG -= ChemSpider Chemistry

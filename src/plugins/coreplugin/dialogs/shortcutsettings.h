@@ -34,7 +34,11 @@
 
 #include <QtCore/QObject>
 #include <QtGui/QKeySequence>
-#include <QtGui/QTreeWidgetItem>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QTreeWidgetItem>
+#else
+# include <QtGui/QTreeWidgetItem>
+#endif
 #include <QtGui/QKeyEvent>
 
 QT_BEGIN_NAMESPACE

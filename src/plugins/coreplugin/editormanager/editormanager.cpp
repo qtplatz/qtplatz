@@ -63,17 +63,32 @@
 #include <QtCore/QSet>
 #include <QtCore/QSettings>
 
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QFileDialog>
-#include <QtGui/QLayout>
-#include <QtGui/QMainWindow>
-#include <QtGui/QMenu>
-#include <QtGui/QMessageBox>
-#include <QtGui/QPushButton>
-#include <QtGui/QSplitter>
-#include <QtGui/QStackedLayout>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QAction>
+# include <QtWidgets/QApplication>
+# include <QtWidgets/QFileDialog>
+# include <QtWidgets/QLayout>
+# include <QtWidgets/QMainWindow>
+# include <QtWidgets/QMenu>
+# include <QtWidgets/QMessageBox>
+# include <QtWidgets/QPushButton>
+# include <QtWidgets/QSplitter>
+# include <QtWidgets/QStackedLayout>
+#else
+# include <QtGui/QAction>
+# include <QtGui/QApplication>
+# include <QtGui/QFileDialog>
+# include <QtGui/QLayout>
+# include <QtGui/QMainWindow>
+# include <QtGui/QMenu>
+# include <QtGui/QMessageBox>
+# include <QtGui/QPushButton>
+# include <QtGui/QSplitter>
+# include <QtGui/QStackedLayout>
+#endif
+
 #include <algorithm>
+
 
 Q_DECLARE_METATYPE(Core::IEditor*)
 

@@ -42,12 +42,20 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
+#include <QtGui/QResizeEvent>
 
+#if QT_VERSION >= 0x050100
+#include <QtWidgets/QAction>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QToolButton>
+#include <QtWidgets/QShortcut>
+#else
 #include <QtGui/QAction>
 #include <QtGui/QHBoxLayout>
-#include <QtGui/QResizeEvent>
 #include <QtGui/QToolButton>
 #include <QtGui/QShortcut>
+#endif
+
 
 Q_DECLARE_METATYPE(Core::INavigationWidgetFactory *)
 

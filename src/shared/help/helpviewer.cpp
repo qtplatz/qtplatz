@@ -36,11 +36,11 @@
 #include <QtCore/QByteArray>
 #include <QtCore/QTimer>
 
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QClipboard>
-#include <QtGui/QApplication>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
 #include <QtGui/QDesktopServices>
 
 #include <QtHelp/QHelpEngine>

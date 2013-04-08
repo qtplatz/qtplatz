@@ -39,11 +39,17 @@
 #include "../uniqueidmanager.h"
 #include <utils/treewidgetcolumnstretcher.h>
 
-
 #include <QtGui/QKeyEvent>
+#if QT_VERSION >= 0x050100
+#include <QtWidgets/QShortcut>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QFileDialog>
+#else
 #include <QtGui/QShortcut>
 #include <QtGui/QHeaderView>
 #include <QtGui/QFileDialog>
+#endif
+
 #include <QtDebug>
 
 Q_DECLARE_METATYPE(Core::Internal::ShortcutItem*);

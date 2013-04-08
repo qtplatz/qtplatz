@@ -34,9 +34,15 @@
 #include "ui_pluginview.h"
 
 #include <QtCore/QDir>
-#include <QtGui/QHeaderView>
-#include <QtGui/QTreeWidgetItem>
 #include <QtDebug>
+
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QHeaderView>
+# include <QtWidgets/QTreeWidgetItem>
+#else
+# include <QtGui/QHeaderView>
+# include <QtGui/QTreeWidgetItem>
+#endif
 
 /*!
     \class ExtensionSystem::PluginView

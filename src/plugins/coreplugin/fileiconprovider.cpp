@@ -30,8 +30,14 @@
 #include "fileiconprovider.h"
 #include "mimedatabase.h"
 
-#include <QtGui/QApplication>
-#include <QtGui/QStyle>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QApplication>
+# include <QtWidgets/QStyle>
+#else
+# include <QtGui/QApplication>
+# include <QtGui/QStyle>
+#endif
+
 #include <QtGui/QPainter>
 
 using namespace Core;

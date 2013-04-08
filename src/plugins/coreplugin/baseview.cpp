@@ -29,7 +29,11 @@
 
 #include "baseview.h"
 
-#include <QtGui/QWidget>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QWidget>
+#else
+# include <QtGui/QWidget>
+#endif
 
 using namespace Core;
 

@@ -31,7 +31,12 @@
 #define SAVEITEMSDIALOG_H
 
 #include <QtCore/QMap>
-#include <QtGui/QDialog>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QDialog>
+#else
+# include <QtGui/QDialog>
+#endif
+
 
 #include "ui_saveitemsdialog.h"
 

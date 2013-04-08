@@ -38,11 +38,19 @@
 #include <QtCore/QFile>
 #include <QtCore/QSysInfo>
 
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QGridLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QPushButton>
-#include <QtGui/QTextBrowser>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QDialogButtonBox>
+# include <QtWidgets/QGridLayout>
+# include <QtWidgets/QLabel>
+# include <QtWidgets/QPushButton>
+# include <QtWidgets/QTextBrowser>
+#else
+# include <QtGui/QDialogButtonBox>
+# include <QtGui/QGridLayout>
+# include <QtGui/QLabel>
+# include <QtGui/QPushButton>
+# include <QtGui/QTextBrowser>
+#endif
 
 using namespace Core;
 using namespace Core::Internal;

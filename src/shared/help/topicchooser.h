@@ -36,7 +36,7 @@
 #include <QMap>
 #include <QString>
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 QT_BEGIN_NAMESPACE
 

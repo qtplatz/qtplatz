@@ -39,12 +39,21 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
-#include <QtGui/QMessageBox>
-#include <QtGui/QInputDialog>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMainWindow>
-#include <QtGui/QToolBar>
-#include <QtGui/QStatusBar>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QMessageBox>
+# include <QtWidgets/QInputDialog>
+# include <QtWidgets/QFileDialog>
+# include <QtWidgets/QMainWindow>
+# include <QtWidgets/QToolBar>
+# include <QtWidgets/QStatusBar>
+#else
+# include <QtGui/QMessageBox>
+# include <QtGui/QInputDialog>
+# include <QtGui/QFileDialog>
+# include <QtGui/QMainWindow>
+# include <QtGui/QToolBar>
+# include <QtGui/QStatusBar>
+#endif
 
 // Script function template to pop up a message box
 // with a certain icon and buttons.

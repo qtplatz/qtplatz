@@ -37,7 +37,7 @@
 #include "proiteminfo.h"
 
 #include <QtCore/QList>
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
 class QMenu;

@@ -29,7 +29,11 @@
 
 #include "messageoutputwindow.h"
 
-#include <QtGui/QTextEdit>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QTextEdit>
+#else
+# include <QtGui/QTextEdit>
+#endif
 
 using namespace Core::Internal;
 

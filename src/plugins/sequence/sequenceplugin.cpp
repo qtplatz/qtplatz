@@ -52,10 +52,18 @@
 #include <utils/styledbar.h>
 #include <utils/fancymainwindow.h>
 
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QBoxLayout>
-#include <QtGui/QToolButton>
-#include <QtGui/QLabel>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QHBoxLayout>
+# include <QtWidgets/QBoxLayout>
+# include <QtWidgets/QToolButton>
+# include <QtWidgets/QLabel>
+#else
+# include <QtGui/QHBoxLayout>
+# include <QtGui/QBoxLayout>
+# include <QtGui/QToolButton>
+# include <QtGui/QLabel>
+#endif
+
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QToolButton>

@@ -35,11 +35,20 @@
 #include <extensionsystem/pluginerrorview.h>
 #include <extensionsystem/pluginspec.h>
 
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QDialog>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QPushButton>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QVBoxLayout>
+# include <QtWidgets/QHBoxLayout>
+# include <QtWidgets/QDialog>
+# include <QtWidgets/QDialogButtonBox>
+# include <QtWidgets/QPushButton>
+#else
+# include <QtGui/QVBoxLayout>
+# include <QtGui/QHBoxLayout>
+# include <QtGui/QDialog>
+# include <QtGui/QDialogButtonBox>
+# include <QtGui/QPushButton>
+#endif
+
 #include <QtDebug>
 
 using namespace Core::Internal;

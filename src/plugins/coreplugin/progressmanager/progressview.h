@@ -33,9 +33,15 @@
 #include "progressmanager.h"
 
 #include <QtCore/QFuture>
-#include <QtGui/QWidget>
 #include <QtGui/QIcon>
-#include <QtGui/QVBoxLayout>
+
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QWidget>
+# include <QtWidgets/QVBoxLayout>
+#else
+# include <QtGui/QWidget>
+# include <QtGui/QVBoxLayout>
+#endif
 
 namespace Core {
 

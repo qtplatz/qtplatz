@@ -35,7 +35,11 @@
 #include <coreplugin/icorelistener.h>
 #include <coreplugin/ifile.h>
 
-#include <QtGui/QWidget>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QWidget>
+#else
+# include <QtGui/QWidget>
+#endif
 #include <QtCore/QList>
 #include <QtCore/QPointer>
 

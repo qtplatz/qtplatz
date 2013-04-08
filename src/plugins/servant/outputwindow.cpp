@@ -24,8 +24,15 @@
 **************************************************************************/
 
 #include "outputwindow.hpp"
-#include <QtGui/QStackedWidget>
-#include <QtGui/QPlainTextEdit>
+
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QStackedWidget>
+# include <QtWidgets/QPlainTextEdit>
+#else
+# include <QtGui/QStackedWidget>
+# include <QtGui/QPlainTextEdit>
+#endif
+
 #include <qtwrapper/qstring.hpp>
 
 using namespace servant;

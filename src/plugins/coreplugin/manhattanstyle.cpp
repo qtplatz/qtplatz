@@ -35,7 +35,29 @@
 
 #include <utils/qtcassert.h>
 #include <utils/stylehelper.h>
+#include <QtGui/QPainter>
+#include <QtGui/QPixmap>
+#include <QtGui/QPixmapCache>
 
+#if QT_VERSION >= 0x050100
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMenuBar>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QScrollArea>
+#include <QtWidgets/QSplitter>
+#include <QtWidgets/QStatusBar>
+#include <QtWidgets/QStyleFactory>
+#include <QtWidgets/QStyleOption>
+#include <QtWidgets/QToolBar>
+#include <QtWidgets/QToolButton>
+#else
 #include <QtGui/QApplication>
 #include <QtGui/QComboBox>
 #include <QtGui/QDialog>
@@ -45,9 +67,6 @@
 #include <QtGui/QLineEdit>
 #include <QtGui/QMainWindow>
 #include <QtGui/QMenuBar>
-#include <QtGui/QPainter>
-#include <QtGui/QPixmap>
-#include <QtGui/QPixmapCache>
 #include <QtGui/QPushButton>
 #include <QtGui/QScrollArea>
 #include <QtGui/QSplitter>
@@ -56,6 +75,8 @@
 #include <QtGui/QStyleOption>
 #include <QtGui/QToolBar>
 #include <QtGui/QToolButton>
+#endif
+
 
 // We define a currently unused state for indicating animations
 #define State_Animating 0x00000040

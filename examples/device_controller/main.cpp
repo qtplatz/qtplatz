@@ -1,4 +1,4 @@
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 #include "mainwindow.h"
 #include "tofsession_i.h"
 #include <acewrapper/acewrapper.h>

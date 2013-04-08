@@ -2,6 +2,8 @@ TEMPLATE = lib
 TARGET = Utils
 QT += gui \
     network
+greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
+
 DEFINES += QTCREATOR_UTILS_LIB
 include(../../qtplatz_library.pri)
 

@@ -30,9 +30,9 @@
 #include "contentwindow.h"
 #include "centralwidget.h"
 
-#include <QtGui/QLayout>
+#include <QtWidgets/QLayout>
 #include <QtGui/QFocusEvent>
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 
 #include <QtHelp/QHelpEngine>
 #include <QtHelp/QHelpContentWidget>

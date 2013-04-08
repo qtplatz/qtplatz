@@ -75,15 +75,15 @@
 #endif
 
 #if USE_QT_GUI
-#   include <QtGui/QApplication>
+#   include <QtWidgets/QApplication>
 #   include <QtGui/QImage>
 #   include <QtGui/QRegion>
 #   include <QtGui/QPixmap>
-#   include <QtGui/QWidget>
+#   include <QtWidgets/QWidget>
 #   include <QtGui/QFont>
 #   include <QtGui/QColor>
 #   include <QtGui/QKeySequence>
-#   include <QtGui/QSizePolicy>
+#   include <QtWidgets/QSizePolicy>
 #endif
 
 #endif // QT_BOOTSTRAPPED

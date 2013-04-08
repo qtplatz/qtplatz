@@ -49,8 +49,14 @@
 #include <QtCore/QDir>
 #include <QtCore/QTimer>
 #include <QtCore/QFileSystemWatcher>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QFileDialog>
+# include <QtWidgets/QMessageBox>
+#else
+# include <QtGui/QFileDialog>
+# include <QtGui/QMessageBox>
+#endif
+
 
 using namespace Core;
 using namespace Core::Internal;

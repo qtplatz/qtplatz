@@ -32,7 +32,7 @@
 
 #include <QtCore/QUrl>
 #include <QtCore/QModelIndex>
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
 

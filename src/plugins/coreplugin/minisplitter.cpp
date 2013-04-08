@@ -33,7 +33,12 @@
 
 #include <QtGui/QPaintEvent>
 #include <QtGui/QPainter>
+
+#if QT_VERSION >= 0x050100
+#include <QtWidgets/QSplitterHandle>
+#else
 #include <QtGui/QSplitterHandle>
+#endif
 
 namespace Core {
 namespace Internal {

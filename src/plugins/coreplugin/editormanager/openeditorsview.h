@@ -31,16 +31,23 @@
 #define OPENEDITORSVIEW_H
 
 #include "ui_openeditorsview.h"
-
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/inavigationwidgetfactory.h>
 
 #include <QtCore/QList>
-#include <QtGui/QWidget>
 #include <QtGui/QKeySequence>
-#include <QtGui/QAbstractButton>
-#include <QtGui/QTreeWidgetItem>
-#include <QtGui/QStyledItemDelegate>
+
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QWidget>
+# include <QtWidgets/QAbstractButton>
+# include <QtWidgets/QTreeWidgetItem>
+# include <QtWidgets/QStyledItemDelegate>
+#else
+# include <QtGui/QWidget>
+# include <QtGui/QAbstractButton>
+# include <QtGui/QTreeWidgetItem>
+# include <QtGui/QStyledItemDelegate>
+#endif
 
 namespace Core {
 namespace Internal {

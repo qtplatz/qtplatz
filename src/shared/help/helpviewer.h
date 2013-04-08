@@ -32,8 +32,8 @@
 
 #include <QtCore/QUrl>
 #include <QtCore/QVariant>
-#include <QtGui/QTextBrowser>
-#include <QtGui/QAction>
+#include <QtWidgets/QTextBrowser>
+#include <QtWidgets/QAction>
 
 #if !defined(QT_NO_WEBKIT)
 #include <QWebView>

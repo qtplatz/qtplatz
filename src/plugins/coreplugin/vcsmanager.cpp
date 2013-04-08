@@ -39,7 +39,11 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
-#include <QtGui/QMessageBox>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QMessageBox>
+#else
+# include <QtGui/QMessageBox>
+#endif
 
 enum { debug = 0 };
 

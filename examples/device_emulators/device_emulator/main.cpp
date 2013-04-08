@@ -23,11 +23,11 @@
 **
 **************************************************************************/
 
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 #include "maindevicewindow.h"
 #include "txtspectrum.h"
 #include "devicefacade.h"
-#include <qtwrapper/qstring.h>
+#include <QtCore/qstring.h>
 
 int main(int argc, char *argv[])
 {

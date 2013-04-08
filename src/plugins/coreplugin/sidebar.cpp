@@ -36,10 +36,18 @@
 #include <QtCore/QDebug>
 #include <QtCore/QEvent>
 #include <QtCore/QSettings>
-#include <QtGui/QLayout>
-#include <QtGui/QToolBar>
-#include <QtGui/QAction>
-#include <QtGui/QToolButton>
+
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QLayout>
+# include <QtWidgets/QToolBar>
+# include <QtWidgets/QAction>
+# include <QtWidgets/QToolButton>
+#else
+# include <QtGui/QLayout>
+# include <QtGui/QToolBar>
+# include <QtGui/QAction>
+# include <QtGui/QToolButton>
+#endif
 
 using namespace Core;
 using namespace Core::Internal;

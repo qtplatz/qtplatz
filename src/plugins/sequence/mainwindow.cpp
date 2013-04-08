@@ -55,13 +55,23 @@
 #include <QMenu>
 #include <QResizeEvent>
 #include <qstackedwidget.h>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QToolButton>
-#include <QtGui/QTextEdit>
-#include <QtGui/qlabel.h>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QVBoxLayout>
+# include <QtWidgets/QHBoxLayout>
+# include <QtWidgets/QToolButton>
+# include <QtWidgets/QTextEdit>
+# include <QtWidgets/qlabel.h>
+# include <QtWidgets/qlineedit.h>
+#else
+# include <QtGui/QVBoxLayout>
+# include <QtGui/QHBoxLayout>
+# include <QtGui/QToolButton>
+# include <QtGui/QTextEdit>
+# include <QtGui/qlabel.h>
+# include <QtGui/qlineedit.h>
+#endif
+
 #include <QtGui/qicon.h>
-#include <QtGui/qlineedit.h>
 #include <qdebug.h>
 #include <boost/foreach.hpp>
 

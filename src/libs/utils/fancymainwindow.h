@@ -35,7 +35,12 @@
 #include <QtCore/QList>
 #include <QtCore/QHash>
 
-#include <QtGui/QMainWindow>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QMainWindow>
+#else
+# include <QtGui/QMainWindow>
+#endif
+
 
 QT_BEGIN_NAMESPACE
 class QSettings;

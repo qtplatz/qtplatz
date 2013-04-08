@@ -45,7 +45,7 @@
 #include <QtCore/QStringList>
 #include <QtCore/QTextStream>
 
-#include <QtXml/QXmlStreamReader>
+#include <QtCore/QXmlStreamReader>
 
 enum { debugMimeDB = 0 };
 

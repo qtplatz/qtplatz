@@ -43,13 +43,24 @@
 #include <coreplugin/outputpane.h>
 
 #include <QtCore>
-#include <QtGui/QAction>
-#include <QtGui/QMessageBox>
-#include <QtGui/QMainWindow>
-#include <QtGui/QMenu>
-#include <QtGui/QTextEdit>
-#include <QtGui/QBoxLayout>
-#include <QtGui/QStackedWidget>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QAction>
+# include <QtWidgets/QMessageBox>
+# include <QtWidgets/QMainWindow>
+# include <QtWidgets/QMenu>
+# include <QtWidgets/QTextEdit>
+# include <QtWidgets/QBoxLayout>
+# include <QtWidgets/QStackedWidget>
+#else
+# include <QtGui/QAction>
+# include <QtGui/QMessageBox>
+# include <QtGui/QMainWindow>
+# include <QtGui/QMenu>
+# include <QtGui/QTextEdit>
+# include <QtGui/QBoxLayout>
+# include <QtGui/QStackedWidget>
+#endif
+
 #include <QtWebKit/QWebView>
 #include <QtCore/QtPlugin>
 #include <QDir>

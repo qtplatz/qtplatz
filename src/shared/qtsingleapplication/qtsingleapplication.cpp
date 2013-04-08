@@ -30,7 +30,12 @@
 #include "qtsingleapplication.h"
 #include "qtlocalpeer.h"
 
-#include <QtGui/QWidget>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QWidget>
+#else
+# include <QtGui/QWidget>
+#endif
+
 #include <QtGui/QFileOpenEvent>
 
 namespace SharedTools {

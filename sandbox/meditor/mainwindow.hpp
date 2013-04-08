@@ -26,7 +26,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QtGui/QMainWindow>
+#include <QtWidgets/QMainWindow>
 #include <vector>
 #include <adcontrols/centroidmethod.hpp>
 

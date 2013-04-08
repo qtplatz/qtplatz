@@ -32,10 +32,10 @@
 #include <QtCore/QEvent>
 #include <QtCore/QDebug>
 #include <QtCore/QString>
-#include <QtGui/QApplication>
-#include <QtGui/QMenu>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMenu>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QLabel>
+#include <QtWidgets/QLabel>
 
 enum { margin = 6 };
 

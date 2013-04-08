@@ -48,8 +48,14 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <QtPlugin>
+#if QT_VERSION >= 0x050100
+#include <QtWidgets/QBoxLayout>
+#include <QtWidgets/QStackedWidget>
+#else
 #include <QtGui/QBoxLayout>
 #include <QtGui/QStackedWidget>
+#endif
+
 #include <qtextedit.h>
 #include <qwidget.h>
 

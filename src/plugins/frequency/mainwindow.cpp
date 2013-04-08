@@ -44,11 +44,11 @@
 #include <qmenu.h>
 #include <QResizeEvent>
 #include <qstackedwidget.h>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QToolButton>
-#include <QtGui/QTextEdit>
-#include <QtGui/qlabel.h>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QToolButton>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/qlabel.h>
 #include <QtGui/qicon.h>
 #include <qdebug.h>
 

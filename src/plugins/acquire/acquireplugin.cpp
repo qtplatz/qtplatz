@@ -65,10 +65,19 @@
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/modemanager.h>
 #include <utils/styledbar.h>
+
+#if QT_VERSION >= 0x050100
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QBoxLayout>
+#include <QtWidgets/QToolButton>
+#include <QtWidgets/QLabel>
+#else
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QBoxLayout>
 #include <QtGui/QToolButton>
 #include <QtGui/QLabel>
+#endif
+
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QToolButton>

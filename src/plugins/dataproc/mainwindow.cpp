@@ -60,14 +60,26 @@
 #include <QMessageBox>
 #include <QResizeEvent>
 #include <qstackedwidget.h>
+#if QT_VERSION >= 0x050100
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QToolButton>
+#include <QtWidgets/QTabWidget>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#else
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QToolButton>
 #include <QtGui/QTabWidget>
 #include <QtGui/QTextEdit>
 #include <QtGui/QLabel>
-#include <QtGui/QIcon>
 #include <QtGui/QLineEdit>
+#endif
+
+#include <QtGui/QIcon>
+
 #include <qdebug.h>
 
 namespace dataproc {

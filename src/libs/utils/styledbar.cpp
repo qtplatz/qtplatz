@@ -34,8 +34,14 @@
 #include <QtCore/QVariant>
 #include <QtGui/QPainter>
 #include <QtGui/QPixmapCache>
-#include <QtGui/QStyle>
-#include <QtGui/QStyleOption>
+
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QStyle>
+# include <QtWidgets/QStyleOption>
+#else
+# include <QtGui/QStyle>
+# include <QtGui/QStyleOption>
+#endif
 
 using namespace Utils;
 

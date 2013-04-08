@@ -36,7 +36,7 @@
 #include <QtCore/QList>
 #include <QtCore/QSet>
 #include <QtCore/QStringList>
-#include <QtGui/QSortFilterProxyModel>
+#include <QtCore/QSortFilterProxyModel>
 
 QT_BEGIN_NAMESPACE
 class ProBlock;

@@ -33,8 +33,8 @@
 #include <extensionsystem/pluginview.h>
 #include <extensionsystem/pluginmanager.h>
 
-#include <QtGui/QWidget>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QPushButton>
 
 class PluginDialog : public QWidget
 {

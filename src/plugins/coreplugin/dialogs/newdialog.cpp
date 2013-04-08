@@ -34,8 +34,14 @@
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/dialogs/iwizard.h>
 
-#include <QtGui/QHeaderView>
-#include <QtGui/QPushButton>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QHeaderView>
+# include <QtWidgets/QPushButton>
+#else
+# include <QtGui/QHeaderView>
+# include <QtGui/QPushButton>
+#endif
+
 
 Q_DECLARE_METATYPE(Core::IWizard*)
 

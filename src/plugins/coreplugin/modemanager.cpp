@@ -49,11 +49,18 @@
 #include <QtCore/QObject>
 #include <QtCore/QDebug>
 #include <QtCore/QSignalMapper>
-#include <QtGui/QShortcut>
 
-#include <QtGui/QAction>
-#include <QtGui/QTabWidget>
-#include <QtGui/QVBoxLayout>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QShortcut>
+# include <QtWidgets/QAction>
+# include <QtWidgets/QTabWidget>
+# include <QtWidgets/QVBoxLayout>
+#else
+# include <QtGui/QShortcut>
+# include <QtGui/QAction>
+# include <QtGui/QTabWidget>
+# include <QtGui/QVBoxLayout>
+#endif
 
 using namespace Core;
 using namespace Core::Internal;

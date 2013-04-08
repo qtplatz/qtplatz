@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 #include "mainwindow.hpp"
 
 #if defined _MSC_VER

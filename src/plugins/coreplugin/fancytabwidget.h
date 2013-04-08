@@ -30,9 +30,16 @@
 #ifndef FANCYTABWIDGET_H
 #define FANCYTABWIDGET_H
 
-#include <QtGui/QPushButton>
-#include <QtGui/QTabBar>
-#include <QtGui/QStyleOptionTabV2>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QPushButton>
+# include <QtWidgets/QTabBar>
+# include <QtWidgets/QStyleOptionTabV2>
+#else
+# include <QtGui/QPushButton>
+# include <QtGui/QTabBar>
+# include <QtGui/QStyleOptionTabV2>
+#endif
+
 #include <QtCore/QTimeLine>
 
 QT_BEGIN_NAMESPACE

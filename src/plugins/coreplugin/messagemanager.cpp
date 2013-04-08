@@ -32,8 +32,13 @@
 
 #include <extensionsystem/pluginmanager.h>
 
-#include <QtGui/QStatusBar>
-#include <QtGui/QApplication>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QStatusBar>
+# include <QtWidgets/QApplication>
+#else
+# include <QtGui/QStatusBar>
+# include <QtGui/QApplication>
+#endif
 
 using namespace Core;
 

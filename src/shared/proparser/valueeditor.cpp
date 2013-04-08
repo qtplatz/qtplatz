@@ -32,7 +32,7 @@
 #include "proeditormodel.h"
 #include "proiteminfo.h"
 
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 #include <QtGui/QKeyEvent>
 
 using namespace Qt4ProjectManager::Internal;

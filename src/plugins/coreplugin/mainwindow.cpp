@@ -77,17 +77,28 @@
 #include <QtCore/QtPlugin>
 #include <QtCore/QUrl>
 
-#include <QtGui/QApplication>
 #include <QtGui/QCloseEvent>
-#include <QtGui/QMenu>
 #include <QtGui/QPixmap>
-#include <QtGui/QPrinter>
-#include <QtGui/QShortcut>
-#include <QtGui/QStatusBar>
-#include <QtGui/QWizard>
-#include <QtGui/QPrinter>
-#include <QtGui/QToolButton>
-#include <QtGui/QMessageBox>
+
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QApplication>
+# include <QtWidgets/QMenu>
+# include <QtWidgets/QShortcut>
+# include <QtWidgets/QStatusBar>
+# include <QtWidgets/QWizard>
+# include <QtWidgets/QToolButton>
+# include <QtWidgets/QMessageBox>
+# include <QtPrintSupport/QPrinter>
+#else
+# include <QtGui/QApplication>
+# include <QtGui/QMenu>
+# include <QtGui/QShortcut>
+# include <QtGui/QStatusBar>
+# include <QtGui/QWizard>
+# include <QtGui/QToolButton>
+# include <QtGui/QMessageBox>
+# include <QtGui/QPrinter>
+#endif
 
 /*
 #ifdef Q_OS_UNIX

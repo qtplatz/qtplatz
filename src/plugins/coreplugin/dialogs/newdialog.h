@@ -30,7 +30,12 @@
 #ifndef NEWDIALOG_H
 #define NEWDIALOG_H
 
-#include <QtGui/QDialog>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QDialog>
+#else
+# include <QtGui/QDialog>
+#endif
+
 #include <QtCore/QList>
 
 QT_BEGIN_NAMESPACE

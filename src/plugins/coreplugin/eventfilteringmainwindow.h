@@ -30,7 +30,11 @@
 #ifndef EVENTFILTERINGMAINWINDOW_H
 #define EVENTFILTERINGMAINWINDOW_H
 
-#include <QtGui/QMainWindow>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QMainWindow>
+#else
+# include <QtGui/QMainWindow>
+#endif
 
 namespace Core {
 namespace Internal {

@@ -43,9 +43,16 @@
 #include <QtCore/QTranslator>
 #include <QtCore/QVariant>
 
-#include <QtGui/QMessageBox>
-#include <QtGui/QApplication>
-#include <QtGui/QMainWindow>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QMessageBox>
+# include <QtWidgets/QApplication>
+# include <QtWidgets/QMainWindow>
+#else
+# include <QtGui/QMessageBox>
+# include <QtGui/QApplication>
+# include <QtGui/QMainWindow>
+#endif
+
 #include <iostream>
 
 enum { OptionIndent = 4, DescriptionIndent = 24 };

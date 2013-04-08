@@ -29,7 +29,7 @@
 
 #include "main.h"
 
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 
 MyMain::MyMain(QWidget *parent, Qt::WFlags flags)
     : QWidget(parent, flags)

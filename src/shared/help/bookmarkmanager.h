@@ -39,9 +39,9 @@
 #include <QtCore/QDataStream>
 
 #include <QtGui/QIcon>
-#include <QtGui/QDialog>
-#include <QtGui/QWidget>
-#include <QtGui/QTreeView>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QTreeView>
 #include <QtGui/QStandardItemModel>
 
 QT_BEGIN_NAMESPACE

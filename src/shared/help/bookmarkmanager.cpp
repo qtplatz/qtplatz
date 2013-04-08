@@ -30,23 +30,23 @@
 #include "bookmarkmanager.h"
 #include "centralwidget.h"
 
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 #include <QtGui/QIcon>
-#include <QtGui/QStyle>
-#include <QtGui/QLabel>
-#include <QtGui/QLayout>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLayout>
 #include <QtCore/QEvent>
-#include <QtGui/QComboBox>
+#include <QtWidgets/QComboBox>
 #include <QtGui/QKeyEvent>
-#include <QtGui/QLineEdit>
-#include <QtGui/QMessageBox>
-#include <QtGui/QHeaderView>
-#include <QtGui/QToolButton>
-#include <QtGui/QPushButton>
-#include <QtGui/QApplication>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QToolButton>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QApplication>
 #include <QtHelp/QHelpEngineCore>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QSortFilterProxyModel>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtCore/QSortFilterProxyModel>
 
 
 BookmarkDialog::BookmarkDialog(BookmarkManager *manager, const QString &title,

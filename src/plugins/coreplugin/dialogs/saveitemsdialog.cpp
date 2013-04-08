@@ -36,11 +36,19 @@
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
-#include <QtGui/QPushButton>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QHeaderView>
-#include <QtGui/QCheckBox>
-#include <QtGui/QPushButton>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QPushButton>
+# include <QtWidgets/QTreeWidget>
+# include <QtWidgets/QHeaderView>
+# include <QtWidgets/QCheckBox>
+# include <QtWidgets/QPushButton>
+#else
+# include <QtGui/QPushButton>
+# include <QtGui/QTreeWidget>
+# include <QtGui/QHeaderView>
+# include <QtGui/QCheckBox>
+# include <QtGui/QPushButton>
+#endif
 
 Q_DECLARE_METATYPE(Core::IFile*);
 

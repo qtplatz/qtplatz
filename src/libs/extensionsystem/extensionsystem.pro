@@ -1,5 +1,5 @@
-#QT += core gui widgets
-QT += widgets
+greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
+
 TEMPLATE = lib
 TARGET = ExtensionSystem
 DEFINES += EXTENSIONSYSTEM_LIBRARY

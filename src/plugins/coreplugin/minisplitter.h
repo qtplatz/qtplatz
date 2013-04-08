@@ -32,7 +32,11 @@
 
 #include "core_global.h"
 
-#include <QtGui/QSplitter>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QSplitter>
+#else
+# include <QtGui/QSplitter>
+#endif
 
 QT_BEGIN_NAMESPACE
 class QSplitterHandle;

@@ -35,7 +35,7 @@
 #include <QtCore/QMap>
 #include <QtCore/QSet>
 #include <QtCore/QVariant>
-#include <QtGui/QAction>
+#include <QtWidgets/QAction>
 
 #include <string>
 #include <list>

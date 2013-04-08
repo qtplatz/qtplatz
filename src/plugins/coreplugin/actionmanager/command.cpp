@@ -28,8 +28,13 @@
 **************************************************************************/
 
 #include <QtCore/QDebug>
-#include <QtGui/QAction>
-#include <QtGui/QShortcut>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets/QAction>
+# include <QtWidgets/QShortcut>
+#else
+# include <QtGui/QAction>
+# include <QtGui/QShortcut>
+#endif
 
 #include "command_p.h"
 

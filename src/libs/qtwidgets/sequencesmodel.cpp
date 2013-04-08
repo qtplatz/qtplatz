@@ -3,7 +3,10 @@
 // Science Liaison Project
 //////////////////////////////////////////////
 
-#include <QtGui>
+#if QT_VERSION >= 0x050100
+# include <QtWidgets>
+#endif
+
 #include "sequencesmodel.hpp"
 #include "treeitem.hpp"
 
