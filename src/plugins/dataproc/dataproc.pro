@@ -4,7 +4,8 @@
 #
 #-------------------------------------------------
 
-# QT       += xml
+QT += core
+greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
 
 TARGET = dataproc
 TEMPLATE = lib
@@ -32,7 +33,9 @@ LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adportable) -l$$qtLibra
 
 # define BOOST_NO_CXX11_RVALUE_REFERENCES is a workaround on clang++ shipped 
 # with Apple which does not provide std::move
-macx: QMAKE_CXXFLAGS += -std=c++11 -DBOOST_NO_CXX11_RVALUE_REFERENCES
+#macx: QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -stdlib=libc++ # -std=c++11 -stdlib=libc++ -DBOOST_NO_CXX11_RVALUE_REFERENCES
+macx: QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c++11 -DBOOST_NO_CXX11_RVALUE_REFERENCES
+CONFIG += c++11
 
 INCLUDEPATH *= $$OUT_PWD/../../libs
 INCLUDEPATH *= $(QWT)/include

@@ -5,7 +5,8 @@ CONFIG(debug, debug|release) {
 
 BOOST_VERSION=boost-1_53
 ACE_VERSION=6.1.8
-QWT_VERSION=6.0.3-svn
+greaterThan( QT_MAJOR_VERSION, 4 ): QWT_VERSION=6.1.0-svn
+else: QWT_VERSION=6.0.3-svn
 
 # does not override if environment variable already exist
 
@@ -26,7 +27,7 @@ isEmpty( QWT ) {
 QTPLATZ_CONFIG += Acquire
 QTPLATZ_CONFIG += Sequence
 QTPLATZ_CONFIG += Dataproc
-QTPLATZ_CONFIG += ChemSpider
+#QTPLATZ_CONFIG += ChemSpider
 QTPLATZ_CONFIG += Chemistry
 
 # no chemistry for ARM platform
