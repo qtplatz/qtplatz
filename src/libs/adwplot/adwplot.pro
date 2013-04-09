@@ -5,6 +5,8 @@
 #-------------------------------------------------
 
 QT       += gui
+greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
+
 TARGET = adwplot
 TEMPLATE = lib
 CONFIG += staticlib
