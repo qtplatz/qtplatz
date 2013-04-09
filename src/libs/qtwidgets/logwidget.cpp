@@ -25,7 +25,7 @@
 
 #include "logwidget.hpp"
 #include "ui_logwidget.h"
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QPlainTextEdit>
 #else
 # include <QtGui/QPlainTextEdit>

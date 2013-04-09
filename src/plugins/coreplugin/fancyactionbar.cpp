@@ -33,7 +33,7 @@
 #include <QtGui/QPicture>
 #include <QtSvg/QSvgRenderer>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QHBoxLayout>
 # include <QtWidgets/QVBoxLayout>
 # include <QtWidgets/QAction>

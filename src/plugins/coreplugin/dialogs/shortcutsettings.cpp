@@ -40,7 +40,7 @@
 #include <utils/treewidgetcolumnstretcher.h>
 
 #include <QtGui/QKeyEvent>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 #include <QtWidgets/QShortcut>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QFileDialog>

@@ -37,7 +37,7 @@
 #include <QtCore/QList>
 #include <QtGui/QKeySequence>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QWidget>
 # include <QtWidgets/QAbstractButton>
 # include <QtWidgets/QTreeWidgetItem>

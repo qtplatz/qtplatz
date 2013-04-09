@@ -36,7 +36,7 @@
 #include "../uniqueidmanager.h"
 
 #include <QtCore/QDebug>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QAction>
 # include <QtWidgets/QMenuBar>
 #else

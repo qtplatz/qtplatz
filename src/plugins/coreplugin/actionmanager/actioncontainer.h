@@ -31,7 +31,7 @@
 #define ACTIONCONTAINER_H
 
 #include <QtCore/QObject>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QMenu>
 # include <QtWidgets/QMenuBar>
 # include <QtWidgets/QAction>

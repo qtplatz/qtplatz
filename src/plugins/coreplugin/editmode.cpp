@@ -41,7 +41,7 @@
 #include "ifile.h"
 
 #include <QtCore/QLatin1String>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QHBoxLayout>
 # include <QtWidgets/QWidget>
 # include <QtWidgets/QSplitter>

@@ -38,7 +38,7 @@
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QMainWindow>
 #else
 # include <QtGui/QMainWindow>

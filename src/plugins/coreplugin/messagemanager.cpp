@@ -32,7 +32,7 @@
 
 #include <extensionsystem/pluginmanager.h>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QStatusBar>
 # include <QtWidgets/QApplication>
 #else

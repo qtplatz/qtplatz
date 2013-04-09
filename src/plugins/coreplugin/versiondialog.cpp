@@ -38,7 +38,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QSysInfo>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QDialogButtonBox>
 # include <QtWidgets/QGridLayout>
 # include <QtWidgets/QLabel>

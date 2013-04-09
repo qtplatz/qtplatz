@@ -50,7 +50,7 @@
 #include <QtCore/QDebug>
 #include <QtCore/QSignalMapper>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QShortcut>
 # include <QtWidgets/QAction>
 # include <QtWidgets/QTabWidget>

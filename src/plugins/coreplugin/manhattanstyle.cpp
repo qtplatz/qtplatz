@@ -39,7 +39,7 @@
 #include <QtGui/QPixmap>
 #include <QtGui/QPixmapCache>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QDialog>

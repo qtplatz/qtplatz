@@ -33,7 +33,7 @@
 #include "../icore.h"
 
 #include <QtCore/QSettings>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QHeaderView>
 # include <QtWidgets/QPushButton>
 #else

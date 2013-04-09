@@ -36,7 +36,7 @@
 #include <QtCore/QSettings>
 #include <QtCore/QPointer>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QWidget>
 # include <QtWidgets/QAction>
 # include <QtWidgets/QSplitter>
@@ -52,7 +52,7 @@
 #include <coreplugin/ifile.h>
 
 #include <QtCore/QMap>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtCore/QSortFilterProxyModel>
 #endif
 

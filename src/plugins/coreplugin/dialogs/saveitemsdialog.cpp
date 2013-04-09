@@ -36,7 +36,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QPushButton>
 # include <QtWidgets/QTreeWidget>
 # include <QtWidgets/QHeaderView>

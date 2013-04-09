@@ -42,7 +42,7 @@
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
 #include <QtGui/QKeyEvent>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QMenu>
 # include <QtWidgets/QStyle>
 # include <QtWidgets/QStyleOption>

@@ -43,7 +43,7 @@
 #include <coreplugin/outputpane.h>
 
 #include <QtCore>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QAction>
 # include <QtWidgets/QMessageBox>
 # include <QtWidgets/QMainWindow>

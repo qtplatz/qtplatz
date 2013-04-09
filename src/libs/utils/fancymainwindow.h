@@ -35,7 +35,7 @@
 #include <QtCore/QList>
 #include <QtCore/QHash>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QMainWindow>
 #else
 # include <QtGui/QMainWindow>

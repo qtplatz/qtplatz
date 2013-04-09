@@ -49,7 +49,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QTimer>
 #include <QtCore/QFileSystemWatcher>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QFileDialog>
 # include <QtWidgets/QMessageBox>
 #else

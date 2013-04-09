@@ -32,11 +32,10 @@
 
 #include <extensionsystem/pluginmanager.h>
 
-
-#if QT_VERSION >= 0x050100
-#include <QtWidgets/QVBoxLayout>
+#if QT_VERSION >= 0x050000
+# include <QtWidgets/QVBoxLayout>
 #else
-#include <QtGui/QVBoxLayout>
+# include <QtGui/QVBoxLayout>
 #endif
 
 

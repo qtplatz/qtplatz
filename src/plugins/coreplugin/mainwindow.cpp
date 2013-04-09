@@ -80,7 +80,7 @@
 #include <QtGui/QCloseEvent>
 #include <QtGui/QPixmap>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QApplication>
 # include <QtWidgets/QMenu>
 # include <QtWidgets/QShortcut>

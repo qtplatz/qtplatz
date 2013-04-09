@@ -31,7 +31,7 @@
 #include "progresspie.h"
 
 #include <QtGui/QColor>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QProgressBar>

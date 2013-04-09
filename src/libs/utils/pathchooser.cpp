@@ -39,7 +39,7 @@
 
 #include <QtGui/QDesktopServices>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QFileDialog>
 # include <QtWidgets/QHBoxLayout>
 # include <QtWidgets/QLineEdit>

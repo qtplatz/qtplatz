@@ -30,7 +30,7 @@
 #ifndef FANCYTABWIDGET_H
 #define FANCYTABWIDGET_H
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QPushButton>
 # include <QtWidgets/QTabBar>
 # include <QtWidgets/QStyleOptionTabV2>

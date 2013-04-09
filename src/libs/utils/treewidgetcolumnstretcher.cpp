@@ -56,7 +56,7 @@ bool TreeWidgetColumnStretcher::eventFilter(QObject *obj, QEvent *ev)
         if (ev->type() == QEvent::Show) {
             QHeaderView *hv = qobject_cast<QHeaderView*>(obj);
             for (int i = 0; i < hv->count(); ++i) {
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
                 hv->setSectionResizeMode(i, QHeaderView::Interactive);
 #else
                 hv->setResizeMode(i, QHeaderView::Interactive);                
@@ -65,7 +65,7 @@ bool TreeWidgetColumnStretcher::eventFilter(QObject *obj, QEvent *ev)
         } else if (ev->type() == QEvent::Hide) {
             QHeaderView *hv = qobject_cast<QHeaderView*>(obj);
             for (int i = 0; i < hv->count(); ++i) {
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
                 hv->setSectionResizeMode(i, i == m_columnToStretch ? QHeaderView::Stretch : QHeaderView::ResizeToContents);
 #else
                 hv->setResizeMode(i, i == m_columnToStretch ? QHeaderView::Stretch : QHeaderView::ResizeToContents);
@@ -73,7 +73,7 @@ bool TreeWidgetColumnStretcher::eventFilter(QObject *obj, QEvent *ev)
             }
         } else if (ev->type() == QEvent::Resize) {
             QHeaderView *hv = qobject_cast<QHeaderView*>(obj);
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
             if (hv->sectionResizeMode(m_columnToStretch) == QHeaderView::Interactive) {
 #else
             if (hv->resizeMode(m_columnToStretch) == QHeaderView::Interactive) {

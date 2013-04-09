@@ -37,7 +37,7 @@
 #include <QtGui/QWindowsStyle>
 #include <QtGui/QPainter>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 #include <QtWidgets/QColorDialog>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QVBoxLayout>

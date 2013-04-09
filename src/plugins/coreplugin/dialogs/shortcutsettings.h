@@ -34,7 +34,7 @@
 
 #include <QtCore/QObject>
 #include <QtGui/QKeySequence>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QTreeWidgetItem>
 #else
 # include <QtGui/QTreeWidgetItem>

@@ -43,7 +43,7 @@
 #include <QtCore/QTranslator>
 #include <QtCore/QVariant>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QMessageBox>
 # include <QtWidgets/QApplication>
 # include <QtWidgets/QMainWindow>

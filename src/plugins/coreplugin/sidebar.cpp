@@ -37,7 +37,7 @@
 #include <QtCore/QEvent>
 #include <QtCore/QSettings>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QLayout>
 # include <QtWidgets/QToolBar>
 # include <QtWidgets/QAction>

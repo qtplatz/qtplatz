@@ -35,7 +35,7 @@
 #include <extensionsystem/pluginerrorview.h>
 #include <extensionsystem/pluginspec.h>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QVBoxLayout>
 # include <QtWidgets/QHBoxLayout>
 # include <QtWidgets/QDialog>

@@ -29,7 +29,7 @@
 
 #include "openwithdialog.h"
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QPushButton>
 #else

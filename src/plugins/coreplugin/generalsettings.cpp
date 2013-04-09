@@ -34,7 +34,7 @@
 //#include <utils/consoleprocess.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/icore.h>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QMessageBox>
 #else
 # include <QtGui/QMessageBox>

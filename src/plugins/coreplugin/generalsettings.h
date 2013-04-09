@@ -32,7 +32,7 @@
 
 #include <coreplugin/dialogs/ioptionspage.h>
 #include <QtCore/QPointer>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QWidget>
 #else
 # include <QtGui/QWidget>

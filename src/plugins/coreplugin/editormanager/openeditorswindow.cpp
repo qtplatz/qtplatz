@@ -34,7 +34,7 @@
 
 #include <utils/qtcassert.h>
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QHeaderView>
 #else
 # include <QtGui/QHeaderView>

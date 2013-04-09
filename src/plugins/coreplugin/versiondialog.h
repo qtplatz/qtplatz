@@ -30,7 +30,7 @@
 #ifndef VERSIONDIALOG_H
 #define VERSIONDIALOG_H
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QDialog>
 #else
 # include <QtGui/QDialog>

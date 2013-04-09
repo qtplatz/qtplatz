@@ -75,7 +75,7 @@
 #include <utils/styledbar.h>
 #include <utils/fancymainwindow.h>
 #include <QStringList>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QHBoxLayout>
 # include <QtWidgets/QBoxLayout>
 # include <QtWidgets/QToolButton>

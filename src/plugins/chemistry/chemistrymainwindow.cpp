@@ -47,7 +47,7 @@
 #include <qmenu.h>
 #include <QResizeEvent>
 #include <qstackedwidget.h>
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QVBoxLayout>
 # include <QtWidgets/QHBoxLayout>
 # include <QtWidgets/QToolButton>

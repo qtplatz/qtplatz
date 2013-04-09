@@ -25,7 +25,7 @@
 
 #include "outputwindow.hpp"
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QStackedWidget>
 # include <QtWidgets/QPlainTextEdit>
 #else

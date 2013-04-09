@@ -30,7 +30,7 @@
 #ifndef OPENWITHDIALOG_H
 #define OPENWITHDIALOG_H
 
-#if QT_VERSION >= 0x050100
+#if QT_VERSION >= 0x050000
 # include <QtWidgets/QDialog>
 #else
 # include <QtGui/QDialog>
