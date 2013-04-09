@@ -62,11 +62,11 @@ QtSingleApplication::QtSingleApplication(const QString &appId, int &argc, char *
 }
 
 
-QtSingleApplication::QtSingleApplication(int &argc, char **argv, Type type)
-    : QApplication(argc, argv, type)
-{
-    sysInit();
-}
+// QtSingleApplication::QtSingleApplication(int &argc, char **argv, Type type)
+//     : QApplication(argc, argv, type)
+// {
+//     sysInit();
+// }
 
 
 #if defined(Q_WS_X11)

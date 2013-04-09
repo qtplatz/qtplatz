@@ -29,6 +29,7 @@
 #include <QMetaType>
 #include <QPainter>
 #include <QPalette>
+#include <QVariant>
 
 using namespace qtwidgets;
 
@@ -41,13 +42,14 @@ CentroidDelegate::createEditor(QWidget *parent
                                 , const QStyleOptionViewItem &option,
                                 const QModelIndex &index) const
 {
-    if ( qVariantCanConvert< PeakWidthMethod >( index.data() ) ) {
+  //    if ( qVariantCanConvert< PeakWidthMethod >( index.data() ) ) {
+    if ( index.data().canConvert< PeakWidthMethod >() ) {
         QComboBox * pCombo = new QComboBox( parent );
         QStringList list;
         list << "TOF" << "Proportional" << "Constant";
         pCombo->addItems( list );
         return pCombo;
-    } else if ( qVariantCanConvert< AreaHeight > ( index.data() ) ) {
+    } else if ( index.data().canConvert< AreaHeight >() ) {
         QComboBox * pCombo = new QComboBox( parent );
         QStringList list;
         list << "Area" << "Height";
@@ -61,31 +63,31 @@ CentroidDelegate::createEditor(QWidget *parent
 void
 CentroidDelegate::paint(QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
 {
-    if ( qVariantCanConvert< PeakWidthMethod >( index.data() ) ) {
-        PeakWidthMethod m = qVariantValue< PeakWidthMethod >( index.data() );
-        drawDisplay( painter, option, option.rect, m.displayValue() );
-    } else if ( qVariantCanConvert< AreaHeight > ( index.data() ) ) {
-        AreaHeight m = qVariantValue< AreaHeight >( index.data() );
-        drawDisplay( painter, option, option.rect, m.displayValue() );
+    if ( index.data().canConvert< PeakWidthMethod >() ) {
+      PeakWidthMethod m = index.data().value< PeakWidthMethod >();
+      drawDisplay( painter, option, option.rect, m.displayValue() );
+    } else if ( index.data().canConvert< AreaHeight >() ) {
+      AreaHeight m = index.data().value< AreaHeight >();
+      drawDisplay( painter, option, option.rect, m.displayValue() );
     } else {
-        QItemDelegate::paint( painter, option, index );
+      QItemDelegate::paint( painter, option, index );
     }
 }
 
 void
 CentroidDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    if ( qVariantCanConvert< PeakWidthMethod >( index.data() ) ) {
-        QComboBox * p = dynamic_cast< QComboBox * >( editor );
-        PeakWidthMethod m = qVariantValue< PeakWidthMethod >( index.data() );    
-        p->setCurrentIndex( m.methodValue() );
-    } else if ( qVariantCanConvert< AreaHeight > ( index.data() ) ) {
-        QComboBox * p = dynamic_cast< QComboBox * >( editor );
-        AreaHeight m = qVariantValue< AreaHeight >( index.data() );    
-        p->setCurrentIndex( m.methodValue() ? 0 : 1 );
-    } else {
-        QItemDelegate::setEditorData( editor, index );
-    }
+  if ( index.data().canConvert< PeakWidthMethod >() ) {
+    QComboBox * p = dynamic_cast< QComboBox * >( editor );
+    PeakWidthMethod m = index.data().value< PeakWidthMethod >();
+    p->setCurrentIndex( m.methodValue() );
+  } else if ( index.data().canConvert< AreaHeight > () ) {
+    QComboBox * p = dynamic_cast< QComboBox * >( editor );
+    AreaHeight m = index.data().value< AreaHeight >();
+    p->setCurrentIndex( m.methodValue() ? 0 : 1 );
+  } else {
+    QItemDelegate::setEditorData( editor, index );
+  }
 }
 
 void
@@ -93,19 +95,19 @@ CentroidDelegate::setModelData( QWidget *editor
                                 , QAbstractItemModel *model,
                                 const QModelIndex &index) const
 {
-    if ( qVariantCanConvert< PeakWidthMethod >( index.data() ) ) {
-        QComboBox * p = dynamic_cast< QComboBox * >( editor );
-        adcontrols::CentroidMethod::ePeakWidthMethod value = 
-            static_cast<adcontrols::CentroidMethod::ePeakWidthMethod>( p->currentIndex() );
-        model->setData( index, qVariantFromValue( PeakWidthMethod( value ) ) );
+  if ( index.data().canConvert< PeakWidthMethod >() ) {
+    QComboBox * p = dynamic_cast< QComboBox * >( editor );
+    adcontrols::CentroidMethod::ePeakWidthMethod value = 
+      static_cast<adcontrols::CentroidMethod::ePeakWidthMethod>( p->currentIndex() );
+    model->setData( index, qVariantFromValue( PeakWidthMethod( value ) ) );
 
-    } else if ( qVariantCanConvert< AreaHeight > ( index.data() ) ) {
-        QComboBox * p = dynamic_cast< QComboBox * >( editor );
-        bool value = p->currentIndex() == 0 ? true : false;
-        model->setData( index, qVariantFromValue( AreaHeight( value ) ) );
-    } else {
-        QItemDelegate::setModelData( editor, model, index );
-    }
+  } else if ( index.data().canConvert< AreaHeight > () ) {
+    QComboBox * p = dynamic_cast< QComboBox * >( editor );
+    bool value = p->currentIndex() == 0 ? true : false;
+    model->setData( index, qVariantFromValue( AreaHeight( value ) ) );
+  } else {
+    QItemDelegate::setModelData( editor, model, index );
+  }
 }
 
 void

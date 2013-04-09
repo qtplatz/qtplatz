@@ -37,7 +37,7 @@ IsotopeMethodModel::IsotopeMethodModel(QObject *parent) : QAbstractListModel( pa
     roles[ ChargeRole ]  = "chargeState"; // size_t chargeState;
     roles[ AmountsRole ] = "amounts";    // double relativeAmounts;
     roles[ MassRole ]    = "mass";       // doubl mass (read only)
-    setRoleNames( roles );
+    // setRoleNames( roles );
 }
 
 int
@@ -107,7 +107,7 @@ IsotopeMethodModel::removeRow( int rowIndex )
 {
     if ( rowIndex >= 0 && unsigned( rowIndex ) < method_.size() - 1 ) {
         method_.erase( method_.begin() + rowIndex, method_.begin() + rowIndex + 1 );
-        reset();
+        // reset();
     }
 }
 

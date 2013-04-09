@@ -72,7 +72,7 @@ MSCalibrateDelegate::createEditor(QWidget *parent
                                  , const QStyleOptionViewItem &option
                                  , const QModelIndex &index) const
 {
-    if ( qVariantCanConvert< MSReferences >( index.data() ) ) {
+  if ( index.data().canConvert< MSReferences >() ) {
         QComboBox * pCombo = new QComboBox( parent );
         QStringList list;
         for ( refs_type::const_iterator it = refs_.begin(); it != refs_.end(); ++it )
@@ -87,20 +87,20 @@ MSCalibrateDelegate::createEditor(QWidget *parent
 void
 MSCalibrateDelegate::paint(QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
 {
-    if ( qVariantCanConvert< MSReferences >( index.data() ) ) {
-        MSReferences m = qVariantValue< MSReferences >( index.data() );
-        drawDisplay( painter, option, option.rect, m.displayValue() );
-    } else {
-        QItemDelegate::paint( painter, option, index );
-    }
+  if ( index.data().canConvert< MSReferences >() ) {
+    MSReferences m = index.data().value< MSReferences >();
+    drawDisplay( painter, option, option.rect, m.displayValue() );
+  } else {
+    QItemDelegate::paint( painter, option, index );
+  }
 }
 
 void
 MSCalibrateDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    if ( qVariantCanConvert< MSReferences >( index.data() ) ) {
+  if ( index.data().canConvert< MSReferences >() ) {
         QComboBox * p = dynamic_cast< QComboBox * >( editor );
-        MSReferences m = qVariantValue< MSReferences >( index.data() );
+        MSReferences m = index.data().value< MSReferences >();
         std::wstring refname = qtwrapper::wstring( p->currentText() );
         // const adcontrols::MSReferenceDefns& defns = this->refDefns_[ refname ];
         m.setCurrentValue( refname );
@@ -114,7 +114,7 @@ MSCalibrateDelegate::setModelData( QWidget *editor
                                   , QAbstractItemModel *model
                                   , const QModelIndex &index) const
 {
-    if ( qVariantCanConvert< MSReferences >( index.data() ) ) {
+  if ( index.data().canConvert< MSReferences >() ) {
         QComboBox * p = dynamic_cast< QComboBox * >( editor );
         model->setData( index, qVariantFromValue( MSReferences( qtwrapper::wstring( p->currentText() ) ) ) );
         emit signalMSReferencesChanged( index );

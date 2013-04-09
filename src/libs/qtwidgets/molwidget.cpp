@@ -28,6 +28,7 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <QDragEnterEvent>
+#include <QMimeData>
 #include <QUrl>
 #include <QPainter>
 #include <boost/foreach.hpp>

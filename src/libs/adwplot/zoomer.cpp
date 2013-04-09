@@ -30,22 +30,26 @@
 
 using namespace adwplot;
 
+#if QWT_VERSION >= 0x060100
+Zoomer::Zoomer( int xAxis, int yAxis, QWidget * canvas ) : QwtPlotZoomer( xAxis, yAxis, canvas )
+#else
 Zoomer::Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas ) : QwtPlotZoomer( xAxis, yAxis, canvas )
+#endif
                                                                , autoYScale_( false )
-															   , rubberBand_( RectRubberBand ) 
+							       , rubberBand_( RectRubberBand ) 
 {
     setTrackerMode(QwtPicker::AlwaysOff);
     // setRubberBand(QwtPicker::NoRubberBand);
 
-	// LeftButton: zoom out by 1
-	// setMousePattern( QwtEventPattern::MouseSelect2,  Qt::LeftButton );
-
-	// Ctrl+RightButton: zoom out to full size
-	setMousePattern( QwtEventPattern::MouseSelect3,  Qt::LeftButton, Qt::ControlModifier );
+    // LeftButton: zoom out by 1
+    // setMousePattern( QwtEventPattern::MouseSelect2,  Qt::LeftButton );
+    
+    // Ctrl+RightButton: zoom out to full size
+    setMousePattern( QwtEventPattern::MouseSelect3,  Qt::LeftButton, Qt::ControlModifier );
 
     setRubberBand( QwtPicker::RectRubberBand );
     setRubberBandPen( QColor(Qt::green) );
-	// setTrackerMode( QwtPicker::ActiveOnly );
+    // setTrackerMode( QwtPicker::ActiveOnly );
     // setTrackerPen( QColor( Qt::white ) );
 }
 
@@ -77,32 +81,40 @@ Zoomer::widgetMouseDoubleClickEvent( QMouseEvent * event )
 bool
 Zoomer::accept( QPolygon &pa ) const
 {
-    if ( pa.count() < 2 )
-        return false;
-
-	QRect rect = QRect( pa[0], pa[int( pa.count() ) - 1] );
-	rect = rect.normalized();
-
-    const int minSize = 2;
-    if ( rect.width() < minSize && rect.height() < minSize )
-        return false;
-
-    pa.resize( 2 );
-
-	if ( rubberBand_ == HLineRubberBand ) {
-		const QRect& pRect = pickRect();
-		pa[ 0 ] = QPoint( rect.left(), pRect.top() );
-        pa[ 1 ] = QPoint( rect.right(), pRect.bottom() );
-	} else if ( rubberBand_ == VLineRubberBand ) {
-		const QRect& pRect = pickRect();
-		pa[ 0 ] = QPoint( pRect.left(), rect.top() );
-		pa[ 1 ] = QPoint( pRect.right(), rect.bottom() );
-	} else {
-		pa[ 0 ] = rect.topLeft();
-		pa[ 1 ] = rect.bottomRight();
-	}
-
-    return true;
+  if ( pa.count() < 2 )
+    return false;
+  
+  QRect rect = QRect( pa[0], pa[int( pa.count() ) - 1] );
+  rect = rect.normalized();
+  
+  const int minSize = 2;
+  if ( rect.width() < minSize && rect.height() < minSize )
+    return false;
+  
+  pa.resize( 2 );
+  
+  if ( rubberBand_ == HLineRubberBand ) {
+#if QWT_VERSION <  0x060100
+    const QRect& pRect = pickRect();
+#else
+    const QRectF& pRect = pickArea().boundingRect();
+#endif
+    pa[ 0 ] = QPoint( rect.left(), pRect.top() );
+    pa[ 1 ] = QPoint( rect.right(), pRect.bottom() );
+  } else if ( rubberBand_ == VLineRubberBand ) {
+#if QWT_VERSION <  0x060100
+    const QRect& pRect = pickRect();
+#else
+    const QRectF& pRect = pickArea().boundingRect();
+#endif
+    pa[ 0 ] = QPoint( pRect.left(), rect.top() );
+    pa[ 1 ] = QPoint( pRect.right(), rect.bottom() );
+  } else {
+    pa[ 0 ] = rect.topLeft();
+    pa[ 1 ] = rect.bottomRight();
+  }
+  
+  return true;
 }
 
 void

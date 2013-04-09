@@ -47,18 +47,23 @@ Dataplot::~Dataplot()
 Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
                                     , linkedzoom_inprocess_( false )
 {
-    setCanvasBackground( QColor( Qt::lightGray ) );
+  setCanvasBackground( QColor( Qt::lightGray ) );
 
-	// zoomer
-	zoomer1_.reset( new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, canvas() ) );
-	// zoomer2_.reset( new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
+  // zoomer
+#if QWT_VERSION >= 0x060100
+  zoomer1_.reset( new Zoomer( int(QwtPlot::xBottom), int(QwtPlot::yLeft), canvas() ) );
+#else // 0x060003 or earlier
+  zoomer1_.reset( new Zoomer( QwtPlot::xBottom, QwtPlot::yLeft, canvas() ) );
+#endif
 
-	// picker
-	picker_.reset( new Picker( canvas() ) );
-	// picker_->setStateMachine( new QwtPickerDragPointMachine() );
-	// panner
-    panner_.reset( new Panner( canvas() ) );
-	panner_->setMouseButton( Qt::LeftButton, Qt::AltModifier );
+  // zoomer2_.reset( new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
+
+  // picker
+  picker_.reset( new Picker( canvas() ) );
+  // picker_->setStateMachine( new QwtPickerDragPointMachine() );
+  // panner
+  panner_.reset( new Panner( canvas() ) );
+  panner_->setMouseButton( Qt::LeftButton, Qt::AltModifier );
 }
 
 void

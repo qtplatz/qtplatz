@@ -7,6 +7,7 @@ TARGET = $$IDE_APP_TARGET
 DESTDIR = $$IDE_APP_PATH
 
 SOURCES += main.cpp
+greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
 
 include(../config.pri)
 include(../rpath.pri)

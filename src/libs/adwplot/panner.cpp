@@ -26,7 +26,11 @@
 
 using namespace adwplot;
 
+#if QWT_VERSION < 0x060100
 Panner::Panner( QwtPlotCanvas * canvas ) : QwtPlotPanner( canvas )
+#else
+Panner::Panner( QWidget * canvas ) : QwtPlotPanner( canvas )
+#endif
 {
 }
 

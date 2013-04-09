@@ -193,6 +193,7 @@ MSCalibrationForm::getContents( adcontrols::ProcessMethod& pm )
 {
     QStandardItemModel& model = *pModel_;
     QStandardItem * root = model.invisibleRootItem();
+    (void)root;
 
     pMethod_->polynomialDegree( ui->spinPolynomials->value() );
     pMethod_->massToleranceDa( ui->spinMassTolerance->value() );
@@ -237,7 +238,7 @@ void
 MSCalibrationForm::handleMSReferencesChanged( const QModelIndex& index )
 {
     QStandardItemModel& model = *pModel_;
-    std::wstring refname = qVariantValue< MSCalibrateDelegate::MSReferences >( model.data( index ) ).methodValue();
+    std::wstring refname = model.data( index ).value< MSCalibrateDelegate::MSReferences >().methodValue();
 
     qDebug() << qtwrapper::qstring::copy( refname );
 

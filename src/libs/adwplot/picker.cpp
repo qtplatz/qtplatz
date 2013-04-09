@@ -28,15 +28,19 @@
 
 using namespace adwplot;
 
+#if QWT_VERSION < 0x060100
 Picker::Picker( QwtPlotCanvas * parent ) : QwtPlotPicker( parent )
+#else
+Picker::Picker( QWidget * parent ) : QwtPlotPicker( parent )
+#endif
 {
     setTrackerMode(QwtPicker::AlwaysOn);
-	setMousePattern( QwtEventPattern::MouseSelect1,  Qt::RightButton );
-	setStateMachine( new QwtPickerDragRectMachine() );
+    setMousePattern( QwtEventPattern::MouseSelect1,  Qt::RightButton );
+    setStateMachine( new QwtPickerDragRectMachine() );
 
-	setRubberBand( QwtPicker::RectRubberBand );
+    setRubberBand( QwtPicker::RectRubberBand );
     setRubberBandPen( QColor(Qt::red) );
-	setTrackerPen( QColor( Qt::red ) );
+    setTrackerPen( QColor( Qt::red ) );
 }
 
 void

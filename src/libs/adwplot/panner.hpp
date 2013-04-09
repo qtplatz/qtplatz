@@ -32,8 +32,12 @@ namespace adwplot {
 	class Panner : public QwtPlotPanner {
 		Q_OBJECT
 	public:
-		explicit Panner( QwtPlotCanvas * parent = 0 );
-		void panne( int dx, int dy );
+#if QWT_VERSION >= 0x060100
+	  explicit Panner( QWidget * parent = 0 );
+#else
+	  explicit Panner( QwtPlotCanvas * parent = 0 );
+#endif
+	  void panne( int dx, int dy );
 
     signals:
     

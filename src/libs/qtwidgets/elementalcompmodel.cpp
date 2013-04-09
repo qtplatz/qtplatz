@@ -34,8 +34,8 @@ ElementalCompModel::ElementalCompModel(QObject *parent) :
     roles[ AtomRole ] = "atom";
     roles[ MinimumRole ] = "Minimum";
     roles[ MaximumRole ] = "Maximum";
-    setRoleNames( roles );
-    reset();
+    // setRoleNames( roles );
+    // reset();
 }
 
 ElementalCompModel::ElectronMode
@@ -185,7 +185,7 @@ ElementalCompModel::removeRow( int rowIndex )
 {
     if ( rowIndex >= 0 && unsigned( rowIndex ) < method_.size() - 1 ) {
         method_.erase( method_.begin() + rowIndex, method_.end() + rowIndex + 1 );
-        reset();
+        // reset();
     }
 }
 

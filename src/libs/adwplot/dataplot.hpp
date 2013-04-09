@@ -37,44 +37,44 @@ namespace adwplot {
     class Traces;
     class Trace;
     class Zoomer;
-	class Picker;
-	class Panner;
-
-	class Dataplot : public QwtPlot, boost::noncopyable {
-        Q_OBJECT
+  class Picker;
+  class Panner;
+  
+  class Dataplot : public QwtPlot, boost::noncopyable {
+    Q_OBJECT
     public:
-        explicit Dataplot(QWidget *parent = 0);
-		~Dataplot();
-        template<class T> T get();
-
-        void setTitle( const std::wstring& );
-
-        void link( Dataplot * );
-        void unlink();
-
-    private:
-		typedef std::vector<Dataplot *> plotlink;
-		boost::shared_ptr< plotlink > plotlink_;
-		bool linkedzoom_inprocess_;
-		void zoom( const QRectF&, const Dataplot& );
-		void panne( int dx, int dy, const Dataplot& );
-
-    protected:
-		virtual void zoom( const QRectF& );
-
-    signals:
-
-    protected slots:
-		virtual void onZoomed( const QRectF& );
-		virtual void onPanned( int dx, int dy );
-
-    protected:
-        boost::scoped_ptr< Zoomer > zoomer1_;  // left bottom
-        boost::scoped_ptr< Zoomer > zoomer2_;  // right top
-        boost::scoped_ptr< Picker > picker_;
-        boost::scoped_ptr< Panner > panner_;
-    };
-
+    explicit Dataplot(QWidget *parent = 0);
+    ~Dataplot();
+    template<class T> T get();
+    
+    void setTitle( const std::wstring& );
+    
+    void link( Dataplot * );
+    void unlink();
+    
+  private:
+    typedef std::vector<Dataplot *> plotlink;
+    boost::shared_ptr< plotlink > plotlink_;
+    bool linkedzoom_inprocess_;
+    void zoom( const QRectF&, const Dataplot& );
+    void panne( int dx, int dy, const Dataplot& );
+    
+  protected:
+    virtual void zoom( const QRectF& );
+    
+  signals:
+      
+  protected slots:
+    virtual void onZoomed( const QRectF& );
+    virtual void onPanned( int dx, int dy );
+    
+  protected:
+    boost::scoped_ptr< Zoomer > zoomer1_;  // left bottom
+    boost::scoped_ptr< Zoomer > zoomer2_;  // right top
+    boost::scoped_ptr< Picker > picker_;
+    boost::scoped_ptr< Panner > panner_;
+  };
+  
 }
 
 

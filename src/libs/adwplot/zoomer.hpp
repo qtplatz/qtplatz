@@ -35,26 +35,30 @@ namespace adwplot {
     class Zoomer : public QwtPlotZoomer {
         Q_OBJECT
     public:
-        Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas );
-        void autoYScale( bool );
+#if QWT_VERSION >= 0x060100
+      Zoomer( int xAxis, int yAxis, QWidget * canvas );
+#else // 0x060003 or earlier
+      Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas );
+#endif
+      void autoYScale( bool );
 
-		// QwtPlotZoomer
-        virtual void zoom( const QRectF& );
+      // QwtPlotZoomer
+      virtual void zoom( const QRectF& );
     private:
-        bool autoYScale_;
-		enum { HLineRubberBand, VLineRubberBand, RectRubberBand } rubberBand_;
-	protected:
-		// virtual void widgetMousePressEvent( QMouseEvent * );
-		// virtual void widgetMouseReleaseEvent( QMouseEvent * );
-		virtual void widgetMouseDoubleClickEvent( QMouseEvent * );
-		// virtual void widgetMouseMoveEvent( QMouseEvent * );
-
-		// QwtPlotZoomer
-		virtual bool accept( QPolygon & ) const;
-
-		// QwtPicker
-		virtual void drawRubberBand( QPainter * ) const;
-
+      bool autoYScale_;
+      enum { HLineRubberBand, VLineRubberBand, RectRubberBand } rubberBand_;
+    protected:
+      // virtual void widgetMousePressEvent( QMouseEvent * );
+      // virtual void widgetMouseReleaseEvent( QMouseEvent * );
+      virtual void widgetMouseDoubleClickEvent( QMouseEvent * );
+      // virtual void widgetMouseMoveEvent( QMouseEvent * );
+      
+      // QwtPlotZoomer
+      virtual bool accept( QPolygon & ) const;
+      
+      // QwtPicker
+      virtual void drawRubberBand( QPainter * ) const;
+      
     signals:
         void zoom_override( QRectF& );
     };
