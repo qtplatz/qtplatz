@@ -76,6 +76,7 @@
 #include <QtCore/QTimer>
 #include <QtCore/QtPlugin>
 #include <QtCore/QUrl>
+#include <QtCore/QMimeData>
 
 #include <QtGui/QCloseEvent>
 #include <QtGui/QPixmap>

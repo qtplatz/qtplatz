@@ -6,6 +6,7 @@ QT += xml \
     script \
     svg \
     sql
+
 include(../../qtplatz_plugin.pri)
 include(../../libs/utils/utils.pri)
 include(../../shared/scriptwrapper/scriptwrapper.pri)

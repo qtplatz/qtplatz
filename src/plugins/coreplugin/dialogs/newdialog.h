@@ -30,6 +30,8 @@
 #ifndef NEWDIALOG_H
 #define NEWDIALOG_H
 
+#include <qglobal.h>
+
 #if QT_VERSION >= 0x050000
 # include <QtWidgets/QDialog>
 #else

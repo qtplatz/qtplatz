@@ -49,7 +49,7 @@ static inline Core::IWizard *wizardOfItem(const QTreeWidgetItem *item = 0)
 {
     if (!item)
         return 0;
-    return qVariantValue<Core::IWizard*>(item->data(0, Qt::UserRole));
+    return item->data(0, Qt::UserRole).value<Core::IWizard*>();
 }
 
 using namespace Core;

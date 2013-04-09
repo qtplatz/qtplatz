@@ -32,7 +32,11 @@
 
 #include "core_global.h"
 
-#include <QtGui/QWindowsStyle>
+#if QT_VERSION >= 0x050000
+# include <QProxyStyle>
+#else
+# include <QtGui/QWindowsStyle>
+#endif
 
 QT_BEGIN_NAMESPACE
 class QLinearGradient;
@@ -41,7 +45,11 @@ QT_END_NAMESPACE
 
 class ManhattanStylePrivate;
 
+#if QT_VERSION >= 0x050000
+class CORE_EXPORT ManhattanStyle : public QProxyStyle
+#else
 class CORE_EXPORT ManhattanStyle : public QWindowsStyle
+#endif
 {
     Q_OBJECT
 

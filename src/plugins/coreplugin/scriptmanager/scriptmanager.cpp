@@ -105,7 +105,11 @@ static QScriptValue inputDialogGetInteger(QScriptContext *context, QScriptEngine
     const int maxValue = argumentCount > 5 ? context->argument(5).toInt32() : INT_MAX;
 
     bool ok;
+#if QT_VERSION >= 0x050000
+    const int rc = QInputDialog::getInt(parent, title, label, defaultValue, minValue, maxValue, 1, &ok, 0);
+#else
     const int rc = QInputDialog::getInteger(parent, title, label,  defaultValue, minValue, maxValue, 1, &ok);
+#endif
     if (!ok)
         return QScriptValue(engine, QScriptValue::NullValue);
     return QScriptValue(engine, rc);

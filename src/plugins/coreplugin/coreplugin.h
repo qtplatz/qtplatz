@@ -41,7 +41,9 @@ class MainWindow;
 class CorePlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-
+#if QT_VERSION >= 0x050000
+      Q_PLUGIN_METADATA(IID "com.qtplatz.coreplugin" FILE "coreplugin.dll")
+#endif
 public:
     CorePlugin();
     ~CorePlugin();

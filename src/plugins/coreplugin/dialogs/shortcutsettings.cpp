@@ -166,7 +166,8 @@ void ShortcutSettings::commandChanged(QTreeWidgetItem *current)
         return;
     }
     m_page->seqGrp->setEnabled(true);
-    ShortcutItem *scitem = qVariantValue<ShortcutItem *>(current->data(0, Qt::UserRole));
+    // ShortcutItem *scitem = qVariantValue<ShortcutItem *>(current->data(0, Qt::UserRole));
+    ShortcutItem *scitem = current->data(0, Qt::UserRole).value<ShortcutItem *>();
     setKeySequence(scitem->m_key);
 }
 
@@ -182,9 +183,14 @@ void ShortcutSettings::keyChanged()
 {
     QTreeWidgetItem *current = m_page->commandList->currentItem();
     if (current && current->data(0, Qt::UserRole).isValid()) {
-        ShortcutItem *scitem = qVariantValue<ShortcutItem *>(current->data(0, Qt::UserRole));
-        scitem->m_key = QKeySequence(m_key[0], m_key[1], m_key[2], m_key[3]);
-        current->setText(2, scitem->m_key);
+      // ShortcutItem *scitem = qVariantValue<ShortcutItem *>(current->data(0, Qt::UserRole));
+      ShortcutItem *scitem = current->data(0, Qt::UserRole).value<ShortcutItem *>();
+      scitem->m_key = QKeySequence(m_key[0], m_key[1], m_key[2], m_key[3]);
+#if QT_VERSION >= 0x050000
+      current->setText(2, scitem->m_key.toString() );
+#else
+      current->setText(2, scitem->m_key);
+#endif
     }
 }
 
@@ -195,7 +201,11 @@ void ShortcutSettings::setKeySequence(const QKeySequence &key)
     for (int i = 0; i < m_keyNum; ++i) {
         m_key[i] = key[i];
     }
+#if QT_VERSION >= 0x050000
+    m_page->shortcutEdit->setText(key.toString());
+#else
     m_page->shortcutEdit->setText(key);
+#endif
 }
 
 bool ShortcutSettings::filter(const QString &f, const QTreeWidgetItem *item)
@@ -227,8 +237,9 @@ void ShortcutSettings::resetKeySequence()
 {
     QTreeWidgetItem *current = m_page->commandList->currentItem();
     if (current && current->data(0, Qt::UserRole).isValid()) {
-        ShortcutItem *scitem = qVariantValue<ShortcutItem *>(current->data(0, Qt::UserRole));
-        setKeySequence(scitem->m_cmd->defaultKeySequence());
+      // ShortcutItem *scitem = qVariantValue<ShortcutItem *>(current->data(0, Qt::UserRole));
+      ShortcutItem *scitem = current->data(0, Qt::UserRole).value<ShortcutItem *>();
+      setKeySequence(scitem->m_cmd->defaultKeySequence());
     }
 }
 
@@ -253,7 +264,11 @@ void ShortcutSettings::importAction()
             QString sid = uidm->stringForUniqueIdentifier(item->m_cmd->id());
             if (mapping.contains(sid)) {
                 item->m_key = mapping.value(sid);
+#if QT_VERSION >= 0x050000
+                item->m_item->setText(2, item->m_key.toString());
+#else
                 item->m_item->setText(2, item->m_key);
+#endif
                 if (item->m_item == m_page->commandList->currentItem())
                     commandChanged(item->m_item);
             }
@@ -265,7 +280,11 @@ void ShortcutSettings::defaultAction()
 {
     foreach (ShortcutItem *item, m_scitems) {
         item->m_key = item->m_cmd->defaultKeySequence();
+#if QT_VERSION >= 0x050000
+        item->m_item->setText(2, item->m_key.toString());
+#else
         item->m_item->setText(2, item->m_key);
+#endif
         if (item->m_item == m_page->commandList->currentItem())
             commandChanged(item->m_item);
     }
@@ -313,8 +332,11 @@ void ShortcutSettings::initialize()
             s->m_key = c->shortcut()->key();
             item->setText(1, c->shortcut()->whatsThis());
         }
-
+#if QT_VERSION >= 0x050000
+        item->setText(2, s->m_key.toString());
+#else
         item->setText(2, s->m_key);
+#endif
         item->setData(0, Qt::UserRole, qVariantFromValue(s));
     }
 }
@@ -348,7 +370,11 @@ void ShortcutSettings::handleKeyEvent(QKeyEvent *e)
     }
     m_keyNum++;
     QKeySequence ks(m_key[0], m_key[1], m_key[2], m_key[3]);
+#if QT_VERSION >= 0x050000
+    m_page->shortcutEdit->setText(ks.toString());
+#else
     m_page->shortcutEdit->setText(ks);
+#endif
     e->accept();
 }
 

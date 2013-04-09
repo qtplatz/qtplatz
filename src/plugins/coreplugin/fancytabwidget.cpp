@@ -34,8 +34,13 @@
 #include <QDebug>
 
 #include <QtGui/QMouseEvent>
-#include <QtGui/QWindowsStyle>
+
 #include <QtGui/QPainter>
+#if QT_VERSION >= 0x050000
+# include <QtWidgets/QProxyStyle>
+#else
+# include <QtGui/QWindowsStyle>
+#endif
 
 #if QT_VERSION >= 0x050000
 #include <QtWidgets/QColorDialog>
@@ -69,7 +74,11 @@ FancyTabBar::FancyTabBar(QWidget *parent)
     m_hoverIndex = -1;
     m_currentIndex = 0;
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-    setStyle(new QWindowsStyle);
+#if QT_VERSION >= 0x050000
+    setStyle( new QProxyStyle );
+#else
+    setStyle( new QWindowsStyle );
+#endif
     setMinimumWidth(qMax(2 * m_rounding, 40));
     setAttribute(Qt::WA_Hover, true);
     setFocusPolicy(Qt::NoFocus);
