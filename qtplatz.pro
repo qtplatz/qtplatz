@@ -10,6 +10,7 @@ TEMPLATE  = subdirs
 CONFIG   += ordered
 INCLUDEPATH += /usr/local/include
 
-SUBDIRS = src
+SUBDIRS = src \
+    share
 
-#unix:!macx:!isEmpty(copydata):SUBDIRS += bin
+unix:!macx:!isEmpty(copydata):SUBDIRS += bin
