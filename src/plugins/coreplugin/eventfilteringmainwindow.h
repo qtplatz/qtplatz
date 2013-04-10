@@ -30,6 +30,8 @@
 #ifndef EVENTFILTERINGMAINWINDOW_H
 #define EVENTFILTERINGMAINWINDOW_H
 
+#include <qglobal.h>
+
 #if QT_VERSION >= 0x050000
 # include <QtWidgets/QMainWindow>
 #else

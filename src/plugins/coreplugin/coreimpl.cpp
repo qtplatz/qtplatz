@@ -110,10 +110,10 @@ ProgressManager *CoreImpl::progressManager() const
     return m_mainwindow->progressManager();
 }
 
-ScriptManager *CoreImpl::scriptManager() const
-{
-    return m_mainwindow->scriptManager();
-}
+// ScriptManager *CoreImpl::scriptManager() const
+// {
+//     return m_mainwindow->scriptManager();
+// }
 
 VariableManager *CoreImpl::variableManager() const
 {

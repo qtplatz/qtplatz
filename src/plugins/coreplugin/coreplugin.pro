@@ -9,18 +9,17 @@ QT += xml \
 
 include(../../qtplatz_plugin.pri)
 include(../../libs/utils/utils.pri)
-include(../../shared/scriptwrapper/scriptwrapper.pri)
+#include(../../shared/scriptwrapper/scriptwrapper.pri)
 include(coreplugin_dependencies.pri)
 INCLUDEPATH += dialogs \
     actionmanager \
     editormanager \
-    progressmanager \
-    scriptmanager
+    progressmanager
 
 DEPENDPATH += dialogs \
     actionmanager \
-    editormanager \
-    scriptmanager
+    editormanager
+
 SOURCES += mainwindow.cpp \
     editmode.cpp \
     tabpositionindicator.cpp \
@@ -55,8 +54,6 @@ SOURCES += mainwindow.cpp \
     progressmanager/progressview.cpp \
     progressmanager/progresspie.cpp \
     progressmanager/futureprogress.cpp \
-    scriptmanager/scriptmanager.cpp \
-    scriptmanager/qworkbench_wrapper.cpp \
     basemode.cpp \
     baseview.cpp \
     coreplugin.cpp \
@@ -134,10 +131,6 @@ HEADERS += mainwindow.h \
     ifilewizardextension.h \
     icorelistener.h \
     versiondialog.h \
-    scriptmanager/metatypedeclarations.h \
-    scriptmanager/qworkbench_wrapper.h \
-    scriptmanager/scriptmanager.h \
-    scriptmanager/scriptmanager_p.h \
     core_global.h \
     basemode.h \
     baseview.h \

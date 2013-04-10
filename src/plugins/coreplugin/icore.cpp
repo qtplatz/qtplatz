@@ -28,6 +28,11 @@
 **************************************************************************/
 
 #include "icore.h"
+#include <extensionsystem/pluginmanager.h>
+#include <QSettings>
+#include <QFileInfo>
+#include <QDir>
+#include <QDebug>
 
 /*!
     \namespace Core
@@ -359,3 +364,20 @@
     \brief Sent just after a new \a context became the current context
     (meaning that its widget got focus).
 */
+
+QString Core::ICore::userResourcePath()
+{
+  return ".";
+    // // Create qtcreator dir if it doesn't yet exist
+    // const QString configDir = QFileInfo(settings(QSettings::UserScope)->fileName()).path();
+    // const QString urp = configDir + QLatin1String("/qtcreator");
+
+    // QFileInfo fi(urp + QLatin1Char('/'));
+    // if (!fi.exists()) {
+    //     QDir dir;
+    //     if (!dir.mkpath(urp))
+    // 	  qWarning() << "could not create" << urp;:1
+    // }
+
+    // return urp;
+}
