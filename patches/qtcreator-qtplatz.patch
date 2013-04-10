@@ -1,0 +1,211 @@
+diff --git a/qtcreator.pri b/qtcreator.pri
+index efc264b..cf4b287 100644
+--- a/qtcreator.pri
++++ b/qtcreator.pri
+@@ -120,7 +120,7 @@ isEmpty(IDE_BUILD_TREE) {
+ }
+ IDE_APP_PATH = $$IDE_BUILD_TREE/bin
+ macx {
+-    IDE_APP_TARGET   = "Qt Creator"
++    IDE_APP_TARGET   = "QtPlatz"
+     IDE_LIBRARY_PATH = $$IDE_APP_PATH/$${IDE_APP_TARGET}.app/Contents/PlugIns
+     IDE_PLUGIN_PATH  = $$IDE_LIBRARY_PATH
+     IDE_LIBEXEC_PATH = $$IDE_APP_PATH/$${IDE_APP_TARGET}.app/Contents/Resources
+@@ -138,12 +138,12 @@ macx {
+     }
+ } else {
+     contains(TEMPLATE, vc.*):vcproj = 1
+-    IDE_APP_TARGET   = qtcreator
+-    IDE_LIBRARY_PATH = $$IDE_BUILD_TREE/$$IDE_LIBRARY_BASENAME/qtcreator
++    IDE_APP_TARGET   = qtplatz
++    IDE_LIBRARY_PATH = $$IDE_BUILD_TREE/$$IDE_LIBRARY_BASENAME/qtplatz
+     IDE_PLUGIN_PATH  = $$IDE_LIBRARY_PATH/plugins
+     IDE_LIBEXEC_PATH = $$IDE_APP_PATH # FIXME
+-    IDE_DATA_PATH    = $$IDE_BUILD_TREE/share/qtcreator
+-    IDE_DOC_PATH     = $$IDE_BUILD_TREE/share/doc/qtcreator
++    IDE_DATA_PATH    = $$IDE_BUILD_TREE/share/qtplatz
++    IDE_DOC_PATH     = $$IDE_BUILD_TREE/share/doc/qtplatz
+     IDE_BIN_PATH     = $$IDE_APP_PATH
+     !isEqual(IDE_SOURCE_TREE, $$IDE_BUILD_TREE):copydata = 1
+ }
+diff --git a/qtcreator.pro b/qtcreator.pro
+index 091b693..927a317 100644
+--- a/qtcreator.pro
++++ b/qtcreator.pro
+@@ -6,12 +6,12 @@ include(qtcreator.pri)
+     error("Use at least Qt 4.8.0.")
+ }
+ 
+-include(doc/doc.pri)
++#include(doc/doc.pri)
+ 
+ TEMPLATE  = subdirs
+ CONFIG   += ordered
+ 
+-SUBDIRS = src share lib/qtcreator/qtcomponents
++SUBDIRS = src share # lib/qtcreator/qtcomponents
+ unix:!macx:!isEmpty(copydata):SUBDIRS += bin
+ !isEmpty(BUILD_TESTS):SUBDIRS += tests
+ 
+diff --git a/src/libs/libs.pro b/src/libs/libs.pro
+index e15a164..b87b129 100644
+--- a/src/libs/libs.pro
++++ b/src/libs/libs.pro
+@@ -3,15 +3,16 @@ TEMPLATE  = subdirs
+ SUBDIRS   = \
+     aggregation \
+     extensionsystem \
+-    utils \
+-    languageutils \
+-    cplusplus \
+-    qmljs \
+-    qmldebug \
+-    qmleditorwidgets \
+-    glsl \
+-    ssh \
+-    zeroconf
++    utils 
++
++#    languageutils \
++#    cplusplus \
++#    qmljs \
++#    qmldebug \
++#    qmleditorwidgets \
++#    glsl \
++#    ssh \
++#    zeroconf
+ 
+ for(l, SUBDIRS) {
+     QTC_LIB_DEPENDS =
+@@ -20,16 +21,16 @@ for(l, SUBDIRS) {
+     $$lv = $$QTC_LIB_DEPENDS
+ }
+ 
+-SUBDIRS += \
+-    utils/process_stub.pro \
+-    qtcomponents/styleitem
++#SUBDIRS += \
++#    utils/process_stub.pro \
++#    qtcomponents/styleitem
+ 
+-exists(../shared/qbs/qbs.pro):SUBDIRS += \
+-    ../shared/qbs/src/lib \
+-    ../shared/qbs/src/plugins \
+-    ../shared/qbs/static.pro
++#exists(../shared/qbs/qbs.pro):SUBDIRS += \
++#    ../shared/qbs/src/lib \
++#    ../shared/qbs/src/plugins \
++#    ../shared/qbs/static.pro
+ 
+-win32:SUBDIRS += utils/process_ctrlc_stub.pro
++#win32:SUBDIRS += utils/process_ctrlc_stub.pro
+ 
+ # Windows: Compile Qt Creator CDB extension if Debugging tools can be detected.    
+ win32 {
+diff --git a/src/plugins/plugins.pro b/src/plugins/plugins.pro
+index 89e63ac..87407e4 100644
+--- a/src/plugins/plugins.pro
++++ b/src/plugins/plugins.pro
+@@ -3,101 +3,5 @@ include(../../qtcreator.pri)
+ TEMPLATE  = subdirs
+ 
+ SUBDIRS   = \
+-    coreplugin \
+-    welcome \
+-    find \
+-    texteditor \
+-    cppeditor \
+-    bineditor \
+-    diffeditor \
+-    imageviewer \
+-    bookmarks \
+-    projectexplorer \
+-    vcsbase \
+-    perforce \
+-    subversion \
+-    git \
+-    cvs \
+-    cpptools \
+-    qtsupport \
+-    qt4projectmanager \
+-    locator \
+-    debugger \
+-    help \
+-    cpaster \
+-    cmakeprojectmanager \
+-    autotoolsprojectmanager \
+-    fakevim \
+-    designer \
+-    resourceeditor \
+-    genericprojectmanager \
+-    qmljseditor \
+-    glsleditor \
+-    pythoneditor \
+-    mercurial \
+-    bazaar \
+-    classview \
+-    tasklist \
+-    analyzerbase \
+-    qmljstools \
+-    macros \
+-    remotelinux \
+-    android \
+-    madde \
+-    valgrind \
+-    todo \
+-    qnx
++    coreplugin
+ 
+-exists(../shared/qbs/qbs.pro): \
+-    SUBDIRS += \
+-        qbsprojectmanager
+-
+-isEmpty(IDE_PACKAGE_MODE) {
+-    SUBDIRS += \
+-        helloworld \
+-        updateinfo
+-} else:!isEmpty(UPDATEINFO_ENABLE) {
+-    SUBDIRS += \
+-        updateinfo
+-}
+-
+-!macx: \
+-    SUBDIRS += \
+-        clearcase
+-
+-contains(QT_CONFIG, declarative)|!isEmpty(QT.declarative.name) {
+-    SUBDIRS += \
+-        qmlprojectmanager \
+-        qmlprofiler
+-
+-    greaterThan(QT_MAJOR_VERSION, 4) {
+-        SUBDIRS += \
+-            qmldesigner
+-    } else {
+-        include(../private_headers.pri)
+-        exists($${QT_PRIVATE_HEADERS}/QtDeclarative/private/qdeclarativecontext_p.h) {
+-            SUBDIRS += \
+-                qmldesigner
+-        } else {
+-            warning("QmlDesigner plugin has been disabled.")
+-            warning("The plugin depends on private headers from QtDeclarative module.")
+-            warning("To enable it, pass 'QT_PRIVATE_HEADERS=$QTDIR/include' to qmake, where $QTDIR is the source directory of qt.")
+-        }
+-    }
+-} else {
+-    warning("QmlProjectManager, QmlProfiler and QmlDesigner plugins have been disabled: The plugins require QtDeclarative");
+-}
+-
+-for(p, SUBDIRS) {
+-    QTC_PLUGIN_DEPENDS =
+-    include($$p/$${p}_dependencies.pri)
+-    pv = $${p}.depends
+-    $$pv = $$QTC_PLUGIN_DEPENDS
+-}
+-
+-SUBDIRS += debugger/dumper.pro
+-linux-* {
+-     SUBDIRS += debugger/ptracepreload.pro
+-}
+-
+-include (debugger/lldblib/guest/qtcreator-lldb.pri)
