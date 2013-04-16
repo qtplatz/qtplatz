@@ -33,15 +33,9 @@
 #include <QtCore/QPointer>
 #include <QtCore/QTime>
 #include <QtCore/QBasicTimer>
+#include <QtGui/QStyle>
 #include <QtGui/QPainter>
-
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QStyle>
-# include <QtWidgets/QWidget>
-#else
-# include <QtGui/QStyle>
-# include <QtGui/QWidget>
-#endif
+#include <QtGui/QWidget>
 
 /* 
  * This is a set of helper classes to allow for widget animations in

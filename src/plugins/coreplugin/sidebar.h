@@ -32,13 +32,8 @@
 
 #include <QtCore/QMap>
 #include <QtCore/QPointer>
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QWidget>
-# include <QtWidgets/QComboBox>
-#else
-# include <QtGui/QWidget>
-# include <QtGui/QComboBox>
-#endif
+#include <QtGui/QWidget>
+#include <QtGui/QComboBox>
 
 #include <coreplugin/minisplitter.h>
 

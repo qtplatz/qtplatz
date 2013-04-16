@@ -29,19 +29,12 @@
 
 #include "fancyactionbar.h"
 
+#include <QtGui/QHBoxLayout>
 #include <QtGui/QPainter>
 #include <QtGui/QPicture>
+#include <QtGui/QVBoxLayout>
 #include <QtSvg/QSvgRenderer>
-
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QHBoxLayout>
-# include <QtWidgets/QVBoxLayout>
-# include <QtWidgets/QAction>
-#else
-# include <QtGui/QHBoxLayout>
-# include <QtGui/QVBoxLayout>
-# include <QtGui/QAction>
-#endif
+#include <QtGui/QAction>
 
 using namespace Core;
 using namespace Internal;

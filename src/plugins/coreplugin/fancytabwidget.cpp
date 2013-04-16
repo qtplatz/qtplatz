@@ -33,34 +33,17 @@
 
 #include <QDebug>
 
-#include <QtGui/QMouseEvent>
-
-#include <QtGui/QPainter>
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QProxyStyle>
-#else
-# include <QtGui/QWindowsStyle>
-#endif
-
-#if QT_VERSION >= 0x050000
-#include <QtWidgets/QColorDialog>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QSplitter>
-#include <QtWidgets/QStackedLayout>
-#include <QtWidgets/QStatusBar>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QToolTip>
-#else
 #include <QtGui/QColorDialog>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QVBoxLayout>
+#include <QtGui/QMouseEvent>
+#include <QtGui/QWindowsStyle>
+#include <QtGui/QPainter>
 #include <QtGui/QSplitter>
 #include <QtGui/QStackedLayout>
 #include <QtGui/QStatusBar>
 #include <QtGui/QToolButton>
 #include <QtGui/QToolTip>
-#endif
 
 using namespace Core;
 using namespace Internal;
@@ -74,11 +57,7 @@ FancyTabBar::FancyTabBar(QWidget *parent)
     m_hoverIndex = -1;
     m_currentIndex = 0;
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-#if QT_VERSION >= 0x050000
-    setStyle( new QProxyStyle );
-#else
-    setStyle( new QWindowsStyle );
-#endif
+    setStyle(new QWindowsStyle);
     setMinimumWidth(qMax(2 * m_rounding, 40));
     setAttribute(Qt::WA_Hover, true);
     setFocusPolicy(Qt::NoFocus);

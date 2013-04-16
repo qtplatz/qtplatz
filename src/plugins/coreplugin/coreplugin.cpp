@@ -96,6 +96,4 @@ void CorePlugin::shutdown()
     m_mainWindow->shutdown();
 }
 
-#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN(CorePlugin)
-#endif

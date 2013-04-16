@@ -30,13 +30,7 @@
 #ifndef OPENWITHDIALOG_H
 #define OPENWITHDIALOG_H
 
-#include <qglobal.h>
-
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QDialog>
-#else
-# include <QtGui/QDialog>
-#endif
+#include <QtGui/QDialog>
 #include "ui_openwithdialog.h"
 
 namespace Core {

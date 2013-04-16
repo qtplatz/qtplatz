@@ -34,14 +34,8 @@
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/dialogs/iwizard.h>
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QHeaderView>
-# include <QtWidgets/QPushButton>
-#else
-# include <QtGui/QHeaderView>
-# include <QtGui/QPushButton>
-#endif
-
+#include <QtGui/QHeaderView>
+#include <QtGui/QPushButton>
 
 Q_DECLARE_METATYPE(Core::IWizard*)
 
@@ -49,7 +43,7 @@ static inline Core::IWizard *wizardOfItem(const QTreeWidgetItem *item = 0)
 {
     if (!item)
         return 0;
-    return item->data(0, Qt::UserRole).value<Core::IWizard*>();
+    return qVariantValue<Core::IWizard*>(item->data(0, Qt::UserRole));
 }
 
 using namespace Core;

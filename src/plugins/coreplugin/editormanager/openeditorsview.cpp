@@ -40,21 +40,12 @@
 #include <utils/qtcassert.h>
 
 #include <QtCore/QTimer>
+#include <QtGui/QMenu>
 #include <QtGui/QPainter>
+#include <QtGui/QStyle>
+#include <QtGui/QStyleOption>
+#include <QtGui/QHeaderView>
 #include <QtGui/QKeyEvent>
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QMenu>
-# include <QtWidgets/QStyle>
-# include <QtWidgets/QStyleOption>
-# include <QtWidgets/QHeaderView>
-#else
-# include <QtGui/QMenu>
-# include <QtGui/QStyle>
-# include <QtGui/QStyleOption>
-# include <QtGui/QHeaderView>
-#endif
-
-
 #ifdef Q_WS_MAC
 #include <qmacstyle_mac.h>
 #endif
@@ -121,13 +112,8 @@ OpenEditorsWidget::OpenEditorsWidget()
     m_ui.editorList->setSelectionMode(QAbstractItemView::SingleSelection);
     m_ui.editorList->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_ui.editorList->header()->setStretchLastSection(false);
-#if QT_VERSION >= 0x050000
-    m_ui.editorList->header()->setSectionResizeMode(0, QHeaderView::Stretch);
-    m_ui.editorList->header()->setSectionResizeMode(1, QHeaderView::Fixed);
-#else
     m_ui.editorList->header()->setResizeMode(0, QHeaderView::Stretch);
     m_ui.editorList->header()->setResizeMode(1, QHeaderView::Fixed);
-#endif
     m_ui.editorList->header()->resizeSection(1, 16);
     m_ui.editorList->setContextMenuPolicy(Qt::CustomContextMenu);
     m_ui.editorList->installEventFilter(this);

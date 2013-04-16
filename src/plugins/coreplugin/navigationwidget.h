@@ -32,11 +32,7 @@
 
 #include <coreplugin/minisplitter.h>
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QComboBox>
-#else
-# include <QtGui/QComboBox>
-#endif
+#include <QtGui/QComboBox>
 
 QT_BEGIN_NAMESPACE
 class QSettings;

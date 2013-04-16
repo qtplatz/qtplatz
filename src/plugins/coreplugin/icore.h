@@ -51,7 +51,7 @@ class MessageManager;
 class MimeDatabase;
 class ModeManager;
 class ProgressManager;
-// class ScriptManager;
+class ScriptManager;
 class SettingsDatabase;
 class UniqueIDManager;
 class VariableManager;
@@ -66,7 +66,6 @@ public:
     virtual ~ICore() {}
 
     static ICore *instance();
-    static QString userResourcePath();
 
     virtual QStringList showNewItemDialog(const QString &title,
                                           const QList<IWizard *> &wizards,
@@ -88,7 +87,7 @@ public:
     virtual MessageManager *messageManager() const = 0;
     virtual EditorManager *editorManager() const = 0;
     virtual ProgressManager *progressManager() const = 0;
-    // virtual ScriptManager *scriptManager() const = 0;
+    virtual ScriptManager *scriptManager() const = 0;
     virtual VariableManager *variableManager() const = 0;
     virtual VCSManager *vcsManager() const = 0;
     virtual ModeManager *modeManager() const = 0;

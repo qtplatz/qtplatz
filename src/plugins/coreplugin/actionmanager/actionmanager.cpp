@@ -37,19 +37,10 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
-
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QMenu>
-# include <QtWidgets/QAction>
-# include <QtWidgets/QShortcut>
-# include <QtWidgets/QMenuBar>
-#else
-# include <QtGui/QMenu>
-# include <QtGui/QAction>
-# include <QtGui/QShortcut>
-# include <QtGui/QMenuBar>
-#endif
-
+#include <QtGui/QMenu>
+#include <QtGui/QAction>
+#include <QtGui/QShortcut>
+#include <QtGui/QMenuBar>
 
 namespace {
     enum { warnAboutFindFailures = 0 };

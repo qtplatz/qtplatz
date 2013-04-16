@@ -31,15 +31,9 @@
 #define ACTIONCONTAINER_H
 
 #include <QtCore/QObject>
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QMenu>
-# include <QtWidgets/QMenuBar>
-# include <QtWidgets/QAction>
-#else
-# include <QtGui/QMenu>
-# include <QtGui/QMenuBar>
-# include <QtGui/QAction>
-#endif
+#include <QtGui/QMenu>
+#include <QtGui/QMenuBar>
+#include <QtGui/QAction>
 
 namespace Core {
 

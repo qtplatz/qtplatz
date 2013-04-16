@@ -30,28 +30,16 @@
 #ifndef QTC_ASSERT_H
 #define QTC_ASSERT_H
 
-#include "utils_global.h"
-// #include <QtCore/QDebug>
-namespace Utils { QTCREATOR_UTILS_EXPORT void writeAssertLocation(const char *msg); }
+#include <QtCore/QDebug>
 
-#define QTC_ASSERT_STRINGIFY_HELPER(x) #x
-#define QTC_ASSERT_STRINGIFY(x) QTC_ASSERT_STRINGIFY_HELPER(x)
-#define QTC_ASSERT_STRING(cond) ::Utils::writeAssertLocation(\
-    "\"" cond"\" in file " __FILE__ ", line " QTC_ASSERT_STRINGIFY(__LINE__))
-
-// The 'do {...} while (0)' idiom is not used for the main block here to be
-// able to use 'break' and 'continue' as 'actions'.
-
-/* #define QTC_ASSERT_STRINGIFY_INTERNAL(x) #x */
-/* #define QTC_ASSERT_STRINGIFY(x) QTC_ASSERT_STRINGIFY_INTERNAL(x) */
+#define QTC_ASSERT_STRINGIFY_INTERNAL(x) #x
+#define QTC_ASSERT_STRINGIFY(x) QTC_ASSERT_STRINGIFY_INTERNAL(x)
 
 // we do not use the  'do {...} while (0)' idiom here to be able to use
 // 'break' and 'continue' as 'actions'.
 
 #define QTC_ASSERT(cond, action) \
     if(cond){}else{qDebug()<<"ASSERTION " #cond " FAILED AT " __FILE__ ":" QTC_ASSERT_STRINGIFY(__LINE__);action;}
-
-#define QTC_CHECK(cond) if (cond) {} else { QTC_ASSERT_STRING(#cond); } do {} while (0)
 
 #endif // QTC_ASSERT_H
 

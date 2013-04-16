@@ -29,17 +29,10 @@
 
 #include "fancymainwindow.h"
 
+#include <QtGui/QAction>
 #include <QtCore/QSettings>
+#include <QtGui/QDockWidget>
 #include <QtCore/QSettings>
-
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QAction>
-# include <QtWidgets/QDockWidget>
-#else
-# include <QtGui/QAction>
-# include <QtGui/QDockWidget>
-#endif
-
 
 
 using namespace Utils;

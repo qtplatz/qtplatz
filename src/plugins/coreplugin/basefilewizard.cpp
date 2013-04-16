@@ -47,16 +47,9 @@
 #include <QtCore/QEventLoop>
 #include <QtCore/QSharedPointer>
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QMessageBox>
-# include <QtWidgets/QWizard>
-# include <QtWidgets/QMainWindow>
-#else
-# include <QtGui/QMessageBox>
-# include <QtGui/QWizard>
-# include <QtGui/QMainWindow>
-#endif
-
+#include <QtGui/QMessageBox>
+#include <QtGui/QWizard>
+#include <QtGui/QMainWindow>
 
 enum { debugWizard = 0 };
 

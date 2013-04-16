@@ -29,11 +29,7 @@
 
 #include "styleanimator.h"
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QStyleOption>
-#else
-# include <QtGui/QStyleOption>
-#endif
+#include <QtGui/QStyleOption>
 
 Animation * StyleAnimator::widgetAnimation(const QWidget *widget) const
 {

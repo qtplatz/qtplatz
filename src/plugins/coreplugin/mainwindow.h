@@ -57,7 +57,7 @@ class MimeDatabase;
 class ModeManager;
 class ProgressManager;
 class RightPaneWidget;
-// class ScriptManager;
+class ScriptManager;
 class SettingsDatabase;
 class UniqueIDManager;
 class VariableManager;
@@ -102,7 +102,7 @@ public:
     Core::MessageManager *messageManager() const;
     Core::EditorManager *editorManager() const;
     Core::ProgressManager *progressManager() const;
-    // Core::ScriptManager *scriptManager() const;
+    Core::ScriptManager *scriptManager() const;
     Core::VariableManager *variableManager() const;
     Core::ModeManager *modeManager() const;
     Core::MimeDatabase *mimeDatabase() const;
@@ -183,7 +183,7 @@ private:
     FileManager *m_fileManager;
     MessageManager *m_messageManager;
     ProgressManagerPrivate *m_progressManager;
-    // ScriptManager *m_scriptManager;
+    ScriptManager *m_scriptManager;
     VariableManager *m_variableManager;
     VCSManager *m_vcsManager;
     ViewManager *m_viewManager;

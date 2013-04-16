@@ -62,7 +62,7 @@ public:
     MessageManager *messageManager() const;
     EditorManager *editorManager() const;
     ProgressManager *progressManager() const;
-    // ScriptManager *scriptManager() const { return 0; }
+    ScriptManager *scriptManager() const;
     VariableManager *variableManager() const;
     VCSManager *vcsManager() const;
     ModeManager *modeManager() const;

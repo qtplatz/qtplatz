@@ -32,11 +32,7 @@
 
 #include "utils_global.h"
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QToolButton>
-#else
-# include <QtGui/QToolButton>
-#endif
+#include <QtGui/QToolButton>
 
 namespace Utils {
 

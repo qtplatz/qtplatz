@@ -45,31 +45,18 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QMimeData>
 
+#include <QtGui/QApplication>
+#include <QtGui/QComboBox>
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QLabel>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
+#include <QtGui/QStackedWidget>
+#include <QtGui/QStyle>
+#include <QtGui/QStyleOption>
+#include <QtGui/QToolButton>
+#include <QtGui/QMenu>
 #include <QtGui/QClipboard>
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QApplication>
-# include <QtWidgets/QComboBox>
-# include <QtWidgets/QHBoxLayout>
-# include <QtWidgets/QLabel>
-# include <QtWidgets/QStackedWidget>
-# include <QtWidgets/QStyle>
-# include <QtWidgets/QStyleOption>
-# include <QtWidgets/QToolButton>
-# include <QtWidgets/QMenu>
-#else
-# include <QtGui/QApplication>
-# include <QtGui/QComboBox>
-# include <QtGui/QHBoxLayout>
-# include <QtGui/QLabel>
-# include <QtGui/QStackedWidget>
-# include <QtGui/QStyle>
-# include <QtGui/QStyleOption>
-# include <QtGui/QToolButton>
-# include <QtGui/QMenu>
-#endif
-
 
 #ifdef Q_WS_MAC
 #include <qmacstyle_mac.h>

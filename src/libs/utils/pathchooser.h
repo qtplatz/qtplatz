@@ -32,13 +32,8 @@
 
 #include "utils_global.h"
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QWidget>
-# include <QtWidgets/QAbstractButton>
-#else
-# include <QtGui/QWidget>
-# include <QtGui/QAbstractButton>
-#endif
+#include <QtGui/QWidget>
+#include <QtGui/QAbstractButton>
 
 namespace Utils {
 

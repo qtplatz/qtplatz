@@ -32,7 +32,7 @@
 
 #include "utils_global.h"
 
-#include <QtWidgets/QWizardPage>
+#include <QtGui/QWizardPage>
 
 namespace Utils {
 

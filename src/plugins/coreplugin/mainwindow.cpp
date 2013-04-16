@@ -49,7 +49,7 @@
 #include "shortcutsettings.h"
 #include "vcsmanager.h"
 
-//#include "scriptmanager_p.h"
+#include "scriptmanager_p.h"
 #include "settingsdialog.h"
 #include "variablemanager.h"
 #include "versiondialog.h"
@@ -76,30 +76,18 @@
 #include <QtCore/QTimer>
 #include <QtCore/QtPlugin>
 #include <QtCore/QUrl>
-#include <QtCore/QMimeData>
 
+#include <QtGui/QApplication>
 #include <QtGui/QCloseEvent>
+#include <QtGui/QMenu>
 #include <QtGui/QPixmap>
-
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QApplication>
-# include <QtWidgets/QMenu>
-# include <QtWidgets/QShortcut>
-# include <QtWidgets/QStatusBar>
-# include <QtWidgets/QWizard>
-# include <QtWidgets/QToolButton>
-# include <QtWidgets/QMessageBox>
-# include <QtPrintSupport/QPrinter>
-#else
-# include <QtGui/QApplication>
-# include <QtGui/QMenu>
-# include <QtGui/QShortcut>
-# include <QtGui/QStatusBar>
-# include <QtGui/QWizard>
-# include <QtGui/QToolButton>
-# include <QtGui/QMessageBox>
-# include <QtGui/QPrinter>
-#endif
+#include <QtGui/QPrinter>
+#include <QtGui/QShortcut>
+#include <QtGui/QStatusBar>
+#include <QtGui/QWizard>
+#include <QtGui/QPrinter>
+#include <QtGui/QToolButton>
+#include <QtGui/QMessageBox>
 
 /*
 #ifdef Q_OS_UNIX
@@ -136,7 +124,7 @@ MainWindow::MainWindow() :
     m_editorManager(0),
     m_fileManager(new FileManager(this)),
     m_progressManager(new ProgressManagerPrivate()),
-    // m_scriptManager(new ScriptManagerPrivate(this)),
+    m_scriptManager(new ScriptManagerPrivate(this)),
     m_variableManager(new VariableManager(this)),
     m_vcsManager(new VCSManager),
     m_viewManager(0),
@@ -983,10 +971,10 @@ ProgressManager *MainWindow::progressManager() const
     return m_progressManager;
 }
 
-// ScriptManager *MainWindow::scriptManager() const
-// {
-//      return m_scriptManager;
-// }
+ScriptManager *MainWindow::scriptManager() const
+{
+     return m_scriptManager;
+}
 
 VariableManager *MainWindow::variableManager() const
 {

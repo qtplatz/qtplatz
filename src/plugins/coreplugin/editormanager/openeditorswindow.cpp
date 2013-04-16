@@ -34,12 +34,7 @@
 
 #include <utils/qtcassert.h>
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QHeaderView>
-#else
-# include <QtGui/QHeaderView>
-#endif
-
+#include <QtGui/QHeaderView>
 
 Q_DECLARE_METATYPE(Core::Internal::EditorView*)
 Q_DECLARE_METATYPE(Core::IFile *)

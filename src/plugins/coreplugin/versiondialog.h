@@ -30,13 +30,7 @@
 #ifndef VERSIONDIALOG_H
 #define VERSIONDIALOG_H
 
-#include <qglobal.h>
-
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QDialog>
-#else
-# include <QtGui/QDialog>
-#endif
+#include <QtGui/QDialog>
 
 namespace Core {
 namespace Internal {

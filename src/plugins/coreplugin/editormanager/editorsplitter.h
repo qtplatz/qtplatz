@@ -34,9 +34,9 @@
 #include <QtCore/QList>
 #include <QtCore/QString>
 #include <QtCore/QSettings>
-#include <QtWidgets/QWidget>
-#include <QtWidgets/QAction>
-#include <QtWidgets/QSplitter>
+#include <QtGui/QWidget>
+#include <QtGui/QAction>
+#include <QtGui/QSplitter>
 
 namespace Core {
 

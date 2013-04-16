@@ -32,11 +32,7 @@
 
 #include <utils/qtcassert.h>
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QHBoxLayout>
-#else
-# include <QtGui/QHBoxLayout>
-#endif
+#include <QtGui/QHBoxLayout>
 
 using namespace Core;
 using namespace Core::Internal;

@@ -38,19 +38,11 @@
 #include <QtCore/QFile>
 #include <QtCore/QSysInfo>
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QDialogButtonBox>
-# include <QtWidgets/QGridLayout>
-# include <QtWidgets/QLabel>
-# include <QtWidgets/QPushButton>
-# include <QtWidgets/QTextBrowser>
-#else
-# include <QtGui/QDialogButtonBox>
-# include <QtGui/QGridLayout>
-# include <QtGui/QLabel>
-# include <QtGui/QPushButton>
-# include <QtGui/QTextBrowser>
-#endif
+#include <QtGui/QDialogButtonBox>
+#include <QtGui/QGridLayout>
+#include <QtGui/QLabel>
+#include <QtGui/QPushButton>
+#include <QtGui/QTextBrowser>
 
 using namespace Core;
 using namespace Core::Internal;
@@ -101,7 +93,7 @@ VersionDialog::VersionDialog(QWidget *parent)
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
     QPushButton *closeButton = buttonBox->button(QDialogButtonBox::Close);
-    // QTC_ASSERT(closeButton, /**/);
+    QTC_ASSERT(closeButton, /**/);
     buttonBox->addButton(closeButton, QDialogButtonBox::ButtonRole(QDialogButtonBox::RejectRole | QDialogButtonBox::AcceptRole));
     connect(buttonBox , SIGNAL(rejected()), this, SLOT(reject()));
 

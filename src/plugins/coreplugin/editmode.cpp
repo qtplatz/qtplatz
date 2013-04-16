@@ -41,15 +41,9 @@
 #include "ifile.h"
 
 #include <QtCore/QLatin1String>
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QHBoxLayout>
-# include <QtWidgets/QWidget>
-# include <QtWidgets/QSplitter>
-#else
-# include <QtGui/QHBoxLayout>
-# include <QtGui/QWidget>
-# include <QtGui/QSplitter>
-#endif
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QWidget>
+#include <QtGui/QSplitter>
 
 using namespace Core;
 using namespace Core::Internal;

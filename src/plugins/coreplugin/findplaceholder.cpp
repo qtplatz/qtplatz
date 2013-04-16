@@ -32,11 +32,7 @@
 
 #include <extensionsystem/pluginmanager.h>
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QVBoxLayout>
-#else
-# include <QtGui/QVBoxLayout>
-#endif
+#include <QtGui/QVBoxLayout>
 
 
 using namespace Core;

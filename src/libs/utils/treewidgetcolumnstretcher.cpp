@@ -28,18 +28,9 @@
 **************************************************************************/
 
 #include "treewidgetcolumnstretcher.h"
-
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QTreeWidget>
-# include <QtWidgets/QHeaderView>
-# include <QtWidgets>
+#include <QtGui/QTreeWidget>
 #include <QtGui/QHideEvent>
-#else
-# include <QtGui/QTreeWidget>
-# include <QtGui/QHideEvent>
-# include <QtGui/QHeaderView>
-#endif
-
+#include <QtGui/QHeaderView>
 using namespace Utils;
 
 TreeWidgetColumnStretcher::TreeWidgetColumnStretcher(QTreeWidget *treeWidget, int columnToStretch)
@@ -55,29 +46,15 @@ bool TreeWidgetColumnStretcher::eventFilter(QObject *obj, QEvent *ev)
     if (obj == parent()) {
         if (ev->type() == QEvent::Show) {
             QHeaderView *hv = qobject_cast<QHeaderView*>(obj);
-            for (int i = 0; i < hv->count(); ++i) {
-#if QT_VERSION >= 0x050000
-                hv->setSectionResizeMode(i, QHeaderView::Interactive);
-#else
-                hv->setResizeMode(i, QHeaderView::Interactive);                
-#endif
-            }
+            for (int i = 0; i < hv->count(); ++i)
+                hv->setResizeMode(i, QHeaderView::Interactive);
         } else if (ev->type() == QEvent::Hide) {
             QHeaderView *hv = qobject_cast<QHeaderView*>(obj);
-            for (int i = 0; i < hv->count(); ++i) {
-#if QT_VERSION >= 0x050000
-                hv->setSectionResizeMode(i, i == m_columnToStretch ? QHeaderView::Stretch : QHeaderView::ResizeToContents);
-#else
+            for (int i = 0; i < hv->count(); ++i)
                 hv->setResizeMode(i, i == m_columnToStretch ? QHeaderView::Stretch : QHeaderView::ResizeToContents);
-#endif
-            }
         } else if (ev->type() == QEvent::Resize) {
             QHeaderView *hv = qobject_cast<QHeaderView*>(obj);
-#if QT_VERSION >= 0x050000
-            if (hv->sectionResizeMode(m_columnToStretch) == QHeaderView::Interactive) {
-#else
             if (hv->resizeMode(m_columnToStretch) == QHeaderView::Interactive) {
-#endif
                 QResizeEvent *re = static_cast<QResizeEvent*>(ev);
                 int diff = re->size().width() - re->oldSize().width() ;
                 hv->resizeSection(m_columnToStretch, qMax(32, hv->sectionSize(1) + diff));

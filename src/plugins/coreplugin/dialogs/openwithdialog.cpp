@@ -29,14 +29,8 @@
 
 #include "openwithdialog.h"
 
-#if QT_VERSION >= 0x050000
-#include <QtWidgets/QListWidget>
-#include <QtWidgets/QPushButton>
-#else
 #include <QtGui/QListWidget>
 #include <QtGui/QPushButton>
-#endif
-
 #include <QtCore/QFileInfo>
 
 using namespace Core;

@@ -30,10 +30,10 @@
 #include "detailswidget.h"
 #include "detailsbutton.h"
 
-#include <QtWidgets/QGridLayout>
+#include <QtGui/QGridLayout>
 #include <QtCore/QStack>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QGridLayout>
+#include <QtGui/QLabel>
+#include <QtGui/QGridLayout>
 #include <QtGui/QPainter>
 
 using namespace Utils;

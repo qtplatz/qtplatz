@@ -34,15 +34,9 @@
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QPair>
+#include <QtGui/QFileIconProvider>
 #include <QtGui/QIcon>
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QFileIconProvider>
-# include <QtWidgets/QStyle>
-#else
-# include <QtGui/QFileIconProvider>
-# include <QtGui/QStyle>
-#endif
-
+#include <QtGui/QStyle>
 
 namespace Core {
 

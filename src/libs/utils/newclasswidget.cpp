@@ -32,7 +32,7 @@
 
 #include <utils/filewizardpage.h>
 
-#include <QtWidgets/QFileDialog>
+#include <QtGui/QFileDialog>
 #include <QtCore/QFileInfo>
 #include <QtCore/QStringList>
 #include <QtCore/QDir>

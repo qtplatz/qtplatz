@@ -33,11 +33,7 @@
 #include "core_global.h"
 
 #include <QtCore/QMap>
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QWidget>
-#else
-# include <QtGui/QWidget>
-#endif
+#include <QtGui/QWidget>
 
 QT_BEGIN_NAMESPACE
 class QAction;

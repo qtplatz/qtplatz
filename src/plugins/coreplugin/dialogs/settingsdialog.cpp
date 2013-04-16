@@ -33,13 +33,8 @@
 #include "../icore.h"
 
 #include <QtCore/QSettings>
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QHeaderView>
-# include <QtWidgets/QPushButton>
-#else
-# include <QtGui/QHeaderView>
-# include <QtGui/QPushButton>
-#endif
+#include <QtGui/QHeaderView>
+#include <QtGui/QPushButton>
 
 namespace {
     struct PageData {

@@ -32,13 +32,7 @@
 
 #include "utils_global.h"
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QLineEdit>
-#else
-# include <QtGui/QLineEdit>
-#endif
-
-
+#include <QtGui/QLineEdit>
 
 namespace Utils {
 

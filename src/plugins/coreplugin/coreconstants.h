@@ -217,14 +217,6 @@ const char * const ICON_REPLACE          = ":/core/images/replace.png";
 const char * const ICON_RESET            = ":/core/images/reset.png";
 const char * const ICON_MAGNIFIER        = ":/core/images/magnifier.png";
 const char * const ICON_TOGGLE_SIDEBAR   = ":/core/images/sidebaricon.png";
-const char ICON_CLOSE_DOCUMENT[]     = ":/core/images/button_close.png";
-const char ICON_CLOSE[]              = ":/core/images/closebutton.png";
-const char ICON_CLOSE_DARK[]         = ":/core/images/darkclosebutton.png";
-const char ICON_SPLIT_HORIZONTAL[]   = ":/core/images/splitbutton_horizontal.png";
-const char ICON_SPLIT_VERTICAL[]     = ":/core/images/splitbutton_vertical.png";
-const char ICON_CLOSE_SPLIT_TOP[]    = ":/core/images/splitbutton_closetop.png";
-const char ICON_CLOSE_SPLIT_BOTTOM[] = ":/core/images/splitbutton_closebottom.png";
-
 
 // wizard kind
 const char * const WIZARD_TYPE_FILE      = "QtCreator::WizardType::File";

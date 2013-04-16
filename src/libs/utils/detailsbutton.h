@@ -30,8 +30,8 @@
 #ifndef DETAILSBUTTON_H
 #define DETAILSBUTTON_H
 
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QToolButton>
+#include <QtGui/QPushButton>
+#include <QtGui/QToolButton>
 
 #include "utils_global.h"
 

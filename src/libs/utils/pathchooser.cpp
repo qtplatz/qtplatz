@@ -38,21 +38,11 @@
 #include <QtCore/QSettings>
 
 #include <QtGui/QDesktopServices>
-
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QFileDialog>
-# include <QtWidgets/QHBoxLayout>
-# include <QtWidgets/QLineEdit>
-# include <QtWidgets/QToolButton>
-# include <QtWidgets/QPushButton>
-#else
-# include <QtGui/QFileDialog>
-# include <QtGui/QHBoxLayout>
-# include <QtGui/QLineEdit>
-# include <QtGui/QToolButton>
-# include <QtGui/QPushButton>
-#endif
-
+#include <QtGui/QFileDialog>
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QLineEdit>
+#include <QtGui/QToolButton>
+#include <QtGui/QPushButton>
 
 /*static*/ const char * const Utils::PathChooser::browseButtonLabel =
 #ifdef Q_WS_MAC
