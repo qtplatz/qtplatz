@@ -31,6 +31,8 @@ namespace adportable { namespace detail { struct winapi; } }
 typedef adportable::detail::winapi impl;
 #else
 # include <pwd.h>
+# include <unistd.h>
+# include <sys/types.h>
 namespace adportable { namespace detail { struct posixapi; } }
 typedef adportable::detail::posixapi impl;
 #endif
