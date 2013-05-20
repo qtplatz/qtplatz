@@ -13,14 +13,9 @@ include(../../qtplatz_servant.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)
 
-#CONFIG(debug, debug|release) : LIBS += -ladinterfaced
-#CONFIG(release, debug|release) : LIBS += -ladinterface
 INCLUDEPATH *= $$OUT_PWD/../../libs
 
-!win32 {
-  LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
-  LIBS += -lboost_date_time
-}
+!win32 LIBS += -lboost_date_time
 
 LIBS += -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(adportable) \
@@ -29,7 +24,9 @@ LIBS += -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(portfolio) \
     -l$$qtLibraryTarget(adplugin)
 
-# message( "LIBS " $$LIBS )
+LIBS += \
+    -l$$qtLibraryTarget(ACE) \
+    -l$$qtLibraryTarget(TAO)
 
 DEFINES += ADBROKER_LIBRARY
 
