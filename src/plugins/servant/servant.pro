@@ -7,7 +7,7 @@
 TARGET = servant
 TEMPLATE = lib
 
-PROVIDER = ScienceLiaison
+PROVIDER = MS-Cheminformatics
 include(../../qtplatz_plugin.pri)
 include(../../ace_tao.pri)
 

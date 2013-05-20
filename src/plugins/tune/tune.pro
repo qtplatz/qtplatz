@@ -9,7 +9,7 @@ QT       += xml
 TARGET = tune
 TEMPLATE = lib
 
-PROVIDER = ScienceLiaison
+PROVIDER = MS-Cheminformatics
 include(../../qtplatz_plugin.pri)
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia

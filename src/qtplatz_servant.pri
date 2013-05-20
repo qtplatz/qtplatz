@@ -1,7 +1,7 @@
 include(../qtplatz.pri)
 include( config.pri )
 
-isEmpty(PROVIDER) PROVIDER = ScienceLiaison
+isEmpty(PROVIDER) PROVIDER = MS-Cheminformatics
 
 DESTDIR = $$IDE_PLUGIN_PATH/$$PROVIDER
 LIBS += -L$$DESTDIR

@@ -3,7 +3,7 @@ contains(QT_CONFIG, opengl) QT += opengl
 TARGET = chemistry
 TEMPLATE = lib
 
-PROVIDER = ScienceLiaison
+PROVIDER = MS-Cheminformatics
 include(../../qtplatz_plugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../boost.pri)

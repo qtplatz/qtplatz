@@ -10,7 +10,7 @@ include(../../contrib.pri)
 include(../../../src/boost.pri)
 LIBS += -L$${QTPLATZ_BUILD_TREE}/lib/qtplatz
 
-PROVIDER = ScienceLiaison
+PROVIDER = MS-Cheminfomatics
 
 TEMPLATE = lib
 TARGET = fticr

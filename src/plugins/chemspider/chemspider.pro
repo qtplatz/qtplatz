@@ -2,7 +2,7 @@ QT += webkit
 TARGET = ChemSpider
 TEMPLATE = lib
 
-PROVIDER = ScienceLiaison
+PROVIDER = MS-Cheminformatics
 include( ../../qtplatz_plugin.pri )
 include( ../../plugins/coreplugin/coreplugin.pri )
 include( ../../boost.pri )

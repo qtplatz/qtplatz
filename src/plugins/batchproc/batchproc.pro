@@ -8,7 +8,7 @@ QT       += xml
 
 TARGET = batchproc
 TEMPLATE = lib
-PROVIDER = ScienceLiaison
+PROVIDER = MS-Cheminformatics
 include(../../qtPlatzplugin.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)

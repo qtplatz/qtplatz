@@ -9,7 +9,7 @@ TEMPLATE = lib
 INCLUDEPATH += /$$IDE_LIBRARY_BASENAME/arc/libs
 LIBS += -l$$qtLibraryTarget(adplugin)
 
-PROVIDER = ScienceLiaison
+PROVIDER = MS-Cheminformatics
 include(../../adplugin.pri)
 DEFINES += ADTOFMS_LIBRARY
 

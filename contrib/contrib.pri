@@ -48,7 +48,7 @@ equals(TEST, 1) {
 IDE_SOURCE_TREE = $$PWD
 QTPLATZ_SOURCE_TREE = $$cleanPath( $$$$IDE_SOURCE_TREE/.. )
 
-PROVIDER = ScienceLiaison
+PROVIDER = MS-Cheminformatics
 
 isEmpty(IDE_BUILD_TREE) {
     sub_dir = $$_PRO_FILE_PWD_

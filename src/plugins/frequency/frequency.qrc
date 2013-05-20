@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/frequency">
-        <file>images/mode_frequency.png</file>
-        <file>images/applications-education-mathematics.png</file>
-    </qresource>
-</RCC>

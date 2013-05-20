@@ -10,7 +10,7 @@ greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
 TARGET = dataproc
 TEMPLATE = lib
 
-PROVIDER = ScienceLiaison
+PROVIDER = MS-Cheminformatics
 include(../../qtplatz_plugin.pri)
 
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia

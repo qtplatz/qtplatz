@@ -9,7 +9,7 @@ QT       += gui
 TARGET = acquire
 TEMPLATE = lib
 
-PROVIDER = ScienceLiaison
+PROVIDER = MS-Cheminformatics
 include(../../qtplatz_plugin.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)

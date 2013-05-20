@@ -9,7 +9,7 @@ greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
 
 TARGET = qtwidgets
 TEMPLATE = lib
-PROVIDER = ScienceLiaison
+PROVIDER = MS-Cheminformatics
 
 include(../../qtplatz_servant.pri)
 include(../../boost.pri)
