@@ -12,10 +12,8 @@ include(../../qtplatz_plugin.pri)
 include(../../ace_tao.pri)
 
 include(servant_dependencies.pri)
-include(../../libs/acewrapper/acewrapper_dependencies.pri)
 LIBS += -L$$IDE_PLUGIN_PATH/Nokia
 include(../../plugins/coreplugin/coreplugin.pri)
-include(../../libs/adinterface/adinterface_dependencies.pri)
 
 LIBS += -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(acewrapper) \

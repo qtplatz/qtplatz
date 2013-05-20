@@ -30,19 +30,16 @@
 #include <boost/smart_ptr.hpp>
 #include <QLibrary>
 #include <adportable/debug.hpp>
-
-# include <ace/Singleton.h>
+#include <boost/thread.hpp>
+#include "adcontrols.hpp"
 
 using namespace adcontrols;
 
 namespace adcontrols {
     class datafileBrokerImpl;
 
-    namespace singleton {
-        typedef ACE_Singleton< datafileBrokerImpl, ACE_Recursive_Thread_Mutex> datafileBrokerImpl;
-    }
-
     class datafileBrokerImpl : public datafileBroker {
+		static datafileBrokerImpl * instance_;
     public:
         ~datafileBrokerImpl() {}
         bool register_library( const std::wstring& sharedlib_name );
@@ -52,13 +49,27 @@ namespace adcontrols {
 
         datafile * open( const std::wstring& filename, bool readonly );
         datafile * create( const std::wstring& filename );
+        static datafileBrokerImpl * instance();
 
     private:
         std::map< std::wstring, boost::shared_ptr< datafile_factory > > factories_;
     };
     
-    typedef ACE_Singleton< datafileBrokerImpl, ACE_Recursive_Thread_Mutex > impl_type;
 }
+
+datafileBrokerImpl * datafileBrokerImpl::instance_ = 0;
+
+datafileBrokerImpl *
+datafileBrokerImpl::instance()
+{
+    if ( instance_ == 0 ) {
+		boost::mutex::scoped_lock lock( adcontrols::global_mutex::mutex() );
+        if ( instance_ == 0 )
+			instance_ = new datafileBrokerImpl;
+	}
+	return instance_;
+}
+
 
 datafileBroker::~datafileBroker()
 {
@@ -71,31 +82,31 @@ datafileBroker::datafileBroker()
 bool
 datafileBroker::register_library( const std::wstring& sharedlib )
 {
-    return singleton::datafileBrokerImpl::instance()->register_library( sharedlib );
+    return datafileBrokerImpl::instance()->register_library( sharedlib );
 }
 
 bool
 datafileBroker::register_factory( datafile_factory * factory, const std::wstring& name )
 {
-    return singleton::datafileBrokerImpl::instance()->register_factory( factory, name );
+    return datafileBrokerImpl::instance()->register_factory( factory, name );
 }
 
 datafile_factory*
 datafileBroker::find( const std::wstring& name )
 {
-    return singleton::datafileBrokerImpl::instance()->find( name );
+    return datafileBrokerImpl::instance()->find( name );
 }
 
 datafile *
 datafileBroker::open( const std::wstring& filename, bool readonly )
 {
-    return singleton::datafileBrokerImpl::instance()->open( filename, readonly );
+    return datafileBrokerImpl::instance()->open( filename, readonly );
 }
 
 datafile *
 datafileBroker::create( const std::wstring& filename )
 {
-    return singleton::datafileBrokerImpl::instance()->create( filename );
+    return datafileBrokerImpl::instance()->create( filename );
 }
 
 //////////////////////////

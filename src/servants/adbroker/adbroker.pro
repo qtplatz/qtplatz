@@ -12,7 +12,6 @@ TEMPLATE = lib
 include(../../qtplatz_servant.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)
-include(../../libs/acewrapper/acewrapper_dependencies.pri)
 
 #CONFIG(debug, debug|release) : LIBS += -ladinterfaced
 #CONFIG(release, debug|release) : LIBS += -ladinterface

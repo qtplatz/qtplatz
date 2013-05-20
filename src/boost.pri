@@ -8,10 +8,13 @@ isEmpty( BOOST_ROOT ) {
 }
 
 win32 {
-      INCLUDEPATH *= $${BOOST_ROOT}/include/$${BOOST_VERSION}
+      BOOST_INCLUDE = $${BOOST_ROOT}/include/$${BOOST_VERSION}
       LIBS *= -L$${BOOST_ROOT}\\lib
 } else {
-      INCLUDEPATH *= $${BOOST_ROOT}/include
+      BOOST_INCLUDE = $${BOOST_ROOT}/include
       QMAKE_LFLAGS *= -L$${BOOST_ROOT}/lib
 }
 
+INCLUDEPATH += $${BOOST_INCLUDE}
+
+message( "using boost " $${BOOST_INCLUDE} )

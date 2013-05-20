@@ -25,14 +25,15 @@
 
 #include "massspectrometerbroker.hpp"
 #include "massspectrometer.hpp"
-#include <ace/Singleton.h>
-#include <ace/Recursive_Thread_Mutex.h>
+//#include <ace/Singleton.h>
+//#include <ace/Recursive_Thread_Mutex.h>
 
 #include <map>
 #include <string>
 #include <QLibrary>
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
+#include "adcontrols.hpp"
 
 using namespace adcontrols;
 
@@ -41,14 +42,13 @@ namespace adcontrols {
     class MassSpectrometerBrokerImpl;
     
     //-------------------------
-    namespace singleton {
-        typedef ACE_Singleton<MassSpectrometerBrokerImpl, ACE_Recursive_Thread_Mutex> MassSpectrometerBrokerImpl;
-    }
-    
     //-------------------------
     class MassSpectrometerBrokerImpl : public MassSpectrometerBroker {
+		static MassSpectrometerBrokerImpl * instance_;
     public:
         ~MassSpectrometerBrokerImpl() {}
+
+		static MassSpectrometerBrokerImpl * instance();
         
         bool register_library( const std::wstring& sharedlib_name );
         
@@ -69,8 +69,20 @@ namespace adcontrols {
     private:
         std::map< std::wstring, factory_type > factories_;
     };
-    
-    typedef ACE_Singleton< MassSpectrometerBrokerImpl, ACE_Recursive_Thread_Mutex > impl_type;
+
+}
+
+MassSpectrometerBrokerImpl * MassSpectrometerBrokerImpl::instance_ = 0;
+
+MassSpectrometerBrokerImpl *
+MassSpectrometerBrokerImpl::instance()
+{
+	if ( instance_ == 0 ) {
+		boost::mutex::scoped_lock lock( adcontrols::global_mutex::mutex() );
+        if ( instance_ == 0 ) 
+			instance_ = new MassSpectrometerBrokerImpl;
+	}
+	return instance_;
 }
 
 bool
@@ -113,17 +125,17 @@ MassSpectrometerBroker::~MassSpectrometerBroker(void)
 bool
 MassSpectrometerBroker::register_library( const std::wstring& sharedlib )
 {
-	return singleton::MassSpectrometerBrokerImpl::instance()->register_library( sharedlib );
+	return MassSpectrometerBrokerImpl::instance()->register_library( sharedlib );
 }
 
 bool
 MassSpectrometerBroker::register_factory( factory_type factory, const std::wstring& name )
 {
-    return singleton::MassSpectrometerBrokerImpl::instance()->register_factory( factory, name );
+    return MassSpectrometerBrokerImpl::instance()->register_factory( factory, name );
 }
 
 MassSpectrometerBroker::factory_type
 MassSpectrometerBroker::find( const std::wstring& name )
 {
-	return singleton::MassSpectrometerBrokerImpl::instance()->find( name );
+	return MassSpectrometerBrokerImpl::instance()->find( name );
 }

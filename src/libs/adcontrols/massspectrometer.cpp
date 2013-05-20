@@ -26,6 +26,7 @@
 #include "massspectrometer.hpp"
 #include "datainterpreter.hpp"
 #include "massspectrometerbroker.hpp"
+#include "adcontrols.hpp"
 #include <string>
 #include <cmath>
 

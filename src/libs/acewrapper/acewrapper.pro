@@ -13,7 +13,6 @@ CONFIG += staticlib
 include(../../qtplatz_library.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)
-include(acewrapper_dependencies.pri)
 
 win32: QMAKE_CXXFLAGS += -D_CRT_SECURE_NO_WARNINGS
 
@@ -67,7 +66,7 @@ HEADERS += acewrapper.hpp \
     iorquery.hpp
 
 OTHER_FILES += \
-    acewrapper.pri \
-    acewrapper_dependencies.pri
+    acewrapper.pri
+
 
 

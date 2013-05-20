@@ -3,6 +3,10 @@ CONFIG(debug, debug|release) {
   DEFINES += DEBUG
 }
 
+win32 {
+      DEFINES += _WIN32_WINNT=0x0700
+}
+
 BOOST_VERSION=boost-1_53
 ACE_VERSION=6.1.8
 greaterThan( QT_MAJOR_VERSION, 4 ): QWT_VERSION=6.1.0-svn

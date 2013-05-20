@@ -11,7 +11,6 @@ TEMPLATE = lib
 CONFIG += staticlib
 include(../../qtplatz_library.pri)
 include(../../boost.pri)
-include(../acewrapper/acewrapper_dependencies.pri)
 
 SOURCES += adportable.cpp \
     configloader.cpp \

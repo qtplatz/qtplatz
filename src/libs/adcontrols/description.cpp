@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "description.hpp"
-#include <acewrapper/timeval.hpp>
+#include <ctime>
 
 using namespace adcontrols;
 
@@ -34,12 +34,14 @@ Description::~Description()
 
 Description::Description()
 {
-   acewrapper::gettimeofday(tv_sec_, tv_usec_);
+	time(&tv_sec_);
+    tv_usec_ = 0;
 }
 
 Description::Description( const std::wstring& key, const std::wstring& text ) : key_(key), text_(text)
 {
-    acewrapper::gettimeofday(tv_sec_, tv_usec_);
+	time(&tv_sec_);
+    tv_usec_ = 0;
 }
 
 Description::Description( const Description& t ) : tv_sec_(t.tv_sec_)

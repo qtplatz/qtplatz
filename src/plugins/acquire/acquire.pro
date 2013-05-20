@@ -11,8 +11,6 @@ TEMPLATE = lib
 
 PROVIDER = ScienceLiaison
 include(../../qtplatz_plugin.pri)
-
-include(../../libs/acewrapper/acewrapper_dependencies.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)
 include(../../qwt.pri)

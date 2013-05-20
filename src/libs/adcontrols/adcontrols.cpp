@@ -1,16 +1,15 @@
-// -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
-** Science Liaison / Advanced Instrumentation Project
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: toshi.hondo@scienceliaison.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid ScienceLiaison commercial licenses may use this
-** file in accordance with the ScienceLiaison Commercial License Agreement
-** provided with the Software or, alternatively, in accordance with the terms
-** contained in a written agreement between you and ScienceLiaison.
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -23,18 +22,19 @@
 **
 **************************************************************************/
 
-#include "ace/Init_ACE.h"
+#include "adcontrols.hpp"
 
-#if defined ACE_WIN32
-#  if defined _DEBUG
-#     pragma comment(lib, "QtCored4.lib")
-#     pragma comment(lib, "ACEd.lib")
-#     pragma comment(lib, "acewrapperd.lib")
-#     pragma comment(lib, "adportabled.lib")
-#  else
-#     pragma comment(lib, "QtCore4.lib")
-#     pragma comment(lib, "ACE.lib")
-#     pragma comment(lib, "acewrapper.lib")
-#     pragma comment(lib, "adportable.lib")
-#  endif
-#endif
+using namespace adcontrols;
+
+global_mutex&
+global_mutex::instance()
+{
+    static global_mutex __global_mutex;
+    return __global_mutex;
+}
+
+boost::mutex&
+global_mutex::mutex()
+{
+    return global_mutex::instance().mutex_;
+}
