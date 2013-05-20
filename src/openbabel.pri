@@ -1,28 +1,8 @@
-
+# OpenBabel
+include ( config.pri )
 include ( ./cleanpath.pri )
-OPENBABEL_SRC = $$(OPENBABEL_SRC)    # copy from env
-OPENBABEL_ROOT = $$(OPENBABEL_ROOT)  # copy from env
 
-isEmpty( OPENBABEL_SRC ) {
-    win32: OPENBABEL_SRC = $$cleanPath( $$PWD/../../openbabel )
-}
-
-isEmpty( OPENBABEL_ROOT ) {
-    win32: OPENBABEL_ROOT = $${OPENBABEL_SRC}/windows-vc2008/install
-    else:  OPENBABEL_ROOT = /usr/local/openbabel
-}
-
-win32 {
-    INCLUDEPATH += $${OPENBABEL_ROOT}/include/openbabel-2.0 \
-		   $${OPENBABEL_SRC}/windows-vc2008/include
-    LIBS += -L$${OPENBABEL_ROOT}/bin 
-    LIBS += -lopenbabel-2
-} else {
-    INCLUDEPATH += /usr/local/include/openbabel-2.0 \
-    		   /usr/include/openbabel-2.0
-    QMAKE_LFLAGS += -L/usr/local/lib
-    LIBS += -lopenbabel
-}
+INCLUDEPATH += $${OPENBABEL_INCLUDE}
 
 win32 {
     OPENBABEL_EXTLIB_DIR = $${OPENBABEL_SRC}/windows-vc2008/libs/i386

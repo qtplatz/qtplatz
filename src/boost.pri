@@ -17,4 +17,4 @@ win32 {
 
 INCLUDEPATH += $${BOOST_INCLUDE}
 
-message( "using boost " $${BOOST_INCLUDE} )
+# message( "using boost " $${BOOST_INCLUDE} )

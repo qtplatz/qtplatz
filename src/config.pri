@@ -28,6 +28,20 @@ isEmpty( QWT ) {
   macx|linux-*: QWT=/usr/local/qwt-$${QWT_VERSION}	 
 }
 
+# OpenBabel
+OPENBABEL_ROOT = $$(OPENBABEL_ROOT)
+isEmpty ( OPENBABEL_ROOT ) {
+  win32 {
+    OPENBABEL_ROOT=C:/openbabel
+    OPENBABEL_INCLUDE=$${OPENBABEL_ROOT}/include/openbabel-2.0
+  } else {
+    OPENBABEL_ROOT=/usr/local/openbabel
+    OPENBABEL_INCLUDE=\
+	/usr/local/include/openbabel-2.0 \
+	/usr/include/openbabel-2.0
+  }
+}
+
 QTPLATZ_CONFIG += Acquire
 #QTPLATZ_CONFIG += Sequence
 #QTPLATZ_CONFIG += Dataproc
