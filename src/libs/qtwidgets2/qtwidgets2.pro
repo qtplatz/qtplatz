@@ -44,8 +44,7 @@ HEADERS += \
         qtwidgets2.hpp
 
 FORMS += \
-    mscalibrationform.ui \
-    peakresulttable.ui
+    mscalibrationform.ui
 
 RESOURCES +=
 

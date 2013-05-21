@@ -29,18 +29,8 @@
 #include <adportable/debug.hpp>
 #include <qdebug.h>
 #include <QtCore/qplugin.h>
-#include "processmethodview.hpp"
-#include "logwidget.hpp"
-#include "sequencewidget.hpp"
-#include "sequencesform.hpp"
-#include "centroidform.hpp"
-#include "elementalcompositionform.hpp"
 #include "mscalibrationform.hpp"
 #include "mscalibsummarywidget.hpp"
-#include "peakresultwidget.hpp"
-#include "molwidget.hpp"
-#include "isotopeform.hpp"
-#include "peakmethodform.hpp"
 #include <adplugin/lifecycle.hpp>
 #include <QMessageBox>
 

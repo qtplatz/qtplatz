@@ -9,7 +9,7 @@ QT       += xml
 TARGET = sequence
 TEMPLATE = lib
 
-PROVIDER = MS-Cheminformaatics
+PROVIDER = MS-Cheminformatics
 include(../../qtplatz_plugin.pri)
 include(sequence_dependencies.pri)
 
