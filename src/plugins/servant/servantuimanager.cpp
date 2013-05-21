@@ -22,7 +22,6 @@
 #include <adplugin/adplugin.hpp>
 #include <adplugin/imonitor.hpp>
 #include <adportable/configuration.hpp>
-#include "../mscheminfo.hpp"
 
 using namespace servant;
 using namespace servant::internal;

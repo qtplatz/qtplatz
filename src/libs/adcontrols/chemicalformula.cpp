@@ -172,7 +172,7 @@ ChemicalFormula::getFormula( const CTable& ctable )
 	BOOST_FOREACH( const CTable::Atom& atom, ctable.atoms() ) {
 		const adcontrols::Element& element = toe->findElement( atom.symbol );
 		assert( ! element.symbol().empty() );
-		valences.push_back( std::make_pair<std::wstring, int>( atom.symbol, element.valence() ) );
+		valences.push_back( std::make_pair<std::wstring, int>( std::wstring( atom.symbol ), element.valence() ) );
 	}
 
 	BOOST_FOREACH( const CTable::Bond& bond, ctable.bonds() ) {

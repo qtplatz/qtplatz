@@ -149,5 +149,7 @@ Trace::getEventsArray() const
 std::pair<double, double>
 Trace::range_y() const
 {
-    return std::make_pair<double, double>( minY_, maxY_ );
+	double y0 = minY_;
+	double y1 = maxY_;
+    return std::pair<double, double>( y0, y1 );
 }
