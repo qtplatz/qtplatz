@@ -2,6 +2,24 @@
 include ( config.pri )
 include ( ./cleanpath.pri )
 
+OPENBABEL_SRC=$$(OPENBABEL_SRC)     # only requied for windows
+OPENBABEL_ROOT=$$(OPENBABEL_ROOT)
+
+isEmpty( OPENBABEL_ROOT ) {
+  win32: OPENBABEL_ROOT=C:/openbabel
+  else: OPENBABEL_ROOT=/usr/local
+}
+
+win32 {
+  isEmpty( OPENBABEL_SRC ): OPENBABEL_SRC = $$cleanPath( $$PWD/../../openbabel )
+  OPENBABEL_INCLUDE=$${OPENBABEL_ROOT}/include/openbabel-2.0 \
+  		    $${OPENBABEL_SRC}/windows-vc2008/include
+  LIBS += -L$${OPENBABEL_ROOT}/bin
+} ELSE {
+  OPENBABEL_INCLUDE=$${OPENBABEL_ROOT}/include/openbabel-2.0 \
+  		    /usr/include/openbabel-2.0
+  LIBS += -L$${OPENBABEL_ROOT}/lib
+}
 INCLUDEPATH += $${OPENBABEL_INCLUDE}
 
 win32 {
@@ -29,7 +47,6 @@ win32 {
 			$${OPENBABEL_ROOT}/bin/plugin_forcefields.obf \
 			$${OPENBABEL_ROOT}/bin/plugin_ops.obf
 } else {
-    OPENBABEL_LIBDIR = /usr/local/lib
     macx: OPENBABEL_DLLS   = $${OPENBABEL_LIBDIR}/libopenbabel.4.0.0.dylib
     linux-*: OPENBABEL_DLLS = 
 }

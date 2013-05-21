@@ -106,7 +106,6 @@
 #include <iomanip>
 
 #include <adinterface/brokerC.h>
-#include "../mscheminfo.hpp"
 
 using namespace dataproc;
 

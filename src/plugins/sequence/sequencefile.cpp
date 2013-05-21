@@ -215,6 +215,7 @@ SequenceFile::save( const QString& filename )
 #endif
     // --> debug
     int res = sqlite3_close( file.db() );
+	(void)res;
     // <---
     editor_.setModified( false );
     emit changed();
