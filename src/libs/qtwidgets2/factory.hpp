@@ -1,8 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
-** Advanced Instrumentation Project
+** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
 **
@@ -26,16 +25,16 @@
 
 #pragma once
 
-#define iid_iMonitor               L"adplugin::ui::iMonitor"
-#define iid_iControlMethodEditor   L"adplugin::ui::iControlMethodEditor"
-#define iid_iLog                   L"adplugin::ui::iLog"
-#define iid_iSequence              L"adplugin::ui::iSequence"
-#define iid_iSequencesForm         L"adplugin::ui::iSequencesForm"
+#include <adplugin/ifactory.hpp>
 
-#if defined __APPLE__
-#  define adpluginDirectory        "PlugIns/MS-Cheminformatics"
-#  define pluginDirectory          "PlugIns"
-#else
-#  define adpluginDirectory        "lib/qtplatz/plugins/MS-Cheminformatics"
-#  define pluginDirectory          "lib/qtplatz/plugins"
-#endif
+namespace qtwidgets2 {
+
+    class factory : public adplugin::ifactory {
+    public:
+        virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent );
+        virtual QObject * create_object( const wchar_t * iid, QObject * parent );
+        virtual void release();
+        
+    };
+}
+

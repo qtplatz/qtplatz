@@ -23,22 +23,33 @@
 **
 **************************************************************************/
 
-#pragma once
+#ifndef MSCALIBSUMMARYDELEGATE_H
+#define MSCALIBSUMMARYDELEGATE_H
 
-#include <adplugin/constants.hpp>
+#include <QItemDelegate>
 
-#if defined WIN32
-#  if defined _DEBUG
-#    define QTWIDGETS_NAME "/MS-Cheminformatics/qtwidgetsd.dll"
-#  else
-#    define QTWIDGETS_NAME "/MS-Cheminformatics/qtwidgets.dll"
-#  endif
-#elif defined __linux__
-#  define QTWIDGETS_NAME   "/MS-Cheminformatics/libqtwidgets.so"
-#elif defined __APPLE__
-# if defined DEBUG
-#  define QTWIDGETS_NAME   "/MS-Cheminformatics/libqtwidgets_debug.dylib"
-# else
-#  define QTWIDGETS_NAME   "/MS-Cheminformatics/libqtwidgets.dylib"
-# endif
-#endif
+namespace qtwidgets2 {
+
+    class MSCalibSummaryDelegate : public QItemDelegate {
+        Q_OBJECT
+    public:
+        explicit MSCalibSummaryDelegate(QObject *parent = 0);
+
+        QWidget *createEditor(QWidget *parent
+                             , const QStyleOptionViewItem &option
+                             , const QModelIndex &index) const;
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+        void setEditorData(QWidget *editor, const QModelIndex &index) const;
+        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+        void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+    signals:
+        void valueChanged( const QModelIndex& ) const;
+
+    public slots:
+
+    };
+
+}
+
+#endif // MSCALIBSUMMARYDELEGATE_H

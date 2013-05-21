@@ -21,6 +21,7 @@ SUBDIRS   = \
     qtwrapper \
     adplugin \
     qtwidgets \
+    qtwidgets2 \
     adchem \
     adsequence
 

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2010 Toshinobu Hondo, All rights reserved. -->
+<!-- Copyright (C) 2010-2013 MS-Cheminformatics, All rights reserved. -->
 <!--
    $Id$
 -->
 <!---<AcquireConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="acquire.config.xsd">
         -->
 <ChemSpiderConfiguration name="ChemSpider" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
-  <Module name="qtwidgets" type="sharedlib" filename="/ScienceLiaison/qtwidgets$(configuration).dll"/>
+  <Module name="qtwidgets" type="sharedlib" filename="/MS-Cheminformatics/qtwidgets$(configuration).dll"/>
   <Configuration name="MolFiles">
     <Configuration name="IsotopeUI">
       <title>Isotope</title>

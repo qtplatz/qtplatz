@@ -18,8 +18,7 @@ include(../../plugins/coreplugin/coreplugin.pri)
 
 # Link order caution: adportable should be linked after adfs for utf::to_utf8 reference
 
-LIBS += -l$$qtLibraryTarget(adcontroller) \
-        -l$$qtLibraryTarget(adcontrols) \
+LIBS += -l$$qtLibraryTarget(adcontrols) \
 	-l$$qtLibraryTarget(adutils) \
         -l$$qtLibraryTarget(adinterface) \
 	-l$$qtLibraryTarget(adwplot) \

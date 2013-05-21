@@ -1,6 +1,7 @@
 /**************************************************************************
 ** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
-** Science Liaison / Advanced Instrumentation Project
+** Copyright (C) 2013 MS-Cheminformatics LLC
+** Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
 **
@@ -103,7 +104,7 @@ ChemSpiderPlugin::initialize(const QStringList &arguments, QString *errorString)
 
 	boost::filesystem::path path( qtwrapper::wstring::copy( QCoreApplication::instance()->applicationDirPath() ) );
 	std::wstring apppath = path.branch_path().wstring(); // .c_str();
-	std::wstring cfile = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/ChemSpider.config.xml" );
+	std::wstring cfile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/ChemSpider.config.xml" );
 
 	if ( ! adplugin::manager::instance()->loadConfig( *pConfig_, cfile, L"/ChemSpiderConfiguration/Configuration" ) ) {
 		adportable::debug( __FILE__, __LINE__ ) << "loadConfig" << cfile << "failed";
