@@ -1,6 +1,5 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Science Liaison / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@scienceliaison.com
@@ -23,50 +22,63 @@
 **
 **************************************************************************/
 
-#ifndef MSCALIBRATIONWND_H
-#define MSCALIBRATIONWND_H
+#ifndef MSCALIBSPECTRAWND_HPP
+#define MSCALIBSPECTRAWND_HPP
 
 #include <QWidget>
 #include <boost/smart_ptr.hpp>
+#include <portfolio/folium.hpp>
+#include <boost/tuple/tuple.hpp>
+
+class QSplitter;
 
 namespace adcontrols {
     class MassSpectrum;
     class MSCalibrateResult;
+    class MSAssignedMasses;
     class ProcessMethod;
 }
-
 namespace adportable {  class Configuration; }
-namespace portfolio  { class Folium; }
+namespace adwplot { class SpectrumWidget; }
 
 namespace dataproc {
 
     class Dataprocessor;
-    class MSCalibrationWndImpl;
 
-    class MSCalibrationWnd : public QWidget {
+    class MSCalibSpectraWnd : public QWidget {
         Q_OBJECT
-        public:
-        // explicit MSCalibrationWnd(QWidget *parent = 0);
-        MSCalibrationWnd( const adportable::Configuration& c, const std::wstring& apppath, QWidget * parent = 0 );
-        void init( const adportable::Configuration& c, const std::wstring& apppath );
-      
-    signals:
-        void fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
-      
+    public:
+        MSCalibSpectraWnd( const adportable::Configuration&, const std::wstring&, QWidget * parent = 0 );
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
 
+    signals:
+        void fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
+
     private slots:
         void handleSelSummary( size_t );
         void handleManuallyAssigned();
         void handleValueChanged();
+        void handleUpdatePeakAssign();
 
     private:
-        boost::shared_ptr<MSCalibrationWndImpl> pImpl_;
+        void init( const adportable::Configuration&, const std::wstring& );
+        void applyAssigned( const adcontrols::MSAssignedMasses&, const portfolio::Folium& );
+
+        typedef std::pair< boost::shared_ptr< adcontrols::MSCalibrateResult >, boost::shared_ptr< adcontrols::MassSpectrum > > result_type;
+        int populate( std::vector< result_type >& );
+        void doCalibration( adcontrols::MassSpectrum& centroid, adcontrols::MSCalibrateResult&, const adcontrols::MSAssignedMasses& assigned );
+
+        std::vector< boost::shared_ptr< adwplot::SpectrumWidget > > wndSpectra_;
+        std::vector< portfolio::Folium > folio_;
+        portfolio::Folium folium_;
+        QWidget * wndCalibSummary_;
+        QSplitter * wndSplitter_;
+        std::vector< boost::shared_ptr< adcontrols::MassSpectrum > > spectra_;
     };
 
 }
 
-#endif // MSCALIBRATIONWND_H
+#endif // MSCALIBSPECTRAWND_HPP

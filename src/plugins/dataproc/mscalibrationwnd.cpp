@@ -73,8 +73,8 @@ MSCalibrationWnd::MSCalibrationWnd( const adportable::Configuration& c
 void
 MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& apppath )
 {
-    Q_UNUSED( c );
-
+    using adportable::Configuration;
+    
     pImpl_.reset( new MSCalibrationWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
@@ -83,13 +83,17 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
         splitter->addWidget( pImpl_->processedSpectrum_ );
 
         // summary table
-		adportable::Configuration config;
-        adportable::Module module;
-        module.library_filename( QTWIDGETS_NAME );
-        config.module( module );
-        config.interface( L"qtwidgets::MSCalibSummaryWidget" );
-        pImpl_->calibSummaryWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
-
+        const Configuration * pConfig = Configuration::find( c, L"MSCalibSummaryWidget" );
+        if ( pConfig && pConfig->isPlugin() )
+            pImpl_->calibSummaryWidget_ = adplugin::manager::widget_factory( *pConfig, apppath.c_str(), 0 );
+        if ( ! pImpl_->calibSummaryWidget_ ) {
+            adportable::Configuration config;
+            adportable::Module module;
+            module.library_filename( QTWIDGETS_NAME );
+            config.module( module );
+            config.interface( L"qtwidgets::MSCalibSummaryWidget" );
+            pImpl_->calibSummaryWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
+        }
         bool res;
         res = connect( pImpl_->calibSummaryWidget_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );
         assert(res);

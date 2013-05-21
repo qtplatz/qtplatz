@@ -65,6 +65,7 @@ namespace dataproc {
         void OnFinalClose();
 
         void applyCalibration( const adcontrols::MSAssignedMasses& );
+        void applyCalibration( const adcontrols::MSAssignedMasses&, portfolio::Folium& );
         
     signals:
         void signalUpdateFile( adcontrols::datafile * );
@@ -84,6 +85,7 @@ namespace dataproc {
         void actionSelMSProcess();
         void actionSelElementalComp();
         void actionSelMSCalibration();
+        void actionSelMSCalibSpectra();
         void actionSelChromatogram();
 
     private:
@@ -96,6 +98,7 @@ namespace dataproc {
         QAction * actionSelMSProcess_;
         QAction * actionSelElementalComp_;
         QAction * actionSelMSCalibration_;
+        QAction * actionSelMSCalibSpectra_;
         QAction * actionSelChromatogram_;
         QStackedWidget * stack_;
 

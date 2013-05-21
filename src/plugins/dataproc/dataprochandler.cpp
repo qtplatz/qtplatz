@@ -24,6 +24,8 @@
 **************************************************************************/
 
 #include "dataprochandler.hpp"
+#include "assign_masses.hpp"
+#include "calibrate_masses.hpp"
 #include <adcontrols/centroidprocess.hpp>
 
 #include <adcontrols/isotopecluster.hpp>
@@ -54,6 +56,7 @@
 #include <adportable/string.hpp>
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 
 using namespace dataproc;
 
@@ -108,121 +111,6 @@ DataprocHandler::doIsotope( adcontrols::MassSpectrum& res, const adcontrols::Iso
 
     }
     return false;
-}
-
-namespace dataproc {
-
-    struct mass_assign : boost::noncopyable {
-        double tolerance;
-        double RAThreshold;
-
-        static void make_color_array( unsigned char * colors, const adcontrols::MSAssignedMasses& assigned, std::size_t size ) {
-            memset( colors, 0, size );
-            using adcontrols::MSAssignedMasses;
-            for ( MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
-                adportable::debug(__FILE__, __LINE__) << "idMassSpectrum=" << it->idMassSpectrum() << ", enable=" << it->enable();
-                if ( it->idMassSpectrum() < size ) {
-                    colors[ it->idMassSpectrum() ] = it->enable() ? 1 : 0;            
-                }
-            }
-        }
-
-        mass_assign( double _tolerance, double threshold ) : tolerance( _tolerance ), RAThreshold( threshold ) {
-        }
-
-        adcontrols::MSAssignedMasses operator()( const adcontrols::MassSpectrum& centroid, const adcontrols::MSReferences& references ) {
-            using adportable::array_wrapper;
-            using adcontrols::MSReferences;
-            adcontrols::MSAssignedMasses assignedMasses;
-
-            array_wrapper<const double> masses( centroid.getMassArray(), centroid.size() );
-            array_wrapper<const double> intens( centroid.getIntensityArray(), centroid.size() );
-
-            size_t idReference(0);
-            for ( MSReferences::vector_type::const_iterator it = references.begin(); it != references.end(); ++it ) {
-                
-                double exactMass = it->exactMass();
-                array_wrapper<const double>::const_iterator lBound = std::lower_bound( masses.begin(), masses.end(), exactMass - tolerance );
-                array_wrapper<const double>::const_iterator uBound = std::lower_bound( masses.begin(), masses.end(), exactMass + tolerance );
-
-                if ( lBound != masses.end() ) {
-
-                    size_t lIdx = std::distance( masses.begin(), lBound );
-                    size_t uIdx = std::distance( masses.begin(), uBound );
-
-                    // find closest
-                    size_t cIdx = lIdx;
-                    for ( size_t i = lIdx + 1; i < uIdx; ++i ) {
-                        double d0 = std::abs( masses[ cIdx ] - exactMass );
-                        double d1 = std::abs( masses[ i ] - exactMass );
-                        if ( d1 < d0 )
-                            cIdx = i;
-                    }
-
-                    // find highest
-                    array_wrapper<const double>::const_iterator hIt = std::max_element( intens.begin() + lIdx, intens.begin() + uIdx );
-                    if ( *hIt < RAThreshold )
-                        continue;
-
-                    size_t idx = std::distance( intens.begin(), hIt );
-                    adcontrols::MSAssignedMass assigned( idReference
-                                                         , idx
-                                                         , it->formula()
-                                                         , it->exactMass()
-                                                         , centroid.getTime( idx )
-                                                         , masses[ idx ]
-                                                         , it->enable() ); 
-                    assignedMasses << assigned;
-                }
-                ++idReference;
-            }
-            return assignedMasses;
-        }
-    };
-
-    struct mass_calibrator {
-        const adcontrols::MassSpectrum& centroid;
-
-        mass_calibrator( const adcontrols::MassSpectrum& ms ) : centroid( ms ) {
-        }
-
-        bool calibrate( const adcontrols::MSAssignedMasses& masses, size_t nterm, adcontrols::MSCalibration& calib ) {
-
-            std::vector<double> tmvec, msvec, coeffs;
-            for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = masses.begin(); it != masses.end(); ++it ) {
-                if ( it->enable() ) {
-                    msvec.push_back( sqrt( it->exactMass() ) );
-                    tmvec.push_back( centroid.getTime( it->idMassSpectrum() ) );
-                }
-            }
-            if ( tmvec.size() >= nterm &&
-                 adportable::polfit::fit( &tmvec[0], &msvec[0], tmvec.size(), nterm, coeffs ) ) {
-                calib.coeffs( coeffs );
-                return true;
-            }
-            return false;
-        }
-        
-        void update( adcontrols::MSAssignedMasses& masses, const adcontrols::MSCalibration& calib ) {
-            for ( adcontrols::MSAssignedMasses::vector_type::iterator it = masses.begin(); it != masses.end(); ++it ) {
-                double t = it->time();
-                double mq = adcontrols::MSCalibration::compute( calib.coeffs(), t );
-                if ( mq > 0.0 )
-                    it->mass( mq * mq );
-            }
-        }
-
-        void update( adcontrols::MassSpectrum& centroid, const adcontrols::MSCalibration& calib ) {
-            const double * times = centroid.getTimeArray();
-            for ( size_t i = 0; i < centroid.size(); ++i ) {
-                double mq = adcontrols::MSCalibration::compute( calib.coeffs(), times[i] );
-                if ( mq > 0.0 )
-                    centroid.setMass( i, mq * mq );
-            }
-        }
-
-    };
-
 }
 
 #if defined DEBUG && 0
@@ -297,19 +185,23 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     res.tolerance( tolerance );
     res.threshold( threshold );
 
-    mass_assign mass_assign( tolerance, threshold );
-    adcontrols::MSAssignedMasses assignedMasses = mass_assign( centroid, res.references() );
+    // mass_assign mass_assign( tolerance, threshold );
+    assign_masses assigner( tolerance, threshold );
+    adcontrols::MSAssignedMasses assignedMasses;
+    assigner( assignedMasses, centroid, res.references(), 0 );
 
-    mass_calibrator calibrator( centroid );
+    calibrate_masses calibrator;//( centroid );
+    // mass_calibrator calibrator( centroid );
     adcontrols::MSCalibration calib;
-    if ( calibrator.calibrate( assignedMasses, m.polynomialDegree() + 1, calib ) ) {
+    if ( calibrator( assignedMasses, m.polynomialDegree() + 1, calib, 0 ) ) {
         calibrator.update( assignedMasses, calib );
-        calibrator.update( centroid, calib );
+        centroid.setCalibration( calib, true );
+        // calibrator.update( centroid, calib );
         res.calibration( calib );
         res.assignedMasses( assignedMasses );
 
         std::vector< unsigned char > colors( centroid.size() );
-        mass_assign.make_color_array( colors.data(), assignedMasses, centroid.size() );
+        assign_masses::make_color_array( colors.data(), assignedMasses, centroid.size() );
         centroid.setColorArray( colors.data() );
 #if defined _DEBUG && 0
         calibresult_validation( res, centroid, threshold );
@@ -332,18 +224,25 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     res.tolerance( tolerance );  // set tolerance in result
     res.threshold( threshold );  // set threshold in result
 
-    mass_calibrator calibrator( centroid );
+    std::map< size_t, size_t > mode_map;
+    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) 
+        mode_map[ it->mode() ]++;
+    std::map<size_t, size_t>::iterator itMax = std::max_element( mode_map.begin(), mode_map.end() );
+    int mode = itMax->first;
+
+    calibrate_masses calibrator;
     adcontrols::MSCalibration calib;
-    if ( ! calibrator.calibrate( assigned, m.polynomialDegree() + 1, calib ) )
+    if ( ! calibrator( assigned, m.polynomialDegree() + 1, calib, mode ) )
         return false;
 
     res.references( m.references() );
     res.calibration( calib );
-    calibrator.update( centroid, calib ); // m/z assign based on manually determined peaks
+    centroid.setCalibration( calib, true ); // m/z assign based on manually determined peaks
 
     // continue auto-assign
-    mass_assign mass_assign( tolerance, threshold );
-    adcontrols::MSAssignedMasses assignedMasses = mass_assign( centroid, m.references() );
+    assign_masses assign( tolerance, threshold );
+    adcontrols::MSAssignedMasses assignedMasses;
+    assign( assignedMasses, centroid, m.references(), mode );
 
     // populate manually assigned peaks
     for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
@@ -351,44 +250,18 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
             assignedMasses << *it;
     }
 
-    if ( calibrator.calibrate( assignedMasses, m.polynomialDegree() + 1, calib ) ) {
+    if ( calibrator( assignedMasses, m.polynomialDegree() + 1, calib, mode ) ) {
         calibrator.update( assignedMasses, calib );
-        calibrator.update( centroid, calib );
+        centroid.setCalibration( calib, true );
         res.calibration( calib );
         res.assignedMasses( assignedMasses );
 
         std::vector< unsigned char > colors( centroid.size() );
-        mass_assign.make_color_array( colors.data(), assignedMasses, centroid.size() );
+        assign_masses::make_color_array( colors.data(), assignedMasses, centroid.size() );
         centroid.setColorArray( colors.data() );
         return true;
     }
     return false;
-
-#if 0
-    mass_assign assign( tolerance, threshold );
-    adcontrols::MSAssignedMasses assignedMasses = assign( centroid, res.references() );
-    if ( assignedMasses.exist( 
-
-    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
-        if ( it->flags() )
-            assignedMasses << *it;
-    }
-    // todo: meke assindMasses unique
-
-    if ( calibrator.calibrate( assigned, m.polynomialDegree() + 1, calib ) ) {
-
-        calibrator.update( assignedMasses, calib );
-        calibrator.update( centroid, calib );
-        res.calibration( calib );
-        res.assignedMasses( assignedMasses );
-
-        std::vector< unsigned char > colors( centroid.size() );
-        assign.make_color_array( colors.data(), assignedMasses, centroid.size() );
-        centroid.setColorArray( colors.data() );
-        return true;
-    }
-    return false;
-#endif
 }
 
 

@@ -30,6 +30,7 @@
 #include "msprocessingwnd.hpp"
 #include "elementalcompwnd.hpp"
 #include "mscalibrationwnd.hpp"
+#include "mscalibspectrawnd.hpp"
 #include "chromatogramwnd.hpp"
 #include "sessionmanager.hpp"
 
@@ -60,26 +61,14 @@
 #include <QMessageBox>
 #include <QResizeEvent>
 #include <qstackedwidget.h>
-#if QT_VERSION >= 0x050000
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QTabWidget>
-#include <QtWidgets/QTextEdit>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QLineEdit>
-#else
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QToolButton>
 #include <QtGui/QTabWidget>
 #include <QtGui/QTextEdit>
 #include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#endif
-
 #include <QtGui/QIcon>
-
+#include <QtGui/QLineEdit>
 #include <qdebug.h>
 
 namespace dataproc {
@@ -107,6 +96,7 @@ MainWindow::MainWindow( QWidget *parent ) :  Utils::FancyMainWindow(parent)
                                           , actionSelMSProcess_( 0 )
                                           , actionSelElementalComp_( 0 )
                                           , actionSelMSCalibration_( 0 )
+                                          , actionSelMSCalibSpectra_( 0 )
                                           , actionSelChromatogram_( 0 )
                                           , stack_( 0 )
                                           , currentFeature_( CentroidProcess )
@@ -159,6 +149,11 @@ MainWindow::createStyledBarTop()
             connect( actionSelMSCalibration_, SIGNAL( triggered() ), this, SLOT( actionSelMSCalibration() ) );
             am->registerAction( actionSelMSProcess_, "dataproc.selMSCalibration", globalcontext );
             toolBarLayout->addWidget( toolButton( actionSelMSCalibration_ ) );
+
+            actionSelMSCalibSpectra_ = new QAction( "MS Calib. Spectra", this );
+            connect( actionSelMSCalibSpectra_, SIGNAL( triggered() ), this, SLOT( actionSelMSCalibSpectra() ) );
+            am->registerAction( actionSelMSProcess_, "dataproc.selMSCalibSpectra", globalcontext );
+            toolBarLayout->addWidget( toolButton( actionSelMSCalibSpectra_ ) );
 
             actionSelChromatogram_ = new QAction( "Chromatogram", this );
             connect( actionSelChromatogram_, SIGNAL( triggered() ), this, SLOT( actionSelChromatogram() ) );
@@ -241,6 +236,9 @@ MainWindow::createContents( Core::IMode * mode
         stack_->addWidget( wnd.back() );
 
         wnd.push_back( new MSCalibrationWnd( config, apppath ) );
+        stack_->addWidget( wnd.back() );
+
+        wnd.push_back( new MSCalibSpectraWnd( config, apppath ) );
         stack_->addWidget( wnd.back() );
 
         wnd.push_back( new ChromatogramWnd( apppath ) );
@@ -499,6 +497,19 @@ MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned )
 }
 
 void
+MainWindow::applyCalibration( const adcontrols::MSAssignedMasses& assigned, portfolio::Folium& folium )
+{
+    adcontrols::ProcessMethod m;
+    getProcessMethod( m );
+    if ( m.size() > 0 ) {
+        Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
+        if ( processor )
+            processor->applyCalibration( m, assigned, folium );
+    }
+}
+
+
+void
 MainWindow::handleFeatureSelected( int value )
 {
     currentFeature_ = static_cast< ProcessType >( value );
@@ -529,8 +540,14 @@ MainWindow::actionSelMSCalibration()
 }
 
 void
-MainWindow::actionSelChromatogram()
+MainWindow::actionSelMSCalibSpectra()
 {
     stack_->setCurrentIndex( 3 );
+}
+
+void
+MainWindow::actionSelChromatogram()
+{
+    stack_->setCurrentIndex( 4 );
 }
 

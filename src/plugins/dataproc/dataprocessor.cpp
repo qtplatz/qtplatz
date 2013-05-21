@@ -167,18 +167,23 @@ Dataprocessor::setCurrentSelection( portfolio::Folder& folder )
 void
 Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
-    if ( folium.empty() ) {
-
-        folium = file().fetch( folium.id(), folium.dataClass() );
- 
-        portfolio::Folio attachs = folium.attachments();
-        for ( portfolio::Folio::iterator it = attachs.begin(); it != attachs.end(); ++it ) {
-            if ( it->empty() )
-                *it = file().fetch( it->id(), it->dataClass() );
-        }
-    }
+	fetch( folium );
     idActiveFolium_ = folium.id();
     SessionManager::instance()->selectionChanged( this, folium );
+}
+
+bool
+Dataprocessor::fetch( portfolio::Folium& folium )
+{
+	if ( folium.empty() ) {
+        folium = file().fetch( folium.id(), folium.dataClass() );
+		portfolio::Folio attachs = folium.attachments();
+		for ( portfolio::Folio::iterator it = attachs.begin(); it != attachs.end(); ++it ) {
+			if ( it->empty() )
+				*it = file().fetch( it->id(), it->dataClass() );
+        }
+	}
+	return true;
 }
 
 namespace dataproc {
@@ -385,7 +390,13 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& profile
                                , const adcontrols::MSAssignedMasses& assigned )
 {
     portfolio::Folder folder = portfolio_->addFolder( L"MSCalibration" );
-    portfolio::Folium folium = folder.addFolium( L"CalibrantSpectrum" );
+    std::wstring name;
+    const adcontrols::Descriptions& descs = centroid.getDescriptions();
+    for ( size_t i = 0; i < descs.size(); ++i )
+        name += descs[ i ].text();
+    name += L", manually assigned";
+
+    portfolio::Folium folium = folder.addFolium( name );
     
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( profile ) );  // deep copy
     folium.assign( ms, ms->dataClass() );
@@ -400,6 +411,32 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& profile
     if ( DataprocessorImpl::applyMethod( folium, calibMethod, assigned ) ) 
         SessionManager::instance()->updateDataprocessor( this, folium );
 }
+
+void
+Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
+                                 , const adcontrols::MSAssignedMasses& assigned
+								 , portfolio::Folium& folium )
+{
+	const adcontrols::MSCalibrateMethod * mcalib = m.find< adcontrols::MSCalibrateMethod >();
+	assert( mcalib && folium );
+	if ( mcalib && folium ) {
+		adcontrols::MassSpectrumPtr profile;
+		if ( ! portfolio::Folium::get< adcontrols::MassSpectrumPtr >( profile,  folium ) )
+			return;
+
+        portfolio::Folio attachments = folium.attachments();
+        portfolio::Folio::iterator it
+            = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
+        if ( it == attachments.end() )
+            return;
+		adutils::MassSpectrumPtr centroid = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+		// replace calibration
+		if ( DataprocessorImpl::applyMethod( folium, *mcalib, assigned ) )
+			SessionManager::instance()->updateDataprocessor( this, folium );
+
+    }
+}
+
 
 portfolio::Folium
 Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrols::ProcessMethod& m )
@@ -585,23 +622,11 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
                 att.assign( pResult, pResult->dataClass() );
                 
                 // rewrite calibration := change m/z asssing on the spectrum
-                pCentroid->setCalibration( pResult->calibration() );
+                pCentroid->setCalibration( pResult->calibration(), true );
                 
                 // update profile mass array
-                if ( pProfile ) {
-                    pProfile->setCalibration( pResult->calibration() );
-                    const std::vector<double>& coeffs = pResult->calibration().coeffs();
-                    if ( ! coeffs.empty() ) {
-                        for ( size_t i = 0; i < pProfile->size(); ++i ) {
-                            double tof = pProfile->getTime( i );
-                            double mq = adcontrols::MSCalibration::compute( coeffs, tof );
-                            if ( mq > 0.0 )
-                                pProfile->setMass( i, mq * mq );
-                            else
-                                pProfile->setMass( i, -( mq * mq ) );
-                        }
-                    }
-                }
+                if ( pProfile )
+                    pProfile->setCalibration( pResult->calibration(), true );
             }
             return true;
         }

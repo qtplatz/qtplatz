@@ -75,20 +75,11 @@
 #include <utils/styledbar.h>
 #include <utils/fancymainwindow.h>
 #include <QStringList>
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QHBoxLayout>
-# include <QtWidgets/QBoxLayout>
-# include <QtWidgets/QToolButton>
-# include <QtWidgets/QLabel>
-# include <QtWidgets/QSpacerItem>
-#else
-# include <QtGui/QHBoxLayout>
-# include <QtGui/QBoxLayout>
-# include <QtGui/QToolButton>
-# include <QtGui/QLabel>
-# include <QtGui/QSpacerItem>
-#endif
-
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QBoxLayout>
+#include <QtGui/QToolButton>
+#include <QtGui/QLabel>
+#include <QtGui/QSpacerItem>
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QToolButton>
@@ -151,7 +142,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 
     //-------------------------------------------------------------------------------------------
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-    std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc.config.xml" );
+    std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/dataproc.config.xml" );
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
 
     pConfig_.reset( new adportable::Configuration() );
@@ -177,7 +168,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     if ( mdb ) {
         // externally installed mime-types
         std::wstring mimefile
-            = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc-mimetype.xml" );
+            = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/dataproc-mimetype.xml" );
         if ( ! mdb->addMimeTypes( qtwrapper::qstring( mimefile ), error_message) )
             adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes" << mimefile << error_message;
 

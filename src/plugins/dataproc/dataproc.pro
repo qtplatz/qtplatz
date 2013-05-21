@@ -43,7 +43,10 @@ DEFINES += ANALYSIS_LIBRARY
 
 SOURCES += \
     actionmanager.cpp \
+    assign_masses.cpp \
+    assign_peaks.cpp \
     chromatogramwnd.cpp \
+    calibrate_masses.cpp \
     dataproc.cpp \
     dataproceditor.cpp \
     dataprocessor.cpp \
@@ -54,6 +57,7 @@ SOURCES += \
     elementalcompwnd.cpp \
     ifileimpl.cpp \
     mscalibrationwnd.cpp \
+    mscalibspectrawnd.cpp \
     msprocessingwnd.cpp \
     navigationdelegate.cpp \
     navigationwidget.cpp \
@@ -87,7 +91,10 @@ HEADERS += \
     mainwindow.hpp \
     mode.hpp \
     editorfactory.hpp \
-    isequenceimpl.hpp
+    isequenceimpl.hpp \
+    assign_masses.hpp \
+    calibrate_masses.hpp \
+    assign_peaks.hpp
 
 OTHER_FILES += \
     dataproc.pluginspec \
