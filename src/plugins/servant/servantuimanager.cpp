@@ -22,6 +22,7 @@
 #include <adplugin/adplugin.hpp>
 #include <adplugin/imonitor.hpp>
 #include <adportable/configuration.hpp>
+#include "../mscheminfo.hpp"
 
 using namespace servant;
 using namespace servant::internal;
@@ -47,7 +48,7 @@ ServantUIManager::init()
 {
     QDir dir = QCoreApplication::instance()->applicationDirPath();
     dir.cdUp();
-    dir.cd( "lib/qtPlatz/plugins/ScienceLiaison" );
+    dir.cd( "lib/qtPlatz/plugins/MS-Cheminformatics" );
 
     QString configFile = dir.path() + "/servant.config.xml";
 	const wchar_t * query = L"/ServantConfiguration/Configuration";

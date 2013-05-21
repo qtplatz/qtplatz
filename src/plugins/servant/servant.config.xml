@@ -5,9 +5,9 @@
 -->
 <ServantConfiguration name="servant" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
   <!-- <ServantConfiguration name="servant"> -->
-  <Module name="adbroker" type="corba::servant" filename="/ScienceLiaison/adbroker$(configuration).dll"/>
-  <Module name="adcontroller" type="corba::servant" filename="/ScienceLiaison/adcontroller$(configuration).dll"/>
-  <!-- <Module name="tofspectrometer" type="adcontrols::massspectrometer" filename="/ScienceLiaison/tofspectrometer$(configuration).dll"/> -->
+  <Module name="adbroker" type="corba::servant" filename="/MS-Cheminformatics/adbroker$(configuration).dll"/>
+  <Module name="adcontroller" type="corba::servant" filename="/MS-Cheminformatics/adcontroller$(configuration).dll"/>
+  <!-- <Module name="tofspectrometer" type="adcontrols::massspectrometer" filename="/MS-Cheminformatics/tofspectrometer$(configuration).dll"/> -->
   <!-- <Module name="infitofcontroller" type="corba::servant" reference="mcast" filename="/MSI/infitofcontroller$(configuration).dll"/> -->
   <Module name="infitofcontroller" type="corba::servant" reference="lookup" id="infitof.0000"/>
   <Module name="infitofspectrometer" type="adcontrols::massspectrometer" filename="/MSI/infitofspectrometer$(configuration).dll"/>

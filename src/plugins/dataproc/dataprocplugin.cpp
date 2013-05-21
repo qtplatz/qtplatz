@@ -106,6 +106,7 @@
 #include <iomanip>
 
 #include <adinterface/brokerC.h>
+#include "../mscheminfo.hpp"
 
 using namespace dataproc;
 
@@ -151,7 +152,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 
     //-------------------------------------------------------------------------------------------
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-    std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/dataproc.config.xml" );
+    std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc.config.xml" );
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
 
     pConfig_.reset( new adportable::Configuration() );
@@ -177,7 +178,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     if ( mdb ) {
         // externally installed mime-types
         std::wstring mimefile
-            = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/dataproc-mimetype.xml" );
+            = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc-mimetype.xml" );
         if ( ! mdb->addMimeTypes( qtwrapper::qstring( mimefile ), error_message) )
             adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes" << mimefile << error_message;
 

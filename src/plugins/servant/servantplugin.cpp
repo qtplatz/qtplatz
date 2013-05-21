@@ -171,7 +171,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         QDir dir = QCoreApplication::instance()->applicationDirPath();
         dir.cdUp();
         apppath = qtwrapper::wstring::copy( dir.path() );
-        configFile = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/servant.config.xml" );
+		configFile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/servant.config.xml" );
     } while(0);
     
     const wchar_t * query = L"/ServantConfiguration/Configuration";

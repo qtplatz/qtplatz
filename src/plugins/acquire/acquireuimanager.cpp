@@ -103,7 +103,7 @@ AcquireUIManager::init()
     dir.cdUp();
     std::wstring apppath = qtwrapper::wstring::copy( dir.path() );
     // dir.cd( adpluginDirectory );
-    std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/ScienceLiaison/acquire.config.xml" );
+    std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/acquire.config.xml" );
     
     const wchar_t * query = L"/AcquireConfiguration/Configuration";
     
