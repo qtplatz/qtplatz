@@ -82,6 +82,7 @@ HEADERS += \
     elementalcompwnd.hpp \
     ifileimpl.hpp \
     mscalibrationwnd.hpp \
+    mscalibspectrawnd.hpp \
     msprocessingwnd.hpp \
     navigationdelegate.hpp \
     navigationwidget.hpp \
