@@ -1,6 +1,6 @@
 //////////////////////////////////////////////
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison Project
+// MS-Cheminformatics LLC Project
 //////////////////////////////////////////////
 
 #if QT_VERSION >= 0x050000

@@ -1,5 +1,5 @@
 <plugin name="chemistry" version="1.0.0" compatVersion="1.3.1">
-    <vendor>ScienceLiaison</vendor>
+    <vendor>MS-Cheminformatics</vendor>
     <copyright>(C) 2012,2013 Toshinobu Hondo, Ph.D.</copyright>
     <license>
 GNU Lesser General Public License Usage
@@ -11,7 +11,7 @@ ensure the GNU Lesser General Public License version 2.1 requirements
 will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 </license>
     <description>Chemical structure data viewer</description>
-    <url>http://www.scienceliaison.com</url>
+    <url>http://www.MS-Cheminformatics.com</url>
     <dependencyList>
         <dependency name="Core" version="1.3.1"/>
     </dependencyList>

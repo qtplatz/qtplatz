@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 //////////////////////////////////////////
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
+// Copyright (C) MS-Cheminformatics LLC / Advanced Instrumentation Project
 //////////////////////////////////////////
 
 #include "deviceproxy.h"

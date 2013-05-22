@@ -1,6 +1,6 @@
 //////////////////////////////////////////////
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison Project
+// Copyright (C) MS-Cheminformatics LLC Project
 //////////////////////////////////////////////
 
 #include "tuneplugin.h"

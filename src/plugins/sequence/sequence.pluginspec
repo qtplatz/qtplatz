@@ -1,5 +1,5 @@
 <plugin name="sequence" version="1.0.0" compatVersion="1.3.1">
-    <vendor>Science Liaison</vendor>
+    <vendor>MS-Cheminformatics LLC</vendor>
     <copyright>(C) 2010 Toshinobu Hondo, Ph.D.</copyright>
     <license>
 GNU Lesser General Public License Usage

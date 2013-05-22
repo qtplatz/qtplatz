@@ -1,15 +1,15 @@
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
-** Science Liaison / Advanced Instrumentation Project
+** Copyright (C) 2013 MS-Cheminformatics LLC / Advanced Instrumentation Project
 **
-** Contact: toshi.hondo@scienceliaison.com
+** Contact: info@ms-cheminfo.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid ScienceLiaison commercial licenses may use this file in
-** accordance with the ScienceLiaison Commercial License Agreement provided with the
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and ScienceLiaison.
+** a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
 **

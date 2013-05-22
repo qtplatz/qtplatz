@@ -115,7 +115,7 @@ MainWindow::MainWindow() :
     m_globalContext(QList<int>() << Constants::C_GLOBAL_ID),
     m_additionalContexts(m_globalContext),
     m_settings(new QSettings(QSettings::IniFormat, QSettings::UserScope,
-                             QLatin1String("ScienceLiaison"), QLatin1String("QtPlatz"), this)),
+                             QLatin1String("MS-Cheminformatics"), QLatin1String("QtPlatz"), this)),
     m_settingsDatabase(new SettingsDatabase(QFileInfo(m_settings->fileName()).path(),
                                             QLatin1String("QtPlatz"),
                                             this)),

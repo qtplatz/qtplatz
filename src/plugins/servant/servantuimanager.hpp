@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 //////////////////////////////////////////
 // Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// Science Liaison / Advanced Instrumentation Project
+// MS-Cheminformatics LLC / Advanced Instrumentation Project
 //////////////////////////////////////////
 
 #ifndef SERVANTUIMANAGER_H
