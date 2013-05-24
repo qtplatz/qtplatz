@@ -29,6 +29,7 @@
 #include "sdfileview.hpp"
 #include "constants.hpp"
 #include "chemistrymainwindow.hpp"
+#include <qtwrapper/qstring.hpp>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/filemanager.h>
 #include <coreplugin/icore.h>
@@ -67,7 +68,7 @@ ChemEditor::createNew( const QString &contents )
 bool
 ChemEditor::open( const QString &qfilename )
 {
-    std::string filename( qfilename.toStdString() );
+    std::string filename( qtwrapper::wstring ( qfilename ) );
 
     file_.reset( new ChemFile );
     if ( file_->open( qfilename, 0 ) ) {

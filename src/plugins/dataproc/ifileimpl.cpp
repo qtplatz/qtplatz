@@ -85,7 +85,7 @@ IFileImpl::save( const QString& filename )
     p.replace_extension( L".adfs" );
 
     do {
-        boost::filesystem::path xmlfile( filename.toStdString() );
+		boost::filesystem::path xmlfile( qtwrapper::wstring::copy( filename ) );
         xmlfile.replace_extension( ".xml" );
         boost::filesystem::remove( xmlfile );
         pugi::xml_document dom;
@@ -99,7 +99,7 @@ IFileImpl::save( const QString& filename )
 
     } else {
         // saveFileAs -- has to create new file
-        boost::filesystem::remove( boost::filesystem::path( filename.toStdString() ) );
+		boost::filesystem::remove( boost::filesystem::path( qtwrapper::wstring( filename ) ) );
         boost::scoped_ptr< adcontrols::datafile > file( adcontrols::datafile::create( p.wstring() ) );
         return file && file->saveContents( L"/Processed", portfolio, this->file() );
 

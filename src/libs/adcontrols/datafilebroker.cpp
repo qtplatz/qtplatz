@@ -133,7 +133,7 @@ datafileBrokerImpl::register_library( const std::wstring& sharedlib )
             return true;
         }
     }
-    adportable::debug(__FILE__, __LINE__) << lib.errorString().toStdString();
+    adportable::debug(__FILE__, __LINE__) << static_cast< const char *>( lib.errorString().toUtf8() );
     return false;
 }
 

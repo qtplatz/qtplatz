@@ -172,7 +172,7 @@ manager_impl::loadFactory( const std::wstring& filename )
             }
         } else {
             adportable::debug dbg(__FILE__, __LINE__);
-            dbg << "manager_impl::loadFactory(" << filename << ")" << lib.errorString().toStdString();
+			dbg << "manager_impl::loadFactory(" << filename << ")" << qtwrapper::wstring::copy( lib.errorString() );
         }
     }
     if ( ( it = libraries_.find( filename ) ) != libraries_.end() )
@@ -214,16 +214,6 @@ manager_impl::register_ior( const std::string& name, const std::string& ior )
 const char *
 manager_impl::lookup_ior( const std::string& name )
 {
-#if defined _DEBUG && 0
-    std::string path = QDir::home().absolutePath().toStdString();
-    path += std::string( "/.ior/" ) + name + ".ior";
-    std::ifstream inf( path.c_str() );
-    
-    if ( ! inf.fail() ) {
-	std::string ior;
-	inf >> ior;
-    }
-#endif
     std::map< std::string, std::string >::iterator it = iorMap_.find( name );
     if ( it != iorMap_.end() )
 	return it->second.c_str();
@@ -284,7 +274,7 @@ manager_impl::orbLoader( const std::wstring& file )
 
     // exists library but failed to load
     adportable::debug dbg(__FILE__, __LINE__);
-    dbg << lib.errorString().toStdString();
+    dbg << static_cast< const char * >( lib.errorString().toUtf8() );
     
     failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
     return *failedLoaders_[ file ];

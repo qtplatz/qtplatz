@@ -22,10 +22,10 @@ isEmpty( $$ACE_ROOT ) {
 isEmpty( $$TAO_ROOT ): TAO_ROOT=$$ACE_ROOT
 
 # qwt
-QWT = $$QWT
+QWT = $$(QWT)
 isEmpty( QWT ) {
   win32: QWT= C:/Qwt-$${QWT_VERSION}
-  macx|linux-*: QWT=/usr/local/qwt-$${QWT_VERSION}	 
+  macx|linux-*: QWT=/usr/local/qwt-$${QWT_VERSION}
 }
 
 # OpenBabel

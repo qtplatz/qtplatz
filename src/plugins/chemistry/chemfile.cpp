@@ -62,7 +62,7 @@ ChemFile::open( const QString& qfilename, const OpenBabel::OBFormat * informat )
 {
     nread_ = 0;
     qfilename_ = qfilename;
-    filename_ = qfilename_.toStdString();
+	filename_ = static_cast< const char * >( qfilename_.toUtf8() );
     if ( informat == 0 ) {
 	informat = OpenBabel::OBConversion::FormatFromExt( filename_.c_str() );
 	if ( informat == 0 ) {
