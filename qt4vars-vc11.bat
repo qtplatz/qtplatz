@@ -9,8 +9,8 @@ set QTDIR=C:\Qt\4.8.4
 echo -- QTDIR set to C:\Qt\4.8.4
 set PATH=C:\Qt\4.8.4\bin;%PATH%
 echo -- Added C:\Qt\4.8.4\bin to PATH
-set QMAKESPEC=win32-msvc2011
-echo -- QMAKESPEC set to "win32-msvc2011"
+set QMAKESPEC=win32-msvc2012
+echo -- QMAKESPEC set to "win32-msvc2012"
 
 if not "%1"=="vsvars" goto ENDVSVARS
 call "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" x86

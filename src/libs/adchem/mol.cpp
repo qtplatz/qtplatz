@@ -140,7 +140,7 @@ Mol::attributes( const OpenBabel::OBMol& mol, const std::vector< std::string >& 
 			std::string key = pair.GetAttribute();
 			if ( std::find( excludes.begin(), excludes.end(), key ) == excludes.end() ) {
 				std::string value = pair.GetValue();
-				attrs.push_back( std::make_pair< std::string, std::string >( key, value ) );
+				attrs.push_back( std::pair< std::string, std::string >( key, value ) );
 			}
 		}
 	}

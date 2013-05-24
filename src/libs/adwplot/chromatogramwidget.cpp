@@ -214,7 +214,9 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
     for ( adcontrols::Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it )
         setPeak( *it );
 
-    std::pair< double, double > time_range = adcontrols::timeutil::toMinutes( c.timeRange() );
+	std::pair< double, double > time_range;
+	time_range.first = adcontrols::timeutil::toMinutes( adcontrols::seconds_t( c.timeRange().first ) );
+	time_range.second = adcontrols::timeutil::toMinutes( adcontrols::seconds_t( c.timeRange().second ) );
     setAxisScale( QwtPlot::xBottom, time_range.first, time_range.second );
     setAxisScale( QwtPlot::yLeft, intens[ c.min_element() ], intens[ c.max_element() ] );
     zoomer1_->setZoomBase();

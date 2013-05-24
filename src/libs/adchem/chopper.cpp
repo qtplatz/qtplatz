@@ -59,10 +59,10 @@ Chopper::split( OpenBabel::OBMol& mol, int idx )
 		std::vector< OBMol > sub = mol.Separate();
         if ( sub.size() >= 2 ) {
             if ( sub[0].GetExactMass() > sub[1].GetExactMass() )
-				return std::make_pair< OBMol, OBMol >( sub[0], sub[1] );
+				return std::pair< OBMol, OBMol >( sub[0], sub[1] );
 			else
-				return std::make_pair< OBMol, OBMol >( sub[1], sub[0] );
+				return std::pair< OBMol, OBMol >( sub[1], sub[0] );
 		}
 	}
-	return std::make_pair< OBMol, OBMol >( mol, OBMol() ); // return empty
+	return std::pair< OBMol, OBMol >( mol, OBMol() ); // return empty
 }
