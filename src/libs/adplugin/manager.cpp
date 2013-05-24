@@ -42,6 +42,7 @@
 #include <fstream>
 #include <boost/smart_ptr.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/cast.hpp>
 #include <ace/Singleton.h>
 
@@ -198,19 +199,22 @@ manager_impl::register_ior( const std::string& name, const std::string& ior )
     iorMap_[name] = ior;
     
     QDir dir = QDir::home();
-    if ( ! dir.exists( ".ior" ) )
-	dir.mkdir( ".ior" );
-    dir.cd( ".ior" );
-    std::string path = dir.absolutePath().toStdString();
-    path += std::string("/") + name + ".ior";
-    std::ofstream of( path.c_str() );
+
+	boost::filesystem::path path( qtwrapper::wstring::copy( dir.absolutePath() ) );
+	path /= ".ior";
+	if ( ! boost::filesystem::exists( path ) )
+		boost::filesystem::create_directory( path );
+    path /= name;
+	path.replace_extension( ".ior" );
+	boost::filesystem::ofstream of( path );
+
     of << ior;
 }
 
 const char *
 manager_impl::lookup_ior( const std::string& name )
 {
-#if defined _DEBUG
+#if defined _DEBUG && 0
     std::string path = QDir::home().absolutePath().toStdString();
     path += std::string( "/.ior/" ) + name + ".ior";
     std::ifstream inf( path.c_str() );

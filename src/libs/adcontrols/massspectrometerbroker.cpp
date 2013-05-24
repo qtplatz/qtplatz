@@ -34,6 +34,7 @@
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
 #include "adcontrols.hpp"
+#include <qtwrapper/qstring.hpp>
 
 using namespace adcontrols;
 
@@ -101,7 +102,7 @@ MassSpectrometerBrokerImpl::register_library( const std::wstring& sharedlib )
             }
         }
     }
-    adportable::debug(__FILE__, __LINE__) << lib.errorString().toStdString();
+	adportable::debug(__FILE__, __LINE__) << static_cast<const char *>( lib.errorString().toUtf8() );
     return false;
 }
 
