@@ -91,7 +91,7 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
             adportable::Module module;
             module.library_filename( QTWIDGETS_NAME );
             config.module( module );
-            config.interface( L"qtwidgets::MSCalibSummaryWidget" );
+            config._interface( L"qtwidgets::MSCalibSummaryWidget" );
             pImpl_->calibSummaryWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
         }
         bool res;
