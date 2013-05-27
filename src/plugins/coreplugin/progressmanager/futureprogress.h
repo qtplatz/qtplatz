@@ -35,7 +35,7 @@
 #include <QtCore/QString>
 #include <QtCore/QFuture>
 #include <QtCore/QFutureWatcher>
-#include <QtGui/QWidget>
+#include <QWidget>
 
 QT_BEGIN_NAMESPACE
 class QProgressBar;

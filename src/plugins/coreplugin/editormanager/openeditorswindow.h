@@ -31,10 +31,10 @@
 #define OPENEDITORSWINDOW_H
 
 #include <QtCore/QTimer>
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QFocusEvent>
-#include <QtGui/QTreeWidget>
+#include <QTreeWidget>
 #include <QtDebug>
 
 namespace Core {

@@ -31,7 +31,7 @@
 #define VIEWMANAGER_H
 
 #include <QtCore/QMap>
-#include <QtGui/QWidget>
+#include <QWidget>
 
 QT_BEGIN_NAMESPACE
 class QAction;

@@ -46,16 +46,16 @@
 
 #include <QtCore/QDebug>
 
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QComboBox>
+#include <QAction>
+#include <QApplication>
+#include <QComboBox>
 #include <QtGui/QFocusEvent>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QMenu>
+#include <QHBoxLayout>
+#include <QMenu>
 #include <QtGui/QPainter>
-#include <QtGui/QPushButton>
-#include <QtGui/QToolButton>
-#include <QtGui/QStackedWidget>
+#include <QPushButton>
+#include <QToolButton>
+#include <QStackedWidget>
 
 using namespace Core;
 using namespace Core::Internal;

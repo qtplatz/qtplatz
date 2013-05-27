@@ -40,9 +40,9 @@
 #include <extensionsystem/pluginmanager.h>
 
 #include <QtCore/QSettings>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QStatusBar>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QStatusBar>
 
 using namespace Core;
 using namespace Core::Internal;

@@ -34,10 +34,10 @@
 
 #include <QtCore/QSettings>
 
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QSplitter>
+#include <QVBoxLayout>
+#include <QSplitter>
 #include <QtGui/QResizeEvent>
-#include <QtGui/QTextEdit>
+#include <QTextEdit>
 
 
 using namespace Core;

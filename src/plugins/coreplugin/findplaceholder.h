@@ -33,7 +33,7 @@
 #include "core_global.h"
 
 #include <QtCore/QPointer>
-#include <QtGui/QWidget>
+#include <QWidget>
 
 namespace Core {
 

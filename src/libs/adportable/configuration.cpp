@@ -55,7 +55,7 @@ Configuration::component() const
 }
 
 const std::wstring&
-Configuration::interface() const
+Configuration::_interface() const
 {
     return interface_;  // under <Component> element
 }

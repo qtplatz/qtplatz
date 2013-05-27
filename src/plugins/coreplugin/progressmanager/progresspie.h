@@ -31,8 +31,8 @@
 #define PROGRESSPIE_H
 
 #include <QtCore/QString>
-#include <QtGui/QWidget>
-#include <QtGui/QProgressBar>
+#include <QWidget>
+#include <QProgressBar>
 #include <QtGui/QMouseEvent>
 
 class ProgressBar : public QWidget

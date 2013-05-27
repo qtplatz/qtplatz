@@ -63,7 +63,7 @@ namespace adportable {
 
         const std::wstring& component() const;
 
-        const std::wstring& interface() const;
+        const std::wstring& _interface() const;
         void interface( const std::wstring& );
 		
         const std::wstring& attribute( const std::wstring& key ) const;

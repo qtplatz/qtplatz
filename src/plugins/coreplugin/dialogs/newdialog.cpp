@@ -34,8 +34,8 @@
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/dialogs/iwizard.h>
 
-#include <QtGui/QHeaderView>
-#include <QtGui/QPushButton>
+#include <QHeaderView>
+#include <QPushButton>
 
 Q_DECLARE_METATYPE(Core::IWizard*)
 

@@ -36,8 +36,8 @@
 #include "../uniqueidmanager.h"
 
 #include <QtCore/QDebug>
-#include <QtGui/QAction>
-#include <QtGui/QMenuBar>
+#include <QAction>
+#include <QMenuBar>
 
 Q_DECLARE_METATYPE(Core::Internal::MenuActionContainer*)
 

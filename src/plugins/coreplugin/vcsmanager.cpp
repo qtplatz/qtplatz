@@ -39,7 +39,7 @@
 
 #include <QtCore/QDebug>
 #include <QtCore/QFileInfo>
-#include <QtGui/QMessageBox>
+#include <QMessageBox>
 
 enum { debug = 0 };
 

@@ -38,7 +38,7 @@
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
 
-#include <QtGui/QMainWindow>
+#include <QMainWindow>
 
 #include <QtScript/QScriptEngine>
 

@@ -33,17 +33,17 @@
 
 #include <QDebug>
 
-#include <QtGui/QColorDialog>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QVBoxLayout>
+#include <QColorDialog>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QWindowsStyle>
+#include <QWindowsStyle>
 #include <QtGui/QPainter>
-#include <QtGui/QSplitter>
-#include <QtGui/QStackedLayout>
-#include <QtGui/QStatusBar>
-#include <QtGui/QToolButton>
-#include <QtGui/QToolTip>
+#include <QSplitter>
+#include <QStackedLayout>
+#include <QStatusBar>
+#include <QToolButton>
+#include <QToolTip>
 
 using namespace Core;
 using namespace Internal;

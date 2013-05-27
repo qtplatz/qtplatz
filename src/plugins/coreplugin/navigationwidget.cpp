@@ -43,11 +43,11 @@
 #include <QtCore/QDebug>
 #include <QtCore/QSettings>
 
-#include <QtGui/QAction>
-#include <QtGui/QHBoxLayout>
+#include <QAction>
+#include <QHBoxLayout>
 #include <QtGui/QResizeEvent>
-#include <QtGui/QToolButton>
-#include <QtGui/QShortcut>
+#include <QToolButton>
+#include <QShortcut>
 
 Q_DECLARE_METATYPE(Core::INavigationWidgetFactory *)
 

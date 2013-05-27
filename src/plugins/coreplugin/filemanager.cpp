@@ -49,8 +49,8 @@
 #include <QtCore/QDir>
 #include <QtCore/QTimer>
 #include <QtCore/QFileSystemWatcher>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#include <QFileDialog>
+#include <QMessageBox>
 
 using namespace Core;
 using namespace Core::Internal;

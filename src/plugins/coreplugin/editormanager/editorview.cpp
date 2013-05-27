@@ -45,17 +45,17 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QMimeData>
 
-#include <QtGui/QApplication>
-#include <QtGui/QComboBox>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QLabel>
+#include <QApplication>
+#include <QComboBox>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
-#include <QtGui/QStackedWidget>
-#include <QtGui/QStyle>
-#include <QtGui/QStyleOption>
-#include <QtGui/QToolButton>
-#include <QtGui/QMenu>
+#include <QStackedWidget>
+#include <QStyle>
+#include <QStyleOption>
+#include <QToolButton>
+#include <QMenu>
 #include <QtGui/QClipboard>
 
 #ifdef Q_WS_MAC

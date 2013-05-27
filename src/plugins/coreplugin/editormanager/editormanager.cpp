@@ -63,16 +63,16 @@
 #include <QtCore/QSet>
 #include <QtCore/QSettings>
 
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QFileDialog>
-#include <QtGui/QLayout>
-#include <QtGui/QMainWindow>
-#include <QtGui/QMenu>
-#include <QtGui/QMessageBox>
-#include <QtGui/QPushButton>
-#include <QtGui/QSplitter>
-#include <QtGui/QStackedLayout>
+#include <QAction>
+#include <QApplication>
+#include <QFileDialog>
+#include <QLayout>
+#include <QMainWindow>
+#include <QMenu>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QSplitter>
+#include <QStackedLayout>
 #include <algorithm>
 
 Q_DECLARE_METATYPE(Core::IEditor*)

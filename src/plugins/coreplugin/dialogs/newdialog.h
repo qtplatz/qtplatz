@@ -30,7 +30,7 @@
 #ifndef NEWDIALOG_H
 #define NEWDIALOG_H
 
-#include <QtGui/QDialog>
+#include <QDialog>
 #include <QtCore/QList>
 
 QT_BEGIN_NAMESPACE

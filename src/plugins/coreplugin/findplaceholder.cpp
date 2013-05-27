@@ -32,7 +32,7 @@
 
 #include <extensionsystem/pluginmanager.h>
 
-#include <QtGui/QVBoxLayout>
+#include <QVBoxLayout>
 
 
 using namespace Core;

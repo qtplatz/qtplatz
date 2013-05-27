@@ -30,8 +30,8 @@
 #include "fileiconprovider.h"
 #include "mimedatabase.h"
 
-#include <QtGui/QApplication>
-#include <QtGui/QStyle>
+#include <QApplication>
+#include <QStyle>
 #include <QtGui/QPainter>
 
 using namespace Core;

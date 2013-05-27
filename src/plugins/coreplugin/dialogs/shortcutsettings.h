@@ -34,7 +34,7 @@
 
 #include <QtCore/QObject>
 #include <QtGui/QKeySequence>
-#include <QtGui/QTreeWidgetItem>
+#include <QTreeWidgetItem>
 #include <QtGui/QKeyEvent>
 
 QT_BEGIN_NAMESPACE

@@ -41,9 +41,9 @@
 
 
 #include <QtGui/QKeyEvent>
-#include <QtGui/QShortcut>
-#include <QtGui/QHeaderView>
-#include <QtGui/QFileDialog>
+#include <QShortcut>
+#include <QHeaderView>
+#include <QFileDialog>
 #include <QtDebug>
 
 Q_DECLARE_METATYPE(Core::Internal::ShortcutItem*);

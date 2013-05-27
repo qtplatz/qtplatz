@@ -47,9 +47,9 @@
 #include <QtCore/QEventLoop>
 #include <QtCore/QSharedPointer>
 
-#include <QtGui/QMessageBox>
-#include <QtGui/QWizard>
-#include <QtGui/QMainWindow>
+#include <QMessageBox>
+#include <QWizard>
+#include <QMainWindow>
 
 enum { debugWizard = 0 };
 

@@ -31,7 +31,7 @@
 #define SAVEITEMSDIALOG_H
 
 #include <QtCore/QMap>
-#include <QtGui/QDialog>
+#include <QDialog>
 
 #include "ui_saveitemsdialog.h"
 

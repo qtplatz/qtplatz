@@ -32,7 +32,7 @@
 
 #include "core_global.h"
 
-#include <QtGui/QSplitter>
+#include <QSplitter>
 
 QT_BEGIN_NAMESPACE
 class QSplitterHandle;

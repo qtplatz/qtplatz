@@ -34,9 +34,9 @@
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QPair>
-#include <QtGui/QFileIconProvider>
+#include <QFileIconProvider>
 #include <QtGui/QIcon>
-#include <QtGui/QStyle>
+#include <QStyle>
 
 namespace Core {
 

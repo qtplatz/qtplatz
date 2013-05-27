@@ -29,8 +29,8 @@
 
 #include "openwithdialog.h"
 
-#include <QtGui/QListWidget>
-#include <QtGui/QPushButton>
+#include <QListWidget>
+#include <QPushButton>
 #include <QtCore/QFileInfo>
 
 using namespace Core;

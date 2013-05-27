@@ -34,7 +34,7 @@
 
 #include <utils/qtcassert.h>
 
-#include <QtGui/QHeaderView>
+#include <QHeaderView>
 
 Q_DECLARE_METATYPE(Core::Internal::EditorView*)
 Q_DECLARE_METATYPE(Core::IFile *)

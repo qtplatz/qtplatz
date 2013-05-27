@@ -41,9 +41,9 @@
 #include "ifile.h"
 
 #include <QtCore/QLatin1String>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QWidget>
-#include <QtGui/QSplitter>
+#include <QHBoxLayout>
+#include <QWidget>
+#include <QSplitter>
 
 using namespace Core;
 using namespace Core::Internal;

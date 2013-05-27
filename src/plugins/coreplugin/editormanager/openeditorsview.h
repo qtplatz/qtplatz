@@ -36,11 +36,11 @@
 #include <coreplugin/inavigationwidgetfactory.h>
 
 #include <QtCore/QList>
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QtGui/QKeySequence>
-#include <QtGui/QAbstractButton>
-#include <QtGui/QTreeWidgetItem>
-#include <QtGui/QStyledItemDelegate>
+#include <QAbstractButton>
+#include <QTreeWidgetItem>
+#include <QStyledItemDelegate>
 
 namespace Core {
 namespace Internal {

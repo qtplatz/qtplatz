@@ -33,9 +33,9 @@
 #include "progressmanager.h"
 
 #include <QtCore/QFuture>
-#include <QtGui/QWidget>
+#include <QWidget>
 #include <QtGui/QIcon>
-#include <QtGui/QVBoxLayout>
+#include <QVBoxLayout>
 
 namespace Core {
 

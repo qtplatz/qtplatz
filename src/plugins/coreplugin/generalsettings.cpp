@@ -34,7 +34,7 @@
 //#include <utils/consoleprocess.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/icore.h>
-#include <QtGui/QMessageBox>
+#include <QMessageBox>
 
 #include "ui_generalsettings.h"
 

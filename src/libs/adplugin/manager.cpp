@@ -107,7 +107,7 @@ manager::widget_factory( const adportable::Configuration& config, const wchar_t 
     
     adplugin::ifactory * pfactory = manager::instance()->loadFactory( loadfile.wstring() );
     if ( pfactory ) {
-        QWidget * pWidget = pfactory->create_widget( config.interface().c_str(), parent );
+        QWidget * pWidget = pfactory->create_widget( config._interface().c_str(), parent );
 
         adplugin::LifeCycle * pLifeCycle = dynamic_cast< adplugin::LifeCycle * > ( pWidget );
         if ( pLifeCycle == 0 ) {

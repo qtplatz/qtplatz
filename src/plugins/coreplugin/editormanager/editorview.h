@@ -34,17 +34,17 @@
 #include <QtCore/QList>
 #include <QtCore/QString>
 #include <QtCore/QSettings>
-#include <QtGui/QWidget>
-#include <QtGui/QAction>
-#include <QtGui/QSplitter>
-#include <QtGui/QStackedLayout>
+#include <QWidget>
+#include <QAction>
+#include <QSplitter>
+#include <QStackedLayout>
 #include <QtCore/QPointer>
 
 #include <coreplugin/icontext.h>
 #include <coreplugin/ifile.h>
 
 #include <QtCore/QMap>
-#include <QtGui/QSortFilterProxyModel>
+#include <QSortFilterProxyModel>
 
 QT_BEGIN_NAMESPACE
 class QComboBox;

@@ -32,7 +32,7 @@
 
 #include <coreplugin/minisplitter.h>
 
-#include <QtGui/QComboBox>
+#include <QComboBox>
 
 QT_BEGIN_NAMESPACE
 class QSettings;
