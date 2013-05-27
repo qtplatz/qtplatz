@@ -32,7 +32,7 @@
 
 #include "utils_global.h"
 
-#include <QtGui/QWizard>
+#include <QWizard>
 
 namespace Utils {
 

@@ -32,7 +32,7 @@
 
 #include "utils_global.h"
 
-#include <QtGui/QLineEdit>
+#include <QLineEdit>
 
 namespace Utils {
 

@@ -30,10 +30,13 @@
 #include "qtcolorbutton.h"
 
 #include <QtCore/QMimeData>
-#include <QtGui/QApplication>
-#include <QtGui/QColorDialog>
+#include <QApplication>
+#include <QColorDialog>
 #include <QtGui/QDragEnterEvent>
 #include <QtGui/QPainter>
+#if QT_VERSION >= 0x050000
+# include <QDrag>
+#endif
 
 namespace Utils {
 

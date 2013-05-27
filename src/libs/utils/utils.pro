@@ -2,6 +2,7 @@ TEMPLATE = lib
 TARGET = Utils
 QT += gui \
     network
+
 DEFINES += QTCREATOR_UTILS_LIB
 include(../../qtplatz_library.pri)
 
