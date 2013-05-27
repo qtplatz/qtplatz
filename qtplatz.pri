@@ -1,3 +1,19 @@
+!isEmpty(QTCREATOR_PRI_INCLUDED):error("qtplatz.pri already included")
+QTCREATOR_PRI_INCLUDED = 1
+
+QTCREATOR_VERSION = 2.7.81
+
+isEqual(QT_MAJOR_VERSION, 5) {
+
+defineReplace(cleanPath) {
+    return($$clean_path($$1))
+}
+
+defineReplace(targetPath) {
+    return($$shell_path($$1))
+}
+
+} else { # qt5
 
 defineReplace(cleanPath) {
     win32:1 ~= s|\\\\|/|g
@@ -16,6 +32,53 @@ defineReplace(targetPath) {
     return($$replace(1, /, $$QMAKE_DIR_SEP))
 }
 
+} # qt5
+
+defineReplace(qtLibraryName) {
+   unset(LIBRARY_NAME)
+   LIBRARY_NAME = $$1
+   CONFIG(debug, debug|release) {
+      !debug_and_release|build_pass {
+          mac:RET = $$member(LIBRARY_NAME, 0)_debug
+              else:win32:RET = $$member(LIBRARY_NAME, 0)d
+      }
+   }
+   isEmpty(RET):RET = $$LIBRARY_NAME
+   return($$RET)
+}
+
+defineTest(minQtVersion) {
+    maj = $$1
+    min = $$2
+    patch = $$3
+    isEqual(QT_MAJOR_VERSION, $$maj) {
+        isEqual(QT_MINOR_VERSION, $$min) {
+            isEqual(QT_PATCH_VERSION, $$patch) {
+                return(true)
+            }
+            greaterThan(QT_PATCH_VERSION, $$patch) {
+                return(true)
+            }
+        }
+        greaterThan(QT_MINOR_VERSION, $$min) {
+            return(true)
+        }
+    }
+    greaterThan(QT_MAJOR_VERSION, $$maj) {
+        return(true)
+    }
+    return(false)
+}
+
+isEqual(QT_MAJOR_VERSION, 5) {
+
+# For use in custom compilers which just copy files
+defineReplace(stripSrcDir) {
+    return($$relative_path($$absolute_path($$1, $$OUT_PWD), $$_PRO_FILE_PWD_))
+}
+
+} else { # qt5
+
 # For use in custom compilers which just copy files
 win32:i_flag = i
 defineReplace(stripSrcDir) {
@@ -25,9 +88,13 @@ defineReplace(stripSrcDir) {
         !contains(1, ^/.*):1 = $$OUT_PWD/$$1
     }
     out = $$cleanPath($$1)
-    out ~= s|^$$re_escape($$PWD/)||$$i_flag
+    out ~= s|^$$re_escape($$_PRO_FILE_PWD_/)||$$i_flag
     return($$out)
 }
+
+} # qt5
+
+!isEmpty(BUILD_TESTS):TEST = 1
 
 isEmpty(TEST):CONFIG(debug, debug|release) {
     !debug_and_release|build_pass {
@@ -37,12 +104,6 @@ isEmpty(TEST):CONFIG(debug, debug|release) {
 
 isEmpty(IDE_LIBRARY_BASENAME) {
     IDE_LIBRARY_BASENAME = lib
-}
-
-contains(TEMPLATE, vc.*)|contains(TEMPLATE_PREFIX, vc) {
-  DEFINES += IDE_LIBRARY_BASENAME=\"$$IDE_LIBRARY_BASENAME\"
-} else {
-  DEFINES += IDE_LIBRARY_BASENAME=\\\"$$IDE_LIBRARY_BASENAME\\\"
 }
 
 equals(TEST, 1) {
@@ -65,38 +126,46 @@ macx {
     IDE_LIBEXEC_PATH = $$IDE_APP_PATH/$${IDE_APP_TARGET}.app/Contents/Resources
     IDE_DATA_PATH    = $$IDE_APP_PATH/$${IDE_APP_TARGET}.app/Contents/Resources
     IDE_DOC_PATH     = $$IDE_DATA_PATH/doc
-    CONFIG += m64
+    IDE_BIN_PATH     = $$IDE_APP_PATH/$${IDE_APP_TARGET}.app/Contents/MacOS
     copydata = 1
-} else {
-    win32 {
-        contains(TEMPLATE, vc.*)|contains(TEMPLATE_PREFIX, vc):vcproj = 1
-        IDE_APP_TARGET   = qtplatz
-    } else {
-        IDE_APP_WRAPPER  = qtplatz
-        IDE_APP_TARGET   = qtplatz.bin
+    isEmpty(TIGER_COMPAT_MODE):TIGER_COMPAT_MODE=$$(QTC_TIGER_COMPAT)
+    !isEqual(QT_MAJOR_VERSION, 5) {
+        # Qt5 doesn't support 10.5, and will set the minimum version correctly to 10.6 or 10.7.
+        isEmpty(TIGER_COMPAT_MODE) {
+            QMAKE_CXXFLAGS *= -mmacosx-version-min=10.5
+            QMAKE_LFLAGS *= -mmacosx-version-min=10.5
+        }
     }
+} else {
+    contains(TEMPLATE, vc.*):vcproj = 1
+    IDE_APP_TARGET   = qtplatz
     IDE_LIBRARY_PATH = $$IDE_BUILD_TREE/$$IDE_LIBRARY_BASENAME/qtplatz
     IDE_PLUGIN_PATH  = $$IDE_LIBRARY_PATH/plugins
     IDE_LIBEXEC_PATH = $$IDE_APP_PATH # FIXME
-    IDE_DATA_PATH    = $$IDE_BUILD_TREE/share
+    IDE_DATA_PATH    = $$IDE_BUILD_TREE/share/qtplatz
     IDE_DOC_PATH     = $$IDE_BUILD_TREE/share/doc/qtplatz
+    IDE_BIN_PATH     = $$IDE_APP_PATH
     !isEqual(IDE_SOURCE_TREE, $$IDE_BUILD_TREE):copydata = 1
 }
 
 INCLUDEPATH += \
+    $$IDE_BUILD_TREE/src \ # for <app/app_version.h>
     $$IDE_SOURCE_TREE/src/libs \
-    $$IDE_SOURCE_TREE/tools
+    $$IDE_SOURCE_TREE/tools \
+    $$IDE_SOURCE_TREE/src/plugins
 
-DEPENDPATH += \
-    $$IDE_SOURCE_TREE/src/libs \
-    $$IDE_SOURCE_TREE/tools
+CONFIG += depend_includepath
 
 LIBS += -L$$IDE_LIBRARY_PATH
 
-# DEFINES += QT_NO_CAST_FROM_ASCII
-DEFINES += QT_NO_CAST_TO_ASCII
-#DEFINES += QT_USE_FAST_OPERATOR_PLUS
-#DEFINES += QT_USE_FAST_CONCATENATION
+!isEmpty(vcproj) {
+    DEFINES += IDE_LIBRARY_BASENAME=\"$$IDE_LIBRARY_BASENAME\"
+} else {
+    DEFINES += IDE_LIBRARY_BASENAME=\\\"$$IDE_LIBRARY_BASENAME\\\"
+}
+
+#DEFINES += QT_CREATOR QT_NO_CAST_TO_ASCII QT_NO_CAST_FROM_ASCII
+!macx:DEFINES += QT_USE_FAST_OPERATOR_PLUS QT_USE_FAST_CONCATENATION
 
 unix {
     CONFIG(debug, debug|release):OBJECTS_DIR = $${OUT_PWD}/.obj/debug-shared
@@ -109,12 +178,44 @@ unix {
     UI_DIR = $${OUT_PWD}/.uic
 }
 
-linux-g++-* {
-    # Bail out on non-selfcontained libraries. Just a security measure
-    # to prevent checking in code that does not compile on other platforms.
-    QMAKE_LFLAGS += -Wl,--allow-shlib-undefined -Wl,--no-undefined
+win32-msvc* { 
+    #Don't warn about sprintf, fopen etc being 'unsafe'
+    DEFINES += _CRT_SECURE_NO_WARNINGS
 }
 
-# Handle S60 support: default on Windows, conditionally built on other platforms.
-win32:SUPPORT_QT_S60=1
-else:SUPPORT_QT_S60 = $$(QTCREATOR_WITH_S60)
+qt:greaterThan(QT_MAJOR_VERSION, 4) {
+    contains(QT, core): QT += concurrent
+    contains(QT, gui): QT += widgets
+    DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x040900
+}
+
+QBSFILE = $$replace(_PRO_FILE_, \\.pro$, .qbs)
+exists($$QBSFILE):OTHER_FILES += $$QBSFILE
+
+# recursively resolve plugin deps
+done_plugins =
+for(ever) {
+    isEmpty(QTC_PLUGIN_DEPENDS): \
+        break()
+    done_plugins += $$QTC_PLUGIN_DEPENDS
+    for(dep, QTC_PLUGIN_DEPENDS) {
+        include($$PWD/src/plugins/$$dep/$${dep}_dependencies.pri)
+        LIBS += -l$$qtLibraryName($$QTC_PLUGIN_NAME)
+    }
+    QTC_PLUGIN_DEPENDS = $$unique(QTC_PLUGIN_DEPENDS)
+    QTC_PLUGIN_DEPENDS -= $$unique(done_plugins)
+}
+
+# recursively resolve library deps
+done_libs =
+for(ever) {
+    isEmpty(QTC_LIB_DEPENDS): \
+        break()
+    done_libs += $$QTC_LIB_DEPENDS
+    for(dep, QTC_LIB_DEPENDS) {
+        include($$PWD/src/libs/$$dep/$${dep}_dependencies.pri)
+        LIBS += -l$$qtLibraryName($$QTC_LIB_NAME)
+    }
+    QTC_LIB_DEPENDS = $$unique(QTC_LIB_DEPENDS)
+    QTC_LIB_DEPENDS -= $$unique(done_libs)
+}

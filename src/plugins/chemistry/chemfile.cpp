@@ -101,7 +101,7 @@ bool
 ChemFile::Read( OpenBabel::OBMol& mol )
 {
     if ( nread_++ == 0 )
-		return obconversion_->ReadFile( &mol, filename_ );
+		return obconversion_->ReadFile( &mol, filename_.c_str() );
     return obconversion_->Read( &mol );
 }
 

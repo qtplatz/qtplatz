@@ -9,8 +9,9 @@ win32 {
 
 BOOST_VERSION=boost-1_53
 ACE_VERSION=6.1.8
-greaterThan( QT_MAJOR_VERSION, 4 ): QWT_VERSION=6.1.0-svn
-else: QWT_VERSION=6.0.3-svn
+QWT_VERSION=6.1.0-svn
+#greaterThan( QT_MAJOR_VERSION, 4 ): QWT_VERSION=6.1.0-svn
+#else: QWT_VERSION=6.0.3-svn
 
 # does not override if environment variable already exist
 
