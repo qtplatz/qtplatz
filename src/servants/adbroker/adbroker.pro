@@ -15,7 +15,7 @@ include(../../ace_tao.pri)
 
 INCLUDEPATH *= $$OUT_PWD/../../libs
 
-!win32 LIBS += -lboost_date_time
+!win32: LIBS += -lboost_date_time
 
 LIBS += -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(adportable) \
