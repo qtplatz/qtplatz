@@ -25,7 +25,9 @@
 #pragma once
 
 #include <QTableView>
+#if ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
+#endif
 #include <adplugin/lifecycle.hpp>
 
 namespace adcontrols {

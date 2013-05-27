@@ -26,7 +26,9 @@
 #define PEAKMETHODDELEGATE_HPP
 
 #include <QItemDelegate>
+#if ! defined Q_MOC_RUN
 #include <adcontrols/peakmethod.hpp>
+#endif
 
 namespace qtwidgets {
 

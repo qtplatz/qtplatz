@@ -26,7 +26,9 @@
 #pragma once
 
 #include <string>
+#if ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
+#endif
 #include <QtCore>
 
 class QwtPlotMarker;

@@ -37,7 +37,11 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QtGui/QMouseEvent>
+#if QT_VERSION >= 0x050000
+// todo
+#else
 #include <QWindowsStyle>
+#endif
 #include <QtGui/QPainter>
 #include <QSplitter>
 #include <QStackedLayout>

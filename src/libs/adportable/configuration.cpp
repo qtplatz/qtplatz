@@ -61,7 +61,7 @@ Configuration::_interface() const
 }
 
 void
-Configuration::interface( const std::wstring& value )
+Configuration::_interface( const std::wstring& value )
 {
     interface_ = value;
 }

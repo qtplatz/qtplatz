@@ -45,7 +45,11 @@
 #include <QtCore/QStringList>
 #include <QtCore/QTextStream>
 
-#include <QtXml/QXmlStreamReader>
+#if QT_VERSION >= 0x050000
+# include <QtCore/QXmlStreamReader>
+#else
+# include <QtXml/QXmlStreamReader>
+#endif
 
 enum { debugMimeDB = 0 };
 

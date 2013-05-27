@@ -27,7 +27,9 @@
 #define DATAPROCESSOR_H
 
 #include <coreplugin/ifile.h>
+#if ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
+#endif
 #include <adcontrols/datasubscriber.hpp>
 #include "constants.hpp"
 

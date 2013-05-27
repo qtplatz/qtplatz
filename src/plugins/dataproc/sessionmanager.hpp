@@ -28,7 +28,9 @@
 
 #include <QObject>
 #include <vector>
+#if ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
+#endif
 
 namespace portfolio {
     class Folium;

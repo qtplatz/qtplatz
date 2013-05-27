@@ -25,7 +25,9 @@
 #ifndef CHEMICALFORMULAMODEL_HPP
 #define CHEMICALFORMULAMODEL_HPP
 
+#if ! defined Q_MOC_RUN
 #include <adcontrols/isotopemethod.hpp>
+#endif
 #include <QObject>
 
 namespace qtwidgets {

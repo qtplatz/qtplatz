@@ -27,9 +27,11 @@
 #define MSCALIBRATEDELEGATE_H
 
 #include <QItemDelegate>
+#if ! defined Q_MOC_RUN
 #include <adcontrols/msreferencedefns.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
+#endif
 
 namespace qtwidgets {
 

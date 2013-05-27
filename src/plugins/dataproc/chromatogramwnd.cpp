@@ -109,7 +109,7 @@ ChromatogramWnd::init( const std::wstring& apppath )
             module.library_filename( QTWIDGETS_NAME );
 
             config.module( module );
-            config.interface( L"qtwidgets::PeakResultWidget" );
+            config._interface( L"qtwidgets::PeakResultWidget" );
 
             pImpl_->peakWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
             if ( pImpl_->peakWidget_ ) {

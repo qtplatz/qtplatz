@@ -163,7 +163,7 @@ ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& n
     do {
         std::string interface = node.select_single_node( "./Component/@interface" ).attribute().value();
         if ( ! interface.empty() )
-            config.interface( pugi::as_wide( interface ) );
+            config._interface( pugi::as_wide( interface ) );
     } while (0);
     
     if ( module_name.empty() )

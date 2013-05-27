@@ -31,7 +31,9 @@
 
 #include <coreplugin/ifile.h>
 #include <boost/noncopyable.hpp>
+#if ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
+#endif
 #include <vector>
 
 namespace adcontrols {

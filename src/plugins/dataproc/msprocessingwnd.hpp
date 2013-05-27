@@ -27,9 +27,11 @@
 #define MSPROCESSINGWND_H
 
 #include <QWidget>
+#if ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
-#include <map>
 #include <boost/variant.hpp>
+#endif
+#include <map>
 
 namespace adcontrols {
     class MassSpectrum;

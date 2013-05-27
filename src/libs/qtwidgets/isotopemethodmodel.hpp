@@ -25,7 +25,9 @@
 #ifndef ISOTOPEMETHODMODEL_HPP
 #define ISOTOPEMETHODMODEL_HPP
 
+#if ! defined Q_MOC_RUN
 #include <adcontrols/isotopemethod.hpp>
+#endif
 #include <QAbstractListModel>
 
 namespace qtwidgets {

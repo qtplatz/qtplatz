@@ -27,7 +27,9 @@
 
 #include <QObject>
 #include <QAbstractListModel>
+#if ! defined Q_MOC_RUN
 #include <adcontrols/elementalcompositionmethod.hpp>
+#endif
 
 namespace qtwidgets {
 

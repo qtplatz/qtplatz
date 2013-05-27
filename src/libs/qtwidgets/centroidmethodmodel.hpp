@@ -30,7 +30,9 @@
 #include <QVariant>
 #include <QStandardItemModel>
 // #include <QDeclarativeItem>
+#if ! defined Q_MOC_RUN
 #include <adcontrols/centroidmethod.hpp>
+#endif
 #include <boost/noncopyable.hpp>
 
 namespace qtwidgets {

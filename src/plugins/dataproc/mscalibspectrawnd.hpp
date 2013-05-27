@@ -26,9 +26,11 @@
 #define MSCALIBSPECTRAWND_HPP
 
 #include <QWidget>
-#include <boost/smart_ptr.hpp>
 #include <portfolio/folium.hpp>
 #include <boost/tuple/tuple.hpp>
+#if ! defined Q_MOC_RUN
+#include <boost/smart_ptr.hpp>
+#endif
 
 class QSplitter;
 

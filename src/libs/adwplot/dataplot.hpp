@@ -27,7 +27,9 @@
 
 #include <qwt_plot.h>
 #include <adwplot/zoomer.hpp>
+#if ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
+#endif
 #include <boost/noncopyable.hpp>
 
 class QwtPlotPanner;

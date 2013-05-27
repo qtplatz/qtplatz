@@ -26,7 +26,10 @@
 #pragma once
 
 #include <QItemDelegate>
+
+#if ! defined Q_MOC_RUN
 #include <adcontrols/centroidmethod.hpp>
+#endif
 
 namespace qtwidgets {
 

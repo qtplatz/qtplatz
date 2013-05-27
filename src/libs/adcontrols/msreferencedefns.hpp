@@ -28,9 +28,11 @@
 #include "adcontrols_global.h"
 #include <string>
 
+#if ! defined Q_MOC_RUN
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
+#endif
 
 namespace adcontrols {
 

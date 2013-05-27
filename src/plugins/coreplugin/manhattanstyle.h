@@ -32,7 +32,9 @@
 
 #include "core_global.h"
 
-#include <QWindowsStyle>
+#if QT_VERSION < 0x050000
+# include <QWindowsStyle>
+#endif
 
 QT_BEGIN_NAMESPACE
 class QLinearGradient;

@@ -31,7 +31,9 @@
 #include <QStandardItemModel>
 #include <adplugin/lifecycle.hpp>
 #include <adportable/configuration.hpp>
-#include <boost/smart_ptr.hpp>
+#if ! defined Q_MOC_RUN
+# include <boost/smart_ptr.hpp>
+#endif
 
 namespace adcontrols {
     class CentroidMethod;

@@ -26,9 +26,11 @@
 #pragma once
 
 #include <extensionsystem/iplugin.h>
-#include <boost/smart_ptr.hpp>
 #include <vector>
 #include "constants.hpp"
+#if ! defined Q_MOC_RUN
+#include <boost/smart_ptr.hpp>
+#endif
 
 class QAction;
 class QBrokerSessionEvent;

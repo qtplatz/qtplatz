@@ -25,7 +25,9 @@
 
 #pragma once
 
+#if ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
+#endif
 
 class QwtPlotCurve;
 

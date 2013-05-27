@@ -25,7 +25,9 @@
 
 #pragma once
 
+#if ! defined Q_MOC_RUN
 #include <boost/shared_ptr.hpp>
+#endif
 
 namespace adcontrols { class Baseline; }
 

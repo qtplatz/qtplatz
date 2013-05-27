@@ -29,7 +29,9 @@
 #include <QWidget>
 #include <adplugin/lifecycle.hpp>
 #include <adportable/configuration.hpp>
+#if ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
+#endif
 
 class QStandardItemModel;
 
