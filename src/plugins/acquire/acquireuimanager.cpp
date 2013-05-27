@@ -134,7 +134,7 @@ AcquireUIManager::init()
 
                     if ( pWidget ) {
 						bool res = false;
-						if ( it->interface() == L"adplugin::ui::iLog" ) {
+						if ( it->_interface() == L"adplugin::ui::iLog" ) {
 							res = connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
 							emit signal_eventLog( "Hello -- this is acquire plugin" );
 						}
