@@ -10,11 +10,13 @@ TARGET = sequence
 TEMPLATE = lib
 
 PROVIDER = MS-Cheminformatics
-include(../../qtplatz_plugin.pri)
-include(sequence_dependencies.pri)
+include(../../qtplatzplugin.pri)
+include(../../boost.pri)
+include(../../ace_tao.pri)
 
-LIBS += -L$$IDE_PLUGIN_PATH/Nokia
-include(../../plugins/coreplugin/coreplugin.pri)
+LIBS += -L$$IDE_PLUGIN_PATH/QtProject
+LIBS += -l$$qtLibraryTarget( Core )
+#include(../../plugins/coreplugin/coreplugin.pri)
 
 # Link order caution: adportable should be linked after adfs for utf::to_utf8 reference
 

@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,14 +21,16 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "aggregate.h"
 
-#include <QtCore/QWriteLocker>
+#include <QWriteLocker>
+#include <QDebug>
 
 /*!
     \namespace Aggregation
@@ -54,8 +55,8 @@
     other components in the Aggregate to the outside.
     Specifically that means:
     \list
-    \o They can be "cast" to each other (using query and query_all methods).
-    \o Their life cycle is coupled, i.e. whenever one is deleted all of them are.
+    \li They can be "cast" to each other (using query and query_all methods).
+    \li Their life cycle is coupled, i.e. whenever one is deleted all of them are.
     \endlist
     Components can be of any QObject derived type.
 
@@ -201,14 +202,18 @@ Aggregate::Aggregate(QObject *parent)
 */
 Aggregate::~Aggregate()
 {
-    QWriteLocker locker(&lock());
-    foreach (QObject *component, m_components) {
-        disconnect(component, SIGNAL(destroyed(QObject*)), this, SLOT(deleteSelf(QObject*)));
-        aggregateMap().remove(component);
+    QList<QObject *> components;
+    {
+        QWriteLocker locker(&lock());
+        foreach (QObject *component, m_components) {
+            disconnect(component, SIGNAL(destroyed(QObject*)), this, SLOT(deleteSelf(QObject*)));
+            aggregateMap().remove(component);
+        }
+        components = m_components;
+        m_components.clear();
+        aggregateMap().remove(this);
     }
-    qDeleteAll(m_components);
-    m_components.clear();
-    aggregateMap().remove(this);
+    qDeleteAll(components);
 }
 
 void Aggregate::deleteSelf(QObject *obj)
@@ -225,6 +230,8 @@ void Aggregate::deleteSelf(QObject *obj)
     \fn void Aggregate::add(QObject *component)
 
     Adds the \a component to the aggregate.
+    You can't add a component that is part of a different aggregate
+    or an aggregate itself.
 
     \sa Aggregate::remove()
 */
@@ -232,15 +239,20 @@ void Aggregate::add(QObject *component)
 {
     if (!component)
         return;
-    QWriteLocker locker(&lock());
-    Aggregate *parentAggregation = aggregateMap().value(component);
-    if (parentAggregation == this)
-        return;
-    if (parentAggregation)
-        parentAggregation->remove(component);
-    m_components.append(component);
-    connect(component, SIGNAL(destroyed(QObject*)), this, SLOT(deleteSelf(QObject*)));
-    aggregateMap().insert(component, this);
+    {
+        QWriteLocker locker(&lock());
+        Aggregate *parentAggregation = aggregateMap().value(component);
+        if (parentAggregation == this)
+            return;
+        if (parentAggregation) {
+            qWarning() << "Cannot add a component that belongs to a different aggregate" << component;
+            return;
+        }
+        m_components.append(component);
+        connect(component, SIGNAL(destroyed(QObject*)), this, SLOT(deleteSelf(QObject*)));
+        aggregateMap().insert(component, this);
+    }
+    emit changed();
 }
 
 /*!
@@ -254,8 +266,11 @@ void Aggregate::remove(QObject *component)
 {
     if (!component)
         return;
-    QWriteLocker locker(&lock());
-    aggregateMap().remove(component);
-    m_components.removeAll(component);
-    disconnect(component, SIGNAL(destroyed(QObject*)), this, SLOT(deleteSelf(QObject*)));
+    {
+        QWriteLocker locker(&lock());
+        aggregateMap().remove(component);
+        m_components.removeAll(component);
+        disconnect(component, SIGNAL(destroyed(QObject*)), this, SLOT(deleteSelf(QObject*)));
+    }
+    emit changed();
 }

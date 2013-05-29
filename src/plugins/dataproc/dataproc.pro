@@ -7,18 +7,14 @@
 QT += core svg
 greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
 
-TARGET = dataproc
-TEMPLATE = lib
-
 PROVIDER = MS-Cheminformatics
-include(../../qtplatz_plugin.pri)
 
-LIBS += -L$$IDE_PLUGIN_PATH/Nokia
-include(../../plugins/coreplugin/coreplugin.pri)
+include(../../qtplatzplugin.pri)
 include(../../qwt.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)
 
+LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adcontrols) -l$$qtLibraryTarget(adutils) -l$$qtLibraryTarget(acewrapper) \
         -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(portfolio) -l$$qtLibraryTarget(qtwrapper) \

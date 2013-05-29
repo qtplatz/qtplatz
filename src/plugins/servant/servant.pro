@@ -6,14 +6,11 @@
 
 TARGET = servant
 TEMPLATE = lib
-
 PROVIDER = MS-Cheminformatics
-include(../../qtplatz_plugin.pri)
-include(../../ace_tao.pri)
 
-include(servant_dependencies.pri)
-LIBS += -L$$IDE_PLUGIN_PATH/Nokia
-include(../../plugins/coreplugin/coreplugin.pri)
+include(../../qtplatzplugin.pri)
+include(../../ace_tao.pri)
+include(../../boost.pri)
 
 LIBS += -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(acewrapper) \

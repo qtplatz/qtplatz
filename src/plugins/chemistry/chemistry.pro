@@ -4,7 +4,7 @@ TARGET = chemistry
 TEMPLATE = lib
 
 PROVIDER = MS-Cheminformatics
-include(../../qtplatz_plugin.pri)
+include(../../qtplatzplugin.pri)
 include(../../plugins/coreplugin/coreplugin.pri)
 include(../../boost.pri)
 include(../../openbabel.pri)

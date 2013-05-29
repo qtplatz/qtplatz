@@ -1,19 +1,11 @@
-<plugin name="chemistry" version="1.0.0" compatVersion="1.3.1">
-    <vendor>MS-Cheminformatics</vendor>
-    <copyright>(C) 2012,2013 Toshinobu Hondo, Ph.D.</copyright>
-    <license>
-GNU Lesser General Public License Usage
-
-This plugin may be used under the terms of the GNU Lesser
-General Public License version 2.1 as published by the Free Software
-Foundation.  Please review the following information to
-ensure the GNU Lesser General Public License version 2.1 requirements
-will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
-</license>
-    <description>Chemical structure data viewer</description>
-    <url>http://www.MS-Cheminformatics.com</url>
+<plugin name="Chemistry" version="0.0.1" compatVersion="0.0.1">
+    <vendor>ScienceLiaison</vendor>
+    <copyright>(C) Toshinobu Hondo, Ph.D.</copyright>
+    <license></license>
+    <description></description>
+    <url>http://www.scienceliaison.com</url>
     <dependencyList>
-        <dependency name="Core" version="1.3.1"/>
+        <dependency name="Core" version="2.7.81"/>
     </dependencyList>
 </plugin>
 

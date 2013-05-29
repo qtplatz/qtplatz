@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,21 +21,24 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "optionsparser.h"
 
-#include <QtCore/QCoreApplication>
+#include <QCoreApplication>
 
 using namespace ExtensionSystem;
 using namespace ExtensionSystem::Internal;
 
-static const char *END_OF_OPTIONS = "--";
+static const char END_OF_OPTIONS[] = "--";
 const char *OptionsParser::NO_LOAD_OPTION = "-noload";
+const char *OptionsParser::LOAD_OPTION = "-load";
 const char *OptionsParser::TEST_OPTION = "-test";
+const char *OptionsParser::PROFILE_OPTION = "-profile";
 
 OptionsParser::OptionsParser(const QStringList &args,
         const QMap<QString, bool> &appOptions,
@@ -67,10 +69,16 @@ bool OptionsParser::parse()
             break;
         if (checkForEndOfOptions())
             break;
+        if (checkForLoadOption())
+            continue;
         if (checkForNoLoadOption())
             continue;
+        if (checkForProfilingOption())
+            continue;
+#ifdef WITH_TESTS
         if (checkForTestOption())
             continue;
+#endif
         if (checkForAppOption())
             continue;
         if (checkForPluginOption())
@@ -100,14 +108,49 @@ bool OptionsParser::checkForTestOption()
     if (m_currentArg != QLatin1String(TEST_OPTION))
         return false;
     if (nextToken(RequiredToken)) {
+        if (m_currentArg == QLatin1String("all")) {
+            foreach (PluginSpec *spec, m_pmPrivate->pluginSpecs) {
+                if (spec && !m_pmPrivate->containsTestSpec(spec))
+                    m_pmPrivate->testSpecs.append(PluginManagerPrivate::TestSpec(spec));
+            }
+        } else {
+            QStringList args = m_currentArg.split(QLatin1Char(','));
+            const QString pluginName = args.takeFirst();
+            if (PluginSpec *spec = m_pmPrivate->pluginByName(pluginName)) {
+                if (m_pmPrivate->containsTestSpec(spec)) {
+                    if (m_errorString)
+                        *m_errorString = QCoreApplication::translate("PluginManager",
+                                                                     "The plugin '%1' is specified twice for testing.").arg(pluginName);
+                    m_hasError = true;
+                } else {
+                    m_pmPrivate->testSpecs.append(PluginManagerPrivate::TestSpec(spec, args));
+                }
+            } else  {
+                if (m_errorString)
+                    *m_errorString = QCoreApplication::translate("PluginManager",
+                                                                 "The plugin '%1' does not exist.").arg(pluginName);
+                m_hasError = true;
+            }
+        }
+    }
+    return true;
+}
+
+bool OptionsParser::checkForLoadOption()
+{
+    if (m_currentArg != QLatin1String(LOAD_OPTION))
+        return false;
+    if (nextToken(RequiredToken)) {
         PluginSpec *spec = m_pmPrivate->pluginByName(m_currentArg);
         if (!spec) {
             if (m_errorString)
                 *m_errorString = QCoreApplication::translate("PluginManager",
-                                                             "The plugin '%1' does not exist.").arg(m_currentArg);
+                                                             "The plugin '%1' does not exist.")
+                    .arg(m_currentArg);
             m_hasError = true;
         } else {
-            m_pmPrivate->testSpecs.append(spec);
+            spec->setForceEnabled(true);
+            m_isDependencyRefreshNeeded = true;
         }
     }
     return true;
@@ -125,8 +168,7 @@ bool OptionsParser::checkForNoLoadOption()
                                                              "The plugin '%1' does not exist.").arg(m_currentArg);
             m_hasError = true;
         } else {
-            m_pmPrivate->pluginSpecs.removeAll(spec);
-            delete spec;
+            spec->setForceDisabled(true);
             m_isDependencyRefreshNeeded = true;
         }
     }
@@ -148,6 +190,14 @@ bool OptionsParser::checkForAppOption()
     return true;
 }
 
+bool OptionsParser::checkForProfilingOption()
+{
+    if (m_currentArg != QLatin1String(PROFILE_OPTION))
+        return false;
+    m_pmPrivate->initProfiling();
+    return true;
+}
+
 bool OptionsParser::checkForPluginOption()
 {
     bool requiresParameter;
@@ -155,9 +205,8 @@ bool OptionsParser::checkForPluginOption()
     if (!spec)
         return false;
     spec->addArgument(m_currentArg);
-    if (requiresParameter && nextToken(RequiredToken)) {
+    if (requiresParameter && nextToken(RequiredToken))
         spec->addArgument(m_currentArg);
-    }
     return true;
 }
 

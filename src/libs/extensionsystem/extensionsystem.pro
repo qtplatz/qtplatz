@@ -1,21 +1,17 @@
-greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
-
-TEMPLATE = lib
-TARGET = ExtensionSystem
 DEFINES += EXTENSIONSYSTEM_LIBRARY
-include(../../qtplatz_library.pri)
-include(extensionsystem_dependencies.pri)
+include(../../qtplatzlibrary.pri)
 
 unix:!macx:!freebsd*:LIBS += -ldl
 
 !isEmpty(vcproj) {
-  DEFINES	+= IDE_TEST_DIR=\"$$IDE_SOURCE_TREE\"
+    DEFINES += IDE_TEST_DIR=\"$$IDE_SOURCE_TREE\"
 } else {
-  DEFINES	+= IDE_TEST_DIR=\\\"$$IDE_SOURCE_TREE\\\"
+    DEFINES += IDE_TEST_DIR=\\\"$$IDE_SOURCE_TREE\\\"
 }
 
 HEADERS += pluginerrorview.h \
     plugindetailsview.h \
+    invoker.h \
     iplugin.h \
     iplugin_p.h \
     extensionsystem_global.h \
@@ -24,16 +20,24 @@ HEADERS += pluginerrorview.h \
     pluginspec.h \
     pluginspec_p.h \
     pluginview.h \
-    pluginview_p.h \
-    optionsparser.h
+    optionsparser.h \
+    plugincollection.h \
+    pluginerroroverview.h
 SOURCES += pluginerrorview.cpp \
     plugindetailsview.cpp \
+    invoker.cpp \
     iplugin.cpp \
     pluginmanager.cpp \
     pluginspec.cpp \
     pluginview.cpp \
-    optionsparser.cpp
+    optionsparser.cpp \
+    plugincollection.cpp \
+    pluginerroroverview.cpp
 FORMS += pluginview.ui \
     pluginerrorview.ui \
-    plugindetailsview.ui
+    plugindetailsview.ui \
+    pluginerroroverview.ui
 RESOURCES += pluginview.qrc
+
+
+

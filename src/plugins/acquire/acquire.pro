@@ -10,7 +10,7 @@ TARGET = acquire
 TEMPLATE = lib
 
 PROVIDER = MS-Cheminformatics
-include(../../qtplatz_plugin.pri)
+include(../../qtplatzplugin.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)
 include(../../qwt.pri)

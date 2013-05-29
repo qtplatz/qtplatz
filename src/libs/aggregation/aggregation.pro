@@ -1,7 +1,4 @@
-TEMPLATE = lib
-TARGET = Aggregation
-
-include(../../qtplatz_library.pri)
+include(../../qtplatzlibrary.pri)
 
 DEFINES += AGGREGATION_LIBRARY
 

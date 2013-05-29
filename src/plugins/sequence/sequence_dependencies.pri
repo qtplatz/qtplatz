@@ -1,2 +1,6 @@
-include( ../../boost.pri )
-include( ../../ace_tao.pri )
+QTC_PLUGIN_NAME = sequence
+QTC_LIB_DEPENDS += \
+    extensionsystem \
+    utils \
+    adfs \
+    adportable
