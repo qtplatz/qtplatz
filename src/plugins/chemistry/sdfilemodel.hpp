@@ -27,10 +27,12 @@
 
 #include <QObject>
 #include <QAbstractTableModel>
+#if QT_VERSION >= 0x050000 && ! defined Q_MOC_RUN
 #include <boost/shared_ptr.hpp>
 #include <vector>
 #include <string>
 #include <adchem/mol.hpp>
+#endif
 
 class QModelIndex;
 class QByteArray;

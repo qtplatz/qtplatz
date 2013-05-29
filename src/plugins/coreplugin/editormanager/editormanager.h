@@ -39,6 +39,10 @@
 #include <QtCore/QList>
 #include <QtCore/QPointer>
 
+#if QT_VERSION >= 0x050000
+#include <QSettings>
+#endif
+
 QT_BEGIN_NAMESPACE
 class QSettings;
 class QModelIndex;
@@ -46,7 +50,9 @@ QT_END_NAMESPACE
 
 namespace Core {
 
-class EditorGroup;
+	class EditorGroup { // dummy decl, this class may not be used
+	};
+// class EditorGroup;
 class IContext;
 class ICore;
 class IEditor;

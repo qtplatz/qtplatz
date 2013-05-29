@@ -38,6 +38,7 @@
 #include <QVBoxLayout>
 #include <QtGui/QMouseEvent>
 #if QT_VERSION >= 0x050000
+#include <QStyleFactory>
 // todo
 #else
 #include <QWindowsStyle>
@@ -61,7 +62,11 @@ FancyTabBar::FancyTabBar(QWidget *parent)
     m_hoverIndex = -1;
     m_currentIndex = 0;
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+#if QT_VERSION < 0x050000
     setStyle(new QWindowsStyle);
+#else
+	setStyle(QStyleFactory::create(QLatin1String("windows")));
+#endif
     setMinimumWidth(qMax(2 * m_rounding, 40));
     setAttribute(Qt::WA_Hover, true);
     setFocusPolicy(Qt::NoFocus);

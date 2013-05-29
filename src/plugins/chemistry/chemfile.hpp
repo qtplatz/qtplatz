@@ -27,7 +27,9 @@
 
 #include <coreplugin/ifile.h>
 #include <boost/noncopyable.hpp>
+#if QT_VERSION >= 0x050000 && ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
+#endif
 
 namespace OpenBabel {
 	class OBConversion;

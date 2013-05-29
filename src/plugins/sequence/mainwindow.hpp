@@ -26,7 +26,9 @@
 #define MAINWINDOW_HPP
 
 #include <utils/fancymainwindow.h>
+#if QT_VERSION >= 0x050000 && ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
+#endif
 #include <map>
 
 class QHBoxLayout;

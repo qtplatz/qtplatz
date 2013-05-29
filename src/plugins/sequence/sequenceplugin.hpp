@@ -27,7 +27,9 @@
 #define SEQUENCEPLUGIN_H
 
 #include <extensionsystem/iplugin.h>
+#if QT_VERSION >= 0x050000 && ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
+#endif
 
 namespace adextension { class iSequence; }
 

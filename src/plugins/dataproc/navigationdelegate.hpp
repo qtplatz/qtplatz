@@ -29,6 +29,9 @@
 #include <QItemDelegate>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
+#if QT_VERSION >= 0x050000
+# include "dataprocessor.hpp"
+#endif
 
 namespace dataproc {
 

@@ -36,6 +36,10 @@
 #include <QtCore/QString>
 #include <QtScript/QScriptable>
 #include <QtScript/QScriptValue>
+#if QT_VERSION >= 0x050000
+# include <QMainWindow>
+# include <QStatusBar>
+#endif
 
 namespace Core {
 namespace Internal {

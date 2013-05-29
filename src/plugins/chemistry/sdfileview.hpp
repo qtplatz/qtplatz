@@ -26,7 +26,9 @@
 #define SDFILEVIEW_HPP
 
 #include <QWidget>
+#if QT_VERSION >= 0x050000 && ! defined Q_MOC_RUN
 #include <boost/shared_ptr.hpp>
+#endif
 
 namespace Ui {
 class SDFileView;

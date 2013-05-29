@@ -42,6 +42,10 @@
 
 #include <QtScript/QScriptEngine>
 
+#if QT_VERSION >= 0x050000
+# include <QStatusBar>
+#endif
+
 namespace {
     enum { debugQWorkbenchWrappers = 0 };
 }

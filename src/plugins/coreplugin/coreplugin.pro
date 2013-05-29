@@ -6,6 +6,12 @@ QT += xml \
     svg \
     sql
 
+greaterThan(QT_MAJOR_VERSION, 4) {
+    QT += help printsupport
+} else {
+    CONFIG += help
+}
+
 include(../../qtplatzplugin.pri)
 include(../../libs/utils/utils.pri)
 include(../../shared/scriptwrapper/scriptwrapper.pri)

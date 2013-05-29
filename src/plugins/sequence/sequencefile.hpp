@@ -27,7 +27,9 @@
 #define SEQUENCEFILE_H
 
 #include <coreplugin/ifile.h>
+#if QT_VERSION >= 0x050000 && ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
+#endif
 #include <map>
 #include <string>
 

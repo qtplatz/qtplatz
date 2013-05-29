@@ -426,13 +426,12 @@ AcquirePlugin::actionConnect()
                     receiver_i_.reset( new adplugin::QReceiver_i() );
                     session_->connect( receiver_i_.get()->_this(), "acquire" );
 
-                    int res;
-                    res = connect( receiver_i_.get()
+                    connect( receiver_i_.get()
                         , SIGNAL( signal_message( unsigned long, unsigned long ) )
                         , this, SLOT( handle_message( unsigned long, unsigned long ) ) );
-                    res = connect( receiver_i_.get(), SIGNAL( signal_log( QByteArray ) ), this, SLOT( handle_log( QByteArray ) ) );
-                    res = connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
-                    res = connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
+                    connect( receiver_i_.get(), SIGNAL( signal_log( QByteArray ) ), this, SLOT( handle_log( QByteArray ) ) );
+                    connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
+                    connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
                         , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
 
 					do { LogMessageHelper log( L"===== Initialize session... ===== " );	manager_->handle_eventLog( log.get() );	} while(0);

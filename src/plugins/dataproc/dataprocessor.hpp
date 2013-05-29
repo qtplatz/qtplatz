@@ -57,7 +57,7 @@ namespace dataproc {
     class IFileImpl;
     class datafileObserver_i;
 
-    class Dataprocessor : QObject
+    class Dataprocessor : public QObject
                         , public adcontrols::dataSubscriber {
         Q_OBJECT
     public:

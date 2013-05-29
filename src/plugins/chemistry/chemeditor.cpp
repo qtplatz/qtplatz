@@ -68,8 +68,6 @@ ChemEditor::createNew( const QString &contents )
 bool
 ChemEditor::open( const QString &qfilename )
 {
-    std::string filename( qtwrapper::wstring ( qfilename ) );
-
     file_.reset( new ChemFile );
     if ( file_->open( qfilename, 0 ) ) {
 	sdfileView_->file( file_ );

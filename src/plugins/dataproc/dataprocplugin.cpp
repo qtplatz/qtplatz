@@ -75,11 +75,11 @@
 #include <utils/styledbar.h>
 #include <utils/fancymainwindow.h>
 #include <QStringList>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QBoxLayout>
-#include <QtGui/QToolButton>
-#include <QtGui/QLabel>
-#include <QtGui/QSpacerItem>
+#include <QHBoxLayout>
+#include <QBoxLayout>
+#include <QToolButton>
+#include <QLabel>
+#include <QSpacerItem>
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QToolButton>

@@ -26,8 +26,10 @@
 #define SEQUENCEDELEGATE_HPP
 
 #include <QItemDelegate>
+#if QT_VERSION >= 0x050000 && ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
 #include <adsequence/schema.hpp>
+#endif
 
 namespace sequence {
 

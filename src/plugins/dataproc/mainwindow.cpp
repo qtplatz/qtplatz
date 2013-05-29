@@ -61,14 +61,14 @@
 #include <QMessageBox>
 #include <QResizeEvent>
 #include <qstackedwidget.h>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QToolButton>
-#include <QtGui/QTabWidget>
-#include <QtGui/QTextEdit>
-#include <QtGui/QLabel>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QToolButton>
+#include <QTabWidget>
+#include <QTextEdit>
+#include <QLabel>
 #include <QtGui/QIcon>
-#include <QtGui/QLineEdit>
+#include <QLineEdit>
 #include <qdebug.h>
 
 namespace dataproc {
