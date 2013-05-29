@@ -63,6 +63,7 @@ namespace Acquire {
         //------------
         class AcquirePlugin : public ExtensionSystem::IPlugin {
             Q_OBJECT
+			Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "acquire.json")
         public:
             ~AcquirePlugin();
             AcquirePlugin();

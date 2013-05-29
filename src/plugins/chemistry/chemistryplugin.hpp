@@ -37,7 +37,7 @@ namespace chemistry {
 
   class ChemistryPlugin : public ExtensionSystem::IPlugin {
 	  Q_OBJECT
-		  
+	  Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "chemistry.json")
   public:
 	  ChemistryPlugin();
 	  ~ChemistryPlugin();

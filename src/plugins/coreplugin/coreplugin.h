@@ -41,7 +41,7 @@ class MainWindow;
 class CorePlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-
+	Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "Core.json")
 public:
     CorePlugin();
     ~CorePlugin();

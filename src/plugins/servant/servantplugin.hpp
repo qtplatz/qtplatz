@@ -40,7 +40,8 @@ namespace servant {
     }
     
     class ServantPlugin : public ExtensionSystem::IPlugin {
-	Q_OBJECT
+	    Q_OBJECT
+		Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "servant.json")
 	public:
 	explicit ServantPlugin();
 	~ServantPlugin();

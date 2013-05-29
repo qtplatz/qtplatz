@@ -43,7 +43,8 @@ namespace sequence {
         class SequenceManager;
 
         class SequencePlugin : public ExtensionSystem::IPlugin {
-            Q_OBJECT;
+            Q_OBJECT
+			Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "sequence.json")
         public:
             ~SequencePlugin();
             explicit SequencePlugin();
