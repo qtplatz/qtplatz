@@ -2,19 +2,15 @@
 {
     
     
-"Vendor" : "Digia Plc",
+"Vendor" : "Nokia Corporation",
 
     
     
-    
-"Category" : "Qt Creator",
-
     
 "Description" : "The core plugin for the Qt IDE.",
 
     
-"Url" : "http://www.qt-project.org"
+"Url" : "http://qt.nokia.com"
 
-    
 
 }
