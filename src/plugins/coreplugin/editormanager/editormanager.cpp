@@ -982,7 +982,6 @@ template <class EditorFactoryLike>
         inline EditorFactoryLike *findByKind(ExtensionSystem::PluginManager *pm,
                                              const QString &kind)
 {
-	(void)pm;
     const QList<EditorFactoryLike *> factories = pm->template getObjects<EditorFactoryLike>();
     foreach(EditorFactoryLike *efl, factories)
         if (kind == efl->kind())

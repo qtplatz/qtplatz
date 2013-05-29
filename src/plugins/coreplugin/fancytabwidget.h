@@ -1,19 +1,20 @@
-/****************************************************************************
+/**************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** This file is part of Qt Creator
 **
-** This file is part of Qt Creator.
+** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 **
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
+** Contact: Nokia Corporation (qt-info@nokia.com)
+**
+** Commercial Usage
+**
+** Licensees holding valid Qt Commercial licenses may use this file in
+** accordance with the Qt Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia.  For licensing terms and
-** conditions see http://qt.digia.com/licensing.  For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and Nokia.
 **
 ** GNU Lesser General Public License Usage
+**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -21,20 +22,18 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights.  These rights are described in the Digia Qt LGPL Exception
-** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+** If you are unsure which license is appropriate for your use, please
+** contact the sales department at http://qt.nokia.com/contact.
 **
-****************************************************************************/
+**************************************************************************/
 
 #ifndef FANCYTABWIDGET_H
 #define FANCYTABWIDGET_H
 
-#include <QIcon>
-#include <QWidget>
-
-#include <QTimer>
-#include <QPropertyAnimation>
+#include <QPushButton>
+#include <QTabBar>
+#include <QStyleOptionTabV2>
+#include <QtCore/QTimeLine>
 
 QT_BEGIN_NAMESPACE
 class QPainter;
@@ -45,32 +44,11 @@ QT_END_NAMESPACE
 namespace Core {
 namespace Internal {
 
-class FancyTab : public QObject
-{
-    Q_OBJECT
-
-    Q_PROPERTY(float fader READ fader WRITE setFader)
-public:
-    FancyTab(QWidget *tabbar) : enabled(false), tabbar(tabbar), m_fader(0) {
-        animator.setPropertyName("fader");
-        animator.setTargetObject(this);
-    }
-    float fader() { return m_fader; }
-    void setFader(float value);
-
-    void fadeIn();
-    void fadeOut();
-
-    QIcon icon;
-    QString text;
-    QString toolTip;
-    bool enabled;
-
-private:
-    QPropertyAnimation animator;
-    QWidget *tabbar;
-    float m_fader;
-};
+    struct FancyTab {
+        QIcon icon;
+        QString text;
+        QString toolTip;
+    };
 
 class FancyTabBar : public QWidget
 {
@@ -88,50 +66,46 @@ public:
     void mouseMoveEvent(QMouseEvent *);
     void enterEvent(QEvent *);
     void leaveEvent(QEvent *);
-    bool validIndex(int index) const { return index >= 0 && index < m_tabs.count(); }
 
     QSize sizeHint() const;
     QSize minimumSizeHint() const;
 
-    void setTabEnabled(int index, bool enable);
-    bool isTabEnabled(int index) const;
-
     void insertTab(int index, const QIcon &icon, const QString &label) {
-        FancyTab *tab = new FancyTab(this);
-        tab->icon = icon;
-        tab->text = label;
+        FancyTab tab;
+        tab.icon = icon;
+        tab.text = label;
         m_tabs.insert(index, tab);
     }
-    void setEnabled(int index, bool enabled);
     void removeTab(int index) {
-        FancyTab *tab = m_tabs.takeAt(index);
-        delete tab;
+        m_tabs.removeAt(index);
     }
     void setCurrentIndex(int index);
     int currentIndex() const { return m_currentIndex; }
 
-    void setTabToolTip(int index, QString toolTip) { m_tabs[index]->toolTip = toolTip; }
-    QString tabToolTip(int index) const { return m_tabs.at(index)->toolTip; }
+    void setTabToolTip(int index, QString toolTip) { m_tabs[index].toolTip = toolTip; }
+    QString tabToolTip(int index) const { return m_tabs.at(index).toolTip; }
 
-    QIcon tabIcon(int index) const { return m_tabs.at(index)->icon; }
-    QString tabText(int index) const { return m_tabs.at(index)->text; }
+    QIcon tabIcon(int index) const {return m_tabs.at(index).icon; }
+    QString tabText(int index) const { return m_tabs.at(index).text; }
     int count() const {return m_tabs.count(); }
     QRect tabRect(int index) const;
+
 
 signals:
     void currentChanged(int);
 
 public slots:
-    void emitCurrentIndex();
+    void updateHover();
 
 private:
     static const int m_rounding;
     static const int m_textPadding;
+    QTimeLine m_hoverControl;
     QRect m_hoverRect;
     int m_hoverIndex;
     int m_currentIndex;
-    QList<FancyTab*> m_tabs;
-    QTimer m_triggerTimer;
+    QList<FancyTab> m_tabs;
+
     QSize tabSizeHint(bool minimum = false) const;
 
 };
@@ -156,18 +130,12 @@ public:
     int currentIndex() const;
     QStatusBar *statusBar() const;
 
-    void setTabEnabled(int index, bool enable);
-    bool isTabEnabled(int index) const;
-
-    bool isSelectionWidgetVisible() const;
-
 signals:
     void currentAboutToShow(int index);
     void currentChanged(int index);
 
 public slots:
     void setCurrentIndex(int index);
-    void setSelectionWidgetVisible(bool visible);
 
 private slots:
     void showWidget(int index);
