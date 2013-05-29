@@ -1,20 +1,19 @@
-/**************************************************************************
+/****************************************************************************
 **
-** This file is part of Qt Creator
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
 **
-** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+** This file is part of Qt Creator.
 **
-** Contact: Nokia Corporation (qt-info@nokia.com)
-**
-** Commercial Usage
-**
-** Licensees holding valid Qt Commercial licenses may use this file in
-** accordance with the Qt Commercial License Agreement provided with the
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Nokia.
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-**
 ** Alternatively, this file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
@@ -22,29 +21,28 @@
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** If you are unsure which license is appropriate for your use, please
-** contact the sales department at http://qt.nokia.com/contact.
+** In addition, as a special exception, Digia gives you certain additional
+** rights.  These rights are described in the Digia Qt LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
-**************************************************************************/
+****************************************************************************/
 
 #include "qtsingleapplication.h"
 #include "qtlocalpeer.h"
 
-#if QT_VERSION >= 0x050000
-# include <QtWidgets/QWidget>
-#else
-# include <QtGui/QWidget>
-#endif
-
-#include <QtGui/QFileOpenEvent>
+#include <QWidget>
+#include <QFileOpenEvent>
 
 namespace SharedTools {
 
 void QtSingleApplication::sysInit(const QString &appId)
 {
     actWin = 0;
-    peer = new QtLocalPeer(this, appId);
-    connect(peer, SIGNAL(messageReceived(const QString&)), SIGNAL(messageReceived(const QString&)));
+    block = false;
+    firstPeer = new QtLocalPeer(this, appId);
+    connect(firstPeer, SIGNAL(messageReceived(QString,QObject*)), SIGNAL(messageReceived(QString,QObject*)));
+    pidPeer = new QtLocalPeer(this, appId + QLatin1Char('-') + QString::number(QCoreApplication::applicationPid(), 10));
+    connect(pidPeer, SIGNAL(messageReceived(QString,QObject*)), SIGNAL(messageReceived(QString,QObject*)));
 }
 
 
@@ -58,37 +56,9 @@ QtSingleApplication::QtSingleApplication(int &argc, char **argv, bool GUIenabled
 QtSingleApplication::QtSingleApplication(const QString &appId, int &argc, char **argv)
     : QApplication(argc, argv)
 {
+    this->appId = appId;
     sysInit(appId);
 }
-
-
-// QtSingleApplication::QtSingleApplication(int &argc, char **argv, Type type)
-//     : QApplication(argc, argv, type)
-// {
-//     sysInit();
-// }
-
-
-#if defined(Q_WS_X11)
-QtSingleApplication::QtSingleApplication(Display* dpy, Qt::HANDLE visual, Qt::HANDLE colormap)
-    : QApplication(dpy, visual, colormap)
-{
-    sysInit();
-}
-
-QtSingleApplication::QtSingleApplication(Display *dpy, int &argc, char **argv, Qt::HANDLE visual, Qt::HANDLE cmap)
-    : QApplication(dpy, argc, argv, visual, cmap)
-{
-    sysInit();
-}
-
-QtSingleApplication::QtSingleApplication(Display* dpy, const QString &appId,
-    int argc, char **argv, Qt::HANDLE visual, Qt::HANDLE colormap)
-    : QApplication(dpy, argc, argv, visual, colormap)
-{
-    sysInit(appId);
-}
-#endif
 
 bool QtSingleApplication::event(QEvent *event)
 {
@@ -100,31 +70,55 @@ bool QtSingleApplication::event(QEvent *event)
     return QApplication::event(event);
 }
 
-bool QtSingleApplication::isRunning()
+bool QtSingleApplication::isRunning(qint64 pid)
 {
-    return peer->isClient();
+    if (pid == -1)
+        return firstPeer->isClient();
+
+    QtLocalPeer peer(this, appId + QLatin1Char('-') + QString::number(pid, 10));
+    return peer.isClient();
 }
 
-
-bool QtSingleApplication::sendMessage(const QString &message, int timeout)
+void QtSingleApplication::initialize(bool)
 {
-    return peer->sendMessage(message, timeout);
+    firstPeer->isClient();
+    pidPeer->isClient();
 }
 
+bool QtSingleApplication::sendMessage(const QString &message, int timeout, qint64 pid)
+{
+    if (pid == -1)
+        return firstPeer->sendMessage(message, timeout, block);
+
+    QtLocalPeer peer(this, appId + QLatin1Char('-') + QString::number(pid, 10));
+    return peer.sendMessage(message, timeout, block);
+}
 
 QString QtSingleApplication::id() const
 {
-    return peer->applicationId();
+    return firstPeer->applicationId();
 }
 
+QString QtSingleApplication::applicationId() const
+{
+    return appId;
+}
+
+void QtSingleApplication::setBlock(bool value)
+{
+    block = value;
+}
 
 void QtSingleApplication::setActivationWindow(QWidget *aw, bool activateOnMessage)
 {
     actWin = aw;
-    if (activateOnMessage)
-        connect(peer, SIGNAL(messageReceived(QString)), this, SLOT(activateWindow()));
-    else
-        disconnect(peer, SIGNAL(messageReceived(QString)), this, SLOT(activateWindow()));
+    if (activateOnMessage) {
+        connect(firstPeer, SIGNAL(messageReceived(QString,QObject*)), this, SLOT(activateWindow()));
+        connect(pidPeer, SIGNAL(messageReceived(QString,QObject*)), this, SLOT(activateWindow()));
+    } else {
+        disconnect(firstPeer, SIGNAL(messageReceived(QString,QObject*)), this, SLOT(activateWindow()));
+        disconnect(pidPeer, SIGNAL(messageReceived(QString,QObject*)), this, SLOT(activateWindow()));
+    }
 }
 
 
