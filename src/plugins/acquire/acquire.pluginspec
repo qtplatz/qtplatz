@@ -1,6 +1,6 @@
 <plugin name="acquire" version="1.0.0" compatVersion="1.3.1">
     <vendor>MS-Cheminformatics LLC</vendor>
-    <copyright>(C) 2010 Toshinobu Hondo, Ph.D.</copyright>
+    <copyright>(C) 2013 MS-Cheminformatics LLC</copyright>
     <license>
 GNU Lesser General Public License Usage
 

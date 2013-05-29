@@ -5,7 +5,7 @@
     <description></description>
     <url>http://www.scienceliaison.com</url>
     <dependencyList>
-        <dependency name="Core" version="2.7.81"/>
+        <dependency name="Core" version="1.3.1"/>
     </dependencyList>
 </plugin>
 

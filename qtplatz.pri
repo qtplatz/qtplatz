@@ -1,7 +1,7 @@
-!isEmpty(QTCREATOR_PRI_INCLUDED):error("qtplatz.pri already included")
-QTCREATOR_PRI_INCLUDED = 1
+!isEmpty(QTPLATZ_PRI_INCLUDED):error("qtplatz.pri already included")
+QTPLATZ_PRI_INCLUDED = 1
 
-QTCREATOR_VERSION = 2.7.81
+QTPLATZ_VERSION = 2.7.81
 
 isEqual(QT_MAJOR_VERSION, 5) {
 
