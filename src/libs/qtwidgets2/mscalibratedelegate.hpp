@@ -27,7 +27,7 @@
 #define MSCALIBRATEDELEGATE_H
 
 #include <QItemDelegate>
-#if QT_VERSION >= 0x050000 && ! defined Q_MOC_RUN
+#if ! defined Q_MOC_RUN
 #include <adcontrols/msreferencedefns.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>

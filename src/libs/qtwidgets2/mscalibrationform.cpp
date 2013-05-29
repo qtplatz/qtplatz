@@ -192,7 +192,7 @@ void
 MSCalibrationForm::getContents( adcontrols::ProcessMethod& pm )
 {
     QStandardItemModel& model = *pModel_;
-    QStandardItem * root = model.invisibleRootItem();
+    // QStandardItem * root = model.invisibleRootItem();
 
     pMethod_->polynomialDegree( ui->spinPolynomials->value() );
     pMethod_->massToleranceDa( ui->spinMassTolerance->value() );

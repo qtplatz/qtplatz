@@ -27,7 +27,7 @@
 #define ACQUIREPLUGIN_H
 
 #include <extensionsystem/iplugin.h>
-#if ! defined Q_MOC_RUN && QT_VERSION >= 0x050000
+#if ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
 #endif
 #include <vector>

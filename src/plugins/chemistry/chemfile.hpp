@@ -27,7 +27,7 @@
 
 #include <coreplugin/ifile.h>
 #include <boost/noncopyable.hpp>
-#if QT_VERSION >= 0x050000 && ! defined Q_MOC_RUN
+#if ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
 #endif
 
