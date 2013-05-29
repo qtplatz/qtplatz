@@ -62,6 +62,8 @@ namespace dataproc {
     class DataprocPlugin : public ExtensionSystem::IPlugin {
         
         Q_OBJECT
+        Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "dataproc.json")
+
     public:
         ~DataprocPlugin();
         explicit DataprocPlugin();
