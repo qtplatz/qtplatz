@@ -91,10 +91,9 @@
 #include <QWizard>
 #include <QToolButton>
 #include <QMessageBox>
-
+# include <QPushButton>
 #if QT_VERSION >= 0x050000
 # include <QMimeData>
-# include <QPushButton>
 #endif
 
 /*
