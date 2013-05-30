@@ -9,7 +9,7 @@ QT       -= gui
 TARGET = adextension
 TEMPLATE = lib
 
-include(../../qtplatzstaticlib.pri)
+include(../../qtplatzlibrary.pri)
 
 DEFINES += ADEXTENSION_LIBRARY
 
