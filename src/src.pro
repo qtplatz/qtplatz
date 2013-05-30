@@ -7,4 +7,5 @@ SUBDIRS = \
     servants \
     plugins
 
-#plugins.depends = libs
+app.depends = libs
+plugins.depends = libs
