@@ -5,7 +5,6 @@ TEMPLATE = lib
 
 PROVIDER = MS-Cheminformatics
 include(../../qtplatzplugin.pri)
-#include(../../plugins/coreplugin/coreplugin.pri)
 include(../../boost.pri)
 include(../../openbabel.pri)
 include(../../ace_tao.pri)
@@ -46,7 +45,7 @@ HEADERS += chemistryplugin.hpp\
 
 OTHER_FILES = chemistry.pluginspec
 
-LIBS += -L$$IDE_PLUGIN_PATH/Nokia -L$$IDE_LIBRARY_PATH
+LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget( adutils ) \
         -l$$qtLibraryTarget( adportable ) \
         -l$$qtLibraryTarget( adplugin ) \
