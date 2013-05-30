@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT -= gui core 
+QT -= gui
 
 TARGET = addatafile
 TEMPLATE = lib
