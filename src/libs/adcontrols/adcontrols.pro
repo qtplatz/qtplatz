@@ -9,7 +9,7 @@ QT       -= gui
 TARGET = adcontrols
 TEMPLATE = lib
 
-include(../../qtplatz_library.pri)
+include(../../qtplatzlibrary.pri)
 include(../../boost.pri)
 LIBS += -l$$qtLibraryTarget(adportable)
 

@@ -11,7 +11,8 @@ TEMPLATE = lib
 
 INCLUDEPATH += ../../libs
 include(../../boost.pri)
-include(../../qtplatz_library.pri)
+include(../../qtplatzlibrary.pri)
+
 LIBS *= -L$$IDE_LIBRARY_PATH 
 LIBS += -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(adportable)
 

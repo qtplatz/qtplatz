@@ -9,7 +9,7 @@ QT       -= core gui
 TARGET = adinterface
 TEMPLATE = lib
 CONFIG += staticlib
-include(../../qtplatz_library.pri)
+include(../../qtplatzstaticlib.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)
 include(adinterface_dependencies.pri)

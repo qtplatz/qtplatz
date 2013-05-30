@@ -9,7 +9,7 @@ QT       -= core gui
 TARGET = adfs
 TEMPLATE = lib
 CONFIG += staticlib
-include(../../qtplatz_library.pri)
+include(../../qtplatzstaticlib.pri)
 include(../../boost.pri)
 QMAKE_CFLAGS += -DSQLITE_THREADSAFE
 

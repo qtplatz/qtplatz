@@ -9,7 +9,7 @@ QT       -= core gui
 TARGET = adsequence
 TEMPLATE = lib
 
-include(../../qtplatz_library.pri)
+include(../../qtplatzlibrary.pri)
 include(../../boost.pri)
 
 !win32 {

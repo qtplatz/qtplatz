@@ -9,7 +9,8 @@ QT       -= core gui
 TARGET = adportable
 TEMPLATE = lib
 CONFIG += staticlib
-include(../../qtplatz_library.pri)
+
+include(../../qtplatzstaticlib.pri)
 include(../../boost.pri)
 
 SOURCES += adportable.cpp \

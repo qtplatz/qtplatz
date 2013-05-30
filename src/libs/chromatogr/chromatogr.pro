@@ -9,7 +9,7 @@ QT       -= core gui
 TARGET = chromatogr
 TEMPLATE = lib
 
-include(../../qtplatz_library.pri)
+include(../../qtplatzlibrary.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)
 

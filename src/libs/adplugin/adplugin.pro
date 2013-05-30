@@ -9,7 +9,7 @@ greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
 
 TARGET = adplugin
 TEMPLATE = lib
-include(../../qtplatz_library.pri)
+include(../../qtplatzlibrary.pri)
 include(../../ace_tao.pri)
 include(../../boost.pri)
 INCLUDEPATH += $$OUT_PWD/..
