@@ -1,12 +1,11 @@
 include($$replace(_PRO_FILE_PWD_, ([^/]+$), \\1/\\1_dependencies.pri))
 
-
 include(../qtplatz.pri)
 include( config.pri )
 
-win32 {
-    DLLDESTDIR = $$IDE_APP_PATH
-}
+#win32 {
+#    DLLDESTDIR = $$IDE_APP_PATH
+#}
 
 DESTDIR = $$IDE_LIBRARY_PATH
 
