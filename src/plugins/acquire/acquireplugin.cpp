@@ -390,13 +390,14 @@ AcquirePlugin::extensionsInitialized()
 	manager_->handle_eventLog( log.get() );
 }
 
-void
-AcquirePlugin::shutdown()
+ExtensionSystem::IPlugin::ShutdownFlag
+AcquirePlugin::aboutToShutdown()
 {
     adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin shutting down...  ===============";
     actionDisconnect();
     manager_->OnFinalClose();
     adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin shutdown complete ===============";
+	return SynchronousShutdown;
 }
 
 void

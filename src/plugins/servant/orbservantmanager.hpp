@@ -26,6 +26,8 @@
 #include <tao/ORB.h>
 #include <tao/PortableServer/PortableServer.h>
 #include <string>
+#include <boost/noncopyable.hpp>
+#include <boost/thread.hpp>
 
 #pragma once
 
@@ -33,42 +35,41 @@ class TAO_ORB_Manager;
 
 namespace servant {
 
-    class ORBServantManager {
+    class ORBServantManager : boost::noncopyable {
         ORBServantManager( const ORBServantManager& ); // noncopyable
-    public:
         ~ORBServantManager();
-	ORBServantManager( CORBA::ORB_ptr orb = 0
-			   , PortableServer::POA_ptr = 0
-			   , PortableServer::POAManager_ptr = 0);
-	
-	int init( int ac, ACE_TCHAR * av[] );
-	bool fini();
+        ORBServantManager( CORBA::ORB_ptr orb = 0
+                           , PortableServer::POA_ptr = 0
+                           , PortableServer::POAManager_ptr = 0);
+    public:
+        int init( int ac, ACE_TCHAR * av[] );
+		bool spawn( boost::barrier& );
+        void shutdown();
+        bool fini();
         bool wait();
-	void run();
-	
-	CORBA::ORB_ptr orb();
-	PortableServer::POA_ptr root_poa();
-	PortableServer::POA_ptr child_poa();
-	PortableServer::POAManager_ptr poa_manager();
-	
-	std::string activate( PortableServer::Servant );
-	void deactivate( const std::string& id );
-	
-        bool spawn();
-	
-	bool test_and_set_thread_flag();
-	static void * thread_entry( void * me );
-	
-    protected:
-	size_t init_count_;
-	bool thread_running_;
-        ACE_Recursive_Thread_Mutex mutex_;
-	TAO_ORB_Manager * orbmgr_;
-        ACE_thread_t t_handle_;
+		boost::mutex& mutex();
+        
+        CORBA::ORB_ptr orb();
+        PortableServer::POA_ptr root_poa();
+        PortableServer::POA_ptr child_poa();
+        PortableServer::POAManager_ptr poa_manager();
+        
+        std::string activate( PortableServer::Servant );
+        void deactivate( const std::string& id );
+        
+        
+        static ORBServantManager * instance();
+
+    private:
+
+		void run( boost::barrier& );
+
+        static ORBServantManager * instance_;
+        boost::mutex mutex_;
+        size_t init_count_;
+        bool thread_running_;
+        boost::thread * thread_;
+        TAO_ORB_Manager * orbmgr_;
     };
-    
-    namespace singleton {
-	typedef ACE_Singleton< ORBServantManager, ACE_Recursive_Thread_Mutex > orbServantManager;
-    }
-    
+
 }

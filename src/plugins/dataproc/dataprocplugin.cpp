@@ -336,8 +336,8 @@ DataprocPlugin::extensionsInitialized()
 	mainWindow_->OnInitialUpdate();
 }
 
-void
-DataprocPlugin::shutdown()
+ExtensionSystem::IPlugin::ShutdownFlag
+DataprocPlugin::aboutToShutdown()
 {
     adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutting down...  ===============";
 
@@ -365,6 +365,7 @@ DataprocPlugin::shutdown()
         brokerSession_ = 0;
     }
     adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutdown complete ===============";
+	return SynchronousShutdown;
 }
 
 // static

@@ -83,6 +83,7 @@ ServantPlugin::ServantPlugin() : pConfig_( 0 )
 }
 
 namespace servant {
+
     namespace internal {
 
         struct adbroker_initializer {
@@ -100,7 +101,8 @@ namespace servant {
                     loader.initialize( pMgr_->orb(), pMgr_->root_poa(), pMgr_->poa_manager() );
                     ior_ = loader.activate();
                     if ( ! ior_.empty() )
-                        adplugin::manager::instance()->register_ior( acewrapper::constants::adbroker::manager::_name(), ior_ );
+                        adplugin::manager::instance()->register_ior(
+                            acewrapper::constants::adbroker::manager::_name(), ior_ );
                     return true;
                 } else {
                     it->attribute( L"loadstatus", L"failed" );
@@ -188,13 +190,13 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     }
 
     // ------------ Broker::Manager initialize first --------------------
-    servant::ORBServantManager * pMgr = servant::singleton::orbServantManager::instance();
-    pMgr->init( 0, 0 );
-    if ( pMgr->test_and_set_thread_flag() ) {
-        using servant::ORBServantManager;
-        ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC( ORBServantManager::thread_entry ), pMgr );
-        ACE_OS::sleep(0);
-    }
+    boost::barrier barrier( 2 );
+    servant::ORBServantManager * pMgr = servant::ORBServantManager::instance();
+	if ( pMgr ) {
+		pMgr->init( 0, 0 );
+		pMgr->spawn( barrier );
+	}
+	barrier.wait();
     adplugin::ORBManager::instance()->initialize( pMgr->orb(), pMgr->root_poa() );
 
     //--------------------------------------------------------------------
@@ -343,14 +345,12 @@ ServantPlugin::extensionsInitialized()
         outputWindow->appendLog( L"ServantPlugin::extensionsInitialized()" );
 }
 
-void
-ServantPlugin::shutdown()
-{
-    // shut down manager internal threads,
-    // other servers may be shut down later depend on 'plugin load order'
-    broker_manager_->shutdown();
-
-    adportable::debug() << "====== ServantPlugin::shutdown() completed =======";
+ExtensionSystem::IPlugin::ShutdownFlag
+ServantPlugin::aboutToShutdown()
+{ 
+    if ( ! CORBA::is_nil( broker_manager_.in() ) ) // Qt5 does not call shutdown
+        broker_manager_->shutdown();
+	return SynchronousShutdown;
 }
 
 void
@@ -375,9 +375,9 @@ ServantPlugin::final_close()
     Logger::shutdown();
     try {
         adportable::debug() << "====== ServantPlugin::final_close orb shutdown... =======";    
-		servant::singleton::orbServantManager::instance()->orb()->shutdown();
+		servant::ORBServantManager::instance()->shutdown();
         adportable::debug() << "====== ServantPlugin::final_close orb fini... =======";    
-        servant::singleton::orbServantManager::instance()->fini();
+        servant::ORBServantManager::instance()->fini();
     } catch ( CORBA::Exception& ex ) {
 		adportable::debug dbg( __FILE__, __LINE__ );
 		dbg << ex._info().c_str();

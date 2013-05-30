@@ -32,6 +32,8 @@
 #include <ace/OS_NS_string.h>
 #include <acewrapper/mutex.hpp>
 #include <adportable/debug.hpp>
+#include <boost/bind.hpp>
+#include <boost/thread.hpp>
 
 #if defined _DEBUG
 # include <iostream>
@@ -45,7 +47,7 @@ ReactorThread::~ReactorThread()
 }
 
 ReactorThread::ReactorThread() : reactor_( new ACE_Reactor )
-                               , t_handle_( 0 )
+                               , thread_( 0 )
 {
 }
 
@@ -61,35 +63,17 @@ ReactorThread::end_reactor_event_loop()
 bool
 ReactorThread::spawn()
 {
-    if ( t_handle_ )
+    if ( thread_ )
         return false;
-    ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC(thread_entry), this );
+    thread_ = new boost::thread( boost::bind( &ReactorThread::run_event_loop, this ) );
+	//reactor_->owner( thread_->get_id() );
     return true;
-}
-
-// satic
-// void
-// ReactorThread::spawn( ReactorThread * pThis )
-// {
-//     ACE_Thread_Manager * mgr = ACE_Thread_Manager::instance();
-//     mgr->spawn(ACE_THR_FUNC( thread_entry ), reinterpret_cast<void *>( pThis ) );
-// }
-
-void *
-ReactorThread::thread_entry( void * me )
-{
-    ReactorThread * pThis = reinterpret_cast<ReactorThread *>(me);
-    if ( pThis ) {
-        pThis->reactor_->owner( ACE_OS::thr_self() );
-        pThis->run_event_loop();
-    }
-    return 0;
 }
 
 void
 ReactorThread::run_event_loop()
 {
-    t_handle_ = ACE_Thread::self();
+    reactor_->owner( ACE_OS::thr_self() );
 	while ( reactor_->reactor_event_loop_done() == 0 )
 		reactor_->run_reactor_event_loop();
 }
@@ -103,10 +87,7 @@ ReactorThread::get_reactor()
 bool
 ReactorThread::join()
 {
-    if ( t_handle_ ) {
-        if ( ACE_Thread_Manager::instance()->join( t_handle_ ) != 0 )
-            adportable::debug(__FILE__, __LINE__) << "Reactor::join(" << t_handle_ << ") call failed: " << ACE_OS::strerror( errno );
-    }
-    t_handle_ = 0;
+    if ( thread_ )
+		thread_->join();
     return true;
 }

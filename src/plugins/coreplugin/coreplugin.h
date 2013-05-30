@@ -49,6 +49,7 @@ public:
     virtual bool initialize(const QStringList &arguments, QString *errorMessage = 0);
     virtual void extensionsInitialized();
     virtual void shutdown();
+    virtual ShutdownFlag aboutToShutdown();
 
 public slots:
     void remoteArgument(const QString&);

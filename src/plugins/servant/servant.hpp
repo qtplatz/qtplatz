@@ -22,19 +22,18 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// MS-Cheminformatics LLC / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #ifndef ADSERVANT_H
 #define ADSERVANT_H
 
 #include "servant_global.h"
+#include <boost/thread/mutex.hpp>
 
 class SERVANTSHARED_EXPORT Servant {
 public:
     Servant();
+    boost::mutex mutex_;
+    static Servant& instance();
 };
 
 #endif // ADSERVANT_H

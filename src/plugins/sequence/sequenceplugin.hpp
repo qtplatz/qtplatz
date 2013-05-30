@@ -51,7 +51,8 @@ namespace sequence {
 
             bool initialize(const QStringList& arguments, QString* error_message);
             void extensionsInitialized();
-            void shutdown();
+            ShutdownFlag aboutToShutdown();
+
         private:
             MainWindow * mainWindow_;
             boost::scoped_ptr< Mode > mode_;

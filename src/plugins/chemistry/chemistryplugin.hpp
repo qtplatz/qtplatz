@@ -44,6 +44,8 @@ namespace chemistry {
 	  
 	  bool initialize(const QStringList &arguments, QString *errorString);
 	  void extensionsInitialized();
+      ShutdownFlag aboutToShutdown();
+
   private:
 	  boost::scoped_ptr< ChemistryMode > mode_;
 	  boost::scoped_ptr< ChemistryMainWindow > mainWindow_;

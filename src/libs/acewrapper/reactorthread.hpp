@@ -28,6 +28,8 @@
 
 #include <ace/Reactor.h>
 
+namespace boost { class thread; }
+
 namespace acewrapper {
 
     class ReactorThread {
@@ -42,10 +44,9 @@ namespace acewrapper {
         bool join();
 
     private:
-        static void * thread_entry( void * me );
         void run_event_loop();
         ACE_Reactor * reactor_;
-        ACE_thread_t t_handle_;
+        boost::thread * thread_;
     };
 }
 

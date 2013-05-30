@@ -69,6 +69,14 @@
 #  endif
 #endif
 
+static Servant __servant;
+
 Servant::Servant()
 {
+}
+
+Servant&
+Servant::instance()
+{
+    return __servant;
 }

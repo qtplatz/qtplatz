@@ -96,4 +96,12 @@ void CorePlugin::shutdown()
     m_mainWindow->shutdown();
 }
 
+ExtensionSystem::IPlugin::ShutdownFlag
+CorePlugin::aboutToShutdown()
+{
+    m_mainWindow->shutdown();
+	return SynchronousShutdown;
+}
+
+
 Q_EXPORT_PLUGIN(CorePlugin)

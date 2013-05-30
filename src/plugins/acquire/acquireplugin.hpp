@@ -71,7 +71,7 @@ namespace Acquire {
             // implement IPlugin
             virtual bool initialize(const QStringList &arguments, QString *error_message);
             virtual void extensionsInitialized();
-            virtual void shutdown();
+            virtual ShutdownFlag aboutToShutdown();
 
         private slots:
             void actionConnect();

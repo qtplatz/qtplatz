@@ -146,10 +146,11 @@ SequencePlugin::extensionsInitialized()
 	mainWindow_->OnInitialUpdate();
 }
 
-void
-SequencePlugin::shutdown()
+ExtensionSystem::IPlugin::ShutdownFlag
+SequencePlugin::aboutToShutdown()
 {
     mainWindow_->OnFinalClose();
+	return SynchronousShutdown;
 }
 
 void

@@ -43,18 +43,18 @@ namespace servant {
 	    Q_OBJECT
 		Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "servant.json")
 	public:
-	explicit ServantPlugin();
-	~ServantPlugin();
-	
-	// ExtensionSystem::IPlugin
-	virtual bool initialize(const QStringList &arguments, QString *error_message);
-	virtual void extensionsInitialized();
-	virtual void shutdown();
-	
+        explicit ServantPlugin();
+        ~ServantPlugin();
+        
+        // ExtensionSystem::IPlugin
+        virtual bool initialize(const QStringList &arguments, QString *error_message);
+        virtual void extensionsInitialized();
+        virtual ShutdownFlag aboutToShutdown();
+        
     signals:
-	    
+            
     public slots:
-	
+        
     private:
         void final_close();
         adportable::Configuration * pConfig_;

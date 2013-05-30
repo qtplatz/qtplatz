@@ -71,7 +71,8 @@ namespace dataproc {
         // implement ExtensionSystem::IPlugin
         bool initialize(const QStringList &arguments, QString *error_message);
         void extensionsInitialized();
-        void shutdown();
+        ShutdownFlag aboutToShutdown();
+
         // <--
         inline static DataprocPlugin * instance() { return instance_; }
         inline static MainWindow * mainWindow() { return instance_ ? instance_->mainWindow_ : 0; }

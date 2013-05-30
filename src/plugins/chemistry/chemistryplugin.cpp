@@ -141,6 +141,12 @@ ChemistryPlugin::extensionsInitialized()
 	mainWindow_->OnInitialUpdate();
 }
 
+ExtensionSystem::IPlugin::ShutdownFlag
+ChemistryPlugin::aboutToShutdown()
+{ 
+	return SynchronousShutdown;
+}
+
 void
 ChemistryPlugin::triggerAction()
 {
