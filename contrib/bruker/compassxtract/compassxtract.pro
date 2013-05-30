@@ -11,13 +11,11 @@ TARGET = $$qtLibraryTarget( $$TARGET )
 
 include(../../contrib.pri)
 include(../../../src/boost.pri)
-LIBS += -L$${QTPLATZ_BUILD_TREE}/lib/qtplatz
+include(../../../src/qtplatz_servant.pri)
 
 INCLUDEPATH += .
-INCLUDEPATH += $$QTPLATZ_SOURCE_TREE/src
 INCLUDEPATH += "C:\Program Files (x86)\Bruker Daltonik\CompassXtract"
 
-DESTDIR = $$QTPLATZ_PLUGIN_PATH/$$PROVIDER
 DEFINES += COMPASSXTRACT_LIBRARY
 
 SOURCES += compassxtract.cpp \
@@ -31,21 +29,3 @@ HEADERS += compassxtract.hpp\
     datafile.hpp \
     safearray.hpp
 
-symbian {
-    MMP_RULES += EXPORTUNFROZEN
-    TARGET.UID3 = 0xEF194CC6
-    TARGET.CAPABILITY = 
-    TARGET.EPOCALLOWDLLDATA = 1
-    addFiles.sources = compassxtract.dll
-    addFiles.path = !:/sys/bin
-    DEPLOYMENT += addFiles
-}
-
-unix:!symbian {
-    maemo5 {
-        target.path = /opt/usr/lib
-    } else {
-        target.path = /usr/lib
-    }
-    INSTALLS += target
-}

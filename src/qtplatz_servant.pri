@@ -1,3 +1,4 @@
+
 include(../qtplatz.pri)
 include( config.pri )
 
@@ -14,25 +15,18 @@ isEmpty(TARGET) {
 
 TARGET = $$qtLibraryTarget($$TARGET)
 
-macx {
-        QMAKE_LFLAGS_SONAME = -Wl,-install_name,@executable_path/../PlugIns/$${PROVIDER}/
-} else:linux-* {
-    #do the rpath by hand since it's not possible to use ORIGIN in QMAKE_RPATHDIR
-    QMAKE_RPATHDIR += \$\$ORIGIN
-    QMAKE_RPATHDIR += \$\$ORIGIN/..
-    QMAKE_RPATHDIR += \$\$ORIGIN/../..
-    IDE_PLUGIN_RPATH = $$join(QMAKE_RPATHDIR, ":")
-    QMAKE_LFLAGS += -Wl,-z,origin \'-Wl,-rpath,$${IDE_PLUGIN_RPATH}\'
-    QMAKE_RPATHDIR =
-}
+include( rpath.pri )
 
+# put .pro file directory in INCLUDEPATH
+CONFIG += include_source_dir
 contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 
+TEMPLATE = lib
+#CONFIG += shared dll
 CONFIG += plugin plugin_with_soname
 
 !macx {
-    target.path = /$$IDE_LIBRARY_BASENAME/qtplatz/plugins/$$PROVIDER
-    #pluginspec.files += $${TARGET}.pluginspec
-    pluginspec.path = /$$IDE_LIBRARY_BASENAME/qtplatz/plugins/$$PROVIDER
+    target.path = $$QTC_PREFIX/$$IDE_LIBRARY_BASENAME/qtplatz/plugins/$$PROVIDER
+    pluginspec.path = $$QTC_PREFIX/$$IDE_LIBRARY_BASENAME/qtplatz/plugins/$$PROVIDER
     INSTALLS += target pluginspec
 }

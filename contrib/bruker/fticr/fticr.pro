@@ -8,7 +8,7 @@ QT       -= core gui
 
 include(../../contrib.pri)
 include(../../../src/boost.pri)
-LIBS += -L$${QTPLATZ_BUILD_TREE}/lib/qtplatz
+include(../../../src/qtplatz_servant.pri)
 
 PROVIDER = MS-Cheminfomatics
 
@@ -19,7 +19,6 @@ TARGET = $$qtLibraryTarget($$TARGET)
 
 INCLUDEPATH += .
 INCLUDEPATH += $$QTPLATZ_SOURCE_TREE/src
-DESTDIR = $$QTPLATZ_PLUGIN_PATH/$$PROVIDER
 
 DEFINES += FTICR_LIBRARY
 

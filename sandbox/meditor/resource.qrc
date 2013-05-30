@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/files">
-        <file>bezel.qml</file>
-    </qresource>
-</RCC>
