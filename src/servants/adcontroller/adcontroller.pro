@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       -= core gui
+QT       -= gui
 
 TARGET = adcontroller
 TEMPLATE = lib
@@ -14,6 +14,8 @@ include(../../boost.pri)
 include(../../ace_tao.pri)
 LIBS *= -l$$qtLibraryTarget(adinterface)
 INCLUDEPATH *= $$OUT_PWD/../../libs
+
+win32: DEFINES += _SCL_SECURE_NO_WARNINGS
 
 !win32 {
   LIBS += -lboost_date_time -lboost_system -lboost_filesystem

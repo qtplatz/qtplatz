@@ -4,7 +4,7 @@ CONFIG(debug, debug|release) {
 }
 
 win32 {
-      DEFINES += _WIN32_WINNT=0x0700
+    DEFINES += _WIN32_WINNT=0x0700
 }
 
 BOOST_VERSION=boost-1_53
