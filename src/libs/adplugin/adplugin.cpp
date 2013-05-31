@@ -44,9 +44,9 @@
 #include <boost/smart_ptr.hpp>
 #include <fstream>
 
-#define BOOST_LIB_NAME boost_filesystem
-#include <boost/config/auto_link.hpp>
-#undef BOOST_LIB_NAME
+//#define BOOST_LIB_NAME boost_filesystem
+//#include <boost/config/auto_link.hpp>
+//#undef BOOST_LIB_NAME
 
 #include <ace/Init_ACE.h>
 #include <ace/Singleton.h>

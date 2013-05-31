@@ -47,6 +47,7 @@
 #include <adinterface/instrumentC.h>
 
 #include <adplugin/adplugin.hpp>
+#include <adplugin/loader.hpp>
 #include <adplugin/orbLoader.hpp>
 #include <adplugin/orbmanager.hpp>
 #include <adplugin/constants.hpp>
@@ -168,13 +169,16 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     // <------
     
     std::wstring apppath, configFile;
-
+	boost::filesystem::path plugindir;
     do {
         QDir dir = QCoreApplication::instance()->applicationDirPath();
         dir.cdUp();
         apppath = qtwrapper::wstring::copy( dir.path() );
 		configFile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/servant.config.xml" );
+		plugindir = boost::filesystem::path( configFile ).branch_path();
     } while(0);
+
+	adplugin::loader::populate( plugindir.generic_wstring().c_str() );
     
     const wchar_t * query = L"/ServantConfiguration/Configuration";
     
@@ -203,6 +207,14 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     //CORBA::ORB_var orb = acewrapper::singleton::orbServantManager::instance()->orb();
     std::string iorBroker;
     do {
+        adplugin::plugin * adbroker = adplugin::loader::select_iid( ".*adbroker_plugin" );
+        if ( adbroker ) {
+			adplugin::orbFactory * factory = adbroker->query_interface< adplugin::orbFactory >();
+            // adplugin::orbFactory * factory = factory_interface( adbroker );
+        long x = 0;	
+		}
+
+
         internal::config_finder finder( config );
         adportable::Configuration::vector_type::iterator it = finder( L"adbroker" );
         if ( it != config.end() ) {

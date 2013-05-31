@@ -26,18 +26,27 @@
 #pragma once
 
 #include "adplugin_global.h"
-#include <QObject>
+#include <string>
 
 namespace adplugin {
 
-    class ADPLUGINSHARED_EXPORT ifactory {
-	public:
-        ifactory() {}
-        virtual ~ifactory() {}
+    class visitor;
+    namespace internal { class manager_data; }
 
-	virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent = 0 ) = 0;
-	virtual QObject * create_object( const wchar_t * iid, QObject * parent = 0 ) = 0;
-        virtual void release() = 0;
+    class ADPLUGINSHARED_EXPORT plugin {
+        std::string clsid_; // unique id for dll as full path to "*.adplugin"
+        friend class internal::manager_data;
+	protected:
+		virtual ~plugin() {}
+    public:
+        plugin();
+		virtual void dispose() { delete this; }
+        virtual void accept( visitor&, const char * adplugin ) = 0;
+        virtual const char * iid() const = 0;
+        virtual const char * clsid() const { return clsid_.c_str(); } // adplugin name
+        template<typename T> T* query_interface() { return dynamic_cast<T*>(this); }
     };
 
 }
+
+

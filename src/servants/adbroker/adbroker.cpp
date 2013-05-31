@@ -24,7 +24,9 @@
 **************************************************************************/
 
 #include "adbroker.hpp"
-#include "ace/Init_ACE.h"
+#include <adplugin/visitor.hpp>
+
+#include <boost/thread/mutex.hpp>
 
 #if defined WIN32 && _MSC_VER
 #  if defined _DEBUG || defined DEBUG
@@ -113,7 +115,56 @@ adBroker::operator bool() const
     return true;
 }
 
+
+/////////////////////////
+////////// folling potion to be move to separate .cpp file
+/////////////////
+
+class adbroker_plugin : public adplugin::plugin
+                      , public adplugin::orbFactory {
+
+    static adbroker_plugin * instance_;
+    adbroker_plugin() {}
+    ~adbroker_plugin() {}
+    friend adplugin::plugin * adplugin_plugin_instance();
+public:
+    // plugin
+    const char * iid() const;
+    void accept( adplugin::visitor&, const char * );
+
+    // orbFactory
+    adplugin::orbServant * create_instance() {
+        return new adBroker;        
+    }
+};
+
+adbroker_plugin * adbroker_plugin::instance_ = 0;
+static boost::mutex __mutex;
+
+const char *
+adbroker_plugin::iid() const
+{
+    return "com.ms-cheminfo.qtplatz.plugins.adbroker_plugin";
+}
+
+void
+adbroker_plugin::accept( adplugin::visitor& v, const char * adplugin )
+{
+	v.visit( this, adplugin );
+}
+
+// will be obsolte
 Q_DECL_EXPORT adplugin::orbLoader * instance()
 {
     return new adBroker;
+}
+
+Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance()
+{
+    if ( adbroker_plugin::instance_ == 0 ) {
+        boost::mutex::scoped_lock lock( __mutex );
+        if ( adbroker_plugin::instance_ == 0 )
+            adbroker_plugin::instance_ = new adbroker_plugin();
+    }
+    return adbroker_plugin::instance_;
 }

@@ -25,7 +25,10 @@
 
 #pragma once
 #include "adbroker_global.h"
-#include <adplugin/orbLoader.hpp>
+#include <adplugin/orbLoader.hpp>  // to be obsolte
+#include <adplugin/orbservant.hpp>
+#include <adplugin/plugin.hpp>
+#include <adplugin/orbfactory.hpp>
 
 namespace CORBA {
     class ORB;
@@ -40,18 +43,26 @@ namespace acewrapper {
     class ORBServantManager;
 }
 
-class ADBROKERSHARED_EXPORT adBroker : public adplugin::orbLoader {
+class ADBROKERSHARED_EXPORT adBroker : public adplugin::orbLoader
+                                     , public adplugin::orbServant
+                                     , public adplugin::plugin {
 public:
     adBroker(void);
     virtual ~adBroker(void);
-    
+
+    // orbServant
     virtual bool initialize( CORBA::ORB* orb, PortableServer::POA * poa, PortableServer::POAManager * mgr );
     virtual const char * activate();
     virtual bool deactivate();
     virtual void initial_reference( const char * );
     virtual operator bool() const;
+
+    // plugin
+    const char * iid() const { return "com.ms-cheminfo.qtplatz.plugins.adborker"; }
+    void accept( adplugin::visitor&, const char * ) { /* do nothing */ }
 };
 
 extern "C" {
     Q_DECL_EXPORT adplugin::orbLoader * instance();
+    Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }

@@ -26,18 +26,15 @@
 #pragma once
 
 #include "adplugin_global.h"
-#include <QObject>
 
 namespace adplugin {
 
-    class ADPLUGINSHARED_EXPORT ifactory {
-	public:
-        ifactory() {}
-        virtual ~ifactory() {}
+    class orbServant;
 
-	virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent = 0 ) = 0;
-	virtual QObject * create_object( const wchar_t * iid, QObject * parent = 0 ) = 0;
-        virtual void release() = 0;
+    class ADPLUGINSHARED_EXPORT orbFactory {
+    public:
+        orbFactory();
+        virtual orbServant * create_instance() = 0;
     };
 
 }

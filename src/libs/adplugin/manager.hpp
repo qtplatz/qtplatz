@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 *
 ** Contact: toshi.hondo@scienceliaison.com
 **
@@ -29,10 +29,12 @@
 #include "ifactory.hpp"
 #include "orbLoader.hpp"
 #include <string>
+#include <vector>
 
 class QString;
 class QObject;
 class QWidget;
+class QLibrary;
 
 namespace adportable {
     class Configuration;
@@ -40,27 +42,43 @@ namespace adportable {
 }
 
 namespace adplugin {
+
+    namespace internal { class manager_data; }
+	class plugin;
     
     class ADPLUGINSHARED_EXPORT manager {
     protected:
-	manager();
-	~manager();
+        manager();
+        ~manager();
+		static manager * instance_;
+		internal::manager_data * d_;
     public:
-	static manager * instance();
-	static void dispose();
-	static std::string ior( const char * name ); // return broker::manager's ior
-	static std::string iorBroker();
-        
-	virtual bool loadConfig( adportable::Configuration&, const std::wstring&, const wchar_t * query ) = 0;
+        static manager * instance();
+        static void dispose();
+
+        static std::string ior( const char * name ); // return broker::manager's ior
+        static std::string iorBroker();
+
+        // following method will be replaced with newly developped plugin loader
+
+        virtual bool loadConfig( adportable::Configuration&, const std::wstring&, const wchar_t * query ) = 0;
 	
-	virtual adplugin::ifactory * loadFactory( const std::wstring& ) = 0;
-	virtual bool unloadFactory( const std::wstring& ) = 0;
+        virtual adplugin::ifactory * loadFactory( const std::wstring& ) = 0;
+        virtual bool unloadFactory( const std::wstring& ) = 0;
 	
-	virtual adplugin::orbLoader& orbLoader( const std::wstring& name ) = 0;
-	virtual void register_ior( const std::string& name, const std::string& ior ) = 0;
-	virtual const char * lookup_ior( const std::string& name ) = 0;
+        virtual adplugin::orbLoader& orbLoader( const std::wstring& name ) = 0;
+        virtual void register_ior( const std::string& name, const std::string& ior ) = 0;
+        virtual const char * lookup_ior( const std::string& name ) = 0;
 	
-	static QWidget * widget_factory( const adportable::Configuration&, const wchar_t * path, QWidget * parent = 0 );
+        static QWidget * widget_factory( const adportable::Configuration&, const wchar_t * path, QWidget * parent = 0 );
+
+        // new plugin loader will be implemented below
+		bool install( QLibrary&, const std::string& confname );
+
+        plugin * select_iid( const char * iid );
+        plugin * select_clsid( const char * clsid ); // return first match only
+        size_t select_iids( const char * clsid, std::vector< plugin * >& );
+        size_t select_clsids( const char * clsid, std::vector< plugin * >& );
         
     private:
 	

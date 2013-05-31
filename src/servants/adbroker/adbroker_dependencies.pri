@@ -1,5 +1,5 @@
-QTC_LIB_NAME = adbroker
-QTC_LIB_DEPENDS += \
+ADPLUGIN_NAME = adbroker
+ADPLUBIN_DEPENDS += \
 		adcontrols \
 		portfolio \
 		adplugin

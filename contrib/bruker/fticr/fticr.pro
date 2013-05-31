@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       -= core gui
+QT       -= gui
 
 include(../../contrib.pri)
 include(../../../src/boost.pri)

@@ -35,10 +35,16 @@ SOURCES += adplugin.cpp \
     qbrokersessionevent.cpp \
     qobserverevents_i.cpp \
     qreceiver_i.cpp \
-    lifecycleaccessor.cpp
+    lifecycleaccessor.cpp \
+    loader.cpp \
+    plugin.cpp \
+    visitor.cpp \
+    orbfactory.cpp \
+    orbservant.cpp
 
 HEADERS += adplugin.hpp \
     adplugin_global.h \
+    manager.hpp \
     imonitor.hpp \
     icontrolmethodeditor.hpp \
     ifactory.hpp \
@@ -48,4 +54,9 @@ HEADERS += adplugin.hpp \
     orbLoader.hpp \
     qobserverevents_i.hpp \
     qbrokersessionevent.hpp \
-    lifecycleaccessor.hpp
+    lifecycleaccessor.hpp \
+    plugin.hpp \
+    visitor.hpp \
+    loader.hpp \
+    orbfactory.hpp \
+    orbservant.hpp

@@ -26,18 +26,16 @@
 #pragma once
 
 #include "adplugin_global.h"
-#include <QObject>
+
+namespace adcontrols { class datafile_factory; }
 
 namespace adplugin {
 
-    class ADPLUGINSHARED_EXPORT ifactory {
-	public:
-        ifactory() {}
-        virtual ~ifactory() {}
+	class plugin;
 
-	virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent = 0 ) = 0;
-	virtual QObject * create_object( const wchar_t * iid, QObject * parent = 0 ) = 0;
-        virtual void release() = 0;
+    class ADPLUGINSHARED_EXPORT visitor {
+    public:
+        virtual void visit( plugin *, const char * adplugin ); // use this if dll has more than 2 plugins, 
     };
 
 }

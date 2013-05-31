@@ -26,18 +26,23 @@
 #pragma once
 
 #include "adplugin_global.h"
-#include <QObject>
+#include <vector>
 
 namespace adplugin {
 
-    class ADPLUGINSHARED_EXPORT ifactory {
-	public:
-        ifactory() {}
-        virtual ~ifactory() {}
+    class plugin;
 
-	virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent = 0 ) = 0;
-	virtual QObject * create_object( const wchar_t * iid, QObject * parent = 0 ) = 0;
-        virtual void release() = 0;
+    class ADPLUGINSHARED_EXPORT loader {
+    public:
+		static void populate( const wchar_t * directory );
+        static void load( const wchar_t * library_filename );
+        static void unload( const wchar_t * library_filename );
+        static plugin * select_iid( const char * iid );
+        static plugin * select_clsid( const char * clsid ); // return first match only
+        static size_t select_iids( const char * regex, std::vector< plugin * >& );
+        static size_t select_clsids( const char * clsid, std::vector< plugin * >& );
     };
 
 }
+
+

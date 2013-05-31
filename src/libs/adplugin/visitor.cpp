@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2013 MS-Cheminformatics LLC
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
@@ -23,21 +22,17 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "visitor.hpp"
+#include "orbfactory.hpp"
+#include <adcontrols/datafile_factory.hpp>
 
-#include "adplugin_global.h"
-#include <QObject>
+using namespace adplugin;
 
-namespace adplugin {
+//    class orbLoader;
 
-    class ADPLUGINSHARED_EXPORT ifactory {
-	public:
-        ifactory() {}
-        virtual ~ifactory() {}
-
-	virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent = 0 ) = 0;
-	virtual QObject * create_object( const wchar_t * iid, QObject * parent = 0 ) = 0;
-        virtual void release() = 0;
-    };
-
+void
+visitor::visit( adplugin::plugin *, const char * )
+{
 }
+
+

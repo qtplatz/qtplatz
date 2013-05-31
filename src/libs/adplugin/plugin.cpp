@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2013 MS-Cheminformatics LLC
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
@@ -25,19 +24,13 @@
 
 #pragma once
 
-#include "adplugin_global.h"
-#include <QObject>
+#include "plugin.hpp"
+#include "orbfactory.hpp"
+#include "orbservant.hpp"
 
-namespace adplugin {
+using namespace adplugin;
 
-    class ADPLUGINSHARED_EXPORT ifactory {
-	public:
-        ifactory() {}
-        virtual ~ifactory() {}
-
-	virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent = 0 ) = 0;
-	virtual QObject * create_object( const wchar_t * iid, QObject * parent = 0 ) = 0;
-        virtual void release() = 0;
-    };
-
+plugin::plugin()
+{
 }
+
