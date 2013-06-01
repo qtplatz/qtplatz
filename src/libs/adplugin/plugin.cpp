@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "plugin.hpp"
 #include "orbfactory.hpp"
 #include "orbservant.hpp"

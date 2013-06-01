@@ -27,15 +27,19 @@
 
 #include "adplugin_global.h"
 #include <string>
+#include <typeinfo>
 
 namespace adplugin {
 
-    class visitor;
     namespace internal { class manager_data; }
 
+    class visitor;
+    class orbFactory;
+
     class ADPLUGINSHARED_EXPORT plugin {
-        std::string clsid_; // unique id for dll as full path to "*.adplugin"
+        std::string clsid_;
         friend class internal::manager_data;
+        virtual void * query_interface_workaround( const char * /* typename */ ) { return 0; }
 	protected:
 		virtual ~plugin() {}
     public:
@@ -44,7 +48,18 @@ namespace adplugin {
         virtual void accept( visitor&, const char * adplugin ) = 0;
         virtual const char * iid() const = 0;
         virtual const char * clsid() const { return clsid_.c_str(); } // adplugin name
-        template<typename T> T* query_interface() { return dynamic_cast<T*>(this); }
+
+        template<typename T> T* query_interface() {
+            // dynamic_cast across the shared object loaded by dlopen doesn't work even tried with
+            // QLibrary.setLoadHints(QLibrary::ResolveAllSymbolsHint| QLibrary::ExportExternalSymbolsHint)
+            // a.k.a. RTLD_NOW|RTLD_GLOBAL for dlopen
+            // This hit to a problem on Apple clang 4.0 based on LLVM 3.1svn
+            // 2013 Jun 1st, -thoshi
+            T* p = dynamic_cast<T*>(this);
+            if ( !p )
+                p = reinterpret_cast<T*>( query_interface_workaround( typeid(T).name() ) );
+            return p;
+        }
     };
 
 }

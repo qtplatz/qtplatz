@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "loader.hpp"
 #include "manager.hpp"
 #include <boost/filesystem.hpp>
@@ -40,19 +38,6 @@ using namespace adplugin;
 #  define DEBUG_LIB_TRAIL ""        // xyz.so 
 # endif
 #endif
-
-static bool
-resolve_plugin( QLibrary& lib )
-{
-#if QT_VERSION >= 0x050000
-	QFunctionPointer p;
-#else
-    void * p;
-#endif
-	if ( p = lib.resolve( "instance" ) )
-		return true;
-	return false;
-}
 
 void
 loader::populate( const wchar_t * directory )

@@ -49,7 +49,8 @@ namespace adplugin {
     class ADPLUGINSHARED_EXPORT manager {
     protected:
         manager();
-        ~manager();
+        virtual ~manager();
+
 		static manager * instance_;
 		internal::manager_data * d_;
     public:

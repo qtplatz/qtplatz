@@ -25,8 +25,9 @@
 
 #include "adbroker.hpp"
 #include <adplugin/visitor.hpp>
-
+#include <adportable/debug.hpp>
 #include <boost/thread/mutex.hpp>
+#include <typeinfo>
 
 #if defined WIN32 && _MSC_VER
 #  if defined _DEBUG || defined DEBUG
@@ -129,11 +130,17 @@ class adbroker_plugin : public adplugin::plugin
     friend adplugin::plugin * adplugin_plugin_instance();
 public:
     // plugin
-    const char * iid() const;
-    void accept( adplugin::visitor&, const char * );
+    virtual const char * iid() const;
+    virtual void accept( adplugin::visitor&, const char * );
+    virtual void * query_interface_workaround( const char * typenam ) {
+        adportable::debug(__FILE__, __LINE__) << "##### query_interface_workaround for " << typenam << " called.";
+        if ( std::string( typenam ) == typeid( orbFactory ).name() )
+            return static_cast<orbFactory *>(this);
+        return 0;
+    }
 
     // orbFactory
-    adplugin::orbServant * create_instance() {
+    virtual adplugin::orbServant * create_instance() {
         return new adBroker;        
     }
 };

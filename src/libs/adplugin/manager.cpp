@@ -74,6 +74,7 @@ namespace adplugin { namespace internal {
         class manager_data : boost::noncopyable
                            , adplugin::visitor {
         public:
+            virtual ~manager_data() {}
 			typedef std::vector< plugin_data > vector_type;
             typedef std::map< std::string, vector_type > map_type;
 			
