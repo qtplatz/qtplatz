@@ -21,12 +21,12 @@ win32: DEFINES += _SCL_SECURE_NO_WARNINGS
   LIBS += -lboost_thread -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread
 }
 
-LIBS += -l$$qtLibraryTarget(TAO_Utils) \
-        -l$$qtLibraryTarget(TAO_PI) \
-        -l$$qtLibraryTarget(TAO_PortableServer) \
-        -l$$qtLibraryTarget(TAO_AnyTypeCode) \
-        -l$$qtLibraryTarget(TAO) \
-        -l$$qtLibraryTarget(ACE)
+LIBS += -lTAO_Utils \
+        -lTAO_PI \
+        -lTAO_PortableServer \
+        -lTAO_AnyTypeCode \
+        -lTAO \
+        -lACE
 
 LIBS += -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(adinterface) \

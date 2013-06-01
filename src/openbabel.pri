@@ -14,11 +14,12 @@ win32 {
   isEmpty( OPENBABEL_SRC ): OPENBABEL_SRC = $$cleanPath( $$PWD/../../openbabel )
   OPENBABEL_INCLUDE=$${OPENBABEL_ROOT}/include/openbabel-2.0 \
   		    $${OPENBABEL_SRC}/windows-vc2008/include
-  LIBS += -L$${OPENBABEL_ROOT}/bin
+  LIBS += -L$${OPENBABEL_ROOT}/bin -lopenbabel-2
 } ELSE {
   OPENBABEL_INCLUDE=$${OPENBABEL_ROOT}/include/openbabel-2.0 \
   		    /usr/include/openbabel-2.0
-  LIBS += -L$${OPENBABEL_ROOT}/lib
+  OPENBABEL_LIBDIR=/usr/local/lib
+  LIBS += -L$${OPENBABEL_ROOT}/lib -lopenbabel
 }
 INCLUDEPATH += $${OPENBABEL_INCLUDE}
 

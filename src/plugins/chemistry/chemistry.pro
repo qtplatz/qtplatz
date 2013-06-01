@@ -52,7 +52,6 @@ LIBS += -l$$qtLibraryTarget( adutils ) \
         -l$$qtLibraryTarget( qtwrapper ) \
         -l$$qtLibraryTarget( xmlparser ) \
 	-l$$qtLibraryTarget( adchem )
-LIBS += -lopenbabel-2
 
 RESOURCES += \
     chemistry.qrc

@@ -22,17 +22,17 @@ LIBS += -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(portfolio) \
     -l$$qtLibraryTarget(adplugin)
 
-LIBS += -l$$qtLibraryTarget(TAO_Utils) \
-        -l$$qtLibraryTarget(TAO_PI) \
-        -l$$qtLibraryTarget(TAO_PortableServer) \
-        -l$$qtLibraryTarget(TAO_AnyTypeCode) \
-        -l$$qtLibraryTarget(TAO) \
-        -l$$qtLibraryTarget(ACE)
+LIBS += -lTAO_Utils \
+        -lTAO_PI \
+        -lTAO_PortableServer \
+        -lTAO_AnyTypeCode \
+        -lTAO \
+        -lACE
 
 !win32 {
-  LIBS += -lboost_chrono -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread -lrt
+  LIBS += -lboost_chrono -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread
+  linux-*: LIBS += -lrt
 }
-
 
 DEFINES += ADBROKER_LIBRARY
 
