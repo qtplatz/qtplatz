@@ -26,6 +26,7 @@ LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adportable) -l$$qtLibra
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
   LIBS += -lboost_date_time -lboost_system -lboost_filesystem
 }
+linux-*: LIBS += -lqwt # order matter on linux
 
 # define BOOST_NO_CXX11_RVALUE_REFERENCES is a workaround on clang++ shipped 
 # with Apple which does not provide std::move

@@ -28,6 +28,7 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
   LIBS += -lboost_date_time
 }
+linux-*: LIBS += -lqwt # order matter on linux
 
 include(../../plugins/coreplugin/coreplugin.pri)
 
