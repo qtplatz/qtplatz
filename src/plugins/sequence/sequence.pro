@@ -16,7 +16,6 @@ include(../../ace_tao.pri)
 
 LIBS += -L$$IDE_PLUGIN_PATH/QtProject
 LIBS += -l$$qtLibraryTarget( Core )
-#include(../../plugins/coreplugin/coreplugin.pri)
 
 # Link order caution: adportable should be linked after adfs for utf::to_utf8 reference
 
@@ -35,7 +34,7 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
 
 !win32 {
   LIBS += -lTAO -lTAO_Utils -lTAO_PI -lTAO_PortableServer -lTAO_AnyTypeCode -lACE
-  LIBS += -lboost_system -lboost_filesystem -lboost_serialization
+  LIBS += -lboost_system -lboost_filesystem -lboost_serialization -lboost_date_time -ldl
 } else {
   LIBS += -l$$qtLibraryTarget( TAO ) \
         -l$$qtLibraryTarget( TAO_Utils ) \

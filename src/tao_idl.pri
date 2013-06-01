@@ -1,12 +1,14 @@
 #--------------
 # Customer compiler for tao_idl
 #
+include( config.pri )
 
 for(idl, IDLFILES): PRE_TARGETDEPS += $$replace( idl, ".idl", "C.cpp" )
 
 #vcxproj after vs2012 can not handle command string expanded fro "$${ACE_ROOT}
 #that contains <quot></quot> by vc.  nmake does not has such problem though
 #Windows always require $ACE_ROOT/lib in path anyway for tao_idl get to work
+
 win32: TAO_IDL = tao_idl
 else: TAO_IDL = $${ACE_ROOT}/bin/tao_idl
 

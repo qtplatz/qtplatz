@@ -15,8 +15,6 @@ include(../../ace_tao.pri)
 
 INCLUDEPATH *= $$OUT_PWD/../../libs
 
-!win32: LIBS += -lboost_date_time
-
 LIBS += -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(adportable) \
     -l$$qtLibraryTarget(acewrapper) \
@@ -24,9 +22,17 @@ LIBS += -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(portfolio) \
     -l$$qtLibraryTarget(adplugin)
 
-LIBS += \
-    -l$$qtLibraryTarget(ACE) \
-    -l$$qtLibraryTarget(TAO)
+LIBS += -l$$qtLibraryTarget(TAO_Utils) \
+        -l$$qtLibraryTarget(TAO_PI) \
+        -l$$qtLibraryTarget(TAO_PortableServer) \
+        -l$$qtLibraryTarget(TAO_AnyTypeCode) \
+        -l$$qtLibraryTarget(TAO) \
+        -l$$qtLibraryTarget(ACE)
+
+!win32 {
+  LIBS += -lboost_chrono -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread -lrt
+}
+
 
 DEFINES += ADBROKER_LIBRARY
 

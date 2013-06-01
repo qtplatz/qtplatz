@@ -23,7 +23,7 @@ LIBS += -l$$qtLibraryTarget(acewrapper) \
 !win32 {
   LIBS += -lACE
   LIBS += -lTAO -lTAO_Utils -lTAO_PI -lTAO_PortableServer -lTAO_AnyTypeCode
-  LIBS += -lboost_filesystem -lboost_system
+  LIBS += -lboost_filesystem -lboost_system -lboost_regex
 }
 
 DEFINES += ADPLUGIN_LIBRARY

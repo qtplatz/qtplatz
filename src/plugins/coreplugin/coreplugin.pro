@@ -8,8 +8,6 @@ QT += xml \
 
 greaterThan(QT_MAJOR_VERSION, 4) {
     QT += help printsupport
-} else {
-    CONFIG += help
 }
 
 include(../../qtplatzplugin.pri)

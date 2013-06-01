@@ -18,7 +18,7 @@ INCLUDEPATH *= $$OUT_PWD/../../libs
 win32: DEFINES += _SCL_SECURE_NO_WARNINGS
 
 !win32 {
-  LIBS += -lboost_date_time -lboost_system -lboost_filesystem
+  LIBS += -lboost_thread -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread
 }
 
 LIBS += -l$$qtLibraryTarget(TAO_Utils) \

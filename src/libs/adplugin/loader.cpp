@@ -44,8 +44,12 @@ using namespace adplugin;
 static bool
 resolve_plugin( QLibrary& lib )
 {
-	QFunctionPointer p = lib.resolve( "instance" );
-	if ( p )
+#if QT_VERSION >= 0x050000
+	QFunctionPointer p;
+#else
+    void * p;
+#endif
+	if ( p = lib.resolve( "instance" ) )
 		return true;
 	return false;
 }

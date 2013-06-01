@@ -22,6 +22,8 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
   LIBS *= -lboost_serialization -lboost_date_time -lboost_filesystem -lboost_system
 }
 
+!greaterThan(QT_MAJOR_VERSION, 4): LIBS += -l$$qtLibraryTarget(Core)
+
 DEFINES += SERVANT_LIBRARY
 INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants
 

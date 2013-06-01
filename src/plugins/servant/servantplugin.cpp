@@ -210,7 +210,9 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         adplugin::plugin * adbroker = adplugin::loader::select_iid( ".*adbroker_plugin" );
         if ( adbroker ) {
 			adplugin::orbFactory * factory = adbroker->query_interface< adplugin::orbFactory >();
-            // adplugin::orbFactory * factory = factory_interface( adbroker );
+            std::cout << "##########################################" << std::endl;
+            std::cout << "factory = " << factory << std::endl;
+            std::cout << "##########################################" << std::endl;
         long x = 0;	
 		}
 
