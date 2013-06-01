@@ -18,7 +18,7 @@ include(../../qwt.pri)
 INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants ../ $$(QWT)/include
 
 LIBS += -l$$qtLibraryTarget(Core)
-LIBS += -l$$qtLibraryTarget(adcontroller) -l$$qtLibraryTarget(adcontrols) \
+LIBS += -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(adutils) -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adwplot) \
     -l$$qtLibraryTarget(acewrapper) -l$$qtLibraryTarget(qtwrapper) \
