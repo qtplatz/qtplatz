@@ -25,6 +25,7 @@
 
 #include "datafile_factory.hpp"
 #include "datafile.hpp"
+#include <adplugin/visitor.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 
@@ -37,6 +38,14 @@ datafile_factory::~datafile_factory(void)
 datafile_factory::datafile_factory()
 {
 }
+
+datafile_factory *
+datafile_factory::instance()
+{
+    return new datafile_factory;
+    // destraction will manage by ref_count installed in adplugin::plugin base class
+}
+
 
 void
 datafile_factory::close( adcontrols::datafile * p )
@@ -68,3 +77,25 @@ datafile_factory::open( const std::wstring& filename, bool readonly ) const
     return 0;
 }
 
+////////////////////////////////////////////
+// adplugin::plugin implementation
+
+const char *
+datafile_factory::iid() const 
+{
+    return "com.ms-cheminfo.qtplatz.plugins.datafile_factory";
+}
+
+void
+datafile_factory::accept( adplugin::visitor& v, const char * adplugin )
+{
+	v.visit( this, adplugin );
+}
+
+void *
+datafile_factory::query_interface_workaround( const char * typenam )
+{
+    if ( std::string( typenam ) == typeid( adcontrols::datafile_factory ).name() )
+        return static_cast< adcontrols::datafile_factory *>(this);
+    return 0;
+}

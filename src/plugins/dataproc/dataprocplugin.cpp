@@ -41,6 +41,7 @@
 #include <acewrapper/constants.hpp>
 #include <acewrapper/input_buffer.hpp>
 #include <adcontrols/datafilebroker.hpp>
+#include <adcontrols/datafile_factory.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -166,6 +167,14 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 
     // dataprovider installation move to servantplugin
     // install_dataprovider( config, apppath );
+	std::vector< adplugin::plugin_ptr > dataproviders;
+	if ( adplugin::loader::select_iids( ".*\\.datafile_factory$", dataproviders ) ) {
+		BOOST_FOREACH( const adplugin::plugin_ptr& d, dataproviders ) {
+			adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
+			if ( factory ) 
+				adcontrols::datafileBroker::register_factory( factory, factory->name() );
+		}
+	}
 
     iSequence_.reset( new iSequenceImpl );
     if ( iSequence_ && install_isequence( config, apppath, *iSequence_ ) ) {

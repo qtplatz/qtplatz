@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -49,11 +49,11 @@ namespace adcontrols {
 }
 
 extern "C" {
-    Q_DECL_EXPORT adcontrols::datafile_factory * datafile_factory();
+    Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
 
-adcontrols::datafile_factory *
-datafile_factory()
+adplugin::plugin *
+adplugin_plugin_instance()
 {
-    return new adtxtfactory::datafile_factory();
+    return adtxtfactory::datafile_factory::instance();
 }

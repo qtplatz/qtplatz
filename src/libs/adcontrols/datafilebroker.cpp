@@ -28,7 +28,6 @@
 #include <adportable/string.hpp>
 #include <map>
 #include <boost/smart_ptr.hpp>
-#include <QLibrary>
 #include <adportable/debug.hpp>
 #include <boost/thread.hpp>
 #include "adcontrols.hpp"
@@ -80,12 +79,6 @@ datafileBroker::datafileBroker()
 }
 
 bool
-datafileBroker::register_library( const std::wstring& sharedlib )
-{
-    return datafileBrokerImpl::instance()->register_library( sharedlib );
-}
-
-bool
 datafileBroker::register_factory( datafile_factory * factory, const std::wstring& name )
 {
     return datafileBrokerImpl::instance()->register_factory( factory, name );
@@ -116,25 +109,6 @@ datafileBrokerImpl::register_factory( datafile_factory * factory, const std::wst
 {
     factories_[ name ].reset( factory );
     return true;
-}
-
-bool
-datafileBrokerImpl::register_library( const std::wstring& sharedlib )
-{
-    std::string mbs = adportable::string::convert( sharedlib );
-    QLibrary lib( mbs.c_str() );
-    if ( lib.load() ) {
-        typedef adcontrols::datafile_factory * (*factory_factory)();
-        factory_factory ffactory = reinterpret_cast<factory_factory>( lib.resolve( "datafile_factory" ) );
-        if ( ffactory ) {
-            datafile_factory * pfactory = ffactory();
-            if ( pfactory )
-                register_factory( pfactory, sharedlib );
-            return true;
-        }
-    }
-    adportable::debug(__FILE__, __LINE__) << static_cast< const char *>( lib.errorString().toUtf8() );
-    return false;
 }
 
 void

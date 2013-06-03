@@ -52,7 +52,8 @@ datafile_factory::instance()
         boost::mutex::scoped_lock lock( __mutex );
         if ( instance_ == 0 ) {
             instance_ = new datafile_factory;
-			// destractor will call from adplugin::dispose by reference couting method, so 'singleton' mechanism may not be necessary though...
+			// destractor will call from adplugin::dispose by reference couting method,
+            // so 'singleton' mechanism may not be necessary though...
 		}
     }
     return instance_;
