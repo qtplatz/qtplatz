@@ -50,9 +50,6 @@ namespace adplugin {
         virtual void initial_reference( const char * ior ) = 0;
         virtual const char * activate() = 0;
         virtual bool deactivate() = 0;
-        // virtual const char * error_description() { return 0; }
-        // static std::wstring library_fullpath( const std::wstring& appdir, const std::wstring& library_filename );
-        // static std::wstring config_fullpath( const std::wstring& appdir, const std::wstring& config_filename );
     };
 
 }

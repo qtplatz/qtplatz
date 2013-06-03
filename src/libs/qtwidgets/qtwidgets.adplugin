@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2013 MS-Cheminformatics LLC, All rights reserved. -->
+<!-- Copyright (C) 2010 Toshinobu Hondo, All rights reserved. -->
+<adplugin name="qtwidgets" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="adplugin.xsd">
+  <Module name="qtwidgets" type="sharedlib" filename="qtwidgets$(configuration).dll"/>
+</adplugin>

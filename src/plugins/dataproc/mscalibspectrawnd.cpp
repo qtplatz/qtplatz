@@ -40,6 +40,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adplugin/manager.hpp>
+#include <adplugin/widget_factory.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adutils/processeddata.hpp>
@@ -90,7 +91,7 @@ MSCalibSpectraWnd::init( const adportable::Configuration& c, const std::wstring&
         // summary table
         const Configuration * pConfig = Configuration::find( c, L"MSMCalibSummaryWidget" );
         if ( pConfig && pConfig->isPlugin() )
-            wndCalibSummary_ = adplugin::manager::widget_factory( *pConfig, apppath.c_str(), 0 );
+            wndCalibSummary_ = adplugin::widget_factory::create( pConfig->_interface().c_str(), 0, 0 );
 
         bool res;
         res = connect( wndCalibSummary_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );

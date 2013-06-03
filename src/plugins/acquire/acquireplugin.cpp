@@ -28,18 +28,9 @@
 #include "acquiremode.hpp"
 #include "acquireuimanager.hpp"
 #include "acquireactions.hpp"
-#include <adwplot/chromatogramwidget.hpp>
-#include <adwplot/spectrumwidget.hpp>
-#include <adplugin/adplugin.hpp>
-#include <adplugin/orbmanager.hpp>
-#include <adplugin/qreceiver_i.hpp>
-#include <adplugin/qobserverevents_i.hpp>
-#include <adportable/debug.hpp>
-#include <adcontrols/timeutil.hpp>
-#include <adcontroller/adcontroller.hpp>
 
-#include <tao/Object.h>
-#include <ace/Singleton.h>
+#include <acewrapper/constants.hpp>
+#include <acewrapper/brokerhelper.hpp>
 
 # include <adinterface/brokerC.h>
 # include <adinterface/controlserverC.h>
@@ -47,24 +38,52 @@
 # include <adinterface/signalobserverC.h>
 # include <adinterface/eventlog_helper.hpp>
 
-#include <acewrapper/constants.hpp>
-#include <acewrapper/brokerhelper.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adcontrols/description.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/datainterpreter.hpp>
+#include <adcontrols/centroidprocess.hpp>
+#include <adcontrols/centroidmethod.hpp>
+#include <adcontrols/trace.hpp>
+#include <adcontrols/traceaccessor.hpp>
+#include <adcontrols/timeutil.hpp>
+#include <adcontroller/adcontroller.hpp>
+#include <adportable/array_wrapper.hpp>
+#include <adportable/configuration.hpp>
+#include <adportable/configloader.hpp>
+#include <adplugin/adplugin.hpp>
+#include <adplugin/orbmanager.hpp>
+#include <adplugin/qreceiver_i.hpp>
+#include <adplugin/qobserverevents_i.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/fft.hpp>
+
+#include <adwplot/chromatogramwidget.hpp>
+#include <adwplot/spectrumwidget.hpp>
+
+#include <qtwrapper/application.hpp>
+#include <qtwrapper/qstring.hpp>
+#include <servant/servantplugin.hpp>
+
+#include <tao/Object.h>
+#include <ace/Singleton.h>
+
 #include <utils/fancymainwindow.h>
 
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
-#include <extensionsystem/pluginmanager.h>
-
-#include <QtCore/qplugin.h>
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>
 #include <coreplugin/navigationwidget.h>
 #include <coreplugin/rightpane.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/modemanager.h>
+#include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
+#include <QtCore/qplugin.h>
 
 #if QT_VERSION >= 0x050000
 #include <QtWidgets/QHBoxLayout>
@@ -84,25 +103,12 @@
 #include <QMessageBox>
 #include <qdebug.h>
 
-#include <servant/servantplugin.hpp>
-#include <qtwrapper/qstring.hpp>
-#include <adinterface/eventlog_helper.hpp>
-
-#include <adcontrols/massspectrum.hpp>
-#include <adcontrols/msproperty.hpp>
-#include <adcontrols/description.hpp>
-#include <adcontrols/massspectrometer.hpp>
-#include <adcontrols/datainterpreter.hpp>
-#include <adportable/array_wrapper.hpp>
 #include <boost/format.hpp>
-#include <adcontrols/centroidprocess.hpp>
-#include <adcontrols/centroidmethod.hpp>
-#include <adcontrols/trace.hpp>
-#include <adcontrols/traceaccessor.hpp>
+#include <boost/filesystem.hpp>
 #include <algorithm>
 #include <cmath>
 #include <map>
-#include <adportable/fft.hpp>
+
 
 #include <fstream>
 
@@ -183,6 +189,7 @@ AcquirePlugin::AcquirePlugin() : manager_(0)
                                , actionSnapshot_(0)
                                , actionInject_(0)
                                , traceBox_(0) 
+                               , pConfig_( 0 )
 {
 }
 
@@ -252,9 +259,23 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
     else
         return false;
 
+    std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
+    std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/acquire.config.xml" );
+    boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
+
+    const wchar_t * query = L"/AcquireConfiguration/Configuration";
+
+    pConfig_ = new adportable::Configuration();
+
+    if ( ! adportable::ConfigLoader::loadConfigFile( *pConfig_, configFile, query ) ) {
+        adportable::debug dbg( __FILE__, __LINE__ );
+        dbg << "AcquirePlugin::initialize loadConfig '" << configFile << "' load failed";
+        return false;
+    }
+
     manager_ = new AcquireUIManager(0);
     if ( manager_ )
-        manager_->init();
+        manager_->init( *pConfig_ );
 
     initialize_actions();
 

@@ -41,13 +41,14 @@ SOURCES += adplugin.cpp \
     orbfactory.cpp \
     orbservant.cpp \
     plugin_ptr.cpp \
-    visitor.cpp
+    visitor.cpp \
+    widget_factory.cpp
 
 HEADERS += adplugin.hpp \
     adplugin_global.h \
     imonitor.hpp \
     icontrolmethodeditor.hpp \
-    ifactory.hpp \
+    widget_factory.hpp \
     lifecycle.hpp \
     qreceiver_i.hpp \
     orbmanager.hpp \

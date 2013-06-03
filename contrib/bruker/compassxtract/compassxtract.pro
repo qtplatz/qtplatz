@@ -9,7 +9,7 @@ TARGET = compassxtract
 
 include(../../contrib.pri)
 include(../../../src/boost.pri)
-include(../../../src/qtplatz_servant.pri)
+include(../../../src/adplugin.pri)
 
 INCLUDEPATH += .
 INCLUDEPATH += "C:\Program Files (x86)\Bruker Daltonik\CompassXtract"

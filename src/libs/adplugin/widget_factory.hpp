@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// MS-Cheminformatics LLC / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
@@ -34,14 +30,19 @@
 
 namespace adplugin {
 
-    class ADPLUGINSHARED_EXPORT ifactory {
+    class ADPLUGINSHARED_EXPORT widget_factory {
 	public:
-        ifactory() {}
-        virtual ~ifactory() {}
+        virtual ~widget_factory();
+        widget_factory();
 
-	virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent = 0 ) = 0;
-	virtual QObject * create_object( const wchar_t * iid, QObject * parent = 0 ) = 0;
+        virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent = 0 ) = 0;
+        virtual QObject * create_object( const wchar_t * iid, QObject * parent = 0 ) = 0;
+
         virtual void release() = 0;
+
+        // static widget_factory * find_factory( const char * iid, const char * clsid = 0 );
+        static QWidget * create( const char * wiid, const char * clsid = 0, QWidget * parent = 0 );
+        static QWidget * create( const wchar_t * wiid, const char * clsid = 0, QWidget * parent = 0 );
     };
 
 }

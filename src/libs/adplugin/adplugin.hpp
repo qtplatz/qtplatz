@@ -42,8 +42,8 @@ namespace adportable {
 #include <qglobal.h>
 # define EXPORT_FACTORY( FACTORY_CLASS ) \
 	extern "C" {					     \
-	  Q_DECL_EXPORT adplugin::ifactory * ad_plugin_instance(); \
-    }									 \
-	adplugin::ifactory * ad_plugin_instance() { return new FACTORY_CLASS; }
+        Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance(); \
+    }\
+    adplugin::plugin * adplugin_plugin_instance() { return FACTORY_CLASS::instance(); }
 
 #endif // ADPLUGIN_H

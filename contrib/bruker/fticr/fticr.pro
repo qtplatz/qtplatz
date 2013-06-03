@@ -8,7 +8,7 @@ QT       -= gui
 
 include(../../contrib.pri)
 include(../../../src/boost.pri)
-include(../../../src/qtplatz_servant.pri)
+include(../../../src/adplugin.pri)
 
 PROVIDER = MS-Cheminfomatics
 

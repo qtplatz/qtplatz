@@ -25,6 +25,8 @@
 #include "editorfactory.hpp"
 #include <adplugin/manager.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <adplugin/widget_factory.hpp>
+#include <adportable/utf.hpp>
 
 using namespace dataproc;
 
@@ -37,8 +39,12 @@ EditorFactory::EditorFactory( const adportable::Configuration& config
 QWidget *
 EditorFactory::createEditor( QWidget * parent )
 {
-    if ( config_.isPlugin() )
-        return adplugin::manager::widget_factory( config_, path_.c_str(), parent );
+    if ( config_.isPlugin() ) {
+        std::string wiid = adportable::utf::to_utf8( config_._interface() );
+        QWidget * pw = adplugin::widget_factory::create( wiid.c_str(), 0, parent );
+        return pw;
+        // return adplugin::manager::widget_factory( config_, path_.c_str(), parent );
+    }
     return 0;
 }
 

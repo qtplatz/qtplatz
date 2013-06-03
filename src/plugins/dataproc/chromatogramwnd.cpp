@@ -43,6 +43,10 @@
 #include <adportable/configuration.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
+#include <adplugin/plugin.hpp>
+#include <adplugin/plugin_ptr.hpp>
+#include <adplugin/widget_factory.hpp>
+
 #include <qtwidgets/peakresultwidget.hpp>
 #include <adwplot/chromatogramwidget.hpp>
 #include <adwplot/spectrumwidget.hpp>
@@ -102,16 +106,18 @@ ChromatogramWnd::init( const std::wstring& apppath )
     if ( splitter ) {
         if ( ( pImpl_->chroWidget_ = new adwplot::ChromatogramWidget( this ) ) ) {
 
-            // peak table
-            adportable::Configuration config;
-            adportable::Module module;
+            pImpl_->peakWidget_ = adplugin::widget_factory::create( "qtwidgets::PeakResultWidget" );
 
-            module.library_filename( QTWIDGETS_NAME );
+            // // peak table
+            // adportable::Configuration config;
+            // adportable::Module module;
 
-            config.module( module );
-            config._interface( L"qtwidgets::PeakResultWidget" );
+            // module.library_filename( QTWIDGETS_NAME );
 
-            pImpl_->peakWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
+            // config.module( module );
+            // config._interface( L"qtwidgets::PeakResultWidget" );
+
+            // pImpl_->peakWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
             if ( pImpl_->peakWidget_ ) {
                 adplugin::LifeCycle * p = dynamic_cast< adplugin::LifeCycle * >(pImpl_->peakWidget_);
 				if ( p )

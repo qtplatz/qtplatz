@@ -12,7 +12,7 @@ TEMPLATE = lib
 DEFINES += ADDATAFILE_LIBRARY
 
 include(../../boost.pri)
-include(../../qtplatz_servant.pri)
+include(../../adplugin.pri)
 include(../../ace_tao.pri)
 
 INCLUDEPATH += ../../libs

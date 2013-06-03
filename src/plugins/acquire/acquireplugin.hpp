@@ -53,6 +53,11 @@ namespace adcontrols {
     class MassSpectrum;
 }
 
+namespace adportable {
+    class Configuration;
+}
+
+
 namespace Acquire {
     namespace internal {
 
@@ -114,6 +119,7 @@ namespace Acquire {
             QAction * actionStop_;
             QAction * actionSnapshot_;
             QAction * actionInject_;
+            adportable::Configuration * pConfig_;
 
             void initialize_actions();
 

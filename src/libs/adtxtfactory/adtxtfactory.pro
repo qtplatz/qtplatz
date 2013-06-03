@@ -8,7 +8,7 @@ QT       -= gui
 
 TARGET = adtxtfactory
 TEMPLATE = lib
-include(../../qtplatz_servant.pri)
+include(../../adplugin.pri)
 include(../../ace_tao.pri)
 
 INCLUDEPATH += ../../libs

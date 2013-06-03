@@ -24,16 +24,30 @@
 **************************************************************************/
 
 #pragma once
-
-#include <adplugin/ifactory.hpp>
+#include <adplugin/plugin.hpp>
+#include <adplugin/visitor.hpp>
+#include <adplugin/widget_factory.hpp>
 
 namespace qtwidgets2 {
 
-    class factory : public adplugin::ifactory {
+    class factory : public  adplugin::plugin
+				   , public adplugin::widget_factory {
+        // plugin
+        virtual void * query_interface_workaround( const char * typenam );
     public:
+		// plugin
+		virtual void accept( adplugin::visitor&, const char * );
+		virtual const char * iid() const;
+        
+        // widget_factory
         virtual QWidget * create_widget( const wchar_t * iid, QWidget * parent );
         virtual QObject * create_object( const wchar_t * iid, QObject * parent );
         virtual void release();
+
+
+		static factory * instance();
+	private:
+		static factory * instance_;
         
     };
 }

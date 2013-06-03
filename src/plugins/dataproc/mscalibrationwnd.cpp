@@ -41,6 +41,7 @@
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adplugin/manager.hpp>
+#include <adplugin/widget_factory.hpp>
 #include "qtwidgets_name.hpp"
 
 using namespace dataproc;
@@ -85,15 +86,11 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
         // summary table
         const Configuration * pConfig = Configuration::find( c, L"MSCalibSummaryWidget" );
         if ( pConfig && pConfig->isPlugin() )
-            pImpl_->calibSummaryWidget_ = adplugin::manager::widget_factory( *pConfig, apppath.c_str(), 0 );
-        if ( ! pImpl_->calibSummaryWidget_ ) {
-            adportable::Configuration config;
-            adportable::Module module;
-            module.library_filename( QTWIDGETS_NAME );
-            config.module( module );
-            config._interface( L"qtwidgets::MSCalibSummaryWidget" );
-            pImpl_->calibSummaryWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
-        }
+            pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( pConfig->_interface().c_str() );
+
+        if ( ! pImpl_->calibSummaryWidget_ )
+            pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( L"qtwidgets::MSCalibSummaryWidget" );
+
         bool res;
         res = connect( pImpl_->calibSummaryWidget_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );
         assert(res);

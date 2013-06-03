@@ -38,7 +38,7 @@
 #include <QLibrary>
 #include <QDir>
 #include <QMessageBox>
-#include "ifactory.hpp"
+#include "widget_factory.hpp"
 #include "imonitor.hpp"
 #include "orbLoader.hpp"
 #include <boost/smart_ptr.hpp>

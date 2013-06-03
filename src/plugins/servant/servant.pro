@@ -31,20 +31,18 @@ SOURCES += logger.cpp \
         orbservantmanager.cpp \
         outputwindow.cpp \
         servant.cpp \
-    servantmode.cpp \
-    servantplugin.cpp \
-    servantpluginimpl.cpp \
-    servantuimanager.cpp
+        servantmode.cpp \
+        servantplugin.cpp \
+        servantpluginimpl.cpp
 
 HEADERS += servant_global.h \
         logger.hpp \
-    orbservantmanager.hpp \
-    outputwindow.hpp \
-    servant.hpp \
-    servantmode.hpp \
-    servantplugin.hpp \
-    servantpluginimpl.hpp \
-    servantuimanager.hpp
+        orbservantmanager.hpp \
+        outputwindow.hpp \
+        servant.hpp \
+        servantmode.hpp \
+        servantplugin.hpp \
+        servantpluginimpl.hpp
 
 OTHER_FILES += \
     servant.pluginspec \

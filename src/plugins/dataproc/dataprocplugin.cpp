@@ -47,12 +47,19 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adextension/ieditorfactory.hpp>
+
 #include <adplugin/adplugin.hpp>
+#include <adplugin/plugin.hpp>
+#include <adplugin/loader.hpp>
+#include <adplugin/orbLoader.hpp>
+#include <adplugin/widget_factory.hpp>
+
 #include <adplugin/constants.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/orbmanager.hpp>
 #include <adplugin/qbrokersessionevent.hpp>
 #include <adportable/configuration.hpp>
+#include <adportable/configloader.hpp>
 #include <adportable/debug.hpp>
 #include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
@@ -141,20 +148,24 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
         return false;
 
     //-------------------------------------------------------------------------------------------
+    const wchar_t * query = L"/DataprocConfiguration/Configuration";
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
     std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc.config.xml" );
-    const wchar_t * query = L"/DataprocConfiguration/Configuration";
+    boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
+    
+	adplugin::loader::populate( plugindir.generic_wstring().c_str() );
 
     pConfig_.reset( new adportable::Configuration() );
     adportable::Configuration& config = *pConfig_;
 
-    if ( ! adplugin::manager::instance()->loadConfig( config, configFile, query ) ) {
-        error_message = new QString( "loadConfig load failed" );
-        adportable::debug( __FILE__, __LINE__ ) << "loadConfig" << configFile << "failed";
+    if ( ! adportable::ConfigLoader::loadConfigFile( config, configFile, query ) ) {
+        *error_message = "loadConfig load failed";
+        return false;
     }
     //------------------------------------------------
 
-    install_dataprovider( config, apppath );
+    // dataprovider installation move to servantplugin
+    // install_dataprovider( config, apppath );
 
     iSequence_.reset( new iSequenceImpl );
     if ( iSequence_ && install_isequence( config, apppath, *iSequence_ ) ) {
@@ -369,19 +380,19 @@ DataprocPlugin::aboutToShutdown()
 }
 
 // static
-bool
-DataprocPlugin::install_dataprovider( const adportable::Configuration& config, const std::wstring& apppath )
-{
-    const adportable::Configuration * provider = adportable::Configuration::find( config, L"dataproviders" );
-    if ( provider ) {
-        for ( adportable::Configuration::vector_type::const_iterator it = provider->begin(); it != provider->end(); ++it ) {
-            const std::wstring name = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
-            adcontrols::datafileBroker::register_library( name );
-        }
-		return true;
-    }
-	return false;
-}
+// bool
+// DataprocPlugin::install_dataprovider( const adportable::Configuration& config, const std::wstring& apppath )
+// {
+//     const adportable::Configuration * provider = adportable::Configuration::find( config, L"dataproviders" );
+//     if ( provider ) {
+//         for ( adportable::Configuration::vector_type::const_iterator it = provider->begin(); it != provider->end(); ++it ) {
+//             const std::wstring name = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
+//             adcontrols::datafileBroker::register_library( name );
+//         }
+// 		return true;
+//     }
+// 	return false;
+// }
 
 bool
 DataprocPlugin::install_isequence( const adportable::Configuration& config

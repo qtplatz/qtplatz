@@ -11,7 +11,7 @@ TARGET = qtwidgets
 TEMPLATE = lib
 PROVIDER = MS-Cheminformatics
 
-include(../../qtplatz_servant.pri)
+include(../../adplugin.pri)
 include(../../boost.pri)
 include( ../../ace_tao.pri )
 

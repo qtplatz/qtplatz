@@ -39,7 +39,9 @@
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adplugin/manager.hpp>
+#include <adplugin/widget_factory.hpp>
 #include <adportable/configuration.hpp>
+#include <adportable/utf.hpp>
 #include <qtwrapper/qstring.hpp>
 
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -354,7 +356,9 @@ MainWindow::createDockWidgets( const adportable::Configuration& config, const st
             const std::wstring name = it->name();
             
             if ( it->isPlugin() ) {
-                QWidget * pWidget = adplugin::manager::widget_factory( *it, apppath.c_str(), 0 );
+                //QWidget * pWidget = adplugin::manager::widget_factory( *it, apppath.c_str(), 0 );
+                std::string wiid = adportable::utf::to_utf8( it->_interface() );
+                QWidget * pWidget = adplugin::widget_factory::create( wiid.c_str(), 0, 0 );
                 if ( pWidget ) {
                     // query process method
                     connect( this, SIGNAL( signalGetProcessMethod( adcontrols::ProcessMethod& ) )

@@ -25,6 +25,7 @@
 #include "loader.hpp"
 #include "manager.hpp"
 #include <boost/filesystem.hpp>
+#include <adportable/debug.hpp>
 #include <QLibrary>
 
 using namespace adplugin;
@@ -53,6 +54,8 @@ loader::populate( const wchar_t * directory )
 				name.replace_extension();
 
 #if defined DEBUG || defined _DEBUG
+				// adportable::debug(__FILE__, __LINE__) << "loading adplugin: " << name.generic_string().c_str();
+
 				std::string dlibname = name.generic_string() + DEBUG_LIB_TRAIL;
 				QLibrary dlib( dlibname.c_str() );
 				if ( dlib.load() ) {
@@ -74,12 +77,12 @@ loader::populate( const wchar_t * directory )
 }
 
 void
-loader::load( const wchar_t * library_filename )
+loader::load( const wchar_t * /* library_filename */)
 {
 }
 
 void
-loader::unload( const wchar_t * library_filename )
+loader::unload( const wchar_t * /* library_filename */)
 {
 }
 

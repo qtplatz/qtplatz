@@ -109,21 +109,21 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
 #if defined DEBUG
 	    std::wcout << "#####" << name << "#####" << std::endl;
 #endif
-            if ( it->isPlugin() ) {
-                QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
-                if ( pWidget ) {
-                    // query process method
-                    connect( this, SIGNAL( signalGetProcessMethod( adcontrols::ProcessMethod& ) )
-                             , pWidget, SLOT( getContents( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
+            // if ( it->isPlugin() ) {
+            //     QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
+            //     if ( pWidget ) {
+            //         // query process method
+            //         connect( this, SIGNAL( signalGetProcessMethod( adcontrols::ProcessMethod& ) )
+            //                  , pWidget, SLOT( getContents( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
 
-                    pWidget->setMinimumHeight( 80 );
+            //         pWidget->setMinimumHeight( 80 );
 
-                    pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
-                    m.mainWindow_->addDockForWidget( pWidget );
-                } else {
-                    QMessageBox::critical(0, QLatin1String("dataprocmanager"), qtwrapper::qstring::copy(it->name()) );
-                }
-            }
+            //         pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
+            //         m.mainWindow_->addDockForWidget( pWidget );
+            //     } else {
+            //         QMessageBox::critical(0, QLatin1String("dataprocmanager"), qtwrapper::qstring::copy(it->name()) );
+            //     }
+            // }
         }
 #ifdef DEBUG
         std::cout << "------------- end process method tab" << std::endl;
@@ -136,10 +136,10 @@ DataprocManager::init( const adportable::Configuration& config, const std::wstri
         using namespace adportable;
         using namespace adplugin;
 
-        for ( Configuration::vector_type::const_iterator it = provider->begin(); it != provider->end(); ++it ) {
-            const std::wstring name = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
-            adcontrols::datafileBroker::register_library( name );
-        }
+        // for ( Configuration::vector_type::const_iterator it = provider->begin(); it != provider->end(); ++it ) {
+        //     const std::wstring name = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
+        //     adcontrols::datafileBroker::register_library( name );
+        // }
     }
 }
 

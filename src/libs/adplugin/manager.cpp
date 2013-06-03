@@ -104,22 +104,21 @@ namespace adplugin {
         manager_impl();
 
         // manager impl
-        bool loadConfig( adportable::Configuration&, const std::wstring&, const wchar_t * );
-        adplugin::ifactory * loadFactory( const std::wstring& );
-        bool unloadFactory( const std::wstring& );
-
-        virtual adplugin::orbLoader& orbLoader( const std::wstring& name );
+        // bool loadConfig( adportable::Configuration&, const std::wstring&, const wchar_t * );
+        // adplugin::ifactory * loadFactory( const std::wstring& );
+        // bool unloadFactory( const std::wstring& );
+        // virtual adplugin::orbLoader& orbLoader( const std::wstring& name );
 
         virtual void register_ior( const std::string& name, const std::string& ior );
         virtual const char * lookup_ior( const std::string& name );
 
     private:
-        typedef std::map< std::wstring, adplugin::ifactory * > librariesType;
-        typedef std::map< std::wstring, boost::shared_ptr<adplugin::orbLoader> > orbLoadersType;
+        // typedef std::map< std::wstring, adplugin::ifactory * > librariesType;
+        // typedef std::map< std::wstring, boost::shared_ptr<adplugin::orbLoader> > orbLoadersType;
 
-        librariesType libraries_;
-        orbLoadersType orbLoaders_;
-        orbLoadersType failedLoaders_;
+        // librariesType libraries_;
+        // orbLoadersType orbLoaders_;
+        // orbLoadersType failedLoaders_;
         std::map< std::string, std::string > iorMap_;
     };
 }
@@ -132,34 +131,34 @@ manager::instance()
 }
 
 // static
-QWidget *
-manager::widget_factory( const adportable::Configuration& config, const wchar_t * path, QWidget * parent )
-{
-    if ( config.module().library_filename().empty() )
-        return 0;
+// QWidget *
+// manager::widget_factory( const adportable::Configuration& config, const wchar_t * path, QWidget * parent )
+// {
+//     if ( config.module().library_filename().empty() )
+//         return 0;
     
-    boost::filesystem::path basepath( path );
-    boost::filesystem::path loadfile = basepath / pluginDirectory / config.module().library_filename();
+//     boost::filesystem::path basepath( path );
+//     boost::filesystem::path loadfile = basepath / pluginDirectory / config.module().library_filename();
     
-    adplugin::ifactory * pfactory = manager::instance()->loadFactory( loadfile.wstring() );
-    if ( pfactory ) {
-        QWidget * pWidget = pfactory->create_widget( config._interface().c_str(), parent );
+//     adplugin::ifactory * pfactory = manager::instance()->loadFactory( loadfile.wstring() );
+//     if ( pfactory ) {
+//         QWidget * pWidget = pfactory->create_widget( config._interface().c_str(), parent );
 
-        adplugin::LifeCycle * pLifeCycle = dynamic_cast< adplugin::LifeCycle * > ( pWidget );
-        if ( pLifeCycle == 0 ) {
-            // gcc with dlopen() loaded class cannot dynamic_cast unless using RTLD_GLOBA flag.
-            // see http://gcc.gnu.org/faq.html#dso
-            // since I'd like to use QLibrary which does not apply RTLD_GLOBAL flag, use Qt's signal/slot instead
-            LifeCycleAccessor accessor( pWidget );
-            pLifeCycle = accessor.get();
-        }
+//         adplugin::LifeCycle * pLifeCycle = dynamic_cast< adplugin::LifeCycle * > ( pWidget );
+//         if ( pLifeCycle == 0 ) {
+//             // gcc with dlopen() loaded class cannot dynamic_cast unless using RTLD_GLOBA flag.
+//             // see http://gcc.gnu.org/faq.html#dso
+//             // since I'd like to use QLibrary which does not apply RTLD_GLOBAL flag, use Qt's signal/slot instead
+//             LifeCycleAccessor accessor( pWidget );
+//             pLifeCycle = accessor.get();
+//         }
 
-        if ( pLifeCycle )
-            pLifeCycle->OnCreate( config );
-        return pWidget;
-    }
-    return 0;
-}
+//         if ( pLifeCycle )
+//             pLifeCycle->OnCreate( config );
+//         return pWidget;
+//     }
+//     return 0;
+// }
 
 std::string
 manager::iorBroker()
@@ -184,12 +183,7 @@ manager_impl::~manager_impl()
 {
 }
 
-bool
-manager_impl::loadConfig( adportable::Configuration& config, const std::wstring& filename, const wchar_t * query )
-{
-    return adportable::ConfigLoader::loadConfigFile( config, filename, query );
-}
-
+/*
 adplugin::ifactory *
 manager_impl::loadFactory( const std::wstring& filename )
 {
@@ -228,6 +222,7 @@ manager_impl::unloadFactory( const std::wstring& filename )
     }
     return false;
 }
+*/
 
 void
 manager_impl::register_ior( const std::string& name, const std::string& ior )
@@ -274,47 +269,47 @@ public:
 };
 
 //-------------------
-adplugin::orbLoader&
-manager_impl::orbLoader( const std::wstring& file )
-{
-    orbLoadersType::iterator it = orbLoaders_.find( file );
+// adplugin::orbLoader&
+// manager_impl::orbLoader( const std::wstring& file )
+// {
+//     orbLoadersType::iterator it = orbLoaders_.find( file );
     
-    if ( it != orbLoaders_.end() )
-        return *it->second;
+//     if ( it != orbLoaders_.end() )
+//         return *it->second;
 
-    boost::filesystem::path filepath( file );
-    boost::system::error_code ec;
-    if ( ! boost::filesystem::exists( filepath, ec ) ) {
-        adportable::debug dbg(__FILE__, __LINE__);
-        dbg << "file \"" << filepath.string() << "\" is requested to load library but it does not exist";
-        failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
-        return *failedLoaders_[ file ];
-    }
-    QLibrary lib( filepath.string().c_str() );
-    if ( lib.load() ) {
-        typedef adplugin::orbLoader * (*instance_t)();
-        instance_t instance = reinterpret_cast<instance_t>( lib.resolve( "instance" ) );
-        if ( instance ) {
-            boost::shared_ptr< adplugin::orbLoader > loader( instance() );
-            if ( loader )
-                orbLoaders_[ file ] = loader;
-        } else {
-            adportable::debug dbg(__FILE__, __LINE__);
-            dbg << "library \"" << filepath.string() << "\" loaded but no \"instance()\" method";
-            failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
-            return *failedLoaders_[ file ];
-        }
-    }
-    if ( ( it = orbLoaders_.find( file ) ) != orbLoaders_.end() )
-        return *it->second;
+//     boost::filesystem::path filepath( file );
+//     boost::system::error_code ec;
+//     if ( ! boost::filesystem::exists( filepath, ec ) ) {
+//         adportable::debug dbg(__FILE__, __LINE__);
+//         dbg << "file \"" << filepath.string() << "\" is requested to load library but it does not exist";
+//         failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
+//         return *failedLoaders_[ file ];
+//     }
+//     QLibrary lib( filepath.string().c_str() );
+//     if ( lib.load() ) {
+//         typedef adplugin::orbLoader * (*instance_t)();
+//         instance_t instance = reinterpret_cast<instance_t>( lib.resolve( "instance" ) );
+//         if ( instance ) {
+//             boost::shared_ptr< adplugin::orbLoader > loader( instance() );
+//             if ( loader )
+//                 orbLoaders_[ file ] = loader;
+//         } else {
+//             adportable::debug dbg(__FILE__, __LINE__);
+//             dbg << "library \"" << filepath.string() << "\" loaded but no \"instance()\" method";
+//             failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
+//             return *failedLoaders_[ file ];
+//         }
+//     }
+//     if ( ( it = orbLoaders_.find( file ) ) != orbLoaders_.end() )
+//         return *it->second;
 
-    // exists library but failed to load
-    adportable::debug dbg(__FILE__, __LINE__);
-    dbg << static_cast< const char * >( lib.errorString().toUtf8() );
+//     // exists library but failed to load
+//     adportable::debug dbg(__FILE__, __LINE__);
+//     dbg << static_cast< const char * >( lib.errorString().toUtf8() );
     
-    failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
-    return *failedLoaders_[ file ];
-}
+//     failedLoaders_[ file ].reset( new ORBLoaderError( dbg.str() ) );
+//     return *failedLoaders_[ file ];
+// }
 
 
 // static
@@ -398,7 +393,7 @@ bool
 manager_data::install( QLibrary& lib, const std::string& adpluginspec )
 {
     if ( plugins_.find( adpluginspec ) != plugins_.end() )
-        return false; // already in
+        return true; // already in, so that does not need unload() call
     typedef adplugin::plugin * (*factory)();
 
     if ( lib.isLoaded() ) {

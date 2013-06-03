@@ -106,7 +106,7 @@ namespace dataproc {
         boost::scoped_ptr< iSequenceImpl > iSequence_;
         static DataprocPlugin * instance_;
         
-        static bool install_dataprovider( const adportable::Configuration&, const std::wstring& );
+        // static bool install_dataprovider( const adportable::Configuration&, const std::wstring& );
         static bool install_isequence( const adportable::Configuration&, const std::wstring&, iSequenceImpl& );
         static void delete_editorfactories( std::vector< EditorFactory * >& );
     };

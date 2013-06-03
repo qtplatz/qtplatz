@@ -25,16 +25,26 @@
 
 #include "acquireuimanager.hpp"
 #include "acquireactions.hpp"
-#include <adplugin/ifactory.hpp>
+#include <adplugin/widget_factory.hpp>
+#include <adwplot/dataplot.hpp>
+#include <adplugin/adplugin.hpp>
+#include <adplugin/constants.hpp>
+#include <adplugin/imonitor.hpp>
+#include <adplugin/lifecycleaccessor.hpp>
+#include <adportable/configuration.hpp>
+#include <adportable/string.hpp>
+#include <adportable/debug.hpp>
+#include <adinterface/eventlog_helper.hpp>
+#include <acewrapper/timeval.hpp>
+#include <qtwrapper/qstring.hpp>
 
 #include <boost/variant.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/smart_ptr.hpp>
 
-#include <adwplot/dataplot.hpp>
-#include <QDockWidget>
 #include <utils/fancymainwindow.h>
 #include <utils/styledbar.h>
+#include <QDockWidget>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QToolBar>
@@ -45,17 +55,6 @@
 #include <QUrl>
 #include <QMessageBox>
 #include <QTabBar>
-
-#include <qtwrapper/qstring.hpp>
-#include <adplugin/adplugin.hpp>
-#include <adplugin/constants.hpp>
-#include <adplugin/imonitor.hpp>
-#include <adplugin/lifecycleaccessor.hpp>
-#include <adportable/configuration.hpp>
-#include <adportable/string.hpp>
-#include <adportable/debug.hpp>
-#include <adinterface/eventlog_helper.hpp>
-#include <acewrapper/timeval.hpp>
 
 namespace Acquire { 
     namespace internal {
@@ -92,23 +91,21 @@ AcquireUIManager::mainWindow() const
 }
 
 void
-AcquireUIManager::init()
+AcquireUIManager::init( const adportable::Configuration& config )
 {
     if ( ! d_ )
         return;
     
     Acquire::internal::AcquireUIManagerData& m = *d_;
     
-    QDir dir = QCoreApplication::instance()->applicationDirPath();
-    dir.cdUp();
-    std::wstring apppath = qtwrapper::wstring::copy( dir.path() );
-    // dir.cd( adpluginDirectory );
-    std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/acquire.config.xml" );
+    // std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
+    // std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/acquire.config.xml" );
+    // boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
+
+    // const wchar_t * query = L"/AcquireConfiguration/Configuration";
     
-    const wchar_t * query = L"/AcquireConfiguration/Configuration";
-    
-    adportable::Configuration config;
-    adplugin::manager::instance()->loadConfig( config, configFile, query );
+    // adportable::Configuration config;
+    // adplugin::manager::instance()->loadConfig( config, configFile, query );
     
     m.mainWindow_ = new Utils::FancyMainWindow;
     
@@ -130,7 +127,7 @@ AcquireUIManager::init()
                 // const std::wstring& component = it->attribute( L"component" );
                 
                 if ( it->isPlugin() ) {
-                    QWidget * pWidget = manager::widget_factory( *it, apppath.c_str(), 0 );
+					QWidget * pWidget = adplugin::widget_factory::create( it->_interface().c_str(), 0, 0 );
 
                     if ( pWidget ) {
 						bool res = false;

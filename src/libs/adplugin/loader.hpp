@@ -42,6 +42,8 @@ namespace adplugin {
         static plugin_ptr select_clsid( const char * clsid ); // return first match only
         static size_t select_iids( const char * regex, std::vector< plugin_ptr >& );
         static size_t select_clsids( const char * clsid, std::vector< plugin_ptr >& );
+        // 
+        static bool load_config( const wchar_t * directory, const wchar_t * config_filename );
     };
 
 }

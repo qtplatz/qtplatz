@@ -78,9 +78,6 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
     }
     if ( pWidget )
         return pWidget;
-    adportable::debug dbg(__FILE__, __LINE__);
-    dbg << "create_widget(" << std::wstring(iid) << ") -- no such class.";
-    QMessageBox::warning( 0, QLatin1String("qtwidgets::factory"), dbg.str().c_str() );
     return 0;
 }
 
@@ -96,5 +93,39 @@ void
 factory::release()
 {
 }
+
+factory * factory::instance_ = 0;
+
+factory *
+factory::instance()
+{
+    if ( instance_ == 0 )
+        instance_ = new factory;
+    return instance_;
+}
+
+void *
+factory::query_interface_workaround( const char * _typenam )
+{
+    const std::string typenam( _typenam );
+
+    if ( typenam == typeid( adplugin::widget_factory ).name() )
+        return static_cast< adplugin::widget_factory * >( this );
+
+    return 0;
+}
+
+void
+factory::accept( adplugin::visitor& v, const char * adpluginspec )
+{
+    v.visit( this, adpluginspec );
+}
+
+const char *
+factory::iid() const
+{
+    return "com.ms-cheminfo.qtplatz.plugins.widget_factory";
+}
+
 
 EXPORT_FACTORY( qtwidgets::factory )
