@@ -24,6 +24,7 @@
 
 #include "loader.hpp"
 #include "manager.hpp"
+#include "constants.hpp"
 #include <boost/filesystem.hpp>
 #include <adportable/debug.hpp>
 #include <QLibrary>
@@ -108,4 +109,13 @@ size_t
 loader::select_clsids( const char * regex, std::vector< plugin_ptr >& vec )
 {
     return manager::instance()->select_clsids( regex, vec );
+}
+
+// static
+std::wstring
+loader::config_fullpath( const std::wstring& apppath, const std::wstring& library_filename )
+{
+	boost::filesystem::path path = boost::filesystem::path( apppath ) / pluginDirectory;
+	boost::filesystem::path fullpath = path / library_filename; 
+	return fullpath.generic_wstring();
 }

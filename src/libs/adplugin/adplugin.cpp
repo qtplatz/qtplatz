@@ -40,50 +40,6 @@
 #include <QMessageBox>
 #include "widget_factory.hpp"
 #include "imonitor.hpp"
-#include "orbLoader.hpp"
 #include <boost/smart_ptr.hpp>
 #include <fstream>
 
-#define BOOST_LIB_NAME boost_filesystem
-#include <boost/config/auto_link.hpp>
-#undef BOOST_LIB_NAME
-
-#include <ace/Init_ACE.h>
-#include <ace/Singleton.h>
-
-#if defined ACE_WIN32
-#  if defined _DEBUG || defined DEBUG
-#     pragma comment(lib, "TAO_Utilsd.lib")
-#     pragma comment(lib, "TAO_PId.lib")
-#     pragma comment(lib, "TAO_PortableServerd.lib")
-#     pragma comment(lib, "TAO_AnyTypeCoded.lib")
-#     pragma comment(lib, "TAOd.lib")
-#     pragma comment(lib, "ACEd.lib")
-#  else
-#     pragma comment(lib, "TAO_Utils.lib")
-#     pragma comment(lib, "TAO_PI.lib")
-#     pragma comment(lib, "TAO_PortableServer.lib")
-#     pragma comment(lib, "TAO_AnyTypeCode.lib")
-#     pragma comment(lib, "TAO.lib")
-#     pragma comment(lib, "ACE.lib")
-#  endif
-#endif
-
-#if defined WIN32
-# if defined _DEBUG || defined DEBUG
-#     pragma comment(lib, "adinterfaced.lib")
-#     pragma comment(lib, "adportabled.lib")
-#     pragma comment(lib, "acewrapperd.lib")
-#     pragma comment(lib, "qtwrapperd.lib")
-#     pragma comment(lib, "xmlparserd.lib")
-# else
-#     pragma comment(lib, "adinterface.lib")
-#     pragma comment(lib, "adportable.lib")
-#     pragma comment(lib, "acewrapper.lib")
-#     pragma comment(lib, "qtwrapper.lib")
-#     pragma comment(lib, "xmlparser.lib")
-# endif
-#endif
-
-//////////////////////////////////////
-////////////////////////////////////////

@@ -25,10 +25,16 @@
 
 #include "datafile_factory.hpp"
 #include "datafile.hpp"
+#include <adplugin/plugin.hpp>
+#include <adplugin/visitor.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/thread/mutex.hpp>
 
 using namespace addatafile;
+
+datafile_factory * datafile_factory::instance_ = 0;
+boost::mutex __mutex;
 
 datafile_factory::~datafile_factory(void)
 {
@@ -36,6 +42,20 @@ datafile_factory::~datafile_factory(void)
 
 datafile_factory::datafile_factory()
 {
+	instance_ = 0;
+}
+
+datafile_factory *
+datafile_factory::instance()
+{
+    if ( instance_ == 0 ) {
+        boost::mutex::scoped_lock lock( __mutex );
+        if ( instance_ == 0 ) {
+            instance_ = new datafile_factory;
+			// destractor will call from adplugin::dispose by reference couting method, so 'singleton' mechanism may not be necessary though...
+		}
+    }
+    return instance_;
 }
 
 void
@@ -73,3 +93,25 @@ datafile_factory::open( const std::wstring& filename, bool readonly ) const
     return 0;
 }
 
+////////////////////////////////////////////
+// adplugin::plugin implementation
+
+const char *
+datafile_factory::iid() const 
+{
+    return "com.ms-cheminfo.qtplatz.plugins.datafile_factory";
+}
+
+void
+datafile_factory::accept( adplugin::visitor& v, const char * adplugin )
+{
+	v.visit( this, adplugin );
+}
+
+void *
+datafile_factory::query_interface_workaround( const char * typenam )
+{
+    if ( std::string( typenam ) == typeid( adcontrols::datafile_factory ).name() )
+        return static_cast< adcontrols::datafile_factory *>(this);
+    return 0;
+}

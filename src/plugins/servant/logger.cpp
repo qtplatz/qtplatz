@@ -27,7 +27,7 @@
 #include "logger.hpp"
 #include <adinterface/brokerC.h>
 
-#include <adplugin/adplugin.hpp>
+#include <adplugin/manager.hpp>
 #include <adplugin/orbmanager.hpp>
 #include <acewrapper/constants.hpp>
 #include <acewrapper/brokerhelper.hpp>

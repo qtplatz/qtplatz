@@ -224,11 +224,6 @@ adcontroller_plugin::create_instance()
 
 /////////////////////
 
-Q_DECL_EXPORT adplugin::orbLoader * instance()
-{
-    return new adController;
-}
-
 Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance()
 {
     return adcontroller_plugin::instance();

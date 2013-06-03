@@ -27,7 +27,7 @@
 #include "mode.hpp"
 #include "mainwindow.hpp"
 #include "sequenceeditorfactory.hpp"
-#include <adplugin/adplugin.hpp>
+//#include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/constants.hpp>
 #include <adportable/configuration.hpp>

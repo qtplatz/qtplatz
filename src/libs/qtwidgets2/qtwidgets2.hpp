@@ -27,6 +27,6 @@
 #define QTWIDGETS2_H
 
 #include "qtwidgets2_global.h"
-#include <adplugin/adplugin.hpp>
+//#include <adplugin/adplugin.hpp>
 
 #endif // QTWIDGETS_H

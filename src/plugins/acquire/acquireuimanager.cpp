@@ -27,7 +27,7 @@
 #include "acquireactions.hpp"
 #include <adplugin/widget_factory.hpp>
 #include <adwplot/dataplot.hpp>
-#include <adplugin/adplugin.hpp>
+//#include <adplugin/adplugin.hpp>
 #include <adplugin/constants.hpp>
 #include <adplugin/imonitor.hpp>
 #include <adplugin/lifecycleaccessor.hpp>

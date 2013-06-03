@@ -20,7 +20,14 @@ LIBS += -l$$qtLibraryTarget(acewrapper) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(xmlparser)
 
-!win32 {
+win32 {
+  LIBS += -l$$qtLibraryTarget( ACE ) \
+          -l$$qtLibraryTarget( TAO ) \
+          -l$$qtLibraryTarget( TAO_Utils ) \
+          -l$$qtLibraryTarget( TAO_PI ) \
+          -l$$qtLibraryTarget( TAO_PortableServer ) \
+          -l$$qtLibraryTarget( TAO_AnyTypeCode )
+} else {
   LIBS += -lACE
   LIBS += -lTAO -lTAO_Utils -lTAO_PI -lTAO_PortableServer -lTAO_AnyTypeCode
   LIBS += -lboost_filesystem -lboost_system
@@ -52,7 +59,6 @@ HEADERS += adplugin.hpp \
     lifecycle.hpp \
     qreceiver_i.hpp \
     orbmanager.hpp \
-    orbLoader.hpp \
     qobserverevents_i.hpp \
     qbrokersessionevent.hpp \
     lifecycleaccessor.hpp \

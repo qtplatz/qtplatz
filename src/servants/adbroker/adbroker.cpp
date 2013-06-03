@@ -182,12 +182,6 @@ adbroker_plugin::query_interface_workaround( const char * typenam )
     return 0;
 }
 
-// will be obsolte
-Q_DECL_EXPORT adplugin::orbLoader * instance()
-{
-    return new adBroker;
-}
-
 Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance()
 {
     return adbroker_plugin::instance();

@@ -26,8 +26,7 @@
 #pragma once
 
 #include "adplugin_global.h"
-// #include "ifactory.hpp"
-// #include "orbLoader.hpp"
+
 #include <string>
 #include "plugin_ptr.hpp"
 #include <vector>
@@ -57,18 +56,9 @@ namespace adplugin {
         static std::string ior( const char * name ); // return broker::manager's ior
         static std::string iorBroker();
         
-        // virtual bool loadConfig( adportable::Configuration&, const std::wstring&, const wchar_t * query ) = 0;
-	        // virtual adplugin::ifactory * loadFactory( const std::wstring& ) = 0;
-        // virtual bool unloadFactory( const std::wstring& ) = 0;
-        // virtual adplugin::orbLoader& orbLoader( const std::wstring& name ) = 0;
-
         virtual void register_ior( const std::string& name, const std::string& ior ) = 0;
         virtual const char * lookup_ior( const std::string& name ) = 0;
 	
-        // static QWidget * widget_factory( const adportable::Configuration&
-        //                                  , const wchar_t * path, QWidget * parent = 0 );
-
-        //------------------- new adplugin system ------------------------
         bool install( QLibrary&, const std::string& adpluginspec );
         plugin_ptr select_iid( const char * regex );
         plugin_ptr select_clsid( const char * regex );

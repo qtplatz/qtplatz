@@ -14,9 +14,10 @@ include(../../ace_tao.pri)
 INCLUDEPATH += ../../libs
 include (../../boost.pri)
 LIBS += -l$$qtLibraryTarget(adcontrols) \
-    -l$$qtLibraryTarget(adportable) \
-    -l$$qtLibraryTarget(xmlparser) \
-    -l$$qtLibraryTarget(portfolio)
+        -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(adplugin) \
+        -l$$qtLibraryTarget(xmlparser) \
+        -l$$qtLibraryTarget(portfolio)
 
 !win32 {
   LIBS += -lboost_system -lboost_filesystem

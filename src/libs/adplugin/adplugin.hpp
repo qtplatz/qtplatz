@@ -26,18 +26,7 @@
 #ifndef ADPLUGIN_H
 #define ADPLUGIN_H
 
-//#include "adplugin_global.h"
-#include "manager.hpp"
-#include <string>
-
-class QString;
-class QObject;
-class QWidget;
-
-namespace adportable {
-	class Configuration;
-	class Component;
-}
+// #include "adplugin_global.h"
 
 #include <qglobal.h>
 # define EXPORT_FACTORY( FACTORY_CLASS ) \

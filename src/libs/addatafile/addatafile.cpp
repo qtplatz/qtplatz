@@ -24,40 +24,16 @@
 **************************************************************************/
 
 #include "addatafile.hpp"
-
-#if defined WIN32 && defined _MSC_VER
-#  if defined _DEBUG
-#     pragma comment(lib, "acewrapperd.lib")
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "adfsd.lib")
-#     pragma comment(lib, "adportabled.lib")
-#     pragma comment(lib, "adutilsd.lib")
-#     pragma comment(lib, "portfoliod.lib")
-#     pragma comment(lib, "xmlparserd.lib")
-#  else
-#     pragma comment(lib, "acewrapper.lib")
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "adfs.lib")
-#     pragma comment(lib, "adportable.lib")
-#     pragma comment(lib, "adutils.lib")
-#     pragma comment(lib, "portfolio.lib")
-#     pragma comment(lib, "xmlparser.lib")
-#  endif
-#endif
-
 #include "datafile_factory.hpp"
-
-namespace adcontrols {
-    class datafile_factory;
-}
+#include <adplugin/plugin.hpp>
 
 extern "C" {
-    Q_DECL_EXPORT adcontrols::datafile_factory * datafile_factory();
+    Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
 
-adcontrols::datafile_factory *
-datafile_factory()
+adplugin::plugin *
+adplugin_plugin_instance()
 {
-    return new addatafile::datafile_factory();
+    return addatafile::datafile_factory::instance();
 }
 

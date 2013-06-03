@@ -27,7 +27,6 @@
 #define QTWIDGETS_H
 
 #include "qtwidgets_global.h"
-#include <adplugin/adplugin.hpp>
 
 class QTWIDGETSSHARED_EXPORT QtWidgets {
 public:

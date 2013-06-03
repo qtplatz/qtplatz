@@ -25,7 +25,6 @@
 
 #pragma once
 #include "adbroker_global.h"
-#include <adplugin/orbLoader.hpp>  // to be obsolte
 #include <adplugin/orbservant.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/orbfactory.hpp>
@@ -43,8 +42,7 @@ namespace acewrapper {
     class ORBServantManager;
 }
 
-class ADBROKERSHARED_EXPORT adBroker : public adplugin::orbLoader
-                                     , public adplugin::orbServant
+class ADBROKERSHARED_EXPORT adBroker : public adplugin::orbServant
                                      , public adplugin::plugin {
 public:
     adBroker(void);
@@ -64,6 +62,5 @@ public:
 };
 
 extern "C" {
-    Q_DECL_EXPORT adplugin::orbLoader * instance();
     Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }

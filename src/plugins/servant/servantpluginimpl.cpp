@@ -29,8 +29,7 @@
 #include <acewrapper/timeval.hpp>
 #include <acewrapper/brokerhelper.hpp>
 
-#include <adplugin/adplugin.hpp>
-#include <adplugin/orbLoader.hpp>
+#include <adplugin/manager.hpp>
 #include <adplugin/orbmanager.hpp>
 #include <adinterface/eventlog_helper.hpp>
 #include <qtwrapper/qstring.hpp>

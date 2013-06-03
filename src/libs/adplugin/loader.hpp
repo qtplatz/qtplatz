@@ -28,6 +28,7 @@
 #include "adplugin_global.h"
 #include "plugin_ptr.hpp"
 #include <vector>
+#include <string>
 
 namespace adplugin {
 
@@ -44,6 +45,8 @@ namespace adplugin {
         static size_t select_clsids( const char * clsid, std::vector< plugin_ptr >& );
         // 
         static bool load_config( const wchar_t * directory, const wchar_t * config_filename );
+
+        static std::wstring config_fullpath( const std::wstring& apppath, const std::wstring& config_filename );
     };
 
 }

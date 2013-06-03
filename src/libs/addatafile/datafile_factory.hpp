@@ -26,18 +26,29 @@
 #pragma once
 
 #include <adcontrols/datafile_factory.hpp>
+#include <adplugin/plugin.hpp>
 
 namespace addatafile {
 
-    class datafile_factory : public adcontrols::datafile_factory {
-    public:
+    class datafile_factory : public adcontrols::datafile_factory
+                           , public adplugin::plugin {
+        static datafile_factory * instance_;
         ~datafile_factory();
         datafile_factory();
+    public:
+        static datafile_factory * instance();
 
         const std::wstring& name() const;
         bool access( const std::wstring& filename, adcontrols::access_mode ) const;
         adcontrols::datafile * open( const std::wstring& filename, bool readonly ) const;
         void close( adcontrols::datafile * );
+
+        // adplugin::plugin
+    public:
+        const char * iid() const;
+        void accept( adplugin::visitor& v, const char * adplugin );
+    private:
+        void * query_interface_workaround( const char * typnam );
     };
 
 }

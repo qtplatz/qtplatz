@@ -51,9 +51,8 @@
 #include <adinterface/instrumentC.h>
 #include <adinterface/brokerclientC.h>
 
-#include <adplugin/adplugin.hpp>
 #include <adplugin/loader.hpp>
-#include <adplugin/orbLoader.hpp>
+#include <adplugin/manager.hpp>
 #include <adplugin/orbmanager.hpp>
 #include <adplugin/constants.hpp>
 
@@ -179,11 +178,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     std::wstring apppath, configFile;
 	boost::filesystem::path plugindir;
     do {
-        //QDir dir = QCoreApplication::instance()->applicationDirPath();
-        //dir.cdUp();
-        //apppath = qtwrapper::wstring::copy( dir.path() );
         apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-		configFile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/servant.config.xml" );
+		configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/servant.config.xml" );
 		plugindir = boost::filesystem::path( configFile ).branch_path();
     } while(0);
 

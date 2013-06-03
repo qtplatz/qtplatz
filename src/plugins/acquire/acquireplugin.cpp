@@ -52,10 +52,11 @@
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
-#include <adplugin/adplugin.hpp>
+#include <adplugin/loader.hpp>
 #include <adplugin/orbmanager.hpp>
 #include <adplugin/qreceiver_i.hpp>
 #include <adplugin/qobserverevents_i.hpp>
+#include <adplugin/manager.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/fft.hpp>
 
@@ -260,7 +261,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
         return false;
 
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-    std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/acquire.config.xml" );
+    std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/acquire.config.xml" );
     boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
 
     const wchar_t * query = L"/AcquireConfiguration/Configuration";

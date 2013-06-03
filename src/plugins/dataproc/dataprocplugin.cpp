@@ -48,10 +48,10 @@
 #include <adcontrols/processmethod.hpp>
 #include <adextension/ieditorfactory.hpp>
 
-#include <adplugin/adplugin.hpp>
+//#include <adplugin/adplugin.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/loader.hpp>
-#include <adplugin/orbLoader.hpp>
+//#include <adplugin/orbLoader.hpp>
 #include <adplugin/widget_factory.hpp>
 
 #include <adplugin/constants.hpp>
@@ -150,7 +150,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     //-------------------------------------------------------------------------------------------
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-    std::wstring configFile = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc.config.xml" );
+    std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc.config.xml" );
     boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
     
 	adplugin::loader::populate( plugindir.generic_wstring().c_str() );
@@ -179,7 +179,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     if ( mdb ) {
         // externally installed mime-types
         std::wstring mimefile
-            = adplugin::orbLoader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc-mimetype.xml" );
+            = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc-mimetype.xml" );
         if ( ! mdb->addMimeTypes( qtwrapper::qstring( mimefile ), error_message) )
             adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes" << mimefile << error_message;
 
