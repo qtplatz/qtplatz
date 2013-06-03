@@ -81,6 +81,17 @@ adBroker::~adBroker(void)
 {
 }
 
+void *
+adBroker::query_interface_workaround( const char * _typenam )
+{
+    const std::string typenam( _typenam );
+    if ( typenam == typeid( adplugin::orbServant ).name() )
+        return static_cast< adplugin::orbServant * >(this);
+    else if ( typenam == typeid( adplugin::plugin ).name() )
+        return static_cast< adplugin::plugin * >(this);
+    return 0;
+}
+
 bool
 adBroker::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::POAManager_ptr mgr )
 {
@@ -117,27 +128,18 @@ adBroker::operator bool() const
 }
 
 
-/////////////////////////
-////////// folling potion to be move to separate .cpp file
-/////////////////
-
 class adbroker_plugin : public adplugin::plugin
                       , public adplugin::orbFactory {
 
     static adbroker_plugin * instance_;
     adbroker_plugin() {}
     ~adbroker_plugin() {}
-    friend adplugin::plugin * adplugin_plugin_instance();
 public:
+    static adbroker_plugin * instance();
     // plugin
     virtual const char * iid() const;
     virtual void accept( adplugin::visitor&, const char * );
-    virtual void * query_interface_workaround( const char * typenam ) {
-        adportable::debug(__FILE__, __LINE__) << "##### query_interface_workaround for " << typenam << " called.";
-        if ( std::string( typenam ) == typeid( orbFactory ).name() )
-            return static_cast<orbFactory *>(this);
-        return 0;
-    }
+    virtual void * query_interface_workaround( const char * typenam );
 
     // orbFactory
     virtual adplugin::orbServant * create_instance() {
@@ -148,16 +150,36 @@ public:
 adbroker_plugin * adbroker_plugin::instance_ = 0;
 static boost::mutex __mutex;
 
+adbroker_plugin *
+adbroker_plugin::instance()
+{
+    if ( instance_ == 0 ) {
+        boost::mutex::scoped_lock lock( __mutex );
+        if ( instance_ == 0 )
+            instance_ = new adbroker_plugin();
+    }
+    return instance_;
+}
+
 const char *
 adbroker_plugin::iid() const
 {
-    return "com.ms-cheminfo.qtplatz.plugins.adbroker_plugin";
+    return "com.ms-cheminfo.qtplatz.plugins.orbfactory.adbroker";
 }
 
 void
 adbroker_plugin::accept( adplugin::visitor& v, const char * adplugin )
 {
 	v.visit( this, adplugin );
+}
+
+void *
+adbroker_plugin::query_interface_workaround( const char * typenam )
+{
+    adportable::debug(__FILE__, __LINE__) << "##### query_interface_workaround for " << typenam << " called.";
+    if ( std::string( typenam ) == typeid( orbFactory ).name() )
+        return static_cast<orbFactory *>(this);
+    return 0;
 }
 
 // will be obsolte
@@ -168,10 +190,5 @@ Q_DECL_EXPORT adplugin::orbLoader * instance()
 
 Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance()
 {
-    if ( adbroker_plugin::instance_ == 0 ) {
-        boost::mutex::scoped_lock lock( __mutex );
-        if ( adbroker_plugin::instance_ == 0 )
-            adbroker_plugin::instance_ = new adbroker_plugin();
-    }
-    return adbroker_plugin::instance_;
+    return adbroker_plugin::instance();
 }

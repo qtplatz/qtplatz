@@ -25,7 +25,7 @@
 
 // #include "receiver.idl"
 // #include "signalobserver.idl"
-
+#include "brokerclient.idl"
 #include "controlmethod.idl"
 
 module SignalObserver {
@@ -103,8 +103,8 @@ module ControlServer {
       boolean stop_run();
    };
 
-    interface Manager {
-        Session getSession( in wstring connStr );
-    };
+   interface Manager : BrokerClient::Accessor {
+       Session getSession( in wstring connStr );
+   };
 
 };

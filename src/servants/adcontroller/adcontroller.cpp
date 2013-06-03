@@ -23,6 +23,11 @@
 **************************************************************************/
 
 #include "adcontroller.hpp"
+#include <adplugin/plugin.hpp>
+#include <adplugin/visitor.hpp>
+#include <adplugin/orbfactory.hpp>
+#include <adplugin/orbservant.hpp>
+#include <boost/thread/mutex.hpp>
 #include "ace/Init_ACE.h"
 
 #if defined ACE_WIN32
@@ -77,6 +82,30 @@ using namespace acewrapper;
 static int debug_flag = 0;
 static bool __aborted = false;
 std::string __ior_session;
+
+boost::mutex __mutex;
+
+//--------------------
+class adcontroller_plugin : public adplugin::plugin 
+                          , public adplugin::orbFactory {
+    static adcontroller_plugin * instance_;
+public:
+    static inline adcontroller_plugin *instance() { 
+        if ( instance_ == 0 ) {
+            boost::mutex::scoped_lock lock( __mutex );
+            if ( instance_ == 0 )
+                instance_ = new adcontroller_plugin();
+        }
+        return instance_;
+    }
+    // adplugin::plugin
+    virtual const char * iid() const;
+    virtual void accept( adplugin::visitor&, const char * );
+    virtual void * query_interface_workaround( const char * typenam );
+    virtual adplugin::orbServant * create_instance();
+};
+
+adcontroller_plugin * adcontroller_plugin::instance_ = 0;
 
 //-----------------------------------------------
 
@@ -166,10 +195,42 @@ adController::abort_server()
     adController::_abort_server();
 }
 
+
+const char *
+adcontroller_plugin::iid() const
+{
+    return "com.ms-cheminfo.qtplatz.plugin.orbfactory.adcontroller";
+}
+
+void
+adcontroller_plugin::accept( adplugin::visitor& v, const char * adpluginspec )
+{
+    v.visit( this, adpluginspec );
+}
+
+void * 
+adcontroller_plugin::query_interface_workaround( const char * typenam )
+{
+    if ( std::string( typenam ) == typeid( orbFactory ).name() )
+        return static_cast< orbFactory * >(this);
+    return 0;
+}
+
+adplugin::orbServant *
+adcontroller_plugin::create_instance()
+{
+    return new adController();
+}
+
 /////////////////////
 
 Q_DECL_EXPORT adplugin::orbLoader * instance()
 {
     return new adController;
+}
+
+Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance()
+{
+    return adcontroller_plugin::instance();
 }
 

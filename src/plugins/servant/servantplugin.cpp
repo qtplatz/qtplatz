@@ -45,6 +45,7 @@
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontroller/adcontroller.hpp>
 #include <adinterface/instrumentC.h>
+#include <adinterface/brokerclientC.h>
 
 #include <adplugin/adplugin.hpp>
 #include <adplugin/loader.hpp>
@@ -64,6 +65,7 @@
 #include "servantpluginimpl.hpp"
 #include <QMessageBox>
 #include <boost/format.hpp>
+#include <boost/foreach.hpp>
 #include "orbservantmanager.hpp"
 
 using namespace servant;
@@ -79,6 +81,7 @@ ServantPlugin::~ServantPlugin()
 
 ServantPlugin::ServantPlugin() : pConfig_( 0 )
                                , pImpl_( 0 )
+                               , adBroker_( 0 )
 {
     ACE::init();
 }
@@ -204,66 +207,68 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     adplugin::ORBManager::instance()->initialize( pMgr->orb(), pMgr->root_poa() );
 
     //--------------------------------------------------------------------
-    //CORBA::ORB_var orb = acewrapper::singleton::orbServantManager::instance()->orb();
     std::string iorBroker;
-    do {
-        adplugin::plugin * adbroker = adplugin::loader::select_iid( ".*adbroker_plugin" );
-        if ( adbroker ) {
-			adplugin::orbFactory * factory = adbroker->query_interface< adplugin::orbFactory >();
-            std::cout << "##########################################" << std::endl;
-            std::cout << "factory = " << factory << std::endl;
-            std::cout << "##########################################" << std::endl;
-        long x = 0;	
-		}
-
-
-        internal::config_finder finder( config );
-        adportable::Configuration::vector_type::iterator it = finder( L"adbroker" );
-        if ( it != config.end() ) {
-            std::wstring file = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
-            it->attribute( L"fullpath", file );
-            internal::adbroker_initializer initializer( pMgr, file );
-            if ( initializer( it ) ) {
-                iorBroker = initializer.ior_;
-                broker_manager_ = initializer.getObject();
-            }
-        }
-        if ( CORBA::is_nil( broker_manager_ ) || iorBroker.empty() ) {
-            QMessageBox::critical(0, "ServantPlugin", "Broker::Manager creation failed" );
-            *error_message = "Broker::Manager creation failed";
+    adplugin::plugin_ptr adbroker = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" );
+    if ( adbroker ) {
+        adplugin::orbFactory * factory = adbroker->query_interface< adplugin::orbFactory >();
+        if ( ! factory  ) {
+            *error_message = "adplugin::adBroker does not provide orbFactory interface";
             return false;
         }
-    } while(0);
-
-    ///////////////////////////////////
-    for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
-        std::wstring name = it->name();
-        std::wstring component = it->component();
-        
-        if ( name == L"adbroker" ) {
-			/* do nothing. -- broker must be created before here */
-        } else if ( it->attribute(L"type") == L"orbLoader" ) {
-            // adcontroller must be on top
-            std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
-            if ( ! it->module().library_filename().empty() ) {
-                std::wstring file = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
-                it->attribute( L"fullpath", file );
-                adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file );
-                if ( loader ) {
-                    loader.initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
-                    loader.initial_reference( iorBroker.c_str() );
-                    std::string ior = loader.activate();               // activate object
-                    broker_manager_->register_ior( ns_name.c_str(), ior.c_str() ); // set ior to Broker::Manager
-                } else {
-                    it->attribute( L"loadstatus", L"failed" );
-                }
-            } else if ( it->module().object_reference() == "lookup" ) {
-                broker_manager_->register_lookup( ns_name.c_str(), it->module().id().c_str() );
-                it->attribute( L"loadstatus", L"deffered" );
+        if ( adBroker_ = factory->create_instance() ) {
+            adBroker_->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
+            iorBroker = adBroker_->activate();
+            if ( iorBroker.empty() ) {
+                *error_message = "adBroker object could not be activated";
+                return false;
+            }
+            using acewrapper::constants::adbroker::manager;
+            adplugin::manager::instance()->register_ior( manager::_name(), iorBroker );
+            CORBA::Object_var obj = pMgr->orb()->string_to_object( iorBroker.c_str() );
+            broker_manager_ = Broker::Manager::_narrow( obj );
+            if ( CORBA::is_nil( broker_manager_ ) ) {
+                *error_message = "Broker::Manager cannot be created";
+                return false;
+            }
+            try {
+                broker_manager_->register_ior( manager::_name(), iorBroker.c_str() );
+            } catch ( CORBA::Exception& ex ) {
+                *error_message = ex._info().c_str();
+                return false;
             }
         }
     }
+    try {
+        pImpl_->init_debug_adbroker( this );
+    } catch ( std::exception& ex ) {
+        adportable::debug(__FILE__, __LINE__) << ex.what();
+    }
 
+    do {
+        std::vector< adplugin::plugin_ptr > factories;
+        adplugin::loader::select_iids( ".*\\.orbfactory\\..*$", factories );
+        BOOST_FOREACH( const adplugin::plugin_ptr& ptr, factories ) {
+            if ( ptr->iid() == adbroker->iid() )
+                continue;
+            adportable::debug(__FILE__, __LINE__ ) << "initializing " << ptr->iid() << ptr->clsid();
+            adplugin::orbFactory * factory = ptr->query_interface< adplugin::orbFactory >();
+            if ( factory  ) {
+                adplugin::orbServant * servant = factory->create_instance();
+                if ( servant ) {
+                    servant->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
+                    std::string ior = servant->activate();
+                    CORBA::Object_var obj = pMgr->orb()->string_to_object( ior.c_str() );
+                    BrokerClient::Accessor_var accessor = BrokerClient::Accessor::_narrow( obj );
+                    if ( !CORBA::is_nil( accessor ) )
+                        accessor->setBrokerManager( broker_manager_.in() );
+                }
+            } else {
+                *error_message += QString( ptr->iid() ) + " does not provide orbFactory interface";
+            }
+        }
+    } while( 0 );
+
+    ///////////////////////////////////
     Core::ICore * core = Core::ICore::instance();
     QList<int> context;
     if ( core ) {
@@ -278,9 +283,9 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     // 
     ControlServer::Session_var session;
     std::vector< Instrument::Session_var > i8t_sessions;
-    
+
+#if 0
     for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
-	
         if ( it->name() == L"adbroker" ) {
             try {
                 pImpl_->init_debug_adbroker( this );
@@ -337,6 +342,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             adcontrols::MassSpectrometerBroker::register_library( name );
         }
     }
+#endif
 
     do { adportable::debug(__FILE__, __LINE__) << "<-- ServantPlugin::initialize() ### 3 ##"; } while(0);
 

@@ -27,6 +27,7 @@ ui_*.h
 qrc_*.cpp
 *.log
 *.adfs
+*.json
 src/libs/adinterface/*.cxx
 qtplatz.opensdf
 

@@ -22,14 +22,20 @@ LIBS += -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(portfolio) \
     -l$$qtLibraryTarget(adplugin)
 
-LIBS += -lTAO_Utils \
-        -lTAO_PI \
-        -lTAO_PortableServer \
-        -lTAO_AnyTypeCode \
-        -lTAO \
-        -lACE
-
-!win32 {
+win32 {
+  LIBS += -l$$qtLibraryTarget(TAO_Utils) \
+          -l$$qtLibraryTarget(TAO_PI) \
+          -l$$qtLibraryTarget(TAO_PortableServer) \
+          -l$$qtLibraryTarget(TAO_AnyTypeCode) \
+          -l$$qtLibraryTarget(TAO) \
+          -l$$qtLibraryTarget(ACE)
+} else {
+  LIBS += -lTAO_Utils \
+          -lTAO_PI \
+          -lTAO_PortableServer \
+          -lTAO_AnyTypeCode \
+          -lTAO \
+          -lACE
   LIBS += -lboost_chrono -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread
   linux-*: LIBS += -lrt
 }

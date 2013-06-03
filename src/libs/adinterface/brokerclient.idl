@@ -1,8 +1,9 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2013 MS-Cheminformatics LLC
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@scienceliaison.com
 **
 ** Commercial Usage
 **
@@ -22,27 +23,12 @@
 **
 **************************************************************************/
 
-#include "plugin.hpp"
-#include "orbfactory.hpp"
-#include "orbservant.hpp"
+module Broker {
+    interface Manager;
+};
 
-using namespace adplugin;
-
-plugin::plugin() : ref_count_( 1 )
-{
-}
-
-void
-plugin::add_ref()
-{
-    ++ref_count_;
-}
-
-void 
-plugin::release()
-{
-    if ( ref_count_ ) {
-        if ( --ref_count_ == 0 )
-            dispose();
-    }
-}
+module BrokerClient {
+    interface Accessor {
+        boolean setBrokerManager( in Broker::Manager mgr );
+    };
+};

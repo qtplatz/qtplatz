@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adplugin_global.h"
+#include "plugin_ptr.hpp"
 #include <vector>
 
 namespace adplugin {
@@ -37,10 +38,10 @@ namespace adplugin {
 		static void populate( const wchar_t * directory );
         static void load( const wchar_t * library_filename );
         static void unload( const wchar_t * library_filename );
-        static plugin * select_iid( const char * iid );
-        static plugin * select_clsid( const char * clsid ); // return first match only
-        static size_t select_iids( const char * regex, std::vector< plugin * >& );
-        static size_t select_clsids( const char * clsid, std::vector< plugin * >& );
+        static plugin_ptr select_iid( const char * iid );
+        static plugin_ptr select_clsid( const char * clsid ); // return first match only
+        static size_t select_iids( const char * regex, std::vector< plugin_ptr >& );
+        static size_t select_clsids( const char * clsid, std::vector< plugin_ptr >& );
     };
 
 }

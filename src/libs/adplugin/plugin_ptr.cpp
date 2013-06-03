@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2013 MS-Cheminformatics LLC
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
@@ -26,17 +25,23 @@
 #pragma once
 
 #include "adplugin_global.h"
+#include "plugin_ptr.hpp"
+#include "plugin.hpp"
+#include <boost/intrusive_ptr.hpp>
+
+#pragma once
 
 namespace adplugin {
-
-    class visitor;
-
-    class ADPLUGINSHARED_EXPORT modinfo {
-    public:
-        virtual const char * configuration() const = 0; // debug|release
-        virtual const char * modname() const = 0;
-        virtual void accept( visitor& ) = 0;
-    };
+    
+    void intrusive_ptr_add_ref( plugin * p )
+    {
+        p->add_ref();
+    }
+    
+    void intrusive_ptr_release( plugin * p )
+    {
+        p->release();
+    }
 
 }
 

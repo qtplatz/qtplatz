@@ -74,5 +74,9 @@ module ControlMethod {
         instinfo_sequence iinfo;
         method_sequence lines;
     };
+
+    interface ControlMethodInterface {
+        // dummy interface in order to supress link error
+    };
     
 };

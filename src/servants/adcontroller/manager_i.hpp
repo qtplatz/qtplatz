@@ -25,7 +25,8 @@
 
 #pragma once
 
-#include "adinterface/brokerS.h"
+#include <adinterface/brokerS.h>
+#include <adinterface/brokerclientS.h>
 
 #include "session_i.hpp"
 #include <acewrapper/orbservant.hpp>
@@ -35,7 +36,8 @@
 
 namespace adcontroller {
 
-    class manager_i : public virtual POA_ControlServer::Manager {
+    class manager_i : public virtual POA_ControlServer::Manager
+                    , public virtual POA_BrokerClient::Accessor {
         manager_i(void);
         ~manager_i(void);
         friend class acewrapper::ORBServant< ::adcontroller::manager_i >;
@@ -44,10 +46,14 @@ namespace adcontroller {
         ControlServer::Session_ptr getSession( const CORBA::WChar * );
         static acewrapper::ORBServant< manager_i > * instance();
         Broker::Logger_ptr getLogger();
+
+        // BrokerClient::Accessor
+        bool setBrokerManager( Broker::Manager_ptr mgr );
+        
     private:
         typedef std::map< std::wstring, boost::shared_ptr< adcontroller::session_i > > session_map_type;
         session_map_type session_list_;
-        Broker::Manager_var broker_manager_;
+        Broker::Manager_var broker_mgr_;
         Broker::Logger_var logger_;
     };
 

@@ -41,9 +41,12 @@ namespace adplugin {
         friend class internal::manager_data;
         virtual void * query_interface_workaround( const char * /* typename */ ) { return 0; }
 	protected:
+        int ref_count_;
 		virtual ~plugin() {}
     public:
         plugin();
+        virtual void add_ref();
+        virtual void release();
 		virtual void dispose() { delete this; }
         virtual void accept( visitor&, const char * adplugin ) = 0;
         virtual const char * iid() const = 0;

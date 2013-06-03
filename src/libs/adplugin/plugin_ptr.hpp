@@ -1,3 +1,4 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2013 MS-Cheminformatics LLC
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
@@ -22,27 +23,20 @@
 **
 **************************************************************************/
 
-#include "plugin.hpp"
-#include "orbfactory.hpp"
-#include "orbservant.hpp"
+#pragma once
 
-using namespace adplugin;
+#include "adplugin_global.h"
+#include <boost/intrusive_ptr.hpp>
 
-plugin::plugin() : ref_count_( 1 )
-{
+#pragma once
+
+namespace adplugin {
+
+    class plugin;
+
+    typedef boost::intrusive_ptr< plugin > plugin_ptr;
+    void ADPLUGINSHARED_EXPORT intrusive_ptr_add_ref( plugin * );
+    void ADPLUGINSHARED_EXPORT intrusive_ptr_release( plugin * );
 }
 
-void
-plugin::add_ref()
-{
-    ++ref_count_;
-}
 
-void 
-plugin::release()
-{
-    if ( ref_count_ ) {
-        if ( --ref_count_ == 0 )
-            dispose();
-    }
-}

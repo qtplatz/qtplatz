@@ -28,6 +28,7 @@
 #include <extensionsystem/iplugin.h>
 #include <adportable/disable_warnings.h>
 #include <adinterface/brokerC.h>
+#include <adplugin/orbservant.hpp>
 
 namespace adportable {
     class Configuration;
@@ -60,5 +61,6 @@ namespace servant {
         adportable::Configuration * pConfig_;
         internal::ServantPluginImpl * pImpl_;
         Broker::Manager_var broker_manager_;
+        adplugin::orbServant * adBroker_;
     };
 }

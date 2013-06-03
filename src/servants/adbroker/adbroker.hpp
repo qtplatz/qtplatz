@@ -58,8 +58,9 @@ public:
     virtual operator bool() const;
 
     // plugin
-    const char * iid() const { return "com.ms-cheminfo.qtplatz.plugins.adborker"; }
+    const char * iid() const { return "com.ms-cheminfo.lib.qtplatz.plugins.adborker"; }
     void accept( adplugin::visitor&, const char * ) { /* do nothing */ }
+    virtual void * query_interface_workaround( const char * typenam );
 };
 
 extern "C" {

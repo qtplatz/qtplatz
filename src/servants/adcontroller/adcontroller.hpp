@@ -26,8 +26,11 @@
 #pragma once
 
 #include "adcontroller_global.h"
-
 #include <adplugin/orbLoader.hpp>
+#include <adplugin/orbServant.hpp>
+#include <adplugin/plugin.hpp>
+
+namespace adplugin { class plugin; }
 
 namespace CORBA {
     class ORB;
@@ -37,7 +40,9 @@ namespace acewrapper {
     class ORBServantManager;
 }
 
-class ADCONTROLLERSHARED_EXPORT adController : public adplugin::orbLoader {
+class ADCONTROLLERSHARED_EXPORT adController : public adplugin::orbLoader
+                                             , public adplugin::orbServant 
+                                             , public adplugin::plugin {
 public:
     adController();
     virtual ~adController();
@@ -56,10 +61,15 @@ public:
 	static void _dispose();
 	static bool _deactivate();
 	static void _abort_server();
+
+    // plugin
+    const char * iid() const { return "com.ms-cheminfo.lib.qtplatz.plugins.adcontroller"; }
+    void accept( adplugin::visitor&, const char * ) { /* do nothing */ }
 private:
 
 };
 
 extern "C" {
     Q_DECL_EXPORT adplugin::orbLoader * instance();
+    Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }

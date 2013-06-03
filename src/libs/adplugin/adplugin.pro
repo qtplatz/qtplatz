@@ -15,15 +15,15 @@ include(../../boost.pri)
 INCLUDEPATH += $$OUT_PWD/..
 
 LIBS += -l$$qtLibraryTarget(acewrapper) \
-    -l$$qtLibraryTarget(adinterface) \
-    -l$$qtLibraryTarget(adportable) \
-    -l$$qtLibraryTarget(qtwrapper) \
-    -l$$qtLibraryTarget(xmlparser)
+        -l$$qtLibraryTarget(adinterface) \
+        -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(qtwrapper) \
+        -l$$qtLibraryTarget(xmlparser)
 
 !win32 {
   LIBS += -lACE
   LIBS += -lTAO -lTAO_Utils -lTAO_PI -lTAO_PortableServer -lTAO_AnyTypeCode
-  LIBS += -lboost_filesystem -lboost_system -lboost_regex
+  LIBS += -lboost_filesystem -lboost_system
 }
 
 DEFINES += ADPLUGIN_LIBRARY
@@ -38,13 +38,13 @@ SOURCES += adplugin.cpp \
     lifecycleaccessor.cpp \
     loader.cpp \
     plugin.cpp \
-    visitor.cpp \
     orbfactory.cpp \
-    orbservant.cpp
+    orbservant.cpp \
+    plugin_ptr.cpp \
+    visitor.cpp
 
 HEADERS += adplugin.hpp \
     adplugin_global.h \
-    manager.hpp \
     imonitor.hpp \
     icontrolmethodeditor.hpp \
     ifactory.hpp \
@@ -55,8 +55,9 @@ HEADERS += adplugin.hpp \
     qobserverevents_i.hpp \
     qbrokersessionevent.hpp \
     lifecycleaccessor.hpp \
-    plugin.hpp \
-    visitor.hpp \
     loader.hpp \
+    plugin.hpp \
     orbfactory.hpp \
-    orbservant.hpp
+    orbservant.hpp \
+    plugin_ptr.hpp \
+    visitor.hpp

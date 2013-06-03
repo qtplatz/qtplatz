@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2013 MS-Cheminformatics LLC
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -22,6 +22,10 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+//////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// MS-Cheminformatics LLC / Advanced Instrumentation Project
+//////////////////////////////////////////
 
 #pragma once
 

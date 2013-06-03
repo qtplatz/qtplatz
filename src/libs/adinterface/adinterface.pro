@@ -25,7 +25,8 @@ IDLFILES += \
     receiver.idl \
     samplebroker.idl \
     signalobserver.idl \
-    broker.idl
+    broker.idl \
+    brokerclient.idl
 
 include( ../../tao_idl.pri )
 

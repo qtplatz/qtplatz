@@ -83,26 +83,26 @@ loader::unload( const wchar_t * library_filename )
 {
 }
 
-plugin *
+plugin_ptr
 loader::select_iid( const char * iid )
 {
     return manager::instance()->select_iid( iid );
 }
 
 size_t
-loader::select_iids( const char * regex, std::vector< plugin * >& vec )
+loader::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 {
     return manager::instance()->select_iids( regex, vec );
 }
 
-plugin *
+plugin_ptr
 loader::select_clsid( const char * clsid )
 {
     return manager::instance()->select_clsid( clsid );
 }
 
 size_t
-loader::select_clsids( const char * regex, std::vector< plugin * >& vec )
+loader::select_clsids( const char * regex, std::vector< plugin_ptr >& vec )
 {
     return manager::instance()->select_clsids( regex, vec );
 }
