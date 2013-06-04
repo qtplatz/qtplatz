@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "chromatogram.hpp"
+#include <compiler/disable_unused_parameter.h>
 #include "descriptions.hpp"
 #include "peaks.hpp"
 #include "peak.hpp"

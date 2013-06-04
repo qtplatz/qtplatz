@@ -27,6 +27,7 @@
 
 #include "adcontrols_global.h"
 
+#include <compiler/disable_unused_parameter.h>
 #include <boost/smart_ptr.hpp>
 #include <vector>
 #include <boost/serialization/nvp.hpp>

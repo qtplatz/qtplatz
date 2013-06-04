@@ -23,7 +23,9 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_sign_compare.h>
 #include <compiler/disable_unused_parameter.h>
+#include <compiler/disable_unused_function.h>
 
 #include "polfit.hpp"
 #include <cmath>

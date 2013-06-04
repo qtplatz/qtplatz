@@ -22,14 +22,10 @@
 **
 **************************************************************************/
 
-/* #if __APPLE__ && (__GNUC_LIBSTD__ <= 4) && (__GNUC_LIBSTD_MINOR__ <= 2) */
-/* #  define BOOST_NO_CXX11_RVALUE_REFERENCES */
-/* #endif */
-
 #if defined __GNUC__
-# pragma GCC diagnostic ignored "-Wunused-parameter"
+# pragma GCC diagnostic ignored "-Wunused-function"
 #endif
 
-#if defined _MSC_VER
-# pragma warning(disable:4100)
-#endif
+/* #if defined _MSC_VER */
+/* # pragma warning(disable:4100) */
+/* #endif */

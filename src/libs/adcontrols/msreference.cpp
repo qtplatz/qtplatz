@@ -23,6 +23,8 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_unused_parameter.h>
+
 #include "msreference.hpp"
 #include "chemicalformula.hpp"
 #include <cmath>
