@@ -257,11 +257,21 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                     orbServants_.push_back( servant ); // keep instance
 
                     servant->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
+
                     std::string ior = servant->activate();
                     CORBA::Object_var obj = pMgr->orb()->string_to_object( ior.c_str() );
+
                     BrokerClient::Accessor_var accessor = BrokerClient::Accessor::_narrow( obj );
+
                     if ( !CORBA::is_nil( accessor ) )
                         accessor->setBrokerManager( pImpl_->manager_.in() );
+                    try {
+                        pImpl_->manager_->register_ior( servant->object_name(), iorBroker.c_str() );
+                        pImpl_->manager_->register_object( servant->object_name(), obj );
+                    } catch ( CORBA::Exception& ex ) {
+                        *error_message = ex._info().c_str();
+                        return false;
+                    }
                 }
             } else {
                 *error_message += QString( ptr->iid() ) + " does not provide orbFactory interface";

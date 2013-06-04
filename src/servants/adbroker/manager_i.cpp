@@ -212,13 +212,11 @@ manager_i::find_object( const char * regex )
 {
 	boost::regex re( regex );
 	boost::cmatch matches;
-	CORBA::Object_ptr ret = 0;	
-	std::for_each( objVec_.begin(), objVec_.end(), [&](const std::map<std::string, CORBA::Object_var>::value_type& d) {
-		if ( ret == 0 && boost::regex_match( d.first.c_str(), matches, re ) )
-			ret = d.second;
-	});
-	if ( ret )
-		return CORBA::Object::_duplicate( ret );
+	auto itr = std::find_if( objVec_.begin(), objVec_.end(), [&](const std::map<std::string, CORBA::Object_var>::value_type& d) {
+		return boost::regex_match( d.first.c_str(), matches, re );
+	} );
+	if ( itr != objVec_.end() )
+		return CORBA::Object::_duplicate( itr->second );
 	return 0;
 }
 
@@ -262,8 +260,8 @@ manager_i::unregister_handler( Broker::ObjectReceiver_ptr cb )
 
         boost::mutex::scoped_lock lock( mutex_ );
 
-        std::vector< internal::object_receiver >::iterator it 
-            = std::find( sink_vec_.begin(), sink_vec_.end(), cb );
+        // std::vector< internal::object_receiver >::iterator it 
+        auto it = std::find( sink_vec_.begin(), sink_vec_.end(), cb );
         if ( it != sink_vec_.end() ) {
             sink_vec_.erase( it );
             return true;
