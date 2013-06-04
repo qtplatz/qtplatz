@@ -27,7 +27,7 @@
 #include <QObject>
 #include "adextension_global.hpp"
 
-namespace CORBA { class Object; }
+namespace CORBA { class ORB; class Object; }
 namespace Broker { class Manager; }
 class TAO_ServantBase;
 namespace PortableServer { class POA; typedef TAO_ServantBase ServantBase; }
@@ -42,6 +42,7 @@ namespace adextension {
         iObjectRef();
 
 		virtual PortableServer::POA * poa() = 0;
+		virtual CORBA::ORB * orb() = 0;
         virtual Broker::Manager * getBrokerManager() = 0;
         virtual bool deactivate( CORBA::Object * ) = 0;
         virtual bool deactivate( PortableServer::ServantBase * ) = 0;
