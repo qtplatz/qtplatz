@@ -210,7 +210,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             return false;
         }
         adplugin::orbServant * adBroker;
-        if ( adBroker = factory->create_instance() ) {
+        if ( ( adBroker = factory->create_instance() ) ) {
             adBroker->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
             iorBroker = adBroker->activate();
             if ( iorBroker.empty() ) {
