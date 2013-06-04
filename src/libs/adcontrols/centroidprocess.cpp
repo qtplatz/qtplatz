@@ -23,6 +23,8 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_unused_parameter.h>
+
 #include "centroidprocess.hpp"
 #include "centroidmethod.hpp"
 #include "massspectrum.hpp"

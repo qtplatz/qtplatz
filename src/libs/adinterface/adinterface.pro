@@ -12,7 +12,6 @@ CONFIG += staticlib
 include(../../qtplatzstaticlib.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)
-# include(adinterface_dependencies.pri)
 
 IDLFILES += \
     brokerevent.idl \

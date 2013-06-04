@@ -22,6 +22,8 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+#include <compiler/workaround.h>
+#include <compiler/disable_unused_parameter.h>
 
 #include "processeddata.hpp"
 

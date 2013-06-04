@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_unused_parameter.h>
 #include "manager.hpp"
 #include "adplugin.hpp"
 #include "lifecycle.hpp"
@@ -81,7 +82,7 @@ namespace adplugin {
         class manager_data : boost::noncopyable
                            , adplugin::visitor {
         public:
-            ~manager_data() {}
+            virtual ~manager_data() {}
             manager_data() {}
             typedef std::vector< plugin_data > vector_type;
             typedef std::map< std::string, vector_type > map_type;

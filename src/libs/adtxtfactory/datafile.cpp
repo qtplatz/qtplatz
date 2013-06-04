@@ -23,6 +23,14 @@
 **
 **************************************************************************/
 
+// #if __APPLE__ && (__GNUC_LIBSTD__ <= 4) && (__GNUC_LIBSTD_MINOR__ <= 2)
+// #  define BOOST_NO_CXX11_RVALUE_REFERENCES
+// #endif
+
+#if defined __GNUC__
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
 #include "datafile.hpp"
 #include "txtspectrum.hpp"
 #include <adcontrols/datafile.hpp>

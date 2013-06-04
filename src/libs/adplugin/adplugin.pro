@@ -35,7 +35,7 @@ win32 {
 
 DEFINES += ADPLUGIN_LIBRARY
 
-SOURCES += adplugin.cpp \
+SOURCES += \
     lifecycle.cpp \
     manager.cpp \
     qbrokersessionevent.cpp \

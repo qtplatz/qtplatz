@@ -1,15 +1,15 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
-** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this
+** file in accordance with the MS-Cheminformatics Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -30,14 +30,6 @@
 # pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-#include "lifecycleframe.hpp"
-
-using namespace adportable;
-
-LifeCycleFrame::LifeCycleFrame( protocol::LifeCycleCommand cmd ) : endian_mark( 0xfffe )
-                                                                 , proto_version( 0x0001 )
-                                                                 , ctrl( 0 )
-                                                                 , hoffset( 8 )
-                                                                 , command( cmd )
-{
-}
+#if defined _MSC_VER
+# pragma warning(disable:4100)
+#endif

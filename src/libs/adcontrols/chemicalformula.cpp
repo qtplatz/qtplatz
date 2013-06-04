@@ -23,9 +23,8 @@
 **
 **************************************************************************/
 
-#if defined _MSC_VER
-# pragma warning(disable:4100)
-#endif
+#include <compiler/disable_unused_parameter.h>
+
 #include "chemicalformula.hpp"
 #include "tableofelements.hpp"
 #include "ctable.hpp"

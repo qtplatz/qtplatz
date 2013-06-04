@@ -23,6 +23,8 @@
 **
 **************************************************************************/
 
+#include <compiler/workaround.h>
+
 #include "datafile_factory.hpp"
 #include "datafile.hpp"
 #include <adplugin/visitor.hpp>

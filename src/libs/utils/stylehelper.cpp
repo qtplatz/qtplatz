@@ -27,6 +27,8 @@
 **
 ****************************************************************************/
 
+#include <compiler/disable_unused_parameter.h>
+
 #include "stylehelper.h"
 
 #include "hostosinfo.h"

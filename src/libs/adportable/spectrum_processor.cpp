@@ -1,4 +1,3 @@
-// -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
@@ -23,6 +22,13 @@
 **
 **************************************************************************/
 
+#if __APPLE__ && (__GNUC_LIBSTD__ <= 4) && (__GNUC_LIBSTD_MINOR__ <= 2)
+#  define BOOST_NO_CXX11_RVALUE_REFERENCES
+#endif
+#if defined __GNUC__
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
 #include "spectrum_processor.hpp"
 #include "array_wrapper.hpp"
 #include <adportable/differential.hpp>
@@ -32,7 +38,6 @@
 #include <cstring> // for memset()
 #include <stack>
 #include <stdexcept>
-
 
 using namespace adportable;
 

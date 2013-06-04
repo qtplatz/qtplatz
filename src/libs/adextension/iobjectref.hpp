@@ -29,13 +29,11 @@
 
 namespace CORBA { class Object; }
 namespace Broker { class Manager; }
-namespace PortableServer { class POA; }
-#include <tao/PortableServer/Servant_Base.h>
+namespace PortableServer { class POA; class ServantBase; }
 
 namespace adextension {
 
     // this object may be instanciated in ServantPlugin
-
     class ADEXTENSIONSHARED_EXPORT iObjectRef : public QObject {
         Q_OBJECT
     public:

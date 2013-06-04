@@ -5,8 +5,13 @@ CONFIG(debug, debug|release) {
 
 win32 {
     DEFINES += _WIN32_WINNT=0x0700
-} else {
-#    QMAKE_CXXFLAGS *= -std=c++11
+}
+linux-* {
+    QMAKE_CXXFLAGS *= -std=c++11
+}
+macx {
+#   QMAKE_CXXFLAGS *= -std=c++11
+#   QMAKE_CXXFLAGS *= -mmacosx-version-min=10.7 -std=c++11 -DBOOST_NO_CXX11_RVALUE_REFERENCES
 }
 
 BOOST_VERSION=boost-1_53
