@@ -14,12 +14,12 @@ SUBDIRS   = \
     acewrapper \
     adcontrols \
     chromatogr \
-    adtxtfactory \
     adfs \
-    addatafile \
-    adwplot \
     qtwrapper \
+    adwplot \
     adplugin \
+    adtxtfactory \
+    addatafile \
     qtwidgets \
     qtwidgets2 \
     adchem \
@@ -27,16 +27,14 @@ SUBDIRS   = \
 
 # adfs : boost
 # xmlparser : none
-# adinterface : ACE TAO
-# acewrapper : boost
-# adportable : acewrapper
+# adinterface : TAO
+# acewrapper : boost, ACE
+# adportable : boost, stl
 # adutils : boost
 # adwplot : QWT
 # qtwrapper : QtCore
-
 # adplugin (dll) : ACE, TAO
 # adcontroller (dll) : adinterface, adportable, acewrapper, xmlparser, adplugin
 # qtwidgets (dll) : adcontrols
-# adwidgets (dll) : adcontrols
 # adborker (dll) : adinterface, adportable, acewrapper adcontrols portfolio
 # adtxtfactory (dll) : adcontrols, adportable, xmlparser, portfolio

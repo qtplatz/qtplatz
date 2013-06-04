@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "adplugin_global.h"
 #include "widget_factory.hpp"
 #include "plugin_ptr.hpp"

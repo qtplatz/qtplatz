@@ -75,14 +75,18 @@ void FileNameValidatingLineEdit::setAllowDirectories(bool v)
 
 /* Validate a file base name, check for forbidden characters/strings. */
 
-#ifdef Q_OS_WIN
-#  define SLASHES "/\\"
-#else
-#  define SLASHES "/"
-#endif
+// #ifdef Q_OS_WIN
+// #  define SLASHES "/\\"
+// #else
+// #  define SLASHES "/"
+// #endif
 
 static const char *notAllowedCharsSubDir   = "?:&*\"|#%<> ";
-static const char *notAllowedCharsNoSubDir = "?:&*\"|#%<> "SLASHES;
+#ifdef Q_OS_WIN
+static const char *notAllowedCharsNoSubDir = "?:&*\"|#%<> /\\";
+#else
+static const char *notAllowedCharsNoSubDir = "?:&*\"|#%<> /";
+#endif
 
 static const char *notAllowedSubStrings[] = {".."};
 
