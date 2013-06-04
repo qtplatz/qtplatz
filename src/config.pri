@@ -7,7 +7,7 @@ win32 {
     DEFINES += _WIN32_WINNT=0x0700
 }
 linux-* {
-    QMAKE_CXXFLAGS *= -std=c++11
+#   QMAKE_CXXFLAGS *= -std=c++11
 }
 macx {
 #   QMAKE_CXXFLAGS *= -std=c++11

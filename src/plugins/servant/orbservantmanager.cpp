@@ -54,8 +54,8 @@ ORBServantManager::ORBServantManager( CORBA::ORB_ptr orb
                                       , PortableServer::POA_ptr poa
                                       , PortableServer::POAManager_ptr poamanager ) : init_count_(0)  
                                                                                     , thread_running_(false)
-                                                                                    , orbmgr_(0)
                                                                                     , thread_(0)
+                                                                                    , orbmgr_(0)
 {
     orbmgr_ = new TAO_ORB_Manager( orb, poa, poamanager );
 }

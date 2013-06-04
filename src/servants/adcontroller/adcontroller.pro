@@ -12,10 +12,20 @@ TEMPLATE = lib
 include(../../adplugin.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)
-LIBS *= -l$$qtLibraryTarget(adinterface)
 INCLUDEPATH *= $$OUT_PWD/../../libs
 
+QMAKE_CXXFLAGS *= -std=c++11
+
 win32: DEFINES += _SCL_SECURE_NO_WARNINGS
+
+LIBS += -l$$qtLibraryTarget(adinterface)
+LIBS += \
+     -l$$qtLibraryTarget(acewrapper) \
+     -l$$qtLibraryTarget(adinterface) \
+     -l$$qtLibraryTarget(adportable) \
+     -l$$qtLibraryTarget(adplugin) \
+     -l$$qtLibraryTarget(xmlparser)
+
 
 win32 {
   LIBS += -l$$qtLibraryTarget(TAO_Utils) \
@@ -31,16 +41,9 @@ win32 {
           -lTAO_AnyTypeCode \
           -lTAO \
           -lACE
-  LIBS += -lboost_thread -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread
+  LIBS += -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread
   linux-*: LIBS += -lrt
 }
-
-LIBS += \
-     -l$$qtLibraryTarget(acewrapper) \
-     -l$$qtLibraryTarget(adinterface) \
-     -l$$qtLibraryTarget(adportable) \
-     -l$$qtLibraryTarget(adplugin) \
-     -l$$qtLibraryTarget(xmlparser)
 
 DEFINES += ADCONTROLLER_LIBRARY
 

@@ -199,7 +199,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		pMgr->spawn( barrier );
 	}
 	barrier.wait();
-    // adplugin::ORBManager::instance()->initialize( pMgr->orb(), pMgr->root_poa() );
 
     //--------------------------------------------------------------------
     std::string iorBroker;

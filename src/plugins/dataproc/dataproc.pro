@@ -9,6 +9,8 @@ greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
 
 PROVIDER = MS-Cheminformatics
 
+QMAKE_CXXFLAGS *= -std=c++11
+
 include(../../qtplatzplugin.pri)
 include(../../qwt.pri)
 include(../../boost.pri)

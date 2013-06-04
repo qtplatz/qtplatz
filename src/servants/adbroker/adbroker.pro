@@ -9,6 +9,8 @@ QT       -= gui
 TARGET = adbroker
 TEMPLATE = lib
 
+QMAKE_CXXFLAGS *= -std=c++11
+
 include(../../adplugin.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)
@@ -21,6 +23,7 @@ LIBS += -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(portfolio) \
     -l$$qtLibraryTarget(adplugin)
+
 
 win32 {
   LIBS += -l$$qtLibraryTarget(TAO_Utils) \
@@ -36,9 +39,10 @@ win32 {
           -lTAO_AnyTypeCode \
           -lTAO \
           -lACE
-  LIBS += -lboost_chrono -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread
+  LIBS += -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread -lboost_regex
   linux-*: LIBS += -lrt
 }
+
 
 DEFINES += ADBROKER_LIBRARY
 

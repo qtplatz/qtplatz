@@ -29,7 +29,8 @@
 
 namespace CORBA { class Object; }
 namespace Broker { class Manager; }
-namespace PortableServer { class POA; class ServantBase; }
+class TAO_ServantBase;
+namespace PortableServer { class POA; typedef TAO_ServantBase ServantBase; }
 
 namespace adextension {
 

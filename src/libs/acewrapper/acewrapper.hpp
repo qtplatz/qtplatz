@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -22,14 +22,10 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// MS-Cheminformatics LLC / Advanced Instrumentation Project
-//////////////////////////////////////////
+
 #ifndef ACEWRAPPER_H
 #define ACEWRAPPER_H
 
-// #include <ace/Singleton.h>
 template<class T, class X> class ACE_Singleton;
 class ACE_Recursive_Thread_Mutex;
 

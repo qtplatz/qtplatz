@@ -8,6 +8,8 @@ TARGET = servant
 TEMPLATE = lib
 PROVIDER = MS-Cheminformatics
 
+QMAKE_CXXFLAGS *= -std=c++11
+
 include(../../qtplatzplugin.pri)
 include(../../ace_tao.pri)
 include(../../boost.pri)
@@ -16,7 +18,9 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adplugin) \
     -l$$qtLibraryTarget(qtwrapper) -l$$qtLibraryTarget(adbroker) \
-    -l$$qtLibraryTarget(adextension)
+    -l$$qtLibraryTarget(adextension) \
+    -l$$qtLibraryTarget(xmlparser)
+
 
 !win32 {
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE

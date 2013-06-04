@@ -30,6 +30,7 @@ SOURCES += acewrapper.cpp \
     mcastserver.cpp \
     messageblock.cpp \
     outputcdr.cpp \
+    orbhelper.cpp \
     reactorthread.cpp \
     timerhandler.cpp \
     timeval.cpp \
@@ -53,6 +54,7 @@ HEADERS += acewrapper.hpp \
     messageblock.hpp \
     mutex.hpp \
     orbservant.hpp \
+    orbhelper.hpp \
     outputcdr.hpp \
     reactorthread.hpp \
     serialization_inet_addr.hpp \
