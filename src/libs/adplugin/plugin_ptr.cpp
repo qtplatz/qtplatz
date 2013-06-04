@@ -22,14 +22,10 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "adplugin_global.h"
 #include "plugin_ptr.hpp"
 #include "plugin.hpp"
 #include <boost/intrusive_ptr.hpp>
-
-#pragma once
 
 namespace adplugin {
     

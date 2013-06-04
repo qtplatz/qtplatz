@@ -31,7 +31,7 @@ win32 {
           -lTAO_AnyTypeCode \
           -lTAO \
           -lACE
-  LIBS += -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread
+  LIBS += -lboost_thread -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread
   linux-*: LIBS += -lrt
 }
 

@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "orbservant.hpp"
 
 using namespace adplugin;

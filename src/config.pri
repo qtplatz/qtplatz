@@ -5,6 +5,8 @@ CONFIG(debug, debug|release) {
 
 win32 {
     DEFINES += _WIN32_WINNT=0x0700
+} else {
+#    QMAKE_CXXFLAGS *= -std=c++11
 }
 
 BOOST_VERSION=boost-1_53

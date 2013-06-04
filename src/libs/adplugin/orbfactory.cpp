@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "orbfactory.hpp"
 
 using namespace adplugin;

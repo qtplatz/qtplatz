@@ -30,7 +30,6 @@ linux-*: LIBS += -lqwt # order matter on linux
 
 # define BOOST_NO_CXX11_RVALUE_REFERENCES is a workaround on clang++ shipped 
 # with Apple which does not provide std::move
-#macx: QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -stdlib=libc++ # -std=c++11 -stdlib=libc++ -DBOOST_NO_CXX11_RVALUE_REFERENCES
 macx: QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c++11 -DBOOST_NO_CXX11_RVALUE_REFERENCES
 CONFIG += c++11
 

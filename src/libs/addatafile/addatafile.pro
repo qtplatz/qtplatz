@@ -28,7 +28,7 @@ LIBS += -l$$qtLibraryTarget(acewrapper) \
         -l$$qtLibraryTarget(xmlparser)
         
 !win32 {
-  LIBS += -lboost_system -lboost_filesystem -lboost_serialization -lboost_date_time
+  LIBS += -lboost_system -lboost_filesystem -lboost_serialization -lboost_date_time -ldl
 }
 
 SOURCES += addatafile.cpp \

@@ -17,7 +17,8 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(xmlparser) \
-        -l$$qtLibraryTarget(portfolio)
+        -l$$qtLibraryTarget(portfolio) \
+        
 
 !win32 {
   LIBS += -lboost_system -lboost_filesystem

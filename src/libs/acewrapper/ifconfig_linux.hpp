@@ -90,7 +90,7 @@ namespace acewrapper {
                     if ( flags & IFF_BROADCAST && !( flags & IFF_LOOPBACK ) ) {
                         std::string bcast;
                         if ( if_broadaddr( fd, ifname, bcast ) ) 
-                            vec.push_back( std::make_pair<std::string, std::string>( ifname, bcast ) );
+                            vec.push_back( std::pair<std::string, std::string>( ifname, bcast ) );
                     }
                 }
                 close( fd );
