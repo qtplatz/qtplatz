@@ -49,6 +49,7 @@
 #include <boost/cast.hpp>
 #include <boost/foreach.hpp>
 #include <boost/regex.hpp>
+#include <algorithm>
 
 //----------------------------------
 
@@ -256,20 +257,16 @@ manager_data::install( QLibrary& lib, const std::string& adpluginspec )
 plugin_ptr
 manager_data::select_iid( const char * regex )
 {
-    for ( map_type::const_iterator it = plugins_.begin(); it != plugins_.end(); ++it ) {
-        BOOST_FOREACH( const plugin_data& d, it->second ) {
-            boost::regex re( regex );
-            boost::cmatch matches;
-            if ( boost::regex_match( d.iid(), matches, re ) ) {
-#if defined _DEBUG || defined DEBUG
-                for ( size_t i = 0; i < matches.size(); ++i )
-                    std::cout << "matches[" << i << "]" << matches[i].first
-                              << ", " << matches[i].second << std::endl;
-#endif 
-                return d.plugin();
-            }
-        }
-    }
+	boost::regex re( regex );
+    boost::cmatch matches;
+    
+	for ( map_type::const_iterator it = plugins_.begin(); it != plugins_.end(); ++it ) {
+		auto itr = std::find_if( it->second.begin(), it->second.end(), [&]( const adplugin::plugin_data& d ) {
+			return boost::regex_match( d.iid(), matches, re );
+		} );
+		if ( itr != it->second.end() )
+			return itr->plugin();
+	}
     return 0;
 }
 

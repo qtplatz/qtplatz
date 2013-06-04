@@ -7,8 +7,6 @@
   <!-- <ServantConfiguration name="servant"> -->
   <Module name="adbroker" type="corba::servant" filename="/MS-Cheminformatics/adbroker$(configuration).dll"/>
   <Module name="adcontroller" type="corba::servant" filename="/MS-Cheminformatics/adcontroller$(configuration).dll"/>
-  <!-- <Module name="tofspectrometer" type="adcontrols::massspectrometer" filename="/MS-Cheminformatics/tofspectrometer$(configuration).dll"/> -->
-  <!-- <Module name="infitofcontroller" type="corba::servant" reference="mcast" filename="/MSI/infitofcontroller$(configuration).dll"/> -->
   <Module name="infitofcontroller" type="corba::servant" reference="lookup" id="infitof.0000"/>
   <Module name="infitofspectrometer" type="adcontrols::massspectrometer" filename="/MSI/infitofspectrometer$(configuration).dll"/>
   <Module name="hmqcontroller" type="corba::servant" reference="lookup" id="HMSQ.0000"/>
@@ -25,7 +23,6 @@
       <Component name="adcontroller" module="adcontroller"/>
       <Configuration name="InstrumentConfiguration">
         <Configuration name="infitofcontroller.1" id="infitof.1" type="object_ref" ns_name="infitofcontroller.session"/>
-        <Configuration name="hmqcontroller.1" id="hmq.1" type="object_ref" ns_name="hmqcontroller.session"/>        
       </Configuration>
     </Configuration>
     

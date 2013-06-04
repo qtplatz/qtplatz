@@ -34,28 +34,38 @@
 #include "session_i.hpp"
 #include "objectdiscovery.hpp"
 #include <boost/smart_ptr.hpp>
-#include <ace/Recursive_Thread_Mutex.h>
+#include <boost/thread/mutex.hpp>
 
 namespace adbroker {
 
     namespace internal { struct object_receiver; }
 
     class manager_i : public virtual POA_Broker::Manager {
-
     public:
         manager_i(void);
         ~manager_i(void);
 
-        void shutdown();
-        bool register_handler( Broker::ObjectReceiver_ptr cb );
-        bool unregister_handler( Broker::ObjectReceiver_ptr cb );
-        Broker::Session_ptr getSession( const CORBA::WChar * );
-        Broker::Logger_ptr getLogger();
+        static manager_i * instance();
+
         void register_ior( const char * name, const char * ior );
         char * ior( const char * name );
+
         void register_lookup( const char * name, const char * ident );
-        inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
-        static manager_i * instance();
+
+        bool register_object( const char * name, CORBA::Object_ptr obj );
+        CORBA::Object_ptr find_object( const char * name );
+		Broker::Objects * find_objects( const char * name );
+
+        bool register_handler( Broker::ObjectReceiver_ptr cb );
+        bool unregister_handler( Broker::ObjectReceiver_ptr cb );
+
+        Broker::Session_ptr getSession( const CORBA::WChar * );
+        Broker::Logger_ptr getLogger();
+
+        void shutdown();
+
+        //inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
+
         void internal_register_ior( const std::string& name, const std::string& ior );
     private:
         typedef std::map< std::wstring, boost::shared_ptr< adbroker::session_i > > session_map_type;
@@ -63,9 +73,11 @@ namespace adbroker {
         boost::scoped_ptr< broker::logger_i > logger_i_;
         std::map< std::string, std::string > iorMap_;
         std::map< std::string, std::string > lookup_;
+        std::map< std::string, CORBA::Object_var > objVec_;
+
         std::vector< internal::object_receiver > sink_vec_;
         ObjectDiscovery * discovery_;
-        ACE_Recursive_Thread_Mutex mutex_;
+        boost::mutex mutex_;
     };
 
     namespace singleton {

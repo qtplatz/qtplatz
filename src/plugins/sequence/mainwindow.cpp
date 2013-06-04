@@ -30,7 +30,6 @@
 #include <adextension/ieditorfactory.hpp>
 #include <adinterface/controlmethodC.h>
 #include <adportable/configuration.hpp>
-//#include <adplugin/adplugin.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adsequence/sequence.hpp>

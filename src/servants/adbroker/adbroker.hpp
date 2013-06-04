@@ -53,7 +53,7 @@ public:
     virtual const char * activate();
     virtual bool deactivate();
     virtual void initial_reference( const char * );
-    virtual operator bool() const;
+	virtual const char * object_name() const;
 
     // plugin
     const char * iid() const { return "com.ms-cheminfo.lib.qtplatz.plugins.adborker"; }

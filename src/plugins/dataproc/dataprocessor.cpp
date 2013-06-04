@@ -31,6 +31,7 @@
 #include "datafileobserver_i.hpp"
 #include <adcontrols/datafile.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <extensionsystem/pluginmanager.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/ifile.h>
 #include <portfolio/portfolio.hpp>
@@ -57,7 +58,7 @@
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/targetingmethod.hpp>
-#include <adplugin/orbmanager.hpp>
+#include <adextension/iobjectref.hpp>
 #include <boost/filesystem/path.hpp>
 #include <stack>
 #include <qdebug.h>
@@ -487,9 +488,9 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
 SignalObserver::Observer_ptr
 Dataprocessor::observer()
 {
-	adplugin::ORBManager * mgr = adplugin::ORBManager::instance();
-	if ( mgr && fileObserver_ ) {
-		CORBA::Object_var obj = mgr->poa()->servant_to_reference( fileObserver_.get() );
+    adextension::iObjectRef * objref = ExtensionSystem::PluginManager::instance()->getObject< adextension::iObjectRef >();
+	if ( objref && fileObserver_ ) {
+		CORBA::Object_var obj = objref->poa()->servant_to_reference( fileObserver_.get() );
 		return SignalObserver::Observer::_narrow( obj );
 	}
 	return 0;

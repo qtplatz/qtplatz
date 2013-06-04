@@ -38,6 +38,7 @@
 #include <ace/INET_Addr.h>
 #include <ace/SOCK_Dgram_Bcast.h>
 #include <boost/foreach.hpp>
+#include <boost/thread/mutex.hpp>
 
 using namespace adbroker;
 
@@ -77,11 +78,11 @@ namespace adbroker {
 
 } // namespace adbroker
 
-ObjectDiscovery::ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex ) : reactor_thread_( 0 )
-                                                                      , bcast_( new BcastHandler( *this ) )
-                                                                      , timer_( new TimerHandler( *this ) )
-                                                                      , suspend_( false )
-                                                                      , mutex_( mutex )
+ObjectDiscovery::ObjectDiscovery( boost::mutex& mutex ) : reactor_thread_( 0 )
+                                                        , bcast_( new BcastHandler( *this ) )
+                                                        , timer_( new TimerHandler( *this ) )
+                                                        , suspend_( false )
+                                                        , mutex_( mutex )
 {
 }
 
@@ -100,7 +101,7 @@ ObjectDiscovery::close()
     if ( reactor_thread_ == 0 )
         return;
 
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    boost::mutex::scoped_lock lock( mutex_ );
     if ( reactor_thread_ ) {
         bcast_->close();
         reactor_thread_->get_reactor()->cancel_timer( bcast_ );
@@ -119,7 +120,7 @@ ObjectDiscovery::open()
 
 	acewrapper::ifconfig::broadaddr( bcast_->ifvec() );
 
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    boost::mutex::scoped_lock lock( mutex_ );
     if ( reactor_thread_ == 0 ) {
         reactor_thread_ = new acewrapper::ReactorThread();
 		bcast_->open();
@@ -166,7 +167,7 @@ ObjectDiscovery::handle_timeout( )
 void
 ObjectDiscovery::register_lookup( const std::string& name, const std::string& ident )
 {
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    boost::mutex::scoped_lock lock( mutex_ );
     list_[ ident ] = name;
     suspend_ = false;
     handle_timeout(); 
@@ -175,7 +176,7 @@ ObjectDiscovery::register_lookup( const std::string& name, const std::string& id
 bool
 ObjectDiscovery::unregister_lookup( const std::string& ident, std::string& name )
 {
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    boost::mutex::scoped_lock lock( mutex_ );
     std::map< std::string, std::string >::iterator it = list_.find( ident );
     if ( it != list_.end() ) {
         name = it->second;

@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -28,36 +28,9 @@
 #include <adportable/debug.hpp>
 #include <boost/thread/mutex.hpp>
 #include <typeinfo>
-
-#if defined WIN32 && _MSC_VER
-#  if defined _DEBUG || defined DEBUG
-#     pragma comment(lib, "TAO_Utilsd.lib")
-#     pragma comment(lib, "TAO_PId.lib")
-#     pragma comment(lib, "TAO_PortableServerd.lib")
-#     pragma comment(lib, "TAO_AnyTypeCoded.lib")
-#     pragma comment(lib, "TAOd.lib")
-#     pragma comment(lib, "ACEd.lib")
-#     pragma comment(lib, "adinterfaced.lib")
-#     pragma comment(lib, "adplugind.lib")
-#     pragma comment(lib, "adportabled.lib")
-#     pragma comment(lib, "acewrapperd.lib")
-#     pragma comment(lib, "adcontrolsd.lib")
-#     pragma comment(lib, "portfoliod.lib")
-#  else
-#     pragma comment(lib, "TAO_Utils.lib")
-#     pragma comment(lib, "TAO_PI.lib")
-#     pragma comment(lib, "TAO_PortableServer.lib")
-#     pragma comment(lib, "TAO_AnyTypeCode.lib")
-#     pragma comment(lib, "TAO.lib")
-#     pragma comment(lib, "ACE.lib")
-#     pragma comment(lib, "adinterface.lib")
-#     pragma comment(lib, "adplugin.lib")
-#     pragma comment(lib, "adportable.lib")
-#     pragma comment(lib, "acewrapper.lib")
-#     pragma comment(lib, "adcontrols.lib")
-#     pragma comment(lib, "portfolio.lib")
-#  endif
-#endif
+//#include <boost/mpl/vector.hpp>
+//#include <boost/mpl/transform.hpp>
+//#include <boost/mpl/for_each.hpp>
 
 # include <tao/Utils/ORB_Manager.h>
 # include <ace/Thread_Manager.h>
@@ -84,7 +57,8 @@ adBroker::~adBroker(void)
 void *
 adBroker::query_interface_workaround( const char * _typenam )
 {
-    const std::string typenam( _typenam );
+	const std::string typenam( _typenam );
+
     if ( typenam == typeid( adplugin::orbServant ).name() )
         return static_cast< adplugin::orbServant * >(this);
     else if ( typenam == typeid( adplugin::plugin ).name() )
@@ -116,15 +90,16 @@ adBroker::deactivate()
 	return true;
 }
 
+const char *
+adBroker::object_name() const
+{
+	return acewrapper::constants::adbroker::manager::_name();
+}
+
 void
 adBroker::initial_reference( const char * )
 {
     // do nothing
-}
-
-adBroker::operator bool() const
-{
-    return true;
 }
 
 
@@ -176,7 +151,6 @@ adbroker_plugin::accept( adplugin::visitor& v, const char * adplugin )
 void *
 adbroker_plugin::query_interface_workaround( const char * typenam )
 {
-    adportable::debug(__FILE__, __LINE__) << "##### query_interface_workaround for " << typenam << " called.";
     if ( std::string( typenam ) == typeid( orbFactory ).name() )
         return static_cast<orbFactory *>(this);
     return 0;

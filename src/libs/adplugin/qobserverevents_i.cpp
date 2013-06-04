@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "qobserverevents_i.hpp"
-#include "orbmanager.hpp"
+//#include "orbmanager.hpp"
 #include <adportable/debug.hpp>
 
 using namespace adplugin;

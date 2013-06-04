@@ -44,14 +44,19 @@ namespace servant {
     class ServantPlugin : public ExtensionSystem::IPlugin {
 	    Q_OBJECT
 		Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "servant.json")
+        static ServantPlugin * instance_;
 	public:
         explicit ServantPlugin();
         ~ServantPlugin();
+
+        static ServantPlugin * instance();
         
         // ExtensionSystem::IPlugin
         virtual bool initialize(const QStringList &arguments, QString *error_message);
         virtual void extensionsInitialized();
         virtual ShutdownFlag aboutToShutdown();
+
+        Broker::Manager_ptr getBrokerManager();
         
     signals:
             
@@ -61,7 +66,6 @@ namespace servant {
         void final_close();
         adportable::Configuration * pConfig_;
         internal::ServantPluginImpl * pImpl_;
-        Broker::Manager_var broker_manager_;
 
         typedef std::vector< adplugin::orbServant * > orbservant_vector_type;
         std::vector< adplugin::orbServant * > orbServants_;

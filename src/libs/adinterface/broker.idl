@@ -85,14 +85,25 @@ module Broker {
         oneway void object_discovered( in string name, in string ior ); 
     };
 
+    typedef sequence< Object > Objects;
+
     interface Manager {
+        void register_ior( in string name, in string ior );
+        string ior( in string name );
+
+        // registor object name that will discover by object_discovery
+        void register_lookup( in string name, in string ident );
+
+        boolean register_object( in string name, in Object obj );
+        Object find_object( in string regex );
+        Objects find_objects( in string regex );
+
         boolean register_handler( in ObjectReceiver cb );
         boolean unregister_handler( in ObjectReceiver cb );
         Session getSession( in wstring connStr );
         Logger getLogger();
-        void register_ior( in string name, in string ior );     
-        string ior( in string name );
-        void register_lookup( in string name, in string ident );
+
+
         void shutdown();
     };
 

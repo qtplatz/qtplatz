@@ -28,31 +28,11 @@
 namespace acewrapper {
     namespace constants {
         namespace adcontroller {
-#if 0
-            CosNaming::Name
-                manager::name() {
-                    CosNaming::Name name;
-                    name.length(1);
-                    name[0].id = CORBA::string_dup( "adcontroller.manager" );
-                    name[0].kind = CORBA::string_dup( "" );
-                    return name;
-            }
-#endif
-			const char * manager::_name() { return "adcontroller.manager"; }
+			const char * manager::_name() { return "com.ms-cheminfo.orb.manager.adcontroller"; }
         }
 
         namespace adbroker {
-#if 0
-            CosNaming::Name
-                manager::name() {
-                    CosNaming::Name name;
-                    name.length(1);
-                    name[0].id = CORBA::string_dup( "adbroker.manager" );
-                    name[0].kind = CORBA::string_dup( "" );
-                    return name;
-            }
-#endif
-			const char * manager::_name() { return "adbroker.manager"; }
+			const char * manager::_name() { return "com.ms-cheminfo.orb.manager.adbroker"; }
         }
     }
 }

@@ -32,6 +32,7 @@
 #include <acewrapper/mutex.hpp>
 #include <ace/Thread_Manager.h>
 #include <boost/foreach.hpp>
+#include <boost/regex.hpp>
 
 using namespace adbroker;
 
@@ -80,7 +81,7 @@ manager_i::shutdown()
     adportable::debug() << "##### adbroker::manager::shutting down ... ######";
 
     if ( discovery_ ) {
-        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        boost::mutex::scoped_lock lock( mutex_ );
         if ( discovery_ )
             discovery_->close();
         delete discovery_;
@@ -138,7 +139,7 @@ manager_i::register_ior( const char * name, const char * ior )
     adportable::debug() << "adbroker::manager_i::register_ior("
                         << std::string(name) << ", " << std::string(ior) << ")";
 
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    boost::mutex::scoped_lock lock( mutex_ );
     iorMap_[ name ] = ior;
 }
 
@@ -148,7 +149,7 @@ manager_i::internal_register_ior( const std::string& name, const std::string& io
     adportable::debug() << "adbroker::manager_i::internal_register_ior(" 
                         << name << ", " << ior.substr(0, 20) << "... )";
 
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    boost::mutex::scoped_lock lock( mutex_ );
     iorMap_[ name ] = ior;
 
     BOOST_FOREACH( internal::object_receiver& cb, sink_vec_ )
@@ -158,7 +159,7 @@ manager_i::internal_register_ior( const std::string& name, const std::string& io
 char *
 manager_i::ior( const char * name )
 {
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    boost::mutex::scoped_lock lock( mutex_ );
 
     std::map< std::string, std::string >::iterator it = iorMap_.find( name );
     if ( it != iorMap_.end() )
@@ -170,14 +171,14 @@ void
 manager_i::register_lookup( const char * name, const char * ident )
 {
     if ( discovery_ == 0 ) {
-        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        boost::mutex::scoped_lock lock( mutex_ );
         if ( discovery_ == 0 ) {
             discovery_ = new ObjectDiscovery( mutex_ );
             discovery_->open();
         }
     }
     if ( discovery_ ) {
-        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        boost::mutex::scoped_lock lock( mutex_ );
         discovery_->register_lookup( name, ident );    
         lookup_[ name ] = ident;
     } while(0);
@@ -189,13 +190,64 @@ manager_i::register_lookup( const char * name, const char * ident )
 }
 
 bool
+manager_i::register_object( const char * name, CORBA::Object_ptr obj )
+{
+    if ( CORBA::is_nil( obj ) ) {
+
+        boost::mutex::scoped_lock lock( mutex_ );
+
+		auto it = objVec_.find( name );
+        if ( it != objVec_.end() )
+            objVec_.erase( it );
+        return true;
+    }
+    
+    objVec_[ name ] = CORBA::Object::_duplicate( obj );
+
+    return true;
+}
+
+CORBA::Object_ptr
+manager_i::find_object( const char * regex )
+{
+	boost::regex re( regex );
+	boost::cmatch matches;
+	CORBA::Object_ptr ret = 0;	
+	std::for_each( objVec_.begin(), objVec_.end(), [&](const std::map<std::string, CORBA::Object_var>::value_type& d) {
+		if ( ret == 0 && boost::regex_match( d.first.c_str(), matches, re ) )
+			ret = d.second;
+	});
+	if ( ret )
+		return CORBA::Object::_duplicate( ret );
+	return 0;
+}
+
+Broker::Objects *
+manager_i::find_objects( const char * regex )
+{
+	Broker::Objects * results = 0;
+
+	boost::regex re( regex );
+	boost::cmatch matches;
+	std::for_each( objVec_.begin(), objVec_.end(), [&](const std::map<std::string, CORBA::Object_var>::value_type& d) {
+		if ( boost::regex_match( d.first.c_str(), matches, re ) ) {
+			if ( ! results ) 
+				results = new Broker::Objects;
+			results->length( results->length() + 1 );
+			(*results)[ results->length() - 1 ] = CORBA::Object::_duplicate( d.second.in() );
+		}
+	});
+	return results;
+}
+
+bool
 manager_i::register_handler( Broker::ObjectReceiver_ptr cb )
 {
     if ( ! CORBA::is_nil( cb ) ) {
         internal::object_receiver sink;
         sink.sink_ = Broker::ObjectReceiver::_duplicate( cb );
 
-        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        boost::mutex::scoped_lock lock( mutex_ );
 
         sink_vec_.push_back( sink );
         return true;
@@ -208,7 +260,7 @@ manager_i::unregister_handler( Broker::ObjectReceiver_ptr cb )
 {
     if ( ! CORBA::is_nil( cb ) ) {
 
-        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        boost::mutex::scoped_lock lock( mutex_ );
 
         std::vector< internal::object_receiver >::iterator it 
             = std::find( sink_vec_.begin(), sink_vec_.end(), cb );

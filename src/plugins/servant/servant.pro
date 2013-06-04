@@ -15,7 +15,8 @@ include(../../boost.pri)
 LIBS += -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adplugin) \
-    -l$$qtLibraryTarget(qtwrapper) -l$$qtLibraryTarget(adbroker)
+    -l$$qtLibraryTarget(qtwrapper) -l$$qtLibraryTarget(adbroker) \
+    -l$$qtLibraryTarget(adextension)
 
 !win32 {
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE

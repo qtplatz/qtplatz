@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -31,16 +31,16 @@ namespace acewrapper {
 
         namespace adcontroller {
             struct manager {
-		static const char * _name();
+                static const char * _name();
             };
         }
 
         namespace adbroker {
             struct manager {
-		static const char * _name();
+                static const char * _name();
             };
-	    const unsigned short OBJECTDISCOVERY_PORT = 7402;
-	}
+            const unsigned short OBJECTDISCOVERY_PORT = 7402;
+        }
 
     }
 

@@ -38,7 +38,6 @@ DEFINES += ADPLUGIN_LIBRARY
 SOURCES += adplugin.cpp \
     lifecycle.cpp \
     manager.cpp \
-    orbmanager.cpp \
     qbrokersessionevent.cpp \
     qobserverevents_i.cpp \
     qreceiver_i.cpp \
@@ -58,7 +57,6 @@ HEADERS += adplugin.hpp \
     widget_factory.hpp \
     lifecycle.hpp \
     qreceiver_i.hpp \
-    orbmanager.hpp \
     qobserverevents_i.hpp \
     qbrokersessionevent.hpp \
     lifecycleaccessor.hpp \

@@ -49,11 +49,11 @@
 #include <adcontrols/traceaccessor.hpp>
 #include <adcontrols/timeutil.hpp>
 #include <adcontroller/adcontroller.hpp>
+#include <adextension/iobjectref.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
 #include <adplugin/loader.hpp>
-#include <adplugin/orbmanager.hpp>
 #include <adplugin/qreceiver_i.hpp>
 #include <adplugin/qobserverevents_i.hpp>
 #include <adplugin/manager.hpp>
@@ -400,16 +400,20 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 void
 AcquirePlugin::extensionsInitialized()
 {
-    std::string ior = adplugin::manager::iorBroker();
-    CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
-    Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, ior );
-    if ( ! CORBA::is_nil( mgr ) )
-        pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
-	manager_->OnInitialUpdate();
+    adextension::iObjectRef * objref = ExtensionSystem::PluginManager::instance()->getObject< adextension::iObjectRef >();
 
-	adinterface::EventLog::LogMessageHelper log( L"acquire extention initialized %1%" );
-	log % 1;
-	manager_->handle_eventLog( log.get() );
+    if ( objref ) {
+
+        Broker::Manager_var mgr = objref->getBrokerManager();
+
+        if ( ! CORBA::is_nil( mgr ) )
+            pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
+        manager_->OnInitialUpdate();
+        
+        adinterface::EventLog::LogMessageHelper log( L"acquire extention initialized %1%" );
+        log % 1;
+        manager_->handle_eventLog( log.get() );
+    }
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
@@ -431,66 +435,72 @@ AcquirePlugin::actionConnect()
 
     if ( CORBA::is_nil( session_.in() ) ) {
 
-        CORBA::Object_var obj
-            = acewrapper::brokerhelper::name_to_object( adplugin::ORBManager::instance()->orb()
-                                                        , acewrapper::constants::adcontroller::manager::_name()
-                                                        , adplugin::manager::iorBroker() );
+        adextension::iObjectRef * objref = ExtensionSystem::PluginManager::instance()->getObject< adextension::iObjectRef >();
+        if ( objref == 0 )
+            return;
 
-        if ( ! CORBA::is_nil( obj ) ) {
+        Broker::Manager_var broker = objref->getBrokerManager();
 
-            ControlServer::Manager_var manager;
-            try { manager = ControlServer::Manager::_narrow( obj ); } catch ( CORBA::Exception& ) { /**/ }
+        if ( ! CORBA::is_nil( broker ) ) {
 
-            if ( ! CORBA::is_nil( manager ) ) {
+            using namespace acewrapper::constants;
+            CORBA::Object_var obj = broker->find_object( adcontroller::manager::_name() );
 
-                session_ = manager->getSession( L"acquire" );
-                if ( ! CORBA::is_nil( session_.in() ) ) {
+            if ( ! CORBA::is_nil( obj ) ) {
 
-                    receiver_i_.reset( new adplugin::QReceiver_i() );
-                    session_->connect( receiver_i_.get()->_this(), "acquire" );
+				::ControlServer::Manager_var manager;
+                try { manager = ::ControlServer::Manager::_narrow( obj ); } catch ( CORBA::Exception& ) { /**/ }
+				
+                if ( ! CORBA::is_nil( manager ) ) {
+                    session_ = manager->getSession( L"acquire" );
+                    if ( ! CORBA::is_nil( session_.in() ) ) {
+                            
+                        receiver_i_.reset( new adplugin::QReceiver_i() );
+                        session_->connect( receiver_i_.get()->_this(), "acquire" );
 
-                    connect( receiver_i_.get()
-                        , SIGNAL( signal_message( unsigned long, unsigned long ) )
-                        , this, SLOT( handle_message( unsigned long, unsigned long ) ) );
-                    connect( receiver_i_.get(), SIGNAL( signal_log( QByteArray ) ), this, SLOT( handle_log( QByteArray ) ) );
-                    connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
-                    connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
-                        , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
+                        connect( receiver_i_.get()
+                                 , SIGNAL( signal_message( unsigned long, unsigned long ) )
+                                 , this, SLOT( handle_message( unsigned long, unsigned long ) ) );
+                        connect( receiver_i_.get(), SIGNAL( signal_log( QByteArray ) ), this, SLOT( handle_log( QByteArray ) ) );
+                        connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
+                        connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
+                                 , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
 
-					do { LogMessageHelper log( L"===== Initialize session... ===== " );	manager_->handle_eventLog( log.get() );	} while(0);
+                        do { LogMessageHelper log( L"===== Initialize session... ===== " );	manager_->handle_eventLog( log.get() );	} while(0);
 
-                    if ( session_->status() <= ControlServer::eConfigured )
-                        session_->initialize();
+                        if ( session_->status() <= ControlServer::eConfigured )
+                            session_->initialize();
 
-					do { LogMessageHelper log( L"===== Session initialized. =====" );	manager_->handle_eventLog( log.get() );	} while(0);
+                        do { LogMessageHelper log( L"===== Session initialized. =====" );	manager_->handle_eventLog( log.get() );	} while(0);
 
-                    observer_ = session_->getObserver(); // master observer
-                    if ( ! CORBA::is_nil( observer_.in() ) ) {
-                        if ( ! masterObserverSink_ ) {
-                            masterObserverSink_.reset( new adplugin::QObserverEvents_i( observer_, "acquireplugin" ) );
-                            connect( masterObserverSink_.get(), SIGNAL( signal_ConfigChanged( unsigned long, long ) )
-                                     , this, SLOT( handle_config_changed(unsigned long, long) ) );
-                            connect( masterObserverSink_.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
-                                     , this, SLOT( handle_update_data(unsigned long, long) ) );
-                            connect( masterObserverSink_.get(), SIGNAL( signal_MethodChanged( unsigned long, long ) )
-                                     , this, SLOT( handle_method_changed(unsigned long, long) ) );
-                            connect( masterObserverSink_.get(), SIGNAL( signal_Event( unsigned long, unsigned long, long ) )
-                                     , this, SLOT( handle_event(unsigned long, unsigned long, long) ) );
-                        }
+                        observer_ = session_->getObserver(); // master observer
+                        if ( ! CORBA::is_nil( observer_.in() ) ) {
+                            if ( ! masterObserverSink_ ) {
+                                masterObserverSink_.reset( new adplugin::QObserverEvents_i( observer_, "acquireplugin" ) );
+                                connect( masterObserverSink_.get(), SIGNAL( signal_ConfigChanged( unsigned long, long ) )
+                                         , this, SLOT( handle_config_changed(unsigned long, long) ) );
+                                connect( masterObserverSink_.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
+                                         , this, SLOT( handle_update_data(unsigned long, long) ) );
+                                connect( masterObserverSink_.get(), SIGNAL( signal_MethodChanged( unsigned long, long ) )
+                                         , this, SLOT( handle_method_changed(unsigned long, long) ) );
+                                connect( masterObserverSink_.get(), SIGNAL( signal_Event( unsigned long, unsigned long, long ) )
+                                         , this, SLOT( handle_event(unsigned long, unsigned long, long) ) );
+                            }
                         
-                        // connect to 1st layer siblings ( := top shadow(cache) observer for each instrument )
-                        SignalObserver::Observers_var siblings = observer_->getSiblings();
-                        size_t nsize = siblings->length();
+                            // connect to 1st layer siblings ( := top shadow(cache) observer for each instrument )
+                            SignalObserver::Observers_var siblings = observer_->getSiblings();
+                            size_t nsize = siblings->length();
 
-						do {
-							LogMessageHelper log( L"actionConnect signal observer %1% siblings found" );
-							log % nsize;
-							manager_->handle_eventLog( log.get() );
-						} while(0);
+                            do {
+                                LogMessageHelper log( L"actionConnect signal observer %1% siblings found" );
+                                log % nsize;
+                                manager_->handle_eventLog( log.get() );
+                            } while(0);
 
-                        for ( size_t i = 0; i < nsize; ++i ) {
-                            SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[i] );
-                            populate( var );
+                            for ( size_t i = 0; i < nsize; ++i ) {
+                                SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[i] );
+                                populate( var );
+                            }
                         }
                     }
                 }
@@ -520,15 +530,21 @@ AcquirePlugin::actionDisconnect()
 {
     if ( ! CORBA::is_nil( session_ ) ) {
 
+        adextension::iObjectRef * objref = ExtensionSystem::PluginManager::instance()->getObject< adextension::iObjectRef >();
+
         observer_ = session_->getObserver();
         if ( ! CORBA::is_nil( observer_.in() ) ) {
 			disconnect( masterObserverSink_.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
 				, this, SLOT( handle_update_data(unsigned long, long) ) );
 			masterObserverSink_->disconnect();
-			adplugin::ORBManager::instance()->deactivate( masterObserverSink_->_this() );
+
+            adextension::iObjectRef * objref = ExtensionSystem::PluginManager::instance()->getObject< adextension::iObjectRef >();
+            if ( objref )
+                objref->deactivate( masterObserverSink_->_this() );
         }
         session_->disconnect( receiver_i_.get()->_this() );
-        adplugin::ORBManager::instance()->deactivate( receiver_i_->_this() );
+        if ( objref )
+            objref->deactivate( receiver_i_->_this() );
     }
 }
     

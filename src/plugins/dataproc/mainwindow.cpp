@@ -346,6 +346,7 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title )
 void
 MainWindow::createDockWidgets( const adportable::Configuration& config, const std::wstring& apppath )
 {
+	(void)apppath;
     using adportable::Configuration;
 
     const Configuration * pTab = Configuration::find( config, L"ProcessMethodEditors" );

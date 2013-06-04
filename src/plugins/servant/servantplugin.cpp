@@ -48,12 +48,12 @@
 #include <adbroker/adbroker.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontroller/adcontroller.hpp>
+#include <adextension/iobjectref.hpp>
 #include <adinterface/instrumentC.h>
 #include <adinterface/brokerclientC.h>
 
 #include <adplugin/loader.hpp>
 #include <adplugin/manager.hpp>
-#include <adplugin/orbmanager.hpp>
 #include <adplugin/constants.hpp>
 
 #include <adportable/configuration.hpp>
@@ -76,87 +76,68 @@
 using namespace servant;
 using namespace servant::internal;
 
+ServantPlugin * ServantPlugin::instance_ = 0;
+
+namespace servant {
+
+    class iObjectRefImpl : public adextension::iObjectRef {
+    public:
+        iObjectRefImpl() {}
+
+        virtual CORBA::ORB_ptr orb() {
+            return servant::ORBServantManager::instance() ? servant::ORBServantManager::instance()->orb() : 0;
+        }
+        virtual PortableServer::POA_ptr poa() {
+            return servant::ORBServantManager::instance() ? servant::ORBServantManager::instance()->root_poa() : 0;
+        }
+        virtual Broker::Manager_ptr getBrokerManager() {
+            return ServantPlugin::instance()->getBrokerManager();
+        }
+        virtual bool deactivate( CORBA::Object_ptr obj ) {
+            try {
+				PortableServer::POA_ptr poa = this->poa();
+                PortableServer::ObjectId_var object_id = poa->reference_to_id( obj );
+                poa->deactivate_object( object_id );
+            } catch ( CORBA::Exception& ex ) {
+                adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
+                return false;
+            }
+            return true;
+        }
+        virtual bool deactivate( PortableServer::ServantBase * p_servant ) {
+            try {
+				PortableServer::POA_ptr poa = this->poa();
+                PortableServer::ObjectId_var object_id = poa->servant_to_id( p_servant );
+                poa->deactivate_object( object_id );
+            } catch ( CORBA::Exception& ex ) {
+                adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
+                return false;
+            }
+            return true;
+        }
+    };
+}
+
 ServantPlugin::~ServantPlugin()
 {
     final_close();
     delete pImpl_;
     delete pConfig_;
     ACE::fini();
+    instance_ = 0;
 }
 
 ServantPlugin::ServantPlugin() : pConfig_( 0 )
                                , pImpl_( 0 )
 {
+    instance_ = this;
     ACE::init();
 }
 
-namespace servant {
-
-    namespace internal {
-
-        // struct adbroker_initializer {
-        //     servant::ORBServantManager * pMgr_;
-        //     std::wstring file_;
-        //     std::string ior_;
-
-        //     adbroker_initializer( servant::ORBServantManager * p, const std::wstring& file )
-        //         : pMgr_(p), file_(file) {
-        //     }
-
-        //     bool operator()( adportable::Configuration::vector_type::iterator it ) {
-        //         adplugin::orbLoader& loader = adplugin::manager::instance()->orbLoader( file_ );
-        //         if ( loader ) {
-        //             loader.initialize( pMgr_->orb(), pMgr_->root_poa(), pMgr_->poa_manager() );
-        //             ior_ = loader.activate();
-        //             if ( ! ior_.empty() )
-        //                 adplugin::manager::instance()->register_ior(
-        //                     acewrapper::constants::adbroker::manager::_name(), ior_ );
-        //             return true;
-        //         } else {
-        //             it->attribute( L"loadstatus", L"failed" );
-        //             return false;
-        //         }
-        //     }
-
-        //     Broker::Manager_ptr getObject() {
-        //         // ---- private naming service (Broker::Manager) start ----
-        //         CORBA::Object_var obj = pMgr_->orb()->string_to_object( ior_.c_str() );
-        //         Broker::Manager_var mgr = Broker::Manager::_narrow( obj );
-        //         if ( CORBA::is_nil( mgr ) )
-        //             return 0;
-        //         // store broker's ior to self
-        //         for ( size_t nTrial = 0; nTrial < 25 ; ++nTrial ) {
-        //             try {
-        //                 mgr->register_ior( acewrapper::constants::adbroker::manager::_name(), ior_.c_str() );
-        //                 break;
-        //             } catch ( CORBA::Exception& ex ) {
-        //                 adportable::debug( __FILE__, __LINE__ ) << "CORBA::Exception: " << ex._info().c_str();
-        //                 if ( nTrial > 5 )
-        //                     QMessageBox::warning(0, "ServantPlugin - Broker::Manager::registor_ior", ex._info().c_str() );
-        //                 else
-        //                     QMessageBox::critical(0, "ServantPlugin - Broker::Manager::registor_ior", ex._info().c_str() );
-        //                 ACE_OS::sleep(0);
-        //             }
-        //         }
-        //         return mgr._retn();
-        //     }
-        // };
-
-
-        /* configuration finder */
-        struct config_finder {
-            adportable::Configuration& config_;
-            config_finder( adportable::Configuration& config) : config_( config ) {
-            }
-            adportable::Configuration::vector_type::iterator operator()( const std::wstring& name ) {
-                for ( adportable::Configuration::vector_type::iterator it = config_.begin(); it != config_.end(); ++it ) {
-                    if ( it->name() == name )
-                        return it;
-                }
-                return config_.end();
-            }
-        };
-    }
+ServantPlugin *
+ServantPlugin::instance()
+{
+    return instance_;
 }
 
 bool
@@ -166,10 +147,22 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     int nErrors = 0;
 
     do { adportable::debug(__FILE__, __LINE__) << "<----- ServantPlugin::initialize() ..."; } while(0);
-    
+
     OutputWindow * outputWindow = new OutputWindow;
     addAutoReleasedObject( outputWindow );
     pImpl_ = new internal::ServantPluginImpl( outputWindow );
+
+    ///////////////////////////////////
+    Core::ICore * core = Core::ICore::instance();
+    QList<int> context;
+    if ( core ) {
+        Core::UniqueIDManager * uidm = core->uniqueIDManager();
+        if ( uidm ) {
+            context.append( uidm->uniqueIdentifier( QLatin1String("Servant.MainView") ) );
+            context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
+        }
+    } else
+        return false;
     
     // ACE initialize
     acewrapper::instance_manager::initialize();
@@ -206,7 +199,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		pMgr->spawn( barrier );
 	}
 	barrier.wait();
-    adplugin::ORBManager::instance()->initialize( pMgr->orb(), pMgr->root_poa() );
+    // adplugin::ORBManager::instance()->initialize( pMgr->orb(), pMgr->root_poa() );
 
     //--------------------------------------------------------------------
     std::string iorBroker;
@@ -229,27 +222,24 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             // for deactivation
             orbServants_.push_back( adBroker );  
 
-            using acewrapper::constants::adbroker::manager;
-            adplugin::manager::instance()->register_ior( manager::_name(), iorBroker );
             CORBA::Object_var obj = pMgr->orb()->string_to_object( iorBroker.c_str() );
-            broker_manager_ = Broker::Manager::_narrow( obj );
-            if ( CORBA::is_nil( broker_manager_ ) ) {
+            pImpl_->manager_ = Broker::Manager::_narrow( obj );
+            if ( CORBA::is_nil( pImpl_->manager_ ) ) {
                 *error_message = "Broker::Manager cannot be created";
                 return false;
             }
             try {
-                broker_manager_->register_ior( manager::_name(), iorBroker.c_str() );
+				pImpl_->manager_->register_ior( adBroker->object_name(), iorBroker.c_str() );
+				pImpl_->manager_->register_object( adBroker->object_name(), obj );
             } catch ( CORBA::Exception& ex ) {
                 *error_message = ex._info().c_str();
                 return false;
             }
         }
     }
-    try {
-        pImpl_->init_debug_adbroker( this );
-    } catch ( std::exception& ex ) {
-        adportable::debug(__FILE__, __LINE__) << ex.what();
-    }
+    pImpl_->init_debug_adbroker();
+
+    addObject( new iObjectRefImpl );
 
     // ----------------------- initialize corba servants ------------------------------
     do {
@@ -264,32 +254,20 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                 adplugin::orbServant * servant = factory->create_instance();
                 if ( servant ) {
 
-                    orbServants_.push_back( servant );
+                    orbServants_.push_back( servant ); // keep instance
 
                     servant->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
                     std::string ior = servant->activate();
                     CORBA::Object_var obj = pMgr->orb()->string_to_object( ior.c_str() );
                     BrokerClient::Accessor_var accessor = BrokerClient::Accessor::_narrow( obj );
                     if ( !CORBA::is_nil( accessor ) )
-                        accessor->setBrokerManager( broker_manager_.in() );
+                        accessor->setBrokerManager( pImpl_->manager_.in() );
                 }
             } else {
                 *error_message += QString( ptr->iid() ) + " does not provide orbFactory interface";
             }
         }
     } while( 0 );
-
-    ///////////////////////////////////
-    Core::ICore * core = Core::ICore::instance();
-    QList<int> context;
-    if ( core ) {
-        Core::UniqueIDManager * uidm = core->uniqueIDManager();
-        if ( uidm ) {
-            context.append( uidm->uniqueIdentifier( QLatin1String("Servant.MainView") ) );
-            context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
-        }
-    } else
-        return false;
 
     // 
     ControlServer::Session_var session;
@@ -379,8 +357,8 @@ ServantPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 ServantPlugin::aboutToShutdown()
 { 
-    if ( ! CORBA::is_nil( broker_manager_.in() ) ) // Qt5 does not call shutdown
-        broker_manager_->shutdown();
+    if ( ! CORBA::is_nil( pImpl_->manager_.in() ) )
+        pImpl_->manager_->shutdown();
 	return SynchronousShutdown;
 }
 
@@ -412,5 +390,10 @@ ServantPlugin::final_close()
     adportable::debug() << "====== ServantPlugin::final_close complete =======";    
 }
 
+Broker::Manager_ptr
+ServantPlugin::getBrokerManager()
+{
+    return Broker::Manager::_duplicate( pImpl_->manager_.in() );
+}
 
 Q_EXPORT_PLUGIN( ServantPlugin )

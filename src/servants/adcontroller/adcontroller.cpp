@@ -30,34 +30,6 @@
 #include <boost/thread/mutex.hpp>
 #include "ace/Init_ACE.h"
 
-#if defined ACE_WIN32
-#  if defined _DEBUG
-#     pragma comment(lib, "TAO_Utilsd.lib")
-#     pragma comment(lib, "TAO_PId.lib")
-#     pragma comment(lib, "TAO_PortableServerd.lib")
-#     pragma comment(lib, "TAO_AnyTypeCoded.lib")
-#     pragma comment(lib, "TAOd.lib")
-#     pragma comment(lib, "ACEd.lib")
-#     pragma comment(lib, "adinterfaced.lib")
-#     pragma comment(lib, "adportabled.lib")
-#     pragma comment(lib, "acewrapperd.lib")
-#     pragma comment(lib, "xmlparserd.lib")
-#     pragma comment(lib, "adplugind.lib")
-#  else
-#     pragma comment(lib, "TAO_Utils.lib")
-#     pragma comment(lib, "TAO_PI.lib")
-#     pragma comment(lib, "TAO_PortableServer.lib")
-#     pragma comment(lib, "TAO_AnyTypeCode.lib")
-#     pragma comment(lib, "TAO.lib")
-#     pragma comment(lib, "ACE.lib")
-#     pragma comment(lib, "adinterface.lib")
-#     pragma comment(lib, "adportable.lib")
-#     pragma comment(lib, "acewrapper.lib")
-#     pragma comment(lib, "xmlparser.lib")
-#     pragma comment(lib, "adplugin.lib")
-#  endif
-#endif
-
 # include <ace/SOCK_Dgram_Mcast.h>
 # include <ace/Service_Config.h>
 # include <ace/Sched_Params.h>
@@ -117,11 +89,6 @@ adController::adController()
 {
 }
 
-adController::operator bool () const
-{ 
-    return true;
-}
-
 void
 adController::_abort_server()
 {
@@ -137,12 +104,6 @@ adController::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, Porta
     return true;
 }
 
-void
-adController::initial_reference( const char * iorBroker )
-{
-    adcontroller::manager_i::instance()->broker_manager_ior( iorBroker );
-}
-
 const char *
 adController::activate()
 {
@@ -155,6 +116,12 @@ bool
 adController::deactivate()
 {
     return adController::_deactivate();
+}
+
+const char *
+adController::object_name() const
+{
+	return acewrapper::constants::adcontroller::manager::_name();
 }
 
 bool

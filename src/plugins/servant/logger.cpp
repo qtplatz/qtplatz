@@ -25,13 +25,15 @@
 
 
 #include "logger.hpp"
+#include "servantplugin.hpp"
 #include <adinterface/brokerC.h>
 
 #include <adplugin/manager.hpp>
-#include <adplugin/orbmanager.hpp>
+//#include <adplugin/orbmanager.hpp>
 #include <acewrapper/constants.hpp>
 #include <acewrapper/brokerhelper.hpp>
 #include <adportable/string.hpp>
+
 ///////-- ServantPlugin dependent -- ////////
 #include "outputwindow.hpp"
 #include <extensionsystem/pluginmanager.h>
@@ -40,8 +42,7 @@
 
 using namespace servant;
 
-namespace servant {
-    namespace internal {
+namespace servant {   namespace internal {
 
         class LogHost {
             LogHost();
@@ -79,20 +80,13 @@ internal::LogHost::instance()
 void
 internal::LogHost::initialize()
 {
-    std::string ior = adplugin::manager::instance()->iorBroker(); 
-    CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( ior );
-
-    try {
-        Broker::Manager_var manager = Broker::Manager::_narrow( obj.in() );
+    ServantPlugin * plugin = ServantPlugin::instance();
+    if ( plugin ) {
+        Broker::Manager_var manager = plugin->getBrokerManager();
         if ( ! CORBA::is_nil( manager.in() ) ) {
             LogHost::instance_ = new LogHost();
-            if ( LogHost::instance_ )
-                LogHost::instance_->logger_ = manager->getLogger();
+            LogHost::instance_->logger_ = manager->getLogger();
         }
-    } catch ( CORBA::Exception& src) {
-        QMessageBox mbx;
-        mbx.critical( 0, "Servant error", QString("LogHost initialize got a CORBA::Exception: ") 
-            + ( boost::format("%1% : %2%") % src._name() % src._info()).str().c_str() );
     }
 }
 

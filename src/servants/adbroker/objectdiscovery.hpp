@@ -26,22 +26,20 @@
 #ifndef OBJECTDISCOVERY_H
 #define OBJECTDISCOVERY_H
 
-//#include <ace/Reactor.h>
-// #include <ace/Singleton.h>
 #include <map>
 #include <string>
 
-class ACE_INET_Addr;
-class ACE_Recursive_Thread_Mutex;
-
+namespace boost { class mutex; }
 namespace acewrapper { class ReactorThread; }
+
+class ACE_INET_Addr;
 
 namespace adbroker {
 
     class ObjectDiscovery {
     public:
         ~ObjectDiscovery();
-        ObjectDiscovery( ACE_Recursive_Thread_Mutex& mutex );
+        ObjectDiscovery( boost::mutex& mutex );
         bool open();
         void close();
         void operator()( const char *, int, const ACE_INET_Addr& );
@@ -54,7 +52,7 @@ namespace adbroker {
         class BcastHandler * bcast_;
 		class TimerHandler * timer_;
         bool suspend_;
-        ACE_Recursive_Thread_Mutex& mutex_;
+        boost::mutex& mutex_;
 		std::map< std::string, std::string > list_;
     };
 

@@ -29,9 +29,10 @@
 #include <acewrapper/timeval.hpp>
 #include <acewrapper/brokerhelper.hpp>
 
-#include <adplugin/manager.hpp>
-#include <adplugin/orbmanager.hpp>
 #include <adinterface/eventlog_helper.hpp>
+#include <adplugin/manager.hpp>
+#include <adportable/debug.hpp>
+
 #include <qtwrapper/qstring.hpp>
 
 #include "servantpluginimpl.hpp"
@@ -45,26 +46,16 @@ using namespace servant::internal;
 
 ServantPluginImpl::ServantPluginImpl( OutputWindow * p ) : receiver_(*this)
                                                          , logHandler_(*this)
-							 , outputWindow_(p)
+                                                         , outputWindow_(p)
 {
-	//adplugin::ORBManager::instance()->init(0, 0);
-}
-
-Broker::Manager_ptr
-getBrokerManager()
-{
-	std::string ior = adplugin::manager::instance()->ior( acewrapper::constants::adbroker::manager::_name() );
-	CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
-	return acewrapper::brokerhelper::getManager( orb, ior );
 }
 
 void
-ServantPluginImpl::init_debug_adcontroller( ServantPlugin * )
+ServantPluginImpl::init_debug_adcontroller()
 {
-	Broker::Manager_var mgr = getBrokerManager();
-	CORBA::Object_var obj;
-	if ( ! CORBA::is_nil( mgr ) ) {
-		std::string ior = mgr->ior( acewrapper::constants::adcontroller::manager::_name() );
+#if 0
+	if ( ! CORBA::is_nil( manager_ ) ) {
+		std::string ior = manager_->ior( acewrapper::constants::adcontroller::manager::_name() );
         if ( ! ior.empty() )
 			obj = adplugin::ORBManager::instance()->string_to_object( ior );
 	}
@@ -78,23 +69,26 @@ ServantPluginImpl::init_debug_adcontroller( ServantPlugin * )
 
 		session_->connect( receiver_._this(), "debug" );
 	}
+#endif
 }
 
 void
-ServantPluginImpl::init_debug_adbroker( ServantPlugin * )
+ServantPluginImpl::init_debug_adbroker()
 {
-    manager_ = getBrokerManager();
+	if ( ! CORBA::is_nil( manager_ ) ) {
 
-	if ( ! CORBA::is_nil( manager_.in() ) ) {
-
-        do {
+        try {
             Broker::Session_var broker = manager_->getSession( L"debug" );
-            broker->connect( "user", "pass", "debug", 0 );
-        } while(0);
-
+            if ( ! CORBA::is_nil( broker ) ) 
+                broker->connect( "user", "pass", "debug", 0 );
+        } catch ( CORBA::Exception& ex ) {
+            adportable::debug(__FILE__, __LINE__) << ex._info().c_str();
+            return;
+        }
+        
 		connect( this, SIGNAL( signal_notify_update( unsigned long ) )
-			, this, SLOT( handle_notify_update( unsigned long ) ) );
-
+                 , this, SLOT( handle_notify_update( unsigned long ) ) );
+        
 		Broker::Logger_var logger = manager_->getLogger();
 
 		if ( ! CORBA::is_nil( logger.in() ) ) {

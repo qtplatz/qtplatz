@@ -74,6 +74,7 @@ MSCalibrationWnd::MSCalibrationWnd( const adportable::Configuration& c
 void
 MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& apppath )
 {
+	(void)apppath;
     using adportable::Configuration;
     
     pImpl_.reset( new MSCalibrationWndImpl );

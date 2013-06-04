@@ -48,6 +48,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adextension/ieditorfactory.hpp>
+#include <adextension/iobjectref.hpp>
 
 //#include <adplugin/adplugin.hpp>
 #include <adplugin/plugin.hpp>
@@ -57,7 +58,7 @@
 
 #include <adplugin/constants.hpp>
 #include <adplugin/manager.hpp>
-#include <adplugin/orbmanager.hpp>
+//#include <adplugin/orbmanager.hpp>
 #include <adplugin/qbrokersessionevent.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
@@ -334,25 +335,25 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 void
 DataprocPlugin::extensionsInitialized()
 {
-    do {
-        std::string ior = adplugin::manager::iorBroker();
-        if ( ! ior.empty() ) {
-            CORBA::ORB_var orb = adplugin::ORBManager::instance()->orb();
-            Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, ior );
-            if ( ! CORBA::is_nil( mgr ) ) {
-                brokerSession_ = mgr->getSession( L"acquire" );
-                pBrokerSessionEvent_ = new QBrokerSessionEvent;
-                brokerSession_->connect( "-user-", "-password-", "dataproc", pBrokerSessionEvent_->_this() );
-                connect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) )
-                         , this, SLOT(handle_portfolio_created( const QString )) );
-                connect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) )
-                         , this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
-            }
-        } else {
-            QMessageBox::critical( 0, "DataprocPlugin::extensionsInitialized"
-                                   , "can't find ior for adbroker -- maybe servant plugin load failed.");
+    adextension::iObjectRef * objref = ExtensionSystem::PluginManager::instance()->getObject< adextension::iObjectRef >();
+
+    if ( objref ) {
+
+        Broker::Manager_var mgr = objref->getBrokerManager();
+        if ( ! CORBA::is_nil( mgr ) ) {
+            brokerSession_ = mgr->getSession( L"acquire" );
+            pBrokerSessionEvent_ = new QBrokerSessionEvent;
+            brokerSession_->connect( "-user-", "-password-", "dataproc", pBrokerSessionEvent_->_this() );
+            connect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) )
+                     , this, SLOT(handle_portfolio_created( const QString )) );
+            connect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) )
+                     , this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
         }
-    } while(0);
+
+    } else {
+        QMessageBox::critical( 0, "DataprocPlugin::extensionsInitialized"
+                               , "can't find ior for adbroker -- maybe servant plugin load failed.");
+    }
 	mainWindow_->OnInitialUpdate();
 }
 
@@ -375,7 +376,8 @@ DataprocPlugin::aboutToShutdown()
 
         // destruct event sink object -->
         CORBA::release( pBrokerSessionEvent_->_this() ); // delete object reference
-        adplugin::ORBManager::instance()->deactivate( pBrokerSessionEvent_ );
+        adextension::iObjectRef * objref = ExtensionSystem::PluginManager::instance()->getObject< adextension::iObjectRef >();
+        objref->deactivate( pBrokerSessionEvent_ );
 
         delete pBrokerSessionEvent_;
         pBrokerSessionEvent_ = 0;
