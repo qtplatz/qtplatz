@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-// # include <ace/Init_ACE.h>
+# include <ace/Init_ACE.h>
 #include <ace/Singleton.h>
 #include "acewrapper.hpp"
 

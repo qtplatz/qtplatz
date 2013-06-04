@@ -14,7 +14,7 @@ include(../../boost.pri)
 include(../../ace_tao.pri)
 INCLUDEPATH *= $$OUT_PWD/../../libs
 
-QMAKE_CXXFLAGS *= -std=c++11
+!win32: QMAKE_CXXFLAGS *= -std=c++11
 
 win32: DEFINES += _SCL_SECURE_NO_WARNINGS
 

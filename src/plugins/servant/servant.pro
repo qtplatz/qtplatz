@@ -8,7 +8,7 @@ TARGET = servant
 TEMPLATE = lib
 PROVIDER = MS-Cheminformatics
 
-QMAKE_CXXFLAGS *= -std=c++11
+!win32: QMAKE_CXXFLAGS *= -std=c++11
 
 include(../../qtplatzplugin.pri)
 include(../../ace_tao.pri)
