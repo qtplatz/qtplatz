@@ -23,8 +23,8 @@
 **
 **************************************************************************/
 
-# include <ace/Init_ACE.h>
-# include <ace/Singleton.h>
+// # include <ace/Init_ACE.h>
+#include <ace/Singleton.h>
 #include "acewrapper.hpp"
 
 using namespace acewrapper;

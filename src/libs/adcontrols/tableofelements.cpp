@@ -23,6 +23,8 @@
  **
  **************************************************************************/
 
+#include <compiler/disable_unused_parameter.h>
+
 #include "tableofelements.hpp"
 #include "element.hpp"
 #include <algorithm>

@@ -23,6 +23,8 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_unused_parameter.h>
+
 #include "txtspectrum.hpp"
 #include <adportable/string.hpp>
 #include <adcontrols/description.hpp>

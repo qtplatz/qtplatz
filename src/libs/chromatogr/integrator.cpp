@@ -35,6 +35,8 @@
 //    printf("\n#define HEIGHT_5_SIGMA   %8.7lf", GAUSE(2.5) / GAUSE(0.0));
 //  }
 
+#include <compiler/disable_unused_parameter.h>
+
 #include "integrator.hpp"
 #include "averager.hpp"
 #include "differential.hpp"

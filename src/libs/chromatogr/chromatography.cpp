@@ -22,6 +22,8 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_unused_parameter.h>
+
 #include "chromatography.hpp"
 #include "integrator.hpp"
 #include <adcontrols/peakmethod.hpp>

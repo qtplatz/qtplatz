@@ -22,6 +22,8 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_unused_parameter.h>
+
 #include "peakresult.hpp"
 #include "baselines.hpp"
 #include "baseline.hpp"
