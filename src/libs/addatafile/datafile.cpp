@@ -22,7 +22,7 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-
+#include <compiler/disable_unused_parameter.h>
 #include "datafile.hpp"
 #include "copyin_visitor.hpp"
 #include "copyout_visitor.hpp"

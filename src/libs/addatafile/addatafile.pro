@@ -17,15 +17,16 @@ include(../../ace_tao.pri)
 
 INCLUDEPATH += ../../libs
 
-LIBS += -l$$qtLibraryTarget(acewrapper) \
+LIBS +=  -l$$qtLibraryTarget(adplugin) \
+         -l$$qtLibraryTarget(acewrapper) \
         -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adfs) \
         -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(adportable) \
-        -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adutils) \
         -l$$qtLibraryTarget(portfolio) \
-        -l$$qtLibraryTarget(xmlparser)
+        -l$$qtLibraryTarget(xmlparser) \
+        -l$$qtLibraryTarget(adplugin)
         
 !win32 {
   LIBS += -lboost_system -lboost_filesystem -lboost_serialization -lboost_date_time -ldl

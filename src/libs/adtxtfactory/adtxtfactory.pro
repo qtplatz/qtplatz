@@ -9,15 +9,15 @@ QT       -= gui
 TARGET = adtxtfactory
 TEMPLATE = lib
 include(../../adplugin.pri)
-#include(../../ace_tao.pri)
+include (../../boost.pri)
 
 INCLUDEPATH += ../../libs
-include (../../boost.pri)
+
 LIBS += -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adportable) \
-        -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(xmlparser) \
         -l$$qtLibraryTarget(portfolio) \
+        -l$$qtLibraryTarget(adplugin)
 
 !win32 {
   LIBS += -lboost_system -lboost_filesystem
