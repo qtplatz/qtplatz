@@ -59,7 +59,6 @@ HEADERS += adportable.hpp \
     spectrum_processor.hpp \
     string.hpp \
     utf.hpp \
-    disable_warnings.h \
     lifecycleframe.hpp \
     timer.hpp \
     profile.hpp
