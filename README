@@ -1,4 +1,9 @@
+5/June/2013
+In order to success build with c++11 enabled for whole project, make sure boost is also built with c++11;
 
+./bootstrap
+sudo ./b2 cxxflags=-std=c++11 install
+------
 VS2010 Support (on trial)
 
 In order to build qtplatz by VS2010 (a.k.a. vc10)
