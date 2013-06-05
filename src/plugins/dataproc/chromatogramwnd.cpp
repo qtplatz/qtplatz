@@ -41,7 +41,7 @@
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 #include <adportable/configuration.hpp>
-//#include <adplugin/adplugin.hpp>
+
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/plugin_ptr.hpp>

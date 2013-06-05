@@ -18,10 +18,6 @@ SUBDIRS   = \
     qtwrapper \
     adwplot \
     adplugin \
-    adtxtfactory \
-    addatafile \
-    qtwidgets \
-    qtwidgets2 \
     adchem \
     adsequence \
     adorbmgr

@@ -6,8 +6,6 @@
 
 QT       -= gui
 
-TARGET = adtxtfactory
-TEMPLATE = lib
 include(../../adplugin.pri)
 include (../../boost.pri)
 
@@ -25,13 +23,12 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
 
 DEFINES += ADTXTFACTORY_LIBRARY
 
-SOURCES += adtxtfactory.cpp \
+SOURCES += adtextfile.cpp \
     datafile.cpp \
     datafile_factory.cpp \
     txtspectrum.cpp
 
-HEADERS += adtxtfactory.hpp \
-    adtxtfactory_global.h \
+HEADERS += adtextfile.hpp \
     datafile.hpp \
     datafile_factory.hpp \
     txtspectrum.hpp

@@ -4,8 +4,6 @@
 #
 #-------------------------------------------------
 
-TARGET = servant
-TEMPLATE = lib
 PROVIDER = MS-Cheminformatics
 
 !win32: QMAKE_CXXFLAGS *= -std=c++11
@@ -30,7 +28,6 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
 !greaterThan(QT_MAJOR_VERSION, 4): LIBS += -l$$qtLibraryTarget(Core)
 
 DEFINES += SERVANT_LIBRARY
-INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants
 
 SOURCES += logger.cpp \
         orbservantmanager.cpp \

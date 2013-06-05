@@ -15,8 +15,6 @@ include(../../boost.pri)
 include(../../ace_tao.pri)
 include(../../qwt.pri)
 
-INCLUDEPATH *= $$OUT_PWD/../../libs ../../servants ../ $$(QWT)/include
-
 LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(adutils) -l$$qtLibraryTarget(adinterface) \

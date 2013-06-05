@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -23,16 +23,33 @@
 **
 **************************************************************************/
 
-#ifndef ADTXTFACTORY_H
-#define ADTXTFACTORY_H
+#include "adtextfile.hpp"
+#include "datafile_factory.hpp"
 
-#include "adtxtfactory_global.h"
+// #if defined WIN32
+// #  if defined _DEBUG
+// #     pragma comment(lib, "adcontrolsd.lib")
+// #     pragma comment(lib, "adportabled.lib")
+// #     pragma comment(lib, "xmlparserd.lib")
+// #     pragma comment(lib, "portfoliod.lib")
+// #  else
+// #     pragma comment(lib, "adcontrols.lib")
+// #     pragma comment(lib, "adportable.lib")
+// #     pragma comment(lib, "xmlparser.lib")
+// #     pragma comment(lib, "portfolio.lib")
+// #  endif
+// #endif
 
-/*
-class ADTXTFACTORYSHARED_EXPORT adtxtfactory {
-public:
-    adtxtfactory();
-};
-*/
+namespace adcontrols {
+    class datafile_factory;
+}
 
-#endif // ADTXTFACTORY_H
+extern "C" {
+    Q_DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
+}
+
+adplugin::plugin *
+adplugin_plugin_instance()
+{
+    return adtxtfactory::datafile_factory::instance();
+}

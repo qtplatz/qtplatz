@@ -123,6 +123,7 @@ macx {
 
 # put .pro file directory in INCLUDEPATH
 CONFIG += include_source_dir
+INCLUDEPATH *= $$PWD/libs $$PWD/adplugins
 
 contains(QT_CONFIG, reduce_exports):CONFIG += hide_symbols
 
