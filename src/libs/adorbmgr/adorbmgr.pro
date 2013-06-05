@@ -8,6 +8,9 @@ QT       -= core gui
 
 TARGET = adorbmgr
 TEMPLATE = lib
+include(../../qtplatzlibrary.pri)
+include(../../ace_tao.pri)
+include(../../boost.pri)
 
 DEFINES += ADORBMGR_LIBRARY
 

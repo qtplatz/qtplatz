@@ -89,9 +89,11 @@ DataprocManager::mainWindow() const
 void
 DataprocManager::init( const adportable::Configuration& config, const std::wstring& apppath )
 {
-    pImpl_->init();
+	(void)apppath;
 
-    DataprocManagerImpl& m = *pImpl_;
+	pImpl_->init();
+
+    //DataprocManagerImpl& m = *pImpl_;
 
     const adportable::Configuration * pTab = adportable::Configuration::find( config, L"ProcessMethodEditors" );
     if ( pTab ) {

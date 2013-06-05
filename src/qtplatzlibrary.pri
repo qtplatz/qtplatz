@@ -3,6 +3,7 @@ TARGET = $$QTC_LIB_NAME
 
 include(../qtplatz.pri)
 include(config.pri)
+INCLUDEPATH *= $$PWD/libs $$PWD/adplugins
 
 # use precompiled header for libraries by default
 # isEmpty(PRECOMPILED_HEADER):PRECOMPILED_HEADER = $$PWD/shared/qtplatz_pch.h
