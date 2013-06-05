@@ -45,14 +45,15 @@
 #include <acewrapper/constants.hpp>
 #include <acewrapper/brokerhelper.hpp>
 
-#include <adbroker/adbroker.hpp>
 #include <adcontrols/massspectrometerbroker.hpp>
-#include <adcontroller/adcontroller.hpp>
 #include <adextension/iobjectref.hpp>
 #include <adinterface/instrumentC.h>
 #include <adinterface/brokerclientC.h>
 
 #include <adplugin/loader.hpp>
+#include <adplugin/plugin.hpp>
+#include <adplugin/plugin_ptr.hpp>
+#include <adplugin/orbfactory.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/constants.hpp>
 

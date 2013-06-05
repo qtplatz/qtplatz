@@ -48,7 +48,6 @@
 #include <adcontrols/trace.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adcontrols/timeutil.hpp>
-#include <adcontroller/adcontroller.hpp>
 #include <adextension/iobjectref.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
@@ -189,8 +188,8 @@ AcquirePlugin::AcquirePlugin() : manager_(0)
                                , actionStop_(0)
                                , actionSnapshot_(0)
                                , actionInject_(0)
-                               , traceBox_(0) 
                                , pConfig_( 0 )
+                               , traceBox_( 0 ) 
 {
 }
 
