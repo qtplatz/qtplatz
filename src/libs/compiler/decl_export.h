@@ -28,9 +28,11 @@
 #if defined(_MSC_VER)
 #  define DECL_EXPORT __declspec(dllexport)
 #  define DECL_IMPORT __declspec(dllimport)
+#elif defined __GNUC__
+#  define DECL_EXPORT __attribute__((visibility("default")))
+#  define DECL_HIDDEN __attribute__((visibility("hidden")))
+#  define DECL_IMPORT /* nothing */
 #else
 #  define DECL_EXPORT /* nothing */
 #  define DECL_IMPORT /* nothing */
 #endif
-// #      define DECL_EXPORT     __attribute__((visibility("default")))
-// #      define DECL_HIDDEN     __attribute__((visibility("hidden")))

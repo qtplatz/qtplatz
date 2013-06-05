@@ -25,7 +25,7 @@
 #include "orbmgr.hpp"
 
 #include <adinterface/brokerC.h>
-#include <tao/utils/ORB_Manager.h>
+#include <tao/Utils/ORB_Manager.h>
 #include <adportable/debug.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread/barrier.hpp>
