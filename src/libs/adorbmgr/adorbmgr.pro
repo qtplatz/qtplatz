@@ -14,10 +14,32 @@ include(../../boost.pri)
 
 DEFINES += ADORBMGR_LIBRARY
 
-SOURCES += adorbmgr.cpp
+SOURCES += adorbmgr.cpp \
+           orbmgr.cpp
 
 HEADERS += adorbmgr.h\
-        adorbmgr_global.h
+        adorbmgr_global.h \
+        orbmgr.hpp
+
+LIBS += -l$$qtLibraryTarget(acewrapper) \
+        -l$$qtLibraryTarget(adinterface) \
+        -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(qtwrapper) \
+        -l$$qtLibraryTarget(xmlparser)
+
+!macx {
+  LIBS += -l$$qtLibraryTarget( TAO_Utils ) \
+          -l$$qtLibraryTarget( TAO_PortableServer ) \
+          -l$$qtLibraryTarget( TAO_AnyTypeCode ) \
+          -l$$qtLibraryTarget( TAO ) \
+          -l$$qtLibraryTarget( ACE )
+} else {
+  LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
+}
+
+#!win32 {
+#  LIBS *= -lboost_serialization -lboost_date_time -lboost_filesystem -lboost_system
+#}
 
 unix:!symbian {
     maemo5 {
