@@ -48,7 +48,7 @@
 #include <adcontrols/trace.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adcontrols/timeutil.hpp>
-#include <adextension/iobjectref.hpp>
+#include <adorbmgr/orbmgr.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
@@ -399,11 +399,11 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 void
 AcquirePlugin::extensionsInitialized()
 {
-    adextension::iObjectRef * objref = ExtensionSystem::PluginManager::instance()->getObject< adextension::iObjectRef >();
+    adorbmgr::orbmgr * orbmgr = adorbmgr::orbmgr::instance();
 
-    if ( objref ) {
+    if ( orbmgr ) {
 
-        Broker::Manager_var mgr = objref->getBrokerManager();
+        Broker::Manager_var mgr = orbmgr->getBrokerManager();
 
         if ( ! CORBA::is_nil( mgr ) )
             pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
@@ -434,11 +434,7 @@ AcquirePlugin::actionConnect()
 
     if ( CORBA::is_nil( session_.in() ) ) {
 
-        adextension::iObjectRef * objref = ExtensionSystem::PluginManager::instance()->getObject< adextension::iObjectRef >();
-        if ( objref == 0 )
-            return;
-
-        Broker::Manager_var broker = objref->getBrokerManager();
+		Broker::Manager_var broker = adorbmgr::orbmgr::getBrokerManager();
 
         if ( ! CORBA::is_nil( broker ) ) {
 
@@ -529,21 +525,15 @@ AcquirePlugin::actionDisconnect()
 {
     if ( ! CORBA::is_nil( session_ ) ) {
 
-        adextension::iObjectRef * objref = ExtensionSystem::PluginManager::instance()->getObject< adextension::iObjectRef >();
-
         observer_ = session_->getObserver();
         if ( ! CORBA::is_nil( observer_.in() ) ) {
 			disconnect( masterObserverSink_.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
 				, this, SLOT( handle_update_data(unsigned long, long) ) );
 			masterObserverSink_->disconnect();
-
-            adextension::iObjectRef * objref = ExtensionSystem::PluginManager::instance()->getObject< adextension::iObjectRef >();
-            if ( objref )
-                objref->deactivate( masterObserverSink_->_this() );
+			adorbmgr::orbmgr::deactivate( masterObserverSink_->_this() );
         }
         session_->disconnect( receiver_i_.get()->_this() );
-        if ( objref )
-            objref->deactivate( receiver_i_->_this() );
+        adorbmgr::orbmgr::deactivate( receiver_i_->_this() );
     }
 }
     

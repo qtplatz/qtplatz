@@ -58,7 +58,7 @@
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/targetingmethod.hpp>
-#include <adextension/iobjectref.hpp>
+#include <adorbmgr/orbmgr.hpp>
 #include <boost/filesystem/path.hpp>
 #include <stack>
 #include <qdebug.h>
@@ -488,9 +488,9 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
 SignalObserver::Observer_ptr
 Dataprocessor::observer()
 {
-    adextension::iObjectRef * objref = ExtensionSystem::PluginManager::instance()->getObject< adextension::iObjectRef >();
-	if ( objref && fileObserver_ ) {
-		CORBA::Object_var obj = objref->poa()->servant_to_reference( fileObserver_.get() );
+	adorbmgr::orbmgr * orbmgr = adorbmgr::orbmgr::instance();
+	if ( orbmgr && fileObserver_ ) {
+		CORBA::Object_var obj = orbmgr->root_poa()->servant_to_reference( fileObserver_.get() );
 		return SignalObserver::Observer::_narrow( obj );
 	}
 	return 0;

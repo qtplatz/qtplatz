@@ -31,7 +31,6 @@
 #include <tao/ORB.h>
 #include <tao/PortableServer/PortableServer.h>
 
-
 class TAO_ORB_Manager;
 
 namespace acewrapper {
@@ -45,9 +44,9 @@ namespace acewrapper {
         }
 
         void initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::POAManager_ptr mgr ) {
-            orb_ = CORBA::ORB::_duplicate(orb);
-            poa_ = PortableServer::POA::_duplicate(poa);
-            poa_manager_ = PortableServer::POAManager::_duplicate(mgr);
+            orb_ = orb; // already _duplicate'ed in tao
+            poa_ = poa;
+            poa_manager_ = mgr;
         }
 	
         inline void activate() {
@@ -67,7 +66,8 @@ namespace acewrapper {
 	
         inline CORBA::ORB_ptr orb() { return CORBA::ORB::_duplicate( orb_.in() ); }
         inline PortableServer::POA_ptr poa() { return PortableServer::POA::_duplicate( poa_.in() ); }
-        inline PortableServer::POAManager_ptr poa_manager() { return PortableServer::POAManager::_duplicate( poa_manager_.in() ); }
+        inline PortableServer::POAManager_ptr poa_manager() { 
+            return PortableServer::POAManager::_duplicate( poa_manager_.in() ); }
 	
         inline operator typename T::_stub_ptr_type () { return impl_._this(); }
         inline const std::string& ior() const { return id_; }

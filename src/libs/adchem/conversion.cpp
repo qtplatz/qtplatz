@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "conversion.hpp"
-
+#include <compiler/disable_unused_parameter.h>
 #include <openbabel/obconversion.h>
 #include <openbabel/mol.h>
 

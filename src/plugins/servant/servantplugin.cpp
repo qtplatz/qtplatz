@@ -47,7 +47,7 @@
 #include <acewrapper/brokerhelper.hpp>
 
 #include <adcontrols/massspectrometerbroker.hpp>
-#include <adextension/iobjectref.hpp>
+#include <adorbmgr/orbmgr.hpp>
 #include <adinterface/instrumentC.h>
 #include <adinterface/brokerclientC.h>
 
@@ -80,46 +80,6 @@ using namespace servant;
 using namespace servant::internal;
 
 ServantPlugin * ServantPlugin::instance_ = 0;
-
-namespace servant {
-
-    class iObjectRefImpl : public adextension::iObjectRef {
-    public:
-        iObjectRefImpl() {}
-
-        virtual CORBA::ORB_ptr orb() {
-            return adorbmgr::orbmgr::instance() ? adorbmgr::orbmgr::instance()->orb() : 0;
-        }
-        virtual PortableServer::POA_ptr poa() {
-            return adorbmgr::orbmgr::instance() ? adorbmgr::orbmgr::instance()->root_poa() : 0;
-        }
-        virtual Broker::Manager_ptr getBrokerManager() {
-            return ServantPlugin::instance()->getBrokerManager();
-        }
-        virtual bool deactivate( CORBA::Object_ptr obj ) {
-            try {
-				PortableServer::POA_ptr poa = this->poa();
-                PortableServer::ObjectId_var object_id = poa->reference_to_id( obj );
-                poa->deactivate_object( object_id );
-            } catch ( CORBA::Exception& ex ) {
-                adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
-                return false;
-            }
-            return true;
-        }
-        virtual bool deactivate( PortableServer::ServantBase * p_servant ) {
-            try {
-				PortableServer::POA_ptr poa = this->poa();
-                PortableServer::ObjectId_var object_id = poa->servant_to_id( p_servant );
-                poa->deactivate_object( object_id );
-            } catch ( CORBA::Exception& ex ) {
-                adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
-                return false;
-            }
-            return true;
-        }
-    };
-}
 
 ServantPlugin::~ServantPlugin()
 {
@@ -230,6 +190,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                 *error_message = "Broker::Manager cannot be created";
                 return false;
             }
+			adorbmgr::orbmgr::instance()->setBrokerManager( pImpl_->manager_.in() );
             try {
 				pImpl_->manager_->register_ior( adBroker->object_name(), iorBroker.c_str() );
 				pImpl_->manager_->register_object( adBroker->object_name(), obj );
@@ -240,8 +201,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         }
     }
     pImpl_->init_debug_adbroker();
-
-    addObject( new iObjectRefImpl );
 
     // ----------------------- initialize corba servants ------------------------------
     do {
