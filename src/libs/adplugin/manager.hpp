@@ -47,7 +47,8 @@ namespace adplugin {
 
     class ADPLUGINSHARED_EXPORT manager {
         internal::manager_data * d_;
-    protected:
+		static manager * instance_;
+	protected:
         manager();
         ~manager();
     public:
@@ -60,6 +61,7 @@ namespace adplugin {
         virtual const char * lookup_ior( const std::string& name ) = 0;
 	
         bool install( QLibrary&, const std::string& adpluginspec );
+		void populated();
         plugin_ptr select_iid( const char * regex );
         plugin_ptr select_clsid( const char * regex );
         size_t select_iids( const char * regex, std::vector< plugin_ptr >& vec );

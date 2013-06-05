@@ -63,6 +63,8 @@ namespace adplugin {
     class plugin_data {
         adplugin::plugin_ptr plugin_;
     public:
+		plugin_data() {
+		}
         plugin_data( adplugin::plugin_ptr ptr ) : plugin_( ptr ) {
         }
         plugin_data( const plugin_data& t ) : plugin_( t.plugin_ ) {
@@ -90,9 +92,10 @@ namespace adplugin {
         public:
             virtual ~manager_data() {}
             manager_data() {}
+            typedef std::map< std::string, plugin_data > map_type;
             typedef std::vector< plugin_data > vector_type;
-            typedef std::map< std::string, vector_type > map_type;
             bool install( QLibrary&, const std::string& adplugispec );
+			void populated();
             plugin_ptr select_iid( const char * regex );
             plugin_ptr select_clsid( const char * regex );
             size_t select_iids( const char * regex, std::vector< plugin_ptr >& );
@@ -102,6 +105,7 @@ namespace adplugin {
             void visit( adplugin::plugin * plugin, const char * adpluginspec );
         private:
             map_type plugins_;
+            vector_type additionals_; // if shared-object contains more than two plugins
         };
     }
 
@@ -118,11 +122,15 @@ namespace adplugin {
     };
 }
 ////////////////////////////////////
+
+manager * manager::instance_ = 0;
+
 manager *
 manager::instance()
 {
-    typedef ACE_Singleton< manager_impl, ACE_Recursive_Thread_Mutex > impl;
-    return impl::instance();
+	if ( instance_ == 0 )
+		instance_ = new manager_impl;
+	return instance_;
 }
 
 std::string
@@ -195,6 +203,12 @@ manager::install( QLibrary& lib, const std::string& adpluginspec )
     return d_->install( lib, adpluginspec );
 }
 
+void
+manager::populated()
+{
+	return d_->populated();
+}
+
 plugin_ptr
 manager::select_iid( const char * regex )
 {
@@ -229,23 +243,25 @@ manager_data::visit( adplugin::plugin * plugin, const char * adpluginspec )
     if ( adpluginspec == 0 || plugin == 0 )
         return;
 
-#if defined _DEBUG || defined DEBUG
-	// adportable::debug(__FILE__, __LINE__) << "=============== visit ===============================";
-    // for ( auto it = plugins_.begin(); it != plugins_.end(); ++it ) {
-    //     adplugin::plugin * ptr = it->second[0].p();
-    //     std::cout << __FILE__ << "(" << __LINE__ << ")" << std::hex << (unsigned(ptr))
-    //               << ", " << it->second[0].iid() << std::endl;
-    // }
-#endif
-
     // make it unique
-    for ( map_type::const_iterator it = plugins_.begin(); it != plugins_.end(); ++it ) {
-        BOOST_FOREACH( const plugin_data& d, it->second ) {
-            if ( d == (*plugin) )
-                return;
-        }
+	auto it = std::find_if( plugins_.begin(), plugins_.end(), [&](const map_type::value_type& d){
+		return d.second == (*plugin);
+	});
+	if ( it == plugins_.end() )
+		additionals_.push_back( plugin_data( plugin ) );
+}
+
+void
+manager_data::populated()
+{
+#if defined _DEBUG || defined DEBUG
+    std::cout << "=============== install ===============================" << std::endl;
+    for ( auto it = plugins_.begin(); it != plugins_.end(); ++it ) {
+        adplugin::plugin * xptr = it->second.p();
+        std::cout << "\t" << std::hex << unsigned(xptr) << ", " << xptr->iid() << std::endl;
     }
-    plugins_[ adpluginspec ].push_back( plugin_data( plugin ) );
+    std::cout << "=============== end install ===========================" << std::endl;
+#endif
 }
 
 bool
@@ -268,16 +284,9 @@ manager_data::install( QLibrary& lib, const std::string& adpluginspec )
             adplugin::plugin_ptr ptr( pptr, false ); // ref count start with 1 so don't increment when instatnce created
             if ( ptr ) {
                 ptr->clsid_ = adpluginspec;
-				plugins_[ adpluginspec ].push_back( plugin_data( ptr ) );
+				plugins_[ adpluginspec ] = plugin_data( ptr );
                 ptr->accept( *this, adpluginspec.c_str() );
-#if defined _DEBUG || defined DEBUG
-                std::cout << "=============== install ===============================" << std::endl;
-                for ( auto it = plugins_.begin(); it != plugins_.end(); ++it ) {
-                    adplugin::plugin * xptr = it->second[0].p();
-                    std::cout << std::hex << unsigned(xptr) << ", " << it->second[0].iid() << std::endl;
-                }
-                std::cout << "=============== end install ===============================" << std::endl;
-#endif
+
                 return true;
             }
         }
@@ -290,34 +299,18 @@ manager_data::select_iid( const char * regex )
 {
 	boost::regex re( regex );
     boost::cmatch matches;
-    
-	for ( map_type::const_iterator it = plugins_.begin(); it != plugins_.end(); ++it ) {
-		auto itr = std::find_if( it->second.begin(), it->second.end(), [&]( const adplugin::plugin_data& d ) {
-                return boost::regex_match( d.iid(), matches, re );
-            } );
-		if ( itr != it->second.end() )
-			return itr->plugin();
-	}
+
+	auto itr = std::find_if( plugins_.begin(), plugins_.end(), [&]( const map_type::value_type& m ){
+		return boost::regex_match( m.second.iid(), matches, re );
+	});
+	if ( itr != plugins_.end() )
+		return itr->second.plugin();
     return 0;
 }
 
 plugin_ptr
 manager_data::select_clsid( const char * regex )
 {
-    for ( map_type::const_iterator it = plugins_.begin(); it != plugins_.end(); ++it ) {
-        BOOST_FOREACH( const plugin_data& d, it->second ) {
-            boost::regex re( regex );
-            boost::cmatch matches;
-            if ( boost::regex_match( d.clsid(), matches, re ) ) {
-#if defined _DEBUG || defined DEBUG
-                for ( size_t i = 0; i < matches.size(); ++i )
-                    std::cout << "matches[" << i << "]" << matches[i].first
-                              << ", " << matches[i].second << std::endl;
-#endif 
-                return d.plugin();
-            }
-        }
-    }
     return 0;
 }
 
@@ -325,35 +318,20 @@ size_t
 manager_data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 {
 	boost::regex re( regex );
+	boost::cmatch matches;
 
-	for ( auto it = plugins_.begin(); it != plugins_.end(); ++it ) {
-		vector_type& plugin_vec = it->second;
-		std::for_each( plugin_vec.begin(), plugin_vec.end(), [&]( const adplugin::plugin_data& d ){
-			boost::cmatch matches;
-			if ( boost::regex_match( d.iid(), matches, re ) )
-				vec.push_back( d.plugin() );
+	std::for_each( plugins_.begin(), plugins_.end(), [&]( const map_type::value_type& m ){
+		const char * tgt = m.second.iid();
+		std::cout << "regex: " << regex << std::endl;
+		std::cout << "targt: " << tgt << std::endl;
+		if ( boost::regex_match( m.second.iid(), matches, re ) )
+			vec.push_back( m.second.plugin() );
 		} );
-    }
-
     return vec.size();
 }
 
 size_t
 manager_data::select_clsids( const char * regex, std::vector< plugin_ptr >& vec )
 {
-    for ( map_type::const_iterator it = plugins_.begin(); it != plugins_.end(); ++it ) {
-        BOOST_FOREACH( const plugin_data& d, it->second ) {
-            boost::regex re( regex );
-            boost::cmatch matches;
-            if ( boost::regex_match( d.clsid(), matches, re ) ) {
-#if defined _DEBUG || defined DEBUG
-                for ( size_t i = 0; i < matches.size(); ++i )
-                    std::cout << "matches[" << i << "]" << matches[i].first
-                              << ", " << matches[i].second << std::endl;
-#endif 
-                vec.push_back( d.plugin() );
-            }
-        }
-    }
-    return vec.size();
+    return 0;
 }

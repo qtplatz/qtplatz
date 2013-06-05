@@ -75,6 +75,7 @@ loader::populate( const wchar_t * directory )
 		}
 
 	}
+	manager::instance()->populated();
 }
 
 void
