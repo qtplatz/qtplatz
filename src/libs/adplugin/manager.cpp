@@ -67,8 +67,12 @@ namespace adplugin {
         }
         plugin_data( const plugin_data& t ) : plugin_( t.plugin_ ) {
         }
-        const char * clsid() const { return plugin_->clsid(); }
-        const char * iid() const { return plugin_->iid(); }
+        const char * clsid() const { 
+			return plugin_->clsid();
+		}
+        const char * iid() const { 
+			return plugin_->iid(); 
+		}
         adplugin::plugin_ptr plugin() const { return plugin_; }
         bool operator == ( const adplugin::plugin& t ) const {
             if ( plugin_.get() == &t ) // equal address
@@ -294,22 +298,28 @@ manager_data::select_clsid( const char * regex )
 size_t
 manager_data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 {
-    for ( map_type::const_iterator it = plugins_.begin(); it != plugins_.end(); ++it ) {
-        BOOST_FOREACH( const plugin_data& d, it->second ) {
+	boost::regex re( regex );
+
 #if defined _DEBUG || defined DEBUG
-			std::cout << "select_iids regex(" << d.iid() << "," << regex << ")" << std::endl;
+	adportable::debug(__FILE__, __LINE__) << "==============================================";
+	adportable::debug(__FILE__, __LINE__) << "select_iids(" << regex << ", vec[" << vec.size() << "])";
 #endif
-            boost::regex re( regex );
-            boost::cmatch matches;
-            if ( boost::regex_match( d.iid(), matches, re ) ) {
+
+	for ( auto it = plugins_.begin(); it != plugins_.end(); ++it ) {
+		vector_type& plugin_vec = it->second;
+		std::for_each( plugin_vec.begin(), plugin_vec.end(), [&]( const adplugin::plugin_data& d ){
+			boost::cmatch matches;
+			if ( boost::regex_match( d.iid(), matches, re ) ) {
 #if defined _DEBUG || defined DEBUG
-                for ( size_t i = 0; i < matches.size(); ++i )
-                    std::cout << "matches[" << i << "]" << matches[i].first
-                              << ", " << matches[i].second << std::endl;
-#endif 
-                vec.push_back( d.plugin() );
-            }
-        }
+				adportable::debug(__FILE__, __LINE__) << "---> match regex(" << d.iid() << "," << regex << ")";
+#endif
+				vec.push_back( d.plugin() );
+			} else {
+#if defined _DEBUG || defined DEBUG
+				adportable::debug(__FILE__, __LINE__) << "---> not matched(" << d.iid() << ")";
+#endif
+			}
+		} );
     }
     return vec.size();
 }
