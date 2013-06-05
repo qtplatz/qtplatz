@@ -25,24 +25,38 @@
 #include "plugin.hpp"
 #include "orbfactory.hpp"
 #include "orbservant.hpp"
+#include <adportable/debug.hpp>
 
 using namespace adplugin;
 
+plugin::~plugin()
+{
+    adportable::debug(__FILE__, __LINE__) << "##### plugin dtor called #####";
+}
+
 plugin::plugin() : ref_count_( 1 )
 {
+}
+
+plugin::plugin( const plugin& t ) : clsid_( t.clsid_ )
+                                  , ref_count_( t.ref_count_ )
+{
+    adportable::debug(__FILE__, __LINE__) << "==== plugin copy called #####";
 }
 
 void
 plugin::add_ref()
 {
     ++ref_count_;
+    adportable::debug(__FILE__, __LINE__) << "===== plugin add_ref(" << ref_count_ << ") #####";
 }
 
 void 
 plugin::release()
 {
+    adportable::debug(__FILE__, __LINE__) << "===== plugin release(" << ref_count_ << ") #####";
     if ( ref_count_ ) {
         if ( --ref_count_ == 0 )
-            dispose();
-    }
+            delete this;
+     }
 }

@@ -309,18 +309,11 @@ manager_data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 		vector_type& plugin_vec = it->second;
 		std::for_each( plugin_vec.begin(), plugin_vec.end(), [&]( const adplugin::plugin_data& d ){
 			boost::cmatch matches;
-			if ( boost::regex_match( d.iid(), matches, re ) ) {
-#if defined _DEBUG || defined DEBUG
-				adportable::debug(__FILE__, __LINE__) << "---> match regex(" << d.iid() << "," << regex << ")";
-#endif
+			if ( boost::regex_match( d.iid(), matches, re ) )
 				vec.push_back( d.plugin() );
-			} else {
-#if defined _DEBUG || defined DEBUG
-				adportable::debug(__FILE__, __LINE__) << "---> not matched(" << d.iid() << ")";
-#endif
-			}
 		} );
     }
+
     return vec.size();
 }
 
