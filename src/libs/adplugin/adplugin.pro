@@ -54,7 +54,6 @@ SOURCES += \
 HEADERS += adplugin.hpp \
     adplugin_global.h \
     imonitor.hpp \
-    icontrolmethodeditor.hpp \
     widget_factory.hpp \
     lifecycle.hpp \
     qreceiver_i.hpp \

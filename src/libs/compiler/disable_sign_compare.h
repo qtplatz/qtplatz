@@ -26,3 +26,6 @@
 # pragma GCC diagnostic ignored "-Wsign-compare"
 #endif
 
+#if defined _MSC_VER
+# pragma warning( disable: 4018 )
+#endif

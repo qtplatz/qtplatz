@@ -23,6 +23,7 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_warnings.h>
 #include <compiler/disable_sign_compare.h>
 #include <compiler/disable_unused_parameter.h>
 #include <compiler/disable_unused_function.h>
@@ -32,13 +33,8 @@
 #include <limits>
 #include <cstring>
 #include "float.hpp"
-# if defined _MSC_VER
-# pragma warning(disable: 4996)
-# endif
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
-# if defined _MSC_VER
-# endif
 
 namespace adportable {
 

@@ -27,7 +27,10 @@
 
 #include <sstream>
 
-namespace boost { namespace posix_time { class ptime; } }
+namespace boost { 
+	namespace posix_time { class ptime; } 
+	namespace system { class error_code; }
+}
 
 namespace adportable {
 
@@ -54,6 +57,7 @@ namespace adportable {
         debug& operator << ( unsigned long );
         debug& operator << ( float );
         debug& operator << ( double );
+		debug& operator << ( const boost::system::error_code& );
     };
 
 }

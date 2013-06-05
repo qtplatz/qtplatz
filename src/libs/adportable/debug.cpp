@@ -33,6 +33,7 @@
 #include <windows.h>
 #endif
 #include <boost/noncopyable.hpp>
+#include <boost/system/error_code.hpp>
 
 using namespace adportable;
 
@@ -187,3 +188,9 @@ debug::operator << ( double d )
     return *this;
 }
 
+debug&
+debug::operator<< ( const boost::system::error_code& error )
+{
+	o_ << error.message();
+	return *this;
+}

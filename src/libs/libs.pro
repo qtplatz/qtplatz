@@ -23,7 +23,8 @@ SUBDIRS   = \
     qtwidgets \
     qtwidgets2 \
     adchem \
-    adsequence
+    adsequence \
+    adorbmgr
 
 # adfs : boost
 # xmlparser : none

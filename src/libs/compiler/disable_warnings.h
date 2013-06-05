@@ -32,6 +32,9 @@
 
 # pragma warning ( disable: 4805 )
 # define WARNING_4805
+
 #endif
+
+
 
 #endif // DISABLE_WARNINGS_H

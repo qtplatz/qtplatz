@@ -24,13 +24,7 @@
 **************************************************************************/
 
 #include "reactorthread.hpp"
-#include <ace/Thread_Manager.h>
 #include <ace/Reactor.h>
-#include <ace/Singleton.h>
-#include <ace/Recursive_Thread_Mutex.h>
-#include <ace/Semaphore.h>
-#include <ace/OS_NS_string.h>
-#include <acewrapper/mutex.hpp>
 #include <adportable/debug.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
@@ -66,7 +60,6 @@ ReactorThread::spawn()
     if ( thread_ )
         return false;
     thread_ = new boost::thread( boost::bind( &ReactorThread::run_event_loop, this ) );
-	//reactor_->owner( thread_->get_id() );
     return true;
 }
 

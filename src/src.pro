@@ -4,7 +4,7 @@ CONFIG   += ordered
 SUBDIRS = \
     libs \
     app \
-    servants \
+    adplugins \
     plugins
 
 app.depends = libs

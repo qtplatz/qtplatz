@@ -24,6 +24,7 @@
 
 #include "chopper.hpp"
 
+#include <compiler/disable_unused_parameter.h>
 #include <openbabel/bond.h>
 #include <openbabel/mol.h>
 

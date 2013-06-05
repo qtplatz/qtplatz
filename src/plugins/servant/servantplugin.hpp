@@ -26,7 +26,7 @@
 #pragma once
 
 #include <extensionsystem/iplugin.h>
-#include <adportable/disable_warnings.h>
+//#include <adportable/disable_warnings.h>
 #include <adinterface/brokerC.h>
 #include <adplugin/orbservant.hpp>
 #include <vector>
