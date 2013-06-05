@@ -8,6 +8,9 @@ win32 {
 } else {
     QMAKE_CXXFLAGS *= -std=c++11
 }
+macx {
+     QMAKE_CXXFLAGS += -stdlib=libc++
+}
 
 BOOST_VERSION=boost-1_53
 ACE_VERSION=6.1.8

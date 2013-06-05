@@ -24,6 +24,8 @@
 **************************************************************************/
 
 #include <compiler/disable_unused_parameter.h>
+#include <compiler/workaround.h>
+
 #include "lifecycle_frame_serializer.hpp"
 #include <adportable/protocollifecycle.hpp>
 #include <acewrapper/outputcdr.hpp>

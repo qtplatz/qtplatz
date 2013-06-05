@@ -23,6 +23,7 @@
 **
 **************************************************************************/
 
+#include <compiler/workaround.h>
 #include <compiler/disable_unused_parameter.h>
 
 #include "chemicalformula.hpp"
