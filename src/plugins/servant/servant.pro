@@ -17,7 +17,8 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adplugin) \
     -l$$qtLibraryTarget(qtwrapper) -l$$qtLibraryTarget(adbroker) \
     -l$$qtLibraryTarget(adextension) \
-    -l$$qtLibraryTarget(xmlparser)
+    -l$$qtLibraryTarget(xmlparser) \
+    -l$$qtLibraryTarget(adorbmgr)
 
 
 !win32 {
@@ -29,8 +30,10 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
 
 DEFINES += SERVANT_LIBRARY
 
+#  orbservantmanager.cpp --> to be deleted
+#  orbservantmanager.hpp --> to be deleted
+
 SOURCES += logger.cpp \
-        orbservantmanager.cpp \
         outputwindow.cpp \
         servant.cpp \
         servantmode.cpp \
@@ -39,7 +42,6 @@ SOURCES += logger.cpp \
 
 HEADERS += servant_global.h \
         logger.hpp \
-        orbservantmanager.hpp \
         outputwindow.hpp \
         servant.hpp \
         servantmode.hpp \

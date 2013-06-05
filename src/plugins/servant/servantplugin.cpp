@@ -28,7 +28,8 @@
 #include "logger.hpp"
 #include "outputwindow.hpp"
 #include "servantpluginimpl.hpp"
-#include "orbservantmanager.hpp"
+
+#include <adorbmgr/orbmgr.hpp>
 
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
@@ -73,6 +74,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
+#include <boost/thread/barrier.hpp>
 
 using namespace servant;
 using namespace servant::internal;
@@ -86,10 +88,10 @@ namespace servant {
         iObjectRefImpl() {}
 
         virtual CORBA::ORB_ptr orb() {
-            return servant::ORBServantManager::instance() ? servant::ORBServantManager::instance()->orb() : 0;
+            return adorbmgr::orbmgr::instance() ? adorbmgr::orbmgr::instance()->orb() : 0;
         }
         virtual PortableServer::POA_ptr poa() {
-            return servant::ORBServantManager::instance() ? servant::ORBServantManager::instance()->root_poa() : 0;
+            return adorbmgr::orbmgr::instance() ? adorbmgr::orbmgr::instance()->root_poa() : 0;
         }
         virtual Broker::Manager_ptr getBrokerManager() {
             return ServantPlugin::instance()->getBrokerManager();
@@ -194,7 +196,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
     // ------------ Broker::Manager initialize first --------------------
     boost::barrier barrier( 2 );
-    servant::ORBServantManager * pMgr = servant::ORBServantManager::instance();
+    adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance();
 	if ( pMgr ) {
 		pMgr->init( 0, 0 );
 		pMgr->spawn( barrier );
@@ -386,9 +388,9 @@ ServantPlugin::final_close()
     Logger::shutdown();
     try {
         adportable::debug() << "====== ServantPlugin::final_close orb shutdown... =======";    
-		servant::ORBServantManager::instance()->shutdown();
+		adorbmgr::orbmgr::instance()->shutdown();
         adportable::debug() << "====== ServantPlugin::final_close orb fini... =======";    
-        servant::ORBServantManager::instance()->fini();
+        adorbmgr::orbmgr::instance()->fini();
     } catch ( CORBA::Exception& ex ) {
 		adportable::debug dbg( __FILE__, __LINE__ );
 		dbg << ex._info().c_str();
@@ -396,7 +398,7 @@ ServantPlugin::final_close()
 	}
 
     adportable::debug() << "====== ServantPlugin::final_close waiting threads... =======";    
-    ACE_Thread_Manager::instance()->wait();
+	adorbmgr::orbmgr::instance()->wait();
     adportable::debug() << "====== ServantPlugin::final_close complete =======";    
 }
 
