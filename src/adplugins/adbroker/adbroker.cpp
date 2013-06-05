@@ -139,7 +139,7 @@ adbroker_plugin::instance()
 const char *
 adbroker_plugin::iid() const
 {
-    return "com.ms-cheminfo.qtplatz.plugins.orbfactory.adbroker";
+    return "com.ms-cheminfo.qtplatz.adplugins.orbfactory.adbroker";
 }
 
 void

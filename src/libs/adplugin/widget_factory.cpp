@@ -53,7 +53,7 @@ widget_factory::create( const wchar_t * wiid, const char * clsid, QWidget * pare
 {
     std::vector< adplugin::plugin_ptr > vec;
 
-    adplugin::manager::instance()->select_iids( ".*\\.qtplatz\\.plugins\\.widget_factory$", vec );
+    adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.widget_factory\\.", vec );
     
     BOOST_FOREACH( const adplugin::plugin_ptr& d, vec ) {
 

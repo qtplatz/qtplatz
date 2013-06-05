@@ -169,7 +169,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     // dataprovider installation move to servantplugin
     // install_dataprovider( config, apppath );
 	std::vector< adplugin::plugin_ptr > dataproviders;
-	if ( adplugin::loader::select_iids( ".*\\.datafile_factory$", dataproviders ) ) {
+	if ( adplugin::loader::select_iids( ".*\\.adplugins\\.datafile_factory\\.", dataproviders ) ) {
 		BOOST_FOREACH( const adplugin::plugin_ptr& d, dataproviders ) {
 			adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
 			if ( factory ) 

@@ -48,13 +48,11 @@ void
 plugin::add_ref()
 {
     ++ref_count_;
-    adportable::debug(__FILE__, __LINE__) << "===== plugin add_ref(" << ref_count_ << ") #####";
 }
 
 void 
 plugin::release()
 {
-    adportable::debug(__FILE__, __LINE__) << "===== plugin release(" << ref_count_ << ") #####";
     if ( ref_count_ ) {
         if ( --ref_count_ == 0 )
             delete this;

@@ -166,7 +166,7 @@ adController::abort_server()
 const char *
 adcontroller_plugin::iid() const
 {
-    return "com.ms-cheminfo.qtplatz.plugin.orbfactory.adcontroller";
+    return "com.ms-cheminfo.qtplatz.adplugins.orbfactory.adcontroller";
 }
 
 void

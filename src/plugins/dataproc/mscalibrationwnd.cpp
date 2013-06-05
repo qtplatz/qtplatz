@@ -94,13 +94,13 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
 
         bool res;
         res = connect( pImpl_->calibSummaryWidget_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );
-        assert(res);
+        //assert(res);
 
         res = connect( pImpl_->calibSummaryWidget_, SIGNAL( applyTriggered() ), this, SLOT( handleManuallyAssigned() ) );
-        assert(res);
+        //assert(res);
 
         res = connect( pImpl_->calibSummaryWidget_, SIGNAL( valueChanged() ), this, SLOT( handleValueChanged() ) );
-        assert(res);
+        //assert(res);
 
         if ( pImpl_->calibSummaryWidget_ ) {
             adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );

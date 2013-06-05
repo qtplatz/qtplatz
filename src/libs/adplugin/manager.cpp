@@ -71,9 +71,11 @@ namespace adplugin {
 			return plugin_->clsid();
 		}
         const char * iid() const { 
-			return plugin_->iid(); 
+            adplugin::plugin * ptr = plugin_.get();
+			return ptr->iid(); 
 		}
         adplugin::plugin_ptr plugin() const { return plugin_; }
+        adplugin::plugin * p() { return plugin_.get(); }
         bool operator == ( const adplugin::plugin& t ) const {
             if ( plugin_.get() == &t ) // equal address
                 return true;
@@ -227,6 +229,15 @@ manager_data::visit( adplugin::plugin * plugin, const char * adpluginspec )
     if ( adpluginspec == 0 || plugin == 0 )
         return;
 
+#if defined _DEBUG || defined DEBUG
+	// adportable::debug(__FILE__, __LINE__) << "=============== visit ===============================";
+    // for ( auto it = plugins_.begin(); it != plugins_.end(); ++it ) {
+    //     adplugin::plugin * ptr = it->second[0].p();
+    //     std::cout << __FILE__ << "(" << __LINE__ << ")" << std::hex << (unsigned(ptr))
+    //               << ", " << it->second[0].iid() << std::endl;
+    // }
+#endif
+
     // make it unique
     for ( map_type::const_iterator it = plugins_.begin(); it != plugins_.end(); ++it ) {
         BOOST_FOREACH( const plugin_data& d, it->second ) {
@@ -247,11 +258,26 @@ manager_data::install( QLibrary& lib, const std::string& adpluginspec )
     if ( lib.isLoaded() ) {
         factory f = reinterpret_cast< factory >( lib.resolve( "adplugin_plugin_instance" ) );
         if ( f ) {
-            adplugin::plugin_ptr ptr( f(), false ); // ref count start with 1 so don't increment when instatnce created
+            adplugin::plugin * pptr = f();
+#ifdef DEBUG
+            boost::filesystem::path path( adpluginspec );
+            std::string cls = path.leaf().string();
+            std::cout << " ** install plugin: " << std::hex << pptr << ", " << pptr->iid() 
+                      << " ** " << cls << std::endl;
+#endif            
+            adplugin::plugin_ptr ptr( pptr, false ); // ref count start with 1 so don't increment when instatnce created
             if ( ptr ) {
                 ptr->clsid_ = adpluginspec;
 				plugins_[ adpluginspec ].push_back( plugin_data( ptr ) );
                 ptr->accept( *this, adpluginspec.c_str() );
+#if defined _DEBUG || defined DEBUG
+                std::cout << "=============== install ===============================" << std::endl;
+                for ( auto it = plugins_.begin(); it != plugins_.end(); ++it ) {
+                    adplugin::plugin * xptr = it->second[0].p();
+                    std::cout << std::hex << unsigned(xptr) << ", " << it->second[0].iid() << std::endl;
+                }
+                std::cout << "=============== end install ===============================" << std::endl;
+#endif
                 return true;
             }
         }
@@ -267,8 +293,8 @@ manager_data::select_iid( const char * regex )
     
 	for ( map_type::const_iterator it = plugins_.begin(); it != plugins_.end(); ++it ) {
 		auto itr = std::find_if( it->second.begin(), it->second.end(), [&]( const adplugin::plugin_data& d ) {
-			return boost::regex_match( d.iid(), matches, re );
-		} );
+                return boost::regex_match( d.iid(), matches, re );
+            } );
 		if ( itr != it->second.end() )
 			return itr->plugin();
 	}
@@ -299,11 +325,6 @@ size_t
 manager_data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 {
 	boost::regex re( regex );
-
-#if defined _DEBUG || defined DEBUG
-	adportable::debug(__FILE__, __LINE__) << "==============================================";
-	adportable::debug(__FILE__, __LINE__) << "select_iids(" << regex << ", vec[" << vec.size() << "])";
-#endif
 
 	for ( auto it = plugins_.begin(); it != plugins_.end(); ++it ) {
 		vector_type& plugin_vec = it->second;

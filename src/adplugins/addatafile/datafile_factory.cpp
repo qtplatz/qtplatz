@@ -102,7 +102,7 @@ datafile_factory::open( const std::wstring& filename, bool readonly ) const
 const char *
 datafile_factory::iid() const 
 {
-    return "com.ms-cheminfo.qtplatz.plugins.datafile_factory";
+    return "com.ms-cheminfo.qtplatz.adplugins.datafile_factory.addatafile";
 }
 
 void

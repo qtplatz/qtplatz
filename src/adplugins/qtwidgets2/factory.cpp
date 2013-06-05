@@ -93,7 +93,7 @@ factory::accept( adplugin::visitor& v, const char * adpluginspec )
 const char *
 factory::iid() const
 {
-	return "com.ms-cheminfo.qtplatz.plugins.widget_factory";
+	return "com.ms-cheminfo.qtplatz.adplugins.widget_factory.qtplatz2";
 }
 
 EXPORT_FACTORY( qtwidgets2::factory )

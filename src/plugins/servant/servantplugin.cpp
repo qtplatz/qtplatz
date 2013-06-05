@@ -205,7 +205,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     // ----------------------- initialize corba servants ------------------------------
     do {
         std::vector< adplugin::plugin_ptr > factories;
-        adplugin::loader::select_iids( ".*\\.orbfactory\\..*$", factories );
+        adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\.", factories );
         BOOST_FOREACH( const adplugin::plugin_ptr& ptr, factories ) {
             if ( ptr->iid() == adbroker->iid() )
                 continue;
