@@ -54,11 +54,11 @@ namespace adplugin {
     public:
         static manager * instance();
         static void dispose();
-        static std::string ior( const char * name ); // return broker::manager's ior
-        static std::string iorBroker();
+        // static std::string ior( const char * name ); // return broker::manager's ior
+        // static std::string iorBroker();
         
-        virtual void register_ior( const std::string& name, const std::string& ior ) = 0;
-        virtual const char * lookup_ior( const std::string& name ) = 0;
+        // virtual void register_ior( const std::string& name, const std::string& ior ) = 0;
+        // virtual const char * lookup_ior( const std::string& name ) = 0;
 	
         bool install( QLibrary&, const std::string& adpluginspec );
 		void populated();

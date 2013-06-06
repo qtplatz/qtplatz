@@ -48,7 +48,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/cast.hpp>
-#include <boost/foreach.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
 
@@ -73,8 +72,7 @@ namespace adplugin {
 			return plugin_->clsid();
 		}
         const char * iid() const { 
-            adplugin::plugin * ptr = plugin_.get();
-			return ptr->iid(); 
+			return plugin_->iid(); 
 		}
         adplugin::plugin_ptr plugin() const { return plugin_; }
         adplugin::plugin * p() { return plugin_.get(); }
@@ -109,17 +107,6 @@ namespace adplugin {
         };
     }
 
-    class manager_impl : public manager {
-    public:
-        ~manager_impl();
-        manager_impl();
-
-        virtual void register_ior( const std::string& name, const std::string& ior );
-        virtual const char * lookup_ior( const std::string& name );
-
-    private:
-        std::map< std::string, std::string > iorMap_;
-    };
 }
 ////////////////////////////////////
 
@@ -129,63 +116,10 @@ manager *
 manager::instance()
 {
 	if ( instance_ == 0 )
-		instance_ = new manager_impl;
+		instance_ = new manager;
 	return instance_;
 }
 
-std::string
-manager::iorBroker()
-{
-    const char * p = manager::instance()->lookup_ior( acewrapper::constants::adbroker::manager::_name() );
-    return p ? std::string( p ) : std::string("");
-}
-
-std::string
-manager::ior( const char * name )
-{
-	return manager::instance()->lookup_ior( name );
-}
-
-///////////////////////////////////
-
-manager_impl::manager_impl()
-{
-}
-
-manager_impl::~manager_impl()
-{
-}
-
-void
-manager_impl::register_ior( const std::string& name, const std::string& ior )
-{
-    iorMap_[name] = ior;
-    
-    QDir dir = QDir::home();
-
-	boost::filesystem::path path( qtwrapper::wstring::copy( dir.absolutePath() ) );
-	path /= ".ior";
-	if ( ! boost::filesystem::exists( path ) )
-		boost::filesystem::create_directory( path );
-    path /= name;
-	path.replace_extension( ".ior" );
-	boost::filesystem::ofstream of( path );
-
-    of << ior;
-}
-
-const char *
-manager_impl::lookup_ior( const std::string& name )
-{
-    std::map< std::string, std::string >::iterator it = iorMap_.find( name );
-    if ( it != iorMap_.end() )
-	return it->second.c_str();
-    return 0;
-}
-
-
-//////////////////////////////////////
-////////////////////////////////////////
 //////////////////////
 
 manager::manager(void) : d_( new internal::manager_data() )
@@ -255,12 +189,11 @@ void
 manager_data::populated()
 {
 #if defined _DEBUG || defined DEBUG
-    std::cout << "=============== install ===============================" << std::endl;
-    for ( auto it = plugins_.begin(); it != plugins_.end(); ++it ) {
-        adplugin::plugin * xptr = it->second.p();
-        std::cout << "\t" << std::hex << unsigned(xptr) << ", " << xptr->iid() << std::endl;
-    }
-    std::cout << "=============== end install ===========================" << std::endl;
+    adportable::debug(__FILE__, __LINE__) << "==> populated";
+	std::for_each( plugins_.begin(), plugins_.end(), [&](const map_type::value_type& d){
+            adportable::debug(__FILE__, __LINE__) << "\t" << d.second.iid();
+        });
+    adportable::debug(__FILE__, __LINE__) << "<== populated";
 #endif
 }
 
@@ -275,16 +208,11 @@ manager_data::install( QLibrary& lib, const std::string& adpluginspec )
         factory f = reinterpret_cast< factory >( lib.resolve( "adplugin_plugin_instance" ) );
         if ( f ) {
             adplugin::plugin * pptr = f();
-#ifdef DEBUG
-            boost::filesystem::path path( adpluginspec );
-            std::string cls = path.leaf().string();
-            std::cout << " ** install plugin: " << std::hex << pptr << ", " << pptr->iid() 
-                      << " ** " << cls << std::endl;
-#endif            
-            adplugin::plugin_ptr ptr( pptr, false ); // ref count start with 1 so don't increment when instatnce created
+            adplugin::plugin_ptr ptr( pptr, false );
             if ( ptr ) {
                 ptr->clsid_ = adpluginspec;
 				plugins_[ adpluginspec ] = plugin_data( ptr );
+
                 ptr->accept( *this, adpluginspec.c_str() );
 
                 return true;
@@ -321,9 +249,6 @@ manager_data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 	boost::cmatch matches;
 
 	std::for_each( plugins_.begin(), plugins_.end(), [&]( const map_type::value_type& m ){
-		const char * tgt = m.second.iid();
-		std::cout << "regex: " << regex << std::endl;
-		std::cout << "targt: " << tgt << std::endl;
 		if ( boost::regex_match( m.second.iid(), matches, re ) )
 			vec.push_back( m.second.plugin() );
 		} );

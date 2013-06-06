@@ -36,6 +36,7 @@ namespace adcontrols {
     namespace internal {
 		class ScanLaw : public MassSpectrometer::ScanLaw {
         public:
+            virtual ~ScanLaw() {}
             ScanLaw( double timeCoefficient, double timeDelay, double acclVolt )
                 : timeCoefficient_(timeCoefficient), timeDelay_(timeDelay), acclVoltage_(acclVolt) {
             }
@@ -63,7 +64,7 @@ namespace adcontrols {
         class DataInterpreter : public adcontrols::DataInterpreter {
         public:
             DataInterpreter(void) {  }
-            ~DataInterpreter(void) {  }
+            virtual ~DataInterpreter(void) {  }
 			virtual bool translate( adcontrols::MassSpectrum&, const SignalObserver::DataReadBuffer&
 				, const adcontrols::MassSpectrometer&, size_t /* idData */ ) const {
 					return false;

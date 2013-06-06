@@ -245,7 +245,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
             PortfolioHelper::appendFolder( *item, *it );
     }
 	// set selected
-	if ( item = StandardItemHelper::findRow( model, processor ) ) {
+	if ( ( item = StandardItemHelper::findRow( model, processor ) ) ) {
 		QStandardItem * leaf = StandardItemHelper::findFolium( item, folium.id() );
 		if ( leaf )
 			pTreeView_->setCurrentIndex( leaf->index() );
