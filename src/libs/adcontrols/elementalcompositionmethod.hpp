@@ -37,6 +37,10 @@ namespace boost { namespace serialization {
     class access;
 } }
 
+#ifdef _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4251 ) // dll-linkage for
+#endif
 
 namespace adcontrols {
 
@@ -95,8 +99,14 @@ namespace adcontrols {
         double dbe_minimum_;
         double dbe_maximum_;
         size_t numResults_;
+#ifdef _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4251 ) // dll-linkage for
+#endif
         std::vector< CompositionConstraint > vec_;
-
+#ifdef _MSC_VER
+# pragma warning( pop )
+#endif
     private:
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version) {
@@ -115,3 +125,7 @@ namespace adcontrols {
     };
 
 }
+
+#ifdef _MSC_VER
+# pragma warning( pop )
+#endif

@@ -16,12 +16,14 @@ DEFINES += ADEXTENSION_LIBRARY
 
 SOURCES += adextension.cpp \
            isequence.cpp \
-           ieditorfactory.cpp
+           ieditorfactory.cpp \
+           imonitorfactory.cpp
 
 HEADERS += adextension.hpp\
            adextension_global.hpp \
            isequence.hpp \
-           ieditorfactory.hpp
+           ieditorfactory.hpp \
+           imonitorfactory.hpp
 
 unix:!symbian {
     maemo5 {

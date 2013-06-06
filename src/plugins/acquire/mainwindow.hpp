@@ -29,10 +29,10 @@
 #include <QObject>
 #include <QWidget>
 #include <adinterface/receiverC.h>
+#include <Utils/fancymainwindow.h>
 
 namespace adportable { class Configuration; }
-
-namespace Utils { class FancyMainWindow; }
+namespace adextension { class iMonitorFactory; }
 class QDockWidget;
 class QAction;
 class QMainWindow;
@@ -40,17 +40,17 @@ class QMainWindow;
 namespace Acquire {  namespace internal {
         
         struct AcquireManagerActions;
-        struct AcquireUIManagerData;
+        struct MainWindowData;
         
         //------------
         //------------
-        class AcquireUIManager : public QObject {
+        class MainWindow : public Utils::FancyMainWindow {
             Q_OBJECT
         public:
-            ~AcquireUIManager();
-            explicit AcquireUIManager(QObject *parent = 0);
+            ~MainWindow();
+            explicit MainWindow(QWidget *parent = 0);
       
-            QMainWindow * mainWindow() const;
+            // QMainWindow * mainWindow() const;
             void init( const adportable::Configuration& config );
             void setSimpleDockWidgetArrangement();
 
@@ -58,6 +58,7 @@ namespace Acquire {  namespace internal {
             void OnFinalClose();
             // 
             void eventLog( const QString& );
+			void addMonitorWidget( QWidget *, const QString& title );
 
             //
         signals:
@@ -72,7 +73,7 @@ namespace Acquire {  namespace internal {
             void handle_debug_print( unsigned long priority, unsigned long category, QString text );
 
         private:
-            AcquireUIManagerData * d_;
+            std::vector< QDockWidget * > dockWidgetVec_;
 
         public:
             //const AcquireManagerActions& acquireManagerActions() const;

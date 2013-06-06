@@ -38,14 +38,14 @@ SOURCES += acquire.cpp \
 	acquireactions.cpp \
 	acquiremode.cpp \
 	acquireplugin.cpp \
-	acquireuimanager.cpp
+	mainwindow.cpp
 
 HEADERS +=  acquire_global.h \
 	acquire.hpp \
 	acquireactions.hpp \
 	acquiremode.hpp \
 	acquireplugin.hpp \
-	acquireuimanager.hpp \
+	mainwindow.hpp \
 	constants.hpp
 
 OTHER_FILES += acquire.pluginspec \

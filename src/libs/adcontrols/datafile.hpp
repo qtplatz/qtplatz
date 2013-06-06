@@ -65,6 +65,9 @@ namespace adcontrols {
         static void close( datafile *& );
 
     private:
+#ifdef _MSC_VER
+# pragma warning( disable: 4251 ) // dll-linkage for
+#endif
         std::wstring filename_;
         bool readonly_;
     };

@@ -26,7 +26,7 @@
 #include "acquireplugin.hpp"
 #include "constants.hpp"
 #include "acquiremode.hpp"
-#include "acquireuimanager.hpp"
+#include "mainwindow.hpp"
 #include "acquireactions.hpp"
 
 #include <acewrapper/constants.hpp>
@@ -49,6 +49,7 @@
 #include <adcontrols/traceaccessor.hpp>
 #include <adcontrols/timeutil.hpp>
 #include <adorbmgr/orbmgr.hpp>
+#include <adextension/imonitorfactory.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
@@ -175,12 +176,12 @@ AcquirePlugin::toolButton( QAction * action )
 
 AcquirePlugin::~AcquirePlugin()
 {
-  delete manager_;
+  delete mainWindow_;
   delete pImpl_;
   adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin dtor complete ===============";
 }
 
-AcquirePlugin::AcquirePlugin() : manager_(0)
+AcquirePlugin::AcquirePlugin() : mainWindow_(0)
                                , pImpl_( new AcquireImpl() )
                                , actionConnect_(0)
                                , actionRun_(0)
@@ -217,7 +218,7 @@ AcquirePlugin::initialize_actions()
     actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
     connect( actionSnapshot_, SIGNAL(triggered()), this, SLOT(actionSnapshot()) );
   
-    //const AcquireManagerActions& actions = manager_->acquireManagerActions();
+    //const AcquireManagerActions& actions = mainWindow_->acquireManagerActions();
     QList<int> globalcontext;
     globalcontext << Core::Constants::C_GLOBAL_ID;
     Core::ActionManager *am = Core::ICore::instance()->actionManager();
@@ -273,9 +274,9 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
         return false;
     }
 
-    manager_ = new AcquireUIManager(0);
-    if ( manager_ )
-        manager_->init( *pConfig_ );
+    mainWindow_ = new MainWindow(0);
+    if ( mainWindow_ )
+        mainWindow_->init( *pConfig_ );
 
     initialize_actions();
 
@@ -287,7 +288,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
   
         Core::MiniSplitter * splitter = new Core::MiniSplitter;
         if ( splitter ) {
-            splitter->addWidget( manager_->mainWindow() );
+            splitter->addWidget( mainWindow_ );
             splitter->addWidget( new Core::OutputPanePlaceHolder( mode ) );
 
             splitter->setStretchFactor( 0, 10 );
@@ -360,7 +361,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
         */
 
         QWidget* centralWidget = new QWidget;
-        manager_->mainWindow()->setCentralWidget( centralWidget );
+        mainWindow_->setCentralWidget( centralWidget );
 
         Core::MiniSplitter * splitter3 = new Core::MiniSplitter;
         if ( splitter3 ) {
@@ -390,7 +391,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 
   } while(0);
   
-  manager_->setSimpleDockWidgetArrangement();
+  mainWindow_->setSimpleDockWidgetArrangement();
   addAutoReleasedObject(mode);
 
   return true;
@@ -399,19 +400,23 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
 void
 AcquirePlugin::extensionsInitialized()
 {
-    adorbmgr::orbmgr * orbmgr = adorbmgr::orbmgr::instance();
-
+	QList< adextension::iMonitorFactory * > monitors = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iMonitorFactory >();
+	std::for_each( monitors.begin(), monitors.end(), [&]( adextension::iMonitorFactory * factory ){
+		mainWindow_->addMonitorWidget( factory->create(), factory->title() );
+	});
+	mainWindow_->OnInitialUpdate();
+    
+	adorbmgr::orbmgr * orbmgr = adorbmgr::orbmgr::instance();
     if ( orbmgr ) {
 
         Broker::Manager_var mgr = orbmgr->getBrokerManager();
 
         if ( ! CORBA::is_nil( mgr ) )
             pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
-        manager_->OnInitialUpdate();
         
         adinterface::EventLog::LogMessageHelper log( L"acquire extention initialized %1%" );
         log % 1;
-        manager_->handle_eventLog( log.get() );
+        mainWindow_->handle_eventLog( log.get() );
     }
 }
 
@@ -420,7 +425,7 @@ AcquirePlugin::aboutToShutdown()
 {
     adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin shutting down...  ===============";
     actionDisconnect();
-    manager_->OnFinalClose();
+    mainWindow_->OnFinalClose();
     adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin shutdown complete ===============";
 	return SynchronousShutdown;
 }
@@ -430,7 +435,7 @@ AcquirePlugin::actionConnect()
 {
 	using adinterface::EventLog::LogMessageHelper;
 
-	do { LogMessageHelper log( L"Connecting..." );	manager_->handle_eventLog( log.get() );	} while(0);
+	do { LogMessageHelper log( L"Connecting..." );	mainWindow_->handle_eventLog( log.get() );	} while(0);
 
     if ( CORBA::is_nil( session_.in() ) ) {
 
@@ -461,12 +466,12 @@ AcquirePlugin::actionConnect()
                         connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
                                  , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
 
-                        do { LogMessageHelper log( L"===== Initialize session... ===== " );	manager_->handle_eventLog( log.get() );	} while(0);
+                        do { LogMessageHelper log( L"===== Initialize session... ===== " );	mainWindow_->handle_eventLog( log.get() );	} while(0);
 
                         if ( session_->status() <= ControlServer::eConfigured )
                             session_->initialize();
 
-                        do { LogMessageHelper log( L"===== Session initialized. =====" );	manager_->handle_eventLog( log.get() );	} while(0);
+                        do { LogMessageHelper log( L"===== Session initialized. =====" );	mainWindow_->handle_eventLog( log.get() );	} while(0);
 
                         observer_ = session_->getObserver(); // master observer
                         if ( ! CORBA::is_nil( observer_.in() ) ) {
@@ -489,7 +494,7 @@ AcquirePlugin::actionConnect()
                             do {
                                 LogMessageHelper log( L"actionConnect signal observer %1% siblings found" );
                                 log % nsize;
-                                manager_->handle_eventLog( log.get() );
+                                mainWindow_->handle_eventLog( log.get() );
                             } while(0);
 
                             for ( size_t i = 0; i < nsize; ++i ) {
@@ -702,7 +707,7 @@ AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, uns
     (void)count;
     (void)value;
     (void)msg;
-    // manager_->handle_message( msg, value );
+    // mainWindow_->handle_message( msg, value );
 }
 
 void
@@ -711,19 +716,19 @@ AcquirePlugin::handle_log( QByteArray qmsg )
     TAO_InputCDR cdr( qmsg.data(), qmsg.size() );
     ::EventLog::LogMessage msg;
     cdr >> msg;
-    manager_->handle_eventLog( msg );
+    mainWindow_->handle_eventLog( msg );
 }
 
 void
 AcquirePlugin::handle_shutdown()
 {
-    manager_->handle_shutdown();
+    mainWindow_->handle_shutdown();
 }
 
 void
 AcquirePlugin::handle_debug_print( unsigned long priority, unsigned long category, QString text )
 {
-    manager_->handle_debug_print( priority, category, text );
+    mainWindow_->handle_debug_print( priority, category, text );
 }
 
 void

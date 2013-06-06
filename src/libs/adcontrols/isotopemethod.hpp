@@ -34,6 +34,11 @@
 #include <string>
 #include <vector>
 
+#ifdef _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4251 ) // dll-linkage for
+#endif
+
 namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT IsotopeMethod {
@@ -127,3 +132,6 @@ namespace adcontrols {
 
 }
 
+#ifdef _MSC_VER
+# pragma warning( pop )
+#endif

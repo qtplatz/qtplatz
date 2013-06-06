@@ -61,14 +61,14 @@ namespace adportable {
 namespace Acquire {
     namespace internal {
 
-        class AcquireUIManager;
+        class MainWindow;
         class AcquireImpl;
         class ObserverEvents_i;
 
         //------------
         class AcquirePlugin : public ExtensionSystem::IPlugin {
             Q_OBJECT
-			Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "acquire.json")
+			Q_PLUGIN_METADATA(IID "com.ms-cheminfo.qtplatz.plugin" FILE "acquire.json")
         public:
             ~AcquirePlugin();
             AcquirePlugin();
@@ -110,7 +110,7 @@ namespace Acquire {
             void selectPoint( double x, double y );
             void selectRange( double x1, double x2, double y1, double y2 );
 
-            AcquireUIManager * manager_;
+            MainWindow * mainWindow_;
             AcquireImpl * pImpl_;
 
             QAction * actionConnect_;
