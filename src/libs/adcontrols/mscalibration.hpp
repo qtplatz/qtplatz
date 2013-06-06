@@ -54,6 +54,9 @@ namespace adcontrols {
         static double compute( const std::vector<double>&, double time );
         
     private:
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
         std::string calibDate_;
         std::wstring calibId_;
         std::vector< double > coeffs_;

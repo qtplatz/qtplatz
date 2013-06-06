@@ -51,6 +51,9 @@ namespace adcontrols {
    private:
        time_t tv_sec_;
        long tv_usec_;
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
        std::wstring key_;
        std::wstring text_;
        std::wstring xml_;

@@ -56,6 +56,9 @@ namespace adcontrols {
         inline vector_type::const_iterator begin() const { return vec_.begin(); }
         inline vector_type::const_iterator end() const { return vec_.begin(); }
     private:
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
         vector_type vec_;
         friend class boost::serialization::access;
         template<class Archive>

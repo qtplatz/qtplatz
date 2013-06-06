@@ -75,6 +75,9 @@ namespace adcontrols {
         vector_type::const_iterator find_first_peak( const Baseline& ) const;
 
     private:
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
         vector_type peaks_;
 
         double areaTotal_;

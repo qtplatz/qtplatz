@@ -40,6 +40,9 @@ namespace adcontrols {
             Atom();
             Atom( const Atom& );
             double x, y, z;
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
             std::wstring symbol;
             int mass_difference;
             int charge;
@@ -77,6 +80,9 @@ namespace adcontrols {
         bool empty() const { return atoms_.empty(); }
 
     private:
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
         atom_vector atoms_;
         bond_vector bonds_;
     };

@@ -51,6 +51,9 @@ namespace adcontrols {
 		Peaks& peaks();
 
 	private:
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
 		boost::scoped_ptr< Baselines > baselines_;
 		boost::scoped_ptr< Peaks > peaks_;
 

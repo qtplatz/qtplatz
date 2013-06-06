@@ -61,7 +61,10 @@ namespace adcontrols {
 
     private:
         int nextId_;
-	int baseId_;
+		int baseId_;
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
         vector_type baselines_;
 
         friend class boost::serialization::access;

@@ -119,6 +119,9 @@ namespace adcontrols {
         TheoreticalPlate& theoreticalPlate();
 
     private:
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
         std::wstring name_;
         long parentId_;
         long peakid_;

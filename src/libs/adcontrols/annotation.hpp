@@ -64,7 +64,11 @@ namespace adcontrols {
         enum dataType type_;
         int index_;
         int priority_;
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
         std::wstring text_;
+
         double x_, y_;
         double w_, h_;
         

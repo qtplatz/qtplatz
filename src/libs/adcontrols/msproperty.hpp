@@ -103,7 +103,9 @@ namespace adcontrols {
         unsigned long instNumAvrg_;
         unsigned long instSamplingStartDelay_;
         unsigned long instSamplingInterval_; // ps
-
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
         std::vector< SamplingInfo > samplingData_;
         std::pair< double, double > instMassRange_;
 
