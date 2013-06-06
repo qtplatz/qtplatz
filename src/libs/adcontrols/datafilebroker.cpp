@@ -41,7 +41,6 @@ namespace adcontrols {
 		static datafileBrokerImpl * instance_;
     public:
         ~datafileBrokerImpl() {}
-        bool register_library( const std::wstring& sharedlib_name );
         bool register_factory( datafile_factory * factory, const std::wstring& name );
         datafile_factory * find( const std::wstring& name );
         void visit( adcontrols::datafile& );

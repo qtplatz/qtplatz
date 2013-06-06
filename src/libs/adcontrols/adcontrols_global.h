@@ -25,11 +25,11 @@
 
 #pragma once
 
-#include <QtCore/qglobal.h>
+#include <compiler/decl_export.h>
 
 #if defined(ADCONTROLS_LIBRARY)
-#  define ADCONTROLSSHARED_EXPORT Q_DECL_EXPORT
+#  define ADCONTROLSSHARED_EXPORT DECL_EXPORT
 #else
-#  define ADCONTROLSSHARED_EXPORT Q_DECL_IMPORT
+#  define ADCONTROLSSHARED_EXPORT DECL_IMPORT
 #endif
 

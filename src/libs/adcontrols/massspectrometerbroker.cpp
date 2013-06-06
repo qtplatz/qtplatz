@@ -28,7 +28,6 @@
 
 #include <map>
 #include <string>
-#include <QLibrary>
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
 #include "adcontrols.hpp"
@@ -49,8 +48,6 @@ namespace adcontrols {
         ~MassSpectrometerBrokerImpl() {}
 
 		static MassSpectrometerBrokerImpl * instance();
-        
-        bool register_library( const std::wstring& sharedlib_name );
         
         bool register_factory( massspectrometer_factory* factory, const std::wstring& name ) {
             factories_[name] = factory;

@@ -271,16 +271,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     ControlServer::Session_var session;
     std::vector< Instrument::Session_var > i8t_sessions;
 
-#if 0
-    for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
-        if ( it->attribute( L"type" ) == L"MassSpectrometer" ) {
-            // const std::wstring name = apppath + it->module().library_filename();
-            const std::wstring name = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
-            adcontrols::MassSpectrometerBroker::register_library( name );
-        }
-    }
-#endif
-
     do { adportable::debug(__FILE__, __LINE__) << "<-- ServantPlugin::initialize() ### 3 ##"; } while(0);
 
     if ( ! CORBA::is_nil( session ) )
