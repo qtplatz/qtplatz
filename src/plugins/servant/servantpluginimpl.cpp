@@ -51,30 +51,21 @@ ServantPluginImpl::ServantPluginImpl( OutputWindow * p ) : receiver_(*this)
 }
 
 void
-ServantPluginImpl::init_debug_adcontroller()
+ServantPluginImpl::init_debug_adcontroller( ControlServer::Session_var& session )
 {
-#if 0
-	if ( ! CORBA::is_nil( manager_ ) ) {
-		std::string ior = manager_->ior( acewrapper::constants::adcontroller::manager::_name() );
-        if ( ! ior.empty() )
-			obj = adplugin::ORBManager::instance()->string_to_object( ior );
-	}
+	session_ = session; 
 
-	ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
-	if ( ! CORBA::is_nil( manager ) ) {
-		session_ = manager->getSession( L"debug" );
-
-		connect( this, SIGNAL( signal_debug_print( long, long, QString ) )
+	connect( this, SIGNAL( signal_debug_print( long, long, QString ) )
 			, this, SLOT( handle_debug_print( long, long, QString ) ) );
 
-		session_->connect( receiver_._this(), "debug" );
-	}
-#endif
+	session_->connect( receiver_._this(), "debug" );
 }
 
 void
-ServantPluginImpl::init_debug_adbroker()
+ServantPluginImpl::init_debug_adbroker( Broker::Manager_var& mgr )
 {
+	manager_ = mgr;
+
 	if ( ! CORBA::is_nil( manager_ ) ) {
 
         try {

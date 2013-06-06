@@ -45,16 +45,14 @@ namespace adcontrols {
             virtual double getMass( double secs, double fLength ) const = 0;
             virtual double getTime( double mass, double fLength ) const = 0;
         };
-        typedef MassSpectrometer * (*factory_type)(void);
-        
+
         virtual void accept( Visitor& ) = 0;
-        virtual factory_type factory() = 0;
         virtual const wchar_t * name() const = 0;
         virtual const ScanLaw& getScanLaw() const = 0;
         virtual const DataInterpreter& getDataInterpreter() const = 0;
         
         static const MassSpectrometer& get( const std::wstring& modelname );
     };
-    
+
 }
 

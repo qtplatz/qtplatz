@@ -29,7 +29,7 @@
 #include <adinterface/brokerC.h>
 
 #include <adplugin/manager.hpp>
-//#include <adplugin/orbmanager.hpp>
+#include <adorbmgr/orbmgr.hpp>
 #include <acewrapper/constants.hpp>
 #include <acewrapper/brokerhelper.hpp>
 #include <adportable/string.hpp>
@@ -82,7 +82,7 @@ internal::LogHost::initialize()
 {
     ServantPlugin * plugin = ServantPlugin::instance();
     if ( plugin ) {
-        Broker::Manager_var manager = plugin->getBrokerManager();
+		Broker::Manager_var manager = adorbmgr::orbmgr::getBrokerManager();
         if ( ! CORBA::is_nil( manager.in() ) ) {
             LogHost::instance_ = new LogHost();
             LogHost::instance_->logger_ = manager->getLogger();

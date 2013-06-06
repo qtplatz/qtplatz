@@ -32,17 +32,15 @@
 namespace adcontrols {
 
     class MassSpectrometer;
+	class massspectrometer_factory;
 
-    class ADCONTROLSSHARED_EXPORT MassSpectrometerBroker : public Visitor {
+    class ADCONTROLSSHARED_EXPORT massSpectrometerBroker : public Visitor {
     protected:
-        MassSpectrometerBroker(void);
-        ~MassSpectrometerBroker(void);
+        massSpectrometerBroker(void);
+        ~massSpectrometerBroker(void);
     public:
-        typedef MassSpectrometer * (*factory_type)(void);
-        
-        static bool register_library( const std::wstring& sharedlib );
-        static bool register_factory( factory_type, const std::wstring& name );
-        static factory_type find( const std::wstring& name );
+        static bool register_factory( massspectrometer_factory*, const std::wstring& name );
+        static massspectrometer_factory* find( const std::wstring& name );
     };
     
 }

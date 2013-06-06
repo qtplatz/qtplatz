@@ -38,8 +38,6 @@ namespace adcontrols {
         datafile_factory(void) {}
         virtual ~datafile_factory(void) {}
 
-        typedef datafile_factory * (*factory_type)(void);
-        
         virtual const std::wstring& name() const = 0;
         virtual bool access( const std::wstring& filename, access_mode = read_access ) const = 0;
         virtual datafile * open( const std::wstring& filename, bool readonly = false ) const = 0;

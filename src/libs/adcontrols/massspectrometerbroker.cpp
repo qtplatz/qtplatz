@@ -39,10 +39,11 @@ using namespace adcontrols;
 namespace adcontrols {
 
     class MassSpectrometerBrokerImpl;
+	class massspectrometer_factory;
     
     //-------------------------
     //-------------------------
-    class MassSpectrometerBrokerImpl : public MassSpectrometerBroker {
+    class MassSpectrometerBrokerImpl : public massSpectrometerBroker {
 		static MassSpectrometerBrokerImpl * instance_;
     public:
         ~MassSpectrometerBrokerImpl() {}
@@ -51,13 +52,13 @@ namespace adcontrols {
         
         bool register_library( const std::wstring& sharedlib_name );
         
-        bool register_factory( factory_type factory, const std::wstring& name ) {
+        bool register_factory( massspectrometer_factory* factory, const std::wstring& name ) {
             factories_[name] = factory;
             return true;
         }
         
-        factory_type find( const std::wstring& name ) {
-            std::map< std::wstring, factory_type >::iterator it = factories_.find( name );
+        massspectrometer_factory * find( const std::wstring& name ) {
+            auto it = factories_.find( name );
             if ( it != factories_.end() )
                 return it->second;
             return 0;
@@ -66,7 +67,7 @@ namespace adcontrols {
         void visit( adcontrols::MassSpectrometer& );
         
     private:
-        std::map< std::wstring, factory_type > factories_;
+        std::map< std::wstring, massspectrometer_factory *> factories_;
     };
 
 }
@@ -84,57 +85,31 @@ MassSpectrometerBrokerImpl::instance()
 	return instance_;
 }
 
-bool
-MassSpectrometerBrokerImpl::register_library( const std::wstring& sharedlib )
-{
-    std::string mbs = adportable::string::convert( sharedlib );
-    QLibrary lib( mbs.c_str() );
-    if ( lib.load() ) {
-        typedef adcontrols::MassSpectrometer * (*instance_type)();
-        instance_type getMassSpectrometer = reinterpret_cast<instance_type>( lib.resolve( "getMassSpectrometer" ) );
-        if ( getMassSpectrometer ) {
-            MassSpectrometer * p = getMassSpectrometer();
-            if ( p ) {
-                p->accept( *this );
-                return true;
-            }
-        }
-    }
-	adportable::debug(__FILE__, __LINE__) << static_cast<const char *>( lib.errorString().toUtf8() );
-    return false;
-}
-
 void
-MassSpectrometerBrokerImpl::visit( adcontrols::MassSpectrometer& impl )
+MassSpectrometerBrokerImpl::visit( adcontrols::MassSpectrometer& )
 {
-    adcontrols::MassSpectrometerBroker::factory_type factory = impl.factory();
-    register_factory( factory, impl.name() );
+    //adcontrols::MassSpectrometerBroker::factory_type factory = impl.factory();
+    //register_factory( factory, impl.name() );
 }
 
 /////////////////////////////////////////////
 
-MassSpectrometerBroker::MassSpectrometerBroker(void)
+massSpectrometerBroker::massSpectrometerBroker(void)
 {
 }
 
-MassSpectrometerBroker::~MassSpectrometerBroker(void)
+massSpectrometerBroker::~massSpectrometerBroker(void)
 {
 }
 
 bool
-MassSpectrometerBroker::register_library( const std::wstring& sharedlib )
-{
-	return MassSpectrometerBrokerImpl::instance()->register_library( sharedlib );
-}
-
-bool
-MassSpectrometerBroker::register_factory( factory_type factory, const std::wstring& name )
+massSpectrometerBroker::register_factory( massspectrometer_factory * factory, const std::wstring& name )
 {
     return MassSpectrometerBrokerImpl::instance()->register_factory( factory, name );
 }
 
-MassSpectrometerBroker::factory_type
-MassSpectrometerBroker::find( const std::wstring& name )
+massspectrometer_factory*
+massSpectrometerBroker::find( const std::wstring& name )
 {
 	return MassSpectrometerBrokerImpl::instance()->find( name );
 }

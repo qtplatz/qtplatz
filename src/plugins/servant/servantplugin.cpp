@@ -47,6 +47,7 @@
 #include <acewrapper/brokerhelper.hpp>
 
 #include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/massspectrometer_factory.hpp>
 #include <adorbmgr/orbmgr.hpp>
 #include <adinterface/instrumentC.h>
 #include <adinterface/brokerclientC.h>
@@ -103,6 +104,11 @@ ServantPlugin::instance()
     return instance_;
 }
 
+static const wchar_t * instconf =
+	L"<Configuration name=\"InstrumentConfiguration\">\
+	<Configuration name=\"infitofcontroller.1\" id=\"infitof.1\" type=\"object_ref\" ns_name=\"infitofcontroller.session\"/>\
+	</Configuration>";
+
 bool
 ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
@@ -140,6 +146,15 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     } while(0);
 
 	adplugin::loader::populate( plugindir.generic_wstring().c_str() );
+
+	std::vector< adplugin::plugin_ptr > spectrometers;
+	if ( adplugin::loader::select_iids( ".*\\.adplugins\\.massSpectrometer\\..*", spectrometers ) ) {
+		std::for_each( spectrometers.begin(), spectrometers.end(), []( const adplugin::plugin_ptr& d ){ 
+			adcontrols::massspectrometer_factory * factory = d->query_interface< adcontrols::massspectrometer_factory >();
+			if ( factory )
+				adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
+		});
+	}
     
     const wchar_t * query = L"/ServantConfiguration/Configuration";
     
@@ -164,7 +179,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	barrier.wait();
 
     //--------------------------------------------------------------------
-    std::string iorBroker;
     adplugin::plugin_ptr adbroker = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" );
     if ( adbroker ) {
         adplugin::orbFactory * factory = adbroker->query_interface< adplugin::orbFactory >();
@@ -175,7 +189,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         adplugin::orbServant * adBroker;
         if ( ( adBroker = factory->create_instance() ) ) {
             adBroker->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
-            iorBroker = adBroker->activate();
+            std::string iorBroker = adBroker->activate();
             if ( iorBroker.empty() ) {
                 *error_message = "adBroker object could not be activated";
                 return false;
@@ -185,22 +199,22 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             orbServants_.push_back( adBroker );  
 
             CORBA::Object_var obj = pMgr->orb()->string_to_object( iorBroker.c_str() );
-            pImpl_->manager_ = Broker::Manager::_narrow( obj );
-            if ( CORBA::is_nil( pImpl_->manager_ ) ) {
+			Broker::Manager_var mgr = Broker::Manager::_narrow( obj );
+            if ( CORBA::is_nil( mgr ) ) {
                 *error_message = "Broker::Manager cannot be created";
                 return false;
             }
-			adorbmgr::orbmgr::instance()->setBrokerManager( pImpl_->manager_.in() );
+			adorbmgr::orbmgr::instance()->setBrokerManager( mgr.in() );
             try {
-				pImpl_->manager_->register_ior( adBroker->object_name(), iorBroker.c_str() );
-				pImpl_->manager_->register_object( adBroker->object_name(), obj );
+				mgr->register_ior( adBroker->object_name(), iorBroker.c_str() );
             } catch ( CORBA::Exception& ex ) {
                 *error_message = ex._info().c_str();
                 return false;
             }
+			pImpl_->init_debug_adbroker( mgr );
         }
     }
-    pImpl_->init_debug_adbroker();
+    
 
     // ----------------------- initialize corba servants ------------------------------
     do {
@@ -227,7 +241,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                     if ( !CORBA::is_nil( accessor ) )
                         accessor->setBrokerManager( pImpl_->manager_.in() );
                     try {
-                        pImpl_->manager_->register_ior( servant->object_name(), iorBroker.c_str() );
+                        pImpl_->manager_->register_ior( servant->object_name(), ior.c_str() );
                         pImpl_->manager_->register_object( servant->object_name(), obj );
                     } catch ( CORBA::Exception& ex ) {
                         *error_message = ex._info().c_str();
@@ -240,63 +254,26 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         }
     } while( 0 );
 
+	if ( ! CORBA::is_nil( pImpl_->manager_.in() ) ) {
+		using namespace acewrapper::constants;
+		CORBA::Object_var obj = pImpl_->manager_->find_object( adcontroller::manager::_name() );
+		if ( ! CORBA::is_nil( obj ) ) {
+		   ControlServer::Manager_var cmgr = ControlServer::Manager::_narrow( obj );
+		   if ( ! CORBA::is_nil( cmgr ) ) {
+				ControlServer::Session_var session = cmgr->getSession( L"debug" );
+				if ( ! CORBA::is_nil( session ) )
+					session->setConfiguration( instconf );
+		   }
+		}
+	}
+
     // 
     ControlServer::Session_var session;
     std::vector< Instrument::Session_var > i8t_sessions;
 
 #if 0
     for ( adportable::Configuration::vector_type::iterator it = config.begin(); it != config.end(); ++it ) {
-        if ( it->name() == L"adbroker" ) {
-            try {
-                pImpl_->init_debug_adbroker( this );
-            } catch ( std::exception& ex ) {
-                adportable::debug(__FILE__, __LINE__) << ex.what();
-            }
-	    
-        } else if ( it->name() == L"adcontroller" ) {
-            try {
-                pImpl_->init_debug_adcontroller( this );
-            } catch ( std::exception& ex ) {
-                adportable::debug(__FILE__, __LINE__) << ex.what();
-                continue;
-            }
-
-            CORBA::Object_var obj 
-                = acewrapper::brokerhelper::name_to_object( pMgr->orb()
-                                                            , acewrapper::constants::adcontroller::manager::_name()
-                                                            , adplugin::manager::iorBroker() ); 
-            ControlServer::Manager_var manager = ControlServer::Manager::_narrow( obj );
-            if ( CORBA::is_nil( manager ) ) {
-                error_message = new QString("ControlServer::Manager object reference failed");
-                return false;
-            }
-            session = manager->getSession( L"debug" );
-            session->setConfiguration( it->xml().c_str() );
-
-        } else if ( it->attribute( L"type" ) == L"orbLoader" ) {
-	    
-            if ( it->attribute( L"loadstatus" ) == L"failed" || it->attribute( L"loadstatus" ) == L"deffered" )
-                continue;
-            std::string ns_name = adportable::string::convert( it->attribute( L"ns_name" ) );
-            if ( ! ns_name.empty() ) {
-                CORBA::String_var ior = broker_manager_->ior( ns_name.c_str() );
-                try {
-                    CORBA::Object_var obj = adplugin::ORBManager::instance()->string_to_object( ior.in() );                     
-                    Instrument::Session_var isession = Instrument::Session::_narrow( obj );
-                    if ( ! CORBA::is_nil( isession ) ) {
-                        isession->setConfiguration( it->xml().c_str() );
-                        i8t_sessions.push_back( isession );
-                    }
-                } catch ( CORBA::Exception& src ) {
-                    adportable::debug dbg(__FILE__, __LINE__ );
-                    dbg << "CORBA::Exceptiron while referenceing '" << ns_name.c_str() << "' by " << src._info().c_str();
-                    Logger log;
-                    log( dbg.str() );
-                    QMessageBox::critical( 0, "ServantPlugin", dbg.str().c_str() );
-                    ++nErrors;
-                }
-            }
-        } else if ( it->attribute( L"type" ) == L"MassSpectrometer" ) {
+        if ( it->attribute( L"type" ) == L"MassSpectrometer" ) {
             // const std::wstring name = apppath + it->module().library_filename();
             const std::wstring name = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
             adcontrols::MassSpectrometerBroker::register_library( name );
@@ -337,7 +314,6 @@ void
 ServantPlugin::final_close()
 {
     adportable::debug() << "====== ServantPlugin::final_close ... =======";
-//    adportable::Configuration& config = *pConfig_;
 
     // destriction must be reverse order
     for ( orbservant_vector_type::reverse_iterator it = orbServants_.rbegin(); it != orbServants_.rend(); ++it )
@@ -359,12 +335,6 @@ ServantPlugin::final_close()
     adportable::debug() << "====== ServantPlugin::final_close waiting threads... =======";    
 	adorbmgr::orbmgr::instance()->wait();
     adportable::debug() << "====== ServantPlugin::final_close complete =======";    
-}
-
-Broker::Manager_ptr
-ServantPlugin::getBrokerManager()
-{
-    return Broker::Manager::_duplicate( pImpl_->manager_.in() );
 }
 
 Q_EXPORT_PLUGIN( ServantPlugin )

@@ -26,7 +26,6 @@
 #pragma once
 
 #include <extensionsystem/iplugin.h>
-//#include <adportable/disable_warnings.h>
 #include <adinterface/brokerC.h>
 #include <adplugin/orbservant.hpp>
 #include <vector>
@@ -56,8 +55,6 @@ namespace servant {
         virtual void extensionsInitialized();
         virtual ShutdownFlag aboutToShutdown();
 
-        Broker::Manager_ptr getBrokerManager();
-        
     signals:
             
     public slots:

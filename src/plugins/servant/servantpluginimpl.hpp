@@ -73,8 +73,8 @@ namespace servant {
         public:
             ServantPluginImpl( OutputWindow * p );
 
-            void init_debug_adcontroller();
-            void init_debug_adbroker();
+            void init_debug_adcontroller( ControlServer::Session_var& session );
+            void init_debug_adbroker( Broker::Manager_var& );
 
             ControlServer::Session_var session_;
             Broker::Manager_var manager_;

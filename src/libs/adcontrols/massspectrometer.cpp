@@ -26,6 +26,7 @@
 #include "massspectrometer.hpp"
 #include "datainterpreter.hpp"
 #include "massspectrometerbroker.hpp"
+#include "massspectrometer_factory.hpp"
 #include "adcontrols.hpp"
 #include <string>
 #include <cmath>
@@ -89,9 +90,9 @@ namespace adcontrols {
             }
             virtual void accept( adcontrols::Visitor& ) {
             }
-            virtual adcontrols::MassSpectrometer::factory_type factory() {
-                return &instance;
-            }
+            //virtual adcontrols::MassSpectrometer::factory_type factory() {
+            //    return &instance;
+            //}
             virtual const wchar_t * name() const {
 				return L"default";
             }
@@ -122,9 +123,9 @@ internal::MassSpectrometerImpl * internal::MassSpectrometerImpl::impl_ = 0;
 const MassSpectrometer&
 MassSpectrometer::get( const std::wstring& modelname )
 {
-	MassSpectrometerBroker::factory_type factory = MassSpectrometerBroker::find( modelname );
+	massspectrometer_factory * factory = massSpectrometerBroker::find( modelname );
 	if ( factory )
-		return *factory();
+		return *factory->get( modelname.c_str() );
     static internal::MassSpectrometerImpl dummy;
     return dummy;
     // throw std::exception("mass spectrometer not registered. Check servant.config.xml or configloader");

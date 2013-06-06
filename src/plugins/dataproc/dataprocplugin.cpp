@@ -169,12 +169,13 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     // dataprovider installation move to servantplugin
     // install_dataprovider( config, apppath );
 	std::vector< adplugin::plugin_ptr > dataproviders;
-	if ( adplugin::loader::select_iids( ".*\\.adplugins\\.datafile_factory\\.", dataproviders ) ) {
-		BOOST_FOREACH( const adplugin::plugin_ptr& d, dataproviders ) {
-			adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
-			if ( factory ) 
-				adcontrols::datafileBroker::register_factory( factory, factory->name() );
-		}
+	if ( adplugin::loader::select_iids( ".*\\.adplugins\\.datafile_factory\\..*", dataproviders ) ) {
+
+        std::for_each( dataproviders.begin(), dataproviders.end(), []( const adplugin::plugin_ptr& d ){
+                adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
+                if ( factory ) 
+                    adcontrols::datafileBroker::register_factory( factory, factory->name() );                
+            });
 	}
 
     iSequence_.reset( new iSequenceImpl );
@@ -382,21 +383,6 @@ DataprocPlugin::aboutToShutdown()
     adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutdown complete ===============";
 	return SynchronousShutdown;
 }
-
-// static
-// bool
-// DataprocPlugin::install_dataprovider( const adportable::Configuration& config, const std::wstring& apppath )
-// {
-//     const adportable::Configuration * provider = adportable::Configuration::find( config, L"dataproviders" );
-//     if ( provider ) {
-//         for ( adportable::Configuration::vector_type::const_iterator it = provider->begin(); it != provider->end(); ++it ) {
-//             const std::wstring name = adplugin::orbLoader::library_fullpath( apppath, it->module().library_filename() );
-//             adcontrols::datafileBroker::register_library( name );
-//         }
-// 		return true;
-//     }
-// 	return false;
-// }
 
 bool
 DataprocPlugin::install_isequence( const adportable::Configuration& config
