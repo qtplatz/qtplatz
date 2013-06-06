@@ -61,43 +61,43 @@ ProcessMethod::ProcessMethod( const ProcessMethod& t ) : vec_( t.vec_ )
 
 namespace adcontrols {
 
-    template<> void Q_DECL_EXPORT
+    template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const ProcessMethod::value_type& v )
     {
 	vec_.push_back( v );
     }
 
-    template<> void Q_DECL_EXPORT
+    template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const adcontrols::CentroidMethod& v )
     {
 	vec_.push_back( v );
     }
     
-    template<> void Q_DECL_EXPORT
+    template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const IsotopeMethod& v )
     {
 	vec_.push_back( v );
     }
     
-    template<> void Q_DECL_EXPORT
+    template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const ElementalCompositionMethod& v )
     {
 	vec_.push_back( v );
     }
     
-    template<> void Q_DECL_EXPORT
+    template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const MSCalibrateMethod& v )
     {
 	vec_.push_back( v );
     }
     
-    template<> void Q_DECL_EXPORT
+    template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const TargetingMethod& v )
     {
 	vec_.push_back( v );
     }
 
-    template<> void Q_DECL_EXPORT
+    template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const PeakMethod& v )
     {
 	vec_.push_back( v );
@@ -118,37 +118,37 @@ template<class T> struct method_finder {
 
 namespace adcontrols {
 
-    template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::CentroidMethod*
+    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::CentroidMethod*
     ProcessMethod::find() const
     {
         return method_finder< CentroidMethod >::find( vec_ );
     }
     
-    template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::IsotopeMethod*
+    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::IsotopeMethod*
     ProcessMethod::find() const
     {
         return method_finder< IsotopeMethod >::find( vec_ );
     }
     
-    template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::ElementalCompositionMethod*
+    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::ElementalCompositionMethod*
     ProcessMethod::find() const
     {
         return method_finder< ElementalCompositionMethod >::find( vec_ );
     }
     
-    template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::MSCalibrateMethod*
+    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::MSCalibrateMethod*
     ProcessMethod::find() const
     {
         return method_finder< MSCalibrateMethod >::find( vec_ );
     }
     
-    template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::TargetingMethod*
+    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::TargetingMethod*
     ProcessMethod::find() const
     {
         return method_finder< TargetingMethod >::find( vec_ );
     }
 
-    template<> Q_DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::PeakMethod*
+    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::PeakMethod*
     ProcessMethod::find() const
     {
         return method_finder< PeakMethod >::find( vec_ );
