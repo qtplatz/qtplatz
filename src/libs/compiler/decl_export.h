@@ -36,3 +36,7 @@
 #  define DECL_EXPORT /* nothing */
 #  define DECL_IMPORT /* nothing */
 #endif
+
+#if ! defined _MSC_VER
+typedef unsigned int size_t;
+#endif

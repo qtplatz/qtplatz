@@ -31,7 +31,6 @@
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
 #include "adcontrols.hpp"
-#include <qtwrapper/qstring.hpp>
 
 using namespace adcontrols;
 
