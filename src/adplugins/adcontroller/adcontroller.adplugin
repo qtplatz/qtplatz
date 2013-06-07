@@ -5,7 +5,7 @@
   <Module name="adcontroller" type="orbServant" filename="adcontroller$(configuration).dll"/>
   <Configuration name="InstrumentConfiguration">
     <Configuration name="infitofcontroller.1" id="infitof.1">
-      <Module id="infitof.1" name="infitofd" reference="lookup" iid="infitofcontroller.session"/>
+      <Module id="infitof.0000" name="infitofd" reference="lookup" iid="infitofcontroller.session"/>
     </Configuration>
   </Configuration>
 </adplugin>

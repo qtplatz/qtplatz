@@ -25,7 +25,7 @@
 #include "manager_i.hpp"
 #include "session_i.hpp"
 #include "taskmanager.hpp"
-// #include <adinterface/brokerC.h>
+#include <xmlparser/pugixml.hpp>
 
 using namespace adcontroller;
 
@@ -96,5 +96,23 @@ manager_i::adpluginspec( const char *id, const char * spec )
 {
     adplugin_id = id;
     adplugin_spec = spec;
+
+	if ( ! CORBA::is_nil( broker_mgr_ ) ) {
+		assert( 0 );
+		return false;
+	}
+
+	pugi::xml_document dom;
+	pugi::xml_parse_result result;
+	if ( ( result = dom.load( spec ) ) ) {
+		pugi::xpath_node_set list = dom.select_nodes( "//Module[@reference='lookup']" );
+		size_t n = list.size();
+		std::for_each( list.begin(), list.end(), [&]( pugi::xpath_node node ){
+			std::string id = node.node().attribute( "id" ).value();
+			std::string name = node.node().attribute( "name" ).value();
+			std::string iid = node.node().attribute( "iid" ).value();
+			broker_mgr_->register_lookup( iid.c_str(), id.c_str() );
+		});
+	}
     return true;
 }

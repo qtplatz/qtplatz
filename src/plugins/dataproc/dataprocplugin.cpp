@@ -50,15 +50,12 @@
 #include <adextension/ieditorfactory.hpp>
 #include <adorbmgr/orbmgr.hpp>
 
-//#include <adplugin/adplugin.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/loader.hpp>
-//#include <adplugin/orbLoader.hpp>
 #include <adplugin/widget_factory.hpp>
 
 #include <adplugin/constants.hpp>
 #include <adplugin/manager.hpp>
-//#include <adplugin/orbmanager.hpp>
 #include <adplugin/qbrokersessionevent.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>

@@ -136,7 +136,8 @@ bool
 manager::install( QLibrary& lib, const std::string& adpluginspec )
 {
     std::ostringstream s;
-    s << std::ifstream( adpluginspec );
+    std::ifstream inf( adpluginspec );
+	std::copy( std::istreambuf_iterator<char>(inf), std::istreambuf_iterator<char>(), std::ostreambuf_iterator<char>(s) );
     return d_->install( lib, adpluginspec, s.str() );
 }
 
