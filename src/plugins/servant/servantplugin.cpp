@@ -82,6 +82,52 @@ using namespace servant::internal;
 
 ServantPlugin * ServantPlugin::instance_ = 0;
 
+namespace servant { namespace internal {
+
+        struct orbServantCreator {
+            std::ostringstream errmsg;
+            std::string ior;
+            CORBA::Object_var obj;
+
+            adplugin::orbServant * operator()( adplugin::plugin_ptr plugin, std::vector< adplugin::orbServant * >& vec ) {
+                if ( ! plugin )
+                    return 0;
+
+                adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance();
+                
+                adplugin::orbFactory * factory = plugin->query_interface< adplugin::orbFactory >();
+                if ( ! factory ) {
+                    errmsg << plugin->clsid() << " does not support adplugin::orbFactory.";
+                    return 0;
+                }
+                adplugin::orbServant * orbServant = factory->create_instance();
+                if ( ! orbServant ) {
+                    errmsg << plugin->clsid() << " does not create servant instance.";
+                    return 0;                    
+                }
+                    
+                orbServant->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
+                ior = orbServant->activate();
+                if ( ! ior.empty() )
+                    obj = pMgr->orb()->string_to_object( ior.c_str() );
+
+                vec.push_back( orbServant );
+                return orbServant;
+            }
+        };
+
+        template<class T> struct findObject {
+            static T* find( Broker::Manager_ptr bmgr, const char * name ) {
+                CORBA::Object_var obj = bmgr->find_object( name );
+                if ( CORBA::is_nil( obj.in() ) )
+                    return 0;
+                return T::_narrow( obj );
+            }
+        };
+
+    }
+}
+
 ServantPlugin::~ServantPlugin()
 {
     final_close();
@@ -103,11 +149,6 @@ ServantPlugin::instance()
 {
     return instance_;
 }
-
-static const wchar_t * instconf =
-	L"<Configuration name=\"InstrumentConfiguration\">\
-	<Configuration name=\"infitofcontroller.1\" id=\"infitof.1\" type=\"object_ref\" ns_name=\"infitofcontroller.session\"/>\
-	</Configuration>";
 
 bool
 ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
@@ -177,94 +218,61 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 		pMgr->spawn( barrier );
 	}
 	barrier.wait();
-
     //--------------------------------------------------------------------
-    adplugin::plugin_ptr adbroker = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" );
-    if ( adbroker ) {
-        adplugin::orbFactory * factory = adbroker->query_interface< adplugin::orbFactory >();
-        if ( ! factory  ) {
-            *error_message = "adplugin::adBroker does not provide orbFactory interface";
-            return false;
-        }
-        adplugin::orbServant * adBroker;
-        if ( ( adBroker = factory->create_instance() ) ) {
-            adBroker->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
-            std::string iorBroker = adBroker->activate();
-            if ( iorBroker.empty() ) {
-                *error_message = "adBroker object could not be activated";
-                return false;
-            }
-
-            // for deactivation
-            orbServants_.push_back( adBroker );  
-
-            CORBA::Object_var obj = pMgr->orb()->string_to_object( iorBroker.c_str() );
-			Broker::Manager_var mgr = Broker::Manager::_narrow( obj );
-            if ( CORBA::is_nil( mgr ) ) {
+    //--------------------------------------------------------------------
+    Broker::Manager_var bmgr;
+	adplugin::plugin_ptr adbroker = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" );
+	if ( adbroker ) {
+		internal::orbServantCreator broker_creator;
+		adplugin::orbServant * adBroker = broker_creator( adbroker, orbServants_ );
+        if ( adBroker ) {
+            bmgr = Broker::Manager::_narrow( broker_creator.obj );
+            if ( CORBA::is_nil( bmgr ) ) {
                 *error_message = "Broker::Manager cannot be created";
                 return false;
             }
-			adorbmgr::orbmgr::instance()->setBrokerManager( mgr.in() );
+        } else {
+            *error_message = broker_creator.errmsg.str().empty() ? 
+                "adplugin for Broker::Manager did not loaded." : broker_creator.errmsg.str().c_str();
+            return false;
+        }
+		adorbmgr::orbmgr::instance()->setBrokerManager( bmgr );
+        bmgr->register_ior( adBroker->object_name(), broker_creator.ior.c_str() );
+    }
+    pImpl_->init_debug_adbroker( bmgr );
+
+    // ----------------------- initialize corba servants ------------------------------
+    std::vector< adplugin::plugin_ptr > factories;
+    adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
+    BOOST_FOREACH( const adplugin::plugin_ptr& ptr, factories ) {
+
+        if ( ptr->iid() == adbroker->iid() )
+            continue;
+
+        internal::orbServantCreator creator;
+        adplugin::orbServant * servant = creator( ptr, orbServants_ );
+        if ( servant ) {
+            BrokerClient::Accessor_var accessor = BrokerClient::Accessor::_narrow( creator.obj );
+            if ( !CORBA::is_nil( accessor ) ) {
+                accessor->setBrokerManager( bmgr.in() );
+				accessor->adpluginspec( ptr->clsid(), ptr->adpluginspec() );
+            }
             try {
-				mgr->register_ior( adBroker->object_name(), iorBroker.c_str() );
+                bmgr->register_ior( servant->object_name(), creator.ior.c_str() );
+                bmgr->register_object( servant->object_name(), creator.obj );
             } catch ( CORBA::Exception& ex ) {
                 *error_message = ex._info().c_str();
                 return false;
             }
-			pImpl_->init_debug_adbroker( mgr );
         }
     }
-    
 
-    // ----------------------- initialize corba servants ------------------------------
-    do {
-        std::vector< adplugin::plugin_ptr > factories;
-        adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
-        BOOST_FOREACH( const adplugin::plugin_ptr& ptr, factories ) {
-            if ( ptr->iid() == adbroker->iid() )
-                continue;
-            adportable::debug(__FILE__, __LINE__ ) << "initializing " << ptr->iid() << ptr->clsid();
-            adplugin::orbFactory * factory = ptr->query_interface< adplugin::orbFactory >();
-            if ( factory  ) {
-                adplugin::orbServant * servant = factory->create_instance();
-                if ( servant ) {
-
-                    orbServants_.push_back( servant ); // keep instance
-
-                    servant->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
-
-                    std::string ior = servant->activate();
-                    CORBA::Object_var obj = pMgr->orb()->string_to_object( ior.c_str() );
-
-                    BrokerClient::Accessor_var accessor = BrokerClient::Accessor::_narrow( obj );
-
-                    if ( !CORBA::is_nil( accessor ) )
-                        accessor->setBrokerManager( pImpl_->manager_.in() );
-                    try {
-                        pImpl_->manager_->register_ior( servant->object_name(), ior.c_str() );
-                        pImpl_->manager_->register_object( servant->object_name(), obj );
-                    } catch ( CORBA::Exception& ex ) {
-                        *error_message = ex._info().c_str();
-                        return false;
-                    }
-                }
-            } else {
-                *error_message += QString( ptr->iid() ) + " does not provide orbFactory interface";
-            }
-        }
-    } while( 0 );
-
-	if ( ! CORBA::is_nil( pImpl_->manager_.in() ) ) {
-		using namespace acewrapper::constants;
-		CORBA::Object_var obj = pImpl_->manager_->find_object( adcontroller::manager::_name() );
-		if ( ! CORBA::is_nil( obj ) ) {
-		   ControlServer::Manager_var cmgr = ControlServer::Manager::_narrow( obj );
-		   if ( ! CORBA::is_nil( cmgr ) ) {
-				ControlServer::Session_var session = cmgr->getSession( L"debug" );
-				if ( ! CORBA::is_nil( session ) )
-					session->setConfiguration( instconf );
-		   }
-		}
+    using namespace acewrapper::constants;
+    ControlServer::Manager_var cmgr ( internal::findObject< ControlServer::Manager >::find( bmgr.in(), adcontroller::manager::_name() ) );
+	if ( ! CORBA::is_nil( cmgr ) ) {
+        ControlServer::Session_var session = cmgr->getSession( L"debug" );
+        if ( ! CORBA::is_nil( session ) )
+			pImpl_->init_debug_adcontroller( session );
 	}
 
     // 

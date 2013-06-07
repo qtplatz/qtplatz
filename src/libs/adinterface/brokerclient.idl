@@ -30,5 +30,6 @@ module Broker {
 module BrokerClient {
     interface Accessor {
         boolean setBrokerManager( in Broker::Manager mgr );
+        boolean adpluginspec( in string id, in string spec );
     };
 };

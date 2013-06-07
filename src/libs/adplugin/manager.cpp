@@ -50,6 +50,7 @@
 #include <boost/cast.hpp>
 #include <boost/regex.hpp>
 #include <algorithm>
+#include <fstream>
 
 //----------------------------------
 
@@ -92,7 +93,7 @@ namespace adplugin {
             manager_data() {}
             typedef std::map< std::string, plugin_data > map_type;
             typedef std::vector< plugin_data > vector_type;
-            bool install( QLibrary&, const std::string& adplugispec );
+            bool install( QLibrary&, const std::string& adpluginspec, const std::string& context );
 			void populated();
             plugin_ptr select_iid( const char * regex );
             plugin_ptr select_clsid( const char * regex );
@@ -134,7 +135,9 @@ manager::~manager(void)
 bool
 manager::install( QLibrary& lib, const std::string& adpluginspec )
 {
-    return d_->install( lib, adpluginspec );
+    std::ostringstream s;
+    s << std::ifstream( adpluginspec );
+    return d_->install( lib, adpluginspec, s.str() );
 }
 
 void
@@ -198,7 +201,7 @@ manager_data::populated()
 }
 
 bool
-manager_data::install( QLibrary& lib, const std::string& adpluginspec )
+manager_data::install( QLibrary& lib, const std::string& adpluginspec, const std::string& specxml )
 {
     if ( plugins_.find( adpluginspec ) != plugins_.end() )
         return true; // already in, so that does not need unload() call
@@ -211,6 +214,7 @@ manager_data::install( QLibrary& lib, const std::string& adpluginspec )
             adplugin::plugin_ptr ptr( pptr, false );
             if ( ptr ) {
                 ptr->clsid_ = adpluginspec;
+                ptr->spec_  = specxml;
 				plugins_[ adpluginspec ] = plugin_data( ptr );
 
                 ptr->accept( *this, adpluginspec.c_str() );

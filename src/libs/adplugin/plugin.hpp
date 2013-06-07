@@ -37,7 +37,8 @@ namespace adplugin {
     class orbFactory;
 
     class ADPLUGINSHARED_EXPORT plugin {
-        std::string clsid_;
+        std::string clsid_;  // full path to .adplugin
+        std::string spec_;   // context of .adplugin
         friend class internal::manager_data;
         virtual void * query_interface_workaround( const char * /* typename */ ) { return 0; }
 	protected:
@@ -50,7 +51,8 @@ namespace adplugin {
         virtual void release();
         virtual void accept( visitor&, const char * adplugin ) = 0;
         virtual const char * iid() const = 0;
-        virtual const char * clsid() const { return clsid_.c_str(); } // adplugin name
+        virtual const char * clsid() const { return clsid_.c_str(); }       // adplugin name
+        virtual const char * adpluginspec() const { return spec_.c_str(); } // context of adplugin file (may be xml but may not be)
 
         template<typename T> T* query_interface() {
             // dynamic_cast across the shared object loaded by dlopen doesn't work even tried with

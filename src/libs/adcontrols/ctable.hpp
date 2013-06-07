@@ -29,6 +29,11 @@
 #include <string>
 #include "adcontrols_global.h"
 
+#if defined _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4251 )
+#endif
+
 namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT CTable {
@@ -40,9 +45,7 @@ namespace adcontrols {
             Atom();
             Atom( const Atom& );
             double x, y, z;
-#if defined _MSC_VER
-# pragma warning( disable: 4251 )
-#endif
+
             std::wstring symbol;
             int mass_difference;
             int charge;
@@ -80,12 +83,14 @@ namespace adcontrols {
         bool empty() const { return atoms_.empty(); }
 
     private:
-#if defined _MSC_VER
-# pragma warning( disable: 4251 )
-#endif
+
         atom_vector atoms_;
         bond_vector bonds_;
     };
 }
+
+#if defined _MSC_VER
+# pragma warning( pop )
+#endif
 
 #endif // CTABLE_HPP

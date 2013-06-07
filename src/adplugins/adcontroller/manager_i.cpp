@@ -90,3 +90,11 @@ manager_i::setBrokerManager( Broker::Manager_ptr mgr )
     broker_mgr_ = Broker::Manager::_duplicate( mgr );
     return true;
 }
+
+bool
+manager_i::adpluginspec( const char *id, const char * spec )
+{
+    adplugin_id = id;
+    adplugin_spec = spec;
+    return true;
+}
