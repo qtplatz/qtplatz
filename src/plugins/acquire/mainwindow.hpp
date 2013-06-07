@@ -29,7 +29,7 @@
 #include <QObject>
 #include <QWidget>
 #include <adinterface/receiverC.h>
-#include <Utils/fancymainwindow.h>
+#include <utils/fancymainwindow.h>
 
 namespace adportable { class Configuration; }
 namespace adextension { class iMonitorFactory; }
