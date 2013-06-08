@@ -37,6 +37,6 @@
 #  define DECL_IMPORT /* nothing */
 #endif
 
-#if ! defined _MSC_VER
+#if ! defined _MSC_VER && ! defined __APPLE__
 typedef unsigned int size_t;
 #endif

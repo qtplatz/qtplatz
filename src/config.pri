@@ -9,7 +9,7 @@ win32 {
     QMAKE_CXXFLAGS *= -std=c++11
 }
 macx {
-     QMAKE_CXXFLAGS += -stdlib=libc++
+    QMAKE_CXXFLAGS *= -std=c++11
 }
 
 BOOST_VERSION=boost-1_53
