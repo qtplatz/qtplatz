@@ -174,14 +174,16 @@ manager_i::register_lookup( const char * name, const char * ident )
         boost::mutex::scoped_lock lock( mutex_ );
         if ( discovery_ == 0 ) {
             discovery_ = new ObjectDiscovery( mutex_ );
-            discovery_->open();
         }
     }
     if ( discovery_ ) {
+        discovery_->open();
+        discovery_->register_lookup( name, ident );
+
         boost::mutex::scoped_lock lock( mutex_ );
-        discovery_->register_lookup( name, ident );    
         lookup_[ name ] = ident;
     } while(0);
+
 #if defined DEBUG && 0
     adportable::debug() << "================================================================";
     adportable::debug() << "======== adbroker::manager_i::register_lookup(" 

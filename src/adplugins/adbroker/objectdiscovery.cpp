@@ -120,15 +120,17 @@ ObjectDiscovery::open()
 
 	acewrapper::ifconfig::broadaddr( bcast_->ifvec() );
 
-    boost::mutex::scoped_lock lock( mutex_ );
-    if ( reactor_thread_ == 0 ) {
-        reactor_thread_ = new acewrapper::ReactorThread();
-		bcast_->open();
-        ACE_Reactor * reactor = reactor_thread_->get_reactor();
-        reactor->register_handler( bcast_, ACE_Event_Handler::READ_MASK );
-		reactor->schedule_timer( timer_, 0, ACE_Time_Value(1), ACE_Time_Value(3) );
-        return reactor_thread_->spawn();
-    }
+	if ( reactor_thread_ == 0 ) {
+        boost::mutex::scoped_lock lock( mutex_ );
+        if ( reactor_thread_ == 0 ) {
+            reactor_thread_ = new acewrapper::ReactorThread();
+            bcast_->open();
+            ACE_Reactor * reactor = reactor_thread_->get_reactor();
+            reactor->register_handler( bcast_, ACE_Event_Handler::READ_MASK );
+            reactor->schedule_timer( timer_, 0, ACE_Time_Value(1), ACE_Time_Value(3) );
+            return reactor_thread_->spawn();
+        }
+	}
     return false;
 }
 

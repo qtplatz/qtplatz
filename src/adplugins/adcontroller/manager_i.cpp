@@ -97,8 +97,8 @@ manager_i::adpluginspec( const char *id, const char * spec )
     adplugin_id = id;
     adplugin_spec = spec;
 
-	if ( ! CORBA::is_nil( broker_mgr_ ) ) {
-		assert( 0 );
+	if ( CORBA::is_nil( broker_mgr_ ) ) {
+		assert( CORBA::is_nil( broker_mgr_ ) );
 		return false;
 	}
 
