@@ -1,3 +1,6 @@
+./bootstrap.sh --with-toolset=clang --prefix=/usr/local/boost-1_53
+sudo ./b2 toolset=clang cxxflags="-std=c++11" --prefix=/usr/local/boost-1_53 link=static install
+
 5/June/2013
 In order to success build with c++11 enabled for whole project, make sure boost is also built with c++11;
 
