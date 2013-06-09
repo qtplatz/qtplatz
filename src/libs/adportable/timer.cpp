@@ -23,7 +23,13 @@
 **************************************************************************/
 
 #include "timer.hpp"
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
+
 #include <boost/date_time/posix_time/posix_time.hpp>
+
+#include <compiler/diagnostic_pop.h>
 
 using namespace adportable;
 

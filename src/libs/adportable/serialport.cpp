@@ -27,7 +27,14 @@
 #include <boost/asio/serial_port.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
+
 #include <boost/date_time/posix_time/posix_time.hpp>
+
+#include <compiler/diagnostic_pop.h>
+
 #include <boost/thread.hpp>
 #include "debug.hpp"
 
