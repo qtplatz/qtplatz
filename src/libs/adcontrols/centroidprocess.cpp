@@ -23,6 +23,7 @@
 **
 **************************************************************************/
 
+#include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
 
 #include "centroidprocess.hpp"
@@ -49,7 +50,7 @@
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/foreach.hpp>
 
-// #define DEBUG_CENTROID_PROCESS
+#include <compiler/diagnostic_pop.h>
 
 using namespace adcontrols;
 

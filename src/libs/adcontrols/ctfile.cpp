@@ -21,12 +21,18 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#include <compiler/disable_unused_parameter.h>
 
 #include "ctfile.hpp"
 #include "ctable.hpp"
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
+
 #include <boost/filesystem/fstream.hpp>
 #include <boost/tokenizer.hpp>
+
+#include <compiler/diagnostic_pop.h>
+
 #include <adportable/string.hpp>
 
 using namespace adcontrols;

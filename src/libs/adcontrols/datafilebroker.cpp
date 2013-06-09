@@ -22,16 +22,19 @@
 **
 **************************************************************************/
 
-#include <compiler/disable_unused_parameter.h>
-
 #include "datafilebroker.hpp"
 #include "datafile.hpp"
 #include "datafile_factory.hpp"
 #include <adportable/string.hpp>
 #include <map>
-#include <boost/smart_ptr.hpp>
 #include <adportable/debug.hpp>
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
+#include <boost/smart_ptr.hpp>
 #include <boost/thread.hpp>
+#include <compiler/diagnostic_pop.h>
+
 #include "adcontrols.hpp"
 
 using namespace adcontrols;

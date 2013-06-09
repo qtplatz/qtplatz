@@ -23,10 +23,12 @@
 **
 **************************************************************************/
 
+#include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
-
 #include "msreference.hpp"
 #include "chemicalformula.hpp"
+#include <compiler/diagnostic_pop.h>
+
 #include <cmath>
 
 using namespace adcontrols;

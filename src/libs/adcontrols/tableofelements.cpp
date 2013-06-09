@@ -23,6 +23,7 @@
  **
  **************************************************************************/
 
+#include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
 
 #include "tableofelements.hpp"
@@ -43,6 +44,8 @@
 
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
+
+#include <compiler/diagnostic_pop.h>
 
 using namespace adcontrols;
 using namespace adcontrols::internal;

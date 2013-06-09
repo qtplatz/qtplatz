@@ -23,6 +23,7 @@
 **
 **************************************************************************/
 
+#include <compiler/diagnostic_push.h>
 #include <compiler/workaround.h>
 #include <compiler/disable_unused_parameter.h>
 
@@ -37,6 +38,7 @@
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/foreach.hpp>
 #include <boost/bind.hpp>
+#include <compiler/diagnostic_pop.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -298,6 +300,8 @@ ChemicalFormulaImpl::parse( const std::wstring& formula, client::map_type& map )
     iterator_type end = formula.end();
     return boost::spirit::qi::parse( it, end, cf, map ) && it == end;
 #else
+    (void)formula;
+    (void)map;
     return false;
 #endif
 }

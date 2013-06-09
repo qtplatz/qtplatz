@@ -24,13 +24,18 @@
 
 #include "elementalcompositioncollection.hpp"
 
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
+
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
-//# pragma warning( disable: 4996 )
+
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
-//# pragma warning( default: 4996 )
+
+#include <compiler/diagnostic_pop.h>
+
 
 using namespace adcontrols;
 

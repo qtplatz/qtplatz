@@ -26,6 +26,9 @@
 #include <sstream>
 #include <vector>
 
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
+
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/level.hpp>
 #include <boost/serialization/version.hpp>
@@ -37,10 +40,10 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 
-//# include <boost/archive/binary_oarchive.hpp>
-//# include <boost/archive/binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
+
+#include <compiler/diagnostic_pop.h>
 
 using namespace adcontrols;
 

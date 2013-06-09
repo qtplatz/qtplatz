@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
 
 #include "peakresult.hpp"
@@ -34,6 +35,8 @@
 #include <boost/serialization/base_object.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
+
+#include <compiler/diagnostic_pop.h>
 
 using namespace adcontrols;
 

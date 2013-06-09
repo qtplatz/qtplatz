@@ -26,10 +26,14 @@
 #pragma once
 
 #include "adcontrols_global.h"
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
 #include <boost/smart_ptr.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
+#include <compiler/diagnostic_pop.h>
 
 namespace adcontrols {
 
@@ -66,9 +70,7 @@ namespace adcontrols {
         double minimumRAPercent_;
         double lowMass_;
         double highMass_;
-# if defined _MSC_VER
-# pragma warning(disable:4251)
-# endif
+
         boost::scoped_ptr<MSReferenceDefns> refDefns_;
         boost::scoped_ptr<MSReferences> references_;
 
