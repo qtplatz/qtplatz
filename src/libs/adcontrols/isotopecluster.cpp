@@ -23,6 +23,7 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_unused_parameter.h>
 #include "isotopecluster.hpp"
 #include "tableofelements.hpp"
 #include "massspectrum.hpp"

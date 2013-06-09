@@ -22,6 +22,8 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_unused_parameter.h>
+
 #include "datafilebroker.hpp"
 #include "datafile.hpp"
 #include "datafile_factory.hpp"

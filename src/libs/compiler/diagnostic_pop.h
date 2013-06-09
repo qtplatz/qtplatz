@@ -1,4 +1,4 @@
-// This is a -*- C++ -*- header.
+// -*- C++ -*-
 /**************************************************************************
 ** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
@@ -7,10 +7,10 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
-** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this
+** file in accordance with the MS-Cheminformatics Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -25,21 +25,11 @@
 
 #pragma once
 
-#include "adcontrols_global.h"
+#if defined _MSC_VER
+# pragma warning ( pop )
+#endif
 
-namespace adcontrols {
+#if defined __GNUC__
+# pragma GCC diagnostic pop
+#endif
 
-    class Acceptor;
-    class MassSpectrometer;
-    class datafile;
-
-    class ADCONTROLSSHARED_EXPORT Visitor {
-    public:
-        Visitor(void);
-        virtual ~Visitor(void);
-        virtual void visit( Acceptor& ) {}
-        virtual void visit( MassSpectrometer& ) {}
-        virtual void visit( datafile& ) {}
-    };
-
-}

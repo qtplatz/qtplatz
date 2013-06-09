@@ -21,6 +21,7 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+#include <compiler/workaround.h>
 #include <compiler/disable_unused_parameter.h>
 
 #include "processmethod.hpp"
@@ -40,8 +41,6 @@
 #include <boost/serialization/variant.hpp>
 #include <boost/serialization/base_object.hpp>
 
-//# include <boost/archive/binary_oarchive.hpp>
-//# include <boost/archive/binary_iarchive.hpp>
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 
