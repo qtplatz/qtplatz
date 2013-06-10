@@ -30,8 +30,7 @@
 #include <string>
 #include <memory>
 #include <mutex>
-
-namespace std { class mutex; class thread; }
+#include <thread>
 
 namespace boost { namespace asio { class io_service; } }
 

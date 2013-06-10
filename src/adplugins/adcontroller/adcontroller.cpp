@@ -27,7 +27,6 @@
 #include <adplugin/visitor.hpp>
 #include <adplugin/orbfactory.hpp>
 #include <adplugin/orbservant.hpp>
-#include <boost/thread/mutex.hpp>
 #include "ace/Init_ACE.h"
 
 # include <ace/SOCK_Dgram_Mcast.h>

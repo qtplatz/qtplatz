@@ -62,8 +62,8 @@ namespace adbroker {
     public:  
         inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
 
-        bool open();
-        void close();
+        int open( void * args = 0 );
+        int close( unsigned long flags = 0 );
         bool connect( Broker::Session_ptr, BrokerEventSink_ptr, const char * token );
         bool disconnect( Broker::Session_ptr, BrokerEventSink_ptr );
 

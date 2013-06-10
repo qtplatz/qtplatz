@@ -93,16 +93,18 @@ Task::handle_timer_timeout( const ACE_Time_Value& tv, const void * )
     return 0;
 }
 
-bool
-Task::open()
+int
+Task::open( void * args )
 {
+    (void)args;
+    // ACE_Task<ACE_MT_SYNCH>::open( args );
     if ( activate( THR_NEW_LWP, n_threads_ ) != - 1 )
         return true;
     return false;
 }
 
-void
-Task::close()
+int
+Task::close( unsigned long flags )
 {
     do {
         // this will block until a message arrives.
@@ -115,9 +117,9 @@ Task::close()
 
     this->wait();
     this->msg_queue()->deactivate();
-    ACE_Task<ACE_MT_SYNCH>::close( 0 );
-
+    int ret = ACE_Task<ACE_MT_SYNCH>::close( flags );
     delete this;
+    return ret;
 }
 
 bool
