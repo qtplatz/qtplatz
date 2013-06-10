@@ -7,7 +7,7 @@ PROVIDER = MS-Cheminformatics
 include(../../qtplatzplugin.pri)
 include(../../boost.pri)
 include(../../openbabel.pri)
-include(../../ace_tao.pri)data
+include(../../ace_tao.pri)
 
 DEFINES += CHEMISTRY_LIBRARY
 
