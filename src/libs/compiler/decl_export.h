@@ -41,4 +41,6 @@
   typedef unsigned int size_t;
 #elif defined __APPLE__ 
   typedef unsigned long size_t;
+#else
+  typedef unsigned int size_t;
 #endif
