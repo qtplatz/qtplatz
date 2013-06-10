@@ -31,6 +31,7 @@
 #include <cstring>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 #if defined __APPLE__
 # include "ifconfig_macosx.hpp"

@@ -53,6 +53,7 @@ namespace adcontrols {
         };
 
     private:
+#include <compiler/disable_dll_interface.h>
         eToleranceMethod toleranceMethod_;
         double massToleranceDa_;
         double massTolerancePpm_;
