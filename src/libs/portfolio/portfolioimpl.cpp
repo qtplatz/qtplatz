@@ -33,7 +33,11 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
 #include <boost/lexical_cast.hpp>
+#include <compiler/diagnostic_pop.h>
 
 using namespace portfolio;
 using namespace portfolio::internal;

@@ -13,6 +13,8 @@ macx {
     QMAKE_CXXFLAGS *= -stdlib=libc++
     QMAKE_CXXFLAGS -= -mmacosx-version-min=10.5
     QMAKE_CXXFLAGS *= -mmacosx-version-min=10.7
+    QMAKE_LFLAGS   -= -mmacosx-version-min=10.5
+    QMAKE_LFLAGS   *= -mmacosx-version-min=10.7 -stdlib=libc++
     DEFINES += BOOST_NO_CXX11_RVALUE_REFERENCES
 }
 
