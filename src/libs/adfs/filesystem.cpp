@@ -30,7 +30,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/cstdint.hpp>
+
+#include <compiler/disable_unused_parameter.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
+
 #include <boost/tokenizer.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>

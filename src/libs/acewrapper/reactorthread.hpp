@@ -27,8 +27,7 @@
 #define REACTORTHREAD_H
 
 #include <ace/Reactor.h>
-
-namespace boost { class thread; }
+#include <thread>
 
 namespace acewrapper {
 
@@ -46,7 +45,7 @@ namespace acewrapper {
     private:
         void run_event_loop();
         ACE_Reactor * reactor_;
-        boost::thread * thread_;
+        std::thread * thread_;
     };
 }
 

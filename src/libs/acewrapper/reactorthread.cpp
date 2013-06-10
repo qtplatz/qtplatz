@@ -27,7 +27,6 @@
 #include <ace/Reactor.h>
 #include <adportable/debug.hpp>
 #include <boost/bind.hpp>
-#include <boost/thread.hpp>
 
 #if defined _DEBUG
 # include <iostream>
@@ -59,7 +58,7 @@ ReactorThread::spawn()
 {
     if ( thread_ )
         return false;
-    thread_ = new boost::thread( boost::bind( &ReactorThread::run_event_loop, this ) );
+    thread_ = new std::thread( boost::bind( &ReactorThread::run_event_loop, this ) );
     return true;
 }
 

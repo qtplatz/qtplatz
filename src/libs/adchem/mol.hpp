@@ -25,7 +25,11 @@
 #ifndef MOL_HPP
 #define MOL_HPP
 
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
 #include <boost/smart_ptr.hpp>
+#include <compiler/diagnostic_pop.h>
+
 #include <string>
 #include <vector>
 

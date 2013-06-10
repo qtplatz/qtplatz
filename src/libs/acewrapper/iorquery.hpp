@@ -29,7 +29,7 @@
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/function.hpp>
-#if defined _MSC_VER
+#if defined _MSC_VER || defined __APPLE__ // assume -stdlib=libc++
 # include <cstdint>
 #else
 # include <tr1/cstdint>

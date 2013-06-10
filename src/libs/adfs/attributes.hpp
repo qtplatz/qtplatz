@@ -41,6 +41,7 @@ namespace adfs {
 
         class attributes {
         public:
+            virtual ~attributes() {}
             attributes();
             attributes( const attributes& t );
 

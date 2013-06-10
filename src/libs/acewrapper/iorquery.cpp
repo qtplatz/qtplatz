@@ -25,8 +25,8 @@
 #include "iorquery.hpp"
 #include <acewrapper/constants.hpp>
 #include <acewrapper/ifconfig.hpp>
-#include <boost/thread.hpp>
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 
 using namespace acewrapper;
 using boost::asio::ip::udp;
