@@ -24,7 +24,6 @@ SOURCES += adportable.cpp \
     portable_binary_oarchive.cpp \
     portable_binary_iarchive.cpp \
     posix_path.cpp \
-    semaphore.cpp \
     serialport.cpp \
     spectrum_processor.cpp \
     string.cpp \
@@ -54,7 +53,6 @@ HEADERS += adportable.hpp \
     posix_path.hpp \
     protocollifecycle.hpp \
     safearray.hpp \
-    semaphore.hpp \
     serialport.hpp \
     spectrum_processor.hpp \
     string.hpp \

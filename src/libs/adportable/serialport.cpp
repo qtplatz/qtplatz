@@ -24,6 +24,8 @@
 
 #include "serialport.hpp"
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
+
 #include <boost/asio/serial_port.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
@@ -35,7 +37,6 @@
 
 #include <compiler/diagnostic_pop.h>
 
-#include <boost/thread.hpp>
 #include "debug.hpp"
 
 using namespace adportable;
@@ -86,7 +87,11 @@ serialport::write( const char * data, std::size_t length )
 bool
 serialport::write( const char * data, std::size_t length, unsigned long milliseconds )
 {
+#if defined BOOST_THREAD
     boost::mutex::scoped_lock lock( mutex_ );
+#else
+    std::lock_guard< std::mutex > lock( mutex_ );
+#endif
     outbuf_ = std::string( data, length );
     boost::asio::async_write( port_
                               , boost::asio::buffer( &outbuf_[0], outbuf_.size() )
