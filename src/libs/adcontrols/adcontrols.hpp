@@ -25,15 +25,15 @@
 
 #pragma once
 
-#include <boost/thread.hpp>
+#include <mutex>
 
 namespace adcontrols {
 
     class global_mutex {
-        boost::mutex mutex_;
+        std::mutex mutex_;
     public:
         static global_mutex& instance();
-        static boost::mutex& mutex();
+        static std::mutex& mutex();
     };
 
 }

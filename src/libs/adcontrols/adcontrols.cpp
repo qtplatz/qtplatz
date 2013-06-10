@@ -33,7 +33,7 @@ global_mutex::instance()
     return __global_mutex;
 }
 
-boost::mutex&
+std::mutex&
 global_mutex::mutex()
 {
     return global_mutex::instance().mutex_;
