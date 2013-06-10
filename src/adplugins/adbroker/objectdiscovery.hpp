@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -28,32 +28,46 @@
 
 #include <map>
 #include <string>
+#include <memory>
+#include <mutex>
 
-namespace boost { class mutex; }
+#if defined BOOST_THREAD
+namespace boost { class mutex; class thread; }
+#else
+namespace std { class mutex; class thread; }
+#endif
+
+namespace boost { namespace asio { class io_service; } }
+
+namespace acewrapper { class iorQuery; }
 namespace acewrapper { class ReactorThread; }
-
-class ACE_INET_Addr;
 
 namespace adbroker {
 
     class ObjectDiscovery {
     public:
         ~ObjectDiscovery();
-        ObjectDiscovery( boost::mutex& mutex );
+        ObjectDiscovery();
         bool open();
         void close();
-        void operator()( const char *, int, const ACE_INET_Addr& );
         void register_lookup( const std::string& name, const std::string& ident );
         bool unregister_lookup( const std::string& ident, std::string& name );
-        int handle_timeout();
 
     private:
+        void reply_handler( const std::string&, const std::string& );
+        std::unique_ptr< boost::asio::io_service > io_service_;
+#if defined BOOST_THREAD
+        std::unique_ptr< boost::thread > thread_;
+#else
+        std::unique_ptr< std::thread > thread_;
+#endif
+
+		std::unique_ptr< acewrapper::iorQuery > iorQuery_;
+
         acewrapper::ReactorThread * reactor_thread_;
-        class BcastHandler * bcast_;
-		class TimerHandler * timer_;
         bool suspend_;
-        boost::mutex& mutex_;
 		std::map< std::string, std::string > list_;
+        std::mutex mutex_;
     };
 
 }

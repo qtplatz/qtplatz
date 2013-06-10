@@ -45,6 +45,8 @@ namespace acewrapper {
                   , boost::function<void (const std::string&, const std::string&)> );
         bool open();
         void close();
+        void suspend();
+        void resume();
     private:
         void send_query();
         void handle_timeout( const boost::system::error_code& );
@@ -58,6 +60,7 @@ namespace acewrapper {
         boost::array< char, 1500u > recv_buffer_;
         boost::asio::deadline_timer timer_;
         std::size_t interval_;
+        bool suspend_;
     };
 
 }

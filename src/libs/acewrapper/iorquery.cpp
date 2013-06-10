@@ -40,6 +40,7 @@ iorQuery::iorQuery( boost::asio::io_service& io_service
     , socket_( io_service_, udp::endpoint( udp::v4(), 0 ) )
     , timer_( io_service_ )
     , interval_( 3000 )
+    , suspend_( false )
 {
     socket_.set_option( boost::asio::socket_base::broadcast( true ) );
 }
@@ -69,6 +70,24 @@ iorQuery::open()
     start_receive();
     send_query();
     return true;
+}
+
+void
+iorQuery::suspend()
+{
+    if ( ! suspend_ ) {
+        suspend_ = true;
+        timer_.cancel();
+    }
+}
+
+void
+iorQuery::resume()
+{
+    if ( suspend_ ) {
+        suspend_ = false;
+        initiate_timer();
+    }
 }
 
 void

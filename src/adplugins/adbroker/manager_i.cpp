@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
@@ -173,7 +173,7 @@ manager_i::register_lookup( const char * name, const char * ident )
     if ( discovery_ == 0 ) {
         boost::mutex::scoped_lock lock( mutex_ );
         if ( discovery_ == 0 ) {
-            discovery_ = new ObjectDiscovery( mutex_ );
+            discovery_ = new ObjectDiscovery();
         }
     }
     if ( discovery_ ) {
