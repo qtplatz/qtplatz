@@ -75,7 +75,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
-#include <boost/thread/barrier.hpp>
+//#include <boost/thread/barrier.hpp>
+#include <adportable/barrier.hpp>
 
 using namespace servant;
 using namespace servant::internal;
@@ -211,7 +212,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     }
 
     // ------------ Broker::Manager initialize first --------------------
-    boost::barrier barrier( 2 );
+    adportable::barrier barrier( 2 );
     adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance();
 	if ( pMgr ) {
 		pMgr->init( 0, 0 );
