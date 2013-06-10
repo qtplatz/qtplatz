@@ -42,7 +42,7 @@ calibrate_masses::operator () ( const adcontrols::MSAssignedMasses& assigned
 {
     std::vector<double> tmvec, msvec, coeffs;
     for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
-        if ( it->enable() && it->mode() == mode ) {
+        if ( it->enable() && it->mode() == static_cast<unsigned int>( mode ) ) {
             msvec.push_back( sqrt( it->exactMass() ) );
             tmvec.push_back( it->time() );
         }
