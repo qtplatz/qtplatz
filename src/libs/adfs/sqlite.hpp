@@ -27,6 +27,7 @@
 
 #include <boost/noncopyable.hpp>
 #include <boost/cstdint.hpp>
+#include <compiler/workaround.h>
 #include <boost/variant.hpp>
 #include <string>
 

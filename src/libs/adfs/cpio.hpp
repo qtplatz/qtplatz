@@ -26,7 +26,12 @@
 #pragma once
 
 #include <streambuf>
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
 #include <boost/smart_ptr.hpp>
+#include <compiler/diagnostic_pop.h>
+
 #include <adfs/folium.hpp>
 
 namespace adfs {

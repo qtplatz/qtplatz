@@ -26,9 +26,14 @@
 #pragma once
 
 #include <string>
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
 #if ! defined Q_MOC_RUN
 #include <boost/smart_ptr.hpp>
 #endif
+#include <compiler/diagnostic_pop.h>
+
 #include <QtCore>
 
 class QwtPlotMarker;

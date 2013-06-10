@@ -6,8 +6,6 @@
 
 PROVIDER = MS-Cheminformatics
 
-!win32: QMAKE_CXXFLAGS *= -std=c++11
-
 include(../../qtplatzplugin.pri)
 include(../../ace_tao.pri)
 include(../../boost.pri)

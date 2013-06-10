@@ -37,9 +37,7 @@ LIBS += -l$$qtLibraryTarget(acewrapper) \
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
 }
 
-#!win32 {
-#  LIBS *= -lboost_serialization -lboost_date_time -lboost_filesystem -lboost_system
-#}
+!win32: LIBS += -lboost_thread -lboost_system
 
 unix:!symbian {
     maemo5 {

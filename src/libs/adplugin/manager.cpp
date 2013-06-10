@@ -43,12 +43,18 @@
 #include <QWidget>
 #include <map>
 #include <fstream>
-#include <ace/Singleton.h>
+// #include <ace/singleton.h>
 #include <boost/smart_ptr.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/cast.hpp>
+
+#if defined BOOST_REGEX
 #include <boost/regex.hpp>
+#else
+#include <regex>
+#endif
+
 #include <algorithm>
 #include <fstream>
 
@@ -136,7 +142,7 @@ bool
 manager::install( QLibrary& lib, const std::string& adpluginspec )
 {
     std::ostringstream s;
-    std::ifstream inf( adpluginspec );
+    std::ifstream inf( adpluginspec.c_str() );
 	std::copy( std::istreambuf_iterator<char>(inf), std::istreambuf_iterator<char>(), std::ostreambuf_iterator<char>(s) );
     return d_->install( lib, adpluginspec, s.str() );
 }
@@ -230,12 +236,19 @@ manager_data::install( QLibrary& lib, const std::string& adpluginspec, const std
 plugin_ptr
 manager_data::select_iid( const char * regex )
 {
+#if defined BOOST_REGEX
 	boost::regex re( regex );
     boost::cmatch matches;
+    using namespace boost;
+#else
+	std::regex re( regex );
+    std::cmatch matches;
+    using namespace std;
+#endif
 
 	auto itr = std::find_if( plugins_.begin(), plugins_.end(), [&]( const map_type::value_type& m ){
-		return boost::regex_match( m.second.iid(), matches, re );
-	});
+            return regex_match( m.second.iid(), matches, re );
+        });
 	if ( itr != plugins_.end() )
 		return itr->second.plugin();
     return 0;

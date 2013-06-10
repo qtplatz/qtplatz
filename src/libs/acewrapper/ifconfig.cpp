@@ -25,7 +25,6 @@
 #include "ifconfig.hpp"
 
 #include <adportable/debug.hpp>
-#include <boost/smart_ptr.hpp>
 #include <boost/bind.hpp>
 
 #include <cstdlib>
@@ -67,7 +66,8 @@ ifconfig::broadaddr( std::vector< std::pair< std::string, std::string > >& vec )
 #if defined WIN32
 	PMIB_IPADDRTABLE pIPAddrTable = 0;
 	DWORD dwSize = 0;
-	boost::scoped_array< char > pbuf;
+	// boost::scoped_array< char > pbuf;
+    std::unique_ptr< char[] > pbuf;
 	if ( GetIpAddrTable( 0, &dwSize, 0 ) == ERROR_INSUFFICIENT_BUFFER ) {
 		pbuf.reset( new char [ dwSize ] );
 		pIPAddrTable = reinterpret_cast< MIB_IPADDRTABLE * >( pbuf.get() );

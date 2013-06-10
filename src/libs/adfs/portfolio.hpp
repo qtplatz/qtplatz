@@ -25,7 +25,11 @@
 
 #pragma once
 
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
 #include <boost/smart_ptr.hpp>
+#include <compiler/diagnostic_pop.h>
+
 #include <vector>
 #include <adfs/attributes.hpp>
 

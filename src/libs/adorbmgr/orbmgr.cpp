@@ -29,7 +29,7 @@
 #include <adportable/debug.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread/barrier.hpp>
-#include <boost/thread.hpp>
+#include <boost/thread/thread.hpp>
 
 using namespace adorbmgr;
 
@@ -55,8 +55,8 @@ orbmgr::~orbmgr()
 
 orbmgr::orbmgr( CORBA::ORB_ptr orb
                 , PortableServer::POA_ptr poa
-                , PortableServer::POAManager_ptr poamanager ) : init_count_( 0 )  
-                                                              , thread_running_( false )
+                , PortableServer::POAManager_ptr poamanager ) : thread_running_( false )
+                                                              , init_count_( 0 )  
                                                               , thread_( 0 )
                                                               , taomgr_( new TAO_ORB_Manager( orb, poa, poamanager ) )
                                                               , bmgr_( 0 )

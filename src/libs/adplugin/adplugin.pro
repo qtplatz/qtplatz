@@ -30,11 +30,10 @@ win32 {
 } else {
   LIBS += -lACE
   LIBS += -lTAO -lTAO_Utils -lTAO_PI -lTAO_PortableServer -lTAO_AnyTypeCode
-  LIBS += -lboost_filesystem -lboost_system
+  LIBS += -lboost_filesystem -lboost_system -lboost_regex
 }
 
 DEFINES += ADPLUGIN_LIBRARY
-!win32: QMAKE_CXXFLAGS += -std=c++11
 
 SOURCES += \
     lifecycle.cpp \
