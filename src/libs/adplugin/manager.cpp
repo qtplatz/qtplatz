@@ -43,9 +43,12 @@
 #include <QWidget>
 #include <map>
 #include <fstream>
-// #include <ace/singleton.h>
+
 #include <boost/smart_ptr.hpp>
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_variable.h>
 #include <boost/filesystem.hpp>
+#include <compiler/diagnostic_pop.h>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/cast.hpp>
 
@@ -263,12 +266,19 @@ manager_data::select_clsid( const char * regex )
 size_t
 manager_data::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
 {
+#ifdef BOOST_REGEX
 	boost::regex re( regex );
 	boost::cmatch matches;
+    using namespace boost;
+#else
+	std::regex re( regex );
+	std::cmatch matches;
+    using namespace std;
+#endif
 
 	std::for_each( plugins_.begin(), plugins_.end(), [&]( const map_type::value_type& m ){
-		if ( boost::regex_match( m.second.iid(), matches, re ) )
-			vec.push_back( m.second.plugin() );
+            if ( regex_match( m.second.iid(), matches, re ) )
+                vec.push_back( m.second.plugin() );
 		} );
     return vec.size();
 }
