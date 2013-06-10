@@ -22,18 +22,17 @@
 **
 **************************************************************************/
 
-#if __APPLE__ && (__GNUC_LIBSTD__ <= 4) && (__GNUC_LIBSTD_MINOR__ <= 2)
-#  define BOOST_NO_CXX11_RVALUE_REFERENCES
-#endif
-#if defined __GNUC__
-# pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_unused_parameter.h>
 
 #include "spectrum_processor.hpp"
 #include "array_wrapper.hpp"
 #include <adportable/differential.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/variant.hpp>
+
+#include <compiler/diagnostic_pop.h>
+
 #include <cmath>
 #include <cstring> // for memset()
 #include <stack>
