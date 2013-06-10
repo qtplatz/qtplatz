@@ -10,7 +10,10 @@ win32 {
 }
 macx {
     QMAKE_CXXFLAGS *= -std=c++11
-    DEFINES += BOOST_NO_CXX11_RVALUE_REFERENCES BOOST_REGEX
+    QMAKE_CXXFLAGS *= -stdlib=libc++
+    QMAKE_CXXFLAGS -= -mmacosx-version-min=10.5
+    QMAKE_CXXFLAGS *= -mmacosx-version-min=10.7
+    DEFINES += BOOST_NO_CXX11_RVALUE_REFERENCES
 }
 
 BOOST_VERSION=boost-1_53

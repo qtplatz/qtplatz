@@ -15,6 +15,7 @@ dependencyList += "    </dependencyList>"
 dependencyList = $$join(dependencyList, $$escape_expand(\\n))
 
 include(../qtplatz.pri)
+include(config.pri)
 
 # use gui precompiled header for plugins by default
 # isEmpty(PRECOMPILED_HEADER):PRECOMPILED_HEADER = $$PWD/shared/qtplatz_gui_pch.h
