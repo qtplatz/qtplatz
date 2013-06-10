@@ -29,7 +29,6 @@
 #include <tao/Utils/ORB_Manager.h>
 #include <adportable/debug.hpp>
 #include <boost/bind.hpp>
-#include <boost/thread/barrier.hpp>
 #include <thread>
 
 using namespace adorbmgr;

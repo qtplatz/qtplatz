@@ -27,6 +27,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <exception>
 #include <mutex>
 
 namespace adportable {
@@ -37,8 +38,9 @@ namespace adportable {
                                       , generation_( 0 )
                                       , nthread_( count ) {
             if ( count == 0 )
-                throw std::exception( "barrier constractor: count cannot be zero." );
+                throw std::runtime_error( "barrier constractor: count cannot be zero." );
         }
+
         bool wait() {
             std::unique_lock< std::mutex > lock( mutex_ );
             unsigned int gen = generation_;
