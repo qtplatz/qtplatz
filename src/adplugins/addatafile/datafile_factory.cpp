@@ -31,12 +31,12 @@
 #include <adplugin/visitor.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 using namespace addatafile;
 
 datafile_factory * datafile_factory::instance_ = 0;
-boost::mutex __mutex;
+std::mutex __mutex;
 
 datafile_factory::~datafile_factory(void)
 {
@@ -51,7 +51,7 @@ datafile_factory *
 datafile_factory::instance()
 {
     if ( instance_ == 0 ) {
-        boost::mutex::scoped_lock lock( __mutex );
+        std::lock_guard< std::mutex > lock( __mutex );
         if ( instance_ == 0 ) {
             instance_ = new datafile_factory;
 			// destractor will call from adplugin::dispose by reference couting method,

@@ -74,11 +74,7 @@ MassSpectrometerBrokerImpl *
 MassSpectrometerBrokerImpl::instance()
 {
 	if ( instance_ == 0 ) {
-#if defined BOOST_THREAD
-		boost::mutex::scoped_lock lock( adcontrols::global_mutex::mutex() );
-#else
         std::lock_guard< std::mutex > lock( adcontrols::global_mutex::mutex() );
-#endif
         if ( instance_ == 0 ) 
 			instance_ = new MassSpectrometerBrokerImpl;
 	}

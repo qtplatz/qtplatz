@@ -28,7 +28,10 @@
 #include <boost/noncopyable.hpp>
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
-#include <boost/thread.hpp>
+
+#include <mutex>
+#include <thread>
+
 #include <vector>
 #include <string>
 #include <map>
@@ -39,35 +42,35 @@ class ACE_Recursive_Thread_Mutex;
 namespace acewrapper {
 
     class iorSender : boost::noncopyable {
-	iorSender();
+        iorSender();
     public:
-	static iorSender * instance();
-	bool open( unsigned short port = 0 );
-	void close();
+        static iorSender * instance();
+        bool open( unsigned short port = 0 );
+        void close();
 
-	void register_lookup( const std::string& ior, const std::string& ident );
-	void unregister_lookup( const std::string& ident );
+        void register_lookup( const std::string& ior, const std::string& ident );
+        void unregister_lookup( const std::string& ident );
 
-	bool spawn();
+        bool spawn();
 
         friend class ACE_Singleton< iorSender, ACE_Recursive_Thread_Mutex >;
     private:
-	static void * thread_entry( void * );
+        static void * thread_entry( void * );
 
-	void start_receive();
-	void handle_timeout( const boost::system::error_code& );
-	void handle_receive( const boost::system::error_code&, std::size_t );
-	void handle_sendto( const boost::system::error_code& );
+        void start_receive();
+        void handle_timeout( const boost::system::error_code& );
+        void handle_receive( const boost::system::error_code&, std::size_t );
+        void handle_sendto( const boost::system::error_code& );
 
-	boost::asio::io_service io_service_;
-	boost::asio::ip::udp::socket socket_;
-	boost::asio::ip::udp::endpoint sender_endpoint_;
-	boost::array< char, 1024u > recv_buffer_;
-	std::vector< char > send_buffer_;
-	std::map< std::string, std::string > iorvec_;
-	std::map< std::string, std::string >::iterator nextIor_;
-        boost::mutex mutex_;
-        boost::thread * thread_;
+        boost::asio::io_service io_service_;
+        boost::asio::ip::udp::socket socket_;
+        boost::asio::ip::udp::endpoint sender_endpoint_;
+        boost::array< char, 1024u > recv_buffer_;
+        std::vector< char > send_buffer_;
+        std::map< std::string, std::string > iorvec_;
+        std::map< std::string, std::string >::iterator nextIor_;
+        std::mutex mutex_;
+        std::thread * thread_;
     };
 
 }

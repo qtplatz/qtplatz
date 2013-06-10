@@ -22,13 +22,19 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+#pragma once
 
-#include <boost/thread/mutex.hpp>
 #include <adorbmgr/adorbmgr_global.h>
+
+#include <compiler/diagnostic_push.h>
+#include <compiler/disable_dll_interface.h>
+
+#include <mutex>
+#include <thread>
 
 class TAO_ServantBase;
 namespace CORBA { class ORB; class Object; }
-namespace boost { class barrier; class thread; }
+namespace boost { class barrier; }
 namespace PortableServer {
     class POA; class POAManager;
     typedef TAO_ServantBase ServantBase;
@@ -36,7 +42,6 @@ namespace PortableServer {
 }
 namespace Broker { class Manager; }
 
-#pragma once
 
 class TAO_ORB_Manager;
 
@@ -76,19 +81,14 @@ namespace adorbmgr {
 		void run( boost::barrier& );
 
         static orbmgr * instance_;
-#ifdef _MSC_VER
-# pragma warning( push )
-# pragma warning( disable:4251 ) // disable dll linkage warning
-#endif
-        static boost::mutex mutex_;
-#ifdef _MSC_VER
-# pragma warning( pop )
-#endif
+        static std::mutex mutex_;
         bool thread_running_;
         size_t init_count_;
-        boost::thread * thread_;
+        std::thread * thread_;
         TAO_ORB_Manager * taomgr_;
         Broker::Manager * bmgr_;
     };
 
 }
+
+#include <compiler/diagnostic_pop.h>

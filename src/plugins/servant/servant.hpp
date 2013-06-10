@@ -27,12 +27,12 @@
 #define ADSERVANT_H
 
 #include "servant_global.h"
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 class SERVANTSHARED_EXPORT Servant {
 public:
     Servant();
-    boost::mutex mutex_;
+    std::mutex mutex_;
     static Servant& instance();
 };
 

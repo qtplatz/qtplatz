@@ -26,11 +26,7 @@
 #include "adbroker.hpp"
 #include <adplugin/visitor.hpp>
 #include <adportable/debug.hpp>
-#include <boost/thread/mutex.hpp>
 #include <typeinfo>
-//#include <boost/mpl/vector.hpp>
-//#include <boost/mpl/transform.hpp>
-//#include <boost/mpl/for_each.hpp>
 
 # include <tao/Utils/ORB_Manager.h>
 # include <ace/Thread_Manager.h>
@@ -43,6 +39,7 @@
 
 #include "manager_i.hpp"
 #include "brokermanager.hpp"
+#include <mutex>
 
 using namespace acewrapper;
 
@@ -123,13 +120,13 @@ public:
 };
 
 adbroker_plugin * adbroker_plugin::instance_ = 0;
-static boost::mutex __mutex;
+static std::mutex __mutex;
 
 adbroker_plugin *
 adbroker_plugin::instance()
 {
     if ( instance_ == 0 ) {
-        boost::mutex::scoped_lock lock( __mutex );
+        std::lock_guard< std::mutex > lock( __mutex );
         if ( instance_ == 0 )
             instance_ = new adbroker_plugin();
     }

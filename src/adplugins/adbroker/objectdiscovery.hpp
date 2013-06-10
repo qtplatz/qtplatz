@@ -31,11 +31,7 @@
 #include <memory>
 #include <mutex>
 
-#if defined BOOST_THREAD
-namespace boost { class mutex; class thread; }
-#else
 namespace std { class mutex; class thread; }
-#endif
 
 namespace boost { namespace asio { class io_service; } }
 
@@ -56,11 +52,7 @@ namespace adbroker {
     private:
         void reply_handler( const std::string&, const std::string& );
         std::unique_ptr< boost::asio::io_service > io_service_;
-#if defined BOOST_THREAD
-        std::unique_ptr< boost::thread > thread_;
-#else
         std::unique_ptr< std::thread > thread_;
-#endif
 
 		std::unique_ptr< acewrapper::iorQuery > iorQuery_;
 

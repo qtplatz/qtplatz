@@ -27,6 +27,7 @@
 #include <compiler/workaround.h>
 #include <compiler/disable_unused_parameter.h>
 
+
 #include "chemicalformula.hpp"
 #include "tableofelements.hpp"
 #include "ctable.hpp"
@@ -45,6 +46,9 @@
 #include <map>
 #include <algorithm>
 
+#if defined _MSC_VER
+# pragma warning( disable: 4503)
+#endif
 using namespace adcontrols;
 
 

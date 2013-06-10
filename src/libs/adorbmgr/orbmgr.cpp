@@ -29,18 +29,18 @@
 #include <adportable/debug.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread/barrier.hpp>
-#include <boost/thread/thread.hpp>
+#include <thread>
 
 using namespace adorbmgr;
 
 orbmgr * orbmgr::instance_ = 0;
-boost::mutex orbmgr::mutex_;
+std::mutex orbmgr::mutex_;
 
 orbmgr *
 orbmgr::instance()
 {
     if ( instance_ == 0 ) {
-        boost::mutex::scoped_lock lock( orbmgr::mutex_ );
+        std::lock_guard< std::mutex > lock( orbmgr::mutex_ );
         if ( instance_ == 0 ) 
             instance_ = new orbmgr();
     }
@@ -66,7 +66,7 @@ orbmgr::orbmgr( CORBA::ORB_ptr orb
 int
 orbmgr::init( int ac, ACE_TCHAR * av[] )
 {
-    boost::mutex::scoped_lock lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( init_count_++ == 0 )
         return taomgr_->init( ac, av );
@@ -77,7 +77,7 @@ orbmgr::init( int ac, ACE_TCHAR * av[] )
 bool
 orbmgr::fini()
 {
-    boost::mutex::scoped_lock lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( init_count_ && --init_count_ == 0 )
         return taomgr_->fini() == 0;
@@ -226,9 +226,9 @@ bool
 orbmgr::spawn( boost::barrier& barrier )
 {
     if ( thread_ == 0 ) {
-        boost::mutex::scoped_lock lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
         if ( thread_ == 0 ) {
-            thread_ = new boost::thread( boost::bind( &orbmgr::run, this, boost::ref(barrier) ) );
+            thread_ = new std::thread( boost::bind( &orbmgr::run, this, boost::ref(barrier) ) );
             thread_running_ = true;
             return true;
         }

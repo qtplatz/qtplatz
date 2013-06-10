@@ -34,7 +34,7 @@
 #include "session_i.hpp"
 #include "objectdiscovery.hpp"
 #include <boost/smart_ptr.hpp>
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 namespace adbroker {
 
@@ -77,7 +77,7 @@ namespace adbroker {
 
         std::vector< internal::object_receiver > sink_vec_;
         ObjectDiscovery * discovery_;
-        boost::mutex mutex_;
+        std::mutex mutex_;
     };
 
     namespace singleton {

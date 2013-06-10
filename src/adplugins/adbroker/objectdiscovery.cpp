@@ -41,11 +41,7 @@
 #include <ace/SOCK_Dgram_Bcast.h>
 #include <boost/foreach.hpp>
 #include <boost/bind.hpp>
-#if defined BOOST_THREAD
-#include <boost/thread/thread.hpp>
-#else
 #include <thread>
-#endif
 #include <functional>
 
 using namespace adbroker;

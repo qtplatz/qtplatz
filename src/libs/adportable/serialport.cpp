@@ -87,11 +87,7 @@ serialport::write( const char * data, std::size_t length )
 bool
 serialport::write( const char * data, std::size_t length, unsigned long milliseconds )
 {
-#if defined BOOST_THREAD
-    boost::mutex::scoped_lock lock( mutex_ );
-#else
     std::unique_lock< std::mutex > lock( mutex_ );
-#endif
     outbuf_ = std::string( data, length );
     boost::asio::async_write( port_
                               , boost::asio::buffer( &outbuf_[0], outbuf_.size() )
@@ -101,11 +97,7 @@ serialport::write( const char * data, std::size_t length, unsigned long millisec
                                              , boost::asio::placeholders::bytes_transferred )
         );
     //boost::system_time timeout( boost::get_system_time() + boost::posix_time::milliseconds( milliseconds ) );
-#if defined BOOST_THREAD
-    return cond_.timed_wait( lock, timeout );
-#else
 	return cond_.wait_for( lock, std::chrono::microseconds( milliseconds ) ) != std::cv_status::timeout;
-#endif
 }
 
 void
@@ -156,11 +148,7 @@ void
 serialport::handle_write( const boost::system::error_code& error, std::size_t bytes_transferred )
 {
     if ( !error ) {
-#if defined BOOST_THREAD	
-		boost::mutex::scoped_lock lock( mutex_ );
-#else
 		std::lock_guard< std::mutex > lock( mutex_ );
-#endif
         if ( outbuf_.size() == bytes_transferred ) {
             outbuf_.clear();
             cond_.notify_one();        

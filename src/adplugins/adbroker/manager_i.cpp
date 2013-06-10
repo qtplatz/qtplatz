@@ -81,7 +81,7 @@ manager_i::shutdown()
     adportable::debug() << "##### adbroker::manager::shutting down ... ######";
 
     if ( discovery_ ) {
-        boost::mutex::scoped_lock lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
         if ( discovery_ )
             discovery_->close();
         delete discovery_;
@@ -139,7 +139,7 @@ manager_i::register_ior( const char * name, const char * ior )
     adportable::debug() << "adbroker::manager_i::register_ior("
                         << std::string(name) << ", " << std::string(ior) << ")";
 
-    boost::mutex::scoped_lock lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
     iorMap_[ name ] = ior;
 }
 
@@ -149,7 +149,7 @@ manager_i::internal_register_ior( const std::string& name, const std::string& io
     adportable::debug() << "adbroker::manager_i::internal_register_ior(" 
                         << name << ", " << ior.substr(0, 20) << "... )";
 
-    boost::mutex::scoped_lock lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
     iorMap_[ name ] = ior;
 
     BOOST_FOREACH( internal::object_receiver& cb, sink_vec_ )
@@ -159,7 +159,7 @@ manager_i::internal_register_ior( const std::string& name, const std::string& io
 char *
 manager_i::ior( const char * name )
 {
-    boost::mutex::scoped_lock lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     std::map< std::string, std::string >::iterator it = iorMap_.find( name );
     if ( it != iorMap_.end() )
@@ -171,7 +171,7 @@ void
 manager_i::register_lookup( const char * name, const char * ident )
 {
     if ( discovery_ == 0 ) {
-        boost::mutex::scoped_lock lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
         if ( discovery_ == 0 ) {
             discovery_ = new ObjectDiscovery();
         }
@@ -180,7 +180,7 @@ manager_i::register_lookup( const char * name, const char * ident )
         discovery_->open();
         discovery_->register_lookup( name, ident );
 
-        boost::mutex::scoped_lock lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
         lookup_[ name ] = ident;
     } while(0);
 
@@ -196,7 +196,7 @@ manager_i::register_object( const char * name, CORBA::Object_ptr obj )
 {
     if ( CORBA::is_nil( obj ) ) {
 
-        boost::mutex::scoped_lock lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
 
 		auto it = objVec_.find( name );
         if ( it != objVec_.end() )
@@ -247,7 +247,7 @@ manager_i::register_handler( Broker::ObjectReceiver_ptr cb )
         internal::object_receiver sink;
         sink.sink_ = Broker::ObjectReceiver::_duplicate( cb );
 
-        boost::mutex::scoped_lock lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
 
         sink_vec_.push_back( sink );
         return true;
@@ -260,7 +260,7 @@ manager_i::unregister_handler( Broker::ObjectReceiver_ptr cb )
 {
     if ( ! CORBA::is_nil( cb ) ) {
 
-        boost::mutex::scoped_lock lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
 
         // std::vector< internal::object_receiver >::iterator it 
         auto it = std::find( sink_vec_.begin(), sink_vec_.end(), cb );

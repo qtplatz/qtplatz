@@ -48,6 +48,7 @@
 #include <boost/smart_ptr.hpp>
 #include "manager_i.hpp"
 #include "taskmanager.hpp"
+#include <mutex>
 
 using namespace acewrapper;
 
@@ -55,7 +56,7 @@ static int debug_flag = 0;
 static bool __aborted = false;
 std::string __ior_session;
 
-boost::mutex __mutex;
+std::mutex __mutex;
 
 //--------------------
 class adcontroller_plugin : public adplugin::plugin 
@@ -64,7 +65,7 @@ class adcontroller_plugin : public adplugin::plugin
 public:
     static inline adcontroller_plugin *instance() { 
         if ( instance_ == 0 ) {
-            boost::mutex::scoped_lock lock( __mutex );
+            std::lock_guard< std::mutex > lock( __mutex );
             if ( instance_ == 0 )
                 instance_ = new adcontroller_plugin();
         }

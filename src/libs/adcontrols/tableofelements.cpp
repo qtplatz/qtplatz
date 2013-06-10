@@ -25,12 +25,10 @@
 
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
-
+#include "adcontrols.hpp"
 #include "tableofelements.hpp"
 #include "element.hpp"
 #include <algorithm>
-
-#include <boost/thread/mutex.hpp>
 #include <boost/noncopyable.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/float.hpp>
@@ -47,6 +45,9 @@
 
 #include <compiler/diagnostic_pop.h>
 
+#include <mutex>
+#include <sstream>
+
 using namespace adcontrols;
 using namespace adcontrols::internal;
 
@@ -61,7 +62,7 @@ namespace adcontrols {
             const adcontrols::Element& findElement( const std::wstring& symbol ) const;
 	    
         private:
-            static boost::mutex mutex_;
+            static std::mutex mutex_;
             std::vector< Element > elements_;
             std::vector< SuperAtom > superAtoms_;
 	    
@@ -86,7 +87,7 @@ TableOfElements * TableOfElements::instance_ = 0;
 TableOfElements::~TableOfElements()
 {
     if ( instance_ ) {
-        boost::mutex::scoped_lock( mutex_ );
+        std::lock_guard< std::mutex > lock( global_mutex::mutex() );
         if ( instance_ ) {
             delete instance_;
             instance_ = 0;
@@ -104,7 +105,7 @@ TableOfElements *
 TableOfElements::instance()
 {
     if ( instance_ == 0 ) {
-        boost::mutex::scoped_lock( mutex_ );
+		std::lock_guard< std::mutex > lock( adcontrols::global_mutex::mutex() );
         if ( instance_ == 0 )
             instance_ = new TableOfElements();
     }

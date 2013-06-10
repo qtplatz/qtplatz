@@ -68,7 +68,7 @@ void
 iorSender::close()
 {
     if ( thread_ ) {
-        boost::mutex::scoped_lock lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
         if ( thread_ ) {
             io_service_.stop();
             thread_->join();
@@ -182,9 +182,9 @@ bool
 iorSender::spawn()
 {
     if ( thread_ == 0 ) {
-        boost::mutex::scoped_lock lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
 	if ( thread_ == 0 ) {
-            thread_ = new boost::thread( boost::bind( & boost::asio::io_service::run, &io_service_ ) );
+            thread_ = new std::thread( boost::bind( & boost::asio::io_service::run, &io_service_ ) );
 	    return true;
 	}
     }

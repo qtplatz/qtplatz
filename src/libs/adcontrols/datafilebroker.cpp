@@ -32,11 +32,7 @@
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
 #include <boost/smart_ptr.hpp>
-#if defined BOOST_THREAD
-#include <boost/thread/mutex.hpp>
-#else
 #include <mutex>
-#endif
 
 #include <compiler/diagnostic_pop.h>
 
@@ -71,11 +67,7 @@ datafileBrokerImpl *
 datafileBrokerImpl::instance()
 {
     if ( instance_ == 0 ) {
-#if defined BOOST_THREAD
-		boost::mutex::scoped_lock lock( adcontrols::global_mutex::mutex() );
-#lese
         std::lock_guard< std::mutex > lock( adcontrols::global_mutex::mutex() );
-#endif
         if ( instance_ == 0 )
 			instance_ = new datafileBrokerImpl;
 	}

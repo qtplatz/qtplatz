@@ -24,13 +24,9 @@
 
 #include <boost/asio.hpp>
 
-#if defined BOOST_THREAD
-#include <boost/thread.hpp>
-#else
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#endif
 
 #include <boost/function.hpp>
 #include <string>
@@ -55,13 +51,9 @@ namespace adportable {
         bool write ( const char *, std::size_t, unsigned long milliseconds );
 
     private:
-#if defined BOOST_THREAD
-        boost::mutex mutex_;
-        boost::condition_variable cond_;
-#else
         std::mutex mutex_;
         std::condition_variable cond_;
-#endif
+
         boost::asio::serial_port port_;
         boost::asio::streambuf read_buffer_;
         boost::function< void (const char *, std::size_t) > reader_;
