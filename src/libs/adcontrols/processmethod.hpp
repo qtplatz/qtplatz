@@ -30,17 +30,17 @@
 #include <boost/smart_ptr.hpp>
 #include <vector>
 
+#include <adcontrols/centroidmethod.hpp>
+#include <adcontrols/isotopemethod.hpp>
+#include <adcontrols/elementalcompositionmethod.hpp>
+#include <adcontrols/mscalibratemethod.hpp>
+#include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/peakmethod.hpp>
+
 namespace boost { namespace serialization { class access; } }
 
 
 namespace adcontrols {
-
-    class CentroidMethod;
-    class IsotopeMethod;
-    class ElementalCompositionMethod;
-    class MSCalibrateMethod;
-    class TargetingMethod;
-	class PeakMethod;
 
     class ADCONTROLSSHARED_EXPORT ProcessMethod {
     public:
