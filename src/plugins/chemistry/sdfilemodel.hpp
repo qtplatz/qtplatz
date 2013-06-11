@@ -71,7 +71,7 @@ namespace chemistry {
 	public slots:
 
 	private:
-		static bool toSvg( SvgItem&, const OpenBabel::OBMol& );
+		static bool toSvg( SvgItem&, const adchem::Mol& );
 		boost::shared_ptr< ChemFile > file_;
 		std::vector< adchem::Mol > data_;
 		std::vector< std::string > excludes_;

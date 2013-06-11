@@ -28,15 +28,9 @@
 #include <adchem/mol.hpp>
 #include <adchem/conversion.hpp>
 
-#if defined _MSC_VER
-#  pragma warning(disable:4100)
-#endif
-#include <openbabel/mol.h>
-#include <openbabel/parsmart.h>
-#if defined _MSC_VER
-#  pragma warning(default:4100)
-#endif
-
+// #include <openbabel/mol.h>
+// #include <openbabel/parsmart.h>
+#include <adchem/smartspattern.hpp>
 #include <adchem/mol.hpp>
 
 #include <boost/foreach.hpp>
@@ -84,7 +78,7 @@ SDFileModel::rowCount( const QModelIndex& parent ) const
 int
 SDFileModel::columnCount( const QModelIndex& parent ) const
 {
-    // (void)parent;
+    (void)parent;
     if ( ! data_.empty() )
 		return data_[ 0 ].attributes().size() + 3; 
     return 3;
@@ -131,14 +125,13 @@ SDFileModel::headerData( int section, Qt::Orientation orientation, int role ) co
 	
         if ( ! data_.empty() ) {
             int n = section - 3;
-            // std::vector< attribute_type > attrs = adchem::Mol::attributes( data_[0], excludes_ );
-            // if ( attrs.size() > unsigned(n) )
-            //     return QString::fromStdString( attrs[n].first );
+            adchem::attributes attrs = data_[ 0 ].attributes(); 
+            if ( attrs.size() > unsigned(n) )
+                return QString( attrs[n].key() );
         }
     }
-    if ( orientation == Qt::Vertical ) {
+    if ( orientation == Qt::Vertical )
         return section;
-    }
     
     return QVariant();
 }
@@ -235,15 +228,15 @@ SDFileModel::file( boost::shared_ptr< ChemFile >& file )
 			mol.setAttribute( "SMILES", smiles.c_str() );
             data_.push_back( mol );
             //-- trial code
-            OpenBabel::OBSmartsPattern sp;
-            if ( sp.Init( smiles ) ) {
-                if ( sp.Match( mol ) ) {
-                    std::vector< std::vector< int > > maplist = sp.GetUMapList();
-                    BOOST_FOREACH( const std::vector< int >& matches, maplist ) {
-						OpenBabel::OBMol * omol = mol.obmol();
-                        OpenBabel::OBBond * b1 = omol->GetBond( matches[0] );
-                        (void)b1;
-                    }
+            adchem::SmartsPattern sp;
+            if ( sp.init( smiles.c_str() ) ) {
+                if ( sp.match( mol ) ) {
+                    // std::vector< std::vector< int > > maplist = sp.GetUMapList();
+                    // BOOST_FOREACH( const std::vector< int >& matches, maplist ) {
+					// 	const OpenBabel::OBMol * omol = mol.obmol();
+                    //     OpenBabel::OBBond * b1 = omol->GetBond( matches[0] );
+                    //     (void)b1;
+                    // }
                 }
             }
         }
@@ -270,7 +263,7 @@ SDFileModel::file( boost::shared_ptr< ChemFile >& file )
 }
 
 bool
-SDFileModel::toSvg( SvgItem& item, const OpenBabel::OBMol& mol )
+SDFileModel::toSvg( SvgItem& item, const adchem::Mol& mol )
 {
     item.svg_ = adchem::Conversion::toSVG( mol ).c_str();
     return true;

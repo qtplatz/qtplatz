@@ -26,7 +26,8 @@ SOURCES += adchem.cpp \
     mol.cpp \
     conversion.cpp \
     chopper.cpp \
-    string.cpp
+    string.cpp \
+    smartspattern.cpp
 
 HEADERS += adchem.hpp \
     attribute.hpp \
@@ -34,4 +35,5 @@ HEADERS += adchem.hpp \
     mol.hpp \
     conversion.hpp \
     chopper.hpp \
-    string.hpp
+    string.hpp \
+    smartspattern.hpp
