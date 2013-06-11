@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -22,44 +22,39 @@
 **
 **************************************************************************/
 
-#ifndef MOL_HPP
-#define MOL_HPP
-#include "adchem_global.h"
+#pragma once
 
-#include <boost/shared_ptr.hpp>
 #include "attributes.hpp"
+#include "attribute.hpp"
 
-namespace OpenBabel { class OBMol; }
+using namespace adchem;
 
-namespace adchem {
-
-	class ADCHEMSHARED_EXPORT Mol {
-		boost::shared_ptr< OpenBabel::OBMol > obmol_;
-        adchem::attributes attrs_;
-        std::string formula_;
-        void update();
-	public:
-        ~Mol();
-		Mol();
-        Mol( const Mol& );
-        Mol& operator = ( const Mol& );
-        
-		void obmol( OpenBabel::OBMol& );
-		const OpenBabel::OBMol * obmol() const;
-
-		double getExactMass( bool implicitH = true ) const;
-        const char * getFormula() const;
-		void setAttribute( const char * key, const char * value );
-        attributes attributes() const;
-
-		operator OpenBabel::OBMol& ();
-		operator const OpenBabel::OBMol& () const;
-
-	private:
-		bool dirty_;
-		double exactmass_;
-	};
-
+attributes::~attributes()
+{
 }
 
-#endif // MOL_HPP
+attributes::attributes()
+{
+}
+
+attributes::attributes( const attributes& t ) : vec_( t.vec_ )
+{
+}
+
+void
+attributes::operator << ( const attribute& t )
+{
+    vec_.push_back( t );
+}
+
+size_t 
+attributes::size() const
+{
+    return vec_.size();
+}
+
+const attribute&
+attributes::operator [] ( size_t idx ) const
+{
+    return vec_[ idx ];
+}

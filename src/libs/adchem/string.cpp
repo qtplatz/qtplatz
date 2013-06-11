@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -22,44 +22,34 @@
 **
 **************************************************************************/
 
-#ifndef MOL_HPP
-#define MOL_HPP
-#include "adchem_global.h"
+#include "string.hpp"
 
-#include <boost/shared_ptr.hpp>
-#include "attributes.hpp"
+using namespace adchem;
 
-namespace OpenBabel { class OBMol; }
-
-namespace adchem {
-
-	class ADCHEMSHARED_EXPORT Mol {
-		boost::shared_ptr< OpenBabel::OBMol > obmol_;
-        adchem::attributes attrs_;
-        std::string formula_;
-        void update();
-	public:
-        ~Mol();
-		Mol();
-        Mol( const Mol& );
-        Mol& operator = ( const Mol& );
-        
-		void obmol( OpenBabel::OBMol& );
-		const OpenBabel::OBMol * obmol() const;
-
-		double getExactMass( bool implicitH = true ) const;
-        const char * getFormula() const;
-		void setAttribute( const char * key, const char * value );
-        attributes attributes() const;
-
-		operator OpenBabel::OBMol& ();
-		operator const OpenBabel::OBMol& () const;
-
-	private:
-		bool dirty_;
-		double exactmass_;
-	};
-
+string::~string()
+{
 }
 
-#endif // MOL_HPP
+string::string()
+{
+}
+
+string::string( const string& t ) : d_( t.d_ )
+{
+}
+
+string::string( const char * p ) : d_( p )
+{
+}
+
+const char * string::c_str() const
+{
+    return d_.c_str();
+}
+
+void
+string::operator = ( const char * s )
+{
+    d_ = s;
+}
+

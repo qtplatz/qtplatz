@@ -23,9 +23,13 @@
 **************************************************************************/
 
 #include "conversion.hpp"
+#include "string.hpp"
+#include "mol.hpp"
+
 #include <compiler/disable_unused_parameter.h>
 #include <openbabel/obconversion.h>
 #include <openbabel/mol.h>
+
 
 using namespace adchem;
 
@@ -33,41 +37,68 @@ Conversion::~Conversion()
 {
 }
 
-Conversion::Conversion()
+Conversion::Conversion() : obconversion_( new OpenBabel::OBConversion )
+                         , nread_( 0 )
 {
 }
 
-Conversion::Conversion( const Conversion& )
+Conversion::Conversion( const Conversion& t ) : obconversion_( t.obconversion_ )
+                                              , nread_( t.nread_ )
 {
 }
 
 //static
-size_t // std::string
-Conversion::toSVG( const OpenBabel::OBMol& mol, char *& svg )
+adchem::string
+Conversion::toSVG( const Mol& mol )
 {
 	OpenBabel::OBConversion conv;
 	conv.SetOutFormat( "svg" );
-    std::string res = conv.WriteString( const_cast< OpenBabel::OBMol *>(&mol) );
-    svg = new char [ res.size() + 1 ];
-    strcpy( svg, res.c_str() );
-    return res.size();
+    std::string res = conv.WriteString( const_cast< OpenBabel::OBMol *>( mol.obmol() ) );
+    return adchem::string( res.c_str() );
 }
 
 //static
-size_t // std::string
-Conversion::toSMILES( const OpenBabel::OBMol& mol, char *& smiles )
+adchem::string
+Conversion::toSMILES( const Mol& mol )
 {
 	OpenBabel::OBConversion conv;
 	conv.SetOutFormat( "smiles" );
-    std::string res = conv.WriteString( const_cast< OpenBabel::OBMol *>(&mol) );
-    smiles = new char [ res.size() + 1 ];
-    strcpy( smiles, res.c_str() );
-    return res.size();
+	std::string res = conv.WriteString( const_cast< OpenBabel::OBMol *>( mol.obmol() ) );
+    return adchem::string( res.c_str() );
 }
 
 void
-Conversion::dispose( char *& ptr )
+Conversion::informat( const OpenBabel::OBFormat * informat )
 {
-    delete ptr;
-    ptr = 0;
+    obconversion_->SetInFormat( const_cast< OpenBabel::OBFormat *>( informat ) );
 }
+
+void
+Conversion::open( const char * filename )
+{
+    filename_ = filename;
+    nread_ = 0;
+}
+
+bool
+Conversion::read( Mol& mol )
+{
+    OpenBabel::OBMol omol;
+    bool success( false );
+	if ( nread_++ == 0 )
+		success = obconversion_->ReadFile( &omol, filename_ );
+    else
+        success = obconversion_->Read( &omol );
+    mol.obmol( omol );
+    return success;
+}
+
+unsigned long long
+Conversion::tellg() const
+{
+    std::istream * stream = obconversion_->GetInStream();
+    if ( stream )
+        return stream->tellg();
+    return 0;
+}
+

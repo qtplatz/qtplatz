@@ -25,6 +25,7 @@
 #include "mol.hpp"
 #include <compiler/disable_unused_parameter.h>
 #include <openbabel/mol.h>
+#include <boost/foreach.hpp>
 
 using namespace adchem;
 
@@ -32,36 +33,47 @@ Mol::~Mol()
 {
 }
 
-Mol::Mol() : dirty_(true), exactmass_( 0 )
+Mol::Mol() : obmol_( new OpenBabel::OBMol )
+           , dirty_(true)
+           , exactmass_( 0 )
 {
 }
 
-Mol::Mol( const Mol& t ) : mol_( t.mol_ ? new OpenBabel::OBMol( *t.mol_ ) : 0 )
+Mol::Mol( const Mol& t ) : obmol_( t.obmol_ )
 	                     , dirty_( t.dirty_ )
 						 , exactmass_( t.exactmass_ )
+						 , formula_( t.formula_ )
 {
 }
 
-Mol::Mol( const OpenBabel::OBMol& mol ) : mol_( new OpenBabel::OBMol( mol ) )
-                                        , dirty_( true )
-                                        , exactmass_( 0 )
+void
+Mol::update()
 {
+	exactmass_ = obmol_->GetExactMass();
+	formula_ = obmol_->GetFormula();
+	dirty_ = false;
 }
 
-Mol&
-Mol::operator = ( const OpenBabel::OBMol& t )
+void
+Mol::obmol( OpenBabel::OBMol& omol )
 {
-	mol_.reset( new OpenBabel::OBMol( t ) );
-	dirty_ = true;
-	return *this;
+    obmol_.reset( new OpenBabel::OBMol( omol ) );
+    update();
+}
+
+const OpenBabel::OBMol *
+Mol::obmol() const
+{
+    return obmol_.get();
 }
 
 Mol&
 Mol::operator = ( const Mol& t )
 {
-    mol_ = t.mol_; // CAUTION -- This shareing the instance, in order to improve sort speed by avoiding OBMol copy
+    obmol_ = t.obmol_; // CAUTION -- This shareing the instance
 	dirty_ = t.dirty_;
 	exactmass_ = t.exactmass_;
+	formula_ = t.formula_;
 	return * this;
 }
 
@@ -71,77 +83,49 @@ Mol::setAttribute( const char * key, const char * value )
 	OpenBabel::OBPairData * data = new OpenBabel::OBPairData();
 	data->SetAttribute( key );
     data->SetValue( value );
-	mol_->SetData( data ); // will be deleted when OBMol's destractor was called
-	// SetAttribute( *this, key, value );
+	obmol_->SetData( data ); // will be deleted when OBMol's destractor was called
 }
 
 Mol::operator OpenBabel::OBMol& ()
 {
-	if ( ! mol_ )
-		mol_.reset( new OpenBabel::OBMol() );
-	return *mol_;
+	return *obmol_;
 }
 
 Mol::operator const OpenBabel::OBMol& () const
 {
-	if ( ! mol_ )
-		const_cast< Mol * >(this)->mol_.reset( new OpenBabel::OBMol() );
-	return *mol_;
+	return *obmol_;
+}
+
+const char *
+Mol::getFormula() const
+{
+	if ( dirty_ )
+		const_cast< Mol * >(this)->update();
+    return formula_.c_str();
 }
 
 double
 Mol::getExactMass( bool implicitH ) const
 {
-	if ( mol_ ) {
-		if ( dirty_ ) {
-			const_cast< Mol* >(this)->exactmass_ = const_cast< OpenBabel::OBMol& >(*mol_).GetExactMass( implicitH );
-			const_cast< Mol* >(this)->dirty_ = false;
-		}
-		return exactmass_;
-	}
-	return 0;
+	if ( dirty_ )
+		const_cast< Mol * >(this)->update();
+	return exactmass_;
 }
 
-// // static
-// double
-// Mol::GetExactMass( const OpenBabel::OBMol& mol, bool implicitH )
-// {
-// 	return const_cast< OpenBabel::OBMol& >(mol).GetExactMass( implicitH );
-// }
+attributes
+Mol::attributes() const
+{
+    adchem::attributes attrs;
+    for ( OpenBabel::OBDataIterator it = obmol_->BeginData(); it != obmol_->EndData(); ++it ) {
+        const OpenBabel::OBGenericData& data = **it;
+        if ( data.GetDataType() == OpenBabel::OBGenericDataType::PairData ) {
+            const OpenBabel::OBPairData& pair = static_cast< const OpenBabel::OBPairData& >( data );
+            adchem::attribute attr;
+            attr.key( pair.GetAttribute().c_str() );
+            attr.value( pair.GetValue().c_str() );
+            attrs << attr;
+        }
+    }
+    return attrs;
+}
 
-// static
-// std::string
-// Mol::GetFormula( const OpenBabel::OBMol& mol )
-// {
-// 	return const_cast< OpenBabel::OBMol& >(mol).GetFormula();
-// }
-
-// static
-// void
-// Mol::SetAttribute( OpenBabel::OBMol& mol, const std::string& key, const std::string& value )
-// {
-// 	OpenBabel::OBPairData * data = new OpenBabel::OBPairData();
-// 	data->SetAttribute( key );
-//     data->SetValue( value );
-// 	mol.SetData( data ); // will be deleted when OBMol's destractor was called
-// }
-
-// std::vector< std::pair< std::string, std::string > >
-// Mol::attributes( const OpenBabel::OBMol& mol, const std::vector< std::string >& excludes )
-// {
-//     using OpenBabel::OBMol;
-
-// 	std::vector< std::pair< std::string, std::string > > attrs;
-// 	for ( OpenBabel::OBDataIterator it = const_cast<OBMol&>(mol).BeginData(); it != const_cast<OBMol&>(mol).EndData(); ++it ) {
-// 		const OpenBabel::OBGenericData& data = **it;
-// 		if ( data.GetDataType() == OpenBabel::OBGenericDataType::PairData ) {
-// 			const OpenBabel::OBPairData& pair = static_cast<const OpenBabel::OBPairData& >( data );
-// 			std::string key = pair.GetAttribute();
-// 			if ( std::find( excludes.begin(), excludes.end(), key ) == excludes.end() ) {
-// 				std::string value = pair.GetValue();
-// 				attrs.push_back( std::pair< std::string, std::string >( key, value ) );
-// 			}
-// 		}
-// 	}
-// 	return attrs;
-// }

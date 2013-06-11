@@ -24,7 +24,7 @@ else: BOOST_VERSION=boost-1_53
 
 ACE_VERSION=6.1.8
 #QWT_VERSION=6.1.0-svn
-QWT_VERSION=$${QWT_VERSION}-qt$$QT_MAJOR_VERSION
+QWT_VERSION=6.1.0-svn-qt$$QT_MAJOR_VERSION
 
 # does not override if environment variable already exist
 

@@ -27,9 +27,8 @@
 
 #include <coreplugin/ifile.h>
 #include <boost/noncopyable.hpp>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <adchem/conversion.hpp>
+#include <memory>
 
 namespace OpenBabel {
 	class OBConversion;
@@ -61,12 +60,13 @@ namespace chemistry {
       
         virtual void modified( ReloadBehavior *behavior );
         virtual void checkPermissions() {}
+
 		// <---------
 		bool open( const QString& filename, const OpenBabel::OBFormat * );
-		inline OpenBabel::OBConversion& obconversion() { return *obconversion_; }
-		inline const OpenBabel::OBConversion& obconversion() const { return *obconversion_; }
+		inline adchem::Conversion& conversion() { return *obconversion_; }
+		inline const adchem::Conversion& conversion() const { return *obconversion_; }
 		const std::string& filename() const { return filename_; }
-		bool Read( OpenBabel::OBMol& );
+		bool Read( adchem::Mol& );
         unsigned long long tellg() const;
         unsigned long long fsize() const;
 
@@ -80,7 +80,7 @@ namespace chemistry {
 		std::string filename_;
         bool modified_;
 		size_t nread_;
-		boost::scoped_ptr< OpenBabel::OBConversion > obconversion_;
+        std::unique_ptr< adchem::Conversion > obconversion_;
 		unsigned long long filesize_;
     };
     

@@ -26,22 +26,36 @@
 #define CONVERSION_HPP
 
 #include "adchem_global.h"
+#include "string.hpp"
+#include <boost/shared_ptr.hpp>
 
-
-namespace OpenBabel { class OBMol; }
+namespace OpenBabel { 
+    class OBFormat;
+    class OBConversion;
+}
 
 namespace adchem {
 
+	class Mol;
+    
 	class ADCHEMSHARED_EXPORT Conversion {
+        std::string filename_;
+        size_t nread_;
+        boost::shared_ptr< OpenBabel::OBConversion > obconversion_;
 	public:
         virtual ~Conversion();
         Conversion();
         Conversion( const Conversion& );
-            
-        static size_t toSVG( const OpenBabel::OBMol&, char *&svg );
-        static size_t toSMILES( const OpenBabel::OBMol&, char *& smiles );
-        static void dispose( char *& ptr );
 
+        unsigned long long tellg() const;
+        void informat( const OpenBabel::OBFormat * );
+        void open( const char * filename );
+        bool read( Mol& );
+
+        static string toSMILES( const Mol& );
+        static string toSVG( const Mol& );
+        // static size_t toSVG( const OpenBabel::OBMol&, char *&svg );
+        // static size_t toSMILES( const OpenBabel::OBMol&, char *& smiles );
 	};
 
 }

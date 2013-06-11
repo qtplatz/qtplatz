@@ -21,11 +21,17 @@ QMAKE_CXXFLAGS -= -stdlib=libc++
 QMAKE_LFLAGS -= -stdlib=libc++
 
 SOURCES += adchem.cpp \
+    attribute.cpp \
+    attributes.cpp \
     mol.cpp \
     conversion.cpp \
-    chopper.cpp
+    chopper.cpp \
+    string.cpp
 
 HEADERS += adchem.hpp \
+    attribute.hpp \
+    attributes.hpp \
     mol.hpp \
     conversion.hpp \
-    chopper.hpp
+    chopper.hpp \
+    string.hpp

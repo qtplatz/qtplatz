@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -22,44 +22,45 @@
 **
 **************************************************************************/
 
-#ifndef MOL_HPP
-#define MOL_HPP
-#include "adchem_global.h"
+#include "attribute.hpp"
+#include <string>
 
-#include <boost/shared_ptr.hpp>
-#include "attributes.hpp"
+using namespace adchem;
 
-namespace OpenBabel { class OBMol; }
-
-namespace adchem {
-
-	class ADCHEMSHARED_EXPORT Mol {
-		boost::shared_ptr< OpenBabel::OBMol > obmol_;
-        adchem::attributes attrs_;
-        std::string formula_;
-        void update();
-	public:
-        ~Mol();
-		Mol();
-        Mol( const Mol& );
-        Mol& operator = ( const Mol& );
-        
-		void obmol( OpenBabel::OBMol& );
-		const OpenBabel::OBMol * obmol() const;
-
-		double getExactMass( bool implicitH = true ) const;
-        const char * getFormula() const;
-		void setAttribute( const char * key, const char * value );
-        attributes attributes() const;
-
-		operator OpenBabel::OBMol& ();
-		operator const OpenBabel::OBMol& () const;
-
-	private:
-		bool dirty_;
-		double exactmass_;
-	};
-
+attribute::~attribute()
+{
 }
 
-#endif // MOL_HPP
+attribute::attribute()
+{
+}
+
+attribute::attribute( const attribute& t ) : key_( t.key_ )
+                                           , value_( t.value_ )
+{
+}
+
+const char * 
+attribute::key() const
+{
+    return key_.c_str();
+}
+
+const char * 
+attribute::value() const
+{
+    return value_.c_str();
+}
+
+void 
+attribute::key( const char * key )
+{
+    key_ = key;
+}
+
+void 
+attribute::value( const char * value )
+{
+    value_ = value;
+}
+
