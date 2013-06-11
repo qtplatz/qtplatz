@@ -126,8 +126,12 @@ iTask::open()
 void
 iTask::close()
 {
+    do {
+        ACE_Message_Block * mblk = new ACE_Message_Block( 0, ACE_Message_Block::MB_HANGUP );
+        putq( mblk );
+    } while (0);
+    this->wait();
     msg_queue()->deactivate();
-    ACE_Task<ACE_MT_SYNCH>::close( 0 );
 }
 
 bool
@@ -385,21 +389,22 @@ iTask::handle_input( ACE_HANDLE )
 int
 iTask::svc()
 {
-    std::cout << "iTask::svc() task started on thread :" << ACE_Thread::self() << std::endl;
-    
     barrier_.wait();
     
     for ( ;; ) {
         ACE_Message_Block * mblk = 0;
         
         if ( this->getq( mblk ) == (-1) ) {
-            if ( errno == ESHUTDOWN )
-                ACE_ERROR_RETURN((LM_ERROR, "(%t) queue is deactivated\n"), 0);
-            else
+            if ( errno == ESHUTDOWN ) {
+				adportable::debug(__FILE__, __LINE__) << ACE_Thread::self() << " \t adcontroller::task queue is deactivated";
+                return 0;
+            } else {
                 ACE_ERROR_RETURN((LM_ERROR, "(%t) %p\n", "putq"), -1);
+            }
         }
 
         if ( mblk->msg_type() == ACE_Message_Block::MB_HANGUP ) {
+            adportable::debug(__FILE__, __LINE__) << ACE_Thread::self() << " \t adcontroller::task HANGUP received";
             this->putq( mblk ); // forward the request to any peer threads
             break;
         }
