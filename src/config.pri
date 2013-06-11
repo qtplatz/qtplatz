@@ -15,16 +15,16 @@ macx {
     QMAKE_CXXFLAGS *= -mmacosx-version-min=10.7
     QMAKE_LFLAGS   -= -mmacosx-version-min=10.5
     QMAKE_LFLAGS   *= -mmacosx-version-min=10.7 -stdlib=libc++
-    DEFINES += BOOST_NO_CXX11_RVALUE_REFERENCES
+#   need follwing if boost <= 1.53, 
+#    DEFINES += BOOST_NO_CXX11_RVALUE_REFERENCES
 }
 
 macx: BOOST_VERSION=boost-1_54_beta1
 else: BOOST_VERSION=boost-1_53
 
 ACE_VERSION=6.1.8
-QWT_VERSION=6.1.0-svn
-
-greaterThan( QT_MAJOR_VERSION, 4 ): QWT_VERSION=$${QWT_VERSION}-qt$$QT_MAJOR_VERSION
+#QWT_VERSION=6.1.0-svn
+QWT_VERSION=$${QWT_VERSION}-qt$$QT_MAJOR_VERSION
 
 # does not override if environment variable already exist
 
@@ -52,7 +52,6 @@ isEmpty ( OPENBABEL_ROOT ) {
 QTPLATZ_CONFIG += Acquire
 QTPLATZ_CONFIG += Sequence
 QTPLATZ_CONFIG += Dataproc
-#QTPLATZ_CONFIG += ChemSpider
 QTPLATZ_CONFIG += Chemistry
 
 # no chemistry for ARM platform

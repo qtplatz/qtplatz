@@ -350,7 +350,7 @@ ChemistryMainWindow::handleViewFragments( int raw, const SDFileModel * model )
 
 		Mol mol = model->data()[ raw ];
 		std::vector< Mol > fragments;
-    
+/*    
         std::vector< int > indecies = adchem::Chopper::chop( mol );
 		while ( ! indecies.empty() ) {
 			BOOST_FOREACH( int index, indecies ) {
@@ -358,23 +358,25 @@ ChemistryMainWindow::handleViewFragments( int raw, const SDFileModel * model )
 				std::pair< OBMol, OBMol > sub = adchem::Chopper::split( dup, index );
 				std::ostringstream o;
 				o << std::fixed << mol.getExactMass() - sub.first.GetExactMass();
-				adchem::Mol::SetAttribute( sub.first, "loss(m/z)", o.str() );
-				adchem::Mol::SetAttribute( sub.first, "loss", sub.second.GetFormula() );
+                sub.first.setAttribute( "loss(m/z)", o.str().c_str() );
+                sub.first.setAttribute( "loss", sub.second.getFormula() );
+				// adchem::Mol::SetAttribute( sub.first, "loss(m/z)", o.str() );
+				// adchem::Mol::SetAttribute( sub.first, "loss", sub.second.GetFormula() );
 				fragments.push_back( sub.first );
 			}
 			mol = adchem::Chopper::split( mol, indecies[ 0 ] ).first;
 			indecies = adchem::Chopper::chop( mol );
 		}
-
+*/
 		using adchem::Mol;
 
-		std::sort( fragments.begin(), fragments.end()
-			, boost::bind( &Mol::getExactMass, _2, true ) < boost::bind( &Mol::getExactMass, _1, true ) );
+		// std::sort( fragments.begin(), fragments.end()
+		// 	, boost::bind( &Mol::getExactMass, _2, true ) < boost::bind( &Mol::getExactMass, _1, true ) );
 
-		fragments.erase( 
-			std::unique( fragments.begin(), fragments.end()
-			, boost::bind( &Mol::GetFormula, _1) == boost::bind( &Mol::GetFormula, _2 ) )
-			, fragments.end() );
+		// fragments.erase( 
+		// 	std::unique( fragments.begin(), fragments.end()
+		// 	, boost::bind( &Mol::getFormula, _1) == boost::bind( &Mol::GetFormula, _2 ) )
+		// 	, fragments.end() );
 		view->setData( fragments );
 	}
 }

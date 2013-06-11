@@ -65,7 +65,7 @@ namespace chemistry {
 
 		//----
 		void file( boost::shared_ptr< ChemFile >& );
-		typedef std::pair< std::string, std::string> attribute_type;
+		typedef std::pair< std::string, std::string > attribute_type;
     signals:
     
 	public slots:

@@ -24,7 +24,7 @@
 
 #ifndef MOL_HPP
 #define MOL_HPP
-
+#include "adchem_global.h"
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
 #include <boost/smart_ptr.hpp>
@@ -37,7 +37,7 @@ namespace OpenBabel { class OBMol; }
 
 namespace adchem {
 
-	class Mol {
+	class ADCHEMSHARED_EXPORT Mol {
 		boost::shared_ptr< OpenBabel::OBMol > mol_;
 	public:
         ~Mol();
@@ -48,16 +48,16 @@ namespace adchem {
         Mol& operator = ( const Mol& );
 
 		double getExactMass( bool implicitH = true ) const;
-        std::string getFormula() const;
-		void setAttribute( const std::string& key, const std::string& value );
+        const char * getFormula() const;
+		void setAttribute( const char * key, const char * value );
 		operator OpenBabel::OBMol& ();
 		operator const OpenBabel::OBMol& () const;
 
-		static double GetExactMass( const OpenBabel::OBMol&, bool implicitH = true );
-		static std::string GetFormula( const OpenBabel::OBMol& );
-		static void SetAttribute( OpenBabel::OBMol&, const std::string& key, const std::string& value );
-		static std::vector< std::pair< std::string, std::string > > attributes( const OpenBabel::OBMol& mol
-			, const std::vector< std::string >& excludes = std::vector< std::string >() );
+		// static double GetExactMass( const OpenBabel::OBMol&, bool implicitH = true );
+		// static std::string GetFormula( const OpenBabel::OBMol& );
+		// static void SetAttribute( OpenBabel::OBMol&, const char * key, const char * value );
+		// static std::vector< std::pair< std::string, std::string > > attributes( const OpenBabel::OBMol& mol
+		// 	, const std::vector< std::string >& excludes = std::vector< std::string >() );
 	private:
 		bool dirty_;
 		double exactmass_;

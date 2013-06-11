@@ -84,10 +84,10 @@ SDFileModel::rowCount( const QModelIndex& parent ) const
 int
 SDFileModel::columnCount( const QModelIndex& parent ) const
 {
-    (void)parent;
-    if ( ! data_.empty() )
-	return adchem::Mol::attributes( 
-	    static_cast< const OpenBabel::OBMol &>(data_[0]), excludes_ ).size() + 3;
+    // (void)parent;
+    // if ( ! data_.empty() )
+    //     return adchem::Mol::attributes( 
+    //         static_cast< const OpenBabel::OBMol &>(data_[0]), excludes_ ).size() + 3;
     return 3;
 }
 
@@ -103,19 +103,19 @@ SDFileModel::data( const QModelIndex& index, int role ) const
     const size_t nfixed = 3;
     
     if ( role == Qt::DisplayRole ) {
-	if ( index.column() == 0 ) {
-	    SvgItem svg;
-	    toSvg( svg, mol );
-	    return QVariant::fromValue( svg );
-	} else if ( index.column() == 1 ) {
-	    return QString::fromStdString( const_cast<OBMol&>(mol).GetFormula() );
-	} else if ( index.column() == 2 ) {
-	    return QVariant( const_cast<OBMol&>(mol).GetExactMass() );
-	} else {
-	    std::vector< attribute_type > attrs = adchem::Mol::attributes( mol, excludes_ );
-	    if ( index.column() - nfixed < attrs.size() )
-		return QString::fromStdString( attrs[ index.column() - nfixed ].second );
-	}
+        if ( index.column() == 0 ) {
+            SvgItem svg;
+            toSvg( svg, mol );
+            return QVariant::fromValue( svg );
+        } else if ( index.column() == 1 ) {
+            return QString::fromStdString( const_cast<OBMol&>(mol).GetFormula() );
+        } else if ( index.column() == 2 ) {
+            return QVariant( const_cast<OBMol&>(mol).GetExactMass() );
+        } else {
+            // std::vector< attribute_type > attrs = adchem::Mol::attributes( mol, excludes_ );
+            // if ( index.column() - nfixed < attrs.size() )
+            //     return QString::fromStdString( attrs[ index.column() - nfixed ].second );
+        }
     }
     return QVariant();
 }
@@ -124,23 +124,23 @@ QVariant
 SDFileModel::headerData( int section, Qt::Orientation orientation, int role ) const
 {
     if ( role != Qt::DisplayRole )
-	return QVariant();
+        return QVariant();
     if ( orientation == Qt::Horizontal ) {
         switch( section ) {
-	case 0: return tr( "MOL" );
-	case 1: return tr( "Formula" );
-	case 2: return tr( "m/z" );
-	}
+        case 0: return tr( "MOL" );
+        case 1: return tr( "Formula" );
+        case 2: return tr( "m/z" );
+        }
 	
-	if ( ! data_.empty() ) {
+        if ( ! data_.empty() ) {
             int n = section - 3;
-	    std::vector< attribute_type > attrs = adchem::Mol::attributes( data_[0], excludes_ );
-            if ( attrs.size() > unsigned(n) )
-		return QString::fromStdString( attrs[n].first );
-	}
+            // std::vector< attribute_type > attrs = adchem::Mol::attributes( data_[0], excludes_ );
+            // if ( attrs.size() > unsigned(n) )
+            //     return QString::fromStdString( attrs[n].first );
+        }
     }
     if ( orientation == Qt::Vertical ) {
-	return section;
+        return section;
     }
     
     return QVariant();
@@ -215,55 +215,64 @@ SDFileModel::file( boost::shared_ptr< ChemFile >& file )
     data_.clear();
     Mol mol; // OpenBabel::OBMol mol;
     while ( file->Read( static_cast< OpenBabel::OBMol& >(mol) ) && !progress.wasCanceled() ) {
-	// take large molecule if not single molecule 
-	std::vector< OpenBabel::OBMol > split = static_cast< OpenBabel::OBMol& >(mol).Separate();
-	if ( split.size() >= 2 ) {
-	    using OpenBabel::OBMol;
-	    std::vector< OBMol >::iterator it
-		= std::max_element( split.begin(), split.end()
-				    , boost::bind( &Mol::GetExactMass, _1, true )
-				    < boost::bind( &Mol::GetExactMass, _2, true ) );
-	    mol = *it;
-	}
-    
-	// duplicate check
-	std::string smiles = Conversion::toSMILES( mol );
-	if ( set.find( smiles ) == set.end() ) {
-	    set.insert( smiles );
-	    Mol::SetAttribute( mol, "SMILES", Conversion::toSMILES( mol ) );
-	    data_.push_back( mol );
-	    //-- trial code
-	    OpenBabel::OBSmartsPattern sp;
-	    if ( sp.Init( smiles ) ) {
-		if ( sp.Match( mol ) ) {
-		    std::vector< std::vector< int > > maplist = sp.GetUMapList();
-		    BOOST_FOREACH( const std::vector< int >& matches, maplist ) {
-			OpenBabel::OBMol& omol = static_cast<OpenBabel::OBMol&>(mol);
-			OpenBabel::OBBond * b1 = omol.GetBond( matches[0] );
-            (void)b1;
-		    }
-		}
-	    }
-	}
-	progress.setValue( file->tellg() );
+        // take large molecule if not single molecule 
+        std::vector< OpenBabel::OBMol > split = static_cast< OpenBabel::OBMol& >(mol).Separate();
+        if ( split.size() >= 2 ) {
+            using OpenBabel::OBMol;
+            std::vector< OBMol >::iterator it
+                = std::max_element( split.begin(), split.end()
+                                    , boost::bind( &Mol::getExactMass, _1, true )
+                                    < boost::bind( &Mol::getExactMass, _2, true ) );
+            mol = *it;
+        }
+        
+        // duplicate check
+        std::string smiles;
+        char * res = 0;
+        size_t size = Conversion::toSMILES( mol, res );
+        if ( size ) {
+            smiles = res;
+            Conversion::dispose( res );
+        }
+        
+        if ( set.find( smiles ) == set.end() ) {
+            set.insert( smiles );
+            char * res = 0;
+            
+            Mol::SetAttribute( mol, "SMILES", Conversion::toSMILES( mol ) );
+            data_.push_back( mol );
+            //-- trial code
+            OpenBabel::OBSmartsPattern sp;
+            if ( sp.Init( smiles ) ) {
+                if ( sp.Match( mol ) ) {
+                    std::vector< std::vector< int > > maplist = sp.GetUMapList();
+                    BOOST_FOREACH( const std::vector< int >& matches, maplist ) {
+                        OpenBabel::OBMol& omol = static_cast<OpenBabel::OBMol&>(mol);
+                        OpenBabel::OBBond * b1 = omol.GetBond( matches[0] );
+                        (void)b1;
+                    }
+                }
+            }
+        }
+        progress.setValue( file->tellg() );
     }
-  
+    
     std::sort( data_.begin(), data_.end()
-        , boost::bind( &Mol::getExactMass, _2, true ) < boost::bind( &Mol::getExactMass, _1, true ) );
+               , boost::bind( &Mol::getExactMass, _2, true ) < boost::bind( &Mol::getExactMass, _1, true ) );
     size_t cnt = 0;
     double prev = 0;
     BOOST_FOREACH( const Mol& mol, data_ ) {
-	if ( prev == 0 ) {
-	    prev = mol.getExactMass();
-	    continue;
-	}
-	double d = std::fabs( prev - mol.getExactMass() );
-	if ( d < 0.1 )
-	    std::cout << ++cnt << ": " << std::fixed << std::setprecision(5)
-		      << d << "(" << prev << " -- " << mol.getExactMass() << ")" << std::endl;
-	prev = mol.getExactMass();
+        if ( prev == 0 ) {
+            prev = mol.getExactMass();
+            continue;
+        }
+        double d = std::fabs( prev - mol.getExactMass() );
+        if ( d < 0.1 )
+            std::cout << ++cnt << ": " << std::fixed << std::setprecision(5)
+                      << d << "(" << prev << " -- " << mol.getExactMass() << ")" << std::endl;
+        prev = mol.getExactMass();
     }
-
+    
     endResetModel();
 }
 

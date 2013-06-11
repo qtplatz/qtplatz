@@ -42,19 +42,32 @@ Conversion::Conversion( const Conversion& )
 }
 
 //static
-std::string
-Conversion::toSVG( const OpenBabel::OBMol& mol )
+size_t // std::string
+Conversion::toSVG( const OpenBabel::OBMol& mol, char *& svg )
 {
 	OpenBabel::OBConversion conv;
 	conv.SetOutFormat( "svg" );
-	return conv.WriteString( const_cast< OpenBabel::OBMol *>(&mol) );
+    std::string res = conv.WriteString( const_cast< OpenBabel::OBMol *>(&mol) );
+    svg = new char [ res.size() + 1 ];
+    strcpy( svg, res.c_str() );
+    return res.size();
 }
 
 //static
-std::string
-Conversion::toSMILES( const OpenBabel::OBMol& mol )
+size_t // std::string
+Conversion::toSMILES( const OpenBabel::OBMol& mol, char *& smiles )
 {
 	OpenBabel::OBConversion conv;
 	conv.SetOutFormat( "smiles" );
-	return conv.WriteString( const_cast< OpenBabel::OBMol *>(&mol) );
+    std::string res = conv.WriteString( const_cast< OpenBabel::OBMol *>(&mol) );
+    smiles = new char [ res.size() + 1 ];
+    strcpy( smiles, res.c_str() );
+    return res.size();
+}
+
+void
+Conversion::dispose( char *& ptr )
+{
+    delete ptr;
+    ptr = 0;
 }

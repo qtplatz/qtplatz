@@ -1,3 +1,4 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
@@ -22,28 +23,13 @@
 **
 **************************************************************************/
 
-#ifndef CONVERSION_HPP
-#define CONVERSION_HPP
+#pragma once
 
-#include "adchem_global.h"
+#include <compiler/decl_export.h>
 
+#if defined(ADCHEM_LIBRARY)
+#  define ADCHEMSHARED_EXPORT DECL_EXPORT
+#else
+#  define ADCHEMSHARED_EXPORT DECL_IMPORT
+#endif
 
-namespace OpenBabel { class OBMol; }
-
-namespace adchem {
-
-	class ADCHEMSHARED_EXPORT Conversion {
-	public:
-        virtual ~Conversion();
-        Conversion();
-        Conversion( const Conversion& );
-            
-        static size_t toSVG( const OpenBabel::OBMol&, char *&svg );
-        static size_t toSMILES( const OpenBabel::OBMol&, char *& smiles );
-        static void dispose( char *& ptr );
-
-	};
-
-}
-
-#endif // CONVERSION_HPP

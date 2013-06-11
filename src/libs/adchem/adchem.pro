@@ -4,16 +4,21 @@
 #
 #-------------------------------------------------
 
-QT       -= gui
+QT       -= gui core
 
 TARGET = adchem
 TEMPLATE = lib
-CONFIG += staticlib
+DEFINES += ADCHEM_LIBRARY
+
 win32: QMAKE_CXXFLAGS += -wd4100
 
-include(../../qtplatzstaticlib.pri)
+include(../../qtplatzlibrary.pri)
 include(../../boost.pri)
 include(../../openbabel.pri)
+
+QMAKE_CXXFLAGS -= -std=c++11
+QMAKE_CXXFLAGS -= -stdlib=libc++
+QMAKE_LFLAGS -= -stdlib=libc++
 
 SOURCES += adchem.cpp \
     mol.cpp \
