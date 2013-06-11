@@ -23,8 +23,14 @@
 **************************************************************************/
 
 #if __APPLE__ && (__GNUC_LIBSTD__ <= 4) && (__GNUC_LIBSTD_MINOR__ <= 2)
-# if ! defined BOOST_NO_CXX11_RVALUE_REFERENCES
-#  define BOOST_NO_CXX11_RVALUE_REFERENCES
+
+# include <boost/version.hpp>
+
+# if BOOST_VERSION < 15400
+#  if ! defined BOOST_NO_CXX11_RVALUE_REFERENCES
+#    define BOOST_NO_CXX11_RVALUE_REFERENCES
+#  endif
 # endif
+
 #endif
 

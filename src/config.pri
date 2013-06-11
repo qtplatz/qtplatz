@@ -15,8 +15,6 @@ macx {
     QMAKE_CXXFLAGS *= -mmacosx-version-min=10.7
     QMAKE_LFLAGS   -= -mmacosx-version-min=10.5
     QMAKE_LFLAGS   *= -mmacosx-version-min=10.7 -stdlib=libc++
-#   need follwing if boost <= 1.53, 
-#    DEFINES += BOOST_NO_CXX11_RVALUE_REFERENCES
 }
 
 macx: BOOST_VERSION=boost-1_54_beta1
@@ -52,7 +50,7 @@ isEmpty ( OPENBABEL_ROOT ) {
 QTPLATZ_CONFIG += Acquire
 QTPLATZ_CONFIG += Sequence
 QTPLATZ_CONFIG += Dataproc
-QTPLATZ_CONFIG += Chemistry
+!macx: QTPLATZ_CONFIG += Chemistry
 
 # no chemistry for ARM platform
 linux-arm-*: QTPLATZ_CONFIG -= ChemSpider Chemistry
