@@ -94,17 +94,15 @@ Task::handle_timer_timeout( const ACE_Time_Value& tv, const void * )
 }
 
 int
-Task::open( void * args )
+Task::task_open()
 {
-    (void)args;
-    // ACE_Task<ACE_MT_SYNCH>::open( args );
     if ( activate( THR_NEW_LWP, n_threads_ ) != - 1 )
         return true;
     return false;
 }
 
 int
-Task::close( unsigned long flags )
+Task::task_close()
 {
     do {
         // this will block until a message arrives.
@@ -117,9 +115,8 @@ Task::close( unsigned long flags )
 
     this->wait();
     this->msg_queue()->deactivate();
-    int ret = ACE_Task<ACE_MT_SYNCH>::close( flags );
     delete this;
-    return ret;
+    return 0;
 }
 
 bool
@@ -196,8 +193,6 @@ Task::handle_input( ACE_HANDLE )
 int
 Task::svc()
 {
-    std::cerr << "Task::svc() task started on thread :" << ACE_Thread::self() << std::endl;
-
     barrier_.wait();
 
     for ( ;; ) {
@@ -205,14 +200,15 @@ Task::svc()
         ACE_Message_Block * mblk = 0;
 
         if ( this->getq( mblk ) == (-1) ) {
-            if ( errno == ESHUTDOWN )
-                ACE_ERROR_RETURN((LM_ERROR, "(%t) adbroker::task queue is deactivated\n"), 0);
-            else
+            if ( errno == ESHUTDOWN ) {
+				adportable::debug(__FILE__, __LINE__) << ACE_Thread::self() << " \t adbroker::task queue is deactivated";
+			} else {
                 ACE_ERROR_RETURN((LM_ERROR, "(%t) %p\n", "putq"), -1);
+			}
         }
 
         if ( mblk->msg_type() == ACE_Message_Block::MB_HANGUP ) {
-            std::cerr << "adbroker::task close on thread :" << ACE_Thread::self() << std::endl;
+			adportable::debug(__FILE__, __LINE__) << ACE_Thread::self() << " \t adbroker::task HANGUP received";
             this->putq( mblk ); // forward the request to any peer threads
             break;
         }

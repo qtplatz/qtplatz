@@ -53,7 +53,7 @@ BrokerManager::BrokerManager() : pTask_(0)
 bool
 BrokerManager::initialize()
 {
-    pTask_->open();
+    pTask_->task_open();
     return true;
 }
 
@@ -62,5 +62,5 @@ void
 BrokerManager::terminate()
 {
     if ( initialized_ )
-        singleton::BrokerManager::instance()->pTask_->close();
+        singleton::BrokerManager::instance()->pTask_->task_close();
 }
