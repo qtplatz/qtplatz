@@ -33,6 +33,7 @@ using namespace acewrapper;
 #  include <ace/Thread_Manager.h>
 
 ServantManager * ServantManager::instance_ = 0;
+std::mutex ServantManager::mutex_;
 
 // static
 ServantManager *
