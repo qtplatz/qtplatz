@@ -29,11 +29,11 @@
 
 #if QTPLATZ_VERSION < 0x020000
 
-class ACE_Recursive_Thread_Mutex;
+class std::mutex;
 
 namespace acewrapper {
 
-  template<class Mutex = ACE_Recursive_Thread_Mutex>
+  template<class Mutex = std::mutex>
   class scoped_mutex_t {
     Mutex & mutex_;
   public:
@@ -45,7 +45,7 @@ namespace acewrapper {
     }
   };
   
-  template<class Mutex = ACE_Recursive_Thread_Mutex>
+  template<class Mutex = std::mutex>
   class scoped_acquired_mutex_t {
     Mutex & mutex_;
   public:
