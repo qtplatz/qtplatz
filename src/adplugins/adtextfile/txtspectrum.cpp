@@ -131,7 +131,7 @@ TXTSpectrum::load( const std::wstring& name )
     // double x = (t2 - t1) / size;
 
     // validation
-    unsigned long tolerance = sampInterval / 10.0;
+    unsigned long tolerance = static_cast< unsigned long >( sampInterval / 10.0 + 0.5 );
     std::vector< MSProperty::SamplingInfo >::const_iterator sampInfo = segments.begin();
     // size_t nDelay = sampInfo->nSamplingDelay;
     for ( size_t i = 0, k = 0; i < size; ++i, ++k ) {

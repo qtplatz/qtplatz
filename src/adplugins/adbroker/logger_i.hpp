@@ -33,7 +33,7 @@
 #include <vector>
 
 # include "adinterface/brokerS.h"
-#include <mutex>
+# include <ace/Recursive_Thread_Mutex.h>
 
 namespace broker {
 
@@ -65,7 +65,7 @@ namespace broker {
     private:
         unsigned long logId_;
         std::deque< Broker::LogMessage > log_;
-        std::mutex mutex_;
+        ACE_Recursive_Thread_Mutex mutex_;
 
         typedef std::vector<handler_data> vector_type;
         inline vector_type::iterator begin() { return handler_set_.begin(); };

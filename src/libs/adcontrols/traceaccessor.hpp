@@ -28,6 +28,7 @@
 #include <adcontrols/timeutil.hpp>
 #include <vector>
 #include "adcontrols_global.h"
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 

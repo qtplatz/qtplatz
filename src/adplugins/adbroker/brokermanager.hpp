@@ -28,7 +28,7 @@
 
 #include "adbroker_global.h"
 # include <ace/Singleton.h>
-#include <mutex>
+# include <ace/Recursive_Thread_Mutex.h>
 
 class BrokerSession;
 class BrokerAccessToken;

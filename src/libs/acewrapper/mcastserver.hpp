@@ -28,8 +28,7 @@
 
 #  include <ace/SOCK_Dgram_Mcast.h>
 #  include <ace/Event_Handler.h>
-
-#include <mutex>
+#  include <ace/Recursive_Thread_Mutex.h>
 
 #include <boost/utility.hpp>
 #include "callback.hpp"
@@ -62,7 +61,7 @@ private:
 
 private:
     ACE_Reactor * reactor_;
-    std::mutex mutex_;
+    ACE_Recursive_Thread_Mutex mutex_;
     u_short port_;
     Handler * handler_;
     acewrapper::Callback& callback_;

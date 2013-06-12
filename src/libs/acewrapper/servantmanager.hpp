@@ -30,19 +30,22 @@
 #include <boost/noncopyable.hpp>
 #include <string>
 #include <mutex>
+#include <thread>
 
 class TAO_ORB_Manager;
 
 namespace acewrapper {
 
     class ServantManager : boost::noncopyable {
-	~ServantManager();
-	ServantManager( CORBA::ORB_ptr orb = 0
-			, PortableServer::POA_ptr = 0
-			, PortableServer::POAManager_ptr = 0 );
+        ~ServantManager();
+        ServantManager( CORBA::ORB_ptr orb = 0
+                        , PortableServer::POA_ptr = 0
+                        , PortableServer::POAManager_ptr = 0 );
+        static ServantManager * instance_;
+        static std::mutex mutex_;
     public:
-	int init( int ac, ACE_TCHAR * av [] );
-	int fini();
+        int init( int ac, ACE_TCHAR * av [] );
+        int fini();
 
         CORBA::ORB_ptr orb();
         PortableServer::POA_ptr root_poa();
@@ -54,23 +57,20 @@ namespace acewrapper {
 	
         bool spawn();
         void shutdown();
-	static ServantManager * instance();
+        static ServantManager * instance();
 	
     private:
-	void run();
-        static void * thread_entry( void * me );
+        void run();
 	
         size_t init_count_;
         bool thread_running_;
-        std::mutex mutex_;
         TAO_ORB_Manager * orbmgr_;
-        ACE_thread_t threadid_;
-        friend class ACE_Singleton< ServantManager, ACE_Recursive_Thread_Mutex >;
+        std::thread * thread_;
     };
 
-    namespace singleton {
-	typedef ACE_Singleton< ServantManager, ACE_Recursive_Thread_Mutex > ServantManager;
-    }
+    // namespace singleton {
+    //     typedef ACE_Singleton< ServantManager, ACE_Recursive_Thread_Mutex > ServantManager;
+    // }
 }
 
 #endif // SERVANTMANAGER_HPP

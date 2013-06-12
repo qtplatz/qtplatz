@@ -25,31 +25,41 @@
 #include "servantmanager.hpp"
 #include "mutex.hpp"
 #include <adportable/debug.hpp>
+#include <functional>
 
 using namespace acewrapper;
 
 #  include <tao/Utils/ORB_Manager.h>
 #  include <ace/Thread_Manager.h>
 
+ServantManager * ServantManager::instance_ = 0;
+
 // static
 ServantManager *
 ServantManager::instance()
 {
-    return singleton::ServantManager::instance();
+    if ( instance_ == 0 ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( instance_ == 0 )
+            instance_ = new ServantManager();
+    }
+    return instance_;
+    // return singleton::ServantManager::instance();
 }
 
 ServantManager::~ServantManager()
 {
     delete orbmgr_;
+	delete thread_;
     adportable::debug(__FILE__, __LINE__) << "***** ServantManager dtor complete";    
 }
 
 ServantManager::ServantManager( CORBA::ORB_ptr orb
-                        , PortableServer::POA_ptr poa
-                        , PortableServer::POAManager_ptr poamanager ) : init_count_(0)  
-                                                                      , thread_running_(false)
-                                                                      , orbmgr_(0)
-                                                                      , threadid_(0)
+                                , PortableServer::POA_ptr poa
+                                , PortableServer::POAManager_ptr poamanager ) : init_count_(0)  
+                                                                              , thread_running_(false)
+                                                                              , orbmgr_(0)
+                                                                              , thread_(0)
 {
     orbmgr_ = new TAO_ORB_Manager( orb, poa, poamanager );
 }
@@ -79,8 +89,11 @@ ServantManager::fini()
 void
 ServantManager::shutdown()
 {
-    orbmgr_->fini();
-    ACE_Thread::join( threadid_, 0, 0 );
+	std::lock_guard< std::mutex > lock( mutex_ );
+	if ( orbmgr_ )
+		orbmgr_->fini();
+	if ( thread_ )
+		thread_->join();
 }
 
 CORBA::ORB_ptr
@@ -123,9 +136,8 @@ ServantManager::deactivate( const std::string& id )
 void
 ServantManager::run()
 {
-    threadid_ = ACE_Thread::self();
     try {
-	adportable::debug(__FILE__, __LINE__) << "-----> ServantManager thread started.";
+        adportable::debug(__FILE__, __LINE__) << "-----> ServantManager thread started.";
         orbmgr_->run();
     } catch ( ... ) {
         adportable::debug(__FILE__, __LINE__) << "-----> ServantManager got an exception (...).";
@@ -135,26 +147,15 @@ ServantManager::run()
     adportable::debug(__FILE__, __LINE__) << "-----> ServantManager thread terminated.";
 }
 
-// static
-void *
-ServantManager::thread_entry( void * me )
-{
-    ServantManager * pThis = reinterpret_cast< ServantManager * >( me );
-    if ( pThis && pThis->orbmgr_ )
-        pThis->run();
-    return 0;
-}
-
 bool
 ServantManager::spawn()
 {
-    if ( ! thread_running_ ) {
-	std::lock_guard< std::mutex > lock( mutex_ );
-	if ( ! thread_running_ ) {
-	    thread_running_ = true;
-	    ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC(ServantManager::thread_entry), this );
-	    return true;
-	}
+    if ( ! thread_ ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( ! thread_ ) {
+            thread_ = new std::thread( std::bind( &ServantManager::run, this ) );
+            return true;
+        }
     }
     return false; // already running
 }
