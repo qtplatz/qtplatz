@@ -27,7 +27,9 @@
 
 #include <coreplugin/ifile.h>
 #include <boost/noncopyable.hpp>
+#ifndef Q_MOC_RUN
 #include <adchem/conversion.hpp>
+#endif
 #include <memory>
 
 namespace OpenBabel {
