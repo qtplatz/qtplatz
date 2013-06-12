@@ -27,7 +27,6 @@
 
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
-#include <boost/smart_ptr.hpp>
 
 namespace adcontrols {
 

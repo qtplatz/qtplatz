@@ -44,7 +44,6 @@
 #include <fstream>
 
 #include <acewrapper/constants.hpp>
-#include <boost/smart_ptr.hpp>
 #include "manager_i.hpp"
 #include "taskmanager.hpp"
 #include <mutex>

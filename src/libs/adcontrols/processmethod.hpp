@@ -27,7 +27,6 @@
 
 #include "adcontrols_global.h"
 #include <boost/variant.hpp>
-#include <boost/smart_ptr.hpp>
 #include <vector>
 
 #include <adcontrols/centroidmethod.hpp>
@@ -90,7 +89,7 @@ namespace adcontrols {
 
     };
 
-    typedef boost::shared_ptr<ProcessMethod> ProcessMethodPtr;
+    typedef std::shared_ptr<ProcessMethod> ProcessMethodPtr;
 
 }
 

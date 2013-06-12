@@ -23,6 +23,7 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_dll_interface.h>
 #include "trace.hpp"
 #include "traceaccessor.hpp"
 #include <iostream>

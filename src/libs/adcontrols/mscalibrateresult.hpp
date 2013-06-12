@@ -30,11 +30,6 @@
 #include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-#include <boost/smart_ptr.hpp>
-#include <compiler/diagnostic_pop.h>
-
 namespace adcontrols {
 
     class MSReferences;
@@ -91,7 +86,7 @@ namespace adcontrols {
         static bool restore( std::istream&, MSCalibrateResult& );
     };
 
-   typedef boost::shared_ptr<MSCalibrateResult> MSCalibrateResultPtr;
+   typedef std::shared_ptr<MSCalibrateResult> MSCalibrateResultPtr;
 
 }
 

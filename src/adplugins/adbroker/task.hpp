@@ -25,19 +25,17 @@
 
 #pragma once
 
-#include <ace/Recursive_Thread_Mutex.h>
 #include <ace/Task.h>
 #include <ace/Barrier.h>
 #include <ace/Message_Queue.h>
 
 #include <boost/noncopyable.hpp>
-#include <boost/smart_ptr.hpp>
 #include <adinterface/brokerC.h>
 #include <adinterface/brokereventC.h>
 #include <vector>
 #include <map>
+#include <mutex>
 
-class ACE_Recursive_Thread_Mutex;
 class ACE_Notification_Strategy;
 class ACE_Reactor;
 
@@ -60,7 +58,7 @@ namespace adbroker {
         Task( size_t n_threads = 1 );
 
     public:  
-        inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
+        inline std::mutex& mutex() { return mutex_; }
 
         int task_open();
         int task_close();
@@ -103,7 +101,7 @@ namespace adbroker {
 
         portfolio::Portfolio& getPortfolio( const std::wstring& token );
 
-        ACE_Recursive_Thread_Mutex mutex_;
+        std::mutex mutex_;
         ACE_Barrier barrier_;
         size_t n_threads_;
     
@@ -111,7 +109,7 @@ namespace adbroker {
         std::vector<session_data> session_set_;
         std::vector<session_data> session_failed_;
 
-        std::map< std::wstring, boost::shared_ptr< portfolio::Portfolio > > portfolioVec_;
+        std::map< std::wstring, std::shared_ptr< portfolio::Portfolio > > portfolioVec_;
     };
 
 

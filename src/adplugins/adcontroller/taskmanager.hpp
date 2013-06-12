@@ -23,9 +23,9 @@
  **
  **************************************************************************/
 
-#include <boost/smart_ptr.hpp>
 #include <ace/Singleton.h>
 #include <ace/Recursive_Thread_Mutex.h>
+#include <mutex>
 
 class ACE_Reactor;
 
@@ -56,7 +56,7 @@ namespace adcontroller {
         bool manager_initialize();
         void manager_terminate();
         
-        inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
+        inline std::mutex& mutex() { return mutex_; }
         ACE_Reactor * reactor();
         
         template<class T> T* get();
@@ -67,7 +67,7 @@ namespace adcontroller {
         friend class internal::TimeReceiver;
         int handle_timeout( const ACE_Time_Value&, const void * );
         
-        ACE_Recursive_Thread_Mutex mutex_;
+        std::mutex mutex_;
         iTask * pTask_;
         acewrapper::ReactorThread * reactor_thread_;    
         acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> > * timerHandler_;

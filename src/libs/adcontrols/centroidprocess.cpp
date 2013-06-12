@@ -39,18 +39,16 @@
 #include <adportable/differential.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
-
-#include <vector>
-#include <algorithm>
-#include <boost/smart_ptr.hpp>
-#include <sstream>
-#include <cmath>
-
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 #include <boost/foreach.hpp>
 
 #include <compiler/diagnostic_pop.h>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <cmath>
+#include <memory>
 
 using namespace adcontrols;
 
@@ -210,7 +208,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     }
 
     // buffer for smoothing
-    boost::scoped_array< double > pY( new double [ profile.size() ] );
+    std::unique_ptr< double [] > pY( new double [ profile.size() ] );
     int nAverage = 3;
 	while ( ( profile.getMass( nAverage ) - profile.getMass( 0 ) ) < finder.peakwidth_ )
 		++nAverage;

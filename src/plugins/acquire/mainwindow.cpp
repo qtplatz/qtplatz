@@ -39,7 +39,6 @@
 
 #include <boost/variant.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/smart_ptr.hpp>
 
 #include <utils/fancymainwindow.h>
 #include <utils/styledbar.h>

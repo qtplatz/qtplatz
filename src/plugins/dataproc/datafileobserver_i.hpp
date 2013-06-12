@@ -26,7 +26,7 @@
 #define DATAFILEOBSERVER_I_HPP
 
 #include <adinterface/signalobserverS.h>
-#include <boost/smart_ptr.hpp>
+#include <memory>
 
 namespace adcontrols {
 	class LCMSDataset;
@@ -61,7 +61,7 @@ namespace dataproc {
 		const adcontrols::LCMSDataset& accessor_;
 		unsigned long objId_;
 		SignalObserver::Description desc_;
-		boost::scoped_ptr< adcontrols::Chromatogram > tic_;
+		std::unique_ptr< adcontrols::Chromatogram > tic_;
 	};
 
 }

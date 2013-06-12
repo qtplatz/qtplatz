@@ -26,9 +26,7 @@
 
 #include "chemistry_global.hpp"
 #include <extensionsystem/iplugin.h>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 namespace chemistry { 
 
@@ -47,8 +45,8 @@ namespace chemistry {
       ShutdownFlag aboutToShutdown();
 
   private:
-	  boost::scoped_ptr< ChemistryMode > mode_;
-	  boost::scoped_ptr< ChemistryMainWindow > mainWindow_;
+	  std::unique_ptr< ChemistryMode > mode_;
+	  std::unique_ptr< ChemistryMainWindow > mainWindow_;
 	  
   private slots:
 	  void triggerAction();

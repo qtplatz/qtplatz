@@ -151,7 +151,7 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
         adfs::blob blob;
         if ( rowid && blob.open( dbf_.db(), "main", "file", "data", rowid, adfs::readonly ) ) {
             if ( blob.size() ) {
-                boost::scoped_array< boost::int8_t > p ( new boost::int8_t[ blob.size() ] );
+                std::unique_ptr< boost::int8_t [] > p ( new boost::int8_t[ blob.size() ] );
                 if ( blob.read( p.get(), blob.size() ) ) {
                     adfs::detail::cpio obuf( blob.size(), reinterpret_cast<adfs::char_t *>( p.get() ) );
 

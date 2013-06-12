@@ -26,9 +26,7 @@
 #define CHEMEDITOR_HPP
 
 #include <coreplugin/editormanager/ieditor.h>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 namespace Core { class IEditorFactory; }
 
@@ -70,7 +68,7 @@ namespace chemistry {
     private:
         SDFileView * sdfileView_;
         Core::IEditorFactory * factory_;
-		boost::shared_ptr< ChemFile > file_;
+		std::shared_ptr< ChemFile > file_;
         QList<int> context_;
         QString displayName_;
    };

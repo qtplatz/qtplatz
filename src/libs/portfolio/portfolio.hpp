@@ -26,8 +26,8 @@
 #pragma once
 
 #include "portfolio_global.h"
-#include <boost/smart_ptr.hpp>
 #include <vector>
+#include <memory>
 
 namespace portfolio {
 
@@ -63,7 +63,7 @@ namespace portfolio {
         bool save( const std::wstring& filename ) const;
      
     private:
-        boost::shared_ptr< internal::PortfolioImpl > impl_;
+        std::shared_ptr< internal::PortfolioImpl > impl_;
   };
 
 }

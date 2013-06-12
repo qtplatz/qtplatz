@@ -127,9 +127,9 @@ MSCalibSummaryWidget::getContents( boost::any& any ) const
         return true;
     }
 
-    if ( adutils::ProcessedData::is_type< boost::shared_ptr< adcontrols::MSAssignedMasses > >( any ) ) {
-        boost::shared_ptr< adcontrols::MSAssignedMasses > ptr
-            = boost::any_cast< boost::shared_ptr< adcontrols::MSAssignedMasses > >( any );
+    if ( adutils::ProcessedData::is_type< std::shared_ptr< adcontrols::MSAssignedMasses > >( any ) ) {
+        std::shared_ptr< adcontrols::MSAssignedMasses > ptr
+            = boost::any_cast< std::shared_ptr< adcontrols::MSAssignedMasses > >( any );
         getAssignedMasses( *ptr );
         return true;
     }

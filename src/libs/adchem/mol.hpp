@@ -25,16 +25,15 @@
 #ifndef MOL_HPP
 #define MOL_HPP
 #include "adchem_global.h"
-
-#include <boost/shared_ptr.hpp>
 #include "attributes.hpp"
+#include <memory>
 
 namespace OpenBabel { class OBMol; }
 
 namespace adchem {
 
 	class ADCHEMSHARED_EXPORT Mol {
-		boost::shared_ptr< OpenBabel::OBMol > obmol_;
+		std::shared_ptr< OpenBabel::OBMol > obmol_;
         adchem::attributes attrs_;
         std::string formula_;
         void update();

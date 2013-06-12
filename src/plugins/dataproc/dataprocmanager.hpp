@@ -26,9 +26,6 @@
 #pragma once
 
 #include <QObject>
-#if ! defined Q_MOC_RUN
-# include <boost/smart_ptr.hpp>
-#endif
 
 class QMainWindow;
 

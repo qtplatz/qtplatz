@@ -188,7 +188,7 @@ SDFileModel::removeRows( int position, int rows, const QModelIndex& index )
 }
 
 void
-SDFileModel::file( boost::shared_ptr< ChemFile >& file )
+SDFileModel::file( std::shared_ptr< ChemFile >& file )
 {
     using adchem::Mol;
     using adchem::Conversion;

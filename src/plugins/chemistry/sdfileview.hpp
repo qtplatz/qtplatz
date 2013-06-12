@@ -26,15 +26,11 @@
 #define SDFILEVIEW_HPP
 
 #include <QWidget>
-#if ! defined Q_MOC_RUN
-#include <boost/shared_ptr.hpp>
-#endif
+#include <memory>
 
 namespace Ui {
 class SDFileView;
 }
-
-//#include <openbabel/mol.h>
 
 namespace OpenBabel { class OBMol; }
 namespace adchem { class Mol; }
@@ -54,7 +50,7 @@ namespace chemistry {
 		explicit SDFileView(QWidget *parent = 0);
 		~SDFileView();
 
-		void file( boost::shared_ptr<ChemFile>& );
+		void file( std::shared_ptr<ChemFile>& );
 		void setData( const std::vector< adchem::Mol >& );
 
     signals:

@@ -177,7 +177,7 @@ namespace adcontrols {
 			double a = 0;
 			++it;
 			for ( Element::vector_type::const_iterator iso = e.begin() + 1; it != end && iso != e.end(); ++it, ++iso ) {
-				size_t nCr = combination( n, *it );
+				size_t nCr = size_t( combination( n, *it ) );
 				a += std::pow( iso->abundance_, int( *it ) ) * nCr;
 			}
 			return a;

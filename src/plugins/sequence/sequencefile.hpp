@@ -27,11 +27,9 @@
 #define SEQUENCEFILE_H
 
 #include <coreplugin/ifile.h>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
 #include <map>
 #include <string>
+#include <memory>
 
 namespace adsequence { class sequence; }
 namespace adcontrols { class ProcessMethod; }
@@ -89,9 +87,9 @@ namespace sequence {
         QString defaultPath_;
         QString filename_;
         bool modified_;
-        typedef std::map< std::wstring, boost::shared_ptr< ControlMethod::Method > > control_method_map_type;
-        typedef std::map< std::wstring, boost::shared_ptr< adcontrols::ProcessMethod > > process_method_map_type;
-        boost::scoped_ptr< adsequence::sequence > adsequence_;
+        typedef std::map< std::wstring, std::shared_ptr< ControlMethod::Method > > control_method_map_type;
+        typedef std::map< std::wstring, std::shared_ptr< adcontrols::ProcessMethod > > process_method_map_type;
+        std::unique_ptr< adsequence::sequence > adsequence_;
         control_method_map_type ctrlmethods_;
         process_method_map_type procmethods_;
     };

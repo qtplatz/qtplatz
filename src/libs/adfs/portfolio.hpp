@@ -25,11 +25,7 @@
 
 #pragma once
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-#include <boost/smart_ptr.hpp>
-#include <compiler/diagnostic_pop.h>
-
+#include <memory>
 #include <vector>
 #include <adfs/attributes.hpp>
 
@@ -58,7 +54,7 @@ namespace adfs {
         inline sqlite& db() const { return *db_; }
 
     private:
-        boost::shared_ptr< adfs::sqlite > db_;
+        std::shared_ptr< adfs::sqlite > db_;
   };
 
 }

@@ -28,11 +28,11 @@
 #include <QObject>
 #include <QAbstractTableModel>
 #if ! defined Q_MOC_RUN
-#include <boost/shared_ptr.hpp>
 #include <vector>
 #include <string>
 #include <adchem/mol.hpp>
 #endif
+#include <memory>
 
 class QModelIndex;
 class QByteArray;
@@ -64,7 +64,7 @@ namespace chemistry {
 		void data( const std::vector< adchem::Mol >& );
 
 		//----
-		void file( boost::shared_ptr< ChemFile >& );
+		void file( std::shared_ptr< ChemFile >& );
 		typedef std::pair< std::string, std::string > attribute_type;
     signals:
     
@@ -72,7 +72,7 @@ namespace chemistry {
 
 	private:
 		static bool toSvg( SvgItem&, const adchem::Mol& );
-		boost::shared_ptr< ChemFile > file_;
+		std::shared_ptr< ChemFile > file_;
 		std::vector< adchem::Mol > data_;
 		std::vector< std::string > excludes_;
 	};

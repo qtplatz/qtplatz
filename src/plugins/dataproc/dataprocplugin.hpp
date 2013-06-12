@@ -26,11 +26,9 @@
 #pragma once
 
 #include <extensionsystem/iplugin.h>
-#include <vector>
 #include "constants.hpp"
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <vector>
+#include <memory>
 
 class QAction;
 class QBrokerSessionEvent;
@@ -94,16 +92,16 @@ namespace dataproc {
         
     private:
         dataproc::MainWindow * mainWindow_;
-        boost::scoped_ptr< dataproc::Mode > mode_;
-        boost::scoped_ptr< adportable::Configuration > pConfig_;
-        boost::scoped_ptr< SessionManager > pSessionManager_;
-        boost::scoped_ptr< ActionManager > pActionManager_;
+        std::unique_ptr< dataproc::Mode > mode_;
+        std::unique_ptr< adportable::Configuration > pConfig_;
+        std::unique_ptr< SessionManager > pSessionManager_;
+        std::unique_ptr< ActionManager > pActionManager_;
         
         QBrokerSessionEvent * pBrokerSessionEvent_;
         Broker::Session * brokerSession_;
         DataprocessorFactory * dataprocFactory_;
         
-        boost::scoped_ptr< iSequenceImpl > iSequence_;
+        std::unique_ptr< iSequenceImpl > iSequence_;
         static DataprocPlugin * instance_;
         
         // static bool install_dataprovider( const adportable::Configuration&, const std::wstring& );

@@ -26,14 +26,13 @@
 #pragma once
 
 #include <boost/noncopyable.hpp>
-#include <boost/smart_ptr.hpp>
 #include <vector>
 #include <adportable/configuration.hpp>
 
-# include <ace/Recursive_Thread_Mutex.h>
 # include <ace/Task.h>
 # include <ace/Barrier.h>
 # include <adinterface/controlserverC.h>
+#include <mutex>
 
 class ACE_Recursive_Thread_Mutex;
 class ACE_Notification_Strategy;
@@ -60,7 +59,7 @@ namespace adcontroller {
         friend class iTaskManager;
         
     public:  
-        inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
+        inline std::mutex& mutex() { return mutex_; }
         static iTask * instance();
         bool open();
         void close();
@@ -110,17 +109,17 @@ namespace adcontroller {
 
 	// 
     public:
-	typedef boost::shared_ptr< iProxy > iproxy_ptr;
-	typedef boost::shared_ptr< oProxy > oproxy_ptr;
+	typedef std::shared_ptr< iProxy > iproxy_ptr;
+	typedef std::shared_ptr< oProxy > oproxy_ptr;
 	
-	typedef std::vector< boost::shared_ptr<iProxy> > iproxy_vector_type;
-	typedef std::vector< boost::shared_ptr<oProxy> > oproxy_vector_type;
+	typedef std::vector< std::shared_ptr<iProxy> > iproxy_vector_type;
+	typedef std::vector< std::shared_ptr<oProxy> > oproxy_vector_type;
 	
     private:
 
         adportable::Configuration config_;
         
-        ACE_Recursive_Thread_Mutex mutex_;
+        std::mutex mutex_;
         ACE_Barrier barrier_;
         size_t n_threads_;
 
@@ -128,10 +127,10 @@ namespace adcontroller {
         receiver_vector_type receiver_set_;
         receiver_vector_type receiver_failed_;
 
-	std::vector< boost::shared_ptr< iProxy > > iproxies_;
-	std::vector< boost::shared_ptr< oProxy > > oproxies_;
+	std::vector< std::shared_ptr< iProxy > > iproxies_;
+	std::vector< std::shared_ptr< oProxy > > oproxies_;
 	
-	boost::shared_ptr< observer_i > pMasterObserver_;
+	std::shared_ptr< observer_i > pMasterObserver_;
 	
 	::ControlServer::eStatus status_current_;
 	::ControlServer::eStatus status_being_;

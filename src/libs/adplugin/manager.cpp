@@ -44,7 +44,6 @@
 #include <map>
 #include <fstream>
 
-#include <boost/smart_ptr.hpp>
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_variable.h>
 #include <boost/filesystem.hpp>

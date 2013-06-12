@@ -26,7 +26,6 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include <boost/smart_ptr.hpp>
 #include <string>
 #include <map>
 

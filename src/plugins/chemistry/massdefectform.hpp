@@ -26,9 +26,7 @@
 #define MASSDEFECTFORM_HPP
 
 #include <QWidget>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 namespace Ui {
 class MassDefectForm;
@@ -59,10 +57,10 @@ namespace chemistry {
 
 	private:
 		Ui::MassDefectForm *ui;
-		boost::scoped_ptr< QStandardItemModel > model_;
-		boost::scoped_ptr< adportable::Configuration > config_;
-		boost::scoped_ptr< chemistry::MassDefectMethod > method_;
-		boost::scoped_ptr< chemistry::MassDefectDelegate > delegate_;
+		std::unique_ptr< QStandardItemModel > model_;
+		std::unique_ptr< adportable::Configuration > config_;
+		std::unique_ptr< chemistry::MassDefectMethod > method_;
+		std::unique_ptr< chemistry::MassDefectDelegate > delegate_;
 	};
 
 }

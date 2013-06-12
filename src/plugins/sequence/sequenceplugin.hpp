@@ -27,9 +27,7 @@
 #define SEQUENCEPLUGIN_H
 
 #include <extensionsystem/iplugin.h>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 namespace adextension { class iSequence; }
 
@@ -55,7 +53,7 @@ namespace sequence {
 
         private:
             MainWindow * mainWindow_;
-            boost::scoped_ptr< Mode > mode_;
+            std::unique_ptr< Mode > mode_;
         signals:
 
         private slots:

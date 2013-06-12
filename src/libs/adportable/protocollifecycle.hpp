@@ -25,8 +25,8 @@
 
 #pragma once
 
-#include <boost/smart_ptr.hpp>
 #include <boost/variant.hpp>
+#include <memory>
 
 namespace adportable {
 
@@ -153,7 +153,7 @@ namespace adportable {
         private:
             unsigned short syn_sequence_number_;
             LifeCycleState state_;
-            boost::shared_ptr<internal::LifeCycleImpl> pImpl_;
+            std::shared_ptr<internal::LifeCycleImpl> pImpl_;
         };
 
         struct LifeCycleHelper {

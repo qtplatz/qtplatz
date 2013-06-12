@@ -27,10 +27,10 @@
 
 #include <vector>
 #include <boost/noncopyable.hpp>
-#include <boost/smart_ptr.hpp>
 
-# include <adinterface/signalobserverS.h>
-# include <ace/Recursive_Thread_Mutex.h>
+#include <adinterface/signalobserverS.h>
+#include <memory>
+#include <mutex>
 
 namespace adcontroller {
 
@@ -91,8 +91,8 @@ namespace adcontroller {
         SignalObserver::Observer_var source_observer_;
         SignalObserver::Description desc_;
         unsigned long objId_;
-        boost::scoped_ptr< Cache > cache_;
-        ACE_Recursive_Thread_Mutex mutex_;
+        std::unique_ptr< Cache > cache_;
+        std::mutex mutex_;
     };
 
 }

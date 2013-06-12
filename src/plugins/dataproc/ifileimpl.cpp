@@ -100,7 +100,7 @@ IFileImpl::save( const QString& filename )
     } else {
         // saveFileAs -- has to create new file
 		boost::filesystem::remove( boost::filesystem::path( qtwrapper::wstring::copy( filename ) ) );
-        boost::scoped_ptr< adcontrols::datafile > file( adcontrols::datafile::create( p.wstring() ) );
+        std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::create( p.wstring() ) );
         return file && file->saveContents( L"/Processed", portfolio, this->file() );
 
     }

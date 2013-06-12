@@ -28,10 +28,10 @@
 
 #include <QWidget>
 #if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
 #include <boost/variant.hpp>
 #endif
 #include <map>
+#include <memory>
 
 namespace adcontrols {
     class MassSpectrum;
@@ -57,10 +57,10 @@ namespace dataproc {
 
         void init();
 
-        void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
-        void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
-        void draw( boost::shared_ptr< adcontrols::Chromatogram >& );
-        void draw( boost::shared_ptr< adcontrols::PeakResult >& );
+        void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw( std::shared_ptr< adcontrols::Chromatogram >& );
+        void draw( std::shared_ptr< adcontrols::PeakResult >& );
       
     signals:
       
@@ -80,7 +80,7 @@ namespace dataproc {
     private:
         size_t drawIdx1_;
         size_t drawIdx2_;
-        boost::shared_ptr<MSProcessingWndImpl> pImpl_;
+        std::shared_ptr<MSProcessingWndImpl> pImpl_;
         std::wstring idActiveFolium_;
     };
 

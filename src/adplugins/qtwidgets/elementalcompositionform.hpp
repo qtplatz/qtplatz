@@ -28,9 +28,7 @@
               
 #include <QWidget>
 #include <adplugin/lifecycle.hpp>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 class QStandardItemModel;
 
@@ -81,10 +79,10 @@ namespace qtwidgets {
     private:
         Ui::ElementalCompositionForm *ui;
 
-        boost::scoped_ptr< QStandardItemModel > pModel_;
-        boost::scoped_ptr< adportable::Configuration > pConfig_;
-        boost::scoped_ptr< ElementalCompositionDelegate > pDelegate_;
-        boost::scoped_ptr< adcontrols::ElementalCompositionMethod > pMethod_;
+        std::unique_ptr< QStandardItemModel > pModel_;
+        std::unique_ptr< adportable::Configuration > pConfig_;
+        std::unique_ptr< ElementalCompositionDelegate > pDelegate_;
+        std::unique_ptr< adcontrols::ElementalCompositionMethod > pMethod_;
     };
 }
 

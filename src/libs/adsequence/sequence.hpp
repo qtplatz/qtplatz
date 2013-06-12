@@ -31,8 +31,6 @@
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
 
-#include <boost/smart_ptr.hpp>
-
 #include <compiler/workaround.h>
 #include <boost/variant.hpp>
 #include <boost/serialization/map.hpp>

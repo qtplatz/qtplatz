@@ -27,9 +27,7 @@
 
 #include <QWidget>
 #include <adplugin/lifecycle.hpp>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 class QStandardItemModel;
 class QStandardItem;
@@ -87,10 +85,10 @@ namespace qtwidgets {
 
     private:
         Ui::MSCalibrationForm *ui;
-        boost::scoped_ptr< QStandardItemModel > pModel_;
-        boost::scoped_ptr< adportable::Configuration > pConfig_;
-        boost::scoped_ptr< adcontrols::MSCalibrateMethod > pMethod_;
-        boost::scoped_ptr< MSCalibrateDelegate > pDelegate_;
+        std::unique_ptr< QStandardItemModel > pModel_;
+        std::unique_ptr< adportable::Configuration > pConfig_;
+        std::unique_ptr< adcontrols::MSCalibrateMethod > pMethod_;
+        std::unique_ptr< MSCalibrateDelegate > pDelegate_;
     };
 
 }

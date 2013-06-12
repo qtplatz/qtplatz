@@ -26,10 +26,8 @@
 #define MAINWINDOW_HPP
 
 #include <utils/fancymainwindow.h>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
 #include <map>
+#include <memory>
 
 class QHBoxLayout;
 class QWidget;
@@ -87,7 +85,7 @@ namespace sequence {
         QAction * actionConnect_;
         QLineEdit * ctrlMethodName_;
         QLineEdit * procMethodName_;
-        boost::scoped_ptr< ControlMethod::Method > defaultControlMethod_;
+        std::unique_ptr< ControlMethod::Method > defaultControlMethod_;
 
         std::vector< adplugin::LifeCycle * > editors_;
 

@@ -22,8 +22,11 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_dll_interface.h>
 #include "smartspattern.hpp"
 #include "mol.hpp"
+
+#include <compiler/disable_unused_parameter.h>
 #include <openbabel/parsmart.h>
 
 using namespace adchem;

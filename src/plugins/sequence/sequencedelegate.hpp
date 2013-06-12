@@ -27,9 +27,9 @@
 
 #include <QItemDelegate>
 #if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
 #include <adsequence/schema.hpp>
 #endif
+#include <memory>
 
 namespace sequence {
 
@@ -48,7 +48,7 @@ namespace sequence {
         const adsequence::schema& schema() const;
 
 	private:
-		boost::scoped_ptr< adsequence::schema > schema_;
+		std::unique_ptr< adsequence::schema > schema_;
 
     signals:
         void valueChanged( const QModelIndex& ) const;

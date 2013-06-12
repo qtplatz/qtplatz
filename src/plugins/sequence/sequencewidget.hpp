@@ -26,10 +26,8 @@
 #define SEQUENCEWIDGET_HPP
 
 #include <QWidget>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
 #include <map>
+#include <memory>
 
 namespace adsequence { class sequence; class schema; }
 
@@ -67,9 +65,9 @@ namespace sequence {
 
     private:
         Ui::SequenceWidget *ui;
-        boost::scoped_ptr< QStandardItemModel > model_;
-        boost::scoped_ptr< SequenceDelegate > delegate_;
-        boost::scoped_ptr< adsequence::schema > schema_;
+        std::unique_ptr< QStandardItemModel > model_;
+        std::unique_ptr< SequenceDelegate > delegate_;
+        std::unique_ptr< adsequence::schema > schema_;
     private slots:
         void handleCurrentChanged( const QModelIndex&, const QModelIndex& );
         void showContextMenu( const QPoint& );

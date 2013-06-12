@@ -33,8 +33,8 @@
 #include "logger_i.hpp"
 #include "session_i.hpp"
 #include "objectdiscovery.hpp"
-#include <boost/smart_ptr.hpp>
 #include <mutex>
+#include <memory>
 
 namespace adbroker {
 
@@ -64,13 +64,11 @@ namespace adbroker {
 
         void shutdown();
 
-        //inline ACE_Recursive_Thread_Mutex& mutex() { return mutex_; }
-
         void internal_register_ior( const std::string& name, const std::string& ior );
     private:
-        typedef std::map< std::wstring, boost::shared_ptr< adbroker::session_i > > session_map_type;
+        typedef std::map< std::wstring, std::shared_ptr< adbroker::session_i > > session_map_type;
         session_map_type session_list_;
-        boost::scoped_ptr< broker::logger_i > logger_i_;
+        std::unique_ptr< broker::logger_i > logger_i_;
         std::map< std::string, std::string > iorMap_;
         std::map< std::string, std::string > lookup_;
         std::map< std::string, CORBA::Object_var > objVec_;

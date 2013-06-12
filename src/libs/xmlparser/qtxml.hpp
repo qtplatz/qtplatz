@@ -26,7 +26,6 @@
 #pragma once
 
 #include <string>
-#include <boost/smart_ptr.hpp>
 #include <QtXml/QtXml>
 #include <QtXmlPatterns/QXmlQuery>
 #include <QtXmlPatterns/QXmlResultItems>

@@ -25,7 +25,9 @@
 
 #pragma once
 
-#include <boost/smart_ptr.hpp>
+#include <string>
+#include <memory>
+
 class QwtPlotCurve;
 class QString;
 
@@ -58,7 +60,7 @@ namespace adwplot {
         inline operator QwtPlotCurve * () { return curve_.get(); }
     private:
         Dataplot* plot_;
-        boost::shared_ptr< QwtPlotCurve > curve_;
+        std::shared_ptr< QwtPlotCurve > curve_;
         SeriesData * data_;
     };
 

@@ -27,11 +27,9 @@
 #define DATAPROCESSOR_H
 
 #include <coreplugin/ifile.h>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
 #include <adcontrols/datasubscriber.hpp>
 #include "constants.hpp"
+#include <memory>
 
 namespace adcontrols {
     class datafile;
@@ -102,9 +100,9 @@ namespace dataproc {
         // void handle_changeSelection( portfolio::Folium& );
 
     private:
-        boost::scoped_ptr< IFileImpl > ifileimpl_;
-        boost::scoped_ptr< portfolio::Portfolio > portfolio_;
-		boost::scoped_ptr< datafileObserver_i > fileObserver_;
+        std::unique_ptr< IFileImpl > ifileimpl_;
+        std::unique_ptr< portfolio::Portfolio > portfolio_;
+		std::unique_ptr< datafileObserver_i > fileObserver_;
         std::wstring idActiveFolium_;
     };
 

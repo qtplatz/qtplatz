@@ -27,9 +27,7 @@
 #define ELEMENTALCOMPWND_H
 
 #include <QWidget>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 namespace portfolio {
     class Folium;
@@ -52,8 +50,8 @@ namespace dataproc {
         explicit ElementalCompWnd(QWidget *parent = 0);
         ~ElementalCompWnd();
         void init();
-        void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
-        void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
       
     signals:
       

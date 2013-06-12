@@ -165,7 +165,7 @@ datafileObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuff
 	adcontrols::MassSpectrum ms;
 	if ( accessor_.getSpectrum(0, pos, ms ) ) {
 		SignalObserver::DataReadBuffer_var res = new SignalObserver::DataReadBuffer;
-		res->uptime = tic_->getTimeArray()[ pos ] * 60 * 1000000; // us
+		res->uptime = static_cast< unsigned long long >( tic_->getTimeArray()[ pos ] * 60 * 1000000 + 0.5); // us
         res->pos = pos;
         res->events = 0;
 

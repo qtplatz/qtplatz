@@ -75,7 +75,7 @@ logger_i::~logger_i(void)
 void
 logger_i::log( const Broker::LogMessage& msg )
 {
-    scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     log_.push_back( msg );
 
@@ -101,7 +101,7 @@ logger_i::log( const Broker::LogMessage& msg )
 bool
 logger_i::findLog( CORBA::ULong logId, Broker::LogMessage& msg )
 {
-    scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( log_.empty() )
         return false;
@@ -142,7 +142,7 @@ logger_i::to_string( const Broker::LogMessage& msg )
 bool
 logger_i::register_handler( LogHandler_ptr handler )
 {
-    scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     handler_data data;
     data.handler_ = LogHandler::_duplicate( handler );
@@ -165,7 +165,7 @@ logger_i::unregister_handler( LogHandler_ptr handler )
 bool
 logger_i::internal_disconnect( LogHandler_ptr handler )
 {
-    scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     vector_type::iterator it = std::remove( handler_set_.begin(), handler_set_.end(), handler );
     if ( it != handler_set_.end() ) {

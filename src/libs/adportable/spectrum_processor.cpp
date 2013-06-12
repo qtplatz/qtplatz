@@ -24,19 +24,17 @@
 
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
-
 #include "spectrum_processor.hpp"
 #include "array_wrapper.hpp"
 #include <adportable/differential.hpp>
-#include <boost/smart_ptr.hpp>
 #include <boost/variant.hpp>
-
 #include <compiler/diagnostic_pop.h>
 
 #include <cmath>
 #include <cstring> // for memset()
 #include <stack>
 #include <stdexcept>
+#include <algorithm>
 
 using namespace adportable;
 

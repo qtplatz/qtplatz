@@ -29,11 +29,8 @@
 
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
 #include <compiler/diagnostic_pop.h>
-
+#include <memory>
 #include <QtCore>
 
 class QwtPlotMarker;
@@ -54,7 +51,7 @@ namespace adwplot {
 
     private:
         Dataplot * plot_;
-        boost::shared_ptr< QwtPlotMarker > marker_;
+        std::shared_ptr< QwtPlotMarker > marker_;
     };
 
 }

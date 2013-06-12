@@ -101,6 +101,8 @@ ChromatogramWnd::ChromatogramWnd(const std::wstring& apppath, QWidget *parent) :
 void
 ChromatogramWnd::init( const std::wstring& apppath )
 {
+	(void)apppath;
+
     pImpl_.reset( new ChromatogramWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {

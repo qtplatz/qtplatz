@@ -27,15 +27,8 @@
 
 #include <qwt_plot.h>
 #include <adwplot/zoomer.hpp>
-
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
-#include <compiler/diagnostic_pop.h>
-
 #include <boost/noncopyable.hpp>
+#include <memory>
 
 class QwtPlotPanner;
 
@@ -61,7 +54,7 @@ namespace adwplot {
     
   private:
     typedef std::vector<Dataplot *> plotlink;
-    boost::shared_ptr< plotlink > plotlink_;
+    std::shared_ptr< plotlink > plotlink_;
     bool linkedzoom_inprocess_;
     void zoom( const QRectF&, const Dataplot& );
     void panne( int dx, int dy, const Dataplot& );
@@ -76,10 +69,10 @@ namespace adwplot {
     virtual void onPanned( int dx, int dy );
     
   protected:
-    boost::scoped_ptr< Zoomer > zoomer1_;  // left bottom
-    boost::scoped_ptr< Zoomer > zoomer2_;  // right top
-    boost::scoped_ptr< Picker > picker_;
-    boost::scoped_ptr< Panner > panner_;
+    std::unique_ptr< Zoomer > zoomer1_;  // left bottom
+    std::unique_ptr< Zoomer > zoomer2_;  // right top
+    std::unique_ptr< Picker > picker_;
+    std::unique_ptr< Panner > panner_;
   };
   
 }

@@ -26,7 +26,6 @@
 #define PEAKRESULT_HPP
 
 #include "adcontrols_global.h"
-#include <boost/smart_ptr.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
@@ -69,7 +68,7 @@ namespace adcontrols {
 		static bool restore( std::istream&, PeakResult& );
 	};
 
-	typedef boost::shared_ptr<PeakResult> PeakResultPtr;
+	typedef std::shared_ptr<PeakResult> PeakResultPtr;
 }
 
 #endif // PEAKRESULT_HPP

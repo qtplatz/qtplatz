@@ -25,7 +25,6 @@
 #pragma once
 
 #include <vector>
-#include <boost/smart_ptr.hpp>
 #include <chromatogr/stack.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/baselines.hpp>

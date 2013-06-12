@@ -23,6 +23,7 @@
 **
 **************************************************************************/
 
+#include <compiler/disable_dll_interface.h>
 #include "msreferencedefns.hpp"
 
 using namespace adcontrols;

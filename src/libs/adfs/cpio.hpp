@@ -26,12 +26,7 @@
 #pragma once
 
 #include <streambuf>
-
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-#include <boost/smart_ptr.hpp>
-#include <compiler/diagnostic_pop.h>
-
+#include <memory>
 #include <adfs/folium.hpp>
 
 namespace adfs {
@@ -41,7 +36,7 @@ namespace adfs {
 
     namespace detail { 
         class cpio : public std::basic_streambuf<char_t> {
-            boost::scoped_array< char_t > p_;
+			std::unique_ptr< char_t [] > p_;
             size_t size_;
             size_t count_;
             bool resize( size_t );

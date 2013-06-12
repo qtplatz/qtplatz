@@ -1,15 +1,15 @@
 /**************************************************************************
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
 ** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -24,28 +24,7 @@
 
 #pragma once
 
-#include "adchem_global.h"
-#include <memory>
-
-namespace OpenBabel { class OBSmartsPattern; }
-
-namespace adchem {
-
-    class Mol;
-
-	class ADCHEMSHARED_EXPORT SmartsPattern {
-		std::shared_ptr< OpenBabel::OBSmartsPattern > obSmartsPattern_;
-	public:
-        ~SmartsPattern();
-        SmartsPattern();
-
-        bool init( const char * pattern );
-        bool match( const Mol&, bool single = false );
-
-        const OpenBabel::OBSmartsPattern * get() const;
-        void assign( const OpenBabel::OBSmartsPattern& );
-	};
-
-}
-
-
+#define QTPLATZ_MAJOR_VERSION 0x02
+#define QTPLATZ_MINOR_VERSION 0x00
+#define QTPLATZ_MICRO_VERSION 0x00
+#define QTPLATZ_VERSION ((QTPLATZ_MAJOR_VERSION << 16)|(QTPLATZ_MINOR_VERSION << 8)|QTPLATZ_MICRO_VERSION)

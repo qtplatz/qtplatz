@@ -31,9 +31,7 @@
 #include <QStandardItemModel>
 #include <adplugin/lifecycle.hpp>
 #include <adportable/configuration.hpp>
-#if ! defined Q_MOC_RUN
-# include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 namespace adcontrols {
     class CentroidMethod;
@@ -71,8 +69,8 @@ namespace qtwidgets {
     private:
         Ui::CentroidForm *ui;
 
-        boost::scoped_ptr<adcontrols::CentroidMethod> pMethod_;
-		// boost::scoped_ptr< CentroidDelegate > pDelegate_;
+        std::unique_ptr<adcontrols::CentroidMethod> pMethod_;
+		// std::unique_ptr< CentroidDelegate > pDelegate_;
         adportable::Configuration config_;
     private:
 		// void update_model();

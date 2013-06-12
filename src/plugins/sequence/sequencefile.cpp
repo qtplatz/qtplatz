@@ -118,7 +118,7 @@ SequenceFile::load( const QString& filename )
 
         std::vector< adfs::folium > folio = folder.folio();
         for ( std::vector< adfs::folium >::iterator it = folio.begin(); it != folio.end(); ++it ) {
-            boost::shared_ptr< adcontrols::ProcessMethod > ptr( new adcontrols::ProcessMethod );
+            std::shared_ptr< adcontrols::ProcessMethod > ptr( new adcontrols::ProcessMethod );
             adfs::cpio< adcontrols::ProcessMethod >::copyout( *ptr, *it );
             procmethods_[ it->name() ] = ptr;
         }
@@ -131,7 +131,7 @@ SequenceFile::load( const QString& filename )
         for ( std::vector< adfs::folium >::iterator it = folio.begin(); it != folio.end(); ++it ) {
             std::vector< char> ibuf( it->size() );
             it->read( ibuf.size(), &ibuf[0] );
-            boost::shared_ptr< ControlMethod::Method > ptr( new ControlMethod::Method );
+            std::shared_ptr< ControlMethod::Method > ptr( new ControlMethod::Method );
             serializer::restore( *ptr, ibuf );
             // dubug
             ptr->subject = CORBA::wstring_dup( it->name().c_str() );
@@ -316,13 +316,13 @@ void
 SequenceFile::setProcessMethod( const std::wstring& name, const adcontrols::ProcessMethod& m )
 {
 	using adcontrols::ProcessMethod;
-	procmethods_[ name ] = boost::shared_ptr< ProcessMethod >( new ProcessMethod( m ) );
+	procmethods_[ name ] = std::shared_ptr< ProcessMethod >( new ProcessMethod( m ) );
 }
 
 void
 SequenceFile::setControlMethod( const std::wstring& name, const ControlMethod::Method& m )
 {
 	using ControlMethod::Method;
-    ctrlmethods_[ name ] = boost::shared_ptr< Method >( new Method( m ) );
+    ctrlmethods_[ name ] = std::shared_ptr< Method >( new Method( m ) );
 }
 

@@ -25,7 +25,6 @@
 
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
-#include <boost/smart_ptr.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <adcontrols/datafile.hpp>
 
@@ -54,7 +53,7 @@ SessionManager * SessionManager::instance()
 }
 
 void
-SessionManager::addDataprocessor( boost::shared_ptr<Dataprocessor>& proc )
+SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc )
 {
     sessions_.push_back( Session( proc ) );
 	activeDataprocessor_ = proc.get();
@@ -64,9 +63,6 @@ SessionManager::addDataprocessor( boost::shared_ptr<Dataprocessor>& proc )
 void
 SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
-#if defined DEBUG
-    std::cout << "$$$$$$$$$ updateDataprocessor $$$$$$$$$$$" << std::endl;
-#endif
     activeDataprocessor_ = dataprocessor;
 	emit signalSessionUpdated( dataprocessor, folium );
 	// emit signalSelectionChanged( dataprocessor, folium );
@@ -124,7 +120,7 @@ Session::Session( const Session& t ) : processor_( t.processor_ )
 {
 }
 
-Session::Session( boost::shared_ptr<Dataprocessor>& p ) : processor_( p )
+Session::Session( std::shared_ptr<Dataprocessor>& p ) : processor_( p )
 {
 }
 

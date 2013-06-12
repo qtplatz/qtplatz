@@ -28,9 +28,7 @@
 #include <QWidget>
 #include <portfolio/folium.hpp>
 #include <boost/tuple/tuple.hpp>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 class QSplitter;
 
@@ -69,16 +67,16 @@ namespace dataproc {
         void init( const adportable::Configuration&, const std::wstring& );
         void applyAssigned( const adcontrols::MSAssignedMasses&, const portfolio::Folium& );
 
-        typedef std::pair< boost::shared_ptr< adcontrols::MSCalibrateResult >, boost::shared_ptr< adcontrols::MassSpectrum > > result_type;
+        typedef std::pair< std::shared_ptr< adcontrols::MSCalibrateResult >, std::shared_ptr< adcontrols::MassSpectrum > > result_type;
         int populate( std::vector< result_type >& );
         void doCalibration( adcontrols::MassSpectrum& centroid, adcontrols::MSCalibrateResult&, const adcontrols::MSAssignedMasses& assigned );
 
-        std::vector< boost::shared_ptr< adwplot::SpectrumWidget > > wndSpectra_;
+        std::vector< std::shared_ptr< adwplot::SpectrumWidget > > wndSpectra_;
         std::vector< portfolio::Folium > folio_;
         portfolio::Folium folium_;
         QWidget * wndCalibSummary_;
         QSplitter * wndSplitter_;
-        std::vector< boost::shared_ptr< adcontrols::MassSpectrum > > spectra_;
+        std::vector< std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
     };
 
 }

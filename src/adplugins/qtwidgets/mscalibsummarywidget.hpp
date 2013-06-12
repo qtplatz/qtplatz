@@ -27,9 +27,7 @@
 
 #include <QTableView>
 #include <adplugin/lifecycle.hpp>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 namespace adcontrols {
     class MassSpectrum;
@@ -82,10 +80,10 @@ namespace qtwidgets {
         void handleValueChanged( const QModelIndex& );
 
     private:
-        boost::scoped_ptr< QStandardItemModel > pModel_;
-        boost::scoped_ptr< MSCalibSummaryDelegate > pDelegate_;
-        boost::scoped_ptr< adcontrols::MSReferences > pReferences_;
-        boost::scoped_ptr< adcontrols::MassSpectrum > pCalibrantSpectrum_;
+        std::unique_ptr< QStandardItemModel > pModel_;
+        std::unique_ptr< MSCalibSummaryDelegate > pDelegate_;
+        std::unique_ptr< adcontrols::MSReferences > pReferences_;
+        std::unique_ptr< adcontrols::MassSpectrum > pCalibrantSpectrum_;
         bool inProgress_;
         std::vector< size_t > indecies_;
         void getAssignedMasses( adcontrols::MSAssignedMasses& ) const;

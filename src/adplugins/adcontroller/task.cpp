@@ -111,7 +111,7 @@ iTask::reset_clock()
 {
     using adcontroller::iTask;
 
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
     std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::reset_clock, _1 ) );
 }
 
@@ -179,7 +179,7 @@ iTask::initialize_configuration()
 
         ++objid;
         // initialize instrument proxy
-        boost::shared_ptr<iProxy> pProxy( new iProxy( *this ) );
+        std::shared_ptr<iProxy> pProxy( new iProxy( *this ) );
         if ( pProxy ) {
 			adportable::timer timer;
             pProxy->objId( objid );
@@ -188,7 +188,7 @@ iTask::initialize_configuration()
                         , ::EventLog::pri_WARNING ) % item.name();
 				continue; //return false;
             }
-            acewrapper::scoped_mutex_t<> lock( mutex_ );
+            std::lock_guard< std::mutex > lock( mutex_ );
             iproxies_.push_back( pProxy );
             Logging(L"iTask::initialize_configuration -- instrument \"%1%\" successfully initialized as objId %2% took %3% us"
                     , ::EventLog::pri_INFO )  % item.name() % objid % timer.elapsed();
@@ -197,7 +197,7 @@ iTask::initialize_configuration()
         // initialize observer proxy
         Instrument::Session_var iSession = pProxy->getSession();
         if ( ! CORBA::is_nil( iSession.in() ) ) {
-            boost::shared_ptr<oProxy> poProxy( new oProxy( *this ) );
+            std::shared_ptr<oProxy> poProxy( new oProxy( *this ) );
             if ( poProxy ) {
 				adportable::timer timer;
 
@@ -209,7 +209,7 @@ iTask::initialize_configuration()
 						, ::EventLog::pri_INFO ) % item.name() % n % timer.elapsed();
                     objid += n;
                 }
-                acewrapper::scoped_mutex_t<> lock( mutex_ );
+                std::lock_guard< std::mutex > lock( mutex_ );
                 oproxies_.push_back( poProxy );
 
                 // add source into the Cache (1st layer siblings)
@@ -237,7 +237,7 @@ iTask::initialize()
 
     Logging(L"iTask::initialize...", ::EventLog::pri_INFO );
     if ( initialize_configuration() ) {
-        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
         std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::initialize, _1 ) );
         std::for_each( oproxies_.begin(), oproxies_.end(), boost::bind( &oProxy::initialize, _1 ) );
         return true;
@@ -253,7 +253,7 @@ iTask::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const
     data.receiver_ = Receiver::_duplicate( receiver );
     data.token_ = token;
     
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
     
     if ( std::find(receiver_set_.begin(), receiver_set_.end(), data ) != receiver_set_.end() )
         return false;
@@ -273,7 +273,7 @@ iTask::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
     data.session_ = ControlServer::Session::_duplicate( session );
     data.receiver_ = Receiver::_duplicate( receiver );
     
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     do { // disconnecting proxies
         using adcontroller::iProxy;
@@ -469,7 +469,7 @@ void
 iTask::handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value )
 {
     ACE_UNUSED_ARG( name );
-    acewrapper::scoped_mutex_t<> lock( mutex_ );    
+    std::lock_guard< std::mutex > lock( mutex_ );    
 
     // TODO: apply barrier pattern and wait until all instrument has same state
 /*
@@ -504,7 +504,7 @@ iTask::handle_dispatch( const EventLog::LogMessage& msg )
 {
 	// adportable::debug() << "iTask::handle_dispatch( EventLog: "  << msg.format.in() << " )";
 	// Logging( L"adcontroller::iTask::handle_dispatch EventLog: " + std::wstring( msg.format.in() ), ::EventLog::pri_INFO );
-    acewrapper::scoped_mutex_t<> lock( mutex_ );    
+    std::lock_guard< std::mutex > lock( mutex_ );    
 
     BOOST_FOREACH( internal::receiver_data& d, receiver_set_ ) {
         try {
@@ -539,15 +539,15 @@ iTask::handle_dispatch_command( ACE_Message_Block * mblk )
             }
         }
     } else if ( cmd == constants::SESSION_COMMAND_INITRUN ) {
-        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
         SampleBroker::SampleSequenceLine s;
         ControlMethod::Method m;
         std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::prepare_for_run, _1, s, m ) );
     } else if ( cmd == constants::SESSION_COMMAND_STARTRUN ) {
-        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
         std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::startRun, _1 ) );
     } else if ( cmd == constants::SESSION_COMMAND_STOPRUN )  {
-        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
         std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::stopRun, _1 ) );
     }
 }
@@ -577,7 +577,7 @@ iTask::getObserver()
 {
     PortableServer::POA_var poa = adcontroller::manager_i::instance()->poa();
     if ( ! pMasterObserver_ ) {
-        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
         if ( ! pMasterObserver_ )
             pMasterObserver_.reset( new observer_i() );
     }

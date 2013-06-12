@@ -22,12 +22,12 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// MS-Cheminformatics LLC Project
-//////////////////////////////////////////////
 
 #pragma once
+
+#include <qtplatz_version.h>
+
+#if QTPLATZ_VERSION < 0x020000
 
 class ACE_Recursive_Thread_Mutex;
 
@@ -60,3 +60,4 @@ namespace acewrapper {
 }
 
 
+#endif

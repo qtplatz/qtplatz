@@ -27,13 +27,13 @@
 
 #include <QVariant>
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace qtwidgets {
 
     class TreeItem;
 
-    typedef boost::shared_ptr<TreeItem> TreeItemPtr;
+    typedef std::shared_ptr<TreeItem> TreeItemPtr;
     
     class TreeItem {
     public:
@@ -41,7 +41,7 @@ namespace qtwidgets {
         TreeItem( const TreeItem& );
         ~TreeItem();
         
-        typedef std::vector< boost::shared_ptr<TreeItem> > vector_type;
+        typedef std::vector< std::shared_ptr<TreeItem> > vector_type;
         
         inline vector_type::iterator begin() { return childItems_.begin(); }
         inline vector_type::iterator end() { return childItems_.end(); }

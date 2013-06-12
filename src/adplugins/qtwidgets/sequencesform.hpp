@@ -29,9 +29,7 @@
 #include <QWidget>
 #include <adplugin/lifecycle.hpp>
 #include <adportable/configuration.hpp>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 class QStandardItemModel;
 
@@ -65,7 +63,7 @@ namespace qtwidgets {
     private:
         Ui::SequencesForm *ui;
         // qtwidgets::SequencesModel * pModel_;
-        boost::scoped_ptr< QStandardItemModel > pModel_;
+        std::unique_ptr< QStandardItemModel > pModel_;
         adportable::Configuration config_;
         
     };

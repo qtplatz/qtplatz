@@ -29,6 +29,7 @@
 
 #include <boost/any.hpp>
 #include <string>
+#include <memory>
 
 namespace boost {
     namespace serialization {
@@ -141,7 +142,7 @@ namespace adcontrols {
     template<> void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );
     template<> void MassSpectrum::serialize( portable_binary_iarchive&, const unsigned int );
     
-    typedef boost::shared_ptr<MassSpectrum> MassSpectrumPtr;   
+    typedef std::shared_ptr<MassSpectrum> MassSpectrumPtr;   
    
 }
 

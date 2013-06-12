@@ -27,10 +27,6 @@
 
 #include "adcontrols_global.h"
 #include "description.hpp"
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-#include <boost/smart_ptr.hpp>
-#include <compiler/diagnostic_pop.h>
 
 namespace boost {
   namespace serialization {

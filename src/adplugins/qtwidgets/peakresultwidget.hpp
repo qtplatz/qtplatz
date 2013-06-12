@@ -25,10 +25,8 @@
 #pragma once
 
 #include <QTableView>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
 #include <adplugin/lifecycle.hpp>
+#include <memory>
 
 namespace adcontrols {
     class Peaks;
@@ -67,7 +65,7 @@ namespace qtwidgets {
         void add( const adcontrols::Peak& );
 	
     private:
-        boost::scoped_ptr< QStandardItemModel > pModel_;
+        std::unique_ptr< QStandardItemModel > pModel_;
     };
 }
 

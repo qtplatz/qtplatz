@@ -24,7 +24,7 @@
 **************************************************************************/
 # include "cache.hpp"
 # include <adinterface/signalobserverS.h>
-# include <ace/Recursive_Thread_Mutex.h>
+#include <mutex>
 
 namespace adcontroller {
     class CacheImpl {
@@ -49,7 +49,7 @@ Cache::Cache()
 bool
 Cache::write( long pos, SignalObserver::DataReadBuffer_var& rdbuf )
 {
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( fifo_.size() > 1024 )
         fifo_.pop_front();
@@ -60,7 +60,7 @@ Cache::write( long pos, SignalObserver::DataReadBuffer_var& rdbuf )
 bool
 Cache::read( long pos, SignalObserver::DataReadBuffer_out rdbuf )
 {
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
     
     if ( fifo_.empty() )
         return false;
@@ -99,7 +99,7 @@ namespace adcontroller {
 void
 Cache::uptime_range( unsigned long long& oldest, unsigned long long& newest )
 {
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( fifo_.empty() ) {
         oldest = newest = 0;
@@ -117,7 +117,7 @@ Cache::posFromTime( unsigned long long usec )
 {
     using adcontroller::cache::time_compare;
 
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     std::deque< CacheItem >::iterator it = std::lower_bound( fifo_.begin(), fifo_.end(), usec, time_compare() );    
     if ( it != fifo_.end() )

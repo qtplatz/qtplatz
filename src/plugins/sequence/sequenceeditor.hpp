@@ -27,9 +27,6 @@
 #define SEQUENCEEDITOR_H
 
 #include <coreplugin/editormanager/ieditor.h>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
 #include <map>
 
 namespace adsequence { class sequence; }

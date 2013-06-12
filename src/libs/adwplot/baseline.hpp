@@ -25,9 +25,7 @@
 
 #pragma once
 
-#if ! defined Q_MOC_RUN
-#include <boost/shared_ptr.hpp>
-#endif
+#include <memory>
 
 namespace adcontrols { class Baseline; }
 
@@ -46,7 +44,7 @@ namespace adwplot {
         inline operator QwtPlotCurve * () { return curve_.get(); }
     private:
         Dataplot * plot_;
-        boost::shared_ptr< QwtPlotCurve > curve_;
+        std::shared_ptr< QwtPlotCurve > curve_;
     };
 
 

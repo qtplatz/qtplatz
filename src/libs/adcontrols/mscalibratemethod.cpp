@@ -22,7 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-
 #include "mscalibratemethod.hpp"
 #include "msreferencedefns.hpp"
 #include "msreferences.hpp"

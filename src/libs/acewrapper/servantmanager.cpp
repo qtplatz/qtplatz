@@ -57,7 +57,7 @@ ServantManager::ServantManager( CORBA::ORB_ptr orb
 int
 ServantManager::init( int ac, ACE_TCHAR * av[] )
 {
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( init_count_++ == 0 )
         return orbmgr_->init( ac, av );
@@ -68,7 +68,7 @@ ServantManager::init( int ac, ACE_TCHAR * av[] )
 int
 ServantManager::fini()
 {
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( init_count_ && --init_count_ == 0 )
         return orbmgr_->fini();
@@ -149,7 +149,7 @@ bool
 ServantManager::spawn()
 {
     if ( ! thread_running_ ) {
-	acewrapper::scoped_mutex_t<> lock( mutex_ );
+	std::lock_guard< std::mutex > lock( mutex_ );
 	if ( ! thread_running_ ) {
 	    thread_running_ = true;
 	    ACE_Thread_Manager::instance()->spawn( ACE_THR_FUNC(ServantManager::thread_entry), this );

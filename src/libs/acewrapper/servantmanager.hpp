@@ -29,6 +29,7 @@
 #include <tao/PortableServer/PortableServer.h>
 #include <boost/noncopyable.hpp>
 #include <string>
+#include <mutex>
 
 class TAO_ORB_Manager;
 
@@ -61,7 +62,7 @@ namespace acewrapper {
 	
         size_t init_count_;
         bool thread_running_;
-        ACE_Recursive_Thread_Mutex mutex_;
+        std::mutex mutex_;
         TAO_ORB_Manager * orbmgr_;
         ACE_thread_t threadid_;
         friend class ACE_Singleton< ServantManager, ACE_Recursive_Thread_Mutex >;

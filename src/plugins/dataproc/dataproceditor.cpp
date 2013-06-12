@@ -69,7 +69,7 @@ DataprocEditor::createNew( const QString &contents )
 bool
 DataprocEditor::portfolio_create( const QString& token )
 {
-    boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
+    std::shared_ptr<Dataprocessor> processor( new Dataprocessor );
     if ( processor->create( token ) ) {
         SessionManager::instance()->addDataprocessor( processor );
         file_ = processor->ifile();
@@ -81,7 +81,7 @@ DataprocEditor::portfolio_create( const QString& token )
 bool
 DataprocEditor::open( const QString &filename )
 {
-    boost::shared_ptr<Dataprocessor> processor( new Dataprocessor );
+    std::shared_ptr<Dataprocessor> processor( new Dataprocessor );
     if ( processor->open( filename ) ) {
         SessionManager::instance()->addDataprocessor( processor );
 

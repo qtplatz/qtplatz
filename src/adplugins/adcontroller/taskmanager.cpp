@@ -95,7 +95,7 @@ bool
 iTaskManager::manager_initialize()
 {
     if ( timerHandler_ == 0 ) {
-	acewrapper::scoped_mutex_t<> lock( mutex_ );
+	std::lock_guard< std::mutex > lock( mutex_ );
 	if ( timerHandler_ == 0 ) {
 	    // initialize timer
 	    timerHandler_ = new acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> >();
@@ -113,7 +113,7 @@ void
 iTaskManager::manager_terminate()
 {
     if ( timerHandler_ ) {
-        acewrapper::scoped_mutex_t<> lock( mutex_ );
+        std::lock_guard< std::mutex > lock( mutex_ );
         if ( timerHandler_ ) {
             timerHandler_->cancel( reactor(), timerHandler_ );
             timerHandler_->wait();

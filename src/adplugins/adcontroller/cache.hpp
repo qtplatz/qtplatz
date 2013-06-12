@@ -26,7 +26,7 @@
 #pragma once
 
 #include <adinterface/signalobserverS.h>
-#include <ace/Recursive_Thread_Mutex.h>
+#include <mutex>
 
 #include <acewrapper/mutex.hpp>
 #include <deque>
@@ -52,7 +52,7 @@ namespace adcontroller {
         };
     private:
         std::deque< CacheItem > fifo_;
-        ACE_Recursive_Thread_Mutex mutex_;
+        std::mutex mutex_;
     };
 
 }

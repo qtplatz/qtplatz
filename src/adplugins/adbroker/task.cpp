@@ -127,7 +127,7 @@ Task::connect( Broker::Session_ptr session, BrokerEventSink_ptr receiver, const 
     data.session_ = Broker::Session::_duplicate( session );
     data.receiver_ = BrokerEventSink::_duplicate( receiver );
 
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( std::find(session_set_.begin(), session_set_.end(), data ) != session_set_.end() )
         return false;
@@ -144,7 +144,7 @@ Task::disconnect( Broker::Session_ptr session, BrokerEventSink_ptr receiver )
     data.session_ = Broker::Session::_duplicate( session );
     data.receiver_ = BrokerEventSink::_duplicate( receiver );
 
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     vector_type::iterator it = std::remove( session_set_.begin(), session_set_.end(), data );
 
@@ -298,10 +298,10 @@ Task::doit( ACE_Message_Block * mblk )
 portfolio::Portfolio&
 Task::getPortfolio( const std::wstring& token )
 {
-    std::map< std::wstring, boost::shared_ptr<portfolio::Portfolio> >::iterator it = portfolioVec_.find( token );
+    std::map< std::wstring, std::shared_ptr<portfolio::Portfolio> >::iterator it = portfolioVec_.find( token );
     if ( it == portfolioVec_.end() ) {
 
-        portfolioVec_[ token ] = boost::shared_ptr<portfolio::Portfolio>( new portfolio::Portfolio );
+        portfolioVec_[ token ] = std::shared_ptr<portfolio::Portfolio>( new portfolio::Portfolio );
         portfolioVec_[ token ]->create_with_fullpath( token );
 
         BOOST_FOREACH( session_data& d, session_set_ ) {

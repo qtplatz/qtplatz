@@ -27,7 +27,7 @@
 
 #include <boost/any.hpp>
 #include <boost/variant.hpp>
-#include <boost/smart_ptr.hpp>
+#include <memory>
 
 namespace adcontrols {
     class MassSpectrum;
@@ -40,12 +40,12 @@ namespace adcontrols {
 
 namespace adutils {
 
-    typedef boost::shared_ptr< adcontrols::MassSpectrum > MassSpectrumPtr;
-    typedef boost::shared_ptr< adcontrols::Chromatogram > ChromatogramPtr;
-    typedef boost::shared_ptr< adcontrols::ProcessMethod > ProcessMethodPtr;
-    typedef boost::shared_ptr< adcontrols::ElementalCompositionCollection > ElementalCompositionCollectionPtr;
-    typedef boost::shared_ptr< adcontrols::MSCalibrateResult > MSCalibrateResultPtr;
-    typedef boost::shared_ptr< adcontrols::PeakResult > PeakResultPtr;
+    typedef std::shared_ptr< adcontrols::MassSpectrum > MassSpectrumPtr;
+    typedef std::shared_ptr< adcontrols::Chromatogram > ChromatogramPtr;
+    typedef std::shared_ptr< adcontrols::ProcessMethod > ProcessMethodPtr;
+    typedef std::shared_ptr< adcontrols::ElementalCompositionCollection > ElementalCompositionCollectionPtr;
+    typedef std::shared_ptr< adcontrols::MSCalibrateResult > MSCalibrateResultPtr;
+    typedef std::shared_ptr< adcontrols::PeakResult > PeakResultPtr;
 
     class ProcessedData {
     public:

@@ -26,17 +26,11 @@
 #include "datafile.hpp"
 #include "datafile_factory.hpp"
 #include <adportable/string.hpp>
-#include <map>
 #include <adportable/debug.hpp>
-
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-#include <boost/smart_ptr.hpp>
-#include <mutex>
-
-#include <compiler/diagnostic_pop.h>
-
 #include "adcontrols.hpp"
+#include <mutex>
+#include <memory>
+#include <map>
 
 using namespace adcontrols;
 
@@ -56,7 +50,7 @@ namespace adcontrols {
         static datafileBrokerImpl * instance();
 
     private:
-        std::map< std::wstring, boost::shared_ptr< datafile_factory > > factories_;
+        std::map< std::wstring, std::shared_ptr< datafile_factory > > factories_;
     };
     
 }
@@ -125,7 +119,7 @@ datafileBrokerImpl::visit( adcontrols::datafile& )
 datafile_factory *
 datafileBrokerImpl::find( const std::wstring& name )
 {
-    std::map< std::wstring, boost::shared_ptr<datafile_factory> >::iterator it = factories_.find( name );
+    std::map< std::wstring, std::shared_ptr<datafile_factory> >::iterator it = factories_.find( name );
     if ( it != factories_.end() )
         return it->second.get();
     return 0;
@@ -134,7 +128,7 @@ datafileBrokerImpl::find( const std::wstring& name )
 datafile *
 datafileBrokerImpl::open( const std::wstring& name, bool readonly )
 {
-    std::map< std::wstring, boost::shared_ptr<datafile_factory> >::iterator it;
+    std::map< std::wstring, std::shared_ptr<datafile_factory> >::iterator it;
     for ( it = factories_.begin(); it != factories_.end(); ++it ) {
         if ( it->second && it->second->access( name ) ) {
             return it->second->open( name, readonly );
@@ -146,7 +140,7 @@ datafileBrokerImpl::open( const std::wstring& name, bool readonly )
 datafile *
 datafileBrokerImpl::create( const std::wstring& name )
 {
-    std::map< std::wstring, boost::shared_ptr<datafile_factory> >::iterator it;
+    std::map< std::wstring, std::shared_ptr<datafile_factory> >::iterator it;
     for ( it = factories_.begin(); it != factories_.end(); ++it ) {
         if ( it->second && it->second->access( name, adcontrols::write_access ) )
             return it->second->open( name, false );

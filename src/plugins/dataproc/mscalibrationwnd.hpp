@@ -27,9 +27,7 @@
 #define MSCALIBRATIONWND_H
 
 #include <QWidget>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 namespace adcontrols {
     class MassSpectrum;
@@ -66,7 +64,7 @@ namespace dataproc {
         void handleValueChanged();
 
     private:
-        boost::shared_ptr<MSCalibrationWndImpl> pImpl_;
+        std::shared_ptr<MSCalibrationWndImpl> pImpl_;
     };
 
 }

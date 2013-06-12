@@ -35,7 +35,6 @@
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 
-#include <boost/smart_ptr.hpp>
 #include "sqlite.hpp"
 
 using namespace adfs;
@@ -151,7 +150,7 @@ attributes::fetch()
     
     if ( rowid() && blob.open( db(), "main", "directory", "attr", rowid(), adfs::readonly ) ) {
         if ( blob.size() ) {
-            boost::scoped_array< boost::int8_t > p( new boost::int8_t [ blob.size() ] );
+			std::unique_ptr< boost::int8_t [] > p( new boost::int8_t [ blob.size() ] );
             if ( blob.read( p.get(), blob.size() ) ) {
                 adfs::detail::cpio obuf( blob.size(), reinterpret_cast<adfs::char_t *>( p.get() ) );
                 if ( adfs::cpio<attributes>::copyout( *this, obuf ) )

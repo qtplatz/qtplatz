@@ -47,7 +47,6 @@
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>
 #include <boost/foreach.hpp>
-#include <boost/smart_ptr.hpp>
 #include <boost/variant.hpp>
 #include <queue>
 

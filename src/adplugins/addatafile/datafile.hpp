@@ -28,8 +28,8 @@
 
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
-#include <boost/smart_ptr.hpp>
 #include <adfs/adfs.hpp>
+#include <memory>
 
 namespace adcontrols {
     class Chromatogram;
@@ -75,7 +75,7 @@ namespace addatafile {
         bool mounted_;
         std::wstring filename_;
         adfs::portfolio dbf_;
-        boost::scoped_ptr< adcontrols::ProcessedDataset > processedDataset_;
+		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
         //boost::any data_;
     };
 

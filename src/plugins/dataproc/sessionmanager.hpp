@@ -28,9 +28,7 @@
 
 #include <QObject>
 #include <vector>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 namespace portfolio {
     class Folium;
@@ -46,10 +44,10 @@ namespace dataproc {
         ~Session();
         Session();
         Session( const Session& );
-        Session( boost::shared_ptr<Dataprocessor>& );
+        Session( std::shared_ptr<Dataprocessor>& );
         Dataprocessor& getDataprocessor();
     private:
-        boost::shared_ptr< Dataprocessor > processor_;  // holds a file
+        std::shared_ptr< Dataprocessor > processor_;  // holds a file
     };
 
     class SessionManager : public QObject {
@@ -62,7 +60,7 @@ namespace dataproc {
         static SessionManager * instance();
 
         Dataprocessor * getActiveDataprocessor();
-        void addDataprocessor( boost::shared_ptr<Dataprocessor>& );
+        void addDataprocessor( std::shared_ptr<Dataprocessor>& );
         void updateDataprocessor( Dataprocessor *, portfolio::Folium& );
 
         typedef std::vector< Session > vector_type;

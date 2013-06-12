@@ -26,12 +26,12 @@
 #define ISEQUENCEIMPL_HPP
 
 #include <adextension/isequence.hpp>
-#include <boost/smart_ptr.hpp>
 #include <vector>
+#include <memory>
 
 namespace dataproc {
 
-    typedef boost::shared_ptr< adextension::iEditorFactory> iEditorFactoryPtr;
+    typedef std::shared_ptr< adextension::iEditorFactory> iEditorFactoryPtr;
 
     class iSequenceImpl : public adextension::iSequence {
     public:

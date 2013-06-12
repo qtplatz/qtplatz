@@ -27,7 +27,7 @@
 #define CHROMATOGRAMWND_H
 
 #include <QWidget>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace portfolio {
     class Folium;
@@ -53,10 +53,10 @@ namespace dataproc {
         ~ChromatogramWnd();
         
         void init( const std::wstring& );
-        void draw1( boost::shared_ptr< adcontrols::MassSpectrum >& );
-        void draw2( boost::shared_ptr< adcontrols::MassSpectrum >& );
-        void draw( boost::shared_ptr< adcontrols::Chromatogram >& );
-        void draw( boost::shared_ptr< adcontrols::PeakResult >& );
+        void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
+        void draw( std::shared_ptr< adcontrols::Chromatogram >& );
+        void draw( std::shared_ptr< adcontrols::PeakResult >& );
         
     signals:
         void fireSetData( const adcontrols::PeakResult& );
@@ -67,7 +67,7 @@ namespace dataproc {
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         
     private:
-        boost::shared_ptr<ChromatogramWndImpl> pImpl_;
+        std::shared_ptr<ChromatogramWndImpl> pImpl_;
         
     };
 }

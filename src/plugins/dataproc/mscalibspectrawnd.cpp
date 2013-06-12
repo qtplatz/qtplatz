@@ -77,7 +77,7 @@ MSCalibSpectraWnd::init( const adportable::Configuration& c, const std::wstring&
         splitter->addWidget( wndSplitter_ );
         
         for ( int i = 0; i < 5; ++i ) {
-            boost::shared_ptr< adwplot::SpectrumWidget > wnd( new adwplot::SpectrumWidget(this) );
+            std::shared_ptr< adwplot::SpectrumWidget > wnd( new adwplot::SpectrumWidget(this) );
             wnd->setMinimumHeight( 40 );
             wndSpectra_.push_back( wnd );
             wndSplitter_->addWidget( wnd.get() );
@@ -227,7 +227,7 @@ MSCalibSpectraWnd::handleManuallyAssigned()
     adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
-        boost::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
+        std::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
         boost::any any( assigned );
         if ( p->getContents( any ) ) {
             MainWindow::instance()->applyCalibration( *assigned, folium_ );
@@ -241,7 +241,7 @@ MSCalibSpectraWnd::handleValueChanged()
     adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
-        boost::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
+        std::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
         boost::any any( assigned );
         if ( p->getContents( any ) ) {
             portfolio::Folium& folium = folium_;

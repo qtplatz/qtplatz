@@ -28,14 +28,12 @@
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QVariant>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
+#include <memory>
 
 namespace qtwidgets {
 
     class TreeItem;
-    typedef boost::shared_ptr<TreeItem> TreeItemPtr;
+    typedef std::shared_ptr<TreeItem> TreeItemPtr;
     
     class SequencesModel : public QAbstractItemModel {
         Q_OBJECT

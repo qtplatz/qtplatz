@@ -28,7 +28,7 @@
 
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
-#include <boost/smart_ptr.hpp>
+#include <memory>
 
 namespace adcontrols {
     class Chromatogram;
@@ -60,7 +60,7 @@ namespace adtxtfactory {
 		virtual size_t posFromTime( double ) const;
 
     private:
-        boost::scoped_ptr< adcontrols::ProcessedDataset > processedDataset_;
+		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
         boost::any data_;
 
     };

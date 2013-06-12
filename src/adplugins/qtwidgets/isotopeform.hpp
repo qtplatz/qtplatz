@@ -26,12 +26,10 @@
 #define ISOTOPEFORM_HPP
 
 #include <QWidget>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
 #include <adplugin/lifecycle.hpp>
 #include <adcontrols/ctable.hpp>
 #include <vector>
+#include <memory>
 
 class QStandardItemModel;
 class QModelIndex;
@@ -71,9 +69,9 @@ namespace qtwidgets {
     
 	private:
 		Ui::IsotopeForm *ui;
-		boost::scoped_ptr< adcontrols::IsotopeMethod > pMethod_;
-		boost::scoped_ptr< QStandardItemModel > pModel_;
-		boost::scoped_ptr< IsotopeDelegate > pDelegate_;
+		std::unique_ptr< adcontrols::IsotopeMethod > pMethod_;
+		std::unique_ptr< QStandardItemModel > pModel_;
+		std::unique_ptr< IsotopeDelegate > pDelegate_;
 		std::vector< std::pair< QString, adcontrols::CTable > > ctabs_;
 
     public slots:

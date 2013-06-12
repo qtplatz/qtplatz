@@ -32,7 +32,6 @@
 #include <acewrapper/orbservant.hpp>
 #include <map>
 #include <string>
-#include <boost/smart_ptr.hpp>
 
 namespace adcontroller {
 
@@ -52,7 +51,7 @@ namespace adcontroller {
         bool adpluginspec( const char * id, const char * adpluginspec );
         
     private:
-        typedef std::map< std::wstring, boost::shared_ptr< adcontroller::session_i > > session_map_type;
+        typedef std::map< std::wstring, std::shared_ptr< adcontroller::session_i > > session_map_type;
         session_map_type session_list_;
         Broker::Manager_var broker_mgr_;
         Broker::Logger_var logger_;

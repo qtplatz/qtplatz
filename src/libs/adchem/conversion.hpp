@@ -27,7 +27,7 @@
 
 #include "adchem_global.h"
 #include "string.hpp"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace OpenBabel { 
     class OBFormat;
@@ -41,7 +41,7 @@ namespace adchem {
 	class ADCHEMSHARED_EXPORT Conversion {
         std::string filename_;
         size_t nread_;
-        boost::shared_ptr< OpenBabel::OBConversion > obconversion_;
+        std::shared_ptr< OpenBabel::OBConversion > obconversion_;
 	public:
         virtual ~Conversion();
         Conversion();

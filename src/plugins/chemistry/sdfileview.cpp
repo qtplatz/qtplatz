@@ -56,7 +56,7 @@ SDFileView::~SDFileView()
 }
 
 void
-SDFileView::file( boost::shared_ptr< ChemFile >& file )
+SDFileView::file( std::shared_ptr< ChemFile >& file )
 {
 	model_->file( file );
 }

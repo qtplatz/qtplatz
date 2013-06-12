@@ -87,7 +87,7 @@ serializer::restore( adcontrols::ProcessMethod& m, const std::vector<char>& vec 
 }
 
 bool
-serializer::restore( boost::shared_ptr<ControlMethod::Method>& ptr, const std::vector<char>& vec )
+serializer::restore( std::shared_ptr<ControlMethod::Method>& ptr, const std::vector<char>& vec )
 {
     if ( ! ptr )
         ptr.reset( new ControlMethod::Method() );
@@ -95,7 +95,7 @@ serializer::restore( boost::shared_ptr<ControlMethod::Method>& ptr, const std::v
 }
 
 bool
-serializer::restore( boost::shared_ptr< adcontrols::ProcessMethod>& ptr, const std::vector<char>& vec )
+serializer::restore( std::shared_ptr< adcontrols::ProcessMethod>& ptr, const std::vector<char>& vec )
 {
     if ( ! ptr )
         ptr.reset( new adcontrols::ProcessMethod() );

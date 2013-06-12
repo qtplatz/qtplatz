@@ -27,9 +27,6 @@
 #define ACQUIREPLUGIN_H
 
 #include <extensionsystem/iplugin.h>
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
 #include <vector>
 #include <map>
 
@@ -126,10 +123,10 @@ namespace Acquire {
             ControlServer::Session_var session_;
             SignalObserver::Observer_var observer_;
             std::map< unsigned long, SignalObserver::Observer_var > observerMap_;
-            std::map< unsigned long, boost::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
+            std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
 
-            boost::scoped_ptr< adplugin::QReceiver_i > receiver_i_;
-            boost::scoped_ptr< adplugin::QObserverEvents_i > masterObserverSink_;
+            std::unique_ptr< adplugin::QReceiver_i > receiver_i_;
+            std::unique_ptr< adplugin::QObserverEvents_i > masterObserverSink_;
             std::vector< std::wstring > trace_descriptions_;
             QComboBox * traceBox_;
             void populate( SignalObserver::Observer_var& );

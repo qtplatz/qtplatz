@@ -50,7 +50,7 @@ namespace adcontroller {
         };
 	
         struct sibling_data {
-            boost::shared_ptr< observer_i > pCache_i_;
+            std::shared_ptr< observer_i > pCache_i_;
             SignalObserver::Observer_var observer_;  // instrument oberver ( in instrument fifo )
             SignalObserver::Observer_var cache_;     // cache observer (in server cache) := pCache_i_
             unsigned long objId_;
@@ -123,7 +123,7 @@ observer_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
 
     Logging( L"observer_i::connect from %1% frequency: %2% token: %3%" ) % (void *)cb % frequency % token;
     
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
     
     observer_events_set_.push_back( data );
     return true;
@@ -132,7 +132,7 @@ observer_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
 ::CORBA::Boolean
 observer_i::disconnect ( ::SignalObserver::ObserverEvents_ptr cb )
 {
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
     
     observer_events_vector_type::iterator it
         = std::find(observer_events_set_.begin(), observer_events_set_.end(), cb);
@@ -157,7 +157,7 @@ observer_i::getSiblings (void)
     SignalObserver::Observers_var vec( new SignalObserver::Observers );
     vec->length( sibling_set_.size() );
 
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     int i = 0;
     for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it )
@@ -172,7 +172,7 @@ observer_i::addSibling ( ::SignalObserver::Observer_ptr observer )
     internal::sibling_data data;
     data.observer_ = SignalObserver::Observer::_duplicate( observer ); // real observer points to instrumets
 
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( ! CORBA::is_nil( data.observer_ ) ) {
 
@@ -218,7 +218,7 @@ observer_i::populate_siblings()
 ::SignalObserver::Observer *
 observer_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
 {
-    acewrapper::scoped_mutex_t<> lock( mutex_ );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
     for ( sibling_vector_type::iterator it = sibling_begin(); it != sibling_end(); ++it ) {
         if ( it->cache_->objId() == objId )

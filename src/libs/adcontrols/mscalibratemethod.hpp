@@ -27,13 +27,11 @@
 
 #include "adcontrols_global.h"
 
-#include <compiler/diagnostic_push.h>
-#include <compiler/disable_unused_parameter.h>
-#include <boost/smart_ptr.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/scoped_ptr.hpp>
 #include <boost/serialization/version.hpp>
-#include <compiler/diagnostic_pop.h>
+#include <memory>
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -92,5 +90,4 @@ namespace adcontrols {
     };
   
 }
-
 

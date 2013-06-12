@@ -25,10 +25,7 @@
 
 #pragma once
 
-#if ! defined Q_MOC_RUN
-#include <boost/smart_ptr.hpp>
-#endif
-
+#include <memory>
 class QwtPlotCurve;
 
 namespace adcontrols { class Peak; }
@@ -46,8 +43,8 @@ namespace adwplot {
 		// inline operator QwtPlotCurve * () { return curve_.get(); }
     private:
         Dataplot * plot_;
-		boost::shared_ptr< QwtPlotCurve > curve_;
-		boost::shared_ptr< QwtPlotCurve > bar_;
+		std::shared_ptr< QwtPlotCurve > curve_;
+		std::shared_ptr< QwtPlotCurve > bar_;
     };
 
 }

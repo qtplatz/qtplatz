@@ -195,7 +195,7 @@ MSCalibrationWnd::handleManuallyAssigned()
     adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
-        boost::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
+        std::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
         boost::any any( assigned );
         if ( p->getContents( any ) )
             MainWindow::instance()->applyCalibration( *assigned );
@@ -208,7 +208,7 @@ MSCalibrationWnd::handleValueChanged()
     adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
-        boost::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
+        std::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
         boost::any any( assigned );
         if ( p->getContents( any ) ) {
             portfolio::Folium& folium = pImpl_->folium_;
