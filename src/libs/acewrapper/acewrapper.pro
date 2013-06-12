@@ -22,11 +22,9 @@ SOURCES += acewrapper.cpp \
     ace_string.cpp \
     brokerhelper.cpp \
     constants.cpp \
-    dgramhandler.cpp \
     input_buffer.cpp \
     inputcdr.cpp \
     lifecycle_frame_serializer.cpp \
-    mcasthandler.cpp \
     mcastserver.cpp \
     messageblock.cpp \
     outputcdr.cpp \
@@ -43,12 +41,10 @@ HEADERS += acewrapper.hpp \
     brokerhelper.hpp \
     callback.hpp \
     constants.hpp \
-    dgramhandler.hpp \
     eventhandler.hpp \
     input_buffer.hpp \
     inputcdr.hpp \
     lifecycle_frame_serializer.hpp \
-    mcasthandler.hpp \
     mcastserver.hpp \
     messageblock.hpp \
     mutex.hpp \

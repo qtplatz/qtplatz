@@ -26,7 +26,7 @@
 #include "reactorthread.hpp"
 #include <ace/Reactor.h>
 #include <adportable/debug.hpp>
-#include <boost/bind.hpp>
+#include <functional>
 
 #if defined _DEBUG
 # include <iostream>
@@ -58,14 +58,14 @@ ReactorThread::spawn()
 {
     if ( thread_ )
         return false;
-    thread_ = new std::thread( boost::bind( &ReactorThread::run_event_loop, this ) );
+    thread_ = new std::thread( std::bind( &ReactorThread::run_event_loop, this ) );
     return true;
 }
 
 void
 ReactorThread::run_event_loop()
 {
-    reactor_->owner( ACE_OS::thr_self() );
+	reactor_->owner( ACE_OS::thr_self() );
 	while ( reactor_->reactor_event_loop_done() == 0 )
 		reactor_->run_reactor_event_loop();
 }

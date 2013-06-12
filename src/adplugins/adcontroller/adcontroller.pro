@@ -50,7 +50,6 @@ DEFINES += ADCONTROLLER_LIBRARY
 SOURCES += adcontroller.cpp \
         iproxy.cpp \
         manager_i.cpp \
-        mcast_handler.cpp \
         message.cpp \
         observer_i.cpp \
         oproxy.cpp \
@@ -68,7 +67,6 @@ HEADERS += adcontroller.hpp \
         iproxy.hpp \
         manager_i.hpp \
         marshal.hpp \
-        mcast_handler.hpp \
         message.hpp \
         observer_i.hpp \
         oproxy.hpp \
