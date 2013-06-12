@@ -43,7 +43,7 @@ namespace adportable {
         ~debug(void);
         static void initialize( const std::string& filename );
         std::string where() const;
-	std::string str() const { return o_.str(); }
+        std::string str() const { return o_.str(); }
         debug& operator << ( const char * );
         debug& operator << ( const unsigned char * );
         debug& operator << ( const std::string& );

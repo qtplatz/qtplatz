@@ -74,7 +74,7 @@ namespace chromatogr {
             return c.front();
         }
         inline const value_type& operator[](int idx) const {
-            if ( (idx < 0) || (c.size() <= size_t(idx)) )
+            if ( (idx < 0) || ( int( c.size() ) <= idx ) )
                 throw subscript_out_of_range();
             return c[idx];
         }

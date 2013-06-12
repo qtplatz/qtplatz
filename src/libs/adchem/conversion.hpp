@@ -27,7 +27,7 @@
 
 #include "adchem_global.h"
 #include "string.hpp"
-#include <memory>
+#include <boost/smart_ptr.hpp>
 
 namespace OpenBabel { 
     class OBFormat;
@@ -39,9 +39,9 @@ namespace adchem {
 	class Mol;
     
 	class ADCHEMSHARED_EXPORT Conversion {
+        boost::shared_ptr< OpenBabel::OBConversion > obconversion_;
         std::string filename_;
         size_t nread_;
-        std::shared_ptr< OpenBabel::OBConversion > obconversion_;
 	public:
         virtual ~Conversion();
         Conversion();

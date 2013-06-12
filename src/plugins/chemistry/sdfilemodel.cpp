@@ -80,7 +80,7 @@ SDFileModel::columnCount( const QModelIndex& parent ) const
 {
     (void)parent;
     if ( ! data_.empty() )
-		return data_[ 0 ].attributes().size() + 3; 
+		return data_[ 0 ].get_attributes().size() + 3; 
     return 3;
 }
 
@@ -103,7 +103,7 @@ SDFileModel::data( const QModelIndex& index, int role ) const
         } else if ( index.column() == 2 ) {
             return QVariant( mol.getExactMass() );
         } else {
-			adchem::attributes attrs = mol.attributes();
+			adchem::attributes attrs = mol.get_attributes();
             if ( index.column() - nfixed < attrs.size() )
 				return QString( attrs[ index.column() - nfixed ].value() );
         }
@@ -125,7 +125,7 @@ SDFileModel::headerData( int section, Qt::Orientation orientation, int role ) co
 	
         if ( ! data_.empty() ) {
             int n = section - 3;
-            adchem::attributes attrs = data_[ 0 ].attributes(); 
+            adchem::attributes attrs = data_[ 0 ].get_attributes(); 
             if ( attrs.size() > unsigned(n) )
                 return QString( attrs[n].key() );
         }

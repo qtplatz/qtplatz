@@ -26,17 +26,15 @@
 #define MOL_HPP
 #include "adchem_global.h"
 #include "attributes.hpp"
-#include <memory>
+
+#include <boost/smart_ptr.hpp>
+
 
 namespace OpenBabel { class OBMol; }
 
 namespace adchem {
 
 	class ADCHEMSHARED_EXPORT Mol {
-		std::shared_ptr< OpenBabel::OBMol > obmol_;
-        adchem::attributes attrs_;
-        std::string formula_;
-        void update();
 	public:
         ~Mol();
 		Mol();
@@ -49,14 +47,19 @@ namespace adchem {
 		double getExactMass( bool implicitH = true ) const;
         const char * getFormula() const;
 		void setAttribute( const char * key, const char * value );
-        attributes attributes() const;
+
+        attributes get_attributes() const;
 
 		operator OpenBabel::OBMol& ();
 		operator const OpenBabel::OBMol& () const;
 
 	private:
+		boost::shared_ptr< OpenBabel::OBMol > obmol_;
 		bool dirty_;
 		double exactmass_;
+        adchem::attributes attrs_;
+        std::string formula_;
+        void update();
 	};
 
 }

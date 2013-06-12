@@ -25,7 +25,7 @@
 #pragma once
 
 #include "adchem_global.h"
-#include <memory>
+#include <boost/smart_ptr.hpp>
 
 namespace OpenBabel { class OBSmartsPattern; }
 
@@ -34,7 +34,7 @@ namespace adchem {
     class Mol;
 
 	class ADCHEMSHARED_EXPORT SmartsPattern {
-		std::shared_ptr< OpenBabel::OBSmartsPattern > obSmartsPattern_;
+		boost::shared_ptr< OpenBabel::OBSmartsPattern > obSmartsPattern_;
 	public:
         ~SmartsPattern();
         SmartsPattern();

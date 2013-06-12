@@ -113,7 +113,7 @@ Mol::getExactMass( bool implicitH ) const
 }
 
 attributes
-Mol::attributes() const
+Mol::get_attributes() const
 {
     adchem::attributes attrs;
     for ( OpenBabel::OBDataIterator it = obmol_->BeginData(); it != obmol_->EndData(); ++it ) {
