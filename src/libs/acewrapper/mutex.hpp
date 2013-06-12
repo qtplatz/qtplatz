@@ -22,18 +22,18 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+//////////////////////////////////////////////
+// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
+// MS-Cheminformatics LLC Project
+//////////////////////////////////////////////
 
 #pragma once
 
-#include <qtplatz_version.h>
-
-#if QTPLATZ_VERSION < 0x020000
-
-class std::mutex;
+class ACE_Recursive_Thread_Mutex;
 
 namespace acewrapper {
 
-  template<class Mutex = std::mutex>
+  template<class Mutex = ACE_Recursive_Thread_Mutex>
   class scoped_mutex_t {
     Mutex & mutex_;
   public:
@@ -45,7 +45,7 @@ namespace acewrapper {
     }
   };
   
-  template<class Mutex = std::mutex>
+  template<class Mutex = ACE_Recursive_Thread_Mutex>
   class scoped_acquired_mutex_t {
     Mutex & mutex_;
   public:
@@ -60,4 +60,3 @@ namespace acewrapper {
 }
 
 
-#endif
