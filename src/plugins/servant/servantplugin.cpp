@@ -304,19 +304,19 @@ ServantPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 ServantPlugin::aboutToShutdown()
 { 
-    if ( ! CORBA::is_nil( pImpl_->manager_.in() ) )
-        pImpl_->manager_->shutdown();
+	CORBA::release( pImpl_->manager_ );
+	pImpl_->manager_ = 0;
 	return SynchronousShutdown;
 }
 
 void
 ServantPlugin::final_close()
 {
-    adportable::debug() << "====== ServantPlugin::final_close ... =======";
-
-    // destriction must be reverse order
+	 adportable::debug() << "====== ServantPlugin::final_close servants shutdown... =======";
+	// destriction must be reverse order
     for ( orbservant_vector_type::reverse_iterator it = orbServants_.rbegin(); it != orbServants_.rend(); ++it )
         (*it)->deactivate();
+	
 
     adportable::debug() << "====== ServantPlugin::final_close Loggor::shutdown... =======";    
     Logger::shutdown();

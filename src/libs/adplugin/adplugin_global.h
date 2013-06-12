@@ -25,11 +25,11 @@
 
 #pragma once
 
-#include <QtCore/qglobal.h>
+#include <compiler/decl_export.h>
 
 #if defined(ADPLUGIN_LIBRARY)
-#  define ADPLUGINSHARED_EXPORT Q_DECL_EXPORT
+#  define ADPLUGINSHARED_EXPORT DECL_EXPORT
 #else
-#  define ADPLUGINSHARED_EXPORT Q_DECL_IMPORT
+#  define ADPLUGINSHARED_EXPORT DECL_IMPORT
 #endif
 

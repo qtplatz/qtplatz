@@ -28,6 +28,7 @@
 #include "adplugin_global.h"
 #include <string>
 #include <typeinfo>
+#include <compiler/disable_dll_interface.h>
 
 namespace adplugin {
 
