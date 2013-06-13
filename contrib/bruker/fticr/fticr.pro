@@ -22,6 +22,11 @@ INCLUDEPATH += $$QTPLATZ_SOURCE_TREE/src
 
 DEFINES += FTICR_LIBRARY
 
+LIBS += -l$$qtLibraryTarget( adplugin ) \
+        -l$$qtLibraryTarget( adportable ) \
+        -l$$qtLibraryTarget( adcontrols ) \
+        -l$$qtLibraryTarget( portfolio )
+
 SOURCES += fticr.cpp \
     datafile_factory.cpp \
     datafile.cpp \

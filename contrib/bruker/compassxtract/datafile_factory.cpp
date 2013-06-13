@@ -24,6 +24,7 @@
 
 #include "datafile_factory.hpp"
 #include "datafile.hpp"
+#include <adplugin/visitor.hpp>
 
 using namespace compassxtract;
 
@@ -41,21 +42,34 @@ datafile_factory::close( adcontrols::datafile * p )
    delete p;
 }
 
-const std::wstring&
+const char *
+datafile_factory::mimeTypes() const
+{
+	return 
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>\n\
+  <mime-type type=\"application/baf\">\n\
+    <sub-class-of type=\"application/octet-stream\"/>\n\
+	<comment>Bruker CompassXtrace (analysis.baf) file</comment>\n\
+    <glob pattern=\"*.baf\"/>\n\
+  </mime-type>\n\
+  </mime-info>\n";
+}
+
+const wchar_t *
 datafile_factory::name() const
 {
-    static std::wstring name( L"CompassXtract" );
-    return name;
+    return L"CompassXtract";
 }
 
 bool
-datafile_factory::access( const std::wstring& filename, adcontrols::access_mode ) const
+datafile_factory::access( const wchar_t * filename, adcontrols::access_mode ) const
 {
 	return datafile::is_valid_datafile( filename );
 }
 
 adcontrols::datafile *
-datafile_factory::open( const std::wstring& filename, bool readonly ) const
+datafile_factory::open( const wchar_t * filename, bool readonly ) const
 {
 	compassxtract::datafile * p = new compassxtract::datafile();
 
@@ -63,5 +77,28 @@ datafile_factory::open( const std::wstring& filename, bool readonly ) const
 		return p;
 	delete p;
 
+    return 0;
+}
+
+////////////////////////////////////////////
+// adplugin::plugin implementation
+
+const char *
+datafile_factory::iid() const 
+{
+    return "com.ms-cheminfo.qtplatz.adplugins.datafile_factory.compassxtract";
+}
+
+void
+datafile_factory::accept( adplugin::visitor& v, const char * adplugin )
+{
+	v.visit( this, adplugin );
+}
+
+void *
+datafile_factory::query_interface_workaround( const char * typenam )
+{
+    if ( std::string( typenam ) == typeid( adcontrols::datafile_factory ).name() )
+        return static_cast< adcontrols::datafile_factory *>(this);
     return 0;
 }

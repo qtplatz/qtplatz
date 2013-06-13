@@ -26,6 +26,7 @@
 #include "datafile.hpp"
 #include <adcontrols/processeddataset.hpp> // for delition of scoped_ptr<ProcessedDataset>
 #include "jcampdxparser.hpp"
+#include <adplugin/visitor.hpp>
 
 using namespace fticr;
 
@@ -45,29 +46,34 @@ datafile_factory::close( adcontrols::datafile * p )
    delete p;
 }
 
-const std::wstring&
-datafile_factory::name() const
+const char *
+datafile_factory::mimeTypes() const
 {
-    static std::wstring name( L"FT-ICR" );
-    return name;
+	return 
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>\n\
+  <mime-type type=\"application/d\">\n\
+    <sub-class-of type=\"application/octet-stream\"/>\n\
+	<comment>Bruker data file</comment>\n\
+    <glob pattern=\"*.d\"/>\n\
+  </mime-type>\n\
+  </mime-info>\n";
 }
 
-namespace fticr {
-
-	struct fticr_data {
-        
-	};
-
+const wchar_t *
+datafile_factory::name() const
+{
+    return L"FT-ICR";
 }
 
 bool
-datafile_factory::access( const std::wstring& filename, adcontrols::access_mode ) const
+datafile_factory::access( const wchar_t * filename, adcontrols::access_mode ) const
 {
 	return datafile::is_valid_datafile( filename );
 }
 
 adcontrols::datafile *
-datafile_factory::open( const std::wstring& filename, bool readonly ) const
+datafile_factory::open( const wchar_t * filename, bool readonly ) const
 {
 	fticr::datafile * p = new fticr::datafile();
 
@@ -75,5 +81,28 @@ datafile_factory::open( const std::wstring& filename, bool readonly ) const
 		return p;
 	delete p;
 
+    return 0;
+}
+
+////////////////////////////////////////////
+// adplugin::plugin implementation
+
+const char *
+datafile_factory::iid() const 
+{
+    return "com.ms-cheminfo.qtplatz.adplugins.datafile_factory.fticr";
+}
+
+void
+datafile_factory::accept( adplugin::visitor& v, const char * adplugin )
+{
+	v.visit( this, adplugin );
+}
+
+void *
+datafile_factory::query_interface_workaround( const char * typenam )
+{
+    if ( std::string( typenam ) == typeid( adcontrols::datafile_factory ).name() )
+        return static_cast< adcontrols::datafile_factory *>(this);
     return 0;
 }

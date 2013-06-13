@@ -15,6 +15,10 @@ INCLUDEPATH += .
 INCLUDEPATH += "C:\Program Files (x86)\Bruker Daltonik\CompassXtract"
 
 DEFINES += COMPASSXTRACT_LIBRARY
+LIBS += -l$$qtLibraryTarget( adplugin ) \
+        -l$$qtLibraryTarget( adportable ) \
+        -l$$qtLibraryTarget( adcontrols ) \
+        -l$$qtLibraryTarget( portfolio )
 
 SOURCES += compassxtract.cpp \
     datafile_factory.cpp \
