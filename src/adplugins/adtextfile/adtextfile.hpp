@@ -27,10 +27,3 @@
 
 #include "adtextfile_global.h"
 
-/*
-class ADTXTFACTORYSHARED_EXPORT adtxtfactory {
-public:
-    adtxtfactory();
-};
-*/
-

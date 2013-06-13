@@ -44,7 +44,7 @@
 #include <adportable/debug.hpp>
 #include <boost/any.hpp>
 
-using namespace adtxtfactory;
+using namespace adtextfile;
 
 datafile::~datafile()
 {

@@ -32,7 +32,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 
-using namespace adtxtfactory;
+using namespace adtextfile;
 
 datafile_factory::~datafile_factory(void)
 {
@@ -49,29 +49,33 @@ datafile_factory::instance()
     // destraction will manage by ref_count installed in adplugin::plugin base class
 }
 
-
 void
 datafile_factory::close( adcontrols::datafile * p )
 {
     delete p;
 }
 
-const std::wstring&
+const char *
+datafile_factory::mimeTypes() const
+{
+	return 0;
+}
+
+const wchar_t *
 datafile_factory::name() const
 {
-    static std::wstring name( L"text" );
-    return name;
+    return L"text";
 }
 
 bool
-datafile_factory::access( const std::wstring& filename, adcontrols::access_mode mode ) const
+datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode ) const
 {
     boost::filesystem::wpath path(filename);
     return path.extension() == L".txt" && mode == adcontrols::read_access;
 }
 
 adcontrols::datafile *
-datafile_factory::open( const std::wstring& filename, bool readonly ) const
+datafile_factory::open( const wchar_t * filename, bool readonly ) const
 {
     datafile * p = new datafile;
     if ( p->open( filename, readonly ) )

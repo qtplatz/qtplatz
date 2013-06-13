@@ -9,7 +9,7 @@
   <Module name="qtwidgets" type="sharedlib" filename="/MS-Cheminformatics/qtwidgets$(configuration).dll"/>
   <Module name="qtwidgets2" type="sharedlib" filename="/MS-Cheminformatics/qtwidgets2$(configuration).dll"/>
   <Module name="mc4" type="sharedlib" filename="/MS-Cheminformatics/mc4$(configuration).dll"/>
-  <Module name="adtxtfactory" type="sharedlib" filename="/MS-Cheminformatics/adtxtfactory$(configuration).dll"/>
+  <Module name="adtexfile" type="sharedlib" filename="/MS-Cheminformatics/adtxtfactory$(configuration).dll"/>
   <Module name="addatafile" type="sharedlib" filename="/MS-Cheminformatics/addatafile$(configuration).dll"/>
   <Module name="fticr_factory" type="sharedlib" filename="/MS-Cheminformatics/fticr$(configuration).dll"/>
   <Module name="mzxml_factory" type="sharedlib" filename="/MS-Cheminformatics/mzxml$(configuration).dll"/>

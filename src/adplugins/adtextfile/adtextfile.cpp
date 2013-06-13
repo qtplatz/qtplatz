@@ -51,5 +51,5 @@ extern "C" {
 adplugin::plugin *
 adplugin_plugin_instance()
 {
-    return adtxtfactory::datafile_factory::instance();
+    return adtextfile::datafile_factory::instance();
 }

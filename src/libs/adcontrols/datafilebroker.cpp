@@ -130,8 +130,8 @@ datafileBrokerImpl::open( const std::wstring& name, bool readonly )
 {
     std::map< std::wstring, std::shared_ptr<datafile_factory> >::iterator it;
     for ( it = factories_.begin(); it != factories_.end(); ++it ) {
-        if ( it->second && it->second->access( name ) ) {
-            return it->second->open( name, readonly );
+        if ( it->second && it->second->access( name.c_str() ) ) {
+            return it->second->open( name.c_str(), readonly );
         }
     }
     return 0;
@@ -142,8 +142,8 @@ datafileBrokerImpl::create( const std::wstring& name )
 {
     std::map< std::wstring, std::shared_ptr<datafile_factory> >::iterator it;
     for ( it = factories_.begin(); it != factories_.end(); ++it ) {
-        if ( it->second && it->second->access( name, adcontrols::write_access ) )
-            return it->second->open( name, false );
+        if ( it->second && it->second->access( name.c_str(), adcontrols::write_access ) )
+            return it->second->open( name.c_str(), false );
     }
     return 0;
 }

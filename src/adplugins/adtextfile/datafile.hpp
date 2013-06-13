@@ -36,7 +36,8 @@ namespace adcontrols {
     class ProcessedDataset;
 }
 
-namespace adtxtfactory {
+namespace adtextfile {
+
     class datafile : public adcontrols::datafile
                    , public adcontrols::LCMSDataset { 
     public:

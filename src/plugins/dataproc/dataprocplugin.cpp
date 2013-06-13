@@ -104,6 +104,31 @@
 
 #include <adinterface/brokerC.h>
 
+namespace dataproc {
+    class mimeTypeHelper {
+    public:
+        static bool add( Core::MimeDatabase * mdb, const char * xml, size_t len, QString*& emsg ) {
+            if ( mdb && xml ) {
+                QBuffer io;
+                io.setData( xml, len );
+                io.open( QIODevice::ReadOnly );
+                return  mdb->addMimeTypes( &io, emsg );
+            }
+            return false;
+        }
+        static bool populate( QStringList& vec, const char * xml ) {
+            pugi::xml_document doc;
+            if ( doc.load( xml ) ) {
+                pugi::xpath_node_set list = doc.select_nodes( "/mime-info/mime-type" );
+                for ( auto it = list.begin(); it != list.end(); ++it )
+                    vec << it->node().attribute( "type" ).value();
+				return true;
+			}
+			return false;
+        }
+    };
+}
+
 using namespace dataproc;
 
 DataprocPlugin * DataprocPlugin::instance_ = 0;
@@ -163,48 +188,61 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     }
     //------------------------------------------------
 
-    // dataprovider installation move to servantplugin
-    // install_dataprovider( config, apppath );
-	std::vector< adplugin::plugin_ptr > dataproviders;
-	if ( adplugin::loader::select_iids( ".*\\.adplugins\\.datafile_factory\\..*", dataproviders ) ) {
-
-        std::for_each( dataproviders.begin(), dataproviders.end(), []( const adplugin::plugin_ptr& d ){
-                adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
-                if ( factory ) 
-                    adcontrols::datafileBroker::register_factory( factory, factory->name() );                
-            });
-	}
-
     iSequence_.reset( new iSequenceImpl );
     if ( iSequence_ && install_isequence( config, apppath, *iSequence_ ) ) {
         addObject( iSequence_.get() );
     }
 
-    //------------------------------------------------
-
-    // DataprocessorFactory * dataprocFactory = 0;
     Core::MimeDatabase* mdb = core->mimeDatabase();
-    if ( mdb ) {
+    if ( ! mdb ) {
+        *error_message = "no mime database in Core plugin";
+        return false;
+    }
+
+    do {
+        std::vector< std::string > mime;
+        std::vector< adplugin::plugin_ptr > dataproviders;
+        if ( adplugin::loader::select_iids( ".*\\.adplugins\\.datafile_factory\\..*", dataproviders ) ) {
+            
+            std::for_each( dataproviders.begin(), dataproviders.end(), [&]( const adplugin::plugin_ptr& d ){
+                    adcontrols::datafile_factory * factory = d->query_interface< adcontrols::datafile_factory >();
+                    if ( factory ) {
+                        adcontrols::datafileBroker::register_factory( factory, factory->name() );
+                        if ( factory->mimeTypes() )
+                            mime.push_back( factory->mimeTypes() );
+                    }
+                });
+        }
+
+        //------------------------------------------------
+        QStringList mTypes;
+
         // externally installed mime-types
         std::wstring mimefile
             = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc-mimetype.xml" );
-        if ( ! mdb->addMimeTypes( qtwrapper::qstring( mimefile ), error_message) )
-            adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes" << mimefile << error_message;
+        if ( mdb->addMimeTypes( qtwrapper::qstring( mimefile ), error_message) ) {
+            pugi::xml_document doc;
+            if ( doc.load_file( mimefile.c_str() ) ) {
+                pugi::xpath_node_set list = doc.select_nodes( "/mime-info/mime-type" );
+                for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
+                    mTypes << it->node().attribute( "type" ).value();
+            }
+        }
+
+        std::for_each( mime.begin(), mime.end(), [&](const std::string& xml){
+                if ( mimeTypeHelper::add( mdb, xml.c_str(), xml.size(), error_message ) )
+					mimeTypeHelper::populate( mTypes, xml.c_str() );
+            });
+
 
         // core mime-types
         if ( ! mdb->addMimeTypes(":/dataproc/mimetype.xml", error_message) )
             adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes" << ":/dataproc/mimetype.xml" << error_message;
 
-        QStringList mTypes;
-        pugi::xml_document doc;
-        if ( doc.load_file( mimefile.c_str() ) ) {
-            pugi::xpath_node_set list = doc.select_nodes( "/mime-info/mime-type" );
-            for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
-                mTypes << it->node().attribute( "type" ).value();
-        }
+
         dataprocFactory_ = new DataprocessorFactory( this, mTypes );
         addAutoReleasedObject( dataprocFactory_ );
-    }
+    } while ( 0 );
 
     mode_.reset( new dataproc::Mode( this ) );
     if ( ! mode_ )

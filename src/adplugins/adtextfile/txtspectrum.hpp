@@ -29,7 +29,7 @@
 #include <vector>
 #include <adcontrols/massspectrum.hpp>
 
-namespace adtxtfactory {
+namespace adtextfile {
 
     class TXTSpectrum {
     public:

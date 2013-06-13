@@ -38,7 +38,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/numeric/interval.hpp>
 
-using namespace adtxtfactory;
+using namespace adtextfile;
 
 TXTSpectrum::TXTSpectrum()
 {
@@ -143,7 +143,7 @@ TXTSpectrum::load( const std::wstring& name )
             }
             k = 0;
         }
-        unsigned long t1 = MSProperty::toSeconds( i, segments ) * 1e12 + 0.5;
+        unsigned long t1 = static_cast< unsigned long >( MSProperty::toSeconds( i, segments ) * 1e12 + 0.5 );
         unsigned long t2 = ( sampInfo->nSamplingDelay + k ) * sampInfo->sampInterval;
         if ( t1 != t2 )
             adportable::debug() << "text file loader: library calculation error at " << int(i) << " time: " << timeArray[i] << "(s) expected: " << t1 * 1e-12;

@@ -37,10 +37,10 @@ namespace adcontrols {
     public:
         datafile_factory(void) {}
         virtual ~datafile_factory(void) {}
-
-        virtual const std::wstring& name() const = 0;
-        virtual bool access( const std::wstring& filename, access_mode = read_access ) const = 0;
-        virtual datafile * open( const std::wstring& filename, bool readonly = false ) const = 0;
+		virtual const char * mimeTypes() const = 0;
+        virtual const wchar_t * name() const = 0;
+        virtual bool access( const wchar_t * filename, access_mode = read_access ) const = 0;
+        virtual datafile * open( const wchar_t * filename, bool readonly = false ) const = 0;
         virtual void close( datafile * ) = 0;
     private:
 

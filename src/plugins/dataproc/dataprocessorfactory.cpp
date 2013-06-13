@@ -48,8 +48,7 @@ DataprocessorFactory::~DataprocessorFactory()
 DataprocessorFactory::DataprocessorFactory( QObject * owner, 
 										    const QStringList& types ) : Core::IEditorFactory( owner )
 																	   , kind_( "Dataprocessor" )
-											                           , mimeTypes_ ( types ) 
-                                                                       //, editorWidget_(0)
+											                           , mimeTypes_ ( types )
 {
     mimeTypes_ 
         << Constants::C_DATA_TEXT_MIMETYPE
