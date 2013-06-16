@@ -320,7 +320,7 @@ Task::internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassS
     portfolio::Portfolio& portfolio = getPortfolio( token );
 
     portfolio::Folder folder = portfolio.addFolder( L"MassSpectra" );
-    portfolio::Folium folium = folder.addFolium( L"MassSpectrum" );
+	portfolio::Folium folium = folder.addFolium( adcontrols::MassSpectrum::dataClass() );
 
     //------->
     adcontrols::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy

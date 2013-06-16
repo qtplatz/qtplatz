@@ -155,23 +155,23 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
                 if ( blob.read( p.get(), blob.size() ) ) {
                     adfs::detail::cpio obuf( blob.size(), reinterpret_cast<adfs::char_t *>( p.get() ) );
 
-                    if ( dataType == L"MassSpectrum" ) {
+					if ( dataType == adcontrols::MassSpectrum::dataClass() ) {
                         adcontrols::MassSpectrumPtr ptr( new adcontrols::MassSpectrum() );
                         adfs::cpio<adcontrols::MassSpectrum>::copyout( *ptr, obuf );
                         any = ptr;
-					} else if ( dataType == L"Chromatogram" ) {
+					} else if ( dataType == adcontrols::Chromatogram::dataClass() ) {
 						adcontrols::ChromatogramPtr ptr( new adcontrols::Chromatogram() );
 						adfs::cpio<adcontrols::Chromatogram>::copyout( *ptr, obuf );
                         any = ptr;
-					} else if ( dataType == L"PeakResult" ) {
+					} else if ( dataType == adcontrols::PeakResult::dataClass() ) {
 						adcontrols::PeakResultPtr ptr( new adcontrols::PeakResult() );
 						adfs::cpio<adcontrols::PeakResult>::copyout( *ptr, obuf );
                         any = ptr;
-                    } else if ( dataType == L"ProcessMethod" ) {
+					} else if ( dataType == adcontrols::ProcessMethod::dataClass() ) {
                         adcontrols::ProcessMethodPtr ptr( new adcontrols::ProcessMethod() );
                         adfs::cpio<adcontrols::ProcessMethod>::copyout( *ptr, obuf );
                         any = ptr;
-                    } else if ( dataType == L"MSCalibrateResult" ) {
+					} else if ( dataType == adcontrols::MSCalibrateResult::dataClass() ) {
                         adcontrols::MSCalibrateResultPtr ptr( new adcontrols::MSCalibrateResult() );
                         adfs::cpio<adcontrols::MSCalibrateResult>::copyout( *ptr, obuf );
                         any = ptr;

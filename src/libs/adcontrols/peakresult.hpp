@@ -41,7 +41,7 @@ namespace adcontrols {
 		PeakResult();
 		PeakResult( const PeakResult& );
 		PeakResult( const Baselines&, const Peaks& );
-		const wchar_t * dataClass() const { return L"PeakResult"; }
+		static const wchar_t * dataClass() { return L"PeakResult"; }
 
 		const Baselines& baselines() const;
 		Baselines& baselines();

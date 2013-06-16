@@ -82,36 +82,42 @@ namespace addatafile {
 	template<> bool
 	copyin::operator ()( adcontrols::MassSpectrumPtr& p ) const
 	{
+		folium_.dataClass( p->dataClass() );
 	    return adfs::cpio< adcontrols::MassSpectrum >::copyin( *p, folium_ );
 	}       
 	
 	template<> bool
 	copyin::operator ()( adcontrols::ProcessMethodPtr& p ) const
 	{
+		folium_.dataClass( p->dataClass() );
 	    return adfs::cpio< adcontrols::ProcessMethod >::copyin( *p, folium_ );
 	} 
     
 	template<> bool
 	copyin::operator ()( adutils::ElementalCompositionCollectionPtr& p ) const
 	{
+		folium_.dataClass( p->dataClass() );
 	    return adfs::cpio< adcontrols::ElementalCompositionCollection >::copyin( *p, folium_ );
 	}       
 	
 	template<> bool
 	copyin::operator ()( adcontrols::ChromatogramPtr& p ) const
 	{
+		folium_.dataClass( p->dataClass() );
 	    return adfs::cpio< adcontrols::Chromatogram >::copyin( *p, folium_ );
 	} 
 
 	template<> bool
 	copyin::operator ()( adcontrols::PeakResultPtr& p ) const
 	{
+		folium_.dataClass( p->dataClass() );
 		return adfs::cpio< adcontrols::PeakResult >::copyin( *p, folium_ );
 	} 
 	
 	template<> bool
 	copyin::operator ()( adcontrols::MSCalibrateResultPtr& p ) const
 	{
+		folium_.dataClass( p->dataClass() );
 	    return adfs::cpio< adcontrols::MSCalibrateResult >::copyin( *p, folium_ );
 	} 
     } // namespace detail
