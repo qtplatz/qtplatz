@@ -30,6 +30,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adportable/array_wrapper.hpp>
+#include <adportable/debug.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
@@ -181,7 +182,7 @@ datafile::getSpectrum( int fcn, int pos, adcontrols::MassSpectrum& ms ) const
 
 		return true;
 	} catch(_com_error& ex ) {
-		::MessageBox(NULL, ex.ErrorMessage(), L"compassxtract::datafile::getSpectrum", MB_OK);
+		adportable::debug(__FILE__, __LINE__)  << ex.ErrorMessage();
 		return false;
 	}
 	return false;
@@ -233,7 +234,7 @@ datafile::_open( const std::wstring& filename, bool )
 				(void)n;
             }
         } catch(_com_error& ex ) {
-			::MessageBox(NULL, ex.ErrorMessage(), L"compassxtract::datafile::is_valid_datafile", MB_OK);
+			adportable::debug(__FILE__, __LINE__)  << ex.ErrorMessage();
 			return false;
         }
     }
@@ -318,7 +319,7 @@ datafile::is_valid_datafile( const std::wstring& filename )
 			hr = pAnalysis->Open( _bstr_t( rpath.wstring().c_str() ) );
 			return hr == S_OK; // 
 		} catch(_com_error& ex ) {
-			::MessageBox(NULL, ex.ErrorMessage(), L"compassxtract -- error", MB_OK);
+			adportable::debug(__FILE__, __LINE__)  << ex.ErrorMessage();
 		}
 
 /*
