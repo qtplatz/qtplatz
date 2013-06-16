@@ -45,10 +45,17 @@ namespace adcontrols {
 
 extern "C" {
     FTICRSHARED_EXPORT adcontrols::datafile_factory * datafile_factory();
+	FTICRSHARED_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
 
 adcontrols::datafile_factory *
 datafile_factory()
 {
 	return new fticr::datafile_factory();
+}
+
+adplugin::plugin *
+adplugin_plugin_instance()
+{
+    return new fticr::datafile_factory();
 }

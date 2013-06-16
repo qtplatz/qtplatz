@@ -28,7 +28,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/smart_ptr.hpp>
+#include <memory>
 #include <map>
 #include <string>
 
@@ -59,7 +59,7 @@ namespace fticr {
 		static bool is_valid_datafile( const std::wstring& );
 	private:
 		std::wstring filename_; // root directory name
-		boost::scoped_ptr< adcontrols::ProcessedDataset> processedDataset_;
+		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
 		struct acqu {
 			double ml1;
 			double ml2;

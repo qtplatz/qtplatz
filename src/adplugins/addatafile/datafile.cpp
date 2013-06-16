@@ -39,8 +39,6 @@
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <boost/any.hpp>
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>

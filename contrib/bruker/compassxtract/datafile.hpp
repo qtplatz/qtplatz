@@ -29,7 +29,7 @@
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/smart_ptr.hpp>
+#include <memory>
 #import <CompassXtractMS.dll>
 
 namespace compassxtract {
@@ -57,8 +57,8 @@ namespace compassxtract {
 	private:
 		bool getTIC();
 		std::wstring filename_; // root directory name
-		boost::scoped_ptr< adcontrols::ProcessedDataset> processedDataset_;
-		boost::scoped_ptr< adcontrols::Chromatogram > pTIC_;
+		std::unique_ptr< adcontrols::ProcessedDataset> processedDataset_;
+		std::unique_ptr< adcontrols::Chromatogram > pTIC_;
 		EDAL::IMSAnalysis2Ptr pAnalysis_;
 	};
 

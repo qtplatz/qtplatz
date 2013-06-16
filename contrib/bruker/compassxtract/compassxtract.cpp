@@ -48,10 +48,17 @@ namespace adcontrols {
 
 extern "C" {
 	COMPASSXTRACTSHARED_EXPORT adcontrols::datafile_factory * datafile_factory();
+	COMPASSXTRACTSHARED_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
 
 adcontrols::datafile_factory *
 datafile_factory()
 {
 	return new compassxtract::datafile_factory();
+}
+
+adplugin::plugin *
+adplugin_plugin_instance()
+{
+    return new compassxtract::datafile_factory();
 }
