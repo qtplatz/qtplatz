@@ -107,10 +107,11 @@ namespace adcontrols {
 //////
 template<class T> struct method_finder {
     static const T * find( const ProcessMethod::vector_type& vec ) {
-        for ( ProcessMethod::vector_type::const_iterator it = vec.begin(); it != vec.end(); ++it ) {
-            if ( it->type() == typeid( T ) )
-                return &boost::get<T>(*it);
-        }
+		auto it = std::find_if( vec.begin(), vec.end(), [&]( const ProcessMethod::value_type& t ){
+			return typeid(T) == t.type();
+		});
+		if ( it != vec.end() )
+			return &boost::get< T >( *it );
         return 0;
     }
 };

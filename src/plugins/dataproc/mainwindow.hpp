@@ -27,6 +27,7 @@
 
 #include <utils/fancymainwindow.h>
 #include "constants.hpp"
+#include <memory>
 
 namespace adportable { class Configuration; }
 namespace adcontrols { class datafile; class ProcessMethod; class MSAssignedMasses; }
@@ -38,6 +39,7 @@ class QWidget;
 class QToolButton;
 class QAction;
 class QStackedWidget;
+class QLineEdit;
 
 namespace dataproc {
 
@@ -66,6 +68,9 @@ namespace dataproc {
 
         void applyCalibration( const adcontrols::MSAssignedMasses& );
         void applyCalibration( const adcontrols::MSAssignedMasses&, portfolio::Folium& );
+        
+        void processMethodSaved( const QString& );
+        void processMethodLoaded( const QString&, const adcontrols::ProcessMethod& );
         
     signals:
         void signalUpdateFile( adcontrols::datafile * );
@@ -101,6 +106,7 @@ namespace dataproc {
         QAction * actionSelMSCalibSpectra_;
         QAction * actionSelChromatogram_;
         QStackedWidget * stack_;
+        std::unique_ptr< QLineEdit > processMethodNameEdit_;
 
         enum ProcessType currentFeature_;
 

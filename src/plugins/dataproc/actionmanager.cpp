@@ -24,44 +24,50 @@
 **************************************************************************/
 
 #include "actionmanager.hpp"
+#include "constants.hpp"
+#include "mainwindow.hpp"
+#include <adcontrols/processmethod.hpp>
+#include <adfs/adfs.hpp>
+#include <adfs/cpio.hpp>
+#include <adfs/sqlite.hpp>
+
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/editormanager/ieditor.h>
-
 #include <coreplugin/coreconstants.h>
 #include <QIcon>
-//#include <coreplugin/mimedatabase.h>
-#include <coreplugin/coreconstants.h>
-//#include <QStringList>
-//#include "dataprocplugin.h"
+#include <QFileDialog>
+#include <QMessageBox>
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 
 using namespace dataproc;
 
 ActionManager::ActionManager(QObject *parent) : QObject(parent)
-                                              , saveAction_( 0 )
-                                              , saveAsAction_( 0 )
-                                              , closeCurrentEditorAction_( 0 )
-                                              , closeAllEditorsAction_( 0 )
-                                              , closeOtherEditorsAction_( 0 )
-                                              , importFile_( 0 )
 {
 }
 
 bool
 ActionManager::initialize_actions( const QList<int>& context )
 {
-    (void)context;
-    //context_ = context;
-#if 0
-    Core::ICore * core = Core::ICore::instance();
-    Core::ActionManager *am = core->actionManager();
+    QIcon iconMethodOpen, iconMethodSave;
+    iconMethodOpen.addFile( Constants::ICON_METHOD_OPEN );
+    actMethodOpen_.reset( new QAction( iconMethodOpen, tr("Process method open..."), this ) );
+    connect( actMethodOpen_.get(), SIGNAL( triggered() ), this, SLOT( actMethodOpen() ) );
 
-	saveAsAction_ = new QAction( QIcon( ":/dataproc/image/apply_small.png" ), tr("SaveAs" ), this );
-	am->registerAction( saveAsAction_, Core::Constants::SAVEAS, context );
-    connect( saveAsAction_, SIGNAL( triggered() ), this, SLOT( saveFileAs() ) );
-#endif
+    iconMethodSave.addFile( Constants::ICON_METHOD_SAVE );
+    actMethodSave_.reset( new QAction( iconMethodSave, tr("Process method save..."), this ) );
+    connect( actMethodSave_.get(), SIGNAL( triggered() ), this, SLOT( actMethodSave() ) );
+
+	Core::ActionManager *am = Core::ICore::instance()->actionManager();
+    if ( am ) {
+        Core::Command * cmd = 0;
+        cmd = am->registerAction( actMethodOpen_.get(), Constants::METHOD_OPEN, context );
+        cmd = am->registerAction( actMethodSave_.get(), Constants::METHOD_SAVE, context );
+		(void)cmd;
+    }
     return true;
 }
 
@@ -78,3 +84,61 @@ ActionManager::importFile()
 {
     return true;
 }
+
+void
+ActionManager::actMethodSave()
+{
+    QString name = QFileDialog::getSaveFileName( MainWindow::instance()
+                                                 , tr("Save process method"), "."
+                                                 , tr("Process method files(*.pmth)" ) );
+    if ( ! name.isEmpty() ) {
+        boost::filesystem::path path( name.toStdString() );
+        path.replace_extension( ".pmth" );
+        adfs::portfolio file;
+        try {
+            if ( !file.create( path.wstring().c_str() ) )
+                return;
+        } catch ( adfs::exception& ex ) {
+            QMessageBox::warning( 0, "Process method", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
+            return;
+        }
+        adfs::folder folder = file.addFolder( L"/ProcessMethod" );
+        adfs::folium folium = folder.addFolium( path.wstring() ); // internal filename := os filename
+        adcontrols::ProcessMethod m;
+        MainWindow::instance()->getProcessMethod( m );
+        adfs::cpio< adcontrols::ProcessMethod >::copyin( m, folium );
+        folium.dataClass( adcontrols::ProcessMethod::dataClass() );
+        folium.commit();
+        
+        MainWindow::instance()->processMethodSaved( name );
+    }
+}
+
+void
+ActionManager::actMethodOpen()
+{
+    QString name = QFileDialog::getOpenFileName( MainWindow::instance()
+                                                 , tr("Open process method"), "."
+                                                 , tr("Process method files(*.pmth)" ) );
+    if ( ! name.isEmpty() ) {
+		boost::filesystem::path path( name.toStdString() );
+        adfs::portfolio file;
+        try {
+            if ( ! file.mount( path.wstring().c_str() ) )
+                return;
+        } catch ( adfs::exception& ex ) {
+            QMessageBox::warning( 0, "SequenceFile", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
+            return;
+        }
+
+        adfs::folder folder = file.findFolder( L"/ProcessMethod" );
+        std::vector< adfs::folium > folio = folder.folio();
+        if ( folio.empty() )
+            return;
+        auto it = folio.begin();
+        adcontrols::ProcessMethod m;
+        adfs::cpio< adcontrols::ProcessMethod >::copyout( m, *it );
+        MainWindow::instance()->processMethodLoaded( name, m );
+    }
+}
+

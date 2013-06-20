@@ -70,11 +70,10 @@ namespace qtwidgets {
         Ui::CentroidForm *ui;
 
         std::unique_ptr<adcontrols::CentroidMethod> pMethod_;
-		// std::unique_ptr< CentroidDelegate > pDelegate_;
         adportable::Configuration config_;
     private:
-		// void update_model();
         void update_data();
+        void update_data( const adcontrols::CentroidMethod& );
 
     public slots:
         void getLifeCycle( adplugin::LifeCycle *& p );

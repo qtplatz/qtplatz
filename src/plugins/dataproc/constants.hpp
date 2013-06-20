@@ -29,10 +29,20 @@
 namespace dataproc {
 
     namespace Constants {
-        const char * const C_DATAPROCESSOR = "Dataprocessor";
-        const char * const C_DATAPROC_MODE = "Dataproc.Mode";
+        const char * const C_DATAPROCESSOR      = "Dataprocessor";
+        const char * const C_DATAPROC_MODE      = "Dataproc.Mode";
         const char * const C_DATA_TEXT_MIMETYPE = "application/txt";
         const char * const C_DATA_NATIVE_MIMETYPE = "application/adfs";
+
+        // common actions
+        const char * const METHOD_OPEN          = "dataproc.MethodOpen";
+        const char * const METHOD_SAVE          = "dataproc.MethodSave";
+        const char * const METHOD_APPLY         = "dataproc.MethodApply";
+
+        // icon
+        const char * const ICON_METHOD_SAVE     = ":/dataproc/image/filesave.png";
+        const char * const ICON_METHOD_OPEN     = ":/dataproc/image/fileopen.png";
+        const char * const ICON_METHOD_APPLY    = ":/dataproc/image/apply_small.png";
     }
 
     enum ProcessType {

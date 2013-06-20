@@ -102,6 +102,7 @@ namespace dataproc {
         DataprocessorFactory * dataprocFactory_;
         
         std::unique_ptr< iSequenceImpl > iSequence_;
+
         static DataprocPlugin * instance_;
         
         // static bool install_dataprovider( const adportable::Configuration&, const std::wstring& );

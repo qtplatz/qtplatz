@@ -89,7 +89,7 @@ MainWindow::~MainWindow()
 {
 }
 
-MainWindow::MainWindow( QWidget *parent ) :  Utils::FancyMainWindow(parent)
+MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , toolBar_( 0 )
                                           , toolBarLayout_( 0 )
                                           , toolBarDockWidget_( 0 )
@@ -102,6 +102,8 @@ MainWindow::MainWindow( QWidget *parent ) :  Utils::FancyMainWindow(parent)
                                           , actionSelChromatogram_( 0 )
                                           , stack_( 0 )
                                           , currentFeature_( CentroidProcess )
+                                          , processMethodNameEdit_( new QLineEdit ) 
+
 {
 }
 
@@ -182,16 +184,20 @@ MainWindow::createStyledBarMiddle()
         toolBarLayout->setSpacing(0);
         Core::ActionManager * am = Core::ICore::instance()->actionManager();
         if ( am ) {
+            // method file open & save buttons
+            toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_OPEN)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_SAVE)->action()));
+            //----------
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            //----------
             QList<int> context;
             context << Core::Constants::C_GLOBAL_ID;
             
-            actionApply_ = new QAction( QIcon( ":/dataproc/image/apply_small.png" ), tr("Apply" ), this );
+            actionApply_ = new QAction( QIcon( Constants::ICON_METHOD_APPLY ), tr("Apply" ), this );
             bool res = connect( actionApply_, SIGNAL( triggered() ), this, SLOT( actionApply() ) );
             assert( res );
-            am->registerAction( actionApply_, "dataproc.apply", context );
-            toolBarLayout->addWidget( toolButton( am->command( "dataproc.apply" )->action() ) );
-
-            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            am->registerAction( actionApply_, Constants::METHOD_APPLY, context );
+            toolBarLayout->addWidget( toolButton( am->command( Constants::METHOD_APPLY )->action() ) );
 
             QComboBox * features = new QComboBox;
             features->addItem( "Centroid" );
@@ -200,10 +206,14 @@ MainWindow::createStyledBarMiddle()
             features->addItem( "Find peaks" );
             toolBarLayout->addWidget( features );
 
-            bool r = connect( features, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleFeatureSelected(int) ) );
-            assert( r );
-            r = connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) );
-            assert( r );
+            connect( features, SIGNAL( currentIndexChanged(int) ), this, SLOT( handleFeatureSelected(int) ) );
+            connect( features, SIGNAL( activated(int) ), this, SLOT( handleFeatureActivated(int) ) );
+
+            //----------
+            toolBarLayout->addWidget( new Utils::StyledSeparator );
+            toolBarLayout->addWidget( new QLabel( tr("Process Method:" ) ) );
+            toolBarLayout->addWidget( processMethodNameEdit_.get() );
+
             toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
         }
     }
@@ -554,5 +564,27 @@ void
 MainWindow::actionSelChromatogram()
 {
     stack_->setCurrentIndex( 4 );
+}
+
+void
+MainWindow::processMethodSaved( const QString& name )
+{
+    processMethodNameEdit_->setText( name );
+}
+
+void
+MainWindow::processMethodLoaded( const QString& name, const adcontrols::ProcessMethod& m )
+{
+    processMethodNameEdit_->setText( name );
+
+	QList< QDockWidget * >& docs = this->dockWidgets();
+
+	std::for_each( docs.begin(), docs.end(), [&]( QDockWidget * dock ){
+		QWidget * obj = dock->widget();
+		adplugin::LifeCycleAccessor accessor( obj );
+		adplugin::LifeCycle * pLifeCycle = accessor.get();
+		if ( pLifeCycle ) 
+			pLifeCycle->setContents( boost::any( m ) );
+    });
 }
 

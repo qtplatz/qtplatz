@@ -136,7 +136,10 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
     Q_UNUSED(folium);
 
     portfolio::Folder folder = folium.getParentFolder();
-    if ( folder && folder.name() != L"MSCalibration" )
+	if ( ! folder )
+		return;
+
+	if ( folder.name() != L"MSCalibration" )
         return;
 
     do {

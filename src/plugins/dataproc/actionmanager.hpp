@@ -27,6 +27,7 @@
 
 #include <QObject>
 #include <QList>
+#include <memory>
 
 class QAction;
 
@@ -40,17 +41,23 @@ namespace dataproc {
         bool initialize_actions( const QList<int>& context );
 
     private:
-        QAction * saveAction_;
-        QAction * saveAsAction_;
-        QAction * closeCurrentEditorAction_;
-        QAction * closeAllEditorsAction_;
-        QAction * closeOtherEditorsAction_;
-        QAction * importFile_;
+        std::unique_ptr< QAction > saveAction_;
+        std::unique_ptr< QAction > saveAsAction_;
+        std::unique_ptr< QAction > closeCurrentEditorAction_;
+        std::unique_ptr< QAction > closeAllEditorsAction_;
+        std::unique_ptr< QAction > closeOtherEditorsAction_;
+        std::unique_ptr< QAction > importFile_;
+        std::unique_ptr< QAction > actMethodOpen_;
+        std::unique_ptr< QAction > actMethodSave_;
+
     signals:
 
     public slots:
         bool saveFileAs();
         bool importFile();
+
+        void actMethodSave();
+        void actMethodOpen();
 
     };
 }

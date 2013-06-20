@@ -36,6 +36,8 @@
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/peakmethod.hpp>
 
+#include <compiler/disable_dll_interface.h>
+
 namespace boost { namespace serialization { class access; } }
 
 
@@ -46,7 +48,7 @@ namespace adcontrols {
         ~ProcessMethod();
         ProcessMethod();
         ProcessMethod( const ProcessMethod& );
-        static const wchar_t * dataClass() { return L"ProcessMethod"; }
+        static const wchar_t * dataClass() { return L"adcontrols::ProcessMethod"; }
 
         typedef boost::variant< CentroidMethod
                               , IsotopeMethod
@@ -76,14 +78,7 @@ namespace adcontrols {
         static bool restore( std::istream&, ProcessMethod& );
 
     private:
-#ifdef _MSC_VER
-# pragma warning( push )
-# pragma warning( disable: 4251 ) // dll-linkage for
-#endif
         vector_type vec_;
-#ifdef _MSC_VER
-# pragma warning( pop )
-#endif
         friend class boost::serialization::access;
         template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
 

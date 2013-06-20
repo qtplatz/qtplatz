@@ -54,8 +54,46 @@ CentroidForm::OnCreate( const adportable::Configuration& config )
 void
 CentroidForm::OnInitialUpdate()
 {
-	const adcontrols::CentroidMethod& method = *pMethod_;
+    update_data( *pMethod_ );
+}
 
+void
+CentroidForm::OnFinalClose()
+{
+}
+
+bool
+CentroidForm::getContents( boost::any& ) const
+{
+    return false;
+}
+
+bool
+CentroidForm::setContents( boost::any& any )
+{
+	try {
+		const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( any );
+        const adcontrols::CentroidMethod * t = pm.find< adcontrols::CentroidMethod >();
+        if ( t ) {
+            *pMethod_ = *t;
+            update_data( *pMethod_ );
+        }
+	} catch ( boost::bad_any_cast& ) {
+		return false;
+	}
+	return true;
+}
+
+void
+CentroidForm::getLifeCycle( adplugin::LifeCycle *& p )
+{
+    p = this;
+}
+
+///
+void
+CentroidForm::update_data( const adcontrols::CentroidMethod& method )
+{
     // Scan Type
     ui->doubleSpinBox_peakwidth->setValue( method.rsTofInDa() );
     ui->doubleSpinBox_mz->setValue( method.rsTofAtMz() );
@@ -90,30 +128,6 @@ CentroidForm::OnInitialUpdate()
 	ui->doubleSpinBox_baselinewidth->setValue( method.baselineWidth() );
 }
 
-void
-CentroidForm::OnFinalClose()
-{
-}
-
-bool
-CentroidForm::getContents( boost::any& ) const
-{
-    return false;
-}
-
-bool
-CentroidForm::setContents( boost::any& )
-{
-    return false;
-}
-
-void
-CentroidForm::getLifeCycle( adplugin::LifeCycle *& p )
-{
-    p = this;
-}
-
-///
 void
 CentroidForm::update_data()
 {
