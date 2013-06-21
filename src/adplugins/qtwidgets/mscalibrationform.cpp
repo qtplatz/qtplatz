@@ -84,27 +84,9 @@ void
 MSCalibrationForm::OnInitialUpdate()
 {
     QStandardItemModel& model = *pModel_;
-    adcontrols::MSCalibrateMethod& method = *pMethod_;
+    update_data( *pMethod_ );
 
     QStandardItem * rootNode = model.invisibleRootItem();
-    ui->treeView->setItemDelegate( pDelegate_.get() );
-
-    rootNode->setColumnCount(3);
-    model.setHeaderData( 0, Qt::Horizontal, "MSCaribrate" );
-    model.setHeaderData( 1, Qt::Horizontal, "exact mass" );
-    model.setHeaderData( 2, Qt::Horizontal, "enable" );
-
-    ui->spinPolynomials->setValue( method.polynomialDegree() );
-    ui->spinMassTolerance->setValue( method.massToleranceDa() );
-    ui->spinMinimumRA->setValue( method.minimumRAPercent() );
-    ui->spinLowMass->setValue( method.lowMass() );
-    ui->spinHighMass->setValue( method.highMass() );
-//----
-    //StandardItemHelper::appendRow( rootNode, "Polynomial[degree]", method.polynomialDegree() );
-    //StandardItemHelper::appendRow( rootNode, "Mass Tolerance[Da]", method.massToleranceDa() );
-    //StandardItemHelper::appendRow( rootNode, "Minimum RA[%]",      method.minimumRAPercent() );
-    //StandardItemHelper::appendRow( rootNode, "Low Mass[Da]",       method.lowMass() );
-    //StandardItemHelper::appendRow( rootNode, "High Mass[Da]",      method.highMass() );
 
     //------ create Xe reference -------
     adcontrols::MSReferences Xe;
@@ -183,9 +165,17 @@ MSCalibrationForm::getContents( boost::any& ) const
 }
 
 bool
-MSCalibrationForm::setContents( boost::any& )
+MSCalibrationForm::setContents( boost::any& a )
 {
-    return false;
+    if ( a.type() != typeid( adcontrols::ProcessMethod ) )
+        return false;
+    adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >(a);
+	const adcontrols::MSCalibrateMethod *p = pm.find< adcontrols::MSCalibrateMethod >();
+    if ( ! p )
+        return false;
+    *pMethod_ = *p;
+    update_data( *pMethod_ );
+    return true;
 }
 
 void
@@ -232,6 +222,25 @@ MSCalibrationForm::getContents( adcontrols::ProcessMethod& pm )
     pMethod_->references( references );
 
     pm.appendMethod< adcontrols::MSCalibrateMethod >( *pMethod_ );
+}
+
+void
+MSCalibrationForm::update_data( const adcontrols::MSCalibrateMethod& method )
+{
+	QStandardItemModel& model = *pModel_;
+    QStandardItem * rootNode = model.invisibleRootItem();
+    ui->treeView->setItemDelegate( pDelegate_.get() );
+
+    rootNode->setColumnCount(3);
+    model.setHeaderData( 0, Qt::Horizontal, "MSCaribrate" );
+    model.setHeaderData( 1, Qt::Horizontal, "exact mass" );
+    model.setHeaderData( 2, Qt::Horizontal, "enable" );
+
+    ui->spinPolynomials->setValue( method.polynomialDegree() );
+    ui->spinMassTolerance->setValue( method.massToleranceDa() );
+    ui->spinMinimumRA->setValue( method.minimumRAPercent() );
+    ui->spinLowMass->setValue( method.lowMass() );
+    ui->spinHighMass->setValue( method.highMass() );
 }
 
 void

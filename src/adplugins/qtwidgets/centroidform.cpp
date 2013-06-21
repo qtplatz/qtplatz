@@ -71,17 +71,16 @@ CentroidForm::getContents( boost::any& ) const
 bool
 CentroidForm::setContents( boost::any& any )
 {
-	try {
-		const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( any );
-        const adcontrols::CentroidMethod * t = pm.find< adcontrols::CentroidMethod >();
-        if ( t ) {
-            *pMethod_ = *t;
-            update_data( *pMethod_ );
-        }
-	} catch ( boost::bad_any_cast& ) {
-		return false;
-	}
-	return true;
+	if ( any.type() != typeid ( adcontrols::ProcessMethod ) )
+        return false;
+
+    const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( any );
+    const adcontrols::CentroidMethod * t = pm.find< adcontrols::CentroidMethod >();
+    if ( ! t )
+        return false;
+    *pMethod_ = *t;
+    update_data( *pMethod_ );
+    return true;
 }
 
 void

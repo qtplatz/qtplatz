@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>200</height>
+    <width>301</width>
+    <height>168</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,6 +23,11 @@
       <layout class="QHBoxLayout" name="horizontalLayout7">
        <item>
         <widget class="QLabel" name="label">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>Scan Type:</string>
          </property>
@@ -33,6 +38,11 @@
        </item>
        <item>
         <widget class="QRadioButton" name="radioButton_propo">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>Proportional</string>
          </property>
@@ -43,6 +53,11 @@
        </item>
        <item>
         <widget class="QRadioButton" name="radioButton_constant">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>Constant</string>
          </property>
@@ -53,6 +68,11 @@
        </item>
        <item>
         <widget class="QRadioButton" name="radioButton_tof">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>TOF</string>
          </property>
@@ -70,6 +90,11 @@
       <layout class="QHBoxLayout" name="horizontalLayout6">
        <item>
         <widget class="QLabel" name="label_2">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>Peak width [Da]:</string>
          </property>
@@ -80,6 +105,11 @@
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_peakwidth">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="decimals">
           <number>3</number>
          </property>
@@ -96,6 +126,11 @@
        </item>
        <item>
         <widget class="QLabel" name="label_3">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>at m/z</string>
          </property>
@@ -106,6 +141,11 @@
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_mz">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="decimals">
           <number>0</number>
          </property>
@@ -123,6 +163,11 @@
       <layout class="QHBoxLayout" name="horizontalLayout5">
        <item>
         <widget class="QLabel" name="label_4">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>Proportional [ppm]:</string>
          </property>
@@ -133,6 +178,11 @@
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_proportional">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="maximum">
           <double>100000.000000000000000</double>
          </property>
@@ -147,6 +197,11 @@
       <layout class="QHBoxLayout" name="horizontalLayout4">
        <item>
         <widget class="QLabel" name="label_5">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>Constant [Da]:</string>
          </property>
@@ -157,6 +212,11 @@
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_constant">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="value">
           <double>1.000000000000000</double>
          </property>
@@ -168,6 +228,11 @@
       <layout class="QHBoxLayout" name="horizontalLayout3">
        <item>
         <widget class="QLabel" name="label_6">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>Area/Height:</string>
          </property>
@@ -178,6 +243,11 @@
        </item>
        <item>
         <widget class="QRadioButton" name="radioButton_area">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>Area</string>
          </property>
@@ -191,6 +261,11 @@
        </item>
        <item>
         <widget class="QRadioButton" name="radioButton_height">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>Height</string>
          </property>
@@ -205,6 +280,11 @@
       <layout class="QHBoxLayout" name="horizontalLayout2">
        <item>
         <widget class="QLabel" name="label_7">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>Centroid fraction [%]:</string>
          </property>
@@ -215,6 +295,11 @@
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_centroidfraction">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="value">
           <double>50.000000000000000</double>
          </property>
@@ -226,6 +311,11 @@
       <layout class="QHBoxLayout" name="horizontalLayout1">
        <item>
         <widget class="QLabel" name="label_8">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="text">
           <string>Baseline width [Da]:</string>
          </property>
@@ -236,6 +326,11 @@
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_baselinewidth">
+         <property name="font">
+          <font>
+           <family>Calibri</family>
+          </font>
+         </property>
          <property name="maximum">
           <double>1000.000000000000000</double>
          </property>
@@ -315,7 +410,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

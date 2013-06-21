@@ -24,42 +24,75 @@
 
 #include <compiler/disable_unused_parameter.h>
 #include "targetingmethod.hpp"
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/scoped_ptr.hpp>
-#include <boost/serialization/version.hpp>
-#include <adportable/portable_binary_oarchive.hpp>
-#include <adportable/portable_binary_iarchive.hpp>
-
 
 using namespace adcontrols;
 
-TargetingMethod::TargetingMethod()
+TargetingMethod::TargetingMethod() : isPositiveIonMode_( true )
+                                   , chargeStateMin_( 1 )
+                                   , chargeStateMax_( 1 )
 {
+    adductsPos_.push_back( std::pair< std::wstring, bool >( L"+H+", true ) );
+    adductsPos_.push_back( std::pair< std::wstring, bool >( L"+Na+", false ) );
+    adductsPos_.push_back( std::pair< std::wstring, bool >( L"+K+", false ) );
+    adductsPos_.push_back( std::pair< std::wstring, bool >( L"+Li+", false ) );
+
+    adductsNeg_.push_back( std::pair< std::wstring, bool >( L"-H+", true ) );
+    adductsNeg_.push_back( std::pair< std::wstring, bool >( L"+COO-", false ) );
+    adductsNeg_.push_back( std::pair< std::wstring, bool >( L"+Cl-", false ) );
 }
 
-///////////// serialize //////////////////
+TargetingMethod::TargetingMethod( const TargetingMethod& t )
+{
+    operator = ( t );
+}
 
-namespace adcontrols {
+TargetingMethod&
+TargetingMethod::operator = ( const TargetingMethod& rhs )
+{
+    isPositiveIonMode_ = rhs.isPositiveIonMode_;
+    formulae_ = rhs.formulae_;
+    adductsPos_ = rhs.adductsPos_;
+    adductsNeg_ = rhs.adductsNeg_;
+    chargeStateMin_ = rhs.chargeStateMin_;
+    chargeStateMax_ = rhs.chargeStateMax_;
+	return *this;
+}
 
-    template<> void
-    //TargetingMethod::serialize( portable_binary_oarchive& /*ar*/, const unsigned int /* version */)
-    TargetingMethod::serialize( portable_binary_oarchive& /*ar*/, const unsigned int /* version */)
-    {
-/*
-  if ( version >= 0 )
-  ar << boost::serialization::make_nvp( "ElementalCompositionMethod", pImpl_ );
-*/
-    }
 
-    template<> void
-        //TargetingMethod::serialize( portable_binary_iarchive& /*ar*/, const unsigned int /*version*/)
-    TargetingMethod::serialize( portable_binary_iarchive& /*ar*/, const unsigned int /*version*/)
-    {
-/*
-  if ( version >= 0 )
-  ar >> boost::serialization::make_nvp( "ElementalCompositionMethod", pImpl_ );
-*/
-    }
+std::vector< TargetingMethod::value_type >&
+TargetingMethod::adducts( bool positive )
+{
+    return positive ? adductsPos_ : adductsNeg_;
+}
 
-}; // namespace adcontrols
+const std::vector< TargetingMethod::value_type >&
+TargetingMethod::adducts( bool positive ) const
+{
+    return positive ? adductsPos_ : adductsNeg_;
+}
+
+std::pair< unsigned int, unsigned int >
+TargetingMethod::chargeState() const
+{
+    return std::pair< unsigned int, unsigned int >( chargeStateMin_, chargeStateMax_ );
+}
+
+void
+TargetingMethod::chargeState( unsigned int min, unsigned int max )
+{
+    chargeStateMin_ = min;
+    chargeStateMax_ = max;
+}
+
+std::vector< TargetingMethod::value_type >&
+TargetingMethod::formulae()
+{
+    return formulae_;
+}
+
+const std::vector< TargetingMethod::value_type >&
+TargetingMethod::formulae() const
+{
+    return formulae_;
+}
 

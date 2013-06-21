@@ -89,6 +89,8 @@ namespace qtwidgets {
         std::unique_ptr< adportable::Configuration > pConfig_;
         std::unique_ptr< adcontrols::MSCalibrateMethod > pMethod_;
         std::unique_ptr< MSCalibrateDelegate > pDelegate_;
+
+        void update_data( const adcontrols::MSCalibrateMethod& );
     };
 
 }

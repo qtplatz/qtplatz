@@ -25,22 +25,62 @@
 #ifndef TARGETFORM_HPP
 #define TARGETFORM_HPP
 
+#include <adplugin/lifecycle.hpp>
 #include <QWidget>
+#include <memory>
+
+class QStandardItemModel;
+class QTreeView;
 
 namespace Ui {
-class TargetForm;
+    class TargetForm;
 }
 
-class TargetForm : public QWidget
-{
-    Q_OBJECT
-    
-public:
-    explicit TargetForm(QWidget *parent = 0);
-    ~TargetForm();
-    
-private:
-    Ui::TargetForm *ui;
-};
+namespace adcontrols { class TargetingMethod; class ProcessMethod; }
+
+namespace qtwidgets {
+
+    class AdductsDelegate;
+    class FormulaeDelegate;
+
+    class TargetForm : public QWidget
+		             , adplugin::LifeCycle {
+        Q_OBJECT
+    public:
+        explicit TargetForm(QWidget *parent = 0);
+        ~TargetForm();
+
+		 // adplugin::LifeCycle
+        void OnCreate( const adportable::Configuration& ) override;
+        void OnInitialUpdate() override;
+        void OnFinalClose() override;
+        bool getContents( boost::any& ) const override;
+        bool setContents( boost::any& ) override;
+    public slots:
+        void getLifeCycle( adplugin::LifeCycle *& p );
+        void getContents( adcontrols::ProcessMethod& );
+		virtual void update();
+	signals:
+         void apply( adcontrols::ProcessMethod& );
+
+    private:
+        Ui::TargetForm *ui;
+        std::unique_ptr< QStandardItemModel > adductsModel_;
+        std::unique_ptr< QStandardItemModel > formulaeModel_;
+        std::unique_ptr< AdductsDelegate > adductsDelegate_;
+        std::unique_ptr< FormulaeDelegate > formulaeDelegate_;
+        std::unique_ptr< adcontrols::TargetingMethod > method_;
+
+		static void update_adducts( QTreeView&
+                                    , QStandardItemModel&
+                                    , const QModelIndex&
+                                    , const adcontrols::TargetingMethod&, bool positiveMode );
+
+		static void update_formulae( QTreeView&, QStandardItemModel&, const adcontrols::TargetingMethod& );
+        static void initAdducts( QTreeView&, QStandardItemModel& );
+        static void initFormulae( QTreeView&, QStandardItemModel& );
+    };
+
+}
 
 #endif // TARGETFORM_HPP

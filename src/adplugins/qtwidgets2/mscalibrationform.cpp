@@ -99,13 +99,7 @@ MSCalibrationForm::OnInitialUpdate()
     ui->spinMinimumRA->setValue( method.minimumRAPercent() );
     ui->spinLowMass->setValue( method.lowMass() );
     ui->spinHighMass->setValue( method.highMass() );
-//----
-    //StandardItemHelper::appendRow( rootNode, "Polynomial[degree]", method.polynomialDegree() );
-    //StandardItemHelper::appendRow( rootNode, "Mass Tolerance[Da]", method.massToleranceDa() );
-    //StandardItemHelper::appendRow( rootNode, "Minimum RA[%]",      method.minimumRAPercent() );
-    //StandardItemHelper::appendRow( rootNode, "Low Mass[Da]",       method.lowMass() );
-    //StandardItemHelper::appendRow( rootNode, "High Mass[Da]",      method.highMass() );
-
+	//----
     //------ create Xe reference -------
     adcontrols::MSReferences Xe;
     Xe.name( L"Xe-EI" );

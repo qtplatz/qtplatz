@@ -54,7 +54,10 @@ SOURCES += centroiddelegate.cpp \
         standarditemhelper.cpp \
         standardmodel.cpp \
         treeitem.cpp \
-        chemicalformula.cpp 
+        chemicalformula.cpp \ 
+        targetform.cpp \
+        adductsdelegate.cpp \
+        formulaedelegate.cpp
 
 HEADERS += centroiddelegate.hpp \
         centroidform.hpp \
@@ -83,7 +86,10 @@ HEADERS += centroiddelegate.hpp \
         isotopeform.hpp \
         isotopedelegate.hpp \
         peakmethodform.hpp \
-        peakmethoddelegate.hpp
+        peakmethoddelegate.hpp \
+        targetform.hpp \
+        adductsdelegate.hpp \
+        formulaedelegate.hpp
 
 FORMS += \
     centroidform.ui \
@@ -94,7 +100,8 @@ FORMS += \
     sequencesform.ui \
     sequencewidget.ui \
     isotopeform.ui \
-    peakmethodform.ui
+    peakmethodform.ui \
+    targetform.ui
 
 RESOURCES +=
 

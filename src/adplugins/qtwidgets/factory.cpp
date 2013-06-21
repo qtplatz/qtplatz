@@ -41,8 +41,10 @@
 #include "molwidget.hpp"
 #include "isotopeform.hpp"
 #include "peakmethodform.hpp"
+#include "targetform.hpp"
 #include <adplugin/lifecycle.hpp>
 #include <QMessageBox>
+#include <functional>
 
 using namespace qtwidgets;
 
@@ -58,6 +60,8 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
         pWidget = new qtwidgets::SequencesForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::CentroidForm" ) {
         pWidget = new qtwidgets::CentroidForm( parent );
+	} else if ( std::wstring( iid ) == L"qtwidgets::TargetForm" ) {
+        pWidget = new qtwidgets::TargetForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::ElementalCompositionForm" ) {
         pWidget = new qtwidgets::ElementalCompositionForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MSCalibrationForm" ) {

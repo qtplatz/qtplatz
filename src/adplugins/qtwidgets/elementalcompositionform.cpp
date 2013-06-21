@@ -116,9 +116,17 @@ ElementalCompositionForm::getContents( boost::any& ) const
 }
 
 bool
-ElementalCompositionForm::setContents( boost::any& )
+ElementalCompositionForm::setContents( boost::any& a )
 {
-    return false;
+    if ( a.type() != typeid( adcontrols::ProcessMethod ) )
+        return false;
+    adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >(a);
+	const adcontrols::ElementalCompositionMethod* p = pm.find< adcontrols::ElementalCompositionMethod >();
+    if ( ! p )
+        return false;
+    *pMethod_ = *p;
+    // update_data( *p );
+    return true;
 }
 
 void

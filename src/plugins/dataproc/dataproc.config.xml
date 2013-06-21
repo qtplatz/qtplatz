@@ -20,6 +20,10 @@
       <title>Centroid</title>
       <Component type="widget" interface="qtwidgets::CentroidForm" module="qtwidgets" loader="adplugin"/>
     </Configuration>
+    <Configuration name="TargetUI">
+      <title>Targeting</title>
+      <Component type="widget" interface="qtwidgets::TargetForm" module="qtwidgets" loader="adplugin"/>
+    </Configuration>
     <Configuration name="IsotopeUI">
       <title>Isotope</title>
       <Component type="widget" interface="qtwidgets::IsotopeForm" module="qtwidgets" loader="adplugin"/>
