@@ -60,6 +60,14 @@ namespace qtwidgets {
         void getLifeCycle( adplugin::LifeCycle *& p );
         void getContents( adcontrols::ProcessMethod& );
 		virtual void update();
+	
+	private slots:
+		void showContextMenu1( const QPoint& );
+		void showContextMenu2( const QPoint& );
+		void addAdductOrLoss();
+		void delAdductOrLoss();
+		void addFormula();
+		void delFormula();
 	signals:
          void apply( adcontrols::ProcessMethod& );
 
@@ -89,6 +97,7 @@ namespace qtwidgets {
 
         static void init_adducts( QTreeView&, QStandardItemModel& );
         static void init_formulae( QTreeView&, QStandardItemModel& );
+        static void enable_checkbox( QStandardItemModel&, QModelIndex&, bool isChecked );
     };
 
 }

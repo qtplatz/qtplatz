@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "adductsdelegate.hpp"
-
+#include <adportable/debug.hpp>
 #include <QComboBox>
 #include <QMetaType>
 #include <QPainter>
