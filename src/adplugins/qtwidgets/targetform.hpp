@@ -71,14 +71,24 @@ namespace qtwidgets {
         std::unique_ptr< FormulaeDelegate > formulaeDelegate_;
         std::unique_ptr< adcontrols::TargetingMethod > method_;
 
+        void get_method( adcontrols::TargetingMethod& ) const;
+        void set_method( const adcontrols::TargetingMethod& );
+
 		static void update_adducts( QTreeView&
                                     , QStandardItemModel&
                                     , const QModelIndex&
                                     , const adcontrols::TargetingMethod&, bool positiveMode );
 
 		static void update_formulae( QTreeView&, QStandardItemModel&, const adcontrols::TargetingMethod& );
-        static void initAdducts( QTreeView&, QStandardItemModel& );
-        static void initFormulae( QTreeView&, QStandardItemModel& );
+
+		static void get_adducts( QTreeView&
+                                 , QStandardItemModel&
+                                 , const QModelIndex&
+                                 , adcontrols::TargetingMethod&, bool positiveMode );
+		static void get_formulae( QTreeView&, QStandardItemModel&, adcontrols::TargetingMethod& );
+
+        static void init_adducts( QTreeView&, QStandardItemModel& );
+        static void init_formulae( QTreeView&, QStandardItemModel& );
     };
 
 }

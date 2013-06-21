@@ -58,26 +58,66 @@ namespace adcontrols {
 		std::vector< value_type >& formulae();
 		const std::vector< value_type >& formulae() const;
 
+        bool is_use_resolving_power() const;
+        void is_use_resolving_power( bool );
+
+        double resolving_power() const;
+        void resolving_power( double );
+
+        double peak_width() const;
+        void peak_width( double );
+
+        std::pair< bool, bool > isMassLimitsEnabled() const;
+        void isLowMassLimitEnabled( bool );
+        void isHighMassLimitEnabled( bool );
+        
+        double lowMassLimit() const;
+        void lowMassLimit( double );
+
+        double highMassLimit() const;
+        void highMassLimit( double );
+
+        double tolerance() const;
+        void tolerance( double );
+
     private:
         bool isPositiveIonMode_;
+
+        bool is_use_resolving_power_;
+        double resolving_power_;
+        double peak_width_;
+        unsigned int chargeStateMin_;
+        unsigned int chargeStateMax_;
+        bool isLowMassLimitEnabled_;
+        bool isHighMassLimitEnabled_;
+        double lowMassLimit_;
+        double highMassLimit_;
+        double tolerance_;
+
 		// formula should be formatted of "<chemical-formula-string> -- any comment" | "numerical value -- any comment"
         std::vector< std::pair< std::wstring, bool > > formulae_;
 
 		// adducts formula should be formatted of: "[+-]<formula-string>" where '+' or '-' specify adduct or loss
         std::vector< std::pair< std::wstring, bool > > adductsPos_;
         std::vector< std::pair< std::wstring, bool > > adductsNeg_;
-        unsigned int chargeStateMin_;
-        unsigned int chargeStateMax_;
 
         friend class boost::serialization::access;
         template<class Archive> void serialize(Archive& ar, const unsigned int version) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( isPositiveIonMode_ );
+            ar & BOOST_SERIALIZATION_NVP( is_use_resolving_power_ );
+            ar & BOOST_SERIALIZATION_NVP( resolving_power_ );
+            ar & BOOST_SERIALIZATION_NVP( peak_width_ );
+            ar & BOOST_SERIALIZATION_NVP( chargeStateMin_ );
+            ar & BOOST_SERIALIZATION_NVP( chargeStateMax_ );
+            ar & BOOST_SERIALIZATION_NVP( isLowMassLimitEnabled_ );
+            ar & BOOST_SERIALIZATION_NVP( isHighMassLimitEnabled_ );
+            ar & BOOST_SERIALIZATION_NVP( lowMassLimit_ );
+            ar & BOOST_SERIALIZATION_NVP( highMassLimit_ );
+            ar & BOOST_SERIALIZATION_NVP( tolerance_ );
             ar & BOOST_SERIALIZATION_NVP( formulae_ );
             ar & BOOST_SERIALIZATION_NVP( adductsPos_ );
             ar & BOOST_SERIALIZATION_NVP( adductsNeg_ );
-            ar & BOOST_SERIALIZATION_NVP( chargeStateMin_ );
-            ar & BOOST_SERIALIZATION_NVP( chargeStateMax_ );
         }
     };
 

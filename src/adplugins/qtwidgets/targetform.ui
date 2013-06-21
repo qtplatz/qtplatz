@@ -242,25 +242,7 @@
       </layout>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <widget class="QComboBox" name="comboBoxIonMode">
-         <item>
-          <property name="text">
-           <string>Positive Ion Mode</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Negative Ion Mode</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTreeView" name="adductsTree"/>
-       </item>
-      </layout>
+      <widget class="QTreeView" name="adductsTree"/>
      </item>
      <item>
       <widget class="QTreeView" name="formulaeTree"/>
