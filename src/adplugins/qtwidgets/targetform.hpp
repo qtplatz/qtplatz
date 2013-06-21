@@ -97,7 +97,8 @@ namespace qtwidgets {
 
         static void init_adducts( QTreeView&, QStandardItemModel& );
         static void init_formulae( QTreeView&, QStandardItemModel& );
-        static void enable_checkbox( QStandardItemModel&, QModelIndex&, bool isChecked );
+        static void enable_checkbox( QStandardItemModel&, QModelIndex&, bool isChecked, bool editable = true );
+        static bool is_checked( const QModelIndex& index );
     };
 
 }

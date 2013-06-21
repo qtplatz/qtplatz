@@ -37,8 +37,11 @@
 #include <QMenu>
 
 namespace qtwidgets { 
-	enum adducts_columns  { c_adduct_or_loss, c_adduct_checkbox };
-	enum formulae_columns { c_formula, c_formula_checkbox };
+	enum { row_positive, row_negative };
+	enum { c_adduct_or_loss = 0 };
+    enum { c_adduct_checkbox = 0, c_adduct_num_columns };
+	enum { c_formula = 0 };
+    enum { c_formula_checkbox = 0, c_formula_num_columns };
 }
 
 using namespace qtwidgets;
@@ -188,12 +191,13 @@ TargetForm::set_method( const adcontrols::TargetingMethod& method )
 void
 TargetForm::init_adducts( QTreeView&, QStandardItemModel& model )
 {
-	model.setColumnCount( 2 );
-    model.setHeaderData( 0, Qt::Horizontal, "Adducts/Losses" );
-    model.setHeaderData( 1, Qt::Horizontal, "" );
+	model.setColumnCount( c_adduct_num_columns );
+    model.setHeaderData( c_adduct_or_loss, Qt::Horizontal, "Adducts/Losses" );
+    if ( c_adduct_or_loss != c_adduct_checkbox )
+        model.setHeaderData( c_adduct_checkbox, Qt::Horizontal, "" );
 
     QStandardItem * rootNode = model.invisibleRootItem();
-	rootNode->setColumnCount( 2 );
+	rootNode->setColumnCount( c_adduct_num_columns );
 	
 	do {
 	  QStandardItem * pos = new QStandardItem( "Positive ion mode" );
@@ -212,13 +216,14 @@ void
 TargetForm::init_formulae( QTreeView& tree, QStandardItemModel& model )
 {
     QStandardItem * rootNode = model.invisibleRootItem();
-	model.setColumnCount( 2 );
-    rootNode->setColumnCount( 2 );
-    tree.setColumnWidth( 0, 120 );
-    tree.setColumnWidth( 1, 16 );
+	model.setColumnCount( c_formula_num_columns );
+    rootNode->setColumnCount( c_formula_num_columns );
+    tree.setColumnWidth( c_formula, 120 );
+    tree.setColumnWidth( c_formula_checkbox, 16 );
 
-	model.setHeaderData( 0, Qt::Horizontal, "Formulae" );
-	model.setHeaderData( 1, Qt::Horizontal, "" );
+	model.setHeaderData( c_formula, Qt::Horizontal, "Formulae" );
+    if ( c_formula != c_formula_checkbox )
+        model.setHeaderData( c_formula_checkbox, Qt::Horizontal, "" );
 }
 
 void
@@ -233,15 +238,12 @@ TargetForm::update_adducts( QTreeView& tree
 	
 	item->removeRows( 0, item->rowCount() );
 	item->setRowCount( vec.empty() ? 1 : vec.size() );
-	item->setColumnCount( 2 );
+	item->setColumnCount( c_adduct_num_columns );
 
 	int row = 0;
 	for ( auto it: vec ) {
-		// QStandardItem * checkbox = model.itemFromIndex( model.index( row, 1, index ) );
-		// if ( checkbox )
-		// 	checkbox->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
-		model.setData( model.index( row, 0, index ), qtwrapper::qstring::copy( it.first ), Qt::EditRole );
-		enable_checkbox( model, model.index( row, 1, index ), it.second );
+		model.setData( model.index( row, c_adduct_or_loss, index ), qtwrapper::qstring::copy( it.first ), Qt::EditRole );
+		enable_checkbox( model, model.index( row, c_adduct_checkbox, index ), it.second );
 	    ++row;
 	}
 	tree.expandAll();
@@ -260,8 +262,9 @@ TargetForm::get_adducts( QTreeView&
 	vec.clear();
 
 	for ( size_t row = 0; row < nRows; ++row ) {
-		std::wstring adduct_or_loss = qtwrapper::wstring::copy( model.index( row, 0, index ).data( Qt::EditRole ).toString() );
-		bool enable = ( model.index( row, 1, index ).data( Qt::CheckStateRole ) ) == Qt::Checked;
+		std::wstring adduct_or_loss
+            = qtwrapper::wstring::copy( model.index( row, c_adduct_or_loss, index ).data( Qt::EditRole ).toString() );
+		bool enable = ( model.index( row, c_adduct_checkbox, index ).data( Qt::CheckStateRole ) ) == Qt::Checked;
 		if ( ! adduct_or_loss.empty() )
 			vec.push_back( adcontrols::TargetingMethod::value_type( adduct_or_loss, enable ) );
 	}
@@ -277,14 +280,12 @@ TargetForm::update_formulae( QTreeView&, QStandardItemModel& model
 
 	int row = 0;
 	for ( auto it: vec ) {
-		model.setData( model.index( row, 0 ), qtwrapper::qstring::copy( it.first ), Qt::EditRole );
-		model.setData( model.index( row, 1 ), it.second ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-		model.itemFromIndex( model.index( row, 1 ) )->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
+		model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it.first ), Qt::EditRole );
+        enable_checkbox( model, model.index( row, c_formula_checkbox ), it.second );
 	    ++row;
 	}
-	model.setData( model.index( row, 0 ), QString( "-- edit here --"), Qt::EditRole );
-	model.setData( model.index( row, 1 ), Qt::Unchecked, Qt::CheckStateRole );
-	model.itemFromIndex( model.index( row, 1 ) )->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
+	model.setData( model.index( row, c_formula ), QString( "-- edit here --"), Qt::EditRole );
+	enable_checkbox( model, model.index( row, c_formula_checkbox ), false );
 }
 
 void
@@ -295,8 +296,8 @@ TargetForm::get_formulae( QTreeView&, QStandardItemModel& model, adcontrols::Tar
     vec.clear();
 
     for ( size_t row = 0; row < nRows; ++row ) {
-        std::wstring formula = qtwrapper::wstring::copy( model.index( row, 0 ).data( Qt::EditRole ).toString() );
-        bool enable = ( model.index( row, 1 ).data( Qt::CheckStateRole ) ) == Qt::Checked;
+        std::wstring formula = qtwrapper::wstring::copy( model.index( row, c_formula ).data( Qt::EditRole ).toString() );
+        bool enable = is_checked( model.index( row, c_formula_checkbox ) );
         if ( ! formula.empty() )
             vec.push_back( adcontrols::TargetingMethod::value_type( formula, enable ) );
     }
@@ -317,7 +318,7 @@ TargetForm::showContextMenu1( const QPoint& pt )
         else
             menu.addAction( "Add adduct or loss for negative ion mode", this, SLOT( addAdductOrLoss() ) );
         if ( parent.isValid() ) {
-            QString adducts = index.model()->index( index.row(), 0, parent ).data( Qt::EditRole ).toString();
+            QString adducts = index.model()->index( index.row(), c_adduct_or_loss, parent ).data( Qt::EditRole ).toString();
             menu.addAction( "Delete \"" + adducts + "\"", this, SLOT( delAddcutOrLoss() ) );
         }
         menu.exec( tree.mapToGlobal( pt ) );
@@ -333,7 +334,7 @@ TargetForm::showContextMenu2( const QPoint& pt )
     menu.addAction( "Add new line", this, SLOT( addFormula() ) );
     if ( tree.indexAt( pt ).isValid() ) {
         QModelIndex index = tree.currentIndex();
-        QString formula = index.model()->index( index.row(), 0 ).data( Qt::EditRole ).toString();
+        QString formula = index.model()->index( index.row(), c_formula ).data( Qt::EditRole ).toString();
         menu.addAction( "Delete \"" + formula + "\"", this, SLOT( delFormula() ) );
     }
     menu.exec( tree.mapToGlobal( pt ) );
@@ -391,13 +392,21 @@ TargetForm::delFormula()
 
 // static
 void
-TargetForm::enable_checkbox( QStandardItemModel& model, QModelIndex& index, bool isChecked )
+TargetForm::enable_checkbox( QStandardItemModel& model, QModelIndex& index, bool isChecked, bool editable )
 {
     if ( index.isValid() ) {
         QStandardItem * chk = model.itemFromIndex( index );
         if ( chk ) {
-            chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
+			chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
+			chk->setEditable( editable );
 			model.setData( index, isChecked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
     }
 }
+
+bool
+TargetForm::is_checked( const QModelIndex& index )
+{
+    return index.data( Qt::CheckStateRole ) == Qt::Checked;
+}
+
