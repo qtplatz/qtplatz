@@ -28,8 +28,16 @@
 using namespace adcontrols;
 
 TargetingMethod::TargetingMethod() : isPositiveIonMode_( true )
+                                   , is_use_resolving_power_( false )
+                                   , resolving_power_( 10000 )
+                                   , peak_width_( 1.0 ) // mDa
                                    , chargeStateMin_( 1 )
                                    , chargeStateMax_( 1 )
+                                   , isLowMassLimitEnabled_( false ) // auto
+                                   , isHighMassLimitEnabled_( false )
+                                   , lowMassLimit_( 1 )
+                                   , highMassLimit_( 1000 )
+                                   , tolerance_( 10.0 )
 {
     adductsPos_.push_back( std::pair< std::wstring, bool >( L"+H+", true ) );
     adductsPos_.push_back( std::pair< std::wstring, bool >( L"+Na+", false ) );
@@ -49,12 +57,22 @@ TargetingMethod::TargetingMethod( const TargetingMethod& t )
 TargetingMethod&
 TargetingMethod::operator = ( const TargetingMethod& rhs )
 {
-    isPositiveIonMode_ = rhs.isPositiveIonMode_;
-    formulae_ = rhs.formulae_;
-    adductsPos_ = rhs.adductsPos_;
-    adductsNeg_ = rhs.adductsNeg_;
-    chargeStateMin_ = rhs.chargeStateMin_;
-    chargeStateMax_ = rhs.chargeStateMax_;
+    isPositiveIonMode_      = rhs.isPositiveIonMode_;
+    is_use_resolving_power_ = rhs.is_use_resolving_power_;
+    resolving_power_        = rhs.resolving_power_;
+    peak_width_             = rhs.peak_width_;
+    chargeStateMin_         = rhs.chargeStateMin_;
+    chargeStateMax_         = rhs.chargeStateMax_;
+    isLowMassLimitEnabled_  = rhs.isLowMassLimitEnabled_;
+    isHighMassLimitEnabled_ = rhs.isHighMassLimitEnabled_;
+    lowMassLimit_           = rhs.lowMassLimit_;
+    highMassLimit_          = rhs.highMassLimit_;
+    tolerance_              = rhs.tolerance_;
+
+    formulae_               = rhs.formulae_;
+    adductsPos_             = rhs.adductsPos_;
+    adductsNeg_             = rhs.adductsNeg_;
+
 	return *this;
 }
 
