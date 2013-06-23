@@ -392,8 +392,14 @@ DataprocPlugin::handleCreateChromatograms( const adcontrols::MassSpectrum& ms, d
 			list.push_back( std::pair<double, double>( masses[ *it ], width ) );
 			vec.erase( it );
 		}
+
+		 QProgressBar progressBar;
+         progressBar.setVisible( true );
 		std::vector< adcontrols::Chromatogram> cv;
-		std::function <bool(long, long)> callback = [](long curr, long total){
+		std::function <bool(long, long)> callback = [&](long curr, long total){
+			if ( curr == 0 )
+				progressBar.setRange( 0, total );
+			progressBar.setValue( curr );
 			return false;
 		};
 		ds->getChromatograms( 0, list, cv,  callback );
