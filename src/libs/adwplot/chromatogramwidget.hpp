@@ -54,7 +54,7 @@ namespace adwplot {
 		~ChromatogramWidget();
 
         void setData( const adcontrols::Trace&, int idx = 0, bool yaxis2 = false );
-        void setData( const adcontrols::Chromatogram& );
+        void setData( const adcontrols::Chromatogram&, int idx = 0, bool yaxis2 = false );
 		void setData( const adcontrols::PeakResult& );
 	private:
         void setBaseline( const adcontrols::Baseline& );

@@ -118,28 +118,35 @@ spectrum_processor::tic( unsigned int nbrSamples, const long * praw, double& dba
     } while (0);
     dbase = base.average();
 	rms = base.rms();
-    return avgr.average() - dbase;
+    double ax = 0;
+    for ( size_t i = 0; i < nbrSamples; ++i )
+        ax += praw[ i ] - dbase;
+    return ax; //avgr.average() - dbase;
+    // return avgr.average() - dbase;
 }
 
 double
-spectrum_processor::tic( unsigned int nbrSamples, const double * praw, double& dbase, double& rms )
+spectrum_processor::tic( unsigned int nbrSamples, const double * praw, double& dbase, double& rms, size_t N )
 {
     averager base;
     averager avgr;
     int cnt = 1;
     do {
         slope_counter counter(20.0);
-        for ( unsigned int x = 2; x < nbrSamples - 2; ++x ) {
+        for ( unsigned int x = (N/2); x < nbrSamples - (N/2); ++x ) {
             avgr( praw[x] );
-            if ( counter( convolute<double>( &praw[x] ) ) > 5 )
-                base( praw[ x - 2 ] );
-            else if ( counter.n > 5 )
+            if ( counter( convolute<double>( &praw[x] ) ) > N )
+                base( praw[ x - (N/2) ] );
+            else if ( counter.n > N )
                 cnt++;
         }
     } while (0);
     dbase = base.average();
 	rms = base.rms();
-    return avgr.average() - dbase;
+    double ax = 0;
+    for ( size_t i = 0; i < nbrSamples; ++i )
+        ax += praw[ i ] - dbase;
+    return ax; //avgr.average() - dbase;
 }
 
 void

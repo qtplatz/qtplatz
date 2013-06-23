@@ -350,16 +350,21 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 				ms.addDescription( adcontrols::Description( L"create", text.str() ) );
 				portfolio::Folium folium = dp->addSpectrum( ms, m );
 
-				// add centroid spectrum if exist
+				// add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
+                bool hasCentroid( false );
 				if ( folium && pos1 == pos2 && dset->getFunctionCount() >= 2 ) {
 					adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
 					if ( dset->getSpectrum( 1, pos1, *pCentroid ) ) {
+                        hasCentroid = true;
 						portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
                         att.assign( pCentroid, pCentroid->dataClass() );
 
 						SessionManager::instance()->updateDataprocessor( dp, folium );
 					}
 				}
+                if ( ! hasCentroid ) {
+                    
+                }
 			}
 		}
 	}
@@ -388,7 +393,8 @@ DataprocPlugin::handleCreateChromatograms( const adcontrols::MassSpectrum& ms, d
 			vec.push_back( std::distance( masses.begin(), it ) );
 		std::vector< std::pair< double, double > > list;
 		while ( list.size() < 3 && !vec.empty() ) {
-			auto it = std::max_element( vec.begin(), vec.end(), [&]( unsigned int a, unsigned int b ){ return intens[b] > intens[a]; } );
+			auto it = std::max_element( vec.begin(), vec.end()
+                                        , [&]( unsigned int a, unsigned int b ){ return intens[b] > intens[a]; } );
 			list.push_back( std::pair<double, double>( masses[ *it ], width ) );
 			vec.erase( it );
 		}

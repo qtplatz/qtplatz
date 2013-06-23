@@ -55,6 +55,24 @@ using namespace adwplot;
 namespace adwplot {
     namespace chromatogram_internal {
 
+        static Qt::GlobalColor color_table[] = {
+            Qt::blue,
+            Qt::red,
+            Qt::green,
+            Qt::cyan,
+            Qt::magenta,
+            Qt::yellow,
+            Qt::darkRed,
+            Qt::darkGreen,
+            Qt::darkBlue,
+            Qt::darkCyan,
+            Qt::darkMagenta,
+            Qt::darkYellow,
+            Qt::darkGray,
+            Qt::gray,
+            Qt::lightGray,
+        };
+
         template<class T> class series_data : public QwtSeriesData< QPointF >, boost::noncopyable {
             T t_;
         public:
@@ -92,6 +110,7 @@ namespace adwplot {
 			const QRectF& boundingRect() const { 
 				return rect_;
 			};
+			QwtPlotCurve& plot_curve() { return *curve_.p(); }
         private:
             PlotCurve curve_;
 			QRectF rect_;
@@ -185,41 +204,40 @@ ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
 }
 
 void
-ChromatogramWidget::setData( const adcontrols::Chromatogram& c )
+ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool )
 {
     impl_->annotations_.clear();
     impl_->peaks_.clear();
     impl_->baselines_.clear();
-	// impl_->traces_.clear();
+
+    if ( c.size() < 2 )
+        return;
 
     using adcontrols::Chromatogram;
     using chromatogram_internal::TraceData;
 
-	if ( impl_->traces_.empty() )
-		impl_->traces_.push_back( TraceData<Chromatogram>( *this ) );
-	TraceData<Chromatogram>& trace = boost::get<TraceData<Chromatogram> >(impl_->traces_.back());
+    while ( int ( impl_->traces_.size() ) <= idx )
+		impl_->traces_.push_back( TraceData<Chromatogram>( *this ) );        
 
+	TraceData<Chromatogram>& trace = boost::get<TraceData<Chromatogram> >(impl_->traces_[ idx ] );
+
+	trace.plot_curve().setPen( QPen( chromatogram_internal::color_table[idx] ) ); 
     trace.setData( c );
 
     const double * intens = c.getIntensityArray();
 
-#if 0
-    const adcontrols::Baselines& baselines = c.baselines();
-    for ( adcontrols::Baselines::vector_type::const_iterator it = baselines.begin(); it != baselines.end(); ++it )
-        setBaseline( *it );
-#endif
     const adcontrols::Peaks& peaks = c.peaks();
-
     for ( adcontrols::Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it )
         setPeak( *it );
-
-	std::pair< double, double > time_range;
-	time_range.first = adcontrols::timeutil::toMinutes( adcontrols::seconds_t( c.timeRange().first ) );
-	time_range.second = adcontrols::timeutil::toMinutes( adcontrols::seconds_t( c.timeRange().second ) );
-    setAxisScale( QwtPlot::xBottom, time_range.first, time_range.second );
-    setAxisScale( QwtPlot::yLeft, intens[ c.min_element() ], intens[ c.max_element() ] );
-    zoomer1_->setZoomBase();
-    // replot();
+    
+    if ( idx == 0 ) {
+        std::pair< double, double > time_range;
+        time_range.first = adcontrols::timeutil::toMinutes( adcontrols::seconds_t( c.timeRange().first ) );
+        time_range.second = adcontrols::timeutil::toMinutes( adcontrols::seconds_t( c.timeRange().second ) );
+        setAxisScale( QwtPlot::xBottom, time_range.first, time_range.second );
+        setAxisScale( QwtPlot::yLeft, intens[ c.min_element() ], intens[ c.max_element() ] );
+        zoomer1_->setZoomBase();
+    }
 }
 
 void

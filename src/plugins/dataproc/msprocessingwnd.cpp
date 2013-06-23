@@ -199,11 +199,13 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
     const adcontrols::LCMSDataset * dset = processor->getLCMSDataset();
     if ( dset ) {
         adcontrols::Chromatogram c;
-        if ( dset->getTIC( 0, c ) ) {
+        int fcn = 0;
+        while ( dset->getTIC( fcn, c ) ) {
             if ( c.isConstantSampledData() )
                 c.getTimeArray();
             c.addDescription( adcontrols::Description( L"filename", processor->file().filename() ) );
-            pImpl_->ticPlot_->setData( c );
+            pImpl_->ticPlot_->setData( c, fcn );
+            ++fcn;
         }
     }
 }
