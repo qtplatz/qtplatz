@@ -102,11 +102,11 @@ TargetForm::OnFinalClose()
 bool
 TargetForm::getContents( boost::any& any ) const
 {
-	if ( any.type() != typeid ( adcontrols::ProcessMethod ) )
+	if ( any.type() != typeid ( adcontrols::ProcessMethod* ) )
         return false;
-    adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( any );
+    adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
 	get_method( *method_ );
-    pm.appendMethod< adcontrols::TargetingMethod >( *method_ );
+    pm->appendMethod< adcontrols::TargetingMethod >( *method_ );
     return true;
 }
 

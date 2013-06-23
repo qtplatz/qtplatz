@@ -110,9 +110,13 @@ ElementalCompositionForm::OnFinalClose()
 }
 
 bool
-ElementalCompositionForm::getContents( boost::any& ) const
+ElementalCompositionForm::getContents( boost::any& any ) const
 {
-    return false;
+	if ( any.type() != typeid( adcontrols::ProcessMethod* ) )
+		return false;
+	adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
+    pm->appendMethod< adcontrols::ElementalCompositionMethod >( *pMethod_ );
+    return true;
 }
 
 bool

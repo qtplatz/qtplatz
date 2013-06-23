@@ -72,6 +72,12 @@ Dataplot::setTitle( const std::wstring& title )
     QwtPlot::setTitle( qtwrapper::qstring( title ) );
 }
 
+QRectF
+Dataplot::zoomRect() const
+{
+	return zoomer1_->zoomRect();
+}
+
 //virtual method
 void
 Dataplot::zoom( const QRectF& rect )

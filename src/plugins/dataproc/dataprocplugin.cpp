@@ -57,6 +57,7 @@
 #include <adplugin/constants.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/qbrokersessionevent.hpp>
+#include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
 #include <adportable/debug.hpp>
@@ -101,7 +102,8 @@
 #include <streambuf>
 #include <fstream>
 #include <iomanip>
-
+#include <algorithm>
+#include <functional>
 #include <adinterface/brokerC.h>
 
 namespace dataproc {
@@ -318,12 +320,7 @@ void
 DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
-	if ( brokerSession_ && dp ) {
-#if 0
-		// TODO:  observer access has object delete twince, that will cause debug assertion failuer
-		// SignalObserver::Observer_var observer = dp->observer();
-		brokerSession_->coaddSpectrumEx( token.c_str(), observer, x, x );
-#endif
+	if ( dp ) {
 		const adcontrols::LCMSDataset * dset = dp->getLCMSDataset();
 		if ( dset ) {
 			long pos1 = dset->posFromTime( x1 );
@@ -366,6 +363,28 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 			}
 		}
 	}
+}
+
+void
+DataprocPlugin::handleCreateChromatograms( const adcontrols::MassSpectrum& ms, double lMass, double hMass )
+{
+	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
+    const adcontrols::LCMSDataset * ds( 0 );
+	if ( dp && ( ds = dp->getLCMSDataset() ) ) {
+        adportable::array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
+        adportable::array_wrapper< const double > intens( ms.getIntensityArray(), ms.size() );
+		auto lIt = std::upper_bound( masses.begin(), masses.end(), lMass );
+		auto hIt = std::upper_bound( masses.begin(), masses.end(), hMass );
+		std::vector< unsigned int > vec;
+		for ( auto it = lIt; it != hIt; ++it )
+			vec.push_back( std::distance( masses.begin(), it ) );
+		std::vector< std::pair< double, double > > list;
+		while ( list.size() < 3 && !vec.empty() ) {
+			auto it = std::max_element( vec.begin(), vec.end(), [&]( unsigned int a, unsigned int b ){ return intens[b] > intens[a]; } );
+			list.push_back( std::pair<double, double>( masses[ *it ], 0 ) );
+			vec.erase( it );
+		}
+    }
 }
 
 void

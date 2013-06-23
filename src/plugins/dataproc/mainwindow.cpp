@@ -362,20 +362,20 @@ MainWindow::createDockWidgets( const adportable::Configuration& config, const st
     const Configuration * pTab = Configuration::find( config, L"ProcessMethodEditors" );
     if ( pTab ) {
             
-        for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
+        for ( auto it: *pTab ) {
             
-            const std::wstring name = it->name();
+            const std::wstring name = it.name();
             
-                std::string wiid = adportable::utf::to_utf8( it->_interface() );
-                QWidget * pWidget = adplugin::widget_factory::create( wiid.c_str(), 0, 0 );
-                if ( pWidget ) {
-                    // query process method
-                    connect( this, SIGNAL( signalGetProcessMethod( adcontrols::ProcessMethod& ) )
-                             , pWidget, SLOT( getContents( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
-                    createDockWidget( pWidget, qtwrapper::qstring( it->title() ) );
-                } else {
-                    QMessageBox::critical(0, QLatin1String("dataprocmanager"), qtwrapper::qstring::copy(it->name()) );
-                }
+            std::string wiid = adportable::utf::to_utf8( it._interface() );
+            QWidget * pWidget = adplugin::widget_factory::create( wiid.c_str(), 0, 0 );
+            if ( pWidget ) {
+                // query process method
+                connect( this, SIGNAL( signalGetProcessMethod( adcontrols::ProcessMethod& ) )
+                         , pWidget, SLOT( getContents( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
+                createDockWidget( pWidget, qtwrapper::qstring( it.title() ) );
+            } else {
+                QMessageBox::critical(0, QLatin1String("dataprocmanager"), qtwrapper::qstring::copy(it.name()) );
+            }
         }
     }       
 
@@ -430,7 +430,15 @@ MainWindow::handleApplyMethod()
 void
 MainWindow::getProcessMethod( adcontrols::ProcessMethod& pm )
 {
-    emit signalGetProcessMethod( pm );
+    using adcontrols::ProcessMethod;
+
+	boost::any any( &pm );
+    for ( auto widget: dockWidgets() ) {
+		adplugin::LifeCycleAccessor accessor( widget->widget() );
+		adplugin::LifeCycle * pLifeCycle = accessor.get();
+		if ( pLifeCycle )
+			pLifeCycle->getContents( any );
+    }
 }
 
 void

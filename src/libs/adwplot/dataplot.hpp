@@ -53,6 +53,7 @@ namespace adwplot {
     void unlink();
 
 	inline Picker& picker() { return *picker_; }
+	QRectF zoomRect() const;
     
   private:
     typedef std::vector<Dataplot *> plotlink;

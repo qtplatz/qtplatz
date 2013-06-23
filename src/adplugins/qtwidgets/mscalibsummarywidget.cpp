@@ -133,7 +133,13 @@ MSCalibSummaryWidget::getContents( boost::any& any ) const
         getAssignedMasses( *ptr );
         return true;
     }
-    return false;
+
+	if ( any.type() == typeid( adcontrols::ProcessMethod* ) ) {
+		adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
+		///////////
+		return true;
+	}
+	return false;
 }
 
 void

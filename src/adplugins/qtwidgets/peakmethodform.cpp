@@ -105,8 +105,12 @@ PeakMethodForm::OnFinalClose()
 }
 
 bool
-PeakMethodForm::getContents( boost::any& ) const
+PeakMethodForm::getContents( boost::any& any ) const
 {
+	if ( any.type() != typeid( adcontrols::ProcessMethod* ) )
+		return false;
+	adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
+	pm->appendMethod< adcontrols::PeakMethod >( *pMethod_ );
     return false;
 }
 

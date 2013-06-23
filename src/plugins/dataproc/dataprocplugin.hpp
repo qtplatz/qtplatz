@@ -39,6 +39,7 @@ namespace adportable {
 
 namespace adcontrols {
 	class ProcessMethod;
+	class MassSpectrum;
 }
 
 namespace Broker {
@@ -77,6 +78,7 @@ namespace dataproc {
         
         void applyMethod( const adcontrols::ProcessMethod& );
         void onSelectTimeRangeOnChromatogram( double x1, double x2 );
+        void handleCreateChromatograms( const adcontrols::MassSpectrum&, double lMass, double hMass );
         DataprocessorFactory * dataprocessorFactory() { return dataprocFactory_; }
         
     signals:

@@ -159,9 +159,13 @@ MSCalibrationForm::OnFinalClose()
 }
 
 bool
-MSCalibrationForm::getContents( boost::any& ) const
+MSCalibrationForm::getContents( boost::any& any ) const
 {
-    return false;
+	if ( any.type() != typeid( adcontrols::ProcessMethod* ) )
+		return false;
+	adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
+	const_cast< MSCalibrationForm * >(this)->getContents( *pm );
+	return true;
 }
 
 bool

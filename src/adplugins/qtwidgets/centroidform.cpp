@@ -63,9 +63,15 @@ CentroidForm::OnFinalClose()
 }
 
 bool
-CentroidForm::getContents( boost::any& ) const
+CentroidForm::getContents( boost::any& any ) const
 {
-    return false;
+	if ( any.type() != typeid( adcontrols::ProcessMethod* ) )
+		return false;
+	adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
+
+	const_cast< CentroidForm *>(this)->update_data();
+    pm->appendMethod< adcontrols::CentroidMethod >( *pMethod_ );
+    return true;
 }
 
 bool

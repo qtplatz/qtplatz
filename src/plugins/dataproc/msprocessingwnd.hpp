@@ -61,7 +61,10 @@ namespace dataproc {
         void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw( std::shared_ptr< adcontrols::Chromatogram >& );
         void draw( std::shared_ptr< adcontrols::PeakResult >& );
-      
+
+        void idSpectrumFolium( const std::wstring& );
+        void idChromatogramFolium( const std::wstring& );
+
     signals:
       
     public slots:
@@ -83,7 +86,10 @@ namespace dataproc {
         size_t drawIdx1_;
         size_t drawIdx2_;
         std::shared_ptr<MSProcessingWndImpl> pImpl_;
+        std::shared_ptr< adcontrols::MassSpectrum > pProcessedSpectrum_;
         std::wstring idActiveFolium_;
+        std::wstring idChromatogramFolium_;
+        std::wstring idSpectrumFolium_;
     };
 
 }

@@ -67,19 +67,21 @@ namespace dataproc {
     //---------------------------------------------------------
     template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
         Wnd& wnd_;
-        selProcessed( Wnd& wnd ) : wnd_(wnd) {}
-        
+        portfolio::Folder& folder_;
+        selProcessed( Wnd& wnd, portfolio::Folder& folder ) : wnd_( wnd )
+                                                            , folder_( folder ) {
+        }
         template<typename T> void operator ()( T& ) const {
-#if defined _DEBUG && defined DEBUG
-            adportable::debug() << typeid(T).name();
-#endif
+            adportable::debug(__FILE__, __LINE__) << "Unhandled data: " << typeid(T).name() << " received.";
         }
         
         void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+            wnd_.idSpectrumFolium( folder_.id() );
             wnd_.draw2( ptr );
         }
         
         void operator () ( adutils::ChromatogramPtr& ptr ) const {
+            wnd_.idChromatogramFolium( folder_.id() );
             wnd_.draw( ptr );
         }
         
@@ -162,8 +164,8 @@ MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
 void
 MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
 {
-    adcontrols::MassSpectrum& ms = *ptr;
-    pImpl_->processedSpectrum_->setData( ms, drawIdx2_++ );
+    pProcessedSpectrum_ = ptr;
+    pImpl_->processedSpectrum_->setData( *pProcessedSpectrum_, drawIdx2_++ );
 }
 
 void
@@ -177,6 +179,18 @@ void
 MSProcessingWnd::draw( adutils::PeakResultPtr& ptr )
 {
     pImpl_->ticPlot_->setData( *ptr );
+}
+
+void
+MSProcessingWnd::idSpectrumFolium( const std::wstring& id )
+{
+    idSpectrumFolium_ = id;
+}
+
+void
+MSProcessingWnd::idChromatogramFolium( const std::wstring& id )
+{
+    idChromatogramFolium_ = id;
 }
 
 void
@@ -203,21 +217,16 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
     portfolio::Folder folder = folium.getParentFolder();
     if ( folder && ( folder.name() == L"Spectra" || folder.name() == L"Chromatograms" ) ) {
 
-#if defined DEBUG || defined _DEBUG
-        boost::any& any = static_cast<boost::any&>( folium );
-        std::string type = any.type().name();
-        adportable::debug(__FILE__, __LINE__) << "handleSelectionChanged got data type: " << type;
-#endif
-
-        adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+        auto data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
         
         if ( boost::apply_visitor( selChanged<MSProcessingWnd>(*this), data ) ) {
-            idActiveFolium_ = folium.id();
 
+            idActiveFolium_ = folium.id();
+            
             portfolio::Folio attachments = folium.attachments();
             for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
-                adutils::ProcessedData::value_type contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-                boost::apply_visitor( selProcessed<MSProcessingWnd>( *this ), contents );
+                auto contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
+                boost::apply_visitor( selProcessed<MSProcessingWnd>( *this, folder ), contents );
             }
         }
     }
@@ -272,11 +281,13 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 	std::vector< QAction * > actions;
 	actions.push_back( menu.addAction( "Create chromatograms" ) );
 
-	QPointF posf = rect.bottomLeft();
-	QPoint pos = posf.toPoint();
-
 	QAction * selectedItem = menu.exec( QCursor::pos() );
-	auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){ return item == selectedItem; } );
+	auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){
+            return item == selectedItem; }
+        );
 	if ( it != actions.end() ) {
+		QRectF rc = pImpl_->processedSpectrum_->zoomRect();
+        if ( *it == actions[ 0 ] )
+			DataprocPlugin::instance()->handleCreateChromatograms( *pProcessedSpectrum_, rc.x(), rc.x() + rc.width() );
 	}
 }
