@@ -27,7 +27,6 @@
 #include "actionmanager.hpp"
 #include "constants.hpp"
 #include "mode.hpp"
-#include "dataprocmanager.hpp"
 #include "editorfactory.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocessorfactory.hpp"
@@ -45,6 +44,7 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/chromatogram.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adextension/ieditorfactory.hpp>
@@ -337,7 +337,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                     progressBar.setVisible( true );
 
 					adcontrols::MassSpectrum a;
-					while ( pos1 < pos2	&& dset->getSpectrum( 0, pos++, a ) ) {
+					while ( pos < pos2	&& dset->getSpectrum( 0, pos++, a ) ) {
 						progressBar.setValue( pos );
 						ms += a;
 					}
@@ -371,6 +371,14 @@ DataprocPlugin::handleCreateChromatograms( const adcontrols::MassSpectrum& ms, d
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
     const adcontrols::LCMSDataset * ds( 0 );
 	if ( dp && ( ds = dp->getLCMSDataset() ) ) {
+        using namespace adcontrols;
+        double width = 0.1;
+        adcontrols::ProcessMethod pm;
+        mainWindow_->getProcessMethod( pm );
+        const TargetingMethod * p = pm.find< TargetingMethod >();
+        if ( p )
+            width = p->peak_width();
+
         adportable::array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
         adportable::array_wrapper< const double > intens( ms.getIntensityArray(), ms.size() );
 		auto lIt = std::upper_bound( masses.begin(), masses.end(), lMass );
@@ -381,9 +389,14 @@ DataprocPlugin::handleCreateChromatograms( const adcontrols::MassSpectrum& ms, d
 		std::vector< std::pair< double, double > > list;
 		while ( list.size() < 3 && !vec.empty() ) {
 			auto it = std::max_element( vec.begin(), vec.end(), [&]( unsigned int a, unsigned int b ){ return intens[b] > intens[a]; } );
-			list.push_back( std::pair<double, double>( masses[ *it ], 0 ) );
+			list.push_back( std::pair<double, double>( masses[ *it ], width ) );
 			vec.erase( it );
 		}
+		std::vector< adcontrols::Chromatogram> cv;
+		std::function <bool(long, long)> callback = [](long curr, long total){
+			return false;
+		};
+		ds->getChromatograms( 0, list, cv,  callback );
     }
 }
 

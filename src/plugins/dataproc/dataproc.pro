@@ -45,7 +45,6 @@ SOURCES += \
     dataprocessor.cpp \
     dataprocessorfactory.cpp \
     dataprochandler.cpp \
-    dataprocmanager.cpp \
     dataprocplugin.cpp \
     elementalcompwnd.cpp \
     ifileimpl.cpp \
@@ -70,7 +69,6 @@ HEADERS += \
     dataprocessor.hpp \
     dataprocessorfactory.hpp \
     dataprochandler.hpp \
-    dataprocmanager.hpp \
     dataprocplugin.hpp \
     elementalcompwnd.hpp \
     ifileimpl.hpp \
