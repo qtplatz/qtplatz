@@ -82,6 +82,8 @@ namespace dataproc {
         portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
         SignalObserver::Observer * observer();
 
+        bool createChromatograms( const adcontrols::MassSpectrum& centroid );
+
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& );
         virtual bool subscribe( const adcontrols::ProcessedDataset& );

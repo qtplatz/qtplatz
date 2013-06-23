@@ -35,6 +35,7 @@
 #include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adutils/processeddata.hpp>
+#include <adwplot/picker.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
 #include <adwplot/chromatogramwidget.hpp>
@@ -111,11 +112,13 @@ MSProcessingWnd::init()
         if ( ( pImpl_->profileSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
             pImpl_->profileSpectrum_->setMinimumHeight( 80 );
 			connect( pImpl_->profileSpectrum_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnProfile( const QPointF& ) ) );
+			connect( pImpl_->profileSpectrum_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnProfile( const QRectF& ) ) );
         }
 
         if ( ( pImpl_->processedSpectrum_ = new adwplot::SpectrumWidget(this) ) ) {
             pImpl_->processedSpectrum_->setMinimumHeight( 80 );
 			connect( pImpl_->processedSpectrum_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnProcessed( const QPointF& ) ) );
+			connect( pImpl_->processedSpectrum_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnProcessed( const QRectF& ) ) );
         }
         splitter->addWidget( pImpl_->ticPlot_ );
         splitter->addWidget( pImpl_->profileSpectrum_ );
@@ -228,20 +231,7 @@ MSProcessingWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 void
 MSProcessingWnd::handleCustomMenuOnProcessedSpectrum( const QPoint& pos )
 {
-    QPoint globalPos = pImpl_->processedSpectrum_->mapToGlobal(pos);
-    (void)globalPos;
-    // for QAbstractScrollArea and derived classes you would use:
-    // QPoint globalPos = myWidget->viewport()->mapToGlobal(pos); 
-/*
-    QMenu myMenu;
-    myMenu.addAction("Menu Item 1");
-    myMenu.addAction("Menu Item 2");
-
-	// QAction* selectedItem = myMenu.exec( globalPos );
-    if (selectedItem)    {
-        // something was chosen, do stuff
-    }
-*/
+	// This is conflicting with picker's action, so it has moved to range selection slots
 }
 
 void
@@ -263,7 +253,30 @@ MSProcessingWnd::selectedOnProfile( const QPointF& pos )
 }
 
 void
+MSProcessingWnd::selectedOnProfile( const QRectF& rect )
+{
+}
+
+
+void
 MSProcessingWnd::selectedOnProcessed( const QPointF& pos )
 {
     adportable::debug(__FILE__, __LINE__) << "MSProcessingWnd::selectedOnProcessed: " << pos.x() << ", " << pos.y();
+}
+
+void
+MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
+{
+	QMenu menu;
+
+	std::vector< QAction * > actions;
+	actions.push_back( menu.addAction( "Create chromatograms" ) );
+
+	QPointF posf = rect.bottomLeft();
+	QPoint pos = posf.toPoint();
+
+	QAction * selectedItem = menu.exec( QCursor::pos() );
+	auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){ return item == selectedItem; } );
+	if ( it != actions.end() ) {
+	}
 }

@@ -40,11 +40,12 @@ namespace adwplot {
 		explicit Picker( QwtPlotCanvas * parent = 0 );
 #endif
 		// QwtPlotPicker
-		virtual void widgetMousePressEvent( QMouseEvent * );
-		virtual void widgetMouseReleaseEvent( QMouseEvent * );
-		virtual void widgetMouseDoubleClickEvent( QMouseEvent * );
-		virtual void widgetMouseMoveEvent( QMouseEvent * );
-    
+		void widgetMousePressEvent( QMouseEvent * ) override;
+		void widgetMouseReleaseEvent( QMouseEvent * ) override;
+		void widgetMouseDoubleClickEvent( QMouseEvent * ) override;
+		void widgetMouseMoveEvent( QMouseEvent * ) override;
+        bool end( bool ok ) override;
+
     signals:
     
     public slots:

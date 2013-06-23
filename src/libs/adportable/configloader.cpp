@@ -143,85 +143,14 @@ ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
             else if ( ( title_node = node.select_single_node( "./title" ) ) )
                 config.title( pugi::as_wide( title_node.node().child_value() ) );
         }
-        
-        resolve_module( config, node );
+
+        do {
+            std::string interface = node.select_single_node( "./Component/@interface" ).attribute().value();
+            if ( ! interface.empty() )
+                config._interface( pugi::as_wide( interface ) );
+        } while (0);
+
         return true;
-    }
-    return false;
-}
-
-
-bool
-ConfigLoaderImpl::resolve_module( Configuration& config, const pugi::xml_node& node )
-{
-    pugi::xpath_node module_attr = node.select_single_node( "./Component/@module" );
-
-    if ( module_attr ) {
-        std::string name = module_attr.attribute().name();
-        std::string module_name = module_attr.attribute().value();
-    
-    do {
-        std::string interface = node.select_single_node( "./Component/@interface" ).attribute().value();
-        if ( ! interface.empty() )
-            config._interface( pugi::as_wide( interface ) );
-    } while (0);
-    
-    if ( module_name.empty() )
-        return false;
-    
-        std::string query = "//Module[@name=\'" + module_name + "\']";
-        pugi::xpath_node module_element = node.select_single_node( query.c_str() );
-    
-        if ( module_element ) {
-        
-            Module module( pugi::helper::to_wstring( module_element.node() ) ); // import module_element into 'module'
-
-            std::string reference = module_element.node().attribute( "reference" ).value();
-            if ( ! reference.empty() ) {
-                module.object_reference( reference );
-                module.id( module_element.node().attribute( "id" ).value() );
-                config.module( module );
-                return true;
-            }
-
-            std::string filename = module_element.node().attribute( "filename" ).value();
-            if ( ! filename.empty() ) {
-
-                std::string::size_type pos = filename.find_last_of( "$" );
-                if ( pos != std::wstring::npos ) {
-                    filename = filename.substr(0, pos);
-#if defined WIN32
-# if defined _DEBUG
-                    filename += "d.dll";
-# else
-                    filename += ".dll";
-# endif
-#elif defined __MACH__
-# if defined DEBUG
-                    filename += "_debug.dylib";
-#else
-                    filename += ".dylib";
-# endif
-#else
-# if defined DEBUG
-                    filename += ".so";
-# else
-                    filename += ".so";
-# endif
-#endif
-                }
-#if defined __linux__ || defined __MACH__
-                do {
-                    boost::filesystem::path path( filename );
-                    boost::filesystem::path filepath = path.branch_path() / ( std::string("lib") + path.leaf().string() );
-                    filename = filepath.string();
-                } while(0);
-#endif      
-                module.library_filename( pugi::as_wide( filename ) );
-                config.module( module );
-                return true;
-            }
-        }
     }
     return false;
 }

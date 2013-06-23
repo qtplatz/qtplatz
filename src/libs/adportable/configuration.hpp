@@ -31,6 +31,7 @@
 
 namespace adportable {
 
+#if 0
     class Module {
     public:
         Module( const std::wstring& xml = L"" );
@@ -51,6 +52,7 @@ namespace adportable {
         std::string object_reference_;
         std::string id_;
     };
+#endif
 
     class Configuration {
     public:
@@ -79,14 +81,14 @@ namespace adportable {
         bool hasChild() const;
         Configuration& append( const Configuration& );
         void xml( const std::wstring& );
-        void module( const Module& );
+        // void module( const Module& );
 		
-        bool isComponent() const;
-        bool isPlugin() const;
+        // bool isComponent() const;
+        // bool isPlugin() const;
 		
         inline const std::wstring& xml() const { return xml_; }
         inline const attributes_type& attributes() const { return attributes_; }
-        inline const Module& module() const { return module_; }
+        // inline const Module& module() const { return module_; }
         inline vector_type::iterator begin() { return children_.begin(); }
         inline vector_type::iterator end()   { return children_.end(); }
         inline vector_type::reverse_iterator rbegin() { return children_.rbegin(); }
@@ -103,7 +105,6 @@ namespace adportable {
         std::wstring interface_;  // <Component interface="value"/>
         attributes_type attributes_;
         std::vector< Configuration > children_;
-        Module module_;
     };
 
 }

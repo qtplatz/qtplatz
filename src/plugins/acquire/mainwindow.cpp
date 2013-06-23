@@ -79,27 +79,24 @@ MainWindow::init( const adportable::Configuration& config )
         using namespace adportable;
         using namespace adplugin;
             
-        for ( Configuration::vector_type::const_iterator it = pTab->begin(); it != pTab->end(); ++it ) {
-
-            const std::wstring name = it->name();
-            // const std::wstring& component = it->attribute( L"component" );
+        for ( auto node: *pTab ) {
+			
+            const std::wstring name = node.name();
                 
-            if ( it->isPlugin() ) {
-                QWidget * pWidget = adplugin::widget_factory::create( it->_interface().c_str(), 0, 0 );
+			QWidget * pWidget = adplugin::widget_factory::create( node._interface().c_str(), 0, 0 );
 
-                if ( pWidget ) {
-                    bool res = false;
-                    if ( it->_interface() == L"adplugin::ui::iLog" ) {
-                        res = connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
-                        emit signal_eventLog( "Hello -- this is acquire plugin" );
-                    }
-
-                    pWidget->setWindowTitle( qtwrapper::qstring( it->title() ) );
-                    QDockWidget * dock = addDockForWidget( pWidget );
-                    dockWidgetVec_.push_back( dock );
+            if ( pWidget ) {
+                bool res = false;
+                if ( node._interface() == L"adplugin::ui::iLog" ) {
+                    res = connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
+                    emit signal_eventLog( "Hello -- this is acquire plugin" );
                 }
 
+                pWidget->setWindowTitle( qtwrapper::qstring( node.title() ) );
+                QDockWidget * dock = addDockForWidget( pWidget );
+                dockWidgetVec_.push_back( dock );
             }
+
 
         }
 
@@ -162,20 +159,20 @@ MainWindow::setSimpleDockWidgetArrangement()
     scopedSetTrackingEnabled lock( *this );
     
     QList< QDockWidget *> dockWidgets = this->dockWidgets();
+
+    for ( auto widget: dockWidgets ) {
+		widget->setFloating( false );
+		removeDockWidget( widget );
+	}
     
-	std::for_each( dockWidgets.begin(), dockWidgets.end(), [&]( QDockWidget * dockWidget ){
-		dockWidget->setFloating( false );
-		removeDockWidget( dockWidget );
-	});
-    
-    std::for_each( dockWidgets.begin(), dockWidgets.end(), [&]( QDockWidget * dockWidget ) {
-        addDockWidget( Qt::BottomDockWidgetArea, dockWidget );
-        dockWidget->show();
-    });
+    for ( auto widget: dockWidgets ) {
+        addDockWidget( Qt::BottomDockWidgetArea, widget );
+        widget->show();
+    }
     
     // make dockwdigets into a tab
-	std::for_each( dockWidgets.begin() + 1, dockWidgets.end(), [&]( QDockWidget * dockWidget ) {
-		tabifyDockWidget( dockWidgets[0], dockWidget );
+	std::for_each( dockWidgets.begin() + 1, dockWidgets.end(), [&]( QDockWidget * widget ) {
+		tabifyDockWidget( dockWidgets[0], widget );
 	});
 
     QList< QTabBar * > tabBars = findChildren< QTabBar * >();

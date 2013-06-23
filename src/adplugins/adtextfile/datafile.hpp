@@ -59,6 +59,12 @@ namespace adtextfile {
         virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const;
         virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const;
 		virtual size_t posFromTime( double ) const;
+		bool getChromatograms( int /* fcn */
+			                         , const std::vector< std::pair<double, double> >&
+			                         , std::vector< adcontrols::Chromatogram >&
+									 , std::function< bool (long curr, long total ) > progress
+									 , int /* begPos */
+									 , int /* endPos */ ) const override { return false; }
 
     private:
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;

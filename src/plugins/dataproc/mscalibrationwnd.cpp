@@ -86,7 +86,7 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
 
         // summary table
         const Configuration * pConfig = Configuration::find( c, L"MSCalibSummaryWidget" );
-        if ( pConfig && pConfig->isPlugin() )
+        if ( pConfig /* && pConfig->isPlugin() */)
             pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( pConfig->_interface().c_str() );
 
         if ( ! pImpl_->calibSummaryWidget_ )

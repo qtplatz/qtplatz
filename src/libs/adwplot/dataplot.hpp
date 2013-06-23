@@ -51,6 +51,8 @@ namespace adwplot {
     
     void link( Dataplot * );
     void unlink();
+
+	inline Picker& picker() { return *picker_; }
     
   private:
     typedef std::vector<Dataplot *> plotlink;

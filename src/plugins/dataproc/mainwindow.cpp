@@ -257,16 +257,16 @@ MainWindow::createContents( Core::IMode * mode
         stack_->addWidget( wnd.back() );
     }
 
-    for ( std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
+    for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
         bool r;
         r = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-                     , *it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
+                     , it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
         assert( r );
         r = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-                     , *it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
+                     , it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
         assert( r );
         r = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
-                     , *it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );
+                     , it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );
         assert( r );
     }
     bool res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
@@ -313,13 +313,13 @@ MainWindow::setSimpleDockWidgetArrangement()
 
     QList< QDockWidget *> widgets = dockWidgets();
 
-    foreach ( QDockWidget * widget, widgets ) {
+    for ( auto widget: widgets ) {
         widget->setFloating( false );
         removeDockWidget( widget );
     }
   
     size_t npos = 0;
-    foreach ( QDockWidget * widget, widgets ) {
+    for ( auto widget: widgets ) {
         addDockWidget( Qt::BottomDockWidgetArea, widget );
         widget->show();
         if ( npos++ >= 2 )
@@ -366,8 +366,6 @@ MainWindow::createDockWidgets( const adportable::Configuration& config, const st
             
             const std::wstring name = it->name();
             
-            if ( it->isPlugin() ) {
-                //QWidget * pWidget = adplugin::manager::widget_factory( *it, apppath.c_str(), 0 );
                 std::string wiid = adportable::utf::to_utf8( it->_interface() );
                 QWidget * pWidget = adplugin::widget_factory::create( wiid.c_str(), 0, 0 );
                 if ( pWidget ) {
@@ -378,7 +376,6 @@ MainWindow::createDockWidgets( const adportable::Configuration& config, const st
                 } else {
                     QMessageBox::critical(0, QLatin1String("dataprocmanager"), qtwrapper::qstring::copy(it->name()) );
                 }
-            }
         }
     }       
 
@@ -443,7 +440,7 @@ MainWindow::OnInitialUpdate()
 
     QList< QDockWidget *> widgets = dockWidgets();
   
-    foreach ( QDockWidget * widget, widgets ) {
+    for ( auto widget: widgets ) {
         QWidget * obj = widget->widget();
 		adplugin::LifeCycleAccessor accessor( obj );
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
@@ -463,9 +460,9 @@ MainWindow::OnFinalClose()
 
     QList< QDockWidget *> widgets = dockWidgets();
   
-    foreach ( QDockWidget * widget, widgets ) {
+    for ( auto widget: widgets ) {
         QObjectList list = widget->children();
-        foreach ( QObject * obj, list ) {
+        for ( auto obj: list ) {
             adplugin::LifeCycleAccessor accessor( obj );
             adplugin::LifeCycle * pLifeCycle = accessor.get();
             if ( pLifeCycle ) {

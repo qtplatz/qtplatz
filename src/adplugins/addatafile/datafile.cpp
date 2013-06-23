@@ -222,6 +222,17 @@ datafile::posFromTime( double x ) const
 	return 0;
 }
 
+bool
+datafile::getChromatograms( int fcn
+			                         , const std::vector< std::pair<double, double> >&
+			                         , std::vector< adcontrols::Chromatogram >&
+									 , std::function< bool (long curr, long total ) > progress
+									 , int begPos
+									 , int endPos ) const
+{
+	return false;
+}
+
 ////////////////////////////////////////////////////
 // SaveFileAs come in here
 bool

@@ -6,15 +6,6 @@
 <!---<AcquireConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="acquire.config.xsd">
 -->
 <DataprocConfiguration name="dataproc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../xsd/config.xsd">
-  <Module name="qtwidgets" type="sharedlib" filename="/MS-Cheminformatics/qtwidgets$(configuration).dll"/>
-  <Module name="qtwidgets2" type="sharedlib" filename="/MS-Cheminformatics/qtwidgets2$(configuration).dll"/>
-  <Module name="mc4" type="sharedlib" filename="/MS-Cheminformatics/mc4$(configuration).dll"/>
-  <Module name="adtexfile" type="sharedlib" filename="/MS-Cheminformatics/adtxtfactory$(configuration).dll"/>
-  <Module name="addatafile" type="sharedlib" filename="/MS-Cheminformatics/addatafile$(configuration).dll"/>
-  <Module name="fticr_factory" type="sharedlib" filename="/MS-Cheminformatics/fticr$(configuration).dll"/>
-  <Module name="mzxml_factory" type="sharedlib" filename="/MS-Cheminformatics/mzxml$(configuration).dll"/>
-  <Module name="CompassXtract" type="sharedlib" filename="/MS-Cheminformatics/compassxtract$(configuration).dll"/>
-  <Module name="infitof" type="sharedlib" filename="/MSI/infitofspectrometer$(configuration).dll"/>
   <Configuration name="ProcessMethodEditors">
     <Configuration name="CentroidUI">
       <title>Centroid</title>

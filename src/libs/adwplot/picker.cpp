@@ -67,3 +67,8 @@ Picker::widgetMouseMoveEvent( QMouseEvent * ev )
 	QwtPicker::widgetMouseMoveEvent( ev );
 }
 
+bool
+Picker::end( bool ok )
+{
+	return QwtPlotPicker::end( ok );
+}

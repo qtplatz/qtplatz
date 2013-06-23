@@ -51,24 +51,29 @@ namespace addatafile {
         // bool open_qtms( const std::wstring& filename, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
-        virtual void accept( adcontrols::dataSubscriber& );
-        virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const;
+        void accept( adcontrols::dataSubscriber& ) override;
+        boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
 
         // create, modify and delete methods
-        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio&, const adcontrols::datafile& );
-        virtual bool saveContents( const std::wstring&, const portfolio::Portfolio& );
-        virtual bool update( const std::wstring&, boost::any& ) { return false; }
+        bool saveContents( const std::wstring&, const portfolio::Portfolio&, const adcontrols::datafile& ) override;
+        bool saveContents( const std::wstring&, const portfolio::Portfolio& ) override;
+        bool update( const std::wstring&, boost::any& ) override { return false; }
 
-        virtual adcontrols::datafile::factory_type factory() { return 0; }
+        adcontrols::datafile::factory_type factory() override { return 0; }
 
         // LCMSDataset
-        virtual size_t getFunctionCount() const;
-        virtual size_t getSpectrumCount( int fcn = 0 ) const;
-        virtual size_t getChromatogramCount() const;
-        virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const;
-        virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const;
-		virtual size_t posFromTime( double ) const;
-
+        size_t getFunctionCount() const override;
+        size_t getSpectrumCount( int fcn = 0 ) const override;
+        size_t getChromatogramCount() const override;
+        bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
+        bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const override;
+		size_t posFromTime( double ) const override;
+		bool getChromatograms( int fcn
+			                         , const std::vector< std::pair<double, double> >&
+			                         , std::vector< adcontrols::Chromatogram >&
+									 , std::function< bool (long curr, long total ) > progress
+									 , int begPos = 0
+									 , int endPos = (-1) ) const override;
     private:
         bool loadContents( portfolio::Portfolio&, const std::wstring& query );
     private:

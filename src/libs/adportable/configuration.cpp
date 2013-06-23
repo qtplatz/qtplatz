@@ -44,7 +44,7 @@ Configuration::Configuration( const Configuration& t ) : xml_( t.xml_ )
 						       , interface_(t.interface_)
                                                        , attributes_( t.attributes_ )
                                                        , children_( t.children_ )  
-                                                       , module_( t.module_ )
+                                                       //, module_( t.module_ )
 {
 }
 
@@ -132,24 +132,6 @@ Configuration::xml( const std::wstring& xml )
     xml_ = xml;
 }
 
-void
-Configuration::module( const Module& m )
-{
-    module_ = m;
-}
-
-bool
-Configuration::isComponent() const
-{
-    return ! component().empty();
-}
-
-bool
-Configuration::isPlugin() const
-{
-    return ! module().xml().empty();
-}
-
 // static
 const Configuration *
 Configuration::find( const Configuration& config, const std::wstring& name )
@@ -170,6 +152,7 @@ Configuration::find( const Configuration& config, const std::wstring& name )
 
 /////////////////////////////////////
 
+/*
 Module::Module( const std::wstring& xml ) : xml_(xml)
 {
 }
@@ -210,5 +193,5 @@ Module::id( const std::string& ident )
 {
     id_ = ident;
 }
-
+*/
 ////////////////////

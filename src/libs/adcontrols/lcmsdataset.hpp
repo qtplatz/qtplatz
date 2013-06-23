@@ -27,6 +27,8 @@
 
 #include "adcontrols_global.h"
 #include "acquireddataset.hpp"
+#include <functional>
+#include <vector>
 
 namespace adcontrols {
 
@@ -42,7 +44,13 @@ namespace adcontrols {
         virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const = 0;
         virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const = 0;
 		virtual size_t posFromTime( double x ) const = 0;
-    };
+		virtual bool getChromatograms( int fcn
+			                         , const std::vector< std::pair<double, double> >&
+			                         , std::vector< adcontrols::Chromatogram >&
+									 , std::function< bool (long curr, long total ) > progress
+									 , int begPos = 0
+									 , int endPos = (-1) ) const = 0;
+	};
 
 }
 

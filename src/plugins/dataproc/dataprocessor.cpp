@@ -187,6 +187,13 @@ Dataprocessor::fetch( portfolio::Folium& folium )
 	return true;
 }
 
+bool
+Dataprocessor::createChromatograms( const adcontrols::MassSpectrum& centroid )
+{
+
+    return false;
+}
+
 namespace dataproc {
 
     // dispatch method
@@ -675,3 +682,5 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::Pea
     }
     return false;
 }
+
+

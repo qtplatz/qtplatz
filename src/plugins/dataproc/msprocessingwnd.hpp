@@ -75,7 +75,9 @@ namespace dataproc {
         void selectedOnChromatogram( const QPointF& );
         void selectedOnChromatogram( const QRectF& );
         void selectedOnProfile( const QPointF& );
+		void selectedOnProfile( const QRectF& );
         void selectedOnProcessed( const QPointF& );
+		void selectedOnProcessed( const QRectF& );
 
     private:
         size_t drawIdx1_;

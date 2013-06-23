@@ -378,28 +378,35 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 			QMenu menu;
 			QAction * asProfile = 0; 
 			QAction * asCentroid = 0;
+			QAction * doTargeting = 0;
 			if ( profile )
-				asProfile = menu.addAction("Save profile spectrum as...");
-			if ( centroid ) 
-				asCentroid = menu.addAction("Save centroid spectrum as...");
-
+				asProfile = menu.addAction( "Save profile spectrum as..." );
+			if ( centroid ) {
+				asCentroid = menu.addAction( "Save centroid spectrum as..." );
+				doTargeting = menu.addAction( "Create chrmatorams for masses" );
+			}
 			QAction* selectedItem = menu.exec( globalPos );
 			if ( selectedItem ) {
-				boost::filesystem::path path( processor->file().filename() );
-				while ( ! boost::filesystem::is_directory( path ) )
-					path = path.branch_path();
-				QString dir = qtwrapper::qstring::copy( path.wstring() );
-				QString name = qtwrapper::qstring::copy( folium.name() );
-				QString filename = 
-					QFileDialog::getSaveFileName( this, tr("Save spectrum"), dir, tr("Documents (*.txt)") );
-				boost::filesystem::path dstfile( qtwrapper::wstring::copy( filename ) );
-				boost::filesystem::ofstream of( dstfile );
+				if ( selectedItem == doTargeting ) {
+                    processor->createChromatograms( *centroid );
+                    // targeting
+				} else {
+					boost::filesystem::path path( processor->file().filename() );
+                    while ( ! boost::filesystem::is_directory( path ) )
+                        path = path.branch_path();
+                    QString dir = qtwrapper::qstring::copy( path.wstring() );
+                    QString name = qtwrapper::qstring::copy( folium.name() );
+                    QString filename = 
+                        QFileDialog::getSaveFileName( this, tr("Save spectrum"), dir, tr("Documents (*.txt)") );
+                    boost::filesystem::path dstfile( qtwrapper::wstring::copy( filename ) );
+                    boost::filesystem::ofstream of( dstfile );
 
-				if ( selectedItem == asProfile ) {
-					export_spectrum::write( of, *profile );
-				} else if ( selectedItem == asCentroid ) {
-					export_spectrum::write( of, *centroid );
-				}
+                    if ( selectedItem == asProfile ) {
+                        export_spectrum::write( of, *profile );
+                    } else if ( selectedItem == asCentroid ) {
+                        export_spectrum::write( of, *centroid );
+                    }
+                }
 			}
 		}
 	}
