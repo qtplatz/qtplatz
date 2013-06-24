@@ -351,20 +351,23 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 				portfolio::Folium folium = dp->addSpectrum( ms, m );
 
 				// add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
-                bool hasCentroid( false );
-				if ( folium && pos1 == pos2 && dset->getFunctionCount() >= 2 ) {
-					adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
-					if ( dset->getSpectrum( 1, pos1, *pCentroid ) ) {
-                        hasCentroid = true;
-						portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
-                        att.assign( pCentroid, pCentroid->dataClass() );
-
-						SessionManager::instance()->updateDataprocessor( dp, folium );
-					}
+				if ( folium ) {
+                    bool hasCentroid( false );
+                    if ( pos1 == pos2 && dset->getFunctionCount() >= 2 ) {
+                        adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
+                        if ( dset->getSpectrum( 1, pos1, *pCentroid ) ) {
+                            hasCentroid = true;
+                            portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
+                            att.assign( pCentroid, pCentroid->dataClass() );
+                            SessionManager::instance()->updateDataprocessor( dp, folium );
+                        }
+                    }
+                    if ( ! hasCentroid ) {
+                        mainWindow_->getProcessMethod( m );
+                        dp->applyProcess( folium, m, CentroidProcess );
+                        // SessionManager::instance()->updateDataprocessor( dp, folium );
+                    }
 				}
-                if ( ! hasCentroid ) {
-                    
-                }
 			}
 		}
 	}
@@ -399,16 +402,21 @@ DataprocPlugin::handleCreateChromatograms( const adcontrols::MassSpectrum& ms, d
 			vec.erase( it );
 		}
 
-		 QProgressBar progressBar;
-         progressBar.setVisible( true );
-		std::vector< adcontrols::Chromatogram> cv;
+        QProgressBar progressBar;
+        progressBar.setVisible( true );
+		std::vector< adcontrols::Chromatogram> chromatograms;
 		std::function <bool(long, long)> callback = [&](long curr, long total){
 			if ( curr == 0 )
 				progressBar.setRange( 0, total );
 			progressBar.setValue( curr );
 			return false;
 		};
-		ds->getChromatograms( 0, list, cv,  callback );
+        adcontrols::ProcessMethod m;
+        mainWindow_->getProcessMethod( m );
+		if ( ds->getChromatograms( 0, list, chromatograms, callback ) ) {
+            for ( const auto& c: chromatograms )
+                dp->addChromatogram( c, m );
+        }
     }
 }
 

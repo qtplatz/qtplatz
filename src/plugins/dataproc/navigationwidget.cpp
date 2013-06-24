@@ -378,17 +378,17 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 			QMenu menu;
 			QAction * asProfile = 0; 
 			QAction * asCentroid = 0;
-			QAction * doTargeting = 0;
+			QAction * doNext = 0;
 			if ( profile )
 				asProfile = menu.addAction( "Save profile spectrum as..." );
 			if ( centroid ) {
 				asCentroid = menu.addAction( "Save centroid spectrum as..." );
-				doTargeting = menu.addAction( "Create chrmatorams for masses" );
+				doNext = menu.addAction( "Show next spectrum" );
 			}
 			QAction* selectedItem = menu.exec( globalPos );
 			if ( selectedItem ) {
-				if ( selectedItem == doTargeting ) {
-                    processor->createChromatograms( *centroid );
+				if ( selectedItem == doNext ) {
+                    // processor->createChromatograms( *centroid );
                     // targeting
 				} else {
 					boost::filesystem::path path( processor->file().filename() );

@@ -26,12 +26,14 @@
 #include "dataprocplugin.hpp"
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
+#include "mainwindow.hpp"
 #include "datafileobserver_i.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/datafile.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
 #include <adutils/processeddata.hpp>
@@ -200,12 +202,15 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
     if ( dset ) {
         adcontrols::Chromatogram c;
         int fcn = 0;
-        while ( dset->getTIC( fcn, c ) ) {
+        if ( dset->getTIC( fcn, c ) ) {
             if ( c.isConstantSampledData() )
                 c.getTimeArray();
             c.addDescription( adcontrols::Description( L"filename", processor->file().filename() ) );
+			adcontrols::ProcessMethod m;
+			MainWindow::instance()->getProcessMethod( m );
+			processor->addChromatogram( c, m );
             pImpl_->ticPlot_->setData( c, fcn );
-            ++fcn;
+            //++fcn;
         }
     }
 }

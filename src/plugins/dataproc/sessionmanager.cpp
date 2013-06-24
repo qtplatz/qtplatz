@@ -65,7 +65,6 @@ SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Fo
 {
     activeDataprocessor_ = dataprocessor;
 	emit signalSessionUpdated( dataprocessor, folium );
-	// emit signalSelectionChanged( dataprocessor, folium );
 }
 
 SessionManager::vector_type::iterator

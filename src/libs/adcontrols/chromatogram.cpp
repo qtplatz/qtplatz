@@ -75,6 +75,8 @@ namespace adcontrols {
             void samplingInterval( double v ) { samplingInterval_ = v; }
             bool isConstantSampledData() const { return isConstantSampling_; }
             void isConstantSampledData( bool b ) { isConstantSampling_ = b; }
+            void setTime( size_t idx, const double& );
+            void setData( size_t idx, const double& );
             void setTimeArray( const double * );
             void setDataArray( const double * );
             void setEventArray( const unsigned long * );
@@ -263,9 +265,21 @@ Chromatogram::getIntensityArray() const
 }
 
 void
+Chromatogram::setIntensity( size_t idx, double d )
+{
+    pImpl_->setData( idx, d );
+}
+
+void
 Chromatogram::setIntensityArray( const double * p )
 {
     pImpl_->setDataArray( p );
+}
+
+void
+Chromatogram::setTime( size_t idx, double t )
+{
+    pImpl_->setTime( idx, t );
 }
 
 void
@@ -518,6 +532,18 @@ ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : dataArray_( t.
                                                                 , axisLabelHorizontal_( t.axisLabelHorizontal_ )
                                                                 , axisLabelVertical_( t.axisLabelVertical_ )
 {
+}
+
+void
+ChromatogramImpl::setData( size_t idx, const double& d )
+{
+    dataArray_[ idx ] = d;
+}
+
+void
+ChromatogramImpl::setTime( size_t idx, const double& d ) // array of second
+{
+    timeArray_[ idx ] = d;
 }
 
 void

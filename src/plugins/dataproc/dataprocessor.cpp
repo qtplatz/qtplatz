@@ -187,13 +187,6 @@ Dataprocessor::fetch( portfolio::Folium& folium )
 	return true;
 }
 
-bool
-Dataprocessor::createChromatograms( const adcontrols::MassSpectrum& centroid )
-{
-
-    return false;
-}
-
 namespace dataproc {
 
     // dispatch method
@@ -271,7 +264,30 @@ void
 Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType procType )
 {
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
+    if ( folium ) {
+        applyProcess( folium, m, procType );
+    } else {
+        // no selected folium, peak find to raw TIC
+        if ( procType == PeakFindProcess ) {
+            Dataprocessor * d_processor = SessionManager::instance()->getActiveDataprocessor();
+            if ( d_processor ) {
+                const adcontrols::LCMSDataset * dataset = d_processor->getLCMSDataset();
+                if ( dataset ) {
+                    adcontrols::Chromatogram c;
+                    if ( dataset->getTIC( 0, c ) ) {
+                        c.addDescription( adcontrols::Description( L"Create", L"TIC" ) );
+                        d_processor->addChromatogram( c, m );
+                    }
+                }
+            }
+        }
+    }
+}
 
+void
+Dataprocessor::applyProcess( portfolio::Folium& folium
+                             , const adcontrols::ProcessMethod& m, ProcessType procType )
+{
     if ( folium ) {
         adcontrols::ProcessMethod method;
 
@@ -290,28 +306,9 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType pro
 
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
      
-        for ( adcontrols::ProcessMethod::vector_type::const_iterator it = method.begin(); it != method.end(); ++it )
+        for ( auto it = method.begin(); it != method.end(); ++it )
             boost::apply_visitor( processIt(*it, folium), data );
-        
-#ifdef _DEBUG
-        std::wstring xml = portfolio_->xml();
-#endif
         SessionManager::instance()->selectionChanged( this, folium );
-    } else {
-        // no selected folium, peak find to raw TIC
-        if ( procType == PeakFindProcess ) {
-            Dataprocessor * d_processor = SessionManager::instance()->getActiveDataprocessor();
-            if ( d_processor ) {
-                const adcontrols::LCMSDataset * dataset = d_processor->getLCMSDataset();
-                if ( dataset ) {
-                    adcontrols::Chromatogram c;
-                    if ( dataset->getTIC( 0, c ) ) {
-                        c.addDescription( adcontrols::Description( L"Create", L"TIC" ) );
-                        d_processor->addChromatogram( c, m );
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -463,10 +460,6 @@ Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrol
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
         boost::apply_visitor( doSpectralProcess( ms, folium ), *it );
 
-#if defined _DEBUG
-	std::wstring xml = portfolio_->xml();
-#endif
-
     SessionManager::instance()->updateDataprocessor( this, folium );
 	return folium;
 }
@@ -507,18 +500,8 @@ Dataprocessor::observer()
 bool
 Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
 {
-	// datafile has a raw (acquired) data stream
-	// data should point same object with ifileimpl_;
 	fileObserver_.reset( new datafileObserver_i( data ) );
 	return true;
-/* 
-   size_t nfcn = data.getFunctionCount();
-   for ( size_t i = 0; i < nfcn; ++i ) {
-        adcontrols::Chromatogram c;
-        if ( data.getTIC( i, c ) )
-            ; // ticVec_.push_back( c );
-    }
-*/
 }
 
 bool

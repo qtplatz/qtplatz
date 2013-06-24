@@ -44,6 +44,7 @@ namespace adportable {
   public:
     array_wrapper(T * pv, size_t size) : pv_(pv), size_(size) {}
 	
+	inline const T* get() const { return pv_; }
     inline iterator begin() { return pv_; }
     inline const_iterator begin() const { return pv_; }
     inline iterator end() { return pv_ + size_; }

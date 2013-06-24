@@ -75,14 +75,13 @@ namespace dataproc {
         void setCurrentSelection( portfolio::Folium& );
         void setCurrentSelection( portfolio::Folder& );
         void applyProcess( const adcontrols::ProcessMethod&, enum ProcessType );
+        void applyProcess( portfolio::Folium&, const adcontrols::ProcessMethod&, enum ProcessType );
         void applyCalibration( const adcontrols::ProcessMethod& );
         void applyCalibration( const adcontrols::ProcessMethod&, const adcontrols::MSAssignedMasses&  );
         void applyCalibration( const adcontrols::ProcessMethod&, const adcontrols::MSAssignedMasses&, portfolio::Folium&  );
         portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
         SignalObserver::Observer * observer();
-
-        bool createChromatograms( const adcontrols::MassSpectrum& centroid );
 
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& );

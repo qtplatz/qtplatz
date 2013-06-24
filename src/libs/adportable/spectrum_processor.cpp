@@ -38,7 +38,7 @@
 
 using namespace adportable;
 
-namespace adportable { // namespace internal {
+namespace adportable {
 
     static const double __norm5__ = 10;
     static const double __1st_derivative5__[] = { 0, 1, 2 };
@@ -96,6 +96,31 @@ namespace adportable { // namespace internal {
         }
         inline double average() const { return ax / n; }
         inline double rms() const { return std::sqrt( ( sdd / n ) - ( average() * average() ) ); }
+    };
+
+    template<typename T> struct areaCalculator {
+
+        static double area( const spectrum_processor::areaFraction& frac, double baseH, const T* pData, size_t size ) {
+            assert( frac.lFrac >= 0.0 && frac.lFrac <= 1.0 );
+            assert( frac.uFrac >= 0.0 && frac.uFrac <= 1.0 );
+            if ( frac.lPos == frac.uPos )
+                return double( pData[ frac.lPos ] );
+
+            double ax = 0;
+            for ( size_t i = frac.lPos; i <= frac.uPos; ++i )
+                ax += pData[i] - baseH;
+
+            if ( frac.lPos >= 0 ) // if one before data point exist
+                ax += ( pData[ frac.lPos - 1 ] ) * frac.lFrac;
+
+            if ( frac.uPos < size ) // if following data point exist
+                ax += ( pData[ frac.uPos + 1 ] ) * frac.uFrac;
+
+            double w = ( frac.uPos - frac.lPos + 1 ) + frac.lFrac + frac.uFrac;
+            double d = ax / w;  // normalize by width
+
+            return d;
+        }
     };
 
 }
@@ -354,3 +379,43 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
     return 0;
 }
 
+bool
+spectrum_processor::getFraction( areaFraction& frac, const double * pMasses, size_t size, double lMass, double hMass )
+{
+	frac = areaFraction(); // clear
+
+    array_wrapper< const double > masses( pMasses, size );
+    auto it = std::lower_bound( masses.begin(), masses.end(), lMass );
+    if ( it == masses.end() )
+        return false;
+    frac.lPos = std::distance( masses.begin(), it );
+
+    it = std::lower_bound( masses.begin(), masses.end(), hMass );
+    if ( it == masses.end() )
+        return false;
+    frac.uPos = std::distance( masses.begin(), it );
+
+    if ( frac.lPos < frac.uPos )
+        --frac.uPos;
+
+    frac.lFrac = ( masses[ frac.lPos ] - lMass ) / ( masses[ frac.lPos ] - masses[ frac.lPos - 1 ] );
+
+    frac.uFrac = ( hMass - masses[ frac.uPos ] ) / ( masses[ frac.uPos + 1 ] - masses[ frac.uPos ] );
+
+    if ( frac.uFrac < 0.0 )
+        frac.uFrac = 0;
+
+    return true;
+}
+
+double
+spectrum_processor::area( const areaFraction& frac, double base, const double* pData, size_t nData )
+{
+    return areaCalculator<double>::area( frac, base, pData, nData );
+}
+
+double
+spectrum_processor::area( const areaFraction& frac, double base, const int32_t* pData, size_t nData )
+{
+    return areaCalculator<int32_t>::area( frac, base, pData, nData );
+}
