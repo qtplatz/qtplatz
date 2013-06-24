@@ -110,16 +110,6 @@ ChromatogramWnd::init( const std::wstring& apppath )
 
             pImpl_->peakWidget_ = adplugin::widget_factory::create( "qtwidgets::PeakResultWidget" );
 
-            // // peak table
-            // adportable::Configuration config;
-            // adportable::Module module;
-
-            // module.library_filename( QTWIDGETS_NAME );
-
-            // config.module( module );
-            // config._interface( L"qtwidgets::PeakResultWidget" );
-
-            // pImpl_->peakWidget_ = adplugin::manager::widget_factory( config, apppath.c_str() );
             if ( pImpl_->peakWidget_ ) {
                 adplugin::LifeCycle * p = dynamic_cast< adplugin::LifeCycle * >(pImpl_->peakWidget_);
 				if ( p )
@@ -137,9 +127,7 @@ ChromatogramWnd::init( const std::wstring& apppath )
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( this );
     toolBarAddingLayout->setMargin(0);
     toolBarAddingLayout->setSpacing(0);
-    //toolBarAddingLayout->addWidget( toolBar );
     toolBarAddingLayout->addWidget( splitter );
-    //toolBarAddingLayout->addWidget( toolBar2 );
 }
 
 void

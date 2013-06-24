@@ -76,15 +76,10 @@ namespace adwplot {
         template<class T> class series_data : public QwtSeriesData< QPointF >, boost::noncopyable {
             T t_;
         public:
-            series_data() {
-			}
-			series_data( const T& t ) : t_( t ) {
-			}
-			~series_data() {
-			}
-			inline operator T& () {
-				return t_;
-			};
+            series_data() { }
+			series_data( const T& t ) : t_( t ) { }
+			~series_data() { }
+			inline operator T& () {	return t_;	};
             // implements QwtSeriesData<>
             virtual size_t size() const { return t_.size(); }
             virtual QPointF sample( size_t idx ) const { 
@@ -99,17 +94,11 @@ namespace adwplot {
 
         template<class T> class TraceData {
         public:
-            ~TraceData() {
-            }
-			TraceData( Dataplot& plot ) : curve_( plot ) { // 
-            }
-			TraceData( const TraceData& t ) : curve_( t.curve_ ), rect_( t.rect_ ) {
-            }
-            void setData( const T& ) {
-            }
-			const QRectF& boundingRect() const { 
-				return rect_;
-			};
+            ~TraceData() { }
+			TraceData( Dataplot& plot ) : curve_( plot ) { }
+			TraceData( const TraceData& t ) : curve_( t.curve_ ), rect_( t.rect_ ) { }
+            void setData( const T& ) {  }
+			const QRectF& boundingRect() const { return rect_; };
 			QwtPlotCurve& plot_curve() { return *curve_.p(); }
         private:
             PlotCurve curve_;
@@ -127,7 +116,7 @@ namespace adwplot {
             // TODO:  refactor code in order to avoid full data copy
 			series_data< Trace > * d_trace = new series_data< Trace >( trace );
 			rect_.setCoords( d_trace->sample(0).x(), trace.range_y().second
-				          , d_trace->sample( trace.size() - 1 ).x(), trace.range_y().first );
+                             , d_trace->sample( trace.size() - 1 ).x(), trace.range_y().first );
 			d_trace->boundingRect( rect_ );
 			curve_.p()->setData( d_trace );
         }
@@ -138,7 +127,8 @@ namespace adwplot {
             const double * intens = c.getIntensityArray();
 
 			series_data< Chromatogram > * d_series = new series_data< Chromatogram >( c );
-			rect_.setCoords( d_series->sample(0).x(), intens[ c.min_element() ], d_series->sample( c.size() - 1 ).x(), intens[ c.max_element() ] );
+			rect_.setCoords( d_series->sample(0).x(), intens[ c.min_element() ]
+                             , d_series->sample( c.size() - 1 ).x(), intens[ c.max_element() ] );
 			d_series->boundingRect( rect_ );
 			curve_.p()->setData( d_series );
         }
@@ -235,7 +225,10 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool )
         time_range.first = adcontrols::timeutil::toMinutes( adcontrols::seconds_t( c.timeRange().first ) );
         time_range.second = adcontrols::timeutil::toMinutes( adcontrols::seconds_t( c.timeRange().second ) );
         setAxisScale( QwtPlot::xBottom, time_range.first, time_range.second );
-        setAxisScale( QwtPlot::yLeft, intens[ c.min_element() ], intens[ c.max_element() ] );
+		double hMin = intens[ c.min_element() ];
+		double hMax = intens[ c.max_element() ];
+        double h = hMax - hMin;
+        setAxisScale( QwtPlot::yLeft, hMin - ( h * 0.05 ), hMax + ( h * 0.1 ) );
         zoomer1_->setZoomBase();
     }
 }
