@@ -44,6 +44,7 @@
 #include <adwplot/spectrumwidget.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_scale_widget.h>
+#include <qwt_plot_layout.h>
 #include <QBoxLayout>
 #include <QMenu>
 #include <boost/variant.hpp>
@@ -124,15 +125,15 @@ MSProcessingWnd::init()
 			connect( pImpl_->processedSpectrum_, SIGNAL( onSelected( const QPointF& ) ), this, SLOT( selectedOnProcessed( const QPointF& ) ) );
 			connect( pImpl_->processedSpectrum_, SIGNAL( onSelected( const QRectF& ) ), this, SLOT( selectedOnProcessed( const QRectF& ) ) );
         }
-        splitter->addWidget( pImpl_->ticPlot_ );
+ 
+		pImpl_->ticPlot_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
+		pImpl_->profileSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
+		pImpl_->processedSpectrum_->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 80 );
+
+		splitter->addWidget( pImpl_->ticPlot_ );
         splitter->addWidget( pImpl_->profileSpectrum_ );
         splitter->addWidget( pImpl_->processedSpectrum_ );
         splitter->setOrientation( Qt::Vertical );
-
-        //static_cast<QwtPlot *>( pImpl_->profileSpectrum_ )->axisWidget( QwtPlot::yLeft )->setMargin( 80 );
-        //static_cast<QwtPlot *>( pImpl_->processedSpectrum_ )->axisWidget( QwtPlot::yLeft )->setMargin( 80 );
-        //static_cast<QwtPlot *>( pImpl_->profileSpectrum_ )->axisWidget( QwtPlot::yLeft )->scaleDraw()->setLength( 300 );
-        //static_cast<QwtPlot *>( pImpl_->processedSpectrum_ )->axisWidget( QwtPlot::yLeft )->scaleDraw()->setLength( 300 );
 
         pImpl_->profileSpectrum_->link( pImpl_->processedSpectrum_ );
         pImpl_->processedSpectrum_->link( pImpl_->profileSpectrum_ );
@@ -245,7 +246,7 @@ MSProcessingWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 }
 
 void
-MSProcessingWnd::handleCustomMenuOnProcessedSpectrum( const QPoint& pos )
+MSProcessingWnd::handleCustomMenuOnProcessedSpectrum( const QPoint& )
 {
 	// This is conflicting with picker's action, so it has moved to range selection slots
 }
@@ -269,7 +270,7 @@ MSProcessingWnd::selectedOnProfile( const QPointF& pos )
 }
 
 void
-MSProcessingWnd::selectedOnProfile( const QRectF& rect )
+MSProcessingWnd::selectedOnProfile( const QRectF& )
 {
 }
 
@@ -281,7 +282,7 @@ MSProcessingWnd::selectedOnProcessed( const QPointF& pos )
 }
 
 void
-MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
+MSProcessingWnd::selectedOnProcessed( const QRectF& )
 {
 	QMenu menu;
 
