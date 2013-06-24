@@ -47,6 +47,8 @@
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <coreplugin/minisplitter.h>
+#include <qwt_scale_widget.h>
+#include <qwt_plot_layout.h>
 #include <QVBoxLayout>
 #include <boost/foreach.hpp>
 #include <cmath>
@@ -78,6 +80,7 @@ MSCalibSpectraWnd::init( const adportable::Configuration& c, const std::wstring&
         
         for ( int i = 0; i < 5; ++i ) {
             std::shared_ptr< adwplot::SpectrumWidget > wnd( new adwplot::SpectrumWidget(this) );
+            wnd->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 50 );
             wnd->setMinimumHeight( 40 );
             wndSpectra_.push_back( wnd );
             wndSplitter_->addWidget( wnd.get() );
