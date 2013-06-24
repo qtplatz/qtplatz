@@ -15,20 +15,26 @@ include(../../boost.pri)
 include(../../ace_tao.pri)
 
 LIBS += -l$$qtLibraryTarget(Core)
-LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adplugin) \
-        -l$$qtLibraryTarget(adcontrols) -l$$qtLibraryTarget(adutils) -l$$qtLibraryTarget(acewrapper) \
-        -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(portfolio) -l$$qtLibraryTarget(qtwrapper) \
+LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adplugin) \
+        -l$$qtLibraryTarget(adcontrols) -l$$qtLibraryTarget(adutils) \
+        -l$$qtLibraryTarget(acewrapper) \
+        -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(portfolio) \
+        -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(adfs) \
-        -l$$qtLibraryTarget(xmlparser) \
         -l$$qtLibraryTarget(chromatogr) \
         -l$$qtLibraryTarget(adextension) \
         -l$$qtLibraryTarget(adorbmgr)
 
 !win32 {
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
-  LIBS += -lboost_date_time -lboost_system -lboost_filesystem
+  LIBS += -lboost_date_time -lboost_system -lboost_filesystem \
+          -lboost_serialization
 }
-linux-*: LIBS += -lqwt # order matter on linux
+
+LIBS += -l$$qtLibraryTarget( adportable ) \
+        -l$$qtLibraryTarget( xmlparser )
+
+linux-*: LIBS += -lqwt -ldl
 
 INCLUDEPATH *= $$OUT_PWD/../../libs
 INCLUDEPATH *= $(QWT)/include
