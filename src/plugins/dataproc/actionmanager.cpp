@@ -40,6 +40,7 @@
 #include <QIcon>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QAction>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 

@@ -43,6 +43,7 @@
 #include <adportable/configuration.hpp>
 #include <adportable/utf.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <boost/any.hpp>
 
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -101,9 +102,8 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , actionSelMSCalibSpectra_( 0 )
                                           , actionSelChromatogram_( 0 )
                                           , stack_( 0 )
-                                          , currentFeature_( CentroidProcess )
                                           , processMethodNameEdit_( new QLineEdit ) 
-
+                                          , currentFeature_( CentroidProcess )
 {
 }
 
@@ -411,7 +411,7 @@ MainWindow::toolButton( const char * id )
 }
 
 void
-MainWindow::handleSessionAdded( dataproc::Dataprocessor * processor )
+MainWindow::handleSessionAdded( dataproc::Dataprocessor * )
 {
 }
 
@@ -581,14 +581,16 @@ MainWindow::processMethodLoaded( const QString& name, const adcontrols::ProcessM
 {
     processMethodNameEdit_->setText( name );
 
-	QList< QDockWidget * >& docs = this->dockWidgets();
+	QList< QDockWidget * > docs = this->dockWidgets();
 
 	std::for_each( docs.begin(), docs.end(), [&]( QDockWidget * dock ){
 		QWidget * obj = dock->widget();
 		adplugin::LifeCycleAccessor accessor( obj );
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
-		if ( pLifeCycle ) 
-			pLifeCycle->setContents( boost::any( m ) );
+		if ( pLifeCycle ) {
+            boost::any any( m );
+			pLifeCycle->setContents( any );
+        }
     });
 }
 

@@ -28,6 +28,7 @@
 #include <QObject>
 #include <QList>
 #include <memory>
+#include <QAction>
 
 class QAction;
 

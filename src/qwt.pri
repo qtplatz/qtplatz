@@ -1,6 +1,6 @@
 include( config.pri )
 
 INCLUDEPATH += $${QWT}/include
-LIBS += -L$${QWT}/lib -l$$qtLibraryTarget(qwt)
-
+macx: LIBS += -L$${QWT}/lib -lqwt
+else: LIBS += -L$${QWT}/lib -l$$qtLibraryTarget(qwt)
 

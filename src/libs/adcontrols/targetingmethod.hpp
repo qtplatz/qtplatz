@@ -102,7 +102,7 @@ namespace adcontrols {
         std::vector< std::pair< std::wstring, bool > > adductsNeg_;
 
         friend class boost::serialization::access;
-        template<class Archive> void serialize(Archive& ar, const unsigned int version) {
+        template<class Archive> void serialize(Archive& ar, const unsigned int) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( isPositiveIonMode_ );
             ar & BOOST_SERIALIZATION_NVP( is_use_resolving_power_ );
