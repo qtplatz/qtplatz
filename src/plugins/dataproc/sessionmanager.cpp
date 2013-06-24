@@ -57,6 +57,7 @@ SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc )
 {
     sessions_.push_back( Session( proc ) );
 	activeDataprocessor_ = proc.get();
+	emit signalAddSession( proc.get() );
     emit signalSessionAdded( proc.get() );
 }
 

@@ -256,22 +256,23 @@ MainWindow::createContents( Core::IMode * mode
         wnd.push_back( new ChromatogramWnd( apppath ) );
         stack_->addWidget( wnd.back() );
     }
-
-    for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
-        bool r;
-        r = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-                     , it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
-        assert( r );
-        r = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-                     , it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
-        assert( r );
-        r = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
-                     , it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );
-        assert( r );
-    }
-    bool res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
+	
+	bool res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
                         , this, SLOT( handleSessionAdded( Dataprocessor* ) ) );
     assert( res );
+
+    for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
+        res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
+                     , it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
+        assert( res );
+        res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
+                     , it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
+        assert( res );
+        res = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
+                     , it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );
+        assert( res );
+    }
+
     res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
                    , this, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
     assert( res );
@@ -412,8 +413,6 @@ MainWindow::toolButton( const char * id )
 void
 MainWindow::handleSessionAdded( dataproc::Dataprocessor * processor )
 {
-    adcontrols::datafile& file = processor->file();
-    emit signalUpdateFile( &file );
 }
 
 void

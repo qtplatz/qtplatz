@@ -52,9 +52,8 @@ namespace dataproc {
 
     public slots:
         void toggleAutoSynchronization();
-        void handleSessionAdded( Dataprocessor * );
+        void handleAddSession( Dataprocessor * );
 		void handleSessionUpdated( Dataprocessor *, portfolio::Folium& );
-		// void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );
 
     private slots:
         void initView();

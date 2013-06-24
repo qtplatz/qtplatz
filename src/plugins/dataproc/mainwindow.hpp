@@ -73,8 +73,6 @@ namespace dataproc {
         void processMethodLoaded( const QString&, const adcontrols::ProcessMethod& );
         
     signals:
-        void signalUpdateFile( adcontrols::datafile * );
-        void signalGetProcessMethod( adcontrols::ProcessMethod& );
             
     public slots:
         void handleSessionAdded( Dataprocessor * );

@@ -153,10 +153,8 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     layout->setContentsMargins( 0, 0, 0, 0 );
     setLayout( layout );
 
-    for ( SessionManager::vector_type::iterator it = 
-        SessionManager::instance()->begin(); it != SessionManager::instance()->end(); ++it ) {
-            handleSessionAdded( &(it->getDataprocessor()) );
-    }
+    for ( auto& it: *SessionManager::instance() )
+            handleAddSession( &(it.getDataprocessor()) );
 
     // connections
     connect( pModel_, SIGNAL( modelReset() ), this, SLOT( initView() ) );
@@ -169,7 +167,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     pTreeView_->setContextMenuPolicy(Qt::CustomContextMenu);
     connect( pTreeView_, SIGNAL(customContextMenuRequested( QPoint )), this, SLOT( handleContextMenuRequested( QPoint ) ) );
 
-    connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) ), this, SLOT( handleSessionAdded( Dataprocessor * ) ) );
+    connect( SessionManager::instance(), SIGNAL( signalAddSession( Dataprocessor* ) ), this, SLOT( handleAddSession( Dataprocessor * ) ) );
 	connect( SessionManager::instance(), SIGNAL( signalSessionUpdated( Dataprocessor*, portfolio::Folium& ) ), this, SLOT( handleSessionUpdated( Dataprocessor *, portfolio::Folium& ) ) );
 
     setAutoSynchronization(true);
@@ -240,9 +238,8 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
         model.removeRows( 0, item->rowCount(), item->index() );
     
         portfolio::Portfolio portfolio = processor->getPortfolio();
-        std::vector< portfolio::Folder > folders = portfolio.folders();
-        for ( std::vector< portfolio::Folder >::iterator it = folders.begin(); it != folders.end(); ++it )
-            PortfolioHelper::appendFolder( *item, *it );
+        for ( auto folder: portfolio.folders() )
+            PortfolioHelper::appendFolder( *item, folder );
     }
 	// set selected
 	if ( ( item = StandardItemHelper::findRow( model, processor ) ) ) {
@@ -254,7 +251,7 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
 }
 
 void
-NavigationWidget::handleSessionAdded( Dataprocessor * processor )
+NavigationWidget::handleAddSession( Dataprocessor * processor )
 {
     adcontrols::datafile& file = processor->file();
     QString filename( qtwrapper::qstring::copy( file.filename() ) );
@@ -267,11 +264,8 @@ NavigationWidget::handleSessionAdded( Dataprocessor * processor )
 
     portfolio::Portfolio portfolio = processor->getPortfolio();
     
-    std::vector< portfolio::Folder > folders = portfolio.folders();
-
-    for ( std::vector< portfolio::Folder >::iterator it = folders.begin(); it != folders.end(); ++it ) {
-        PortfolioHelper::appendFolder( *item, *it );
-    }
+	for ( auto& folder: portfolio.folders() )
+        PortfolioHelper::appendFolder( *item, folder );
 
     Core::ModeManager::instance()->activateMode( dataproc::Constants::C_DATAPROC_MODE );
     

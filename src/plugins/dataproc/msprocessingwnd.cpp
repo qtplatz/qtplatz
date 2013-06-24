@@ -210,7 +210,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 			adcontrols::ProcessMethod m;
 			MainWindow::instance()->getProcessMethod( m );
 			processor->addChromatogram( c, m );
-            pImpl_->ticPlot_->setData( c, fcn );
+            //pImpl_->ticPlot_->setData( c, fcn );
             //++fcn;
         }
     }

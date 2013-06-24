@@ -70,6 +70,7 @@ namespace dataproc {
         vector_type::iterator find( const std::wstring& );
 
     signals:
+		void signalAddSession( Dataprocessor * );
         void signalSessionAdded( Dataprocessor * );
 		void signalSessionUpdated( Dataprocessor *, portfolio::Folium& );
         void signalSelectionChanged( Dataprocessor *, portfolio::Folium& );

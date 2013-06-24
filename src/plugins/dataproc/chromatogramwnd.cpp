@@ -159,8 +159,9 @@ ChromatogramWnd::draw( adutils::PeakResultPtr& ptr )
 }
 
 void
-ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
+ChromatogramWnd::handleSessionAdded( Dataprocessor * )
 {
+	/*
     adcontrols::datafile& file = processor->file();
     QString filename( qtwrapper::qstring::copy( file.filename() ) );
     const adcontrols::LCMSDataset * dset = processor->getLCMSDataset();
@@ -168,9 +169,10 @@ ChromatogramWnd::handleSessionAdded( Dataprocessor * processor )
         adcontrols::Chromatogram c;
         if ( dset->getTIC( 0, c ) ) {
             c.addDescription( adcontrols::Description( L"filename", file.filename() ) );
-            pImpl_->setData( c, filename );
+            //pImpl_->setData( c, filename );
         }
     }
+	*/
 }
 
 void
