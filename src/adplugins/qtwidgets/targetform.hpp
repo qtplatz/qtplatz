@@ -31,6 +31,7 @@
 
 class QStandardItemModel;
 class QTreeView;
+class QModelIndex;
 
 namespace Ui {
     class TargetForm;
@@ -97,7 +98,7 @@ namespace qtwidgets {
 
         static void init_adducts( QTreeView&, QStandardItemModel& );
         static void init_formulae( QTreeView&, QStandardItemModel& );
-        static void enable_checkbox( QStandardItemModel&, QModelIndex&, bool isChecked, bool editable = true );
+        static void enable_checkbox( QStandardItemModel&, const QModelIndex&, bool isChecked, bool editable = true );
         static bool is_checked( const QModelIndex& index );
     };
 

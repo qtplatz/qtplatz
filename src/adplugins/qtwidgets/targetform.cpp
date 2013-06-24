@@ -392,7 +392,7 @@ TargetForm::delFormula()
 
 // static
 void
-TargetForm::enable_checkbox( QStandardItemModel& model, QModelIndex& index, bool isChecked, bool editable )
+TargetForm::enable_checkbox( QStandardItemModel& model, const QModelIndex& index, bool isChecked, bool editable )
 {
     if ( index.isValid() ) {
         QStandardItem * chk = model.itemFromIndex( index );
