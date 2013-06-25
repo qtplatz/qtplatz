@@ -63,7 +63,7 @@ Node::Node( const Node& t ) : node_( t.node_ ), impl_(t.impl_)
 
 Node::operator bool () const 
 {
-    return impl_;
+    return impl_ != 0;
 }
 
 std::wstring
