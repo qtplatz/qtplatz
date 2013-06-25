@@ -12,7 +12,7 @@
 !define AppName     "QtPlatz"
 !define DistName    "QtPlatz"
 !define BinName     "qtplatz"
-!define BrandedName "ScienceLiaison ${AppName}"
+!define BrandedName "MS-Cheminformatics ${AppName}"
 ;;
 !include "version.nsh"
 ;;
@@ -124,14 +124,13 @@ Section "!Application" App
 	FileWrite $UninstallFileVariable "|Comment|Uninstall file for ${AppName}$\r$\n"
 	
 	;; Add PATH environment variable
-	;;; ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\bin"
-
-	${EnvVarUpdate} $0 "QML_IMPORT_PATH" "A" "HKLM" "$INSTDIR\imports"
+	${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\bin"
+	${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\lib\qtplatz\plugins\QtProject"
 
 ;-------------------------------- define path -------------------------
 	!define InQtPlatz   "..\..\..\..\qtplatz"
-	!define InQtPath    "C:\Qt\4.8.1"
-	!define InVC90Path  "C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT"
+	!define InQtPath    "C:\Qt\5.1.0"
+	!define InVC110Path  "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\redist\x86\Microsoft.VC110.CRT"
 ;-------------------------------
 
 	!include "filelist\filelist-tao.nsh"
@@ -141,6 +140,7 @@ Section "!Application" App
 	!include "filelist\filelist-qtplatz.nsh"
 ;;; -- optional --
 	!include "filelist\filelist-bruker.nsh"
+	!include "filelist\filelist-infitof.nsh"
 
 	; Store installation folder and shortcut folder
    	WriteRegStr HKLM "${RegInstDirKey}" "Installation Directory" $INSTDIR

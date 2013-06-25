@@ -54,6 +54,12 @@ namespace fticr {
 		virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const;
 		virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const;
         virtual size_t posFromTime( double ) const;
+		bool getChromatograms( int fcn
+			                         , const std::vector< std::pair<double, double> >&
+			                         , std::vector< adcontrols::Chromatogram >&
+									 , std::function< bool (long curr, long total ) > progress
+									 , int begPos = 0
+									 , int endPos = (-1) ) const override { return false; }
 		//<-------------------------------------
 		bool _open( const std::wstring&, bool );
 		static bool is_valid_datafile( const std::wstring& );
