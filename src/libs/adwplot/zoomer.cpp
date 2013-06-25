@@ -35,14 +35,15 @@ Zoomer::Zoomer( int xAxis, int yAxis, QWidget * canvas ) : QwtPlotZoomer( xAxis,
 #else
 Zoomer::Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas ) : QwtPlotZoomer( xAxis, yAxis, canvas )
 #endif
-                                                               , autoYScale_( false )
-							       , rubberBand_( RectRubberBand ) 
+                                                         , autoYScale_( false )
+                                                         , rubberBand_( RectRubberBand ) 
 {
     setTrackerMode(QwtPicker::AlwaysOff);
     // setRubberBand(QwtPicker::NoRubberBand);
 
     // LeftButton: zoom out by 1
-    // setMousePattern( QwtEventPattern::MouseSelect2,  Qt::LeftButton );
+    // unzoom 1 step is implemented as double-click 
+    setMousePattern( QwtEventPattern::MouseSelect2,  Qt::LeftButton, Qt::ShiftModifier );
     
     // Ctrl+RightButton: zoom out to full size
     setMousePattern( QwtEventPattern::MouseSelect3,  Qt::LeftButton, Qt::ControlModifier );
