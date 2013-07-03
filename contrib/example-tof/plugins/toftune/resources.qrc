@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/toftune">
+        <file>icons/Tools.png</file>
+        <file>icons/tune.png</file>
+        <file>images/Setup.png</file>
+        <file>images/IMG_0050.png</file>
+    </qresource>
+</RCC>

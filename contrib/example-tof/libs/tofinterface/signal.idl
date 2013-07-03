@@ -1,0 +1,147 @@
+/**************************************************************************
+** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+*
+** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
+**
+** Commercial Usage
+**
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this
+** file in accordance with the MS-Cheminformatics Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and MS-Cheminformatics.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
+
+#include "method.idl"
+
+module TOFSignal {
+
+    struct IonSource_EI_Setpts {
+        unsigned long source_temp_setpt;
+        unsigned long interface_temp_setpt;
+        unsigned long ionization_voltage_setpt;
+        unsigned long trap_current_setpt;
+        unsigned long pulse_voltage_setpt;
+        unsigned long potential_lift_voltage_setpt;
+    };
+    
+    struct IonSource_EI_Actuals {
+        unsigned long source_temp_actual;
+        unsigned long interface_temp_actual;
+        unsigned long ionization_voltage_actual;
+        unsigned long trap_current_actual;
+        unsigned long pulse_voltage_actual;
+        unsigned long potential_lift_voltage_actual;
+    };
+    
+    struct IonSource_DART_Setpts {
+        unsigned long to_be_determined;
+    };
+
+    struct IonSource_DART_Actuals {
+        unsigned long to_be_determined;
+    };
+
+    union IonSourceSetpts switch( TOF_C::eIonSource ) {
+    case TOF_C::eIonSource_EI:   IonSource_EI_Setpts ei;
+    case TOF_C::eIonSource_DART: IonSource_DART_Setpts dart;
+    };
+
+    struct tofStaticSetpts {
+        double setpts;
+    };
+
+    struct tofStaticActs {
+        double acts;
+    };
+
+    struct AnalyzerSetpts {
+        unsigned long einzel_lens_voltage;
+        unsigned long matsuda_plate_voltage;
+        unsigned long ion_gate_voltage;
+    };
+    
+    struct AnalyzerActuals {
+        unsigned long einzel_lens_voltage;
+        unsigned long matsuda_plate_voltage;
+        unsigned long ion_gate_voltage;
+        unsigned long ion_gate_current;
+    };
+    
+    //////////////////////////////////////
+    struct AnalyzerDeviceData {
+        AnalyzerSetpts setpts;
+        AnalyzerActuals actuals;
+    };
+
+    struct InstEvent {
+        unsigned long eventId_;
+        unsigned long eventValue_;
+    };
+    
+    struct SpectrumPeakInfo {
+        float monitor_range_lower;
+        float monitor_range_upper;
+        double peakMass;
+        float peakHeight;
+        float peakArea;
+        float resolvingPower;
+        float resolvingPowerX1;
+        float resolvingPowerX2;
+        float resolvingPowerHH;
+    };
+    typedef sequence< SpectrumPeakInfo > SpectrumPeakInfoVec;
+
+    struct SpectrumProcessedData {
+        float tic;
+        float spectralBaselineLevel;
+        unsigned long long uptime;
+        SpectrumPeakInfoVec info;
+    };
+    
+    typedef sequence< SpectrumProcessedData > SpectrumProcessedDataArray;
+
+    struct TraceMetadata {
+        unsigned long wellKnownEvents;
+        unsigned long ndata;
+        unsigned long long uptime;      // usec since clock sync
+        unsigned long timeSinceInject;  // usec since most recent INJ trig.
+        unsigned long sampInterval;     // usec
+        unsigned long dataType;
+        // unsigned long channels;  
+    };
+
+    // ----- corresponding to tofDATA.hpp
+    typedef sequence< long > value_sequence;
+
+    struct datum {
+        TOF::acqSegment acqSegment;
+        value_sequence values;
+    };
+
+    typedef sequence< datum > datum_sequence;
+
+    struct tofDATA {
+        unsigned long sequenceNumber;
+        unsigned long long rtcTimeStamp;
+        unsigned long long clockTimeStamp;
+        unsigned long wellKnownEvents;
+        unsigned long methodId;
+        unsigned short numberOfProfiles;
+        datum_sequence data;
+    };
+ 
+    interface no_empty_file {
+    };
+
+};

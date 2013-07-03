@@ -200,7 +200,7 @@ orbmgr::getBrokerManager()
 void
 orbmgr::shutdown()
 {
-    CORBA::ORB_var orb;
+    CORBA::ORB_ptr orb;
 
     if ( taomgr_ && ( orb = taomgr_->orb() ) ) {
 		if ( ! CORBA::is_nil( orb ) )

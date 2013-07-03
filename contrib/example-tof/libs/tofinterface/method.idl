@@ -1,0 +1,111 @@
+/**************************************************************************
+** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
+*
+** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
+**
+** Commercial Usage
+**
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this
+** file in accordance with the MS-Cheminformatics Commercial License Agreement
+** provided with the Software or, alternatively, in accordance with the terms
+** contained in a written agreement between you and MS-Cheminformatics.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
+
+#include "constants.idl"
+
+module TOF {
+
+    struct AnalyzerMethod {
+        long sampling_interval; // milliseconds
+        long resolving_power;   // simulated spectral peak width
+        long number_of_average; // number of average
+
+        double matsuda_plate_voltage;
+        double va_pulse_voltage;
+        double potential_lift_pulse_voltage;
+        double einzel_voltage;
+        double detector_voltage;
+        double accelaration_voltage;
+    };
+
+    struct FFTMethod {
+      long nbrSamples;  // has to be power of 2
+      double delay;     // microsecond
+      double freq;      // MHz
+      double voffs;     // virtical offset
+      double intens;    // 0..32767
+    };
+    
+    struct IonSource_EI_Method {
+        double source_temp;
+        double interface_temp;
+    };
+    
+    struct IonSource_DART_Method {
+        double source_temp;
+        double interface_temp;
+        double ionization_voltage;
+    };
+    
+    union IonSourceMethod switch( TOF_C::eIonSource ) {
+    case TOF_C::eIonSource_DART: IonSource_DART_Method dart;
+    case TOF_C::eIonSource_EI:   IonSource_EI_Method ei;
+    };
+    
+    //////////////////////////////////
+    struct ControlMethod {
+        AnalyzerMethod analyzer;
+        IonSourceMethod ionSource;
+        FFTMethod fft;
+    };
+    
+    struct TuneMethod {
+        long resv;
+        long resv1;
+        long resv2;
+        long resv3;
+    };
+    
+    // -- corresponding to 'tofdeviceid.hpp'
+    struct Configuration {
+        boolean configured_;
+        string option_type;
+        string option_name;
+    };
+    
+    typedef sequence< Configuration > configuration_sequence;
+    
+    struct DeviceId {
+        string manufacturer;
+        string revision;
+        configuration_sequence configurations;
+    };
+    
+    // -- corresponding to 'tofacqmethod.hpp'
+    struct acqSegment {
+        unsigned short startIndex;
+        unsigned short numberOfAverage;
+        unsigned long  waitTime;
+        unsigned short numberOfSamples;
+        unsigned short stepOf;
+    };
+    
+    typedef sequence< acqSegment > acqSegment_sequence;
+    
+    struct acqMethod {
+        unsigned long methodId;
+        acqSegment_sequence segments;
+    };
+    
+};
