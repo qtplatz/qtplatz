@@ -86,5 +86,4 @@ FORMS += \
     bezelwidget.ui \
     ionsourcewidget.ui \
     analyzerwidget.ui \
-    acquisitionwidget.ui \
-    fftwidget.ui
+    acquisitionwidget.ui

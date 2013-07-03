@@ -29,8 +29,8 @@
 // TAO_IDL - Generated from
 // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_codegen.cpp:652
 
-#ifndef _TAO_IDL_CONSTANTSS_JKOMA1_CPP_
-#define _TAO_IDL_CONSTANTSS_JKOMA1_CPP_
+#ifndef _TAO_IDL_CONSTANTSS_I7X6YS_CPP_
+#define _TAO_IDL_CONSTANTSS_I7X6YS_CPP_
 
 
 #include "constantsS.h"

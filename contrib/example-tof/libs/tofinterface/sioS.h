@@ -28,8 +28,8 @@
 // TAO_IDL - Generated from
 // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_codegen.cpp:461
 
-#ifndef _TAO_IDL_SIOS_EMYQOS_H_
-#define _TAO_IDL_SIOS_EMYQOS_H_
+#ifndef _TAO_IDL_SIOS_V80EJO_H_
+#define _TAO_IDL_SIOS_V80EJO_H_
 
 #include /**/ "ace/pre.h"
 
