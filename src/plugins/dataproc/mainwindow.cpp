@@ -360,14 +360,14 @@ MainWindow::createDockWidgets( const adportable::Configuration& config, const st
 	(void)apppath;
     using adportable::Configuration;
 
-    const Configuration * pTab = Configuration::find( config, L"ProcessMethodEditors" );
+    const Configuration * pTab = Configuration::find( config, "ProcessMethodEditors" );
     if ( pTab ) {
             
         for ( auto it: *pTab ) {
             
-            const std::wstring name = it.name();
+            const std::string name = it.name();
             
-            std::string wiid = adportable::utf::to_utf8( it._interface() );
+			std::string wiid = it.component_interface();
             QWidget * pWidget = adplugin::widget_factory::create( wiid.c_str(), 0, 0 );
             if ( pWidget ) {
                 // query process method
@@ -375,7 +375,7 @@ MainWindow::createDockWidgets( const adportable::Configuration& config, const st
                          , pWidget, SLOT( getContents( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
                 createDockWidget( pWidget, qtwrapper::qstring( it.title() ) );
             } else {
-                QMessageBox::critical(0, QLatin1String("dataprocmanager"), qtwrapper::qstring::copy(it.name()) );
+				QMessageBox::critical(0, QLatin1String("dataprocmanager"), it.name().c_str() );
             }
         }
     }       

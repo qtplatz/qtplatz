@@ -37,10 +37,10 @@ namespace adcontroller {
         ~session_i();
         session_i();
       
-        ::CORBA::WChar * software_revision();
+        ::CORBA::Char * software_revision() override;
         ::CORBA::Boolean connect( Receiver_ptr receiver, const CORBA::Char * token );
         ::CORBA::Boolean disconnect( Receiver_ptr receiver );
-        ::CORBA::Boolean setConfiguration( const CORBA::WChar * xml );
+        ::CORBA::Boolean setConfiguration( const CORBA::Char * xml );
         ::CORBA::Boolean configComplete();
         ::ControlServer::eStatus status();
         ::CORBA::Boolean initialize();
@@ -57,15 +57,6 @@ namespace adcontroller {
         ::CORBA::Boolean suspend_run();
         ::CORBA::Boolean resume_run();
         ::CORBA::Boolean stop_run();
-      
-        // struct receiver_data {
-        //     bool operator == ( const receiver_data& ) const;
-        //     bool operator == ( const Receiver_ptr ) const;
-        //     bool isTestTool_;
-        //     Receiver_var receiver_;
-        //     receiver_data() : isTestTool_(false) {};
-        //     receiver_data( const receiver_data& t) : isTestTool_(t.isTestTool_), receiver_(t.receiver_) {};
-        // };
       
     private:
 

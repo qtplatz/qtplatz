@@ -23,14 +23,11 @@
 **
 **************************************************************************/
 
-// #include "receiver.idl"
-// #include "signalobserver.idl"
 #include "brokerclient.idl"
 #include "controlmethod.idl"
 
 module SignalObserver {
     interface Observer;
-    // typedef sequence<Observer> ObserverVec;
 };
 
 module SampleBroker {
@@ -41,70 +38,70 @@ interface Receiver;
 
 module ControlServer {
 
-   enum eStatus { 
-      eNothing                    // Not Initialized
-      , eNotConfigured            //= 0x00000001,  // no instrument := no driver software loaded
-      , eConfigured               //= 0x00000002,  // relevant software/driver has loaded
-      , eInitializing             //= 0x00000003,  // startup initializing (only at the begining after startup)
-      , eStandBy                  //= 0x00000004,  // instrument is stand by state
-      , ePreparingForRun          //= 0x00000005,  // preparing for next method (parameters being be set value)
-      , eReadyForRun              //= 0x00000006,  // method is in initial state, ready to run (INIT RUN, MS HTV is ready)
-      , eWaitingForContactClosure //= 0x00000007,  //
-      , eRunning                  //= 0x00000008,  // method is in progress
-      , eStop                     //= 0x00000009,  // stop := detector is not monitoring, pump is off
-   };
+    enum eStatus { 
+        eNothing                    // Not Initialized
+        , eNotConfigured            //= 0x00000001,  // no instrument := no driver software loaded
+        , eConfigured               //= 0x00000002,  // relevant software/driver has loaded
+        , eInitializing             //= 0x00000003,  // startup initializing (only at the begining after startup)
+        , eStandBy                  //= 0x00000004,  // instrument is stand by state
+        , ePreparingForRun          //= 0x00000005,  // preparing for next method (parameters being be set value)
+        , eReadyForRun              //= 0x00000006,  // method is in initial state, ready to run (INIT RUN, MS HTV is ready)
+        , eWaitingForContactClosure //= 0x00000007,  //
+        , eRunning                  //= 0x00000008,  // method is in progress
+        , eStop                     //= 0x00000009,  // stop := detector is not monitoring, pump is off
+    };
 
-   enum eInstEvent  {
-       event_Nothing,
-       event_HeartBeat,
-       event_InstStateChanged,
-       event_ConfigChanged,
-       event_UpdateData,
-       event_StartIn,
-       event_StartOut,
-       event_InjectIn,
-       event_InjectOut,
-       event_EventIn,
-       event_EventOut
-   };
+    enum eInstEvent  {
+        event_Nothing,
+        event_HeartBeat,
+        event_InstStateChanged,
+        event_ConfigChanged,
+        event_UpdateData,
+        event_StartIn,
+        event_StartOut,
+        event_InjectIn,
+        event_InjectOut,
+        event_EventIn,
+        event_EventOut
+    };
    
-   interface Session {
+    interface Session {
       
-       exception CannotAdd {
-           wstring reason_;
-       };
+        exception CannotAdd {
+            wstring reason_;
+        };
        
-      wstring software_revision();  // ex. L"1.216"
+        string software_revision();  // ex. L"1.216"
+       
+        boolean setConfiguration( in string xml );
+        boolean configComplete();  // all 'configured' module has loaded. Servant can access sibling/child objects
+      
+        // connect establish a connection betweeen application and servant.  Hardware communiation may not be ready yet.
+        boolean connect(in Receiver receiver, in string token) raises(CannotAdd);
+        boolean disconnect(in Receiver receiver_);
+      
+        eStatus status();
+      
+        boolean initialize();  // instruments going to 'power on', and starting up if not ready yet.
 
-      boolean setConfiguration( in wstring xml );
-      boolean configComplete();  // all 'configured' module has loaded. Servant can access sibling/child objects
-      
-      // connect establish a connection betweeen application and servant.  Hardware communiation may not be ready yet.
-      boolean connect(in Receiver receiver, in string token) raises(CannotAdd);
-      boolean disconnect(in Receiver receiver_);
-      
-      eStatus status();
-      
-      boolean initialize();  // instruments going to 'power on', and starting up if not ready yet.
+        SignalObserver::Observer getObserver();
 
-      SignalObserver::Observer getObserver();
-
-      boolean shutdown();  // shutdown server
-      boolean echo(in string msg);
-      boolean shell(in string cmdline);
+        boolean shutdown();  // shutdown server
+        boolean echo(in string msg);
+        boolean shell(in string cmdline);
       
-      boolean prepare_for_run(in ControlMethod::Method m);
-      boolean push_back( in SampleBroker::SampleSequence s);
+        boolean prepare_for_run(in ControlMethod::Method m);
+        boolean push_back( in SampleBroker::SampleSequence s);
       
-      boolean event_out(in unsigned long event);
-      boolean start_run();
-      boolean suspend_run();
-      boolean resume_run();
-      boolean stop_run();
-   };
+        boolean event_out(in unsigned long event);
+        boolean start_run();
+        boolean suspend_run();
+        boolean resume_run();
+        boolean stop_run();
+    };
 
-   interface Manager : BrokerClient::Accessor {
-       Session getSession( in wstring connStr );
-   };
+    interface Manager : BrokerClient::Accessor {
+        Session getSession( in wstring connStr );
+    };
 
 };

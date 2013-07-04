@@ -123,7 +123,6 @@ void
 oProxy::setConfiguration( const adportable::Configuration& c )
 {
     config_ = c;
-    std::wstring id = c.attribute( L"id" );
 }
 
 unsigned long

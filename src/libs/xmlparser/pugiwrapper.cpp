@@ -37,3 +37,13 @@ helper::to_wstring( const xml_node& node )
     dom.save( o );
     return o.str();
 }
+
+std::string
+helper::to_string( const xml_node& node )
+{
+	xml_document dom;
+	dom.append_copy( node );
+	std::ostringstream o;
+	dom.save( o );
+	return o.str();
+}

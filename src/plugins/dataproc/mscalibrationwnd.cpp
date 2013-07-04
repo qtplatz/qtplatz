@@ -85,9 +85,9 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
         splitter->addWidget( pImpl_->processedSpectrum_ );
 
         // summary table
-        const Configuration * pConfig = Configuration::find( c, L"MSCalibSummaryWidget" );
+        const Configuration * pConfig = Configuration::find( c, "MSCalibSummaryWidget" );
         if ( pConfig /* && pConfig->isPlugin() */)
-            pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( pConfig->_interface().c_str() );
+            pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( pConfig->component_interface().c_str() );
 
         if ( ! pImpl_->calibSummaryWidget_ )
             pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( L"qtwidgets::MSCalibSummaryWidget" );

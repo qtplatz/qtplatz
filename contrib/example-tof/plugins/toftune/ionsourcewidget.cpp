@@ -65,7 +65,7 @@ IonSourceWidget::~IonSourceWidget()
 }
 
 void
-IonSourceWidget::setMethod( const TOF::ControlMethod& method )
+IonSourceWidget::setMethod( const TOF::ControlMethod& )
 {
 }
 

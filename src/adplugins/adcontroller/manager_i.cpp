@@ -25,6 +25,7 @@
 #include "manager_i.hpp"
 #include "session_i.hpp"
 #include "taskmanager.hpp"
+#include "task.hpp"
 #include <xmlparser/pugixml.hpp>
 #include <cassert>
 
@@ -92,6 +93,13 @@ manager_i::setBrokerManager( Broker::Manager_ptr mgr )
     return true;
 }
 
+Broker::Manager_ptr
+manager_i::getBrokerManager()
+{
+	return Broker::Manager::_duplicate( broker_mgr_.in() );
+}
+
+
 bool
 manager_i::adpluginspec( const char *id, const char * spec )
 {
@@ -115,6 +123,7 @@ manager_i::adpluginspec( const char *id, const char * spec )
 			std::string iid = node.node().attribute( "iid" ).value();
 			broker_mgr_->register_lookup( iid.c_str(), id.c_str() );
 		});
+        iTask::instance()->setConfiguration( dom );
 	}
-    return true;
+    return static_cast<bool>( result );
 }

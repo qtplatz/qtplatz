@@ -46,10 +46,10 @@ session_i::session_i()
     // singleton::Task::instance()->initialize();
 }
 
-CORBA::WChar *
+CORBA::Char *
 session_i::software_revision()
 {
-    return const_cast<wchar_t *>( L"1.0" );
+    return "2.0";
 }
 
 CORBA::Boolean
@@ -71,7 +71,7 @@ session_i::disconnect( Receiver_ptr receiver )
 }
 
 CORBA::Boolean
-session_i::setConfiguration( const CORBA::WChar * xml )
+session_i::setConfiguration( const char * xml )
 {
     return iTaskManager::instance()->get<iTask>()->setConfiguration( xml );
 }

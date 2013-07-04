@@ -106,6 +106,12 @@ ConfigLoader::loadConfigXML( adportable::Configuration& config, const std::wstri
     return true;
 }
 
+//
+bool
+ConfigLoader::load( Configuration& config, const pugi::xml_node& node )
+{
+    return ConfigLoaderImpl::load( config, node );
+}
 
 bool
 ConfigLoaderImpl::populate( Configuration& config, const pugi::xml_node& node )
@@ -125,14 +131,14 @@ ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
 {
     if ( std::string( node.name() ) == "Configuration" ) {
         // copy name="my_name"
-        config.name( pugi::as_wide( node.attribute( "name" ).value() ) );
+        config.name( node.attribute( "name" ).value() );
         
-        config.xml( pugi::helper::to_wstring( node ) );
+        config.xml( pugi::helper::to_string( node ) );
         
         // populate all attributes
         // pugi::xpath_node_set attrs = node.select_nodes( "attribute::*" );
         for ( pugi::xml_attribute_iterator it = node.attributes_begin(); it != node.attributes_end(); ++it )
-            config.attribute( pugi::as_wide( it->name() ), pugi::as_wide( it->value() ) );
+            config.attribute( it->name(), it->value() );
         
         pugi::xpath_node title_node = node.select_single_node( "./title[@lang='jp']" );
         if ( title_node ) {
@@ -147,7 +153,7 @@ ConfigLoaderImpl::load( Configuration& config, const pugi::xml_node& node )
         do {
             std::string interface = node.select_single_node( "./Component/@interface" ).attribute().value();
             if ( ! interface.empty() )
-                config._interface( pugi::as_wide( interface ) );
+                config.component_interface( interface );
         } while (0);
 
         return true;

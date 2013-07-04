@@ -309,7 +309,7 @@ tofTunePlugin::HandleUpdateData( unsigned long objId, long pos )
             }
             return;
         }
-    } catch ( CORBA::Exception& ex ) {
+    } catch ( CORBA::Exception& ) {
         assert( 0 );
     }
 

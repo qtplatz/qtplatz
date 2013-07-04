@@ -22,10 +22,12 @@
 **
 **************************************************************************/
 
+#include "adinterface/brokerclient.idl"
 #include "adinterface/global_constants.idl"
 #include "adinterface/instrument.idl"
 #include "method.idl"
 #include "sio.idl"
+
 
 module TOFConstants {
 
@@ -46,14 +48,18 @@ module TOF {
     };
 
     /*************************************/
-    
+    /* CORBA Servant that support an instrument.
+       Main module have to inherit from BrokerClient::Accessor interface in order to 
+       receive BrokerManager pointer from adplugin loader.  Or, you can create without 
+       inherit from BrokerClient::Accessor and register/find BrokerManager using 
+       orbservant library module, which is based on UDP broadcast.
+     */
     interface Session : Instrument::Session {
 
-	void debug( in wstring text, in wstring key );
+        void debug( in wstring text, in wstring key );
 
         // for tuning
         boolean setControlMethod( in ControlMethod method, in string hint );
-        SIO::FPGA get_fpga_sio();
     };
     
 };

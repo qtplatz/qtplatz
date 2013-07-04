@@ -3,9 +3,25 @@
 <!-- Copyright (C) 2010 Toshinobu Hondo, All rights reserved. -->
 <adplugin name="adcontroller" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="adplugin.xsd">
   <Module name="adcontroller" type="orbServant" filename="adcontroller$(configuration).dll"/>
+
+  <!-- Configure analytical system -->
+  <!-- List all instrument that statically configuired.
+       All instrument control servers may also install dynamically using setConfiguration interface -->
+
   <Configuration name="InstrumentConfiguration">
-    <Configuration name="infitofcontroller.1" id="infitof.1">
-      <Module id="infitof.0000" name="infitofd" reference="lookup" iid="infitofcontroller.session"/>
+    <Configuration name="infitofcontroller.1"
+		   id="infitof.1"
+		   type="object_reference"
+		   ns_name="jp.ac.osaka-u.qtplatz.instrument.session.infitofd">
+      <!-- Module describes hardware instance
+	   following 'id' is the target string for "IOR?" query string
+	   if reference attribute set to 'lookup' that will be looking up using udp broadcast or multicast
+      -->
+      <Module id="infitof.0000"
+	      name="infitofd"
+	      reference="lookup"
+	      iid="jp.ac.osaka-u.qtplatz.instrument.session.infitofd"/>
     </Configuration>
   </Configuration>
+
 </adplugin>

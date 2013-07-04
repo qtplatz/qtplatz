@@ -11,6 +11,7 @@ CONFIG   += ordered
 INCLUDEPATH += /usr/local/include
 
 SUBDIRS = src \
-    share
+    share \
+    contrib
 
 unix:!macx:!isEmpty(copydata):SUBDIRS += bin

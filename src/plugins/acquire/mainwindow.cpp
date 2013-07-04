@@ -74,20 +74,20 @@ MainWindow::init( const adportable::Configuration& config )
 	setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
     setDocumentMode( true );
 
-    const adportable::Configuration * pTab = adportable::Configuration::find( config, L"monitor_tab" );
+    const adportable::Configuration * pTab = adportable::Configuration::find( config, "monitor_tab" );
     if ( pTab ) {
         using namespace adportable;
         using namespace adplugin;
             
         for ( auto node: *pTab ) {
 			
-            const std::wstring name = node.name();
+            const std::string name = node.name();
                 
-			QWidget * pWidget = adplugin::widget_factory::create( node._interface().c_str(), 0, 0 );
+			QWidget * pWidget = adplugin::widget_factory::create( node.component_interface().c_str(), 0, 0 );
 
             if ( pWidget ) {
                 bool res = false;
-                if ( node._interface() == L"adplugin::ui::iLog" ) {
+                if ( node.component_interface() == "adplugin::ui::iLog" ) {
                     res = connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
                     emit signal_eventLog( "Hello -- this is acquire plugin" );
                 }

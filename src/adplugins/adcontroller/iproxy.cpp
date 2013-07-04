@@ -47,36 +47,31 @@ bool
 iProxy::initialConfiguration( const adportable::Configuration& c )
 {
     config_ = c;
-    if ( config_.attribute( L"type" ) == L"object_ref" ) { // CORBA Object
-
-        name_ = config_.name();
-        std::string nsname = adportable::string::convert( config_.attribute( L"ns_name" ) );
-        CORBA::ORB_var orb = adcontroller::manager_i::instance()->orb();
-        std::string iorBroker = adcontroller::manager_i::instance()->broker_manager_ior();
+    std::string nsname = config_.attribute( "ns_name" );
+    name_ = adportable::string::convert( config_.name() );
+    
+    if ( config_.attribute( "type" ) == "object_reference" ) { // CORBA Object
 
         if ( ! nsname.empty() ) {
-            Broker::Manager_var mgr = acewrapper::brokerhelper::getManager( orb, iorBroker );
-            if ( CORBA::is_nil( mgr ) )
-                throw std::runtime_error( "iProxy::init_object_ref -- can't get Broker::Manager reference" );
 
-			CORBA::String_var ior = mgr->ior( nsname.c_str() );
-			if ( ior.in() != 0 ) {
-                try {
-					CORBA::Object_var obj = orb->string_to_object( ior.in() );
-                    if ( ! CORBA::is_nil( obj.in() ) ) {
-                        impl_ = Instrument::Session::_narrow( obj );
-                        if ( ! CORBA::is_nil( impl_ ) ) {
-                            if ( impl_->echo( "hello" ) )
-                                objref_ = true;
-                        }
-                    } 
-                } catch ( CORBA::Exception& ex ) {
-                    adportable::debug() << "adcontroller::iproxy::setConfiguration '" << nsname << "' " << ex._info().c_str();
-                }
-            } else {
-                adportable::debug() << "iProxy::setConfiguration -- object '" << nsname << "' not registerd";
+			Broker::Manager_var bmgr = static_cast<adcontroller::manager_i *>( *adcontroller::manager_i::instance() )->getBrokerManager();
+            if ( CORBA::is_nil( bmgr ) )
+                throw std::runtime_error( "iProxy::init_object_ref -- can't get Broker::Manager reference" );
+            try {
+                CORBA::Object_var obj = bmgr->find_object( nsname.c_str() );
+                if ( ! CORBA::is_nil( obj.in() ) ) {
+                    impl_ = Instrument::Session::_narrow( obj );
+                    if ( ! CORBA::is_nil( impl_ ) ) {
+                        if ( impl_->echo( "hello" ) )
+                            objref_ = true;
+                    }
+                } 
+            } catch ( CORBA::Exception& ex ) {
+                adportable::debug() << "adcontroller::iproxy::setConfiguration '" << nsname << "' " << ex._info().c_str();
             }
         }
+    } else {
+        adportable::debug() << "iProxy::setConfiguration -- object '" << nsname << "' not registerd";
     }
     return objref_;
 }

@@ -31,64 +31,35 @@
 
 namespace adportable {
 
-#if 0
-    class Module {
-    public:
-        Module( const std::wstring& xml = L"" );
-        Module( const Module& );
-        inline const std::wstring& xml() const { return xml_; }
-        inline const std::wstring& library_filename() const { return library_filename_; }
-        inline const std::string& object_reference() const { return object_reference_; }
-        inline const std::string& id() const { return id_; }
-        void xml( const std::wstring& );
-        void library_filename( const std::wstring& );
-        void library_filename( const std::string& );
-        void object_reference( const std::string& );
-        void id( const std::string& );
-
-    private:
-        std::wstring xml_;
-        std::wstring library_filename_;
-        std::string object_reference_;
-        std::string id_;
-    };
-#endif
-
     class Configuration {
     public:
         ~Configuration(void);
         Configuration(void);
         Configuration( const Configuration& );
+        Configuration& operator = ( const Configuration& );
 
         typedef std::vector<Configuration> vector_type;
-        typedef std::map<std::wstring, std::wstring> attributes_type;
+        typedef std::map<std::string, std::string> attributes_type;
 
-        const std::wstring& component() const;
-
-        const std::wstring& _interface() const;
-        void _interface( const std::wstring& );
+        const std::string& component() const;
+        const std::string& component_interface() const;
+        void component_interface( const std::string& );
 		
-        const std::wstring& attribute( const std::wstring& key ) const;
+        const std::string& attribute( const std::string& key ) const;
 		
-        const std::wstring& name() const;
-        void name( const std::wstring& );
+        const std::string& name() const;
+        void name( const std::string& );
 		
         const std::wstring& title() const;
         void title( const std::wstring& );
 		
-        void attribute( const std::wstring& key, const std::wstring& value );
+        void attribute( const std::string& key, const std::string& value );
         bool readonly() const;
         bool hasChild() const;
         Configuration& append( const Configuration& );
-        void xml( const std::wstring& );
-        // void module( const Module& );
-		
-        // bool isComponent() const;
-        // bool isPlugin() const;
-		
-        inline const std::wstring& xml() const { return xml_; }
+        void xml( const std::string& );
+        inline const std::string& xml() const { return xml_; }
         inline const attributes_type& attributes() const { return attributes_; }
-        // inline const Module& module() const { return module_; }
         inline vector_type::iterator begin() { return children_.begin(); }
         inline vector_type::iterator end()   { return children_.end(); }
         inline vector_type::reverse_iterator rbegin() { return children_.rbegin(); }
@@ -96,13 +67,12 @@ namespace adportable {
         inline vector_type::const_iterator begin() const { return children_.begin(); }
         inline vector_type::const_iterator end() const  { return children_.end(); }
 		
-        static const Configuration * find( const Configuration&, const std::wstring& );
+        static const Configuration * find( const Configuration&, const std::string& );
 		
     private:
-        std::wstring xml_;
-        std::wstring name_;
-        std::wstring text_;
-        std::wstring interface_;  // <Component interface="value"/>
+        std::string xml_;
+        std::wstring title_;
+        std::string component_interface_;  // <Configuration> <Component interface="value"/> </Configuration>
         attributes_type attributes_;
         std::vector< Configuration > children_;
     };

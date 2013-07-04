@@ -28,8 +28,8 @@
 // TAO_IDL - Generated from
 // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_codegen.cpp:152
 
-#ifndef _TAO_IDL_TOFC_AXKZ2F_H_
-#define _TAO_IDL_TOFC_AXKZ2F_H_
+#ifndef _TAO_IDL_TOFC_F7H2GJ_H_
+#define _TAO_IDL_TOFC_F7H2GJ_H_
 
 #include /**/ "ace/pre.h"
 
@@ -62,6 +62,7 @@
 #include /**/ "tao/Version.h"
 #include /**/ "tao/Versioned_Namespace.h"
 
+#include "adinterface/brokerclientC.h"
 #include "adinterface/global_constantsC.h"
 #include "adinterface/instrumentC.h"
 #include "methodC.h"
@@ -216,9 +217,6 @@ namespace TOF
     virtual ::CORBA::Boolean setControlMethod (
       const ::TOF::ControlMethod & method,
       const char * hint);
-
-    virtual ::SIO::FPGA_ptr get_fpga_sio (
-      void);
 
     // TAO_IDL - Generated from
     // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_interface\interface_ch.cpp:140

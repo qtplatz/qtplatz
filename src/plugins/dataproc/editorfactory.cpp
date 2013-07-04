@@ -39,7 +39,7 @@ EditorFactory::EditorFactory( const adportable::Configuration& config
 QWidget *
 EditorFactory::createEditor( QWidget * parent )
 {
-        std::string wiid = adportable::utf::to_utf8( config_._interface() );
+        std::string wiid = config_.component_interface(); 
         QWidget * pw = adplugin::widget_factory::create( wiid.c_str(), 0, parent );
         return pw;
         // return adplugin::manager::widget_factory( config_, path_.c_str(), parent );

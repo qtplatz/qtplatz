@@ -38,10 +38,9 @@ class ACE_Recursive_Thread_Mutex;
 class ACE_Notification_Strategy;
 class ACE_Reactor;
 
+namespace pugi { class xml_document; }
 namespace EventLog { struct LogMessage; }
 // namespace adcontroller { namespace constants { enum msg_type; } }
-
-///////////////////////////
 
 namespace adcontroller {
 
@@ -66,28 +65,29 @@ namespace adcontroller {
 
 	//  instrument communication methods below
         void reset_clock();
-	bool initialize();  // initialize hardware 
+        bool initialize();  // initialize hardware 
         bool connect( ControlServer::Session_ptr, Receiver_ptr, const char * token );
         bool disconnect( ControlServer::Session_ptr, Receiver_ptr );
-        bool setConfiguration( const wchar_t * xml );
+        bool setConfiguration( const char * xml );
+        bool setConfiguration( const pugi::xml_document& );
         bool configComplete();
         bool initialize_configuration();
 	
-	//
-	ControlServer::eStatus getStatusCurrent();
-	ControlServer::eStatus getStatusBeging(); 
-	bool observer_update_data( unsigned long parentId, unsigned long objid, long pos );
-	bool observer_update_method( unsigned long parentId, unsigned long objid, long pos );
-	bool observer_update_event( unsigned long parentId, unsigned long objid, long pos, unsigned long ev );
+        //
+        ControlServer::eStatus getStatusCurrent();
+        ControlServer::eStatus getStatusBeing(); 
+        bool observer_update_data( unsigned long parentId, unsigned long objid, long pos );
+        bool observer_update_method( unsigned long parentId, unsigned long objid, long pos );
+        bool observer_update_event( unsigned long parentId, unsigned long objid, long pos, unsigned long ev );
 	
-	typedef std::vector<internal::receiver_data> receiver_vector_type;
-	inline receiver_vector_type::iterator receiver_begin() { return receiver_set_.begin(); };
+        typedef std::vector<internal::receiver_data> receiver_vector_type;
+        inline receiver_vector_type::iterator receiver_begin() { return receiver_set_.begin(); };
         inline receiver_vector_type::iterator receiver_end()   { return receiver_set_.end(); };
         
         void register_failed( receiver_vector_type::iterator& );
         void commit_failed();
 	
-	SignalObserver::Observer_ptr getObserver();
+        SignalObserver::Observer_ptr getObserver();
         
     private:
         // ACE_Task
@@ -102,38 +102,38 @@ namespace adcontroller {
         void handle_dispatch( const EventLog::LogMessage & );
         void handle_dispatch( const ACE_Time_Value& );
         void handle_dispatch_command( ACE_Message_Block * );
-	void handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value );
+        void handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value );
         void handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos );
         void handle_observer_update_method( unsigned long parentId, unsigned long objId, long pos );
         void handle_observer_update_events( unsigned long parentId, unsigned long objId, long pos, unsigned long events );
 
 	// 
     public:
-	typedef std::shared_ptr< iProxy > iproxy_ptr;
-	typedef std::shared_ptr< oProxy > oproxy_ptr;
-	
-	typedef std::vector< std::shared_ptr<iProxy> > iproxy_vector_type;
-	typedef std::vector< std::shared_ptr<oProxy> > oproxy_vector_type;
-	
+        typedef std::shared_ptr< iProxy > iproxy_ptr;
+        typedef std::shared_ptr< oProxy > oproxy_ptr;
+        
+        typedef std::vector< std::shared_ptr<iProxy> > iproxy_vector_type;
+        typedef std::vector< std::shared_ptr<oProxy> > oproxy_vector_type;
+        
     private:
-
+        
         adportable::Configuration config_;
         
         std::mutex mutex_;
         ACE_Barrier barrier_;
         size_t n_threads_;
-
+        
         bool internal_disconnect( ControlServer::Session_ptr );
         receiver_vector_type receiver_set_;
         receiver_vector_type receiver_failed_;
-
-	std::vector< std::shared_ptr< iProxy > > iproxies_;
-	std::vector< std::shared_ptr< oProxy > > oproxies_;
+        
+        std::vector< std::shared_ptr< iProxy > > iproxies_;
+        std::vector< std::shared_ptr< oProxy > > oproxies_;
 	
-	std::shared_ptr< observer_i > pMasterObserver_;
+        std::shared_ptr< observer_i > pMasterObserver_;
 	
-	::ControlServer::eStatus status_current_;
-	::ControlServer::eStatus status_being_;
+        ::ControlServer::eStatus status_current_;
+        ::ControlServer::eStatus status_being_;
     };
 
 } // namespace adcontroller

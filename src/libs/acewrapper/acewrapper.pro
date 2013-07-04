@@ -26,7 +26,6 @@ SOURCES += acewrapper.cpp \
     inputcdr.cpp \
     lifecycle_frame_serializer.cpp \
     mcastserver.cpp \
-    messageblock.cpp \
     outputcdr.cpp \
     reactorthread.cpp \
     timerhandler.cpp \
@@ -46,7 +45,6 @@ HEADERS += acewrapper.hpp \
     inputcdr.hpp \
     lifecycle_frame_serializer.hpp \
     mcastserver.hpp \
-    messageblock.hpp \
     mutex.hpp \
     orbservant.hpp \
     outputcdr.hpp \

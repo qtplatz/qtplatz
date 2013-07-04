@@ -92,9 +92,9 @@ MSCalibSpectraWnd::init( const adportable::Configuration& c, const std::wstring&
         wndSplitter_->setOrientation( Qt::Vertical );
 
         // summary table
-        const Configuration * pConfig = Configuration::find( c, L"MSMCalibSummaryWidget" );
+        const Configuration * pConfig = Configuration::find( c, "MSMCalibSummaryWidget" );
         if ( pConfig /* && pConfig->isPlugin() */ )
-			wndCalibSummary_ = adplugin::widget_factory::create( pConfig->_interface().c_str(), 0, 0 );
+			wndCalibSummary_ = adplugin::widget_factory::create( pConfig->component_interface().c_str(), 0, 0 );
 
         bool res;
         res = connect( wndCalibSummary_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );

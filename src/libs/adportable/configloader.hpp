@@ -32,6 +32,8 @@ namespace adportable {
 	class Component;
 }
 
+namespace pugi { class xml_document; class xml_node; }
+
 namespace adportable {
 
     class ConfigLoader {
@@ -40,6 +42,7 @@ namespace adportable {
         ~ConfigLoader(void);
         static bool loadConfigFile( adportable::Configuration&, const std::wstring& file, const std::wstring& query );
         static bool loadConfigXML( adportable::Configuration&, const std::wstring& xml, const std::wstring& query );
+        static bool load( adportable::Configuration&, const pugi::xml_node& node );
     };
 
 }

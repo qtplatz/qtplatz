@@ -477,7 +477,7 @@ DataprocPlugin::install_isequence( const adportable::Configuration& config
                                    , iSequenceImpl& impl )
 {
     using adportable::Configuration;
-    const Configuration * tab = Configuration::find( config, L"ProcessMethodEditors" );    
+    const Configuration * tab = Configuration::find( config, "ProcessMethodEditors" );    
     if ( tab ) {
         for ( Configuration::vector_type::const_iterator it = tab->begin(); it != tab->end(); ++it )
 			impl << iEditorFactoryPtr( new EditorFactory( *it, apppath ) );

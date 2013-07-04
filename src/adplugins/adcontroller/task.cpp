@@ -26,29 +26,29 @@
 #include "iproxy.hpp"
 #include "oproxy.hpp"
 #include "logging.hpp"
+#include "observer_i.hpp"
+#include "manager_i.hpp"
+#include "taskmanager.hpp"
+#include "message.hpp"
+#include "marshal.hpp"
+#include "constants.hpp"
 #include <ace/Reactor.h>
 #include <ace/Thread_Manager.h>
 #include <adinterface/receiverC.h>
 #include <adinterface/eventlogC.h>
 #include <adinterface/samplebrokerC.h>
 #include <acewrapper/mutex.hpp>
-#include "taskmanager.hpp"
-#include "message.hpp"
 #include <acewrapper/timeval.hpp>
-#include <acewrapper/messageblock.hpp>
 #include <iostream>
 #include <sstream>
 #include <adinterface/eventlog_helper.hpp>
-#include "marshal.hpp"
-#include "constants.hpp"
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/timer.hpp>
-#include "observer_i.hpp"
-#include "manager_i.hpp"
 #include <acewrapper/orbservant.hpp>
-#include <boost/foreach.hpp>
+#include <xmlparser/pugixml.hpp>
+#include <xmlparser/pugiwrapper.hpp>
 #include <boost/bind.hpp>
 #include <stdexcept>
 #if defined _DEBUG
@@ -135,20 +135,39 @@ iTask::close()
 }
 
 bool
-iTask::setConfiguration( const wchar_t * xml )
+iTask::setConfiguration( const char * xml )
 {
-    // if already has configuration, then error return
-    if ( ! config_.xml().empty() )
-        return false;
-
     status_current_ = status_being_ = ControlServer::eNotConfigured;
 
-    const wchar_t * query = L"//Configuration[@name='InstrumentConfiguration']";
-    adportable::ConfigLoader::loadConfigXML( config_, xml, query );
-    
-    return true;
+    pugi::xml_document dom;
+    pugi::xml_parse_result result;
+	if ( ( result = dom.load( xml ) ) )
+        return setConfiguration( dom );
+    return static_cast< bool >( result );
 }
 
+bool
+iTask::setConfiguration( const pugi::xml_document& dom )
+{
+    status_current_ = status_being_ = ControlServer::eNotConfigured;
+
+    pugi::xpath_node_set set = dom.select_nodes( "//Configuration[@name='InstrumentConfiguration']/Configuration" );
+    if ( set.size() > 0 ) {
+        for ( const pugi::xpath_node& node : set ) {
+            adportable::Configuration child;
+
+			for ( const auto& att: node.node().attributes() )
+				child.attribute( att.name(), att.value() );
+
+			child.xml( pugi::helper::to_string( node.node() ) );
+
+            config_.append( child );
+
+        }
+        return true;
+    }
+    return false;
+}
 
 bool
 iTask::configComplete()
@@ -174,9 +193,7 @@ iTask::initialize_configuration()
     }
 
     int objid = 0;
-    for ( Configuration::vector_type::iterator it = config_.begin(); it != config_.end(); ++it ) {
-        Configuration & item = *it;
-
+    for ( Configuration& item: config_ ) {
         ++objid;
         // initialize instrument proxy
         std::shared_ptr<iProxy> pProxy( new iProxy( *this ) );
@@ -298,7 +315,7 @@ iTask::getStatusCurrent()
 }
 
 ::ControlServer::eStatus
-iTask::getStatusBeging()
+iTask::getStatusBeing()
 {
     return status_being_;
 }
@@ -489,7 +506,7 @@ iTask::handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned 
 */
     // Following is just a quick debugging --> trigger spectrum display, should be removed
     // Right code is implement SignalObserver and UpdateData event is the right place to issue event.
-    BOOST_FOREACH( internal::receiver_data& d, this->receiver_set_ ) {
+    for ( internal::receiver_data& d: this->receiver_set_ ) {
         try {
             d.receiver_->message( Receiver::eINSTEVENT( msgid ), value );
         } catch ( CORBA::Exception& ex ) {
@@ -506,7 +523,7 @@ iTask::handle_dispatch( const EventLog::LogMessage& msg )
 	// Logging( L"adcontroller::iTask::handle_dispatch EventLog: " + std::wstring( msg.format.in() ), ::EventLog::pri_INFO );
     std::lock_guard< std::mutex > lock( mutex_ );    
 
-    BOOST_FOREACH( internal::receiver_data& d, receiver_set_ ) {
+    for ( internal::receiver_data& d: receiver_set_ ) {
         try {
             d.receiver_->log( msg );
         } catch ( CORBA::Exception& ) {
@@ -530,7 +547,7 @@ iTask::handle_dispatch_command( ACE_Message_Block * mblk )
         ACE_CString s;
         cdr >> s;
         using internal::receiver_data;
-        BOOST_FOREACH( receiver_data& d, receiver_set_ ) {
+        for ( receiver_data& d: receiver_set_ ) {
             try {
                 d.receiver_->debug_print( 0, 0, s.c_str() );
             } catch ( CORBA::Exception& ) {
@@ -542,13 +559,22 @@ iTask::handle_dispatch_command( ACE_Message_Block * mblk )
         std::lock_guard< std::mutex > lock( mutex_ );
         SampleBroker::SampleSequenceLine s;
         ControlMethod::Method m;
-        std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::prepare_for_run, _1, s, m ) );
+        // std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::prepare_for_run, _1, s, m ) );
+        std::for_each( iproxies_.begin(), iproxies_.end(), [&]( iproxy_ptr& ptr ){
+                ptr->prepare_for_run( s, m ); 
+            });
     } else if ( cmd == constants::SESSION_COMMAND_STARTRUN ) {
         std::lock_guard< std::mutex > lock( mutex_ );
-        std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::startRun, _1 ) );
+        // std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::startRun, _1 ) );
+        std::for_each( iproxies_.begin(), iproxies_.end(), []( iproxy_ptr& ptr ){
+                ptr->startRun();
+            });
     } else if ( cmd == constants::SESSION_COMMAND_STOPRUN )  {
         std::lock_guard< std::mutex > lock( mutex_ );
-        std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::stopRun, _1 ) );
+        // std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::stopRun, _1 ) );
+        std::for_each( iproxies_.begin(), iproxies_.end(), []( iproxy_ptr& ptr ){
+                ptr->stopRun();
+            });
     }
 }
 

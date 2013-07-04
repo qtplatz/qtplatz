@@ -23,15 +23,13 @@
 **
 **************************************************************************/
 
-#ifndef tofSPECTROMETER_GLOBAL_HPP
-#define tofSPECTROMETER_GLOBAL_HPP
+#pragma once
 
-#include <QtCore/qglobal.h>
+#include <compiler/decl_export.h>
 
-#if defined(tofSPECTROMETER_LIBRARY)
-#  define tofSPECTROMETERSHARED_EXPORT Q_DECL_EXPORT
+#if defined(TOFSPECTROMETER_LIBRARY)
+#  define TOFSPECTROMETERSHARED_EXPORT DECL_EXPORT
 #else
-#  define tofSPECTROMETERSHARED_EXPORT Q_DECL_IMPORT
+#  define TOFSPECTROMETERSHARED_EXPORT DECL_IMPORT
 #endif
 
-#endif // tofSPECTROMETER_GLOBAL_HPP

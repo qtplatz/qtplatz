@@ -74,8 +74,6 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <boost/foreach.hpp>
-//#include <boost/thread/barrier.hpp>
 #include <adportable/barrier.hpp>
 
 using namespace servant;
@@ -245,7 +243,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     // ----------------------- initialize corba servants ------------------------------
     std::vector< adplugin::plugin_ptr > factories;
     adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
-    BOOST_FOREACH( const adplugin::plugin_ptr& ptr, factories ) {
+    for ( const adplugin::plugin_ptr& ptr: factories ) {
 
         if ( ptr->iid() == adbroker->iid() )
             continue;

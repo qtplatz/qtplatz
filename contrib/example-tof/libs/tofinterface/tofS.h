@@ -28,12 +28,13 @@
 // TAO_IDL - Generated from
 // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_codegen.cpp:461
 
-#ifndef _TAO_IDL_TOFS_7VMYIO_H_
-#define _TAO_IDL_TOFS_7VMYIO_H_
+#ifndef _TAO_IDL_TOFS_RGXQAC_H_
+#define _TAO_IDL_TOFS_RGXQAC_H_
 
 #include /**/ "ace/pre.h"
 
 #include "tofC.h"
+#include "adinterface/brokerclientS.h"
 #include "adinterface/global_constantsS.h"
 #include "adinterface/instrumentS.h"
 #include "methodS.h"
@@ -45,7 +46,6 @@
 #include "tao/PortableServer/Object_SArg_Traits.h"
 #include "tao/PortableServer/Special_Basic_SArguments.h"
 #include "tao/PortableServer/UB_String_SArguments.h"
-#include "tao/PortableServer/Object_SArg_Traits.h"
 #include "tao/PortableServer/get_arg.h"
 #include "tao/Special_Basic_Arguments.h"
 #include "tao/UB_String_Arguments.h"
@@ -174,17 +174,6 @@ namespace POA_TOF
       const char * hint) = 0;
 
     static void setControlMethod_skel (
-        TAO_ServerRequest &server_request,
-        TAO::Portable_Server::Servant_Upcall *servant_upcall,
-        TAO_ServantBase *servant);
-
-    // TAO_IDL - Generated from
-    // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_operation\operation_sh.cpp:39
-
-    virtual ::SIO::FPGA_ptr get_fpga_sio (
-      void) = 0;
-
-    static void get_fpga_sio_skel (
         TAO_ServerRequest &server_request,
         TAO::Portable_Server::Servant_Upcall *servant_upcall,
         TAO_ServantBase *servant);

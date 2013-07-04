@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2013 MS-Cheminformatics LLC, All rights reserved. -->
+<!-- Copyright (C) 2010 Toshinobu Hondo, All rights reserved. -->
+<adplugin name="tofservant" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="adplugin.xsd">
+  <Configuration name="InstrumentConfiguration">
+    <Configuration name="tofservant.controller.1"
+		   id="tofservant.controller.1"
+		   type="object_reference"
+		   ns_name="com.ms-cheminfo.qtplatz.adplugins.orbfactory.tofservant">
+      <!-- Module describes hardware instance
+	   following 'id' is the target string for "IOR?" query string
+      -->
+      <Module id="tof.0000" name="tofservant" reference="static" 
+	      iid="com.ms-cheminfo.qtplatz.adplugins.orbfactory.tofservant.session"/>
+    </Configuration>
+  </Configuration>
+</adplugin>

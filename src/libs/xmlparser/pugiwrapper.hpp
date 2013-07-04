@@ -33,6 +33,7 @@ namespace pugi {
     class helper {
     public:
         static std::wstring to_wstring( const xml_node& );
+		static std::string to_string( const xml_node& );
     };
 
 }

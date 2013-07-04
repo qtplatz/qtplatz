@@ -155,39 +155,6 @@ TOF::Session::setControlMethod (
   return _tao_retval.retn ();
 }
 
-// TAO_IDL - Generated from
-// c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_operation\operation_cs.cpp:91
-
-::SIO::FPGA_ptr
-TOF::Session::get_fpga_sio (
-  void)
-{
-  if (!this->is_evaluated ())
-    {
-      ::CORBA::Object::tao_object_initialize (this);
-    }
-  
-  TAO::Arg_Traits< ::SIO::FPGA>::ret_val _tao_retval;
-
-  TAO::Argument *_the_tao_operation_signature [] =
-    {
-      &_tao_retval
-    };
-
-  TAO::Invocation_Adapter _tao_call (
-      this,
-      _the_tao_operation_signature,
-      1,
-      "get_fpga_sio",
-      12,
-      TAO::TAO_CO_NONE | TAO::TAO_CO_THRU_POA_STRATEGY
-    );
-
-  _tao_call.invoke (0, 0);
-
-  return _tao_retval.retn ();
-}
-
 TOF::Session::Session (void)
 {
 }

@@ -29,8 +29,8 @@
 // TAO_IDL - Generated from
 // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_codegen.cpp:652
 
-#ifndef _TAO_IDL_TOFS_RQ4XSR_CPP_
-#define _TAO_IDL_TOFS_RQ4XSR_CPP_
+#ifndef _TAO_IDL_TOFS_S0LMPH_CPP_
+#define _TAO_IDL_TOFS_S0LMPH_CPP_
 
 
 #include "tofS.h"
@@ -71,19 +71,19 @@ TAO_TOF_Session_Perfect_Hash_OpTable::hash (const char *str, unsigned int len)
 {
   static const unsigned char asso_values[] =
     {
-     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
-     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
-     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
-     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
-     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
-     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
-     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
-     62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
-     62, 62, 15, 62, 62, 62, 62, 62, 62, 62,
-     62, 62, 62, 62, 62,  0, 62, 13, 62,  0,
-     10,  5, 62, 20, 62, 30, 62, 20,  0, 62,
-      0, 20, 10, 62, 30,  0,  0, 62, 62, 62,
-     62, 62, 62, 62, 62, 62, 62, 62,
+     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+     52, 52, 10, 52, 52, 52, 52, 52, 52, 52,
+     52, 52, 52, 52, 52,  0, 52, 13, 52,  0,
+     10,  5, 52, 15, 52, 30, 52,  5,  0, 52,
+      0, 25, 25, 52, 25,  0,  0, 52, 52, 52,
+     52, 52, 52, 52, 52, 52, 52, 52,
     };
   return len + asso_values[(int) str[len - 1]] + asso_values[(int) str[0]];
 }
@@ -93,14 +93,14 @@ TAO_TOF_Session_Perfect_Hash_OpTable::lookup (const char *str, unsigned int len)
 {
   enum
     {
-      TOTAL_KEYWORDS = 28,
+      TOTAL_KEYWORDS = 27,
       MIN_WORD_LENGTH = 4,
       MAX_WORD_LENGTH = 19,
       MIN_HASH_VALUE = 5,
-      MAX_HASH_VALUE = 61,
-      HASH_VALUE_RANGE = 57,
+      MAX_HASH_VALUE = 51,
+      HASH_VALUE_RANGE = 47,
       DUPLICATES = 2,
-      WORDLIST_SIZE = 33
+      WORDLIST_SIZE = 32
     };
 
   static const TAO_operation_db_entry wordlist[] =
@@ -122,27 +122,25 @@ TAO_TOF_Session_Perfect_Hash_OpTable::lookup (const char *str, unsigned int len)
       {"configComplete", &POA_Instrument::Session::configComplete_skel, 0},
       {"disconnect", &POA_Instrument::Session::disconnect_skel, 0},
       {"_repository_id", &TAO_ServantBase::_repository_id_thru_poa_skel, 0},
-      {"prepare_for_run", &POA_Instrument::Session::prepare_for_run_skel, 0},
-      {"setControlMethod", &POA_TOF::Session::setControlMethod_skel, 0},
-      {"echo", &POA_Instrument::Session::echo_skel, 0},
       {"get_status", &POA_Instrument::Session::get_status_skel, 0},
+      {"setControlMethod", &POA_TOF::Session::setControlMethod_skel, 0},
       {"setBrokerManagerIOR", &POA_Instrument::Session::setBrokerManagerIOR_skel, 0},
       {"debug", &POA_TOF::Session::debug_skel, 0},
-      {"push_back", &POA_Instrument::Session::push_back_skel, 0},
+      {"echo", &POA_Instrument::Session::echo_skel, 0},
       {"resume_run", &POA_Instrument::Session::resume_run_skel, 0},
-      {"initialize", &POA_Instrument::Session::initialize_skel, 0},
+      {"push_back", &POA_Instrument::Session::push_back_skel, 0},
+      {"prepare_for_run", &POA_Instrument::Session::prepare_for_run_skel, 0},
       {"getControlMethod", &POA_Instrument::Session::getControlMethod_skel, 0},
-      {"get_fpga_sio", &POA_TOF::Session::get_fpga_sio_skel, 0},
+      {"initialize", &POA_Instrument::Session::initialize_skel, 0},
       {"getObserver", &POA_Instrument::Session::getObserver_skel, 0},
     };
 
   static const signed char lookup[] =
     {
-       -1,  -1,  -1,  -7,  -2,   5,  -1,   6, -66,   9,  10,  11,  -1,  12, 
+       -1,  -1,  -1,  -7,  -2,   5,  -1,   6, -56,   9,  10,  11,  -1,  12, 
        13,  14,  15,  16,  17,  18,  19,  -1,  -1,  -1,  20,  21,  22,  -1, 
-       -1,  23,  24,  -1,  -1,  -1,  25,  26,  -1,  -1,  -1,  27,  28,  -1, 
-       -1,  -1,  -1,  29,  30,  -1,  -1,  -1,  -1,  -1,  31,  -1,  -1,  -1, 
-       -1,  -1,  -1,  -1,  -1,  32, 
+       -1,  23,  24,  -1,  -1,  -1,  25,  26,  -1,  -1,  -1,  27,  28,  29, 
+       -1,  -1,  -1,  30,  -1,  -1,  -1,  -1,  -1,  31, 
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -387,94 +385,6 @@ void POA_TOF::Session::setControlMethod_skel (
     }
 
   setControlMethod_Session command (
-    impl,
-    server_request.operation_details (),
-    args);
-  
-  TAO::Upcall_Wrapper upcall_wrapper;
-  upcall_wrapper.upcall (server_request
-                         , args
-                         , nargs
-                         , command
-#if TAO_HAS_INTERCEPTORS == 1
-                         , servant_upcall
-                         , exceptions
-                         , nexceptions
-#endif  /* TAO_HAS_INTERCEPTORS == 1 */
-                         );
-}
-
-
-namespace POA_TOF
-{
-  
-
-  // TAO_IDL - Generated from
-  // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_operation\upcall_command_ss.cpp:83
-
-  class get_fpga_sio_Session
-    : public TAO::Upcall_Command
-  {
-  public:
-    inline get_fpga_sio_Session (
-      POA_TOF::Session * servant,
-      TAO_Operation_Details const * operation_details,
-      TAO::Argument * const args[])
-      : servant_ (servant)
-        , operation_details_ (operation_details)
-        , args_ (args)
-    {
-    }
-
-    virtual void execute (void)
-    {
-      TAO::SArg_Traits< ::SIO::FPGA>::ret_arg_type retval =
-        TAO::Portable_Server::get_ret_arg< ::SIO::FPGA> (
-          this->operation_details_,
-          this->args_);
-      
-      retval =
-        this->servant_->get_fpga_sio ();
-    }
-  
-  private:
-    POA_TOF::Session * const servant_;
-    TAO_Operation_Details const * const operation_details_;
-    TAO::Argument * const * const args_;
-  };
-}
-
-// TAO_IDL - Generated from
-// c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_operation\operation_ss.cpp:171
-
-void POA_TOF::Session::get_fpga_sio_skel (
-  TAO_ServerRequest & server_request,
-  TAO::Portable_Server::Servant_Upcall *TAO_INTERCEPTOR (servant_upcall),
-  TAO_ServantBase *servant)
-{
-#if TAO_HAS_INTERCEPTORS == 1
-  static ::CORBA::TypeCode_ptr const * const exceptions = 0;
-  static ::CORBA::ULong const nexceptions = 0;
-#endif /* TAO_HAS_INTERCEPTORS */
-
-  TAO::SArg_Traits< ::SIO::FPGA>::ret_val retval;
-
-  TAO::Argument * const args[] =
-    {
-      &retval
-    };
-  
-  static size_t const nargs = 1;
-
-  POA_TOF::Session * const impl =
-    dynamic_cast<POA_TOF::Session *> (servant);
-
-  if (!impl)
-    {
-      throw ::CORBA::INTERNAL ();
-    }
-
-  get_fpga_sio_Session command (
     impl,
     server_request.operation_details (),
     args);

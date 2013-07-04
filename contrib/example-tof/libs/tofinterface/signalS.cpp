@@ -29,8 +29,8 @@
 // TAO_IDL - Generated from
 // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_codegen.cpp:652
 
-#ifndef _TAO_IDL_SIGNALS_MZALQD_CPP_
-#define _TAO_IDL_SIGNALS_MZALQD_CPP_
+#ifndef _TAO_IDL_SIGNALS_9L5D9R_CPP_
+#define _TAO_IDL_SIGNALS_9L5D9R_CPP_
 
 
 #include "signalS.h"

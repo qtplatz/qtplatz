@@ -49,6 +49,8 @@ namespace adcontroller {
         // BrokerClient::Accessor
         bool setBrokerManager( Broker::Manager_ptr mgr );
         bool adpluginspec( const char * id, const char * adpluginspec );
+
+		Broker::Manager_ptr getBrokerManager();
         
     private:
         typedef std::map< std::wstring, std::shared_ptr< adcontroller::session_i > > session_map_type;

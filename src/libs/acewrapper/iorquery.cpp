@@ -25,7 +25,6 @@
 #include "iorquery.hpp"
 #include <acewrapper/constants.hpp>
 #include <acewrapper/ifconfig.hpp>
-#include <boost/foreach.hpp>
 #include <boost/bind.hpp>
 
 using namespace acewrapper;
@@ -121,7 +120,7 @@ iorQuery::send_query()
 {
     acewrapper::ifconfig::ifvec vec;
     if ( acewrapper::ifconfig::broadaddr( vec ) ) {
-        BOOST_FOREACH( acewrapper::ifconfig::ifaddr& addr, vec ) {
+        for ( acewrapper::ifconfig::ifaddr& addr: vec ) {
             boost::asio::ip::udp::endpoint dest( boost::asio::ip::address::from_string( addr.second ), dstport );
             socket_.send_to( boost::asio::buffer("ior?"), dest );
         }

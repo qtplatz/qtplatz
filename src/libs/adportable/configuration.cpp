@@ -25,10 +25,11 @@
 
 #include "configuration.hpp"
 #include "string.hpp"
+#include <algorithm>
 
 using namespace adportable;
 
-static std::wstring __error_string;
+static std::string __error_string;
 
 Configuration::Configuration(void)
 {
@@ -39,68 +40,77 @@ Configuration::~Configuration(void)
 }
 
 Configuration::Configuration( const Configuration& t ) : xml_( t.xml_ )
-						       , name_( t.name_ )
-                                                       , text_( t.text_ )
-						       , interface_(t.interface_)
+                                                       , title_( t.title_ )
+                                                       , component_interface_(t.component_interface_)
                                                        , attributes_( t.attributes_ )
                                                        , children_( t.children_ )  
-                                                       //, module_( t.module_ )
 {
 }
 
-const std::wstring&
+Configuration&
+Configuration::operator = ( const Configuration& t )
+{
+    xml_ = t.xml_;
+    title_ = t.title_;
+    component_interface_ = t.component_interface_;
+    attributes_ = t.attributes_;
+    children_ = t.children_;
+	return *this;
+}
+
+const std::string&
 Configuration::component() const
 {
-    return attribute( L"component" );
+    return attribute( "component" );
 }
 
-const std::wstring&
-Configuration::_interface() const
+const std::string&
+Configuration::component_interface() const
 {
-    return interface_;  // under <Component> element
+    return component_interface_;  // under <Component> element
 }
 
 void
-Configuration::_interface( const std::wstring& value )
+Configuration::component_interface( const std::string& value )
 {
-    interface_ = value;
+    component_interface_ = value;
 }
 
-const std::wstring&
-Configuration::attribute( const std::wstring& key ) const
+const std::string&
+Configuration::attribute( const std::string& key ) const
 {
-    attributes_type::const_iterator it = attributes_.find( key );
+    auto it = attributes_.find( key );
     if ( it != attributes_.end() )
         return it->second;
     return __error_string;
 }
 
-const std::wstring&
+const std::string&
 Configuration::name() const
 {
-    return name_;
+    return attribute( "name" );
 }
 
 void
-Configuration::name( const std::wstring& value )
+Configuration::name( const std::string& value )
 {
-    name_ = value;
+    attribute( "name", value );
 }
 
 const std::wstring&
 Configuration::title() const
 {
-    return text_;
+    return title_;
 }
 
 void
 Configuration::title( const std::wstring& value )
 {
-    text_ = value;
+    title_ = value;
 }
 
 void
-Configuration::attribute( const std::wstring& key, const std::wstring& value )
+Configuration::attribute( const std::string& key, const std::string& value )
 {
     attributes_[ key ] = value;
 }
@@ -108,7 +118,7 @@ Configuration::attribute( const std::wstring& key, const std::wstring& value )
 bool
 Configuration::readonly() const
 {
-    if ( attribute( L"readonly" ) == L"true" )
+    if ( attribute( "readonly" ) == "true" )
         return true;
     return false;
 }
@@ -127,24 +137,28 @@ Configuration::append( const Configuration& t )
 }
 
 void
-Configuration::xml( const std::wstring& xml )
+Configuration::xml( const std::string& xml )
 {
     xml_ = xml;
 }
 
 // static
 const Configuration *
-Configuration::find( const Configuration& config, const std::wstring& name )
+Configuration::find( const Configuration& config, const std::string& name )
 {
+	// check first layer
     if ( config.name() == name )
         return &config;
-    for ( Configuration::vector_type::const_iterator it = config.begin(); it != config.end(); ++it ) {
-        if ( it->name() == name )
-            return &(*it);
-    }
+	const auto it = std::find_if( config.begin(), config.end(), [&]( const Configuration& c ){
+		return c.name() == name;
+	});
+	if ( it != config.end() )
+		return &(*it);
+
+	// recursive search
     const Configuration * p = 0;
-    for ( Configuration::vector_type::const_iterator it = config.begin(); it != config.end(); ++it ) {
-        if ( ( p = find( *it, name ) ) )
+	for ( const Configuration& c: config ) {
+        if ( ( p = find( c, name ) ) )
             return p;
     }
     return 0;
@@ -152,46 +166,3 @@ Configuration::find( const Configuration& config, const std::wstring& name )
 
 /////////////////////////////////////
 
-/*
-Module::Module( const std::wstring& xml ) : xml_(xml)
-{
-}
-
-Module::Module( const Module& t ) : xml_( t.xml_ )
-                                  , library_filename_( t.library_filename_ )
-                                  , object_reference_( t.object_reference_ )
-                                  , id_( t.id_ )
-{
-}
-
-void
-Module::xml( const std::wstring& xml )
-{
-    xml_ = xml;
-}
-
-void
-Module::library_filename( const std::wstring& name )
-{
-    library_filename_ = name;
-}
-
-void
-Module::library_filename( const std::string& name )
-{
-    library_filename_ = string::convert( name );
-}
-
-void
-Module::object_reference( const std::string& name )
-{
-    object_reference_ = name;
-}
-
-void
-Module::id( const std::string& ident )
-{
-    id_ = ident;
-}
-*/
-////////////////////

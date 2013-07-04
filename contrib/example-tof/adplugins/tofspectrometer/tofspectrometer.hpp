@@ -23,8 +23,7 @@
 **
 **************************************************************************/
 
-#ifndef tofSPECTROMETER_HPP
-#define tofSPECTROMETER_HPP
+#pragma once
 
 namespace adcontrols {
 	class MassSpectrometer;
@@ -32,13 +31,12 @@ namespace adcontrols {
 
 #include "tofspectrometer_global.hpp"
 
-class tofSPECTROMETERSHARED_EXPORT tofSpectrometer {
+class TOFSPECTROMETERSHARED_EXPORT tofSpectrometer {
 public:
     tofSpectrometer();
 };
 
 extern "C" {
-	tofSPECTROMETERSHARED_EXPORT adcontrols::MassSpectrometer * getMassSpectrometer();
+	TOFSPECTROMETERSHARED_EXPORT adcontrols::MassSpectrometer * getMassSpectrometer();
 }
 
-#endif // tofSPECTROMETER_HPP
