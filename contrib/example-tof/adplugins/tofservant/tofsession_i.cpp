@@ -24,7 +24,9 @@
 **************************************************************************/
 
 #include "tofSession_i.hpp"
+#include "toftask.hpp"
 #include <boost/tokenizer.hpp>
+
 
 using namespace tofservant;
 
@@ -33,12 +35,6 @@ CORBA::Char *
 tofSession_i::software_revision (void)
 {
     return CORBA::string_dup("1.0.0.0");
-}
-
-CORBA::Boolean 
-tofSession_i::setBrokerManagerIOR( const char * ior )
-{
-    return true;
 }
 
 CORBA::Boolean 
@@ -56,7 +52,7 @@ tofSession_i::configComplete()
 CORBA::Boolean 
 tofSession_i::connect( Receiver_ptr receiver, const CORBA::Char * token )
 {
-    return false;
+	return toftask::instance()->connect( receiver, token );
 }
 
 CORBA::Boolean 
@@ -80,7 +76,7 @@ tofSession_i::initialize (void)
 SignalObserver::Observer_ptr
 tofSession_i::getObserver( void )
 {
-    return 0;
+	return toftask::instance()->getObserver();
 }
 
 CORBA::Boolean 
@@ -120,15 +116,15 @@ tofSession_i::getControlMethod()
 {
     ControlMethod::Method_var p( new ControlMethod::Method() );
     TOF::ControlMethod m;
-    // todo: setup 'm' from running method
+	toftask::instance()->getControlMethod( m );
 
-        p->lines.length( 1 );
-        p->lines[ 0 ].modelname = CORBA::wstring_dup( L"TOF" );
-        p->lines[ 0 ].index = 0;
-        p->lines[ 0 ].unitnumber = 0;
-        p->lines[ 0 ].isInitialCondition = true;
-        p->lines[ 0 ].funcid = 0;
-        p->lines[ 0 ].data <<= m;
+    p->lines.length( 1 );
+    p->lines[ 0 ].modelname = CORBA::wstring_dup( L"TOF" );
+    p->lines[ 0 ].index = 0;
+    p->lines[ 0 ].unitnumber = 0;
+    p->lines[ 0 ].isInitialCondition = true;
+    p->lines[ 0 ].funcid = 0;
+    p->lines[ 0 ].data <<= m;
 
     return p._retn();
 }

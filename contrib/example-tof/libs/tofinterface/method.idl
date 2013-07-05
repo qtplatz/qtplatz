@@ -107,5 +107,9 @@ module TOF {
         unsigned long methodId;
         acqSegment_sequence segments;
     };
+
+    interface avoid_warning {
+        void dummy();
+    };
     
 };

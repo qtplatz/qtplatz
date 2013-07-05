@@ -86,12 +86,7 @@ MonitorUI::OnInitialUpdate()
 {
 	Broker::Manager_var mgr = adorbmgr::orbmgr::getBrokerManager();
 
-    CORBA::String_var ior = mgr->ior( "tofcontroller.session" );
-	if ( static_cast< const char * >(ior) == 0 )
-		return;
-
-	CORBA::ORB_var orb = adorbmgr::orbmgr::instance()->orb();
-	CORBA::Object_var obj = orb->string_to_object( ior.in() );
+	CORBA::Object_var obj = mgr->find_object( "com.ms-cheminfo.qtplatz.instrument.session.tofservant" );
 	if ( ! CORBA::is_nil( obj.in() ) ) {
 		receiver_i_->session_ = TOF::Session::_narrow( obj );
         if ( ! CORBA::is_nil( receiver_i_->session_.in() ) ) {

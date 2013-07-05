@@ -28,8 +28,8 @@
 // TAO_IDL - Generated from
 // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_codegen.cpp:152
 
-#ifndef _TAO_IDL_METHODC_VSJZVA_H_
-#define _TAO_IDL_METHODC_VSJZVA_H_
+#ifndef _TAO_IDL_METHODC_CRKU9Q_H_
+#define _TAO_IDL_METHODC_CRKU9Q_H_
 
 #include /**/ "ace/pre.h"
 
@@ -44,9 +44,13 @@
 #include "tao/AnyTypeCode/AnyTypeCode_methods.h"
 #include "tao/AnyTypeCode/Any.h"
 #include "tao/ORB.h"
+#include "tao/SystemException.h"
 #include "tao/Basic_Types.h"
+#include "tao/ORB_Constants.h"
+#include "tao/Object.h"
 #include "tao/String_Manager_T.h"
 #include "tao/Sequence_T.h"
+#include "tao/Objref_VarOut_T.h"
 #include "tao/Seq_Var_T.h"
 #include "tao/Seq_Out_T.h"
 #include "tao/VarOut_T.h"
@@ -56,6 +60,7 @@
 #include "tao/Any_Insert_Policy_T.h"
 #include "tao/Fixed_Size_Argument_T.h"
 #include "tao/Var_Size_Argument_T.h"
+#include "tao/Object_Argument_T.h"
 #include "tao/UB_String_Arguments.h"
 #include /**/ "tao/Version.h"
 #include /**/ "tao/Versioned_Namespace.h"
@@ -70,6 +75,20 @@
 #undef TAO_EXPORT_MACRO
 #endif
 #define TAO_EXPORT_MACRO 
+
+// TAO_IDL - Generated from
+// c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_root\root_ch.cpp:160
+TAO_BEGIN_VERSIONED_NAMESPACE_DECL
+
+
+
+namespace TAO
+{
+  template<typename T> class Narrow_Utils;
+}
+TAO_END_VERSIONED_NAMESPACE_DECL
+
+
 
 // TAO_IDL - Generated from
 // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_module\module_ch.cpp:38
@@ -683,6 +702,96 @@ namespace TOF
 
   extern  ::CORBA::TypeCode_ptr const _tc_acqMethod;
 
+  // TAO_IDL - Generated from
+  // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_interface.cpp:750
+
+#if !defined (_TOF_AVOID_WARNING__VAR_OUT_CH_)
+#define _TOF_AVOID_WARNING__VAR_OUT_CH_
+
+  class avoid_warning;
+  typedef avoid_warning *avoid_warning_ptr;
+
+  typedef
+    TAO_Objref_Var_T<
+        avoid_warning
+      >
+    avoid_warning_var;
+  
+  typedef
+    TAO_Objref_Out_T<
+        avoid_warning
+      >
+    avoid_warning_out;
+
+#endif /* end #if !defined */
+
+  // TAO_IDL - Generated from
+  // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_interface\interface_ch.cpp:43
+
+  class  avoid_warning
+    : public virtual ::CORBA::Object
+  {
+  public:
+    friend class TAO::Narrow_Utils<avoid_warning>;
+
+    // TAO_IDL - Generated from
+    // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_type.cpp:307
+
+    typedef avoid_warning_ptr _ptr_type;
+    typedef avoid_warning_var _var_type;
+    typedef avoid_warning_out _out_type;
+
+    static void _tao_any_destructor (void *);
+
+    // The static operations.
+    static avoid_warning_ptr _duplicate (avoid_warning_ptr obj);
+
+    static void _tao_release (avoid_warning_ptr obj);
+
+    static avoid_warning_ptr _narrow (::CORBA::Object_ptr obj);
+    static avoid_warning_ptr _unchecked_narrow (::CORBA::Object_ptr obj);
+    static avoid_warning_ptr _nil (void);
+
+    virtual void dummy (
+      void);
+
+    // TAO_IDL - Generated from
+    // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_interface\interface_ch.cpp:140
+
+    virtual ::CORBA::Boolean _is_a (const char *type_id);
+    virtual const char* _interface_repository_id (void) const;
+    virtual ::CORBA::Boolean marshal (TAO_OutputCDR &cdr);
+  
+  protected:
+    // Concrete interface only.
+    avoid_warning (void);
+
+    // Concrete non-local interface only.
+    avoid_warning (
+        ::IOP::IOR *ior,
+        TAO_ORB_Core *orb_core);
+    
+    // Non-local interface only.
+    avoid_warning (
+        TAO_Stub *objref,
+        ::CORBA::Boolean _tao_collocated = false,
+        TAO_Abstract_ServantBase *servant = 0,
+        TAO_ORB_Core *orb_core = 0);
+
+    virtual ~avoid_warning (void);
+  
+  private:
+    // Private and unimplemented for concrete interfaces.
+    avoid_warning (const avoid_warning &);
+
+    void operator= (const avoid_warning &);
+  };
+
+  // TAO_IDL - Generated from
+  // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_typecode\typecode_decl.cpp:37
+
+  extern  ::CORBA::TypeCode_ptr const _tc_avoid_warning;
+
 // TAO_IDL - Generated from
 // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_module\module_ch.cpp:67
 
@@ -866,6 +975,27 @@ namespace TAO
           >
   {
   };
+
+  // TAO_IDL - Generated from
+  // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_arg_traits.cpp:147
+
+#if !defined (_TOF_AVOID_WARNING__ARG_TRAITS_)
+#define _TOF_AVOID_WARNING__ARG_TRAITS_
+
+  template<>
+  class  Arg_Traits< ::TOF::avoid_warning>
+    : public
+        Object_Arg_Traits_T<
+            ::TOF::avoid_warning_ptr,
+            ::TOF::avoid_warning_var,
+            ::TOF::avoid_warning_out,
+            TAO::Objref_Traits<TOF::avoid_warning>,
+            TAO::Any_Insert_Policy_Stream
+          >
+  {
+  };
+
+#endif /* end #if !defined */
 }
 
 TAO_END_VERSIONED_NAMESPACE_DECL
@@ -880,6 +1010,24 @@ TAO_BEGIN_VERSIONED_NAMESPACE_DECL
 // Traits specializations.
 namespace TAO
 {
+
+#if !defined (_TOF_AVOID_WARNING__TRAITS_)
+#define _TOF_AVOID_WARNING__TRAITS_
+
+  template<>
+  struct  Objref_Traits< ::TOF::avoid_warning>
+  {
+    static ::TOF::avoid_warning_ptr duplicate (
+        ::TOF::avoid_warning_ptr p);
+    static void release (
+        ::TOF::avoid_warning_ptr p);
+    static ::TOF::avoid_warning_ptr nil (void);
+    static ::CORBA::Boolean marshal (
+        const ::TOF::avoid_warning_ptr p,
+        TAO_OutputCDR & cdr);
+  };
+
+#endif /* end #if !defined */
 }
 TAO_END_VERSIONED_NAMESPACE_DECL
 
@@ -1276,6 +1424,34 @@ TAO_END_VERSIONED_NAMESPACE_DECL
 #endif
 
 // TAO_IDL - Generated from
+// c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_interface\any_op_ch.cpp:44
+
+
+
+#if defined (ACE_ANY_OPS_USE_NAMESPACE)
+
+namespace TOF
+{
+   void operator<<= ( ::CORBA::Any &, avoid_warning_ptr); // copying
+   void operator<<= ( ::CORBA::Any &, avoid_warning_ptr *); // non-copying
+   ::CORBA::Boolean operator>>= (const ::CORBA::Any &, avoid_warning_ptr &);
+}
+
+#else
+
+
+TAO_BEGIN_VERSIONED_NAMESPACE_DECL
+
+ void operator<<= (::CORBA::Any &, TOF::avoid_warning_ptr); // copying
+ void operator<<= (::CORBA::Any &, TOF::avoid_warning_ptr *); // non-copying
+ ::CORBA::Boolean operator>>= (const ::CORBA::Any &, TOF::avoid_warning_ptr &);
+TAO_END_VERSIONED_NAMESPACE_DECL
+
+
+
+#endif
+
+// TAO_IDL - Generated from
 // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_structure\cdr_op_ch.cpp:46
 
 
@@ -1455,6 +1631,18 @@ TAO_BEGIN_VERSIONED_NAMESPACE_DECL
 
  ::CORBA::Boolean operator<< (TAO_OutputCDR &, const TOF::acqMethod &);
  ::CORBA::Boolean operator>> (TAO_InputCDR &, TOF::acqMethod &);
+
+TAO_END_VERSIONED_NAMESPACE_DECL
+
+
+
+// TAO_IDL - Generated from
+// c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_interface\cdr_op_ch.cpp:44
+
+TAO_BEGIN_VERSIONED_NAMESPACE_DECL
+
+ ::CORBA::Boolean operator<< (TAO_OutputCDR &, const TOF::avoid_warning_ptr );
+ ::CORBA::Boolean operator>> (TAO_InputCDR &, TOF::avoid_warning_ptr &);
 
 TAO_END_VERSIONED_NAMESPACE_DECL
 

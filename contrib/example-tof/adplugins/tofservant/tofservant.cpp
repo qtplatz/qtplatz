@@ -57,6 +57,14 @@ tofServantPlugin::instance()
     return instance_;
 }
 
+PortableServer::POA_ptr 
+tofServantPlugin::poa()
+{
+    if ( tofMgr_ )
+        return PortableServer::POA::_duplicate( tofMgr_->poa() );
+    return 0;
+}
+
 tofServantPlugin::tofServantPlugin() : tofMgr_( new acewrapper::ORBServant< tofmgr_i >() )
 {
 }

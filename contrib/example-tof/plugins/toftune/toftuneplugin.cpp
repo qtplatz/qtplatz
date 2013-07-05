@@ -164,32 +164,16 @@ tofTunePlugin::extensionsInitialized()
         if ( ! CORBA::is_nil( brokerSession_ ) ) {
             brokerSession_->connect( "TOF", "nopassword", "tof/toftune", 0 );
 
-            // servant name "tofcontroller.session" is defined in servat.config.xml
-            // servant.config.xml has the configuration for specific controller identified by
-            // "module.nnnn" where nnnn is instrument serial number.
-            // servant plugin register lookup table listed in servant.config.xml as a pair of 
-            // "tofcontroller.session" and "module.nnnn"
-            // tofd damon will return only insturument id 'module.nnnn' that information will be 
-            // kept by broker_manager. When ior query occured at this point, it allows to retrive
-            // specific CORBA servar from name.
+            // servant iid "com.ms-cheminfo.qtplatz.instrument.session.tofservant" is defined in file
+			// tofservant/tofmgr_i.cpp, class tofmgr_i is a BrokerClient instance that register iid/obj pair
+			// to Broker as return on setBrokerManager() method call.
 
-            CORBA::String_var ior = mgr->ior( "tofcontroller.session" );
-            if ( static_cast< const char *>(ior) && std::strncmp( ior, "IOR:", 4 ) == 0 ) {
-                try {
-                    CORBA::Object_var obj = orb->string_to_object( ior );
-                    receiver_i_->session_ = TOF::Session::_duplicate( TOF::Session::_narrow( obj ) );
-                    if ( ! CORBA::is_nil( receiver_i_->session_ ) )
-						hasController_ = true;
-                } catch ( CORBA::Exception& ex ) {
-                    adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
-                }
+			CORBA::Object_var obj = mgr->find_object( "com.ms-cheminfo.qtplatz.instrument.session.tofservant" );
+            receiver_i_->session_ = TOF::Session::_duplicate( TOF::Session::_narrow( obj ) );
+            if ( ! CORBA::is_nil( receiver_i_->session_ ) ) {
+				hasController_ = true;
             } else {
                 adportable::debug( __FILE__, __LINE__ ) << "Can't find tofcontroller::session";
-#if 0
-				QMessageBox::information( Core::ICore::instance()->mainWindow()
-					, tr( "tofTunePlugin" )
-					, tr( "Can't find tofcontroller.session" ) );
-#endif
 			}
 
         }

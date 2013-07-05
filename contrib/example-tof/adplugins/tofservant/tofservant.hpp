@@ -47,6 +47,7 @@ namespace tofservant {
 
     public:
         static tofServantPlugin * instance();
+        PortableServer::POA* poa();
         
         int run();
         void abort_server();

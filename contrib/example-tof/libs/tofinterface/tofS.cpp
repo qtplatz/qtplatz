@@ -29,8 +29,8 @@
 // TAO_IDL - Generated from
 // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_codegen.cpp:652
 
-#ifndef _TAO_IDL_TOFS_CUCUHI_CPP_
-#define _TAO_IDL_TOFS_CUCUHI_CPP_
+#ifndef _TAO_IDL_TOFS_7E3WKA_CPP_
+#define _TAO_IDL_TOFS_7E3WKA_CPP_
 
 
 #include "tofS.h"
@@ -71,19 +71,19 @@ TAO_TOF_Session_Perfect_Hash_OpTable::hash (const char *str, unsigned int len)
 {
   static const unsigned char asso_values[] =
     {
-     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
-     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
-     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
-     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
-     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
-     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
-     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
-     52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
-     52, 52, 10, 52, 52, 52, 52, 52, 52, 52,
-     52, 52, 52, 52, 52,  0, 52, 13, 52,  0,
-     10,  5, 52, 15, 52, 30, 52,  5,  0, 52,
-      0, 25, 25, 52, 25,  0,  0, 52, 52, 52,
-     52, 52, 52, 52, 52, 52, 52, 52,
+     57, 57, 57, 57, 57, 57, 57, 57, 57, 57,
+     57, 57, 57, 57, 57, 57, 57, 57, 57, 57,
+     57, 57, 57, 57, 57, 57, 57, 57, 57, 57,
+     57, 57, 57, 57, 57, 57, 57, 57, 57, 57,
+     57, 57, 57, 57, 57, 57, 57, 57, 57, 57,
+     57, 57, 57, 57, 57, 57, 57, 57, 57, 57,
+     57, 57, 57, 57, 57, 57, 57, 57, 57, 57,
+     57, 57, 57, 57, 57, 57, 57, 57, 57, 57,
+     57, 57, 57, 57, 57, 57, 57, 57, 57, 57,
+     57, 57, 57, 57, 57,  0, 57, 13, 57,  0,
+     10, 25, 57, 15, 57, 10, 57,  5,  0, 57,
+      0,  0,  0, 57, 30,  0,  0, 57, 57, 57,
+     57, 57, 57, 57, 57, 57, 57, 57,
     };
   return len + asso_values[(int) str[len - 1]] + asso_values[(int) str[0]];
 }
@@ -93,14 +93,14 @@ TAO_TOF_Session_Perfect_Hash_OpTable::lookup (const char *str, unsigned int len)
 {
   enum
     {
-      TOTAL_KEYWORDS = 27,
+      TOTAL_KEYWORDS = 26,
       MIN_WORD_LENGTH = 4,
-      MAX_WORD_LENGTH = 19,
+      MAX_WORD_LENGTH = 17,
       MIN_HASH_VALUE = 5,
-      MAX_HASH_VALUE = 51,
-      HASH_VALUE_RANGE = 47,
+      MAX_HASH_VALUE = 56,
+      HASH_VALUE_RANGE = 52,
       DUPLICATES = 2,
-      WORDLIST_SIZE = 32
+      WORDLIST_SIZE = 31
     };
 
   static const TAO_operation_db_entry wordlist[] =
@@ -114,22 +114,21 @@ TAO_TOF_Session_Perfect_Hash_OpTable::lookup (const char *str, unsigned int len)
       {"_component", &TAO_ServantBase::_component_thru_poa_skel, 0},
       {"suspend_run", &POA_Instrument::Session::suspend_run_skel, 0},
       {"_non_existent", &TAO_ServantBase::_non_existent_thru_poa_skel, 0},
-      {"event_out", &POA_Instrument::Session::event_out_skel, 0},
-      {"_interface", &TAO_ServantBase::_interface_skel, 0},
+      {"push_back", &POA_Instrument::Session::push_back_skel, 0},
+      {"prepare_for_run", &POA_Instrument::Session::prepare_for_run_skel, 0},
       {"setConfiguration", &POA_Instrument::Session::setConfiguration_skel, 0},
       {"software_revision", &POA_Instrument::Session::software_revision_skel, 0},
       {"_is_a", &TAO_ServantBase::_is_a_thru_poa_skel, 0},
-      {"configComplete", &POA_Instrument::Session::configComplete_skel, 0},
       {"disconnect", &POA_Instrument::Session::disconnect_skel, 0},
       {"_repository_id", &TAO_ServantBase::_repository_id_thru_poa_skel, 0},
       {"get_status", &POA_Instrument::Session::get_status_skel, 0},
       {"setControlMethod", &POA_TOF::Session::setControlMethod_skel, 0},
-      {"setBrokerManagerIOR", &POA_Instrument::Session::setBrokerManagerIOR_skel, 0},
-      {"debug", &POA_TOF::Session::debug_skel, 0},
       {"echo", &POA_Instrument::Session::echo_skel, 0},
+      {"debug", &POA_TOF::Session::debug_skel, 0},
+      {"event_out", &POA_Instrument::Session::event_out_skel, 0},
+      {"_interface", &TAO_ServantBase::_interface_skel, 0},
+      {"configComplete", &POA_Instrument::Session::configComplete_skel, 0},
       {"resume_run", &POA_Instrument::Session::resume_run_skel, 0},
-      {"push_back", &POA_Instrument::Session::push_back_skel, 0},
-      {"prepare_for_run", &POA_Instrument::Session::prepare_for_run_skel, 0},
       {"getControlMethod", &POA_Instrument::Session::getControlMethod_skel, 0},
       {"initialize", &POA_Instrument::Session::initialize_skel, 0},
       {"getObserver", &POA_Instrument::Session::getObserver_skel, 0},
@@ -137,10 +136,11 @@ TAO_TOF_Session_Perfect_Hash_OpTable::lookup (const char *str, unsigned int len)
 
   static const signed char lookup[] =
     {
-       -1,  -1,  -1,  -7,  -2,   5,  -1,   6, -56,   9,  10,  11,  -1,  12, 
-       13,  14,  15,  16,  17,  18,  19,  -1,  -1,  -1,  20,  21,  22,  -1, 
-       -1,  23,  24,  -1,  -1,  -1,  25,  26,  -1,  -1,  -1,  27,  28,  29, 
-       -1,  -1,  -1,  30,  -1,  -1,  -1,  -1,  -1,  31, 
+       -1,  -1,  -1,  -7,  -2,   5,  -1,   6, -61,   9,  10,  11,  -1,  12, 
+       13,  14,  15,  16,  17,  -1,  18,  -1,  -1,  -1,  19,  20,  21,  -1, 
+       -1,  22,  23,  -1,  -1,  -1,  24,  25,  -1,  -1,  -1,  26,  27,  28, 
+       -1,  -1,  -1,  29,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 
+       30, 
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)

@@ -33,6 +33,7 @@
 #include "tao/AnyTypeCode/Null_RefCount_Policy.h"
 #include "tao/AnyTypeCode/TypeCode_Constants.h"
 #include "tao/AnyTypeCode/Alias_TypeCode_Static.h"
+#include "tao/AnyTypeCode/Objref_TypeCode_Static.h"
 #include "tao/AnyTypeCode/Sequence_TypeCode_Static.h"
 #include "tao/AnyTypeCode/String_TypeCode_Static.h"
 #include "tao/AnyTypeCode/Struct_TypeCode_Static.h"
@@ -40,7 +41,12 @@
 #include "tao/AnyTypeCode/TypeCode_Case_T.h"
 #include "tao/AnyTypeCode/Union_TypeCode_Static.h"
 #include "tao/CDR.h"
+#include "tao/Exception_Data.h"
+#include "tao/Invocation_Adapter.h"
+#include "tao/Object_T.h"
 #include "tao/CDR.h"
+#include "tao/AnyTypeCode/Any.h"
+#include "tao/AnyTypeCode/Any_Impl_T.h"
 #include "tao/AnyTypeCode/Any_Dual_Impl_T.h"
 #include "ace/OS_NS_string.h"
 
@@ -845,6 +851,177 @@ TOF::acqMethod::_tao_any_destructor (
   acqMethod *_tao_tmp_pointer =
     static_cast<acqMethod *> (_tao_void_pointer);
   delete _tao_tmp_pointer;
+}
+
+// TAO_IDL - Generated from
+// c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_interface\interface_cs.cpp:51
+
+// Traits specializations for TOF::avoid_warning.
+
+TOF::avoid_warning_ptr
+TAO::Objref_Traits<TOF::avoid_warning>::duplicate (
+    TOF::avoid_warning_ptr p)
+{
+  return TOF::avoid_warning::_duplicate (p);
+}
+
+void
+TAO::Objref_Traits<TOF::avoid_warning>::release (
+    TOF::avoid_warning_ptr p)
+{
+  ::CORBA::release (p);
+}
+
+TOF::avoid_warning_ptr
+TAO::Objref_Traits<TOF::avoid_warning>::nil (void)
+{
+  return TOF::avoid_warning::_nil ();
+}
+
+::CORBA::Boolean
+TAO::Objref_Traits<TOF::avoid_warning>::marshal (
+    const TOF::avoid_warning_ptr p,
+    TAO_OutputCDR & cdr)
+{
+  return ::CORBA::Object::marshal (p, cdr);
+}
+
+// TAO_IDL - Generated from
+// c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_operation\operation_cs.cpp:91
+
+void
+TOF::avoid_warning::dummy (
+  void)
+{
+  if (!this->is_evaluated ())
+    {
+      ::CORBA::Object::tao_object_initialize (this);
+    }
+  
+  TAO::Arg_Traits< void>::ret_val _tao_retval;
+
+  TAO::Argument *_the_tao_operation_signature [] =
+    {
+      &_tao_retval
+    };
+
+  TAO::Invocation_Adapter _tao_call (
+      this,
+      _the_tao_operation_signature,
+      1,
+      "dummy",
+      5,
+      TAO::TAO_CO_NONE | TAO::TAO_CO_THRU_POA_STRATEGY
+    );
+
+  _tao_call.invoke (0, 0);
+}
+
+TOF::avoid_warning::avoid_warning (void)
+{
+}
+
+TOF::avoid_warning::~avoid_warning (void)
+{
+}
+
+void
+TOF::avoid_warning::_tao_any_destructor (void *_tao_void_pointer)
+{
+  avoid_warning *_tao_tmp_pointer =
+    static_cast<avoid_warning *> (_tao_void_pointer);
+  ::CORBA::release (_tao_tmp_pointer);
+}
+
+TOF::avoid_warning_ptr
+TOF::avoid_warning::_narrow (
+    ::CORBA::Object_ptr _tao_objref)
+{
+  return
+    TAO::Narrow_Utils<avoid_warning>::narrow (
+        _tao_objref,
+        "IDL:TOF/avoid_warning:1.0");
+}
+
+TOF::avoid_warning_ptr
+TOF::avoid_warning::_unchecked_narrow (
+    ::CORBA::Object_ptr _tao_objref)
+{
+  return
+    TAO::Narrow_Utils<avoid_warning>::unchecked_narrow (
+        _tao_objref);
+}
+
+TOF::avoid_warning_ptr
+TOF::avoid_warning::_nil (void)
+{
+  return 0;
+}
+
+TOF::avoid_warning_ptr
+TOF::avoid_warning::_duplicate (avoid_warning_ptr obj)
+{
+  if (! ::CORBA::is_nil (obj))
+    {
+      obj->_add_ref ();
+    }
+  return obj;
+}
+
+void
+TOF::avoid_warning::_tao_release (avoid_warning_ptr obj)
+{
+  ::CORBA::release (obj);
+}
+
+::CORBA::Boolean
+TOF::avoid_warning::_is_a (const char *value)
+{
+  if (
+      ACE_OS::strcmp (
+          value,
+          "IDL:TOF/avoid_warning:1.0"
+        ) == 0 ||
+      ACE_OS::strcmp (
+          value,
+          "IDL:omg.org/CORBA/Object:1.0"
+        ) == 0
+    )
+    {
+      return true; // success using local knowledge
+    }
+  else
+    {
+      return this->::CORBA::Object::_is_a (value);
+    }
+}
+
+const char* TOF::avoid_warning::_interface_repository_id (void) const
+{
+  return "IDL:TOF/avoid_warning:1.0";
+}
+
+::CORBA::Boolean
+TOF::avoid_warning::marshal (TAO_OutputCDR &cdr)
+{
+  return (cdr << this);
+}
+
+// TAO_IDL - Generated from
+// c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_typecode\objref_typecode.cpp:72
+
+static TAO::TypeCode::Objref<char const *,
+                             TAO::Null_RefCount_Policy>
+  _tao_tc_TOF_avoid_warning (
+    ::CORBA::tk_objref,
+    "IDL:TOF/avoid_warning:1.0",
+    "avoid_warning");
+  
+
+namespace TOF
+{
+  ::CORBA::TypeCode_ptr const _tc_avoid_warning =
+    &_tao_tc_TOF_avoid_warning;
 }
 
 // TAO_IDL - Generated from
@@ -2461,6 +2638,120 @@ TAO_END_VERSIONED_NAMESPACE_DECL
 #endif
 
 // TAO_IDL - Generated from
+// c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_interface\any_op_cs.cpp:41
+TAO_BEGIN_VERSIONED_NAMESPACE_DECL
+
+
+
+namespace TAO
+{
+  template<>
+  ::CORBA::Boolean
+  Any_Impl_T<TOF::avoid_warning>::to_object (
+      ::CORBA::Object_ptr &_tao_elem) const
+  {
+    _tao_elem = ::CORBA::Object::_duplicate (this->value_);
+    return true;
+  }
+}
+TAO_END_VERSIONED_NAMESPACE_DECL
+
+
+
+#if defined (ACE_ANY_OPS_USE_NAMESPACE)
+
+namespace TOF
+{
+  
+
+  /// Copying insertion.
+  void
+  operator<<= (
+      ::CORBA::Any &_tao_any,
+      avoid_warning_ptr _tao_elem)
+  {
+    avoid_warning_ptr _tao_objptr =
+      avoid_warning::_duplicate (_tao_elem);
+    _tao_any <<= &_tao_objptr;
+  }
+
+  /// Non-copying insertion.
+  void
+  operator<<= (
+      ::CORBA::Any &_tao_any,
+      avoid_warning_ptr *_tao_elem)
+  {
+    TAO::Any_Impl_T<avoid_warning>::insert (
+        _tao_any,
+        avoid_warning::_tao_any_destructor,
+        _tc_avoid_warning,
+        *_tao_elem);
+  }
+
+  ::CORBA::Boolean
+  operator>>= (
+      const ::CORBA::Any &_tao_any,
+      avoid_warning_ptr &_tao_elem)
+  {
+    return
+      TAO::Any_Impl_T<avoid_warning>::extract (
+          _tao_any,
+          avoid_warning::_tao_any_destructor,
+          _tc_avoid_warning,
+          _tao_elem);
+  }
+}
+
+#else
+
+TAO_BEGIN_VERSIONED_NAMESPACE_DECL
+
+
+
+/// Copying insertion.
+void
+operator<<= (
+    ::CORBA::Any &_tao_any,
+    TOF::avoid_warning_ptr _tao_elem)
+{
+  TOF::avoid_warning_ptr _tao_objptr =
+    TOF::avoid_warning::_duplicate (_tao_elem);
+  _tao_any <<= &_tao_objptr;
+}
+
+/// Non-copying insertion.
+void
+operator<<= (
+    ::CORBA::Any &_tao_any,
+    TOF::avoid_warning_ptr *_tao_elem)
+{
+  TAO::Any_Impl_T<TOF::avoid_warning>::insert (
+      _tao_any,
+      TOF::avoid_warning::_tao_any_destructor,
+      TOF::_tc_avoid_warning,
+      *_tao_elem);
+}
+
+::CORBA::Boolean
+operator>>= (
+    const ::CORBA::Any &_tao_any,
+    TOF::avoid_warning_ptr &_tao_elem)
+{
+  return
+    TAO::Any_Impl_T<TOF::avoid_warning>::extract (
+        _tao_any,
+        TOF::avoid_warning::_tao_any_destructor,
+        TOF::_tc_avoid_warning,
+        _tao_elem);
+}
+
+TAO_END_VERSIONED_NAMESPACE_DECL
+
+
+
+#endif
+
+// TAO_IDL - Generated from
 // c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_structure\cdr_op_cs.cpp:52
 
 TAO_BEGIN_VERSIONED_NAMESPACE_DECL
@@ -2904,6 +3195,43 @@ TAO_BEGIN_VERSIONED_NAMESPACE_DECL
   return
     (strm >> _tao_aggregate.methodId) &&
     (strm >> _tao_aggregate.segments);
+}
+
+TAO_END_VERSIONED_NAMESPACE_DECL
+
+
+
+// TAO_IDL - Generated from
+// c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_interface\cdr_op_cs.cpp:54
+
+TAO_BEGIN_VERSIONED_NAMESPACE_DECL
+
+::CORBA::Boolean operator<< (
+    TAO_OutputCDR &strm,
+    const TOF::avoid_warning_ptr _tao_objref)
+{
+  ::CORBA::Object_ptr _tao_corba_obj = _tao_objref;
+  return (strm << _tao_corba_obj);
+}
+
+::CORBA::Boolean operator>> (
+    TAO_InputCDR &strm,
+    TOF::avoid_warning_ptr &_tao_objref)
+{
+  ::CORBA::Object_var obj;
+
+  if (!(strm >> obj.inout ()))
+    {
+      return false;
+    }
+  
+  typedef ::TOF::avoid_warning RHS_SCOPED_NAME;
+
+  // Narrow to the right type.
+  _tao_objref =
+    TAO::Narrow_Utils<RHS_SCOPED_NAME>::unchecked_narrow (obj.in ());
+    
+  return true;
 }
 
 TAO_END_VERSIONED_NAMESPACE_DECL

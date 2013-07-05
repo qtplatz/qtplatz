@@ -13,6 +13,7 @@ include(../../boost.pri)
 include(../../ace_tao.pri)
 
 INCLUDEPATH *= $$OUT_PWD/../../libs
+INCLUDEPATH += ../../adplugins ../../libs
 
 LIBS += -l$$qtLibraryTarget(tofinterface) \
     -l$$qtLibraryTarget(adinterface) \
@@ -46,12 +47,26 @@ DEFINES += TOFSERVANT_LIBRARY
 
 SOURCES += tofmgr_i.cpp \
            tofservant.cpp \
-           tofsession_i.cpp
+           tofsession_i.cpp \
+           toftask.cpp \
+           profileobserver_i.cpp \
+           traceobserver_i.cpp \
+           processwaveform.cpp \
+           avgr_emu.cpp \
+           logger.cpp \
+           data_simulator.cpp
 
 HEADERS += tofservant_global.h \
            tofmgr_i.hpp \
            tofservant.hpp \
-           tofsession_i.hpp
+           tofsession_i.hpp \
+           toftask.hpp \
+           profileobserver_i.hpp \
+           traceobserver_i.hpp \
+           processwaveform.hpp \
+           avgr_emu.hpp \
+           logger.hpp \
+           data_simulator.cpp
 
 OTHER_FILES += \
     tofservent.pri \

@@ -18,11 +18,6 @@
       <Component type="widget" loader="adplugin" interface="adplugin::ui::iMonitor" module="infitofui"/>
     </Configuration>
     <!-- -->
-    <Configuration name="hmq_monitor" type="tab">
-      <title>HMSQ</title>
-      <Component type="widget" loader="adplugin" interface="adplugin::ui::iMonitor" module="hmqui"/>
-    </Configuration>    
-    <!-- -->
     <Configuration name="sequence_monitor" type="tab" readonly="true">
       <title>Sequence</title>
       <Component type="widget" loader="adplugin" interface="adplugin::ui::iSequencesForm" module="qtwidgets"/>

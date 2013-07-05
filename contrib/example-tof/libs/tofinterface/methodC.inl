@@ -120,3 +120,24 @@ TOF::IonSourceMethod::ei (void)
   return this->u_.ei_;
 }
 
+// TAO_IDL - Generated from
+// c:\users\toshi\src\vc11\ace_wrappers\tao\tao_idl\be\be_visitor_interface\interface_ci.cpp:62
+
+ACE_INLINE
+TOF::avoid_warning::avoid_warning (
+    TAO_Stub *objref,
+    ::CORBA::Boolean _tao_collocated,
+    TAO_Abstract_ServantBase *servant,
+    TAO_ORB_Core *oc)
+  : ::CORBA::Object (objref, _tao_collocated, servant, oc)
+{
+}
+
+ACE_INLINE
+TOF::avoid_warning::avoid_warning (
+    ::IOP::IOR *ior,
+    TAO_ORB_Core *oc)
+  : ::CORBA::Object (ior, oc)
+{
+}
+

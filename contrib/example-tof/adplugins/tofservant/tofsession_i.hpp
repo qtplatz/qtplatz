@@ -36,9 +36,6 @@ namespace tofservant {
     public:
         char * software_revision();  // ex. L"1.216"
 
-        // setBrokerManagerIOR should call before setConfiguration() if object is run as daemon
-        bool setBrokerManagerIOR( const char *  ior ) override;
-
         // setConfiguration will call immedate after object activated.
         bool setConfiguration( const char * xml ) override;
 
