@@ -6,12 +6,12 @@
     <Configuration name="tofservant.controller.1"
 		   id="tofservant.controller.1"
 		   type="object_reference"
-		   ns_name="com.ms-cheminfo.qtplatz.adplugins.orbfactory.tofservant">
+		   ns_name="com.ms-cheminfo.qtplatz.instrument.session.tofservant">
       <!-- Module describes hardware instance
 	   following 'id' is the target string for "IOR?" query string
       -->
       <Module id="tof.0000" name="tofservant" reference="static" 
-	      iid="com.ms-cheminfo.qtplatz.adplugins.orbfactory.tofservant.session"/>
+	      iid="com.ms-cheminfo.qtplatz.instrument.session.tofservant"/>
     </Configuration>
   </Configuration>
 </adplugin>

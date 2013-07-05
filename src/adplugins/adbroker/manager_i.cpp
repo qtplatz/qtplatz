@@ -29,10 +29,7 @@
 #include "objectdiscovery.hpp"
 #include <adportable/debug.hpp>
 #include <adportable/string.hpp>
-#include <acewrapper/mutex.hpp>
-#include <ace/Thread_Manager.h>
-#include <boost/foreach.hpp>
-#include <boost/regex.hpp>
+#include <regex>
 
 using namespace adbroker;
 
@@ -133,6 +130,7 @@ manager_i::getLogger()
     }
 }
 
+// CORBA interface
 void
 manager_i::register_ior( const char * name, const char * ior )
 {
@@ -143,6 +141,7 @@ manager_i::register_ior( const char * name, const char * ior )
     iorMap_[ name ] = ior;
 }
 
+// C++ direct interface
 void
 manager_i::internal_register_ior( const std::string& name, const std::string& ior )
 {
@@ -152,7 +151,14 @@ manager_i::internal_register_ior( const std::string& name, const std::string& io
     std::lock_guard< std::mutex > lock( mutex_ );
     iorMap_[ name ] = ior;
 
-    BOOST_FOREACH( internal::object_receiver& cb, sink_vec_ )
+	if ( objVec_.find( name ) == objVec_.end() ) {
+		CORBA::ORB_var orb = singleton::manager::instance()->orb();
+		CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
+        if ( ! CORBA::is_nil( obj.in() ) )
+            register_object( name.c_str(), obj.in() );
+	}
+
+    for ( internal::object_receiver& cb: sink_vec_ )
         cb.sink_->object_discovered( name.c_str(), ior.c_str() );
 }
 
@@ -212,10 +218,10 @@ manager_i::register_object( const char * name, CORBA::Object_ptr obj )
 CORBA::Object_ptr
 manager_i::find_object( const char * regex )
 {
-	boost::regex re( regex );
-	boost::cmatch matches;
+	std::regex re( regex );
+	std::cmatch matches;
 	auto itr = std::find_if( objVec_.begin(), objVec_.end(), [&](const std::map<std::string, CORBA::Object_var>::value_type& d) {
-		return boost::regex_match( d.first.c_str(), matches, re );
+		return std::regex_match( d.first.c_str(), matches, re );
 	} );
 	if ( itr != objVec_.end() )
 		return CORBA::Object::_duplicate( itr->second );
@@ -227,10 +233,10 @@ manager_i::find_objects( const char * regex )
 {
 	Broker::Objects * results = 0;
 
-	boost::regex re( regex );
-	boost::cmatch matches;
+	std::regex re( regex );
+	std::cmatch matches;
 	std::for_each( objVec_.begin(), objVec_.end(), [&](const std::map<std::string, CORBA::Object_var>::value_type& d) {
-		if ( boost::regex_match( d.first.c_str(), matches, re ) ) {
+		if ( std::regex_match( d.first.c_str(), matches, re ) ) {
 			if ( ! results ) 
 				results = new Broker::Objects;
 			results->length( results->length() + 1 );

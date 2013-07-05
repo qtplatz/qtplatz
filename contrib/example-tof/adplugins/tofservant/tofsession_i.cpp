@@ -24,7 +24,166 @@
 **************************************************************************/
 
 #include "tofSession_i.hpp"
+#include <boost/tokenizer.hpp>
 
 using namespace tofservant;
 
+//////////////////////////////////
+CORBA::Char * 
+tofSession_i::software_revision (void)
+{
+    return CORBA::string_dup("1.0.0.0");
+}
 
+CORBA::Boolean 
+tofSession_i::setBrokerManagerIOR( const char * ior )
+{
+    return true;
+}
+
+CORBA::Boolean 
+tofSession_i::setConfiguration( const char * xml )
+{
+    return true;
+}
+
+CORBA::Boolean 
+tofSession_i::configComplete()
+{
+    return true;
+}
+
+CORBA::Boolean 
+tofSession_i::connect( Receiver_ptr receiver, const CORBA::Char * token )
+{
+    return false;
+}
+
+CORBA::Boolean 
+tofSession_i::disconnect ( Receiver_ptr receiver )
+{
+    return false;
+}
+
+CORBA::ULong 
+tofSession_i::get_status (void)
+{
+    return 0;
+}
+
+CORBA::Boolean 
+tofSession_i::initialize (void)
+{
+    return true;
+}
+
+SignalObserver::Observer_ptr
+tofSession_i::getObserver( void )
+{
+    return 0;
+}
+
+CORBA::Boolean 
+tofSession_i::shutdown (void)
+{
+    return true;
+}
+
+CORBA::Boolean 
+tofSession_i::echo (const char * msg)
+{
+    return true;
+}
+
+CORBA::Boolean 
+tofSession_i::shell (const char * cmdline)
+{
+    if ( cmdline && *cmdline ) {
+
+        typedef boost::char_separator<char> char_separator;
+        typedef boost::tokenizer< char_separator > tokenizer;
+    
+        char_separator sep(" ", "", boost::drop_empty_tokens );
+        std::string line( cmdline );
+        tokenizer tokens( line, sep );
+        std::vector< std::string > argv;
+        for ( tokenizer::iterator it = tokens.begin(); it != tokens.end(); ++it )
+            argv.push_back( *it );
+
+        return true;
+    }
+    return false;
+}
+
+ControlMethod::Method *
+tofSession_i::getControlMethod()
+{
+    ControlMethod::Method_var p( new ControlMethod::Method() );
+    TOF::ControlMethod m;
+    // todo: setup 'm' from running method
+
+        p->lines.length( 1 );
+        p->lines[ 0 ].modelname = CORBA::wstring_dup( L"TOF" );
+        p->lines[ 0 ].index = 0;
+        p->lines[ 0 ].unitnumber = 0;
+        p->lines[ 0 ].isInitialCondition = true;
+        p->lines[ 0 ].funcid = 0;
+        p->lines[ 0 ].data <<= m;
+
+    return p._retn();
+}
+
+CORBA::Boolean 
+tofSession_i::prepare_for_run ( const ControlMethod::Method& m )
+{
+    return true;
+}
+
+CORBA::Boolean 
+tofSession_i::push_back ( SampleBroker::SampleSequence_ptr s )
+{
+    return false;
+}
+
+CORBA::Boolean 
+tofSession_i::event_out ( CORBA::ULong event)
+{
+    return false;
+}
+
+CORBA::Boolean 
+tofSession_i::start_run (void)
+{
+    return true;
+}
+
+CORBA::Boolean 
+tofSession_i::suspend_run (void)
+{
+    return true;
+}
+
+CORBA::Boolean 
+tofSession_i::resume_run (void)
+{
+    return true;
+}
+
+CORBA::Boolean 
+tofSession_i::stop_run (void)
+{
+    return true;
+}
+
+void
+tofSession_i::debug( const CORBA::WChar * text, const CORBA::WChar * key )
+{
+}
+
+bool
+tofSession_i::setControlMethod( const TOF::ControlMethod& method, const char * hint )
+{
+    (void)method;
+    (void)hint;
+    return true;
+}

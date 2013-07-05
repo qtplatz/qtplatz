@@ -37,17 +37,19 @@ namespace acewrapper { template<class T> class ORBServant; }
 namespace tofservant {
 
     class tofServantPlugin;
-	class tofsession_i;
+	class tofSession_i;
 
     class tofmgr_i : public POA_BrokerClient::Accessor {
         tofmgr_i();
         ~tofmgr_i();
         friend class acewrapper::ORBServant< tofmgr_i >;
+
     public:
         bool setBrokerManager( Broker::Manager_ptr mgr );
         bool adpluginspec( const char * id, const char * spec );
+        acewrapper::ORBServant< tofSession_i > * tofSession() { return tofSession_.get(); }
 	private:
-		std::map< std::string, std::shared_ptr< tofsession_i > > tofsession_vec_;
+        std::unique_ptr< acewrapper::ORBServant< tofSession_i > > tofSession_;
 		Broker::Manager_var broker_mgr_;
 		std::string adplugin_id_;
 		std::string adplugin_spec_;

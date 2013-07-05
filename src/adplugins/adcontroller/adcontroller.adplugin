@@ -9,7 +9,7 @@
        All instrument control servers may also install dynamically using setConfiguration interface -->
 
   <Configuration name="InstrumentConfiguration">
-    <Configuration name="infitofcontroller.1"
+    <Configuration name="infitof.controller.1"
 		   id="infitof.1"
 		   type="object_reference"
 		   ns_name="jp.ac.osaka-u.qtplatz.instrument.session.infitofd">

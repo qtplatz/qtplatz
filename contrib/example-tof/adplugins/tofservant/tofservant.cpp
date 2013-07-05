@@ -25,6 +25,7 @@
 
 #include "tofservant.hpp"
 #include "tofmgr_i.hpp"
+#include "tofsession_i.hpp"
 #include <adplugin/visitor.hpp>
 #include <adportable/debug.hpp>
 #include <typeinfo>
@@ -91,6 +92,7 @@ tofServantPlugin::initialize( CORBA::ORB * orb
 							  , PortableServer::POAManager * mgr )
 {
 	tofMgr_->initialize( orb, poa, mgr );
+    static_cast<tofmgr_i *>(*tofMgr_)->tofSession()->initialize( orb, poa, mgr );
 	return true;
 }
 

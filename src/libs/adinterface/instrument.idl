@@ -55,13 +55,13 @@ module Instrument {
            wstring reason_;
        };
       
-       wstring software_revision();  // ex. L"1.216"
+       string software_revision();  // ex. L"1.216"
 
        // setBrokerManagerIOR should call before setConfiguration() if object is run as daemon
        boolean setBrokerManagerIOR( in string ior );
 
        // setConfiguration will call immedate after object activated.
-       boolean setConfiguration( in wstring xml );
+       boolean setConfiguration( in string xml );
 
        boolean configComplete();  // all 'configured' module has loaded.  Safe to access objects, but instruments may by powered off.
     

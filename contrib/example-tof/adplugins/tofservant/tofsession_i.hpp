@@ -25,7 +25,8 @@
 
 #pragma once
 
-# include "tofinterface/tofS.h"
+#include "tofinterface/tofS.h"
+#include <adinterface/controlmethodC.h>
 
 #include <vector>
 
@@ -33,7 +34,39 @@ namespace tofservant {
 
     class tofSession_i : public POA_TOF::Session {
     public:
+        char * software_revision();  // ex. L"1.216"
 
+        // setBrokerManagerIOR should call before setConfiguration() if object is run as daemon
+        bool setBrokerManagerIOR( const char *  ior ) override;
+
+        // setConfiguration will call immedate after object activated.
+        bool setConfiguration( const char * xml ) override;
+
+        bool configComplete() override;
+    
+        bool connect( Receiver_ptr receiver, const char * token) override;
+        bool disconnect( Receiver_ptr receiver_) override;
+      
+		CORBA::ULong get_status() override;
+        SignalObserver::Observer * getObserver() override;
+      
+        bool initialize() override;
+        bool shutdown() override;  // shutdown server
+        bool echo( const char * msg ) override;
+        bool shell( const char * cmdline ) override;
+		::ControlMethod::Method * getControlMethod() override;
+        bool prepare_for_run( const ControlMethod::Method& ) override;
+        bool push_back( SampleBroker::SampleSequence_ptr ) override;
+    
+        bool event_out( CORBA::ULong event) override;
+        bool start_run() override;
+        bool suspend_run() override;
+        bool resume_run() override;
+        bool stop_run() override;
+
+        //
+        void debug( const CORBA::WChar * text, const CORBA::WChar * key );
+		bool setControlMethod( const TOF::ControlMethod& tof, const CORBA::Char * hint );
     };
 
 }
