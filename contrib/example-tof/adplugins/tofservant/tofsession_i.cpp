@@ -58,7 +58,7 @@ tofSession_i::connect( Receiver_ptr receiver, const CORBA::Char * token )
 CORBA::Boolean 
 tofSession_i::disconnect ( Receiver_ptr receiver )
 {
-    return false;
+	return toftask::instance()->disconnect( receiver );
 }
 
 CORBA::ULong 

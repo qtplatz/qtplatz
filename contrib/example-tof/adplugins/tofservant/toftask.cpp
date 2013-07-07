@@ -25,19 +25,39 @@
 #include "toftask.hpp"
 #include "tofservant.hpp"
 #include "tofmgr_i.hpp"
+#include "logger.hpp"
 #include "profileobserver_i.hpp"
 #include "traceobserver_i.hpp"
 #include <adinterface/signalobserverC.h>
+#include <adportable/debug.hpp>
 #include <boost/format.hpp>
 
 namespace tofservant {
 
     struct observer_events_data {
-        bool operator == ( const observer_events_data& ) const;
-        bool operator == ( const SignalObserver::ObserverEvents_ptr ) const;
-        ~observer_events_data() {    }
-        observer_events_data();
-        observer_events_data( const observer_events_data& );
+        ~observer_events_data() {
+        }
+
+        observer_events_data() : cb_( 0 ), freq_( SignalObserver::Realtime ), failed_( false ) {
+        }
+
+        observer_events_data( SignalObserver::ObserverEvents_ptr ptr
+                              , const std::string& token
+                              , SignalObserver::eUpdateFrequency freq = SignalObserver::Realtime )
+            : cb_( SignalObserver::ObserverEvents::_duplicate( ptr ) )
+            , freq_( freq )
+            , token_( token )
+            , failed_( false ) {
+        }
+
+        observer_events_data( const observer_events_data& t )
+            : cb_( SignalObserver::ObserverEvents::_duplicate( t.cb_.in() ) )
+            , token_( t.token_ )
+            , freq_( t.freq_ )
+            , failed_( t.failed_ ) {
+            /**/
+        }
+
         SignalObserver::ObserverEvents_var cb_;
         SignalObserver::eUpdateFrequency freq_;
         std::string token_;
@@ -45,15 +65,19 @@ namespace tofservant {
     };
     
     struct receiver_data {
-        bool operator == ( const receiver_data& ) const;
-        bool operator == ( const Receiver_ptr ) const;
         ~receiver_data() { /**/ }
         receiver_data() : failed_( false ) { /**/ }
-        receiver_data( const receiver_data& t ) : receiver_(t.receiver_)
-                                                , failed_( t.failed_ ), token_( t.token_ ) { /**/ }
+        receiver_data( Receiver_ptr receiver
+                       , const std::string& token ) : receiver_( Receiver::_duplicate( receiver ) )
+                                                    , token_( token ) {
+        }
+        receiver_data( const receiver_data& t ) : receiver_( Receiver::_duplicate( t.receiver_.in() ) )
+                                                , token_( t.token_ )
+                                                , failed_( t.failed_ ) {
+        }
         Receiver_var receiver_;
-        bool failed_;
         std::string token_;
+        bool failed_;
     };
 
 }
@@ -148,28 +172,95 @@ toftask::putq( ACE_Message_Block * )
 }
 
 bool
-toftask::connect( Receiver_ptr, const std::string& )
+toftask::connect( Receiver_ptr receiver, const std::string& token )
 {
+    if ( CORBA::is_nil( receiver ) )
+        return false;
+
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
+    auto it = std::find_if( receiver_set_.begin(), receiver_set_.end(), [&](const receiver_data& d){
+            return d.receiver_->_is_equivalent( receiver );
+        });
+    
+    if ( it != receiver_set_.end() ) {
+        Logger( L"Hi %1%, you already have a connection.", EventLog::pri_INFO ) % token;
+        return false;
+    }
+    
+    receiver_set_.push_back( receiver_data(receiver, token ) );
+
     return true;
 }
 
 bool
-toftask::disconnect( Receiver_ptr )
+toftask::disconnect( Receiver_ptr receiver )
 {
+    if ( CORBA::is_nil( receiver ) )
+        return false;
+
+    auto it = std::remove_if( receiver_set_.begin(), receiver_set_.end(), [&](const receiver_data& d){
+            return d.receiver_->_is_equivalent( receiver );
+        });
+
+    if ( it != receiver_set_.end() ) {
+        std::string token = it->token_;
+
+        receiver_set_.erase( it, receiver_set_.end() );
+        adportable::debug(__FILE__, __LINE__) << "toftask::disconnect: " << token << " has removed, " 
+                                              << receiver_set_.size() << " connections remain";
+        return true;
+    }
+
+    return false;
+}
+
+bool
+toftask::connect ( SignalObserver::ObserverEvents_ptr cb
+                   , SignalObserver::eUpdateFrequency freq
+                   , const std::string& token )
+{
+    if ( CORBA::is_nil( cb ) )
+        return false;
+
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
+    auto it = std::find_if( observer_events_set_.begin()
+                            , observer_events_set_.end()
+                            , [&](const observer_events_data& d){
+                                return d.cb_->_is_equivalent( cb );
+        });
+    
+    if ( it != observer_events_set_.end() ) {
+        Logger( L"Hi %1%, you already have a connection.", EventLog::pri_INFO ) % token;
+        return false;
+    }
+    
+    observer_events_set_.push_back( observer_events_data( cb, token, freq ) );
+
     return true;
 }
 
 bool
-toftask::connect ( SignalObserver::ObserverEvents_ptr
-                   , SignalObserver::eUpdateFrequency, const std::string& )
+toftask::disconnect( SignalObserver::ObserverEvents_ptr cb )
 {
-    return true;
-}
+    if ( CORBA::is_nil( cb ) )
+        return false;
 
-bool
-toftask::disconnect( SignalObserver::ObserverEvents_ptr )
-{
-    return true;
+    auto it = std::remove_if( observer_events_set_.begin(), observer_events_set_.end(), [&](const observer_events_data& d){
+            return d.cb_->_is_equivalent( cb );
+        });
+
+    if ( it != observer_events_set_.end() ) {
+        std::string token = it->token_;
+
+        observer_events_set_.erase( it, observer_events_set_.end() );
+        adportable::debug(__FILE__, __LINE__) << "toftask::disconnect: " << token << " has removed, " 
+                                              << observer_events_set_.size() << " connections remain";
+        return true;
+    }
+
+    return false;
 }
 
 void

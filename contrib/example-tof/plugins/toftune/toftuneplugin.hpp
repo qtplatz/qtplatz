@@ -68,10 +68,10 @@ namespace toftune {
             
             static tofTunePlugin * instance();
             
-            bool initialize(const QStringList &arguments, QString *errorString);
-            void extensionsInitialized();
-            virtual void shutdown();
-            //ShutdownFlag aboutToShutdown();
+            // IPlugin
+            bool initialize(const QStringList &arguments, QString *errorString) override;
+            void extensionsInitialized() override;
+            ShutdownFlag aboutToShutdown() override;
             
             void setMethod( const TOF::ControlMethod&, const std::string& );
             

@@ -196,8 +196,8 @@ tofTunePlugin::extensionsInitialized()
 
 }
 
-void
-tofTunePlugin::shutdown()
+ExtensionSystem::IPlugin::ShutdownFlag
+tofTunePlugin::aboutToShutdown()
 {
 	// PortableServer::POA_var poa = adplugin::ORBManager::instance()->poa();
 	try {
@@ -228,6 +228,7 @@ tofTunePlugin::shutdown()
 		adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str(); 
 	}
 
+    return SynchronousShutdown;
 }
 
 void
