@@ -31,6 +31,8 @@
 #include <adinterface/signalobserverC.h>
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>
+#include <boost/bind.hpp>
+#include <functional>
 
 namespace tofservant {
 
@@ -80,6 +82,20 @@ namespace tofservant {
         bool failed_;
     };
 
+    class worker {
+        bool enable_;
+    public:
+        worker() : enable_( true ) {}
+        void run() {
+            while( enable_ ) {
+                Sleep( 1000 );
+                std::cout << "worker: " << std::this_thread::get_id().hash() << " is running..." << std::endl;
+                toftask::instance()->io_service().post( std::bind(&toftask::handle_post, toftask::instance()) );
+            }
+        }
+        void stop() { enable_ = false; }
+    };
+
 }
 
 using namespace tofservant;
@@ -87,12 +103,16 @@ using namespace tofservant;
 toftask * toftask::instance_ = 0;
 std::mutex toftask::mutex_;
 
-toftask::toftask()
+worker __worker;
+
+toftask::toftask() : work_( io_service_ )
+                   , timer_( io_service_ )
 {
 }
 
 toftask::~toftask()
 {
+    task_close();
 }
 
 toftask *
@@ -151,6 +171,7 @@ toftask::getObserver()
                 pObserver_->addSibling( SignalObserver::Observer::_narrow( obj ) );
             } while(0);
         }
+        task_open();
     }
 
     CORBA::Object_var obj = poa->servant_to_reference( pObserver_.get() );
@@ -257,6 +278,9 @@ toftask::disconnect( SignalObserver::ObserverEvents_ptr cb )
         observer_events_set_.erase( it, observer_events_set_.end() );
         adportable::debug(__FILE__, __LINE__) << "toftask::disconnect: " << token << " has removed, " 
                                               << observer_events_set_.size() << " connections remain";
+        if ( observer_events_set_.empty() )
+            task_close();
+
         return true;
     }
 
@@ -289,3 +313,44 @@ toftask::session_fire_log( long pri, const std::wstring& format, const std::vect
 {
 }
 
+bool
+toftask::task_open()
+{
+    //--
+    threads_.push_back( std::thread( &worker::run, &__worker ) );
+    //--
+    timer_.cancel();
+    initiate_timer();
+    threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
+    threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
+    return true;
+}
+
+void
+toftask::task_close()
+{
+    __worker.stop();
+    io_service_.stop();
+    for ( std::thread& t: threads_ )
+        t.join();
+}
+
+void
+toftask::initiate_timer()
+{
+    timer_.expires_from_now( boost::posix_time::milliseconds( interval_ ) );
+    timer_.async_wait( boost::bind( &toftask::handle_timeout, this, boost::asio::placeholders::error ) );
+}
+
+void
+toftask::handle_timeout( const boost::system::error_code& ec )
+{
+    initiate_timer();
+    adportable::debug(__FILE__, __LINE__) << "***** toftask::handle_timeout in " << std::this_thread::get_id().hash();
+}
+
+void
+toftask::handle_post()
+{
+    adportable::debug(__FILE__, __LINE__) << "***** toftask::handle_post in " << std::this_thread::get_id().hash();
+}

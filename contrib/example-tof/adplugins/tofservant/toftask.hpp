@@ -26,12 +26,13 @@
 #pragma once
 
 #include <boost/noncopyable.hpp>
-
 #include <tofinterface/signalC.h>
 #include <adinterface/receiverC.h>
 #include <adinterface/controlserverC.h>
 #include <adinterface/instrumentC.h>
 #include <adinterface/signalobserverC.h>
+#include <boost/asio.hpp>
+#include <thread>
 #include <vector>
 #include <mutex>
 
@@ -46,6 +47,7 @@ namespace tofservant {
     class DeviceFacade;
     class profileObserver_i;
     class traceObserver_i;
+    class data_simulator;
 
     class toftask : boost::noncopyable {
         toftask();
@@ -91,9 +93,17 @@ namespace tofservant {
                                , const std::wstring& msgId = L"");
 
 		bool putq( ACE_Message_Block * );
+        void handle_post();
+        boost::asio::io_service& io_service() { return io_service_; }
+
 	private:
+        void initiate_timer();
+        void handle_timeout( const boost::system::error_code& );
+
         typedef std::vector< observer_events_data > observer_events_vector_type;
         typedef std::vector< receiver_data > receiver_vector_type;
+
+        static const std::size_t interval_ = 1000; // ms
 
         // receiver
         receiver_vector_type receiver_set_;
@@ -110,7 +120,12 @@ namespace tofservant {
         std::unique_ptr< profileObserver_i > pObserver_;
         std::vector< std::shared_ptr< traceObserver_i > > pTraceObserverVec_;
         TOF::ControlMethod method_;
-        
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
+        boost::asio::deadline_timer timer_;
+        std::vector< std::thread > threads_;
+
+        std::shared_ptr< data_simulator > data_simulator_;
     };
     
 }

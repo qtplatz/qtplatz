@@ -27,6 +27,8 @@
 #include <boost/math/distributions/normal.hpp>
 #include <boost/foreach.hpp>
 
+using namespace tofservant;
+
 boost::posix_time::ptime data_simulator::uptime_ = boost::posix_time::microsec_clock::local_time();
 const double fScale = 1.5;
 static const size_t nmasses = 10;
@@ -35,8 +37,8 @@ class waveform {
 public:
     waveform();
     static double intensity( double mass, double sd );
-    static void generate_spectrum( double sd, boost::array< double, data_simulator::ndata >& );
-    static void generate_trace( double sd, boost::array< double, 256 >& );
+    static void generate_spectrum( double sd, std::array< double, data_simulator::ndata >& );
+    static void generate_trace( double sd, std::array< double, 256 >& );
 };
 
 struct molecule {
@@ -119,7 +121,7 @@ waveform::intensity( double mz, double sd )
 }
 
 void
-waveform::generate_spectrum( double sd, boost::array< double, data_simulator::ndata >& intensities )
+waveform::generate_spectrum( double sd, std::array< double, data_simulator::ndata >& intensities )
 {
     for ( size_t idx = 0; idx < intensities.size(); ++idx ) {
         double mz = data_simulator::index_to_mass( idx );
@@ -128,7 +130,7 @@ waveform::generate_spectrum( double sd, boost::array< double, data_simulator::nd
 }
 
 void
-waveform::generate_trace( double sd, boost::array< double, 256 >& intensities )
+waveform::generate_trace( double sd, std::array< double, 256 >& intensities )
 {
     for ( size_t idx = 0; idx < intensities.size(); ++idx ) {
         boost::math::normal_distribution< double > nd( 127.0, sd );

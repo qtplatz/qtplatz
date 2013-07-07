@@ -26,6 +26,7 @@
 #include "toftask.hpp"
 #include "data_simulator.hpp"
 #include "constants.h"
+#include "data_simulator.hpp"
 #include <tofinterface/serializer.hpp>
 #include <tofinterface/signalC.h>
 #include <tofinterface/rawxfer.hpp>
@@ -136,6 +137,7 @@ avgr_emu::putq( ACE_Message_Block * )
 }
 
 ///////////
+using namespace tofservant;
 using namespace tofservant::avgr;
 
 static boost::posix_time::ptime __uptime__ = boost::posix_time::microsec_clock::local_time();

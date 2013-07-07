@@ -26,7 +26,9 @@
 #define DATA_SIMULATOR_HPP
 
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/array.hpp>
+#include <array>
+
+namespace tofservant {
 
 class data_simulator {
 public:
@@ -37,8 +39,8 @@ public:
     void peakwidth( double );
     double peakwidth() const;
     void generate_spectrum( size_t nAverage = 1 );
-    const boost::array< int32_t, ndata >& intensities() const { return intensities_; }
-    const boost::array< double, 256 >& trace() const { return trace_; }
+    const std::array< int32_t, ndata >& intensities() const { return intensities_; }
+    const std::array< double, 256 >& trace() const { return trace_; }
 
     static double index_to_mass( size_t idx );
     static size_t mass_to_index( double mass );
@@ -46,10 +48,12 @@ public:
 private:
     static boost::posix_time::ptime uptime_;
     double peakwidth_;
-    boost::array< int32_t, ndata > intensities_;
-    boost::array< double, ndata > rawSpectrum_;
+    std::array< int32_t, ndata > intensities_;
+    std::array< double, ndata > rawSpectrum_;
     std::size_t ndata_;
-    boost::array< double, 256 > trace_;
+    std::array< double, 256 > trace_;
 };
+
+}
 
 #endif // DATA_SIMULATOR_HPP
