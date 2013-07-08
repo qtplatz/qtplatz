@@ -123,7 +123,7 @@ manager_i::adpluginspec( const char *id, const char * spec )
 			std::string iid = node.node().attribute( "iid" ).value();
 			broker_mgr_->register_lookup( iid.c_str(), id.c_str() );
 		});
-        iTask::instance()->setConfiguration( dom );
+        iTaskManager::task().setConfiguration( dom );
 	}
     return static_cast<bool>( result );
 }

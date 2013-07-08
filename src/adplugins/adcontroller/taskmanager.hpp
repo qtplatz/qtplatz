@@ -23,6 +23,8 @@
  **
  **************************************************************************/
 
+#pragma once
+
 #include <ace/Singleton.h>
 #include <ace/Recursive_Thread_Mutex.h>
 #include <mutex>
@@ -49,9 +51,11 @@ namespace adcontroller {
         ~iTaskManager();
         iTaskManager();
         iTaskManager( const iTaskManager& );  /* not defined */
+        static iTaskManager * instance_;
         
     public:  
         static iTaskManager * instance();
+        static iTask& task();
 
         bool manager_initialize();
         void manager_terminate();
@@ -59,20 +63,15 @@ namespace adcontroller {
         inline std::mutex& mutex() { return mutex_; }
         ACE_Reactor * reactor();
         
-        template<class T> T* get();
-        inline iTask& task() { return *pTask_; }
-        
     private:
-        friend class ACE_Singleton<iTaskManager, ACE_Recursive_Thread_Mutex>;
+        // friend class ACE_Singleton<iTaskManager, ACE_Recursive_Thread_Mutex>;
         friend class internal::TimeReceiver;
         int handle_timeout( const ACE_Time_Value&, const void * );
         
-        std::mutex mutex_;
+        static std::mutex mutex_;
         iTask * pTask_;
         acewrapper::ReactorThread * reactor_thread_;    
         acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> > * timerHandler_;
     };
 
-    template<> iTask * iTaskManager::get<iTask>();
-    
 }

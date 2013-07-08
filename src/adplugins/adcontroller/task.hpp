@@ -26,13 +26,14 @@
 #pragma once
 
 #include <boost/noncopyable.hpp>
-#include <vector>
 #include <adportable/configuration.hpp>
-
-# include <ace/Task.h>
-# include <ace/Barrier.h>
-# include <adinterface/controlserverC.h>
+#include <adinterface/controlserverC.h>
+#include <ace/Task.h>
+#include <ace/Barrier.h>
+#include <boost/asio.hpp>
 #include <mutex>
+#include <vector>
+#include <thread>
 
 class ACE_Recursive_Thread_Mutex;
 class ACE_Notification_Strategy;
@@ -40,26 +41,28 @@ class ACE_Reactor;
 
 namespace pugi { class xml_document; }
 namespace EventLog { struct LogMessage; }
-// namespace adcontroller { namespace constants { enum msg_type; } }
 
 namespace adcontroller {
 
     class iProxy;
     class oProxy;
     class observer_i;
+    class iTaskManager;
 
     namespace internal {  struct receiver_data;  }
 
-    class iTask : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
+    class iTask : /* public ACE_Task<ACE_MT_SYNCH>, */ boost::noncopyable {
         
         ~iTask();
-        iTask( size_t n_threads = 1 );
-        static iTask * instance_;
+        iTask();
         friend class iTaskManager;
         
-    public:  
-        inline std::mutex& mutex() { return mutex_; }
+    public:
         static iTask * instance();
+
+        inline std::mutex& mutex() { return mutex_; }
+        inline boost::asio::io_service& io_service() { return io_service_; }
+
         bool open();
         void close();
 
@@ -99,13 +102,23 @@ namespace adcontroller {
         
         // int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );  <-- will handle in iTaskManager
 
-        void handle_dispatch( const EventLog::LogMessage & );
         void handle_dispatch( const ACE_Time_Value& );
         void handle_dispatch_command( ACE_Message_Block * );
+        void handle_dispatch( const EventLog::LogMessage& );
         void handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value );
+
         void handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos );
         void handle_observer_update_method( unsigned long parentId, unsigned long objId, long pos );
         void handle_observer_update_events( unsigned long parentId, unsigned long objId, long pos, unsigned long events );
+    public:
+        void handle_message( std::wstring name, unsigned long msgid, unsigned long value );
+        void handle_eventlog( EventLog::LogMessage );
+        void handle_echo( std::string );
+        void handle_prepare_for_run( ControlMethod::Method );
+        void handle_start_run();
+        void handle_resume_run();
+        void handle_stop_run();
+        void handle_event_out( unsigned long value );
 
 	// 
     public:
@@ -134,6 +147,16 @@ namespace adcontroller {
 	
         ::ControlServer::eStatus status_current_;
         ::ControlServer::eStatus status_being_;
+
+        void initiate_timer();
+        void handle_timeout( const boost::system::error_code& );
+
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
+        boost::asio::deadline_timer timer_;
+        size_t interval_;
+
+        std::vector< std::thread > threads_;
     };
 
 } // namespace adcontroller

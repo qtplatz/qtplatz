@@ -24,14 +24,15 @@
 **************************************************************************/
 
 #include "iproxy.hpp"
+#include "task.hpp"
 #include "marshal.hpp"
 #include "constants.hpp"
-#include "task.hpp"
 #include "manager_i.hpp"
 #include <acewrapper/brokerhelper.hpp>
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
 #include <stdexcept>
+#include <functional>
 
 using namespace adcontroller;
 
@@ -80,6 +81,9 @@ iProxy::initialConfiguration( const adportable::Configuration& c )
 void
 iProxy::message( ::Receiver::eINSTEVENT msg, CORBA::ULong value )
 {
+    unsigned long msgId = static_cast< unsigned long >( msg );
+	iTask::instance()->io_service().post( std::bind(&iTask::handle_message, iTask::instance(), name_, msgId, value ) );
+/*
     TAO_OutputCDR cdr;
     cdr << name_.c_str();
     cdr << msg;
@@ -87,14 +91,18 @@ iProxy::message( ::Receiver::eINSTEVENT msg, CORBA::ULong value )
     ACE_Message_Block * mb = cdr.begin()->duplicate();
     mb->msg_type( constants::MB_MESSAGE );
     task_.putq( mb );
+*/
 }
 
 // POA_Receiver
 void
 iProxy::log( const EventLog::LogMessage& log )
 {
+    iTask::instance()->io_service().post( std::bind(&iTask::handle_eventlog, iTask::instance(), log ) );
+/*
     ACE_Message_Block * mb = marshal<EventLog::LogMessage>::put( log, constants::MB_EVENTLOG );
     task_.putq( mb );
+*/
 }
 
 // POA_Receiver

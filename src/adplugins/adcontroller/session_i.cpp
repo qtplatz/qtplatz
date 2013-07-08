@@ -57,7 +57,7 @@ session_i::connect( Receiver_ptr receiver, const CORBA::Char * token )
 {
     ACE_UNUSED_ARG(token);
 
-    if ( ! iTaskManager::instance()->task().connect( _this(), receiver, token ) ) {
+    if ( ! iTask::instance()->connect( _this(), receiver, token ) ) {
         throw ControlServer::Session::CannotAdd( L"receiver already exist" );
         return false;
     }
@@ -67,13 +67,13 @@ session_i::connect( Receiver_ptr receiver, const CORBA::Char * token )
 CORBA::Boolean
 session_i::disconnect( Receiver_ptr receiver )
 {
-    return iTaskManager::instance()->task().disconnect( _this(), receiver );
+    return iTask::instance()->disconnect( _this(), receiver );
 }
 
 CORBA::Boolean
 session_i::setConfiguration( const char * xml )
 {
-    return iTaskManager::instance()->get<iTask>()->setConfiguration( xml );
+    return iTask::instance()->setConfiguration( xml );
 }
 
 CORBA::Boolean
@@ -92,19 +92,20 @@ CORBA::Boolean
 session_i::shutdown()
 {
     iTaskManager::instance()->manager_terminate();
-    ACE_Thread_Manager::instance()->wait();
     return true;
 }
 
 ::ControlServer::eStatus
 session_i::status()
 {
-    return iTaskManager::instance()->task().getStatusCurrent();
+    return iTask::instance()->getStatusCurrent();
 }
 
 CORBA::Boolean
 session_i::echo( const char * msg )
 {
+    iTask::instance()->io_service().post( std::bind(&iTask::handle_echo, iTask::instance(), std::string( msg ) ) );
+/*
     ACE_OutputCDR cdr;
     using namespace adcontroller::constants;
 
@@ -112,8 +113,8 @@ session_i::echo( const char * msg )
     cdr << msg;
     ACE_Message_Block * mb = cdr.begin()->duplicate();
     mb->msg_type( MB_COMMAND );
-    iTask::instance()->putq( mb );
-
+	iTaskManager::task().putq( mb );
+*/
     return true;
 }
 
@@ -122,15 +123,7 @@ typedef boost::tokenizer< boost::char_separator<char> > tokenizer;
 CORBA::Boolean
 session_i::shell( const char * cmdline )
 {
-    boost::char_separator<char> separator("\t ", "");
-    
-    std::string cmdLine( cmdline );
-    tokenizer commands(cmdLine, separator);
-    
-    tokenizer::const_iterator cmds = commands.begin();
-    
-    // todo
-    
+	(void)cmdline;
     return false;
 }
 
@@ -138,6 +131,8 @@ session_i::shell( const char * cmdline )
 CORBA::Boolean
 session_i::prepare_for_run( const ControlMethod::Method& m )
 {
+    iTask::instance()->io_service().post( std::bind(&iTask::handle_prepare_for_run, iTask::instance(), m ) );
+/*
     TAO_OutputCDR cdr;
     using namespace adcontroller::constants;
 
@@ -146,12 +141,15 @@ session_i::prepare_for_run( const ControlMethod::Method& m )
     ACE_Message_Block * mb = cdr.begin()->duplicate();
     mb->msg_type( MB_COMMAND );
     iTask::instance()->putq( mb );
+*/
     return true;
 }
 
 CORBA::Boolean
 session_i::start_run()
 {
+    iTask::instance()->io_service().post( std::bind(&iTask::handle_start_run, iTask::instance() ) );
+/*
     ACE_OutputCDR cdr;
     using namespace adcontroller::constants;
 
@@ -159,6 +157,7 @@ session_i::start_run()
     ACE_Message_Block * mb = cdr.begin()->duplicate();
     mb->msg_type( MB_COMMAND );
     iTask::instance()->putq( mb );
+*/
     return true;
 }
 
@@ -177,6 +176,8 @@ session_i::resume_run()
 CORBA::Boolean
 session_i::stop_run()
 {
+    iTask::instance()->io_service().post( std::bind(&iTask::handle_stop_run, iTask::instance() ) );
+/*
     ACE_OutputCDR cdr;
     using namespace adcontroller::constants;
 
@@ -184,14 +185,15 @@ session_i::stop_run()
     ACE_Message_Block * mb = cdr.begin()->duplicate();
     mb->msg_type( MB_COMMAND );
     iTask::instance()->putq( mb );
+*/
     return true;
 }
 
 bool
 session_i::event_out( CORBA::ULong value )
 {
-    ACE_UNUSED_ARG( value );
-    return false;
+    iTask::instance()->io_service().post( std::bind(&iTask::handle_event_out, iTask::instance(), value ) );
+    return true;
 }
 
 bool
@@ -204,5 +206,5 @@ session_i::push_back( SampleBroker::SampleSequence_ptr sequence )
 ::SignalObserver::Observer *
 session_i::getObserver (void)
 {
-    return iTaskManager::instance()->get<iTask>()->getObserver();
+    return iTaskManager::task().getObserver();
 }

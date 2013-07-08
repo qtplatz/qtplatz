@@ -27,6 +27,7 @@
 #include "constants.hpp"
 #include "task.hpp"
 #include <adportable/debug.hpp>
+#include <functional>
 
 using namespace adcontroller;
 
@@ -71,11 +72,14 @@ void
 Logging::commit_to_task()
 {
     if ( msg.get().format.in() && *msg.get().format.in() != 0 ) {
+        iTask::instance()->io_service().post( std::bind( &iTask::handle_eventlog, iTask::instance(), msg.get() ) );
+/*
         TAO_OutputCDR cdr;
         cdr << msg.get();
         ACE_Message_Block * mb = cdr.begin()->duplicate();
         mb->msg_type( constants::MB_EVENTLOG );
-        iTask::instance()->putq( mb );
+        iTaskManager::task().putq( mb );
+*/
     }
 }
 

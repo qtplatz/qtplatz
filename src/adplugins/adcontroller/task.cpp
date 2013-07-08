@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "task.hpp"
+#include "taskmanager.hpp"
 #include "iproxy.hpp"
 #include "oproxy.hpp"
 #include "logging.hpp"
@@ -57,8 +58,6 @@
 
 using namespace adcontroller;
 
-iTask * iTask::instance_ = 0;
-
 namespace adcontroller {
     namespace internal {
 	
@@ -79,31 +78,32 @@ namespace adcontroller {
     }
 }
 
+iTask *
+iTask::instance()
+{
+    return &iTaskManager::task();
+}
+
 iTask::~iTask()
 {
     // this will block until a message arrives.
     // By blocking, we know that the destruction will be
     // paused until the last thread is done with the message
     // block
-    ACE_Message_Block * mblk = 0;
-    this->getq( mblk );
-    ACE_Message_Block::release( mblk );
+
+    // ACE_Message_Block * mblk = 0;
+    // this->getq( mblk );
+    // ACE_Message_Block::release( mblk );
 }
 
-iTask::iTask( size_t n_threads ) : barrier_(n_threads)
-                                 , n_threads_(n_threads) 
-                                 , status_current_( ControlServer::eNothing )
-                                 , status_being_( ControlServer::eNothing )  
+iTask::iTask() : barrier_(1)
+               , n_threads_(1) 
+               , status_current_( ControlServer::eNothing )
+               , status_being_( ControlServer::eNothing )  
+               , work_( io_service_ )
+               , timer_( io_service_ )
+               , interval_( 3000 ) // ms
 {
-    instance_ = this;
-}
-
-iTask *
-iTask::instance()
-{
-    if ( ! instance_ )
-        return iTaskManager::instance()->get<iTask>();
-    return instance_;
 }
 
 void
@@ -112,26 +112,42 @@ iTask::reset_clock()
     using adcontroller::iTask;
 
     std::lock_guard< std::mutex > lock( mutex_ );
-    std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::reset_clock, _1 ) );
+    // std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::reset_clock, _1 ) );
+    for ( auto it: iproxies_ )
+        it->reset_clock();
 }
 
 bool
 iTask::open()
 {
+    timer_.cancel();
+    initiate_timer();
+    
+    threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
+    threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
+/*
     if ( activate( THR_NEW_LWP, n_threads_ ) != - 1 )
         return true;
     return false;
+*/
+    return true;
 }
 
 void
 iTask::close()
 {
+    io_service_.stop();
+    for ( std::thread& t: threads_ )
+        t.join();
+    //-------------//
+/*
     do {
         ACE_Message_Block * mblk = new ACE_Message_Block( 0, ACE_Message_Block::MB_HANGUP );
         putq( mblk );
     } while (0);
     this->wait();
     msg_queue()->deactivate();
+*/
 }
 
 bool
@@ -286,20 +302,25 @@ iTask::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const
 bool
 iTask::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
 {
-    internal::receiver_data data;
-    data.session_ = ControlServer::Session::_duplicate( session );
-    data.receiver_ = Receiver::_duplicate( receiver );
+    //internal::receiver_data data;
+    //data.session_ = ControlServer::Session::_duplicate( session );
+    //data.receiver_ = Receiver::_duplicate( receiver );
     
     std::lock_guard< std::mutex > lock( mutex_ );
 
     do { // disconnecting proxies
         using adcontroller::iProxy;
         using adcontroller::oProxy;
-        std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::disconnect, _1 ) );
-        std::for_each( oproxies_.begin(), oproxies_.end(), boost::bind( &oProxy::disconnect, _1 ) );
+        for ( auto& iproxy: iproxies_ )
+            iproxy->disconnect();
+        for ( auto& oproxy: oproxies_ )
+            oproxy->disconnect();
     } while ( 0 );
     
-    receiver_vector_type::iterator it = std::remove( receiver_set_.begin(), receiver_set_.end(), data );
+    // receiver_vector_type::iterator it = std::remove( receiver_set_.begin(), receiver_set_.end(), data );
+    auto it = std::remove_if( receiver_set_.begin(), receiver_set_.end(), [&](internal::receiver_data& t ){
+            return t.receiver_->_is_equivalent( receiver ) && t.session_->_is_equivalent( session );
+        });
     
     if ( it != receiver_set_.end() ) {
         receiver_set_.erase( it, receiver_set_.end() );
@@ -323,6 +344,8 @@ iTask::getStatusBeing()
 bool
 iTask::observer_update_data( unsigned long parentId, unsigned long objid, long pos )
 {
+    io_service_.post( std::bind(&iTask::handle_observer_update_data, this, parentId, objid, pos ) );
+    /*
     ACE_Message_Block * mb = new ACE_Message_Block(128);
     unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
     int n = 0;
@@ -332,12 +355,15 @@ iTask::observer_update_data( unsigned long parentId, unsigned long objid, long p
     mb->wr_ptr( reinterpret_cast<char *>(&ulong[n]) );
     mb->msg_type( constants::MB_OBSERVER_UPDATE_DATA );
     putq( mb );
+    */
     return true;
 }
 
 bool
 iTask::observer_update_method( unsigned long parentId, unsigned long objid, long pos )
 {
+    io_service_.post( std::bind(&iTask::handle_observer_update_method, this, parentId, objid, pos ) );
+/*
     ACE_Message_Block * mb = new ACE_Message_Block(128);
     unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
     int n = 0;
@@ -347,12 +373,15 @@ iTask::observer_update_method( unsigned long parentId, unsigned long objid, long
     mb->wr_ptr( reinterpret_cast<char *>(&ulong[n]) );
     mb->msg_type( constants::MB_OBSERVER_UPDATE_METHOD );
     putq( mb );
+*/
     return true;
 }
 
 bool
 iTask::observer_update_event( unsigned long parentId, unsigned long objid, long pos, unsigned long events )
 {
+    io_service_.post( std::bind(&iTask::handle_observer_update_events, this, parentId, objid, pos, events ) );
+/*
     ACE_Message_Block * mb = new ACE_Message_Block(128);
     unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
     int n = 0;
@@ -363,6 +392,7 @@ iTask::observer_update_event( unsigned long parentId, unsigned long objid, long 
     mb->wr_ptr( reinterpret_cast<char *>(&ulong[n]) );
     mb->msg_type( constants::MB_OBSERVER_UPDATE_EVENT );
     putq( mb );
+*/
     return true;
 }
 
@@ -393,6 +423,7 @@ internal::receiver_data::operator == ( const ControlServer::Session_ptr t ) cons
 int
 iTask::handle_input( ACE_HANDLE )
 {
+	/*
     ACE_Message_Block *mb;
     ACE_Time_Value zero( ACE_Time_Value::zero );
     if ( this->getq(mb, &zero) == -1 ) {
@@ -400,12 +431,14 @@ iTask::handle_input( ACE_HANDLE )
     } else {
         ACE_Message_Block::release(mb);
     }
+	*/
     return 0;
 }
 
 int
 iTask::svc()
 {
+	/*
     barrier_.wait();
     
     for ( ;; ) {
@@ -428,6 +461,7 @@ iTask::svc()
         dispatch( mblk );
         ACE_Message_Block::release( mblk );
     }
+	*/
     return 0;
 }
 
@@ -535,6 +569,7 @@ iTask::handle_dispatch( const EventLog::LogMessage& msg )
 void
 iTask::handle_dispatch( const ACE_Time_Value& )
 {
+
 }
 
 void
@@ -559,19 +594,16 @@ iTask::handle_dispatch_command( ACE_Message_Block * mblk )
         std::lock_guard< std::mutex > lock( mutex_ );
         SampleBroker::SampleSequenceLine s;
         ControlMethod::Method m;
-        // std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::prepare_for_run, _1, s, m ) );
         std::for_each( iproxies_.begin(), iproxies_.end(), [&]( iproxy_ptr& ptr ){
                 ptr->prepare_for_run( s, m ); 
             });
     } else if ( cmd == constants::SESSION_COMMAND_STARTRUN ) {
         std::lock_guard< std::mutex > lock( mutex_ );
-        // std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::startRun, _1 ) );
         std::for_each( iproxies_.begin(), iproxies_.end(), []( iproxy_ptr& ptr ){
                 ptr->startRun();
             });
     } else if ( cmd == constants::SESSION_COMMAND_STOPRUN )  {
         std::lock_guard< std::mutex > lock( mutex_ );
-        // std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &adcontroller::iProxy::stopRun, _1 ) );
         std::for_each( iproxies_.begin(), iproxies_.end(), []( iproxy_ptr& ptr ){
                 ptr->stopRun();
             });
@@ -613,4 +645,102 @@ iTask::getObserver()
     } catch ( CORBA::Exception& ) {
     }
     return 0;
+}
+
+void
+iTask::initiate_timer()
+{
+    timer_.expires_from_now( boost::posix_time::milliseconds( interval_ ) );
+    timer_.async_wait( boost::bind( &iTask::handle_timeout, this, boost::asio::placeholders::error ) );
+}
+
+void
+iTask::handle_timeout( const boost::system::error_code& )
+{
+    initiate_timer();
+}
+
+void
+iTask::handle_echo( std::string s )
+{
+    for ( auto& d: receiver_set_ ) {
+        try {
+            d.receiver_->debug_print( 0, 0, s.c_str() );
+        } catch ( CORBA::Exception& ) {
+            d.failed_++;
+            adportable::debug(__FILE__, __LINE__) << "iTask::handle_dispatch_command 'echo' got an exception";
+        }
+    }
+}
+
+void
+iTask::handle_prepare_for_run( ControlMethod::Method m )
+{
+    SampleBroker::SampleSequenceLine s;
+    
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    for ( auto& proxy: iproxies_ )
+        proxy->prepare_for_run( s, m ); 
+}
+
+void
+iTask::handle_start_run()
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    for ( auto& proxy: iproxies_ )
+        proxy->startRun();
+}
+
+void
+iTask::handle_resume_run()
+{
+}
+
+void
+iTask::handle_stop_run()
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    for ( auto& proxy: iproxies_ )
+        proxy->stopRun();
+}
+
+void
+iTask::handle_event_out( unsigned long value )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    for ( auto& proxy: iproxies_ )
+        proxy->eventOut( value );
+}
+
+void
+iTask::handle_message( std::wstring name, unsigned long msgid, unsigned long value )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );    
+
+    for ( internal::receiver_data& d: this->receiver_set_ ) {
+        try {
+            d.receiver_->message( Receiver::eINSTEVENT( msgid ), value );
+        } catch ( CORBA::Exception& ex ) {
+            d.failed_++;
+            adportable::debug(__FILE__, __LINE__) << "exception: " << ex._name();
+        }
+    }
+}
+
+void
+iTask::handle_eventlog( EventLog::LogMessage log )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );    
+    
+    for ( internal::receiver_data& d: receiver_set_ ) {
+        try {
+            d.receiver_->log( log );
+        } catch ( CORBA::Exception& ) {
+            d.failed_++;
+        }
+    }
 }
