@@ -32,6 +32,8 @@
 #include <deque>
 #include <mutex>
 
+namespace TOFSignal { struct tofDATA; }
+
 namespace tofservant {
 
     class profileObserver_i : public virtual POA_SignalObserver::Observer {
@@ -56,8 +58,9 @@ namespace tofservant {
         virtual ::CORBA::Boolean readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer);
         virtual ::CORBA::WChar * dataInterpreterClsid (void);
         virtual ::CORBA::Long posFromTime( CORBA::ULongLong usec );
+
         // internal
-        void push_profile_data( ACE_Message_Block * mb, long npos, unsigned long wellKnownEvents );
+        void push_profile_data( std::shared_ptr< TOFSignal::tofDATA>&, long npos, unsigned long wellKnownEvents );
 
     private:
         std::mutex mutex_;        
@@ -69,12 +72,12 @@ namespace tofservant {
 
         struct cache_item {
             ~cache_item();
-            cache_item( long pos, ACE_Message_Block * mb, unsigned long event );
+            cache_item( long pos, std::shared_ptr< TOFSignal::tofDATA >&, unsigned long event );
             cache_item( const cache_item & );
             operator long () const;
             long pos_;
             unsigned long wellKnownEvents_;
-            ACE_Message_Block * mb_;
+            std::shared_ptr< TOFSignal::tofDATA > data_;
         };
         std::deque< cache_item > fifo_;
     };

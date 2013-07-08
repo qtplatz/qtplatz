@@ -22,18 +22,14 @@
 **
 **************************************************************************/
 
-#ifndef PROCESSWAVEFORM_HPP
-#define PROCESSWAVEFORM_HPP
+#pragma once
 
 #include <tofinterface/tofC.h>
 #include <boost/noncopyable.hpp>
 #include <vector>
 #include <memory>
 
-class ACE_Message_Block;
-
 namespace TOFSignal { struct tofDATA; }
-
 
 namespace tofservant {
 
@@ -41,17 +37,15 @@ namespace tofservant {
     class profileObserver_i;
 
     class ProcessWaveform : boost::noncopyable {
-        ACE_Message_Block * mblk_;
         size_t npos_;
         uint32_t wellKnownEvents_;
-        std::unique_ptr< TOFSignal::tofDATA > data_;
+        std::shared_ptr< TOFSignal::tofDATA > data_;
     public:
         ~ProcessWaveform();
-        ProcessWaveform( ACE_Message_Block * mblk );
+        ProcessWaveform( std::shared_ptr< TOFSignal::tofDATA >& );
         bool push_traces( std::vector< std::shared_ptr< traceObserver_i > >& );
         bool push_profile( profileObserver_i * );
     };
 
 }
 
-#endif // PROCESSWAVEFORM_HPP

@@ -40,7 +40,7 @@ tofSession_i::software_revision (void)
 CORBA::Boolean 
 tofSession_i::setConfiguration( const char * xml )
 {
-    return true;
+	return toftask::instance()->setConfiguration( xml );
 }
 
 CORBA::Boolean 
@@ -64,13 +64,13 @@ tofSession_i::disconnect ( Receiver_ptr receiver )
 CORBA::ULong 
 tofSession_i::get_status (void)
 {
-    return 0;
+    return toftask::instance()->get_status();
 }
 
 CORBA::Boolean 
 tofSession_i::initialize (void)
 {
-    return true;
+    return toftask::instance()->initialize();
 }
 
 SignalObserver::Observer_ptr
@@ -82,12 +82,14 @@ tofSession_i::getObserver( void )
 CORBA::Boolean 
 tofSession_i::shutdown (void)
 {
-    return true;
+	toftask::instance()->task_close();
+	return true;
 }
 
 CORBA::Boolean 
 tofSession_i::echo (const char * msg)
 {
+	(void)msg;
     return true;
 }
 
@@ -132,54 +134,68 @@ tofSession_i::getControlMethod()
 CORBA::Boolean 
 tofSession_i::prepare_for_run ( const ControlMethod::Method& m )
 {
+	toftask * task = toftask::instance();
+    task->io_service().post( std::bind(&toftask::handle_prepare_for_run, task, m ) );
     return true;
 }
 
 CORBA::Boolean 
 tofSession_i::push_back ( SampleBroker::SampleSequence_ptr s )
 {
+	(void)s;
     return false;
 }
 
 CORBA::Boolean 
 tofSession_i::event_out ( CORBA::ULong event)
 {
+	toftask * task = toftask::instance();
+    task->io_service().post( std::bind(&toftask::handle_event_out, task, event ) );
     return false;
 }
 
 CORBA::Boolean 
 tofSession_i::start_run (void)
 {
-    return true;
+    toftask * task = toftask::instance();
+    task->io_service().post( std::bind(&toftask::handle_start_run, task ) );
+	return true;
 }
 
 CORBA::Boolean 
 tofSession_i::suspend_run (void)
 {
+	toftask * task = toftask::instance();
+    task->io_service().post( std::bind(&toftask::handle_suspend_run, task ) );
     return true;
 }
 
 CORBA::Boolean 
 tofSession_i::resume_run (void)
 {
-    return true;
+    toftask * task = toftask::instance();
+    task->io_service().post( std::bind(&toftask::handle_resume_run, task ) );
+	return true;
 }
 
 CORBA::Boolean 
 tofSession_i::stop_run (void)
 {
-    return true;
+    toftask * task = toftask::instance();
+    task->io_service().post( std::bind(&toftask::handle_stop_run, task ) );
+	return true;
 }
 
 void
 tofSession_i::debug( const CORBA::WChar * text, const CORBA::WChar * key )
 {
+	(void)text;
+	(void)key;
 }
 
 bool
 tofSession_i::setControlMethod( const TOF::ControlMethod& method, const char * hint )
 {
-    (void)method;
-    (void)hint;
-    return true;
+    return toftask::instance()->setControlMethod( method, hint );
 }
+

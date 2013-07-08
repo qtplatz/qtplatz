@@ -47,13 +47,7 @@ Logger::commit()
 {
     if ( msg.get().format.in() && *msg.get().format.in() != 0 ) {
         toftask * task = toftask::instance();
-        if ( task ) {
-            TAO_OutputCDR cdr;
-            cdr << msg.get();
-            ACE_Message_Block * mb = cdr.begin()->duplicate();
-            mb->msg_type( constants::MB_EVENTLOG );
-            task->putq( mb );
-        }
+		task->io_service().post( std::bind( &toftask::handle_eventlog, task, msg.get() ) );
     }
 }
 

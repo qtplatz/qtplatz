@@ -29,48 +29,29 @@
 #include "profileobserver_i.hpp"
 #include "traceobserver_i.hpp"
 #include <adportable/spectrum_processor.hpp>
-#include <ace/Message_Block.h>
 
 using namespace tofservant;
 
 ProcessWaveform::~ProcessWaveform()
 {
-    ACE_Message_Block::release( mblk_ );
 }
 
-ProcessWaveform::ProcessWaveform( ACE_Message_Block * mblk ) : mblk_( mblk->duplicate() )
-                                                             , npos_( 0 )
-                                                             , wellKnownEvents_( 0 )
-                                                             , data_( new TOFSignal::tofDATA )
+ProcessWaveform::ProcessWaveform( std::shared_ptr< TOFSignal::tofDATA >& d ) : data_( d )
+                                                                             , npos_( 0 )
+                                                                             , wellKnownEvents_( 0 )
 {
-    using namespace tofservant::constants;
-
-    assert( mblk->msg_type() == MB_TOF_DATA );
-
-    if ( mblk->msg_type() != MB_TOF_DATA )
-        return;
- 
-    TAO_InputCDR in( mblk->cont() );
-    if ( ! ( in >> *data_ ) ) {
-        data_.reset();
-        return;
-    }
     npos_ = data_->sequenceNumber;
-
 }
 
 bool
 ProcessWaveform::push_traces( std::vector< std::shared_ptr< traceObserver_i > >& vec )
 {
-    if ( vec.empty() || mblk_ == 0 )
-        return false;
-
     if ( data_ ) {
 
         const TOFSignal::tofDATA& data = *data_;
         if ( data.data.length() > 0 ) {
             size_t ndata = data.data[ 0 ].values.length();
-
+            
             double dbase(0), rms(0);
             if ( ndata > 0 ) {
                 const TOFSignal::datum& datum = data.data[ 0 ];
@@ -102,9 +83,7 @@ ProcessWaveform::push_traces( std::vector< std::shared_ptr< traceObserver_i > >&
 bool
 ProcessWaveform::push_profile( profileObserver_i * profileObserver )
 {
-    if ( profileObserver == 0 || mblk_ == 0 )
-        return false;
-    profileObserver->push_profile_data( mblk_, npos_, wellKnownEvents_ );
+    profileObserver->push_profile_data( data_, npos_, wellKnownEvents_ );
     return true;
 }
 

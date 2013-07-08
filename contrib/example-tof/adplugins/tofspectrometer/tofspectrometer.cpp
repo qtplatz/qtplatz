@@ -26,12 +26,14 @@
 #include "tofspectrometer.hpp"
 #include "tof.hpp"
 
-tofSpectrometer::tofSpectrometer()
-{
-}
-
 adcontrols::MassSpectrometer *
 getMassSpectrometer()
+{
+	return tofspectrometer::tof::instance();
+}
+
+adplugin::plugin *
+adplugin_plugin_instance()
 {
 	return tofspectrometer::tof::instance();
 }

@@ -22,38 +22,37 @@
 **
 **************************************************************************/
 
-#ifndef DATA_SIMULATOR_HPP
-#define DATA_SIMULATOR_HPP
+#pragma once
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <array>
 
 namespace tofservant {
 
-class data_simulator {
-public:
-    data_simulator();
+    class data_simulator {
+    public:
+        data_simulator();
 
-    enum { ndata = 65536 };
+        enum { ndata = 65536 };
 
-    void peakwidth( double );
-    double peakwidth() const;
-    void generate_spectrum( size_t nAverage = 1 );
-    const std::array< int32_t, ndata >& intensities() const { return intensities_; }
-    const std::array< double, 256 >& trace() const { return trace_; }
+        void peakwidth( double );
+        double peakwidth() const;
+        void generate_spectrum( size_t nAverage = 1 );
+        const std::array< int32_t, ndata >& intensities() const { return intensities_; }
+        const std::array< double, 256 >& trace() const { return trace_; }
 
-    static double index_to_mass( size_t idx );
-    static size_t mass_to_index( double mass );
+        static double index_to_mass( size_t idx );
+        static size_t mass_to_index( double mass );
 
-private:
-    static boost::posix_time::ptime uptime_;
-    double peakwidth_;
-    std::array< int32_t, ndata > intensities_;
-    std::array< double, ndata > rawSpectrum_;
-    std::size_t ndata_;
-    std::array< double, 256 > trace_;
-};
+    private:
+        static boost::posix_time::ptime uptime_;
+        double peakwidth_;
+        std::array< int32_t, ndata > intensities_;
+        std::array< double, ndata > rawSpectrum_;
+        std::size_t ndata_;
+        std::array< double, 256 > trace_;
+    };
 
 }
 
-#endif // DATA_SIMULATOR_HPP
+

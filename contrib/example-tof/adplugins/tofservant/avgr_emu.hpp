@@ -22,33 +22,42 @@
 **
 **************************************************************************/
 
-#ifndef FPGA_EMU_HPP
-#define FPGA_EMU_HPP
+#pragma once
 
-#include <boost/smart_ptr.hpp>
+#include <boost/asio.hpp>
+#include <thread>
 #include <vector>
 
-class ACE_Message_Block;
-class ACE_Reactor;
-
-namespace boost { class thread; class any; }
+namespace TOF { struct ControlMethod; } // defined in tof.idl
 
 namespace tofservant {
+
+    class data_simulator;
 
     class avgr_emu {
     public:
         avgr_emu();
         bool peripheral_initialize();
         bool peripheral_terminate();
-        bool peripheral_sync_command( unsigned int, ACE_Message_Block * );
-        bool peripheral_async_command( unsigned int, ACE_Message_Block * );
-        bool peripheral_async_command( unsigned int, const boost::any& );
-        bool putq( ACE_Message_Block * mb );
-        bool run();
+        bool peripheral_async_apply_method( const TOF::ControlMethod& m );
+        inline boost::asio::io_service& io_service() { return io_service_; }
     private:
-        std::vector< std::shared_ptr< boost::thread > > threads_;
+        void initiate_timer();
+        void handle_timeout( const boost::system::error_code& );
+
+        void set_interval( size_t );
+        void set_resolving_power( size_t );
+        void set_num_average( size_t );
+
+        size_t interval_;
+        size_t npos_;
+        size_t navg_;
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
+        boost::asio::deadline_timer timer_;
+        std::unique_ptr< data_simulator > data_simulator_;
+        std::vector< std::thread > threads_;
     };
 
 }
 
-#endif // FPGA_EMU_HPP

@@ -183,19 +183,15 @@ profileObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffe
                 return false;
         }
 
-        if ( d.mb_->msg_type() == constants::MB_TOF_DATA ) {
-
-            TAO_InputCDR cdr( d.mb_->cont() );
-            TOFSignal::tofDATA data;
-            cdr >> data;
+		if ( d.data_ ) {
 
             SignalObserver::DataReadBuffer_var res = new SignalObserver::DataReadBuffer;
 
-            res->data <<= data;
+            res->data <<= *d.data_;
             //res->method <<= method;
-            res->uptime = data.clockTimeStamp;
-            res->pos    = data.sequenceNumber;
-            res->events = data.wellKnownEvents;
+            res->uptime = d.data_->clockTimeStamp;
+            res->pos    = d.data_->sequenceNumber;
+            res->events = d.data_->wellKnownEvents;
             res->array.length( 0 );
 
             dataReadBuffer = res._retn();
@@ -220,11 +216,11 @@ profileObserver_i::posFromTime( CORBA::ULongLong usec )
 }
 
 void
-profileObserver_i::push_profile_data( ACE_Message_Block * mblk, long npos, unsigned long wellKnownEvents )
+profileObserver_i::push_profile_data( std::shared_ptr< TOFSignal::tofDATA >& data, long npos, unsigned long wellKnownEvents )
 {
 	toftask& task = *toftask::instance();
 
-    if ( mblk->msg_type() != constants::MB_TOF_DATA ) {
+    if ( ! data ) {
         adportable::debug() << "profileObserver_i::push_profile_data -- not MB_TOF_DATA";
         return;
     }
@@ -233,7 +229,7 @@ profileObserver_i::push_profile_data( ACE_Message_Block * mblk, long npos, unsig
         std::lock_guard< std::mutex >lock( mutex_ );
         if ( ! fifo_.empty() )
             prevEvents = fifo_.back().wellKnownEvents_;
-        fifo_.push_back( cache_item( npos, mblk, wellKnownEvents ) );
+        fifo_.push_back( cache_item( npos, data, wellKnownEvents ) );
 
         if ( fifo_.size() > 64 )
             fifo_.pop_front();
@@ -249,20 +245,19 @@ profileObserver_i::push_profile_data( ACE_Message_Block * mblk, long npos, unsig
 
 profileObserver_i::cache_item::~cache_item()
 {
-    ACE_Message_Block::release( mb_ );
-    
 }
 
-profileObserver_i::cache_item::cache_item( long pos, ACE_Message_Block * mb
+profileObserver_i::cache_item::cache_item( long pos
+										   , std::shared_ptr< TOFSignal::tofDATA >&  data
                                            , unsigned long event ) : pos_(pos)
                                                                    , wellKnownEvents_(event)
-                                                                   , mb_( ACE_Message_Block::duplicate( mb ) )
+                                                                   , data_( data )
 {
 }
 
 profileObserver_i::cache_item::cache_item( const cache_item& t ) : pos_(t.pos_)
                                                              , wellKnownEvents_(t.wellKnownEvents_)
-                                                             , mb_( ACE_Message_Block::duplicate( t.mb_ ) )
+                                                             , data_( t.data_ )
 {
 }
 

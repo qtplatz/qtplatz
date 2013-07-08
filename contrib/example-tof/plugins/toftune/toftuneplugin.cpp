@@ -29,6 +29,7 @@
 #include "isequenceimpl.hpp"
 #include "mainwindow.hpp"
 #include "sideframe.hpp"
+#include <tofspectrometer/constants.hpp>
 #include <tofinterface/signalC.h>
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
@@ -280,7 +281,8 @@ tofTunePlugin::HandleLog( QString key, QString text )
 void
 tofTunePlugin::HandleUpdateData( unsigned long objId, long pos )
 {
-    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( L"TOF" );
+	const wchar_t * dname = tofspectrometer::constants::dataInterpreter::spectrometer::name();
+    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( dname );
     const adcontrols::DataInterpreter& interpreter = spectrometer.getDataInterpreter();
 
     try { 

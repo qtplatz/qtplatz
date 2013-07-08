@@ -28,6 +28,7 @@ qrc_*.cpp
 *.log
 *.adfs
 *.json
+*.cxx
 src/libs/adinterface/*.cxx
 qtplatz.opensdf
 
@@ -95,18 +96,18 @@ src/tofcontroller/*C.inl
 src/tofcontroller/*S.cpp
 src/tofcontroller/*S.h
 src/tofcontroller/*S.inl
+contrib/example-tof/libs/tofinterface/*C.cpp
+contrib/example-tof/libs/tofinterface/*C.h
+contrib/example-tof/libs/tofinterface/*C.inl
+contrib/example-tof/libs/tofinterface/*S.cpp
+contrib/example-tof/libs/tofinterface/*S.h
+contrib/example-tof/libs/tofinterface/*S.inl
 examples/device_controller/*C.cpp
 examples/device_controller/*C.h
 examples/device_controller/*C.inl
 examples/device_controller/*S.cpp
 examples/device_controller/*S.h
 examples/device_controller/*S.inl
-examples/tofcontroller/*C.cpp
-examples/tofcontroller/*C.h
-examples/tofcontroller/*C.inl
-examples/tofcontroller/*S.cpp
-examples/tofcontroller/*S.h
-examples/tofcontroller/*S.inl
 src/plugins/chemistry/portfolio.xml
 src/app/exclude.txt
 

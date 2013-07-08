@@ -54,7 +54,8 @@ SOURCES += tofmgr_i.cpp \
            processwaveform.cpp \
            avgr_emu.cpp \
            logger.cpp \
-           data_simulator.cpp
+           data_simulator.cpp \
+           devicefacade.cpp
 
 HEADERS += tofservant_global.h \
            tofmgr_i.hpp \
@@ -66,7 +67,8 @@ HEADERS += tofservant_global.h \
            processwaveform.hpp \
            avgr_emu.hpp \
            logger.hpp \
-           data_simulator.cpp
+           data_simulator.hpp \
+           devicefacade.hpp
 
 OTHER_FILES += \
     tofservent.pri \

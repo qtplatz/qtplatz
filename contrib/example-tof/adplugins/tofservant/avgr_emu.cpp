@@ -37,149 +37,62 @@
 #include <boost/foreach.hpp>
 #include <iostream>
 
-namespace tofservant { namespace avgr {
-        class worker {
-        public:
-            static worker * instance();
-
-            worker( std::size_t interval = 1000 );
-            void set_interval( std::size_t milliseconds );
-            void set_resolvingpower( std::size_t rp );
-            void set_numAverage( std::size_t );
-            void start();
-            void stop();
-            inline boost::asio::io_service& io_service() { return io_service_; }
-        private:
-            void handle_timeout( const boost::system::error_code& );
-            void initiate_timer();
-            boost::asio::io_service io_service_;
-            std::size_t tid_;
-            std::size_t interval_;
-            boost::asio::deadline_timer timer_;
-            boost::scoped_ptr< data_simulator > data_simulator_;
-            size_t npos_;
-            size_t navg_;
-            static worker * instance_;
-        };
-    }
-}
-
-tofservant::avgr::worker * tofservant::avgr::worker::instance_ = 0;
-
 using namespace tofservant;
+static boost::posix_time::ptime __uptime__ = boost::posix_time::microsec_clock::local_time();
 
-avgr_emu::avgr_emu()
+avgr_emu::avgr_emu() : interval_( 1000 )
+                     , npos_( 0 )
+                     , navg_( 1 )
+                     , work_( io_service_ )
+                     , timer_( io_service_ )
+                     , data_simulator_( new data_simulator )
 {
 }
 
 bool
 avgr_emu::peripheral_initialize()
 {
-    avgr::worker * worker = avgr::worker::instance();
-    worker->start();
-
-    std::shared_ptr< boost::thread >
-        thread( new boost::thread( boost::bind( &boost::asio::io_service::run, &worker->io_service() ) ) );
-    threads_.push_back( thread );
-                                   
+    timer_.cancel();
+    initiate_timer();
+    threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
     return true;
 }
 
 bool
 avgr_emu::peripheral_terminate()
 {
-    avgr::worker::instance()->stop();
-
-    for ( std::shared_ptr< boost::thread >& thread: threads_ )
-        thread->join();
-
+    io_service_.stop();
+    for ( std::thread& thread: threads_ )
+        thread.join();
     return true;
 }
 
 bool
-avgr_emu::peripheral_sync_command( unsigned int, ACE_Message_Block * )
+avgr_emu::peripheral_async_apply_method( const TOF::ControlMethod& m )
 {
+    set_interval( m.analyzer.sampling_interval );
+    set_resolving_power( m.analyzer.resolving_power );
+    set_num_average( m.analyzer.number_of_average );
     return true;
-}
-
-bool
-avgr_emu::peripheral_async_command( unsigned int, ACE_Message_Block * )
-{
-    return true;
-}
-
-bool
-avgr_emu::peripheral_async_command( unsigned int, const boost::any& any )
-{
-    using tofinterface::dma_data_t;
-
-    avgr::worker * worker = avgr::worker::instance();
-
-    if ( any.type() == typeid( TOF::ControlMethod ) ) {
-        try { 
-            const TOF::ControlMethod& m = boost::any_cast< TOF::ControlMethod >( any );
-            worker->set_interval( m.analyzer.sampling_interval );
-            worker->set_resolvingpower( m.analyzer.resolving_power );
-            worker->set_numAverage( m.analyzer.number_of_average );
-        } catch ( std::exception& ex ) {
-            std::cout << "got an exception: " << ex.what() << std::endl;
-        }
-    } else {
-        std::cout << "fpga::peripheral_async_command: got an unknwon class" << std::endl;
-    }
-    return true;
-}
-
-bool
-avgr_emu::putq( ACE_Message_Block * )
-{
-    return true;
-}
-
-///////////
-using namespace tofservant;
-using namespace tofservant::avgr;
-
-static boost::posix_time::ptime __uptime__ = boost::posix_time::microsec_clock::local_time();
-
-worker::worker( std::size_t interval ) : interval_( interval )
-                                       , timer_( io_service_ )
-                                       , data_simulator_( new data_simulator )
-                                       , npos_( 0 )
-                                       , navg_( 1 )
-{
 }
 
 void
-worker::start()
-{
-    timer_.cancel();
-    initiate_timer();
-}
-
-void
-worker::stop()
-{
-    timer_.cancel();
-}
-
-void
-worker::set_interval( std::size_t milliseconds )
+avgr_emu::set_interval( std::size_t milliseconds )
 {
     interval_ = milliseconds;
 }
 
 void
-worker::initiate_timer()
+avgr_emu::initiate_timer()
 {
     if ( interval_ ) {
         timer_.expires_from_now( boost::posix_time::milliseconds( interval_ ) );
-        timer_.async_wait( boost::bind( &worker::handle_timeout, this, boost::asio::placeholders::error ) );
+        timer_.async_wait( boost::bind( &avgr_emu::handle_timeout, this, boost::asio::placeholders::error ) );
     }
 }
 
 void
-worker::handle_timeout( const boost::system::error_code& error )
+avgr_emu::handle_timeout( const boost::system::error_code& error )
 {
     if ( !error && interval_ ) {
 
@@ -188,11 +101,10 @@ worker::handle_timeout( const boost::system::error_code& error )
         ++npos_;
         boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
 
-        std::cout << "worker::handle_timeout npos: " << npos_ << std::endl;
-
         data_simulator_->generate_spectrum( navg_ );
- 
-        TOFSignal::tofDATA d;
+
+        std::shared_ptr< TOFSignal::tofDATA > pDATA( new TOFSignal::tofDATA );
+        TOFSignal::tofDATA &d = *pDATA;
         d.sequenceNumber = npos_;
         d.rtcTimeStamp   = time(0);
         d.clockTimeStamp = ( now - __uptime__ ).total_microseconds();
@@ -203,36 +115,24 @@ worker::handle_timeout( const boost::system::error_code& error )
         TOFSignal::datum& datum = d.data[ 0 ];
         const size_t nbrSamples = data_simulator_->intensities().size();
         datum.values.length( nbrSamples );
-        std::copy( data_simulator_->intensities().begin()
-                   , data_simulator_->intensities().end(), &datum.values[0] );
-
-        TAO_OutputCDR cdr;
-        cdr << d;
-        ACE_Message_Block * mblk = new ACE_Message_Block;
-        mblk->cont( cdr.begin()->duplicate() );
-        mblk->msg_type( constants::MB_TOF_DATA );
-        toftask::instance()->putq( mblk );
+		const int32_t * src = data_simulator_->intensities().data();
+		CORBA::Long * dst = &datum.values[ 0 ];
+		for ( size_t i = 0; i < nbrSamples; ++i )
+			*dst++ = *src;
+		toftask::instance()->io_service().post( std::bind(&toftask::handle_profile_data, toftask::instance(), pDATA ) );
     }
 }
 
 void
-worker::set_resolvingpower( std::size_t rp )
+avgr_emu::set_resolving_power( std::size_t rp )
 {
     double width = 100.0 / double(rp);  // assume width @ m/z 100
     data_simulator_->peakwidth( width / 2 );
 }
 
 void
-worker::set_numAverage( std::size_t n )
+avgr_emu::set_num_average( std::size_t n )
 {
     navg_ = n;
 }
 
-worker *
-worker::instance()
-{
-    if ( instance_ == 0 ) {
-        instance_ = new worker();
-    }
-    return instance_;
-}

@@ -36,9 +36,9 @@
 #include <vector>
 #include <mutex>
 
-class ACE_Message_Block;
-
 namespace Broker { class Logger; }
+namespace TOFSignal { struct tofDATA; }
+namespace EventLog { struct LogMessage; }
 
 namespace tofservant {
 
@@ -47,7 +47,6 @@ namespace tofservant {
     class DeviceFacade;
     class profileObserver_i;
     class traceObserver_i;
-    class data_simulator;
 
     class toftask : boost::noncopyable {
         toftask();
@@ -56,13 +55,26 @@ namespace tofservant {
         static std::mutex mutex_;
     public:
         static toftask * instance();
-        bool setConfiguration( const wchar_t * );
+        bool setConfiguration( const char * );
         bool task_open();
         void task_close();
         bool connect( Receiver_ptr, const std::string& );
         bool disconnect( Receiver_ptr );
 
         bool initialize();
+        unsigned long get_status();
+        bool handle_prepare_for_run( ControlMethod::Method );
+        bool handle_event_out( unsigned long );
+        bool handle_start_run();
+        bool handle_suspend_run();
+        bool handle_resume_run();
+        bool handle_stop_run();
+
+        // internal handler
+        void handle_eventlog( EventLog::LogMessage );
+        void handle_profile_data( std::shared_ptr< TOFSignal::tofDATA > );
+
+        bool setControlMethod( const TOF::ControlMethod&, const char * hint );
         
         Instrument::eInstStatus status() const;
         void status( Instrument::eInstStatus );
@@ -80,6 +92,8 @@ namespace tofservant {
                        , SignalObserver::eUpdateFrequency, const std::string& );
         bool disconnect( SignalObserver::ObserverEvents_ptr );
 
+
+
         void push_trace_data( int ch, long pos
                               , const TOFSignal::SpectrumProcessedData& data
                               , const TOFSignal::TraceMetadata& );
@@ -92,7 +106,6 @@ namespace tofservant {
         void session_fire_log( long pri, const std::wstring& format, const std::vector< std::wstring >& args
                                , const std::wstring& msgId = L"");
 
-		bool putq( ACE_Message_Block * );
         void handle_post();
         boost::asio::io_service& io_service() { return io_service_; }
 
@@ -114,9 +127,7 @@ namespace tofservant {
         // logger
         Broker::Logger* logger_;
 
-        //acewrapper::ReactorThread * reactor_thread_;
-        DeviceFacade * device_facade_;
-
+        std::unique_ptr< DeviceFacade > device_facade_;
         std::unique_ptr< profileObserver_i > pObserver_;
         std::vector< std::shared_ptr< traceObserver_i > > pTraceObserverVec_;
         TOF::ControlMethod method_;
@@ -124,8 +135,6 @@ namespace tofservant {
         boost::asio::io_service::work work_;
         boost::asio::deadline_timer timer_;
         std::vector< std::thread > threads_;
-
-        std::shared_ptr< data_simulator > data_simulator_;
     };
     
 }

@@ -28,6 +28,8 @@
 #include "logger.hpp"
 #include "profileobserver_i.hpp"
 #include "traceobserver_i.hpp"
+#include "devicefacade.hpp"
+#include "processwaveform.hpp"
 #include <adinterface/signalobserverC.h>
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>
@@ -82,31 +84,31 @@ namespace tofservant {
         bool failed_;
     };
 
-    class worker {
-        bool enable_;
-    public:
-        worker() : enable_( true ) {}
-        void run() {
-            while( enable_ ) {
-                Sleep( 1000 );
-                std::cout << "worker: " << std::this_thread::get_id().hash() << " is running..." << std::endl;
-                toftask::instance()->io_service().post( std::bind(&toftask::handle_post, toftask::instance()) );
-            }
-        }
-        void stop() { enable_ = false; }
-    };
+    // class worker {
+    //     bool enable_;
+    // public:
+    //     worker() : enable_( true ) {}
+    //     void run() {
+    //         while( enable_ ) {
+    //             Sleep( 1000 );
+    //             std::cout << "worker: " << std::this_thread::get_id().hash() << " is running..." << std::endl;
+    //             toftask::instance()->io_service().post( std::bind(&toftask::handle_post, toftask::instance()) );
+    //         }
+    //     }
+    //     void stop() { enable_ = false; }
+    // };
 
 }
+// worker __worker;
 
 using namespace tofservant;
 
 toftask * toftask::instance_ = 0;
 std::mutex toftask::mutex_;
 
-worker __worker;
-
 toftask::toftask() : work_( io_service_ )
                    , timer_( io_service_ )
+                   , device_facade_( new DeviceFacade )
 {
 }
 
@@ -124,6 +126,12 @@ toftask::instance()
             instance_ = new toftask;
     }
     return instance_;
+}
+
+bool
+toftask::setConfiguration( const char * )
+{
+    return true;
 }
 
 SignalObserver::Observer *
@@ -183,12 +191,6 @@ toftask::getControlMethod( TOF::ControlMethod& m )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     m = method_;
-    return true;
-}
-
-bool
-toftask::putq( ACE_Message_Block * )
-{
     return true;
 }
 
@@ -290,21 +292,69 @@ toftask::disconnect( SignalObserver::ObserverEvents_ptr cb )
 void
 toftask::observer_fire_on_update_data( unsigned long objId, long pos )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    for ( auto& d: observer_events_set_ ) {
+        if ( !d.failed_ ) {
+            try { 
+                d.cb_->OnUpdateData( objId, pos );
+            } catch ( CORBA::Exception& ex ) {
+                d.failed_ = true;
+                adportable::debug(__FILE__, __LINE__) << ex._info().c_str();
+            }
+        }
+    }
 }
 
 void
 toftask::observer_fire_on_method_changed( unsigned long objId, long pos )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    for ( auto& d: observer_events_set_ ) {
+        if ( !d.failed_ ) {
+            try { 
+                d.cb_->OnMethodChanged( objId, pos );
+            } catch ( CORBA::Exception& ex ) {
+                d.failed_ = true;
+                adportable::debug(__FILE__, __LINE__) << ex._info().c_str();
+            }
+        }
+    }
 }
 
 void
 toftask::observer_fire_on_event( unsigned long objId, unsigned long event, long pos )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    for ( auto& d: observer_events_set_ ) {
+        if ( !d.failed_ ) {
+            try { 
+                d.cb_->OnEvent( objId, event, pos );
+            } catch ( CORBA::Exception& ex ) {
+                d.failed_ = true;
+                adportable::debug(__FILE__, __LINE__) << ex._info().c_str();
+            }
+        }
+    }
+
 }
 
 void
 toftask::session_fire_message( Receiver::eINSTEVENT msg, unsigned long value )
 {
+    std::lock_guard< std::mutex > lock( mutex_ );
+    
+    for ( auto& d: receiver_set_ ) {
+        if ( ! d.failed_ ) {
+            try {
+                d.receiver_->message( msg, value );
+            } catch( CORBA::Exception& ) {
+                d.failed_ = true;
+            }
+        }
+    }
 }
 
 void
@@ -317,19 +367,24 @@ bool
 toftask::task_open()
 {
     //--
-    threads_.push_back( std::thread( &worker::run, &__worker ) );
+    // threads_.push_back( std::thread( &worker::run, &__worker ) );
     //--
     timer_.cancel();
     initiate_timer();
+
     threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
     threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
+
+    device_facade_->initialize();
+
     return true;
 }
 
 void
 toftask::task_close()
 {
-    __worker.stop();
+    // __worker.stop();
+    device_facade_->terminate();
     io_service_.stop();
     for ( std::thread& t: threads_ )
         t.join();
@@ -353,4 +408,85 @@ void
 toftask::handle_post()
 {
     adportable::debug(__FILE__, __LINE__) << "***** toftask::handle_post in " << std::this_thread::get_id().hash();
+}
+
+void
+toftask::handle_eventlog( EventLog::LogMessage msg )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    for ( auto& d: receiver_set_ ) {
+        if ( ! d.failed_ ) {
+            try {
+                d.receiver_->log( msg );
+            } catch( CORBA::Exception& ) {
+                d.failed_ = true;
+            }
+        }
+    }
+}
+
+unsigned long
+toftask::get_status()
+{
+	return 0;
+}
+
+bool
+toftask::initialize()
+{
+    device_facade_->initialize();
+    return true;
+}
+
+bool
+toftask::handle_prepare_for_run( ControlMethod::Method m )
+{
+    adportable::debug(__FILE__, __LINE__) << "***** toftask::handle_prepare_for_run "
+                                          << std::this_thread::get_id().hash();
+    return true;
+}
+
+bool
+toftask::handle_event_out( unsigned long )
+{
+	return true;
+}
+
+bool
+toftask::handle_start_run()
+{
+	return true;
+}
+
+bool
+toftask::handle_suspend_run()
+{
+	return true;
+}
+
+bool
+toftask::handle_resume_run()
+{
+	return true;
+}
+
+bool
+toftask::handle_stop_run()
+{
+	return true;
+}
+
+bool
+toftask::setControlMethod( const TOF::ControlMethod& m, const char * hint )
+{
+    return device_facade_->setControlMethod( m, hint );
+}
+
+void
+toftask::handle_profile_data( std::shared_ptr< TOFSignal::tofDATA > data )
+{
+    ProcessWaveform profile( data );
+    profile.push_traces( pTraceObserverVec_ );
+    profile.push_profile( pObserver_.get() );
 }

@@ -25,18 +25,10 @@
 
 #pragma once
 
-namespace adcontrols {
-	class MassSpectrometer;
-}
-
+#include <adplugin/plugin.hpp>
 #include "tofspectrometer_global.hpp"
 
-class TOFSPECTROMETERSHARED_EXPORT tofSpectrometer {
-public:
-    tofSpectrometer();
-};
-
 extern "C" {
-	TOFSPECTROMETERSHARED_EXPORT adcontrols::MassSpectrometer * getMassSpectrometer();
+    TOFSPECTROMETERSHARED_EXPORT adplugin::plugin * adplugin_plugin_instance();
 }
 
