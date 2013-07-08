@@ -41,6 +41,7 @@ namespace adcontroller {
 
     class Cache;
 
+
     class observer_i : public virtual POA_SignalObserver::Observer, boost::noncopyable {
     public:
         observer_i( SignalObserver::Observer_ptr source = 0 );

@@ -58,7 +58,6 @@ SOURCES += adcontroller.cpp \
         signal_handler.cpp \
         cache.cpp \
         task.cpp \
-        taskmanager.cpp \
         logging.cpp
 
 HEADERS += adcontroller.hpp \
@@ -66,7 +65,6 @@ HEADERS += adcontroller.hpp \
         constants.hpp \
         iproxy.hpp \
         manager_i.hpp \
-        marshal.hpp \
         message.hpp \
         observer_i.hpp \
         oproxy.hpp \
@@ -75,17 +73,6 @@ HEADERS += adcontroller.hpp \
         signal_handler.hpp \
         cache.hpp \
         task.hpp \
-        taskmanager.hpp \
         logging.hpp
-
-
-
-
-
-
-
-
-
-
 
 

@@ -45,7 +45,7 @@
 
 #include <acewrapper/constants.hpp>
 #include "manager_i.hpp"
-#include "taskmanager.hpp"
+#include "task.hpp"
 #include <mutex>
 
 using namespace acewrapper;
@@ -126,7 +126,7 @@ adController::object_name() const
 bool
 adController::_deactivate()
 {
-    adcontroller::iTaskManager::instance()->manager_terminate();
+    adcontroller::iTask::instance()->close();
     adcontroller::manager_i::instance()->deactivate();
     return true;
 }

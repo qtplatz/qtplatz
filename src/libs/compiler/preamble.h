@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,42 +25,11 @@
 
 #pragma once
 
-#include <adinterface/signalobserverS.h>
-#include <mutex>
-
-#include <acewrapper/mutex.hpp>
-#include <deque>
-
-namespace adcontroller {
-
-    class Cache {
-    public:
-        ~Cache();
-        Cache();
-
-#if defined _DEBUG || defined DEBUG
-	enum { CACHE_SIZE = 64 };
-#else
-	enum { CACHE_SIZE = 1024 };
+#if defined _MSC_VER
+#  if defined _DEBUG || defined DEBUG
+#    _CRTDBG_MAP_ALLOC
+#    include <stdlib.h>
+#    include <crtdbg.h>
+#  endif
 #endif
-
-        bool write( long pos, SignalObserver::DataReadBuffer_var& );
-        bool read( long pos, SignalObserver::DataReadBuffer_out );
-        long posFromTime( unsigned long long usec );
-        void uptime_range( unsigned long long& oldest, unsigned long long& newest );
-
-        struct CacheItem {
-			~CacheItem();
-            CacheItem( long pos, SignalObserver::DataReadBuffer_var& );
-            CacheItem( const CacheItem& );
-            inline operator long () const { return pos_; }
-            long pos_;
-            SignalObserver::DataReadBuffer_var rdbuf_;
-        };
-    private:
-        std::deque< CacheItem > fifo_;
-        std::mutex mutex_;
-    };
-
-}
 

@@ -26,7 +26,6 @@
 #include "adinterface/receiverC.h"
 #include "adinterface/signalobserverC.h"
 #include "constants.hpp"
-#include "taskmanager.hpp"
 #include "task.hpp"
 #include <acewrapper/mutex.hpp>
 #include <boost/tokenizer.hpp>
@@ -43,7 +42,6 @@ session_i::~session_i()
 
 session_i::session_i()
 {
-    // singleton::Task::instance()->initialize();
 }
 
 CORBA::Char *
@@ -91,7 +89,7 @@ session_i::initialize()
 CORBA::Boolean
 session_i::shutdown()
 {
-    iTaskManager::instance()->manager_terminate();
+    iTask::instance()->close();
     return true;
 }
 
@@ -105,16 +103,6 @@ CORBA::Boolean
 session_i::echo( const char * msg )
 {
     iTask::instance()->io_service().post( std::bind(&iTask::handle_echo, iTask::instance(), std::string( msg ) ) );
-/*
-    ACE_OutputCDR cdr;
-    using namespace adcontroller::constants;
-
-    cdr << SESSION_COMMAND_ECHO;
-    cdr << msg;
-    ACE_Message_Block * mb = cdr.begin()->duplicate();
-    mb->msg_type( MB_COMMAND );
-	iTaskManager::task().putq( mb );
-*/
     return true;
 }
 
@@ -132,16 +120,6 @@ CORBA::Boolean
 session_i::prepare_for_run( const ControlMethod::Method& m )
 {
     iTask::instance()->io_service().post( std::bind(&iTask::handle_prepare_for_run, iTask::instance(), m ) );
-/*
-    TAO_OutputCDR cdr;
-    using namespace adcontroller::constants;
-
-    cdr << SESSION_COMMAND_INITRUN;
-    cdr << m;
-    ACE_Message_Block * mb = cdr.begin()->duplicate();
-    mb->msg_type( MB_COMMAND );
-    iTask::instance()->putq( mb );
-*/
     return true;
 }
 
@@ -149,15 +127,6 @@ CORBA::Boolean
 session_i::start_run()
 {
     iTask::instance()->io_service().post( std::bind(&iTask::handle_start_run, iTask::instance() ) );
-/*
-    ACE_OutputCDR cdr;
-    using namespace adcontroller::constants;
-
-    cdr << SESSION_COMMAND_STARTRUN;
-    ACE_Message_Block * mb = cdr.begin()->duplicate();
-    mb->msg_type( MB_COMMAND );
-    iTask::instance()->putq( mb );
-*/
     return true;
 }
 
@@ -177,15 +146,6 @@ CORBA::Boolean
 session_i::stop_run()
 {
     iTask::instance()->io_service().post( std::bind(&iTask::handle_stop_run, iTask::instance() ) );
-/*
-    ACE_OutputCDR cdr;
-    using namespace adcontroller::constants;
-
-    cdr << SESSION_COMMAND_STOPRUN;
-    ACE_Message_Block * mb = cdr.begin()->duplicate();
-    mb->msg_type( MB_COMMAND );
-    iTask::instance()->putq( mb );
-*/
     return true;
 }
 
@@ -206,5 +166,5 @@ session_i::push_back( SampleBroker::SampleSequence_ptr sequence )
 ::SignalObserver::Observer *
 session_i::getObserver (void)
 {
-    return iTaskManager::task().getObserver();
+    return iTask::instance()->getObserver();
 }

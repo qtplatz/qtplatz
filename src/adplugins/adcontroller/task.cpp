@@ -23,15 +23,12 @@
 **************************************************************************/
 
 #include "task.hpp"
-#include "taskmanager.hpp"
 #include "iproxy.hpp"
 #include "oproxy.hpp"
 #include "logging.hpp"
 #include "observer_i.hpp"
 #include "manager_i.hpp"
-#include "taskmanager.hpp"
 #include "message.hpp"
-#include "marshal.hpp"
 #include "constants.hpp"
 #include <ace/Reactor.h>
 #include <ace/Thread_Manager.h>
@@ -58,6 +55,9 @@
 
 using namespace adcontroller;
 
+iTask * iTask::instance_ = 0;
+std::mutex iTask::mutex_;
+
 namespace adcontroller {
     namespace internal {
 	
@@ -81,24 +81,19 @@ namespace adcontroller {
 iTask *
 iTask::instance()
 {
-    return &iTaskManager::task();
+    if ( instance_ == 0 ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( instance_ == 0 )
+            instance_ = new iTask;
+    }
+    return instance_;
 }
 
 iTask::~iTask()
 {
-    // this will block until a message arrives.
-    // By blocking, we know that the destruction will be
-    // paused until the last thread is done with the message
-    // block
-
-    // ACE_Message_Block * mblk = 0;
-    // this->getq( mblk );
-    // ACE_Message_Block::release( mblk );
 }
 
-iTask::iTask() : barrier_(1)
-               , n_threads_(1) 
-               , status_current_( ControlServer::eNothing )
+iTask::iTask() : status_current_( ControlServer::eNothing )
                , status_being_( ControlServer::eNothing )  
                , work_( io_service_ )
                , timer_( io_service_ )
@@ -112,7 +107,6 @@ iTask::reset_clock()
     using adcontroller::iTask;
 
     std::lock_guard< std::mutex > lock( mutex_ );
-    // std::for_each( iproxies_.begin(), iproxies_.end(), boost::bind( &iProxy::reset_clock, _1 ) );
     for ( auto it: iproxies_ )
         it->reset_clock();
 }
@@ -125,11 +119,6 @@ iTask::open()
     
     threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
     threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
-/*
-    if ( activate( THR_NEW_LWP, n_threads_ ) != - 1 )
-        return true;
-    return false;
-*/
     return true;
 }
 
@@ -139,15 +128,6 @@ iTask::close()
     io_service_.stop();
     for ( std::thread& t: threads_ )
         t.join();
-    //-------------//
-/*
-    do {
-        ACE_Message_Block * mblk = new ACE_Message_Block( 0, ACE_Message_Block::MB_HANGUP );
-        putq( mblk );
-    } while (0);
-    this->wait();
-    msg_queue()->deactivate();
-*/
 }
 
 bool
@@ -345,17 +325,6 @@ bool
 iTask::observer_update_data( unsigned long parentId, unsigned long objid, long pos )
 {
     io_service_.post( std::bind(&iTask::handle_observer_update_data, this, parentId, objid, pos ) );
-    /*
-    ACE_Message_Block * mb = new ACE_Message_Block(128);
-    unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
-    int n = 0;
-    ulong[n++] = parentId;
-    ulong[n++] = objid;
-    ulong[n++] = pos;
-    mb->wr_ptr( reinterpret_cast<char *>(&ulong[n]) );
-    mb->msg_type( constants::MB_OBSERVER_UPDATE_DATA );
-    putq( mb );
-    */
     return true;
 }
 
@@ -363,17 +332,6 @@ bool
 iTask::observer_update_method( unsigned long parentId, unsigned long objid, long pos )
 {
     io_service_.post( std::bind(&iTask::handle_observer_update_method, this, parentId, objid, pos ) );
-/*
-    ACE_Message_Block * mb = new ACE_Message_Block(128);
-    unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
-    int n = 0;
-    ulong[n++] = parentId;
-    ulong[n++] = objid;
-    ulong[n++] = pos;
-    mb->wr_ptr( reinterpret_cast<char *>(&ulong[n]) );
-    mb->msg_type( constants::MB_OBSERVER_UPDATE_METHOD );
-    putq( mb );
-*/
     return true;
 }
 
@@ -381,18 +339,6 @@ bool
 iTask::observer_update_event( unsigned long parentId, unsigned long objid, long pos, unsigned long events )
 {
     io_service_.post( std::bind(&iTask::handle_observer_update_events, this, parentId, objid, pos, events ) );
-/*
-    ACE_Message_Block * mb = new ACE_Message_Block(128);
-    unsigned long * ulong = reinterpret_cast<unsigned long *>(mb->wr_ptr());
-    int n = 0;
-    ulong[n++] = parentId;
-    ulong[n++] = objid;
-    ulong[n++] = pos;
-    ulong[n++] = events;
-    mb->wr_ptr( reinterpret_cast<char *>(&ulong[n]) );
-    mb->msg_type( constants::MB_OBSERVER_UPDATE_EVENT );
-    putq( mb );
-*/
     return true;
 }
 

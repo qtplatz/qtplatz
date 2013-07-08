@@ -55,7 +55,8 @@ namespace adcontroller {
         
         ~iTask();
         iTask();
-        friend class iTaskManager;
+        static iTask * instance_;
+        static std::mutex mutex_;
         
     public:
         static iTask * instance();
@@ -93,19 +94,6 @@ namespace adcontroller {
         SignalObserver::Observer_ptr getObserver();
         
     private:
-        // ACE_Task
-        // virtual int handle_input( ACE_HANDLE );
-        // virtual int svc();
-        // 
-        // void doit( ACE_Message_Block * );
-        // void dispatch ( ACE_Message_Block * );
-        
-        // int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );  <-- will handle in iTaskManager
-        // void handle_dispatch( const ACE_Time_Value& );
-        // void handle_dispatch_command( ACE_Message_Block * );
-        // void handle_dispatch( const EventLog::LogMessage& );
-        // void handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value );
-
         void handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos );
         void handle_observer_update_method( unsigned long parentId, unsigned long objId, long pos );
         void handle_observer_update_events( unsigned long parentId, unsigned long objId, long pos, unsigned long events );
@@ -128,14 +116,9 @@ namespace adcontroller {
         typedef std::vector< std::shared_ptr<oProxy> > oproxy_vector_type;
         
     private:
-        
-        adportable::Configuration config_;
-        
-        std::mutex mutex_;
-        ACE_Barrier barrier_;
-        size_t n_threads_;
-        
         bool internal_disconnect( ControlServer::Session_ptr );
+
+        adportable::Configuration config_;
         receiver_vector_type receiver_set_;
         receiver_vector_type receiver_failed_;
         

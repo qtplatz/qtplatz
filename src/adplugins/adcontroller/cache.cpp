@@ -51,7 +51,7 @@ Cache::write( long pos, SignalObserver::DataReadBuffer_var& rdbuf )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
 
-    if ( fifo_.size() > 1024 )
+    if ( fifo_.size() > CACHE_SIZE )
         fifo_.pop_front();
     fifo_.push_back( CacheItem( pos, rdbuf ) );
     return true;
@@ -134,5 +134,9 @@ Cache::CacheItem::CacheItem( long pos
 
 Cache::CacheItem::CacheItem( const CacheItem& t ) : pos_( t.pos_ )
                                                   , rdbuf_( t.rdbuf_ ) 
+{
+}
+
+Cache::CacheItem::~CacheItem()
 {
 }

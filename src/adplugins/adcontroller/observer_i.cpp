@@ -111,8 +111,8 @@ observer_i::assign_objId( CORBA::ULong oid )
 
 ::CORBA::Boolean
 observer_i::connect ( ::SignalObserver::ObserverEvents_ptr cb
-		      , ::SignalObserver::eUpdateFrequency frequency
-		      , const CORBA::Char * token )
+                      , ::SignalObserver::eUpdateFrequency frequency
+                      , const CORBA::Char * token )
 {
     using namespace adcontroller::internal;
 

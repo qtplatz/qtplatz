@@ -24,7 +24,6 @@
 
 #include "manager_i.hpp"
 #include "session_i.hpp"
-#include "taskmanager.hpp"
 #include "task.hpp"
 #include <xmlparser/pugixml.hpp>
 #include <cassert>
@@ -66,7 +65,7 @@ manager_i::getSession( const CORBA::WChar * token )
         return 0;
 
     if ( session_list_.empty() )
-        adcontroller::iTaskManager::instance()->manager_initialize();
+        adcontroller::iTask::instance()->open();
 
     session_map_type::iterator it = session_list_.find( token );
     if ( it == session_list_.end() ) 
@@ -123,7 +122,7 @@ manager_i::adpluginspec( const char *id, const char * spec )
 			std::string iid = node.node().attribute( "iid" ).value();
 			broker_mgr_->register_lookup( iid.c_str(), id.c_str() );
 		});
-        iTaskManager::task().setConfiguration( dom );
+        iTask::instance()->setConfiguration( dom );
 	}
     return static_cast<bool>( result );
 }
