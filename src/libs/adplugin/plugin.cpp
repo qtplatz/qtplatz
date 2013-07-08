@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include <compiler/preamble.h>
 #include "plugin.hpp"
 #include "orbfactory.hpp"
 #include "orbservant.hpp"

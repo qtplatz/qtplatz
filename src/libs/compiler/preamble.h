@@ -27,7 +27,7 @@
 
 #if defined _MSC_VER
 #  if defined _DEBUG || defined DEBUG
-#    _CRTDBG_MAP_ALLOC
+#    define _CRTDBG_MAP_ALLOC
 #    include <stdlib.h>
 #    include <crtdbg.h>
 #  endif

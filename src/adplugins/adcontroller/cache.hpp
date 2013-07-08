@@ -39,7 +39,7 @@ namespace adcontroller {
         Cache();
 
 #if defined _DEBUG || defined DEBUG
-	enum { CACHE_SIZE = 64 };
+	enum { CACHE_SIZE = 512 };
 #else
 	enum { CACHE_SIZE = 1024 };
 #endif
