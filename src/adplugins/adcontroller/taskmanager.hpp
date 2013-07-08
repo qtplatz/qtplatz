@@ -25,27 +25,12 @@
 
 #pragma once
 
-#include <ace/Singleton.h>
-#include <ace/Recursive_Thread_Mutex.h>
 #include <mutex>
-
-class ACE_Reactor;
-
-namespace acewrapper {
-    class ReactorThread;
-    template<class T> class EventHandler;
-    class TimerHandler;
-    template<class T> class TimerReceiver;
-}
 
 namespace adcontroller {
 
     class iTask;
 
-    namespace internal {
-        class TimeReceiver;
-    }
-    
     class iTaskManager {
     private:
         ~iTaskManager();
@@ -61,17 +46,10 @@ namespace adcontroller {
         void manager_terminate();
         
         inline std::mutex& mutex() { return mutex_; }
-        ACE_Reactor * reactor();
         
     private:
-        // friend class ACE_Singleton<iTaskManager, ACE_Recursive_Thread_Mutex>;
-        friend class internal::TimeReceiver;
-        int handle_timeout( const ACE_Time_Value&, const void * );
-        
         static std::mutex mutex_;
         iTask * pTask_;
-        acewrapper::ReactorThread * reactor_thread_;    
-        acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> > * timerHandler_;
     };
 
 }

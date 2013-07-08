@@ -42,27 +42,6 @@ using namespace adcontroller;
 iTaskManager * iTaskManager::instance_ = 0;
 std::mutex iTaskManager::mutex_;
 
-namespace adcontroller {
-
-    // namespace singleton {
-	// typedef ACE_Singleton<iTaskManager, ACE_Recursive_Thread_Mutex> iTaskManager;
-    // }
-
-    namespace internal {
-	
-        class TimeReceiver {
-        public:
-            TimeReceiver() {}
-            int handle_input( ACE_HANDLE ) { return 0; }
-            int handle_timeout( const ACE_Time_Value& tv, const void * arg) {
-                return iTaskManager::instance()->handle_timeout( tv, arg );
-            }
-            int handle_close( ACE_HANDLE, ACE_Reactor_Mask ) { return 0; }
-        };
-	
-    }
-}
-
 ///////////////////////////////////////////////////////////////////
 
 iTaskManager::~iTaskManager()
@@ -72,11 +51,7 @@ iTaskManager::~iTaskManager()
 }
 
 iTaskManager::iTaskManager() : pTask_( new iTask )
-                             , reactor_thread_(0) 
-                             , timerHandler_(0) 
 {
-    reactor_thread_ = new acewrapper::ReactorThread();
-    reactor_thread_->spawn();
 }
 
 // static
@@ -101,51 +76,12 @@ iTaskManager::task()
 bool
 iTaskManager::manager_initialize()
 {
-    if ( timerHandler_ == 0 ) {
-		std::lock_guard< std::mutex > lock( mutex_ );
-		if ( timerHandler_ == 0 ) {
-		  // initialize timer
-		 timerHandler_ = new acewrapper::EventHandler< acewrapper::TimerReceiver<internal::TimeReceiver> >();
-		 ACE_Reactor * reactor = iTaskManager::instance()->reactor();
-		 reactor->schedule_timer( timerHandler_, 0, ACE_Time_Value(3), ACE_Time_Value(3) );
-	}
-	// activate task
 	pTask_->open();
 	return true;
-    }
-    return false;
 }
 
 void
 iTaskManager::manager_terminate()
 {
-    if ( timerHandler_ ) {
-        std::lock_guard< std::mutex > lock( mutex_ );
-        if ( timerHandler_ ) {
-            timerHandler_->cancel( reactor(), timerHandler_ );
-            timerHandler_->wait();
-            delete timerHandler_;
-            timerHandler_ = 0;
-        }
-    }
     pTask_->close();
-    reactor_thread_->end_reactor_event_loop();
-    reactor_thread_->join();
-}
-
-ACE_Reactor *
-iTaskManager::reactor()
-{ 
-    return reactor_thread_ ? reactor_thread_->get_reactor() : 0;
-}
-
-int
-iTaskManager::handle_timeout( const ACE_Time_Value& tv, const void * )
-{
-    using namespace adcontroller;
-    
- /*   if ( pTask_ )
-        pTask_->putq( adcontroller::marshal< ACE_Time_Value >::put( tv, constants::MB_TIME_VALUE ) );
-   */ 
-    return 0;
 }

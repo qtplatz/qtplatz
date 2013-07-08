@@ -51,7 +51,7 @@ namespace adcontroller {
 
     namespace internal {  struct receiver_data;  }
 
-    class iTask : /* public ACE_Task<ACE_MT_SYNCH>, */ boost::noncopyable {
+    class iTask : boost::noncopyable {
         
         ~iTask();
         iTask();
@@ -94,18 +94,17 @@ namespace adcontroller {
         
     private:
         // ACE_Task
-        virtual int handle_input( ACE_HANDLE );
-        virtual int svc();
+        // virtual int handle_input( ACE_HANDLE );
+        // virtual int svc();
         // 
-        void doit( ACE_Message_Block * );
-        void dispatch ( ACE_Message_Block * );
+        // void doit( ACE_Message_Block * );
+        // void dispatch ( ACE_Message_Block * );
         
         // int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );  <-- will handle in iTaskManager
-
-        void handle_dispatch( const ACE_Time_Value& );
-        void handle_dispatch_command( ACE_Message_Block * );
-        void handle_dispatch( const EventLog::LogMessage& );
-        void handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value );
+        // void handle_dispatch( const ACE_Time_Value& );
+        // void handle_dispatch_command( ACE_Message_Block * );
+        // void handle_dispatch( const EventLog::LogMessage& );
+        // void handle_dispatch( const std::wstring& name, unsigned long msgid, unsigned long value );
 
         void handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos );
         void handle_observer_update_method( unsigned long parentId, unsigned long objId, long pos );
