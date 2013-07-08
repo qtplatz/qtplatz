@@ -70,7 +70,7 @@ session_i::connect( const char * user, const char * pass, const char * token, Br
 {
     ACE_UNUSED_ARG( pass );
 
-    adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
+	adbroker::Task * pTask = adbroker::BrokerManager::task();
     if ( pTask ) {
         if ( ! CORBA::is_nil( cb ) ) {
             internal::event_sink sink;
@@ -89,10 +89,11 @@ bool
 session_i::disconnect( BrokerEventSink_ptr cb )
 {
     if ( ! CORBA::is_nil( cb ) ) {
-        event_sink_vector_type::iterator it = std::find( event_sink_set_.begin(), event_sink_set_.end(), cb );
+        auto it = std::find_if( event_sink_set_.begin(), event_sink_set_.end(), [&cb]( const internal::event_sink& t ){
+                return t.sink_->_is_equivalent( cb );
+            });
         if ( it != event_sink_set_.end() ) {
-            adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
-            pTask->disconnect( this->_this(), it->sink_ );
+            adbroker::BrokerManager::task()->disconnect( this->_this(), it->sink_ );
             event_sink_set_.erase( it );
             return true;
         }
@@ -123,43 +124,17 @@ session_i::getChemicalFormula()
 bool
 session_i::coaddSpectrum ( SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
 {
-#if defined DEBUG || defined _DEBUG
-    std::cout << "coaddSpectrum(" << x1 << ", " << x2 << "(min))" << std::endl;
-#endif
-    adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
-    if ( pTask ) {
-        TAO_OutputCDR cdr;
-        cdr << token_.c_str();
-        cdr << L"coaddSpectrum";
-        cdr << observer;
-        cdr << x1;
-        cdr << x2;
-        ACE_Message_Block * mb = cdr.begin()->duplicate();
-        pTask->putq( mb );
-        return true;
-    }
-    return false;
+    adbroker::Task * pTask = adbroker::BrokerManager::task();
+    pTask->io_service().post( std::bind(&Task::handleCoaddSpectrum, pTask, std::wstring(L"coaddSpectrum"), observer, x1, x2 ) );
+    return true;
 }
 
 bool
 session_i::coaddSpectrumEx( const CORBA::WChar * token, SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
 {
-#if defined DEBUG || defined _DEBUG
-    std::cout << "coaddSpectrumEx(" << x1 << ", " << x2 << "(min))" << std::endl;
-#endif
-    adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
-    if ( pTask ) {
-        TAO_OutputCDR cdr;
-		cdr << token; // token_.c_str();
-		cdr << L"coaddSpectrum";
-        cdr << observer;
-        cdr << x1;
-        cdr << x2;
-        ACE_Message_Block * mb = cdr.begin()->duplicate();
-        pTask->putq( mb );
-        return true;
-    }
-    return false;
+    adbroker::Task * pTask = adbroker::BrokerManager::task();
+    pTask->io_service().post( std::bind(&Task::handleCoaddSpectrum, pTask, std::wstring(token), observer, x1, x2 ) );
+	return true;
 }
 
 namespace adbroker {
@@ -202,7 +177,7 @@ session_i::folium( const CORBA::WChar * token, const CORBA::WChar * fileId )
 {
     BrokerFoliumBuffer buffer;
 
-    adbroker::Task * pTask = adbroker::singleton::BrokerManager::instance()->get<adbroker::Task>();
+    adbroker::Task * pTask = adbroker::BrokerManager::task();
     if ( pTask ) {
         adcontrols::MassSpectrumPtr ptr;
         portfolio::Folium folium = pTask->findFolium( token, fileId );

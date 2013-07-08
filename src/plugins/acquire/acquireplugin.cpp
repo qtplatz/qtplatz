@@ -533,7 +533,7 @@ AcquirePlugin::actionDisconnect()
         observer_ = session_->getObserver();
         if ( ! CORBA::is_nil( observer_.in() ) ) {
 			disconnect( masterObserverSink_.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
-				, this, SLOT( handle_update_data(unsigned long, long) ) );
+                        , this, SLOT( handle_update_data(unsigned long, long) ) );
 			masterObserverSink_->disconnect();
 			adorbmgr::orbmgr::deactivate( masterObserverSink_->_this() );
         }
@@ -656,24 +656,25 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
     SignalObserver::DataReadBuffer_var rb;
 
     if ( tgt->readData( pos, rb ) ) {
-        try {
-            const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() ); // L"InfiTOF"
-            const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
 
-            if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
-                 && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
+        const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() );
+        const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
 
+        if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
+             && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
+            try {
                 readMassSpectra( rb, spectrometer, dataInterpreter, objId );
-
-            } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
-
+            } catch ( std::exception& ex ) {
+                QMessageBox::critical( 0, "acquireplugin::handle_update_data read spectrum", ex.what() );
+                throw ex;
+            } 
+        } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
+            try {
                 readTrace( *desc, rb, dataInterpreter );
-
+            } catch ( std::exception& ex ) {
+                QMessageBox::critical( 0, "acquireplugin::handle_update_data read trace", ex.what() );
+                throw ex;
             }
-
-        } catch ( std::exception& ex ) {
-            QMessageBox::critical( 0, "acquireplugin::handle_update_data", ex.what() );
-            throw ex;
         }
     }
 }

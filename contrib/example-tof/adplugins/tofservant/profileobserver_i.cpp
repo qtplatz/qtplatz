@@ -104,8 +104,6 @@ profileObserver_i::isActive (void)
 ::SignalObserver::Observers *
 profileObserver_i::getSiblings (void)
 {
-    // adportable::scope_timer<>( "profileObserver_i::getSiblings: ");
-
     SignalObserver::Observers_var vec( new SignalObserver::Observers );
     vec->length( siblings_.size() );
 
@@ -118,8 +116,6 @@ profileObserver_i::getSiblings (void)
 ::SignalObserver::Observer *
 profileObserver_i::findObserver( CORBA::ULong objId, CORBA::Boolean recursive )
 {
-    // adportable::scope_timer<>( "profileObserver_i::findObserver: ");
-
     for ( sibling_vector_type::iterator it = siblings_.begin(); it != siblings_.end(); ++it ) {
         if ( (*it)->objId() == objId )
             return SignalObserver::Observer::_duplicate( it->in() );

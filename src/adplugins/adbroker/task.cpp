@@ -49,10 +49,12 @@
 # include <ace/Reactor.h>
 # include <ace/Thread_Manager.h>
 # include <adinterface/signalobserverC.h>
+#include <boost/bind.hpp>
 
 using namespace adbroker;
 
 namespace adbroker {
+
     namespace internal {
  
         struct portfolio_created {
@@ -81,41 +83,29 @@ Task::~Task()
 {
 }
 
-Task::Task( size_t n_threads ) : barrier_(n_threads)
-                               , n_threads_(n_threads) 
+Task::Task() : work_( io_service_ )
+							   , timer_( io_service_ )
+                               , interval_( 1000 ) // ms
 {
-}
-
-int
-Task::handle_timer_timeout( const ACE_Time_Value& tv, const void * )
-{
-    (void)tv;
-    return 0;
 }
 
 int
 Task::task_open()
 {
-    if ( activate( THR_NEW_LWP, n_threads_ ) != - 1 )
-        return true;
-    return false;
+    timer_.cancel();
+    initiate_timer();
+    threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_) ) );
+
+    return true;
 }
 
 int
 Task::task_close()
 {
-    do {
-        // this will block until a message arrives.
-        // By blocking, we know that the destruction will be
-        // paused until the last thread is done with the message
-        // block
-        ACE_Message_Block * mblk = new ACE_Message_Block( 0, ACE_Message_Block::MB_HANGUP );
-        putq( mblk );
-    } while (0);
+    io_service_.stop();
+    for ( std::thread& t: threads_ )
+        t.join();
 
-    this->wait();
-    this->msg_queue()->deactivate();
-    delete this;
     return 0;
 }
 
@@ -177,49 +167,9 @@ Task::session_data::operator == ( const Broker::Session_ptr t ) const
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-int
-Task::handle_input( ACE_HANDLE )
-{
-    ACE_Message_Block *mb;
-    ACE_Time_Value zero( ACE_Time_Value::zero );
-    if ( this->getq(mb, &zero) == -1 ) {
-        ACE_ERROR((LM_ERROR, "(%t) %p\n", "dequeue_head"));
-    } else {
-        ACE_Message_Block::release(mb);
-    }
-    return 0;
-}
-
-int
-Task::svc()
-{
-    barrier_.wait();
-
-    for ( ;; ) {
-
-        ACE_Message_Block * mblk = 0;
-
-        if ( this->getq( mblk ) == (-1) ) {
-            if ( errno == ESHUTDOWN ) {
-				adportable::debug(__FILE__, __LINE__) << ACE_Thread::self() << " \t adbroker::task queue is deactivated";
-			} else {
-                ACE_ERROR_RETURN((LM_ERROR, "(%t) %p\n", "putq"), -1);
-			}
-        }
-
-        if ( mblk->msg_type() == ACE_Message_Block::MB_HANGUP ) {
-			adportable::debug(__FILE__, __LINE__) << ACE_Thread::self() << " \t adbroker::task HANGUP received";
-            this->putq( mblk ); // forward the request to any peer threads
-            break;
-        }
-        doit( mblk );
-        ACE_Message_Block::release( mblk );
-    }
-    return 0;
-}
 
 void
-do_coaddSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_ptr observer, double x1, double x2 )
+Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_ptr observer, double x1, double x2 )
 {
     SignalObserver::Description_var desc = observer->getDescription();
     CORBA::WString_var clsid = observer->dataInterpreterClsid();
@@ -232,9 +182,9 @@ do_coaddSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_
 
     std::wstring text;
     if ( pos == pos2 )
-        text = ( boost::wformat( L"Spectrum @ %.3f min" ) % x1 ).str();
+        text = ( boost::wformat( L" Spectrum @ %.3f min" ) % x1 ).str();
     else
-        text = ( boost::wformat( L"Spectrum range (%1$.3f - %2$.3f) min" ) % x1 % x2 ).str();
+        text = ( boost::wformat( L" Spectrum range (%1$.3f - %2$.3f) min" ) % x1 % x2 ).str();
 
     adcontrols::MassSpectrum ms;
 
@@ -263,36 +213,7 @@ do_coaddSpectrum( Task * pTask, const wchar_t * token, SignalObserver::Observer_
 		++pos;
 	}
     ms.addDescription( adcontrols::Description( L"create", text ) );
-
-#if defined DEBUG || defined _DEBUG
-    std::wcout << L"\nInfo: adbroker task do_coaddSpectrum text = " << text
-               << ", ms.size = " << ms.size()
-               << std::endl;
-#endif
-
-    pTask->internal_coaddSpectrum( token, ms );
-}
-
-void
-Task::doit( ACE_Message_Block * mblk )
-{
-    using namespace adbroker;
-
-    TAO_InputCDR cdr( mblk );
-
-    CORBA::WString_var msg, token;
-    cdr >> token;
-    cdr >> msg;
-    if ( std::wstring( msg ) == L"coaddSpectrum" ) {
-        SignalObserver::Observer_ptr observer;
-        double x1(0), x2(0);
-        cdr >> observer;
-        cdr >> x1;
-        cdr >> x2;
-        if ( CORBA::is_nil( observer ) )
-            return;
-        do_coaddSpectrum( this, token, observer, x1, x2 );
-	}
+    internal_coaddSpectrum( token, ms );
 }
 
 portfolio::Portfolio&
@@ -304,7 +225,7 @@ Task::getPortfolio( const std::wstring& token )
         portfolioVec_[ token ] = std::shared_ptr<portfolio::Portfolio>( new portfolio::Portfolio );
         portfolioVec_[ token ]->create_with_fullpath( token );
 
-        BOOST_FOREACH( session_data& d, session_set_ ) {
+        for ( session_data& d: session_set_ ) {
 #if defined DEBUG || defined _DEBUG// && 0
             adportable::debug(__FILE__, __LINE__) << "getPortfolio token=" << token << " created and fire to :" << d.token_;
 #endif
@@ -348,4 +269,17 @@ Task::findFolium( const std::wstring& token, const std::wstring& id )
     std::wstring xml = portfolio.xml();
 
     return portfolio.findFolium( id );
+}
+
+void
+Task::initiate_timer()
+{
+    timer_.expires_from_now( boost::posix_time::milliseconds( interval_ ) );
+    timer_.async_wait( boost::bind( &Task::handle_timeout, this, boost::asio::placeholders::error ) );
+}
+
+void
+Task::handle_timeout( const boost::system::error_code& )
+{
+    initiate_timer();
 }

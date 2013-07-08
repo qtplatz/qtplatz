@@ -131,6 +131,7 @@ namespace tofservant {
         std::unique_ptr< profileObserver_i > pObserver_;
         std::vector< std::shared_ptr< traceObserver_i > > pTraceObserverVec_;
         TOF::ControlMethod method_;
+
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;
         boost::asio::deadline_timer timer_;

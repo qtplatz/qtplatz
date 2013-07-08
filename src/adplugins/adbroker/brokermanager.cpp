@@ -28,25 +28,32 @@
 
 using namespace adbroker;
 
-// BrokerManager * BrokerManager::instance_ = 0;
-bool BrokerManager::initialized_ = false;
+BrokerManager * BrokerManager::instance_ = 0;
+std::mutex BrokerManager::mutex_;
 
-namespace adbroker {
-    template<> Task * BrokerManager::get<Task>()
-    { 
-        return pTask_;
+BrokerManager *
+BrokerManager::instance()
+{
+    if ( instance_ == 0 ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( instance_ == 0 )
+            instance_ = new BrokerManager;
     }
+    return instance_;
+}
+
+Task *
+BrokerManager::task()
+{
+    return instance()->pTask_.get();
 }
 
 BrokerManager::~BrokerManager()
 {
-    //delete pTask_;
 }
 
-BrokerManager::BrokerManager() : pTask_(0)
+BrokerManager::BrokerManager() : pTask_( new Task )
 {
-    initialized_ = true;
-    pTask_ = new Task(5);
     initialize();
 }
 
@@ -61,6 +68,5 @@ BrokerManager::initialize()
 void
 BrokerManager::terminate()
 {
-    if ( initialized_ )
-        singleton::BrokerManager::instance()->pTask_->task_close();
+    BrokerManager::instance()->pTask_->task_close();
 }

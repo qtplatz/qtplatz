@@ -27,8 +27,8 @@
 #define ADBROKERMANAGER_H
 
 #include "adbroker_global.h"
-# include <ace/Singleton.h>
-# include <ace/Recursive_Thread_Mutex.h>
+#include <mutex>
+#include <memory>
 
 class BrokerSession;
 class BrokerAccessToken;
@@ -43,32 +43,24 @@ namespace adbroker {
     class Task;
     class BrokerManager;
 
-    namespace singleton {
-	typedef ACE_Singleton<BrokerManager, ACE_Recursive_Thread_Mutex> BrokerManager;
-    }
-
     class ADBROKERSHARED_EXPORT BrokerManager {
         virtual ~BrokerManager();
         BrokerManager();
     public:
-        // static BrokerManager * instance();
+        static BrokerManager * instance();
+        static Task * task();
         
         bool initialize();
         static void terminate();
-
-        template<class T> T* get();
 
         BrokerSession * getBrokerSession();
         adwidgets::ElementIO& getElementIO();
   
     private:
-	friend class ACE_Singleton<BrokerManager, ACE_Recursive_Thread_Mutex>;
-        // friend class singleton::BrokerManager;
-        static bool initialized_;
-        Task * pTask_;
+        static BrokerManager * instance_;
+        static std::mutex mutex_;
+        std::unique_ptr< Task > pTask_;
     };
-
-    template<> Task * BrokerManager::get<Task>();
 
 }
 

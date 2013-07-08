@@ -32,6 +32,8 @@
 #include <boost/noncopyable.hpp>
 #include <adinterface/brokerC.h>
 #include <adinterface/brokereventC.h>
+#include <boost/asio.hpp>
+#include <thread>
 #include <vector>
 #include <map>
 #include <mutex>
@@ -52,12 +54,12 @@ namespace adbroker {
 
     class BrokerManager;
 
-    class Task : public ACE_Task<ACE_MT_SYNCH>, boost::noncopyable {
+    class Task : boost::noncopyable {
 
-        ~Task();
-        Task( size_t n_threads = 1 );
-
+        Task();
     public:  
+        ~Task();
+
         inline std::mutex& mutex() { return mutex_; }
 
         int task_open();
@@ -85,31 +87,34 @@ namespace adbroker {
 
         portfolio::Folium findFolium( const std::wstring& token, const std::wstring& id );
 
-    private:
-        // ACE_Task
-        virtual int handle_input( ACE_HANDLE );
-        virtual int svc();
-        // 
-        void doit( ACE_Message_Block * );
-        int handle_timer_timeout( const ACE_Time_Value& tv, const void * arg );
-
     public:
+        inline boost::asio::io_service& io_service() { return io_service_; }
         void internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& );
+
+        void handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_ptr observer, double x1, double x2 );
 
     private:
         friend class BrokerManager;
 
         portfolio::Portfolio& getPortfolio( const std::wstring& token );
+        bool internal_disconnect( Broker::Session_ptr );
+
+        // 
+        void initiate_timer();
+        void handle_timeout( const boost::system::error_code& );
 
         std::mutex mutex_;
-        ACE_Barrier barrier_;
-        size_t n_threads_;
-    
-        bool internal_disconnect( Broker::Session_ptr );
+
         std::vector<session_data> session_set_;
         std::vector<session_data> session_failed_;
 
         std::map< std::wstring, std::shared_ptr< portfolio::Portfolio > > portfolioVec_;
+
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
+        boost::asio::deadline_timer timer_;
+        std::vector< std::thread > threads_;
+        std::size_t interval_;
     };
 
 
