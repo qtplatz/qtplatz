@@ -148,14 +148,14 @@ profileObserver_i::addSibling ( ::SignalObserver::Observer_ptr observer )
 void
 profileObserver_i::uptime ( ::CORBA::ULongLong_out usec )
 {
-    ACE_UNUSED_ARG( usec );
+    (void)( usec );
 }
 
 void
 profileObserver_i::uptime_range( ::CORBA::ULongLong_out oldest, ::CORBA::ULongLong_out newest )
 {
-    ACE_UNUSED_ARG( oldest );
-    ACE_UNUSED_ARG( newest );
+    (void)( oldest );
+    (void)( newest );
 }
 
 ::CORBA::Boolean

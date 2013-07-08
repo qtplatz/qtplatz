@@ -101,8 +101,7 @@ avgr_emu::handle_timeout( const boost::system::error_code& error )
         ++npos_;
         boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
 
-        data_simulator_->generate_spectrum( navg_ );
-
+        // data_simulator_->generate_spectrum( navg_ );
         std::shared_ptr< TOFSignal::tofDATA > pDATA( new TOFSignal::tofDATA );
         TOFSignal::tofDATA &d = *pDATA;
         d.sequenceNumber = npos_;
@@ -113,12 +112,10 @@ avgr_emu::handle_timeout( const boost::system::error_code& error )
         d.numberOfProfiles = 1; // resize d.data_
         d.data.length( 1 );
         TOFSignal::datum& datum = d.data[ 0 ];
-        const size_t nbrSamples = data_simulator_->intensities().size();
+        const size_t nbrSamples = data_simulator::ndata;
         datum.values.length( nbrSamples );
-		const int32_t * src = data_simulator_->intensities().data();
-		CORBA::Long * dst = &datum.values[ 0 ];
-		for ( size_t i = 0; i < nbrSamples; ++i )
-			*dst++ = *src;
+		data_simulator_->generate_spectrum( npos_, navg_, datum.values.get_buffer(), nbrSamples );
+
 		toftask::instance()->io_service().post( std::bind(&toftask::handle_profile_data, toftask::instance(), pDATA ) );
     }
 }

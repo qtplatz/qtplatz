@@ -167,25 +167,46 @@ data_simulator::mass_to_index( double mass )
     return size_t( mass / ( double(512.0) * ndata ) );
 }
 
+// void
+// data_simulator::generate_spectrum( size_t nAverage )
+// {
+//     boost::mt19937 gen( uint32_t( time(0) ) );
+//     boost::uniform_real<> distrib( -fScale, fScale * 2 );
+
+//     std::fill( intensities_.begin(), intensities_.end(), 0 );
+
+//     using namespace boost;
+//     boost::variate_generator< mt19937&, uniform_real<> > rand( gen, distrib );
+
+//     static int npos = 0;
+//     npos++;
+
+//     double sf = trace_[ npos % trace_.size() ] * 1000.0;
+
+//     while ( nAverage-- ) {
+//         for ( size_t i = 0; i < ndata; ++i ) {
+//             double a = double( rand() ) * fScale + rawSpectrum_[ i ] * sf;
+//             intensities_[ i ] += int32_t( a );
+//         }
+//     }
+// }
+
 void
-data_simulator::generate_spectrum( size_t nAverage )
+data_simulator::generate_spectrum( size_t pos, size_t navg, int32_t * buffer, size_t length)
 {
     boost::mt19937 gen( uint32_t( time(0) ) );
     boost::uniform_real<> distrib( -fScale, fScale * 2 );
 
-    std::fill( intensities_.begin(), intensities_.end(), 0 );
+    memset( buffer, 0, sizeof( int32_t * ) * length );
 
     using namespace boost;
     boost::variate_generator< mt19937&, uniform_real<> > rand( gen, distrib );
 
-    static int npos = 0;
-    npos++;
-
-    double sf = trace_[ npos % trace_.size() ] * 1000.0;
-    while ( nAverage-- ) {
-        for ( size_t i = 0; i < ndata; ++i ) {
+    double sf = trace_[ pos % trace_.size() ] * 1000.0;
+    while ( navg-- ) {
+        for ( size_t i = 0; i < length; ++i ) {
             double a = double( rand() ) * fScale + rawSpectrum_[ i ] * sf;
-            intensities_[ i ] += int32_t( a );
+            buffer[ i ] += int32_t( a );
         }
     }
 

@@ -37,8 +37,10 @@ namespace tofservant {
 
         void peakwidth( double );
         double peakwidth() const;
-        void generate_spectrum( size_t nAverage = 1 );
-        const std::array< int32_t, ndata >& intensities() const { return intensities_; }
+        // void generate_spectrum( size_t nAverage = 1 );
+        void generate_spectrum( size_t pos, size_t navg, int32_t * buffer, size_t length );
+        // const std::array< int32_t, ndata >& intensities() const { return intensities_; }
+
         const std::array< double, 256 >& trace() const { return trace_; }
 
         static double index_to_mass( size_t idx );
@@ -49,7 +51,7 @@ namespace tofservant {
         double peakwidth_;
         std::array< int32_t, ndata > intensities_;
         std::array< double, ndata > rawSpectrum_;
-        std::size_t ndata_;
+        // std::size_t ndata_;
         std::array< double, 256 > trace_;
     };
 
