@@ -24,6 +24,9 @@ LIBS += -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adcontrols) \
 
 INCLUDEPATH *= $(ACE_ROOT) $(TAO_ROOT)
 
+#workaround for 5.1.0 cause a fatal error on qitemdelegate.h can not find qabstractitemdelegate.h
+greaterThan( QT_MAJOR_VERSION, 4 ): INCLUDEPATH += ${QTDIR}/include  
+
 DEFINES += QTWIDGETS2_LIBRARY
 
 SOURCES += factory.cpp \
