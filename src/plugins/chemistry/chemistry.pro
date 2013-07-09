@@ -53,6 +53,11 @@ LIBS += -l$$qtLibraryTarget( adutils ) \
         -l$$qtLibraryTarget( xmlparser ) \
 	-l$$qtLibraryTarget( adchem )
 
+!win32 {
+    LIBS += -lboost_date_time -lboost_filesystem -lboost_system
+}
+
+
 RESOURCES += \
     chemistry.qrc
 
