@@ -20,7 +20,7 @@ macx {
 }
 
 BOOST_VERSION=boost-1_54
-ACE_VERSION=6.1.8
+ACE_VERSION=6.2.0
 QWT_VERSION=6.1.0-svn-qt$$QT_MAJOR_VERSION
 
 # does not override if environment variable already exist
