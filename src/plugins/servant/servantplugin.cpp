@@ -74,6 +74,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <chrono>
 
 using namespace servant;
 using namespace servant::internal;
@@ -233,7 +234,19 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             return false;
         }
 		adorbmgr::orbmgr::instance()->setBrokerManager( bmgr );
-        bmgr->register_ior( adBroker->object_name(), broker_creator.ior.c_str() );
+        size_t nTrial = 3;
+        while ( nTrial-- ) {
+            try {
+                bmgr->register_ior( adBroker->object_name(), broker_creator.ior.c_str() );
+            } catch ( CORBA::Exception& ex ) {
+                if ( ex.get_id() == CORBA::TRANSIENT && nTrial )
+                    std::this_thread::sleep_for( std::chrono::milliseconds(10) );
+                else {
+                    *error_message = QString( "CORBA::Exception : " ) + ex._info().c_str();
+                    return false;
+                }
+            }
+        }
     }
     pImpl_->init_debug_adbroker( bmgr );
 
