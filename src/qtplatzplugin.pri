@@ -68,9 +68,7 @@ defineReplace(stripOutDir) {
 
 PLUGINSPEC = $$_PRO_FILE_PWD_/$${TARGET}.pluginspec
 CONFIGFILE = $${_PRO_FILE_PWD_}/$${TARGET}.config.xml
-exists( $$CONFIGFILE ) {
-  PLUGINSPEC += $$CONFIGFILE
-}
+
 PLUGINSPEC_IN = $${PLUGINSPEC}.in
 exists($$PLUGINSPEC_IN) {
     OTHER_FILES += $$PLUGINSPEC_IN
@@ -82,7 +80,14 @@ exists($$PLUGINSPEC_IN) {
     OTHER_FILES += $$PLUGINSPEC
     copy2build.output = $$DESTDIR/${QMAKE_FUNC_FILE_IN_stripSrcDir}
 }
+
 copy2build.input = PLUGINSPEC
+
+exists( $$CONFIGFILE ) {
+  OTHER_FILES += $$CONFIGFILE
+  copy2build.input += CONFIGFILE
+}
+
 isEmpty(vcproj):copy2build.variable_out = PRE_TARGETDEPS
 copy2build.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
 copy2build.name = COPY ${QMAKE_FILE_IN}
