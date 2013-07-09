@@ -38,7 +38,6 @@ win32 {
 
 HEADERS += adportable.hpp \
     array_wrapper.hpp \
-    barrier.hpp \
     binary_search.hpp \
     configloader.hpp \
     configuration.hpp \
