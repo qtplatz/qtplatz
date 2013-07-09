@@ -1,7 +1,8 @@
 @echo off
 
 set ACE_ROOT="%USERPROFILE%\src\vc11\ACE_wrappers"
-set QTDIR=C:\qt\5.1.0
+#set QTDIR=C:\qt\5.1.0
+set QTDIR=C:\Qt\Qt5.1.0\5.1.0\msvc2012
 set QMAKESPEC=win32-msvc2012
 set PATH=%ACE_ROOT%\lib;%ACE_ROOT%\bin;%QTDIR%\BIN;%PATH%
 
