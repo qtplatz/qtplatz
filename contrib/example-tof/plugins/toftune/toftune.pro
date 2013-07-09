@@ -77,6 +77,9 @@ LIBS += \
     -l$$qtLibraryTarget( qtwrapper ) \
     -l$$qtLibraryTarget( qwt )
 
+!win32 {
+    LIBS += -lboost_date_time -lboost_filesystem -lboost_system
+}
 
 RESOURCES += \
     resources.qrc

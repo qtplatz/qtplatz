@@ -26,7 +26,7 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
 
 !win32 {
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
-  LIBS += -lboost_date_time
+  LIBS += -lboost_date_time -lboost_filesystem -lboost_system
 }
 linux-*: LIBS += -lqwt # order matter on linux
 

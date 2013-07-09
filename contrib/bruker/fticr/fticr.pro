@@ -27,6 +27,10 @@ LIBS += -l$$qtLibraryTarget( adplugin ) \
         -l$$qtLibraryTarget( adcontrols ) \
         -l$$qtLibraryTarget( portfolio )
 
+!win32 {
+    LIBS += -lboost_date_time -lboost_filesystem -lboost_system
+}
+
 SOURCES += fticr.cpp \
     datafile_factory.cpp \
     datafile.cpp \
