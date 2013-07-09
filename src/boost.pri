@@ -1,6 +1,9 @@
 
 include( config.pri )
 
+
+
+
 BOOST_ROOT=$$(BOOST_ROOT)
 isEmpty( BOOST_ROOT ) {
     win32: BOOST_ROOT=C:/Boost

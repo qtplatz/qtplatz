@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "tofSession_i.hpp"
+#include "tofsession_i.hpp"
 #include "toftask.hpp"
 #include <boost/tokenizer.hpp>
 

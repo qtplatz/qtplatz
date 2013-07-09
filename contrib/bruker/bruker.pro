@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
 
-SUBDIRS += \
-    fticr \
-    compassxtract
+SUBDIRS += fticr
+
+win32: SUBDIRS += compassxtract

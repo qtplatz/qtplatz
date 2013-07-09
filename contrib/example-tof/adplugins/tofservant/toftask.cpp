@@ -49,8 +49,8 @@ namespace tofservant {
                               , const std::string& token
                               , SignalObserver::eUpdateFrequency freq = SignalObserver::Realtime )
             : cb_( SignalObserver::ObserverEvents::_duplicate( ptr ) )
-            , freq_( freq )
             , token_( token )
+            , freq_( freq )
             , failed_( false ) {
         }
 
@@ -63,8 +63,8 @@ namespace tofservant {
         }
 
         SignalObserver::ObserverEvents_var cb_;
-        SignalObserver::eUpdateFrequency freq_;
         std::string token_;
+        SignalObserver::eUpdateFrequency freq_;
         bool failed_;
     };
     
@@ -106,9 +106,9 @@ using namespace tofservant;
 toftask * toftask::instance_ = 0;
 std::mutex toftask::mutex_;
 
-toftask::toftask() : work_( io_service_ )
+toftask::toftask() : device_facade_( new DeviceFacade )
+                   , work_( io_service_ )
                    , timer_( io_service_ )
-                   , device_facade_( new DeviceFacade )
 {
 }
 
@@ -361,6 +361,10 @@ void
 toftask::session_fire_log( long pri, const std::wstring& format, const std::vector< std::wstring >& args
                            , const std::wstring& msgId )
 {
+    (void)pri;
+    (void)format;
+    (void)args;
+    (void)msgId;
 }
 
 bool
@@ -398,16 +402,14 @@ toftask::initiate_timer()
 }
 
 void
-toftask::handle_timeout( const boost::system::error_code& ec )
+toftask::handle_timeout( const boost::system::error_code& )
 {
     initiate_timer();
-    adportable::debug(__FILE__, __LINE__) << "***** toftask::handle_timeout in " << std::this_thread::get_id().hash();
 }
 
 void
 toftask::handle_post()
 {
-    adportable::debug(__FILE__, __LINE__) << "***** toftask::handle_post in " << std::this_thread::get_id().hash();
 }
 
 void
@@ -442,8 +444,6 @@ toftask::initialize()
 bool
 toftask::handle_prepare_for_run( ControlMethod::Method m )
 {
-    adportable::debug(__FILE__, __LINE__) << "***** toftask::handle_prepare_for_run "
-                                          << std::this_thread::get_id().hash();
     return true;
 }
 

@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "tofmgr_i.hpp"
 #include "tofsession_i.hpp"
 #include <xmlparser/pugixml.hpp>
@@ -33,7 +31,7 @@
 
 using namespace tofservant;
 
-tofmgr_i::tofmgr_i() : tofSession_( new acewrapper::ORBServant< tofSession_i > )
+tofmgr_i::tofmgr_i() : tofSession_( new tofSession_i )
 {
 }
 
@@ -44,11 +42,11 @@ tofmgr_i::~tofmgr_i()
 bool
 tofmgr_i::setBrokerManager( Broker::Manager_ptr mgr )
 {
-	broker_mgr_ = Broker::Manager::_duplicate( mgr );
+    broker_mgr_ = Broker::Manager::_duplicate( mgr );
     if ( !CORBA::is_nil( broker_mgr_.in() ) && tofSession_ ) {
         // name should be match up with ns_name, which is described in tofservant.adplugin file
         // in this directory
-		CORBA::Object_var obj = *tofSession_;
+        CORBA::Object_var obj = tofSession_->_this();
         broker_mgr_->register_object( "com.ms-cheminfo.qtplatz.instrument.session.tofservant", obj );
     }
     return true;

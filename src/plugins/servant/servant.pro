@@ -16,15 +16,13 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(qtwrapper) -l$$qtLibraryTarget(adbroker) \
     -l$$qtLibraryTarget(adextension) \
     -l$$qtLibraryTarget(xmlparser) \
-    -l$$qtLibraryTarget(adorbmgr)
-
+    -l$$qtLibraryTarget(adorbmgr) \
+    -l$$qtLibraryTarget(Core)
 
 !win32 {
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
   LIBS *= -lboost_serialization -lboost_date_time -lboost_filesystem -lboost_system
 }
-
-!greaterThan(QT_MAJOR_VERSION, 4): LIBS += -l$$qtLibraryTarget(Core)
 
 DEFINES += SERVANT_LIBRARY
 

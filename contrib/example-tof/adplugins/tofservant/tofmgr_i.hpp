@@ -47,9 +47,10 @@ namespace tofservant {
     public:
         bool setBrokerManager( Broker::Manager_ptr mgr );
         bool adpluginspec( const char * id, const char * spec );
-        acewrapper::ORBServant< tofSession_i > * tofSession() { return tofSession_.get(); }
+        // acewrapper::ORBServant< tofSession_i > * tofSession() { return tofSession_.get(); }
 	private:
-        std::unique_ptr< acewrapper::ORBServant< tofSession_i > > tofSession_;
+        // std::unique_ptr< acewrapper::ORBServant< tofSession_i > > tofSession_;
+        std::unique_ptr< tofSession_i > tofSession_;
 		Broker::Manager_var broker_mgr_;
 		std::string adplugin_id_;
 		std::string adplugin_spec_;

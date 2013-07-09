@@ -100,7 +100,6 @@ tofServantPlugin::initialize( CORBA::ORB * orb
 							  , PortableServer::POAManager * mgr )
 {
 	tofMgr_->initialize( orb, poa, mgr );
-    static_cast<tofmgr_i *>(*tofMgr_)->tofSession()->initialize( orb, poa, mgr );
 	return true;
 }
 

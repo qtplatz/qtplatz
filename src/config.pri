@@ -19,12 +19,9 @@ macx {
     QMAKE_LFLAGS   *= -mmacosx-version-min=10.7 -stdlib=libc++
 }
 
-macx: BOOST_VERSION=boost-1_54_beta1
-else: BOOST_VERSION=boost-1_53
-
-ACE_VERSION=6.1.8
-#QWT_VERSION=6.1.0-svn
-QWT_VERSION=6.1.0-svn-qt$$QT_MAJOR_VERSION
+BOOST_VERSION=boost-1_54
+ACE_VERSION=6.2.0
+QWT_VERSION=6.1.0-svn
 
 # does not override if environment variable already exist
 
