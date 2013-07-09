@@ -25,7 +25,7 @@
 #include "orbmgr.hpp"
 
 #include <adinterface/brokerC.h>
-#include <adportable/barrier.hpp>
+#include <boost/thread/barrier.hpp>
 #include <tao/Utils/ORB_Manager.h>
 #include <adportable/debug.hpp>
 #include <boost/bind.hpp>
@@ -209,10 +209,10 @@ orbmgr::shutdown()
 }
 
 void
-orbmgr::run( adportable::barrier& barrier )
+orbmgr::run( boost::barrier& barrier )
 {
     try {
-		barrier.wait();
+        barrier.wait();
         taomgr_->run();
         thread_running_ = false;
     } catch ( ... ) {
@@ -223,13 +223,15 @@ orbmgr::run( adportable::barrier& barrier )
 }
 
 bool
-orbmgr::spawn( adportable::barrier& barrier )
+orbmgr::spawn()
 {
     if ( thread_ == 0 ) {
         std::lock_guard< std::mutex > lock( mutex_ );
         if ( thread_ == 0 ) {
-            thread_ = new std::thread( boost::bind( &orbmgr::run, this, boost::ref(barrier) ) );
+            boost::barrier barrier( 2 );
+            thread_ = new std::thread( std::bind( &orbmgr::run, this, std::ref(barrier) ) );
             thread_running_ = true;
+            barrier.wait();
             return true;
         }
     }

@@ -74,7 +74,6 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <adportable/barrier.hpp>
 
 using namespace servant;
 using namespace servant::internal;
@@ -210,13 +209,11 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     }
 
     // ------------ Broker::Manager initialize first --------------------
-    adportable::barrier barrier( 2 );
     adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance();
 	if ( pMgr ) {
 		pMgr->init( 0, 0 );
-		pMgr->spawn( barrier );
+		pMgr->spawn();
 	}
-	barrier.wait();
     //--------------------------------------------------------------------
     //--------------------------------------------------------------------
     Broker::Manager_var bmgr;

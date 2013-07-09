@@ -34,7 +34,7 @@
 
 class TAO_ServantBase;
 namespace CORBA { class ORB; class Object; }
-namespace adportable { class barrier; }
+namespace boost { class barrier; }
 namespace PortableServer {
     class POA; class POAManager;
     typedef TAO_ServantBase ServantBase;
@@ -55,7 +55,7 @@ namespace adorbmgr {
                 , PortableServer::POAManager * mgr = 0);
     public:
         int init( int ac, char * av[] );
-		bool spawn( adportable::barrier& );
+		bool spawn();
         void shutdown();
         bool fini();
         bool wait();
@@ -78,7 +78,7 @@ namespace adorbmgr {
 
     private:
 
-		void run( adportable::barrier& );
+		void run( boost::barrier& );
 
         static orbmgr * instance_;
         static std::mutex mutex_;
