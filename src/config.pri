@@ -26,11 +26,13 @@ QWT_VERSION=6.1.0-svn-qt$$QT_MAJOR_VERSION
 # does not override if environment variable already exist
 
 # ACE+TAO
-isEmpty( $$ACE_ROOT ) {
+ACE_ROOT = $$(ACE_ROOT)
+TAO_ROOT = $$(TAO_ROOT)
+isEmpty( ACE_ROOT ) {
   win32: ACE_ROOT=C:/ACE_wrapper
   else: ACE_ROOT=/usr/local/ace+tao/$${ACE_VERSION}
 }
-isEmpty( $$TAO_ROOT ): TAO_ROOT=$$ACE_ROOT
+isEmpty( TAO_ROOT ): TAO_ROOT=$${ACE_ROOT}
 
 # qwt
 QWT = $$(QWT)
