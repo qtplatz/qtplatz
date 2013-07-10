@@ -239,7 +239,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
             try {
                 bmgr->register_ior( adBroker->object_name(), broker_creator.ior.c_str() );
             } catch ( CORBA::Exception& ex ) {
-                if ( ex.get_id() == CORBA::TRANSIENT && nTrial )
+                if ( /* ex.get_id() == CORBA::TRANSIENT && */ nTrial )
                     std::this_thread::sleep_for( std::chrono::milliseconds(10) );
                 else {
                     *error_message = QString( "CORBA::Exception : " ) + ex._info().c_str();
