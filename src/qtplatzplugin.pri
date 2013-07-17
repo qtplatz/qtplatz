@@ -66,8 +66,7 @@ defineReplace(stripOutDir) {
 
 } # qt5
 
-PLUGINSPEC = $$_PRO_FILE_PWD_/$${TARGET}.pluginspec
-CONFIGFILE = $${_PRO_FILE_PWD_}/$${TARGET}.config.xml
+PLUGINSPEC = $${_PRO_FILE_PWD_}/$${TARGET}.pluginspec
 
 PLUGINSPEC_IN = $${PLUGINSPEC}.in
 exists($$PLUGINSPEC_IN) {
@@ -81,10 +80,13 @@ exists($$PLUGINSPEC_IN) {
     copy2build.output = $$DESTDIR/${QMAKE_FUNC_FILE_IN_stripSrcDir}
 }
 
-copy2build.input = PLUGINSPEC
+copy2build.input += PLUGINSPEC
 
-exists( $$CONFIGFILE ) {
+# CONFIGFILE
+exists( $${_PRO_FILE_PWD_}/$${TARGET}.config.xml ) {
+  CONFIGFILE = $${_PRO_FILE_PWD_}/$${TARGET}.config.xml
   OTHER_FILES += $$CONFIGFILE
+  copy2build.output = $$DESTDIR/$${TARGET}.config.xml
   copy2build.input += CONFIGFILE
 }
 
