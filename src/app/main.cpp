@@ -54,6 +54,7 @@
 #include <QApplication>
 #include <QDesktopServices>
 #include <QMessageBox>
+#include <string>
 
 #ifdef ENABLE_QT_BREAKPAD
 #include <qtsystemexceptionhandler.h>
@@ -63,7 +64,7 @@ using namespace ExtensionSystem;
 
 enum { OptionIndent = 4, DescriptionIndent = 34 };
 
-static const char appNameC[] = "atplatz";
+static const char appNameC[] = "qtplatz";
 static const char corePluginNameC[] = "Core";
 static const char fixedOptionsC[] =
 " [OPTION]... [FILE]...\n"
@@ -300,8 +301,17 @@ int main(int argc, char **argv)
     // QML is unusable with the xlib backend
     QApplication::setGraphicsSystem(QLatin1String("raster"));
 #endif
-
+	// workaround -- Either QApplication and QtSingleApplcation ctor fails due to failed to load platform plugin
+	// However, in order to set load path to QApplication, need to have an instance for QCoreApplication in order
+	// to use applicationDirPath() method.
+	QString appDir;
+	do {
+		QCoreApplication a( argc, argv );
+		appDir = a.applicationDirPath();
+	} while (0);
+	QApplication::addLibraryPath( appDir + "/../plugins" );
     SharedTools::QtSingleApplication app((QLatin1String(appNameC)), argc, argv);
+
 
     const int threadCount = QThreadPool::globalInstance()->maxThreadCount();
     QThreadPool::globalInstance()->setMaxThreadCount(qMax(4, 2 * threadCount));

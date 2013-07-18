@@ -129,8 +129,9 @@ Section "!Application" App
 
 ;-------------------------------- define path -------------------------
 	!define InQtPlatz   "..\..\..\..\qtplatz"
-	!define InQtPath    "C:\Qt\5.1.0"
-	!define InVC110Path  "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\redist\x86\Microsoft.VC110.CRT"
+	!define InQtPath    "$%QTDIR%"
+#	!define InVC110Path "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\redist\x86\Microsoft.VC110.CRT"
+	!define InVC110Path "$%VCINSTALLDIR%\redist\x86\Microsoft.VC110.CRT"
 ;-------------------------------
 
 	!include "filelist\filelist-tao.nsh"
@@ -296,7 +297,7 @@ Function .onInit
    ${endif}
 
 	; Check to make sure the version of Windows is supported
-   ${if} ${AtLeastWinXP}
+   ${if} ${AtLeastWin7}
      goto VersionOK
    ${endif}
    

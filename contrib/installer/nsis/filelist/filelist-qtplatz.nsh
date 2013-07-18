@@ -35,10 +35,6 @@
    ${InstallFile} "${InMSCheminfoPath}" "servant.dll"             "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "qtwidgets.dll"           "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "qtwidgets2.dll"          "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
-   ${InstallFile} "${InMSCheminfoPath}" "acquire.config.xml"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
-   ${InstallFile} "${InMSCheminfoPath}" "servant.config.xml"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
-   ${InstallFile} "${InMSCheminfoPath}" "dataproc.config.xml"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
-   ${InstallFile} "${InXSDPath}"        "config.xsd"              "lib\qtplatz\plugins\xsd"            1 0
    ;;;
    ;; adplugins
    ${InstallFile} "${InMSCheminfoPath}" "adtextfile.dll"          "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
@@ -50,6 +46,11 @@
    ${InstallFile} "${InMSCheminfoPath}" "dataproc.pluginspec"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "sequence.pluginspec"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "servant.pluginspec"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
+;;
+   ${InstallFile} "${InMSCheminfoPath}" "acquire.config.xml"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
+   ${InstallFile} "${InMSCheminfoPath}" "servant.config.xml"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
+   ${InstallFile} "${InMSCheminfoPath}" "dataproc.config.xml"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
+   ${InstallFile} "${InXSDPath}"        "config.xsd"              "lib\qtplatz\plugins\xsd"            1 0
 ;;;
    ${InstallFile} "${InMSCheminfoPath}" "adbroker.adplugin"       "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "adcontroller.adplugin"   "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
@@ -57,7 +58,6 @@
    ${InstallFile} "${InMSCheminfoPath}" "adtextfile.adplugin"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "fticr.adplugin"          "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "infirawfile.adplugin"    "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
-   ${InstallFile} "${InMSCheminfoPath}" "mc4.adplugin"            "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "qtwidgets.adplugin"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "qtwidgets2.adplugin"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ;;
