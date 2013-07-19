@@ -39,8 +39,8 @@
 #include <coreplugin/navigationwidget.h>
 #include <extensionsystem/pluginmanager.h>
 
-# include <ace/Thread_Manager.h>
-# include <ace/OS_NS_unistd.h>
+//# include <ace/Thread_Manager.h>
+//# include <ace/OS_NS_unistd.h>
 
 #include <acewrapper/acewrapper.hpp>
 #include <acewrapper/constants.hpp>
@@ -131,13 +131,11 @@ ServantPlugin::~ServantPlugin()
 {
     final_close();
     delete pImpl_;
-    delete pConfig_;
     ACE::fini();
     instance_ = 0;
 }
 
-ServantPlugin::ServantPlugin() : pConfig_( 0 )
-                               , pImpl_( 0 )
+ServantPlugin::ServantPlugin() : pImpl_( 0 )
 {
     instance_ = this;
     ACE::init();
@@ -181,10 +179,11 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	boost::filesystem::path plugindir;
     do {
         apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-		configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/servant.config" );
+		configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/nominal.adplugin" );
 		plugindir = boost::filesystem::path( configFile ).branch_path();
     } while(0);
 
+	// populate .adplugin files under give folder.
 	adplugin::loader::populate( plugindir.generic_wstring().c_str() );
 
 	std::vector< adplugin::plugin_ptr > spectrometers;
@@ -195,21 +194,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 				adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
 		});
 	}
-    
-    const wchar_t * query = L"/ServantConfiguration/Configuration";
-    
-    pConfig_ = new adportable::Configuration();
-    adportable::Configuration& config = *pConfig_;
-
-    adportable::debug( __FILE__, __LINE__ ) << "loading configuration: \"" << configFile << "\"";
-
-#if 0
-    if ( ! adportable::ConfigLoader::loadConfigFile( config, configFile, query ) ) {
-        adportable::debug dbg( __FILE__, __LINE__ );
-        dbg << "ServantPlugin::initialize loadConfig '" << configFile << "' load failed";
-        QMessageBox::warning( 0, dbg.where().c_str(), dbg.str().c_str() );
-    }
-#endif
     // ------------ Broker::Manager initialize first --------------------
     adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance();
 	if ( pMgr ) {

@@ -61,7 +61,6 @@ namespace servant {
         
     private:
         void final_close();
-        adportable::Configuration * pConfig_;
         internal::ServantPluginImpl * pImpl_;
 
         typedef std::vector< adplugin::orbServant * > orbservant_vector_type;
