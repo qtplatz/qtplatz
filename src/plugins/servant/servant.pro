@@ -46,5 +46,5 @@ HEADERS += servant_global.h \
 
 OTHER_FILES += \
     servant.pluginspec \
-    servant.config.xml
+    servant.config
 

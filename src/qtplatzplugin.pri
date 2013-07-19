@@ -81,20 +81,23 @@ exists($$PLUGINSPEC_IN) {
 }
 
 copy2build.input += PLUGINSPEC
-
-# CONFIGFILE
-exists( $${_PRO_FILE_PWD_}/$${TARGET}.config.xml ) {
-  CONFIGFILE = $${_PRO_FILE_PWD_}/$${TARGET}.config.xml
-  OTHER_FILES += $$CONFIGFILE
-  copy2build.output = $$DESTDIR/$${TARGET}.config.xml
-  copy2build.input += CONFIGFILE
-}
-
 isEmpty(vcproj):copy2build.variable_out = PRE_TARGETDEPS
 copy2build.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
 copy2build.name = COPY ${QMAKE_FILE_IN}
 copy2build.CONFIG += no_link
 QMAKE_EXTRA_COMPILERS += copy2build
+
+# CONFIGFILE
+exists( $${_PRO_FILE_PWD_}/$${TARGET}.config ) {
+  CONFIGFILE = $${_PRO_FILE_PWD_}/$${TARGET}.config
+  OTHER_FILES += $$CONFIGFILE
+  copy2file.output = $$DESTDIR/$${TARGET}.config
+  copy2file.input += CONFIGFILE
+  copy2file.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
+  copy2file.name = COPY2FILE ${QMAKE_FILE_IN}
+  copy2file.CONFIG += no_link
+  QMAKE_EXTRA_COMPILERS += copy2file
+}
 
 greaterThan(QT_MAJOR_VERSION, 4) {
 #   Create a Json file containing the plugin information required by

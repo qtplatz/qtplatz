@@ -176,7 +176,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     //-------------------------------------------------------------------------------------------
     const wchar_t * query = L"/DataprocConfiguration/Configuration";
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-    std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc.config.xml" );
+    std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/dataproc.config" );
     boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
     
 	adplugin::loader::populate( plugindir.generic_wstring().c_str() );

@@ -261,7 +261,7 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
         return false;
 
     std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-    std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/acquire.config.xml" );
+    std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/acquire.config" );
     boost::filesystem::path plugindir = boost::filesystem::path( configFile ).branch_path();
 
     const wchar_t * query = L"/AcquireConfiguration/Configuration";

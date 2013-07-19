@@ -181,7 +181,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	boost::filesystem::path plugindir;
     do {
         apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-		configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/servant.config.xml" );
+		configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/servant.config" );
 		plugindir = boost::filesystem::path( configFile ).branch_path();
     } while(0);
 
@@ -203,12 +203,13 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
     adportable::debug( __FILE__, __LINE__ ) << "loading configuration: \"" << configFile << "\"";
 
+#if 0
     if ( ! adportable::ConfigLoader::loadConfigFile( config, configFile, query ) ) {
         adportable::debug dbg( __FILE__, __LINE__ );
         dbg << "ServantPlugin::initialize loadConfig '" << configFile << "' load failed";
         QMessageBox::warning( 0, dbg.where().c_str(), dbg.str().c_str() );
     }
-
+#endif
     // ------------ Broker::Manager initialize first --------------------
     adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance();
 	if ( pMgr ) {
