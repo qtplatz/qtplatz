@@ -53,7 +53,13 @@ namespace adbroker {
     }
 }
 
+manager_i * manager_i::instance_ = 0;
+std::mutex manager_i::mutex_;
+
 manager_i::manager_i(void) : discovery_(0)
+                           , orb_(0)
+                           , poa_(0)
+                           , poa_manager_(0)
 {
     adportable::debug() << "adbroker::manager_i ctor";
 }
@@ -67,8 +73,12 @@ manager_i::~manager_i(void)
 manager_i *
 manager_i::instance()
 {
-    acewrapper::ORBServant< manager_i > * servant = singleton::manager::instance();
-    return (*servant);
+    if ( instance_ == 0 ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( instance_ == 0 )
+            instance_ = new manager_i;
+    }
+    return instance_;
 }
 
 void
@@ -92,7 +102,7 @@ manager_i::shutdown()
 Broker::Session_ptr
 manager_i::getSession( const CORBA::WChar * token )
 {
-    PortableServer::POA_var poa = ::adbroker::singleton::manager::instance()->poa();
+    PortableServer::POA_var poa = ::adbroker::manager_i::instance()->poa();
 
     if ( CORBA::is_nil( poa ) )
         return 0;
@@ -112,7 +122,7 @@ manager_i::getSession( const CORBA::WChar * token )
 Broker::Logger_ptr
 manager_i::getLogger()
 {
-    PortableServer::POA_var poa = ::adbroker::singleton::manager::instance()->poa();
+    PortableServer::POA_var poa = ::adbroker::manager_i::instance()->poa();
     if ( CORBA::is_nil( poa ) )
         return 0;
 
@@ -152,7 +162,7 @@ manager_i::internal_register_ior( const std::string& name, const std::string& io
     iorMap_[ name ] = ior;
 
 	if ( objVec_.find( name ) == objVec_.end() ) {
-		CORBA::ORB_var orb = singleton::manager::instance()->orb();
+		CORBA::ORB_var orb = manager_i::instance()->orb();
 		CORBA::Object_var obj = orb->string_to_object( ior.c_str() );
         if ( ! CORBA::is_nil( obj.in() ) )
             register_object( name.c_str(), obj.in() );
@@ -276,4 +286,53 @@ manager_i::unregister_handler( Broker::ObjectReceiver_ptr cb )
         }
     }
     return false;
+}
+
+void
+manager_i::initialize( CORBA::ORB * orb, PortableServer::POA * poa, PortableServer::POAManager * mgr )
+{
+    orb_ = CORBA::ORB::_duplicate( orb );
+    poa_ = PortableServer::POA::_duplicate( poa );
+    poa_manager_ = PortableServer::POAManager::_duplicate( mgr );
+}
+
+const std::string&
+manager_i::activate()
+{
+    PortableServer::ObjectId_var oid = poa_->activate_object( this );
+    CORBA::Object_var obj = poa_->id_to_reference( oid.in() );
+    CORBA::String_var str = orb_->object_to_string( obj.in() );
+    ior_ = str;
+    return ior_;
+}
+
+void
+manager_i::deactivate()
+{ 
+	PortableServer::ObjectId_var oid = poa_->servant_to_id( this );
+    this->poa_->deactivate_object ( oid );
+}
+
+const std::string&
+manager_i::ior() const
+{
+    return ior_;
+}
+
+CORBA::ORB * 
+manager_i::orb()
+{
+    return CORBA::ORB::_duplicate( orb_ );
+}
+
+PortableServer::POA * 
+manager_i::poa()
+{
+    return PortableServer::POA::_duplicate( poa_ );
+}
+
+PortableServer::POAManager *
+manager_i::poa_manager()
+{
+    return PortableServer::POAManager::_duplicate( poa_manager_ );
 }

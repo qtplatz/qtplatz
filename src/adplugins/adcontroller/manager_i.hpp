@@ -32,6 +32,10 @@
 #include <acewrapper/orbservant.hpp>
 #include <map>
 #include <string>
+#include <mutex>
+
+namespace CORBA { class ORB; }
+namespace PortableServer { class POA; class POAManager; }
 
 namespace adcontroller {
 
@@ -39,18 +43,28 @@ namespace adcontroller {
                     , public virtual POA_BrokerClient::Accessor {
         manager_i(void);
         ~manager_i(void);
-        friend class acewrapper::ORBServant< ::adcontroller::manager_i >;
+        // friend class acewrapper::ORBServant< ::adcontroller::manager_i >;
+        static manager_i * instance_;
+        static std::mutex mutex_;
     public:
+        static manager_i * instance();
         void shutdown();
-        ControlServer::Session_ptr getSession( const CORBA::WChar * );
-        static acewrapper::ORBServant< manager_i > * instance();
+		Broker::Manager_ptr getBrokerManager();
+        CORBA::ORB * orb();
+        PortableServer::POA * poa();
+        PortableServer::POAManager * poa_manager();
+        void initialize( CORBA::ORB *, PortableServer::POA *, PortableServer::POAManager * );
+        const std::string& activate();
+        void deactivate();
+        const std::string& ior() const;
+
+        // ControlServer::Manager
+        ControlServer::Session_ptr getSession( const CORBA::WChar * ) override;
         Broker::Logger_ptr getLogger();
 
         // BrokerClient::Accessor
-        bool setBrokerManager( Broker::Manager_ptr mgr );
-        bool adpluginspec( const char * id, const char * adpluginspec );
-
-		Broker::Manager_ptr getBrokerManager();
+        bool setBrokerManager( Broker::Manager_ptr mgr ) override;
+        bool adpluginspec( const char * id, const char * adpluginspec ) override;
         
     private:
         typedef std::map< std::wstring, std::shared_ptr< adcontroller::session_i > > session_map_type;
@@ -59,6 +73,10 @@ namespace adcontroller {
         Broker::Logger_var logger_;
         std::string adplugin_id;
         std::string adplugin_spec;
+        CORBA::ORB * orb_;
+        PortableServer::POA * poa_;
+        PortableServer::POAManager * poa_manager_;
+        std::string ior_;
     };
 
 }

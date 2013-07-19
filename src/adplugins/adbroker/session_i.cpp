@@ -104,7 +104,7 @@ session_i::disconnect( BrokerEventSink_ptr cb )
 Broker::ChemicalFormula_ptr
 session_i::getChemicalFormula()
 {
-    PortableServer::POA_var poa = ::adbroker::singleton::manager::instance()->poa();
+    PortableServer::POA_var poa = ::adbroker::manager_i::instance()->poa();
 
     if ( CORBA::is_nil( poa ) )
         return 0;

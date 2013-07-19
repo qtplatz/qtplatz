@@ -41,10 +41,9 @@ namespace adbroker {
     namespace internal { struct object_receiver; }
 
     class manager_i : public virtual POA_Broker::Manager {
-    public:
         manager_i(void);
         ~manager_i(void);
-
+    public:
         static manager_i * instance();
 
         void register_ior( const char * name, const char * ior );
@@ -65,8 +64,20 @@ namespace adbroker {
         void shutdown();
 
         void internal_register_ior( const std::string& name, const std::string& ior );
+
+        CORBA::ORB * orb();
+        PortableServer::POA * poa();
+        PortableServer::POAManager * poa_manager();
+        void initialize( CORBA::ORB * orb, PortableServer::POA * poa, PortableServer::POAManager * mgr );
+        const std::string& activate();
+        void deactivate();
+		const std::string& ior() const;
     private:
         typedef std::map< std::wstring, std::shared_ptr< adbroker::session_i > > session_map_type;
+
+        static std::mutex mutex_;
+        static manager_i * instance_;
+
         session_map_type session_list_;
         std::unique_ptr< broker::logger_i > logger_i_;
         std::map< std::string, std::string > iorMap_;
@@ -75,12 +86,11 @@ namespace adbroker {
 
         std::vector< internal::object_receiver > sink_vec_;
         ObjectDiscovery * discovery_;
-        std::mutex mutex_;
+        CORBA::ORB * orb_;
+        PortableServer::POA * poa_;
+        PortableServer::POAManager * poa_manager_;
+        std::string ior_;
     };
-
-    namespace singleton {
-        typedef ACE_Singleton< acewrapper::ORBServant< manager_i >, ACE_Recursive_Thread_Mutex > manager;
-    }
 
 }
 

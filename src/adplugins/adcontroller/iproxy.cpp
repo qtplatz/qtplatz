@@ -54,7 +54,7 @@ iProxy::initialConfiguration( const adportable::Configuration& c )
 
         if ( ! nsname.empty() ) {
 
-			Broker::Manager_var bmgr = static_cast<adcontroller::manager_i *>( *adcontroller::manager_i::instance() )->getBrokerManager();
+			Broker::Manager_var bmgr = adcontroller::manager_i::instance()->getBrokerManager();
             if ( CORBA::is_nil( bmgr ) )
                 throw std::runtime_error( "iProxy::init_object_ref -- can't get Broker::Manager reference" );
             try {

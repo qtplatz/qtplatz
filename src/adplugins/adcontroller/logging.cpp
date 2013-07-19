@@ -50,7 +50,7 @@ Logging::commit_to_broker()
 {
     const EventLog::LogMessage& elog = msg.get();
     if ( elog.format.in() && *elog.format.in() != 0 ) {
-        Broker::Logger_var logger = static_cast< manager_i *>(*manager_i::instance())->getLogger();
+        Broker::Logger_var logger = manager_i::instance()->getLogger();
         if ( ! CORBA::is_nil( logger ) ) {
             Broker::LogMessage blog;
             blog.logId = elog.logId;

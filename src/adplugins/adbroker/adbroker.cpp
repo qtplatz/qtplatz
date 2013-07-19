@@ -66,24 +66,21 @@ adBroker::query_interface_workaround( const char * _typenam )
 bool
 adBroker::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::POAManager_ptr mgr )
 {
-    ORBServant< adbroker::manager_i > * pServant = adbroker::singleton::manager::instance();
-	pServant->initialize( orb, poa, mgr );
+    adbroker::manager_i::instance()->initialize( orb, poa, mgr );
 	return true;
 }
 
 const char *
 adBroker::activate()
 {
-    ORBServant< adbroker::manager_i > * pServant = adbroker::singleton::manager::instance();
-	pServant->activate();
-    return pServant->ior().c_str();
+	return adbroker::manager_i::instance()->activate().c_str();
 }
 
 bool
 adBroker::deactivate()
 {
 	adbroker::BrokerManager::terminate(); // terminate task
-	adbroker::singleton::manager::instance()->deactivate();
+	adbroker::manager_i::instance()->deactivate();
 	return true;
 }
 
