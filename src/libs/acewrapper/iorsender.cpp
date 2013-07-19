@@ -33,12 +33,10 @@
 
 using namespace acewrapper;
 
-enum { debug_ior_sender = 0 };
+iorSender * iorSender::instance_ = 0;
+std::mutex iorSender::mutex_;
 
-namespace acewrapper { namespace singleton {
-	typedef ACE_Singleton< iorSender, ACE_Recursive_Thread_Mutex > iorSender;
-    }
-}
+enum { debug_ior_sender = 0 };
 
 static const u_short srcport = 8111;
 static const u_short dstport = acewrapper::constants::adbroker::OBJECTDISCOVERY_PORT;
@@ -195,5 +193,10 @@ iorSender::spawn()
 iorSender *
 iorSender::instance()
 {
-    return singleton::iorSender::instance();
+	if ( instance_ == 0 ) {
+		std::lock_guard< std::mutex > lock( mutex_ );
+		if ( instance_ == 0 )
+			instance_ = new iorSender;
+	}
+	return instance_;
 }

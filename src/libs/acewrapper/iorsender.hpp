@@ -36,13 +36,11 @@
 #include <string>
 #include <map>
 
-template<class T, class M> class ACE_Singleton;
-class ACE_Recursive_Thread_Mutex;
-
 namespace acewrapper {
 
     class iorSender : boost::noncopyable {
         iorSender();
+		static iorSender * instance_;
     public:
         static iorSender * instance();
         bool open( unsigned short port = 0 );
@@ -53,7 +51,6 @@ namespace acewrapper {
 
         bool spawn();
 
-        friend class ACE_Singleton< iorSender, ACE_Recursive_Thread_Mutex >;
     private:
         static void * thread_entry( void * );
 
@@ -69,7 +66,7 @@ namespace acewrapper {
         std::vector< char > send_buffer_;
         std::map< std::string, std::string > iorvec_;
         std::map< std::string, std::string >::iterator nextIor_;
-        std::mutex mutex_;
+        static std::mutex mutex_;
         std::thread * thread_;
     };
 
