@@ -34,7 +34,7 @@
 
 #include <acewrapper/orbservant.hpp>
 #include <acewrapper/constants.hpp>
-#include <acewrapper/acewrapper.hpp>
+//#include <acewrapper/acewrapper.hpp>
 #include <adportable/debug.hpp>
 
 #include "manager_i.hpp"

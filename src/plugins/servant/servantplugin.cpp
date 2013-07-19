@@ -42,7 +42,7 @@
 //# include <ace/Thread_Manager.h>
 //# include <ace/OS_NS_unistd.h>
 
-#include <acewrapper/acewrapper.hpp>
+//#include <acewrapper/acewrapper.hpp>
 #include <acewrapper/constants.hpp>
 #include <acewrapper/brokerhelper.hpp>
 
@@ -172,7 +172,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         return false;
     
     // ACE initialize
-    acewrapper::instance_manager::initialize();
+    // acewrapper::instance_manager::initialize();
     // <------
     
     std::wstring apppath, configFile;
