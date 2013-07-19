@@ -29,13 +29,11 @@
 #include <adinterface/brokerclientS.h>
 
 #include "session_i.hpp"
-#include <acewrapper/orbservant.hpp>
 #include <map>
 #include <string>
 #include <mutex>
 
-namespace CORBA { class ORB; }
-namespace PortableServer { class POA; class POAManager; }
+namespace acewrapper { template<class T> class ORBServant; }
 
 namespace adcontroller {
 
@@ -43,20 +41,14 @@ namespace adcontroller {
                     , public virtual POA_BrokerClient::Accessor {
         manager_i(void);
         ~manager_i(void);
-        // friend class acewrapper::ORBServant< ::adcontroller::manager_i >;
-        static manager_i * instance_;
+        friend class acewrapper::ORBServant< ::adcontroller::manager_i >;
+        static acewrapper::ORBServant< manager_i > * instance_;
         static std::mutex mutex_;
     public:
-        static manager_i * instance();
+        static acewrapper::ORBServant< manager_i > * instance();
+
         void shutdown();
 		Broker::Manager_ptr getBrokerManager();
-        CORBA::ORB * orb();
-        PortableServer::POA * poa();
-        PortableServer::POAManager * poa_manager();
-        void initialize( CORBA::ORB *, PortableServer::POA *, PortableServer::POAManager * );
-        const std::string& activate();
-        void deactivate();
-        const std::string& ior() const;
 
         // ControlServer::Manager
         ControlServer::Session_ptr getSession( const CORBA::WChar * ) override;
@@ -73,10 +65,6 @@ namespace adcontroller {
         Broker::Logger_var logger_;
         std::string adplugin_id;
         std::string adplugin_spec;
-        CORBA::ORB * orb_;
-        PortableServer::POA * poa_;
-        PortableServer::POAManager * poa_manager_;
-        std::string ior_;
     };
 
 }

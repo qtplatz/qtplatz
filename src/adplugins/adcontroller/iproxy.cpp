@@ -28,6 +28,7 @@
 #include "constants.hpp"
 #include "manager_i.hpp"
 #include <acewrapper/brokerhelper.hpp>
+#include <acewrapper/orbservant.hpp>
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
 #include <stdexcept>
@@ -54,7 +55,7 @@ iProxy::initialConfiguration( const adportable::Configuration& c )
 
         if ( ! nsname.empty() ) {
 
-			Broker::Manager_var bmgr = adcontroller::manager_i::instance()->getBrokerManager();
+			Broker::Manager_var bmgr = adcontroller::manager_i::instance()->impl().getBrokerManager();
             if ( CORBA::is_nil( bmgr ) )
                 throw std::runtime_error( "iProxy::init_object_ref -- can't get Broker::Manager reference" );
             try {

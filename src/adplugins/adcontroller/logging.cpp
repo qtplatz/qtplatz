@@ -27,6 +27,7 @@
 #include "constants.hpp"
 #include "task.hpp"
 #include <adportable/debug.hpp>
+#include <acewrapper/orbservant.hpp>
 #include <functional>
 
 using namespace adcontroller;
@@ -50,7 +51,7 @@ Logging::commit_to_broker()
 {
     const EventLog::LogMessage& elog = msg.get();
     if ( elog.format.in() && *elog.format.in() != 0 ) {
-        Broker::Logger_var logger = manager_i::instance()->getLogger();
+        Broker::Logger_var logger = manager_i::instance()->impl().getLogger();
         if ( ! CORBA::is_nil( logger ) ) {
             Broker::LogMessage blog;
             blog.logId = elog.logId;

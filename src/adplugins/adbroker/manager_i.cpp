@@ -27,6 +27,7 @@
 #include "session_i.hpp"
 #include "logger_i.hpp"
 #include "objectdiscovery.hpp"
+#include <acewrapper/orbservant.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/string.hpp>
 #include <regex>
@@ -53,13 +54,10 @@ namespace adbroker {
     }
 }
 
-manager_i * manager_i::instance_ = 0;
+acewrapper::ORBServant< adbroker::manager_i > * manager_i::instance_ = 0;
 std::mutex manager_i::mutex_;
 
 manager_i::manager_i(void) : discovery_(0)
-                           , orb_(0)
-                           , poa_(0)
-                           , poa_manager_(0)
 {
     adportable::debug() << "adbroker::manager_i ctor";
 }
@@ -70,13 +68,13 @@ manager_i::~manager_i(void)
     delete discovery_;
 }
 
-manager_i *
+acewrapper::ORBServant< adbroker::manager_i > *
 manager_i::instance()
 {
     if ( instance_ == 0 ) {
         std::lock_guard< std::mutex > lock( mutex_ );
         if ( instance_ == 0 )
-            instance_ = new manager_i;
+            instance_ = new acewrapper::ORBServant< adbroker::manager_i >;
     }
     return instance_;
 }
@@ -278,61 +276,13 @@ manager_i::unregister_handler( Broker::ObjectReceiver_ptr cb )
 
         std::lock_guard< std::mutex > lock( mutex_ );
 
-        // std::vector< internal::object_receiver >::iterator it 
-        auto it = std::find( sink_vec_.begin(), sink_vec_.end(), cb );
+        auto it = std::find_if( sink_vec_.begin(), sink_vec_.end(), [&]( internal::object_receiver& t ){
+                return t.sink_->_is_equivalent( cb );
+            });
         if ( it != sink_vec_.end() ) {
             sink_vec_.erase( it );
             return true;
         }
     }
     return false;
-}
-
-void
-manager_i::initialize( CORBA::ORB * orb, PortableServer::POA * poa, PortableServer::POAManager * mgr )
-{
-    orb_ = CORBA::ORB::_duplicate( orb );
-    poa_ = PortableServer::POA::_duplicate( poa );
-    poa_manager_ = PortableServer::POAManager::_duplicate( mgr );
-}
-
-const std::string&
-manager_i::activate()
-{
-    PortableServer::ObjectId_var oid = poa_->activate_object( this );
-    CORBA::Object_var obj = poa_->id_to_reference( oid.in() );
-    CORBA::String_var str = orb_->object_to_string( obj.in() );
-    ior_ = str;
-    return ior_;
-}
-
-void
-manager_i::deactivate()
-{ 
-	PortableServer::ObjectId_var oid = poa_->servant_to_id( this );
-    this->poa_->deactivate_object ( oid );
-}
-
-const std::string&
-manager_i::ior() const
-{
-    return ior_;
-}
-
-CORBA::ORB * 
-manager_i::orb()
-{
-    return CORBA::ORB::_duplicate( orb_ );
-}
-
-PortableServer::POA * 
-manager_i::poa()
-{
-    return PortableServer::POA::_duplicate( poa_ );
-}
-
-PortableServer::POAManager *
-manager_i::poa_manager()
-{
-    return PortableServer::POAManager::_duplicate( poa_manager_ );
 }

@@ -29,8 +29,8 @@
 #include <typeinfo>
 
 # include <tao/Utils/ORB_Manager.h>
-# include <ace/Thread_Manager.h>
-# include <ace/Process_Manager.h>
+//# include <ace/Thread_Manager.h>
+//# include <ace/Process_Manager.h>
 
 #include <acewrapper/orbservant.hpp>
 #include <acewrapper/constants.hpp>
@@ -73,7 +73,8 @@ adBroker::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableS
 const char *
 adBroker::activate()
 {
-	return adbroker::manager_i::instance()->activate().c_str();
+	adbroker::manager_i::instance()->activate();
+	return adbroker::manager_i::instance()->ior().c_str();
 }
 
 bool

@@ -30,6 +30,7 @@
 #include "task.hpp"
 #include <portfolio/folium.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <acewrapper/orbservant.hpp>
 #include <sstream>
 
 namespace adbroker {

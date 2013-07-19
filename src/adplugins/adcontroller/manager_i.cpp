@@ -25,17 +25,16 @@
 #include "manager_i.hpp"
 #include "session_i.hpp"
 #include "task.hpp"
+#include <acewrapper/orbservant.hpp>
 #include <xmlparser/pugixml.hpp>
 #include <cassert>
 
 using namespace adcontroller;
 
-manager_i * manager_i::instance_ = 0;
+acewrapper::ORBServant< manager_i > * manager_i::instance_ = 0;
 std::mutex manager_i::mutex_;
 
-manager_i::manager_i(void) : orb_( 0 )
-                           , poa_( 0 )
-                           , poa_manager_( 0 )
+manager_i::manager_i(void) 
 {
 }
 
@@ -43,18 +42,13 @@ manager_i::~manager_i(void)
 {
 }
 
-// acewrapper::ORBServant< manager_i > *
-// manager_i::instance()
-// {
-//     return singleton::manager_i::instance();
-// }
-manager_i *
+ acewrapper::ORBServant< manager_i > *
 manager_i::instance()
 {
     if ( instance_ == 0 ) {
         std::lock_guard< std::mutex > lock( mutex_ );
         if ( instance_ == 0 )
-            instance_ = new manager_i;
+            instance_ = new acewrapper::ORBServant< manager_i >;
     }
     return instance_;
 }
@@ -136,51 +130,3 @@ manager_i::adpluginspec( const char *id, const char * spec )
     return static_cast<bool>( result );
 }
 
-CORBA::ORB * 
-manager_i::orb()
-{
-    return CORBA::ORB::_duplicate( orb_ );
-}
-
-PortableServer::POA * 
-manager_i::poa()
-{
-    return PortableServer::POA::_duplicate( poa_ );
-}
-
-PortableServer::POAManager *
-manager_i::poa_manager()
-{
-    return PortableServer::POAManager::_duplicate( poa_manager_ );
-}
-
-void
-manager_i::initialize( CORBA::ORB * orb, PortableServer::POA * poa, PortableServer::POAManager * mgr )
-{
-    orb_ = CORBA::ORB::_duplicate( orb );
-    poa_ = PortableServer::POA::_duplicate( poa );
-    poa_manager_ = PortableServer::POAManager::_duplicate( mgr );
-}
-
-const std::string&
-manager_i::activate()
-{
-    PortableServer::ObjectId_var oid = poa_->activate_object( this );
-    CORBA::Object_var obj = poa_->id_to_reference( oid.in() );
-    CORBA::String_var str = orb_->object_to_string( obj.in() );
-    ior_ = str;
-    return ior_;
-}
-
-void
-manager_i::deactivate()
-{ 
-	PortableServer::ObjectId_var oid = poa_->servant_to_id( this );
-    this->poa_->deactivate_object ( oid );
-}
-
-const std::string&
-manager_i::ior() const
-{
-    return ior_;
-}

@@ -28,18 +28,10 @@
 
 #include "manager_i.hpp"
 #include <acewrapper/constants.hpp>
-#include <acewrapper/reactorthread.hpp>
-#include <acewrapper/mutex.hpp>
+#include <acewrapper/orbservant.hpp>
 #include <acewrapper/ifconfig.hpp>
 #include <adportable/debug.hpp>
 #include <iostream>
-
-#include <ace/Thread.h>
-#include <ace/Log_Msg.h>
-#include <ace/Event_Handler.h>
-#include <ace/INET_Addr.h>
-#include <ace/SOCK_Dgram_Bcast.h>
-#include <boost/foreach.hpp>
 #include <boost/bind.hpp>
 #include <thread>
 #include <functional>
@@ -97,7 +89,7 @@ ObjectDiscovery::reply_handler( const std::string& ident, const std::string& ior
     if ( unregister_lookup( ident, name ) ) {
         adportable::debug() << "ObjectDiscovery: name=" << name << ", " << ident 
                             << " ior=" << ior.substr(0, 20) << "...";
-        manager_i::instance()->internal_register_ior( name, ior );
+        manager_i::instance()->impl().internal_register_ior( name, ior );
 	}
 }
 

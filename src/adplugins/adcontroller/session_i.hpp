@@ -27,7 +27,7 @@
 
 #include <adinterface/receiverC.h>
 #include <adinterface/controlserverS.h>
-#include <acewrapper/orbservant.hpp>
+//#include <acewrapper/orbservant.hpp>
 #include <vector>
 
 namespace adcontroller {

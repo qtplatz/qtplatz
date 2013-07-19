@@ -25,7 +25,6 @@
 
 #pragma once
 
-#include <acewrapper/orbservant.hpp>
 #include <map>
 #include <string>
 #include "adinterface/brokerS.h"
@@ -36,6 +35,8 @@
 #include <mutex>
 #include <memory>
 
+namespace acewrapper { template<class T> class ORBServant; }
+
 namespace adbroker {
 
     namespace internal { struct object_receiver; }
@@ -43,8 +44,11 @@ namespace adbroker {
     class manager_i : public virtual POA_Broker::Manager {
         manager_i(void);
         ~manager_i(void);
+        friend class acewrapper::ORBServant< adbroker::manager_i >;
+        static acewrapper::ORBServant< manager_i > * instance_;
+        static std::mutex mutex_;
     public:
-        static manager_i * instance();
+        static acewrapper::ORBServant< manager_i > * instance();
 
         void register_ior( const char * name, const char * ior );
         char * ior( const char * name );
@@ -64,19 +68,8 @@ namespace adbroker {
         void shutdown();
 
         void internal_register_ior( const std::string& name, const std::string& ior );
-
-        CORBA::ORB * orb();
-        PortableServer::POA * poa();
-        PortableServer::POAManager * poa_manager();
-        void initialize( CORBA::ORB * orb, PortableServer::POA * poa, PortableServer::POAManager * mgr );
-        const std::string& activate();
-        void deactivate();
-		const std::string& ior() const;
     private:
         typedef std::map< std::wstring, std::shared_ptr< adbroker::session_i > > session_map_type;
-
-        static std::mutex mutex_;
-        static manager_i * instance_;
 
         session_map_type session_list_;
         std::unique_ptr< broker::logger_i > logger_i_;
@@ -86,10 +79,6 @@ namespace adbroker {
 
         std::vector< internal::object_receiver > sink_vec_;
         ObjectDiscovery * discovery_;
-        CORBA::ORB * orb_;
-        PortableServer::POA * poa_;
-        PortableServer::POAManager * poa_manager_;
-        std::string ior_;
     };
 
 }

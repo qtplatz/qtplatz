@@ -98,17 +98,15 @@ adController::_abort_server()
 bool
 adController::initialize( CORBA::ORB_ptr orb, PortableServer::POA_ptr poa, PortableServer::POAManager_ptr mgr )
 {
-    adcontroller::manager_i * pServant = adcontroller::manager_i::instance();
-    pServant->initialize( orb, poa, mgr );
+    adcontroller::manager_i::instance()->initialize( orb, poa, mgr );
     return true;
 }
 
 const char *
 adController::activate()
 {
-    adcontroller::manager_i * pServant = adcontroller::manager_i::instance();
-    pServant->activate();
-    return pServant->ior().c_str();
+    adcontroller::manager_i::instance()->activate();
+    return adcontroller::manager_i::instance()->ior().c_str();
 }
 
 bool
