@@ -68,9 +68,6 @@ namespace acewrapper {
         std::thread * thread_;
     };
 
-    // namespace singleton {
-    //     typedef ACE_Singleton< ServantManager, ACE_Recursive_Thread_Mutex > ServantManager;
-    // }
 }
 
 #endif // SERVANTMANAGER_HPP
