@@ -31,11 +31,6 @@
 #include <iomanip>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#  include <ace/Time_Value.h>
-#  include <ace/High_Res_Timer.h>
-#  include <ace/OS_NS_sys_time.h>
-
-
 namespace acewrapper {
 
     // CAUTION:  do not use this function for general string variables
@@ -49,16 +44,16 @@ namespace acewrapper {
 
     void gettimeofday(time_t& tv_sec, long& tv_usec)
     {
-        // ACE_Time_Value tv = ACE_High_Res_Timer::gettimeofday_hr();
-        ACE_Time_Value tv = ACE_OS::gettimeofday();
-        tv_sec = tv.sec();
-        tv_usec = tv.usec();
+		static const boost::posix_time::ptime epock( boost::gregorian::date( 1970, 1, 1 ) );
+		boost::posix_time::time_duration d( boost::posix_time::microsec_clock::local_time() - epock );
+        tv_sec  = d.total_seconds();
+        tv_usec = static_cast< long >( d.fractional_seconds() );
     }
   
     std::string to_string( time_t tm ) 
     {
-	boost::posix_time::ptime pt = boost::posix_time::from_time_t( tm );
-	return boost::posix_time::to_simple_string( pt );
+		boost::posix_time::ptime pt = boost::posix_time::from_time_t( tm );
+		return boost::posix_time::to_simple_string( pt );
     }
 
     std::string to_string( unsigned long long sec, unsigned long usec )
@@ -67,16 +62,6 @@ namespace acewrapper {
         o << to_string( time_t(sec) ) << " " << std::fixed << std::setw(7) << std::setfill('0') << std::setprecision(3) << double( usec ) / 1000.0;
         std::string ret = o.str();
         return ret;
-    }
-
-    std::string to_string( const ACE_Time_Value& tv ) 
-    {
-        return to_string( tv.sec(), tv.usec() );
-    }
-
-    std::wstring to_wstring( const ACE_Time_Value& tv )
-    {
-        return to_wstring( to_string( tv ) );
     }
 
     std::wstring to_wstring( unsigned long long sec, unsigned long usec )

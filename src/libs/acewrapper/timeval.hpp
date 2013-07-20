@@ -22,10 +22,6 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// MS-Cheminformatics LLC / Advanced Instrumentation Project
-//////////////////////////////////////////
 #ifndef TIMEVAL_H
 #define TIMEVAL_H
 
@@ -38,7 +34,6 @@ namespace acewrapper {
 
   void gettimeofday(time_t& tv_sec, long& tv_usec);
   std::string to_string( time_t );
-  std::string to_string( const ACE_Time_Value& );
   std::string to_string( unsigned long long sec, unsigned long usec );
   std::wstring to_wstring( unsigned long long sec, unsigned long usec );
 }
