@@ -182,7 +182,11 @@ datafile::getSpectrum( int fcn, int pos, adcontrols::MassSpectrum& ms ) const
 
 		return true;
 	} catch(_com_error& ex ) {
-		adportable::debug(__FILE__, __LINE__)  << ex.ErrorMessage();
+#if defined _UNICODE
+		adportable::debug(__FILE__, __LINE__)  << std::wstring( ex.ErrorMessage() );
+#else
+		adportable::debug(__FILE__, __LINE__)  << static_cast< const char *>(ex.ErrorMessage());
+#endif
 		return false;
 	}
 	return false;
@@ -234,7 +238,7 @@ datafile::_open( const std::wstring& filename, bool )
 				(void)n;
             }
         } catch(_com_error& ex ) {
-			adportable::debug(__FILE__, __LINE__)  << ex.ErrorMessage();
+			adportable::debug(__FILE__, __LINE__)  << std::wstring( ex.ErrorMessage() );
 			return false;
         }
     }
@@ -319,7 +323,7 @@ datafile::is_valid_datafile( const std::wstring& filename )
 			hr = pAnalysis->Open( _bstr_t( rpath.wstring().c_str() ) );
 			return hr == S_OK; // 
 		} catch(_com_error& ex ) {
-			adportable::debug(__FILE__, __LINE__)  << ex.ErrorMessage();
+			adportable::debug(__FILE__, __LINE__)  << std::wstring( ex.ErrorMessage() );
 		}
 
 /*
