@@ -23,6 +23,10 @@
 **
 **************************************************************************/
 
+#if defined __GNUC__
+#define _GLIBCXX_USE_NANOSLEEP
+#endif
+
 #include "servantplugin.hpp"
 #include "servantmode.hpp"
 #include "logger.hpp"
@@ -71,6 +75,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <chrono>
+#include <thread>
 
 using namespace servant;
 using namespace servant::internal;
