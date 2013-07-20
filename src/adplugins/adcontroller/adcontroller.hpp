@@ -35,10 +35,6 @@ namespace CORBA {
     class ORB;
 }
 
-namespace acewrapper {
-    class ORBServantManager;
-}
-
 class ADCONTROLLERSHARED_EXPORT adController : public adplugin::orbServant 
                                              , public adplugin::plugin {
 public:

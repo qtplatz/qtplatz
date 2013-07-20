@@ -18,19 +18,15 @@ win32: QMAKE_CXXFLAGS += -D_CRT_SECURE_NO_WARNINGS
 
 INCLUDEPATH *= $$OUT_PWD/..
 
-SOURCES += brokerhelper.cpp \
-           constants.cpp \
+SOURCES += constants.cpp \
            input_buffer.cpp \
            reactorthread.cpp \
            timeval.cpp \
            ifconfig.cpp \
-           servantmanager.cpp \
            iorsender.cpp \
            iorquery.cpp
            
-HEADERS += brokerhelper.hpp \
-           callback.hpp \
-           constants.hpp \
+HEADERS += constants.hpp \
            input_buffer.hpp \
            mutex.hpp \
            orbservant.hpp \
@@ -39,7 +35,6 @@ HEADERS += brokerhelper.hpp \
            ifconfig.hpp \
            ifconfig_macosx.hpp \
            ifconfig_linux.hpp \
-           servantmanager.hpp \
            iorsender.hpp \
            iorquery.hpp
 

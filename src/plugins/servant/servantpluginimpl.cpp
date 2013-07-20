@@ -23,11 +23,9 @@
 **
 **************************************************************************/
 
-//#include <acewrapper/acewrapper.hpp>
-//#include <acewrapper/orbservant.hpp>
 #include <acewrapper/constants.hpp>
 #include <acewrapper/timeval.hpp>
-#include <acewrapper/brokerhelper.hpp>
+//#include <acewrapper/brokerhelper.hpp>
 
 #include <adinterface/eventlog_helper.hpp>
 #include <adplugin/manager.hpp>

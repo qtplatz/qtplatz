@@ -38,10 +38,6 @@ namespace PortableServer {
     class POAManager;
 }
 
-namespace acewrapper {
-    class ORBServantManager;
-}
-
 class ADBROKERSHARED_EXPORT adBroker : public adplugin::orbServant
                                      , public adplugin::plugin {
 public:
