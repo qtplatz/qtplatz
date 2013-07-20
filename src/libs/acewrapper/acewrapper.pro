@@ -22,7 +22,6 @@ SOURCES += brokerhelper.cpp \
            constants.cpp \
            input_buffer.cpp \
            inputcdr.cpp \
-           lifecycle_frame_serializer.cpp \
            mcastserver.cpp \
            outputcdr.cpp \
            reactorthread.cpp \
@@ -38,7 +37,6 @@ HEADERS += brokerhelper.hpp \
            constants.hpp \
            input_buffer.hpp \
            inputcdr.hpp \
-           lifecycle_frame_serializer.hpp \
            mcastserver.hpp \
            mutex.hpp \
            orbservant.hpp \
