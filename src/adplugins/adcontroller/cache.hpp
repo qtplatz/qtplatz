@@ -28,7 +28,6 @@
 #include <adinterface/signalobserverS.h>
 #include <mutex>
 
-#include <acewrapper/mutex.hpp>
 #include <deque>
 
 namespace adcontroller {

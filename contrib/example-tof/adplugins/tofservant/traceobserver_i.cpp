@@ -27,7 +27,6 @@
 #include "constants.h"
 #include <tofspectrometer/constants.hpp>
 #include <adportable/scope_timer.hpp>
-#include <acewrapper/mutex.hpp>
 
 using namespace tofservant;
 

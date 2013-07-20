@@ -32,7 +32,6 @@
 #include <adinterface/receiverC.h>
 #include <adinterface/eventlogC.h>
 #include <adinterface/samplebrokerC.h>
-#include <acewrapper/mutex.hpp>
 #include <acewrapper/timeval.hpp>
 #include <iostream>
 #include <sstream>

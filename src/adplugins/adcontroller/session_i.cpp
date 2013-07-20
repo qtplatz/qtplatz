@@ -26,11 +26,9 @@
 #include "adinterface/receiverC.h"
 #include "adinterface/signalobserverC.h"
 #include "task.hpp"
-#include <acewrapper/mutex.hpp>
 #include <boost/tokenizer.hpp>
 #include <iostream>
 
-using namespace acewrapper;
 using namespace adcontroller;
 
 ////////////////////////////////////////////

@@ -26,7 +26,6 @@
 #include "manager_i.hpp"
 #include "cache.hpp"
 #include <algorithm>
-#include <acewrapper/mutex.hpp>
 #include <acewrapper/orbservant.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/timer.hpp>

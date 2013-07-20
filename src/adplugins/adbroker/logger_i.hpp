@@ -22,17 +22,14 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// MS-Cheminformatics LLC / Advanced Instrumentation Project
-//////////////////////////////////////////
 
 #pragma once
 
 #include <deque>
 #include <vector>
+#include <mutex>
+#include "adinterface/brokerS.h"
 
-# include "adinterface/brokerS.h"
 
 namespace broker {
 
@@ -64,7 +61,7 @@ namespace broker {
     private:
         unsigned long logId_;
         std::deque< Broker::LogMessage > log_;
-        ACE_Recursive_Thread_Mutex mutex_;
+        std::mutex mutex_;
 
         typedef std::vector<handler_data> vector_type;
         inline vector_type::iterator begin() { return handler_set_.begin(); };

@@ -27,7 +27,6 @@
 #define DEVICEFACADE_HPP
 
 #include <adportable/configuration.hpp>
-#include <acewrapper/mutex.hpp>
 #include <boost/variant.hpp>
 #include <tofinterface/tofC.h>
 #include "avgr_emu.hpp"
