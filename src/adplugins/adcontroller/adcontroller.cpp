@@ -28,7 +28,6 @@
 #include <adplugin/orbfactory.hpp>
 #include <adplugin/orbservant.hpp>
 
-#include "signal_handler.hpp"
 #include <signal.h>
 #include <acewrapper/orbservant.hpp>
 

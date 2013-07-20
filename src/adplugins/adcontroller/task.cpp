@@ -29,8 +29,6 @@
 #include "observer_i.hpp"
 #include "manager_i.hpp"
 #include "message.hpp"
-//#include <ace/Reactor.h>
-//#include <ace/Thread_Manager.h>
 #include <adinterface/receiverC.h>
 #include <adinterface/eventlogC.h>
 #include <adinterface/samplebrokerC.h>
