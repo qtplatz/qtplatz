@@ -28,7 +28,7 @@
 #include "logging.hpp"
 #include "observer_i.hpp"
 #include "manager_i.hpp"
-#include "message.hpp"
+//#include "message.hpp"
 #include <adinterface/receiverC.h>
 #include <adinterface/eventlogC.h>
 #include <adinterface/samplebrokerC.h>

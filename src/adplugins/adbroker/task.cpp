@@ -28,7 +28,7 @@
 #include <acewrapper/mutex.hpp>
 #include <acewrapper/input_buffer.hpp>
 #include <acewrapper/mutex.hpp>
-#include "message.hpp"
+//#include "message.hpp"
 #include <acewrapper/timeval.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>

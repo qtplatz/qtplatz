@@ -54,7 +54,6 @@ SOURCES += adbroker.cpp \
     chemicalformula_i.cpp \
     logger_i.cpp \
     manager_i.cpp \
-    message.cpp \
     session_i.cpp \
     task.cpp \
     objectdiscovery.cpp
@@ -69,7 +68,6 @@ HEADERS += adbroker.hpp \
     chemicalformula_i.hpp \
     logger_i.hpp \
     manager_i.hpp \
-    message.hpp \
     session_i.hpp \
     task.hpp \
     objectdiscovery.hpp

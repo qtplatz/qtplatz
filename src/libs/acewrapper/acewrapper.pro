@@ -21,8 +21,6 @@ INCLUDEPATH *= $$OUT_PWD/..
 SOURCES += brokerhelper.cpp \
            constants.cpp \
            input_buffer.cpp \
-           inputcdr.cpp \
-           outputcdr.cpp \
            reactorthread.cpp \
            timeval.cpp \
            ifconfig.cpp \
@@ -34,10 +32,8 @@ HEADERS += brokerhelper.hpp \
            callback.hpp \
            constants.hpp \
            input_buffer.hpp \
-           inputcdr.hpp \
            mutex.hpp \
            orbservant.hpp \
-           outputcdr.hpp \
            reactorthread.hpp \
            timeval.hpp \
            ifconfig.hpp \
