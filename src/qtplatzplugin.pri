@@ -93,6 +93,7 @@ exists( $${_PRO_FILE_PWD_}/$${TARGET}.config ) {
   OTHER_FILES += $$CONFIGFILE
   copy2file.output = $$DESTDIR/$${TARGET}.config
   copy2file.input += CONFIGFILE
+  isEmpty(vcproj):copy2file.variable_out = PRE_TARGETDEPS
   copy2file.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
   copy2file.name = COPY2FILE ${QMAKE_FILE_IN}
   copy2file.CONFIG += no_link
