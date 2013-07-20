@@ -36,7 +36,6 @@ SOURCES += brokerhelper.cpp \
 HEADERS += brokerhelper.hpp \
            callback.hpp \
            constants.hpp \
-           eventhandler.hpp \
            input_buffer.hpp \
            inputcdr.hpp \
            lifecycle_frame_serializer.hpp \

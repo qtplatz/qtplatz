@@ -24,9 +24,8 @@
 **************************************************************************/
 
 #include "eventlog_helper.hpp"
-#include <ace/Time_Value.h>
-#include <ace/OS_NS_sys_time.h>
 #include "eventlogC.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <sstream>
 
@@ -72,11 +71,9 @@ LogMessageHelper::LogMessageHelper( const std::wstring& format
                                     , const std::wstring& msgId
                                     , const std::wstring& srcId )
 {
-    ACE_Time_Value tv( ACE_OS::gettimeofday() );
-    msg_.tv.sec = tv.sec();
-    msg_.tv.usec = tv.usec();
-
-    msg_.priority = pri;
+	
+	
+	msg_.priority = pri;
 
     if ( ! msgId.empty() )
         msg_.msgId = CORBA::wstring_dup( msgId.c_str() );

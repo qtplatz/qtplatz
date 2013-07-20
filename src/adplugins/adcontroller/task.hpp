@@ -28,16 +28,10 @@
 #include <boost/noncopyable.hpp>
 #include <adportable/configuration.hpp>
 #include <adinterface/controlserverC.h>
-#include <ace/Task.h>
-#include <ace/Barrier.h>
 #include <boost/asio.hpp>
 #include <mutex>
 #include <vector>
 #include <thread>
-
-class ACE_Recursive_Thread_Mutex;
-class ACE_Notification_Strategy;
-class ACE_Reactor;
 
 namespace pugi { class xml_document; }
 namespace EventLog { struct LogMessage; }
