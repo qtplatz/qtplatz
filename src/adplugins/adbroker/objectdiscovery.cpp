@@ -40,8 +40,7 @@ using namespace adbroker;
 
 #define IORQ "ior?"
 
-ObjectDiscovery::ObjectDiscovery() : reactor_thread_( 0 )
-                                   , io_service_( new boost::asio::io_service )
+ObjectDiscovery::ObjectDiscovery() : io_service_( new boost::asio::io_service )
                                    , suspend_( false )
 {
 	iorQuery_.reset( 

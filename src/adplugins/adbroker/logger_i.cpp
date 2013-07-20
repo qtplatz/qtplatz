@@ -30,7 +30,6 @@
 #include <assert.h>
 #include <sstream>
 # include <adinterface/loghandlerC.h>
-# include <ace/OS_NS_time.h>
 #include <iomanip>
 
 using namespace broker;
@@ -127,13 +126,8 @@ logger_i::to_string( const Broker::LogMessage& msg )
 {
     std::wostringstream o;
 
-    ACE_TCHAR tbuf[128];
-    time_t tv_sec = msg.tv_sec;
-    char * sp = ACE_OS::ctime_r( &tv_sec, tbuf, sizeof(tbuf) );
-    while ( *sp && *sp != '\n' )
-        o << *sp++;
-    o << L" " << std::fixed << std::setw(7) << std::setfill(L'0') << std::setprecision(3) << double( msg.tv_usec ) / 1000.0 << "\t: ";
-    o << msg.text.in();
+    o << acewrapper::to_wstring( msg.tv_sec, msg.tv_usec );
+	o << msg.text.in();
 
     CORBA::WString_var s = CORBA::wstring_dup( o.str().c_str() );
     return s._retn();

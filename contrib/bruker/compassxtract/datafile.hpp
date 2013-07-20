@@ -56,7 +56,7 @@ namespace compassxtract {
 			                         , std::vector< adcontrols::Chromatogram >&
 									 , std::function< bool (long curr, long total ) > progress
 									 , int begPos = 0
-									 , int endPos = (-1) ) const override { return false; }
+									 , int endPos = (-1) ) const override { (void)begPos; (void)endPos); (void)fcn; return false; }
 		//<-------------------------------------
 		bool _open( const std::wstring&, bool );
 		static bool is_valid_datafile( const std::wstring& );

@@ -45,10 +45,7 @@
 #include <boost/foreach.hpp>
 #include <sstream>
 #include <iostream>
-
-# include <ace/Reactor.h>
-# include <ace/Thread_Manager.h>
-# include <adinterface/signalobserverC.h>
+#include <adinterface/signalobserverC.h>
 #include <boost/bind.hpp>
 
 using namespace adbroker;

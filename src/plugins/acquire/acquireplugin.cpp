@@ -68,8 +68,6 @@
 #include <servant/servantplugin.hpp>
 
 #include <tao/Object.h>
-#include <ace/Singleton.h>
-
 #include <utils/fancymainwindow.h>
 
 #include <coreplugin/icore.h>

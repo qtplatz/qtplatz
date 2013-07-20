@@ -27,14 +27,9 @@
 #include <adplugin/visitor.hpp>
 #include <adportable/debug.hpp>
 #include <typeinfo>
-
-# include <tao/Utils/ORB_Manager.h>
-//# include <ace/Thread_Manager.h>
-//# include <ace/Process_Manager.h>
-
+#include <tao/Utils/ORB_Manager.h>
 #include <acewrapper/orbservant.hpp>
 #include <acewrapper/constants.hpp>
-//#include <acewrapper/acewrapper.hpp>
 #include <adportable/debug.hpp>
 
 #include "manager_i.hpp"

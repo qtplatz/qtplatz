@@ -26,11 +26,9 @@
 #include "mutex.hpp"
 #include <adportable/debug.hpp>
 #include <functional>
+#include <tao/Utils/ORB_Manager.h>
 
 using namespace acewrapper;
-
-#  include <tao/Utils/ORB_Manager.h>
-#  include <ace/Thread_Manager.h>
 
 ServantManager * ServantManager::instance_ = 0;
 std::mutex ServantManager::mutex_;
@@ -45,7 +43,6 @@ ServantManager::instance()
             instance_ = new ServantManager();
     }
     return instance_;
-    // return singleton::ServantManager::instance();
 }
 
 ServantManager::~ServantManager()

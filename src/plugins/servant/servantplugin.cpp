@@ -39,10 +39,6 @@
 #include <coreplugin/navigationwidget.h>
 #include <extensionsystem/pluginmanager.h>
 
-//# include <ace/Thread_Manager.h>
-//# include <ace/OS_NS_unistd.h>
-
-//#include <acewrapper/acewrapper.hpp>
 #include <acewrapper/constants.hpp>
 #include <acewrapper/brokerhelper.hpp>
 

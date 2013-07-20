@@ -25,10 +25,6 @@
 
 #pragma once
 
-#include <ace/Task.h>
-#include <ace/Barrier.h>
-#include <ace/Message_Queue.h>
-
 #include <boost/noncopyable.hpp>
 #include <adinterface/brokerC.h>
 #include <adinterface/brokereventC.h>

@@ -159,7 +159,7 @@ datafile::getSpectrum( int fcn, int pos, adcontrols::MassSpectrum& ms ) const
 			ms.setPolarity( adcontrols::MS_POLARITY::PolarityIndeterminate );
 
 		adcontrols::MSProperty prop = ms.getMSProperty();
-		prop.setTimeSinceInjection( pSpectrum->RetentionTime /* sec */ * 1.0e6 ); // usec
+		prop.setTimeSinceInjection( static_cast< unsigned long >( pSpectrum->RetentionTime /* sec */ * 1.0e6 ) ); // usec
         ms.setMSProperty( prop ); // <- end of prop set
 
 		_variant_t vMasses, vIntens;

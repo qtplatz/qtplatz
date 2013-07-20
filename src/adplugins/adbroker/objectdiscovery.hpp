@@ -35,7 +35,6 @@
 namespace boost { namespace asio { class io_service; } }
 
 namespace acewrapper { class iorQuery; }
-namespace acewrapper { class ReactorThread; }
 
 namespace adbroker {
 
@@ -55,7 +54,6 @@ namespace adbroker {
 
 		std::unique_ptr< acewrapper::iorQuery > iorQuery_;
 
-        acewrapper::ReactorThread * reactor_thread_;
         bool suspend_;
 		std::map< std::string, std::string > list_;
         std::mutex mutex_;
