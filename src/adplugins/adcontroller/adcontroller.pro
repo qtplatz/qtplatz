@@ -55,7 +55,6 @@ SOURCES += adcontroller.cpp \
         oproxy.cpp \
         receiver_i.cpp \
         session_i.cpp \
-        signal_handler.cpp \
         cache.cpp \
         task.cpp \
         logging.cpp
@@ -69,7 +68,6 @@ HEADERS += adcontroller.hpp \
         oproxy.hpp \
         receiver_i.hpp \
         session_i.hpp \
-        signal_handler.hpp \
         cache.hpp \
         task.hpp \
         logging.hpp

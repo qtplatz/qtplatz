@@ -80,7 +80,7 @@ datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 	boost::uintmax_t n = boost::filesystem::file_size( path ) / 4;
 
 	adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum() );
-    pMS->resize( n );
+    pMS->resize( static_cast< size_t >( n ) );
 
 	boost::filesystem::ifstream rdfile( fpath, std::ios_base::binary );
 	boost::uintmax_t idx;
