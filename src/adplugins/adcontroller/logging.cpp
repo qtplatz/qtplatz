@@ -24,7 +24,6 @@
 
 #include "logging.hpp"
 #include "manager_i.hpp"
-#include "constants.hpp"
 #include "task.hpp"
 #include <adportable/debug.hpp>
 #include <acewrapper/orbservant.hpp>

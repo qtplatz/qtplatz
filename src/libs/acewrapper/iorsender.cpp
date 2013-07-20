@@ -25,11 +25,8 @@
 #include "iorsender.hpp"
 #include <acewrapper/constants.hpp>
 #include <acewrapper/ifconfig.hpp>
-#include <acewrapper/mutex.hpp>
 #include <adportable/debug.hpp>
 #include <boost/bind.hpp>
-#include <ace/Thread.h>
-#include <ace/Thread_Manager.h>
 
 using namespace acewrapper;
 

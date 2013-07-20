@@ -139,16 +139,6 @@ namespace Acquire {
             }
         };
 
-        template<class T> class marchal {
-        public:
-            static T get( const ACE_Message_Block * mb ) {
-                TAO_InputCDR in( mb );
-                T t;
-                in >> t;
-                return t;
-            }
-        };
-
         class ObserverEvents_i : public POA_SignalObserver::ObserverEvents {
         public:
             // implements ObserverEvents

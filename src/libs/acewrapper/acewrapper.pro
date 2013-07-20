@@ -22,10 +22,8 @@ SOURCES += brokerhelper.cpp \
            constants.cpp \
            input_buffer.cpp \
            inputcdr.cpp \
-           mcastserver.cpp \
            outputcdr.cpp \
            reactorthread.cpp \
-           timerhandler.cpp \
            timeval.cpp \
            ifconfig.cpp \
            servantmanager.cpp \
@@ -37,13 +35,10 @@ HEADERS += brokerhelper.hpp \
            constants.hpp \
            input_buffer.hpp \
            inputcdr.hpp \
-           mcastserver.hpp \
            mutex.hpp \
            orbservant.hpp \
            outputcdr.hpp \
            reactorthread.hpp \
-           serialization_inet_addr.hpp \
-           timerhandler.hpp \
            timeval.hpp \
            ifconfig.hpp \
            ifconfig_macosx.hpp \

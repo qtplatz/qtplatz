@@ -62,7 +62,6 @@ SOURCES += adcontroller.cpp \
 
 HEADERS += adcontroller.hpp \
         adcontroller_global.h \
-        constants.hpp \
         iproxy.hpp \
         manager_i.hpp \
         message.hpp \

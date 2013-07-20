@@ -25,7 +25,6 @@
 #include "session_i.hpp"
 #include "adinterface/receiverC.h"
 #include "adinterface/signalobserverC.h"
-#include "constants.hpp"
 #include "task.hpp"
 #include <acewrapper/mutex.hpp>
 #include <boost/tokenizer.hpp>

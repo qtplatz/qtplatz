@@ -25,7 +25,6 @@
 
 #include "iproxy.hpp"
 #include "task.hpp"
-#include "constants.hpp"
 #include "manager_i.hpp"
 #include <acewrapper/brokerhelper.hpp>
 #include <acewrapper/orbservant.hpp>
