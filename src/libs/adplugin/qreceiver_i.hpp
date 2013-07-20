@@ -30,19 +30,7 @@
 
 # include <adinterface/receiverS.h>
 
-class ACE_Message_Block;
-
 namespace adplugin {
-
-    class message_block_ptr {
-    public:
-        ~message_block_ptr();
-        message_block_ptr();
-        explicit message_block_ptr( const ACE_Message_Block * mb );
-        message_block_ptr( const message_block_ptr& );
-    private:
-        ACE_Message_Block * mb_;
-    };
 
     class ADPLUGINSHARED_EXPORT QReceiver_i : public QObject
                                             , public POA_Receiver {

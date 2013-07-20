@@ -31,7 +31,6 @@
 #include <QObject>
 #include <adinterface/brokereventS.h>
 
-class ACE_Message_Block;
 
 class ADPLUGINSHARED_EXPORT QBrokerSessionEvent : public QObject, public POA_BrokerEventSink {
     Q_OBJECT

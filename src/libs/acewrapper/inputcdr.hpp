@@ -38,7 +38,6 @@ namespace acewrapper {
 	class InputCDR : boost::noncopyable {
 	public:
         InputCDR( ACE_InputCDR& );
-        //InputCDR( ACE_Message_Block * mb );
 
 		operator ACE_InputCDR& () { return impl_; }
 		operator const ACE_InputCDR& () const { return impl_; }
