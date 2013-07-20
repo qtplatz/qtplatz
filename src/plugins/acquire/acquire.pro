@@ -24,7 +24,13 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(adextension) \
     -l$$qtLibraryTarget(adorbmgr)
 
-!win32 {
+win32 {
+  LIBS += -l$$qtLibraryTarget( TAO_Utils ) \
+          -l$$qtLibraryTarget( TAO_PortableServer ) \
+          -l$$qtLibraryTarget( TAO_AnyTypeCode ) \
+          -l$$qtLibraryTarget( TAO ) \
+          -l$$qtLibraryTarget( ACE )
+} else {
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
   LIBS += -lboost_date_time -lboost_filesystem -lboost_system
 }
@@ -34,14 +40,12 @@ include(../../plugins/coreplugin/coreplugin.pri)
 
 DEFINES += ACQUIRE_LIBRARY
 
-SOURCES += acquire.cpp \
-	acquireactions.cpp \
+SOURCES += acquireactions.cpp \
 	acquiremode.cpp \
 	acquireplugin.cpp \
 	mainwindow.cpp
 
 HEADERS +=  acquire_global.h \
-	acquire.hpp \
 	acquireactions.hpp \
 	acquiremode.hpp \
 	acquireplugin.hpp \
