@@ -99,7 +99,7 @@ logger_i::log( const Broker::LogMessage& msg )
 bool
 logger_i::findLog( CORBA::ULong logId, Broker::LogMessage& msg )
 {
-    std::lock_guard< std::mutex > lock( mutex_ );
+    //std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( log_.empty() )
         return false;
