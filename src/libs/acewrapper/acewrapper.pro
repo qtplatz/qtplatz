@@ -20,7 +20,6 @@ INCLUDEPATH *= $$OUT_PWD/..
 
 SOURCES += constants.cpp \
            input_buffer.cpp \
-           reactorthread.cpp \
            timeval.cpp \
            ifconfig.cpp \
            iorsender.cpp \
@@ -28,9 +27,7 @@ SOURCES += constants.cpp \
            
 HEADERS += constants.hpp \
            input_buffer.hpp \
-           mutex.hpp \
            orbservant.hpp \
-           reactorthread.hpp \
            timeval.hpp \
            ifconfig.hpp \
            ifconfig_macosx.hpp \
