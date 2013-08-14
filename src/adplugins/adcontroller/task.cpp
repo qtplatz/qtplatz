@@ -28,7 +28,6 @@
 #include "logging.hpp"
 #include "observer_i.hpp"
 #include "manager_i.hpp"
-//#include "message.hpp"
 #include <adinterface/receiverC.h>
 #include <adinterface/eventlogC.h>
 #include <adinterface/samplebrokerC.h>
@@ -278,10 +277,6 @@ iTask::connect( ControlServer::Session_ptr session, Receiver_ptr receiver, const
 bool
 iTask::disconnect( ControlServer::Session_ptr session, Receiver_ptr receiver )
 {
-    //internal::receiver_data data;
-    //data.session_ = ControlServer::Session::_duplicate( session );
-    //data.receiver_ = Receiver::_duplicate( receiver );
-    
     std::lock_guard< std::mutex > lock( mutex_ );
 
     do { // disconnecting proxies

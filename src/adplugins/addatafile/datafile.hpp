@@ -48,7 +48,6 @@ namespace addatafile {
         datafile();
         
         bool open( const std::wstring& filename, bool readonly = false );
-        // bool open_qtms( const std::wstring& filename, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
         void accept( adcontrols::dataSubscriber& ) override;
@@ -81,7 +80,6 @@ namespace addatafile {
         std::wstring filename_;
         adfs::portfolio dbf_;
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
-        //boost::any data_;
     };
 
 }
