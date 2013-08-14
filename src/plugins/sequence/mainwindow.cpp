@@ -313,7 +313,7 @@ bool
 MainWindow::getControlMethod( ControlMethod::Method& m ) const
 {
     boost::any any( &m );  
-    BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ )
+    for ( adplugin::LifeCycle * editor: editors_ )
         editor->getContents( any ); // read values from UI
     return true;
 }
@@ -322,7 +322,7 @@ bool
 MainWindow::setControlMethod( const ControlMethod::Method& m )
 {
     boost::any any( m );  
-    BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ )
+    for ( adplugin::LifeCycle * editor: editors_ )
         editor->setContents( any );
     return true;
 }
@@ -330,8 +330,8 @@ MainWindow::setControlMethod( const ControlMethod::Method& m )
 bool
 MainWindow::getProcessMethod( adcontrols::ProcessMethod& m ) const
 {
-    boost::any any( m );  
-    BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ )
+    boost::any any( &m );  
+    for ( adplugin::LifeCycle * editor: editors_ )
         editor->getContents( any ); // read values from UI
     return true;
 }
@@ -340,7 +340,7 @@ bool
 MainWindow::setProcessMethod( const adcontrols::ProcessMethod& m )
 {
     boost::any any( m );  
-    BOOST_FOREACH( adplugin::LifeCycle * editor, editors_ )
+    for ( adplugin::LifeCycle * editor: editors_ )
         editor->setContents( any );
     return true;
 }

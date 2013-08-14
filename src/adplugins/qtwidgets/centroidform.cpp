@@ -65,6 +65,9 @@ CentroidForm::OnFinalClose()
 bool
 CentroidForm::getContents( boost::any& any ) const
 {
+#ifdef _DEBUG
+	std::cout << "any.type: " << any.type().name() << std::endl;
+#endif
 	if ( any.type() != typeid( adcontrols::ProcessMethod* ) )
 		return false;
 	adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );

@@ -65,13 +65,33 @@ IonSourceWidget::~IonSourceWidget()
 }
 
 void
-IonSourceWidget::setMethod( const TOF::ControlMethod& )
+IonSourceWidget::setMethod( const TOF::ControlMethod& m )
 {
+	dataMediator::progress_lock lock( *const_cast<IonSourceWidget *>(this) );
+
+	if ( m.ionSource._d() == TOF_C::eIonSource_EI ) {
+		const TOF::IonSource_EI_Method& ei = m.ionSource.ei();
+
+		typedef Interactor< DoubleSpinSlider > X;
+
+		boost::get< X >( interactor_vec[0] ).ptr_.get()->value( ei.source_temp );
+		boost::get< X >( interactor_vec[1] ).ptr_.get()->value( ei.interface_temp );
+	}
 }
 
 void
-IonSourceWidget::getMethod( TOF::ControlMethod& ) const
+IonSourceWidget::getMethod( TOF::ControlMethod& m ) const
 {
+    dataMediator::progress_lock lock( *const_cast<IonSourceWidget *>(this) );
+
+    TOF::IonSource_EI_Method ei;
+
+    typedef Interactor<DoubleSpinSlider> X;
+
+	ei.source_temp = boost::get< X >( interactor_vec[ 0 ] ).ptr_.get()->value();
+	ei.interface_temp = boost::get< X >( interactor_vec[ 1 ] ).ptr_.get()->value();
+
+	m.ionSource.ei( ei );
 }
 
 // LifeCycle
