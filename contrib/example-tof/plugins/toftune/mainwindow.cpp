@@ -107,7 +107,7 @@ void
 MainWindow::createActions()
 {
     actionConnect_ = new QAction( QIcon( ":/chemistry/images/search.png" ), tr( "Connect" ), this );
-    connect( actionConnect_, SIGNAL( triggered() ), this, SLOT( actionConnect_ ) );
+    connect( actionConnect_, SIGNAL( triggered() ), this, SLOT( actionConnect ) );
 }
 
 QWidget *
@@ -143,9 +143,9 @@ MainWindow::createContents( Core::IMode * mode )
     toolBarLayout->setSpacing( 0 );
     // toolBarLayout->addWidget( toolBar_ );
     toolBarLayout->addWidget( toolButton( actionConnect_ ) );
-    toolBarLayout->addWidget( new QLabel( tr("Alchemy") ) );
-    toolBarLayout->addWidget( new QLabel( tr("Chemistry") ) );
-    toolBarLayout->addWidget( new QLabel( tr("Physics") ) );
+    toolBarLayout->addWidget( new QLabel( tr("Start acquisition") ) );
+    //toolBarLayout->addWidget( new QLabel( tr("Chemistry") ) );
+    //toolBarLayout->addWidget( new QLabel( tr("Physics") ) );
     //
     QDockWidget * dock = new QDockWidget( "Chemistry Toolbar" );
     dock->setObjectName( QLatin1String( "Chemistry Toolbar" ) );
@@ -343,3 +343,7 @@ MainWindow::onDataChanged( const dataMediator* mediator )
     Internal::tofTunePlugin::instance()->setMethod( *method_, hint );
 }
 
+void
+MainWindow::actionConnect()
+{
+}

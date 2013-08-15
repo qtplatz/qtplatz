@@ -159,7 +159,7 @@ profileObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffe
 {
     (void)dataReadBuffer;
 
-    std::cout << "###################### readData pos = " << pos << " ########################### " << std::hex << unsigned(&pos) << std::endl;
+    // std::cout << "###################### readData pos = " << pos << " ########################### " << std::hex << unsigned(&pos) << std::endl;
 
     std::lock_guard< std::mutex > lock( mutex_ );
 

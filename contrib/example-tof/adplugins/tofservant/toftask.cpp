@@ -84,22 +84,8 @@ namespace tofservant {
         bool failed_;
     };
 
-    // class worker {
-    //     bool enable_;
-    // public:
-    //     worker() : enable_( true ) {}
-    //     void run() {
-    //         while( enable_ ) {
-    //             Sleep( 1000 );
-    //             std::cout << "worker: " << std::this_thread::get_id().hash() << " is running..." << std::endl;
-    //             toftask::instance()->io_service().post( std::bind(&toftask::handle_post, toftask::instance()) );
-    //         }
-    //     }
-    //     void stop() { enable_ = false; }
-    // };
-
 }
-// worker __worker;
+
 
 using namespace tofservant;
 
@@ -370,16 +356,13 @@ toftask::session_fire_log( long pri, const std::wstring& format, const std::vect
 bool
 toftask::task_open()
 {
-    //--
-    // threads_.push_back( std::thread( &worker::run, &__worker ) );
-    //--
     timer_.cancel();
     initiate_timer();
 
     threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
     threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
 
-    device_facade_->initialize();
+    //device_facade_->initialize();
 
     return true;
 }
@@ -387,7 +370,6 @@ toftask::task_open()
 void
 toftask::task_close()
 {
-    // __worker.stop();
     device_facade_->terminate();
     io_service_.stop();
     for ( std::thread& t: threads_ )

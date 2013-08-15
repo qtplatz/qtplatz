@@ -92,8 +92,6 @@ namespace tofservant {
                        , SignalObserver::eUpdateFrequency, const std::string& );
         bool disconnect( SignalObserver::ObserverEvents_ptr );
 
-
-
         void push_trace_data( int ch, long pos
                               , const TOFSignal::SpectrumProcessedData& data
                               , const TOFSignal::TraceMetadata& );

@@ -86,6 +86,7 @@ namespace toftune {
         void setToolBarDockWidget( QDockWidget * dock );
         void createDockWidgets();
         void createToolbar();
+        void actionConnect();
 	};
 	
 }

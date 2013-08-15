@@ -55,16 +55,9 @@ module Broker {
         ChemicalFormula getChemicalFormula();
 
 		// interaction with acquire
-        boolean coaddSpectrum( in SignalObserver::Observer observer, in double x1, in double x2 );
+        // boolean coaddSpectrum( in SignalObserver::Observer observer, in double x1, in double x2 );
         Folium folium( in wstring token, in wstring fileId );
-
-		// interaction with targeting
-		boolean coaddSpectrumEx( in wstring token, in SignalObserver::Observer observer, in double x1, in double x2 );
-		// TBA
-		// idea is create SignalObserver::Observer instance in dataproc (or independently in servant)
-		// requirements:  independent from 1) file location, 2) file format (CORBA based on datafile adplugin)
-		//                3) implement fully threaded targeting algorishm
-        //                4) notify results thrugh folium & folium added event from TASK
+		boolean coaddSpectrum( in wstring token, in SignalObserver::Observer observer, in double x1, in double x2 );
     };
 
     interface Logger {

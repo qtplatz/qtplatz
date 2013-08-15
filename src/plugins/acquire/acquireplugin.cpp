@@ -27,11 +27,8 @@
 #include "constants.hpp"
 #include "acquiremode.hpp"
 #include "mainwindow.hpp"
-#include "acquireactions.hpp"
 
 #include <acewrapper/constants.hpp>
-//#include <acewrapper/brokerhelper.hpp>
-
 # include <adinterface/brokerC.h>
 # include <adinterface/controlserverC.h>
 # include <adinterface/receiverC.h>
@@ -745,14 +742,10 @@ AcquirePlugin::handleSelected( const QRectF& rc )
 void
 AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
 {
-    (void)x1; (void)x2; (void)y1; (void)y2;
+    (void)y1; (void)y2;
 
     SignalObserver::Observers_var siblings = observer_->getSiblings();
     size_t nsize = siblings->length();
-
-#if defined DEBUG || defined _DEBUG
-    std::cout << "\nhandleRBttonRange(" << x1 << ", " << x2 << ")" << std::endl;
-#endif
 
     for ( size_t i = 0; i < nsize; ++i ) {
         SignalObserver::Description_var desc = siblings[i]->getDescription();
@@ -764,7 +757,7 @@ AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
 
             if ( pImpl_ && ! CORBA::is_nil( pImpl_->brokerSession_ ) ) {
                 try {
-                    pImpl_->brokerSession_->coaddSpectrum( tgt, x1, x2 );
+                    pImpl_->brokerSession_->coaddSpectrum( L"acquire", tgt, x1, x2 );
                 } catch ( std::exception& ex ) {
                     QMessageBox::critical( 0, "acquireplugin::handleRButtonRange", ex.what() );
                 }

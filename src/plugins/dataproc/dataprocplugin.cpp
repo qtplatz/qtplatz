@@ -36,7 +36,6 @@
 #include "navigationwidgetfactory.hpp"
 #include "sessionmanager.hpp"
 
-//#include <acewrapper/brokerhelper.hpp>
 #include <acewrapper/constants.hpp>
 #include <acewrapper/input_buffer.hpp>
 #include <adcontrols/datafilebroker.hpp>
@@ -152,7 +151,6 @@ DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
                                  , dataprocFactory_( 0 )
 {
     instance_ = this;
-    ACE::init();
 }
 
 bool

@@ -24,7 +24,6 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
-#include "acquireactions.hpp"
 #include <adplugin/widget_factory.hpp>
 #include <adwplot/dataplot.hpp>
 #include <adplugin/constants.hpp>

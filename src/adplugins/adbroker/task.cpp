@@ -244,15 +244,8 @@ Task::internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassS
 
     std::wstring id = folium.id();
 
-    BOOST_FOREACH( session_data& d, session_set_ ) {
-#if defined DEBUG // && 0
-        adportable::debug( __FILE__, __LINE__ ) 
-            << "===== internal_coaddSpectrum folium id: " << id 
-            << " token=" << token;
-        portfolio.save( L"/tmp/internal_coaddSpectrum_portfolio.xml" );
-#endif
+    for ( session_data& d: session_set_ )
         d.receiver_->folium_added( token.c_str(), L"path", id.c_str() );
-    }
 }
 
 portfolio::Folium

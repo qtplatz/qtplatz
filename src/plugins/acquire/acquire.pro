@@ -40,13 +40,12 @@ include(../../plugins/coreplugin/coreplugin.pri)
 
 DEFINES += ACQUIRE_LIBRARY
 
-SOURCES += acquireactions.cpp \
+SOURCES += \
 	acquiremode.cpp \
 	acquireplugin.cpp \
 	mainwindow.cpp
 
 HEADERS +=  acquire_global.h \
-	acquireactions.hpp \
 	acquiremode.hpp \
 	acquireplugin.hpp \
 	mainwindow.hpp \

@@ -123,15 +123,7 @@ session_i::getChemicalFormula()
 }
 
 bool
-session_i::coaddSpectrum ( SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
-{
-    adbroker::Task * pTask = adbroker::BrokerManager::task();
-    pTask->io_service().post( std::bind(&Task::handleCoaddSpectrum, pTask, std::wstring(L"coaddSpectrum"), observer, x1, x2 ) );
-    return true;
-}
-
-bool
-session_i::coaddSpectrumEx( const CORBA::WChar * token, SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
+session_i::coaddSpectrum( const CORBA::WChar * token, SignalObserver::Observer_ptr observer, CORBA::Double x1, CORBA::Double x2)
 {
     adbroker::Task * pTask = adbroker::BrokerManager::task();
     pTask->io_service().post( std::bind(&Task::handleCoaddSpectrum, pTask, std::wstring(token), observer, x1, x2 ) );
