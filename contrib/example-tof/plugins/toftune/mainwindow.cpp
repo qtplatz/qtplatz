@@ -104,10 +104,17 @@ MainWindow::activateLayout()
 }
 
 void
-MainWindow::createActions()
+MainWindow::createActions( Internal::tofTunePlugin * plugin )
 {
-    actionConnect_ = new QAction( QIcon( ":/chemistry/images/search.png" ), tr( "Connect" ), this );
-    connect( actionConnect_, SIGNAL( triggered() ), this, SLOT( actionConnect ) );
+    QList<int> context;
+    context << Core::Constants::C_GLOBAL_ID;
+
+    Core::ActionManager * am = Core::ICore::instance()->actionManager();
+    if ( am ) {
+        actionConnect_ = new QAction( QIcon( ":/chemistry/images/search.png" ), tr( "Connect" ), this );
+        bool res = connect( actionConnect_, SIGNAL( triggered() ), plugin, SLOT( actionConnect() ) );
+        am->registerAction( actionConnect_, "toftune.Connect", context );
+    }
 }
 
 QWidget *
@@ -343,7 +350,3 @@ MainWindow::onDataChanged( const dataMediator* mediator )
     Internal::tofTunePlugin::instance()->setMethod( *method_, hint );
 }
 
-void
-MainWindow::actionConnect()
-{
-}

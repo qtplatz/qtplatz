@@ -2,6 +2,7 @@
 CONFIG(debug, debug|release) {
   DEFINES += DEBUG
 }
+DEFINES += BOOST_REGEX
 
 win32 {
     DEFINES += _WIN32_WINNT=0x0700

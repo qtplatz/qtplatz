@@ -33,7 +33,6 @@
 #include <tofinterface/signalC.h>
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
-//#include <acewrapper/brokerhelper.hpp>
 #include <adwplot/chromatogramwidget.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adplugin/qobserverevents_i.hpp>
@@ -139,7 +138,7 @@ tofTunePlugin::initialize(const QStringList &arguments, QString *errorString)
 */    
     Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
     mainWindow_->activateLayout();
-    mainWindow_->createActions();
+    mainWindow_->createActions( this );
     QWidget * widget = mainWindow_->createContents( mode_.get() );
     mode_->setWidget( widget );
     addObject( mode_.get() );
@@ -336,6 +335,13 @@ tofTunePlugin::setMethod( const TOF::ControlMethod& m, const std::string& hint )
     if ( ! CORBA::is_nil( receiver_i_ ) && ! CORBA::is_nil( receiver_i_->session_ ) ) {
         receiver_i_->session_->setControlMethod( m, hint.c_str() );
     }
+}
+
+void
+tofTunePlugin::actionConnect()
+{
+    if ( ! CORBA::is_nil( receiver_i_ ) && ! CORBA::is_nil( receiver_i_->session_ ) )
+        receiver_i_->session_->initialize();
 }
 
 Q_EXPORT_PLUGIN2(toftune, tofTunePlugin)

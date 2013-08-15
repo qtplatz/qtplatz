@@ -41,6 +41,8 @@ namespace Core { class IMode; }
 
 namespace toftune {
 
+    namespace Internal { class tofTunePlugin; }
+
     class tofSignalMonitorView;
     class dataMediator;
     class iSequenceImpl;
@@ -52,7 +54,7 @@ namespace toftune {
 		~MainWindow();
 
 		QWidget * createContents( Core::IMode * );
-		void createActions();
+		void createActions( Internal::tofTunePlugin * );
 		
 		void OnInitialUpdate();
 		void activateLayout();
@@ -86,7 +88,6 @@ namespace toftune {
         void setToolBarDockWidget( QDockWidget * dock );
         void createDockWidgets();
         void createToolbar();
-        void actionConnect();
 	};
 	
 }

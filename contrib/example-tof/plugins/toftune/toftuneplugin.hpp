@@ -80,7 +80,10 @@ namespace toftune {
             void onMessage( unsigned long msg, unsigned long value);
             void onLog( const EventLog::LogMessage& );
             void onPrint( long pri, long cat, const char * text );
-            
+
+        public slots:
+            void actionConnect();
+
         private slots:
             void triggerAction();
             void HandleUpdateData( unsigned long objId, long pos );
