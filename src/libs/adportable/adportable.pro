@@ -18,6 +18,7 @@ SOURCES += adportable.cpp \
     configuration.cpp \
     constants.cpp \
     ConvertUTF.c \
+    date_string.cpp \
     debug.cpp \
     fft.cpp \
     polfit.cpp \
@@ -43,6 +44,7 @@ HEADERS += adportable.hpp \
     configuration.hpp \
     constants.hpp \
     ConvertUTF.h \
+    date_string.hpp \
     debug.hpp \
     differential.hpp \
     fft.hpp \

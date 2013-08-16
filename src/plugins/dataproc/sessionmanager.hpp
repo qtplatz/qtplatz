@@ -30,9 +30,9 @@
 #include <vector>
 #include <memory>
 
-namespace portfolio {
-    class Folium;
-}
+namespace Core { class IEditor; }
+
+namespace portfolio { class Folium; }
 
 namespace dataproc {
 
@@ -44,10 +44,13 @@ namespace dataproc {
         ~Session();
         Session();
         Session( const Session& );
-        Session( std::shared_ptr<Dataprocessor>& );
+        Session( std::shared_ptr<Dataprocessor>&, Core::IEditor* );
         Dataprocessor& getDataprocessor();
+		inline Dataprocessor * processor() { return processor_.get(); }
+		inline Core::IEditor * editor() { return editor_; }
     private:
         std::shared_ptr< Dataprocessor > processor_;  // holds a file
+        Core::IEditor * editor_;
     };
 
     class SessionManager : public QObject {
@@ -60,7 +63,7 @@ namespace dataproc {
         static SessionManager * instance();
 
         Dataprocessor * getActiveDataprocessor();
-        void addDataprocessor( std::shared_ptr<Dataprocessor>& );
+        void addDataprocessor( std::shared_ptr<Dataprocessor>&, Core::IEditor * );
         void updateDataprocessor( Dataprocessor *, portfolio::Folium& );
 
         typedef std::vector< Session > vector_type;

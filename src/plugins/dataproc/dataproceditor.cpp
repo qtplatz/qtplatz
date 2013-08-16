@@ -44,11 +44,6 @@ DataprocEditor::DataprocEditor( Core::IEditorFactory * factory ) : Core::IEditor
 {
     Core::UniqueIDManager * uidm = Core::UniqueIDManager::instance();
     context_ << uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR );
-    // context_ << uidm->uniqueIdentifier( Core::Constants::C_EDITORMANAGER );
-
-    // connect( editorWidget_, SIGNAL( contentModified() ), file_, SLOT( modified() ) );
-	//connect( editorWidget_, SIGNAL( titleChanged(QString) ), this, SLOT( slotTitleChanged(QString) ) );
-	//connect( editorWidget_, SIGNAL( contentModified() ), this, SIGNAL( changed() ) );
 }
 
 DataprocEditor::~DataprocEditor()
@@ -61,8 +56,6 @@ bool
 DataprocEditor::createNew( const QString &contents )
 {
     Q_UNUSED( contents );
-    //editorWidget_->setContent( QByteArray() );
-    //file_->setFilename( QString() );
     return true;
 }
 
@@ -71,7 +64,7 @@ DataprocEditor::portfolio_create( const QString& token )
 {
     std::shared_ptr<Dataprocessor> processor( new Dataprocessor );
     if ( processor->create( token ) ) {
-        SessionManager::instance()->addDataprocessor( processor );
+        SessionManager::instance()->addDataprocessor( processor, this );
         file_ = processor->ifile();
         return file_;
     }
@@ -82,14 +75,16 @@ bool
 DataprocEditor::open( const QString &filename )
 {
     std::shared_ptr<Dataprocessor> processor( new Dataprocessor );
+
     if ( processor->open( filename ) ) {
-        SessionManager::instance()->addDataprocessor( processor );
+        SessionManager::instance()->addDataprocessor( processor, this );
 
         Core::FileManager * filemgr = Core::ICore::instance()->fileManager();
         if ( filemgr->addFile( processor->ifile() ) )
             filemgr->addToRecentFiles( filename );
 
         file_ = processor->ifile();
+
         return file_; // processor->ifile();
     }
     return false;

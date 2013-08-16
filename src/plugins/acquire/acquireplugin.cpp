@@ -50,10 +50,12 @@
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
+#include <adportable/profile.hpp>
 #include <adplugin/loader.hpp>
 #include <adplugin/qreceiver_i.hpp>
 #include <adplugin/qobserverevents_i.hpp>
 #include <adplugin/manager.hpp>
+#include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/fft.hpp>
 
@@ -101,11 +103,10 @@
 
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <algorithm>
 #include <cmath>
 #include <map>
-
-
 #include <fstream>
 
 using namespace Acquire;
@@ -756,8 +757,17 @@ AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
             SignalObserver::Observer_var tgt = SignalObserver::Observer::_duplicate( siblings[i] );
 
             if ( pImpl_ && ! CORBA::is_nil( pImpl_->brokerSession_ ) ) {
+				boost::filesystem::path path( adportable::profile::user_data_dir<char>() );
+				path /= "data";
+				path /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
+				if ( ! boost::filesystem::exists( path ) ) {
+					boost::system::error_code ec;
+					boost::filesystem::create_directories( path, ec );
+				}
+				path /= "acquire.adfs";
+				
                 try {
-                    pImpl_->brokerSession_->coaddSpectrum( L"acquire", tgt, x1, x2 );
+					pImpl_->brokerSession_->coaddSpectrum( path.wstring().c_str() /* L"acquire" */, tgt, x1, x2 );
                 } catch ( std::exception& ex ) {
                     QMessageBox::critical( 0, "acquireplugin::handleRButtonRange", ex.what() );
                 }

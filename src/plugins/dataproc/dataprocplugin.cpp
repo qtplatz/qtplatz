@@ -80,6 +80,7 @@
 #include <extensionsystem/pluginmanager.h>
 #include <utils/styledbar.h>
 #include <utils/fancymainwindow.h>
+#include <QApplication>
 #include <QStringList>
 #include <QHBoxLayout>
 #include <QBoxLayout>
@@ -128,6 +129,16 @@ namespace dataproc {
 			return false;
         }
     };
+
+	class waitCursor {
+	public:
+		waitCursor() {
+			QApplication::setOverrideCursor( Qt::WaitCursor );
+		}
+		~waitCursor() {
+			QApplication::restoreOverrideCursor();
+		}
+	};
 }
 
 using namespace dataproc;
@@ -317,6 +328,8 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
 void
 DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
+	waitCursor w();
+
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
 		const adcontrols::LCMSDataset * dset = dp->getLCMSDataset();
@@ -363,7 +376,6 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                     if ( ! hasCentroid ) {
                         mainWindow_->getProcessMethod( m );
                         dp->applyProcess( folium, m, CentroidProcess );
-                        // SessionManager::instance()->updateDataprocessor( dp, folium );
                     }
 				}
 			}

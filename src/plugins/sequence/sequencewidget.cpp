@@ -31,6 +31,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adinterface/controlmethodC.h>
 #include <adportable/profile.hpp>
+#include <adportable/date_string.hpp>
 #include <adsequence/sequence.hpp>
 #include <adsequence/schema.hpp>
 #include <qtwrapper/qstring.hpp>
@@ -46,18 +47,6 @@
 #include <assert.h>
 #include <QMessageBox>
 #include <QDebug>
-
-namespace sequence {
-    struct date_string {
-        static std::string string( const boost::gregorian::date& dt ) {
-            const std::locale fmt( std::locale::classic(), new boost::gregorian::date_facet( "%Y-%m-%d" ) );
-            std::ostringstream os;
-            os.imbue( fmt );
-            os << dt;
-            return os.str();
-        }
-    };
-}
 
 using namespace sequence;
 
@@ -93,7 +82,7 @@ SequenceWidget::OnInitialUpdate( const adsequence::schema& schema )
 {
     boost::filesystem::path dir( adportable::profile::user_data_dir<char>() );
     dir /= "data";
-    dir /= date_string::string( boost::posix_time::second_clock::local_time().date() );
+    dir /= adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
 
     ui->lineEditName->setText( ( dir / "sequence.sequ" ).string().c_str() );
     ui->lineEditDataDir->setText( dir.string().c_str() );

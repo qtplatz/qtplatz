@@ -31,6 +31,7 @@
 #include <adportable/debug.hpp>
 #include <boost/any.hpp>
 #include <portfolio/folium.hpp>
+#include <coreplugin/editormanager/editormanager.h>
 
 using namespace dataproc;
 
@@ -53,9 +54,9 @@ SessionManager * SessionManager::instance()
 }
 
 void
-SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc )
+SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IEditor * editor )
 {
-    sessions_.push_back( Session( proc ) );
+    sessions_.push_back( Session( proc, editor ) );
 	activeDataprocessor_ = proc.get();
 	emit signalAddSession( proc.get() );
     emit signalSessionAdded( proc.get() );
@@ -95,7 +96,14 @@ void
 SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
     adportable::debug(__FILE__, __LINE__) << static_cast<boost::any&>(folium).type().name() << ", id=" << folium.id();
-    activeDataprocessor_ = dataprocessor;
+	if ( activeDataprocessor_ != dataprocessor ) {
+		activeDataprocessor_ = dataprocessor;
+		auto it = std::find_if( sessions_.begin(), sessions_.end(), [dataprocessor]( dataproc::Session& s ){
+			return dataprocessor == s.processor();
+		});
+		if ( it != sessions_.end() )
+			Core::EditorManager::instance()->activateEditor( it->editor() );
+	}
     emit signalSelectionChanged( dataprocessor, folium );
 }
 
@@ -112,15 +120,17 @@ Session::~Session()
 {
 }
 
-Session::Session()
+Session::Session() : editor_( 0 )
 {
 }
 
 Session::Session( const Session& t ) : processor_( t.processor_ )
+	                                 , editor_( t.editor_ )
 {
 }
 
-Session::Session( std::shared_ptr<Dataprocessor>& p ) : processor_( p )
+Session::Session( std::shared_ptr<Dataprocessor>& p, Core::IEditor * editor ) : processor_( p )
+	                                                                          , editor_( editor )
 {
 }
 
