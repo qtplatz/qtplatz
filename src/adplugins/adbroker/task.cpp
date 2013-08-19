@@ -37,6 +37,7 @@
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <adutils/processeddata.hpp>
+#include <adfs/filesystem.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
 #include <boost/foreach.hpp>
@@ -247,6 +248,12 @@ Task::internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassS
     for ( session_data& d: session_set_ )
         d.receiver_->folium_added( token.c_str(), L"path", id.c_str() );
 }
+
+void
+Task::appendOnFile( const std::wstring& filename, const adcontrols::MassSpectrum& ms )
+{
+}
+
 
 portfolio::Folium
 Task::findFolium( const std::wstring& token, const std::wstring& id )

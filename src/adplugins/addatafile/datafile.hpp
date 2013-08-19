@@ -78,7 +78,7 @@ namespace addatafile {
     private:
         bool mounted_;
         std::wstring filename_;
-        adfs::portfolio dbf_;
+        adfs::filesystem dbf_;
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
     };
 

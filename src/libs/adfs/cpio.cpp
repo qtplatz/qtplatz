@@ -39,7 +39,6 @@ detail::cpio::xsputn( const char_t * s, std::streamsize num )
     return num;
 }
 
-//std::char_traits<char_t>::int_type
 std::basic_streambuf<char_t>::int_type
 detail::cpio::overflow ( int_type c )
 {

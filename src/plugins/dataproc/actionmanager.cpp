@@ -95,7 +95,7 @@ ActionManager::actMethodSave()
     if ( ! name.isEmpty() ) {
         boost::filesystem::path path( name.toStdString() );
         path.replace_extension( ".pmth" );
-        adfs::portfolio file;
+        adfs::filesystem file;
         try {
             if ( !file.create( path.wstring().c_str() ) )
                 return;
@@ -123,7 +123,7 @@ ActionManager::actMethodOpen()
                                                  , tr("Process method files(*.pmth)" ) );
     if ( ! name.isEmpty() ) {
 		boost::filesystem::path path( name.toStdString() );
-        adfs::portfolio file;
+        adfs::filesystem file;
         try {
             if ( ! file.mount( path.wstring().c_str() ) )
                 return;

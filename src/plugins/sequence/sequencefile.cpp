@@ -94,7 +94,7 @@ SequenceFile::load( const QString& filename )
     procmethods_.clear();
 
     boost::filesystem::path path = qtwrapper::wstring::copy( filename );
-    adfs::portfolio file;
+    adfs::filesystem file;
     try {
         if ( ! file.mount( path.wstring().c_str() ) )
             return false;
@@ -163,7 +163,7 @@ SequenceFile::save( const QString& filename )
     boost::filesystem::path path( qtwrapper::wstring::copy( filename_ ) );
     path.replace_extension( ".sequ" );
 
-    adfs::portfolio file;
+    adfs::filesystem file;
     try {
         if ( ! file.create( path.wstring().c_str() ) )
             return false;

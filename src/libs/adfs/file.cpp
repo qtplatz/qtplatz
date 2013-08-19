@@ -25,8 +25,9 @@
 
 #include "file.hpp"
 #include "folder.hpp"
-#include "portfolioimpl.hpp"
 #include "filesystem.hpp"
+#include "fs.hpp"
+#include "sqlite.hpp"
 #include <adportable/debug.hpp>
 #include "attributes.hpp"
 

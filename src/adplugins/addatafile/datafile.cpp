@@ -59,7 +59,7 @@ namespace addatafile { namespace detail {
     static adcontrols::datafile * nullfile(0);
 
     struct folder {
-        static bool save( adfs::portfolio& db, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folder& );
+        static bool save( adfs::filesystem& db, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folder& );
         static bool load( portfolio::Folder parent, const adfs::folder& adf );
     };
 
@@ -363,7 +363,7 @@ namespace addatafile {
 
         // struct folder {
         bool
-        folder::save( adfs::portfolio& dbf, const boost::filesystem::path& path, const adcontrols::datafile& source, const portfolio::Folder& folder )
+        folder::save( adfs::filesystem& dbf, const boost::filesystem::path& path, const adcontrols::datafile& source, const portfolio::Folder& folder )
         {
             boost::filesystem::path pathname = adportable::path::posix( path / folder.name() );
 

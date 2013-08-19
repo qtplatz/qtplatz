@@ -85,9 +85,11 @@ namespace adbroker {
 
     public:
         inline boost::asio::io_service& io_service() { return io_service_; }
-        void internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& );
-
         void handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_ptr observer, double x1, double x2 );
+
+	private:
+		void internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& );
+		void appendOnFile( const std::wstring& filename, const adcontrols::MassSpectrum& );
 
     private:
         friend class BrokerManager;

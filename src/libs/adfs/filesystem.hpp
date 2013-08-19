@@ -26,6 +26,9 @@
 #pragma once
 
 #include <string>
+#include <memory>
+#include <cstdint>
+#include <vector>
 
 namespace adfs {
 
@@ -34,43 +37,21 @@ namespace adfs {
     class folder;
 
     class filesystem {
-        sqlite * db_;
+        std::shared_ptr< adfs::sqlite > db_;
     public:
         ~filesystem();
         filesystem();
+		filesystem( const filesystem& );
+
         bool create( const wchar_t * filename, size_t alloc = 0, size_t page_size = 8192 );
         bool mount( const wchar_t * filename );
         bool close();
         //
-        folder addFolder( const wchar_t * path );
-    private:
-        bool prealloc( size_t size );
-    };
-
-    namespace internal {
-        class fs {
-        public:
-            static bool format( sqlite& db, const std::wstring& filename );
-            static bool format_superblock( sqlite& db, const std::wstring& filename );
-            static bool format_directory( sqlite& db );
-            static bool mount( sqlite& db );
-            static bool prealloc( adfs::sqlite& db, unsigned long long size );
-
-            static folder add_folder( adfs::sqlite& db, const std::wstring& fullpath );  // full path required
-            static folder find_folder( adfs::sqlite& db, const std::wstring& fullpath ); // full path required
-            static folder get_parent_folder( adfs::sqlite& db, boost::int64_t rowid );
-            static file add_file( const folder&, const std::wstring& name );
-            static file add_attachment( const file&, const std::wstring& name );
-
-            static bool select_folders( adfs::sqlite& db, boost::int64_t parent_id, std::vector<folder>& );
-            static bool select_file( adfs::sqlite&, const std::wstring& id, file& );
-            static bool select_files( adfs::sqlite& db, boost::int64_t parent_id, files& );
-
-            static bool write( adfs::sqlite& db, boost::int64_t fileid, size_t size, const char_t * pbuf );
-            static int64_t rowid_from_fileid( adfs::sqlite&, boost::int64_t fileid );
-            static bool read( adfs::sqlite& db, boost::int64_t rowid, size_t size, char_t * pbuf );
-            static std::size_t size( adfs::sqlite& db, boost::int64_t rowid );
-        };
+        folder addFolder( const std::wstring& name, bool uniq = true );
+        folder findFolder( const std::wstring& name ) const;
+        file findFile( const std::wstring& id );
+        std::vector< folder > folders();
+        inline sqlite& db() const { return *db_; }
     };
 
 } // adfs
