@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "folder.hpp"
-#include "folium.hpp"
+#include "file.hpp"
 #include "filesystem.hpp"
 
 using namespace adfs;
@@ -38,17 +38,17 @@ folder::folder() : db_( 0 ), rowid_( 0 )
 }
 
 folder::folder( const folder& t ) : attributes( t ) 
-				  , db_( t.db_ )
+                                  , db_( t.db_ )
                                   , name_( t.name_ )
                                   , rowid_( t.rowid_ )
 {
 }
 
 folder::folder( adfs::sqlite& db
-		, boost::int64_t rowid
-		, const std::wstring& name ) : db_( &db )
-					     , name_( name )
-					     , rowid_( rowid )
+                , boost::int64_t rowid
+                , const std::wstring& name ) : db_( &db )
+                                             , name_( name )
+                                             , rowid_( rowid )
 {
 }
 
@@ -70,35 +70,35 @@ folder::folders() const
     return folders;
 }
 
-adfs::folio
-folder::folio()
+adfs::files
+folder::files()
 {
-    adfs::folio folio;
+    adfs::files files;
     if ( db_ && rowid_ )
-        internal::fs::select_folio( *db_, rowid_, folio );
-    return folio;
+        internal::fs::select_files( *db_, rowid_, files );
+    return files;
 }
 
-const adfs::folio
-folder::folio() const
+const adfs::files
+folder::files() const
 {
-    adfs::folio folio;
+    adfs::files files;
     if ( db_ && rowid_ )
-        internal::fs::select_folio( *db_, rowid_, folio );
-    return folio;
+        internal::fs::select_files( *db_, rowid_, files );
+    return files;
 }
 
-folium
-folder::selectFolium( const std::wstring& )
+file
+folder::selectFile( const std::wstring& )
 {
-    return folium();
+    return file();
 }
 
 /////////////////////////
-folium
-folder::addFolium( const std::wstring& name )
+file
+folder::addFile( const std::wstring& name )
 {
     if ( db_ && rowid_ )
-        return internal::fs::add_folium( *this, name );
-    return folium();
+        return internal::fs::add_file( *this, name );
+    return file();
 }

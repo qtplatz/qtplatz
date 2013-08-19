@@ -31,7 +31,7 @@
 
 namespace adfs {
 
-    class folium;
+    class file;
     class folder;
     class sqlite;
 
@@ -42,7 +42,7 @@ namespace adfs {
         portfolio( const portfolio& );
 
         std::vector<folder> folders();
-        folium findFolium( const std::wstring& id );
+        file findFile( const std::wstring& id );
         folder findFolder( const std::wstring& name ) const;
 
         bool create( const wchar_t * filename, size_t alloc = 0, size_t page_size = 8192 );

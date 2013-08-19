@@ -31,7 +31,7 @@
 
 namespace adfs {
 
-    class folium;
+    class file;
     class sqlite;
 
     class folder : public internal::attributes {
@@ -43,12 +43,13 @@ namespace adfs {
 
         std::vector< folder > folders();
         const std::vector< folder > folders() const;
-        std::vector< folium > folio();
-        const std::vector< folium > folio() const;
-        folium selectFolium( const std::wstring& );
+        std::vector< file > files();
+        const std::vector< file > files() const;
+
+        file selectFile( const std::wstring& );
 
         // --- add/modify features
-        folium addFolium( const std::wstring& name );
+        file addFile( const std::wstring& name );
 
         inline boost::int64_t rowid() const { return rowid_; }
         inline const std::wstring& name() const { return name_; }

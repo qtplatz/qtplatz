@@ -26,10 +26,10 @@
 #pragma once
 
 #include <boost/noncopyable.hpp>
-#include <boost/cstdint.hpp>
 #include <compiler/workaround.h>
 #include <boost/variant.hpp>
 #include <string>
+#include <cstdint>
 
 struct sqlite3;
 struct sqlite3_stmt;
@@ -57,27 +57,27 @@ namespace adfs {
     };
 
     class blob {
-        const boost::int8_t * p_;
+        const int8_t * p_;
         std::size_t octets_;
         sqlite3_blob * pBlob_;
     public:
         ~blob();
         blob();
-        blob( std::size_t octets, const boost::int8_t *p = 0 );
+        blob( std::size_t octets, const int8_t *p = 0 );
         boost::uint32_t size() const;
-        inline const boost::int8_t * get() const { return p_; }
+        inline const int8_t * get() const { return p_; }
         inline operator bool () const { return pBlob_ != 0; }
         bool close();
-        bool open( sqlite& db, const char * zDb, const char * zTable, const char * zColumn, boost::int64_t rowid, flags );
-        bool reopen( boost::int64_t rowid );
-        bool read( boost::int8_t *, std::size_t, std::size_t offset = 0 ) const;
-        bool write( const boost::int8_t *, std::size_t, std::size_t offset = 0 ) const;
+        bool open( sqlite& db, const char * zDb, const char * zTable, const char * zColumn, int64_t rowid, flags );
+        bool reopen( int64_t rowid );
+        bool read( int8_t *, std::size_t, std::size_t offset = 0 ) const;
+        bool write( const int8_t *, std::size_t, std::size_t offset = 0 ) const;
     };
 
     class null { };
     class error { };
 
-    typedef boost::variant< boost::int64_t, double, std::wstring, blob, null > column_value_type;
+    typedef boost::variant< int64_t, double, std::wstring, blob, null > column_value_type;
 
     class stmt {
     public:

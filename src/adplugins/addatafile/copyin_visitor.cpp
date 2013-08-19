@@ -47,8 +47,8 @@
 namespace addatafile { namespace detail {
 
     struct copyin : public boost::static_visitor<bool> {
-        adfs::folium& folium_;
-        copyin( adfs::folium& f ) : folium_( f ) {}
+        adfs::file& file_;
+        copyin( adfs::file& f ) : file_( f ) {}
 
         template<typename T>  bool operator ()( T& t ) const { 
             throw boost::bad_any_cast();
@@ -63,7 +63,7 @@ using namespace addatafile;
 using namespace addatafile::detail;
 
 bool
-copyin_visitor::apply( boost::any& a, adfs::folium& dbf )
+copyin_visitor::apply( boost::any& a, adfs::file& dbf )
 {
     adutils::ProcessedData::value_type value = adutils::ProcessedData::toVariant( a );
     return boost::apply_visitor( addatafile::detail::copyin(dbf), value );
@@ -82,43 +82,43 @@ namespace addatafile {
 	template<> bool
 	copyin::operator ()( adcontrols::MassSpectrumPtr& p ) const
 	{
-		folium_.dataClass( p->dataClass() );
-	    return adfs::cpio< adcontrols::MassSpectrum >::copyin( *p, folium_ );
+		file_.dataClass( p->dataClass() );
+	    return adfs::cpio< adcontrols::MassSpectrum >::copyin( *p, file_ );
 	}       
 	
 	template<> bool
 	copyin::operator ()( adcontrols::ProcessMethodPtr& p ) const
 	{
-		folium_.dataClass( p->dataClass() );
-	    return adfs::cpio< adcontrols::ProcessMethod >::copyin( *p, folium_ );
+		file_.dataClass( p->dataClass() );
+	    return adfs::cpio< adcontrols::ProcessMethod >::copyin( *p, file_ );
 	} 
     
 	template<> bool
 	copyin::operator ()( adutils::ElementalCompositionCollectionPtr& p ) const
 	{
-		folium_.dataClass( p->dataClass() );
-	    return adfs::cpio< adcontrols::ElementalCompositionCollection >::copyin( *p, folium_ );
+		file_.dataClass( p->dataClass() );
+	    return adfs::cpio< adcontrols::ElementalCompositionCollection >::copyin( *p, file_ );
 	}       
 	
 	template<> bool
 	copyin::operator ()( adcontrols::ChromatogramPtr& p ) const
 	{
-		folium_.dataClass( p->dataClass() );
-	    return adfs::cpio< adcontrols::Chromatogram >::copyin( *p, folium_ );
+		file_.dataClass( p->dataClass() );
+	    return adfs::cpio< adcontrols::Chromatogram >::copyin( *p, file_ );
 	} 
 
 	template<> bool
 	copyin::operator ()( adcontrols::PeakResultPtr& p ) const
 	{
-		folium_.dataClass( p->dataClass() );
-		return adfs::cpio< adcontrols::PeakResult >::copyin( *p, folium_ );
+		file_.dataClass( p->dataClass() );
+		return adfs::cpio< adcontrols::PeakResult >::copyin( *p, file_ );
 	} 
 	
 	template<> bool
 	copyin::operator ()( adcontrols::MSCalibrateResultPtr& p ) const
 	{
-		folium_.dataClass( p->dataClass() );
-	    return adfs::cpio< adcontrols::MSCalibrateResult >::copyin( *p, folium_ );
+		file_.dataClass( p->dataClass() );
+	    return adfs::cpio< adcontrols::MSCalibrateResult >::copyin( *p, file_ );
 	} 
     } // namespace detail
 } // namespace addatafile

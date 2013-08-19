@@ -27,7 +27,7 @@
 #include "portfolio.hpp"
 
 #include "folder.hpp"
-#include "folium.hpp"
+#include "file.hpp"
 #include "filesystem.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -57,14 +57,14 @@ portfolio::folders()
     return folders;
 }
 
-folium
-portfolio::findFolium( const std::wstring& id )
+file
+portfolio::findFile( const std::wstring& id )
 {
     // although id is the name, it should be unique due to original xml based design
-    folium folium;
+    file f;
     if ( db_ )
-        internal::fs::select_folium( *db_, id, folium );  
-    return folium;
+        internal::fs::select_file( *db_, id, f );
+    return f;
 }
 
 /////////////

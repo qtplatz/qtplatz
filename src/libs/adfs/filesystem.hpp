@@ -30,7 +30,7 @@
 namespace adfs {
 
     class sqlite;
-    class folium;
+    class file;
     class folder;
 
     class filesystem {
@@ -59,15 +59,15 @@ namespace adfs {
             static folder add_folder( adfs::sqlite& db, const std::wstring& fullpath );  // full path required
             static folder find_folder( adfs::sqlite& db, const std::wstring& fullpath ); // full path required
             static folder get_parent_folder( adfs::sqlite& db, boost::int64_t rowid );
-            static folium add_folium( const folder&, const std::wstring& name );
-            static folium add_attachment( const folium&, const std::wstring& name );
+            static file add_file( const folder&, const std::wstring& name );
+            static file add_attachment( const file&, const std::wstring& name );
 
             static bool select_folders( adfs::sqlite& db, boost::int64_t parent_id, std::vector<folder>& );
-            static bool select_folium( adfs::sqlite&, const std::wstring& id, folium& );
-            static bool select_folio( adfs::sqlite& db, boost::int64_t parent_id, folio& );
+            static bool select_file( adfs::sqlite&, const std::wstring& id, file& );
+            static bool select_files( adfs::sqlite& db, boost::int64_t parent_id, files& );
 
             static bool write( adfs::sqlite& db, boost::int64_t fileid, size_t size, const char_t * pbuf );
-            static boost::int64_t rowid_from_fileid( adfs::sqlite&, boost::int64_t fileid );
+            static int64_t rowid_from_fileid( adfs::sqlite&, boost::int64_t fileid );
             static bool read( adfs::sqlite& db, boost::int64_t rowid, size_t size, char_t * pbuf );
             static std::size_t size( adfs::sqlite& db, boost::int64_t rowid );
         };

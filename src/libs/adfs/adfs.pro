@@ -18,7 +18,7 @@ SOURCES += adfs.cpp \
     cpio.cpp \
     filesystem.cpp \
     folder.cpp \
-    folium.cpp \
+    file.cpp \
     portfolio.cpp \
     sqlite.cpp \
     sqlite3.c
@@ -28,7 +28,7 @@ HEADERS += adfs.hpp \
     cpio.hpp \
     filesystem.hpp \
     folder.hpp \
-    folium.hpp \
+    file.hpp \
     portfolio.hpp \
     sqlite.hpp \
     sqlite3.h

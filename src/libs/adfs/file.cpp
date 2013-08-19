@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "folium.hpp"
+#include "file.hpp"
 #include "folder.hpp"
 #include "portfolioimpl.hpp"
 #include "filesystem.hpp"
@@ -32,18 +32,18 @@
 
 using namespace adfs;
 
-folium::~folium()
+file::~file()
 {
 }
 
-folium::folium() : db_(0)
+file::file() : db_(0)
                  , rowid_(0)
                  , is_attachment_(false)
 {
 }
 
 
-folium::folium( const folium& t ) : attributes( t )
+file::file( const file& t ) : attributes( t )
                                   , db_( t.db_ )
                                   , name_( t.name_ )  
                                   , rowid_( t.rowid_ )
@@ -51,7 +51,7 @@ folium::folium( const folium& t ) : attributes( t )
 {
 }
 
-folium::folium( sqlite& db
+file::file( sqlite& db
                , boost::int64_t rowid
                , const std::wstring& name
                 , bool is_attachment ) : db_( &db )
@@ -63,10 +63,10 @@ folium::folium( sqlite& db
 }
 
 
-folio
-folium::attachments()
+files
+file::attachments()
 {
-    folio attachments;
+    files attachments;
 
     adfs::stmt sql( *db_ );
     sql.prepare( "SELECT rowid, name FROM directory WHERE type = 3 AND parent_id = :parent_id" );
@@ -75,9 +75,9 @@ folium::attachments()
     while ( sql.step() == adfs::sqlite_row ) {
         boost::int64_t rowid = boost::get< boost::int64_t >( sql.column_value( 0 ) );
         std::wstring name = boost::get< std::wstring>( sql.column_value( 1 ) );
-        attachments.push_back( adfs::folium( *db_, rowid, name ) );
+        attachments.push_back( adfs::file( *db_, rowid, name ) );
 #if defined DEBUG
-        const folium& v = attachments.back();
+        const file& v = attachments.back();
         std::wcerr << L" --> select attachments: " << name << std::endl << L"\t\t";
         std::wcerr << L"(" << v.attribute(L"dataType") << L", " << v.attribute( L"name" ) << ")";
         std::wcerr << std::endl;
@@ -86,26 +86,26 @@ folium::attachments()
     return attachments;
 }
 
-const folio
-folium::attachments() const
+const files
+file::attachments() const
 {
-    return const_cast<adfs::folium&>(*this).attachments();
+    return const_cast<adfs::file&>(*this).attachments();
 }
 
-folium
-folium::addAttachment( const std::wstring& name )
+file
+file::addAttachment( const std::wstring& name )
 {
     return internal::fs::add_attachment( *this, name );
 }
 
 folder
-folium::getParentFolder()
+file::getParentFolder()
 {
     return internal::fs::get_parent_folder( *db_, rowid_ );
 }
 
 std::size_t
-folium::write( std::size_t size, const char_t * p )
+file::write( std::size_t size, const char_t * p )
 {
     if ( internal::fs::write( *db_, rowid_, size, p ) ) {
         commit(); // commit attribute -- TODO: this api is confusing, consider change!!! TH 14th Nov 2011
@@ -115,7 +115,7 @@ folium::write( std::size_t size, const char_t * p )
 }
 
 std::size_t
-folium::read( std::size_t size, char_t * p )
+file::read( std::size_t size, char_t * p )
 {
     if ( internal::fs::read( *db_, internal::fs::rowid_from_fileid( *db_, rowid_ ), size, p ) )
         return size;
@@ -123,7 +123,7 @@ folium::read( std::size_t size, char_t * p )
 }
 
 std::size_t
-folium::size() const
+file::size() const
 {
     size_t size = internal::fs::size( *db_, internal::fs::rowid_from_fileid( *db_, rowid_ ) );
     return size;

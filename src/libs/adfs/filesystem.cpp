@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "adfs.hpp"
-#include "folium.hpp"
+#include "file.hpp"
 #include "filesystem.hpp"
 #include "sqlite.hpp"
 #include <boost/filesystem.hpp>
@@ -52,14 +52,14 @@ using namespace adfs;
 namespace adfs {
     namespace internal {
 
-        enum dir_type { type_folder = 1, type_folium = 2, type_attachment = 3 };
+        enum dir_type { type_folder = 1, type_file = 2, type_attachment = 3 };
 
         struct dml {
             static bool insert_directory( adfs::sqlite& db, dir_type, boost::int64_t parent_id, const std::wstring& name );
 			//static boost::int64_t select_directory( adfs::stmt&, dir_type, boost::int64_t parent_id, const std::wstring& name );
 			static boost::int64_t select_directory( adfs::sqlite&, dir_type, boost::int64_t parent_id, const std::wstring& name );
             static bool update_mtime( adfs::stmt&, boost::int64_t fileid );
-            static adfs::folium insert_folium( adfs::sqlite& db, dir_type, boost::int64_t dirid, const std::wstring& name );
+            static adfs::file insert_file( adfs::sqlite& db, dir_type, boost::int64_t dirid, const std::wstring& name );
         };
         
         struct scoped_transaction {
@@ -240,8 +240,7 @@ internal::dml::insert_directory( adfs::sqlite& db, dir_type type, boost::int64_t
     return false;
 }
 
-boost::int64_t
-//internal::dml::select_directory( adfs::stmt& sql, dir_type type, boost::int64_t parent_id, const std::wstring& name )
+int64_t
 internal::dml::select_directory( adfs::sqlite& db, dir_type type, boost::int64_t parent_id, const std::wstring& name )
 {
     adfs::stmt sql( db );
@@ -391,8 +390,8 @@ internal::fs::find_folder( adfs::sqlite& db, const std::wstring& name )
     return adfs::folder();
 }
 
-adfs::folium
-internal::dml::insert_folium( adfs::sqlite& db, dir_type type, boost::int64_t parentid, const std::wstring& name )
+adfs::file
+internal::dml::insert_file( adfs::sqlite& db, dir_type type, boost::int64_t parentid, const std::wstring& name )
 {
     boost::int64_t fileid(0);
 
@@ -408,21 +407,21 @@ internal::dml::insert_folium( adfs::sqlite& db, dir_type type, boost::int64_t pa
 
         sqlite_state res = sql.step();
         if ( res == sqlite_done || res == sqlite_constraint )
-            return adfs::folium( db, fileid, name );
+            return adfs::file( db, fileid, name );
     }
-    return adfs::folium();
+    return adfs::file();
 }
 
-adfs::folium
-internal::fs::add_folium( const folder& folder, const std::wstring& name )
+adfs::file
+internal::fs::add_file( const folder& folder, const std::wstring& name )
 {
-    return dml::insert_folium( folder.db(), type_folium, folder.rowid(), name );
+    return dml::insert_file( folder.db(), type_file, folder.rowid(), name );
 }
 
-adfs::folium
-internal::fs::add_attachment( const folium& parent, const std::wstring& name )
+adfs::file
+internal::fs::add_attachment( const file& parent, const std::wstring& name )
 {
-    return dml::insert_folium( parent.db(), type_attachment, parent.rowid(), name );
+    return dml::insert_file( parent.db(), type_attachment, parent.rowid(), name );
 }
 
 folder
@@ -518,7 +517,7 @@ internal::fs::select_folders( sqlite& db, boost::int64_t parent_id, std::vector<
 }
 
 bool
-internal::fs::select_folium( sqlite& db, const std::wstring& id, adfs::folium& folium )
+internal::fs::select_file( sqlite& db, const std::wstring& id, adfs::file& file )
 {
     stmt sql( db );
 
@@ -539,7 +538,7 @@ internal::fs::select_folium( sqlite& db, const std::wstring& id, adfs::folium& f
                 adportable::debug(__FILE__, __LINE__) << "Outof range error: " << ex.what();
                 assert(0);
             }
-            folium = adfs::folium( db, fileid, name );
+            file = adfs::file( db, fileid, name );
             return true;
         }
     }
@@ -547,7 +546,7 @@ internal::fs::select_folium( sqlite& db, const std::wstring& id, adfs::folium& f
 }
 
 bool
-internal::fs::select_folio( sqlite& db, boost::int64_t parent_id, folio& folio )
+internal::fs::select_files( sqlite& db, boost::int64_t parent_id, files& files )
 {
     stmt sql( db );
 
@@ -568,7 +567,7 @@ internal::fs::select_folio( sqlite& db, boost::int64_t parent_id, folio& folio )
                 adportable::debug(__FILE__, __LINE__) << "Outof range error: " << ex.what();
                 assert(0);
             }
-            folio.push_back( folium( db, rowid, name ) );
+            files.push_back( file( db, rowid, name ) );
         }
         return true;
     }

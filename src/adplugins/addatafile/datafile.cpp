@@ -65,12 +65,12 @@ namespace addatafile { namespace detail {
 
     struct folium {
         static bool save( adfs::folder&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
-        static bool load( portfolio::Folium dst, const adfs::folium& src );
+        static bool load( portfolio::Folium dst, const adfs::file& src );
     };
 
     struct attachment {
-        static bool save( adfs::folium& parent, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
-        static bool load( portfolio::Folium dst, const adfs::folium& adf );
+        static bool save( adfs::file& parent, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
+        static bool load( portfolio::Folium dst, const adfs::file& adf );
     };
 
     struct import {
@@ -308,17 +308,19 @@ namespace addatafile {
     namespace detail {
 
         bool
-        attachment::save( adfs::folium& parent, const boost::filesystem::path& path, const adcontrols::datafile& source, const portfolio::Folium& folium )
+        attachment::save( adfs::file& parent, const boost::filesystem::path& path
+                          , const adcontrols::datafile& source, const portfolio::Folium& folium )
         {
             boost::filesystem::path filename = adportable::path::posix( path / folium.id() );
 
-            adfs::folium dbThis = parent.addAttachment( folium.id() );
+            adfs::file dbThis = parent.addAttachment( folium.id() );
             import::attributes( dbThis, folium.attributes() );
 
 #if defined DEBUG && 0
             const std::wstring& dataclass = folium.dataClass();
             const std::wstring& name = folium.name();
-            adportable::debug( __FILE__, __LINE__ ) << "addatafile::detail::attachment::save(" << dataclass << ", " << name << ")";
+            adportable::debug( __FILE__, __LINE__ ) << "addatafile::detail::attachment::save(" 
+                                                    << dataclass << ", " << name << ")";
 #endif
             boost::any any = static_cast<const boost::any&>( folium );
             if ( any.empty() && (&source != nullfile ) )
@@ -348,7 +350,7 @@ namespace addatafile {
                 any = source.fetch( folium.id(), folium.dataClass() );
 
             if ( folder ) {
-                adfs::folium dbf = folder.addFolium( folium.id() );
+                adfs::file dbf = folder.addFile( folium.id() );
 
                 import::attributes( dbf, folium.attributes() );
                 detail::copyin_visitor::apply( any, dbf );
@@ -381,12 +383,12 @@ namespace addatafile {
 
         bool folder::load( portfolio::Folder parent, const adfs::folder& adfolder )
         {
-            BOOST_FOREACH( const adfs::folium& folium, adfolder.folio() )
+            for ( const adfs::file& folium: adfolder.files() )
                 folium::load( parent.addFolium( folium.name() ), folium );
             return true;
         }
 
-        bool folium::load( portfolio::Folium dst, const adfs::folium& src )
+        bool folium::load( portfolio::Folium dst, const adfs::file& src )
         {
 #if defined DEBUG && 0
             adportable::debug(__FILE__, __LINE__) 
@@ -394,12 +396,12 @@ namespace addatafile {
                 << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
 #endif
             import::attributes( dst, src );
-            BOOST_FOREACH( const adfs::folium& att, src.attachments() )
+            BOOST_FOREACH( const adfs::file& att, src.attachments() )
                 attachment::load( dst.addAttachment( att.name() ), att );
             return true;
         }
 
-        bool attachment::load( portfolio::Folium dst, const adfs::folium& src )
+        bool attachment::load( portfolio::Folium dst, const adfs::file& src )
         {
 #if defined DEBUG && 0
             adportable::debug(__FILE__, __LINE__)
@@ -407,7 +409,7 @@ namespace addatafile {
                 << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
 #endif
             import::attributes( dst, src );
-            BOOST_FOREACH( const adfs::folium& att, src.attachments() )
+            BOOST_FOREACH( const adfs::file& att, src.attachments() )
                 attachment::load( dst.addAttachment( att.name() ), att );
             return true;
         }

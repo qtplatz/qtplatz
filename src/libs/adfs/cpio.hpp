@@ -27,11 +27,11 @@
 
 #include <streambuf>
 #include <memory>
-#include <adfs/folium.hpp>
+#include <adfs/file.hpp>
 
 namespace adfs {
 
-    class folium;
+    class file;
     typedef char char_t;
 
     namespace detail { 
@@ -67,13 +67,13 @@ namespace adfs {
             return archive_type::restore( is, t );
         }
 
-        template<class T> static bool copyin( const T& t, adfs::folium& f ) {
+        template<class T> static bool copyin( const T& t, adfs::file& f ) {
             detail::cpio obuf;
             std::ostream os( &obuf );
             return archive_type::archive( os, t ) && f.write( obuf.size(), obuf.get() );
         }
 
-        template<class T> static bool copyout( T& t, adfs::folium& f ) {
+        template<class T> static bool copyout( T& t, adfs::file& f ) {
             detail::cpio ibuf( f.size() );
             std::istream is( &ibuf );
             return f.read( ibuf.size(), ibuf.get() ) && archive_type::restore( is, t );

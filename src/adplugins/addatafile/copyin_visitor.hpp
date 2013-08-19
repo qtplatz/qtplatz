@@ -27,14 +27,14 @@
 
 #include <boost/any.hpp>
 
-namespace adfs { class folium; }
+namespace adfs { class file; }
 
 namespace addatafile { namespace detail {
 
     class copyin_visitor { //  : public boost::static_visitor<bool> {
     public:
         copyin_visitor();
-        static bool apply( boost::any&, adfs::folium& );
+        static bool apply( boost::any&, adfs::file& );
     };
 
 }
