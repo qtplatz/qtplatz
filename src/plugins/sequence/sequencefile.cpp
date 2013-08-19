@@ -106,18 +106,18 @@ SequenceFile::load( const QString& filename )
     do {
         // .sequ file should have only one folium under /Sequence folder
         adfs::folder folder = file.findFolder( L"/Sequence" );
-        std::vector< adfs::folium > folio = folder.folio();
+        std::vector< adfs::file > folio = folder.files();
         if ( folio.empty() )
             return false;
-        adfs::folium& folium = *folio.begin();  // take first one.
-        adfs::cpio< adsequence::sequence >::copyout( *adsequence_, folium );
+        adfs::file& file = *folio.begin();  // take first one.
+        adfs::cpio< adsequence::sequence >::copyout( *adsequence_, file );
     } while( 0 );
 
     do {
         adfs::folder folder = file.findFolder( L"/ProcessMethod" );
 
-        std::vector< adfs::folium > folio = folder.folio();
-        for ( std::vector< adfs::folium >::iterator it = folio.begin(); it != folio.end(); ++it ) {
+        std::vector< adfs::file > folio = folder.files();
+        for ( std::vector< adfs::file >::iterator it = folio.begin(); it != folio.end(); ++it ) {
             std::shared_ptr< adcontrols::ProcessMethod > ptr( new adcontrols::ProcessMethod );
             adfs::cpio< adcontrols::ProcessMethod >::copyout( *ptr, *it );
             procmethods_[ it->name() ] = ptr;
@@ -127,8 +127,8 @@ SequenceFile::load( const QString& filename )
     do {
         adfs::folder folder = file.addFolder( L"/ControlMethod" );
 
-        std::vector< adfs::folium > folio = folder.folio();
-        for ( std::vector< adfs::folium >::iterator it = folio.begin(); it != folio.end(); ++it ) {
+        std::vector< adfs::file > folio = folder.files();
+        for ( std::vector< adfs::file >::iterator it = folio.begin(); it != folio.end(); ++it ) {
             std::vector< char> ibuf( it->size() );
             it->read( ibuf.size(), &ibuf[0] );
             std::shared_ptr< ControlMethod::Method > ptr( new ControlMethod::Method );

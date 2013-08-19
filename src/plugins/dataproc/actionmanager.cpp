@@ -104,12 +104,12 @@ ActionManager::actMethodSave()
             return;
         }
         adfs::folder folder = file.addFolder( L"/ProcessMethod" );
-        adfs::folium folium = folder.addFolium( path.wstring() ); // internal filename := os filename
+        adfs::file adfile = folder.addFile( path.wstring() ); // internal filename := os filename
         adcontrols::ProcessMethod m;
         MainWindow::instance()->getProcessMethod( m );
-        adfs::cpio< adcontrols::ProcessMethod >::copyin( m, folium );
-        folium.dataClass( adcontrols::ProcessMethod::dataClass() );
-        folium.commit();
+        adfs::cpio< adcontrols::ProcessMethod >::copyin( m, adfile );
+        adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
+        adfile.commit();
         
         MainWindow::instance()->processMethodSaved( name );
     }
@@ -133,10 +133,10 @@ ActionManager::actMethodOpen()
         }
 
         adfs::folder folder = file.findFolder( L"/ProcessMethod" );
-        std::vector< adfs::folium > folio = folder.folio();
-        if ( folio.empty() )
+        std::vector< adfs::file > files = folder.files();
+        if ( files.empty() )
             return;
-        auto it = folio.begin();
+        auto it = files.begin();
         adcontrols::ProcessMethod m;
         adfs::cpio< adcontrols::ProcessMethod >::copyout( m, *it );
         MainWindow::instance()->processMethodLoaded( name, m );
