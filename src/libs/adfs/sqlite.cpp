@@ -235,7 +235,7 @@ stmt::bind( const std::string& column )
 namespace adfs {
 
     template<> bool
-    stmt::bind_item::operator = ( const boost::int32_t& v )
+    stmt::bind_item::operator = ( const int32_t& v )
     {
         return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
     }
@@ -259,7 +259,7 @@ namespace adfs {
     }
     
     template<> bool
-    stmt::bind_item::operator = ( const boost::int64_t& v )
+    stmt::bind_item::operator = ( const int64_t& v )
     {
         return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
     }
@@ -280,16 +280,10 @@ namespace adfs {
     stmt::bind_item::operator = ( const std::wstring& v )
     {
         std::string u = adportable::utf::to_utf8( v );
-        return sqlite3_bind_text( stmt_, nnn_, reinterpret_cast<const char *>( u.c_str() ), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
-        //return sqlite3_bind_text16( stmt_, nnn_, v.c_str(), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
+        return sqlite3_bind_text( stmt_, nnn_, reinterpret_cast<const char *>( u.c_str() )
+                                  , -1, SQLITE_TRANSIENT ) == SQLITE_OK;
     }
 
-    // template<> bool
-    // stmt::bind_item::operator = ( const adportable::u8string& v )
-    // {
-    //     return sqlite3_bind_text( stmt_, nnn_, reinterpret_cast<const char *>( v.c_str() ), -1, SQLITE_TRANSIENT ) == SQLITE_OK;
-    // }
-    
     template<> bool
     stmt::bind_item::operator = ( const blob& blob )
     {
@@ -344,7 +338,7 @@ blob::blob() : p_(0), octets_(0), pBlob_(0)
 {
 }
 
-blob::blob( std::size_t octets, const boost::int8_t *p ) : p_(p), octets_( octets ), pBlob_(0)
+blob::blob( std::size_t octets, const int8_t *p ) : p_(p), octets_( octets ), pBlob_(0)
 {
 }
 
@@ -365,7 +359,7 @@ blob::close()
 }
 
 bool
-blob::open( sqlite& db, const char * zDb, const char * zTable, const char * zColumn, boost::int64_t rowid, flags flag )
+blob::open( sqlite& db, const char * zDb, const char * zTable, const char * zColumn, int64_t rowid, flags flag )
 {
     if ( pBlob_ )
         close();
@@ -378,7 +372,7 @@ blob::open( sqlite& db, const char * zDb, const char * zTable, const char * zCol
 }
 
 bool
-blob::reopen( boost::int64_t rowid )
+blob::reopen( int64_t rowid )
 {
     if ( pBlob_ && ( sqlite3_blob_reopen( pBlob_, rowid ) == SQLITE_OK ) ) {
         octets_ = sqlite3_blob_bytes( pBlob_ );
@@ -388,7 +382,7 @@ blob::reopen( boost::int64_t rowid )
 }
 
 bool
-blob::read( boost::int8_t * pbuf, std::size_t bufsize, std::size_t offset ) const
+blob::read( int8_t * pbuf, std::size_t bufsize, std::size_t offset ) const
 {
     if ( pBlob_ && ( sqlite3_blob_read( pBlob_, pbuf, bufsize, offset ) == SQLITE_OK ) )
         return true;
@@ -397,7 +391,7 @@ blob::read( boost::int8_t * pbuf, std::size_t bufsize, std::size_t offset ) cons
 }
 
 bool
-blob::write( const boost::int8_t * pbuf, std::size_t octets, std::size_t offset ) const
+blob::write( const int8_t * pbuf, std::size_t octets, std::size_t offset ) const
 {
     return sqlite3_blob_write( pBlob_, pbuf, octets, offset ) == SQLITE_OK;
 }
