@@ -41,7 +41,6 @@
 #include <boost/any.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/foreach.hpp>
 #include <adportable/string.hpp>
 #include <adportable/posix_path.hpp>
 #include <adportable/debug.hpp>
@@ -248,7 +247,7 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 
     adportable::path name( path );
 
-    BOOST_FOREACH( const portfolio::Folder& folder, portfolio.folders() )
+    for ( const portfolio::Folder& folder: portfolio.folders() )
         detail::folder::save( dbf_, name, source, folder );
 
     sql.commit();
@@ -270,7 +269,7 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 
     adportable::path name( path );
 
-    BOOST_FOREACH( const portfolio::Folder& folder, portfolio.folders() )
+    for ( const portfolio::Folder& folder: portfolio.folders() )
         detail::folder::save( dbf_, name, *detail::nullfile, folder );
 
     sql.commit();
@@ -289,7 +288,7 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
         return false;
 
     // top folder should be L"Spectra" | L"Chromatograms"
-    BOOST_FOREACH( const adfs::folder& folder, processed.folders() ) {
+    for ( const adfs::folder& folder: processed.folders() ) {
         const std::wstring& name = folder.name();
         portfolio::Folder xmlfolder = portfolio.addFolder( name );
         detail::folder::load( xmlfolder, folder );
@@ -333,7 +332,7 @@ namespace addatafile {
 				return false;
 			}
             
-            BOOST_FOREACH( const portfolio::Folium& att, folium.attachments() )
+            for ( const portfolio::Folium& att: folium.attachments() )
                 save( dbThis, filename, source, att );
 
             return true;
@@ -355,7 +354,7 @@ namespace addatafile {
                 import::attributes( dbf, folium.attributes() );
                 detail::copyin_visitor::apply( any, dbf );
 
-                BOOST_FOREACH( const portfolio::Folium& att, folium.attachments() )
+                for ( const portfolio::Folium& att: folium.attachments() )
                     detail::attachment::save( dbf, filename, source, att );
             }
             return true;
@@ -371,11 +370,11 @@ namespace addatafile {
             import::attributes( dbThis, folder.attributes() );
 
             // save all files in this folder
-            BOOST_FOREACH( const portfolio::Folium& folium, folder.folio() )
+            for ( const portfolio::Folium& folium: folder.folio() )
                 folium::save( dbThis, pathname, source, folium );
     
             // recursive save sub folders
-            BOOST_FOREACH( const portfolio::Folder& subfolder, folder.folders() )
+            for ( const portfolio::Folder& subfolder: folder.folders() )
                 folder::save( dbf, pathname, source, subfolder );
 
             return true;
@@ -383,20 +382,20 @@ namespace addatafile {
 
         bool folder::load( portfolio::Folder parent, const adfs::folder& adfolder )
         {
-            for ( const adfs::file& folium: adfolder.files() )
-                folium::load( parent.addFolium( folium.name() ), folium );
+            for ( const adfs::file& file: adfolder.files() )
+                folium::load( parent.addFolium( file.name() ), file );
             return true;
         }
 
         bool folium::load( portfolio::Folium dst, const adfs::file& src )
         {
-#if defined DEBUG && 0
+#if defined DEBUG //&& 0
             adportable::debug(__FILE__, __LINE__) 
                 << ">> folium::load(" << src.attribute(L"name") << ") " 
                 << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
 #endif
             import::attributes( dst, src );
-            BOOST_FOREACH( const adfs::file& att, src.attachments() )
+            for ( const adfs::file& att: src.attachments() )
                 attachment::load( dst.addAttachment( att.name() ), att );
             return true;
         }
@@ -409,7 +408,7 @@ namespace addatafile {
                 << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");
 #endif
             import::attributes( dst, src );
-            BOOST_FOREACH( const adfs::file& att, src.attachments() )
+            for ( const adfs::file& att: src.attachments() )
                 attachment::load( dst.addAttachment( att.name() ), att );
             return true;
         }
@@ -429,7 +428,7 @@ namespace addatafile {
 
         void import::attributes( adfs::internal::attributes& d, const portfolio::attributes_type& s )
         {
-            BOOST_FOREACH( const portfolio::attribute_type& a, s ) 
+            for ( const portfolio::attribute_type& a: s ) 
                 d.setAttribute( a.first, a.second );
         }
         //---

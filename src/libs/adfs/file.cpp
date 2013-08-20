@@ -60,7 +60,7 @@ file::file( sqlite& db
                                        , rowid_( rowid )
                                        , is_attachment_( is_attachment ) 
 {
-    fetch();
+    attributes::fetch();
 }
 
 

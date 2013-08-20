@@ -386,7 +386,6 @@ blob::read( int8_t * pbuf, std::size_t bufsize, std::size_t offset ) const
 {
     if ( pBlob_ && ( sqlite3_blob_read( pBlob_, pbuf, bufsize, offset ) == SQLITE_OK ) )
         return true;
-    // detail::error_log::log( "blob_read", sqlite3_errmsg( sqlite_ ) );
     return false;
 }
 
