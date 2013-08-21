@@ -73,9 +73,9 @@ namespace addatafile { namespace detail {
     };
 
     struct import {
-        static void attributes( adfs::internal::attributes&, const portfolio::attributes_type& );
-        static void attributes( portfolio::Folium&, const adfs::internal::attributes& );
-        static void attributes( portfolio::Folder&, const adfs::internal::attributes& );
+        static void attributes( adfs::attributes&, const portfolio::attributes_type& );
+        static void attributes( portfolio::Folium&, const adfs::attributes& );
+        static void attributes( portfolio::Folder&, const adfs::attributes& );
     };
 
 }
@@ -277,6 +277,22 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
 }
 
 bool
+datafile::loadContents( const std::wstring& path, const std::wstring& id, adcontrols::dataSubscriber& sub )
+{
+    if ( ! mounted_ )
+        return false;
+    adfs::folder folder = dbf_.findFolder( path );
+    if ( folder ) {
+        const std::wstring& name = folder.name();
+		(void)name;
+		adfs::file file = dbf_.findFile( folder, id );
+        if ( file ) 
+			sub.onFileAdded( path, file );
+    }
+    return false;
+}
+
+bool
 datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& query )
 {
     if ( ! mounted_ )
@@ -414,19 +430,19 @@ namespace addatafile {
         }
 
         //---
-        void import::attributes( portfolio::Folium& d, const adfs::internal::attributes& s )
+        void import::attributes( portfolio::Folium& d, const adfs::attributes& s )
         {
-            for ( adfs::internal::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
+            for ( adfs::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
                 d.setAttribute( it->first, it->second );
         }
 
-        void import::attributes( portfolio::Folder& d, const adfs::internal::attributes& s )
+        void import::attributes( portfolio::Folder& d, const adfs::attributes& s )
         {
-            for ( adfs::internal::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
+            for ( adfs::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
                 d.setAttribute( it->first, it->second );
         }
 
-        void import::attributes( adfs::internal::attributes& d, const portfolio::attributes_type& s )
+        void import::attributes( adfs::attributes& d, const portfolio::attributes_type& s )
         {
             for ( const portfolio::attribute_type& a: s ) 
                 d.setAttribute( a.first, a.second );

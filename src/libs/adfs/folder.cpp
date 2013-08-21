@@ -37,7 +37,7 @@ folder::folder() : db_( 0 ), rowid_( 0 )
 {
 }
 
-folder::folder( const folder& t ) : attributes( t ) 
+folder::folder( const folder& t ) : attributes( t )
                                   , db_( t.db_ )
                                   , name_( t.name_ )
                                   , rowid_( t.rowid_ )
@@ -96,9 +96,16 @@ folder::selectFile( const std::wstring& )
 
 /////////////////////////
 file
-folder::addFile( const std::wstring& name )
+folder::addFile( const std::wstring& id, const std::wstring& title )
 {
-    if ( db_ && rowid_ )
-        return internal::fs::add_file( *this, name );
+    if ( db_ && rowid_ ) {
+		adfs::file file = internal::fs::add_file( *this, id );
+	    if ( file ) {
+			file.id( id );
+			if ( ! title.empty() )
+				static_cast< attributes& >(file).name( title );
+			return file;
+		}
+	}
     return file();
 }

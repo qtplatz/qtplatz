@@ -59,6 +59,8 @@
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adorbmgr/orbmgr.hpp>
+#include <adfs/file.hpp>
+#include <adfs/attributes.hpp>
 #include <boost/filesystem/path.hpp>
 #include <stack>
 #include <qdebug.h>
@@ -145,6 +147,12 @@ const std::wstring&
 Dataprocessor::filename() const
 {
 	return ifileimpl_->file().filename();
+}
+
+bool
+Dataprocessor::load( const std::wstring& path, const std::wstring& id )
+{
+    return ifileimpl_->file().loadContents( path, id, *this );
 }
 
 const adcontrols::LCMSDataset *
@@ -509,10 +517,28 @@ Dataprocessor::subscribe( const adcontrols::ProcessedDataset& processed )
 {
     std::wstring xml = processed.xml();
     portfolio_.reset( new portfolio::Portfolio( xml ) );
-#if defined _DEBUG
-    // portfolio_->save( L"portfolio.xml" );
-#endif
     return true;
+}
+
+bool
+Dataprocessor::onFileAdded( const std::wstring& path, adfs::file& file )
+{
+	boost::filesystem::path pathname( path );
+	if ( std::distance( pathname.begin(), pathname.end() ) < 3 )
+		return false;
+	if ( path.find( L"/Processed" ) == path.npos ) 
+		return false;
+	std::wstring foldername = pathname.filename().wstring();
+
+	portfolio::Folder folder = portfolio_->addFolder( foldername );
+	portfolio::Folium folium = folder.addFolium( static_cast< adfs::attributes& >(file).name() );
+
+	for ( auto& attrib = file.begin(); attrib != file.end(); ++attrib ) 
+		folium.setAttribute( attrib->first, attrib->second );
+	
+	SessionManager::instance()->updateDataprocessor( this, folium );
+
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////

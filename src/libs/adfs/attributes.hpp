@@ -38,55 +38,52 @@ namespace adfs {
     class blob;
     typedef char char_t;
 
-    namespace internal {
+    class attributes {
+    public:
+        virtual ~attributes() {}
+        attributes();
+        attributes( const attributes& t );
+        
+    public:
+        operator bool () const;
+        
+        std::wstring name() const;
+        void name( const std::wstring& name );
 
-        class attributes {
-        public:
-            virtual ~attributes() {}
-            attributes();
-            attributes( const attributes& t );
+        std::wstring id() const;
+        void id( const std::wstring& );
 
-        public:
-            operator bool () const;
-            
-            std::wstring name() const;
-            void name( const std::wstring& name );
+        std::wstring dataClass() const;
+        void dataClass( const std::wstring& );
 
-            std::wstring id() const;
-            void id( const std::wstring& );
+        std::wstring attribute( const std::wstring& ) const;
+        void setAttribute( const std::wstring& key, const std::wstring& value );
+        bool fetch();
+        bool commit();
 
-            std::wstring dataClass() const;
-            void dataClass( const std::wstring& );
+        static bool archive( std::ostream&, const attributes& ); // binary
+        static bool restore( std::istream&, attributes& ); // binary
 
-            std::wstring attribute( const std::wstring& ) const;
-            void setAttribute( const std::wstring& key, const std::wstring& value );
-            bool fetch();
-            bool commit();
+        typedef std::map< std::wstring, std::wstring > vector_type;
+        vector_type::const_iterator begin() const { return attrib_.begin(); }
+        vector_type::const_iterator end() const { return attrib_.end(); }
 
-            static bool archive( std::ostream&, const attributes& ); // binary
-            static bool restore( std::istream&, attributes& ); // binary
+        virtual int64_t rowid() const = 0;
 
-            typedef std::map< std::wstring, std::wstring > vector_type;
-            vector_type::const_iterator begin() const { return attrib_.begin(); }
-            vector_type::const_iterator end() const { return attrib_.end(); }
+    protected:
+        virtual sqlite& db() const = 0;
 
-            virtual int64_t rowid() const = 0;
+    private:
+        bool dirty_;
+        vector_type attrib_;
 
-        protected:
-            virtual sqlite& db() const = 0;
+        template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
+            (void)version;
+            ar & BOOST_SERIALIZATION_NVP(attrib_) ;
+        }
+        friend class boost::serialization::access;
+    };
 
-        private:
-            bool dirty_;
-            vector_type attrib_;
-
-            template<class Archive> void serialize( Archive& ar, const unsigned int version ) {
-                (void)version;
-                ar & BOOST_SERIALIZATION_NVP(attrib_) ;
-            }
-            friend class boost::serialization::access;
-        };
-
-    }
 }
 
-BOOST_CLASS_VERSION( adfs::internal::attributes, 1 )
+BOOST_CLASS_VERSION( adfs::attributes, 1 )

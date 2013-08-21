@@ -174,20 +174,4 @@ PortfolioImpl::newGuid()
 	return pugi::as_wide( s );
 }
 
-#if 0
-struct win32api {
-    std::wstring create_uuid() {
-        std::wstring guidString;
-        GUID guid;
-        if ( CoCreateGuid( &guid ) == S_OK ) {
-            LPOLESTR psz;
-            if ( ::StringFromCLSID( guid, &psz ) == S_OK ) {
-                guidString = psz;
-                CoTaskMemFree( psz );
-            }
-        }
-        return guidString;
-    }
-};
-#endif
 

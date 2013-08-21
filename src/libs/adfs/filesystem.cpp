@@ -98,10 +98,9 @@ filesystem::mount( const wchar_t * filename )
 }
 
 folder
-filesystem::addFolder( const std::wstring& name, bool uniq )
+filesystem::addFolder( const std::wstring& name, bool recursive )
 {
-    (void)uniq; // always unique
-    return internal::fs::add_folder( *db_, name );
+    return internal::fs::add_folder( *db_, name, recursive );
 }
 
 folder
@@ -111,11 +110,11 @@ filesystem::findFolder( const std::wstring& name ) const
 }
 
 file
-filesystem::findFile( const std::wstring& id )
+filesystem::findFile( const folder& folder, const std::wstring& id )
 {
     file file;
     if ( db_ )
-        internal::fs::select_file( *db_, id, file );
+		internal::fs::select_file( *db_, folder.rowid(), id, file );
     return file;
 }
 

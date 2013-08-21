@@ -38,7 +38,6 @@
 #include "sqlite.hpp"
 
 using namespace adfs;
-using namespace adfs::internal;
 
 attributes::attributes() : dirty_( false )
 {
@@ -169,7 +168,7 @@ attributes::commit()
         if ( adfs::cpio<attributes>::copyin( *this, ibuf ) ) {
             adfs::stmt sql( db() );
             if ( sql.prepare( "UPDATE directory SET attr = :attr WHERE rowid = :rowid" ) ) {
-                sql.bind( 1 ) = blob( ibuf.size(), reinterpret_cast<const boost::int8_t *>( ibuf.get() ) );
+                sql.bind( 1 ) = blob( ibuf.size(), reinterpret_cast<const int8_t *>( ibuf.get() ) );
                 sql.bind( 2 ) = rowid();
                 if ( sql.step() == adfs::sqlite_done )
                     dirty_ = false;

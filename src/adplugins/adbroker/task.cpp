@@ -37,7 +37,11 @@
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <adutils/processeddata.hpp>
+#include <adfs/adfs.hpp>
+#include <adfs/cpio.hpp>
 #include <adfs/filesystem.hpp>
+#include <adfs/folder.hpp>
+#include <adfs/file.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
 #include <boost/foreach.hpp>
@@ -45,6 +49,7 @@
 #include <iostream>
 #include <adinterface/signalobserverC.h>
 #include <boost/bind.hpp>
+#include <boost/filesystem.hpp>
 
 using namespace adbroker;
 
@@ -98,6 +103,7 @@ int
 Task::task_close()
 {
     io_service_.stop();
+
     for ( std::thread& t: threads_ )
         t.join();
 
@@ -208,7 +214,8 @@ Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_p
 		++pos;
 	}
     ms.addDescription( adcontrols::Description( L"create", text ) );
-    internal_coaddSpectrum( token, ms );
+    //internal_coaddSpectrum( token, ms );
+	appendOnFile( token, ms, text );
 }
 
 portfolio::Portfolio&
@@ -230,6 +237,7 @@ Task::getPortfolio( const std::wstring& token )
     return *portfolioVec_[ token ];
 }
 
+#if 0 // alterd by appendOnFile
 void
 Task::internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& src )
 {
@@ -248,10 +256,37 @@ Task::internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassS
     for ( session_data& d: session_set_ )
         d.receiver_->folium_added( token.c_str(), L"path", id.c_str() );
 }
+#endif
 
 void
-Task::appendOnFile( const std::wstring& filename, const adcontrols::MassSpectrum& ms )
+Task::appendOnFile( const std::wstring& filename, const adcontrols::MassSpectrum& ms, const std::wstring& title )
 {
+	boost::filesystem::path path( filename );
+
+    adfs::filesystem fs;
+	
+	if ( ! boost::filesystem::exists( path ) ) {
+		if ( ! fs.create( path.wstring().c_str() ) )
+			return;
+	} else {
+		if ( ! fs.mount( path.wstring().c_str() ) )
+			return;
+	}
+	adfs::folder folder = fs.addFolder( L"/Processed/Spectra" );
+
+    std::wstring id;
+    if ( folder ) {
+		adfs::file file = folder.addFile( adfs::create_uuid(), title );
+        if ( file ) {
+            file.dataClass( ms.dataClass() );
+            id = file.id();
+            if ( adfs::cpio< adcontrols::MassSpectrum >::copyin( ms, file ) )
+				file.commit();
+        }
+	}
+
+    for ( session_data& d: session_set_ )
+        d.receiver_->folium_added( filename.c_str(), L"/Processed/Spectra", id.c_str() );
 }
 
 

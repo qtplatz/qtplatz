@@ -157,7 +157,7 @@ fs::prealloc( adfs::sqlite& db, unsigned long long size )
 }
 
 adfs::folder
-fs::add_folder( adfs::sqlite& db, const std::wstring& name )
+fs::add_folder( adfs::sqlite& db, const std::wstring& name, bool recursive )
 {
     boost::filesystem::path path( name );
     std::wstring branch = path.branch_path().wstring(); //.c_str();
@@ -176,8 +176,12 @@ fs::add_folder( adfs::sqlite& db, const std::wstring& name )
         for ( tokenizer_t::const_iterator it = tokens.begin(); it != tokens.end(); ++it ) {
 			// adfs::stmt sql( db );
 			rowid = internal::dml::select_directory( db, type_folder, parent_id, *it );
-            if ( rowid == 0 )
-                return adfs::folder(); // error
+            if ( rowid == 0 ) {
+				if ( recursive && internal::dml::insert_directory( db, type_folder, parent_id, *it ) )
+					rowid = internal::dml::select_directory( db, type_folder, parent_id, *it );
+				else
+					return adfs::folder(); // error
+			}
             parent_id = rowid;
         }
 
@@ -333,13 +337,14 @@ fs::select_folders( sqlite& db, int64_t parent_id, std::vector<folder>& vec )
 }
 
 bool
-fs::select_file( sqlite& db, const std::wstring& id, adfs::file& file )
+fs::select_file( sqlite& db, int64_t parent_id, const std::wstring& id, adfs::file& file )
 {
     stmt sql( db );
 
-    if ( sql.prepare( "SELECT rowid, name, cdate, mdate FROM directory WHERE type = 1 AND name = :name" ) ) {
+    if ( sql.prepare( "SELECT rowid, name, ctime, mtime FROM directory WHERE type = 2 AND name = :name AND parent_id = :parent_id" ) ) {
 
         sql.bind( 1 ) = id; // name (uuid)
+		sql.bind( 2 ) = parent_id;
 
         if ( sql.step() == sqlite_row ) {
 

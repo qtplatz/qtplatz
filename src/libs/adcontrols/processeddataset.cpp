@@ -25,34 +25,20 @@
 
 #include "processeddataset.hpp"
 
-namespace adcontrols {
-    namespace internal {
-
-        class ProcessedDatasetImpl {
-        public:
-            ~ProcessedDatasetImpl() {}
-            ProcessedDatasetImpl() {}
-        public:
-            std::wstring xml_;
-        };
-    }
-}
-
 using namespace adcontrols;
-using namespace adcontrols::internal;
 
-ProcessedDataset::ProcessedDataset() : impl_( new ProcessedDatasetImpl )
+ProcessedDataset::ProcessedDataset()
 {
 }
 
 void
 ProcessedDataset::xml( const std::wstring& xml )
 {
-    impl_->xml_ = xml;
+    xml_ = xml;
 }
 
 const std::wstring&
 ProcessedDataset::xml() const
 {
-    return impl_->xml_;
+    return xml_;
 }

@@ -89,7 +89,7 @@ namespace adbroker {
 
 	private:
 		void internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& );
-		void appendOnFile( const std::wstring& filename, const adcontrols::MassSpectrum& );
+		void appendOnFile( const std::wstring& filename, const adcontrols::MassSpectrum&, const std::wstring& title );
 
     private:
         friend class BrokerManager;

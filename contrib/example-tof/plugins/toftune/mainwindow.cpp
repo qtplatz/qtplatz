@@ -112,7 +112,7 @@ MainWindow::createActions( Internal::tofTunePlugin * plugin )
     Core::ActionManager * am = Core::ICore::instance()->actionManager();
     if ( am ) {
         actionConnect_ = new QAction( QIcon( ":/chemistry/images/search.png" ), tr( "Connect" ), this );
-        bool res = connect( actionConnect_, SIGNAL( triggered() ), plugin, SLOT( actionConnect() ) );
+        connect( actionConnect_, SIGNAL( triggered() ), plugin, SLOT( actionConnect() ) );
         am->registerAction( actionConnect_, "toftune.Connect", context );
     }
 }

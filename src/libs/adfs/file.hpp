@@ -38,7 +38,7 @@ namespace adfs {
     class ostreambuf;
     class istreambuf;
 
-    class file : public internal::attributes {
+    class file : public attributes {
     public:
         ~file();
         file();
@@ -64,12 +64,12 @@ namespace adfs {
         file addAttachment( const std::wstring& name );
         inline sqlite& db() const { return *db_; }
         inline const std::wstring& name() const { return name_; }
-        inline boost::int64_t rowid() const { return rowid_; }  // rowid on table 'directory'
+        inline int64_t rowid() const { return rowid_; }  // rowid on table 'directory'
 
     private:
         sqlite * db_;
         std::wstring name_;
-        boost::int64_t rowid_;  // rowid on 'directory'
+        int64_t rowid_;  // rowid on 'directory'
         bool is_attachment_;
     };
 

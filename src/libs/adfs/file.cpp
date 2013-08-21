@@ -38,29 +38,31 @@ file::~file()
 }
 
 file::file() : db_(0)
-                 , rowid_(0)
-                 , is_attachment_(false)
+             , rowid_(0)
+             , is_attachment_(false)
 {
 }
 
 
 file::file( const file& t ) : attributes( t )
-                                  , db_( t.db_ )
-                                  , name_( t.name_ )  
-                                  , rowid_( t.rowid_ )
-                                  , is_attachment_( t.is_attachment_ )
+                            , db_( t.db_ )
+                            , name_( t.name_ )  
+                            , rowid_( t.rowid_ )
+                            , is_attachment_( t.is_attachment_ )
 {
 }
 
 file::file( sqlite& db
-               , boost::int64_t rowid
-               , const std::wstring& name
-                , bool is_attachment ) : db_( &db )
-                                       , name_( name )  
-                                       , rowid_( rowid )
-                                       , is_attachment_( is_attachment ) 
+            , boost::int64_t rowid
+            , const std::wstring& name
+            , bool is_attachment ) : db_( &db )
+                                   , name_( name )  
+                                   , rowid_( rowid )
+                                   , is_attachment_( is_attachment ) 
 {
     attributes::fetch();
+	if ( attributes::id() != name_ )
+		attributes::id( name_ );
 }
 
 

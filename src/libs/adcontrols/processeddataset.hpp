@@ -27,12 +27,9 @@
 
 #include "adcontrols_global.h"
 #include <string>
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
-
-    namespace internal {
-        class ProcessedDatasetImpl;
-    }
 
     class ADCONTROLSSHARED_EXPORT ProcessedDataset {
     public:
@@ -42,7 +39,7 @@ namespace adcontrols {
         const std::wstring& xml() const;
 
     private:
-        internal::ProcessedDatasetImpl* impl_;
+        std::wstring xml_;
     };
 
 }

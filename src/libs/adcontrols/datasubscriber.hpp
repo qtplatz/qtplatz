@@ -31,6 +31,9 @@
 #define DATASUBSCRIBER_H
 
 #include "adcontrols_global.h"
+#include <string>
+
+namespace adfs { class file; }
 
 namespace adcontrols {
 
@@ -47,6 +50,7 @@ namespace adcontrols {
         virtual bool subscribe( const LCMSDataset& ) { return false; }
         virtual bool subscribe( const ProcessedDataset& ) { return false; }
 
+		virtual bool onFileAdded( const std::wstring& /* path */, adfs::file& ) { return false; } 
     };
 
 }

@@ -35,7 +35,8 @@
 #include "mainwindow.hpp"
 #include "navigationwidgetfactory.hpp"
 #include "sessionmanager.hpp"
-
+#include <coreplugin/editormanager/editormanager.h>
+#include <coreplugin/editormanager/ieditor.h>
 #include <acewrapper/constants.hpp>
 #include <acewrapper/input_buffer.hpp>
 #include <adcontrols/datafilebroker.hpp>
@@ -301,14 +302,17 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
 {
     qDebug() << "===== DataprocPlugin::handle_folium_added" << token << " path=" << path;
 
-    SessionManager::vector_type::iterator it = SessionManager::instance()->find( qtwrapper::wstring( token ) );
+	std::wstring filename = token.toStdWString();
+
+    SessionManager::vector_type::iterator it = SessionManager::instance()->find( filename );
     if ( it == SessionManager::instance()->end() ) {
-        boost::filesystem::path xtoken( qtwrapper::wstring::copy( token ) );
-        xtoken.replace_extension( L".adfs" );
-        it = SessionManager::instance()->find( xtoken.wstring() );
+		Core::EditorManager::instance()->openEditor( token );
+        it = SessionManager::instance()->find( filename );
     }
     if ( it != SessionManager::instance()->end() ) {
-        
+		Dataprocessor& processor = it->getDataprocessor();
+		processor.load( path.toStdWString(), id.toStdWString() );
+        /*
         Broker::Folium_var var = brokerSession_->folium( qtwrapper::wstring( token ).c_str(), qtwrapper::wstring( id ).c_str() );
 
         // todo check type
@@ -322,13 +326,14 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
 
         adcontrols::ProcessMethod m;
         processor.addSpectrum( ms, m );
+		*/
     }
 }
 
 void
 DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
-	waitCursor w();
+	waitCursor w;
 
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {

@@ -66,11 +66,11 @@ namespace dataproc {
         bool open( const QString& );
         Core::IFile * ifile();
 
-        // QString filename() const;
 		const std::wstring& filename() const;
         adcontrols::datafile& file();
         const adcontrols::LCMSDataset* getLCMSDataset();
         portfolio::Portfolio getPortfolio();
+        bool load( const std::wstring& path, const std::wstring& id );
 		bool fetch( portfolio::Folium& );
         void setCurrentSelection( portfolio::Folium& );
         void setCurrentSelection( portfolio::Folder& );
@@ -84,8 +84,9 @@ namespace dataproc {
         SignalObserver::Observer * observer();
 
         // implement adcontrols::dataSubscriber
-        virtual bool subscribe( const adcontrols::LCMSDataset& );
-        virtual bool subscribe( const adcontrols::ProcessedDataset& );
+        virtual bool subscribe( const adcontrols::LCMSDataset& ) override;
+        virtual bool subscribe( const adcontrols::ProcessedDataset& ) override;
+		virtual bool onFileAdded( const std::wstring& path, adfs::file& ) override;
         // <------------------------
     private:
         void addCalibration( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
@@ -94,11 +95,8 @@ namespace dataproc {
                              , const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses& );
 
     signals:
-        // void changeSelection( portfolio::Folium& );
 
     public slots:
-        // void slotTitleChanged( const QString& title );
-        // void handle_changeSelection( portfolio::Folium& );
 
     private:
         std::unique_ptr< IFileImpl > ifileimpl_;

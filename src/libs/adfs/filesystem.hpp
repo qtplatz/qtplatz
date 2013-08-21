@@ -47,9 +47,9 @@ namespace adfs {
         bool mount( const wchar_t * filename );
         bool close();
         //
-        folder addFolder( const std::wstring& name, bool uniq = true );
+        folder addFolder( const std::wstring& name, bool create = true );
         folder findFolder( const std::wstring& name ) const;
-        file findFile( const std::wstring& id );
+        file findFile( const folder&, const std::wstring& id );
         std::vector< folder > folders();
         inline sqlite& db() const { return *db_; }
     };

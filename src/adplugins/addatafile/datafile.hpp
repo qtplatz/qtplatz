@@ -56,7 +56,7 @@ namespace addatafile {
         // create, modify and delete methods
         bool saveContents( const std::wstring&, const portfolio::Portfolio&, const adcontrols::datafile& ) override;
         bool saveContents( const std::wstring&, const portfolio::Portfolio& ) override;
-        bool update( const std::wstring&, boost::any& ) override { return false; }
+        bool loadContents( const std::wstring& path, const std::wstring& id, adcontrols::dataSubscriber& ) override;
 
         adcontrols::datafile::factory_type factory() override { return 0; }
 

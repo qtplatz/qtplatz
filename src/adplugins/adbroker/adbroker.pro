@@ -19,6 +19,7 @@ INCLUDEPATH *= $$OUT_PWD/../../libs
 
 LIBS += -l$$qtLibraryTarget(adinterface) \
     -l$$qtLibraryTarget(adportable) \
+    -l$$qtLibraryTarget(adfs) \
     -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(adcontrols) \
     -l$$qtLibraryTarget(portfolio) \

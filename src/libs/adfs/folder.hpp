@@ -34,7 +34,7 @@ namespace adfs {
     class file;
     class sqlite;
 
-    class folder : public internal::attributes {
+    class folder : public attributes {
     public:
         ~folder();
         folder();
@@ -49,7 +49,7 @@ namespace adfs {
         file selectFile( const std::wstring& );
 
         // --- add/modify features
-        file addFile( const std::wstring& name );
+        file addFile( const std::wstring& id, const std::wstring& title = L"" );
 
         inline boost::int64_t rowid() const { return rowid_; }
         inline const std::wstring& name() const { return name_; }
