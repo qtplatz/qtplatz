@@ -214,49 +214,8 @@ Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_p
 		++pos;
 	}
     ms.addDescription( adcontrols::Description( L"create", text ) );
-    //internal_coaddSpectrum( token, ms );
 	appendOnFile( token, ms, text );
 }
-
-portfolio::Portfolio&
-Task::getPortfolio( const std::wstring& token )
-{
-    std::map< std::wstring, std::shared_ptr<portfolio::Portfolio> >::iterator it = portfolioVec_.find( token );
-    if ( it == portfolioVec_.end() ) {
-
-        portfolioVec_[ token ] = std::shared_ptr<portfolio::Portfolio>( new portfolio::Portfolio );
-        portfolioVec_[ token ]->create_with_fullpath( token );
-
-        for ( session_data& d: session_set_ ) {
-#if defined DEBUG || defined _DEBUG// && 0
-            adportable::debug(__FILE__, __LINE__) << "getPortfolio token=" << token << " created and fire to :" << d.token_;
-#endif
-            d.receiver_->portfolio_created( token.c_str() );
-        }
-    }
-    return *portfolioVec_[ token ];
-}
-
-#if 0 // alterd by appendOnFile
-void
-Task::internal_coaddSpectrum( const std::wstring& token, const adcontrols::MassSpectrum& src )
-{
-    portfolio::Portfolio& portfolio = getPortfolio( token );
-
-    portfolio::Folder folder = portfolio.addFolder( L"MassSpectra" );
-	portfolio::Folium folium = folder.addFolium( adcontrols::MassSpectrum::dataClass() );
-
-    //------->
-    adcontrols::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
-    static_cast<boost::any&>( folium ) = ms;
-    //<-------
-
-    std::wstring id = folium.id();
-
-    for ( session_data& d: session_set_ )
-        d.receiver_->folium_added( token.c_str(), L"path", id.c_str() );
-}
-#endif
 
 void
 Task::appendOnFile( const std::wstring& filename, const adcontrols::MassSpectrum& ms, const std::wstring& title )
@@ -287,17 +246,6 @@ Task::appendOnFile( const std::wstring& filename, const adcontrols::MassSpectrum
 
     for ( session_data& d: session_set_ )
         d.receiver_->folium_added( filename.c_str(), L"/Processed/Spectra", id.c_str() );
-}
-
-
-portfolio::Folium
-Task::findFolium( const std::wstring& token, const std::wstring& id )
-{
-    portfolio::Portfolio& portfolio = getPortfolio( token );
-
-    std::wstring xml = portfolio.xml();
-
-    return portfolio.findFolium( id );
 }
 
 void

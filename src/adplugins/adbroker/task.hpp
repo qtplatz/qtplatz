@@ -81,8 +81,6 @@ namespace adbroker {
         void register_failed( vector_type::iterator& );
         void commit_failed();
 
-        portfolio::Folium findFolium( const std::wstring& token, const std::wstring& id );
-
     public:
         inline boost::asio::io_service& io_service() { return io_service_; }
         void handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_ptr observer, double x1, double x2 );
@@ -94,7 +92,6 @@ namespace adbroker {
     private:
         friend class BrokerManager;
 
-        portfolio::Portfolio& getPortfolio( const std::wstring& token );
         bool internal_disconnect( Broker::Session_ptr );
 
         // 
@@ -105,8 +102,6 @@ namespace adbroker {
 
         std::vector<session_data> session_set_;
         std::vector<session_data> session_failed_;
-
-        std::map< std::wstring, std::shared_ptr< portfolio::Portfolio > > portfolioVec_;
 
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;

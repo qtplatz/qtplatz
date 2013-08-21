@@ -168,6 +168,9 @@ namespace adbroker {
 Broker::Folium *
 session_i::folium( const CORBA::WChar * token, const CORBA::WChar * fileId )
 {
+#if 0
+	// since on-memory 'portfolio' for snapshot spectra holder was altered by direct adfs use, 
+	// this method may not be necessary.  This will resume when distributed filesystem supported.
     BrokerFoliumBuffer buffer;
 
     adbroker::Task * pTask = adbroker::BrokerManager::task();
@@ -180,4 +183,6 @@ session_i::folium( const CORBA::WChar * token, const CORBA::WChar * fileId )
         }
     }
     return buffer.var_._retn();
+#endif
+	return 0;
 }
