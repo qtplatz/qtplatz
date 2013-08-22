@@ -35,7 +35,6 @@
 #include <qwt_scale_widget.h>
 #include <qtwrapper/qstring.hpp>
 #include <algorithm>
-#include <boost/foreach.hpp>
 
 using namespace adwplot;
 
@@ -108,7 +107,7 @@ void
 Dataplot::onZoomed( const QRectF& rect )
 {
 	if ( plotlink_ && ! linkedzoom_inprocess_ ) {
-		BOOST_FOREACH( plotlink::value_type plot, *plotlink_ ) {
+		for ( plotlink::value_type plot: *plotlink_ ) {
 			plot->zoom( rect, *this );
 		}
 	}
@@ -119,7 +118,7 @@ void
 Dataplot::onPanned( int dx, int dy )
 {
 	if ( plotlink_ && ! linkedzoom_inprocess_ ) {
-		BOOST_FOREACH( plotlink::value_type plot, *plotlink_ ) {
+		for ( plotlink::value_type plot: *plotlink_ ) {
 			plot->panne( dx, dy, *this );
 		}
 	}

@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "msproperty.hpp"
-#include <boost/foreach.hpp>
 
 using namespace adcontrols;
 

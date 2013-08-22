@@ -33,7 +33,6 @@
 #include <adchem/smartspattern.hpp>
 #include <adchem/mol.hpp>
 
-#include <boost/foreach.hpp>
 #include <boost/bind.hpp>
 #include <iostream>
 #include <iomanip>
@@ -232,7 +231,7 @@ SDFileModel::file( std::shared_ptr< ChemFile >& file )
             if ( sp.init( smiles.c_str() ) ) {
                 if ( sp.match( mol ) ) {
                     // std::vector< std::vector< int > > maplist = sp.GetUMapList();
-                    // BOOST_FOREACH( const std::vector< int >& matches, maplist ) {
+                    // for ( const std::vector< int >& matches, maplist ) {
 					// 	const OpenBabel::OBMol * omol = mol.obmol();
                     //     OpenBabel::OBBond * b1 = omol->GetBond( matches[0] );
                     //     (void)b1;
@@ -247,7 +246,7 @@ SDFileModel::file( std::shared_ptr< ChemFile >& file )
                , boost::bind( &Mol::getExactMass, _2, true ) < boost::bind( &Mol::getExactMass, _1, true ) );
     size_t cnt = 0;
     double prev = 0;
-    BOOST_FOREACH( const Mol& mol, data_ ) {
+    for ( const Mol& mol: data_ ) {
         if ( prev == 0 ) {
             prev = mol.getExactMass();
             continue;

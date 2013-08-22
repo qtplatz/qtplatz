@@ -41,7 +41,6 @@
 #include <adportable/debug.hpp>
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
-#include <boost/foreach.hpp>
 
 #include <compiler/diagnostic_pop.h>
 #include <vector>
@@ -228,7 +227,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 
     double toferror = 0;
 
-    BOOST_FOREACH( adportable::peakinfo& pk, finder.results_ ) {
+    for ( adportable::peakinfo& pk: finder.results_ ) {
         adportable::array_wrapper<const double>::iterator it = 
             std::max_element( intens.begin() + pk.first, intens.begin() + pk.second );
 

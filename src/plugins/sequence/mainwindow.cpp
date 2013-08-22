@@ -72,7 +72,6 @@
 
 #include <QtGui/qicon.h>
 #include <qdebug.h>
-#include <boost/foreach.hpp>
 
 namespace sequence {
 
@@ -114,7 +113,7 @@ MainWindow::OnInitialUpdate()
 
     QList< iSequence * > visitables = ExtensionSystem::PluginManager::instance()->getObjects< iSequence >();
 
-	BOOST_FOREACH( iSequence * v, visitables ) {
+	for ( iSequence * v: visitables ) {
 
         for ( size_t i = 0; i < v->size(); ++i ) {
 			adextension::iEditorFactory& factory = (*v)[i];

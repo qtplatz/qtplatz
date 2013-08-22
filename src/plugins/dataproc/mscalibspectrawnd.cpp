@@ -50,7 +50,6 @@
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>
 #include <QVBoxLayout>
-#include <boost/foreach.hpp>
 #include <cmath>
 
 using namespace dataproc;
@@ -204,7 +203,7 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx )
         adportable::debug(__FILE__, __LINE__) << "handleSelSummary(" << idx << ") t=" << t;
 
         size_t nid = 0;
-        BOOST_FOREACH( adutils::MassSpectrumPtr p, spectra_ ) {
+        for ( adutils::MassSpectrumPtr p: spectra_ ) {
             if ( nid ) {
                 int idx = assign_peaks::find_by_time( *p, t, 3.0e-9 ); // 3ns tolerance
                 if ( idx >= 0 ) {

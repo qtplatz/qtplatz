@@ -24,7 +24,6 @@
 
 #include "sequence.hpp"
 #include "schema.hpp"
-#include <boost/foreach.hpp>
 #include <boost/serialization/nvp.hpp>
 
 #include <compiler/diagnostic_push.h>

@@ -30,7 +30,6 @@
 #include <xmlparser/pugixml.hpp>
 #include <xmlparser/pugiwrapper.hpp>
 #include <fstream>
-#include <boost/foreach.hpp>
 #include <iostream>
 #include <boost/filesystem.hpp>
 

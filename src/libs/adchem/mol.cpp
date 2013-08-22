@@ -25,7 +25,6 @@
 #include "mol.hpp"
 #include <compiler/disable_unused_parameter.h>
 #include <openbabel/mol.h>
-#include <boost/foreach.hpp>
 
 using namespace adchem;
 

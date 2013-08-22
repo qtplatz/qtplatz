@@ -34,7 +34,6 @@
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/any.hpp>
-#include <boost/foreach.hpp>
 #include <iostream>
 
 using namespace tofservant;

@@ -46,7 +46,6 @@
 #include <adcontrols/description.hpp>
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>
-#include <boost/foreach.hpp>
 #include <boost/variant.hpp>
 #include <queue>
 

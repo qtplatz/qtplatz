@@ -31,7 +31,6 @@
 #include <QMimeData>
 #include <QUrl>
 #include <QPainter>
-#include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/bind.hpp>
 #include <sstream>
@@ -140,7 +139,7 @@ MolWidget::paintEvent( QPaintEvent * )
 		painter.drawText( a.x * factor, a.y * factor, qtwrapper::qstring::copy( a.symbol ) );
 	}
 
-	BOOST_FOREACH( const adcontrols::CTable::Bond& b, ctab.bonds() ) {
+	for ( const adcontrols::CTable::Bond& b: ctab.bonds() ) {
 		adcontrols::CTable::Atom a1 = ctab.atom( b.first_atom_number - 1 );
 		adcontrols::CTable::Atom a2 = ctab.atom( b.second_atom_number - 1 );
         a1.x *= factor;

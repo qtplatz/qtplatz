@@ -131,7 +131,7 @@ tofTunePlugin::initialize(const QStringList &arguments, QString *errorString)
 /*
     QList< adextension::iSequence * > adapters =
         ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSequence >();
-    BOOST_FOREACH( adextension::iSequence * s, adapters ) {
+    for ( adextension::iSequence * s: adapters ) {
         EditorFactory factory;
         s->addEditorFactory( &factory );
     }

@@ -44,7 +44,6 @@
 #include <adfs/file.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
-#include <boost/foreach.hpp>
 #include <sstream>
 #include <iostream>
 #include <adinterface/signalobserverC.h>

@@ -35,7 +35,6 @@
 #include <qwt_plot_curve.h>
 #include <qwt_plot_marker.h>
 #include <qwt_picker_machine.h>
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
 #include <algorithm>
 
@@ -181,7 +180,7 @@ TraceWidget::override_zoom_rect( QRectF& rc )
         using tracewidget::TraceData;
         double bottom = rc.bottom();
         double top = rc.top();
-        BOOST_FOREACH( const TraceData& trace, impl_->traces_ ) {
+        for ( const TraceData& trace: impl_->traces_ ) {
             std::pair<double, double> y = trace.y_range( rc.left(), rc.right() );
             if ( bottom > y.first )
                 bottom = y.first;
@@ -298,7 +297,7 @@ TraceData::y_range( double left, double right ) const
 {
     double top = 100;
     double bottom = -10;
-    BOOST_FOREACH( const map_type::value_type& pair, data_ ) {
+    for ( const map_type::value_type& pair: data_ ) {
 
         size_t idx0 = pair.second.index( left );
         size_t idx1 = pair.second.index( right );

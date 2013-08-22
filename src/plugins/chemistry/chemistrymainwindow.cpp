@@ -73,7 +73,6 @@
 #  pragma warning(default:4100)
 #endif
 
-#include <boost/foreach.hpp>
 #include <boost/bind.hpp>
 #include <algorithm>
 
@@ -322,7 +321,7 @@ ChemistryMainWindow::handleViewDetails( int raw, const SDFileModel * model )
         if ( raw >= 0 && data.size() > unsigned( raw ) ) {
 			// const adchem::Mol& target = data[ raw ];
 			double m = data[ raw ].getExactMass();
-            BOOST_FOREACH( const adchem::Mol& mol, data ) {
+            for ( const adchem::Mol& mol: data ) {
 				double mz = mol.getExactMass();
 				if ( m - 0.01 < mz && mz < m + 0.01 )
 					details.push_back( mol );
@@ -353,7 +352,7 @@ ChemistryMainWindow::handleViewFragments( int raw, const SDFileModel * model )
 /*    
         std::vector< int > indecies = adchem::Chopper::chop( mol );
 		while ( ! indecies.empty() ) {
-			BOOST_FOREACH( int index, indecies ) {
+			for ( int index, indecies ) {
                 OBMol dup( mol );
 				std::pair< OBMol, OBMol > sub = adchem::Chopper::split( dup, index );
 				std::ostringstream o;

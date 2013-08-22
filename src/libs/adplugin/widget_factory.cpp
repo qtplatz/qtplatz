@@ -29,7 +29,6 @@
 #include "manager.hpp"
 #include <adportable/utf.hpp>
 #include <QObject>
-#include <boost/foreach.hpp>
 
 using namespace adplugin;
 
@@ -55,7 +54,7 @@ widget_factory::create( const wchar_t * wiid, const char * clsid, QWidget * pare
 
     adplugin::manager::instance()->select_iids( ".*\\.adplugins\\.widget_factory\\..*", vec );
     
-    BOOST_FOREACH( const adplugin::plugin_ptr& d, vec ) {
+    for ( const adplugin::plugin_ptr& d: vec ) {
 
         if ( clsid && std::string( clsid ) != d->clsid() )
             continue;

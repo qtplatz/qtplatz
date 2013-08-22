@@ -36,7 +36,6 @@
 #include <qwt_plot_curve.h>
 #include <qwt_plot_marker.h>
 #include <qwt_picker_machine.h>
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
 using namespace adwplot;
@@ -170,7 +169,7 @@ SpectrumWidget::override_zoom_rect( QRectF& rc )
         using spectrumwidget::TraceData;
         double bottom = rc.bottom();
         double top = rc.top();
-        BOOST_FOREACH( const TraceData& trace, impl_->traces_ ) {
+        for ( const TraceData& trace: impl_->traces_ ) {
             std::pair<double, double> y = trace.y_range( rc.left(), rc.right() );
             if ( bottom > y.first )
                 bottom = y.first;
@@ -296,7 +295,7 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
         } else {
             data_[ 0 ].setData( size, masses, intens );
         }
-        BOOST_FOREACH( const map_type::value_type& pair, data_ ) {
+        for ( const map_type::value_type& pair: data_ ) {
             curves_.push_back( PlotCurve( plot ) );
             PlotCurve& curve = curves_.back();
             if ( pair.first != 0 && unsigned( pair.first ) < sizeof( color_table ) / sizeof( color_table[0] ) )
@@ -320,7 +319,7 @@ TraceData::y_range( double left, double right ) const
 {
     double top = 100;
     double bottom = -10;
-    BOOST_FOREACH( const map_type::value_type& pair, data_ ) {
+    for ( const map_type::value_type& pair: data_ ) {
 
         size_t idx0 = pair.second.index( left );
         size_t idx1 = pair.second.index( right );

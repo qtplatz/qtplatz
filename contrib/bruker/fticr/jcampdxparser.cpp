@@ -33,7 +33,6 @@
 #if defined _MSC_VER
 #pragma warning(default:4100)
 #endif
-#include <boost/foreach.hpp>
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>

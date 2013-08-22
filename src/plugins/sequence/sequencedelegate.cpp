@@ -24,7 +24,6 @@
 
 #include "sequencedelegate.hpp"
 #include <adsequence/schema.hpp>
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
 #include <algorithm>
 #include <cstring>
@@ -39,7 +38,7 @@ namespace {
             return "unknown";
         }
         static adsequence::SAMPLE_TYPE value( const char * name ) {
-            BOOST_FOREACH( const char * a, list ) {
+            for ( const char * a: list ) {
                 if ( std::strcmp( a, name ) == 0 )
                     return static_cast< adsequence::SAMPLE_TYPE >( std::distance( list[0], a ) );
             }
@@ -56,7 +55,7 @@ namespace {
 
     struct double_value {
         static std::string toString( const double& value, const std::string& variable ) {
-            BOOST_FOREACH( const string_format_t& a, string_format ) {
+            for ( const string_format_t& a: string_format ) {
                 if ( variable == a.variable_name )
                     return ( boost::format( a.format ) % value ).str();
             }

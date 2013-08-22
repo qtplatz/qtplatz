@@ -25,7 +25,6 @@
 #include "tofdata.hpp"
 #include "tofacqmethod.hpp"
 #include "protocolids.hpp"
-#include <boost/foreach.hpp>
 
 // #include <boost/iostreams/device/array.hpp>
 // #include <boost/iostreams/stream.hpp>

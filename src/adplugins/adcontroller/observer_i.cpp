@@ -29,7 +29,6 @@
 #include <acewrapper/orbservant.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/timer.hpp>
-#include <boost/foreach.hpp>
 #include "logging.hpp"
 
 namespace adcontroller {
@@ -337,17 +336,17 @@ observer_i::forward_observer_update_data( unsigned long parentId, unsigned long 
     assert( objId_ == 0 );
 
     // fire all event-clients connecting to 'master observer'
-    BOOST_FOREACH( internal::observer_events_data& o, observer_events_set_ ) {
+    for ( internal::observer_events_data& o: observer_events_set_ ) {
         // todo: check frequency
         o.events_->OnUpdateData( objId, pos );
     }
 
     // following event firing is optional
-    BOOST_FOREACH( internal::sibling_data& sibling, sibling_set_ ) {
+    for ( internal::sibling_data& sibling: sibling_set_ ) {
         // send notification from child to parent
         if ( sibling.objId_ == parentId ) {
             using namespace adcontroller::internal;
-            BOOST_FOREACH( observer_events_data& o, sibling.pCache_i_->observer_events_set_ ) {
+            for ( observer_events_data& o: sibling.pCache_i_->observer_events_set_ ) {
                 // todo: check frequency
                 o.events_->OnUpdateData( objId, pos );
             }
@@ -363,13 +362,13 @@ observer_i::forward_observer_update_method( unsigned long /* parentId */, unsign
     assert( objId_ == 0 );
 
     // fire all event-clients connecting to 'master observer'
-    BOOST_FOREACH( internal::observer_events_data& o, observer_events_set_ )
+    for ( internal::observer_events_data& o: observer_events_set_ )
         o.events_->OnMethodChanged( objId, pos );
 
-    BOOST_FOREACH( internal::sibling_data& sibling, sibling_set_ ) {
+    for ( internal::sibling_data& sibling: sibling_set_ ) {
         if ( ( sibling.objId_ == objId ) || sibling.pCache_i_->isChild( objId ) ) {
             using namespace adcontroller::internal;
-            BOOST_FOREACH( observer_events_data& o, sibling.pCache_i_->observer_events_set_ )
+            for ( observer_events_data& o: sibling.pCache_i_->observer_events_set_ )
                 o.events_->OnMethodChanged( objId, pos );
         }
     }
@@ -381,14 +380,14 @@ observer_i::forward_observer_update_events( unsigned long /* parentId */
                                             , unsigned long objId, long pos, unsigned long events )
 {
     // fire all event-clients connecting to 'master observer'
-    BOOST_FOREACH( internal::observer_events_data& o, observer_events_set_ )
+    for ( internal::observer_events_data& o: observer_events_set_ )
         o.events_->OnEvent( objId, pos, events );
 
     // optional
-    BOOST_FOREACH( internal::sibling_data& sibling, sibling_set_ ) {
+    for ( internal::sibling_data& sibling: sibling_set_ ) {
         if ( ( sibling.objId_ == objId ) || sibling.pCache_i_->isChild( objId ) ) {
             using namespace adcontroller::internal;
-            BOOST_FOREACH( observer_events_data& o, sibling.pCache_i_->observer_events_set_ )
+            for ( observer_events_data& o: sibling.pCache_i_->observer_events_set_ )
                 o.events_->OnEvent( objId, pos, events );
             return true;
         }

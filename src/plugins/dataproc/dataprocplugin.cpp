@@ -99,7 +99,6 @@
 
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/foreach.hpp>
 #include <streambuf>
 #include <fstream>
 #include <iomanip>

@@ -48,12 +48,7 @@
 #include <adportable/moment.hpp>
 #include <adportable/polfit.hpp>
 #include <boost/bind.hpp>
-#include <boost/foreach.hpp>
-//#pragma warning(disable:4819)
 #include <boost/numeric/interval.hpp>
-//#include <boost/numeric/matrix.hpp>
-//#include <boost/numeric/lu.hpp>
-//#pragma warning(default:4819)
 #include <functional>
 #include <algorithm>
 #include <sstream>

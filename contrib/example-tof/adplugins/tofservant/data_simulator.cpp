@@ -25,7 +25,6 @@
 #include "data_simulator.hpp"
 #include <boost/random.hpp>
 #include <boost/math/distributions/normal.hpp>
-#include <boost/foreach.hpp>
 
 using namespace tofservant;
 

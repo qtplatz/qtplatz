@@ -37,7 +37,6 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/include/std_pair.hpp>
-#include <boost/foreach.hpp>
 #include <boost/bind.hpp>
 #include <compiler/diagnostic_pop.h>
 #include <sstream>
@@ -79,12 +78,12 @@ namespace adcontrols {
         }
 
         void map_join( map_type& m, map_type& a ) {
-            BOOST_FOREACH( map_type::value_type& p, a )
+            for ( map_type::value_type& p: a )
                 m[ p.first ] += p.second;
         }
 
         void map_mul( map_type& m, std::size_t n ) {
-            BOOST_FOREACH( map_type::value_type& p, m )
+            for ( map_type::value_type& p: m )
                 p.second *= n;
         }
 
@@ -180,13 +179,13 @@ ChemicalFormula::getFormula( const CTable& ctable )
 	typedef std::pair< std::wstring, int > atom_valence_t;
 	std::vector< atom_valence_t > valences;
 
-	BOOST_FOREACH( const CTable::Atom& atom, ctable.atoms() ) {
+	for ( const CTable::Atom& atom: ctable.atoms() ) {
 		const adcontrols::Element& element = toe->findElement( atom.symbol );
 		assert( ! element.symbol().empty() );
 		valences.push_back( std::make_pair<std::wstring, int>( std::wstring( atom.symbol ), element.valence() ) );
 	}
 
-	BOOST_FOREACH( const CTable::Bond& bond, ctable.bonds() ) {
+	for ( const CTable::Bond& bond: ctable.bonds() ) {
 		size_t n = bond.bond_type <= 3 ? bond.bond_type : 0;
 		valences[ bond.first_atom_number - 1 ].second -= n;
 		valences[ bond.second_atom_number - 1 ].second -= n;
@@ -239,7 +238,7 @@ ChemicalFormula::getComposition( const std::wstring& formula )
 	std::map< const wchar_t *, size_t > comp;
     client::map_type map;
 	if ( ChemicalFormulaImpl::parse( formula, map ) ) {
-		BOOST_FOREACH( client::map_type::value_type& p, map )
+		for ( client::map_type::value_type& p: map )
 			comp[ p.first ] = p.second;
 	}
     return comp;
@@ -259,7 +258,7 @@ ChemicalFormulaImpl::getChemicalMass( const std::wstring& formula )
     if ( parse( formula, map ) ) {
         adcontrols::TableOfElements *toe = adcontrols::TableOfElements::instance();
         double mass = 0;
-        BOOST_FOREACH( client::map_type::value_type& p, map )
+        for ( client::map_type::value_type& p: map )
             mass += toe->getChemicalMass( toe->findElement( p.first ) ) * p.second;
         return mass;
     }
@@ -273,7 +272,7 @@ ChemicalFormulaImpl::getMonoIsotopicMass( const std::wstring& formula )
     if ( parse( formula, map ) ) {
         adcontrols::TableOfElements *toe = adcontrols::TableOfElements::instance();
         double mass = 0;
-        BOOST_FOREACH( client::map_type::value_type& p, map )
+        for ( client::map_type::value_type& p: map )
             mass += toe->getMonoIsotopicMass( toe->findElement( p.first ) ) * p.second;
         return mass;
     }
@@ -287,7 +286,7 @@ ChemicalFormulaImpl::standardFormula( const std::wstring& formula )
     if ( parse( formula, map ) ) {
 
         std::wostringstream o;
-        BOOST_FOREACH( client::map_type::value_type& p, map )
+        for ( client::map_type::value_type& p: map )
             o << p.first << p.second;
         return o.str();
     }
