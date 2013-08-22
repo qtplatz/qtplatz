@@ -183,10 +183,6 @@ traceObserver_i::push_back( long pos
 			    , const TOFSignal::SpectrumProcessedData& data
 			    , const TOFSignal::TraceMetadata& meta )
 {
-//#if defined DEBUG || defined _DEBUG
-    std::cout << "traceObserver_i::push_back: " << pos << std::endl;
-//#endif
-
     unsigned long prevEvents = 0;
     do {
         std::lock_guard< std::mutex > lock( mutex_ );

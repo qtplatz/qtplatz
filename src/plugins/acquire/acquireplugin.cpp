@@ -200,6 +200,11 @@ AcquirePlugin::initialize_actions()
     actionInject_ = new QAction(QIcon(":/acquire/images/Button Add.png"), tr("Inject (recording data)"), this);
     connect( actionInject_, SIGNAL(triggered()), this, SLOT(actionInject()) );
 
+    actionInitRun_->setEnabled( false );
+    actionRun_->setEnabled( false );
+	actionStop_->setEnabled( false );
+	actionInject_->setEnabled( false );
+
     //------------ snapshot -------------
     actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
     connect( actionSnapshot_, SIGNAL(triggered()), this, SLOT(actionSnapshot()) );
@@ -443,7 +448,6 @@ AcquirePlugin::actionConnect()
                             
                         receiver_i_.reset( new adplugin::QReceiver_i() );
                         session_->connect( receiver_i_.get()->_this(), "acquire" );
-
                         connect( receiver_i_.get()
                                  , SIGNAL( signal_message( unsigned long, unsigned long ) )
                                  , this, SLOT( handle_message( unsigned long, unsigned long ) ) );
@@ -459,7 +463,8 @@ AcquirePlugin::actionConnect()
 
                         do { LogMessageHelper log( L"===== Session initialized. =====" );	mainWindow_->handle_eventLog( log.get() );	} while(0);
 
-                        observer_ = session_->getObserver(); // master observer
+                        // Master signal observer
+                        observer_ = session_->getObserver();
                         if ( ! CORBA::is_nil( observer_.in() ) ) {
                             if ( ! masterObserverSink_ ) {
                                 masterObserverSink_.reset( new adplugin::QObserverEvents_i( observer_, "acquireplugin" ) );
@@ -492,6 +497,12 @@ AcquirePlugin::actionConnect()
                 }
             }
         }
+    }
+
+    if ( ! CORBA::is_nil( session_ ) ) {
+        actionInitRun_->setEnabled( true );
+        actionRun_->setEnabled( true );
+        adportable::debug(__FILE__, __LINE__) << "adcontroller status: " << session_->status();
     }
 }
 
@@ -534,28 +545,35 @@ AcquirePlugin::actionInitRun()
     if ( ! CORBA::is_nil( session_ ) ) {
         ControlMethod::Method m;
         session_->prepare_for_run( m );
+        adportable::debug(__FILE__, __LINE__) << "adcontroller status: " << session_->status();
     }
 }
 
 void
 AcquirePlugin::actionRun()
 {
-    if ( ! CORBA::is_nil( session_ ) )
+    if ( ! CORBA::is_nil( session_ ) ) {
         session_->start_run();
+        adportable::debug(__FILE__, __LINE__) << "adcontroller status: " << session_->status();
+    }
 }
 
 void
 AcquirePlugin::actionStop()
 {
-    if ( ! CORBA::is_nil( session_ ) )
+    if ( ! CORBA::is_nil( session_ ) ) {
         session_->stop_run();
+        adportable::debug(__FILE__, __LINE__) << "adcontroller status: " << session_->status();
+    }
 }
 
 void
 AcquirePlugin::actionInject()
 {
-    if ( ! CORBA::is_nil( session_ ) )
-        session_->event_out( ControlServer::event_InjectOut ); // simulate inject out to modules
+    if ( ! CORBA::is_nil( session_ ) ) {
+		session_->event_out( ControlServer::event_InjectOut ); // simulate inject out to modules
+        adportable::debug(__FILE__, __LINE__) << "adcontroller status: " << session_->status();
+    }
 }
 
 void
@@ -690,10 +708,23 @@ AcquirePlugin::handle_event( unsigned long objid, unsigned long, long pos )
 void
 AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value )
 {
-    static int count;
-    (void)count;
-    (void)value;
-    (void)msg;
+
+    using namespace ControlServer;
+
+    if ( msg == Receiver::STATE_CHANGED ) {
+
+		adportable::debug(__FILE__, __LINE__) << "handle_message( STATE_CHANGED, " << value << ")";
+
+        eStatus status = eStatus( value );
+        if ( status == eWaitingForContactClosure ) {
+            actionInject_->setEnabled( true );
+        } else if ( status == ePreparingForRun || status == eReadyForRun ) {
+            actionStop_->setEnabled( false );
+        } else if ( status == eRunning ) {
+            actionStop_->setEnabled( true );
+			actionInject_->setEnabled( false );
+        }
+    }
     // mainWindow_->handle_message( msg, value );
 }
 

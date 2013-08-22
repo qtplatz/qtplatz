@@ -40,6 +40,7 @@ using namespace tofservant;
 static boost::posix_time::ptime __uptime__ = boost::posix_time::microsec_clock::local_time();
 
 avgr_emu::avgr_emu() : interval_( 1000 )
+	                 , trigger_event_out_( 0 )
                      , npos_( 0 )
                      , navg_( 1 )
                      , work_( io_service_ )
@@ -75,6 +76,15 @@ avgr_emu::peripheral_async_apply_method( const TOF::ControlMethod& m )
     return true;
 }
 
+bool
+avgr_emu::peripheral_event_out( unsigned long ev )
+{
+	// loopback event ( event_out --> out event on TTL hardware ==> will back into event_in )
+	trigger_event_out_ |= ev;
+    return true;
+}
+
+
 void
 avgr_emu::set_interval( std::size_t milliseconds )
 {
@@ -106,8 +116,11 @@ avgr_emu::handle_timeout( const boost::system::error_code& error )
         d.sequenceNumber = npos_;
         d.rtcTimeStamp   = time(0);
         d.clockTimeStamp = ( now - __uptime__ ).total_microseconds();
-        d.wellKnownEvents = 0;
-        d.methodId = 0;
+
+		d.wellKnownEvents = trigger_event_out_;
+		trigger_event_out_ = 0;
+        
+		d.methodId = 0;
         d.numberOfProfiles = 1; // resize d.data_
         d.data.length( 1 );
         TOFSignal::datum& datum = d.data[ 0 ];

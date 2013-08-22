@@ -58,10 +58,10 @@ ProcessWaveform::push_traces( std::vector< std::shared_ptr< traceObserver_i > >&
                 const long * waveform = reinterpret_cast< const long * >( &datum.values[0] );
                 size_t nbrSamples = datum.values.length();
                 double tic = adportable::spectrum_processor::tic( nbrSamples, waveform, dbase, rms ); 
-
+#if defined _DEBUG && 0
                 std::cout << "ProcessWaveform: push_traces: "
                           << npos_ << " nbrSamples: " << ndata << " tic: " << tic << std::endl;
-
+#endif
                 TOFSignal::SpectrumProcessedData procData;
                 procData.tic = float( tic );
                 procData.spectralBaselineLevel = float( dbase );

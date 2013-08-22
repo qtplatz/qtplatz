@@ -430,8 +430,9 @@ toftask::handle_prepare_for_run( ControlMethod::Method m )
 }
 
 bool
-toftask::handle_event_out( unsigned long )
+toftask::handle_event_out( unsigned long ev )
 {
+    device_facade_->event_out( ev );
 	return true;
 }
 

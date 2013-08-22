@@ -49,6 +49,15 @@ namespace tofservant {
         }
     };
 
+    struct event_out_visitor : public boost::static_visitor<void> {
+        unsigned long ev_;
+        event_out_visitor( unsigned long ev ) : ev_( ev ) {
+        }
+        template< typename T > void operator ()( T& t ) const { 
+            t->peripheral_event_out( ev_ );
+        }
+    };
+
 }
 
 DeviceFacade::~DeviceFacade() 
@@ -90,4 +99,11 @@ DeviceFacade::terminate()
     for ( auto& device: vec_ ) 
         boost::apply_visitor( terminate_visitor(), device );    
 	return true;
+}
+
+void
+DeviceFacade::event_out( unsigned long ev )
+{
+    for ( auto& device: vec_ ) 
+        boost::apply_visitor( event_out_visitor( ev ), device );    
 }

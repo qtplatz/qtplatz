@@ -40,6 +40,8 @@ namespace tofservant {
         bool peripheral_initialize();
         bool peripheral_terminate();
         bool peripheral_async_apply_method( const TOF::ControlMethod& m );
+		bool peripheral_event_out( unsigned long );
+
         inline boost::asio::io_service& io_service() { return io_service_; }
     private:
         void initiate_timer();
@@ -50,6 +52,7 @@ namespace tofservant {
         void set_num_average( size_t );
 
         size_t interval_;
+		size_t trigger_event_out_;
         size_t npos_;
         size_t navg_;
         boost::asio::io_service io_service_;

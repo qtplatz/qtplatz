@@ -92,6 +92,7 @@ namespace adcontroller {
         void handle_observer_update_method( unsigned long parentId, unsigned long objId, long pos );
         void handle_observer_update_events( unsigned long parentId, unsigned long objId, long pos, unsigned long events );
     public:
+        void notify_message( unsigned long msgid, unsigned long value );
         void handle_message( std::wstring name, unsigned long msgid, unsigned long value );
         void handle_eventlog( EventLog::LogMessage );
         void handle_echo( std::string );

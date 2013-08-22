@@ -427,18 +427,27 @@ iTask::handle_prepare_for_run( ControlMethod::Method m )
     SampleBroker::SampleSequenceLine s;
     
     std::lock_guard< std::mutex > lock( mutex_ );
-
+    
     for ( auto& proxy: iproxies_ )
         proxy->prepare_for_run( s, m ); 
+
+	status_current_ = status_being_ = ControlServer::eReadyForRun;
+    io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );
 }
 
 void
 iTask::handle_start_run()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
+	
+	status_current_ = ControlServer::ePreparingForRun;
+	status_being_ = ControlServer::eReadyForRun;
 
     for ( auto& proxy: iproxies_ )
         proxy->startRun();
+
+	status_current_ = status_being_ = ControlServer::eWaitingForContactClosure;
+    io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );
 }
 
 void
@@ -453,6 +462,9 @@ iTask::handle_stop_run()
 
     for ( auto& proxy: iproxies_ )
         proxy->stopRun();
+
+	status_current_ = status_being_ = ControlServer::eReadyForRun;
+    io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );
 }
 
 void
@@ -462,6 +474,27 @@ iTask::handle_event_out( unsigned long value )
 
     for ( auto& proxy: iproxies_ )
         proxy->eventOut( value );
+
+	if ( value == ControlServer::event_InjectOut && status_current_ == ControlServer::eWaitingForContactClosure ) {
+        status_current_ = status_being_ = ControlServer::eRunning;
+        io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );     
+    }
+}
+
+void
+iTask::notify_message( unsigned long msgid, unsigned long value )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );    
+
+    for ( internal::receiver_data& d: this->receiver_set_ ) {
+        try {
+            adportable::debug(__FILE__, __LINE__) << "notify_message(" << msgid << ", " << value << ")";
+            d.receiver_->message( Receiver::eINSTEVENT( msgid ), value );
+        } catch ( CORBA::Exception& ex ) {
+            d.failed_++;
+            adportable::debug(__FILE__, __LINE__) << "exception: " << ex._name();
+        }
+    }
 }
 
 void

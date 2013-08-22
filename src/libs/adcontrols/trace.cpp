@@ -65,18 +65,11 @@ Trace::operator += ( const TraceAccessor& ta )
 {
     if ( pos_ == size_t(-1) ) {
         pos_ = ta.pos();
-    } else {
-        // check if data array is continued
-        size_t tailpos = pos_ + size();
-        while ( tailpos < unsigned( ta.pos() ) ) { 
-            traceY_.push_back( 0 );
-            traceX_.push_back( traceX_.back() );
-            events_.push_back( 0 );
-        }
     }
     const double * pY = ta.getIntensityArray();
     const double * pX = ta.getTimeArray();
     const unsigned long * pE = ta.getEventsArray();
+
     size_t size = ta.size();
     for ( size_t i = 0; i < size; ++i ) {
 

@@ -51,6 +51,7 @@ namespace tofservant {
         bool initialize();
         bool terminate();
         bool async_apply_method( const TOF::ControlMethod& );
+        void event_out( unsigned long );
 
         template<class T> T* get() {
             for ( device_variant& v: vec_ )
