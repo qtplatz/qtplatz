@@ -29,7 +29,9 @@ using namespace acewrapper;
 
 input_buffer::input_buffer( unsigned char * p, size_t size ) : ptop_( p ), size_(size)
 {
-    setg( reinterpret_cast< char *>(ptop_), reinterpret_cast<char * >(ptop_) , reinterpret_cast<char *>(ptop_ + size_) );
+    setg( reinterpret_cast< char *>(ptop_)
+          , reinterpret_cast<char * >(ptop_)
+          , reinterpret_cast<char *>(ptop_ + size_) );
 }
 
 std::streambuf::int_type

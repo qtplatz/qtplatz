@@ -21,11 +21,11 @@ win32: DEFINES += _SCL_SECURE_NO_WARNINGS
 LIBS += -l$$qtLibraryTarget(adinterface)
 LIBS += \
      -l$$qtLibraryTarget(acewrapper) \
+     -l$$qtLibraryTarget(adfs) \
      -l$$qtLibraryTarget(adinterface) \
      -l$$qtLibraryTarget(adportable) \
      -l$$qtLibraryTarget(adplugin) \
      -l$$qtLibraryTarget(xmlparser)
-
 
 win32 {
   LIBS += -l$$qtLibraryTarget(TAO_Utils) \
@@ -48,25 +48,29 @@ win32 {
 DEFINES += ADCONTROLLER_LIBRARY
 
 SOURCES += adcontroller.cpp \
+        cache.cpp \
+        fileio.cpp \
         iproxy.cpp \
         manager_i.cpp \
         observer_i.cpp \
         oproxy.cpp \
         receiver_i.cpp \
+        sampleprocessor.cpp \
         session_i.cpp \
-        cache.cpp \
         task.cpp \
         logging.cpp
 
 HEADERS += adcontroller.hpp \
         adcontroller_global.h \
+        cache.hpp \
+        fileio.hpp \
         iproxy.hpp \
         manager_i.hpp \
         observer_i.hpp \
         oproxy.hpp \
         receiver_i.hpp \
+        sampleprocessor.hpp \
         session_i.hpp \
-        cache.hpp \
         task.hpp \
         logging.hpp
 

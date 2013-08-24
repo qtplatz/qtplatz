@@ -58,7 +58,15 @@ datafile_factory::close( adcontrols::datafile * p )
 const char *
 datafile_factory::mimeTypes() const
 {
-	return 0;
+	return
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>\n\
+  <mime-type type=\"application/csv\">\n\
+    <sub-class-of type=\"application/octet-stream\"/>\n\
+	<comment>Comma separated time, mass, intensity file</comment>\n\
+    <glob pattern=\"*.csv\"/>\n\
+  </mime-type>\n\
+  </mime-info>\n";
 }
 
 const wchar_t *
@@ -71,7 +79,7 @@ bool
 datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode ) const
 {
     boost::filesystem::wpath path(filename);
-    return path.extension() == L".txt" && mode == adcontrols::read_access;
+	return ( path.extension() == L".txt" || path.extension() == L".csv" ) && ( mode = adcontrols::read_access );
 }
 
 adcontrols::datafile *

@@ -198,8 +198,7 @@ Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_p
 					if ( ! dataInterpreter.translate( ms, dbuf, spectrometer, idData++ ) ) { // <-- acquire
 						//------- call from dataproc -----
 						if ( std::wstring( clsid.in() ) == L"adcontrols::MassSpectrum" ) {
-							acewrapper::input_buffer ibuffer( reinterpret_cast< unsigned char * >(dbuf->array.get_buffer())
-								, dbuf->array.length() * sizeof( CORBA::Long )  );
+							acewrapper::input_buffer ibuffer( dbuf->xdata.get_buffer(), dbuf->xdata.length() );
 							std::istream in( &ibuffer );
 							adcontrols::MassSpectrum::restore( in, ms );
 						}

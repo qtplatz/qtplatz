@@ -331,10 +331,12 @@ namespace dataproc {
 
 	struct export_spectrum {
 		static bool write( std::ostream& o, const adcontrols::MassSpectrum& ms ) {
+			const double * times = ms.getTimeArray();
 			const double * masses = ms.getMassArray();
 			const double * intens = ms.getIntensityArray();
 			for ( size_t n = 0; n < ms.size(); ++n ) {
-				o << std::fixed << std::setprecision( 14 ) << *masses++ << ",\t"
+				o << std::scientific << std::setprecision( 15 ) << *times++ << ",\t"
+					<< std::fixed << std::setprecision( 13 ) << *masses++ << ",\t"
 					<< std::scientific << std::setprecision(7) << *intens++ << std::endl;
 			}
 			return true;

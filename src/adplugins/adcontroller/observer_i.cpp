@@ -25,6 +25,7 @@
 #include "observer_i.hpp"
 #include "manager_i.hpp"
 #include "cache.hpp"
+#include "sampleprocessor.hpp"
 #include <algorithm>
 #include <acewrapper/orbservant.hpp>
 #include <adportable/debug.hpp>
@@ -142,7 +143,6 @@ observer_i::disconnect ( ::SignalObserver::ObserverEvents_ptr cb )
     }
     return false;
 }
-
 
 ::CORBA::Boolean
 observer_i::isActive (void)
@@ -324,8 +324,9 @@ observer_i::handle_data( unsigned long /* parentId */, unsigned long objId, long
                 pCache->write_cache( pos, rdbuf );
 
 				if ( this->objId_ == 0 ) { // if this is master (root) observer
-					if ( rdbuf->events & SignalObserver::wkEvent_INJECT ) {
-					}
+                    std::lock_guard< std::mutex > lock( mutex_ );
+                    for ( auto& it: queue_ )
+                        it->handle_data( objId, pos, rdbuf );
 				}
             }
         } catch ( CORBA::Exception& ex ) {
@@ -399,6 +400,20 @@ observer_i::forward_observer_update_events( unsigned long /* parentId */
         }
     }
     return true;
+}
+
+void
+observer_i::push_sample_processor( std::shared_ptr< SampleProcessor >& ptr )
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    queue_.push_back( ptr );
+}
+
+void
+observer_i::stop_sample_processor()
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    queue_.pop_front();
 }
 
 bool

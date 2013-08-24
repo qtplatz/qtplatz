@@ -182,13 +182,13 @@ profileObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffe
 		if ( d.data_ ) {
 
             SignalObserver::DataReadBuffer_var res = new SignalObserver::DataReadBuffer;
-
             res->data <<= *d.data_;
             //res->method <<= method;
             res->uptime = d.data_->clockTimeStamp;
             res->pos    = d.data_->sequenceNumber;
             res->events = d.data_->wellKnownEvents;
-            res->array.length( 0 );
+            res->xdata.length( 0 );
+			res->xmeta.length( 0 );
 
             dataReadBuffer = res._retn();
 

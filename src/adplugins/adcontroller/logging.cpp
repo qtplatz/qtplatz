@@ -32,9 +32,9 @@
 using namespace adcontroller;
 
 Logging::Logging( const std::wstring& format
-                , ::EventLog::eMSGPRIORITY pri
-                , const std::wstring& srcId
-                , const std::wstring& msgId ) : msg( format, pri, srcId, msgId )
+                  , ::EventLog::eMSGPRIORITY pri
+                  , const std::wstring& srcId
+                  , const std::wstring& msgId ) : msg( format, pri, srcId, msgId )
 {
 }
 

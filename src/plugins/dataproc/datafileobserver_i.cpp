@@ -138,9 +138,9 @@ struct DataReadBuffer : public std::streambuf {
 	}
 
 	void resize() { 
-		var_->array.length( var_->array.length() + 2048 );
-		size_ = var_->array.length() * sizeof( CORBA::Long );
-		p_ = reinterpret_cast< unsigned char * >( var_->array.get_buffer() );
+		var_->xdata.length( var_->xdata.length() + ( 2048 * 4 ) );
+		size_ = var_->xdata.length();
+		p_ = reinterpret_cast< unsigned char * >( var_->xdata.get_buffer() );
 	}
 
 	virtual int_type overflow ( int_type c ) {

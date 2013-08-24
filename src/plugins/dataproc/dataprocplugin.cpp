@@ -311,21 +311,6 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
     if ( it != SessionManager::instance()->end() ) {
 		Dataprocessor& processor = it->getDataprocessor();
 		processor.load( path.toStdWString(), id.toStdWString() );
-        /*
-        Broker::Folium_var var = brokerSession_->folium( qtwrapper::wstring( token ).c_str(), qtwrapper::wstring( id ).c_str() );
-
-        // todo check type
-        acewrapper::input_buffer ibuffer( var->serialized.get_buffer(), var->serialized.length() );
-        std::istream in( &ibuffer );
-
-        adcontrols::MassSpectrum ms;
-        adcontrols::MassSpectrum::restore( in, ms );
-
-        Dataprocessor& processor = it->getDataprocessor();
-
-        adcontrols::ProcessMethod m;
-        processor.addSpectrum( ms, m );
-		*/
     }
 }
 

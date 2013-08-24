@@ -37,6 +37,9 @@
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/numeric/interval.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+
 
 using namespace adtextfile;
 
@@ -47,9 +50,9 @@ TXTSpectrum::TXTSpectrum()
 bool
 TXTSpectrum::load( const std::wstring& name )
 {
-    std::string filename = adportable::string::convert( name );
+	boost::filesystem::path path( name );
 
-    std::ifstream in( filename.c_str() );
+	boost::filesystem::ifstream in( path );
     if ( in.fail() ) 
         return false;
 
@@ -59,6 +62,23 @@ TXTSpectrum::load( const std::wstring& name )
     separator sep( ", \t", "", boost::drop_empty_tokens );
 
     std::vector<double> timeArray, massArray, intensArray;
+
+	size_t numSamples = 0;
+	size_t numTurns = 0;
+	if ( path.extension() == ".csv" ) {
+		std::string line;
+		while ( getline( in, line ) ) {
+			if ( line.find( "All Elements" ) != line.npos ) {
+				getline( in, line );
+				numSamples = atol( line.c_str() );
+			} else if ( line.find( "Turn:" ) != line.npos ) {
+				getline( in, line );
+				numTurns = atol( line.c_str() );
+			} else if ( line.find( "Data" ) != line.npos ) {
+				break;
+			}
+		}
+	}
 
     do {
         double values[3];

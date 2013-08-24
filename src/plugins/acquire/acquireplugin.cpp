@@ -655,7 +655,7 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
     SignalObserver::Observer_ptr tgt = observerMap_[ objId ].in();
 
     SignalObserver::Description_var desc = tgt->getDescription();
-    CORBA::WString_var clsid = tgt->dataInterpreterClsid();
+    //CORBA::WString_var clsid = tgt->dataInterpreterClsid();
     CORBA::WString_var name = tgt->dataInterpreterClsid();
     SignalObserver::DataReadBuffer_var rb;
 

@@ -28,6 +28,7 @@
 #include "logging.hpp"
 #include "observer_i.hpp"
 #include "manager_i.hpp"
+#include "sampleprocessor.hpp"
 #include <adinterface/receiverC.h>
 #include <adinterface/eventlogC.h>
 #include <adinterface/samplebrokerC.h>
@@ -438,8 +439,28 @@ iTask::handle_prepare_for_run( ControlMethod::Method m )
 void
 iTask::handle_start_run()
 {
+#if 0
+	boost::filesystem::path path( adportable::profile::user_data_dir<char>() ) / "data" / adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
+	if ( ! boost::filesystem::exists( path ) ) {
+		boost::system::error_code ec;
+		boost::filesystem::create_directories( path, ec );
+	} else {
+	}
+	path /= "acquire.adfs";
+	// end prepare file
+#endif
     std::lock_guard< std::mutex > lock( mutex_ );
 	
+	if ( queue_.empty() ) {
+		queue_.push_back( std::shared_ptr< SampleProcessor >( new SampleProcessor ) );
+        queue_.back()->prepare_storage( pMasterObserver_->_this() );
+    }
+
+    if ( pMasterObserver_ ) {
+        pMasterObserver_->push_sample_processor( queue_.front() );
+        queue_.pop_front();
+    }
+
 	status_current_ = ControlServer::ePreparingForRun;
 	status_being_ = ControlServer::eReadyForRun;
 
@@ -462,6 +483,8 @@ iTask::handle_stop_run()
 
     for ( auto& proxy: iproxies_ )
         proxy->stopRun();
+
+    pMasterObserver_->stop_sample_processor();
 
 	status_current_ = status_being_ = ControlServer::eReadyForRun;
     io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );

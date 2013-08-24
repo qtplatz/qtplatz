@@ -31,6 +31,7 @@
 #include <boost/asio.hpp>
 #include <mutex>
 #include <vector>
+#include <deque>
 #include <thread>
 
 namespace pugi { class xml_document; }
@@ -42,6 +43,7 @@ namespace adcontroller {
     class oProxy;
     class observer_i;
     class iTaskManager;
+    class SampleProcessor;
 
     namespace internal {  struct receiver_data;  }
 
@@ -124,6 +126,8 @@ namespace adcontroller {
 	
         ::ControlServer::eStatus status_current_;
         ::ControlServer::eStatus status_being_;
+
+		std::deque< std::shared_ptr< SampleProcessor > > queue_;
 
         void initiate_timer();
         void handle_timeout( const boost::system::error_code& );

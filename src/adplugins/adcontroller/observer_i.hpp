@@ -31,6 +31,7 @@
 #include <adinterface/signalobserverS.h>
 #include <memory>
 #include <mutex>
+#include <deque>
 
 namespace adcontroller {
 
@@ -40,6 +41,7 @@ namespace adcontroller {
     }
 
     class Cache;
+    class SampleProcessor;
 
     class observer_i : public virtual POA_SignalObserver::Observer, boost::noncopyable {
     public:
@@ -72,6 +74,8 @@ namespace adcontroller {
         bool forward_observer_update_data( unsigned long parentId, unsigned long objid, long pos );
         bool forward_observer_update_method( unsigned long parentId, unsigned long objid, long pos );
         bool forward_observer_update_events( unsigned long parentId, unsigned long objid, long pos, unsigned long events );
+        void push_sample_processor( std::shared_ptr< SampleProcessor >& );
+        void stop_sample_processor();
 
     private:
         typedef std::vector<internal::observer_events_data> observer_events_vector_type;
@@ -93,6 +97,7 @@ namespace adcontroller {
         unsigned long objId_;
         std::unique_ptr< Cache > cache_;
         std::mutex mutex_;
+        std::deque< std::shared_ptr< SampleProcessor > > queue_;
     };
 
 }
