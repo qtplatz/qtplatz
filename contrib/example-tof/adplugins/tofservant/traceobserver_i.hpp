@@ -28,7 +28,8 @@
 # include <tofinterface/tofS.h>
 # include <tofinterface/signalS.h>
 # include <adinterface/signalobserverS.h>
-
+#include <tofinterface/tofprocessed.hpp>
+#include <tofinterface/tracemetadata.hpp>
 #include <boost/smart_ptr.hpp>
 #include <deque>
 #include <mutex>
@@ -60,20 +61,20 @@ namespace tofservant {
         virtual ::CORBA::WChar * dataInterpreterClsid (void);
         virtual ::CORBA::Long posFromTime( CORBA::ULongLong usec );
 
-        void push_back( long pos, const TOFSignal::SpectrumProcessedData& data, const TOFSignal::TraceMetadata& );
+        void push_back( long pos, const tofinterface::tofProcessedData& data, const tofinterface::TraceMetadata& );
     private:
         std::mutex mutex_;        
         unsigned long objId_;
         SignalObserver::Description desc_;
         struct cache_item {
             ~cache_item();
-            cache_item( long pos, const TOFSignal::SpectrumProcessedData& data, const TOFSignal::TraceMetadata& );
+            cache_item( long pos, const tofinterface::tofProcessedData& data, const tofinterface::TraceMetadata& );
             cache_item( const cache_item & );
             operator long () const;
             long pos_;
             // unsigned long wellKnownEvents_;
-            TOFSignal::SpectrumProcessedData data_;
-            TOFSignal::TraceMetadata meta_;
+            tofinterface::tofProcessedData data_;
+            tofinterface::TraceMetadata meta_;
         };
         std::deque< cache_item > fifo_;
     };

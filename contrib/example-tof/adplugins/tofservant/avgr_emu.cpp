@@ -30,6 +30,7 @@
 #include <tofinterface/serializer.hpp>
 #include <tofinterface/signalC.h>
 #include <tofinterface/rawxfer.hpp>
+#include <tofinterface/tofdata.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -111,22 +112,22 @@ avgr_emu::handle_timeout( const boost::system::error_code& error )
         boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
 
         // data_simulator_->generate_spectrum( navg_ );
-        std::shared_ptr< TOFSignal::tofDATA > pDATA( new TOFSignal::tofDATA );
-        TOFSignal::tofDATA &d = *pDATA;
-        d.sequenceNumber = npos_;
-        d.rtcTimeStamp   = time(0);
-        d.clockTimeStamp = ( now - __uptime__ ).total_microseconds();
+        std::shared_ptr< tofinterface::tofDATA > pDATA( new tofinterface::tofDATA );
+        tofinterface::tofDATA &d = *pDATA;
+        d.sequenceNumber( npos_ );
+        d.rtcTimeStamp( 0 );//   = time(0);
+        d.clockTimeStamp( ( now - __uptime__ ).total_microseconds() );
 
-		d.wellKnownEvents = trigger_event_out_;
+		d.wellKnownEvents( trigger_event_out_ );
 		trigger_event_out_ = 0;
         
-		d.methodId = 0;
-        d.numberOfProfiles = 1; // resize d.data_
-        d.data.length( 1 );
-        TOFSignal::datum& datum = d.data[ 0 ];
+		d.methodId( 0 );
+        d.numberOfProfiles( 1 ); // resize d.data_
+        d.data().resize( 1 );
+		tofinterface::tofDATA::datum& datum = d.data().back();
         const size_t nbrSamples = data_simulator::ndata;
-        datum.values.length( nbrSamples );
-		data_simulator_->generate_spectrum( npos_, navg_, datum.values.get_buffer(), nbrSamples );
+        datum.values().resize( nbrSamples );
+		data_simulator_->generate_spectrum( npos_, navg_, datum.values().data(), nbrSamples );
 
 		toftask::instance()->io_service().post( std::bind(&toftask::handle_profile_data, toftask::instance(), pDATA ) );
     }

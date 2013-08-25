@@ -21,12 +21,14 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-
+#define _SCL_SECURE_NO_WARNINGS
 #include "traceobserver_i.hpp"
 #include "toftask.hpp"
 #include "constants.h"
 #include <tofspectrometer/constants.hpp>
 #include <adportable/scope_timer.hpp>
+#include <tofinterface/tofprocessed.hpp>
+#include <tofinterface/serializer.hpp>
 
 using namespace tofservant;
 
@@ -151,11 +153,14 @@ traceObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_
             rb->uptime = it->meta_.uptime;
             rb->ndata = std::distance( it, fifo_.end() );
 
-            TOFSignal::SpectrumProcessedDataArray ar;
-            ar.length( rb->ndata );
-            for ( size_t i = 0; it != fifo_.end(); ++it, ++i ) 
-                ar[i] = it->data_;
-            rb->data <<= ar;
+            std::vector< tofinterface::tofProcessedData > ar;
+			std::for_each( it, fifo_.end(), [&ar]( const cache_item& item ){
+					ar.push_back( item.data_ );
+				});
+			std::string device;
+			tofinterface::serializer::serialize( ar, device );
+			rb->xdata.length( device.size() );
+			std::copy( device.begin(), device.end(), rb->xdata.get_buffer() );
             dataReadBuffer = rb._retn();
             return true;
         }
@@ -180,8 +185,8 @@ traceObserver_i::posFromTime( CORBA::ULongLong usec )
 /////////////////////////
 void
 traceObserver_i::push_back( long pos
-			    , const TOFSignal::SpectrumProcessedData& data
-			    , const TOFSignal::TraceMetadata& meta )
+			    , const tofinterface::tofProcessedData& data
+			    , const tofinterface::TraceMetadata& meta )
 {
     unsigned long prevEvents = 0;
     do {
@@ -209,8 +214,8 @@ traceObserver_i::cache_item::~cache_item()
 }
 
 traceObserver_i::cache_item::cache_item( long pos
-                                        , const TOFSignal::SpectrumProcessedData& data
-                                        , const TOFSignal::TraceMetadata& meta ) : pos_( pos )
+                                        , const tofinterface::tofProcessedData& data
+                                        , const tofinterface::TraceMetadata& meta ) : pos_( pos )
                                                                                  , data_( data )
                                                                                  , meta_( meta )  
 {

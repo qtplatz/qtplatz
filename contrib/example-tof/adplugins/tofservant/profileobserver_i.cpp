@@ -21,13 +21,15 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-
+#define _SCL_SECURE_NO_WARNINGS
 #include "profileobserver_i.hpp"
 #include "toftask.hpp"
 #include "constants.h"
 #include "logger.hpp"
 #include <tofspectrometer/constants.hpp>
 #include <tofinterface/signalC.h>
+#include <tofinterface/tofdata.hpp>
+#include <tofinterface/serializer.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/scope_timer.hpp>
 
@@ -180,14 +182,17 @@ profileObserver_i::readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffe
         }
 
 		if ( d.data_ ) {
+			std::string device;
+			tofinterface::serializer::serialize( *d.data_, device ); 
 
             SignalObserver::DataReadBuffer_var res = new SignalObserver::DataReadBuffer;
-            res->data <<= *d.data_;
+            //res->data <<= *d.data_;
             //res->method <<= method;
-            res->uptime = d.data_->clockTimeStamp;
-            res->pos    = d.data_->sequenceNumber;
-            res->events = d.data_->wellKnownEvents;
-            res->xdata.length( 0 );
+            res->uptime = d.data_->clockTimeStamp();
+            res->pos    = d.data_->sequenceNumber();
+            res->events = d.data_->wellKnownEvents();
+            res->xdata.length( device.size() );
+			std::copy( device.begin(), device.end(), res->xdata.get_buffer() );
 			res->xmeta.length( 0 );
 
             dataReadBuffer = res._retn();
@@ -212,7 +217,7 @@ profileObserver_i::posFromTime( CORBA::ULongLong usec )
 }
 
 void
-profileObserver_i::push_profile_data( std::shared_ptr< TOFSignal::tofDATA >& data, long npos, unsigned long wellKnownEvents )
+profileObserver_i::push_profile_data( std::shared_ptr< tofinterface::tofDATA >& data, long npos, unsigned long wellKnownEvents )
 {
 	toftask& task = *toftask::instance();
 
@@ -244,7 +249,7 @@ profileObserver_i::cache_item::~cache_item()
 }
 
 profileObserver_i::cache_item::cache_item( long pos
-										   , std::shared_ptr< TOFSignal::tofDATA >&  data
+										   , std::shared_ptr< tofinterface::tofDATA >&  data
                                            , unsigned long event ) : pos_(pos)
                                                                    , wellKnownEvents_(event)
                                                                    , data_( data )

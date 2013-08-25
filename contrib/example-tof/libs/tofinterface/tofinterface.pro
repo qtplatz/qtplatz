@@ -35,6 +35,7 @@ SOURCES += tofinterface.cpp \
            tofstaticacts.cpp \
            tofmasscommand.cpp \
            tofdata.cpp \
+           tofprocessed.cpp \
            tofacqmethod.cpp \
            rawxfer.cpp \
            serializer.cpp
@@ -46,7 +47,9 @@ HEADERS += tofinterface.hpp \
            tofstaticacts.hpp \
            tofmasscommand.hpp \
            tofdata.hpp \
+           tofprocessed.hpp \
            tofacqmethod.hpp \
+           tracemetadata.hpp \
            cstdint.hpp \
            rawxfer.hpp \
            dma_type.hpp \

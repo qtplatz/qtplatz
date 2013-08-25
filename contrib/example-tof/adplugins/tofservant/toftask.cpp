@@ -467,7 +467,7 @@ toftask::setControlMethod( const TOF::ControlMethod& m, const char * hint )
 }
 
 void
-toftask::handle_profile_data( std::shared_ptr< TOFSignal::tofDATA > data )
+toftask::handle_profile_data( std::shared_ptr< tofinterface::tofDATA > data )
 {
     ProcessWaveform profile( data );
     profile.push_traces( pTraceObserverVec_ );

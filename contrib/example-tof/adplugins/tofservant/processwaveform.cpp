@@ -25,7 +25,8 @@
 #include "processwaveform.hpp"
 #include "constants.h"
 #include <tofinterface/tofC.h>
-
+#include <tofinterface/tofdata.hpp>
+#include <tofinterface/tofprocessed.hpp>
 #include "profileobserver_i.hpp"
 #include "traceobserver_i.hpp"
 #include <adportable/spectrum_processor.hpp>
@@ -36,11 +37,11 @@ ProcessWaveform::~ProcessWaveform()
 {
 }
 
-ProcessWaveform::ProcessWaveform( std::shared_ptr< TOFSignal::tofDATA >& d ) : data_( d )
+ProcessWaveform::ProcessWaveform( std::shared_ptr< tofinterface::tofDATA >& d ) : data_( d )
                                                                              , npos_( 0 )
                                                                              , wellKnownEvents_( 0 )
 {
-    npos_ = data_->sequenceNumber;
+    npos_ = data_->sequenceNumber();
 }
 
 bool
@@ -48,29 +49,25 @@ ProcessWaveform::push_traces( std::vector< std::shared_ptr< traceObserver_i > >&
 {
     if ( data_ ) {
 
-        const TOFSignal::tofDATA& data = *data_;
-        if ( data.data.length() > 0 ) {
-            size_t ndata = data.data[ 0 ].values.length();
+        const tofinterface::tofDATA& d = *data_;
+		for ( const tofinterface::tofDATA::datum& datum: d.data() ) { 
+			size_t ndata = datum.values().size();
             
             double dbase(0), rms(0);
             if ( ndata > 0 ) {
-                const TOFSignal::datum& datum = data.data[ 0 ];
-                const long * waveform = reinterpret_cast< const long * >( &datum.values[0] );
-                size_t nbrSamples = datum.values.length();
+                // const tofinterface::datum& datum = data.data()[ 0 ];
+				const long * waveform = reinterpret_cast< const long * >( datum.values().data() );
+                size_t nbrSamples = datum.values().size();
                 double tic = adportable::spectrum_processor::tic( nbrSamples, waveform, dbase, rms ); 
-#if defined _DEBUG && 0
-                std::cout << "ProcessWaveform: push_traces: "
-                          << npos_ << " nbrSamples: " << ndata << " tic: " << tic << std::endl;
-#endif
-                TOFSignal::SpectrumProcessedData procData;
+                tofinterface::tofProcessedData procData;
                 procData.tic = float( tic );
                 procData.spectralBaselineLevel = float( dbase );
-                procData.uptime = data.clockTimeStamp;
+				procData.uptime = d.clockTimeStamp(); // data.clockTimeStamp;
                 
-                TOFSignal::TraceMetadata meta;
+                tofinterface::TraceMetadata meta;
                 meta.uptime = procData.uptime;
-                meta.timeSinceInject = static_cast< CORBA::ULong >( data.clockTimeStamp / 1000 ); // us -> ms
-                meta.wellKnownEvents = 0;
+                meta.timeSinceInject = static_cast< CORBA::ULong >( d.clockTimeStamp() / 1000 ); // us -> ms
+                meta.wellKnownEvents = d.wellKnownEvents();
                 meta.sampInterval = 1000; // workaround
                 vec[ 0 ]->push_back( npos_, procData, meta );
             }

@@ -37,7 +37,7 @@
 #include <mutex>
 
 namespace Broker { class Logger; }
-namespace TOFSignal { struct tofDATA; }
+namespace tofinterface { class tofDATA; class tofProcessedData; struct TraceMetadata; }
 namespace EventLog { struct LogMessage; }
 
 namespace tofservant {
@@ -72,7 +72,7 @@ namespace tofservant {
 
         // internal handler
         void handle_eventlog( EventLog::LogMessage );
-        void handle_profile_data( std::shared_ptr< TOFSignal::tofDATA > );
+        void handle_profile_data( std::shared_ptr< tofinterface::tofDATA > );
 
         bool setControlMethod( const TOF::ControlMethod&, const char * hint );
         
@@ -93,8 +93,8 @@ namespace tofservant {
         bool disconnect( SignalObserver::ObserverEvents_ptr );
 
         void push_trace_data( int ch, long pos
-                              , const TOFSignal::SpectrumProcessedData& data
-                              , const TOFSignal::TraceMetadata& );
+                              , const tofinterface::tofProcessedData& data
+                              , const tofinterface::TraceMetadata& );
 
         void observer_fire_on_update_data( unsigned long objId, long pos );
         void observer_fire_on_method_changed( unsigned long objId, long pos );

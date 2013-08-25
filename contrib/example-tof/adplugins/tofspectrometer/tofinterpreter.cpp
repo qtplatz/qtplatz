@@ -24,11 +24,15 @@
 
 #include "tofinterpreter.hpp"
 #include <tofinterface/signalC.h>
+#include <tofinterface/tofdata.hpp>
+#include <tofinterface/tofprocessed.hpp>
+#include <tofinterface/serializer.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adinterface/signalobserverC.h>
+#include <adportable/debug.hpp>
 #include <boost/assert.hpp>
 #include <memory>
 #include <sstream>
@@ -41,17 +45,20 @@ tofInterpreter::tofInterpreter()
 
 bool
 tofInterpreter::translate( adcontrols::MassSpectrum& ms
-                               , const SignalObserver::DataReadBuffer& rb
-                               , const adcontrols::MassSpectrometer&
-                               , size_t idData ) const
+                           , const SignalObserver::DataReadBuffer& rb
+                           , const adcontrols::MassSpectrometer&
+                           , size_t idData ) const
 {
-    TOFSignal::tofDATA * data = 0;
+	tofinterface::tofDATA tofdata;
 
-    if ( rb.data >>= data ) {
+	if ( tofinterface::serializer::deserialize( tofdata
+                                                , reinterpret_cast< const char * >(rb.xdata.get_buffer())
+                                                , rb.xdata.length() ) ) {
+        
+        if ( tofdata.numberOfProfiles() > idData ) {
 
-        if ( data->numberOfProfiles > idData ) {
-            TOFSignal::datum& datum = data->data[ 0 ];
-            const size_t ndata = datum.values.length();
+            tofinterface::tofDATA::datum& datum = tofdata.data()[ 0 ];
+            const size_t ndata = datum.values().size();
 
             adcontrols::MSProperty prop;
             std::vector< adcontrols::MSProperty::SamplingInfo > sampInfo;
@@ -75,14 +82,13 @@ tofInterpreter::translate( adcontrols::MassSpectrum& ms
             ms.addDescription( adcontrols::Description( L"title", o.str() ) );
 
             ms.resize( ndata );
-			std::unique_ptr< double [] > pX( new double [ ndata ] );
-            std::unique_ptr< double [] > pY( new double [ ndata ] );
-            for ( size_t i = 0; i < ndata; ++i ) {
-                pY[ i ] = datum.values[ i ];
-                pX[ i ] = double( i ) * 512.0 / 65536 ; // scanLaw.getMass
+            size_t idx = 0;
+            for ( const auto& iy: datum.values() ) {
+                ms.setIntensity( idx, iy );
+                ms.setMass( idx, double( idx ) * 512.0 / 65536 );
+                ++idx;
             }
-            ms.setMassArray( pX.get(), true ); // update acq range
-            ms.setIntensityArray( pY.get() );
+            ms.setAcquisitionMassRange( ms.getMass( 0 ), ms.getMass( idx - 1 ) );
             return true;
         }
     }
@@ -96,12 +102,10 @@ tofInterpreter::translate( adcontrols::TraceAccessor& accessor
     unsigned long events = rb.events;
 
     accessor.pos( rb.pos );
-
-    TOFSignal::SpectrumProcessedDataArray * ar;
-    if ( rb.data >>= ar ) {
-        size_t ndata = ar->length();
-        for ( size_t i = 0; i < ndata; ++i ) {
-            TOFSignal::SpectrumProcessedData& d = (*ar)[i];
+    
+    std::vector< tofinterface::tofProcessedData > vec;
+	if ( tofinterface::serializer::deserialize( vec, reinterpret_cast< const char * >(rb.xdata.get_buffer()), rb.xdata.length() ) ) {
+        for ( const auto d: vec ) {
             adcontrols::seconds_t sec( double( d.uptime ) * 1.0e-6 );
             accessor.push_back( d.tic, events, sec );
         }

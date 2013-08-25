@@ -31,6 +31,7 @@
 # include <tr1/cstdint>
 #endif
 #include <vector>
+#include <boost/serialization/serialization.hpp>
 
 namespace tofinterface {
 
@@ -56,6 +57,16 @@ namespace tofinterface {
             uint16_t waitTime_;
             uint16_t numberOfSamples_;
             uint16_t stepOf_;
+
+            friend class boost::serialization::access;
+            template< class Archive >
+            void serialize( Archive& ar, const unsigned int ) {
+                ar & startIndex_
+                    & numberOfAverage_
+                    & waitTime_
+                    & numberOfSamples_
+                    & stepOf_;
+            }
         };
 
         tofAcqMethod();

@@ -29,7 +29,7 @@
 #include <vector>
 #include <memory>
 
-namespace TOFSignal { struct tofDATA; }
+namespace tofinterface { class tofDATA; }
 
 namespace tofservant {
 
@@ -39,10 +39,10 @@ namespace tofservant {
     class ProcessWaveform : boost::noncopyable {
         size_t npos_;
         uint32_t wellKnownEvents_;
-        std::shared_ptr< TOFSignal::tofDATA > data_;
+        std::shared_ptr< tofinterface::tofDATA > data_;
     public:
         ~ProcessWaveform();
-        ProcessWaveform( std::shared_ptr< TOFSignal::tofDATA >& );
+        ProcessWaveform( std::shared_ptr< tofinterface::tofDATA >& );
         bool push_traces( std::vector< std::shared_ptr< traceObserver_i > >& );
         bool push_profile( profileObserver_i * );
     };

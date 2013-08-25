@@ -24,16 +24,20 @@
 
 #include "serializer.hpp"
 #include "tofdata.hpp"
+#include "tofprocessed.hpp"
 #include "protocolids.hpp"
 #include "signalC.h"
 #if defined _MSC_VER
 # pragma warning(disable:4244)
 #endif
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
 #include <iomanip>
 
 using namespace tofinterface;
@@ -43,67 +47,50 @@ serializer::serializer()
 }
 
 // static
-std::size_t
-serializer::serialize( const tofDATA& data, char * p, std::size_t nOctets )
+bool
+serializer::serialize( const tofDATA& data, std::string& ar )
 {
-    typedef boost::iostreams::basic_array_sink<char> Device;
+    boost::iostreams::back_insert_device< std::string > inserter( ar );
+    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+    // boost::archive::binary_oarchive oa( device );
+    portable_binary_oarchive oa( device );
+    oa << data;
+    device.flush();
+    return true;
+}
 
-    boost::iostreams::stream_buffer< Device > buffer( p, nOctets );
-    boost::archive::binary_oarchive oa( buffer, boost::archive::no_header );
-
-    // oa << data;
-    oa << data.protocolId_;        // packet id
-    oa << data.sequenceNumber_;    // packet sequence number
-    oa << data.rtcTimeStamp_;
-    oa << data.clockTimeStamp_;
-    oa << data.methodId_;
-    oa << data.numberOfProfiles_;
-    uint16_t padding = 0xffff;
-    oa << padding;
-
-    for ( size_t n = 0; n < data.data_.size(); ++n ) {
-        const tofDATA::datum& spc = data.data()[ n ];
-        const std::vector< tofDATA::datum::value_type >& values = spc.values();
-        size_t ndata = values.size();
-        oa << ndata;
-        for ( size_t i = 0; i < ndata; ++i )
-            oa << values[ i ];
-    }
-    size_t octets = boost::iostreams::seek( buffer, 0, std::ios_base::cur ); // octets
-    return octets;
+bool
+serializer::deserialize( tofDATA& data, const char * s, std::size_t size )
+{
+    boost::iostreams::basic_array_source< char > device( s, size );
+	boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
+    // boost::archive::binary_iarchive ia( st );
+    portable_binary_iarchive ia( st );
+    ia >> data;
+    return true;
 }
 
 // static
 bool
-serializer::serialize( TOFSignal::tofDATA& data, char * p, std::size_t nOctets )
+serializer::serialize( const std::vector< tofProcessedData >& data, std::string& ar )
 {
-    typedef boost::iostreams::basic_array_source<char> Device;
+    boost::iostreams::back_insert_device< std::string > inserter( ar );
+    boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+    // boost::archive::binary_oarchive oa( device );
+    portable_binary_oarchive oa( device );
+    oa << data;
+    device.flush();
+    return true;
+}
 
-    boost::iostreams::stream_buffer< Device > buffer( p, nOctets );
-    boost::archive::binary_iarchive ia( buffer, boost::archive::no_header );
-
-    unsigned long protoId;
-    ia >> protoId;
-    if ( protoId != Constants::DATA )
-        return false;
-    
-    ia >> data.sequenceNumber;
-    ia >> data.rtcTimeStamp;
-    ia >> data.clockTimeStamp;
-    ia >> data.methodId;
-    ia >> data.numberOfProfiles;
-    data.data.length( data.numberOfProfiles );
-
-    for ( size_t n = 0; n < data.numberOfProfiles; ++n ) {
-        TOFSignal::datum& datum = data.data[ n ];
-
-        size_t numdata;
-        ia >> numdata;
-
-        datum.values.length( numdata );
-        for ( size_t i = 0; i < numdata; ++i )
-            ia >> datum.values[ i ];
-
-    }
+// static
+bool
+serializer::deserialize( std::vector< tofProcessedData >& data, const char * pdevice, std::size_t size )
+{
+    boost::iostreams::basic_array_source< char > device( pdevice, size );
+	boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
+    // boost::archive::binary_iarchive ia( st );
+    portable_binary_iarchive ia( st );
+    ia >> data;
     return true;
 }

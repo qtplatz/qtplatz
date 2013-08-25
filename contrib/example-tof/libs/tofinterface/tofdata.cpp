@@ -33,23 +33,25 @@
 using namespace tofinterface;
 
 tofDATA::tofDATA() : protocolId_( Constants::DATA )
-		   , sequenceNumber_( 0 )
-		   , rtcTimeStamp_( 0 )
-		   , clockTimeStamp_( 0 )
-		   , methodId_( 0 )
-		   , numberOfProfiles_( 0 )
+                   , sequenceNumber_( 0 )
+                   , rtcTimeStamp_( 0 )
+                   , clockTimeStamp_( 0 )
+                   , wellKnownEvents_( 0 )
+                   , methodId_( 0 )
+                   , numberOfProfiles_( 0 )
 {
 }
 
 tofDATA::tofDATA( const tofDATA& t ) : protocolId_( t.protocolId_ )
-				     , sequenceNumber_( t.sequenceNumber_ )
-				     , rtcTimeStamp_( t.rtcTimeStamp_ )
-				     , clockTimeStamp_( t.clockTimeStamp_ )
-				     , methodId_( t.methodId_ )
-				     , numberOfProfiles_( t.numberOfProfiles_ )
-				     , setpts_( t.setpts_ )
-				     , acts_( t.acts_ )
-				     , data_( t.data_ )
+                                     , sequenceNumber_( t.sequenceNumber_ )
+                                     , rtcTimeStamp_( t.rtcTimeStamp_ )
+                                     , clockTimeStamp_( t.clockTimeStamp_ )
+                                     , wellKnownEvents_( t.wellKnownEvents_ )
+                                     , methodId_( t.methodId_ )
+                                     , numberOfProfiles_( t.numberOfProfiles_ )
+                                     , setpts_( t.setpts_ )
+                                     , acts_( t.acts_ )
+                                     , data_( t.data_ )
 {
 }
 
@@ -69,6 +71,12 @@ uint64_t
 tofDATA::clockTimeStamp() const
 {
     return clockTimeStamp_;
+}
+
+uint32_t
+tofDATA::wellKnownEvents() const
+{
+    return wellKnownEvents_;
 }
 
 uint32_t
@@ -130,6 +138,12 @@ void
 tofDATA::clockTimeStamp( uint64_t v )
 {
     clockTimeStamp_ = v;
+}
+
+void
+tofDATA::wellKnownEvents( uint32_t v )
+{
+    wellKnownEvents_ = v;
 }
 
 void

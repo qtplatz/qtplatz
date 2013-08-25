@@ -32,7 +32,7 @@
 #include <deque>
 #include <mutex>
 
-namespace TOFSignal { struct tofDATA; }
+namespace tofinterface { class tofDATA; }
 
 namespace tofservant {
 
@@ -60,7 +60,7 @@ namespace tofservant {
         virtual ::CORBA::Long posFromTime( CORBA::ULongLong usec );
 
         // internal
-        void push_profile_data( std::shared_ptr< TOFSignal::tofDATA>&, long npos, unsigned long wellKnownEvents );
+        void push_profile_data( std::shared_ptr< tofinterface::tofDATA>&, long npos, unsigned long wellKnownEvents );
 
     private:
         std::mutex mutex_;        
@@ -72,12 +72,12 @@ namespace tofservant {
 
         struct cache_item {
             ~cache_item();
-            cache_item( long pos, std::shared_ptr< TOFSignal::tofDATA >&, unsigned long event );
+            cache_item( long pos, std::shared_ptr< tofinterface::tofDATA >&, unsigned long event );
             cache_item( const cache_item & );
             operator long () const;
             long pos_;
             unsigned long wellKnownEvents_;
-            std::shared_ptr< TOFSignal::tofDATA > data_;
+            std::shared_ptr< tofinterface::tofDATA > data_;
         };
         std::deque< cache_item > fifo_;
     };

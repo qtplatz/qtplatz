@@ -26,20 +26,23 @@
 #define SERIALIZER_HPP
 
 #include <cstddef>
+#include <string>
+#include <vector>
 
-namespace TOFSignal {
-    struct tofDATA;
-}
 
 namespace tofinterface {
 
     class tofDATA;
+    class tofProcessedData;
 
     class serializer {
     public:
         serializer();
-        static std::size_t serialize( const tofDATA&, char * pdevice, std::size_t octets );
-        static bool serialize( TOFSignal::tofDATA&, char * pdevice, std::size_t octets );
+        static bool serialize( const tofDATA&, std::string& );
+        static bool deserialize( tofDATA&, const char * pdevice, std::size_t octets );
+
+        static bool serialize( const std::vector< tofProcessedData >&, std::string& );
+        static bool deserialize( std::vector< tofProcessedData >&, const char * pdevice, std::size_t octets );
     };
 
 }

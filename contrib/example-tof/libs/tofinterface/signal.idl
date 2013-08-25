@@ -88,59 +88,7 @@ module TOFSignal {
         unsigned long eventId_;
         unsigned long eventValue_;
     };
-    
-    struct SpectrumPeakInfo {
-        float monitor_range_lower;
-        float monitor_range_upper;
-        double peakMass;
-        float peakHeight;
-        float peakArea;
-        float resolvingPower;
-        float resolvingPowerX1;
-        float resolvingPowerX2;
-        float resolvingPowerHH;
-    };
-    typedef sequence< SpectrumPeakInfo > SpectrumPeakInfoVec;
 
-    struct SpectrumProcessedData {
-        float tic;
-        float spectralBaselineLevel;
-        unsigned long long uptime;
-        SpectrumPeakInfoVec info;
-    };
-    
-    typedef sequence< SpectrumProcessedData > SpectrumProcessedDataArray;
-
-    struct TraceMetadata {
-        unsigned long wellKnownEvents;
-        unsigned long ndata;
-        unsigned long long uptime;      // usec since clock sync
-        unsigned long timeSinceInject;  // usec since most recent INJ trig.
-        unsigned long sampInterval;     // usec
-        unsigned long dataType;
-        // unsigned long channels;  
-    };
-
-    // ----- corresponding to tofDATA.hpp
-    typedef sequence< long > value_sequence;
-
-    struct datum {
-        TOF::acqSegment acqSegment;
-        value_sequence values;
-    };
-
-    typedef sequence< datum > datum_sequence;
-
-    struct tofDATA {
-        unsigned long sequenceNumber;
-        unsigned long long rtcTimeStamp;
-        unsigned long long clockTimeStamp;
-        unsigned long wellKnownEvents;
-        unsigned long methodId;
-        unsigned short numberOfProfiles;
-        datum_sequence data;
-    };
- 
     interface no_empty_file {
     };
 

@@ -30,6 +30,7 @@
 #include "tofacqmethod.hpp"
 #include "cstdint.hpp"
 #include <boost/serialization/serialization.hpp>
+#include <boost/serialization/vector.hpp>
 // #include <iostream>
 
 namespace tofinterface {
@@ -67,6 +68,7 @@ namespace tofinterface {
         uint32_t sequenceNumber() const;
         uint64_t rtcTimeStamp() const;
         uint64_t clockTimeStamp() const;
+        uint32_t wellKnownEvents() const;
         uint32_t methodId() const;
         uint16_t numberOfProfiles() const;
         const tofStaticSetpts& setpts() const;
@@ -77,6 +79,7 @@ namespace tofinterface {
         void sequenceNumber( uint32_t );
         void rtcTimeStamp( uint64_t );
         void clockTimeStamp( uint64_t );
+        void wellKnownEvents( uint32_t );
         void methodId( uint32_t );
         void numberOfProfiles( uint16_t );
         void setpts( const tofStaticSetpts& );
@@ -84,10 +87,11 @@ namespace tofinterface {
         void data( const std::vector< datum >& );
 
     private:
-        const uint32_t protocolId_;
+        uint32_t protocolId_;
         uint32_t sequenceNumber_;    // packet sequence number
         uint64_t rtcTimeStamp_;
         uint64_t clockTimeStamp_;
+        uint32_t wellKnownEvents_;
         uint32_t methodId_;
         uint16_t numberOfProfiles_;
         tofStaticSetpts setpts_;
@@ -102,12 +106,12 @@ namespace tofinterface {
             ar & sequenceNumber_;    // packet sequence number
             ar & rtcTimeStamp_;
             ar & clockTimeStamp_;
+            ar & wellKnownEvents_;
             ar & methodId_;
             ar & numberOfProfiles_;
             //ar & setpts_;
             //ar & acts_;
-            //ar & data_;
-            // std::cout << "tofDATA::serialize pos: " << sequenceNumber_ << std::endl;
+            ar & data_;
         }
 
     };
