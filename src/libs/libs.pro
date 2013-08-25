@@ -18,9 +18,10 @@ SUBDIRS   = \
     qtwrapper \
     adwplot \
     adplugin \
-    adchem \
     adsequence \
     adorbmgr
+
+#    adchem \
 
 # adfs : boost
 # xmlparser : none

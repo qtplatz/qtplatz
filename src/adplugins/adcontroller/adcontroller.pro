@@ -20,10 +20,10 @@ win32: DEFINES += _SCL_SECURE_NO_WARNINGS
 
 LIBS += -l$$qtLibraryTarget(adinterface)
 LIBS += \
-     -l$$qtLibraryTarget(acewrapper) \
      -l$$qtLibraryTarget(adfs) \
-     -l$$qtLibraryTarget(adinterface) \
      -l$$qtLibraryTarget(adportable) \
+     -l$$qtLibraryTarget(acewrapper) \
+     -l$$qtLibraryTarget(adinterface) \
      -l$$qtLibraryTarget(adplugin) \
      -l$$qtLibraryTarget(xmlparser)
 
@@ -35,14 +35,14 @@ win32 {
           -l$$qtLibraryTarget(TAO) \
           -l$$qtLibraryTarget(ACE)
 } else {
+  LIBS += -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread -lboost_serialization
   LIBS += -lTAO_Utils \
           -lTAO_PI \
           -lTAO_PortableServer \
           -lTAO_AnyTypeCode \
           -lTAO \
           -lACE
-  LIBS += -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread
-  linux-*: LIBS += -lrt
+  linux-*: LIBS += -lrt -ldl
 }
 
 DEFINES += ADCONTROLLER_LIBRARY
