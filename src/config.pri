@@ -21,8 +21,8 @@ macx {
 }
 
 BOOST_VERSION=boost-1_54
-ACE_VERSION=6.2.0
-QWT_VERSION=6.1.0-svn-qt$$QT_MAJOR_VERSION
+ACE_VERSION=6.2.1
+QWT_VERSION=6.1.0-svn
 
 # does not override if environment variable already exist
 
@@ -52,7 +52,7 @@ isEmpty ( OPENBABEL_ROOT ) {
 QTPLATZ_CONFIG += Acquire
 QTPLATZ_CONFIG += Sequence
 QTPLATZ_CONFIG += Dataproc
-!macx: QTPLATZ_CONFIG += Chemistry
+#!macx: QTPLATZ_CONFIG += Chemistry
 
 # no chemistry for ARM platform
 linux-arm-*: QTPLATZ_CONFIG -= ChemSpider Chemistry

@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "sampleprocessor.hpp"
 #include <adinterface/signalobserverC.h>
 #include <adfs/filesystem.hpp>
@@ -171,16 +169,16 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
 
         for ( size_t i = 0; i < vec->length(); ++i ) {
             
-            SignalObserver::Observer_var observer = vec[ i ];
+            SignalObserver::Observer_ptr observer = vec[ i ];
             
             unsigned long objId = observer->objId();
             
 			CORBA::WString_var clsid = observer->dataInterpreterClsid();
 			SignalObserver::Description_var desc = observer->getDescription();
-			CORBA::WString_var trace_id = desc->trace_id;
-			CORBA::WString_var trace_display_name = desc->trace_display_name;
-			CORBA::WString_var axis_x_label = desc->axis_x_label;
-			CORBA::WString_var axis_y_label = desc->axis_y_label;
+			CORBA::WString_var trace_id = desc->trace_id.in();
+			CORBA::WString_var trace_display_name = desc->trace_display_name.in();
+			CORBA::WString_var axis_x_label = desc->axis_x_label.in();
+			CORBA::WString_var axis_y_label = desc->axis_y_label.in();
             
             adfs::stmt sql( fs_->db() );
             sql.prepare( 
