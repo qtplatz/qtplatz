@@ -22,8 +22,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "fileio.hpp"
 
 using namespace adcontroller;

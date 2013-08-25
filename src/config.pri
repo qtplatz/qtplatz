@@ -2,7 +2,7 @@
 CONFIG(debug, debug|release) {
   DEFINES += DEBUG
 }
-DEFINES += BOOST_REGEX
+#DEFINES += BOOST_REGEX
 
 win32 {
     DEFINES += _WIN32_WINNT=0x0700
@@ -52,6 +52,7 @@ isEmpty ( OPENBABEL_ROOT ) {
 QTPLATZ_CONFIG += Acquire
 QTPLATZ_CONFIG += Sequence
 QTPLATZ_CONFIG += Dataproc
+QTPLATZ_CONFIG += ExampleTOF
 #!macx: QTPLATZ_CONFIG += Chemistry
 
 # no chemistry for ARM platform

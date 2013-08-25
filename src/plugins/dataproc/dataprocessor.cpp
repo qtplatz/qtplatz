@@ -533,8 +533,11 @@ Dataprocessor::onFileAdded( const std::wstring& path, adfs::file& file )
 	portfolio::Folder folder = portfolio_->addFolder( foldername );
 	portfolio::Folium folium = folder.addFolium( static_cast< adfs::attributes& >(file).name() );
 
-	for ( auto& attrib = file.begin(); attrib != file.end(); ++attrib ) 
-		folium.setAttribute( attrib->first, attrib->second );
+    std::for_each( file.begin(), file.end(), [&]( const adfs::attributes::vector_type::value_type& a ){
+            folium.setAttribute( a.first, a.second );            
+        });
+	// for ( const auto attrib = file.begin(); attrib != file.end(); ++attrib ) 
+	// 	folium.setAttribute( attrib->first, attrib->second );
 	
 	SessionManager::instance()->updateDataprocessor( this, folium );
 

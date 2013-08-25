@@ -18,13 +18,12 @@ include(../../ace_tao.pri)
 INCLUDEPATH *= $$OUT_PWD/../../libs
 
 LIBS += -l$$qtLibraryTarget(adinterface) \
-    -l$$qtLibraryTarget(adportable) \
-    -l$$qtLibraryTarget(adfs) \
-    -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(adcontrols) \
+    -l$$qtLibraryTarget(adfs) \
+    -l$$qtLibraryTarget(adportable) \
+    -l$$qtLibraryTarget(acewrapper) \
     -l$$qtLibraryTarget(portfolio) \
     -l$$qtLibraryTarget(adplugin)
-
 
 win32 {
   LIBS += -l$$qtLibraryTarget(TAO_Utils) \
@@ -40,7 +39,7 @@ win32 {
           -lTAO_AnyTypeCode \
           -lTAO \
           -lACE
-  LIBS += -lboost_date_time -lboost_system -lboost_filesystem -lboost_thread -lboost_regex
+  LIBS += -lboost_system -lboost_filesystem -lboost_serialization -lboost_date_time -ldl
   linux-*: LIBS += -lrt
 }
 
