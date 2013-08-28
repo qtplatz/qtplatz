@@ -182,6 +182,13 @@ debug::operator << ( unsigned long x )
 }
 
 debug&
+debug::operator << ( unsigned long long x )
+{
+    o_ << x;
+    return *this;
+}
+
+debug&
 debug::operator << ( double d )
 {
     o_ << d;
