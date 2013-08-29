@@ -47,9 +47,8 @@
    ${InstallFile} "${InMSCheminfoPath}" "sequence.pluginspec"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "servant.pluginspec"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
 ;;
-   ${InstallFile} "${InMSCheminfoPath}" "acquire.config.xml"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
-   ${InstallFile} "${InMSCheminfoPath}" "servant.config.xml"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
-   ${InstallFile} "${InMSCheminfoPath}" "dataproc.config.xml"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
+   ${InstallFile} "${InMSCheminfoPath}" "acquire.config"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
+   ${InstallFile} "${InMSCheminfoPath}" "dataproc.config"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InXSDPath}"        "config.xsd"              "lib\qtplatz\plugins\xsd"            1 0
 ;;;
    ${InstallFile} "${InMSCheminfoPath}" "adbroker.adplugin"       "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
