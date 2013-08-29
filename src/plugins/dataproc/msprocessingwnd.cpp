@@ -155,7 +155,7 @@ MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
     adcontrols::MassSpectrum& ms = *ptr;
     pImpl_->profileSpectrum_->setData( ms, drawIdx1_++ );
     pImpl_->processedSpectrum_->clear();
-#if 0 
+#if 1 
     //---> for debug
     adcontrols::MassSpectrum ms2( ms );
     adcontrols::waveform::fft::lowpass_filter( ms2, 100.0e6 );  // 100MHz low pass filter

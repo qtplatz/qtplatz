@@ -23,7 +23,8 @@ LIBS += -l$$qtLibraryTarget( adinterface ) \
 
 !win32: LIBS += -lboost_serialization -lboost_wserialization -lboost_date_time
 
-LIBS += -l$$qtLibraryTarget( ACE )
+LIBS += -l$$qtLibraryTarget( ACE ) \
+        -l$$qtLibraryTarget( TAO )
 
 SOURCES += tofspectrometer.cpp \
            tof.cpp \
