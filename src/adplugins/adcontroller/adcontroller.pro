@@ -41,8 +41,9 @@ win32 {
           -lTAO_PortableServer \
           -lTAO_AnyTypeCode \
           -lTAO \
-          -lACE
-  linux-*: LIBS += -lrt -ldl
+          -lACE \
+          -ldl
+  linux-*: LIBS += -lrt
 }
 
 DEFINES += ADCONTROLLER_LIBRARY

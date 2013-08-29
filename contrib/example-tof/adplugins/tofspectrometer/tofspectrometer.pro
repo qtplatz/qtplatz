@@ -16,14 +16,14 @@ include(../../boost.pri)
 include(../../ace_tao.pri)
 
 LIBS += -l$$qtLibraryTarget( adinterface ) \
-        -l$$qtLibraryTarget( adplugin ) \
+        -l$$qtLibraryTarget( tofinterface ) \
         -l$$qtLibraryTarget( adportable ) \
-        -l$$qtLibraryTarget( adcontrols ) \
-        -l$$qtLibraryTarget( tofinterface )
+        -l$$qtLibraryTarget( adplugin ) \
+        -l$$qtLibraryTarget( adcontrols )
 
-LIBS += -l$$qtLibraryTarget( TAO ) \
-        -l$$qtLibraryTarget( TAO_AnyTypeCode ) \
-        -l$$qtLibraryTarget( ACE )
+!win32: LIBS += -lboost_serialization -lboost_wserialization -lboost_date_time
+
+LIBS += -l$$qtLibraryTarget( ACE )
 
 SOURCES += tofspectrometer.cpp \
            tof.cpp \

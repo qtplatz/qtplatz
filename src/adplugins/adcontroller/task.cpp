@@ -523,6 +523,7 @@ iTask::notify_message( unsigned long msgid, unsigned long value )
 void
 iTask::handle_message( std::wstring name, unsigned long msgid, unsigned long value )
 {
+    (void)name; // message source 
     std::lock_guard< std::mutex > lock( mutex_ );    
 
     for ( internal::receiver_data& d: this->receiver_set_ ) {

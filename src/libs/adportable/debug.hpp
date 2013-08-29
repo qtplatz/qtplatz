@@ -55,6 +55,7 @@ namespace adportable {
         debug& operator << ( unsigned int );
         debug& operator << ( long );
         debug& operator << ( unsigned long );
+        debug& operator << ( unsigned long long );
         debug& operator << ( float );
         debug& operator << ( double );
 		debug& operator << ( const boost::system::error_code& );
