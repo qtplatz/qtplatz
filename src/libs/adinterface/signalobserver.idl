@@ -79,7 +79,6 @@ module SignalObserver {
         long axis_y_decimals;
     };
 
-    // typedef sequence<long> long_array;
     typedef sequence<octet> octet_array;
 
     struct DataReadBuffer {
@@ -89,8 +88,6 @@ module SignalObserver {
         unsigned long events;      // well known events
         octet_array xdata;         // encoded data array
         octet_array xmeta;
-        any data;
-        any method;              // data acquisition method, sample information etc., which can be nil
     };
     
     // struct AveragerData {
