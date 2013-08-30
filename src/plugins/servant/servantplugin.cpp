@@ -176,15 +176,14 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
     // acewrapper::instance_manager::initialize();
     // <------
     
-    std::wstring apppath, configFile;
 	boost::filesystem::path plugindir;
     do {
-        apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
-		configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/nominal.adplugin" );
+        std::wstring apppath = qtwrapper::application::path( L".." ); // := "~/qtplatz/bin/.."
+		std::wstring configFile = adplugin::loader::config_fullpath( apppath, L"/MS-Cheminformatics/does-not-exist.adplugin" );
 		plugindir = boost::filesystem::path( configFile ).branch_path();
     } while(0);
 
-	// populate .adplugin files under give folder.
+	// populate .adplugin files under given folder.
 	adplugin::loader::populate( plugindir.generic_wstring().c_str() );
 
 	std::vector< adplugin::plugin_ptr > spectrometers;
