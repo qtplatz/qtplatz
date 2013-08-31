@@ -52,7 +52,7 @@ isEmpty ( OPENBABEL_ROOT ) {
 QTPLATZ_CONFIG += Acquire
 QTPLATZ_CONFIG += Sequence
 QTPLATZ_CONFIG += Dataproc
-QTPLATZ_CONFIG += ExampleTOF
+#QTPLATZ_CONFIG += ExampleTOF
 #!macx: QTPLATZ_CONFIG += Chemistry
 
 # no chemistry for ARM platform

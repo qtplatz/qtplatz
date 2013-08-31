@@ -61,4 +61,8 @@ namespace adportable {
 		debug& operator << ( const boost::system::error_code& );
     };
 
+    inline std::string where( const char * file, const int line ) { 
+        debug x( file, line );
+        return x.where();
+    }
 }

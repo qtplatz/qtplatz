@@ -57,29 +57,26 @@ SampleProcessor::prepare_storage( SignalObserver::Observer * masterObserver )
 	if ( ! boost::filesystem::exists( path ) )
 		boost::filesystem::create_directories( path );
 
-    std::regex re( "[rR][uU][nN]_[0-9][0-9][0-9][0-9]\\.adfs" );
-    std::cmatch matches;
-
-    std::vector< std::string > existing_files;
-
+    size_t runno = 0;
 	if ( boost::filesystem::exists( path ) && boost::filesystem::is_directory( path ) ) {
         using boost::filesystem::directory_iterator;
 		for ( directory_iterator it( path ); it != directory_iterator(); ++it ) {
-            if ( std::regex_match( it->path().string().c_str(), matches, re ) )
-                existing_files.push_back( it->path().string() );
-		}
+            boost::filesystem::path fname = (*it);
+			if ( fname.extension().string() == ".adfs" ) {
+				std::string name = fname.stem().string();
+				if ( ( name.size() == 8 ) 
+                     && ( name[0] == 'R' || name[0] == 'r' )
+                     && ( name[1] == 'U' || name[0] == 'u' )
+                     && ( name[2] == 'N' || name[0] == 'n' )
+                     && ( name[3] == '_' ) ) {
+                    size_t no = atoi( name.substr( 4 ).c_str() );
+                    if ( no > runno )
+                        runno = no;
+                }
+            }
+        }
 	}
-	unsigned char runno = 0;
-	if ( ! existing_files.empty() ) {
-		std::sort( existing_files.begin(), existing_files.end()
-                   , []( const std::string& a, const std::string& b ){
-                       return a > b;
-                   });
-		const std::string& last = existing_files.back();
-		std::string::size_type pos = last.find_first_of( "0123456789" );
-		if ( pos != std::string::npos )
-			runno = atoi( last.substr( pos ).c_str() );
-	}
+
 	std::ostringstream o;
 	o << "RUN_" << std::setw(4) << std::setfill( '0' ) << runno + 1;
 	boost::filesystem::path filename = path / o.str();
@@ -88,9 +85,11 @@ SampleProcessor::prepare_storage( SignalObserver::Observer * masterObserver )
 	///////////// creating filesystem ///////////////////
 	if ( ! fs_->create( storage_name_.wstring().c_str() ) )
 		return;
+
+	create_acquiredconf_table();
+	create_acquireddata_table();
 	
 	populate_descriptions( masterObserver );
-
 }
 
 void
