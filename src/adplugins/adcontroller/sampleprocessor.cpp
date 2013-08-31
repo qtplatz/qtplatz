@@ -80,6 +80,8 @@ SampleProcessor::prepare_storage( SignalObserver::Observer * masterObserver )
 	std::ostringstream o;
 	o << "RUN_" << std::setw(4) << std::setfill( '0' ) << runno + 1;
 	boost::filesystem::path filename = path / o.str();
+	filename.replace_extension( ".adfs" );
+
 	storage_name_ = filename.normalize();
 	
 	///////////// creating filesystem ///////////////////
