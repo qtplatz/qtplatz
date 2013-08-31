@@ -31,59 +31,83 @@
 
 namespace adinterface {
 
-    template<class T, class C> class ControlMethodAccessorT {
+    class ControlMethodAccessor {
+    public:
+        static bool isPointer( boost::any& a ) {
+#if defined __GNUC__ 
+            // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
+            if ( std::strcmp( a.type().name(), typeid( ::ControlMethod::Method * ).name() ) == 0 )
+                return true;
+#else
+            if ( a.type() == typeid( ::ControlMethod::Method * ) )
+                return true;
+#endif
+            return false;
+        }
+        static bool isReference( boost::any& a ) {
+#if defined __GNUC__ 
+            // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
+            if ( std::strcmp( a.type().name(), typeid( ::ControlMethod::Method * ).name() ) == 0 )
+                return true;
+#else
+            if ( a.type() == typeid( ::ControlMethod::Method * ) )
+                return true;
+#endif
+            return false;
+        }
+
+        static ::ControlMethod::Method * out( boost::any& a ) {
+            if ( isPointer( a ) ) {
+                ::ControlMethod::Method * m = boost::any_cast< ::ControlMethod::Method * >( a );
+                return m;
+            }
+            return 0;
+        }
+            
+        static const ::ControlMethod::Method * in( boost::any& a ) {
+            if ( isReference( a ) ) {
+                const ::ControlMethod::Method& m = boost::any_cast< const ::ControlMethod::Method& >( a );
+                return &m;
+            }
+            return 0;
+        }
+    };
+
+    template<class IM, class Serializer>
+    class ControlMethodAccessorT {
         std::wstring instId_;
-        unsigned int unitnumber_;
+        unsigned int unitNumber_;
     public:
         ControlMethodAccessorT( const std::wstring& instId
                                 , unsigned int unitnumber = 0 ) : instId_( instId )
-                                                                , unitnumber_( unitnumber ) {
-        }
-        
-        bool getContents( const T& t, boost::any& a ) const {
-#if defined __GNUC__ 
-            // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
-            if ( std::strcmp( a.type().name(), typeid( ::ControlMethod::Method * ).name() ) != 0 )
-                return false;
-#else
-            if ( a.type() != typeid( ::ControlMethod::Method * ) )
-                return false;
-#endif
-            ::ControlMethod::Method * m = boost::any_cast< ::ControlMethod::Method * >( a );
-            if ( m ) {
-                ::ControlMethod::MethodLine * line = ControlMethodHelper::findFirst( *m, instId_, unitnumber_ );
-                if ( line ) {
-                    C * p = 0;
-                    if ( line->data >>= p )
-                        t.getMethod( * p );
-                } else {
-                    C c;
-                    t.getMethod( c );
-                    ::ControlMethod::MethodLine line;
-                    line.data <<= c;
-                    ControlMethodHelper::append( *m, line, instId_, unitnumber_ );
-                }
-            }
-            return true;
+                                                                , unitNumber_( unitnumber ) {
         }
 
-        bool setContents( T& t, boost::any& a ) {
-#if defined __GNUC__ 
-            // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
-            if ( std::strcmp( a.type().name(), typeid( ::ControlMethod::Method ).name() ) != 0 )
-                return false;
-#else
-            if ( a.type() != typeid( ::ControlMethod::Method ) )
-                return false;
-#endif
-            const ::ControlMethod::Method& m = boost::any_cast< const ::ControlMethod::Method& >( a );
-            const ::ControlMethod::MethodLine * line = ControlMethodHelper::findFirst( m, instId_, unitnumber_ );
-            if ( line ) {
-                const C * p = 0;
-                if ( line->data >>= p )
-                    t.setMethod( *p );
+        bool setMethod( boost::any& a, const IM& im ) const {
+            if ( ::ControlMethod::Method * out = ControlMethodAccessor::out( a ) ) {
+                std::string device;
+                if ( Serializer::serialize( im, device ) ) {
+                    ::ControlMethod::MethodLine * line = ControlMethodHelper::findFirst( *out, instId_, unitNumber_ );
+                    if ( line == 0 ) {
+						::ControlMethod::MethodLine& t = ControlMethodHelper::add( *out, instId_, unitNumber_ );
+						line = &t;
+					}
+                    line->xdata.length( device.size() );
+                    std::copy( device.begin(), device.end(), reinterpret_cast< char *>(line->xdata.get_buffer()) );
+                    return true;
+                }
             }
-            return true;
+            return false;
+        }
+
+        bool getMethod( IM& im, boost::any& a ) {
+            if ( const ::ControlMethod::Method * in = ControlMethodAccessor::in( a ) ) {
+                const ::ControlMethod::Method& m = boost::any_cast< const ::ControlMethod::Method& >( a );
+                const ::ControlMethod::MethodLine * line = ControlMethodHelper::findFirst( m, instId_, unitNumber_ );
+                if ( line && line->xdata.length() > 0 )
+                    return Serializer::deserialize( im, reinterpret_cast< const char * >(line->xdata.get_buffer()), line->xdata.length() );
+            }
+            return false;
         }
     };
 

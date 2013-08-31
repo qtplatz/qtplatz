@@ -413,7 +413,8 @@ void
 observer_i::stop_sample_processor()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-    queue_.pop_front();
+	if ( ! queue_.empty() )
+		queue_.pop_front();
 }
 
 bool

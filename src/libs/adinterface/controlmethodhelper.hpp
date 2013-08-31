@@ -78,11 +78,13 @@ namespace adinterface {
         ControlMethod::InstInfo& addInstrument( const std::wstring& modelname, unsigned long unitnumber = 0 );
         ControlMethod::MethodLine& add( const std::wstring& modelname, unsigned long unitnumber = 0 );
 
+        static unsigned int findInstrument( const ControlMethod::Method&, const std::wstring& modelname, unsigned long unitnumber = 0 );
         static const ControlMethod::MethodLine* findFirst( const ControlMethod::Method&, const std::wstring& model, unsigned long unitnumber = 0 );
         static const ControlMethod::MethodLine* findNext( const ControlMethod::Method&, const ControlMethod::MethodLine * );
         static ControlMethod::MethodLine* findFirst( ControlMethod::Method&, const std::wstring& model, unsigned long unitnumber = 0 );
         static ControlMethod::MethodLine* findNext( ControlMethod::Method&, const ControlMethod::MethodLine * );
         static bool append( ControlMethod::Method&, const ControlMethod::MethodLine&, const std::wstring& model, unsigned long unitnumber = 0 );
+        static ControlMethod::MethodLine& add( ControlMethod::Method&, const std::wstring& modelname, unsigned long unitnumber = 0 );
     };
 }
 

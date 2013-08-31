@@ -607,9 +607,6 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
 
     size_t idData = 0;
     while ( dataInterpreter.translate( ms, rb, spectrometer, idData++ ) ) {
-
-        std::cout << "AcquirePlugin::readMassSpectra: " << objid << ", " << idData << std::endl;
-
 #ifdef CENTROID
         adcontrols::CentroidMethod method;
         method.centroidAreaIntensity( false ); // take hight
@@ -622,6 +619,7 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
         pImpl_->spectrumPlot_->setData( ms, 0 );
 #endif
     } 
+
 }
 
 void
@@ -655,7 +653,6 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
     SignalObserver::Observer_ptr tgt = observerMap_[ objId ].in();
 
     SignalObserver::Description_var desc = tgt->getDescription();
-    //CORBA::WString_var clsid = tgt->dataInterpreterClsid();
     CORBA::WString_var name = tgt->dataInterpreterClsid();
     SignalObserver::DataReadBuffer_var rb;
 

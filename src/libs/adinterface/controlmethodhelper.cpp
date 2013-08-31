@@ -73,6 +73,17 @@ ControlMethodHelper::findInstrument( const std::wstring& modelname, unsigned lon
     return (-1); // error
 }
 
+// static
+unsigned int
+ControlMethodHelper::findInstrument( const ControlMethod::Method& m, const std::wstring& modelname, unsigned long unitnumber )
+{
+    for ( size_t i = 0; i < m.iinfo.length(); ++i ) {
+        if ( modelname == m.iinfo[i].modelname.in() && unitnumber == m.iinfo[i].unit_number )
+            return i;
+    }
+    return (-1); // error
+}
+
 ::ControlMethod::InstInfo&
 ControlMethodHelper::addInstrument( const std::wstring& modelname, unsigned long unitnumber )
 {
@@ -161,6 +172,21 @@ ControlMethodHelper::findNext( ControlMethod::Method& method, const ControlMetho
         }
     }
     return 0;
+}
+
+// static
+::ControlMethod::MethodLine&
+ControlMethodHelper::add( ControlMethod::Method& m, const std::wstring& modelname, unsigned long unitnumber )
+{
+    m.lines.length( m.lines.length() + 1 );
+    ::ControlMethod::MethodLine&  line = m.lines[ m.lines.length() - 1 ];
+
+    line.modelname = CORBA::wstring_dup( modelname.c_str() );
+    line.index = findInstrument( m, modelname, unitnumber );
+    line.unitnumber = unitnumber;
+    line.isInitialCondition = true;
+
+    return line;
 }
 
 // static
