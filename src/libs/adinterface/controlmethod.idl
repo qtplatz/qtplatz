@@ -24,6 +24,8 @@
 
 module ControlMethod {
 
+    typedef sequence<octet> octet_array;
+
     enum eDeviceCategory {
         device_unknown
         , device_sampler               // autosampler or anything prepare sample (trigger injection)
@@ -62,6 +64,7 @@ module ControlMethod {
         TimeValue time;
         unsigned long funcid;        // MethodFunc
         any data;
+        octet_array xdata;
     };
 
     typedef sequence< MethodLine > method_sequence;

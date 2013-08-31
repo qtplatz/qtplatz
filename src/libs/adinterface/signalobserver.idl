@@ -90,16 +90,6 @@ module SignalObserver {
         octet_array xmeta;
     };
     
-    // struct AveragerData {
-    //     unsigned long long uptime;
-    //     unsigned long timeSinceInject;
-    //     unsigned long nbrAverage;
-    //     unsigned long nbrSamples;     
-    //     unsigned long startDelay;          
-    //     unsigned long sampInterval;
-    //     unsigned long wellKnownEvents;     
-    // };
-
     interface ObserverEvents {
 		// Master observer tells you if new device is up or down
 		oneway void OnConfigChanged( in unsigned long objId, in eConfigStatus status );
@@ -126,7 +116,6 @@ module SignalObserver {
 
         unsigned long objId();
         void assign_objId( in unsigned long oid );
-        //void assign_objId( unsigned long objid );
 
         // client can monitor real time events, it is optional
         boolean connect( in ObserverEvents cb, in eUpdateFrequency frequency, in string token );
