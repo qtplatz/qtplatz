@@ -56,6 +56,7 @@ HEADERS += adportable.hpp \
     protocollifecycle.hpp \
     safearray.hpp \
     serialport.hpp \
+    serializer.hpp \
     spectrum_processor.hpp \
     string.hpp \
     utf.hpp \
