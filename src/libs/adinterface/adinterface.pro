@@ -9,6 +9,7 @@ QT       -= core gui
 TARGET = adinterface
 TEMPLATE = lib
 CONFIG += staticlib
+DEFINES += _SCL_SECURE_NO_WARNINGS
 include(../../qtplatzstaticlib.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)

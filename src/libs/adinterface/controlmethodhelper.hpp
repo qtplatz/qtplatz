@@ -29,6 +29,8 @@
 
 namespace adinterface {
 
+    class Method; // C++ class
+
     class ControlMethodInstInfo {
         ControlMethod::InstInfo& info_;
     public:
@@ -85,6 +87,9 @@ namespace adinterface {
         static ControlMethod::MethodLine* findNext( ControlMethod::Method&, const ControlMethod::MethodLine * );
         static bool append( ControlMethod::Method&, const ControlMethod::MethodLine&, const std::wstring& model, unsigned long unitnumber = 0 );
         static ControlMethod::MethodLine& add( ControlMethod::Method&, const std::wstring& modelname, unsigned long unitnumber = 0 );
+
+        static bool copy( Method& dst, const ControlMethod::Method& src );
+        static bool copy( ControlMethod::Method& dst, const Method& src );
     };
 }
 

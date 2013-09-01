@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "controlmethodhelper.hpp"
+#include "method.hpp"
 #include <adportable/debug.hpp>
 
 using namespace adinterface;
@@ -287,5 +288,81 @@ const wchar_t *
 ControlMethodInstInfo::description() const
 {
     return info_.description.in();
+}
+
+// static
+bool
+ControlMethodHelper::copy( Method& dst, const ControlMethod::Method& src )
+{
+    dst.iinfo.clear();
+    dst.lines.clear();
+    dst.subject = src.subject.in();
+    dst.description = src.subject.in();
+    for ( size_t i = 0; i < src.iinfo.length(); ++i ) {
+        const ControlMethod::InstInfo& s = src.iinfo[ i ];
+        InstInfo info;
+        info.index = s.index;
+        info.unit_number = s.unit_number;
+        info.category = static_cast< eDeviceCategory >( s.category );
+        info.modelname = s.modelname;
+        info.serial_number = s.serial_number;
+        info.description = s.description;
+        dst.iinfo.push_back ( info );
+    }
+
+    for ( size_t i = 0; i < src.lines.length(); ++i ) {
+        const ControlMethod::MethodLine& s = src.lines[ i ];
+        dst.lines.push_back( Method::Line() );
+        Method::Line& line = dst.lines.back();
+
+        line.modelname = s.modelname.in();
+        line.index = s.index;
+        line.unitnumber = s.unitnumber;
+        line.isInitialCondition = s.isInitialCondition;
+        line.time.sec_ = s.time.sec_;
+        line.time.usec_ = s.time.usec_;
+        line.funcid = s.funcid;
+        line.xdata.resize( s.xdata.length() );
+        std::copy( s.xdata.get_buffer(), s.xdata.get_buffer() + s.xdata.length(), line.xdata.begin() );
+    }
+    return true;
+}
+
+//static 
+bool
+ControlMethodHelper::copy( ControlMethod::Method& dst, const Method& src )
+{
+    dst.iinfo.length( src.iinfo.size() );
+    dst.lines.length( src.lines.size() );
+
+	dst.subject = CORBA::wstring_dup( src.subject.c_str() );
+	dst.description = CORBA::wstring_dup( src.subject.c_str() );
+
+    for ( size_t i = 0; i < src.iinfo.size(); ++i ) {
+        const InstInfo& s = src.iinfo[ i ];
+        ControlMethod::InstInfo& info = dst.iinfo[ i ];
+        info.index = s.index;
+        info.unit_number = s.unit_number;
+        info.category = static_cast< ControlMethod::eDeviceCategory >( s.category );
+        info.modelname = CORBA::wstring_dup( s.modelname.c_str() );
+        info.serial_number = CORBA::wstring_dup( s.serial_number.c_str() );
+        info.description = CORBA::wstring_dup( s.description.c_str() );
+    }
+
+    for ( size_t i = 0; i < src.lines.size(); ++i ) {
+        const Method::Line& s = src.lines[ i ];
+        ControlMethod::MethodLine& d = dst.lines[ i ];
+
+        d.modelname = CORBA::wstring_dup( s.modelname.c_str() );
+        d.index = s.index;
+        d.unitnumber = s.unitnumber;
+        d.isInitialCondition = s.isInitialCondition;
+        d.time.sec_ = s.time.sec_;
+        d.time.usec_ = s.time.usec_;
+        d.funcid = s.funcid;
+        d.xdata.length( s.xdata.size() );
+        std::copy( s.xdata.begin(), s.xdata.end(), d.xdata.get_buffer() );
+    }
+    return true;
 }
 

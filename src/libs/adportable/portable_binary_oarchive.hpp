@@ -12,7 +12,7 @@
 #pragma warning( disable : 4996 )
 #endif
 
-namespace adportable{ class u8string; }
+//namespace adportable{ class u8string; }
 
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // portable_binary_oarchive.hpp
