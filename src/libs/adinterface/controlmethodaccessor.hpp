@@ -47,10 +47,10 @@ namespace adinterface {
         static bool isReference( boost::any& a ) {
 #if defined __GNUC__ 
             // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
-            if ( std::strcmp( a.type().name(), typeid( ::ControlMethod::Method * ).name() ) == 0 )
+            if ( std::strcmp( a.type().name(), typeid( ::ControlMethod::Method ).name() ) == 0 )
                 return true;
 #else
-            if ( a.type() == typeid( ::ControlMethod::Method * ) )
+            if ( a.type() == typeid( ::ControlMethod::Method ) )
                 return true;
 #endif
             return false;
@@ -101,11 +101,13 @@ namespace adinterface {
         }
 
         bool getMethod( IM& im, boost::any& a ) {
-            if ( const ::ControlMethod::Method * in = ControlMethodAccessor::in( a ) ) {
-                const ::ControlMethod::Method& m = boost::any_cast< const ::ControlMethod::Method& >( a );
-                const ::ControlMethod::MethodLine * line = ControlMethodHelper::findFirst( m, instId_, unitNumber_ );
+            const ::ControlMethod::Method * method = 
+                ControlMethodAccessor::isPointer( a ) ? ControlMethodAccessor::out( a ) : ControlMethodAccessor::in( a );
+            if ( method ) {
+                const ::ControlMethod::MethodLine * line = ControlMethodHelper::findFirst( *method, instId_, unitNumber_ );
                 if ( line && line->xdata.length() > 0 )
                     return Serializer::deserialize( im, reinterpret_cast< const char * >(line->xdata.get_buffer()), line->xdata.length() );
+                return true;
             }
             return false;
         }
