@@ -124,8 +124,7 @@ namespace Acquire {
             }
 
             Broker::Session_var brokerSession_;
-
-            std::map< std::wstring, adcontrols::Trace > traces_;
+            std::map< int, adcontrols::Trace > traces_;
             adwplot::ChromatogramWidget * timePlot_;
             adwplot::SpectrumWidget * spectrumPlot_;
             QIcon icon_;
@@ -635,11 +634,19 @@ AcquirePlugin::readTrace( const SignalObserver::Description& desc
     adcontrols::TraceAccessor accessor;
     if ( dataInterpreter.translate( accessor
 									, reinterpret_cast< const char *>( rb.xdata.get_buffer() ), rb.xdata.length()
-									, reinterpret_cast< const char * >( rb.xmeta.get_buffer() ), rb.xmeta.length(), rb.events ) ) {
-        adcontrols::Trace& data = pImpl_->traces_[ std::wstring( desc.trace_id ) ];
-        data += accessor;
-        if ( data.size() >= 2 )        
-            pImpl_->timePlot_->setData( data );
+									, reinterpret_cast< const char * >( rb.xmeta.get_buffer() ), rb.xmeta.length()
+                                    , rb.events ) ) {
+
+        int fcn = 0;
+        for ( auto& trace: accessor.traces() ) {
+            if ( ! trace.traceY_.empty() ) {
+                adcontrols::Trace& data = pImpl_->traces_[ fcn ];
+                data += accessor;
+                if ( data.size() >= 2 )        
+                    pImpl_->timePlot_->setData( data );
+            }
+            ++fcn;
+        }
     }
 }
 
