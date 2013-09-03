@@ -118,7 +118,7 @@ rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms ) const
         uint64_t npos = npos0_ + idx;
 
         adfs::stmt sql( dbf_.db() );
-        if ( sql.prepare( "SELECT max(npos) FROM AcquiredData WHERE oid = :oid AND fcn = 0 AND npos < :npos" ) ) {
+        if ( sql.prepare( "SELECT max(npos) FROM AcquiredData WHERE oid = :oid AND fcn = 0 AND npos <= :npos" ) ) {
             sql.bind( 1 ) = it->objid;
             sql.bind( 2 ) = npos;
             if ( sql.step() == adfs::sqlite_row )
