@@ -31,114 +31,32 @@ TraceAccessor::~TraceAccessor()
 {
 }
 
-TraceAccessor::TraceAccessor() : pos_(-1)
-                               , isConstantSampleInterval_( true )
-                               , sampInterval_(0)
+TraceAccessor::TraceAccessor()
 {
 }
 
-TraceAccessor::TraceAccessor( const TraceAccessor& t ) : traceX_( t.traceX_ )
-                                                       , traceY_( t.traceY_ )
+TraceAccessor::TraceAccessor( const TraceAccessor& t ) : traces_( t.traces_ )
                                                        , events_( t.events_ )
-                                                       , minTime_( t.minTime_ )
-                                                       , isConstantSampleInterval_( t.isConstantSampleInterval_ )
-                                                       , sampInterval_( t.sampInterval_ )
 {
 }
 
 void
 TraceAccessor::clear()
 {
-    traceX_.clear();
-    traceY_.clear();
-    events_.clear();
-}
-
-size_t
-TraceAccessor::size() const
-{
-    return traceY_.size();
-}
-
-long
-TraceAccessor::pos() const
-{
-    return pos_;
+    traces_.clear();
 }
 
 void
-TraceAccessor::pos( long pos )
+TraceAccessor::push_back( int fcn, uint32_t pos, const seconds_t& t, double value, unsigned long events )
 {
-    pos_ = pos;
-}
+    if ( size_t( fcn ) >= traces_.size() )
+        traces_.resize( fcn + 1 );
 
-bool
-TraceAccessor::isConstantSampleInterval() const
-{
-    return isConstantSampleInterval_;
-}
-
-void
-TraceAccessor::sampInterval( unsigned long value )
-{
-    sampInterval_ = value;
-}
-
-unsigned long
-TraceAccessor::sampInterval() const
-{
-    return sampInterval_;
-}
-
-const seconds_t&
-TraceAccessor::getMinimumTime() const
-{
-    return minTime_;
-}
-
-void
-TraceAccessor::setMinimumTime( const seconds_t& value )
-{
-    minTime_ = value;
-}
-
-void
-TraceAccessor::push_back( double value, unsigned long events, const seconds_t& s )
-{
-    isConstantSampleInterval_ = false;
-    traceX_.push_back( s.seconds );
-    traceY_.push_back( value );
-    events_.push_back( events );
-}
-
-void
-TraceAccessor::push_back( double value, unsigned long events )
-{
-    traceY_.push_back( value );
-    events_.push_back( events );
-}
-
-const double *
-TraceAccessor::getIntensityArray() const
-{
-    if ( traceY_.empty() )
-        return 0;
-    return &traceY_[0];
-}
-
-const double *
-TraceAccessor::getTimeArray() const   // null if isConstantSampleInterval is set
-{
-    if ( traceX_.empty() )
-        return 0;
-    return &traceX_[0];
-}
-
-const unsigned long *
-TraceAccessor::getEventsArray() const
-{
-    if ( events_.empty() )
-        return 0;
-    return &events_[0];
+    fcnTrace& trace = traces_[ fcn ];
+	trace.pos_.push_back( pos );
+    trace.traceX_.push_back( t.seconds );
+    trace.traceY_.push_back( value );
+    if ( events_.empty() || events_.back().second != events )
+        events_.push_back( std::make_pair( t, events ) );
 }
 

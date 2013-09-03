@@ -53,8 +53,8 @@ namespace adcontrols {
         std::pair<double, double> range_y() const;
 
     private:
-        size_t pos_;
         size_t ulimits_;
+		size_t fcn_;
         double minY_;
         double maxY_;
 

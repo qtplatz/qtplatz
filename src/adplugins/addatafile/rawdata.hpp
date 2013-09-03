@@ -34,6 +34,7 @@ namespace adcontrols {
     class Chromatogram;
     class MassSpectrum;
     class ProcessedDataset;
+	class TraceAccessor;
 }
 
 namespace addatafile {
@@ -78,7 +79,7 @@ namespace addatafile {
         bool loadAcquiredConf();
 
     private:
-        bool fetchTrace( int64_t objid, const std::wstring& clsid, adcontrols::Chromatogram& );
+        bool fetchTraces( int64_t objid, const std::wstring& clsid, adcontrols::TraceAccessor& );
         bool fetchSpectra( int64_t objid, const std::wstring& clsid, uint64_t npos, adcontrols::MassSpectrum& ) const;
         bool fetchSpectrum( int64_t objid, const std::wstring& clsid, uint64_t npos, adcontrols::MassSpectrum& ) const;
 

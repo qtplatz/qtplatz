@@ -29,6 +29,7 @@
 #include <vector>
 #include "adcontrols_global.h"
 #include <compiler/disable_dll_interface.h>
+#include <cstdint>
 
 namespace adcontrols {
 
@@ -38,36 +39,27 @@ namespace adcontrols {
         TraceAccessor();
         TraceAccessor( const TraceAccessor& );
 
+		struct ADCONTROLSSHARED_EXPORT fcnTrace {
+            std::vector< uint32_t > pos_;
+            std::vector< double > traceX_;
+            std::vector< double > traceY_;
+            fcnTrace() {}
+            fcnTrace( const fcnTrace& t ) 
+                : pos_( t.pos_ )
+                , traceX_( t.traceX_ )
+                , traceY_( t.traceY_ ) {
+            }
+		};
+
         void clear();
-        size_t size() const;
 
-        long pos() const;
-        void pos( long );
+        void push_back( int fcn, uint32_t pos, const seconds_t&, double value, unsigned long events );
 
-        bool isConstantSampleInterval() const;
-        void sampInterval( unsigned long );
-        unsigned long sampInterval() const;
-
-        const seconds_t& getMinimumTime() const;
-        void setMinimumTime( const seconds_t& );
-        void push_back( double value, unsigned long events, const seconds_t& );
-        void push_back( double value, unsigned long events );
-
-        const double * getIntensityArray() const;
-        const double * getTimeArray() const;   // null if isConstantSampleInterval is set
-        const unsigned long * getEventsArray() const;
-
+        const std::vector< fcnTrace >& traces() const { return traces_; }
+        const std::vector< std::pair< seconds_t, uint32_t > >& events() const { return events_; }
     private:
-
-        std::vector< double > traceX_;
-        std::vector< double > traceY_;
-        std::vector< unsigned long > events_;
-//#pragma warning(default:4251)
-
-        unsigned long pos_;   // data address
-        seconds_t minTime_;  // time corresponding to pos
-        bool isConstantSampleInterval_;
-        unsigned long sampInterval_; // microseconds
+        std::vector< std::pair< seconds_t, uint32_t > > events_;
+		std::vector< fcnTrace > traces_;
     };
 
 }

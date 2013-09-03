@@ -82,11 +82,18 @@ rawdata::loadAcquiredConf()
     for ( const auto& conf: conf_ ) {
         if ( conf.trace_method == signalobserver::eTRACE_TRACE // timed trace := chromatogram
              && conf.trace_id == L"MS.TIC" ) {
-            
-            std::shared_ptr< adcontrols::Chromatogram > cptr( new adcontrols::Chromatogram() );
-			cptr->addDescription( adcontrols::Description( L"create",  conf.trace_display_name ) );
-            if ( fetchTrace( conf.objid, conf.dataInterpreterClsid, *cptr ) )
-                tic_.push_back( cptr );
+
+            adcontrols::TraceAccessor accessor;
+            if ( fetchTraces( conf.objid, conf.dataInterpreterClsid, accessor ) ) {
+                for ( auto& trace: accessor.traces() ) {
+                    std::shared_ptr< adcontrols::Chromatogram > cptr( new adcontrols::Chromatogram() );
+                    cptr->addDescription( adcontrols::Description( L"create",  conf.trace_display_name ) );
+					cptr->resize( trace.traceY_.size() );
+					cptr->setIntensityArray( trace.traceY_.data() );
+					cptr->setTimeArray( trace.traceX_.data() );
+                    tic_.push_back( cptr );
+                }
+            }
         }
     }
     
@@ -149,7 +156,7 @@ rawdata::getChromatogramCount() const
 size_t
 rawdata::getFunctionCount() const
 {
-    return 1;
+    return tic_.size();
 }
 
 size_t
@@ -181,7 +188,7 @@ rawdata::getChromatograms( int fcn
 
 // private
 bool
-rawdata::fetchTrace( int64_t objid, const std::wstring& dataInterpreterClsid, adcontrols::Chromatogram& c )
+rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, adcontrols::TraceAccessor& accessor )
 {
     const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( dataInterpreterClsid );
     const adcontrols::DataInterpreter& interpreter = spectrometer.getDataInterpreter();
@@ -189,26 +196,18 @@ rawdata::fetchTrace( int64_t objid, const std::wstring& dataInterpreterClsid, ad
     adfs::stmt sql( dbf_.db() );
     
     if ( sql.prepare( "SELECT rowid, npos, events, fcn FROM AcquiredData WHERE oid = :oid ORDER BY npos" ) ) {
-
         sql.bind( 1 ) = objid;
         adfs::blob blob;
         std::vector< char > xdata;
         std::vector< char > xmeta;
-        adcontrols::TraceAccessor accessor;
-        accessor.pos( 0 );
-		uint32_t prev_events = 0;
 
         while( sql.step() == adfs::sqlite_row ) {
+
             uint64_t rowid = boost::get< boost::int64_t >( sql.column_value( 0 ) );
             uint64_t npos = boost::get< boost::int64_t >( sql.column_value( 1 ) );
             uint32_t events = static_cast< uint32_t >( boost::get< boost::int64_t >( sql.column_value( 2 ) ) );
             if ( npos0_ == 0 )
                 npos0_ = npos;
-			
-			if ( events != prev_events ) {
-				c.addEvent( adcontrols::Chromatogram::Event( accessor.size(), events ) );
-				prev_events = events;
-			}
 
             if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
                 xdata.resize( blob.size() );
@@ -222,10 +221,6 @@ rawdata::fetchTrace( int64_t objid, const std::wstring& dataInterpreterClsid, ad
             }
             interpreter.translate( accessor, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), static_cast< uint32_t >( events ) );
         }
-		
-		c.resize( accessor.size() );
-		c.setTimeArray( accessor.getTimeArray() );
-		c.setIntensityArray( accessor.getIntensityArray() );
 		
 		return true;
     }

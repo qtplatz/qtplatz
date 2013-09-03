@@ -27,6 +27,7 @@
 #include "trace.hpp"
 #include "traceaccessor.hpp"
 #include <iostream>
+#include <algorithm>
 
 using namespace adcontrols;
 
@@ -34,11 +35,11 @@ Trace::~Trace()
 {
 }
 
-Trace::Trace() : pos_( -1 ), minY_(-10), maxY_(90)
+Trace::Trace() : fcn_( 0 ), minY_(-10), maxY_(90)
 {
 }
 
-Trace::Trace( const Trace& t ) : pos_( t.pos_ )
+Trace::Trace( const Trace& t ) : fcn_( t.fcn_ )
                                , ulimits_( 4096 )
                                , minY_( t.minY_ )
                                , maxY_( t.maxY_ )
@@ -63,29 +64,21 @@ Trace::nlimits() const
 void 
 Trace::operator += ( const TraceAccessor& ta )
 {
-    if ( pos_ == size_t(-1) ) {
-        pos_ = ta.pos();
-    }
-    const double * pY = ta.getIntensityArray();
-    const double * pX = ta.getTimeArray();
-    const unsigned long * pE = ta.getEventsArray();
+	if ( size_t( fcn_ ) >= ta.traces().size() )
+		return;
 
-    size_t size = ta.size();
-    for ( size_t i = 0; i < size; ++i ) {
+	const TraceAccessor::fcnTrace& trace = ta.traces()[ fcn_ ];
+	
+	auto xIt = trace.traceX_.begin();
+	for ( auto& y: trace.traceY_ ) {
+		traceX_.push_back( *xIt++ ); // timeutil::toMinutes( *xIt ) ???
+		traceY_.push_back( y );
+		if ( maxY_ < y )
+			maxY_ = y;
+		if ( minY_ > y )
+			minY_ = y;
+	}
 
-        if ( pY[i] > maxY_ )
-            maxY_ = pY[i];
-
-        if ( pY[i] < minY_ )
-            minY_ = pY[i];
-
-        traceY_.push_back( pY[i] );
-        events_.push_back( pE[i] );
-        if ( pX )
-            traceX_.push_back( pX[i] );
-        else
-            traceX_.push_back( timeutil::toMinutes( ta.getMinimumTime() + ta.sampInterval() * i ) );
-    }
     if ( traceX_.size() > ulimits_ ) {
         const size_t n = ulimits_ / 4;
         traceX_.erase( traceX_.begin(), traceX_.begin() + n );
