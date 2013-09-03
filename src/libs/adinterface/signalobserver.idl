@@ -84,7 +84,7 @@ module SignalObserver {
     struct DataReadBuffer {
         unsigned long long uptime; // time in usec
         unsigned long pos;         // data address (sequencial number for first data in this frame)
-        unsigned long ndata;       // number of data (spectra) in array
+        unsigned long fcn;         // function number for spectrum (number of data points for trace)
         unsigned long events;      // well known events
         octet_array xdata;         // encoded data array
         octet_array xmeta;

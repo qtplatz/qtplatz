@@ -41,7 +41,7 @@
 
 using namespace acewrapper;
 
-static int debug_flag = 0;
+// static int debug_flag = 0;
 static bool __aborted = false;
 std::string __ior_session;
 

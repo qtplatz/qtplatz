@@ -105,12 +105,12 @@ SampleProcessor::handle_data( unsigned long objId, long pos
 	if ( ! inProgress_ ) 
 		return;
 	adfs::stmt sql( fs_->db() );
-	sql.prepare( "INSERT INTO AcquiredData VALUES( :oid, :time, :npos, :ndata, :events, :data, :meta )" );
+	sql.prepare( "INSERT INTO AcquiredData VALUES( :oid, :time, :npos, :fcn, :events, :data, :meta )" );
 	sql.begin();
 	sql.bind( 1 ) = objId;
 	sql.bind( 2 ) = rdBuf.uptime;
 	sql.bind( 3 ) = pos;
-	sql.bind( 4 ) = rdBuf.ndata;
+	sql.bind( 4 ) = rdBuf.fcn;
 	sql.bind( 5 ) = rdBuf.events;
 	sql.bind( 6 ) = adfs::blob( rdBuf.xdata.length(), reinterpret_cast<const int8_t *>( rdBuf.xdata.get_buffer() ) );
 	sql.bind( 7 ) = adfs::blob( rdBuf.xmeta.length(), reinterpret_cast<const int8_t *>( rdBuf.xmeta.get_buffer() ) ); // method
@@ -129,7 +129,7 @@ SampleProcessor::create_acquireddata_table()
 (oid    INTEGER                    \
 ,time   INTEGER                    \
 ,npos   INTEGER                    \
-,ndata  INTEGER                    \
+,fcn    INTEGER                    \
 ,events INTEGER                    \
 ,data   BLOB                       \
 ,meta   BLOB                       \
@@ -167,7 +167,7 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
     unsigned long pobjId = parent->objId();
 
     if ( ( vec.ptr() != 0 ) && ( vec->length() > 0 ) ) {
-
+        
         for ( size_t i = 0; i < vec->length(); ++i ) {
             
             SignalObserver::Observer_ptr observer = vec[ i ];

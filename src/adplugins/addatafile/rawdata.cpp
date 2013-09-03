@@ -96,20 +96,36 @@ rawdata::loadAcquiredConf()
 size_t
 rawdata::getSpectrumCount( int fcn ) const
 {
-	if ( tic_.size() > unsigned( fcn ) ) {
-        return tic_[ fcn ]->size();
+    adfs::stmt sql( dbf_.db() );
+    if ( sql.prepare( "SELECT count(rowid) FROM AcquiredData WHERE oid = :oid AND fcn = :fcn" ) ) {
+        sql.bind( 1 ) = fcn;
+        if ( sql.step() == adfs::sqlite_row )
+            return static_cast< size_t >( boost::get<boost::int64_t>( sql.column_value( 0 ) ) );
     }
+    return 0;
 }
 
 bool
 rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms ) const
 {
+    (void)fcn;
+
 	auto it = std::find_if( conf_.begin(), conf_.end(), []( const AcquiredConf& c ){
             return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
         });
 
-	if ( it != conf_.end() ) 
-		return fetchSpectrum( it->objid, it->dataInterpreterClsid, npos0_ + idx, ms );
+	if ( it != conf_.end() ) {
+        uint64_t npos = npos0_ + idx;
+
+        adfs::stmt sql( dbf_.db() );
+        if ( sql.prepare( "SELECT max(npos) FROM AcquiredData WHERE oid = :oid AND fcn = 0 AND npos < :npos" ) ) {
+            sql.bind( 1 ) = it->objid;
+            sql.bind( 2 ) = npos;
+            if ( sql.step() == adfs::sqlite_row )
+                npos = boost::get< boost::int64_t >(sql.column_value( 0 ));
+        }
+		return fetchSpectrum( it->objid, it->dataInterpreterClsid, npos, ms );
+    }
 
     return false;
 }
@@ -155,6 +171,11 @@ rawdata::getChromatograms( int fcn
                            , int begPos
                            , int endPos ) const
 {
+    (void)fcn;
+    (void)progress;
+    (void)begPos;
+    (void)endPos;
+
 	return false;
 }
 
@@ -167,7 +188,7 @@ rawdata::fetchTrace( int64_t objid, const std::wstring& dataInterpreterClsid, ad
 
     adfs::stmt sql( dbf_.db() );
     
-    if ( sql.prepare( "SELECT rowid, npos, events, ndata FROM AcquiredData WHERE oid = :oid ORDER BY npos" ) ) {
+    if ( sql.prepare( "SELECT rowid, npos, events, fcn FROM AcquiredData WHERE oid = :oid ORDER BY npos" ) ) {
 
         sql.bind( 1 ) = objid;
         adfs::blob blob;
@@ -221,7 +242,7 @@ rawdata::fetchSpectrum( int64_t objid, const std::wstring& dataInterpreterClsid,
 
     adfs::stmt sql( dbf_.db() );
 
-    if ( sql.prepare( "SELECT rowid, npos, events, ndata FROM AcquiredData WHERE oid = :oid AND npos = :npos" ) ) {
+    if ( sql.prepare( "SELECT rowid, fcn FROM AcquiredData WHERE oid = :oid AND npos = :npos" ) ) {
 
         sql.bind( 1 ) = objid;
         sql.bind( 2 ) = npos;
@@ -230,10 +251,11 @@ rawdata::fetchSpectrum( int64_t objid, const std::wstring& dataInterpreterClsid,
         std::vector< char > xdata;
         std::vector< char > xmeta;
 
-        while ( sql.step() == adfs::sqlite_row ) {
-            uint64_t rowid = boost::get< boost::int64_t >( sql.column_value( 0 ) );
-            uint64_t npos = boost::get< boost::int64_t >( sql.column_value( 1 ) );
-            uint32_t events = static_cast< uint32_t >( boost::get< boost::int64_t >( sql.column_value( 2 ) ) );
+        if ( sql.step() == adfs::sqlite_row ) {
+            uint64_t rowid  = boost::get< boost::int64_t >( sql.column_value( 0 ) );
+            uint64_t fcn    = boost::get< boost::int64_t >( sql.column_value( 1 ) );
+            
+            (void)fcn;
 			
             if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
                 xdata.resize( blob.size() );
@@ -246,9 +268,8 @@ rawdata::fetchSpectrum( int64_t objid, const std::wstring& dataInterpreterClsid,
                     blob.read( reinterpret_cast< int8_t *>( xmeta.data() ), blob.size() );
             }
             size_t idData = 0;
-            if ( interpreter.translate( ms, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), spectrometer, idData++ ) )
-                return true;
-            sql.bind( 2 ) = ++npos; // continue until protocol end
+            interpreter.translate( ms, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), spectrometer, idData++ );
+            return true;
         }
     }
 

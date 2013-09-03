@@ -79,6 +79,7 @@ namespace addatafile {
 
     private:
         bool fetchTrace( int64_t objid, const std::wstring& clsid, adcontrols::Chromatogram& );
+        bool fetchSpectra( int64_t objid, const std::wstring& clsid, uint64_t npos, adcontrols::MassSpectrum& ) const;
         bool fetchSpectrum( int64_t objid, const std::wstring& clsid, uint64_t npos, adcontrols::MassSpectrum& ) const;
 
         adfs::filesystem& dbf_;
