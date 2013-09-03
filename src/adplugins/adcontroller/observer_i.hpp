@@ -76,6 +76,7 @@ namespace adcontroller {
         bool forward_observer_update_events( unsigned long parentId, unsigned long objid, long pos, unsigned long events );
         void push_sample_processor( std::shared_ptr< SampleProcessor >& );
         void stop_sample_processor();
+        bool ihave( long pos );
 
     private:
         typedef std::vector<internal::observer_events_data> observer_events_vector_type;
@@ -95,6 +96,7 @@ namespace adcontroller {
         SignalObserver::Observer_var source_observer_;
         SignalObserver::Description desc_;
         unsigned long objId_;
+        unsigned long npos_i_have_;
         std::unique_ptr< Cache > cache_;
         std::mutex mutex_;
         std::deque< std::shared_ptr< SampleProcessor > > queue_;

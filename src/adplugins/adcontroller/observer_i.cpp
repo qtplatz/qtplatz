@@ -68,6 +68,7 @@ namespace adcontroller {
 using namespace adcontroller;
 
 observer_i::observer_i( SignalObserver::Observer_ptr source ) : objId_(0)
+                                                              , npos_i_have_(0)
 {
     source_observer_ = SignalObserver::Observer::_duplicate(source);
 	if ( ! CORBA::is_nil( source_observer_.in() ) )
@@ -316,6 +317,10 @@ observer_i::handle_data( unsigned long /* parentId */, unsigned long objId, long
 {
     observer_i * pCache = find_cache_observer( objId );
     if ( pCache && ! CORBA::is_nil( pCache->source_observer_.in() ) ) {
+
+        if ( pCache->ihave( pos ) )
+            return false;
+
         SignalObserver::DataReadBuffer_var rdbuf;
         try {
 			// read from native (source) observer
@@ -332,6 +337,7 @@ observer_i::handle_data( unsigned long /* parentId */, unsigned long objId, long
         } catch ( CORBA::Exception& ex ) {
             Logging( L"Exception: observer_i::handle_data \"%1%\"\t while readData from %2% at pos %3%" ) % ex._info().c_str() % objId % pos;
         }
+        return true;
     }
     return false;
 }
@@ -420,7 +426,15 @@ observer_i::stop_sample_processor()
 bool
 observer_i::write_cache( long pos, SignalObserver::DataReadBuffer_var& rdbuf )
 {
+    if ( rdbuf->ndata >= 1 ) // spectrum may set 0 to ndata
+        npos_i_have_ = pos + rdbuf->ndata - 1;
     return cache_->write( pos, rdbuf );
+}
+
+bool
+observer_i::ihave( long pos )
+{
+    return ( unsigned( pos ) <= npos_i_have_ ) ? true : false;
 }
 
 ///////////////////////////////////
