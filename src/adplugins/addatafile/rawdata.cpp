@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include "rawdata.hpp"
-#include <adinterface/signalobserverC.h>
+#include <adinterface/signalobserver.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/description.hpp>
@@ -80,7 +80,7 @@ rawdata::loadAcquiredConf()
     }
 
     for ( const auto& conf: conf_ ) {
-        if ( conf.trace_method == SignalObserver::eTRACE_TRACE // timed trace := chromatogram
+        if ( conf.trace_method == signalobserver::eTRACE_TRACE // timed trace := chromatogram
              && conf.trace_id == L"MS.TIC" ) {
             
             std::shared_ptr< adcontrols::Chromatogram > cptr( new adcontrols::Chromatogram() );
@@ -105,8 +105,9 @@ bool
 rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms ) const
 {
 	auto it = std::find_if( conf_.begin(), conf_.end(), []( const AcquiredConf& c ){
-		return c.trace_method == SignalObserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
-	});
+            return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
+        });
+
 	if ( it != conf_.end() ) 
 		return fetchSpectrum( it->objid, it->dataInterpreterClsid, npos0_ + idx, ms );
 

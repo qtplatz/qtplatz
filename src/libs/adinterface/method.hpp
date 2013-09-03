@@ -104,9 +104,9 @@ namespace adinterface {
             TimeValue time;
             unsigned long funcid;        // MethodFunc
             std::string xdata;   // This holds binary array (not the nil-terminated string)
-            class Line() : index(0), unitnumber(0), isInitialCondition( true ) {
+            Line() : index(0), unitnumber(0), isInitialCondition( true ) {
             }
-            class Line( const std::wstring& _model
+            Line( const std::wstring& _model
                         , unsigned long _unitnumber = 0
                         , bool isInitial = true
                         , unsigned long _funcid = 0) : modelname( _model )
@@ -115,7 +115,7 @@ namespace adinterface {
                                                      , isInitialCondition( isInitial )
                                                      , funcid( _funcid ) {
             }
-            class Line( const Line& t ) : modelname( t.modelname )
+            Line( const Line& t ) : modelname( t.modelname )
                 , index( t.index )
                 , unitnumber( t.unitnumber )
                 , isInitialCondition( t.isInitialCondition )
