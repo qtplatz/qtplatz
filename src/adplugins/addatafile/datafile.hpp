@@ -27,7 +27,6 @@
 #define DATAFILE_H
 
 #include <adcontrols/datafile.hpp>
-#include <adcontrols/lcmsdataset.hpp>
 #include <adfs/adfs.hpp>
 #include <memory>
 
@@ -41,8 +40,9 @@ namespace portfolio { class Portfolio; }
 
 namespace addatafile {
 
-    class datafile : public adcontrols::datafile
-                   , public adcontrols::LCMSDataset { 
+    class rawdata;
+
+    class datafile : public adcontrols::datafile {
     public:
         ~datafile();
         datafile();
@@ -60,26 +60,15 @@ namespace addatafile {
 
         adcontrols::datafile::factory_type factory() override { return 0; }
 
-        // LCMSDataset
-        size_t getFunctionCount() const override;
-        size_t getSpectrumCount( int fcn = 0 ) const override;
-        size_t getChromatogramCount() const override;
-        bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
-        bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const override;
-		size_t posFromTime( double ) const override;
-		bool getChromatograms( int fcn
-			                         , const std::vector< std::pair<double, double> >&
-			                         , std::vector< adcontrols::Chromatogram >&
-									 , std::function< bool (long curr, long total ) > progress
-									 , int begPos = 0
-									 , int endPos = (-1) ) const override;
     private:
         bool loadContents( portfolio::Portfolio&, const std::wstring& query );
+
     private:
         bool mounted_;
         std::wstring filename_;
         adfs::filesystem dbf_;
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
+        std::unique_ptr< rawdata > rawdata_;
     };
 
 }

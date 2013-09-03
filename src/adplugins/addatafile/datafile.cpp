@@ -26,6 +26,7 @@
 #include "datafile.hpp"
 #include "copyin_visitor.hpp"
 #include "copyout_visitor.hpp"
+#include "rawdata.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datapublisher.hpp>
@@ -88,6 +89,7 @@ datafile::~datafile()
 }
 
 datafile::datafile() : mounted_(false)
+                     , rawdata_( new rawdata( dbf_ ) )
 {
 }
 
@@ -97,7 +99,8 @@ datafile::accept( adcontrols::dataSubscriber& sub )
     if ( mounted_ ) {
         // subscribe acquired dataset <LCMSDataset>
         do {
-            sub.subscribe( *this );
+            if ( rawdata_->loadAcquiredConf() )
+                sub.subscribe( *rawdata_ );
         } while (0);
 
         // subscribe processed dataset
@@ -106,7 +109,13 @@ datafile::accept( adcontrols::dataSubscriber& sub )
             if ( loadContents( portfolio, L"/Processed" ) && processedDataset_ ) {
                 processedDataset_->xml( portfolio.xml() );
                 sub.subscribe( *processedDataset_ );
-            }
+            } else {
+				portfolio.create_with_fullpath( filename_ );
+				portfolio.addFolder( L"Chromatograms" );
+				portfolio.addFolder( L"Spectra" );
+				processedDataset_->xml( portfolio.xml() );
+				sub.subscribe( *processedDataset_ );
+			}
         } while (0);
     }
 }
@@ -182,54 +191,6 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
         }
     }
     return any;
-}
-
-size_t
-datafile::getSpectrumCount( int /* fcn */ ) const
-{
-    return 1;
-}
-
-bool
-datafile::getSpectrum( int /* fcn */, int /* idx */, adcontrols::MassSpectrum& ) const
-{
-    return true;
-}
-
-bool
-datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& ) const
-{
-    return false;
-}
-
-size_t
-datafile::getChromatogramCount() const
-{
-    return 0;
-}
-
-size_t
-datafile::getFunctionCount() const
-{
-    return 1;
-}
-
-size_t
-datafile::posFromTime( double x ) const
-{
-	(void)x;
-	return 0;
-}
-
-bool
-datafile::getChromatograms( int fcn
-			                         , const std::vector< std::pair<double, double> >&
-			                         , std::vector< adcontrols::Chromatogram >&
-									 , std::function< bool (long curr, long total ) > progress
-									 , int begPos
-									 , int endPos ) const
-{
-	return false;
 }
 
 ////////////////////////////////////////////////////

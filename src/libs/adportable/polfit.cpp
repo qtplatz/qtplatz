@@ -29,6 +29,7 @@
 #include <compiler/disable_unused_function.h>
 
 #include "polfit.hpp"
+#include <adportable/debug.hpp>
 #include <cmath>
 #include <limits>
 #include <cstring>
@@ -340,8 +341,14 @@ polfit::fit( const double* x, const double* y, int npts, int nterms, std::vector
     internal::normalCoefficients( npts, x, y, nterms - 1, a, b );
 
     boost::numeric::ublas::permutation_matrix<> pm( a.size1() );
-    boost::numeric::ublas::lu_factorize<>( a, pm );
-    boost::numeric::ublas::lu_substitute<>( a, pm, b );
+
+	try {
+		boost::numeric::ublas::lu_factorize<>( a, pm );
+		boost::numeric::ublas::lu_substitute<>( a, pm, b );
+	} catch ( std::exception& ex ) {
+		adportable::debug(__FILE__, __LINE__) << ex.what();
+		return false;
+	}
 
     coeffs.clear();
     for ( int i = 0; i < nterms; ++i )

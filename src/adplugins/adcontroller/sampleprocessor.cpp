@@ -105,7 +105,7 @@ SampleProcessor::handle_data( unsigned long objId, long pos
 	if ( ! inProgress_ ) 
 		return;
 	adfs::stmt sql( fs_->db() );
-	sql.prepare( "INSERT INTO AcquiredData VALUES( :oid, :time, :npos, :ndata, :events, :data, :method )" );
+	sql.prepare( "INSERT INTO AcquiredData VALUES( :oid, :time, :npos, :ndata, :events, :data, :meta )" );
 	sql.begin();
 	sql.bind( 1 ) = objId;
 	sql.bind( 2 ) = rdBuf.uptime;
@@ -132,7 +132,7 @@ SampleProcessor::create_acquireddata_table()
 ,ndata  INTEGER                    \
 ,events INTEGER                    \
 ,data   BLOB                       \
-,method BLOB                       \
+,meta   BLOB                       \
 )"
         );
 }

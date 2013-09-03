@@ -66,14 +66,32 @@ namespace adcontrols {
         public:
             DataInterpreter(void) {  }
             virtual ~DataInterpreter(void) {  }
-			virtual bool translate( adcontrols::MassSpectrum&, const SignalObserver::DataReadBuffer&
-				, const adcontrols::MassSpectrometer&, size_t /* idData */ ) const {
-					return false;
-            }
 
+			virtual bool translate( adcontrols::MassSpectrum&, const SignalObserver::DataReadBuffer&
+                                    , const adcontrols::MassSpectrometer&, size_t /* idData */ ) const {
+                return false;
+            }
+            
             virtual bool translate( adcontrols::TraceAccessor&, const SignalObserver::DataReadBuffer& ) const {
                 return false;
             }
+
+            bool translate( MassSpectrum&
+                            , const char * data, size_t dsize
+                            , const char * meta, size_t msize 
+                            , const MassSpectrometer&
+                            , size_t idData ) const override {
+                (void)data; (void)dsize; (void)meta; (void)msize; (void)idData;
+                return false;
+            }
+        
+            bool translate( TraceAccessor&
+                            , const char * data, size_t dsize
+                            , const char * meta, size_t msize, unsigned long events ) const override {
+                (void)data; (void)dsize; (void)meta; (void)msize; (void)events;
+                return false;
+            }
+
         };
 
         class MassSpectrometerImpl : public MassSpectrometer {

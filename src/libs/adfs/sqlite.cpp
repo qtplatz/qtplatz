@@ -27,6 +27,7 @@
 #include "sqlite3.h"
 #include <adportable/string.hpp>
 #include <adportable/utf.hpp>
+#include <adportable/debug.hpp>
 #include <iostream>
 
 #include <boost/noncopyable.hpp>
@@ -44,10 +45,10 @@ namespace adfs {
     namespace detail {
         struct error_log {
             static void log( const std::string& sql, const char * msg ) {
-                std::cout << sql << "\nerror : " << msg << std::endl;
+				adportable::debug(__FILE__, __LINE__) << sql << "\terror : " << msg;
             }
             static void log( const std::wstring& sql, const char * msg ) {
-                std::wcout << sql << L"\nerror : " << msg << std::endl;
+				adportable::debug(__FILE__, __LINE__) << sql << "\terror : " << msg;
             }
         };
     };
@@ -86,7 +87,6 @@ sqlite::close()
 		db_ = 0;
 		return true;
 	}
-	assert( 0 );
 	return false;
 }
 
