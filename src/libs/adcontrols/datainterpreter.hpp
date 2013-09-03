@@ -27,9 +27,9 @@
 
 #include "adcontrols_global.h"
 
-namespace SignalObserver {
-    struct DataReadBuffer;
-}
+// namespace SignalObserver {
+//     struct DataReadBuffer;
+// }
 
 namespace adcontrols {
 
@@ -42,13 +42,13 @@ namespace adcontrols {
         DataInterpreter(void);
         ~DataInterpreter(void);
 
-        virtual bool translate( MassSpectrum&
-                                , const SignalObserver::DataReadBuffer&
-                                , const adcontrols::MassSpectrometer&
-                                , size_t idData ) const = 0;
+        // virtual bool translate( MassSpectrum&
+        //                         , const SignalObserver::DataReadBuffer&
+        //                         , const adcontrols::MassSpectrometer&
+        //                         , size_t idData ) const = 0;
         
-        virtual bool translate( TraceAccessor&
-                                , const SignalObserver::DataReadBuffer& ) const = 0;
+        // virtual bool translate( TraceAccessor&
+        //                         , const SignalObserver::DataReadBuffer& ) const = 0;
         
         virtual bool translate( MassSpectrum&
                                 , const char * data, size_t dsize

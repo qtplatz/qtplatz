@@ -195,7 +195,10 @@ Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_p
 			if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
 				&& desc->spectrometer == SignalObserver::eMassSpectrometer ) {
 					size_t idData = 0;
-					if ( ! dataInterpreter.translate( ms, dbuf, spectrometer, idData++ ) ) { // <-- acquire
+					if ( ! dataInterpreter.translate( ms
+													, reinterpret_cast< const char *>( dbuf->xdata.get_buffer() ), dbuf->xdata.length()
+													, reinterpret_cast< const char *>( dbuf->xmeta.get_buffer() ), dbuf->xmeta.length()
+													, spectrometer, idData++ ) ) { // <-- acquire
 						//------- call from dataproc -----
 						if ( std::wstring( clsid.in() ) == L"adcontrols::MassSpectrum" ) {
 							acewrapper::input_buffer ibuffer( dbuf->xdata.get_buffer(), dbuf->xdata.length() );

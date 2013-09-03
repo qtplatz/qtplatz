@@ -606,7 +606,10 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
     adcontrols::MassSpectrum& ms = *rdmap_[ objid ];
 
     size_t idData = 0;
-    while ( dataInterpreter.translate( ms, rb, spectrometer, idData++ ) ) {
+	while ( dataInterpreter.translate( ms
+										, reinterpret_cast< const char *>(rb.xdata.get_buffer()), rb.xdata.length()
+										, reinterpret_cast< const char *>(rb.xmeta.get_buffer()), rb.xmeta.length()
+										, spectrometer, idData++ ) ) {
 #ifdef CENTROID
         adcontrols::CentroidMethod method;
         method.centroidAreaIntensity( false ); // take hight
@@ -630,7 +633,9 @@ AcquirePlugin::readTrace( const SignalObserver::Description& desc
     std::wstring traceId = static_cast<const CORBA::WChar *>( desc.trace_id );
 
     adcontrols::TraceAccessor accessor;
-    if ( dataInterpreter.translate( accessor, rb ) ) {
+    if ( dataInterpreter.translate( accessor
+									, reinterpret_cast< const char *>( rb.xdata.get_buffer() ), rb.xdata.length()
+									, reinterpret_cast< const char * >( rb.xmeta.get_buffer() ), rb.xmeta.length(), rb.events ) ) {
         adcontrols::Trace& data = pImpl_->traces_[ std::wstring( desc.trace_id ) ];
         data += accessor;
         if ( data.size() >= 2 )        

@@ -67,15 +67,6 @@ namespace adcontrols {
             DataInterpreter(void) {  }
             virtual ~DataInterpreter(void) {  }
 
-			virtual bool translate( adcontrols::MassSpectrum&, const SignalObserver::DataReadBuffer&
-                                    , const adcontrols::MassSpectrometer&, size_t /* idData */ ) const {
-                return false;
-            }
-            
-            virtual bool translate( adcontrols::TraceAccessor&, const SignalObserver::DataReadBuffer& ) const {
-                return false;
-            }
-
             bool translate( MassSpectrum&
                             , const char * data, size_t dsize
                             , const char * meta, size_t msize 
