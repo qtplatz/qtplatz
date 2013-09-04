@@ -69,7 +69,7 @@ Cache::read( long pos, SignalObserver::DataReadBuffer_out rdbuf )
         pos = fifo_.back();
     
     if ( ! fifo_.empty() && ( fifo_.front() <= pos && pos <= fifo_.back() ) ) {
-        std::deque< CacheItem >::iterator it = std::lower_bound( fifo_.begin(), fifo_.end(), pos );
+        auto it = std::lower_bound( fifo_.begin(), fifo_.end(), pos );
         
         if ( it != fifo_.end() ) {
             SignalObserver::DataReadBuffer_var buf( new SignalObserver::DataReadBuffer( it->rdbuf_ ) );
@@ -79,22 +79,6 @@ Cache::read( long pos, SignalObserver::DataReadBuffer_out rdbuf )
     }
 	return false;
 }
-
-namespace adcontroller {
-    namespace cache {
-        struct time_compare {
-            bool operator () ( const Cache::CacheItem& lhs, unsigned long long rhs ) const {
-                return lhs.rdbuf_->uptime < rhs;
-            }
-            bool operator () ( unsigned long long lhs, const Cache::CacheItem& rhs ) const {
-                return lhs < rhs.rdbuf_->uptime;
-            }
-            bool operator () ( const Cache::CacheItem& lhs, const Cache::CacheItem& rhs ) const {
-                return lhs.rdbuf_->uptime < rhs.rdbuf_->uptime;
-            }
-        };
-    } // cache
-} // adcontroller
 
 void
 Cache::uptime_range( unsigned long long& oldest, unsigned long long& newest )
@@ -109,17 +93,16 @@ Cache::uptime_range( unsigned long long& oldest, unsigned long long& newest )
         oldest = first.rdbuf_->uptime;
         newest = last.rdbuf_->uptime;
     }
-    // std::cerr << "Cache::uptime_range return " << oldest << ", " << newest << std::endl;    
 } 
 
 long
 Cache::posFromTime( unsigned long long usec )
 {
-    using adcontroller::cache::time_compare;
-
     std::lock_guard< std::mutex > lock( mutex_ );
 
-    std::deque< CacheItem >::iterator it = std::lower_bound( fifo_.begin(), fifo_.end(), usec, time_compare() );    
+    auto it = std::lower_bound( fifo_.begin(), fifo_.end(), usec, []( const Cache::CacheItem& lhs, unsigned long long rhs ) {
+            return lhs.rdbuf_->uptime < rhs;
+        });
     if ( it != fifo_.end() )
         return it->pos_;
     return (-1);

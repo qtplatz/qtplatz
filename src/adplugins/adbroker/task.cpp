@@ -187,32 +187,34 @@ Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_p
         text = ( boost::wformat( L" Spectrum range (%1$.3f - %2$.3f) min" ) % x1 % x2 ).str();
 
     adcontrols::MassSpectrum ms;
-
     SignalObserver::DataReadBuffer_var dbuf;
 
     if ( observer->readData( pos, dbuf ) ) {
-		try {
-			if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
-				&& desc->spectrometer == SignalObserver::eMassSpectrometer ) {
-					size_t idData = 0;
-					if ( ! dataInterpreter.translate( ms
-													, reinterpret_cast< const char *>( dbuf->xdata.get_buffer() ), dbuf->xdata.length()
-													, reinterpret_cast< const char *>( dbuf->xmeta.get_buffer() ), dbuf->xmeta.length()
-													, spectrometer, idData++ ) ) { // <-- acquire
-						//------- call from dataproc -----
-						if ( std::wstring( clsid.in() ) == L"adcontrols::MassSpectrum" ) {
-							acewrapper::input_buffer ibuffer( dbuf->xdata.get_buffer(), dbuf->xdata.length() );
-							std::istream in( &ibuffer );
-							adcontrols::MassSpectrum::restore( in, ms );
-						}
-						//------------
-					}
-			}
-		} catch ( std::exception& ex ) {
-			std::cerr << ex.what() << std::endl;
-			return;
-		}
-		++pos;
+
+        adportable::debug(__FILE__, __LINE__) << "broker readData( " << pos << " ) fnc= " << dbuf->fcn;
+        while ( dbuf->fcn != 0 ) {
+            observer->readData( --pos, dbuf );
+            adportable::debug(__FILE__, __LINE__) << "back tracking readData( " << pos << " ) fnc= " << dbuf->fcn;
+        }
+
+        if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
+             && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
+            
+            bool complete = false;
+            do {
+                try {
+                    size_t idData = 0;
+                    complete = dataInterpreter.translate( ms
+                                                          , reinterpret_cast< const char *>( dbuf->xdata.get_buffer() ), dbuf->xdata.length()
+                                                          , reinterpret_cast< const char *>( dbuf->xmeta.get_buffer() ), dbuf->xmeta.length()
+                                                          , spectrometer, idData++ );
+                } catch ( std::exception& ex ) {
+                    std::cerr << ex.what() << std::endl;
+                    return;
+                }
+                observer->readData( ++pos, dbuf );
+            } while ( complete == false );
+        }
 	}
     ms.addDescription( adcontrols::Description( L"create", text ) );
 	appendOnFile( token, ms, text );

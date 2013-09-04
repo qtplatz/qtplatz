@@ -33,21 +33,29 @@ namespace adcontrols {
     class MassSpectrum;
     class TraceAccessor;
 
+    enum translate_state {
+        translate_error
+        , translate_complete      // all spectra has been packed
+        , translate_indeterminate // part of protocol acquisition has been packed into target
+    };
+
     class ADCONTROLSSHARED_EXPORT DataInterpreter {
     public:
         DataInterpreter(void);
         ~DataInterpreter(void);
 
-        virtual bool translate( MassSpectrum&
-                                , const char * data, size_t dsize
-                                , const char * meta, size_t msize 
-                                , const MassSpectrometer&
-                                , size_t idData ) const = 0;
+        virtual translate_state
+            translate( MassSpectrum&
+                       , const char * data, size_t dsize
+                       , const char * meta, size_t msize 
+                       , const MassSpectrometer&
+                       , size_t idData ) const = 0;
         
-        virtual bool translate( TraceAccessor&
-                                , const char * data, size_t dsize
-                                , const char * meta, size_t msize, unsigned long events ) const = 0;
-
+        virtual translate_state
+            translate( TraceAccessor&
+                       , const char * data, size_t dsize
+                       , const char * meta, size_t msize, unsigned long events ) const = 0;
+        
     };
 
 }

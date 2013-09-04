@@ -67,20 +67,21 @@ namespace adcontrols {
             DataInterpreter(void) {  }
             virtual ~DataInterpreter(void) {  }
 
-            bool translate( MassSpectrum&
-                            , const char * data, size_t dsize
-                            , const char * meta, size_t msize 
-                            , const MassSpectrometer&
-                            , size_t idData ) const override {
+            adcontrols::translate_state translate( MassSpectrum&
+                                                   , const char * data, size_t dsize
+                                                   , const char * meta, size_t msize 
+                                                   , const MassSpectrometer&
+                                                   , size_t idData ) const override {
                 (void)data; (void)dsize; (void)meta; (void)msize; (void)idData;
-                return false;
+                return adcontrols::translate_error;
             }
-        
-            bool translate( TraceAccessor&
-                            , const char * data, size_t dsize
-                            , const char * meta, size_t msize, unsigned long events ) const override {
+            
+            adcontrols::translate_state translate( TraceAccessor&
+                                                   , const char * data, size_t dsize
+                                                   , const char * meta, size_t msize
+                                                   , unsigned long events ) const override {
                 (void)data; (void)dsize; (void)meta; (void)msize; (void)events;
-                return false;
+                return adcontrols::translate_error;
             }
 
         };
