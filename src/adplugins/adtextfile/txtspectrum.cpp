@@ -80,9 +80,8 @@ TXTSpectrum::load( const std::wstring& name )
 			}
 		}
 	}
-
+	
     do {
-		bool hasMass = false;
         double values[3];
         std::string line;
         if ( getline( in, line ) ) {
@@ -110,40 +109,66 @@ TXTSpectrum::load( const std::wstring& name )
 
     using adcontrols::MSProperty;
     MSProperty prop;
-    std::vector<MSProperty::SamplingInfo> segments;
 
-    for ( size_t i = 1; i < timeArray.size(); ++i ) {
-        if ( timeArray[ i - 1 ] > timeArray[ i ] )
-            adportable::debug() << "sequence not ordered";
-    }
-
+    // estimate sampling interval
     double x = timeArray[1] - timeArray[0];
-    unsigned long sampInterval = static_cast<unsigned long>( x * 1e12 + 0.5 ); // s -> psec
+    int sampInterval = static_cast<int>( x * 1e12 + 0.5 ); // s -> psec
+	if ( sampInterval < 505 )
+		sampInterval = 500;
+	else if ( sampInterval < 1005 )
+		sampInterval = 1000;
+
 	const unsigned long startDelay = static_cast<unsigned long>(  ( timeArray.front() * 1e12 /*s*/) / sampInterval + 0.5 );
 
+    prop.setInstSamplingInterval( sampInterval );
+    prop.setNumAverage(1);
+    prop.setInstMassRange( ms_.getAcquisitionMassRange() );
+    prop.setInstSamplingStartDelay( startDelay );
+
+    std::vector<MSProperty::SamplingInfo> segments;
     do {
         unsigned long nDelay = startDelay;
         size_t nCount = 0;
+
+		size_t idx = 0;
         for ( std::vector<double>::const_iterator it = timeArray.begin() + 1; it != timeArray.end(); ++it ) {
             ++nCount;
+			++idx;
             double x = it[ 0 ] - it[ -1 ];
             unsigned long interval = static_cast<unsigned long>( x * 1e12 + 0.5 ); // s --> ps
-            if ( interval > sampInterval ) {
+            if ( ( x < 0 ) || ( x > double( sampInterval ) * 2.0e-12 ) ) {
+                // if ( interval > sampInterval ) {
                 segments.push_back( MSProperty::SamplingInfo(sampInterval, nDelay, nCount, 1 ) );
                 if ( it + 1 != timeArray.end() ) {
                     sampInterval = static_cast<unsigned long>( ( it[ 1 ] - it[ 0 ] ) * 1e12 + 0.5 );
+                    if ( sampInterval < 505 )
+                        sampInterval = 500;
+                    else if (sampInterval < 1005 )
+                        sampInterval = 1000;
                     nCount = 0;
-                    nDelay = static_cast<unsigned long>( ( it[ 0 ] * 1e12 ) / sampInterval + 0.5 );
-                }
+					double t0 = *it;
+					nDelay = int( ( t0 / ( sampInterval * 1e-12 ) ) + 0.5 );
+                    adportable::debug() << "time error: " << (t0 - ( nDelay * sampInterval * 1e-12 ) ) * 1e12 << "ps : t=" << t0  << " @ " << idx;
+				}
             }
         }
         segments.push_back( MSProperty::SamplingInfo(sampInterval, nDelay, nCount + 1, 1 ) );
     } while ( 0 );
+    prop.setSamplingInfo( segments );
 
-    // validation
+    for ( size_t i = 0; i < size; ++i ) {
+        double t = prop.toSeconds( i, segments );
+        if ( std::abs( t - timeArray[i] ) > 0.5e-9 ) {
+			prop.toSeconds( i, segments );
+            adportable::debug(__FILE__, __LINE__) << "error: " << t - timeArray[i]
+                                                  << "actual:" << timeArray[i] 
+                                                  << " calculated:" << t;
+        }
+    }
+
     unsigned long tolerance = static_cast< unsigned long >( sampInterval / 10.0 + 0.5 );
     std::vector< MSProperty::SamplingInfo >::const_iterator sampInfo = segments.begin();
-    // size_t nDelay = sampInfo->nSamplingDelay;
+
     for ( size_t i = 0, k = 0; i < size; ++i, ++k ) {
         if ( k == sampInfo->nSamples ) {
             if ( ++sampInfo == segments.end() ) {
@@ -155,21 +180,19 @@ TXTSpectrum::load( const std::wstring& name )
         }
         unsigned long t1 = static_cast< unsigned long >( MSProperty::toSeconds( i, segments ) * 1e12 + 0.5 );
         unsigned long t2 = ( sampInfo->nSamplingDelay + k ) * sampInfo->sampInterval;
+		/*
         if ( t1 != t2 )
             adportable::debug() 
                 << "text file loader: library calculation error at " 
                 << int(i) << " time: " << timeArray[i] << "(s) expected: " << t1 * 1e-12;
+				*/
         long error = long( timeArray[i] * 1e12 + 0.5 ) - t1;
         if ( unsigned( std::abs( error ) ) >= tolerance ) 
             adportable::debug() 
                 << "text file loader: time distance error at " 
                 << int(i) << " time: " << timeArray[i] * 1e6<< "(us) error: " << error << "ps";
     }
-    prop.setInstSamplingInterval( sampInterval );
-    prop.setNumAverage(1);
-    prop.setInstMassRange( ms_.getAcquisitionMassRange() );
-    prop.setInstSamplingStartDelay( startDelay );
-    prop.setSamplingInfo( segments );
+
 
     ms_.setMSProperty( prop );
     ms_.resize( size );

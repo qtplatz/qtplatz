@@ -180,10 +180,11 @@ MSProperty::findSamplingInfo( size_t idx, const std::vector<SamplingInfo>& segme
 double
 MSProperty::toSeconds( size_t idx, const std::vector<SamplingInfo>& segments )
 {
-    for ( std::vector<SamplingInfo>::const_iterator it = segments.begin(); it != segments.end(); ++it ) {
-        if ( idx < it->nSamples )
-            return ( it->nSamplingDelay + idx ) * it->sampInterval * 1e-12;
-    }
+    for ( auto it: segments ) {
+        if ( idx < it.nSamples )
+            return ( it.nSamplingDelay + idx ) * it.sampInterval * 1e-12;
+		idx -= it.nSamples;
+	}
     return 0.0;
 }
 
