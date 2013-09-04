@@ -85,12 +85,10 @@ rawdata::loadAcquiredConf()
 
             adcontrols::TraceAccessor accessor;
             if ( fetchTraces( conf.objid, conf.dataInterpreterClsid, accessor ) ) {
-                for ( auto& trace: accessor.traces() ) {
+                for ( size_t fcn = 0; fcn < accessor.nfcn(); ++fcn ) {
                     std::shared_ptr< adcontrols::Chromatogram > cptr( new adcontrols::Chromatogram() );
                     cptr->addDescription( adcontrols::Description( L"create",  conf.trace_display_name ) );
-					cptr->resize( trace.traceY_.size() );
-					cptr->setIntensityArray( trace.traceY_.data() );
-					cptr->setTimeArray( trace.traceX_.data() );
+                    accessor.copy_to( *cptr, fcn );
                     tic_.push_back( cptr );
                 }
             }

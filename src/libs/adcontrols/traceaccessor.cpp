@@ -24,6 +24,9 @@
 **************************************************************************/
 
 #include "traceaccessor.hpp"
+#include "trace.hpp"
+#include "chromatogram.hpp"
+#include <adportable/debug.hpp>
 
 using namespace adcontrols;
 
@@ -31,32 +34,73 @@ TraceAccessor::~TraceAccessor()
 {
 }
 
-TraceAccessor::TraceAccessor()
+TraceAccessor::TraceAccessor() : maxfcn_( 0 )
 {
 }
 
-TraceAccessor::TraceAccessor( const TraceAccessor& t ) : traces_( t.traces_ )
-                                                       , events_( t.events_ )
+TraceAccessor::TraceAccessor( const TraceAccessor& t ) : trace_( t.trace_ )
 {
 }
 
 void
 TraceAccessor::clear()
 {
-    traces_.clear();
+    trace_.clear();
 }
 
 void
 TraceAccessor::push_back( int fcn, uint32_t pos, const seconds_t& t, double value, unsigned long events )
 {
-    if ( size_t( fcn ) >= traces_.size() )
-        traces_.resize( fcn + 1 );
+    fcnData d;
 
-    fcnTrace& trace = traces_[ fcn ];
-	trace.pos_.push_back( pos );
-    trace.traceX_.push_back( t.seconds );
-    trace.traceY_.push_back( value );
-    if ( events_.empty() || events_.back().second != events )
-        events_.push_back( std::make_pair( t, events ) );
+    if ( fcn > maxfcn_ )
+        maxfcn_ = fcn;
+
+    d.fcn = fcn;
+    d.npos = pos;
+    d.x = t;
+    d.y = value;
+    d.events = events;
+
+    trace_.push_back( d );
+}
+
+size_t
+TraceAccessor::operator >> ( Trace& t ) const
+{
+    size_t n = 0;
+    for ( const auto& d: trace_ ) {
+        if ( d.fcn == t.fcn() ) {
+            t.push_back( d.npos, d.x.seconds, d.y );
+            ++n;
+        }
+    }
+    return n;
+}
+
+void
+TraceAccessor::copy_to( Trace& trace, int fcn )
+{
+    for ( const auto& d: trace_ ) {
+        if ( d.fcn == fcn )
+            trace.push_back( d.npos, d.x.seconds, d.y );
+    }
+}
+
+void
+TraceAccessor::copy_to( Chromatogram& c, int fcn )
+{
+    std::vector< double > x;
+    std::vector< double > y;
+    
+    for ( const auto& d: trace_ ) {
+        if ( d.fcn == fcn ) {
+            x.push_back( d.x.seconds - trace_[0].x.seconds );
+            y.push_back( d.y );
+        }
+    }
+    c.resize( x.size() );
+    c.setIntensityArray( y.data() );
+    c.setTimeArray( x.data() );
 }
 

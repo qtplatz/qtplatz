@@ -606,9 +606,9 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
 
     size_t idData = 0;
 	while ( dataInterpreter.translate( ms
-										, reinterpret_cast< const char *>(rb.xdata.get_buffer()), rb.xdata.length()
-										, reinterpret_cast< const char *>(rb.xmeta.get_buffer()), rb.xmeta.length()
-										, spectrometer, idData++ ) ) {
+                                       , reinterpret_cast< const char *>(rb.xdata.get_buffer()), rb.xdata.length()
+                                       , reinterpret_cast< const char *>(rb.xmeta.get_buffer()), rb.xmeta.length()
+                                       , spectrometer, idData++ ) ) {
 #ifdef CENTROID
         adcontrols::CentroidMethod method;
         method.centroidAreaIntensity( false ); // take hight
@@ -629,7 +629,7 @@ AcquirePlugin::readTrace( const SignalObserver::Description& desc
                          , const SignalObserver::DataReadBuffer& rb
                          , const adcontrols::DataInterpreter& dataInterpreter )
 {
-    std::wstring traceId = static_cast<const CORBA::WChar *>( desc.trace_id );
+    // std::wstring traceId = static_cast<const CORBA::WChar *>( desc.trace_id );
 
     adcontrols::TraceAccessor accessor;
     if ( dataInterpreter.translate( accessor
@@ -637,15 +637,13 @@ AcquirePlugin::readTrace( const SignalObserver::Description& desc
 									, reinterpret_cast< const char * >( rb.xmeta.get_buffer() ), rb.xmeta.length()
                                     , rb.events ) ) {
 
-        int fcn = 0;
-        for ( auto& trace: accessor.traces() ) {
-            if ( ! trace.traceY_.empty() ) {
-                adcontrols::Trace& data = pImpl_->traces_[ fcn ];
-                data += accessor;
-                if ( data.size() >= 2 )        
-                    pImpl_->timePlot_->setData( data );
-            }
-            ++fcn;
+        for ( size_t fcn = 0; fcn < accessor.nfcn(); ++fcn ) {
+
+            adcontrols::Trace& trace = pImpl_->traces_[ fcn ];
+            accessor.copy_to( trace, fcn );
+
+            if ( trace.size() >= 2 )        
+                pImpl_->timePlot_->setData( trace, fcn );
         }
     }
 }

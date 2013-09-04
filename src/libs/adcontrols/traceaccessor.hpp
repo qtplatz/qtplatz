@@ -33,33 +33,35 @@
 
 namespace adcontrols {
 
+    class Trace;
+    class Chromatogram;
+
     class ADCONTROLSSHARED_EXPORT TraceAccessor {
     public:
         ~TraceAccessor();
         TraceAccessor();
         TraceAccessor( const TraceAccessor& );
 
-		struct ADCONTROLSSHARED_EXPORT fcnTrace {
-            std::vector< uint32_t > pos_;
-            std::vector< double > traceX_;
-            std::vector< double > traceY_;
-            fcnTrace() {}
-            fcnTrace( const fcnTrace& t ) 
-                : pos_( t.pos_ )
-                , traceX_( t.traceX_ )
-                , traceY_( t.traceY_ ) {
-            }
-		};
+        struct fcnData {
+            int fcn;
+            uint32_t npos;
+            uint32_t events;
+            seconds_t x;
+            double y;
+        };
 
         void clear();
-
         void push_back( int fcn, uint32_t pos, const seconds_t&, double value, unsigned long events );
+        size_t operator >> ( Trace& ) const;
+        void copy_to( Trace&, int fcn );
+        void copy_to( Chromatogram&, int fcn );
+        
+        const std::vector< fcnData >& trace() const { return trace_; }
+        size_t nfcn() const { return size_t( maxfcn_ ) + 1; }
 
-        const std::vector< fcnTrace >& traces() const { return traces_; }
-        const std::vector< std::pair< seconds_t, uint32_t > >& events() const { return events_; }
     private:
-        std::vector< std::pair< seconds_t, uint32_t > > events_;
-		std::vector< fcnTrace > traces_;
+		std::vector< fcnData > trace_;
+        int maxfcn_;
     };
 
 }

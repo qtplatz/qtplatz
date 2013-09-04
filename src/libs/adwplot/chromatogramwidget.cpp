@@ -52,6 +52,7 @@
 using namespace adwplot;
 
 namespace adwplot {
+
     namespace chromatogram_internal {
 
         static Qt::GlobalColor color_table[] = {
@@ -132,7 +133,11 @@ namespace adwplot {
 			curve_.p()->setData( d_series );
         }
 
-        typedef boost::variant< TraceData<adcontrols::Chromatogram>, TraceData<adcontrols::Trace> > trace_variant;        
+        typedef boost::variant< TraceData<adcontrols::Chromatogram>, TraceData<adcontrols::Trace> > trace_variant;
+
+        struct boundingRect_visitor : public boost::static_visitor< QRectF > {
+            template<typename T> QRectF operator()( const T& t ) const { return t.boundingRect(); }
+        };
     }
 
     struct ChromatogramWidgetImpl : boost::noncopyable {
@@ -164,11 +169,11 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
 }
 
 void
-ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
+ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yaxis2 )
 {
     (void)yaxis2;
 
-    if ( d.size() < 2 )
+    if ( c.size() < 2 )
         return;
 
     using adcontrols::Trace;
@@ -180,15 +185,28 @@ ChromatogramWidget::setData( const adcontrols::Trace& d, int idx, bool yaxis2 )
     TraceData<Trace> * trace = 0;
     try {
         trace = &boost::get< TraceData<Trace> >( impl_->traces_[ idx ] );
-    } catch ( boost::bad_get& ) {
-        std::cerr << "boost::bad_get at " << __FILE__ << " line: " << __LINE__ << std::endl;
+    } catch ( boost::bad_get& ex ) {
+        adportable::debug(__FILE__, __LINE__) << ex.what();
     }
+
     if ( trace ) {
-        trace->setData( d );
-        QRectF rect = trace->boundingRect();
-        setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
-        setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.bottom(), rect.top() );
-        zoomer1_->setZoomBase();
+
+        trace->plot_curve().setPen( QPen( chromatogram_internal::color_table[ idx ] ) );
+        trace->setData( c );
+
+        if ( idx == 0 ) {
+            QRectF rect = trace->boundingRect();
+            for ( const auto& it: impl_->traces_ ) {
+                QRectF rc = boost::apply_visitor( chromatogram_internal::boundingRect_visitor(),  it );
+                if ( rc.bottom() < rect.bottom() )
+                    rect.setBottom( rc.bottom() );
+                if ( rc.top() > rect.top() )
+                    rect.setTop( rc.top() );
+            }
+            setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() + rect.width() / 20.0 );
+            setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.bottom(), rect.top() );
+            zoomer1_->setZoomBase();
+        }
     }
 }
 

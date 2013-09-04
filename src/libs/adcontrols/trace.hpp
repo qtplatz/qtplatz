@@ -31,33 +31,33 @@
 
 namespace adcontrols {
 
-    class TraceAccessor;
-
     class ADCONTROLSSHARED_EXPORT Trace {
     public:
         ~Trace();
-        Trace();
+        Trace( int fcn = 0 );
         Trace( const Trace& );
 
-        void operator += ( const TraceAccessor& );
-
+        void set_fcn( size_t fcn );
+        inline int fcn() const { return fcn_; }
         void clear();
         size_t size() const;
         void resize( size_t size );
-        void nlimits( size_t n );
-        size_t nlimits() const;
 
         const double * getIntensityArray() const;
         const double * getTimeArray() const;   // array of miniutes
         const unsigned long * getEventsArray() const;
         std::pair<double, double> range_y() const;
 
+        bool push_back( size_t pos, double x, double y );
+        bool erase_before( size_t pos );
+        size_t npos() const;
+
     private:
-        size_t ulimits_;
-		size_t fcn_;
+		int fcn_;
         double minY_;
         double maxY_;
 
+        std::vector< size_t > npos_;
         std::vector< double > traceX_;
         std::vector< double > traceY_;
         std::vector< unsigned long > events_;

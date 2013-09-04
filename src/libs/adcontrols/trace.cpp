@@ -25,7 +25,6 @@
 
 #include <compiler/disable_dll_interface.h>
 #include "trace.hpp"
-#include "traceaccessor.hpp"
 #include <iostream>
 #include <algorithm>
 
@@ -35,12 +34,11 @@ Trace::~Trace()
 {
 }
 
-Trace::Trace() : fcn_( 0 ), minY_(-10), maxY_(90)
+Trace::Trace( int fcn ) : fcn_( fcn ), minY_( -10 ), maxY_( 90 )
 {
 }
 
 Trace::Trace( const Trace& t ) : fcn_( t.fcn_ )
-                               , ulimits_( 4096 )
                                , minY_( t.minY_ )
                                , maxY_( t.maxY_ )
                                , traceX_( t.traceX_ )
@@ -50,41 +48,49 @@ Trace::Trace( const Trace& t ) : fcn_( t.fcn_ )
 }
 
 void
-Trace::nlimits( size_t n )
+Trace::set_fcn( size_t n )
 {
-    ulimits_ = n;
+    fcn_ = n;
 }
 
-size_t
-Trace::nlimits() const
+bool
+Trace::push_back( size_t npos, double x, double y )
 {
-    return ulimits_;
+    if ( npos_.empty() || ( npos_.back() < npos ) ) {
+
+        npos_.push_back( npos );
+        traceX_.push_back( x );
+        traceY_.push_back( y );
+
+        if ( maxY_ < y )
+            maxY_ = y;
+        if ( minY_ > y )
+            minY_ = y;	
+        return true;
+    }
+    return false;
 }
 
-void 
-Trace::operator += ( const TraceAccessor& ta )
+bool
+Trace::erase_before( size_t npos )
 {
-	if ( size_t( fcn_ ) >= ta.traces().size() )
-		return;
+    auto it = std::upper_bound( npos_.begin(), npos_.end(), npos );
+    if ( it != npos_.end() ) {
 
-	const TraceAccessor::fcnTrace& trace = ta.traces()[ fcn_ ];
-	
-	auto xIt = trace.traceX_.begin();
-	for ( auto& y: trace.traceY_ ) {
-		traceX_.push_back( *xIt++ ); // timeutil::toMinutes( *xIt ) ???
-		traceY_.push_back( y );
-		if ( maxY_ < y )
-			maxY_ = y;
-		if ( minY_ > y )
-			minY_ = y;
-	}
+        size_t n = std::distance( npos_.begin(), it );
 
-    if ( traceX_.size() > ulimits_ ) {
-        const size_t n = ulimits_ / 4;
+        npos_.erase( npos_.begin(), npos_.begin() + n );
         traceX_.erase( traceX_.begin(), traceX_.begin() + n );
         traceY_.erase( traceY_.begin(), traceY_.begin() + n );
-        events_.erase( events_.begin(), events_.begin() + n );
+        
+        auto y = std::minmax( traceY_.begin(), traceY_.end() );
+
+        minY_ = *y.first;
+        maxY_ = *y.second;
+        
+        return true;
     }
+    return false;
 }
 
 void
@@ -92,7 +98,7 @@ Trace::clear()
 {
     traceX_.clear();
     traceY_.clear();
-    events_.clear();
+    npos_.clear();
 }
 
 size_t
@@ -106,31 +112,25 @@ Trace::resize( size_t size )
 {
     traceX_.resize( size );
     traceY_.resize( size );
-    events_.resize( size );
+    npos_.resize( size );
 }
 
 const double *
 Trace::getIntensityArray() const
 {
-    if ( traceY_.empty() )
-        return 0;
-    return &traceY_[0];
+    return traceY_.data();
 }
 
 const double *
 Trace::getTimeArray() const   // array of miniutes
 {
-    if ( traceX_.empty() )
-        return 0;
-    return &traceX_[0];
+    return traceX_.data();
 }
 
 const unsigned long *
 Trace::getEventsArray() const
 {
-    if ( events_.empty() )
-        return 0;
-    return &events_[0];
+    return 0;
 }
 
 std::pair<double, double>
@@ -139,4 +139,10 @@ Trace::range_y() const
 	double y0 = minY_;
 	double y1 = maxY_;
     return std::pair<double, double>( y0, y1 );
+}
+
+size_t
+Trace::npos() const
+{
+    return npos_.empty() ? 0 : npos_.back();
 }
