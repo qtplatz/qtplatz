@@ -163,6 +163,7 @@ rawdata::posFromTime( double minute ) const
 	if ( ! tic_.empty() ) {
 		const adportable::array_wrapper< const double > times( tic_[0]->getTimeArray(), tic_[0]->size() );
 		auto it = std::lower_bound( times.begin(), times.end(), tic_[0]->toSeconds( minute ) );
+		
 		return std::distance( times.begin(), it );
 	}
 	return 0;
@@ -217,7 +218,8 @@ rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, a
                 if ( blob.size() )
                     blob.read( reinterpret_cast< int8_t *>( xmeta.data() ), blob.size() );
             }
-            interpreter.translate( accessor, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), static_cast< uint32_t >( events ) );
+            interpreter.translate( accessor, xdata.data(), xdata.size(), xmeta.data(), xmeta.size()
+                                   , static_cast< uint32_t >( events ) );
         }
 		
 		return true;
@@ -228,7 +230,9 @@ rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, a
 
 // private
 bool
-rawdata::fetchSpectrum( int64_t objid, const std::wstring& dataInterpreterClsid, uint64_t npos, adcontrols::MassSpectrum& ms ) const
+rawdata::fetchSpectrum( int64_t objid
+                        , const std::wstring& dataInterpreterClsid
+                        , uint64_t npos, adcontrols::MassSpectrum& ms ) const
 {
     const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( dataInterpreterClsid );
     const adcontrols::DataInterpreter& interpreter = spectrometer.getDataInterpreter();
