@@ -28,7 +28,10 @@
 
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <portfolio/portfolio.hpp>
 #include <memory>
+#include <map>
 
 namespace adcontrols {
     class Chromatogram;
@@ -68,8 +71,7 @@ namespace adtextfile {
 
     private:
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
-        boost::any data_;
-
+        std::map< std::wstring, adcontrols::MassSpectrumPtr > data_;
     };
 }
 

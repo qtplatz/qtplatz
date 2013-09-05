@@ -201,10 +201,12 @@ spectrum_processor::moving_average( size_t nbrSamples, double * pY, const double
         if ( i < (N/2) )
             pY[i] = praw[i] ;
         if ( i >= N ) {
-            pY[i - (N/2)] = ax / double(N);
+            pY[i - (N/2) - 1] = ax / double(N);
             ax -= praw[i - N];
-        }
+		}
     }
+	for ( size_t i = nbrSamples - (N/2) - 1; i < nbrSamples; ++i )
+		pY[i] = ax;
 }
 
 double

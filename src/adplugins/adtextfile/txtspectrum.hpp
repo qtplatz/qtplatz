@@ -26,8 +26,10 @@
 #ifndef TXTSPECTRUM_H
 #define TXTSPECTRUM_H
 
-#include <vector>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <memory>
+#include <vector>
 
 namespace adtextfile {
 
@@ -35,11 +37,22 @@ namespace adtextfile {
     public:
         TXTSpectrum();
     public:
-        adcontrols::MassSpectrum ms_;
 
         bool load( const std::wstring& );
         double minValue_;
         double maxValue_;
+
+        std::vector< std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
+
+    private:
+        bool analyze_segments( std::vector< adcontrols::MSProperty::SamplingInfo >&, const std::vector<double>& );
+        bool validate_segments( const std::vector< adcontrols::MSProperty::SamplingInfo >&, const std::vector<double>& );
+        size_t create_spectrum( adcontrols::MassSpectrum&
+                                , size_t idx
+                                , const adcontrols::MSProperty::SamplingInfo&
+                                , const std::vector<double>&
+                                , const std::vector<double>&
+                                , const std::vector<double>& );
     };
 
 }

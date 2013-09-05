@@ -42,6 +42,7 @@
 
 
 using namespace adtextfile;
+using namespace adcontrols;
 
 TXTSpectrum::TXTSpectrum()
 {
@@ -104,11 +105,40 @@ TXTSpectrum::load( const std::wstring& name )
         }
     } while( ! in.eof() );
 
-    size_t size = timeArray.size();
-    ms_.addDescription( adcontrols::Description( L"", name ) );
-
+    //size_t size = timeArray.size();
+    //ms_.addDescription( adcontrols::Description( L"", name ) );
+#if 0
     using adcontrols::MSProperty;
     MSProperty prop;
+
+    prop.setInstSamplingInterval( sampInterval );
+    prop.setNumAverage(1);
+    //prop.setInstMassRange( ms_.getAcquisitionMassRange() );
+    prop.setInstSamplingStartDelay( startDelay );
+#endif
+
+    std::vector<MSProperty::SamplingInfo> segments;
+    if ( analyze_segments( segments, timeArray ) )
+        validate_segments( segments, timeArray );
+
+    size_t idx = 0;
+    for ( auto s: segments ) {
+        std::shared_ptr< adcontrols::MassSpectrum > ptr( new adcontrols::MassSpectrum );
+		if ( massArray.empty() )
+			ptr->setAcquisitionMassRange( 100, 1000 );
+		else
+			ptr->setAcquisitionMassRange( massArray.front(), massArray.back() );
+        idx += create_spectrum( *ptr, idx, s, timeArray, massArray, intensArray );
+        spectra_.push_back( ptr );
+    }
+    return true;
+}
+
+bool
+TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>& segments, const std::vector<double>& timeArray )
+{
+    if ( timeArray.empty() )
+        return false;
 
     // estimate sampling interval
     double x = timeArray[1] - timeArray[0];
@@ -120,89 +150,71 @@ TXTSpectrum::load( const std::wstring& name )
 
 	const unsigned long startDelay = static_cast<unsigned long>(  ( timeArray.front() * 1e12 /*s*/) / sampInterval + 0.5 );
 
-    prop.setInstSamplingInterval( sampInterval );
-    prop.setNumAverage(1);
-    prop.setInstMassRange( ms_.getAcquisitionMassRange() );
-    prop.setInstSamplingStartDelay( startDelay );
+    unsigned long nDelay = startDelay;
+    size_t nCount = 0;
+    
+    size_t idx = 0;
+    for ( std::vector<double>::const_iterator it = timeArray.begin() + 1; it != timeArray.end(); ++it ) {
+        ++nCount;
+        ++idx;
+        double x = it[ 0 ] - it[ -1 ];
+        //unsigned long interval = static_cast<unsigned long>( x * 1e12 + 0.5 ); // s --> ps
+        if ( ( x < 0 ) || ( x > double( sampInterval ) * 2.0e-12 ) ) {
 
-    std::vector<MSProperty::SamplingInfo> segments;
-    do {
-        unsigned long nDelay = startDelay;
-        size_t nCount = 0;
+            segments.push_back( adcontrols::MSProperty::SamplingInfo(sampInterval, nDelay, nCount, 1 ) );
 
-		size_t idx = 0;
-        for ( std::vector<double>::const_iterator it = timeArray.begin() + 1; it != timeArray.end(); ++it ) {
-            ++nCount;
-			++idx;
-            double x = it[ 0 ] - it[ -1 ];
-            unsigned long interval = static_cast<unsigned long>( x * 1e12 + 0.5 ); // s --> ps
-            if ( ( x < 0 ) || ( x > double( sampInterval ) * 2.0e-12 ) ) {
-                // if ( interval > sampInterval ) {
-                segments.push_back( MSProperty::SamplingInfo(sampInterval, nDelay, nCount, 1 ) );
-                if ( it + 1 != timeArray.end() ) {
-                    sampInterval = static_cast<unsigned long>( ( it[ 1 ] - it[ 0 ] ) * 1e12 + 0.5 );
-                    if ( sampInterval < 505 )
-                        sampInterval = 500;
-                    else if (sampInterval < 1005 )
-                        sampInterval = 1000;
-                    nCount = 0;
-					double t0 = *it;
-					nDelay = int( ( t0 / ( sampInterval * 1e-12 ) ) + 0.5 );
-                    adportable::debug() << "time error: " << (t0 - ( nDelay * sampInterval * 1e-12 ) ) * 1e12 << "ps : t=" << t0  << " @ " << idx;
-				}
+            if ( it + 1 != timeArray.end() ) {
+                sampInterval = static_cast<unsigned long>( ( it[ 1 ] - it[ 0 ] ) * 1e12 + 0.5 );
+                if ( sampInterval < 505 )
+                    sampInterval = 500;
+                else if (sampInterval < 1005 )
+                    sampInterval = 1000;
+                nCount = 0;
+                double t0 = *it;
+                nDelay = int( ( t0 / ( sampInterval * 1e-12 ) ) + 0.5 );
+                adportable::debug() << "time error: " << (t0 - ( nDelay * sampInterval * 1e-12 ) ) * 1e12 << "ps : t=" << t0  << " @ " << idx;
             }
         }
-        segments.push_back( MSProperty::SamplingInfo(sampInterval, nDelay, nCount + 1, 1 ) );
-    } while ( 0 );
-    prop.setSamplingInfo( segments );
+    }
+    segments.push_back( adcontrols::MSProperty::SamplingInfo(sampInterval, nDelay, nCount + 1, 1 ) );
+    return true;
+}
 
-    for ( size_t i = 0; i < size; ++i ) {
-        double t = prop.toSeconds( i, segments );
+bool
+TXTSpectrum::validate_segments( const std::vector<adcontrols::MSProperty::SamplingInfo>& segments, const std::vector<double>& timeArray )
+{
+    for ( size_t i = 0; i < timeArray.size(); ++i ) {
+        double t = adcontrols::MSProperty::toSeconds( i, segments );
         if ( std::abs( t - timeArray[i] ) > 0.5e-9 ) {
-			prop.toSeconds( i, segments );
+            adcontrols::MSProperty::toSeconds( i, segments );
             adportable::debug(__FILE__, __LINE__) << "error: " << t - timeArray[i]
                                                   << "actual:" << timeArray[i] 
                                                   << " calculated:" << t;
         }
     }
+    return true;
+}
 
-    unsigned long tolerance = static_cast< unsigned long >( sampInterval / 10.0 + 0.5 );
-    std::vector< MSProperty::SamplingInfo >::const_iterator sampInfo = segments.begin();
+size_t
+TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
+                              , const adcontrols::MSProperty::SamplingInfo& info
+                              , const std::vector<double>& timeArray
+                              , const std::vector<double>& massArray
+                              , const std::vector<double>& intensArray )
+{
+    MSProperty prop;
 
-    for ( size_t i = 0, k = 0; i < size; ++i, ++k ) {
-        if ( k == sampInfo->nSamples ) {
-            if ( ++sampInfo == segments.end() ) {
-                if ( i + 1 < size )
-                    adportable::debug() << "text file loader: time/segment validation failed at idx " << int( i );
-                break;
-            }
-            k = 0;
-        }
-        unsigned long t1 = static_cast< unsigned long >( MSProperty::toSeconds( i, segments ) * 1e12 + 0.5 );
-        unsigned long t2 = ( sampInfo->nSamplingDelay + k ) * sampInfo->sampInterval;
-		/*
-        if ( t1 != t2 )
-            adportable::debug() 
-                << "text file loader: library calculation error at " 
-                << int(i) << " time: " << timeArray[i] << "(s) expected: " << t1 * 1e-12;
-				*/
-        long error = long( timeArray[i] * 1e12 + 0.5 ) - t1;
-        if ( unsigned( std::abs( error ) ) >= tolerance ) 
-            adportable::debug() 
-                << "text file loader: time distance error at " 
-                << int(i) << " time: " << timeArray[i] * 1e6<< "(us) error: " << error << "ps";
-    }
+    prop.setInstSamplingInterval( info.sampInterval );
+    prop.setNumAverage( info.nAverage ); // workaround
+    prop.setInstSamplingStartDelay( info.nSamplingDelay );
+	prop.addSamplingInfo( info );
 
+    ms.setMSProperty( prop );
+    ms.resize( info.nSamples );
+    ms.setIntensityArray( intensArray.data() + idx );
 
-    ms_.setMSProperty( prop );
-    ms_.resize( size );
-    ms_.setIntensityArray( intensArray.data() );
-
-    if ( hasMass ) {
-
-        ms_.setMassArray( massArray.data() );
-        ms_.setAcquisitionMassRange( massArray.front(), massArray.back() );
-
+    if ( ! massArray.empty() ) {
+        ms.setMassArray( massArray.data() + idx );
     } else {
         // todo: add UD dialog box to ask those values
         double t1 = timeArray.front();
@@ -220,19 +232,15 @@ TXTSpectrum::load( const std::wstring& name )
         adcontrols::MSCalibration calib;
         calib.coeffs( coeffs );
         
-		massArray.resize( size );
+		// massArray.resize( size );
         std::pair< double, double > error;
-        for ( size_t i = 0; i < size; ++i ) {
-            double m_sqrt = adcontrols::MSCalibration::compute( calib.coeffs(), ms_.getTime( i ) );
+        for ( size_t i = 0; i < ms.size(); ++i ) {
+            double m_sqrt = adcontrols::MSCalibration::compute( calib.coeffs(), ms.getTime( i ) );
             double mz = m_sqrt * m_sqrt;
-            ms_.setMass( i, mz );
+            ms.setMass( i, mz );
         }
-        ms_.setCalibration( coeffs );
-		ms_.setAcquisitionMassRange( ms_.getMass( 0 ), ms_.getMass( size - 1 ) );
+        ms.setCalibration( coeffs );
     }
-
-	minValue_ = *std::min_element( intensArray.begin(), intensArray.end() );
-	maxValue_ = *std::max_element( intensArray.begin(), intensArray.end() );
-
-    return true;
+    return ms.size();
 }
+

@@ -70,27 +70,23 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
     TXTSpectrum txt;
 
-    if ( txt.load( filename ) ) {
-        adcontrols::MassSpectrumPtr pMS( new adcontrols::MassSpectrum( txt.ms_ ) );
-        data_ = pMS;     
-    } else {
+    if ( ! txt.load( filename ) ) {
         adportable::debug(__FILE__, __LINE__) 
             << "datafile '" << filename << "' open failed -- check file access permission";
         return false;
     }
 
-#if defined DEBUG
-    adportable::debug(__FILE__, __LINE__) << L"datafile::open(" << filename << L") type is: " << data_.type().name(); 
-#endif
-
-
     portfolio::Portfolio portfolio;
 
     portfolio.create_with_fullpath( filename );
     portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
-    portfolio::Folium folium = spectra.addFolium( L"A Spectrum" );
-	folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );
-    // folium.setAttribute( L"path", L"/" );
+
+    for ( auto it: txt.spectra_ ) {
+        portfolio::Folium folium = spectra.addFolium( L"A Spectrum" );
+        folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );
+        folium = it;
+		data_[ folium.id() ] = it;
+    }
 
     processedDataset_.reset( new adcontrols::ProcessedDataset );
     processedDataset_->xml( portfolio.xml() );
@@ -101,9 +97,11 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 boost::any
 datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
-    (void)path;
     (void)dataType;
-    return data_;
+	auto it = data_.find( path );
+	if ( it != data_.end() )
+		return it->second;
+	return 0;
 }
 
 size_t
