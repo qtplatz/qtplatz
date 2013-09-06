@@ -662,7 +662,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
     portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
     adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
 
-#if defined _DEBUG && 1
+#if defined _DEBUG && 0
 	adcontrols::MassSpectrum ms2 ( profile );
 	adcontrols::waveform::fft::lowpass_filter( ms2, 100.0e6 );
 	if ( DataprocHandler::doCentroid( *pCentroid, ms2, m ) ) {

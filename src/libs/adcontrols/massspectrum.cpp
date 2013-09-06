@@ -537,20 +537,16 @@ MassSpectrum::addSegment( const MassSpectrum& sub )
 MassSpectrum&
 MassSpectrum::getSegment( size_t fcn )
 {
-    if ( fcn == 0 )
-        return *this;
-    if ( pImpl_->vec_.size() > ( fcn - 1 ) )
-        return pImpl_->vec_[ fcn - 1 ];
+    if ( pImpl_->vec_.size() > fcn )
+        return pImpl_->vec_[ fcn ];
     throw std::out_of_range( "MassSpectrum fragments subscript out of range" );
 }
 
 const MassSpectrum&
 MassSpectrum::getSegment( size_t fcn ) const
 {
-    if ( fcn == 0 )
-        return *this;
-    if ( pImpl_->vec_.size() > ( fcn - 1 ) )
-        return pImpl_->vec_[ fcn - 1 ];
+    if ( pImpl_->vec_.size() > fcn )
+        return pImpl_->vec_[ fcn ];
     throw std::out_of_range( "MassSpectrum fragments subscript out of range" );
 }
 
@@ -569,9 +565,7 @@ MassSpectrum::operator [] ( size_t fcn )
 size_t
 MassSpectrum::numSegments() const
 {
-	if ( pImpl_->vec_.empty() )
-		return 0;
-    return pImpl_->vec_.size() + 1;
+    return pImpl_->vec_.size();
 }
 
 void

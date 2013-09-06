@@ -37,97 +37,99 @@
 #include <qwt_plot_marker.h>
 #include <qwt_picker_machine.h>
 #include <boost/format.hpp>
+#include <tuple>
 
 using namespace adwplot;
 
 namespace adwplot {
     namespace spectrumwidget {
 
-	static Qt::GlobalColor color_table[] = {
-	    Qt::blue,
-	    Qt::red,
-	    Qt::green,
-	    Qt::cyan,
-	    Qt::magenta,
-	    Qt::yellow,
-	    Qt::darkRed,
-	    Qt::darkGreen,
-	    Qt::darkBlue,
-	    Qt::darkCyan,
-	    Qt::darkMagenta,
-	    Qt::darkYellow,
-	    Qt::darkGray,
-	    Qt::gray,
-	    Qt::lightGray,
-	};
+        static Qt::GlobalColor color_table[] = {
+            Qt::blue,
+            Qt::red,
+            Qt::green,
+            Qt::cyan,
+            Qt::magenta,
+            Qt::yellow,
+            Qt::darkRed,
+            Qt::darkGreen,
+            Qt::darkBlue,
+            Qt::darkCyan,
+            Qt::darkMagenta,
+            Qt::darkYellow,
+            Qt::darkGray,
+            Qt::gray,
+            Qt::lightGray,
+        };
 
-    struct SeriesDataImpl {
-        SeriesDataImpl() {}
+        struct SeriesDataImpl {
+            SeriesDataImpl() {}
 
-        std::vector< double > x_;
-        std::vector< double > y_;
+            std::vector< double > x_;
+            std::vector< double > y_;
 
-        typedef std::vector<double> vector_type;
+            typedef std::vector<double> vector_type;
 
-        SeriesDataImpl( const SeriesDataImpl& t )
-            : x_( t.x_ )
-            , y_( t.y_ ) {
-        } 
+            SeriesDataImpl( const SeriesDataImpl& t )
+                : x_( t.x_ )
+                , y_( t.y_ ) {
+            } 
 
-	    void setData( size_t size, const double * x, const double * y ) {
-            x_.resize( size );
-            y_.resize( size );
-            double * xd = &x_[0];
-            double * yd = &y_[0];
-            for ( size_t i = 0; i < size; ++i ) {
-               *xd++ = *x++;
-               *yd++ = *y++;
+            void addData( size_t size, const double * x, const double * y ) {
+                size_t npos = x_.size();
+                x_.resize( npos + size );
+                y_.resize( npos + size );
+                std::copy( x, x + size, x_.begin() + npos );
+                std::copy( y, y + size, y_.begin() + npos );
             }
-        }
-        void push_back( double x, double y ) {
-            x_.push_back( x );
-            y_.push_back( y );
-        }
-        size_t index( double x ) const   {
-            return std::distance( x_.begin(), std::lower_bound( x_.begin(), x_.end(), x ) );
-        }
-        double maximum_value( size_t left, size_t right ) const {
-            return *std::max_element( y_.begin() + left, y_.begin() + right );
-        }
-        double minimum_value( size_t left, size_t right ) const {
-            return *std::min_element( y_.begin() + left, y_.begin() + right );
-        }
-	};
+
+            void push_back( double x, double y ) {
+                x_.push_back( x );
+                y_.push_back( y );
+            }
+            size_t index( double x ) const   {
+                return std::distance( x_.begin(), std::lower_bound( x_.begin(), x_.end(), x ) );
+            }
+            double maximum_value( size_t left, size_t right ) const {
+                return *std::max_element( y_.begin() + left, y_.begin() + right );
+            }
+            double minimum_value( size_t left, size_t right ) const {
+                return *std::min_element( y_.begin() + left, y_.begin() + right );
+            }
+        };
 		
-    class SeriesData : public QwtSeriesData<QPointF> {
-	public:
-	    virtual ~SeriesData() {   }
-        SeriesData( const SeriesDataImpl& impl, const QRectF& rc ) : rect_( rc ), impl_( impl ) {    }
-        SeriesData( const SeriesData& t ) : rect_( t.rect_ ), impl_( t.impl_ ) { }
-	    // implements QwtSeriesData<>
-        virtual size_t size() const                { return impl_.x_.size(); }
-	    virtual QPointF sample( size_t idx ) const { return QPointF( impl_.x_[ idx ], impl_.y_[ idx ] );  }
-	    virtual QRectF boundingRect() const        { return rect_; }
-	private:
-	    QRectF rect_;
-        SeriesDataImpl impl_;
-	};
+        class SeriesData : public QwtSeriesData<QPointF> {
+        public:
+            virtual ~SeriesData() {   }
+            SeriesData( const SeriesDataImpl& impl, const QRectF& rc ) : rect_( rc ), impl_( impl ) {    }
+            SeriesData( const SeriesData& t ) : rect_( t.rect_ ), impl_( t.impl_ ) { }
+            // implements QwtSeriesData<>
+            virtual size_t size() const                { return impl_.x_.size(); }
+            virtual QPointF sample( size_t idx ) const { return QPointF( impl_.x_[ idx ], impl_.y_[ idx ] );  }
+            virtual QRectF boundingRect() const        { return rect_; }
+        private:
+            QRectF rect_;
+            SeriesDataImpl impl_;
+        };
 	
+        class TraceData {
+        public:
+            TraceData( int idx ) : idx_( idx ) {  }
+            TraceData( const TraceData& t ) : idx_( t.idx_ ), curves_( t.curves_ ), data_( t.data_ ) {   }
+            ~TraceData();
+            void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms, QRectF& );
+            std::pair<double, double> y_range( double left, double right ) const;
+            
+            typedef std::map< int, SeriesDataImpl > map_type;
+        private:
+            void setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF&, size_t fcn );
+            void setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF&, size_t fcn );
 
-    class TraceData {
-	public:
-        TraceData( int idx ) : idx_( idx ) {  }
-		TraceData( const TraceData& t ) : idx_( t.idx_ ), curves_( t.curves_ ), data_( t.data_ ) {   }
-        ~TraceData();
-	    void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms );
-        std::pair<double, double> y_range( double left, double right ) const;
-
-	    typedef std::map< int, SeriesDataImpl > map_type;
-	private:
-		int idx_;
-	    std::vector< PlotCurve > curves_;
-	    map_type data_;
-	};
+            int idx_;
+            std::vector< PlotCurve > curves_;
+            map_type data_;
+        };
+        
     } // namespace spectrumwidget
 
     struct SpectrumWidgetImpl {
@@ -158,9 +160,11 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
     setAxisTitle(QwtPlot::yLeft, "Intensity");
 
     // handle zoom rect by this
-    if ( zoomer1_ )
+    if ( zoomer1_ ) {
         connect( zoomer1_.get(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
-
+		QwtPlotZoomer * p = zoomer1_.get();
+		connect( p, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( zoomed( const QRectF& ) ) );
+	}
 	if ( picker_ ) {
 		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
 		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
@@ -184,6 +188,7 @@ SpectrumWidget::override_zoom_rect( QRectF& rc )
         }
         rc.setBottom( bottom );
         rc.setTop( top + ( top - bottom ) * 0.12 );  // increase 12% for annotation
+		//impl_->update_annotations( *this, std::make_pair( rc.left(), rc.right() ) );
     }
 }
 
@@ -191,6 +196,11 @@ void
 SpectrumWidget::zoom( const QRectF& rect )
 {
 	Dataplot::zoom( rect );
+    impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
+}
+void
+SpectrumWidget::zoomed( const QRectF& rect )
+{
     impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
 }
 
@@ -244,12 +254,11 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 		impl_->traces_.push_back( TraceData( impl_->traces_.size() ) );
 
     TraceData& trace = impl_->traces_[ idx ];
-    trace.setData( *this, ms );
+    QRectF rect;
+    trace.setData( *this, ms, rect );
 
-    double top = ms.getMaxIntensity() + ( ms.getMaxIntensity() - ms.getMinIntensity() ) * 0.12; // 12% increase
-    double bottom = ms.getMinIntensity();
-    setAxisScale( QwtPlot::xBottom, ms.getAcquisitionMassRange().first, ms.getAcquisitionMassRange().second );
-    setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, bottom, top );
+    setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
+    setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.top(), rect.bottom() );
 
     QRectF z = zoomer1_->zoomRect();
 
@@ -279,49 +288,63 @@ TraceData::~TraceData()
 }
 
 void
-TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
+TraceData::setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF& rect, size_t fcn )
+{
+    curves_.push_back( PlotCurve( plot ) );
+    PlotCurve &curve = curves_.back();
+    if ( idx_ )
+        curve.p()->setPen( QPen( color_table[ idx_ ] ) );
+    data_[ fcn ].addData( ms.size(), ms.getMassArray(), ms.getIntensityArray() );
+    curve.p()->setData( new SeriesData( data_[ fcn ], rect ) );
+}
+
+void
+TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF& rect, size_t fcn )
+{
+	(void)fcn;
+
+    const unsigned char * colors = ms.getColorArray();
+    if ( colors ) {
+        for ( size_t i = 0; i < ms.size(); ++i )
+            data_[ colors[i] ].push_back( ms.getMass( i ), ms.getIntensity( i ) );
+    } else {
+        data_[ 0 ].addData( ms.size(), ms.getMassArray(), ms.getIntensityArray() );
+    }
+    for ( const map_type::value_type& pair: data_ ) {
+        curves_.push_back( PlotCurve( plot ) );
+        PlotCurve& curve = curves_.back();
+        if ( pair.first != 0 && unsigned( pair.first ) < sizeof( color_table ) / sizeof( color_table[0] ) )
+            curve.p()->setPen( QPen( color_table[ pair.first ] ) );
+        curve.p()->setData( new SeriesData( pair.second, rect ) );
+        curve.p()->setStyle( QwtPlotCurve::Sticks );
+    }
+}
+
+void
+TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms, QRectF& rect )
 {
     curves_.clear();
     data_.clear();
  
-    const double * intens = ms.getIntensityArray();
-    const double * masses = ms.getMassArray();
-    const size_t size = ms.size();
-
     double bottom = ms.getMinIntensity();
     double top = ms.getMaxIntensity() + ( ms.getMaxIntensity() - ms.getMinIntensity() ) * 0.12;
-    QRectF rect;
+    for ( size_t fcn = 0; fcn < ms.numSegments(); ++fcn ) {
+        if ( bottom > ms[ fcn ].getMinIntensity() )
+            bottom = ms[ fcn ].getMinIntensity();
+        if ( top < ms[ fcn ].getMaxIntensity() )
+            top = ms[ fcn ].getMaxIntensity();
+    }
+
     rect.setCoords( ms.getAcquisitionMassRange().first, bottom, ms.getAcquisitionMassRange().second, top );
 
     if ( ms.isCentroid() ) {
-        const unsigned char * colors = ms.getColorArray();
-        if ( colors ) {
-            for ( size_t i = 0; i < size; ++i )
-                data_[ colors[i] ].push_back( masses[i], intens[i] );
-        } else {
-            data_[ 0 ].setData( size, masses, intens );
-        }
-        for ( const map_type::value_type& pair: data_ ) {
-            curves_.push_back( PlotCurve( plot ) );
-            PlotCurve& curve = curves_.back();
-            if ( pair.first != 0 && unsigned( pair.first ) < sizeof( color_table ) / sizeof( color_table[0] ) )
-                curve.p()->setPen( QPen( color_table[ pair.first ] ) );
-            curve.p()->setData( new SeriesData( pair.second, rect ) );
-            curve.p()->setStyle( QwtPlotCurve::Sticks );
-        }
-
+        setCentroidData( plot, ms, rect, 0 );
+        for ( size_t fcn = 0; fcn < ms.numSegments(); ++fcn )
+            setCentroidData( plot, ms[fcn], rect, fcn + 1 );
     } else { // Profile
-		size_t nFcn = ms.numSegments();
-		size_t fcn = 0;
-		do { 
-            const adcontrols::MassSpectrum& frmt = ms[ fcn ];
-			curves_.push_back( PlotCurve( plot ) );
-            PlotCurve &curve = curves_.back();
-			if ( idx_ )
-				curve.p()->setPen( QPen( color_table[ idx_ ] ) );
-			data_[ 0 /* color */ ].setData( frmt.size(), frmt.getMassArray(), frmt.getIntensityArray() );
-			curve.p()->setData( new SeriesData( data_[ 0 ], rect ) );
-		} while ( ++fcn < nFcn );
+        setProfileData( plot, ms, rect, 0 );
+        for ( size_t fcn = 0; fcn < ms.numSegments(); ++fcn )
+            setProfileData( plot, ms[fcn], rect, fcn + 1 );
     }
 }
 
@@ -378,24 +401,44 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
 {
     using adportable::array_wrapper;
 
+    typedef std::tuple< size_t, size_t, int, double, double > peak; // fcn, idx, color, mass, intensity
+    enum { c_fcn, c_idx, c_color, c_intensity, c_mass };
+
+    std::vector< peak > peaks;
     const adcontrols::MassSpectrum& ms = centroid_;
 
     array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
     size_t beg = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.first ) );
     size_t end = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.second ) );
+    if ( beg < end ) {
+        for ( size_t idx = beg; idx <= end; ++idx )
+            peaks.push_back( std::make_tuple( 0, idx,  ms.getColor( idx ), ms.getIntensity( idx ), ms.getMass( idx ) ) );
+    }
 
-    std::vector< size_t > indecies;
-    for ( size_t idx = beg; idx <= end; ++idx )
-        indecies.push_back( idx );
+    for ( size_t fcn = 0; fcn < centroid_.numSegments(); ++fcn ) {
+        const adcontrols::MassSpectrum& ms = centroid_[ fcn ];
+        array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
+        size_t beg = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.first ) );
+        size_t end = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.second ) );
+        if ( beg < end ) {
+            for ( size_t idx = beg; idx <= end; ++idx )
+                peaks.push_back( std::make_tuple( 0, idx,  ms.getColor( idx ), ms.getIntensity( idx ), ms.getMass( idx ) ) );
+        }
+    }
 
-    std::sort( indecies.begin(), indecies.end(), compare_priority( ms.getIntensityArray(), ms.getColorArray() ) );
+    std::sort( peaks.begin(), peaks.end(), []( const peak& a, const peak& b ){
+            return std::get<c_intensity>(a) > std::get<c_intensity>(b); // intensity
+        });
 
+	annotations_.clear();
     Annotations annots(plot, annotations_);
     size_t n = 0;
-    for ( std::vector<size_t>::const_iterator it = indecies.begin(); it != indecies.end() && n <= 5; ++it, ++n ) {
-        std::wstring label = ( boost::wformat( L"%.4lf" ) % ms.getMass( *it ) ).str();
-        Annotation anno = annots.add( ms.getMass( *it ), ms.getIntensity( *it ), label );
+    for ( auto peak: peaks ) {
+        std::wstring label = ( boost::wformat( L"%.4lf" ) % std::get<c_mass>( peak ) ).str();
+        Annotation anno = annots.add( std::get<c_mass>(peak), std::get<c_intensity>(peak), label );
         anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
+		if ( ++n >= 20 )
+			break;
     }
 }
 

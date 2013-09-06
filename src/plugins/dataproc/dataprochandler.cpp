@@ -69,9 +69,21 @@ DataprocHandler::doCentroid( adcontrols::MassSpectrum& res
                              , const adcontrols::CentroidMethod& m )
 {
     adcontrols::CentroidProcess peak_detector;
+    bool result = false;
+
     if ( peak_detector( m, profile ) )
-        return peak_detector.getCentroidSpectrum( res );
-    return false;
+        result = peak_detector.getCentroidSpectrum( res );
+
+    if ( profile.numSegments() > 0 ) {
+        for ( size_t fcn = 0; fcn < profile.numSegments(); ++fcn ) {
+            adcontrols::MassSpectrum centroid;
+            if ( doCentroid( centroid, profile[ fcn ], m ) ) {
+                res.addSegment( centroid );
+                result = true;
+            }
+        }
+    }
+    return result;
 }
 
 bool

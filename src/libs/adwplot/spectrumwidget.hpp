@@ -61,6 +61,7 @@ namespace adwplot {
 		virtual void moved( const QPointF& );
 		virtual void selected( const QPointF& );
 		virtual void selected( const QRectF& );
+		void zoomed( const QRectF& );
     };
 
 }
