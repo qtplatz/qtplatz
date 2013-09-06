@@ -28,6 +28,7 @@
 #include "mscalibration.hpp"
 #include "msproperty.hpp"
 #include "annotations.hpp"
+#include "massspectra.hpp"
 #include <adportable/array_wrapper.hpp>
 
 #include <boost/serialization/nvp.hpp>
@@ -36,6 +37,7 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/base_object.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
@@ -52,95 +54,98 @@
 #include <map>
 
 namespace adcontrols {
-   namespace internal {
+    namespace internal {
 
-      class MassSpectrumImpl {
-	 public:
-	    ~MassSpectrumImpl();
-	    MassSpectrumImpl();
-	    MassSpectrumImpl( const MassSpectrumImpl& );
-		void clone( const MassSpectrumImpl&, bool deep = false );
+       class MassSpectrumImpl {
+       public:
+           ~MassSpectrumImpl();
+           MassSpectrumImpl();
+           MassSpectrumImpl( const MassSpectrumImpl& );
+           void clone( const MassSpectrumImpl&, bool deep = false );
 	    
-	    inline const double * getTimeArray() const { return tofArray_.empty() ? 0 : &tofArray_[0]; }
-	    inline const double * getMassArray() const { return massArray_.empty() ? 0 : &massArray_[0]; }
-	    inline const double * getIntensityArray() const { return intsArray_.empty() ? 0 : &intsArray_[0]; }
-	    inline const unsigned char * getColorArray() const { return colArray_.empty() ? 0 : &colArray_[0];}
-	    inline size_t size() const { return massArray_.size(); }
-	    inline bool isCentroid() const { return algo_ != CentroidNone; }
-        inline void setCentroid( CentroidAlgorithm algo ) { algo_ = algo; }
-	    inline CentroidAlgorithm getCentroidAlgorithm() const { return algo_; }
-	    inline const std::pair<double, double>& getAcquisitionMassRange() const { return acqRange_; }
-        void setAcquisitionMassRange( double min, double max ) { acqRange_.first = min; acqRange_.second = max; }
-	    void setTimeArray( const double * );
-	    void setMassArray( const double *, bool setrange );
-	    void setIntensityArray( const double * );
-	    void setColorArray( const unsigned char * );
-	    void resize( size_t );
+           inline const double * getTimeArray() const { return tofArray_.empty() ? 0 : &tofArray_[0]; }
+           inline const double * getMassArray() const { return massArray_.empty() ? 0 : &massArray_[0]; }
+           inline const double * getIntensityArray() const { return intsArray_.empty() ? 0 : &intsArray_[0]; }
+           inline const unsigned char * getColorArray() const { return colArray_.empty() ? 0 : &colArray_[0];}
+           inline size_t size() const { return massArray_.size(); }
+           inline bool isCentroid() const { return algo_ != CentroidNone; }
+           inline void setCentroid( CentroidAlgorithm algo ) { algo_ = algo; }
+           inline CentroidAlgorithm getCentroidAlgorithm() const { return algo_; }
+           inline const std::pair<double, double>& getAcquisitionMassRange() const { return acqRange_; }
+           void setAcquisitionMassRange( double min, double max ) { acqRange_.first = min; acqRange_.second = max; }
+           void setTimeArray( const double * );
+           void setMassArray( const double *, bool setrange );
+           void setIntensityArray( const double * );
+           void setColorArray( const unsigned char * );
+           void resize( size_t );
 
-	    void addDescription( const Description& );
-        const Descriptions& getDescriptions() const;
+           void addDescription( const Description& );
+           const Descriptions& getDescriptions() const;
 
-        void setCalibration( const MSCalibration& );
-        const MSCalibration& calibration() const;
+           void setCalibration( const MSCalibration& );
+           const MSCalibration& calibration() const;
 
-        void setMSProperty( const MSProperty& );
-        const MSProperty& getMSProperty() const;
+           void setMSProperty( const MSProperty& );
+           const MSProperty& getMSProperty() const;
 
-        void setPolarity( MS_POLARITY polarity );
-        MS_POLARITY polarity() const;
+           void setPolarity( MS_POLARITY polarity );
+           MS_POLARITY polarity() const;
 
-        void setAnnotations( const annotations& a ) {
-            annotations_ = a;
-        }
-        const annotations& getAnnotations() const {
-            return annotations_;
-        }
+           void setAnnotations( const annotations& a ) {
+               annotations_ = a;
+           }
+           const annotations& getAnnotations() const {
+               return annotations_;
+           }
 	    
 	  // private:
-	    static std::wstring empty_string_;  // for error return as reference
+           static std::wstring empty_string_;  // for error return as reference
 
-	    CentroidAlgorithm algo_;
-	    MS_POLARITY polarity_;	    
-	    Descriptions descriptions_;
-		MSCalibration calibration_;
-		MSProperty property_;
-        annotations annotations_;
+           CentroidAlgorithm algo_;
+           MS_POLARITY polarity_;	    
+           Descriptions descriptions_;
+           MSCalibration calibration_;
+           MSProperty property_;
+           annotations annotations_;
 
-	    std::vector< double > tofArray_;
-	    std::vector< double > massArray_;
-	    std::vector< double > intsArray_;
-	    std::vector< unsigned char > colArray_;
+           std::vector< double > tofArray_;
+           std::vector< double > massArray_;
+           std::vector< double > intsArray_;
+           std::vector< unsigned char > colArray_;
 
-	    std::pair<double, double> acqRange_;
-	    long long timeSinceInjTrigger_; // usec
-	    long long timeSinceFirmwareUp_; // usec
-	    unsigned long numSpectrumSinceInjTrigger_;
+           std::pair<double, double> acqRange_;
+           long long timeSinceInjTrigger_; // usec
+           long long timeSinceFirmwareUp_; // usec
+           unsigned long numSpectrumSinceInjTrigger_;
+
+           std::vector< MassSpectrum > vec_;
 	    
-        friend class MassSpectrum;
+           friend class MassSpectrum;
 
-	    friend class boost::serialization::access;
-	    template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-            ar & BOOST_SERIALIZATION_NVP(algo_)
-                & BOOST_SERIALIZATION_NVP(polarity_)
-                & BOOST_SERIALIZATION_NVP(acqRange_.first)
-                & BOOST_SERIALIZATION_NVP(acqRange_.second)
-                & BOOST_SERIALIZATION_NVP(descriptions_)
-                & BOOST_SERIALIZATION_NVP(calibration_)
-                & BOOST_SERIALIZATION_NVP(property_)
-                & BOOST_SERIALIZATION_NVP(massArray_)
-                & BOOST_SERIALIZATION_NVP(intsArray_)
-                & BOOST_SERIALIZATION_NVP(tofArray_)
-                & BOOST_SERIALIZATION_NVP(colArray_)
-                ;
-            if ( version >= 1 ) {
-                ar & BOOST_SERIALIZATION_NVP( annotations_ );
-            }
-	    }
-	};
-  }
+           friend class boost::serialization::access;
+           template<class Archive> void serialize(Archive& ar, const unsigned int version) {
+               ar & BOOST_SERIALIZATION_NVP(algo_)
+                   & BOOST_SERIALIZATION_NVP(polarity_)
+                   & BOOST_SERIALIZATION_NVP(acqRange_.first)
+                   & BOOST_SERIALIZATION_NVP(acqRange_.second)
+                   & BOOST_SERIALIZATION_NVP(descriptions_)
+                   & BOOST_SERIALIZATION_NVP(calibration_)
+                   & BOOST_SERIALIZATION_NVP(property_)
+                   & BOOST_SERIALIZATION_NVP(massArray_)
+                   & BOOST_SERIALIZATION_NVP(intsArray_)
+                   & BOOST_SERIALIZATION_NVP(tofArray_)
+                   & BOOST_SERIALIZATION_NVP(colArray_)
+                   & BOOST_SERIALIZATION_NVP( annotations_ );
+               if ( version >= 2 ) {
+                   ar & BOOST_SERIALIZATION_NVP( vec_ );
+               }
+           }
+       };
+    }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 1 )
+BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 2 )
+
 ///////////////////////////////////////////
 
 using namespace adcontrols;
@@ -151,18 +156,16 @@ MassSpectrum::~MassSpectrum()
     delete pImpl_;
 }
 
-MassSpectrum::MassSpectrum() : pImpl_(0)
+MassSpectrum::MassSpectrum() : pImpl_( new MassSpectrumImpl )
 {
-    pImpl_ = new MassSpectrumImpl;
 }
 
-MassSpectrum::MassSpectrum( const MassSpectrum& t ) : pImpl_(0)
+MassSpectrum::MassSpectrum( const MassSpectrum& t ) : pImpl_( new MassSpectrumImpl( *t.pImpl_ ) )
 {
-    pImpl_ = new MassSpectrumImpl( *t.pImpl_ );
 }
 
 MassSpectrum&
-MassSpectrum::operator =( const MassSpectrum& t )
+MassSpectrum::operator = ( const MassSpectrum& t )
 {
 	if ( t.pImpl_ != pImpl_ ) {
 		delete pImpl_;
@@ -485,7 +488,6 @@ MassSpectrum::restore( std::istream& is, MassSpectrum& ms )
     return true;
 }
 
-
 template<> void
 MassSpectrum::serialize( portable_binary_oarchive& ar, const unsigned int version )
 {
@@ -500,7 +502,84 @@ MassSpectrum::serialize( portable_binary_iarchive& ar, const unsigned int versio
     ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
 }
 
-      
+template<> void
+MassSpectrum::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+{
+    (void)version;
+    ar << boost::serialization::make_nvp("MassSpectrum", pImpl_);
+}
+
+template<> void
+MassSpectrum::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+{
+    (void)version;
+    ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
+}
+
+// Handling of segmented/fragmented spectrum
+// Not only InfiTOF but also FASTFLIGHT data acquisition system generate a spectrum in chunk of fragment spectra
+// that cause strange spectral draw image since disconnected reagions are draw by strait line
+// Here is the trial implementation to help a spectrum that was acquired in chunks
+// This also intend to apply separate spectral processing algorithms depend on each fragment
+
+// Parent MassSpectrum class hold full ownership of the fragments memory.
+// first fragment 'MassSpectrum' class points to parent MassSpectrum class it-self
+// so the MassSpectrum[0] is identical to MassSpectrum if there is subsequent fragment.
+
+
+size_t
+MassSpectrum::addSegment( const MassSpectrum& sub )
+{
+    pImpl_->vec_.push_back( sub );
+    return pImpl_->vec_.size();
+}
+
+MassSpectrum&
+MassSpectrum::getSegment( size_t fcn )
+{
+    if ( fcn == 0 )
+        return *this;
+    if ( pImpl_->vec_.size() > ( fcn - 1 ) )
+        return pImpl_->vec_[ fcn - 1 ];
+    throw std::out_of_range( "MassSpectrum fragments subscript out of range" );
+}
+
+const MassSpectrum&
+MassSpectrum::getSegment( size_t fcn ) const
+{
+    if ( fcn == 0 )
+        return *this;
+    if ( pImpl_->vec_.size() > ( fcn - 1 ) )
+        return pImpl_->vec_[ fcn - 1 ];
+    throw std::out_of_range( "MassSpectrum fragments subscript out of range" );
+}
+
+const MassSpectrum&
+MassSpectrum::operator [] ( size_t fcn ) const
+{
+    return getSegment( fcn );
+}
+
+MassSpectrum&
+MassSpectrum::operator [] ( size_t fcn )
+{
+    return getSegment( fcn );
+}
+
+size_t
+MassSpectrum::numSegments() const
+{
+	if ( pImpl_->vec_.empty() )
+		return 0;
+    return pImpl_->vec_.size() + 1;
+}
+
+void
+MassSpectrum::clearSegments()
+{
+    pImpl_->vec_.clear();
+}
+
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
@@ -515,7 +594,7 @@ MassSpectrumImpl::MassSpectrumImpl() : algo_(CentroidNone)
 				                     , polarity_(PolarityIndeterminate)
                                      , timeSinceInjTrigger_(0)
                                      , timeSinceFirmwareUp_(0)
-                                     , numSpectrumSinceInjTrigger_(0)   
+                                     , numSpectrumSinceInjTrigger_(0)
 {
 }
 
@@ -540,12 +619,14 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 		intsArray_ = t.intsArray_;
 		colArray_ = t.colArray_;
         annotations_ = t.annotations_;
+        vec_ = t.vec_;
 	} else {
 		tofArray_.clear();
 		massArray_.clear();
 		intsArray_.clear();
         colArray_.clear();
         annotations_.clear();
+        vec_.clear();
 	}
 }
 
@@ -568,7 +649,7 @@ MassSpectrumImpl::setMassArray( const double * p, bool setrange )
 void
 MassSpectrumImpl::setIntensityArray( const double * p )
 {
-  memcpy(&intsArray_[0], p, sizeof(double) * size() );
+    memcpy(&intsArray_[0], p, sizeof(double) * size() );
 }
 
 void

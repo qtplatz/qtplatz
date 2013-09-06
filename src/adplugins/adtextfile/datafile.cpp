@@ -43,6 +43,7 @@
 #include <portfolio/folium.hpp>
 #include <adportable/debug.hpp>
 #include <boost/any.hpp>
+#include <boost/format.hpp>
 
 using namespace adtextfile;
 
@@ -81,13 +82,30 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     portfolio.create_with_fullpath( filename );
     portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
 
+    int idx = 0;
     for ( auto it: txt.spectra_ ) {
-        portfolio::Folium folium = spectra.addFolium( L"A Spectrum" );
+        std::wstring name( ( boost::wformat( L"Spectrum(%1%)" ) % idx++ ).str() );
+        portfolio::Folium folium = spectra.addFolium( name );
         folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );
-        folium = it;
 		data_[ folium.id() ] = it;
     }
 
+    if ( txt.spectra_.size() > 1 ) {
+        do {
+            auto it = txt.spectra_.begin();
+            adcontrols::MassSpectrumPtr ptr( new adcontrols::MassSpectrum( *it->get() ) );
+
+            std::for_each( it + 1, txt.spectra_.end(), [&ptr]( adcontrols::MassSpectrumPtr& sub ){
+                    ptr->addSegment( *sub );
+                });
+            
+            portfolio::Folium folium = spectra.addFolium( L"A Spectrum" );
+            folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );        
+            data_[ folium.id() ] = ptr;
+            
+        } while(0);
+    }
+    
     processedDataset_.reset( new adcontrols::ProcessedDataset );
     processedDataset_->xml( portfolio.xml() );
 
@@ -98,9 +116,11 @@ boost::any
 datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
     (void)dataType;
+
 	auto it = data_.find( path );
 	if ( it != data_.end() )
 		return it->second;
+
 	return 0;
 }
 

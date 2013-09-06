@@ -88,9 +88,15 @@ namespace adwplot {
             x_.push_back( x );
             y_.push_back( y );
         }
-        size_t index( double x ) const   {  return std::distance( x_.begin(), std::lower_bound( x_.begin(), x_.end(), x ) ); }
-        double maximum_value( size_t left, size_t right ) const { return *std::max_element( y_.begin() + left, y_.begin() + right ); }
-        double minimum_value( size_t left, size_t right ) const { return *std::min_element( y_.begin() + left, y_.begin() + right ); }
+        size_t index( double x ) const   {
+            return std::distance( x_.begin(), std::lower_bound( x_.begin(), x_.end(), x ) );
+        }
+        double maximum_value( size_t left, size_t right ) const {
+            return *std::max_element( y_.begin() + left, y_.begin() + right );
+        }
+        double minimum_value( size_t left, size_t right ) const {
+            return *std::min_element( y_.begin() + left, y_.begin() + right );
+        }
 	};
 		
     class SeriesData : public QwtSeriesData<QPointF> {
@@ -305,12 +311,17 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms )
         }
 
     } else { // Profile
-        curves_.push_back( PlotCurve( plot ) );
-        PlotCurve &curve = curves_[0];
-        if ( idx_ )
-            curve.p()->setPen( QPen( color_table[ idx_ ] ) );
-        data_[ 0 ].setData( size, masses, intens );
-        curve.p()->setData( new SeriesData( data_[ 0 ], rect ) );
+		size_t nFcn = ms.numSegments();
+		size_t fcn = 0;
+		do { 
+            const adcontrols::MassSpectrum& frmt = ms[ fcn ];
+			curves_.push_back( PlotCurve( plot ) );
+            PlotCurve &curve = curves_.back();
+			if ( idx_ )
+				curve.p()->setPen( QPen( color_table[ idx_ ] ) );
+			data_[ 0 /* color */ ].setData( frmt.size(), frmt.getMassArray(), frmt.getIntensityArray() );
+			curve.p()->setData( new SeriesData( data_[ 0 ], rect ) );
+		} while ( ++fcn < nFcn );
     }
 }
 

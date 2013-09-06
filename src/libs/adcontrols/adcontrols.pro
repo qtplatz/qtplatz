@@ -47,6 +47,7 @@ SOURCES += acceptor.cpp \
     massspectrometer.cpp \
     massspectrometerbroker.cpp \
     massspectrometer_factory.cpp \
+    massspectra.cpp \
     massspectrum.cpp \
     msassignedmass.cpp \
     mscalibratemethod.cpp \
@@ -110,6 +111,7 @@ HEADERS += acceptor.hpp \
     massspectrometer.hpp \
     massspectrometerbroker.hpp \
     massspectrometer_factory.hpp \
+    massspectra.hpp \
     massspectrum.hpp \
     msassignedmass.hpp \
     mscalibratemethod.hpp \

@@ -46,6 +46,10 @@ class portable_binary_iarchive;
 
 namespace adcontrols {
 
+    class MassSpectrum;
+
+    typedef std::shared_ptr<MassSpectrum> MassSpectrumPtr;   
+
     enum MS_POLARITY { PolarityIndeterminate
                        , PolarityPositive = (1)
                        , PolarityNegative
@@ -131,6 +135,15 @@ namespace adcontrols {
         
         static bool archive( std::ostream&, const MassSpectrum& );
         static bool restore( std::istream&, MassSpectrum& );
+
+        // on trial
+        size_t addSegment( const MassSpectrum& );
+        MassSpectrum& getSegment( size_t fcn /* 1..n */ );
+        const MassSpectrum& getSegment( size_t fcn /* 1..n */ ) const;
+        MassSpectrum & operator [] ( size_t fcn /* 1..n */);
+        const MassSpectrum& operator [] ( size_t fcn ) const;
+        void clearSegments();
+        size_t numSegments() const;
         
     private:
         friend class boost::serialization::access;
@@ -142,7 +155,6 @@ namespace adcontrols {
     template<> void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );
     template<> void MassSpectrum::serialize( portable_binary_iarchive&, const unsigned int );
     
-    typedef std::shared_ptr<MassSpectrum> MassSpectrumPtr;   
    
 }
 
