@@ -33,6 +33,7 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <adportable/utf.hpp>
 
 namespace adcontrols {
 
@@ -45,8 +46,8 @@ namespace adcontrols {
        inline bool operator == ( const Description& t ) const;
        inline const std::wstring& text() const { return text_; }
        inline const std::wstring& key() const { return key_; }
-	   inline const std::wstring& xml() const { return xml_; }
-	   inline void xml( const std::wstring& t ) { xml_ = t; }
+	   inline const std::string& xml() const { return xml_; }
+	   inline void xml( const std::string& t ) { xml_ = t; }
 	 
    private:
        time_t tv_sec_;
@@ -56,22 +57,28 @@ namespace adcontrols {
 #endif
        std::wstring key_;
        std::wstring text_;
-       std::wstring xml_;
+       std::string xml_;
 	 
        friend class boost::serialization::access;
        template<class Archive>
-           void serialize(Archive& ar, const unsigned int /* version */) {
+           void serialize(Archive& ar, const unsigned int version ) {
            using namespace boost::serialization;
            ar & BOOST_SERIALIZATION_NVP(tv_sec_);
            ar & BOOST_SERIALIZATION_NVP(tv_usec_);
            ar & BOOST_SERIALIZATION_NVP(key_);
            ar & BOOST_SERIALIZATION_NVP(text_);
-           ar & BOOST_SERIALIZATION_NVP(xml_);
+           if ( version == 1 ) {
+               std::wstring wxml;
+               ar & BOOST_SERIALIZATION_NVP(wxml);
+               xml_ = adportable::utf::to_utf8( wxml );
+           } else {
+               ar & BOOST_SERIALIZATION_NVP(xml_);
+           }
        }
 
    };
 }
 
-BOOST_CLASS_VERSION(adcontrols::Description, 1);
+BOOST_CLASS_VERSION(adcontrols::Description, 2);
 
 #endif // DESCRIPTION_H

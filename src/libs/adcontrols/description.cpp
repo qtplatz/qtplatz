@@ -51,4 +51,3 @@ Description::Description( const Description& t ) : tv_sec_(t.tv_sec_)
 												 , xml_(t.xml_)
 {
 }
-

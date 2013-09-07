@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core svg
+QT += core svg printsupport
 greaterThan( QT_MAJOR_VERSION, 4 ): QT += widgets
 
 PROVIDER = MS-Cheminformatics

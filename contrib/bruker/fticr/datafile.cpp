@@ -83,7 +83,7 @@ datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
     pMS->resize( static_cast< size_t >( n ) );
 
 	boost::filesystem::ifstream rdfile( fpath, std::ios_base::binary );
-	boost::uintmax_t idx;
+	size_t idx;
 	for ( idx = 0; idx < n && ! rdfile.eof(); ++idx ) {
 		rdfile.read( reinterpret_cast<char *>(&x), sizeof(x) );
 		pMS->setIntensity( idx, double( x ) );

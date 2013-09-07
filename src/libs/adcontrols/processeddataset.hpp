@@ -35,11 +35,11 @@ namespace adcontrols {
     public:
         ProcessedDataset();
 
-        void xml( const std::wstring& );
-        const std::wstring& xml() const;
+        void xml( const std::string& );
+        const std::string& xml() const;
 
     private:
-        std::wstring xml_;
+        std::string xml_;
     };
 
 }

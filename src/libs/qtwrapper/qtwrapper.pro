@@ -13,8 +13,10 @@ include(../../qtplatzstaticlib.pri)
 
 SOURCES += qtwrapper.cpp \
     qstring.cpp \
-    application.cpp
+    application.cpp \
+    xmlformatter.cpp 
 
 HEADERS += qtwrapper.hpp \
     qstring.hpp \
-    application.hpp
+    application.hpp \
+    xmlformatter.hpp 

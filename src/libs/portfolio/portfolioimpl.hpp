@@ -43,7 +43,7 @@ namespace portfolio {
             PortfolioImpl( const PortfolioImpl& );
         public:
             PortfolioImpl();
-            PortfolioImpl( const std::wstring& xml );
+            PortfolioImpl( const std::string& xml );
             operator bool () const { return isXMLLoaded_; }
             const std::wstring fullpath() const;
             std::vector<Folder> selectFolders( const std::wstring& );

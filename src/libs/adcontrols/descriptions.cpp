@@ -40,6 +40,9 @@
 #include <boost/archive/xml_woarchive.hpp>
 #include <boost/archive/xml_wiarchive.hpp>
 
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+
 #include <adportable/portable_binary_oarchive.hpp>
 #include <adportable/portable_binary_iarchive.hpp>
 
@@ -121,51 +124,48 @@ Descriptions::operator [] ( int idx ) const
    return (*pImpl_)[idx];
 }
 
-std::wstring
-Descriptions::saveXml() const
-{
-    std::wostringstream o;
-    boost::archive::xml_woarchive ar( o );
-    ar << boost::serialization::make_nvp("Descriptions", pImpl_);
-    return o.str();
-}
-
-void
-Descriptions::loadXml( const std::wstring& xml )
-{
-    std::wistringstream in( xml );
-    boost::archive::xml_wiarchive ar( in );
-    ar >> boost::serialization::make_nvp("Descriptions", pImpl_);
-}
-
 namespace adcontrols {
+
+    template<> void
+    Descriptions::serialize( boost::archive::xml_oarchive& ar, const unsigned int version )
+    {
+        (void)version;
+        ar << boost::serialization::make_nvp("Descriptions", pImpl_);
+    }
+    
+    template<> void
+    Descriptions::serialize( boost::archive::xml_iarchive& ar, const unsigned int version )
+    {
+        (void)version;
+        ar >> boost::serialization::make_nvp("Descriptions", pImpl_);
+    }
 
     template<> void
     Descriptions::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
     {
-	(void)version;
-	ar << boost::serialization::make_nvp("Descriptions", pImpl_);
+        (void)version;
+        ar << boost::serialization::make_nvp("Descriptions", pImpl_);
     }
     
     template<> void
     Descriptions::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
     {
-	(void)version;
-	ar >> boost::serialization::make_nvp("Descriptions", pImpl_);
+        (void)version;
+        ar >> boost::serialization::make_nvp("Descriptions", pImpl_);
     }
     
     template<> void
     Descriptions::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
-	(void)version;
-	ar & *pImpl_;
+        (void)version;
+        ar & *pImpl_;
     }
     
     template<> void
     Descriptions::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
-	(void)version;
-	ar & *pImpl_;
+        (void)version;
+        ar & *pImpl_;
     }
 }; // namespace adcontrols
 //-------------------------------------------------------------------------------------------

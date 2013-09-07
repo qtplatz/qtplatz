@@ -89,7 +89,7 @@ IFileImpl::save( const QString& filename )
         xmlfile.replace_extension( ".xml" );
         boost::filesystem::remove( xmlfile );
         pugi::xml_document dom;
-        dom.load( pugi::as_utf8( portfolio.xml() ).c_str() );
+        dom.load( portfolio.xml().c_str() );
         dom.save_file( xmlfile.string().c_str() );
     } while(0);
 
@@ -164,7 +164,7 @@ IFileImpl::subscribe( const adcontrols::LCMSDataset& data )
 bool
 IFileImpl::subscribe( const adcontrols::ProcessedDataset& processed )
 {
-    std::wstring xml = processed.xml();
+    std::string xml = processed.xml();
     return true;
 }
 

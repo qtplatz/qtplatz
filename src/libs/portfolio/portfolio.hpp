@@ -28,6 +28,7 @@
 #include "portfolio_global.h"
 #include <vector>
 #include <memory>
+#include <compiler/disable_dll_interface.h>
 
 namespace portfolio {
 
@@ -47,6 +48,7 @@ namespace portfolio {
         Portfolio();
         Portfolio( const Portfolio& );
         Portfolio( const std::wstring& xml );
+		Portfolio( const std::string& xml );
 
         std::vector<Folder> folders();
         const std::vector<Folder> folders() const;
@@ -57,7 +59,9 @@ namespace portfolio {
         Folder addFolder( const std::wstring& name, bool uniq = true );
         attributes_type attributes() const;
 
-        std::wstring xml() const;
+        std::string xml() const;
+		std::wstring wxml() const;
+		std::wstring fullpath() const;
 
         // for debugging convension
         bool save( const std::wstring& filename ) const;

@@ -64,6 +64,7 @@ namespace portfolio {
         std::vector< Folium > attachments();
         const std::vector< Folium > attachments() const;
         Folder getParentFolder();
+		std::string fullpath( bool fullyqualified = true ) const;
 
         typedef std::vector< Folium > vector_type;
 

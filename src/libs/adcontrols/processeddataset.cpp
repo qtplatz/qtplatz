@@ -32,12 +32,12 @@ ProcessedDataset::ProcessedDataset()
 }
 
 void
-ProcessedDataset::xml( const std::wstring& xml )
+ProcessedDataset::xml( const std::string& xml )
 {
     xml_ = xml;
 }
 
-const std::wstring&
+const std::string&
 ProcessedDataset::xml() const
 {
     return xml_;

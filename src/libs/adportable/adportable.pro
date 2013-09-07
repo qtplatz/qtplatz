@@ -57,6 +57,7 @@ HEADERS += adportable.hpp \
     safearray.hpp \
     serialport.hpp \
     serializer.hpp \
+    xml_serializer.hpp \
     spectrum_processor.hpp \
     string.hpp \
     utf.hpp \

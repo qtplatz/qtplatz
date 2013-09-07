@@ -272,7 +272,7 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
     }
 
     processedDataset_.reset( new adcontrols::ProcessedDataset );
-    std::wstring xml = portfolio.xml();
+    std::string xml = portfolio.xml();
     processedDataset_->xml( xml );
 
     return true;

@@ -31,23 +31,34 @@
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/waveform.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/xml_serializer.hpp>
 #include <adutils/processeddata.hpp>
 #include <adwplot/picker.hpp>
+#include <portfolio/portfolio.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
 #include <adwplot/chromatogramwidget.hpp>
 #include <adwplot/spectrumwidget.hpp>
+#include <qtwrapper/xmlformatter.hpp>
 #include <coreplugin/minisplitter.h>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>
+#include <qwt_plot_renderer.h>
+#include <qapplication.h>
+#include <qsvggenerator.h>
+#include <qprinter.h>
 #include <QBoxLayout>
 #include <QMenu>
+#include <qclipboard.h>
 #include <boost/variant.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 #include "selchanged.hpp"
 
 using namespace dataproc;
@@ -287,6 +298,8 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& )
 	QMenu menu;
 
 	std::vector< QAction * > actions;
+	actions.push_back( menu.addAction( "Copy to clipboard" ) );
+	actions.push_back( menu.addAction( "Save PDF" ) );
 	actions.push_back( menu.addAction( "Create chromatograms" ) );
 
 	QAction * selectedItem = menu.exec( QCursor::pos() );
@@ -295,7 +308,101 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& )
         );
 	if ( it != actions.end() ) {
 		QRectF rc = pImpl_->processedSpectrum_->zoomRect();
-        if ( *it == actions[ 0 ] )
+		if ( *it == actions[ 0 ] ) {
+			QClipboard * clipboard = QApplication::clipboard();
+			QwtPlotRenderer renderer;
+			QImage img( pImpl_->processedSpectrum_->size(), QImage::Format_ARGB32 );
+			QPainter painter(&img);
+			renderer.render( pImpl_->processedSpectrum_, &painter, pImpl_->processedSpectrum_->rect() );
+			clipboard->setImage( img );
+		} else if ( *it == actions[ 1 ] ) {
+			reportProcessed();
+		} else if ( *it == actions[ 2 ] )
 			DataprocPlugin::instance()->handleCreateChromatograms( *pProcessedSpectrum_, rc.x(), rc.x() + rc.width() );
 	}
+}
+
+bool
+MSProcessingWnd::reportProcessed()
+{
+	// A4 := 210mm x 297mm (8.27 x 11.69 inch)
+    QSizeF sizeMM( 180, 80 );
+
+    int resolution = 85;
+	const double mmToInch = 1.0 / 25.4;
+    const QSizeF size = sizeMM * mmToInch * resolution;
+
+	QPrinter printer;
+    printer.setColorMode( QPrinter::Color );
+    printer.setPaperSize( QPrinter::A4 );
+    printer.setFullPage( false );
+    
+	portfolio::Folium folium;
+    printer.setDocName( "QtPlatz MS Process Report" );
+	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+		folium = dp->getPortfolio().findFolium( idActiveFolium_ );
+		boost::filesystem::path path = dp->getPortfolio().fullpath();
+		path = path.parent_path() / path.stem();
+		boost::filesystem::path pdfname = path;
+		pdfname.replace_extension( ".pdf" );
+		int nnn = 0;
+		while ( boost::filesystem::exists( pdfname ) )  {
+			pdfname = path.wstring() + ( boost::wformat(L"(%d)") % nnn++ ).str();
+			pdfname.replace_extension( ".pdf" );
+		}
+		QString qpdfname( adportable::utf::to_utf8( pdfname.wstring() ).c_str() );
+		printer.setOutputFileName( qpdfname );
+	}
+    printer.setOutputFormat( QPrinter::PdfFormat );
+    printer.setResolution( resolution );
+
+    QPainter painter( &printer );
+
+	QRectF boundingRect;
+	QRectF drawRect( 0.0, 0.0, printer.width(), (12.0/72)*resolution );
+
+	painter.drawText( drawRect, Qt::TextWordWrap, folium.fullpath().c_str(), &boundingRect );
+	
+    QwtPlotRenderer renderer;
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
+
+	drawRect.setTop( boundingRect.bottom() );
+	drawRect.setHeight( size.height() );
+	drawRect.setWidth( size.width() );
+	renderer.render( pImpl_->processedSpectrum_, &painter, drawRect );
+
+	drawRect.setTop( drawRect.bottom() );
+	drawRect.setHeight( size.height() );
+    renderer.render( pImpl_->profileSpectrum_, &painter, drawRect );
+
+	QString formattedMethod;
+
+	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+
+		portfolio::Folium folium = dp->getPortfolio().findFolium( idActiveFolium_ );
+
+        portfolio::Folio attachments = folium.attachments();
+        portfolio::Folio::iterator it
+            = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
+        if ( it != attachments.end() ) {
+            adutils::MassSpectrumPtr ms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+            const adcontrols::Descriptions& desc = ms->getDescriptions();
+			for ( size_t i = 0; i < desc.size(); ++i ) {
+				const adcontrols::Description& d = desc[i];
+				if ( ! d.xml().empty() ) {
+					formattedMethod.append( d.xml().c_str() ); // boost::serialization does not close xml correctly, so xmlFormatter raise an exception.
+				}
+            }
+        }
+		drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
+		drawRect.setHeight( printer.height() - drawRect.top() );
+		QFont font = painter.font();
+		font.setPointSize( 8 );
+		painter.setFont( font );
+		painter.drawText( drawRect, Qt::TextWordWrap, formattedMethod, &boundingRect );
+	}
+
+    return true;
 }

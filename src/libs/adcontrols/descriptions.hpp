@@ -29,9 +29,13 @@
 #include "description.hpp"
 
 namespace boost {
-  namespace serialization {
-	class access;
-  }
+    namespace serialization {
+        class access;
+	}
+	namespace archive {
+        class xml_oarchive;
+        class xml_iarchive;
+    }
 }
 
 namespace adcontrols {
@@ -53,14 +57,19 @@ namespace adcontrols {
 	   size_t size() const;
 	   const Description& operator [](int idx) const;
 
-	   std::wstring saveXml() const;
-	   void loadXml( const std::wstring& xml );
+	   std::string saveXml() const;
+	   void loadXml( const std::string& xml );
 
    private:
 	   friend class boost::serialization::access;
 	   template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
 	   internal::DescriptionsImpl* pImpl_;
    };
-
 }
 
+template<> void ADCONTROLSSHARED_EXPORT
+adcontrols::Descriptions::serialize( boost::archive::xml_oarchive& ar, const unsigned int version );
+
+
+template<> void ADCONTROLSSHARED_EXPORT
+adcontrols::Descriptions::serialize( boost::archive::xml_iarchive& ar, const unsigned int version );

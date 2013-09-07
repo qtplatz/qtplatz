@@ -126,3 +126,36 @@ Folium::getParentFolder()
 
     return Folder();
 }
+
+std::string
+Folium::fullpath( bool fullyqualified ) const
+{
+	std::vector< std::string > hierachey;
+
+	hierachey.push_back( node_.attribute( "name" ).value() );
+
+	pugi::xml_node parent = node_.parent();
+
+	while ( parent && parent.attribute( "folderType" ).value() != std::string( "directory" ) )
+		parent = parent.parent();
+
+	while ( parent.name() == std::string( "folder" ) 
+		&& parent.attribute( "folderType" ).value() == std::string( "directory" ) ) {
+		hierachey.push_back( parent.attribute( "name" ).value() );
+		parent = parent.parent();
+	}
+	std::string path;
+	if ( fullyqualified ) {
+		pugi::xpath_node dset = node_.select_single_node( "/xtree/dataset" );
+		path = dset.node().attribute( "fullpath" ).value();
+		path += "::";
+	}
+	std::for_each( hierachey.rbegin(), hierachey.rend(), [&path]( const std::string& name ){
+		path += "/" + name;
+	});
+	return path;
+}
+
+
+
+

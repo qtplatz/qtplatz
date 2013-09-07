@@ -90,6 +90,7 @@ namespace dataproc {
         std::wstring idActiveFolium_;
         std::wstring idChromatogramFolium_;
         std::wstring idSpectrumFolium_;
+		bool reportProcessed();
     };
 
 }

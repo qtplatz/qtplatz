@@ -39,8 +39,8 @@
 #include <adportable/differential.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/debug.hpp>
-#include <boost/archive/xml_woarchive.hpp>
-#include <boost/archive/xml_wiarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
 
 #include <compiler/diagnostic_pop.h>
 #include <vector>
@@ -167,8 +167,8 @@ CentroidProcessImpl::setup( const CentroidMethod& method )
     method_ = method;
 	desc_ = adcontrols::Description( L"CentroidProcess", L"Centroid" );
 
-	std::wostringstream o;
-	boost::archive::xml_woarchive ar( o );
+	std::ostringstream o;
+	boost::archive::xml_oarchive ar( o );
 	ar << boost::serialization::make_nvp("CentroidMethod", method);
 	desc_.xml( o.str() );
 }

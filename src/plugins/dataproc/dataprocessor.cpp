@@ -515,7 +515,7 @@ Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
 bool
 Dataprocessor::subscribe( const adcontrols::ProcessedDataset& processed )
 {
-    std::wstring xml = processed.xml();
+    std::string xml = processed.xml();
     portfolio_.reset( new portfolio::Portfolio( xml ) );
     return true;
 }

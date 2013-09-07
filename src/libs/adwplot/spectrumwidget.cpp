@@ -188,7 +188,6 @@ SpectrumWidget::override_zoom_rect( QRectF& rc )
         }
         rc.setBottom( bottom );
         rc.setTop( top + ( top - bottom ) * 0.12 );  // increase 12% for annotation
-		//impl_->update_annotations( *this, std::make_pair( rc.left(), rc.right() ) );
     }
 }
 
@@ -208,7 +207,6 @@ void
 SpectrumWidget::moved( const QPointF& pos )
 {
 	(void)pos;
-	//std::cout << "SpectrumWidget::moved( " << pos.x() << ", " << pos.y() << ")" << std::endl;
 }
 
 void
@@ -327,13 +325,17 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms, QRectF& 
     data_.clear();
  
     double bottom = ms.getMinIntensity();
-    double top = ms.getMaxIntensity() + ( ms.getMaxIntensity() - ms.getMinIntensity() ) * 0.12;
+	
+    double top = ms.getMaxIntensity();
     for ( size_t fcn = 0; fcn < ms.numSegments(); ++fcn ) {
         if ( bottom > ms[ fcn ].getMinIntensity() )
             bottom = ms[ fcn ].getMinIntensity();
         if ( top < ms[ fcn ].getMaxIntensity() )
             top = ms[ fcn ].getMaxIntensity();
     }
+	if ( ms.isCentroid() )
+		bottom = 0;
+	top = top + ( top - bottom ) * 0.12; // add 12% margine for annotation
 
     rect.setCoords( ms.getAcquisitionMassRange().first, bottom, ms.getAcquisitionMassRange().second, top );
 
@@ -434,12 +436,12 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
     Annotations annots(plot, annotations_);
     size_t n = 0;
     for ( auto peak: peaks ) {
-        std::wstring label = ( boost::wformat( L"%.4lf" ) % std::get<c_mass>( peak ) ).str();
-        Annotation anno = annots.add( std::get<c_mass>(peak), std::get<c_intensity>(peak), label );
-        anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
-		if ( ++n >= 20 )
-			break;
-    }
+		if ( ( std::get<c_color>( peak ) >= 1 ) || ( ++n <= 20 ) ) {
+			std::wstring label = ( boost::wformat( L"%.4lf" ) % std::get<c_mass>( peak ) ).str();
+			Annotation anno = annots.add( std::get<c_mass>(peak), std::get<c_intensity>(peak), label );
+			anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
+		}
+	}
 }
 
 void
