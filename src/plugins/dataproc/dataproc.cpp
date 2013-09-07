@@ -53,15 +53,15 @@
 # endif
 
 #  if defined _DEBUG
-#     pragma comment(lib, "ACEd.lib")
-#     pragma comment(lib, "TAOd.lib")
-#     pragma comment(lib, "TAO_Utilsd.lib")
-#     pragma comment(lib, "TAO_PId.lib")
-#     pragma comment(lib, "TAO_PortableServerd.lib")
-#     pragma comment(lib, "TAO_AnyTypeCoded.lib")
-#     pragma comment(lib, "adcontrollerd.lib")
-#     pragma comment(lib, "adbrokerd.lib")
-#     pragma comment(lib, "adinterfaced.lib")
+//#     pragma comment(lib, "ACEd.lib")
+//#     pragma comment(lib, "TAOd.lib")
+//#     pragma comment(lib, "TAO_Utilsd.lib")
+//#     pragma comment(lib, "TAO_PId.lib")
+//#     pragma comment(lib, "TAO_PortableServerd.lib")
+//#     pragma comment(lib, "TAO_AnyTypeCoded.lib")
+//#     pragma comment(lib, "adcontrollerd.lib")
+//#     pragma comment(lib, "adbrokerd.lib")
+//#     pragma comment(lib, "adinterfaced.lib")
 #  else
 #     pragma comment(lib, "ACE.lib")
 #     pragma comment(lib, "TAO.lib")

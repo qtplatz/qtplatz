@@ -422,6 +422,7 @@ DataprocPlugin::handleCreateChromatograms( const adcontrols::MassSpectrum& ms, d
 void
 DataprocPlugin::extensionsInitialized()
 {
+#if 0
 	Broker::Manager_var mgr = adorbmgr::orbmgr::getBrokerManager();
     if ( ! CORBA::is_nil( mgr ) ) {
         brokerSession_ = mgr->getSession( L"acquire" );
@@ -435,6 +436,7 @@ DataprocPlugin::extensionsInitialized()
         QMessageBox::critical( 0, "DataprocPlugin::extensionsInitialized"
                                , "can't find ior for adbroker -- maybe servant plugin load failed.");
     }
+#endif
     mainWindow_->OnInitialUpdate();
 }
 
@@ -444,7 +446,7 @@ DataprocPlugin::aboutToShutdown()
     adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutting down...  ===============";
 
     mainWindow_->OnFinalClose();
-
+#if 0
 	if ( ! CORBA::is_nil( brokerSession_ ) ) {
 
         disconnect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) )
@@ -466,6 +468,7 @@ DataprocPlugin::aboutToShutdown()
         CORBA::release( brokerSession_ );
         brokerSession_ = 0;
     }
+#endif
     adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutdown complete ===============";
 	return SynchronousShutdown;
 }

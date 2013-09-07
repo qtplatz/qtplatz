@@ -27,7 +27,6 @@
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
-#include "datafileobserver_i.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/description.hpp>

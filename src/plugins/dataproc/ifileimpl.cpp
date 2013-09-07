@@ -58,10 +58,10 @@ IFileImpl::IFileImpl( adcontrols::datafile * file
 void
 IFileImpl::setModified( bool val )
 {
-    if ( modified_ == val )
-        return;
+	if ( modified_ == val )
+		return;
     modified_ = val;
-    emit changed();
+	emit changed();
 }
 
 bool

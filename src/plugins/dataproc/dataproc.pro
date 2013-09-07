@@ -18,7 +18,7 @@ LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adcontrols) -l$$qtLibraryTarget(adutils) \
         -l$$qtLibraryTarget(acewrapper) \
-        -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(portfolio) \
+        -l$$qtLibraryTarget(portfolio) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(adfs) \
         -l$$qtLibraryTarget(chromatogr) \
@@ -26,7 +26,7 @@ LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adorbmgr)
 
 !win32 {
-  LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
+#  LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
   LIBS += -lboost_date_time -lboost_system -lboost_filesystem \
           -lboost_serialization
 }
@@ -61,7 +61,6 @@ SOURCES += \
     navigationwidget.cpp \
     navigationwidgetfactory.cpp \
     sessionmanager.cpp \
-    datafileobserver_i.cpp \
     mainwindow.cpp \
     mode.cpp \
     editorfactory.cpp \
@@ -85,7 +84,6 @@ HEADERS += \
     navigationwidget.hpp \
     navigationwidgetfactory.hpp \
     sessionmanager.hpp \
-    datafileobserver_i.hpp \
     mainwindow.hpp \
     mode.hpp \
     editorfactory.hpp \

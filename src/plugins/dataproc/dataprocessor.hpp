@@ -53,7 +53,7 @@ namespace SignalObserver { class Observer; }
 namespace dataproc {
 
     class IFileImpl;
-    class datafileObserver_i;
+    //class datafileObserver_i;
 
     class Dataprocessor : public QObject
                         , public adcontrols::dataSubscriber {
@@ -101,7 +101,7 @@ namespace dataproc {
     private:
         std::unique_ptr< IFileImpl > ifileimpl_;
         std::unique_ptr< portfolio::Portfolio > portfolio_;
-		std::unique_ptr< datafileObserver_i > fileObserver_;
+		//std::unique_ptr< datafileObserver_i > fileObserver_;
         std::wstring idActiveFolium_;
     };
 

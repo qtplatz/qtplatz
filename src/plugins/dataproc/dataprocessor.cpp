@@ -28,7 +28,7 @@
 #include "constants.hpp"
 #include "sessionmanager.hpp"
 #include "dataprochandler.hpp"
-#include "datafileobserver_i.hpp"
+//#include "datafileobserver_i.hpp"
 #include <adcontrols/datafile.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <extensionsystem/pluginmanager.h>
@@ -317,6 +317,7 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
         for ( auto it = method.begin(); it != method.end(); ++it )
             boost::apply_visitor( processIt(*it, folium), data );
         SessionManager::instance()->selectionChanged( this, folium );
+		ifileimpl_->setModified();
     }
 }
 
@@ -493,6 +494,7 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
 	return folium;
 }
 
+#if 0
 SignalObserver::Observer_ptr
 Dataprocessor::observer()
 {
@@ -503,12 +505,13 @@ Dataprocessor::observer()
 	}
 	return 0;
 }
+#endif
 
 ///////////////////////////
 bool
 Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
 {
-	fileObserver_.reset( new datafileObserver_i( data ) );
+	//fileObserver_.reset( new datafileObserver_i( data ) );
 	return true;
 }
 
