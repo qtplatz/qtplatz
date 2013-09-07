@@ -65,11 +65,13 @@ namespace adcontrols {
 	   template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
 	   internal::DescriptionsImpl* pImpl_;
    };
+
+    template<> void ADCONTROLSSHARED_EXPORT
+    Descriptions::serialize( boost::archive::xml_oarchive& ar, const unsigned int version );
+    
+    
+    template<> void ADCONTROLSSHARED_EXPORT
+    Descriptions::serialize( boost::archive::xml_iarchive& ar, const unsigned int version );
 }
 
-template<> void ADCONTROLSSHARED_EXPORT
-adcontrols::Descriptions::serialize( boost::archive::xml_oarchive& ar, const unsigned int version );
 
-
-template<> void ADCONTROLSSHARED_EXPORT
-adcontrols::Descriptions::serialize( boost::archive::xml_iarchive& ar, const unsigned int version );

@@ -23,8 +23,6 @@
 **
 **************************************************************************/
 
-#pragma once
-
 #include "massspectra.hpp"
 #include "massspectrum.hpp"
 

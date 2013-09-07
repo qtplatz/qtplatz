@@ -38,7 +38,6 @@
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 #include <acewrapper/constants.hpp>
-#include <acewrapper/input_buffer.hpp>
 #include <adcontrols/datafilebroker.hpp>
 #include <adcontrols/datafile_factory.hpp>
 #include <adcontrols/description.hpp>
@@ -56,7 +55,6 @@
 
 #include <adplugin/constants.hpp>
 #include <adplugin/manager.hpp>
-#include <adplugin/qbrokersessionevent.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
@@ -104,7 +102,6 @@
 #include <iomanip>
 #include <algorithm>
 #include <functional>
-#include <adinterface/brokerC.h>
 
 namespace dataproc {
     class mimeTypeHelper {

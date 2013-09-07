@@ -12,21 +12,18 @@ PROVIDER = MS-Cheminformatics
 include(../../qtplatzplugin.pri)
 include(../../qwt.pri)
 include(../../boost.pri)
-include(../../ace_tao.pri)
 
 LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget(adwplot) -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adcontrols) -l$$qtLibraryTarget(adutils) \
-        -l$$qtLibraryTarget(acewrapper) \
         -l$$qtLibraryTarget(portfolio) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(adfs) \
         -l$$qtLibraryTarget(chromatogr) \
-        -l$$qtLibraryTarget(adextension) \
-        -l$$qtLibraryTarget(adorbmgr)
+        -l$$qtLibraryTarget(adextension)
+
 
 !win32 {
-#  LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
   LIBS += -lboost_date_time -lboost_system -lboost_filesystem \
           -lboost_serialization
 }

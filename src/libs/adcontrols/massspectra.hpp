@@ -38,7 +38,7 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT MassSpectra {
     public:
-		static wchar_t * dataClass() { return L"MassSpectra"; }
+		static const wchar_t * dataClass() { return L"MassSpectra"; }
 
         typedef std::shared_ptr< MassSpectrum > value_type;
 

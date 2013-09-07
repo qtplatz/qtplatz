@@ -488,32 +488,35 @@ MassSpectrum::restore( std::istream& is, MassSpectrum& ms )
     return true;
 }
 
-template<> void
-MassSpectrum::serialize( portable_binary_oarchive& ar, const unsigned int version )
-{
-    (void)version;
-    ar << boost::serialization::make_nvp( "MassSpectrum", pImpl_ );
-}
+namespace adcontrols {
 
-template<> void
-MassSpectrum::serialize( portable_binary_iarchive& ar, const unsigned int version )
-{
-    (void)version;
-    ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
-}
+    template<> void
+    MassSpectrum::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        (void)version;
+        ar << boost::serialization::make_nvp( "MassSpectrum", pImpl_ );
+    }
 
-template<> void
-MassSpectrum::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-{
-    (void)version;
-    ar << boost::serialization::make_nvp("MassSpectrum", pImpl_);
-}
+    template<> void
+    MassSpectrum::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        (void)version;
+        ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
+    }
 
-template<> void
-MassSpectrum::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-{
-    (void)version;
-    ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
+    template<> void
+    MassSpectrum::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        (void)version;
+        ar << boost::serialization::make_nvp("MassSpectrum", pImpl_);
+    }
+
+    template<> void
+    MassSpectrum::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        (void)version;
+        ar >> boost::serialization::make_nvp("MassSpectrum", pImpl_);
+    }
 }
 
 // Handling of segmented/fragmented spectrum
