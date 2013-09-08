@@ -39,7 +39,6 @@ SOURCES += \
     lifecycle.cpp \
     manager.cpp \
     qbrokersessionevent.cpp \
-    qobserverevents_i.cpp \
     qreceiver_i.cpp \
     lifecycleaccessor.cpp \
     loader.cpp \
@@ -56,7 +55,6 @@ HEADERS += adplugin.hpp \
     widget_factory.hpp \
     lifecycle.hpp \
     qreceiver_i.hpp \
-    qobserverevents_i.hpp \
     qbrokersessionevent.hpp \
     lifecycleaccessor.hpp \
     loader.hpp \

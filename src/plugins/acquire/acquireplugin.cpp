@@ -827,28 +827,24 @@ AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
 void
 AcquirePlugin::handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus st )
 {
-    adportable::debug(__FILE__, __LINE__) << "handle_observer_config_changed(" << objid << ", " << st << ")";
     emit onObsConfigChanged( objid, long( st ) );
 }
 
 void
 AcquirePlugin::handle_observer_update_data( uint32_t objid, int32_t pos )
 {
-    adportable::debug(__FILE__, __LINE__) << "handle_observer_update_data(" << objid << ", " << pos << ")";
     emit onObsUpdateData( objid, pos );
 }
 
 void
 AcquirePlugin::handle_observer_method_changed( uint32_t objid, int32_t pos )
 {
-    adportable::debug(__FILE__, __LINE__) << "handle_observer_method_changed(" << objid << ", " << pos << ")";
     emit onObsMethodChanged( objid, pos );
 }
 
 void
 AcquirePlugin::handle_observer_event( uint32_t objid, int32_t pos, int32_t events )
 {
-    adportable::debug(__FILE__, __LINE__) << "handle_observer_event(" << objid << ", " << pos << ", " << events << ")";
     emit onObsEvent( objid, pos, events );
 }
 
