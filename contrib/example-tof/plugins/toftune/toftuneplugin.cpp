@@ -30,12 +30,13 @@
 #include "mainwindow.hpp"
 #include "sideframe.hpp"
 #include <tofspectrometer/constants.hpp>
-#include <tofinterface/signalC.h>
+#include <tofinterface/method.hpp>
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
 #include <adwplot/chromatogramwidget.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adplugin/qobserverevents_i.hpp>
+#include <adportable/serializer.hpp>
 #include <adorbmgr/orbmgr.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adportable/debug.hpp>
@@ -45,6 +46,7 @@
 #include <adcontrols/trace.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adinterface/eventlog_helper.hpp>
+#include <adinterface/controlmethodhelper.hpp>
 #include <qtwrapper/qstring.hpp>
 
 #include <coreplugin/icore.h>
@@ -81,9 +83,9 @@ tofTunePlugin::instance()
 
 tofTunePlugin::tofTunePlugin() : receiver_i_( new Receiver_i<tofTunePlugin>( * this ) )
                                , hasController_( false )
-                               , trace_( new adcontrols::Trace )
 {
-    instance_ = this;
+    traces_.push_back( std::shared_ptr< adcontrols::Trace > ( new adcontrols::Trace( 0 ) ) );
+	instance_ = this;
 }
 
 tofTunePlugin::~tofTunePlugin()
@@ -290,7 +292,8 @@ tofTunePlugin::HandleUpdateData( unsigned long objId, long pos )
             if ( signalObserver_->readData( pos, rb ) ) {
                 adcontrols::MassSpectrum ms;
                 size_t idData = 0;
-                if ( interpreter.translate( ms, rb, spectrometer, idData ) )
+				if ( interpreter.translate( ms, reinterpret_cast< const char * >(rb->xdata.get_buffer()), rb->xdata.length()
+					, reinterpret_cast< const char * >(rb->xmeta.get_buffer()), rb->xmeta.length(), spectrometer, idData ) )
                     mainWindow_->setData( ms );
             }
             return;
@@ -316,10 +319,14 @@ tofTunePlugin::HandleUpdateData( unsigned long objId, long pos )
                 std::wstring traceId = static_cast<const CORBA::WChar *>( desc->trace_id );
 
                 adcontrols::TraceAccessor accessor;
-                if ( interpreter.translate( accessor, rb ) ) {
-                    *trace_ += accessor;
-                    if ( trace_->size() >= 2 )
-                        mainWindow_->setData( *trace_, traceId );
+				if ( interpreter.translate( accessor
+					, reinterpret_cast< const char * >( rb->xdata.get_buffer() ), rb->xdata.length()
+					, reinterpret_cast< const char * >( rb->xmeta.get_buffer() ), rb->xmeta.length(), rb->events ) ) {
+						for ( size_t fcn = 0; fcn < accessor.nfcn() && fcn < traces_.size(); ++fcn ) {
+							adcontrols::Trace& trace = *traces_[ fcn ];
+							accessor >> trace;
+							mainWindow_->setData( trace, traceId );
+						}
                 }
             }
         }
@@ -330,10 +337,17 @@ tofTunePlugin::HandleUpdateData( unsigned long objId, long pos )
 }
 
 void
-tofTunePlugin::setMethod( const TOF::ControlMethod& m, const std::string& hint )
+tofTunePlugin::setMethod( const tof::ControlMethod& m, const std::string& hint )
 {
     if ( ! CORBA::is_nil( receiver_i_ ) && ! CORBA::is_nil( receiver_i_->session_ ) ) {
-        receiver_i_->session_->setControlMethod( m, hint.c_str() );
+		std::string device;
+		
+		TOF::octet_array oa;
+		if ( adportable::serializer< tof::ControlMethod >::serialize( m, device ) ) {
+			oa.length( device.size() );
+			std::copy( device.begin(), device.end(), oa.get_buffer() );
+		}
+		receiver_i_->session_->setControlMethod( oa, hint.c_str() );
     }
 }
 

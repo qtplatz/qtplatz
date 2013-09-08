@@ -34,8 +34,8 @@ class QAction;
 
 namespace adcontrols { class MassSpectrum; class Trace; }
 namespace ControlMethod{ struct Method; }
-namespace TOF { struct ControlMethod; }
-namespace TOFSignal { struct tofDATA; }
+namespace tof { class ControlMethod; }
+namespace tofinterface { struct tofDATA; }
 
 namespace Core { class IMode; }
 
@@ -82,7 +82,7 @@ namespace toftune {
         QAction * actionConnect_;
 
         tofSignalMonitorView * monitorView_;
-        std::unique_ptr< TOF::ControlMethod > method_;
+        std::unique_ptr< tof::ControlMethod > method_;
 
 		QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
         void setToolBarDockWidget( QDockWidget * dock );

@@ -35,10 +35,10 @@
 #include "sideframe.hpp"
 
 #include <adinterface/brokerC.h>
-#include <tofinterface/methodC.h>
+#include <tofinterface/method.hpp>
 
 #include <adcontrols/massspectrum.hpp>
-
+#include <adportable/serializer.hpp>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
@@ -84,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , toolBarDockWidget_( 0 )
                                         , actionConnect_ ( 0 )
                                         , monitorView_( 0 )
-                                        , method_( new TOF::ControlMethod )
+                                        , method_( new tof::ControlMethod )
 {
 }
 
@@ -321,12 +321,12 @@ MainWindow::setMethod( const ControlMethod::Method& m )
 
     for ( size_t i = 0; i < m.lines.length(); ++i ) {
         std::wstring modelname = m.lines[ i ].modelname.in();
-        if ( modelname == L"tof" ) {
-            const TOF::ControlMethod * method;
-            m.lines[ i ].data >>= method;
-            if ( ! method_ )
-                method_.reset( new TOF::ControlMethod );
-            *method_ = *method;
+        if ( modelname == L"tof" || modelname == L"TOF" ) {
+			tof::ControlMethod im;
+			adportable::serializer< tof::ControlMethod >::deserialize( im
+				, reinterpret_cast< const char * >( m.lines[i].xdata.get_buffer() )
+				, m.lines[i].xdata.length() );
+            *method_ = im;
 
             QList< QDockWidget *> widgets = dockWidgets();
             foreach ( QDockWidget * widget, widgets ) {

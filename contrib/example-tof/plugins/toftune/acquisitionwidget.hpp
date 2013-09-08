@@ -29,6 +29,8 @@
 #include <adplugin/lifecycle.hpp>
 #include <QWidget>
 
+namespace tof { class ControlMethod; }
+
 namespace Ui {
 class AcquisitionWidget;
 }
@@ -45,8 +47,8 @@ namespace toftune {
         explicit AcquisitionWidget(QWidget *parent = 0);
         ~AcquisitionWidget();
 
-        virtual void setMethod( const TOF::ControlMethod& );
-        virtual void getMethod( TOF::ControlMethod& ) const;
+        virtual void setMethod( const tof::ControlMethod& );
+        virtual void getMethod( tof::ControlMethod& ) const;
 
         // LifeCycle
         void OnCreate( const adportable::Configuration& );

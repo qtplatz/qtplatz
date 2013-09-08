@@ -26,8 +26,9 @@
 #include "ui_analyzerwidget.h"
 #include "doublespinslider.hpp"
 #include <tofspectrometer/constants.hpp>
-#include <tofinterface/methodC.h>
+#include <tofinterface/method.hpp>
 #include <adinterface/controlmethodaccessor.hpp>
+#include <adportable/serializer.hpp>
 
 using namespace toftune;
 
@@ -60,12 +61,12 @@ AnalyzerWidget::~AnalyzerWidget()
 }
 
 void
-AnalyzerWidget::setMethod( const TOF::ControlMethod& )
+AnalyzerWidget::setMethod( const tof::ControlMethod& )
 {
 }
 
 void
-AnalyzerWidget::getMethod( TOF::ControlMethod& ) const
+AnalyzerWidget::getMethod( tof::ControlMethod& ) const
 {
 }
 
@@ -93,17 +94,37 @@ AnalyzerWidget::onUpdate( boost::any& )
 bool
 AnalyzerWidget::getContents( boost::any& a ) const
 {
+	using namespace adportable;
     using adinterface::ControlMethodAccessorT;
+    using tofspectrometer::constants::C_INSTRUMENT_NAME;
 
-    ControlMethodAccessorT< AnalyzerWidget, TOF::ControlMethod > accessor( tofspectrometer::constants::C_INSTRUMENT_NAME );
-    return accessor.getContents( *this, a );
+	ControlMethodAccessorT< tof::ControlMethod
+                            , serializer< tof::ControlMethod > > accessor( C_INSTRUMENT_NAME );
+	tof::ControlMethod im;
+	if ( accessor.getMethod( im, a ) ) {
+		getMethod( im );
+		accessor.setMethod( a, im );
+		return true;
+	}
+	return false;
 }
 
 bool
 AnalyzerWidget::setContents( boost::any& a )
 {
+	using namespace adportable;
+	using adinterface::ControlMethodAccessor;
     using adinterface::ControlMethodAccessorT;
+    using tofspectrometer::constants::C_INSTRUMENT_NAME;
 
-    ControlMethodAccessorT< AnalyzerWidget, TOF::ControlMethod > accessor( tofspectrometer::constants::C_INSTRUMENT_NAME );
-    return accessor.setContents( *this, a );
+	if ( ControlMethodAccessor::isReference( a ) ) {
+		ControlMethodAccessorT< tof::ControlMethod
+                                , adportable::serializer< tof::ControlMethod > > accessor( C_INSTRUMENT_NAME );
+		tof::ControlMethod im;
+		accessor.getMethod( im, a );
+		setMethod( im );
+		return true;
+	}
+	return false;
+
 }

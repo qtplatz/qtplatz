@@ -27,8 +27,8 @@
 #define DEVICEFACADE_HPP
 
 #include <adportable/configuration.hpp>
+#include <tofinterface/method.hpp>
 #include <boost/variant.hpp>
-#include <tofinterface/tofC.h>
 #include "avgr_emu.hpp"
 
 namespace TOF { struct ControlMethod; }
@@ -47,10 +47,10 @@ namespace tofservant {
         ~DeviceFacade();
 
         bool setConfiguration( const char * xml );
-        bool setControlMethod( const TOF::ControlMethod&, const char * hint );
+        bool setControlMethod( const tof::ControlMethod&, const char * hint );
         bool initialize();
         bool terminate();
-        bool async_apply_method( const TOF::ControlMethod& );
+        bool async_apply_method( const tof::ControlMethod& );
         void event_out( unsigned long );
 
         template<class T> T* get() {

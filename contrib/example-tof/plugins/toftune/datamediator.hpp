@@ -27,7 +27,7 @@
 
 #include <string>
 
-namespace TOF { struct ControlMethod; } // defined in tof.idl
+namespace tof { class ControlMethod; }  // in method.hpp
 
 namespace toftune {
 
@@ -35,8 +35,8 @@ namespace toftune {
     public:
         dataMediator();
 
-        virtual void setMethod( const TOF::ControlMethod& ) = 0;
-        virtual void getMethod( TOF::ControlMethod& ) const = 0;
+        virtual void setMethod( const tof::ControlMethod& ) = 0;
+        virtual void getMethod( tof::ControlMethod& ) const = 0;
 
         bool isInProgress() const { return inprogress_; }
         std::string hint() const;

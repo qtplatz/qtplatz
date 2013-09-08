@@ -22,72 +22,72 @@
 **
 **************************************************************************/
 
-#include "method.idl"
+//#include "method.idl"
 
 module TOFSignal {
 
-    struct IonSource_EI_Setpts {
-        unsigned long source_temp_setpt;
-        unsigned long interface_temp_setpt;
-        unsigned long ionization_voltage_setpt;
-        unsigned long trap_current_setpt;
-        unsigned long pulse_voltage_setpt;
-        unsigned long potential_lift_voltage_setpt;
-    };
+    // struct IonSource_EI_Setpts {
+    //     unsigned long source_temp_setpt;
+    //     unsigned long interface_temp_setpt;
+    //     unsigned long ionization_voltage_setpt;
+    //     unsigned long trap_current_setpt;
+    //     unsigned long pulse_voltage_setpt;
+    //     unsigned long potential_lift_voltage_setpt;
+    // };
     
-    struct IonSource_EI_Actuals {
-        unsigned long source_temp_actual;
-        unsigned long interface_temp_actual;
-        unsigned long ionization_voltage_actual;
-        unsigned long trap_current_actual;
-        unsigned long pulse_voltage_actual;
-        unsigned long potential_lift_voltage_actual;
-    };
+    // struct IonSource_EI_Actuals {
+    //     unsigned long source_temp_actual;
+    //     unsigned long interface_temp_actual;
+    //     unsigned long ionization_voltage_actual;
+    //     unsigned long trap_current_actual;
+    //     unsigned long pulse_voltage_actual;
+    //     unsigned long potential_lift_voltage_actual;
+    // };
     
-    struct IonSource_DART_Setpts {
-        unsigned long to_be_determined;
-    };
+    // struct IonSource_DART_Setpts {
+    //     unsigned long to_be_determined;
+    // };
 
-    struct IonSource_DART_Actuals {
-        unsigned long to_be_determined;
-    };
+    // struct IonSource_DART_Actuals {
+    //     unsigned long to_be_determined;
+    // };
 
-    union IonSourceSetpts switch( TOF_C::eIonSource ) {
-    case TOF_C::eIonSource_EI:   IonSource_EI_Setpts ei;
-    case TOF_C::eIonSource_DART: IonSource_DART_Setpts dart;
-    };
+    // union IonSourceSetpts switch( TOF_C::eIonSource ) {
+    // case TOF_C::eIonSource_EI:   IonSource_EI_Setpts ei;
+    // case TOF_C::eIonSource_DART: IonSource_DART_Setpts dart;
+    // };
 
-    struct tofStaticSetpts {
-        double setpts;
-    };
+    // struct tofStaticSetpts {
+    //     double setpts;
+    // };
 
-    struct tofStaticActs {
-        double acts;
-    };
+    // struct tofStaticActs {
+    //     double acts;
+    // };
 
-    struct AnalyzerSetpts {
-        unsigned long einzel_lens_voltage;
-        unsigned long matsuda_plate_voltage;
-        unsigned long ion_gate_voltage;
-    };
+    // struct AnalyzerSetpts {
+    //     unsigned long einzel_lens_voltage;
+    //     unsigned long matsuda_plate_voltage;
+    //     unsigned long ion_gate_voltage;
+    // };
     
-    struct AnalyzerActuals {
-        unsigned long einzel_lens_voltage;
-        unsigned long matsuda_plate_voltage;
-        unsigned long ion_gate_voltage;
-        unsigned long ion_gate_current;
-    };
+    // struct AnalyzerActuals {
+    //     unsigned long einzel_lens_voltage;
+    //     unsigned long matsuda_plate_voltage;
+    //     unsigned long ion_gate_voltage;
+    //     unsigned long ion_gate_current;
+    // };
     
-    //////////////////////////////////////
-    struct AnalyzerDeviceData {
-        AnalyzerSetpts setpts;
-        AnalyzerActuals actuals;
-    };
+    // //////////////////////////////////////
+    // struct AnalyzerDeviceData {
+    //     AnalyzerSetpts setpts;
+    //     AnalyzerActuals actuals;
+    // };
 
-    struct InstEvent {
-        unsigned long eventId_;
-        unsigned long eventValue_;
-    };
+    // struct InstEvent {
+    //     unsigned long eventId_;
+    //     unsigned long eventValue_;
+    // };
 
     interface no_empty_file {
     };

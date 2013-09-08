@@ -28,7 +28,7 @@
 #include "constants.h"
 #include "data_simulator.hpp"
 #include <tofinterface/serializer.hpp>
-#include <tofinterface/signalC.h>
+//#include <tofinterface/signalC.h>
 #include <tofinterface/rawxfer.hpp>
 #include <tofinterface/tofdata.hpp>
 #include <boost/asio.hpp>
@@ -69,7 +69,7 @@ avgr_emu::peripheral_terminate()
 }
 
 bool
-avgr_emu::peripheral_async_apply_method( const TOF::ControlMethod& m )
+avgr_emu::peripheral_async_apply_method( const tof::ControlMethod& m )
 {
     set_interval( m.analyzer.sampling_interval );
     set_resolving_power( m.analyzer.resolving_power );

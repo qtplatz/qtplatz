@@ -24,7 +24,9 @@
 **************************************************************************/
 
 #include "tofsession_i.hpp"
+#include <tofinterface/method.hpp>
 #include "toftask.hpp"
+#include <adportable/serializer.hpp>
 #include <boost/tokenizer.hpp>
 
 
@@ -117,7 +119,7 @@ ControlMethod::Method *
 tofSession_i::getControlMethod()
 {
     ControlMethod::Method_var p( new ControlMethod::Method() );
-    TOF::ControlMethod m;
+    tof::ControlMethod m;
 	toftask::instance()->getControlMethod( m );
 
     p->lines.length( 1 );
@@ -126,7 +128,11 @@ tofSession_i::getControlMethod()
     p->lines[ 0 ].unitnumber = 0;
     p->lines[ 0 ].isInitialCondition = true;
     p->lines[ 0 ].funcid = 0;
-    p->lines[ 0 ].data <<= m;
+
+	std::string device;
+	adportable::serializer< tof::ControlMethod >::serialize( m, device );
+	p->lines[ 0 ].xdata.length( device.size() );
+	std::copy( device.begin(), device.end(), p->lines[0].xdata.get_buffer() );
 
     return p._retn();
 }
@@ -194,8 +200,12 @@ tofSession_i::debug( const CORBA::WChar * text, const CORBA::WChar * key )
 }
 
 bool
-tofSession_i::setControlMethod( const TOF::ControlMethod& method, const char * hint )
+tofSession_i::setControlMethod( const TOF::octet_array& oa, const char * hint )
 {
+	tof::ControlMethod method;
+	adportable::serializer< tof::ControlMethod >::deserialize( method 
+		, reinterpret_cast< const char * >( oa.get_buffer() )
+		, oa.length() );
     return toftask::instance()->setControlMethod( method, hint );
 }
 

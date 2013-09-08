@@ -32,6 +32,7 @@
 #include <extensionsystem/iplugin.h>
 #include <map>
 #include <memory>
+#include <vector>
 
 namespace adwplot {
     class ChromatogramWidget;
@@ -44,7 +45,7 @@ namespace adcontrols {
 
 namespace adplugin { class QObserverEvents_i; }
 namespace EventLog { struct LogMessage; }
-namespace tof { struct ControlMethod; }
+namespace tof { class ControlMethod; }
 
 namespace toftune {
 
@@ -73,7 +74,7 @@ namespace toftune {
             void extensionsInitialized() override;
             ShutdownFlag aboutToShutdown() override;
             
-            void setMethod( const TOF::ControlMethod&, const std::string& );
+            void setMethod( const tof::ControlMethod&, const std::string& );
             
         private:
             friend class Receiver_i< tofTunePlugin >;
@@ -103,7 +104,7 @@ namespace toftune {
             Receiver_i< Internal::tofTunePlugin > * receiver_i_;
             SignalObserver::Observer_var signalObserver_;
             bool hasController_;
-            std::unique_ptr< adcontrols::Trace > trace_;
+            std::vector< std::shared_ptr< adcontrols::Trace > > traces_;
             std::unique_ptr< iSequenceImpl > iSequenceImpl_;
         };
         

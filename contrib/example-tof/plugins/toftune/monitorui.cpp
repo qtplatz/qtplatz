@@ -29,6 +29,8 @@
 #include <adinterface/receiverS.h>
 #include <adinterface/brokerC.h>
 //#include <acewrapper/brokerhelper.hpp>
+#include <tofinterface/method.hpp>
+#include <adinterface/method.hpp>
 #include <adplugin/adplugin.hpp>
 #include <adorbmgr/orbmgr.hpp>
 #include <adinterface/eventlog_helper.hpp>
@@ -111,8 +113,8 @@ MonitorUI::handleSampInterval( int value )
 {
     std::cout << "handleSampInterval(" << value << ")" << std::endl;
 	if ( receiver_i_ && ! CORBA::is_nil( receiver_i_->session_.in() ) ) {
-        TOF::ControlMethod m;
-        receiver_i_->session_->setControlMethod( m, "sampInterval" );
+        tof::ControlMethod m;
+        //receiver_i_->session_->setControlMethod( m, "sampInterval" );
 	}
 
 }
@@ -122,8 +124,8 @@ MonitorUI::handlePeakWidth( int value )
 {
     std::cout << "handlePeakWidth(" << value << ")" << std::endl;
 	if ( receiver_i_ && ! CORBA::is_nil( receiver_i_->session_.in() ) ) {
-        TOF::ControlMethod m;
-        receiver_i_->session_->setControlMethod( m, "peakWidth" );
+        tof::ControlMethod m;
+        //receiver_i_->session_->setControlMethod( m, "peakWidth" );
 	}
 
 }

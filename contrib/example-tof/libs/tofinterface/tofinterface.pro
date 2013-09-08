@@ -18,7 +18,6 @@ INCLUDEPATH += $${QTPLATZ_SOURCE_TREE}/src/libs ..
 IDL_INCLUDES += -I$${QTPLATZ_SOURCE_TREE}/src/libs
 
 IDLFILES = constants.idl \
-           method.idl \
            signal.idl \
            sio.idl \
            tof.idl \

@@ -33,14 +33,16 @@ namespace tofspectrometer {
     class tofInterpreter : public adcontrols::DataInterpreter {
     public:
         tofInterpreter();
-		// implement DataInterpreter
-        virtual bool translate( adcontrols::MassSpectrum&
-                               , const SignalObserver::DataReadBuffer&
-                               , const adcontrols::MassSpectrometer&
-                               , size_t idData ) const;
 
-        virtual bool translate( adcontrols::TraceAccessor&, const SignalObserver::DataReadBuffer& ) const;
-
+        adcontrols::translate_state translate( adcontrols::MassSpectrum&
+                                   , const char * data, size_t dsize
+                                   , const char * meta, size_t msize
+                                   , const adcontrols::MassSpectrometer&
+                                   , size_t idData ) const override;
+        
+        adcontrols::translate_state translate( adcontrols::TraceAccessor&
+                                   , const char * data, size_t dsize
+                                   , const char * meta, size_t msize, unsigned long events ) const override;
     };
 
 }

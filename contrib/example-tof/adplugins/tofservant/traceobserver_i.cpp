@@ -21,7 +21,7 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#define _SCL_SECURE_NO_WARNINGS
+
 #include "traceobserver_i.hpp"
 #include "toftask.hpp"
 #include "constants.h"

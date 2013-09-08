@@ -30,8 +30,8 @@ using namespace tofservant;
 
 namespace tofservant {
     struct method_visitor : public boost::static_visitor<void> {
-        const TOF::ControlMethod& m_;
-        method_visitor( const TOF::ControlMethod& m ) : m_( m ) {}
+        const tof::ControlMethod& m_;
+        method_visitor( const tof::ControlMethod& m ) : m_( m ) {}
         template< typename T > void operator ()( T& t ) const { 
             t->peripheral_async_apply_method( m_ );
         }
@@ -77,7 +77,7 @@ DeviceFacade::setConfiguration( const char * xml )
 }
 
 bool
-DeviceFacade::setControlMethod( const TOF::ControlMethod& m, const char * hint)
+DeviceFacade::setControlMethod( const tof::ControlMethod& m, const char * hint)
 {
 	(void)hint;
     for ( auto& device: vec_ ) 

@@ -23,10 +23,11 @@
 **************************************************************************/
 
 #include "acquisitionwidget.hpp"
+#include <tofinterface/method.hpp>
 #include <tofspectrometer/constants.hpp>
-#include <tofinterface/methodC.h>
 #include "ui_acquisitionwidget.h"
 #include <adinterface/controlmethodaccessor.hpp>
+#include <adportable/serializer.hpp>
 #include <iostream>
 
 using namespace toftune;
@@ -70,7 +71,7 @@ AcquisitionWidget::onNumAverageChanged( int )
 }
 
 void
-AcquisitionWidget::setMethod( const TOF::ControlMethod& method )
+AcquisitionWidget::setMethod( const tof::ControlMethod& method )
 {
     dataMediator::progress_lock lock( *this );
 
@@ -80,7 +81,7 @@ AcquisitionWidget::setMethod( const TOF::ControlMethod& method )
 }
 
 void
-AcquisitionWidget::getMethod( TOF::ControlMethod& method ) const
+AcquisitionWidget::getMethod( tof::ControlMethod& method ) const
 {
     method.analyzer.resolving_power = ui->spinBoxRP->value();
     method.analyzer.sampling_interval = ui->spinBoxSampIntval->value();
@@ -111,17 +112,37 @@ AcquisitionWidget::onUpdate( boost::any& )
 bool
 AcquisitionWidget::getContents( boost::any& a ) const
 {
+	using namespace adportable;
     using adinterface::ControlMethodAccessorT;
+    using tofspectrometer::constants::C_INSTRUMENT_NAME;
 
-    ControlMethodAccessorT< AcquisitionWidget, TOF::ControlMethod > accessor( tofspectrometer::constants::C_INSTRUMENT_NAME );
-    return accessor.getContents( *this, a );
+	ControlMethodAccessorT< tof::ControlMethod
+                            , serializer< tof::ControlMethod > > accessor( C_INSTRUMENT_NAME );
+	tof::ControlMethod im;
+	if ( accessor.getMethod( im, a ) ) {
+		getMethod( im );
+		accessor.setMethod( a, im );
+		return true;
+	}
+	return false;
 }
 
 bool
 AcquisitionWidget::setContents( boost::any& a )
 {
+	using namespace adportable;
+	using adinterface::ControlMethodAccessor;
     using adinterface::ControlMethodAccessorT;
+    using tofspectrometer::constants::C_INSTRUMENT_NAME;
 
-    ControlMethodAccessorT< AcquisitionWidget, TOF::ControlMethod > accessor( tofspectrometer::constants::C_INSTRUMENT_NAME );
-    return accessor.setContents( *this, a );
+	if ( ControlMethodAccessor::isReference( a ) ) {
+		ControlMethodAccessorT< tof::ControlMethod
+                                , adportable::serializer< tof::ControlMethod > > accessor( C_INSTRUMENT_NAME );
+		tof::ControlMethod im;
+		accessor.getMethod( im, a );
+		setMethod( im );
+		return true;
+	}
+	return false;
+
 }

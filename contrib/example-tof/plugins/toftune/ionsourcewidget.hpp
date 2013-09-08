@@ -46,8 +46,8 @@ namespace toftune {
         ~IonSourceWidget();
 
         // dataMediator
-        void setMethod( const TOF::ControlMethod& );
-        void getMethod( TOF::ControlMethod& ) const;
+        void setMethod( const tof::ControlMethod& );
+        void getMethod( tof::ControlMethod& ) const;
 
         // LifeCycle
         void OnCreate( const adportable::Configuration& );

@@ -43,17 +43,20 @@ tofInterpreter::tofInterpreter()
 {
 }
 
-bool
+
+adcontrols::translate_state
 tofInterpreter::translate( adcontrols::MassSpectrum& ms
-                           , const SignalObserver::DataReadBuffer& rb
+                           , const char * data, size_t dsize
+                           , const char * meta, size_t msize
                            , const adcontrols::MassSpectrometer&
                            , size_t idData ) const
 {
+	(void)meta;
+	(void)msize;
+
 	tofinterface::tofDATA tofdata;
 
-	if ( tofinterface::serializer::deserialize( tofdata
-                                                , reinterpret_cast< const char * >(rb.xdata.get_buffer())
-                                                , rb.xdata.length() ) ) {
+	if ( tofinterface::serializer::deserialize( tofdata, data, dsize ) ) {
         
         if ( tofdata.numberOfProfiles() > idData ) {
 
@@ -78,7 +81,7 @@ tofInterpreter::translate( adcontrols::MassSpectrum& ms
             ms.setMSProperty( prop );
 
             std::wostringstream o;
-            o << L"TOF data id: " << rb.pos;
+            o << L"TOF data";
             ms.addDescription( adcontrols::Description( L"title", o.str() ) );
 
             ms.resize( ndata );
@@ -89,29 +92,30 @@ tofInterpreter::translate( adcontrols::MassSpectrum& ms
                 ++idx;
             }
             ms.setAcquisitionMassRange( ms.getMass( 0 ), ms.getMass( idx - 1 ) );
-            return true;
+			return adcontrols::translate_complete;
         }
     }
-	return false; // no more data
+	return adcontrols::translate_error; // no more data
 }
 
-bool
+adcontrols::translate_state
 tofInterpreter::translate( adcontrols::TraceAccessor& accessor
-                         , const SignalObserver::DataReadBuffer& rb ) const
+                           , const char * data, size_t dsize
+                           , const char * meta, size_t msize, unsigned long events ) const
 {
-    unsigned long events = rb.events;
+	(void)meta;
+	(void)msize;
 
-    accessor.pos( rb.pos );
-    
     std::vector< tofinterface::tofProcessedData > vec;
-	if ( tofinterface::serializer::deserialize( vec, reinterpret_cast< const char * >(rb.xdata.get_buffer()), rb.xdata.length() ) ) {
+
+	if ( tofinterface::serializer::deserialize( vec, data, dsize ) ) {
         for ( const auto d: vec ) {
             adcontrols::seconds_t sec( double( d.uptime ) * 1.0e-6 );
-            accessor.push_back( d.tic, events, sec );
+            accessor.push_back( d.fcn, d.npos, sec, d.tic, events );
         }
-        return true;
+        return adcontrols::translate_complete;
     }
-	return false;
+	return adcontrols::translate_error;
 }
 
 

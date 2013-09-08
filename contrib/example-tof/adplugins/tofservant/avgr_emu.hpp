@@ -28,7 +28,7 @@
 #include <thread>
 #include <vector>
 
-namespace TOF { struct ControlMethod; } // defined in tof.idl
+namespace tof { class ControlMethod; }
 
 namespace tofservant {
 
@@ -39,7 +39,7 @@ namespace tofservant {
         avgr_emu();
         bool peripheral_initialize();
         bool peripheral_terminate();
-        bool peripheral_async_apply_method( const TOF::ControlMethod& m );
+        bool peripheral_async_apply_method( const tof::ControlMethod& m );
 		bool peripheral_event_out( unsigned long );
 
         inline boost::asio::io_service& io_service() { return io_service_; }

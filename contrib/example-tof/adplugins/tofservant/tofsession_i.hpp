@@ -63,7 +63,7 @@ namespace tofservant {
 
         //
         void debug( const CORBA::WChar * text, const CORBA::WChar * key );
-		bool setControlMethod( const TOF::ControlMethod& tof, const CORBA::Char * hint );
+		bool setControlMethod( const TOF::octet_array& method, const CORBA::Char * hint );
     };
 
 }

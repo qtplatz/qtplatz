@@ -173,7 +173,7 @@ toftask::getObserver()
 }
 
 bool
-toftask::getControlMethod( TOF::ControlMethod& m )
+toftask::getControlMethod( tof::ControlMethod& m )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     m = method_;
@@ -461,7 +461,7 @@ toftask::handle_stop_run()
 }
 
 bool
-toftask::setControlMethod( const TOF::ControlMethod& m, const char * hint )
+toftask::setControlMethod( const tof::ControlMethod& m, const char * hint )
 {
     return device_facade_->setControlMethod( m, hint );
 }

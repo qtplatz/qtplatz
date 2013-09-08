@@ -27,8 +27,9 @@
 #include "doublespinslider.hpp"
 #include "interactor.hpp"
 #include <tofspectrometer/constants.hpp>
-#include <tofinterface/methodC.h>
+#include <tofinterface/method.hpp>
 #include <adinterface/controlmethodaccessor.hpp>
+#include <adportable/serializer.hpp>
 #include <boost/any.hpp>
 
 using namespace toftune;
@@ -65,12 +66,12 @@ IonSourceWidget::~IonSourceWidget()
 }
 
 void
-IonSourceWidget::setMethod( const TOF::ControlMethod& m )
+IonSourceWidget::setMethod( const tof::ControlMethod& m )
 {
 	dataMediator::progress_lock lock( *const_cast<IonSourceWidget *>(this) );
 
-	if ( m.ionSource._d() == TOF_C::eIonSource_EI ) {
-		const TOF::IonSource_EI_Method& ei = m.ionSource.ei();
+    if ( m.ionSource.type() == typeid( tof::IonSource_EI_Method ) ) {
+		const tof::IonSource_EI_Method& ei = boost::get< tof::IonSource_EI_Method >( m.ionSource );
 
 		typedef Interactor< DoubleSpinSlider > X;
 
@@ -80,18 +81,18 @@ IonSourceWidget::setMethod( const TOF::ControlMethod& m )
 }
 
 void
-IonSourceWidget::getMethod( TOF::ControlMethod& m ) const
+IonSourceWidget::getMethod( tof::ControlMethod& m ) const
 {
     dataMediator::progress_lock lock( *const_cast<IonSourceWidget *>(this) );
 
-    TOF::IonSource_EI_Method ei;
+    tof::IonSource_EI_Method ei;
 
     typedef Interactor<DoubleSpinSlider> X;
 
 	ei.source_temp = boost::get< X >( interactor_vec[ 0 ] ).ptr_.get()->value();
 	ei.interface_temp = boost::get< X >( interactor_vec[ 1 ] ).ptr_.get()->value();
 
-	m.ionSource.ei( ei );
+	m.ionSource = ei;
 }
 
 // LifeCycle
@@ -118,17 +119,37 @@ IonSourceWidget::onUpdate( boost::any& )
 bool
 IonSourceWidget::getContents( boost::any& a ) const
 {
+	using namespace adportable;
     using adinterface::ControlMethodAccessorT;
+    using tofspectrometer::constants::C_INSTRUMENT_NAME;
 
-    ControlMethodAccessorT< IonSourceWidget, TOF::ControlMethod > accessor( tofspectrometer::constants::C_INSTRUMENT_NAME );
-    return accessor.getContents( *this, a );
+	ControlMethodAccessorT< tof::ControlMethod
+                            , serializer< tof::ControlMethod > > accessor( C_INSTRUMENT_NAME );
+	tof::ControlMethod im;
+	if ( accessor.getMethod( im, a ) ) {
+		getMethod( im );
+		accessor.setMethod( a, im );
+		return true;
+	}
+	return false;
 }
 
 bool
 IonSourceWidget::setContents( boost::any& a )
 {
+	using namespace adportable;
+	using adinterface::ControlMethodAccessor;
     using adinterface::ControlMethodAccessorT;
+    using tofspectrometer::constants::C_INSTRUMENT_NAME;
 
-    ControlMethodAccessorT< IonSourceWidget, TOF::ControlMethod > accessor( tofspectrometer::constants::C_INSTRUMENT_NAME );
-    return accessor.setContents( *this, a );
+	if ( ControlMethodAccessor::isReference( a ) ) {
+		ControlMethodAccessorT< tof::ControlMethod
+                                , adportable::serializer< tof::ControlMethod > > accessor( C_INSTRUMENT_NAME );
+		tof::ControlMethod im;
+		accessor.getMethod( im, a );
+		setMethod( im );
+		return true;
+	}
+	return false;
+
 }

@@ -65,9 +65,11 @@ namespace tofinterface {
         tofProcessedData();
         tofProcessedData( const tofProcessedData& );
 
+		uint32_t npos;
+		uint32_t fcn;
+		uint32_t uptime;
         float tic;
         float spectralBaselineLevel;
-        unsigned long long uptime;
         std::vector< SpectrumPeakInfo > info;
     private:
         friend class boost::serialization::access;

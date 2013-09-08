@@ -26,7 +26,8 @@
 #pragma once
 
 #include <boost/noncopyable.hpp>
-#include <tofinterface/signalC.h>
+#include <tofinterface/method.hpp>
+//#include <tofinterface/signalC.h>
 #include <adinterface/receiverC.h>
 #include <adinterface/controlserverC.h>
 #include <adinterface/instrumentC.h>
@@ -74,7 +75,7 @@ namespace tofservant {
         void handle_eventlog( EventLog::LogMessage );
         void handle_profile_data( std::shared_ptr< tofinterface::tofDATA > );
 
-        bool setControlMethod( const TOF::ControlMethod&, const char * hint );
+        bool setControlMethod( const tof::ControlMethod&, const char * hint );
         
         Instrument::eInstStatus status() const;
         void status( Instrument::eInstStatus );
@@ -83,8 +84,8 @@ namespace tofservant {
         void device_update_data( /*argumet to be added */ );
         void controller_update_notification( unsigned long clsid );
 
-        void deviceSetptChanged( const TOF::ControlMethod&, const std::string& );
-        bool getControlMethod( TOF::ControlMethod& );
+        void deviceSetptChanged( const tof::ControlMethod&, const std::string& );
+        bool getControlMethod( tof::ControlMethod& );
 
         // void session_update_device( boost::any& );
         SignalObserver::Observer_ptr getObserver();
@@ -128,7 +129,7 @@ namespace tofservant {
         std::unique_ptr< DeviceFacade > device_facade_;
         std::unique_ptr< profileObserver_i > pObserver_;
         std::vector< std::shared_ptr< traceObserver_i > > pTraceObserverVec_;
-        TOF::ControlMethod method_;
+        tof::ControlMethod method_;
 
         boost::asio::io_service io_service_;
         boost::asio::io_service::work work_;

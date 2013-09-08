@@ -8,6 +8,8 @@ QT       -= gui
 
 !win32: QMAKE_CXXFLAGS *= -std=c++11
 
+DEFINES += _SCL_SECURE_NO_WARNINGS
+
 include(../../tofadplugin.pri)
 include(../../boost.pri)
 include(../../ace_tao.pri)

@@ -608,7 +608,7 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
 	while ( dataInterpreter.translate( ms
                                        , reinterpret_cast< const char *>(rb.xdata.get_buffer()), rb.xdata.length()
                                        , reinterpret_cast< const char *>(rb.xmeta.get_buffer()), rb.xmeta.length()
-                                       , spectrometer, idData++ ) ) {
+                                       , spectrometer, idData++ ) == adcontrols::translate_complete ) {
 #ifdef CENTROID
         adcontrols::CentroidMethod method;
         method.centroidAreaIntensity( false ); // take hight
@@ -635,7 +635,7 @@ AcquirePlugin::readTrace( const SignalObserver::Description& desc
     if ( dataInterpreter.translate( accessor
 									, reinterpret_cast< const char *>( rb.xdata.get_buffer() ), rb.xdata.length()
 									, reinterpret_cast< const char * >( rb.xmeta.get_buffer() ), rb.xmeta.length()
-                                    , rb.events ) ) {
+                                    , rb.events ) == adcontrols::translate_complete ) {
 
         for ( size_t fcn = 0; fcn < accessor.nfcn(); ++fcn ) {
 
