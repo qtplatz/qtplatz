@@ -725,6 +725,7 @@ AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, uns
         eStatus status = eStatus( value );
         if ( status == eWaitingForContactClosure ) {
             actionInject_->setEnabled( true );
+            actionStop_->setEnabled( true );
         } else if ( status == ePreparingForRun || status == eReadyForRun ) {
             actionStop_->setEnabled( false );
         } else if ( status == eRunning ) {

@@ -19,6 +19,9 @@ macx {
     QMAKE_LFLAGS   -= -mmacosx-version-min=10.5
     QMAKE_LFLAGS   *= -mmacosx-version-min=10.7 -stdlib=libc++
 }
+*-g++* {
+    QMAKE_CXXFLAGS *= -O2
+}
 
 BOOST_VERSION=boost-1_54
 ACE_VERSION=6.2.1

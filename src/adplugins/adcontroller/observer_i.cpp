@@ -25,6 +25,7 @@
 #include "observer_i.hpp"
 #include "manager_i.hpp"
 #include "cache.hpp"
+#include "task.hpp"
 #include "sampleprocessor.hpp"
 #include <algorithm>
 #include <acewrapper/orbservant.hpp>
@@ -312,34 +313,29 @@ observer_i::isChild( unsigned long objid )
     return false;
 }
 
-bool
+SignalObserver::DataReadBuffer *
 observer_i::handle_data( unsigned long /* parentId */, unsigned long objId, long pos )
 {
     observer_i * pCache = find_cache_observer( objId );
     if ( pCache && ! CORBA::is_nil( pCache->source_observer_.in() ) ) {
 
         if ( pCache->ihave( pos ) )
-            return false;
+            return 0;
 
         SignalObserver::DataReadBuffer_var rdbuf;
         try {
-			// read from native (source) observer
             if ( pCache->source_observer_->readData( pos, rdbuf ) ) {
-				// copy into destination (cache) observer for TIVO behavior
-                pCache->write_cache( pos, rdbuf );
-
-				if ( this->objId_ == 0 ) { // if this is master (root) observer
-                    std::lock_guard< std::mutex > lock( mutex_ );
-                    for ( auto& it: queue_ )
-                        it->handle_data( objId, pos, rdbuf );
-				}
+                pCache->write_cache( pos, rdbuf ); // copy in to cache (for acquie/tune GuI)
+                return rdbuf._retn();
             }
         } catch ( CORBA::Exception& ex ) {
-            Logging( L"Exception: observer_i::handle_data \"%1%\"\t while readData from %2% at pos %3%" ) % ex._info().c_str() % objId % pos;
+            adportable::debug(__FILE__, __LINE__)
+                << "CORBA::Exception: " << ex._info().c_str();
+            Logging( L"Exception: observer_i::handle_data \"%1%\"\t while readData from %2% at pos %3%" )
+                % ex._info().c_str() % objId % pos;
         }
-        return true;
     }
-    return false;
+    return 0;
 }
 
 bool
@@ -408,20 +404,20 @@ observer_i::forward_observer_update_events( unsigned long /* parentId */
     return true;
 }
 
-void
-observer_i::push_sample_processor( std::shared_ptr< SampleProcessor >& ptr )
-{
-    std::lock_guard< std::mutex > lock( mutex_ );
-    queue_.push_back( ptr );
-}
+// void
+// observer_i::push_sample_processor( std::shared_ptr< SampleProcessor >& ptr )
+// {
+//     std::lock_guard< std::mutex > lock( mutex_ );
+//     queue_.push_back( ptr );
+// }
 
-void
-observer_i::stop_sample_processor()
-{
-    std::lock_guard< std::mutex > lock( mutex_ );
-	if ( ! queue_.empty() )
-		queue_.pop_front();
-}
+// void
+// observer_i::stop_sample_processor()
+// {
+//     std::lock_guard< std::mutex > lock( mutex_ );
+// 	if ( ! queue_.empty() )
+// 		queue_.pop_front();
+// }
 
 bool
 observer_i::write_cache( long pos, SignalObserver::DataReadBuffer_var& rdbuf )

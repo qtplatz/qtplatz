@@ -115,6 +115,8 @@ iTask::open()
     
     threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
     threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
+    threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
+    threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
     return true;
 }
 
@@ -316,6 +318,7 @@ iTask::getStatusBeing()
 bool
 iTask::observer_update_data( unsigned long parentId, unsigned long objid, long pos )
 {
+    // come from oProxy::OnUpdateData --> schedule invoke handle_observer_update_data
     io_service_.post( std::bind(&iTask::handle_observer_update_data, this, parentId, objid, pos ) );
     return true;
 }
@@ -362,7 +365,18 @@ internal::receiver_data::operator == ( const ControlServer::Session_ptr t ) cons
 void
 iTask::handle_observer_update_data( unsigned long parentId, unsigned long objId, long pos )
 {
-    pMasterObserver_->handle_data( parentId, objId, pos );
+    using SignalObserver::DataReadBuffer_var;
+    
+    if ( DataReadBuffer_var rp = pMasterObserver_->handle_data( parentId, objId, pos ) ) {
+
+        std::lock_guard< std::mutex > lock( mutex_ );
+
+        for ( auto q: queue_ ) {
+            // handle_data( objId, pos, rp );
+            q->strand().post( std::bind(&SampleProcessor::handle_data, q, objId, pos, rp ) ); // iTask::io_service
+        }
+
+    }
     pMasterObserver_->forward_observer_update_data( parentId, objId, pos );
 }
 
@@ -439,26 +453,13 @@ iTask::handle_prepare_for_run( ControlMethod::Method m )
 void
 iTask::handle_start_run()
 {
-#if 0
-	boost::filesystem::path path( adportable::profile::user_data_dir<char>() ) / "data" / adportable::date_string::string( boost::posix_time::second_clock::local_time().date() );
-	if ( ! boost::filesystem::exists( path ) ) {
-		boost::system::error_code ec;
-		boost::filesystem::create_directories( path, ec );
-	} else {
-	}
-	path /= "acquire.adfs";
-	// end prepare file
-#endif
+    adportable::debug(__FILE__, __LINE__) << "######################### handle_start_run...";
+
     std::lock_guard< std::mutex > lock( mutex_ );
 	
 	if ( queue_.empty() ) {
-		queue_.push_back( std::shared_ptr< SampleProcessor >( new SampleProcessor ) );
+		queue_.push_back( std::shared_ptr< SampleProcessor >( new SampleProcessor( io_service_ ) ) );
         queue_.back()->prepare_storage( pMasterObserver_->_this() );
-    }
-
-    if ( pMasterObserver_ ) {
-        pMasterObserver_->push_sample_processor( queue_.front() );
-        queue_.pop_front();
     }
 
 	status_current_ = ControlServer::ePreparingForRun;
@@ -479,12 +480,17 @@ iTask::handle_resume_run()
 void
 iTask::handle_stop_run()
 {
-    std::lock_guard< std::mutex > lock( mutex_ );
-
     for ( auto& proxy: iproxies_ )
         proxy->stopRun();
 
-    pMasterObserver_->stop_sample_processor();
+    adportable::debug(__FILE__, __LINE__) << "######################### handle_stop_run...";
+
+    std::lock_guard< std::mutex > lock( mutex_ );
+
+    if ( !queue_.empty() ) {
+        adportable::debug(__FILE__, __LINE__) << "handle_stop_run remove one sample-processor";
+        queue_.pop_front();
+    }
 
 	status_current_ = status_being_ = ControlServer::eReadyForRun;
     io_service_.post( std::bind( &iTask::notify_message, this, Receiver::STATE_CHANGED, status_current_ ) );

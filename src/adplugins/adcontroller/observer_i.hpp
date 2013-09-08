@@ -70,7 +70,7 @@ namespace adcontroller {
         //--------------------------------------------
         void populate_siblings();
         bool isChild( unsigned long objid );
-        bool handle_data( unsigned long parentId, unsigned long objId, long pos );
+        SignalObserver::DataReadBuffer * handle_data( unsigned long parentId, unsigned long objId, long pos );
         bool forward_observer_update_data( unsigned long parentId, unsigned long objid, long pos );
         bool forward_observer_update_method( unsigned long parentId, unsigned long objid, long pos );
         bool forward_observer_update_events( unsigned long parentId, unsigned long objid, long pos, unsigned long events );
@@ -99,7 +99,7 @@ namespace adcontroller {
         unsigned long npos_i_have_;
         std::unique_ptr< Cache > cache_;
         std::mutex mutex_;
-        std::deque< std::shared_ptr< SampleProcessor > > queue_;
+        //std::deque< std::shared_ptr< SampleProcessor > > queue_;
     };
 
 }

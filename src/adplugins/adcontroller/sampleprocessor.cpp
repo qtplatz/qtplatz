@@ -38,12 +38,18 @@
 
 using namespace adcontroller;
 
+static size_t __nid__;
+
 SampleProcessor::~SampleProcessor()
 {
+    fs_->close();
+    adportable::debug(__FILE__, __LINE__) << "SampleProcessor:: -- DTOR -- ";
 }
 
-SampleProcessor::SampleProcessor() : fs_( new adfs::filesystem )
-								   , inProgress_( false )
+SampleProcessor::SampleProcessor( boost::asio::io_service& io_service ) : fs_( new adfs::filesystem )
+                                                                        , inProgress_( false )
+                                                                        , myId_( __nid__++ )
+                                                                        , strand_( io_service )
 {
 }
 
@@ -98,12 +104,14 @@ void
 SampleProcessor::handle_data( unsigned long objId, long pos
                               , const SignalObserver::DataReadBuffer& rdBuf )
 {
-    if ( rdBuf.events & SignalObserver::wkEvent_INJECT ) {
-        adportable::debug(__FILE__, __LINE__) << "Got INJECT at " << pos;
+    adportable::debug(__FILE__, __LINE__) << "ID: " << myId_ << " handle_data(" << objId << ", " << pos << ")";
+
+    if ( rdBuf.events & SignalObserver::wkEvent_INJECT )
 		inProgress_ = true;
-	}
+
 	if ( ! inProgress_ ) 
 		return;
+
 	adfs::stmt sql( fs_->db() );
 	sql.prepare( "INSERT INTO AcquiredData VALUES( :oid, :time, :npos, :fcn, :events, :data, :meta )" );
 	sql.begin();

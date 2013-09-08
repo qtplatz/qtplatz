@@ -28,6 +28,7 @@
 #include <boost/noncopyable.hpp>
 #include <adportable/configuration.hpp>
 #include <adinterface/controlserverC.h>
+#include <adinterface/signalobserverC.h>
 #include <boost/asio.hpp>
 #include <mutex>
 #include <vector>
