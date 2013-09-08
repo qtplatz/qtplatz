@@ -113,10 +113,8 @@ iTask::open()
     timer_.cancel();
     initiate_timer();
     
-    threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
-    threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
-    threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
-    threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
+    for ( size_t i = 0; i < 8; ++i ) 
+        threads_.push_back( std::thread( boost::bind(&boost::asio::io_service::run, &io_service_ ) ) );
     return true;
 }
 
