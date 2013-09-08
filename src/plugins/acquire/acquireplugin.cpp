@@ -33,7 +33,8 @@
 # include <adinterface/controlserverC.h>
 # include <adinterface/receiverC.h>
 # include <adinterface/signalobserverC.h>
-# include <adinterface/eventlog_helper.hpp>
+#include <adinterface/observerevents_i.hpp>
+#include <adinterface/eventlog_helper.hpp>
 
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -53,7 +54,6 @@
 #include <adportable/profile.hpp>
 #include <adplugin/loader.hpp>
 #include <adplugin/qreceiver_i.hpp>
-#include <adplugin/qobserverevents_i.hpp>
 #include <adplugin/manager.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
@@ -108,6 +108,7 @@
 #include <cmath>
 #include <map>
 #include <fstream>
+#include <functional>
 
 using namespace Acquire;
 using namespace Acquire::internal;
@@ -132,16 +133,6 @@ namespace Acquire {
                 icon_.addFile( Constants::ICON_CONNECT );
                 icon_.addFile( Constants::ICON_CONNECT_SMALL );
             }
-        };
-
-        class ObserverEvents_i : public POA_SignalObserver::ObserverEvents {
-        public:
-            // implements ObserverEvents
-            void OnConfigChanged( CORBA::ULong, SignalObserver::eConfigStatus );
-            void OnUpdateData( CORBA::ULong, CORBA::Long );
-            void OnMethodChanged( CORBA::ULong, CORBA::Long );
-            void OnEvent( CORBA::ULong, CORBA::ULong, CORBA::Long );
-            void OnClose();
         };
 
     }
@@ -465,15 +456,35 @@ AcquirePlugin::actionConnect()
                         // Master signal observer
                         observer_ = session_->getObserver();
                         if ( ! CORBA::is_nil( observer_.in() ) ) {
-                            if ( ! masterObserverSink_ ) {
-                                masterObserverSink_.reset( new adplugin::QObserverEvents_i( observer_, "acquireplugin" ) );
-                                connect( masterObserverSink_.get(), SIGNAL( signal_ConfigChanged( unsigned long, long ) )
+                            if ( ! sink_ ) {
+                                // sink_.reset( new adplugin::QObserverEvents_i( observer_, "acquireplugin" ) );
+
+                                sink_.reset( new adinterface::ObserverEvents_i );
+
+                                sink_->assignConfigChanged([=](uint32_t oid, SignalObserver::eConfigStatus st){
+                                        this->handle_observer_config_changed( oid, st ); 
+                                    });
+
+                                sink_->assignUpdateData([=](uint32_t oid, int32_t pos){
+                                        this->handle_observer_update_data( oid, pos ); 
+                                    });
+
+                                sink_->assignMethodChanged([=](uint32_t oid, int32_t pos){
+                                        this->handle_observer_method_changed( oid, pos ); 
+                                    });
+                                sink_->assignEvent([=](uint32_t oid, int32_t pos, int32_t ev){
+                                        this->handle_observer_event( oid, pos, ev ); 
+                                    });
+
+                                observer_->connect( sink_->_this(), SignalObserver::Frequent, "acquireplugin" );
+                                
+                                connect( this, SIGNAL( onObsConfigChanged( unsigned long, long ) )
                                          , this, SLOT( handle_config_changed(unsigned long, long) ) );
-                                connect( masterObserverSink_.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
+                                connect( this, SIGNAL( onObsUpdateData( unsigned long, long ) )
                                          , this, SLOT( handle_update_data(unsigned long, long) ) );
-                                connect( masterObserverSink_.get(), SIGNAL( signal_MethodChanged( unsigned long, long ) )
+                                connect( this, SIGNAL( onObsMethodChanged( unsigned long, long ) )
                                          , this, SLOT( handle_method_changed(unsigned long, long) ) );
-                                connect( masterObserverSink_.get(), SIGNAL( signal_Event( unsigned long, unsigned long, long ) )
+                                connect( this, SIGNAL( onObsEvent( unsigned long, unsigned long, long ) )
                                          , this, SLOT( handle_event(unsigned long, unsigned long, long) ) );
                             }
                         
@@ -528,10 +539,8 @@ AcquirePlugin::actionDisconnect()
 
         observer_ = session_->getObserver();
         if ( ! CORBA::is_nil( observer_.in() ) ) {
-			disconnect( masterObserverSink_.get(), SIGNAL( signal_UpdateData( unsigned long, long ) )
-                        , this, SLOT( handle_update_data(unsigned long, long) ) );
-			masterObserverSink_->disconnect();
-			adorbmgr::orbmgr::deactivate( masterObserverSink_->_this() );
+            observer_->disconnect( sink_->_this() );
+			adorbmgr::orbmgr::deactivate( sink_->_this() );
         }
         session_->disconnect( receiver_i_.get()->_this() );
         adorbmgr::orbmgr::deactivate( receiver_i_->_this() );
@@ -815,30 +824,32 @@ AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
     }
 }
 
-/////////////////////
 void
-ObserverEvents_i::OnConfigChanged( CORBA::ULong, SignalObserver::eConfigStatus )
+AcquirePlugin::handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus st )
 {
+    adportable::debug(__FILE__, __LINE__) << "handle_observer_config_changed(" << objid << ", " << st << ")";
+    emit onObsConfigChanged( objid, long( st ) );
 }
 
 void
-ObserverEvents_i::OnUpdateData( CORBA::ULong, CORBA::Long )
+AcquirePlugin::handle_observer_update_data( uint32_t objid, int32_t pos )
 {
+    adportable::debug(__FILE__, __LINE__) << "handle_observer_update_data(" << objid << ", " << pos << ")";
+    emit onObsUpdateData( objid, pos );
 }
 
 void
-ObserverEvents_i::OnMethodChanged( CORBA::ULong, CORBA::Long )
+AcquirePlugin::handle_observer_method_changed( uint32_t objid, int32_t pos )
 {
+    adportable::debug(__FILE__, __LINE__) << "handle_observer_method_changed(" << objid << ", " << pos << ")";
+    emit onObsMethodChanged( objid, pos );
 }
 
 void
-ObserverEvents_i::OnEvent( CORBA::ULong, CORBA::ULong, CORBA::Long )
+AcquirePlugin::handle_observer_event( uint32_t objid, int32_t pos, int32_t events )
 {
-}
-
-void
-ObserverEvents_i::OnClose()
-{
+    adportable::debug(__FILE__, __LINE__) << "handle_observer_event(" << objid << ", " << pos << ", " << events << ")";
+    emit onObsEvent( objid, pos, events );
 }
 
 Q_EXPORT_PLUGIN( AcquirePlugin )

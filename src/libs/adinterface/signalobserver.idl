@@ -52,7 +52,7 @@ module SignalObserver {
 
     enum eUpdateFrequency {
         Realtime
-        , Friquent
+        , Frequent
         , Sometimes
         , HalfFull
         , WellKnownEventsOnly

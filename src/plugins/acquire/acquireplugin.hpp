@@ -30,8 +30,8 @@
 #include <vector>
 #include <map>
 
-#  include <adinterface/controlserverC.h>
-#  include <adinterface/signalobserverC.h>
+#include <adinterface/controlserverC.h>
+#include <adinterface/signalobserverC.h>
 
 class QToolButton;
 class QAction;
@@ -54,8 +54,13 @@ namespace adportable {
     class Configuration;
 }
 
+namespace adinterface {
+    class ObserverEvents_i;
+}
+
 
 namespace Acquire {
+
     namespace internal {
 
         class MainWindow;
@@ -100,8 +105,11 @@ namespace Acquire {
 			void handleSelected( const QPointF& );
 			void handleSelected( const QRectF& );
 
-
         signals:
+            void onObsConfigChanged( unsigned long, long );
+            void onObsUpdateData( unsigned long, long );
+            void onObsMethodChanged( unsigned long, long );
+            void onObsEvent( unsigned long, long, long );
         // 
         private:
             void selectPoint( double x, double y );
@@ -126,7 +134,7 @@ namespace Acquire {
             std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
 
             std::unique_ptr< adplugin::QReceiver_i > receiver_i_;
-            std::unique_ptr< adplugin::QObserverEvents_i > masterObserverSink_;
+            std::unique_ptr< adinterface::ObserverEvents_i > sink_;
             std::vector< std::wstring > trace_descriptions_;
             QComboBox * traceBox_;
             void populate( SignalObserver::Observer_var& );
@@ -138,6 +146,12 @@ namespace Acquire {
             void readTrace( const SignalObserver::Description&
                 , const SignalObserver::DataReadBuffer&
                 , const adcontrols::DataInterpreter& dataInterpreter );
+
+            // observer event handlers
+            void handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus );
+            void handle_observer_update_data( uint32_t objid, int32_t pos );
+            void handle_observer_method_changed( uint32_t objid, int32_t pos );
+            void handle_observer_event( uint32_t objid, int32_t pos, int32_t events );
 
         public:
             static QToolButton * toolButton( QAction * action );
