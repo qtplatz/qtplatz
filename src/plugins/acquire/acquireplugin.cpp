@@ -780,11 +780,8 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
     } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
         SignalObserver::DataReadBuffer_var rb;
 
-        adportable::debug(__FILE__, __LINE__) << " -- read trace npos: " << npos << " pos=" << pos;
-
         while ( tgt->readData( npos, rb ) ) {
             npos = rb->pos + rb->ndata;
-            adportable::debug(__FILE__, __LINE__) << " ---- read pos: " << rb->pos << " ndata:" << rb->ndata << " npos: " << npos;
             try {
                 readTrace( *desc, rb, dataInterpreter, objId );
             } catch ( std::exception& ex ) {
