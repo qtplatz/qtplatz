@@ -546,8 +546,8 @@ AcquirePlugin::actionConnect()
                                          , this, SLOT( handle_update_ui_data(unsigned long, long) ) );
                                 connect( this, SIGNAL( onObserverMethodChanged( unsigned long, long ) )
                                          , this, SLOT( handle_method_changed(unsigned long, long) ) );
-                                connect( this, SIGNAL( onObserverEvent( unsigned long, unsigned long, long ) )
-                                         , this, SLOT( handle_event(unsigned long, unsigned long, long) ) );
+                                connect( this, SIGNAL( onObserverEvent( unsigned long, long, long ) )
+                                         , this, SLOT( handle_event(unsigned long, long, long) ) );
                             }
                         
                             // connect to 1st layer siblings ( := top shadow(cache) observer for each instrument )
@@ -765,31 +765,29 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
     const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
 
     if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
-        SignalObserver::DataReadBuffer_var rb;
-        while ( tgt->readData( npos, rb ) ) {
-            ++npos;
-            try {
+        try {
+            SignalObserver::DataReadBuffer_var rb;
+            while ( tgt->readData( npos, rb ) ) {
+                ++npos;
                 readMassSpectra( rb, spectrometer, dataInterpreter, objId );
-            } catch ( std::exception& ex ) {
-                adportable::debug(__FILE__, __LINE__) << "handle_update_data got an exception: " << ex.what();
-            }
-        }
-        emit onUpdateUIData( objId, pos );
-        return;
-
-    } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
-        SignalObserver::DataReadBuffer_var rb;
-
-        while ( tgt->readData( npos, rb ) ) {
-            npos = rb->pos + rb->ndata;
-            try {
-                readTrace( *desc, rb, dataInterpreter, objId );
-            } catch ( std::exception& ex ) {
-                adportable::debug(__FILE__, __LINE__) << "handle_update_data got an exception: " << ex.what();
             }
             emit onUpdateUIData( objId, pos );
-            npos_map_[ objId ] = npos;
-            return;
+        } catch ( CORBA::Exception& ex ) {
+            adportable::debug(__FILE__, __LINE__) << "handle_update_data got an corba exception: " << ex._info().c_str();
+        }
+
+    } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
+        try {
+            SignalObserver::DataReadBuffer_var rb;
+            while ( tgt->readData( npos, rb ) ) {
+                npos = rb->pos + rb->ndata;
+                readTrace( *desc, rb, dataInterpreter, objId );
+                emit onUpdateUIData( objId, pos );
+                npos_map_[ objId ] = npos;
+                return;
+            }
+        } catch ( CORBA::Exception& ex ) {
+            adportable::debug(__FILE__, __LINE__) << "handle_update_data got an corba exception: " << ex._info().c_str();
         }
     }
 }
@@ -809,7 +807,7 @@ AcquirePlugin::handle_method_changed( unsigned long objid, long pos )
 }
 
 void
-AcquirePlugin::handle_event( unsigned long objid, unsigned long, long pos )
+AcquirePlugin::handle_event( unsigned long objid, long pos, long flags )
 {
     (void)objid;
     (void)pos;

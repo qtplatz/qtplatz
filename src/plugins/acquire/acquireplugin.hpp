@@ -103,7 +103,7 @@ namespace acquire {
 
             void handle_config_changed( unsigned long objid, long pos );
             void handle_method_changed( unsigned long objid, long pos );
-			void handle_event( unsigned long objid, unsigned long, long pos );
+			void handle_event( unsigned long objid, long pos, long flags );
             void handle_update_ui_data( unsigned long objid, long pos );
 
             void handle_monitor_selected( int );
