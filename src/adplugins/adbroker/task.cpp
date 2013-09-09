@@ -49,6 +49,7 @@
 #include <adinterface/signalobserverC.h>
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
+#include <thread>
 
 using namespace adbroker;
 
@@ -174,6 +175,10 @@ Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_p
     SignalObserver::Description_var desc = observer->getDescription();
     CORBA::WString_var clsid = observer->dataInterpreterClsid();
 
+    if ( ! ( ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) &&
+             ( desc->spectrometer == SignalObserver::eMassSpectrometer ) ) )
+        return;
+
     const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( clsid.in() );
     const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
 
@@ -193,29 +198,41 @@ Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_p
 
         adportable::debug(__FILE__, __LINE__) << "broker readData( " << pos << " ) fnc= " << dbuf->fcn;
         while ( dbuf->fcn != 0 ) {
-            observer->readData( --pos, dbuf );
+            if ( !observer->readData( --pos, dbuf ) )
+                return;
             adportable::debug(__FILE__, __LINE__) << "back tracking readData( " << pos << " ) fnc= " << dbuf->fcn;
         }
 
-        if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
-             && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
-            
-            bool complete = false;
+        adcontrols::translate_state state;
+        do {
+            try {
+                size_t idData = 0;
+                state = dataInterpreter.translate( ms
+                                                      , reinterpret_cast< const char *>( dbuf->xdata.get_buffer() ), dbuf->xdata.length()
+                                                      , reinterpret_cast< const char *>( dbuf->xmeta.get_buffer() ), dbuf->xmeta.length()
+                                                      , spectrometer, idData++ );
+            } catch ( std::exception& ex ) {
+                std::cerr << ex.what() << std::endl;
+                return;
+            }
+
+            bool success( false );
+            size_t wait = 3;
+            std::chrono::milliseconds duration( 1000 );
+            ++pos;
             do {
-                try {
-                    size_t idData = 0;
-                    complete = dataInterpreter.translate( ms
-                                                          , reinterpret_cast< const char *>( dbuf->xdata.get_buffer() ), dbuf->xdata.length()
-                                                          , reinterpret_cast< const char *>( dbuf->xmeta.get_buffer() ), dbuf->xmeta.length()
-                                                          , spectrometer, idData++ );
-                } catch ( std::exception& ex ) {
-                    std::cerr << ex.what() << std::endl;
-                    return;
+                if ( ! ( success = observer->readData( pos, dbuf ) ) ) {
+                    std::this_thread::sleep_for( duration );
+                    adportable::debug(__FILE__, __LINE__) << "waiting for spectrum functions to be completed: " << pos;
                 }
-                observer->readData( ++pos, dbuf );
-            } while ( complete == false );
-        }
+            } while ( !success && wait-- );
+
+            if ( ! success )
+                return;
+
+        } while ( state == adcontrols::translate_indeterminate );
 	}
+    // get here even readData or dataInterpreter fails, anyway send data to client
     ms.addDescription( adcontrols::Description( L"create", text ) );
 	appendOnFile( token, ms, text );
 }
