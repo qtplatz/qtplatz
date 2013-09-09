@@ -29,9 +29,15 @@
 namespace dataproc {
 
     class iSnapshotHandlerImpl : public adextension::iSnapshotHandler {
+        Q_OBJECT
     public:
         ~iSnapshotHandlerImpl();
         iSnapshotHandlerImpl();
+
+    signals:
+        void onSnapshotMessage( const QString& );
+        void onPortfolioCreated( const QString& );
+        void onFoliumAdded( const QString& token, const QString& path, const QString& folderId );
 
     protected:
         void message( const QString& message ) override;

@@ -38,20 +38,18 @@ iSnapshotHandlerImpl::iSnapshotHandlerImpl()
 void
 iSnapshotHandlerImpl::message( const QString& message )
 {
-    adportable::debug(__FILE__, __LINE__) << "@@@@@ BrokerEvent: " << message.toStdString();
+    emit onSnapshotMessage( message );
 }
 
 void
 iSnapshotHandlerImpl::portfolio_created( const QString& token )
 {
-    adportable::debug(__FILE__, __LINE__) << "@@@@@ BrokerEvent portfolio created " << token.toStdString();
+    emit onPortfolioCreated( token );
 }
 
 void
 iSnapshotHandlerImpl::folium_added( const QString& token, const QString& path, const QString& folderId )
 {
-    adportable::debug(__FILE__, __LINE__) << "@@@@@ BrokerEvent folium added "
-                                          << token.toStdString() << ", "
-                                          << path.toStdString() << ", "
-                                          << folderId.toStdString();
+    adportable::debug(__FILE__, __LINE__) << "##### iSnapshotHandlerImpl::folium_added #####";
+    emit onFoliumAdded( token, path, folderId );
 }

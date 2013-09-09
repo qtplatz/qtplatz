@@ -152,8 +152,10 @@ DataprocPlugin::~DataprocPlugin()
     if ( iSequence_ )
         removeObject( iSequence_.get() );
 
-    if ( iSnapshotHandler_ )
+    if ( iSnapshotHandler_ ) {
+        disconnect_isnapshothandler_signals();
         removeObject( iSnapshotHandler_.get() );
+    }
         
 }
 
@@ -207,7 +209,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
         addObject( iSequence_.get() );
 
     iSnapshotHandler_.reset( new iSnapshotHandlerImpl );
-    if ( iSnapshotHandler_ )
+    if ( iSnapshotHandler_ && connect_isnapshothandler_signals() )
         addObject( iSnapshotHandler_.get() );
 
     Core::MimeDatabase* mdb = core->mimeDatabase();
@@ -499,6 +501,29 @@ DataprocPlugin::delete_editorfactories( std::vector< EditorFactory * >& factorie
     for ( size_t i = 0; i < factories.size(); ++i )
         delete factories[ i ];
     factories.clear();
+}
+
+bool
+DataprocPlugin::connect_isnapshothandler_signals()
+{
+    connect( iSnapshotHandler_.get(), SIGNAL( onPortfolioCreated( const QString& ) )
+             , this, SLOT( handle_portfolio_created( const QString& ) ) );
+
+    connect( iSnapshotHandler_.get(), SIGNAL( onFoliumAdded( const QString&, const QString&, const QString& ) )
+             , this, SLOT( handle_folium_added( const QString&, const QString&, const QString& ) ) );
+
+    return true;
+}
+
+void
+DataprocPlugin::disconnect_isnapshothandler_signals()
+{
+    disconnect( iSnapshotHandler_.get(), SIGNAL( onPortfolioCreated( const QString& ) )
+             , this, SLOT( handle_portfolio_created( const QString& ) ) );
+
+    disconnect( iSnapshotHandler_.get(), SIGNAL( onFoliumAdded( const QString& ) )
+             , this, SLOT( handle_folium_added( const QString& ) ) );
+
 }
 
 Q_EXPORT_PLUGIN( DataprocPlugin )
