@@ -108,6 +108,7 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/bind.hpp>
 #include <algorithm>
 #include <cmath>
 #include <map>
@@ -187,8 +188,6 @@ namespace acquire {
     }
 }
 
-// static bool reduceNoise( adcontrols::MassSpectrum& ms );
-
 // static
 QToolButton * 
 AcquirePlugin::toolButton( QAction * action )
@@ -216,6 +215,7 @@ AcquirePlugin::AcquirePlugin() : mainWindow_(0)
                                , actionInject_(0)
                                , pConfig_( 0 )
                                , traceBox_( 0 ) 
+                               , work_( io_service_ )
 {
 }
 
@@ -447,11 +447,9 @@ AcquirePlugin::extensionsInitialized()
                 pImpl_->initialize_broker_session();
             }
         }
-        
-        // adinterface::EventLog::LogMessageHelper log( L"acquire extention initialized %1%" );
-        // log % 1;
-        // mainWindow_->handle_eventLog( log.get() );
     }
+
+    threads_.push_back( std::thread( boost::bind( &boost::asio::io_service::run, &io_service_ ) ) );
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
@@ -462,6 +460,10 @@ AcquirePlugin::aboutToShutdown()
     actionDisconnect();
     pImpl_->terminate_broker_session();
     mainWindow_->OnFinalClose();
+
+    io_service_.stop();
+    for ( std::thread& t: threads_ )
+        t.join();
 
     adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin shutdown complete ===============";
     
@@ -538,13 +540,13 @@ AcquirePlugin::actionConnect()
 
                                 observer_->connect( sink_->_this(), SignalObserver::Frequent, "acquireplugin" );
                                 
-                                connect( this, SIGNAL( onObsConfigChanged( unsigned long, long ) )
+                                connect( this, SIGNAL( onObserverConfigChanged( unsigned long, long ) )
                                          , this, SLOT( handle_config_changed(unsigned long, long) ) );
-                                connect( this, SIGNAL( onObsUpdateData( unsigned long, long ) )
-                                         , this, SLOT( handle_update_data(unsigned long, long) ) );
-                                connect( this, SIGNAL( onObsMethodChanged( unsigned long, long ) )
+                                connect( this, SIGNAL( onUpdateUIData( unsigned long, long ) )
+                                         , this, SLOT( handle_update_ui_data(unsigned long, long) ) );
+                                connect( this, SIGNAL( onObserverMethodChanged( unsigned long, long ) )
                                          , this, SLOT( handle_method_changed(unsigned long, long) ) );
-                                connect( this, SIGNAL( onObsEvent( unsigned long, unsigned long, long ) )
+                                connect( this, SIGNAL( onObserverEvent( unsigned long, unsigned long, long ) )
                                          , this, SLOT( handle_event(unsigned long, unsigned long, long) ) );
                             }
                         
@@ -659,7 +661,7 @@ AcquirePlugin::actionSnapshot()
     }
 }
 
-void
+bool
 AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
                                 , const adcontrols::MassSpectrometer& spectrometer
                                 , const adcontrols::DataInterpreter& dataInterpreter
@@ -671,47 +673,67 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
     adcontrols::MassSpectrum& ms = *rdmap_[ objid ];
 
     size_t idData = 0;
-	while ( dataInterpreter.translate( ms
-                                       , reinterpret_cast< const char *>(rb.xdata.get_buffer()), rb.xdata.length()
-                                       , reinterpret_cast< const char *>(rb.xmeta.get_buffer()), rb.xmeta.length()
-                                       , spectrometer, idData++ ) == adcontrols::translate_complete ) {
-#ifdef CENTROID
-        adcontrols::CentroidMethod method;
-        method.centroidAreaIntensity( false ); // take hight
-        adcontrols::CentroidProcess peak_detector( method );
-        peak_detector( ms );
-        adcontrols::MassSpectrum centroid;
-        peak_detector.getCentroidSpectrum( centroid );
-        pImpl_->spectrumPlot_->setData( ms, centroid );
-#else
-        pImpl_->spectrumPlot_->setData( ms, 0 );
-#endif
+    adcontrols::translate_state state = 
+        dataInterpreter.translate( ms
+                                   , reinterpret_cast< const char *>(rb.xdata.get_buffer()), rb.xdata.length()
+                                   , reinterpret_cast< const char *>(rb.xmeta.get_buffer()), rb.xmeta.length()
+                                   , spectrometer, idData++ );
+    if ( state == adcontrols::translate_complete ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        fifo_ms_.push_back( rdmap_[ objid ] );
+        rdmap_[ objid ].reset( new adcontrols::MassSpectrum );
     } 
-
+    return state != adcontrols::translate_error;
 }
 
-void
+bool
 AcquirePlugin::readTrace( const SignalObserver::Description& desc
                          , const SignalObserver::DataReadBuffer& rb
-                         , const adcontrols::DataInterpreter& dataInterpreter )
+                         , const adcontrols::DataInterpreter& dataInterpreter
+                          , unsigned long objid )
 {
-    // std::wstring traceId = static_cast<const CORBA::WChar *>( desc.trace_id );
+    std::lock_guard< std::mutex > lock( mutex_ );
+    if ( trace_accessors_.find( objid ) == trace_accessors_.end() )
+        trace_accessors_[ objid ] = std::shared_ptr< adcontrols::TraceAccessor >( new adcontrols::TraceAccessor );
 
-    adcontrols::TraceAccessor accessor;
+    adcontrols::TraceAccessor& accessor = *trace_accessors_[ objid ];
     if ( dataInterpreter.translate( accessor
 									, reinterpret_cast< const char *>( rb.xdata.get_buffer() ), rb.xdata.length()
 									, reinterpret_cast< const char * >( rb.xmeta.get_buffer() ), rb.xmeta.length()
                                     , rb.events ) == adcontrols::translate_complete ) {
+        return true;
+    }
+    return false;
+}
 
+void
+AcquirePlugin::handle_update_ui_data( unsigned long objId, long pos )
+{
+    std::shared_ptr< adcontrols::MassSpectrum > ms;
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( ! fifo_ms_.empty() )
+            ms = fifo_ms_.back();
+        fifo_ms_.clear();
+    } while(0);
+    if ( ms )
+        pImpl_->spectrumPlot_->setData( *ms, 0 );
+        
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( trace_accessors_.find( objId ) == trace_accessors_.end() )
+            return;
+        adcontrols::TraceAccessor& accessor = *trace_accessors_[ objId ];
         for ( size_t fcn = 0; fcn < accessor.nfcn(); ++fcn ) {
-
+            if ( pImpl_->traces_.find( fcn ) == pImpl_->traces_.end() )
+                pImpl_->traces_[ fcn ] = adcontrols::Trace( fcn );
             adcontrols::Trace& trace = pImpl_->traces_[ fcn ];
-            accessor.copy_to( trace, fcn );
-
-            if ( trace.size() >= 2 )        
+            if ( accessor >> trace && trace.size() >= 2 )
                 pImpl_->timePlot_->setData( trace, fcn );
         }
-    }
+        accessor.clear();
+    } while ( 0 );
+
 }
 
 void
@@ -719,39 +741,58 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 {
     ACE_UNUSED_ARG( pos );
 
-    if ( observerMap_.find( objId ) == observerMap_.end() ) {
-        SignalObserver::Observer_var tgt = observer_->findObserver( objId, true );
-        if ( CORBA::is_nil( tgt.in() ) )
-            return;
-        observerMap_[ objId ] = tgt;
-    }
+    do {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        
+        if ( observerMap_.find( objId ) == observerMap_.end() ) {
+            SignalObserver::Observer_var tgt = observer_->findObserver( objId, true );
+            if ( CORBA::is_nil( tgt.in() ) )
+                return;
+            observerMap_[ objId ] = tgt;
+            npos_map_[ objId ] = pos;
+        }
+    } while (0);
+
+    long& npos = npos_map_[ objId ];
+
+    if ( pos < npos )
+        return;
 
     SignalObserver::Observer_ptr tgt = observerMap_[ objId ].in();
-
     SignalObserver::Description_var desc = tgt->getDescription();
     CORBA::WString_var name = tgt->dataInterpreterClsid();
-    SignalObserver::DataReadBuffer_var rb;
+    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() );
+    const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
 
-    if ( tgt->readData( pos, rb ) ) {
-
-        const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() );
-        const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
-
-        if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 
-             && desc->spectrometer == SignalObserver::eMassSpectrometer ) {
+    if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
+        SignalObserver::DataReadBuffer_var rb;
+        while ( tgt->readData( npos, rb ) ) {
+            ++npos;
             try {
                 readMassSpectra( rb, spectrometer, dataInterpreter, objId );
             } catch ( std::exception& ex ) {
-                QMessageBox::critical( 0, "acquireplugin::handle_update_data read spectrum", ex.what() );
-                throw ex;
-            } 
-        } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
-            try {
-                readTrace( *desc, rb, dataInterpreter );
-            } catch ( std::exception& ex ) {
-                QMessageBox::critical( 0, "acquireplugin::handle_update_data read trace", ex.what() );
-                throw ex;
+                adportable::debug(__FILE__, __LINE__) << "handle_update_data got an exception: " << ex.what();
             }
+        }
+        emit onUpdateUIData( objId, pos );
+        return;
+
+    } else if ( desc->trace_method == SignalObserver::eTRACE_TRACE ) {
+        SignalObserver::DataReadBuffer_var rb;
+
+        adportable::debug(__FILE__, __LINE__) << " -- read trace npos: " << npos << " pos=" << pos;
+
+        while ( tgt->readData( npos, rb ) ) {
+            npos = rb->pos + rb->ndata;
+            adportable::debug(__FILE__, __LINE__) << " ---- read pos: " << rb->pos << " ndata:" << rb->ndata << " npos: " << npos;
+            try {
+                readTrace( *desc, rb, dataInterpreter, objId );
+            } catch ( std::exception& ex ) {
+                adportable::debug(__FILE__, __LINE__) << "handle_update_data got an exception: " << ex.what();
+            }
+            emit onUpdateUIData( objId, pos );
+            npos_map_[ objId ] = npos;
+            return;
         }
     }
 }
@@ -877,25 +918,25 @@ AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
 void
 AcquirePlugin::handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus st )
 {
-    emit onObsConfigChanged( objid, long( st ) );
+    emit onObserverConfigChanged( objid, long( st ) );
 }
 
 void
 AcquirePlugin::handle_observer_update_data( uint32_t objid, int32_t pos )
 {
-    emit onObsUpdateData( objid, pos );
+    io_service_.post( std::bind(&AcquirePlugin::handle_update_data, this, objid, pos ) );    
 }
 
 void
 AcquirePlugin::handle_observer_method_changed( uint32_t objid, int32_t pos )
 {
-    emit onObsMethodChanged( objid, pos );
+    emit onObserverMethodChanged( objid, pos );
 }
 
 void
 AcquirePlugin::handle_observer_event( uint32_t objid, int32_t pos, int32_t events )
 {
-    emit onObsEvent( objid, pos, events );
+    emit onObserverEvent( objid, pos, events );
 }
 
 void

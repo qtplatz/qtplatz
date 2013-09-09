@@ -28,11 +28,16 @@
 
 #include <extensionsystem/iplugin.h>
 #include <vector>
+#include <deque>
 #include <map>
 
 #include <adinterface/controlserverC.h>
 #include <adinterface/signalobserverC.h>
 #include <adinterface/receiverC.h>
+#include <boost/asio.hpp>
+#include <thread>
+#include <mutex>
+
 
 class QToolButton;
 class QAction;
@@ -44,6 +49,7 @@ namespace adcontrols {
     class MassSpectrometer;
     class DataInterpreter;
     class MassSpectrum;
+    class TraceAccessor;
 }
 
 namespace adportable {
@@ -96,9 +102,9 @@ namespace acquire {
             void handle_debug_print( unsigned long priority, unsigned long category, QString text );
 
             void handle_config_changed( unsigned long objid, long pos );
-            void handle_update_data( unsigned long objid, long pos );
             void handle_method_changed( unsigned long objid, long pos );
 			void handle_event( unsigned long objid, unsigned long, long pos );
+            void handle_update_ui_data( unsigned long objid, long pos );
 
             void handle_monitor_selected( int );
             void handle_monitor_activated( int );
@@ -108,10 +114,10 @@ namespace acquire {
 
         signals:
             // observer signals
-            void onObsConfigChanged( unsigned long, long );
-            void onObsUpdateData( unsigned long, long );
-            void onObsMethodChanged( unsigned long, long );
-            void onObsEvent( unsigned long, long, long );
+            void onUpdateUIData( unsigned long, long );
+            void onObserverConfigChanged( unsigned long, long );
+            void onObserverMethodChanged( unsigned long, long );
+            void onObserverEvent( unsigned long, long, long );
 
             // receiver signals
             void onReceiverMessage( unsigned long, unsigned long );
@@ -120,6 +126,7 @@ namespace acquire {
         private:
             void selectPoint( double x, double y );
             void selectRange( double x1, double x2, double y1, double y2 );
+            void handle_update_data( unsigned long objid, long pos );
 
             MainWindow * mainWindow_;
             AcquireImpl * pImpl_;
@@ -138,20 +145,30 @@ namespace acquire {
             SignalObserver::Observer_var observer_;
             std::map< unsigned long, SignalObserver::Observer_var > observerMap_;
             std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
+            std::deque< std::shared_ptr< adcontrols::MassSpectrum > > fifo_ms_;
+            std::map< unsigned long, std::shared_ptr< adcontrols::TraceAccessor > > trace_accessors_;
+            std::map< unsigned long, long > npos_map_;
 
             std::unique_ptr< receiver_i > receiver_i_;
             std::unique_ptr< adinterface::ObserverEvents_i > sink_;
             std::vector< std::wstring > trace_descriptions_;
             QComboBox * traceBox_;
+
+            boost::asio::io_service io_service_;
+            boost::asio::io_service::work work_;
+            std::vector< std::thread > threads_;
+            std::mutex mutex_;
+
             void populate( SignalObserver::Observer_var& );
 
-            void readMassSpectra( const SignalObserver::DataReadBuffer&
+            bool readMassSpectra( const SignalObserver::DataReadBuffer&
                                   , const adcontrols::MassSpectrometer&
                                   , const adcontrols::DataInterpreter& dataInterpreter
                                   , unsigned long objId );
-            void readTrace( const SignalObserver::Description&
-                , const SignalObserver::DataReadBuffer&
-                , const adcontrols::DataInterpreter& dataInterpreter );
+            bool readTrace( const SignalObserver::Description&
+                            , const SignalObserver::DataReadBuffer&
+                            , const adcontrols::DataInterpreter& dataInterpreter
+                            , unsigned long objId );
 
             // observer event handlers
             void handle_observer_config_changed( uint32_t objid, SignalObserver::eConfigStatus );

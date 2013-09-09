@@ -22,9 +22,11 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-# include "cache.hpp"
-# include <adinterface/signalobserverS.h>
+
+#include "cache.hpp"
+#include <adinterface/signalobserverS.h>
 #include <mutex>
+#include <algorithm>
 
 namespace adcontroller {
     class CacheImpl {
@@ -65,8 +67,15 @@ Cache::read( long pos, SignalObserver::DataReadBuffer_out rdbuf )
     if ( fifo_.empty() )
         return false;
 
-    if ( pos < 0 )
-        pos = fifo_.back();
+    if ( pos < 0 ) {
+        auto it = std::find_if( fifo_.rbegin(), fifo_.rend(), [&]( const CacheItem& item ){ return item.rdbuf_->fcn == 0; } );
+        if ( it != fifo_.rend() ) {
+            SignalObserver::DataReadBuffer_var buf( new SignalObserver::DataReadBuffer( it->rdbuf_ ) );
+            rdbuf = buf._retn();
+            return true;            
+        }
+        return false;
+    }
     
     if ( ! fifo_.empty() && ( fifo_.front() <= pos && pos <= fifo_.back() ) ) {
         auto it = std::lower_bound( fifo_.begin(), fifo_.end(), pos );
@@ -77,6 +86,7 @@ Cache::read( long pos, SignalObserver::DataReadBuffer_out rdbuf )
             return true;
         }
     }
+
 	return false;
 }
 
