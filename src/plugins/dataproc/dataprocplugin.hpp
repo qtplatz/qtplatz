@@ -57,6 +57,7 @@ namespace dataproc {
     class ActionManager;
     class DataprocessorFactory;
     class iSequenceImpl;
+    class iSnapshotHandlerImpl;
     
     class DataprocPlugin : public ExtensionSystem::IPlugin {
         
@@ -104,12 +105,14 @@ namespace dataproc {
         DataprocessorFactory * dataprocFactory_;
         
         std::unique_ptr< iSequenceImpl > iSequence_;
+        std::unique_ptr< iSnapshotHandlerImpl > iSnapshotHandler_;
 
         static DataprocPlugin * instance_;
         
         // static bool install_dataprovider( const adportable::Configuration&, const std::wstring& );
         static bool install_isequence( const adportable::Configuration&, const std::wstring&, iSequenceImpl& );
         static void delete_editorfactories( std::vector< EditorFactory * >& );
+
     };
 }
 

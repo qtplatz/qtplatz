@@ -20,16 +20,7 @@ LIBS += -l$$qtLibraryTarget(acewrapper) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(xmlparser)
 
-win32 {
-  LIBS += -l$$qtLibraryTarget( ACE ) \
-          -l$$qtLibraryTarget( TAO ) \
-          -l$$qtLibraryTarget( TAO_Utils ) \
-          -l$$qtLibraryTarget( TAO_PI ) \
-          -l$$qtLibraryTarget( TAO_PortableServer ) \
-          -l$$qtLibraryTarget( TAO_AnyTypeCode )
-} else {
-  LIBS += -lACE
-  LIBS += -lTAO -lTAO_Utils -lTAO_PI -lTAO_PortableServer -lTAO_AnyTypeCode
+!win32 {
   LIBS += -lboost_filesystem -lboost_system -lboost_regex
 }
 
@@ -38,8 +29,6 @@ DEFINES += ADPLUGIN_LIBRARY
 SOURCES += \
     lifecycle.cpp \
     manager.cpp \
-    qbrokersessionevent.cpp \
-    qreceiver_i.cpp \
     lifecycleaccessor.cpp \
     loader.cpp \
     plugin.cpp \
@@ -54,8 +43,6 @@ HEADERS += adplugin.hpp \
     imonitor.hpp \
     widget_factory.hpp \
     lifecycle.hpp \
-    qreceiver_i.hpp \
-    qbrokersessionevent.hpp \
     lifecycleaccessor.hpp \
     loader.hpp \
     plugin.hpp \

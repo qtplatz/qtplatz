@@ -32,17 +32,13 @@
 
 #include <adinterface/controlserverC.h>
 #include <adinterface/signalobserverC.h>
+#include <adinterface/receiverC.h>
 
 class QToolButton;
 class QAction;
 class QComboBox;
 class QPointF;
 class QRectF;
-
-namespace adplugin {
-   class QReceiver_i;
-   class QObserverEvents_i;
-}
 
 namespace adcontrols {
     class MassSpectrometer;
@@ -58,8 +54,14 @@ namespace adinterface {
     class ObserverEvents_i;
 }
 
+namespace EventLog {
+    class LogMessage;
+}
 
-namespace Acquire {
+namespace acquire {
+
+    class receiver_i;
+    class brokerevent_i;
 
     namespace internal {
 
@@ -90,7 +92,6 @@ namespace Acquire {
             void actionInject();
 
             void handle_message( unsigned long msg, unsigned long value );
-            void handle_log( QByteArray );
             void handle_shutdown();
             void handle_debug_print( unsigned long priority, unsigned long category, QString text );
 
@@ -106,10 +107,15 @@ namespace Acquire {
 			void handleSelected( const QRectF& );
 
         signals:
+            // observer signals
             void onObsConfigChanged( unsigned long, long );
             void onObsUpdateData( unsigned long, long );
             void onObsMethodChanged( unsigned long, long );
             void onObsEvent( unsigned long, long, long );
+
+            // receiver signals
+            void onReceiverMessage( unsigned long, unsigned long );
+
         // 
         private:
             void selectPoint( double x, double y );
@@ -133,7 +139,7 @@ namespace Acquire {
             std::map< unsigned long, SignalObserver::Observer_var > observerMap_;
             std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
 
-            std::unique_ptr< adplugin::QReceiver_i > receiver_i_;
+            std::unique_ptr< receiver_i > receiver_i_;
             std::unique_ptr< adinterface::ObserverEvents_i > sink_;
             std::vector< std::wstring > trace_descriptions_;
             QComboBox * traceBox_;
@@ -152,6 +158,12 @@ namespace Acquire {
             void handle_observer_update_data( uint32_t objid, int32_t pos );
             void handle_observer_method_changed( uint32_t objid, int32_t pos );
             void handle_observer_event( uint32_t objid, int32_t pos, int32_t events );
+
+            // receiver_i handlers
+            void handle_receiver_message( Receiver::eINSTEVENT, uint32_t );
+            void handle_receiver_log( const ::EventLog::LogMessage& );
+            void handle_receiver_shutdown();
+            void handle_receiver_debug_print( int32_t, int32_t, std::string );
 
         public:
             static QToolButton * toolButton( QAction * action );

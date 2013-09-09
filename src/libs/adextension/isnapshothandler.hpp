@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
@@ -23,44 +22,20 @@
 **
 **************************************************************************/
 
-#ifndef SEQUENCEPLUGIN_H
-#define SEQUENCEPLUGIN_H
+#pragma once
 
-#include <extensionsystem/iplugin.h>
-#include <memory>
+#include <QObject>
+#include "adextension_global.hpp"
 
-namespace adextension { class iSequence; }
+namespace adextension {
 
-namespace sequence {
+    class ADEXTENSIONSHARED_EXPORT iSnapshotHandler : public QObject {
+        Q_OBJECT
+    public:
+        virtual ~iSnapshotHandler() {}
+        virtual void message( const QString& message ) = 0;
+        virtual void portfolio_created( const QString& token ) = 0;
+        virtual void folium_added( const QString& token, const QString& path, const QString& folderId ) = 0;
+    };
 
-    class Mode;
-    class MainWindow;
-
-    namespace internal {
-
-        class SequenceManager;
-
-        class SequencePlugin : public ExtensionSystem::IPlugin {
-            Q_OBJECT
-			Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "sequence.json")
-        public:
-            ~SequencePlugin();
-            explicit SequencePlugin();
-
-            bool initialize(const QStringList& arguments, QString* error_message);
-            void extensionsInitialized();
-            ShutdownFlag aboutToShutdown();
-
-        private:
-            MainWindow * mainWindow_;
-            std::unique_ptr< Mode > mode_;
-        signals:
-
-        private slots:
-			void handleFileNew( bool );
-
-        };
-    }
 }
-
-#endif // SEQUENCEPLUGIN_H

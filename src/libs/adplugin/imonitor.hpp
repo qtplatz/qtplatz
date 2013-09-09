@@ -22,13 +22,8 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-//////////////////////////////////////////
-// Copyright (C) 2010 Toshinobu Hondo, Ph.D.
-// MS-Cheminformatics LLC / Advanced Instrumentation Project
-//////////////////////////////////////////
 
-#ifndef IMONITOR_H
-#define IMONITOR_H
+#pragma once
 
 #include "adplugin_global.h"
 #include "lifecycle.hpp"
@@ -53,4 +48,4 @@ namespace adplugin {
 
 Q_DECLARE_INTERFACE( adplugin::ui::IMonitor, "org.adplugin.ui.imonitor/1.0" );
 
-#endif // IMONITOR_H
+

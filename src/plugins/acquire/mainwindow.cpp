@@ -32,7 +32,7 @@
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
-#include <adinterface/eventlog_helper.hpp>
+// #include <adinterface/eventlog_helper.hpp>
 #include <acewrapper/timeval.hpp>
 #include <qtwrapper/qstring.hpp>
 
@@ -53,8 +53,8 @@
 #include <QMessageBox>
 #include <QTabBar>
 
-using namespace Acquire;
-using namespace Acquire::internal;
+using namespace acquire;
+using namespace acquire::internal;
 
 MainWindow::~MainWindow()
 {
@@ -85,9 +85,8 @@ MainWindow::init( const adportable::Configuration& config )
 			QWidget * pWidget = adplugin::widget_factory::create( node.component_interface().c_str(), 0, 0 );
 
             if ( pWidget ) {
-                bool res = false;
                 if ( node.component_interface() == "adplugin::ui::iLog" ) {
-                    res = connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
+                    connect( this, SIGNAL( signal_eventLog( QString ) ), pWidget, SLOT( handle_eventLog( QString ) ) );
                     emit signal_eventLog( "Hello -- this is acquire plugin" );
                 }
 
@@ -191,19 +190,6 @@ void
 MainWindow::eventLog( const QString& text )
 {
 	emit signal_eventLog( text );
-}
-
-void
-MainWindow::handle_eventLog( const ::EventLog::LogMessage& log )
-{
-    using namespace adinterface::EventLog;
-    std::wstring text = LogMessageHelper::toString( log );
-	std::string date = acewrapper::to_string( log.tv.sec, log.tv.usec ) + "\t";
-	// adportable::debug() << date << text;
-	QString qtext = date.c_str();
-	qtext += qtwrapper::qstring::copy( text );
-
-    emit signal_eventLog( qtext );
 }
 
 void

@@ -28,7 +28,8 @@
 
 #include <coreplugin/basemode.h>
 
-namespace Acquire {
+namespace acquire {
+
     namespace internal {
     
         class AcquireMode : public Core::BaseMode {

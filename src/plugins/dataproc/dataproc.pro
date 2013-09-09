@@ -51,6 +51,8 @@ SOURCES += \
     dataprocplugin.cpp \
     elementalcompwnd.cpp \
     ifileimpl.cpp \
+    isequenceimpl.cpp \
+    isnapshothandlerimpl.cpp \
     mscalibrationwnd.cpp \
     mscalibspectrawnd.cpp \
     msprocessingwnd.cpp \
@@ -60,8 +62,7 @@ SOURCES += \
     sessionmanager.cpp \
     mainwindow.cpp \
     mode.cpp \
-    editorfactory.cpp \
-    isequenceimpl.cpp
+    editorfactory.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -74,6 +75,8 @@ HEADERS += \
     dataprocplugin.hpp \
     elementalcompwnd.hpp \
     ifileimpl.hpp \
+    isequenceimpl.hpp \
+    isnapshothandlerimpl.hpp \
     mscalibrationwnd.hpp \
     mscalibspectrawnd.hpp \
     msprocessingwnd.hpp \
@@ -84,7 +87,6 @@ HEADERS += \
     mainwindow.hpp \
     mode.hpp \
     editorfactory.hpp \
-    isequenceimpl.hpp \
     assign_masses.hpp \
     calibrate_masses.hpp \
     assign_peaks.hpp

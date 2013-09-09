@@ -26,8 +26,8 @@
 #include "acquiremode.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 
-using namespace Acquire;
-using namespace Acquire::internal;
+using namespace acquire;
+using namespace acquire::internal;
 
 AcquireMode::~AcquireMode()
 {

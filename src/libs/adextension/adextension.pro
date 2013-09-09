@@ -21,6 +21,7 @@ SOURCES += adextension.cpp \
 
 HEADERS += adextension.hpp\
            adextension_global.hpp \
+           isnapshothandler.hpp \
            isequence.hpp \
            ieditorfactory.hpp \
            imonitorfactory.hpp

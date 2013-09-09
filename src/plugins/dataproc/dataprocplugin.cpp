@@ -32,6 +32,7 @@
 #include "dataprocessorfactory.hpp"
 #include "dataproceditor.hpp"
 #include "isequenceimpl.hpp"
+#include "isnapshothandlerimpl.hpp"
 #include "mainwindow.hpp"
 #include "navigationwidgetfactory.hpp"
 #include "sessionmanager.hpp"
@@ -47,6 +48,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adextension/ieditorfactory.hpp>
+#include <adextension/isnapshothandler.hpp>
 #include <adorbmgr/orbmgr.hpp>
 
 #include <adplugin/plugin.hpp>
@@ -149,6 +151,10 @@ DataprocPlugin::~DataprocPlugin()
 
     if ( iSequence_ )
         removeObject( iSequence_.get() );
+
+    if ( iSnapshotHandler_ )
+        removeObject( iSnapshotHandler_.get() );
+        
 }
 
 DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
@@ -197,9 +203,12 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     //------------------------------------------------
 
     iSequence_.reset( new iSequenceImpl );
-    if ( iSequence_ && install_isequence( config, apppath, *iSequence_ ) ) {
+    if ( iSequence_ && install_isequence( config, apppath, *iSequence_ ) )
         addObject( iSequence_.get() );
-    }
+
+    iSnapshotHandler_.reset( new iSnapshotHandlerImpl );
+    if ( iSnapshotHandler_ )
+        addObject( iSnapshotHandler_.get() );
 
     Core::MimeDatabase* mdb = core->mimeDatabase();
     if ( ! mdb ) {

@@ -26,9 +26,9 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-namespace Acquire {
+namespace acquire {
 
-  namespace Constants {
+  namespace constants {
     const char * const MODE_ACQUIRE = "Acquire.Mode";
     const int P_MODE_ACQUIRE        = 99;
     

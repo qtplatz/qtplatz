@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
@@ -23,37 +22,36 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "isnapshothandlerimpl.hpp"
+#include <adportable/debug.hpp>
 
-#include "adplugin_global.h"
-#include <QObject>
+using namespace dataproc;
 
-# include <adinterface/receiverS.h>
-
-namespace adplugin {
-
-    class ADPLUGINSHARED_EXPORT QReceiver_i : public QObject
-                                            , public POA_Receiver {
-        Q_OBJECT
-    public:
-        explicit QReceiver_i(QObject *parent = 0);
-        ~QReceiver_i();
-
-        virtual void message(::Receiver::eINSTEVENT msg, ::CORBA::ULong value );
-        virtual void log( const ::EventLog::LogMessage & log );
-        virtual void shutdown(void);
-        virtual void debug_print(::CORBA::Long priority, ::CORBA::Long category, const char * text);
-  
-    signals:
-        void signal_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value );
-        void signal_log( QByteArray );
-        void signal_shutdown();
-        void signal_debug_print( unsigned long priority, unsigned long category, QString text );
-
-    public slots:
-
-    };
-
+iSnapshotHandlerImpl::~iSnapshotHandlerImpl()
+{
 }
 
+iSnapshotHandlerImpl::iSnapshotHandlerImpl()
+{
+}
 
+void
+iSnapshotHandlerImpl::message( const QString& message )
+{
+    adportable::debug(__FILE__, __LINE__) << "@@@@@ BrokerEvent: " << message.toStdString();
+}
+
+void
+iSnapshotHandlerImpl::portfolio_created( const QString& token )
+{
+    adportable::debug(__FILE__, __LINE__) << "@@@@@ BrokerEvent portfolio created " << token.toStdString();
+}
+
+void
+iSnapshotHandlerImpl::folium_added( const QString& token, const QString& path, const QString& folderId )
+{
+    adportable::debug(__FILE__, __LINE__) << "@@@@@ BrokerEvent folium added "
+                                          << token.toStdString() << ", "
+                                          << path.toStdString() << ", "
+                                          << folderId.toStdString();
+}

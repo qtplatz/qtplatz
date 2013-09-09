@@ -27,13 +27,18 @@
 #include "constants.hpp"
 #include "acquiremode.hpp"
 #include "mainwindow.hpp"
+#include "receiver_i.hpp"
+#include "brokerevent_i.hpp"
 
 #include <acewrapper/constants.hpp>
+#include <acewrapper/timeval.hpp>
+#include <adextension/isnapshothandler.hpp>
 # include <adinterface/brokerC.h>
 # include <adinterface/controlserverC.h>
 # include <adinterface/receiverC.h>
 # include <adinterface/signalobserverC.h>
 #include <adinterface/observerevents_i.hpp>
+#include <adinterface/eventlog_helper.hpp>
 #include <adinterface/eventlog_helper.hpp>
 
 #include <adcontrols/massspectrum.hpp>
@@ -53,7 +58,6 @@
 #include <adportable/configloader.hpp>
 #include <adportable/profile.hpp>
 #include <adplugin/loader.hpp>
-#include <adplugin/qreceiver_i.hpp>
 #include <adplugin/manager.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
@@ -110,10 +114,10 @@
 #include <fstream>
 #include <functional>
 
-using namespace Acquire;
-using namespace Acquire::internal;
+using namespace acquire;
+using namespace acquire::internal;
 
-namespace Acquire {
+namespace acquire {
 
     namespace internal {
 
@@ -125,13 +129,58 @@ namespace Acquire {
             }
 
             Broker::Session_var brokerSession_;
+
+            std::unique_ptr< brokerevent_i > brokerEvent_;
             std::map< int, adcontrols::Trace > traces_;
             adwplot::ChromatogramWidget * timePlot_;
             adwplot::SpectrumWidget * spectrumPlot_;
             QIcon icon_;
             void loadIcon() {
-                icon_.addFile( Constants::ICON_CONNECT );
-                icon_.addFile( Constants::ICON_CONNECT_SMALL );
+                icon_.addFile( constants::ICON_CONNECT );
+                icon_.addFile( constants::ICON_CONNECT_SMALL );
+            }
+
+            void initialize_broker_session() {
+                brokerEvent_.reset( new brokerevent_i );
+                brokerEvent_->assign_message( [=]( const std::string& text ){
+                        handle_message( text );
+                    });
+                brokerEvent_->assign_portfolio_created( [=]( const std::wstring& file ){
+                        handle_portfolio_created( file );
+                    });
+                brokerEvent_->assign_folium_added(
+                    [=]( const std::wstring& token
+                         , const std::wstring& path
+                         , const std::wstring& folderId ){
+                        handle_folium_added( token, path, folderId );
+                    });
+                brokerSession_->connect( "user", "pass", "acquire", brokerEvent_->_this() );
+            }
+
+            void terminate_broker_session() {
+                // disconnect broker session
+                brokerSession_->disconnect( brokerEvent_->_this() );
+                adorbmgr::orbmgr::deactivate( brokerEvent_->_this() );
+            }
+
+        protected:
+            void handle_message( const std::string& msg ) {
+                auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+                for ( auto handler: vec )
+                    handler->message( QString( msg.c_str() ) );
+            }
+
+            void handle_portfolio_created( const std::wstring& token ) {
+                auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+                for ( auto handler: vec )
+                    handler->portfolio_created( qtwrapper::qstring( token ) );
+            }
+
+            void handle_folium_added( const std::wstring& token, const std::wstring& path, const std::wstring& id ) {
+                auto vec = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iSnapshotHandler >();
+                for ( auto handler: vec )
+                    handler->folium_added( qtwrapper::qstring( token )
+                                           , qtwrapper::qstring( path ), qtwrapper::qstring( id ) );
             }
         };
 
@@ -205,15 +254,15 @@ AcquirePlugin::initialize_actions()
     Core::ActionManager *am = Core::ICore::instance()->actionManager();
     if ( am ) {
         Core::Command * cmd = 0;
-        cmd = am->registerAction( actionConnect_, Constants::CONNECT, globalcontext );
+        cmd = am->registerAction( actionConnect_, constants::CONNECT, globalcontext );
         do {
             Core::ICore::instance()->modeManager()->addAction( cmd, 90 );
         } while(0);
 
-        cmd = am->registerAction( actionInitRun_, Constants::INITIALRUN, globalcontext );
-        cmd = am->registerAction( actionRun_, Constants::RUN, globalcontext );
-        cmd = am->registerAction( actionStop_, Constants::STOP, globalcontext );
-        cmd = am->registerAction( actionInject_, Constants::ACQUISITION, globalcontext );
+        cmd = am->registerAction( actionInitRun_, constants::INITIALRUN, globalcontext );
+        cmd = am->registerAction( actionRun_, constants::RUN, globalcontext );
+        cmd = am->registerAction( actionStop_, constants::STOP, globalcontext );
+        cmd = am->registerAction( actionInject_, constants::ACQUISITION, globalcontext );
         cmd = am->registerAction( actionSnapshot_, "acquire.shanpshot", globalcontext );
     }
 }
@@ -298,11 +347,11 @@ AcquirePlugin::initialize(const QStringList &arguments, QString *error_message)
             toolBarLayout->setSpacing(0);
             Core::ActionManager *am = core->actionManager();
             if ( am ) {
-                toolBarLayout->addWidget(toolButton(am->command(Constants::CONNECT)->action()));
-                toolBarLayout->addWidget(toolButton(am->command(Constants::INITIALRUN)->action()));
-                toolBarLayout->addWidget(toolButton(am->command(Constants::RUN)->action()));
-                toolBarLayout->addWidget(toolButton(am->command(Constants::STOP)->action()));
-                toolBarLayout->addWidget(toolButton(am->command(Constants::ACQUISITION)->action()));
+                toolBarLayout->addWidget(toolButton(am->command(constants::CONNECT)->action()));
+                toolBarLayout->addWidget(toolButton(am->command(constants::INITIALRUN)->action()));
+                toolBarLayout->addWidget(toolButton(am->command(constants::RUN)->action()));
+                toolBarLayout->addWidget(toolButton(am->command(constants::STOP)->action()));
+                toolBarLayout->addWidget(toolButton(am->command(constants::ACQUISITION)->action()));
             }
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
@@ -392,12 +441,16 @@ AcquirePlugin::extensionsInitialized()
 
         Broker::Manager_var mgr = orbmgr->getBrokerManager();
 
-        if ( ! CORBA::is_nil( mgr ) )
+        if ( ! CORBA::is_nil( mgr ) ) {
             pImpl_->brokerSession_ = mgr->getSession( L"acquire" );
+            if ( ! CORBA::is_nil( pImpl_->brokerSession_ ) ) {
+                pImpl_->initialize_broker_session();
+            }
+        }
         
-        adinterface::EventLog::LogMessageHelper log( L"acquire extention initialized %1%" );
-        log % 1;
-        mainWindow_->handle_eventLog( log.get() );
+        // adinterface::EventLog::LogMessageHelper log( L"acquire extention initialized %1%" );
+        // log % 1;
+        // mainWindow_->handle_eventLog( log.get() );
     }
 }
 
@@ -405,9 +458,13 @@ ExtensionSystem::IPlugin::ShutdownFlag
 AcquirePlugin::aboutToShutdown()
 {
     adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin shutting down...  ===============";
+
     actionDisconnect();
+    pImpl_->terminate_broker_session();
     mainWindow_->OnFinalClose();
+
     adportable::debug(__FILE__, __LINE__) << "====== AcquirePlugin shutdown complete ===============";
+    
 	return SynchronousShutdown;
 }
 
@@ -415,8 +472,6 @@ void
 AcquirePlugin::actionConnect()
 {
 	using adinterface::EventLog::LogMessageHelper;
-
-	do { LogMessageHelper log( L"Connecting..." );	mainWindow_->handle_eventLog( log.get() );	} while(0);
 
     if ( CORBA::is_nil( session_.in() ) ) {
 
@@ -436,22 +491,27 @@ AcquirePlugin::actionConnect()
                     session_ = manager->getSession( L"acquire" );
                     if ( ! CORBA::is_nil( session_.in() ) ) {
                             
-                        receiver_i_.reset( new adplugin::QReceiver_i() );
-                        session_->connect( receiver_i_.get()->_this(), "acquire" );
-                        connect( receiver_i_.get()
-                                 , SIGNAL( signal_message( unsigned long, unsigned long ) )
+                        receiver_i_.reset( new receiver_i );
+
+                        receiver_i_->assign_message( [=]( ::Receiver::eINSTEVENT code, uint32_t value ){
+                                this->handle_receiver_message( code, value ); });
+
+                        receiver_i_->assign_log( [=]( const ::EventLog::LogMessage& log ){
+                                this->handle_receiver_log( log ); });
+
+                        receiver_i_->assign_shutdown( [=](){
+                                this->handle_receiver_shutdown(); } );
+
+                        receiver_i_->assign_debug_print( [=]( int32_t pri, int32_t cat, std::string text ){ 
+                                this->handle_receiver_debug_print( pri, cat, text );} );
+
+                        connect( this, SIGNAL( onReceiverMessage( unsigned long, unsigned long ) )
                                  , this, SLOT( handle_message( unsigned long, unsigned long ) ) );
-                        connect( receiver_i_.get(), SIGNAL( signal_log( QByteArray ) ), this, SLOT( handle_log( QByteArray ) ) );
-                        connect( receiver_i_.get(), SIGNAL( signal_shutdown() ), this, SLOT( handle_shutdown() ) );
-                        connect( receiver_i_.get(), SIGNAL( signal_debug_print( unsigned long, unsigned long, QString ) )
-                                 , this, SLOT( handle_debug_print( unsigned long, unsigned long, QString ) ) );
-
-                        do { LogMessageHelper log( L"===== Initialize session... ===== " );	mainWindow_->handle_eventLog( log.get() );	} while(0);
-
+                        
+                        session_->connect( receiver_i_->_this(), "acquire" );
+                        
                         if ( session_->status() <= ControlServer::eConfigured )
                             session_->initialize();
-
-                        do { LogMessageHelper log( L"===== Session initialized. =====" );	mainWindow_->handle_eventLog( log.get() );	} while(0);
 
                         // Master signal observer
                         observer_ = session_->getObserver();
@@ -492,12 +552,6 @@ AcquirePlugin::actionConnect()
                             SignalObserver::Observers_var siblings = observer_->getSiblings();
                             size_t nsize = siblings->length();
 
-                            do {
-                                LogMessageHelper log( L"actionConnect signal observer %1% siblings found" );
-                                log % nsize;
-                                mainWindow_->handle_eventLog( log.get() );
-                            } while(0);
-
                             for ( size_t i = 0; i < nsize; ++i ) {
                                 SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[i] );
                                 populate( var );
@@ -537,11 +591,14 @@ AcquirePlugin::actionDisconnect()
 {
     if ( ! CORBA::is_nil( session_ ) ) {
 
+        // disconnect from observer
         observer_ = session_->getObserver();
         if ( ! CORBA::is_nil( observer_.in() ) ) {
             observer_->disconnect( sink_->_this() );
 			adorbmgr::orbmgr::deactivate( sink_->_this() );
         }
+
+        // disconnect instrument control session
         session_->disconnect( receiver_i_.get()->_this() );
         adorbmgr::orbmgr::deactivate( receiver_i_->_this() );
     }
@@ -720,7 +777,6 @@ AcquirePlugin::handle_event( unsigned long objid, unsigned long, long pos )
     (void)pos;
 }
 
-
 void
 AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, unsigned long value )
 {
@@ -735,23 +791,17 @@ AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, uns
         if ( status == eWaitingForContactClosure ) {
             actionInject_->setEnabled( true );
             actionStop_->setEnabled( true );
-        } else if ( status == ePreparingForRun || status == eReadyForRun ) {
+            actionRun_->setEnabled( false );
+        } else if ( status == ePreparingForRun ) {
             actionStop_->setEnabled( false );
+        } else if ( status == eReadyForRun ) {
+            actionStop_->setEnabled( true );
         } else if ( status == eRunning ) {
             actionStop_->setEnabled( true );
 			actionInject_->setEnabled( false );
+			actionRun_->setEnabled( false );
         }
     }
-    // mainWindow_->handle_message( msg, value );
-}
-
-void
-AcquirePlugin::handle_log( QByteArray qmsg )
-{
-    TAO_InputCDR cdr( qmsg.data(), qmsg.size() );
-    ::EventLog::LogMessage msg;
-    cdr >> msg;
-    mainWindow_->handle_eventLog( msg );
 }
 
 void
@@ -848,56 +898,38 @@ AcquirePlugin::handle_observer_event( uint32_t objid, int32_t pos, int32_t event
     emit onObsEvent( objid, pos, events );
 }
 
+void
+AcquirePlugin::handle_receiver_message( Receiver::eINSTEVENT code, uint32_t value )
+{
+    emit onReceiverMessage( static_cast<unsigned long>(code), value );
+    // handle_message
+}
+
+void
+AcquirePlugin::handle_receiver_log( const ::EventLog::LogMessage& log )
+{
+    std::wstring text = adinterface::EventLog::LogMessageHelper::toString( log );
+    std::string date = acewrapper::to_string( log.tv.sec, log.tv.usec ) + "\t";
+    QString qtext = date.c_str();
+    qtext += qtwrapper::qstring::copy( text );
+    mainWindow_->eventLog( qtext );
+}
+
+void
+AcquirePlugin::handle_receiver_shutdown()
+{
+    // handle_shutdown
+}
+
+void
+AcquirePlugin::handle_receiver_debug_print( int32_t, int32_t, std::string text )
+{
+    QString qtext( text.c_str() );
+    mainWindow_->eventLog( qtext );
+}
+
 Q_EXPORT_PLUGIN( AcquirePlugin )
 
 
 ///////////////////
 
-#if 0
-static bool
-reduceNoise( adcontrols::MassSpectrum& ms )
-{
-    size_t totalSize = ms.size();
-	(void)totalSize;
-	size_t N = 32;
-    while ( N < ms.size() )
-		N *= 2;
-	N /= 2;
-    size_t NN = N * 2;
-
-	const double * pMass = ms.getMassArray();
-	adportable::array_wrapper<const double> pIntens( ms.getIntensityArray(), N );
-
-	std::vector< std::complex<double> > power;
-	std::vector< std::complex<double> > interferrogram;
-
-	for ( size_t i = 0; i < N; ++i )
-		power.push_back( std::complex<double>(pIntens[i]) );
-
-	adportable::fft::fourier_transform( interferrogram, power, false );
-	//adportable::fft::apodization( N/4, N/4, interferrogram );
-	adportable::fft::apodization( N/2 - N/16, N / 16, interferrogram );
-	// adportable::fft::zero_filling( NN, interferrogram );
-	adportable::fft::fourier_transform( power, interferrogram, true );
-
-	std::vector<double> data;
-	std::vector<double> mass;
-	for ( int i = 0; i < int(power.size()); ++i ) {
-		data.push_back( power[i].real() + 30 ); //* (NN / N) + 20 );
-		//ms.setIntensity( i, power[i].real() * (NN / N) + 20 );
-		// ms.setIntensity( i, power[i].real() + 10 );
-	}
-
-	for ( size_t i = 0; i < N; ++i ) {
-		mass.push_back( pMass[i] );
-        mass.push_back( pMass[i] + ( pMass[i + 1] - pMass[i] ) / 2 );
-	}
-
-	ms.resize( data.size() );
-	ms.setIntensityArray( &data[0] );
-	ms.setMassArray( &mass[0] );
-
-	return true;
-}
-
-#endif
