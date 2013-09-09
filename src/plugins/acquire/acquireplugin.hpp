@@ -34,7 +34,9 @@
 #include <adinterface/controlserverC.h>
 #include <adinterface/signalobserverC.h>
 #include <adinterface/receiverC.h>
+#if ! defined Q_MOC_RUN
 #include <boost/asio.hpp>
+#endif
 #include <thread>
 #include <mutex>
 
@@ -61,7 +63,7 @@ namespace adinterface {
 }
 
 namespace EventLog {
-    class LogMessage;
+    struct LogMessage;
 }
 
 namespace acquire {
