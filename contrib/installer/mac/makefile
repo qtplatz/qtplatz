@@ -1,20 +1,23 @@
 
-QT_VERSION = 4.8.4
-ACE_VERSION = 6.1.4
-TAO_VERSION = 2.1.4
-BOOST_VERSION = 1_51
-OPENBABEL_VERSION = 4.0.0
+DEPLOYQT = /usr/local/Qt5.1.1/5.1.1/clang_64/bin/macdeployqt
+APATH = /usr/local/Qt5.1.1/5.1.1/clang_64/lib
+EPATH = @executable_path/../Frameworks
+FRAMEWORK = ./qtplatz.app/Contents/Frameworks
+PLUGINS   = ./qtplatz.app/Contents/PlugIns
 
-QTDIR = /usr/local/qt/${QT_VERSION}
-DEST  = /Volumes/qtplatz
+#QT_VERSION = 5.1.1
+#ACE_VERSION = 6.1.4
+#TAO_VERSION = 2.1.4
+#BOOST_VERSION = 1_51
+#OPENBABEL_VERSION = 4.0.0
+
+#QTDIR = /usr/local/qt/${QT_VERSION}
+#DEST  = /Volumes/qtplatz
+
+$(warning $(ACE_ROOT) $(origin ACE_ROOT))
 
 LIBDIR_OPENBABEL = /usr/local/lib
-LIBDIR_ACETAO    = /usr/local/ace+tao/${ACE_VERSION}/lib
-LIBDIR_BOOST     = /usr/local/boost-${BOOST_VERSION}/lib
-
-LIBDIRIN = /usr/local/lib
-LIBDIROUT = /Volumes/qtplatz/qtplatz.app/Contents/PlugIns
-FRAMEWORKS = /Volumes/qtplatz/qtplatz.app/Contents/Frameworks
+LIBDIR_ACETAO    = $(ACE_ROOT)/lib
 
 TAO_LIBS = \
 	libACE \
@@ -25,40 +28,118 @@ TAO_LIBS = \
 	libTAO_AnyTypeCode \
 	libTAO_CodecFactory
 
-BOOST_LIBS = \
-	libboost_serialization \
-	libboost_wserialization \
-	libboost_date_time \
-	libboost_system \
-	libboost_filesystem
-
-OPENBABEL_LIBS = libopenbabel
-
-installer: /Volumes/qtplatz/qtplatz.app
+#OPENBABEL_LIBS = libopenbabel
 
 all:
-	${QTDIR}/bin/macdeployqt ../../../bin/qtplatz.app -verbose=2 -dmg
+	@echo "################################################"
+	@echo "qtplatz mac deployment -- do following procedure"
+	@echo "################################################"
+	@echo "ACE_ROOT is: " $(ACE_ROOT)
+	@echo "LIBDIR_ACETAO is: " $(LIBDIR_ACETAO)
+	@echo "DEPLOYQT is: " $(DEPLOYQT)
+	@echo "make qtplatz.app"
+	@echo "make fix"
+	@echo "make dmg"
+	@echo
 
-/Volumes/qtplatz/qtplatz.app: /Volumes/qtplatz
-	cd ../../../bin; tar cf - ./qtplatz.app | (cd /Volumes/qtplatz; tar xvf -)
-	-mkdir -p ${FRAMEWORKS}
-	for i in ${TAO_LIBS} ; do \
-	  cp -p ${LIBDIR_ACETAO}/$$i.dylib ${FRAMEWORKS}; \
+# all: qtplatz.app
+
+qtplatz.app:
+	cp -rp ../../../bin/qtplatz.app .
+	sh ./thankslasconic.sh ./qtplatz.app/Contents/MacOS/qtplatz
+	${DEPLOYQT} ./qtplatz.app -verbose=2
+
+fix: fix_frameworks fix_platforms fix_accessible fix_imageformats fix_printsupport fix_ace_tao
+
+fix_frameworks:
+	for j in QtCore ; do \
+		install_name_tool -change $(APATH)/$$j.framework/Versions/5/$$j $(EPATH)/$$j.framework/Versions/5/$$j \
+		        $(FRAMEWORK)/QtGui.framework/Versions/5/QtGui ; \
 	done
-	/usr/local/qt/4.8.4/bin/macdeployqt /Volumes/qtplatz/qtplatz.app -verbose=2
+	for j in QtCore QtGui ; do \
+		install_name_tool -change $(APATH)/$$j.framework/Versions/5/$$j $(EPATH)/$$j.framework/Versions/5/$$j \
+		        $(FRAMEWORK)/QtWidgets.framework/Versions/5/QtWidgets ;\
+	done
+	for j in QtCore QtGui QtWidgets ; do \
+		install_name_tool -change $(APATH)/$$j.framework/Versions/5/$$j $(EPATH)/$$j.framework/Versions/5/$$j \
+		        $(FRAMEWORK)/QtPrintSupport.framework/Versions/5/QtPrintSupport ;\
+	done
 
-/Volumes/qtplatz: ./qtplatz.dmg
-	open ./qtplatz.dmg
-	sleep 2
+fix_platforms:
+	for i in libqcocoa.dylib ; do \
+	    for j in QtCore QtGui QtWidgets QtPrintSupport ; do \
+		install_name_tool -change $(APATH)/$$j.framework/Versions/5/$$j $(EPATH)/$$j.framework/Versions/5/$$j \
+		        $(PLUGINS)/platforms/$$i; \
+	    done; \
+	done
 
-qtplatz.dmg:
-	hdiutil create -megabytes 300 -fs HFS+ -volname qtplatz ./qtplatz
+fix_accessible:
+	for i in libqtaccessiblewidgets.dylib ; do \
+	    for j in QtCore QtGui QtWidgets; do \
+		install_name_tool -change $(APATH)/$$j.framework/Versions/5/$$j $(EPATH)/$$j.framework/Versions/5/$$j \
+		        $(PLUGINS)/accessible/$$i; \
+	    done; \
+	done
 
-clean: eject
-	-rm -f ./qtplatz.dmg
+fix_imageformats:
+	for i in libqgif.dylib libqico.dylib libqjpeg.dylib libqmng.dylib libqtga.dylib libqtiff.dylib libqwbmp.dylib ; do \
+	    for j in QtCore QtGui QtWidgets; do \
+		install_name_tool -change $(APATH)/$$j.framework/Versions/5/$$j $(EPATH)/$$j.framework/Versions/5/$$j \
+		        $(PLUGINS)/imageformats/$$i; \
+	    done; \
+	done
 
-eject:
-	-umount /Volumes/qtplatz
+fix_printsupport:
+	for i in libcocoaprintersupport.dylib ; do \
+	    for j in QtCore QtGui QtWidgets QtPrintSupport ; do \
+		install_name_tool -change $(APATH)/$$j.framework/Versions/5/$$j $(EPATH)/$$j.framework/Versions/5/$$j \
+		        $(PLUGINS)/printsupport/$$i; \
+	    done; \
+	done
+
+fix_ace_tao:
+	for i in $(TAO_LIBS) ; do \
+	  cp -p $(ACE_ROOT)/lib/$$i.dylib $(FRAMEWORK); \
+	done
+
+dmg: qtplatz.app
+	hdiutil create qtplatz-`git describe`.dmg -srcfolder ./qtplatz.app
 
 mount:
 	open ./qtplatz.dmg
+
+clean:
+	rm -rf qtplatz.app
+
+otool:
+	otool -L qtplatz.app/Contents/MacOS/qtplatz
+	@echo "-------- QtWidgets ---------"
+	otool -L qtplatz.app/Contents/Frameworks/QtWidgets.framework/Versions/5/QtWidgets
+	@echo "-------- QtGui ---------"
+	otool -L qtplatz.app/Contents/Frameworks/QtGui.framework/Versions/5/QtGui
+	@echo "-------- QtCore ---------"
+	otool -L qtplatz.app/Contents/Frameworks/QtCore.framework/Versions/5/QtCore
+
+# /Volumes/qtplatz/qtplatz.app: /Volumes/qtplatz
+# 	cd ../../../bin; tar cf - ./qtplatz.app | (cd /Volumes/qtplatz; tar xvf -)
+# 	-mkdir -p ${FRAMEWORKS}
+# 	for i in ${TAO_LIBS} ; do \
+# 	  cp -p ${LIBDIR_ACETAO}/$$i.dylib ${FRAMEWORKS}; \
+# 	done
+# 	/usr/local/qt/4.8.4/bin/macdeployqt /Volumes/qtplatz/qtplatz.app -verbose=2
+
+# /Volumes/qtplatz: ./qtplatz.dmg
+# 	open ./qtplatz.dmg
+# 	sleep 2
+
+# qtplatz.dmg:
+# 	hdiutil create -megabytes 300 -fs HFS+ -volname qtplatz ./qtplatz
+
+# clean: eject
+# 	-rm -f ./qtplatz.dmg
+
+# eject:
+# 	-umount /Volumes/qtplatz
+
+# mount:
+# 	open ./qtplatz.dmg
