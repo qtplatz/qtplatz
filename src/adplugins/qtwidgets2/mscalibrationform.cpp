@@ -34,7 +34,7 @@
 #include <adcontrols/tableofelements.hpp>
 #include <adcontrols/element.hpp>
 #include <adportable/configuration.hpp>
-
+#include <adportable/is_type.hpp>
 #include <QStandardItemModel>
 #include "standarditemhelper.hpp"
 #include <boost/format.hpp>
@@ -157,7 +157,8 @@ MSCalibrationForm::OnInitialUpdate()
     pMethod_->references( PFTBA );  // set as default calibration reference
 
     QStandardItem * refItem = 
-        StandardItemHelper::appendRow( rootNode, "Mass References", qVariantFromValue( MSCalibrateDelegate::MSReferences( pMethod_->references().name() ) ) );
+        StandardItemHelper::appendRow( rootNode, "Mass References"
+                                       , qVariantFromValue( MSCalibrateDelegate::MSReferences( pMethod_->references().name() ) ) );
 
     OnMSReferencesUpdated( refItem->index() );
 
@@ -171,42 +172,40 @@ MSCalibrationForm::OnFinalClose()
 }
 
 bool
-MSCalibrationForm::getContents( boost::any& ) const
+MSCalibrationForm::getContents( boost::any& a ) const
 {
-    assert( 0 );
+    if ( adportable::is_type< adcontrols::ProcessMethod >::pointer( a ) ) {
+        adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( a );
+        getContents( *pm );
+        return true;
+    }
     return false;
 }
 
 bool
-MSCalibrationForm::setContents( boost::any& )
+MSCalibrationForm::setContents( boost::any& a )
 {
-    assert( 0 );
+    if ( adportable::is_type< adcontrols::ProcessMethod >::reference( a ) ) {
+        adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( a );
+        if ( const adcontrols::MSCalibrateMethod *p = pm.find< adcontrols::MSCalibrateMethod >() ) {
+            // setContents( *p ); -- todo
+            return true;
+        }
+    }
     return false;
 }
 
 void
-MSCalibrationForm::getContents( adcontrols::ProcessMethod& pm )
+MSCalibrationForm::getContents( adcontrols::ProcessMethod& pm ) const
 {
     QStandardItemModel& model = *pModel_;
-    // QStandardItem * root = model.invisibleRootItem();
 
     pMethod_->polynomialDegree( ui->spinPolynomials->value() );
     pMethod_->massToleranceDa( ui->spinMassTolerance->value() );
     pMethod_->minimumRAPercent( ui->spinMinimumRA->value() );
     pMethod_->lowMass( ui->spinLowMass->value() );
     pMethod_->highMass( ui->spinHighMass->value() );
-    /*
-    QVariant v = model.index( 0, 1, root->index() ).data( Qt::EditRole );
-    pMethod_->polynomialDegree( v.toInt() );
-    v = model.index( 1, 1, root->index() ).data( Qt::EditRole  );
-    pMethod_->massToleranceDa( v.toDouble() );
-    v = model.index( 2, 1, root->index() ).data( Qt::EditRole  );
-    pMethod_->minimumRAPercent( v.toDouble() );
-    v = model.index( 3, 1, root->index() ).data( Qt::EditRole  );
-    pMethod_->lowMass( v.toDouble() );
-    v = model.index( 4, 1, root->index() ).data( Qt::EditRole  );
-    pMethod_->highMass( v.toDouble() );
-    */
+
     adcontrols::MSReferences references;
     
     // QModelIndex index_references = model.index( 5, 0, root->index() ); // QString("Refernces")

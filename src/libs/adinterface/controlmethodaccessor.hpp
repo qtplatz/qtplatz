@@ -28,32 +28,17 @@
 #include <boost/any.hpp>
 #include <adinterface/controlmethodC.h>
 #include <adinterface/controlmethodhelper.hpp>
+#include <adportable/is_type.hpp>
 
 namespace adinterface {
 
     class ControlMethodAccessor {
     public:
         static bool isPointer( boost::any& a ) {
-#if defined __GNUC__ 
-            // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
-            if ( std::strcmp( a.type().name(), typeid( ::ControlMethod::Method * ).name() ) == 0 )
-                return true;
-#else
-            if ( a.type() == typeid( ::ControlMethod::Method * ) )
-                return true;
-#endif
-            return false;
+			return adportable::is_type< ::ControlMethod::Method >::pointer( a );
         }
         static bool isReference( boost::any& a ) {
-#if defined __GNUC__ 
-            // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
-            if ( std::strcmp( a.type().name(), typeid( ::ControlMethod::Method ).name() ) == 0 )
-                return true;
-#else
-            if ( a.type() == typeid( ::ControlMethod::Method ) )
-                return true;
-#endif
-            return false;
+			return adportable::is_type< ::ControlMethod::Method >::reference( a );
         }
 
         static ::ControlMethod::Method * out( boost::any& a ) {

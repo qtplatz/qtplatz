@@ -73,7 +73,7 @@ namespace qtwidgets {
         //<----
 
     public slots:
-        void getContents( adcontrols::ProcessMethod& );
+        void getContents( adcontrols::ProcessMethod& ) const;
         void handleMSReferencesChanged( const QModelIndex& );
         void getLifeCycle( adplugin::LifeCycle*& );
 
@@ -82,7 +82,8 @@ namespace qtwidgets {
 
     private:
         void OnMSReferencesUpdated( const QModelIndex& );
-
+        void update_data( const adcontrols::MSCalibrateMethod& );
+        
     private:
         Ui::MSCalibrationForm *ui;
         std::unique_ptr< QStandardItemModel > pModel_;
