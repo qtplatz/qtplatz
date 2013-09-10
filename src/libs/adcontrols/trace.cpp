@@ -65,7 +65,12 @@ Trace::push_back( size_t npos, double x, double y )
         if ( maxY_ < y )
             maxY_ = y;
         if ( minY_ > y )
-            minY_ = y;	
+            minY_ = y;
+        if ( npos_.size() > upper_limit ) {
+            npos_.erase( npos_.begin(), npos_.begin() + ( upper_limit - lower_limit ) );
+            traceX_.erase( traceX_.begin(), traceX_.begin() + ( upper_limit - lower_limit ) );
+            traceY_.erase( traceY_.begin(), traceY_.begin() + ( upper_limit - lower_limit ) );
+        }
         return true;
     }
     return false;

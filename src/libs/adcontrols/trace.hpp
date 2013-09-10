@@ -36,6 +36,8 @@ namespace adcontrols {
         ~Trace();
         Trace( int fcn = 0 );
         Trace( const Trace& );
+        const static unsigned upper_limit = 2048;
+        const static unsigned lower_limit = 2048 - 512;
 
         void set_fcn( size_t fcn );
         inline int fcn() const { return fcn_; }
