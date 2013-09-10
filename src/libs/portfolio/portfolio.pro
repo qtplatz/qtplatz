@@ -15,6 +15,7 @@ include(../../qtplatzlibrary.pri)
 
 LIBS *= -L$$IDE_LIBRARY_PATH 
 LIBS += -l$$qtLibraryTarget(xmlparser) -l$$qtLibraryTarget(adportable)
+#macx: LIBS += -lc++
 
 win32: LIBS += -lole32
 !win32: LIBS += -lboost_date_time -lboost_system 

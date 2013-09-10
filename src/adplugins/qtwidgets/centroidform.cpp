@@ -26,6 +26,8 @@
 #include "ui_centroidform.h"
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/centroidmethod.hpp>
+#include <adportable/is_type.hpp>
+#include <adportable/debug.hpp>
 #include <QStandardItemModel>
 #include "centroiddelegate.hpp"
 #include "standarditemhelper.hpp"
@@ -65,22 +67,21 @@ CentroidForm::OnFinalClose()
 bool
 CentroidForm::getContents( boost::any& any ) const
 {
-#ifdef _DEBUG
-	std::cout << "any.type: " << any.type().name() << std::endl;
-#endif
-	if ( any.type() != typeid( adcontrols::ProcessMethod* ) )
-		return false;
-	adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
+    if ( ! adportable::is_type< adcontrols::ProcessMethod >::pointer( any ) )
+        return false;
 
-	const_cast< CentroidForm *>(this)->update_data();
+    adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
+    const_cast< CentroidForm *>(this)->update_data();
     pm->appendMethod< adcontrols::CentroidMethod >( *pMethod_ );
+    
     return true;
 }
 
 bool
 CentroidForm::setContents( boost::any& any )
 {
-	if ( any.type() != typeid ( adcontrols::ProcessMethod ) )
+
+    if ( ! adportable::is_type< adcontrols::ProcessMethod >::reference( any ) )
         return false;
 
     const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( any );

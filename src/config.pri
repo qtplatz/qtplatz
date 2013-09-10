@@ -12,12 +12,10 @@ win32 {
     QMAKE_CXXFLAGS *= -std=c++11
 }
 macx {
-    QMAKE_CXXFLAGS *= -std=c++11
-    QMAKE_CXXFLAGS *= -stdlib=libc++
-    QMAKE_CXXFLAGS -= -mmacosx-version-min=10.5
-    QMAKE_CXXFLAGS *= -mmacosx-version-min=10.7
-    QMAKE_LFLAGS   -= -mmacosx-version-min=10.5
-    QMAKE_LFLAGS   *= -mmacosx-version-min=10.7 -stdlib=libc++
+     LIBS += -stdlib=libc++
+     QMAKE_CXXFLAGS *= -std=c++11
+     QMAKE_CXXFLAGS *= -stdlib=libc++
+     QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 }
 *-g++* {
     QMAKE_CXXFLAGS *= -O2

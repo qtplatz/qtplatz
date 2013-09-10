@@ -110,7 +110,7 @@ namespace adportable {
             for ( size_t i = frac.lPos; i <= frac.uPos; ++i )
                 ax += pData[i] - baseH;
 
-            if ( frac.lPos >= 0 ) // if one before data point exist
+            if ( frac.lPos > 0 ) // if one before data point exist
                 ax += ( pData[ frac.lPos - 1 ] ) * frac.lFrac;
 
             if ( frac.uPos < size ) // if following data point exist

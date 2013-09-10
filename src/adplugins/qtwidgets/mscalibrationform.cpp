@@ -34,6 +34,7 @@
 #include <adcontrols/tableofelements.hpp>
 #include <adcontrols/element.hpp>
 #include <adportable/configuration.hpp>
+#include <adportable/is_type.hpp>
 
 #include <QStandardItemModel>
 #include "standarditemhelper.hpp"
@@ -161,7 +162,7 @@ MSCalibrationForm::OnFinalClose()
 bool
 MSCalibrationForm::getContents( boost::any& any ) const
 {
-	if ( any.type() != typeid( adcontrols::ProcessMethod* ) )
+	if ( ! adportable::is_type< adcontrols::ProcessMethod >::pointer( any ) )
 		return false;
 	adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
 	const_cast< MSCalibrationForm * >(this)->getContents( *pm );
@@ -171,7 +172,7 @@ MSCalibrationForm::getContents( boost::any& any ) const
 bool
 MSCalibrationForm::setContents( boost::any& a )
 {
-    if ( a.type() != typeid( adcontrols::ProcessMethod ) )
+	if ( ! adportable::is_type< adcontrols::ProcessMethod >::reference( a ) )
         return false;
     adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >(a);
 	const adcontrols::MSCalibrateMethod *p = pm.find< adcontrols::MSCalibrateMethod >();

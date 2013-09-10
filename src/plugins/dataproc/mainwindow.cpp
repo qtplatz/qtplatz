@@ -42,6 +42,7 @@
 #include <adplugin/widget_factory.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/utf.hpp>
+#include <adportable/debug.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <boost/any.hpp>
 
@@ -370,9 +371,6 @@ MainWindow::createDockWidgets( const adportable::Configuration& config, const st
 			std::string wiid = it.component_interface();
             QWidget * pWidget = adplugin::widget_factory::create( wiid.c_str(), 0, 0 );
             if ( pWidget ) {
-                // query process method
-                connect( this, SIGNAL( signalGetProcessMethod( adcontrols::ProcessMethod& ) )
-                         , pWidget, SLOT( getContents( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
                 createDockWidget( pWidget, qtwrapper::qstring( it.title() ) );
             } else {
 				QMessageBox::critical(0, QLatin1String("dataprocmanager"), it.name().c_str() );
@@ -431,11 +429,11 @@ MainWindow::getProcessMethod( adcontrols::ProcessMethod& pm )
 {
     using adcontrols::ProcessMethod;
 
-	boost::any any( &pm );
+	boost::any any( static_cast< adcontrols::ProcessMethod *>( &pm ) );
     for ( auto widget: dockWidgets() ) {
 		adplugin::LifeCycleAccessor accessor( widget->widget() );
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
-		if ( pLifeCycle )
+        if ( pLifeCycle )
 			pLifeCycle->getContents( any );
     }
 }
@@ -489,8 +487,11 @@ MainWindow::onMethodApply( adcontrols::ProcessMethod& pm )
 void
 MainWindow::actionApply()
 {
+    adportable::debug(__FILE__, __LINE__) << "dataproc::MainWindow::actionApply(" << currentFeature_ << ")";
+
     adcontrols::ProcessMethod m;
     getProcessMethod( m );
+
     size_t n = m.size();
     if ( n > 0 ) {
         Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();

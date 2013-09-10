@@ -173,12 +173,14 @@ MSCalibrationForm::OnFinalClose()
 bool
 MSCalibrationForm::getContents( boost::any& ) const
 {
+    assert( 0 );
     return false;
 }
 
 bool
 MSCalibrationForm::setContents( boost::any& )
 {
+    assert( 0 );
     return false;
 }
 

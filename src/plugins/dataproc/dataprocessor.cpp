@@ -271,6 +271,8 @@ namespace dataproc {
 void
 Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType procType )
 {
+    adportable::debug(__FILE__, __LINE__) << "applyProcess: " << procType;
+
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
     if ( folium ) {
         applyProcess( folium, m, procType );
@@ -494,24 +496,11 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
 	return folium;
 }
 
-#if 0
-SignalObserver::Observer_ptr
-Dataprocessor::observer()
-{
-	adorbmgr::orbmgr * orbmgr = adorbmgr::orbmgr::instance();
-	if ( orbmgr && fileObserver_ ) {
-		CORBA::Object_var obj = orbmgr->root_poa()->servant_to_reference( fileObserver_.get() );
-		return SignalObserver::Observer::_narrow( obj );
-	}
-	return 0;
-}
-#endif
-
 ///////////////////////////
 bool
 Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )
 {
-	//fileObserver_.reset( new datafileObserver_i( data ) );
+    (void)data;
 	return true;
 }
 
