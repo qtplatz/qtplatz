@@ -159,8 +159,8 @@ MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
                 uint32_t mode = model.index( row, c_mode ).data( Qt::EditRole ).toInt();
 				uint32_t fcn = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
 				(void)fcn;
-				adcontrols::MSAssignedMass assigned( -1, indecies_[ row ], wformula, exact_mass, time, mass, true, unsigned( flag ), mode );
-                t << assigned;
+				//adcontrols::MSAssignedMass assigned( -1, indecies_[ row ], wformula, exact_mass, time, mass, true, unsigned( flag ), mode );
+                //t << assigned;
             }
         }
     }    

@@ -87,7 +87,7 @@ namespace qtwidgets2 {
         std::unique_ptr< adcontrols::MSReferences > pReferences_;
         std::unique_ptr< adcontrols::MassSpectrum > pCalibrantSpectrum_;
         bool inProgress_;
-        std::vector< size_t > indecies_;
+        std::vector< std::pair< uint32_t, uint32_t > > indecies_; // fcn, idx
         void getAssignedMasses( adcontrols::MSAssignedMasses& ) const;
     };
 
