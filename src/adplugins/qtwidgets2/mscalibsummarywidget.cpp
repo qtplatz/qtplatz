@@ -119,6 +119,7 @@ MSCalibSummaryWidget::OnFinalClose()
 bool
 MSCalibSummaryWidget::getContents( boost::any& any ) const
 {
+	// colored spectrum for GUI display
     if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( any ) && pCalibrantSpectrum_ ) {
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( any );
         *ptr = *pCalibrantSpectrum_;
@@ -132,6 +133,7 @@ MSCalibSummaryWidget::getContents( boost::any& any ) const
         return true;
     }
 
+	// editted assign table
     if ( adutils::ProcessedData::is_type< std::shared_ptr< adcontrols::MSAssignedMasses > >( any ) ) {
         std::shared_ptr< adcontrols::MSAssignedMasses > ptr
             = boost::any_cast< std::shared_ptr< adcontrols::MSAssignedMasses > >( any );

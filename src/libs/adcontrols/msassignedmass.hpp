@@ -31,57 +31,73 @@
 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/utility.hpp>
 #include <boost/serialization/version.hpp>
 
 #include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
+    typedef std::pair< uint32_t /* fcn */, uint32_t /* idx */ > peak_index_type;
+
     class ADCONTROLSSHARED_EXPORT MSAssignedMass {
     public:
         MSAssignedMass();
         MSAssignedMass( const MSAssignedMass& );
         
-        MSAssignedMass( unsigned int idReferences, unsigned int idMasSpectrum
+        MSAssignedMass( uint32_t idReferences, uint32_t idMasSpectrum
                         , const std::wstring& formula, double exactMass, double time, double mass
-                        , bool enable, unsigned int flags = 0, unsigned int mode = 0 );
+                        , bool enable, uint32_t flags = 0, uint32_t mode = 0 );
+
+        MSAssignedMass( uint32_t idReferences, const peak_index_type& 
+                        , const std::wstring& formula, double exactMass, double time, double mass
+                        , bool enable, uint32_t flags = 0, uint32_t mode = 0 );
+
         const std::wstring& formula() const;
-        unsigned int idReferences() const;
-        unsigned int idMassSpectrum() const;
+        uint32_t idReferences() const;
+        uint32_t idMassSpectrum() const;
+        const peak_index_type& peak_index() const; // peak id on MassSpectrum
         double exactMass() const;
         double time() const;
         double mass() const;
         bool enable() const;
-        unsigned int flags() const;
-        unsigned int mode() const;
+        uint32_t flags() const;
+        uint32_t mode() const;
         void formula( const std::wstring& );
-        void idReferences( unsigned int );
-        void idMassSpectrum( unsigned int );
+        void idReferences( uint32_t );
+        void idMassSpectrum( uint32_t ); // will be deleted
+        void peak_index( const peak_index_type& );
         void exactMass( double );
         void time( double );
         void mass( double );
         void enable( bool );
-        void flags( unsigned int );
-        void mode( unsigned int );
+        void flags( uint32_t );
+        void mode( uint32_t );
  
     private:
         std::wstring formula_;
-        unsigned int idReferences_;
-        unsigned int idMassSpectrum_;
+        uint32_t idReferences_;
+        // uint32_t idMassSpectrum_;
+        peak_index_type peak_index_;
         double exactMass_;
         double time_;
         double mass_;
         bool enable_;  // if false, this peak does not use for polynomial fitting
-        unsigned int flags_;
-        unsigned int mode_; // number of turns for InfiTOF, linear|reflectron for MALDI and/or any analyzer mode
+        uint32_t flags_;
+        uint32_t mode_; // number of turns for InfiTOF, linear|reflectron for MALDI and/or any analyzer mode
 
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
+        void serialize(Archive& ar, const uint32_t version) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP(formula_);
             ar & BOOST_SERIALIZATION_NVP(idReferences_);
-            ar & BOOST_SERIALIZATION_NVP(idMassSpectrum_);
+            if ( version <= 2 ) {
+                peak_index_.first = 0;
+                ar & BOOST_SERIALIZATION_NVP( peak_index_.second );
+            } else {
+                ar & BOOST_SERIALIZATION_NVP( peak_index_ );
+            }
             ar & BOOST_SERIALIZATION_NVP(exactMass_);
             ar & BOOST_SERIALIZATION_NVP(time_);
             ar & BOOST_SERIALIZATION_NVP(mass_);
@@ -115,7 +131,7 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int /*version*/) {
+            void serialize(Archive& ar, const uint32_t /*version*/) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP(vec_);
         }
@@ -124,6 +140,6 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSAssignedMass, 2 )
+BOOST_CLASS_VERSION( adcontrols::MSAssignedMass, 3 )
 
 #endif // MSASSIGNEDMASS_H
