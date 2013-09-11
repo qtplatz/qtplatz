@@ -27,8 +27,9 @@
 
 namespace adportable {
 
-    template<class T> struct is_type {
-        static bool reference( boost::any& a ) {
+    template<class T> struct a_type {
+
+        static bool is_a( boost::any& a ) {
 #if defined __GNUC__ 
             // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
             return std::strcmp( a.type().name(), typeid( T ).name() ) == 0;
@@ -36,16 +37,10 @@ namespace adportable {
             return a.type() == typeid( T );
 #endif
         }
-        static bool pointer( boost::any& a ) {
-#if defined __GNUC__ 
-            return std::strcmp( a.type().name(), typeid( T* ).name() ) == 0;
-#else
-            return a.type() == typeid( T* );
-#endif
-        }
 
-        static bool equal( boost::any& a ) {
-            return reference( a );
+        static bool is_pointer( boost::any& a ) {
+            return a_type< T* >::is_a( a );
         }
     };
+
 }

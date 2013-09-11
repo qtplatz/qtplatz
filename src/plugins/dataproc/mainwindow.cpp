@@ -248,10 +248,10 @@ MainWindow::createContents( Core::IMode * mode
         wnd.push_back( new ElementalCompWnd );
         stack_->addWidget( wnd.back() );
 
-        wnd.push_back( new MSCalibrationWnd( config, apppath ) );
+        wnd.push_back( new MSCalibrationWnd );
         stack_->addWidget( wnd.back() );
 
-        wnd.push_back( new MSCalibSpectraWnd( config, apppath ) );
+        wnd.push_back( new MSCalibSpectraWnd );
         stack_->addWidget( wnd.back() );
 
         wnd.push_back( new ChromatogramWnd( apppath ) );
@@ -436,6 +436,18 @@ MainWindow::getProcessMethod( adcontrols::ProcessMethod& pm )
         if ( pLifeCycle )
 			pLifeCycle->getContents( any );
     }
+}
+
+void
+MainWindow::setProcessMethod( const adcontrols::ProcessMethod& pm )
+{
+	boost::any any( pm );
+	for ( auto widget: dockWidgets() ) {
+		adplugin::LifeCycleAccessor accessor( widget->widget() );
+		adplugin::LifeCycle * pLifeCycle = accessor.get();
+		if ( pLifeCycle )
+			pLifeCycle->setContents( any );
+	}
 }
 
 void

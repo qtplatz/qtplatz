@@ -28,7 +28,6 @@
 #include "constants.hpp"
 #include "sessionmanager.hpp"
 #include "dataprochandler.hpp"
-//#include "datafileobserver_i.hpp"
 #include <adcontrols/datafile.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <extensionsystem/pluginmanager.h>
@@ -63,7 +62,6 @@
 #include <adfs/attributes.hpp>
 #include <boost/filesystem/path.hpp>
 #include <stack>
-#include <qdebug.h>
 
 using namespace dataproc;
 
@@ -187,10 +185,10 @@ Dataprocessor::fetch( portfolio::Folium& folium )
 	if ( folium.empty() ) {
         folium = file().fetch( folium.id(), folium.dataClass() );
 		portfolio::Folio attachs = folium.attachments();
-		for ( portfolio::Folio::iterator it = attachs.begin(); it != attachs.end(); ++it ) {
-			if ( it->empty() )
-				*it = file().fetch( it->id(), it->dataClass() );
-        }
+		for ( auto att: attachs ) {
+			if ( att.empty() )
+				fetch( att ); // recursive call make sure for all blongings load up in memory.
+		}
 	}
 	return true;
 }
@@ -344,8 +342,11 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
         method.appendMethod( *pCalibMethod );
 
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
-        if ( data.type() == typeid( adutils::MassSpectrumPtr ) )
-            addCalibration( * boost::get< adutils::MassSpectrumPtr >( data ), method );
+		if ( adutils::MassSpectrumPtr ptr = boost::get< adutils::MassSpectrumPtr >( data ) ) {
+			if ( ptr->getDescriptions().size() == 0 ) 
+				ptr->addDescription( adcontrols::Description( L"create", folium.name() ) );
+			addCalibration( * boost::get< adutils::MassSpectrumPtr >( data ), method );
+		}
     }
 }
 

@@ -67,7 +67,7 @@ CentroidForm::OnFinalClose()
 bool
 CentroidForm::getContents( boost::any& any ) const
 {
-    if ( ! adportable::is_type< adcontrols::ProcessMethod >::pointer( any ) )
+    if ( ! adportable::a_type< adcontrols::ProcessMethod >::is_pointer( any ) )
         return false;
 
     adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
@@ -81,7 +81,7 @@ bool
 CentroidForm::setContents( boost::any& any )
 {
 
-    if ( ! adportable::is_type< adcontrols::ProcessMethod >::reference( any ) )
+    if ( ! adportable::a_type< adcontrols::ProcessMethod >::is_a( any ) )
         return false;
 
     const adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( any );
