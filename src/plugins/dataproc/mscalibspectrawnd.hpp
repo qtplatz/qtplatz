@@ -48,7 +48,7 @@ namespace dataproc {
     class MSCalibSpectraWnd : public QWidget {
         Q_OBJECT
     public:
-        MSCalibSpectraWnd( const adportable::Configuration&, const std::wstring&, QWidget * parent = 0 );
+        MSCalibSpectraWnd( QWidget * parent = 0 );
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
@@ -64,7 +64,7 @@ namespace dataproc {
         void handleUpdatePeakAssign();
 
     private:
-        void init( const adportable::Configuration&, const std::wstring& );
+        void init();
         void applyAssigned( const adcontrols::MSAssignedMasses&, const portfolio::Folium& );
 
         typedef std::pair< std::shared_ptr< adcontrols::MSCalibrateResult >, std::shared_ptr< adcontrols::MassSpectrum > > result_type;

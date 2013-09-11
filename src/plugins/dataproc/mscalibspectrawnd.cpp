@@ -54,23 +54,16 @@
 
 using namespace dataproc;
 
-MSCalibSpectraWnd::MSCalibSpectraWnd( const adportable::Configuration& c
-                                      , const std::wstring& apppath
-                                      , QWidget * parent ) : QWidget( parent )
+MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
                                                            , wndCalibSummary_( 0 )
                                                            , wndSplitter_( 0 )
 {
-    init( c, apppath );
+    init();
 }
 
 void
-MSCalibSpectraWnd::init( const adportable::Configuration& c, const std::wstring& apppath )
+MSCalibSpectraWnd::init()
 {
-    (void)c;
-    (void)apppath;
-
-    using adportable::Configuration;
-
     Core::MiniSplitter * splitter = new Core::MiniSplitter;  // spectra | table
     if ( splitter ) {
         // spectrum on left
@@ -91,9 +84,7 @@ MSCalibSpectraWnd::init( const adportable::Configuration& c, const std::wstring&
         wndSplitter_->setOrientation( Qt::Vertical );
 
         // summary table
-        const Configuration * pConfig = Configuration::find( c, "MSMCalibSummaryWidget" );
-        if ( pConfig /* && pConfig->isPlugin() */ )
-			wndCalibSummary_ = adplugin::widget_factory::create( pConfig->component_interface().c_str(), 0, 0 );
+		wndCalibSummary_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" );
 
         bool res;
         res = connect( wndCalibSummary_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );
@@ -273,7 +264,7 @@ MSCalibSpectraWnd::handleValueChanged()
                         std::copy( colors, colors + ptr->size(), color_table.begin() );
 
                     using adcontrols::MSAssignedMasses;
-                    
+#if 0                    
                     for ( MSAssignedMasses::vector_type::const_iterator it = assigned->begin(); it != assigned->end(); ++it ) {
                         if ( ! it->formula().empty() )
                             color_table[ it->idMassSpectrum() ] = 1;
@@ -281,6 +272,7 @@ MSCalibSpectraWnd::handleValueChanged()
                             color_table[ it->idMassSpectrum() ] = 0;
                     }
                     ptr->setColorArray( color_table.data() );
+#endif
                 }
             }
             // over write with current selected peak

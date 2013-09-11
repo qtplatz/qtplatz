@@ -27,6 +27,7 @@
 
 #include <boost/any.hpp>
 #include <boost/variant.hpp>
+#include <adportable/is_type.hpp>
 #include <memory>
 
 namespace adcontrols {
@@ -68,11 +69,7 @@ namespace adutils {
         static value_type toVariant( boost::any& );
 
         template<class T> static bool is_type( boost::any& a ) {
-#if defined __GNUC__
-            return std::string( a.type().name() ) == typeid( T ).name();
-#else
-            return a.type() == typeid( T );
-#endif            
+			return adportable::a_type< T >::is_a( a );
         }
 
     private:

@@ -78,28 +78,32 @@ namespace dataproc {
     };
     
     //---------------------------------------------------------
-    template<class Wnd> struct selProcessed : public boost::static_visitor<void> {
+    template<class Wnd> struct selProcessed : public boost::static_visitor<bool> {
         Wnd& wnd_;
         portfolio::Folder& folder_;
         selProcessed( Wnd& wnd, portfolio::Folder& folder ) : wnd_( wnd )
                                                             , folder_( folder ) {
         }
-        template<typename T> void operator ()( T& ) const {
+        template<typename T> bool operator ()( T& ) const {
             adportable::debug(__FILE__, __LINE__) << "Unhandled data: " << typeid(T).name() << " received.";
+			return false;
         }
         
-        void operator () ( adutils::MassSpectrumPtr& ptr ) const {   
+        bool operator () ( adutils::MassSpectrumPtr& ptr ) const {   
             wnd_.idSpectrumFolium( folder_.id() );
             wnd_.draw2( ptr );
+			return true;
         }
         
-        void operator () ( adutils::ChromatogramPtr& ptr ) const {
+        bool operator () ( adutils::ChromatogramPtr& ptr ) const {
             wnd_.idChromatogramFolium( folder_.id() );
             wnd_.draw( ptr );
+			return true;
         }
         
-        void operator () ( adutils::PeakResultPtr& ptr ) const {
+        bool operator () ( adutils::PeakResultPtr& ptr ) const {
             wnd_.draw( ptr );
+			return true;
         }
         
     };
@@ -244,7 +248,15 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
             portfolio::Folio attachments = folium.attachments();
             for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
                 auto contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
-                boost::apply_visitor( selProcessed<MSProcessingWnd>( *this, folder ), contents );
+                if ( boost::apply_visitor( selProcessed<MSProcessingWnd>( *this, folder ), contents ) ) {
+					portfolio::Folio procs = it->attachments();
+					auto fmth = portfolio::Folium::find_first_of<adcontrols::ProcessMethodPtr>( procs.begin(), procs.end() );
+					if ( fmth != procs.end() ) {
+						const adcontrols::ProcessMethod& mth =
+							*boost::any_cast< adcontrols::ProcessMethodPtr >( static_cast<boost::any&>( *fmth ) );
+						MainWindow::instance()->setProcessMethod( mth );
+					}
+				}
             }
         }
     }

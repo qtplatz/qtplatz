@@ -65,18 +65,14 @@ namespace dataproc {
     };
 }
 
-MSCalibrationWnd::MSCalibrationWnd( const adportable::Configuration& c
-                                    , const std::wstring& apppath, QWidget * parent ) : QWidget( parent )
+MSCalibrationWnd::MSCalibrationWnd( QWidget * parent ) : QWidget( parent )
 {
-    init( c, apppath );
+    init();
 }
 
 void
-MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& apppath )
+MSCalibrationWnd::init()
 {
-	(void)apppath;
-    using adportable::Configuration;
-    
     pImpl_.reset( new MSCalibrationWndImpl );
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
@@ -85,12 +81,7 @@ MSCalibrationWnd::init( const adportable::Configuration& c, const std::wstring& 
         splitter->addWidget( pImpl_->processedSpectrum_ );
 
         // summary table
-        const Configuration * pConfig = Configuration::find( c, "MSCalibSummaryWidget" );
-        if ( pConfig /* && pConfig->isPlugin() */)
-            pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( pConfig->component_interface().c_str() );
-
-        if ( ! pImpl_->calibSummaryWidget_ )
-            pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( L"qtwidgets::MSCalibSummaryWidget" );
+        pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" );
 
         bool res;
         res = connect( pImpl_->calibSummaryWidget_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );
@@ -214,7 +205,6 @@ MSCalibrationWnd::handleValueChanged()
             portfolio::Folium& folium = pImpl_->folium_;
             portfolio::Folio attachments = folium.attachments();
             
-
             // calib result
             portfolio::Folio::iterator it
                 = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
@@ -236,7 +226,7 @@ MSCalibrationWnd::handleValueChanged()
                         std::copy( colors, colors + ptr->size(), color_table.begin() );
 
                     using adcontrols::MSAssignedMasses;
-                    
+#if 0                   
                     for ( MSAssignedMasses::vector_type::const_iterator it = assigned->begin(); it != assigned->end(); ++it ) {
                         if ( ! it->formula().empty() )
                             color_table[ it->idMassSpectrum() ] = 1;
@@ -244,7 +234,7 @@ MSCalibrationWnd::handleValueChanged()
                             color_table[ it->idMassSpectrum() ] = 0;
                     }
                     ptr->setColorArray( color_table.data() );
-                    // pImpl_->processedSpectrum_->setData( *ptr, 1 ); 
+#endif
                 }
             }
             // over write with current selected peak

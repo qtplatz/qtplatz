@@ -47,8 +47,8 @@ namespace dataproc {
         Q_OBJECT
         public:
         // explicit MSCalibrationWnd(QWidget *parent = 0);
-        MSCalibrationWnd( const adportable::Configuration& c, const std::wstring& apppath, QWidget * parent = 0 );
-        void init( const adportable::Configuration& c, const std::wstring& apppath );
+        MSCalibrationWnd( QWidget * parent = 0 );
+        void init();
       
     signals:
         void fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );

@@ -63,6 +63,7 @@ namespace dataproc {
         static QToolButton * toolButton( QAction * );
         
         void getProcessMethod( adcontrols::ProcessMethod& );
+		void setProcessMethod( const adcontrols::ProcessMethod& );
         void OnInitialUpdate();
         void OnFinalClose();
 
