@@ -174,7 +174,7 @@ MSCalibrationForm::OnFinalClose()
 bool
 MSCalibrationForm::getContents( boost::any& a ) const
 {
-    if ( adportable::is_type< adcontrols::ProcessMethod >::pointer( a ) ) {
+    if ( adportable::a_type< adcontrols::ProcessMethod >::is_pointer( a ) ) {
         adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( a );
         getContents( *pm );
         return true;
@@ -185,7 +185,7 @@ MSCalibrationForm::getContents( boost::any& a ) const
 bool
 MSCalibrationForm::setContents( boost::any& a )
 {
-    if ( adportable::is_type< adcontrols::ProcessMethod >::reference( a ) ) {
+    if ( adportable::a_type< adcontrols::ProcessMethod >::is_a( a ) ) {
         adcontrols::ProcessMethod& pm = boost::any_cast< adcontrols::ProcessMethod& >( a );
         if ( const adcontrols::MSCalibrateMethod *p = pm.find< adcontrols::MSCalibrateMethod >() ) {
             // setContents( *p ); -- todo

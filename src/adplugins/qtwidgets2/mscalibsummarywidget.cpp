@@ -35,6 +35,7 @@
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adutils/processeddata.hpp>
+#include <adportable/array_wrapper.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <boost/format.hpp>
 #include <QMenu>
@@ -47,7 +48,8 @@ namespace qtwidgets2 {
 
     enum {
         c_formula
-        , c_mode // analyzer mode id, a.k.a. reflectron|linear, or number of turns on InfiTOF
+        , c_fcn  // subspectrum id
+		, c_mode // analyzer mode id, a.k.a. reflectron|linear, or number of turns on InfiTOF
         , c_exact_mass
         , c_time
         , c_mass
@@ -93,6 +95,7 @@ MSCalibSummaryWidget::OnInitialUpdate()
     rootNode->setColumnCount( c_number_of_columns );
     
     model.setHeaderData( c_mode, Qt::Horizontal, QObject::tr( "#turns" ) );
+    model.setHeaderData( c_fcn, Qt::Horizontal, QObject::tr( "fcn" ) );
     model.setHeaderData( c_mass, Qt::Horizontal, QObject::tr( "m/z(calibrated)" ) );
     model.setHeaderData( c_time, Qt::Horizontal, QObject::tr( "time(us)" ) );
     model.setHeaderData( c_intensity, Qt::Horizontal, QObject::tr( "Intensity" ) );
@@ -144,6 +147,7 @@ MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
     QStandardItemModel& model = *pModel_;
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
+
         QString formula = model.data( model.index( row, c_formula ) ).toString();
         std::wstring wformula = qtwrapper::wstring( formula );
         if ( ! formula.isEmpty()  ) {
@@ -152,8 +156,10 @@ MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
                 double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
                 double exact_mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
                 bool flag = model.index( row, c_flags ).data( Qt::EditRole ).toBool();
-                unsigned int mode = model.index( row, c_mode ).data( Qt::EditRole ).toInt();
-                adcontrols::MSAssignedMass assigned( -1, indecies_[ row ], wformula, exact_mass, time, mass, true, unsigned( flag ), mode );
+                uint32_t mode = model.index( row, c_mode ).data( Qt::EditRole ).toInt();
+				uint32_t fcn = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
+				(void)fcn;
+				adcontrols::MSAssignedMass assigned( -1, indecies_[ row ], wformula, exact_mass, time, mass, true, unsigned( flag ), mode );
                 t << assigned;
             }
         }
@@ -183,44 +189,44 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
     if ( ! ms.isCentroid() )
         return;
 
-    const double * intensities = ms.getIntensityArray();
-    const double * times = ms.getTimeArray();
-    const double * masses = ms.getMassArray();
-
-    indecies_.clear();
-    for ( size_t i = 0; i < ms.size(); ++i ) {
-        if ( intensities[i] >= res.threshold() )
-            indecies_.push_back( i ); 
-    }
+	indecies_.clear();
+	for ( size_t fcn = 0; fcn < ms.numSegments(); ++fcn ) {
+		const adcontrols::MassSpectrum& fms = ( fcn == 0 ) ? ms : ms[ fcn - 1 ];
+		adportable::array_wrapper< const double > intens( fms.getIntensityArray(), fms.size() );
+		for ( size_t idx = 0; idx < fms.size(); ++idx )
+			indecies_.push_back( std::make_pair( fcn, idx ) );
+	}
 
     pCalibrantSpectrum_.reset( new adcontrols::MassSpectrum );
     pCalibrantSpectrum_->clone( ms ); // shallow copy
+	pCalibrantSpectrum_->clearSegments();
     pCalibrantSpectrum_->resize( indecies_.size() );
-    const unsigned char * colors = ms.getColorArray();
 
     model.insertRows( 0, indecies_.size() );
     std::vector< unsigned char > color_table( indecies_.size() );
     
     for ( size_t row = 0; row < indecies_.size(); ++row ) {
-        size_t idx = indecies_[ row ]; // peak index on original centroid spectrum (before RA threasholded)
-        model.setData( model.index( row, c_mass ), masses[ idx ] );
-        model.setData( model.index( row, c_time ), times[ idx ] * 1.0e6 ); // s -> us
-        model.setData( model.index( row, c_intensity ), intensities[ idx ] );
+        const std::pair<size_t, size_t>& idx = indecies_[ row ]; // <fcn, idx> pair for original centroid spectrum (before RA threasholded)
+		const adcontrols::MassSpectrum& fms = ( idx.first == 0 ) ? ms : ms[ idx.first - 1 ];
+		model.setData( model.index( row, c_mass ), fms.getMass( idx.second ) );
+        model.setData( model.index( row, c_time ), fms.getTime( idx.second ) * 1.0e6 ); // in microseconds
+		model.setData( model.index( row, c_intensity ), fms.getIntensity( idx.second ) );
 
-        pCalibrantSpectrum_->setMass( row, masses[ idx ] );
-        pCalibrantSpectrum_->setTime( row, times[ idx ] );
-        pCalibrantSpectrum_->setIntensity( row, intensities[ idx ] );
-        if ( colors )
-            color_table[ row ] = colors[ idx ];
+        pCalibrantSpectrum_->setMass( row, fms.getMass( idx.second ) );
+        pCalibrantSpectrum_->setTime( row, fms.getTime( idx.second ) );
+		pCalibrantSpectrum_->setIntensity( row, fms.getIntensity( idx.second ) );
+		int color = fms.getColor( idx.second );
+		color_table[ row ] = color > 0 ? color : 0;
     }
     pCalibrantSpectrum_->setColorArray( color_table.data() );
 
     const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
 
-    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
-        std::vector< size_t >::iterator index
-            = std::lower_bound( indecies_.begin(), indecies_.end(), it->idMassSpectrum() );
-        size_t row = std::distance( indecies_.begin(), index );
+    for ( auto it = assigned.begin(); it != assigned.end(); ++it ) {
+		/*
+        auto index = std::lower_bound( indecies_.begin(), indecies_.end(), it->idMassSpectrum() );
+        
+		size_t row = std::distance( indecies_.begin(), index );
 
         model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );
         model.setData( model.index( row, c_exact_mass ), it->exactMass() );
@@ -228,8 +234,8 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
         model.setData( model.index( row, c_is_enable ), it->enable() );
         model.setData( model.index( row, c_flags ), bool( it->flags() ) );
         model.setData( model.index( row, c_mode ), it->mode() );
+		*/
     }
-
 }
 
 void
