@@ -35,10 +35,10 @@ namespace adinterface {
     class ControlMethodAccessor {
     public:
         static bool isPointer( boost::any& a ) {
-			return adportable::is_type< ::ControlMethod::Method >::pointer( a );
+			return adportable::a_type< ::ControlMethod::Method >::is_pointer( a );
         }
         static bool isReference( boost::any& a ) {
-			return adportable::is_type< ::ControlMethod::Method >::reference( a );
+			return adportable::a_type< ::ControlMethod::Method >::is_a( a );
         }
 
         static ::ControlMethod::Method * out( boost::any& a ) {
