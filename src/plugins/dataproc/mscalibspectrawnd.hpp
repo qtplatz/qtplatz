@@ -58,7 +58,7 @@ namespace dataproc {
         void fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
 
     private slots:
-        void handleSelSummary( size_t );
+        void handleSelSummary( size_t idx, size_t fcn );
         void handleManuallyAssigned();
         void handleValueChanged();
         void handleUpdatePeakAssign();

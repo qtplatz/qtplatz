@@ -734,3 +734,19 @@ segments_helper::max_intensity( const MassSpectrum& ms )
     }
     return y;
 }
+
+void
+segments_helper::set_color( MassSpectrum& ms, size_t fcn, size_t idx, int color )
+{
+    if ( fcn == 0 )
+        return ms.setColor( idx, color );
+    return ms.getSegment( fcn - 1 ).setColor( idx, color );
+}
+
+int
+segments_helper::get_color( const MassSpectrum& ms, size_t fcn, size_t idx )
+{
+    if ( fcn == 0 )
+        return ms.getColor( idx );
+    return ms.getSegment( fcn - 1 ).getColor( idx );
+}

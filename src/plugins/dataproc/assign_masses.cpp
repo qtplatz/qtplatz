@@ -71,7 +71,7 @@ assign_masses::assign_peaks_by_time( adcontrols::MSAssignedMasses& res
 bool
 assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
                            , const adcontrols::MassSpectrum& centroid
-                           , const adcontrols::MSReferences& references, int mode )
+                           , const adcontrols::MSReferences& references, int mode, int fcn )
 {
     using adportable::array_wrapper;
     using adcontrols::MSReferences;
@@ -107,6 +107,7 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
             
             size_t idx = std::distance( intens.begin(), hIt );
             adcontrols::MSAssignedMass assigned( idReference
+				                                 , fcn
                                                  , idx            // idMassSpectrum (index on centroid peak)
                                                  , it->formula()
                                                  , it->exactMass()

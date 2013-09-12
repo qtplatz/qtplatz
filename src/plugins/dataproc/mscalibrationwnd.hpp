@@ -59,7 +59,7 @@ namespace dataproc {
         void handleApplyMethod( const adcontrols::ProcessMethod& );
 
     private slots:
-        void handleSelSummary( size_t );
+        void handleSelSummary( size_t idx, size_t fcn );
         void handleManuallyAssigned();
         void handleValueChanged();
 

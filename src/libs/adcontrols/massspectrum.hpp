@@ -154,6 +154,8 @@ namespace adcontrols {
 
     struct ADCONTROLSSHARED_EXPORT segments_helper {
         static double max_intensity( const MassSpectrum& );
+        static void set_color( MassSpectrum&, size_t fcn, size_t idx, int color );
+        static int  get_color( const MassSpectrum&, size_t fcn, size_t idx );
     };
     
     template<> void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );

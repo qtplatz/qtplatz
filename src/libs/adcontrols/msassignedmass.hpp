@@ -38,25 +38,25 @@
 
 namespace adcontrols {
 
-    typedef std::pair< uint32_t /* fcn */, uint32_t /* idx */ > peak_index_type;
-
     class ADCONTROLSSHARED_EXPORT MSAssignedMass {
     public:
         MSAssignedMass();
         MSAssignedMass( const MSAssignedMass& );
         
-        MSAssignedMass( uint32_t idReferences, uint32_t idMasSpectrum
+        MSAssignedMass( uint32_t idReferences
+                        , uint32_t idMasSpectrum
+                        , uint32_t idPeak
                         , const std::wstring& formula, double exactMass, double time, double mass
                         , bool enable, uint32_t flags = 0, uint32_t mode = 0 );
 
-        MSAssignedMass( uint32_t idReferences, const peak_index_type& 
-                        , const std::wstring& formula, double exactMass, double time, double mass
-                        , bool enable, uint32_t flags = 0, uint32_t mode = 0 );
+        // MSAssignedMass( uint32_t idReferences, const peak_index_type& 
+        //                 , const std::wstring& formula, double exactMass, double time, double mass
+        //                 , bool enable, uint32_t flags = 0, uint32_t mode = 0 );
 
         const std::wstring& formula() const;
         uint32_t idReferences() const;
-        uint32_t idMassSpectrum() const;
-        const peak_index_type& peak_index() const; // peak id on MassSpectrum
+        uint32_t idMassSpectrum() const; // fcn
+        uint32_t idPeak() const;  // index on MassSpectrum
         double exactMass() const;
         double time() const;
         double mass() const;
@@ -65,8 +65,8 @@ namespace adcontrols {
         uint32_t mode() const;
         void formula( const std::wstring& );
         void idReferences( uint32_t );
-        void idMassSpectrum( uint32_t ); // will be deleted
-        void peak_index( const peak_index_type& );
+        void idMassSpectrum( uint32_t );
+        void idPeak( uint32_t );
         void exactMass( double );
         void time( double );
         void mass( double );
@@ -77,8 +77,8 @@ namespace adcontrols {
     private:
         std::wstring formula_;
         uint32_t idReferences_;
-        // uint32_t idMassSpectrum_;
-        peak_index_type peak_index_;
+        uint32_t idMassSpectrum_;
+        uint32_t idPeak_;
         double exactMass_;
         double time_;
         double mass_;
@@ -89,23 +89,19 @@ namespace adcontrols {
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const uint32_t version) {
+            if ( version < 3 )
+                return;
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP(formula_);
-            ar & BOOST_SERIALIZATION_NVP(idReferences_);
-            if ( version <= 2 ) {
-                peak_index_.first = 0;
-                ar & BOOST_SERIALIZATION_NVP( peak_index_.second );
-            } else {
-                ar & BOOST_SERIALIZATION_NVP( peak_index_ );
-            }
-            ar & BOOST_SERIALIZATION_NVP(exactMass_);
-            ar & BOOST_SERIALIZATION_NVP(time_);
-            ar & BOOST_SERIALIZATION_NVP(mass_);
-            ar & BOOST_SERIALIZATION_NVP(enable_);
-            if ( version >= 1 )
-                ar & BOOST_SERIALIZATION_NVP( flags_ );
-            if ( version >= 2 )
-                ar & BOOST_SERIALIZATION_NVP( mode_ );
+            ar & BOOST_SERIALIZATION_NVP( formula_);
+            ar & BOOST_SERIALIZATION_NVP( idReferences_);
+            ar & BOOST_SERIALIZATION_NVP( idMassSpectrum_);
+            ar & BOOST_SERIALIZATION_NVP( idPeak_);
+            ar & BOOST_SERIALIZATION_NVP( exactMass_);
+            ar & BOOST_SERIALIZATION_NVP( time_);
+            ar & BOOST_SERIALIZATION_NVP( mass_);
+            ar & BOOST_SERIALIZATION_NVP( enable_);
+            ar & BOOST_SERIALIZATION_NVP( flags_ );
+            ar & BOOST_SERIALIZATION_NVP( mode_ );
         }
 
     };

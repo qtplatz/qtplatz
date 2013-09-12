@@ -54,6 +54,7 @@ namespace qtwidgets {
         , c_mass_error_mDa
         , c_is_enable
         , c_flags
+		, c_fcn
         , c_number_of_columns
     };
 }
@@ -156,7 +157,9 @@ MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
                 double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
                 double exact_mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
                 bool flag = model.index( row, c_flags ).data( Qt::EditRole ).toBool();
-                adcontrols::MSAssignedMass assigned( -1, indecies_[ row ], wformula, exact_mass, time, mass, true, unsigned( flag ) );
+				uint32_t fcn = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
+
+                adcontrols::MSAssignedMass assigned( -1, 0, indecies_[ row ], wformula, exact_mass, time, mass, true, unsigned( flag ) );
                 t << assigned;
             }
         }

@@ -84,7 +84,7 @@ MSCalibrationWnd::init()
         pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" );
 
         bool res;
-        res = connect( pImpl_->calibSummaryWidget_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );
+        res = connect( pImpl_->calibSummaryWidget_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( handleSelSummary( size_t, size_t ) ) );
         assert(res);
 
         res = connect( pImpl_->calibSummaryWidget_, SIGNAL( applyTriggered() ), this, SLOT( handleManuallyAssigned() ) );
@@ -167,9 +167,10 @@ MSCalibrationWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 }
 
 void
-MSCalibrationWnd::handleSelSummary( size_t idx )
+MSCalibrationWnd::handleSelSummary( size_t idx, size_t fcn )
 {
-    (void)idx;
+	(void)idx; (void)fcn;
+
     adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {

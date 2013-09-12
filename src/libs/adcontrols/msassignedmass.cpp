@@ -31,7 +31,8 @@
 using namespace adcontrols;
 
 MSAssignedMass::MSAssignedMass() : idReferences_(-1)
-                                 , peak_index_( peak_index_type( -1, -1 ) ) 
+                                 , idMassSpectrum_(0)
+								 , idPeak_(-1)
                                  , exactMass_( 0 ) 
                                  , time_( 0 )
                                  , mass_( 0 )  
@@ -43,7 +44,8 @@ MSAssignedMass::MSAssignedMass() : idReferences_(-1)
 
 MSAssignedMass::MSAssignedMass( const MSAssignedMass& t ) : formula_( t.formula_ )
                                                           , idReferences_( t.idReferences_ )
-                                                          , peak_index_( t.peak_index_ )
+                                                          , idMassSpectrum_( t.idMassSpectrum_ )
+														  , idPeak_( t.idPeak_ )
                                                           , exactMass_( t.exactMass_ )
                                                           , time_( t.time_ )
                                                           , mass_( t.mass_ )   
@@ -53,17 +55,19 @@ MSAssignedMass::MSAssignedMass( const MSAssignedMass& t ) : formula_( t.formula_
 {
 }
 
-MSAssignedMass::MSAssignedMass( unsigned int idReferences
-                                , unsigned int idMassSpectrum
+MSAssignedMass::MSAssignedMass( uint32_t idReferences
+                                , uint32_t idMassSpectrum
+								, uint32_t idPeak
                                 , const std::wstring& formula
                                 , double exactMass
                                 , double time
                                 , double mass
                                 , bool enable
-                                , unsigned int flags
-                                , unsigned int mode ) : formula_( formula )
+                                , uint32_t flags
+                                , uint32_t mode ) : formula_( formula )
                                                         , idReferences_( idReferences )
-                                                        , peak_index_( peak_index_type( 0, idMassSpectrum ) )
+                                                        , idMassSpectrum_( idMassSpectrum )
+														, idPeak_( idPeak )
                                                         , exactMass_( exactMass )
                                                         , time_( time )   
                                                         , mass_( mass )
@@ -73,61 +77,40 @@ MSAssignedMass::MSAssignedMass( unsigned int idReferences
 {
 }
 
-MSAssignedMass::MSAssignedMass( unsigned int idReferences
-                                , const peak_index_type& idx
-                                , const std::wstring& formula
-                                , double exactMass
-                                , double time
-                                , double mass
-                                , bool enable
-                                , unsigned int flags
-                                , unsigned int mode ) : formula_( formula )
-                                                      , idReferences_( idReferences )
-                                                      , peak_index_( idx )
-                                                      , exactMass_( exactMass )
-                                                      , time_( time )   
-                                                      , mass_( mass )
-                                                      , enable_( enable ) 
-                                                      , flags_( flags )
-                                                      , mode_( mode )
-{
-}
-
-unsigned int
+uint32_t
 MSAssignedMass::idReferences() const
 {
     return idReferences_;
 }
 
 void
-MSAssignedMass::idReferences( unsigned int value )
+MSAssignedMass::idReferences( uint32_t value )
 {
     idReferences_ = value;
 }
 
-unsigned int
+uint32_t
 MSAssignedMass::idMassSpectrum() const
 {
-    return peak_index_.second;
+    return idMassSpectrum_;
 }
 
 void
-MSAssignedMass::idMassSpectrum( unsigned int value )
+MSAssignedMass::idMassSpectrum( uint32_t value )
 {
-	peak_index_.second = value;
-	peak_index_.first = 0; // fcn
+	idMassSpectrum_ = value;
 }
 
-const peak_index_type&
-MSAssignedMass::peak_index() const
+uint32_t
+MSAssignedMass::idPeak() const
 {
-    return peak_index_;
+    return idPeak_;
 }
 
 void
-MSAssignedMass::peak_index( const peak_index_type& idx )
+MSAssignedMass::idPeak( uint32_t value )
 {
-    peak_index_ = idx;
+	idPeak_ = value;
 }
 
 double
@@ -178,26 +161,26 @@ MSAssignedMass::enable( bool value )
     enable_ = value;
 }
 
-unsigned int
+uint32_t
 MSAssignedMass::flags() const
 {
     return flags_;
 }
 
-unsigned int
+uint32_t
 MSAssignedMass::mode() const
 {
     return mode_;
 }
 
 void
-MSAssignedMass::flags( unsigned int value )
+MSAssignedMass::flags( uint32_t value )
 {
     flags_ = value;
 }
 
 void
-MSAssignedMass::mode( unsigned int value )
+MSAssignedMass::mode( uint32_t value )
 {
     mode_ = value;
 }

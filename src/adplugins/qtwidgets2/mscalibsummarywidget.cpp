@@ -124,17 +124,16 @@ MSCalibSummaryWidget::getContents( boost::any& any ) const
 	// colored spectrum for GUI display
     if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( any ) && pCalibrantSpectrum_ ) {
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( any );
-        *ptr = *pCalibrantSpectrum_;
-/*
+        *ptr = *pCalibrantSpectrum_; // deep copy
+
         QStandardItemModel& model = *pModel_;
-        for ( int row = 0; row < model.rowCount(); ++row ) {
-            QString formula = model.data( model.index( row, c_formula ) ).toString();
-            ptr->setColor( row, formula.isEmpty() ? 0 : 1 );
-        }
-        ptr->setColor(currentIndex().row(), 2 );
-		*/
+        size_t row = currentIndex().row();
+        if ( row  < indecies_.size() )
+            adcontrols::segments_helper::set_color( *ptr, indecies_[ row ].first, indecies_[ row ].second, 2 );
+
         return true;
     }
+
 	// editted assign table
     if ( adutils::ProcessedData::is_type< std::shared_ptr< adcontrols::MSAssignedMasses > >( any ) ) {
         std::shared_ptr< adcontrols::MSAssignedMasses > ptr
@@ -200,20 +199,12 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 	for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
 		adcontrols::MassSpectrum& fms = segments[ fcn ];
 		for ( size_t idx = 0; idx < fms.size(); ++idx ) {
-			double mass = fms.getMass( idx );
-			double mass0 = pCalibrantSpectrum_->getMass( 0 );
-			double mass1 = ms.getMass( 0 );
-			const adcontrols::MassSpectrum * p0 = pCalibrantSpectrum_.get();
-			const adcontrols::MassSpectrum * p1 = &fms;
-			if ( fms.getIntensity( idx ) > res.threshold() ) {
-				indecies_.push_back( adcontrols::peak_index_type( fcn, idx ) );
-                fms.setColor( idx, 6 ); // dark red
-            }
+			if ( fms.getColor( idx ) >= 1 )
+				indecies_.push_back( std::make_pair( fcn, idx ) );
 		}
 	}
 
     model.insertRows( 0, indecies_.size() );
-
     size_t row = 0;
     for ( auto idx: indecies_ ) {
         adcontrols::MassSpectrum& frag = segments[ idx.first ];
@@ -226,8 +217,8 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
     }
 
     for ( auto assigned: res.assignedMasses() ) { // it = assigned.begin(); it != assigned.end(); ++it ) {
-        const adcontrols::peak_index_type& index = assigned.peak_index();
-		auto rowIt = std::find_if( indecies_.begin(), indecies_.end(), [=]( const adcontrols::peak_index_type& a ){ return a == index; } );
+		auto rowIt = std::find_if( indecies_.begin(), indecies_.end(), [=]( const std::pair< uint32_t, uint32_t >& index ){ 
+			return index.first == assigned.idMassSpectrum() && index.second == assigned.idPeak(); } );
         if ( rowIt != indecies_.end() ) {
             size_t row = std::distance( indecies_.begin(), rowIt );
 			model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( assigned.formula() ) );
@@ -329,7 +320,10 @@ MSCalibSummaryWidget::currentChanged( const QModelIndex& index, const QModelInde
 {
     (void)prev;
     scrollTo( index, QAbstractItemView::EnsureVisible );
-    emit currentChanged( index.row() );
+	size_t row = index.row();
+	if ( row < indecies_.size() ) {
+		emit currentChanged( indecies_[ row ].second, indecies_[ row ].first );
+    }
 }
 
 void

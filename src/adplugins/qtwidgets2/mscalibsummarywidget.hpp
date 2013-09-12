@@ -64,7 +64,7 @@ namespace qtwidgets2 {
 
     signals:
         void valueChanged();
-        void currentChanged( size_t row );
+        void currentChanged( size_t idx, size_t fcn );
         void applyTriggered();
         void applyPeakAssign();
 

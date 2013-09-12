@@ -87,7 +87,7 @@ MSCalibSpectraWnd::init()
 		wndCalibSummary_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" );
 
         bool res;
-        res = connect( wndCalibSummary_, SIGNAL( currentChanged( size_t ) ), this, SLOT( handleSelSummary( size_t ) ) );
+        res = connect( wndCalibSummary_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( handleSelSummary( size_t, size_t ) ) );
         // assert( res );
         res = connect( wndCalibSummary_, SIGNAL( applyTriggered() ), this, SLOT( handleManuallyAssigned() ) );
         assert( res );
@@ -180,7 +180,7 @@ MSCalibSpectraWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 
 //
 void 
-MSCalibSpectraWnd::handleSelSummary( size_t idx )
+MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
 {
     adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
     adplugin::LifeCycle * p = accessor.get();
@@ -190,8 +190,9 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx )
         p->getContents( any );
         wndSpectra_[ 0 ]->setData( *ptr );
 
-        double t = ptr->getTime( idx );
-        adportable::debug(__FILE__, __LINE__) << "handleSelSummary(" << idx << ") t=" << t;
+		adcontrols::sequence_wrapper<> segms( *ptr );
+        
+		double t = segms[ fcn ].getTime( idx );
 
         size_t nid = 0;
         for ( adutils::MassSpectrumPtr p: spectra_ ) {

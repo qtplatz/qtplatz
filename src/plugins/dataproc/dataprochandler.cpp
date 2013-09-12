@@ -192,7 +192,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     res.calibration( centroid.calibration() );
     res.references( m.references() );
     double tolerance = m.massToleranceDa();
-    double threshold = adcontrols::segments_helper::max_intensity( *centroid ) * m.minimumRAPercent() / 100;
+    double threshold = adcontrols::segments_helper::max_intensity( centroid ) * m.minimumRAPercent() / 100;
     res.tolerance( tolerance );
     res.threshold( threshold );
 
@@ -201,7 +201,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 
     adcontrols::MSAssignedMasses assignedMasses;
     
-    assigner( assignedMasses, centroid, res.references(), 0 );
+    assigner( assignedMasses, centroid, res.references(), 0, 0 );
 
     calibrate_masses calibrator;//( centroid );
     // mass_calibrator calibrator( centroid );
@@ -255,7 +255,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     // continue auto-assign
     assign_masses assign( tolerance, threshold );
     adcontrols::MSAssignedMasses assignedMasses;
-    assign( assignedMasses, centroid, m.references(), mode );
+    assign( assignedMasses, centroid, m.references(), mode, 0 );
 
     // populate manually assigned peaks
     for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
