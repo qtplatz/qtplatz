@@ -69,8 +69,9 @@ assign_masses::assign_peaks_by_time( adcontrols::MSAssignedMasses& res
 */
 
 bool
-assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses, const adcontrols::MassSpectrum& centroid
-                         , const adcontrols::MSReferences& references, int mode )
+assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
+                           , const adcontrols::MassSpectrum& centroid
+                           , const adcontrols::MSReferences& references, int mode )
 {
     using adportable::array_wrapper;
     using adcontrols::MSReferences;

@@ -43,6 +43,7 @@
 #include <qapplication.h>
 #include <qclipboard.h>
 #include <QKeyEvent>
+#include <algorithm>
 
 namespace qtwidgets2 {
 
@@ -70,6 +71,7 @@ MSCalibSummaryWidget::~MSCalibSummaryWidget()
 MSCalibSummaryWidget::MSCalibSummaryWidget(QWidget *parent) : QTableView(parent)
                                                             , pModel_( new QStandardItemModel )
                                                             , pDelegate_( new MSCalibSummaryDelegate ) 
+                                                            , pCalibrantSpectrum_( new adcontrols::MassSpectrum )
                                                             , inProgress_( false )
 {
     this->setModel( pModel_.get() );
@@ -123,16 +125,16 @@ MSCalibSummaryWidget::getContents( boost::any& any ) const
     if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( any ) && pCalibrantSpectrum_ ) {
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( any );
         *ptr = *pCalibrantSpectrum_;
-
+/*
         QStandardItemModel& model = *pModel_;
         for ( int row = 0; row < model.rowCount(); ++row ) {
             QString formula = model.data( model.index( row, c_formula ) ).toString();
             ptr->setColor( row, formula.isEmpty() ? 0 : 1 );
         }
         ptr->setColor(currentIndex().row(), 2 );
+		*/
         return true;
     }
-
 	// editted assign table
     if ( adutils::ProcessedData::is_type< std::shared_ptr< adcontrols::MSAssignedMasses > >( any ) ) {
         std::shared_ptr< adcontrols::MSAssignedMasses > ptr
@@ -192,51 +194,49 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
         return;
 
 	indecies_.clear();
-	for ( size_t fcn = 0; fcn < ms.numSegments(); ++fcn ) {
-		const adcontrols::MassSpectrum& fms = ( fcn == 0 ) ? ms : ms[ fcn - 1 ];
-		adportable::array_wrapper< const double > intens( fms.getIntensityArray(), fms.size() );
-		for ( size_t idx = 0; idx < fms.size(); ++idx )
-			indecies_.push_back( std::make_pair( fcn, idx ) );
+    *pCalibrantSpectrum_ = ms;
+
+    adcontrols::sequence_wrapper< adcontrols::MassSpectrum > segments( *pCalibrantSpectrum_ );
+	for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
+		adcontrols::MassSpectrum& fms = segments[ fcn ];
+		for ( size_t idx = 0; idx < fms.size(); ++idx ) {
+			double mass = fms.getMass( idx );
+			double mass0 = pCalibrantSpectrum_->getMass( 0 );
+			double mass1 = ms.getMass( 0 );
+			const adcontrols::MassSpectrum * p0 = pCalibrantSpectrum_.get();
+			const adcontrols::MassSpectrum * p1 = &fms;
+			if ( fms.getIntensity( idx ) > res.threshold() ) {
+				indecies_.push_back( adcontrols::peak_index_type( fcn, idx ) );
+                fms.setColor( idx, 6 ); // dark red
+            }
+		}
 	}
 
-    pCalibrantSpectrum_.reset( new adcontrols::MassSpectrum );
-    pCalibrantSpectrum_->clone( ms ); // shallow copy
-	pCalibrantSpectrum_->clearSegments();
-    pCalibrantSpectrum_->resize( indecies_.size() );
-
     model.insertRows( 0, indecies_.size() );
-    std::vector< unsigned char > color_table( indecies_.size() );
-    
-    for ( size_t row = 0; row < indecies_.size(); ++row ) {
-        const std::pair<size_t, size_t>& idx = indecies_[ row ]; // <fcn, idx> pair for original centroid spectrum (before RA threasholded)
-		const adcontrols::MassSpectrum& fms = ( idx.first == 0 ) ? ms : ms[ idx.first - 1 ];
-		model.setData( model.index( row, c_mass ), fms.getMass( idx.second ) );
-        model.setData( model.index( row, c_time ), fms.getTime( idx.second ) * 1.0e6 ); // in microseconds
-		model.setData( model.index( row, c_intensity ), fms.getIntensity( idx.second ) );
 
-        pCalibrantSpectrum_->setMass( row, fms.getMass( idx.second ) );
-        pCalibrantSpectrum_->setTime( row, fms.getTime( idx.second ) );
-		pCalibrantSpectrum_->setIntensity( row, fms.getIntensity( idx.second ) );
-		int color = fms.getColor( idx.second );
-		color_table[ row ] = color > 0 ? color : 0;
+    size_t row = 0;
+    for ( auto idx: indecies_ ) {
+        adcontrols::MassSpectrum& frag = segments[ idx.first ];
+		model.setData( model.index( row, c_fcn ), idx.first );
+		model.setData( model.index( row, c_mode ), idx.second ); // nTurns, todo -- get that information from spectrum
+		model.setData( model.index( row, c_mass ), frag.getMass( idx.second ) );
+        model.setData( model.index( row, c_time ), frag.getTime( idx.second ) * 1.0e6 ); // in microseconds
+		model.setData( model.index( row, c_intensity ), frag.getIntensity( idx.second ) );
+		++row;
     }
-    pCalibrantSpectrum_->setColorArray( color_table.data() );
 
-    const adcontrols::MSAssignedMasses& assigned = res.assignedMasses();
-
-    for ( auto it = assigned.begin(); it != assigned.end(); ++it ) {
-		/*
-        auto index = std::lower_bound( indecies_.begin(), indecies_.end(), it->idMassSpectrum() );
-        
-		size_t row = std::distance( indecies_.begin(), index );
-
-        model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );
-        model.setData( model.index( row, c_exact_mass ), it->exactMass() );
-        model.setData( model.index( row, c_mass_error_mDa ), ( it->mass() - it->exactMass() ) * 1000 ); // mDa
-        model.setData( model.index( row, c_is_enable ), it->enable() );
-        model.setData( model.index( row, c_flags ), bool( it->flags() ) );
-        model.setData( model.index( row, c_mode ), it->mode() );
-		*/
+    for ( auto assigned: res.assignedMasses() ) { // it = assigned.begin(); it != assigned.end(); ++it ) {
+        const adcontrols::peak_index_type& index = assigned.peak_index();
+		auto rowIt = std::find_if( indecies_.begin(), indecies_.end(), [=]( const adcontrols::peak_index_type& a ){ return a == index; } );
+        if ( rowIt != indecies_.end() ) {
+            size_t row = std::distance( indecies_.begin(), rowIt );
+			model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( assigned.formula() ) );
+            model.setData( model.index( row, c_exact_mass ), assigned.exactMass() );
+            model.setData( model.index( row, c_mass_error_mDa ), ( assigned.mass() - assigned.exactMass() ) * 1000 ); // mDa
+            model.setData( model.index( row, c_is_enable ), assigned.enable() );
+            model.setData( model.index( row, c_flags ), bool( assigned.flags() ) );
+            model.setData( model.index( row, c_mode ), assigned.mode() );
+        }
     }
 }
 

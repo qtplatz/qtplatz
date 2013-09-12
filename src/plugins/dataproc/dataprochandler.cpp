@@ -192,13 +192,15 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     res.calibration( centroid.calibration() );
     res.references( m.references() );
     double tolerance = m.massToleranceDa();
-    double threshold = centroid.getMaxIntensity() * m.minimumRAPercent() / 100;
+    double threshold = adcontrols::segments_helper::max_intensity( *centroid ) * m.minimumRAPercent() / 100;
     res.tolerance( tolerance );
     res.threshold( threshold );
 
     // mass_assign mass_assign( tolerance, threshold );
     assign_masses assigner( tolerance, threshold );
+
     adcontrols::MSAssignedMasses assignedMasses;
+    
     assigner( assignedMasses, centroid, res.references(), 0 );
 
     calibrate_masses calibrator;//( centroid );

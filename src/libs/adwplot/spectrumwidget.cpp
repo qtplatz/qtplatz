@@ -45,21 +45,21 @@ namespace adwplot {
     namespace spectrumwidget {
 
         static Qt::GlobalColor color_table[] = {
-            Qt::blue,
-            Qt::red,
-            Qt::green,
-            Qt::cyan,
-            Qt::magenta,
-            Qt::yellow,
-            Qt::darkRed,
-            Qt::darkGreen,
-            Qt::darkBlue,
-            Qt::darkCyan,
-            Qt::darkMagenta,
-            Qt::darkYellow,
-            Qt::darkGray,
-            Qt::gray,
-            Qt::lightGray,
+            Qt::blue,          // 0
+            Qt::red,           // 1
+            Qt::green,         // 2
+            Qt::cyan,          // 3
+            Qt::magenta,       // 4
+            Qt::yellow,        // 5
+            Qt::darkRed,       // 6
+            Qt::darkGreen,     // 7
+            Qt::darkBlue,      // 8
+            Qt::darkCyan,      // 9
+            Qt::darkMagenta,   // 10
+            Qt::darkYellow,    // 11
+            Qt::darkGray,      // 12
+            Qt::gray,          // 13
+            Qt::lightGray,     // 14
         };
 
         struct SeriesDataImpl {
@@ -429,14 +429,17 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
     }
 
     std::sort( peaks.begin(), peaks.end(), []( const peak& a, const peak& b ){
-            return std::get<c_intensity>(a) > std::get<c_intensity>(b); // intensity
+            if ( std::get<c_color>(a) == std::get<c_color>(b) )
+                return std::get<c_intensity>(a) > std::get<c_intensity>(b); // intensity
+            return std::get<c_color>(a) > std::get<c_color>(b); 
         });
 
 	annotations_.clear();
     Annotations annots(plot, annotations_);
     size_t n = 0;
     for ( auto peak: peaks ) {
-		if ( ( std::get<c_color>( peak ) >= 1 ) || ( ++n <= 20 ) ) {
+		// if ( ( std::get<c_color>( peak ) >= 1 ) || ( ++n <= 20 ) ) {
+        if ( ++n <= 20 ) {
 			std::wstring label = ( boost::wformat( L"%.4lf" ) % std::get<c_mass>( peak ) ).str();
 			Annotation anno = annots.add( std::get<c_mass>(peak), std::get<c_intensity>(peak), label );
 			anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );

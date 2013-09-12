@@ -58,6 +58,7 @@
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adorbmgr/orbmgr.hpp>
+#include <adportable/array_wrapper.hpp>
 #include <adfs/file.hpp>
 #include <adfs/attributes.hpp>
 #include <boost/filesystem/path.hpp>
@@ -580,10 +581,23 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
     adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
 
     Folium::vector_type atts = folium.attachments();
-    Folium::vector_type::iterator it = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
-    if ( it != atts.end() ) {
-        adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>( *it ) );
+	auto att = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
+    if ( att != atts.end() ) {
+        adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>( *att ) );
         if ( pCentroid ) {
+			adcontrols::sequence_wrapper<> segs( *pCentroid );
+
+			double y = adcontrols::segments_helper::max_intensity( *pCentroid );
+			double y_threshold = y * m.minimumRAPercent() / 100.0;
+
+			// threshold filter
+			for ( size_t fcn = 0; fcn < segs.size(); ++fcn ) {
+				adcontrols::MassSpectrum& fms = segs[ fcn ];
+				for ( size_t i = 0; i < fms.size(); ++i )
+					if ( fms.getIntensity( i ) > y_threshold )
+                        fms.setColor( i, 6 ); // dark red (hard code in adwplot/spectrumwidget
+			}
+
             adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
             if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m ) ) {
                 portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );

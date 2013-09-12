@@ -440,9 +440,11 @@ MassSpectrum::getAcquisitionMassRange() const
 double
 MassSpectrum::getMinIntensity() const
 {
-	adportable::array_wrapper<const double> y( pImpl_->getIntensityArray(), size() );
-    if ( y )
-        return *std::min_element( y.begin(), y.end() );
+    if ( ! isCentroid() ) {
+        adportable::array_wrapper<const double> y( pImpl_->getIntensityArray(), size() );
+        if ( y )
+            return *std::min_element( y.begin(), y.end() );
+    }
     return 0;
 }
 
@@ -718,4 +720,17 @@ MS_POLARITY
 MassSpectrumImpl::polarity() const
 {
     return polarity_;
+}
+
+////////////
+double
+segments_helper::max_intensity( const MassSpectrum& ms )
+{
+    double y = ms.getMaxIntensity();
+    for ( size_t i = 0; i < ms.numSegments(); ++i ) {
+        double t = ms.getSegment( i ).getMaxIntensity();
+        if ( y < t )
+            y = t;
+    }
+    return y;
 }
