@@ -75,39 +75,39 @@ MSProperty::time( size_t pos ) // return flight time for data[pos] in seconds
     return double( instSamplingStartDelay_ + pos ) * instSamplingInterval_ * 1.0e12;  // ps -> s
 }
 
-unsigned long
+uint32_t
 MSProperty::instSamplingInterval() const
 {
     return instSamplingInterval_;
 }
 
 void
-MSProperty::setInstSamplingInterval( unsigned long value )
+MSProperty::setInstSamplingInterval( uint32_t value )
 {
    instSamplingInterval_ = value;
 }
 
-unsigned long
+uint32_t
 MSProperty::instSamplingStartDelay() const
 {
     return instSamplingStartDelay_;
 }
 
 void
-MSProperty::setInstSamplingStartDelay( unsigned long value )
+MSProperty::setInstSamplingStartDelay( uint32_t value )
 {
     instSamplingStartDelay_ = value;
 }
 
 
-unsigned long
+uint32_t
 MSProperty::timeSinceInjection() const
 {
     return time_since_injection_;
 }
 
 void
-MSProperty::setTimeSinceInjection( unsigned long value )
+MSProperty::setTimeSinceInjection( uint32_t value )
 {
     time_since_injection_ = value;
 }
@@ -143,13 +143,15 @@ MSProperty::addSamplingInfo( const SamplingInfo& item )
 }
 
 
-MSProperty::SamplingInfo::SamplingInfo( unsigned long interval
-                                       , unsigned long ndelay
-                                       , unsigned long nsamples
-                                       , unsigned long navgr ) : sampInterval( interval )
-                                                               , nSamplingDelay( ndelay )
-                                                               , nSamples( nsamples )  
-                                                               , nAverage( navgr )
+MSProperty::SamplingInfo::SamplingInfo( uint32_t interval
+                                        , uint32_t ndelay
+                                        , uint32_t nsamples
+                                        , uint32_t navgr
+                                        , uint32_t _mode) : sampInterval( interval )
+                                                          , nSamplingDelay( ndelay )
+                                                          , nSamples( nsamples )  
+                                                          , nAverage( navgr )
+                                                          , mode( _mode )
 {
 }
  
@@ -157,6 +159,7 @@ MSProperty::SamplingInfo::SamplingInfo() : sampInterval( 0 )
                                          , nSamplingDelay( 0 )
                                          , nSamples( 0 )
                                          , nAverage( 0 )
+                                         , mode( 0 )
 {
 }
  

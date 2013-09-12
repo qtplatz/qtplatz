@@ -161,7 +161,7 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>
         //unsigned long interval = static_cast<unsigned long>( x * 1e12 + 0.5 ); // s --> ps
         if ( ( x < 0 ) || ( x > double( sampInterval ) * 2.0e-12 ) ) {
 
-            segments.push_back( adcontrols::MSProperty::SamplingInfo(sampInterval, nDelay, nCount, 1 ) );
+            segments.push_back( adcontrols::MSProperty::SamplingInfo(sampInterval, nDelay, nCount, 1, 0 ) );
 
             if ( it + 1 != timeArray.end() ) {
                 sampInterval = static_cast<unsigned long>( ( it[ 1 ] - it[ 0 ] ) * 1e12 + 0.5 );
@@ -176,7 +176,7 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>
             }
         }
     }
-    segments.push_back( adcontrols::MSProperty::SamplingInfo(sampInterval, nDelay, nCount + 1, 1 ) );
+    segments.push_back( adcontrols::MSProperty::SamplingInfo(sampInterval, nDelay, nCount + 1, 1, 0 ) );
     return true;
 }
 

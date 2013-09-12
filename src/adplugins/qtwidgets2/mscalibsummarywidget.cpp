@@ -49,8 +49,6 @@ namespace qtwidgets2 {
 
     enum {
         c_formula
-        , c_fcn  // subspectrum id
-		, c_mode // analyzer mode id, a.k.a. reflectron|linear, or number of turns on InfiTOF
         , c_exact_mass
         , c_time
         , c_mass
@@ -58,6 +56,8 @@ namespace qtwidgets2 {
         , c_mass_error_mDa
         , c_is_enable
         , c_flags
+		, c_mode // analyzer mode id, a.k.a. reflectron|linear, or number of turns on InfiTOF
+		, c_fcn // segment id
         , c_number_of_columns
     };
 }

@@ -55,14 +55,14 @@ namespace adcontrols {
 
         double time( size_t pos ); // return flight time for data[pos] in seconds
 
-        unsigned long instSamplingInterval() const; // ps
-        void setInstSamplingInterval( unsigned long ); // ps
+        uint32_t instSamplingInterval() const; // ps
+        void setInstSamplingInterval( uint32_t ); // ps
 
-        unsigned long instSamplingStartDelay() const;  // number of data points before record waveform in array
-        void setInstSamplingStartDelay( unsigned long );
+        uint32_t instSamplingStartDelay() const;  // number of data points before record waveform in array
+        void setInstSamplingStartDelay( uint32_t );
 
-        unsigned long timeSinceInjection() const;
-        void setTimeSinceInjection( unsigned long );
+        uint32_t timeSinceInjection() const;
+        void setTimeSinceInjection( uint32_t );
 
         const std::vector< SamplingInfo >& getSamplingInfo() const;
         void setSamplingInfo( const std::vector< SamplingInfo >& );
@@ -74,20 +74,23 @@ namespace adcontrols {
 
         class ADCONTROLSSHARED_EXPORT SamplingInfo {
         public:
-            unsigned long sampInterval; // ps
-            unsigned long nSamplingDelay;
-            unsigned long nSamples;
-            unsigned long nAverage;
+            uint32_t sampInterval; // ps
+            uint32_t nSamplingDelay;
+            uint32_t nSamples;
+            uint32_t nAverage;
+            uint32_t mode;  // number of turns for InfiTOF, lenear|reflectron for MALDI etc
             SamplingInfo();
-            SamplingInfo( unsigned long sampInterval, unsigned long nDelay, unsigned long nCount, unsigned long nAvg );
+            SamplingInfo( uint32_t sampInterval, uint32_t nDelay, uint32_t nCount, uint32_t nAvg, uint32_t mode );
         private:
             friend class boost::serialization::access;
             template<class Archive>
-            void serialize(Archive& ar, const unsigned int /*version*/) {
+            void serialize(Archive& ar, const unsigned int version ) {
                 ar & BOOST_SERIALIZATION_NVP(sampInterval);
                 ar & BOOST_SERIALIZATION_NVP(nSamplingDelay);
                 ar & BOOST_SERIALIZATION_NVP(nSamples);
                 ar & BOOST_SERIALIZATION_NVP(nAverage);
+                if ( version >= 3 )
+                    ar & BOOST_SERIALIZATION_NVP(mode);
             };
 
         };
@@ -98,11 +101,11 @@ namespace adcontrols {
         static size_t compute_profile_time_array( double * p, size_t, const std::vector<SamplingInfo>& segments );
 
     private:
-        unsigned long time_since_injection_; // msec
+        uint32_t time_since_injection_; // msec
         double instAccelVoltage_;
-        unsigned long instNumAvrg_;
-        unsigned long instSamplingStartDelay_;
-        unsigned long instSamplingInterval_; // ps
+        uint32_t instNumAvrg_;
+        uint32_t instSamplingStartDelay_;
+        uint32_t instSamplingInterval_; // ps
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
 #endif
@@ -119,9 +122,8 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP(instSamplingInterval_);
             ar & BOOST_SERIALIZATION_NVP(instMassRange_.first);
             ar & BOOST_SERIALIZATION_NVP(instMassRange_.second);
-            if ( version >= 2 ) {
+            if ( version >= 2 ) 
                 ar & BOOST_SERIALIZATION_NVP( samplingData_ );
-            }
         }
 
     };
@@ -129,6 +131,5 @@ namespace adcontrols {
 }
 
 BOOST_CLASS_VERSION(adcontrols::MSProperty, 2)
-BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 2)
-
+BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 3)
 
