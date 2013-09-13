@@ -225,6 +225,8 @@ QWidget *
 MainWindow::createContents( Core::IMode * mode
                             , const adportable::Configuration& config, const std::wstring& apppath )
 {
+	(void)config;
+
     setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
     setDocumentMode( true );
     setDockNestingEnabled( true );
@@ -303,7 +305,7 @@ MainWindow::createContents( Core::IMode * mode
     splitter->setStretchFactor( 1, 1 );
     splitter->setObjectName( QLatin1String( "ModeWidget" ) );
 
-    createDockWidgets( config, apppath );
+    createDockWidgets();
 
 	return splitter;
 }
@@ -327,6 +329,7 @@ MainWindow::setSimpleDockWidgetArrangement()
         if ( npos++ >= 2 )
             tabifyDockWidget( widgets[1], widget );
     }
+	widgets[1]->raise();
 
     QDockWidget * toolBarDock = toolBarDockWidget();
     if ( toolBarDock )
@@ -356,28 +359,30 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title )
 }
 
 void
-MainWindow::createDockWidgets( const adportable::Configuration& config, const std::wstring& apppath )
+MainWindow::createDockWidgets()
 {
-	(void)apppath;
     using adportable::Configuration;
 
-    const Configuration * pTab = Configuration::find( config, "ProcessMethodEditors" );
-    if ( pTab ) {
-            
-        for ( auto it: *pTab ) {
-            
-            const std::string name = it.name();
-            
-			std::string wiid = it.component_interface();
-            QWidget * pWidget = adplugin::widget_factory::create( wiid.c_str(), 0, 0 );
-            if ( pWidget ) {
-                createDockWidget( pWidget, qtwrapper::qstring( it.title() ) );
-            } else {
-				QMessageBox::critical(0, QLatin1String("dataprocmanager"), it.name().c_str() );
-            }
+    static const struct { 
+        const char * title;
+        const char * wiid;
+    } widgets [] = { 
+        {  "Centroid" ,       "qtwidgets::CentroidForm" }
+	  , { "MS Calibration",   "qtwidgets2::MSCalibrationForm" }
+      , { "Targeting",       "qtwidgets::TargetForm" }
+      , { "Isotope",         "qtwidgets::IsotopeForm" }
+      //, { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
+      , { "Peak Find",       "qtwidgets::PeakMethodForm" }
+    };
+    
+    for ( auto widget: widgets ) {
+        QWidget * pWidget = adplugin::widget_factory::create( widget.wiid, 0, 0 );
+        if ( pWidget ) {
+            createDockWidget( pWidget, widget.title );
+        } else {
+            QMessageBox::critical(0, QLatin1String("dataprocmanager"), widget.wiid );
         }
     }       
-
 }
 
 void

@@ -36,27 +36,20 @@ using namespace adcontrols;
 MSReference::MSReference() : enable_( true )
                            , exactMass_(0)  
                            , polarityPositive_( true )
+						   , chargeCount_( 1 )
 {
 }
 
 MSReference::MSReference( const MSReference& t ) : enable_( t.enable_ )
                                                  , exactMass_( t.exactMass_ ) 
                                                  , polarityPositive_( t.polarityPositive_ )
+												 , chargeCount_( t.chargeCount_ )
                                                  , formula_( t.formula_ )
                                                  , adduct_or_loss_( t.adduct_or_loss_ )
                                                  , description_( t.description_ )    
 {
-    if ( exactMass_ <= std::numeric_limits<double>::epsilon() ) {
-        ChemicalFormula formula;
-        exactMass_ = formula.getMonoIsotopicMass( formula_ );
-        if ( ! adduct_or_loss_.empty() ) {
-            double adduct = formula.getMonoIsotopicMass( adduct_or_loss_ );
-            if ( polarityPositive_ )
-                exactMass_ += adduct;
-            else
-                exactMass_ -= adduct;
-        }
-    }
+    if ( exactMass_ <= std::numeric_limits<double>::epsilon() )
+        compute_mass();
 }
 
 MSReference::MSReference( const std::wstring& formula
@@ -64,14 +57,33 @@ MSReference::MSReference( const std::wstring& formula
                          , const std::wstring& adduct_or_loss
                          , bool enable
                          , double exactMass
+						 , size_t charge
                          , const std::wstring& description ) : enable_( enable )
                                                              , exactMass_( exactMass ) 
+															 , chargeCount_( charge )
                                                              , polarityPositive_( polarityPositive )
                                                              , formula_( formula )
                                                              , adduct_or_loss_( adduct_or_loss )
                                                              , description_( description )    
 {
+	if ( exactMass_ <= std::numeric_limits<double>::epsilon() )
+        compute_mass();
 }
+
+void
+MSReference::compute_mass()
+{
+    ChemicalFormula formula;
+    exactMass_ = formula.getMonoIsotopicMass( formula_ );
+    if ( ! adduct_or_loss_.empty() ) {
+        double adduct = formula.getMonoIsotopicMass( adduct_or_loss_ );
+        if ( polarityPositive_ )
+            exactMass_ += adduct;
+        else
+            exactMass_ -= adduct;
+    }
+}
+
 
 bool
 MSReference::enable() const
@@ -86,7 +98,7 @@ MSReference::operator < ( const MSReference& t ) const
 }
 
 double
-MSReference::exactMass() const
+MSReference::exact_mass() const
 {
     return exactMass_;
 }
@@ -123,9 +135,21 @@ MSReference::enable( bool value )
 }
 
 void
-MSReference::exactMass( double value )
+MSReference::exact_mass( double value )
 {
     exactMass_ = value;
+}
+
+void
+MSReference::charge_count( size_t v )
+{
+	chargeCount_ = v;
+}
+
+size_t
+MSReference::charge_count() const
+{
+	return chargeCount_;
 }
 
 void

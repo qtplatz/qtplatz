@@ -33,7 +33,7 @@
 #include <adcontrols/msreference.hpp>
 #endif
 
-namespace qtwidgets {
+namespace qtwidgets2 {
 
     class MSCalibrateDelegate : public QItemDelegate {
         Q_OBJECT
@@ -74,6 +74,6 @@ namespace qtwidgets {
     };
 }
 
-Q_DECLARE_METATYPE( qtwidgets::MSCalibrateDelegate::MSReferences )
+Q_DECLARE_METATYPE( qtwidgets2::MSCalibrateDelegate::MSReferences )
 
 #endif // MSCALIBRATEDELEGATE_H

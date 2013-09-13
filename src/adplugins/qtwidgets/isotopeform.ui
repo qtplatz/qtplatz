@@ -7,14 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>814</width>
-    <height>200</height>
+    <height>149</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+   <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
+  </property>
+  <property name="font">
+   <font>
+    <family>Calibri</family>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -51,6 +56,11 @@
           <height>41</height>
          </rect>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
         <property name="title">
          <string>Polarity</string>
         </property>
@@ -66,6 +76,11 @@
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
            <widget class="QRadioButton" name="radioPositive">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>Positive</string>
             </property>
@@ -76,6 +91,11 @@
           </item>
           <item>
            <widget class="QRadioButton" name="radioNegative">
+            <property name="font">
+             <font>
+              <pointsize>8</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>Negative</string>
             </property>
@@ -93,6 +113,11 @@
           <height>19</height>
          </rect>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>electron mass</string>
         </property>
@@ -109,6 +134,11 @@
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
           <widget class="QLabel" name="label">
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>Adduct/Lose</string>
            </property>
@@ -138,9 +168,14 @@
     <widget class="qtwidgets::MolWidget" name="molwidget" native="true">
      <property name="minimumSize">
       <size>
-       <width>200</width>
-       <height>120</height>
+       <width>80</width>
+       <height>80</height>
       </size>
+     </property>
+     <property name="font">
+      <font>
+       <family>Calibri</family>
+      </font>
      </property>
     </widget>
    </item>

@@ -64,9 +64,8 @@ namespace adcontrols {
         uint32_t timeSinceInjection() const;
         void setTimeSinceInjection( uint32_t );
 
-        const std::vector< SamplingInfo >& getSamplingInfo() const;
-        void setSamplingInfo( const std::vector< SamplingInfo >& );
-        void addSamplingInfo( const SamplingInfo& );
+        const SamplingInfo& getSamplingInfo() const;
+        void setSamplingInfo( const SamplingInfo& );
 
         // acquisition mass range, usually it is from user parameter based on theoretical calibration
         const std::pair<double, double>& instMassRange() const;
@@ -95,10 +94,10 @@ namespace adcontrols {
 
         };
 
-        static std::vector<SamplingInfo>::const_iterator findSamplingInfo( size_t idx, const std::vector<SamplingInfo>& segments );
-        static double toSeconds( size_t idx, const std::vector<SamplingInfo>& segments );
+        // static std::vector<SamplingInfo>::const_iterator findSamplingInfo( size_t idx, const std::vector<SamplingInfo>& segments );
+        // static double toSeconds( size_t idx, const std::vector<SamplingInfo>& segments );
         static double toSeconds( size_t idx, const SamplingInfo& info );
-        static size_t compute_profile_time_array( double * p, size_t, const std::vector<SamplingInfo>& segments );
+        static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments );
 
     private:
         uint32_t time_since_injection_; // msec
@@ -109,7 +108,7 @@ namespace adcontrols {
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
 #endif
-        std::vector< SamplingInfo > samplingData_;
+        SamplingInfo samplingData_;
         std::pair< double, double > instMassRange_;
 
         friend class boost::serialization::access;
@@ -122,8 +121,14 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP(instSamplingInterval_);
             ar & BOOST_SERIALIZATION_NVP(instMassRange_.first);
             ar & BOOST_SERIALIZATION_NVP(instMassRange_.second);
-            if ( version >= 2 ) 
+            if ( version == 2 ) {
+                std::vector< SamplingInfo > data;
+                ar & BOOST_SERIALIZATION_NVP( data );
+                if ( ! data.empty() )
+                    samplingData_ = data[ 0 ];
+            } else if ( version >= 3 ) {
                 ar & BOOST_SERIALIZATION_NVP( samplingData_ );
+            }
         }
 
     };

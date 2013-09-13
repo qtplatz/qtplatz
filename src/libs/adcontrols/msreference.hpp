@@ -44,20 +44,23 @@ namespace adcontrols {
                    , const std::wstring& adduct_or_loss
                    , bool enable = true
                    , double exactMass = 0
+				   , size_t charge = 1
                    , const std::wstring& description = L"" );
 
         bool operator < ( const MSReference& ) const;
 
         bool enable() const;
-        double exactMass() const;
+        double exact_mass() const;
         bool polarityPositive() const;
+		size_t charge_count() const;
         const std::wstring& formula() const;
         const std::wstring& adduct_or_loss() const;
         const std::wstring& description() const;
 
         void enable( bool );
-        void exactMass( double );
+        void exact_mass( double );
         void polarityPositive( bool );
+		void charge_count( size_t );
         void formula( const std::wstring& );
         void adduct_or_loss( const std::wstring& );
         void description( const std::wstring& );
@@ -70,7 +73,8 @@ namespace adcontrols {
         std::wstring formula_;
         std::wstring adduct_or_loss_;
         std::wstring description_;
-
+		
+		void compute_mass();
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
@@ -79,6 +83,7 @@ namespace adcontrols {
 	    ar & BOOST_SERIALIZATION_NVP(enable_);
 	    ar & BOOST_SERIALIZATION_NVP(exactMass_);
 	    ar & BOOST_SERIALIZATION_NVP(polarityPositive_);
+		ar & BOOST_SERIALIZATION_NVP(chargeCount_);
 	    ar & BOOST_SERIALIZATION_NVP(formula_);
 	    ar & BOOST_SERIALIZATION_NVP(adduct_or_loss_);
 	    ar & BOOST_SERIALIZATION_NVP(description_);

@@ -46,7 +46,16 @@ namespace Ui {
     class MSCalibrationForm;
 }
 
-namespace qtwidgets {
+namespace qtwidgets2 {
+
+    enum colume_define {
+        c_formula
+        , c_exact_mass
+        , c_enable
+        , c_description
+		, c_charge
+        , c_num_columns
+    };
 
     class MSCalibrateDelegate;
 
@@ -80,9 +89,25 @@ namespace qtwidgets {
     signals:
 	   void apply( adcontrols::ProcessMethod & );
 
+    private slots:
+       void on_addReference_pressed();
+
+       void on_pushButton_pressed();
+
+       void on_comboBoxMaterials_currentIndexChanged(const QString &arg1);
+
+       void on_pushButtonAdd_pressed();
+
+       void on_comboBoxAdductLose_currentIndexChanged(int index);
+
+       void on_tableView_customContextMenuRequested(const QPoint &pos);
+
     private:
         void OnMSReferencesUpdated( const QModelIndex& );
-        void update_data( const adcontrols::MSCalibrateMethod& );
+        void setCalibrateMethod( const adcontrols::MSCalibrateMethod& );
+        void getCalibrateMethod( adcontrols::MSCalibrateMethod& ) const;
+        void makeSeries( const std::wstring& endGroup, const std::wstring& repeat, bool isAdduct, const std::wstring& adduct_lose );
+        bool parse_formula( const std::wstring&, std::wstring& formula, std::wstring& adduct_lose, bool& isPositive ) const;
         
     private:
         Ui::MSCalibrationForm *ui;

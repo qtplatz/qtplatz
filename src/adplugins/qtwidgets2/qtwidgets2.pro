@@ -35,6 +35,7 @@ SOURCES += factory.cpp \
         mscalibsummarydelegate.cpp \
         mscalibsummarywidget.cpp \
         standarditemhelper.cpp \
+        tableview.cpp \
         qtwidgets2.cpp
 
 HEADERS += \
@@ -44,6 +45,7 @@ HEADERS += \
         mscalibsummarydelegate.hpp \
         mscalibsummarywidget.hpp \
         standarditemhelper.hpp \
+        tableview.hpp \
         qtwidgets2.hpp
 
 FORMS += \

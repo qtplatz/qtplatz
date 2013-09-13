@@ -82,7 +82,7 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
     size_t idReference(0);
     for ( MSReferences::vector_type::const_iterator it = references.begin(); it != references.end(); ++it ) {
         
-        double exactMass = it->exactMass();
+        double exactMass = it->exact_mass();
         array_wrapper<const double>::const_iterator lBound = std::lower_bound( masses.begin(), masses.end(), exactMass - tolerance_ );
         array_wrapper<const double>::const_iterator uBound = std::lower_bound( masses.begin(), masses.end(), exactMass + tolerance_ );
         
@@ -110,7 +110,7 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
 				                                 , fcn
                                                  , idx            // idMassSpectrum (index on centroid peak)
                                                  , it->formula()
-                                                 , it->exactMass()
+                                                 , it->exact_mass()
                                                  , centroid.getTime( idx )
                                                  , masses[ idx ]
                                                  , it->enable()

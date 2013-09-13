@@ -205,6 +205,8 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 	}
 
     model.insertRows( 0, indecies_.size() );
+    const adcontrols::MSProperty& prop = ms.getMSProperty();
+    
     size_t row = 0;
     for ( auto idx: indecies_ ) {
         adcontrols::MassSpectrum& frag = segments[ idx.first ];

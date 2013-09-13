@@ -220,7 +220,7 @@ MSCalibrationForm::getContents( adcontrols::ProcessMethod& pm )
         QVariant mass    = model.index( row, 1, item->index() ).data( Qt::EditRole );
         QVariant enable  = model.index( row, 2, item->index() ).data( Qt::EditRole );
         reference.formula( qtwrapper::wstring( formula.toString() ) );
-        reference.exactMass( mass.toDouble() );
+        reference.exact_mass( mass.toDouble() );
         reference.enable( enable.toBool() );
         references << reference;
     }
@@ -283,7 +283,7 @@ MSCalibrationForm::OnMSReferencesUpdated( const QModelIndex& index )
         col++;
         if ( item->columnCount() < col + 1 )
             model.insertColumn( item->columnCount(), item->index() );
-        model.setData( model.index( row, col, index ), it->exactMass() );
+        model.setData( model.index( row, col, index ), it->exact_mass() );
 
         col++;
         if ( item->columnCount() < col + 1 )

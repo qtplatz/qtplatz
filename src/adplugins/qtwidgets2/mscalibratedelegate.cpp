@@ -31,7 +31,7 @@
 #include <QPainter>
 #include <QPalette>
 
-using namespace qtwidgets;
+using namespace qtwidgets2;
 
 MSCalibrateDelegate::MSReferences::MSReferences()
 {

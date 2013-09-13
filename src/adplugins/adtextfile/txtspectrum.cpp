@@ -183,7 +183,9 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>
 bool
 TXTSpectrum::validate_segments( const std::vector<adcontrols::MSProperty::SamplingInfo>& segments, const std::vector<double>& timeArray )
 {
+	/*
     for ( size_t i = 0; i < timeArray.size(); ++i ) {
+
         double t = adcontrols::MSProperty::toSeconds( i, segments );
         if ( std::abs( t - timeArray[i] ) > 0.5e-9 ) {
             adcontrols::MSProperty::toSeconds( i, segments );
@@ -192,6 +194,7 @@ TXTSpectrum::validate_segments( const std::vector<adcontrols::MSProperty::Sampli
                                                   << " calculated:" << t;
         }
     }
+	*/
     return true;
 }
 
@@ -207,7 +210,7 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
     prop.setInstSamplingInterval( info.sampInterval );
     prop.setNumAverage( info.nAverage ); // workaround
     prop.setInstSamplingStartDelay( info.nSamplingDelay );
-	prop.addSamplingInfo( info );
+	prop.setSamplingInfo( info );
 
     ms.setMSProperty( prop );
     ms.resize( info.nSamples );

@@ -78,7 +78,7 @@ namespace adcontrols {
         };
 
         struct timeFunctor {
-            const std::vector< adcontrols::MSProperty::SamplingInfo>& info;
+            const adcontrols::MSProperty::SamplingInfo& info;
             timeFunctor( const adcontrols::MassSpectrum& profile )
                 : info( profile.getMSProperty().getSamplingInfo() ) {
             }

@@ -124,24 +124,17 @@ MSProperty::instMassRange() const
     return instMassRange_;
 }
 
-const std::vector< MSProperty::SamplingInfo >&
+const MSProperty::SamplingInfo&
 MSProperty::getSamplingInfo() const
 {
     return samplingData_;
 }
 
 void
-MSProperty::setSamplingInfo( const std::vector< SamplingInfo >& v )
+MSProperty::setSamplingInfo( const SamplingInfo& v )
 {
     samplingData_ = v;
 }
-
-void
-MSProperty::addSamplingInfo( const SamplingInfo& item )
-{
-    samplingData_.push_back( item );
-}
-
 
 MSProperty::SamplingInfo::SamplingInfo( uint32_t interval
                                         , uint32_t ndelay
@@ -165,33 +158,6 @@ MSProperty::SamplingInfo::SamplingInfo() : sampInterval( 0 )
  
 
 //static
-std::vector<MSProperty::SamplingInfo>::const_iterator
-MSProperty::findSamplingInfo( size_t idx, const std::vector<SamplingInfo>& segments )
-{
-    size_t nSamples = 0;
-
-    std::vector<SamplingInfo>::const_iterator it;
-    for ( it = segments.begin(); it != segments.end(); ++it ) {
-        nSamples += it->nSamples;
-        if ( idx < nSamples )
-            break;
-    }
-    return it;
-}
-
-//static
-double
-MSProperty::toSeconds( size_t idx, const std::vector<SamplingInfo>& segments )
-{
-    for ( auto it: segments ) {
-        if ( idx < it.nSamples )
-            return ( it.nSamplingDelay + idx ) * it.sampInterval * 1e-12;
-		idx -= it.nSamples;
-	}
-    return 0.0;
-}
-
-//static
 double
 MSProperty::toSeconds( size_t idx, const SamplingInfo& info )
 {
@@ -199,18 +165,10 @@ MSProperty::toSeconds( size_t idx, const SamplingInfo& info )
 }
 
 size_t
-MSProperty::compute_profile_time_array( double * p, std::size_t size, const std::vector<SamplingInfo>& segments )
+MSProperty::compute_profile_time_array( double * p, std::size_t size, const SamplingInfo& info )
 {
     size_t n = 0;
-    size_t k = 0;
-    std::vector< MSProperty::SamplingInfo >::const_iterator sampInfo = segments.begin();
-    for ( ; n < size; ++n, ++k ) {
-        if ( k == sampInfo->nSamples ) {
-            if ( ++sampInfo == segments.end() )
-                break;
-            k = 0;
-        }
-        p[ n ] = ( sampInfo->nSamplingDelay + k ) * sampInfo->sampInterval * 1e-12;
-    }
+    for ( n = 0; n < size; ++n )
+        p[ n ] = ( info.nSamplingDelay + n ) * info.sampInterval * 1e-12;
     return n;
 }
