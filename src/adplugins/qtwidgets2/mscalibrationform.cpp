@@ -226,25 +226,6 @@ MSCalibrationForm::setCalibrateMethod( const adcontrols::MSCalibrateMethod& meth
     }
 }
 
-void
-MSCalibrationForm::handleMSReferencesChanged( const QModelIndex& index )
-{
-    QStandardItemModel& model = *pModel_;
-    std::wstring refname = qVariantValue< MSCalibrateDelegate::MSReferences >( model.data( index ) ).methodValue();
-
-    qDebug() << qtwrapper::qstring::copy( refname );
-
-    const adcontrols::MSReferences& refs = pDelegate_->refs_[ refname ];
-    pMethod_->references( refs );
-    // "Mass Reference" | "PFBA-EI-Positive" ==> left of this index is the top of reference
-    OnMSReferencesUpdated( model.index( index.row(), index.column() - 1 ) );  
-}
-
-void
-MSCalibrationForm::OnMSReferencesUpdated( const QModelIndex& index )
-{
-}
-
 QSize
 MSCalibrationForm::sizeHint() const
 {

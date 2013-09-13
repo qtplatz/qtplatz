@@ -29,7 +29,6 @@
 #include <QKeyEvent>
 #include <set>
 #include <vector>
-#include <adportable/debug.hpp>
 
 TableView::TableView( QWidget * parent ) : QTableView( parent )
 {
@@ -52,7 +51,6 @@ TableView::mouseReleaseEvent( QMouseEvent * event )
 	QModelIndex index = indexAt( event->pos() );
 	QTableView::mousePressEvent( event );
 
-	adportable::debug(__FILE__, __LINE__) << "mousePressEvent type=" << event->type();
 	if ( index.isValid() ) {
         Qt::ItemFlags flags = model()->flags( index );
         if ( flags & Qt::ItemIsUserCheckable ) {

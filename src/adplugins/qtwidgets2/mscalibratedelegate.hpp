@@ -27,11 +27,6 @@
 #define MSCALIBRATEDELEGATE_H
 
 #include <QItemDelegate>
-#if ! defined Q_MOC_RUN
-#include <adcontrols/msreferencedefns.hpp>
-#include <adcontrols/msreferences.hpp>
-#include <adcontrols/msreference.hpp>
-#endif
 
 namespace qtwidgets2 {
 
@@ -40,40 +35,21 @@ namespace qtwidgets2 {
     public:
         explicit MSCalibrateDelegate(QObject *parent = 0);
 
-        QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+        // QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 
-        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-        void setEditorData(QWidget *editor, const QModelIndex &index) const;
-        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
-        void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+        // void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+        // void setEditorData(QWidget *editor, const QModelIndex &index) const;
+        // void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+        // void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+        bool editorEvent( QEvent * event, QAbstractItemModel *
+                          , const QStyleOptionViewItem&, const QModelIndex& ) override;
 
     signals:
         void signalMSReferencesChanged( const QModelIndex& ) const;
 
     public slots:
 
-    public:
-        class MSReferences {
-        public:
-            MSReferences();
-            MSReferences( const std::wstring& );
-
-            const std::wstring& methodValue() const;
-            QString displayValue() const;
-            void setCurrentValue( const std::wstring& );
-        private:
-            std::wstring value_;
-        };
-
-        std::map< std::wstring, adcontrols::MSReferences > refs_;
-        typedef std::map< std::wstring, adcontrols::MSReferences > refs_type;
-
-    private:
-
-
     };
 }
-
-Q_DECLARE_METATYPE( qtwidgets2::MSCalibrateDelegate::MSReferences )
 
 #endif // MSCALIBRATEDELEGATE_H

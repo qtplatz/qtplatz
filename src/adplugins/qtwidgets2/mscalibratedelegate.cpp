@@ -30,105 +30,23 @@
 #include <QMetaType>
 #include <QPainter>
 #include <QPalette>
+#include <QEvent>
 
 using namespace qtwidgets2;
 
-MSCalibrateDelegate::MSReferences::MSReferences()
+MSCalibrateDelegate::MSCalibrateDelegate(QObject *parent) : QItemDelegate(parent)
 {
 }
 
-MSCalibrateDelegate::MSReferences::MSReferences( const std::wstring& name )
+bool
+MSCalibrateDelegate::editorEvent( QEvent * event
+                                  , QAbstractItemModel * model
+                                  , const QStyleOptionViewItem& option
+                                  , const QModelIndex& index )
 {
-    value_ = name;
-}
-
-QString
-MSCalibrateDelegate::MSReferences::displayValue() const
-{
-    return qtwrapper::qstring( value_ );
-}
-
-const std::wstring&
-MSCalibrateDelegate::MSReferences::methodValue() const
-{
-    return value_;
-}
-
-void
-MSCalibrateDelegate::MSReferences::setCurrentValue( const std::wstring& value )
-{
-    value_ = value;
-}
-
-///////////////////////
-
-MSCalibrateDelegate::MSCalibrateDelegate(QObject *parent) :
-    QItemDelegate(parent)
-{
-}
-
-QWidget *
-MSCalibrateDelegate::createEditor(QWidget *parent
-                                 , const QStyleOptionViewItem &option
-                                 , const QModelIndex &index) const
-{
-    if ( qVariantCanConvert< MSReferences >( index.data() ) ) {
-        QComboBox * pCombo = new QComboBox( parent );
-        QStringList list;
-        for ( refs_type::const_iterator it = refs_.begin(); it != refs_.end(); ++it )
-            list << qtwrapper::qstring( it->first );
-        pCombo->addItems( list );
-        return pCombo;
-    } else {
-        return QItemDelegate::createEditor( parent, option, index );
+    if ( event->type() == QEvent::MouseButtonRelease && model->flags(index) & Qt::ItemIsUserCheckable ) {
+        // here also can handle checkbox as same code in treeview.cpp
     }
-}
-
-void
-MSCalibrateDelegate::paint(QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
-{
-    if ( qVariantCanConvert< MSReferences >( index.data() ) ) {
-        MSReferences m = qVariantValue< MSReferences >( index.data() );
-        drawDisplay( painter, option, option.rect, m.displayValue() );
-    } else {
-        QItemDelegate::paint( painter, option, index );
-    }
-}
-
-void
-MSCalibrateDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
-{
-    if ( qVariantCanConvert< MSReferences >( index.data() ) ) {
-        QComboBox * p = dynamic_cast< QComboBox * >( editor );
-        MSReferences m = qVariantValue< MSReferences >( index.data() );
-        std::wstring refname = qtwrapper::wstring( p->currentText() );
-        // const adcontrols::MSReferenceDefns& defns = this->refDefns_[ refname ];
-        m.setCurrentValue( refname );
-    } else {
-        QItemDelegate::setEditorData( editor, index );
-    }
-}
-
-void
-MSCalibrateDelegate::setModelData( QWidget *editor
-                                  , QAbstractItemModel *model
-                                  , const QModelIndex &index) const
-{
-    if ( qVariantCanConvert< MSReferences >( index.data() ) ) {
-        QComboBox * p = dynamic_cast< QComboBox * >( editor );
-        model->setData( index, qVariantFromValue( MSReferences( qtwrapper::wstring( p->currentText() ) ) ) );
-        emit signalMSReferencesChanged( index );
-    } else {
-        QItemDelegate::setModelData( editor, model, index );
-    }
-}
-
-void
-MSCalibrateDelegate::updateEditorGeometry(QWidget *editor
-                                       , const QStyleOptionViewItem &option
-                                       , const QModelIndex &index) const
-{
-    Q_UNUSED( index );
-    editor->setGeometry( option.rect );
+    return QItemDelegate::editorEvent( event, model, option, index );
 }
 

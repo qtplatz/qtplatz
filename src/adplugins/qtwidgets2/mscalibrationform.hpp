@@ -83,7 +83,6 @@ namespace qtwidgets2 {
 
     public slots:
         void getContents( adcontrols::ProcessMethod& ) const;
-        void handleMSReferencesChanged( const QModelIndex& );
         void getLifeCycle( adplugin::LifeCycle*& );
 
     signals:
@@ -105,7 +104,6 @@ namespace qtwidgets2 {
        void on_tableView_activated(const QModelIndex &index);
 
     private:
-        void OnMSReferencesUpdated( const QModelIndex& );
         void setCalibrateMethod( const adcontrols::MSCalibrateMethod& );
         void getCalibrateMethod( adcontrols::MSCalibrateMethod& ) const;
         void makeSeries( const std::wstring& endGroup, const std::wstring& repeat, bool isAdduct, const std::wstring& adduct_lose );
