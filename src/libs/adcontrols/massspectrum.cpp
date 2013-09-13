@@ -427,6 +427,7 @@ MassSpectrum::get_annotations()
 template<class T> void
 MassSpectrum::set( const T& t )
 {
+    (void)t;
 }
 
 template<class T> const T&

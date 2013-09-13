@@ -37,7 +37,7 @@ namespace adcontrols {
         // serialize --->
         static bool archive( std::ostream&, const ElementalCompositionCollection& );
         static bool restore( std::istream&, ElementalCompositionCollection& );
-		static wchar_t * dataClass() { return L"ElementalCompositionCollection"; }
+		static const wchar_t * dataClass() { return L"ElementalCompositionCollection"; }
     };
 
 

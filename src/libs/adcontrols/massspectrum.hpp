@@ -174,7 +174,7 @@ namespace adcontrols {
 		inline reference operator [] ( size_t idx )             { return idx == 0 ? ms_ : ms_.getSegment( idx - 1 ); }
 		inline const_reference operator [] ( size_t idx ) const { return idx == 0 ? ms_ : ms_.getSegment( idx - 1 ); }
 		inline size_type size() const { return ms_.numSegments() + 1; }
-		inline size_type max_size() const { return ms_.numSegments() + 1 }
+		inline size_type max_size() const { return ms_.numSegments() + 1; }
     };
 
 }
