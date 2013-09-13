@@ -29,6 +29,8 @@
 #include "plotcurve.hpp"
 #include "annotation.hpp"
 #include "annotations.hpp"
+#include <adcontrols/annotation.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <qwt_plot_picker.h>
@@ -59,7 +61,10 @@ namespace adwplot {
             Qt::darkYellow,    // 11
             Qt::darkGray,      // 12
             Qt::gray,          // 13
-            Qt::lightGray,     // 14
+            Qt::black,     // 14
+            Qt::black,     // 15
+            Qt::black,     // 16
+            Qt::black,     // 17
         };
 
         struct SeriesDataImpl {
@@ -371,26 +376,6 @@ TraceData::y_range( double left, double right ) const
     return std::make_pair<>(bottom, top);
 }
 
-namespace adwplot {
-    namespace spectrumwidget {
-
-        struct compare_priority {
-            const unsigned char * colors_;
-            const double * intensities_;
-            compare_priority( const double * intensities, const unsigned char * colors)
-                : colors_( colors )
-                , intensities_( intensities ) {
-            }
-            bool operator()( size_t idx0, size_t idx1 ) const {
-                if ( colors_ && colors_[ idx0 ] != colors_[ idx1 ] )
-                    return colors_[ idx0 ] > colors_[ idx1 ];
-                return intensities_[ idx0 ] > intensities_[ idx1 ];
-            }
-        };
-
-    }
-}
-
 void
 SpectrumWidgetImpl::clear_annotations()
 {
@@ -407,41 +392,54 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
     enum { c_fcn, c_idx, c_color, c_intensity, c_mass };
 
     std::vector< peak > peaks;
-    const adcontrols::MassSpectrum& ms = centroid_;
+    adcontrols::sequence_wrapper< const adcontrols::MassSpectrum > segments( centroid_ );
 
-    array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
-    size_t beg = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.first ) );
-    size_t end = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.second ) );
-    if ( beg < end ) {
-        for ( size_t idx = beg; idx <= end; ++idx )
-            peaks.push_back( std::make_tuple( 0, idx,  ms.getColor( idx ), ms.getIntensity( idx ), ms.getMass( idx ) ) );
-    }
+    adcontrols::annotations auto_annotations;
+    adcontrols::annotations annotations;
+    
+    for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
+        const adcontrols::MassSpectrum& ms = segments[ fcn ];
+        const unsigned char * colors = ms.getColorArray();
+        double max_y = ms.getMaxIntensity();
 
-    for ( size_t fcn = 0; fcn < centroid_.numSegments(); ++fcn ) {
-        const adcontrols::MassSpectrum& ms = centroid_[ fcn ];
         array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
         size_t beg = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.first ) );
         size_t end = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.second ) );
         if ( beg < end ) {
-            for ( size_t idx = beg; idx <= end; ++idx )
-                peaks.push_back( std::make_tuple( 0, idx,  ms.getColor( idx ), ms.getIntensity( idx ), ms.getMass( idx ) ) );
+            // generate auto-annotation
+            for ( size_t idx = beg; idx <= end; ++idx ) {
+                int pri = ms.getIntensity( idx ) / max_y * 1000;
+                if ( colors )
+                    pri *= 100;
+                adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % ms.getMass( idx ) ).str()
+                                              , ms.getMass( idx ), ms.getIntensity( idx ), ( fcn << 24 | idx ), pri );
+                auto_annotations << annot;
+            }
+        }
+
+        const adcontrols::annotations& annots = ms.get_annotations();
+        for ( auto& it: annots ) {
+            if ( ( ( int(beg) < it.index() ) && ( it.index() < int(end) ) )
+                 || ( ( range.first < it.x() ) && ( it.x() < range.second ) ) ) {
+                annotations << it;
+            }
         }
     }
-
-    std::sort( peaks.begin(), peaks.end(), []( const peak& a, const peak& b ){
-            if ( std::get<c_color>(a) == std::get<c_color>(b) )
-                return std::get<c_intensity>(a) > std::get<c_intensity>(b); // intensity
-            return std::get<c_color>(a) > std::get<c_color>(b); 
-        });
+	auto_annotations.sort();
+    annotations.sort();
 
 	annotations_.clear();
     Annotations annots(plot, annotations_);
     size_t n = 0;
-    for ( auto peak: peaks ) {
-		// if ( ( std::get<c_color>( peak ) >= 1 ) || ( ++n <= 20 ) ) {
+    for ( auto a: annotations ) {
         if ( ++n <= 20 ) {
-			std::wstring label = ( boost::wformat( L"%.4lf" ) % std::get<c_mass>( peak ) ).str();
-			Annotation anno = annots.add( std::get<c_mass>(peak), std::get<c_intensity>(peak), label );
+            Annotation anno = annots.add( a.x(), a.y(), a.text() );
+			anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
+		}
+	}
+    for ( auto a: auto_annotations ) {
+        if ( ++n <= 20 ) {
+            Annotation anno = annots.add( a.x(), a.y(), a.text() );
 			anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 		}
 	}

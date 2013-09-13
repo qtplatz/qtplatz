@@ -43,18 +43,14 @@ namespace adcontrols {
         MSAssignedMass();
         MSAssignedMass( const MSAssignedMass& );
         
-        MSAssignedMass( uint32_t idReferences
+        MSAssignedMass( uint32_t idReference
                         , uint32_t idMasSpectrum
                         , uint32_t idPeak
                         , const std::wstring& formula, double exactMass, double time, double mass
                         , bool enable, uint32_t flags = 0, uint32_t mode = 0 );
 
-        // MSAssignedMass( uint32_t idReferences, const peak_index_type& 
-        //                 , const std::wstring& formula, double exactMass, double time, double mass
-        //                 , bool enable, uint32_t flags = 0, uint32_t mode = 0 );
-
         const std::wstring& formula() const;
-        uint32_t idReferences() const;
+        uint32_t idReference() const;
         uint32_t idMassSpectrum() const; // fcn
         uint32_t idPeak() const;  // index on MassSpectrum
         double exactMass() const;
@@ -64,7 +60,7 @@ namespace adcontrols {
         uint32_t flags() const;
         uint32_t mode() const;
         void formula( const std::wstring& );
-        void idReferences( uint32_t );
+        void idReference( uint32_t );
         void idMassSpectrum( uint32_t );
         void idPeak( uint32_t );
         void exactMass( double );
@@ -76,7 +72,7 @@ namespace adcontrols {
  
     private:
         std::wstring formula_;
-        uint32_t idReferences_;
+        uint32_t idReference_;
         uint32_t idMassSpectrum_;
         uint32_t idPeak_;
         double exactMass_;
@@ -93,7 +89,7 @@ namespace adcontrols {
                 return;
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP( formula_);
-            ar & BOOST_SERIALIZATION_NVP( idReferences_);
+            ar & BOOST_SERIALIZATION_NVP( idReference_ );
             ar & BOOST_SERIALIZATION_NVP( idMassSpectrum_);
             ar & BOOST_SERIALIZATION_NVP( idPeak_);
             ar & BOOST_SERIALIZATION_NVP( exactMass_);

@@ -82,12 +82,8 @@ void
 annotations::sort( enum OrderBy item )
 {
     if ( item == Priority ) {
-        std::sort( vec_.begin(), vec_.end()
-                   , boost::bind( &annotation::priority, _1 ) < boost::bind( &annotation::priority, _2 ) );
-        
+		std::sort( vec_.begin(), vec_.end(), []( const annotation& a, const annotation& b ){ return a.priority() > b.priority(); } );
     } else if ( item == Index ) {
-        std::sort( vec_.begin(), vec_.end()
-                   , boost::bind( &annotation::index, _1 ) < boost::bind( &annotation::index, _2 ) );
-
+		std::sort( vec_.begin(), vec_.end(), []( const annotation& a, const annotation& b ){ return a.index() > b.index(); } );
     }
 }

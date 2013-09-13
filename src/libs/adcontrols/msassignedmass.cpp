@@ -30,7 +30,7 @@
 
 using namespace adcontrols;
 
-MSAssignedMass::MSAssignedMass() : idReferences_(-1)
+MSAssignedMass::MSAssignedMass() : idReference_(-1)
                                  , idMassSpectrum_(0)
 								 , idPeak_(-1)
                                  , exactMass_( 0 ) 
@@ -43,7 +43,7 @@ MSAssignedMass::MSAssignedMass() : idReferences_(-1)
 }
 
 MSAssignedMass::MSAssignedMass( const MSAssignedMass& t ) : formula_( t.formula_ )
-                                                          , idReferences_( t.idReferences_ )
+                                                          , idReference_( t.idReference_ )
                                                           , idMassSpectrum_( t.idMassSpectrum_ )
 														  , idPeak_( t.idPeak_ )
                                                           , exactMass_( t.exactMass_ )
@@ -55,7 +55,7 @@ MSAssignedMass::MSAssignedMass( const MSAssignedMass& t ) : formula_( t.formula_
 {
 }
 
-MSAssignedMass::MSAssignedMass( uint32_t idReferences
+MSAssignedMass::MSAssignedMass( uint32_t idReference
                                 , uint32_t idMassSpectrum
 								, uint32_t idPeak
                                 , const std::wstring& formula
@@ -65,7 +65,7 @@ MSAssignedMass::MSAssignedMass( uint32_t idReferences
                                 , bool enable
                                 , uint32_t flags
                                 , uint32_t mode ) : formula_( formula )
-                                                        , idReferences_( idReferences )
+                                                        , idReference_( idReference )
                                                         , idMassSpectrum_( idMassSpectrum )
 														, idPeak_( idPeak )
                                                         , exactMass_( exactMass )
@@ -78,15 +78,15 @@ MSAssignedMass::MSAssignedMass( uint32_t idReferences
 }
 
 uint32_t
-MSAssignedMass::idReferences() const
+MSAssignedMass::idReference() const
 {
-    return idReferences_;
+    return idReference_;
 }
 
 void
-MSAssignedMass::idReferences( uint32_t value )
+MSAssignedMass::idReference( uint32_t value )
 {
-    idReferences_ = value;
+    idReference_ = value;
 }
 
 uint32_t

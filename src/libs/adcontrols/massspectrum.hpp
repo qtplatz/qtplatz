@@ -127,8 +127,9 @@ namespace adcontrols {
         void addDescription( const Description& );
         const Descriptions& getDescriptions() const;
 
-        void setAnnotations( const annotations& );
-        const annotations& getAnnotations() const;
+        void set_annotations( const annotations& );
+        const annotations& get_annotations() const;
+		annotations& get_annotations();
 
         std::wstring saveXml() const;
         void loadXml( const std::wstring& );

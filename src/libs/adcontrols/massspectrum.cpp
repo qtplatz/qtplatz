@@ -91,12 +91,9 @@ namespace adcontrols {
            void setPolarity( MS_POLARITY polarity );
            MS_POLARITY polarity() const;
 
-           void setAnnotations( const annotations& a ) {
-               annotations_ = a;
-           }
-           const annotations& getAnnotations() const {
-               return annotations_;
-           }
+           inline void set_annotations( const annotations& a ) { annotations_ = a; }
+           inline const annotations& get_annotations() const {  return annotations_;  }
+		   inline annotations& get_annotations() {  return annotations_;  }
 	    
 	  // private:
            static std::wstring empty_string_;  // for error return as reference
@@ -410,15 +407,21 @@ MassSpectrum::setMSProperty( const MSProperty& prop )
 }
 
 void
-MassSpectrum::setAnnotations( const annotations& annots )
+MassSpectrum::set_annotations( const annotations& annots )
 {
-    pImpl_->setAnnotations( annots );
+    pImpl_->set_annotations( annots );
 }
 
 const annotations&
-MassSpectrum::getAnnotations() const
+MassSpectrum::get_annotations() const
 {
-    return pImpl_->getAnnotations();
+    return pImpl_->get_annotations();
+}
+
+annotations&
+MassSpectrum::get_annotations()
+{
+    return pImpl_->get_annotations();
 }
 
 template<class T> void

@@ -39,7 +39,7 @@ namespace adcontrols {
             , dataSvg
         };
         annotation();
-        annotation( const std::wstring&, int id = (-1), dataType typ = dataText );
+        annotation( const std::wstring&, double x = 0, double y = 0, int id = (-1), int priority = 0, dataType typ = dataText );
         annotation( const annotation& );
 
         const std::wstring& text() const;

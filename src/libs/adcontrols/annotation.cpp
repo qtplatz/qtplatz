@@ -48,12 +48,15 @@ annotation::annotation( const annotation& t ) : type_( t.type_ )
 }
 
 annotation::annotation( const std::wstring& text
+                        , double x
+                        , double y
                         , int idx
+                        , int priority
                         , enum dataType typ ) : type_( typ )
                                               , index_( idx )
-                                              , priority_( 0 )
+                                              , x_( x ), y_( y )
+                                              , priority_( priority )
                                               , text_( text )
-                                              , x_( 0 ), y_( 0 )
                                               , w_( 0 ), h_( 0 )
 {
 }

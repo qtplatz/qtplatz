@@ -594,15 +594,15 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
 			for ( size_t fcn = 0; fcn < segs.size(); ++fcn ) {
 				adcontrols::MassSpectrum& fms = segs[ fcn ];
 				for ( size_t i = 0; i < fms.size(); ++i )
-					if ( fms.getIntensity( i ) > y_threshold )
-                        fms.setColor( i, 6 ); // dark red (hard code in adwplot/spectrumwidget
+					if ( fms.getIntensity( i ) < y_threshold )
+                        fms.setColor( i, 16 ); // black
 			}
 
             adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
             if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m ) ) {
                 portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
                 att.assign( pResult, pResult->dataClass() );
-                
+#if 0                
                 // rewrite calibration := change m/z asssing on the spectrum
                 pCentroid->setCalibration( pResult->calibration() );
                 
@@ -616,6 +616,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
                         pProfile->setMass( i, mq * mq );
                     }
                 }
+#endif
             } else {
                 // set centroid result for user manual peak assign possible
                 portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );

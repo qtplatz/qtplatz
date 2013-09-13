@@ -39,16 +39,15 @@ namespace dataproc {
     class assign_masses : boost::noncopyable {
         double tolerance_;
         double threshold_;
+        
     public:
         assign_masses( double tolerance, double threshold ) : tolerance_( tolerance ), threshold_( threshold ) {
         }
-        static void make_color_array( unsigned char * colors, const adcontrols::MSAssignedMasses& assigned, std::size_t size );
-        bool operator()( adcontrols::MSAssignedMasses&, const adcontrols::MassSpectrum&, const adcontrols::MSReferences&, int mode, int fcn );
-
-        //static int assign_peak_by_time( const adcontrols::MassSpectrum& centroid, double t, double tolerance = 3e-9);
-        //void assign_peaks_by_time( adcontrols::MSAssignedMasses&
-        //, const adcontrols::MassSpectrum& centroid, const adcontrols::MSAssignedMasses& );
-
+        bool operator()( adcontrols::MSAssignedMasses&
+                         , const adcontrols::MassSpectrum&
+                         , const adcontrols::MSReferences&
+                         , int mode
+                         , int fcn );
     };
 
 }

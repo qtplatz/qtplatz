@@ -32,46 +32,12 @@
 
 using namespace dataproc;
 
-void
-assign_masses::make_color_array( unsigned char * colors, const adcontrols::MSAssignedMasses& assigned, std::size_t size )
-{
-    memset( colors, 0, size );
-    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
-        if ( it->idMassSpectrum() < size )
-            colors[ it->idMassSpectrum() ] = it->enable() ? 1 : 0;
-    }
-}
-
-/*
-void
-assign_masses::assign_peaks_by_time( adcontrols::MSAssignedMasses& res
-                                     , const adcontrols::MassSpectrum& centroid, const adcontrols::MSAssignedMasses& assigned )
-{
-    adportable::array_wrapper< const double > times( centroid.getTimeArray(), centroid.size() );
-    adportable::array_wrapper< const double > intens( centroid.getIntensityArray(), centroid.size() );
-
-    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
-        adportable::array_wrapper< const double >::iterator lb = std::lower_bound( times.begin(), times.end(), it->time() );
-        if ( lb != times.end() ) {
-            if ( std::abs( *lb - it->time() ) > std::abs( *lb - 1 ) - it->time() )
-                --lb;
-            if ( std::abs( *lb - it->time() ) < tolerance_ ) {
-                adcontrols::MSAssignedMass a( *it );
-                size_t idx = std::distance( times.begin(), lb );
-                a.idMassSpectrum( idx );
-                a.time( centroid.getTime( idx ) );
-                a.mass( centroid.getMass( idx ) );
-                res << a;
-            }
-        }
-    }
-}
-*/
-
 bool
 assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
                            , const adcontrols::MassSpectrum& centroid
-                           , const adcontrols::MSReferences& references, int mode, int fcn )
+                           , const adcontrols::MSReferences& references
+                           , int mode
+                           , int fcn )
 {
     using adportable::array_wrapper;
     using adcontrols::MSReferences;
