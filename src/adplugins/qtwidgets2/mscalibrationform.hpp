@@ -40,6 +40,8 @@ namespace adportable {
 namespace adcontrols {
     class MSCalibrateMethod;
     class ProcessMethod;
+	class MSReference;
+	class MSReferences;
 }
 
 namespace Ui {
@@ -89,25 +91,25 @@ namespace qtwidgets2 {
 	   void apply( adcontrols::ProcessMethod & );
 
     private slots:
-       void on_addReference_pressed();
+        void handle_selected_rows_deleted();
+        void handle_value_changed( const QModelIndex& );
+        void on_addReference_pressed();
+        void on_pushButton_pressed();
+        void on_pushButtonAdd_pressed();
+        void on_comboBoxAdductLose_currentIndexChanged(int index);
+        void on_tableView_customContextMenuRequested(const QPoint &pos);
+        void on_tableView_activated(const QModelIndex &index);
 
-       void on_pushButton_pressed();
-
-       void on_comboBoxMaterials_currentIndexChanged(const QString &arg1);
-
-       void on_pushButtonAdd_pressed();
-
-       void on_comboBoxAdductLose_currentIndexChanged(int index);
-
-       void on_tableView_customContextMenuRequested(const QPoint &pos);
-
-       void on_tableView_activated(const QModelIndex &index);
+        void on_comboBoxMaterials_currentIndexChanged(int index);
 
     private:
         void setCalibrateMethod( const adcontrols::MSCalibrateMethod& );
         void getCalibrateMethod( adcontrols::MSCalibrateMethod& ) const;
-        void makeSeries( const std::wstring& endGroup, const std::wstring& repeat, bool isAdduct, const std::wstring& adduct_lose );
+        void makeSeries( const std::wstring& endGroup, const std::wstring& repeat, bool isAdduct
+                         , const std::wstring& adduct_lose
+                         , adcontrols::MSReferences& );
         bool parse_formula( const std::wstring&, std::wstring& formula, std::wstring& adduct_lose, bool& isPositive ) const;
+        bool parse_formula( const std::wstring&, adcontrols::MSReference& ) const;
         
     private:
         Ui::MSCalibrationForm *ui;

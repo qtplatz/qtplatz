@@ -39,13 +39,13 @@ namespace qtwidgets2 {
 
         // void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
         // void setEditorData(QWidget *editor, const QModelIndex &index) const;
-        // void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
         // void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
         bool editorEvent( QEvent * event, QAbstractItemModel *
                           , const QStyleOptionViewItem&, const QModelIndex& ) override;
 
     signals:
-        void signalMSReferencesChanged( const QModelIndex& ) const;
+        void valueChanged( const QModelIndex& ) const;
 
     public slots:
 

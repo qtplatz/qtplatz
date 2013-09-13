@@ -31,10 +31,12 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
+#include "adcontrols_global.h"
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
-    class Element {
+    class ADCONTROLSSHARED_EXPORT Element {
     public:
         Element();
         Element( const std::wstring& symbol, const std::wstring& name, int atomicNumber, int valence );

@@ -215,7 +215,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Clear All</string>
+          <string>Clear Form</string>
          </property>
         </widget>
        </item>
@@ -350,26 +350,6 @@
          <item>
           <property name="text">
            <string/>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>PEG</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>PFTBA</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Ar</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Xe</string>
           </property>
          </item>
         </widget>

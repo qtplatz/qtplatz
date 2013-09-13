@@ -32,10 +32,13 @@ class TableView : public QTableView {
 public:
     TableView( QWidget * parent = 0 );
 
+signals:
+	void selectedRowsDeleted();
+
 protected:
     void keyPressEvent( QKeyEvent * event ) override;
     void mouseReleaseEvent( QMouseEvent * event ) override;
-
+public:
 	void handleDeleteSelection();
     void handleCopyToClipboard();
 };

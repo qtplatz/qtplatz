@@ -38,6 +38,7 @@
 #include <QStandardItemModel>
 #include "standarditemhelper.hpp"
 #include <boost/format.hpp>
+#include <boost/tokenizer.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qdebug.h>
 #include <QMenu>
@@ -70,7 +71,8 @@ MSCalibrationForm::MSCalibrationForm(QWidget *parent) :
     ui->spinMinimumRA->setMinimum( 0.0 );
     ui->spinMinimumRA->setMaximum( 99.9 );
 
-    // connect( pDelegate_.get(), SIGNAL( signalMSReferencesChanged( QModelIndex ) ), this, SLOT( handleMSReferencesChanged( QModelIndex ) ) );
+    connect( ui->tableView, SIGNAL( selectedRowsDeleted() ), this, SLOT( handle_selected_rows_deleted() ) );
+    connect( pDelegate_.get(), SIGNAL( valueChanged( const QModelIndex& ) ), this, SLOT( handle_value_changed( const QModelIndex& ) ) );
 }
 
 MSCalibrationForm::~MSCalibrationForm()
@@ -109,7 +111,12 @@ MSCalibrationForm::OnInitialUpdate()
 
 	table.setSortingEnabled(true);
 
-
+	ui->comboBoxMaterials->addItem( "Ar", "Ar" );
+	ui->comboBoxMaterials->addItem( "Xe", "Xe" );
+	ui->comboBoxMaterials->addItem( "PFTBA", "CF3" );
+	ui->comboBoxMaterials->addItem( "PEG", "H2O\tC2H4\tH" );
+	ui->comboBoxMaterials->addItem( "Recerpine", "C33H40N2O9\t\tH" );
+	ui->comboBoxMaterials->addItem( "Polystyrene", "H2O\tC8H8\tH" );
 }
 
 void
@@ -169,14 +176,8 @@ MSCalibrationForm::getCalibrateMethod( adcontrols::MSCalibrateMethod& method ) c
 		reference.charge_count( model.index( row, c_charge ).data( Qt::EditRole ).toInt() );
 		// parse formula that contains adduct or lose followed by '+' or '-' sign
         std::wstring text = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdWString();
-        std::wstring formula, adduct_lose;
-        bool isPositive( true );
-        if ( parse_formula( text, formula, adduct_lose, isPositive ) ) {
-            reference.formula( formula );
-			reference.adduct_or_loss( adduct_lose );
-            reference.polarityPositive( isPositive );
-        }
-        reference.formula( formula );
+        if ( ! parse_formula( text, reference ) )
+            continue;
 		reference.exact_mass( model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble() );
 		reference.description( model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString() );
 
@@ -200,8 +201,11 @@ MSCalibrationForm::setCalibrateMethod( const adcontrols::MSCalibrateMethod& meth
     ui->spinHighMass->setValue( method.highMass() );
 
     const adcontrols::MSReferences& references = method.references();
-    size_t nRows = references.size();
-	model.setRowCount( nRows + 1 );
+    int nRows = references.size();
+    if ( nRows < model.rowCount() )
+        model.removeRows( 0, model.rowCount() ); // make sure all clear
+
+    model.setRowCount( nRows + 1 ); // be sure last empty line
 
     size_t row = 0;
     for ( auto& ref: references ) {
@@ -246,29 +250,13 @@ MSCalibrationForm::on_addReference_pressed()
 	QString adduct_lose = ui->edtAdductLose->text();
 	bool isAdduct = ui->comboBoxAdductLose->currentIndex() == 0;
 
-	if ( ! ( endGroup.isEmpty() && repeat.isEmpty() ) ) {
-		makeSeries( endGroup.toStdWString(), repeat.toStdWString(), isAdduct, adduct_lose.toStdWString() );
-		return;
-	}
-
-	QString name = ui->comboBoxMaterials->currentText();
-	if ( ! name.isEmpty() ) {
-        adcontrols::MSReferences ref = pMethod_->references();
-        if ( name == "Xe" ) {
-            const adcontrols::Element& element = adcontrols::TableOfElements::instance()->findElement( L"Xe" );
-            for ( adcontrols::Element::vector_type::const_iterator it = element.begin(); it != element.end(); ++it ) {
-                std::wstring formula = ( boost::wformat( L"%1%Xe" ) % int( it->mass_ + 0.5 ) ).str();
-                bool enable = it->abundance_ > 0.01;
-                ref << adcontrols::MSReference( formula, true, L"", enable, it->mass_ );
-            }
-        } else if ( name == "Ar" ) {
-            const adcontrols::Element& element = adcontrols::TableOfElements::instance()->findElement( L"Ar" );
-            for ( adcontrols::Element::vector_type::const_iterator it = element.begin(); it != element.end(); ++it ) {
-                std::wstring formula = ( boost::wformat( L"%1%Ar" ) % int( it->mass_ + 0.5 ) ).str();
-                bool enable = it->abundance_ > 0.01;
-                ref << adcontrols::MSReference( formula, true, L"", enable, it->mass_ );
-            }
-        } else if ( name == "PFTBA" ) {
+	getCalibrateMethod( *pMethod_ );
+	adcontrols::MSReferences ref = pMethod_->references();
+	
+	if ( ! repeat.isEmpty() ) {
+		makeSeries( endGroup.toStdWString(), repeat.toStdWString(), isAdduct, adduct_lose.toStdWString(), ref );
+	} else {
+        if ( endGroup == "CF3" ) { // assume PFTBA
             ref << adcontrols::MSReference( L"CF3",     true,  L"", false );
             ref << adcontrols::MSReference( L"C2F4",    true,  L"", false );
             ref << adcontrols::MSReference( L"C2F5",    true,  L"", false );
@@ -284,18 +272,34 @@ MSCalibrationForm::on_addReference_pressed()
             ref << adcontrols::MSReference( L"C9F20N",  true,  L"", false );
             ref << adcontrols::MSReference( L"C12F22N", true,  L"", false );
             ref << adcontrols::MSReference( L"C12F24N", true,  L"", false );
+        } else {
+            // check if an element
+            const adcontrols::Element& element = adcontrols::TableOfElements::instance()->findElement( endGroup.toStdWString() );
+            if ( element.atomicNumber() >= 1 ) {
+                for ( adcontrols::Element::vector_type::const_iterator it = element.begin(); it != element.end(); ++it ) {
+                    std::wstring formula = ( boost::wformat( L"%1%%2%" ) % int( it->mass_ + 0.5 ) % element.symbol() ).str();
+					std::wstring description = ( boost::wformat( L"%.4f" ) % it->abundance_ ).str();
+                    bool enable = it->abundance_ > 0.01;
+                    ref << adcontrols::MSReference( formula, true, L"", enable, it->mass_, 1, description );
+                } 
+            } else {
+				// try formula
+				ref << adcontrols::MSReference( endGroup.toStdWString(), isAdduct, adduct_lose.toStdWString() );
+
+			}
         }
-        pMethod_->references( ref );
-        setCalibrateMethod( *pMethod_ );
 	}
+    pMethod_->references( ref );
+    setCalibrateMethod( *pMethod_ );
 }
 
 void
 MSCalibrationForm::makeSeries( const std::wstring& endGroup
                                , const std::wstring& repeat
-                               , bool isAdduct, const std::wstring& adduct_lose )
+                               , bool isAdduct
+							   , const std::wstring& adduct_lose
+							   , adcontrols::MSReferences& refs )
 {
-    adcontrols::MSReferences refs = pMethod_->references();
     int lmass = ui->spinLowMass->value();
     int hmass = ui->spinHighMass->value();
     
@@ -307,9 +311,18 @@ MSCalibrationForm::makeSeries( const std::wstring& endGroup
 		if ( ref.exact_mass() > lmass )
 			refs << ref;
     } while( ref.exact_mass() < hmass );
-	
-	pMethod_->references( refs );
-	setCalibrateMethod( *pMethod_ );
+}
+
+bool
+MSCalibrationForm::parse_formula( const std::wstring& text, adcontrols::MSReference& ref ) const
+{
+    std::wstring formula, adduct_lose;
+    bool isPositive( false );
+    if ( parse_formula( text, formula, adduct_lose, isPositive ) ) {
+        ref = adcontrols::MSReference( formula, isPositive, adduct_lose, true );
+        return true;
+    }
+    return false;
 }
 
 bool
@@ -321,7 +334,7 @@ MSCalibrationForm::parse_formula( const std::wstring& text, std::wstring& formul
     std::wstring::size_type pos = text.find_first_of( L"+-" );
     if ( pos == std::wstring::npos ) {
         formula = text;
-        return true;
+        return !formula.empty();
     } else {
 		formula = text.substr( 0, pos);
 		if ( text.at( pos ) == L'+' )
@@ -337,20 +350,9 @@ MSCalibrationForm::parse_formula( const std::wstring& text, std::wstring& formul
 
 void qtwidgets2::MSCalibrationForm::on_pushButton_pressed()
 {
-
-}
-
-void qtwidgets2::MSCalibrationForm::on_comboBoxMaterials_currentIndexChanged(const QString &arg1)
-{
-	if ( arg1 == "PEG" ) {
-		ui->edtAdductLose->setText( "H" );
-		ui->edtEndGroup->setText( "H2O" );
-		ui->edtRepeatGroup->setText( "C2H4" );
-	} else {
-		ui->edtAdductLose->setText( "" );
-		ui->edtEndGroup->setText( "" );
-		ui->edtRepeatGroup->setText( "" );
-    }
+	ui->edtAdductLose->setText( "" );
+	ui->edtEndGroup->setText( "" );
+	ui->edtRepeatGroup->setText( "" );
 }
 
 void qtwidgets2::MSCalibrationForm::on_pushButtonAdd_pressed()
@@ -360,7 +362,7 @@ void qtwidgets2::MSCalibrationForm::on_pushButtonAdd_pressed()
 
 void qtwidgets2::MSCalibrationForm::on_comboBoxAdductLose_currentIndexChanged(int index)
 {
-
+	(void)index;
 }
 
 void qtwidgets2::MSCalibrationForm::on_tableView_customContextMenuRequested(const QPoint &pt)
@@ -368,35 +370,87 @@ void qtwidgets2::MSCalibrationForm::on_tableView_customContextMenuRequested(cons
     std::vector< QAction * > actions;
     QMenu menu;
 
-    actions.push_back( menu.addAction( "Sort (exact mass)" ) );
-    actions.push_back( menu.addAction( "Sort (formula)" ) );
-    if ( ui->tableView->indexAt( pt ).isValid() ) {
-        actions.push_back( menu.addAction( "Delete line" ) );
-    }
+    actions.push_back( menu.addAction( "Refresh" ) );
+    actions.push_back( menu.addAction( "Clear" ) );
+    actions.push_back( menu.addAction( "Delete line(s)" ) );
 
     QAction * selected = menu.exec( ui->tableView->mapToGlobal( pt ) );
     if ( selected == actions[0] ) {
         adcontrols::MSCalibrateMethod method;
         getCalibrateMethod( method );
-        // add sort code here
         setCalibrateMethod( method );
     } else if ( selected == actions[1] ) {
-        adcontrols::MSCalibrateMethod method;
+		adcontrols::MSCalibrateMethod method;
         getCalibrateMethod( method );
-        // add sort code here
+        method.references( adcontrols::MSReferences() ); // empty refernces
         setCalibrateMethod( method );
     } else {
-        if ( actions.size() >= 3 ) {
-            if ( selected == actions[2] ) {
-                // delete line
-            }
-        }
+        ui->tableView->handleDeleteSelection();
     }
-
 }
 
 
 void qtwidgets2::MSCalibrationForm::on_tableView_activated(const QModelIndex &index)
 {
+	(void)index;
+}
 
+void
+MSCalibrationForm::handle_selected_rows_deleted()
+{
+	if ( pModel_->rowCount() == 0 )
+		pModel_->setRowCount( 1 ); // make sure at least one blank line for editing
+}
+
+void
+MSCalibrationForm::handle_value_changed( const QModelIndex& index )
+{
+    QStandardItemModel& model = *pModel_;
+	int row = index.row();
+    if ( index.column() == c_formula ) {
+        adcontrols::MSReference ref;
+        std::wstring text = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdWString();
+        if ( parse_formula( text, ref ) ) {
+            model.setData( model.index( row, c_formula ),     qtwrapper::qstring::copy( ref.formula() ) );
+            model.setData( model.index( row, c_exact_mass ),  ref.exact_mass() );
+            model.setData( model.index( row, c_enable ),      ref.enable() );
+            QStandardItem * chk = model.itemFromIndex( model.index( row, c_enable ) );
+            if ( chk ) {
+                chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
+                chk->setEditable( true );
+                model.setData( model.index( row, c_enable ),  ref.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+            }
+            model.setData( model.index( row, c_charge ),      ref.charge_count() );
+        }
+    }
+	if ( row == model.rowCount() - 1 )
+		model.insertRow( row + 1);
+}
+
+void qtwidgets2::MSCalibrationForm::on_comboBoxMaterials_currentIndexChanged(int index)
+{
+	ui->edtEndGroup->setText( "" );
+	ui->edtRepeatGroup->setText( "" );
+	ui->edtAdductLose->setText( "" );
+
+    std::wstring userData = ui->comboBoxMaterials->itemData( index ).toString().toStdWString();
+    if ( userData.empty() )
+        return;
+
+    typedef boost::tokenizer< boost::char_separator<wchar_t>
+                              , std::wstring::const_iterator
+                              , std::wstring > tokenizer_t;
+ 
+	boost::char_separator<wchar_t> separator( L"\t+-", L"", boost::keep_empty_tokens );
+    tokenizer_t tokens( userData, separator );
+    
+    auto token = tokens.begin();
+    if ( token != tokens.end() )
+        ui->edtEndGroup->setText( qtwrapper::qstring::copy( *token ) );
+    
+	if ( ++token != tokens.end() )
+        ui->edtRepeatGroup->setText( qtwrapper::qstring::copy( *token ) );
+
+    if ( token != tokens.end() && ++token != tokens.end() )
+        ui->edtAdductLose->setText( qtwrapper::qstring::copy( *token ) );
 }

@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "mscalibratedelegate.hpp"
+#include "mscalibrationform.hpp"
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
 #include <qtwrapper/qstring.hpp>
@@ -50,3 +51,9 @@ MSCalibrateDelegate::editorEvent( QEvent * event
     return QItemDelegate::editorEvent( event, model, option, index );
 }
 
+void
+MSCalibrateDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+{
+	QItemDelegate::setModelData( editor, model, index );
+	emit valueChanged( index );
+}
