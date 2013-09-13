@@ -27,6 +27,8 @@
 #include <qapplication.h>
 #include <qclipboard.h>
 #include <QKeyEvent>
+#include <set>
+#include <vector>
 
 TableView::TableView( QWidget * parent ) : QTableView( parent )
 {
@@ -37,8 +39,10 @@ TableView::keyPressEvent( QKeyEvent * event )
 {
 	if ( event->matches( QKeySequence::Copy ) ) {
         handleCopyToClipboard();
-    }
-    QTableView::keyPressEvent( event );
+    } else if ( event->matches( QKeySequence::Delete ) ) {
+		handleDeleteSelection();
+	} else
+		QTableView::keyPressEvent( event );
 }
 
 void
@@ -70,4 +74,35 @@ TableView::handleCopyToClipboard()
     QApplication::clipboard()->setText( selected_text );
 }
 
+void
+TableView::handleDeleteSelection()
+{
+	QModelIndexList indecies = selectionModel()->selectedIndexes();
+
+    qSort( indecies );
+    if ( indecies.size() < 1 )
+        return;
+
+	std::set< int > rows;
+    for( int i = 0; i < indecies.size(); ++i ) {
+        QModelIndex index = indecies.at( i );
+		rows.insert( index.row() );
+	}
+	std::vector< std::pair< int, int > > ranges;
+
+	for ( auto it = rows.begin(); it != rows.end(); ++it ) {
+		std::pair< int, int > range;
+		range.first = *it;
+		range.second = *it;
+		while ( ++it != rows.end() && *it == range.second + 1 )
+			range.second = *it;
+		--it;
+		ranges.push_back( range );
+	}
+
+	// remove from botton to top
+	for ( auto range = ranges.rbegin(); range != ranges.rend(); ++range )
+		model()->removeRows( range->first, range->second - range->first + 1 );
+
+}
 
