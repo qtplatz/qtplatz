@@ -34,6 +34,7 @@ public:
 
 protected:
     void keyPressEvent( QKeyEvent * event ) override;
+    void mouseReleaseEvent( QMouseEvent * event ) override;
 
 	void handleDeleteSelection();
     void handleCopyToClipboard();

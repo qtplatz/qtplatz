@@ -167,7 +167,7 @@ MSCalibrationForm::getCalibrateMethod( adcontrols::MSCalibrateMethod& method ) c
         adcontrols::MSReference reference;
 
 		reference.charge_count( model.index( row, c_charge ).data( Qt::EditRole ).toInt() );
-		// reference.formula( model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdWString() );
+		// parse formula that contains adduct or lose followed by '+' or '-' sign
         std::wstring text = model.index( row, c_formula ).data( Qt::EditRole ).toString().toStdWString();
         std::wstring formula, adduct_lose;
         bool isPositive( true );
@@ -176,7 +176,6 @@ MSCalibrationForm::getCalibrateMethod( adcontrols::MSCalibrateMethod& method ) c
 			reference.adduct_or_loss( adduct_lose );
             reference.polarityPositive( isPositive );
         }
-
         reference.formula( formula );
 		reference.exact_mass( model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble() );
 		reference.description( model.index( row, c_description ).data( Qt::EditRole ).toString().toStdWString() );
@@ -366,7 +365,11 @@ void qtwidgets2::MSCalibrationForm::on_comboBoxMaterials_currentIndexChanged(con
 		ui->edtAdductLose->setText( "H" );
 		ui->edtEndGroup->setText( "H2O" );
 		ui->edtRepeatGroup->setText( "C2H4" );
-	}
+	} else {
+		ui->edtAdductLose->setText( "" );
+		ui->edtEndGroup->setText( "" );
+		ui->edtRepeatGroup->setText( "" );
+    }
 }
 
 void qtwidgets2::MSCalibrationForm::on_pushButtonAdd_pressed()
@@ -411,3 +414,8 @@ void qtwidgets2::MSCalibrationForm::on_tableView_customContextMenuRequested(cons
 
 }
 
+
+void qtwidgets2::MSCalibrationForm::on_tableView_activated(const QModelIndex &index)
+{
+
+}

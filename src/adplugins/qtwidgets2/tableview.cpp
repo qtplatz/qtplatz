@@ -29,6 +29,7 @@
 #include <QKeyEvent>
 #include <set>
 #include <vector>
+#include <adportable/debug.hpp>
 
 TableView::TableView( QWidget * parent ) : QTableView( parent )
 {
@@ -43,6 +44,23 @@ TableView::keyPressEvent( QKeyEvent * event )
 		handleDeleteSelection();
 	} else
 		QTableView::keyPressEvent( event );
+}
+
+void
+TableView::mouseReleaseEvent( QMouseEvent * event )
+{
+	QModelIndex index = indexAt( event->pos() );
+	QTableView::mousePressEvent( event );
+
+	adportable::debug(__FILE__, __LINE__) << "mousePressEvent type=" << event->type();
+	if ( index.isValid() ) {
+        Qt::ItemFlags flags = model()->flags( index );
+        if ( flags & Qt::ItemIsUserCheckable ) {
+            QVariant st = index.data( Qt::CheckStateRole );
+			if ( index.data( Qt::EditRole ).type() == QVariant::Bool )
+                model()->setData( index, ( st == Qt::Checked ) ? true : false );
+        }
+    }
 }
 
 void

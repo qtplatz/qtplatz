@@ -102,6 +102,8 @@ namespace qtwidgets2 {
 
        void on_tableView_customContextMenuRequested(const QPoint &pos);
 
+       void on_tableView_activated(const QModelIndex &index);
+
     private:
         void OnMSReferencesUpdated( const QModelIndex& );
         void setCalibrateMethod( const adcontrols::MSCalibrateMethod& );
