@@ -38,7 +38,15 @@ namespace adcontrols {
     public:
         annotations();
         annotations( const annotations& );
+        typedef annotation value_type;
         typedef std::vector< annotation > vector_type;
+        typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef vector_type::iterator iterator;
+        typedef vector_type::const_iterator const_iterator;
+        typedef annotation& reference;
+        typedef const annotation& const_reference;
+
         enum OrderBy {
             Priority, Index
         };
@@ -47,18 +55,14 @@ namespace adcontrols {
         bool empty() const;
         void clear();
         void sort( OrderBy order = Priority );
-        operator const vector_type& () const;
         annotations& operator << ( const annotation& );
         const annotation& operator [] ( size_t ) const;
         annotation& operator [] ( size_t );
-        inline vector_type::iterator begin() { return vec_.begin(); }
-        inline vector_type::iterator end() { return vec_.end(); }
-        inline vector_type::const_iterator begin() const { return vec_.begin(); }
-        inline vector_type::const_iterator end() const { return vec_.begin(); }
+        inline iterator begin() { return vec_.begin(); }
+        inline iterator end() { return vec_.end(); }
+        inline const_iterator begin() const { return vec_.begin(); }
+        inline const_iterator end() const { return vec_.end(); }
     private:
-#if defined _MSC_VER
-# pragma warning( disable: 4251 )
-#endif
         vector_type vec_;
         friend class boost::serialization::access;
         template<class Archive>

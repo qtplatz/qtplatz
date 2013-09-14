@@ -54,11 +54,6 @@ annotations::clear()
     vec_.clear();
 }
 
-annotations::operator const annotations::vector_type& () const
-{
-    return vec_;
-}
-
 annotations&
 annotations::operator << ( const annotation& t )
 {

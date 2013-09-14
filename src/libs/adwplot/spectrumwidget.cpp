@@ -406,28 +406,28 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
         array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
         size_t beg = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.first ) );
         size_t end = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.second ) );
+
         if ( beg < end ) {
-            const adcontrols::annotations& annots = ms.get_annotations();
-            adportable::debug(__FILE__, __LINE__ ) << "spectrum[" << fcn << "] has " << annots.size() << " annotations.";
-            for ( size_t i = 0; i < annots.size(); ++i ) {
-                const adcontrols::annotation& a = annots[i];
-                adportable::debug(__FILE__, __LINE__ ) << "spectrum[" << fcn << "] annot " << a.text();
-                if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) ) {
+            const adcontrols::annotations& attached = ms.get_annotations();
+            for ( auto& a : attached ) {
+                if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) )
                     annotations << a;
-                    adportable::debug(__FILE__, __LINE__ ) << "spectrum[" << fcn << "] annot " << a.text() << " <<< added";
-                }
             }
 
             // generate auto-annotation
             for ( size_t idx = beg; idx <= end; ++idx ) {
-                int pri = ms.getIntensity( idx ) / max_y * 1000;
-                if ( colors )
-                    pri *= 100;
-                adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % ms.getMass( idx ) ).str()
-                                              , ms.getMass( idx ), ms.getIntensity( idx ), ( fcn << 24 | idx ), pri );
-                auto_annotations << annot;
+                if ( std::find_if( attached.begin(), attached.end()
+                                   , [idx]( const adcontrols::annotation& a ){ return a.index() == idx; } ) 
+                     == attached.end() ) {
+                    // if no attached annotation
+                    int pri = ms.getIntensity( idx ) / max_y * 1000;
+                    if ( colors )
+                        pri *= 100;
+                    adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % ms.getMass( idx ) ).str()
+                                                  , ms.getMass( idx ), ms.getIntensity( idx ), ( fcn << 24 | idx ), pri );
+                    auto_annotations << annot;
+                }
             }
-
         }
     }
 
@@ -439,17 +439,15 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
 
     size_t n = 0;
 
-    for ( auto a: annotations ) {
+    for ( const auto& a: annotations ) {
         if ( ++n <= 20 ) {
-            adportable::debug(__FILE__, __LINE__ ) << "****** annotation[" << n << "]: " << a.text() << ", " << a.x();
             Annotation anno = annots.add( a.x(), a.y(), a.text() );
 			anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 		}
 	}
 
-    for ( auto a: auto_annotations ) {
+    for ( const auto& a: auto_annotations ) {
         if ( ++n <= 20 ) {
-            adportable::debug(__FILE__, __LINE__ ) << "****** auto_annotation[" << n << "]: " << a.text() << ", " << a.x();
             Annotation anno = annots.add( a.x(), a.y(), a.text() );
 			anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 		}
