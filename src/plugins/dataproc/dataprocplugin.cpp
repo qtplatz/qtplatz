@@ -162,8 +162,6 @@ DataprocPlugin::~DataprocPlugin()
 DataprocPlugin::DataprocPlugin() : mainWindow_( new MainWindow )
                                  , pSessionManager_( new SessionManager() )
                                  , pActionManager_( new ActionManager( this ) ) 
-                                 , pBrokerSessionEvent_( 0 )
-                                 , brokerSession_( 0 ) 
                                  , dataprocFactory_( 0 )
 {
     instance_ = this;
@@ -430,21 +428,6 @@ DataprocPlugin::handleCreateChromatograms( const adcontrols::MassSpectrum& ms, d
 void
 DataprocPlugin::extensionsInitialized()
 {
-#if 0
-	Broker::Manager_var mgr = adorbmgr::orbmgr::getBrokerManager();
-    if ( ! CORBA::is_nil( mgr ) ) {
-        brokerSession_ = mgr->getSession( L"acquire" );
-        pBrokerSessionEvent_ = new QBrokerSessionEvent;
-        brokerSession_->connect( "-user-", "-password-", "dataproc", pBrokerSessionEvent_->_this() );
-        connect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) )
-                 , this, SLOT(handle_portfolio_created( const QString )) );
-        connect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) )
-                 , this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
-    } else {
-        QMessageBox::critical( 0, "DataprocPlugin::extensionsInitialized"
-                               , "can't find ior for adbroker -- maybe servant plugin load failed.");
-    }
-#endif
     mainWindow_->OnInitialUpdate();
     pActionManager_->loadDefaults();
 }
@@ -457,29 +440,7 @@ DataprocPlugin::aboutToShutdown()
     pActionManager_->saveDefaults();
 
     mainWindow_->OnFinalClose();
-#if 0
-	if ( ! CORBA::is_nil( brokerSession_ ) ) {
 
-        disconnect( pBrokerSessionEvent_, SIGNAL( signal_portfolio_created( const QString ) )
-                    , this, SLOT(handle_portfolio_created( const QString )) );
-
-        disconnect( pBrokerSessionEvent_, SIGNAL( signal_folium_added( const QString, const QString, const QString ) )
-                    , this, SLOT(handle_folium_added( const QString, const QString, const QString )) );
-
-        brokerSession_->disconnect( pBrokerSessionEvent_->_this() );
-
-        // destruct event sink object -->
-        CORBA::release( pBrokerSessionEvent_->_this() ); // delete object reference
-        adorbmgr::orbmgr::deactivate( pBrokerSessionEvent_ );
-
-        delete pBrokerSessionEvent_;
-        pBrokerSessionEvent_ = 0;
-        // <-- end event sink desctruction
-
-        CORBA::release( brokerSession_ );
-        brokerSession_ = 0;
-    }
-#endif
     adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutdown complete ===============";
 	return SynchronousShutdown;
 }

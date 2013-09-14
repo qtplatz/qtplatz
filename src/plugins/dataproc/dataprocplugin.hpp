@@ -31,7 +31,6 @@
 #include <memory>
 
 class QAction;
-class QBrokerSessionEvent;
 
 namespace adportable {
 	class Configuration;
@@ -40,10 +39,6 @@ namespace adportable {
 namespace adcontrols {
 	class ProcessMethod;
 	class MassSpectrum;
-}
-
-namespace Broker {
-    class Session;
 }
 
 namespace dataproc {
@@ -100,8 +95,6 @@ namespace dataproc {
         std::unique_ptr< SessionManager > pSessionManager_;
         std::unique_ptr< ActionManager > pActionManager_;
         
-        QBrokerSessionEvent * pBrokerSessionEvent_;
-        Broker::Session * brokerSession_;
         DataprocessorFactory * dataprocFactory_;
         
         std::unique_ptr< iSequenceImpl > iSequence_;
