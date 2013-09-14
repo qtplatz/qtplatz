@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "mscalibsummarydelegate.hpp"
+#include <QEvent>
 
 using namespace qtwidgets2;
 
@@ -31,25 +32,27 @@ MSCalibSummaryDelegate::MSCalibSummaryDelegate(QObject *parent) : QItemDelegate(
 {
 }
 
-QWidget *
-MSCalibSummaryDelegate::createEditor(QWidget *parent
-                                     , const QStyleOptionViewItem &option
-                                     , const QModelIndex &index) const
-{
-    return QItemDelegate::createEditor( parent, option, index );
-}
-
-void
-MSCalibSummaryDelegate::paint(QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
-{
-    QItemDelegate::paint( painter, option, index );
-}
-
 void
 MSCalibSummaryDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
     QItemDelegate::setEditorData( editor, index );
 }
+
+bool
+MSCalibSummaryDelegate::editorEvent( QEvent * event
+                            , QAbstractItemModel * model
+                            , const QStyleOptionViewItem& option
+                            , const QModelIndex& index )
+{
+    bool res = QItemDelegate::editorEvent( event, model, option, index );
+    if ( event->type() == QEvent::MouseButtonRelease && model->flags(index) & Qt::ItemIsUserCheckable ) {
+        QVariant st = index.data( Qt::CheckStateRole );
+        if ( index.data( Qt::EditRole ).type() == QVariant::Bool )
+            model->setData( index, ( st == Qt::Checked ) ? true : false );
+    }
+    return res;
+}
+
 
 void
 MSCalibSummaryDelegate::setModelData( QWidget *editor
@@ -60,12 +63,4 @@ MSCalibSummaryDelegate::setModelData( QWidget *editor
     emit valueChanged( index );
 }
 
-void
-MSCalibSummaryDelegate::updateEditorGeometry(QWidget *editor
-                                       , const QStyleOptionViewItem &option
-                                       , const QModelIndex &index) const
-{
-    Q_UNUSED( index );
-    editor->setGeometry( option.rect );
-}
 

@@ -1,4 +1,4 @@
-// -*- C++ -*-
+// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
@@ -7,10 +7,10 @@
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this
-** file in accordance with the MS-Cheminformatics Commercial License Agreement
-** provided with the Software or, alternatively, in accordance with the terms
-** contained in a written agreement between you and MS-Cheminformatics.
+** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -23,19 +23,17 @@
 **
 **************************************************************************/
 
-#ifndef MSCALIBSUMMARYDELEGATE_H
-#define MSCALIBSUMMARYDELEGATE_H
+#pragma once
 
 #include <QItemDelegate>
 
-namespace qtwidgets2 {
+namespace qtwidgets {
 
-    class MSCalibSummaryDelegate : public QItemDelegate {
+    class TableDelegate : public QItemDelegate {
         Q_OBJECT
     public:
-        explicit MSCalibSummaryDelegate(QObject *parent = 0);
+        explicit TableDelegate(QObject *parent = 0);
 
-		void setEditorData(QWidget *editor, const QModelIndex &index) const override;
         void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
         bool editorEvent( QEvent * event, QAbstractItemModel *
                           , const QStyleOptionViewItem&, const QModelIndex& ) override;
@@ -46,7 +44,5 @@ namespace qtwidgets2 {
     public slots:
 
     };
-
 }
 
-#endif // MSCALIBSUMMARYDELEGATE_H

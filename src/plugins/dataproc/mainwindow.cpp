@@ -370,8 +370,8 @@ MainWindow::createDockWidgets()
         {  "Centroid" ,       "qtwidgets::CentroidForm" }
 	  , { "MS Calibration",   "qtwidgets2::MSCalibrationForm" }
       , { "Targeting",       "qtwidgets::TargetForm" }
-      , { "Isotope",         "qtwidgets::IsotopeForm" }
-      //, { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
+      //, { "Isotope",         "qtwidgets::IsotopeForm" }
+      , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
       , { "Peak Find",       "qtwidgets::PeakMethodForm" }
     };
     

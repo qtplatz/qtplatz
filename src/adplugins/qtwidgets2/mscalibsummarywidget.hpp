@@ -48,6 +48,22 @@ namespace qtwidgets2 {
         ~MSCalibSummaryWidget();
         explicit MSCalibSummaryWidget(QWidget *parent = 0);
 
+        enum {
+            c_time
+            , c_formula
+            , c_exact_mass
+            , c_mass
+            , c_intensity
+            , c_mass_error_mDa
+            , c_mass_calibrated
+            , c_mass_error_calibrated_mDa
+            , c_is_enable
+            , c_flags
+            , c_mode // analyzer mode id, a.k.a. reflectron|linear, or number of turns on InfiTOF
+            , c_fcn  // segment id
+            , c_number_of_columns
+        };
+
         // adplugin::LifeCycle
         virtual void OnCreate( const adportable::Configuration& );
         virtual void OnInitialUpdate();

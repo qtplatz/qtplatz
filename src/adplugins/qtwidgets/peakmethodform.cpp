@@ -24,6 +24,7 @@
 
 #include "peakmethodform.hpp"
 #include "ui_peakmethodform.h"
+#include "tabledelegate.hpp"
 #include "peakmethoddelegate.hpp"
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/processmethod.hpp>
@@ -38,14 +39,22 @@ using namespace qtwidgets;
 
 PeakMethodForm::PeakMethodForm(QWidget *parent) : QWidget(parent)
                                                 , ui(new Ui::PeakMethodForm)
-						, pModel_( new QStandardItemModel )
-						, pConfig_( new adportable::Configuration )
-						, pMethod_( new adcontrols::PeakMethod ) 
-						, pDelegate_( new PeakMethodDelegate )
+                                                , pGEModel_( new QStandardItemModel )
+                                                , pTEModel_( new QStandardItemModel )
+                                                , pConfig_( new adportable::Configuration )
+                                                , pMethod_( new adcontrols::PeakMethod ) 
+                                                , pPMDelegate_( new PeakMethodDelegate )
+                                                , pTEDelegate_( new TableDelegate )
 {
     ui->setupUi(this);
-    ui->treeView->setModel( pModel_.get() );
-    ui->treeView->setItemDelegate( pDelegate_.get() );
+
+    ui->globalEvents->setModel( pGEModel_.get() );
+    ui->globalEvents->setItemDelegate( pPMDelegate_.get() );
+    ui->globalEvents->verticalHeader()->setDefaultSectionSize( 18 );
+
+    ui->timeEvents->setModel( pTEModel_.get() );
+    ui->timeEvents->setItemDelegate( pTEDelegate_.get() );
+    ui->timeEvents->verticalHeader()->setDefaultSectionSize( 18 );
 }
 
 PeakMethodForm::~PeakMethodForm()
@@ -68,35 +77,45 @@ PeakMethodForm::OnCreate( const adportable::Configuration& config )
 void
 PeakMethodForm::OnInitialUpdate()
 {
-    QStandardItemModel& model = *pModel_;
     adcontrols::PeakMethod& method = *pMethod_;
 
-    QStandardItem * rootNode = model.invisibleRootItem();
-    ui->treeView->setItemDelegate( pDelegate_.get() );
+    do {
+        QStandardItemModel& model = *pGEModel_;
 
-    rootNode->setColumnCount(2);
-    model.setHeaderData( 0, Qt::Horizontal, "Peak Method" );
-    for ( int i = 1; i < rootNode->columnCount(); ++i )
-        model.setHeaderData( 1, Qt::Horizontal, "" );
+        QStandardItem * rootNode = model.invisibleRootItem();
+        rootNode->setColumnCount(2);
+        model.setHeaderData( 0, Qt::Horizontal, "Peak Method" );
+        for ( int i = 1; i < rootNode->columnCount(); ++i )
+            model.setHeaderData( i, Qt::Horizontal, "" );
 
-//----
-    StandardItemHelper::appendRow( rootNode, "Slope [uV/min]",       method.slope() );
-    StandardItemHelper::appendRow( rootNode, "Minimum width[min]",   method.minimumWidth() );
-    StandardItemHelper::appendRow( rootNode, "Minimum height[uV]",   method.minimumHeight() );
-    StandardItemHelper::appendRow( rootNode, "Drift[uV/min]",        method.drift() );
-    StandardItemHelper::appendRow( rootNode, "Minimum Area[uV*s]",   method.minimumArea() );
-    StandardItemHelper::appendRow( rootNode, "Peak width doubling time[min]"
-                                                                   , method.doubleWidthTime() );
-
-	StandardItemHelper::appendRow( rootNode, "Pharmacopoeia", qVariantFromValue( PeakMethodDelegate::PharmacopoeiaEnum( method.pharmacopoeia() ) ) );
-
-    StandardItemHelper::appendRow( rootNode, "Theoretical Plate calculation method"
-		                                                           , method.theoreticalPlateMethod() );
-    StandardItemHelper::appendRow( rootNode, "Peak width calculation method"
-		                                                           , method.peakWidthMethod() );
-
-	ui->treeView->setColumnWidth( 0, 240 );
-	ui->treeView->setColumnWidth( 1, 100 );
+        StandardItemHelper::appendRow( rootNode, "Slope [uV/min]",       method.slope() );
+        StandardItemHelper::appendRow( rootNode, "Minimum width[min]",   method.minimumWidth() );
+        StandardItemHelper::appendRow( rootNode, "Minimum height[uV]",   method.minimumHeight() );
+        StandardItemHelper::appendRow( rootNode, "Drift[uV/min]",        method.drift() );
+        StandardItemHelper::appendRow( rootNode, "Minimum Area[uV*s]",   method.minimumArea() );
+        StandardItemHelper::appendRow( rootNode, "Peak width doubling time[min]"
+                                       , method.doubleWidthTime() );
+        StandardItemHelper::appendRow( rootNode, "Pharmacopoeia"
+                                       , qVariantFromValue( PeakMethodDelegate::PharmacopoeiaEnum( method.pharmacopoeia() ) ) );
+        
+        StandardItemHelper::appendRow( rootNode, "Theoretical Plate calculation method"
+                                       , method.theoreticalPlateMethod() );
+        StandardItemHelper::appendRow( rootNode, "Peak width calculation method"
+                                       , method.peakWidthMethod() );
+        
+        ui->globalEvents->setColumnWidth( 0, 240 );
+        ui->globalEvents->setColumnWidth( 1, 100 );
+    } while ( 0 );
+    
+    do {
+        QStandardItemModel& model = *pTEModel_;
+        QStandardItem * rootNode = model.invisibleRootItem();
+        rootNode->setColumnCount(3);
+        model.setHeaderData( 0, Qt::Horizontal, "Time(min)" );
+        model.setHeaderData( 0, Qt::Horizontal, "Func" );
+        model.setHeaderData( 0, Qt::Horizontal, "Value" );
+        model.setRowCount( 1 );
+    } while ( 0 );
 }
 
 void
@@ -123,7 +142,7 @@ PeakMethodForm::setContents( boost::any& )
 void
 PeakMethodForm::getContents( adcontrols::ProcessMethod& pm )
 {
-    QStandardItemModel& model = *pModel_;
+    QStandardItemModel& model = *pGEModel_;
     QStandardItem * root = model.invisibleRootItem();
     (void)root;
 /*
