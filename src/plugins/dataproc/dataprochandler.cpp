@@ -214,14 +214,15 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
         res.calibration( calib );
         res.assignedMasses( assignedMasses );
 
-		std::for_each( assignedMasses.begin(), assignedMasses.end(), [&]( const adcontrols::MSAssignedMass& assigned ){
-			adcontrols::MassSpectrum& ms = segments[ assigned.idMassSpectrum() ];
+		for ( const auto& assigned: assignedMasses ) { 
+            // std::for_each( assignedMasses.begin(), assignedMasses.end(), [&]( const adcontrols::MSAssignedMass& assigned ){
+            adcontrols::MassSpectrum& ms = segments[ assigned.idMassSpectrum() ];
             size_t idx = assigned.idPeak();
-			const adcontrols::MSReference& msref = res.references()[ assigned.idReference() ];
-			ms.setColor( idx, 1 );
-            adcontrols::annotation anno( msref.formula(), ms.getMass( idx ),  ms.getIntensity( idx ), idx );
+            const adcontrols::MSReference& msref = res.references()[ assigned.idReference() ];
+            ms.setColor( idx, 1 );
+            adcontrols::annotation anno( msref.display_formula(), ms.getMass( idx ),  ms.getIntensity( idx ), idx );
             ms.get_annotations() << anno;
-		});
+        }
 
 #if defined _DEBUG && 0
         calibresult_validation( res, centroid, threshold );

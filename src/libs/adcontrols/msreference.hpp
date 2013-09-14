@@ -56,6 +56,7 @@ namespace adcontrols {
         const std::wstring& formula() const;
         const std::wstring& adduct_or_loss() const;
         const std::wstring& description() const;
+        std::wstring display_formula() const;
 
         void enable( bool );
         void exact_mass( double );
@@ -77,20 +78,20 @@ namespace adcontrols {
 		void compute_mass();
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
+        void serialize( Archive& ar, const unsigned int version ) {
+            (void)version;
             using namespace boost::serialization;
-	    (void)version;
-	    ar & BOOST_SERIALIZATION_NVP(enable_);
-	    ar & BOOST_SERIALIZATION_NVP(exactMass_);
-	    ar & BOOST_SERIALIZATION_NVP(polarityPositive_);
-		ar & BOOST_SERIALIZATION_NVP(chargeCount_);
-	    ar & BOOST_SERIALIZATION_NVP(formula_);
-	    ar & BOOST_SERIALIZATION_NVP(adduct_or_loss_);
-	    ar & BOOST_SERIALIZATION_NVP(description_);
+            ar & BOOST_SERIALIZATION_NVP(enable_);
+            ar & BOOST_SERIALIZATION_NVP(exactMass_);
+            ar & BOOST_SERIALIZATION_NVP(polarityPositive_);
+            ar & BOOST_SERIALIZATION_NVP(chargeCount_);
+            ar & BOOST_SERIALIZATION_NVP(formula_);
+            ar & BOOST_SERIALIZATION_NVP(adduct_or_loss_);
+            ar & BOOST_SERIALIZATION_NVP(description_);
         }
 
     };
 
 }
 
-
+BOOST_CLASS_VERSION( adcontrols::MSReference, 1 )

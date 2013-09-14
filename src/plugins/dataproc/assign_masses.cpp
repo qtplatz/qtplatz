@@ -75,7 +75,7 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
             adcontrols::MSAssignedMass assigned( idReference
 				                                 , fcn
                                                  , idx            // idMassSpectrum (index on centroid peak)
-                                                 , it->formula()
+                                                 , it->display_formula()
                                                  , it->exact_mass()
                                                  , centroid.getTime( idx )
                                                  , masses[ idx ]

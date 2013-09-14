@@ -28,8 +28,7 @@
 #include "msreference.hpp"
 #include "chemicalformula.hpp"
 #include <compiler/diagnostic_pop.h>
-
-#include <cmath>
+#include <sstream>
 
 using namespace adcontrols;
 
@@ -84,7 +83,6 @@ MSReference::compute_mass()
     }
 }
 
-
 bool
 MSReference::enable() const
 {
@@ -115,6 +113,16 @@ MSReference::formula() const
     return formula_;
 }
 
+std::wstring
+MSReference::display_formula() const
+{
+	std::wostringstream wo;
+	wo << formula_;
+	if ( ! adduct_or_loss_.empty() )
+        wo << ( polarityPositive_ ? L'+' : L'-' ) << adduct_or_loss_;
+	return wo.str();
+}
+
 const std::wstring&
 MSReference::adduct_or_loss() const
 {
@@ -126,7 +134,6 @@ MSReference::description() const
 {
     return description_;
 }
-
 
 void
 MSReference::enable( bool value )
