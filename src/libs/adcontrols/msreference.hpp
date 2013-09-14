@@ -44,7 +44,7 @@ namespace adcontrols {
                    , const std::wstring& adduct_or_loss
                    , bool enable = true
                    , double exactMass = 0
-				   , size_t charge = 1
+				   , uint32_t charge = 1
                    , const std::wstring& description = L"" );
 
         bool operator < ( const MSReference& ) const;
@@ -52,7 +52,7 @@ namespace adcontrols {
         bool enable() const;
         double exact_mass() const;
         bool polarityPositive() const;
-		size_t charge_count() const;
+		uint32_t charge_count() const;
         const std::wstring& formula() const;
         const std::wstring& adduct_or_loss() const;
         const std::wstring& description() const;
@@ -60,7 +60,7 @@ namespace adcontrols {
         void enable( bool );
         void exact_mass( double );
         void polarityPositive( bool );
-		void charge_count( size_t );
+		void charge_count( uint32_t );
         void formula( const std::wstring& );
         void adduct_or_loss( const std::wstring& );
         void description( const std::wstring& );
@@ -69,7 +69,7 @@ namespace adcontrols {
         bool enable_;
         double exactMass_;
         bool polarityPositive_;
-        size_t chargeCount_;
+        uint32_t chargeCount_;
         std::wstring formula_;
         std::wstring adduct_or_loss_;
         std::wstring description_;

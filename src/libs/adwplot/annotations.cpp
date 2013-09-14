@@ -44,7 +44,7 @@ Annotations::clear()
 }
 
 
-Annotation
+Annotation&
 Annotations::add( double x, double y, const std::wstring& title )
 {
     vec_.push_back( Annotation( plot_, title, x, y ) );

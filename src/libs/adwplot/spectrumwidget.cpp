@@ -33,6 +33,7 @@
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/array_wrapper.hpp>
+#include <adportable/debug.hpp>
 #include <qwt_plot_picker.h>
 #include <qwt_plot_panner.h>
 #include <qwt_plot_curve.h>
@@ -406,6 +407,17 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
         size_t beg = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.first ) );
         size_t end = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.second ) );
         if ( beg < end ) {
+            const adcontrols::annotations& annots = ms.get_annotations();
+            adportable::debug(__FILE__, __LINE__ ) << "spectrum[" << fcn << "] has " << annots.size() << " annotations.";
+            for ( size_t i = 0; i < annots.size(); ++i ) {
+                const adcontrols::annotation& a = annots[i];
+                adportable::debug(__FILE__, __LINE__ ) << "spectrum[" << fcn << "] annot " << a.text();
+                if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) ) {
+                    annotations << a;
+                    adportable::debug(__FILE__, __LINE__ ) << "spectrum[" << fcn << "] annot " << a.text() << " <<< added";
+                }
+            }
+
             // generate auto-annotation
             for ( size_t idx = beg; idx <= end; ++idx ) {
                 int pri = ms.getIntensity( idx ) / max_y * 1000;
@@ -415,30 +427,29 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                                               , ms.getMass( idx ), ms.getIntensity( idx ), ( fcn << 24 | idx ), pri );
                 auto_annotations << annot;
             }
-        }
 
-        const adcontrols::annotations& annots = ms.get_annotations();
-        for ( auto& it: annots ) {
-            if ( ( ( int(beg) < it.index() ) && ( it.index() < int(end) ) )
-                 || ( ( range.first < it.x() ) && ( it.x() < range.second ) ) ) {
-                annotations << it;
-            }
         }
     }
+
 	auto_annotations.sort();
     annotations.sort();
 
 	annotations_.clear();
     Annotations annots(plot, annotations_);
+
     size_t n = 0;
+
     for ( auto a: annotations ) {
         if ( ++n <= 20 ) {
+            adportable::debug(__FILE__, __LINE__ ) << "****** annotation[" << n << "]: " << a.text() << ", " << a.x();
             Annotation anno = annots.add( a.x(), a.y(), a.text() );
 			anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 		}
 	}
+
     for ( auto a: auto_annotations ) {
         if ( ++n <= 20 ) {
+            adportable::debug(__FILE__, __LINE__ ) << "****** auto_annotation[" << n << "]: " << a.text() << ", " << a.x();
             Annotation anno = annots.add( a.x(), a.y(), a.text() );
 			anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 		}

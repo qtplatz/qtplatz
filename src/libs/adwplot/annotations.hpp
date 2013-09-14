@@ -40,7 +40,7 @@ namespace adwplot {
         Annotations( Dataplot&, vector_type& );
         Annotations( const Annotations& );
 
-        Annotation add( double x = 0.0, double y = 0.0, const std::wstring& title = L"" );
+        Annotation& add( double x = 0.0, double y = 0.0, const std::wstring& title = L"" );
         void clear();
         inline size_t size() const { return vec_.size(); }
         inline vector_type::iterator begin() { return vec_.begin(); }

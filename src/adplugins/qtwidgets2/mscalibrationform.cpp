@@ -224,7 +224,7 @@ MSCalibrationForm::setCalibrateMethod( const adcontrols::MSCalibrateMethod& meth
             model.setData( model.index( row, c_enable ),  ref.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
 		model.setData( model.index( row, c_description ), qtwrapper::qstring::copy( ref.description() ) );
-		model.setData( model.index( row, c_charge ),      ref.charge_count() );
+		model.setData( model.index( row, c_charge ), ref.charge_count() );
 
         ++row;
     }

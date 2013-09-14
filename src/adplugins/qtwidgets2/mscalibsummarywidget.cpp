@@ -126,7 +126,7 @@ MSCalibSummaryWidget::getContents( boost::any& any ) const
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( any );
         *ptr = *pCalibrantSpectrum_; // deep copy
 
-        QStandardItemModel& model = *pModel_;
+        // QStandardItemModel& model = *pModel_;
         size_t row = currentIndex().row();
         if ( row  < indecies_.size() )
             adcontrols::segments_helper::set_color( *ptr, indecies_[ row ].first, indecies_[ row ].second, 2 );
@@ -161,9 +161,10 @@ MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
                 bool flag = model.index( row, c_flags ).data( Qt::EditRole ).toBool();
                 uint32_t mode = model.index( row, c_mode ).data( Qt::EditRole ).toInt();
 				uint32_t fcn = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
-				(void)fcn;
-				//adcontrols::MSAssignedMass assigned( -1, indecies_[ row ], wformula, exact_mass, time, mass, true, unsigned( flag ), mode );
-                //t << assigned;
+                assert( fcn == indecies_[ row ].first );
+				adcontrols::MSAssignedMass assigned( -1, fcn, indecies_[ row ].second
+                                                     , wformula, exact_mass, time, mass, true, unsigned( flag ), mode );
+                t << assigned;
             }
         }
     }    
@@ -205,7 +206,7 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 	}
 
     model.insertRows( 0, indecies_.size() );
-    const adcontrols::MSProperty& prop = ms.getMSProperty();
+    // const adcontrols::MSProperty& prop = ms.getMSProperty();
     
     size_t row = 0;
     for ( auto idx: indecies_ ) {
@@ -253,7 +254,7 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
 void
 MSCalibSummaryWidget::handleEraseFormula()
 {
-    QModelIndex index = this->currentIndex();
+    // QModelIndex index = this->currentIndex();
     //model_->removeRows( index.row(), 1 );
     //emit lineDeleted( index.row() );
 }
@@ -363,7 +364,7 @@ MSCalibSummaryWidget::handleCopyToClipboard()
         heading.append( '\n' );
     }
     
-    QModelIndex last = list.last();
+    // QModelIndex last = list.last();
     QModelIndex prev = list.first();
 
     do {

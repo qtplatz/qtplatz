@@ -53,18 +53,18 @@ MSReference::MSReference( const MSReference& t ) : enable_( t.enable_ )
 }
 
 MSReference::MSReference( const std::wstring& formula
-                         , bool polarityPositive
-                         , const std::wstring& adduct_or_loss
-                         , bool enable
-                         , double exactMass
-						 , size_t charge
-                         , const std::wstring& description ) : enable_( enable )
-                                                             , exactMass_( exactMass ) 
-															 , chargeCount_( charge )
-                                                             , polarityPositive_( polarityPositive )
-                                                             , formula_( formula )
-                                                             , adduct_or_loss_( adduct_or_loss )
-                                                             , description_( description )    
+                          , bool polarityPositive
+                          , const std::wstring& adduct_or_loss
+                          , bool enable
+                          , double exactMass
+                          , uint32_t charge
+                          , const std::wstring& description ) : enable_( enable )
+                                                              , exactMass_( exactMass ) 
+                                                              , chargeCount_( charge )
+                                                              , polarityPositive_( polarityPositive )
+                                                              , formula_( formula )
+                                                              , adduct_or_loss_( adduct_or_loss )
+                                                              , description_( description )    
 {
 	if ( exactMass_ <= std::numeric_limits<double>::epsilon() )
         compute_mass();
@@ -141,12 +141,12 @@ MSReference::exact_mass( double value )
 }
 
 void
-MSReference::charge_count( size_t v )
+MSReference::charge_count( uint32_t v )
 {
 	chargeCount_ = v;
 }
 
-size_t
+uint32_t
 MSReference::charge_count() const
 {
 	return chargeCount_;
