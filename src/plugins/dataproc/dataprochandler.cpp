@@ -215,7 +215,6 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
         res.assignedMasses( assignedMasses );
 
 		for ( const auto& assigned: assignedMasses ) { 
-            // std::for_each( assignedMasses.begin(), assignedMasses.end(), [&]( const adcontrols::MSAssignedMass& assigned ){
             adcontrols::MassSpectrum& ms = segments[ assigned.idMassSpectrum() ];
             size_t idx = assigned.idPeak();
             const adcontrols::MSReference& msref = res.references()[ assigned.idReference() ];
@@ -281,7 +280,6 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
         res.assignedMasses( assignedMasses );
 
         std::vector< unsigned char > colors( centroid.size() );
-        //assign_masses::make_color_array( colors.data(), assignedMasses, centroid.size() );
         centroid.setColorArray( colors.data() );
         return true;
     }

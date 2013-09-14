@@ -30,6 +30,7 @@
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adfs/sqlite.hpp>
+#include <adportable/profile.hpp>
 
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
@@ -141,5 +142,61 @@ ActionManager::actMethodOpen()
         adfs::cpio< adcontrols::ProcessMethod >::copyout( m, *it );
         MainWindow::instance()->processMethodLoaded( name, m );
     }
+}
+
+bool
+ActionManager::saveDefaults()
+{
+    boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
+    dir /= "data";
+    if ( ! boost::filesystem::exists( dir ) ) 
+        if ( ! boost::filesystem::create_directories( dir ) )
+            return false;
+    boost::filesystem::path fname = dir / "default.pmth";
+
+    adfs::filesystem file;
+    try {
+        if ( !file.create( fname.wstring().c_str() ) )
+            return false;
+    } catch ( adfs::exception& ex ) {
+        QMessageBox::warning( 0, "Process method", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
+        return false;
+    }
+    adfs::folder folder = file.addFolder( L"/ProcessMethod" );
+    adfs::file adfile = folder.addFile( fname.wstring() ); // internal filename := os filename
+    adcontrols::ProcessMethod m;
+    MainWindow::instance()->getProcessMethod( m );
+    adfs::cpio< adcontrols::ProcessMethod >::copyin( m, adfile );
+    adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
+    adfile.commit();
+
+    return true;
+}
+
+bool
+ActionManager::loadDefaults()
+{
+    boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
+    dir /= "data";
+
+    boost::filesystem::path path = dir / "default.pmth";
+    adfs::filesystem file;
+    try {
+        if ( ! file.mount( path.wstring().c_str() ) )
+            return false;
+    } catch ( adfs::exception& ex ) {
+        QMessageBox::warning( 0, "SequenceFile", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
+        return false;
+    }
+
+    adfs::folder folder = file.findFolder( L"/ProcessMethod" );
+    std::vector< adfs::file > files = folder.files();
+    if ( files.empty() )
+        return false;
+    auto it = files.begin();
+    adcontrols::ProcessMethod m;
+    adfs::cpio< adcontrols::ProcessMethod >::copyout( m, *it );
+    MainWindow::instance()->processMethodLoaded( path.string().c_str(), m );
+    return true;
 }
 

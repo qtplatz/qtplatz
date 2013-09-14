@@ -72,7 +72,7 @@ namespace dataproc {
         
         void processMethodSaved( const QString& );
         void processMethodLoaded( const QString&, const adcontrols::ProcessMethod& );
-        
+
     signals:
             
     public slots:

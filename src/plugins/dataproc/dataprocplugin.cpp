@@ -446,12 +446,15 @@ DataprocPlugin::extensionsInitialized()
     }
 #endif
     mainWindow_->OnInitialUpdate();
+    pActionManager_->loadDefaults();
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
 DataprocPlugin::aboutToShutdown()
 {
     adportable::debug(__FILE__, __LINE__) << "====== DataprocPlugin shutting down...  ===============";
+
+    pActionManager_->saveDefaults();
 
     mainWindow_->OnFinalClose();
 #if 0

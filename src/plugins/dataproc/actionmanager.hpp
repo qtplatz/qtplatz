@@ -40,6 +40,8 @@ namespace dataproc {
         explicit ActionManager(QObject *parent = 0);
 
         bool initialize_actions( const QList<int>& context );
+        bool saveDefaults();
+        bool loadDefaults();
 
     private:
         std::unique_ptr< QAction > saveAction_;
