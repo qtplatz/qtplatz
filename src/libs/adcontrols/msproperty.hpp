@@ -135,6 +135,6 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION(adcontrols::MSProperty, 2)
+BOOST_CLASS_VERSION(adcontrols::MSProperty, 3)
 BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 3)
 

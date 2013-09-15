@@ -77,7 +77,7 @@ DataprocHandler::doCentroid( adcontrols::MassSpectrum& res
     if ( profile.numSegments() > 0 ) {
         for ( size_t fcn = 0; fcn < profile.numSegments(); ++fcn ) {
             adcontrols::MassSpectrum centroid;
-            if ( doCentroid( centroid, profile[ fcn ], m ) ) {
+            if ( doCentroid( centroid, profile.getSegment( fcn ), m ) ) {
                 res.addSegment( centroid );
                 result = true;
             }
@@ -200,7 +200,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 
     adcontrols::MSAssignedMasses assignedMasses;
     
-	adcontrols::sequence_wrapper< adcontrols::MassSpectrum > segments( centroid );
+	adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( centroid );
 	for ( size_t n = 0; n < segments.size(); ++n )
 		assigner( assignedMasses, segments[n], res.references(), 0, n );
 
@@ -208,8 +208,12 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     for ( const auto& assigned: assignedMasses ) { 
         adcontrols::MassSpectrum& ms = segments[ assigned.idMassSpectrum() ];
         size_t idx = assigned.idPeak();
+		size_t rid = assigned.idReference();
         const adcontrols::MSReference& msref = res.references()[ assigned.idReference() ];
-        ms.setColor( idx, 1 );
+		if ( msref.enable() )
+			ms.setColor( idx, 1 ); // red
+		else
+			ms.setColor( idx, 6 ); // dark red
         adcontrols::annotation anno( msref.display_formula(), ms.getMass( idx ),  ms.getIntensity( idx ), idx );
         ms.get_annotations() << anno;
     }
@@ -262,7 +266,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     // continue auto-assign
     assign_masses assign( tolerance, threshold );
     adcontrols::MSAssignedMasses assignedMasses;
-	adcontrols::sequence_wrapper< adcontrols::MassSpectrum > segments( centroid );
+	adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( centroid );
 	for ( size_t n = 0; n < segments.size(); ++n ) {
 		assign( assignedMasses, segments[n], m.references(), 0, n );
 	}

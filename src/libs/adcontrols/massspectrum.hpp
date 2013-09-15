@@ -141,8 +141,8 @@ namespace adcontrols {
         size_t addSegment( const MassSpectrum& );
         MassSpectrum& getSegment( size_t fcn /* 1..n */ );
         const MassSpectrum& getSegment( size_t fcn /* 1..n */ ) const;
-        MassSpectrum & operator [] ( size_t fcn /* 1..n */);
-        const MassSpectrum& operator [] ( size_t fcn ) const;
+        //MassSpectrum & operator [] ( size_t fcn /* 1..n */);
+        //const MassSpectrum& operator [] ( size_t fcn ) const;
         void clearSegments();
         size_t numSegments() const;
         
@@ -155,22 +155,41 @@ namespace adcontrols {
 
     struct ADCONTROLSSHARED_EXPORT segments_helper {
         static double max_intensity( const MassSpectrum& );
+		static double min_intensity( const MassSpectrum& );
         static void set_color( MassSpectrum&, size_t fcn, size_t idx, int color );
         static int  get_color( const MassSpectrum&, size_t fcn, size_t idx );
     };
     
     template<> void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );
     template<> void MassSpectrum::serialize( portable_binary_iarchive&, const unsigned int );
+
+    template<class T> class segment_iterator {
+        size_t pos_;
+        T& ms_;
+    public:
+        segment_iterator( T& ms, size_t pos ) : pos_( pos ), ms_( ms ) {}
+        bool operator != ( const segment_iterator& rhs ) const { 
+			return pos_ != rhs.pos_;
+		}
+        const segment_iterator& operator ++ () { ++pos_; return *this; }
+        operator T* () const { return pos_ == 0 ? &ms_ : &ms_.getSegment( pos_ - 1 ); }
+    };
     
-	template<class T = MassSpectrum > class sequence_wrapper {
+	template<class T = MassSpectrum > class segment_wrapper {
 		T& ms_;
     public:
 		typedef T value_type;
+        typedef segment_iterator<T> iterator;
+        typedef const segment_iterator<T> const_iterator;
 		typedef T& reference;
 		typedef const T& const_reference;
 		typedef size_t size_type;
 		typedef ptrdiff_t difference_type;
-		sequence_wrapper( T& ms ) : ms_( ms ) {}
+		segment_wrapper( T& ms ) : ms_( ms ) {}
+        inline iterator begin()             { return segment_iterator<T>(ms_, 0); }
+        inline const_iterator begin() const { return segment_iterator<T>(ms_, 0); }
+        inline iterator end()               { return segment_iterator<T>(ms_, ms_.numSegments() + 1); }
+        inline const_iterator end() const   { return segment_iterator<T>(ms_, ms_.numSegments() + 1); }
 		inline reference operator [] ( size_t idx )             { return idx == 0 ? ms_ : ms_.getSegment( idx - 1 ); }
 		inline const_reference operator [] ( size_t idx ) const { return idx == 0 ? ms_ : ms_.getSegment( idx - 1 ); }
 		inline size_type size() const { return ms_.numSegments() + 1; }

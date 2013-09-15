@@ -136,7 +136,7 @@ MSCalibSummaryWidget::getContents( boost::any& any ) const
     }
 
 	if ( any.type() == typeid( adcontrols::ProcessMethod* ) ) {
-		adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
+		//adcontrols::ProcessMethod* pm = boost::any_cast< adcontrols::ProcessMethod* >( any );
 		///////////
 		return true;
 	}
@@ -158,6 +158,7 @@ MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
                 double exact_mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
                 bool flag = model.index( row, c_flags ).data( Qt::EditRole ).toBool();
 				uint32_t fcn = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
+				(void)fcn; // for debug
 
                 adcontrols::MSAssignedMass assigned( -1, 0, indecies_[ row ], wformula, exact_mass, time, mass, true, unsigned( flag ) );
                 t << assigned;

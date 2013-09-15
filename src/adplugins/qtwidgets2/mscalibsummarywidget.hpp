@@ -81,26 +81,31 @@ namespace qtwidgets2 {
     signals:
         void valueChanged();
         void currentChanged( size_t idx, size_t fcn );
-        void applyTriggered();
-        void applyPeakAssign();
+        void on_recalibration_requested();
+        void on_reassign_mass_requested();
+        void on_apply_calibration_to_dataset();
+        void on_apply_calibration_to_default();
 
     public slots:
         void setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
         void getLifeCycle( adplugin::LifeCycle*& );
         void showContextMenu( const QPoint& );
+        void handle_visible_mass_range( double, double );
 
    private slots:
         void handleEraseFormula();
-        void handleUpdateCalibration();
+        //void handleUpdateCalibration();
+        //void handleClearFormulae();
+        //void handleUpdatePeakAssign();
+
         void handleCopyToClipboard();
-        void handleClearFormulae();
         void handleValueChanged( const QModelIndex& );
-        void handleUpdatePeakAssign();
 
     private:
         std::unique_ptr< QStandardItemModel > pModel_;
         std::unique_ptr< MSCalibSummaryDelegate > pDelegate_;
         std::unique_ptr< adcontrols::MSReferences > pReferences_;
+        std::unique_ptr< adcontrols::MSCalibrateResult > pCalibResult_;
         std::unique_ptr< adcontrols::MassSpectrum > pCalibrantSpectrum_;
         bool inProgress_;
         std::vector< std::pair< uint32_t, uint32_t > > indecies_; // fcn, idx

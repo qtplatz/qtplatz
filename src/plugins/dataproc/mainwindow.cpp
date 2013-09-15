@@ -43,6 +43,8 @@
 #include <adportable/configuration.hpp>
 #include <adportable/utf.hpp>
 #include <adportable/debug.hpp>
+#include <portfolio/folder.hpp>
+#include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <boost/any.hpp>
 
@@ -419,8 +421,17 @@ MainWindow::handleSessionAdded( dataproc::Dataprocessor * )
 }
 
 void
-MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium& )
+MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium& folium )
 {
+	if ( portfolio::Folder folder = folium.getParentFolder() ) {
+		if ( folder.name() == L"MSCalibration" ) {
+            if ( stack_->currentIndex() != 2 && stack_->currentIndex() != 3 )
+                actionSelMSCalibration();
+        } else if ( folder.name() == L"Spectra" ) {
+			if ( stack_->currentIndex() == 2 || stack_->currentIndex() == 3 )
+				actionSelMSProcess();
+		}
+    }
 }
 
 

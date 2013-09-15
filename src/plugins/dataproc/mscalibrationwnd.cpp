@@ -82,28 +82,32 @@ MSCalibrationWnd::init()
 
         // summary table
         pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" );
+        if ( QWidget * pSummary = pImpl_->calibSummaryWidget_ ) {
+            bool res;
+            res = connect( pSummary, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( handleSelSummary( size_t, size_t ) ) );
+            assert(res);
+            res = connect( pSummary, SIGNAL( valueChanged() ), this, SLOT( handleValueChanged() ) );
+            assert(res);
+            res = connect( pSummary, SIGNAL( on_recalibration_requested() ), this, SLOT( handle_recalibration_requested() ) );
+            assert(res);
+            res = connect( pSummary, SIGNAL( on_reassign_mass_requested() ), this, SLOT( handle_reassign_mass_requested() ) );
+            assert(res);
+            res = connect( pSummary, SIGNAL( on_apply_calibration_to_dataset() ), this, SLOT( handle_apply_calibration_to_dataset() ) );
+            assert(res);
+            res = connect( pSummary, SIGNAL( on_apply_calibration_to_default() ), this, SLOT( handle_apply_calibration_to_default() ) );
+            assert(res);
+            (void)res;
 
-        bool res;
-        res = connect( pImpl_->calibSummaryWidget_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( handleSelSummary( size_t, size_t ) ) );
-        assert(res);
-
-        res = connect( pImpl_->calibSummaryWidget_, SIGNAL( applyTriggered() ), this, SLOT( handleManuallyAssigned() ) );
-        assert(res);
-
-        res = connect( pImpl_->calibSummaryWidget_, SIGNAL( valueChanged() ), this, SLOT( handleValueChanged() ) );
-        assert(res);
-        (void)res;
-
-        if ( pImpl_->calibSummaryWidget_ ) {
-            adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
+            adplugin::LifeCycleAccessor accessor( pSummary );
             adplugin::LifeCycle * p = accessor.get();
             if ( p )
                 p->OnInitialUpdate();
 
-            connect( this, SIGNAL( fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ),
-                pImpl_->calibSummaryWidget_, SLOT( setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ) );
+            connect( this
+                     , SIGNAL( fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) )
+                     , pSummary, SLOT( setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ) );
 
-            splitter->addWidget( pImpl_->calibSummaryWidget_ );
+            splitter->addWidget( pSummary );
         }
 
         splitter->setOrientation( Qt::Vertical );
@@ -131,6 +135,8 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 
     portfolio::Folder folder = folium.getParentFolder();
     if ( folder && folder.name() == L"MSCalibration" ) {
+
+		this->raise();
 
         pImpl_->folium_ = folium;
 
@@ -178,19 +184,6 @@ MSCalibrationWnd::handleSelSummary( size_t idx, size_t fcn )
         boost::any any( ptr );
         p->getContents( any );
         pImpl_->processedSpectrum_->setData( *ptr, 1 );
-    }
-}
-
-void
-MSCalibrationWnd::handleManuallyAssigned()
-{
-    adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
-    adplugin::LifeCycle * p = accessor.get();
-    if ( p ) {
-        std::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
-        boost::any any( assigned );
-        if ( p->getContents( any ) )
-            MainWindow::instance()->applyCalibration( *assigned );
     }
 }
 
@@ -246,4 +239,49 @@ MSCalibrationWnd::handleValueChanged()
             // todo: update annotation
         }
     }
+}
+
+bool
+MSCalibrationWnd::readCalibSummary( adcontrols::MSAssignedMasses& assigned )
+{
+    adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
+    adplugin::LifeCycle * p = accessor.get();
+    if ( p ) {
+        std::shared_ptr< adcontrols::MSAssignedMasses > ptr( new adcontrols::MSAssignedMasses );
+        boost::any any( ptr );
+        if ( p->getContents( any ) ) {
+            assigned = *ptr;
+            return true;
+        }
+    }
+    return false;
+}
+
+void
+MSCalibrationWnd::handle_reassign_mass_requested()
+{
+    adcontrols::MSAssignedMasses assigned;
+    if ( readCalibSummary( assigned ) ) {
+        assert(0);
+    }
+}
+
+void
+MSCalibrationWnd::handle_recalibration_requested()
+{
+    adcontrols::MSAssignedMasses assigned;
+    if ( readCalibSummary( assigned ) )
+        MainWindow::instance()->applyCalibration( assigned );
+}
+
+void
+MSCalibrationWnd::handle_apply_calibration_to_dataset()
+{
+    assert(0);
+}
+
+void
+MSCalibrationWnd::handle_apply_calibration_to_default()
+{
+    assert(0);
 }

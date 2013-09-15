@@ -24,6 +24,8 @@
 **************************************************************************/
 
 #include "mscalibsummarydelegate.hpp"
+#include "mscalibsummarywidget.hpp"
+#include <boost/format.hpp>
 #include <QEvent>
 
 using namespace qtwidgets2;
@@ -33,8 +35,43 @@ MSCalibSummaryDelegate::MSCalibSummaryDelegate(QObject *parent) : QItemDelegate(
 }
 
 void
+MSCalibSummaryDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    switch( index.column() ) {
+    case MSCalibSummaryWidget::c_time:
+        drawDisplay( painter, option, option.rect, ( boost::format("%.4lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+        break;
+    case MSCalibSummaryWidget::c_exact_mass:
+		if ( ! index.model()->data( index.model()->index( index.row(), MSCalibSummaryWidget::c_formula ), Qt::EditRole ).toString().isEmpty() )
+			drawDisplay( painter, option, option.rect, ( boost::format("%.7lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+		break;
+    case MSCalibSummaryWidget::c_mass:
+        drawDisplay( painter, option, option.rect, ( boost::format("%.7lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+        break;
+    case MSCalibSummaryWidget::c_intensity:
+        drawDisplay( painter, option, option.rect, ( boost::format("%.1lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+        break;
+    case MSCalibSummaryWidget::c_mass_error_mDa:
+    case MSCalibSummaryWidget::c_mass_error_calibrated_mDa:
+		if ( ! index.model()->data( index.model()->index( index.row(), MSCalibSummaryWidget::c_formula ), Qt::EditRole ).toString().isEmpty() ) {
+			drawDisplay( painter, option, option.rect, ( boost::format("%.3lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+		}
+		break;
+    case MSCalibSummaryWidget::c_mass_calibrated:
+    case MSCalibSummaryWidget::c_formula:
+    case MSCalibSummaryWidget::c_is_enable:
+    case MSCalibSummaryWidget::c_flags:
+    case MSCalibSummaryWidget::c_mode:
+    case MSCalibSummaryWidget::c_fcn:
+    default:
+        QItemDelegate::paint( painter, option, index );
+    }
+}
+
+void
 MSCalibSummaryDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
+    
     QItemDelegate::setEditorData( editor, index );
 }
 

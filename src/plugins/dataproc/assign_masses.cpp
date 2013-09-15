@@ -45,7 +45,6 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
     array_wrapper<const double> masses( centroid.getMassArray(), centroid.size() );
     array_wrapper<const double> intens( centroid.getIntensityArray(), centroid.size() );
     
-    size_t idReference(0);
     for ( MSReferences::vector_type::const_iterator it = references.begin(); it != references.end(); ++it ) {
         
         double exactMass = it->exact_mass();
@@ -72,7 +71,7 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
                 continue;
             
             size_t idx = std::distance( intens.begin(), hIt );
-            adcontrols::MSAssignedMass assigned( idReference
+            adcontrols::MSAssignedMass assigned( std::distance( references.begin(), it )
 				                                 , fcn
                                                  , idx            // idMassSpectrum (index on centroid peak)
                                                  , it->display_formula()
@@ -84,7 +83,6 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
                                                  , mode );
             assignedMasses << assigned;
         }
-        ++idReference;
     }
     return true;
     

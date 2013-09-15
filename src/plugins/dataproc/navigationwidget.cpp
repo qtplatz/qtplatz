@@ -330,14 +330,15 @@ NavigationWidget::handle_pressed( const QModelIndex& index )
 namespace dataproc {
 
 	struct export_spectrum {
-		static bool write( std::ostream& o, const adcontrols::MassSpectrum& ms ) {
-			const double * times = ms.getTimeArray();
-			const double * masses = ms.getMassArray();
-			const double * intens = ms.getIntensityArray();
-			for ( size_t n = 0; n < ms.size(); ++n ) {
-				o << std::scientific << std::setprecision( 15 ) << *times++ << ",\t"
-					<< std::fixed << std::setprecision( 13 ) << *masses++ << ",\t"
-					<< std::scientific << std::setprecision(7) << *intens++ << std::endl;
+		static bool write( std::ostream& o, const adcontrols::MassSpectrum& _ms ) {
+			adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( _ms );
+			for ( auto& ms : segments ) { // size_t n = 0; n < segments.size(); ++n ) {
+				//const adcontrols::MassSpectrum& ms = segments[ n ];
+				for ( size_t n = 0; n < ms.size(); ++n ) {
+					o << std::scientific << std::setprecision( 15 ) << ms.getTime( n ) << ",\t"
+						<< std::fixed << std::setprecision( 13 ) << ms.getMass( n ) << ",\t"
+						<< std::scientific << std::setprecision(7) << ms.getIntensity( n ) << std::endl;
+				}
 			}
 			return true;
 		}

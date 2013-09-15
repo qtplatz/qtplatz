@@ -559,18 +559,6 @@ MassSpectrum::getSegment( size_t fcn ) const
     throw std::out_of_range( "MassSpectrum fragments subscript out of range" );
 }
 
-const MassSpectrum&
-MassSpectrum::operator [] ( size_t fcn ) const
-{
-    return getSegment( fcn );
-}
-
-MassSpectrum&
-MassSpectrum::operator [] ( size_t fcn )
-{
-    return getSegment( fcn );
-}
-
 size_t
 MassSpectrum::numSegments() const
 {
@@ -739,6 +727,20 @@ segments_helper::max_intensity( const MassSpectrum& ms )
     return y;
 }
 
+double
+segments_helper::min_intensity( const MassSpectrum& ms )
+{
+    if ( ms.isCentroid() )
+        return 0;
+    double y = ms.getMinIntensity();
+    for ( size_t i = 0; i < ms.numSegments(); ++i ) {
+        double t = ms.getSegment( i ).getMinIntensity();
+        if ( y < t )
+            y = t;
+    }
+    return y;
+}
+
 void
 segments_helper::set_color( MassSpectrum& ms, size_t fcn, size_t idx, int color )
 {
@@ -754,3 +756,4 @@ segments_helper::get_color( const MassSpectrum& ms, size_t fcn, size_t idx )
         return ms.getColor( idx );
     return ms.getSegment( fcn - 1 ).getColor( idx );
 }
+

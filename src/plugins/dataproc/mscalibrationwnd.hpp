@@ -33,6 +33,7 @@ namespace adcontrols {
     class MassSpectrum;
     class MSCalibrateResult;
     class ProcessMethod;
+	class MSAssignedMasses;
 }
 
 namespace adportable {  class Configuration; }
@@ -60,11 +61,15 @@ namespace dataproc {
 
     private slots:
         void handleSelSummary( size_t idx, size_t fcn );
-        void handleManuallyAssigned();
         void handleValueChanged();
+        void handle_reassign_mass_requested();
+        void handle_recalibration_requested();
+        void handle_apply_calibration_to_dataset();
+        void handle_apply_calibration_to_default();
 
     private:
         std::shared_ptr<MSCalibrationWndImpl> pImpl_;
+        bool readCalibSummary( adcontrols::MSAssignedMasses& );
     };
 
 }

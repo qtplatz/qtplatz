@@ -585,7 +585,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
     if ( att != atts.end() ) {
         adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>( *att ) );
         if ( pCentroid ) {
-			adcontrols::sequence_wrapper<> segs( *pCentroid );
+			adcontrols::segment_wrapper<> segs( *pCentroid );
 
 			double y = adcontrols::segments_helper::max_intensity( *pCentroid );
 			double y_threshold = y * m.minimumRAPercent() / 100.0;

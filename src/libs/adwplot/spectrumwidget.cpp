@@ -55,17 +55,17 @@ namespace adwplot {
             Qt::magenta,       // 4
             Qt::yellow,        // 5
             Qt::darkRed,       // 6
-            Qt::darkGreen,     // 7
-            Qt::darkBlue,      // 8
-            Qt::darkCyan,      // 9
-            Qt::darkMagenta,   // 10
-            Qt::darkYellow,    // 11
-            Qt::darkGray,      // 12
-            Qt::gray,          // 13
-            Qt::black,     // 14
-            Qt::black,     // 15
-            Qt::black,     // 16
-            Qt::black,     // 17
+            Qt::darkGreen     // 7
+            , Qt::darkBlue      // 8
+            , Qt::darkCyan      // 9
+            , Qt::darkMagenta   // 10
+            , Qt::darkYellow    // 11
+            , Qt::darkGray      // 12
+            , Qt::black         // 13
+            , Qt::lightGray      // 14
+            , Qt::white          // 15
+            , Qt::transparent    // 16
+            , Qt::transparent    // 17
         };
 
         struct SeriesDataImpl {
@@ -330,15 +330,9 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms, QRectF& 
     curves_.clear();
     data_.clear();
  
-    double bottom = ms.getMinIntensity();
+	double top = adcontrols::segments_helper::max_intensity( ms );
+    double bottom = adcontrols::segments_helper::min_intensity( ms );
 	
-    double top = ms.getMaxIntensity();
-    for ( size_t fcn = 0; fcn < ms.numSegments(); ++fcn ) {
-        if ( bottom > ms[ fcn ].getMinIntensity() )
-            bottom = ms[ fcn ].getMinIntensity();
-        if ( top < ms[ fcn ].getMaxIntensity() )
-            top = ms[ fcn ].getMaxIntensity();
-    }
 	if ( ms.isCentroid() )
 		bottom = 0;
 	top = top + ( top - bottom ) * 0.12; // add 12% margine for annotation
@@ -348,11 +342,11 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms, QRectF& 
     if ( ms.isCentroid() ) {
         setCentroidData( plot, ms, rect, 0 );
         for ( size_t fcn = 0; fcn < ms.numSegments(); ++fcn )
-            setCentroidData( plot, ms[fcn], rect, fcn + 1 );
+            setCentroidData( plot, ms.getSegment(fcn), rect, fcn + 1 );
     } else { // Profile
         setProfileData( plot, ms, rect, 0 );
         for ( size_t fcn = 0; fcn < ms.numSegments(); ++fcn )
-            setProfileData( plot, ms[fcn], rect, fcn + 1 );
+            setProfileData( plot, ms.getSegment(fcn), rect, fcn + 1 );
     }
 }
 
@@ -393,7 +387,7 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
     enum { c_fcn, c_idx, c_color, c_intensity, c_mass };
 
     std::vector< peak > peaks;
-    adcontrols::sequence_wrapper< const adcontrols::MassSpectrum > segments( centroid_ );
+    adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( centroid_ );
 
     adcontrols::annotations auto_annotations;
     adcontrols::annotations annotations;

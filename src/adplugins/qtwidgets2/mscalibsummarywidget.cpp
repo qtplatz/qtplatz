@@ -57,6 +57,7 @@ MSCalibSummaryWidget::MSCalibSummaryWidget(QWidget *parent) : QTableView(parent)
                                                             , pModel_( new QStandardItemModel )
                                                             , pDelegate_( new MSCalibSummaryDelegate ) 
                                                             , pCalibrantSpectrum_( new adcontrols::MassSpectrum )
+                                                            , pCalibResult_( new adcontrols::MSCalibrateResult )
                                                             , inProgress_( false )
 {
     this->setModel( pModel_.get() );
@@ -189,11 +190,12 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 
 	indecies_.clear();
     *pCalibrantSpectrum_ = ms;
+    pCalibResult_.reset( new adcontrols::MSCalibrateResult( res ) );
 
 	double threshold = res.threshold();
 
-    adcontrols::sequence_wrapper< adcontrols::MassSpectrum > segments( *pCalibrantSpectrum_ );
-	for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
+    adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *pCalibrantSpectrum_ );
+    for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
 		adcontrols::MassSpectrum& fms = segments[ fcn ];
 		for ( size_t idx = 0; idx < fms.size(); ++idx ) {
 			if ( fms.getIntensity( idx ) > threshold )
@@ -206,14 +208,16 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
     
     size_t row = 0;
     for ( auto idx: indecies_ ) {
-        adcontrols::MassSpectrum& frag = segments[ idx.first ];
-		const adcontrols::MSProperty& msprp = frag.getMSProperty();
+        adcontrols::MassSpectrum& fms = segments[ idx.first ];
+		const adcontrols::MSProperty& msprp = fms.getMSProperty();
+		double mass = fms.getMass( idx.second );
+		double time = fms.getTime( idx.second ); // s
 		model.setData( model.index( row, c_fcn ), idx.first );
 		model.setData( model.index( row, c_mode ), msprp.getSamplingInfo().mode ); // nTurns
-		model.setData( model.index( row, c_mass ), frag.getMass( idx.second ) );
-        model.setData( model.index( row, c_time ), frag.getTime( idx.second ) * 1.0e6 ); // in microseconds
-		model.setData( model.index( row, c_intensity ), frag.getIntensity( idx.second ) );
-        double mq = calib.compute( calib.coeffs(), frag.getTime( idx.second ) );
+		model.setData( model.index( row, c_mass ), mass );
+        model.setData( model.index( row, c_time ), time * 1e6);
+		model.setData( model.index( row, c_intensity ), fms.getIntensity( idx.second ) );
+        double mq = calib.compute( calib.coeffs(), time );
         if ( mq > 0.0 )
             model.setData( model.index( row, c_mass_calibrated ), mq * mq );
 		++row;
@@ -261,19 +265,32 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 void
 MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
 {
+    std::vector< QAction * > actions;
     QMenu menu;
+    
+    actions.push_back( menu.addAction( "update m/z axis on spectrum" ) );
+    actions.push_back( menu.addAction( "calculate polynomials and m/z errors" ) );
+    actions.push_back( menu.addAction( "apply calibration to current dataset" ) );
+    actions.push_back( menu.addAction( "save as default calibration" ) );
 
-    if ( this->indexAt( pt ).isValid() ) {
-        QModelIndex index = this->currentIndex();
-        if ( index.column() == c_formula )
-            menu.addAction( "Erase", this, SLOT( handleEraseFormula() ) );
+    QAction * selected = menu.exec( this->mapToGlobal( pt ) );
+
+    if ( selected == actions[ 0 ] ) {
+        emit on_reassign_mass_requested();      // change source mass spectrum m/z array (both profile and centroid)
+    } else if ( selected == actions[ 1 ] ) {
+        emit on_recalibration_requested();      // re-calc polynomials and errors but no m/z axis on spectrum to be changed
+    } else if ( selected == actions[ 2 ] ) {
+        emit on_apply_calibration_to_dataset(); // change whole calibration for current dataset
+    } else if ( selected == actions[ 3 ] ) {
+        emit on_apply_calibration_to_default(); // save calibration as system default
     }
-    menu.addAction( "Update peak assign", this, SLOT( handleUpdatePeakAssign() ) );
-    menu.addAction( "Update calibration", this, SLOT( handleUpdateCalibration() ) );
-    menu.addAction( "Clear formulae", this, SLOT( handleClearFormulae() ) );
-    menu.exec( this->mapToGlobal( pt ) );
 }
 
+void
+MSCalibSummaryWidget::handle_visible_mass_range( double, double )
+{
+    assert( 0 );
+}
 
 void
 MSCalibSummaryWidget::handleEraseFormula()
@@ -281,41 +298,6 @@ MSCalibSummaryWidget::handleEraseFormula()
     // QModelIndex index = this->currentIndex();
     //model_->removeRows( index.row(), 1 );
     //emit lineDeleted( index.row() );
-}
-
-void
-MSCalibSummaryWidget::handleUpdateCalibration()
-{
-    emit applyTriggered();
-}
-
-void
-MSCalibSummaryWidget::handleUpdatePeakAssign()
-{
-    emit applyPeakAssign();
-}
-
-void
-MSCalibSummaryWidget::handleClearFormulae()
-{
-    inProgress_ = true;
-    bool modified = false;
-    QStandardItemModel& model = *pModel_;
-    for ( int row = 0; row < model.rowCount(); ++row ) {
-        QString formula = model.data( model.index( row, c_formula ) ).toString();
-        if ( ! formula.isEmpty()  ) {
-            model.setData( model.index( row, c_formula ), "" );
-            model.setData( model.index( row, c_exact_mass ), "" );
-            model.setData( model.index( row, c_mass_error_mDa ), "" );
-            model.setData( model.index( row, c_is_enable ), "" );
-            model.setData( model.index( row, c_flags ), "" );
-            modified = true;
-        }
-    }
-    inProgress_ = false;
-
-    if ( modified )
-        emit valueChanged();
 }
 
 void
@@ -366,8 +348,8 @@ MSCalibSummaryWidget::handleCopyToClipboard()
     QString copy_table;
     QString heading;
 
-    if ( pCalibrantSpectrum_ ) {
-        const adcontrols::MSCalibration& calib = pCalibrantSpectrum_->calibration();
+    if ( pCalibResult_ ) {
+        const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
         heading.append( "Calibration date:\t" );
         heading.append( calib.date().c_str() );
         heading.append( "\tid\t" );

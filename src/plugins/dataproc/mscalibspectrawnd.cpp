@@ -70,7 +70,7 @@ MSCalibSpectraWnd::init()
         wndSplitter_ = new Core::MiniSplitter;
         splitter->addWidget( wndSplitter_ );
         
-        for ( int i = 0; i < 5; ++i ) {
+        for ( int i = 0; i < 4; ++i ) {
             std::shared_ptr< adwplot::SpectrumWidget > wnd( new adwplot::SpectrumWidget(this) );
             wnd->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 50 );
             wnd->setMinimumHeight( 40 );
@@ -84,27 +84,33 @@ MSCalibSpectraWnd::init()
         wndSplitter_->setOrientation( Qt::Vertical );
 
         // summary table
-		wndCalibSummary_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" );
+		if ( wndCalibSummary_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" ) ) {
+            bool res;
+            res = connect( wndCalibSummary_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( handleSelSummary( size_t, size_t ) ) );
+            assert( res );
+            res = connect( wndCalibSummary_, SIGNAL( valueChanged() ), this, SLOT( handleValueChanged() ) );
+            assert( res );
+            res = connect( wndCalibSummary_, SIGNAL( on_recalibration_requested() ), this, SLOT( handle_recalibration_requested() ) );
+            assert( res );
+            res = connect( wndCalibSummary_, SIGNAL( on_reassign_mass_requested() ), this, SLOT( handle_reassign_mass_requested() ) );
+            assert( res );
+            res = connect( wndCalibSummary_, SIGNAL( on_apply_calibration_to_dataset()), this, SLOT( handle_apply_calibration_to_dataset() ) );
+            assert(res);
+            res = connect( wndCalibSummary_, SIGNAL( on_apply_calibration_to_default()), this, SLOT( handle_apply_calibration_to_default() ) );
+            assert(res);
+            (void)res;
 
-        bool res;
-        res = connect( wndCalibSummary_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( handleSelSummary( size_t, size_t ) ) );
-        // assert( res );
-        res = connect( wndCalibSummary_, SIGNAL( applyTriggered() ), this, SLOT( handleManuallyAssigned() ) );
-        assert( res );
-        res = connect( wndCalibSummary_, SIGNAL( valueChanged() ), this, SLOT( handleValueChanged() ) );
-        assert( res );
-        res = connect( wndCalibSummary_, SIGNAL( applyPeakAssign() ), this, SLOT( handleUpdatePeakAssign() ) );
-        assert( res );
-        if ( wndCalibSummary_ ) {
-            adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
-            adplugin::LifeCycle * p = accessor.get();
-            if ( p )
-                p->OnInitialUpdate();
+            if ( wndCalibSummary_ ) {
+                adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
+                adplugin::LifeCycle * p = accessor.get();
+                if ( p )
+                    p->OnInitialUpdate();
 
-            connect( this, SIGNAL( fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ),
-                     wndCalibSummary_, SLOT( setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ) );
-
-            splitter->addWidget( wndCalibSummary_ );
+                connect( this, SIGNAL( fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ),
+                         wndCalibSummary_, SLOT( setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ) );
+                
+                splitter->addWidget( wndCalibSummary_ );
+            }
         }
 
         splitter->setOrientation( Qt::Horizontal );
@@ -190,7 +196,7 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
         p->getContents( any );
         wndSpectra_[ 0 ]->setData( *ptr );
 
-		adcontrols::sequence_wrapper<> segms( *ptr );
+		adcontrols::segment_wrapper<> segms( *ptr );
         
 		double t = segms[ fcn ].getTime( idx );
 
@@ -209,26 +215,6 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
             ++nid;
         }
 
-    }
-}
-
-//void
-//MSCalibSpectraWnd::applyAssigned( const adcontrols::MSAssignedMasses&, const portfolio::Folium& )
-//{
-//}
-
-void
-MSCalibSpectraWnd::handleManuallyAssigned()
-{
-    // trigger apply calibration
-    adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
-    adplugin::LifeCycle * p = accessor.get();
-    if ( p ) {
-        std::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
-        boost::any any( assigned );
-        if ( p->getContents( any ) ) {
-            MainWindow::instance()->applyCalibration( *assigned, folium_ );
-        }
     }
 }
 
@@ -301,6 +287,7 @@ MSCalibSpectraWnd::doCalibration( adcontrols::MassSpectrum& centroid, adcontrols
     //SessionManager::instance()->updateDataprocessor( this, folium );
 }
 
+#if 0
 void
 MSCalibSpectraWnd::handleUpdatePeakAssign()
 {
@@ -330,6 +317,7 @@ MSCalibSpectraWnd::handleUpdatePeakAssign()
         }
     }
 }
+#endif
 
 int
 MSCalibSpectraWnd::populate( std::vector< result_type >& vec)
@@ -362,3 +350,47 @@ MSCalibSpectraWnd::populate( std::vector< result_type >& vec)
     return nCurId;
 }
 
+bool
+MSCalibSpectraWnd::readCalibSummary( adcontrols::MSAssignedMasses& assigned )
+{
+    adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
+    adplugin::LifeCycle * p = accessor.get();
+    if ( p ) {
+        std::shared_ptr< adcontrols::MSAssignedMasses > ptr( new adcontrols::MSAssignedMasses );
+        boost::any any( ptr );
+        if ( p->getContents( any ) ) {
+            assigned = *ptr;
+            return true;
+        }
+    }
+    return false;
+}
+
+void
+MSCalibSpectraWnd::handle_reassign_mass_requested()
+{
+    adcontrols::MSAssignedMasses assigned;
+    if ( readCalibSummary( assigned ) ) {
+        assert(0);
+    }
+}
+
+void
+MSCalibSpectraWnd::handle_recalibration_requested()
+{
+    adcontrols::MSAssignedMasses assigned;
+    if ( readCalibSummary( assigned ) )
+        MainWindow::instance()->applyCalibration( assigned, folium_ );
+}
+
+void
+MSCalibSpectraWnd::handle_apply_calibration_to_dataset()
+{
+    assert(0);
+}
+
+void
+MSCalibSpectraWnd::handle_apply_calibration_to_default()
+{
+    assert(0);
+}
