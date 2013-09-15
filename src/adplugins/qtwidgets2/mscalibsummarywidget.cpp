@@ -356,8 +356,27 @@ MSCalibSummaryWidget::handleValueChanged( const QModelIndex& index )
             double exactMass = cformula.getMonoIsotopicMass( formula );
             // update exact mass
             model.setData( model.index( index.row(), c_exact_mass ), exactMass );
-            model.setData( model.index( index.row(), c_is_enable ), true );
-            model.setData( model.index( index.row(), c_flags ), true );
+
+            do {
+                model.setData( model.index( index.row(), c_is_enable ), false ); // set false by default
+                QStandardItem * chk = model.itemFromIndex( model.index( index.row(), c_is_enable ) );
+                if ( chk ) {
+                    chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
+                    chk->setEditable( true );
+                    model.setData( model.index( index.row(), c_is_enable ), Qt::Unchecked, Qt::CheckStateRole );
+                }
+            } while ( 0 );
+
+            do {
+                model.setData( model.index( index.row(), c_flags ), false );  // set false by default
+                QStandardItem * chk = model.itemFromIndex( model.index( index.row(), c_flags ) );
+                if ( chk ) {
+                    chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
+                    chk->setEditable( true );
+                    model.setData( model.index( index.row(), c_flags ), Qt::Unchecked, Qt::CheckStateRole );
+                }
+            } while ( 0 );
+
             emit valueChanged();
         }
 	} else if ( index.column() == c_mode ) {

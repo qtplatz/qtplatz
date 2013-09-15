@@ -46,6 +46,7 @@ MSCalibSummaryDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 			drawDisplay( painter, option, option.rect, ( boost::format("%.7lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
 		break;
     case MSCalibSummaryWidget::c_mass:
+	case MSCalibSummaryWidget::c_mass_calibrated:
         drawDisplay( painter, option, option.rect, ( boost::format("%.7lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
         break;
     case MSCalibSummaryWidget::c_intensity:
@@ -57,7 +58,6 @@ MSCalibSummaryDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 			drawDisplay( painter, option, option.rect, ( boost::format("%.3lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
 		}
 		break;
-    case MSCalibSummaryWidget::c_mass_calibrated:
     case MSCalibSummaryWidget::c_formula:
     case MSCalibSummaryWidget::c_is_enable:
     case MSCalibSummaryWidget::c_flags:

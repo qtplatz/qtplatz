@@ -44,6 +44,8 @@
 #include <adplugin/manager.hpp>
 #include <adplugin/widget_factory.hpp>
 #include "qtwidgets_name.hpp"
+#include <stack>
+#include <tuple>
 
 using namespace dataproc;
 
@@ -54,15 +56,27 @@ namespace dataproc {
         ~MSCalibrationWndImpl() {}
         MSCalibrationWndImpl() : profileSpectrum_(0)
                                , processedSpectrum_(0)
-                               , calibSummaryWidget_(0)  {
+                               , calibSummaryWidget_(0) {
         }
-
         adwplot::SpectrumWidget * profileSpectrum_;
         adwplot::SpectrumWidget * processedSpectrum_;
         QWidget * calibSummaryWidget_;
-        
+        std::weak_ptr< adcontrols::MassSpectrum > calibSpectrum_;
         portfolio::Folium folium_;
-
+        std::stack< std::tuple< size_t, size_t, int > > stack_;
+        void restore_state( adcontrols::MassSpectrum& centroid ) {
+            if ( !stack_.empty() ) {
+                adcontrols::segment_wrapper<> segments( centroid );
+                const std::tuple< size_t, size_t, int >& state = stack_.top();
+                segments[ std::get<0>( state ) ].setColor( std::get<1>( state ), std::get<2>( state ) );
+                stack_.pop();
+            }
+        }
+        void store_state( adcontrols::MassSpectrum& centroid, size_t fcn, size_t idx, int color ) {
+            adcontrols::segment_wrapper<> segments( centroid );
+            stack_.push( std::make_tuple<>( fcn, idx, segments[ fcn ].getColor( idx ) ) );
+            segments[ fcn ].setColor( idx, color ); // green
+        }
     };
 }
 
@@ -144,10 +158,13 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 
     portfolio::Folder folder = folium.getParentFolder();
 
+    if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() )
+        pImpl_->restore_state( *centroid );
+
     if ( folder && folder.name() == L"MSCalibration" ) {
-
+        
         pImpl_->folium_ = folium;
-
+        
         boost::any& data = folium;
         // profile spectrum
         if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) { 
@@ -157,21 +174,24 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 
         portfolio::Folio attachments = folium.attachments();
         // centroid spectrum
-        portfolio::Folio::iterator it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin()
-                                                                                                      , attachments.end());
+        portfolio::Folio::iterator it = 
+            portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
         if ( it == attachments.end() )
             return;
 
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
         pImpl_->processedSpectrum_->setData( *ptr, idx_centroid );
+	    pImpl_->calibSpectrum_ = ptr; // working copy in weak_ptr
+        while ( !pImpl_->stack_.empty() )
+			pImpl_->stack_.pop();
 
         // calib result
         it = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
-        if ( it != attachments.end() ) {
-            adcontrols::MSCalibrateResultPtr calibResult = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
-            emit fireSetData( *calibResult, *ptr );
-        }
+        if ( it == attachments.end() )
+            return;
 
+        adcontrols::MSCalibrateResultPtr calibResult = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
+        emit fireSetData( *calibResult, *ptr );
     }
 }
 
@@ -183,6 +203,12 @@ MSCalibrationWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 void
 MSCalibrationWnd::handleSelSummary( size_t idx, size_t fcn )
 {
+    if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
+        pImpl_->restore_state( *centroid );
+        pImpl_->store_state( *centroid, fcn, idx, 2 );
+        pImpl_->processedSpectrum_->setData( *centroid, 1 );
+    }
+#if 0
 	(void)idx; (void)fcn;
 
     adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
@@ -193,13 +219,15 @@ MSCalibrationWnd::handleSelSummary( size_t idx, size_t fcn )
         p->getContents( any );
         pImpl_->processedSpectrum_->setData( *ptr, 1 );
     }
+#endif
 }
 
 void
 MSCalibrationWnd::handleValueChanged()
 {
-    std::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
-    if ( readCalibSummary( *assigned ) ) {
+    // std::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
+    adcontrols::MSAssignedMasses assigned;
+    if ( readCalibSummary( assigned ) ) {
         portfolio::Folium& folium = pImpl_->folium_;
         portfolio::Folio attachments = folium.attachments();
             
@@ -208,10 +236,15 @@ MSCalibrationWnd::handleValueChanged()
             = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
         if ( it != attachments.end() ) {
             adutils::MSCalibrateResultPtr result = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
-            result->assignedMasses( *assigned );
+            result->assignedMasses( assigned );
         }
-
-        // retreive centroid spectrum
+        
+        if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
+            if ( DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned ) )
+                pImpl_->processedSpectrum_->setData( *centroid, 1 ); 
+        }
+/*
+// retreive centroid spectrum
         it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
         if ( it != attachments.end() ) {
             adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
@@ -222,6 +255,7 @@ MSCalibrationWnd::handleValueChanged()
                 }
             }
         }
+*/
     }
 }
 
