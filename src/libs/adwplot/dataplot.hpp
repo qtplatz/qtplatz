@@ -37,46 +37,47 @@ namespace adwplot {
     class Traces;
     class Trace;
     class Zoomer;
-  class Picker;
-  class Panner;
+    class Picker;
+    class Panner;
   
-  class Dataplot : public QwtPlot, boost::noncopyable {
-    Q_OBJECT
+    class Dataplot : public QwtPlot, boost::noncopyable {
+        Q_OBJECT
     public:
-    explicit Dataplot(QWidget *parent = 0);
-    ~Dataplot();
-    template<class T> T get();
+        explicit Dataplot(QWidget *parent = 0);
+        ~Dataplot();
+        template<class T> T get();
     
-    void setTitle( const std::wstring& );
+        void setTitle( const std::wstring& );
     
-    void link( Dataplot * );
-    void unlink();
+        void link( Dataplot * );
+        void unlink();
 
-	inline Picker& picker() { return *picker_; }
-	QRectF zoomRect() const;
+        QRectF zoomRect() const;
+        inline Picker& picker() { return *picker_; }
+        inline Zoomer& zoomer() { return *zoomer1_; } // left bottom
     
-  private:
-    typedef std::vector<Dataplot *> plotlink;
-    std::shared_ptr< plotlink > plotlink_;
-    bool linkedzoom_inprocess_;
-    void zoom( const QRectF&, const Dataplot& );
-    void panne( int dx, int dy, const Dataplot& );
+    private:
+        typedef std::vector<Dataplot *> plotlink;
+        std::shared_ptr< plotlink > plotlink_;
+        bool linkedzoom_inprocess_;
+        void zoom( const QRectF&, const Dataplot& );
+        void panne( int dx, int dy, const Dataplot& );
     
-  protected:
-    virtual void zoom( const QRectF& );
+    protected:
+        virtual void zoom( const QRectF& );
     
-  signals:
+    signals:
       
-  protected slots:
-    virtual void onZoomed( const QRectF& );
-    virtual void onPanned( int dx, int dy );
+    protected slots:
+        virtual void onZoomed( const QRectF& );
+        virtual void onPanned( int dx, int dy );
     
-  protected:
-    std::unique_ptr< Zoomer > zoomer1_;  // left bottom
-    std::unique_ptr< Zoomer > zoomer2_;  // right top
-    std::unique_ptr< Picker > picker_;
-    std::unique_ptr< Panner > panner_;
-  };
+    protected:
+        std::unique_ptr< Zoomer > zoomer1_;  // left bottom
+        std::unique_ptr< Zoomer > zoomer2_;  // right top
+        std::unique_ptr< Picker > picker_;
+        std::unique_ptr< Panner > panner_;
+    };
   
 }
 

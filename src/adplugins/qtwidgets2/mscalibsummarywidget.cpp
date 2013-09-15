@@ -287,9 +287,18 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
 }
 
 void
-MSCalibSummaryWidget::handle_visible_mass_range( double, double )
+MSCalibSummaryWidget::handle_zoomed( const QRectF& rc )
 {
-    assert( 0 );
+	double lMass = rc.left();
+	double hMass = rc.right();
+	for ( int row = 0; row < pModel_->rowCount(); ++row ) {
+        QModelIndex index = pModel_->index( row, c_mass );
+        double mass = index.data( Qt::EditRole ).toDouble();
+        if ( lMass <= mass && mass <= hMass ) {
+            scrollTo( pModel_->index( row, 0 ) );
+            break;
+        }
+    }
 }
 
 void

@@ -52,7 +52,7 @@ namespace adwplot {
         void onMoved( const QPointF& );
 		void onSelected( const QPointF& );
 		void onSelected( const QRectF& );
-
+        
 	private:
         virtual void zoom( const QRectF& );
 

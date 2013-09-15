@@ -96,6 +96,11 @@ MSCalibrationWnd::init()
             assert(res);
             res = connect( pSummary, SIGNAL( on_apply_calibration_to_default() ), this, SLOT( handle_apply_calibration_to_default() ) );
             assert(res);
+
+            // Make a connection to zoomer in order to sync table in visible range
+            res = connect( &pImpl_->processedSpectrum_->zoomer()
+                           , SIGNAL( zoomed( const QRectF& ) ), pSummary, SLOT( handle_zoomed( const QRectF& ) ) );
+            assert(res);
             (void)res;
 
             adplugin::LifeCycleAccessor accessor( pSummary );
@@ -285,3 +290,4 @@ MSCalibrationWnd::handle_apply_calibration_to_default()
 {
     assert(0);
 }
+

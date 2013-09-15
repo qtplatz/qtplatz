@@ -66,7 +66,7 @@ namespace dataproc {
         void handle_recalibration_requested();
         void handle_apply_calibration_to_dataset();
         void handle_apply_calibration_to_default();
-
+        
     private:
         std::shared_ptr<MSCalibrationWndImpl> pImpl_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
