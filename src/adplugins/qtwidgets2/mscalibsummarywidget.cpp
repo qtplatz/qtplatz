@@ -289,7 +289,26 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
 void
 MSCalibSummaryWidget::handle_zoomed( const QRectF& rc )
 {
-    handle_selected( rc ); // focus to base peak
+	(void)rc;
+	// I've trid to implement table/spectrum(trace) sync but it looks no so good
+	// due to slow behavior and event circuler between table and trace.
+	/*
+    double y0 = 0;
+    int row_highest = -1;
+	for ( int row = 0; row < pModel_->rowCount(); ++row ) {
+        QModelIndex index = pModel_->index( row, c_mass );
+        double mass = index.data( Qt::EditRole ).toDouble();
+        if ( rc.left() < mass && mass < rc.right() ) {
+            double y = pModel_->index( row, c_intensity ).data( Qt::EditRole ).toDouble();
+            if ( y > y0 ) {
+                y0 = y;
+                row_highest = row;
+            }
+        }
+    }
+    if ( row_highest >= 0 )
+		scrollTo( pModel_->index( row_highest, c_formula ) );
+		*/
 }
 
 void
@@ -310,7 +329,7 @@ MSCalibSummaryWidget::handle_selected( const QRectF& rc )
     }
     if ( row_highest >= 0 ) {
 		setCurrentIndex( pModel_->index( row_highest, c_formula ) );
-		scrollTo( pModel_->index( row_highest, c_formula ), QAbstractItemView::PositionAtTop );
+		scrollTo( pModel_->index( row_highest, c_formula ) );
     }
 }
 

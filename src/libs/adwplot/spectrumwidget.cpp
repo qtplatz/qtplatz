@@ -33,6 +33,7 @@
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/array_wrapper.hpp>
+#include <adportable/float.hpp>
 #include <adportable/debug.hpp>
 #include <qwt_plot_picker.h>
 #include <qwt_plot_panner.h>
@@ -390,11 +391,14 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
 
     adcontrols::annotations auto_annotations;
     adcontrols::annotations annotations;
+
+    double max_y = adcontrols::segments_helper::max_intensity( centroid_ );
+    //double h_limit = max_y / 25;
+    //double w_limit = std::fabs( range.second - range.first ) / 100.0;
     
     for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
         const adcontrols::MassSpectrum& ms = segments[ fcn ];
         const unsigned char * colors = ms.getColorArray();
-        double max_y = ms.getMaxIntensity();
 
         array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
         size_t beg = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.first ) );
@@ -405,17 +409,14 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
             for ( auto& a : attached ) {
                 if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) ) {
                     annotations << a;
-                    adportable::debug(__FILE__, __LINE__) 
-                        << "     annotation: " << a.index() << ", " << a.x() << ", " << a.y() << ", " << a.text();
-                }
+				}
             }
 
             // generate auto-annotation
             for ( size_t idx = beg; idx <= end; ++idx ) {
-                if ( std::find_if( attached.begin(), attached.end()
-                                   , [idx]( const adcontrols::annotation& a ){ return a.index() == idx; } ) 
-                     == attached.end() ) {
-                    // if no attached annotation
+				if ( std::find_if( attached.begin()
+					             , attached.end()
+								 , [idx]( const adcontrols::annotation& a ){ return a.index() == idx; } ) == attached.end() ) {
                     int pri = ms.getIntensity( idx ) / max_y * 1000;
                     if ( colors )
                         pri *= 100;
@@ -423,8 +424,8 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                                                   , ms.getMass( idx ), ms.getIntensity( idx ), ( fcn << 24 | idx ), pri );
                     auto_annotations << annot;
                 } else {
-                    adportable::debug(__FILE__, __LINE__) << "skip annotation: " << idx;
-                }
+					// adportable::debug(__FILE__, __LINE__) << "reject from auto annotation: " << idx << " mass=" << ms.getMass( idx );
+				}
             }
         }
     }
@@ -436,21 +437,19 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
     Annotations annots(plot, annotations_);
 
     size_t n = 0;
-
     for ( const auto& a: annotations ) {
         if ( ++n <= 20 ) {
             Annotation anno = annots.add( a.x(), a.y(), a.text() );
 			anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 		}
 	}
-	/*
+
     for ( const auto& a: auto_annotations ) {
         if ( ++n <= 20 ) {
             Annotation anno = annots.add( a.x(), a.y(), a.text() );
 			anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 		}
 	}
-	*/
 }
 
 void
