@@ -205,18 +205,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 		assigner( assignedMasses, segments[n], res.references(), 0, n );
 
     // annotate each peak on spectrum
-    for ( const auto& assigned: assignedMasses ) { 
-        adcontrols::MassSpectrum& ms = segments[ assigned.idMassSpectrum() ];
-        size_t idx = assigned.idPeak();
-		size_t rid = assigned.idReference();
-        const adcontrols::MSReference& msref = res.references()[ assigned.idReference() ];
-		if ( msref.enable() )
-			ms.setColor( idx, 1 ); // red
-		else
-			ms.setColor( idx, 6 ); // dark red
-        adcontrols::annotation anno( msref.display_formula(), ms.getMass( idx ),  ms.getIntensity( idx ), idx );
-        ms.get_annotations() << anno;
-    }
+    doAnnotateAssignedPeaks( centroid, assignedMasses );
 
     calibrate_masses calibrator;
     adcontrols::MSCalibration calib;
@@ -233,6 +222,30 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
         return true;
     }
     return false;
+}
+
+// static
+bool
+DataprocHandler::doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
+                                          , const adcontrols::MSAssignedMasses& assignedMasses )
+{
+    adcontrols::annotations vec;
+
+	adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( centroid );
+
+    for ( const auto& assigned: assignedMasses ) { 
+
+        adcontrols::MassSpectrum& ms = segments[ assigned.idMassSpectrum() ];
+        size_t idx = assigned.idPeak();
+		if ( assigned.enable() )
+			ms.setColor( idx, 1 ); // red
+		else
+			ms.setColor( idx, 6 ); // dark red
+        adcontrols::annotation anno( assigned.formula(), ms.getMass( idx ),  ms.getIntensity( idx ), idx );
+        vec << anno;
+    }
+    centroid.set_annotations( vec );
+	return true;
 }
 
 bool

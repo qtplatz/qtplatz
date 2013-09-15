@@ -90,7 +90,8 @@ namespace qtwidgets2 {
         void setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
         void getLifeCycle( adplugin::LifeCycle*& );
         void showContextMenu( const QPoint& );
-        void handle_zoomed( const QRectF& );
+        void handle_zoomed( const QRectF& );   // zoomer zoomed
+        void handle_selected( const QRectF& ); // picker selected
 
    private slots:
         void handleEraseFormula();

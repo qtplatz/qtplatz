@@ -64,6 +64,8 @@ namespace dataproc {
                                      , const adcontrols::MSAssignedMasses& );
 
         static bool doFindPeaks( adcontrols::PeakResult&, const adcontrols::Chromatogram& , const adcontrols::PeakMethod& ); 
+        static bool doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
+                                             , const adcontrols::MSAssignedMasses& );
     };
 
 }
