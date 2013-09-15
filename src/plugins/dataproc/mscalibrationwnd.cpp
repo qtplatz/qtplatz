@@ -222,13 +222,6 @@ MSCalibrationWnd::handleValueChanged()
                 }
             }
         }
-/*
-        // over write with current selected peak
-        adutils::MassSpectrumPtr ptr( new adcontrols::MassSpectrum );
-        boost::any any( ptr );
-        p->getContents( any );  // got spectrum with size reduced by RA threshold
-*/
-
     }
 }
 

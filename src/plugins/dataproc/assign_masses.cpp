@@ -71,6 +71,7 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
                 continue;
             
             size_t idx = std::distance( intens.begin(), hIt );
+
             adcontrols::MSAssignedMass assigned( std::distance( references.begin(), it )
 				                                 , fcn
                                                  , idx            // idMassSpectrum (index on centroid peak)
@@ -81,7 +82,19 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
                                                  , it->enable()
                                                  , false          // flags
                                                  , mode );
-            assignedMasses << assigned;
+            // duplicate assign check
+            adcontrols::MSAssignedMasses::vector_type::iterator assignIt = 
+                std::find_if( assignedMasses.begin(), assignedMasses.end(), [&]( const adcontrols::MSAssignedMass& a ){
+                        return a.idPeak() == idx && a.idMassSpectrum() == fcn;
+                    });
+            if ( assignIt != assignedMasses.end() ) {
+                // already assined to another refernce
+                if ( std::fabs( assignIt->exactMass() - assignIt->mass() ) > 
+                     std::fabs( assigned.exactMass() - assigned.mass() ) ) {
+                    *assignIt = assigned; // replace
+                }
+            } else 
+                assignedMasses << assigned;
         }
     }
     return true;

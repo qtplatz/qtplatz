@@ -229,12 +229,11 @@ bool
 DataprocHandler::doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
                                           , const adcontrols::MSAssignedMasses& assignedMasses )
 {
-    adcontrols::annotations vec;
-
 	adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( centroid );
+    for ( auto& ms : segments )
+        ms.set_annotations( adcontrols::annotations() ); // clear all
 
     for ( const auto& assigned: assignedMasses ) { 
-
         adcontrols::MassSpectrum& ms = segments[ assigned.idMassSpectrum() ];
         size_t idx = assigned.idPeak();
 		if ( assigned.enable() )
@@ -242,9 +241,8 @@ DataprocHandler::doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
 		else
 			ms.setColor( idx, 6 ); // dark red
         adcontrols::annotation anno( assigned.formula(), ms.getMass( idx ),  ms.getIntensity( idx ), idx );
-        vec << anno;
+        ms.get_annotations() << anno;
     }
-    centroid.set_annotations( vec );
 	return true;
 }
 

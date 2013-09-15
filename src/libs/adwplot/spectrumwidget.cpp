@@ -40,7 +40,6 @@
 #include <qwt_plot_marker.h>
 #include <qwt_picker_machine.h>
 #include <boost/format.hpp>
-#include <tuple>
 
 using namespace adwplot;
 
@@ -404,8 +403,11 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
         if ( beg < end ) {
             const adcontrols::annotations& attached = ms.get_annotations();
             for ( auto& a : attached ) {
-                if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) )
+                if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) ) {
                     annotations << a;
+                    adportable::debug(__FILE__, __LINE__) 
+                        << "     annotation: " << a.index() << ", " << a.x() << ", " << a.y() << ", " << a.text();
+                }
             }
 
             // generate auto-annotation
@@ -420,6 +422,8 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                     adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % ms.getMass( idx ) ).str()
                                                   , ms.getMass( idx ), ms.getIntensity( idx ), ( fcn << 24 | idx ), pri );
                     auto_annotations << annot;
+                } else {
+                    adportable::debug(__FILE__, __LINE__) << "skip annotation: " << idx;
                 }
             }
         }
@@ -439,13 +443,14 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
 			anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 		}
 	}
-
+	/*
     for ( const auto& a: auto_annotations ) {
         if ( ++n <= 20 ) {
             Annotation anno = annots.add( a.x(), a.y(), a.text() );
 			anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
 		}
 	}
+	*/
 }
 
 void

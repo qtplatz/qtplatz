@@ -289,16 +289,7 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
 void
 MSCalibSummaryWidget::handle_zoomed( const QRectF& rc )
 {
-	double lMass = rc.left();
-	double hMass = rc.right();
-	for ( int row = 0; row < pModel_->rowCount(); ++row ) {
-        QModelIndex index = pModel_->index( row, c_mass );
-        double mass = index.data( Qt::EditRole ).toDouble();
-        if ( lMass <= mass && mass <= hMass ) {
-            scrollTo( pModel_->index( row, 0 ) );
-            break;
-        }
-    }
+    handle_selected( rc ); // focus to base peak
 }
 
 void

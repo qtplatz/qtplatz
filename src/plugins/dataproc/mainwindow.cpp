@@ -255,7 +255,8 @@ MainWindow::createContents( Core::IMode * mode
         wnd.push_back( new MSCalibrationWnd );
         stack_->addWidget( wnd.back() );
 
-        wnd.push_back( new MSCalibSpectraWnd );
+        // wnd.push_back( new MSCalibSpectraWnd );
+        wnd.push_back( new QTextEdit ); // dummy
         stack_->addWidget( wnd.back() );
 
         wnd.push_back( new ChromatogramWnd( apppath ) );
@@ -269,13 +270,13 @@ MainWindow::createContents( Core::IMode * mode
     for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
         res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
                      , it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
-        assert( res );
+        //assert( res );
         res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
                      , it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
-        assert( res );
+        //assert( res );
         res = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
                      , it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );
-        assert( res );
+        //assert( res );
     }
 
     res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
