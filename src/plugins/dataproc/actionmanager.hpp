@@ -52,6 +52,7 @@ namespace dataproc {
         std::unique_ptr< QAction > importFile_;
         std::unique_ptr< QAction > actMethodOpen_;
         std::unique_ptr< QAction > actMethodSave_;
+        std::unique_ptr< QAction > actPrintCurrentView_;
 
     signals:
 
@@ -61,6 +62,8 @@ namespace dataproc {
 
         void actMethodSave();
         void actMethodOpen();
+
+        void actPrintCurrentView();
 
     };
 }

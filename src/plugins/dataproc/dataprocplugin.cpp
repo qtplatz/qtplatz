@@ -179,8 +179,8 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
         Core::UniqueIDManager * uidm = core->uniqueIDManager();
         if ( uidm ) {
             context.append( uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR ) );
-            context.append( uidm->uniqueIdentifier( Core::Constants::C_EDITORMANAGER ) );
-            context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
+            // context.append( uidm->uniqueIdentifier( Core::Constants::C_EDITORMANAGER ) );
+            // context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
         }
     } else
         return false;

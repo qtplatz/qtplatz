@@ -26,24 +26,32 @@
 #include "mainwindow.hpp"
 #include "dataprocessor.hpp"
 #include "dataprochandler.hpp"
+#include "qtwidgets_name.hpp"
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
+#include <adcontrols/descriptions.hpp>
+#include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
-#include <adcontrols/msassignedmass.hpp>
+#include <adcontrols/mscalibration.hpp>
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msreference.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adutils/processeddata.hpp>
+#include <qwt_plot_renderer.h>
 
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
-#include <boost/any.hpp>
+#include <QPrinter>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/widget_factory.hpp>
-#include "qtwidgets_name.hpp"
+#include <adportable/xml_serializer.hpp> // for quick print
+#include <boost/any.hpp>
+#include <boost/format.hpp>
 #include <stack>
 #include <tuple>
 
@@ -54,11 +62,9 @@ namespace dataproc {
     class MSCalibrationWndImpl {
     public:
         ~MSCalibrationWndImpl() {}
-        MSCalibrationWndImpl() : profileSpectrum_(0)
-                               , processedSpectrum_(0)
+        MSCalibrationWndImpl() : processedSpectrum_(0)
                                , calibSummaryWidget_(0) {
         }
-        adwplot::SpectrumWidget * profileSpectrum_;
         adwplot::SpectrumWidget * processedSpectrum_;
         QWidget * calibSummaryWidget_;
         std::weak_ptr< adcontrols::MassSpectrum > calibSpectrum_;
@@ -304,3 +310,84 @@ MSCalibrationWnd::handle_apply_calibration_to_default()
     assert(0);
 }
 
+void
+MSCalibrationWnd::handlePrintCurrentView( const QString& pdfname )
+{
+    const portfolio::Folium& folium = pImpl_->folium_;
+    if ( ! folium )
+        return;
+
+    adcontrols::MSCalibrateResultPtr calibResult;
+    do {
+        portfolio::Folio attachments = folium.attachments();
+        portfolio::Folio::iterator it
+            = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>( attachments.begin(), attachments.end() );
+        if ( it != attachments.end() )
+            calibResult = boost::any_cast< adcontrols::MSCalibrateResultPtr >( *it );
+    } while ( 0 );
+
+	// A4 := 210mm x 297mm (8.27 x 11.69 inch)
+    //QSizeF sizeMM( 180, 80 );
+	QSizeF sizeMM( 260, 160 );
+
+    int resolution = 300;
+	const double mmToInch = 1.0 / 25.4;
+    const QSizeF size = sizeMM * mmToInch * resolution;
+    double margin_left = 0.2 /* inch */ * resolution;
+
+	QPrinter printer;
+    printer.setColorMode( QPrinter::Color );
+    printer.setPaperSize( QPrinter::A4 );
+    printer.setFullPage( false );
+	printer.setOrientation( QPrinter::Landscape );
+    
+    printer.setDocName( "QtPlatz Calibration Report" );
+    printer.setOutputFileName( pdfname );
+    // printer.setOutputFormat( QPrinter::PdfFormat );
+    printer.setResolution( resolution );
+
+    QPainter painter( &printer );
+    
+    QRectF boundingRect;
+    QRectF drawRect( margin_left, 0.0, printer.width(), (18.0/72)*resolution );
+    
+    painter.drawText( drawRect, Qt::TextWordWrap, folium.fullpath().c_str(), &boundingRect );
+    
+    QwtPlotRenderer renderer;
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
+    
+    drawRect.setTop( boundingRect.bottom() );
+    drawRect.setHeight( size.height() );
+    drawRect.setWidth( size.width() );
+    renderer.render( pImpl_->processedSpectrum_, &painter, drawRect );
+    // ---------- spectrum rendered ----------
+    
+    // ---------- calibratin equeatin ----------
+    if ( calibResult ) {
+        const adcontrols::MSCalibration& calib = calibResult->calibration();
+        QString text = "Calibration eq.: sqrt(m/z) = ";
+        for ( size_t i = 0; i < calib.coeffs().size(); ++i ) {
+            if ( i == 0 )
+                text += ( boost::format( "%.14le" ) % calib.coeffs()[0] ).str().c_str();
+            else
+                text += ( boost::format( "\t+ %.14le * x^%d" ) % calib.coeffs()[i] % i ).str().c_str();
+        }
+        drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
+        drawRect.setHeight( printer.height() - drawRect.top() );
+        QFont font = painter.font();
+        font.setPointSize( 8 );
+        painter.setFont( font );
+        painter.drawText( drawRect, Qt::TextWordWrap, text );
+    }
+    // ---------- end calibration equestion -----
+    
+    if ( connect( this, SIGNAL( onPrint(QPrinter&, QPainter&) )
+                  , pImpl_->calibSummaryWidget_, SLOT(handlePrint(QPrinter&, QPainter&)) ) ) {
+        emit onPrint( printer, painter );
+        bool res = disconnect( this, SIGNAL( onPrint(QPrinter&, QPainter&) )
+                               , pImpl_->calibSummaryWidget_, SLOT(handlePrint(QPrinter&, QPainter&)) );
+        assert( res );
+    }
+}

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui
+QT += core gui svg printsupport
 
 TARGET = qtwidgets2
 TEMPLATE = lib

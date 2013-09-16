@@ -71,6 +71,7 @@ namespace dataproc {
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
+        void handlePrintCurrentView( const QString& outpdf );
 
     private slots:
         void handleCustomMenuOnProcessedSpectrum( const QPoint& );
@@ -90,7 +91,6 @@ namespace dataproc {
         std::wstring idActiveFolium_;
         std::wstring idChromatogramFolium_;
         std::wstring idSpectrumFolium_;
-		bool reportProcessed();
     };
 
 }

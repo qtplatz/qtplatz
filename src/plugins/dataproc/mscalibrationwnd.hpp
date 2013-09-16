@@ -27,6 +27,7 @@
 #define MSCALIBRATIONWND_H
 
 #include <QWidget>
+#include <QPrinter>
 #include <memory>
 
 namespace adcontrols {
@@ -53,11 +54,13 @@ namespace dataproc {
       
     signals:
         void fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
+        void onPrint( QPrinter&, QPainter& );
       
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
+        void handlePrintCurrentView( const QString& outpdf );
 
     private slots:
         void handleSelSummary( size_t idx, size_t fcn );

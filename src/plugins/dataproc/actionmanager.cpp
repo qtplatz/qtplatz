@@ -26,12 +26,15 @@
 #include "actionmanager.hpp"
 #include "constants.hpp"
 #include "mainwindow.hpp"
+#include "sessionmanager.hpp"
+#include "dataprocessor.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/profile.hpp>
-
+#include <portfolio/portfolio.hpp>
+#include <qtwrapper/qstring.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -54,7 +57,7 @@ ActionManager::ActionManager(QObject *parent) : QObject(parent)
 bool
 ActionManager::initialize_actions( const QList<int>& context )
 {
-    QIcon iconMethodOpen, iconMethodSave;
+    QIcon iconMethodOpen, iconMethodSave, iconPDF;
     iconMethodOpen.addFile( Constants::ICON_METHOD_OPEN );
     actMethodOpen_.reset( new QAction( iconMethodOpen, tr("Process method open..."), this ) );
     connect( actMethodOpen_.get(), SIGNAL( triggered() ), this, SLOT( actMethodOpen() ) );
@@ -63,13 +66,27 @@ ActionManager::initialize_actions( const QList<int>& context )
     actMethodSave_.reset( new QAction( iconMethodSave, tr("Process method save..."), this ) );
     connect( actMethodSave_.get(), SIGNAL( triggered() ), this, SLOT( actMethodSave() ) );
 
+    iconPDF.addFile( Constants::ICON_PDF );
+    actPrintCurrentView_.reset( new QAction( iconPDF, tr("Print current view..."), this ) );
+    connect( actPrintCurrentView_.get(), SIGNAL( triggered() ), this, SLOT( actPrintCurrentView() ) );
+    
 	Core::ActionManager *am = Core::ICore::instance()->actionManager();
+    Core::Command * cmdOpen = 0;
+    Core::Command * cmdSave = 0;
+    Core::Command * cmdPrint = 0;
     if ( am ) {
-        Core::Command * cmd = 0;
-        cmd = am->registerAction( actMethodOpen_.get(), Constants::METHOD_OPEN, context );
-        cmd = am->registerAction( actMethodSave_.get(), Constants::METHOD_SAVE, context );
-		(void)cmd;
+        cmdOpen = am->registerAction( actMethodOpen_.get(), Constants::METHOD_OPEN, context );
+        cmdSave = am->registerAction( actMethodSave_.get(), Constants::METHOD_SAVE, context );
+        cmdPrint = am->registerAction( actPrintCurrentView_.get(), Constants::PRINT_CURRENT_VIEW, context );
     }
+
+    Core::ActionContainer * menu = am->createMenu( "dataproc.menu" );
+    menu->menu()->setTitle( "Processing" );
+    menu->addAction( cmdPrint );
+    menu->addAction( cmdOpen );
+    menu->addAction( cmdSave );
+    am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
+
     return true;
 }
 
@@ -200,3 +217,32 @@ ActionManager::loadDefaults()
     return true;
 }
 
+void
+ActionManager::actPrintCurrentView()
+{
+	std::string title;
+	MainWindow::instance()->currentProcessView( title );
+
+	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+
+		boost::filesystem::path path = dp->getPortfolio().fullpath();
+		path = path.parent_path() / path.stem();
+
+		boost::filesystem::path pdfname = path;
+		pdfname.replace_extension( ".pdf" );
+		int nnn = 0;
+		while ( boost::filesystem::exists( pdfname ) )  {
+			pdfname = path.wstring() + ( boost::wformat(L"(%d)") % nnn++ ).str();
+			pdfname.replace_extension( ".pdf" );
+		}
+		std::string caption = ( boost::format( "Save %1% current view to file" ) % title ).str();
+		QString qpdfname( qtwrapper::qstring::copy( pdfname.wstring() ) );
+        QString fname = QFileDialog::getSaveFileName( MainWindow::instance() // parent
+                                                      , caption.c_str()    // caption
+                                                      , qpdfname                 // dir
+                                                      , tr("PDF (*.pdf *.svg)") );  // filter
+        MainWindow::instance()->printCurrentView( fname );
+	} else {
+        QMessageBox::warning( MainWindow::instance(), tr("Print current view"), tr("No current data exist") );
+    }
+}

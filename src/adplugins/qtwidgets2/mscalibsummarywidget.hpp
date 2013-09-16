@@ -26,6 +26,7 @@
 #pragma once
 
 #include <QTableView>
+#include <QPrinter>
 #include <adplugin/lifecycle.hpp>
 #include <memory>
 
@@ -92,6 +93,7 @@ namespace qtwidgets2 {
         void showContextMenu( const QPoint& );
         void handle_zoomed( const QRectF& );   // zoomer zoomed
         void handle_selected( const QRectF& ); // picker selected
+        void handlePrint( QPrinter&, QPainter& );
 
    private slots:
         void handleEraseFormula();

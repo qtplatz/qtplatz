@@ -187,7 +187,8 @@ MainWindow::createStyledBarMiddle()
         toolBarLayout->setSpacing(0);
         Core::ActionManager * am = Core::ICore::instance()->actionManager();
         if ( am ) {
-            // method file open & save buttons
+            // print, method file open & save buttons
+            toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_OPEN)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_SAVE)->action()));
             //----------
@@ -247,18 +248,23 @@ MainWindow::createContents( Core::IMode * mode
         splitter3->addWidget( stack_ );
 
         wnd.push_back( new MSProcessingWnd );
+        wnd.back()->setWindowTitle( "MS Process" );
         stack_->addWidget( wnd.back() );
 
         wnd.push_back( new ElementalCompWnd );
+        wnd.back()->setWindowTitle( "Elemental Comp." );
         stack_->addWidget( wnd.back() );
 
         wnd.push_back( new MSCalibrationWnd );
+        wnd.back()->setWindowTitle( "MS Calibration" );
         stack_->addWidget( wnd.back() );
 
         wnd.push_back( new MSCalibSpectraWnd );
+        wnd.back()->setWindowTitle( "MS Calibration(2)" );
         stack_->addWidget( wnd.back() );
 
         wnd.push_back( new ChromatogramWnd( apppath ) );
+        wnd.back()->setWindowTitle( "Chromatogram" );
         stack_->addWidget( wnd.back() );
     }
 	
@@ -434,6 +440,13 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
     }
 }
 
+int
+MainWindow::currentProcessView( std::string& title ) const
+{
+    int id = stack_->currentIndex();
+	title = stack_->currentWidget()->windowTitle().toStdString();
+    return id;
+}
 
 void
 MainWindow::handleApplyMethod()
@@ -623,3 +636,12 @@ MainWindow::processMethodLoaded( const QString& name, const adcontrols::ProcessM
     });
 }
 
+void
+MainWindow::printCurrentView( const QString& pdfname ) const
+{
+    QWidget * w = stack_->currentWidget();
+    if ( connect( this, SIGNAL( onPrintCurrentView( const QString& ) ), w, SLOT( handlePrintCurrentView( const QString& ) ) ) ) {
+        emit onPrintCurrentView( pdfname );
+        disconnect( this, SIGNAL( onPrintCurrentView( const QString& ) ), w, SLOT( handlePrintCurrentView( const QString& ) ) );
+    }
+}

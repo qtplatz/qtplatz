@@ -310,7 +310,6 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& )
 
 	std::vector< QAction * > actions;
 	actions.push_back( menu.addAction( "Copy to clipboard" ) );
-	actions.push_back( menu.addAction( "Save PDF" ) );
 	actions.push_back( menu.addAction( "Create chromatograms" ) );
 
 	QAction * selectedItem = menu.exec( QCursor::pos() );
@@ -326,15 +325,13 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& )
 			QPainter painter(&img);
 			renderer.render( pImpl_->processedSpectrum_, &painter, pImpl_->processedSpectrum_->rect() );
 			clipboard->setImage( img );
-		} else if ( *it == actions[ 1 ] ) {
-			reportProcessed();
-		} else if ( *it == actions[ 2 ] )
+		} else if ( *it == actions[ 1 ] )
 			DataprocPlugin::instance()->handleCreateChromatograms( *pProcessedSpectrum_, rc.x(), rc.x() + rc.width() );
 	}
 }
 
-bool
-MSProcessingWnd::reportProcessed()
+void
+MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
 {
 	// A4 := 210mm x 297mm (8.27 x 11.69 inch)
     QSizeF sizeMM( 180, 80 );
@@ -349,22 +346,12 @@ MSProcessingWnd::reportProcessed()
     printer.setFullPage( false );
     
 	portfolio::Folium folium;
-    printer.setDocName( "QtPlatz MS Process Report" );
+    printer.setDocName( "QtPlatz Process Report" );
 	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
-		folium = dp->getPortfolio().findFolium( idActiveFolium_ );
-		boost::filesystem::path path = dp->getPortfolio().fullpath();
-		path = path.parent_path() / path.stem();
-		boost::filesystem::path pdfname = path;
-		pdfname.replace_extension( ".pdf" );
-		int nnn = 0;
-		while ( boost::filesystem::exists( pdfname ) )  {
-			pdfname = path.wstring() + ( boost::wformat(L"(%d)") % nnn++ ).str();
-			pdfname.replace_extension( ".pdf" );
-		}
-		QString qpdfname( adportable::utf::to_utf8( pdfname.wstring() ).c_str() );
-		printer.setOutputFileName( qpdfname );
-	}
-    printer.setOutputFormat( QPrinter::PdfFormat );
+        folium = dp->getPortfolio().findFolium( idActiveFolium_ );
+    }
+    printer.setOutputFileName( pdfname );
+    // printer.setOutputFormat( QPrinter::PdfFormat );
     printer.setResolution( resolution );
 
     QPainter painter( &printer );
@@ -390,30 +377,28 @@ MSProcessingWnd::reportProcessed()
 
 	QString formattedMethod;
 
-	if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
+	// if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
 
-		portfolio::Folium folium = dp->getPortfolio().findFolium( idActiveFolium_ );
+    // portfolio::Folium folium = dp->getPortfolio().findFolium( idActiveFolium_ );
 
-        portfolio::Folio attachments = folium.attachments();
-        portfolio::Folio::iterator it
-            = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
-        if ( it != attachments.end() ) {
-            adutils::MassSpectrumPtr ms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-            const adcontrols::Descriptions& desc = ms->getDescriptions();
-			for ( size_t i = 0; i < desc.size(); ++i ) {
-				const adcontrols::Description& d = desc[i];
-				if ( ! d.xml().empty() ) {
-					formattedMethod.append( d.xml().c_str() ); // boost::serialization does not close xml correctly, so xmlFormatter raise an exception.
-				}
+    portfolio::Folio attachments = folium.attachments();
+    portfolio::Folio::iterator it
+        = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
+    if ( it != attachments.end() ) {
+        adutils::MassSpectrumPtr ms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+        const adcontrols::Descriptions& desc = ms->getDescriptions();
+        for ( size_t i = 0; i < desc.size(); ++i ) {
+            const adcontrols::Description& d = desc[i];
+            if ( ! d.xml().empty() ) {
+                formattedMethod.append( d.xml().c_str() ); // boost::serialization does not close xml correctly, so xmlFormatter raise an exception.
             }
         }
-		drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
-		drawRect.setHeight( printer.height() - drawRect.top() );
-		QFont font = painter.font();
-		font.setPointSize( 8 );
-		painter.setFont( font );
-		painter.drawText( drawRect, Qt::TextWordWrap, formattedMethod, &boundingRect );
-	}
-
-    return true;
+    }
+    drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
+    drawRect.setHeight( printer.height() - drawRect.top() );
+    QFont font = painter.font();
+    font.setPointSize( 8 );
+    painter.setFont( font );
+    painter.drawText( drawRect, Qt::TextWordWrap, formattedMethod, &boundingRect );
 }
+

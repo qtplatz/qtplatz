@@ -45,7 +45,9 @@
 #include <qclipboard.h>
 #include <QKeyEvent>
 #include <QtWidgets/QHeaderView>
+#include <QPainter>
 #include <algorithm>
+#include <tuple>
 
 using namespace qtwidgets2;
 
@@ -467,6 +469,90 @@ MSCalibSummaryWidget::keyPressEvent( QKeyEvent * event )
         handleCopyToClipboard();
     } else {
         QTableView::keyPressEvent( event );
+    }
+}
+
+void
+MSCalibSummaryWidget::handlePrint( QPrinter& printer, QPainter& painter )
+{
+    const QStandardItemModel& model = *pModel_;
+    printer.newPage();
+	const QRect rect( printer.pageRect().x() + printer.pageRect().width() * 0.05
+                      , printer.pageRect().y() + printer.pageRect().height() * 0.05
+                      , printer.pageRect().width() * 0.9, printer.pageRect().height() * 0.8 );
+    
+    painter.drawLine( rect.x(), rect.y(), rect.x() + rect.width(), rect.y() );
+
+    const int rows = model.rowCount();
+    const int cols = model.columnCount();
+
+    std::vector< std::pair< double, std::string > > header;
+    for ( int col = 0; col < cols; ++col ) {
+        double width = 0;
+        switch( col ) {
+        case c_time:                      width = rect.width() / 180 * 16; break;
+        case c_formula:                   width = rect.width() / 180 * 28; break;
+        case c_exact_mass:                width = rect.width() / 180 * 18; break;
+        case c_mass:                      width = rect.width() / 180 * 18; break;
+        case c_intensity:                 width = rect.width() / 180 * 12; break;
+        case c_mass_error_mDa:            width = rect.width() / 180 * 14; break;
+        case c_mass_calibrated:           width = rect.width() / 180 * 18; break;
+        case c_mass_error_calibrated_mDa: width = rect.width() / 180 * 14; break;
+        case c_is_enable:                 width = rect.width() / 180 * 8; break;
+        case c_flags:                     width = rect.width() / 180 * 8; break;
+        case c_mode:                      width = rect.width() / 180 * 8; break;
+        case c_fcn:                       width = rect.width() / 180 * 6; break;
+        }
+        std::string text = model.headerData( col, Qt::Horizontal ).toString().toStdString();
+        header.push_back( std::make_pair( width, text ) );
+    }
+
+    struct text_writer {
+        const std::vector< std::pair< double, std::string > >& header_;
+        double bottom_;
+        const QRectF& rect_;
+        text_writer( const std::vector< std::pair< double, std::string > >& header, const QRectF& rect )
+            : bottom_( 0 ), header_( header ), rect_( rect ) {
+        }
+        void operator()( int col, QPainter& painter, QRectF& rc, const QString& text ) {
+            QRectF boundingRect;
+            painter.drawText( rc, Qt::TextWordWrap, text, &boundingRect );
+            if ( boundingRect.bottom() > bottom_ )
+                bottom_ = boundingRect.bottom();
+            rc.moveTo( rc.x() + header_[ col ].first, rc.y() );
+        }
+        bool new_line( QRectF& rc ) {
+            rc.moveTo( rect_.x(), bottom_ + rect_.height() * 0.01);
+			double b = bottom_;
+            bottom_ = 0;
+            if ( b > rect_.bottom() )
+                return true;
+            return false;
+        }
+    };
+        
+    text_writer writer( header, rect );
+
+    QRectF rc( rect.x(), rect.y(), rect.width() / cols, rect.height() );
+
+    for ( int col = 0; col < cols; ++col )
+        writer( col, painter, rc, header[ col ].second.c_str() );
+
+    writer.new_line( rc );
+
+    std::string text;
+    for ( int row = 0; row < rows; ++row ) {
+        QRectF boundingRect;
+        for ( int col = 0; col < cols; ++col ) {
+            MSCalibSummaryDelegate::to_print_text( text, model.index( row, col ) );
+            writer( col, painter, rc, text.c_str() );
+        }
+        if ( writer.new_line( rc ) ) {
+            printer.newPage();
+			rc = QRectF( rect.x(), rect.y(), header[0].first, rect.height() );
+			for ( int col = 0; col < cols; ++col )
+				writer( col, painter, rc, header[ col ].second.c_str() );
+        }
     }
 }
 

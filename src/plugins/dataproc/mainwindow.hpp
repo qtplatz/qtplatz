@@ -72,9 +72,9 @@ namespace dataproc {
         
         void processMethodSaved( const QString& );
         void processMethodLoaded( const QString&, const adcontrols::ProcessMethod& );
+        int currentProcessView( std::string& ) const;
+        void printCurrentView( const QString& ) const;
 
-    signals:
-            
     public slots:
         void handleSessionAdded( Dataprocessor * );
         void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );
@@ -116,6 +116,9 @@ namespace dataproc {
         void createDockWidgets();
         Utils::StyledBar * createStyledBarTop();
         Utils::StyledBar * createStyledBarMiddle();
+
+    signals:
+        void onPrintCurrentView( const QString& ) const;
     };
 
 }

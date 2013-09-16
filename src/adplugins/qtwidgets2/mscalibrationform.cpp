@@ -113,10 +113,17 @@ MSCalibrationForm::OnInitialUpdate()
 
 	ui->comboBoxMaterials->addItem( "Ar", "Ar" );
 	ui->comboBoxMaterials->addItem( "Xe", "Xe" );
-	ui->comboBoxMaterials->addItem( "PFTBA", "CF3" );
-	ui->comboBoxMaterials->addItem( "PEG", "H2O\tC2H4\tH" );
+	ui->comboBoxMaterials->addItem( "PFTBA", "PFTBA" );
+	ui->comboBoxMaterials->addItem( "PEG", "H2O\tC2H4O\tH" );
 	ui->comboBoxMaterials->addItem( "Recerpine", "C33H40N2O9\t\tH" );
 	ui->comboBoxMaterials->addItem( "Polystyrene", "H2O\tC8H8\tH" );
+	ui->comboBoxMaterials->addItem( "Jeffamine(D230)", "CH3CH(NH2)CH2NH2\tOCH2CH(CH3)\tH" );
+	ui->comboBoxMaterials->addItem( "Sulfa drug (311)", "C12H14N4O4S\t\tH" );
+	ui->comboBoxMaterials->addItem( "AgilentTOF Mix(+)", "AgilentTOF Mix(+)" );
+	ui->comboBoxMaterials->addItem( "AgilentTOF Mix(-)", "AgilentTOF Mix(-)" );
+	ui->comboBoxMaterials->addItem( "Anionic Surfactants 1(-)", "C12H26SO4\tC2H4O\t-H\t" ); // negative
+	ui->comboBoxMaterials->addItem( "Anionic Surfactants 2(-)", "C13H28SO4\tC2H4O\t-H\t" ); // negative only
+	ui->comboBoxMaterials->addItem( "Sodium acetate", "\tCH3COONa\tNa\t" ); //
 }
 
 void
@@ -209,9 +216,7 @@ MSCalibrationForm::setCalibrateMethod( const adcontrols::MSCalibrateMethod& meth
 
     size_t row = 0;
     for ( auto& ref: references ) {
-		std::wstring formula = ref.formula();
-		if ( ! ref.adduct_or_loss().empty() )
-            formula += ( boost::wformat( L"%1%%2%") % ( ref.polarityPositive() ? '+' : '-' ) % ref.adduct_or_loss() ).str();
+		std::wstring formula = ref.display_formula();
         
 		model.setData( model.index( row, c_formula ),     qtwrapper::qstring::copy( formula ) );
 		model.setData( model.index( row, c_exact_mass ),  ref.exact_mass() );
@@ -256,7 +261,7 @@ MSCalibrationForm::on_addReference_pressed()
 	if ( ! repeat.isEmpty() ) {
 		makeSeries( endGroup.toStdWString(), repeat.toStdWString(), isAdduct, adduct_lose.toStdWString(), ref );
 	} else {
-        if ( endGroup == "CF3" ) { // assume PFTBA
+        if ( endGroup == "PFTBA" ) { // assume PFTBA
             ref << adcontrols::MSReference( L"CF3",     true,  L"", false );
             ref << adcontrols::MSReference( L"C2F4",    true,  L"", false );
             ref << adcontrols::MSReference( L"C2F5",    true,  L"", false );
@@ -272,6 +277,29 @@ MSCalibrationForm::on_addReference_pressed()
             ref << adcontrols::MSReference( L"C9F20N",  true,  L"", false );
             ref << adcontrols::MSReference( L"C12F22N", true,  L"", false );
             ref << adcontrols::MSReference( L"C12F24N", true,  L"", false );
+        } else if ( endGroup == "AgilentTOF Mix(-)" ) {
+            ref << adcontrols::MSReference( L"C6F9N3",          false, L"OH", false );
+            ref << adcontrols::MSReference( L"C12F21N3",        false, L"OH", false );
+            ref << adcontrols::MSReference( L"C2F3O2NH4",       false, L"-NH4", false );
+            ref << adcontrols::MSReference( L"C12H18F12N3O6P3", false, L"C2F3O2", false );
+            ref << adcontrols::MSReference( L"C18H18F24N3O6P3", false, L"C2F3O2", false );
+            ref << adcontrols::MSReference( L"C24H18F36N3O6P3", false, L"C2F3O2", false );
+            ref << adcontrols::MSReference( L"C30H18F48N3O6P3", false, L"C2F3O2", false );
+            ref << adcontrols::MSReference( L"C36H18F60N3O6P3", false, L"C2F3O2", false );
+            ref << adcontrols::MSReference( L"C42H18F72N3O6P3", false, L"C2F3O2", false );
+            ref << adcontrols::MSReference( L"C48H18F84N3O6P3", false, L"C2F3O2", false );
+            ref << adcontrols::MSReference( L"C54H18F96N3O6P3", false, L"C2F3O2", false );
+        } else if ( endGroup == "AgilentTOF Mix(+)" ) {
+            ref << adcontrols::MSReference( L"C5H11NO2",        true, L"H", false, 0.0, 1, L"118.0868" );
+            ref << adcontrols::MSReference( L"C6H18N3O6P3",     true, L"H", false, 0.0, 1, L"322.0486" );
+            ref << adcontrols::MSReference( L"C12H18F12N3O6P3", true, L"H", false, 0.0, 1, L"622.0295" );
+            ref << adcontrols::MSReference( L"C18H18F24N3O6P3", true, L"H", false, 0.0, 1, L"922.0103" );
+            ref << adcontrols::MSReference( L"C24H18F36N3O6P3", true, L"H", false );
+            ref << adcontrols::MSReference( L"C30H18F48N3O6P3", true, L"H", false );
+            ref << adcontrols::MSReference( L"C36H18F60N3O6P3", true, L"H", false );
+            ref << adcontrols::MSReference( L"C42H18F72N3O6P3", true, L"H", false );
+            ref << adcontrols::MSReference( L"C48H18F84N3O6P3", true, L"H", false );
+            ref << adcontrols::MSReference( L"C54H18F96N3O6P3", true, L"H", false );
         } else {
             // check if an element
             const adcontrols::Element& element = adcontrols::TableOfElements::instance()->findElement( endGroup.toStdWString() );
@@ -362,7 +390,18 @@ void qtwidgets2::MSCalibrationForm::on_pushButtonAdd_pressed()
 
 void qtwidgets2::MSCalibrationForm::on_comboBoxAdductLose_currentIndexChanged(int index)
 {
-	(void)index;
+    QString adduct = ui->edtAdductLose->text();
+    if ( !adduct.isEmpty() ) {
+        std::string formula = ui->edtAdductLose->text().toStdString();
+        std::string::size_type sign = formula.find_first_of( "+-" );
+        if ( sign != std::string::npos )
+            formula = formula.substr( sign ); // strip out sign
+        if ( index == 0 ) {
+            ui->edtAdductLose->setText( formula.c_str() );
+        } else {
+            ui->edtAdductLose->setText( ( "-" + formula ).c_str() );
+        }
+    }
 }
 
 void qtwidgets2::MSCalibrationForm::on_tableView_customContextMenuRequested(const QPoint &pt)
@@ -441,7 +480,7 @@ void qtwidgets2::MSCalibrationForm::on_comboBoxMaterials_currentIndexChanged(int
                               , std::wstring::const_iterator
                               , std::wstring > tokenizer_t;
  
-	boost::char_separator<wchar_t> separator( L"\t+-", L"", boost::keep_empty_tokens );
+	boost::char_separator<wchar_t> separator( L"\t", L"", boost::keep_empty_tokens );
     tokenizer_t tokens( userData, separator );
     
     auto token = tokens.begin();
@@ -451,6 +490,25 @@ void qtwidgets2::MSCalibrationForm::on_comboBoxMaterials_currentIndexChanged(int
 	if ( ++token != tokens.end() )
         ui->edtRepeatGroup->setText( qtwrapper::qstring::copy( *token ) );
 
+    // adduct
     if ( token != tokens.end() && ++token != tokens.end() )
         ui->edtAdductLose->setText( qtwrapper::qstring::copy( *token ) );
 }
+
+#if 0
+	</SeriesDefs>
+</MassCalibrationReferenceDefinitions>
+
+<?xml version="1.0" encoding="utf-8"?>
+<MassCalibrationReferenceDefinitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="MassCalibrationReferenceDefinitions.xsd">
+	<FormulaDefs>
+		<Formula enable="false" useForFitting="false" formula="C33H40N2O9" adduct="H" loss="" polarity="positive" chargeCount="1" comments="Reserpine"/>
+		<Formula enable="true" useForFitting="true" formula="CF3COO" adduct="" loss="" polarity="negative" chargeCount="1" comments="CF3COO-"/>
+	</FormulaDefs>
+	<SeriesDefs>
+		<Series enable="true" repeat="CH3COONa" endGroup="" adduct="" loss="Na" polarity="negative" chargeCount="1" fromMass="1.0" toMass="4000.0" comments=""/>
+		<Series enable="true" repeat="CH3COONa" endGroup="" adduct="Na" loss="" polarity="positive" chargeCount="1" fromMass="1.0" toMass="4000.0" comments=""/>
+	</SeriesDefs>
+</MassCalibrationReferenceDefinitions>
+
+#endif

@@ -75,11 +75,17 @@ MSReference::compute_mass()
     ChemicalFormula formula;
     exactMass_ = formula.getMonoIsotopicMass( formula_ );
     if ( ! adduct_or_loss_.empty() ) {
-        double adduct = formula.getMonoIsotopicMass( adduct_or_loss_ );
-        if ( polarityPositive_ )
+        std::wstring::size_type sign = adduct_or_loss_.find_first_of( L"+-" );
+        if ( sign != std::wstring::npos && adduct_or_loss_[ sign ] == L'-' ) {
+            double lose = formula.getMonoIsotopicMass( adduct_or_loss_.substr( sign ) );
+            exactMass_ -= lose;
+        } else {
+            double adduct = formula.getMonoIsotopicMass( adduct_or_loss_ );
             exactMass_ += adduct;
-        else
-            exactMass_ -= adduct;
+        }
+        // handle electron mass
+        // if ( polarityPositive_ ) subtract electron
+            
     }
 }
 
@@ -118,8 +124,13 @@ MSReference::display_formula() const
 {
 	std::wostringstream wo;
 	wo << formula_;
-	if ( ! adduct_or_loss_.empty() )
-        wo << ( polarityPositive_ ? L'+' : L'-' ) << adduct_or_loss_;
+	if ( ! adduct_or_loss_.empty() ) {
+        std::wstring::size_type sign = adduct_or_loss_.find_first_of( L"+-" );
+        if ( sign == std::wstring::npos ) // if no '+' or '-' specified, assume adduct
+            wo << '+' << adduct_or_loss_;
+        else
+            wo << adduct_or_loss_.substr( sign );
+    }
 	return wo.str();
 }
 

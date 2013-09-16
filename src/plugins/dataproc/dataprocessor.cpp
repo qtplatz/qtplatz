@@ -348,6 +348,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
 				ptr->addDescription( adcontrols::Description( L"create", folium.name() ) );
 			addCalibration( * boost::get< adutils::MassSpectrumPtr >( data ), method );
 		}
+		ifileimpl_->setModified();
     }
 }
 
@@ -373,6 +374,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
         boost::apply_visitor( doSpectralProcess( ms, folium ), *it );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
+	ifileimpl_->setModified();
 }
 
 void
@@ -399,6 +401,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
         if ( pCalibMethod )
             addCalibration( *profile, *centroid, *pCalibMethod, assigned );
     }
+	ifileimpl_->setModified();
 }
 
 void
@@ -428,6 +431,8 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& profile
     
     if ( DataprocessorImpl::applyMethod( folium, calibMethod, assigned ) ) 
         SessionManager::instance()->updateDataprocessor( this, folium );
+
+	ifileimpl_->setModified();
 }
 
 void

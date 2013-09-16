@@ -41,6 +41,8 @@ namespace qtwidgets2 {
         bool editorEvent( QEvent * event, QAbstractItemModel *
                           , const QStyleOptionViewItem&, const QModelIndex& ) override;
 
+        static void to_print_text( std::string&, const QModelIndex& index );
+
     signals:
         void valueChanged( const QModelIndex& ) const;
 

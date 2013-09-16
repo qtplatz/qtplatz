@@ -100,4 +100,35 @@ MSCalibSummaryDelegate::setModelData( QWidget *editor
     emit valueChanged( index );
 }
 
-
+void
+MSCalibSummaryDelegate::to_print_text( std::string& text, const QModelIndex &index)
+{
+    text.clear();
+    switch( index.column() ) {
+    case MSCalibSummaryWidget::c_time:
+        text = ( boost::format("%.4lf") % index.data( Qt::EditRole ).toDouble() ).str();
+        break;
+    case MSCalibSummaryWidget::c_exact_mass:
+		if ( ! index.model()->data( index.model()->index( index.row(), MSCalibSummaryWidget::c_formula ), Qt::EditRole ).toString().isEmpty() )
+			text = ( boost::format("%.7lf") % index.data( Qt::EditRole ).toDouble() ).str();
+        break;
+    case MSCalibSummaryWidget::c_mass:
+	case MSCalibSummaryWidget::c_mass_calibrated:
+        text = ( boost::format("%.7lf") % index.data( Qt::EditRole ).toDouble() ).str();
+        break;
+    case MSCalibSummaryWidget::c_intensity:
+        text = ( boost::format("%.1lf") % index.data( Qt::EditRole ).toDouble() ).str();
+    case MSCalibSummaryWidget::c_mass_error_mDa:
+    case MSCalibSummaryWidget::c_mass_error_calibrated_mDa:
+		if ( ! index.model()->data( index.model()->index( index.row(), MSCalibSummaryWidget::c_formula ), Qt::EditRole ).toString().isEmpty() )
+			text = ( boost::format("%.3lf") % index.data( Qt::EditRole ).toDouble() ).str();
+		break;
+    case MSCalibSummaryWidget::c_formula:
+    case MSCalibSummaryWidget::c_is_enable:
+    case MSCalibSummaryWidget::c_flags:
+    case MSCalibSummaryWidget::c_mode:
+    case MSCalibSummaryWidget::c_fcn:
+    default:
+        text = index.data( Qt::DisplayRole ).toString().toStdString();
+    }
+}
