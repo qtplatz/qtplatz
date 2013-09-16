@@ -101,7 +101,7 @@ MSCalibSummaryDelegate::setModelData( QWidget *editor
 }
 
 void
-MSCalibSummaryDelegate::to_print_text( std::string& text, const QModelIndex &index)
+MSCalibSummaryDelegate::to_print_text( std::string& text, const QModelIndex &index )
 {
     text.clear();
     switch( index.column() ) {
@@ -118,6 +118,7 @@ MSCalibSummaryDelegate::to_print_text( std::string& text, const QModelIndex &ind
         break;
     case MSCalibSummaryWidget::c_intensity:
         text = ( boost::format("%.1lf") % index.data( Qt::EditRole ).toDouble() ).str();
+        break;
     case MSCalibSummaryWidget::c_mass_error_mDa:
     case MSCalibSummaryWidget::c_mass_error_calibrated_mDa:
 		if ( ! index.model()->data( index.model()->index( index.row(), MSCalibSummaryWidget::c_formula ), Qt::EditRole ).toString().isEmpty() )

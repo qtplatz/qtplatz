@@ -472,6 +472,56 @@ MSCalibSummaryWidget::keyPressEvent( QKeyEvent * event )
     }
 }
 
+namespace qtwidgets2 {
+
+    class grid_render {
+        const QRectF& rect_;
+        double bottom_;
+		QRectF boundingRect_;
+        QRectF rc_;
+    public:
+        std::vector< std::pair< double, double > > tab_stops_;
+
+        grid_render( const QRectF& rect )
+            : bottom_( 0 ), rect_( rect ), rc_( rect ) {
+        }
+
+        void add_tab( double width ) {
+            if ( tab_stops_.empty() )
+                tab_stops_.push_back( std::make_pair( rect_.left(), width ) );
+            else
+                tab_stops_.push_back( std::make_pair( tab_stops_.back().second + tab_stops_.back().first, width ) );
+        }
+
+        void operator()( QPainter& painter, int col, const QString& text ) {
+            rc_.setRect( tab_stops_[ col ].first, rc_.y(), tab_stops_[col].second, rect_.bottom() - rc_.y() );
+            painter.drawText( rc_, Qt::TextWordWrap, text, &boundingRect_ );
+            bottom_ = std::max<double>( boundingRect_.bottom(), bottom_ );
+        }
+
+        bool new_line( QPainter& painter ) {
+            rc_.moveTo( rect_.x(), bottom_ + rect_.height() * 0.005);
+            bottom_ = 0;
+            if ( rc_.y() > rect_.bottom() ) {
+                draw_horizontal_line( painter ); // footer separator
+                return true;
+            }
+            return false;
+        }
+
+        void new_page( QPainter& painter ) {
+            rc_.setRect( tab_stops_[ 0 ].first, rect_.top(), tab_stops_[ 0 ].second, rect_.height() );
+            draw_horizontal_line( painter ); // header separator
+        }
+
+        void draw_horizontal_line( QPainter& painter ) {
+            painter.drawLine( rect_.left(), rc_.top(), rect_.right(), rc_.top() );
+        }
+
+    };
+
+}
+
 void
 MSCalibSummaryWidget::handlePrint( QPrinter& printer, QPainter& painter )
 {
@@ -481,12 +531,11 @@ MSCalibSummaryWidget::handlePrint( QPrinter& printer, QPainter& painter )
                       , printer.pageRect().y() + printer.pageRect().height() * 0.05
                       , printer.pageRect().width() * 0.9, printer.pageRect().height() * 0.8 );
     
-    painter.drawLine( rect.x(), rect.y(), rect.x() + rect.width(), rect.y() );
-
     const int rows = model.rowCount();
     const int cols = model.columnCount();
 
-    std::vector< std::pair< double, std::string > > header;
+    grid_render render( rect );
+
     for ( int col = 0; col < cols; ++col ) {
         double width = 0;
         switch( col ) {
@@ -503,56 +552,30 @@ MSCalibSummaryWidget::handlePrint( QPrinter& printer, QPainter& painter )
         case c_mode:                      width = rect.width() / 180 * 8; break;
         case c_fcn:                       width = rect.width() / 180 * 6; break;
         }
-        std::string text = model.headerData( col, Qt::Horizontal ).toString().toStdString();
-        header.push_back( std::make_pair( width, text ) );
+        render.add_tab( width );
     }
 
-    struct text_writer {
-        const std::vector< std::pair< double, std::string > >& header_;
-        double bottom_;
-        const QRectF& rect_;
-        text_writer( const std::vector< std::pair< double, std::string > >& header, const QRectF& rect )
-            : bottom_( 0 ), header_( header ), rect_( rect ) {
-        }
-        void operator()( int col, QPainter& painter, QRectF& rc, const QString& text ) {
-            QRectF boundingRect;
-            painter.drawText( rc, Qt::TextWordWrap, text, &boundingRect );
-            if ( boundingRect.bottom() > bottom_ )
-                bottom_ = boundingRect.bottom();
-            rc.moveTo( rc.x() + header_[ col ].first, rc.y() );
-        }
-        bool new_line( QRectF& rc ) {
-            rc.moveTo( rect_.x(), bottom_ + rect_.height() * 0.01);
-			double b = bottom_;
-            bottom_ = 0;
-            if ( b > rect_.bottom() )
-                return true;
-            return false;
-        }
-    };
-        
-    text_writer writer( header, rect );
-
-    QRectF rc( rect.x(), rect.y(), rect.width() / cols, rect.height() );
-
+    render.new_page( painter );
     for ( int col = 0; col < cols; ++col )
-        writer( col, painter, rc, header[ col ].second.c_str() );
-
-    writer.new_line( rc );
+        render( painter, col, model.headerData( col, Qt::Horizontal ).toString() );
+    render.new_line( painter );
+    render.draw_horizontal_line( painter );
 
     std::string text;
     for ( int row = 0; row < rows; ++row ) {
-        QRectF boundingRect;
         for ( int col = 0; col < cols; ++col ) {
             MSCalibSummaryDelegate::to_print_text( text, model.index( row, col ) );
-            writer( col, painter, rc, text.c_str() );
+            render( painter, col, text.c_str() );
         }
-        if ( writer.new_line( rc ) ) {
+        if ( render.new_line( painter ) ) {
             printer.newPage();
-			rc = QRectF( rect.x(), rect.y(), header[0].first, rect.height() );
-			for ( int col = 0; col < cols; ++col )
-				writer( col, painter, rc, header[ col ].second.c_str() );
+            render.new_page( painter );
+            for ( int col = 0; col < cols; ++col )
+                render( painter, col, model.headerData( col, Qt::Horizontal ).toString() );
+            render.new_line( painter );
+            render.draw_horizontal_line( painter );  
         }
     }
+    render.draw_horizontal_line( painter );
 }
 
