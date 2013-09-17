@@ -51,6 +51,7 @@ namespace adcontrols {
         const std::vector< double >& coeffs() const;
         void coeffs( const std::vector<double>& );
 
+        double compute_mass( double time ) const;
         static double compute( const std::vector<double>&, double time );
         
     private:

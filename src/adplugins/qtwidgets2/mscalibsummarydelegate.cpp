@@ -39,7 +39,7 @@ MSCalibSummaryDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 {
     switch( index.column() ) {
     case MSCalibSummaryWidget::c_time:
-        drawDisplay( painter, option, option.rect, ( boost::format("%.4lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+        drawDisplay( painter, option, option.rect, ( boost::format("%.5lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
         break;
     case MSCalibSummaryWidget::c_exact_mass:
 		if ( ! index.model()->data( index.model()->index( index.row(), MSCalibSummaryWidget::c_formula ), Qt::EditRole ).toString().isEmpty() )
@@ -108,7 +108,7 @@ MSCalibSummaryDelegate::to_print_text( std::string& text, const QModelIndex &ind
     text.clear();
     switch( index.column() ) {
     case MSCalibSummaryWidget::c_time:
-        text = ( boost::format("%.4lf") % index.data( Qt::EditRole ).toDouble() ).str();
+        text = ( boost::format("%.5lf") % index.data( Qt::EditRole ).toDouble() ).str();
         break;
     case MSCalibSummaryWidget::c_exact_mass:
 		if ( ! index.model()->data( index.model()->index( index.row(), MSCalibSummaryWidget::c_formula ), Qt::EditRole ).toString().isEmpty() )

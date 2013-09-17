@@ -77,6 +77,15 @@ MSCalibration::coeffs( const std::vector<double>& v )
     coeffs_ = v;
 }
 
+double
+MSCalibration::compute_mass( double time ) const
+{
+    double sqrt = compute( coeffs_, time );
+    if ( sqrt > 0 )
+        return sqrt * sqrt;
+    return 0;
+}
+
 // static
 double
 MSCalibration::compute( const std::vector<double>& v, double t )

@@ -61,23 +61,24 @@ namespace qtwidgets2 {
             , c_is_enable
             , c_mode // analyzer mode id, a.k.a. reflectron|linear, or number of turns on InfiTOF
             , c_fcn  // segment id
+            , c_index // keep ms index for 'sort', invisible
             , c_number_of_columns
             , c_flags_ // -- not in use -- out of order
         };
 
         // adplugin::LifeCycle
-        virtual void OnCreate( const adportable::Configuration& );
-        virtual void OnInitialUpdate();
-        virtual void OnUpdate( boost::any& );
-        virtual void OnFinalClose();
+        void OnCreate( const adportable::Configuration& ) override;
+        void OnInitialUpdate() override;
+        void onUpdate( boost::any& ) override;
+        void OnFinalClose() override;
         bool getContents( boost::any& ) const;
         bool setContents( boost::any& );
 
         // <--
     protected:
         // reimplement QTableView
-        virtual void currentChanged( const QModelIndex&, const QModelIndex& );
-        virtual void keyPressEvent( QKeyEvent * event );
+        void currentChanged( const QModelIndex&, const QModelIndex& ) override;
+        void keyPressEvent( QKeyEvent * event ) override;
 
     signals:
         void valueChanged();
@@ -97,11 +98,9 @@ namespace qtwidgets2 {
 
    private slots:
         void handleEraseFormula();
-        //void handleUpdateCalibration();
-        //void handleClearFormulae();
-        //void handleUpdatePeakAssign();
 
         void handleCopyToClipboard();
+        void handlePasteFromClipboard();
         void handleValueChanged( const QModelIndex& );
 
     private:
@@ -111,8 +110,13 @@ namespace qtwidgets2 {
         std::unique_ptr< adcontrols::MSCalibrateResult > pCalibResult_;
         std::unique_ptr< adcontrols::MassSpectrum > pCalibrantSpectrum_;
         bool inProgress_;
-        std::vector< std::pair< uint32_t, uint32_t > > indecies_; // fcn, idx
+        // std::vector< std::pair< uint32_t, uint32_t > > indecies_; // fcn, idx
         void getAssignedMasses( adcontrols::MSAssignedMasses& ) const;
+        bool modifyModelData( const std::vector< std::pair< int, int > >& );
+        bool createModelData( const std::vector< std::pair< int, int > >& );
+        bool setAssignedData( int row, int fcn, int idx, const adcontrols::MSAssignedMasses& );
+        void setEditable( int row, bool enable = false );
+        void formulaChanged( const QModelIndex& );
     };
 
 }

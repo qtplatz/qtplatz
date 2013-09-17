@@ -57,12 +57,23 @@ MSCalibrateResult::MSCalibrateResult() : tolerance_(0)
 }
 
 MSCalibrateResult::MSCalibrateResult( const MSCalibrateResult& t )
-: tolerance_( t.tolerance_ )
-, threshold_( t.threshold_ )
-, references_( new MSReferences( *t.references_ ) )
-, calibration_( new MSCalibration( *t.calibration_ ) )
-, assignedMasses_( new MSAssignedMasses( *t.assignedMasses_ ) )
+    : tolerance_( t.tolerance_ )
+    , threshold_( t.threshold_ )
+    , references_( new MSReferences( *t.references_ ) )
+    , calibration_( new MSCalibration( *t.calibration_ ) )
+    , assignedMasses_( new MSAssignedMasses( *t.assignedMasses_ ) )
 {
+}
+
+const MSCalibrateResult&
+MSCalibrateResult::operator = ( const MSCalibrateResult& t )
+{
+    tolerance_ = t.tolerance_;
+    threshold_ = t.threshold_;
+    references_.reset( new MSReferences( *t.references_ ) );
+    calibration_.reset( new MSCalibration( *t.calibration_ ) );
+    assignedMasses_.reset( new MSAssignedMasses( *t.assignedMasses_ ) );
+	return *this;
 }
 
 double

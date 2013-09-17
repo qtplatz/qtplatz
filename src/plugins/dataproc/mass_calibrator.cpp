@@ -66,6 +66,9 @@ mass_calibrator::operator << ( const std::pair< double, double >& pair )
 bool
 mass_calibrator::compute( adcontrols::MSCalibration& calib, int nterm )
 {
+	if ( nterm == 0 )
+		return false;
+
     std::vector< double > coeffs;
     if ( times_.size() >= size_t( nterm ) &&
          adportable::polfit::fit( times_.data(), sqrtMz_.data(), times_.size(), nterm, coeffs ) ) { 

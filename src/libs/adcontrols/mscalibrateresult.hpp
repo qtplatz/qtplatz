@@ -42,6 +42,7 @@ namespace adcontrols {
         MSCalibrateResult();
         MSCalibrateResult( const MSCalibrateResult & t );
         static const wchar_t * dataClass() { return L"MSCalibrateResult"; }
+        const MSCalibrateResult& operator = ( const MSCalibrateResult & t );
 
         double threshold() const;
         void threshold( double );
