@@ -60,7 +60,7 @@ MSCalibSummaryDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 		break;
     case MSCalibSummaryWidget::c_formula:
     case MSCalibSummaryWidget::c_is_enable:
-    case MSCalibSummaryWidget::c_flags:
+    case MSCalibSummaryWidget::c_flags_:
     case MSCalibSummaryWidget::c_mode:
     case MSCalibSummaryWidget::c_fcn:
     default:
@@ -84,8 +84,10 @@ MSCalibSummaryDelegate::editorEvent( QEvent * event
     bool res = QItemDelegate::editorEvent( event, model, option, index );
     if ( event->type() == QEvent::MouseButtonRelease && model->flags(index) & Qt::ItemIsUserCheckable ) {
         QVariant st = index.data( Qt::CheckStateRole );
-        if ( index.data( Qt::EditRole ).type() == QVariant::Bool )
+        if ( index.data( Qt::EditRole ).type() == QVariant::Bool ) {
             model->setData( index, ( st == Qt::Checked ) ? true : false );
+            emit valueChanged( index );
+        }
     }
     return res;
 }
@@ -126,7 +128,7 @@ MSCalibSummaryDelegate::to_print_text( std::string& text, const QModelIndex &ind
 		break;
     case MSCalibSummaryWidget::c_formula:
     case MSCalibSummaryWidget::c_is_enable:
-    case MSCalibSummaryWidget::c_flags:
+    case MSCalibSummaryWidget::c_flags_:
     case MSCalibSummaryWidget::c_mode:
     case MSCalibSummaryWidget::c_fcn:
     default:

@@ -25,7 +25,7 @@
 
 #include "dataprochandler.hpp"
 #include "assign_masses.hpp"
-#include "calibrate_masses.hpp"
+#include "mass_calibrator.hpp"
 #include <adcontrols/centroidprocess.hpp>
 
 #include <adcontrols/isotopecluster.hpp>
@@ -207,13 +207,15 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     // annotate each peak on spectrum
     doAnnotateAssignedPeaks( centroid, assignedMasses );
 
-    calibrate_masses calibrator;
+    mass_calibrator calibrator( assignedMasses );
     adcontrols::MSCalibration calib;
-    if ( calibrator( assignedMasses, m.polynomialDegree() + 1, calib, 0 ) ) {
-        //calibrator.update( assignedMasses, calib );
+    if ( calibrator.compute( calib, m.polynomialDegree() + 1 ) ) {
+        for ( auto it: assignedMasses ) {
+            double mass = mass_calibrator::compute_mass( it.time(), calib );
+            it.mass( mass );
+        }
 		//for ( size_t n = 0; n < segments.size(); ++n )
 		//	centroid.setCalibration( calib, true );
-
         res.calibration( calib );
         res.assignedMasses( assignedMasses );
 #if defined _DEBUG && 0
@@ -265,9 +267,9 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     std::map<size_t, size_t>::iterator itMax = std::max_element( mode_map.begin(), mode_map.end() );
     int mode = itMax->first;
 
-    calibrate_masses calibrator;
+    mass_calibrator calibrator( assigned );
     adcontrols::MSCalibration calib;
-    if ( ! calibrator( assigned, m.polynomialDegree() + 1, calib, mode ) )
+    if ( ! calibrator.compute( calib, m.polynomialDegree() + 1 ) )
         return false;
 
     res.references( m.references() );
@@ -282,20 +284,22 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 		assign( assignedMasses, segments[n], m.references(), 0, n );
 	}
 
-    // populate manually assigned peaks
-    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
-        if ( it->flags() )
-            assignedMasses << *it;
-    }
+    // // populate manually assigned peaks
+    // for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
+    //     if ( it->flags() )
+    //         assignedMasses << *it;
+    // }
 
-    if ( calibrator( assignedMasses, m.polynomialDegree() + 1, calib, mode ) ) {
-        calibrator.update( assignedMasses, calib );
+    mass_calibrator calibrator2( assignedMasses );
+    if ( calibrator2.compute( calib, m.polynomialDegree() + 1 ) ) {
+        for ( auto it: assignedMasses )
+            it.mass( mass_calibrator::compute_mass( it.time(), calib ) );
         centroid.setCalibration( calib, true );
         res.calibration( calib );
         res.assignedMasses( assignedMasses );
 
-        std::vector< unsigned char > colors( centroid.size() );
-        centroid.setColorArray( colors.data() );
+        // std::vector< unsigned char > colors( centroid.size() );
+        // centroid.setColorArray( colors.data() );
         return true;
     }
     return false;

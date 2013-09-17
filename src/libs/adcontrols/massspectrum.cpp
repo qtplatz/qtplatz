@@ -114,7 +114,7 @@ namespace adcontrols {
            long long timeSinceInjTrigger_; // usec
            long long timeSinceFirmwareUp_; // usec
            unsigned long numSpectrumSinceInjTrigger_;
-
+           std::string uuid_; // out of serialization scope
            std::vector< MassSpectrum > vec_;
 	    
            friend class MassSpectrum;
@@ -424,6 +424,20 @@ MassSpectrum::get_annotations()
     return pImpl_->get_annotations();
 }
 
+void
+MassSpectrum::uuid( const char * uuid )
+{
+    pImpl_->uuid_ = uuid;
+}
+
+const char *
+MassSpectrum::uuid() const
+{
+    if ( pImpl_->uuid_.empty() )
+        return 0;
+    return pImpl_->uuid_.c_str();
+}
+
 template<class T> void
 MassSpectrum::set( const T& t )
 {
@@ -610,6 +624,7 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 		intsArray_ = t.intsArray_;
 		colArray_ = t.colArray_;
         annotations_ = t.annotations_;
+        uuid_ = t.uuid_;
         vec_ = t.vec_;
 	} else {
 		tofArray_.clear();
@@ -617,6 +632,7 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 		intsArray_.clear();
         colArray_.clear();
         annotations_.clear();
+        uuid_.clear();
         vec_.clear();
 	}
 }

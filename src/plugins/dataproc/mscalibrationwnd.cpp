@@ -27,6 +27,7 @@
 #include "dataprocessor.hpp"
 #include "dataprochandler.hpp"
 #include "qtwidgets_name.hpp"
+#include "mass_calibrator.hpp"
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
 #include <adcontrols/descriptions.hpp>
@@ -36,6 +37,8 @@
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msreference.hpp>
+#include <adcontrols/processmethod.hpp>
+#include <adcontrols/mscalibratemethod.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adutils/processeddata.hpp>
 #include <qwt_plot_renderer.h>
@@ -68,6 +71,7 @@ namespace dataproc {
         adwplot::SpectrumWidget * processedSpectrum_;
         QWidget * calibSummaryWidget_;
         std::weak_ptr< adcontrols::MassSpectrum > calibSpectrum_;
+        std::weak_ptr< adcontrols::MSCalibrateResult > calibResult_;
         portfolio::Folium folium_;
         std::stack< std::tuple< size_t, size_t, int > > stack_;
         void restore_state( adcontrols::MassSpectrum& centroid ) {
@@ -184,20 +188,21 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
             portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
         if ( it == attachments.end() )
             return;
-
-        adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-        pImpl_->processedSpectrum_->setData( *ptr, idx_centroid );
-	    pImpl_->calibSpectrum_ = ptr; // working copy in weak_ptr
+        adutils::MassSpectrumPtr pms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+        pImpl_->processedSpectrum_->setData( *pms, idx_centroid );
+	    pImpl_->calibSpectrum_ = pms; // weak_ptr
         while ( !pImpl_->stack_.empty() )
 			pImpl_->stack_.pop();
-
+        
         // calib result
         it = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
         if ( it == attachments.end() )
             return;
 
-        adcontrols::MSCalibrateResultPtr calibResult = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
-        emit fireSetData( *calibResult, *ptr );
+        adcontrols::MSCalibrateResultPtr pres = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
+        pImpl_->calibResult_ = pres; // weak_ptr
+
+        emit fireSetData( *pres, *pms );
     }
 }
 
@@ -231,37 +236,42 @@ MSCalibrationWnd::handleSelSummary( size_t idx, size_t fcn )
 void
 MSCalibrationWnd::handleValueChanged()
 {
-    // std::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
+    std::shared_ptr< adcontrols::MSCalibrateResult > calibResult = pImpl_->calibResult_.lock();
+    if ( ! calibResult )
+        return;
+
+    adcontrols::ProcessMethod pm;
+    const adcontrols::MSCalibrateMethod * pCalibMethod = 0;
+    MainWindow::instance()->getProcessMethod( pm );
+    if ( ! ( pCalibMethod = pm.find< adcontrols::MSCalibrateMethod >() ) )
+        return;
+
     adcontrols::MSAssignedMasses assigned;
     if ( readCalibSummary( assigned ) ) {
-        portfolio::Folium& folium = pImpl_->folium_;
-        portfolio::Folio attachments = folium.attachments();
-            
-        // calib result
-        portfolio::Folio::iterator it
-            = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
-        if ( it != attachments.end() ) {
-            adutils::MSCalibrateResultPtr result = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
-            result->assignedMasses( assigned );
+
+        // recalc polinomials
+        mass_calibrator calibrator( assigned );
+
+        size_t nterm = pCalibMethod->polynomialDegree() + 1;
+        if ( calibrator.size() < nterm )
+            nterm = calibrator.size();
+
+        adcontrols::MSCalibration calib;
+        if ( calibrator.compute( calib, nterm ) ) {
+            // update masses
+            for ( auto it : assigned )
+                it.mass( mass_calibrator::compute_mass( it.time(), calib ) );
+            calibResult->calibration( calib );
+            calibResult->assignedMasses( assigned );
         }
         
         if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
+
             if ( DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned ) )
                 pImpl_->processedSpectrum_->setData( *centroid, 1 ); 
+            
+            emit fireSetData( *calibResult, *centroid );
         }
-/*
-// retreive centroid spectrum
-        it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
-        if ( it != attachments.end() ) {
-            adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-            if ( ptr->isCentroid() ) {
-                // update color & annotation
-                if ( DataprocHandler::doAnnotateAssignedPeaks( *ptr, *assigned ) ) {
-                    pImpl_->processedSpectrum_->setData( *ptr, 1 ); 
-                }
-            }
-        }
-*/
     }
 }
 

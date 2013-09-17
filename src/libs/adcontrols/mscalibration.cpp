@@ -81,24 +81,9 @@ MSCalibration::coeffs( const std::vector<double>& v )
 double
 MSCalibration::compute( const std::vector<double>& v, double t )
 {
-    if ( v.empty() )
-        return 0;
-
-    switch ( v.size() ) {
-    case 1:
-        return v[0];
-    case 2:
-        return v[0] + t * v[1];
-    case 3:
-        return v[0] + t * v[1] + t * ( v[2] * v[2] );
-    default:
-        break;
-    };
-
-    std::vector<double>::const_iterator p = v.begin();
-    double r = *p++;
-    int n = 1;
-    while ( p != v.end() )
-        r += t * std::pow( *p++, n++ );
-    return r;
+	int n = 0;
+	double sqmz = 0;
+	for ( auto d: v )
+		sqmz += d * std::pow( t, n++ );
+	return sqmz;
 }

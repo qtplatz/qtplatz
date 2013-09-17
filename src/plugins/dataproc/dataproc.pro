@@ -42,7 +42,7 @@ SOURCES += \
     assign_masses.cpp \
     assign_peaks.cpp \
     chromatogramwnd.cpp \
-    calibrate_masses.cpp \
+    mass_calibrator.cpp \
     dataproc.cpp \
     dataproceditor.cpp \
     dataprocessor.cpp \
@@ -88,7 +88,7 @@ HEADERS += \
     mode.hpp \
     editorfactory.hpp \
     assign_masses.hpp \
-    calibrate_masses.hpp \
+    mass_calibrator.hpp \
     assign_peaks.hpp
 
 OTHER_FILES += \

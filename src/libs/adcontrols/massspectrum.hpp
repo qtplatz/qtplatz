@@ -141,10 +141,10 @@ namespace adcontrols {
         size_t addSegment( const MassSpectrum& );
         MassSpectrum& getSegment( size_t fcn /* 1..n */ );
         const MassSpectrum& getSegment( size_t fcn /* 1..n */ ) const;
-        //MassSpectrum & operator [] ( size_t fcn /* 1..n */);
-        //const MassSpectrum& operator [] ( size_t fcn ) const;
         void clearSegments();
         size_t numSegments() const;
+        void uuid( const char * uuid );
+        const char * uuid() const;
         
     private:
         friend class boost::serialization::access;

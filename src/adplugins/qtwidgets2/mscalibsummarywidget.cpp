@@ -102,7 +102,7 @@ MSCalibSummaryWidget::OnInitialUpdate()
     model.setHeaderData( c_mass_error_mDa, Qt::Horizontal, QObject::tr( "error(mDa)" ) );
     model.setHeaderData( c_mass_error_calibrated_mDa, Qt::Horizontal, QObject::tr( "error(mDa) calibrated" ) );
     model.setHeaderData( c_is_enable, Qt::Horizontal, QObject::tr( "enable" ) );
-    model.setHeaderData( c_flags, Qt::Horizontal, QObject::tr( "exclude" ) );
+    // model.setHeaderData( c_flags, Qt::Horizontal, QObject::tr( "exclude" ) );
 }
 
 void
@@ -118,15 +118,15 @@ MSCalibSummaryWidget::OnFinalClose()
 bool
 MSCalibSummaryWidget::getContents( boost::any& any ) const
 {
-	// colored spectrum for GUI display
+	// colored spectrum for GUI display ( app. no longer use this though...)
     if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( any ) && pCalibrantSpectrum_ ) {
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( any );
         *ptr = *pCalibrantSpectrum_; // deep copy
 
         // QStandardItemModel& model = *pModel_;
-        size_t row = currentIndex().row();
-        if ( row  < indecies_.size() )
-            adcontrols::segments_helper::set_color( *ptr, indecies_[ row ].first, indecies_[ row ].second, 2 );
+        // size_t row = currentIndex().row();
+        // if ( row  < indecies_.size() )
+        //     adcontrols::segments_helper::set_color( *ptr, indecies_[ row ].first, indecies_[ row ].second, 2 );
 
         return true;
     }
@@ -147,22 +147,23 @@ MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
     QStandardItemModel& model = *pModel_;
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
-
+        
         QString formula = model.data( model.index( row, c_formula ) ).toString();
         std::wstring wformula = qtwrapper::wstring( formula );
         if ( ! formula.isEmpty()  ) {
-            if ( model.index( row, c_is_enable ).data( Qt::EditRole ).toBool() ) {
-                double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble() / 1.0e6; // us -> s
-                double exact_mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
-                double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
-                bool flag = model.index( row, c_flags ).data( Qt::EditRole ).toBool();
-                uint32_t mode = model.index( row, c_mode ).data( Qt::EditRole ).toInt();
-				uint32_t fcn = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
-                assert( fcn == indecies_[ row ].first );
-				adcontrols::MSAssignedMass assigned( -1, fcn, indecies_[ row ].second
-                                                     , wformula, exact_mass, time, mass, true, unsigned( flag ), mode );
-                t << assigned;
-            }
+            bool enable = model.index( row, c_is_enable ).data( Qt::EditRole ).toBool();
+            double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble() / 1.0e6; // us -> s
+            double exact_mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
+            double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+            // bool flag = model.index( row, c_flags ).data( Qt::EditRole ).toBool();
+            uint32_t mode = model.index( row, c_mode ).data( Qt::EditRole ).toInt();
+            uint32_t fcn = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
+            assert( fcn == indecies_[ row ].first );
+            adcontrols::MSAssignedMass assigned( -1
+                                                 , fcn
+                                                 , indecies_[ row ].second
+                                                 , wformula, exact_mass, time, mass, enable, 0 /* flag */, mode );
+            t << assigned;
         }
     }    
 }
@@ -185,7 +186,6 @@ void
 MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const adcontrols::MassSpectrum& ms )
 {
     QStandardItemModel& model = *pModel_;
-    model.removeRows( 0, model.rowCount() );
 
     if ( ! ms.isCentroid() )
         return;
@@ -204,8 +204,12 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 				indecies_.push_back( std::make_pair( fcn, idx ) );
 		}
 	}
+    
+    if ( model.rowCount() != indecies_.size() ) {
+        model.removeRows( 0, model.rowCount() );
+        model.insertRows( 0, indecies_.size() );
+    }
 
-    model.insertRows( 0, indecies_.size() );
     adcontrols::MSCalibration calib = res.calibration();
     
     size_t row = 0;
@@ -247,7 +251,7 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
                     model.setData( model.index( row, c_is_enable ), assigned.enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
                 }
             } while ( 0 );
-
+#if defined USE_FLAGS
             do {
                 model.setData( model.index( row, c_flags ), bool( assigned.flags() ) );
                 QStandardItem * chk = model.itemFromIndex( model.index( row, c_flags ) );
@@ -258,7 +262,7 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
                     model.setData( model.index( row, c_flags ), f ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
                 }
             } while ( 0 );
-
+#endif
         }
     }
     
@@ -368,7 +372,7 @@ MSCalibSummaryWidget::handleValueChanged( const QModelIndex& index )
                     model.setData( model.index( index.row(), c_is_enable ), Qt::Unchecked, Qt::CheckStateRole );
                 }
             } while ( 0 );
-
+#if defined USE_FLAGS
             do {
                 model.setData( model.index( index.row(), c_flags ), false );  // set false by default
                 QStandardItem * chk = model.itemFromIndex( model.index( index.row(), c_flags ) );
@@ -378,9 +382,11 @@ MSCalibSummaryWidget::handleValueChanged( const QModelIndex& index )
                     model.setData( model.index( index.row(), c_flags ), Qt::Unchecked, Qt::CheckStateRole );
                 }
             } while ( 0 );
-
+#endif
             emit valueChanged();
         }
+	} else if ( index.column() == c_is_enable ) {
+        emit valueChanged();
 	} else if ( index.column() == c_mode ) {
 		emit valueChanged();
 	}
@@ -548,7 +554,7 @@ MSCalibSummaryWidget::handlePrint( QPrinter& printer, QPainter& painter )
         case c_mass_calibrated:           width = rect.width() / 180 * 18; break;
         case c_mass_error_calibrated_mDa: width = rect.width() / 180 * 14; break;
         case c_is_enable:                 width = rect.width() / 180 * 8; break;
-        case c_flags:                     width = rect.width() / 180 * 8; break;
+        // case c_flags:                     width = rect.width() / 180 * 8; break;
         case c_mode:                      width = rect.width() / 180 * 8; break;
         case c_fcn:                       width = rect.width() / 180 * 6; break;
         }

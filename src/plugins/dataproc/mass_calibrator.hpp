@@ -26,6 +26,8 @@
 #define CALIBRATE_MASSES_HPP
 
 #include <cstddef>
+#include <utility>
+#include <vector>
 
 namespace adcontrols {
     class MassSpectrum;
@@ -35,11 +37,17 @@ namespace adcontrols {
 
 namespace dataproc {
 
-    class calibrate_masses {
+    class mass_calibrator {
+        std::vector< double > times_;
+        std::vector< double > sqrtMz_;
+        std::wstring ident_;
     public:
-        calibrate_masses();
-        bool operator () ( const adcontrols::MSAssignedMasses&, size_t nterm, adcontrols::MSCalibration& calib, int mode );
-        static void update( adcontrols::MSAssignedMasses&, const adcontrols::MSCalibration& );
+        mass_calibrator();
+        mass_calibrator( const adcontrols::MSAssignedMasses& );
+        inline const size_t size() const { return times_.size(); }
+        mass_calibrator& operator << ( const std::pair< double, double >& );
+        bool compute( adcontrols::MSCalibration&, int nterm );
+        static double compute_mass( double time, const adcontrols::MSCalibration& );
     };
 
 }

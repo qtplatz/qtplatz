@@ -62,6 +62,7 @@ namespace dataproc {
                                      , adcontrols::MassSpectrum& centroid
                                      , const adcontrols::MSCalibrateMethod&
                                      , const adcontrols::MSAssignedMasses& );
+        static bool compute_polynomials( adcontrols::MSCalibrateResult& res, const adcontrols::MSAssignedMasses& );
 
         static bool doFindPeaks( adcontrols::PeakResult&, const adcontrols::Chromatogram& , const adcontrols::PeakMethod& ); 
         static bool doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
