@@ -59,6 +59,9 @@ namespace portfolio {
         void operator = ( const boost::any& );
         operator boost::any& ();
         operator const boost::any& () const;
+        inline boost::any& data() { return operator boost::any& (); }
+        inline const boost::any& data() const { return operator const boost::any& (); }
+
         void assign( const boost::any&, const wchar_t * dataClass );
 
         std::vector< Folium > attachments();
@@ -70,7 +73,13 @@ namespace portfolio {
 
         template<class T> static vector_type::iterator find_first_of( vector_type::iterator it, vector_type::iterator ite ) {
 			return std::find_if( it, ite, [=]( vector_type::value_type& f ){ 
-				return is_type<T>( static_cast< boost::any& >( f ) );
+                    return is_type<T>( static_cast< boost::any& >( f ) );
+				} );
+        }
+
+        template<class T> static vector_type::iterator find_if( vector_type::iterator it, vector_type::iterator ite ) {
+			return std::find_if( it, ite, [=]( vector_type::value_type& f ){ 
+                    return is_type<T>( static_cast< boost::any& >( f ) );
 				} );
         }
 

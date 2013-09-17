@@ -163,6 +163,8 @@ void
 MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
     Q_UNUSED(processor);
+    using portfolio::Folium;
+    using portfolio::Folio;
 	
     enum { idx_profile, idx_centroid };
 
@@ -184,25 +186,31 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 
         portfolio::Folio attachments = folium.attachments();
         // centroid spectrum
-        portfolio::Folio::iterator it = 
-            portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
-        if ( it == attachments.end() )
-            return;
-        adutils::MassSpectrumPtr pms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-        pImpl_->processedSpectrum_->setData( *pms, idx_centroid );
-	    pImpl_->calibSpectrum_ = pms; // weak_ptr
-        while ( !pImpl_->stack_.empty() )
-			pImpl_->stack_.pop();
+        Folio::iterator it = 
+            Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
+        if ( it != attachments.end() ) {
+            pImpl_->calibSpectrum_ = boost::any_cast< adutils::MassSpectrumPtr >( *it ); // weak_ptr
+            pImpl_->processedSpectrum_->setData( *pImpl_->calibSpectrum_.lock(), idx_centroid );
+            while ( !pImpl_->stack_.empty() )
+                pImpl_->stack_.pop();
+
+            if ( const adcontrols::ProcessMethodPtr method = Dataprocessor::findProcessMethod( *it ) )
+                MainWindow::instance()->setProcessMethod( *method );
+        }
         
         // calib result
-        it = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
-        if ( it == attachments.end() )
-            return;
+        it = Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
+        if ( it != attachments.end() ) {
+            pImpl_->calibResult_ = boost::any_cast< adutils::MSCalibrateResultPtr >( *it ); // weak_ptr
 
-        adcontrols::MSCalibrateResultPtr pres = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
-        pImpl_->calibResult_ = pres; // weak_ptr
+            if ( const adcontrols::ProcessMethodPtr method = Dataprocessor::findProcessMethod( *it ) )
+                MainWindow::instance()->setProcessMethod( *method );
+        }
 
-        emit fireSetData( *pres, *pms );
+        auto result = pImpl_->calibResult_.lock();
+        auto spectrum = pImpl_->calibSpectrum_.lock();
+        if ( result && spectrum )
+            emit fireSetData( *result, *spectrum );
     }
 }
 

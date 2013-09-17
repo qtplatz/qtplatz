@@ -249,13 +249,9 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
             for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
                 auto contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
                 if ( boost::apply_visitor( selProcessed<MSProcessingWnd>( *this, folder ), contents ) ) {
-					portfolio::Folio procs = it->attachments();
-					auto fmth = portfolio::Folium::find_first_of<adcontrols::ProcessMethodPtr>( procs.begin(), procs.end() );
-					if ( fmth != procs.end() ) {
-						const adcontrols::ProcessMethod& mth =
-							*boost::any_cast< adcontrols::ProcessMethodPtr >( static_cast<boost::any&>( *fmth ) );
-						MainWindow::instance()->setProcessMethod( mth );
-					}
+                    
+                    if ( const adcontrols::ProcessMethodPtr method = Dataprocessor::findProcessMethod( *it ) )
+                        MainWindow::instance()->setProcessMethod( *method );
 				}
             }
         }

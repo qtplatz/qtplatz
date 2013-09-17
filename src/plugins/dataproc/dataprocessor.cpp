@@ -586,27 +586,27 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
     adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
 
     Folium::vector_type atts = folium.attachments();
-	auto att = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
-    if ( att != atts.end() ) {
-        adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>( *att ) );
+	auto attCentroid = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
+    if ( attCentroid != atts.end() ) {
+        adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( attCentroid->data() );
         if ( pCentroid ) {
 			adcontrols::segment_wrapper<> segs( *pCentroid );
 
 			double y = adcontrols::segments_helper::max_intensity( *pCentroid );
 			double y_threshold = y * m.minimumRAPercent() / 100.0;
 
-			// threshold filter
-			for ( size_t fcn = 0; fcn < segs.size(); ++fcn ) {
-				adcontrols::MassSpectrum& fms = segs[ fcn ];
-				for ( size_t i = 0; i < fms.size(); ++i )
-					if ( fms.getIntensity( i ) < y_threshold )
-                        fms.setColor( i, 16 ); // black
+			// threshold color filter
+			for ( auto& ms: segs ) {
+				for ( size_t i = 0; i < ms.size(); ++i ) {
+					if ( ms.getIntensity( i ) < y_threshold )
+						ms.setColor( i, 16 ); // transparent
+				}
 			}
 
-            adcontrols::MSCalibrateResultPtr pResult( new adcontrols::MSCalibrateResult );
-            if ( DataprocHandler::doMSCalibration( *pResult, *pCentroid, m ) ) {
-                portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
-                att.assign( pResult, pResult->dataClass() );
+            adcontrols::MSCalibrateResultPtr pCalibResult( new adcontrols::MSCalibrateResult );
+            portfolio::Folium fCalibResult = folium.addAttachment( L"Calibrate Result" );
+            if ( DataprocHandler::doMSCalibration( *pCalibResult, *pCentroid, m ) ) {
+                fCalibResult.assign( pCalibResult, pCalibResult->dataClass() );
 #if 0                
                 // rewrite calibration := change m/z asssing on the spectrum
                 pCentroid->setCalibration( pResult->calibration() );
@@ -624,9 +624,13 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
 #endif
             } else {
                 // set centroid result for user manual peak assign possible
-                portfolio::Folium att = folium.addAttachment( L"Calibrate Result" );
-                att.assign( pResult, pResult->dataClass() );
+                fCalibResult.assign( pCalibResult, pCalibResult->dataClass() );
             }
+
+            adcontrols::ProcessMethodPtr method( new adcontrols::ProcessMethod() );
+            method->appendMethod( m );
+            fCalibResult.addAttachment( L"Process Method" ).assign( method, method->dataClass() );
+            
             return true;
         }
     }
@@ -715,3 +719,15 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::Pea
 }
 
 
+// static
+const adcontrols::ProcessMethodPtr
+Dataprocessor::findProcessMethod( const portfolio::Folium& folium )
+{
+    portfolio::Folio atts = folium.attachments();
+    auto fMethod = portfolio::Folium::find_if< adcontrols::ProcessMethodPtr >( atts.begin(), atts.end() );
+    if ( fMethod != atts.end() ) {
+        const adcontrols::ProcessMethodPtr pMethod = boost::any_cast< adcontrols::ProcessMethodPtr >( fMethod->data() );
+        return pMethod;
+    }
+    return adcontrols::ProcessMethodPtr(0);
+}
