@@ -191,21 +191,24 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
 
     model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );
     model.setData( model.index( row, c_exact_mass ), it->exactMass() );
-    model.setData( model.index( row, c_mass_error_mDa ), ( it->mass() - it->exactMass() ) * 1000 ); // mDa
+
+    double org = it->mass();
+    double err = org - it->exactMass();
+    model.setData( model.index( row, c_mass_error_mDa ), err * 1000 ); // mDa
+
     double mz = model.index( row, c_mass_calibrated ).data( Qt::EditRole ).toDouble();
     if ( mz > 1.0 )
         model.setData( model.index( row, c_mass_error_calibrated_mDa ), ( mz - it->exactMass() ) * 1000 ); // mDa
 
     model.setData( model.index( row, c_mode ), it->mode() );
-    do {
-        model.setData( model.index( row, c_is_enable ), it->enable() );
-        QStandardItem * chk = model.itemFromIndex( model.index( row, c_is_enable ) );
-        if ( chk ) {
-            chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | chk->flags() );
-            chk->setEditable( true );
-            model.setData( model.index( row, c_is_enable ), it->enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
-        }
-    } while ( 0 );
+
+    model.setData( model.index( row, c_is_enable ), it->enable() );
+
+    if ( QStandardItem * chk = model.itemFromIndex( model.index( row, c_is_enable ) ) ) {
+        chk->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | chk->flags() );
+        model.setData( model.index( row, c_is_enable ), it->enable() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+    }
+
     return true;
 }
 
@@ -327,6 +330,7 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
     actions.push_back( menu.addAction( "apply calibration (re-assign m/z) for calibration spectrum" ) );
     actions.push_back( menu.addAction( "apply calibration to current dataset" ) );
     actions.push_back( menu.addAction( "save as default calibration" ) );
+    actions.push_back( menu.addAction( "copy summary to clipboard" ) );
 
     QAction * selected = menu.exec( this->mapToGlobal( pt ) );
 
@@ -339,6 +343,8 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
         emit on_apply_calibration_to_dataset(); // change whole calibration for current dataset
     } else if ( selected == actions[ 3 ] ) {
         emit on_apply_calibration_to_default(); // save calibration as system default
+    } else if ( selected == actions[ 4 ] ) {
+        copySummaryToClipboard();
     }
 }
 
@@ -373,9 +379,6 @@ MSCalibSummaryWidget::handle_selected( const QRectF& rc )
 void
 MSCalibSummaryWidget::handleEraseFormula()
 {
-    // QModelIndex index = this->currentIndex();
-    //model_->removeRows( index.row(), 1 );
-    //emit lineDeleted( index.row() );
 }
 
 void
@@ -470,45 +473,6 @@ MSCalibSummaryWidget::handleCopyToClipboard()
         return;
 
     QString copy_table;
-#if 0
-    QString heading;
-    if ( pCalibResult_ ) {
-        const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
-        heading.append( "Calibration date:\t" );
-        heading.append( calib.date().c_str() );
-        heading.append( "\tid\t" );
-        heading.append( qtwrapper::qstring( calib.calibId() ) );
-        heading.append( '\n' );
-        heading.append( "SQRT( m/z ) = " );
-        for ( size_t i = 0; i < calib.coeffs().size(); ++i ) {
-            QString term = i ? ( boost::format( "%c*X^%d" ) % char( 'a' + i ) % ( i ) ).str().c_str() : "a";
-            heading.append( '\t' );
-            heading.append( term );
-        }
-        heading.append( '\n' );
-        for ( size_t i = 0; i < calib.coeffs().size(); ++i ) {
-            QString term = ( boost::format( "%.14lf" ) % calib.coeffs()[ i ] ).str().c_str();
-            heading.append( '\t' );
-            heading.append( term );
-        }
-        heading.append( '\n' );
-    }
-#endif    
-
-#if 0
-    do {
-        for ( size_t column = prev.column(); column < c_number_of_columns; ++column ) {
-           QString text = model.headerData( column, Qt::Horizontal ).toString();
-            heading.append( text );
-            if ( column < c_number_of_columns )
-                heading.append( '\t' );
-        }
-        heading.append( '\n' );
-    } while ( 0 );
-
-    copy_table.append( heading );
-#endif
-
     QModelIndex prev = list.first();
 	int i = 0;
     for ( auto idx: list ) {
@@ -518,6 +482,51 @@ MSCalibSummaryWidget::handleCopyToClipboard()
         prev = idx;
     }
     QApplication::clipboard()->setText( copy_table );
+}
+
+void
+MSCalibSummaryWidget::copySummaryToClipboard()
+{
+    QStandardItemModel& model = *pModel_;
+
+    QString text;
+
+    if ( pCalibResult_ ) {
+        const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
+        text.append( "Calibration date:\t" );
+        text.append( calib.date().c_str() );
+        text.append( "\tid\t" );
+        text.append( qtwrapper::qstring( calib.calibId() ) );
+        text.append( '\n' );
+        text.append( "SQRT( m/z ) = " );
+        for ( size_t i = 0; i < calib.coeffs().size(); ++i ) {
+            QString term = i ? ( boost::format( "%c*X^%d" ) % char( 'a' + i ) % ( i ) ).str().c_str() : "a";
+            text.append( '\t' );
+            text.append( term );
+        }
+        text.append( '\n' );
+        for ( size_t i = 0; i < calib.coeffs().size(); ++i ) {
+            QString term = ( boost::format( "%.14lf" ) % calib.coeffs()[ i ] ).str().c_str();
+            text.append( '\t' );
+            text.append( term );
+        }
+        text.append( '\n' );
+    }
+
+    for ( int col = 0; col < model.columnCount(); ++col ) {
+        text.append( model.headerData( col, Qt::Horizontal ).toString() );
+        text.append( '\t' );
+    }
+    text.append( '\n' );
+
+    for ( int row = 0; row < model.rowCount(); ++row ) {
+        for ( int col = 0; col < model.columnCount(); ++col ) {
+            text.append( model.data( model.index( row, col ) ).toString() );
+            text.append( '\t' );
+        }
+        text.append( '\n' );
+    }
+    QApplication::clipboard()->setText( text );
 }
 
 void

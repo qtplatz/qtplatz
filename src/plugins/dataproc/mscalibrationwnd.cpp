@@ -61,7 +61,9 @@
 using namespace dataproc;
 
 namespace dataproc {
-    
+
+    enum { idx_profile, idx_centroid };
+
     class MSCalibrationWndImpl {
     public:
         ~MSCalibrationWndImpl() {}
@@ -166,8 +168,6 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
     using portfolio::Folium;
     using portfolio::Folio;
 	
-    enum { idx_profile, idx_centroid };
-
     portfolio::Folder folder = folium.getParentFolder();
 
     if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() )
@@ -227,60 +227,6 @@ MSCalibrationWnd::handleSelSummary( size_t idx, size_t fcn )
         pImpl_->store_state( *centroid, fcn, idx, 2 );
         pImpl_->processedSpectrum_->setData( *centroid, 1 );
     }
-#if 0
-	(void)idx; (void)fcn;
-
-    adplugin::LifeCycleAccessor accessor( pImpl_->calibSummaryWidget_ );
-    adplugin::LifeCycle * p = accessor.get();
-    if ( p ) {
-        adutils::MassSpectrumPtr ptr( new adcontrols::MassSpectrum );
-        boost::any any( ptr );
-        p->getContents( any );
-        pImpl_->processedSpectrum_->setData( *ptr, 1 );
-    }
-#endif
-}
-
-void
-MSCalibrationWnd::handleValueChanged()
-{
-    std::shared_ptr< adcontrols::MSCalibrateResult > calibResult = pImpl_->calibResult_.lock();
-    if ( ! calibResult )
-        return;
-
-    adcontrols::ProcessMethod pm;
-    const adcontrols::MSCalibrateMethod * pCalibMethod = 0;
-    MainWindow::instance()->getProcessMethod( pm );
-    if ( ! ( pCalibMethod = pm.find< adcontrols::MSCalibrateMethod >() ) )
-        return;
-
-    adcontrols::MSAssignedMasses assigned;
-    if ( readCalibSummary( assigned ) ) {
-
-        // recalc polinomials
-        mass_calibrator calibrator( assigned );
-
-        size_t nterm = pCalibMethod->polynomialDegree() + 1;
-        if ( calibrator.size() < nterm )
-            nterm = calibrator.size();
-
-        adcontrols::MSCalibration calib;
-        if ( calibrator.compute( calib, nterm ) ) {
-            // update masses
-            for ( auto it : assigned )
-                it.mass( mass_calibrator::compute_mass( it.time(), calib ) );
-            calibResult->calibration( calib );
-            calibResult->assignedMasses( assigned );
-        }
-        
-        if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
-
-            if ( DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned ) )
-                pImpl_->processedSpectrum_->setData( *centroid, 1 ); 
-            
-            emit fireSetData( *calibResult, *centroid );
-        }
-    }
 }
 
 bool
@@ -299,12 +245,105 @@ MSCalibrationWnd::readCalibSummary( adcontrols::MSAssignedMasses& assigned )
     return false;
 }
 
+bool
+MSCalibrationWnd::calibPolynomialFit( adcontrols::MSCalibrateResult& calibResult )
+{
+    adcontrols::ProcessMethod pm;
+    const adcontrols::MSCalibrateMethod * pCalibMethod = 0;
+    MainWindow::instance()->getProcessMethod( pm );
+    if ( ! ( pCalibMethod = pm.find< adcontrols::MSCalibrateMethod >() ) )
+        return false;
+
+    // recalc polinomials
+	mass_calibrator calibrator( calibResult.assignedMasses() );
+        
+    size_t nterm = pCalibMethod->polynomialDegree() + 1;
+    if ( calibrator.size() < nterm )
+        nterm = calibrator.size();
+    
+    adcontrols::MSCalibration calib;
+    if ( calibrator.compute( calib, nterm ) ) {
+
+        calibResult.calibration( calib );
+        
+        return true;
+    }
+
+    return false;
+}
+
+void
+MSCalibrationWnd::handleValueChanged()
+{
+    std::shared_ptr< adcontrols::MSCalibrateResult > calibResult = pImpl_->calibResult_.lock();
+    if ( ! calibResult )
+        return;
+
+    adcontrols::MSAssignedMasses assigned;
+    if ( readCalibSummary( assigned ) ) {
+
+        calibResult->assignedMasses( assigned );
+
+        calibPolynomialFit( *calibResult );
+
+        if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
+            
+            if ( DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned ) )
+                pImpl_->processedSpectrum_->setData( *centroid, 1 ); 
+            
+            emit fireSetData( *calibResult, *centroid );
+        }
+
+    }
+}
+
+
 void
 MSCalibrationWnd::handle_reassign_mass_requested()
 {
+    std::shared_ptr< adcontrols::MSCalibrateResult > calibResult = pImpl_->calibResult_.lock();
+    if ( ! calibResult )
+        return;
+
     adcontrols::MSAssignedMasses assigned;
     if ( readCalibSummary( assigned ) ) {
-        assert(0);
+
+        calibResult->assignedMasses( assigned );
+
+        if ( calibPolynomialFit( *calibResult ) ) {
+            const adcontrols::MSCalibration& calib = calibResult->calibration();
+
+            // update m/z for MSAssignedMasses
+            for ( auto& it : calibResult->assignedMasses() )
+                it.mass( mass_calibrator::compute_mass( it.time(), calib ) );
+
+            if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
+
+                // profile
+                adcontrols::MassSpectrumPtr profile = boost::any_cast< adcontrols::MassSpectrumPtr >( pImpl_->folium_.data() );
+                if ( profile ) {
+                    adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *profile );
+                    for ( auto& ms: segments ) {
+						ms.setCalibration( calib );
+                        for ( size_t i = 0; i < ms.size(); ++i )
+                            ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) );
+                    }
+                }
+                pImpl_->processedSpectrum_->setData( *profile, idx_profile ); 
+
+				// centroid (override profile that has better visibility)
+                DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned );
+                adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *centroid );
+                for ( auto& ms: segments ) {
+					ms.setCalibration( calib );
+                    for ( size_t i = 0; i < ms.size(); ++i )
+                        ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) );
+                }
+                pImpl_->processedSpectrum_->setData( *centroid, idx_centroid ); 
+
+                emit fireSetData( *calibResult, *centroid );
+            }
+        }
     }
 }
 

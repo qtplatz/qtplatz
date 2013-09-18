@@ -118,6 +118,7 @@ namespace qtwidgets2 {
         bool setAssignedData( int row, int fcn, int idx, const adcontrols::MSAssignedMasses& );
         void setEditable( int row, bool enable = false );
         void formulaChanged( const QModelIndex& );
+        void copySummaryToClipboard();
     };
 
 }

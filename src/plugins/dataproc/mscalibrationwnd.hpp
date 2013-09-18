@@ -33,6 +33,7 @@
 namespace adcontrols {
     class MassSpectrum;
     class MSCalibrateResult;
+	class MSCalibration;
     class ProcessMethod;
 	class MSAssignedMasses;
 }
@@ -73,6 +74,7 @@ namespace dataproc {
     private:
         std::shared_ptr<MSCalibrationWndImpl> pImpl_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
+        bool calibPolynomialFit( adcontrols::MSCalibrateResult& );
     };
 
 }
