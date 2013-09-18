@@ -251,7 +251,6 @@ observer_i::uptime ( ::CORBA::ULongLong_out usec )
 void
 observer_i::uptime_range( ::CORBA::ULongLong_out oldest, ::CORBA::ULongLong_out newest )
 {
-    std::cerr << "observer_i::uptime_range...";
     oldest = 0;
     newest = 0;
     if ( cache_ ) {

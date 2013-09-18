@@ -43,7 +43,6 @@ SOURCES += \
     assign_peaks.cpp \
     chromatogramwnd.cpp \
     mass_calibrator.cpp \
-    dataproc.cpp \
     dataproceditor.cpp \
     dataprocessor.cpp \
     dataprocessorfactory.cpp \
