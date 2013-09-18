@@ -319,17 +319,18 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
     std::vector< QAction * > actions;
     QMenu menu;
     
-    actions.push_back( menu.addAction( "update m/z axis on spectrum" ) );
-    actions.push_back( menu.addAction( "calculate polynomials and m/z errors" ) );
+    actions.push_back( menu.addAction( "re-calc polynomials and m/z errors" ) );
+    actions.push_back( menu.addAction( "apply calibration (re-assign m/z) for calibration spectrum" ) );
     actions.push_back( menu.addAction( "apply calibration to current dataset" ) );
     actions.push_back( menu.addAction( "save as default calibration" ) );
 
     QAction * selected = menu.exec( this->mapToGlobal( pt ) );
 
     if ( selected == actions[ 0 ] ) {
-        emit on_reassign_mass_requested();      // change source mass spectrum m/z array (both profile and centroid)
+        // emit on_recalibration_requested();      // re-calc polynomials and errors but no m/z axis on spectrum to be changed
+        emit valueChanged();
     } else if ( selected == actions[ 1 ] ) {
-        emit on_recalibration_requested();      // re-calc polynomials and errors but no m/z axis on spectrum to be changed
+        emit on_reassign_mass_requested();      // change source mass spectrum m/z array (both profile and centroid)
     } else if ( selected == actions[ 2 ] ) {
         emit on_apply_calibration_to_dataset(); // change whole calibration for current dataset
     } else if ( selected == actions[ 3 ] ) {
