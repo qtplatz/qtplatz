@@ -99,8 +99,8 @@ SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Foliu
 	if ( activeDataprocessor_ != dataprocessor ) {
 		activeDataprocessor_ = dataprocessor;
 		auto it = std::find_if( sessions_.begin(), sessions_.end(), [dataprocessor]( dataproc::Session& s ){
-			return dataprocessor == s.processor();
-		});
+                return dataprocessor == s.processor();
+            });
 		if ( it != sessions_.end() )
 			Core::EditorManager::instance()->activateEditor( it->editor() );
 	}

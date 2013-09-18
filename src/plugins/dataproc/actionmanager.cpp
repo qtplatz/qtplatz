@@ -40,6 +40,7 @@
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/editormanager/ieditor.h>
+#include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
 #include <QIcon>
 #include <QFileDialog>
@@ -70,33 +71,45 @@ ActionManager::initialize_actions( const QList<int>& context )
     actPrintCurrentView_.reset( new QAction( iconPDF, tr("Print current view..."), this ) );
     connect( actPrintCurrentView_.get(), SIGNAL( triggered() ), this, SLOT( actPrintCurrentView() ) );
     
-	Core::ActionManager *am = Core::ICore::instance()->actionManager();
-    Core::Command * cmdOpen = 0;
-    Core::Command * cmdSave = 0;
-    Core::Command * cmdPrint = 0;
-    if ( am ) {
-        cmdOpen = am->registerAction( actMethodOpen_.get(), Constants::METHOD_OPEN, context );
-        cmdSave = am->registerAction( actMethodSave_.get(), Constants::METHOD_SAVE, context );
-        cmdPrint = am->registerAction( actPrintCurrentView_.get(), Constants::PRINT_CURRENT_VIEW, context );
-    }
+	if ( Core::ActionManager *am = Core::ICore::instance()->actionManager() ) {
+        Core::Command * cmdOpen = 0;
+        Core::Command * cmdSave = 0;
+        Core::Command * cmdPrint = 0;
+        if ( am ) {
+            cmdOpen = am->registerAction( actMethodOpen_.get(), Constants::METHOD_OPEN, context );
+            cmdSave = am->registerAction( actMethodSave_.get(), Constants::METHOD_SAVE, context );
+            cmdPrint = am->registerAction( actPrintCurrentView_.get(), Constants::PRINT_CURRENT_VIEW, context );
+        }
+        
+        if ( Core::ActionContainer * menu = am->createMenu( "dataproc.menu" ) ) {
+            menu->menu()->setTitle( "Processing" );
+            menu->addAction( cmdPrint );
+            menu->addAction( cmdOpen );
+            menu->addAction( cmdSave );
+            am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
+        }
+        
+        do {
+            actSave_.reset( new QAction( iconMethodSave, tr("Save"), this ) );
+            am->registerAction( actSave_.get(), Core::Constants::SAVE, context );
+            connect( actSave_.get(), SIGNAL( triggered() ), this, SLOT( handleSave() ) );
 
-    Core::ActionContainer * menu = am->createMenu( "dataproc.menu" );
-    menu->menu()->setTitle( "Processing" );
-    menu->addAction( cmdPrint );
-    menu->addAction( cmdOpen );
-    menu->addAction( cmdSave );
-    am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
+            actSaveAs_.reset( new QAction( iconMethodSave, tr("Save As..."), this ) );
+            am->registerAction( actSaveAs_.get(), Core::Constants::SAVEAS, context );
+            connect( actSaveAs_.get(), SIGNAL( triggered() ), this, SLOT( handleSaveAs() ) );
+            
+        } while ( 0 );
+
+        connect( Core::ICore::instance(), SIGNAL( contextChanged( Core::IContext * ) )
+                 , this, SLOT( handleContextChanged( Core::IContext * ) ) );
+
+    }
 
     return true;
 }
 
 /////////////////////////////////////////////////////////////////
 /// copy from editormanager.cpp
-bool
-ActionManager::saveFileAs() // Core::IEditor *editor )
-{
-    return false;
-}
 
 bool
 ActionManager::importFile()
@@ -245,4 +258,27 @@ ActionManager::actPrintCurrentView()
 	} else {
         QMessageBox::warning( MainWindow::instance(), tr("Print current view"), tr("No current data exist") );
     }
+}
+
+void
+ActionManager::handleSave()
+{
+	Core::EditorManager::instance()->saveFile();
+}
+
+void
+ActionManager::handleSaveAs()
+{
+	Core::EditorManager::instance()->saveFileAs();
+}
+
+void
+ActionManager::handleContextChanged( Core::IContext * context )
+{
+	Core::IEditor *editor = context ? qobject_cast< Core::IEditor *>( context ) : 0;
+	if ( editor && editor->file() ) {
+        boost::filesystem::path path = editor->file()->fileName().toStdWString();
+        QString text = QString::fromStdWString( ( boost::wformat( L"Save \"%1%\" As..." ) % path.stem().wstring() ).str() );
+        actSaveAs_->setText( text );
+	}
 }

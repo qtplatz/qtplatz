@@ -96,15 +96,17 @@ IFileImpl::save( const QString& filename )
 
     if ( boost::filesystem::path( qtwrapper::wstring::copy( filename_ ) ) == p ) { // same file?
         // save
-        return this->file().saveContents( L"/Processed", portfolio );
-
+        if ( ! this->file().saveContents( L"/Processed", portfolio ) )
+			return false;
     } else {
         // saveFileAs -- has to create new file
 		boost::filesystem::remove( boost::filesystem::path( qtwrapper::wstring::copy( filename ) ) );
         std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::create( p.wstring() ) );
-        return file && file->saveContents( L"/Processed", portfolio, this->file() );
+        if ( ! ( file && file->saveContents( L"/Processed", portfolio, this->file() ) ) )
+			return false;
 
     }
+	setModified( false );
     return true;
 }
 

@@ -32,7 +32,11 @@
 
 class QAction;
 
+namespace Core { class IContext; }
+
 namespace dataproc {
+    
+    class Dataprocessor;
 
     class ActionManager : public QObject {
         Q_OBJECT
@@ -44,8 +48,9 @@ namespace dataproc {
         bool loadDefaults();
 
     private:
-        std::unique_ptr< QAction > saveAction_;
-        std::unique_ptr< QAction > saveAsAction_;
+        std::unique_ptr< QAction > actSave_;
+        std::unique_ptr< QAction > actSaveAs_;
+
         std::unique_ptr< QAction > closeCurrentEditorAction_;
         std::unique_ptr< QAction > closeAllEditorsAction_;
         std::unique_ptr< QAction > closeOtherEditorsAction_;
@@ -56,8 +61,12 @@ namespace dataproc {
 
     signals:
 
-    public slots:
-        bool saveFileAs();
+    private slots:
+        void handleSave();
+        void handleSaveAs();
+
+        void handleContextChanged( Core::IContext * );
+
         bool importFile();
 
         void actMethodSave();
