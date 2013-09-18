@@ -45,7 +45,6 @@
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
-#include <adportable/debug.hpp>
 #include <adcontrols/elementalcompositionmethod.hpp>
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
@@ -57,11 +56,20 @@
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/msassignedmass.hpp>
 #include <adorbmgr/orbmgr.hpp>
 #include <adportable/array_wrapper.hpp>
+#include <adportable/profile.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/serializer.hpp>
+#include <adportable/xml_serializer.hpp>
+#include <adfs/adfs.hpp>
 #include <adfs/file.hpp>
 #include <adfs/attributes.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 #include <stack>
 
 using namespace dataproc;
@@ -730,4 +738,57 @@ Dataprocessor::findProcessMethod( const portfolio::Folium& folium )
         return pMethod;
     }
     return adcontrols::ProcessMethodPtr(0);
+}
+
+// static
+bool
+Dataprocessor::saveMSCalibration( portfolio::Folium& folium )
+{
+    boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
+    dir /= "data";
+    if ( ! boost::filesystem::exists( dir ) ) 
+        if ( ! boost::filesystem::create_directories( dir ) )
+            return false;
+    boost::filesystem::path fname = dir / "default.msclb";
+    
+    adfs::filesystem dbf;
+    try {
+        if ( !dbf.create( fname.wstring().c_str() ) )
+            return false;
+    } catch ( adfs::exception& ) {
+        return false;
+    }
+
+    adfs::folder folder = dbf.addFolder( L"/MSCalibration" );
+
+    // argment folium should be profile spectrum
+    portfolio::Folio atts = folium.attachments();
+    auto it = portfolio::Folium::find_if< adcontrols::MSCalibrateResultPtr >( atts.begin(), atts.end() );
+    if ( it != atts.end() ) {
+        const adcontrols::MSCalibrateResultPtr ptr = boost::any_cast< adcontrols::MSCalibrateResultPtr >( it->data() );
+        adfs::file file = folder.addFile( L"MSCalibrateResult" );
+        std::string device;
+        if ( adportable::serializer< adcontrols::MSCalibrateResult >::serialize( *ptr, device ) )
+            file.write( device.size(), device.data() );
+
+        // for debugging convension
+        std::string xml;
+        if ( adportable::xml_serializer< adcontrols::MSCalibrateResult >::serialize( *ptr, xml ) ) {
+            fname.replace_extension( ".msclb.xml" );
+            std::ofstream of( fname.string() );
+            of << xml;
+        }
+    }
+
+    it = portfolio::Folium::find_if< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
+    if ( it != atts.end() ) {
+        const adcontrols::MassSpectrumPtr ptr = boost::any_cast< adcontrols::MassSpectrumPtr >( it->data() );
+        adfs::file file = folder.addFile( L"MassSpectrum" );
+        std::string device;
+        if ( adportable::serializer< adcontrols::MassSpectrum >::serialize( *ptr, device ) )
+            file.write( device.size(), device.data() );
+        // todo: add process method for centroid
+    }
+
+    return true;
 }

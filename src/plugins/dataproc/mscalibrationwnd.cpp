@@ -176,8 +176,8 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
     if ( folder && folder.name() == L"MSCalibration" ) {
         
         pImpl_->folium_ = folium;
-        
         boost::any& data = folium;
+
         // profile spectrum
         if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) { 
             adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( data );
@@ -365,7 +365,7 @@ void
 MSCalibrationWnd::handle_apply_calibration_to_default()
 {
     handle_reassign_mass_requested();
-    MainWindow::instance()->saveDefaultMSCalibrateResult( pImpl_->folium_ );
+	Dataprocessor::saveMSCalibration( pImpl_->folium_ );
 }
 
 void

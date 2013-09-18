@@ -84,6 +84,7 @@ namespace dataproc {
         // SignalObserver::Observer * observer();
 
         static const std::shared_ptr< adcontrols::ProcessMethod > findProcessMethod( const portfolio::Folium& );
+        static bool saveMSCalibration( portfolio::Folium& );
 
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& ) override;
@@ -103,7 +104,6 @@ namespace dataproc {
     private:
         std::unique_ptr< IFileImpl > ifileimpl_;
         std::unique_ptr< portfolio::Portfolio > portfolio_;
-		//std::unique_ptr< datafileObserver_i > fileObserver_;
         std::wstring idActiveFolium_;
     };
 

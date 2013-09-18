@@ -160,8 +160,8 @@ namespace adcontrols {
         static int  get_color( const MassSpectrum&, size_t fcn, size_t idx );
     };
     
-    template<> void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );
-    template<> void MassSpectrum::serialize( portable_binary_iarchive&, const unsigned int );
+    template<> ADCONTROLSSHARED_EXPORT void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );
+    template<> ADCONTROLSSHARED_EXPORT void MassSpectrum::serialize( portable_binary_iarchive&, const unsigned int );
 
     template<class T> class segment_iterator {
         size_t pos_;
@@ -197,5 +197,3 @@ namespace adcontrols {
     };
 
 }
-
-
