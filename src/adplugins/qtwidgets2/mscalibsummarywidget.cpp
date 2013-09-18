@@ -326,11 +326,11 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
     std::vector< QAction * > actions;
     QMenu menu;
     
-    actions.push_back( menu.addAction( "re-calc polynomials and m/z errors" ) );
-    actions.push_back( menu.addAction( "apply calibration (re-assign m/z) for calibration spectrum" ) );
-    actions.push_back( menu.addAction( "apply calibration to current dataset" ) );
-    actions.push_back( menu.addAction( "save as default calibration" ) );
-    actions.push_back( menu.addAction( "copy summary to clipboard" ) );
+    actions.push_back( menu.addAction( "Re-calc polynomials" ) );
+    actions.push_back( menu.addAction( "Assign mass on spectrum" ) );
+    actions.push_back( menu.addAction( "Apply calibration to current dataset" ) );
+    actions.push_back( menu.addAction( "Save as default calibration" ) );
+    actions.push_back( menu.addAction( "Copy summary to clipboard" ) );
 
     QAction * selected = menu.exec( this->mapToGlobal( pt ) );
 
