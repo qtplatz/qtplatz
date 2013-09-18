@@ -647,7 +647,7 @@ MainWindow::printCurrentView( const QString& pdfname ) const
 }
 
 void
-MainWindow::saveDefaultMSCalibrateResult( portfolio::Filium& )
+MainWindow::saveDefaultMSCalibrateResult( portfolio::Folium& )
 {
     
 }

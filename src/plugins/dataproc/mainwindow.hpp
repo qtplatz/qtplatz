@@ -75,7 +75,7 @@ namespace dataproc {
         int currentProcessView( std::string& ) const;
         void printCurrentView( const QString& ) const;
 
-        void saveDefaultMSCalibrateResult( portfolio::Filium& );
+        void saveDefaultMSCalibrateResult( portfolio::Folium& );
 
     public slots:
         void handleSessionAdded( Dataprocessor * );
