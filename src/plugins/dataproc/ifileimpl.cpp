@@ -28,6 +28,7 @@
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adportable/profile.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folium.hpp>
@@ -116,7 +117,7 @@ IFileImpl::fileName() const
 QString
 IFileImpl::defaultPath() const
 {
-    return "C:/Data";
+	return adportable::profile::user_data_dir<char>().c_str();
 }
 
 QString

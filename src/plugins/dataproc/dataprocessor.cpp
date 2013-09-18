@@ -120,7 +120,7 @@ Dataprocessor::create(const QString& token )
 bool
 Dataprocessor::open(const QString &fileName )
 {
-    adcontrols::datafile * file = adcontrols::datafile::open( qtwrapper::wstring::copy( fileName ), true );
+    adcontrols::datafile * file = adcontrols::datafile::open( qtwrapper::wstring::copy( fileName ), false );
     if ( file ) {
         ifileimpl_.reset( new IFileImpl( file, *this ) );
         file->accept( *ifileimpl_ );
