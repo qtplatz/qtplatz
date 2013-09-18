@@ -100,6 +100,7 @@ MSCalibSummaryWidget::OnInitialUpdate()
     model.setHeaderData( c_mass_error_mDa, Qt::Horizontal, QObject::tr( "error(mDa)" ) );
     model.setHeaderData( c_mass_error_calibrated_mDa, Qt::Horizontal, QObject::tr( "error(mDa) calibrated" ) );
     model.setHeaderData( c_is_enable, Qt::Horizontal, QObject::tr( "enable" ) );
+	model.setHeaderData( c_delta_mass, Qt::Horizontal, QObject::tr( "delta m/z" ) );
     model.setHeaderData( c_fcn, Qt::Horizontal, QObject::tr( "fcn" ) );
     model.setHeaderData( c_index, Qt::Horizontal, QObject::tr( "index" ) );
     this->setColumnHidden( c_index, true ); // internal index points peak on MassSpectrum
@@ -192,7 +193,9 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
     model.setData( model.index( row, c_exact_mass ), it->exactMass() );
     model.setData( model.index( row, c_mass_error_mDa ), ( it->mass() - it->exactMass() ) * 1000 ); // mDa
     double mz = model.index( row, c_mass_calibrated ).data( Qt::EditRole ).toDouble();
-    model.setData( model.index( row, c_mass_error_calibrated_mDa ), ( mz - it->exactMass() ) * 1000 ); // mDa
+    if ( mz > 1.0 )
+        model.setData( model.index( row, c_mass_error_calibrated_mDa ), ( mz - it->exactMass() ) * 1000 ); // mDa
+
     model.setData( model.index( row, c_mode ), it->mode() );
     do {
         model.setData( model.index( row, c_is_enable ), it->enable() );
@@ -242,16 +245,17 @@ MSCalibSummaryWidget::createModelData( const std::vector< std::pair< int, int > 
 }
 
 void
-MSCalibSummaryWidget::setEditable( int row, bool enable )
+MSCalibSummaryWidget::setEditable( int row, bool )
 {
 	QStandardItemModel& model = *pModel_;
 
-    model.item( row, c_fcn )->setEditable( enable );
-    model.item( row, c_index )->setEditable( enable );
-    model.item( row, c_time )->setEditable( enable );
-    model.item( row, c_mass )->setEditable( enable );
-    model.item( row, c_mass_calibrated )->setEditable( enable );
-    model.item( row, c_intensity )->setEditable( enable );
+    model.item( row, c_fcn )->setEditable( false );
+    model.item( row, c_index )->setEditable( false );
+    model.item( row, c_time )->setEditable( false );
+    model.item( row, c_mass )->setEditable( false );
+    model.item( row, c_mass_calibrated )->setEditable( false );
+    model.item( row, c_intensity )->setEditable( false );
+    //model.item( row, c_delta_mass )->setEditable( false );
 }
 
 bool
@@ -445,7 +449,14 @@ MSCalibSummaryWidget::currentChanged( const QModelIndex& index, const QModelInde
 	size_t row = index.row();
     size_t idx = model.index( row, c_index ).data( Qt::EditRole ).toInt();
     size_t fcn   = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
+
     emit currentChanged( idx, fcn );
+
+    double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+    for ( int r = 0; r < model.rowCount(); ++r ) {
+        double d = std::abs( model.index( r, c_mass ).data( Qt::EditRole ).toDouble() - mass );
+        model.setData( model.index( r, c_delta_mass ), int( d + 0.7 ) );
+    }
 }
 
 void
@@ -565,6 +576,8 @@ namespace qtwidgets2 {
         }
 
         void operator()( QPainter& painter, int col, const QString& text ) {
+            if ( tab_stops_[col].second == 0 ) // no width
+                return;
             rc_.setRect( tab_stops_[ col ].first, rc_.y(), tab_stops_[col].second, rect_.bottom() - rc_.y() );
             painter.drawText( rc_, Qt::TextWordWrap, text, &boundingRect_ );
             bottom_ = std::max<double>( boundingRect_.bottom(), bottom_ );
@@ -621,6 +634,8 @@ MSCalibSummaryWidget::handlePrint( QPrinter& printer, QPainter& painter )
         case c_is_enable:                 width = rect.width() / 180 * 8; break;
         case c_mode:                      width = rect.width() / 180 * 8; break;
         case c_fcn:                       width = rect.width() / 180 * 6; break;
+        case c_delta_mass:                width = 0; break;
+        case c_index:                     width = 0; break;
         }
         render.add_tab( width );
     }
