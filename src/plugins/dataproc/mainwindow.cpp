@@ -645,3 +645,9 @@ MainWindow::printCurrentView( const QString& pdfname ) const
         disconnect( this, SIGNAL( onPrintCurrentView( const QString& ) ), w, SLOT( handlePrintCurrentView( const QString& ) ) );
     }
 }
+
+void
+MainWindow::saveDefaultMSCalibrateResult( portfolio::Filium& )
+{
+    
+}

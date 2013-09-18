@@ -364,7 +364,8 @@ MSCalibrationWnd::handle_apply_calibration_to_dataset()
 void
 MSCalibrationWnd::handle_apply_calibration_to_default()
 {
-    assert(0);
+    handle_reassign_mass_requested();
+    MainWindow::instance()->saveDefaultMSCalibrateResult( pImpl_->folium_ );
 }
 
 void
