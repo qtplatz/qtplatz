@@ -206,6 +206,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 
     // annotate each peak on spectrum
     doAnnotateAssignedPeaks( centroid, assignedMasses );
+	res.assignedMasses( assignedMasses ); // set assigned result even no enabled calibrant found or calibration failed
 
     mass_calibrator calibrator( assignedMasses );
     adcontrols::MSCalibration calib;
@@ -214,10 +215,8 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
             double mass = mass_calibrator::compute_mass( it.time(), calib );
             it.mass( mass );
         }
-		//for ( size_t n = 0; n < segments.size(); ++n )
-		//	centroid.setCalibration( calib, true );
         res.calibration( calib );
-        res.assignedMasses( assignedMasses );
+        // res.assignedMasses( assignedMasses );
 #if defined _DEBUG && 0
         calibresult_validation( res, centroid, threshold );
 #endif
