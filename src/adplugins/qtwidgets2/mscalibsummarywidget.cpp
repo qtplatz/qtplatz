@@ -400,6 +400,12 @@ MSCalibSummaryWidget::formulaChanged( const QModelIndex& index )
 
             // update exact mass
             model.setData( model.index( index.row(), c_exact_mass ), exactMass );
+            double mass = model.index( index.row(), c_mass ).data( Qt::EditRole ).toDouble();
+            model.setData( model.index( index.row(), c_mass_error_mDa ), mass - exactMass );            
+            double calib_mass = model.index( index.row(), c_mass_error_calibrated_mDa ).data( Qt::EditRole ).toDouble();
+            if ( calib_mass > 1.0 )
+                model.setData( model.index( index.row(), c_mass_error_calibrated_mDa ), calib_mass - exactMass );
+
             do {
                 model.setData( model.index( index.row(), c_is_enable ), false ); // set false by default
                 QStandardItem * chk = model.itemFromIndex( model.index( index.row(), c_is_enable ) );
