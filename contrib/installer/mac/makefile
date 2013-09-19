@@ -32,11 +32,12 @@ TAO_LIBS = \
 
 all:
 	@echo "################################################"
-	@echo "qtplatz mac deployment -- do following procedure"
-	@echo "################################################"
 	@echo "ACE_ROOT is: " $(ACE_ROOT)
 	@echo "LIBDIR_ACETAO is: " $(LIBDIR_ACETAO)
 	@echo "DEPLOYQT is: " $(DEPLOYQT)
+	@echo "################################################"
+	@echo " -- do following procedure --"
+	@echo "################################################"
 	@echo "make qtplatz.app"
 	@echo "make fix"
 	@echo "make dmg"
@@ -100,6 +101,16 @@ fix_printsupport:
 fix_ace_tao:
 	for i in $(TAO_LIBS) ; do \
 	  cp -p $(ACE_ROOT)/lib/$$i.dylib $(FRAMEWORK); \
+	done
+	for i in libservant.dylib libacquire.dylib ; do \
+		for j in $(TAO_LIBS); do \
+			install_name_tool -change $$j.dylib $(EPATH)/$$j.dylib $(PLUGINS)/MS-Cheminformatics/$$i ;\
+		done; \
+	done; \
+	for i in $(TAO_LIBS) ; do \
+	  for j in $(TAO_LIBS); do \
+		install_name_tool -change $$j.dylib $(EPATH)/$$j.dylib $(FRAMEWORK)/$$i.dylib ; \
+	  done; \
 	done
 
 dmg: qtplatz.app

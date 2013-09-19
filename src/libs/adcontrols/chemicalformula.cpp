@@ -87,8 +87,6 @@ namespace adcontrols {
                 p.second *= n;
         }
 
-#if ! defined __APPLE__
-
         template<typename Iterator>
         struct chemical_formula_parser : boost::spirit::qi::grammar< Iterator, map_type() > {
 
@@ -116,7 +114,7 @@ namespace adcontrols {
             qi::rule<Iterator, map_type()> molecule, repeated_group;
             qi::symbols<wchar_t, const wchar_t *> element;
         };
-#endif
+
     }
 
     namespace internal {
@@ -297,14 +295,10 @@ bool
 ChemicalFormulaImpl::parse( const std::wstring& formula, client::map_type& map )
 {
     typedef std::wstring::const_iterator iterator_type;
-#if ! defined __APPLE__
+
     client::chemical_formula_parser< iterator_type > cf;
     iterator_type it = formula.begin();
     iterator_type end = formula.end();
     return boost::spirit::qi::parse( it, end, cf, map ) && it == end;
-#else
-    (void)formula;
-    (void)map;
-    return false;
-#endif
+
 }
