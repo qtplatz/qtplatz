@@ -36,12 +36,17 @@ all:
 	@echo "LIBDIR_ACETAO is: " $(LIBDIR_ACETAO)
 	@echo "DEPLOYQT is: " $(DEPLOYQT)
 	@echo "################################################"
-	@echo " -- do following procedure --"
+	@echo " -- do following procedure -- or make world -- "
 	@echo "################################################"
 	@echo "make qtplatz.app"
 	@echo "make fix"
 	@echo "make dmg"
 	@echo
+
+world:
+	make qtplatz.app
+	make fix
+	make dmg
 
 # all: qtplatz.app
 
