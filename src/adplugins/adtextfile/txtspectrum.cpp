@@ -44,6 +44,29 @@
 using namespace adtextfile;
 using namespace adcontrols;
 
+namespace adtextfile {
+
+    class textfile {
+    public:
+        static bool getline( std::ifstream& in, std::string& line ) {
+            line.clear();
+            while ( ! in.eof() ) {
+                char c = in.get();
+                if ( c == '\r' ) { // may be old-days Mac ?
+                    if ( in.get() != '\n' ) // whoops, its old mac file
+                        in.unget();
+                    return true;
+                } else if ( c == '\n' ) {
+                    return true;
+                }
+                line.push_back ( c );
+            }
+            return !line.empty();
+        }
+    };
+
+}
+
 TXTSpectrum::TXTSpectrum()
 {
 }
@@ -69,12 +92,12 @@ TXTSpectrum::load( const std::wstring& name )
 	size_t numTurns = 0;
 	if ( path.extension() == ".csv" ) {
 		std::string line;
-		while ( getline( in, line ) ) {
+		while ( textfile::getline( in, line ) ) {
 			if ( line.find( "All Elements" ) != line.npos ) {
-				getline( in, line );
+                textfile::getline( in, line );
 				numSamples = atol( line.c_str() );
 			} else if ( line.find( "Turn:" ) != line.npos ) {
-				getline( in, line );
+                textfile::getline( in, line );
 				numTurns = atol( line.c_str() );
 			} else if ( line.find( "Data" ) != line.npos ) {
 				break;
@@ -85,7 +108,7 @@ TXTSpectrum::load( const std::wstring& name )
     do {
         double values[3];
         std::string line;
-        if ( getline( in, line ) ) {
+        if ( textfile::getline( in, line ) ) {
             tokenizer tokens( line, sep );
 
             int i = 0;
