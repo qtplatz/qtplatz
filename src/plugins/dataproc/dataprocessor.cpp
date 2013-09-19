@@ -71,6 +71,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 #include <stack>
+#include <fstream>
 
 using namespace dataproc;
 

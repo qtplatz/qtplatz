@@ -22,12 +22,12 @@
 **
 **************************************************************************/
 
-#ifndef CALIBRATE_MASSES_HPP
-#define CALIBRATE_MASSES_HPP
+#pragma once
 
 #include <cstddef>
 #include <utility>
 #include <vector>
+#include <string>
 
 namespace adcontrols {
     class MassSpectrum;
@@ -44,7 +44,7 @@ namespace dataproc {
     public:
         mass_calibrator();
         mass_calibrator( const adcontrols::MSAssignedMasses& );
-        inline const size_t size() const { return times_.size(); }
+        inline size_t size() const { return times_.size(); }
         mass_calibrator& operator << ( const std::pair< double, double >& );
         bool compute( adcontrols::MSCalibration&, int nterm );
         static double compute_mass( double time, const adcontrols::MSCalibration& );
@@ -52,4 +52,4 @@ namespace dataproc {
 
 }
 
-#endif // CALIBRATE_MASSES_HPP
+
