@@ -267,6 +267,12 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
 	for ( auto& folder: portfolio.folders() )
         PortfolioHelper::appendFolder( *item, folder );
 
+	pTreeView_->expand( item->index() );
+	 // expand second levels (Chromatograms|Spectra|MSCalibration etc.)
+	for ( int i = 0; i < item->rowCount(); ++i)
+        pTreeView_->expand( model.index( i, 0, item->index()) );
+
+
     Core::ModeManager::instance()->activateMode( dataproc::Constants::C_DATAPROC_MODE );
     
 }
