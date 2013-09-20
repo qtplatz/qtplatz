@@ -114,6 +114,18 @@ Folium::addAttachment( const std::wstring& name )
     return Folium( Node::addAttachment( name ), impl_ );
 }
 
+bool 
+Folium::removeAttachment( const std::wstring& name, bool removeContents )
+{
+    if ( Node::removeAttachment( name ) ) {
+		if ( removeContents )
+			impl_->collect_garbage();
+        return true;
+    }
+    return false;
+}
+
+
 Folder
 Folium::getParentFolder()
 {

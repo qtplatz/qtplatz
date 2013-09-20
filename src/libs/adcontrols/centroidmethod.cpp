@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "centroidmethod.hpp"
+#include <adportable/float.hpp>
 
 using namespace adcontrols;
 
@@ -40,6 +41,8 @@ CentroidMethod::CentroidMethod() : baselineWidth_(500.0)
                                  , bCentroidAreaIntensity_(true)
                                  , peakCentroidFraction_(0.5)
                                  , peakWidthMethod_(ePeakWidthTOF)
+                                 , noiseFilterMethod_( eNoFilter )
+                                 , cutoffFreqHz_( 100 * 1.0e6 ) // 100MHz
 {
 }
 
@@ -51,16 +54,18 @@ CentroidMethod::CentroidMethod(const CentroidMethod& t)
 CentroidMethod&
 CentroidMethod::operator = ( const CentroidMethod& rhs )
 {
-	peakWidthMethod( rhs.peakWidthMethod() );
-	rsTofInDa( rhs.rsTofInDa() );
-	rsTofAtMz( rhs.rsTofAtMz() );
-	rsPropoInPpm( rhs.rsPropoInPpm() );
-	rsConstInDa( rhs.rsConstInDa() );
-	baselineWidth( rhs.baselineWidth() );
-	attenuation( rhs.attenuation() );
-	centroidAreaIntensity( rhs.centroidAreaIntensity() );
-	peakWidthMethod( rhs.peakWidthMethod() );
-	peakCentroidFraction( rhs.peakCentroidFraction() );
+	peakWidthMethod( rhs.peakWidthMethod_ );
+	rsTofInDa( rhs.rsTofInDa_ );
+	rsTofAtMz( rhs.rsTofAtMz_ );
+	rsPropoInPpm( rhs.rsPropoInPpm_ );
+	rsConstInDa( rhs.rsConstInDa_ );
+	baselineWidth( rhs.baselineWidth_ );
+	attenuation( rhs.attenuation_ );
+	centroidAreaIntensity( rhs.bCentroidAreaIntensity_ );
+	peakWidthMethod( rhs.peakWidthMethod_ );
+	peakCentroidFraction( rhs.peakCentroidFraction_ );
+    noiseFilterMethod_ = rhs.noiseFilterMethod_;
+    cutoffFreqHz_ = rhs.cutoffFreqHz_;
 
 	return * this;
 }
@@ -69,15 +74,17 @@ bool
 CentroidMethod::operator == ( const CentroidMethod & rhs ) const
 {
 	return	peakWidthMethod() == rhs.peakWidthMethod() &&
-				rsTofInDa() == rhs.rsTofInDa() &&
-				rsTofAtMz() == rhs.rsTofAtMz() &&
-				rsPropoInPpm() == rhs.rsPropoInPpm() &&
-				rsConstInDa() == rhs.rsConstInDa() &&
-				baselineWidth() == rhs.baselineWidth() &&
-				attenuation() == rhs.attenuation() &&
-				centroidAreaIntensity() == rhs.centroidAreaIntensity() &&
-				peakWidthMethod() == rhs.peakWidthMethod() &&
-				peakCentroidFraction() == rhs.peakCentroidFraction();
+        adportable::compare<double>::approximatelyEqual( rsTofInDa_, rhs.rsTofInDa() ) &&
+        adportable::compare<double>::approximatelyEqual( rsTofAtMz_, rhs.rsTofAtMz() ) &&
+        adportable::compare<double>::approximatelyEqual( rsPropoInPpm_, rhs.rsPropoInPpm() ) &&
+        adportable::compare<double>::approximatelyEqual( rsConstInDa_, rhs.rsConstInDa() ) &&
+        adportable::compare<double>::approximatelyEqual( baselineWidth_, rhs.baselineWidth() ) &&
+        centroidAreaIntensity() == rhs.centroidAreaIntensity() &&
+        peakWidthMethod() == rhs.peakWidthMethod() &&
+        adportable::compare<double>::approximatelyEqual( peakCentroidFraction_, rhs.peakCentroidFraction() ) &&
+        noiseFilterMethod_ == rhs.noiseFilterMethod() &&
+        adportable::compare<double>::approximatelyEqual( cutoffFreqHz_, rhs.cutoffFreqHz_, 1.0 )
+        ;
 }
 
 bool
@@ -114,12 +121,6 @@ double
 CentroidMethod::rsTofAtMz() const
 {
 	return rsTofAtMz_;
-}
-
-double 
-CentroidMethod::attenuation() const
-{
-	return attenuation_;
 }
 
 CentroidMethod::ePeakWidthMethod
@@ -193,3 +194,28 @@ CentroidMethod::peakCentroidFraction(double v)
 {
 	peakCentroidFraction_ = v;
 }
+
+CentroidMethod::eNoiseFilterMethod
+CentroidMethod::noiseFilterMethod() const
+{
+    return noiseFilterMethod_;
+}
+
+void
+CentroidMethod::noiseFilterMethod( eNoiseFilterMethod value )
+{
+    noiseFilterMethod_ = value;
+}
+
+double
+CentroidMethod::cutoffFreqHz() const
+{
+    return cutoffFreqHz_;
+}
+
+void
+CentroidMethod::cutoffFreqHz( double value )
+{
+    cutoffFreqHz_ = value;
+}
+

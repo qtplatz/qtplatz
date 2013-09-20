@@ -174,4 +174,23 @@ PortfolioImpl::newGuid()
 	return pugi::as_wide( s );
 }
 
+bool
+PortfolioImpl::collect_garbage()
+{
+    std::vector< std::wstring > candidates;
 
+    for ( auto a: db_ ) {
+        std::string query = "//*[@dataId=\"" + pugi::as_utf8( a.first ) +"\"]";
+        try {
+            pugi::xpath_node node = node_.select_single_node( query.c_str() );
+            if ( ! node )
+				candidates.push_back( a.first );
+        } catch ( pugi::xpath_exception& ex ) {
+            adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
+            assert(0);            
+        }
+    }
+	for ( auto garbage: candidates )
+		db_.erase( garbage );
+	return true;
+}

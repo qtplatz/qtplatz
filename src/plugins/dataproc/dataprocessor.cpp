@@ -687,20 +687,32 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
 {
     portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
     adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
+    bool centroid;
 
-#if defined _DEBUG && 0
-	adcontrols::MassSpectrum ms2 ( profile );
-	adcontrols::waveform::fft::lowpass_filter( ms2, 100.0e6 );
-	if ( DataprocHandler::doCentroid( *pCentroid, ms2, m ) ) {
-#else
-    if ( DataprocHandler::doCentroid( *pCentroid, profile, m ) ) {
-#endif 
-		att.assign( pCentroid, pCentroid->dataClass() );
+	// make sure no 'processed profile' data exist
+	folium.removeAttachment( L"DFT Low Pass Filtered Spectrum" );
 
+    if ( m.noiseFilterMethod() == adcontrols::CentroidMethod::eDFTLowPassFilter ) {
+        adcontrols::MassSpectrumPtr profile2( new adcontrols::MassSpectrum( profile ) );
+        adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *profile2 );
+        for ( auto& ms: segments )
+            adcontrols::waveform::fft::lowpass_filter( ms, m.cutoffFreqHz() );
+        portfolio::Folium filterd = folium.addAttachment( L"DFT Low Pass Filtered Spectrum" );
+        profile2->addDescription( adcontrols::Description( L"process", L"DFT Low Pass Filtered Spectrum" ) );
+        filterd.assign( profile2, profile2->dataClass() );
+
+        centroid = DataprocHandler::doCentroid( *pCentroid, *profile2, m );
+
+    } else {
+        centroid = DataprocHandler::doCentroid( *pCentroid, profile, m );
+    }
+
+    if ( centroid ) {
+        pCentroid->addDescription( adcontrols::Description( L"process", L"Centroid" ) );
+        att.assign( pCentroid, pCentroid->dataClass() );
         adcontrols::ProcessMethodPtr ptr( new adcontrols::ProcessMethod() );
         ptr->appendMethod( m );
         att.addAttachment( L"Process Method" ).assign( ptr, ptr->dataClass() );
-
         return true;
     }
 

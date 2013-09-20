@@ -70,6 +70,8 @@ DataprocHandler::doCentroid( adcontrols::MassSpectrum& res
 {
     adcontrols::CentroidProcess peak_detector;
     bool result = false;
+    
+    res.clone( profile, false );
 
     if ( peak_detector( m, profile ) )
         result = peak_detector.getCentroidSpectrum( res );

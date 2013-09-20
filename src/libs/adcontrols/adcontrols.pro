@@ -28,6 +28,7 @@ SOURCES += acceptor.cpp \
     centroidprocess.cpp \
     chemicalformula.cpp \
     chromatogram.cpp \
+    controlmethod.cpp \
     datafile.cpp \
     datafilebroker.cpp \
     datainterpreter.cpp \
@@ -91,6 +92,7 @@ HEADERS += acceptor.hpp \
     centroidprocess.hpp \
     chemicalformula.hpp \
     chromatogram.hpp \
+    controlmethod.hpp \
     datafile.hpp \
     datafile_factory.hpp \
     datafilebroker.hpp \

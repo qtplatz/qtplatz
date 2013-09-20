@@ -57,6 +57,7 @@ namespace portfolio {
             Folder addFolder( const std::wstring&, bool uniq );
             pugi::xml_document& getDocument() { return doc_; }
             static std::wstring newGuid();
+            bool collect_garbage();
      
         private:
             bool isXMLLoaded_;

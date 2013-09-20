@@ -135,6 +135,10 @@ CentroidForm::update_data( const adcontrols::CentroidMethod& method )
 
 	ui->doubleSpinBox_centroidfraction->setValue( method.peakCentroidFraction() * 100 );
 	ui->doubleSpinBox_baselinewidth->setValue( method.baselineWidth() );
+	using adcontrols::CentroidMethod;
+
+	ui->noiseFilterMethod->setCheckState( method.noiseFilterMethod() == CentroidMethod::eNoFilter ? Qt::Unchecked : Qt::Checked );
+	ui->cutoffMHz->setValue( method.cutoffFreqHz() / 1.0e6 + 0.5 );
 }
 
 void
@@ -158,6 +162,11 @@ CentroidForm::update_data()
     method.baselineWidth( ui->doubleSpinBox_baselinewidth->value() );
 	method.centroidAreaIntensity( ui->radioButton_area->isChecked() );
 	method.peakCentroidFraction( ui->doubleSpinBox_centroidfraction->value() / 100.0 );
+	
+	method.noiseFilterMethod( ui->noiseFilterMethod->isChecked() ?
+		adcontrols::CentroidMethod::eDFTLowPassFilter : adcontrols::CentroidMethod::eNoFilter );
+
+	method.cutoffFreqHz( ui->cutoffMHz->value() * 1.0e6 );
 }
 
 void

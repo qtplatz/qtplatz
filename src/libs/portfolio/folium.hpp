@@ -94,6 +94,7 @@ namespace portfolio {
 
         // --- create/modify
         Folium addAttachment( const std::wstring& name );
+		bool removeAttachment( const std::wstring& name, bool removeContents = true );
     };
 
     typedef std::vector< Folium > Folio;

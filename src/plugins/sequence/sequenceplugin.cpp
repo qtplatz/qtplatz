@@ -97,8 +97,8 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
     QList<int> context;
     Core::UniqueIDManager * uidm = core->uniqueIDManager();
     if ( uidm ) {
-        context.append( uidm->uniqueIdentifier( QLatin1String("Sequence.MainView") ) );
-        context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
+        context.append( uidm->uniqueIdentifier( Constants::C_SEQUENCE ) );
+        // context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
     }
 
     //---------
@@ -110,11 +110,9 @@ SequencePlugin::initialize(const QStringList& arguments, QString* error_message)
 
     Core::ActionManager * am = core->actionManager();
     if ( am ) {
-        Core::Command* cmd = am->registerAction( new QAction(this)
-                                                 , "SequencePlugin.FILE_NEW"
-                                                 , QList<int>() << Core::Constants::C_GLOBAL_ID );
-        cmd->action()->setText("New Sample Sequence");
-        am->actionContainer( Core::Constants::M_FILE)->addAction( cmd );
+        // Override system "New..." menu
+        Core::Command* cmd = am->registerAction( new QAction(this), Core::Constants::NEW, context );
+        cmd->action()->setText("New Sample Sequence"); // also change text on menu
         connect( cmd->action(), SIGNAL( triggered(bool) ), this, SLOT( handleFileNew( bool ) ) );
     }
 
