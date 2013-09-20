@@ -244,10 +244,13 @@ void NavigationWidget::restoreSettings(QSettings *settings)
     int version = settings->value("Navigation/Version", 1).toInt();
     QStringList views = settings->value("Navigation/Views").toStringList();
 
+	if ( ! views.contains( "Processing files" ) ) // qtplatz modification: make sure "processing files" are visible
+		views.push_front( "Processing files" );
+
     bool restoreSplitterState = true;
     if (version == 1) {
         if (views.isEmpty())
-            views += "Projects";
+           views += "Projects";
         if (!views.contains("Open Documents")) {
             views += "Open Documents";
             restoreSplitterState = false;
