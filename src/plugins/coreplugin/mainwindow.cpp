@@ -122,9 +122,9 @@ MainWindow::MainWindow() :
     m_globalContext(QList<int>() << Constants::C_GLOBAL_ID),
     m_additionalContexts(m_globalContext),
     m_settings(new QSettings(QSettings::IniFormat, QSettings::UserScope,
-                             QLatin1String("MS-Cheminformatics"), QLatin1String("QtPlatz"), this)),
+                             QLatin1String("MS-Cheminformatics"), QLatin1String("qtplatz"), this)),
     m_settingsDatabase(new SettingsDatabase(QFileInfo(m_settings->fileName()).path(),
-                                            QLatin1String("QtPlatz"),
+                                            QLatin1String("qtplatz"),
                                             this)),
     m_printer(0),
     m_actionManager(new ActionManagerPrivate(this)),
@@ -165,7 +165,7 @@ MainWindow::MainWindow() :
 #ifndef Q_WS_MAC
     qApp->setWindowIcon(QIcon(":/core/images/qtcreator_logo_128.png"));
 #endif
-    QCoreApplication::setApplicationName(QLatin1String("QtPlatz"));
+    QCoreApplication::setApplicationName(QLatin1String("qtplatz"));
     QCoreApplication::setApplicationVersion(QLatin1String(Core::Constants::IDE_VERSION_LONG));
     QCoreApplication::setOrganizationName(QLatin1String("Nokia"));
     QSettings::setDefaultFormat(QSettings::IniFormat);
