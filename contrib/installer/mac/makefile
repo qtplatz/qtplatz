@@ -1,6 +1,7 @@
 
 DEPLOYQT = /usr/local/Qt5.1.1/5.1.1/clang_64/bin/macdeployqt
 APATH = /usr/local/Qt5.1.1/5.1.1/clang_64/lib
+APLUGINS = /usr/local/Qt5.1.1/5.1.1/clang_64/plugins
 EPATH = @executable_path/../Frameworks
 FRAMEWORK = ./qtplatz.app/Contents/Frameworks
 PLUGINS   = ./qtplatz.app/Contents/PlugIns
@@ -38,14 +39,14 @@ all:
 	@echo "################################################"
 	@echo " -- do following procedure -- or make world -- "
 	@echo "################################################"
-	@echo "make qtplatz.app"
+	@echo "make app"
+	@echo "make deployqt"
 	@echo "make fix"
 	@echo "make dmg"
 	@echo
 
 world:
-	make qtplatz.app
-	make thank
+	make app
 	make deployqt
 	make fix
 	make dmg
@@ -61,10 +62,15 @@ app:
 thank:
 	sh ./thankslasconic.sh ./qtplatz.app/Contents/MacOS/qtplatz
 
+deploy2:
+	mkdir -p ${PLUGINS}/platforms
+	cp -p ${APLUGINS}/platforms/libqcocoa.dylib ${PLUGINS}/platforms
+
 deployqt:
 	${DEPLOYQT} ./qtplatz.app -verbose=2
 
-fix: fix_frameworks fix_platforms fix_accessible fix_imageformats fix_printsupport fix_ace_tao
+#fix: fix_frameworks fix_platforms fix_accessible fix_imageformats fix_printsupport fix_ace_tao
+fix: copy_ace_tao fix_ace_tao
 
 fix_frameworks:
 	for j in QtCore ; do \
@@ -112,15 +118,12 @@ fix_printsupport:
 	    done; \
 	done
 
-fix_ace_tao:
+copy_ace_tao:
 	for i in $(TAO_LIBS) ; do \
 	  cp -p $(ACE_ROOT)/lib/$$i.dylib $(FRAMEWORK); \
 	done
-	for i in libservant.dylib libacquire.dylib ; do \
-		for j in $(TAO_LIBS); do \
-			install_name_tool -change $$j.dylib $(EPATH)/$$j.dylib $(PLUGINS)/MS-Cheminformatics/$$i ;\
-		done; \
-	done; \
+
+fix_ace_tao:
 	for i in $(TAO_LIBS) ; do \
 	  for j in $(TAO_LIBS); do \
 		install_name_tool -change $$j.dylib $(EPATH)/$$j.dylib $(FRAMEWORK)/$$i.dylib ; \
@@ -138,12 +141,14 @@ clean:
 
 otool:
 	otool -L qtplatz.app/Contents/MacOS/qtplatz
-	@echo "-------- QtWidgets ---------"
-	otool -L qtplatz.app/Contents/Frameworks/QtWidgets.framework/Versions/5/QtWidgets
-	@echo "-------- QtGui ---------"
-	otool -L qtplatz.app/Contents/Frameworks/QtGui.framework/Versions/5/QtGui
-	@echo "-------- QtCore ---------"
-	otool -L qtplatz.app/Contents/Frameworks/QtCore.framework/Versions/5/QtCore
+	otool -L qtplatz.app/Contents/Plugins/QtProject/*.dylib
+	otool -L qtplatz.app/Contents/Plugins/*.dylib
+	otool -L qtplatz.app/Contents/Plugins/MS-Cheminformatics/*.dylib
+	for i in QtCore QtGui QtWidgets QtPrintSupport; do \
+		otool -L ${FRAMEWORK}/$$i.framework/Versions/5/$$i; \
+	done
+	@echo "-------- ---------"
+	otool -L ${PLUGINS}/platforms/libqcocoa.dylib
 
 # /Volumes/qtplatz/qtplatz.app: /Volumes/qtplatz
 # 	cd ../../../bin; tar cf - ./qtplatz.app | (cd /Volumes/qtplatz; tar xvf -)
