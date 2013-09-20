@@ -45,6 +45,8 @@ all:
 
 world:
 	make qtplatz.app
+	make thank
+	make deployqt
 	make fix
 	make dmg
 
@@ -52,7 +54,14 @@ world:
 
 qtplatz.app:
 	cp -rp ../../../bin/qtplatz.app .
+
+app:
+	cp -rp ../../../bin/qtplatz.app .
+
+thank:
 	sh ./thankslasconic.sh ./qtplatz.app/Contents/MacOS/qtplatz
+
+deployqt:
 	${DEPLOYQT} ./qtplatz.app -verbose=2
 
 fix: fix_frameworks fix_platforms fix_accessible fix_imageformats fix_printsupport fix_ace_tao
