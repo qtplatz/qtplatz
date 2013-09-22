@@ -186,6 +186,9 @@ void
 SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
 {
     SignalObserver::Observers_var vec = parent->getSiblings();
+
+    size_t n = vec->length();
+
     if ( ( vec.ptr() != 0 ) && ( vec->length() > 0 ) ) {
         
         for ( size_t i = 0; i < vec->length(); ++i ) {
@@ -197,7 +200,7 @@ SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
             size_t idx = 0; 
             while ( observer->readCalibration( idx++, data, dataClass ) ) {
                 adfs::stmt sql( fs_->db() );
-                sql.prepare( "INSERT INTO Calibration VALUES(:objid :dataClass :data)" );
+                sql.prepare( "INSERT INTO Calibration VALUES(:objid,:dataClass,:data)" );
                 sql.bind( 1 ) = objId;
                 sql.bind( 2 ) = std::wstring( dataClass.in() );
                 sql.bind( 3 ) = adfs::blob( data->length(), reinterpret_cast< const int8_t *>( data->get_buffer() ) );

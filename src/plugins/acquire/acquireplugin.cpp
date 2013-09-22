@@ -831,7 +831,8 @@ AcquirePlugin::handle_message( unsigned long /* Receiver::eINSTEVENT */ msg, uns
         } else if ( status == ePreparingForRun ) {
             actionStop_->setEnabled( false );
         } else if ( status == eReadyForRun ) {
-            actionStop_->setEnabled( true );
+            actionStop_->setEnabled( false );
+			actionRun_->setEnabled( true );
         } else if ( status == eRunning ) {
             actionStop_->setEnabled( true );
 			actionInject_->setEnabled( false );
