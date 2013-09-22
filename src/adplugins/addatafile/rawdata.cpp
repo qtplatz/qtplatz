@@ -30,11 +30,17 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/mscalibration.hpp>
+#include <adcontrols/msassignedmass.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adcontrols/msreferences.hpp>
 #include <adcontrols/traceaccessor.hpp>
 #include <adcontrols/datainterpreter.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/array_wrapper.hpp>
+#include <adportable/serializer.hpp>
 #include <memory>
 #include <cstdint>
 
@@ -185,6 +191,83 @@ rawdata::getChromatograms( int fcn
 	return false;
 }
 
+bool
+rawdata::readCalibration( uint32_t objid, std::wstring& dataClass, std::vector< char >& device, uint64_t& rev ) const
+{
+    adfs::stmt sql( dbf_.db() );
+
+    if ( sql.prepare( "SELECT rowid,revision,dataClass FROM Calibration WHERE objid = :objid ORDER BY revision desc" ) ) {
+        
+        sql.bind( 1 ) = objid;
+        
+        if ( sql.step() == adfs::sqlite_row ) {
+
+            uint64_t rowid = boost::get<int64_t>( sql.column_value( 0 ) );
+            rev = boost::get<int64_t>( sql.column_value( 1 ) );
+			dataClass = boost::get< std::wstring >( sql.column_value( 2 ) );
+
+            adfs::blob blob;
+            if ( blob.open( dbf_.db(), "main", "Calibration", "data", rowid, adfs::readonly ) ) {
+                if ( blob.size() ) {
+                    return blob.read( reinterpret_cast< int8_t *>( device.data() ), device.size() );
+                }
+            }
+        }
+        return false;
+    }
+    return false;
+}
+
+bool
+rawdata::getCalibration( int fcn, adcontrols::MSCalibrateResult& calibResult, adcontrols::MassSpectrum& calibSpectrum ) const
+{
+    (void)fcn;
+    using adportable::serializer;
+    using adcontrols::MSCalibrateResult;
+    using adcontrols::MassSpectrum;
+
+    uint64_t rev = 0;
+    bool success = false;
+
+    adfs::stmt sql( dbf_.db() );
+
+    if ( sql.prepare( "SELECT rowid,revision FROM Calibration WHERE dataClass = :dataClass ORDER BY revision desc" ) ) {
+        sql.bind( 1 ) = std::wstring( adcontrols::MSCalibrateResult::dataClass() );
+        if ( sql.step() == adfs::sqlite_row ) {
+            
+            uint64_t rowid = boost::get< int64_t >( sql.column_value( 0 ) );
+            rev = boost::get< int64_t >( sql.column_value( 1 ) );
+            adfs::blob blob;
+            if ( blob.open( dbf_.db(), "main", "Calibration", "data", rowid, adfs::readonly ) ) {
+                std::vector< char > device( blob.size() );
+                blob.read( reinterpret_cast< int8_t *>( device.data() ), device.size() );
+                success = serializer< MSCalibrateResult >::deserialize( calibResult
+                                                                        , reinterpret_cast<const char *>( device.data() )
+                                                                        , device.size() );
+            }
+        }
+    }
+    if ( success ) {
+        if ( sql.prepare( "SELECT rowid FROM Calibration WHERE dataClass = :dataClass AND revision = :rev" ) ) {
+            sql.bind( 1 ) = std::wstring( adcontrols::MassSpectrum::dataClass() );
+            sql.bind( 2 ) = rev;
+            if ( sql.step() == adfs::sqlite_row ) {
+                uint64_t rowid = boost::get< int64_t >( sql.column_value( 0 ) );
+                adfs::blob blob;
+                if ( blob.open( dbf_.db(), "main", "Calibration", "data", rowid, adfs::readonly ) ) {
+                    std::vector< char > device( blob.size() );
+                    blob.read( reinterpret_cast< int8_t *>( device.data() ), device.size() );
+                    success = serializer< MassSpectrum >::deserialize( calibSpectrum
+                                                                       , reinterpret_cast<const char *>( device.data() )
+                                                                       , device.size() );
+                }
+            }
+        }
+    }
+	return success;
+}
+
+
 // private
 bool
 rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, adcontrols::TraceAccessor& accessor )
@@ -199,9 +282,10 @@ rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, a
         adfs::blob blob;
         std::vector< char > xdata;
         std::vector< char > xmeta;
+		size_t nrecord = 0;
 
         while( sql.step() == adfs::sqlite_row ) {
-
+			++nrecord;
             uint64_t rowid = boost::get< boost::int64_t >( sql.column_value( 0 ) );
             uint64_t npos = boost::get< boost::int64_t >( sql.column_value( 1 ) );
             uint32_t events = static_cast< uint32_t >( boost::get< boost::int64_t >( sql.column_value( 2 ) ) );
@@ -222,7 +306,7 @@ rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, a
                                    , static_cast< uint32_t >( events ) );
         }
 		
-		return true;
+		return nrecord != 0;
     }
 
     return false;

@@ -34,6 +34,7 @@ namespace adcontrols {
 
     class Chromatogram;
     class MassSpectrum;
+	class MSCalibrateResult;
 
     class LCMSDataset : public AcquiredDataset {
     public:
@@ -50,6 +51,7 @@ namespace adcontrols {
 									 , std::function< bool (long curr, long total ) > progress
 									 , int begPos = 0
 									 , int endPos = (-1) ) const = 0;
+		virtual bool getCalibration( int, MSCalibrateResult&, MassSpectrum& ) const { return false; }
 	};
 
 }

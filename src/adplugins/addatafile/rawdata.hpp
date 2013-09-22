@@ -75,6 +75,7 @@ namespace addatafile {
 									 , std::function< bool (long curr, long total ) > progress
 									 , int begPos = 0
 									 , int endPos = (-1) ) const override;
+		bool getCalibration( int fcn, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& ) const override;
 
         bool loadAcquiredConf();
 
@@ -82,6 +83,7 @@ namespace addatafile {
         bool fetchTraces( int64_t objid, const std::wstring& clsid, adcontrols::TraceAccessor& );
         bool fetchSpectra( int64_t objid, const std::wstring& clsid, uint64_t npos, adcontrols::MassSpectrum& ) const;
         bool fetchSpectrum( int64_t objid, const std::wstring& clsid, uint64_t npos, adcontrols::MassSpectrum& ) const;
+        bool readCalibration( uint32_t objid, std::wstring& dataClass, std::vector< char >& device, uint64_t& rev ) const;
 
         adfs::filesystem& dbf_;
         std::vector< AcquiredConf > conf_;
