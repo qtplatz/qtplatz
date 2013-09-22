@@ -68,6 +68,7 @@
 #include <adfs/adfs.hpp>
 #include <adfs/file.hpp>
 #include <adfs/attributes.hpp>
+#include <adutils/fsio.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 #include <stack>
@@ -762,27 +763,19 @@ Dataprocessor::saveMSCalibration( portfolio::Folium& folium )
     if ( ! boost::filesystem::exists( dir ) ) 
         if ( ! boost::filesystem::create_directories( dir ) )
             return false;
+
     boost::filesystem::path fname = dir / "default.msclb";
     
     adfs::filesystem dbf;
-    try {
-        if ( !dbf.create( fname.wstring().c_str() ) )
-            return false;
-    } catch ( adfs::exception& ) {
+    if ( !adutils::fsio::create( dbf, fname.wstring() ) )
         return false;
-    }
-
-    adfs::folder folder = dbf.addFolder( L"/MSCalibration" );
 
     // argment folium should be profile spectrum
     portfolio::Folio atts = folium.attachments();
     auto it = portfolio::Folium::find_if< adcontrols::MSCalibrateResultPtr >( atts.begin(), atts.end() );
     if ( it != atts.end() ) {
         const adcontrols::MSCalibrateResultPtr ptr = boost::any_cast< adcontrols::MSCalibrateResultPtr >( it->data() );
-        adfs::file file = folder.addFile( L"MSCalibrateResult" );
-        std::string device;
-        if ( adportable::serializer< adcontrols::MSCalibrateResult >::serialize( *ptr, device ) )
-            file.write( device.size(), device.data() );
+        adutils::fsio::save_mscalibfile( dbf, *ptr );
 
         // for debugging convension
         std::string xml;
@@ -796,11 +789,7 @@ Dataprocessor::saveMSCalibration( portfolio::Folium& folium )
     it = portfolio::Folium::find_if< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
     if ( it != atts.end() ) {
         const adcontrols::MassSpectrumPtr ptr = boost::any_cast< adcontrols::MassSpectrumPtr >( it->data() );
-        adfs::file file = folder.addFile( L"MassSpectrum" );
-        std::string device;
-        if ( adportable::serializer< adcontrols::MassSpectrum >::serialize( *ptr, device ) )
-            file.write( device.size(), device.data() );
-        // todo: add process method for centroid
+        adutils::fsio::save_mscalibfile( dbf, *ptr );
     }
 
     return true;

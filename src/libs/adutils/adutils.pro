@@ -16,7 +16,11 @@ INCLUDEPATH += ../../libs
 include (../../boost.pri)
 
 SOURCES += adutils.cpp \
-    processeddata.cpp
+    processeddata.cpp \
+    adfsio.cpp \
+    fsio.cpp
 
 HEADERS += adutils.hpp \
-    processeddata.hpp
+    processeddata.hpp \
+    adfsio.hpp \
+    fsio.hpp

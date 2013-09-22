@@ -68,7 +68,6 @@ module Instrument {
        SignalObserver::Observer getObserver();
       
        boolean initialize();
-       // long getdata(in long pos, inout SignalObserver::Signal data);
 
        boolean shutdown();  // shutdown server
        boolean echo(in string msg);
