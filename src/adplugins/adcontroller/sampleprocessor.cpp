@@ -96,8 +96,10 @@ SampleProcessor::prepare_storage( SignalObserver::Observer * masterObserver )
 
 	create_acquiredconf_table();
 	create_acquireddata_table();
+    create_calibration_table();
 	
 	populate_descriptions( masterObserver );
+    populate_calibration( masterObserver );
 }
 
 void
@@ -165,6 +167,50 @@ SampleProcessor::create_acquiredconf_table()
 ,UNIQUE(objid)                      \
 )" 
         );
+}
+
+void
+SampleProcessor::create_calibration_table()
+{
+	adfs::stmt sql( fs_->db() );
+    sql.exec(
+        "CREATE TABLE Calibration ( \
+ objid        INTEGER               \
+,dataClass    TEXT                  \
+,data         BLOB                  \
+)" 
+        );
+}
+
+void
+SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
+{
+    SignalObserver::Observers_var vec = parent->getSiblings();
+    if ( ( vec.ptr() != 0 ) && ( vec->length() > 0 ) ) {
+        
+        for ( size_t i = 0; i < vec->length(); ++i ) {
+            
+            SignalObserver::Observer_ptr observer = vec[ i ];
+            unsigned long objId = observer->objId();
+            CORBA::WString_var dataClass;
+            SignalObserver::octet_array_var data;
+            size_t idx = 0; 
+            while ( observer->readCalibration( idx++, data, dataClass ) ) {
+                adfs::stmt sql( fs_->db() );
+                sql.prepare( "INSERT INTO Calibration VALUES(:objid :dataClass :data)" );
+                sql.bind( 1 ) = objId;
+                sql.bind( 2 ) = std::wstring( dataClass.in() );
+                sql.bind( 3 ) = adfs::blob( data->length(), reinterpret_cast< const int8_t *>( data->get_buffer() ) );
+                if ( sql.step() == adfs::sqlite_done )
+                    sql.commit();
+                else
+                    sql.reset();
+            }
+        }
+        for ( size_t i = 0; i < vec->length(); ++i )
+            populate_calibration( vec[ i ] );
+    }
+    
 }
 
 void

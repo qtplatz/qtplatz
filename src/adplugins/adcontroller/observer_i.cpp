@@ -281,6 +281,14 @@ observer_i::posFromTime( CORBA::ULongLong usec )
     return cache_->posFromTime( usec );    
 }
 
+CORBA::Boolean
+observer_i::readCalibration( CORBA::ULong idx, SignalObserver::octet_array_out data, CORBA::WString_out dataClass )
+{
+	if ( ! CORBA::is_nil( source_observer_ ) )
+		return source_observer_->readCalibration( idx, data, dataClass );
+	return false;
+}
+
 observer_i *
 observer_i::find_cache_observer( unsigned long objId )
 {

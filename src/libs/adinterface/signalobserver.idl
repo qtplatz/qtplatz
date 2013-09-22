@@ -148,6 +148,11 @@ module SignalObserver {
         // CORBA object name or internal C++ class name that is core software can handle
         wstring dataInterpreterClsid();
         long posFromTime( in unsigned long long usec );
+
+		// if instrument has one or more calibration information, adcontroller retrive them though this
+		// interface start with idx = 0 until return false;  all data will be set to datainterpreter 
+		// and also save into data file under /Calibration folder
+		boolean readCalibration( in unsigned long idx, out octet_array serialized, out wstring dataClass );
     };
     
 };

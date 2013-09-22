@@ -66,6 +66,8 @@ namespace adcontroller {
         virtual ::CORBA::Boolean readData ( ::CORBA::Long pos, ::SignalObserver::DataReadBuffer_out dataReadBuffer);
         virtual ::CORBA::WChar * dataInterpreterClsid (void);
         virtual ::CORBA::Long posFromTime( ::CORBA::ULongLong usec );
+        CORBA::Boolean readCalibration( CORBA::ULong idx, SignalObserver::octet_array_out, CORBA::WString_out ) override;
+        
         /// <-- end implementation ---
         //--------------------------------------------
         void populate_siblings();
