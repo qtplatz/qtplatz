@@ -24,15 +24,16 @@
 **************************************************************************/
 
 #include "logger_i.hpp"
-#include <acewrapper/timeval.hpp>
+#include <adportable/date_string.hpp>
+#include <adportable/utf.hpp>
 #include <algorithm>
 #include <assert.h>
 #include <sstream>
 # include <adinterface/loghandlerC.h>
 #include <iomanip>
+#include <chrono>
 
 using namespace broker;
-using namespace acewrapper;
 
 ////////////////////////////////////////////
 
@@ -83,11 +84,10 @@ logger_i::log( const Broker::LogMessage& msg )
     static const long long hlimit = (4000 - 1970) * 365LL * 1440LL * 60LL;
 
     if ( (m.tv_sec < 0 || m.tv_sec > hlimit ) || m.tv_sec == 0 ) {
-        long usec;
-	time_t tv_sec;
-        acewrapper::gettimeofday( tv_sec, usec );
-	m.tv_sec = tv_sec;
-        m.tv_usec = usec;
+        std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+        m.tv_sec = std::chrono::system_clock::to_time_t( now ); // UTC
+        auto usec = std::chrono::duration_cast< std::chrono::microseconds >( now - std::chrono::system_clock::from_time_t( m.tv_sec ) );
+        m.tv_usec = static_cast< uint32_t >( usec.count() );
     }
 
     if ( log_.size() > 3000 )
@@ -125,7 +125,7 @@ logger_i::to_string( const Broker::LogMessage& msg )
 {
     std::wostringstream o;
 
-    o << acewrapper::to_wstring( msg.tv_sec, msg.tv_usec );
+	o << adportable::utf::to_wstring( adportable::date_string::utc_to_localtime_string( msg.tv_sec, msg.tv_usec ) );
 	o << msg.text.in();
 
     CORBA::WString_var s = CORBA::wstring_dup( o.str().c_str() );

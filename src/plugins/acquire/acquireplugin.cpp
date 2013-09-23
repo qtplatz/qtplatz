@@ -31,7 +31,6 @@
 #include "brokerevent_i.hpp"
 
 #include <acewrapper/constants.hpp>
-#include <acewrapper/timeval.hpp>
 #include <adextension/isnapshothandler.hpp>
 # include <adinterface/brokerC.h>
 # include <adinterface/controlserverC.h>
@@ -56,6 +55,7 @@
 #include <adportable/array_wrapper.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
+#include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
 #include <adplugin/loader.hpp>
 #include <adplugin/manager.hpp>
@@ -946,7 +946,7 @@ void
 AcquirePlugin::handle_receiver_log( const ::EventLog::LogMessage& log )
 {
     std::wstring text = adinterface::EventLog::LogMessageHelper::toString( log );
-    std::string date = acewrapper::to_string( log.tv.sec, log.tv.usec ) + "\t";
+    std::string date = adportable::date_string::utc_to_localtime_string( log.tv.sec, log.tv.usec ) + "\t";
     QString qtext = date.c_str();
     qtext += qtwrapper::qstring::copy( text );
     mainWindow_->eventLog( qtext );

@@ -126,8 +126,13 @@ iProxy::connect( const std::string& token )
 bool
 iProxy::disconnect()
 {
-    if ( objref_ )
-        return impl_->disconnect( this->_this() );
+    if ( objref_ ) {
+		try {
+			return impl_->disconnect( this->_this() );
+		} catch ( CORBA::Exception& ex ) {
+			adportable::debug(__FILE__, __LINE__) << "iProxy::disconnect got an exception: " << ex._info().c_str();
+		}
+	}
     return false;
 }
 

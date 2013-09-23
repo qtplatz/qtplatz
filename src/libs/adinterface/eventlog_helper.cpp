@@ -28,6 +28,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <sstream>
+#include <chrono>
 
 namespace adinterface { namespace EventLog {
 
@@ -71,9 +72,12 @@ LogMessageHelper::LogMessageHelper( const std::wstring& format
                                     , const std::wstring& msgId
                                     , const std::wstring& srcId )
 {
-	
-	
 	msg_.priority = pri;
+	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	msg_.tv.sec = std::chrono::system_clock::to_time_t( now );
+	std::chrono::system_clock::time_point sec = std::chrono::system_clock::from_time_t( msg_.tv.sec );
+	auto usec = std::chrono::duration_cast< std::chrono::microseconds >( now - sec );
+	msg_.tv.usec = static_cast< uint32_t >( usec.count() );
 
     if ( ! msgId.empty() )
         msg_.msgId = CORBA::wstring_dup( msgId.c_str() );

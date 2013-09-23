@@ -23,7 +23,11 @@
 **************************************************************************/
 
 #include "date_string.hpp"
+#include "debug.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/date_time/local_time_adjustor.hpp>
+#include <boost/date_time/c_local_time_adjustor.hpp>
 #include <boost/format.hpp>
 
 using namespace adportable;
@@ -36,4 +40,22 @@ date_string::string( const boost::gregorian::date& dt, const char * fmt )
     os.imbue( loc );
     os << dt;
     return os.str();
+}
+
+// static
+std::string
+date_string::utc_to_localtime_string( time_t utc, unsigned usec )
+{
+	try {
+		boost::posix_time::ptime putc = boost::posix_time::from_time_t( utc );
+		boost::posix_time::ptime lt = boost::date_time::c_local_adjustor< boost::posix_time::ptime>::utc_to_local( putc );
+		std::ostringstream o;
+		o << boost::posix_time::to_simple_string( lt );
+		o << " " << std::fixed << std::setw(7) << std::setfill('0') << std::setprecision(3) << double( usec ) / 1000.0;
+		return o.str();
+	} catch ( std::exception& ex ) {
+		adportable::debug(__FILE__, __LINE__) << "exception: " << ex.what();
+		assert(0);
+	}
+	return "date_string::utc_to_localtime_string - conversion error";
 }

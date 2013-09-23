@@ -32,8 +32,6 @@
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
 #include <adportable/debug.hpp>
-// #include <adinterface/eventlog_helper.hpp>
-#include <acewrapper/timeval.hpp>
 #include <qtwrapper/qstring.hpp>
 
 #include <boost/variant.hpp>

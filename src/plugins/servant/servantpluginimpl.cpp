@@ -24,7 +24,7 @@
 **************************************************************************/
 
 #include <acewrapper/constants.hpp>
-#include <acewrapper/timeval.hpp>
+#include <adportable/date_string.hpp>
 #include <adinterface/eventlog_helper.hpp>
 #include <adplugin/manager.hpp>
 #include <adportable/debug.hpp>
@@ -136,7 +136,7 @@ Receiver_i::log( const EventLog::LogMessage& log )
     using namespace adinterface::EventLog;
 
     std::wstring text = LogMessageHelper::toString( log );
-    QString qtext = acewrapper::to_string( log.tv.sec, log.tv.usec ).c_str();
+    QString qtext = adportable::date_string::utc_to_localtime_string( log.tv.sec, log.tv.usec ).c_str();
     qtext += "\t: ";
     qtext += qtwrapper::qstring::copy( text );
 

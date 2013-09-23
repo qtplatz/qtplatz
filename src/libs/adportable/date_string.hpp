@@ -25,6 +25,7 @@
 #pragma once
 
 #include <string>
+#include <ctime>
 
 namespace boost { namespace gregorian { class date; } }
 
@@ -33,6 +34,7 @@ namespace adportable {
     class date_string {
     public:
         static std::string string( const boost::gregorian::date& dt, const char * fmt = "%Y-%m-%d" );
+        static std::string utc_to_localtime_string( time_t utc, unsigned usec );
     };
 
 }
