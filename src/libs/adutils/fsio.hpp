@@ -37,6 +37,10 @@ namespace adcontrols {
 	class PeakResult;
 }
 
+namespace adinterface {
+    class Method;
+}
+
 namespace adfs { class filesystem; class folder; class file; }
 
 namespace adutils {
@@ -64,6 +68,9 @@ namespace adutils {
         static bool save_mscalibfile( adfs::filesystem&, const adcontrols::MassSpectrum& );
         static bool load_mscalibfile( adfs::filesystem&, adcontrols::MSCalibrateResult& );
         static bool load_mscalibfile( adfs::filesystem&, adcontrols::MassSpectrum& );
+
+        static bool save( adfs::filesystem&, const adinterface::Method&, const std::wstring& id, const std::wstring& folder );
+        static bool load( adfs::filesystem&, adinterface::Method&, const std::wstring& id, const std::wstring& folder );
     };
 
 }

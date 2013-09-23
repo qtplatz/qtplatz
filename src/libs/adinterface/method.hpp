@@ -95,6 +95,8 @@ namespace adinterface {
     
     class Method {
     public:
+        static const wchar_t * dataClass() { return L"adinterface::Method"; }
+
         class Line {
         public:
             std::wstring modelname;

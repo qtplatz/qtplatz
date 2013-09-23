@@ -32,8 +32,6 @@
 
 namespace adutils {
 
-
-
     template<class T> class adfsio {
 
     public:
@@ -51,8 +49,10 @@ namespace adutils {
         static bool write( adfs::folder& folder, const T& t, const std::wstring& file_name ) {
             adfs::file file = folder.addFile( file_name );
             std::string device;
-            if ( adportable::serializer< T >::serialize( t, device ) )
+            if ( adportable::serializer< T >::serialize( t, device ) ) {
+                file.dataClass( T::dataClass() );
                 return file.write( device.size(), device.data() ) == device.size();
+            }
             return false;
         }
     };

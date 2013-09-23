@@ -30,6 +30,7 @@
 #include <adcontrols/msreferences.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibration.hpp>
+#include <adinterface/method.hpp>
 
 using namespace adutils;
 
@@ -111,5 +112,21 @@ bool
 fsio::load_mscalibfile( adfs::filesystem& fs, adcontrols::MassSpectrum& ms )
 {
     return load( fs, ms, ms.dataClass(), L"/MSCalibration" );
+}
+
+bool
+fsio::save( adfs::filesystem& fs, const adinterface::Method& t, const std::wstring& id, const std::wstring& folder_name)
+{
+    adfs::folder folder = fs.addFolder( folder_name );
+    return adfsio< adinterface::Method >::write( folder, t, id );
+}
+
+bool
+fsio::load( adfs::filesystem& fs, adinterface::Method& t, const std::wstring& id, const std::wstring& folder_name )
+{
+    adfs::folder folder = fs.findFolder( folder_name );
+    if ( folder.files().empty() )
+        return false;
+    return adfsio< adinterface::Method >::read( folder, t, id );
 }
 
