@@ -52,12 +52,16 @@ rawdata::~rawdata()
 
 rawdata::rawdata( adfs::filesystem& dbf ) : dbf_( dbf )
                                           , npos0_( 0 )
+                                          , configLoaded_( false )
 {
 }
 
 bool
 rawdata::loadAcquiredConf()
 {
+    if ( configLoaded_ )
+        return true;
+
     conf_.clear();
 
     adfs::stmt sql( dbf_.db() );
@@ -100,7 +104,8 @@ rawdata::loadAcquiredConf()
             }
         }
     }
-    
+
+    configLoaded_ = true;
     return true;
 }
 
@@ -135,9 +140,12 @@ rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms ) const
             if ( sql.step() == adfs::sqlite_row )
                 npos = boost::get< boost::int64_t >(sql.column_value( 0 ));
         }
-		return fetchSpectrum( it->objid, it->dataInterpreterClsid, npos, ms );
+        adcontrols::translate_state state;
+        while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms ) )
+                == adcontrols::translate_indeterminate )
+            ;
+        return state == adcontrols::translate_complete;
     }
-
     return false;
 }
 
@@ -313,7 +321,7 @@ rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, a
 }
 
 // private
-bool
+adcontrols::translate_state
 rawdata::fetchSpectrum( int64_t objid
                         , const std::wstring& dataInterpreterClsid
                         , uint64_t npos, adcontrols::MassSpectrum& ms ) const
@@ -349,12 +357,10 @@ rawdata::fetchSpectrum( int64_t objid
                     blob.read( reinterpret_cast< int8_t *>( xmeta.data() ), blob.size() );
             }
             size_t idData = 0;
-            interpreter.translate( ms, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), spectrometer, idData++ );
-            return true;
+            return interpreter.translate( ms, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), spectrometer, idData++ );
         }
     }
-
-    return false;
+    return adcontrols::translate_error;
 }
 
 rawdata::AcquiredConf::AcquiredConf() : objid( 0 )

@@ -35,6 +35,7 @@ namespace adcontrols {
     class MassSpectrum;
     class ProcessedDataset;
 	class TraceAccessor;
+    enum translate_state : int;
 }
 
 namespace addatafile {
@@ -81,14 +82,14 @@ namespace addatafile {
 
     private:
         bool fetchTraces( int64_t objid, const std::wstring& clsid, adcontrols::TraceAccessor& );
-        bool fetchSpectra( int64_t objid, const std::wstring& clsid, uint64_t npos, adcontrols::MassSpectrum& ) const;
-        bool fetchSpectrum( int64_t objid, const std::wstring& clsid, uint64_t npos, adcontrols::MassSpectrum& ) const;
+        adcontrols::translate_state fetchSpectrum( int64_t objid, const std::wstring& clsid, uint64_t npos, adcontrols::MassSpectrum& ) const;
         bool readCalibration( uint32_t objid, std::wstring& dataClass, std::vector< char >& device, uint64_t& rev ) const;
 
         adfs::filesystem& dbf_;
         std::vector< AcquiredConf > conf_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
         uint64_t npos0_;
+        bool configLoaded_;
     };
 
 }
