@@ -28,6 +28,7 @@
 #include <memory>
 #include <boost/filesystem.hpp>
 #include <boost/asio.hpp>
+#include <atomic>
 
 namespace adfs { class filesystem; class file; }
 namespace SignalObserver { struct DataReadBuffer; class Observer; }
@@ -42,6 +43,8 @@ namespace adcontroller {
         void prepare_storage( SignalObserver::Observer * );
         void handle_data( unsigned long objId, long pos, const SignalObserver::DataReadBuffer& );
         boost::asio::io_service::strand& strand() { return strand_; }
+        void pos_front( unsigned int pos, unsigned long objId );
+        void stop_triggered();
         
     private:
 		void create_acquireddata_table();
@@ -55,6 +58,9 @@ namespace adcontroller {
 		bool inProgress_;
         size_t myId_;
         boost::asio::io_service::strand strand_;
+        std::atomic<unsigned long> objId_front_;
+        std::atomic<unsigned int> pos_front_;
+        std::atomic< bool > stop_triggered_;
     };
 
 }

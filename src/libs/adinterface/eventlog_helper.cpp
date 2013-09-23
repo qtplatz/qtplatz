@@ -73,11 +73,9 @@ LogMessageHelper::LogMessageHelper( const std::wstring& format
                                     , const std::wstring& srcId )
 {
 	msg_.priority = pri;
-	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-	msg_.tv.sec = std::chrono::system_clock::to_time_t( now );
-	std::chrono::system_clock::time_point sec = std::chrono::system_clock::from_time_t( msg_.tv.sec );
-	auto usec = std::chrono::duration_cast< std::chrono::microseconds >( now - sec );
-	msg_.tv.usec = static_cast< uint32_t >( usec.count() );
+	auto duration = std::chrono::system_clock::now().time_since_epoch();
+	msg_.tv.sec = time_t( std::chrono::duration_cast< std::chrono::seconds >(duration).count() );
+	msg_.tv.usec = long( std::chrono::duration_cast< std::chrono::microseconds >( duration ).count() - (msg_.tv.sec * 1000000) );
 
     if ( ! msgId.empty() )
         msg_.msgId = CORBA::wstring_dup( msgId.c_str() );

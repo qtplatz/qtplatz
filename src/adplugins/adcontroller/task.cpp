@@ -369,7 +369,7 @@ iTask::handle_observer_update_data( unsigned long parentId, unsigned long objId,
         std::lock_guard< std::mutex > lock( mutex_ );
 
         for ( auto q: queue_ ) {
-            // handle_data( objId, pos, rp );
+            q->pos_front( pos, objId );
             q->strand().post( std::bind(&SampleProcessor::handle_data, q, objId, pos, rp ) ); // iTask::io_service
         }
 
@@ -451,6 +451,7 @@ void
 iTask::handle_start_run()
 {
     adportable::debug(__FILE__, __LINE__) << "######################### handle_start_run...";
+    Logging( L"handle start run" );
 
     std::lock_guard< std::mutex > lock( mutex_ );
 	
@@ -481,11 +482,13 @@ iTask::handle_stop_run()
         proxy->stopRun();
 
     adportable::debug(__FILE__, __LINE__) << "######################### handle_stop_run...";
+    Logging( L"handle stop run" );
 
     std::lock_guard< std::mutex > lock( mutex_ );
 
     if ( !queue_.empty() ) {
         adportable::debug(__FILE__, __LINE__) << "handle_stop_run remove one sample-processor";
+        queue_.front()->stop_triggered();
         queue_.pop_front();
     }
 

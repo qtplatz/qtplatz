@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "sampleprocessor.hpp"
+#include "logging.hpp"
 #include <adinterface/signalobserverC.h>
 #include <adfs/filesystem.hpp>
 #include <adfs/file.hpp>
@@ -43,6 +44,8 @@ static size_t __nid__;
 SampleProcessor::~SampleProcessor()
 {
     fs_->close();
+	Logging( L"Sample %1% closed in file '%2%'.", EventLog::pri_INFO ) % storage_name_.stem() % storage_name_.wstring();
+
     adportable::debug(__FILE__, __LINE__) << "SampleProcessor:: -- DTOR -- ";
 }
 
@@ -50,6 +53,9 @@ SampleProcessor::SampleProcessor( boost::asio::io_service& io_service ) : fs_( n
                                                                         , inProgress_( false )
                                                                         , myId_( __nid__++ )
                                                                         , strand_( io_service )
+                                                                        , pos_front_( 0 )
+                                                                        , objId_front_( 0 )
+                                                                        , stop_triggered_( false )
 {
 }
 
@@ -100,6 +106,25 @@ SampleProcessor::prepare_storage( SignalObserver::Observer * masterObserver )
 	
 	populate_descriptions( masterObserver );
     populate_calibration( masterObserver );
+
+	Logging( L"Sample processor '%1%' is ready to run.", EventLog::pri_INFO ) % storage_name_.wstring();
+}
+
+void
+SampleProcessor::stop_triggered()
+{
+    stop_triggered_ = true;
+}
+
+void
+SampleProcessor::pos_front( unsigned int pos, unsigned long objId )
+{
+    if ( pos > pos_front_ ) {
+		adportable::debug(__FILE__, __LINE__) << "pos_front: " << pos << " obj=" << objId;
+        // keep largest pos and it's objId
+        pos_front_ = pos;
+        objId_front_ = objId;
+    }
 }
 
 void
@@ -108,8 +133,11 @@ SampleProcessor::handle_data( unsigned long objId, long pos
 {
     adportable::debug(__FILE__, __LINE__) << "ID: " << myId_ << " handle_data(" << objId << ", " << pos << ")";
 
-    if ( rdBuf.events & SignalObserver::wkEvent_INJECT )
+    if ( rdBuf.events & SignalObserver::wkEvent_INJECT ) {
+        if ( ! inProgress_ )
+            Logging( L"Sample '%1%' got an INJECTION", EventLog::pri_INFO ) % storage_name_.wstring();
 		inProgress_ = true;
+    }
 
 	if ( ! inProgress_ ) 
 		return;
@@ -128,6 +156,14 @@ SampleProcessor::handle_data( unsigned long objId, long pos
 		sql.commit();
 	else
 		sql.reset();
+
+    if ( objId == objId_front_ && pos_front_ > unsigned( pos + 10 ) ) {
+        size_t nBehind = pos_front_ - pos;
+        if ( stop_triggered_ && ( nBehind % 5 == 0 ) )
+            Logging( L"'%1%' is being closed.  Saving %2% more data in background.", EventLog::pri_INFO ) % storage_name_.stem() % nBehind;
+        else if ( nBehind % 25 == 0 )
+            Logging( L"Sample '%1%' %2% data behind.", EventLog::pri_INFO ) % storage_name_.stem() % nBehind;
+    }
 }
 
 void
@@ -187,8 +223,6 @@ void
 SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
 {
     SignalObserver::Observers_var vec = parent->getSiblings();
-
-    size_t n = vec->length();
 
     if ( ( vec.ptr() != 0 ) && ( vec->length() > 0 ) ) {
         
