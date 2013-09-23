@@ -45,20 +45,21 @@ namespace fticr {
 		datafile();
 
 		//--------- implement adcontrols::datafile ----------------
-		virtual void accept( adcontrols::dataSubscriber& );
-		virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const;
-		virtual adcontrols::datafile::factory_type factory();
-		virtual size_t getFunctionCount() const;
-		virtual size_t getSpectrumCount( int fcn = 0 ) const;
-		virtual size_t getChromatogramCount() const;
-		virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const;
-		virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const;
-        virtual size_t posFromTime( double ) const;
+		virtual void accept( adcontrols::dataSubscriber& ) override;
+		virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
+		virtual adcontrols::datafile::factory_type factory() override;
+		virtual size_t getFunctionCount() const override;
+		virtual size_t getSpectrumCount( int fcn = 0 ) const override;
+		virtual size_t getChromatogramCount() const override;
+		virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
+		virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const override;
+        virtual size_t posFromTime( double ) const override;
 		bool getChromatograms( int /* fcn */, const std::vector< std::pair<double, double> >&
 			                         , std::vector< adcontrols::Chromatogram >&
 									 , std::function< bool (long curr, long total ) > progress
 									 , int begPos = 0
 									 , int endPos = (-1) ) const override { (void)begPos; (void)endPos; return false; }
+		bool hasProcessedSpectrum( int /* fcn */, int /* idx */) const override { return false; }
 		//<-------------------------------------
 		bool _open( const std::wstring&, bool );
 		static bool is_valid_datafile( const std::wstring& );

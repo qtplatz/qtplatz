@@ -52,6 +52,7 @@ namespace adcontrols {
 									 , int begPos = 0
 									 , int endPos = (-1) ) const = 0;
 		virtual bool getCalibration( int, MSCalibrateResult&, MassSpectrum& ) const { return false; }
+		virtual bool hasProcessedSpectrum( int /* fcn */, int /* idx */) const { return false; } // compassXpress return true for centroid result
 	};
 
 }

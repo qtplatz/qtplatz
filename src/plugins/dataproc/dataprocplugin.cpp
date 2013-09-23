@@ -359,7 +359,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 				// add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
 				if ( folium ) {
                     bool hasCentroid( false );
-                    if ( pos1 == pos2 && dset->getFunctionCount() >= 2 ) {
+                    if ( pos1 == pos2 && dset->hasProcessedSpectrum( 0, pos1 ) ) {
                         adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
                         if ( dset->getSpectrum( 1, pos1, *pCentroid ) ) {
                             hasCentroid = true;

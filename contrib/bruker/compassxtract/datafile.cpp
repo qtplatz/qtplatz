@@ -140,6 +140,12 @@ datafile::getChromatogramCount() const
 	return 0;
 }
 
+bool
+datafile::hasProcessedSpectrum( int /* fcn */, int /* idx */) const
+{ 
+	return true;
+}
+
 #if defined _MSC_VER
 # pragma warning(disable:4482)
 #endif
