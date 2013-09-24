@@ -27,6 +27,7 @@
 
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/datainterpreter.hpp>
 #include <adfs/adfs.hpp>
 #include <memory>
 
@@ -35,7 +36,6 @@ namespace adcontrols {
     class MassSpectrum;
     class ProcessedDataset;
 	class TraceAccessor;
-    enum translate_state : int;
 }
 
 namespace addatafile {
