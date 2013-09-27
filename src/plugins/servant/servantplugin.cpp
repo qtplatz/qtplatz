@@ -23,10 +23,6 @@
 **
 **************************************************************************/
 
-#if defined __GNUC__
-#define _GLIBCXX_USE_NANOSLEEP
-#endif
-
 #include "servantplugin.hpp"
 #include "servantmode.hpp"
 #include "logger.hpp"
@@ -44,7 +40,6 @@
 #include <extensionsystem/pluginmanager.h>
 
 #include <acewrapper/constants.hpp>
-//#include <acewrapper/brokerhelper.hpp>
 
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
@@ -132,14 +127,14 @@ ServantPlugin::~ServantPlugin()
 {
     final_close();
     delete pImpl_;
-    ACE::fini();
+    // ACE::fini();
     instance_ = 0;
 }
 
 ServantPlugin::ServantPlugin() : pImpl_( 0 )
 {
     instance_ = this;
-    ACE::init();
+    // ACE::init();
 }
 
 ServantPlugin *
