@@ -26,10 +26,8 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include "metricprefix.hpp"
 #include <utility>
 #include <boost/serialization/nvp.hpp>
-#include <cmath>
 
 namespace adcontrols {
 

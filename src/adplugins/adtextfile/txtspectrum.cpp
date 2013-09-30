@@ -26,7 +26,6 @@
 #include <compiler/disable_unused_parameter.h>
 
 #include "txtspectrum.hpp"
-#include <adcontrols/metricprefix.hpp>
 #include <adportable/string.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -75,6 +74,7 @@ TXTSpectrum::TXTSpectrum()
 bool
 TXTSpectrum::load( const std::wstring& name )
 {
+	bool hasMass( false );
 	boost::filesystem::path path( name );
 
 	boost::filesystem::ifstream in( path );
@@ -104,8 +104,6 @@ TXTSpectrum::load( const std::wstring& name )
 			}
 		}
 	}
-    (void)numSamples;
-    (void)numTurns;
 	
     do {
         double values[3];
@@ -122,6 +120,7 @@ TXTSpectrum::load( const std::wstring& name )
 				timeArray.push_back( values[ 0 ] );
 				intensArray.push_back( values[ 1 ] );
 			} else if ( i == 3 ) {
+				hasMass = true;
                 timeArray.push_back( values[ 0 ] );
                 massArray.push_back( values[ 1 ] );
                 intensArray.push_back( values[ 2 ] );
@@ -244,8 +243,8 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
         ms.setMassArray( massArray.data() + idx );
     } else {
         // todo: add UD dialog box to ask those values
-        double t1 = adcontrols::metric_prefix<double>( timeArray.front(), adcontrols::metric::basic, adcontrols::metric::micro );
-        double t2 = adcontrols::metric_prefix<double>( timeArray.back(),  adcontrols::metric::basic, adcontrols::metric::micro );
+        double t1 = timeArray.front();
+        double t2 = timeArray.back();
         double m1 = 500;
         double m2 = 800;
         
@@ -257,16 +256,16 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
         coeffs.push_back( b );
         
         adcontrols::MSCalibration calib;
-        calib.coeffs( coeffs, adcontrols::metric::micro );
+        calib.coeffs( coeffs );
         
 		// massArray.resize( size );
         std::pair< double, double > error;
         for ( size_t i = 0; i < ms.size(); ++i ) {
-            // double m_sqrt = adcontrols::MSCalibration::compute( calib.coeffs(), ms.getTime( i ) );
-            double mz = calib.compute_mass( ms.getTime( i, adcontrols::metric::micro ), adcontrols::metric::micro );
+            double m_sqrt = adcontrols::MSCalibration::compute( calib.coeffs(), ms.getTime( i ) );
+            double mz = m_sqrt * m_sqrt;
             ms.setMass( i, mz );
         }
-        ms.setCalibration( calib );
+        ms.setCalibration( coeffs );
     }
     return ms.size();
 }

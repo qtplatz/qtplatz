@@ -26,12 +26,10 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include "metricprefix.hpp"
 
 #include <boost/any.hpp>
 #include <string>
 #include <memory>
-
 
 namespace boost {
     namespace serialization {
@@ -50,7 +48,7 @@ namespace adcontrols {
 
     class MassSpectrum;
 
-    typedef std::shared_ptr<MassSpectrum> MassSpectrumPtr;
+    typedef std::shared_ptr<MassSpectrum> MassSpectrumPtr;   
 
     enum MS_POLARITY { PolarityIndeterminate
                        , PolarityPositive = (1)
@@ -92,21 +90,20 @@ namespace adcontrols {
         const double * getMassArray() const;
         const double * getIntensityArray() const;
         const double * getTimeArray() const;
-        size_t compute_profile_time_array( double *, size_t, metric::prefix ) const;
+        size_t compute_profile_time_array( double *, size_t ) const;
         
         void setMass( size_t idx, double mass );
         void setIntensity( size_t idx, double intensity );
-        void setTime( size_t idx, double time, metric::prefix );
+        void setTime( size_t idx, double time );
         void setColor( size_t idx, unsigned char color );
         void setAcquisitionMassRange( double, double );
         void setMassArray( const double *, bool setRange = false );
         void setIntensityArray( const double * );
-        void setTimeArray( const double *, metric::prefix );
+        void setTimeArray( const double * );
         const unsigned char * getColorArray() const;
 		void setColorArray( const unsigned char * );
         bool isCentroid() const;
         void setCentroid( CentroidAlgorithm );
-        metric::prefix time_prefix() const;
         
         MS_POLARITY polarity() const;
         void setPolarity( MS_POLARITY );
@@ -124,7 +121,7 @@ namespace adcontrols {
         double getMaxIntensity() const;
         double getMass( size_t idx ) const;
         double getIntensity( size_t idx ) const;
-        double getTime( size_t idx, metric::prefix ) const;
+        double getTime( size_t idx ) const;
 		int getColor( size_t idx ) const;
     
         void addDescription( const Description& );

@@ -26,12 +26,15 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include "metricprefix.hpp"
 #include <string>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/tuple/tuple.hpp>
+
+//#include <boost/fusion/container.hpp>
+//#include <boost/fusion/algorithm.hpp>
 
 #include "mscalibration.hpp"
 
@@ -50,7 +53,7 @@ namespace adcontrols {
         size_t numAverage() const;
         void setNumAverage( size_t );
 
-        double time( size_t pos, metric::prefix prefix ); // return flight time for data[pos] in seconds
+        double time( size_t pos ); // return flight time for data[pos] in seconds
 
         uint32_t instSamplingInterval() const; // ps
         void setInstSamplingInterval( uint32_t ); // ps
@@ -91,9 +94,10 @@ namespace adcontrols {
 
         };
 
+        // static std::vector<SamplingInfo>::const_iterator findSamplingInfo( size_t idx, const std::vector<SamplingInfo>& segments );
+        // static double toSeconds( size_t idx, const std::vector<SamplingInfo>& segments );
         static double toSeconds( size_t idx, const SamplingInfo& info );
-        static double to_time( size_t idx, const SamplingInfo& info, metric::prefix );
-        static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments, metric::prefix  );
+        static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments );
 
     private:
         uint32_t time_since_injection_; // msec
@@ -101,6 +105,9 @@ namespace adcontrols {
         uint32_t instNumAvrg_;
         uint32_t instSamplingStartDelay_;
         uint32_t instSamplingInterval_; // ps
+#if defined _MSC_VER
+# pragma warning( disable: 4251 )
+#endif
         SamplingInfo samplingData_;
         std::pair< double, double > instMassRange_;
 

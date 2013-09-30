@@ -77,7 +77,7 @@ assign_masses::operator()( adcontrols::MSAssignedMasses& assignedMasses
                                                  , idx            // idMassSpectrum (index on centroid peak)
                                                  , it->display_formula()
                                                  , it->exact_mass()
-                                                 , centroid.getTime( idx, adcontrols::metric::micro )
+                                                 , centroid.getTime( idx )
                                                  , masses[ idx ]
                                                  , it->enable()
                                                  , false          // flags

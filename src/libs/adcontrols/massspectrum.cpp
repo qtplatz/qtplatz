@@ -29,7 +29,6 @@
 #include "msproperty.hpp"
 #include "annotations.hpp"
 #include "massspectra.hpp"
-#include "metricprefix.hpp"
 #include <adportable/array_wrapper.hpp>
 
 #include <boost/serialization/nvp.hpp>
@@ -55,7 +54,6 @@
 #include <map>
 
 namespace adcontrols {
-
     namespace internal {
 
        class MassSpectrumImpl {
@@ -75,7 +73,7 @@ namespace adcontrols {
            inline CentroidAlgorithm getCentroidAlgorithm() const { return algo_; }
            inline const std::pair<double, double>& getAcquisitionMassRange() const { return acqRange_; }
            void setAcquisitionMassRange( double min, double max ) { acqRange_.first = min; acqRange_.second = max; }
-           void setTimeArray( const double *, metric::prefix );
+           void setTimeArray( const double * );
            void setMassArray( const double *, bool setrange );
            void setIntensityArray( const double * );
            void setColorArray( const unsigned char * );
@@ -106,16 +104,16 @@ namespace adcontrols {
            MSCalibration calibration_;
            MSProperty property_;
            annotations annotations_;
-           metric::prefix time_prefix_;  // micro after MassSpectrum class V3
+
            std::vector< double > tofArray_;
            std::vector< double > massArray_;
            std::vector< double > intsArray_;
            std::vector< unsigned char > colArray_;
 
            std::pair<double, double> acqRange_;
-           int64_t timeSinceInjTrigger_; // usec
-           int64_t timeSinceFirmwareUp_; // usec
-           uint32_t numSpectrumSinceInjTrigger_;
+           long long timeSinceInjTrigger_; // usec
+           long long timeSinceFirmwareUp_; // usec
+           unsigned long numSpectrumSinceInjTrigger_;
            std::string uuid_; // out of serialization scope
            std::vector< MassSpectrum > vec_;
 	    
@@ -135,10 +133,6 @@ namespace adcontrols {
                    & BOOST_SERIALIZATION_NVP(tofArray_)
                    & BOOST_SERIALIZATION_NVP(colArray_)
                    & BOOST_SERIALIZATION_NVP( annotations_ );
-               if ( version >= 3 )
-                   ar & BOOST_SERIALIZATION_NVP( time_prefix_ );
-               else
-                   time_prefix_ = metric::basic;  // used be fixed to 'seconds' that cause computation error
                if ( version >= 2 ) {
                    ar & BOOST_SERIALIZATION_NVP( vec_ );
                }
@@ -147,7 +141,7 @@ namespace adcontrols {
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 3 )
+BOOST_CLASS_VERSION( adcontrols::internal::MassSpectrumImpl, 2 )
 
 ///////////////////////////////////////////
 
@@ -220,12 +214,6 @@ MassSpectrum::setCentroid( CentroidAlgorithm algo )
     return pImpl_->setCentroid( algo );
 }
 
-metric::prefix
-MassSpectrum::time_prefix() const
-{
-    return pImpl_->time_prefix_;
-}
-
 void
 MassSpectrum::setPolarity( MS_POLARITY polarity )
 {
@@ -275,15 +263,13 @@ MassSpectrum::getIntensity( size_t idx ) const
 }
 
 double
-MassSpectrum::getTime( size_t idx, metric::prefix prefix ) const
+MassSpectrum::getTime( size_t idx ) const
 {
     if ( idx < pImpl_->size() ) {
         const double * p = pImpl_->getTimeArray();
         if ( p )
-            return metric_prefix<double>( p[idx], pImpl_->time_prefix_, prefix );
-        
-        // if data has no time array, compute from acquisition method
-        return MSProperty::to_time( idx, pImpl_->getMSProperty().getSamplingInfo(), prefix );
+            return p[ idx ];
+        return MSProperty::toSeconds( idx, pImpl_->getMSProperty().getSamplingInfo() );
     }
     return 0;
 }
@@ -296,13 +282,12 @@ MassSpectrum::setIntensity( size_t idx, double intensity )
 }
 
 void
-MassSpectrum::setTime( size_t idx, double time, metric::prefix prefix )
+MassSpectrum::setTime( size_t idx, double time )
 {
     if ( pImpl_->tofArray_.empty() )
         pImpl_->tofArray_.resize( pImpl_->size() );
-
     if ( idx < pImpl_->size() )
-        const_cast< double * >( pImpl_->getTimeArray() )[idx] = metric_prefix<double>( time, prefix, metric::micro );
+        const_cast<double *>( pImpl_->getTimeArray() )[idx] = time;
 }
 
 const double *
@@ -312,7 +297,7 @@ MassSpectrum::getTimeArray() const
 }
 
 size_t
-MassSpectrum::compute_profile_time_array( double * p, size_t size, metric::prefix prefix ) const
+MassSpectrum::compute_profile_time_array( double * p, size_t size ) const
 {
     if ( pImpl_->getTimeArray() ) {
         size_t i;
@@ -320,7 +305,7 @@ MassSpectrum::compute_profile_time_array( double * p, size_t size, metric::prefi
             *p++ = getTimeArray()[ i ];
         return i;
     }
-    return MSProperty::compute_profile_time_array( p, size, pImpl_->getMSProperty().getSamplingInfo(), prefix );
+    return MSProperty::compute_profile_time_array( p, size, pImpl_->getMSProperty().getSamplingInfo() );
 }
 
 void
@@ -342,9 +327,9 @@ MassSpectrum::setIntensityArray( const double * values )
 }
 
 void
-MassSpectrum::setTimeArray( const double * values, metric::prefix prefix )
+MassSpectrum::setTimeArray( const double * values )
 {
-    pImpl_->setTimeArray( values, prefix );
+   pImpl_->setTimeArray( values );
 }
 
 const unsigned char *
@@ -401,9 +386,10 @@ MassSpectrum::setCalibration( const MSCalibration& calib, bool assignMasses )
     pImpl_->setCalibration( calib );
     if ( assignMasses ) {
         for ( size_t i = 0; i < pImpl_->size(); ++i ) {
-            double tof = getTime( i, calib.time_prefix() );
-            double mass = calib.compute_mass( tof, calib.time_prefix() );
-            setMass( i, mass );
+            double tof = getTime( i );
+            double mq = MSCalibration::compute( calib.coeffs(), tof );
+            if ( mq > 0.0 )
+                setMass( i, mq * mq );
         }
     }
 }
@@ -611,7 +597,6 @@ MassSpectrumImpl::~MassSpectrumImpl()
 
 MassSpectrumImpl::MassSpectrumImpl() : algo_(CentroidNone)
 				                     , polarity_(PolarityIndeterminate)
-                                     , time_prefix_( metric::micro )
                                      , timeSinceInjTrigger_(0)
                                      , timeSinceFirmwareUp_(0)
                                      , numSpectrumSinceInjTrigger_(0)
@@ -632,7 +617,6 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 	descriptions_ = t.descriptions_;
     calibration_ = t.calibration_;
     property_ = t.property_;
-    time_prefix_ = t.time_prefix_;
 
 	if ( deep ) {
 		tofArray_ = t.tofArray_;
@@ -654,22 +638,11 @@ MassSpectrumImpl::clone( const MassSpectrumImpl& t, bool deep )
 }
 
 void
-MassSpectrumImpl::setTimeArray( const double * p, metric::prefix prefix )
+MassSpectrumImpl::setTimeArray( const double * p )
 {
 	if ( tofArray_.size() != size() )
 		tofArray_.resize( size() );
-
-    if ( prefix == time_prefix_ ) {
-
-        std::copy( p, p + size(), tofArray_.begin() );
-
-    } else {
-
-        double * d = tofArray_.data();
-        for ( size_t i = 0; i < size(); ++i )
-            *d++ = metric_prefix( *p++, prefix, time_prefix_ );
-
-    }
+	memcpy(&tofArray_[0], p, sizeof(double) * size() );
 }
 
 void

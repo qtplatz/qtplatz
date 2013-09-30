@@ -33,7 +33,6 @@
 #include "mspeakinfoitem.hpp"
 #include "description.hpp"
 #include "waveform.hpp"
-#include "metricprefix.hpp"
 #include <adportable/spectrum_processor.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/moment.hpp>
@@ -83,8 +82,8 @@ namespace adcontrols {
             timeFunctor( const adcontrols::MassSpectrum& profile )
                 : info( profile.getMSProperty().getSamplingInfo() ) {
             }
-            double operator ()( int pos, metric::prefix prefix ) { 
-                return adcontrols::MSProperty::to_time( pos, info, prefix );
+            double operator ()( int pos ) { 
+                return adcontrols::MSProperty::toSeconds( pos, info );
             }
         };
         
@@ -140,10 +139,12 @@ CentroidProcess::getCentroidSpectrum( MassSpectrum& ms )
         ms.setCentroid( adcontrols::CentroidPeakAreaWaitedMass );
 		bool is_area = pImpl_->method().centroidAreaIntensity();
 
+        // std::pair<double, double> mrange = ms.getAcquisitionMassRange();
+
         for ( size_t i = 0; i < nSize; ++i ) {
 			ms.setIntensity( i, is_area ? pImpl_->info_[i].area() : pImpl_->info_[i].height() );
             ms.setMass( i, pImpl_->info_[i].mass() );
-            ms.setTime( i, pImpl_->info_[i].time( metric::micro ), metric::micro );
+            ms.setTime( i, pImpl_->info_[i].time() );
         }
         return true;
     }
@@ -241,7 +242,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
             adportable::Moment< adportable::massArrayFunctor > moment( mass_array );
             double mass = moment.centerX( profile.getIntensityArray(), threshold, pk.first, idx, pk.second );
 
-            // if centroid mass is outside of peak start - end, it should not be added to result
+            // if centroid mass is outside of peak start - end, it should not added into result
             if ( masses[ pk.first ] < mass && mass < masses[ pk.second ] ) {
                 pk.mass = mass;
                 pk.width = moment.width( profile.getIntensityArray(), pk.base + h * 0.5, pk.first, idx, pk.second ); // half-height
@@ -252,15 +253,14 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 
                 // assert( masses[ index ] < mass && mass < masses[ index + 1 ] );
 
-                double t0 = profile.getTime( index, metric::micro );
-                double td = metric_prefix<double>( double( profile.getMSProperty().instSamplingInterval() ), metric::pico, metric::micro );
-
+                double t0 = profile.getTime( index );
+                double td = profile.getMSProperty().instSamplingInterval() * 1e-12;
                 pk.time = t0 + td * ( mass - masses[ index ] ) / ( masses[ index + 1 ] - masses[ index ] );
 
 #if defined _DEBUG
                 // centroid by time
                 timeFunctor functor( profile );
-                adportable::Moment< timeFunctor > time_moment( functor, metric::micro );
+                adportable::Moment< timeFunctor > time_moment( functor );
                 double time = time_moment.centerX( profile.getIntensityArray(), threshold, pk.first, idx, pk.second );
 
                 double difference = std::abs( time - pk.time );
@@ -268,7 +268,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                     toferror = difference;
 #endif
                 // prepare resutl
-                MSPeakInfoItem item( idx, pk.mass, a, h, pk.width, pk.time, metric::micro );
+                MSPeakInfoItem item( idx, pk.mass, a, h, pk.width, pk.time );
                 item.peak_start_index( pk.first );
                 item.peak_end_index( pk.second );
                 item.base_height( pk.base );

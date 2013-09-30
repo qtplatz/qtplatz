@@ -24,7 +24,6 @@
 **************************************************************************/
 
 #include "mspeakinfoitem.hpp"
-#include "metricprefix.hpp"
 
 using namespace adcontrols;
 
@@ -40,26 +39,23 @@ MSPeakInfoItem::MSPeakInfoItem(void) : peak_index_( 0 )
                                      , area_(0)
                                      , height_(0)
                                      , hh_(0)  
-                                     , time_prefix_( metric::micro )
 {
 }
 
 MSPeakInfoItem::MSPeakInfoItem( unsigned int peak_index
-                                , double mass
-                                , double area
-                                , double height
-                                , double hh
-                                , double time
-                                , metric::prefix prefix ) : peak_index_( peak_index )
-                                                          , peak_start_index_( 0 )
-                                                          , peak_end_index_( 0 )
-                                                          , base_( 0 )
-                                                          , mass_(mass)
-                                                          , area_(area)
-                                                          , height_(height)
-                                                          , hh_( hh )
-                                                          , time_( time ) 
-                                                          , time_prefix_( prefix )
+                               , double mass
+                               , double area
+                               , double height
+                               , double hh
+                               , double time ) : peak_index_( peak_index )
+                                               , peak_start_index_( 0 )
+                                               , peak_end_index_( 0 )
+                                               , base_( 0 )
+                                               , mass_(mass)
+                                               , area_(area)
+                                               , height_(height)
+                                               , hh_( hh )
+                                               , time_( time ) 
 {
 }  
 
@@ -72,7 +68,6 @@ MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t ) : peak_index_( t.peak_
                                                           , height_( t.height_ )
                                                           , hh_( t.hh_ )
                                                           , time_( t.time_ ) 
-                                                          , time_prefix_( t.time_prefix_ )
 {
 }  
 
@@ -143,7 +138,7 @@ MSPeakInfoItem::widthHH() const
 }
 
 double
-MSPeakInfoItem::time( metric::prefix prefix ) const
+MSPeakInfoItem::time() const
 {
-    return metric_prefix<double>( time_, time_prefix_, prefix );
+    return time_;
 }

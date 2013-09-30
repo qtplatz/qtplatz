@@ -26,22 +26,20 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include "metricprefix.hpp"
 
 namespace adcontrols {
-
 
     class ADCONTROLSSHARED_EXPORT MSPeakInfoItem {
     public:
         ~MSPeakInfoItem(void);
         MSPeakInfoItem(void);
         MSPeakInfoItem( const MSPeakInfoItem& );
-        MSPeakInfoItem( unsigned int peak_index, double mass, double area, double height, double hh, double time, metric::prefix );
+        MSPeakInfoItem( unsigned int peak_index, double mass, double area, double height, double hh, double time );
         double mass() const;
         double area() const;
         double height() const;
         double widthHH() const;
-        double time( metric::prefix ) const;
+        double time() const;
         unsigned int peak_index() const;
         void peak_index( int );
         unsigned int peak_start_index() const;
@@ -50,7 +48,6 @@ namespace adcontrols {
         void peak_end_index( unsigned int );
         double base_height() const;
         void base_height( double );
-        metric::prefix time_prefix() const;
 
     private:
         unsigned int peak_index_;
@@ -62,7 +59,6 @@ namespace adcontrols {
         double height_;
         double hh_;
         double time_;
-        metric::prefix time_prefix_;
     };
 
 }

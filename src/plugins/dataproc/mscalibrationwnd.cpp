@@ -326,7 +326,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                     for ( auto& ms: segments ) {
 						ms.setCalibration( calib );
                         for ( size_t i = 0; i < ms.size(); ++i )
-                            ms.setMass( i, calib.compute_mass( ms.getTime( i, adcontrols::metric::micro ), adcontrols::metric::micro ) );
+                            ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) );
                     }
                 }
                 pImpl_->processedSpectrum_->setData( *profile, idx_profile ); 
@@ -337,7 +337,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                 for ( auto& ms: segments ) {
 					ms.setCalibration( calib );
                     for ( size_t i = 0; i < ms.size(); ++i )
-                        ms.setMass( i, calib.compute_mass( ms.getTime( i, adcontrols::metric::micro ), adcontrols::metric::micro ) );
+                        ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) );
                 }
                 pImpl_->processedSpectrum_->setData( *centroid, idx_centroid ); 
 
