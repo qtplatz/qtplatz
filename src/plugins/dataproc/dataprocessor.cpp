@@ -374,7 +374,6 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     portfolio::Folium folium = folder.addFolium( name );
 
     adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
-    adcontrols::waveform::fft::lowpass_filter( *ms );
     // workaround for unsure acquired mass range (before calibration)
     ms->setAcquisitionMassRange( 1.0, 1000.0 );
     //
