@@ -549,7 +549,9 @@ ChromatogramImpl::setTime( size_t idx, const double& d ) // array of second
 void
 ChromatogramImpl::setDataArray( const double * p )
 {
-    memcpy(&dataArray_[0], p, sizeof(double) * size() );
+    if ( p && size() ) {
+		std::copy( p, p + size(), dataArray_.begin() );
+	}
 }
 
 void
@@ -558,7 +560,7 @@ ChromatogramImpl::setTimeArray( const double * p ) // array of second
     if ( p ) {
         if ( timeArray_.size() != size() )
             timeArray_.resize( size() );
-        memcpy(&timeArray_[0], p, sizeof(double) * size() );
+        std::copy( p, p + size(), timeArray_.begin() );
         timeRange_.first = p[0];
         timeRange_.second = p[ size() - 1 ];
 		if ( adportable::compare<double>::essentiallyEqual( samplingInterval_, 0 ) )
