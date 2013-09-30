@@ -35,6 +35,7 @@
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibration.hpp>
+#include <adcontrols/metricprefix.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <qtwrapper/qstring.hpp>
@@ -58,8 +59,8 @@ MSCalibSummaryWidget::~MSCalibSummaryWidget()
 MSCalibSummaryWidget::MSCalibSummaryWidget(QWidget *parent) : QTableView(parent)
                                                             , pModel_( new QStandardItemModel )
                                                             , pDelegate_( new MSCalibSummaryDelegate ) 
-                                                            , pCalibrantSpectrum_( new adcontrols::MassSpectrum )
                                                             , pCalibResult_( new adcontrols::MSCalibrateResult )
+                                                            , pCalibrantSpectrum_( new adcontrols::MassSpectrum )
                                                             , inProgress_( false )
 {
     this->setModel( pModel_.get() );
@@ -183,7 +184,7 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
     QStandardItemModel& model = *pModel_;
 
     auto it = std::find_if( assigned.begin(), assigned.end(), [=]( const adcontrols::MSAssignedMass& a ){
-            return fcn == a.idMassSpectrum() && idx == a.idPeak(); 
+            return unsigned(fcn) == a.idMassSpectrum() && unsigned(idx) == a.idPeak(); 
         });
 
     if ( it == assigned.end() )
@@ -234,10 +235,11 @@ MSCalibSummaryWidget::createModelData( const std::vector< std::pair< int, int > 
         
         model.setData( model.index( row, c_mode ),  ms.getMSProperty().getSamplingInfo().mode ); // nTurns
         model.setData( model.index( row, c_mass ),  ms.getMass( idx.second ) );
-        model.setData( model.index( row, c_time ),  ms.getTime( idx.second ) * 1e6 ); // us
+        model.setData( model.index( row, c_time ),  ms.getTime( idx.second, adcontrols::metric::micro ) );
         
         model.setData( model.index( row, c_intensity ), ms.getIntensity( idx.second ) );
-        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getTime( idx.second ) ) );
+        model.setData( model.index( row, c_mass_calibrated )
+                       , calib.compute_mass( ms.getTime( idx.second, calib.time_prefix() ), calib.time_prefix() ) );
 
         setAssignedData( row, idx.first, idx.second, pCalibResult_->assignedMasses() );
 		setEditable( row );
@@ -284,9 +286,9 @@ MSCalibSummaryWidget::modifyModelData( const std::vector< std::pair< int, int > 
 
         model.setData( model.index( row, c_mode ),  ms.getMSProperty().getSamplingInfo().mode ); // nTurns
         model.setData( model.index( row, c_mass ),  ms.getMass( it->second ) );
-        model.setData( model.index( row, c_time ),  ms.getTime( it->second ) * 1e6 );
+        model.setData( model.index( row, c_time ),  ms.getTime( it->second, adcontrols::metric::micro ) );
         model.setData( model.index( row, c_intensity ), ms.getIntensity( it->second ) );
-        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getTime( it->second ) ) );
+        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getTime( it->second, calib.time_prefix()), calib.time_prefix() ) );
 
         setAssignedData( row, it->first, it->second, pCalibResult_->assignedMasses() );
     }
@@ -316,7 +318,7 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 		}
 	}
     
-    if ( ! ( ( model.rowCount() == indecies.size() ) && modifyModelData( indecies ) ) )
+    if ( ! ( ( unsigned( model.rowCount() ) == indecies.size() ) && modifyModelData( indecies ) ) )
         createModelData( indecies );
 }
 
@@ -573,8 +575,7 @@ namespace qtwidgets2 {
     public:
         std::vector< std::pair< double, double > > tab_stops_;
 
-        grid_render( const QRectF& rect )
-            : bottom_( 0 ), rect_( rect ), rc_( rect ) {
+        grid_render( const QRectF& rect ) : rect_( rect ), bottom_( 0 ), rc_( rect ) {
         }
 
         void add_tab( double width ) {

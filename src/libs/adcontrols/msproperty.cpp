@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "msproperty.hpp"
+#include "timeutil.hpp"
 
 using namespace adcontrols;
 
@@ -70,9 +71,9 @@ MSProperty::setNumAverage( size_t value )
 }
 
 double
-MSProperty::time( size_t pos ) // return flight time for data[pos] in seconds
+MSProperty::time( size_t pos, metric::prefix prefix ) // return flight time for data[pos] in seconds
 {
-    return double( instSamplingStartDelay_ + pos ) * instSamplingInterval_ * 1.0e12;  // ps -> s
+    return metric_prefix<double>( double(( instSamplingStartDelay_ + pos ) * instSamplingInterval_ ), metric::pico, prefix ); 
 }
 
 uint32_t
@@ -164,11 +165,22 @@ MSProperty::toSeconds( size_t idx, const SamplingInfo& info )
     return ( info.nSamplingDelay + idx ) * info.sampInterval * 1e-12;
 }
 
+//static
+double
+MSProperty::to_time( size_t idx, const SamplingInfo& info, metric::prefix prefix )
+{
+    return metric_prefix<double>( (info.nSamplingDelay + idx ) * info.sampInterval, metric::pico, prefix );
+}
+
 size_t
-MSProperty::compute_profile_time_array( double * p, std::size_t size, const SamplingInfo& info )
+MSProperty::compute_profile_time_array( double * p, std::size_t size, const SamplingInfo& info, metric::prefix prefix )
 {
     size_t n = 0;
+    // sampInterval is picoseconds
+    // if prefix = 0 (seconds), return value * pow(10, -12) // -12 + 0
+    // if prifix = -9 (nano),   return value * pow(10, -3)  // -12 - (-9)
+    double order = std::pow( 10.0, -12 - prefix);
     for ( n = 0; n < size; ++n )
-        p[ n ] = ( info.nSamplingDelay + n ) * info.sampInterval * 1e-12;
+        p[ n ] = ( info.nSamplingDelay + n ) * info.sampInterval * order;
     return n;
 }

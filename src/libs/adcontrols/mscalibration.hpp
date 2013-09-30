@@ -26,7 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
-
+#include "metricprefix.hpp"
 #include <vector>
 #include <string>
 #include <boost/serialization/nvp.hpp>
@@ -40,7 +40,7 @@ namespace adcontrols {
     public:
         MSCalibration();
         MSCalibration( const MSCalibration& );
-        MSCalibration( const std::vector<double>& );
+        MSCalibration( const std::vector<double>&, metric::prefix );
 
         const std::string& date() const;
         void date( const std::string& );
@@ -49,27 +49,35 @@ namespace adcontrols {
         void calibId( const std::wstring& );
 
         const std::vector< double >& coeffs() const;
-        void coeffs( const std::vector<double>& );
+        void coeffs( const std::vector<double>&, metric::prefix time_prefix );
 
-        double compute_mass( double time ) const;
-        static double compute( const std::vector<double>&, double time );
+        double compute_mass( double time, metric::prefix ) const;
+        metric::prefix time_prefix() const;
+
+        // static double compute( const std::vector<double>&, double time );
         
     private:
-#if defined _MSC_VER
-# pragma warning( disable: 4251 )
-#endif
         std::string calibDate_;
         std::wstring calibId_;
         std::vector< double > coeffs_;
+        metric::prefix time_prefix_;
 
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int /*version*/) {
+            void serialize(Archive& ar, const unsigned int version ) {
+
             ar & BOOST_SERIALIZATION_NVP(calibDate_);
             ar & BOOST_SERIALIZATION_NVP(calibId_);
             ar & BOOST_SERIALIZATION_NVP(coeffs_);
+            if ( version < 2 )
+                time_prefix_ = metric::basic;
+            else
+                ar & BOOST_SERIALIZATION_NVP( time_prefix_ );
+
         }
     };
 
 }
+
+BOOST_CLASS_VERSION( adcontrols::MSCalibration, 2 )
 

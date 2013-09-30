@@ -27,18 +27,28 @@
 
 using namespace adcontrols;
 
-MSCalibration::MSCalibration()
+// all newly created calibration to be used to microseconds
+// old data still keep seconds for time
+MSCalibration::MSCalibration() : time_prefix_( metric::micro ) 
 {
 }
 
 MSCalibration::MSCalibration( const MSCalibration& t ) : calibDate_( t.calibDate_ )
                                                        , calibId_( t.calibId_ )
-                                                       , coeffs_( t.coeffs_ )  
+                                                       , coeffs_( t.coeffs_ )
+                                                       , time_prefix_( t.time_prefix_ )
 {
 }
 
-MSCalibration::MSCalibration( const std::vector<double>& v ) : coeffs_( v )
+MSCalibration::MSCalibration( const std::vector<double>& v, metric::prefix prefix ) : coeffs_( v )
+                                                                                    , time_prefix_( prefix )
 {
+}
+
+metric::prefix
+MSCalibration::time_prefix() const
+{
+    return time_prefix_;
 }
 
 const std::string&
@@ -72,27 +82,36 @@ MSCalibration::coeffs() const
 }
 
 void
-MSCalibration::coeffs( const std::vector<double>& v )
+MSCalibration::coeffs( const std::vector<double>& v, metric::prefix prefix )
 {
     coeffs_ = v;
+    time_prefix_ = prefix;
 }
 
 double
-MSCalibration::compute_mass( double time ) const
+MSCalibration::compute_mass( double time, metric::prefix prefix ) const
 {
-    double sqrt = compute( coeffs_, time );
+    double t = metric_prefix( time, prefix, time_prefix_ ); // adjust time value to be equivalent
+
+	int n = 0;
+	double sqrt = 0;
+
+	for ( auto d: coeffs_ )
+		sqrt += d * std::pow( t, n++ );
+
     if ( sqrt > 0 )
         return sqrt * sqrt;
+
     return 0;
 }
 
 // static
-double
-MSCalibration::compute( const std::vector<double>& v, double t )
-{
-	int n = 0;
-	double sqmz = 0;
-	for ( auto d: v )
-		sqmz += d * std::pow( t, n++ );
-	return sqmz;
-}
+// double
+// MSCalibration::compute( const std::vector<double>& v, double t )
+// {
+// 	int n = 0;
+// 	double sqmz = 0;
+// 	for ( auto d: v )
+// 		sqmz += d * std::pow( t, n++ );
+// 	return sqmz;
+// }

@@ -50,7 +50,8 @@ waveform::fft::lowpass_filter( adcontrols::MassSpectrum& ms, double freq )
 	const size_t NN = ms.size();
     unsigned long sampIntval = ms.getMSProperty().instSamplingInterval(); // ps
     if ( sampIntval == 0 )
-        sampIntval = static_cast< unsigned long >( ( ( ms.getTime( ms.size() - 1 ) - ms.getTime( 0 ) ) / ms.size() ) * 1.0e12 );
+        sampIntval = static_cast< unsigned long >( ( ( ms.getTime( ms.size() - 1, metric::pico ) - ms.getTime( 0, metric::pico ) ) / ms.size() ));
+
     const double T = N * double(sampIntval) * 1.0e-12;  // time full scale in seconds.  Freq = n/T (Hz)
     // power spectrum has N/2 points and is n/T Hz horizontal axis  := data[N/2] = (N/2)/T Hz
     size_t cutoff = size_t( T * freq );

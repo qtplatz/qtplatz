@@ -73,7 +73,7 @@ mass_calibrator::compute( adcontrols::MSCalibration& calib, int nterm )
     if ( times_.size() >= size_t( nterm ) &&
          adportable::polfit::fit( times_.data(), sqrtMz_.data(), times_.size(), nterm, coeffs ) ) { 
         // set polynomials to result
-        calib.coeffs( coeffs );
+        calib.coeffs( coeffs, adcontrols::metric::micro );
 
         // set id
         const boost::uuids::uuid uuid = boost::uuids::random_generator()();
@@ -92,9 +92,7 @@ mass_calibrator::compute( adcontrols::MSCalibration& calib, int nterm )
 double
 mass_calibrator::compute_mass( double time, const adcontrols::MSCalibration& calib )
 {
-    double msqr = adcontrols::MSCalibration::compute( calib.coeffs(), time );
-    if ( msqr > 0.0 )
-        return msqr * msqr;
-    return -1; // error
+    double mass = calib.compute_mass( time, calib.time_prefix() );
+    return mass;
 }
 

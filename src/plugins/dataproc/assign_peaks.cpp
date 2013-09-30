@@ -49,7 +49,7 @@ assign_peaks::operator () ( adcontrols::MSAssignedMasses& res
                 adcontrols::MSAssignedMass a( *it );
                 size_t idx = std::distance( times.begin(), pos );
                 a.idMassSpectrum( idx );
-                a.time( centroid.getTime( idx ) );
+                a.time( centroid.getTime( idx, adcontrols::metric::micro ) );
                 a.mass( centroid.getMass( idx ) );
                 res << a;
             }

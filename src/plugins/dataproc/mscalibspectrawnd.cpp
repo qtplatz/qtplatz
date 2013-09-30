@@ -84,7 +84,7 @@ MSCalibSpectraWnd::init()
         wndSplitter_->setOrientation( Qt::Vertical );
 
         // summary table
-		if ( wndCalibSummary_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" ) ) {
+		if ( ( wndCalibSummary_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" ) )  ) {
             bool res;
             res = connect( wndCalibSummary_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( handleSelSummary( size_t, size_t ) ) );
             assert( res );
@@ -198,12 +198,13 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
 
 		adcontrols::segment_wrapper<> segms( *ptr );
         
-		double t = segms[ fcn ].getTime( idx );
+		double t = segms[ fcn ].getTime( idx, adcontrols::metric::micro );
 
         size_t nid = 0;
         for ( adutils::MassSpectrumPtr p: spectra_ ) {
             if ( nid ) {
-                int idx = assign_peaks::find_by_time( *p, t, 3.0e-9 ); // 3ns tolerance
+                double tolerance = adcontrols::metric_prefix<double>( 3.0e-9, adcontrols::metric::basic, p->time_prefix() );
+                int idx = assign_peaks::find_by_time( *p, t, tolerance );
                 if ( idx >= 0 ) {
                     adutils::MassSpectrumPtr tmp( new adcontrols::MassSpectrum( *p ) );
                     tmp->setColor( idx, 2 );

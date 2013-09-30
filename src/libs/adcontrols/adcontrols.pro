@@ -115,6 +115,7 @@ HEADERS += acceptor.hpp \
     massspectrometer_factory.hpp \
     massspectra.hpp \
     massspectrum.hpp \
+    metricprefix.hpp \
     msassignedmass.hpp \
     mscalibratemethod.hpp \
     mscalibrateresult.hpp \
