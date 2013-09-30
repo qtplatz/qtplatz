@@ -58,8 +58,8 @@ namespace adcontrols {  namespace metric {
         template<typename T> inline T scale( prefix to, const T t,prefix from = basic ) {
             return T( t * std::pow( 10.0, from - to ) );
         }
-        template<typename T, prefix> inline T scale( T t, prefix from = basic ) {
-            return T( t * std::pow( 10.0, from - prefix ) );            
+        template<typename T, prefix to> inline T scale( T t, prefix from = basic ) {
+            return T( t * std::pow( 10.0, from - to ) );            
         }
 
     } // metric
