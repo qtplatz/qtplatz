@@ -24,7 +24,7 @@ macx {
 
 BOOST_VERSION=boost-1_54
 ACE_VERSION=6.2.1
-QWT_VERSION=6.1.0-svn
+QWT_VERSION=6.1.1-svn
 
 # does not override if environment variable already exist
 
