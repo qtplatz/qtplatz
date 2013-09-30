@@ -145,7 +145,8 @@ HEADERS += acceptor.hpp \
     peakresult.hpp \
     waveform.hpp \
     annotation.hpp \
-    annotations.hpp
+    annotations.hpp \
+    metric/prefix.hpp
 
 OTHER_FILES += \
     adcontrols.pri

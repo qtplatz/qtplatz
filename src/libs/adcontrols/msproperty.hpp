@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include "metric/prefix.hpp"
 #include <string>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
@@ -97,7 +98,7 @@ namespace adcontrols {
         // static std::vector<SamplingInfo>::const_iterator findSamplingInfo( size_t idx, const std::vector<SamplingInfo>& segments );
         // static double toSeconds( size_t idx, const std::vector<SamplingInfo>& segments );
         static double toSeconds( size_t idx, const SamplingInfo& info );
-        static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments );
+        static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments, metric::prefix pfx );
 
     private:
         uint32_t time_since_injection_; // msec

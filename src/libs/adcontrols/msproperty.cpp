@@ -165,7 +165,7 @@ MSProperty::toSeconds( size_t idx, const SamplingInfo& info )
 }
 
 size_t
-MSProperty::compute_profile_time_array( double * p, std::size_t size, const SamplingInfo& info )
+MSProperty::compute_profile_time_array( double * p, std::size_t size, const SamplingInfo& info, metric::prefix pfx )
 {
     size_t n = 0;
     for ( n = 0; n < size; ++n )

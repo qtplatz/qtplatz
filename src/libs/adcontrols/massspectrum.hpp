@@ -26,7 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
-
+#include "metric/prefix.hpp"
 #include <boost/any.hpp>
 #include <string>
 #include <memory>
@@ -90,7 +90,7 @@ namespace adcontrols {
         const double * getMassArray() const;
         const double * getIntensityArray() const;
         const double * getTimeArray() const;
-        size_t compute_profile_time_array( double *, size_t ) const;
+        size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::basic ) const;
         
         void setMass( size_t idx, double mass );
         void setIntensity( size_t idx, double intensity );

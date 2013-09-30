@@ -6,8 +6,6 @@ CONFIG(debug, debug|release) {
 
 win32 {
     DEFINES += _WIN32_WINNT=0x0700
-    CONFIG(debug, debug|release):LIBS *= -L"C:/Program Files (x86)/Visual Leak Detector/lib"
-    CONFIG(debug, debug|release):INCLUDEPATH += "C:/Program Files (x86)/Visual Leak Detector/include"
 } else {
     QMAKE_CXXFLAGS *= -std=c++11
 }
