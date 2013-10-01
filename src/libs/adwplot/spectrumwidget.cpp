@@ -386,11 +386,36 @@ TraceData::y_range( double left, double right ) const
     double bottom = -10;
 
     if ( const std::shared_ptr< adcontrols::MassSpectrum > ms = pSpectrum_.lock() ) {
-        if ( ms->isCentroid() ) {
-            adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
-            for ( auto& seg: segments ) {
-				const double * x = isTimeAxis_ ? seg.getTimeArray() : seg.getMassArray();
 
+        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
+        bool isCentroid = ms->isCentroid();
+        for ( auto& seg: segments ) {
+
+            if ( isTimeAxis_ ) {
+                if ( isCentroid ) {
+                    using namespace adcontrols::metric;
+                    double uleft = scale<double, basic>(left, micro);
+                    double uright = scale<double, basic>(right, micro);
+
+                    if ( ms->isCentroid() ) {
+                        const double * x = seg.getTimeArray();
+                        size_t idleft = std::distance( x, std::lower_bound( x, x + seg.size(), uleft ) );
+                        size_t idright = std::distance( x, std::lower_bound( x, x + seg.size(), uright ) );
+
+                        if ( idleft < idright ) {
+                            const double * y = seg.getIntensityArray();
+                        
+                            double min = *std::min_element( y + idleft, y + idright );
+                            double max = *std::max_element( y + idleft, y + idright );
+                        
+                            bottom = std::min( bottom, min );
+                            top = std::max( top, max );
+                        }
+                    }
+                }
+            } else {
+                // mass axis
+				const double * x = seg.getMassArray();
                 size_t idleft = std::distance( x, std::lower_bound( x, x + seg.size(), left ) );
                 size_t idright = std::distance( x, std::lower_bound( x, x + seg.size(), right ) );
 
