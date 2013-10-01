@@ -106,15 +106,13 @@ ElementalCompWnd::init()
 void
 ElementalCompWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
-    adcontrols::MassSpectrum& ms = *ptr;
-    pImpl_->profileSpectrum_->setData( ms );
+    pImpl_->profileSpectrum_->setData( ptr, 0 );
 }
 
 void
 ElementalCompWnd::draw2( adutils::MassSpectrumPtr& ptr )
 {
-    adcontrols::MassSpectrum& ms = *ptr;
-    pImpl_->processedSpectrum_->setData( ms, pImpl_->drawIdx_++ );
+    pImpl_->processedSpectrum_->setData( ptr, pImpl_->drawIdx_++ );
 }
 
 void
@@ -147,9 +145,9 @@ ElementalCompWnd::handleApplyMethod( const adcontrols::ProcessMethod& m )
 	const IsotopeMethod * p = m.find< IsotopeMethod >();
 	if ( p ) {
 		for ( IsotopeMethod::vector_type::const_iterator it = p->begin(); it != p->end(); ++it ) {
-			MassSpectrum ms;
-			ms.setAcquisitionMassRange( 50, 500 );
-			if ( IsotopeCluster::isotopeDistribution( ms, it->formula ) ) 
+			auto ms = std::make_shared< MassSpectrum >();
+			ms->setAcquisitionMassRange( 50, 500 );
+			if ( IsotopeCluster::isotopeDistribution( *ms, it->formula ) ) 
 				pImpl_->processedSpectrum_->setData( ms, pImpl_->drawIdx_++ );
 		}
 	}

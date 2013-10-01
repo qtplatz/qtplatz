@@ -686,7 +686,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
                                 , const adcontrols::MassSpectrum& profile )
 {
     portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
-    adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
+    std::shared_ptr< adcontrols::MassSpectrum > pCentroid = std::make_shared< adcontrols::MassSpectrum >();
     bool centroid;
 
 	// make sure no 'processed profile' data exist

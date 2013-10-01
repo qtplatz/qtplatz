@@ -157,7 +157,7 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
                 = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
             if ( msIt != attachments.end() ) {
                 adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *msIt );
-                wndSpectra_[ idx ]->setData( *ptr );
+                wndSpectra_[ idx ]->setData( ptr, 0 );
                 spectra_.push_back( ptr );
             }
         }
@@ -194,7 +194,7 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
         adutils::MassSpectrumPtr ptr( new adcontrols::MassSpectrum );
         boost::any any( ptr );
         p->getContents( any );
-        wndSpectra_[ 0 ]->setData( *ptr );
+        wndSpectra_[ 0 ]->setData( ptr, 0 );
 
 		adcontrols::segment_wrapper<> segms( *ptr );
         
@@ -205,11 +205,11 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
             if ( nid ) {
                 int idx = assign_peaks::find_by_time( *p, t, 3.0e-9 ); // 3ns tolerance
                 if ( idx >= 0 ) {
-                    adutils::MassSpectrumPtr tmp( new adcontrols::MassSpectrum( *p ) );
+                    auto tmp = std::make_shared< adcontrols::MassSpectrum>( *p );
                     tmp->setColor( idx, 2 );
-                    wndSpectra_[ nid ]->setData( *tmp );
+                    wndSpectra_[ nid ]->setData( tmp, 0 );
                 } else {
-                    wndSpectra_[ nid ]->setData( *p ); // clear color
+                    wndSpectra_[ nid ]->setData( p, 0 ); // clear color
                 }
             }
             ++nid;
@@ -266,7 +266,7 @@ MSCalibSpectraWnd::handleValueChanged()
             adutils::MassSpectrumPtr ptr( new adcontrols::MassSpectrum );
             boost::any any( ptr );
             p->getContents( any );  // got spectrum with size reduced by RA threshold
-            wndSpectra_[ 0 ]->setData( *ptr ); 
+            wndSpectra_[ 0 ]->setData( ptr, 0 ); 
             // todo: update annotation
         }
     }

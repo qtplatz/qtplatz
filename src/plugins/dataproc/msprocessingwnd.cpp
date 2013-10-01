@@ -167,7 +167,7 @@ MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
     // adcontrols::MassSpectrum& ms = *ptr;
     pProfileSpectrum_ = ptr;
-    pImpl_->profileSpectrum_->setData( *ptr, drawIdx1_++ );
+    pImpl_->profileSpectrum_->setData( ptr, drawIdx1_++ );
     pImpl_->processedSpectrum_->clear();
 	drawIdx2_ = 0;
 }
@@ -176,7 +176,7 @@ void
 MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
 {
     pProcessedSpectrum_ = ptr;
-    pImpl_->processedSpectrum_->setData( *ptr, drawIdx2_++ );
+    pImpl_->processedSpectrum_->setData( ptr, drawIdx2_++ );
 }
 
 void
@@ -257,15 +257,14 @@ MSProcessingWnd::handleAxisChanged( int axis )
 {
     using adwplot::SpectrumWidget;
 
-    adportable::debug(__FILE__, __LINE__) << "axisChanged( " << axis << " )";
     axis_ = axis;
     pImpl_->profileSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime );
     pImpl_->processedSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime );
     if ( adcontrols::MassSpectrumPtr profile = pProfileSpectrum_.lock() ) {
-        pImpl_->profileSpectrum_->setData( *profile, 0 ); // todo, set draw index as well
+        pImpl_->profileSpectrum_->setData( profile, 0 ); // todo, set draw index as well
     }
     if ( adcontrols::MassSpectrumPtr processed = pProcessedSpectrum_.lock() ) {
-        pImpl_->processedSpectrum_->setData( *processed, 0 ); // todo, set draw index as well
+        pImpl_->processedSpectrum_->setData( processed, 0 ); // todo, set draw index as well
     }
 }
 

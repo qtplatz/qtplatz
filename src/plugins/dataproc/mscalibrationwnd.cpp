@@ -181,7 +181,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
         // profile spectrum
         if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) { 
             adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( data );
-            pImpl_->processedSpectrum_->setData( *ptr, idx_profile );
+            pImpl_->processedSpectrum_->setData( ptr, idx_profile );
         }
 
         portfolio::Folio attachments = folium.attachments();
@@ -190,7 +190,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
             Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
         if ( it != attachments.end() ) {
             pImpl_->calibSpectrum_ = boost::any_cast< adutils::MassSpectrumPtr >( *it ); // weak_ptr
-            pImpl_->processedSpectrum_->setData( *pImpl_->calibSpectrum_.lock(), idx_centroid );
+            pImpl_->processedSpectrum_->setData( pImpl_->calibSpectrum_.lock(), idx_centroid );
             while ( !pImpl_->stack_.empty() )
                 pImpl_->stack_.pop();
 
@@ -231,7 +231,7 @@ MSCalibrationWnd::handleSelSummary( size_t idx, size_t fcn )
     if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
         pImpl_->restore_state( *centroid );
         pImpl_->store_state( *centroid, fcn, idx, 2 );
-        pImpl_->processedSpectrum_->setData( *centroid, 1 );
+        pImpl_->processedSpectrum_->setData( centroid, 1 );
     }
 }
 
@@ -295,7 +295,7 @@ MSCalibrationWnd::handleValueChanged()
         if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
             
             if ( DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned ) )
-                pImpl_->processedSpectrum_->setData( *centroid, 1 ); 
+                pImpl_->processedSpectrum_->setData( centroid, 1 ); 
             
             emit fireSetData( *calibResult, *centroid );
         }
@@ -335,7 +335,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                             ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) );
                     }
                 }
-                pImpl_->processedSpectrum_->setData( *profile, idx_profile ); 
+                pImpl_->processedSpectrum_->setData( profile, idx_profile ); 
 
 				// centroid (override profile that has better visibility)
                 DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned );
@@ -345,7 +345,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                     for ( size_t i = 0; i < ms.size(); ++i )
                         ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) );
                 }
-                pImpl_->processedSpectrum_->setData( *centroid, idx_centroid ); 
+                pImpl_->processedSpectrum_->setData( centroid, idx_centroid ); 
 
                 emit fireSetData( *calibResult, *centroid );
             }

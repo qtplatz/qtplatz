@@ -717,7 +717,7 @@ AcquirePlugin::handle_update_ui_data( unsigned long objId, long pos )
         fifo_ms_.clear();
     } while(0);
     if ( ms )
-        pImpl_->spectrumPlot_->setData( *ms, 0 );
+        pImpl_->spectrumPlot_->setData( ms, 0 );
         
     do {
         std::lock_guard< std::mutex > lock( mutex_ );
