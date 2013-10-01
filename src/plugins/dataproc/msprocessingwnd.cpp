@@ -74,7 +74,6 @@ namespace dataproc {
         adwplot::ChromatogramWidget * ticPlot_;
         adwplot::SpectrumWidget * profileSpectrum_;
         adwplot::SpectrumWidget * processedSpectrum_;
-        
     };
     
     //---------------------------------------------------------
@@ -166,8 +165,9 @@ MSProcessingWnd::init()
 void
 MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
-    adcontrols::MassSpectrum& ms = *ptr;
-    pImpl_->profileSpectrum_->setData( ms, drawIdx1_++ );
+    // adcontrols::MassSpectrum& ms = *ptr;
+    pProfileSpectrum_ = ptr;
+    pImpl_->profileSpectrum_->setData( *ptr, drawIdx1_++ );
     pImpl_->processedSpectrum_->clear();
 	drawIdx2_ = 0;
 }
@@ -176,7 +176,7 @@ void
 MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
 {
     pProcessedSpectrum_ = ptr;
-    pImpl_->processedSpectrum_->setData( *pProcessedSpectrum_, drawIdx2_++ );
+    pImpl_->processedSpectrum_->setData( *ptr, drawIdx2_++ );
 }
 
 void
@@ -253,6 +253,23 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
 }
 
 void
+MSProcessingWnd::handleAxisChanged( int axis )
+{
+    using adwplot::SpectrumWidget;
+
+    adportable::debug(__FILE__, __LINE__) << "axisChanged( " << axis << " )";
+    axis_ = axis;
+    pImpl_->profileSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime );
+    pImpl_->processedSpectrum_->setAxis( axis == AxisMZ ? SpectrumWidget::HorizontalAxisMass : SpectrumWidget::HorizontalAxisTime );
+    if ( adcontrols::MassSpectrumPtr profile = pProfileSpectrum_.lock() ) {
+        pImpl_->profileSpectrum_->setData( *profile, 0 ); // todo, set draw index as well
+    }
+    if ( adcontrols::MassSpectrumPtr processed = pProcessedSpectrum_.lock() ) {
+        pImpl_->processedSpectrum_->setData( *processed, 0 ); // todo, set draw index as well
+    }
+}
+
+void
 MSProcessingWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 {
 }
@@ -315,8 +332,10 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& )
 			QPainter painter(&img);
 			renderer.render( pImpl_->processedSpectrum_, &painter, pImpl_->processedSpectrum_->rect() );
 			clipboard->setImage( img );
-		} else if ( *it == actions[ 1 ] )
-			DataprocPlugin::instance()->handleCreateChromatograms( *pProcessedSpectrum_, rc.x(), rc.x() + rc.width() );
+		} else if ( *it == actions[ 1 ] ) {
+            if ( adcontrols::MassSpectrumPtr ptr = pProcessedSpectrum_.lock() )
+                DataprocPlugin::instance()->handleCreateChromatograms( *ptr, rc.x(), rc.x() + rc.width() );
+        }
 	}
 }
 

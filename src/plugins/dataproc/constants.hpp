@@ -55,6 +55,11 @@ namespace dataproc {
         , PeakFindProcess 
     };
 
+    enum AxisType {
+        AxisMZ
+        , AxisTime
+    };
+
 }
 
 

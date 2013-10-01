@@ -44,9 +44,13 @@ namespace adwplot {
         void setData( const adcontrols::MassSpectrum&, const adcontrols::MassSpectrum& );
         void setData( const adcontrols::MassSpectrum&, int idx, bool yaxis1 = false );
 
+        enum HorizontalAxis { HorizontalAxisMass, HorizontalAxisTime };
+        void setAxis( HorizontalAxis );
+
     private:
         struct SpectrumWidgetImpl * impl_;
         bool autoYZoom_;
+        HorizontalAxis haxis_;
 
     signals:
         void onMoved( const QPointF& );

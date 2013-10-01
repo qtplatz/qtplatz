@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "msproperty.hpp"
+#include "metric/prefix.hpp"
 
 using namespace adcontrols;
 
@@ -73,6 +74,15 @@ double
 MSProperty::time( size_t pos ) // return flight time for data[pos] in seconds
 {
     return double( instSamplingStartDelay_ + pos ) * instSamplingInterval_ * 1.0e12;  // ps -> s
+}
+
+std::pair<double, double>
+MSProperty::instTimeRange() const
+{
+	const SamplingInfo& x = samplingData_;
+    double t0 = metric::scale<double, metric::basic>( double(x.nSamplingDelay * x.sampInterval), metric::pico );
+    double t1 = metric::scale<double, metric::basic>( double((x.nSamplingDelay + x.nSamples) * x.sampInterval), metric::pico );
+    return std::make_pair( t0, t1 );
 }
 
 uint32_t
@@ -168,7 +178,9 @@ size_t
 MSProperty::compute_profile_time_array( double * p, std::size_t size, const SamplingInfo& info, metric::prefix pfx )
 {
     size_t n = 0;
-    for ( n = 0; n < size; ++n )
-        p[ n ] = ( info.nSamplingDelay + n ) * info.sampInterval * 1e-12;
+    for ( n = 0; n < size; ++n ) {
+		double d = ( info.nSamplingDelay + n ) * info.sampInterval; 
+        p[ n ] = metric::scale<double>( pfx, d, metric::pico );
+	}
     return n;
 }

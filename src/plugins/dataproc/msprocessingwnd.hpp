@@ -82,15 +82,20 @@ namespace dataproc {
 		void selectedOnProfile( const QRectF& );
         void selectedOnProcessed( const QPointF& );
 		void selectedOnProcessed( const QRectF& );
+        void handleAxisChanged( int );
 
     private:
         size_t drawIdx1_;
         size_t drawIdx2_;
         std::shared_ptr<MSProcessingWndImpl> pImpl_;
-        std::shared_ptr< adcontrols::MassSpectrum > pProcessedSpectrum_;
+        // std::shared_ptr< adcontrols::MassSpectrum > pProcessedSpectrum_;
+        std::weak_ptr< adcontrols::MassSpectrum > pProcessedSpectrum_;
+        std::weak_ptr< adcontrols::MassSpectrum > pProfileSpectrum_;
+
         std::wstring idActiveFolium_;
         std::wstring idChromatogramFolium_;
         std::wstring idSpectrumFolium_;
+        int axis_;
     };
 
 }

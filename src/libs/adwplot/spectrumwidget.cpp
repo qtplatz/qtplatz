@@ -32,6 +32,7 @@
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/float.hpp>
 #include <adportable/debug.hpp>
@@ -123,7 +124,7 @@ namespace adwplot {
             TraceData( int idx ) : idx_( idx ) {  }
             TraceData( const TraceData& t ) : idx_( t.idx_ ), curves_( t.curves_ ), data_( t.data_ ) {   }
             ~TraceData();
-            void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms, QRectF& );
+            void setData( Dataplot& plot, const adcontrols::MassSpectrum& ms, QRectF&, SpectrumWidget::HorizontalAxis );
             std::pair<double, double> y_range( double left, double right ) const;
             
             typedef std::map< int, SeriesDataImpl > map_type;
@@ -158,6 +159,7 @@ SpectrumWidget::~SpectrumWidget()
 SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
                                                 , impl_( new SpectrumWidgetImpl )
                                                 , autoYZoom_( true ) 
+                                                , haxis_( HorizontalAxisMass )
 {
     zoomer2_.reset();
 	zoomer1_->autoYScale( autoYZoom_ );
@@ -235,6 +237,12 @@ SpectrumWidget::clear()
 }
 
 void
+SpectrumWidget::setAxis( HorizontalAxis haxis )
+{
+    haxis_ = haxis;
+}
+
+void
 SpectrumWidget::setData( const adcontrols::MassSpectrum& ms )
 {
     setData( ms, 0, false );
@@ -259,7 +267,7 @@ SpectrumWidget::setData( const adcontrols::MassSpectrum& ms, int idx, bool yaxis
 
     TraceData& trace = impl_->traces_[ idx ];
     QRectF rect;
-    trace.setData( *this, ms, rect );
+    trace.setData( *this, ms, rect, haxis_ );
 
     setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
     setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.top(), rect.bottom() );
@@ -325,7 +333,7 @@ TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& ms, 
 }
 
 void
-TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms, QRectF& rect )
+TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms, QRectF& rect, SpectrumWidget::HorizontalAxis haxis )
 {
     curves_.clear();
     data_.clear();
@@ -337,7 +345,22 @@ TraceData::setData( Dataplot& plot, const adcontrols::MassSpectrum& ms, QRectF& 
 		bottom = 0;
 	top = top + ( top - bottom ) * 0.12; // add 12% margine for annotation
 
-    rect.setCoords( ms.getAcquisitionMassRange().first, bottom, ms.getAcquisitionMassRange().second, top );
+    std::pair< double, double > mass_range = ms.getAcquisitionMassRange();
+
+    if ( haxis == SpectrumWidget::HorizontalAxisMass )
+        rect.setCoords( mass_range.first, bottom, mass_range.second, top );
+    else {
+        adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( ms );
+        std::pair< double, double > time_range = std::make_pair( std::numeric_limits<double>::max(), 0 );
+        for ( auto& m: segments ) {
+            std::pair< double, double > range = m.getMSProperty().instTimeRange();
+            std::min( time_range.first, range.first );
+            std::max( time_range.second, range.second );
+        }
+        using adcontrols::metric::micro;
+        using adcontrols::metric::scale;
+        rect.setCoords( scale<double, micro>(time_range.first), bottom, scale<double, micro>(time_range.second), top );
+    }
 
     if ( ms.isCentroid() ) {
         setCentroidData( plot, ms, rect, 0 );

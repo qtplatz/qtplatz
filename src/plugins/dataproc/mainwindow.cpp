@@ -97,6 +97,7 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , toolBar_( 0 )
                                           , toolBarLayout_( 0 )
                                           , toolBarDockWidget_( 0 )
+                                          , axisChoice_( 0 )
                                           , actionSearch_( 0 )
                                           , actionApply_( 0 )
                                           , actionSelMSProcess_( 0 )
@@ -169,6 +170,13 @@ MainWindow::createStyledBarTop()
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+        
+        axisChoice_ = new QComboBox;
+        axisChoice_->addItem( "m/z" );
+        axisChoice_->addItem( "time" );
+        toolBarLayout->addWidget( new QLabel( tr("Axis:") ) );
+        toolBarLayout->addWidget( axisChoice_ );
+        
         toolBarLayout->addWidget( new QLabel( tr("Sequence:") ) );
         toolBarLayout->addWidget( new QLineEdit );
     }
@@ -282,6 +290,8 @@ MainWindow::createContents( Core::IMode * mode
         res = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
                      , it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );
         assert( res );
+
+        connect( axisChoice_, SIGNAL( currentIndexChanged( int ) ), it, SLOT( handleAxisChanged( int ) ) );        
     }
 
     res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
@@ -376,11 +386,11 @@ MainWindow::createDockWidgets()
         const char * wiid;
     } widgets [] = { 
         {  "Centroid" ,       "qtwidgets::CentroidForm" }
-	  , { "MS Calibration",   "qtwidgets2::MSCalibrationForm" }
-      , { "Targeting",       "qtwidgets::TargetForm" }
-      //, { "Isotope",         "qtwidgets::IsotopeForm" }
-      , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
-      , { "Peak Find",       "qtwidgets::PeakMethodForm" }
+        , { "MS Calibration",   "qtwidgets2::MSCalibrationForm" }
+        , { "Targeting",       "qtwidgets::TargetForm" }
+        //, { "Isotope",         "qtwidgets::IsotopeForm" }
+        , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
+        , { "Peak Find",       "qtwidgets::PeakMethodForm" }
     };
     
     for ( auto widget: widgets ) {

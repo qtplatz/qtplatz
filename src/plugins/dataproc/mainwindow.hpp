@@ -40,6 +40,7 @@ class QToolButton;
 class QAction;
 class QStackedWidget;
 class QLineEdit;
+class QComboBox;
 
 namespace dataproc {
 
@@ -98,6 +99,7 @@ namespace dataproc {
         QWidget * toolBar_;
         QHBoxLayout * toolBarLayout_;
         QDockWidget * toolBarDockWidget_;
+        QComboBox * axisChoice_;
 
         QAction * actionSearch_;
         QAction * actionApply_;

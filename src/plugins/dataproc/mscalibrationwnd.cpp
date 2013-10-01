@@ -215,6 +215,12 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 }
 
 void
+MSCalibrationWnd::handleAxisChanged( int axis )
+{
+    adportable::debug(__FILE__, __LINE__) << "axisChanged( " << axis << " )";
+}
+
+void
 MSCalibrationWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 {
 }

@@ -72,6 +72,8 @@ namespace adcontrols {
         const std::pair<double, double>& instMassRange() const;
         void setInstMassRange( const std::pair<double, double>& );
 
+        std::pair<double, double> instTimeRange() const;
+
         class ADCONTROLSSHARED_EXPORT SamplingInfo {
         public:
             uint32_t sampInterval; // ps
