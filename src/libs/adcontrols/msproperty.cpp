@@ -80,8 +80,8 @@ std::pair<double, double>
 MSProperty::instTimeRange() const
 {
 	const SamplingInfo& x = samplingData_;
-    double t0 = metric::scale<double, metric::basic>( double(x.nSamplingDelay * x.sampInterval), metric::pico );
-    double t1 = metric::scale<double, metric::basic>( double((x.nSamplingDelay + x.nSamples) * x.sampInterval), metric::pico );
+    double t0 = metric::scale_to_base( double(x.nSamplingDelay * x.sampInterval), metric::pico );
+    double t1 = metric::scale_to_base( double((x.nSamplingDelay + x.nSamples) * x.sampInterval), metric::pico );
     return std::make_pair( t0, t1 );
 }
 
@@ -180,7 +180,7 @@ MSProperty::compute_profile_time_array( double * p, std::size_t size, const Samp
     size_t n = 0;
     for ( n = 0; n < size; ++n ) {
 		double d = ( info.nSamplingDelay + n ) * info.sampInterval; 
-        p[ n ] = metric::scale<double>( pfx, d, metric::pico );
+        p[ n ] = metric::scale_to<double>( pfx, d, metric::pico );
 	}
     return n;
 }

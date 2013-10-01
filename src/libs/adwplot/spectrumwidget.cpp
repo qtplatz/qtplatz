@@ -93,7 +93,7 @@ namespace adwplot {
                     idx = indecies_[ idx ];
                 using namespace adcontrols::metric;
                 if ( axisTime_ )
-                    return QPointF( scale<double, micro>( ms_.getTime( idx  )), ms_.getIntensity( idx ) );
+                    return QPointF( scale_to<double, micro>( ms_.getTime( idx  )), ms_.getIntensity( idx ) );
                 else
                     return QPointF( ms_.getMass( idx ), ms_.getIntensity( idx ) );
             }
@@ -365,9 +365,8 @@ TraceData::setData( Dataplot& plot
             time_range.second = std::max( time_range.second, range.second );
         }
 
-        using adcontrols::metric::micro;
-        using adcontrols::metric::scale;
-        rect.setCoords( scale<double, micro>(time_range.first), bottom, scale<double, micro>(time_range.second), top );
+        using namespace adcontrols::metric;
+        rect.setCoords( scale_to_micro(time_range.first), bottom, scale_to_micro(time_range.second), top );
 
     } else {
 
@@ -398,8 +397,8 @@ TraceData::y_range( double left, double right ) const
 
             if ( isTimeAxis_ ) {
                 using namespace adcontrols::metric;
-                double uleft = scale<double, basic>(left, micro);
-                double uright = scale<double, basic>(right, micro);
+                double uleft = scale_to_base(left, micro);
+                double uright = scale_to_base(right, micro);
 
                 if ( isCentroid ) {
                     if ( ms->isCentroid() ) {
@@ -412,7 +411,7 @@ TraceData::y_range( double left, double right ) const
                     
                     struct X {
                         static uint32_t index( uint32_t interval, uint32_t delay, uint32_t nSamples, double t ) {
-                            uint32_t idx = uint32_t( scale<double, pico>(t) / interval + 0.5 );
+                            uint32_t idx = uint32_t( scale_to_pico(t) / interval + 0.5 );
                             if ( idx < delay )
                                 return 0;
                             idx -= delay;

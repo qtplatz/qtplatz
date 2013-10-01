@@ -303,7 +303,7 @@ MassSpectrum::compute_profile_time_array( double * p, size_t size, metric::prefi
         size_t i;
         for ( i = 0; i < size && i < pImpl_->size(); ++i ) {
 			double d = getTimeArray()[i];
-            *p++ = metric::scale<double>( pfx, d );
+            *p++ = metric::scale_to<double>( pfx, d );
 		}
         return i;
     }

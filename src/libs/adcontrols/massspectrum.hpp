@@ -90,7 +90,7 @@ namespace adcontrols {
         const double * getMassArray() const;
         const double * getIntensityArray() const;
         const double * getTimeArray() const;
-        size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::basic ) const;
+        size_t compute_profile_time_array( double *, size_t, metric::prefix pfx = metric::base ) const;
         
         void setMass( size_t idx, double mass );
         void setIntensity( size_t idx, double intensity );
