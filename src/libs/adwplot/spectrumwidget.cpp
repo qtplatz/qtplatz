@@ -204,12 +204,14 @@ void
 SpectrumWidget::zoom( const QRectF& rect )
 {
 	Dataplot::zoom( rect );
-    impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
+    if ( haxis_ != HorizontalAxisTime )
+        impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
 }
 void
 SpectrumWidget::zoomed( const QRectF& rect )
 {
-    impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
+    if ( haxis_ != HorizontalAxisTime )
+        impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
 }
 
 void
@@ -273,7 +275,8 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     if ( ptr->isCentroid() ) {
         impl_->centroid_ = ptr;
         impl_->clear_annotations();
-        impl_->update_annotations( *this, ptr->getAcquisitionMassRange() );
+        if ( haxis_ != HorizontalAxisTime )
+            impl_->update_annotations( *this, ptr->getAcquisitionMassRange() );
     }
 }
 
