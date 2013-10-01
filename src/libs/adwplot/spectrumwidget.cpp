@@ -391,43 +391,53 @@ TraceData::y_range( double left, double right ) const
         bool isCentroid = ms->isCentroid();
         for ( auto& seg: segments ) {
 
-            if ( isTimeAxis_ ) {
-                if ( isCentroid ) {
-                    using namespace adcontrols::metric;
-                    double uleft = scale<double, basic>(left, micro);
-                    double uright = scale<double, basic>(right, micro);
+            size_t idleft(0), idright(0);
 
+            if ( isTimeAxis_ ) {
+                using namespace adcontrols::metric;
+                double uleft = scale<double, basic>(left, micro);
+                double uright = scale<double, basic>(right, micro);
+
+                if ( isCentroid ) {
                     if ( ms->isCentroid() ) {
                         const double * x = seg.getTimeArray();
-                        size_t idleft = std::distance( x, std::lower_bound( x, x + seg.size(), uleft ) );
-                        size_t idright = std::distance( x, std::lower_bound( x, x + seg.size(), uright ) );
-
-                        if ( idleft < idright ) {
-                            const double * y = seg.getIntensityArray();
-                        
-                            double min = *std::min_element( y + idleft, y + idright );
-                            double max = *std::max_element( y + idleft, y + idright );
-                        
-                            bottom = std::min( bottom, min );
-                            top = std::max( top, max );
-                        }
+                        idleft = std::distance( x, std::lower_bound( x, x + seg.size(), uleft ) );
+                        idright = std::distance( x, std::lower_bound( x, x + seg.size(), uright ) );
                     }
+                } else {
+                    std::pair< double, double > range = seg.getMSProperty().instTimeRange();
+                    
+                    struct X {
+                        static uint32_t index( uint32_t interval, uint32_t delay, uint32_t nSamples, double t ) {
+                            uint32_t idx = uint32_t( scale<double, pico>(t) / interval + 0.5 );
+                            if ( idx < delay )
+                                return 0;
+                            idx -= delay;
+                            if ( idx >= nSamples )
+                                return nSamples - 1;
+                            return idx;
+                        }
+                    };
+                    const adcontrols::MSProperty::SamplingInfo& info = seg.getMSProperty().getSamplingInfo();
+                    idleft = X::index( info.sampInterval, info.nSamplingDelay, info.nSamples, uleft );
+                    idright = X::index( info.sampInterval, info.nSamplingDelay, info.nSamples, uright );
                 }
             } else {
                 // mass axis
 				const double * x = seg.getMassArray();
-                size_t idleft = std::distance( x, std::lower_bound( x, x + seg.size(), left ) );
-                size_t idright = std::distance( x, std::lower_bound( x, x + seg.size(), right ) );
+                idleft = std::distance( x, std::lower_bound( x, x + seg.size(), left ) );
+                idright = std::distance( x, std::lower_bound( x, x + seg.size(), right ) );
+            }
 
-                if ( idleft < idright ) {
-                    const double * y = seg.getIntensityArray();
-                    
-                    double min = *std::min_element( y + idleft, y + idright );
-                    double max = *std::max_element( y + idleft, y + idright );
-                    
-                    bottom = std::min( bottom, min );
-                    top = std::max( top, max );
-                }
+            
+            if ( idleft < idright ) {
+                const double * y = seg.getIntensityArray();
+                
+                double min = *std::min_element( y + idleft, y + idright );
+                double max = *std::max_element( y + idleft, y + idright );
+                
+                bottom = std::min( bottom, min );
+                top = std::max( top, max );
             }
         }
     }
