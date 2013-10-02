@@ -439,8 +439,11 @@ MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
     adportable::debug(__FILE__, __LINE__ ) << model_name;
 
 	std::pair< double, double > mass_range;
+
 	if ( auto x = this->pProfileSpectrum_.lock() ) {
+
 		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
+
 		for ( auto& ms: segments ) {
 			for ( size_t idx = 0; idx < ms.size(); ++idx ) {
 				double m = law.getMass( ms.getTime( idx ), 0 );
