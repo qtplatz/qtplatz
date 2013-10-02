@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include "visitor.hpp"
 #include <string>
+#include <vector>
 
 namespace adcontrols {
 
@@ -41,6 +42,7 @@ namespace adcontrols {
     public:
         static bool register_factory( massspectrometer_factory*, const std::wstring& name );
         static massspectrometer_factory* find( const std::wstring& name );
+        static std::vector< std::wstring > names();
     };
     
 }

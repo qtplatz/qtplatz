@@ -33,6 +33,7 @@
 #include "mscalibspectrawnd.hpp"
 #include "chromatogramwnd.hpp"
 #include "sessionmanager.hpp"
+#include "mspropertyform.hpp"
 
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/processmethod.hpp>
@@ -400,7 +401,11 @@ MainWindow::createDockWidgets()
         } else {
             QMessageBox::critical(0, QLatin1String("dataprocmanager"), widget.wiid );
         }
-    }       
+    }
+    if ( QWidget * form = new MSPropertyForm ) {
+        createDockWidget( form, "Data property" );
+    }
+
 }
 
 void
@@ -447,6 +452,15 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 			if ( stack_->currentIndex() == 2 || stack_->currentIndex() == 3 )
 				actionSelMSProcess();
 		}
+
+        // set data property to MSPropertyForm
+        boost::any any( folium );
+        for ( auto widget: dockWidgets() ) {
+            adplugin::LifeCycleAccessor accessor( widget->widget() );
+            adplugin::LifeCycle * pLifeCycle = accessor.get();
+            if ( pLifeCycle )
+                pLifeCycle->setContents( any );
+        }
     }
 }
 
@@ -502,8 +516,7 @@ MainWindow::OnInitialUpdate()
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
 		if ( pLifeCycle ) {
 			pLifeCycle->OnInitialUpdate();
-			bool res = connect( obj, SIGNAL( apply( adcontrols::ProcessMethod& ) ), this, SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
-			assert( res );
+			connect( obj, SIGNAL( apply( adcontrols::ProcessMethod& ) ), this, SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
 		}
     }
     setSimpleDockWidgetArrangement();

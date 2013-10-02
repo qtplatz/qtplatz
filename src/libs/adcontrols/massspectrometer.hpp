@@ -27,6 +27,7 @@
 
 #include "adcontrols_global.h"
 #include <string>
+#include <vector>
 
 namespace adcontrols {
 
@@ -44,6 +45,7 @@ namespace adcontrols {
             virtual double getTime( double mass, int type ) const = 0;
             virtual double getMass( double secs, double fLength ) const = 0;
             virtual double getTime( double mass, double fLength ) const = 0;
+            virtual double fLength( int type ) const = 0;
         };
 
         virtual void accept( Visitor& ) = 0;
@@ -52,6 +54,7 @@ namespace adcontrols {
         virtual const DataInterpreter& getDataInterpreter() const = 0;
         
         static const MassSpectrometer& get( const std::wstring& modelname );
+        static std::vector< std::wstring > get_model_names();
     };
 
 }

@@ -59,6 +59,11 @@ namespace adcontrols {
                 return it->second;
             return 0;
         }
+
+        void names( std::vector< std::wstring >& list ) {
+            for ( auto& factory: factories_ )
+                list.push_back( factory.first );
+        }
         
         void visit( adcontrols::MassSpectrometer& );
         
@@ -108,4 +113,13 @@ massspectrometer_factory*
 massSpectrometerBroker::find( const std::wstring& name )
 {
 	return MassSpectrometerBrokerImpl::instance()->find( name );
+}
+
+// static
+std::vector< std::wstring >
+massSpectrometerBroker::names()
+{
+    std::vector< std::wstring > vec;
+	MassSpectrometerBrokerImpl::instance()->names( vec );
+    return vec;
 }
