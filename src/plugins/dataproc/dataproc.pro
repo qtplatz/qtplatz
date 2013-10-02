@@ -61,7 +61,8 @@ SOURCES += \
     sessionmanager.cpp \
     mainwindow.cpp \
     mode.cpp \
-    editorfactory.cpp
+    editorfactory.cpp \
+    mspropertyform.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -88,7 +89,8 @@ HEADERS += \
     editorfactory.hpp \
     assign_masses.hpp \
     mass_calibrator.hpp \
-    assign_peaks.hpp
+    assign_peaks.hpp \
+    mspropertyform.hpp
 
 OTHER_FILES += \
     dataproc.pluginspec \
@@ -99,3 +101,6 @@ PLUGINSPECS += dataproc-mimetype.xml
 
 RESOURCES += \
     dataproc.qrc
+
+FORMS += \
+    mspropertyform.ui

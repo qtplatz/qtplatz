@@ -56,6 +56,9 @@ namespace adcontrols {
                 double v = std::sqrt( acclVoltage_ / mass ) * timeCoefficient_; // (m/s)
                 return fLength * ( 1.0 / v ) + timeDelay_;
             }
+			double fLength( int nTurn ) const {
+				return 1.0 * ( 1 + nTurn );
+			}
         private:
             double timeCoefficient_;
             double timeDelay_;
@@ -95,7 +98,7 @@ namespace adcontrols {
                 delete interpreter_;
             }
             MassSpectrometerImpl() {
-                scanLaw_ = new internal::ScanLaw( 0.01389, 0.0, 5000 );
+                scanLaw_ = new internal::ScanLaw( 0.01389e6, 0.0, 5000 );
                 interpreter_ = new internal::DataInterpreter();
             }
             virtual void accept( adcontrols::Visitor& ) {
@@ -138,7 +141,12 @@ MassSpectrometer::get( const std::wstring& modelname )
 		return *factory->get( modelname.c_str() );
     static internal::MassSpectrometerImpl dummy;
     return dummy;
-    // throw std::exception("mass spectrometer not registered. Check servant.config.xml or configloader");
+}
+
+std::vector< std::wstring > 
+MassSpectrometer::get_model_names()
+{
+    return massSpectrometerBroker::names();
 }
 
 //////////////////////////////////////////////////////////////

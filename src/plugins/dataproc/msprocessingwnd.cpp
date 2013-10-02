@@ -29,6 +29,7 @@
 #include "mainwindow.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/lcmsdataset.hpp>
@@ -292,14 +293,34 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
 }
 
 void
-MSProcessingWnd::selectedOnProfile( const QPointF& pos )
+MSProcessingWnd::selectedOnProfile( const QPointF& )
 {
-    adportable::debug(__FILE__, __LINE__) << "MSProcessingWnd::selectedOnProfile: " << pos.x() << ", " << pos.y();
 }
 
 void
 MSProcessingWnd::selectedOnProfile( const QRectF& )
 {
+    std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
+    using adportable::utf;
+
+    if ( ! models.empty() ) {
+        QMenu menu;
+
+        std::vector< QAction * > actions;
+        for ( auto model: models ) {
+            actions.push_back( menu.addAction( ( boost::format( "Re-assign masses using %1% scan law" ) % utf::to_utf8( model ) ).str().c_str() ) );
+        }
+
+        QAction * selectedItem = menu.exec( QCursor::pos() );
+        auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){
+                return item == selectedItem; }
+            );
+
+        if ( it != actions.end() ) {
+            const std::wstring& model_name = models[ std::distance( actions.begin(), it ) ];
+            assign_masses_to_profile( model_name );
+        }
+    }
 }
 
 
@@ -408,5 +429,31 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
     font.setPointSize( 8 );
     painter.setFont( font );
     painter.drawText( drawRect, Qt::TextWordWrap, formattedMethod, &boundingRect );
+}
+
+bool
+MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
+{
+    const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name );
+    const adcontrols::MassSpectrometer::ScanLaw& law = model.getScanLaw();
+    adportable::debug(__FILE__, __LINE__ ) << model_name;
+
+	std::pair< double, double > mass_range;
+	if ( auto& x = this->pProfileSpectrum_.lock() ) {
+		adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *x );
+		for ( auto& ms: segments ) {
+			for ( size_t idx = 0; idx < ms.size(); ++idx ) {
+				double m = law.getMass( ms.getTime( idx ), 0 );
+                ms.setMass( idx, m );
+				if ( idx == 0 )
+					mass_range.first = std::min( mass_range.first, m );
+				if ( idx == ms.size() - 1 )
+					mass_range.second = std::max( mass_range.second, m );
+			}
+		}
+		x->setAcquisitionMassRange( mass_range.first, mass_range.second );
+	}
+	
+	return true;
 }
 
