@@ -145,8 +145,9 @@ HEADERS += acceptor.hpp \
     peakresult.hpp \
     waveform.hpp \
     annotation.hpp \
-    annotations.hpp \
-    metric/prefix.hpp
+    annotations.hpp
+
+!win32: HEADERS += metric/prefix.hpp
 
 OTHER_FILES += \
     adcontrols.pri
