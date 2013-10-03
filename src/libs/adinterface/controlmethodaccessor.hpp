@@ -1,4 +1,4 @@
-/**************************************************************************
+**************************************************************************
 ** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
 *
@@ -68,32 +68,40 @@ namespace adinterface {
                                                                 , unitNumber_( unitnumber ) {
         }
 
+        bool setMethod( ::ControlMethod::Method& dst, const IM& im ) const {
+            std::string device;
+            if ( Serializer::serialize( im, device ) ) {
+                ::ControlMethod::MethodLine * line = ControlMethodHelper::findFirst( dst, instId_, unitNumber_ );
+                if ( line == 0 ) {
+                    ::ControlMethod::MethodLine& t = ControlMethodHelper::add( dst, instId_, unitNumber_ );
+                    line = &t;
+                }
+                line->xdata.length( device.size() );
+                std::copy( device.begin(), device.end(), reinterpret_cast< char *>(line->xdata.get_buffer()) );
+                return true;
+            }
+            return false;
+        }
+
         bool setMethod( boost::any& a, const IM& im ) const {
             if ( ::ControlMethod::Method * out = ControlMethodAccessor::out( a ) ) {
-                std::string device;
-                if ( Serializer::serialize( im, device ) ) {
-                    ::ControlMethod::MethodLine * line = ControlMethodHelper::findFirst( *out, instId_, unitNumber_ );
-                    if ( line == 0 ) {
-						::ControlMethod::MethodLine& t = ControlMethodHelper::add( *out, instId_, unitNumber_ );
-						line = &t;
-					}
-                    line->xdata.length( device.size() );
-                    std::copy( device.begin(), device.end(), reinterpret_cast< char *>(line->xdata.get_buffer()) );
-                    return true;
-                }
+                return setMethod( *out, im );
             }
+            return false;
+        }
+
+        bool getMethod( IM& im, const ::ControlMethod::Method& source ) {
+            const ::ControlMethod::MethodLine * line = ControlMethodHelper::findFirst( source, instId_, unitNumber_ );
+            if ( line && line->xdata.length() > 0 )
+                return Serializer::deserialize( im, reinterpret_cast< const char * >(line->xdata.get_buffer()), line->xdata.length() );
             return false;
         }
 
         bool getMethod( IM& im, boost::any& a ) {
             const ::ControlMethod::Method * method = 
                 ControlMethodAccessor::isPointer( a ) ? ControlMethodAccessor::out( a ) : ControlMethodAccessor::in( a );
-            if ( method ) {
-                const ::ControlMethod::MethodLine * line = ControlMethodHelper::findFirst( *method, instId_, unitNumber_ );
-                if ( line && line->xdata.length() > 0 )
-                    return Serializer::deserialize( im, reinterpret_cast< const char * >(line->xdata.get_buffer()), line->xdata.length() );
-                return true;
-            }
+            if ( method )
+                return getMethod( im, *method );
             return false;
         }
     };
