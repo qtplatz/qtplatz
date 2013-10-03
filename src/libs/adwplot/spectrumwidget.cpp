@@ -134,7 +134,7 @@ namespace adwplot {
 
             int idx_;
             std::vector< PlotCurve > curves_;
-            std::weak_ptr< adcontrols::MassSpectrum > pSpectrum_;
+            std::shared_ptr< adcontrols::MassSpectrum > pSpectrum_;
 			bool isTimeAxis_;
         };
         
@@ -387,8 +387,8 @@ TraceData::y_range( double left, double right ) const
     double top = 100;
     double bottom = -10;
 
-    if ( const std::shared_ptr< adcontrols::MassSpectrum > ms = pSpectrum_.lock() ) {
-
+    // if ( const std::shared_ptr< adcontrols::MassSpectrum > ms = pSpectrum_.lock() ) {
+    if ( const std::shared_ptr< adcontrols::MassSpectrum > ms = pSpectrum_ ) {
         adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *ms );
         bool isCentroid = ms->isCentroid();
         for ( auto& seg: segments ) {
