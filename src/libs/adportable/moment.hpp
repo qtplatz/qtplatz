@@ -25,9 +25,7 @@
 
 #pragma once
 
-#include <math.h>
-#include <vector>
-#include <assert.h>
+#include <cmath>
 
 namespace adportable {
 
@@ -133,33 +131,35 @@ namespace adportable {
 
     private:
         double left_intersection( const double * py, size_t x, double threshold ) const {
-            if (py[x - 1] >= threshold)
+            if ( py[x - 1] >= threshold ) {
                 return fx_( x - 1 );
-            if (py[x] < threshold)  // should not be here, it's a bug
+            } else if ( py[x] < threshold ) {  // should not be here, it's a bug
                 return fx_( x );
-            return fx_( x - 1 ) + (fx_( x ) - fx_( x - 1 ) ) * (threshold - py[x - 1]) / (py[ x ] - py[ x - 1 ]);
+            }
+            return fx_( x - 1 ) + ( fx_( x ) - fx_( x - 1 ) ) * (threshold - py[x - 1]) / (py[ x ] - py[ x - 1 ]);
         };
 
         double right_intersection( const double * py, size_t x, double threshold ) const {
-            if ( py[x + 1] >= threshold )
+            if ( py[x + 1] >= threshold ) {
                 return fx_( x + 1 );
-            if ( py[x] < threshold )  // should not be here, it's a bug
+            } else if ( py[x] < threshold ) {  // should not be here, it's a bug
                 return fx_( x );
+            }
             return fx_( x ) + (double)( fx_(x + 1) - fx_(x)) * (py[x] - threshold) / (double)(py[x] - py[x + 1]);
         };
 
         template<typename T> static size_t left_bound( const T* py, const T threshold, size_t tpos, size_t spos ) {
             size_t x = tpos - 1;
-            while ((py[x] >= threshold) && x > spos)
+            while ( ( x >= spos ) && ( py[x] > threshold ) )
                 --x;
-            return x;
+            return ++x;
         };
 
         template<typename T> static size_t right_bound( const T* py, const T threshold, size_t tpos, size_t epos ) { 
             size_t x = tpos + 1;
-            while ((py[x] >= threshold) && x < epos)
+            while ( ( x <= epos ) && ( py[x] > threshold ) )
                 ++x;
-            return x;
+            return --x;
         };
     };
 }

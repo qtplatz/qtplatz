@@ -264,7 +264,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 item.centroid_threshold_ = threshold;
                 
                 // pk.mass = mass;
-                double width = moment.width( profile.getIntensityArray(), pk.base + h * 0.5, pk.first, idx, pk.second ); // half-height
+                moment.width( profile.getIntensityArray(), pk.base + h * 0.5, pk.first, idx, pk.second ); // half-height
                 item.HH_left_mass_ = moment.xLeft();
                 item.HH_right_mass_ = moment.xRight();
                 
