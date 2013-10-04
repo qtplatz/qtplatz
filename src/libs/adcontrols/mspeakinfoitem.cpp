@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "mspeakinfoitem.hpp"
+#include <cstring>
 
 using namespace adcontrols;
 
@@ -31,45 +32,10 @@ MSPeakInfoItem::~MSPeakInfoItem(void)
 {
 }
 
-MSPeakInfoItem::MSPeakInfoItem(void) : peak_index_( 0 )
-                                     , peak_start_index_( 0 )
-                                     , peak_end_index_( 0 )
-                                     , base_( 0 )
-                                     , mass_(0)
-                                     , area_(0)
-                                     , height_(0)
-                                     , hh_(0)  
+MSPeakInfoItem::MSPeakInfoItem(void)
 {
+    std::memset( this, 0, sizeof( MSPeakInfoItem ) );
 }
-
-MSPeakInfoItem::MSPeakInfoItem( unsigned int peak_index
-                               , double mass
-                               , double area
-                               , double height
-                               , double hh
-                               , double time ) : peak_index_( peak_index )
-                                               , peak_start_index_( 0 )
-                                               , peak_end_index_( 0 )
-                                               , base_( 0 )
-                                               , mass_(mass)
-                                               , area_(area)
-                                               , height_(height)
-                                               , hh_( hh )
-                                               , time_( time ) 
-{
-}  
-
-MSPeakInfoItem::MSPeakInfoItem( const MSPeakInfoItem& t ) : peak_index_( t.peak_index_ )
-                                                          , peak_start_index_( t.peak_start_index_ )
-                                                          , peak_end_index_( t.peak_end_index_ )
-                                                          , base_( t.base_ )
-                                                          , mass_( t.mass_ )
-                                                          , area_( t.area_ )
-                                                          , height_( t.height_ )
-                                                          , hh_( t.hh_ )
-                                                          , time_( t.time_ ) 
-{
-}  
 
 unsigned int
 MSPeakInfoItem::peak_index() const
@@ -104,13 +70,13 @@ MSPeakInfoItem::peak_end_index( unsigned int idx )
 double 
 MSPeakInfoItem::base_height() const
 {
-    return base_;
+    return base_height_;
 }
 
 void
 MSPeakInfoItem::base_height( double h )
 {
-    base_ = h;
+    base_height_ = h;
 }
 
 double
@@ -132,13 +98,33 @@ MSPeakInfoItem::height() const
 }
 
 double
-MSPeakInfoItem::widthHH() const
+MSPeakInfoItem::widthHH( bool time ) const
 {
-    return hh_;
+    return time ? ( HH_right_time_ - HH_left_time_ ) : ( HH_right_mass_ - HH_left_mass_ );
 }
 
 double
-MSPeakInfoItem::time() const
+MSPeakInfoItem::time( bool time ) const
 {
-    return time_;
+    return time ? time_from_time_ : time_from_mass_;
 }
+
+double
+MSPeakInfoItem::centroid_left( bool time ) const
+{
+    return time ? centroid_left_time_ : centroid_left_mass_;
+}
+
+double
+MSPeakInfoItem::centroid_right( bool time ) const
+{
+    return time ? centroid_right_time_ : centroid_right_mass_;
+}
+
+double
+MSPeakInfoItem::centroid_threshold() const
+{
+    return centroid_threshold_;
+}
+
+

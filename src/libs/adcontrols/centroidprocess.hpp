@@ -27,11 +27,13 @@
 
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
+#include <vector>
 
 namespace adcontrols {
 
     class CentroidMethod;
     class MassSpectrum;
+    class MSPeakInfoItem;
 
     namespace internal {
         class CentroidProcessImpl;
@@ -45,6 +47,7 @@ namespace adcontrols {
         bool operator()( const CentroidMethod&, const MassSpectrum& );
 		bool operator()( const MassSpectrum& );
         bool getCentroidSpectrum( MassSpectrum& );
+        const std::vector< MSPeakInfoItem >& getPeakInfo() const;
 
 	private:
         internal::CentroidProcessImpl* pImpl_;

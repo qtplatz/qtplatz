@@ -29,17 +29,17 @@
 
 namespace adcontrols {
 
+    namespace internal { class CentroidProcessImpl; }
+
     class ADCONTROLSSHARED_EXPORT MSPeakInfoItem {
     public:
         ~MSPeakInfoItem(void);
         MSPeakInfoItem(void);
-        MSPeakInfoItem( const MSPeakInfoItem& );
-        MSPeakInfoItem( unsigned int peak_index, double mass, double area, double height, double hh, double time );
+
         double mass() const;
         double area() const;
         double height() const;
-        double widthHH() const;
-        double time() const;
+        double time( bool time = false ) const;
         unsigned int peak_index() const;
         void peak_index( int );
         unsigned int peak_start_index() const;
@@ -49,16 +49,34 @@ namespace adcontrols {
         double base_height() const;
         void base_height( double );
 
+        double centroid_left( bool time = false ) const;
+        double centroid_right( bool time = false ) const;
+        double centroid_threshold() const;
+        double widthHH( bool time = false ) const;
+
     private:
         unsigned int peak_index_;
         unsigned int peak_start_index_;
         unsigned int peak_end_index_;
-        double base_;
+        double base_height_;
         double mass_;
         double area_;
         double height_;
-        double hh_;
-        double time_;
+
+        double time_from_mass_;
+        double time_from_time_;
+        double HH_left_mass_;
+        double HH_right_mass_;
+        double HH_left_time_;
+        double HH_right_time_;
+
+        double centroid_left_mass_;
+        double centroid_right_mass_;
+        double centroid_left_time_;
+        double centroid_right_time_;
+        double centroid_threshold_; // absolute hight (for graphical rep)
+
+        friend class internal::CentroidProcessImpl;
     };
 
 }

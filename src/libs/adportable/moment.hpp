@@ -53,22 +53,27 @@ namespace adportable {
 
     template<class Fx> class Moment {
         Fx& fx_;
+        double Xl;
+        double Xr;
     public:
         Moment( Fx& f ) : fx_(f) {}
+
+        inline double xLeft() const { return Xl; }
+        inline double xRight() const { return Xr; }
 
         double width( const double * py, double threshold, size_t spos, size_t tpos, size_t epos ) {
             long xL = left_bound<double>( py, threshold, tpos, spos );
             long xR = right_bound<double>( py, threshold, tpos, epos );
-            double Xl = left_intersection( py, xL, threshold );
-            double Xr = right_intersection( py, xR, threshold );
+            Xl = left_intersection( py, xL, threshold );
+            Xr = right_intersection( py, xR, threshold );
             return Xr - Xl;
         }
 
         double centerX( const double * py, double threshold, size_t spos, size_t tpos, size_t epos ) {
             long xL = left_bound<double>( py, threshold, tpos, spos );
             long xR = right_bound<double>( py, threshold, tpos, epos );
-            double Xl = left_intersection( py, xL, threshold );
-            double Xr = right_intersection( py, xR, threshold );
+            Xl = left_intersection( py, xL, threshold );
+            Xr = right_intersection( py, xR, threshold );
 
             double x0 = fx_( xL - 1 );
             double ma = 0;
