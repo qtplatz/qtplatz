@@ -36,13 +36,25 @@ namespace adplugin {
 
     class ADPLUGINSHARED_EXPORT LifeCycle {
     public:
-        virtual ~LifeCycle() {}
+        virtual ~LifeCycle();
+        LifeCycle();
         virtual void OnCreate( const adportable::Configuration& ) = 0;
         virtual void OnInitialUpdate() = 0;
         virtual void OnFinalClose() = 0;
         virtual void onUpdate( boost::any& ) {}
         virtual bool getContents( boost::any& ) const { return false; }
         virtual bool setContents( boost::any& ) { return false; }
+		
+    protected:
+		inline bool isScoped() const { return scope_flag_; }
+
+        bool scope_flag_;
+
+        struct ADPLUGINSHARED_EXPORT scoped_lock {
+            LifeCycle& x_;
+            scoped_lock( LifeCycle& );
+            ~scoped_lock();
+        };
     };
 
 }

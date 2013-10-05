@@ -46,6 +46,9 @@
       <layout class="QHBoxLayout" name="horizontalLayout7">
        <item>
         <widget class="QLabel" name="label">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="font">
           <font>
            <family>Calibri</family>
@@ -61,6 +64,9 @@
        </item>
        <item>
         <widget class="QRadioButton" name="radioButton_propo">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="font">
           <font>
            <family>Calibri</family>
@@ -164,6 +170,9 @@
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_mz">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="font">
           <font>
            <family>Calibri</family>
@@ -201,6 +210,9 @@
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_proportional">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="font">
           <font>
            <family>Calibri</family>
@@ -235,6 +247,9 @@
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_constant">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="font">
           <font>
            <family>Calibri</family>
@@ -349,6 +364,9 @@
        </item>
        <item>
         <widget class="QDoubleSpinBox" name="doubleSpinBox_baselinewidth">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="font">
           <font>
            <family>Calibri</family>

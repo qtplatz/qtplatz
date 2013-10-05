@@ -27,3 +27,20 @@
 
 using namespace adplugin;
 
+LifeCycle::~LifeCycle()
+{
+}
+
+LifeCycle::LifeCycle() : scope_flag_( false )
+{
+}
+
+LifeCycle::scoped_lock::scoped_lock( LifeCycle& t ) : x_( t )
+{
+    x_.scope_flag_ = true;
+}
+
+LifeCycle::scoped_lock::~scoped_lock()
+{
+    x_.scope_flag_ = false;
+}

@@ -80,7 +80,6 @@ CentroidForm::getContents( boost::any& any ) const
 bool
 CentroidForm::setContents( boost::any& any )
 {
-
     if ( ! adportable::a_type< adcontrols::ProcessMethod >::is_a( any ) )
         return false;
 
@@ -103,6 +102,8 @@ CentroidForm::getLifeCycle( adplugin::LifeCycle *& p )
 void
 CentroidForm::update_data( const adcontrols::CentroidMethod& method )
 {
+    scoped_lock lock( *this );
+
     // Scan Type
     ui->doubleSpinBox_peakwidth->setValue( method.rsTofInDa() );
     ui->doubleSpinBox_mz->setValue( method.rsTofAtMz() );
@@ -185,6 +186,8 @@ CentroidForm::sizeHint() const
 void
 CentroidForm::update()
 {
+    scoped_lock lock( *this );
+
 	if ( ui->radioButton_constant->isChecked() ) {
 		ui->doubleSpinBox_peakwidth->setDisabled( true );
 		ui->doubleSpinBox_mz->setDisabled( true );
@@ -201,4 +204,32 @@ CentroidForm::update()
 		ui->doubleSpinBox_proportional->setDisabled( true );
 		ui->doubleSpinBox_constant->setDisabled( true );
 	}
+}
+
+void qtwidgets::CentroidForm::on_doubleSpinBox_peakwidth_valueChanged(double arg1)
+{
+    (void)arg1;
+    if ( ! isScoped() )
+        emit valueChanged();
+}
+
+void qtwidgets::CentroidForm::on_doubleSpinBox_centroidfraction_valueChanged(double arg1)
+{
+	(void)arg1;
+    if ( ! isScoped() )
+        emit valueChanged();
+}
+
+void qtwidgets::CentroidForm::on_noiseFilterMethod_stateChanged(int arg1)
+{
+	(void)arg1;
+    if ( ! isScoped() )
+        emit valueChanged();
+}
+
+void qtwidgets::CentroidForm::on_cutoffMHz_valueChanged(int arg1)
+{
+	(void)arg1;
+    if ( ! isScoped() )
+        emit valueChanged();
 }

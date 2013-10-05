@@ -81,7 +81,13 @@ namespace qtwidgets {
 		virtual void update();
 
     signals:
-         void apply( adcontrols::ProcessMethod& );
+        void apply( adcontrols::ProcessMethod& );
+        void valueChanged();
+    private slots:
+        void on_doubleSpinBox_peakwidth_valueChanged(double arg1);
+        void on_doubleSpinBox_centroidfraction_valueChanged(double arg1);
+        void on_noiseFilterMethod_stateChanged(int arg1);
+        void on_cutoffMHz_valueChanged(int arg1);
     };
 
 }
