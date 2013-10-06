@@ -232,6 +232,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
     array_wrapper<const double> masses( profile.getMassArray(), profile.size() );
 
     double toferror = 0;
+    double toferror_weight = 0;
 
     for ( adportable::peakinfo& pk: finder.results_ ) {
         adportable::array_wrapper<const double>::iterator it = 
@@ -289,8 +290,10 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 				item.HH_left_time_ = time_moment.xLeft();
 				item.HH_right_time_ = time_moment.xRight();
 
-                double difference = std::abs( time - pk.time );
-                toferror = std::max( toferror, difference );
+                double difference = std::abs( item.time_from_time_ - item.time_from_mass_ );
+                
+                toferror += difference * item.height_;
+                toferror_weight += item.height_;
 
                 // prepare resutl
                 // MSPeakInfoItem item( idx, pk.mass, a, h, pk.width, pk.time );
@@ -306,6 +309,7 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
         debug_profile_.setIntensity( pair.second, 25000 );
 #endif
     }
-    if ( toferror >= 50.0e-12 ) // alert if 50ps or lager
+    toferror /= toferror_weight;
+    if ( toferror >= 1.0e-12 ) // warning if error was 1ps or larger
         adportable::debug(__FILE__, __LINE__ ) << "centroid tof interporation error: " << toferror * 1e12 << "ps";
 }
