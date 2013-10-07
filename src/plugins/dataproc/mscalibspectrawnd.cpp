@@ -272,6 +272,7 @@ MSCalibSpectraWnd::handleValueChanged()
     }
 }
 
+/*
 void
 MSCalibSpectraWnd::doCalibration( adcontrols::MassSpectrum& centroid, adcontrols::MSCalibrateResult& res, const adcontrols::MSAssignedMasses& assigned )
 {
@@ -286,6 +287,7 @@ MSCalibSpectraWnd::doCalibration( adcontrols::MassSpectrum& centroid, adcontrols
     //if ( DataprocessorImpl::applyMethod( folium, *mcalib, assigned ) )
     //SessionManager::instance()->updateDataprocessor( this, folium );
 }
+*/
 
 #if 0
 void

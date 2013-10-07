@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "msassignedmass.hpp"
+#include "msproperty.hpp"
 #include <adportable/float.hpp>
 #include <boost/bind.hpp>
 
@@ -36,7 +37,7 @@ MSAssignedMass::MSAssignedMass() : idReference_(-1)
                                  , exactMass_( 0 ) 
                                  , time_( 0 )
                                  , mass_( 0 )  
-                                 , enable_( true ) 
+                                 , enable_( false ) 
                                  , flags_( 0 )
                                  , mode_( 0 )
 {
@@ -65,15 +66,15 @@ MSAssignedMass::MSAssignedMass( uint32_t idReference
                                 , bool enable
                                 , uint32_t flags
                                 , uint32_t mode ) : formula_( formula )
-                                                        , idReference_( idReference )
-                                                        , idMassSpectrum_( idMassSpectrum )
-														, idPeak_( idPeak )
-                                                        , exactMass_( exactMass )
-                                                        , time_( time )   
-                                                        , mass_( mass )
-                                                        , enable_( enable ) 
-                                                        , flags_( flags )
-                                                        , mode_( mode )
+                                                  , idReference_( idReference )
+                                                  , idMassSpectrum_( idMassSpectrum )
+                                                  , idPeak_( idPeak )
+                                                  , exactMass_( exactMass )
+                                                  , time_( time )   
+                                                  , mass_( mass )
+                                                  , enable_( enable ) 
+                                                  , flags_( flags )
+                                                  , mode_( mode )
 {
 }
 
@@ -214,22 +215,13 @@ MSAssignedMasses::operator << ( const MSAssignedMass& t )
     return *this;
 }
 
-namespace adcontrols { namespace internal {
-        struct pred {
-            const MSAssignedMass& t_;
-            pred( const MSAssignedMass& t ) : t_( t ) {}
-            bool operator () ( const MSAssignedMass& a ) const { 
-                return t_.mode() == a.mode() &&
-                    adportable::compare<double>::essentiallyEqual( t_.exactMass(), a.exactMass() );
-            }
-        };
-    }
-}
-
 bool
 MSAssignedMasses::operator += ( const MSAssignedMass& t )
 {
-    if ( std::find_if( vec_.begin(), vec_.end(), internal::pred( t ) ) == vec_.end() ) {
+    if ( std::find_if( vec_.begin(), vec_.end(), [t]( const MSAssignedMass& a ){
+                return t.mode() == a.mode() &&
+                    adportable::compare<double>::essentiallyEqual( t.exactMass(), a.exactMass() );
+            }) == vec_.end() ) {
         vec_.push_back( t );
         return true;
     }

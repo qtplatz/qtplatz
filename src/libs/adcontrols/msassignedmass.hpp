@@ -47,7 +47,7 @@ namespace adcontrols {
                         , uint32_t idMasSpectrum
                         , uint32_t idPeak
                         , const std::wstring& formula, double exactMass, double time, double mass
-                        , bool enable, uint32_t flags = 0, uint32_t mode = 0 );
+                        , bool enable, uint32_t flags, uint32_t mode );
 
         const std::wstring& formula() const;
         uint32_t idReference() const;
@@ -65,6 +65,7 @@ namespace adcontrols {
         void idPeak( uint32_t );
         void exactMass( double );
         void time( double );
+        void velocity( double );
         void mass( double );
         void enable( bool );
         void flags( uint32_t );
@@ -123,7 +124,7 @@ namespace adcontrols {
 
         friend class boost::serialization::access;
         template<class Archive>
-            void serialize(Archive& ar, const uint32_t /*version*/) {
+            void serialize(Archive& ar, const uint32_t /* version */ ) {
             using namespace boost::serialization;
             ar & BOOST_SERIALIZATION_NVP(vec_);
         }
@@ -133,5 +134,6 @@ namespace adcontrols {
 }
 
 BOOST_CLASS_VERSION( adcontrols::MSAssignedMass, 3 )
+BOOST_CLASS_VERSION( adcontrols::MSAssignedMasses, 1 )
 
 #endif // MSASSIGNEDMASS_H

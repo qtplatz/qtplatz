@@ -35,8 +35,6 @@
 #include "sequencesform.hpp"
 #include "centroidform.hpp"
 #include "elementalcompositionform.hpp"
-#include "mscalibrationform.hpp"
-#include "mscalibsummarywidget.hpp"
 #include "peakresultwidget.hpp"
 #include "molwidget.hpp"
 #include "isotopeform.hpp"
@@ -64,15 +62,8 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
         pWidget = new qtwidgets::TargetForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::ElementalCompositionForm" ) {
         pWidget = new qtwidgets::ElementalCompositionForm( parent );
-    } else if ( std::wstring( iid ) == L"qtwidgets::MSCalibrationForm" ) {
-        pWidget = new qtwidgets::MSCalibrationForm( parent );
-    } else if ( std::wstring( iid ) == L"qtwidgets::MSCalibSummaryWidget" ) {
-        pWidget = new qtwidgets::MSCalibSummaryWidget( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::PeakResultWidget" ) {
         pWidget = new qtwidgets::PeakResultWidget( parent );
-    } else if ( std::wstring( iid ) == L"qtwidgets::ProcessMethodView" ) {
-        assert( 0 );
-        // pWidget = new qtwidgets::ProcessMethodView( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::MolWidget" ) {
         pWidget = new qtwidgets::MolWidget( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets::IsotopeForm" ) {

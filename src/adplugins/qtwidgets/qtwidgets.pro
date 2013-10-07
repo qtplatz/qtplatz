@@ -42,10 +42,6 @@ SOURCES += centroiddelegate.cpp \
         isotopemethodmodel.cpp \
         logwidget.cpp \
         molwidget.cpp \
-        mscalibratedelegate.cpp \
-        mscalibrationform.cpp \
-        mscalibsummarydelegate.cpp \
-        mscalibsummarywidget.cpp \
         peakmethoddelegate.cpp \
         peakresultwidget.cpp \
         peakmethodform.cpp \
@@ -69,10 +65,6 @@ HEADERS += centroiddelegate.hpp \
         elementalcompositionform.hpp \
         factory.hpp \
         logwidget.hpp \
-        mscalibratedelegate.hpp \
-        mscalibrationform.hpp \
-        mscalibsummarydelegate.hpp \
-        mscalibsummarywidget.hpp \
         peakresultwidget.hpp \
         qtwidgets.hpp \
         sequencesform.hpp \
