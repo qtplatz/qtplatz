@@ -373,17 +373,26 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
     portfolio::Folder folder = portfolio_->addFolder( L"MSCalibration" );
     portfolio::Folium folium = folder.addFolium( name );
 
-    adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
-    // workaround for unsure acquired mass range (before calibration)
-    ms->setAcquisitionMassRange( 1.0, 1000.0 );
+	if ( const adcontrols::MSCalibrateMethod * pCalibMethod = m.find< adcontrols::MSCalibrateMethod >() ) {
+		std::pair<double, double> range = std::make_pair( pCalibMethod->lowMass(), pCalibMethod->highMass() );
+		
+		adutils::MassSpectrumPtr ms( new adcontrols::MassSpectrum( src ) );  // profile, deep copy
+		const adcontrols::MassSpectrum& tail = ms->numSegments() == 0 ? *ms : ms->getSegment( ms->numSegments() - 1 );
+		double lMass = ms->getMass( 0 );
+		double hMass = tail.getMass( tail.size() - 1 );
+		// workaround for unsure acquired mass range (before calibration)
+		range.first = std::min( range.first, lMass );
+		range.second = std::max( range.second, hMass );
+		ms->setAcquisitionMassRange( range.first, range.second );
     //
-    folium.assign( ms, ms->dataClass() );
+		folium.assign( ms, ms->dataClass() );
 
-    for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
-        boost::apply_visitor( doSpectralProcess( ms, folium ), *it );
+		for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
+			boost::apply_visitor( doSpectralProcess( ms, folium ), *it );
 
-    SessionManager::instance()->updateDataprocessor( this, folium );
-	ifileimpl_->setModified();
+		SessionManager::instance()->updateDataprocessor( this, folium );
+		ifileimpl_->setModified();
+	}
 }
 
 void
