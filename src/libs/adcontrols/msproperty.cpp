@@ -41,7 +41,40 @@ MSProperty::MSProperty( const MSProperty& t ) : time_since_injection_( t.time_si
                                               , instSamplingStartDelay_( t.instSamplingStartDelay_ )
                                               , instSamplingInterval_( t.instSamplingInterval_ )
                                               , samplingData_( t.samplingData_ )
+                                              , dataInterpreterClsid_( t.dataInterpreterClsid_ )
+                                              , deviceData_( t.deviceData_ )
 {
+}
+
+void
+MSProperty::setDataInterpreterClsid( const char * utf8 )
+{
+    dataInterpreterClsid_ = utf8;
+}
+
+const char *
+MSProperty::dataInterpreterClsid() const
+{
+    return dataInterpreterClsid_.c_str();
+}
+
+void
+MSProperty::setDeviceData( const char * device, size_t size )
+{
+    deviceData_.resize( size );
+    std::copy( device, device + size, deviceData_.begin() );
+}
+
+const char *
+MSProperty::deviceData() const
+{
+    return deviceData_.data();
+}
+
+size_t
+MSProperty::deviceDataSize() const
+{
+    return deviceData_.size();
 }
 
 double
@@ -165,7 +198,6 @@ MSProperty::SamplingInfo::SamplingInfo() : sampInterval( 0 )
                                          , mode( 0 )
 {
 }
- 
 
 //static
 double

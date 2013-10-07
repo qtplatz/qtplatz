@@ -74,6 +74,12 @@ namespace adcontrols {
 
         std::pair<double, double> instTimeRange() const;
 
+        void setDataInterpreterClsid( const char * utf8 );
+        const char * dataInterpreterClsid() const;
+        void setDeviceData( const char * device, size_t size );
+        const char * deviceData() const;
+        size_t deviceDataSize() const;
+
         class ADCONTROLSSHARED_EXPORT SamplingInfo {
         public:
             uint32_t sampInterval; // ps
@@ -81,8 +87,10 @@ namespace adcontrols {
             uint32_t nSamples;
             uint32_t nAverage;
             uint32_t mode;  // number of turns for InfiTOF, lenear|reflectron for MALDI etc
+
             SamplingInfo();
             SamplingInfo( uint32_t sampInterval, uint32_t nDelay, uint32_t nCount, uint32_t nAvg, uint32_t mode );
+
         private:
             friend class boost::serialization::access;
             template<class Archive>
@@ -94,11 +102,8 @@ namespace adcontrols {
                 if ( version >= 3 )
                     ar & BOOST_SERIALIZATION_NVP(mode);
             };
-
         };
 
-        // static std::vector<SamplingInfo>::const_iterator findSamplingInfo( size_t idx, const std::vector<SamplingInfo>& segments );
-        // static double toSeconds( size_t idx, const std::vector<SamplingInfo>& segments );
         static double toSeconds( size_t idx, const SamplingInfo& info );
         static size_t compute_profile_time_array( double * p, size_t, const SamplingInfo& segments, metric::prefix pfx );
 
@@ -108,6 +113,9 @@ namespace adcontrols {
         uint32_t instNumAvrg_;
         uint32_t instSamplingStartDelay_;
         uint32_t instSamplingInterval_; // ps
+        std::string dataInterpreterClsid_;
+        std::string deviceData_;
+
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
 #endif
@@ -132,12 +140,15 @@ namespace adcontrols {
             } else if ( version >= 3 ) {
                 ar & BOOST_SERIALIZATION_NVP( samplingData_ );
             }
+            if ( version >= 4 ) {
+                ar & BOOST_SERIALIZATION_NVP( dataInterpreterClsid_ );
+                ar & BOOST_SERIALIZATION_NVP( deviceData_ );
+            }
         }
 
     };
-
 }
 
-BOOST_CLASS_VERSION(adcontrols::MSProperty, 3)
+BOOST_CLASS_VERSION(adcontrols::MSProperty, 4)
 BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 3)
 
