@@ -33,11 +33,8 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/tuple/tuple.hpp>
-
-//#include <boost/fusion/container.hpp>
-//#include <boost/fusion/algorithm.hpp>
-
-#include "mscalibration.hpp"
+#include "massspectrometer.hpp"
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
@@ -52,6 +49,10 @@ namespace adcontrols {
 
         // analyzer mode, ex. Linear/Refrectron for MALDI, number of turns for Multi-turn instrument
         int mode() const;
+
+        // helper method for quick access to spectrometer class
+        const MassSpectrometer& spectrometer() const;
+        std::shared_ptr< massspectrometer::ScanLaw > scanLaw() const;
 
         // number of average for waveform
         size_t numAverage() const;

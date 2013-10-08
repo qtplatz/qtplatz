@@ -24,6 +24,7 @@
 
 #include "msproperty.hpp"
 #include "metric/prefix.hpp"
+#include "massspectrometer.hpp"
 
 using namespace adcontrols;
 
@@ -234,3 +235,16 @@ MSProperty::compute_profile_time_array( double * p, std::size_t size, const Samp
 	}
     return n;
 }
+
+const adcontrols::MassSpectrometer&
+MSProperty::spectrometer() const
+{
+	return adcontrols::MassSpectrometer::get( dataInterpreterClsid() );
+}
+
+std::shared_ptr< massspectrometer::ScanLaw >
+MSProperty::scanLaw() const
+{
+	return adcontrols::MassSpectrometer::get( dataInterpreterClsid() ).scanLaw( *this );
+}
+

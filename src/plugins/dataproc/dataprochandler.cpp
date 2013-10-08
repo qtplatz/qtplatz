@@ -217,7 +217,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     adcontrols::MSCalibration calib;
     if ( calibrator.polfit( calib, m.polynomialDegree() + 1 ) ) {
         for ( auto it: assignedMasses ) {
-            double mass = calibrator.compute_mass( it.time(), calib, it.mode() );
+            double mass = calibrator.compute_mass( it.time(), it.mode(), calib );
             it.mass( mass );
         }
         res.calibration( calib );
@@ -291,13 +291,11 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     mass_calibrator calibrator2( assignedMasses, centroid.getMSProperty() );
     if ( calibrator2.polfit( calib, m.polynomialDegree() + 1 ) ) {
         for ( auto it: assignedMasses )
-            it.mass( calibrator2.compute_mass( it.time(), calib, it.mode() ) );
+            it.mass( calibrator2.compute_mass( it.time(), it.mode(), calib ) );
         centroid.setCalibration( calib, true );
         res.calibration( calib );
         res.assignedMasses( assignedMasses );
 
-        // std::vector< unsigned char > colors( centroid.size() );
-        // centroid.setColorArray( colors.data() );
         return true;
     }
     return false;

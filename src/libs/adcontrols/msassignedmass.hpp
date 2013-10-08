@@ -65,7 +65,6 @@ namespace adcontrols {
         void idPeak( uint32_t );
         void exactMass( double );
         void time( double );
-        void velocity( double );
         void mass( double );
         void enable( bool );
         void flags( uint32_t );
