@@ -215,7 +215,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     mass_calibrator calibrator( assignedMasses, centroid.getMSProperty() );
 
     adcontrols::MSCalibration calib;
-    if ( calibrator.compute( calib, m.polynomialDegree() + 1 ) ) {
+    if ( calibrator.polfit( calib, m.polynomialDegree() + 1 ) ) {
         for ( auto it: assignedMasses ) {
             double mass = calibrator.compute_mass( it.time(), calib, it.mode() );
             it.mass( mass );
@@ -273,7 +273,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 
     mass_calibrator calibrator( assigned, centroid.getMSProperty() );
     adcontrols::MSCalibration calib;
-    if ( ! calibrator.compute( calib, m.polynomialDegree() + 1 ) )
+    if ( ! calibrator.polfit( calib, m.polynomialDegree() + 1 ) )
         return false;
 
     res.references( m.references() );
@@ -289,7 +289,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 	}
 
     mass_calibrator calibrator2( assignedMasses, centroid.getMSProperty() );
-    if ( calibrator2.compute( calib, m.polynomialDegree() + 1 ) ) {
+    if ( calibrator2.polfit( calib, m.polynomialDegree() + 1 ) ) {
         for ( auto it: assignedMasses )
             it.mass( calibrator2.compute_mass( it.time(), calib, it.mode() ) );
         centroid.setCalibration( calib, true );

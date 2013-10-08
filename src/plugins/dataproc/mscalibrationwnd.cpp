@@ -271,7 +271,7 @@ MSCalibrationWnd::calibPolynomialFit( adcontrols::MSCalibrateResult& calibResult
         nterm = calibrator.size();
     
     adcontrols::MSCalibration calib;
-    if ( calibrator.compute( calib, nterm ) ) {
+    if ( calibrator.polfit( calib, nterm ) ) {
 
         calibResult.calibration( calib );
         
@@ -293,8 +293,6 @@ MSCalibrationWnd::handleValueChanged()
         return;
 
     const adcontrols::MSProperty& prop = calibSpectrum->getMSProperty();
-    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( prop.dataInterpreterClsid() );
-    
 
     adcontrols::MSAssignedMasses assigned;
     if ( readCalibSummary( assigned ) ) {
@@ -326,7 +324,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
 		return;
 
 	const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( calibSpectrum->getMSProperty().dataInterpreterClsid() );
-	std::shared_ptr< adcontrols::MassSpectrometer::ScanLaw > scanLaw = spectrometer.scanLaw( calibSpectrum->getMSProperty() );
+	std::shared_ptr< adcontrols::ScanLaw > scanLaw = spectrometer.scanLaw( calibSpectrum->getMSProperty() );
 
     adcontrols::MSAssignedMasses assigned;
     if ( readCalibSummary( assigned ) ) {

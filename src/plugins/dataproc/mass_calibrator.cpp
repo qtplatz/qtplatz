@@ -64,16 +64,8 @@ mass_calibrator::mass_calibrator( const adcontrols::MSAssignedMasses& assigned
     }
 }
 
-// mass_calibrator&
-// mass_calibrator::operator << ( const std::pair< double, double >& pair )
-// {
-//     times_.push_back( pair.first );          // time
-//     sqrtMz_.push_back( sqrt( pair.second ) ); // sqrt( mass )
-// 	return *this;
-// }
-
 bool
-mass_calibrator::compute( adcontrols::MSCalibration& calib, int nterm )
+mass_calibrator::polfit( adcontrols::MSCalibration& calib, int nterm )
 {
 	if ( nterm == 0 )
 		return false;
