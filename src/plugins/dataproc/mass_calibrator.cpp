@@ -45,16 +45,9 @@
 
 using namespace dataproc;
 
-mass_calibrator::mass_calibrator()
-{
-}
-
 mass_calibrator::mass_calibrator( const adcontrols::MSAssignedMasses& assigned
-                                      , const adcontrols::MSProperty& prop )
+                                  , const adcontrols::MSProperty& prop ) : scanLaw_( prop.scanLaw() )
 {
-	const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( prop.dataInterpreterClsid() );
-    scanLaw_ = spectrometer.scanLaw( prop );
-
     for ( auto it: assigned ) {
         if ( it.enable() ) {
             double t = it.time() / scanLaw_->fLength( it.mode() );  // time for 1mL
@@ -91,7 +84,7 @@ mass_calibrator::polfit( adcontrols::MSCalibration& calib, int nterm )
 }
 
 double
-mass_calibrator::compute_mass( double time, const adcontrols::MSCalibration& calib, int mode )
+mass_calibrator::compute_mass( double time, int mode, const adcontrols::MSCalibration& calib )
 {
 	double msqr = adcontrols::MSCalibration::compute( calib.coeffs(), time / scanLaw_->fLength( mode ) );
     if ( msqr > 0.0 )

@@ -43,15 +43,14 @@ namespace dataproc {
         std::vector< double > times_;
         std::vector< double > sqrtMz_;
         std::wstring ident_;
-        std::shared_ptr< adcontrols::ScanLaw > scanLaw_;
+		std::shared_ptr< adcontrols::massspectrometer::ScanLaw > scanLaw_;
 
     public:
-        mass_calibrator();
         mass_calibrator( const adcontrols::MSAssignedMasses&, const adcontrols::MSProperty& );
 
         inline size_t size() const { return times_.size(); }
         bool polfit( adcontrols::MSCalibration&, int nterm );
-        double compute_mass( double time, const adcontrols::MSCalibration&, int mode );
+        double compute_mass( double time, int mode, const adcontrols::MSCalibration& );
     };
 
 }

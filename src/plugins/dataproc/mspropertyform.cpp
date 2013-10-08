@@ -25,6 +25,7 @@
 #include "mspropertyform.hpp"
 #include "ui_mspropertyform.h"
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>

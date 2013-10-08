@@ -323,8 +323,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
 	if ( ! calibSpectrum )
 		return;
 
-	const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( calibSpectrum->getMSProperty().dataInterpreterClsid() );
-	std::shared_ptr< adcontrols::ScanLaw > scanLaw = spectrometer.scanLaw( calibSpectrum->getMSProperty() );
+	const adcontrols::massspectrometer::ScanLaw& scanLaw = calibSpectrum->scanLaw();
 
     adcontrols::MSAssignedMasses assigned;
     if ( readCalibSummary( assigned ) ) {
@@ -336,7 +335,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
 
             // update m/z for MSAssignedMasses
             for ( auto& it : calibResult->assignedMasses() )
-				it.mass ( calib.compute_mass( it.time() / scanLaw->fLength( it.mode() ) ) );
+				it.mass ( calib.compute_mass( it.time() / scanLaw.fLength( it.mode() ) ) );
 
             if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
 
@@ -347,7 +346,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                     for ( auto& ms: segments ) {
 						ms.setCalibration( calib );
                         for ( size_t i = 0; i < ms.size(); ++i )
-                            ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) );
+                            ms.setMass( i, calib.compute_mass( ms.getNormalizedTime( i ) ) );
                     }
                 }
                 pImpl_->processedSpectrum_->setData( profile, idx_profile ); 
@@ -358,7 +357,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                 for ( auto& ms: segments ) {
 					ms.setCalibration( calib );
                     for ( size_t i = 0; i < ms.size(); ++i )
-						ms.setMass( i, calib.compute_mass( ms.getTime( i ) / ms.getMSProperty().mode() ) );
+						ms.setMass( i, calib.compute_mass( ms.getNormalizedTime( i ) ) );
                 }
                 pImpl_->processedSpectrum_->setData( centroid, idx_centroid ); 
 
