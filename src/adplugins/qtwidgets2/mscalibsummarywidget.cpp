@@ -28,6 +28,7 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/msreferences.hpp>
@@ -91,6 +92,7 @@ MSCalibSummaryWidget::OnInitialUpdate()
     rootNode->setColumnCount( c_number_of_columns );
 
     model.setHeaderData( c_time, Qt::Horizontal, QObject::tr( "time(us)" ) );
+    model.setHeaderData( c_time_normalized, Qt::Horizontal, QObject::tr( "time(us/m)" ) );
     model.setHeaderData( c_mass, Qt::Horizontal, QObject::tr( "m/z" ) );
     model.setHeaderData( c_mass_calibrated, Qt::Horizontal, QObject::tr( "m/z(calibrated)" ) );
     model.setHeaderData( c_mode, Qt::Horizontal, QObject::tr( "#turns" ) );
@@ -147,7 +149,8 @@ MSCalibSummaryWidget::getAssignedMasses( adcontrols::MSAssignedMasses& t ) const
         std::wstring wformula = qtwrapper::wstring( formula );
         if ( ! formula.isEmpty()  ) {
             bool enable = model.index( row, c_is_enable ).data( Qt::EditRole ).toBool();
-            double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble() / 1.0e6; // us -> s
+            double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble();
+
             double exact_mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
             double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
             uint32_t mode = model.index( row, c_mode ).data( Qt::EditRole ).toInt();
@@ -189,8 +192,15 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
     if ( it == assigned.end() )
         return false;
 
+    const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
+
+	double normalized_time = it->time() / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
+    double mass = calib.compute_mass( normalized_time );
+
+    model.setData( model.index( row, c_time_normalized ), normalized_time );
     model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );
     model.setData( model.index( row, c_exact_mass ), it->exactMass() );
+    model.setData( model.index( row, c_mass_calibrated ), mass );
 
     double org = it->mass();
     double err = org - it->exactMass();
@@ -234,10 +244,12 @@ MSCalibSummaryWidget::createModelData( const std::vector< std::pair< int, int > 
         
         model.setData( model.index( row, c_mode ),  ms.getMSProperty().getSamplingInfo().mode ); // nTurns
         model.setData( model.index( row, c_mass ),  ms.getMass( idx.second ) );
-        model.setData( model.index( row, c_time ),  ms.getTime( idx.second ) * 1e6 ); // us
+        model.setData( model.index( row, c_time ),  ms.getTime( idx.second ) );
+        model.setData( model.index( row, c_time_normalized ), ms.getNormalizedTime( idx.second ) );
         
         model.setData( model.index( row, c_intensity ), ms.getIntensity( idx.second ) );
-        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getTime( idx.second ) ) );
+
+        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getNormalizedTime( idx.second ) ) );
 
         setAssignedData( row, idx.first, idx.second, pCalibResult_->assignedMasses() );
 		setEditable( row );
@@ -255,6 +267,7 @@ MSCalibSummaryWidget::setEditable( int row, bool )
     model.item( row, c_fcn )->setEditable( false );
     model.item( row, c_index )->setEditable( false );
     model.item( row, c_time )->setEditable( false );
+    model.item( row, c_time_normalized )->setEditable( false );
     model.item( row, c_mass )->setEditable( false );
     model.item( row, c_mass_calibrated )->setEditable( false );
     model.item( row, c_intensity )->setEditable( false );
@@ -284,9 +297,12 @@ MSCalibSummaryWidget::modifyModelData( const std::vector< std::pair< int, int > 
 
         model.setData( model.index( row, c_mode ),  ms.getMSProperty().getSamplingInfo().mode ); // nTurns
         model.setData( model.index( row, c_mass ),  ms.getMass( it->second ) );
-        model.setData( model.index( row, c_time ),  ms.getTime( it->second ) * 1e6 );
+
+        model.setData( model.index( row, c_time ),  ms.getTime( it->second ) );
+        model.setData( model.index( row, c_time_normalized ),  ms.getNormalizedTime( it->second ) );
         model.setData( model.index( row, c_intensity ), ms.getIntensity( it->second ) );
-        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getTime( it->second ) ) );
+
+        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getNormalizedTime( it->second ) ) );
 
         setAssignedData( row, it->first, it->second, pCalibResult_->assignedMasses() );
     }
@@ -478,7 +494,10 @@ MSCalibSummaryWidget::handleCopyToClipboard()
     for ( auto idx: list ) {
 		if ( i++ > 0 )
 			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
-        copy_table.append( model.data( idx ).toString() );
+        if ( idx.column() == c_time || idx.column() == c_time_normalized )
+            copy_table.append( QString("%1").arg( adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() ) ) );
+        else
+            copy_table.append( model.data( idx ).toString() );
         prev = idx;
     }
     QApplication::clipboard()->setText( copy_table );
@@ -521,7 +540,10 @@ MSCalibSummaryWidget::copySummaryToClipboard()
 
     for ( int row = 0; row < model.rowCount(); ++row ) {
         for ( int col = 0; col < model.columnCount(); ++col ) {
-            text.append( model.data( model.index( row, col ) ).toString() );
+            if ( col == c_time || col == c_time_normalized )
+                text.append( QString("%1").arg( adcontrols::metric::scale_to_micro( model.data( model.index( row, col ) ).toDouble() ) ) );
+            else
+                text.append( model.data( model.index( row, col ) ).toString() );
             text.append( '\t' );
         }
         text.append( '\n' );
@@ -633,6 +655,7 @@ MSCalibSummaryWidget::handlePrint( QPrinter& printer, QPainter& painter )
         double width = 0;
         switch( col ) {
         case c_time:                      width = rect.width() / 180 * 16; break;
+        case c_time_normalized:           width = rect.width() / 180 * 16; break;
         case c_formula:                   width = rect.width() / 180 * 28; break;
         case c_exact_mass:                width = rect.width() / 180 * 18; break;
         case c_mass:                      width = rect.width() / 180 * 18; break;

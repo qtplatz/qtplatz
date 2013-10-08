@@ -51,6 +51,7 @@ namespace qtwidgets2 {
 
         enum {
             c_time
+            , c_time_normalized
             , c_formula
             , c_exact_mass
             , c_mass
