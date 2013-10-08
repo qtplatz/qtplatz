@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -33,6 +34,7 @@ namespace adcontrols {
 
     class Visitor;
     class DataInterpreter;
+	class MSProperty;
     
     class ADCONTROLSSHARED_EXPORT MassSpectrometer {
     public:
@@ -41,19 +43,21 @@ namespace adcontrols {
         
         class ScanLaw {
         public:
-            virtual double getMass( double secs, int type ) const = 0;
-            virtual double getTime( double mass, int type ) const = 0;
+            virtual double getMass( double secs, int mode ) const = 0;
+            virtual double getTime( double mass, int mode ) const = 0;
             virtual double getMass( double secs, double fLength ) const = 0;
             virtual double getTime( double mass, double fLength ) const = 0;
-            virtual double fLength( int type ) const = 0;
+            virtual double fLength( int mode ) const = 0;
         };
 
-        virtual void accept( Visitor& ) = 0;
+        //virtual void accept( Visitor& ) = 0;
         virtual const wchar_t * name() const = 0;
         virtual const ScanLaw& getScanLaw() const = 0;
         virtual const DataInterpreter& getDataInterpreter() const = 0;
+		virtual std::shared_ptr<ScanLaw> scanLaw( const adcontrols::MSProperty& ) const = 0;
         
-        static const MassSpectrometer& get( const std::wstring& modelname );
+        static const MassSpectrometer& get( const wchar_t * dataInterpreterClsid );
+		static const MassSpectrometer& get( const char * dataInterpreterClsid );
         static std::vector< std::wstring > get_model_names();
     };
 

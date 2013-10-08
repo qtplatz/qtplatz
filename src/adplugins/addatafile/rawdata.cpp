@@ -280,7 +280,7 @@ rawdata::getCalibration( int fcn, adcontrols::MSCalibrateResult& calibResult, ad
 bool
 rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, adcontrols::TraceAccessor& accessor )
 {
-    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( dataInterpreterClsid );
+    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( dataInterpreterClsid.c_str() );
     const adcontrols::DataInterpreter& interpreter = spectrometer.getDataInterpreter();
 
     adfs::stmt sql( dbf_.db() );
@@ -326,7 +326,7 @@ rawdata::fetchSpectrum( int64_t objid
                         , const std::wstring& dataInterpreterClsid
                         , uint64_t npos, adcontrols::MassSpectrum& ms ) const
 {
-    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( dataInterpreterClsid );
+    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( dataInterpreterClsid.c_str() );
     const adcontrols::DataInterpreter& interpreter = spectrometer.getDataInterpreter();
 
     adfs::stmt sql( dbf_.db() );

@@ -43,6 +43,7 @@ MSProperty::MSProperty( const MSProperty& t ) : time_since_injection_( t.time_si
                                               , samplingData_( t.samplingData_ )
                                               , dataInterpreterClsid_( t.dataInterpreterClsid_ )
                                               , deviceData_( t.deviceData_ )
+                                              , coeffs_( t.coeffs_ )
 {
 }
 
@@ -75,6 +76,18 @@ size_t
 MSProperty::deviceDataSize() const
 {
     return deviceData_.size();
+}
+
+const std::vector< double >&
+MSProperty::coeffs() const
+{
+    return coeffs_;
+}
+
+void
+MSProperty::coeffs( const std::vector< double >& coeffs )
+{
+    coeffs_ = coeffs;
 }
 
 double

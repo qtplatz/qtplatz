@@ -32,7 +32,9 @@
 #include <portfolio/folder.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/msassignedmass.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/msreferences.hpp>
@@ -41,6 +43,7 @@
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adutils/processeddata.hpp>
+#include <adportable/utf.hpp>
 #include <qwt_plot_renderer.h>
 
 #include <coreplugin/minisplitter.h>
@@ -284,6 +287,14 @@ MSCalibrationWnd::handleValueChanged()
     std::shared_ptr< adcontrols::MSCalibrateResult > calibResult = pImpl_->calibResult_.lock();
     if ( ! calibResult )
         return;
+
+    std::shared_ptr< const adcontrols::MassSpectrum > calibSpectrum = pImpl_->calibSpectrum_.lock();
+    if ( ! calibSpectrum )
+        return;
+
+    const adcontrols::MSProperty& prop = calibSpectrum->getMSProperty();
+    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( prop.dataInterpreterClsid() );
+    
 
     adcontrols::MSAssignedMasses assigned;
     if ( readCalibSummary( assigned ) ) {

@@ -74,11 +74,18 @@ namespace adcontrols {
 
         std::pair<double, double> instTimeRange() const;
 
+        // Device specific parameters
+
         void setDataInterpreterClsid( const char * utf8 );
         const char * dataInterpreterClsid() const;
         void setDeviceData( const char * device, size_t size );
         const char * deviceData() const;
         size_t deviceDataSize() const;
+
+        // coefficients for scanLaw := polinomials for compute time parameters from mass value that user entered.
+        // This will be manged by scanLaw with repsect to device data by Spectrometer::ScanLaw
+        const std::vector<double>& coeffs() const;
+        void coeffs( const std::vector< double >& );
 
         class ADCONTROLSSHARED_EXPORT SamplingInfo {
         public:
@@ -115,6 +122,7 @@ namespace adcontrols {
         uint32_t instSamplingInterval_; // ps
         std::string dataInterpreterClsid_;
         std::string deviceData_;
+        std::vector< double > coeffs_;
 
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
@@ -143,6 +151,7 @@ namespace adcontrols {
             if ( version >= 4 ) {
                 ar & BOOST_SERIALIZATION_NVP( dataInterpreterClsid_ );
                 ar & BOOST_SERIALIZATION_NVP( deviceData_ );
+                ar & BOOST_SERIALIZATION_NVP( coeffs_ );
             }
         }
 

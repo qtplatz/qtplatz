@@ -434,7 +434,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
 bool
 MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
 {
-    const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name );
+    const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name.c_str() );
     const adcontrols::MassSpectrometer::ScanLaw& law = model.getScanLaw();
     adportable::debug(__FILE__, __LINE__ ) << model_name;
 

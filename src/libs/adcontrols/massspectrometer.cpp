@@ -28,6 +28,7 @@
 #include "massspectrometerbroker.hpp"
 #include "massspectrometer_factory.hpp"
 #include "adcontrols.hpp"
+#include <adportable/utf.hpp>
 #include <string>
 #include <cmath>
 
@@ -103,16 +104,16 @@ namespace adcontrols {
             }
             virtual void accept( adcontrols::Visitor& ) {
             }
-            //virtual adcontrols::MassSpectrometer::factory_type factory() {
-            //    return &instance;
-            //}
-            virtual const wchar_t * name() const {
+            const wchar_t * name() const override {
 				return L"default";
             }
-            virtual const MassSpectrometer::ScanLaw& getScanLaw() const {
+            const MassSpectrometer::ScanLaw& getScanLaw() const override {
                 return * scanLaw_;
             }
-            virtual const adcontrols::DataInterpreter& getDataInterpreter() const {
+			std::shared_ptr< MassSpectrometer::ScanLaw > scanLaw( const MSProperty& ) const override {
+				return std::make_shared< internal::ScanLaw >( 0.01389e6, 0.0, 5000 );
+			}
+            const adcontrols::DataInterpreter& getDataInterpreter() const override {
                 return * interpreter_;
             }
         private:
@@ -134,13 +135,20 @@ internal::MassSpectrometerImpl * internal::MassSpectrometerImpl::impl_ = 0;
 ///////////////////////////////////////////////
 
 const MassSpectrometer&
-MassSpectrometer::get( const std::wstring& modelname )
+MassSpectrometer::get( const wchar_t * dataInterpreterClsid )
 {
-	massspectrometer_factory * factory = massSpectrometerBroker::find( modelname );
+	massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid );
 	if ( factory )
-		return *factory->get( modelname.c_str() );
+		return *factory->get( dataInterpreterClsid );
     static internal::MassSpectrometerImpl dummy;
     return dummy;
+}
+
+const MassSpectrometer&
+MassSpectrometer::get( const char * dataInterpreterClsid )
+{
+	std::wstring wstr = adportable::utf::to_wstring( dataInterpreterClsid );
+	return get( wstr.c_str() );
 }
 
 std::vector< std::wstring > 
