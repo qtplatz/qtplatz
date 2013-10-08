@@ -116,6 +116,9 @@ namespace adcontrols {
            unsigned long numSpectrumSinceInjTrigger_;
            std::string uuid_; // out of serialization scope
            std::vector< MassSpectrum > vec_;
+
+           // exclude from archive
+           std::shared_ptr< massspectrometer::ScanLaw > scanLaw_;
 	    
            friend class MassSpectrum;
 
@@ -226,6 +229,19 @@ MassSpectrum::polarity() const
     return pImpl_->polarity();
 }
 
+int
+MassSpectrum::mode() const
+{
+    return pImpl_->getMSProperty().mode();
+}
+
+const massspectrometer::ScanLaw&
+MassSpectrum::scanLaw() const
+{
+    if ( ! pImpl_->scanLaw_ )
+        pImpl_->scanLaw_ = pImpl_->getMSProperty().scanLaw();
+    return *(pImpl_->scanLaw_);
+}
 
 const double *
 MassSpectrum::getMassArray() const
@@ -272,6 +288,13 @@ MassSpectrum::getTime( size_t idx ) const
         return MSProperty::toSeconds( idx, pImpl_->getMSProperty().getSamplingInfo() );
     }
     return 0;
+}
+
+double
+MassSpectrum::getNormalizedTime( size_t idx ) const
+{
+    double time = getTime( idx );
+    return time / scanLaw().fLength( mode() );
 }
 
 void

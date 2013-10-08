@@ -63,6 +63,10 @@ namespace adcontrols {
                              , CentroidIsotopeSimulation
                              , CentroidNative // instrument manufacturer's native algorithm 
     };
+
+    namespace massspectrometer {
+        class ScanLaw;
+    };
     
     namespace internal {
         class MassSpectrumImpl;
@@ -107,12 +111,15 @@ namespace adcontrols {
         
         MS_POLARITY polarity() const;
         void setPolarity( MS_POLARITY );
+        int mode() const;
         
         void setCalibration( const adcontrols::MSCalibration&, bool assignMasses = false );
         const MSCalibration& calibration() const;
         
         void setMSProperty( const adcontrols::MSProperty& );
         const MSProperty& getMSProperty() const;
+
+        const massspectrometer::ScanLaw& scanLaw() const;
         
         template<class T> void set( const T& t );
         template<class T> const T& get();
@@ -122,6 +129,8 @@ namespace adcontrols {
         double getMass( size_t idx ) const;
         double getIntensity( size_t idx ) const;
         double getTime( size_t idx ) const;
+        double getNormalizedTime( size_t idx ) const;
+
 		int getColor( size_t idx ) const;
     
         void addDescription( const Description& );
