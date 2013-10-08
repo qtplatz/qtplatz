@@ -102,6 +102,11 @@ MSProperty::setAccelerateVoltage( double value )
     instAccelVoltage_ = value;
 }
 
+int
+MSProperty::mode() const
+{
+    return samplingData_.mode;
+}
 
 // number of average for waveform
 size_t

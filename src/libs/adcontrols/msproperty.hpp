@@ -50,6 +50,9 @@ namespace adcontrols {
         double accelerateVoltage() const;
         void setAccelerateVoltage( double );
 
+        // analyzer mode, ex. Linear/Refrectron for MALDI, number of turns for Multi-turn instrument
+        int mode() const;
+
         // number of average for waveform
         size_t numAverage() const;
         void setNumAverage( size_t );

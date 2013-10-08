@@ -203,18 +203,21 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     adcontrols::MSAssignedMasses assignedMasses;
     
 	adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( centroid );
-	for ( size_t n = 0; n < segments.size(); ++n )
-		assigner( assignedMasses, segments[n], res.references(), 0, n );
+    size_t n = 0;
+	for ( auto seg: segments )
+		assigner( assignedMasses, seg, res.references(), 0, n++ );
+
+	res.assignedMasses( assignedMasses ); // set peak assign result
 
     // annotate each peak on spectrum
     doAnnotateAssignedPeaks( centroid, assignedMasses );
-	res.assignedMasses( assignedMasses ); // set assigned result even no enabled calibrant found or calibration failed
 
-    mass_calibrator calibrator( assignedMasses );
+    mass_calibrator calibrator( assignedMasses, centroid.getMSProperty() );
+
     adcontrols::MSCalibration calib;
     if ( calibrator.compute( calib, m.polynomialDegree() + 1 ) ) {
         for ( auto it: assignedMasses ) {
-            double mass = mass_calibrator::compute_mass( it.time(), calib );
+            double mass = calibrator.compute_mass( it.time(), calib, it.mode() );
             it.mass( mass );
         }
         res.calibration( calib );
@@ -268,7 +271,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     std::map<size_t, size_t>::iterator itMax = std::max_element( mode_map.begin(), mode_map.end() );
     int mode = itMax->first;
 
-    mass_calibrator calibrator( assigned );
+    mass_calibrator calibrator( assigned, centroid.getMSProperty() );
     adcontrols::MSCalibration calib;
     if ( ! calibrator.compute( calib, m.polynomialDegree() + 1 ) )
         return false;
@@ -285,16 +288,10 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 		assign( assignedMasses, segments[n], m.references(), 0, n );
 	}
 
-    // // populate manually assigned peaks
-    // for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
-    //     if ( it->flags() )
-    //         assignedMasses << *it;
-    // }
-
-    mass_calibrator calibrator2( assignedMasses );
+    mass_calibrator calibrator2( assignedMasses, centroid.getMSProperty() );
     if ( calibrator2.compute( calib, m.polynomialDegree() + 1 ) ) {
         for ( auto it: assignedMasses )
-            it.mass( mass_calibrator::compute_mass( it.time(), calib ) );
+            it.mass( calibrator2.compute_mass( it.time(), calib, it.mode() ) );
         centroid.setCalibration( calib, true );
         res.calibration( calib );
         res.assignedMasses( assignedMasses );

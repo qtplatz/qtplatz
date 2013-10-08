@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <adcontrols/massspectrometer.hpp>
 #include <cstddef>
 #include <utility>
 #include <vector>
@@ -33,6 +34,7 @@ namespace adcontrols {
     class MassSpectrum;
     class MSAssignedMasses;
     class MSCalibration;
+	class MSProperty;
 }
 
 namespace dataproc {
@@ -41,13 +43,16 @@ namespace dataproc {
         std::vector< double > times_;
         std::vector< double > sqrtMz_;
         std::wstring ident_;
+        std::shared_ptr< adcontrols::MassSpectrometer::ScanLaw > scanLaw_;
+
     public:
         mass_calibrator();
-        mass_calibrator( const adcontrols::MSAssignedMasses& );
+        mass_calibrator( const adcontrols::MSAssignedMasses&, const adcontrols::MSProperty& );
+
         inline size_t size() const { return times_.size(); }
-        mass_calibrator& operator << ( const std::pair< double, double >& );
+        // mass_calibrator& operator << ( const std::pair< double, double >& );
         bool compute( adcontrols::MSCalibration&, int nterm );
-        static double compute_mass( double time, const adcontrols::MSCalibration& );
+        double compute_mass( double time, const adcontrols::MSCalibration&, int mode );
     };
 
 }

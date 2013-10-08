@@ -36,6 +36,7 @@ namespace adcontrols {
 	class MSCalibration;
     class ProcessMethod;
 	class MSAssignedMasses;
+	class MSProperty;
 }
 
 namespace adportable {  class Configuration; }
@@ -75,7 +76,7 @@ namespace dataproc {
     private:
         std::shared_ptr<MSCalibrationWndImpl> pImpl_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
-        bool calibPolynomialFit( adcontrols::MSCalibrateResult& );
+        bool calibPolynomialFit( adcontrols::MSCalibrateResult&, const adcontrols::MSProperty& );
     };
 
 }

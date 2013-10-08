@@ -255,7 +255,7 @@ MSCalibrationWnd::readCalibSummary( adcontrols::MSAssignedMasses& assigned )
 }
 
 bool
-MSCalibrationWnd::calibPolynomialFit( adcontrols::MSCalibrateResult& calibResult )
+MSCalibrationWnd::calibPolynomialFit( adcontrols::MSCalibrateResult& calibResult, const adcontrols::MSProperty& prop )
 {
     adcontrols::ProcessMethod pm;
     const adcontrols::MSCalibrateMethod * pCalibMethod = 0;
@@ -264,7 +264,7 @@ MSCalibrationWnd::calibPolynomialFit( adcontrols::MSCalibrateResult& calibResult
         return false;
 
     // recalc polinomials
-	mass_calibrator calibrator( calibResult.assignedMasses() );
+	mass_calibrator calibrator( calibResult.assignedMasses(), prop );
         
     size_t nterm = pCalibMethod->polynomialDegree() + 1;
     if ( calibrator.size() < nterm )
@@ -301,7 +301,7 @@ MSCalibrationWnd::handleValueChanged()
 
         calibResult->assignedMasses( assigned );
 
-        calibPolynomialFit( *calibResult );
+        calibPolynomialFit( *calibResult, prop );
 
         if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
             
@@ -321,18 +321,24 @@ MSCalibrationWnd::handle_reassign_mass_requested()
     std::shared_ptr< adcontrols::MSCalibrateResult > calibResult = pImpl_->calibResult_.lock();
     if ( ! calibResult )
         return;
+	std::shared_ptr< adcontrols::MassSpectrum > calibSpectrum = pImpl_->calibSpectrum_.lock();
+	if ( ! calibSpectrum )
+		return;
+
+	const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( calibSpectrum->getMSProperty().dataInterpreterClsid() );
+	std::shared_ptr< adcontrols::MassSpectrometer::ScanLaw > scanLaw = spectrometer.scanLaw( calibSpectrum->getMSProperty() );
 
     adcontrols::MSAssignedMasses assigned;
     if ( readCalibSummary( assigned ) ) {
 
         calibResult->assignedMasses( assigned );
 
-        if ( calibPolynomialFit( *calibResult ) ) {
+        if ( calibPolynomialFit( *calibResult, calibSpectrum->getMSProperty() ) ) {
             const adcontrols::MSCalibration& calib = calibResult->calibration();
 
             // update m/z for MSAssignedMasses
             for ( auto& it : calibResult->assignedMasses() )
-                it.mass( mass_calibrator::compute_mass( it.time(), calib ) );
+				it.mass ( calib.compute_mass( it.time() / scanLaw->fLength( it.mode() ) ) );
 
             if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
 
@@ -354,7 +360,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                 for ( auto& ms: segments ) {
 					ms.setCalibration( calib );
                     for ( size_t i = 0; i < ms.size(); ++i )
-                        ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) );
+						ms.setMass( i, calib.compute_mass( ms.getTime( i ) / ms.getMSProperty().mode() ) );
                 }
                 pImpl_->processedSpectrum_->setData( centroid, idx_centroid ); 
 
