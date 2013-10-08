@@ -36,7 +36,7 @@ using namespace adcontrols;
 
 namespace adcontrols {
     namespace internal {
-		class ScanLaw : public MassSpectrometer::ScanLaw {
+		class ScanLaw : public massspectrometer::ScanLaw {
         public:
             virtual ~ScanLaw() {}
             ScanLaw( double timeCoefficient, double timeDelay, double acclVolt )
@@ -107,10 +107,10 @@ namespace adcontrols {
             const wchar_t * name() const override {
 				return L"default";
             }
-            const MassSpectrometer::ScanLaw& getScanLaw() const override {
+            const massspectrometer::ScanLaw& getScanLaw() const override {
                 return * scanLaw_;
             }
-			std::shared_ptr< MassSpectrometer::ScanLaw > scanLaw( const MSProperty& ) const override {
+			std::shared_ptr< massspectrometer::ScanLaw > scanLaw( const MSProperty& ) const override {
 				return std::make_shared< internal::ScanLaw >( 0.01389e6, 0.0, 5000 );
 			}
             const adcontrols::DataInterpreter& getDataInterpreter() const override {
