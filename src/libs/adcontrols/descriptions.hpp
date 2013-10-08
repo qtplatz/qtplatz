@@ -57,6 +57,20 @@ namespace adcontrols {
 	   size_t size() const;
 	   const Description& operator [](int idx) const;
 
+       class description_iterator {
+           size_t pos_;
+           const Descriptions& desc_;
+       public:
+		   description_iterator( const Descriptions& d, size_t pos ) : desc_( d ), pos_( pos ) {}
+           bool operator != ( const description_iterator& rhs ) const { return pos_ != rhs.pos_; }
+           const description_iterator& operator ++ () { ++pos_; return *this; }
+           operator const Description* () const { return &desc_[ pos_ ]; }
+       };
+
+       typedef const description_iterator const_iterator;
+       inline const_iterator begin() const { return description_iterator( *this, 0 ); }
+       inline const_iterator end() const { return description_iterator( *this, this->size() ); }
+
 	   std::string saveXml() const;
 	   void loadXml( const std::string& xml );
 
