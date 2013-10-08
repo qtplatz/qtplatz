@@ -25,10 +25,13 @@
 
 #include "mscalibsummarydelegate.hpp"
 #include "mscalibsummarywidget.hpp"
+#include <adcontrols/metric/prefix.hpp>
 #include <boost/format.hpp>
 #include <QEvent>
+#include <QDoubleSpinBox>
 
 using namespace qtwidgets2;
+using namespace adcontrols::metric;
 
 MSCalibSummaryDelegate::MSCalibSummaryDelegate(QObject *parent) : QItemDelegate(parent)
 {
@@ -39,7 +42,12 @@ MSCalibSummaryDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 {
     switch( index.column() ) {
     case MSCalibSummaryWidget::c_time:
-        drawDisplay( painter, option, option.rect, ( boost::format("%.5lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
+        drawDisplay( painter, option, option.rect
+                     , ( boost::format("%.5lf") % scale_to_micro( index.data( Qt::EditRole ).toDouble() ) ).str().c_str() );
+        break;
+    case MSCalibSummaryWidget::c_time_normalized:
+        drawDisplay( painter, option, option.rect
+                     , ( boost::format("%.5lf") % scale_to_micro( index.data( Qt::EditRole ).toDouble() ) ).str().c_str() );
         break;
     case MSCalibSummaryWidget::c_exact_mass:
 		if ( ! index.model()->data( index.model()->index( index.row(), MSCalibSummaryWidget::c_formula ), Qt::EditRole ).toString().isEmpty() )
@@ -72,9 +80,31 @@ MSCalibSummaryDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 void
 MSCalibSummaryDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    
-    QItemDelegate::setEditorData( editor, index );
+    if ( index.column() == MSCalibSummaryWidget::c_time
+         || index.column() == MSCalibSummaryWidget::c_time_normalized ) {
+        double seconds = index.data().toDouble();
+        static_cast< QDoubleSpinBox * >( editor )->setValue( scale_to_micro( seconds ) );
+    } else {
+        QItemDelegate::setEditorData( editor, index );
+    }
 }
+
+void
+MSCalibSummaryDelegate::setModelData( QWidget *editor
+                                  , QAbstractItemModel *model
+                                  , const QModelIndex &index) const
+{
+    if ( index.column() == MSCalibSummaryWidget::c_time
+         || index.column() == MSCalibSummaryWidget::c_time_normalized ) {
+        QDoubleSpinBox * spin = static_cast< QDoubleSpinBox *>(editor);
+        double microseconds = spin->value();
+        model->setData( index, scale_to_base( microseconds, micro ) );
+    } else {
+        QItemDelegate::setModelData( editor, model, index );
+    }
+    emit valueChanged( index );
+}
+
 
 bool
 MSCalibSummaryDelegate::editorEvent( QEvent * event
@@ -93,15 +123,6 @@ MSCalibSummaryDelegate::editorEvent( QEvent * event
     return res;
 }
 
-
-void
-MSCalibSummaryDelegate::setModelData( QWidget *editor
-                                  , QAbstractItemModel *model
-                                  , const QModelIndex &index) const
-{
-    QItemDelegate::setModelData( editor, model, index );
-    emit valueChanged( index );
-}
 
 void
 MSCalibSummaryDelegate::to_print_text( std::string& text, const QModelIndex &index )
