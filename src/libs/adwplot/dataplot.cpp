@@ -33,7 +33,7 @@
 #include "panner.hpp"
 #include <qwt_picker_machine.h>
 #include <qwt_scale_widget.h>
-#include <qtwrapper/qstring.hpp>
+#include <adportable/utf.hpp>
 #include <algorithm>
 
 using namespace adwplot;
@@ -63,9 +63,37 @@ Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
 }
 
 void
-Dataplot::setTitle( const std::wstring& title )
+Dataplot::setTitle( const std::wstring& text )
 {
-    QwtPlot::setTitle( qtwrapper::qstring( title ) );
+    std::string utf8 = adportable::utf::to_utf8( text );
+    setTitle( utf8 );
+}
+
+void
+Dataplot::setTitle( const std::string& text )
+{
+	QwtText qwtText( text.c_str(), QwtText::RichText );
+    QFont font = qwtText.font();
+    font.setPointSize( 8 );
+    font.setBold( false );
+    font.setFamily( "Calibri" );
+    qwtText.setFont( font );
+    qwtText.setRenderFlags( Qt::AlignLeft | Qt::AlignTop );
+
+    QwtPlot::setTitle( qwtText );
+}
+
+void
+Dataplot::setFooter( const std::wstring& text )
+{
+    std::string utf8 = adportable::utf::to_utf8( text );
+    setFooter( utf8 );
+}
+
+void
+Dataplot::setFooter( const std::string& text )
+{
+    QwtPlot::setFooter( text.c_str() );
 }
 
 QRectF

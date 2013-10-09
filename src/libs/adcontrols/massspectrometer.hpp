@@ -47,6 +47,9 @@ namespace adcontrols {
             virtual double fLength( int mode ) const = 0;
         };
 
+        const double kATMIC_MASS_CONSTANT = 1.66054020e-27; // [kg/u]
+        const double kELEMENTAL_CHARGE    = 1.60217733e-19; // [C]
+        const double kTimeSquaredCoeffs   = 2.0 * kELEMENTAL_CHARGE / kATMIC_MASS_CONSTANT;
     }
         
     class ADCONTROLSSHARED_EXPORT MassSpectrometer {

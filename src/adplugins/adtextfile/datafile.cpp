@@ -160,3 +160,8 @@ datafile::posFromTime( double ) const
 	return 0;
 }
 
+double
+datafile::timeFromPos( size_t ) const
+{
+	return 0;
+}

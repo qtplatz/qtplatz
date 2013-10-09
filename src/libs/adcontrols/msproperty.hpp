@@ -66,8 +66,8 @@ namespace adcontrols {
         uint32_t instSamplingStartDelay() const;  // number of data points before record waveform in array
         void setInstSamplingStartDelay( uint32_t );
 
-        uint32_t timeSinceInjection() const;
-        void setTimeSinceInjection( uint32_t );
+        double timeSinceInjection() const;
+        void setTimeSinceInjection( uint32_t /* microseconds */);
 
         const SamplingInfo& getSamplingInfo() const;
         void setSamplingInfo( const SamplingInfo& );

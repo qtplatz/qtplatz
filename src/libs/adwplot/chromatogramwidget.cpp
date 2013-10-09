@@ -156,8 +156,20 @@ ChromatogramWidget::~ChromatogramWidget()
 ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
 							, impl_( new ChromatogramWidgetImpl )
 {
-    setAxisTitle(QwtPlot::xBottom, "Time[min]");
-    setAxisTitle(QwtPlot::yLeft, "Intensity[uV]");
+	QwtText axisHor( "Time[min]" );
+	QFont font = axisHor.font();
+	font.setFamily( "Verdana" );
+	font.setBold( true );
+	font.setItalic( false );
+	font.setPointSize( 9 );
+	axisHor.setFont( font );
+
+    setAxisTitle(QwtPlot::xBottom, axisHor);
+
+	QwtText axisVert( "Intensity" );
+	font.setItalic( false );
+	axisVert.setFont( font );
+    setAxisTitle(QwtPlot::yLeft, axisVert );
 
 	if ( picker_ ) {
 		// picker_->setStateMachine( new QwtPickerClickPointMachine() );

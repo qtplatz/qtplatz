@@ -48,6 +48,9 @@ namespace adwplot {
         template<class T> T get();
     
         void setTitle( const std::wstring& );
+        void setTitle( const std::string& );
+        void setFooter( const std::wstring& );
+        void setFooter( const std::string& );
     
         void link( Dataplot * );
         void unlink();

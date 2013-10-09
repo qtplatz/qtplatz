@@ -60,6 +60,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include "selchanged.hpp"
+#include <sstream>
 
 using namespace dataproc;
 
@@ -169,6 +170,10 @@ MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
     // adcontrols::MassSpectrum& ms = *ptr;
     pProfileSpectrum_ = ptr;
     pImpl_->profileSpectrum_->setData( ptr, drawIdx1_++ );
+	std::wostringstream title;
+	for ( auto text: ptr->getDescriptions() )
+		title << text.text() << L", ";
+	pImpl_->profileSpectrum_->setTitle( title.str() );
     pImpl_->processedSpectrum_->clear();
 	drawIdx2_ = 0;
 }

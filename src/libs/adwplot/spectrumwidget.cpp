@@ -165,8 +165,20 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
     zoomer2_.reset();
 	zoomer1_->autoYScale( autoYZoom_ );
 
-    setAxisTitle(QwtPlot::xBottom, "m/z");
-    setAxisTitle(QwtPlot::yLeft, "Intensity");
+	QwtText axisHor( "m/z" );
+	QFont font = axisHor.font();
+	font.setFamily( "Verdana" );
+	font.setBold( true );
+	font.setItalic( true );
+	font.setPointSize( 9 );
+	axisHor.setFont( font );
+    setAxisTitle(QwtPlot::xBottom, axisHor);
+
+	QwtText axisVart( "Intensity" );
+	font.setItalic( false );
+	axisVart.setFont( font );
+
+    setAxisTitle(QwtPlot::yLeft, axisVart);
 
     // handle zoom rect by this
     if ( zoomer1_ ) {

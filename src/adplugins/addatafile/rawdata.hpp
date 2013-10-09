@@ -70,6 +70,7 @@ namespace addatafile {
         bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
         bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const override;
 		size_t posFromTime( double ) const override;
+		double timeFromPos( size_t ) const override;
 		bool getChromatograms( int fcn
 			                         , const std::vector< std::pair<double, double> >&
 			                         , std::vector< adcontrols::Chromatogram >&

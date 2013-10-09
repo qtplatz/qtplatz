@@ -312,6 +312,16 @@ datafile::posFromTime( double minutes ) const
 	return pos;
 }
 
+double
+datafile::timeFromPos( size_t pos ) const
+{
+	if ( pTIC_ && pTIC_->size() > pos ) {
+		return pTIC_->getTimeArray()[ pos ];
+	}
+	return 0;
+}
+
+
 //static
 bool
 datafile::is_valid_datafile( const std::wstring& filename )

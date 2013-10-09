@@ -61,6 +61,7 @@
 #include <adportable/configuration.hpp>
 #include <adportable/configloader.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/float.hpp>
 #include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
@@ -329,13 +330,17 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 	if ( dp ) {
 		const adcontrols::LCMSDataset * dset = dp->getLCMSDataset();
 		if ( dset ) {
-			long pos1 = dset->posFromTime( x1 );
-			long pos2 = dset->posFromTime( x2 );
+			long pos1 = dset->posFromTime( x1 * 60.0 ); // min --> sec
+			long pos2 = dset->posFromTime( x2 * 60.0 ); // min --> sec
 			long pos = pos1;
+			double t1 = dset->timeFromPos( pos1 ) / 60.0; // to minuites
+			double t2 = dset->timeFromPos( pos2 ) / 60.0; // to minutes
 
 			adcontrols::MassSpectrum ms;
 			if ( dset->getSpectrum( 0, pos++, ms ) ) {
-				double t1 = ms.getMSProperty().timeSinceInjection() / 60.0e6; // usec -> min
+				if ( !adportable::compare<double>::approximatelyEqual>( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
+					t1 = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
+
 				std::wostringstream text;
 				if ( pos2 > pos1 ) {
                     QProgressBar progressBar;
@@ -347,7 +352,8 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 						progressBar.setValue( pos );
 						ms += a;
 					}
-					double t2 = a.getMSProperty().timeSinceInjection() / 60.0e6; // usec -> min
+                    if ( !adportable::compare<double>::approximatelyEqual>( a.getMSProperty().timeSinceInjection(), 0.0 ) )
+                        t2 = a.getMSProperty().timeSinceInjection() / 60.0; // to min
 					text << L"Spectrum (" << std::fixed << std::setprecision(3) << t1 << " - " << t2 << ")";
 				} else {
 					text << L"Spectrum @ " << std::fixed << std::setprecision(3) << t1 << "min";

@@ -172,13 +172,22 @@ rawdata::getFunctionCount() const
 }
 
 size_t
-rawdata::posFromTime( double minute ) const
+rawdata::posFromTime( double seconds ) const
 {
 	if ( ! tic_.empty() ) {
 		const adportable::array_wrapper< const double > times( tic_[0]->getTimeArray(), tic_[0]->size() );
-		auto it = std::lower_bound( times.begin(), times.end(), tic_[0]->toSeconds( minute ) );
+		auto it = std::lower_bound( times.begin(), times.end(), seconds ); 
 		
 		return std::distance( times.begin(), it );
+	}
+	return 0;
+}
+
+double
+rawdata::timeFromPos( size_t pos ) const
+{
+	if ( !tic_.empty() && pos < tic_[0]->size() ) {
+		return tic_[0]->getTimeArray()[ pos ]; // return in seconds
 	}
 	return 0;
 }

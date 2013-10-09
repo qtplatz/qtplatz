@@ -25,6 +25,7 @@
 #include "msproperty.hpp"
 #include "metric/prefix.hpp"
 #include "massspectrometer.hpp"
+#include "metric/prefix.hpp"
 
 using namespace adcontrols;
 
@@ -162,10 +163,10 @@ MSProperty::setInstSamplingStartDelay( uint32_t value )
 }
 
 
-uint32_t
+double
 MSProperty::timeSinceInjection() const
 {
-    return time_since_injection_;
+    return metric::scale_to_base<double>( time_since_injection_, metric::micro );
 }
 
 void

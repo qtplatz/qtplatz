@@ -196,6 +196,12 @@ datafile::posFromTime( double ) const
 	return 0;
 }
 
+double
+datafile::timeFromPos( size_t ) const
+{
+	return 0;
+}
+
 //static
 bool
 datafile::is_valid_datafile( const std::wstring& filename )

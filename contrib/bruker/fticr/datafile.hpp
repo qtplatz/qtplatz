@@ -54,6 +54,7 @@ namespace fticr {
 		virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
 		virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const override;
         virtual size_t posFromTime( double ) const override;
+		double timeFromPos( size_t ) const override;
 		bool getChromatograms( int /* fcn */, const std::vector< std::pair<double, double> >&
 			                         , std::vector< adcontrols::Chromatogram >&
 									 , std::function< bool (long curr, long total ) > progress
