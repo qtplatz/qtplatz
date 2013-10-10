@@ -417,6 +417,19 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                     for ( size_t i = 0; i < ms.size(); ++i )
 						ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) ); //ms.getNormalizedTime( i ) ) );
                 }
+                if ( std::shared_ptr< adcontrols::MSPeakInfo > pkInfo = pImpl_->peakInfo_.lock() ) {
+                    adcontrols::segment_wrapper< adcontrols::MSPeakInfo > segments( *pkInfo );
+                    for ( auto& info: segments ) {
+                        for ( adcontrols::MSPeakInfoItem& item: info ) {
+							double mass = calib.compute_mass( item.time() );
+							double centroid_left = calib.compute_mass( item.centroid_left( true ) );
+							double centroid_right = calib.compute_mass( item.centroid_right( true ) );
+							double hhL = calib.compute_mass( item.hh_left_time() );
+							double hhR = calib.compute_mass( item.hh_right_time() );
+							item.assign_mass( mass, centroid_left, centroid_right, hhL, hhR );
+                        }
+                    }
+				}
 
                 // update annotation 
                 DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned );

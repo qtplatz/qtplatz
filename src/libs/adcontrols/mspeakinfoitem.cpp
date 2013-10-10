@@ -127,4 +127,24 @@ MSPeakInfoItem::centroid_threshold() const
     return centroid_threshold_;
 }
 
+double
+MSPeakInfoItem::hh_left_time() const
+{
+    return HH_left_time_;
+}
 
+double
+MSPeakInfoItem::hh_right_time() const
+{
+    return HH_right_time_;
+}
+
+void
+MSPeakInfoItem::assign_mass( double mass, double left, double right, double HHleft, double HHright )
+{
+    mass_ = mass;
+    centroid_left_mass_ = left;
+    centroid_right_mass_ = right;
+    HH_left_mass_ = HHleft;
+    HH_right_mass_ = HHright;
+}

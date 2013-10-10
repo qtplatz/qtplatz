@@ -53,6 +53,11 @@ namespace adcontrols {
         double centroid_right( bool time = false ) const;
         double centroid_threshold() const;
         double widthHH( bool time = false ) const;
+        double hh_left_time() const;
+        double hh_right_time() const;
+
+        // re-assign mass (usually call from calibration process)
+        void assign_mass( double mass, double left, double right, double hhLeft, double hhRight );
 
     private:
         unsigned int peak_index_;
