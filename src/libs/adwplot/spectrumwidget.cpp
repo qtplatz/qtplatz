@@ -144,10 +144,12 @@ namespace adwplot {
         std::weak_ptr< adcontrols::MassSpectrum > centroid_;  // for annotation
         std::vector< Annotation > annotations_;
         std::vector< spectrumwidget::TraceData > traces_;
+        bool autoAnnotation_;
 
         void clear();
         void update_annotations( Dataplot&, const std::pair<double, double>& );
 		void clear_annotations();
+
     };
 
 } // namespace adwplot
@@ -249,6 +251,18 @@ SpectrumWidget::clear()
 {
     impl_->clear();
     zoomer1_->setZoomBase();
+}
+
+void
+SpectrumWidget::setAutoAnnotation( bool enable )
+{
+    impl_->autoAnnotation_ = enable;
+}
+
+bool
+SpectrumWidget::autoAnnotation() const
+{
+    return impl_->autoAnnotation_;
 }
 
 void
@@ -482,8 +496,6 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
         adcontrols::annotations annotations;
         
         double max_y = adcontrols::segments_helper::max_intensity( *centroid );
-        //double h_limit = max_y / 25;
-        //double w_limit = std::fabs( range.second - range.first ) / 100.0;
         
         for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
             const adcontrols::MassSpectrum& ms = segments[ fcn ];
@@ -500,18 +512,19 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                         annotations << a;
                     }
                 }
-                
-                // generate auto-annotation
-                for ( size_t idx = beg; idx <= end; ++idx ) {
-                    if ( std::find_if( attached.begin()
-                                       , attached.end()
-                                       , [idx]( const adcontrols::annotation& a ){ return a.index() == idx; } ) == attached.end() ) {
-                        int pri = ms.getIntensity( idx ) / max_y * 1000;
-                        if ( colors )
-                            pri *= 100;
-                        adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % ms.getMass( idx ) ).str()
-                                                      , ms.getMass( idx ), ms.getIntensity( idx ), ( fcn << 24 | idx ), pri );
-                        auto_annotations << annot;
+                if ( autoAnnotation_ ) {
+                    // generate auto-annotation
+                    for ( size_t idx = beg; idx <= end; ++idx ) {
+                        if ( std::find_if( attached.begin()
+                                           , attached.end()
+                                           , [idx]( const adcontrols::annotation& a ){ return a.index() == idx; } ) == attached.end() ) {
+                            int pri = ms.getIntensity( idx ) / max_y * 1000;
+                            if ( colors )
+                                pri *= 100;
+                            adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % ms.getMass( idx ) ).str()
+                                                          , ms.getMass( idx ), ms.getIntensity( idx ), ( fcn << 24 | idx ), pri );
+                            auto_annotations << annot;
+                        }
                     }
                 }
             }

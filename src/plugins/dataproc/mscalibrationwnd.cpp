@@ -411,13 +411,16 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                 pImpl_->processedSpectrum_->setData( profile, idx_profile ); 
 
 				// centroid (override profile that has better visibility)
-                DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned );
                 adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *centroid );
                 for ( auto& ms: segments ) {
 					ms.setCalibration( calib );
                     for ( size_t i = 0; i < ms.size(); ++i )
 						ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) ); //ms.getNormalizedTime( i ) ) );
                 }
+
+                // update annotation 
+                DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned );
+
                 pImpl_->processedSpectrum_->setData( centroid, idx_centroid ); 
 
                 emit fireSetData( *calibResult, *centroid );

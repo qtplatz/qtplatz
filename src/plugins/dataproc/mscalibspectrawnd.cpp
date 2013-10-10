@@ -55,8 +55,8 @@
 using namespace dataproc;
 
 MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
-                                                           , wndCalibSummary_( 0 )
-                                                           , wndSplitter_( 0 )
+                                                         , wndCalibSummary_( 0 )
+                                                         , wndSplitter_( 0 )
 {
     init();
 }
@@ -71,7 +71,8 @@ MSCalibSpectraWnd::init()
         splitter->addWidget( wndSplitter_ );
         
         for ( int i = 0; i < 4; ++i ) {
-            std::shared_ptr< adwplot::SpectrumWidget > wnd( new adwplot::SpectrumWidget(this) );
+            std::shared_ptr< adwplot::SpectrumWidget > wnd = std::make_shared< adwplot::SpectrumWidget >(this);
+            wnd->setAutoAnnotation( false );
             wnd->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 50 );
             wnd->setMinimumHeight( 40 );
             wndSpectra_.push_back( wnd );

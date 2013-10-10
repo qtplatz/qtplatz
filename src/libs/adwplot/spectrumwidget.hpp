@@ -44,6 +44,8 @@ namespace adwplot {
 
         enum HorizontalAxis { HorizontalAxisMass, HorizontalAxisTime };
         void setAxis( HorizontalAxis );
+        bool autoAnnotation() const;
+        void setAutoAnnotation( bool enable = true );
 
     private:
         struct SpectrumWidgetImpl * impl_;
