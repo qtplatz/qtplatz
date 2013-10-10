@@ -34,6 +34,7 @@ namespace adcontrols {
     class Chromatogram;
     class MSCalibrateResult;
     class MSAssignedMasses;
+    class MSPeakInfo;
     class PeakResult;
 
     class CentroidMethod;
@@ -48,9 +49,10 @@ namespace dataproc {
     public:
         DataprocHandler();
 
-        static bool doCentroid( adcontrols::MassSpectrum& res
-                               , const adcontrols::MassSpectrum& profile
-                               , const adcontrols::CentroidMethod& );
+        static bool doCentroid( adcontrols::MSPeakInfo&
+                                , adcontrols::MassSpectrum& res
+                                , const adcontrols::MassSpectrum& profile
+                                , const adcontrols::CentroidMethod& );
 
         static bool doIsotope( adcontrols::MassSpectrum& res, const adcontrols::IsotopeMethod& );
 

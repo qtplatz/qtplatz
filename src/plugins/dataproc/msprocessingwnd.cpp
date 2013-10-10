@@ -324,6 +324,7 @@ MSProcessingWnd::selectedOnProfile( const QRectF& )
         if ( it != actions.end() ) {
             const std::wstring& model_name = models[ std::distance( actions.begin(), it ) ];
             assign_masses_to_profile( model_name );
+			pImpl_->profileSpectrum_->replot();
         }
     }
 }

@@ -51,7 +51,6 @@ namespace qtwidgets2 {
 
         enum {
             c_time
-            , c_time_normalized
             , c_formula
             , c_exact_mass
             , c_mass
@@ -64,6 +63,7 @@ namespace qtwidgets2 {
             , c_mode // analyzer mode id, a.k.a. reflectron|linear, or number of turns on InfiTOF
             , c_fcn  // segment id
             , c_index // keep ms index for 'sort', invisible
+            , c_time_normalized
             , c_number_of_columns
             , c_flags_ // -- not in use -- out of order
         };

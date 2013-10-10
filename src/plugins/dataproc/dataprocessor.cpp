@@ -47,18 +47,20 @@
 #include <adcontrols/description.hpp>
 #include <adcontrols/elementalcompositionmethod.hpp>
 #include <adcontrols/isotopemethod.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/mscalibration.hpp>
-#include <adcontrols/peakmethod.hpp>
-#include <adcontrols/waveform.hpp>
-#include <adcontrols/massspectrum.hpp>
-#include <adcontrols/msproperty.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
-#include <adcontrols/peakresult.hpp>
-#include <adcontrols/targetingmethod.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/msreference.hpp>
 #include <adcontrols/msreferences.hpp>
-#include <adcontrols/msassignedmass.hpp>
+#include <adcontrols/peakmethod.hpp>
+#include <adcontrols/waveform.hpp>
+#include <adcontrols/peakresult.hpp>
+#include <adcontrols/targetingmethod.hpp>
 #include <adorbmgr/orbmgr.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/profile.hpp>
@@ -700,6 +702,9 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
 
 	// make sure no 'processed profile' data exist
 	folium.removeAttachment( L"DFT Low Pass Filtered Spectrum" );
+    folium.removeAttachment( L"MSPeakInfo" );
+
+    std::shared_ptr< adcontrols::MSPeakInfo > pkInfo( std::make_shared< adcontrols::MSPeakInfo >() );
 
     if ( m.noiseFilterMethod() == adcontrols::CentroidMethod::eDFTLowPassFilter ) {
         adcontrols::MassSpectrumPtr profile2( new adcontrols::MassSpectrum( profile ) );
@@ -710,10 +715,10 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
         profile2->addDescription( adcontrols::Description( L"process", L"DFT Low Pass Filtered Spectrum" ) );
         filterd.assign( profile2, profile2->dataClass() );
 
-        centroid = DataprocHandler::doCentroid( *pCentroid, *profile2, m );
+        centroid = DataprocHandler::doCentroid( *pkInfo, *pCentroid, *profile2, m );
 
     } else {
-        centroid = DataprocHandler::doCentroid( *pCentroid, profile, m );
+        centroid = DataprocHandler::doCentroid( *pkInfo, *pCentroid, profile, m );
     }
 
     if ( centroid ) {
@@ -722,9 +727,11 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
         adcontrols::ProcessMethodPtr ptr( new adcontrols::ProcessMethod() );
         ptr->appendMethod( m );
         att.addAttachment( L"Process Method" ).assign( ptr, ptr->dataClass() );
+
+        att.addAttachment( L"MSPeakInfo" ).assign( pkInfo, pkInfo->dataClass() );
+
         return true;
     }
-
     return false;
 }
 

@@ -195,7 +195,8 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
     const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
 
 	double normalized_time = it->time() / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
-    double mass = calib.compute_mass( normalized_time );
+    //double mass = calib.compute_mass( normalized_time );
+	double mass = calib.compute_mass( it->time() );
 
     model.setData( model.index( row, c_time_normalized ), normalized_time );
     model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );
@@ -249,7 +250,7 @@ MSCalibSummaryWidget::createModelData( const std::vector< std::pair< int, int > 
         
         model.setData( model.index( row, c_intensity ), ms.getIntensity( idx.second ) );
 
-        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getNormalizedTime( idx.second ) ) );
+        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getTime( idx.second ) ) ); // ms.getNormalizedTime( idx.second ) ) );
 
         setAssignedData( row, idx.first, idx.second, pCalibResult_->assignedMasses() );
 		setEditable( row );
@@ -302,7 +303,8 @@ MSCalibSummaryWidget::modifyModelData( const std::vector< std::pair< int, int > 
         model.setData( model.index( row, c_time_normalized ),  ms.getNormalizedTime( it->second ) );
         model.setData( model.index( row, c_intensity ), ms.getIntensity( it->second ) );
 
-        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getNormalizedTime( it->second ) ) );
+        model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getTime( it->second ) ) );
+        // ms.getNormalizedTime( it->second ) ) );
 
         setAssignedData( row, it->first, it->second, pCalibResult_->assignedMasses() );
     }

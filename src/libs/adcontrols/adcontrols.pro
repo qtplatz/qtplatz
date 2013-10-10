@@ -80,7 +80,8 @@ SOURCES += acceptor.cpp \
     peakresult.cpp \
     waveform.cpp \
     annotation.cpp \
-    annotations.cpp
+    annotations.cpp \
+    mspeakinfo.cpp
 
 HEADERS += acceptor.hpp \
     acquireddataset.hpp \
@@ -145,7 +146,8 @@ HEADERS += acceptor.hpp \
     peakresult.hpp \
     waveform.hpp \
     annotation.hpp \
-    annotations.hpp
+    annotations.hpp \
+    mspeakinfo.hpp
 
 !win32: HEADERS += metric/prefix.hpp
 

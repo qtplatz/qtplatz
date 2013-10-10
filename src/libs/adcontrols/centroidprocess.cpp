@@ -31,6 +31,7 @@
 #include "massspectrum.hpp"
 #include "msproperty.hpp"
 #include "mspeakinfoitem.hpp"
+#include "mspeakinfo.hpp"
 #include "description.hpp"
 #include "waveform.hpp"
 #include <adportable/spectrum_processor.hpp>
@@ -57,19 +58,19 @@ namespace adcontrols {
     
     namespace internal {
         
-        class CentroidProcessImpl {
+        class CentroidProcessImpl : boost::noncopyable {
         public:
-            CentroidProcessImpl() {}
+            CentroidProcessImpl() {
+            }
             void clear();
             void setup( const CentroidMethod& );
             void setup( const MassSpectrum& );
             void copy( MassSpectrum& );
             const CentroidMethod& method() const { return method_; }
             void findpeaks( const MassSpectrum& profile );
-
-            // result
-            std::vector< MSPeakInfoItem > info_;
         private:
+            friend class CentroidProcess;
+            MSPeakInfo info_;
             MassSpectrum clone_;
             CentroidMethod method_;
             Description desc_;
@@ -99,8 +100,8 @@ CentroidProcess::CentroidProcess(void) : pImpl_( new internal::CentroidProcessIm
 {
 }
 
-CentroidProcess::CentroidProcess( const CentroidMethod& method)
-  : pImpl_( new internal::CentroidProcessImpl() )
+CentroidProcess::CentroidProcess( const CentroidMethod& method )
+    : pImpl_( new internal::CentroidProcessImpl() )
 {
 	pImpl_->setup( method );
 }
@@ -122,7 +123,7 @@ CentroidProcess::operator()( const MassSpectrum& profile )
     return true;
 }
 
-const std::vector< MSPeakInfoItem >&
+const MSPeakInfo&
 CentroidProcess::getPeakInfo() const
 {
     return pImpl_->info_;
@@ -145,12 +146,12 @@ CentroidProcess::getCentroidSpectrum( MassSpectrum& ms )
         ms.setCentroid( adcontrols::CentroidPeakAreaWaitedMass );
 		bool is_area = pImpl_->method().centroidAreaIntensity();
 
-        // std::pair<double, double> mrange = ms.getAcquisitionMassRange();
-
-        for ( size_t i = 0; i < nSize; ++i ) {
-			ms.setIntensity( i, is_area ? pImpl_->info_[i].area() : pImpl_->info_[i].height() );
-            ms.setMass( i, pImpl_->info_[i].mass() );
-            ms.setTime( i, pImpl_->info_[i].time() );
+        size_t idx = 0;
+        for ( auto& info: pImpl_->info_ ) {
+			ms.setIntensity( idx, is_area ? info.area() : info.height() );
+            ms.setMass( idx, info.mass() );
+            ms.setTime( idx, info.time() );
+            idx++;
         }
         return true;
     }
@@ -295,12 +296,12 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 toferror += difference * item.height_;
                 toferror_weight += item.height_;
 
-                // prepare resutl
+                // prepare result
                 // MSPeakInfoItem item( idx, pk.mass, a, h, pk.width, pk.time );
                 item.peak_start_index( pk.first );
                 item.peak_end_index( pk.second );
                 item.base_height( pk.base );
-                info_.push_back( item );
+                info_ << item;
             }
         } while(0);
 

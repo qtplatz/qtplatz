@@ -36,6 +36,8 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
 #include <adcontrols/baselines.hpp>
@@ -64,7 +66,8 @@ DataprocHandler::DataprocHandler()
 }
 
 bool
-DataprocHandler::doCentroid( adcontrols::MassSpectrum& res
+DataprocHandler::doCentroid( adcontrols::MSPeakInfo& pkInfo
+                             , adcontrols::MassSpectrum& res
                              , const adcontrols::MassSpectrum& profile
                              , const adcontrols::CentroidMethod& m )
 {
@@ -73,16 +76,18 @@ DataprocHandler::doCentroid( adcontrols::MassSpectrum& res
     
     res.clone( profile, false );
 
-    if ( peak_detector( m, profile ) )
+    if ( peak_detector( m, profile ) ) {
         result = peak_detector.getCentroidSpectrum( res );
+        pkInfo = peak_detector.getPeakInfo();
+    }
 
     if ( profile.numSegments() > 0 ) {
         for ( size_t fcn = 0; fcn < profile.numSegments(); ++fcn ) {
             adcontrols::MassSpectrum centroid;
-            if ( doCentroid( centroid, profile.getSegment( fcn ), m ) ) {
-                res.addSegment( centroid );
-                result = true;
-            }
+            result |= peak_detector( profile.getSegment( fcn ) );
+            pkInfo.addSegment( peak_detector.getPeakInfo() );
+            peak_detector.getCentroidSpectrum( centroid );
+            res.addSegment( centroid );
         }
     }
     return result;

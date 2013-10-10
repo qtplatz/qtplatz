@@ -50,7 +50,7 @@ mass_calibrator::mass_calibrator( const adcontrols::MSAssignedMasses& assigned
 {
     for ( auto it: assigned ) {
         if ( it.enable() ) {
-            double t = it.time() / scanLaw_->fLength( it.mode() );  // time for 1mL
+            double t = it.time(); // / scanLaw_->fLength( it.mode() );  // time for 1mL
             times_.push_back( t );
             sqrtMz_.push_back( std::sqrt( it.exactMass() ) );
         }
@@ -86,7 +86,7 @@ mass_calibrator::polfit( adcontrols::MSCalibration& calib, int nterm )
 double
 mass_calibrator::compute_mass( double time, int mode, const adcontrols::MSCalibration& calib )
 {
-	double msqr = adcontrols::MSCalibration::compute( calib.coeffs(), time / scanLaw_->fLength( mode ) );
+	double msqr = adcontrols::MSCalibration::compute( calib.coeffs(), time ); // time / scanLaw_->fLength( mode ) );
     if ( msqr > 0.0 )
         return msqr * msqr;
     return -1; // error
