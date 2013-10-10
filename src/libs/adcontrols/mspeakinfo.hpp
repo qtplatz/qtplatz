@@ -29,6 +29,10 @@
 
 #include <vector>
 #include "adcontrols_global.h"
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/vector.hpp>
+
 #include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
@@ -62,6 +66,14 @@ namespace adcontrols {
     private:
         std::vector< MSPeakInfoItem > vec_;
         std::vector< MSPeakInfo > siblings_;
+
+        friend class boost::serialization::access;
+        template<class Archive> void serialize(Archive& ar, const unsigned int version) {
+            ar  & vec_
+                & siblings_
+                ;
+        }
+
     };
 
 }

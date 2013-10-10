@@ -26,6 +26,8 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
 
 namespace adcontrols {
 
@@ -82,6 +84,30 @@ namespace adcontrols {
         double centroid_threshold_; // absolute hight (for graphical rep)
 
         friend class internal::CentroidProcessImpl;
+        friend class boost::serialization::access;
+        template<class Archive> void serialize(Archive& ar, const unsigned int version) {
+            ar  & peak_index_ 
+                & algo_
+                & peak_start_index_
+                & peak_end_index_
+                & base_height_
+                & mass_
+                & area_
+                & height_
+                & time_from_mass_
+                & time_from_time_
+                & HH_left_mass_
+                & HH_right_mass_
+                & HH_left_time_
+                & HH_right_time_
+                & centroid_left_mass_
+                & centroid_right_mass_
+                & centroid_left_time_
+                & centroid_right_time_
+                & centroid_threshold_
+                ;
+        }
+
     };
 
 }
