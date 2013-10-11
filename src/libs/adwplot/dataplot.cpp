@@ -93,7 +93,15 @@ Dataplot::setFooter( const std::wstring& text )
 void
 Dataplot::setFooter( const std::string& text )
 {
-    QwtPlot::setFooter( text.c_str() );
+	QwtText qwtText( text.c_str(), QwtText::RichText );
+    QFont font = qwtText.font();
+    font.setPointSize( 8 );
+    font.setBold( false );
+    font.setFamily( "Calibri" );
+    qwtText.setFont( font );
+    qwtText.setRenderFlags( Qt::AlignRight | Qt::AlignBottom );
+
+    QwtPlot::setFooter( qwtText );
 }
 
 QRectF
