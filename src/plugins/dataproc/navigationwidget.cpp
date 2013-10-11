@@ -54,23 +54,35 @@ public:
     StandardItemHelper();
 
     template<class T> static QStandardItem * appendRow( QStandardItemModel& model, const T& value ) {
+        // top level row that should be dataset (file on disk)
         QStandardItem * item = new QStandardItem;
-        item->setData( qVariantFromValue<T>( value ) );
+        item->setData( qVariantFromValue<T>( value ), Qt::UserRole );
         model.appendRow( item );
         return item;
     }
 
-    template<class T> static QStandardItem * appendRow( QStandardItem& parent, const T& value ) {
-        QStandardItem * item = new QStandardItem;
-        item->setData( qVariantFromValue<T>( value ) );
-        parent.appendRow( item );
+    template<class T> static QStandardItem * appendRow( QStandardItem& parent, const T& value, bool isCheckable ) {
+        QStandardItemModel& model = *parent.model();
+		int row = parent.rowCount();
+		parent.insertRow( row, new QStandardItem );
+		QStandardItem * item = model.itemFromIndex( model.index( row, 0, parent.index() ) );
+		//
+        if ( isCheckable ) {
+			item->setCheckable( true );
+			item->setData( QString::fromStdWString( value.name() ), Qt::EditRole );
+			item->setData( qVariantFromValue<T>( value ), Qt::UserRole );
+        } else {
+			item->setData( QString::fromStdWString( value.name() ), Qt::EditRole );
+			item->setData( qVariantFromValue<T>( value ), Qt::UserRole );
+		}
+		
         return item;
     }
 
     template<class T> static QStandardItem * findRow( QStandardItemModel& model, const T& value ) {
         for ( int i = 0; i < model.rowCount(); ++i ) {
             QStandardItem * item = model.item( i );
-            QVariant v = item->data( Qt::UserRole + 1 );
+            QVariant v = item->data( Qt::UserRole );
             if ( qVariantCanConvert< T >( v ) ) {
                 if ( qVariantValue< T >( v ) == value )
                     return item;
@@ -83,7 +95,7 @@ public:
 
 		for ( int i = 0; i < item->rowCount(); ++i ) {
 			QStandardItem * child = item->child( i );
-			QVariant v = child->data( Qt::UserRole + 1 );
+			QVariant v = child->data( Qt::UserRole );
 			if ( qVariantCanConvert< portfolio::Folium >( v ) ) {
 				if ( qVariantValue< portfolio::Folium >( v ).id() == id )
 					return child;
@@ -98,10 +110,10 @@ public:
 
 	static dataproc::Dataprocessor * findDataprocessor( const QModelIndex& index ) {
 		QModelIndex parent = index.parent();
-		while ( parent.isValid() && ! qVariantCanConvert< dataproc::Dataprocessor * >( parent.data( Qt::UserRole + 1 ) ) )
+		while ( parent.isValid() && ! qVariantCanConvert< dataproc::Dataprocessor * >( parent.data( Qt::UserRole ) ) )
 			parent = parent.parent();
 		if ( parent.isValid() )
-			return qVariantValue< dataproc::Dataprocessor * >( parent.data( Qt::UserRole + 1 ) );
+			return qVariantValue< dataproc::Dataprocessor * >( parent.data( Qt::UserRole ) );
 		return 0;
 	}
 };
@@ -109,13 +121,16 @@ public:
 
 class PortfolioHelper {
 public:
+
     static void appendFolium( QStandardItem& parent, portfolio::Folium& folium ) {
-        StandardItemHelper::appendRow( parent, folium );
+        QStandardItem * item = StandardItemHelper::appendRow( parent, folium, true );
+		item->setToolTip( QString::fromStdWString( folium.name() ) );
     }
 
     static void appendFolder( QStandardItem& parent, portfolio::Folder& folder ) {
 
-        QStandardItem * item = StandardItemHelper::appendRow( parent, folder );
+        QStandardItem * item = StandardItemHelper::appendRow( parent, folder, false );
+        item->setEditable( false );
 
         std::vector< portfolio::Folder > folders = folder.folders();
         for ( std::vector< portfolio::Folder >::iterator it = folders.begin(); it != folders.end(); ++it )
@@ -154,7 +169,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     setLayout( layout );
 
     for ( auto& it: *SessionManager::instance() )
-            handleAddSession( &(it.getDataprocessor()) );
+        handleAddSession( &(it.getDataprocessor()) );
 
     // connections
     connect( pModel_, SIGNAL( modelReset() ), this, SLOT( initView() ) );
@@ -168,7 +183,11 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     connect( pTreeView_, SIGNAL(customContextMenuRequested( QPoint )), this, SLOT( handleContextMenuRequested( QPoint ) ) );
 
     connect( SessionManager::instance(), SIGNAL( signalAddSession( Dataprocessor* ) ), this, SLOT( handleAddSession( Dataprocessor * ) ) );
-	connect( SessionManager::instance(), SIGNAL( signalSessionUpdated( Dataprocessor*, portfolio::Folium& ) ), this, SLOT( handleSessionUpdated( Dataprocessor *, portfolio::Folium& ) ) );
+	connect( SessionManager::instance(), SIGNAL( signalSessionUpdated( Dataprocessor*, portfolio::Folium& ) )
+             , this, SLOT( handleSessionUpdated( Dataprocessor *, portfolio::Folium& ) ) );
+
+    connect( pDelegate_, SIGNAL( checkStateChanged( const QModelIndex&, Qt::CheckState ) )
+             , this, SLOT( handleCheckStateChanged( const QModelIndex&, Qt::CheckState ) ) );
 
     setAutoSynchronization(true);
 }
@@ -227,6 +246,12 @@ NavigationWidget::initView()
 }
 
 void
+NavigationWidget::handleCheckStateChanged( const QModelIndex& index, Qt::CheckState state )
+{
+    qDebug() << index;
+}
+
+void
 NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Folium& folium )
 {
     QString filename( qtwrapper::qstring::copy( processor->file().filename() ) );
@@ -258,7 +283,7 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
 
     QStandardItemModel& model = *pModel_;
 
-    QStandardItem * item = StandardItemHelper::appendRow( model, qVariantFromValue( processor ) );
+    QStandardItem * item = StandardItemHelper::appendRow( model, processor );
     item->setEditable( false );
     item->setToolTip( filename );
 
@@ -280,11 +305,11 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
 void
 NavigationWidget::handle_activated( const QModelIndex& index )
 {
-    qDebug() << "activated: " << index.data( Qt::UserRole + 1 );
+    qDebug() << "activated: " << index.data( Qt::UserRole );
 
     if ( index.isValid() ) {
 
-        QVariant data = index.data( Qt::UserRole + 1 );
+        QVariant data = index.data( Qt::UserRole );
 
 		if ( qVariantCanConvert< portfolio::Folder >( data ) ) {
 			// folder (Spectra|Chromatograms)
@@ -355,14 +380,11 @@ void
 NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 {
 	QPoint globalPos = pTreeView_->mapToGlobal(pos);
-	// QPoint globalPos = this->pTreeView_->viewport()->mapToGlobal(pos);
-    // for QAbstractScrollArea and derived classes you would use:
-    // QPoint globalPos = myWidget->viewport()->mapToGlobal(pos); 
 
 	QModelIndex index = pTreeView_->currentIndex();
 	Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
 
-	QVariant data = pModel_->data( index, Qt::UserRole + 1 );
+	QVariant data = pModel_->data( index, Qt::UserRole );
 	if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
 		portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
 		if ( processor && folium.getParentFolder().name() == L"Spectra" ) {

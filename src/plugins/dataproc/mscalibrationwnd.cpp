@@ -249,6 +249,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
             pImpl_->peakInfo_.reset();
             pImpl_->calibSpectrum_ = boost::any_cast< adutils::MassSpectrumPtr >( *it ); // weak_ptr
             pImpl_->processedSpectrum_->setData( pImpl_->calibSpectrum_.lock(), idx_centroid );
+            pImpl_->processedSpectrum_->setTitle( pImpl_->calibSpectrum_.lock()->getDescriptions().toString() );
 
             if ( const adcontrols::ProcessMethodPtr method = Dataprocessor::findProcessMethod( *it ) )
                 MainWindow::instance()->setProcessMethod( *method );
@@ -358,7 +359,9 @@ MSCalibrationWnd::handleValueChanged()
 
         calibResult->assignedMasses( assigned );
 
-        calibPolynomialFit( *calibResult, prop );
+        if ( calibPolynomialFit( *calibResult, prop ) ) {
+            pImpl_->processedSpectrum_->setFooter( calibResult->calibration().formulaText() );
+        }
 
         if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
             

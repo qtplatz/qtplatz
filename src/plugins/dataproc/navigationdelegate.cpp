@@ -27,6 +27,8 @@
 #include <adcontrols/datafile.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qdebug.h>
+#include <QEvent>
+#include <qlineedit.h>
 
 using namespace dataproc;
 
@@ -35,61 +37,69 @@ NavigationDelegate::NavigationDelegate(QObject *parent) :
 {
 }
 
-QWidget *
-NavigationDelegate::createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const
-{
-    return QItemDelegate::createEditor( parent, option, index );
-}
-
 void
 NavigationDelegate::setEditorData( QWidget * editor, const QModelIndex& index ) const
 {
-    if ( qVariantCanConvert< portfolio::Folium >( index.data( Qt::UserRole + 1 ) ) ) {
-        QItemDelegate::setEditorData( editor, index );
-    } else {
-        QItemDelegate::setEditorData( editor, index );
-    }
+    QItemDelegate::setEditorData( editor, index );
 }
 
 void
-NavigationDelegate::setModelData( QWidget * editor, QAbstractItemModel* model, QModelIndex& index ) const
+NavigationDelegate::setModelData( QWidget * editor, QAbstractItemModel* model, const QModelIndex& index ) const
 {
-    QItemDelegate::setModelData( editor,  model, index );
+    QVariant data = index.data( Qt::UserRole );
+    if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
+        portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
+        QString value = static_cast< QLineEdit * >( editor )->text();
+        folium.name( value.toStdWString() );
+    } else {
+        QItemDelegate::setModelData( editor,  model, index );
+    }
 }
 
 void
 NavigationDelegate::paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
 {
-    QVariant data = index.data( Qt::UserRole + 1 );
+    QVariant data = index.data( Qt::UserRole );
 
     if ( qVariantCanConvert< Dataprocessor * >( data ) ) {
 
-        Dataprocessor * processor = qVariantValue< Dataprocessor * >( data );
-        if ( processor ) {
+        if ( Dataprocessor * processor = qVariantValue< Dataprocessor * >( data ) ) {
             adcontrols::datafile& file = processor->file();
-            this->drawDisplay( painter, option, option.rect, qtwrapper::qstring( file.filename() ) );
+            drawDisplay( painter, option, option.rect, qtwrapper::qstring( file.filename() ) );
         }
 
     } else if ( qVariantCanConvert< portfolio::Folder >( data ) ) {
-
+        
         portfolio::Folder folder = qVariantValue< portfolio::Folder >( data );
-        this->drawDisplay( painter, option, option.rect, qtwrapper::qstring( folder.name() ) );
-
-    } else if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
-
-        portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
-        this->drawDisplay( painter, option, option.rect, qtwrapper::qstring( folium.name() ) );
+        drawDisplay( painter, option, option.rect, QString::fromStdWString( folder.name() ) );
 
     } else {
 
         QItemDelegate::paint( painter, option, index );
+        return;
 
     }
 }
 
-void
-NavigationDelegate::updateEditorGeometry( QWidget * editor, const QStyleOptionViewItem& option, const QModelIndex& index ) const
+bool
+NavigationDelegate::editorEvent( QEvent * event
+                                     , QAbstractItemModel * model
+                                     , const QStyleOptionViewItem& option
+                                     , const QModelIndex& index )
 {
-    Q_UNUSED( index );
-    editor->setGeometry( option.rect );
+    bool res = QItemDelegate::editorEvent( event, model, option, index );
+    if ( event->type() == QEvent::MouseButtonRelease && model->flags(index) & Qt::ItemIsUserCheckable ) {
+
+        Qt::CheckState isChecked = static_cast< Qt::CheckState >( index.data( Qt::CheckStateRole ).toUInt() );
+
+        QVariant data = index.data( Qt::UserRole );
+        if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
+
+            portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
+            folium.setAttribute( L"isChecked", isChecked == Qt::Checked ? L"true" : L"false" );
+
+            emit checkStateChanged( index, isChecked );
+        }
+    }
+    return res;
 }

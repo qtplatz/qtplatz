@@ -63,6 +63,7 @@ namespace dataproc {
         void handle_doubleClicked( const QModelIndex& );
         void handle_entered( const QModelIndex& );
         void handle_pressed( const QModelIndex& );
+        void handleCheckStateChanged( const QModelIndex&, Qt::CheckState );
 
         void handleContextMenuRequested( const QPoint& );
 

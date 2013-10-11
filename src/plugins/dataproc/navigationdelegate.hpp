@@ -42,13 +42,14 @@ namespace dataproc {
     public:
         explicit NavigationDelegate(QObject *parent = 0);
 
-        QWidget * createEditor( QWidget*, const QStyleOptionViewItem&, const QModelIndex& ) const;
-        void paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& ) const;
-        void setEditorData( QWidget* editor, const QModelIndex& ) const;
-        void setModelData( QWidget* editor, QAbstractItemModel * model, QModelIndex& ) const;
-        void updateEditorGeometry( QWidget* editor, const QStyleOptionViewItem&, const QModelIndex& ) const;
+        void paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& ) const override;
+        void setEditorData( QWidget* editor, const QModelIndex& ) const override;
+        void setModelData( QWidget *editor, QAbstractItemModel * model, const QModelIndex &index) const override;
+        bool editorEvent( QEvent * event, QAbstractItemModel *
+                          , const QStyleOptionViewItem&, const QModelIndex& ) override;
 
     signals:
+        void checkStateChanged( const QModelIndex&, Qt::CheckState );
 
     public slots:
 
