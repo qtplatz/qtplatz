@@ -124,6 +124,15 @@ Descriptions::operator [] ( int idx ) const
    return (*pImpl_)[idx];
 }
 
+std::wstring
+Descriptions::toString() const
+{
+    std::wstring text;
+    for ( auto& desc: *this )
+        text += desc.text() + L";";
+    return text;
+}
+
 namespace adcontrols {
 
     template<> void

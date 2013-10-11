@@ -73,6 +73,7 @@ namespace adcontrols {
 
 	   std::string saveXml() const;
 	   void loadXml( const std::string& xml );
+       std::wstring toString() const;
 
    private:
 	   friend class boost::serialization::access;
