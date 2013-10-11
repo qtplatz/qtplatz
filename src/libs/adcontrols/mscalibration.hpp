@@ -53,6 +53,7 @@ namespace adcontrols {
 
         double compute_mass( double time ) const;
         static double compute( const std::vector<double>&, double time );
+        std::string formulaText( bool ritchText = true );
         
     private:
 #if defined _MSC_VER

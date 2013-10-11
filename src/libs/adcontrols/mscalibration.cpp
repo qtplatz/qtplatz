@@ -24,6 +24,8 @@
 **************************************************************************/
 
 #include "mscalibration.hpp"
+#include <sstream>
+#include <boost/format.hpp>
 
 using namespace adcontrols;
 
@@ -95,4 +97,26 @@ MSCalibration::compute( const std::vector<double>& v, double t )
 	for ( auto d: v )
 		sqmz += d * std::pow( t, n++ );
 	return sqmz;
+}
+
+std::string
+MSCalibration::formulaText( bool ritchText )
+{
+    std::ostringstream o;
+
+    if ( coeffs_.empty() )
+        return "";
+
+    if ( ritchText ) {
+        o << "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span> = "
+          << boost::format( "%.14le" ) % coeffs_[ 0 ];
+        for ( size_t i = 1; i < coeffs_.size(); ++i )
+            o << boost::format( " + %.14le &times; t<sup>%d</sup>" ) % coeffs_[ i ] % i;
+    } else {
+        o << "sqrt(m/z) = "
+          << boost::format( "%.14le" ) % coeffs_[ 0 ];
+        for ( size_t i = 1; i < coeffs_.size(); ++i )
+            o << boost::format( " + %.14le * t^%d" ) % coeffs_[ i ] % i;
+    }
+    return o.str();
 }
