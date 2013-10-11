@@ -49,8 +49,10 @@
 #include <coreplugin/minisplitter.h>
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>
+#include <qwt_plot_marker.h>
 #include <QVBoxLayout>
 #include <cmath>
+#include <boost/format.hpp>
 
 using namespace dataproc;
 
@@ -71,6 +73,7 @@ MSCalibSpectraWnd::init()
         splitter->addWidget( wndSplitter_ );
         
         for ( int i = 0; i < 4; ++i ) {
+
             std::shared_ptr< adwplot::SpectrumWidget > wnd = std::make_shared< adwplot::SpectrumWidget >(this);
             wnd->setAutoAnnotation( false );
             wnd->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 50 );
@@ -79,7 +82,12 @@ MSCalibSpectraWnd::init()
             wndSplitter_->addWidget( wnd.get() );
             if ( i )
                 wnd->link( wndSpectra_[ i - 1 ].get() );
+
+            std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >();
+            markers_.push_back( marker );
+            marker->attach( wnd.get() );
         }
+
         wndSpectra_[ 0 ]->link( wndSpectra_.back().get() );
 
         wndSplitter_->setOrientation( Qt::Vertical );
@@ -135,6 +143,8 @@ MSCalibSpectraWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio:
     portfolio::Folder folder = folium.getParentFolder();
 	if ( ! ( folder && folder.name() == L"MSCalibration" ) )
 		return;
+
+    
     // for ( auto f: folder.folio() )
     //     fetch( f );
 }
@@ -213,6 +223,20 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
 		double t = segms[ fcn ].getTime( idx );
 
         size_t nid = 0;
+        std::for_each( spectra_.begin(), spectra_.end(), [&]( std::weak_ptr< adcontrols::MassSpectrum > wp ){
+                if ( std::shared_ptr< adcontrols::MassSpectrum > sp = wp.lock() ) {
+                    wndSpectra_[ nid ]->setData( sp, 0 );
+                    int idx = assign_peaks::find_by_time( *sp, t, 3.0e-9 ); // 3ns tolerance
+                    if ( idx >= 0 ) {
+                        QwtPlotMarker& marker = *markers_[nid];
+                        marker.setValue( sp->getMass( idx ), sp->getIntensity( idx ) );
+                        QwtText label( QString::fromStdString( (boost::format("%.4lf")% sp->getTime(idx)).str() ) );
+                        marker.setLabel( label );
+                    }
+                    ++nid;
+                }
+            });
+/*
         for ( adutils::MassSpectrumPtr p: spectra_ ) {
             if ( nid ) {
                 int idx = assign_peaks::find_by_time( *p, t, 3.0e-9 ); // 3ns tolerance
@@ -226,6 +250,7 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
             }
             ++nid;
         }
+*/
 
     }
 }

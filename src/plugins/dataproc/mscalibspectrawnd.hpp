@@ -31,6 +31,7 @@
 #include <memory>
 
 class QSplitter;
+class QwtPlotMarker;
 
 namespace adcontrols {
     class MassSpectrum;
@@ -77,11 +78,13 @@ namespace dataproc {
         void doCalibration( adcontrols::MassSpectrum& centroid, adcontrols::MSCalibrateResult&, const adcontrols::MSAssignedMasses& assigned );
 
         std::vector< std::shared_ptr< adwplot::SpectrumWidget > > wndSpectra_;
+        std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
+
         std::vector< portfolio::Folium > folio_;
         portfolio::Folium folium_;
         QWidget * wndCalibSummary_;
         QSplitter * wndSplitter_;
-        std::vector< std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
+        std::vector< std::weak_ptr< adcontrols::MassSpectrum > > spectra_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
     };
 

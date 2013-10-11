@@ -109,6 +109,24 @@ public:
 		return 0;
 	}
 
+	static QStandardItem * findFolder( QStandardItem * item, const std::wstring& name ) {
+
+		for ( int i = 0; i < item->rowCount(); ++i ) {
+			QStandardItem * child = item->child( i );
+			QVariant v = child->data( Qt::UserRole );
+
+			if ( qVariantCanConvert< portfolio::Folder >( v ) ) {
+                if ( qVariantValue< portfolio::Folder >( v ).name() == name ) {
+                    return child;
+                } else if ( child->hasChildren() ) {
+                    if ( QStandardItem * res = findFolder( child, name ) )
+                        return res;
+                }
+			}
+		}
+		return 0;
+	}
+
 	static dataproc::Dataprocessor * findDataprocessor( const QModelIndex& index ) {
 		QModelIndex parent = index.parent();
 		while ( parent.isValid() && ! qVariantCanConvert< dataproc::Dataprocessor * >( parent.data( Qt::UserRole ) ) )
@@ -122,14 +140,12 @@ public:
 
 class PortfolioHelper {
 
-private:
+public:
 
     static void appendFolium( QStandardItem& parent, portfolio::Folium& folium ) {
 		QStandardItem * item = StandardItemHelper::appendRow( parent, folium, true, folium.attribute( L"isChecked" ) == L"true" );
 		item->setToolTip( QString::fromStdWString( folium.name() ) );
     }
-
-public:
 
     static void appendFolder( QStandardItem& parent, portfolio::Folder& folder ) {
 
@@ -274,21 +290,35 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
 
     QStandardItemModel& model = *pModel_;
 
-    QStandardItem * item = StandardItemHelper::findRow( model, processor );
-    if ( item ) {
-        model.removeRows( 0, item->rowCount(), item->index() );
-    
-        portfolio::Portfolio portfolio = processor->getPortfolio();
-        for ( auto folder: portfolio.folders() )
-            PortfolioHelper::appendFolder( *item, folder );
+    if ( QStandardItem * processorItem = StandardItemHelper::findRow< Dataprocessor * >( model, processor ) ) {
+
+        if ( QStandardItem * folderItem
+             = StandardItemHelper::findFolder( processorItem, folium.getParentFolder().name() ) ) {
+            
+            if ( QStandardItem * item = StandardItemHelper::findFolium( processorItem, folium.id() ) ) {
+                // replace existing
+                item->setData( qVariantFromValue< portfolio::Folium >( folium ), Qt::UserRole );
+            } else {
+                PortfolioHelper::appendFolium( *folderItem, folium );
+            }
+
+        } else {
+
+            PortfolioHelper::appendFolder( *processorItem, folium.getParentFolder() );
+            // model.removeRows( 0, item->rowCount(), item->index() );
+            // portfolio::Portfolio portfolio = processor->getPortfolio();
+            // for ( auto folder: portfolio.folders() )
+            //     PortfolioHelper::appendFolder( *item, folder );
+        }
     }
+
 	// set selected
-	if ( ( item = StandardItemHelper::findRow( model, processor ) ) ) {
-		QStandardItem * leaf = StandardItemHelper::findFolium( item, folium.id() );
-		if ( leaf )
-			pTreeView_->setCurrentIndex( leaf->index() );
-		processor->setCurrentSelection( folium );
-	}
+	if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
+        if ( QStandardItem * leaf = StandardItemHelper::findFolium( item, folium.id() ) )
+            pTreeView_->setCurrentIndex( leaf->index() );
+        processor->setCurrentSelection( folium );
+    }
+
 }
 
 void
