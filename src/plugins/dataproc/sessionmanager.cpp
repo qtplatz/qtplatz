@@ -69,6 +69,12 @@ SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Fo
 	emit signalSessionUpdated( dataprocessor, folium );
 }
 
+void
+SessionManager::checkStateChanged( Dataprocessor * dataprocessor, portfolio::Folium& folium, bool isChecked )
+{
+    emit signalCheckStateChanged( dataprocessor, folium, isChecked );
+}
+
 SessionManager::vector_type::iterator
 SessionManager::begin()
 {

@@ -61,7 +61,7 @@ public:
         return item;
     }
 
-    template<class T> static QStandardItem * appendRow( QStandardItem& parent, const T& value, bool isCheckable ) {
+    template<class T> static QStandardItem * appendRow( QStandardItem& parent, const T& value, bool isCheckable, bool isChecked = false ) {
         QStandardItemModel& model = *parent.model();
 		int row = parent.rowCount();
 		parent.insertRow( row, new QStandardItem );
@@ -69,6 +69,7 @@ public:
 		//
         if ( isCheckable ) {
 			item->setCheckable( true );
+			item->setData( isChecked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
 			item->setData( QString::fromStdWString( value.name() ), Qt::EditRole );
 			item->setData( qVariantFromValue<T>( value ), Qt::UserRole );
         } else {
@@ -120,12 +121,15 @@ public:
 
 
 class PortfolioHelper {
-public:
+
+private:
 
     static void appendFolium( QStandardItem& parent, portfolio::Folium& folium ) {
-        QStandardItem * item = StandardItemHelper::appendRow( parent, folium, true );
+		QStandardItem * item = StandardItemHelper::appendRow( parent, folium, true, folium.attribute( L"isChecked" ) == L"true" );
 		item->setToolTip( QString::fromStdWString( folium.name() ) );
     }
+
+public:
 
     static void appendFolder( QStandardItem& parent, portfolio::Folder& folder ) {
 
@@ -186,8 +190,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
 	connect( SessionManager::instance(), SIGNAL( signalSessionUpdated( Dataprocessor*, portfolio::Folium& ) )
              , this, SLOT( handleSessionUpdated( Dataprocessor *, portfolio::Folium& ) ) );
 
-    connect( pDelegate_, SIGNAL( checkStateChanged( const QModelIndex&, Qt::CheckState ) )
-             , this, SLOT( handleCheckStateChanged( const QModelIndex&, Qt::CheckState ) ) );
+    connect( pModel_, SIGNAL( itemChanged( QStandardItem *) ), this, SLOT( handleItemChanged( QStandardItem * ) ) );
 
     setAutoSynchronization(true);
 }
@@ -246,9 +249,22 @@ NavigationWidget::initView()
 }
 
 void
-NavigationWidget::handleCheckStateChanged( const QModelIndex& index, Qt::CheckState state )
+NavigationWidget::handleItemChanged( QStandardItem * item )
 {
-    qDebug() << index;
+    // handle checkbox on tree item
+    QVariant data = item->data( Qt::UserRole );
+
+    if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
+
+		Qt::CheckState state = static_cast< Qt::CheckState >( item->data( Qt::CheckStateRole ).toUInt() );
+        portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
+        folium.setAttribute( L"isChecked", state == Qt::Checked ? L"true" : L"false" );
+
+		if ( Dataprocessor * dp = StandardItemHelper::findDataprocessor( item->index() ) )
+            SessionManager::instance()->checkStateChanged( dp, folium, state == Qt::Checked );
+
+    }
+    
 }
 
 void
@@ -305,7 +321,8 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
 void
 NavigationWidget::handle_activated( const QModelIndex& index )
 {
-    qDebug() << "activated: " << index.data( Qt::UserRole );
+    qDebug() << "activated: " << index.data( Qt::UserRole ) << index.data();
+    qDebug() << "activated parent: " << index.parent().data();
 
     if ( index.isValid() ) {
 

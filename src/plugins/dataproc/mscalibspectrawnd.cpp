@@ -130,6 +130,16 @@ MSCalibSpectraWnd::handleSessionAdded( Dataprocessor * )
 }
 
 void
+MSCalibSpectraWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::Folium& folium, bool isChecked )
+{
+    portfolio::Folder folder = folium.getParentFolder();
+	if ( ! ( folder && folder.name() == L"MSCalibration" ) )
+		return;
+    // for ( auto f: folder.folio() )
+    //     fetch( f );
+}
+
+void
 MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
     Q_UNUSED(processor);
@@ -171,6 +181,7 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
     if ( it == attachments.end() )
         return;
     adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+
     // calib result
     it = portfolio::Folium::find_first_of<adutils::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
     if ( it != attachments.end() ) {

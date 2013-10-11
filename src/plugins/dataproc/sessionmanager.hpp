@@ -65,6 +65,7 @@ namespace dataproc {
         Dataprocessor * getActiveDataprocessor();
         void addDataprocessor( std::shared_ptr<Dataprocessor>&, Core::IEditor * );
         void updateDataprocessor( Dataprocessor *, portfolio::Folium& );
+        void checkStateChanged( Dataprocessor *, portfolio::Folium&, bool isChecked );
 
         typedef std::vector< Session > vector_type;
 
@@ -77,6 +78,7 @@ namespace dataproc {
         void signalSessionAdded( Dataprocessor * );
 		void signalSessionUpdated( Dataprocessor *, portfolio::Folium& );
         void signalSelectionChanged( Dataprocessor *, portfolio::Folium& );
+        void signalCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool );
 
     public slots:
         void selectionChanged( Dataprocessor *, portfolio::Folium& );

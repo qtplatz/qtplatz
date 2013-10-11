@@ -292,7 +292,10 @@ MainWindow::createContents( Core::IMode * mode
                      , it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );
         assert( res );
 
-        connect( axisChoice_, SIGNAL( currentIndexChanged( int ) ), it, SLOT( handleAxisChanged( int ) ) );        
+        connect( SessionManager::instance(), SIGNAL( signalCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) )
+                 , it, SLOT( handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) ) );
+
+        connect( axisChoice_, SIGNAL( currentIndexChanged( int ) ), it, SLOT( handleAxisChanged( int ) ) );
     }
 
     res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )

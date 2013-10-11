@@ -338,7 +338,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 
 			adcontrols::MassSpectrum ms;
 			if ( dset->getSpectrum( 0, pos++, ms ) ) {
-				if ( !adportable::compare<double>::approximatelyEqual>( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
+				if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
 					t1 = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
 
 				std::wostringstream text;
@@ -352,7 +352,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 						progressBar.setValue( pos );
 						ms += a;
 					}
-                    if ( !adportable::compare<double>::approximatelyEqual>( a.getMSProperty().timeSinceInjection(), 0.0 ) )
+                    if ( !adportable::compare<double>::approximatelyEqual( a.getMSProperty().timeSinceInjection(), 0.0 ) )
                         t2 = a.getMSProperty().timeSinceInjection() / 60.0; // to min
 					text << L"Spectrum (" << std::fixed << std::setprecision(3) << t1 << " - " << t2 << ")";
 				} else {

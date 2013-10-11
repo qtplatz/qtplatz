@@ -53,6 +53,7 @@ namespace dataproc {
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
+        void handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool );
 
     signals:
         void fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );

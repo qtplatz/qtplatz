@@ -91,15 +91,8 @@ NavigationDelegate::editorEvent( QEvent * event
     if ( event->type() == QEvent::MouseButtonRelease && model->flags(index) & Qt::ItemIsUserCheckable ) {
 
         Qt::CheckState isChecked = static_cast< Qt::CheckState >( index.data( Qt::CheckStateRole ).toUInt() );
+        emit checkStateChanged( index, isChecked );
 
-        QVariant data = index.data( Qt::UserRole );
-        if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
-
-            portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
-            folium.setAttribute( L"isChecked", isChecked == Qt::Checked ? L"true" : L"false" );
-
-            emit checkStateChanged( index, isChecked );
-        }
     }
     return res;
 }
