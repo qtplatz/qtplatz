@@ -59,6 +59,7 @@ using namespace dataproc;
 MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
                                                          , wndCalibSummary_( 0 )
                                                          , wndSplitter_( 0 )
+                                                         , axis_( adwplot::SpectrumWidget::HorizontalAxisMass )
 {
     init();
 }
@@ -138,6 +139,28 @@ MSCalibSpectraWnd::handleSessionAdded( Dataprocessor * )
 }
 
 void
+MSCalibSpectraWnd::handleAxisChanged( int axis )
+{
+    axis_ = axis;
+    for ( auto wnd: wndSpectra_ )
+		wnd->setAxis( static_cast< adwplot::SpectrumWidget::HorizontalAxis >( axis ) );
+
+    replotSpectra();
+}
+
+void
+MSCalibSpectraWnd::replotSpectra()
+{
+    size_t idx = 0;
+    for ( auto& sp: spectra_ ) {
+        markers_[ idx ]->setXValue( 0 );
+        wndSpectra_[ idx++ ]->setData( sp, 0 );
+        if ( idx >= wndSpectra_.size() )
+            break;
+    }
+}
+
+void
 MSCalibSpectraWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::Folium& folium, bool isChecked )
 {
     portfolio::Folder folder = folium.getParentFolder();
@@ -210,6 +233,8 @@ MSCalibSpectraWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 void 
 MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
 {
+    using namespace adcontrols::metric;
+
     adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
@@ -229,8 +254,14 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
                     int idx = assign_peaks::find_by_time( *sp, t, 3.0e-9 ); // 3ns tolerance
                     if ( idx >= 0 ) {
                         QwtPlotMarker& marker = *markers_[nid];
-                        marker.setValue( sp->getMass( idx ), sp->getIntensity( idx ) );
-                        QwtText label( QString::fromStdString( (boost::format("%.4lf")% sp->getTime(idx)).str() ) );
+                        double x = ( axis_ == adwplot::SpectrumWidget::HorizontalAxisMass )
+                            ? sp->getMass( idx )
+                            : scale_to_micro( sp->getTime( idx ) );
+                        marker.setValue( x, sp->getIntensity( idx ) );
+                        marker.setLineStyle( QwtPlotMarker::Cross );
+                        marker.setLinePen( Qt::gray, 0.0, Qt::DashDotLine );
+
+                        QwtText label( QString::fromStdString( (boost::format("%.4lfus")% scale_to_micro( sp->getTime(idx) )).str() ) );
                         marker.setLabel( label );
                     }
                     ++nid;
@@ -246,8 +277,7 @@ MSCalibSpectraWnd::handleValueChanged()
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
         std::shared_ptr< adcontrols::MSAssignedMasses > assigned( std::make_shared< adcontrols::MSAssignedMasses >() );
-        boost::any any( assigned );
-        if ( p->getContents( any ) ) {
+        if ( readCalibSummary( *assigned ) ) {
             portfolio::Folium& folium = folium_;
             portfolio::Folio attachments = folium.attachments();
             
@@ -264,31 +294,10 @@ MSCalibSpectraWnd::handleValueChanged()
             if ( it != attachments.end() ) {
                 adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
                 if ( ptr->isCentroid() ) {
-                    // replace centroid spectrum with colored
-                    std::vector< unsigned char > color_table( ptr->size() );
-                    memset( color_table.data(), 0, color_table.size() );
-                    const unsigned char * colors = ptr->getColorArray();
-                    if ( colors ) 
-                        std::copy( colors, colors + ptr->size(), color_table.begin() );
-
-                    using adcontrols::MSAssignedMasses;
-#if 0                    
-                    for ( MSAssignedMasses::vector_type::const_iterator it = assigned->begin(); it != assigned->end(); ++it ) {
-                        if ( ! it->formula().empty() )
-                            color_table[ it->idMassSpectrum() ] = 1;
-                        else
-                            color_table[ it->idMassSpectrum() ] = 0;
-                    }
-                    ptr->setColorArray( color_table.data() );
-#endif
+                    if ( DataprocHandler::doAnnotateAssignedPeaks( *ptr, *assigned ) )
+                        replotSpectra();
                 }
             }
-            // over write with current selected peak
-            adutils::MassSpectrumPtr ptr( new adcontrols::MassSpectrum );
-            boost::any any( ptr );
-            p->getContents( any );  // got spectrum with size reduced by RA threshold
-            wndSpectra_[ 0 ]->setData( ptr, 0 ); 
-            // todo: update annotation
         }
     }
 }

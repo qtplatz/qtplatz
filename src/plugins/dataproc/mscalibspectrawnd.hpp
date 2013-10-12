@@ -66,6 +66,7 @@ namespace dataproc {
         void handle_recalibration_requested();
         void handle_apply_calibration_to_dataset();
         void handle_apply_calibration_to_default();
+        void handleAxisChanged( int );
 
     private:
         void init();
@@ -82,9 +83,11 @@ namespace dataproc {
         portfolio::Folium folium_;
         QWidget * wndCalibSummary_;
         QSplitter * wndSplitter_;
+        int axis_;
         std::vector< std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
         std::vector< std::shared_ptr< adcontrols::MSAssignedMasses > > assignedResults_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
+        void replotSpectra();
     };
 
 }

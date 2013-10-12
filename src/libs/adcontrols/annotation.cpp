@@ -145,3 +145,15 @@ annotation::rect( double x, double y, double width, double height )
     h_ = height;
 }
 
+void
+annotation::x( double x )
+{
+    x_ = x;
+}
+
+void
+annotation::y( double y )
+{
+    y_ = y;
+}
+

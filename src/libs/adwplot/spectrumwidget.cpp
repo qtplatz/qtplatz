@@ -492,6 +492,7 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                                        , const std::pair<double, double>& range )
 {
     using adportable::array_wrapper;
+    using namespace adcontrols::metric;        
 
     typedef std::tuple< size_t, size_t, int, double, double > peak; // fcn, idx, color, mass, intensity
     enum { c_fcn, c_idx, c_color, c_intensity, c_mass };
@@ -503,7 +504,7 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
         
         adcontrols::annotations auto_annotations;
         adcontrols::annotations annotations;
-        
+
         double max_y = adcontrols::segments_helper::max_intensity( *centroid );
         
         for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
@@ -512,7 +513,7 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
 
             size_t beg, end;
             if ( isTimeAxis_ ) {
-				using namespace adcontrols::metric;
+
 
                 array_wrapper< const double > times( ms.getTimeArray(), ms.size() );
                 beg = std::distance( times.begin(), std::lower_bound( times.begin(), times.end(), scale_to_base( range.first, micro ) ) );
@@ -527,6 +528,8 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                 const adcontrols::annotations& attached = ms.get_annotations();
                 for ( auto a : attached ) {
                     if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) ) {
+                        if ( a.index() >= 0 && isTimeAxis_ )
+                            a.x( scale_to_micro( ms.getTime( a.index() ) ) );
                         annotations << a;
                     }
                 }

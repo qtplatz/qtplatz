@@ -59,6 +59,8 @@ namespace adcontrols {
         double width() const;
         double height() const;
         void rect( double x, double y, double width = 0, double height = 0 );
+        void x( double );
+        void y( double );
 
     private:
         enum dataType type_;
