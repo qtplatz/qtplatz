@@ -182,6 +182,13 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
 
     setAxisTitle(QwtPlot::yLeft, axisVart);
 
+    // -----------
+    font.setFamily( "Colsolas" );
+    font.setBold( false );
+	font.setPointSize( 8 );
+    setAxisFont( QwtPlot::xBottom, font );
+    setAxisFont( QwtPlot::yLeft, font );
+
     // handle zoom rect by this
     if ( zoomer1_ ) {
         connect( zoomer1_.get(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );

@@ -74,7 +74,7 @@ Dataplot::setTitle( const std::string& text )
 {
 	QwtText qwtText( text.c_str(), QwtText::RichText );
     QFont font = qwtText.font();
-    font.setPointSize( 8 );
+    font.setPointSize( 9 );
     font.setBold( false );
     font.setFamily( "Calibri" );
     qwtText.setFont( font );
@@ -95,7 +95,7 @@ Dataplot::setFooter( const std::string& text )
 {
 	QwtText qwtText( text.c_str(), QwtText::RichText );
     QFont font = qwtText.font();
-    font.setPointSize( 8 );
+    font.setPointSize( 9 );
     font.setBold( false );
     font.setFamily( "Calibri" );
     qwtText.setFont( font );

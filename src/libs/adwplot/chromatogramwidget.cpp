@@ -171,6 +171,13 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
 	axisVert.setFont( font );
     setAxisTitle(QwtPlot::yLeft, axisVert );
 
+    // -----------
+    font.setFamily( "Colsolas" );
+    font.setBold( false );
+	font.setPointSize( 8 );
+    setAxisFont( QwtPlot::xBottom, font );
+    setAxisFont( QwtPlot::yLeft, font );
+
 	if ( picker_ ) {
 		// picker_->setStateMachine( new QwtPickerClickPointMachine() );
 		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
