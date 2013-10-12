@@ -70,7 +70,7 @@ using namespace dataproc;
 
 namespace dataproc {
 
-    enum { idx_profile, idx_centroid };
+    enum { idx_profile = 9, idx_centroid = 0 };
 
     class MSCalibrationWndImpl {
     public:
