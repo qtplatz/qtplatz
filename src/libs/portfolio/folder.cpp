@@ -92,3 +92,12 @@ Folder::addFolium( const std::wstring& name )
 {
     return Folium( Node::addFolium( name ), impl_ );
 }
+
+bool
+Folder::removeFolium( const Folium& folium )
+{
+    if ( Node::removeFolium( folium.id() ) ) {
+        return true;
+    }
+    return false;
+}

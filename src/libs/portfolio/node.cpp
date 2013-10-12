@@ -215,6 +215,22 @@ Node::addFolium( const std::wstring& name )
     return child;
 }
 
+bool
+Node::removeFolium( const std::wstring& id )
+{
+	std::string query = "./folium[@dataId=\"" + pugi::as_utf8( id ) + "\"]";
+    try {
+        pugi::xpath_node_set nodes = node_.select_nodes( query.c_str() );
+        for ( pugi::xpath_node_set::const_iterator it = nodes.begin(); it != nodes.end(); ++it )
+            node_.remove_child( it->node() );
+        return !nodes.empty();
+    } catch ( pugi::xpath_exception& ex ) {
+        adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
+        assert(0);            
+    }
+    return false;
+}
+
 pugi::xml_node
 Node::addAttachment( const std::wstring& name, bool bUniq )
 {

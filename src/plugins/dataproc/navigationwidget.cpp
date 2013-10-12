@@ -284,6 +284,20 @@ NavigationWidget::handleItemChanged( QStandardItem * item )
 }
 
 void
+NavigationWidget::invalidateSession( Dataprocessor * processor )
+{
+    QString filename( QString::fromStdWString( processor->file().filename() ) );
+    QStandardItemModel& model = *pModel_;
+
+    if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
+        model.removeRows( 0, item->rowCount(), item->index() );
+        portfolio::Portfolio portfolio = processor->getPortfolio();
+        for ( auto folder: portfolio.folders() )
+            PortfolioHelper::appendFolder( *item, folder );
+    }
+}
+
+void
 NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Folium& folium )
 {
     QString filename( qtwrapper::qstring::copy( processor->file().filename() ) );
@@ -423,59 +437,80 @@ void
 NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 {
 	QPoint globalPos = pTreeView_->mapToGlobal(pos);
-
 	QModelIndex index = pTreeView_->currentIndex();
-	Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
 
-	QVariant data = pModel_->data( index, Qt::UserRole );
-	if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
-		portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
-		if ( processor && folium.getParentFolder().name() == L"Spectra" ) {
-			adutils::MassSpectrumPtr profile = boost::any_cast< adutils::MassSpectrumPtr >( folium );
-			adutils::MassSpectrumPtr centroid;
+    if ( index.isValid() ) {
 
-			portfolio::Folio atts = folium.attachments();
-			portfolio::Folio::iterator it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(atts.begin(), atts.end());
+        if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
 
-			if ( it != atts.end() ) {
-				adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-				if ( ptr && ptr->isCentroid() )
-					centroid = ptr;
-			}
+            QVariant data = pModel_->data( index, Qt::UserRole );
+            if ( qVariantCanConvert< portfolio::Folium >( data ) ) {
+            
+                portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
+            
+                if ( processor && folium.getParentFolder().name() == L"Spectra" ) {
+					if ( folium.empty() )
+						processor->fetch( folium );
 
-			QMenu menu;
-			QAction * asProfile = 0; 
-			QAction * asCentroid = 0;
-			QAction * doNext = 0;
-			if ( profile )
-				asProfile = menu.addAction( "Save profile spectrum as..." );
-			if ( centroid ) {
-				asCentroid = menu.addAction( "Save centroid spectrum as..." );
-				doNext = menu.addAction( "Show next spectrum" );
-			}
-			QAction* selectedItem = menu.exec( globalPos );
-			if ( selectedItem ) {
-				if ( selectedItem == doNext ) {
-                    // processor->createChromatograms( *centroid );
-                    // targeting
-				} else {
-					boost::filesystem::path path( processor->file().filename() );
-                    while ( ! boost::filesystem::is_directory( path ) )
-                        path = path.branch_path();
-                    QString dir = qtwrapper::qstring::copy( path.wstring() );
-                    QString name = qtwrapper::qstring::copy( folium.name() );
-                    QString filename = 
-                        QFileDialog::getSaveFileName( this, tr("Save spectrum"), dir, tr("Documents (*.txt)") );
-                    boost::filesystem::path dstfile( qtwrapper::wstring::copy( filename ) );
-                    boost::filesystem::ofstream of( dstfile );
+                    adutils::MassSpectrumPtr profile; 
+                    try { 
+                        profile = boost::any_cast< adutils::MassSpectrumPtr >( folium );
+                    } catch ( boost::bad_any_cast& ) {
+                        return;
+                    }
 
-                    if ( selectedItem == asProfile ) {
-                        export_spectrum::write( of, *profile );
-                    } else if ( selectedItem == asCentroid ) {
-                        export_spectrum::write( of, *centroid );
+                    adutils::MassSpectrumPtr centroid;
+                    portfolio::Folio atts = folium.attachments();
+                    portfolio::Folio::iterator it = portfolio::Folium::find_if<adcontrols::MassSpectrumPtr>(atts.begin(), atts.end());
+                    if ( it != atts.end() ) {
+                        try {
+                            adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
+                            if ( ptr && ptr->isCentroid() )
+                                centroid = ptr;
+                        } catch ( boost::bad_any_cast& ) {
+                            // ignore
+                        }
+                    }
+                
+                    QMenu menu;
+                    QAction * asProfile = 0; 
+                    QAction * asCentroid = 0;
+                    QAction * doCalibration = 0;
+                    QAction * removeChecked = 0;
+                    if ( profile )
+                        asProfile = menu.addAction( "Save profile spectrum as..." );
+                    if ( centroid )
+                        asCentroid = menu.addAction( "Save centroid spectrum as..." );
+                    doCalibration = menu.addAction( "Send checked to calibration folder" );
+                    removeChecked = menu.addAction( "Remove checked items" );
+
+                    QAction* selectedItem = menu.exec( globalPos );
+                    if ( selectedItem ) {
+                        if ( selectedItem == doCalibration ) {
+                            processor->sendCheckedSpectraToCalibration();
+                        } else if ( selectedItem == removeChecked ) {
+                            processor->removeCheckedItems();
+                            invalidateSession( processor );
+                        } else {
+                            boost::filesystem::path path( processor->file().filename() );
+                            while ( ! boost::filesystem::is_directory( path ) )
+                                path = path.branch_path();
+                            QString dir = qtwrapper::qstring::copy( path.wstring() );
+                            QString name = qtwrapper::qstring::copy( folium.name() );
+                            QString filename = 
+                                QFileDialog::getSaveFileName( this, tr("Save spectrum"), dir, tr("Documents (*.txt)") );
+                            boost::filesystem::path dstfile( qtwrapper::wstring::copy( filename ) );
+                            boost::filesystem::ofstream of( dstfile );
+                            
+                            if ( selectedItem == asProfile ) {
+                                export_spectrum::write( of, *profile );
+                            } else if ( selectedItem == asCentroid ) {
+                                export_spectrum::write( of, *centroid );
+                            }
+                        }
                     }
                 }
-			}
-		}
-	}
+            }
+        }
+    }
 }

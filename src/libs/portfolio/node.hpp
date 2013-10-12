@@ -75,6 +75,7 @@ namespace portfolio {
             pugi::xml_node addFolium( const std::wstring& name );
             pugi::xml_node addAttachment( const std::wstring& name, bool bUniq = true );
 			bool removeAttachment( const std::wstring& name );
+			bool removeFolium( const std::wstring& id );
 
         protected:
             pugi::xml_node node_;

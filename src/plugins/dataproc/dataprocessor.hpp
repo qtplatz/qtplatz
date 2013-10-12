@@ -79,6 +79,9 @@ namespace dataproc {
         void applyCalibration( const adcontrols::ProcessMethod& );
         void applyCalibration( const adcontrols::ProcessMethod&, const adcontrols::MSAssignedMasses&  );
         void applyCalibration( const adcontrols::ProcessMethod&, const adcontrols::MSAssignedMasses&, portfolio::Folium&  );
+        void sendCheckedSpectraToCalibration();
+        void removeCheckedItems();
+
         portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
         // SignalObserver::Observer * observer();

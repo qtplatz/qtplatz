@@ -52,6 +52,8 @@ namespace portfolio {
             boost::any& find( const std::wstring& id );
             void assign( const std::wstring& id, const boost::any& );
 
+            Folder findFolder( const std::wstring& );
+
             ///////////////  creation ///////////////
             bool create_with_fullpath( const std::wstring& );
             Folder addFolder( const std::wstring&, bool uniq );

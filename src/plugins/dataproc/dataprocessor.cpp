@@ -28,6 +28,7 @@
 #include "constants.hpp"
 #include "sessionmanager.hpp"
 #include "dataprochandler.hpp"
+#include "mainwindow.hpp"
 #include <adcontrols/datafile.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <extensionsystem/pluginmanager.h>
@@ -335,6 +336,56 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
 }
 
 void
+Dataprocessor::removeCheckedItems()
+{
+    for ( auto& folder: portfolio_->folders() ) {
+        for ( auto& folium: folder.folio() ) {
+            if ( folium.attribute( L"isChecked" ) == L"true" ) {
+                folder.removeFolium( folium );
+            }
+        }
+    }
+}
+
+void
+Dataprocessor::sendCheckedSpectraToCalibration()
+{
+    portfolio::Folder spectra = portfolio_->findFolder( L"Spectra" );
+
+    adcontrols::ProcessMethod mproc;
+    MainWindow::instance()->getProcessMethod( mproc );
+    const adcontrols::MSCalibrateMethod * pCalibMethod = mproc.find< adcontrols::MSCalibrateMethod >();
+    const adcontrols::CentroidMethod * pCentroidMethod = mproc.find< adcontrols::CentroidMethod >();
+    if ( pCentroidMethod == 0 || pCalibMethod == 0 ) {
+        assert( pCalibMethod && pCentroidMethod );
+        return;
+    }
+    adcontrols::CentroidMethod centroidMethod( *pCentroidMethod ); // copy
+    centroidMethod.centroidAreaIntensity( false );  // force hight for overlay with profile
+
+    adcontrols::ProcessMethod method;
+    method.appendMethod( centroidMethod );
+    method.appendMethod( *pCalibMethod );
+
+    for ( auto& folium: spectra.folio() ) {
+        if ( folium.attribute( L"isChecked" ) == L"true" ) {
+
+            adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+
+            if ( adutils::MassSpectrumPtr ptr = boost::get< adutils::MassSpectrumPtr >( data ) ) {
+                if ( ptr->getDescriptions().size() == 0 ) 
+                    ptr->addDescription( adcontrols::Description( L"create", folium.name() ) );
+                addCalibration( * boost::get< adutils::MassSpectrumPtr >( data ), method );
+            }
+
+        }
+    }
+
+	ifileimpl_->setModified();
+}
+
+
+void
 Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
 {
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
@@ -386,7 +437,7 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
 		range.first = std::min( range.first, lMass );
 		range.second = std::max( range.second, hMass );
 		ms->setAcquisitionMassRange( range.first, range.second );
-    //
+        //
 		folium.assign( ms, ms->dataClass() );
 
 		for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
@@ -404,6 +455,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
 
     if ( folium ) {
+
         adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
         if ( data.type() != typeid( adutils::MassSpectrumPtr ) )
             return;
@@ -411,7 +463,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
 
         portfolio::Folio attachments = folium.attachments();
         portfolio::Folio::iterator it
-            = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
+            = portfolio::Folium::find_if<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
         if ( it == attachments.end() )
             return;
         

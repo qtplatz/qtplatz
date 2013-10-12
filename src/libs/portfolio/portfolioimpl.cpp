@@ -166,6 +166,21 @@ PortfolioImpl::addFolder( const std::wstring& name, bool uniq )
     return Folder( Node::addFolder( name, this ), this );
 }
 
+Folder
+PortfolioImpl::findFolder( const std::wstring& name )
+{
+    using adportable::utf;
+    std::string query = std::string( "folder[@folderType='directory'][@name=\"" ) + utf::to_utf8(name) + "\"]";
+    try {
+        pugi::xpath_node_set list = Node::selectNodes( query );
+        if ( list.size() > 0 )
+            return Folder( list[0].node(), this );
+    } catch ( pugi::xpath_exception& ex ) {
+        adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
+    }
+    return Folder();
+}
+
 std::wstring
 PortfolioImpl::newGuid()
 {

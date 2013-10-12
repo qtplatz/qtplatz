@@ -53,6 +53,7 @@ namespace portfolio {
         std::vector<Folder> folders();
         const std::vector<Folder> folders() const;
         Folium findFolium( const std::wstring& id );
+        Folder findFolder( const std::wstring& name );
 
         // create new from scratch
         bool create_with_fullpath( const std::wstring& fullpath );

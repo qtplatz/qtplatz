@@ -57,6 +57,7 @@ namespace portfolio {
 
         // --- add/modify features
         Folium addFolium( const std::wstring& name );
+        bool removeFolium( const Folium& );
     };
 
 }
