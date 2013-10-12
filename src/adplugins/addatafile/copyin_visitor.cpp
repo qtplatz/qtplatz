@@ -50,7 +50,7 @@ namespace addatafile { namespace detail {
         adfs::file& file_;
         copyin( adfs::file& f ) : file_( f ) {}
 
-        template<typename T>  bool operator ()( T& t ) const { 
+        template<typename T>  bool operator ()( T& ) const { 
             throw boost::bad_any_cast();
         }
     };
