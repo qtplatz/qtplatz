@@ -85,9 +85,8 @@ namespace adcontrols {
 
         friend class internal::CentroidProcessImpl;
         friend class boost::serialization::access;
-        template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-            ar  & peak_index_ 
-                & algo_
+        template<class Archive> void serialize(Archive& ar, const unsigned int ) {
+            ar  & peak_index_
                 & peak_start_index_
                 & peak_end_index_
                 & base_height_

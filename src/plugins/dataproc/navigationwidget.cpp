@@ -303,12 +303,8 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
             }
 
         } else {
-
-            PortfolioHelper::appendFolder( *processorItem, folium.getParentFolder() );
-            // model.removeRows( 0, item->rowCount(), item->index() );
-            // portfolio::Portfolio portfolio = processor->getPortfolio();
-            // for ( auto folder: portfolio.folders() )
-            //     PortfolioHelper::appendFolder( *item, folder );
+            portfolio::Folder parent = folium.getParentFolder();
+            PortfolioHelper::appendFolder( *processorItem, parent );
         }
     }
 

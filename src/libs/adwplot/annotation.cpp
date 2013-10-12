@@ -58,3 +58,9 @@ Annotation::setLabelAlighment( Qt::Alignment align )
 {
     marker_->setLabelAlignment( align );
 }
+
+QwtPlotMarker *
+Annotation::getPlotMarker()
+{
+    return marker_.get();
+}

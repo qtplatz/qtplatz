@@ -68,7 +68,7 @@ namespace adcontrols {
         std::vector< MSPeakInfo > siblings_;
 
         friend class boost::serialization::access;
-        template<class Archive> void serialize(Archive& ar, const unsigned int version) {
+        template<class Archive> void serialize(Archive& ar, const unsigned int ) {
             ar  & vec_
                 & siblings_
                 ;

@@ -68,7 +68,7 @@ namespace adcontrols {
             void copy( MassSpectrum& );
             const CentroidMethod& method() const { return method_; }
             void findpeaks( const MassSpectrum& profile );
-        private:
+
             friend class CentroidProcess;
             MSPeakInfo info_;
             MassSpectrum clone_;

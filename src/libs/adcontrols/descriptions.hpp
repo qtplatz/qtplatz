@@ -61,7 +61,7 @@ namespace adcontrols {
            size_t pos_;
            const Descriptions& desc_;
        public:
-		   description_iterator( const Descriptions& d, size_t pos ) : desc_( d ), pos_( pos ) {}
+		   description_iterator( const Descriptions& d, size_t pos ) : pos_( pos ), desc_( d ) {}
            bool operator != ( const description_iterator& rhs ) const { return pos_ != rhs.pos_; }
            const description_iterator& operator ++ () { ++pos_; return *this; }
            operator const Description* () const { return &desc_[ pos_ ]; }

@@ -46,8 +46,7 @@ namespace adwplot {
         Annotation( const Annotation& );
 
         void setLabelAlighment( Qt::Alignment );
-
-        inline operator QwtPlotMarker * () { return marker_.get(); }
+        QwtPlotMarker * getPlotMarker();
 
     private:
         Dataplot * plot_;
