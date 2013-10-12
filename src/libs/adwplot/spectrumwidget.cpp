@@ -141,10 +141,14 @@ namespace adwplot {
     } // namespace spectrumwidget
 
     struct SpectrumWidgetImpl {
+        SpectrumWidgetImpl() : autoAnnotation_( true )
+                             , isTimeAxis_( false ) {
+        }
         std::weak_ptr< adcontrols::MassSpectrum > centroid_;  // for annotation
         std::vector< Annotation > annotations_;
         std::vector< spectrumwidget::TraceData > traces_;
         bool autoAnnotation_;
+        bool isTimeAxis_;
 
         void clear();
         void update_annotations( Dataplot&, const std::pair<double, double>& );
@@ -225,14 +229,12 @@ void
 SpectrumWidget::zoom( const QRectF& rect )
 {
 	Dataplot::zoom( rect );
-    if ( haxis_ != HorizontalAxisTime )
-        impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
+    impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
 }
 void
 SpectrumWidget::zoomed( const QRectF& rect )
 {
-    if ( haxis_ != HorizontalAxisTime )
-        impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
+    impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
 }
 
 void
@@ -277,6 +279,7 @@ SpectrumWidget::setAxis( HorizontalAxis haxis )
 {
     clear();
     haxis_ = haxis;
+    impl_->isTimeAxis_ = haxis == HorizontalAxisTime;
     setAxisTitle(QwtPlot::xBottom, haxis_ == HorizontalAxisMass ? "m/z" : "Time(microseconds)");
 }
 
@@ -308,8 +311,7 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     if ( ptr->isCentroid() ) {
         impl_->centroid_ = ptr;
         impl_->clear_annotations();
-        if ( haxis_ != HorizontalAxisTime )
-            impl_->update_annotations( *this, ptr->getAcquisitionMassRange() );
+        impl_->update_annotations( *this, ptr->getAcquisitionMassRange() );
     }
 }
 
@@ -507,18 +509,28 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
         for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
             const adcontrols::MassSpectrum& ms = segments[ fcn ];
             const unsigned char * colors = ms.getColorArray();
-            
-            array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
-            size_t beg = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.first ) );
-            size_t end = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.second ) );
+
+            size_t beg, end;
+            if ( isTimeAxis_ ) {
+				using namespace adcontrols::metric;
+
+                array_wrapper< const double > times( ms.getTimeArray(), ms.size() );
+                beg = std::distance( times.begin(), std::lower_bound( times.begin(), times.end(), scale_to_base( range.first, micro ) ) );
+                end = std::distance( times.begin(), std::lower_bound( times.begin(), times.end(), scale_to_base( range.second, micro) ) );
+            } else {
+                array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
+                beg = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.first ) );
+                end = std::distance( masses.begin(), std::lower_bound( masses.begin(), masses.end(), range.second ) );
+            }
             
             if ( beg < end ) {
                 const adcontrols::annotations& attached = ms.get_annotations();
-                for ( auto& a : attached ) {
+                for ( auto a : attached ) {
                     if ( ( int(beg) <= a.index() && a.index() <= int(end) ) || ( range.first < a.x() && a.x() < range.second ) ) {
                         annotations << a;
                     }
                 }
+
                 if ( autoAnnotation_ ) {
                     // generate auto-annotation
                     for ( size_t idx = beg; idx <= end; ++idx ) {
@@ -528,9 +540,17 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                             int pri = ms.getIntensity( idx ) / max_y * 1000;
                             if ( colors )
                                 pri *= 100;
-                            adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % ms.getMass( idx ) ).str()
-                                                          , ms.getMass( idx ), ms.getIntensity( idx ), ( fcn << 24 | idx ), pri );
-                            auto_annotations << annot;
+                            if ( isTimeAxis_ ) {
+                                double microseconds = adcontrols::metric::scale_to_micro( ms.getTime( idx ) );
+                                adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % microseconds ).str()
+                                                              , microseconds, ms.getIntensity( idx )
+                                                              , ( fcn << 24 | idx ), pri );
+                                auto_annotations << annot;
+                            } else {
+                                adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % ms.getMass( idx ) ).str()
+                                                              , ms.getMass( idx ), ms.getIntensity( idx ), ( fcn << 24 | idx ), pri );
+                                auto_annotations << annot;
+                            }
                         }
                     }
                 }
