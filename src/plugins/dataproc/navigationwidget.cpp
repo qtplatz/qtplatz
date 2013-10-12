@@ -477,11 +477,16 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     QAction * asCentroid = 0;
                     QAction * doCalibration = 0;
                     QAction * removeChecked = 0;
-                    if ( profile )
-                        asProfile = menu.addAction( "Save profile spectrum as..." );
-                    if ( centroid )
-                        asCentroid = menu.addAction( "Save centroid spectrum as..." );
+                    asProfile = menu.addAction( "Save profile spectrum as..." );
+                    asCentroid = menu.addAction( "Save centroid spectrum as..." );
+                    if ( ! profile )
+                        asProfile->setEnabled( false );
+
+                    if ( ! centroid )
+                        asCentroid->setEnabled( false );
+
                     doCalibration = menu.addAction( "Send checked to calibration folder" );
+					menu.addSeparator();
                     removeChecked = menu.addAction( "Remove checked items" );
 
                     QAction* selectedItem = menu.exec( globalPos );
