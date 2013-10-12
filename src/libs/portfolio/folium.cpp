@@ -58,6 +58,12 @@ Folium::empty() const
     return true;
 }
 
+bool
+Folium::fail() const
+{
+    return impl_ == 0;
+}
+
 void
 Folium::operator = ( const boost::any& any )
 {

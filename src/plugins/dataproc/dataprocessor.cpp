@@ -348,7 +348,7 @@ Dataprocessor::removeCheckedItems()
 }
 
 void
-Dataprocessor::sendCheckedSpectraToCalibration()
+Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
 {
     portfolio::Folder spectra = portfolio_->findFolder( L"Spectra" );
 
@@ -367,14 +367,20 @@ Dataprocessor::sendCheckedSpectraToCalibration()
     method.appendMethod( centroidMethod );
     method.appendMethod( *pCalibMethod );
 
+    portfolio::Folder calibFolder = portfolio_->addFolder( L"MSCalibration" );
+
     for ( auto& folium: spectra.folio() ) {
         if ( folium.attribute( L"isChecked" ) == L"true" ) {
+            if ( folium.empty() )
+                processor->fetch( folium );
 
             adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
 
             if ( adutils::MassSpectrumPtr ptr = boost::get< adutils::MassSpectrumPtr >( data ) ) {
                 if ( ptr->getDescriptions().size() == 0 ) 
                     ptr->addDescription( adcontrols::Description( L"create", folium.name() ) );
+
+                // make duplicate node if already exist
                 addCalibration( * boost::get< adutils::MassSpectrumPtr >( data ), method );
             }
 
