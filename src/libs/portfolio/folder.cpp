@@ -24,6 +24,7 @@
 
 #include "folder.hpp"
 #include "folium.hpp"
+#include "portfolioimpl.hpp"
 
 using namespace portfolio;
 
@@ -97,6 +98,7 @@ bool
 Folder::removeFolium( const Folium& folium )
 {
     if ( Node::removeFolium( folium.id() ) ) {
+        impl_->collect_garbage();
         return true;
     }
     return false;
