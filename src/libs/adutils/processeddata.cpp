@@ -32,6 +32,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/elementalcompositioncollection.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/mspeakinfo.hpp>
 #include <adportable/is_type.hpp>
 #include <adportable/debug.hpp>
 
@@ -61,6 +62,9 @@ ProcessedData::toVariant( boost::any & a )
 
     else if ( adportable::a_type< PeakResultPtr >::is_a( a ) )
         return boost::any_cast< PeakResultPtr >( a );
+
+    else if ( adportable::a_type< MSPeakInfoPtr >::is_a( a ) )
+        return boost::any_cast< MSPeakInfoPtr >( a );
 
     adportable::debug(__FILE__, __LINE__)
         << "ProcessedData::toVariant( " << a.type().name() << " ) -- return Nothing()";
