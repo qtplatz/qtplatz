@@ -72,13 +72,7 @@ namespace portfolio {
 
         typedef std::vector< Folium > vector_type;
 
-        template<class T> static vector_type::iterator find_first_of( vector_type::iterator it, vector_type::iterator ite ) {
-			return std::find_if( it, ite, [=]( vector_type::value_type& f ){ 
-                    return is_type<T>( static_cast< boost::any& >( f ) );
-				} );
-        }
-
-        template<class T> static vector_type::iterator find_if( vector_type::iterator it, vector_type::iterator ite ) {
+        template<class T> static vector_type::iterator find( vector_type::iterator it, vector_type::iterator ite ) {
 			return std::find_if( it, ite, [=]( vector_type::value_type& f ){ 
                     return is_type<T>( static_cast< boost::any& >( f ) );
 				} );

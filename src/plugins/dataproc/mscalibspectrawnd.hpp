@@ -62,8 +62,6 @@ namespace dataproc {
     private slots:
         void handleSelSummary( size_t idx, size_t fcn );
         void handleValueChanged();
-        //void handleManuallyAssigned();
-        //void handleUpdatePeakAssign();
         void handle_reassign_mass_requested();
         void handle_recalibration_requested();
         void handle_apply_calibration_to_dataset();
@@ -85,6 +83,7 @@ namespace dataproc {
         QWidget * wndCalibSummary_;
         QSplitter * wndSplitter_;
         std::vector< std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
+        std::vector< std::shared_ptr< adcontrols::MSAssignedMasses > > assignedResults_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
     };
 

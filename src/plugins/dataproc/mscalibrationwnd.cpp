@@ -243,7 +243,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
         portfolio::Folio attachments = folium.attachments();
         // centroid spectrum
         Folio::iterator it = 
-            Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
+            Folium::find<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
         if ( it != attachments.end() ) {
 
             pImpl_->peakInfo_.reset();
@@ -255,14 +255,14 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
                 MainWindow::instance()->setProcessMethod( *method );
 
             portfolio::Folio centroidAttachements = it->attachments();
-            auto fInfo = Folium::find_if< std::shared_ptr< adcontrols::MSPeakInfo > >( centroidAttachements.begin(), centroidAttachements.end() );
+            auto fInfo = Folium::find< std::shared_ptr< adcontrols::MSPeakInfo > >( centroidAttachements.begin(), centroidAttachements.end() );
             if ( fInfo != centroidAttachements.end() ) {
                 pImpl_->peakInfo_ = boost::any_cast< std::shared_ptr<adcontrols::MSPeakInfo > >( *fInfo ); // weak_ptr
             }
         }
         
         // calib result
-        it = Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
+        it = Folium::find<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
         if ( it != attachments.end() ) {
             pImpl_->calibResult_ = boost::any_cast< adutils::MSCalibrateResultPtr >( *it ); // weak_ptr
 
@@ -476,8 +476,7 @@ MSCalibrationWnd::handlePrintCurrentView( const QString& pdfname )
     adcontrols::MSCalibrateResultPtr calibResult;
     do {
         portfolio::Folio attachments = folium.attachments();
-        portfolio::Folio::iterator it
-            = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>( attachments.begin(), attachments.end() );
+        portfolio::Folio::iterator it = portfolio::Folium::find<adcontrols::MSCalibrateResultPtr>( attachments.begin(), attachments.end() );
         if ( it != attachments.end() )
             calibResult = boost::any_cast< adcontrols::MSCalibrateResultPtr >( *it );
     } while ( 0 );

@@ -469,7 +469,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
 
         portfolio::Folio attachments = folium.attachments();
         portfolio::Folio::iterator it
-            = portfolio::Folium::find_if<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
+            = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
         if ( it == attachments.end() )
             return;
         
@@ -527,7 +527,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
 
         portfolio::Folio attachments = folium.attachments();
         portfolio::Folio::iterator it
-            = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
+            = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
         if ( it == attachments.end() )
             return;
 		adutils::MassSpectrumPtr centroid = boost::any_cast< adutils::MassSpectrumPtr >( *it );
@@ -633,7 +633,7 @@ DataprocessorImpl::findAttachedMassSpectrum( portfolio::Folium& folium )
     adcontrols::MassSpectrumPtr ptr;
 
     Folium::vector_type atts = folium.attachments();
-    Folium::vector_type::iterator it = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
+    Folium::vector_type::iterator it = Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
     if ( it != atts.end() )
         Folium::get< adcontrols::MassSpectrumPtr >( ptr, *it);
 
@@ -664,7 +664,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
     adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
 
     Folium::vector_type atts = folium.attachments();
-	auto attCentroid = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
+	auto attCentroid = Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
     if ( attCentroid != atts.end() ) {
         adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( attCentroid->data() );
         if ( pCentroid ) {
@@ -725,7 +725,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
     adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
 
     Folium::vector_type atts = folium.attachments();
-    Folium::vector_type::iterator it = Folium::find_first_of< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
+    Folium::vector_type::iterator it = Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
 
     if ( it != atts.end() ) {
         adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( static_cast<boost::any&>( *it ) );
@@ -819,7 +819,7 @@ const adcontrols::ProcessMethodPtr
 Dataprocessor::findProcessMethod( const portfolio::Folium& folium )
 {
     portfolio::Folio atts = folium.attachments();
-    auto fMethod = portfolio::Folium::find_if< adcontrols::ProcessMethodPtr >( atts.begin(), atts.end() );
+    auto fMethod = portfolio::Folium::find< adcontrols::ProcessMethodPtr >( atts.begin(), atts.end() );
     if ( fMethod != atts.end() ) {
         const adcontrols::ProcessMethodPtr pMethod = boost::any_cast< adcontrols::ProcessMethodPtr >( fMethod->data() );
         return pMethod;
@@ -845,7 +845,7 @@ Dataprocessor::saveMSCalibration( portfolio::Folium& folium )
 
     // argment folium should be profile spectrum
     portfolio::Folio atts = folium.attachments();
-    auto it = portfolio::Folium::find_if< adcontrols::MSCalibrateResultPtr >( atts.begin(), atts.end() );
+    auto it = portfolio::Folium::find< adcontrols::MSCalibrateResultPtr >( atts.begin(), atts.end() );
     if ( it != atts.end() ) {
         const adcontrols::MSCalibrateResultPtr ptr = boost::any_cast< adcontrols::MSCalibrateResultPtr >( it->data() );
         adutils::fsio::save_mscalibfile( dbf, *ptr );
@@ -859,7 +859,7 @@ Dataprocessor::saveMSCalibration( portfolio::Folium& folium )
         }
     }
 
-    it = portfolio::Folium::find_if< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
+    it = portfolio::Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );
     if ( it != atts.end() ) {
         const adcontrols::MassSpectrumPtr ptr = boost::any_cast< adcontrols::MassSpectrumPtr >( it->data() );
         adutils::fsio::save_mscalibfile( dbf, *ptr );

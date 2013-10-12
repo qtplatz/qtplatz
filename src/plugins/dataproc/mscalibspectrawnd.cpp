@@ -167,7 +167,7 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
                 processor->fetch( item );
 
                 portfolio::Folio attachments = item.attachments();
-                auto any = portfolio::Folium::find_if< adcontrols::MassSpectrumPtr >( attachments.begin(), attachments.end() );
+                auto any = portfolio::Folium::find< adcontrols::MassSpectrumPtr >( attachments.begin(), attachments.end() );
                 if ( any != attachments.end() ) {
                     adcontrols::MassSpectrumPtr ptr = boost::any_cast< adcontrols::MassSpectrumPtr >( *any );
                     spectra_.push_back( ptr );
@@ -186,14 +186,14 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
     folium_ = folium;
     portfolio::Folio attachments = folium.attachments();
     portfolio::Folio::iterator it
-        = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
+        = portfolio::Folium::find<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
     if ( it == attachments.end() )
         return;
 
     adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
 
     // calib result
-    it = portfolio::Folium::find_first_of<adutils::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
+    it = portfolio::Folium::find<adutils::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
     if ( it != attachments.end() ) {
         adutils::MSCalibrateResultPtr res = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
         emit fireSetData( *res, *ptr );
@@ -236,22 +236,6 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
                     ++nid;
                 }
             });
-/*
-        for ( adutils::MassSpectrumPtr p: spectra_ ) {
-            if ( nid ) {
-                int idx = assign_peaks::find_by_time( *p, t, 3.0e-9 ); // 3ns tolerance
-                if ( idx >= 0 ) {
-                    auto tmp = std::make_shared< adcontrols::MassSpectrum>( *p );
-                    tmp->setColor( idx, 2 );
-                    wndSpectra_[ nid ]->setData( tmp, 0 );
-                } else {
-                    wndSpectra_[ nid ]->setData( p, 0 ); // clear color
-                }
-            }
-            ++nid;
-        }
-*/
-
     }
 }
 
@@ -261,7 +245,7 @@ MSCalibSpectraWnd::handleValueChanged()
     adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
     adplugin::LifeCycle * p = accessor.get();
     if ( p ) {
-        std::shared_ptr< adcontrols::MSAssignedMasses > assigned( new adcontrols::MSAssignedMasses );
+        std::shared_ptr< adcontrols::MSAssignedMasses > assigned( std::make_shared< adcontrols::MSAssignedMasses >() );
         boost::any any( assigned );
         if ( p->getContents( any ) ) {
             portfolio::Folium& folium = folium_;
@@ -269,14 +253,14 @@ MSCalibSpectraWnd::handleValueChanged()
             
             // calib result
             portfolio::Folio::iterator it
-                = portfolio::Folium::find_first_of<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
+                = portfolio::Folium::find<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
             if ( it != attachments.end() ) {
                 adutils::MSCalibrateResultPtr result = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
                 result->assignedMasses( *assigned );
             }
 
             // retreive centroid spectrum
-            it = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
+            it = portfolio::Folium::find<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
             if ( it != attachments.end() ) {
                 adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
                 if ( ptr->isCentroid() ) {
@@ -309,55 +293,6 @@ MSCalibSpectraWnd::handleValueChanged()
     }
 }
 
-/*
-void
-MSCalibSpectraWnd::doCalibration( adcontrols::MassSpectrum& centroid, adcontrols::MSCalibrateResult& res, const adcontrols::MSAssignedMasses& assigned )
-{
-    adcontrols::ProcessMethod m;
-    MainWindow::instance()->getProcessMethod( m );
-    const adcontrols::MSCalibrateMethod * mcalib = m.find< adcontrols::MSCalibrateMethod >();
-
-    if ( DataprocHandler::doMSCalibration( res, centroid, *mcalib, assigned ) ) {
-    }
-
-    // replace calibration
-    //if ( DataprocessorImpl::applyMethod( folium, *mcalib, assigned ) )
-    //SessionManager::instance()->updateDataprocessor( this, folium );
-}
-*/
-
-#if 0
-void
-MSCalibSpectraWnd::handleUpdatePeakAssign()
-{
-    std::vector< result_type > result_spectra;
-    int nCurr = populate( result_spectra );
-    if ( nCurr < 0 )
-        return;
-
-    assign_peaks assigner( 10.0e-9, 0.0 );
-
-    // it should make up marged 'assined masses' data
-
-    for ( size_t i = 0; i < result_spectra.size(); ++i ) {
-
-        adcontrols::MSAssignedMasses assigned; // assined to current spectrum (spectra should be ordered by ejection time)
-        for ( size_t k = 0; k <= i; ++k ) {
-            if ( result_spectra[ k ].first )
-                assigned += result_spectra[ k ].first->assignedMasses();
-        }
-
-        if ( i != size_t( nCurr ) ) {
-            if ( result_spectra[ i ].first && result_spectra[ i ].second ) {
-                adcontrols::MSAssignedMasses res;
-                assigner( res, *result_spectra[ i ].second, assigned );
-                result_spectra[ i ].first->assignedMasses( res );
-            }
-        }
-    }
-}
-#endif
-
 int
 MSCalibSpectraWnd::populate( std::vector< result_type >& vec)
 {
@@ -372,12 +307,12 @@ MSCalibSpectraWnd::populate( std::vector< result_type >& vec)
         portfolio::Folio attachments = it->attachments();
 
         adcontrols::MSCalibrateResultPtr res;
-        portfolio::Folio::iterator atIt = portfolio::Folium::find_first_of< adcontrols::MSCalibrateResultPtr >( attachments.begin(), attachments.end() );
+        portfolio::Folio::iterator atIt = portfolio::Folium::find< adcontrols::MSCalibrateResultPtr >( attachments.begin(), attachments.end() );
         if ( atIt != attachments.end() )
             res = boost::any_cast< adutils::MSCalibrateResultPtr >( *atIt );
 
         adcontrols::MassSpectrumPtr pms;
-        portfolio::Folio::iterator msIt = portfolio::Folium::find_first_of< adcontrols::MassSpectrumPtr >( attachments.begin(), attachments.end() );
+        portfolio::Folio::iterator msIt = portfolio::Folium::find< adcontrols::MassSpectrumPtr >( attachments.begin(), attachments.end() );
         if ( msIt != attachments.end() )
             pms = boost::any_cast< adutils::MassSpectrumPtr >( *msIt );
 

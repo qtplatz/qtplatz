@@ -418,7 +418,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
 
     portfolio::Folio attachments = folium.attachments();
     portfolio::Folio::iterator it
-        = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
+        = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
     if ( it != attachments.end() ) {
         adutils::MassSpectrumPtr ms = boost::any_cast< adutils::MassSpectrumPtr >( *it );
         const adcontrols::Descriptions& desc = ms->getDescriptions();

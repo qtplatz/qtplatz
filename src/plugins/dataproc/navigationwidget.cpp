@@ -461,7 +461,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
                     adutils::MassSpectrumPtr centroid;
                     portfolio::Folio atts = folium.attachments();
-                    portfolio::Folio::iterator it = portfolio::Folium::find_if<adcontrols::MassSpectrumPtr>(atts.begin(), atts.end());
+                    portfolio::Folio::iterator it = portfolio::Folium::find<adcontrols::MassSpectrumPtr>(atts.begin(), atts.end());
                     if ( it != atts.end() ) {
                         try {
                             adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
