@@ -93,7 +93,7 @@ MSCalibSpectraWnd::init()
         wndSplitter_->setOrientation( Qt::Vertical );
 
         // summary table
-		if ( wndCalibSummary_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" ) ) {
+		if ( ( wndCalibSummary_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" ) ) ) {
             bool res;
             res = connect( wndCalibSummary_, SIGNAL( currentChanged( size_t, size_t ) ), this, SLOT( handleSelSummary( size_t, size_t ) ) );
             assert( res );
@@ -144,45 +144,44 @@ MSCalibSpectraWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio:
 	if ( ! ( folder && folder.name() == L"MSCalibration" ) )
 		return;
 
-    
-    // for ( auto f: folder.folio() )
-    //     fetch( f );
+    (void)isChecked;
+    (void)processor;
 }
 
 void
 MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
-    Q_UNUSED(processor);
-    Q_UNUSED(folium);
-
     portfolio::Folder folder = folium.getParentFolder();
-	if ( ! folder )
+	if ( ! ( folder && folder.name() == L"MSCalibration" ) )
 		return;
 
-	if ( folder.name() != L"MSCalibration" )
-        return;
+    adportable::debug(__FILE__, __LINE__) << "handleSelectionChanged";
 
-    do {
-        folio_ = folder.folio();
-        for ( portfolio::Folium::vector_type::iterator it = folio_.begin(); it != folio_.end(); ++it )
-			processor->fetch( *it );
-        
-        portfolio::Folium::vector_type::iterator it = folio_.begin();
-        while ( it->id() != folium.id() && it != folio_.end() )
-            ++it;
-        spectra_.clear();
-        size_t idx = 0;
-        for ( ; it != folio_.end() && idx < wndSpectra_.size(); ++it, ++idx ) {
-			portfolio::Folio attachments = it->attachments();
-            portfolio::Folio::iterator msIt
-                = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
-            if ( msIt != attachments.end() ) {
-                adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *msIt );
-                wndSpectra_[ idx ]->setData( ptr, 0 );
-                spectra_.push_back( ptr );
+    spectra_.clear();
+    folio_ = folder.folio();
+
+    std::for_each( folio_.begin(), folio_.end(), [=]( portfolio::Folium& item ){
+
+            if ( item.attribute( L"isChecked" ) == L"true" ) {
+                
+                processor->fetch( item );
+
+                portfolio::Folio attachments = item.attachments();
+                auto any = portfolio::Folium::find_if< adcontrols::MassSpectrumPtr >( attachments.begin(), attachments.end() );
+                if ( any != attachments.end() ) {
+                    adcontrols::MassSpectrumPtr ptr = boost::any_cast< adcontrols::MassSpectrumPtr >( *any );
+                    spectra_.push_back( ptr );
+                }
+                
             }
-        }
-    } while( 0 );
+        });
+
+    size_t idx = 0;
+    for ( auto& sp: spectra_ ) {
+        wndSpectra_[ idx++ ]->setData( sp, 0 );
+        if ( idx >= wndSpectra_.size() )
+            break;
+    }
 
     folium_ = folium;
     portfolio::Folio attachments = folium.attachments();
@@ -190,6 +189,7 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
         = portfolio::Folium::find_first_of<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
     if ( it == attachments.end() )
         return;
+
     adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
 
     // calib result

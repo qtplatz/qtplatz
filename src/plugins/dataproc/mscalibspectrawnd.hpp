@@ -84,7 +84,7 @@ namespace dataproc {
         portfolio::Folium folium_;
         QWidget * wndCalibSummary_;
         QSplitter * wndSplitter_;
-        std::vector< std::weak_ptr< adcontrols::MassSpectrum > > spectra_;
+        std::vector< std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
     };
 
