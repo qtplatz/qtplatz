@@ -30,11 +30,13 @@
 #include "dataprochandler.hpp"
 #include "sessionmanager.hpp"
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
+#include <adcontrols/chemicalformula.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
@@ -50,17 +52,104 @@
 #include <qwt_scale_widget.h>
 #include <qwt_plot_layout.h>
 #include <qwt_plot_marker.h>
+#include <qwt_plot_curve.h>
+#include <qwt_symbol.h>
+#include <qwt_scale_engine.h>
 #include <QVBoxLayout>
 #include <cmath>
 #include <boost/format.hpp>
 
+namespace dataproc {
+    namespace internal {
+		class SeriesData : public std::enable_shared_from_this< SeriesData >
+                         , boost::noncopyable {
+            std::vector< std::pair< double, double > > d_;
+            std::wstring formula_;
+            QRectF rect_;
+        public:
+            virtual ~SeriesData() {}
+            SeriesData( const std::wstring& formula ) : formula_( formula ) {
+            }
+            const std::wstring& formula() const { return formula_; }
+
+            size_t size() { return d_.size(); }
+            QPointF sample( size_t idx ) const {
+				return QPointF( d_[ idx ].first, d_[ idx ].second ); 
+			}
+            QRectF boundingRect() const {
+				return rect_;
+			}            
+
+            // local member
+            void clear() {  d_.clear(); }
+            SeriesData& operator << ( const std::pair< double, double >& d ) {
+                d_.push_back( d );
+
+                rect_.setLeft( std::min( d.first, rect_.left() ) );
+                rect_.setRight( std::max( d.first, rect_.right() ) );
+                rect_.setTop( std::min( d.second, rect_.top() ) );
+                rect_.setBottom( std::max( d.second, rect_.bottom() ) );
+                return *this;
+            }
+        };
+
+        class xSeriesData : public QwtSeriesData< QPointF > {
+            std::shared_ptr< SeriesData > p_;
+		public:
+            xSeriesData( std::shared_ptr< SeriesData >& p ) : p_( p ) {
+            }
+
+            size_t size() const override {  
+				return p_->size(); 
+			}
+            QPointF sample( size_t idx ) const override { 
+				return p_->sample( idx );
+			}
+            QRectF boundingRect() const override {
+				return p_->boundingRect(); 
+			}
+        };
+    }
+}
+
 using namespace dataproc;
+
+MSCalibSpectraWnd::~MSCalibSpectraWnd()
+{
+	time_length_marker_->detach();
+}
 
 MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
                                                          , wndCalibSummary_( 0 )
                                                          , wndSplitter_( 0 )
+                                                         , dplot_( new adwplot::Dataplot )
                                                          , axis_( adwplot::SpectrumWidget::HorizontalAxisMass )
 {
+    dplot_->setMinimumHeight( 40 );
+
+	QwtText text_vaxis( "flight length(m)", QwtText::RichText );
+	QwtText text_haxis( "time (&mu;s)", QwtText::RichText );
+
+	QFont font = text_haxis.font();
+	font.setFamily( "Verdana" );
+	font.setBold( true );
+	font.setItalic( true );
+	font.setPointSize( 9 );
+	text_haxis.setFont( font );
+    text_vaxis.setFont( font );
+
+    dplot_->setAxisTitle(QwtPlot::xBottom, text_haxis);
+    dplot_->setAxisTitle(QwtPlot::yLeft, text_vaxis);
+	dplot_->axisAutoScale( QwtPlot::xBottom );
+	dplot_->axisAutoScale( QwtPlot::yLeft );
+	dplot_->axisScaleEngine( QwtPlot::xBottom )->setAttribute( QwtScaleEngine::Floating, true );
+
+    dplot_->setAxisTitle( QwtPlot::xBottom, text_haxis );
+	dplot_->setAxisScale( QwtPlot::yLeft, 0, 5 );
+	dplot_->setAxisScale( QwtPlot::xBottom, -1.0, 40.0 );
+	time_length_marker_ = std::make_shared< QwtPlotMarker >();
+    time_length_marker_->attach( dplot_.get() );
+	//dplot_->zoomer().autoYScale( true );
     init();
 }
 
@@ -87,12 +176,15 @@ MSCalibSpectraWnd::init()
             std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >();
             markers_.push_back( marker );
             marker->attach( wnd.get() );
+
         }
 
         wndSpectra_[ 0 ]->link( wndSpectra_.back().get() );
 
         wndSplitter_->setOrientation( Qt::Vertical );
 
+        Core::MiniSplitter * splitter2 = new Core::MiniSplitter; // left pane split top (table) & bottom (time,mass plot)
+        
         // summary table
 		if ( ( wndCalibSummary_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" ) ) ) {
             bool res;
@@ -110,18 +202,20 @@ MSCalibSpectraWnd::init()
             assert(res);
             (void)res;
 
-            if ( wndCalibSummary_ ) {
-                adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
-                adplugin::LifeCycle * p = accessor.get();
-                if ( p )
-                    p->OnInitialUpdate();
-
-                connect( this, SIGNAL( fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ),
+            adplugin::LifeCycleAccessor accessor( wndCalibSummary_ );
+            adplugin::LifeCycle * p = accessor.get();
+            if ( p )
+                p->OnInitialUpdate();
+            
+            connect( this, SIGNAL( fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ),
                          wndCalibSummary_, SLOT( setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& ) ) );
-                
-                splitter->addWidget( wndCalibSummary_ );
-            }
+            
+            splitter2->addWidget( wndCalibSummary_ );
         }
+        splitter2->addWidget( dplot_.get() );
+        splitter2->setOrientation( Qt::Vertical );
+
+        splitter->addWidget( splitter2 );
 
         splitter->setOrientation( Qt::Horizontal );
     }
@@ -152,12 +246,41 @@ void
 MSCalibSpectraWnd::replotSpectra()
 {
     size_t idx = 0;
-    for ( auto& sp: spectra_ ) {
-        markers_[ idx ]->setXValue( 0 );
-        wndSpectra_[ idx++ ]->setData( sp, 0 );
-        if ( idx >= wndSpectra_.size() )
-            break;
+    for ( auto& result: results_ ) {
+        if ( adcontrols::MassSpectrumPtr sp = std::get<1>( result ) ) {
+            markers_[ idx ]->setXValue( 0 );
+            wndSpectra_[ idx++ ]->setData( sp, 0 );
+            if ( idx >= wndSpectra_.size() )
+                break;
+        }
     }
+}
+
+void
+MSCalibSpectraWnd::replotLengthTime()
+{
+    plotCurves_.clear();
+    plotData_.clear();
+
+    adcontrols::ChemicalFormula parser;
+
+    for ( auto& result: results_ ) {
+        if ( const adcontrols::MassSpectrumPtr ms = std::get<1>( result ) ) {
+            if ( const adcontrols::MSCalibrateResultPtr calib = std::get<2>( result ) ) {
+                const adcontrols::MSAssignedMasses& masses = calib->assignedMasses();
+                for ( auto& assigned: masses ) {
+                    std::wstring formula = parser.standardFormula( assigned.formula() ); // normalize 
+                    auto& d = plotData_[ formula ];
+                    if ( ! d )
+                        d = std::make_shared< internal::SeriesData >( formula );
+                    *d << std::make_pair( adcontrols::metric::scale_to_micro( assigned.time() ), ms->scanLaw().fLength( assigned.mode() ) );
+                }
+            }
+        }
+    }
+    int idx = 0;
+    for ( auto& d: plotData_ )
+		plot( *d.second, idx++ );
 }
 
 void
@@ -178,33 +301,11 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
 	if ( ! ( folder && folder.name() == L"MSCalibration" ) )
 		return;
 
-    adportable::debug(__FILE__, __LINE__) << "handleSelectionChanged";
-
-    spectra_.clear();
     folio_ = folder.folio();
 
-    std::for_each( folio_.begin(), folio_.end(), [=]( portfolio::Folium& item ){
-
-            if ( item.attribute( L"isChecked" ) == L"true" ) {
-                
-                processor->fetch( item );
-
-                portfolio::Folio attachments = item.attachments();
-                auto any = portfolio::Folium::find< adcontrols::MassSpectrumPtr >( attachments.begin(), attachments.end() );
-                if ( any != attachments.end() ) {
-                    adcontrols::MassSpectrumPtr ptr = boost::any_cast< adcontrols::MassSpectrumPtr >( *any );
-                    spectra_.push_back( ptr );
-                }
-                
-            }
-        });
-
-    size_t idx = 0;
-    for ( auto& sp: spectra_ ) {
-        wndSpectra_[ idx++ ]->setData( sp, 0 );
-        if ( idx >= wndSpectra_.size() )
-            break;
-    }
+    populate( processor, folder );
+    replotSpectra();
+	replotLengthTime();
 
     folium_ = folium;
     portfolio::Folio attachments = folium.attachments();
@@ -246,10 +347,11 @@ MSCalibSpectraWnd::handleSelSummary( size_t idx, size_t fcn )
 		adcontrols::segment_wrapper<> segms( *ptr );
         
 		double t = segms[ fcn ].getTime( idx );
+        plotTimeMarker( t );
 
         size_t nid = 0;
-        std::for_each( spectra_.begin(), spectra_.end(), [&]( std::weak_ptr< adcontrols::MassSpectrum > wp ){
-                if ( std::shared_ptr< adcontrols::MassSpectrum > sp = wp.lock() ) {
+		std::for_each( results_.begin(), results_.end(), [&]( std::tuple<std::wstring, adcontrols::MassSpectrumPtr, adcontrols::MSCalibrateResultPtr>& result ){
+                if ( std::shared_ptr< adcontrols::MassSpectrum > sp = std::get<1>(result) ) {
                     wndSpectra_[ nid ]->setData( sp, 0 );
                     int idx = assign_peaks::find_by_time( *sp, t, 3.0e-9 ); // 3ns tolerance
                     if ( idx >= 0 ) {
@@ -300,37 +402,41 @@ MSCalibSpectraWnd::handleValueChanged()
             }
         }
     }
+    replotLengthTime();
 }
 
 int
-MSCalibSpectraWnd::populate( std::vector< result_type >& vec)
+MSCalibSpectraWnd::populate( Dataprocessor * processor, portfolio::Folder& folder )
 {
-    vec.clear();
+    results_.clear();
+    
+    portfolio::Folio folio = folder.folio();
 
-    if ( folio_.empty() )
-        return -1;
+    std::for_each( folio.begin(), folio.end(), [&]( portfolio::Folium& item ){
 
-    size_t nCurId = 0;
-    for ( portfolio::Folium::vector_type::iterator it = folio_.begin(); it != folio_.end(); ++it ) {
+            if ( item.attribute( L"isChecked" ) == L"true" ) {
+                
+                if ( item.empty() )
+                    processor->fetch( item );
 
-        portfolio::Folio attachments = it->attachments();
+                adcontrols::MassSpectrumPtr ms;
+                adcontrols::MSCalibrateResultPtr calib;
 
-        adcontrols::MSCalibrateResultPtr res;
-        portfolio::Folio::iterator atIt = portfolio::Folium::find< adcontrols::MSCalibrateResultPtr >( attachments.begin(), attachments.end() );
-        if ( atIt != attachments.end() )
-            res = boost::any_cast< adutils::MSCalibrateResultPtr >( *atIt );
+                portfolio::Folio attachments = item.attachments();
+                auto a1 = portfolio::Folium::find< adcontrols::MassSpectrumPtr >( attachments.begin(), attachments.end() );
+                if ( a1 != attachments.end() )
+                    ms = boost::any_cast< adcontrols::MassSpectrumPtr >( *a1 );
 
-        adcontrols::MassSpectrumPtr pms;
-        portfolio::Folio::iterator msIt = portfolio::Folium::find< adcontrols::MassSpectrumPtr >( attachments.begin(), attachments.end() );
-        if ( msIt != attachments.end() )
-            pms = boost::any_cast< adutils::MassSpectrumPtr >( *msIt );
+                auto a2 = portfolio::Folium::find< adcontrols::MSCalibrateResultPtr >( attachments.begin(), attachments.end() );
+                if ( a2 != attachments.end() )
+                    calib = boost::any_cast< adcontrols::MSCalibrateResultPtr >( *a2 );
 
-        vec.push_back( std::make_pair( res, pms ) );
+                auto result = std::make_tuple( item.id(), ms, calib );
+                results_.push_back( result );
+            }
+        });
 
-        if ( it->id() == folium_.id() )
-            nCurId = std::distance( folio_.begin(), it );
-    }
-    return nCurId;
+    return static_cast< int >( results_.size() );
 }
 
 bool
@@ -354,7 +460,7 @@ MSCalibSpectraWnd::handle_reassign_mass_requested()
 {
     adcontrols::MSAssignedMasses assigned;
     if ( readCalibSummary( assigned ) ) {
-        assert(0);
+        //assert(0);
     }
 }
 
@@ -376,4 +482,43 @@ void
 MSCalibSpectraWnd::handle_apply_calibration_to_default()
 {
     assert(0);
+}
+
+void
+MSCalibSpectraWnd::plot( internal::SeriesData& d, int id )
+{
+    static Qt::GlobalColor colors [] = {
+        Qt::blue, Qt::red, Qt::green, Qt::cyan, Qt::magenta, Qt::yellow
+        , Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta
+    };
+    
+	plotCurves_[ d.formula() ] = std::make_shared< QwtPlotCurve >();
+	auto plotCurve = plotCurves_[ d.formula() ];
+
+	plotCurve->attach( dplot_.get() );
+    plotCurve->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+	plotCurve->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Ellipse + (id % 10) ), Qt::NoBrush, QPen( Qt::darkMagenta ), QSize(5, 5 ) ) );
+    plotCurve->setPen( QPen( colors[ id % 11 ] ) );
+
+	//plotCurve->setStyle( QwtPlotCurve::NoCurve );
+    plotCurve->setData( new internal::xSeriesData( d.shared_from_this() ) );
+	dplot_->setAxisScale( QwtPlot::xBottom, d.boundingRect().left(), d.boundingRect().right() );
+	dplot_->setAxisScale( QwtPlot::yLeft, d.boundingRect().top(), d.boundingRect().bottom() );
+
+	dplot_->zoomer().setZoomBase( true );
+	dplot_->replot();
+}
+
+void
+MSCalibSpectraWnd::plotTimeMarker( double t )
+{
+	using namespace adcontrols::metric;
+
+	double microseconds = scale_to_micro( t );
+    time_length_marker_->setValue( microseconds, 0 );
+    time_length_marker_->setLineStyle( QwtPlotMarker::VLine );
+    time_length_marker_->setLinePen( Qt::gray, 0.0, Qt::DotLine );
+    QwtText label( QString::fromStdString( (boost::format("%.4lfus")% microseconds).str() ) );
+    time_length_marker_->setLabel( label );
+	dplot_->replot();
 }

@@ -101,7 +101,6 @@ SessionManager::find( const std::wstring& token )
 void
 SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
-    adportable::debug(__FILE__, __LINE__) << static_cast<boost::any&>(folium).type().name() << ", id=" << folium.id();
 	if ( activeDataprocessor_ != dataprocessor ) {
 		activeDataprocessor_ = dataprocessor;
 		auto it = std::find_if( sessions_.begin(), sessions_.end(), [dataprocessor]( dataproc::Session& s ){

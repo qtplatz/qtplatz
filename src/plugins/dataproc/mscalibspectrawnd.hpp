@@ -29,9 +29,12 @@
 #include <portfolio/folium.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <memory>
+#include <tuple>
+#include <map>
 
 class QSplitter;
 class QwtPlotMarker;
+class QwtPlotCurve;
 
 namespace adcontrols {
     class MassSpectrum;
@@ -40,16 +43,19 @@ namespace adcontrols {
     class ProcessMethod;
 }
 namespace adportable {  class Configuration; }
-namespace adwplot { class SpectrumWidget; }
+namespace adwplot { class SpectrumWidget; class Dataplot; }
 
 namespace dataproc {
 
     class Dataprocessor;
 
+    namespace internal { class SeriesData; }
+
     class MSCalibSpectraWnd : public QWidget {
         Q_OBJECT
     public:
         MSCalibSpectraWnd( QWidget * parent = 0 );
+		~MSCalibSpectraWnd();
     public slots:
         void handleSessionAdded( Dataprocessor* );
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
@@ -73,21 +79,30 @@ namespace dataproc {
         void applyAssigned( const adcontrols::MSAssignedMasses&, const portfolio::Folium& );
 
         typedef std::pair< std::shared_ptr< adcontrols::MSCalibrateResult >, std::shared_ptr< adcontrols::MassSpectrum > > result_type;
-        int populate( std::vector< result_type >& );
+        int populate( Dataprocessor *, portfolio::Folder& );
         void doCalibration( adcontrols::MassSpectrum& centroid, adcontrols::MSCalibrateResult&, const adcontrols::MSAssignedMasses& assigned );
 
         std::vector< std::shared_ptr< adwplot::SpectrumWidget > > wndSpectra_;
         std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
+        std::shared_ptr< QwtPlotMarker > time_length_marker_;
 
         std::vector< portfolio::Folium > folio_;
+
         portfolio::Folium folium_;
         QWidget * wndCalibSummary_;
         QSplitter * wndSplitter_;
+        std::shared_ptr< adwplot::Dataplot > dplot_;
         int axis_;
-        std::vector< std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
+		std::vector< std::tuple< std::wstring, std::shared_ptr<adcontrols::MassSpectrum>, std::shared_ptr<adcontrols::MSCalibrateResult> > > results_;
+        std::map< std::wstring, std::shared_ptr< internal::SeriesData > > plotData_;
+        std::map< std::wstring, std::shared_ptr< QwtPlotCurve > > plotCurves_;
+
         std::vector< std::shared_ptr< adcontrols::MSAssignedMasses > > assignedResults_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
         void replotSpectra();
+        void replotLengthTime();
+        void plot( internal::SeriesData&, int id );
+        void plotTimeMarker( double t );
     };
 
 }

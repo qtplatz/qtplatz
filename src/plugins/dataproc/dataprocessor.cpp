@@ -246,7 +246,7 @@ namespace dataproc {
         }
 
         template<typename T> bool operator () ( T& ) const {
-            adportable::debug(__FILE__, __LINE__) << "doChromatogramProcess( " << typeid( T ).name() << ") -- ignored";
+            // adportable::debug(__FILE__, __LINE__) << "doChromatogramProcess( " << typeid( T ).name() << ") -- ignored";
             return false;
         }
 

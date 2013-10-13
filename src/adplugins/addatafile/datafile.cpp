@@ -366,7 +366,7 @@ namespace addatafile {
 
         bool folium::load( portfolio::Folium dst, const adfs::file& src )
         {
-#if defined DEBUG //&& 0
+#if defined DEBUG && 0
             adportable::debug(__FILE__, __LINE__) 
                 << ">> folium::load(" << src.attribute(L"name") << ") " 
                 << src.attribute(L"dataType") << ", " << src.attribute(L"dataId");

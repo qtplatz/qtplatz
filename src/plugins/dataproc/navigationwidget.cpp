@@ -361,9 +361,6 @@ NavigationWidget::handleAddSession( Dataprocessor * processor )
 void
 NavigationWidget::handle_activated( const QModelIndex& index )
 {
-    qDebug() << "activated: " << index.data( Qt::UserRole ) << index.data();
-    qDebug() << "activated parent: " << index.parent().data();
-
     if ( index.isValid() ) {
 
         QVariant data = index.data( Qt::UserRole );
@@ -381,10 +378,10 @@ NavigationWidget::handle_activated( const QModelIndex& index )
 			Dataprocessor * processor = StandardItemHelper::findDataprocessor( index );
 			if ( processor ) {
 				std::string tname = static_cast<boost::any&>( folium ).type().name();
-				adportable::debug(__FILE__, __LINE__)
-					<< "folium name: '" << folium.name()
-					<< "'\tfilename: " << processor->file().filename()
-					<< "\tfolium(type=" << tname << ", id=" << folium.id() << ")";
+				// adportable::debug(__FILE__, __LINE__)
+				// 	<< "folium name: '" << folium.name()
+				// 	<< "'\tfilename: " << processor->file().filename()
+				// 	<< "\tfolium(type=" << tname << ", id=" << folium.id() << ")";
 				processor->setCurrentSelection( folium );
 			}
         }
