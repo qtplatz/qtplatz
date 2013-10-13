@@ -500,8 +500,8 @@ MSCalibSpectraWnd::plot( internal::SeriesData& d, int id )
 	plotCurve->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Ellipse + (id % 10) ), Qt::NoBrush, QPen( Qt::darkMagenta ), QSize(5, 5 ) ) );
     plotCurve->setPen( QPen( colors[ id % 11 ] ) );
 
-	//plotCurve->setStyle( QwtPlotCurve::NoCurve );
-    plotCurve->setData( new internal::xSeriesData( d.shared_from_this() ) );
+    std::shared_ptr< internal::SeriesData > ptr = d.shared_from_this();
+    plotCurve->setData( new internal::xSeriesData( ptr ) );
 	dplot_->setAxisScale( QwtPlot::xBottom, d.boundingRect().left(), d.boundingRect().right() );
 	dplot_->setAxisScale( QwtPlot::yLeft, d.boundingRect().top(), d.boundingRect().bottom() );
 
