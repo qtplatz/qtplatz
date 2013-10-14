@@ -63,43 +63,43 @@ namespace adcontrols {
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const ProcessMethod::value_type& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
 
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const adcontrols::CentroidMethod& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
     
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const IsotopeMethod& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
     
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const ElementalCompositionMethod& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
     
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const MSCalibrateMethod& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
     
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const TargetingMethod& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
 
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const PeakMethod& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
 
 }; // namespace adcontrols
@@ -210,18 +210,18 @@ ProcessMethod::end() const
 
 namespace adcontrols {
 
-    template<> void
+    template<> void DECL_EXPORT
     ProcessMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
-	(void)version;
-	ar << boost::serialization::make_nvp( "ProcessMethod", vec_ );
+        (void)version;
+        ar << boost::serialization::make_nvp( "ProcessMethod", vec_ );
     }
     
-    template<> void
+    template<> void DECL_EXPORT
     ProcessMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
-	(void)version;
-	ar >> boost::serialization::make_nvp("ProcessMethod", vec_);
+        (void)version;
+        ar >> boost::serialization::make_nvp("ProcessMethod", vec_);
     }
 }; // namespace adcontrols
 

@@ -25,11 +25,29 @@
 
 #pragma once
 
+namespace boost {
+    namespace serialization {
+        class access;
+    }
+    namespace archive { 
+        class binary_oarchive; 
+        class binary_iarchive;
+    }
+}
+class portable_binary_oarchive;
+class portable_binary_iarchive;
+
 namespace adcontrols {
 
     class ElementalComposition {
     public:
         ElementalComposition();
+
+    private:
+        friend class boost::serialization::access;
+        template<class Archiver> void serialize(Archiver&, unsigned int ) {
+            // todo
+        }
     };
 
 }

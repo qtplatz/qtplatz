@@ -38,6 +38,15 @@ namespace adportable {
 #endif
         }
 
+        static bool is_a( const boost::any& a ) {
+#if defined __GNUC__ 
+            // See issue on boost.  https://svn.boost.org/trac/boost/ticket/754
+            return std::strcmp( a.type().name(), typeid( T ).name() ) == 0;
+#else
+            return a.type() == typeid( T );
+#endif
+        }
+
         static bool is_pointer( boost::any& a ) {
             return a_type< T* >::is_a( a );
         }

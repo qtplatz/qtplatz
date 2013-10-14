@@ -61,8 +61,8 @@ namespace adfs {
         bool fetch();
         bool commit();
 
-        static bool archive( std::ostream&, const attributes& ); // binary
-        static bool restore( std::istream&, attributes& ); // binary
+        // static bool archive( std::ostream&, const attributes& ); // binary
+        // static bool restore( std::istream&, attributes& ); // binary
 
         typedef std::map< std::wstring, std::wstring > vector_type;
         vector_type::const_iterator begin() const { return attrib_.begin(); }

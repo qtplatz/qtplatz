@@ -25,8 +25,51 @@
 
 #include "elementalcomposition.hpp"
 
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/archive/xml_woarchive.hpp>
+#include <boost/archive/xml_wiarchive.hpp>
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
+
 using namespace adcontrols;
 
 ElementalComposition::ElementalComposition()
 {
+}
+
+namespace adcontrols {
+
+    template<> void
+    ElementalComposition::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+        (void)version;
+        // ar << boost::serialization::make_nvp( "ElementalComposition", pImpl_ );
+    }
+
+    template<> void
+    ElementalComposition::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+        (void)version;
+        // ar >> boost::serialization::make_nvp("ElementalComposition", pImpl_);
+    }
+
+    template<> void
+    ElementalComposition::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+        (void)version;
+        // ar << boost::serialization::make_nvp("ElementalComposition", pImpl_);
+    }
+
+    template<> void
+    ElementalComposition::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+        (void)version;
+        // ar >> boost::serialization::make_nvp("ElementalComposition", pImpl_);
+    }
+
 }
