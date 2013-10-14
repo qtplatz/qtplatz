@@ -134,11 +134,18 @@ ActionManager::actMethodSave()
             QMessageBox::warning( 0, "Process method", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
             return;
         }
+
         adfs::folder folder = file.addFolder( L"/ProcessMethod" );
         adfs::file adfile = folder.addFile( path.wstring() ); // internal filename := os filename
         adcontrols::ProcessMethod m;
         MainWindow::instance()->getProcessMethod( m );
-        adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
+        try {
+            adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
+        } catch ( std::exception& e ) {
+            QMessageBox::warning( 0, "Save process method", 
+                                  (boost::format("%1% @ %2% #%3%") % e.what() % __FILE__ % __LINE__ ).str().c_str() );
+            return;
+        }
         adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
         adfile.commit();
         
@@ -169,7 +176,13 @@ ActionManager::actMethodOpen()
             return;
         auto it = files.begin();
         adcontrols::ProcessMethod m;
-        adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
+        try {
+            adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
+        } catch ( std::exception& ex ) {
+            QMessageBox::warning( 0, "Open process method"
+                                  , (boost::format("%1% @ %2% #%3%") % ex.what() % __FILE__ % __LINE__ ).str().c_str() );
+            return;
+        } 
         MainWindow::instance()->processMethodLoaded( name, m );
     }
 }
@@ -196,7 +209,12 @@ ActionManager::saveDefaults()
     adfs::file adfile = folder.addFile( fname.wstring() ); // internal filename := os filename
     adcontrols::ProcessMethod m;
     MainWindow::instance()->getProcessMethod( m );
-    adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
+    try {
+        adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
+    } catch ( std::exception& e ) {
+        QMessageBox::warning( 0, "Save default process method", 
+                              (boost::format("%1% @ %2% #%3%") % e.what() % __FILE__ % __LINE__ ).str().c_str() );        
+    }
     adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
     adfile.commit();
 
@@ -225,7 +243,14 @@ ActionManager::loadDefaults()
         return false;
     auto it = files.begin();
     adcontrols::ProcessMethod m;
-    adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
+    try {
+        adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
+    } catch ( std::exception& ex ) {
+        QMessageBox::warning( 0, "Open default process method"
+                              , (boost::format("%1% @ %2% #%3%") % ex.what() % __FILE__ % __LINE__ ).str().c_str() );
+        return false;
+    } 
+
     MainWindow::instance()->processMethodLoaded( path.string().c_str(), m );
     return true;
 }
