@@ -258,8 +258,12 @@ Task::appendOnFile( const std::wstring& filename, const adcontrols::MassSpectrum
         if ( file ) {
             file.dataClass( ms.dataClass() );
             id = file.id();
-            if ( adfs::cpio< adcontrols::MassSpectrum >::copyin( ms, file ) )
-				file.commit();
+			try {
+				if ( adfs::cpio< adcontrols::MassSpectrum >::save( ms, file ) )
+					file.commit();
+			} catch ( std::exception& e ) {
+				adportable::debug(__FILE__, __LINE__) << "Got an exception: " << e.what();
+			}
         }
 	}
 

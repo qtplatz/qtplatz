@@ -60,7 +60,7 @@ cpio::save( adfs::file& dbf, const boost::any& a )
 
         dbf.dataClass( T::dataClass() );
         const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::out( *p, dbf );
+        return adfs::cpio< T >::save( *p, dbf );
 
     } else if ( adportable::a_type< adutils::ChromatogramPtr >::is_a( a ) ) {
 
@@ -68,7 +68,7 @@ cpio::save( adfs::file& dbf, const boost::any& a )
 
         dbf.dataClass( T::dataClass() );
         const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::out( *p, dbf );
+        return adfs::cpio< T >::save( *p, dbf );
 
     } else if ( adportable::a_type< adutils::ProcessMethodPtr >::is_a( a ) ) {
 
@@ -76,7 +76,7 @@ cpio::save( adfs::file& dbf, const boost::any& a )
 
         dbf.dataClass( T::dataClass() );
         const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::out( *p, dbf );
+        return adfs::cpio< T >::save( *p, dbf );
 
     } else if ( adportable::a_type< adutils::ElementalCompositionCollectionPtr >::is_a( a ) ) {
 
@@ -84,7 +84,7 @@ cpio::save( adfs::file& dbf, const boost::any& a )
 
         dbf.dataClass( T::dataClass() );
         const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::out( *p, dbf );
+        return adfs::cpio< T >::save( *p, dbf );
 
     } else if ( adportable::a_type< adutils::MSCalibrateResultPtr >::is_a( a ) ) {
 
@@ -92,7 +92,7 @@ cpio::save( adfs::file& dbf, const boost::any& a )
 
         dbf.dataClass( T::dataClass() );
         const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::out( *p, dbf );
+        return adfs::cpio< T >::save( *p, dbf );
 
     } else if ( adportable::a_type< adutils::PeakResultPtr >::is_a( a ) ) {
 
@@ -100,7 +100,7 @@ cpio::save( adfs::file& dbf, const boost::any& a )
 
         dbf.dataClass( T::dataClass() );
         const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::out( *p, dbf );
+        return adfs::cpio< T >::save( *p, dbf );
 
     } else if ( adportable::a_type< adutils::MSPeakInfoPtr >::is_a( a ) ) {
 
@@ -108,7 +108,7 @@ cpio::save( adfs::file& dbf, const boost::any& a )
 
         dbf.dataClass( T::dataClass() );
         const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::out( *p, dbf );
+        return adfs::cpio< T >::save( *p, dbf );
     }
     return false;
 }
