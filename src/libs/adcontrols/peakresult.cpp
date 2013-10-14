@@ -44,19 +44,19 @@ PeakResult::~PeakResult()
 {
 }
 
-PeakResult::PeakResult() : baselines_( new Baselines() )
-                         , peaks_( new Peaks() ) 
+PeakResult::PeakResult() : baselines_( std::make_shared< Baselines >() )
+                         , peaks_( std::make_shared< Peaks >() ) 
 {
 }
 
-PeakResult::PeakResult( const PeakResult& t ) : baselines_( new Baselines( t.baselines() ) )
-                                              , peaks_( new Peaks( t.peaks() ) ) 
+PeakResult::PeakResult( const PeakResult& t ) : baselines_( std::make_shared< Baselines >( t.baselines() ) )
+                                              , peaks_( std::make_shared< Peaks >( t.peaks() ) ) 
 {
 }
 
 PeakResult::PeakResult( const Baselines& bs
-					   , const Peaks& pks ) : baselines_( new Baselines( bs ) )
-                                            , peaks_( new Peaks( pks ) ) 
+                        , const Peaks& pks ) : baselines_( std::make_shared< Baselines >( bs ) )
+                                             , peaks_( std::make_shared< Peaks >( pks ) ) 
 {
 }
 

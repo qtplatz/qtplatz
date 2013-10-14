@@ -28,6 +28,7 @@
 #include <streambuf>
 #include <memory>
 #include <adfs/file.hpp>
+#include <adportable/serializer.hpp>
 
 namespace adfs {
 
@@ -57,27 +58,37 @@ namespace adfs {
     template<class archive_type> class cpio {
     public:
 
-        template<class T> static bool copyin( const T& t, detail::cpio& obuf ) {
-            std::ostream os( &obuf );
-            return archive_type::archive( os, t );
+        template<class T> static bool save( const T& t, adfs::file& f ) {
+			std::string device;
+			if ( adportable::serializer< T >::serialize( t, device ) )
+				return f.write( device.size(), device.data() ) == device.size();
+			return false;
         }
 
-        template<class T> static bool copyout( T& t, detail::cpio& ibuf ) {
+        template<class T> static bool load( T& t, adfs::file& f ) {
+            detail::cpio ibuf( f.size() );
             std::istream is( &ibuf );
-            return archive_type::restore( is, t );
+            if ( f.read( ibuf.size(), ibuf.get() ) == f.size() )
+                return adportable::serializer< T >::deserialize( t, ibuf.get(), ibuf.size() );
+            return false;
         }
+/*
 
         template<class T> static bool copyin( const T& t, adfs::file& f ) {
-            detail::cpio obuf;
-            std::ostream os( &obuf );
-            return archive_type::archive( os, t ) && f.write( obuf.size(), obuf.get() );
+			std::string device;
+			if ( adportable::serializer< T >::serialize( t, device ) )
+				return f.write( device.size(), device.data() ) == device.size();
+			return false;
         }
 
         template<class T> static bool copyout( T& t, adfs::file& f ) {
             detail::cpio ibuf( f.size() );
             std::istream is( &ibuf );
-            return f.read( ibuf.size(), ibuf.get() ) && archive_type::restore( is, t );
+            if ( f.read( ibuf.size(), ibuf.get() ) == f.size() )
+                return adportable::serializer< T >::deserialize( t, ibuf.get(), ibuf.size() );
+            return false;
         }
+*/
 
     };
 

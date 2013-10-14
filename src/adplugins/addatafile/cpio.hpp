@@ -1,16 +1,15 @@
-// -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2011 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: toshi.hondo@scienceliaison.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this
-** file in accordance with the MS-Cheminformatics Commercial License Agreement
-** provided with the Software or, alternatively, in accordance with the terms
-** contained in a written agreement between you and MS-Cheminformatics.
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -23,21 +22,21 @@
 **
 **************************************************************************/
 
-#pragma once
+#ifndef CPIO_HPP
+#define CPIO_HPP
 
+#include <adfs/adfs.hpp>
 #include <boost/any.hpp>
 
-namespace adfs { class file; }
+namespace addatafile {
 
-namespace addatafile { namespace detail {
-
-    class copyout_visitor { //  : public boost::static_visitor<bool> {
+    class cpio {
     public:
-        copyout_visitor();
-        static bool apply( boost::any&, adfs::file& );
+        cpio();
+        static bool save( adfs::file&, const boost::any& );
+        static bool load( adfs::file&, boost::any& );
     };
 
 }
-}
 
-
+#endif // CPIO_HPP

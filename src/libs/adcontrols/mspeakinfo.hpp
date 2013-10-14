@@ -44,7 +44,7 @@ namespace adcontrols {
         MSPeakInfo();
         MSPeakInfo( const MSPeakInfo& );
 
-        const wchar_t * dataClass() const { return L"adcontrols::MSPeakInfo"; }
+        static const wchar_t * dataClass() { return L"adcontrols::MSPeakInfo"; }
 
         typedef std::vector< MSPeakInfoItem >::iterator iterator;
         typedef std::vector< MSPeakInfoItem >::const_iterator const_iterator;

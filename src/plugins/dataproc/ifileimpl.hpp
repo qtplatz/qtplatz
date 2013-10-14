@@ -25,10 +25,11 @@
 
 #pragma once
 
+#if !defined Q_MOC_RUN
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/chromatogram.hpp>
-
+#endif
 #include <coreplugin/ifile.h>
 #include <boost/noncopyable.hpp>
 #include <vector>

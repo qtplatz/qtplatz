@@ -53,15 +53,15 @@ namespace adcontrols {
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )
 #endif
-		boost::scoped_ptr< Baselines > baselines_;
-		boost::scoped_ptr< Peaks > peaks_;
+		std::shared_ptr< Baselines > baselines_;
+		std::shared_ptr< Peaks > peaks_;
 
         friend class boost::serialization::access;
 		template<class Archive>
         void serialize(Archive& ar, const unsigned int ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP(baselines_);
-            ar & BOOST_SERIALIZATION_NVP(peaks_);
+            ar & BOOST_SERIALIZATION_NVP(*baselines_);
+            ar & BOOST_SERIALIZATION_NVP(*peaks_);
         }
 	public:
 		static bool archive( std::ostream&, const PeakResult& );

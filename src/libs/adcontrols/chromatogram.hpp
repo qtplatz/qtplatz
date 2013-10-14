@@ -27,6 +27,8 @@
 
 #include "adcontrols_global.h"
 #include <boost/any.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/version.hpp>
 #include <string>
 #include <memory>
 
@@ -72,13 +74,16 @@ namespace adcontrols {
         static bool restore( std::istream&, Chromatogram& );
 		static const wchar_t * dataClass() { return L"Chromatogram"; }
 
-        struct Event {
+        struct ADCONTROLSSHARED_EXPORT Event {
             size_t index;  // index since injection, should subtract dataDelayPoint in order to access dataArray;
             unsigned long value;
             Event( size_t idx = 0, unsigned long v = 0 ) : index( idx ), value( v ) {}
         private:
             friend class boost::serialization::access;
-            template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
+            template<class Archiver> void serialize(Archiver& ar, unsigned int ) {
+                ar & BOOST_SERIALIZATION_NVP( index )
+                    & BOOST_SERIALIZATION_NVP( value );
+            }
         };
 
         size_t size() const;
