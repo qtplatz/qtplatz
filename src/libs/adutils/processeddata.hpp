@@ -57,7 +57,6 @@ namespace adutils {
         class Nothing { 
         public:
             Nothing() {}
-			static wchar_t * dataClass() { return L"Nothing"; }
         };
 
         typedef boost::variant< Nothing

@@ -25,14 +25,12 @@
 
 #pragma once
 
-#if ! defind Q_MOC_RUN
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <coreplugin/ifile.h>
 #include <boost/noncopyable.hpp>
 #include <vector>
-#endif
 
 namespace adcontrols {
     class LCMSDataset;
