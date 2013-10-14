@@ -138,9 +138,15 @@ ActionManager::actMethodSave()
         adfs::file adfile = folder.addFile( path.wstring() ); // internal filename := os filename
         adcontrols::ProcessMethod m;
         MainWindow::instance()->getProcessMethod( m );
-        adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
-        adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
-        adfile.commit();
+        try {
+            adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
+            adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
+            adfile.commit();
+        } catch ( std::exception& ex ) {
+            QMessageBox::warning( 0, "Process method save", 
+                                  (boost::format("%1% @ %2% #%3%") % ex.what() % __FILE__ % __LINE__ ).str().c_str() );
+            return;
+        }
         
         MainWindow::instance()->processMethodSaved( name );
     }
