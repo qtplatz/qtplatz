@@ -25,7 +25,6 @@
 
 #include "attributes.hpp"
 #include "cpio.hpp"
-#include <adportable/serializer.hpp>
 
 #include <compiler/diagnostic_push.h>
 #include <compiler/disable_unused_parameter.h>
@@ -108,40 +107,21 @@ attributes::setAttribute( const std::wstring& key, const std::wstring& value )
 
 //////////////////////////
 
-// bool
-// attributes::archive( std::ostream& os, const attributes& impl )
-// {
-//     portable_binary_oarchive ar( os );
-//     ar << impl;
-//     return true;
-// }
-
-// bool
-// attributes::restore( std::istream& is, attributes& impl ) // binary
-// {
-//     portable_binary_iarchive ar( is );
-//     ar >> impl;
-//     return true;
-// }
-
-
-/*
 bool
-attributes::archive( std::wostream& os ) const  // xml
+attributes::archive( std::ostream& os, const attributes& impl )
 {
-    boost::archive::xml_woarchive ar ( os );
-    ar << *this;
+    portable_binary_oarchive ar( os );
+    ar << impl;
     return true;
 }
 
 bool
-attributes::restore( std::wistream& is ) // xml
+attributes::restore( std::istream& is, attributes& impl ) // binary
 {
-    boost::archive::xml_wiarchive ar( is );
-    ar >> is;
+    portable_binary_iarchive ar( is );
+    ar >> impl;
     return true;
 }
-*/
 
 bool
 attributes::fetch()
@@ -150,12 +130,11 @@ attributes::fetch()
     
     if ( rowid() && blob.open( db(), "main", "directory", "attr", rowid(), adfs::readonly ) ) {
         if ( blob.size() ) {
-			std::unique_ptr< int8_t [] > p( new int8_t [ blob.size() ] );
+			std::unique_ptr< boost::int8_t [] > p( new boost::int8_t [ blob.size() ] );
             if ( blob.read( p.get(), blob.size() ) ) {
-                if ( adportable::serializer< adfs::attributes >::deserialize( *this, reinterpret_cast< const char *>( p.get() ), blob.size() ) )
+                adfs::detail::cpio obuf( blob.size(), reinterpret_cast<adfs::char_t *>( p.get() ) );
+                if ( adfs::cpio<attributes>::deserialize( *this, obuf ) )
                     dirty_ = false;
-                // adfs::detail::cpio obuf( blob.size(), reinterpret_cast<adfs::char_t *>( p.get() ) );
-                // if ( adfs::cpio<attributes>::copyout( *this, obuf ) )
             }
         }
     }
@@ -166,11 +145,11 @@ bool
 attributes::commit()
 {
     if ( dirty_ ) {
-		std::string device;
-		if ( adportable::serializer< adfs::attributes >::serialize( *this, device ) ) {
+        adfs::detail::cpio ibuf;
+        if ( adfs::cpio<attributes>::serialize( *this, ibuf ) ) {
             adfs::stmt sql( db() );
             if ( sql.prepare( "UPDATE directory SET attr = :attr WHERE rowid = :rowid" ) ) {
-                sql.bind( 1 ) = blob( device.size(), reinterpret_cast<const int8_t *>( device.data() ) );
+                sql.bind( 1 ) = blob( ibuf.size(), reinterpret_cast<const int8_t *>( ibuf.get() ) );
                 sql.bind( 2 ) = rowid();
                 if ( sql.step() == adfs::sqlite_done )
                     dirty_ = false;

@@ -138,15 +138,9 @@ ActionManager::actMethodSave()
         adfs::file adfile = folder.addFile( path.wstring() ); // internal filename := os filename
         adcontrols::ProcessMethod m;
         MainWindow::instance()->getProcessMethod( m );
-        try {
-            adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
-            adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
-            adfile.commit();
-        } catch ( std::exception& ex ) {
-            QMessageBox::warning( 0, "Process method save", 
-                                  (boost::format("%1% @ %2% #%3%") % ex.what() % __FILE__ % __LINE__ ).str().c_str() );
-            return;
-        }
+        adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
+        adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
+        adfile.commit();
         
         MainWindow::instance()->processMethodSaved( name );
     }
@@ -165,7 +159,7 @@ ActionManager::actMethodOpen()
             if ( ! file.mount( path.wstring().c_str() ) )
                 return;
         } catch ( adfs::exception& ex ) {
-            QMessageBox::warning( 0, "Process Method Open", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
+            QMessageBox::warning( 0, "SequenceFile", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
             return;
         }
 
@@ -175,13 +169,8 @@ ActionManager::actMethodOpen()
             return;
         auto it = files.begin();
         adcontrols::ProcessMethod m;
-		try {
-			adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
-		} catch ( std::exception& e ) {
-			QMessageBox::warning( 0, "Process Method Open", (boost::format("got a std::exception: %1% @ %2% #%3%") % e.what() % __FILE__ % __LINE__ ).str().c_str() );
-			return;
-		}
-		MainWindow::instance()->processMethodLoaded( name, m );
+        adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
+        MainWindow::instance()->processMethodLoaded( name, m );
     }
 }
 
@@ -207,12 +196,7 @@ ActionManager::saveDefaults()
     adfs::file adfile = folder.addFile( fname.wstring() ); // internal filename := os filename
     adcontrols::ProcessMethod m;
     MainWindow::instance()->getProcessMethod( m );
-    try {
-        adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
-    } catch ( std::exception& e ) {
-		QMessageBox::warning( 0, "Default Process Method Save", (boost::format("got a std::exception: %1% @ %2% #%3%") % e.what() % __FILE__ % __LINE__ ).str().c_str() );
-        return false;
-    }
+    adfs::cpio< adcontrols::ProcessMethod >::save( m, adfile );
     adfile.dataClass( adcontrols::ProcessMethod::dataClass() );
     adfile.commit();
 
@@ -231,7 +215,7 @@ ActionManager::loadDefaults()
         if ( ! file.mount( path.wstring().c_str() ) )
             return false;
     } catch ( adfs::exception& ex ) {
-        QMessageBox::warning( 0, "Process method load default", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
+        QMessageBox::warning( 0, "SequenceFile", (boost::format("%1% on %2%") % ex.message % ex.category ).str().c_str() );
         return false;
     }
 
@@ -241,12 +225,7 @@ ActionManager::loadDefaults()
         return false;
     auto it = files.begin();
     adcontrols::ProcessMethod m;
-	try {
-		adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
-	} catch ( boost::archive::archive_exception& e ) {
-		QMessageBox::warning( 0, "Process method load default", (boost::format("%1% @%2%, #%3%") % e.what() % __FILE__ % __LINE__ ).str().c_str() );
-        return false;
-	}
+    adfs::cpio< adcontrols::ProcessMethod >::load( m, *it );
     MainWindow::instance()->processMethodLoaded( path.string().c_str(), m );
     return true;
 }

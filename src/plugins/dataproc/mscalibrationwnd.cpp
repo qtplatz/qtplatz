@@ -386,7 +386,6 @@ MSCalibrationWnd::handle_reassign_mass_requested()
 		return;
 
 	const adcontrols::massspectrometer::ScanLaw& scanLaw = calibSpectrum->scanLaw();
-    (void)scanLaw;
 
     adcontrols::MSAssignedMasses assigned;
     if ( readCalibSummary( assigned ) ) {

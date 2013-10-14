@@ -45,6 +45,20 @@
 
 using namespace addatafile;
 
+namespace addatafile {
+    namespace internal {
+
+        template<class T> struct cpio_handler {
+            static bool save( adfs::file& dbf, const boost::any& a ) {
+                const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
+                return adfs::cpio< T >::save( *p, dbf );
+            }
+            
+        };
+
+    }
+}
+
 cpio::cpio()
 {
 }
@@ -52,63 +66,36 @@ cpio::cpio()
 bool
 cpio::save( adfs::file& dbf, const boost::any& a )
 {
-    using namespace adcontrols;
+    // using namesapce addatafile::internal;
 
   	if ( adportable::a_type< adutils::MassSpectrumPtr >::is_a( a ) ) {
 
-        typedef MassSpectrum T;
-
-        dbf.dataClass( T::dataClass() );
-        const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::save( *p, dbf );
+        return internal::cpio_handler< adcontrols::MassSpectrum >::save( dbf, a );
 
     } else if ( adportable::a_type< adutils::ChromatogramPtr >::is_a( a ) ) {
 
-        typedef Chromatogram T;
-
-        dbf.dataClass( T::dataClass() );
-        const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::save( *p, dbf );
+        return internal::cpio_handler< adcontrols::Chromatogram >::save( dbf, a );
 
     } else if ( adportable::a_type< adutils::ProcessMethodPtr >::is_a( a ) ) {
 
-        typedef ProcessMethod T;
-
-        dbf.dataClass( T::dataClass() );
-        const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::save( *p, dbf );
+        return internal::cpio_handler< adcontrols::ProcessMethod >::save( dbf, a );
 
     } else if ( adportable::a_type< adutils::ElementalCompositionCollectionPtr >::is_a( a ) ) {
 
-        typedef ElementalCompositionCollection T;
-
-        dbf.dataClass( T::dataClass() );
-        const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::save( *p, dbf );
+        return internal::cpio_handler< adcontrols::ElementalCompositionCollection >::save( dbf, a );
 
     } else if ( adportable::a_type< adutils::MSCalibrateResultPtr >::is_a( a ) ) {
 
-        typedef MSCalibrateResult T;
-
-        dbf.dataClass( T::dataClass() );
-        const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::save( *p, dbf );
+        return internal::cpio_handler< adcontrols::MSCalibrateResult >::save( dbf, a );
 
     } else if ( adportable::a_type< adutils::PeakResultPtr >::is_a( a ) ) {
 
-        typedef PeakResult T;
-
-        dbf.dataClass( T::dataClass() );
-        const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::save( *p, dbf );
+        return internal::cpio_handler< adcontrols::PeakResult >::save( dbf, a );
 
     } else if ( adportable::a_type< adutils::MSPeakInfoPtr >::is_a( a ) ) {
 
-        typedef MSPeakInfo T;
+        return internal::cpio_handler< adcontrols::MSPeakInfo >::save( dbf, a );
 
-        dbf.dataClass( T::dataClass() );
-        const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
-        return adfs::cpio< T >::save( *p, dbf );
     }
     return false;
 }

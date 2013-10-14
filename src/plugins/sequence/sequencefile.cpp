@@ -110,13 +110,7 @@ SequenceFile::load( const QString& filename )
         if ( folio.empty() )
             return false;
         adfs::file& file = *folio.begin();  // take first one.
-		try {
-			adfs::cpio< adsequence::sequence >::load( *adsequence_, file );
-		} catch ( boost::archive::archive_exception& e ) {
-			QMessageBox::warning( 0, "Sequece file", (boost::format("archive_exception: %1% @%2% #%3%") % e.what() % __FILE__ % __LINE__).str().c_str() );
-		} catch ( std::exception& e ) {
-			QMessageBox::warning( 0, "Sequece file", (boost::format("std::exception: %1% @%2% #%3%") % e.what() % __FILE__ % __LINE__).str().c_str() );
-		}
+        adfs::cpio< adsequence::sequence >::load( *adsequence_, file );
     } while( 0 );
 
     do {
@@ -125,11 +119,7 @@ SequenceFile::load( const QString& filename )
         std::vector< adfs::file > folio = folder.files();
         for ( std::vector< adfs::file >::iterator it = folio.begin(); it != folio.end(); ++it ) {
             std::shared_ptr< adcontrols::ProcessMethod > ptr( new adcontrols::ProcessMethod );
-			try {
-				adfs::cpio< adcontrols::ProcessMethod >::load( *ptr, *it );
-			} catch ( std::exception& e ) {
-				QMessageBox::warning( 0, "Sequece file", (boost::format("std::exception: %1% @%2% #%3%") % e.what() % __FILE__ % __LINE__).str().c_str() );
-			} 
+            adfs::cpio< adcontrols::ProcessMethod >::load( *ptr, *it );
             procmethods_[ it->name() ] = ptr;
         }
     } while ( 0 );

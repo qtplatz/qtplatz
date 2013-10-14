@@ -63,6 +63,9 @@ namespace adcontrols {
         const MSPeakInfo& getSegment( size_t fcn ) const;
         size_t numSegments() const;
 
+        static bool archive( std::ostream&, const MSPeakInfo& );
+        static bool restore( std::istream&, MSPeakInfo& );
+
     private:
         std::vector< MSPeakInfoItem > vec_;
         std::vector< MSPeakInfo > siblings_;

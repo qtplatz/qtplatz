@@ -113,20 +113,20 @@ namespace adcontrols {
 	   
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-                (void)version;
-                ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
-                    & BOOST_SERIALIZATION_NVP(isConstantSampling_)
-                    & BOOST_SERIALIZATION_NVP(timeRange_.first) 
-                    & BOOST_SERIALIZATION_NVP(timeRange_.second) 
-                    & BOOST_SERIALIZATION_NVP(dataDelayPoints_) 
-                    & BOOST_SERIALIZATION_NVP(descriptions_)
-                    & BOOST_SERIALIZATION_NVP(axisLabelHorizontal_)
-                    & BOOST_SERIALIZATION_NVP(axisLabelVertical_)
-                    & BOOST_SERIALIZATION_NVP(dataArray_) 
-                    & BOOST_SERIALIZATION_NVP(timeArray_) 
-                    & BOOST_SERIALIZATION_NVP(evntVec_) 
-                    & BOOST_SERIALIZATION_NVP(peaks_) 
-                    ;
+		(void)version;
+		ar & BOOST_SERIALIZATION_NVP(samplingInterval_)
+		    & BOOST_SERIALIZATION_NVP(isConstantSampling_)
+		    & BOOST_SERIALIZATION_NVP(timeRange_.first) 
+		    & BOOST_SERIALIZATION_NVP(timeRange_.second) 
+		    & BOOST_SERIALIZATION_NVP(dataDelayPoints_) 
+		    & BOOST_SERIALIZATION_NVP(descriptions_)
+		    & BOOST_SERIALIZATION_NVP(axisLabelHorizontal_)
+		    & BOOST_SERIALIZATION_NVP(axisLabelVertical_)
+		    & BOOST_SERIALIZATION_NVP(dataArray_) 
+		    & BOOST_SERIALIZATION_NVP(timeArray_) 
+		    & BOOST_SERIALIZATION_NVP(evntVec_) 
+		    & BOOST_SERIALIZATION_NVP(peaks_) 
+		    ;
             }
         };
     }
@@ -429,7 +429,67 @@ Chromatogram::getMinIntensity() const
     return *std::min_element( d.dataArray_.begin(), d.dataArray_.end() );
 }
 
+// specialized template<> for boost::serialization
+// template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
+
+namespace adcontrols {
+    template<> void
+    Chromatogram::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar << boost::serialization::make_nvp("Chromatogram", pImpl_);
+    }
+    
+    template<> void
+    Chromatogram::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar >> boost::serialization::make_nvp("Chromatogram", pImpl_);
+    }
+    
+    template<> void
+    Chromatogram::serialize( portable_binary_oarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar << boost::serialization::make_nvp( "Chromatogram", pImpl_ );
+    }
+    
+    template<> void
+    Chromatogram::serialize( portable_binary_iarchive& ar, const unsigned int version )
+    {
+	(void)version;
+	ar >> boost::serialization::make_nvp( "Chromatogram", pImpl_ );
+    }
+}; // namespace adcontrols
+
+
 /////////////
+namespace adcontrols {
+
+    template<> void
+    Chromatogram::Event::serialize( boost::archive::xml_woarchive& ar, const unsigned int)
+    {
+	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
+    }
+    
+    template<> void
+    Chromatogram::Event::serialize( boost::archive::xml_wiarchive& ar, const unsigned int)
+    {
+	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
+    }
+    
+    template<> void
+    Chromatogram::Event::serialize( portable_binary_oarchive& ar, const unsigned int)
+    {
+	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
+    }
+    
+    template<> void
+    Chromatogram::Event::serialize( portable_binary_iarchive& ar, const unsigned int)
+    {
+	ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
+    }
+}; // namespace adcontrols
 
 bool
 Chromatogram::archive( std::ostream& os, const Chromatogram& c )
@@ -533,77 +593,3 @@ ChromatogramImpl::getAcquisitionTimeRange() const
 {
     return timeRange_;
 }
-
-//////////////
-// specialized template<> for boost::serialization
-// template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
-
-namespace adcontrols {
-    template<> void DECL_EXPORT
-    Chromatogram::serialize( boost::archive::xml_woarchive& ar, const unsigned int version )
-    {
-        (void)version;
-        ar << boost::serialization::make_nvp("Chromatogram", pImpl_);
-    }
-    
-    template<> void DECL_EXPORT
-    Chromatogram::serialize( boost::archive::xml_wiarchive& ar, const unsigned int version )
-    {
-        (void)version;
-        ar >> boost::serialization::make_nvp("Chromatogram", pImpl_);
-    }
-    
-    template<> void DECL_EXPORT
-    Chromatogram::serialize( portable_binary_oarchive& ar, const unsigned int version )
-    {
-        (void)version;
-        ar << boost::serialization::make_nvp( "Chromatogram", pImpl_ );
-    }
-    
-    template<> void DECL_EXPORT
-    Chromatogram::serialize( portable_binary_iarchive& ar, const unsigned int version )
-    {
-        (void)version;
-        ar >> boost::serialization::make_nvp( "Chromatogram", pImpl_ );
-    }
-}; // namespace adcontrols
-
-namespace adcontrols {
-/*
-    template<> void DECL_EXPORT
-    Chromatogram::Event::serialize( boost::archive::xml_woarchive& ar, const unsigned int)
-    {
-        ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
-    }
-    
-    template<> void DECL_EXPORT
-    Chromatogram::Event::serialize( boost::archive::xml_wiarchive& ar, const unsigned int)
-    {
-        ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
-    }
-
-    template<> void DECL_EXPORT
-    Chromatogram::Event::serialize( portable_binary_oarchive& ar, const unsigned int)
-    {
-        ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
-    }
-    
-    template<> void DECL_EXPORT
-    Chromatogram::Event::serialize( portable_binary_iarchive& ar, const unsigned int)
-    {
-        ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
-    }
-    
-    template<> void DECL_EXPORT
-    Chromatogram::Event::serialize( portable_binary_oarchive& ar, const unsigned int)
-    {
-        ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
-    }
-    
-    template<> void  DECL_EXPORT
-    Chromatogram::Event::serialize( portable_binary_iarchive& ar, const unsigned int)
-    {
-        ar & BOOST_SERIALIZATION_NVP(index) & BOOST_SERIALIZATION_NVP(value);
-    }
-*/
-}; // namespace adcontrols

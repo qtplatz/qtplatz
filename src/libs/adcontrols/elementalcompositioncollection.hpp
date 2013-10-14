@@ -28,18 +28,6 @@
 #include "adcontrols_global.h"
 #include <string>
 
-namespace boost {
-    namespace serialization {
-        class access;
-    }
-    namespace archive { 
-        class binary_oarchive; 
-        class binary_iarchive;
-    }
-}
-class portable_binary_oarchive;
-class portable_binary_iarchive;
-
 namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT ElementalCompositionCollection {
@@ -50,12 +38,6 @@ namespace adcontrols {
         static bool archive( std::ostream&, const ElementalCompositionCollection& );
         static bool restore( std::istream&, ElementalCompositionCollection& );
 		static const wchar_t * dataClass() { return L"ElementalCompositionCollection"; }
-
-    private:
-        friend class boost::serialization::access;
-        template<class Archiver> void serialize(Archiver&, unsigned int) {
-            // todo
-        }
     };
 
 

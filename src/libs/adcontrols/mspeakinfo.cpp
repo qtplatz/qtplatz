@@ -24,6 +24,8 @@
 
 #include "mspeakinfo.hpp"
 #include "mspeakinfoitem.hpp"
+#include <adportable/portable_binary_oarchive.hpp>
+#include <adportable/portable_binary_iarchive.hpp>
 
 using namespace adcontrols;
 
@@ -80,4 +82,22 @@ void
 MSPeakInfo::clear()
 {
     vec_.clear();
+}
+
+
+// static
+bool
+MSPeakInfo::archive( std::ostream& os, const MSPeakInfo& t )
+{
+    portable_binary_oarchive ar( os );
+    ar << t;
+    return true;
+}
+
+bool
+MSPeakInfo::restore( std::istream& is, MSPeakInfo& t )
+{
+    portable_binary_iarchive ar( is );
+    ar >> t;
+    return true;
 }
