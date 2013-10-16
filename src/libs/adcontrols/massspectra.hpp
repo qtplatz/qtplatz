@@ -38,16 +38,23 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT MassSpectra {
     public:
-		static const wchar_t * dataClass() { return L"MassSpectra"; }
+		static const wchar_t * dataClass() { return L"adcontrols::MassSpectra"; }
 
         typedef std::shared_ptr< MassSpectrum > value_type;
+        typedef std::vector< value_type >::iterator iterator;
+        typedef std::vector< value_type >::const_iterator const_iterator;
 
-        void push_back( const MassSpectrum& );
-        void push_back( value_type& );
+        MassSpectra& operator << ( value_type ); // shared object
+        MassSpectra& operator << ( const MassSpectrum& ); // create new copy
 
         size_t size() const;
         MassSpectrum& operator [] ( size_t fcn );
         const MassSpectrum& operator [] ( size_t fcn ) const;
+        
+        inline iterator begin() { return vec_.begin(); }
+        inline iterator end() { return vec_.end(); }
+        inline const_iterator begin() const { return vec_.begin(); }
+        inline const_iterator end() const { return vec_.end(); }
 
     private:
         std::vector< value_type > vec_;

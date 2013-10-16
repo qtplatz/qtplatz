@@ -28,17 +28,18 @@
 
 using namespace adcontrols;
 
-void
-MassSpectra::push_back( const MassSpectrum& t )
+MassSpectra&
+MassSpectra::operator << ( const MassSpectrum& t )
 {
-    value_type ptr( new MassSpectrum( t ) );
-    vec_.push_back( ptr );
+    vec_.push_back( std::make_shared< MassSpectrum >( t ) ); // create deep copy
+	return *this;
 }
 
-void
-MassSpectra::push_back( value_type& v )
+MassSpectra&
+MassSpectra::operator << ( value_type v )
 {
-    vec_.push_back( v );
+    vec_.push_back( v ); // keep shared object pointer
+	return *this;
 }
 
 MassSpectrum&

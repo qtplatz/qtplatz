@@ -61,26 +61,39 @@ namespace addatafile { namespace detail {
 
     static adcontrols::datafile * nullfile(0);
 
-    struct folder {
-        static bool save( adfs::filesystem& db, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folder& );
-        static bool load( portfolio::Folder parent, const adfs::folder& adf );
-    };
+        struct folder {
+            static bool save( adfs::filesystem& db, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folder& );
+            static bool load( portfolio::Folder parent, const adfs::folder& adf );
+        };
 
-    struct folium {
-        static bool save( adfs::folder&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
-        static bool load( portfolio::Folium dst, const adfs::file& src );
-    };
+        struct folium {
+            static bool save( adfs::folder&, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
+            static bool load( portfolio::Folium dst, const adfs::file& src );
+        };
 
-    struct attachment {
-        static bool save( adfs::file& parent, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
-        static bool load( portfolio::Folium dst, const adfs::file& adf );
-    };
+        struct attachment {
+            static bool save( adfs::file& parent, const boost::filesystem::path&, const adcontrols::datafile&, const portfolio::Folium& );
+            static bool load( portfolio::Folium dst, const adfs::file& adf );
+        };
 
-    struct import {
-        static void attributes( adfs::attributes&, const portfolio::attributes_type& );
-        static void attributes( portfolio::Folium&, const adfs::attributes& );
-        static void attributes( portfolio::Folder&, const adfs::attributes& );
-    };
+        struct import {
+            static void attributes( adfs::attributes&, const portfolio::attributes_type& );
+            static void attributes( portfolio::Folium&, const adfs::attributes& );
+            static void attributes( portfolio::Folder&, const adfs::attributes& );
+        };
+
+        template< class T > struct serializer {
+            static std::shared_ptr< T > deserialize( adfs::detail::cpio& obuf ) {
+                std::shared_ptr<T> ptr = std::make_shared<T>();
+                try {
+                    adfs::cpio<T>::deserialize( *ptr, obuf );
+                } catch ( std::exception& e ) {
+                    adportable::debug(__FILE__, __LINE__) << "exception: " << e.what() << " while deserializing " << typeid(T).name();
+                    ptr.reset();
+                }
+                return ptr;
+            }
+        };
 
 }
 }
@@ -165,53 +178,29 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
                     adfs::detail::cpio obuf( blob.size(), reinterpret_cast<adfs::char_t *>( p.get() ) );
 
 					if ( dataType == adcontrols::MassSpectrum::dataClass() ) {
-
-                        typedef adcontrols::MassSpectrum T;
-
-                        std::shared_ptr<T> ptr = std::make_shared<T>();
-                        adfs::cpio<T>::deserialize( *ptr, obuf );
-                        // adcontrols::MassSpectrumPtr ptr( new adcontrols::MassSpectrum() );
-                        // adfs::cpio<adcontrols::MassSpectrum>::deserialize( *ptr, obuf );
-                        any = ptr;
-
+                        
+                        any = detail::serializer< adcontrols::MassSpectrum >::deserialize( obuf );
+                        
 					} else if ( dataType == adcontrols::Chromatogram::dataClass() ) {
 						
-                        typedef adcontrols::Chromatogram T;
-
-                        std::shared_ptr<T> ptr = std::make_shared<T>();
-                        adfs::cpio<T>::deserialize( *ptr, obuf );
-                        any = ptr;
-
+                        any = detail::serializer< adcontrols::Chromatogram >::deserialize( obuf );
+                        
 					} else if ( dataType == adcontrols::PeakResult::dataClass() ) {
-
-						typedef adcontrols::PeakResult T;
-
-                        std::shared_ptr<T> ptr = std::make_shared<T>();
-                        adfs::cpio<T>::deserialize( *ptr, obuf );
-                        any = ptr;
-
+                        
+						any = detail::serializer< adcontrols::PeakResult >::deserialize( obuf );    
+                        
 					} else if ( dataType == adcontrols::ProcessMethod::dataClass() ) {
-
-                        typedef adcontrols::ProcessMethod T;
-                        std::shared_ptr<T> ptr = std::make_shared<T>();
-                        adfs::cpio<T>::deserialize( *ptr, obuf );
-                        any = ptr;
-
+                        
+                        any = detail::serializer< adcontrols::ProcessMethod >::deserialize( obuf );    
+                        
 					} else if ( dataType == adcontrols::MSCalibrateResult::dataClass() ) {
-
-                        typedef adcontrols::MSCalibrateResult T;
-                        std::shared_ptr<T> ptr = std::make_shared<T>();
-                        adfs::cpio<T>::deserialize( *ptr, obuf );
-                        any = ptr;
-
+                        
+                        any = detail::serializer< adcontrols::MSCalibrateResult >::deserialize( obuf );    
+                        
 					} else if ( dataType == adcontrols::MSPeakInfo::dataClass() ) {
-
-                        typedef adcontrols::MSPeakInfo T;
-
-                        std::shared_ptr<T> ptr = std::make_shared<T>();
-                        adfs::cpio<T>::deserialize( *ptr, obuf );
-                        any = ptr;
-
+                        
+                        any = detail::serializer< adcontrols::MSPeakInfo >::deserialize( obuf );
+                        
                     } else {
                         adportable::debug(__FILE__, __LINE__)
                             << "Error: unknown data type in datafile::fetch(" << dataId << ", " << dataType;

@@ -35,6 +35,7 @@
 #include <portfolio/folder.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <qmessagebox.h>
 
 using namespace dataproc;
 
@@ -82,30 +83,34 @@ IFileImpl::save( const QString& filename )
 {
     portfolio::Portfolio portfolio = dprocessor_.getPortfolio();
 
-    boost::filesystem::path p( qtwrapper::wstring::copy( filename ) );
-    p.replace_extension( L".adfs" );
+    boost::filesystem::path path;
+    if ( filename.isEmpty() ) { // save
 
-    do {
-		boost::filesystem::path xmlfile( qtwrapper::wstring::copy( filename ) );
-        xmlfile.replace_extension( ".xml" );
-        boost::filesystem::remove( xmlfile );
-        pugi::xml_document dom;
-        dom.load( portfolio.xml().c_str() );
-        dom.save_file( xmlfile.string().c_str() );
-    } while(0);
-
-    if ( boost::filesystem::path( qtwrapper::wstring::copy( filename_ ) ) == p ) { // same file?
-        // save
+        path = filename_.toStdString(); // for xml
         if ( ! this->file().saveContents( L"/Processed", portfolio ) )
 			return false;
-    } else {
-        // saveFileAs -- has to create new file
-		boost::filesystem::remove( boost::filesystem::path( qtwrapper::wstring::copy( filename ) ) );
-        std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::create( p.wstring() ) );
+
+    } else { // save as
+
+        path = filename.toStdString();
+		if ( boost::filesystem::exists( path ) ) {
+            QMessageBox::warning( 0, "Datafile save", "file already exists" );
+            return false;
+        }
+        std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::create( path.wstring() ) );
         if ( ! ( file && file->saveContents( L"/Processed", portfolio, this->file() ) ) )
 			return false;
-
     }
+
+    // for debug convension
+    do {
+        path.replace_extension( ".xml" );
+        boost::filesystem::remove( path );
+        pugi::xml_document dom;
+        dom.load( portfolio.xml().c_str() );
+        dom.save_file( path.string().c_str() );
+    } while(0);
+
 	setModified( false );
     return true;
 }

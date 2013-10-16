@@ -63,7 +63,7 @@ namespace dataproc {
         void handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool );
 
     signals:
-        void fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
+        void onSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
 
     private slots:
         void handleSelSummary( size_t idx, size_t fcn );
@@ -87,8 +87,10 @@ namespace dataproc {
         std::shared_ptr< QwtPlotMarker > time_length_marker_;
 
         std::vector< portfolio::Folium > folio_;
-
         portfolio::Folium folium_;
+        std::weak_ptr< adcontrols::MSCalibrateResult > curCalibResult_;
+        std::weak_ptr< adcontrols::MassSpectrum > curSpectrum_;
+
         QWidget * wndCalibSummary_;
         QSplitter * wndSplitter_;
         std::shared_ptr< adwplot::Dataplot > dplot_;
@@ -96,13 +98,15 @@ namespace dataproc {
 		std::vector< std::tuple< std::wstring, std::shared_ptr<adcontrols::MassSpectrum>, std::shared_ptr<adcontrols::MSCalibrateResult> > > results_;
         std::map< std::wstring, std::shared_ptr< internal::SeriesData > > plotData_;
         std::map< std::wstring, std::shared_ptr< QwtPlotCurve > > plotCurves_;
+        QwtPlotCurve * regressionCurve_;
 
-        std::vector< std::shared_ptr< adcontrols::MSAssignedMasses > > assignedResults_;
+        // std::vector< std::shared_ptr< adcontrols::MSAssignedMasses > > assignedResults_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
         void replotSpectra();
         void replotLengthTime();
+        void plotSelectedLengthTime( const std::wstring& formula );
         void plot( internal::SeriesData&, int id );
-        void plotTimeMarker( double t );
+        void plotTimeMarker( double t, double l );
     };
 
 }
