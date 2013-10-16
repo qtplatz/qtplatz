@@ -1,8 +1,6 @@
 // formula_parser.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
-
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/include/std_pair.hpp>
@@ -11,6 +9,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "../../src/libs/compiler/disable_unused_variable.h"
+#include "../../src/libs/compiler/disable_unused_parameter.h"
 
 namespace client {
     namespace qi = boost::spirit::qi;
@@ -29,20 +29,44 @@ namespace client {
         L"Ac", L"Th", L"Pa", L"U", L"Np", L"Pu", L"Am", L"Cm", L"Bk", L"Cf", L"Es", L"Fm", L"Md", L"No"
     };
 
-    typedef std::map< const wchar_t *, std::size_t > map_type;
+    struct atom_type { 
+        const wchar_t * name;
+        std::size_t prefix;
+        atom_type() : name(0), prefix(0) {
+        }
+        atom_type( const wchar_t * _1, std::size_t _2 = 0 ) : name(_1), prefix(_2) {
+        }
+        atom_type( std::size_t _1 ) : prefix(_1) {
+        }
+        atom_type( const atom_type& t ) : name( t.name ), prefix( t.prefix ) {
+        }
+        bool operator == ( const atom_type& rhs ) const {
+            return name == rhs.name && prefix == rhs.prefix;
+        }
+        bool operator < ( const atom_type& rhs ) const { 
+            return name == rhs.name ? prefix < rhs.prefix : name < rhs.name;
+        }
+    };
 
-    void map_add( map_type& m, const std::pair<const wchar_t *, std::size_t>& p ) {
+    // typedef std::map< const wchar_t *, std::size_type > map_type;
+    typedef std::map< atom_type, size_t > map_type;
+
+    void map_add( map_type& m, const std::pair<const atom_type, std::size_t>& p ) {
         m[ p.first ] += p.second;
     }
 
     void map_join( map_type& m, map_type& a ) {
-        BOOST_FOREACH( map_type::value_type& p, a )
+        for( map_type::value_type& p: a )
             m[ p.first ] += p.second;
     }
 
     void map_mul( map_type& m, std::size_t n ) {
-        BOOST_FOREACH( map_type::value_type& p, m )
+        for( map_type::value_type& p: m )
             p.second *= n;
+    }
+
+    void atom_def( atom_type& a, const wchar_t * name ) {
+        // std::wcout << L"#### atom_def #####" << std::endl;
     }
 
     template<typename Iterator>
@@ -55,27 +79,35 @@ namespace client {
 
             molecule =
 				+(
-				atoms          [ boost::phoenix::bind(&map_add, _val, qi::_1) ]
-			  | repeated_group [ boost::phoenix::bind(&map_join, _val, qi::_1 ) ]
-			  | space
-				)
+                    atoms          [ boost::phoenix::bind(&map_add, _val, qi::_1) ]
+                    | repeated_group [ boost::phoenix::bind(&map_join, _val, qi::_1 ) ]
+                    | space
+                    )
                 ;
             atoms = 
-                element >> ( qi::uint_ | qi::attr(1u) ) // default to 1
+                atom >> ( qi::uint_ | qi::attr(1u) ) // default to 1
                 ;
+            atom =
+                ( 
+                    element
+                    | qi::uint_ >> element // [ boost::phoenix::bind(&atom_def, _val, qi::_1) ]
+                    )
+                ;
+
             repeated_group %= // forces attr proparation
                 '(' >> molecule >> ')'
                 >> qi::omit[ qi::uint_[ boost::phoenix::bind( map_mul, qi::_val, qi::_1 ) ] ]
             ;
         }
-        qi::rule<Iterator, std::pair< const wchar_t *, std::size_t >() > atoms;
+        qi::rule<Iterator, atom_type() > atom;
+        qi::rule<Iterator, std::pair< atom_type, std::size_t >() > atoms;
         qi::rule<Iterator, map_type()> molecule, repeated_group;
         qi::symbols<wchar_t, const wchar_t *> element;
     };
 }
 
 int
-_tmain(int argc, _TCHAR* argv[])
+main(int argc, char * argv[])
 {
     std::string str;
 
@@ -104,7 +136,7 @@ _tmain(int argc, _TCHAR* argv[])
             std::cout << str << " Parses OK: " << std::endl;
 
             BOOST_FOREACH( client::map_type::value_type& p, map )
-                std::wcout << p.first << ": " << p.second << std::endl;
+                std::wcout << L"<sup>" << p.first.prefix << "</sup>" << p.first.name << ": " << p.second << std::endl;
             std::cout << "-------------------------\n";
         } else {
             std::cout << "-------------------------\n";
