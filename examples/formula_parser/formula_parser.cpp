@@ -21,9 +21,9 @@ namespace client {
     namespace qi = boost::spirit::qi;
 
     const char * element_table [] = {
-        "H",                                                                                                            "He",
-        "Li", "Be",                                                                       "B",  "C",  "N",  "O",  "F",  "Ne", 
-        "Na", "Mg",                                                                       "Al", "Si", "P",  "S",  "Cl", "Ar",
+        "H",                                                                                                              "He",
+        "Li", "Be",                                                                         "B",  "C",  "N",  "O",  "F",  "Ne", 
+        "Na", "Mg",                                                                         "Al", "Si", "P",  "S",  "Cl", "Ar",
         "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",  
         "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I",  "Xe",  
         "Cs", "Ba", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn",
@@ -52,11 +52,9 @@ namespace client {
     }
 
     using boost::phoenix::bind;
-    using boost::phoenix::ref;
     using boost::spirit::qi::_val;
-    using boost::spirit::ascii::space;
-    using boost::spirit::ascii::space_type;
     using boost::spirit::qi::_1;
+    using boost::spirit::ascii::space;
 
     template<typename Iterator>
     struct chemical_formula_parser : boost::spirit::qi::grammar< Iterator, map_type() > {
@@ -87,6 +85,54 @@ namespace client {
         qi::rule<Iterator, map_type()> molecule, repeated_group;
         qi::symbols<char, const char *> element;
     };
+
+
+    static char * braces [] = { "(", ")" };
+
+    typedef std::vector< std::pair< atom_type, size_t > > format_type;
+    void format_add( format_type& m, const std::pair<const atom_type, std::size_t>& p ) {
+        m.push_back( p );
+    }
+
+    void format_join( format_type& m, format_type& a ) {
+        m.push_back( std::make_pair( atom_type( 0, braces[0] ), 0 ) );
+        for ( auto t: a )
+            m.push_back( t );
+    }
+
+    void format_mul( format_type& m, std::size_t n ) {
+        m.push_back( std::make_pair( atom_type( 0, braces[1] ), n ) );
+    }
+
+    template<typename Iterator>
+    struct chemical_formula_formatter : boost::spirit::qi::grammar< Iterator, format_type() > {
+
+        chemical_formula_formatter() : chemical_formula_formatter::base_type( molecule ), element( element_table, element_table )  {
+            molecule =
+				+ (
+                    atoms            [ boost::phoenix::bind(&format_add, _val, qi::_1) ]
+                    | repeated_group [ boost::phoenix::bind(&format_join, _val, qi::_1 ) ]
+                    | space
+                    )
+                ;
+            atoms = 
+                atom >> ( qi::uint_ | qi::attr(1u) ) // default to 1
+                ;
+            atom =
+                ( qi::uint_ | qi::attr(0u) ) >> element
+                ;
+            repeated_group %= // forces attr proparation
+                '(' >> molecule >> ')'
+                    >> qi::omit[ qi::uint_[ boost::phoenix::bind( format_mul, qi::_val, qi::_1 ) ] ]
+                ;
+        }
+
+        qi::rule<Iterator, atom_type() > atom;
+        qi::rule<Iterator, std::pair< atom_type, std::size_t >() > atoms;
+        qi::rule<Iterator, format_type()> molecule, repeated_group;
+        qi::symbols<char, const char *> element;
+    };
+
 }
 
 int
@@ -96,38 +142,62 @@ main(int argc, char * argv[])
     (void)argv;
 
     std::string str;
+    std::wstring wstr;
     
-    typedef std::string::const_iterator iterator_type;
-
-    client::chemical_formula_parser< iterator_type > cf;
+    client::chemical_formula_parser< std::string::const_iterator > cf;
+    client::chemical_formula_formatter< std::wstring::const_iterator > wcf;
 
     while (std::getline(std::cin, str))  {
         if (str.empty() || str[0] == 'q' || str[0] == 'Q')
             break;
-
-        client::map_type map;
-        iterator_type it = str.begin();
-        iterator_type end = str.end();
-
-        if ( boost::spirit::qi::parse( it, end, cf, map ) && it == end ) {
-            std::cout << "-------------------------\n";
-            std::cout << "Parsing succeeded\n";
-            std::cout << str << " Parses OK: " << std::endl;
-            std::cout << str << " map size: " << map.size() << std::endl;
-
-            for ( auto e: map ) {
-                std::cout << "<sup>" << e.first.first << "</sup>"
-                          << e.first.second
-                          << "<sub>" << e.second << "</sub>" << std::endl;
+        do {
+            client::map_type map;
+            std::string::const_iterator it = str.begin();
+            std::string::const_iterator end = str.end();
+            
+            if ( boost::spirit::qi::parse( it, end, cf, map ) && it == end ) {
+                std::cout << "-------------------------\n";
+                std::cout << "Parsing succeeded\n";
+                std::cout << str << " Parses OK: " << std::endl;
+                std::cout << str << " map size: " << map.size() << std::endl;
+                
+                for ( auto e: map )
+                    std::cout << e.first.first << " "  << e.first.second  << " " << e.second << std::endl;
+                std::cout << "-------------------------\n";
+            } else {
+                std::cout << "-------------------------\n";
+                std::cout << "Parsing failed\n";
+                std::cout << "-------------------------\n";
             }
-            std::cout << "-------------------------\n";
-        } else {
-            std::cout << "-------------------------\n";
-            std::cout << "Parsing failed for\n";
-            std::cout << str;
-            std::cout << "-------------------------\n";
-        }
+        } while(0);
+
+        do {
+            wstr.resize( str.size() );
+            std::copy( str.begin(), str.end(), wstr.begin() );
+            std::wcout << "as wide: " << wstr << std::endl;
+
+            client::format_type fmt;
+            std::wstring::const_iterator it = wstr.begin();
+            std::wstring::const_iterator end = wstr.end();
+
+            if ( boost::spirit::qi::parse( it, end, wcf, fmt ) && it == end ) {
+                std::cout << "-------------------------\n";
+                std::cout << str << " Parses OK: " << std::endl;
+                for ( auto e: fmt ) {
+                    if ( e.first.first )
+                        std::cout << "<sup>" << e.first.first << "</sup>";
+                    std::cout << e.first.second << e.second << ", ";
+                }
+                std::cout << "\n-------------------------\n";
+            } else {
+                std::cout << "-------------------------\n";
+                std::cout << "Parsing failed for\n";
+                std::cout << str;
+                std::cout << "-------------------------\n";
+            }
+        } while(0);
     }
+
     std::cout << "Bye... :-) \n\n";
 	return 0;
 }
