@@ -1,6 +1,10 @@
 // formula_parser.cpp : Defines the entry point for the console application.
 //
 
+#if defined _MSC_VER
+#pragma warning(disable:4100)
+#endif
+
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
@@ -61,8 +65,8 @@ namespace client {
                                   , element( element_table, element_table )  {
             molecule =
 				+ (
-                    atoms            [ bind(&map_add, _val, qi::_1) ]
-                    | repeated_group [ bind(&map_join, _val, qi::_1 ) ]
+                    atoms            [ boost::phoenix::bind(&map_add, _val, qi::_1) ]
+                    | repeated_group [ boost::phoenix::bind(&map_join, _val, qi::_1 ) ]
                     | space
                     )
                 ;
@@ -74,7 +78,7 @@ namespace client {
                 ;
             repeated_group %= // forces attr proparation
                 '(' >> molecule >> ')'
-                    >> qi::omit[ qi::uint_[ bind( map_mul, qi::_val, qi::_1 ) ] ]
+                    >> qi::omit[ qi::uint_[ boost::phoenix::bind( map_mul, qi::_val, qi::_1 ) ] ]
                 ;
         }
 
