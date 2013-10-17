@@ -74,7 +74,7 @@ namespace client {
                 ;
             repeated_group %= // forces attr proparation
                 '(' >> molecule >> ')'
-                    >> qi::omit[ qi::uint_[ bind( &map_mul, qi::_val, qi::_1 ) ] ]
+                    >> qi::omit[ qi::uint_[ bind( map_mul, qi::_val, qi::_1 ) ] ]
                 ;
         }
 
