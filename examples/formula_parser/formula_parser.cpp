@@ -19,6 +19,10 @@
 
 namespace client {
     namespace qi = boost::spirit::qi;
+    using boost::phoenix::bind;
+    using boost::spirit::qi::_val;
+    using boost::spirit::qi::_1;
+    using boost::spirit::ascii::space;
 
     const char * element_table [] = {
         "H",                                                                                                              "He",
@@ -36,7 +40,7 @@ namespace client {
 
     typedef std::pair< size_t, const char * > atom_type;
     typedef std::map< atom_type, size_t > map_type;
-    
+#if 0
     void map_add( map_type& m, const std::pair<const atom_type, std::size_t>& p ) {
         m[ p.first ] += p.second;
     }
@@ -50,11 +54,6 @@ namespace client {
         for( map_type::value_type& p: m )
             p.second *= n;
     }
-
-    using boost::phoenix::bind;
-    using boost::spirit::qi::_val;
-    using boost::spirit::qi::_1;
-    using boost::spirit::ascii::space;
 
     template<typename Iterator>
     struct chemical_formula_parser : boost::spirit::qi::grammar< Iterator, map_type() > {
@@ -85,33 +84,51 @@ namespace client {
         qi::rule<Iterator, map_type()> molecule, repeated_group;
         qi::symbols<char, const char *> element;
     };
+#endif
+    struct formulaComposition {
+        static void formula_add( map_type& m, const std::pair<const atom_type, std::size_t>& p ) {
+            m[ p.first ] += p.second;
+        }
+        
+        static void formula_join( map_type& m, map_type& a ) {
+            for( map_type::value_type& p: a )
+                m[ p.first ] += p.second;
+        }
+        
+        static void formula_repeat( map_type& m, std::size_t n ) {
+            for( map_type::value_type& p: m )
+                p.second *= n;
+        }
+    };
 
-
-    static char * braces [] = { "(", ")" };
+    static const char * braces [] = { "(", ")" };
 
     typedef std::vector< std::pair< atom_type, size_t > > format_type;
-    void format_add( format_type& m, const std::pair<const atom_type, std::size_t>& p ) {
-        m.push_back( p );
-    }
 
-    void format_join( format_type& m, format_type& a ) {
-        m.push_back( std::make_pair( atom_type( 0, braces[0] ), 0 ) );
-        for ( auto t: a )
+    struct formulaFormat {
+        static void formula_add( format_type& m, const std::pair<const atom_type, std::size_t>& p ) {
+            m.push_back( p );
+        }
+        
+        static void formula_join( format_type& m, format_type& a ) {
+            m.push_back( std::make_pair( atom_type( 0, braces[0] ), 0 ) );
+            for ( auto t: a )
             m.push_back( t );
-    }
+        }
+        
+        static void formula_repeat( format_type& m, std::size_t n ) {
+            m.push_back( std::make_pair( atom_type( 0, braces[1] ), n ) );
+        }
+    };
 
-    void format_mul( format_type& m, std::size_t n ) {
-        m.push_back( std::make_pair( atom_type( 0, braces[1] ), n ) );
-    }
+    template<typename Iterator, typename handler, typename startType>
+    struct chemical_formula_parser : boost::spirit::qi::grammar< Iterator, startType() > {
 
-    template<typename Iterator>
-    struct chemical_formula_formatter : boost::spirit::qi::grammar< Iterator, format_type() > {
-
-        chemical_formula_formatter() : chemical_formula_formatter::base_type( molecule ), element( element_table, element_table )  {
+        chemical_formula_parser() : chemical_formula_parser::base_type( molecule ), element( element_table, element_table )  {
             molecule =
 				+ (
-                    atoms            [ boost::phoenix::bind(&format_add, _val, qi::_1) ]
-                    | repeated_group [ boost::phoenix::bind(&format_join, _val, qi::_1 ) ]
+                    atoms            [ boost::phoenix::bind(&handler::formula_add, _val, qi::_1) ]
+                    | repeated_group [ boost::phoenix::bind(&handler::formula_join, _val, qi::_1 ) ]
                     | space
                     )
                 ;
@@ -123,13 +140,13 @@ namespace client {
                 ;
             repeated_group %= // forces attr proparation
                 '(' >> molecule >> ')'
-                    >> qi::omit[ qi::uint_[ boost::phoenix::bind( format_mul, qi::_val, qi::_1 ) ] ]
+                    >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
                 ;
         }
 
         qi::rule<Iterator, atom_type() > atom;
         qi::rule<Iterator, std::pair< atom_type, std::size_t >() > atoms;
-        qi::rule<Iterator, format_type()> molecule, repeated_group;
+        qi::rule<Iterator, startType()> molecule, repeated_group;
         qi::symbols<char, const char *> element;
     };
 
@@ -144,8 +161,9 @@ main(int argc, char * argv[])
     std::string str;
     std::wstring wstr;
     
-    client::chemical_formula_parser< std::string::const_iterator > cf;
-    client::chemical_formula_formatter< std::wstring::const_iterator > wcf;
+    client::chemical_formula_parser< std::string::const_iterator, client::formulaComposition, client::map_type > cf;
+    client::chemical_formula_parser< std::wstring::const_iterator, client::formulaFormat, client::format_type > wcf;
+    // client::chemical_formula_parser< std::wstring::const_iterator, client::formulaComposition, client::map_type > wcf2;
 
     while (std::getline(std::cin, str))  {
         if (str.empty() || str[0] == 'q' || str[0] == 'Q')
@@ -184,9 +202,17 @@ main(int argc, char * argv[])
                 std::cout << "-------------------------\n";
                 std::cout << str << " Parses OK: " << std::endl;
                 for ( auto e: fmt ) {
-                    if ( e.first.first )
-                        std::cout << "<sup>" << e.first.first << "</sup>";
-                    std::cout << e.first.second << e.second << ", ";
+                    if ( std::strcmp( e.first.second, "(" ) == 0 )
+                        std::cout << "(";
+                    else if ( std::strcmp( e.first.second, ")" ) == 0 )
+                        std::cout << ")" << e.second;
+                    else {
+                        if ( e.first.first )
+                            std::cout << "<sup>" << e.first.first << "</sup>";
+                        std::cout << e.first.second;
+                        if ( e.second > 1 )
+                            std::cout << "<sub>" << e.second << "</sub>";
+                    }
                 }
                 std::cout << "\n-------------------------\n";
             } else {
