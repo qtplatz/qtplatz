@@ -48,7 +48,8 @@ namespace adcontrols {
         void dispose();
 
         const Element& findElement( const std::wstring& symbol ) const;
-        static double getMonoIsotopicMass( const Element& );
+        const Element& findElement( const std::string& symbol ) const;
+        static double getMonoIsotopicMass( const Element&, size_t isotope = 0 );
         static double getChemicalMass( const Element& );
 
         std::wstring saveXml() const;

@@ -241,7 +241,7 @@ IsotopeCluster::isotopeDistribution( adcontrols::MassSpectrum& ms
 
 		const Element& element = toe->findElement( it->first );
 
-		atoms.push_back( cluster( it->first /* symbol */, it->second /* natoms */) );
+		atoms.push_back( cluster( adportable::utf::to_wstring( it->first )/* symbol */, it->second /* natoms */) );
         cluster& cluster = atoms.back();
 
 		std::vector< size_t > counts( element.isotopeCount(), 0 );

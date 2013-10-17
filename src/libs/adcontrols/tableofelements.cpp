@@ -59,7 +59,22 @@ namespace adcontrols {
             TableOfElementsImpl();
             bool internalCreate();
 	    
-            const adcontrols::Element& findElement( const std::wstring& symbol ) const;
+            template<typename char_type > const adcontrols::Element&
+            findElement( const std::basic_string<char_type>& symbol ) const {
+                auto it = std::find_if( elements_.begin(), elements_.end(), [=]( const adcontrols::Element& e ){
+                        const char_type * s = symbol.c_str();
+                        const wchar_t * t = e.symbol().c_str();
+                        while ( *s && *t && *s == *t ) {
+                            ++s;
+                            ++t;
+                        }
+                        return *s == char_type('\0') && *t == L'\0';
+                    });
+                if ( it != elements_.end() )
+                    return *it;
+                static adcontrols::Element empty;
+                return empty;                
+            }
 	    
         private:
             static std::mutex mutex_;
@@ -115,40 +130,35 @@ TableOfElements::instance()
 const adcontrols::Element&
 TableOfElements::findElement( const std::wstring& symbol ) const
 {
-    return pImpl_->findElement( symbol );
+    return pImpl_->findElement<wchar_t>( symbol );
 }
 
-namespace adcontrols {
-    namespace table_of_elements {
-
-        struct abundance_compare {
-            bool operator()( const Element::Isotope& a, const Element::Isotope& b ) {
-                return a.abundance_ < b.abundance_;
-            }
-        };
-
-        struct element_finder {
-            const std::wstring& symbol_;
-            element_finder( const std::wstring& symbol ) : symbol_(symbol) {}
-            bool operator()( const adcontrols::Element& e ) {
-				return symbol_.compare( e.symbol() ) == 0;
-            }
-        };
-
-
-    };
-};
+const adcontrols::Element&
+TableOfElements::findElement( const std::string& symbol ) const
+{
+    return pImpl_->findElement<char>( symbol );
+}
 
 //static
 double
-TableOfElements::getMonoIsotopicMass( const Element& e )
+TableOfElements::getMonoIsotopicMass( const Element& e, size_t isotope )
 {
-    using adcontrols::table_of_elements::abundance_compare;
+    if ( isotope == 0 ) {
+        // find most abundant 
+        auto it = std::max_element( e.begin(), e.end(), []( const Element::Isotope&a, const Element::Isotope& b ){
+                return a.abundance_ < b.abundance_;
+            });
+        if ( it != e.end() )
+            return it->mass_;
 
-    adcontrols::Element::vector_type::const_iterator it;
-    it = std::max_element( e.begin(), e.end(), abundance_compare() );
-    if ( it != e.end() )
-        return it->mass_;
+    } else {
+        // find specific isotope
+        auto it = std::find_if( e.begin(), e.end(), [=]( const Element::Isotope&a ){
+                return isotope == size_t( a.mass_ + 0.3 );
+            });
+        if ( it != e.end() )
+            return it->mass_;
+    }
     
     return 0;
 }
@@ -621,18 +631,5 @@ TableOfElementsImpl::internalCreate()
     std::for_each( atoms.begin(), atoms.end(), set_superatom_vec( this->superAtoms_ ) );
 
     return true;
-}
-
-const adcontrols::Element&
-TableOfElementsImpl::findElement( const std::wstring& symbol ) const
-{
-    using adcontrols::table_of_elements::element_finder;
-
-    std::vector< Element >::const_iterator it = std::find_if( elements_.begin(), elements_.end(), element_finder(symbol) );
-    if ( it != elements_.end() )
-        return *it;
-
-    static adcontrols::Element empty;
-    return empty;
 }
 
