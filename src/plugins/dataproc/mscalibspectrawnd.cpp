@@ -55,29 +55,40 @@
 #include <qwt_plot_layout.h>
 #include <qwt_plot_marker.h>
 #include <qwt_plot_curve.h>
+#include <qwt_plot_legenditem.h>
 #include <qwt_symbol.h>
 #include <qwt_scale_engine.h>
 #include <qwt_legend.h>
 #include <QVBoxLayout>
-#include <cmath>
 #include <boost/format.hpp>
+#include <cmath>
+#include <tuple>
 
 namespace dataproc {
     namespace internal {
 		class SeriesData : public std::enable_shared_from_this< SeriesData >
                          , boost::noncopyable {
-            std::vector< std::pair< double, double > > d_; // time, length
+            std::vector< std::tuple< bool, double, double > > d_; // enable, time, length
             std::wstring formula_;
+            double exactMass_;
             QRectF rect_;
+            double intercept_;
+            double slope_;
         public:
             virtual ~SeriesData() {}
-            SeriesData( const std::wstring& formula ) : formula_( formula ) {
+            SeriesData( const std::wstring& formula, double exactMass ) : formula_( formula )
+                                                                        , exactMass_( exactMass )
+                                                                        , slope_(0)
+                                                                        , intercept_(0) {
             }
             const std::wstring& formula() const { return formula_; }
+            double slope() const { return slope_; }
+            double intercept() const { return intercept_; }
+            double exactMass() const { return exactMass_; }
 
             size_t size() { return d_.size(); }
             QPointF sample( size_t idx ) const {
-				return QPointF( d_[ idx ].second, d_[ idx ].first ); // (length, time)
+				return QPointF( std::get<2>(d_[ idx ]), std::get<1>(d_[ idx ]) ); // (length, time)
 			}
             QRectF boundingRect() const {
 				return rect_;
@@ -85,25 +96,28 @@ namespace dataproc {
 
             // local member
             void clear() {  d_.clear(); }
-            SeriesData& operator << ( const std::pair< double, double >& d ) {
+            SeriesData& operator << ( const std::tuple< bool, double, double >& d ) {
                 d_.push_back( d );
-
-                rect_.setLeft( std::min( d.second, rect_.left() ) );
-                rect_.setRight( std::max( d.second, rect_.right() ) );
-                rect_.setTop( std::min( d.first, rect_.top() ) );
-                rect_.setBottom( std::max( d.first, rect_.bottom() ) );
+                rect_.setLeft( std::min( std::get<2>(d),   rect_.left() ) );
+                rect_.setRight( std::max( std::get<2>(d),  rect_.right() ) );
+                rect_.setTop( std::min( std::get<1>(d),    rect_.top() ) );
+                rect_.setBottom( std::max( std::get<1>(d), rect_.bottom() ) );
                 return *this;
             }
-
-            bool polfit( double& a, double& b ) const {
+            
+            bool polfit( double& a, double& b ) {
                 std::vector< double > time, length, polinomial;
-                for ( auto xy: d_ ){
-                    time.push_back( xy.first );
-                    length.push_back( xy.second );
+                for ( auto t: d_ ){
+                    if ( std::get<0>(t) ) {
+                        time.push_back( std::get<1>(t) ); // time
+                        length.push_back( std::get<2>(t) ); // length
+                    }
                 }
                 if ( adportable::polfit::fit( length.data(), time.data(), time.size(), 2, polinomial ) ) {
                     a = polinomial[0];
                     b = polinomial[1];
+                    intercept_ = a;
+                    slope_ = b;
                     return true;
                 }
                 return false;
@@ -140,10 +154,19 @@ MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
                                                          , wndCalibSummary_( 0 )
                                                          , wndSplitter_( 0 )
                                                          , dplot_( new adwplot::Dataplot )
+                                                         , rplot_( new adwplot::Dataplot )
                                                          , axis_( adwplot::SpectrumWidget::HorizontalAxisMass )
                                                          , regressionCurve_(0)
+    , slopePlotCurve_(0)
+    , interceptPlotCurve_(0)
+    , slopeRegressionCurve_(0)
+    , interceptRegressionCurve_(0)
+    , T0_(0)
 {
     dplot_->setMinimumHeight( 40 );
+    dplot_->setMinimumWidth( 40 );
+    rplot_->setMinimumHeight( 40 );
+    rplot_->setMinimumWidth( 40 );
 
 	QwtText text_haxis( "flight length(m)", QwtText::RichText );
 	QwtText text_vaxis( "time (&mu;s)", QwtText::RichText );
@@ -161,7 +184,10 @@ MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
 	dplot_->axisAutoScale( QwtPlot::xBottom );
 	dplot_->axisAutoScale( QwtPlot::yLeft );
 	dplot_->axisScaleEngine( QwtPlot::xBottom )->setAttribute( QwtScaleEngine::Floating, true );
-    dplot_->insertLegend( new QwtLegend() );
+    do {
+        QwtPlotLegendItem * legendItem = new QwtPlotLegendItem;
+        legendItem->attach( dplot_.get() );
+    } while(0);
 
     dplot_->setAxisTitle( QwtPlot::xBottom, text_haxis );
 	dplot_->setAxisScale( QwtPlot::yLeft, -1.00, 50 );
@@ -169,6 +195,24 @@ MSCalibSpectraWnd::MSCalibSpectraWnd( QWidget * parent ) : QWidget( parent )
 	time_length_marker_ = std::make_shared< QwtPlotMarker >();
     time_length_marker_->attach( dplot_.get() );
 	//dplot_->zoomer().autoYScale( true );
+
+    QwtText haxis( "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span>" );
+    haxis.setFont( font );
+    rplot_->setAxisTitle( QwtPlot::xBottom, haxis );
+
+    QwtText left_axis( "Slope" );
+    QwtText right_axis( "Intercept" );
+    left_axis.setFont( font );
+    right_axis.setFont( font );
+    rplot_->setAxisTitle( QwtPlot::yLeft, left_axis );
+	rplot_->enableAxis( QwtPlot::yRight );
+    rplot_->setAxisTitle( QwtPlot::yRight, right_axis );
+    do {
+        QwtPlotLegendItem * legendItem = new QwtPlotLegendItem;
+        legendItem->setMaxColumns( 1 );
+        legendItem->attach( rplot_.get() );
+    } while(0);
+
     init();
 }
 
@@ -231,9 +275,13 @@ MSCalibSpectraWnd::init()
             
             splitter2->addWidget( wndCalibSummary_ );
         }
-        splitter2->addWidget( dplot_.get() );
+        if ( Core::MiniSplitter * splitter3 = new Core::MiniSplitter ) {// time vs length | slope, intercept vs m/z
+            splitter3->addWidget( dplot_.get() );
+            splitter3->addWidget( rplot_.get() );
+            splitter3->setOrientation( Qt::Horizontal );
+            splitter2->addWidget( splitter3 );
+        }
         splitter2->setOrientation( Qt::Vertical );
-
         splitter->addWidget( splitter2 );
 
         splitter->setOrientation( Qt::Horizontal );
@@ -276,6 +324,64 @@ MSCalibSpectraWnd::replotSpectra()
 }
 
 void
+MSCalibSpectraWnd::flight_length_regression()
+{
+    tofCoeffs_.clear();
+    adcontrols::ChemicalFormula chemicalFormula;
+
+    double t = 0;
+    size_t n = 0;
+    for ( auto& d: plotData_ ) {
+        double a, b;
+		if ( d.second->polfit( a, b ) ) {
+            t += a;
+            ++n;
+            tofCoeffs_[ d.first ] = std::make_pair( a, b );
+        }
+	}
+    T0_ = adcontrols::metric::scale_to_base( t / n, adcontrols::metric::micro );
+
+    std::vector<double> mq, a, b;
+    for ( auto d: tofCoeffs_ ) {
+        double mass = chemicalFormula.getMonoIsotopicMass( d.first );
+        mq.push_back( std::sqrt( mass ) );
+        a.push_back( d.second.first ); // a, microsecond scale
+        b.push_back( d.second.second ); // b, microsecond scale
+    }
+
+    std::ostringstream title;
+    std::ostringstream footer;
+
+    if ( mq.size() >= 2 ) {
+
+        if ( adportable::polfit::fit( b.data(), mq.data(), mq.size(), 2, bCoeffs_ ) ) {
+            adcontrols::MSCalibration calib;
+            calib.coeffs( bCoeffs_ );
+			title << "Slope: " << calib.formulaText() << ";  ";
+        }
+
+        if ( adportable::polfit::fit( mq.data(), a.data(), mq.size(), 2, aCoeffs_ ) ) {
+            footer << boost::format( "intercept = %.6le" ) % aCoeffs_[0];
+            for ( size_t i = 1; i < aCoeffs_.size(); ++i )
+                footer << boost::format(
+                    " + %.6le &times; &radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span><sup>%d</sup>" )
+                    % aCoeffs_[ i ] % i;
+			footer << ";  ";
+        }
+    }
+    std::ostringstream o;
+    o << boost::format( "T<sub>0</sub> = %.6lf&mu;s" ) % adcontrols::metric::scale_to_micro( T0_ );
+    
+	dplot_->setTitle( o.str() );
+	rplot_->setTitle( title.str() );
+	rplot_->setFooter( footer.str() );
+
+    plot_slope();
+    plot_intercept();
+    rplot_->replot();
+}
+
+void
 MSCalibSpectraWnd::replotLengthTime()
 {
     plotCurves_.clear();
@@ -290,9 +396,10 @@ MSCalibSpectraWnd::replotLengthTime()
                 for ( auto& assigned: masses ) {
                     std::wstring formula = parser.standardFormula( assigned.formula() ); // normalize 
                     auto& d = plotData_[ formula ];
-                    if ( ! d )
-                        d = std::make_shared< internal::SeriesData >( formula );
-                    *d << std::make_pair( adcontrols::metric::scale_to_micro( assigned.time() ), ms->scanLaw().fLength( assigned.mode() ) );
+                    if ( ! d ) {
+                        d = std::make_shared< internal::SeriesData >( formula, assigned.exactMass() );
+                    }
+					*d << std::make_tuple( assigned.enable(), adcontrols::metric::scale_to_micro( assigned.time() ), ms->scanLaw().fLength( assigned.mode() ) );
                 }
             }
         }
@@ -328,6 +435,7 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
     populate( processor, folder );
     replotSpectra();
 	replotLengthTime();
+    flight_length_regression();
 
     folium_ = folium;
     portfolio::Folio attachments = folium.attachments();
@@ -339,13 +447,24 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
     curSpectrum_ = boost::any_cast< adutils::MassSpectrumPtr >( *it );
 
     // calib result
-    if ( ( it = portfolio::Folium::find<adutils::MSCalibrateResultPtr>(attachments.begin(), attachments.end()) )
+    if ( ( it = portfolio::Folium::find< adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end()) )
          == attachments.end() ) {
         curSpectrum_.reset();
         return;
     }
-    curCalibResult_ = boost::any_cast< adutils::MSCalibrateResultPtr >( *it );
-    emit onSetData( *curCalibResult_.lock(), *curSpectrum_.lock() );
+    curCalibResult_ = boost::any_cast< adcontrols::MSCalibrateResultPtr >( *it );
+
+	auto calibResult = curCalibResult_.lock();
+	calibResult->t0( T0_ );
+    if ( !bCoeffs_.empty() ) {
+        adcontrols::MSCalibration calib;
+        calib.coeffs( bCoeffs_ );
+		calibResult->calibration( calib );
+    }
+    if ( !aCoeffs_.empty() )
+        calibResult->a_coeffs( aCoeffs_ );
+    
+	emit onSetData( *calibResult, *curSpectrum_.lock() );
 }
 
 void
@@ -430,7 +549,20 @@ MSCalibSpectraWnd::handleValueChanged()
             }
         }
     }
+
     replotLengthTime();
+    flight_length_regression();
+
+    auto calibResult = curCalibResult_.lock();
+    auto calibSpectrum = curSpectrum_.lock();
+    if ( calibResult && calibSpectrum ) {
+        calibResult->t0( T0_ );
+        adcontrols::MSCalibration calib;
+        calib.coeffs( bCoeffs_ );
+        calibResult->calibration( calib );
+        calibResult->a_coeffs( aCoeffs_ );
+        emit onSetData( *calibResult, *calibSpectrum );
+    }
 }
 
 int
@@ -527,7 +659,7 @@ MSCalibSpectraWnd::plot( internal::SeriesData& d, int id )
     plotCurve->setLegendAttribute( QwtPlotCurve::LegendShowLine );
 	plotCurve->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Ellipse + (id % 10) ), Qt::NoBrush, QPen( Qt::darkMagenta ), QSize(5, 5 ) ) );
     plotCurve->setPen( QPen( colors[ id % 11 ] ) );
-    plotCurve->setTitle( QString::fromStdWString( d.formula() ) );
+    plotCurve->setTitle( QString::fromStdWString( adcontrols::ChemicalFormula::formatFormula( d.formula() ) ) );
 
     std::shared_ptr< internal::SeriesData > ptr = d.shared_from_this();
     plotCurve->setData( new internal::xSeriesData( ptr ) );
@@ -538,6 +670,62 @@ MSCalibSpectraWnd::plot( internal::SeriesData& d, int id )
 
 	dplot_->zoomer().setZoomBase( true );
 	dplot_->replot();
+}
+
+void
+MSCalibSpectraWnd::plot_slope()
+{
+	rplot_->axisAutoScale( QwtPlot::xBottom );
+	rplot_->axisAutoScale( QwtPlot::yLeft );
+	rplot_->axisAutoScale( QwtPlot::yRight );
+
+    if ( slopePlotCurve_ == 0 ) {
+        slopePlotCurve_ = new QwtPlotCurve;
+        slopePlotCurve_->attach( rplot_.get() );
+        slopePlotCurve_->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+        slopePlotCurve_->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Ellipse ), Qt::NoBrush, QPen( Qt::darkMagenta ), QSize(5, 5 ) ) );
+        slopePlotCurve_->setPen( QPen( Qt::blue ) );
+        slopePlotCurve_->setYAxis( QwtPlot::yLeft );
+        slopePlotCurve_->setTitle( "slope" );
+    }
+	double minY = std::numeric_limits<double>::max();
+	double maxY = std::numeric_limits<double>::min();
+    QVector< QPointF > xy;
+    for ( auto plot: plotData_ ) {
+		minY = std::min( minY, plot.second->slope() );
+		maxY = std::max( maxY, plot.second->slope() );
+		xy << QPointF( std::sqrt( plot.second->exactMass() ), plot.second->slope() );
+    }
+    slopePlotCurve_->setSamples( xy );
+    rplot_->zoomer().setZoomBase( true );
+    
+	// rplot_->setAxisScale( QwtPlot::yLeft, minY, maxY );
+}
+
+void
+MSCalibSpectraWnd::plot_intercept()
+{
+    if ( interceptPlotCurve_ == 0 ) {
+        interceptPlotCurve_ = new QwtPlotCurve;
+        interceptPlotCurve_->attach( rplot_.get() );
+        interceptPlotCurve_->setLegendAttribute( QwtPlotCurve::LegendShowLine );
+        interceptPlotCurve_->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Cross ), Qt::NoBrush, QPen( Qt::darkMagenta ), QSize(5, 5 ) ) );
+        interceptPlotCurve_->setPen( QPen( Qt::red ) );
+		interceptPlotCurve_->setYAxis( QwtPlot::yRight );
+        interceptPlotCurve_->setTitle( "intercept" );
+    }
+
+	double minY = std::numeric_limits<double>::max();
+	double maxY = std::numeric_limits<double>::min();
+    QVector< QPointF > xy;
+    for ( auto plot: plotData_ ) {
+		minY = std::min( minY, plot.second->intercept() );
+		maxY = std::max( maxY, plot.second->intercept() );        
+        xy << QPointF( std::sqrt( plot.second->exactMass() ), plot.second->intercept() );
+    }
+    interceptPlotCurve_->setSamples( xy );
+    rplot_->zoomer().setZoomBase( true );
+	// rplot_->setAxisScale( QwtPlot::yRight, minY, maxY );
 }
 
 void
@@ -562,14 +750,14 @@ MSCalibSpectraWnd::plotSelectedLengthTime( const std::wstring& formula )
     auto it = plotData_.find( formula );
 	if ( it != plotData_.end() ) {
         // SeriesData has microseconds scale
-        const internal::SeriesData& data = *it->second;
+        internal::SeriesData& data = *it->second;
         double a = 0, b = 0;
         if ( data.polfit( a, b ) ) {
             double Lo = -(a / b);
 
             std::ostringstream o;
             o << boost::format( "%s: <i>t(&mu;s) = %.14le + %.14le &times; L</i>, L<sub>0</sub>=%.8lfm" )
-                % adportable::utf::to_utf8( formula )
+                % adportable::utf::to_utf8( adcontrols::ChemicalFormula::formatFormula( formula ) )
                 % a
                 % b
                 % Lo;
@@ -587,8 +775,8 @@ MSCalibSpectraWnd::plotSelectedLengthTime( const std::wstring& formula )
             xy << QPointF( Lo, 0 );
             xy << QPointF( Lx, Tx );
             regressionCurve_->setSamples( xy );
-            regressionCurve_->setTitle( QString::fromStdWString( formula + L" regression") );
-            regressionCurve_->setPen( Qt::gray, 0, Qt::DashDotLine );
+            regressionCurve_->setTitle( QString::fromStdWString( adcontrols::ChemicalFormula::formatFormula( formula ) + L" regression") );
+            regressionCurve_->setPen( Qt::gray, 2.0, Qt::DashDotLine );
             dplot_->replot();
         }
     }

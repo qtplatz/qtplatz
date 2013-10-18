@@ -35,6 +35,7 @@
 class QSplitter;
 class QwtPlotMarker;
 class QwtPlotCurve;
+class QwtPlot;
 
 namespace adcontrols {
     class MassSpectrum;
@@ -94,11 +95,21 @@ namespace dataproc {
         QWidget * wndCalibSummary_;
         QSplitter * wndSplitter_;
         std::shared_ptr< adwplot::Dataplot > dplot_;
+        std::shared_ptr< adwplot::Dataplot > rplot_;
         int axis_;
 		std::vector< std::tuple< std::wstring, std::shared_ptr<adcontrols::MassSpectrum>, std::shared_ptr<adcontrols::MSCalibrateResult> > > results_;
         std::map< std::wstring, std::shared_ptr< internal::SeriesData > > plotData_;
         std::map< std::wstring, std::shared_ptr< QwtPlotCurve > > plotCurves_;
+        std::map< std::wstring, std::vector< double > > assignedTimes_;
         QwtPlotCurve * regressionCurve_;
+        QwtPlotCurve * slopePlotCurve_;
+        QwtPlotCurve * interceptPlotCurve_;
+        QwtPlotCurve * slopeRegressionCurve_;
+        QwtPlotCurve * interceptRegressionCurve_;
+        double T0_;
+        std::map< std::wstring, std::pair< double, double > > tofCoeffs_;
+        std::vector< double > aCoeffs_;
+        std::vector< double > bCoeffs_;
 
         // std::vector< std::shared_ptr< adcontrols::MSAssignedMasses > > assignedResults_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
@@ -106,7 +117,10 @@ namespace dataproc {
         void replotLengthTime();
         void plotSelectedLengthTime( const std::wstring& formula );
         void plot( internal::SeriesData&, int id );
+        void plot_slope();
+        void plot_intercept();
         void plotTimeMarker( double t, double l );
+        void flight_length_regression();
     };
 
 }

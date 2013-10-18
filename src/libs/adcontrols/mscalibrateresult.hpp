@@ -28,7 +28,9 @@
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/scoped_ptr.hpp>
+#include <boost/serialization/vector.hpp>
 #include <boost/serialization/version.hpp>
+#include <memory>
 
 namespace adcontrols {
 
@@ -50,6 +52,9 @@ namespace adcontrols {
         double tolerance() const;
         void tolerance( double );
 
+        double t0() const;
+        void t0( double );
+
         const MSReferences& references() const;
         MSReferences& references();
         void references( const MSReferences& );
@@ -61,6 +66,9 @@ namespace adcontrols {
         const MSCalibration& calibration() const;
         MSCalibration& calibration();
         void calibration( const MSCalibration& );
+
+        void a_coeffs( const std::vector< double >& );
+        const std::vector<double>& a_coeffs() const;
     private:
 
 # if defined _MSC_VER
@@ -72,15 +80,30 @@ namespace adcontrols {
         boost::scoped_ptr< MSCalibration > calibration_;
         boost::scoped_ptr< MSAssignedMasses > assignedMasses_;
 
+        // trial
+        double t0_;
+        std::vector< double > a_coeffs_;
+
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int ) {
+        void serialize(Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
-            ar & BOOST_SERIALIZATION_NVP(tolerance_);
-            ar & BOOST_SERIALIZATION_NVP(threshold_);
-            ar & BOOST_SERIALIZATION_NVP(references_);
-            ar & BOOST_SERIALIZATION_NVP(calibration_);
-            ar & BOOST_SERIALIZATION_NVP(assignedMasses_);
+            if ( version < 2 ) {
+                ar & BOOST_SERIALIZATION_NVP(tolerance_);
+                ar & BOOST_SERIALIZATION_NVP(threshold_);
+                ar & BOOST_SERIALIZATION_NVP(references_);
+                ar & BOOST_SERIALIZATION_NVP(calibration_);
+                ar & BOOST_SERIALIZATION_NVP(assignedMasses_);
+            } else if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP(tolerance_);
+                ar & BOOST_SERIALIZATION_NVP(threshold_);
+                ar & BOOST_SERIALIZATION_NVP(*references_);
+                ar & BOOST_SERIALIZATION_NVP(*calibration_);
+                ar & BOOST_SERIALIZATION_NVP(*assignedMasses_);
+                // trial for multi-turn calibration
+                ar & BOOST_SERIALIZATION_NVP(t0_);
+                ar & BOOST_SERIALIZATION_NVP(a_coeffs_); // for flight length calculation
+            }
         }
     public:
         static bool archive( std::ostream&, const MSCalibrateResult& );
@@ -91,4 +114,4 @@ namespace adcontrols {
 
 }
 
-
+BOOST_CLASS_VERSION( adcontrols::MSCalibrateResult, 2 )

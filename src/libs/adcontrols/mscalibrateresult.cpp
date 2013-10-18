@@ -50,6 +50,7 @@ MSCalibrateResult::~MSCalibrateResult()
 
 MSCalibrateResult::MSCalibrateResult() : tolerance_(0)
                                        , threshold_(0)
+                                       , t0_(0)
                                        , references_( new MSReferences )
                                        , calibration_( new MSCalibration ) 
                                        , assignedMasses_( new MSAssignedMasses ) 
@@ -62,6 +63,8 @@ MSCalibrateResult::MSCalibrateResult( const MSCalibrateResult& t )
     , references_( new MSReferences( *t.references_ ) )
     , calibration_( new MSCalibration( *t.calibration_ ) )
     , assignedMasses_( new MSAssignedMasses( *t.assignedMasses_ ) )
+    , t0_( t.t0_ )
+    , a_coeffs_( t.a_coeffs_ )
 {
 }
 
@@ -73,6 +76,8 @@ MSCalibrateResult::operator = ( const MSCalibrateResult& t )
     references_.reset( new MSReferences( *t.references_ ) );
     calibration_.reset( new MSCalibration( *t.calibration_ ) );
     assignedMasses_.reset( new MSAssignedMasses( *t.assignedMasses_ ) );
+    t0_ = t.t0_;
+    a_coeffs_ = t.a_coeffs_;
 	return *this;
 }
 
@@ -100,6 +105,29 @@ MSCalibrateResult::threshold( double v )
     threshold_ = v;
 }
 
+double
+MSCalibrateResult::t0() const
+{
+    return t0_;
+}
+
+void
+MSCalibrateResult::t0( double value )
+{
+    t0_ = value;
+}
+
+void
+MSCalibrateResult::a_coeffs( const std::vector< double >& v )
+{
+    a_coeffs_ = v;
+}
+
+const std::vector<double>&
+MSCalibrateResult::a_coeffs() const
+{
+    return a_coeffs_;
+}
 
 const MSReferences&
 MSCalibrateResult::references() const
