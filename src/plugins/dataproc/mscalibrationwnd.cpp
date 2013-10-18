@@ -282,8 +282,15 @@ MSCalibrationWnd::handleAxisChanged( int axis )
 {
 	pImpl_->processedSpectrum_->setAxis( static_cast< adwplot::SpectrumWidget::HorizontalAxis >( axis ) );
 
+    // replot profile
+    boost::any& data = pImpl_->folium_;
+    if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) { 
+        adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( data );
+        pImpl_->processedSpectrum_->setData( ptr, idx_profile );
+    }
+
     if ( auto centroid = pImpl_->calibSpectrum_.lock() )
-        pImpl_->processedSpectrum_->setData( centroid, 1 );
+        pImpl_->processedSpectrum_->setData( centroid, idx_centroid );
 }
 
 void
