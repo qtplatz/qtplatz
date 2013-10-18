@@ -109,14 +109,14 @@ MSCalibration::formulaText( bool ritchText )
 
     if ( ritchText ) {
         o << "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span> = "
-          << boost::format( "%.14le" ) % coeffs_[ 0 ];
+          << boost::format( "%.8le" ) % coeffs_[ 0 ];
         for ( size_t i = 1; i < coeffs_.size(); ++i )
-            o << boost::format( " + %.14le &times; t<sup>%d</sup>" ) % coeffs_[ i ] % i;
+            o << boost::format( " + %.8le &times; t<sup>%d</sup>" ) % coeffs_[ i ] % i;
     } else {
         o << "sqrt(m/z) = "
-          << boost::format( "%.14le" ) % coeffs_[ 0 ];
+          << boost::format( "%.8le" ) % coeffs_[ 0 ];
         for ( size_t i = 1; i < coeffs_.size(); ++i )
-            o << boost::format( " + %.14le * t^%d" ) % coeffs_[ i ] % i;
+            o << boost::format( " + %.8le * t^%d" ) % coeffs_[ i ] % i;
     }
     return o.str();
 }

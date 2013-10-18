@@ -183,6 +183,8 @@ MSCalibSummaryWidget::getLifeCycle( adplugin::LifeCycle *& p )
 bool
 MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontrols::MSAssignedMasses& assigned )
 {
+    using namespace adcontrols::metric;
+
     QStandardItemModel& model = *pModel_;
 
     auto it = std::find_if( assigned.begin(), assigned.end(), [=]( const adcontrols::MSAssignedMass& a ){
@@ -192,11 +194,20 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
     if ( it == assigned.end() )
         return false;
 
-    const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
+	double normalized_time = 0; // ( it->time() - t0 ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
 
-	double normalized_time = it->time() / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
-    //double mass = calib.compute_mass( normalized_time );
-	double mass = calib.compute_mass( it->time() );
+    const adcontrols::MSCalibration& calib = pCalibResult_->calibration(); // microseconds
+    double mass = calib.compute_mass( it->time() );
+
+    const std::vector< double >& a_coeffs = pCalibResult_->a_coeffs(); // microseconds
+    const std::vector< double >& b_coeffs = calib.coeffs(); // microseconds
+    if ( ! b_coeffs.empty() ) {
+        const double t0 = pCalibResult_->t0();
+        double L = pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
+        double T = scale_to_micro( it->time() - t0 );
+        normalized_time = ( it->time() - t0 ) / L;
+        mass = calib.compute_mass( T / L );
+    }
 
     model.setData( model.index( row, c_time_normalized ), normalized_time );
     model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );

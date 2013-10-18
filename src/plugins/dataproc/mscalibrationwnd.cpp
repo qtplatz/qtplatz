@@ -280,7 +280,10 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 void
 MSCalibrationWnd::handleAxisChanged( int axis )
 {
-    adportable::debug(__FILE__, __LINE__) << "axisChanged( " << axis << " )";
+	pImpl_->processedSpectrum_->setAxis( static_cast< adwplot::SpectrumWidget::HorizontalAxis >( axis ) );
+
+    if ( auto centroid = pImpl_->calibSpectrum_.lock() )
+        pImpl_->processedSpectrum_->setData( centroid, 1 );
 }
 
 void
