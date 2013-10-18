@@ -222,13 +222,13 @@ ChemicalFormula::formatFormula( const std::wstring& formula, bool ritchText )
                 if ( std::strcmp( e.first.second, "(" ) == 0 ) {
                     o << L"(";
                 } else if ( std::strcmp( e.first.second, ")" ) == 0 ) {
-                    o << boost::wformat( L")<sub>$1$</sub>" ) % e.second;
+                    o << boost::wformat( L")<sub>%1%</sub>" ) % e.second;
                 } else {
                     if ( e.first.first )
-                        o << boost::wformat( L"<sup>$1$</sup>" ) % e.first.first;
+                        o << boost::wformat( L"<sup>%1%</sup>" ) % e.first.first;
                     o << adportable::utf::to_wstring( e.first.second ); // element name
                     if ( e.second > 1 )
-                        o << boost::wformat( L"<sub>$1$</sub>" ) % e.second;
+                        o << boost::wformat( L"<sub>%1%</sub>" ) % e.second;
                 }
             }
         } else {
