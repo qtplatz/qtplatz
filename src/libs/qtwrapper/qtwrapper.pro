@@ -19,4 +19,5 @@ SOURCES += qtwrapper.cpp \
 HEADERS += qtwrapper.hpp \
     qstring.hpp \
     application.hpp \
-    xmlformatter.hpp 
+    xmlformatter.hpp \ 
+    waitcursor.hpp
