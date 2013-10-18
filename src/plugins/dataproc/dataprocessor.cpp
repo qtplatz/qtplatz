@@ -72,6 +72,7 @@
 #include <adfs/file.hpp>
 #include <adfs/attributes.hpp>
 #include <adutils/fsio.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 #include <stack>
@@ -188,6 +189,7 @@ Dataprocessor::setCurrentSelection( portfolio::Folder& folder )
 void
 Dataprocessor::setCurrentSelection( portfolio::Folium& folium )
 {
+    qtwrapper::waitCursor wait;
 	fetch( folium );
     idActiveFolium_ = folium.id();
     SessionManager::instance()->selectionChanged( this, folium );
@@ -350,6 +352,7 @@ Dataprocessor::removeCheckedItems()
 void
 Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
 {
+    qtwrapper::waitCursor wait;
     portfolio::Folder spectra = portfolio_->findFolder( L"Spectra" );
 
     adcontrols::ProcessMethod mproc;
