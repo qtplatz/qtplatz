@@ -251,7 +251,8 @@ DataprocHandler::doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
 			ms.setColor( idx, 1 ); // red
 		else
 			ms.setColor( idx, 6 ); // dark red
-        adcontrols::annotation anno( assigned.formula(), ms.getMass( idx ),  ms.getIntensity( idx ), idx );
+        std::wstring text = adcontrols::ChemicalFormula::formatFormula( assigned.formula() );
+        adcontrols::annotation anno( text, ms.getMass( idx ),  ms.getIntensity( idx ), idx );
         ms.get_annotations() << anno;
     }
 	return true;
