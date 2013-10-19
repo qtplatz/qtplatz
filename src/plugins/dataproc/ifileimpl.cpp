@@ -83,16 +83,17 @@ IFileImpl::save( const QString& filename )
 {
     portfolio::Portfolio portfolio = dprocessor_.getPortfolio();
 
-    boost::filesystem::path path;
-    if ( filename.isEmpty() ) { // save
+    boost::filesystem::path path( filename_.toStdWString() ); // original name
 
-        path = filename_.toStdString(); // for xml
+    if ( filename.isEmpty() || ( path == boost::filesystem::path( filename.toStdString() ) ) ) {
+        // Save
         if ( ! this->file().saveContents( L"/Processed", portfolio ) )
 			return false;
 
-    } else { // save as
+    } else { // save as 'filename
 
-        path = filename.toStdString();
+        path = filename.toStdWString();
+
 		if ( boost::filesystem::exists( path ) ) {
             QMessageBox::warning( 0, "Datafile save", "file already exists" );
             return false;
