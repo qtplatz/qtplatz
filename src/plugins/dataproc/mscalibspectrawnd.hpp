@@ -31,6 +31,7 @@
 #include <memory>
 #include <tuple>
 #include <map>
+#include <deque>
 
 class QSplitter;
 class QwtPlotMarker;
@@ -79,7 +80,6 @@ namespace dataproc {
         void init();
         void applyAssigned( const adcontrols::MSAssignedMasses&, const portfolio::Folium& );
 
-        typedef std::pair< std::shared_ptr< adcontrols::MSCalibrateResult >, std::shared_ptr< adcontrols::MassSpectrum > > result_type;
         int populate( Dataprocessor *, portfolio::Folder& );
         void doCalibration( adcontrols::MassSpectrum& centroid, adcontrols::MSCalibrateResult&, const adcontrols::MSAssignedMasses& assigned );
 
@@ -89,15 +89,26 @@ namespace dataproc {
 
         std::vector< portfolio::Folium > folio_;
         portfolio::Folium folium_;
-        std::weak_ptr< adcontrols::MSCalibrateResult > curCalibResult_;
-        std::weak_ptr< adcontrols::MassSpectrum > curSpectrum_;
+
+        // selSpectra member holds last selected spectra regardless of isChecked state (for spectral comperison on display)
+        std::deque< std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > > selSpectra_;
+        std::wstring selFormula_;
+
+        // results member holds all isChecked flagged data
+        typedef std::tuple< std::wstring, std::shared_ptr<adcontrols::MassSpectrum>, std::shared_ptr<adcontrols::MSCalibrateResult> > result_type;
+		std::vector< result_type > results_;
+        std::vector< size_t > number_of_segments_;
+
+        // marged is convenient marged spectra for easy review all identified peaks
+        std::shared_ptr< adcontrols::MassSpectrum > margedSpectrum_;
+        std::shared_ptr< adcontrols::MSCalibrateResult > margedCalibResult_;
 
         QWidget * wndCalibSummary_;
         QSplitter * wndSplitter_;
         std::shared_ptr< adwplot::Dataplot > dplot_;
         std::shared_ptr< adwplot::Dataplot > rplot_;
         int axis_;
-		std::vector< std::tuple< std::wstring, std::shared_ptr<adcontrols::MassSpectrum>, std::shared_ptr<adcontrols::MSCalibrateResult> > > results_;
+
         std::map< std::wstring, std::shared_ptr< internal::SeriesData > > plotData_;
         std::map< std::wstring, std::shared_ptr< QwtPlotCurve > > plotCurves_;
         std::map< std::wstring, std::vector< double > > assignedTimes_;
@@ -121,6 +132,8 @@ namespace dataproc {
         void plot_intercept();
         void plotTimeMarker( double t, double l );
         void flight_length_regression();
+        void generate_marged_result( Dataprocessor * );
+        void reverse_assign_peaks();
     };
 
 }
