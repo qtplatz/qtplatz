@@ -288,26 +288,8 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType pro
     adportable::debug(__FILE__, __LINE__) << "applyProcess: " << procType;
 
     portfolio::Folium folium = portfolio_->findFolium( idActiveFolium_ );
-    if ( folium ) {
+    if ( folium )
         applyProcess( folium, m, procType );
-    } else {
-        // no selected folium, peak find to raw TIC
-#if 0
-        if ( procType == PeakFindProcess ) {
-            Dataprocessor * d_processor = SessionManager::instance()->getActiveDataprocessor();
-            if ( d_processor ) {
-                const adcontrols::LCMSDataset * dataset = d_processor->getLCMSDataset();
-                if ( dataset ) {
-                    adcontrols::Chromatogram c;
-                    if ( dataset->getTIC( 0, c ) ) {
-                        c.addDescription( adcontrols::Description( L"Create", L"TIC" ) );
-                        d_processor->addChromatogram( c, m );
-                    }
-                }
-            }
-        }
-#endif
-    }
 }
 
 void
@@ -327,6 +309,7 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
         } else if ( procType == CalibrationProcess ) {
             // should not be here
         } else if ( procType == PeakFindProcess ) {
+            adportable::debug(__FILE__, __LINE__) << "============== select PeakFindProcess";
             selector.append< adcontrols::PeakMethod >( method );
         }
 
@@ -804,7 +787,7 @@ bool
 DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::PeakMethod& m, const adcontrols::Chromatogram& c )
 {
     portfolio::Folium att = folium.addAttachment( L"Peak Result" );
-    adcontrols::PeakResultPtr pResult( new adcontrols::PeakResult() );
+    adcontrols::PeakResultPtr pResult( std::make_shared< adcontrols::PeakResult >() );
     
     if ( DataprocHandler::doFindPeaks( *pResult, c, m ) ) {
         att.assign( pResult, pResult->dataClass() );

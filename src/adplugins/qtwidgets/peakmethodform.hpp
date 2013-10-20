@@ -45,7 +45,6 @@ namespace adcontrols {
 namespace qtwidgets {
 
 	class TableDelegate;
-	class PeakMethodDelegate;
 
 	class PeakMethodForm : public QWidget
 		                 , public adplugin::LifeCycle {
@@ -64,22 +63,38 @@ namespace qtwidgets {
 
         //<--
 	public slots:
-        void getContents( adcontrols::ProcessMethod& );
+        void getContents( adcontrols::ProcessMethod& ) const;
         void getLifeCycle( adplugin::LifeCycle*& );
 		//--
 		// void peakMethodChanged( const QModelIndex& );
     signals:
 		void apply( adcontrols::ProcessMethod& );
 
-	private:
-		Ui::PeakMethodForm *ui;
+    private slots:
+        void on_doubleSpinSlope_valueChanged(double arg1);
 
-        std::unique_ptr< QStandardItemModel > pGEModel_; // global events
-        std::unique_ptr< QStandardItemModel > pTEModel_; // time events
-        std::unique_ptr< adportable::Configuration > pConfig_;
+        void on_doubleSpinMinWidth_valueChanged(double arg1);
+
+        void on_doubleSpinMinHeight_valueChanged(double arg1);
+
+        void on_doubleSpinDrift_valueChanged(double arg1);
+
+        void on_doubleSpinMinArea_valueChanged(double arg1);
+
+        void on_doubleSpinDoublingTime_valueChanged(double arg1);
+
+        void on_comboBoxPharmacopoeia_currentIndexChanged(int index);
+
+        void on_comboBoxPlate_currentIndexChanged(int index);
+
+        void on_comboBoxWidth_currentIndexChanged(int index);
+
+    private:
+		Ui::PeakMethodForm *ui;
+        std::unique_ptr< QStandardItemModel > pModel_; // time events
         std::unique_ptr< adcontrols::PeakMethod > pMethod_;
-		std::unique_ptr< PeakMethodDelegate > pPMDelegate_;
-		std::unique_ptr< TableDelegate > pTEDelegate_;
+		std::unique_ptr< TableDelegate > pDelegate_;
+        void setContents( const adcontrols::PeakMethod& );
 	};
 
 }
