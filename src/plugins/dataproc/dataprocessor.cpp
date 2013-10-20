@@ -308,7 +308,7 @@ Dataprocessor::applyProcess( portfolio::Folium& folium
         } else if ( procType == CalibrationProcess ) {
             // should not be here
         } else if ( procType == PeakFindProcess ) {
-            adportable::debug(__FILE__, __LINE__) << "============== select PeakFindProcess";
+            // adportable::debug(__FILE__, __LINE__) << "============== select PeakFindProcess";
             selector.append< adcontrols::PeakMethod >( method );
         }
 
@@ -787,7 +787,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::Pea
 {
     portfolio::Folium att = folium.addAttachment( L"Peak Result" );
     adcontrols::PeakResultPtr pResult( std::make_shared< adcontrols::PeakResult >() );
-    
+
     if ( DataprocHandler::doFindPeaks( *pResult, c, m ) ) {
         att.assign( pResult, pResult->dataClass() );
         
