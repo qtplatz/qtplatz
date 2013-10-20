@@ -195,7 +195,7 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>
                 nCount = 0;
                 double t0 = *it;
                 nDelay = int( ( t0 / ( sampInterval * 1e-12 ) ) + 0.5 );
-                adportable::debug() << "time error: " << (t0 - ( nDelay * sampInterval * 1e-12 ) ) * 1e12 << "ps : t=" << t0  << " @ " << idx;
+                adportable::debug(__FILE__, __LINE__) << "time error: " << (t0 - ( nDelay * sampInterval * 1e-12 ) ) * 1e12 << "ps : t=" << t0  << " @ " << idx;
             }
         }
     }

@@ -59,12 +59,12 @@ std::mutex manager_i::mutex_;
 
 manager_i::manager_i(void) : discovery_(0)
 {
-    adportable::debug() << "adbroker::manager_i ctor";
+    adportable::debug(__FILE__, __LINE__) << "adbroker::manager_i ctor";
 }
 
 manager_i::~manager_i(void)
 {
-    adportable::debug() << "adbroker::~manager_i dtor";
+    adportable::debug(__FILE__, __LINE__) << "adbroker::~manager_i dtor";
     delete discovery_;
 }
 
@@ -82,8 +82,7 @@ manager_i::instance()
 void
 manager_i::shutdown()
 {
-    adportable::debug() << "####################################################";
-    adportable::debug() << "##### adbroker::manager::shutting down ... ######";
+    adportable::debug(__FILE__, __LINE__) << "##### adbroker::manager::shutting down ... ######";
 
     if ( discovery_ ) {
         std::lock_guard< std::mutex > lock( mutex_ );
@@ -93,8 +92,7 @@ manager_i::shutdown()
         discovery_ = 0;
     }
 
-    adportable::debug() << "##### adbroker::manager::shutdown complete ######";
-    adportable::debug() << "####################################################";
+    adportable::debug(__FILE__, __LINE__) << "##### adbroker::manager::shutdown complete ######";
 }
 
 Broker::Session_ptr

@@ -67,11 +67,11 @@ iProxy::initialConfiguration( const adportable::Configuration& c )
                     }
                 } 
             } catch ( CORBA::Exception& ex ) {
-                adportable::debug() << "adcontroller::iproxy::setConfiguration '" << nsname << "' " << ex._info().c_str();
+                adportable::debug(__FILE__, __LINE__) << "adcontroller::iproxy::setConfiguration '" << nsname << "' " << ex._info().c_str();
             }
         }
     } else {
-        adportable::debug() << "iProxy::setConfiguration -- object '" << nsname << "' not registerd";
+        adportable::debug(__FILE__, __LINE__) << "iProxy::setConfiguration -- object '" << nsname << "' not registerd";
     }
     return objref_;
 }

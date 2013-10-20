@@ -86,7 +86,7 @@ ObjectDiscovery::reply_handler( const std::string& ident, const std::string& ior
 {
 	std::string name;
     if ( unregister_lookup( ident, name ) ) {
-        adportable::debug() << "ObjectDiscovery: name=" << name << ", " << ident 
+        adportable::debug(__FILE__, __LINE__) << "ObjectDiscovery: name=" << name << ", " << ident 
                             << " ior=" << ior.substr(0, 20) << "...";
         manager_i::instance()->impl().internal_register_ior( name, ior );
 	}

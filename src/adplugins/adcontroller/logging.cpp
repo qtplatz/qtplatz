@@ -41,7 +41,7 @@ Logging::Logging( const std::wstring& format
 Logging::~Logging()
 {
 	// commit_to_broker();
-	adportable::debug() << adinterface::EventLog::LogMessageHelper::toString( msg.get() );
+	adportable::debug(__FILE__, __LINE__) << adinterface::EventLog::LogMessageHelper::toString( msg.get() );
 	commit_to_task();
 }
 
