@@ -438,6 +438,9 @@ MSCalibSpectraWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio:
 void
 MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
+    using adcontrols::MSCalibration;
+    using adcontrols::metric::micro;
+
     portfolio::Folder folder = folium.getParentFolder();
 	if ( ! ( folder && folder.name() == L"MSCalibration" ) )
 		return;
@@ -465,11 +468,8 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
 	replotLengthTime();
     flight_length_regression();
     
-    adcontrols::MSCalibration calib;
-    calib.coeffs( bCoeffs_ );
-    
+    MSCalibration calib( bCoeffs_, micro, aCoeffs_, MSCalibration::MULTITURN_NORMALIZED );
     margedCalibResult_->t0( T0_ );
-    margedCalibResult_->a_coeffs( aCoeffs_ );
     margedCalibResult_->calibration( calib );        
     
     emit onSetData( *margedCalibResult_, *margedSpectrum_ );
@@ -548,8 +548,7 @@ MSCalibSpectraWnd::handleValueChanged()
     replotLengthTime();
     flight_length_regression();
     margedCalibResult_->t0( T0_ );
-    margedCalibResult_->a_coeffs( aCoeffs_ );
-	adcontrols::MSCalibration calib( bCoeffs_ );
+	adcontrols::MSCalibration calib( bCoeffs_, adcontrols::metric::micro, aCoeffs_, adcontrols::MSCalibration::MULTITURN_NORMALIZED );
     margedCalibResult_->calibration( calib );        
 
     if ( ! selFormula_.empty() )

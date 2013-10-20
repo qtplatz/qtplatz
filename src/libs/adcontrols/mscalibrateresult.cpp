@@ -64,7 +64,6 @@ MSCalibrateResult::MSCalibrateResult( const MSCalibrateResult& t )
     , calibration_( new MSCalibration( *t.calibration_ ) )
     , assignedMasses_( new MSAssignedMasses( *t.assignedMasses_ ) )
     , t0_( t.t0_ )
-    , a_coeffs_( t.a_coeffs_ )
 {
 }
 
@@ -77,7 +76,6 @@ MSCalibrateResult::operator = ( const MSCalibrateResult& t )
     calibration_.reset( new MSCalibration( *t.calibration_ ) );
     assignedMasses_.reset( new MSAssignedMasses( *t.assignedMasses_ ) );
     t0_ = t.t0_;
-    a_coeffs_ = t.a_coeffs_;
 	return *this;
 }
 
@@ -115,18 +113,6 @@ void
 MSCalibrateResult::t0( double value )
 {
     t0_ = value;
-}
-
-void
-MSCalibrateResult::a_coeffs( const std::vector< double >& v )
-{
-    a_coeffs_ = v;
-}
-
-const std::vector<double>&
-MSCalibrateResult::a_coeffs() const
-{
-    return a_coeffs_;
 }
 
 const MSReferences&

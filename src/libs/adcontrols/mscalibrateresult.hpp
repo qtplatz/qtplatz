@@ -67,8 +67,6 @@ namespace adcontrols {
         MSCalibration& calibration();
         void calibration( const MSCalibration& );
 
-        void a_coeffs( const std::vector< double >& );
-        const std::vector<double>& a_coeffs() const;
     private:
 
 # if defined _MSC_VER
@@ -82,7 +80,7 @@ namespace adcontrols {
 
         // trial
         double t0_;
-        std::vector< double > a_coeffs_;
+        std::vector< double > a_coeffs_deprecated_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -102,7 +100,7 @@ namespace adcontrols {
                 ar & BOOST_SERIALIZATION_NVP(*assignedMasses_);
                 // trial for multi-turn calibration
                 ar & BOOST_SERIALIZATION_NVP(t0_);
-                ar & BOOST_SERIALIZATION_NVP(a_coeffs_); // for flight length calculation
+                ar & BOOST_SERIALIZATION_NVP(a_coeffs_deprecated_); // deprecated
             }
         }
     public:

@@ -26,7 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
-
+#include "metric/prefix.hpp"
 #include <vector>
 #include <string>
 #include <boost/serialization/nvp.hpp>
@@ -38,9 +38,14 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT MSCalibration {
     public:
+        enum T0_METHOD { IGNORE_T0, LINEAR_TO_SQRT_M };
+        enum TIME_METHOD { NOTHING, MULTITURN_NORMALIZED };
+        enum metric::prefix time_prefix_;
+
         MSCalibration();
         MSCalibration( const MSCalibration& );
-        MSCalibration( const std::vector<double>& );
+        MSCalibration( const std::vector<double>&, metric::prefix timepfx = metric::base );
+        MSCalibration( const std::vector<double>&, metric::prefix timepfx, const std::vector<double>&, TIME_METHOD time_method = NOTHING );
 
         const std::string& date() const;
         void date( const std::string& );
@@ -54,6 +59,18 @@ namespace adcontrols {
         double compute_mass( double time ) const;
         static double compute( const std::vector<double>&, double time );
         std::string formulaText( bool ritchText = true );
+
+        const std::vector<double>& t0_coeffs() const;
+        void t0_coeffs( const std::vector<double>& );
+
+        void time_prefix( metric::prefix pfx );
+        metric::prefix time_prefix() const;
+        
+        void t0_method( T0_METHOD );
+        T0_METHOD t0_method() const;
+
+        void time_method( TIME_METHOD );
+        TIME_METHOD time_method() const;
         
     private:
 #if defined _MSC_VER
@@ -62,15 +79,25 @@ namespace adcontrols {
         std::string calibDate_;
         std::wstring calibId_;
         std::vector< double > coeffs_;
+        std::vector< double > t0_coeffs_;
+        T0_METHOD t0_method_;
+        TIME_METHOD time_method_;
 
         friend class boost::serialization::access;
         template<class Archive>
-        void serialize(Archive& ar, const unsigned int /*version*/) {
+        void serialize(Archive& ar, const unsigned int version) {
             ar & BOOST_SERIALIZATION_NVP(calibDate_);
             ar & BOOST_SERIALIZATION_NVP(calibId_);
             ar & BOOST_SERIALIZATION_NVP(coeffs_);
+            if ( version >= 2 ) {
+                ar & BOOST_SERIALIZATION_NVP( t0_method_ );
+                ar & BOOST_SERIALIZATION_NVP( t0_coeffs_ );
+                ar & BOOST_SERIALIZATION_NVP( time_prefix_ );
+                ar & BOOST_SERIALIZATION_NVP( time_method_ );
+            }
         }
     };
 
 }
 
+BOOST_CLASS_VERSION( adcontrols::MSCalibration, 2 )

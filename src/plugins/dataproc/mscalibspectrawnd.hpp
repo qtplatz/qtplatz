@@ -119,7 +119,7 @@ namespace dataproc {
         QwtPlotCurve * interceptRegressionCurve_;
         double T0_;
         std::map< std::wstring, std::pair< double, double > > tofCoeffs_;
-        std::vector< double > aCoeffs_;
+        std::vector< double > aCoeffs_; // sqrt(m)/intercept
         std::vector< double > bCoeffs_;
 
         // std::vector< std::shared_ptr< adcontrols::MSAssignedMasses > > assignedResults_;

@@ -101,6 +101,7 @@ MSCalibSummaryWidget::OnInitialUpdate()
     model.setHeaderData( c_exact_mass, Qt::Horizontal, QObject::tr( "m/z(exact)" ) );
     model.setHeaderData( c_mass_error_mDa, Qt::Horizontal, QObject::tr( "error(mDa)" ) );
     model.setHeaderData( c_mass_error_calibrated_mDa, Qt::Horizontal, QObject::tr( "error(mDa) calibrated" ) );
+    model.setHeaderData( c_mass_error2_calibrated_mDa, Qt::Horizontal, QObject::tr( "error(mDa) lsq(t0)" ) );
     model.setHeaderData( c_is_enable, Qt::Horizontal, QObject::tr( "enable" ) );
 	model.setHeaderData( c_delta_mass, Qt::Horizontal, QObject::tr( "delta m/z" ) );
     model.setHeaderData( c_fcn, Qt::Horizontal, QObject::tr( "fcn" ) );
@@ -196,17 +197,24 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
 
 	double normalized_time = 0; // ( it->time() - t0 ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
 
-    const adcontrols::MSCalibration& calib = pCalibResult_->calibration(); // microseconds
+    const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
     double mass = calib.compute_mass( it->time() );
+    double mass2 = 0;
 
-    const std::vector< double >& a_coeffs = pCalibResult_->a_coeffs(); // microseconds
-    const std::vector< double >& b_coeffs = calib.coeffs(); // microseconds
-    if ( ! b_coeffs.empty() ) {
-        const double t0 = pCalibResult_->t0();
+    if ( calib.time_method() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
         double L = pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
-        double T = scale_to_micro( it->time() - t0 );
-        normalized_time = ( it->time() - t0 ) / L;
-        mass = calib.compute_mass( T / L );
+        do {
+            const double t0 = pCalibResult_->t0(); // using fixed t0
+            double T = scale_to( calib.time_prefix(), ( it->time() - t0 ) );
+            normalized_time = ( it->time() - t0 ) / L;
+            mass = calib.compute_mass( T / L );
+        } while (0);
+        do {
+			const double t0 = scale_to_base( calib.compute( calib.t0_coeffs(), std::sqrt(mass) ), calib.time_prefix() );
+            double T = scale_to( calib.time_prefix(), ( it->time() - t0 ) );
+            normalized_time = ( it->time() - t0 ) / L;
+            mass2 = calib.compute_mass( T / L );            
+        } while (0);
     }
 
     model.setData( model.index( row, c_time_normalized ), normalized_time );
@@ -219,8 +227,10 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
     model.setData( model.index( row, c_mass_error_mDa ), err * 1000 ); // mDa
 
     double mz = model.index( row, c_mass_calibrated ).data( Qt::EditRole ).toDouble();
-    if ( mz > 1.0 )
+    if ( mz > 1.0 ) {
         model.setData( model.index( row, c_mass_error_calibrated_mDa ), ( mz - it->exactMass() ) * 1000 ); // mDa
+        model.setData( model.index( row, c_mass_error2_calibrated_mDa ), ( mass2 - it->exactMass() ) * 1000 ); // mDa
+    }
 
     model.setData( model.index( row, c_mode ), it->mode() );
 
@@ -440,8 +450,9 @@ MSCalibSummaryWidget::formulaChanged( const QModelIndex& index )
             double mass = model.index( index.row(), c_mass ).data( Qt::EditRole ).toDouble();
             model.setData( model.index( index.row(), c_mass_error_mDa ), mass - exactMass );            
             double calib_mass = model.index( index.row(), c_mass_error_calibrated_mDa ).data( Qt::EditRole ).toDouble();
-            if ( calib_mass > 1.0 )
+            if ( calib_mass > 1.0 ) {
                 model.setData( model.index( index.row(), c_mass_error_calibrated_mDa ), calib_mass - exactMass );
+            }
 
             do {
                 model.setData( model.index( index.row(), c_is_enable ), false ); // set false by default
@@ -480,7 +491,7 @@ MSCalibSummaryWidget::currentChanged( const QModelIndex& index, const QModelInde
     scrollTo( index, QAbstractItemView::EnsureVisible );
 	size_t row = index.row();
     size_t idx = model.index( row, c_index ).data( Qt::EditRole ).toInt();
-    size_t fcn   = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
+    size_t fcn = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
 
     emit currentChanged( idx, fcn );
 
