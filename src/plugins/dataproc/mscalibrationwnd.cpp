@@ -81,7 +81,8 @@ namespace dataproc {
                                                   , centroid_left_( new QwtPlotMarker )
                                                   , centroid_right_( new QwtPlotMarker )
                                                   , centroid_threshold_( new QwtPlotMarker )
-                                                  , centroid_baselevel_( new QwtPlotMarker ) {
+                                                  , centroid_baselevel_( new QwtPlotMarker )
+                                                  , timeAxis_( false ) {
 
             centroid_center_->setLineStyle( QwtPlotMarker::VLine );
             centroid_center_->setLinePen( Qt::darkGray, 0, Qt::DashDotLine );
@@ -118,7 +119,7 @@ namespace dataproc {
         std::weak_ptr< adcontrols::MSPeakInfo > peakInfo_;
 
         portfolio::Folium folium_;
-
+        bool timeAxis_;
 
         void restore_state( adcontrols::MassSpectrum& ) {
             centroid_center_->setLinePen( Qt::transparent, 0, Qt::DashDotLine );
@@ -134,10 +135,15 @@ namespace dataproc {
                 adcontrols::segment_wrapper< adcontrols::MSPeakInfo > segments( *pkInfo );
                 const adcontrols::MSPeakInfoItem& pk = *(segments[ fcn ].begin() + idx);
                 // todo: axis time/mass 
-                centroid_center_->setValue( pk.mass(), 0 );
-                centroid_left_->setValue( pk.centroid_left(), 0 );
-                centroid_right_->setValue( pk.centroid_right(), 0 );
-
+                if ( timeAxis_ ) {
+                    centroid_center_->setValue( adcontrols::metric::scale_to_micro( pk.time() ), 0 );
+                    centroid_left_->setValue( adcontrols::metric::scale_to_micro( pk.centroid_left( true ) ), 0 );
+                    centroid_right_->setValue( adcontrols::metric::scale_to_micro( pk.centroid_right( true ) ), 0 );
+                } else {
+                    centroid_center_->setValue( pk.mass(), 0 );
+                    centroid_left_->setValue( pk.centroid_left(), 0 );
+                    centroid_right_->setValue( pk.centroid_right(), 0 );
+                }
                 centroid_threshold_->setValue( 0, pk.centroid_threshold() );
                 centroid_baselevel_->setValue( 0, pk.base_height() );
             } else {
@@ -280,6 +286,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
 void
 MSCalibrationWnd::handleAxisChanged( int axis )
 {
+    pImpl_->timeAxis_ = ( axis == adwplot::SpectrumWidget::HorizontalAxisTime );
 	pImpl_->processedSpectrum_->setAxis( static_cast< adwplot::SpectrumWidget::HorizontalAxis >( axis ) );
 
     // replot profile
@@ -395,7 +402,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
 	if ( ! calibSpectrum )
 		return;
 
-	const adcontrols::massspectrometer::ScanLaw& scanLaw = calibSpectrum->scanLaw();
+	// const adcontrols::massspectrometer::ScanLaw& scanLaw = calibSpectrum->scanLaw();
 
     adcontrols::MSAssignedMasses assigned;
     if ( readCalibSummary( assigned ) ) {
