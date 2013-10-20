@@ -292,6 +292,7 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType pro
         applyProcess( folium, m, procType );
     } else {
         // no selected folium, peak find to raw TIC
+#if 0
         if ( procType == PeakFindProcess ) {
             Dataprocessor * d_processor = SessionManager::instance()->getActiveDataprocessor();
             if ( d_processor ) {
@@ -305,6 +306,7 @@ Dataprocessor::applyProcess( const adcontrols::ProcessMethod& m, ProcessType pro
                 }
             }
         }
+#endif
     }
 }
 

@@ -214,18 +214,44 @@ void
 MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 {
     const adcontrols::LCMSDataset * dset = processor->getLCMSDataset();
+    portfolio::Portfolio portfolio = processor->getPortfolio();
+
     if ( dset ) {
-        adcontrols::Chromatogram c;
-        int fcn = 0;
-        if ( dset->getTIC( fcn, c ) ) {
-            if ( c.isConstantSampledData() )
-                c.getTimeArray();
-            c.addDescription( adcontrols::Description( L"filename", processor->file().filename() ) );
-			adcontrols::ProcessMethod m;
-			MainWindow::instance()->getProcessMethod( m );
-			processor->addChromatogram( c, m );
-            //pImpl_->ticPlot_->setData( c, fcn );
-            //++fcn;
+		size_t nfcn = dset->getFunctionCount();
+
+		portfolio::Folder folder = portfolio.findFolder( L"Chromatograms" );
+		if ( folder.nil() )
+			folder = processor->getPortfolio().addFolder( L"Chromatograms" );
+
+		for ( size_t fcn = 0; fcn < nfcn; ++fcn ) {
+            std::wstring title = ( boost::wformat( L"TIC.%1%" ) % (fcn + 1) ).str();
+
+			portfolio::Folium folium = folder.findFoliumByName( title );
+            if ( folium.nil() ) {   // add TIC if not yet added
+				adcontrols::Chromatogram c;
+                if ( dset->getTIC( fcn, c ) ) {
+                    if ( c.isConstantSampledData() )
+                        c.getTimeArray();
+                    c.addDescription( adcontrols::Description( L"origin", title ) );
+                    adcontrols::ProcessMethod m;
+                    MainWindow::instance()->getProcessMethod( m );
+                    processor->addChromatogram( c, m );
+                }
+            }
+        }
+        portfolio::Folium folium = folder.findFoliumByName( L"TIC.1" );
+        if ( folium.empty() )
+            processor->fetch( folium );
+        handleSelectionChanged( processor, folium );
+    }
+
+    // show first spectrum on tree by default
+    portfolio::Folder spectra = portfolio.findFolder( L"Spectra" );
+    if ( !spectra.nil() ) {
+        portfolio::Folio folio = spectra.folio();
+        if ( !folio.empty() ) {
+            processor->fetch( folio[0] );
+            handleSelectionChanged( processor, folio[0] );
         }
     }
 }

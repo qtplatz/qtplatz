@@ -59,7 +59,7 @@ Folium::empty() const
 }
 
 bool
-Folium::fail() const
+Folium::nil() const
 {
     return impl_ == 0;
 }

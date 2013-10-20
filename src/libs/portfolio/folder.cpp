@@ -44,6 +44,12 @@ Folder::Folder( const Folder& t ) : Node( t )
 {
 }
 
+bool
+Folder::nil() const
+{
+    return impl_ == 0;
+}
+
 std::vector< Folder >
 Folder::folders()
 {

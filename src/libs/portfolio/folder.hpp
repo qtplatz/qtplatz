@@ -48,6 +48,7 @@ namespace portfolio {
         // Folder( const xmlNode&, internal::PortfolioImpl * );
         Folder( const pugi::xml_node&, internal::PortfolioImpl * );
         Folder( const Folder& );
+        bool nil() const;
 
         std::vector< Folder > folders();
         const std::vector< Folder > folders() const;

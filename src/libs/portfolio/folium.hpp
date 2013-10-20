@@ -55,7 +55,7 @@ namespace portfolio {
         Folium( pugi::xml_node, internal::PortfolioImpl * impl );
     public:
 
-        bool fail() const;
+        bool nil() const;
         bool empty() const;
         void operator = ( const boost::any& );
         operator boost::any& ();
