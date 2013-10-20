@@ -156,7 +156,7 @@ namespace adcontrols {
 
 			template< typename char_type > static bool parse( const std::basic_string< char_type >& formula, client::map_type& map ) {
                 
-                typedef std::basic_string<char_type>::const_iterator iterator_type;
+                typedef typename std::basic_string< char_type >::const_iterator iterator_type;
                 
                 client::chemical_formula_parser< iterator_type, client::formulaComposition, client::map_type > cf;
                 iterator_type it = formula.begin();
@@ -167,7 +167,7 @@ namespace adcontrols {
 
 			template< typename char_type > static bool format( const std::basic_string< char_type >& formula, client::format_type& fmt ) {
                 
-                typedef std::basic_string<char_type>::const_iterator iterator_type;
+                typedef typename std::basic_string< char_type >::const_iterator iterator_type;
                 
                 client::chemical_formula_parser< iterator_type, client::formulaFormat, client::format_type > cf;
                 iterator_type it = formula.begin();

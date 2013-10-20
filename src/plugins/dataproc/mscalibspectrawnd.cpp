@@ -80,8 +80,8 @@ namespace dataproc {
             virtual ~SeriesData() {}
             SeriesData( const std::wstring& formula, double exactMass ) : formula_( formula )
                                                                         , exactMass_( exactMass )
-                                                                        , slope_(0)
-                                                                        , intercept_(0) {
+                                                                        , intercept_(0)
+                                                                        , slope_(0) {
             }
             const std::wstring& formula() const { return formula_; }
             double slope() const { return slope_; }
@@ -323,7 +323,7 @@ MSCalibSpectraWnd::replotSpectra()
         if ( auto spectrum = selected.second.lock() ) {
             wndSpectra_[ idx ]->setData( spectrum, 0 );
         }
-        auto& it = std::find_if( results_.begin(), results_.end(), [=]( const result_type& a ){
+        auto it = std::find_if( results_.begin(), results_.end(), [=]( const result_type& a ){
                 return selected.first == std::get<0>(a);
             });
         if ( it != results_.end() )
@@ -823,7 +823,7 @@ MSCalibSpectraWnd::plotSelectedLengthTime( const std::wstring& formula )
 }
 
 void
-MSCalibSpectraWnd::generate_marged_result( Dataprocessor * processor )
+MSCalibSpectraWnd::generate_marged_result( Dataprocessor * /* processor */)
 {
     margedSpectrum_ = std::make_shared< adcontrols::MassSpectrum >();
     margedCalibResult_ = std::make_shared< adcontrols::MSCalibrateResult >();
