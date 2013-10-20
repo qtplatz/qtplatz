@@ -274,9 +274,8 @@ namespace dataproc {
             return boost::apply_visitor( doSpectralProcess(ptr, folium_), m_ );
         }
 
-        bool operator () ( adutils::ChromatogramPtr& ) const {
-            // todo:  add doChromatographicProcess
-            return false;
+        bool operator () ( adutils::ChromatogramPtr& ptr ) const {
+            return boost::apply_visitor( doChromatogramProcess(ptr, folium_), m_ );
         }
     };
     //-----

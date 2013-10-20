@@ -153,7 +153,6 @@ PortfolioImpl::addFolder( const std::wstring& name, bool uniq )
     using adportable::utf;
     if ( uniq ) {
         std::string query = std::string( "folder[@folderType='directory'][@name=\"" ) + utf::to_utf8(name) + "\"]";
-        adportable::debug() << query; 
         try {
             pugi::xpath_node_set list = Node::selectNodes( query );
             if ( list.size() > 0 )
