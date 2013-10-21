@@ -323,10 +323,14 @@ MSCalibSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 				}
 			}
         }
-        if ( margedCalibResult_ && margedSpectrum_ )
-            emit onSetData( *margedCalibResult_, *margedSpectrum_ );
-        if ( margedSpectrum_ )
-            wndSpectra_[ 0 ] ->setData( margedSpectrum_, 0 );        
+        if ( margedSpectrum_ ) {
+            wndSpectra_[ 0 ] ->setData( margedSpectrum_, 0 );
+            if ( margedCalibResult_ ) {
+                emit onSetData( *margedCalibResult_, *margedSpectrum_ );
+                replotLengthTime();
+                flight_length_regression();
+            }
+        }
     }
 }
 
