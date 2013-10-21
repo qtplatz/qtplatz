@@ -55,7 +55,7 @@ namespace dataproc {
         void init();
       
     signals:
-        void fireSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
+        void onSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
         void onPrint( QPrinter&, QPainter& );
       
     public slots:

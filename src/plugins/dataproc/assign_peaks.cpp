@@ -35,42 +35,49 @@ void
 assign_peaks::operator () ( adcontrols::MSAssignedMasses& res
                             , const adcontrols::MassSpectrum& centroid, const adcontrols::MSAssignedMasses& assigned )
 {
-    adportable::array_wrapper< const double > times( centroid.getTimeArray(), centroid.size() );
+	if ( size_t nSize = centroid.size() ) {
 
-    for ( adcontrols::MSAssignedMasses::vector_type::const_iterator it = assigned.begin(); it != assigned.end(); ++it ) {
-        double t = it->time();
-        adportable::array_wrapper< const double >::iterator pos = std::lower_bound( times.begin(), times.end(), t );
-        if ( pos != times.end() ) {
-            if ( pos != times.begin() ) {
-                if ( std::abs( *pos - t ) > std::abs( *(pos - 1 ) - t ) )
-                    --pos;
-            }
-            if ( std::abs( *pos - t ) < tolerance_ ) {
-                adcontrols::MSAssignedMass a( *it );
-                size_t idx = std::distance( times.begin(), pos );
-                a.idMassSpectrum( idx );
-                a.time( centroid.getTime( idx ) );
-                a.mass( centroid.getMass( idx ) );
-                res << a;
-            }
-        }
-    }
+		adportable::array_wrapper< const double > times( centroid.getTimeArray(), nSize );
+
+		for ( auto it = assigned.begin(); it != assigned.end(); ++it ) {
+			double t = it->time();
+			auto pos = std::lower_bound( times.begin(), times.end(), t );
+			if ( pos != times.end() ) {
+				if ( pos != times.begin() ) {
+					if ( std::abs( *pos - t ) > std::abs( *(pos - 1 ) - t ) )
+						--pos;
+				}
+				if ( std::abs( *pos - t ) < tolerance_ ) {
+					adcontrols::MSAssignedMass a( *it );
+					size_t idx = std::distance( times.begin(), pos );
+					a.idMassSpectrum( idx );
+					a.time( centroid.getTime( idx ) );
+					a.mass( centroid.getMass( idx ) );
+					res << a;
+				}
+			}
+		}
+	}
 }
 
 int
 assign_peaks::find_by_time( const adcontrols::MassSpectrum& centroid, double t, double tolerance )
 {
-    adportable::array_wrapper< const double > times( centroid.getTimeArray(), centroid.size() );
-    adportable::array_wrapper< const double >::iterator pos = std::lower_bound( times.begin(), times.end(), t );
-    if ( pos != times.end() ) {
-        if ( pos != times.begin() ) {
-            double a = std::abs( *pos - t );
-            double b = std::abs( *(pos - 1) - t );
-            if ( a > b )
-                --pos;
-        }
-        if ( std::abs( *pos - t ) < tolerance )
-            return std::distance( times.begin(), pos );
-    }
+	if ( size_t nSize = centroid.size() ) {
+	
+		adportable::array_wrapper< const double > times( centroid.getTimeArray(), nSize );
+
+		auto pos = std::lower_bound( times.begin(), times.end(), t );
+		if ( pos != times.end() ) {
+			if ( pos != times.begin() ) {
+				double a = std::abs( *pos - t );
+				double b = std::abs( *(pos - 1) - t );
+				if ( a > b )
+					--pos;
+			}
+			if ( std::abs( *pos - t ) < tolerance )
+				return std::distance( times.begin(), pos );
+		}
+	}
     return -1;
 }

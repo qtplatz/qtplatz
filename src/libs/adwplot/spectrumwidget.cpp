@@ -345,6 +345,8 @@ TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms,
 {
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( _ms );
 
+    curves_.clear();
+
     for ( auto& seg: segments ) {
         if ( const unsigned char * colors = seg.getColorArray() ) {
             std::set< unsigned char > color;

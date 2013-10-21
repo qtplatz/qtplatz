@@ -95,7 +95,7 @@ namespace dataproc {
         std::wstring selFormula_;
 
         // results member holds all isChecked flagged data
-        typedef std::tuple< std::wstring, std::shared_ptr<adcontrols::MassSpectrum>, std::shared_ptr<adcontrols::MSCalibrateResult> > result_type;
+        typedef std::tuple< std::wstring, std::weak_ptr<adcontrols::MassSpectrum>, std::weak_ptr<adcontrols::MSCalibrateResult> > result_type;
 		std::vector< result_type > results_;
         std::vector< size_t > number_of_segments_;
 
@@ -122,7 +122,6 @@ namespace dataproc {
         std::vector< double > aCoeffs_; // sqrt(m)/intercept
         std::vector< double > bCoeffs_;
 
-        // std::vector< std::shared_ptr< adcontrols::MSAssignedMasses > > assignedResults_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
         void replotSpectra();
         void replotLengthTime();

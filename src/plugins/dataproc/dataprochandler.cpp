@@ -298,6 +298,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
     if ( calibrator2.polfit( calib, m.polynomialDegree() + 1 ) ) {
         for ( auto it: assignedMasses )
             it.mass( calibrator2.compute_mass( it.time(), it.mode(), calib ) );
+
         centroid.setCalibration( calib, true );
         res.calibration( calib );
         res.assignedMasses( assignedMasses );

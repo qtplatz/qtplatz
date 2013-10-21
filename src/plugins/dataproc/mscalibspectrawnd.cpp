@@ -37,6 +37,8 @@
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adcontrols/descriptions.hpp>
+#include <adcontrols/description.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
@@ -296,8 +298,36 @@ MSCalibSpectraWnd::init()
 }
 
 void
-MSCalibSpectraWnd::handleSessionAdded( Dataprocessor * )
+MSCalibSpectraWnd::handleSessionAdded( Dataprocessor * processor )
 {
+    portfolio::Portfolio portfolio = processor->getPortfolio();
+
+    if ( portfolio::Folder fCalib = portfolio.findFolder( L"MSCalibration" ) ) {
+        if ( portfolio::Folium fSummary = fCalib.findFoliumByName( L"Summary Spectrum" ) ) {
+
+			if ( fSummary.empty() )
+				processor->fetch( fSummary );
+
+			try {
+				margedSpectrum_ = boost::any_cast< adcontrols::MassSpectrumPtr >( fSummary );
+			} catch ( std::exception& ex ) {
+				adportable::debug(__FILE__, __LINE__) << "got an exception: " << ex.what();
+			}
+            portfolio::Folio atts = fSummary.attachments();
+            auto it = portfolio::Folium::find< adcontrols::MSCalibrateResultPtr >( atts.begin(), atts.end() );
+            if ( it != atts.end() ) {
+				try {
+					margedCalibResult_ = boost::any_cast< adcontrols::MSCalibrateResultPtr >( *it );
+				} catch ( std::exception& ex ) {
+					adportable::debug(__FILE__, __LINE__) << "got an exception: " << ex.what();
+				}
+			}
+        }
+        if ( margedCalibResult_ && margedSpectrum_ )
+            emit onSetData( *margedCalibResult_, *margedSpectrum_ );
+        if ( margedSpectrum_ )
+            wndSpectra_[ 0 ] ->setData( margedSpectrum_, 0 );        
+    }
 }
 
 void
@@ -314,25 +344,27 @@ void
 MSCalibSpectraWnd::replotSpectra()
 {
     if ( margedSpectrum_ ) {
-        wndSpectra_[ 0 ]->setTitle( "Spectra summay" );
+        wndSpectra_[ 0 ]->setTitle( "Coadded spectrum" );
         wndSpectra_[ 0 ]->setData( margedSpectrum_, 0 );
     }
 
     size_t idx = 1;
     for ( auto& selected: selSpectra_ ) {
-        if ( auto spectrum = selected.second.lock() ) {
-            wndSpectra_[ idx ]->setData( spectrum, 0 );
-        }
-        auto it = std::find_if( results_.begin(), results_.end(), [=]( const result_type& a ){
-                return selected.first == std::get<0>(a);
-            });
-        if ( it != results_.end() )
-            wndSpectra_[ idx ]->setTitle( "checked" );
-        else
-            wndSpectra_[ idx ]->setTitle( "unchecked" );
 
-        if ( ++idx >= wndSpectra_.size() )
-            break;
+        if ( auto spectrum = selected.second.lock() ) {
+
+            wndSpectra_[ idx ]->setData( spectrum, 0 );
+
+            auto it = std::find_if( results_.begin(), results_.end(), [=]( const result_type& a ){
+                    return selected.first == std::get<0>(a);
+                });
+            std::wstring title = ( it == results_.end() ) ? L"Unchecked: " : L"Checked: ";
+			title += spectrum->getDescriptions().toString();
+            wndSpectra_[ idx ]->setTitle( title );
+
+            if ( ++idx >= wndSpectra_.size() )
+                break;
+        }
 	}
 }
 
@@ -427,17 +459,56 @@ MSCalibSpectraWnd::replotLengthTime()
 void
 MSCalibSpectraWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio::Folium& folium, bool isChecked )
 {
+    (void)processor;    (void)isChecked;
+
+	using adcontrols::MSCalibration;
+    using adcontrols::metric::micro;
+
     portfolio::Folder folder = folium.getParentFolder();
 	if ( ! ( folder && folder.name() == L"MSCalibration" ) )
 		return;
 
-    (void)isChecked;
-    (void)processor;
+    // collect checked spectra into results_ tuple
+	portfolio::Folium fSummary = folder.findFoliumByName( L"Summary Spectrum" );
+	if ( fSummary.nil() ) {
+		fSummary = folder.addFolium( L"Summary Spectrum" );
+        fSummary.assign( std::make_shared< adcontrols::MassSpectrum >(), adcontrols::MassSpectrum::dataClass() );
+
+        portfolio::Folium fResult = fSummary.addAttachment( L"Calibrate Result" );
+        fResult.assign( std::make_shared< adcontrols::MSCalibrateResult >(), adcontrols::MSCalibrateResult::dataClass() );
+
+        SessionManager::instance()->updateDataprocessor( processor, fSummary );
+    }
+    
+    portfolio::Folio fatts = fSummary.attachments();
+    auto it = std::find_if( fatts.begin(), fatts.end(), []( const portfolio::Folium& a ){
+            return a.dataClass() == adcontrols::MSCalibrateResult::dataClass();
+        });
+    if ( it == fatts.end() ) {
+        return;
+    }
+
+    margedSpectrum_ = boost::any_cast< adcontrols::MassSpectrumPtr >( fSummary );
+    margedCalibResult_ = boost::any_cast< adcontrols::MSCalibrateResultPtr >( *it );
+
+    populate( processor, folder );
+    generate_marged_result( processor );
+
+    MSCalibration calib( bCoeffs_, micro, aCoeffs_, MSCalibration::MULTITURN_NORMALIZED );
+    margedCalibResult_->t0( T0_ );
+    margedCalibResult_->calibration( calib );
+
+    if ( margedCalibResult_ && margedSpectrum_ )
+        emit onSetData( *margedCalibResult_, *margedSpectrum_ );
+    
+    if ( margedSpectrum_ )
+        wndSpectra_[ 0 ] ->setData( margedSpectrum_, 0 );
 }
 
 void
 MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
 {
+    (void)processor;
     using adcontrols::MSCalibration;
     using adcontrols::metric::micro;
 
@@ -446,34 +517,23 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
 		return;
 
     folio_ = folder.folio();
-
     folium_ = folium;
     portfolio::Folio attachments = folium.attachments();
 
-    portfolio::Folio::iterator it
-        = portfolio::Folium::find<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
+    portfolio::Folio::iterator it = std::find_if( attachments.begin(), attachments.end(), []( const portfolio::Folium& a ) {
+            return a.dataClass() == adcontrols::MassSpectrum::dataClass() && a.attribute( L"name" ) == L"Centroid Spectrum";
+        });
     if ( it == attachments.end() )
         return;
 
     std::weak_ptr< adcontrols::MassSpectrum > currSpectrum = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-
-    populate( processor, folder );
-    generate_marged_result( processor );
-
     selSpectra_.push_front( std::make_pair( folium.id(), currSpectrum ) );
     if ( selSpectra_.size() > 3 )
         selSpectra_.pop_back();
-    
+
     replotSpectra();
 	replotLengthTime();
     flight_length_regression();
-    
-    MSCalibration calib( bCoeffs_, micro, aCoeffs_, MSCalibration::MULTITURN_NORMALIZED );
-    margedCalibResult_->t0( T0_ );
-    margedCalibResult_->calibration( calib );        
-    
-    emit onSetData( *margedCalibResult_, *margedSpectrum_ );
-
 }
 
 void
@@ -539,6 +599,7 @@ void
 MSCalibSpectraWnd::handleValueChanged()
 {
     adcontrols::MSAssignedMasses assigned;
+
     if ( readCalibSummary( assigned ) ) {
 		margedCalibResult_->assignedMasses( assigned );
         if ( DataprocHandler::doAnnotateAssignedPeaks( *margedSpectrum_, assigned ) )
@@ -556,7 +617,7 @@ MSCalibSpectraWnd::handleValueChanged()
     else if ( plotData_.begin() != plotData_.end() )
         plotSelectedLengthTime( plotData_.begin()->first );
 
-    reverse_assign_peaks();
+    // reverse_assign_peaks();
 
 	emit onSetData( *margedCalibResult_, *margedSpectrum_ );
 }
@@ -569,11 +630,11 @@ MSCalibSpectraWnd::reverse_assign_peaks()
 
     for ( auto& result: results_ ) {
 
-        adcontrols::MSAssignedMasses masses;
+        if ( adcontrols::MassSpectrumPtr ptr = std::get<1>( result ).lock() ) {
 
-        for ( const adcontrols::MSAssignedMass& a: assigned ) {
+            adcontrols::MSAssignedMasses masses;
 
-            if ( adcontrols::MassSpectrumPtr ptr = std::get<1>( result ) ) {
+            for ( const adcontrols::MSAssignedMass& a: assigned ) {
 
                 adcontrols::segment_wrapper<> segments( *ptr );
                 int idSegment = 0;
@@ -591,9 +652,12 @@ MSCalibSpectraWnd::reverse_assign_peaks()
                 }
                 idSegment++;
             }
-        }
-        if ( auto calibResult = std::get<2>( result ) ) {
-            calibResult->assignedMasses( masses );
+            if ( masses.size() > 0 ) {
+				if ( auto calibResult = std::get<2>( result ).lock() ) {
+					calibResult->assignedMasses( masses );
+					DataprocHandler::doAnnotateAssignedPeaks( *ptr, masses );
+				}
+			}
         }
     }
 }
@@ -607,7 +671,7 @@ MSCalibSpectraWnd::populate( Dataprocessor * processor, portfolio::Folder& folde
 
     std::for_each( folio.begin(), folio.end(), [&]( portfolio::Folium& item ){
 
-            if ( item.attribute( L"isChecked" ) == L"true" ) {
+            if ( item.name() != L"Summary Spectrum" && item.attribute( L"isChecked" ) == L"true" ) {
                 
                 if ( item.empty() )
                     processor->fetch( item );
@@ -684,7 +748,7 @@ MSCalibSpectraWnd::plot( internal::SeriesData& d, int id )
         Qt::blue, Qt::red, Qt::green, Qt::cyan, Qt::magenta, Qt::yellow
         , Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkCyan, Qt::darkMagenta
     };
-    
+
 	plotCurves_[ d.formula() ] = std::make_shared< QwtPlotCurve >();
 	auto plotCurve = plotCurves_[ d.formula() ];
 
@@ -696,10 +760,13 @@ MSCalibSpectraWnd::plot( internal::SeriesData& d, int id )
 
     std::shared_ptr< internal::SeriesData > ptr = d.shared_from_this();
     plotCurve->setData( new internal::xSeriesData( ptr ) );
-	dplot_->setAxisScale( QwtPlot::xBottom
-                          , d.boundingRect().left() - d.boundingRect().width() / 10.0
-                          , d.boundingRect().right() + d.boundingRect().width() / 10.0);
-	dplot_->setAxisScale( QwtPlot::yLeft, d.boundingRect().top(), d.boundingRect().bottom() + d.boundingRect().height() / 10.0);
+	dplot_->axisAutoScale( QwtPlot::xBottom );
+	dplot_->axisAutoScale( QwtPlot::yLeft );
+
+	// dplot_->setAxisScale( QwtPlot::xBottom
+    //                       , d.boundingRect().left() - d.boundingRect().width() / 10.0
+    //                       , d.boundingRect().right() + d.boundingRect().width() / 10.0);
+	// dplot_->setAxisScale( QwtPlot::yLeft, d.boundingRect().top(), d.boundingRect().bottom() + d.boundingRect().height() / 10.0);
 
 	dplot_->zoomer().setZoomBase( true );
 	dplot_->replot();
@@ -825,8 +892,12 @@ MSCalibSpectraWnd::plotSelectedLengthTime( const std::wstring& formula )
 void
 MSCalibSpectraWnd::generate_marged_result( Dataprocessor * /* processor */)
 {
-    margedSpectrum_ = std::make_shared< adcontrols::MassSpectrum >();
-    margedCalibResult_ = std::make_shared< adcontrols::MSCalibrateResult >();
+    if ( ! ( margedSpectrum_ && margedCalibResult_ ) )
+        return;
+
+    margedSpectrum_->clearSegments();
+    margedSpectrum_->resize(0);
+
     adcontrols::MSAssignedMasses masses;
 
     size_t idSpectrum = 0;
@@ -835,11 +906,13 @@ MSCalibSpectraWnd::generate_marged_result( Dataprocessor * /* processor */)
 
     for ( auto result: results_ ) {
 
-        auto ms = std::get<1>( result );
+        auto ms = std::get<1>( result ).lock();
+        auto calibResult = std::get<2>( result ).lock();
+        if ( ! ( ms && calibResult ) )
+            continue;
         if ( ! ms->isCentroid() )
             continue;
 
-        auto calibResult = std::get<2>( result );
         double threshold = calibResult->threshold();
 		const adcontrols::MSAssignedMasses& assigned = calibResult->assignedMasses();
 
@@ -881,6 +954,7 @@ MSCalibSpectraWnd::generate_marged_result( Dataprocessor * /* processor */)
 
             ++idSegment;
 		}
+        margedSpectrum_->addDescription( adcontrols::Description( L"Calibration", L"Coadded Summary" ) );
 	
         number_of_segments_.push_back( idSegment ); // number of segments held in the data
         nSeg += idSegment;  // total number of segment
@@ -888,16 +962,7 @@ MSCalibSpectraWnd::generate_marged_result( Dataprocessor * /* processor */)
     }
 
 	margedCalibResult_->assignedMasses( masses );
-	DataprocHandler::doAnnotateAssignedPeaks( *margedSpectrum_, masses );
-    wndSpectra_[ 0 ] ->setData( margedSpectrum_, 0 );
-
-#if 0
-    portfolio::Folder folder = processor->getPortfolio().addFolder( L"MSCalibration" );
-    portfolio::Folium folium = folder.findFoliumByName( L"Summary" );
-    if ( folium.fail() )
-        folium = folder.addFolium( L"Summary" );
-    folium = *marged;
-#endif    
-
+    if ( masses.size() > 0 )
+        DataprocHandler::doAnnotateAssignedPeaks( *margedSpectrum_, masses );
 }
 

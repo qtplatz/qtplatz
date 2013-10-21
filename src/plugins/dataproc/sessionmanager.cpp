@@ -39,6 +39,7 @@ SessionManager * SessionManager::instance_ = 0;
 
 SessionManager::SessionManager(QObject *parent) : QObject(parent)
                                                 , activeDataprocessor_(0)
+                                                , loadInprogress_( false )
 {
     instance_ = this;
 }
@@ -56,23 +57,27 @@ SessionManager * SessionManager::instance()
 void
 SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IEditor * editor )
 {
+    loadInprogress_ = true;
     sessions_.push_back( Session( proc, editor ) );
 	activeDataprocessor_ = proc.get();
 	emit signalAddSession( proc.get() );
     emit signalSessionAdded( proc.get() );
+    loadInprogress_ = false;
 }
 
 void
 SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
     activeDataprocessor_ = dataprocessor;
-	emit signalSessionUpdated( dataprocessor, folium );
+    if ( ! loadInprogress_ )
+        emit signalSessionUpdated( dataprocessor, folium );
 }
 
 void
 SessionManager::checkStateChanged( Dataprocessor * dataprocessor, portfolio::Folium& folium, bool isChecked )
 {
-    emit signalCheckStateChanged( dataprocessor, folium, isChecked );
+    if ( ! loadInprogress_ )
+        emit signalCheckStateChanged( dataprocessor, folium, isChecked );
 }
 
 SessionManager::vector_type::iterator

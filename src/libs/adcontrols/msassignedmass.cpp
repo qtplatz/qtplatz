@@ -259,3 +259,9 @@ MSAssignedMasses::end() const
 {
     return vec_.end();
 }
+
+size_t
+MSAssignedMasses::size() const
+{
+    return vec_.size();
+}

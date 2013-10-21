@@ -87,6 +87,7 @@ namespace dataproc {
         static SessionManager * instance_;
         std::vector< Session > sessions_;
         Dataprocessor * activeDataprocessor_;
+        bool loadInprogress_;
     };
 
 }
