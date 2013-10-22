@@ -31,6 +31,7 @@ using namespace adcontrols;
 
 MSProperty::MSProperty() : time_since_injection_( 0 )
                          , instAccelVoltage_( 0 )
+                         , tDelay_( 0 )
                          , instNumAvrg_( 0 )
                          , instSamplingStartDelay_( 0 )
                          , instSamplingInterval_( 0 )     
@@ -39,6 +40,7 @@ MSProperty::MSProperty() : time_since_injection_( 0 )
 
 MSProperty::MSProperty( const MSProperty& t ) : time_since_injection_( t.time_since_injection_ )
                                               , instAccelVoltage_( t.instAccelVoltage_ )
+                                              , tDelay_( t.tDelay_ )
                                               , instNumAvrg_( t.instNumAvrg_ )
                                               , instSamplingStartDelay_( t.instSamplingStartDelay_ )
                                               , instSamplingInterval_( t.instSamplingInterval_ )
@@ -93,15 +95,27 @@ MSProperty::coeffs( const std::vector< double >& coeffs )
 }
 
 double
-MSProperty::accelerateVoltage() const
+MSProperty::acceleratorVoltage() const
 {
     return instAccelVoltage_;
 }
 
 void
-MSProperty::setAccelerateVoltage( double value )
+MSProperty::acceleratorVoltage( double value )
 {
     instAccelVoltage_ = value;
+}
+
+double
+MSProperty::tDelay() const
+{
+	return tDelay_;
+}
+
+void
+MSProperty::tDelay( double t )
+{
+	tDelay_ = t;
 }
 
 int

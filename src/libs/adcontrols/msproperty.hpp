@@ -44,8 +44,10 @@ namespace adcontrols {
         MSProperty( const MSProperty& );
         class SamplingInfo;
 
-        double accelerateVoltage() const;
-        void setAccelerateVoltage( double );
+        double acceleratorVoltage() const;
+        void acceleratorVoltage( double );
+        double tDelay() const;
+        void tDelay( double );
 
         // analyzer mode, ex. Linear/Refrectron for MALDI, number of turns for Multi-turn instrument
         int mode() const;
@@ -120,7 +122,8 @@ namespace adcontrols {
 
     private:
         uint32_t time_since_injection_; // msec
-        double instAccelVoltage_;
+        double instAccelVoltage_;       // for scan law
+        double tDelay_;                 // for scan law
         uint32_t instNumAvrg_;
         uint32_t instSamplingStartDelay_;
         uint32_t instSamplingInterval_; // ps
@@ -152,6 +155,8 @@ namespace adcontrols {
             } else if ( version >= 3 ) {
                 ar & BOOST_SERIALIZATION_NVP( samplingData_ );
             }
+            if ( version >= 5 )
+                ar & BOOST_SERIALIZATION_NVP( tDelay_ );
             if ( version >= 4 ) {
                 ar & BOOST_SERIALIZATION_NVP( dataInterpreterClsid_ );
                 ar & BOOST_SERIALIZATION_NVP( deviceData_ );
@@ -162,6 +167,6 @@ namespace adcontrols {
     };
 }
 
-BOOST_CLASS_VERSION(adcontrols::MSProperty, 4)
+BOOST_CLASS_VERSION(adcontrols::MSProperty, 5)
 BOOST_CLASS_VERSION(adcontrols::MSProperty::SamplingInfo, 3)
 
