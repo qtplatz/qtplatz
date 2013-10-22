@@ -24,10 +24,13 @@
 **************************************************************************/
 
 #include "mscalibration.hpp"
+#include "massspectrometer.hpp"
+#include "metric/prefix.hpp"
 #include <sstream>
 #include <boost/format.hpp>
 
 using namespace adcontrols;
+using namespace adcontrols::massspectrometer;
 
 MSCalibration::MSCalibration() : t0_method_( LINEAR_TO_SQRT_M )
 {
@@ -138,11 +141,36 @@ double
 MSCalibration::compute_mass( double time ) const
 {
     double sqrt = compute( coeffs_, time );
-    if ( sqrt > 0 ) {
+    if ( sqrt > 0 )
         return sqrt * sqrt;
+
+    return 0;
+}
+
+double
+MSCalibration::compute_mass( double time, const ScanLaw& law, int mode ) const
+{
+    if ( time_method_ == MULTITURN_NORMALIZED ) {
+        double t0 = 0;
+        if ( t0_coeffs_.empty() )
+            return compute_mass( scale_to( time_prefix_, time - law.getTime(0, mode) ) / law.fLength( mode ) );
+
+        double mass = law.getMass( time, mode );
+		for ( int i = 0; i < 2; ++i ) {
+            t0 = metric::scale_to_base( compute( t0_coeffs_, std::sqrt( mass ) ), time_prefix_ );
+			double T  = scale_to( time_prefix_, time - t0 );
+			mass = compute_mass( T / law.fLength( mode ) );
+		}
+        return mass;
+    } else {
+        double T = metric::scale_to( time_prefix_, time );
+        if ( ! t0_coeffs_.empty() )
+            T -= t0_coeffs_[0];
+        return compute_mass( T );
     }
     return 0;
 }
+
 
 // static
 double

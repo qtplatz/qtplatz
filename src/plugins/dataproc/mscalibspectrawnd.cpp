@@ -64,6 +64,7 @@
 #include <qwt_scale_engine.h>
 #include <qwt_legend.h>
 #include <QVBoxLayout>
+#include <QMessageBox>
 #include <boost/format.hpp>
 #include <cmath>
 #include <tuple>
@@ -719,10 +720,27 @@ MSCalibSpectraWnd::readCalibSummary( adcontrols::MSAssignedMasses& assigned )
 void
 MSCalibSpectraWnd::handle_reassign_mass_requested()
 {
+    using namespace adcontrols::metric;
+
     adcontrols::MSAssignedMasses assigned;
-    if ( readCalibSummary( assigned ) ) {
-        //assert(0);
+    if ( margedCalibResult_ ) {
+
+        assigned = margedCalibResult_->assignedMasses();
+        const adcontrols::MSCalibration& calib = margedCalibResult_->calibration();
+        adcontrols::segment_wrapper<> segments( *margedSpectrum_ );
+
+        if ( calib.time_method() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
+            for ( auto& a: assigned ) {
+				double mass = calib.compute_mass( a.time(), margedSpectrum_->scanLaw(), a.mode() );
+				a.mass( mass );
+                segments[ a.idMassSpectrum() ].setMass( a.idPeak(), mass );
+            }
+        }
+		DataprocHandler::doAnnotateAssignedPeaks( *margedSpectrum_, assigned );
+		margedCalibResult_->assignedMasses( assigned );
+        emit onSetData( *margedCalibResult_, *margedSpectrum_ );
     }
+    
 }
 
 void
@@ -736,13 +754,13 @@ MSCalibSpectraWnd::handle_recalibration_requested()
 void
 MSCalibSpectraWnd::handle_apply_calibration_to_dataset()
 {
-    assert(0);
+    QMessageBox::information( 0, "MSCalibSpectra", "apply calibration to dataset not implementd" );
 }
 
 void
 MSCalibSpectraWnd::handle_apply_calibration_to_default()
 {
-    assert(0);
+    QMessageBox::information( 0, "MSCalibSpectra", "apply calibration to default not implementd" );
 }
 
 void

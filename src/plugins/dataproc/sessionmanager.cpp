@@ -69,8 +69,7 @@ void
 SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Folium& folium )
 {
     activeDataprocessor_ = dataprocessor;
-    if ( ! loadInprogress_ )
-        emit signalSessionUpdated( dataprocessor, folium );
+    emit signalSessionUpdated( dataprocessor, folium );
 }
 
 void

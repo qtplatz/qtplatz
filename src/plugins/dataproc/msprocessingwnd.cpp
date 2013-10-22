@@ -235,10 +235,10 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                     c.addDescription( adcontrols::Description( L"origin", title ) );
                     adcontrols::ProcessMethod m;
                     MainWindow::instance()->getProcessMethod( m );
-                    processor->addChromatogram( c, m );
-                }
+                    folium = processor->addChromatogram( c, m );
+				}
             }
-        }
+		}
         portfolio::Folium folium = folder.findFoliumByName( L"TIC.1" );
         if ( folium.empty() )
             processor->fetch( folium );

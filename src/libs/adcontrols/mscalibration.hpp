@@ -36,6 +36,8 @@
 
 namespace adcontrols {
 
+    namespace massspectrometer { class ScanLaw; }
+
     class ADCONTROLSSHARED_EXPORT MSCalibration {
     public:
         enum T0_METHOD { IGNORE_T0, LINEAR_TO_SQRT_M };
@@ -57,6 +59,8 @@ namespace adcontrols {
         void coeffs( const std::vector<double>& );
 
         double compute_mass( double time ) const;
+        double compute_mass( double time, const massspectrometer::ScanLaw&, int mode ) const;
+
         static double compute( const std::vector<double>&, double time );
         std::string formulaText( bool ritchText = true );
 
