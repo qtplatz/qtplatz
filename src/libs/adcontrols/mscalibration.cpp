@@ -28,12 +28,19 @@
 #include "metric/prefix.hpp"
 #include <sstream>
 #include <boost/format.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 using namespace adcontrols;
 using namespace adcontrols::massspectrometer;
 
 MSCalibration::MSCalibration() : t0_method_( LINEAR_TO_SQRT_M )
+                               , time_prefix_( adcontrols::metric::base )
 {
+    init();
 }
 
 MSCalibration::MSCalibration( const MSCalibration& t ) : calibDate_( t.calibDate_ )
@@ -52,6 +59,7 @@ MSCalibration::MSCalibration( const std::vector<double>& v
                                                      , t0_method_( LINEAR_TO_SQRT_M )
                                                      , time_method_( NOTHING )
 {
+    init();
 }
 
 MSCalibration::MSCalibration( const std::vector<double>& coeffs
@@ -63,6 +71,17 @@ MSCalibration::MSCalibration( const std::vector<double>& coeffs
                                                         , t0_method_( LINEAR_TO_SQRT_M ) 
                                                         , time_method_( time_method )
 {
+    init();
+}
+
+void
+MSCalibration::init()
+{
+    boost::posix_time::ptime pt = boost::posix_time::microsec_clock::local_time();
+    calibDate_ = boost::lexical_cast< std::string >( pt );
+
+	const boost::uuids::uuid uuid = boost::uuids::random_generator()();
+    calibId_ = boost::lexical_cast< std::wstring >( uuid );
 }
 
 const std::string&

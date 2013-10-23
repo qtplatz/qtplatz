@@ -80,7 +80,6 @@ namespace adcontrols {
 
         // trial
         double t0_;
-        std::vector< double > a_coeffs_deprecated_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -95,12 +94,11 @@ namespace adcontrols {
             } else if ( version >= 2 ) {
                 ar & BOOST_SERIALIZATION_NVP(tolerance_);
                 ar & BOOST_SERIALIZATION_NVP(threshold_);
-                ar & BOOST_SERIALIZATION_NVP(*references_);
-                ar & BOOST_SERIALIZATION_NVP(*calibration_);
-                ar & BOOST_SERIALIZATION_NVP(*assignedMasses_);
+                ar & boost::serialization::make_nvp("references", *references_);
+                ar & boost::serialization::make_nvp("calibration", *calibration_);
+                ar & boost::serialization::make_nvp("assignedMasses", *assignedMasses_);
                 // trial for multi-turn calibration
                 ar & BOOST_SERIALIZATION_NVP(t0_);
-                ar & BOOST_SERIALIZATION_NVP(a_coeffs_deprecated_); // deprecated
             }
         }
     public:

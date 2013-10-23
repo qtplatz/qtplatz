@@ -87,6 +87,8 @@ namespace adcontrols {
         T0_METHOD t0_method_;
         TIME_METHOD time_method_;
 
+        void init();
+
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {

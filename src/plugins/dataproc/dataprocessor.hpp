@@ -39,6 +39,7 @@ namespace adcontrols {
     class Chromatogram;
     class MSAssignedMasses;
     class MSCalibrateMethod;
+	class MSCalibrateResult;
     class CentroidMethod;
 }
 
@@ -88,6 +89,7 @@ namespace dataproc {
 
         static const std::shared_ptr< adcontrols::ProcessMethod > findProcessMethod( const portfolio::Folium& );
         static bool saveMSCalibration( portfolio::Folium& );
+        static bool saveMSCalibration( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
 
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& ) override;

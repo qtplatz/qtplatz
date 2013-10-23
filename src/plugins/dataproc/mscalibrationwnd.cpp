@@ -50,6 +50,7 @@
 #include <coreplugin/minisplitter.h>
 #include <QBoxLayout>
 #include <QPrinter>
+#include <qmessagebox.h>
 #include <adportable/configuration.hpp>
 #include <adportable/debug.hpp>
 #include <adplugin/lifecycle.hpp>
@@ -480,7 +481,7 @@ MSCalibrationWnd::handle_recalibration_requested()
 void
 MSCalibrationWnd::handle_apply_calibration_to_dataset()
 {
-    assert(0);
+    QMessageBox::information( 0, "MSCalibrationWnd", "apply calibration to dataset not implementd" );
 }
 
 void

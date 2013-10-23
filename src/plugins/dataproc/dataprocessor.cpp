@@ -854,3 +854,33 @@ Dataprocessor::saveMSCalibration( portfolio::Folium& folium )
 
     return true;
 }
+
+// static
+bool
+Dataprocessor::saveMSCalibration( const adcontrols::MSCalibrateResult& calibResult, const adcontrols::MassSpectrum& calibSpectrum )
+{
+    boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
+    dir /= "data";
+    if ( ! boost::filesystem::exists( dir ) ) 
+        if ( ! boost::filesystem::create_directories( dir ) )
+            return false;
+
+    boost::filesystem::path fname = dir / "default.msclb";
+    
+    adfs::filesystem dbf;
+    if ( !adutils::fsio::create( dbf, fname.wstring() ) )
+        return false;
+
+    adutils::fsio::save_mscalibfile( dbf, calibResult );
+    adutils::fsio::save_mscalibfile( dbf, calibSpectrum );
+
+    // for debugging convension
+    std::string xml;
+    if ( adportable::xml_serializer< adcontrols::MSCalibrateResult >::serialize( calibResult, xml ) ) {
+        fname.replace_extension( ".msclb.xml" );
+        std::ofstream of( fname.string() );
+        of << xml;
+    }
+
+    return true;
+}

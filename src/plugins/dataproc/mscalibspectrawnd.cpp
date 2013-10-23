@@ -746,9 +746,7 @@ MSCalibSpectraWnd::handle_reassign_mass_requested()
 void
 MSCalibSpectraWnd::handle_recalibration_requested()
 {
-    adcontrols::MSAssignedMasses assigned;
-    if ( readCalibSummary( assigned ) )
-        MainWindow::instance()->applyCalibration( assigned, folium_ );
+    QMessageBox::information( 0, "MSCalibSpectra", "recalibration not implementd" );
 }
 
 void
@@ -760,7 +758,10 @@ MSCalibSpectraWnd::handle_apply_calibration_to_dataset()
 void
 MSCalibSpectraWnd::handle_apply_calibration_to_default()
 {
-    QMessageBox::information( 0, "MSCalibSpectra", "apply calibration to default not implementd" );
+	if ( margedCalibResult_ && margedSpectrum_ ) {
+		handle_reassign_mass_requested();
+		Dataprocessor::saveMSCalibration( *margedCalibResult_, *margedSpectrum_ );
+	}
 }
 
 void
