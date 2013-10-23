@@ -75,7 +75,8 @@ namespace adcontrols {
                                                    , const char * data, size_t dsize
                                                    , const char * meta, size_t msize 
                                                    , const MassSpectrometer&
-                                                   , size_t idData ) const override {
+                                                   , size_t idData
+												   , const MSCalibration * ) const override {
                 (void)data; (void)dsize; (void)meta; (void)msize; (void)idData;
                 return adcontrols::translate_error;
             }

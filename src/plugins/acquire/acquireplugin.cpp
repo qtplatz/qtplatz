@@ -44,6 +44,11 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/msreference.hpp>
+#include <adcontrols/msreferences.hpp>
+#include <adcontrols/mscalibration.hpp>
+#include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/centroidprocess.hpp>
 #include <adcontrols/centroidmethod.hpp>
@@ -57,6 +62,7 @@
 #include <adportable/configloader.hpp>
 #include <adportable/date_string.hpp>
 #include <adportable/profile.hpp>
+#include <adportable/serializer.hpp>
 #include <adplugin/loader.hpp>
 #include <adplugin/manager.hpp>
 #include <adportable/date_string.hpp>
@@ -761,10 +767,25 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
     SignalObserver::Observer_ptr tgt = observerMap_[ objId ].in();
     SignalObserver::Description_var desc = tgt->getDescription();
     CORBA::WString_var name = tgt->dataInterpreterClsid();
+
     const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() );
     const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
 
     if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
+#if 0
+        if ( calibResults_.find( objId ) == calibResults_.end() ) {
+            SignalObserver::octet_array_var calib;
+			CORBA::WString_var dataClass;
+			size_t idx = 0;
+            while ( tgt->readCalibration( idx++, calib, dataClass ) ) {
+                if ( std::wcscmp( dataClass, adcontrols::MSCalibrateResult::dataClass() ) == 0 ) {
+                    auto ptr = std::make_shared< adcontrols::MSCalibrateResult >();
+                    adportable::serializer< adcontrols::MSCalibrateResult >::deserialize( *ptr, reinterpret_cast< const char *>(calib->get_buffer()), calib->length() );
+                    calibResults_[ objId ] = ptr;
+                }
+            }
+        }
+#endif                                     
         try {
             SignalObserver::DataReadBuffer_var rb;
             while ( tgt->readData( npos, rb ) ) {

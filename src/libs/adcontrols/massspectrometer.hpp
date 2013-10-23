@@ -57,16 +57,6 @@ namespace adcontrols {
         MassSpectrometer(void) {}
         virtual ~MassSpectrometer(void) {}
         
-        // class ScanLaw {
-        // public:
-        //     virtual double getMass( double secs, int mode ) const = 0;
-        //     virtual double getTime( double mass, int mode ) const = 0;
-        //     virtual double getMass( double secs, double fLength ) const = 0;
-        //     virtual double getTime( double mass, double fLength ) const = 0;
-        //     virtual double fLength( int mode ) const = 0;
-        // };
-
-        //virtual void accept( Visitor& ) = 0;
         virtual const wchar_t * name() const = 0;
         virtual const massspectrometer::ScanLaw& getScanLaw() const = 0;
         virtual const DataInterpreter& getDataInterpreter() const = 0;

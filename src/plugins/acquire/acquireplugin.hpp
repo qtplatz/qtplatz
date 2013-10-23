@@ -52,6 +52,7 @@ namespace adcontrols {
     class DataInterpreter;
     class MassSpectrum;
     class TraceAccessor;
+	class MSCalibrateResult;
 }
 
 namespace adportable {
@@ -150,6 +151,7 @@ namespace acquire {
             std::deque< std::shared_ptr< adcontrols::MassSpectrum > > fifo_ms_;
             std::map< unsigned long, std::shared_ptr< adcontrols::TraceAccessor > > trace_accessors_;
             std::map< unsigned long, long > npos_map_;
+            std::map< unsigned long, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
 
             std::unique_ptr< receiver_i > receiver_i_;
             std::unique_ptr< adinterface::ObserverEvents_i > sink_;
