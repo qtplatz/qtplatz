@@ -49,7 +49,7 @@ MSCalibration::MSCalibration( const MSCalibration& t ) : calibDate_( t.calibDate
                                                        , t0_coeffs_( t.t0_coeffs_ )
                                                        , t0_method_( t.t0_method_ )
                                                        , time_prefix_( t.time_prefix_ )
-                                                       , time_method_( t.time_method_ )
+                                                       , algo_( t.algo_ )
 {
 }
 
@@ -57,7 +57,7 @@ MSCalibration::MSCalibration( const std::vector<double>& v
                               , metric::prefix pfx ) : coeffs_( v )
                                                      , time_prefix_( pfx )
                                                      , t0_method_( LINEAR_TO_SQRT_M )
-                                                     , time_method_( NOTHING )
+													 , algo_( TIMESQUARED )
 {
     init();
 }
@@ -65,11 +65,11 @@ MSCalibration::MSCalibration( const std::vector<double>& v
 MSCalibration::MSCalibration( const std::vector<double>& coeffs
                               , metric::prefix time_prefix
                               , const std::vector<double>& t0Coeff
-                              , TIME_METHOD time_method ) : coeffs_( coeffs )
+                              , ALGORITHM algo ) : coeffs_( coeffs )
                                                         , t0_coeffs_( t0Coeff )
                                                         , time_prefix_( time_prefix )
                                                         , t0_method_( LINEAR_TO_SQRT_M ) 
-                                                        , time_method_( time_method )
+                                                        , algo_( algo )
 {
     init();
 }
@@ -145,15 +145,15 @@ MSCalibration::t0_method() const
 }
 
 void
-MSCalibration::time_method( TIME_METHOD value )
+MSCalibration::algorithm( ALGORITHM value )
 {
-    time_method_ = value;
+    algo_ = value;
 }
 
-MSCalibration::TIME_METHOD
-MSCalibration::time_method() const
+MSCalibration::ALGORITHM
+MSCalibration::algorithm() const
 {
-    return time_method_;
+    return algo_;
 }
 
 double
@@ -166,6 +166,7 @@ MSCalibration::compute_mass( double time ) const
     return 0;
 }
 
+/*
 double
 MSCalibration::compute_mass( double time, const ScanLaw& law, int mode ) const
 {
@@ -189,7 +190,7 @@ MSCalibration::compute_mass( double time, const ScanLaw& law, int mode ) const
     }
     return 0;
 }
-
+*/
 
 // static
 double
