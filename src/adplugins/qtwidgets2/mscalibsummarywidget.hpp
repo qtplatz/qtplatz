@@ -57,7 +57,6 @@ namespace qtwidgets2 {
             , c_mass_error_mDa
             , c_mass_calibrated
             , c_mass_error_calibrated_mDa
-            , c_mass_error2_calibrated_mDa
             , c_is_enable
             , c_delta_mass // d-mass from currnet focused peak
             , c_intensity

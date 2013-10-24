@@ -36,6 +36,7 @@
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibration.hpp>
+#include <adcontrols/computemass.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <qtwrapper/qstring.hpp>
@@ -101,7 +102,6 @@ MSCalibSummaryWidget::OnInitialUpdate()
     model.setHeaderData( c_exact_mass, Qt::Horizontal, QObject::tr( "m/z(exact)" ) );
     model.setHeaderData( c_mass_error_mDa, Qt::Horizontal, QObject::tr( "error(mDa)" ) );
     model.setHeaderData( c_mass_error_calibrated_mDa, Qt::Horizontal, QObject::tr( "error(mDa) calibrated" ) );
-    model.setHeaderData( c_mass_error2_calibrated_mDa, Qt::Horizontal, QObject::tr( "error(mDa) lsq(t0)" ) );
     model.setHeaderData( c_is_enable, Qt::Horizontal, QObject::tr( "enable" ) );
 	model.setHeaderData( c_delta_mass, Qt::Horizontal, QObject::tr( "delta m/z" ) );
     model.setHeaderData( c_fcn, Qt::Horizontal, QObject::tr( "fcn" ) );
@@ -195,13 +195,24 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
     if ( it == assigned.end() )
         return false;
 
+	
 	double normalized_time = 0; // ( it->time() - t0 ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
 
     const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
-    double mass = calib.compute_mass( it->time() );
-    double mass2 = 0;
+	adcontrols::ComputeMass< adcontrols::massspectrometer::ScanLaw > mass_calculator( pCalibrantSpectrum_->scanLaw(), calib );
+	double mass = mass_calculator( it->time(), it->mode() );
 
-    if ( calib.time_method() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
+	if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
+		double t0 = scale_to_base( calib.compute( calib.t0_coeffs(), std::sqrt( mass ) ), calib.time_prefix() );
+		double L = pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
+		normalized_time = ( it->time() - t0 ) / L;
+	} else {
+		normalized_time = ( it->time() - pCalibResult_->t0() ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
+	}
+    //double mass = calib.compute_mass( it->time() );
+	
+	/*
+    if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
         double L = pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
         do {
             const double t0 = pCalibResult_->t0(); // using fixed t0
@@ -216,6 +227,7 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
             mass2 = calib.compute_mass( T / L );            
         } while (0);
     }
+	*/
 
     model.setData( model.index( row, c_time_normalized ), normalized_time );
     model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );
@@ -229,7 +241,7 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
     double mz = model.index( row, c_mass_calibrated ).data( Qt::EditRole ).toDouble();
     if ( mz > 1.0 ) {
         model.setData( model.index( row, c_mass_error_calibrated_mDa ), ( mz - it->exactMass() ) * 1000 ); // mDa
-        model.setData( model.index( row, c_mass_error2_calibrated_mDa ), ( mass2 - it->exactMass() ) * 1000 ); // mDa
+        //model.setData( model.index( row, c_mass_error2_calibrated_mDa ), ( mass2 - it->exactMass() ) * 1000 ); // mDa
     }
 
     model.setData( model.index( row, c_mode ), it->mode() );

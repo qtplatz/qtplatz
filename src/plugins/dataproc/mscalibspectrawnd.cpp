@@ -29,6 +29,7 @@
 #include "dataprocessor.hpp"
 #include "dataprochandler.hpp"
 #include "sessionmanager.hpp"
+#include <adcontrols/computemass.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/msassignedmass.hpp>
@@ -729,9 +730,10 @@ MSCalibSpectraWnd::handle_reassign_mass_requested()
         const adcontrols::MSCalibration& calib = margedCalibResult_->calibration();
         adcontrols::segment_wrapper<> segments( *margedSpectrum_ );
 
-        if ( calib.time_method() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
+        if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
+			adcontrols::ComputeMass< adcontrols::massspectrometer::ScanLaw > mass_calculator( margedSpectrum_->scanLaw(), calib );
             for ( auto& a: assigned ) {
-				double mass = calib.compute_mass( a.time(), margedSpectrum_->scanLaw(), a.mode() );
+				double mass = mass_calculator( a.time(), a.mode() );
 				a.mass( mass );
                 segments[ a.idMassSpectrum() ].setMass( a.idPeak(), mass );
             }

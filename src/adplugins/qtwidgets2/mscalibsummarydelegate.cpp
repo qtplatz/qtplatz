@@ -62,7 +62,6 @@ MSCalibSummaryDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         break;
     case MSCalibSummaryWidget::c_mass_error_mDa:
     case MSCalibSummaryWidget::c_mass_error_calibrated_mDa:
-    case MSCalibSummaryWidget::c_mass_error2_calibrated_mDa:
 		if ( ! index.model()->data( index.model()->index( index.row(), MSCalibSummaryWidget::c_formula ), Qt::EditRole ).toString().isEmpty() ) {
 			drawDisplay( painter, option, option.rect, ( boost::format("%.3lf") % index.data( Qt::EditRole ).toDouble() ).str().c_str() );
 		}
