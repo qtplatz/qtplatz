@@ -28,7 +28,7 @@
 #include "adcontrols_global.h"
 #include "mscalibration.hpp"
 #include "metric/prefix.hpp"
-#include <boost/variant.hpp>
+#include <adportable/binary_search.hpp>
 #include <vector>
 #include <string>
 
@@ -49,32 +49,30 @@ namespace adcontrols {
         
         template<> struct compute_mass< MSCalibration::TIMESQUARED > {
             
-            template< class ScanLaw >
-            static double compute( double time, int /*mode*/, const ScanLaw&, const MSCalibration& calib ) {
+            static double compute( double time, const MSCalibration& calib ) {
                 double t = scale_to( calib.time_prefix(), time );
                 if ( !calib.t0_coeffs().empty() )
                     t -= calib.t0_coeffs()[ 0 ];
                 return calib.compute_mass( t );
             }
+
         };
             
         template<> struct compute_mass< MSCalibration::MULTITURN_NORMALIZED > {
 
-            template< class ScanLaw >                
-            static double compute( double time, int mode, const ScanLaw& law, const MSCalibration& calib ) {
-                
-                double t0 = 0;
-                if ( calib.t0_coeffs().empty() )
-                    return calib.compute_mass( scale_to( calib.time_prefix(), time - law.getTime(0, mode) ) / law.fLength( mode ) );
-                
-                double mass = law.getMass( time, mode );
+            static double compute( double time, double fLength, const MSCalibration& calib ) {
+
+                double tL = time / fLength;
+                double mass = calib.compute_mass( scale_to( calib.time_prefix(), tL ) ); // first estimation
+
                 for ( int i = 0; i < 2; ++i ) {
-                    t0 = scale_to_base( calib.compute( calib.t0_coeffs(), std::sqrt( mass ) ), calib.time_prefix() );
-                    double T  = scale_to( calib.time_prefix(), time - t0 );
-                    mass = calib.compute_mass( T / law.fLength( mode ) );
+                    double t0 = scale_to_base( calib.compute( calib.t0_coeffs(), std::sqrt( mass ) ), calib.time_prefix() );
+                    tL = ( time - t0 ) / fLength;
+                    mass = calib.compute_mass( scale_to( calib.time_prefix(), tL ) );
                 }
                 return mass;
             }
+
         };
         
     }
@@ -84,16 +82,30 @@ namespace adcontrols {
         const MSCalibration& calib;
         MSCalibration::ALGORITHM algo;
     public:
-        ComputeMass( const ScanLaw& _scanLaw
-                     , const adcontrols::MSCalibration& _calib) : scanLaw( _scanLaw )
-                                                                , calib( _calib )
-                                                                , algo( calib.algorithm() ) {
+        ComputeMass( const ScanLaw& slaw
+                     , const adcontrols::MSCalibration& clb ) : scanLaw( slaw )
+                                                              , calib( clb )
+                                                              , algo( calib.algorithm() ) {
         }
 
-        double operator()( double time, int mode ) const {
+        inline double getMass( double time, double fLength ) const {
             if ( algo == MSCalibration::MULTITURN_NORMALIZED )
-                return detail::compute_mass< MSCalibration::MULTITURN_NORMALIZED >::compute( time, mode, scanLaw, calib );
-            return detail::compute_mass< MSCalibration::TIMESQUARED >::compute( time, mode, scanLaw, calib );            
+                return detail::compute_mass< MSCalibration::MULTITURN_NORMALIZED >::compute( time, fLength, calib );
+            return detail::compute_mass< MSCalibration::TIMESQUARED >::compute( time, calib );            
+        }
+
+        inline double operator()( double time, int mode ) const {
+            return getMass( time, scanLaw.fLength( mode ) );
+        }
+
+        inline double getTime( double mass, double fLength ) const { 
+            size_t tupper = static_cast< size_t >( scale_to_nano( scanLaw.getTime( mass + 50, fLength ) ) );
+            size_t idx = adportable::lower_bound( 0, tupper, mass, [=](size_t pos){
+                    double t = scale_to_base<double>( pos, nano ); // 1ns precision
+					double m = getMass( t, fLength );
+                    return m;
+                } );
+            return scale_to_base<double>( idx, nano );
         }
         
     };
