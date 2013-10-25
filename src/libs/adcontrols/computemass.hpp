@@ -107,6 +107,9 @@ namespace adcontrols {
                 } );
             return scale_to_base<double>( idx, nano );
         }
+		double getTime( double mass, int mode ) const {
+			return getTime( mass, scanLaw.fLength( mode ) );
+		}
         
     };
 
