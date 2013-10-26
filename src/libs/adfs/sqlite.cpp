@@ -263,6 +263,12 @@ namespace adfs {
     {
         return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
     }
+
+	template<> bool
+    stmt::bind_item::operator = ( const double& v )
+    {
+        return sqlite3_bind_double( stmt_, nnn_, v ) == SQLITE_OK;
+    }
     
     template<> bool
     stmt::bind_item::operator = ( const boost::uint64_t& v )
@@ -292,7 +298,47 @@ namespace adfs {
         else
             return sqlite3_bind_zeroblob( stmt_, nnn_, blob.size() ) == SQLITE_OK;
     }
-}; /* namespace adfs */
+
+    template<> std::string stmt::get_column_value( int nCol )
+    {
+        if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_TEXT ) {
+            const unsigned char * text = sqlite3_column_text( stmt_, nCol );
+            return std::string( reinterpret_cast< const char * >(text) );
+        }
+        throw std::bad_cast();
+    }
+
+    template<> std::wstring stmt::get_column_value( int nCol )
+    {
+        if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_TEXT ) {
+            const unsigned char * text = sqlite3_column_text( stmt_, nCol );
+            return adportable::utf::to_wstring( text );
+        }
+        throw std::bad_cast();
+    }
+
+    template<> double stmt::get_column_value( int nCol )
+    {
+        if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_FLOAT )
+            return sqlite3_column_double( stmt_, nCol );
+        throw std::bad_cast();
+    }
+
+    template<> uint64_t stmt::get_column_value( int nCol )
+    {
+        if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_INTEGER )
+            return sqlite3_column_int64( stmt_, nCol );
+        throw std::bad_cast();
+    }
+
+    template<> blob stmt::get_column_value( int nCol )
+    {
+        if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_BLOB )
+            return blob();
+        throw std::bad_cast();
+    }
+
+} /* namespace adfs */
 
 //-------------
 int
@@ -318,7 +364,7 @@ stmt::column_value( int nCol )
     case SQLITE_TEXT:    
         do {
             const unsigned char * text = sqlite3_column_text( stmt_, nCol );
-            return column_value_type( adportable::utf::to_wstring( text ) );
+			return column_value_type( adportable::utf::to_wstring( text ) );
         } while(0);
     case SQLITE_BLOB:    return column_value_type( blob() );
     case SQLITE_NULL:    return column_value_type( null() );

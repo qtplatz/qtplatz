@@ -114,6 +114,7 @@ namespace adfs {
         int column_type( int );
 
         column_value_type column_value( int );
+        template<typename T> T get_column_value( int );
 
     private:
         sqlite& sqlite_;
