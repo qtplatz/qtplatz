@@ -41,14 +41,19 @@ using namespace qtwidgets;
 
 PeakMethodForm::PeakMethodForm(QWidget *parent) : QWidget(parent)
                                                 , ui(new Ui::PeakMethodForm)
-                                                , pModel_( new QStandardItemModel )
                                                 , pMethod_( new adcontrols::PeakMethod ) 
-                                                , pDelegate_( new TableDelegate )
+                                                , pTimeEventsModel_( new QStandardItemModel )
+                                                , pTimeEventsDelegate_( new TableDelegate )
+                                                , pGlobalModel_( new QStandardItemModel )
+                                                , pGlobalDelegate_( new PeakMethodDelegate )
 {
     ui->setupUi(this);
-    ui->timeEvents->setModel( pModel_.get() );
-    ui->timeEvents->setItemDelegate( pDelegate_.get() );
+
+    ui->timeEvents->setModel( pTimeEventsModel_.get() );
+    ui->timeEvents->setItemDelegate( pTimeEventsDelegate_.get() );
     ui->timeEvents->verticalHeader()->setDefaultSectionSize( 18 );
+    ui->treeView->setModel( pGlobalModel_.get() );
+    ui->treeView->setItemDelegate( pGlobalDelegate_.get() );
 }
 
 PeakMethodForm::~PeakMethodForm()
@@ -73,7 +78,7 @@ PeakMethodForm::OnInitialUpdate()
 {
     setContents( *pMethod_ );
     do {
-        QStandardItemModel& model = *pModel_;
+        QStandardItemModel& model = *pTimeEventsModel_;
         QStandardItem * rootNode = model.invisibleRootItem();
         rootNode->setColumnCount(3);
         model.setHeaderData( 0, Qt::Horizontal, "Time(min)" );
@@ -81,6 +86,33 @@ PeakMethodForm::OnInitialUpdate()
         model.setHeaderData( 0, Qt::Horizontal, "Value" );
         model.setRowCount( 1 );
     } while ( 0 );
+
+    do {
+        QStandardItemModel& model = *pGlobalModel_;
+
+        model.setColumnCount( c_num_columns );
+        model.setHeaderData( c_header, Qt::Horizontal, "Function" );
+        model.setHeaderData( c_value, Qt::Horizontal, "Value" );
+
+        model.setRowCount( r_num_rows );
+        model.setData( model.index( r_slope,         c_header ), "Slope [&mu;V/min]" );
+        model.setData( model.index( r_min_width,     c_header ), "Minimum width[min]" );
+        model.setData( model.index( r_min_height,    c_header ), "Minimum height" );    
+        model.setData( model.index( r_drift,         c_header ), "Drift [height/min]" );
+        model.setData( model.index( r_min_area,      c_header ), "Minumum area[&mu;V&sdot;s]" );
+        model.setData( model.index( r_doubling_time, c_header ), "Peak width doubling time[min]" );
+        model.setData( model.index( r_void_time, c_header ),     "T<sub>0</sub>" );
+        model.setData( model.index( r_pharmacopoeia, c_header ), "Pharmacopoeia" );
+
+        setContents( *pMethod_ );
+
+        for ( int row = 0; row < r_num_rows; ++row )
+            model.item( row, c_header )->setEditable( false );
+
+        ui->treeView->resizeColumnToContents( 0 );
+        ui->treeView->resizeColumnToContents( 1 );
+
+    } while (0);
 }
 
 void
@@ -120,81 +152,53 @@ PeakMethodForm::setContents( boost::any& any )
 void
 PeakMethodForm::getContents( adcontrols::ProcessMethod& pm ) const
 {
+    getContents( *pMethod_ );
 	pm.appendMethod< adcontrols::PeakMethod >( *pMethod_ );
 }
 
 void
 PeakMethodForm::setContents( const adcontrols::PeakMethod& method )
 {
-    ui->doubleSpinSlope->setValue( method.slope() );
-    ui->doubleSpinMinWidth->setValue( method.minimumWidth() );
-    ui->doubleSpinMinHeight->setValue( method.minimumHeight() );
-    ui->doubleSpinMinArea->setValue( method.minimumArea() );
-    ui->doubleSpinDrift->setValue( method.drift() );
-    ui->doubleSpinDoublingTime->setValue( method.doubleWidthTime() );
-    ui->comboBoxWidth->setCurrentIndex( 0 );
-    ui->comboBoxPlate->setCurrentIndex( 0 );
-    ui->comboBoxPharmacopoeia->setCurrentIndex( 0 );
+    QStandardItemModel& model = *pGlobalModel_;
+    
+    model.setData( model.index( r_slope,         c_value ), method.slope() );
+    model.setData( model.index( r_min_width,     c_value ), method.minimumWidth() ); 
+    model.setData( model.index( r_min_height,    c_value ), method.minimumHeight() );
+    model.setData( model.index( r_drift,         c_value ), method.drift() );
+    model.setData( model.index( r_min_area,      c_value ), method.minimumArea() );
+    model.setData( model.index( r_doubling_time, c_value ), method.doubleWidthTime() );
+    model.setData( model.index( r_void_time,     c_value ), method.t0() );
+    model.setData( model.index( r_pharmacopoeia, c_value ), method.pharmacopoeia() );
 }
 
-void qtwidgets::PeakMethodForm::on_doubleSpinSlope_valueChanged(double arg1)
+void
+PeakMethodForm::getContents( adcontrols::PeakMethod& method ) const
 {
-    pMethod_->slope( arg1 );
-}
+    QStandardItemModel& model = *pGlobalModel_;
+    
+    method.slope( model.index( r_slope, c_value ).data( Qt::EditRole ).toDouble() );
+    method.minimumWidth( model.index( r_min_width, c_value ).data( Qt::EditRole ).toDouble() );
+    method.minimumHeight( model.index( r_min_height, c_value ).data( Qt::EditRole ).toDouble() );
+    method.drift( model.index( r_drift, c_value ).data( Qt::EditRole ).toDouble() );
+    method.minimumArea( model.index( r_min_area, c_value ).data( Qt::EditRole ).toDouble() );
+    method.doubleWidthTime(model.index( r_doubling_time, c_value ).data( Qt::EditRole ).toDouble() );
+    method.t0( model.index( r_void_time, c_value ).data( Qt::EditRole ).toDouble() );
+    int value = model.index( r_pharmacopoeia, c_value ).data( Qt::EditRole ).toInt();
+    method.pharmacopoeia( static_cast< adcontrols::chromatography::ePharmacopoeia >( value ) );
 
-void qtwidgets::PeakMethodForm::on_doubleSpinMinWidth_valueChanged(double arg1)
-{
-    pMethod_->minimumWidth( arg1 );
-}
+    using adcontrols::chromatography::ePHARMACOPOEIA_USP;
+    using adcontrols::chromatography::ePHARMACOPOEIA_EP;
+    using adcontrols::chromatography::ePHARMACOPOEIA_JP;
+    using adcontrols::chromatography::ePeakWidth_Tangent;
+    using adcontrols::chromatography::ePeakWidth_HalfHeight;
 
-void qtwidgets::PeakMethodForm::on_doubleSpinMinHeight_valueChanged(double arg1)
-{
-    pMethod_->minimumHeight( arg1 );
-}
-
-void qtwidgets::PeakMethodForm::on_doubleSpinDrift_valueChanged(double arg1)
-{
-    pMethod_->drift( arg1 );
-}
-
-void qtwidgets::PeakMethodForm::on_doubleSpinMinArea_valueChanged(double arg1)
-{
-    pMethod_->minimumArea( arg1 );
-}
-
-void qtwidgets::PeakMethodForm::on_doubleSpinDoublingTime_valueChanged(double arg1)
-{
-    pMethod_->doubleWidthTime( arg1 );
-}
-
-void qtwidgets::PeakMethodForm::on_comboBoxPharmacopoeia_currentIndexChanged(int index)
-{
-    using namespace adcontrols::chromatography;
-
-    if ( index == 0 ) // not specified
-        pMethod_->pharmacopoeia( ePHARMACOPOEIA_NotSpcified );
-    else if ( index == 1 ) // usp
-        pMethod_->pharmacopoeia( ePHARMACOPOEIA_USP );
-    else if ( index == 2 ) // ep
-        pMethod_->pharmacopoeia( ePHARMACOPOEIA_EP );
-    else if ( index == 3 ) // jp
-        pMethod_->pharmacopoeia( ePHARMACOPOEIA_JP );
-
-    if ( pMethod_->pharmacopoeia() == ePHARMACOPOEIA_USP ) {
-        pMethod_->theoreticalPlateMethod( ePeakWidth_Tangent );
-    } else if ( pMethod_->pharmacopoeia() == ePHARMACOPOEIA_EP ) {
-        pMethod_->theoreticalPlateMethod( ePeakWidth_HalfHeight );
-        pMethod_->peakWidthMethod( ePeakWidth_HalfHeight );
+    if ( method.pharmacopoeia() == ePHARMACOPOEIA_USP ) {
+        method.theoreticalPlateMethod( ePeakWidth_Tangent );
+    } else if ( method.pharmacopoeia() == ePHARMACOPOEIA_EP ) {
+        method.theoreticalPlateMethod( ePeakWidth_HalfHeight );
+        method.peakWidthMethod( ePeakWidth_HalfHeight );
+    } else if ( method.pharmacopoeia() == ePHARMACOPOEIA_JP ) {
+        method.theoreticalPlateMethod( ePeakWidth_HalfHeight );
+        method.peakWidthMethod( ePeakWidth_HalfHeight );
     }
-
-}
-
-void qtwidgets::PeakMethodForm::on_comboBoxPlate_currentIndexChanged(int index)
-{
-    (void)index; // todo
-}
-
-void qtwidgets::PeakMethodForm::on_comboBoxWidth_currentIndexChanged(int index)
-{
-    (void)index; // todo
 }

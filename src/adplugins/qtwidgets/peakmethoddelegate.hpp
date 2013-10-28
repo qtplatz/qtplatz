@@ -32,37 +32,54 @@
 
 namespace qtwidgets {
 
+    enum { 
+        c_header
+        , c_value
+        , c_num_columns
+    };
+
+    enum {
+        r_slope
+        , r_min_width
+        , r_min_height
+        , r_drift
+        , r_min_area
+        , r_doubling_time
+        , r_void_time
+        , r_pharmacopoeia
+        , r_num_rows
+    };
+
 	class PeakMethodDelegate : public QItemDelegate {
 		Q_OBJECT
 	public:
 		explicit PeakMethodDelegate(QObject *parent = 0);
 
-        QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-
-        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
-        void setEditorData(QWidget *editor, const QModelIndex &index) const;
-        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
-        void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+        QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+        void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
+        QSize sizeHint( const QStyleOptionViewItem&, const QModelIndex& ) const override;
     
     signals:
     
 	public slots:
 
 	public:
-		class PharmacopoeiaEnum {
-		public:
-			PharmacopoeiaEnum( adcontrols::chromatography::ePharmacopoeia t = adcontrols::chromatography::ePHARMACOPOEIA_JP );
-			adcontrols::chromatography::ePharmacopoeia methodValue() const;
-            QString displayValue() const;
-			void setCurrentValue( adcontrols::chromatography::ePharmacopoeia );
-        private:
-			adcontrols::chromatography::ePharmacopoeia value_;
-		};
+		// class PharmacopoeiaEnum {
+		// public:
+		// 	PharmacopoeiaEnum( adcontrols::chromatography::ePharmacopoeia t = adcontrols::chromatography::ePHARMACOPOEIA_JP );
+		// 	adcontrols::chromatography::ePharmacopoeia methodValue() const;
+        //     QString displayValue() const;
+		// 	void setCurrentValue( adcontrols::chromatography::ePharmacopoeia );
+        // private:
+		// 	adcontrols::chromatography::ePharmacopoeia value_;
+		// };
 	};
 
 }
 
-Q_DECLARE_METATYPE( qtwidgets::PeakMethodDelegate::PharmacopoeiaEnum )
+// Q_DECLARE_METATYPE( qtwidgets::PeakMethodDelegate::PharmacopoeiaEnum )
 
 
 #endif // PEAKMETHODDELEGATE_HPP
