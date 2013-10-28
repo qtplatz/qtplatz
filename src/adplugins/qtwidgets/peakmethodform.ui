@@ -36,7 +36,7 @@
         <widget class="QLabel" name="label_3">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <property name="text">
@@ -48,7 +48,7 @@
         <widget class="QLabel" name="label_8">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <property name="text">
@@ -60,7 +60,7 @@
         <widget class="QLabel" name="label_7">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <property name="text">
@@ -72,7 +72,7 @@
         <widget class="QLabel" name="label_2">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <property name="text">
@@ -87,7 +87,7 @@
         <widget class="QLabel" name="label_5">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <property name="text">
@@ -102,7 +102,7 @@
         <widget class="QLabel" name="label_9">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <property name="text">
@@ -114,7 +114,7 @@
         <widget class="QLabel" name="label_10">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <property name="text">
@@ -126,7 +126,7 @@
         <widget class="QDoubleSpinBox" name="doubleSpinSlope">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
         </widget>
@@ -135,7 +135,7 @@
         <widget class="QLabel" name="label_4">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <property name="text">
@@ -150,7 +150,7 @@
         <widget class="QLabel" name="label_6">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <property name="text">
@@ -165,7 +165,7 @@
         <widget class="QDoubleSpinBox" name="doubleSpinMinWidth">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <property name="minimum">
@@ -180,7 +180,7 @@
         <widget class="QDoubleSpinBox" name="doubleSpinMinHeight">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <property name="maximum">
@@ -192,7 +192,7 @@
         <widget class="QDoubleSpinBox" name="doubleSpinDrift">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
         </widget>
@@ -201,7 +201,7 @@
         <widget class="QDoubleSpinBox" name="doubleSpinMinArea">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <property name="maximum">
@@ -213,7 +213,7 @@
         <widget class="QComboBox" name="comboBoxPharmacopoeia">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <item>
@@ -242,7 +242,7 @@
         <widget class="QComboBox" name="comboBoxPlate">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <item>
@@ -276,7 +276,7 @@
         <widget class="QComboBox" name="comboBoxWidth">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
          <item>
@@ -305,7 +305,7 @@
         <widget class="QDoubleSpinBox" name="doubleSpinDoublingTime">
          <property name="font">
           <font>
-           <pointsize>9</pointsize>
+	    <family>Calibri</family>
           </font>
          </property>
         </widget>
@@ -323,7 +323,6 @@
        <property name="font">
         <font>
          <family>Calibri</family>
-         <pointsize>8</pointsize>
         </font>
        </property>
       </widget>

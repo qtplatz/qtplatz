@@ -41,7 +41,7 @@ namespace adcontrols {
         template< enum MSCalibration::ALGORITHM > struct compute_mass {
             
             template< class ScanLaw >
-            double operator()( double time, int mode, const ScanLaw& law, const MSCalibration& calib ) const {
+            double operator()( double /*time*/, int /*mode*/, const ScanLaw&, const MSCalibration& ) const {
                 return 0;
             }
             
