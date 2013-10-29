@@ -72,7 +72,6 @@ PeakMethodDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
         painter->save();
 
         QTextDocument doc;
-        doc.setDefaultFont( QFont( "Calibri", 9 ) );
         doc.setHtml( index.data().toString() );
         op.widget->style()->drawControl( QStyle::CE_ItemViewItem, &op, painter );
         painter->translate( op.rect.left(), op.rect.top() );
@@ -90,7 +89,6 @@ PeakMethodDelegate::sizeHint( const QStyleOptionViewItem& option, const QModelIn
 {
 	if ( index.column() == c_header ) {
 		QTextDocument doc;
-		doc.setDefaultFont( QFont( "Calibri", 9 ) );
 		doc.setHtml( index.data().toString() );
 		return QSize( doc.size().width(), doc.size().height() );
 	} else 
