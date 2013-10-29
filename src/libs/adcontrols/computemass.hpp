@@ -100,9 +100,12 @@ namespace adcontrols {
 
         inline double getTime( double mass, double fLength ) const { 
             size_t tupper = static_cast< size_t >( scale_to_nano( scanLaw.getTime( mass + 50, fLength ) ) );
-            size_t idx = adportable::lower_bound( 0, tupper, mass, [=](size_t pos){
+            size_t idx = adportable::lower_bound( 0, tupper, mass, [this,fLength](size_t pos){
+                    // with g++ (4.7), use of [=] does not capture this pointer so that cause segmentation violation
+                    // when call getMethod() defined above.  As workaround, implisit capture for this make it work.
+                    // This problem does not exist on both Applie clang++ (Xcode5) and VS2012
                     double t = scale_to_base<double>( pos, nano ); // 1ns precision
-					double m = getMass( t, fLength );
+					double m = this->getMass( t, fLength );
                     return m;
                 } );
             return scale_to_base<double>( idx, nano );
