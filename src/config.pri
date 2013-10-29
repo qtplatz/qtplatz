@@ -16,8 +16,8 @@ macx {
      QMAKE_CXXFLAGS *= -ftemplate-depth=256
      QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 }
-*-g++* {
-    QMAKE_CXXFLAGS *= -O2
+CONFIG(release, debug|release) {
+  *-g++*: QMAKE_CXXFLAGS *= -O2
 }
 
 BOOST_VERSION=boost-1_54
