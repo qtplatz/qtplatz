@@ -56,10 +56,10 @@ namespace fticr {
         virtual size_t posFromTime( double ) const override;
 		double timeFromPos( size_t ) const override;
 		bool getChromatograms( int /* fcn */, const std::vector< std::pair<double, double> >&
-			                         , std::vector< adcontrols::Chromatogram >&
-									 , std::function< bool (long curr, long total ) > progress
-									 , int begPos = 0
-									 , int endPos = (-1) ) const override { (void)begPos; (void)endPos; return false; }
+                               , std::vector< adcontrols::Chromatogram >&
+                               , std::function< bool (long curr, long total ) > /* progress */
+                               , int begPos = 0
+                               , int endPos = (-1) ) const override { (void)begPos; (void)endPos; return false; }
 		bool hasProcessedSpectrum( int /* fcn */, int /* idx */) const override { return false; }
 		//<-------------------------------------
 		bool _open( const std::wstring&, bool );

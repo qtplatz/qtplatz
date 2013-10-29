@@ -258,19 +258,7 @@ PeakMethod::erase( iterator_type pos )
 }
 
 PeakMethod::iterator_type
-PeakMethod::erase( const_iterator_type pos )
-{
-    return timedEvents_.erase( pos );
-}
-
-PeakMethod::iterator_type
 PeakMethod::erase( iterator_type first, iterator_type last )
-{
-    return timedEvents_.erase( first, last );
-}
-
-PeakMethod::iterator_type
-PeakMethod::erase( const_iterator_type first, const_iterator_type last )
 {
     return timedEvents_.erase( first, last );
 }

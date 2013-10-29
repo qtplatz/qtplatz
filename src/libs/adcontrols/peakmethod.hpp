@@ -166,9 +166,7 @@ namespace adcontrols {
         const_iterator_type end() const;
         PeakMethod& operator << ( const TimedEvent& );
         iterator_type erase( iterator_type );
-        iterator_type erase( const_iterator_type );
         iterator_type erase( iterator_type first, iterator_type last );
-        iterator_type erase( const_iterator_type first, const_iterator_type last );
 
 	private:
         double minimumHeight_;
