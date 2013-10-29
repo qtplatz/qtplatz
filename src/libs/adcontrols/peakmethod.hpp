@@ -28,7 +28,10 @@
 #include "adcontrols_global.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/variant.hpp>
 #include <adcontrols/timeutil.hpp>
+#include <vector>
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
     namespace chromatography {
@@ -118,24 +121,54 @@ namespace adcontrols {
         class ADCONTROLSSHARED_EXPORT TimedEvent {
         public:
             ~TimedEvent();
-            TimedEvent( minutes_t t = 0
-                        , adcontrols::chromatography::ePeakEvent e = adcontrols::chromatography::ePeakEvent_Nothing
-                        , double v = 0 );
+            TimedEvent();
+            TimedEvent( seconds_t t, adcontrols::chromatography::ePeakEvent );
             TimedEvent( const TimedEvent& );
+
+			double time( bool asMinutes = true ) const;
+			void setTime( double time, bool asMinutes = true );
+            chromatography::ePeakEvent peakEvent() const;
+            void setPeakEvent( chromatography::ePeakEvent );
+			bool isBool() const;
+			bool isDouble() const;
+			double doubleValue() const;
+			bool boolValue() const;
+            void setValue( bool );
+            void setValue( double );
+			
         private:
-            minutes_t minutes_;
+            double time_;
             adcontrols::chromatography::ePeakEvent event_;
-            double value_;
+            boost::variant< bool, double > value_;
             friend class boost::serialization::access;
             template<class Archive>
                 void serialize(Archive& ar, const unsigned int version) {
-                using namespace boost::serialization;
-                (void)version;
-                ar & BOOST_SERIALIZATION_NVP( minutes_ )
+                ar & BOOST_SERIALIZATION_NVP( time_ )
                     & BOOST_SERIALIZATION_NVP( event_ )
-                    & BOOST_SERIALIZATION_NVP( value_ );
+                    ;
+                if ( version < 2 ) {
+                    double tmp(0);
+                    ar & BOOST_SERIALIZATION_NVP( tmp );
+                    value_ = tmp;
+                } else {
+                    ar & BOOST_SERIALIZATION_NVP( value_ );
+                }
             }
         };
+        
+        typedef std::vector< TimedEvent >::iterator iterator_type;
+        typedef std::vector< TimedEvent >::const_iterator const_iterator_type;
+        typedef std::vector< TimedEvent >::size_type size_type;
+        size_type size() const;
+        iterator_type begin();
+        iterator_type end();
+        const_iterator_type begin() const;
+        const_iterator_type end() const;
+        PeakMethod& operator << ( const TimedEvent& );
+        iterator_type erase( iterator_type );
+        iterator_type erase( const_iterator_type );
+        iterator_type erase( iterator_type first, iterator_type last );
+        iterator_type erase( const_iterator_type first, const_iterator_type last );
 
 	private:
         double minimumHeight_;
@@ -148,6 +181,7 @@ namespace adcontrols {
         adcontrols::chromatography::ePharmacopoeia pharmacopoeia_;
         adcontrols::chromatography::ePeakWidthMethod peakWidthMethod_;
         adcontrols::chromatography::ePeakWidthMethod theoreticalPlateMethod_;
+        std::vector< TimedEvent > timedEvents_;
 
        friend class boost::serialization::access;
        template<class Archive>
@@ -168,3 +202,5 @@ namespace adcontrols {
 	};
     
 }
+
+BOOST_CLASS_VERSION( adcontrols::PeakMethod::TimedEvent,  2 )

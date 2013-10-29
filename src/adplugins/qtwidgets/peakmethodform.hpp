@@ -44,7 +44,7 @@ namespace adcontrols {
 
 namespace qtwidgets {
 
-	class TableDelegate;
+	class TimeEventsDelegate;
     class PeakMethodDelegate;
 
 	class PeakMethodForm : public QWidget
@@ -76,7 +76,7 @@ namespace qtwidgets {
 		Ui::PeakMethodForm *ui;
         std::unique_ptr< adcontrols::PeakMethod > pMethod_;
         std::unique_ptr< QStandardItemModel > pTimeEventsModel_; // time events
-		std::unique_ptr< TableDelegate > pTimeEventsDelegate_;
+		std::unique_ptr< TimeEventsDelegate > pTimeEventsDelegate_;
         std::unique_ptr< QStandardItemModel > pGlobalModel_; // time events
 		std::unique_ptr< PeakMethodDelegate > pGlobalDelegate_;
         void setContents( const adcontrols::PeakMethod& );

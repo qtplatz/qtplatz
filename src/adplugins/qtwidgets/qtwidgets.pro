@@ -57,7 +57,8 @@ SOURCES += centroiddelegate.cpp \
         targetform.cpp \
         tabledelegate.cpp \
         adductsdelegate.cpp \
-        formulaedelegate.cpp
+        formulaedelegate.cpp \
+    timeeventsdelegate.cpp
 
 HEADERS += centroiddelegate.hpp \
         centroidform.hpp \
@@ -86,7 +87,8 @@ HEADERS += centroiddelegate.hpp \
         targetform.hpp \
         tabledelegate.hpp \
         adductsdelegate.hpp \
-        formulaedelegate.hpp
+        formulaedelegate.hpp \
+    timeeventsdelegate.hpp
 
 FORMS += \
     centroidform.ui \

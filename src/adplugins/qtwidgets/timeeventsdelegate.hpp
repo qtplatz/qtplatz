@@ -1,15 +1,15 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -22,54 +22,30 @@
 **
 **************************************************************************/
 
-#ifndef PEAKMETHODDELEGATE_HPP
-#define PEAKMETHODDELEGATE_HPP
+#ifndef TIMEEVENTSDELEGATE_HPP
+#define TIMEEVENTSDELEGATE_HPP
 
 #include <QItemDelegate>
-#if ! defined Q_MOC_RUN
-#include <adcontrols/peakmethod.hpp>
-#endif
 
 namespace qtwidgets {
 
-    enum { 
-        c_header
-        , c_value
-        , c_num_columns
-    };
+    enum { c_time, c_function, c_event_value };
 
-    enum {
-        r_slope
-        , r_min_width
-        , r_min_height
-        , r_drift
-        , r_min_area
-        , r_doubling_time
-        , r_void_time
-        , r_pharmacopoeia
-        , r_num_rows
-    };
-
-	class PeakMethodDelegate : public QItemDelegate {
-		Q_OBJECT
-	public:
-		explicit PeakMethodDelegate(QObject *parent = 0);
+    class TimeEventsDelegate : public QItemDelegate {
+        Q_OBJECT
+    public:
+        explicit TimeEventsDelegate(QObject *parent = 0);
 
         QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
         void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-        void setEditorData(QWidget *editor, const QModelIndex &index) const override;
         void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
-        QSize sizeHint( const QStyleOptionViewItem&, const QModelIndex& ) const override;
-        bool editorEvent( QEvent * event, QAbstractItemModel *
-                          , const QStyleOptionViewItem&, const QModelIndex& ) override;
-    
+        
     signals:
-    
-	public slots:
-
-	};
+            
+    public slots:
+        
+    };
 
 }
 
-
-#endif // PEAKMETHODDELEGATE_HPP
+#endif // TIMEEVENTSDELEGATE_HPP

@@ -214,22 +214,180 @@ PeakMethod::theoreticalPlateMethod( chromatography::ePeakWidthMethod t )
     theoreticalPlateMethod_ = t;
 }
 
+PeakMethod::size_type
+PeakMethod::size() const
+{
+    return timedEvents_.size();
+}
+
+PeakMethod::iterator_type
+PeakMethod::begin()
+{
+    return timedEvents_.begin();
+}
+
+PeakMethod::iterator_type
+PeakMethod::end()
+{
+    return timedEvents_.end();
+}
+
+PeakMethod::const_iterator_type
+PeakMethod::begin() const
+{
+    return timedEvents_.begin();
+}
+
+PeakMethod::const_iterator_type
+PeakMethod::end() const
+{
+    return timedEvents_.end();
+}
+
+PeakMethod&
+PeakMethod::operator << ( const PeakMethod::TimedEvent& t )
+{
+    timedEvents_.push_back( t );
+    return *this;
+}
+
+PeakMethod::iterator_type
+PeakMethod::erase( iterator_type pos )
+{
+    return timedEvents_.erase( pos );
+}
+
+PeakMethod::iterator_type
+PeakMethod::erase( const_iterator_type pos )
+{
+    return timedEvents_.erase( pos );
+}
+
+PeakMethod::iterator_type
+PeakMethod::erase( iterator_type first, iterator_type last )
+{
+    return timedEvents_.erase( first, last );
+}
+
+PeakMethod::iterator_type
+PeakMethod::erase( const_iterator_type first, const_iterator_type last )
+{
+    return timedEvents_.erase( first, last );
+}
+
 //----------------
 PeakMethod::TimedEvent::~TimedEvent()
 {
 }
 
-PeakMethod::TimedEvent::TimedEvent( minutes_t t
-								   , adcontrols::chromatography::ePeakEvent e
-								   , double v ) : minutes_( t )
-								                , event_( e )
-												, value_( v )
+PeakMethod::TimedEvent::TimedEvent() : time_(0)
+                                     , event_( chromatography::ePeakEvent_Nothing )
+                                     , value_( false )
 {
 } 
 
-PeakMethod::TimedEvent::TimedEvent( const TimedEvent& t ) : minutes_( t.minutes_ )
+PeakMethod::TimedEvent::TimedEvent( seconds_t t
+                                    , chromatography::ePeakEvent func ) : time_( t )
+                                                                        , event_( func )
+{
+    switch( func ) {
+    case PeakEvent_Lock:
+    case ePeakEvent_ForcedBase:
+    case ePeakEvent_ShiftBase:
+    case ePeakEvent_VtoV:
+    case ePeakEvent_Tailing:
+    case ePeakEvent_Leading:
+    case ePeakEvent_Shoulder:
+    case ePeakEvent_NegativePeak:
+    case ePeakEvent_NegativeLock:
+    case ePeakEvent_HorizontalBase:
+    case ePeakEvent_PostHorizontalBase:
+    case ePeakEvent_ForcedPeak:
+        value_ = bool( false );
+        break;
+    case ePeakEvent_Slope:
+    case ePeakEvent_MinWidth:
+    case ePeakEvent_MinHeight:
+    case ePeakEvent_MinArea:
+    case ePeakEvent_Drift:
+        value_ = double(0.0);
+        break;
+    case ePeakEvent_Elimination:
+    case ePeakEvent_Manual:
+    default:
+        value_ = bool( false );
+        break;
+    }
+}
+
+PeakMethod::TimedEvent::TimedEvent( const TimedEvent& t ) : time_( t.time_ )
                                                           , event_( t.event_ )
 														  , value_( t.value_ )
 {
 }
   
+double
+PeakMethod::TimedEvent::time( bool asMinutes ) const
+{
+    if ( asMinutes )
+        return timeutil::toMinutes( time_ );
+    else
+        return time_;
+}
+
+void
+PeakMethod::TimedEvent::setTime( double time, bool isMinutes )
+{
+    if ( isMinutes )
+        time_ = timeutil::toSeconds( time );
+    else
+        time_ = time;
+}
+
+chromatography::ePeakEvent
+PeakMethod::TimedEvent::peakEvent() const
+{
+    return event_;
+}
+
+void
+PeakMethod::TimedEvent::setPeakEvent( chromatography::ePeakEvent t )
+{
+    event_ = t;
+}
+
+bool
+PeakMethod::TimedEvent::isBool() const
+{
+	return value_.type() == typeid( bool );
+}
+
+bool
+PeakMethod::TimedEvent::isDouble() const
+{
+	return value_.type() == typeid( double );
+}
+
+double
+PeakMethod::TimedEvent::doubleValue() const
+{
+	return boost::get<double>( value_ ); // may raise bad_cast exception
+}
+
+bool
+PeakMethod::TimedEvent::boolValue() const
+{
+	return boost::get<bool>( value_ ); // may raise bad_cast exception
+}
+
+void
+PeakMethod::TimedEvent::setValue( bool value )
+{
+    value_ = value;
+}
+
+void
+PeakMethod::TimedEvent::setValue( double value )
+{
+    value_ = value;
+}
