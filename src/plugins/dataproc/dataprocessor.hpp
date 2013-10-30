@@ -102,8 +102,6 @@ namespace dataproc {
                              , const adcontrols::MassSpectrum& centroid
                              , const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses& );
 
-    signals:
-
     public slots:
 
     private:

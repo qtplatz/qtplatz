@@ -39,6 +39,7 @@ namespace qtwrapper {
         explicit ProgressBar(QObject *parent = 0);
 		~ProgressBar();
 
+        void dispose();
         void setStarted();
         void setFinished();
         void setProgressRange( int min, int max );
@@ -46,6 +47,7 @@ namespace qtwrapper {
         void setProgressText( const QString& );
 
     signals:
+        void on_dispose();
         void started();
         void finished();
         void progressRange( int, int );
@@ -53,6 +55,7 @@ namespace qtwrapper {
         void progressText( const QString& );
             
     private slots:
+        void handleDispose();
         void handleStarted();
         void handleFinished();
         void handleProgressRange( int min, int max );

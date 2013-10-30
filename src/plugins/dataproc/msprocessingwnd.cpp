@@ -380,12 +380,25 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
         // todo: chromatogram creation from base peak in range
 
         if ( auto ptr = pProcessedSpectrum_.lock() ) {
+#if defined BASEPEAK_SELECTION
             // find base peak
 			auto idx = adcontrols::segments_helper::base_peak_index( *ptr, rect.left(), rect.right() );
             double mass = adcontrols::segments_helper::get_mass( *ptr, idx );
 			std::vector< std::tuple< int, double, double > > ranges( 1, std::make_tuple( idx.second, mass, 0.05 ) );
 			Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
 			DataprocessWorker::instance()->createChromatograms( processor, ranges );
+#else
+            std::vector< std::pair< int, int > > indecies;
+            if ( adcontrols::segments_helper::selected_indecies( indecies, *ptr, rect.left(), rect.right(), rect.top() ) ) {
+                std::vector< std::tuple< int, double, double > > ranges;
+                for ( auto& index: indecies ) {
+                    double mass = adcontrols::segments_helper::get_mass( *ptr, index );
+                    ranges.push_back( std::make_tuple( index.second, mass, 0.05 ) );
+                }
+                Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
+                DataprocessWorker::instance()->createChromatograms( processor, ranges );
+            }
+#endif
         }
 
     } else {

@@ -41,7 +41,19 @@ using namespace dataproc;
 DataprocessWorker * DataprocessWorker::instance_ = 0;
 std::mutex DataprocessWorker::mutex_;
 
-DataprocessWorker::DataprocessWorker()
+namespace dataproc { namespace internal {
+	class DataprocessWorkerCollector {
+	public:
+		~DataprocessWorkerCollector() {
+			DataprocessWorker::dispose();
+		}
+	};
+
+	DataprocessWorkerCollector __garbateCollector;
+}
+}
+
+DataprocessWorker::DataprocessWorker() : work_( io_service_ )
 {
 }
 
@@ -49,6 +61,9 @@ DataprocessWorker::~DataprocessWorker()
 {
     std::lock_guard< std::mutex > lock( mutex_ );
     instance_ = 0;
+	io_service_.stop();
+    for ( auto& t: threads_ )
+        t.join();
 }
 
 DataprocessWorker *
@@ -60,6 +75,13 @@ DataprocessWorker::instance()
             instance_ = new DataprocessWorker;
     }
     return instance_;
+}
+
+void
+DataprocessWorker::dispose()
+{
+	if ( instance_ )
+		delete instance_;
 }
 
 void
@@ -76,6 +98,8 @@ DataprocessWorker::createChromatograms( Dataprocessor* processor
 	qtwrapper::ProgressBar * p = new qtwrapper::ProgressBar;
 
     std::lock_guard< std::mutex > lock( mutex_ );
+	if ( threads_.empty() )
+		threads_.push_back( std::thread( [=] { io_service_.run(); } ) );
     threads_.push_back( std::thread( [=] { handleCreateChromatograms( processor, ranges, p ); } ) );
 }
 
@@ -83,11 +107,12 @@ void
 DataprocessWorker::join( const std::thread::id& id )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
+
 	auto it = std::find_if( threads_.begin(), threads_.end(), [=]( std::thread& t ){ return t.get_id() == id; });
     if ( it != threads_.end() ) {
-        // std::thread * p = new std::thread( [=]{ garbageCollector( it ); } );
-    }
-    // todo will clean up thread
+		it->join();
+        threads_.erase( it );
+	}
 }
 
 void
@@ -117,10 +142,8 @@ DataprocessWorker::handleCreateChromatograms( Dataprocessor* processor
         folium = processor->addChromatogram( c, method );
 	SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
 
-	progress->setFinished();
+	progress->dispose();
 
-	//delete progress;
-
-    join( std::this_thread::get_id() );
+    io_service_.post( std::bind(&DataprocessWorker::join, this, std::this_thread::get_id() ) );
 }
 

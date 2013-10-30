@@ -282,7 +282,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 			(void)rms;
 			double d = adportable::spectrum_processor::area( frac, base, fms.getIntensityArray(), fms.size() );
 
-            result[ nch ].setIntensity( i, d );
+            result[ nch++ ].setIntensity( i, d );
         }
     }
 

@@ -30,6 +30,7 @@
 #include <vector>
 #include <tuple>
 #include <memory>
+#include <boost/asio.hpp>
 
 namespace adcontrols { class MassSpectrum; }
 namespace qtwrapper { class ProgressBar; }
@@ -43,6 +44,8 @@ namespace dataproc {
         static DataprocessWorker * instance_;
         static std::mutex mutex_;
         std::vector< std::thread > threads_;
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
     public:
         ~DataprocessWorker();
 

@@ -858,3 +858,36 @@ segments_helper::base_peak_index( const MassSpectrum& ms, double lMass, double h
 }
 
 
+//static
+size_t
+segments_helper::selected_indecies( std::vector< std::pair< int, int > >& results
+                                    , const MassSpectrum& ms, double lMass, double uMass, double threshold )
+{
+    results.clear();
+
+    if ( ! ms.isCentroid() )
+        return 0; // error
+
+    if ( lMass > uMass ) // just in case
+        std::swap( lMass, uMass );
+    
+    segment_wrapper< const MassSpectrum > segments( ms );
+    size_t fcn = 0;
+    for ( auto& fms: segments ) {
+        if ( lMass < fms.getMass( 0 ) || uMass < fms.getMass( fms.size() - 1 ) ) {
+            const double * intens = fms.getIntensityArray();
+            const double * masses = fms.getMassArray();
+            auto lIt = std::lower_bound( masses, masses + fms.size(), lMass );
+            auto hIt = std::lower_bound( masses, masses + fms.size(), uMass );
+            size_t lIdx = std::distance( masses, lIt );
+            size_t hIdx = std::distance( masses, hIt );
+            for ( size_t i = lIdx; i <= hIdx; ++i ) {
+                if ( intens[ i ] >= threshold )
+                    results.push_back( std::make_pair( i, fcn ) );
+            }
+        }
+        ++fcn;
+    }
+    return results.size();
+    
+}

@@ -39,6 +39,7 @@ qtwrapper::ProgressBar::ProgressBar(QObject *parent) : QObject(parent), progress
 		type_ = QString("prog.%1").arg( ident++ );
 		progress_ = pMgr->addTask( future, "chromatogram", type_, Core::ProgressManager::CloseOnSuccess ); 
 	}
+    connect( this, SIGNAL( on_dispose() ), this, SLOT( handleDispose() ) );
     connect( this, SIGNAL( started() ), this, SLOT( handleStarted() ) );
     connect( this, SIGNAL( finished() ), this, SLOT( handleFinished() ) );
     connect( this, SIGNAL( progressRange(int, int) ), this, SLOT( handleProgressRange(int, int) ) );
@@ -48,6 +49,12 @@ qtwrapper::ProgressBar::ProgressBar(QObject *parent) : QObject(parent), progress
 
 qtwrapper::ProgressBar::~ProgressBar()
 {
+}
+
+void
+qtwrapper::ProgressBar::dispose()
+{
+    emit on_dispose();
 }
 
 void
@@ -92,7 +99,14 @@ qtwrapper::ProgressBar::handleFinished()
 {
 	progress_->setFinished();
 	progress_->setVisible( false );
+    progress_ = 0; // will reuse | destroy by Core library
 	delete this;
+}
+
+void
+qtwrapper::ProgressBar::handleDispose()
+{
+    handleFinished();
 }
 
 void

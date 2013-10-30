@@ -30,6 +30,7 @@
 #include <boost/any.hpp>
 #include <string>
 #include <memory>
+#include <vector>
 
 namespace boost {
     namespace serialization {
@@ -167,9 +168,10 @@ namespace adcontrols {
 		static double min_intensity( const MassSpectrum& );
         static void set_color( MassSpectrum&, size_t fcn, size_t idx, int color );
         static int  get_color( const MassSpectrum&, size_t fcn, size_t idx );
-        static std::pair<int, int> base_peak_index( const MassSpectrum&, double lMass, double hMass );
+        static std::pair<int, int> base_peak_index( const MassSpectrum&, double lMass, double uMass );
         static double get_mass( const MassSpectrum&, const std::pair< int, int >& );
         static double get_intensity( const MassSpectrum&, const std::pair< int, int >& );
+		static size_t selected_indecies( std::vector< std::pair< int, int > >&, const MassSpectrum&, double lMass, double uMass, double threshold ); 
     };
     
     template<> ADCONTROLSSHARED_EXPORT void MassSpectrum::serialize( portable_binary_oarchive&, const unsigned int );
