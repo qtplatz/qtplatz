@@ -62,7 +62,8 @@ SOURCES += \
     mainwindow.cpp \
     mode.cpp \
     editorfactory.cpp \
-    mspropertyform.cpp
+    mspropertyform.cpp \
+    dataprocessworker.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -90,7 +91,8 @@ HEADERS += \
     assign_masses.hpp \
     mass_calibrator.hpp \
     assign_peaks.hpp \
-    mspropertyform.hpp
+    mspropertyform.hpp \
+    dataprocessworker.hpp
 
 OTHER_FILES += \
     dataproc.pluginspec \

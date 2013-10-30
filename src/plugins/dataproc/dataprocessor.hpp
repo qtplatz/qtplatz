@@ -30,6 +30,8 @@
 #include <adcontrols/datasubscriber.hpp>
 #include "constants.hpp"
 #include <memory>
+#include <vector>
+#include <tuple>
 
 namespace adcontrols {
     class datafile;
@@ -54,7 +56,6 @@ namespace SignalObserver { class Observer; }
 namespace dataproc {
 
     class IFileImpl;
-    //class datafileObserver_i;
 
     class Dataprocessor : public QObject
                         , public adcontrols::dataSubscriber {
@@ -85,7 +86,6 @@ namespace dataproc {
 
         portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
-        // SignalObserver::Observer * observer();
 
         static const std::shared_ptr< adcontrols::ProcessMethod > findProcessMethod( const portfolio::Folium& );
         static bool saveMSCalibration( portfolio::Folium& );

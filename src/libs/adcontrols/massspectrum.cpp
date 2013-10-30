@@ -798,3 +798,63 @@ segments_helper::get_color( const MassSpectrum& ms, size_t fcn, size_t idx )
     return ms.getSegment( fcn - 1 ).getColor( idx );
 }
 
+//static
+double
+segments_helper::get_mass( const MassSpectrum& ms, const std::pair< int, int >& idx )
+{
+    if ( idx.first < 0 )
+        return 0;
+    if ( idx.second == 0 )
+        return ms.getMass( idx.first );
+    return ms.getSegment( idx.second - 1 ).getMass( idx.first );
+}
+
+//static
+double
+segments_helper::get_intensity( const MassSpectrum& ms, const std::pair< int, int >& idx )
+{
+    if ( idx.first < 0 )
+        return 0;
+    if ( idx.second == 0 )
+        return ms.getIntensity( idx.first );
+    return ms.getSegment( idx.second - 1 ).getIntensity( idx.first );
+}
+
+//static
+std::pair<int, int> // idx, fcn
+segments_helper::base_peak_index( const MassSpectrum& ms, double lMass, double hMass )
+{
+    std::pair< int, int > idx( -1, -1 );
+
+    if ( ! ms.isCentroid() )
+        return idx; // error
+
+    if ( lMass > hMass ) // just in case
+        std::swap( lMass, hMass );
+    
+    double hMax = 0;
+    
+    segment_wrapper< const MassSpectrum > segments( ms );
+    size_t fcn = 0;
+    for ( auto& fms: segments ) {
+        if ( lMass < fms.getMass( 0 ) || hMass < fms.getMass( fms.size() - 1 ) ) {
+            const double * intens = fms.getIntensityArray();
+            const double * masses = fms.getMassArray();
+            auto lIt = std::lower_bound( masses, masses + fms.size(), lMass );
+            auto hIt = std::lower_bound( masses, masses + fms.size(), hMass );
+            size_t lIdx = std::distance( masses, lIt );
+            size_t hIdx = std::distance( masses, hIt );
+            auto maxIt = std::max_element( intens + lIdx, intens + hIdx );
+
+            if ( hMax < *maxIt ) {
+                hMax = *maxIt;
+                idx.first = std::distance( intens, maxIt );
+                idx.second = fcn;
+            }
+        }
+        ++fcn;
+    }
+    return idx;
+}
+
+

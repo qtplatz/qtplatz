@@ -202,11 +202,15 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     pTreeView_->setContextMenuPolicy(Qt::CustomContextMenu);
     connect( pTreeView_, SIGNAL(customContextMenuRequested( QPoint )), this, SLOT( handleContextMenuRequested( QPoint ) ) );
 
-    connect( SessionManager::instance(), SIGNAL( signalAddSession( Dataprocessor* ) ), this, SLOT( handleAddSession( Dataprocessor * ) ) );
-	connect( SessionManager::instance(), SIGNAL( signalSessionUpdated( Dataprocessor*, portfolio::Folium& ) )
-             , this, SLOT( handleSessionUpdated( Dataprocessor *, portfolio::Folium& ) ) );
-
-    connect( pModel_, SIGNAL( itemChanged( QStandardItem *) ), this, SLOT( handleItemChanged( QStandardItem * ) ) );
+    if ( SessionManager * mgr = SessionManager::instance() ) {
+        connect( mgr, SIGNAL( signalAddSession( Dataprocessor* ) ), this, SLOT( handleAddSession( Dataprocessor * ) ) );
+        connect( mgr, SIGNAL( signalSessionUpdated( Dataprocessor*, portfolio::Folium& ) )
+                 , this, SLOT( handleSessionUpdated( Dataprocessor *, portfolio::Folium& ) ) );
+        connect( mgr, SIGNAL( onFolderChanged( Dataprocessor*, const QString& ) )
+                 , this, SLOT( handleFolderChanged( Dataprocessor *, const QString& ) ) );
+        
+        connect( pModel_, SIGNAL( itemChanged( QStandardItem *) ), this, SLOT( handleItemChanged( QStandardItem * ) ) );
+    }
 
     setAutoSynchronization(true);
 }
@@ -294,6 +298,26 @@ NavigationWidget::invalidateSession( Dataprocessor * processor )
         portfolio::Portfolio portfolio = processor->getPortfolio();
         for ( auto folder: portfolio.folders() )
             PortfolioHelper::appendFolder( *item, folder );
+    }
+}
+
+void
+NavigationWidget::handleFolderChanged( Dataprocessor * processor, const QString& foldername )
+{
+    portfolio::Portfolio portfolio = processor->getPortfolio();
+    portfolio::Folder folder = portfolio.findFolder( foldername.toStdWString() );
+    portfolio::Folio folio = folder.folio();
+
+    if ( QStandardItem * procItem = StandardItemHelper::findRow< Dataprocessor * >( *pModel_, processor ) ) {
+        if ( QStandardItem * folderItem = StandardItemHelper::findFolder( procItem, foldername.toStdWString() ) ) {
+            for ( auto folium: folio ) {
+                if ( QStandardItem * item = StandardItemHelper::findFolium( procItem, folium.id() ) ) {
+                    item->setData( qVariantFromValue< portfolio::Folium >( folium ), Qt::UserRole );
+                } else {
+                    PortfolioHelper::appendFolium( *folderItem, folium );
+                }
+            }
+        }
     }
 }
 

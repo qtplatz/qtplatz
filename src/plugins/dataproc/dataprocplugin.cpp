@@ -384,6 +384,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 	}
 }
 
+/*
 void
 DataprocPlugin::handleCreateChromatograms( const adcontrols::MassSpectrum& ms, double lMass, double hMass )
 {
@@ -430,6 +431,7 @@ DataprocPlugin::handleCreateChromatograms( const adcontrols::MassSpectrum& ms, d
         }
     }
 }
+*/
 
 void
 DataprocPlugin::extensionsInitialized()

@@ -73,6 +73,12 @@ SessionManager::updateDataprocessor( Dataprocessor* dataprocessor, portfolio::Fo
 }
 
 void
+SessionManager::folderChanged( Dataprocessor* dataprocessor, const std::wstring& folder )
+{
+	emit onFolderChanged( dataprocessor, QString::fromStdWString( folder ) );
+}
+
+void
 SessionManager::checkStateChanged( Dataprocessor * dataprocessor, portfolio::Folium& folium, bool isChecked )
 {
     if ( ! loadInprogress_ )

@@ -25,6 +25,7 @@
 #include "msprocessingwnd.hpp"
 #include "dataprocplugin.hpp"
 #include "dataprocessor.hpp"
+#include "dataprocessworker.hpp"
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
 #include <adcontrols/chromatogram.hpp>
@@ -167,7 +168,6 @@ MSProcessingWnd::init()
 void
 MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
-    // adcontrols::MassSpectrum& ms = *ptr;
     pProfileSpectrum_ = ptr;
     pImpl_->profileSpectrum_->setData( ptr, drawIdx1_++ );
 	std::wostringstream title;
@@ -329,32 +329,40 @@ MSProcessingWnd::selectedOnProfile( const QPointF& )
 }
 
 void
-MSProcessingWnd::selectedOnProfile( const QRectF& )
+MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 {
-    std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
-    using adportable::utf;
+	double x0 = pImpl_->profileSpectrum_->transform( QwtPlot::xBottom, rect.left() );
+	double x1 = pImpl_->profileSpectrum_->transform( QwtPlot::xBottom, rect.right() );
 
-    if ( ! models.empty() ) {
-        QMenu menu;
+	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
+        // todo: chromatogram creation by m/z|time range
 
-        std::vector< QAction * > actions;
-        for ( auto model: models ) {
-            actions.push_back( menu.addAction( ( boost::format( "Re-assign masses using %1% scan law" ) % utf::to_utf8( model ) ).str().c_str() ) );
-        }
+	} else {
+		std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
+        using adportable::utf;
 
-        QAction * selectedItem = menu.exec( QCursor::pos() );
-        auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){
-                return item == selectedItem; }
-            );
+        if ( ! models.empty() ) {
+            QMenu menu;
 
-        if ( it != actions.end() ) {
-            const std::wstring& model_name = models[ std::distance( actions.begin(), it ) ];
-            assign_masses_to_profile( model_name );
-			pImpl_->profileSpectrum_->replot();
+            std::vector< QAction * > actions;
+            for ( auto model: models ) {
+                actions.push_back( menu.addAction( 
+                                       ( boost::format( "Re-assign masses using %1% scan law" ) % utf::to_utf8( model ) ).str().c_str() ) );
+            }
+
+            QAction * selectedItem = menu.exec( QCursor::pos() );
+            auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){
+                    return item == selectedItem; }
+                );
+
+            if ( it != actions.end() ) {
+                const std::wstring& model_name = models[ std::distance( actions.begin(), it ) ];
+                assign_masses_to_profile( model_name );
+                pImpl_->profileSpectrum_->replot();
+            }
         }
     }
 }
-
 
 void
 MSProcessingWnd::selectedOnProcessed( const QPointF& pos )
@@ -363,32 +371,53 @@ MSProcessingWnd::selectedOnProcessed( const QPointF& pos )
 }
 
 void
-MSProcessingWnd::selectedOnProcessed( const QRectF& )
+MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
 {
-	QMenu menu;
+	double x0 = pImpl_->profileSpectrum_->transform( QwtPlot::xBottom, rect.left() );
+	double x1 = pImpl_->profileSpectrum_->transform( QwtPlot::xBottom, rect.right() );
 
-	std::vector< QAction * > actions;
-	actions.push_back( menu.addAction( "Copy to clipboard" ) );
-	actions.push_back( menu.addAction( "Create chromatograms" ) );
+	if ( int( std::abs( x1 - x0 ) ) > 2 ) {
+        // todo: chromatogram creation from base peak in range
 
-	QAction * selectedItem = menu.exec( QCursor::pos() );
-	auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){
-            return item == selectedItem; }
-        );
-	if ( it != actions.end() ) {
-		QRectF rc = pImpl_->processedSpectrum_->zoomRect();
-		if ( *it == actions[ 0 ] ) {
-			QClipboard * clipboard = QApplication::clipboard();
-			QwtPlotRenderer renderer;
-			QImage img( pImpl_->processedSpectrum_->size(), QImage::Format_ARGB32 );
-			QPainter painter(&img);
-			renderer.render( pImpl_->processedSpectrum_, &painter, pImpl_->processedSpectrum_->rect() );
-			clipboard->setImage( img );
-		} else if ( *it == actions[ 1 ] ) {
-            if ( adcontrols::MassSpectrumPtr ptr = pProcessedSpectrum_.lock() )
-                DataprocPlugin::instance()->handleCreateChromatograms( *ptr, rc.x(), rc.x() + rc.width() );
+        if ( auto ptr = pProcessedSpectrum_.lock() ) {
+            // find base peak
+			auto idx = adcontrols::segments_helper::base_peak_index( *ptr, rect.left(), rect.right() );
+            double mass = adcontrols::segments_helper::get_mass( *ptr, idx );
+			std::vector< std::tuple< int, double, double > > ranges( 1, std::make_tuple( idx.second, mass, 0.05 ) );
+			Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
+			DataprocessWorker::instance()->createChromatograms( processor, ranges );
         }
-	}
+
+    } else {
+        QMenu menu;
+
+        std::vector< QAction * > actions;
+        actions.push_back( menu.addAction( "Copy to clipboard" ) );
+        actions.push_back( menu.addAction( "Create chromatograms" ) );
+
+        QAction * selectedItem = menu.exec( QCursor::pos() );
+        auto it = std::find_if( actions.begin(), actions.end(), [selectedItem]( const QAction *item ){
+                return item == selectedItem; }
+            );
+        if ( it != actions.end() ) {
+            QRectF rc = pImpl_->processedSpectrum_->zoomRect();
+            if ( *it == actions[ 0 ] ) {
+                QClipboard * clipboard = QApplication::clipboard();
+                QwtPlotRenderer renderer;
+                QImage img( pImpl_->processedSpectrum_->size(), QImage::Format_ARGB32 );
+                QPainter painter(&img);
+                renderer.render( pImpl_->processedSpectrum_, &painter, pImpl_->processedSpectrum_->rect() );
+                clipboard->setImage( img );
+            } else if ( *it == actions[ 1 ] ) {
+
+                if ( adcontrols::MassSpectrumPtr ptr = pProcessedSpectrum_.lock() ) {
+					// create chromatograms for all peaks in current zoomed scope
+					Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
+					DataprocessWorker::instance()->createChromatograms( processor, ptr, rc.left(), rc.right() );
+				}
+            }
+        }
+    }
 }
 
 void

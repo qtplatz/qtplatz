@@ -523,15 +523,19 @@ ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true)
 {
 }
 
-ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : dataArray_( t.dataArray_ )
-								, timeArray_( t.timeArray_ )
-								, evntVec_( t.evntVec_ )
-								, timeRange_( t.timeRange_)
+ChromatogramImpl::ChromatogramImpl( const ChromatogramImpl& t ) : isConstantSampling_( t.isConstantSampling_ )
+                                                                , peaks_( t.peaks_ )
+                                                                , baselines_( t.baselines_ )
+                                                                , dataArray_( t.dataArray_ )
+                                                                , timeArray_( t.timeArray_ )
+                                                                , evntVec_( t.evntVec_ )
+                                                                , timeRange_( t.timeRange_)
                                                                 , dataDelayPoints_ ( t.dataDelayPoints_ )   
                                                                 , samplingInterval_( t.samplingInterval_ )
                                                                 , axisLabelHorizontal_( t.axisLabelHorizontal_ )
                                                                 , axisLabelVertical_( t.axisLabelVertical_ )
 {
+    descriptions_ = t.descriptions_;
 }
 
 void

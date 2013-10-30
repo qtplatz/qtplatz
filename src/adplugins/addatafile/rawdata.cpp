@@ -41,8 +41,12 @@
 #include <adfs/sqlite.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/serializer.hpp>
+#include <adportable/spectrum_processor.hpp>
+#include <adportable/debug.hpp>
+#include <boost/format.hpp>
 #include <memory>
 #include <cstdint>
+#include <sstream>
 
 using namespace addatafile;
 
@@ -112,11 +116,17 @@ rawdata::loadAcquiredConf()
 size_t
 rawdata::getSpectrumCount( int fcn ) const
 {
-    adfs::stmt sql( dbf_.db() );
-    if ( sql.prepare( "SELECT count(rowid) FROM AcquiredData WHERE oid = :oid AND fcn = :fcn" ) ) {
-        sql.bind( 1 ) = fcn;
-        if ( sql.step() == adfs::sqlite_row )
-            return static_cast< size_t >( boost::get<boost::int64_t>( sql.column_value( 0 ) ) );
+	auto it = std::find_if( conf_.begin(), conf_.end(), []( const AcquiredConf& c ){
+            return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
+        });
+    if ( it != conf_.end() ) {
+        adfs::stmt sql( dbf_.db() );
+        if ( sql.prepare( "SELECT count(rowid) FROM AcquiredData WHERE oid = :oid AND fcn = :fcn" ) ) {
+            sql.bind( 1 ) = it->objid;
+            sql.bind( 2 ) = fcn;
+            if ( sql.step() == adfs::sqlite_row )
+                return static_cast< size_t >( boost::get<boost::int64_t>( sql.column_value( 0 ) ) );
+        }
     }
     return 0;
 }
@@ -193,19 +203,90 @@ rawdata::timeFromPos( size_t pos ) const
 }
 
 bool
-rawdata::getChromatograms( int fcn
-                           , const std::vector< std::pair<double, double> >&
-                           , std::vector< adcontrols::Chromatogram >&
+rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >& ranges
+                           , std::vector< adcontrols::Chromatogram >& result
                            , std::function< bool (long curr, long total ) > progress
                            , int begPos
                            , int endPos ) const
 {
-    (void)fcn;
-    (void)progress;
-    (void)begPos;
-    (void)endPos;
+    result.clear();
 
-	return false;
+	auto it = std::find_if( conf_.begin(), conf_.end(), []( const AcquiredConf& c ){
+            return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
+        });
+    
+	if ( it == conf_.end() )
+        return false;
+
+    size_t spCount = getSpectrumCount( 0 );
+    if ( endPos < 0 || endPos >= int( spCount ) )
+        endPos = spCount - 1;
+
+    size_t nData = endPos - begPos + 1;
+    uint64_t npos = npos0_ + begPos;
+
+    adfs::stmt sql( dbf_.db() );
+    if ( sql.prepare( "SELECT max(npos) FROM AcquiredData WHERE oid = :oid AND fcn = 0 AND npos <= :npos" ) ) {
+        sql.bind( 1 ) = it->objid;
+        sql.bind( 2 ) = npos;
+        if ( sql.step() == adfs::sqlite_row )
+            npos = boost::get< boost::int64_t >(sql.column_value( 0 ));
+    }
+
+    std::vector< std::tuple< int, double, double > > xranges( ranges );
+
+    for ( auto& range: xranges ) {
+        adcontrols::Chromatogram c;
+        c.resize( nData );
+        c.setTimeArray( tic_[0]->getTimeArray() + begPos );
+        double lMass = std::get<1>( range );
+        double uMass = std::get<2>( range );
+        std::wostringstream o;
+        if ( uMass < 1.0 ) {
+            o << boost::wformat( L"m/z %.4lf (W:%.4lfDa) %d" ) % std::get<1>(range) % std::get<2>(range) % std::get<0>(range);
+            range = std::make_tuple( std::get<0>(range), lMass - uMass / 2, lMass + uMass / 2 );
+        } else {
+            o << boost::wformat( L"m/z (%.4lf - %.4lf) %d" ) % std::get<1>(range) % lMass % uMass % std::get<0>(range);
+        }
+        c.addDescription( adcontrols::Description( L"Create", o.str() ) );            
+        result.push_back( c );
+    }
+
+    std::vector< adportable::spectrum_processor::areaFraction > fractions;
+
+    for ( size_t i = 0; i < nData; ++i ) {
+
+        progress( i, nData );
+
+        adcontrols::MassSpectrum ms;
+        adcontrols::translate_state state;
+        while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms ) )
+                == adcontrols::translate_indeterminate )
+            ;
+
+        size_t nch = 0;
+        for ( auto& range: xranges ) {
+            int fcn = std::get<0>(range);
+            double lMass = std::get<1>(range);
+            double uMass = std::get<2>(range);
+            const adcontrols::MassSpectrum& fms = fcn == 0 ? ms : ms.getSegment( fcn );
+            if ( i == 0 ) {
+                adportable::spectrum_processor::areaFraction fraction;
+				adportable::spectrum_processor::getFraction( fraction, fms.getMassArray(), fms.size(), lMass, uMass );
+                fractions.push_back( fraction );
+            }
+            const adportable::spectrum_processor::areaFraction& frac = fractions[ nch ];
+            double base(0), rms(0);
+			double tic = adportable::spectrum_processor::tic( fms.size(), fms.getIntensityArray(), base, rms );
+			(void)tic;
+			(void)rms;
+			double d = adportable::spectrum_processor::area( frac, base, fms.getIntensityArray(), fms.size() );
+
+            result[ nch ].setIntensity( i, d );
+        }
+    }
+
+    return true;
 }
 
 bool

@@ -29,6 +29,7 @@
 #include "acquireddataset.hpp"
 #include <functional>
 #include <vector>
+#include <tuple>
 
 namespace adcontrols {
 
@@ -46,8 +47,7 @@ namespace adcontrols {
         virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const = 0;
 		virtual size_t posFromTime( double x ) const = 0;
         virtual double timeFromPos( size_t ) const = 0;
-		virtual bool getChromatograms( int fcn
-			                         , const std::vector< std::pair<double, double> >&
+		virtual bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
 			                         , std::vector< adcontrols::Chromatogram >&
 									 , std::function< bool (long curr, long total ) > progress
 									 , int begPos = 0

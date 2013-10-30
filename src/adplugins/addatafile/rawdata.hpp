@@ -71,8 +71,7 @@ namespace addatafile {
         bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const override;
 		size_t posFromTime( double ) const override;
 		double timeFromPos( size_t ) const override;
-		bool getChromatograms( int fcn
-			                         , const std::vector< std::pair<double, double> >&
+		bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
 			                         , std::vector< adcontrols::Chromatogram >&
 									 , std::function< bool (long curr, long total ) > progress
 									 , int begPos = 0

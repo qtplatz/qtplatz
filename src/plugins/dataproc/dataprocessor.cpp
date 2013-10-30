@@ -29,6 +29,7 @@
 #include "sessionmanager.hpp"
 #include "dataprochandler.hpp"
 #include "mainwindow.hpp"
+#include "dataprocessworker.hpp"
 #include <adcontrols/datafile.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <extensionsystem/pluginmanager.h>
@@ -884,3 +885,5 @@ Dataprocessor::saveMSCalibration( const adcontrols::MSCalibrateResult& calibResu
 
     return true;
 }
+
+
