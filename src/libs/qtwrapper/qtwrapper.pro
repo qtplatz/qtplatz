@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       -= gui
+#QT       -= gui
 
 TARGET = qtwrapper
 TEMPLATE = lib
@@ -14,10 +14,12 @@ include(../../qtplatzstaticlib.pri)
 SOURCES += qtwrapper.cpp \
     qstring.cpp \
     application.cpp \
-    xmlformatter.cpp 
+    xmlformatter.cpp \ 
+    progressbar.cpp
 
 HEADERS += qtwrapper.hpp \
     qstring.hpp \
     application.hpp \
     xmlformatter.hpp \ 
-    waitcursor.hpp
+    waitcursor.hpp \
+    progressbar.hpp

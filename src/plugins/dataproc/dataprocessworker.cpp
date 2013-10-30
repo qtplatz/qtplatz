@@ -25,6 +25,7 @@
 #include "dataprocessworker.hpp"
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
+#include <qtwrapper/progressbar.hpp>
 #include <adportable/debug.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -32,6 +33,8 @@
 #include <adcontrols/processmethod.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
+#include <coreplugin/icore.h>
+#include <coreplugin/progressmanager/progressmanager.h>
 
 using namespace dataproc;
 
@@ -70,34 +73,37 @@ void
 DataprocessWorker::createChromatograms( Dataprocessor* processor
                                         , const std::vector< std::tuple< int, double, double > >& ranges )
 {
+	qtwrapper::ProgressBar * p = new qtwrapper::ProgressBar;
+
     std::lock_guard< std::mutex > lock( mutex_ );
-    threads_.push_back( std::thread( [=] { handleCreateChromatograms( processor, ranges ); } ) );
+    threads_.push_back( std::thread( [=] { handleCreateChromatograms( processor, ranges, p ); } ) );
 }
 
 void
-DataprocessWorker::joinMe( const std::thread::id&)
+DataprocessWorker::join( const std::thread::id& id )
 {
     std::lock_guard< std::mutex > lock( mutex_ );
-
-	// auto& it = std::find( threads_.begin(), threads_.end(), [&]( std::thread& t ) { return t.get_id() == id; } );
-
-    // if ( it != threads_.end() ) {
-    // it->join();
-        // threads_.erase( it );
+	auto it = std::find_if( threads_.begin(), threads_.end(), [=]( std::thread& t ){ return t.get_id() == id; });
+    if ( it != threads_.end() ) {
+        // std::thread * p = new std::thread( [=]{ garbageCollector( it ); } );
+    }
+    // todo will clean up thread
 }
 
 void
 DataprocessWorker::handleCreateChromatograms( Dataprocessor* processor
-                                              , const std::vector< std::tuple< int, double, double > >& ranges )
+                                              , const std::vector< std::tuple< int, double, double > >& ranges
+											  , qtwrapper::ProgressBar * progress )
 {
-    for ( auto range: ranges )
-        adportable::debug(__FILE__, __LINE__ ) << "createChromatogram: " << std::get<1>(range) << ", " << std::get<2>(range);
-    
     std::vector< adcontrols::Chromatogram > vec;
 
+	progress->setStarted();
+
     if ( const adcontrols::LCMSDataset * dset = processor->getLCMSDataset() ) {
-        dset->getChromatograms( ranges, vec, [](long curr, long total)->bool{
-                adportable::debug(__FILE__, __LINE__) << curr << "/" << total;
+        dset->getChromatograms( ranges, vec, [=](long curr, long total)->bool{
+                if ( curr == 0 )
+					progress->setProgressRange( 0, total );
+				progress->setProgressValue( curr );
 				return true;
             } );
     }
@@ -111,6 +117,10 @@ DataprocessWorker::handleCreateChromatograms( Dataprocessor* processor
         folium = processor->addChromatogram( c, method );
 	SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
 
-	// auto it = std::find( threads_.begin(), threads_.end(), [=]( std::thread& t ) { return t.get_id() == std::this_thread::get_id(); } );
-    // threads_.push_back( std::thread( [&] { joinMe( std::this_thread::get_id() ); } ) );
+	progress->setFinished();
+
+	//delete progress;
+
+    join( std::this_thread::get_id() );
 }
+

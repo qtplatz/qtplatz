@@ -384,55 +384,6 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 	}
 }
 
-/*
-void
-DataprocPlugin::handleCreateChromatograms( const adcontrols::MassSpectrum& ms, double lMass, double hMass )
-{
-	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
-    const adcontrols::LCMSDataset * ds( 0 );
-	if ( dp && ( ds = dp->getLCMSDataset() ) ) {
-        using namespace adcontrols;
-        double width = 0.1;
-        adcontrols::ProcessMethod pm;
-        mainWindow_->getProcessMethod( pm );
-        const TargetingMethod * p = pm.find< TargetingMethod >();
-        if ( p )
-            width = p->peak_width();
-
-        adportable::array_wrapper< const double > masses( ms.getMassArray(), ms.size() );
-        adportable::array_wrapper< const double > intens( ms.getIntensityArray(), ms.size() );
-		auto lIt = std::upper_bound( masses.begin(), masses.end(), lMass );
-		auto hIt = std::upper_bound( masses.begin(), masses.end(), hMass );
-		std::vector< unsigned int > vec;
-		for ( auto it = lIt; it != hIt; ++it )
-			vec.push_back( std::distance( masses.begin(), it ) );
-		std::vector< std::pair< double, double > > list;
-		while ( list.size() < 3 && !vec.empty() ) {
-			auto it = std::max_element( vec.begin(), vec.end()
-                                        , [&]( unsigned int a, unsigned int b ){ return intens[b] > intens[a]; } );
-			list.push_back( std::pair<double, double>( masses[ *it ], width ) );
-			vec.erase( it );
-		}
-
-        QProgressBar progressBar;
-        progressBar.setVisible( true );
-		std::vector< adcontrols::Chromatogram> chromatograms;
-		std::function <bool(long, long)> callback = [&](long curr, long total)->bool{
-			if ( curr == 0 )
-				progressBar.setRange( 0, total );
-			progressBar.setValue( curr );
-			return false;
-		};
-        adcontrols::ProcessMethod m;
-        mainWindow_->getProcessMethod( m );
-		if ( ds->getChromatograms( 0, list, chromatograms, callback ) ) {
-            for ( const auto& c: chromatograms )
-                dp->addChromatogram( c, m );
-        }
-    }
-}
-*/
-
 void
 DataprocPlugin::extensionsInitialized()
 {

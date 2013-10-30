@@ -22,43 +22,48 @@
 **
 **************************************************************************/
 
-#ifndef DATAPROCESSWORKER_HPP
-#define DATAPROCESSWORKER_HPP
+#ifndef PROGRESSBAR_HPP
+#define PROGRESSBAR_HPP
 
-#include <thread>
-#include <mutex>
-#include <vector>
-#include <tuple>
+#include <QWidget>
 #include <memory>
 
-namespace adcontrols { class MassSpectrum; }
-namespace qtwrapper { class ProgressBar; }
+class QProgressBar;
+namespace Core { class FutureProgress; }
 
-namespace dataproc {
+namespace qtwrapper {
 
-	class Dataprocessor;
-
-    class DataprocessWorker {
-        DataprocessWorker();
-        static DataprocessWorker * instance_;
-        static std::mutex mutex_;
-        std::vector< std::thread > threads_;
+    class ProgressBar : public QObject {
+        Q_OBJECT
     public:
-        ~DataprocessWorker();
+        explicit ProgressBar(QObject *parent = 0);
+		~ProgressBar();
 
-        static DataprocessWorker * instance();
-        static void dispose();
-        
-        void createChromatograms( Dataprocessor *, const std::vector< std::tuple< int, double, double > >& );
-        void createChromatograms( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectrum >&, double lMass, double hMass );
+        void setStarted();
+        void setFinished();
+        void setProgressRange( int min, int max );
+        void setProgressValue( int val );
+        void setProgressText( const QString& );
+
+    signals:
+        void started();
+        void finished();
+        void progressRange( int, int );
+        void progressValue( int );
+        void progressText( const QString& );
+            
+    private slots:
+        void handleStarted();
+        void handleFinished();
+        void handleProgressRange( int min, int max );
+        void handleProgressValue( int val );
+        void handleProgressText( const QString& );
 
     private:
-        void terminate();
-        void handleCreateChromatograms( Dataprocessor *, const std::vector< std::tuple< int, double, double > >&
-                                        , qtwrapper::ProgressBar* );
-        void join( const std::thread::id& );
+		QString type_;
+		Core::FutureProgress * progress_;
     };
 
 }
 
-#endif // DATAPROCESSWORKER_HPP
+#endif // PROGRESSBAR_HPP

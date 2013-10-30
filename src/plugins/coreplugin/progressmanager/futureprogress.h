@@ -72,7 +72,8 @@ signals:
 protected:
     void mousePressEvent(QMouseEvent *event);
 
-private slots:
+//private slots:
+public slots:
     void cancel();
     void setStarted();
     void setFinished();
