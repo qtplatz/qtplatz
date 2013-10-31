@@ -291,7 +291,7 @@ MainWindow::createContents( Core::IMode * mode
         res = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
                      , it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );
         assert( res );
-
+        
         connect( SessionManager::instance(), SIGNAL( signalCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) )
                  , it, SLOT( handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) ) );
 

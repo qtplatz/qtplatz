@@ -31,6 +31,8 @@
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adinterface/method.hpp>
+#include <adfs/cpio.hpp>
+#include <adportable/debug.hpp>
 
 using namespace adutils;
 
@@ -62,7 +64,8 @@ bool
 fsio::save(  adfs::filesystem& fs, const adcontrols::MassSpectrum& t, const std::wstring& id, const std::wstring& folder_name )
 {
     adfs::folder folder = fs.addFolder( folder_name );
-    return adfsio< adcontrols::MassSpectrum >::write( folder, t, id );
+    adfs::file file = folder.addFile( id );
+    return adfs::cpio< adcontrols::MassSpectrum >::save( t, file );
 }
 
 bool
@@ -78,7 +81,12 @@ fsio::load( adfs::filesystem& fs, adcontrols::MassSpectrum& t, const std::wstrin
     adfs::folder folder = fs.findFolder( folder_name );
     if ( folder.files().empty() )
         return false;
-    return adfsio< adcontrols::MassSpectrum >::read( folder, t, id );
+
+    std::vector< adfs::file > files = folder.files();
+    auto it = std::find_if( files.begin(), files.end(), [=]( const adfs::file& f ){ return f.name() == id; });
+    if ( it != files.end() ) 
+        return adfs::cpio< adcontrols::MassSpectrum >::load( t, *it );
+    return false;
 }
 
 bool

@@ -76,8 +76,10 @@
 #include <qtwrapper/waitcursor.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 #include <stack>
 #include <fstream>
+#include <QMessageBox>
 
 using namespace dataproc;
 
@@ -872,8 +874,16 @@ Dataprocessor::saveMSCalibration( const adcontrols::MSCalibrateResult& calibResu
     if ( !adutils::fsio::create( dbf, fname.wstring() ) )
         return false;
 
-    adutils::fsio::save_mscalibfile( dbf, calibResult );
-    adutils::fsio::save_mscalibfile( dbf, calibSpectrum );
+    try {
+        adutils::fsio::save_mscalibfile( dbf, calibResult );
+    } catch ( std::exception& ex ) {
+        QMessageBox::warning( 0, "saveMSCalibration", (boost::format("%1% @%2% #%3%") % ex.what() % __FILE__ % __LINE__).str().c_str() );
+    }
+    try {
+        adutils::fsio::save_mscalibfile( dbf, calibSpectrum );
+    } catch ( std::exception& ex ) {
+        QMessageBox::warning( 0, "saveMSCalibration", (boost::format("%1% @%2% #%3%") % ex.what() % __FILE__ % __LINE__).str().c_str() );
+    }
 
     // for debugging convension
     std::string xml;
