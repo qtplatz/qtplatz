@@ -203,8 +203,13 @@ orbmgr::shutdown()
     CORBA::ORB_ptr orb;
 
     if ( taomgr_ && ( orb = taomgr_->orb() ) ) {
-		if ( ! CORBA::is_nil( orb ) )
-			orb->shutdown( true );
+		if ( ! CORBA::is_nil( orb ) ) {
+			try {
+				orb->shutdown( true );
+			} catch( ... ) {
+				adportable::debug(__FILE__, __LINE__) << "shutdown got an exception";
+			}
+		}
 	}
 }
 
