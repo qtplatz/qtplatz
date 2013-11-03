@@ -81,12 +81,21 @@ serialport::open( const std::string& device_name, unsigned int baud_rate )
 void
 serialport::write( const char * data, std::size_t length )
 {
-     boost::asio::write( port_, boost::asio::buffer( data, length ) );
+    if ( length == 0 ) {
+        adportable::debug(__FILE__, __LINE__) << "serialport::write requested with zero length -- ignored.";
+        return;
+    }
+    boost::asio::write( port_, boost::asio::buffer( data, length ) );
 }
 
 bool
-serialport::write( const char * data, std::size_t length, unsigned long milliseconds )
+serialport::write( const char * data, std::size_t length, unsigned long microseconds )
 {
+    if ( length == 0 ) {
+        adportable::debug(__FILE__, __LINE__) << "serialport::write requested with zero length -- ignored.";
+        return false;
+    }
+
     std::unique_lock< std::mutex > lock( mutex_ );
     outbuf_ = std::string( data, length );
     boost::asio::async_write( port_
@@ -96,8 +105,7 @@ serialport::write( const char * data, std::size_t length, unsigned long millisec
                                              , boost::asio::placeholders::error
                                              , boost::asio::placeholders::bytes_transferred )
         );
-    //boost::system_time timeout( boost::get_system_time() + boost::posix_time::milliseconds( milliseconds ) );
-	return cond_.wait_for( lock, std::chrono::microseconds( milliseconds ) ) != std::cv_status::timeout;
+	return cond_.wait_for( lock, std::chrono::microseconds( microseconds ) ) != std::cv_status::timeout;
 }
 
 void
@@ -154,7 +162,7 @@ serialport::handle_write( const boost::system::error_code& error, std::size_t by
             cond_.notify_one();        
         } else
             adportable::debug(__FILE__, __LINE__ ) 
-                << bytes_transferred << " octets written but rquired " << outbuf_.size();
+                << bytes_transferred << " octets written out of requested " << outbuf_.size() << " octets";
         
     } else 
         adportable::debug(__FILE__, __LINE__) << "handle_write: " << error;
