@@ -80,6 +80,21 @@ sqlite::open( const char * path )
 }
 
 bool
+sqlite::open( const char * path, adfs::flags flags )
+{
+    int mode = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+
+    if ( flags == adfs::readonly )
+        mode = SQLITE_OPEN_READONLY;
+    else if ( flags == adfs::readwrite )
+        mode = SQLITE_OPEN_READWRITE;
+    else if ( flags == adfs::opencreate )
+        mode = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+
+    return sqlite3_open_v2( path, &db_, mode, 0 ) == SQLITE_OK;
+}
+
+bool
 sqlite::close()
 {
     sqlite3 * temp = db_;

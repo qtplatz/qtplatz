@@ -37,7 +37,7 @@ struct sqlite3_blob;
 
 namespace adfs {
 
-    enum flags { readonly, readwrite };
+    enum flags { readonly, readwrite, opencreate };
     enum sqlite_state { sqlite_done, sqlite_row, sqlite_error, sqlite_constraint };
 
     class blob;
@@ -53,6 +53,7 @@ namespace adfs {
         inline operator sqlite3 * () { return db_; }
         bool open( const wchar_t * path );
         bool open( const char * path );
+        bool open( const char * path, adfs::flags );
         bool close();
     };
 
