@@ -311,6 +311,6 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 #endif
     }
     toferror /= toferror_weight;
-    if ( toferror >= 1.0e-12 ) // warning if error was 1ps or larger
+    if ( toferror >= 20.0e-12 ) // warning if error was 20ps or larger
         adportable::debug(__FILE__, __LINE__ ) << "centroid tof interporation error: " << toferror * 1e12 << "ps";
 }
