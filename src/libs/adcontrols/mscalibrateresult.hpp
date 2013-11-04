@@ -52,9 +52,6 @@ namespace adcontrols {
         double tolerance() const;
         void tolerance( double );
 
-        double t0() const;
-        void t0( double );
-
         const MSReferences& references() const;
         MSReferences& references();
         void references( const MSReferences& );
@@ -67,6 +64,11 @@ namespace adcontrols {
         MSCalibration& calibration();
         void calibration( const MSCalibration& );
 
+        int mode() const;
+        void mode( int );
+        const std::wstring& description() const;
+        void description( const std::wstring& );
+
     private:
 
 # if defined _MSC_VER
@@ -78,8 +80,8 @@ namespace adcontrols {
         boost::scoped_ptr< MSCalibration > calibration_;
         boost::scoped_ptr< MSAssignedMasses > assignedMasses_;
 
-        // trial
-        double t0_;
+        int mode_;
+        std::wstring description_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -98,7 +100,16 @@ namespace adcontrols {
                 ar & boost::serialization::make_nvp("calibration", *calibration_);
                 ar & boost::serialization::make_nvp("assignedMasses", *assignedMasses_);
                 // trial for multi-turn calibration
-                ar & BOOST_SERIALIZATION_NVP(t0_);
+                if ( version == 2 ) {
+                    double tDelay;
+                    ar & BOOST_SERIALIZATION_NVP(tDelay); // deprecated (only on version = 2 )
+                    // tDelay has been implemented into MSCalibration class as t0_coeffs
+                }
+                if ( version >= 3 ) {
+                    ar & BOOST_SERIALIZATION_NVP(mode_)
+                        & BOOST_SERIALIZATION_NVP(description_)
+                        ;
+                }
             }
         }
     public:
@@ -110,4 +121,4 @@ namespace adcontrols {
 
 }
 
-BOOST_CLASS_VERSION( adcontrols::MSCalibrateResult, 2 )
+BOOST_CLASS_VERSION( adcontrols::MSCalibrateResult, 3 )

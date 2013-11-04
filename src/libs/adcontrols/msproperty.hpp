@@ -90,8 +90,8 @@ namespace adcontrols {
 
         // coefficients for scanLaw := polinomials for compute time parameters from mass value that user entered.
         // This will be manged by scanLaw with repsect to device data by Spectrometer::ScanLaw
-        const std::vector<double>& coeffs() const;
-        void coeffs( const std::vector< double >& );
+        // const std::vector<double>& coeffs() const;
+        // void coeffs( const std::vector< double >& );
 
         class ADCONTROLSSHARED_EXPORT SamplingInfo {
         public:
@@ -129,7 +129,7 @@ namespace adcontrols {
         uint32_t instSamplingInterval_; // ps
         std::string dataInterpreterClsid_;
         std::string deviceData_;
-        std::vector< double > coeffs_;
+        std::vector< double > coeffs_; // depreicated
 
 #if defined _MSC_VER
 # pragma warning( disable: 4251 )

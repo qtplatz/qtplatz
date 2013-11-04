@@ -53,8 +53,8 @@ SampleProcessor::SampleProcessor( boost::asio::io_service& io_service ) : fs_( n
                                                                         , inProgress_( false )
                                                                         , myId_( __nid__++ )
                                                                         , strand_( io_service )
-                                                                        , pos_front_( 0 )
                                                                         , objId_front_( 0 )
+                                                                        , pos_front_( 0 )
                                                                         , stop_triggered_( false )
 {
 }

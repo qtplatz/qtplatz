@@ -60,8 +60,8 @@ MSCalibSummaryWidget::~MSCalibSummaryWidget()
 MSCalibSummaryWidget::MSCalibSummaryWidget(QWidget *parent) : QTableView(parent)
                                                             , pModel_( new QStandardItemModel )
                                                             , pDelegate_( new MSCalibSummaryDelegate ) 
-                                                            , pCalibrantSpectrum_( new adcontrols::MassSpectrum )
                                                             , pCalibResult_( new adcontrols::MSCalibrateResult )
+                                                            , pCalibrantSpectrum_( new adcontrols::MassSpectrum )
                                                             , inProgress_( false )
 {
     this->setModel( pModel_.get() );
@@ -189,7 +189,7 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
     QStandardItemModel& model = *pModel_;
 
     auto it = std::find_if( assigned.begin(), assigned.end(), [=]( const adcontrols::MSAssignedMass& a ){
-            return fcn == a.idMassSpectrum() && idx == a.idPeak(); 
+            return fcn == int(a.idMassSpectrum()) && idx == int(a.idPeak()); 
         });
 
     if ( it == assigned.end() )
@@ -207,27 +207,8 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
 		double L = pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
 		normalized_time = ( it->time() - t0 ) / L;
 	} else {
-		normalized_time = ( it->time() - pCalibResult_->t0() ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
+		normalized_time = ( it->time() ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
 	}
-    //double mass = calib.compute_mass( it->time() );
-	
-	/*
-    if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
-        double L = pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
-        do {
-            const double t0 = pCalibResult_->t0(); // using fixed t0
-            double T = scale_to( calib.time_prefix(), ( it->time() - t0 ) );
-            normalized_time = ( it->time() - t0 ) / L;
-            mass = calib.compute_mass( T / L );
-        } while (0);
-        do {
-			const double t0 = scale_to_base( calib.compute( calib.t0_coeffs(), std::sqrt(mass) ), calib.time_prefix() );
-            double T = scale_to( calib.time_prefix(), ( it->time() - t0 ) );
-            normalized_time = ( it->time() - t0 ) / L;
-            mass2 = calib.compute_mass( T / L );            
-        } while (0);
-    }
-	*/
 
     model.setData( model.index( row, c_time_normalized ), normalized_time );
     model.setData( model.index( row, c_formula ), qtwrapper::qstring::copy( it->formula() ) );
@@ -367,7 +348,7 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 		}
 	}
     
-    if ( ! ( ( model.rowCount() == indecies.size() ) && modifyModelData( indecies ) ) )
+    if ( ! ( ( model.rowCount() == int(indecies.size()) ) && modifyModelData( indecies ) ) )
         createModelData( indecies );
 }
 
@@ -631,8 +612,7 @@ namespace qtwidgets2 {
     public:
         std::vector< std::pair< double, double > > tab_stops_;
 
-        grid_render( const QRectF& rect )
-            : bottom_( 0 ), rect_( rect ), rc_( rect ) {
+        grid_render( const QRectF& rect ) : rect_( rect ), bottom_( 0 ), rc_( rect ) {
         }
 
         void add_tab( double width ) {

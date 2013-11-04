@@ -501,7 +501,7 @@ MSCalibSpectraWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio:
     generate_marged_result( processor );
 
     MSCalibration calib( bCoeffs_, micro, aCoeffs_, MSCalibration::MULTITURN_NORMALIZED );
-    margedCalibResult_->t0( T0_ );
+    // margedCalibResult_->t0( T0_ );
     margedCalibResult_->calibration( calib );
 
     if ( margedCalibResult_ && margedSpectrum_ )
@@ -614,7 +614,7 @@ MSCalibSpectraWnd::handleValueChanged()
 
     replotLengthTime();
     flight_length_regression();
-    margedCalibResult_->t0( T0_ );
+    // margedCalibResult_->t0( T0_ );
 	adcontrols::MSCalibration calib( bCoeffs_, adcontrols::metric::micro, aCoeffs_, adcontrols::MSCalibration::MULTITURN_NORMALIZED );
     margedCalibResult_->calibration( calib );        
 
