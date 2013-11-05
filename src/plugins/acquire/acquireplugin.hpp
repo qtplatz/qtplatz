@@ -146,7 +146,16 @@ namespace acquire {
 
             ControlServer::Session_var session_;
             SignalObserver::Observer_var observer_;
-            std::map< unsigned long, SignalObserver::Observer_var > observerMap_;
+
+            typedef std::tuple< SignalObserver::Observer_var
+                                , SignalObserver::Description_var
+                                , std::wstring
+                                , bool
+                                , std::shared_ptr< adcontrols::MassSpectrometer > > observer_type;
+            
+            // std::map< unsigned long, SignalObserver::Observer_var > observerMap_;
+            std::map< unsigned long, observer_type > observerMap_;
+
             std::map< unsigned long, std::shared_ptr< adcontrols::MassSpectrum > > rdmap_;
             std::deque< std::shared_ptr< adcontrols::MassSpectrum > > fifo_ms_;
             std::map< unsigned long, std::shared_ptr< adcontrols::TraceAccessor > > trace_accessors_;
@@ -164,7 +173,7 @@ namespace acquire {
             std::mutex mutex_;
 
             void populate( SignalObserver::Observer_var& );
-
+            bool readCalibrations( observer_type& );
             bool readMassSpectra( const SignalObserver::DataReadBuffer&
                                   , const adcontrols::MassSpectrometer&
                                   , const adcontrols::DataInterpreter& dataInterpreter

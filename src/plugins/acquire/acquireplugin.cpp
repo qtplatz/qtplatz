@@ -742,6 +742,30 @@ AcquirePlugin::handle_update_ui_data( unsigned long objId, long pos )
 
 }
 
+bool
+AcquirePlugin::readCalibrations( observer_type& obs )
+{
+    CORBA::WString_var dataClass;
+    SignalObserver::Observer_ptr tgt = std::get<0>( obs ).in();
+    auto spectrometer = std::get<4>( obs );
+
+    SignalObserver::octet_array_var data;
+
+    bool success = false;
+    size_t idx = 0;
+    while ( tgt->readCalibration( idx++, data, dataClass ) ) {
+        if ( std::wcscmp( dataClass, adcontrols::MSCalibrateResult::dataClass() ) == 0 ) {
+            adcontrols::MSCalibrateResult result;
+            if ( adportable::serializer< adcontrols::MSCalibrateResult >::deserialize(
+                     result, reinterpret_cast< const char *>(data->get_buffer()), data->length() ) )
+                success = true;
+            if ( spectrometer )
+                spectrometer->setCalibration( idx - 1, result );
+        }
+    }
+    return success;
+}
+
 void
 AcquirePlugin::handle_update_data( unsigned long objId, long pos )
 {
@@ -754,7 +778,14 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
             SignalObserver::Observer_var tgt = observer_->findObserver( objId, true );
             if ( CORBA::is_nil( tgt.in() ) )
                 return;
-            observerMap_[ objId ] = tgt;
+
+            CORBA::WString_var name = tgt->dataInterpreterClsid();
+            auto spectrometer = adcontrols::MassSpectrometer::create( name.in() );
+
+            SignalObserver::Description_var desc = tgt->getDescription();
+
+            observerMap_[ objId ] = std::make_tuple( tgt, desc, name.in(), false, spectrometer );
+
             npos_map_[ objId ] = pos;
         }
     } while (0);
@@ -764,33 +795,23 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
     if ( pos < npos )
         return;
 
-    SignalObserver::Observer_ptr tgt = observerMap_[ objId ].in();
-    SignalObserver::Description_var desc = tgt->getDescription();
-    CORBA::WString_var name = tgt->dataInterpreterClsid();
+    auto it = observerMap_.find( objId );
+    SignalObserver::Observer_ptr tgt = std::get<0>( it->second ).in();
+    SignalObserver::Description_var& desc = std::get<1>( it->second );
+    auto spectrometer = std::get<4>( it->second );
 
-    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() );
-    const adcontrols::DataInterpreter& dataInterpreter = spectrometer.getDataInterpreter();
+    // const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( name.in() );
+    const adcontrols::DataInterpreter& dataInterpreter = spectrometer->getDataInterpreter();
 
     if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
-#if 0
-        if ( calibResults_.find( objId ) == calibResults_.end() ) {
-            SignalObserver::octet_array_var calib;
-			CORBA::WString_var dataClass;
-			size_t idx = 0;
-            while ( tgt->readCalibration( idx++, calib, dataClass ) ) {
-                if ( std::wcscmp( dataClass, adcontrols::MSCalibrateResult::dataClass() ) == 0 ) {
-                    auto ptr = std::make_shared< adcontrols::MSCalibrateResult >();
-                    adportable::serializer< adcontrols::MSCalibrateResult >::deserialize( *ptr, reinterpret_cast< const char *>(calib->get_buffer()), calib->length() );
-                    calibResults_[ objId ] = ptr;
-                }
-            }
-        }
-#endif                                     
+        if ( ! std::get<3>( it->second ) )
+            std::get<3>( it->second ) = readCalibrations( it->second );
+
         try {
             SignalObserver::DataReadBuffer_var rb;
             while ( tgt->readData( npos, rb ) ) {
                 ++npos;
-                readMassSpectra( rb, spectrometer, dataInterpreter, objId );
+                readMassSpectra( rb, *spectrometer, dataInterpreter, objId );
             }
             emit onUpdateUIData( objId, pos );
         } catch ( CORBA::Exception& ex ) {
@@ -802,7 +823,7 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
             SignalObserver::DataReadBuffer_var rb;
             while ( tgt->readData( npos, rb ) ) {
                 npos = rb->pos + rb->ndata;
-                readTrace( *desc, rb, dataInterpreter, objId );
+                readTrace( desc, rb, dataInterpreter, objId );
                 emit onUpdateUIData( objId, pos );
                 npos_map_[ objId ] = npos;
                 return;
