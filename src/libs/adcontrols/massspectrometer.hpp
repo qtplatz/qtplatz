@@ -36,6 +36,7 @@ namespace adcontrols {
     class DataInterpreter;
 	class MSProperty;
     class MSCalibrateResult;
+	class MSCalibration;
 
     const double kATOMIC_MASS_CONSTANT = 1.66054020e-27; // [kg/u]
     const double kELEMENTAL_CHARGE    = 1.60217733e-19; // [C]
@@ -50,24 +51,6 @@ namespace adcontrols {
         virtual double fLength( int mode ) const = 0;
     };
 
-    class ADCONTROLSSHARED_EXPORT TimeSquaredScanLaw : public ScanLaw {
-    public:
-        TimeSquaredScanLaw( const TimeSquaredScanLaw& t );
-        TimeSquaredScanLaw( double kAcceleratorVoltage = 3000, double tDelay = 0, double fLength = 1.0 );
-
-        double getMass( double secs, int mode ) const override;
-        double getTime( double mass, int mode ) const override;
-        double getMass( double secs, double fLength ) const override;
-        double getTime( double mass, double fLength ) const override;
-        double fLength( int mode ) const override;
-
-    protected:
-        double kAcceleratorVoltage_;
-        double tDelay_;
-        const double kTimeSquaredCoeffs_;
-        const double fLength_;
-    };
-        
     class ADCONTROLSSHARED_EXPORT MassSpectrometer {
     public:
         MassSpectrometer(void);
@@ -81,8 +64,8 @@ namespace adcontrols {
 
 		virtual void setCalibration( int mode, const adcontrols::MSCalibrateResult& );
 
-        virtual const std::shared_ptr< adcontrols::MSCalibrateResult > findCalibration( int mode ) const;
-        virtual const std::shared_ptr< adcontrols::MSCalibrateResult > calibration( size_t idx ) const;
+        virtual const std::shared_ptr< adcontrols::MSCalibrateResult > getCalibrateResult( size_t idx ) const;
+        virtual const adcontrols::MSCalibration * findCalibration( int mode ) const;
 
         static std::shared_ptr< MassSpectrometer > create( const wchar_t * dataInterpreterClsid );
 
@@ -97,7 +80,6 @@ namespace adcontrols {
 #endif
         const MassSpectrometer * instance_;
         std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > mode_calib_map_;
-        std::shared_ptr< ScanLaw > scanLaw_;
     };
 
 }

@@ -41,6 +41,9 @@ namespace adportable {
         virtual double getMass( double secs, double fLength ) const;
         virtual double getTime( double mass, double fLength ) const;
         virtual double fLength( int mode ) const;
+
+        virtual double tDelay() const { return tDelay_; }
+        virtual double kAcceleratorVoltage() const { return kAcceleratorVoltage_; }
         
     protected:
         double kAcceleratorVoltage_;
