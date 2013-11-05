@@ -29,42 +29,75 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 
 namespace adcontrols {
 
-    class Visitor;
     class DataInterpreter;
 	class MSProperty;
+    class MSCalibrateResult;
 
-    namespace massspectrometer {
+    const double kATOMIC_MASS_CONSTANT = 1.66054020e-27; // [kg/u]
+    const double kELEMENTAL_CHARGE    = 1.60217733e-19; // [C]
+    const double kTimeSquaredCoeffs   = 2.0 * kELEMENTAL_CHARGE / kATOMIC_MASS_CONSTANT;
+    
+    class ADCONTROLSSHARED_EXPORT ScanLaw {
+    public:
+        virtual double getMass( double secs, int mode ) const = 0;
+        virtual double getTime( double mass, int mode ) const = 0;
+        virtual double getMass( double secs, double fLength ) const = 0;
+        virtual double getTime( double mass, double fLength ) const = 0;
+        virtual double fLength( int mode ) const = 0;
+    };
 
-        class ADCONTROLSSHARED_EXPORT ScanLaw {
-        public:
-            virtual double getMass( double secs, int mode ) const = 0;
-            virtual double getTime( double mass, int mode ) const = 0;
-            virtual double getMass( double secs, double fLength ) const = 0;
-            virtual double getTime( double mass, double fLength ) const = 0;
-            virtual double fLength( int mode ) const = 0;
-        };
+    class ADCONTROLSSHARED_EXPORT TimeSquaredScanLaw : public ScanLaw {
+    public:
+        TimeSquaredScanLaw( const TimeSquaredScanLaw& t );
+        TimeSquaredScanLaw( double kAcceleratorVoltage = 3000, double tDelay = 0, double fLength = 1.0 );
 
-        const double kATOMIC_MASS_CONSTANT = 1.66054020e-27; // [kg/u]
-        const double kELEMENTAL_CHARGE    = 1.60217733e-19; // [C]
-        const double kTimeSquaredCoeffs   = 2.0 * kELEMENTAL_CHARGE / kATOMIC_MASS_CONSTANT;
-    }
+        double getMass( double secs, int mode ) const override;
+        double getTime( double mass, int mode ) const override;
+        double getMass( double secs, double fLength ) const override;
+        double getTime( double mass, double fLength ) const override;
+        double fLength( int mode ) const override;
+
+    protected:
+        double kAcceleratorVoltage_;
+        double tDelay_;
+        const double kTimeSquaredCoeffs_;
+        const double fLength_;
+    };
         
     class ADCONTROLSSHARED_EXPORT MassSpectrometer {
     public:
-        MassSpectrometer(void) {}
-        virtual ~MassSpectrometer(void) {}
+        MassSpectrometer(void);
+        MassSpectrometer( const MassSpectrometer& );
+        virtual ~MassSpectrometer(void);
         
-        virtual const wchar_t * name() const = 0;
-        virtual const massspectrometer::ScanLaw& getScanLaw() const = 0;
-        virtual const DataInterpreter& getDataInterpreter() const = 0;
-		virtual std::shared_ptr<massspectrometer::ScanLaw> scanLaw( const adcontrols::MSProperty& ) const = 0;
-        
+        virtual const wchar_t * name() const;
+        virtual const ScanLaw& getScanLaw() const;
+        virtual const DataInterpreter& getDataInterpreter() const;
+		virtual std::shared_ptr<ScanLaw> scanLaw( const adcontrols::MSProperty& ) const;
+
+		virtual void setCalibration( int mode, const adcontrols::MSCalibrateResult& );
+
+        virtual const std::shared_ptr< adcontrols::MSCalibrateResult > findCalibration( int mode ) const;
+        virtual const std::shared_ptr< adcontrols::MSCalibrateResult > calibration( size_t idx ) const;
+
+        static std::shared_ptr< MassSpectrometer > create( const wchar_t * dataInterpreterClsid );
+
         static const MassSpectrometer& get( const wchar_t * dataInterpreterClsid );
 		static const MassSpectrometer& get( const char * dataInterpreterClsid );
         static std::vector< std::wstring > get_model_names();
+
+    protected:
+
+#if defined _MSC_VER
+# pragma warning(disable:4251)
+#endif
+        const MassSpectrometer * instance_;
+        std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > mode_calib_map_;
+        std::shared_ptr< ScanLaw > scanLaw_;
     };
 
 }

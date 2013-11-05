@@ -35,7 +35,6 @@
 #include <boost/uuid/uuid_generators.hpp>
 
 using namespace adcontrols;
-using namespace adcontrols::massspectrometer;
 
 MSCalibration::MSCalibration() : t0_method_( LINEAR_TO_SQRT_M )
                                , time_prefix_( adcontrols::metric::base )

@@ -118,7 +118,7 @@ namespace adcontrols {
            std::vector< MassSpectrum > vec_;
 
            // exclude from archive
-           std::shared_ptr< massspectrometer::ScanLaw > scanLaw_;
+           std::shared_ptr< ScanLaw > scanLaw_;
 	    
            friend class MassSpectrum;
 
@@ -235,7 +235,7 @@ MassSpectrum::mode() const
     return pImpl_->getMSProperty().mode();
 }
 
-const massspectrometer::ScanLaw&
+const ScanLaw&
 MassSpectrum::scanLaw() const
 {
     if ( ! pImpl_->scanLaw_ )

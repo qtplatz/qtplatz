@@ -28,6 +28,7 @@ SOURCES += adportable.cpp \
     serialport.cpp \
     spectrum_processor.cpp \
     string.cpp \
+    timesquaredscanlaw.cpp \
     utf.cpp \
     lifecycleframe.cpp \
     timer.cpp \
@@ -60,6 +61,7 @@ HEADERS += adportable.hpp \
     xml_serializer.hpp \
     spectrum_processor.hpp \
     string.hpp \
+    timesquaredscanlaw.hpp \
     utf.hpp \
     lifecycleframe.hpp \
     timer.hpp \

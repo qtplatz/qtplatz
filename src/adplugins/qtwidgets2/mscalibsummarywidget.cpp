@@ -199,7 +199,7 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
 	double normalized_time = 0; // ( it->time() - t0 ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
 
     const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
-	adcontrols::ComputeMass< adcontrols::massspectrometer::ScanLaw > mass_calculator( pCalibrantSpectrum_->scanLaw(), calib );
+	adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( pCalibrantSpectrum_->scanLaw(), calib );
 	double mass = mass_calculator( it->time(), it->mode() );
 
 	if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {

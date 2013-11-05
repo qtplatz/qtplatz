@@ -257,7 +257,7 @@ MSProperty::spectrometer() const
 	return adcontrols::MassSpectrometer::get( dataInterpreterClsid() );
 }
 
-std::shared_ptr< massspectrometer::ScanLaw >
+std::shared_ptr< ScanLaw >
 MSProperty::scanLaw() const
 {
 	return adcontrols::MassSpectrometer::get( dataInterpreterClsid() ).scanLaw( *this );

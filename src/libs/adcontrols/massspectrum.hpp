@@ -65,10 +65,6 @@ namespace adcontrols {
                              , CentroidNative // instrument manufacturer's native algorithm 
     };
 
-    namespace massspectrometer {
-        class ScanLaw;
-    };
-    
     namespace internal {
         class MassSpectrumImpl;
     }
@@ -78,6 +74,7 @@ namespace adcontrols {
     class MSCalibration;
     class MSProperty;
     class annotations;
+	class ScanLaw;
     
     class ADCONTROLSSHARED_EXPORT MassSpectrum {
     public:
@@ -120,7 +117,7 @@ namespace adcontrols {
         void setMSProperty( const adcontrols::MSProperty& );
         const MSProperty& getMSProperty() const;
 
-        const massspectrometer::ScanLaw& scanLaw() const;
+        const ScanLaw& scanLaw() const;
         
         template<class T> void set( const T& t );
         template<class T> const T& get();

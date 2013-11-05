@@ -731,7 +731,7 @@ MSCalibSpectraWnd::handle_reassign_mass_requested()
         adcontrols::segment_wrapper<> segments( *margedSpectrum_ );
 
         if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
-			adcontrols::ComputeMass< adcontrols::massspectrometer::ScanLaw > mass_calculator( margedSpectrum_->scanLaw(), calib );
+			adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( margedSpectrum_->scanLaw(), calib );
             for ( auto& a: assigned ) {
 				double mass = mass_calculator( a.time(), a.mode() );
 				a.mass( mass );

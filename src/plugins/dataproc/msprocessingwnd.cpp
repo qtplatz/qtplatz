@@ -509,7 +509,7 @@ bool
 MSProcessingWnd::assign_masses_to_profile( const std::wstring& model_name )
 {
     const adcontrols::MassSpectrometer& model = adcontrols::MassSpectrometer::get( model_name.c_str() );
-    const adcontrols::massspectrometer::ScanLaw& law = model.getScanLaw();
+    const adcontrols::ScanLaw& law = model.getScanLaw();
     adportable::debug(__FILE__, __LINE__ ) << model_name;
 
 	std::pair< double, double > mass_range;

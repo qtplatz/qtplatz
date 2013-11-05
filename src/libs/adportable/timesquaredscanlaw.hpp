@@ -1,3 +1,4 @@
+// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013 MS-Cheminformatics LLC
@@ -24,35 +25,28 @@
 
 #pragma once
 
-#include <adcontrols/massspectrometer.hpp>
-#include <cstddef>
-#include <utility>
-#include <vector>
-#include <string>
+namespace adportable {
 
-namespace adcontrols {
-    class MassSpectrum;
-    class MSAssignedMasses;
-    class MSCalibration;
-	class MSProperty;
-}
+    const double kATOMIC_MASS_CONSTANT = 1.66054020e-27; // [kg/u]
+    const double kELEMENTAL_CHARGE    = 1.60217733e-19; // [C]
+    const double kTimeSquaredCoeffs   = 2.0 * kELEMENTAL_CHARGE / kATOMIC_MASS_CONSTANT;
 
-namespace dataproc {
-
-    class mass_calibrator {
-        std::vector< double > times_;
-        std::vector< double > sqrtMz_;
-        std::wstring ident_;
-		std::shared_ptr< adcontrols::ScanLaw > scanLaw_;
-
+    class TimeSquaredScanLaw {
     public:
-        mass_calibrator( const adcontrols::MSAssignedMasses&, const adcontrols::MSProperty& );
-
-        inline size_t size() const { return times_.size(); }
-        bool polfit( adcontrols::MSCalibration&, int nterm );
-        double compute_mass( double time, int mode, const adcontrols::MSCalibration& );
+        TimeSquaredScanLaw( const TimeSquaredScanLaw& t );
+        TimeSquaredScanLaw( double kAcceleratorVoltage = 3000, double tDelay = 0, double fLength = 1.0 );
+        
+        virtual double getMass( double secs, int mode ) const;
+        virtual double getTime( double mass, int mode ) const;
+        virtual double getMass( double secs, double fLength ) const;
+        virtual double getTime( double mass, double fLength ) const;
+        virtual double fLength( int mode ) const;
+        
+    protected:
+        double kAcceleratorVoltage_;
+        double tDelay_;
+        const double kTimeSquaredCoeffs_;
+        const double fLength_;
     };
 
 }
-
-

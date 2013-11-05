@@ -54,7 +54,7 @@ namespace adcontrols {
 
         // helper method for quick access to spectrometer class
         const MassSpectrometer& spectrometer() const;
-        std::shared_ptr< massspectrometer::ScanLaw > scanLaw() const;
+        std::shared_ptr< ScanLaw > scanLaw() const;
 
         // number of average for waveform
         size_t numAverage() const;

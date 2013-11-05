@@ -36,7 +36,7 @@
 
 namespace adcontrols {
 
-    namespace massspectrometer { class ScanLaw; }
+    class ScanLaw;
 
     class ADCONTROLSSHARED_EXPORT MSCalibration {
     public:
