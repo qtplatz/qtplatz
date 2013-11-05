@@ -42,7 +42,7 @@ namespace adportable {
             areaFraction() : lPos(0), uPos(0), lFrac(0), uFrac(0) {}
         };
 
-        static double tic( unsigned int nbrSamples, const long * praw, double& dbase, double& sd );
+        static double tic( unsigned int nbrSamples, const int32_t * praw, double& dbase, double& sd, size_t N = 5 );
         static double tic( unsigned int nbrSamples, const double * praw, double& dbase, double& sd, size_t N = 5 );
 
         static void moving_average( size_t nbrSamples, double * result, const double * intens, size_t N = 5 );

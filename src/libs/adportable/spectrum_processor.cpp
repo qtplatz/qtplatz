@@ -74,6 +74,8 @@ namespace adportable {
                 dc = zc = 0;
             } else {
                 ++zc;
+                if ( zc >= w * 2 )
+                    uc = dc = 0;
             }
             if ( (uc >= w) || ( dc >= w ) ) {
                 bc = 0;
@@ -94,8 +96,8 @@ namespace adportable {
 			sdd += x * x;
             return ++n;
         }
-        inline double average() const { return ax / n; }
-        inline double rms() const { return std::sqrt( ( sdd / n ) - ( average() * average() ) ); }
+        inline double average() const { return n ? ( ax / n ) : ax; }
+        inline double rms() const { return n ? ( std::sqrt( ( sdd / n ) - ( average() * average() ) ) ) : 0 ; }
     };
 
     template<typename T> struct areaCalculator {
@@ -126,20 +128,22 @@ namespace adportable {
 }
 
 double
-spectrum_processor::tic( unsigned int nbrSamples, const long * praw, double& dbase, double& rms )
+spectrum_processor::tic( unsigned int nbrSamples, const int32_t * praw, double& dbase, double& rms, size_t N )
 {
     averager base;
     averager avgr;
     int cnt = 1;
     do {
         slope_counter counter(20.0);
-        for ( unsigned int x = 2; x < nbrSamples - 2; ++x ) {
+
+        for ( unsigned int x = (N/2); x < nbrSamples - (N/2); ++x ) {
             avgr( praw[x] );
-            if ( counter( convolute<long>( &praw[x] ) ) > 5 )
-                base( praw[ x - 2 ] );
-            else if ( counter.n > 5 )
+            if ( counter( convolute<int32_t>( &praw[x] ) ) > N )
+                base( praw[ x - (N/2) ] );
+            else if ( counter.n > N )
                 cnt++;
         }
+
     } while (0);
     dbase = base.average();
 	rms = base.rms();
