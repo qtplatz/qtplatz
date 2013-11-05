@@ -94,7 +94,7 @@ MassSpectrometer::getScanLaw() const
     if ( instance_ )
         return instance_->getScanLaw();
 
-    throw std::bad_cast( "MassSpectrometer::getScanLaw has no instance" );
+    throw std::bad_cast();
 }
 
 const DataInterpreter&
@@ -159,7 +159,7 @@ MassSpectrometer::get( const wchar_t * dataInterpreterClsid )
 	massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid );
 	if ( factory )
 		return *factory->get( dataInterpreterClsid );
-	throw std::bad_cast( "can't find specified spectrometer" );
+	throw std::bad_cast();
 }
 
 const MassSpectrometer&
