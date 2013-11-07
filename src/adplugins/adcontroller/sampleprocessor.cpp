@@ -120,7 +120,7 @@ void
 SampleProcessor::pos_front( unsigned int pos, unsigned long objId )
 {
     if ( pos > pos_front_ ) {
-		adportable::debug(__FILE__, __LINE__) << "pos_front: " << pos << " obj=" << objId;
+		// adportable::debug(__FILE__, __LINE__) << "pos_front: " << pos << " obj=" << objId;
         // keep largest pos and it's objId
         pos_front_ = pos;
         objId_front_ = objId;
@@ -131,7 +131,7 @@ void
 SampleProcessor::handle_data( unsigned long objId, long pos
                               , const SignalObserver::DataReadBuffer& rdBuf )
 {
-    adportable::debug(__FILE__, __LINE__) << "ID: " << myId_ << " handle_data(" << objId << ", " << pos << ")";
+    // adportable::debug(__FILE__, __LINE__) << "ID: " << myId_ << " handle_data(" << objId << ", " << pos << ")";
 
     if ( rdBuf.events & SignalObserver::wkEvent_INJECT ) {
         if ( ! inProgress_ )

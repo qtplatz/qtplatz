@@ -1,4 +1,4 @@
-<plugin name="acquire" version="1.0.0" compatVersion="1.3.1">
+<plugin name="acquire" version="2.2.7" compatVersion="1.3.1">
     <vendor>MS-Cheminformatics LLC</vendor>
     <copyright>(C)2010-2013 MS-Cheminformatics LLC</copyright>
     <license>
@@ -13,6 +13,6 @@ will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.</license>
     <url>http://www.ms-cheminfo.com</url>
     <dependencyList>
         <dependency name="Core" version="1.3.1"/>
-        <dependency name="Servant" vsersion="1.0.0"/>
+	<dependency name="servant" version="2.2.7"/>
     </dependencyList>
 </plugin>

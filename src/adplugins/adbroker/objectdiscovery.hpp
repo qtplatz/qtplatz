@@ -31,6 +31,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 namespace boost { namespace asio { class io_service; } }
 
@@ -50,10 +51,8 @@ namespace adbroker {
     private:
         void reply_handler( const std::string&, const std::string& );
         std::unique_ptr< boost::asio::io_service > io_service_;
-        std::unique_ptr< std::thread > thread_;
-
 		std::unique_ptr< acewrapper::iorQuery > iorQuery_;
-
+        std::vector< std::thread > threads_;
         bool suspend_;
 		std::map< std::string, std::string > list_;
         std::mutex mutex_;

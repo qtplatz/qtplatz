@@ -245,14 +245,16 @@ AcquirePlugin::initialize_actions()
     actionInject_ = new QAction(QIcon(":/acquire/images/Button Add.png"), tr("Inject (recording data)"), this);
     connect( actionInject_, SIGNAL(triggered()), this, SLOT(actionInject()) );
 
+    //------------ snapshot -------------
+    actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
+    connect( actionSnapshot_, SIGNAL(triggered()), this, SLOT(actionSnapshot()) );
+
+    actionConnect_->setEnabled( true );
     actionInitRun_->setEnabled( false );
     actionRun_->setEnabled( false );
 	actionStop_->setEnabled( false );
 	actionInject_->setEnabled( false );
-
-    //------------ snapshot -------------
-    actionSnapshot_ = new QAction(QIcon(":/acquire/images/snapshot_small.png"), tr("Take spectrum snapshot"), this);
-    connect( actionSnapshot_, SIGNAL(triggered()), this, SLOT(actionSnapshot()) );
+    actionSnapshot_->setEnabled( false );
   
     //const AcquireManagerActions& actions = mainWindow_->acquireManagerActions();
     QList<int> globalcontext;
@@ -269,7 +271,7 @@ AcquirePlugin::initialize_actions()
         cmd = am->registerAction( actionRun_, constants::RUN, globalcontext );
         cmd = am->registerAction( actionStop_, constants::STOP, globalcontext );
         cmd = am->registerAction( actionInject_, constants::ACQUISITION, globalcontext );
-        cmd = am->registerAction( actionSnapshot_, "acquire.shanpshot", globalcontext );
+        cmd = am->registerAction( actionSnapshot_, constants::SNAPSHOT, globalcontext );
     }
 }
 
@@ -516,7 +518,8 @@ AcquirePlugin::actionConnect()
                         connect( this, SIGNAL( onReceiverMessage( unsigned long, unsigned long ) )
                                  , this, SLOT( handle_message( unsigned long, unsigned long ) ) );
                         
-                        session_->connect( receiver_i_->_this(), "acquire" );
+                        if ( session_->connect( receiver_i_->_this(), "acquire" ) )
+                            actionConnect_->setEnabled( false );
                         
                         if ( session_->status() <= ControlServer::eConfigured )
                             session_->initialize();
@@ -806,7 +809,7 @@ AcquirePlugin::handle_update_data( unsigned long objId, long pos )
     if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
         if ( ! std::get<3>( it->second ) )
             std::get<3>( it->second ) = readCalibrations( it->second );
-
+        
         try {
             SignalObserver::DataReadBuffer_var rb;
             while ( tgt->readData( npos, rb ) ) {

@@ -1,4 +1,4 @@
-<plugin name="servant" version="2.0.0" compatVersion="1.3.1">
+<plugin name="servant" version="2.2.7" compatVersion="1.3.1">
     <vendor>MS-Cheminformatics LLC</vendor>
     <copyright>(C)2010-2013 MS-Cheminformatics LLC</copyright>
     <license>

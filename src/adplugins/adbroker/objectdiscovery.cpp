@@ -41,12 +41,11 @@ using namespace adbroker;
 #define IORQ "ior?"
 
 ObjectDiscovery::ObjectDiscovery() : io_service_( new boost::asio::io_service )
+                                   , iorQuery_( new acewrapper::iorQuery(*io_service_
+                                                                         , [=](const std::string& ident, const std::string& ior){
+                                                                             reply_handler( ident, ior ); }) )
                                    , suspend_( false )
 {
-	iorQuery_.reset( 
-        new acewrapper::iorQuery( *io_service_
-                                  , boost::bind( &ObjectDiscovery::reply_handler
-                                                 , this, _1, _2 ) ) );
 }
 
 ObjectDiscovery::~ObjectDiscovery()
@@ -62,22 +61,15 @@ ObjectDiscovery::close()
         iorQuery_->close();
     if ( io_service_ )
         io_service_->stop();
-    if ( thread_ )
-        thread_->join();
+	for ( auto& t: threads_ )
+		t.join();
 }
 
 bool
 ObjectDiscovery::open()
 {
     iorQuery_->open();
-	std::lock_guard< std::mutex > lock( mutex_ );
-    if ( ! thread_ ) {
-        thread_.reset(
-            new std::thread( 
-                boost::bind( &boost::asio::io_service::run
-                             , io_service_.get() ) )
-            );
-    }
+    threads_.push_back( std::thread( [=]() { io_service_->run(); } ) );
 	return true;
 }
 
@@ -85,6 +77,7 @@ void
 ObjectDiscovery::reply_handler( const std::string& ident, const std::string& ior )
 {
 	std::string name;
+
     if ( unregister_lookup( ident, name ) ) {
         adportable::debug(__FILE__, __LINE__) << "ObjectDiscovery: name=" << name << ", " << ident 
                             << " ior=" << ior.substr(0, 20) << "...";

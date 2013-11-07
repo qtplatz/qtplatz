@@ -51,6 +51,10 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/cast.hpp>
 
+#if defined _MSC_VER // std::regex on VS2012 got clash due to no instance of _CType.table depend on the timing
+#define BOOST_REGEX
+#endif
+
 #if defined BOOST_REGEX
 #include <boost/regex.hpp>
 #else

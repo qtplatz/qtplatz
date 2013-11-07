@@ -39,6 +39,7 @@ namespace acquire {
     const char * const RUN                  = "Acquire.Run";
     const char * const STOP                 = "Acquire.Stop";
     const char * const ACQUISITION          = "Acquire.Acquisition";
+    const char * const SNAPSHOT             = "Acquire.Snapshot";
 
     // icon
     const char * const ICON_CONNECT         = ":/acquire/images/debugger_continue.png";
