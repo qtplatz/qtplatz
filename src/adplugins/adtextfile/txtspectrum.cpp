@@ -230,6 +230,7 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
 {
     MSProperty prop;
 
+	prop.setDataInterpreterClsid( "default" );
     prop.setInstSamplingInterval( info.sampInterval );
     prop.setNumAverage( info.nAverage ); // workaround
     prop.setInstSamplingStartDelay( info.nSamplingDelay );

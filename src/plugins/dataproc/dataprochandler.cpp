@@ -26,6 +26,7 @@
 #include "dataprochandler.hpp"
 #include "assign_masses.hpp"
 #include "mass_calibrator.hpp"
+// #include "dialogspectrometerchoice.hpp"
 #include <adcontrols/centroidprocess.hpp>
 
 #include <adcontrols/isotopecluster.hpp>
@@ -34,6 +35,7 @@
 #include <adcontrols/tableofelements.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/mspeakinfo.hpp>

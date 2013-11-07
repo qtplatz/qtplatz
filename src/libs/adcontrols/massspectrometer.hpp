@@ -68,6 +68,10 @@ namespace adcontrols {
         virtual const adcontrols::MSCalibration * findCalibration( int mode ) const;
 
         static std::shared_ptr< MassSpectrometer > create( const wchar_t * dataInterpreterClsid );
+        static std::shared_ptr< MassSpectrometer > create( const char * dataInterpreterClsid );
+
+        static const MassSpectrometer* find( const wchar_t * dataInterpreterClsid );
+        static const MassSpectrometer* find( const char * dataInterpreterClsid );
 
         static const MassSpectrometer& get( const wchar_t * dataInterpreterClsid );
 		static const MassSpectrometer& get( const char * dataInterpreterClsid );

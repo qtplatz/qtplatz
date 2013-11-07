@@ -153,6 +153,27 @@ MassSpectrometer::create( const wchar_t * dataInterpreterClsid )
     return 0;
 }
 
+std::shared_ptr< MassSpectrometer >
+MassSpectrometer::create( const char * dataInterpreterClsid )
+{
+    return create( adportable::utf::to_wstring( dataInterpreterClsid ).c_str() );
+}
+
+const MassSpectrometer*
+MassSpectrometer::find( const wchar_t * dataInterpreterClsid )
+{
+	massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid );
+	if ( factory )
+		return factory->get( dataInterpreterClsid );
+	return 0;
+}
+
+const MassSpectrometer*
+MassSpectrometer::find( const char * dataInterpreterClsid )
+{
+	return find( adportable::utf::to_wstring( dataInterpreterClsid ).c_str() );
+}
+
 const MassSpectrometer&
 MassSpectrometer::get( const wchar_t * dataInterpreterClsid )
 {
@@ -165,8 +186,8 @@ MassSpectrometer::get( const wchar_t * dataInterpreterClsid )
 const MassSpectrometer&
 MassSpectrometer::get( const char * dataInterpreterClsid )
 {
-	std::wstring wstr = adportable::utf::to_wstring( dataInterpreterClsid );
-	return get( wstr.c_str() );
+	std::wstring clsid = adportable::utf::to_wstring( dataInterpreterClsid );
+	return get( clsid.c_str() );
 }
 
 std::vector< std::wstring > 

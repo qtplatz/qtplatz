@@ -50,6 +50,7 @@
 #include <adcontrols/elementalcompositionmethod.hpp>
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/mscalibration.hpp>
@@ -92,6 +93,7 @@ namespace dataproc {
         static bool applyMethod( portfolio::Folium&, const adcontrols::MSCalibrateMethod&, const adcontrols::MSAssignedMasses& );
         static bool applyMethod( portfolio::Folium&, const adcontrols::CentroidMethod&, const adcontrols::MassSpectrum& );
         static bool applyMethod( portfolio::Folium&, const adcontrols::PeakMethod&, const adcontrols::Chromatogram& );
+        static bool fixupDataInterpreterClsid( portfolio::Folium& );
     };
 
     struct methodselector {
@@ -646,12 +648,51 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::Iso
     return false;
 }
 
+//static
+bool
+DataprocessorImpl::fixupDataInterpreterClsid( portfolio::Folium& folium )
+{
+    std::vector< std::wstring > models = adcontrols::MassSpectrometer::get_model_names();
+    if ( models.empty() ) {
+        QMessageBox::warning(0, "Calibration", "It has no mass spectrometer installed so that is not possible to re-assin masses");
+        return false;
+    }
+    std::string dataInterpreter = adportable::utf::to_utf8( models[0] );
+    QMessageBox::warning(0, "Calibration"
+                         , (boost::format("Data has no mass spectrometer scan law, assuming %1%") % dataInterpreter).str().c_str());
+    
+    auto& profile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
+	adcontrols::segment_wrapper<> segments( *profile );
+    for ( auto& fms: segments ) {
+        adcontrols::MSProperty prop( fms.getMSProperty() );
+        prop.setDataInterpreterClsid( dataInterpreter.c_str() );
+        fms.setMSProperty( prop );
+    }
+    
+    portfolio::Folium::vector_type atts = folium.attachments();
+    std::for_each( atts.begin(), atts.end(), [&]( portfolio::Folium& att ){
+            if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( static_cast< boost::any& >( att ) ) ) {
+                auto& centroid = boost::any_cast< adcontrols::MassSpectrumPtr >( att );
+                adcontrols::segment_wrapper<> segments( *centroid );
+                for ( auto& fms: segments ) {
+                    adcontrols::MSProperty prop( fms.getMSProperty() );                    
+                    prop.setDataInterpreterClsid( dataInterpreter.c_str() );
+                    fms.setMSProperty( prop );                
+                }
+            }
+        });
+    return true;
+}
+
 bool
 DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSCalibrateMethod& m )
 {
     using namespace portfolio;
 
     adcontrols::MassSpectrumPtr pProfile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
+	if ( ! adcontrols::MassSpectrometer::find( pProfile->getMSProperty().dataInterpreterClsid() ) ) {
+		fixupDataInterpreterClsid( folium );
+	}
 
     Folium::vector_type atts = folium.attachments();
 	auto attCentroid = Folium::find< adcontrols::MassSpectrumPtr >( atts.begin(), atts.end() );

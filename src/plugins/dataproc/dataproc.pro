@@ -63,7 +63,8 @@ SOURCES += \
     mode.cpp \
     editorfactory.cpp \
     mspropertyform.cpp \
-    dataprocessworker.cpp
+    dataprocessworker.cpp \
+    dialogspectrometerchoice.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -92,7 +93,8 @@ HEADERS += \
     mass_calibrator.hpp \
     assign_peaks.hpp \
     mspropertyform.hpp \
-    dataprocessworker.hpp
+    dataprocessworker.hpp \
+    dialogspectrometerchoice.hpp
 
 OTHER_FILES += \
     dataproc.pluginspec \
@@ -105,4 +107,5 @@ RESOURCES += \
     dataproc.qrc
 
 FORMS += \
-    mspropertyform.ui
+    mspropertyform.ui \
+    dialogspectrometerchoice.ui
