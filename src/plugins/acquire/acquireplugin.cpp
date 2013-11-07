@@ -528,8 +528,6 @@ AcquirePlugin::actionConnect()
                         observer_ = session_->getObserver();
                         if ( ! CORBA::is_nil( observer_.in() ) ) {
                             if ( ! sink_ ) {
-                                // sink_.reset( new adplugin::QObserverEvents_i( observer_, "acquireplugin" ) );
-
                                 sink_.reset( new adinterface::ObserverEvents_i );
 
                                 sink_->assignConfigChanged([=](uint32_t oid, SignalObserver::eConfigStatus st){
