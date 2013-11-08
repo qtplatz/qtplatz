@@ -42,6 +42,7 @@ namespace adtextfile {
         double minValue_;
         double maxValue_;
 
+        std::shared_ptr< adcontrols::MassSpectrum > compiled_;
         std::vector< std::shared_ptr< adcontrols::MassSpectrum > > spectra_;
 
     private:

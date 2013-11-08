@@ -26,6 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <fstream>
 
 namespace adcontrols {
 
@@ -56,7 +57,8 @@ namespace adcontrols {
             translate( TraceAccessor&
                        , const char * data, size_t dsize
                        , const char * meta, size_t msize, unsigned long events ) const = 0;
-        
+
+        virtual bool compile_header( MassSpectrum&, std::ifstream& ) const { return false; }
     };
 
 }

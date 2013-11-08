@@ -115,7 +115,8 @@ namespace dataproc {
         std::unique_ptr< QwtPlotMarker > centroid_threshold_;
         std::unique_ptr< QwtPlotMarker > centroid_baselevel_;
 
-        std::weak_ptr< adcontrols::MassSpectrum > calibSpectrum_;
+        std::weak_ptr< adcontrols::MassSpectrum > calibCentroid_;
+        std::weak_ptr< adcontrols::MassSpectrum > calibProfile_;
         std::weak_ptr< adcontrols::MSCalibrateResult > calibResult_;
         std::weak_ptr< adcontrols::MSPeakInfo > peakInfo_;
 
@@ -232,62 +233,78 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
     using portfolio::Folio;
 	
     portfolio::Folder folder = folium.getParentFolder();
-
-    if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() )
+    
+    if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibCentroid_.lock() )
         pImpl_->restore_state( *centroid );
 
     if ( folder && folder.name() == L"MSCalibration" ) {
         
         pImpl_->folium_ = folium;
-        boost::any& data = folium;
 
         pImpl_->processedSpectrum_->clear();
         pImpl_->peakInfo_.reset();
-        pImpl_->calibSpectrum_.reset();
-
-        // profile spectrum
-        if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) { 
-            adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( data );
-            pImpl_->processedSpectrum_->setData( ptr, idx_profile );
-            if ( ptr->isCentroid() ) {
-                pImpl_->calibSpectrum_ = ptr; // top level spectrum is centroid
-                pImpl_->processedSpectrum_->setTitle( folium.name() );
-            }
-        }
+        pImpl_->calibCentroid_.reset();
+        pImpl_->calibProfile_.reset();
 
         portfolio::Folio attachments = folium.attachments();
 
-        Folio::iterator it = 
-            Folium::find<adcontrols::MassSpectrumPtr>(attachments.begin(), attachments.end());
-        
-        if ( it != attachments.end() ) {
-            pImpl_->calibSpectrum_ = boost::any_cast< adutils::MassSpectrumPtr >( *it ); // weak_ptr
-            pImpl_->processedSpectrum_->setData( pImpl_->calibSpectrum_.lock(), idx_centroid );
-                pImpl_->processedSpectrum_->setTitle( pImpl_->calibSpectrum_.lock()->getDescriptions().toString() );
-                
-                if ( const adcontrols::ProcessMethodPtr method = Dataprocessor::findProcessMethod( *it ) )
-                    MainWindow::instance()->setProcessMethod( *method );
-                
-                portfolio::Folio centroidAttachements = it->attachments();
-                auto fInfo = Folium::find< std::shared_ptr< adcontrols::MSPeakInfo > >( centroidAttachements.begin(), centroidAttachements.end() );
-                if ( fInfo != centroidAttachements.end() ) {
-                    pImpl_->peakInfo_ = boost::any_cast< std::shared_ptr<adcontrols::MSPeakInfo > >( *fInfo ); // weak_ptr
-                }
-        }
-        
-        // calib result
-        it = Folium::find<adcontrols::MSCalibrateResultPtr>(attachments.begin(), attachments.end());
-        if ( it != attachments.end() ) {
-            pImpl_->calibResult_ = boost::any_cast< adutils::MSCalibrateResultPtr >( *it ); // weak_ptr
+        // draw profile spectrum
+        if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( folium.data() ) ) { 
 
-            if ( const adcontrols::ProcessMethodPtr method = Dataprocessor::findProcessMethod( *it ) )
+            auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
+
+            auto it = std::find_if( attachments.begin(), attachments.end(), []( portfolio::Folium& f ){
+                    return f.name() == Constants::F_DFT_FILTERD;
+                });
+
+            if ( it != attachments.end() ) {
+                // Select DFT Filterd if exists
+                pImpl_->calibProfile_ = portfolio::get< adcontrols::MassSpectrumPtr> ( *it );
+                pImpl_->processedSpectrum_->setData( pImpl_->calibProfile_.lock(), idx_profile );
+
+            } else {
+
+                pImpl_->processedSpectrum_->setData( ptr, idx_profile );
+                if ( ptr->isCentroid() ) {
+                    pImpl_->calibCentroid_ = ptr;
+                    pImpl_->processedSpectrum_->setTitle( folium.name() );
+                } else {
+                    pImpl_->calibProfile_ = ptr;
+                }
+            }
+        }
+
+        if ( ! pImpl_->calibCentroid_.lock() ) {
+            auto it = std::find_if( attachments.begin(), attachments.end(), []( portfolio::Folium& f ){
+                    return f.name() == Constants::F_CENTROID_SPECTRUM;
+                });
+            if ( it != attachments.end() ) {
+                pImpl_->calibCentroid_ = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
+                if ( auto fpki 
+                     = portfolio::find_first_of( it->attachments(), []( portfolio::Folium& a ){
+                             return portfolio::is_type< std::shared_ptr< adcontrols::MSPeakInfo > >( a ); } 
+                         ) ) {
+                    pImpl_->peakInfo_ = portfolio::get< std::shared_ptr< adcontrols::MSPeakInfo > >( fpki );
+                }
+            }
+        }
+
+        // calib result
+        if ( auto fcalibResult = portfolio::find_first_of( attachments, []( portfolio::Folium& f ){
+                    return portfolio::is_type< adcontrols::MSCalibrateResultPtr >(f);
+                }) ) {
+            pImpl_->calibResult_ = portfolio::get< adcontrols::MSCalibrateResultPtr >( fcalibResult );
+
+            if ( const adcontrols::ProcessMethodPtr method = Dataprocessor::findProcessMethod( fcalibResult ) )
                 MainWindow::instance()->setProcessMethod( *method );
         }
 
         auto result = pImpl_->calibResult_.lock();
-        auto spectrum = pImpl_->calibSpectrum_.lock();
-        if ( result && spectrum )
-            emit onSetData( *result, *spectrum );
+        auto centroid = pImpl_->calibCentroid_.lock();
+        if ( result && centroid )
+            emit onSetData( *result, *centroid );
+        if ( centroid )
+            pImpl_->processedSpectrum_->setData( centroid, 1 );
     }
 }
 
@@ -304,7 +321,7 @@ MSCalibrationWnd::handleAxisChanged( int axis )
         pImpl_->processedSpectrum_->setData( ptr, idx_profile );
     }
 
-    if ( auto centroid = pImpl_->calibSpectrum_.lock() )
+    if ( auto centroid = pImpl_->calibCentroid_.lock() )
         pImpl_->processedSpectrum_->setData( centroid, idx_centroid );
 }
 
@@ -316,7 +333,7 @@ MSCalibrationWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 void
 MSCalibrationWnd::handleSelSummary( size_t idx, size_t fcn )
 {
-    if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
+	if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibCentroid_.lock() ) {
         pImpl_->restore_state( *centroid );
         pImpl_->store_state( *centroid, fcn, idx );
         pImpl_->processedSpectrum_->setData( centroid, 1 );
@@ -373,7 +390,7 @@ MSCalibrationWnd::handleValueChanged()
     if ( ! calibResult )
         return;
 
-    std::shared_ptr< const adcontrols::MassSpectrum > calibSpectrum = pImpl_->calibSpectrum_.lock();
+    std::shared_ptr< const adcontrols::MassSpectrum > calibSpectrum = pImpl_->calibCentroid_.lock();
     if ( ! calibSpectrum )
         return;
 
@@ -388,7 +405,7 @@ MSCalibrationWnd::handleValueChanged()
             pImpl_->processedSpectrum_->setFooter( calibResult->calibration().formulaText() );
         }
 
-        if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
+        if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibCentroid_.lock() ) {
             
             if ( DataprocHandler::doAnnotateAssignedPeaks( *centroid, assigned ) )
                 pImpl_->processedSpectrum_->setData( centroid, 1 ); 
@@ -406,7 +423,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
     std::shared_ptr< adcontrols::MSCalibrateResult > calibResult = pImpl_->calibResult_.lock();
     if ( ! calibResult )
         return;
-	std::shared_ptr< adcontrols::MassSpectrum > calibSpectrum = pImpl_->calibSpectrum_.lock();
+	std::shared_ptr< adcontrols::MassSpectrum > calibSpectrum = pImpl_->calibCentroid_.lock();
 	if ( ! calibSpectrum )
 		return;
 
@@ -424,7 +441,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
             for ( auto& it : calibResult->assignedMasses() )
 				it.mass ( calib.compute_mass( it.time() ) ); // / scanLaw.fLength( it.mode() ) ) );
 
-            if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibSpectrum_.lock() ) {
+            if ( std::shared_ptr< adcontrols::MassSpectrum > centroid = pImpl_->calibCentroid_.lock() ) {
 
                 // profile
                 adcontrols::MassSpectrumPtr profile = boost::any_cast< adcontrols::MassSpectrumPtr >( pImpl_->folium_.data() );

@@ -109,7 +109,6 @@ namespace dataproc {
         }
         
     };
-
 }
 
 MSProcessingWnd::MSProcessingWnd(QWidget *parent) :
@@ -256,6 +255,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
     }
 }
 
+
 void
 MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfolio::Folium& folium )
 {
@@ -272,6 +272,9 @@ MSProcessingWnd::handleSelectionChanged( Dataprocessor* /* processor */, portfol
             idActiveFolium_ = folium.id();
             
             portfolio::Folio attachments = folium.attachments();
+            std::sort( attachments.begin(), attachments.end(), [](const portfolio::Folium& a, const portfolio::Folium& ) {
+                    return a.name() == Constants::F_CENTROID_SPECTRUM;  // centroid result on top
+                });
             for ( portfolio::Folio::iterator it = attachments.begin(); it != attachments.end(); ++it ) {
                 auto contents = adutils::ProcessedData::toVariant( static_cast<boost::any&>( *it ) );
                 if ( boost::apply_visitor( selProcessed<MSProcessingWnd>( *this, folder ), contents ) ) {

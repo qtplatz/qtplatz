@@ -32,7 +32,8 @@ SOURCES += adportable.cpp \
     utf.cpp \
     lifecycleframe.cpp \
     timer.cpp \
-    profile.cpp
+    profile.cpp \
+    textfile.cpp
 
 win32 {
    SOURCES += protocollifecycle.cpp
@@ -65,5 +66,6 @@ HEADERS += adportable.hpp \
     utf.hpp \
     lifecycleframe.hpp \
     timer.hpp \
-    profile.hpp
+    profile.hpp \
+    textfile.hpp
 

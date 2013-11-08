@@ -27,11 +27,13 @@
 
 #include "txtspectrum.hpp"
 #include <adportable/string.hpp>
+#include <adportable/spectrum_processor.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/textfile.hpp>
 #include <fstream>
 #include <algorithm>
 #include <boost/tokenizer.hpp>
@@ -39,33 +41,12 @@
 #include <boost/numeric/interval.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/datainterpreter.hpp>
 
-
-using namespace adtextfile;
+using namespace adportable;
 using namespace adcontrols;
-
-namespace adtextfile {
-
-    class textfile {
-    public:
-        static bool getline( std::ifstream& in, std::string& line ) {
-            line.clear();
-            while ( ! in.eof() ) {
-                char c = in.get();
-                if ( c == '\r' ) { // may be old-days Mac ?
-                    if ( in.get() != '\n' ) // whoops, its old mac file
-                        in.unget();
-                    return true;
-                } else if ( c == '\n' ) {
-                    return true;
-                }
-                line.push_back ( c );
-            }
-            return !line.empty();
-        }
-    };
-
-}
+using namespace adtextfile;
 
 TXTSpectrum::TXTSpectrum()
 {
@@ -90,21 +71,48 @@ TXTSpectrum::load( const std::wstring& name )
 
 	size_t numSamples = 0;
 	size_t numTurns = 0;
+
+	std::vector< std::wstring > supported_models = adcontrols::MassSpectrometer::get_model_names();
+
 	if ( path.extension() == ".csv" ) {
+        for ( const auto& model: supported_models ) {
+
+            if ( auto spectrometer = adcontrols::MassSpectrometer::find( model.c_str() ) ) {
+                const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
+
+                auto ms = std::make_shared< adcontrols::MassSpectrum >();
+				if ( interpreter.compile_header( *ms, in ) ) {
+                    compiled_ = ms;
+                    break;
+                }
+            }
+        }
+    }
+/***
 		std::string line;
 		while ( textfile::getline( in, line ) ) {
 			if ( line.find( "All Elements" ) != line.npos ) {
+                
                 textfile::getline( in, line );
 				numSamples = atol( line.c_str() );
+				o << line << std::endl;
 			} else if ( line.find( "Turn:" ) != line.npos ) {
                 textfile::getline( in, line );
+				o << line << std::endl;
 				numTurns = atol( line.c_str() );
+
+                auto ms = std::make_shared< adcontrols::MassSpectrum >();
+                if ( auto spectrometer = adcontrols::MassSpectrometer::find( L"InfiTOF" ) ) {
+					const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
+                    if ( interpreter.compile( *ms, o.str().c_str() ) )
+                        compiled_ = ms;
+                }
 			} else if ( line.find( "Data" ) != line.npos ) {
 				break;
 			}
 		}
 	}
-	
+**/
     do {
         double values[3];
         std::string line;
@@ -240,10 +248,18 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
     ms.resize( info.nSamples );
     ms.setIntensityArray( intensArray.data() + idx );
 
+    if ( info.nSamples ) {
+        double tic, base, rms;
+        const double * intens = ms.getIntensityArray();
+        tic = adportable::spectrum_processor::tic( info.nSamples, intens, base, rms );
+        for ( size_t i = 0; i < info.nSamples; ++i )
+            ms.setIntensity( i, intens[i] - base );
+    }
+
     if ( ! massArray.empty() ) {
         ms.setMassArray( massArray.data() + idx );
     } else {
-        // todo: add UD dialog box to ask those values
+        // todo: add UI dialog box to ask those values
         double t1 = timeArray.front();
         double t2 = timeArray.back();
         double m1 = 500;

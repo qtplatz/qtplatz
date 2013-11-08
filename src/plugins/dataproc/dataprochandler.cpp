@@ -54,6 +54,7 @@
 #include <adportable/polfit.hpp>
 #include <adportable/debug.hpp>
 #include <chromatogr/chromatography.hpp>
+#include <portfolio/folium.hpp>
 
 #include <iomanip>
 #include <fstream>
@@ -324,3 +325,4 @@ DataprocHandler::doFindPeaks( adcontrols::PeakResult& r, const adcontrols::Chrom
     }
     return false;
 }
+

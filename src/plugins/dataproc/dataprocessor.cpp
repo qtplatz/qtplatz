@@ -70,6 +70,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/xml_serializer.hpp>
+#include <adportable/spectrum_processor.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/file.hpp>
 #include <adfs/attributes.hpp>
@@ -355,10 +356,6 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
     adcontrols::CentroidMethod centroidMethod( *pCentroidMethod ); // copy
     centroidMethod.centroidAreaIntensity( false );  // force hight for overlay with profile
 
-    adcontrols::ProcessMethod method;
-    method.appendMethod( centroidMethod );
-    method.appendMethod( *pCalibMethod );
-
     portfolio::Folder calibFolder = portfolio_->addFolder( L"MSCalibration" );
 
     for ( auto& folium: spectra.folio() ) {
@@ -366,19 +363,37 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
             if ( folium.empty() )
                 processor->fetch( folium );
 
-            adutils::ProcessedData::value_type data = adutils::ProcessedData::toVariant( static_cast<boost::any&>( folium ) );
+            if ( auto profile = portfolio::get< adutils::MassSpectrumPtr >( folium ) ) {
 
-            if ( adutils::MassSpectrumPtr ptr = boost::get< adutils::MassSpectrumPtr >( data ) ) {
-                if ( ptr->getDescriptions().size() == 0 ) 
-                    ptr->addDescription( adcontrols::Description( L"create", folium.name() ) );
+                const adcontrols::CentroidMethod * hasCentroidMethod = 0;
 
+                portfolio::Folio atts = folium.attachments();
+                auto itCentroid = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ) {
+                        return f.name() == Constants::F_CENTROID_SPECTRUM;
+                    });
+                if ( itCentroid != atts.end() ) {
+                    portfolio::Folio atts2 = itCentroid->attachments();
+					if ( portfolio::Folium fmethod
+                         = portfolio::find_first_of( itCentroid->attachments(), []( portfolio::Folium& a ){
+                                 return portfolio::is_type< adcontrols::ProcessMethodPtr >( a ); 
+                             }) ) {
+                        if ( auto ptr = portfolio::get< adcontrols::ProcessMethodPtr>( fmethod ) ) 
+                            hasCentroidMethod = ptr->find< adcontrols::CentroidMethod >();
+					}
+                }
+
+                adcontrols::ProcessMethod method;
+                centroidMethod.noiseFilterMethod( pCentroidMethod->noiseFilterMethod() ); // restore NF
+                method.appendMethod( hasCentroidMethod ? *hasCentroidMethod : centroidMethod );
+                method.appendMethod( *pCalibMethod );
+
+                if ( profile->getDescriptions().size() == 0 ) 
+                    profile->addDescription( adcontrols::Description( L"create", folium.name() ) );
                 // make duplicate node if already exist
-                addCalibration( * boost::get< adutils::MassSpectrumPtr >( data ), method );
+                addCalibration( *profile, method );
             }
-
         }
     }
-
 	ifileimpl_->setModified();
 }
 
@@ -700,10 +715,10 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
         adcontrols::MassSpectrumPtr pCentroid = boost::any_cast< adcontrols::MassSpectrumPtr >( attCentroid->data() );
         if ( pCentroid ) {
 			adcontrols::segment_wrapper<> segs( *pCentroid );
-
+            
 			double y = adcontrols::segments_helper::max_intensity( *pCentroid );
 			double y_threshold = y * m.minimumRAPercent() / 100.0;
-
+            
 			// threshold color filter
 			for ( auto& ms: segs ) {
 				for ( size_t i = 0; i < ms.size(); ++i ) {
@@ -714,23 +729,9 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium, const adcontrols::MSC
 
             adcontrols::MSCalibrateResultPtr pCalibResult( new adcontrols::MSCalibrateResult );
             portfolio::Folium fCalibResult = folium.addAttachment( L"Calibrate Result" );
+
             if ( DataprocHandler::doMSCalibration( *pCalibResult, *pCentroid, m ) ) {
                 fCalibResult.assign( pCalibResult, pCalibResult->dataClass() );
-#if 0                
-                // rewrite calibration := change m/z asssing on the spectrum
-                pCentroid->setCalibration( pResult->calibration() );
-                
-                // update profile mass array
-                if ( pProfile ) {
-                    pProfile->setCalibration( pResult->calibration() );
-                    const std::vector<double>& coeffs = pResult->calibration().coeffs();
-                    for ( size_t i = 0; i < pProfile->size(); ++i ) {
-                        double tof = pProfile->getTime( i );
-                        double mq = adcontrols::MSCalibration::compute( coeffs, tof );
-                        pProfile->setMass( i, mq * mq );
-                    }
-                }
-#endif
             } else {
                 // set centroid result for user manual peak assign possible
                 fCalibResult.assign( pCalibResult, pCalibResult->dataClass() );
@@ -785,23 +786,29 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
                                 , const adcontrols::CentroidMethod& m
                                 , const adcontrols::MassSpectrum& profile )
 {
-    portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
+    portfolio::Folium att = folium.addAttachment( Constants::F_CENTROID_SPECTRUM );
     std::shared_ptr< adcontrols::MassSpectrum > pCentroid = std::make_shared< adcontrols::MassSpectrum >();
     bool centroid;
 
 	// make sure no 'processed profile' data exist
-	folium.removeAttachment( L"DFT Low Pass Filtered Spectrum" );
-    folium.removeAttachment( L"MSPeakInfo" );
+	folium.removeAttachment( Constants::F_DFT_FILTERD ); // L"DFT Low Pass Filtered Spectrum";
+    folium.removeAttachment( Constants::F_MSPEAK_INFO );
 
     std::shared_ptr< adcontrols::MSPeakInfo > pkInfo( std::make_shared< adcontrols::MSPeakInfo >() );
 
     if ( m.noiseFilterMethod() == adcontrols::CentroidMethod::eDFTLowPassFilter ) {
         adcontrols::MassSpectrumPtr profile2( new adcontrols::MassSpectrum( profile ) );
         adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *profile2 );
-        for ( auto& ms: segments )
+        for ( auto& ms: segments ) {
             adcontrols::waveform::fft::lowpass_filter( ms, m.cutoffFreqHz() );
-        portfolio::Folium filterd = folium.addAttachment( L"DFT Low Pass Filtered Spectrum" );
-        profile2->addDescription( adcontrols::Description( L"process", L"DFT Low Pass Filtered Spectrum" ) );
+            double base(0), rms(0);
+            const double * intens = ms.getIntensityArray();
+            adportable::spectrum_processor::tic( ms.size(), intens, base, rms );
+            for ( int i = 0; i < ms.size(); ++i )
+                ms.setIntensity( i, intens[i] - base );
+        }
+        portfolio::Folium filterd = folium.addAttachment( Constants::F_DFT_FILTERD );
+        profile2->addDescription( adcontrols::Description( L"process", Constants::F_DFT_FILTERD ) );
         filterd.assign( profile2, profile2->dataClass() );
 
         centroid = DataprocHandler::doCentroid( *pkInfo, *pCentroid, *profile2, m );

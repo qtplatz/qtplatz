@@ -43,6 +43,10 @@ namespace adcontrols {
     class PeakMethod;
 }
 
+namespace portfolio {
+    class Folium;
+}
+
 namespace dataproc {
 
     class DataprocHandler {
@@ -69,6 +73,14 @@ namespace dataproc {
         static bool doFindPeaks( adcontrols::PeakResult&, const adcontrols::Chromatogram& , const adcontrols::PeakMethod& ); 
         static bool doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
                                              , const adcontrols::MSAssignedMasses& );
+
+        template<class T> static const T findAttachment( const portfolio::Folium& f ) {
+            portfolio::Folio atts = f.attachments();
+            auto it = portfolio::Folium< T >::find( atts.begin(), atts.end() );
+            if ( it != atts.end() )
+                return portfolio::get<T>( *it );
+            return T(0);
+        }
     };
 
 }

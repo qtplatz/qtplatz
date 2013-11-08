@@ -45,7 +45,12 @@ namespace dataproc {
         const char * const ICON_METHOD_OPEN     = ":/dataproc/image/fileopen.png";
         const char * const ICON_METHOD_APPLY    = ":/dataproc/image/apply_small.png";
 		const char * const ICON_PDF             = ":/dataproc/image/file_pdf.png"; // http://findicons.com/icon/74870/file_pdf?id=355001
+
                                                                                    // freeware license, Designed by Andy Gongea
+        // Folium (attachment) name
+        const wchar_t * const F_DFT_FILTERD        = L"DFT Low Pass Filtered Spectrum";
+        const wchar_t * const F_CENTROID_SPECTRUM  = L"Centroid Spectrum";
+        const wchar_t * const F_MSPEAK_INFO        = L"MSPeakInfo";
     }
 
     enum ProcessType {
