@@ -74,13 +74,13 @@ namespace dataproc {
         static bool doAnnotateAssignedPeaks( adcontrols::MassSpectrum& centroid
                                              , const adcontrols::MSAssignedMasses& );
 
-        template<class T> static const T findAttachment( const portfolio::Folium& f ) {
-            portfolio::Folio atts = f.attachments();
-            auto it = portfolio::Folium< T >::find( atts.begin(), atts.end() );
-            if ( it != atts.end() )
-                return portfolio::get<T>( *it );
-            return T(0);
-        }
+        // template<class T> static const T findAttachment( const portfolio::Folium& f ) {
+        //     auto atts = f.attachments();
+        //     auto it = portfolio::Folium< T >::find( atts.begin(), atts.end() );
+        //     if ( it != atts.end() )
+        //         return portfolio::get<T>( *it );
+        //     return T(0);
+        // }
     };
 
 }

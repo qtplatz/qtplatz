@@ -98,7 +98,7 @@ namespace portfolio {
         return boost::any_cast<T>( folium.data() ); // may raise a boost::bad_any_cast exception
     }
 
-    template<class Pred> Folium find_first_of( Folio& folio, Pred pred ) {
+    template<class Pred> Folium find_first_of( Folio folio, Pred pred ) {
         auto it = std::find_if( folio.begin(), folio.end(), pred );
         if ( it != folio.end() )
             return *it;

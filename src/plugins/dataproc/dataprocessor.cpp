@@ -676,7 +676,7 @@ DataprocessorImpl::fixupDataInterpreterClsid( portfolio::Folium& folium )
     QMessageBox::warning(0, "Calibration"
                          , (boost::format("Data has no mass spectrometer scan law, assuming %1%") % dataInterpreter).str().c_str());
     
-    auto& profile = boost::any_cast< adcontrols::MassSpectrumPtr >( folium );
+    auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
 	adcontrols::segment_wrapper<> segments( *profile );
     for ( auto& fms: segments ) {
         adcontrols::MSProperty prop( fms.getMSProperty() );
@@ -687,7 +687,7 @@ DataprocessorImpl::fixupDataInterpreterClsid( portfolio::Folium& folium )
     portfolio::Folium::vector_type atts = folium.attachments();
     std::for_each( atts.begin(), atts.end(), [&]( portfolio::Folium& att ){
             if ( portfolio::is_type< adcontrols::MassSpectrumPtr >( static_cast< boost::any& >( att ) ) ) {
-                auto& centroid = boost::any_cast< adcontrols::MassSpectrumPtr >( att );
+                auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( att );
                 adcontrols::segment_wrapper<> segments( *centroid );
                 for ( auto& fms: segments ) {
                     adcontrols::MSProperty prop( fms.getMSProperty() );                    
@@ -804,7 +804,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
             double base(0), rms(0);
             const double * intens = ms.getIntensityArray();
             adportable::spectrum_processor::tic( ms.size(), intens, base, rms );
-            for ( int i = 0; i < ms.size(); ++i )
+            for ( size_t i = 0; i < ms.size(); ++i )
                 ms.setIntensity( i, intens[i] - base );
         }
         portfolio::Folium filterd = folium.addAttachment( Constants::F_DFT_FILTERD );
