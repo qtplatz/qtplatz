@@ -389,7 +389,7 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
 
                 if ( profile->getDescriptions().size() == 0 ) 
                     profile->addDescription( adcontrols::Description( L"create", folium.name() ) );
-                // make duplicate node if already exist
+
                 addCalibration( *profile, method );
             }
         }
@@ -422,6 +422,7 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
 		if ( adutils::MassSpectrumPtr ptr = boost::get< adutils::MassSpectrumPtr >( data ) ) {
 			if ( ptr->getDescriptions().size() == 0 ) 
 				ptr->addDescription( adcontrols::Description( L"create", folium.name() ) );
+
 			addCalibration( * boost::get< adutils::MassSpectrumPtr >( data ), method );
 		}
 		ifileimpl_->setModified();
@@ -437,6 +438,10 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
         name += descs[i].text();
     
     portfolio::Folder folder = portfolio_->addFolder( L"MSCalibration" );
+
+    if ( portfolio::Folium old = folder.findFoliumByName( name ) )
+        folder.removeFolium( old );
+
     portfolio::Folium folium = folder.addFolium( name );
 
 	if ( const adcontrols::MSCalibrateMethod * pCalibMethod = m.find< adcontrols::MSCalibrateMethod >() ) {

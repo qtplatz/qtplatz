@@ -88,31 +88,7 @@ TXTSpectrum::load( const std::wstring& name )
             }
         }
     }
-/***
-		std::string line;
-		while ( textfile::getline( in, line ) ) {
-			if ( line.find( "All Elements" ) != line.npos ) {
-                
-                textfile::getline( in, line );
-				numSamples = atol( line.c_str() );
-				o << line << std::endl;
-			} else if ( line.find( "Turn:" ) != line.npos ) {
-                textfile::getline( in, line );
-				o << line << std::endl;
-				numTurns = atol( line.c_str() );
 
-                auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                if ( auto spectrometer = adcontrols::MassSpectrometer::find( L"InfiTOF" ) ) {
-					const adcontrols::DataInterpreter& interpreter = spectrometer->getDataInterpreter();
-                    if ( interpreter.compile( *ms, o.str().c_str() ) )
-                        compiled_ = ms;
-                }
-			} else if ( line.find( "Data" ) != line.npos ) {
-				break;
-			}
-		}
-	}
-**/
     do {
         double values[3];
         std::string line;
@@ -136,20 +112,8 @@ TXTSpectrum::load( const std::wstring& name )
         }
     } while( ! in.eof() );
 
-    //size_t size = timeArray.size();
-    //ms_.addDescription( adcontrols::Description( L"", name ) );
-#if 0
-    using adcontrols::MSProperty;
-    MSProperty prop;
-
-    prop.setInstSamplingInterval( sampInterval );
-    prop.setNumAverage(1);
-    //prop.setInstMassRange( ms_.getAcquisitionMassRange() );
-    prop.setInstSamplingStartDelay( startDelay );
-#endif
-
     std::vector<MSProperty::SamplingInfo> segments;
-    if ( analyze_segments( segments, timeArray ) )
+    if ( analyze_segments( segments, timeArray, compiled_.get() ) )
         validate_segments( segments, timeArray );
 
     size_t idx = 0;
@@ -166,7 +130,9 @@ TXTSpectrum::load( const std::wstring& name )
 }
 
 bool
-TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>& segments, const std::vector<double>& timeArray )
+TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>& segments
+                               , const std::vector<double>& timeArray
+                               , const adcontrols::MassSpectrum * compiled )
 {
     if ( timeArray.empty() )
         return false;
@@ -183,16 +149,17 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>
 
     unsigned long nDelay = startDelay;
     size_t nCount = 0;
-    
+
     size_t idx = 0;
     for ( std::vector<double>::const_iterator it = timeArray.begin() + 1; it != timeArray.end(); ++it ) {
         ++nCount;
         ++idx;
         double x = it[ 0 ] - it[ -1 ];
-        //unsigned long interval = static_cast<unsigned long>( x * 1e12 + 0.5 ); // s --> ps
+
         if ( ( x < 0 ) || ( x > double( sampInterval ) * 2.0e-12 ) ) {
 
-            segments.push_back( adcontrols::MSProperty::SamplingInfo(sampInterval, nDelay, nCount, 1, 0 ) );
+			int mode = find_mode( segments.size() );
+            segments.push_back( adcontrols::MSProperty::SamplingInfo(sampInterval, nDelay, nCount, 1, mode ) );
 
             if ( it + 1 != timeArray.end() ) {
                 sampInterval = static_cast<unsigned long>( ( it[ 1 ] - it[ 0 ] ) * 1e12 + 0.5 );
@@ -203,12 +170,26 @@ TXTSpectrum::analyze_segments( std::vector<adcontrols::MSProperty::SamplingInfo>
                 nCount = 0;
                 double t0 = *it;
                 nDelay = int( ( t0 / ( sampInterval * 1e-12 ) ) + 0.5 );
-                adportable::debug(__FILE__, __LINE__) << "time error: " << (t0 - ( nDelay * sampInterval * 1e-12 ) ) * 1e12 << "ps : t=" << t0  << " @ " << idx;
+                adportable::debug(__FILE__, __LINE__)
+                    << "time error: " << (t0 - ( nDelay * sampInterval * 1e-12 ) ) * 1e12 << "ps : t=" << t0  << " @ " << idx;
             }
         }
     }
-    segments.push_back( adcontrols::MSProperty::SamplingInfo(sampInterval, nDelay, nCount + 1, 1, 0 ) );
+	int mode = find_mode( segments.size() );
+    segments.push_back( adcontrols::MSProperty::SamplingInfo(sampInterval, nDelay, nCount + 1, 1, mode ) );
     return true;
+}
+
+int
+TXTSpectrum::find_mode( size_t idx ) const
+{
+	int mode = 0;
+    if ( compiled_ ) {
+		adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *compiled_ );
+		if ( idx < segs.size() )
+			mode = segs[ idx ].getMSProperty().getSamplingInfo().mode;
+    }
+    return mode;
 }
 
 bool
@@ -238,7 +219,9 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
 {
     MSProperty prop;
 
-	prop.setDataInterpreterClsid( "default" );
+    if ( compiled_ )
+        prop = compiled_->getMSProperty();
+
     prop.setInstSamplingInterval( info.sampInterval );
     prop.setNumAverage( info.nAverage ); // workaround
     prop.setInstSamplingStartDelay( info.nSamplingDelay );

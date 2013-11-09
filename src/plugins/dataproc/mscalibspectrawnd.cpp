@@ -486,16 +486,14 @@ MSCalibSpectraWnd::handleCheckStateChanged( Dataprocessor* processor, portfolio:
         SessionManager::instance()->updateDataprocessor( processor, fSummary );
     }
     
-    portfolio::Folio fatts = fSummary.attachments();
-    auto it = std::find_if( fatts.begin(), fatts.end(), []( const portfolio::Folium& a ){
-            return a.dataClass() == adcontrols::MSCalibrateResult::dataClass();
-        });
-    if ( it == fatts.end() ) {
+	auto fcalibResult = portfolio::find_first_of( fSummary.attachments(), []( const portfolio::Folium& f ){
+			return f.dataClass() == adcontrols::MSCalibrateResult::dataClass();
+		});
+    if ( ! fcalibResult ) 
         return;
-    }
 
-    margedSpectrum_ = boost::any_cast< adcontrols::MassSpectrumPtr >( fSummary );
-    margedCalibResult_ = boost::any_cast< adcontrols::MSCalibrateResultPtr >( *it );
+    margedSpectrum_ = portfolio::get< adcontrols::MassSpectrumPtr >( fSummary );
+    margedCalibResult_ = portfolio::get< adcontrols::MSCalibrateResultPtr >( fcalibResult );
 
     populate( processor, folder );
     generate_marged_result( processor );
@@ -686,13 +684,16 @@ MSCalibSpectraWnd::populate( Dataprocessor * processor, portfolio::Folder& folde
                 adcontrols::MSCalibrateResultPtr calib;
 
                 portfolio::Folio attachments = item.attachments();
-                auto a1 = portfolio::Folium::find< adcontrols::MassSpectrumPtr >( attachments.begin(), attachments.end() );
-                if ( a1 != attachments.end() )
-                    ms = boost::any_cast< adcontrols::MassSpectrumPtr >( *a1 );
 
-                auto a2 = portfolio::Folium::find< adcontrols::MSCalibrateResultPtr >( attachments.begin(), attachments.end() );
-                if ( a2 != attachments.end() )
-                    calib = boost::any_cast< adcontrols::MSCalibrateResultPtr >( *a2 );
+				if ( auto fCentroid = portfolio::find_first_of( attachments, []( const portfolio::Folium& a ){
+                            return a.name() == Constants::F_CENTROID_SPECTRUM; } ) ) {
+                    ms = portfolio::get< adcontrols::MassSpectrumPtr >( fCentroid );
+				}
+
+                if ( auto fcalibResult = portfolio::find_first_of( attachments, []( portfolio::Folium& a ){
+                            return portfolio::is_type<adcontrols::MSCalibrateResultPtr>( a ); } ) ) {
+                    calib = portfolio::get< adcontrols::MSCalibrateResultPtr >( fcalibResult );
+                }
 
                 auto result = std::make_tuple( item.id(), ms, calib );
                 results_.push_back( result );

@@ -213,7 +213,7 @@ DataprocHandler::doMSCalibration( adcontrols::MSCalibrateResult& res
 	adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( centroid );
     size_t n = 0;
 	for ( auto seg: segments )
-		assigner( assignedMasses, seg, res.references(), 0, n++ );
+		assigner( assignedMasses, seg, res.references(), seg.mode(), n++ );
 
 	res.assignedMasses( assignedMasses ); // set peak assign result
 
