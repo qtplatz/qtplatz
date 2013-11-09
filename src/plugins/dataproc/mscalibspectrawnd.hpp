@@ -109,7 +109,7 @@ namespace dataproc {
         std::shared_ptr< adwplot::Dataplot > rplot_;
         int axis_;
 
-        std::map< std::wstring, std::shared_ptr< internal::SeriesData > > plotData_;
+        std::map< std::wstring, std::shared_ptr< internal::SeriesData > > plotData_; // formula,  coeffs(a, b)
         std::map< std::wstring, std::shared_ptr< QwtPlotCurve > > plotCurves_;
         std::map< std::wstring, std::vector< double > > assignedTimes_;
         QwtPlotCurve * regressionCurve_;
@@ -118,7 +118,7 @@ namespace dataproc {
         QwtPlotCurve * slopeRegressionCurve_;
         QwtPlotCurve * interceptRegressionCurve_;
         double T0_;
-        std::map< std::wstring, std::pair< double, double > > tofCoeffs_;
+
         std::vector< double > aCoeffs_; // sqrt(m)/intercept
         std::vector< double > bCoeffs_;
 

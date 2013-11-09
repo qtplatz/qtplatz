@@ -508,7 +508,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
                     doCalibration = menu.addAction( "Send checked to calibration folder" );
 					menu.addSeparator();
-                    removeChecked = menu.addAction( "Remove checked items" );
+                    removeChecked = menu.addAction( "Remove unchecked items" );
 
                     QAction* selectedItem = menu.exec( globalPos );
                     if ( selectedItem ) {

@@ -332,7 +332,7 @@ Dataprocessor::removeCheckedItems()
 {
     for ( auto& folder: portfolio_->folders() ) {
         for ( auto& folium: folder.folio() ) {
-            if ( folium.attribute( L"isChecked" ) == L"true" ) {
+            if ( folium.attribute( L"isChecked" ) == L"false" ) {
                 folder.removeFolium( folium );
             }
         }
@@ -438,11 +438,9 @@ Dataprocessor::addCalibration( const adcontrols::MassSpectrum& src, const adcont
         name += descs[i].text();
     
     portfolio::Folder folder = portfolio_->addFolder( L"MSCalibration" );
-
-    if ( portfolio::Folium old = folder.findFoliumByName( name ) )
-        folder.removeFolium( old );
-
     portfolio::Folium folium = folder.addFolium( name );
+
+	SessionManager::instance()->updateDataprocessor( this, folium );
 
 	if ( const adcontrols::MSCalibrateMethod * pCalibMethod = m.find< adcontrols::MSCalibrateMethod >() ) {
 		std::pair<double, double> range = std::make_pair( pCalibMethod->lowMass(), pCalibMethod->highMass() );

@@ -72,29 +72,42 @@
 
 namespace dataproc {
     namespace internal {
+
+        struct time_length {
+            bool enable;
+            double time;
+            double length;
+            time_length( bool e, double t, double l ) : enable( e ), time(t), length(l) {
+            }
+        };
+
 		class SeriesData : public std::enable_shared_from_this< SeriesData >
                          , boost::noncopyable {
-            std::vector< std::tuple< bool, double, double > > d_; // enable, time, length
+            std::vector< time_length > d_; // enable, time, length
             std::wstring formula_;
             double exactMass_;
             QRectF rect_;
             double intercept_;
             double slope_;
+            bool active_;
+
         public:
             virtual ~SeriesData() {}
             SeriesData( const std::wstring& formula, double exactMass ) : formula_( formula )
                                                                         , exactMass_( exactMass )
                                                                         , intercept_(0)
-                                                                        , slope_(0) {
+                                                                        , slope_(0)
+                                                                        , active_( false ) {
             }
             const std::wstring& formula() const { return formula_; }
             double slope() const { return slope_; }
+            bool active() const { return active_; }
             double intercept() const { return intercept_; }
             double exactMass() const { return exactMass_; }
 
             size_t size() { return d_.size(); }
             QPointF sample( size_t idx ) const {
-				return QPointF( std::get<2>(d_[ idx ]), std::get<1>(d_[ idx ]) ); // (length, time)
+				return QPointF( d_[ idx ].length, d_[ idx ].time ); // std::get<2>(d_[ idx ]), std::get<1>(d_[ idx ]) ); // (length, time)
 			}
             QRectF boundingRect() const {
 				return rect_;
@@ -102,24 +115,24 @@ namespace dataproc {
 
             // local member
             void clear() {  d_.clear(); }
-            SeriesData& operator << ( const std::tuple< bool, double, double >& d ) {
+            SeriesData& operator << ( time_length& d ) {
                 d_.push_back( d );
-                rect_.setLeft( std::min( std::get<2>(d),   rect_.left() ) );
-                rect_.setRight( std::max( std::get<2>(d),  rect_.right() ) );
-                rect_.setTop( std::min( std::get<1>(d),    rect_.top() ) );
-                rect_.setBottom( std::max( std::get<1>(d), rect_.bottom() ) );
+                rect_.setLeft( std::min( d.length,   rect_.left() ) );
+                rect_.setRight( std::max( d.length,  rect_.right() ) );
+                rect_.setTop( std::min( d.time,    rect_.top() ) );
+                rect_.setBottom( std::max( d.time, rect_.bottom() ) );
                 return *this;
             }
             
             bool polfit( double& a, double& b ) {
                 std::vector< double > time, length, polinomial;
                 for ( auto t: d_ ){
-                    //if ( std::get<0>(t) ) { don't chack enable flag for draw
-                        time.push_back( std::get<1>(t) ); // time
-                        length.push_back( std::get<2>(t) ); // length
-                    //}
+                    if ( t.enable ) { 
+                        time.push_back( t.time );   // time
+                        length.push_back( t.length ); // length
+                    }
                 }
-                if ( adportable::polfit::fit( length.data(), time.data(), time.size(), 2, polinomial ) ) {
+                if ( ( active_ = adportable::polfit::fit( length.data(), time.data(), time.size(), 2, polinomial ) ) ) {
                     a = polinomial[0];
                     b = polinomial[1];
                     intercept_ = a;
@@ -379,27 +392,36 @@ MSCalibSpectraWnd::flight_length_regression()
 {
     aCoeffs_.clear();
     bCoeffs_.clear();
-    tofCoeffs_.clear();
+    typedef std::tuple< std::wstring, double, double > value_type;
+    std::vector< value_type > tofCoeffs;
+
+    // tofCoeffs_.clear();
     adcontrols::ChemicalFormula chemicalFormula;
 
     double t = 0;
     size_t n = 0;
+    // walk all chemical formula on calibration
     for ( auto& d: plotData_ ) {
         double a, b;
 		if ( d.second->polfit( a, b ) ) {
             t += a;
             ++n;
-            tofCoeffs_[ d.first ] = std::make_pair( a, b );
+            tofCoeffs.push_back( std::make_tuple( d.first /*formula*/, a, b ) );
+            // tofCoeffs_[ d.first /*formula*/ ] = std::make_pair( a, b );
         }
 	}
+    std::sort( tofCoeffs.begin(), tofCoeffs.end(), [&]( value_type& a, value_type& b ){
+            return chemicalFormula.getMonoIsotopicMass( std::get<0>(a) ) > chemicalFormula.getMonoIsotopicMass( std::get<0>(b) );
+        });
+
     T0_ = adcontrols::metric::scale_to_base( t / n, adcontrols::metric::micro );
 
     std::vector<double> mq, a, b;
-    for ( auto d: tofCoeffs_ ) {
-        double mass = chemicalFormula.getMonoIsotopicMass( d.first );
+    for ( auto d: tofCoeffs ) {
+        double mass = chemicalFormula.getMonoIsotopicMass( std::get<0>(d) );
         mq.push_back( std::sqrt( mass ) );
-        a.push_back( d.second.first ); // a, microsecond scale
-        b.push_back( d.second.second ); // b, microsecond scale
+        a.push_back( std::get<1>(d) ); // a, microsecond scale
+        b.push_back( std::get<2>(d) ); // b, microsecond scale
     }
 
     std::ostringstream title;
@@ -450,10 +472,12 @@ MSCalibSpectraWnd::replotLengthTime()
 		auto& ms = segments[ assigned.idMassSpectrum() ];
 
         auto& d = plotData_[ formula ];
-        if ( ! d ) {
+        if ( ! d ) 
             d = std::make_shared< internal::SeriesData >( formula, assigned.exactMass() );
-        }
-        *d << std::make_tuple( assigned.enable(), adcontrols::metric::scale_to_micro( assigned.time() ), ms.scanLaw().fLength( assigned.mode() ) );
+
+        *d << internal::time_length( assigned.enable()
+                                     , adcontrols::metric::scale_to_micro( assigned.time() )
+                                     , ms.scanLaw().fLength( assigned.mode() ) );
     }
 
     int idx = 0;
@@ -789,11 +813,6 @@ MSCalibSpectraWnd::plot( internal::SeriesData& d, int id )
 	dplot_->axisAutoScale( QwtPlot::xBottom );
 	dplot_->axisAutoScale( QwtPlot::yLeft );
 
-	// dplot_->setAxisScale( QwtPlot::xBottom
-    //                       , d.boundingRect().left() - d.boundingRect().width() / 10.0
-    //                       , d.boundingRect().right() + d.boundingRect().width() / 10.0);
-	// dplot_->setAxisScale( QwtPlot::yLeft, d.boundingRect().top(), d.boundingRect().bottom() + d.boundingRect().height() / 10.0);
-
 	dplot_->zoomer().setZoomBase( true );
 	dplot_->replot();
 }
@@ -814,18 +833,14 @@ MSCalibSpectraWnd::plot_slope()
         slopePlotCurve_->setYAxis( QwtPlot::yLeft );
         slopePlotCurve_->setTitle( "slope" );
     }
-	double minY = std::numeric_limits<double>::max();
-	double maxY = std::numeric_limits<double>::min();
+
     QVector< QPointF > xy;
     for ( auto plot: plotData_ ) {
-		minY = std::min( minY, plot.second->slope() );
-		maxY = std::max( maxY, plot.second->slope() );
-		xy << QPointF( std::sqrt( plot.second->exactMass() ), plot.second->slope() );
+		if ( plot.second->active() )
+            xy << QPointF( std::sqrt( plot.second->exactMass() ), plot.second->slope() );
     }
     slopePlotCurve_->setSamples( xy );
     rplot_->zoomer().setZoomBase( true );
-    
-	// rplot_->setAxisScale( QwtPlot::yLeft, minY, maxY );
 }
 
 void
@@ -841,17 +856,14 @@ MSCalibSpectraWnd::plot_intercept()
         interceptPlotCurve_->setTitle( "intercept" );
     }
 
-	double minY = std::numeric_limits<double>::max();
-	double maxY = std::numeric_limits<double>::min();
     QVector< QPointF > xy;
     for ( auto plot: plotData_ ) {
-		minY = std::min( minY, plot.second->intercept() );
-		maxY = std::max( maxY, plot.second->intercept() );        
-        xy << QPointF( std::sqrt( plot.second->exactMass() ), plot.second->intercept() );
+		if ( plot.second->active() )
+            xy << QPointF( std::sqrt( plot.second->exactMass() ), plot.second->intercept() );
     }
+
     interceptPlotCurve_->setSamples( xy );
     rplot_->zoomer().setZoomBase( true );
-	// rplot_->setAxisScale( QwtPlot::yRight, minY, maxY );
 }
 
 void
@@ -873,7 +885,9 @@ MSCalibSpectraWnd::plotSelectedLengthTime( const std::wstring& formula )
 {
     using namespace adcontrols::metric;
 
-    auto it = plotData_.find( formula );
+	adcontrols::ChemicalFormula parser;
+	std::wstring stdformula = parser.standardFormula( formula );
+    auto it = plotData_.find( stdformula );
 	if ( it != plotData_.end() ) {
         // SeriesData has microseconds scale
         internal::SeriesData& data = *it->second;
@@ -893,8 +907,9 @@ MSCalibSpectraWnd::plotSelectedLengthTime( const std::wstring& formula )
                 regressionCurve_ = new QwtPlotCurve;
                 regressionCurve_->attach( dplot_.get() );
             }
-                
-            const QRectF& rc = it->second->boundingRect();
+            
+            const QRectF& rc = dplot_->zoomRect();
+            // const QRectF& rc = it->second->boundingRect();
             double Lx = rc.right() + rc.width() / 20.0;
             double Tx = a + b * Lx;
             QVector< QPointF > xy;
