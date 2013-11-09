@@ -397,10 +397,16 @@ ChemicalFormulaImpl::standardFormula( const std::wstring& formula )
 
         std::wostringstream o;
         for ( client::map_type::value_type& p: map ) {
-            if ( p.first.first == 0 )
-                o << adportable::utf::to_wstring( p.first.second ) << p.second;
-            else
-                o << p.first.first << adportable::utf::to_wstring( p.first.second ) << p.second << L" ";
+            if ( p.first.first == 0 ) {
+                o << adportable::utf::to_wstring( p.first.second );
+                if ( p.second > 1 )  // omit '1' such as CH4, not C1H4
+                    o << p.second;
+            } else {
+                o << p.first.first << adportable::utf::to_wstring( p.first.second );
+                if ( p.second > 1 ) 
+                    o << p.second;
+                o << L" ";
+            }
         }
         return o.str();
     }

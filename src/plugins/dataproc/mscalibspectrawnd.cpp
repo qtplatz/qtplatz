@@ -114,10 +114,10 @@ namespace dataproc {
             bool polfit( double& a, double& b ) {
                 std::vector< double > time, length, polinomial;
                 for ( auto t: d_ ){
-                    if ( std::get<0>(t) ) {
+                    //if ( std::get<0>(t) ) { don't chack enable flag for draw
                         time.push_back( std::get<1>(t) ); // time
                         length.push_back( std::get<2>(t) ); // length
-                    }
+                    //}
                 }
                 if ( adportable::polfit::fit( length.data(), time.data(), time.size(), 2, polinomial ) ) {
                     a = polinomial[0];
