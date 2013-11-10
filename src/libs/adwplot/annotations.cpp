@@ -26,6 +26,9 @@
 #include "annotations.hpp"
 #include "annotation.hpp"
 #include "dataplot.hpp"
+#include <qwt_plot_marker.h>
+#include <QFontMetrics>
+
 
 using namespace adwplot;
 
@@ -43,10 +46,96 @@ Annotations::clear()
     return vec_.clear();
 }
 
-
 Annotation&
-Annotations::add( double x, double y, const std::wstring& title )
+Annotations::add( double x, double y, const std::wstring& text )
 {
-    vec_.push_back( Annotation( plot_, title, x, y ) );
+    QwtText label( QString::fromStdWString( text ), QwtText::RichText );
+    label.setFont( Annotation::font() );
+    label.setColor( Qt::darkGreen );
+    vec_.push_back( Annotation( plot_, label, QPointF( x, y ) ) );
     return vec_.back();
 }
+
+bool
+Annotations::interference( double x, double y, const QwtText& label, Qt::Alignment align ) const
+{
+	QRectF rc = boundingRect( x, y, label, align );
+
+	if ( vec_.empty() )
+		qDebug() << "-----------------------------------------------------";
+
+	auto it = std::find_if( vec_.begin(), vec_.end(), [=]( const Annotation& a ){
+            bool res = rc.intersects( this->boundingRect( a, align ) );
+            return res;
+        });
+
+	if ( it == vec_.end() )
+		return false;
+
+	return true;
+}
+
+bool
+Annotations::insert( double x, double y, const QwtText& label, Qt::Alignment align )
+{
+	if ( interference( x, y, label, align ) )
+		return false;
+
+    vec_.push_back( Annotation( plot_, label, QPointF( x, y ), align ) );
+
+	return true;
+}
+
+void
+Annotations::adjust( QRectF& rc, Qt::Alignment align ) const
+{
+    int xoffs(0), yoffs(0);
+    
+    if ( align & Qt::AlignLeft ) {
+        xoffs = 0;
+    } else if ( align & Qt::AlignHCenter ) {
+        xoffs = -rc.width() / 2;
+    } else if ( align & Qt::AlignRight ) {
+        xoffs = -rc.width();
+    }
+    if ( align & Qt::AlignTop ) {
+        yoffs = 0;
+    } else if ( align & Qt::AlignVCenter ) {
+        yoffs = -rc.height() / 2;
+    } else if ( align & Qt::AlignBottom ) {
+        yoffs = -rc.height();
+    }
+    rc.moveTo( rc.x() + xoffs, rc.y() + yoffs );
+	rc.adjust( 1, 1, 1, 1 );
+}
+
+QRectF
+Annotations::boundingRect( const Annotation& a, Qt::Alignment align ) const
+{
+    QwtPlotMarker * marker = a.getPlotMarker();
+    return boundingRect( marker->xValue(), marker->yValue(), marker->label(), align );
+}
+
+QRectF
+Annotations::boundingRect( double x, double y, const QwtText& label, Qt::Alignment align ) const
+{
+	QSizeF sz = label.textSize();
+    
+	const QwtScaleMap xMap = plot_.canvasMap( QwtPlot::xBottom );
+	const QwtScaleMap yMap = plot_.canvasMap( QwtPlot::yLeft );
+	double p1 = xMap.p1();
+	double p2 = xMap.p2();
+	double s1 = xMap.s1();
+	double s2 = xMap.s2();
+	
+	QPointF pt( QwtScaleMap::transform( xMap, yMap, QPointF( x, y ) ) );
+	QRectF rc( QwtScaleMap::transform( xMap, yMap, QRectF( pt, sz ) ) );
+
+    // QPointF pt( x, y );
+    // QRectF rc( pt, sz );
+
+    // adjust( rc, align );
+
+    return rc;
+}
+

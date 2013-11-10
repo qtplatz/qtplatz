@@ -34,6 +34,8 @@
 #include <QtCore>
 
 class QwtPlotMarker;
+class QwtText;
+class QPointF;
 
 namespace adwplot {
 
@@ -41,12 +43,22 @@ namespace adwplot {
 
     class Annotation {
     public:
-        explicit Annotation( Dataplot&, const std::wstring&, double x = 0.0, double y = 0.0
-            , Qt::GlobalColor color = Qt::darkGreen );
+        explicit Annotation( Dataplot&, const std::wstring&
+                             , double x = 0.0, double y = 0.0
+                             , Qt::GlobalColor color = Qt::darkGreen );
+
+        explicit Annotation( Dataplot&
+                             , const QwtText&
+                             , const QPointF&
+                             , Qt::Alignment align = Qt::AlignTop | Qt::AlignHCenter );
+
         Annotation( const Annotation& );
 
         void setLabelAlighment( Qt::Alignment );
-        QwtPlotMarker * getPlotMarker();
+        // QwtPlotMarker * getPlotMarker();
+        QwtPlotMarker * getPlotMarker() const;
+
+        static QFont font();
 
     private:
         Dataplot * plot_;

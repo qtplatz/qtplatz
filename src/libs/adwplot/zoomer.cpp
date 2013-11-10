@@ -50,8 +50,6 @@ Zoomer::Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas ) : QwtPlotZoomer( 
 
     setRubberBand( QwtPicker::RectRubberBand );
     setRubberBandPen( QColor(Qt::green) );
-    // setTrackerMode( QwtPicker::ActiveOnly );
-    // setTrackerPen( QColor( Qt::white ) );
 }
 
 void

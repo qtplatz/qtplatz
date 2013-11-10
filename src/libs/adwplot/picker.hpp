@@ -34,11 +34,7 @@ namespace adwplot {
 	class Picker : public QwtPlotPicker {
 		Q_OBJECT
 	public:
-#if QWT_VERSION >= 0x060100
 		explicit Picker( QWidget * parent = 0 );
-#else // 6.0.3 or earlier
-		explicit Picker( QwtPlotCanvas * parent = 0 );
-#endif
 		// QwtPlotPicker
 		void widgetMousePressEvent( QMouseEvent * ) override;
 		void widgetMouseReleaseEvent( QMouseEvent * ) override;

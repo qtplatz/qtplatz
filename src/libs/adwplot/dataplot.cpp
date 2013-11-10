@@ -46,17 +46,14 @@ Dataplot::~Dataplot()
 Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
                                     , linkedzoom_inprocess_( false )
 {
-    // setCanvasBackground( QColor( Qt::lightGray ) ); // := c0c0c0
     setCanvasBackground( QColor( "#d0d0d0" ) );
 
     // zoomer
     zoomer1_.reset( new Zoomer( int(QwtPlot::xBottom), int(QwtPlot::yLeft), canvas() ) );
 
-    // zoomer2_.reset( new Zoomer( QwtPlot::xTop, QwtPlot::yRight, canvas() ) );
-
     // picker
     picker_.reset( new Picker( canvas() ) );
-    // picker_->setStateMachine( new QwtPickerDragPointMachine() );
+
     // panner
     panner_.reset( new Panner( canvas() ) );
     panner_->setMouseButton( Qt::LeftButton, Qt::AltModifier );
@@ -190,8 +187,6 @@ Dataplot::link( Dataplot * p )
 		plotlink_->push_back( this );
 		plotlink_->push_back( p );
 	}
-	// size_t n = plotlink_->size();
-	// connect( zoomer1_.get(), SIGNAL( zoomed( const QRectF& ) ), p, SLOT( zoom( const QRectF& ) ) );
 }
 
 void

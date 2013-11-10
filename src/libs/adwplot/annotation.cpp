@@ -42,9 +42,22 @@ Annotation::Annotation( Dataplot& plot
     marker_->setLineStyle( QwtPlotMarker::NoLine );
     marker_->setLabelAlignment( Qt::AlignRight | Qt::AlignBottom );
     QwtText text( qtwrapper::qstring::copy( label ) );
-    text.setFont( QFont("Calibri", 9, QFont::Normal ) );
+    text.setFont( font() );
     text.setColor( color );
     marker_->setLabel( text );
+    marker_->attach( plot_ );
+}
+
+Annotation::Annotation( Dataplot& plot
+                        , const QwtText& label
+                        , const QPointF& xy
+                        , Qt::Alignment align ) : plot_(&plot)
+                                                  , marker_( new QwtPlotMarker )
+{
+    marker_->setValue( xy );
+    marker_->setLineStyle( QwtPlotMarker::NoLine );
+    marker_->setLabelAlignment( align );
+    marker_->setLabel( label );
     marker_->attach( plot_ );
 }
 
@@ -60,7 +73,13 @@ Annotation::setLabelAlighment( Qt::Alignment align )
 }
 
 QwtPlotMarker *
-Annotation::getPlotMarker()
+Annotation::getPlotMarker() const
 {
     return marker_.get();
+}
+
+QFont
+Annotation::font()
+{
+    return QFont( "Calibri", 9, QFont::Normal );
 }

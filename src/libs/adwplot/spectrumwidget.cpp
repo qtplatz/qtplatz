@@ -41,6 +41,7 @@
 #include <qwt_plot_curve.h>
 #include <qwt_plot_marker.h>
 #include <qwt_picker_machine.h>
+#include <qwt_text.h>
 #include <boost/format.hpp>
 #include <set>
 
@@ -66,7 +67,7 @@ namespace adwplot {
             , Qt::black         // 13
             , Qt::lightGray      // 14
             , Qt::white          // 15
-            , Qt::transparent    // 16
+            , Qt::gray    // 16
             , Qt::transparent    // 17
         };
 
@@ -302,10 +303,9 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.top(), rect.bottom() );
 
     QRectF z = zoomer1_->zoomRect();
-    
     zoomer1_->setZoomBase();
     if ( ! addedTrace )
-        zoomer1_->zoom( z );
+        Dataplot::zoom( z );
 
     // todo: annotations
     if ( ptr->isCentroid() ) {
@@ -496,6 +496,8 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
     using adportable::array_wrapper;
     using namespace adcontrols::metric;        
 
+	QRectF zrc = plot.zoomRect();
+
     typedef std::tuple< size_t, size_t, int, double, double > peak; // fcn, idx, color, mass, intensity
     enum { c_fcn, c_idx, c_color, c_intensity, c_mass };
 
@@ -515,8 +517,6 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
 
             size_t beg, end;
             if ( isTimeAxis_ ) {
-
-
                 array_wrapper< const double > times( ms.getTimeArray(), ms.size() );
                 beg = std::distance( times.begin(), std::lower_bound( times.begin(), times.end(), scale_to_base( range.first, micro ) ) );
                 end = std::distance( times.begin(), std::lower_bound( times.begin(), times.end(), scale_to_base( range.second, micro) ) );
@@ -568,19 +568,25 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
         annotations_.clear();
         Annotations annots(plot, annotations_);
         
-        size_t n = 0;
         for ( const auto& a: annotations ) {
-            if ( ++n <= 20 ) {
-                Annotation anno = annots.add( a.x(), a.y(), a.text() );
-                anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
-            }
+            QwtText text( QString::fromStdWString(a.text()), QwtText::RichText);
+            text.setColor( Qt::darkGreen );
+            text.setFont( Annotation::font() );
+            annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
         }
         
+        QColor color = Qt::darkGreen;
+        QFont font = Annotation::font();
+        if ( ! annotations.empty() ) {
+            // if user defined annotations were exist
+            font.setPointSize( font.pointSize() - 2 );
+            color = Qt::gray;
+        }
         for ( const auto& a: auto_annotations ) {
-            if ( ++n <= 20 ) {
-                Annotation anno = annots.add( a.x(), a.y(), a.text() );
-                anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
-            }
+            QwtText text( QString::fromStdWString(a.text()), QwtText::RichText );
+            text.setColor( color );
+            text.setFont( font );
+			annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
         }
     }
 }

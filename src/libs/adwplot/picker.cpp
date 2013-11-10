@@ -25,14 +25,11 @@
 #include "picker.hpp"
 #include <qwt_plot_canvas.h>
 #include <qwt_picker_machine.h>
+#include <QMouseEvent>
 
 using namespace adwplot;
 
-#if QWT_VERSION < 0x060100
-Picker::Picker( QwtPlotCanvas * parent ) : QwtPlotPicker( parent )
-#else
 Picker::Picker( QWidget * parent ) : QwtPlotPicker( parent )
-#endif
 {
     setTrackerMode(QwtPicker::AlwaysOn);
     setMousePattern( QwtEventPattern::MouseSelect1,  Qt::RightButton );
@@ -40,7 +37,7 @@ Picker::Picker( QWidget * parent ) : QwtPlotPicker( parent )
 
     setRubberBand( QwtPicker::RectRubberBand );
     setRubberBandPen( QColor(Qt::red) );
-    setTrackerPen( QColor( Qt::red ) );
+    setTrackerPen( QColor( Qt::blue ) );
 }
 
 void

@@ -27,6 +27,11 @@
 
 #include <vector>
 #include <string>
+#include <qnamespace.h>
+class QwtText;
+class QPointF;
+class QRectF;
+class QSizeF;
 
 namespace adwplot {
 
@@ -41,15 +46,22 @@ namespace adwplot {
         Annotations( const Annotations& );
 
         Annotation& add( double x = 0.0, double y = 0.0, const std::wstring& title = L"" );
+        bool insert( double x, double y, const QwtText& label, Qt::Alignment align = Qt::AlignTop | Qt::AlignHCenter );
+
         void clear();
         inline size_t size() const { return vec_.size(); }
         inline vector_type::iterator begin() { return vec_.begin(); }
         inline vector_type::iterator end() { return vec_.end(); }
         inline vector_type::const_iterator begin() const { return vec_.begin(); }
         inline vector_type::const_iterator end() const { return vec_.end(); }
+
     private:
         vector_type& vec_;
         Dataplot& plot_;
+        bool interference( double x, double y, const QwtText&, Qt::Alignment ) const;
+        QRectF boundingRect( const Annotation&, Qt::Alignment ) const;
+        QRectF boundingRect( double x, double y, const QwtText& label, Qt::Alignment align ) const;
+        void adjust( QRectF& rc, Qt::Alignment ) const;
     };
 
 }
