@@ -55,8 +55,6 @@ namespace dataproc {
         public:
         explicit MSProcessingWnd(QWidget *parent = 0);
 
-        void init();
-
         void draw1( std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw2( std::shared_ptr< adcontrols::MassSpectrum >& );
         void draw( std::shared_ptr< adcontrols::Chromatogram >& );
@@ -87,8 +85,7 @@ namespace dataproc {
     private:
         size_t drawIdx1_;
         size_t drawIdx2_;
-        std::shared_ptr<MSProcessingWndImpl> pImpl_;
-        // std::shared_ptr< adcontrols::MassSpectrum > pProcessedSpectrum_;
+        std::unique_ptr<MSProcessingWndImpl> pImpl_;
         std::weak_ptr< adcontrols::MassSpectrum > pProcessedSpectrum_;
         std::weak_ptr< adcontrols::MassSpectrum > pProfileSpectrum_;
 
@@ -97,6 +94,7 @@ namespace dataproc {
         std::wstring idSpectrumFolium_;
         int axis_;
         bool assign_masses_to_profile( const std::wstring& model_name );
+        void init();
     };
 
 }

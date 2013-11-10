@@ -52,7 +52,6 @@ namespace dataproc {
         public:
         // explicit MSCalibrationWnd(QWidget *parent = 0);
         MSCalibrationWnd( QWidget * parent = 0 );
-        void init();
       
     signals:
         void onSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
@@ -74,9 +73,10 @@ namespace dataproc {
         void handle_apply_calibration_to_default();
         
     private:
-        std::shared_ptr<MSCalibrationWndImpl> pImpl_;
+        std::unique_ptr<MSCalibrationWndImpl> pImpl_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
         bool calibPolynomialFit( adcontrols::MSCalibrateResult&, const adcontrols::MSProperty& );
+        void init();
     };
 
 }

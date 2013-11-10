@@ -76,7 +76,7 @@ namespace dataproc {
     class MSCalibrationWndImpl {
     public:
         ~MSCalibrationWndImpl() {}
-        MSCalibrationWndImpl( QWidget * parent ) : processedSpectrum_( new adwplot::SpectrumWidget( parent) )
+        MSCalibrationWndImpl( QWidget * parent ) : processedSpectrum_( new adwplot::SpectrumWidget( parent ) )
                                                   , calibSummaryWidget_( 0 )
                                                   , centroid_center_( new QwtPlotMarker )
                                                   , centroid_left_( new QwtPlotMarker )
@@ -171,6 +171,8 @@ MSCalibrationWnd::init()
         // spectrum on top
         splitter->addWidget( pImpl_->processedSpectrum_ );
 
+		QSize sz = pImpl_->processedSpectrum_->canvas()->size();
+
         // summary table
         pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" );
         if ( QWidget * pSummary = pImpl_->calibSummaryWidget_ ) {
@@ -257,6 +259,8 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
                     return f.name() == Constants::F_DFT_FILTERD;
                 });
 
+			QSize sz = pImpl_->processedSpectrum_->canvas()->size();
+
             if ( it != attachments.end() ) {
                 // Select DFT Filterd if exists
                 pImpl_->calibProfile_ = portfolio::get< adcontrols::MassSpectrumPtr> ( *it );
@@ -272,6 +276,7 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
                     pImpl_->calibProfile_ = ptr;
                 }
             }
+			sz = pImpl_->processedSpectrum_->canvas()->size();
         }
 
         if ( ! pImpl_->calibCentroid_.lock() ) {

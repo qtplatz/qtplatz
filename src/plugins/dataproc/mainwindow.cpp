@@ -281,16 +281,24 @@ MainWindow::createContents( Core::IMode * mode
                         , this, SLOT( handleSessionAdded( Dataprocessor* ) ) );
     assert( res );
 
+    // The handleSelectionChanged on MainWindow should be called in advance 
+    // for all stacked child widgets.  This is significantly important for child widget has right device size
+    // especially for QwtPlot widget calculates QRectF intersection for annotation interference check using
+    // QScaleMap.
+    res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
+                   , this, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );  assert( res );
+
     for ( auto it: wnd ) { // std::vector< QWidget *>::iterator it = wnd.begin(); it != wnd.end(); ++it ) {
+        // with respect to above comment, this connection should be called after MainWindow::handleSelectionChanged
+        // connection has been established.
         res = connect( SessionManager::instance(), SIGNAL( signalSessionAdded( Dataprocessor* ) )
-                     , it, SLOT( handleSessionAdded( Dataprocessor* ) ) );
-        assert( res );
+                       , it, SLOT( handleSessionAdded( Dataprocessor* ) ) );  assert( res );
+
         res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-                     , it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
-        assert( res );
+                       , it, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );  assert( res );
+
         res = connect( DataprocPlugin::instance(), SIGNAL( onApplyMethod( const adcontrols::ProcessMethod& ) )
-                     , it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );
-        assert( res );
+                       , it, SLOT( handleApplyMethod( const adcontrols::ProcessMethod& ) ) );   assert( res );
         
         connect( SessionManager::instance(), SIGNAL( signalCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) )
                  , it, SLOT( handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) ) );
@@ -298,9 +306,6 @@ MainWindow::createContents( Core::IMode * mode
         connect( axisChoice_, SIGNAL( currentIndexChanged( int ) ), it, SLOT( handleAxisChanged( int ) ) );
     }
 
-    res = connect( SessionManager::instance(), SIGNAL( signalSelectionChanged( Dataprocessor*, portfolio::Folium& ) )
-                   , this, SLOT( handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) ) );
-    assert( res );
 
     QBoxLayout * toolBarAddingLayout = new QVBoxLayout( centralWidget );
     toolBarAddingLayout->setMargin(0);
@@ -519,7 +524,8 @@ MainWindow::OnInitialUpdate()
 		adplugin::LifeCycle * pLifeCycle = accessor.get();
 		if ( pLifeCycle ) {
 			pLifeCycle->OnInitialUpdate();
-			connect( obj, SIGNAL( apply( adcontrols::ProcessMethod& ) ), this, SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
+			connect( obj, SIGNAL( apply( adcontrols::ProcessMethod& ) ), this
+                     , SLOT( onMethodApply( adcontrols::ProcessMethod& ) ), Qt::DirectConnection );
 		}
     }
     setSimpleDockWidgetArrangement();

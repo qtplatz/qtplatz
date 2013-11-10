@@ -61,9 +61,6 @@ Annotations::interference( double x, double y, const QwtText& label, Qt::Alignme
 {
 	QRectF rc = boundingRect( x, y, label, align );
 
-	if ( vec_.empty() )
-		qDebug() << "-----------------------------------------------------";
-
 	auto it = std::find_if( vec_.begin(), vec_.end(), [=]( const Annotation& a ){
             bool res = rc.intersects( this->boundingRect( a, align ) );
             return res;
@@ -123,18 +120,16 @@ Annotations::boundingRect( double x, double y, const QwtText& label, Qt::Alignme
     
 	const QwtScaleMap xMap = plot_.canvasMap( QwtPlot::xBottom );
 	const QwtScaleMap yMap = plot_.canvasMap( QwtPlot::yLeft );
-	double p1 = xMap.p1();
-	double p2 = xMap.p2();
-	double s1 = xMap.s1();
-	double s2 = xMap.s2();
-	
+#if 0
+	double p1 = xMap.p1(); // device left
+	double p2 = xMap.p2(); // device right
+	double s1 = xMap.s1(); // axis left
+	double s2 = xMap.s2(); // axis right
+#endif	
 	QPointF pt( QwtScaleMap::transform( xMap, yMap, QPointF( x, y ) ) );
 	QRectF rc( QwtScaleMap::transform( xMap, yMap, QRectF( pt, sz ) ) );
 
-    // QPointF pt( x, y );
-    // QRectF rc( pt, sz );
-
-    // adjust( rc, align );
+    adjust( rc, align );
 
     return rc;
 }
