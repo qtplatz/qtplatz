@@ -165,13 +165,12 @@ MSCalibrationWnd::MSCalibrationWnd( QWidget * parent ) : QWidget( parent )
 void
 MSCalibrationWnd::init()
 {
-    pImpl_.reset( new MSCalibrationWndImpl( this ) );
+    pImpl_ = std::make_shared< MSCalibrationWndImpl >( this );
+
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
         // spectrum on top
         splitter->addWidget( pImpl_->processedSpectrum_ );
-
-		QSize sz = pImpl_->processedSpectrum_->canvas()->size();
 
         // summary table
         pImpl_->calibSummaryWidget_ = adplugin::widget_factory::create( L"qtwidgets2::MSCalibSummaryWidget" );

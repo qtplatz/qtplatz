@@ -111,8 +111,7 @@ namespace dataproc {
     };
 }
 
-MSProcessingWnd::MSProcessingWnd(QWidget *parent) :
-    QWidget(parent)
+MSProcessingWnd::MSProcessingWnd(QWidget *parent) : QWidget(parent)
 {
     init();
 }
@@ -120,7 +119,8 @@ MSProcessingWnd::MSProcessingWnd(QWidget *parent) :
 void
 MSProcessingWnd::init()
 {
-    pImpl_.reset( new MSProcessingWndImpl );
+    pImpl_ = std::make_shared< MSProcessingWndImpl >();
+
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
     if ( splitter ) {
         if ( ( pImpl_->ticPlot_ = new adwplot::ChromatogramWidget(this) ) ) {
