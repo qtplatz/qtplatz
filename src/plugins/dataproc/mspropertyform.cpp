@@ -182,11 +182,13 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
       << "<th>num. samples</th>"
       << "<th>num. average</th>"
       << "<th>mode</th>"
+      << "<th>classid</th>"
       << "</tr>";
 
     int n = 0;
     for ( auto& m: segments ) {
-        const adcontrols::MSProperty::SamplingInfo& info = m.getMSProperty().getSamplingInfo();
+        const adcontrols::MSProperty& prop = m.getMSProperty();
+        const adcontrols::MSProperty::SamplingInfo& info = prop.getSamplingInfo();
         double start_delay = scale_to<double, micro>( info.sampInterval * info.nSamplingDelay, pico );
         double time_end = scale_to<double, micro>( info.sampInterval * ( info.nSamplingDelay + info.nSamples ), pico );
         o << "<tr>"
@@ -197,6 +199,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
           << "<td>" << info.nSamples << "</td>"
           << "<td>" << info.nAverage << "</td>"
           << "<td>" << info.mode << "</td>"
+		  << "<td>" << prop.dataInterpreterClsid() << "</td>"
           << "</tr>";
     }
     o << "</table>";

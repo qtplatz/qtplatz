@@ -366,7 +366,7 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
             if ( auto profile = portfolio::get< adutils::MassSpectrumPtr >( folium ) ) {
 
                 const adcontrols::CentroidMethod * hasCentroidMethod = 0;
-
+                
                 portfolio::Folio atts = folium.attachments();
                 auto itCentroid = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ) {
                         return f.name() == Constants::F_CENTROID_SPECTRUM;
@@ -548,6 +548,21 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m
     }
 }
 
+void
+Dataprocessor::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibration )
+{
+    if ( portfolio::Folder fsp = portfolio_->findFolder( L"Spectra" ) ) {
+        for ( portfolio::Folium folium: fsp.folio() ) {
+            if ( portfolio::is_type< adcontrols::MassSpectrumPtr > ( folium ) ) {
+				auto ptr = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
+				DataprocHandler::apply_calibration( *ptr, calibration.calibration() );
+                // apply new calib
+            }
+        }
+    }
+	file().applyCalibration( dataInterpreterClsid, calibration );
+    ifileimpl_->setModified();
+}
 
 portfolio::Folium
 Dataprocessor::addSpectrum( const adcontrols::MassSpectrum& src, const adcontrols::ProcessMethod& m )
@@ -945,6 +960,25 @@ Dataprocessor::saveMSCalibration( const adcontrols::MSCalibrateResult& calibResu
     }
 
     return true;
+}
+
+// static
+bool
+Dataprocessor::loadMSCalibration( const std::wstring& filename, adcontrols::MSCalibrateResult& r, adcontrols::MassSpectrum& ms )
+{
+    boost::filesystem::path path( filename );
+    if ( ! boost::filesystem::exists( path ) ) 
+        return false;
+
+    adfs::filesystem fs;
+	if ( ! fs.mount( path.wstring().c_str() ) )
+        return false;
+
+    if ( adutils::fsio::load_mscalibfile( fs, r ) && 
+         adutils::fsio::load_mscalibfile( fs, ms ) ) {
+        return true;
+    }
+    return false;
 }
 
 

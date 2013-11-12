@@ -269,7 +269,6 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
 
     pActionManager_->initialize_actions( context );
     mainWindow_->activateLayout();
-    mainWindow_->createActions();
     QWidget * widget = mainWindow_->createContents( mode_.get(), config, apppath );
     mode_->setWidget( widget );
 

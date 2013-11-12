@@ -23,15 +23,16 @@
 **************************************************************************/
 
 #include "mainwindow.hpp"
+#include "chromatogramwnd.hpp"
 #include "dataprocessor.hpp"
 #include "dataprocplugin.hpp"
 #include "dataprocessorfactory.hpp"
-
-#include "msprocessingwnd.hpp"
 #include "elementalcompwnd.hpp"
+#include "filepropertywidget.hpp"
+#include "msprocessingwnd.hpp"
 #include "mscalibrationwnd.hpp"
 #include "mscalibspectrawnd.hpp"
-#include "chromatogramwnd.hpp"
+
 #include "sessionmanager.hpp"
 #include "mspropertyform.hpp"
 
@@ -123,13 +124,6 @@ MainWindow::activateLayout()
 {
 }
 
-void
-MainWindow::createActions()
-{
-    //actionConnect_ = new QAction( QIcon( ":/chemistry/images/search.png" ), tr( "Connect" ), this );
-    //connect( actionConnect_, SIGNAL( triggered() ), this, SLOT( actionConnect_ ) );
-}
-
 Utils::StyledBar *
 MainWindow::createStyledBarTop()
 {
@@ -200,6 +194,7 @@ MainWindow::createStyledBarMiddle()
             toolBarLayout->addWidget(toolButton(am->command(Constants::PRINT_CURRENT_VIEW)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_OPEN)->action()));
             toolBarLayout->addWidget(toolButton(am->command(Constants::METHOD_SAVE)->action()));
+			toolBarLayout->addWidget(toolButton(am->command(Constants::CALIBFILE_APPLY)->action()));
             //----------
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //----------
@@ -394,26 +389,33 @@ MainWindow::createDockWidgets()
         const char * title;
         const char * wiid;
     } widgets [] = { 
-        {  "Centroid" ,       "qtwidgets::CentroidForm" }
-        , { "MS Calibration",   "qtwidgets2::MSCalibrationForm" }
+        {  "Centroid" ,        "qtwidgets::CentroidForm" }
+        , { "MS Calibration",  "qtwidgets2::MSCalibrationForm" }
         , { "Targeting",       "qtwidgets::TargetForm" }
-        //, { "Isotope",         "qtwidgets::IsotopeForm" }
+        //, { "Isotope",       "qtwidgets::IsotopeForm" }
         , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
         , { "Peak Find",       "qtwidgets::PeakMethodForm" }
+        , { "Data property",   "dataproc::MSPropertyForm" }      // local
+        , { "File property",   "dataproc::FilePropertyWidget" }  // local
     };
     
     for ( auto widget: widgets ) {
+
         QWidget * pWidget = adplugin::widget_factory::create( widget.wiid, 0, 0 );
+
+        if ( !pWidget ) {
+            if ( std::strcmp( widget.wiid, "dataproc::FilePropertyWidget" ) == 0 ) 
+                pWidget = new FilePropertyWidget;
+            if ( std::strcmp( widget.wiid, "dataproc::MSPropertyForm" ) == 0 ) 
+                pWidget = new MSPropertyForm;
+        }
+        
         if ( pWidget ) {
             createDockWidget( pWidget, widget.title );
         } else {
             QMessageBox::critical(0, QLatin1String("dataprocmanager"), widget.wiid );
         }
     }
-    if ( QWidget * form = new MSPropertyForm ) {
-        createDockWidget( form, "Data property" );
-    }
-
 }
 
 void

@@ -25,8 +25,6 @@
 #include <compiler/disable_unused_parameter.h>
 #include "datafile.hpp"
 #include "cpio.hpp"
-//#include "copyin_visitor.hpp"
-//#include "copyout_visitor.hpp"
 #include "rawdata.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
@@ -53,6 +51,7 @@
 #include <adfs/attributes.hpp>
 #include <adfs/sqlite.hpp>
 #include <adfs/cpio.hpp>
+#include <adutils/fsio.hpp>
 #include <algorithm>
 #include <iostream>
 
@@ -113,14 +112,16 @@ void
 datafile::accept( adcontrols::dataSubscriber& sub )
 {
     if ( mounted_ ) {
-        // subscribe acquired dataset <LCMSDataset>
         do {
+            // publish acquired dataset <LCMSDataset>
             if ( rawdata_->loadAcquiredConf() )
                 sub.subscribe( *rawdata_ );
-        } while (0);
+            rawdata_->loadCalibrations();
 
-        // subscribe processed dataset
+        } while (0);
+        
         do {
+            // publish processed dataset
             portfolio::Portfolio portfolio;
             if ( loadContents( portfolio, L"/Processed" ) && processedDataset_ ) {
                 processedDataset_->xml( portfolio.xml() );
@@ -132,6 +133,7 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 				processedDataset_->xml( portfolio.xml() );
 				sub.subscribe( *processedDataset_ );
 			}
+
         } while (0);
     }
 }
@@ -141,10 +143,10 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
     filename_ = filename;
     processedDataset_.reset( new adcontrols::ProcessedDataset );
-
+    
     if ( ( mounted_ = dbf_.mount( filename.c_str() ) ) ) 
         return true;
-
+    
     if ( ( mounted_ = dbf_.create( filename.c_str() ) ) )
         return true;
 
@@ -221,6 +223,11 @@ datafile::saveContents( const std::wstring& path, const portfolio::Portfolio& po
     if ( ! mounted_ )
         return false;
 
+    if ( calibration_modified_ ) {
+        for ( auto calib: calibrations_ )
+            adutils::fsio::save_mscalibfile( dbf_, *calib.second );
+    }
+
     adfs::stmt sql( dbf_.db() );
     sql.begin();
 
@@ -296,6 +303,20 @@ datafile::loadContents( portfolio::Portfolio& portfolio, const std::wstring& que
     processedDataset_->xml( xml );
 
     return true;
+}
+
+bool
+datafile::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& result )
+{
+    if ( rawdata_ )
+        rawdata_->applyCalibration( dataInterpreterClsid, result );
+    return true;
+}
+
+bool
+datafile::readCalibration( size_t idx, adcontrols::MSCalibrateResult& result ) const
+{
+    return false; //rawdata_->readCalibration( idx, result );
 }
 
 ///-------------------------------------------------------------------------------------
@@ -437,3 +458,4 @@ namespace addatafile {
 }
 
 //////////////////////////
+

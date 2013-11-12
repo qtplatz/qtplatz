@@ -28,7 +28,7 @@
 #include "mass_calibrator.hpp"
 // #include "dialogspectrometerchoice.hpp"
 #include <adcontrols/centroidprocess.hpp>
-
+#include <adcontrols/computemass.hpp>
 #include <adcontrols/isotopecluster.hpp>
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/annotations.hpp>
@@ -326,3 +326,26 @@ DataprocHandler::doFindPeaks( adcontrols::PeakResult& r, const adcontrols::Chrom
     return false;
 }
 
+//static
+bool
+DataprocHandler::apply_calibration( adcontrols::MassSpectrum& ms, const adcontrols::MSCalibration& calib )
+{
+    adcontrols::segment_wrapper<> segments( ms );
+    
+    if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
+        for ( auto& fms: segments ) {
+            const adcontrols::MSProperty& prop = fms.getMSProperty();
+            adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( fms.scanLaw(), calib );
+            for ( size_t i = 0; i < fms.size(); ++i ) {
+                double mass = mass_calculator( fms.getTime( i ), prop.mode() );
+                fms.setMass( i, mass );
+            }
+			fms.setCalibration( calib );
+        }
+		return true;
+    } else {
+		for ( auto& fms: segments )
+			fms.setCalibration( calib, true );
+    }
+	return false;
+}

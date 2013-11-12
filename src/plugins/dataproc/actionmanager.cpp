@@ -29,6 +29,10 @@
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/mscalibrateresult.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adportable/utf.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adfs/sqlite.hpp>
@@ -58,47 +62,57 @@ ActionManager::ActionManager(QObject *parent) : QObject(parent)
 bool
 ActionManager::initialize_actions( const QList<int>& context )
 {
-    QIcon iconMethodOpen, iconMethodSave, iconPDF;
-    iconMethodOpen.addFile( Constants::ICON_METHOD_OPEN );
-    actMethodOpen_.reset( new QAction( iconMethodOpen, tr("Process method open..."), this ) );
-    connect( actMethodOpen_.get(), SIGNAL( triggered() ), this, SLOT( actMethodOpen() ) );
+    do {
+        actMethodOpen_.reset( create( Constants::ICON_METHOD_OPEN, tr("Process method open..."), this ) );
+        connect( actMethodOpen_.get(), SIGNAL( triggered() ), this, SLOT( actMethodOpen() ) );
+    } while(0);
 
-    iconMethodSave.addFile( Constants::ICON_METHOD_SAVE );
-    actMethodSave_.reset( new QAction( iconMethodSave, tr("Process method save..."), this ) );
-    connect( actMethodSave_.get(), SIGNAL( triggered() ), this, SLOT( actMethodSave() ) );
+    do {
+        actMethodSave_.reset( create( Constants::ICON_METHOD_SAVE, tr("Process method save..."), this ) );
+        connect( actMethodSave_.get(), SIGNAL( triggered() ), this, SLOT( actMethodSave() ) );
+    } while(0);
 
-    iconPDF.addFile( Constants::ICON_PDF );
-    actPrintCurrentView_.reset( new QAction( iconPDF, tr("Print current view..."), this ) );
-    connect( actPrintCurrentView_.get(), SIGNAL( triggered() ), this, SLOT( actPrintCurrentView() ) );
+    do {
+        actPrintCurrentView_.reset( create( Constants::ICON_PDF, tr("Print current view..."), this ) );
+        connect( actPrintCurrentView_.get(), SIGNAL( triggered() ), this, SLOT( actPrintCurrentView() ) );
+    } while(0);
+
+    do {
+        actCalibFileApply_.reset( create( Constants::ICON_CALIBFILE, tr("Apply mass calibration to this..."), this ) );
+        connect( actCalibFileApply_.get(), SIGNAL( triggered() ), this, SLOT( actCalibFileApply() ) );
+    } while(0);
     
 	if ( Core::ActionManager *am = Core::ICore::instance()->actionManager() ) {
         Core::Command * cmdOpen = 0;
         Core::Command * cmdSave = 0;
         Core::Command * cmdPrint = 0;
+        Core::Command * cmdCalib = 0;
         if ( am ) {
             cmdOpen = am->registerAction( actMethodOpen_.get(), Constants::METHOD_OPEN, context );
             cmdSave = am->registerAction( actMethodSave_.get(), Constants::METHOD_SAVE, context );
             cmdPrint = am->registerAction( actPrintCurrentView_.get(), Constants::PRINT_CURRENT_VIEW, context );
+            cmdCalib = am->registerAction( actCalibFileApply_.get(), Constants::CALIBFILE_APPLY, context );
         }
         
         if ( Core::ActionContainer * menu = am->createMenu( "dataproc.menu" ) ) {
             menu->menu()->setTitle( "Processing" );
             menu->addAction( cmdPrint );
             menu->addAction( cmdOpen );
-            menu->addAction( cmdSave );
+            menu->addAction( cmdCalib );
             am->actionContainer( Core::Constants::M_FILE )->addMenu( menu );
         }
-        
+
         do {
-            actSave_.reset( new QAction( iconMethodSave, tr("Save"), this ) );
+            actSave_.reset( create( Constants::ICON_SAVE, tr("Save"), this ) );
             am->registerAction( actSave_.get(), Core::Constants::SAVE, context );
             connect( actSave_.get(), SIGNAL( triggered() ), this, SLOT( handleSave() ) );
+        } while(0);
 
-            actSaveAs_.reset( new QAction( iconMethodSave, tr("Save As..."), this ) );
+        do {
+            actSaveAs_.reset( create( Constants::ICON_SAVE, tr("Save As..."), this ) );
             am->registerAction( actSaveAs_.get(), Core::Constants::SAVEAS, context );
             connect( actSaveAs_.get(), SIGNAL( triggered() ), this, SLOT( handleSaveAs() ) );
-            
-        } while ( 0 );
+        } while(0);
 
         connect( Core::ICore::instance(), SIGNAL( contextChanged( Core::IContext * ) )
                  , this, SLOT( handleContextChanged( Core::IContext * ) ) );
@@ -106,6 +120,17 @@ ActionManager::initialize_actions( const QList<int>& context )
     }
 
     return true;
+}
+
+QAction *
+ActionManager::create( const QString& icon_name, const QString& msg, QObject * parent )
+{
+    QIcon icon;
+
+    icon.addFile( icon_name );
+    QAction * action = new QAction( icon, msg, parent );
+    
+    return action;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -283,6 +308,35 @@ ActionManager::actPrintCurrentView()
 	} else {
         QMessageBox::warning( MainWindow::instance(), tr("Print current view"), tr("No current data exist") );
     }
+}
+
+void
+ActionManager::actCalibFileApply()
+{
+    boost::filesystem::path dir( adportable::profile::user_data_dir< wchar_t >() );
+    dir /= L"data";
+
+	QFileDialog dlg( 0, "Open MS Calibration file", QString::fromStdWString( dir.wstring() ) );
+	dlg.setNameFilter( tr("MSCalibrations(*.msclb)" ) );
+
+	dlg.setFileMode( QFileDialog::ExistingFile );
+    if ( dlg.exec() == QDialog::Accepted ) {
+		auto result = dlg.selectedFiles();
+
+        adcontrols::MSCalibrateResult calibResult;
+        adcontrols::MassSpectrum ms;
+
+        if ( Dataprocessor::loadMSCalibration( result[0].toStdWString(), calibResult, ms ) ) {
+
+			std::wstring dataInterpreterClsid = adportable::utf::to_wstring( ms.getMSProperty().dataInterpreterClsid() );
+
+            if ( auto processor = SessionManager::instance()->getActiveDataprocessor() )
+				processor->applyCalibration( dataInterpreterClsid, calibResult );
+
+        } else {
+			QMessageBox::warning( 0, "apply calibration", "Calibration file load failed" );
+		}
+	}
 }
 
 void

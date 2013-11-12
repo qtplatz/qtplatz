@@ -339,6 +339,13 @@ namespace adfs {
         throw std::bad_cast();
     }
 
+    template<> int64_t stmt::get_column_value( int nCol )
+    {
+        if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_INTEGER )
+            return sqlite3_column_int64( stmt_, nCol );
+        throw std::bad_cast();
+    }
+
     template<> uint64_t stmt::get_column_value( int nCol )
     {
         if ( sqlite3_column_type( stmt_, nCol ) == SQLITE_INTEGER )

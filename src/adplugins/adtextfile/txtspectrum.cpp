@@ -69,9 +69,6 @@ TXTSpectrum::load( const std::wstring& name )
 
     std::vector<double> timeArray, massArray, intensArray;
 
-	size_t numSamples = 0;
-	size_t numTurns = 0;
-
 	std::vector< std::wstring > supported_models = adcontrols::MassSpectrometer::get_model_names();
 
 	if ( path.extension() == ".csv" ) {
@@ -117,13 +114,14 @@ TXTSpectrum::load( const std::wstring& name )
         validate_segments( segments, timeArray );
 
     size_t idx = 0;
+    size_t fcn = 0;
     for ( auto s: segments ) {
         std::shared_ptr< adcontrols::MassSpectrum > ptr( new adcontrols::MassSpectrum );
 		if ( massArray.empty() )
 			ptr->setAcquisitionMassRange( 100, 1000 );
 		else
 			ptr->setAcquisitionMassRange( massArray.front(), massArray.back() );
-        idx += create_spectrum( *ptr, idx, s, timeArray, massArray, intensArray );
+        idx += create_spectrum( *ptr, idx, s, timeArray, massArray, intensArray, fcn++ );
         spectra_.push_back( ptr );
     }
     return true;
@@ -215,13 +213,17 @@ TXTSpectrum::create_spectrum( adcontrols::MassSpectrum& ms, size_t idx
                               , const adcontrols::MSProperty::SamplingInfo& info
                               , const std::vector<double>& timeArray
                               , const std::vector<double>& massArray
-                              , const std::vector<double>& intensArray )
+                              , const std::vector<double>& intensArray
+                              , size_t fcn )
 {
     MSProperty prop;
 
-    if ( compiled_ )
+    if ( compiled_ ) {
         prop = compiled_->getMSProperty();
-
+		adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( *compiled_ );
+		if ( segments.size() > fcn )
+			prop = segments[ fcn ].getMSProperty();
+	}
     prop.setInstSamplingInterval( info.sampInterval );
     prop.setNumAverage( info.nAverage ); // workaround
     prop.setInstSamplingStartDelay( info.nSamplingDelay );

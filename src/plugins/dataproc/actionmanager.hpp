@@ -58,6 +58,7 @@ namespace dataproc {
         std::unique_ptr< QAction > actMethodOpen_;
         std::unique_ptr< QAction > actMethodSave_;
         std::unique_ptr< QAction > actPrintCurrentView_;
+        std::unique_ptr< QAction > actCalibFileApply_;
 
     signals:
 
@@ -73,7 +74,9 @@ namespace dataproc {
         void actMethodOpen();
 
         void actPrintCurrentView();
-
+        void actCalibFileApply();
+    private:
+        static QAction * create( const QString& icon_name, const QString& baloon, QObject * parent );
     };
 }
 

@@ -55,7 +55,8 @@ namespace adtextfile {
                                 , const adcontrols::MSProperty::SamplingInfo&
                                 , const std::vector<double>&
                                 , const std::vector<double>&
-                                , const std::vector<double>& );
+                                , const std::vector<double>&
+                                , size_t fcn );
         int find_mode( size_t idx ) const;
     };
 

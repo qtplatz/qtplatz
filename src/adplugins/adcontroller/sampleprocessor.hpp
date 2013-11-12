@@ -48,8 +48,6 @@ namespace adcontroller {
         
     private:
 		void create_acquireddata_table();
-        void create_acquiredconf_table();
-        void create_calibration_table();
         void populate_descriptions( SignalObserver::Observer * );
         void populate_calibration( SignalObserver::Observer * );
 

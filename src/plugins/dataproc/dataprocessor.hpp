@@ -81,6 +81,10 @@ namespace dataproc {
         void applyCalibration( const adcontrols::ProcessMethod& );
         void applyCalibration( const adcontrols::ProcessMethod&, const adcontrols::MSAssignedMasses&  );
         void applyCalibration( const adcontrols::ProcessMethod&, const adcontrols::MSAssignedMasses&, portfolio::Folium&  );
+
+        // apply calibration to entire dataset
+        void applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
+
         void sendCheckedSpectraToCalibration( Dataprocessor * );
         void removeCheckedItems();
 
@@ -90,6 +94,7 @@ namespace dataproc {
         static const std::shared_ptr< adcontrols::ProcessMethod > findProcessMethod( const portfolio::Folium& );
         static bool saveMSCalibration( portfolio::Folium& );
         static bool saveMSCalibration( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
+        static bool loadMSCalibration( const std::wstring&, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& );
 
         // implement adcontrols::dataSubscriber
         virtual bool subscribe( const adcontrols::LCMSDataset& ) override;

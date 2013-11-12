@@ -469,29 +469,19 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
             
                 portfolio::Folium folium = qVariantValue< portfolio::Folium >( data );
             
-                if ( processor && folium.getParentFolder().name() == L"Spectra" ) {
+                if ( processor && 
+                     ( ( folium.getParentFolder().name() == L"Spectra" ) ||
+                       ( folium.getParentFolder().name() == L"MSCalibration" ) ) ) {
+
 					if ( folium.empty() )
 						processor->fetch( folium );
-
-                    adutils::MassSpectrumPtr profile; 
-                    try { 
-                        profile = boost::any_cast< adutils::MassSpectrumPtr >( folium );
-                    } catch ( boost::bad_any_cast& ) {
-                        return;
-                    }
-
-                    adutils::MassSpectrumPtr centroid;
+                    
+                    bool isSpectrum = portfolio::is_type< adutils::MassSpectrumPtr >( folium );
                     portfolio::Folio atts = folium.attachments();
-                    portfolio::Folio::iterator it = portfolio::Folium::find<adcontrols::MassSpectrumPtr>(atts.begin(), atts.end());
-                    if ( it != atts.end() ) {
-                        try {
-                            adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( *it );
-                            if ( ptr && ptr->isCentroid() )
-                                centroid = ptr;
-                        } catch ( boost::bad_any_cast& ) {
-                            // ignore
-                        }
-                    }
+                    auto it = std::find_if( atts.begin(), atts.end(), []( const portfolio::Folium& a ){
+                            return a.name() == Constants::F_CENTROID_SPECTRUM;
+                        });
+                    bool hasCentroid = it != atts.end();
                 
                     QMenu menu;
                     QAction * asProfile = 0; 
@@ -500,13 +490,13 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     QAction * removeChecked = 0;
                     asProfile = menu.addAction( "Save profile spectrum as..." );
                     asCentroid = menu.addAction( "Save centroid spectrum as..." );
-                    if ( ! profile )
+                    if ( ! isSpectrum )
                         asProfile->setEnabled( false );
 
-                    if ( ! centroid )
+                    if ( ! hasCentroid )
                         asCentroid->setEnabled( false );
 
-                    doCalibration = menu.addAction( "Send checked to calibration folder" );
+                    doCalibration = menu.addAction( "Send checked spectra to calibration folder" );
 					menu.addSeparator();
                     removeChecked = menu.addAction( "Remove unchecked items" );
 
@@ -529,8 +519,10 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                             boost::filesystem::ofstream of( dstfile );
                             
                             if ( selectedItem == asProfile ) {
+                                auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
                                 export_spectrum::write( of, *profile );
                             } else if ( selectedItem == asCentroid ) {
+                                auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
                                 export_spectrum::write( of, *centroid );
                             }
                         }

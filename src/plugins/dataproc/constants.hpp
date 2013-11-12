@@ -39,13 +39,16 @@ namespace dataproc {
         const char * const METHOD_SAVE          = "dataproc.MethodSave";
         const char * const METHOD_APPLY         = "dataproc.MethodApply";
         const char * const PRINT_CURRENT_VIEW   = "dataproc.PrintCurrentView";
+        const char * const CALIBFILE_APPLY      = "dataproc.ApplyCalibration";
 
         // icon
         const char * const ICON_METHOD_SAVE     = ":/dataproc/image/filesave.png";
         const char * const ICON_METHOD_OPEN     = ":/dataproc/image/fileopen.png";
+        const char * const ICON_SAVE            = ":/dataproc/image/filesave.png";
+        const char * const ICON_OPEN            = ":/dataproc/image/fileopen.png";
         const char * const ICON_METHOD_APPLY    = ":/dataproc/image/apply_small.png";
 		const char * const ICON_PDF             = ":/dataproc/image/file_pdf.png"; // http://findicons.com/icon/74870/file_pdf?id=355001
-
+        const char * const ICON_CALIBFILE       = ":/dataproc/image/calibration32.png";
                                                                                    // freeware license, Designed by Andy Gongea
         // Folium (attachment) name
         const wchar_t * const F_DFT_FILTERD        = L"DFT Low Pass Filtered Spectrum";

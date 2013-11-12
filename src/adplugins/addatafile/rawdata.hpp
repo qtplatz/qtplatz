@@ -29,11 +29,15 @@
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/datainterpreter.hpp>
 #include <adfs/adfs.hpp>
+#include <adutils/acquiredconf.hpp>
 #include <memory>
+#include <map>
 
 namespace adcontrols {
     class Chromatogram;
     class MassSpectrum;
+    class MassSpectrometer;
+    class MSCalibrateResult;
     class ProcessedDataset;
 	class TraceAccessor;
 }
@@ -45,23 +49,6 @@ namespace addatafile {
     public:
         ~rawdata();
         rawdata( adfs::filesystem& );
-
-        struct AcquiredConf {
-            uint64_t objid;
-            uint64_t pobjid;
-            uint64_t trace_method;  // SignalObserver::eTRACE_METHOD
-            uint64_t spectrometer;  // SignalObserver::eSPECTROMETER
-            std::wstring dataInterpreterClsid;
-            std::wstring trace_id;
-            std::wstring trace_display_name;
-            std::wstring axis_x_label;
-            std::wstring axis_y_label;
-            uint64_t axis_x_decimals;
-            uint64_t axis_y_decimals;
-
-            AcquiredConf();
-            AcquiredConf( const AcquiredConf& );
-        };
 
         // LCMSDataset
         size_t getFunctionCount() const override;
@@ -76,20 +63,24 @@ namespace addatafile {
 									 , std::function< bool (long curr, long total ) > progress
 									 , int begPos = 0
 									 , int endPos = (-1) ) const override;
-		bool getCalibration( int fcn, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& ) const override;
-
         bool loadAcquiredConf();
+        void loadCalibrations();
+
+        // bool readCalibration( size_t idx, adcontrols::MSCalibrateResult& ) const;
+        bool applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
 
     private:
         bool fetchTraces( int64_t objid, const std::wstring& clsid, adcontrols::TraceAccessor& );
         adcontrols::translate_state fetchSpectrum( int64_t objid, const std::wstring& clsid, uint64_t npos, adcontrols::MassSpectrum& ) const;
-        bool readCalibration( uint32_t objid, std::wstring& dataClass, std::vector< char >& device, uint64_t& rev ) const;
 
         adfs::filesystem& dbf_;
-        std::vector< AcquiredConf > conf_;
+        std::vector< adutils::AcquiredConf::data > conf_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
+        std::map< uint64_t, std::shared_ptr< adcontrols::MassSpectrometer > > spectrometers_; // objid,spectrometer
+        std::map< uint64_t, std::shared_ptr< adcontrols::MSCalibrateResult > > calibResults_;
         uint64_t npos0_;
         bool configLoaded_;
+        const adcontrols::MassSpectrometer& getSpectrometer( uint64_t objid, const std::wstring& ) const;
     };
 
 }

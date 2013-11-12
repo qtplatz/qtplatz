@@ -34,6 +34,7 @@ namespace adcontrols {
     class Chromatogram;
     class MassSpectrum;
     class ProcessedDataset;
+	class MSCalibrateResult;
 }
 
 namespace portfolio { class Portfolio; }
@@ -58,6 +59,9 @@ namespace addatafile {
         bool saveContents( const std::wstring&, const portfolio::Portfolio& ) override;
         bool loadContents( const std::wstring& path, const std::wstring& id, adcontrols::dataSubscriber& ) override;
 
+        bool applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& ) override;
+        bool readCalibration( size_t idx, adcontrols::MSCalibrateResult& ) const override;
+
         adcontrols::datafile::factory_type factory() override { return 0; }
 
     private:
@@ -69,6 +73,8 @@ namespace addatafile {
         adfs::filesystem dbf_;
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
         std::unique_ptr< rawdata > rawdata_;
+        std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > calibrations_; // mode, calibration pair
+        bool calibration_modified_;
     };
 
 }

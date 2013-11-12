@@ -36,6 +36,7 @@ namespace portfolio { class Portfolio; }
 namespace adcontrols {
     
     class dataSubscriber;
+    class MSCalibrateResult;
 
     class ADCONTROLSSHARED_EXPORT datafile { // visitable
     public:
@@ -57,8 +58,10 @@ namespace adcontrols {
         virtual bool saveContents( const std::wstring&, const portfolio::Portfolio&, const datafile& );
         virtual bool saveContents( const std::wstring&, const portfolio::Portfolio& );
 		virtual bool loadContents( const std::wstring& /* path */, const std::wstring& /* id */, dataSubscriber& ) { return false; }
-        //virtual bool update( const std::wstring&, boost::any& );
         //---------
+
+        virtual bool applyCalibration( const std::wstring&, const MSCalibrateResult& ) { return false; }
+        virtual bool readCalibration( size_t idx, MSCalibrateResult& ) const { (void)idx; return false; }
 
         static bool access( const std::wstring& filename );
         static datafile * create( const std::wstring& filename );

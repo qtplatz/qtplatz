@@ -31,6 +31,8 @@
 #include <adportable/date_string.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/profile.hpp>
+#include <adutils/mscalibio.hpp>
+#include <adutils/acquiredconf.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
 #include <boost/date_time.hpp>
@@ -100,9 +102,9 @@ SampleProcessor::prepare_storage( SignalObserver::Observer * masterObserver )
 	if ( ! fs_->create( storage_name_.wstring().c_str() ) )
 		return;
 
-	create_acquiredconf_table();
+    adutils::AcquiredConf::create_table( fs_->db() );
+    adutils::mscalibio::create_table( fs_->db() );
 	create_acquireddata_table();
-    create_calibration_table();
 	
 	populate_descriptions( masterObserver );
     populate_calibration( masterObserver );
@@ -184,42 +186,6 @@ SampleProcessor::create_acquireddata_table()
 }
 
 void
-SampleProcessor::create_acquiredconf_table()
-{
-	adfs::stmt sql( fs_->db() );
-    sql.exec(
-        "CREATE TABLE AcquiredConf (\
- objid                INTEGER       \
-,pobjid               INTEGER       \
-,dataInterpreterClsid TEXT          \
-,trace_method         INTEGER       \
-,spectrometer         INTEGER       \
-,trace_id             TEXT          \
-,trace_display_name   TEXT          \
-,axis_x_label         TEXT          \
-,axis_y_label         TEXT          \
-,axis_x_decimals      INTEGER       \
-,axis_y_decimals      INTEGER       \
-,UNIQUE(objid)                      \
-)" 
-        );
-}
-
-void
-SampleProcessor::create_calibration_table()
-{
-	adfs::stmt sql( fs_->db() );
-    sql.exec(
-        "CREATE TABLE Calibration ( \
- objid        INTEGER               \
-,dataClass    TEXT                  \
-,data         BLOB                  \
-,revision     INTEGER               \
-)" 
-        );
-}
-
-void
 SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
 {
     SignalObserver::Observers_var vec = parent->getSiblings();
@@ -272,39 +238,19 @@ SampleProcessor::populate_descriptions( SignalObserver::Observer * parent )
 			CORBA::WString_var trace_display_name = desc->trace_display_name.in();
 			CORBA::WString_var axis_x_label = desc->axis_x_label.in();
 			CORBA::WString_var axis_y_label = desc->axis_y_label.in();
-            
-            adfs::stmt sql( fs_->db() );
-            sql.prepare( 
-                "INSERT INTO AcquiredConf VALUES(\
-:objid                                           \
-,:pobjid                                         \
-,:dataInterpreterClsid                           \
-,:trace_method                                   \
-,:spectrometer                                   \
-,:trace_id                                       \
-,:trace_display_name                             \
-,:axis_x_label                                   \
-,:axis_y_label                                   \
-,:axis_x_decimails                               \
-,:axis_y_decimals                                \
-)" );
 
-            sql.begin();
-            sql.bind( 1 ) = objId;
-            sql.bind( 2 ) = pobjId;
-            sql.bind( 3 ) = std::wstring( clsid.in() );
-            sql.bind( 4 ) = static_cast< unsigned long >( desc->trace_method );
-            sql.bind( 5 ) = static_cast< unsigned long >( desc->spectrometer );
-            sql.bind( 6 ) = std::wstring( trace_id.in() );
-            sql.bind( 7 ) = std::wstring( trace_display_name.in() );
-            sql.bind( 8 ) = std::wstring( axis_x_label.in() );
-            sql.bind( 9 ) = std::wstring( axis_y_label.in() );
-            sql.bind( 10 ) = static_cast< unsigned long >( desc->axis_x_decimals );
-            sql.bind( 11 ) = static_cast< unsigned long >( desc->axis_y_decimals );
-			if ( sql.step() == adfs::sqlite_done )
-				sql.commit();
-			else
-				sql.reset();
+            adutils::AcquiredConf::insert( fs_->db()
+                                           , objId
+                                           , pobjId
+                                           , std::wstring( clsid.in() )
+                                           , uint64_t( desc->trace_method )
+                                           , uint64_t( desc->spectrometer )
+                                           , std::wstring( trace_id.in() )
+                                           , std::wstring( trace_display_name.in() )
+                                           , std::wstring( axis_x_label.in() )
+                                           , std::wstring( axis_y_label.in() )
+                                           , uint64_t( desc->axis_x_decimals )
+                                           , uint64_t( desc->axis_y_decimals ) );
         }
 
         for ( size_t i = 0; i < vec->length(); ++i )

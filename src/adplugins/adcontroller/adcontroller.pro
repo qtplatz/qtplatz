@@ -22,6 +22,7 @@ LIBS += -l$$qtLibraryTarget(adinterface)
 LIBS += \
      -l$$qtLibraryTarget(adfs) \
      -l$$qtLibraryTarget(adportable) \
+     -l$$qtLibraryTarget(adutils) \
      -l$$qtLibraryTarget(acewrapper) \
      -l$$qtLibraryTarget(adinterface) \
      -l$$qtLibraryTarget(adplugin) \
