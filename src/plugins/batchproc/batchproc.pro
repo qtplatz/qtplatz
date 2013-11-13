@@ -14,13 +14,15 @@ DEFINES += BATCHPROC_LIBRARY
 
 SOURCES += batchprocplugin.cpp \
     mainwindow.cpp \
-    batchmode.cpp
+    batchmode.cpp \
+    droptargetform.cpp
 
 HEADERS += batchprocplugin.hpp \
         batchproc_global.hpp \
         batchprocconstants.hpp \
     mainwindow.hpp \
-    batchmode.hpp
+    batchmode.hpp \
+    droptargetform.hpp
 
 
 ## set the QTC_SOURCE environment variable to override the setting here
@@ -34,4 +36,10 @@ isEmpty(IDE_BUILD_TREE):IDE_BUILD_TREE=C:/Users/Toshi/src/qtplatz
 PROVIDER = MS-Cheminformatics
 
 #include($$QTCREATOR_SOURCES/src/qtcreatorplugin.pri)
+
+RESOURCES += \
+    batchproc.qrc
+
+FORMS += \
+    droptargetform.ui
 

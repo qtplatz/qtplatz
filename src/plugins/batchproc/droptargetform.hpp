@@ -22,47 +22,25 @@
 **
 **************************************************************************/
 
-#ifndef MAINWINDOW_HPP
-#define MAINWINDOW_HPP
+#ifndef DROPTARGETFORM_HPP
+#define DROPTARGETFORM_HPP
 
-#pragma once
+#include <QWidget>
 
-#include <utils/fancymainwindow.h>
-#include <memory>
-
-namespace Core { class IMode; }
-namespace Utils { class StyledBar; }
-
-class QStandardItemModel;
-class QTableView;
-
-namespace batchproc {
-
-    class MainWindow : public Utils::FancyMainWindow {
-        Q_OBJECT
-    public:
-        explicit MainWindow(QWidget *parent = 0);
-        ~MainWindow();
-
-        void createActions();
-
-        QWidget * createContents( Core::IMode * );
-        void onInitialUpdate();
-        
-    signals:
-            
-    public slots:
-
-    private:
-        std::unique_ptr< QTableView > tableView_;
-        std::unique_ptr< QStandardItemModel > model_;
-        QDockWidget * toolBarDockWidget_;
-
-        void createDockWidgets();
-        QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
-        void setSimpleDockWidgetArrangement();
-    };
-
+namespace Ui {
+class DropTargetForm;
 }
 
-#endif // MAINWINDOW_HPP
+class DropTargetForm : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit DropTargetForm(QWidget *parent = 0);
+    ~DropTargetForm();
+
+private:
+    Ui::DropTargetForm *ui;
+};
+
+#endif // DROPTARGETFORM_HPP

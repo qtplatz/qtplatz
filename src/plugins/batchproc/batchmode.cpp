@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "batchmode.hpp"
+#include "batchprocconstants.hpp"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/uniqueidmanager.h>
@@ -39,10 +40,9 @@ BatchMode::~BatchMode()
 BatchMode::BatchMode(QObject *parent) :  Core::BaseMode(parent)
 {
     setName(tr("Batch"));
-    // setUniqueModeName( dataproc::Constants::C_DATAPROC_MODE );
-    // setIcon(QIcon(":/dataproc/image/ViewResults.png"));
-    // setPriority( 97 );
-
+    setUniqueModeName( batchproc::Constants::C_BATCHPROC_MODE );
+    setIcon(QIcon(":/batchproc/images/file_batch.png"));
+    setPriority( 80 );
     // QList<int> contexts = QList<int>() <<
     //     Core::UniqueIDManager::instance()->uniqueIdentifier( Constants::C_DATAPROCESSOR ) <<
     //     Core::UniqueIDManager::instance()->uniqueIdentifier(Core::Constants::C_EDIT_MODE) <<

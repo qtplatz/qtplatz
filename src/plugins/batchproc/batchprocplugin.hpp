@@ -4,8 +4,12 @@
 #include "batchproc_global.hpp"
 
 #include <extensionsystem/iplugin.h>
+#include <memory>
 
 namespace batchproc {
+
+    class MainWindow;
+    class BatchMode;
 
     class batchprocPlugin : public ExtensionSystem::IPlugin {
         Q_OBJECT
@@ -21,6 +25,9 @@ namespace batchproc {
                                       
     private slots:
         void triggerAction();
+    private:
+        MainWindow * mainWindow_;
+        std::shared_ptr< BatchMode > mode_;
     };
     
 } // namespace batchproc

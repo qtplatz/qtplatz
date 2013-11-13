@@ -25,6 +25,8 @@
 
 #include "batchprocplugin.hpp"
 #include "batchprocconstants.hpp"
+#include "mainwindow.hpp"
+#include "batchmode.hpp"
 
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
@@ -33,6 +35,7 @@
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/uniqueidmanager.h>
+#include <coreplugin/modemanager.h>
 
 #include <QAction>
 #include <QMessageBox>
@@ -42,7 +45,8 @@
 
 using namespace batchproc;
 
-batchprocPlugin::batchprocPlugin()
+batchprocPlugin::batchprocPlugin() : mainWindow_( new MainWindow() )
+                                   , mode_( std::make_shared< BatchMode >(this) )
 {
     // Create your members
 }
@@ -51,10 +55,15 @@ batchprocPlugin::~batchprocPlugin()
 {
     // Unregister objects from the plugin manager's object pool
     // Delete members
+	if ( mode_ )
+        removeObject( mode_.get() );
 }
 
 bool batchprocPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
+    (void)arguments;
+    (void)errorString;
+
     QAction *action = new QAction(tr("batchproc action"), this);
 	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
 	Core::Command * cmd = Core::ICore::instance()->actionManager()->registerAction( action, Constants::ACTION_ID, gc );
@@ -67,14 +76,22 @@ bool batchprocPlugin::initialize(const QStringList &arguments, QString *errorStr
     menu->addAction(cmd);
 	Core::ICore::instance()->actionManager()->actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
 
+
+    Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
+    mainWindow_->activateWindow();
+    mainWindow_->createActions();
+
+    mode_->setContext( gc );
+    if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
+        mode_->setWidget( widget );
+    addObject( mode_.get() );
+
     return true;
 }
 
 void batchprocPlugin::extensionsInitialized()
 {
-    // Retrieve objects from the plugin manager's object pool
-    // In the extensionsInitialized method, a plugin can be sure that all
-    // plugins that depend on it are completely initialized.
+    mainWindow_->onInitialUpdate();
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag batchprocPlugin::aboutToShutdown()

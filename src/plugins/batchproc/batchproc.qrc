@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/batchproc">
+        <file>images/file_batch.png</file>
+    </qresource>
+</RCC>
