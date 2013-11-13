@@ -32,8 +32,7 @@
 #include <memory>
 
 namespace adsequence { class sequence; }
-namespace adcontrols { class ProcessMethod; }
-namespace ControlMethod { struct Method; }
+namespace adcontrols { class ProcessMethod; class ControlMethod; }
 
 namespace sequence {
 
@@ -72,9 +71,9 @@ namespace sequence {
       void removeProcessMethod( const std::wstring& );
 	  void removeControlMethod( const std::wstring& );
 	  const adcontrols::ProcessMethod * getProcessMethod( const std::wstring& ) const;
-	  const ControlMethod::Method * getControlMethod( const std::wstring& ) const;
+	  const adcontrols::ControlMethod * getControlMethod( const std::wstring& ) const;
 	  void setProcessMethod( const std::wstring&, const adcontrols::ProcessMethod& );
-	  void setControlMethod( const std::wstring&, const ControlMethod::Method& );
+	  void setControlMethod( const std::wstring&, const adcontrols::ControlMethod& );
 
     signals:
 
@@ -87,7 +86,7 @@ namespace sequence {
         QString defaultPath_;
         QString filename_;
         bool modified_;
-        typedef std::map< std::wstring, std::shared_ptr< ControlMethod::Method > > control_method_map_type;
+        typedef std::map< std::wstring, std::shared_ptr< adcontrols::ControlMethod > > control_method_map_type;
         typedef std::map< std::wstring, std::shared_ptr< adcontrols::ProcessMethod > > process_method_map_type;
         std::unique_ptr< adsequence::sequence > adsequence_;
         control_method_map_type ctrlmethods_;

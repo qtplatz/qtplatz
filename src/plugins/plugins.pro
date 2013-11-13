@@ -6,7 +6,8 @@ include(../config.pri)
 TEMPLATE  = subdirs
 
 SUBDIRS   = plugin_coreplugin \
-            plugin_servant
+            plugin_servant \
+            plugin_batchproc
 
 contains( QTPLATZ_CONFIG, Acquire ) {
   SUBDIRS += plugin_acquire
@@ -47,3 +48,7 @@ plugin_dataproc.depends = plugin_coreplugin
 
 plugin_chemistry.subdir = chemistry
 plugin_chemistry.depends = plugin_coreplugin
+
+plugin_batchproc.subdir = batchproc
+plugin_batchproc.depends = plugin_coreplugin
+

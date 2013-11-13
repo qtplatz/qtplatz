@@ -12,7 +12,6 @@ TEMPLATE = lib
 PROVIDER = MS-Cheminformatics
 include(../../qtplatzplugin.pri)
 include(../../boost.pri)
-include(../../ace_tao.pri)
 
 LIBS += -L$$IDE_PLUGIN_PATH/QtProject
 LIBS += -l$$qtLibraryTarget( Core )
@@ -33,17 +32,8 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
 	-l$$qtLibraryTarget(adportable)
 
 !win32 {
-  LIBS += -lTAO -lTAO_Utils -lTAO_PI -lTAO_PortableServer -lTAO_AnyTypeCode -lACE
   LIBS += -lboost_system -lboost_filesystem -lboost_serialization -lboost_date_time -ldl
-} else {
-  LIBS += -l$$qtLibraryTarget( TAO ) \
-        -l$$qtLibraryTarget( TAO_Utils ) \
-        -l$$qtLibraryTarget( TAO_PI ) \
-        -l$$qtLibraryTarget( TAO_PortableServer ) \
-        -l$$qtLibraryTarget( TAO_AnyTypeCode ) \
-        -l$$qtLibraryTarget( ACE )
 }
-
 
 DEFINES += SEQUENCE_LIBRARY
 
@@ -55,8 +45,7 @@ SOURCES +=  sequenceplugin.cpp \
     mode.cpp \
     sequencewidget.cpp \
     sequencedelegate.cpp \
-    sequenceview.cpp \
-    serializer.cpp
+    sequenceview.cpp
 
 HEADERS += sequence_global.h \
     sequencefile.hpp \
@@ -68,8 +57,7 @@ HEADERS += sequence_global.h \
     mode.hpp \
     sequencewidget.hpp \
     sequencedelegate.hpp \
-    sequenceview.hpp \
-    serializer.hpp
+    sequenceview.hpp
 
 OTHER_FILES += sequence.pluginspec \
     sequence-mimetype.xml \

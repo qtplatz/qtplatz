@@ -26,9 +26,9 @@
 #include "sequenceplugin.hpp"
 #include "sequencewidget.hpp"
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/controlmethod.hpp>
 #include <adextension/isequence.hpp>
 #include <adextension/ieditorfactory.hpp>
-#include <adinterface/controlmethodC.h>
 #include <adportable/configuration.hpp>
 #include <adplugin/lifecycle.hpp>
 #include <adplugin/lifecycleaccessor.hpp>
@@ -99,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , actionConnect_ ( 0 )
                                         , ctrlMethodName_( 0 )
                                         , procMethodName_( 0 )
-                                        , defaultControlMethod_( new ControlMethod::Method )
+                                        , defaultControlMethod_( new adcontrols::ControlMethod() )
 {
     instance_ = this;
 	setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::South );
@@ -309,7 +309,7 @@ MainWindow::createDockWidget( QWidget * widget, const QString& title )
 }
 
 bool
-MainWindow::getControlMethod( ControlMethod::Method& m ) const
+MainWindow::getControlMethod( adcontrols::ControlMethod& m ) const
 {
     boost::any any( &m );  
     for ( adplugin::LifeCycle * editor: editors_ )
@@ -318,7 +318,7 @@ MainWindow::getControlMethod( ControlMethod::Method& m ) const
 }
 
 bool
-MainWindow::setControlMethod( const ControlMethod::Method& m )
+MainWindow::setControlMethod( const adcontrols::ControlMethod& m )
 {
     boost::any any( m );  
     for ( adplugin::LifeCycle * editor: editors_ )

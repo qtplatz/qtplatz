@@ -26,13 +26,15 @@
 #include "sequencefile.hpp"
 #include "sequenceeditor.hpp"
 #include "constants.hpp"
-#include "serializer.hpp"
+//#include "serializer.hpp"
 #include <adcontrols/processmethod.hpp>
 #include <adfs/adfs.hpp>
 #include <adfs/cpio.hpp>
 #include <adfs/sqlite.hpp>
-#include <adinterface/controlmethodC.h>
+#include <adcontrols/controlmethod.hpp>
+//#include <adinterface/controlmethodC.h>
 #include <adportable/profile.hpp>
+#include <adportable/serializer.hpp>
 #include <adsequence/sequence.hpp>
 //
 #include <boost/serialization/nvp.hpp>
@@ -129,18 +131,17 @@ SequenceFile::load( const QString& filename )
 
         std::vector< adfs::file > folio = folder.files();
         for ( std::vector< adfs::file >::iterator it = folio.begin(); it != folio.end(); ++it ) {
-            std::vector< char> ibuf( it->size() );
+            std::vector< char > ibuf( it->size() );
             it->read( ibuf.size(), &ibuf[0] );
-            std::shared_ptr< ControlMethod::Method > ptr( new ControlMethod::Method );
-            serializer::restore( *ptr, ibuf );
+			auto ptr = std::make_shared< adcontrols::ControlMethod >();
+			if ( adportable::serializer< adcontrols::ControlMethod >::deserialize( *ptr, ibuf.data(), ibuf.size() ) ) {
+				ctrlmethods_ [ it->name() ] = ptr;
+			}
+            //serializer::restore( *ptr, ibuf );
             // dubug
-            ptr->subject = CORBA::wstring_dup( it->name().c_str() );
+            // ptr->subject = CORBA::wstring_dup( it->name().c_str() );
             //
-            ctrlmethods_[ it->name() ] = ptr;
-            std::wcout << L"Loading control method: ['" << ptr->subject.in() << L"'] has " 
-                << ptr->lines.length() << " lines in " 
-                << it->size() << " bytes"
-                << std::endl;
+            // ctrlmethods_[ it->name() ] = ptr;
         }
     } while ( 0 );
 
@@ -303,7 +304,7 @@ SequenceFile::getProcessMethod( const std::wstring& name ) const
 	return it->second.get();
 }
 
-const ControlMethod::Method *
+const adcontrols::ControlMethod *
 SequenceFile::getControlMethod( const std::wstring& name ) const
 {
 	control_method_map_type::const_iterator it = ctrlmethods_.find( name );
@@ -320,9 +321,9 @@ SequenceFile::setProcessMethod( const std::wstring& name, const adcontrols::Proc
 }
 
 void
-SequenceFile::setControlMethod( const std::wstring& name, const ControlMethod::Method& m )
+SequenceFile::setControlMethod( const std::wstring& name, const adcontrols::ControlMethod& m )
 {
 	using ControlMethod::Method;
-    ctrlmethods_[ name ] = std::shared_ptr< Method >( new Method( m ) );
+	ctrlmethods_[ name ] = std::make_shared< adcontrols::ControlMethod >( m ); // shared_ptr< Method >( new Method( m ) );
 }
 

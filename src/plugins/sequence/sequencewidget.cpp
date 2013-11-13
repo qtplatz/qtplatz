@@ -29,7 +29,7 @@
 #include "sequencefile.hpp"
 #include "mainwindow.hpp"
 #include <adcontrols/processmethod.hpp>
-#include <adinterface/controlmethodC.h>
+//#include <adinterface/controlmethodC.h>
 #include <adportable/profile.hpp>
 #include <adportable/date_string.hpp>
 #include <adsequence/sequence.hpp>
