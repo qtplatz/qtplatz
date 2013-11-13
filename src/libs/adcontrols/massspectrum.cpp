@@ -621,7 +621,7 @@ MassSpectrumImpl::~MassSpectrumImpl()
 }
 
 MassSpectrumImpl::MassSpectrumImpl() : algo_(CentroidNone)
-				                     , polarity_(PolarityIndeterminate)
+				                     , polarity_(PolarityPositive)
                                      , timeSinceInjTrigger_(0)
                                      , timeSinceFirmwareUp_(0)
                                      , numSpectrumSinceInjTrigger_(0)

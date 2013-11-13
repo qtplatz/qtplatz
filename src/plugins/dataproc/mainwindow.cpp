@@ -396,7 +396,7 @@ MainWindow::createDockWidgets()
         , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
         , { "Peak Find",       "qtwidgets::PeakMethodForm" }
         , { "Data property",   "dataproc::MSPropertyForm" }      // local
-        , { "File property",   "dataproc::FilePropertyWidget" }  // local
+        // , { "File property",   "dataproc::FilePropertyWidget" }  // local
     };
     
     for ( auto widget: widgets ) {

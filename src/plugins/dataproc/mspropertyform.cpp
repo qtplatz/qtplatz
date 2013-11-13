@@ -132,9 +132,13 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     using adportable::utf;
     using namespace adcontrols::metric;
 
+    static char * polarities [] = { "Indeterminant", "Positive", "Negative", "Mixed" };
+
+    adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( ms );
+
     std::vector< std::pair< std::string, std::string > > temp;
     temp.push_back( std::make_pair( "Spectrum", ( ms.isCentroid() ? "Centroid" : "Profile" ) ) );
-    temp.push_back( std::make_pair( "Polarity", ( ms.polarity() == adcontrols::PolarityPositive ? "Positive" : "Negative" ) ) );
+    temp.push_back( std::make_pair( "Polarity", polarities[ ms.polarity() ] ) );
 
     o << "<hr>";
     o << "<table border=\"1\" cellpadding=\"1\">";
@@ -158,22 +162,11 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     }
     o << "</table>";
 
-    const adcontrols::MSCalibration& calib =  ms.calibration();
-    if ( ! calib.coeffs().empty() ) { // has calibration
-        o << "MS Calibration created @ " << calib.date() << " id: " << utf::to_utf8( calib.calibId() ) << "<br>";
-        o << "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span> = "
-          << boost::format( "%.14lf" ) % calib.coeffs()[0] << " + ";
-        for ( size_t i = 1; i < calib.coeffs().size(); ++i )
-            o << boost::format( "\t%.14lf &times; t<sup>%d</sup>" ) % calib.coeffs()[i] % i;
-        o << ";";
-    }
-
     std::pair< double, double > massrange = ms.getAcquisitionMassRange();
     o << "Acquisition mass range: " << boost::format( "%.3lf -- %.3lf" ) % massrange.first % massrange.second;
 
-    adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( ms );
     o << "<table border=\"1\" cellpadding=\"4\">";
-    o << "<caption>Acquisition parameter(s)</caption>";
+    o << "<caption>Acquisition and calibration parameter(s)</caption>";
     o << "<tr>";
     o << "<th>#seg</th>"
       << "<th>samp. interval(ps)</th>"
@@ -184,15 +177,16 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
       << "<th>mode</th>"
       << "<th>classid</th>"
       << "</tr>";
-
     int n = 0;
     for ( auto& m: segments ) {
+        const adcontrols::MSCalibration& calib =  m.calibration();
+        size_t nrowspan = calib.coeffs().empty() ? 1 : 2;
         const adcontrols::MSProperty& prop = m.getMSProperty();
         const adcontrols::MSProperty::SamplingInfo& info = prop.getSamplingInfo();
         double start_delay = scale_to<double, micro>( info.sampInterval * info.nSamplingDelay, pico );
         double time_end = scale_to<double, micro>( info.sampInterval * ( info.nSamplingDelay + info.nSamples ), pico );
         o << "<tr>"
-          << "<td>" << n++ << "</td>"
+          << boost::format( "<td rowspan=\"%1%\">" ) % nrowspan << n++ << "</td>"
           << "<td>" << info.sampInterval << "</td>"
           << "<td>" << boost::format( "%.4lf&mu;s" ) % start_delay << "</td>"
           << "<td>" << boost::format( "%.4lf&mu;s" ) % time_end << "</td>"
@@ -201,8 +195,33 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
           << "<td>" << info.mode << "</td>"
 		  << "<td>" << prop.dataInterpreterClsid() << "</td>"
           << "</tr>";
+
+        if ( ! calib.coeffs().empty() ) {
+            //-----------------------------
+            o << "<tr>";
+            o << "<td colspan=7><b>Calibration ID:</b><i>" << utf::to_utf8( calib.calibId() ) << "</i>"
+              << "     " << calib.date();
+            o << "<hr>";
+            o << "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span> = "
+              << boost::format( "%.14lf" ) % calib.coeffs()[0] << " + ";
+            for ( size_t i = 1; i < calib.coeffs().size(); ++i )
+                o << boost::format( "\t%.14lf &times; t<sup>%d</sup>" ) % calib.coeffs()[i] % i;
+
+            if ( ! calib.t0_coeffs().empty() ) {
+                o << "<br>"
+                  << "T<sub>0</sub> = " << calib.t0_coeffs()[0];
+                for ( size_t i = 1; i < calib.t0_coeffs().size(); ++i )
+                    o << boost::format( "\t%.14lf &times; &radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span><sup>%d</sup>" )
+                        % calib.coeffs()[i] % i;
+                if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED )
+                    o << "\t(MULTITURN_NORMAILZED algorithm)";
+            }
+            o << "</tr>";
+            //-----------------------------            
+		}
     }
     o << "</table>";
     o << "<hr>";
+
 }
 
