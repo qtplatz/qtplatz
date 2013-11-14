@@ -44,6 +44,7 @@
 #include <adcontrols/baseline.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/description.hpp>
+#include <adcontrols/annotations.hpp>
 #include <adportable/debug.hpp>
 #include <boost/format.hpp>
 #include <boost/variant.hpp>
@@ -141,10 +142,17 @@ namespace adwplot {
     }
 
     struct ChromatogramWidgetImpl : boost::noncopyable {
-        std::vector< Annotation > annotations_;
+
+        adcontrols::annotations peak_annotations_;
+        std::vector< Annotation > annotation_markers_;
+        
         std::vector< chromatogram_internal::trace_variant > traces_;
         std::vector< Peak > peaks_;
         std::vector< Baseline > baselines_;	
+
+        void clear();
+        void update_annotations( const std::pair<double, double>&, adcontrols::annotations& ) const;
+		void clear_annotations();
     };
 }
 
@@ -154,7 +162,7 @@ ChromatogramWidget::~ChromatogramWidget()
 }
 
 ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
-							, impl_( new ChromatogramWidgetImpl )
+                                                        , impl_( new ChromatogramWidgetImpl )
 {
 	QwtText axisHor( "Time[min]" );
 	QFont font = axisHor.font();
@@ -177,6 +185,12 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
 	font.setPointSize( 8 );
     setAxisFont( QwtPlot::xBottom, font );
     setAxisFont( QwtPlot::yLeft, font );
+
+    if ( zoomer1_ ) {
+        connect( zoomer1_.get(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
+		QwtPlotZoomer * p = zoomer1_.get();
+		connect( p, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( zoomed( const QRectF& ) ) );
+	}
 
 	if ( picker_ ) {
 		// picker_->setStateMachine( new QwtPickerClickPointMachine() );
@@ -232,9 +246,7 @@ ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yaxis2 )
 void
 ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool )
 {
-    impl_->annotations_.clear();
-    impl_->peaks_.clear();
-    impl_->baselines_.clear();
+    impl_->clear();
 
     if ( c.size() < 2 )
         return;
@@ -252,9 +264,13 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool )
 
     const double * intens = c.getIntensityArray();
 
-    const adcontrols::Peaks& peaks = c.peaks();
-    for ( adcontrols::Peaks::vector_type::const_iterator it = peaks.begin(); it != peaks.end(); ++it )
-        setPeak( *it );
+    impl_->peak_annotations_.clear();
+    for ( auto& pk: c.peaks() )
+        setPeak( pk, impl_->peak_annotations_ );
+
+    impl_->peak_annotations_.sort();
+
+    plotAnnotations( impl_->peak_annotations_ );
     
     if ( idx == 0 ) {
         std::pair< double, double > time_range;
@@ -278,23 +294,26 @@ ChromatogramWidget::setData( const adcontrols::PeakResult& r )
 	for ( Baselines::vector_type::const_iterator it = r.baselines().begin(); it != r.baselines().end(); ++it )
 		setBaseline( *it );
 
+    impl_->peak_annotations_.clear();
 	for ( Peaks::vector_type::const_iterator it = r.peaks().begin(); it != r.peaks().end(); ++it )
-		setPeak( *it );
+		setPeak( *it, impl_->peak_annotations_ );
+
+    plotAnnotations( impl_->peak_annotations_ );
 }    
 
 void
-ChromatogramWidget::setPeak( const adcontrols::Peak& peak )
+ChromatogramWidget::setPeak( const adcontrols::Peak& peak, adcontrols::annotations& vec )
 {
     double tR = adcontrols::timeutil::toMinutes( peak.peakTime() );
 
+    int pri = 0;
     std::wstring label = peak.name();
     if ( label.empty() )
         label = ( boost::wformat( L"%.3lf" ) % tR ).str();
+    pri = label.empty() ? int( peak.topHeight() ) : int( peak.topHeight() ) + 0x3fffffff;
 
-    Annotations annots( *this, impl_->annotations_ );
-
-	Annotation anno = annots.add( tR, peak.topHeight(), label );
-    anno.setLabelAlighment( Qt::AlignTop | Qt::AlignCenter );
+    adcontrols::annotation annot( label, tR, peak.topHeight(), pri );
+    vec << annot;
 
     impl_->peaks_.push_back( adwplot::Peak( *this, peak ) );
 }
@@ -306,15 +325,32 @@ ChromatogramWidget::setBaseline( const adcontrols::Baseline& bs )
 }
 
 void
-ChromatogramWidget::override_zoom_rect( QRectF& )
+ChromatogramWidget::plotAnnotations( const adcontrols::annotations& vec )
 {
-	// update rect if auto Y scale and/or apply minimum zoom etc.
+    adwplot::Annotations w( *this, impl_->annotation_markers_ );
+
+    for ( auto& a: vec ) {
+		QwtText text( QString::fromStdWString( a.text() ), QwtText::RichText );
+        text.setColor( Qt::darkGreen );
+        text.setFont( Annotation::font() );
+        w.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
+    }
 }
 
 void
-ChromatogramWidget::zoom( const QRectF& rect )
+ChromatogramWidget::override_zoom_rect( QRectF& )
 {
-    zoomer1_->zoom( rect );
+	// update rect if auto Y scale and/or apply minimum zoom etc.
+    
+}
+
+void
+ChromatogramWidget::zoomed( const QRectF& rect )
+{
+    adcontrols::annotations vec;
+    impl_->update_annotations( std::make_pair( rect.left(), rect.right() ), vec );
+    vec.sort();
+    plotAnnotations( vec );
 }
 
 void
@@ -334,6 +370,42 @@ ChromatogramWidget::selected( const QRectF& rect )
 {
 	emit onSelected( rect );
 }
+
+
+//--------------
+void
+ChromatogramWidgetImpl::clear()
+{
+    peaks_.clear();
+    baselines_.clear();
+	annotation_markers_.clear();
+}
+
+void
+ChromatogramWidgetImpl::clear_annotations()
+{
+	annotation_markers_.clear();
+}
+
+void
+ChromatogramWidgetImpl::update_annotations( const std::pair<double, double>& range
+                                            , adcontrols::annotations& vec ) const
+{
+	auto& peaks = peak_annotations_;
+    auto beg = std::lower_bound( peaks.begin(), peaks.end(), range.first, [=]( const adcontrols::annotation& a, double rhs ){
+            return a.x() < rhs;
+        });
+    auto end = std::lower_bound( peaks.begin(), peaks.end(), range.second, [=]( const adcontrols::annotation& a, double rhs ){
+            return a.x() < rhs;
+        });
+
+    std::for_each( beg, end, [&]( const adcontrols::annotation& a ){
+            vec << a;
+        });
+
+    vec.sort();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////

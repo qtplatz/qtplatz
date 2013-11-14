@@ -15,14 +15,16 @@ DEFINES += BATCHPROC_LIBRARY
 SOURCES += batchprocplugin.cpp \
     mainwindow.cpp \
     batchmode.cpp \
-    droptargetform.cpp
+    droptargetform.cpp \
+    dropwidget.cpp
 
 HEADERS += batchprocplugin.hpp \
         batchproc_global.hpp \
         batchprocconstants.hpp \
     mainwindow.hpp \
     batchmode.hpp \
-    droptargetform.hpp
+    droptargetform.hpp \
+    dropwidget.hpp
 
 
 ## set the QTC_SOURCE environment variable to override the setting here

@@ -213,6 +213,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     }
 
     setAutoSynchronization(true);
+    setAcceptDrops( true );
 }
 
 void

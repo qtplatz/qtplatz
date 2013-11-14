@@ -36,6 +36,7 @@ namespace adcontrols {
 	class PeakResult;
     class Baseline;
     class Peak;
+    class annotations;
 }
 
 namespace adwplot {
@@ -58,21 +59,26 @@ namespace adwplot {
 		void setData( const adcontrols::PeakResult& );
 	private:
         void setBaseline( const adcontrols::Baseline& );
-        void setPeak( const adcontrols::Peak& );
+        void setPeak( const adcontrols::Peak&, adcontrols::annotations& );
 
     signals:
 		void onMoved( const QPointF& );
 		void onSelected( const QPointF& );
 		void onSelected( const QRectF& );
+    private:
+        // virtual void zoom( const QRectF& ) override;
 
     public slots:
-        virtual void zoom( const QRectF& );
         virtual void override_zoom_rect( QRectF& );
 		virtual void moved( const QPointF& );
 		virtual void selected( const QPointF& );
 		virtual void selected( const QRectF& );
     private:
         struct ChromatogramWidgetImpl * impl_;
+        void plotAnnotations( const adcontrols::annotations& );
+
+    private slots:
+		void zoomed( const QRectF& );
     };
 
 }
