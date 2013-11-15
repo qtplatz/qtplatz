@@ -29,6 +29,7 @@
 
 #include <utils/fancymainwindow.h>
 #include <memory>
+#include <deque>
 
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
@@ -37,6 +38,8 @@ class QStandardItemModel;
 class QTableView;
 
 namespace batchproc {
+
+    class BatchprocDelegate;
 
     class MainWindow : public Utils::FancyMainWindow {
         Q_OBJECT
@@ -50,17 +53,27 @@ namespace batchproc {
         void onInitialUpdate();
         
     signals:
+        void emitProgress( int, int, int );
             
     public slots:
+        void handleDropped( const QList<QString>& );
 
     private:
         std::unique_ptr< QTableView > tableView_;
         std::unique_ptr< QStandardItemModel > model_;
+        std::unique_ptr< BatchprocDelegate > delegate_;
         QDockWidget * toolBarDockWidget_;
+        std::deque< std::wstring > files_;
 
         void createDockWidgets();
         QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
         void setSimpleDockWidgetArrangement();
+
+
+    private slots:
+        void showContextMenu( const QPoint& pt );
+        void handleStateChanged( const QModelIndex& );
+        void handleProgress( int row, int current, int total );
     };
 
 }

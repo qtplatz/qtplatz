@@ -24,15 +24,97 @@
 
 #include "droptargetform.hpp"
 #include "ui_droptargetform.h"
+#include <QList>
+#include <QStandardItemModel>
+#include <boost/filesystem.hpp>
 
-DropTargetForm::DropTargetForm(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::DropTargetForm)
+using namespace batchproc;
+
+DropTargetForm::DropTargetForm(QWidget *parent) : QWidget(parent)
+                                                , ui(new Ui::DropTargetForm)
+                                                , model_( new QStandardItemModel )
 {
     ui->setupUi(this);
+    ui->treeView->setModel( model_.get() );
+    connect( ui->dropWidget, SIGNAL( dropFiles( const QList<QUrl>& ) ), this, SLOT( handleDropFiles( const QList<QUrl>& ) ) );
 }
 
 DropTargetForm::~DropTargetForm()
 {
     delete ui;
+}
+
+void
+DropTargetForm::handleDropFiles( const QList< QUrl >& list )
+{
+    dropfiles_.clear();
+
+    model_->setRowCount( list.size() );
+    model_->setColumnCount( 2 );
+    QStandardItemModel& model = *model_;
+
+    int row = 0;
+    for ( auto& item: list ) {
+
+        model.setData( model.index( row, 0 ), row + 1 );
+        model.setData( model.index( row, 1 ), item.toLocalFile() );
+
+        QModelIndex parent = model.index( row, 0 );
+        model.insertColumns( 0, 2, parent );
+
+        boost::filesystem::path path( item.toLocalFile().toStdWString() );
+
+        if ( boost::filesystem::is_regular_file( path ) ) {
+
+            if ( path.parent_path().extension() == L".d" && 
+                 ( std::find( dropfiles_.begin(), dropfiles_.end(), path.parent_path() ) == dropfiles_.end() ) ) {
+
+                dropfiles_.push_back( path.parent_path().wstring() );
+
+				model.insertRow( model.rowCount( parent ), parent );
+                model.setData( model.index( 0, 0, parent ), dropfiles_.size() );
+                model.setData( model.index( 0, 1, parent ), QString::fromStdWString( dropfiles_.back() ) );
+
+            }
+
+        } else if ( boost::filesystem::is_directory( path ) ) {
+
+            if ( path.extension() == L".d" ) {
+
+                dropfiles_.push_back( path.wstring() );
+
+				model.insertRow( model.rowCount( parent ), parent );
+                model.setData( model.index( 0, 0, parent ), dropfiles_.size() );
+                model.setData( model.index( 0, 1, parent ), QString::fromStdWString( dropfiles_.back() ) );
+
+            } else {
+                int r = 0;
+                boost::filesystem::directory_iterator end;
+                for ( boost::filesystem::directory_iterator dir( path ); dir != end; ++dir ) {
+                    if ( boost::filesystem::is_directory( dir->status() ) && dir->path().extension() == L".d" ) {
+
+                        dropfiles_.push_back( dir->path().wstring() );
+
+						model.insertRow( model.rowCount( parent ), parent );
+                        model.setData( model.index( r, 0, parent ), dropfiles_.size() );
+                        model.setData( model.index( r, 1, parent ), QString::fromStdWString( dropfiles_.back() ) );
+                        ++r;
+                    }
+                }
+            }
+
+        }
+
+		++row;
+    }
+    QList< QString > files;
+    for ( auto& file: dropfiles_ )
+        files.push_back( QString::fromStdWString( file ) );
+    emit dropped( files );
+}
+
+const std::vector< std::wstring >&
+DropTargetForm::dropped_files() const
+{
+    return dropfiles_;
 }

@@ -7,8 +7,19 @@ include(../../qtplatzplugin.pri)
 include(../../qwt.pri)
 include(../../boost.pri)
 INCLUDEPATH *= $$OUT_PWD/../../libs
-
 DEFINES += BATCHPROC_LIBRARY
+
+!win32 {
+  LIBS += -lboost_system \
+          -lboost_filesystem
+}
+LIBS += -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(adplugin) \
+        -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adutils) \
+        -l$$qtLibraryTarget(portfolio) \
+        -l$$qtLibraryTarget(adfs) \
+        -l$$qtLibraryTarget(adextension)
 
 # batchproc files
 
@@ -16,15 +27,23 @@ SOURCES += batchprocplugin.cpp \
     mainwindow.cpp \
     batchmode.cpp \
     droptargetform.cpp \
-    dropwidget.cpp
+    dropwidget.cpp \
+    batchprocdelegate.cpp \
+    task.cpp \
+    import.cpp \
+    process.cpp
 
 HEADERS += batchprocplugin.hpp \
         batchproc_global.hpp \
         batchprocconstants.hpp \
-    mainwindow.hpp \
-    batchmode.hpp \
-    droptargetform.hpp \
-    dropwidget.hpp
+        mainwindow.hpp \
+        batchmode.hpp \
+        droptargetform.hpp \
+        dropwidget.hpp \
+        batchprocdelegate.hpp \
+        task.hpp \
+        import.hpp \
+        process.hpp
 
 
 ## set the QTC_SOURCE environment variable to override the setting here

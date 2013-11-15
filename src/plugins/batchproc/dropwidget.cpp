@@ -63,7 +63,7 @@ DropWidget::DropWidget(QWidget *parent) :  QWidget(parent)
 
     label_.setAlignment( Qt::AlignCenter );
     label_.setFrameShape( QFrame::Box );
-    label_.setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+	label_.setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Preferred );
     label_.setBackgroundRole( QPalette::Base );
     label_.setAutoFillBackground( true );
     label_.setMinimumSize( 132, 132 );
@@ -130,23 +130,8 @@ DropWidget::dropEvent( QDropEvent * event )
 	const QMimeData * mimeData = event->mimeData();
 
 	if ( mimeData->hasUrls() ) {
-
 		QList<QUrl> urlList = mimeData->urls();
-		for ( int i = 0; i < urlList.size(); ++i ) {
-
-            qDebug() << urlList.at( i ).toLocalFile();
-
-			// QString molfile( urlList.at(i).toLocalFile() );
-			// boost::filesystem::path path( qtwrapper::wstring::copy( molfile ) );
-			// if ( path.extension() == L".mol" ) {
-            //     CTable ctab;
-			// 	if ( CTFile::load_molfile( path, ctab ) ) {
-			// 		ctabs_.push_back( std::make_pair( molfile, ctab ) );
-			// 		update();
-			// 		emit molChanged( molfile );
-			// 	}                 
-			// }
-		}
+        emit dropFiles( urlList );
 	}
     label_.setPixmap( icon_.pixmap( QSize(128,128), QIcon::Normal, QIcon::On ) );
     label_.setEnabled( false );

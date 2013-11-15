@@ -22,45 +22,41 @@
 **
 **************************************************************************/
 
-#ifndef DROPTARGETFORM_HPP
-#define DROPTARGETFORM_HPP
+#ifndef TASK_HPP
+#define TASK_HPP
 
-#include <QWidget>
-#include <QUrl>
-#include <memory>
+#pragma once
 
-class QStandardItemModel;
-
-namespace Ui {
-class DropTargetForm;
-}
-
-template<class T> class QList;
-class QUrl;
+#include <thread>
+#include <mutex>
+#include <vector>
+#include <boost/asio.hpp>
+#include <boost/any.hpp>
 
 namespace batchproc {
 
-    class DropTargetForm : public QWidget {
-        Q_OBJECT
-
+    class task : boost::noncopyable {
+        task();
+        static task * instance_;
+        static std::mutex mutex_;
+        
     public:
-        explicit DropTargetForm(QWidget *parent = 0);
-        ~DropTargetForm();
+        static task * instance();
+        static bool shutdown();
 
-        const std::vector< std::wstring >& dropped_files() const;
-
-    signals:
-        void dropped( const QList<QString>& );
-
-    private slots:
-        void handleDropFiles( const QList<QUrl>& );
+        template<class T> void post( T& doit ) {
+            io_service_.post( [&]{ doit(); } );
+            processes_.push_back( doit.shared_from_this() );
+        }
 
     private:
-        Ui::DropTargetForm *ui;
-        std::unique_ptr< QStandardItemModel > model_;
-        std::vector< std::wstring > dropfiles_;
+        std::vector< std::thread > threads_;
+        boost::asio::io_service io_service_;
+        boost::asio::io_service::work work_;
+        std::vector< boost::any > processes_;
+        void open();
     };
 
 }
 
-#endif // DROPTARGETFORM_HPP
+#endif // TASK_HPP

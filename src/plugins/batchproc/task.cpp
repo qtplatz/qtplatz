@@ -22,45 +22,45 @@
 **
 **************************************************************************/
 
-#ifndef DROPTARGETFORM_HPP
-#define DROPTARGETFORM_HPP
+#include "task.hpp"
 
-#include <QWidget>
-#include <QUrl>
-#include <memory>
+using namespace batchproc;
 
-class QStandardItemModel;
+task * task::instance_ = 0;
+std::mutex task::mutex_;
 
-namespace Ui {
-class DropTargetForm;
+task::task() : work_( io_service_ )
+{
 }
 
-template<class T> class QList;
-class QUrl;
-
-namespace batchproc {
-
-    class DropTargetForm : public QWidget {
-        Q_OBJECT
-
-    public:
-        explicit DropTargetForm(QWidget *parent = 0);
-        ~DropTargetForm();
-
-        const std::vector< std::wstring >& dropped_files() const;
-
-    signals:
-        void dropped( const QList<QString>& );
-
-    private slots:
-        void handleDropFiles( const QList<QUrl>& );
-
-    private:
-        Ui::DropTargetForm *ui;
-        std::unique_ptr< QStandardItemModel > model_;
-        std::vector< std::wstring > dropfiles_;
-    };
-
+task*
+task::instance()
+{
+    if ( instance_ == 0 ) {
+        std::lock_guard< std::mutex > lock( mutex_ );
+        if ( instance_ == 0 )
+            instance_ = new task;
+        instance_->open();
+    }
+    return instance_;
 }
 
-#endif // DROPTARGETFORM_HPP
+bool
+task::shutdown()
+{
+    std::lock_guard< std::mutex > lock( mutex_ );
+    if ( instance_ ) {
+        instance_->io_service_.stop();
+        for ( auto& t: instance_->threads_ )
+            t.join();
+        return true;
+    }
+    return false;  // task not instanciated
+}
+
+void
+task::open()
+{
+	threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
+	threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
+}

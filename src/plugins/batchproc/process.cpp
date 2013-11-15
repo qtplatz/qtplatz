@@ -22,45 +22,41 @@
 **
 **************************************************************************/
 
-#ifndef DROPTARGETFORM_HPP
-#define DROPTARGETFORM_HPP
+#include "process.hpp"
 
-#include <QWidget>
-#include <QUrl>
-#include <memory>
+using namespace batchproc;
 
-class QStandardItemModel;
-
-namespace Ui {
-class DropTargetForm;
+process::process( process_kind k, process_state s ) : kind_(k)
+                                                    , state_(s)
+{
 }
 
-template<class T> class QList;
-class QUrl;
-
-namespace batchproc {
-
-    class DropTargetForm : public QWidget {
-        Q_OBJECT
-
-    public:
-        explicit DropTargetForm(QWidget *parent = 0);
-        ~DropTargetForm();
-
-        const std::vector< std::wstring >& dropped_files() const;
-
-    signals:
-        void dropped( const QList<QString>& );
-
-    private slots:
-        void handleDropFiles( const QList<QUrl>& );
-
-    private:
-        Ui::DropTargetForm *ui;
-        std::unique_ptr< QStandardItemModel > model_;
-        std::vector< std::wstring > dropfiles_;
-    };
-
+process_kind
+process::kind() const
+{
+    return kind_;
 }
 
-#endif // DROPTARGETFORM_HPP
+process_state
+process::state() const
+{
+    return state_;
+}
+
+void
+process::kind( process_kind k )
+{
+    kind_ = k;
+}
+
+void
+process::state( process_state s )
+{
+    state_ = s;
+}
+
+QString
+process::display_name() const 
+{
+    return "Import";
+}

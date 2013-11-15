@@ -22,45 +22,34 @@
 **
 **************************************************************************/
 
-#ifndef DROPTARGETFORM_HPP
-#define DROPTARGETFORM_HPP
+#ifndef BATCHPROCDELEGATE_HPP
+#define BATCHPROCDELEGATE_HPP
 
-#include <QWidget>
-#include <QUrl>
-#include <memory>
-
-class QStandardItemModel;
-
-namespace Ui {
-class DropTargetForm;
-}
-
-template<class T> class QList;
-class QUrl;
+#include "process.hpp"
+#include <QItemDelegate>
 
 namespace batchproc {
 
-    class DropTargetForm : public QWidget {
+    class BatchprocDelegate : public QItemDelegate {
         Q_OBJECT
-
     public:
-        explicit DropTargetForm(QWidget *parent = 0);
-        ~DropTargetForm();
+        explicit BatchprocDelegate(QObject *parent = 0);
 
-        const std::vector< std::wstring >& dropped_files() const;
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+		void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+        void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
+        bool editorEvent( QEvent * event, QAbstractItemModel *, const QStyleOptionViewItem&, const QModelIndex& ) override;
+        QWidget * createEditor( QWidget * parent, const QStyleOptionViewItem& option, const QModelIndex& ) const override;
 
     signals:
-        void dropped( const QList<QString>& );
+        void stateChanged( const QModelIndex& );
 
-    private slots:
-        void handleDropFiles( const QList<QUrl>& );
+    public slots:
 
-    private:
-        Ui::DropTargetForm *ui;
-        std::unique_ptr< QStandardItemModel > model_;
-        std::vector< std::wstring > dropfiles_;
     };
 
 }
 
-#endif // DROPTARGETFORM_HPP
+Q_DECLARE_METATYPE( batchproc::process );
+
+#endif // BATCHPROCDELEGATE_HPP

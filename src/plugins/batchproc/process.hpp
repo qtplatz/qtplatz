@@ -22,45 +22,40 @@
 **
 **************************************************************************/
 
-#ifndef DROPTARGETFORM_HPP
-#define DROPTARGETFORM_HPP
+#ifndef PROCESS_HPP
+#define PROCESS_HPP
 
-#include <QWidget>
-#include <QUrl>
-#include <memory>
-
-class QStandardItemModel;
-
-namespace Ui {
-class DropTargetForm;
-}
-
-template<class T> class QList;
-class QUrl;
+#include "batchprocconstants.hpp"
+#include <QString>
 
 namespace batchproc {
 
-    class DropTargetForm : public QWidget {
-        Q_OBJECT
-
-    public:
-        explicit DropTargetForm(QWidget *parent = 0);
-        ~DropTargetForm();
-
-        const std::vector< std::wstring >& dropped_files() const;
-
-    signals:
-        void dropped( const QList<QString>& );
-
-    private slots:
-        void handleDropFiles( const QList<QUrl>& );
-
-    private:
-        Ui::DropTargetForm *ui;
-        std::unique_ptr< QStandardItemModel > model_;
-        std::vector< std::wstring > dropfiles_;
+    enum process_state {
+        PROCESS_IDLE
+        , PROCESS_RUNNING
+        , PROCESS_CANCELING
+        , PROCESS_DORMANT
+        , PROCESS_COMPLETED
+    };
+    
+    enum process_kind {
+        PROCESS_NONE
+        , PROCESS_IMPORT
     };
 
+    class process {
+        process_kind kind_;
+        process_state state_;
+    public:
+        process( process_kind t = PROCESS_NONE, process_state s = PROCESS_IDLE );
+        process_kind kind() const;
+        void kind( process_kind );
+        process_state state() const;
+        void state( process_state );
+
+        QString display_name() const;
+    };
+    
 }
 
-#endif // DROPTARGETFORM_HPP
+#endif // PROCESS_HPP

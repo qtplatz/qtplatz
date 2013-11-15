@@ -28,6 +28,9 @@
 #include <QWidget>
 #include <QIcon>
 #include <QLabel>
+#include <QUrl>
+
+template<class T> class QList;
 
 namespace batchproc {
 
@@ -37,7 +40,8 @@ namespace batchproc {
         explicit DropWidget(QWidget *parent = 0);
         
     signals:
-            
+        void dropFiles( const QList< QUrl >& );
+
     public slots:
         
     private:

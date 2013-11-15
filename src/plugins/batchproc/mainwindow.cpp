@@ -24,7 +24,12 @@
 
 #include "mainwindow.hpp"
 #include "batchmode.hpp"
+#include "batchprocconstants.hpp"
 #include "droptargetform.hpp"
+#include "batchprocdelegate.hpp"
+#include "import.hpp"
+#include "task.hpp"
+#include "process.hpp"
 #include <qtwrapper/trackingenabled.hpp>
 
 #include <coreplugin/minisplitter.h>
@@ -43,12 +48,16 @@
 #include <QTableView>
 #include <QDockWidget>
 #include <QStandardItemModel>
+#include <QMenu>
+
+#include <boost/filesystem.hpp>
 
 using namespace batchproc;
 
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , tableView_( new QTableView( this ) )
                                         , model_( new QStandardItemModel )
+                                        , delegate_( new BatchprocDelegate )
 {
 }
 
@@ -72,9 +81,13 @@ MainWindow::createContents( Core::IMode * mode )
         editorAndFindWidget->setLayout( editorHolderLayout );
         editorHolderLayout->addWidget( tableView_.get() );
         tableView_->setModel( model_.get() );
-        editorHolderLayout->addWidget( new QTextEdit );
-    }
-
+		tableView_->setItemDelegate( delegate_.get() );
+        connect( tableView_.get(), SIGNAL( customContextMenuRequested( const QPoint& ) ), this, SLOT( showContextMenu( const QPoint& ) ) );
+        connect( delegate_.get(), SIGNAL( stateChanged( const QModelIndex& ) ), this, SLOT( handleStateChanged( const QModelIndex& ) ) );
+		tableView_->setContextMenuPolicy( Qt::CustomContextMenu );
+	}
+    connect( this, SIGNAL( emitProgress(int, int, int) ), this, SLOT( handleProgress( int, int, int) ) );
+/*
     Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
     if ( documentAndRightPane ) {
         documentAndRightPane->addWidget( editorAndFindWidget );
@@ -82,7 +95,7 @@ MainWindow::createContents( Core::IMode * mode )
         documentAndRightPane->setStretchFactor( 0, 1 );
         documentAndRightPane->setStretchFactor( 1, 0 );
     }
-
+*/
     Utils::StyledBar * toolBar = new Utils::StyledBar;
     if ( toolBar ) {
         toolBar->setProperty( "topBorder", true );
@@ -91,13 +104,6 @@ MainWindow::createContents( Core::IMode * mode )
         toolBarLayout->setSpacing( 0 );
         toolBarLayout->addItem( new QSpacerItem( 40, 20 ) );
         toolBarLayout->addWidget( new QLabel( tr("Control Method: ") ) );
-        // toolBarLayout->addWidget( ctrlMethodName_ = new QLineEdit );
-        // ctrlMethodName_->setReadOnly( true );
-
-        //toolBarLayout->addItem( new QSpacerItem( 40, 20 ) );
-        //toolBarLayout->addWidget( new QLabel( tr("Process Method: ") ) );
-        // toolBarLayout->addWidget( procMethodName_ = new QLineEdit );
-        // procMethodName_->setReadOnly( true );
 
         toolBarLayout->addItem( new QSpacerItem( 40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum ) );
         //
@@ -121,7 +127,8 @@ MainWindow::createContents( Core::IMode * mode )
         centralWidget->setLayout( centralLayout );
         centralLayout->setMargin( 0 );
         centralLayout->setSpacing( 0 );
-        centralLayout->addWidget( documentAndRightPane ); // [0]
+        // centralLayout->addWidget( documentAndRightPane ); // [0]
+        centralLayout->addWidget( editorAndFindWidget ); // [0]
         centralLayout->setStretch( 0, 1 );
         centralLayout->setStretch( 1, 0 );
 
@@ -163,16 +170,28 @@ MainWindow::createActions()
 void
 MainWindow::onInitialUpdate()
 {
-    model_->setColumnCount( 10 );
-    model_->setRowCount( 10 );
+	using namespace batchproc::Constants;
+
+    QStandardItemModel& model = *model_;
+    model.setColumnCount( Constants::c_batchproc_num_columns );
+    model.setHeaderData( 0, Qt::Vertical, QObject::tr( "#" ) );
+    model.setHeaderData( c_batchproc_filename, Qt::Horizontal, QObject::tr( "File name" ) );
+    model.setHeaderData( c_batchproc_process, Qt::Horizontal, QObject::tr( "Process" ) );
+	model.setHeaderData( c_batchproc_progress, Qt::Horizontal, QObject::tr( "Progress" ) );
+    model.setRowCount( 1 );
+
+	tableView_->resizeRowsToContents();
+
     setSimpleDockWidgetArrangement();
 }
 
 void
 MainWindow::createDockWidgets()
 {
-    QWidget * w = new DropTargetForm( this );
-    createDockWidget( w, "Drop Target" );
+    if ( QWidget * w = new DropTargetForm( this ) ) {
+        connect( w, SIGNAL( dropped( const QList<QString>& ) ), this, SLOT( handleDropped( const QList<QString>& ) ) );
+        createDockWidget( w, "Drop Target" );
+    }
 }
 
 QDockWidget *
@@ -216,4 +235,103 @@ MainWindow::setSimpleDockWidgetArrangement()
     // if ( toolBarDock )
     //     toolBarDock->show();
     update();
+}
+
+void
+MainWindow::handleDropped( const QList<QString>& files )
+{
+    QStandardItemModel& model = *model_;
+
+    for ( auto file: files ) {
+
+        boost::filesystem::path path( file.toStdWString() );
+        
+        if ( std::find( files_.begin(), files_.end(), path ) == files_.end() ) {
+
+            const int row = int( files_.size()  );
+            files_.push_back( file.toStdWString() );
+
+            if ( model.rowCount() < int( files_.size() ) )
+                model.setRowCount( files_.size() );
+
+            model.setData( model.index( row, Constants::c_batchproc_filename ), file );
+			model.setData( model.index( row, Constants::c_batchproc_process ), QVariant::fromValue( process( PROCESS_IMPORT ) ) );
+			model.setData( model.index( row, Constants::c_batchproc_state ), "Waiting" );
+            if ( QStandardItem * cbx = model.itemFromIndex( model.index( row, Constants::c_batchproc_state ) ) ) {
+                cbx->setFlags( Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | cbx->flags() );
+                cbx->setEditable( true );
+                model.setData( model.index( row, Constants::c_batchproc_state ), Qt::Unchecked, Qt::CheckStateRole );
+            }
+            model.item( row, Constants::c_batchproc_filename )->setEditable( false );
+        }
+    }
+    tableView_->resizeColumnsToContents();
+	tableView_->resizeRowsToContents();
+}
+
+void
+MainWindow::showContextMenu( const QPoint& pt )
+{
+	QModelIndex index = tableView_->currentIndex();
+
+    if ( index.isValid() ) {
+
+        std::vector< QAction * > actions;
+        QMenu menu;
+        
+        QString file = model_->index( index.row(), Constants::c_batchproc_filename ).data( Qt::EditRole ).toString();
+        actions.push_back( menu.addAction( "Cancel " + file ) );
+        if ( QAction * selected = menu.exec( this->mapToGlobal( pt ) ) ) {
+            if ( selected == actions[ 0 ] ) {
+                auto proc = model_->index( index.row(), Constants::c_batchproc_process ).data().value< process >();
+                proc.state( PROCESS_CANCELING );
+                model_->setData( model_->index( index.row(), Constants::c_batchproc_process ), QVariant::fromValue( proc ) );
+            }
+        }
+    }
+}
+
+void
+MainWindow::handleStateChanged( const QModelIndex& index )
+{
+    if ( index.column() == Constants::c_batchproc_state ) {
+
+        if ( bool state = index.data( Qt::CheckStateRole ) == Qt::Checked ) {
+
+            model_->item( index.row(), Constants::c_batchproc_process )->setEditable( false );
+            // model_->item( index.row(), index.column() )->setEditable( false ); // cbx
+
+            process proc = model_->index( index.row(), Constants::c_batchproc_process ).data().value< process >();
+
+            if ( proc.state() == PROCESS_IDLE ) {
+
+                proc.state( PROCESS_RUNNING );
+				model_->setData( model_->index( index.row(), Constants::c_batchproc_process ), QVariant::fromValue( proc ) );
+
+                QString file = model_->index( index.row(), Constants::c_batchproc_filename ).data( Qt::EditRole ).toString();
+
+                auto proc
+                    = std::make_shared< import >( index.row(), file.toStdWString(), L"", [=](int row, int curr, int total)->bool{
+                            emit emitProgress( row, curr, total );
+                            return model_->index( row, Constants::c_batchproc_process ).data().value< process >().state() == PROCESS_CANCELING;
+                        });
+                if ( proc && *proc )
+                    task::instance()->post( *proc );
+            }
+
+        } else {
+            process proc = model_->index( index.row(), Constants::c_batchproc_process ).data().value< process >();
+            proc.state( PROCESS_CANCELING );
+            model_->setData( model_->index( index.row(), Constants::c_batchproc_process ), QVariant::fromValue( proc ) );
+        }
+    }
+}
+
+void
+MainWindow::handleProgress( int rowId, int curr, int total )
+{
+    QStandardItemModel& model = *model_;
+
+    QModelIndex index = model.index( rowId, Constants::c_batchproc_progress );
+    model.setData( index, int( double( curr * 100 ) / total ) );
 }
