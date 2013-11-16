@@ -24,10 +24,13 @@
 
 #include "import.hpp"
 #include <adportable/debug.hpp>
+#include <adportable/profile.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/lcmsdataset.hpp>
+#include <adfs/filesystem.hpp>
+#include <boost/filesystem.hpp>
 #include <thread>
 #include <chrono>
 
@@ -46,8 +49,32 @@ import::import( int row
                                                                   , progress_( progress )
                                                                   , datafile_(0)
                                                                   , accessor_(0)
+                                                                  , fs_( new adfs::filesystem )
 {
     datafile_ = adcontrols::datafile::open( source_file, true );
+
+    if ( destination_file.empty() ) {
+
+        boost::filesystem::path src( source_file );
+
+        boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
+        dir /= "data";
+		dir /= src.parent_path().leaf();
+
+        if ( !boost::filesystem::exists( dir ) )
+            boost::filesystem::create_directories( dir );
+
+		boost::filesystem::path path( dir / src.filename() );
+        path.replace_extension( L".adfs" );
+
+		destination_file_ = path.generic_wstring();
+
+        if ( ! fs_->create( destination_file_.c_str() ) ) {
+            adcontrols::datafile::close( datafile_ );
+            datafile_ = 0;
+        }
+        
+    }
 }
 
 import::~import()
@@ -68,7 +95,7 @@ import::operator()()
         const adcontrols::Chromatogram& chro = *tic_[0];
         size_t nSpectra = chro.size();
 
-        for ( int i = 0; i < nSpectra; ++i ) {
+        for ( size_t i = 0; i < nSpectra; ++i ) {
 
             if ( progress_( rowId_, i, chro.size() ) ) {
                 progress_( rowId_, 0, 0 ); // canceled

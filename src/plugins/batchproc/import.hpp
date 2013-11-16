@@ -34,6 +34,7 @@
 #include <functional>
 
 namespace adcontrols { class datafile; class LCMSDataset; class Chromatogram; }
+namespace adfs { class filesystem; }
 
 namespace batchproc {
 
@@ -61,6 +62,7 @@ namespace batchproc {
         std::function<bool(int, int, int)> progress_;
         adcontrols::datafile * datafile_;
         const adcontrols::LCMSDataset* accessor_;
+        std::unique_ptr< adfs::filesystem > fs_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
     };
 

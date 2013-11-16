@@ -33,6 +33,7 @@
 #include <adportable/profile.hpp>
 #include <adutils/mscalibio.hpp>
 #include <adutils/acquiredconf.hpp>
+#include <adutils/acquireddata.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
 #include <boost/date_time.hpp>
@@ -103,8 +104,8 @@ SampleProcessor::prepare_storage( SignalObserver::Observer * masterObserver )
 		return;
 
     adutils::AcquiredConf::create_table( fs_->db() );
+    adutils::AcquiredData::create_table( fs_->db() );
     adutils::mscalibio::create_table( fs_->db() );
-	create_acquireddata_table();
 	
 	populate_descriptions( masterObserver );
     populate_calibration( masterObserver );
@@ -168,22 +169,24 @@ SampleProcessor::handle_data( unsigned long objId, long pos
     }
 }
 
-void
-SampleProcessor::create_acquireddata_table()
-{
-	adfs::stmt sql( fs_->db() );
-	sql.exec( 
-        "CREATE TABLE AcquiredData \
-(oid    INTEGER                    \
-,time   INTEGER                    \
-,npos   INTEGER                    \
-,fcn    INTEGER                    \
-,events INTEGER                    \
-,data   BLOB                       \
-,meta   BLOB                       \
-)"
-        );
-}
+#if 0
+// void
+// SampleProcessor::create_acquireddata_table()
+// {
+// 	adfs::stmt sql( fs_->db() );
+// 	sql.exec( 
+//         "CREATE TABLE AcquiredData \
+// (oid    INTEGER                    \
+// ,time   INTEGER                    \
+// ,npos   INTEGER                    \
+// ,fcn    INTEGER                    \
+// ,events INTEGER                    \
+// ,data   BLOB                       \
+// ,meta   BLOB                       \
+// )"
+//         );
+// }
+#endif
 
 void
 SampleProcessor::populate_calibration( SignalObserver::Observer * parent )
