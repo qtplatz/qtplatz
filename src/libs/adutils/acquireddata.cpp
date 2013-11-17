@@ -39,9 +39,9 @@ AcquiredData::insert( adfs::sqlite& db
                       , int32_t pos
                       , int32_t fcn
                       , uint32_t events
-                      , const int8_t * data
+                      , const char * data
                       , size_t dsize
-                      , const int8_t * meta
+                      , const char * meta
                       , size_t msize )
 {
     adfs::stmt sql( db );

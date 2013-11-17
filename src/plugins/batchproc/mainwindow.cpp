@@ -86,7 +86,7 @@ MainWindow::createContents( Core::IMode * mode )
         connect( delegate_.get(), SIGNAL( stateChanged( const QModelIndex& ) ), this, SLOT( handleStateChanged( const QModelIndex& ) ) );
 		tableView_->setContextMenuPolicy( Qt::CustomContextMenu );
 	}
-    connect( this, SIGNAL( emitProgress(int, int, int) ), this, SLOT( handleProgress( int, int, int) ) );
+    connect( this, SIGNAL( emitProgress(int, int, int) ), this, SLOT( handleProgress( int, int, int ) ) );
 /*
     Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
     if ( documentAndRightPane ) {
@@ -333,5 +333,5 @@ MainWindow::handleProgress( int rowId, int curr, int total )
     QStandardItemModel& model = *model_;
 
     QModelIndex index = model.index( rowId, Constants::c_batchproc_progress );
-    model.setData( index, int( double( curr * 100 ) / total ) );
+    model.setData( index, double( curr * 100 ) / total );
 }

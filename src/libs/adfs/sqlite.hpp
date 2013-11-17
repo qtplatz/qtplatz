@@ -65,6 +65,7 @@ namespace adfs {
         ~blob();
         blob();
         blob( std::size_t octets, const int8_t *p = 0 );
+        blob( std::size_t octets, const char *p = 0 );
         boost::uint32_t size() const;
         inline const int8_t * get() const { return p_; }
         inline operator bool () const { return pBlob_ != 0; }

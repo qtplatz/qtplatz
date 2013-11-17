@@ -22,37 +22,24 @@
 **
 **************************************************************************/
 
-#ifndef ACQUIREDDATA_HPP
-#define ACQUIREDDATA_HPP
+#ifndef MASSSPECTROMETERFACTORY_HPP
+#define MASSSPECTROMETERFACTORY_HPP
 
-#pragma once
+#include <adcontrols/massspectrometer_factory.hpp>
+#include <memory>
 
-#include <cstdint>
-#include <string>
-#include <vector>
+namespace batchproc {
 
-namespace adfs { class sqlite; }
-
-namespace adutils {
-
-    class AcquiredData  {
+    class MassSpectrometerFactory : public adcontrols::massspectrometer_factory {
     public:
-        AcquiredData();
+        MassSpectrometerFactory();
 
-        static bool insert( adfs::sqlite& db
-                            , uint64_t objid
-                            , int64_t time
-                            , int32_t pos
-                            , int32_t fcn
-                            , uint32_t events
-                            , const char * data
-                            , size_t dsize
-                            , const char * meta = 0
-                            , size_t msize = 0 );
-
-        static bool create_table( adfs::sqlite& db );
+        const wchar_t * name() const override;
+        adcontrols::MassSpectrometer * get( const wchar_t * modelname ) override;
+    private:
+        std::unique_ptr< adcontrols::MassSpectrometer > spectrometer_;
     };
 
 }
 
-#endif // ACQUIREDDATA_HPP
+#endif // MASSSPECTROMETERFACTORY_HPP

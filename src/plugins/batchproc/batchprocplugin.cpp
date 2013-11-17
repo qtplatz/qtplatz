@@ -27,6 +27,8 @@
 #include "batchprocconstants.hpp"
 #include "mainwindow.hpp"
 #include "batchmode.hpp"
+#include "massspectrometerfactory.hpp"
+#include <adcontrols/massspectrometerbroker.hpp>
 
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
@@ -47,6 +49,7 @@ using namespace batchproc;
 
 batchprocPlugin::batchprocPlugin() : mainWindow_( new MainWindow() )
                                    , mode_( std::make_shared< BatchMode >(this) )
+                                   , msfactory_( new MassSpectrometerFactory() )
 {
     // Create your members
 }
@@ -91,6 +94,7 @@ bool batchprocPlugin::initialize(const QStringList &arguments, QString *errorStr
 
 void batchprocPlugin::extensionsInitialized()
 {
+	adcontrols::massSpectrometerBroker::register_factory( msfactory_.get(), msfactory_->name() );
     mainWindow_->onInitialUpdate();
 }
 

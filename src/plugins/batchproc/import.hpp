@@ -63,6 +63,7 @@ namespace batchproc {
         adcontrols::datafile * datafile_;
         const adcontrols::LCMSDataset* accessor_;
         std::unique_ptr< adfs::filesystem > fs_;
+        uint64_t objId_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
     };
 

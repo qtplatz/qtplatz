@@ -28,8 +28,14 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
 #include <adcontrols/lcmsdataset.hpp>
+#include <adcontrols/metric/prefix.hpp>
+#include <adinterface/signalobserver.hpp>
+#include <adutils/acquiredconf.hpp>
+#include <adutils/acquireddata.hpp>
 #include <adfs/filesystem.hpp>
+#include <adfs/cpio.hpp>
 #include <boost/filesystem.hpp>
 #include <thread>
 #include <chrono>
@@ -43,13 +49,15 @@ import::import()
 import::import( int row
                 , const std::wstring& source_file
                 , const std::wstring& destination_file
-                , std::function< bool(int, int, int) > progress ) : rowId_( row )
-                                                                  , source_file_( source_file )
-                                                                  , destination_file_( destination_file )
-                                                                  , progress_( progress )
-                                                                  , datafile_(0)
-                                                                  , accessor_(0)
-                                                                  , fs_( new adfs::filesystem )
+                , std::function< bool(int, int, int) > progress )
+    : rowId_( row )
+    , source_file_( source_file )
+    , destination_file_( destination_file )
+    , progress_( progress )
+    , datafile_(0)
+    , accessor_(0)
+    , fs_( new adfs::filesystem )
+    , objId_( 1 )
 {
     datafile_ = adcontrols::datafile::open( source_file, true );
 
@@ -73,7 +81,34 @@ import::import( int row
             adcontrols::datafile::close( datafile_ );
             datafile_ = 0;
         }
+        adutils::AcquiredConf::create_table( fs_->db() );
+        adutils::AcquiredData::create_table( fs_->db() );
         
+        adutils::AcquiredConf::insert( fs_->db()
+                                       , objId_ 
+                                       , 0   // pobjid
+                                       , L"batchproc::import"
+                                       , uint64_t( signalobserver::eTRACE_SPECTRA )
+                                       , uint64_t( signalobserver::eMassSpectrometer )
+                                       , L"MS.PROFILE"
+                                       , L"Profile mass spectrum"
+                                       , L"m/z"
+                                       , L"intensity"
+                                       , 4
+                                       , 0 );
+
+        adutils::AcquiredConf::insert( fs_->db()
+                                       , objId_ + 1
+                                       , 0   // pobjid
+                                       , L"batchproc::import"
+                                       , uint64_t( signalobserver::eTRACE_TRACE )
+                                       , uint64_t( signalobserver::eMassSpectrometer )
+                                       , L"MS.TIC"
+                                       , L"TIC"
+                                       , L"time"
+                                       , L"intensity"
+                                       , 4
+                                       , 0 );
     }
 }
 
@@ -94,6 +129,16 @@ import::operator()()
 
         const adcontrols::Chromatogram& chro = *tic_[0];
         size_t nSpectra = chro.size();
+        if ( nSpectra > 0 ) {
+            adfs::detail::cpio obuf;
+            if ( adfs::cpio< adcontrols::Chromatogram >::serialize( chro, obuf ) ) {
+                uint32_t events = 0;
+                int64_t time = 0; // us
+                uint32_t fcn = 0;
+                int32_t pos = 0;
+                adutils::AcquiredData::insert( fs_->db(), objId_ + 1, time, pos, fcn, events, obuf.get(), obuf.size() );
+            }
+        }
 
         for ( size_t i = 0; i < nSpectra; ++i ) {
 
@@ -103,8 +148,18 @@ import::operator()()
             }
 
             adcontrols::MassSpectrum ms;
-            accessor_->getSpectrum( 0, i, ms );
-            // std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+            if ( accessor_->getSpectrum( 0, i, ms ) ) {
+                const adcontrols::MSProperty& prop = ms.getMSProperty();
+
+                adfs::detail::cpio obuf;
+                if ( adfs::cpio< adcontrols::MassSpectrum >::serialize( ms, obuf ) ) {
+                    uint64_t time = static_cast<uint64_t>( adcontrols::metric::scale_to_micro( prop.timeSinceInjection() ) );
+                    uint32_t events = 0;
+                    adutils::AcquiredData::insert( fs_->db(), objId_, time, i, 0, events, obuf.get(), obuf.size() );
+                }
+
+            }
+
         }
 
         progress_( rowId_, nSpectra, nSpectra ); // completed

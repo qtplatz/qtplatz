@@ -10,6 +10,7 @@ namespace batchproc {
 
     class MainWindow;
     class BatchMode;
+    class MassSpectrometerFactory;
 
     class batchprocPlugin : public ExtensionSystem::IPlugin {
         Q_OBJECT
@@ -28,6 +29,7 @@ namespace batchproc {
     private:
         MainWindow * mainWindow_;
         std::shared_ptr< BatchMode > mode_;
+        std::unique_ptr< MassSpectrometerFactory > msfactory_;
     };
     
 } // namespace batchproc

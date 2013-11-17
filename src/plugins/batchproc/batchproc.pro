@@ -31,7 +31,9 @@ SOURCES += batchprocplugin.cpp \
     batchprocdelegate.cpp \
     task.cpp \
     import.cpp \
-    process.cpp
+    process.cpp \
+    datainterpreter.cpp \
+    massspectrometerfactory.cpp
 
 HEADERS += batchprocplugin.hpp \
         batchproc_global.hpp \
@@ -43,7 +45,9 @@ HEADERS += batchprocplugin.hpp \
         batchprocdelegate.hpp \
         task.hpp \
         import.hpp \
-        process.hpp
+        process.hpp \
+    datainterpreter.hpp \
+    massspectrometerfactory.hpp
 
 
 ## set the QTC_SOURCE environment variable to override the setting here

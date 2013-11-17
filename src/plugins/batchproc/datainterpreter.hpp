@@ -22,37 +22,29 @@
 **
 **************************************************************************/
 
-#ifndef ACQUIREDDATA_HPP
-#define ACQUIREDDATA_HPP
+#ifndef DATAINTERPRETER_HPP
+#define DATAINTERPRETER_HPP
 
-#pragma once
+#include <adcontrols/datainterpreter.hpp>
 
-#include <cstdint>
-#include <string>
-#include <vector>
+namespace batchproc {
 
-namespace adfs { class sqlite; }
-
-namespace adutils {
-
-    class AcquiredData  {
+    class DataInterpreter : public adcontrols::DataInterpreter {
     public:
-        AcquiredData();
+        DataInterpreter();
 
-        static bool insert( adfs::sqlite& db
-                            , uint64_t objid
-                            , int64_t time
-                            , int32_t pos
-                            , int32_t fcn
-                            , uint32_t events
-                            , const char * data
-                            , size_t dsize
-                            , const char * meta = 0
-                            , size_t msize = 0 );
+        adcontrols::translate_state translate( adcontrols::MassSpectrum&
+                                               , const char * data, size_t dsize
+                                               , const char * meta, size_t msize
+                                               , const adcontrols::MassSpectrometer&
+                                               , size_t idData ) const override;
+        
+        adcontrols::translate_state translate( adcontrols::TraceAccessor&
+                                               , const char * data, size_t dsize
+                                               , const char * meta, size_t msize, unsigned long events ) const override;
 
-        static bool create_table( adfs::sqlite& db );
     };
 
 }
-
-#endif // ACQUIREDDATA_HPP
+    
+#endif // DATAINTERPRETER_HPP

@@ -123,7 +123,6 @@ void
 SampleProcessor::pos_front( unsigned int pos, unsigned long objId )
 {
     if ( pos > pos_front_ ) {
-		// adportable::debug(__FILE__, __LINE__) << "pos_front: " << pos << " obj=" << objId;
         // keep largest pos and it's objId
         pos_front_ = pos;
         objId_front_ = objId;
@@ -134,8 +133,6 @@ void
 SampleProcessor::handle_data( unsigned long objId, long pos
                               , const SignalObserver::DataReadBuffer& rdBuf )
 {
-    // adportable::debug(__FILE__, __LINE__) << "ID: " << myId_ << " handle_data(" << objId << ", " << pos << ")";
-
     if ( rdBuf.events & SignalObserver::wkEvent_INJECT ) {
         if ( ! inProgress_ )
             Logging( L"Sample '%1%' got an INJECTION", EventLog::pri_INFO ) % storage_name_.wstring();
@@ -168,25 +165,6 @@ SampleProcessor::handle_data( unsigned long objId, long pos
             Logging( L"Sample '%1%' %2% data behind.", EventLog::pri_INFO ) % storage_name_.stem() % nBehind;
     }
 }
-
-#if 0
-// void
-// SampleProcessor::create_acquireddata_table()
-// {
-// 	adfs::stmt sql( fs_->db() );
-// 	sql.exec( 
-//         "CREATE TABLE AcquiredData \
-// (oid    INTEGER                    \
-// ,time   INTEGER                    \
-// ,npos   INTEGER                    \
-// ,fcn    INTEGER                    \
-// ,events INTEGER                    \
-// ,data   BLOB                       \
-// ,meta   BLOB                       \
-// )"
-//         );
-// }
-#endif
 
 void
 SampleProcessor::populate_calibration( SignalObserver::Observer * parent )

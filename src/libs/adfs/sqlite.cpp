@@ -406,7 +406,11 @@ blob::blob() : p_(0), octets_(0), pBlob_(0)
 {
 }
 
-blob::blob( std::size_t octets, const int8_t *p ) : p_(p), octets_( octets ), pBlob_(0)
+blob::blob( std::size_t octets, const int8_t *p ) : p_( p ), octets_( octets ), pBlob_(0)
+{
+}
+
+blob::blob( std::size_t octets, const char *p ) : p_( reinterpret_cast< const int8_t *>(p) ), octets_( octets ), pBlob_(0)
 {
 }
 

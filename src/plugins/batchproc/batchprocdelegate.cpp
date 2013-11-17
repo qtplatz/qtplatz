@@ -38,14 +38,14 @@ void
 BatchprocDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const 
 {
     if ( index.column() == Constants::c_batchproc_progress ) {
-        int progress = index.data().toInt();
+        double progress = index.data().toDouble();
         
         QStyleOptionProgressBar progressBarOption;
         progressBarOption.rect = QRect( option.rect.x(), option.rect.y() + (option.rect.height() - 12) / 2, option.rect.width(), 12 );
         progressBarOption.minimum = 0;
         progressBarOption.maximum = 100;
         progressBarOption.progress = progress;
-        progressBarOption.text = QString::number(progress) + "%";
+        progressBarOption.text = QString::number(progress, 'f', 3) + "%";
         progressBarOption.textVisible = true;
         progressBarOption.textAlignment = Qt::AlignCenter;
         QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBarOption, painter);
