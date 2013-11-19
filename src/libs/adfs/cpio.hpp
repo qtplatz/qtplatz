@@ -70,6 +70,12 @@ namespace adfs {
             return data_type::restore( is, t );
         }
 
+        template<class T> static bool serialize( const T& t, std::string& ar ) {
+            boost::iostreams::back_insert_device< std::string > inserter( ar );
+            boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+            return data_type::archive( device, t );
+        }
+
         template<class T> static bool deserialize( T& t, const char * data, size_t length ) {
             boost::iostreams::basic_array_source< char > device( data, length );
             boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );

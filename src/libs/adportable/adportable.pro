@@ -33,7 +33,8 @@ SOURCES += adportable.cpp \
     lifecycleframe.cpp \
     timer.cpp \
     profile.cpp \
-    textfile.cpp
+    textfile.cpp \
+    bzip2.cpp
 
 win32 {
    SOURCES += protocollifecycle.cpp
@@ -67,5 +68,6 @@ HEADERS += adportable.hpp \
     lifecycleframe.hpp \
     timer.hpp \
     profile.hpp \
-    textfile.hpp
+    textfile.hpp \
+    bzip2.hpp
 

@@ -684,7 +684,7 @@ AcquirePlugin::readMassSpectra( const SignalObserver::DataReadBuffer& rb
         dataInterpreter.translate( ms
                                    , reinterpret_cast< const char *>(rb.xdata.get_buffer()), rb.xdata.length()
                                    , reinterpret_cast< const char *>(rb.xmeta.get_buffer()), rb.xmeta.length()
-                                   , spectrometer, idData++ );
+                                   , spectrometer, idData++, 0 );
     if ( state == adcontrols::translate_complete ) {
         std::lock_guard< std::mutex > lock( mutex_ );
         fifo_ms_.push_back( rdmap_[ objid ] );

@@ -30,6 +30,9 @@
 #include <functional>
 #include <vector>
 #include <tuple>
+#include <cstdint>
+
+namespace adfs { class sqlite; }
 
 namespace adcontrols {
 
@@ -54,6 +57,10 @@ namespace adcontrols {
 									 , int endPos = (-1) ) const = 0;
 		virtual bool getCalibration( int, MSCalibrateResult&, MassSpectrum& ) const { return false; }
 		virtual bool hasProcessedSpectrum( int /* fcn */, int /* idx */) const { return false; } // compassXpress return true for centroid result
+        virtual uint32_t findObjId( const std::wstring& /* traceId */) const { return 0; }
+        virtual bool getRaw( uint64_t /*objid*/, uint64_t /*npos*/
+                             , uint64_t& /*fcn*/, std::vector< char >& /*data*/, std::vector< char >& /*meta*/ ) const { return 0; }
+        virtual adfs::sqlite * db() { return 0; }
 	};
 
 }

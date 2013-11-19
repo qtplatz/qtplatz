@@ -37,7 +37,8 @@ namespace batchproc {
                                                , const char * data, size_t dsize
                                                , const char * meta, size_t msize
                                                , const adcontrols::MassSpectrometer&
-                                               , size_t idData ) const override;
+                                               , size_t idData
+											   , int fcn ) const override;
         
         adcontrols::translate_state translate( adcontrols::TraceAccessor&
                                                , const char * data, size_t dsize

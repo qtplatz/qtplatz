@@ -21,24 +21,43 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+#ifdef _MSC_VER
+#pragma warning(disable:4244)
+#endif
 
 #include "import.hpp"
-#include <adportable/debug.hpp>
-#include <adportable/profile.hpp>
+#include "importdata.hpp"
+#include "task.hpp"
+
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/metric/prefix.hpp>
-#include <adinterface/signalobserver.hpp>
-#include <adutils/acquiredconf.hpp>
-#include <adutils/acquireddata.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/cpio.hpp>
+#include <adinterface/signalobserver.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/profile.hpp>
+#include <adportable/serializer.hpp>
+#include <adportable/float.hpp>
+#include <adportable/bzip2.hpp>
+#include <adutils/acquiredconf.hpp>
+#include <adutils/acquireddata.hpp>
+
 #include <boost/filesystem.hpp>
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/filter/bzip2.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/iostreams/copy.hpp>
+
 #include <thread>
 #include <chrono>
+#include <algorithm>
 
 using namespace batchproc;
 
@@ -57,7 +76,9 @@ import::import( int row
     , datafile_(0)
     , accessor_(0)
     , fs_( new adfs::filesystem )
-    , objId_( 1 )
+    , profileId_( 1 )
+    , centroidId_( profileId_ + 1 )
+    , ticId_( profileId_ + 2 )
 {
     datafile_ = adcontrols::datafile::open( source_file, true );
 
@@ -73,7 +94,7 @@ import::import( int row
             boost::filesystem::create_directories( dir );
 
 		boost::filesystem::path path( dir / src.filename() );
-        path.replace_extension( L".adfs" );
+        path.replace_extension( L".adfs~" );
 
 		destination_file_ = path.generic_wstring();
 
@@ -85,7 +106,7 @@ import::import( int row
         adutils::AcquiredData::create_table( fs_->db() );
         
         adutils::AcquiredConf::insert( fs_->db()
-                                       , objId_ 
+                                       , profileId_ 
                                        , 0   // pobjid
                                        , L"batchproc::import"
                                        , uint64_t( signalobserver::eTRACE_SPECTRA )
@@ -98,7 +119,20 @@ import::import( int row
                                        , 0 );
 
         adutils::AcquiredConf::insert( fs_->db()
-                                       , objId_ + 1
+                                       , centroidId_
+                                       , 0   // pobjid
+                                       , L"batchproc::import"
+                                       , uint64_t( signalobserver::eTRACE_SPECTRA )
+                                       , uint64_t( signalobserver::eMassSpectrometer )
+                                       , L"MS.CENTROID"
+                                       , L"Profile mass spectrum"
+                                       , L"m/z"
+                                       , L"intensity"
+                                       , 4
+                                       , 0 );
+
+        adutils::AcquiredConf::insert( fs_->db()
+                                       , ticId_
                                        , 0   // pobjid
                                        , L"batchproc::import"
                                        , uint64_t( signalobserver::eTRACE_TRACE )
@@ -114,8 +148,25 @@ import::import( int row
 
 import::~import()
 {
-    if ( datafile_ )
+    if ( datafile_ ) {
         adcontrols::datafile::close( datafile_ );
+        fs_->close();
+        fs_.reset();
+
+        boost::filesystem::path path( destination_file_ );
+        path.replace_extension( L".adfs" );
+        try {
+            if ( boost::filesystem::exists( path ) )
+                boost::filesystem::remove( path );
+        } catch ( std::exception& ex ) {
+            adportable::debug(__FILE__, __LINE__) << "remove file " << path.string() << " caught an exception: " << ex.what();
+        }
+        try {
+            boost::filesystem::rename( destination_file_, path );
+        } catch ( std::exception& ex ) {
+            adportable::debug(__FILE__, __LINE__) << "rename file " << destination_file_ << " to " << path.string() << " caught an exception: " << ex.what();
+        }
+    }
 }
 
 bool
@@ -130,43 +181,133 @@ import::operator()()
         const adcontrols::Chromatogram& chro = *tic_[0];
         size_t nSpectra = chro.size();
         if ( nSpectra > 0 ) {
-            adfs::detail::cpio obuf;
-            if ( adfs::cpio< adcontrols::Chromatogram >::serialize( chro, obuf ) ) {
+            std::string archived;
+            if ( adfs::cpio< adcontrols::Chromatogram >::serialize( chro, archived ) ) {
+                std::string compressed;
+                adportable::bzip2::compress( compressed, archived.data(), archived.size() );
+
                 uint32_t events = 0;
                 int64_t time = 0; // us
                 uint32_t fcn = 0;
                 int32_t pos = 0;
-                adutils::AcquiredData::insert( fs_->db(), objId_ + 1, time, pos, fcn, events, obuf.get(), obuf.size() );
+                adutils::AcquiredData::insert( fs_->db(), ticId_, time, pos, fcn, events, compressed.data(), compressed.size() );
             }
         }
+        if ( accessor_->hasProcessedSpectrum( 0, 0 ) )
+            import_processed_spectra( 1, nSpectra );
+        import_profile_spectra( 0, nSpectra );
+        task::instance()->remove( *this );
 
-        for ( size_t i = 0; i < nSpectra; ++i ) {
-
-            if ( progress_( rowId_, i, chro.size() ) ) {
-                progress_( rowId_, 0, 0 ); // canceled
-                return false;
-            }
-
-            adcontrols::MassSpectrum ms;
-            if ( accessor_->getSpectrum( 0, i, ms ) ) {
-                const adcontrols::MSProperty& prop = ms.getMSProperty();
-
-                adfs::detail::cpio obuf;
-                if ( adfs::cpio< adcontrols::MassSpectrum >::serialize( ms, obuf ) ) {
-                    uint64_t time = static_cast<uint64_t>( adcontrols::metric::scale_to_micro( prop.timeSinceInjection() ) );
-                    uint32_t events = 0;
-                    adutils::AcquiredData::insert( fs_->db(), objId_, time, i, 0, events, obuf.get(), obuf.size() );
-                }
-
-            }
-
-        }
-
-        progress_( rowId_, nSpectra, nSpectra ); // completed
         return true;
     }
-    progress_( rowId_, 0, 0 ); // 
     return false;
+}
+
+bool
+import::import_processed_spectra( uint64_t fcn, size_t nSpectra )
+{
+    for ( size_t i = 0; i < nSpectra; ++i ) {
+
+        if ( progress_( rowId_, i, nSpectra ) ) {
+            progress_( rowId_, 0, 0 ); // canceled
+            return false;
+        }
+        
+        adcontrols::MassSpectrum ms;
+        if ( accessor_->getSpectrum( fcn, i, ms ) ) {
+
+            if ( ! ms.isCentroid() )
+                continue;
+
+            std::string ar;
+            if ( adfs::cpio< adcontrols::MassSpectrum >::serialize( ms, ar ) ) {
+                //std::string compressed;
+                //adportable::bzip2::compress( compressed, ar.data(), ar.size() );
+
+                uint64_t time = static_cast<uint64_t>( adcontrols::metric::scale_to_micro( ms.getMSProperty().timeSinceInjection() ) );
+                uint32_t events = 0;
+                adutils::AcquiredData::insert( fs_->db(), centroidId_, time, i, 1, events, ar.data(), ar.size() );
+                
+                adportable::debug(__FILE__, __LINE__) << "import spectrum size " << ar.size();
+            }
+        }  
+    }
+    progress_( rowId_, nSpectra, nSpectra ); // completed
+    return true;
+}
+
+bool
+import::import_profile_spectra( uint64_t fcn, size_t nSpectra )
+{
+    import_continuum_massarray meta;
+    
+    for ( size_t i = 0; i < nSpectra; ++i ) {
+
+        if ( progress_( rowId_, i, nSpectra ) ) {
+            progress_( rowId_, 0, 0 ); // canceled
+            return false;
+        }
+        
+        adcontrols::MassSpectrum ms;
+        if ( accessor_->getSpectrum( fcn, i, ms ) ) {
+            bool keep_masses = true;
+            
+            if ( i == 0 ) {
+                keep_masses = false;
+            } else {
+                if ( ms.size() != meta.masses_.size() )
+                    keep_masses = false;
+                
+                const double * org = meta.masses_.data();
+                const double * ptr = ms.getMassArray();
+                
+                for ( size_t k = 0; k < ms.size(); ++k ) {
+                    if ( ! adportable::compare<double>::is_equal( *org++, *ptr++ ) ) {
+                        keep_masses = false;
+                        break;
+                    }
+                }
+            }
+            
+            import_profile profile;
+            setup_continuum_spectrum( profile, ms );
+            
+            if ( !keep_masses )
+                setup_continuum_massarray( meta, ms );
+            
+            std::string obuf;
+            boost::iostreams::back_insert_device< std::string > inserter( obuf );
+            boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > astrm( inserter );
+
+            std::string archive_data;
+            std::string archive_meta;
+            //std::string compressed_data;
+            std::string compressed_meta;
+
+            do {
+                if ( adportable::serializer< import_profile >::serialize( profile, archive_data ) ) {
+                    //adportable::bzip2::compress( compressed_data, archive_data.data(), archive_data.size() );
+                }
+            } while(0);
+
+            if ( !keep_masses ) {
+                if ( adportable::serializer< import_continuum_massarray >::serialize( meta, archive_meta ) ) {
+                    adportable::bzip2::compress( compressed_meta, archive_meta.data(), archive_meta.size() );
+                }
+            }
+
+            uint64_t time = static_cast<uint64_t>( adcontrols::metric::scale_to_micro( ms.getMSProperty().timeSinceInjection() ) );
+            uint32_t events = 0;
+            adutils::AcquiredData::insert( fs_->db(), profileId_, time, i, 0, events
+                                           , archive_data.data(), archive_data.size()
+                                           , compressed_meta.data(), compressed_meta.size() );
+            
+            adportable::debug(__FILE__, __LINE__)
+                << "import spectrum size " << archive_data.size() << " mass array size: " << archive_meta.size();
+        }
+    }
+    progress_( rowId_, nSpectra, nSpectra ); // completed
+    return true;
 }
 
 bool
@@ -180,4 +321,22 @@ import::subscribe( const adcontrols::LCMSDataset& data )
             tic_.push_back( c );
     }
     return true;
+}
+
+void
+import::setup_continuum_massarray( import_continuum_massarray& d, const adcontrols::MassSpectrum& ms )
+{
+    const double * p = ms.getMassArray();
+	d.masses_.resize( ms.size() );
+	std::copy( p, p + ms.size(), d.masses_.begin() );
+}
+
+void
+import::setup_continuum_spectrum( import_profile& d, const adcontrols::MassSpectrum& ms )
+{
+    const double * p = ms.getIntensityArray();
+    d.prop_ = ms.getMSProperty();
+    d.polarity_ = ms.polarity();
+	d.intensities_.resize( ms.size() );
+	std::copy( p, p + ms.size(), d.intensities_.begin() );
 }

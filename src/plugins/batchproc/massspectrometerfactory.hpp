@@ -28,6 +28,8 @@
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <memory>
 
+namespace adcontrols { class datafile; }
+
 namespace batchproc {
 
     class MassSpectrometerFactory : public adcontrols::massspectrometer_factory {
@@ -36,10 +38,11 @@ namespace batchproc {
 
         const wchar_t * name() const override;
         adcontrols::MassSpectrometer * get( const wchar_t * modelname ) override;
+        std::shared_ptr< adcontrols::MassSpectrometer > create( const wchar_t * modelname, adcontrols::datafile * ) const override;
+
     private:
         std::unique_ptr< adcontrols::MassSpectrometer > spectrometer_;
     };
-
 }
 
 #endif // MASSSPECTROMETERFACTORY_HPP

@@ -104,7 +104,7 @@ datafile::~datafile()
 }
 
 datafile::datafile() : mounted_(false)
-                     , rawdata_( new rawdata( dbf_ ) )
+                     , rawdata_( new rawdata( dbf_, *this ) )
 {
 }
 

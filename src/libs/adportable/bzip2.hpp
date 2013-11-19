@@ -22,44 +22,23 @@
 **
 **************************************************************************/
 
-#include "massspectrometerfactory.hpp"
-#include "datainterpreter.hpp"
-#include "massspectrometer.hpp"
-#include <adcontrols/massspectrometer.hpp>
-#include <adcontrols/datainterpreter.hpp>
-#include <adcontrols/mscalibrateresult.hpp>
+#ifndef BZIP2_HPP
+#define BZIP2_HPP
 
-namespace batchproc {
+#pragma once
+
+#include <string>
+
+namespace adportable {
+
+    class bzip2 {
+    public:
+        bzip2();
+        static void compress( std::string& compressed, const char * uncompressed, size_t length );
+        static void decompress( std::string& uncompressed, const char * compressed, size_t length );
+        static bool is_a( const char *, size_t length );
+    };
 
 }
 
-using namespace batchproc;
-
-MassSpectrometerFactory::MassSpectrometerFactory() : spectrometer_( new MassSpectrometer(0) )
-{
-}
-
-const wchar_t * 
-MassSpectrometerFactory::name() const
-{
-    return L"batchproc::import";
-}
-
-adcontrols::MassSpectrometer *
-MassSpectrometerFactory::get( const wchar_t * modelname )
-{
-    if ( std::wcscmp( L"batchproc::import", modelname ) == 0 )
-        return spectrometer_.get();
-
-    return 0;
-}
-
-std::shared_ptr< adcontrols::MassSpectrometer >
-MassSpectrometerFactory::create( const wchar_t * modelname, adcontrols::datafile * datafile ) const
-{
-    if ( std::wcscmp( L"batchproc::import", modelname ) == 0 )
-        return std::make_shared< batchproc::MassSpectrometer >( datafile );
-
-    return 0;
-}
-
+#endif // BZIP2_HPP

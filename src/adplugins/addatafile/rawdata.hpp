@@ -32,6 +32,7 @@
 #include <adutils/acquiredconf.hpp>
 #include <memory>
 #include <map>
+#include <cstdint>
 
 namespace adcontrols {
     class Chromatogram;
@@ -48,7 +49,7 @@ namespace addatafile {
         rawdata( const rawdata& ); // noncopyable
     public:
         ~rawdata();
-        rawdata( adfs::filesystem& );
+        rawdata( adfs::filesystem&, adcontrols::datafile& );
 
         // LCMSDataset
         size_t getFunctionCount() const override;
@@ -63,17 +64,22 @@ namespace addatafile {
 									 , std::function< bool (long curr, long total ) > progress
 									 , int begPos = 0
 									 , int endPos = (-1) ) const override;
+        bool hasProcessedSpectrum( int, int ) const override;
+        uint32_t findObjId( const std::wstring& traceId ) const override;
+        bool getRaw( uint64_t objid, uint64_t npos, uint64_t& fcn, std::vector< char >& data, std::vector< char >& meta ) const override;
+
         bool loadAcquiredConf();
         void loadCalibrations();
 
-        // bool readCalibration( size_t idx, adcontrols::MSCalibrateResult& ) const;
         bool applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& );
+        adfs::sqlite* db();
 
     private:
         bool fetchTraces( int64_t objid, const std::wstring& clsid, adcontrols::TraceAccessor& );
         adcontrols::translate_state fetchSpectrum( int64_t objid, const std::wstring& clsid, uint64_t npos, adcontrols::MassSpectrum& ) const;
 
         adfs::filesystem& dbf_;
+        adcontrols::datafile& parent_;
         std::vector< adutils::AcquiredConf::data > conf_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
         std::map< uint64_t, std::shared_ptr< adcontrols::MassSpectrometer > > spectrometers_; // objid,spectrometer

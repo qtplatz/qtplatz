@@ -46,7 +46,18 @@ namespace batchproc {
 
         template<class T> void post( T& doit ) {
             io_service_.post( [&]{ doit(); } );
+            std::lock_guard< std::mutex > lock( mutex_ );
             processes_.push_back( doit.shared_from_this() );
+        }
+        template<class T> void remove( T& me ) {
+            auto ptr = me.shared_from_this();
+            std::lock_guard< std::mutex > lock( mutex_ );
+            auto it = std::find_if( processes_.begin(), processes_.end(), [=]( boost::any& a ){
+                    return ((a.type() == typeid( std::shared_ptr<T> ))
+                            && (boost::any_cast<std::shared_ptr<T> >(a) == ptr ) );
+                });
+            if ( it != processes_.end() )
+                processes_.erase( it );
         }
 
     private:

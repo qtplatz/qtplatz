@@ -27,10 +27,12 @@
 
 #include "adcontrols_global.h"
 #include <string>
+#include <memory>
 
 namespace adcontrols {
 
     class MassSpectrometer;
+    class datafile;
     
     class ADCONTROLSSHARED_EXPORT massspectrometer_factory {
     public:
@@ -38,7 +40,8 @@ namespace adcontrols {
         virtual ~massspectrometer_factory(void);
 
         virtual const wchar_t * name() const = 0;
-        virtual MassSpectrometer * get( const wchar_t * modelname ) = 0;
+        virtual MassSpectrometer * get( const wchar_t * modelname ) = 0; // depricated
+        virtual std::shared_ptr< MassSpectrometer > create( const wchar_t * modelname, adcontrols::datafile * ) const = 0;
     };
     
 }

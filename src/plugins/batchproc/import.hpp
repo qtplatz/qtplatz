@@ -33,10 +33,13 @@
 #include <memory>
 #include <functional>
 
-namespace adcontrols { class datafile; class LCMSDataset; class Chromatogram; }
+namespace adcontrols { class datafile; class LCMSDataset; class Chromatogram; class MassSpectrum; }
 namespace adfs { class filesystem; }
 
 namespace batchproc {
+
+    class import_continuum_massarray;
+    class import_profile;
 
     class import : public std::enable_shared_from_this< import >
                  , public adcontrols::dataSubscriber {
@@ -63,8 +66,15 @@ namespace batchproc {
         adcontrols::datafile * datafile_;
         const adcontrols::LCMSDataset* accessor_;
         std::unique_ptr< adfs::filesystem > fs_;
-        uint64_t objId_;
+        uint64_t profileId_;
+        uint64_t centroidId_;
+        uint64_t ticId_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
+        
+        void setup_continuum_massarray( import_continuum_massarray&, const adcontrols::MassSpectrum& );
+        void setup_continuum_spectrum( import_profile&, const adcontrols::MassSpectrum& );
+        bool import_profile_spectra( uint64_t fcn, size_t );
+        bool import_processed_spectra( uint64_t fcn, size_t );
     };
 
 }
