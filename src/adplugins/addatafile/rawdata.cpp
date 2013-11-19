@@ -199,8 +199,9 @@ rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms ) const
         if ( sql.prepare( "SELECT max(npos) FROM AcquiredData WHERE oid = :oid AND fcn = 0 AND npos <= :npos" ) ) {
             sql.bind( 1 ) = it->objid;
             sql.bind( 2 ) = npos;
-            if ( sql.step() == adfs::sqlite_row )
-                npos = boost::get< boost::int64_t >(sql.column_value( 0 ));
+            if ( sql.step() == adfs::sqlite_row ) {
+				npos = sql.get_column_value< uint64_t >( 0 );
+			}
         }
         adcontrols::translate_state state;
         while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms ) )

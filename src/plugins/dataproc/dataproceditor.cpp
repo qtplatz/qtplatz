@@ -34,6 +34,7 @@
 #include <coreplugin/filemanager.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/coreconstants.h>
+#include <qtwrapper/waitcursor.hpp>
 
 using namespace dataproc;
 
@@ -74,6 +75,8 @@ DataprocEditor::portfolio_create( const QString& token )
 bool
 DataprocEditor::open( const QString &filename )
 {
+	qtwrapper::waitCursor wait;
+
     std::shared_ptr<Dataprocessor> processor( new Dataprocessor );
 
     if ( processor->open( filename ) ) {
