@@ -80,28 +80,94 @@ import::import( int row
     , centroidId_( profileId_ + 1 )
     , ticId_( profileId_ + 2 )
 {
-    datafile_ = adcontrols::datafile::open( source_file, true );
+    // open should be run in main thread with respect to CoInitialize (for Bruker CompassXtrace)
+    datafile_ = adcontrols::datafile::open( source_file_, true );
+}
 
-    if ( destination_file.empty() ) {
+import::~import()
+{
+    if ( datafile_ ) {
+        adcontrols::datafile::close( datafile_ );
+        fs_->close();
+        fs_.reset();
 
-        boost::filesystem::path src( source_file );
+        boost::filesystem::path path( destination_file_ );
+        path.replace_extension( L".adfs" );
+        try {
+            if ( boost::filesystem::exists( path ) )
+                boost::filesystem::remove( path );
+        } catch ( std::exception& ex ) {
+            adportable::debug(__FILE__, __LINE__) << "remove file " << path.string() << " caught an exception: " << ex.what();
+        }
+        try {
+            boost::filesystem::rename( destination_file_, path );
+        } catch ( std::exception& ex ) {
+            adportable::debug(__FILE__, __LINE__) << "rename file " << destination_file_ << " to " << path.string() << " caught an exception: " << ex.what();
+        }
+    }
+}
 
-        boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
-        dir /= "data";
-		dir /= src.parent_path().leaf();
+bool
+import::operator()()
+{
+    if ( datafile_ && open_destination() ) {
 
-        if ( !boost::filesystem::exists( dir ) )
-            boost::filesystem::create_directories( dir );
+        datafile_->accept( *this );
+        if ( tic_.empty() )
+            return false;
 
-		boost::filesystem::path path( dir / src.filename() );
-        path.replace_extension( L".adfs~" );
+        const adcontrols::Chromatogram& chro = *tic_[0];
+        size_t nSpectra = chro.size();
+        if ( nSpectra > 0 ) {
+            std::string archived;
+            if ( adfs::cpio< adcontrols::Chromatogram >::serialize( chro, archived ) ) {
+                std::string compressed;
+                adportable::bzip2::compress( compressed, archived.data(), archived.size() );
 
-		destination_file_ = path.generic_wstring();
+                uint32_t events = 0;
+                int64_t time = 0; // us
+                uint32_t fcn = 0;
+                int32_t pos = 0;
+                adutils::AcquiredData::insert( fs_->db(), ticId_, time, pos, fcn, events, compressed.data(), compressed.size() );
+            }
+        }
+        if ( accessor_->hasProcessedSpectrum( 0, 0 ) )
+            import_processed_spectra( 1, nSpectra );
+        import_profile_spectra( 0, nSpectra );
+        task::instance()->remove( *this );
+
+        return true;
+    }
+    return false;
+}
+
+bool
+import::open_destination()    
+{
+    if ( datafile_ ) {
+
+        if ( destination_file_.empty() ) {
+            
+            boost::filesystem::path src( source_file_ );
+
+            boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
+            dir /= "data";
+            dir /= src.parent_path().leaf();
+
+            if ( !boost::filesystem::exists( dir ) )
+                boost::filesystem::create_directories( dir );
+
+            boost::filesystem::path path( dir / src.filename() );
+            path.replace_extension( L".adfs~" );
+
+            destination_file_ = path.generic_wstring();
+		}
 
         if ( ! fs_->create( destination_file_.c_str() ) ) {
             adcontrols::datafile::close( datafile_ );
-            datafile_ = 0;
+            return false;
         }
+
         adutils::AcquiredConf::create_table( fs_->db() );
         adutils::AcquiredData::create_table( fs_->db() );
         
@@ -143,61 +209,6 @@ import::import( int row
                                        , L"intensity"
                                        , 4
                                        , 0 );
-    }
-}
-
-import::~import()
-{
-    if ( datafile_ ) {
-        adcontrols::datafile::close( datafile_ );
-        fs_->close();
-        fs_.reset();
-
-        boost::filesystem::path path( destination_file_ );
-        path.replace_extension( L".adfs" );
-        try {
-            if ( boost::filesystem::exists( path ) )
-                boost::filesystem::remove( path );
-        } catch ( std::exception& ex ) {
-            adportable::debug(__FILE__, __LINE__) << "remove file " << path.string() << " caught an exception: " << ex.what();
-        }
-        try {
-            boost::filesystem::rename( destination_file_, path );
-        } catch ( std::exception& ex ) {
-            adportable::debug(__FILE__, __LINE__) << "rename file " << destination_file_ << " to " << path.string() << " caught an exception: " << ex.what();
-        }
-    }
-}
-
-bool
-import::operator()()
-{
-    if ( datafile_ ) {
-
-        datafile_->accept( *this );
-        if ( tic_.empty() )
-            return false;
-
-        const adcontrols::Chromatogram& chro = *tic_[0];
-        size_t nSpectra = chro.size();
-        if ( nSpectra > 0 ) {
-            std::string archived;
-            if ( adfs::cpio< adcontrols::Chromatogram >::serialize( chro, archived ) ) {
-                std::string compressed;
-                adportable::bzip2::compress( compressed, archived.data(), archived.size() );
-
-                uint32_t events = 0;
-                int64_t time = 0; // us
-                uint32_t fcn = 0;
-                int32_t pos = 0;
-                adutils::AcquiredData::insert( fs_->db(), ticId_, time, pos, fcn, events, compressed.data(), compressed.size() );
-            }
-        }
-        if ( accessor_->hasProcessedSpectrum( 0, 0 ) )
-            import_processed_spectra( 1, nSpectra );
-        import_profile_spectra( 0, nSpectra );
-        task::instance()->remove( *this );
-
         return true;
     }
     return false;

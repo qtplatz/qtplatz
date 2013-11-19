@@ -44,6 +44,19 @@ namespace batchproc {
                                                , const char * data, size_t dsize
                                                , const char * meta, size_t msize, unsigned long events ) const override;
 
+    private:
+        adcontrols::translate_state translate_profile( adcontrols::MassSpectrum&
+                                                       , const char * data, size_t dsize
+                                                       , const char * meta, size_t msize
+                                                       , const adcontrols::MassSpectrometer&
+                                                       , size_t idData ) const;
+
+        adcontrols::translate_state translate_processed( adcontrols::MassSpectrum&
+                                                         , const char * data, size_t dsize
+                                                         , const char * meta, size_t msize
+                                                         , const adcontrols::MassSpectrometer&
+                                                         , size_t idData ) const;
+        
     };
 
 }

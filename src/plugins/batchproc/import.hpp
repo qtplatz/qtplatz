@@ -51,7 +51,9 @@ namespace batchproc {
                 , const std::wstring& destination_file
                 , std::function<bool(int, int, int)> );
 
-        operator bool () const { return datafile_ != 0; }
+        operator bool () const { 
+			return datafile_ != 0;
+		}
         bool operator()();
 
         // adcontrols::dataSubscriber
@@ -70,7 +72,7 @@ namespace batchproc {
         uint64_t centroidId_;
         uint64_t ticId_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
-        
+        bool open_destination();
         void setup_continuum_massarray( import_continuum_massarray&, const adcontrols::MassSpectrum& );
         void setup_continuum_spectrum( import_profile&, const adcontrols::MassSpectrum& );
         bool import_profile_spectra( uint64_t fcn, size_t );

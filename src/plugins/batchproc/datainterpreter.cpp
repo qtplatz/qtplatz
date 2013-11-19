@@ -46,6 +46,21 @@ DataInterpreter::translate( adcontrols::MassSpectrum& ms
                             , size_t idData
 							, int fcn ) const
 {
+    if ( fcn == 0 )
+        return translate_profile( ms, data, dsize, meta, msize, spectrometer, idData );
+    else
+        return translate_processed( ms, data, dsize, meta, msize, spectrometer, idData );
+}
+
+adcontrols::translate_state
+DataInterpreter::translate_profile( adcontrols::MassSpectrum& ms
+                                    , const char * data, size_t dsize
+                                    , const char * meta, size_t msize
+                                    , const adcontrols::MassSpectrometer& spectrometer
+                                    , size_t idData ) const
+{
+	(void)idData;
+
     import_profile profile;
     import_continuum_massarray ma;
     
@@ -93,6 +108,34 @@ DataInterpreter::translate( adcontrols::MassSpectrum& ms
 
     ms.setAcquisitionMassRange( ms.getMass( 0 ), ms.getMass( ms.size() - 1 ) );
 
+    return adcontrols::translate_complete;
+}
+
+adcontrols::translate_state
+DataInterpreter::translate_processed( adcontrols::MassSpectrum& ms
+                                    , const char * data, size_t dsize
+                                    , const char * meta, size_t msize
+                                    , const adcontrols::MassSpectrometer& spectrometer
+                                    , size_t idData ) const
+{
+    const batchproc::MassSpectrometer* pSpectrometer = dynamic_cast< const batchproc::MassSpectrometer * >( &spectrometer );
+    if ( pSpectrometer == 0 )
+        return adcontrols::translate_error;
+
+    if ( adportable::bzip2::is_a( data, dsize ) ) {
+
+        std::string ar;
+        adportable::bzip2::decompress( ar, data, dsize );
+
+        if ( ! adfs::cpio< adcontrols::MassSpectrum >::deserialize( ms, ar.data(), ar.size() ) )
+            return adcontrols::translate_error;
+
+    } else {
+
+		if ( ! adfs::cpio< adcontrols::MassSpectrum >::deserialize( ms, data, dsize ) ) 
+            return adcontrols::translate_error;
+
+    }
     return adcontrols::translate_complete;
 }
 

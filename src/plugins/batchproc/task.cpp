@@ -63,4 +63,5 @@ task::open()
 {
 	threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
 	threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
+	threads_.push_back( std::thread( [&](){ io_service_.run(); } ) );
 }
