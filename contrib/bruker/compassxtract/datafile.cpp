@@ -146,13 +146,25 @@ datafile::hasProcessedSpectrum( int /* fcn */, int /* idx */) const
 	return true;
 }
 
+uint32_t
+datafile::findObjId( const std::wstring& traceId ) const
+{ 
+    if ( traceId == L"MS.PROFILE" )
+        return 1;
+    if ( traceId == L"MS.CENTROID" )
+        return 2;
+	return 0;
+}
+
 #if defined _MSC_VER
 # pragma warning(disable:4482)
 #endif
 //virtual
 bool
-datafile::getSpectrum( int fcn, int pos, adcontrols::MassSpectrum& ms ) const
+datafile::getSpectrum( int fcn, int pos, adcontrols::MassSpectrum& ms, uint32_t objId ) const
 {
+	(void)fcn;
+
 	try {
 		EDAL::IMSSpectrumCollectionPtr pSpectra = pAnalysis_->GetMSSpectrumCollection();
 		EDAL::IMSSpectrumPtr pSpectrum = pSpectra->GetItem( pos + 1 ); // 1-origin
@@ -169,12 +181,12 @@ datafile::getSpectrum( int fcn, int pos, adcontrols::MassSpectrum& ms ) const
         ms.setMSProperty( prop ); // <- end of prop set
 
 		_variant_t vMasses, vIntens;
-		if ( fcn == 1 ) {
-			pSpectrum->GetMassIntensityValues( EDAL::SpectrumType_Line, &vMasses, &vIntens );
-			ms.setCentroid( adcontrols::CentroidNative );
-		} else { // fcn == 0
+        if ( objId <= 1 ) {
 			pSpectrum->GetMassIntensityValues( EDAL::SpectrumType_Profile, &vMasses, &vIntens );
 			ms.setCentroid( adcontrols::CentroidNone );  // profile
+        } else { // objId should be 2
+			pSpectrum->GetMassIntensityValues( EDAL::SpectrumType_Line, &vMasses, &vIntens );
+			ms.setCentroid( adcontrols::CentroidNative );
 		}
 
 		SafeArray sa_masses( vMasses );

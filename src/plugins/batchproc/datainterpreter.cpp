@@ -44,12 +44,13 @@ DataInterpreter::translate( adcontrols::MassSpectrum& ms
                             , const char * meta, size_t msize
                             , const adcontrols::MassSpectrometer& spectrometer
                             , size_t idData
-							, int fcn ) const
+							, const wchar_t * traceId ) const
 {
-    if ( fcn == 0 )
+    if ( traceId == 0 || (traceId && std::wcscmp( traceId, L"MS.PROFILE") == 0 ) )
         return translate_profile( ms, data, dsize, meta, msize, spectrometer, idData );
-    else
+    else if ( traceId && std::wcscmp( traceId, L"MS.CENTROID" ) == 0 )
         return translate_processed( ms, data, dsize, meta, msize, spectrometer, idData );
+	return adcontrols::translate_error;
 }
 
 adcontrols::translate_state

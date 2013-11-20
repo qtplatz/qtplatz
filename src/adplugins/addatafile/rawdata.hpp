@@ -56,7 +56,7 @@ namespace addatafile {
         size_t getSpectrumCount( int fcn = 0 ) const override;
         size_t getChromatogramCount() const override;
         bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
-        bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const override;
+        bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum&, uint32_t objId ) const override;
 		size_t posFromTime( double ) const override;
 		double timeFromPos( size_t ) const override;
 		bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
@@ -76,7 +76,8 @@ namespace addatafile {
 
     private:
         bool fetchTraces( int64_t objid, const std::wstring& clsid, adcontrols::TraceAccessor& );
-        adcontrols::translate_state fetchSpectrum( int64_t objid, const std::wstring& clsid, uint64_t npos, adcontrols::MassSpectrum& ) const;
+        adcontrols::translate_state fetchSpectrum( int64_t objid, const std::wstring& clsid, uint64_t npos
+                                                   , adcontrols::MassSpectrum&, const std::wstring& traceId ) const;
 
         adfs::filesystem& dbf_;
         adcontrols::datafile& parent_;

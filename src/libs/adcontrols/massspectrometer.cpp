@@ -50,8 +50,8 @@ namespace adcontrols {
                                                    , const char * meta, size_t msize 
                                                    , const MassSpectrometer&
                                                    , size_t idData
-												   , int fcn ) const override {
-                (void)data; (void)dsize; (void)meta; (void)msize; (void)idData; (void)fcn;
+												   , const wchar_t * traceId ) const override {
+                (void)data; (void)dsize; (void)meta; (void)msize; (void)idData; (void)traceId;
                 return adcontrols::translate_error;
             }
             

@@ -132,7 +132,7 @@ import::operator()()
             }
         }
         if ( accessor_->hasProcessedSpectrum( 0, 0 ) )
-            import_processed_spectra( 1, nSpectra );
+            import_processed_spectra( 0, nSpectra );
         import_profile_spectra( 0, nSpectra );
         task::instance()->remove( *this );
 
@@ -217,6 +217,8 @@ import::open_destination()
 bool
 import::import_processed_spectra( uint64_t fcn, size_t nSpectra )
 {
+	uint32_t objId = accessor_->findObjId( L"MS.CENTROID" );
+
     for ( size_t i = 0; i < nSpectra; ++i ) {
 
         if ( progress_( rowId_, i, nSpectra ) ) {
@@ -225,7 +227,7 @@ import::import_processed_spectra( uint64_t fcn, size_t nSpectra )
         }
         
         adcontrols::MassSpectrum ms;
-        if ( accessor_->getSpectrum( fcn, i, ms ) ) {
+        if ( accessor_->getSpectrum( fcn, i, ms, objId ) ) {
 
             if ( ! ms.isCentroid() )
                 continue;
@@ -237,7 +239,7 @@ import::import_processed_spectra( uint64_t fcn, size_t nSpectra )
 
                 uint64_t time = static_cast<uint64_t>( adcontrols::metric::scale_to_micro( ms.getMSProperty().timeSinceInjection() ) );
                 uint32_t events = 0;
-                adutils::AcquiredData::insert( fs_->db(), centroidId_, time, i, 1, events, ar.data(), ar.size() );
+                adutils::AcquiredData::insert( fs_->db(), centroidId_, time, i, fcn, events, ar.data(), ar.size() );
                 
                 adportable::debug(__FILE__, __LINE__) << "import spectrum size " << ar.size();
             }

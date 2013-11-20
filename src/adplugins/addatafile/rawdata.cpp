@@ -185,31 +185,37 @@ rawdata::getSpectrumCount( int fcn ) const
 }
 
 bool
-rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms ) const
+rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms, uint32_t objid ) const
 {
-    std::wstring looking = fcn == 0 ? L"MS.PROFILE" : L"MS.CENTROID";
-	auto it = std::find_if( conf_.begin(), conf_.end(), [=]( const adutils::AcquiredConf::data& c ){
-            return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == looking;
+    auto it = std::find_if( conf_.begin(), conf_.end(), [=]( const adutils::AcquiredConf::data& c ){
+            if ( objid == 0 )
+                return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
+            else
+                return c.objid == objid;
         });
+    if ( it == conf_.end() )
+        return false;
 
-	if ( it != conf_.end() ) {
-        uint64_t npos = npos0_ + idx;
+    uint64_t npos = npos0_ + idx;
 
-        adfs::stmt sql( dbf_.db() );
-        if ( sql.prepare( "SELECT max(npos) FROM AcquiredData WHERE oid = :oid AND fcn = 0 AND npos <= :npos" ) ) {
-            sql.bind( 1 ) = it->objid;
-            sql.bind( 2 ) = npos;
-            if ( sql.step() == adfs::sqlite_row ) {
-				npos = sql.get_column_value< uint64_t >( 0 );
-			}
+    adfs::stmt sql( dbf_.db() );
+    if ( sql.prepare( "SELECT max(npos) FROM AcquiredData WHERE oid = :oid AND fcn = :fcn AND npos <= :npos" ) ) {
+        sql.bind( 1 ) = it->objid;
+        sql.bind( 2 ) = fcn;
+        sql.bind( 3 ) = npos;
+        if ( sql.step() == adfs::sqlite_row ) {
+            try {
+                npos = sql.get_column_value< uint64_t >( 0 );
+            } catch ( std::bad_cast& ) {
+                return false; // max() function returns nil raw as step() result, so this exception means no row
+            }
         }
-        adcontrols::translate_state state;
-        while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms ) )
-                == adcontrols::translate_indeterminate )
-            ;
-        return state == adcontrols::translate_complete;
     }
-    return false;
+    adcontrols::translate_state state;
+	while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms, it->trace_id ) )
+            == adcontrols::translate_indeterminate )
+        ;
+    return state == adcontrols::translate_complete;
 }
 
 bool
@@ -313,7 +319,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 
         adcontrols::MassSpectrum ms;
         adcontrols::translate_state state;
-        while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms ) )
+		while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms, it->trace_id ) )
                 == adcontrols::translate_indeterminate )
             ;
 
@@ -393,7 +399,8 @@ rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, a
 adcontrols::translate_state
 rawdata::fetchSpectrum( int64_t objid
                         , const std::wstring& dataInterpreterClsid
-                        , uint64_t npos, adcontrols::MassSpectrum& ms ) const
+                        , uint64_t npos, adcontrols::MassSpectrum& ms
+						, const std::wstring& traceId ) const
 {
     const adcontrols::MassSpectrometer& spectrometer = getSpectrometer( objid, dataInterpreterClsid );
     const adcontrols::DataInterpreter& interpreter = spectrometer.getDataInterpreter();
@@ -411,7 +418,7 @@ rawdata::fetchSpectrum( int64_t objid
 
         if ( sql.step() == adfs::sqlite_row ) {
 			uint64_t rowid  = sql.get_column_value< uint64_t >( 0 );
-			int fcn    = sql.get_column_value< int64_t >( 1 );
+			int fcn    = int( sql.get_column_value< int64_t >( 1 ) );
             
             if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
                 xdata.resize( blob.size() );
@@ -424,7 +431,7 @@ rawdata::fetchSpectrum( int64_t objid
                     blob.read( reinterpret_cast< int8_t *>( xmeta.data() ), blob.size() );
             }
             size_t idData = 0;
-            return interpreter.translate( ms, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), spectrometer, idData++, int(fcn) );
+            return interpreter.translate( ms, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), spectrometer, idData++, traceId.c_str() );
         }
     }
     return adcontrols::translate_error;

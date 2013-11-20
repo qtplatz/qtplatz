@@ -366,7 +366,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                     bool hasCentroid( false );
                     if ( pos1 == pos2 && dset->hasProcessedSpectrum( 0, pos1 ) ) {
                         adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
-                        if ( dset->getSpectrum( 1, pos1, *pCentroid ) ) {
+						if ( dset->getSpectrum( 0, pos1, *pCentroid, dset->findObjId( L"MS.CENTROID" ) ) ) {
                             hasCentroid = true;
                             portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
                             att.assign( pCentroid, pCentroid->dataClass() );

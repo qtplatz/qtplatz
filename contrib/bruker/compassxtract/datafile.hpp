@@ -41,23 +41,25 @@ namespace compassxtract {
 		datafile();
 
 		//--------- implement adcontrols::datafile ----------------
-		virtual const std::wstring& filename() const override;
-		virtual void accept( adcontrols::dataSubscriber& ) override;
-		virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
-		virtual adcontrols::datafile::factory_type factory() override;
-		virtual size_t getFunctionCount() const override;
-		virtual size_t getSpectrumCount( int fcn = 0 ) const override;
-		virtual size_t getChromatogramCount() const override;
-		virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
-		virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const override;
-		virtual size_t posFromTime( double ) const override;
+		const std::wstring& filename() const override;
+		void accept( adcontrols::dataSubscriber& ) override;
+		boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
+		adcontrols::datafile::factory_type factory() override;
+		size_t getFunctionCount() const override;
+		size_t getSpectrumCount( int fcn = 0 ) const override;
+		size_t getChromatogramCount() const override;
+		bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
+		bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum&, uint32_t objId ) const override;
+		size_t posFromTime( double ) const override;
 		double timeFromPos( size_t ) const override;
 		bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
 			                         , std::vector< adcontrols::Chromatogram >&
 									 , std::function< bool (long curr, long total ) > progress
 									 , int begPos = 0
 									 , int endPos = (-1) ) const override { (void)begPos; (void)endPos; return false; }
-		bool hasProcessedSpectrum( int /* fcn */, int /* idx */) const override;
+		bool hasProcessedSpectrum( int /* fcn */, int /* idx */ ) const override;
+        uint32_t findObjId( const std::wstring& traceId ) const override;
+        
 		//<-------------------------------------
 		bool _open( const std::wstring&, bool );
 		static bool is_valid_datafile( const std::wstring& );
