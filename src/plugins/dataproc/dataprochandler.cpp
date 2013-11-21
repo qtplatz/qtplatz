@@ -109,7 +109,7 @@ DataprocHandler::doIsotope( adcontrols::MassSpectrum& res, const adcontrols::Iso
         ra = 100;
 
     if ( m.size() ) {
-
+        
         for ( adcontrols::IsotopeMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it ) {
             std::wstring stdFormula = chemicalFormula.standardFormula( it->formula );
             cluster.addFormula( stdFormula, it->adduct, it->chargeState, it->relativeAmounts );

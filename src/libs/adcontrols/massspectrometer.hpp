@@ -37,6 +37,7 @@ namespace adcontrols {
 	class MSProperty;
     class MSCalibrateResult;
 	class MSCalibration;
+    class datafile;
 
     const double kATOMIC_MASS_CONSTANT = 1.66054020e-27; // [kg/u]
     const double kELEMENTAL_CHARGE    = 1.60217733e-19; // [C]
@@ -51,9 +52,10 @@ namespace adcontrols {
         virtual double fLength( int mode ) const = 0;
     };
 
-    class ADCONTROLSSHARED_EXPORT MassSpectrometer {
+	class ADCONTROLSSHARED_EXPORT MassSpectrometer {
     public:
-        MassSpectrometer(void);
+        MassSpectrometer( void );
+        MassSpectrometer( adcontrols::datafile * );
         MassSpectrometer( const MassSpectrometer& );
         virtual ~MassSpectrometer(void);
         
@@ -66,9 +68,12 @@ namespace adcontrols {
 
         virtual const std::shared_ptr< adcontrols::MSCalibrateResult > getCalibrateResult( size_t idx ) const;
         virtual const adcontrols::MSCalibration * findCalibration( int mode ) const;
+        virtual adcontrols::datafile * datafile() const;
 
+        // static methods 
         static std::shared_ptr< MassSpectrometer > create( const wchar_t * dataInterpreterClsid );
         static std::shared_ptr< MassSpectrometer > create( const char * dataInterpreterClsid );
+        static std::shared_ptr< MassSpectrometer > create( const wchar_t * dataInterpreterClsid, adcontrols::datafile * );
 
         static const MassSpectrometer* find( const wchar_t * dataInterpreterClsid );
         static const MassSpectrometer* find( const char * dataInterpreterClsid );
@@ -82,7 +87,9 @@ namespace adcontrols {
 #if defined _MSC_VER
 # pragma warning(disable:4251)
 #endif
-        const MassSpectrometer * instance_;
+        const MassSpectrometer * proxy_instance_;
+
+        adcontrols::datafile * datafile_;
         std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > mode_calib_map_;
     };
 

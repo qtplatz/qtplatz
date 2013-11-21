@@ -621,7 +621,7 @@ MassSpectrumImpl::~MassSpectrumImpl()
 }
 
 MassSpectrumImpl::MassSpectrumImpl() : algo_(CentroidNone)
-				                     , polarity_(PolarityIndeterminate)
+				                     , polarity_(PolarityPositive)
                                      , timeSinceInjTrigger_(0)
                                      , timeSinceFirmwareUp_(0)
                                      , numSpectrumSinceInjTrigger_(0)
@@ -667,21 +667,21 @@ MassSpectrumImpl::setTimeArray( const double * p )
 {
 	if ( tofArray_.size() != size() )
 		tofArray_.resize( size() );
-	memcpy(&tofArray_[0], p, sizeof(double) * size() );
+	std::copy( p, p + tofArray_.size(), tofArray_.begin() );
 }
 
 void
 MassSpectrumImpl::setMassArray( const double * p, bool setrange )
 {
-    memcpy(&massArray_[0], p, sizeof(double) * size() );
+	std::copy( p, p + massArray_.size(), massArray_.begin() );
     if ( setrange )
-        setAcquisitionMassRange( massArray_[0], massArray_[ size() - 1 ] );
+		setAcquisitionMassRange( massArray_.front(), massArray_.back() );
 }
 
 void
 MassSpectrumImpl::setIntensityArray( const double * p )
 {
-    memcpy(&intsArray_[0], p, sizeof(double) * size() );
+	std::copy( p, p + intsArray_.size(), intsArray_.begin() );
 }
 
 void
@@ -690,7 +690,7 @@ MassSpectrumImpl::setColorArray( const unsigned char * p )
     if ( p ) {
         if ( colArray_.size() != size() )
             colArray_.resize( size() );
-        memcpy(&colArray_[0], p, sizeof( unsigned char ) * size() );
+		std::copy( p, p + colArray_.size(), colArray_.begin() );
     } else {
         colArray_.clear();
     }

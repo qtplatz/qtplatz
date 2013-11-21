@@ -133,7 +133,7 @@ datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& ) const
 
 //virtual
 bool
-datafile::getSpectrum( int /* fcn*/, int /*idx*/, adcontrols::MassSpectrum& ) const
+datafile::getSpectrum( int /* fcn*/, int /*idx*/, adcontrols::MassSpectrum&, uint32_t ) const
 {
 	return false;
 }

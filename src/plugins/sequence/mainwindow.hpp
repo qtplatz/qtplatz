@@ -35,7 +35,7 @@ class QToolButton;
 class QAction;
 class QLineEdit;
 
-namespace adcontrols { class ProcessMethod; }
+namespace adcontrols { class ProcessMethod; class ControlMethod; }
 namespace adportable { class Configuration; }
 namespace adplugin   { class LifeCycle; }
 namespace adextension { class iEditorFactory; }
@@ -61,10 +61,10 @@ namespace sequence {
 		void activateLayout();
 		void setSimpleDockWidgetArrangement();
 
-        bool getControlMethod( ControlMethod::Method& ) const;
+        bool getControlMethod( adcontrols::ControlMethod& ) const;
         bool getProcessMethod( adcontrols::ProcessMethod& ) const;
 
-        bool setControlMethod( const ControlMethod::Method& );
+        bool setControlMethod( const adcontrols::ControlMethod& );
         bool setProcessMethod( const adcontrols::ProcessMethod& );
         void setControlMethodName( const QString& );
         void setProcessMethodName( const QString& );
@@ -85,7 +85,7 @@ namespace sequence {
         QAction * actionConnect_;
         QLineEdit * ctrlMethodName_;
         QLineEdit * procMethodName_;
-        std::unique_ptr< ControlMethod::Method > defaultControlMethod_;
+        std::unique_ptr< adcontrols::ControlMethod > defaultControlMethod_;
 
         std::vector< adplugin::LifeCycle * > editors_;
 

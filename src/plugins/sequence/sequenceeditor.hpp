@@ -30,7 +30,7 @@
 #include <map>
 
 namespace adsequence { class sequence; }
-namespace adcontrols { class ProcessMethod; }
+namespace adcontrols { class ProcessMethod; class ControlMethod; }
 namespace ControlMethod { struct Method; }
 
 namespace sequence {
@@ -71,7 +71,7 @@ namespace sequence {
         void getSequence( adsequence::sequence& ) const;
 
 		void getDefault( adcontrols::ProcessMethod& ) const;
-        void getDefault( ControlMethod::Method& ) const;
+        void getDefault( adcontrols::ControlMethod& ) const;
 
 		void setModified( bool );
 

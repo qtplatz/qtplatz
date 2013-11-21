@@ -209,7 +209,7 @@ Task::handleCoaddSpectrum( const std::wstring& token, SignalObserver::Observer_p
                 state = dataInterpreter.translate( ms
                                                       , reinterpret_cast< const char *>( dbuf->xdata.get_buffer() ), dbuf->xdata.length()
                                                       , reinterpret_cast< const char *>( dbuf->xmeta.get_buffer() ), dbuf->xmeta.length()
-                                                      , spectrometer, idData++ );
+                                                      , spectrometer, idData++, 0 );
             } catch ( std::exception& ex ) {
                 std::cerr << ex.what() << std::endl;
                 return;

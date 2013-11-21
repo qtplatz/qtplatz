@@ -26,7 +26,7 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include "visitor.hpp"
+//#include "visitor.hpp"
 #include <string>
 #include <vector>
 
@@ -35,7 +35,7 @@ namespace adcontrols {
     class MassSpectrometer;
 	class massspectrometer_factory;
 
-    class ADCONTROLSSHARED_EXPORT massSpectrometerBroker : public Visitor {
+    class ADCONTROLSSHARED_EXPORT massSpectrometerBroker { //: public Visitor {
     protected:
         massSpectrometerBroker(void);
         ~massSpectrometerBroker(void);

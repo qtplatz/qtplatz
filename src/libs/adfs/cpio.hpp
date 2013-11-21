@@ -28,29 +28,32 @@
 #include <streambuf>
 #include <memory>
 #include <adfs/file.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream_buffer.hpp>
+#include <boost/iostreams/stream.hpp>
 
 namespace adfs {
 
     class file;
-    typedef char char_t;
+    //typedef char char_t;
 
     namespace detail { 
-        class cpio : public std::basic_streambuf<char_t> {
-			std::unique_ptr< char_t [] > p_;
+        class cpio : public std::basic_streambuf<char> {
+			std::unique_ptr< char [] > p_;
             size_t size_;
             size_t count_;
             bool resize( size_t );
         public:
             cpio() : size_(0), count_(0) {}
-            cpio( size_t size, char_t * p = 0 );
+            cpio( size_t size, char * p = 0 );
 
             inline size_t size() const { return count_; }
-            inline const char_t * get() const { return p_.get(); }
-            inline char_t * get() { return p_.get(); }
+            inline const char * get() const { return p_.get(); }
+            inline char * get() { return p_.get(); }
         protected:
-            virtual std::streamsize xsputn( const char_t * s, std::streamsize num );
-            virtual std::basic_streambuf<char_t>::int_type overflow ( int_type c );
-            virtual std::basic_streambuf<char_t>::int_type underflow();
+            virtual std::streamsize xsputn( const char * s, std::streamsize num );
+            virtual std::basic_streambuf<char>::int_type overflow ( int_type c );
+            virtual std::basic_streambuf<char>::int_type underflow();
         };
     };
 
@@ -65,6 +68,18 @@ namespace adfs {
         template<class T> static bool deserialize( T& t, detail::cpio& ibuf ) {
             std::istream is( &ibuf );
             return data_type::restore( is, t );
+        }
+
+        template<class T> static bool serialize( const T& t, std::string& ar ) {
+            boost::iostreams::back_insert_device< std::string > inserter( ar );
+            boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > device( inserter );
+            return data_type::archive( device, t );
+        }
+
+        template<class T> static bool deserialize( T& t, const char * data, size_t length ) {
+            boost::iostreams::basic_array_source< char > device( data, length );
+            boost::iostreams::stream< boost::iostreams::basic_array_source< char > > st( device );
+            return data_type::restore( st, t );
         }
 
         template<class T> static bool save( const T& t, adfs::file& f ) {

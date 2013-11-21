@@ -49,8 +49,9 @@ namespace adcontrols {
                                                    , const char * data, size_t dsize
                                                    , const char * meta, size_t msize 
                                                    , const MassSpectrometer&
-                                                   , size_t idData ) const override {
-                (void)data; (void)dsize; (void)meta; (void)msize; (void)idData;
+                                                   , size_t idData
+												   , const wchar_t * traceId ) const override {
+                (void)data; (void)dsize; (void)meta; (void)msize; (void)idData; (void)traceId;
                 return adcontrols::translate_error;
             }
             
@@ -68,11 +69,18 @@ namespace adcontrols {
 }
 
 ///////////////////////////////////////////////
-MassSpectrometer::MassSpectrometer() : instance_( 0 )
+MassSpectrometer::MassSpectrometer() : proxy_instance_( 0 )
+                                     , datafile_(0)
 {
 }
 
-MassSpectrometer::MassSpectrometer( const MassSpectrometer& t ) : instance_( t.instance_ )
+MassSpectrometer::MassSpectrometer( adcontrols::datafile * datafile ) : proxy_instance_( 0 )
+                                                                      , datafile_( datafile )
+{
+}
+
+MassSpectrometer::MassSpectrometer( const MassSpectrometer& t ) : proxy_instance_( t.proxy_instance_ )
+                                                                , datafile_( t.datafile_ )
 {
 }
 
@@ -83,16 +91,16 @@ MassSpectrometer::~MassSpectrometer()
 const wchar_t *
 MassSpectrometer::name() const
 {
-    if ( instance_ )
-        return instance_->name();
+    if ( proxy_instance_ )
+        return proxy_instance_->name();
     return 0;
 }
 
 const ScanLaw&
 MassSpectrometer::getScanLaw() const
 {
-    if ( instance_ )
-        return instance_->getScanLaw();
+    if ( proxy_instance_ )
+        return proxy_instance_->getScanLaw();
 
     throw std::bad_cast();
 }
@@ -100,8 +108,8 @@ MassSpectrometer::getScanLaw() const
 const DataInterpreter&
 MassSpectrometer::getDataInterpreter() const
 {
-    if ( instance_ )
-        return instance_->getDataInterpreter();
+    if ( proxy_instance_ )
+        return proxy_instance_->getDataInterpreter();
 
     static internal::DataInterpreter t;
     return t;
@@ -110,8 +118,8 @@ MassSpectrometer::getDataInterpreter() const
 std::shared_ptr<ScanLaw>
 MassSpectrometer::scanLaw( const adcontrols::MSProperty& prop ) const
 {
-    if ( instance_ ) 
-        return instance_->scanLaw( prop );
+    if ( proxy_instance_ ) 
+        return proxy_instance_->scanLaw( prop );
     return 0;
 }
 
@@ -145,10 +153,7 @@ std::shared_ptr< MassSpectrometer >
 MassSpectrometer::create( const wchar_t * dataInterpreterClsid )
 {
 	if ( massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid ) ) {
-        if ( auto ptr = std::make_shared< MassSpectrometer >() ) {
-            if ( ptr->instance_ = factory->get( dataInterpreterClsid ) )
-                return ptr;
-        }
+        return factory->create( dataInterpreterClsid, 0 );
     }
     return 0;
 }
@@ -157,6 +162,20 @@ std::shared_ptr< MassSpectrometer >
 MassSpectrometer::create( const char * dataInterpreterClsid )
 {
     return create( adportable::utf::to_wstring( dataInterpreterClsid ).c_str() );
+}
+
+std::shared_ptr< MassSpectrometer >
+MassSpectrometer::create( const wchar_t * dataInterpreterClsid, adcontrols::datafile * datafile )
+{
+	if ( massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid ) )
+        return factory->create( dataInterpreterClsid, datafile );
+    return 0;
+}
+
+adcontrols::datafile *
+MassSpectrometer::datafile() const
+{
+    return datafile_;
 }
 
 const MassSpectrometer*

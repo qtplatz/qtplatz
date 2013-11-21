@@ -51,7 +51,8 @@ namespace adcontrols {
                        , const char * data, size_t dsize
                        , const char * meta, size_t msize 
                        , const MassSpectrometer&
-                       , size_t idData ) const = 0;
+                       , size_t idData
+                       , const wchar_t * traceId ) const = 0;
         
         virtual translate_state
             translate( TraceAccessor&

@@ -30,6 +30,9 @@
 #include <functional>
 #include <vector>
 #include <tuple>
+#include <cstdint>
+
+namespace adfs { class sqlite; }
 
 namespace adcontrols {
 
@@ -44,7 +47,7 @@ namespace adcontrols {
         virtual size_t getSpectrumCount( int fcn ) const = 0;
         virtual size_t getChromatogramCount() const = 0;
         virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const = 0;
-        virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ) const = 0;
+        virtual bool getSpectrum( int fcn, int idx, adcontrols::MassSpectrum&, uint32_t objid = 0 ) const = 0;
 		virtual size_t posFromTime( double x ) const = 0;
         virtual double timeFromPos( size_t ) const = 0;
 		virtual bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
@@ -54,6 +57,10 @@ namespace adcontrols {
 									 , int endPos = (-1) ) const = 0;
 		virtual bool getCalibration( int, MSCalibrateResult&, MassSpectrum& ) const { return false; }
 		virtual bool hasProcessedSpectrum( int /* fcn */, int /* idx */) const { return false; } // compassXpress return true for centroid result
+        virtual uint32_t findObjId( const std::wstring& /* traceId */) const { return 0; }
+        virtual bool getRaw( uint64_t /*objid*/, uint64_t /*npos*/
+                             , uint64_t& /*fcn*/, std::vector< char >& /*data*/, std::vector< char >& /*meta*/ ) const { return 0; }
+        virtual adfs::sqlite * db() { return 0; }
 	};
 
 }

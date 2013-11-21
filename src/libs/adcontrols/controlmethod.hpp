@@ -78,6 +78,8 @@ namespace adcontrols {
             std::vector< uint8_t > xdata_; // serialized data
 
         private:
+            friend class boost::serialization::access;
+
             template<class Archive>
                 void serialize( Archive& ar, const unsigned int version ) {
                 using namespace boost::serialization;
@@ -94,6 +96,8 @@ namespace adcontrols {
         size_type size() const;
 
     private:
+        friend class boost::serialization::access;
+
         std::wstring subject_;
         std::wstring description_;
         std::vector< MethodLine > lines_;

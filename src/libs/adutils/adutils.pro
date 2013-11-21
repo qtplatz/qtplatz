@@ -20,11 +20,13 @@ SOURCES += adutils.cpp \
     adfsio.cpp \
     fsio.cpp \
     mscalibio.cpp \
-    acquiredconf.cpp
+    acquiredconf.cpp \
+    acquireddata.cpp
 
 HEADERS += adutils.hpp \
     processeddata.hpp \
     adfsio.hpp \
     fsio.hpp \
     mscalibio.hpp \
-    acquiredconf.hpp
+    acquiredconf.hpp \
+    acquireddata.hpp

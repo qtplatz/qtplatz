@@ -28,14 +28,13 @@
 #include "sequencewidget.hpp"
 #include "mainwindow.hpp"
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/controlmethod.hpp>
 #include <adcontrols/centroidmethod.hpp>
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/elementalcompositionmethod.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/targetingmethod.hpp>
-#include <adinterface/controlmethodC.h>
-#include <adinterface/controlmethodhelper.hpp>
 #include <adsequence/sequence.hpp>
 #include <adsequence/schema.hpp>
 #include <coreplugin/uniqueidmanager.h>
@@ -235,7 +234,7 @@ SequenceEditor::getDefault( adcontrols::ProcessMethod& m ) const
 }
 
 void
-SequenceEditor::getDefault( ControlMethod::Method& m ) const
+SequenceEditor::getDefault( adcontrols::ControlMethod& m ) const
 {
 	MainWindow::instance()->getControlMethod( m );
 }
@@ -272,17 +271,14 @@ SequenceEditor::saveToObject( size_t row )
 {
     std::wstring ctrlname = qtwrapper::wstring( widget_->getControlMethodName( row ) );
     if ( ! ctrlname.empty() ) {
-        const ControlMethod::Method * pCM = file_->getControlMethod( ctrlname );
-        ControlMethod::Method tmp;
+        const adcontrols::ControlMethod * pCM = file_->getControlMethod( ctrlname );
+        adcontrols::ControlMethod tmp;
         if ( pCM ) {
             // each device method editor only update own reagin, so existing method should be preserved
             // for all existing methods
             tmp = *pCM;
         }
         MainWindow::instance()->getControlMethod( tmp );
-
-        std::wcout << L"TO OBJECT: (" << ctrlname << L") subject: " 
-                   << tmp.subject.in() << " " << tmp.lines.length() << " lines" << std::endl;
 
         file_->setControlMethod( ctrlname, tmp );
     }
@@ -309,10 +305,8 @@ SequenceEditor::saveToWidget( size_t row )
 
     std::wstring ctrlname = qtwrapper::wstring( qctrlname );
     if ( ! ctrlname.empty() ) {
-        const ControlMethod::Method * p = file_->getControlMethod( ctrlname );
+        const adcontrols::ControlMethod * p = file_->getControlMethod( ctrlname );
         if ( p ) {
-            std::wcout << L"TO WIDGET: (" << ctrlname << L") subject: " 
-                       << p->subject.in() << " " << p->lines.length() << " line(s)" << std::endl;
             MainWindow::instance()->setControlMethod( *p );
         }
     }

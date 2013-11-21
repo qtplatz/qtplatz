@@ -33,6 +33,7 @@
 #include <adportable/profile.hpp>
 #include <adutils/mscalibio.hpp>
 #include <adutils/acquiredconf.hpp>
+#include <adutils/acquireddata.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/folder.hpp>
 #include <boost/date_time.hpp>
@@ -103,8 +104,8 @@ SampleProcessor::prepare_storage( SignalObserver::Observer * masterObserver )
 		return;
 
     adutils::AcquiredConf::create_table( fs_->db() );
+    adutils::AcquiredData::create_table( fs_->db() );
     adutils::mscalibio::create_table( fs_->db() );
-	create_acquireddata_table();
 	
 	populate_descriptions( masterObserver );
     populate_calibration( masterObserver );
@@ -122,7 +123,6 @@ void
 SampleProcessor::pos_front( unsigned int pos, unsigned long objId )
 {
     if ( pos > pos_front_ ) {
-		// adportable::debug(__FILE__, __LINE__) << "pos_front: " << pos << " obj=" << objId;
         // keep largest pos and it's objId
         pos_front_ = pos;
         objId_front_ = objId;
@@ -133,8 +133,6 @@ void
 SampleProcessor::handle_data( unsigned long objId, long pos
                               , const SignalObserver::DataReadBuffer& rdBuf )
 {
-    // adportable::debug(__FILE__, __LINE__) << "ID: " << myId_ << " handle_data(" << objId << ", " << pos << ")";
-
     if ( rdBuf.events & SignalObserver::wkEvent_INJECT ) {
         if ( ! inProgress_ )
             Logging( L"Sample '%1%' got an INJECTION", EventLog::pri_INFO ) % storage_name_.wstring();
@@ -166,23 +164,6 @@ SampleProcessor::handle_data( unsigned long objId, long pos
         else if ( nBehind % 25 == 0 )
             Logging( L"Sample '%1%' %2% data behind.", EventLog::pri_INFO ) % storage_name_.stem() % nBehind;
     }
-}
-
-void
-SampleProcessor::create_acquireddata_table()
-{
-	adfs::stmt sql( fs_->db() );
-	sql.exec( 
-        "CREATE TABLE AcquiredData \
-(oid    INTEGER                    \
-,time   INTEGER                    \
-,npos   INTEGER                    \
-,fcn    INTEGER                    \
-,events INTEGER                    \
-,data   BLOB                       \
-,meta   BLOB                       \
-)"
-        );
 }
 
 void

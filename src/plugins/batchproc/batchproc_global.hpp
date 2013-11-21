@@ -1,0 +1,13 @@
+#ifndef BATCHPROC_GLOBAL_HPP
+#define BATCHPROC_GLOBAL_HPP
+
+#include <QtGlobal>
+
+#if defined(BATCHPROC_LIBRARY)
+#  define BATCHPROCSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define BATCHPROCSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // BATCHPROC_GLOBAL_H
+

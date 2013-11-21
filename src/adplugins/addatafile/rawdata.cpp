@@ -55,15 +55,26 @@ rawdata::~rawdata()
 {
 }
 
-rawdata::rawdata( adfs::filesystem& dbf ) : dbf_( dbf )
-                                          , npos0_( 0 )
-                                          , configLoaded_( false )
+rawdata::rawdata( adfs::filesystem& dbf
+                  , adcontrols::datafile& parent ) : dbf_( dbf )
+                                                   , npos0_( 0 )
+                                                   , configLoaded_( false )
+                                                   , parent_( parent )
 {
+}
+
+adfs::sqlite *
+rawdata::db()
+{
+    return &dbf_.db();
 }
 
 bool
 rawdata::loadAcquiredConf()
 {
+    if ( configLoaded_ )
+        return true;
+
     conf_.clear();
 
     if ( adutils::AcquiredConf::fetch( dbf_.db(), conf_ ) && !conf_.empty() ) {
@@ -94,7 +105,7 @@ bool
 rawdata::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& calibResult )
 {
     uint64_t objid = 1;
-
+    
     auto it = std::find_if( conf_.begin(), conf_.end(), [=](const adutils::AcquiredConf::data& c){
             return c.dataInterpreterClsid == dataInterpreterClsid;
         });
@@ -136,9 +147,8 @@ rawdata::loadCalibrations()
                 auto calibResult = std::make_shared< MSCalibrateResult >();
                 if ( serializer< MSCalibrateResult >::deserialize( *calibResult, device.data(), device.size() ) ) {
                     calibResults_[ conf.objid ] = calibResult;
-					if ( spectrometers_[ conf.objid ] = adcontrols::MassSpectrometer::create( conf.dataInterpreterClsid.c_str() ) ) {
-						spectrometers_[ conf.objid ]->setCalibration( calibResult->mode(), *calibResult );
-                    }
+					auto spectrometer = getSpectrometer( conf.objid, conf.dataInterpreterClsid.c_str() );
+					spectrometer.setCalibration( calibResult->mode(), *calibResult );
                 }
             }
         });
@@ -148,9 +158,12 @@ const adcontrols::MassSpectrometer&
 rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterClsid ) const
 {
     auto it = spectrometers_.find( objid );
-    if ( it != spectrometers_.end() )
-        return *it->second;
-    return adcontrols::MassSpectrometer::get( dataInterpreterClsid.c_str() );
+    if ( it == spectrometers_.end() ) {
+        const_cast< rawdata& >(*this).spectrometers_[ objid ] = 
+            adcontrols::MassSpectrometer::create( dataInterpreterClsid.c_str(), &parent_ );
+        it = spectrometers_.find( objid );
+    }
+    return *it->second;
 }
 
 size_t
@@ -172,31 +185,37 @@ rawdata::getSpectrumCount( int fcn ) const
 }
 
 bool
-rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms ) const
+rawdata::getSpectrum( int fcn, int idx, adcontrols::MassSpectrum& ms, uint32_t objid ) const
 {
-    (void)fcn;
-
-	auto it = std::find_if( conf_.begin(), conf_.end(), []( const adutils::AcquiredConf::data& c ){
-            return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
+    auto it = std::find_if( conf_.begin(), conf_.end(), [=]( const adutils::AcquiredConf::data& c ){
+            if ( objid == 0 )
+                return c.trace_method == signalobserver::eTRACE_SPECTRA && c.trace_id == L"MS.PROFILE";
+            else
+                return c.objid == objid;
         });
+    if ( it == conf_.end() )
+        return false;
 
-	if ( it != conf_.end() ) {
-        uint64_t npos = npos0_ + idx;
+    uint64_t npos = npos0_ + idx;
 
-        adfs::stmt sql( dbf_.db() );
-        if ( sql.prepare( "SELECT max(npos) FROM AcquiredData WHERE oid = :oid AND fcn = 0 AND npos <= :npos" ) ) {
-            sql.bind( 1 ) = it->objid;
-            sql.bind( 2 ) = npos;
-            if ( sql.step() == adfs::sqlite_row )
-                npos = boost::get< boost::int64_t >(sql.column_value( 0 ));
+    adfs::stmt sql( dbf_.db() );
+    if ( sql.prepare( "SELECT max(npos) FROM AcquiredData WHERE oid = :oid AND fcn = :fcn AND npos <= :npos" ) ) {
+        sql.bind( 1 ) = it->objid;
+        sql.bind( 2 ) = fcn;
+        sql.bind( 3 ) = npos;
+        if ( sql.step() == adfs::sqlite_row ) {
+            try {
+                npos = sql.get_column_value< uint64_t >( 0 );
+            } catch ( std::bad_cast& ) {
+                return false; // max() function returns nil raw as step() result, so this exception means no row
+            }
         }
-        adcontrols::translate_state state;
-        while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms ) )
-                == adcontrols::translate_indeterminate )
-            ;
-        return state == adcontrols::translate_complete;
     }
-    return false;
+    adcontrols::translate_state state;
+	while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms, it->trace_id ) )
+            == adcontrols::translate_indeterminate )
+        ;
+    return state == adcontrols::translate_complete;
 }
 
 bool
@@ -300,7 +319,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 
         adcontrols::MassSpectrum ms;
         adcontrols::translate_state state;
-        while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms ) )
+		while ( ( state = fetchSpectrum( it->objid, it->dataInterpreterClsid, npos++, ms, it->trace_id ) )
                 == adcontrols::translate_indeterminate )
             ;
 
@@ -333,7 +352,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
 bool
 rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, adcontrols::TraceAccessor& accessor )
 {
-    const adcontrols::MassSpectrometer& spectrometer = adcontrols::MassSpectrometer::get( dataInterpreterClsid.c_str() );
+    const adcontrols::MassSpectrometer& spectrometer = getSpectrometer( objid, dataInterpreterClsid.c_str() );
     const adcontrols::DataInterpreter& interpreter = spectrometer.getDataInterpreter();
 
     adfs::stmt sql( dbf_.db() );
@@ -380,7 +399,8 @@ rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, a
 adcontrols::translate_state
 rawdata::fetchSpectrum( int64_t objid
                         , const std::wstring& dataInterpreterClsid
-                        , uint64_t npos, adcontrols::MassSpectrum& ms ) const
+                        , uint64_t npos, adcontrols::MassSpectrum& ms
+						, const std::wstring& traceId ) const
 {
     const adcontrols::MassSpectrometer& spectrometer = getSpectrometer( objid, dataInterpreterClsid );
     const adcontrols::DataInterpreter& interpreter = spectrometer.getDataInterpreter();
@@ -397,11 +417,9 @@ rawdata::fetchSpectrum( int64_t objid
         std::vector< char > xmeta;
 
         if ( sql.step() == adfs::sqlite_row ) {
-            uint64_t rowid  = boost::get< boost::int64_t >( sql.column_value( 0 ) );
-            uint64_t fcn    = boost::get< boost::int64_t >( sql.column_value( 1 ) );
+			uint64_t rowid  = sql.get_column_value< uint64_t >( 0 );
+			int fcn    = int( sql.get_column_value< int64_t >( 1 ) );
             
-            (void)fcn;
-			
             if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
                 xdata.resize( blob.size() );
                 if ( blob.size() )
@@ -413,7 +431,60 @@ rawdata::fetchSpectrum( int64_t objid
                     blob.read( reinterpret_cast< int8_t *>( xmeta.data() ), blob.size() );
             }
             size_t idData = 0;
-            return interpreter.translate( ms, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), spectrometer, idData++ );
+            return interpreter.translate( ms, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), spectrometer, idData++, traceId.c_str() );
+        }
+    }
+    return adcontrols::translate_error;
+}
+
+bool
+rawdata::hasProcessedSpectrum( int, int ) const
+{
+    return std::find_if( conf_.begin(), conf_.end()
+                         , [](const adutils::AcquiredConf::data& d){ return d.trace_id == L"MS.CENTROID"; }) 
+        != conf_.end();
+}
+
+uint32_t
+rawdata::findObjId( const std::wstring& traceId ) const
+{
+    auto it =
+        std::find_if( conf_.begin(), conf_.end(), [=](const adutils::AcquiredConf::data& d ){ return d.trace_id == traceId; });
+    if ( it != conf_.end() )
+        return uint32_t(it->objid);
+    return 0;
+}
+
+bool
+rawdata::getRaw( uint64_t objid, uint64_t npos, uint64_t& fcn, std::vector< char >& xdata, std::vector< char >& xmeta ) const
+{
+    adfs::stmt sql( dbf_.db() );
+	
+	xdata.clear();
+	xmeta.clear();
+
+    if ( sql.prepare( "SELECT rowid, fcn FROM AcquiredData WHERE oid = :oid AND npos = :npos" ) ) {
+
+        sql.bind( 1 ) = uint64_t(objid);
+        sql.bind( 2 ) = uint64_t(npos);
+
+        adfs::blob blob;
+
+        if ( sql.step() == adfs::sqlite_row ) {
+            uint64_t rowid = sql.get_column_value< int64_t >( 0 );
+            fcn            = sql.get_column_value< int64_t >( 1 );
+            
+            if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
+                xdata.resize( blob.size() );
+                if ( blob.size() )
+                    blob.read( reinterpret_cast< int8_t *>( xdata.data() ), blob.size() );
+            }
+            if ( blob.open( dbf_.db(), "main", "AcquiredData", "meta", rowid, adfs::readonly ) ) {
+                xmeta.resize( blob.size() );
+                if ( blob.size() )
+                    blob.read( reinterpret_cast< int8_t *>( xmeta.data() ), blob.size() );
+            }
+			return true;
         }
     }
     return adcontrols::translate_error;

@@ -45,7 +45,7 @@ namespace addatafile {
 
     class datafile : public adcontrols::datafile {
     public:
-        ~datafile();
+        virtual ~datafile();
         datafile();
         
         bool open( const std::wstring& filename, bool readonly = false );

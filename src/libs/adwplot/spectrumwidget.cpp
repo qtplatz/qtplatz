@@ -226,12 +226,13 @@ SpectrumWidget::override_zoom_rect( QRectF& rc )
     }
 }
 
-void
-SpectrumWidget::zoom( const QRectF& rect )
-{
-	Dataplot::zoom( rect );
-    impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
-}
+// void
+// SpectrumWidget::zoom( const QRectF& rect )
+// {
+// 	Dataplot::zoom( rect );
+//     impl_->update_annotations( *this, std::make_pair<>( rect.left(), rect.right() ) );
+// }
+
 void
 SpectrumWidget::zoomed( const QRectF& rect )
 {

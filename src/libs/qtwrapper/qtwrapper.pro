@@ -22,4 +22,5 @@ HEADERS += qtwrapper.hpp \
     application.hpp \
     xmlformatter.hpp \ 
     waitcursor.hpp \
-    progressbar.hpp
+    progressbar.hpp \
+    trackingenabled.hpp

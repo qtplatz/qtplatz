@@ -48,6 +48,7 @@
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <qtwrapper/trackingenabled.hpp>
 #include <boost/any.hpp>
 
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -79,14 +80,14 @@
 #include <QLineEdit>
 #include <qdebug.h>
 
-namespace dataproc {
-    class setTrackingEnabled {
-        Utils::FancyMainWindow& w_;
-	public:
-        setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) { w_.setTrackingEnabled( false ); }
-        ~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
-    };
-}
+// namespace dataproc {
+//     class setTrackingEnabled {
+//         Utils::FancyMainWindow& w_;
+// 	public:
+//         setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) { w_.setTrackingEnabled( false ); }
+//         ~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
+//     };
+// }
 
 
 using namespace dataproc;
@@ -335,7 +336,7 @@ MainWindow::createContents( Core::IMode * mode
 void
 MainWindow::setSimpleDockWidgetArrangement()
 {
-    dataproc::setTrackingEnabled x( *this );
+    qtwrapper::TrackingEnabled<Utils::FancyMainWindow> x( *this );
 
     QList< QDockWidget *> widgets = dockWidgets();
 
@@ -396,7 +397,7 @@ MainWindow::createDockWidgets()
         , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
         , { "Peak Find",       "qtwidgets::PeakMethodForm" }
         , { "Data property",   "dataproc::MSPropertyForm" }      // local
-        , { "File property",   "dataproc::FilePropertyWidget" }  // local
+        // , { "File property",   "dataproc::FilePropertyWidget" }  // local
     };
     
     for ( auto widget: widgets ) {
