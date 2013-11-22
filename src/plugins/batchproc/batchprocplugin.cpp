@@ -29,7 +29,7 @@
 #include "batchmode.hpp"
 #include "massspectrometerfactory.hpp"
 #include <adcontrols/massspectrometerbroker.hpp>
-
+#include <adcontrols/massspectrometer.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actionmanager.h>

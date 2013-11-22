@@ -31,6 +31,7 @@
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
 
 namespace adfs {
 

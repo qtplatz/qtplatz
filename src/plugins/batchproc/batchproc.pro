@@ -11,8 +11,12 @@ DEFINES += BATCHPROC_LIBRARY
 
 !win32 {
   LIBS += -lboost_system \
-          -lboost_filesystem
+          -lboost_date_time \
+          -lboost_filesystem \
+          -lboost_iostreams \
+          -lbz2
 }
+
 LIBS += -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adcontrols) \
