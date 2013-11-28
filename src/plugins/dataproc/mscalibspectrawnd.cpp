@@ -115,7 +115,7 @@ namespace dataproc {
 
             // local member
             void clear() {  d_.clear(); }
-            SeriesData& operator << ( time_length& d ) {
+            SeriesData& operator << ( time_length d ) {
                 d_.push_back( d );
                 rect_.setLeft( std::min( d.length,   rect_.left() ) );
                 rect_.setRight( std::max( d.length,  rect_.right() ) );

@@ -85,7 +85,7 @@ namespace dataproc {
     private:
         size_t drawIdx1_;
         size_t drawIdx2_;
-        std::unique_ptr<MSProcessingWndImpl> pImpl_;
+        std::shared_ptr<MSProcessingWndImpl> pImpl_;
         std::weak_ptr< adcontrols::MassSpectrum > pProcessedSpectrum_;
         std::weak_ptr< adcontrols::MassSpectrum > pProfileSpectrum_;
 

@@ -72,7 +72,7 @@ DropTargetForm::handleDropFiles( const QList< QUrl >& list )
                 dropfiles_.push_back( path.parent_path().wstring() );
 
 				model.insertRow( model.rowCount( parent ), parent );
-                model.setData( model.index( 0, 0, parent ), dropfiles_.size() );
+                model.setData( model.index( 0, 0, parent ), QVariant::fromValue( dropfiles_.size() ) );
                 model.setData( model.index( 0, 1, parent ), QString::fromStdWString( dropfiles_.back() ) );
 
             }
@@ -84,7 +84,7 @@ DropTargetForm::handleDropFiles( const QList< QUrl >& list )
                 dropfiles_.push_back( path.wstring() );
 
 				model.insertRow( model.rowCount( parent ), parent );
-                model.setData( model.index( 0, 0, parent ), dropfiles_.size() );
+                model.setData( model.index( 0, 0, parent ), QVariant::fromValue( dropfiles_.size() ) );
                 model.setData( model.index( 0, 1, parent ), QString::fromStdWString( dropfiles_.back() ) );
 
             } else {
@@ -96,7 +96,7 @@ DropTargetForm::handleDropFiles( const QList< QUrl >& list )
                         dropfiles_.push_back( dir->path().wstring() );
 
 						model.insertRow( model.rowCount( parent ), parent );
-                        model.setData( model.index( r, 0, parent ), dropfiles_.size() );
+                        model.setData( model.index( r, 0, parent ), QVariant::fromValue( dropfiles_.size() ) );
                         model.setData( model.index( r, 1, parent ), QString::fromStdWString( dropfiles_.back() ) );
                         ++r;
                     }

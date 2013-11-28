@@ -20,7 +20,7 @@ CONFIG(release, debug|release) {
   *-g++*: QMAKE_CXXFLAGS *= -O2
 }
 
-BOOST_VERSION=boost-1_54
+BOOST_VERSION=boost-1_55
 ACE_VERSION=6.2.1
 QWT_VERSION=6.1.1-svn
 

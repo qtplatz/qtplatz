@@ -73,7 +73,7 @@ namespace dataproc {
         void handle_apply_calibration_to_default();
         
     private:
-        std::unique_ptr<MSCalibrationWndImpl> pImpl_;
+        std::shared_ptr<MSCalibrationWndImpl> pImpl_;
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
         bool calibPolynomialFit( adcontrols::MSCalibrateResult&, const adcontrols::MSProperty& );
         void init();
