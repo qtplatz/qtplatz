@@ -82,6 +82,11 @@ namespace adcontrols {
             , ePeakEvent_Elimination
             , ePeakEvent_Manual
         };
+        
+        enum eNoiseFilterMethod {
+            eNoFilter
+            , eDFTLowPassFilter
+        };
 
     } // chromatography
 
@@ -117,6 +122,11 @@ namespace adcontrols {
 
         adcontrols::chromatography::ePeakWidthMethod theoreticalPlateMethod() const;
         void theoreticalPlateMethod( adcontrols::chromatography::ePeakWidthMethod );
+
+        chromatography::eNoiseFilterMethod noiseFilterMethod() const;
+        void noiseFilterMethod( chromatography::eNoiseFilterMethod );
+        double cutoffFreqHz() const;
+        void cutoffFreqHz( double );
 
         class ADCONTROLSSHARED_EXPORT TimedEvent {
         public:
@@ -181,10 +191,14 @@ namespace adcontrols {
         adcontrols::chromatography::ePeakWidthMethod theoreticalPlateMethod_;
         std::vector< TimedEvent > timedEvents_;
 
+        chromatography::eNoiseFilterMethod noiseFilterMethod_;
+        double cutoffFreqHz_; // Hz
+
        friend class boost::serialization::access;
        template<class Archive>
-           void serialize(Archive& ar, const unsigned int /* version */) {
+           void serialize(Archive& ar, const unsigned int version ) {
            using namespace boost::serialization;
+
            ar & BOOST_SERIALIZATION_NVP( minimumHeight_ )
                & BOOST_SERIALIZATION_NVP( minimumArea_ )
                & BOOST_SERIALIZATION_NVP( minimumWidth_ )
@@ -195,6 +209,12 @@ namespace adcontrols {
                & BOOST_SERIALIZATION_NVP( pharmacopoeia_ )
                & BOOST_SERIALIZATION_NVP( peakWidthMethod_ )
                & BOOST_SERIALIZATION_NVP( theoreticalPlateMethod_ );
+
+           if ( version >= 2 ) {
+               ar & BOOST_SERIALIZATION_NVP( noiseFilterMethod_)
+                   & BOOST_SERIALIZATION_NVP( cutoffFreqHz_ )
+				   ;
+           }
        }
        
 	};
@@ -202,3 +222,4 @@ namespace adcontrols {
 }
 
 BOOST_CLASS_VERSION( adcontrols::PeakMethod::TimedEvent,  2 )
+BOOST_CLASS_VERSION( adcontrols::PeakMethod,  2 )

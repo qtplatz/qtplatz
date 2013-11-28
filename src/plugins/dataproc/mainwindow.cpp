@@ -49,6 +49,7 @@
 #include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/trackingenabled.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <boost/any.hpp>
 
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -564,6 +565,7 @@ void
 MainWindow::actionApply()
 {
     adportable::debug(__FILE__, __LINE__) << "dataproc::MainWindow::actionApply(" << currentFeature_ << ")";
+    qtwrapper::waitCursor wait;
 
     adcontrols::ProcessMethod m;
     getProcessMethod( m );

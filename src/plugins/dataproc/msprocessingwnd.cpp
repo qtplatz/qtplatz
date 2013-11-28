@@ -396,7 +396,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
                 std::vector< std::tuple< int, double, double > > ranges;
                 for ( auto& index: indecies ) {
                     double mass = adcontrols::segments_helper::get_mass( *ptr, index );
-                    ranges.push_back( std::make_tuple( index.second, mass, 0.05 ) );
+                    ranges.push_back( std::make_tuple( index.second, mass, 0.005 ) );
                 }
                 Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor();
                 DataprocessWorker::instance()->createChromatograms( processor, ranges );

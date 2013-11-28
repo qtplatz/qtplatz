@@ -102,18 +102,20 @@ PeakMethodForm::OnInitialUpdate()
         model.setData( model.index( r_drift,         c_header ), "Drift [height/min]" );
         model.setData( model.index( r_min_area,      c_header ), "Minumum area[&mu;V&times;s]" );
         model.setData( model.index( r_doubling_time, c_header ), "Peak width doubling time[min]" );
-        model.setData( model.index( r_void_time, c_header ),     "T<sub>0</sub>" );
+        model.setData( model.index( r_void_time,     c_header ), "T<sub>0</sub>" );
         model.setData( model.index( r_pharmacopoeia, c_header ), "Pharmacopoeia" );
 
         setContents( *pMethod_ );
 
-        for ( int row = 0; row < r_num_rows; ++row )
+        for ( int row = 0; row < r_num_rows; ++row ) {
             model.item( row, c_header )->setEditable( false );
+            model.item( row, c_value )->setEditable( true );
+        }
 
         ui->treeView->resizeColumnToContents( 0 );
         ui->treeView->resizeColumnToContents( 1 );
 		ui->treeView->setExpandsOnDoubleClick( false );
-		ui->treeView->setEditTriggers( QAbstractItemView::AnyKeyPressed );
+		ui->treeView->setEditTriggers( QAbstractItemView::AllEditTriggers );
 		ui->treeView->setTabKeyNavigation( true );
     } while (0);
 }
