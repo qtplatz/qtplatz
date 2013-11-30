@@ -20,6 +20,7 @@ SOURCES += adutils.cpp \
     adfsio.cpp \
     cpio.cpp \
     fsio.cpp \
+    fsio2.cpp \
     mscalibio.cpp \
     acquiredconf.cpp \
     acquireddata.cpp
@@ -29,6 +30,7 @@ HEADERS += adutils.hpp \
     adfsio.hpp \
     cpio.hpp \
     fsio.hpp \
+    fsio2.hpp \
     mscalibio.hpp \
     acquiredconf.hpp \
     acquireddata.hpp

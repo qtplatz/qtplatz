@@ -47,6 +47,7 @@
 #include <adutils/acquiredconf.hpp>
 #include <adutils/acquireddata.hpp>
 #include <adutils/fsio.hpp>
+#include <adutils/fsio2.hpp>
 #include <portfolio/portfolio.hpp>
 
 #include <boost/filesystem.hpp>
@@ -362,7 +363,7 @@ import::subscribe( const adcontrols::ProcessedDataset& processed )
     std::string xml = processed.xml();
 	portfolio::Portfolio portfolio( xml );
 
-    return adutils::fsio::saveContents( *fs_, L"/Processed", portfolio, *datafile_ );
+    return adutils::fsio2::saveContents( *fs_, L"/Processed", portfolio, *datafile_ );
 }
 
 void

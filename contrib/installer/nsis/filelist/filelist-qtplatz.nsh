@@ -30,6 +30,7 @@
    ${InstallFile} "${InQtProjectPath}"   "Core.pluginspec"       "lib\qtplatz\plugins\QtProject" 1 0
    ;;
    ${InstallFile} "${InMSCheminfoPath}" "acquire.dll"             "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
+   ${InstallFile} "${InMSCheminfoPath}" "batchproc.dll"           "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "dataproc.dll"            "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "sequence.dll"            "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "servant.dll"             "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
@@ -40,15 +41,15 @@
    ${InstallFile} "${InMSCheminfoPath}" "adtextfile.dll"          "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "addatafile.dll"          "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "fticr.dll"               "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
-   ${InstallFile} "${InMSCheminfoPath}" "compassxtract.dll"       "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ;;
    ${InstallFile} "${InMSCheminfoPath}" "acquire.pluginspec"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
+   ${InstallFile} "${InMSCheminfoPath}" "batchproc.pluginspec"    "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "dataproc.pluginspec"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "sequence.pluginspec"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "servant.pluginspec"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
 ;;
-   ${InstallFile} "${InMSCheminfoPath}" "acquire.config"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
-   ${InstallFile} "${InMSCheminfoPath}" "dataproc.config"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
+   ${InstallFile} "${InMSCheminfoPath}" "acquire.config"          "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
+   ${InstallFile} "${InMSCheminfoPath}" "dataproc.config"         "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InXSDPath}"        "config.xsd"              "lib\qtplatz\plugins\xsd"            1 0
 ;;;
    ${InstallFile} "${InMSCheminfoPath}" "adbroker.adplugin"       "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
