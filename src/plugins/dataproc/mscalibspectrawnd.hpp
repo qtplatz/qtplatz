@@ -26,7 +26,9 @@
 #define MSCALIBSPECTRAWND_HPP
 
 #include <QWidget>
+#if ! defined Q_MOC_RUN
 #include <portfolio/folium.hpp>
+#endif
 #include <boost/tuple/tuple.hpp>
 #include <memory>
 #include <tuple>

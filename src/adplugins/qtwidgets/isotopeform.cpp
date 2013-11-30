@@ -33,6 +33,7 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/isotopemethod.hpp>
 #include <qtwrapper/qstring.hpp>
+#include <boost/any.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/bind.hpp>
 

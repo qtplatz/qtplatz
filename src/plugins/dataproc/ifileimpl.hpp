@@ -25,12 +25,15 @@
 
 #pragma once
 
+
+
+#include <coreplugin/ifile.h>
+#if ! defined Q_MOC_RUN
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/chromatogram.hpp>
-
-#include <coreplugin/ifile.h>
 #include <boost/noncopyable.hpp>
+#endif
 #include <vector>
 
 namespace adcontrols {

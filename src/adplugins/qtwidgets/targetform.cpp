@@ -35,6 +35,7 @@
 #include <QStandardItemModel>
 #include <QTreeView>
 #include <QMenu>
+#include <boost/any.hpp>
 
 namespace qtwidgets { 
 	enum { row_positive, row_negative };

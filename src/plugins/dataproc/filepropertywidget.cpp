@@ -30,6 +30,7 @@
 #include <QTextEdit>
 #include <QStandardItemModel>
 #include <QVBoxLayout>
+#include <boost/any.hpp>
 
 using namespace dataproc;
 

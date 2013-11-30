@@ -27,8 +27,10 @@
 #define NAVIGATIONDELEGATE_H
 
 #include <QItemDelegate>
+#if !defined Q_MOC_RUN
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
+#endif
 #if QT_VERSION >= 0x050000
 # include "dataprocessor.hpp"
 #endif

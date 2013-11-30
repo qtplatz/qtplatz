@@ -31,6 +31,8 @@
 #include <QStandardItemModel>
 #include "centroiddelegate.hpp"
 #include "standarditemhelper.hpp"
+#include <boost/any.hpp>
+
 using namespace qtwidgets;
 
 /////////////////////

@@ -31,6 +31,7 @@
 #include <adcontrols/elementalcompositionmethod.hpp>
 #include <adcontrols/processmethod.hpp>
 #include <QStandardItemModel>
+#include <boost/any.hpp>
 
 using namespace qtwidgets;
 

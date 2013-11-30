@@ -72,6 +72,7 @@
 
 #include <QtGui/qicon.h>
 #include <qdebug.h>
+#include <boost/any.hpp>
 
 namespace sequence {
 

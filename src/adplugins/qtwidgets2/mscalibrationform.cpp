@@ -37,6 +37,7 @@
 #include <adportable/is_type.hpp>
 #include <QStandardItemModel>
 #include "standarditemhelper.hpp"
+#include <boost/any.hpp>
 #include <boost/format.hpp>
 #include <boost/tokenizer.hpp>
 #include <qtwrapper/qstring.hpp>

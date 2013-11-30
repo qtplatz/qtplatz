@@ -26,7 +26,8 @@
 #pragma once
 
 #include "adplugin_global.h"
-#include <boost/any.hpp>
+///#include <boost/any.hpp>
+namespace boost { class any; }
 
 namespace adportable {
     class Configuration;
