@@ -35,6 +35,7 @@ namespace adcontrols {
     class ElementalCompositionCollection;
     class MSCalibrateResult;
 	class PeakResult;
+	class datafile;
 }
 
 namespace adinterface {
@@ -42,6 +43,7 @@ namespace adinterface {
 }
 
 namespace adfs { class filesystem; class folder; class file; }
+namespace portfolio { class Portfolio; }
 
 namespace adutils {
 	
@@ -55,6 +57,7 @@ namespace adutils {
 	class fsio {
     public:
         fsio();
+
         static bool mount( adfs::filesystem&, const std::wstring& );
         static bool create( adfs::filesystem&, const std::wstring& );
 
@@ -71,6 +74,9 @@ namespace adutils {
 
         static bool save( adfs::filesystem&, const adinterface::Method&, const std::wstring& id, const std::wstring& folder );
         static bool load( adfs::filesystem&, adinterface::Method&, const std::wstring& id, const std::wstring& folder );
+
+        //-------------------------------
+        static bool saveContents( adfs::filesystem&, const std::wstring&, const portfolio::Portfolio&, const adcontrols::datafile& );
     };
 
 }

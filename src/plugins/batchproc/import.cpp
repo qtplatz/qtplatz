@@ -35,6 +35,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/metric/prefix.hpp>
+#include <adcontrols/processeddataset.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/cpio.hpp>
 #include <adinterface/signalobserver.hpp>
@@ -45,6 +46,8 @@
 #include <adportable/bzip2.hpp>
 #include <adutils/acquiredconf.hpp>
 #include <adutils/acquireddata.hpp>
+#include <adutils/fsio.hpp>
+#include <portfolio/portfolio.hpp>
 
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
@@ -58,6 +61,19 @@
 #include <thread>
 #include <chrono>
 #include <algorithm>
+
+#if defined WIN32
+
+# include <objbase.h>
+
+namespace batchproc {
+    class ComInit {
+    public:
+        ComInit() { CoInitialize( nullptr ); }
+        ~ComInit() { CoUninitialize(); }
+    };
+}
+#endif
 
 using namespace batchproc;
 
@@ -80,8 +96,6 @@ import::import( int row
     , centroidId_( profileId_ + 1 )
     , ticId_( profileId_ + 2 )
 {
-    // open should be run in main thread with respect to CoInitialize (for Bruker CompassXtrace)
-    datafile_ = adcontrols::datafile::open( source_file_, true );
 }
 
 import::~import()
@@ -110,6 +124,12 @@ import::~import()
 bool
 import::operator()()
 {
+#if defined WIN32
+    ComInit init;
+#endif
+
+    datafile_ = adcontrols::datafile::open( source_file_, true );
+
     if ( datafile_ && open_destination() ) {
 
         datafile_->accept( *this );
@@ -334,6 +354,15 @@ import::subscribe( const adcontrols::LCMSDataset& data )
             tic_.push_back( c );
     }
     return true;
+}
+
+bool
+import::subscribe( const adcontrols::ProcessedDataset& processed )
+{
+    std::string xml = processed.xml();
+	portfolio::Portfolio portfolio( xml );
+
+    return adutils::fsio::saveContents( *fs_, L"/Processed", portfolio, *datafile_ );
 }
 
 void

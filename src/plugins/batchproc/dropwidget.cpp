@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "dropwidget.hpp"
+#include <adcontrols/datafile.hpp>
 #include <boost/filesystem.hpp>
 #include <QDragEnterEvent>
 #include <QMimeData>
@@ -86,7 +87,7 @@ DropWidget::dragEnterEvent( QDragEnterEvent * event )
 		for ( int i = 0; i < urlList.size(); ++i ) {
 			boost::filesystem::path path( urlList.at(i).toLocalFile().toStdWString() );
             if ( boost::filesystem::is_regular_file( path ) ) {
-                if ( path.parent_path().extension() == L".d" )
+                if ( adcontrols::datafile::access( path.wstring() ) || path.parent_path().extension() == L".d" )
                     canAccept = true;
             } else if ( boost::filesystem::is_directory( path ) ) {
                 if ( path.extension() == L".d" ) {

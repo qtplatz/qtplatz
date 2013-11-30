@@ -58,7 +58,7 @@ namespace batchproc {
 
         // adcontrols::dataSubscriber
         bool subscribe( const adcontrols::LCMSDataset& ) override;
-        // bool subscribe( const adcontrols::ProcessedDataset& ) override;
+        bool subscribe( const adcontrols::ProcessedDataset& ) override;
         
     private:
         int rowId_;

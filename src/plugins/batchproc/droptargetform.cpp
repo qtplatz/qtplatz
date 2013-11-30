@@ -24,6 +24,7 @@
 
 #include "droptargetform.hpp"
 #include "ui_droptargetform.h"
+#include <adcontrols/datafile.hpp>
 #include <QList>
 #include <QStandardItemModel>
 #include <boost/filesystem.hpp>
@@ -66,15 +67,19 @@ DropTargetForm::handleDropFiles( const QList< QUrl >& list )
 
         if ( boost::filesystem::is_regular_file( path ) ) {
 
-            if ( path.parent_path().extension() == L".d" && 
-                 ( std::find( dropfiles_.begin(), dropfiles_.end(), path.parent_path() ) == dropfiles_.end() ) ) {
+            std::wstring dropfile;
 
-                dropfiles_.push_back( path.parent_path().wstring() );
+            if ( path.parent_path().extension() == L".d" )
+                dropfile = path.parent_path().wstring();
+            else if ( adcontrols::datafile::access( path.wstring() ) )
+                dropfile = path.wstring();
 
-				model.insertRow( model.rowCount( parent ), parent );
+            // duplicate check
+            if ( ! dropfile.empty() && std::find( dropfiles_.begin(), dropfiles_.end(), dropfile ) == dropfiles_.end() ) {
+                dropfiles_.push_back( dropfile );
+                model.insertRow( model.rowCount( parent ), parent );
                 model.setData( model.index( 0, 0, parent ), QVariant::fromValue( dropfiles_.size() ) );
                 model.setData( model.index( 0, 1, parent ), QString::fromStdWString( dropfiles_.back() ) );
-
             }
 
         } else if ( boost::filesystem::is_directory( path ) ) {

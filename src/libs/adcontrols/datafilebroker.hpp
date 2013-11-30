@@ -44,6 +44,7 @@ namespace adcontrols {
         //
         static datafile * create( const std::wstring& filename );
         static datafile * open( const std::wstring& filename, bool readonly = false );
+        static bool access( const std::wstring& filename );
     };
     
 }

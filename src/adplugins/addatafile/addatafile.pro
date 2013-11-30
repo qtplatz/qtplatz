@@ -32,14 +32,12 @@ LIBS +=  -l$$qtLibraryTarget(adplugin) \
 }
 
 SOURCES += addatafile.cpp \
-           cpio.cpp \
            datafile.cpp \
            datafile_factory.cpp \
            rawdata.cpp
            
 HEADERS += addatafile.hpp \
            addatafile_global.h \
-           cpio.hpp \
            datafile.hpp \
            datafile_factory.hpp \
            rawdata.hpp

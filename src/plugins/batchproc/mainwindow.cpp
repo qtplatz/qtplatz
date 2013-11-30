@@ -315,7 +315,7 @@ MainWindow::handleStateChanged( const QModelIndex& index )
                             emit emitProgress( row, curr, total );
                             return model_->index( row, Constants::c_batchproc_process ).data().value< process >().state() == PROCESS_CANCELING;
                         });
-                if ( proc && *proc )
+                if ( proc )
                     task::instance()->post( *proc );
             }
 

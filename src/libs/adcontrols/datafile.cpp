@@ -27,6 +27,13 @@
 
 using namespace adcontrols;
 
+// static
+bool
+datafile::access( const std::wstring& filename )
+{
+    return datafileBroker::access( filename );
+}
+
 datafile*
 datafile::create( const std::wstring& filename )
 {

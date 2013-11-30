@@ -375,7 +375,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                     }
                     if ( ! hasCentroid ) {
                         mainWindow_->getProcessMethod( m );
-                        dp->applyProcess( folium, m, CentroidProcess );
+                        //dp->applyProcess( folium, m, CentroidProcess );
                     }
 				}
 			}

@@ -48,6 +48,7 @@ namespace adcontrols {
         datafile * open( const std::wstring& filename, bool readonly );
         datafile * create( const std::wstring& filename );
         static datafileBrokerImpl * instance();
+        const std::map< std::wstring, std::shared_ptr< datafile_factory > >& factories() const { return factories_; }
 
     private:
         std::map< std::wstring, std::shared_ptr< datafile_factory > > factories_;
@@ -93,6 +94,17 @@ datafile *
 datafileBroker::open( const std::wstring& filename, bool readonly )
 {
     return datafileBrokerImpl::instance()->open( filename, readonly );
+}
+
+// static
+bool
+datafileBroker::access( const std::wstring& filename )
+{
+    for ( auto f: datafileBrokerImpl::instance()->factories() ) {
+		if ( f.second && f.second->access( filename.c_str() ) )
+            return true;
+    }
+    return false;
 }
 
 datafile *

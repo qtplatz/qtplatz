@@ -24,7 +24,7 @@
 **************************************************************************/
 #include <compiler/disable_unused_parameter.h>
 #include "datafile.hpp"
-#include "cpio.hpp"
+#include <adutils/cpio.hpp>
 #include "rawdata.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
@@ -345,7 +345,7 @@ namespace addatafile {
 
             if ( ! any.empty() ) {
                 try {
-                    cpio::save( dbThis, any );
+                    adutils::cpio::save( dbThis, any );
                 } catch ( boost::bad_any_cast& ) {
                     assert( 0 );
                     return false;
@@ -372,7 +372,7 @@ namespace addatafile {
                 adfs::file dbf = folder.addFile( folium.id() );
 
                 import::attributes( dbf, folium.attributes() );
-                cpio::save( dbf, any );
+                adutils::cpio::save( dbf, any );
 
                 for ( const portfolio::Folium& att: folium.attachments() )
                     detail::attachment::save( dbf, filename, source, att );

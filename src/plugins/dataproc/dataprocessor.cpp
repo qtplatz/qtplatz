@@ -205,11 +205,14 @@ bool
 Dataprocessor::fetch( portfolio::Folium& folium )
 {
 	if ( folium.empty() ) {
-        folium = file().fetch( folium.id(), folium.dataClass() );
-		portfolio::Folio attachs = folium.attachments();
-		for ( auto att: attachs ) {
-			if ( att.empty() )
-				fetch( att ); // recursive call make sure for all blongings load up in memory.
+		try {
+			folium = file().fetch( folium.id(), folium.dataClass() );
+			portfolio::Folio attachs = folium.attachments();
+			for ( auto att: attachs ) {
+				if ( att.empty() )
+					fetch( att ); // recursive call make sure for all blongings load up in memory.
+			}
+		} catch ( std::bad_cast& ) {
 		}
 	}
 	return true;

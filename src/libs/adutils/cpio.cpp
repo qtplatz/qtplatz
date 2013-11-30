@@ -43,14 +43,15 @@
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 
-using namespace addatafile;
+using namespace adutils;
 
-namespace addatafile {
+namespace adutils {
     namespace internal {
 
         template<class T> struct cpio_handler {
             static bool save( adfs::file& dbf, const boost::any& a ) {
                 const std::shared_ptr< T > p = boost::any_cast< std::shared_ptr<T> >( a );
+				dbf.dataClass( T::dataClass() );
                 return adfs::cpio< T >::save( *p, dbf );
             }
             

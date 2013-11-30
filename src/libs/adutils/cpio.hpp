@@ -28,7 +28,7 @@
 #include <adfs/adfs.hpp>
 #include <boost/any.hpp>
 
-namespace addatafile {
+namespace adutils {
 
     class cpio {
     public:
