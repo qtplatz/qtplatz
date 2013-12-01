@@ -25,8 +25,6 @@
 
 #include "mscalibsummarywidget.hpp"
 #include "mscalibsummarydelegate.hpp"
-#include <QStandardItemModel>
-#include <QStandardItem>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -37,17 +35,22 @@
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibration.hpp>
 #include <adcontrols/computemass.hpp>
+#include <adportable/debug.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <boost/format.hpp>
-#include <QMenu>
+#include <boost/exception/all.hpp>
 #include <boost/any.hpp>
 #include <qapplication.h>
 #include <qclipboard.h>
 #include <QKeyEvent>
 #include <QtWidgets/QHeaderView>
 #include <QPainter>
+#include <QStandardItemModel>
+#include <QStandardItem>
+#include <QMenu>
+#include <QMessageBox>
 #include <algorithm>
 #include <tuple>
 
@@ -199,7 +202,7 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
 	double normalized_time = 0; // ( it->time() - t0 ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
 
     const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
-	adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( pCalibrantSpectrum_->scanLaw(), calib );
+    adcontrols::ComputeMass< adcontrols::ScanLaw > mass_calculator( pCalibrantSpectrum_->scanLaw(), calib );
 	double mass = mass_calculator( it->time(), it->mode() );
 
 	if ( calib.algorithm() == adcontrols::MSCalibration::MULTITURN_NORMALIZED ) {
@@ -260,13 +263,20 @@ MSCalibSummaryWidget::createModelData( const std::vector< std::pair< int, int > 
         model.setData( model.index( row, c_mode ),  ms.getMSProperty().getSamplingInfo().mode ); // nTurns
         model.setData( model.index( row, c_mass ),  ms.getMass( idx.second ) );
         model.setData( model.index( row, c_time ),  ms.getTime( idx.second ) );
-        model.setData( model.index( row, c_time_normalized ), ms.getNormalizedTime( idx.second ) );
-        
+		try {
+			model.setData( model.index( row, c_time_normalized ), ms.getNormalizedTime( idx.second ) );
+		} catch ( boost::exception& e ) {
+			adportable::debug(__FILE__, __LINE__) << boost::diagnostic_information(e);
+		}
         model.setData( model.index( row, c_intensity ), ms.getIntensity( idx.second ) );
 
         model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getTime( idx.second ) ) ); // ms.getNormalizedTime( idx.second ) ) );
 
-        setAssignedData( row, idx.first, idx.second, pCalibResult_->assignedMasses() );
+        try {
+            setAssignedData( row, idx.first, idx.second, pCalibResult_->assignedMasses() );
+        } catch ( boost::exception& e ) {
+			QMessageBox::warning( 0, "Exception", QString::fromStdString( boost::diagnostic_information(e) ) );
+        }
 		setEditable( row );
 
         ++row;
@@ -319,8 +329,11 @@ MSCalibSummaryWidget::modifyModelData( const std::vector< std::pair< int, int > 
 
         model.setData( model.index( row, c_mass_calibrated ), calib.compute_mass( ms.getTime( it->second ) ) );
         // ms.getNormalizedTime( it->second ) ) );
-
-        setAssignedData( row, it->first, it->second, pCalibResult_->assignedMasses() );
+        try {
+            setAssignedData( row, it->first, it->second, pCalibResult_->assignedMasses() );
+        } catch ( boost::exception& e ) {
+			QMessageBox::warning( 0, "Exception", QString::fromStdString( boost::diagnostic_information(e) ) );
+        }
     }
     return true;
 }

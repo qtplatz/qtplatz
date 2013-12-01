@@ -159,9 +159,13 @@ rawdata::getSpectrometer( uint64_t objid, const std::wstring& dataInterpreterCls
 {
     auto it = spectrometers_.find( objid );
     if ( it == spectrometers_.end() ) {
-        const_cast< rawdata& >(*this).spectrometers_[ objid ] = 
-            adcontrols::MassSpectrometer::create( dataInterpreterClsid.c_str(), &parent_ );
-        it = spectrometers_.find( objid );
+		if ( auto ptr = adcontrols::MassSpectrometer::create( dataInterpreterClsid.c_str(), &parent_ ) ) {
+			const_cast< rawdata& >(*this).spectrometers_[ objid ] = ptr;
+			it = spectrometers_.find( objid );
+		} else {
+			static adcontrols::MassSpectrometer x;
+			return x;
+		}
     }
     return *it->second;
 }

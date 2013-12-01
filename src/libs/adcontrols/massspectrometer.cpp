@@ -31,12 +31,20 @@
 #include "mscalibrateresult.hpp"
 #include "mscalibration.hpp"
 #include <adportable/utf.hpp>
+#include <boost/exception/all.hpp>
 #include <string>
 #include <cmath>
 
 using namespace adcontrols;
 
 namespace adcontrols {
+
+	class MassSpectrometerException : public boost::exception, public std::exception {
+	public:
+		MassSpectrometerException( const std::string& msg ) {
+			*this << boost::error_info< struct tag_errmsg, std::string >( msg );
+		}
+	};
 
     namespace internal {
 
@@ -199,7 +207,9 @@ MassSpectrometer::get( const wchar_t * dataInterpreterClsid )
 	massspectrometer_factory * factory = massSpectrometerBroker::find( dataInterpreterClsid );
 	if ( factory )
 		return *factory->get( dataInterpreterClsid );
-	throw std::bad_cast();
+    std::ostringstream o;
+    o << "Data interpreter: \"" << adportable::utf::to_utf8( dataInterpreterClsid ) << "\" does not installed";
+	BOOST_THROW_EXCEPTION( MassSpectrometerException( o.str() ) );
 }
 
 const MassSpectrometer&

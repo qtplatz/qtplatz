@@ -9,3 +9,6 @@
    ;; adplugins
    ${InstallFile} "${InMSCheminfoPath}" "infirawfile.dll"          "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
    ${InstallFile} "${InMSCheminfoPath}" "infirawfile.adplugin"     "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
+   ;;
+   ${InstallFile} "${InMSCheminfoPath}" "infitofspectrometer.dll"      "lib\qtplatz\plugins\MS-Cheminformatics" 1 0
+   ${InstallFile} "${InMSCheminfoPath}" "infitofspectrometer.adplugin" "lib\qtplatz\plugins\MS-Cheminformatics" 1 0

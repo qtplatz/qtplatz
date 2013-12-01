@@ -142,18 +142,21 @@ AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
             
 			data d;
             
-            d.objid  = boost::get<int64_t>( sql.column_value( 0 ) );
-            d.pobjid = boost::get<int64_t>( sql.column_value( 1 ) );
-            d.dataInterpreterClsid = boost::get<std::wstring>( sql.column_value( 2 ) );
-            d.trace_method = boost::get<std::int64_t>( sql.column_value( 3 ) );
-            d.spectrometer = boost::get<std::int64_t>( sql.column_value( 4 ) );
-            d.trace_id = boost::get<std::wstring>( sql.column_value( 5 ) );
-            d.trace_display_name = boost::get<std::wstring>( sql.column_value( 6 ) );
-            d.axis_x_label = boost::get<std::wstring>( sql.column_value( 7 ) );
-            d.axis_y_label = boost::get<std::wstring>( sql.column_value( 8 ) );
-            d.axis_x_decimals = boost::get<std::int64_t>( sql.column_value( 9 ) );
-            d.axis_y_decimals = boost::get<std::int64_t>( sql.column_value( 10 ) );
-
+			try {
+                d.objid  = sql.get_column_value<int64_t>( 0 );
+                d.pobjid = sql.get_column_value<int64_t>( 1 );
+                d.dataInterpreterClsid = sql.get_column_value<std::wstring>( 2 );
+                d.trace_method = sql.get_column_value<int64_t>( 3 );
+                d.spectrometer = sql.get_column_value<int64_t>( 4 );
+                d.trace_id = sql.get_column_value<std::wstring>( 5 );
+                d.trace_display_name = sql.get_column_value<std::wstring>( 6 );
+                d.axis_x_label  = sql.get_column_value<std::wstring>( 7 );
+                d.axis_y_label = sql.get_column_value<std::wstring>( 8 );
+                d.axis_x_decimals = sql.get_column_value<int64_t>( 9 );
+                d.axis_y_decimals = sql.get_column_value<int64_t>( 10 );
+			} catch ( std::bad_cast& ) {
+                // ignore
+			}
             vec.push_back( d );
         }
     }
