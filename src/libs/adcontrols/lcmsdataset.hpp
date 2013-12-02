@@ -29,6 +29,7 @@
 #include "acquireddataset.hpp"
 #include <functional>
 #include <vector>
+#include <string>
 #include <tuple>
 #include <cstdint>
 
