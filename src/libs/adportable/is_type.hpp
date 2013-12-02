@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include <boost/any.hpp>
+
 namespace adportable {
 
     template<class T> struct a_type {
