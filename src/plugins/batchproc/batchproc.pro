@@ -9,21 +9,23 @@ include(../../boost.pri)
 INCLUDEPATH *= $$OUT_PWD/../../libs
 DEFINES += BATCHPROC_LIBRARY
 
-!win32 {
-  LIBS += -lboost_system \
-          -lboost_date_time \
-          -lboost_filesystem \
-          -lboost_iostreams \
-          -lbz2
-}
 
-LIBS += -l$$qtLibraryTarget(adportable) \
-        -l$$qtLibraryTarget(adplugin) \
+LIBS += -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adutils) \
         -l$$qtLibraryTarget(portfolio) \
         -l$$qtLibraryTarget(adfs) \
+        -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(adextension)
+
+!win32 {
+  LIBS += -lboost_system \
+          -lboost_filesystem \
+          -lboost_iostreams \
+          -lboost_date_time \
+          -lboost_iostreams
+}
+linux-*: LIBS += -ldl -lbz2
 
 # batchproc files
 

@@ -28,6 +28,7 @@
 # pragma warning(disable:4244)
 #endif
 
+// #define NOBZIP2
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/device/array.hpp>
@@ -46,6 +47,7 @@ bzip2::bzip2()
 void
 bzip2::compress( std::string& compressed, const char * uncompressed, size_t length )
 {
+//#if defined NOBZIP2
     // setup input(source) stream
     boost::iostreams::basic_array_source< char > device( uncompressed, length );
     boost::iostreams::stream< boost::iostreams::basic_array_source< char > > in( device );
@@ -60,12 +62,17 @@ bzip2::compress( std::string& compressed, const char * uncompressed, size_t leng
                         
     // compress
     boost::iostreams::copy( in, zout );                    
+// #else
+//     compressed.resize( length );
+//     std::copy( uncompressed, uncompressed + length, compressed.begin() );
+// #endif
 }
 
 // static
 void
 bzip2::decompress( std::string& uncompressed, const char * compressed, size_t length )
 {
+//#if defined NOBZIP2
     // setup input(source) stream
     boost::iostreams::basic_array_source< char > device( compressed, length );
     boost::iostreams::stream< boost::iostreams::basic_array_source< char > > in( device );
@@ -80,6 +87,10 @@ bzip2::decompress( std::string& uncompressed, const char * compressed, size_t le
                         
     // compress
     boost::iostreams::copy( in, zout );                    
+// #else
+//     uncompressed.resize( length );
+//     std::copy( compressed, compressed + length, uncompressed.begin() );
+// #endif
 }
 
 // static

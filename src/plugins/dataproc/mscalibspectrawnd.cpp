@@ -67,6 +67,7 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <boost/format.hpp>
+#include <algorithm>
 #include <cmath>
 #include <tuple>
 
@@ -392,7 +393,7 @@ MSCalibSpectraWnd::flight_length_regression()
 {
     aCoeffs_.clear();
     bCoeffs_.clear();
-    typedef std::tuple< std::wstring, double, double > value_type;
+    typedef std::tuple< std::wstring, double, double, double > value_type;
     std::vector< value_type > tofCoeffs;
 
     // tofCoeffs_.clear();
@@ -406,19 +407,21 @@ MSCalibSpectraWnd::flight_length_regression()
 		if ( d.second->polfit( a, b ) ) {
             t += a;
             ++n;
-            tofCoeffs.push_back( std::make_tuple( d.first /*formula*/, a, b ) );
-            // tofCoeffs_[ d.first /*formula*/ ] = std::make_pair( a, b );
+            tofCoeffs.push_back( std::make_tuple( d.first /*formula*/, a, b, chemicalFormula.getMonoIsotopicMass( d.first ) ) );
         }
 	}
-    std::sort( tofCoeffs.begin(), tofCoeffs.end(), [&]( value_type& a, value_type& b ){
-            return chemicalFormula.getMonoIsotopicMass( std::get<0>(a) ) > chemicalFormula.getMonoIsotopicMass( std::get<0>(b) );
+
+    std::sort( tofCoeffs.begin(), tofCoeffs.end(), [=]( const value_type& a, const value_type& b ){
+            double ma = std::get<3>(a);
+            double mb = std::get<3>(b);
+            return ma > mb;
         });
 
     T0_ = adcontrols::metric::scale_to_base( t / n, adcontrols::metric::micro );
 
     std::vector<double> mq, a, b;
     for ( auto d: tofCoeffs ) {
-        double mass = chemicalFormula.getMonoIsotopicMass( std::get<0>(d) );
+        double mass = std::get<3>(d);
         mq.push_back( std::sqrt( mass ) );
         a.push_back( std::get<1>(d) ); // a, microsecond scale
         b.push_back( std::get<2>(d) ); // b, microsecond scale
