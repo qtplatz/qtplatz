@@ -23,9 +23,10 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
           -lboost_filesystem \
           -lboost_iostreams \
           -lboost_date_time \
-          -lboost_iostreams
+          -lboost_iostreams \
+          -lbz2
 }
-linux-*: LIBS += -ldl -lbz2
+linux-*: LIBS += -ldl
 
 # batchproc files
 
