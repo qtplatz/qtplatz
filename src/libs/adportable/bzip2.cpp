@@ -28,6 +28,8 @@
 # pragma warning(disable:4244)
 #endif
 
+#include <adportable/debug.hpp>
+
 // #define NOBZIP2
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
@@ -36,6 +38,16 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/copy.hpp>
+#include <boost/exception/all.hpp>
+
+namespace adportable {
+    class bzip2_exception : public boost::exception, public std::exception {
+    public:
+        bzip2_exception() { }
+    };
+
+}
+
 
 using namespace adportable;
 
@@ -47,7 +59,6 @@ bzip2::bzip2()
 void
 bzip2::compress( std::string& compressed, const char * uncompressed, size_t length )
 {
-//#if defined NOBZIP2
     // setup input(source) stream
     boost::iostreams::basic_array_source< char > device( uncompressed, length );
     boost::iostreams::stream< boost::iostreams::basic_array_source< char > > in( device );
@@ -62,17 +73,15 @@ bzip2::compress( std::string& compressed, const char * uncompressed, size_t leng
                         
     // compress
     boost::iostreams::copy( in, zout );                    
-// #else
-//     compressed.resize( length );
-//     std::copy( uncompressed, uncompressed + length, compressed.begin() );
-// #endif
 }
 
 // static
 void
 bzip2::decompress( std::string& uncompressed, const char * compressed, size_t length )
 {
-//#if defined NOBZIP2
+    std::string head( compressed, compressed + 10 );
+    adportable::debug(__FILE__, __LINE__) << "bzip2::decompress: " << head << " length=" << length;
+                        
     // setup input(source) stream
     boost::iostreams::basic_array_source< char > device( compressed, length );
     boost::iostreams::stream< boost::iostreams::basic_array_source< char > > in( device );
@@ -84,13 +93,27 @@ bzip2::decompress( std::string& uncompressed, const char * compressed, size_t le
     boost::iostreams::filtering_streambuf< boost::iostreams::output > zout;
     zout.push( boost::iostreams::bzip2_decompressor() );
     zout.push( out );
-                        
+
+    typedef boost::error_info< struct tag_errmsg, std::string > info;
+
     // compress
-    boost::iostreams::copy( in, zout );                    
-// #else
-//     uncompressed.resize( length );
-//     std::copy( compressed, compressed + length, uncompressed.begin() );
-// #endif
+    try {
+        boost::iostreams::copy( in, zout );
+    } catch ( const boost::iostreams::bzip2_error& ex ) {
+        int error = ex.error();
+        if ( error == boost::iostreams::bzip2::data_error ) {
+            adportable::debug(__FILE__, __LINE__) << "uncompressed has " << uncompressed.size() << " bytes";
+            BOOST_THROW_EXCEPTION( bzip2_exception() << info("compressed data stream is corrupted" )   );
+        } else if ( error == boost::iostreams::bzip2::data_error_magic ) {
+            BOOST_THROW_EXCEPTION( bzip2_exception() << info("compressed data stream does not begin with 'magic'" ) );
+        } else if ( error == boost::iostreams::bzip2::config_error ) {
+            BOOST_THROW_EXCEPTION( bzip2_exception() << info("libbz2 has been improperty configured for the current platform" ) );
+        } else {
+            BOOST_THROW_EXCEPTION( bzip2_exception() << info("unknown bzip2_error") );
+        }
+    } catch ( const std::exception& ex ) {
+        BOOST_THROW_EXCEPTION( bzip2_exception() << info( ex.what() ) );
+    }
 }
 
 // static

@@ -76,6 +76,7 @@
 #include <adfs/attributes.hpp>
 #include <adutils/fsio.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -140,12 +141,28 @@ Dataprocessor::create(const QString& token )
 bool
 Dataprocessor::open(const QString &fileName )
 {
-    adcontrols::datafile * file = adcontrols::datafile::open( qtwrapper::wstring::copy( fileName ), false );
+    adcontrols::datafile * file = 0;
+    try {
+        file = adcontrols::datafile::open( fileName.toStdWString(), false );
+    } catch ( boost::exception& ex ) {
+        adportable::debug(__FILE__, __LINE__) << boost::diagnostic_information( ex );
+    } catch ( ... ) {
+        adportable::debug(__FILE__, __LINE__) << "got an exception '...'";
+    }
+    
     if ( file ) {
         ifileimpl_.reset( new IFileImpl( file, *this ) );
-        file->accept( *ifileimpl_ );
-        file->accept( *this );
-        return true;
+        try {
+            file->accept( *ifileimpl_ );
+            file->accept( *this );
+            return true;
+        } catch ( boost::exception& ex ) {
+            adportable::debug(__FILE__, __LINE__) << boost::diagnostic_information( ex );
+        } catch ( std::exception& ex ) {
+            adportable::debug(__FILE__, __LINE__) << ex.what();
+        } catch ( ... ) {
+            adportable::debug(__FILE__, __LINE__) << "got an exception '...'";
+        }
     }
     return false;
 }

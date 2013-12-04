@@ -31,6 +31,14 @@
 #include <adfs/cpio.hpp>
 #include <adportable/bzip2.hpp>
 #include <adportable/serializer.hpp>
+#include <boost/exception/all.hpp>
+
+namespace batchproc {
+    class DataInterpreterException : public boost::exception, public std::exception {
+    public:
+        DataInterpreterException() { }
+    };
+}
 
 using namespace batchproc;
 
@@ -50,7 +58,7 @@ DataInterpreter::translate( adcontrols::MassSpectrum& ms
         return translate_profile( ms, data, dsize, meta, msize, spectrometer, idData );
     else if ( traceId && std::wcscmp( traceId, L"MS.CENTROID" ) == 0 )
         return translate_processed( ms, data, dsize, meta, msize, spectrometer, idData );
-	return adcontrols::translate_error;
+    return adcontrols::translate_error;
 }
 
 adcontrols::translate_state
@@ -119,6 +127,9 @@ DataInterpreter::translate_processed( adcontrols::MassSpectrum& ms
                                     , const adcontrols::MassSpectrometer& spectrometer
                                     , size_t idData ) const
 {
+    (void)meta;
+    (void)msize;
+    (void)idData;
     const batchproc::MassSpectrometer* pSpectrometer = dynamic_cast< const batchproc::MassSpectrometer * >( &spectrometer );
     if ( pSpectrometer == 0 )
         return adcontrols::translate_error;
@@ -145,6 +156,10 @@ DataInterpreter::translate( adcontrols::TraceAccessor& trace
                             , const char * data, size_t dsize
                             , const char * meta, size_t msize, unsigned long events ) const
 {
+    (void)meta;
+    (void)msize;
+    (void)events;
+
 	adcontrols::Chromatogram c;
 
     if ( adportable::bzip2::is_a( data, dsize ) ) {
