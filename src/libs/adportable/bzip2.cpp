@@ -30,7 +30,7 @@
 
 #include <adportable/debug.hpp>
 
-#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
@@ -78,26 +78,24 @@ bzip2::compress( std::string& compressed, const char * uncompressed, size_t leng
 void
 bzip2::decompress( std::string& uncompressed, const char * compressed, size_t length )
 {
-
     // setup input(source) stream
-    //boost::iostreams::basic_array_source< char > device( compressed, length );
-    //boost::iostreams::stream< boost::iostreams::basic_array_source< char > > in( device );
+    boost::iostreams::basic_array_source< char > device( compressed, length );
+    boost::iostreams::stream< boost::iostreams::basic_array_source< char > > zdat( device );
+	
+	//
+	boost::iostreams::filtering_streambuf< boost::iostreams::input > zin;
+	zin.push( boost::iostreams::bzip2_decompressor() );
+	zin.push( zdat );
 
-    // setup output(result) stream
-    //boost::iostreams::back_insert_device< std::string > inserter( uncompressed );
-    //boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > out( inserter );
-    
-    boost::iostreams::filtering_streambuf< boost::iostreams::output > zout;
-    zout.push( boost::iostreams::bzip2_decompressor() );
-    zout.push( boost::iostreams::back_inserter( uncompressed ) );
+	boost::iostreams::back_insert_device< std::string > inserter( uncompressed );
+	boost::iostreams::stream< boost::iostreams::back_insert_device< std::string > > os( inserter );
 
     typedef boost::error_info< struct tag_errmsg, std::string > info;
 
     // compress
     int error = 0;
     try {
-        boost::iostreams::write( zout, compressed, length );
-        // boost::iostreams::copy( in, zout );
+        boost::iostreams::copy( zin, os );
     } catch ( const boost::iostreams::bzip2_error& ex ) {
         error = ex.error();
     } catch ( const std::exception& ex ) {
@@ -110,7 +108,7 @@ bzip2::decompress( std::string& uncompressed, const char * compressed, size_t le
                                           << " length:" << length
                                           << " uncompressed size: " << uncompressed.size();
 // end debug
-    if ( errno ) {
+    if ( error ) {
         if ( error == boost::iostreams::bzip2::data_error ) {
             BOOST_THROW_EXCEPTION( bzip2_exception() << info("compressed data stream is corrupted" )   );
         } else if ( error == boost::iostreams::bzip2::data_error_magic ) {

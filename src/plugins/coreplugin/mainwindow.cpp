@@ -1222,8 +1222,8 @@ void MainWindow::openRecentFile()
         return;
     QString fileName = action->data().toString();
     if (!fileName.isEmpty()) {
-        IEditor * editor = editorManager()->openEditor(fileName);  // TH change for editor in different mode, 9th January 2013
-        editorManager()->ensureEditorManagerVisible( editor->uniqueModeName() ); // TH ibid
+        if ( IEditor * editor = editorManager()->openEditor(fileName) )  // TH change for editor in different mode, 9th January 2013
+			editorManager()->ensureEditorManagerVisible( editor->uniqueModeName() ); // TH ibid
     }
 }
 
