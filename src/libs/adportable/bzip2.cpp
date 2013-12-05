@@ -71,7 +71,18 @@ bzip2::compress( std::string& compressed, const char * uncompressed, size_t leng
     zout.push( out );
                         
     // compress
-    boost::iostreams::copy( in, zout );                    
+    try {
+
+        boost::iostreams::copy( in, zout );
+
+    } catch ( const boost::iostreams::bzip2_error& ex ) {
+        typedef boost::error_info< struct tag_errno, int > info;
+        BOOST_THROW_EXCEPTION( bzip2_exception() << info( ex.error() ) );
+    } catch ( const std::exception& ex ) {
+        typedef boost::error_info< struct tag_errmsg, std::string > info;
+        BOOST_THROW_EXCEPTION( bzip2_exception() << info( ex.what() ) );
+    }
+
 }
 
 // static
@@ -92,7 +103,6 @@ bzip2::decompress( std::string& uncompressed, const char * compressed, size_t le
 
     typedef boost::error_info< struct tag_errmsg, std::string > info;
 
-    // compress
     int error = 0;
     try {
         boost::iostreams::copy( zin, os );
@@ -102,12 +112,11 @@ bzip2::decompress( std::string& uncompressed, const char * compressed, size_t le
         BOOST_THROW_EXCEPTION( bzip2_exception() << info( ex.what() ) );
     }
 
-// debug
     std::string head( compressed, compressed + 10 );
     adportable::debug(__FILE__, __LINE__) << "---> bzip2::decompress: " << head
                                           << " length:" << length
-                                          << " uncompressed size: " << uncompressed.size();
-// end debug
+                                          << " uncompressed size: " << uncompressed.size()
+                                          << " error: " << error;
     if ( error ) {
         if ( error == boost::iostreams::bzip2::data_error ) {
             BOOST_THROW_EXCEPTION( bzip2_exception() << info("compressed data stream is corrupted" )   );
