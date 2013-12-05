@@ -27,6 +27,7 @@ LIBS += -l$$qtLibraryTarget(adplugin) \
           -lbz2
 }
 linux-*: LIBS += -ldl
+macx: QMAKE_LFLAGS+=-Wl,-search_paths_first
 
 # batchproc files
 
