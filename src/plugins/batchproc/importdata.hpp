@@ -55,7 +55,7 @@ namespace batchproc {
     public:
         int32_t pos_;
         std::vector< double > masses_;
-        import_continuum_massarray() {}
+        import_continuum_massarray() : pos_(0) {}
         import_continuum_massarray( const import_continuum_massarray& t ) : pos_( t.pos_ )
                                                                           , masses_( t.masses_ ) {
         }
