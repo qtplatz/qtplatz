@@ -32,6 +32,7 @@
 #include <boost/serialization/variant.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/version.hpp>
+#include <adportable/debug.hpp>
 
 namespace batchproc {
 
@@ -62,9 +63,10 @@ namespace batchproc {
         friend class boost::serialization::access;
         template< class Archive >
         void serialize( Archive& ar, const unsigned int ) {
-            ar & pos_
-                & masses_
-                ;
+            ar & pos_;
+            adportable::debug( __FILE__, __LINE__ ) << "import_continuum_massarray serialize pos=" << pos_;
+            ar & masses_;
+            adportable::debug( __FILE__, __LINE__ ) << "import_continuum_massarray serialize masses=" << masses_.size();
         }
     };
 

@@ -100,6 +100,7 @@
 
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/exception/all.hpp>
 #include <streambuf>
 #include <fstream>
 #include <iomanip>
@@ -325,10 +326,11 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
 	waitCursor w;
 
+    adportable::debug(__FILE__, __LINE__) << "onSelectTimeRagneOnChromatogram(" << x1 << ", " << x2 << ")";
+
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
-		const adcontrols::LCMSDataset * dset = dp->getLCMSDataset();
-		if ( dset ) {
+		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
 			long pos1 = dset->posFromTime( x1 * 60.0 ); // min --> sec
 			long pos2 = dset->posFromTime( x2 * 60.0 ); // min --> sec
 			long pos = pos1;
@@ -336,51 +338,57 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 			double t2 = dset->timeFromPos( pos2 ) / 60.0; // to minutes
 
 			adcontrols::MassSpectrum ms;
-			if ( dset->getSpectrum( 0, pos++, ms ) ) {
-				if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
-					t1 = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
-
-				std::wostringstream text;
-				if ( pos2 > pos1 ) {
-                    QProgressBar progressBar;
-                    progressBar.setRange( pos1, pos2 );
-                    progressBar.setVisible( true );
-
-					adcontrols::MassSpectrum a;
-					while ( pos < pos2	&& dset->getSpectrum( 0, pos++, a ) ) {
-						progressBar.setValue( pos );
-						ms += a;
-					}
-                    if ( !adportable::compare<double>::approximatelyEqual( a.getMSProperty().timeSinceInjection(), 0.0 ) )
-                        t2 = a.getMSProperty().timeSinceInjection() / 60.0; // to min
-					text << L"Spectrum (" << std::fixed << std::setprecision(3) << t1 << " - " << t2 << ")";
-				} else {
-					text << L"Spectrum @ " << std::fixed << std::setprecision(3) << t1 << "min";
-				}
-				adcontrols::ProcessMethod m;
-				ms.addDescription( adcontrols::Description( L"create", text.str() ) );
-				portfolio::Folium folium = dp->addSpectrum( ms, m );
-
-				// add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
-				if ( folium ) {
-                    bool hasCentroid( false );
-                    if ( pos1 == pos2 && dset->hasProcessedSpectrum( 0, pos1 ) ) {
-                        adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
-						if ( dset->getSpectrum( 0, pos1, *pCentroid, dset->findObjId( L"MS.CENTROID" ) ) ) {
-                            hasCentroid = true;
-                            portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
-                            att.assign( pCentroid, pCentroid->dataClass() );
-                            SessionManager::instance()->updateDataprocessor( dp, folium );
+            try {
+                if ( dset->getSpectrum( 0, pos++, ms ) ) {
+                    if ( !adportable::compare<double>::approximatelyEqual( ms.getMSProperty().timeSinceInjection(), 0.0 ) )
+                        t1 = ms.getMSProperty().timeSinceInjection() / 60.0; // to min
+                
+                    std::wostringstream text;
+                    if ( pos2 > pos1 ) {
+                        QProgressBar progressBar;
+                        progressBar.setRange( pos1, pos2 );
+                        progressBar.setVisible( true );
+                    
+                        adcontrols::MassSpectrum a;
+                        while ( pos < pos2	&& dset->getSpectrum( 0, pos++, a ) ) {
+                            progressBar.setValue( pos );
+                            ms += a;
+                        }
+                        if ( !adportable::compare<double>::approximatelyEqual( a.getMSProperty().timeSinceInjection(), 0.0 ) )
+                            t2 = a.getMSProperty().timeSinceInjection() / 60.0; // to min
+                        text << L"Spectrum (" << std::fixed << std::setprecision(3) << t1 << " - " << t2 << ")";
+                    } else {
+                        text << L"Spectrum @ " << std::fixed << std::setprecision(3) << t1 << "min";
+                    }
+                    adcontrols::ProcessMethod m;
+                    ms.addDescription( adcontrols::Description( L"create", text.str() ) );
+                    portfolio::Folium folium = dp->addSpectrum( ms, m );
+                
+                    // add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
+                    if ( folium ) {
+                        bool hasCentroid( false );
+                        if ( pos1 == pos2 && dset->hasProcessedSpectrum( 0, pos1 ) ) {
+                            adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
+                            if ( dset->getSpectrum( 0, pos1, *pCentroid, dset->findObjId( L"MS.CENTROID" ) ) ) {
+                                hasCentroid = true;
+                                portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
+                                att.assign( pCentroid, pCentroid->dataClass() );
+                                SessionManager::instance()->updateDataprocessor( dp, folium );
+                            }
+                        }
+                        if ( ! hasCentroid ) {
+                            mainWindow_->getProcessMethod( m );
+                            //dp->applyProcess( folium, m, CentroidProcess );
                         }
                     }
-                    if ( ! hasCentroid ) {
-                        mainWindow_->getProcessMethod( m );
-                        //dp->applyProcess( folium, m, CentroidProcess );
-                    }
-				}
-			}
+                }
+            } catch ( ... ) {
+                adportable::debug(__FILE__, __LINE__) << boost::current_exception_diagnostic_information();
+                QMessageBox::warning( 0, "DataprocPlugin", boost::current_exception_diagnostic_information().c_str() );
+            }
 		}
 	}
+    adportable::debug(__FILE__, __LINE__) << "return onSelectTimeRagneOnChromatogram(" << x1 << ", " << x2 << ")";
 }
 
 void

@@ -112,12 +112,12 @@ bzip2::decompress( std::string& uncompressed, const char * compressed, size_t le
         BOOST_THROW_EXCEPTION( bzip2_exception() << info( ex.what() ) );
     }
 
-    std::string head( compressed, compressed + 10 );
-    adportable::debug(__FILE__, __LINE__) << "---> bzip2::decompress: " << head
-                                          << " length:" << length
-                                          << " uncompressed size: " << uncompressed.size()
-                                          << " error: " << error;
     if ( error ) {
+        std::string head( compressed, compressed + 10 );
+        adportable::debug(__FILE__, __LINE__) << "---> bzip2::decompress: " << head
+                                              << " length:" << length
+                                              << " uncompressed size: " << uncompressed.size()
+                                              << " error: " << error;
         if ( error == boost::iostreams::bzip2::data_error ) {
             BOOST_THROW_EXCEPTION( bzip2_exception() << info("compressed data stream is corrupted" )   );
         } else if ( error == boost::iostreams::bzip2::data_error_magic ) {

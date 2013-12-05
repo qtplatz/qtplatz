@@ -45,6 +45,7 @@
 #include <adportable/debug.hpp>
 #include <adutils/mscalibio.hpp>
 #include <boost/format.hpp>
+#include <boost/exception/all.hpp>
 #include <memory>
 #include <cstdint>
 #include <sstream>
@@ -435,7 +436,8 @@ rawdata::fetchSpectrum( int64_t objid
                     blob.read( reinterpret_cast< int8_t *>( xmeta.data() ), blob.size() );
             }
             size_t idData = 0;
-            return interpreter.translate( ms, xdata.data(), xdata.size(), xmeta.data(), xmeta.size(), spectrometer, idData++, traceId.c_str() );
+            return interpreter.translate( ms, xdata.data(), xdata.size()
+                                          , xmeta.data(), xmeta.size(), spectrometer, idData++, traceId.c_str() );
         }
     }
     return adcontrols::translate_error;

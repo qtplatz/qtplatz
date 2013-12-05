@@ -30,6 +30,12 @@
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adportable/serializer.hpp>
 #include <adportable/bzip2.hpp>
+#include <adportable/debug.hpp>
+#include <boost/exception/all.hpp>
+
+namespace batchproc {
+    class MassSpectrometerException : public boost::exception, public std::exception {};
+}
 
 using namespace batchproc;
 
@@ -65,7 +71,7 @@ MassSpectrometer::name() const
 const adcontrols::ScanLaw&
 MassSpectrometer::getScanLaw() const 
 {
-    throw std::bad_cast();
+    BOOST_THROW_EXCEPTION( std::bad_cast() );
 }
 
 const adcontrols::DataInterpreter&
@@ -83,17 +89,20 @@ MassSpectrometer::scanLaw( const adcontrols::MSProperty& ) const
 void
 MassSpectrometer::setCalibration( int mode, const adcontrols::MSCalibrateResult& )
 {
+    (void)mode;
 }
 
 const std::shared_ptr< adcontrols::MSCalibrateResult >
 MassSpectrometer::getCalibrateResult( size_t idx ) const 
 {
+    (void)idx;
     return 0;
 }
 
 const adcontrols::MSCalibration *
 MassSpectrometer::findCalibration( int mode ) const 
 {
+    (void)mode;
     return 0;
 }
 
@@ -121,11 +130,24 @@ MassSpectrometer::load_continuum_massarray()
             if ( accessor_->getRaw( objid, 0, fcn, data, meta ) ) {
                 if ( !meta.empty() ) {
                     if ( adportable::bzip2::is_a( meta.data(), meta.size() ) ) {
+                        adportable::debug(__FILE__, __LINE__) << "load continuum massarray w/ decompress";
                         std::string ar;
                         adportable::bzip2::decompress( ar, meta.data(), meta.size() );
-                        adportable::serializer< import_continuum_massarray >::deserialize( *continuum_massarray_, ar.data(), ar.size() );
+                        try {
+                            adportable::debug(__FILE__, __LINE__) << "deserialize continuum massarray size=" << ar.size();
+                            adportable::serializer< import_continuum_massarray >::deserialize( *continuum_massarray_, ar.data(), ar.size() );
+                        } catch ( boost::archive::archive_exception& ex ) {
+                            adportable::debug(__FILE__, __LINE__) << "archive_exception::code : " << ex.code << " " << ex.what();
+                            BOOST_THROW_EXCEPTION( ex );
+                        }
                     } else {
-                        adportable::serializer< import_continuum_massarray >::deserialize( *continuum_massarray_, meta.data(), meta.size() );
+                        adportable::debug(__FILE__, __LINE__) << "load continuum massarray w/o decompress";
+                        try {
+                            adportable::serializer< import_continuum_massarray >::deserialize( *continuum_massarray_, meta.data(), meta.size() );
+                        } catch ( boost::archive::archive_exception& ex ) {
+                            adportable::debug(__FILE__, __LINE__) << boost::current_exception_diagnostic_information() << ex.code;
+                            BOOST_THROW_EXCEPTION( ex );
+                        }
                     }
                     return true;
                 }

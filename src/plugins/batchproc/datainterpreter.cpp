@@ -30,6 +30,7 @@
 #include <adcontrols/traceaccessor.hpp>
 #include <adfs/cpio.hpp>
 #include <adportable/bzip2.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/serializer.hpp>
 #include <boost/exception/all.hpp>
 
@@ -54,10 +55,21 @@ DataInterpreter::translate( adcontrols::MassSpectrum& ms
                             , size_t idData
 							, const wchar_t * traceId ) const
 {
-    if ( traceId == 0 || (traceId && std::wcscmp( traceId, L"MS.PROFILE") == 0 ) )
-        return translate_profile( ms, data, dsize, meta, msize, spectrometer, idData );
-    else if ( traceId && std::wcscmp( traceId, L"MS.CENTROID" ) == 0 )
-        return translate_processed( ms, data, dsize, meta, msize, spectrometer, idData );
+    try { 
+        if ( traceId == 0 || (traceId && std::wcscmp( traceId, L"MS.PROFILE") == 0 ) )
+            return translate_profile( ms, data, dsize, meta, msize, spectrometer, idData );
+        else if ( traceId && std::wcscmp( traceId, L"MS.CENTROID" ) == 0 )
+            return translate_processed( ms, data, dsize, meta, msize, spectrometer, idData );
+    } catch ( boost::exception& ex ) {
+        adportable::debug(__FILE__, __LINE__) << boost::diagnostic_information( ex );
+        std::ostringstream o;
+        o << "batchproc::DataInterpreter::translate(traceId=" << traceId << ")";
+        ex << boost::error_info< struct errmsg_info, std::string >( o.str() );
+        throw;
+    } catch ( ... ) {
+        adportable::debug(__FILE__, __LINE__) << boost::current_exception_diagnostic_information();        
+        throw;
+    }
     return adcontrols::translate_error;
 }
 
@@ -69,7 +81,7 @@ DataInterpreter::translate_profile( adcontrols::MassSpectrum& ms
                                     , size_t idData ) const
 {
 	(void)idData;
-
+    adportable::debug(__FILE__, __LINE__) << "translate_profile( dsize=" << dsize << ", msize=" << msize << ")";
     import_profile profile;
     import_continuum_massarray ma;
     
@@ -81,17 +93,16 @@ DataInterpreter::translate_profile( adcontrols::MassSpectrum& ms
 
         std::string ar;
         adportable::bzip2::decompress( ar, data, dsize );
-
+        adportable::debug(__FILE__, __LINE__) << "translate_profile deserialize import_profile w/ decompress";
         if ( ! adportable::serializer< import_profile >::deserialize( profile, ar.data(), ar.size() ) )
             return adcontrols::translate_error;
 
     } else {
-
+        adportable::debug(__FILE__, __LINE__) << "translate_profile deserialize import_profile w/o decompress";
         if ( ! adportable::serializer< import_profile >::deserialize( profile, data, dsize ) ) 
             return adcontrols::translate_error;
-
     }
-    
+
     if ( meta && msize ) {
         if ( adportable::bzip2::is_a( meta, msize ) ) {
             std::string ar;
@@ -104,18 +115,23 @@ DataInterpreter::translate_profile( adcontrols::MassSpectrum& ms
         }
     }
 
+    adportable::debug(__FILE__, __LINE__) << "translate_profile checkpoint 3";
     const import_continuum_massarray& continuum_massarray = meta ? ma : pSpectrometer->continuum_massarray();
     
 	ms.setMSProperty( profile.prop_ );
 	ms.setPolarity( profile.polarity_ );
     ms.resize( profile.intensities_.size() );
 
+    adportable::debug(__FILE__, __LINE__) << "translate_profile checkpoint 4";
     ms.setMassArray( continuum_massarray.masses_.data() );
     auto intens = profile.intensities_.data();
     for ( size_t i = 0; i < ms.size(); ++i )
         ms.setIntensity( i, *intens++ );
 
+    adportable::debug(__FILE__, __LINE__) << "translate_profile checkpoint 5";
     ms.setAcquisitionMassRange( ms.getMass( 0 ), ms.getMass( ms.size() - 1 ) );
+
+    adportable::debug(__FILE__, __LINE__) << "translate_profile checkpoint 6";
 
     return adcontrols::translate_complete;
 }
