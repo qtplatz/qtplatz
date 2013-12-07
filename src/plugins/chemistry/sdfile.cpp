@@ -21,3 +21,38 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+
+#include "sdfile.hpp"
+#include <adportable/debug.hpp>
+
+#include <RDGeneral/Invariant.h>
+#include <GraphMol/RDKitBase.h>
+#include <GraphMol/SmilesParse/SmilesParse.h>
+#include <GraphMol/SmilesParse/SmilesWrite.h>
+#include <GraphMol/Substruct/SubstructMatch.h>
+#include <GraphMol/Depictor/RDDepictor.h>
+#include <GraphMol/FileParsers/FileParsers.h>
+#include <GraphMol/FileParsers/MolSupplier.h>
+#include <RDGeneral/RDLog.h>
+
+using namespace chemistry;
+
+SDFile::SDFile()
+{
+}
+
+SDFile::SDFile( const std::string& filename, bool sanitize, bool removeHs, bool strictParsing )
+    : molSupplier_( std::make_shared< RDKit::SDMolSupplier >( filename, sanitize, removeHs, strictParsing ) )
+    , filename_( filename )
+{
+    adportable::debug(__FILE__, __LINE__) << filename_;
+    adportable::debug(__FILE__, __LINE__) << molSupplier_->length();
+}
+
+// static
+bool
+SDFile::associatedData( const std::string& text, std::map< std::string, std::string >& data )
+{
+    data.clear();
+    (void)text;
+}

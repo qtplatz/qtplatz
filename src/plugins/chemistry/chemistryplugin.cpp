@@ -25,9 +25,7 @@
 #include "chemistryplugin.hpp"
 #include "chemistryconstants.hpp"
 #include "chemistrymode.hpp"
-#include "chemistrymainwindow.hpp"
-#include "chemeditorfactory.hpp"
-#include "sdfileview.hpp"
+#include "mainwindow.hpp"
 #include "constants.hpp"
 #include <adportable/debug.hpp>
 
@@ -61,7 +59,8 @@
 
 using namespace chemistry;
 
-ChemistryPlugin::ChemistryPlugin()
+ChemistryPlugin::ChemistryPlugin() : mode_( std::make_shared< ChemistryMode >( this ) )
+                                   , mainWindow_( std::make_shared< MainWindow >() )
 {
     // Create your members
 }
@@ -80,55 +79,25 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
     Q_UNUSED(arguments)
     Q_UNUSED(errorString)
 
-    Core::ActionManager *am = Core::ICore::instance()->actionManager();
-    
-    QAction *action = new QAction(tr("Chemistry action"), this);
-	QList<int> globalcontext;
-	globalcontext << Core::Constants::C_GLOBAL_ID;
-    Core::Command *cmd = am->registerAction(action, Constants::ACTION_ID, globalcontext );
+    QAction *action = new QAction(tr("chemistry action"), this);
+	const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
+	Core::Command * cmd = Core::ICore::instance()->actionManager()->registerAction( action, Constants::ACTION_ID, gc );
+
     cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+A")));
     connect(action, SIGNAL(triggered()), this, SLOT(triggerAction()));
-    
-    Core::ActionContainer *menu = am->createMenu(Constants::MENU_ID);
+
+	Core::ActionContainer *menu = Core::ICore::instance()->actionManager()->createMenu(Constants::MENU_ID);
     menu->menu()->setTitle(tr("Chemistry"));
     menu->addAction(cmd);
-    am->actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
+	Core::ICore::instance()->actionManager()->actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
 
-	//--- add configuration xml loading if necessary
-    //---
-    //---
-	mode_.reset( new ChemistryMode( this ) );
-	if ( ! mode_ )
-		return false;
+    Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
+    mainWindow_->activateWindow();
+    mainWindow_->createActions();
 
-    ChemEditorFactory * editorFactory(0);
-    do {
-       Core::MimeDatabase * mdb = Core::ICore::instance()->mimeDatabase();
-       if ( ! mdb )
-		   return false;
-       if ( ! mdb->addMimeTypes( ":/chemistry/mimetype.xml", errorString ) )
-		   adportable::debug( __FILE__, __LINE__ ) << "addMimeTypes: " << errorString;
-
-       QStringList mtypes;
-       mtypes << "application/sdf"
-		      << "application/mdl";
-	   if ( ! ( editorFactory = new ChemEditorFactory( this, mtypes ) ) )
-		   return false;
-	   addAutoReleasedObject( editorFactory );
-	} while( 0 );
-
-	//<-------
-	do {
-		mainWindow_.reset( new ChemistryMainWindow() );
-		if ( ! mainWindow_ )
-			return false;
-	} while( 0 );
-
-	Core::ModeManager::instance()->activateMode( mode_->uniqueModeName() );
-	mainWindow_->activateLayout();
-	mainWindow_->createActions();
-	QWidget * widget = mainWindow_->createContents( mode_.get() );
-	mode_->setWidget( widget );
+    mode_->setContext( gc );
+    if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
+        mode_->setWidget( widget );
     addObject( mode_.get() );
 
     return true;

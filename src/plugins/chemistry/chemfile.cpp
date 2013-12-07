@@ -24,14 +24,7 @@
 
 #include "chemfile.hpp"
 
-#include <openbabel/obconversion.h>
-#if defined _MSC_VER
-#pragma warning(disable:4100)
-#endif
-#include <openbabel/mol.h>
-#if defined _MSC_VER
-#pragma warning(default:4100)
-#endif
+//#include <openbabel/obconversion.h>
 
 #include <qtwrapper/qstring.hpp>
 #include <portfolio/portfolio.hpp>
@@ -50,63 +43,65 @@ ChemFile::~ChemFile()
 }
 
 ChemFile::ChemFile( QObject * parent ) : Core::IFile( parent )
-				       , modified_( false )
-				       , nread_( 0 )
-				       , obconversion_( new adchem::Conversion )
-				       , filesize_( 0 )
+                                       , modified_( false )
+                                       , nread_( 0 )
+                                       , filesize_( 0 )
 {
 }
 
-bool
-ChemFile::open( const QString& qfilename, const OpenBabel::OBFormat * informat )
-{
-    nread_ = 0;
-    qfilename_ = qfilename;
-	filename_ = static_cast< const char * >( qfilename_.toUtf8() );
-    if ( informat == 0 ) {
-        informat = OpenBabel::OBConversion::FormatFromExt( filename_.c_str() );
-        if ( informat == 0 ) {
-            qDebug() << "ChemFile: " << qfilename << " format from ext could not be identified";
-            return false;
-        }
-    }
+// bool
+// ChemFile::open( const QString& qfilename, const OpenBabel::OBFormat * informat )
+// {
+// #if 0
+//     nread_ = 0;
+//     qfilename_ = qfilename;
+// 	filename_ = static_cast< const char * >( qfilename_.toUtf8() );
+//     if ( informat == 0 ) {
+//         informat = OpenBabel::OBConversion::FormatFromExt( filename_.c_str() );
+//         if ( informat == 0 ) {
+//             qDebug() << "ChemFile: " << qfilename << " format from ext could not be identified";
+//             return false;
+//         }
+//     }
     
-    if ( ! boost::filesystem::exists( filename_ ) ) {
-        qDebug() << "ChemFile: " << qfilename << " does not exist";
-        return false;
-    }
+//     if ( ! boost::filesystem::exists( filename_ ) ) {
+//         qDebug() << "ChemFile: " << qfilename << " does not exist";
+//         return false;
+//     }
 
-    filesize_ = boost::filesystem::file_size( filename_ );
+//     filesize_ = boost::filesystem::file_size( filename_ );
     
-    obconversion_->informat( const_cast< OpenBabel::OBFormat *>( informat ) );
-	obconversion_->open( filename_.c_str() );
-    return true;
-}
+//     obconversion_->informat( const_cast< OpenBabel::OBFormat *>( informat ) );
+// 	obconversion_->open( filename_.c_str() );
+// #endif
+//     return true;
+// }
 
-unsigned long long
-ChemFile::tellg() const
-{
-	return obconversion_->tellg();
-	/*
-    std::istream * stream = obconversion_->GetInStream();
-    if ( stream )
-	return stream->tellg();
-    return 0;
-	*/
-}
+// unsigned long long
+// ChemFile::tellg() const
+// {
+//     return 0;
+// 	// return obconversion_->tellg();
+// 	/*
+//     std::istream * stream = obconversion_->GetInStream();
+//     if ( stream )
+// 	return stream->tellg();
+//     return 0;
+// 	*/
+// }
 
-unsigned long long
-ChemFile::fsize() const
-{
-    return filesize_;
-}
+// unsigned long long
+// ChemFile::fsize() const
+// {
+//     return filesize_;
+// }
 
-bool
-ChemFile::Read( adchem::Mol& mol )
-{
-    nread_++;
-    return obconversion_->read( mol );
-}
+// bool
+// ChemFile::Read( adchem::Mol& mol )
+// {
+//     nread_++;
+//     return obconversion_->read( mol );
+// }
 
 void
 ChemFile::setModified( bool val )

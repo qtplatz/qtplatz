@@ -21,3 +21,36 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
+
+#ifndef SDFILE_HPP
+#define SDFILE_HPP
+
+#include <memory>
+#include <string>
+#include <map>
+
+namespace RDKit {
+    class SDMolSupplier;
+}
+
+namespace chemistry {
+
+    class SDFile {
+    public:
+        SDFile();
+        SDFile( const std::string& filename, bool sanitize = true , bool removeHs = true, bool strictParsing = true );
+        operator bool() const { return molSupplier_ != 0; }
+
+        RDKit::SDMolSupplier& molSupplier() { return *molSupplier_; }
+        const RDKit::SDMolSupplier& molSupplier() const { return *molSupplier_; }
+
+        static bool associatedData( const std::string&, std::map< std::string, std::string >& );
+
+    private:
+        std::shared_ptr< RDKit::SDMolSupplier > molSupplier_;
+        std::string filename_;
+    };
+
+}
+
+#endif // SDFILE_HPP

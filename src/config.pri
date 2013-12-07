@@ -2,7 +2,6 @@
 CONFIG(debug, debug|release) {
   DEFINES += DEBUG
 }
-#DEFINES += BOOST_REGEX
 
 win32 {
     DEFINES += _WIN32_WINNT=0x0700 _SCL_SECURE_NO_WARNINGS
@@ -42,18 +41,11 @@ isEmpty( QWT ) {
   macx|linux-*: QWT=/usr/local/qwt-$${QWT_VERSION}
 }
 
-# OpenBabel
-OPENBABEL_ROOT = $$(OPENBABEL_ROOT)
-isEmpty ( OPENBABEL_ROOT ) {
-  win32: OPENBABEL_ROOT=C:/openbabel
-  else: OPENBABEL_ROOT=/usr/local
-}
-
 QTPLATZ_CONFIG += Acquire
 QTPLATZ_CONFIG += Sequence
 QTPLATZ_CONFIG += Dataproc
 #QTPLATZ_CONFIG += ExampleTOF
-#!macx: QTPLATZ_CONFIG += Chemistry
+QTPLATZ_CONFIG += Chemistry
 
 # no chemistry for ARM platform
 linux-arm-*: QTPLATZ_CONFIG -= ChemSpider Chemistry

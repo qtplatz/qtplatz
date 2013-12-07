@@ -27,9 +27,14 @@
 
 #include "chemistry_global.hpp"
 #include <utils/fancymainwindow.h>
-#include <qlayout.h>
+#include <QLayout>
+#include <QUrl>
 
 namespace Core { class IMode; }
+namespace Utils { class StyledBar; }
+
+class QStandardItemModel;
+class QTableView;
 
 class QHBoxLayout;
 class QWidget;
@@ -38,13 +43,14 @@ class QAction;
 
 namespace chemistry { 
 
-    class SDFileModel;
+    class MolTableView;
+    class MolTableDelegate;
 
-	class ChemistryMainWindow : public Utils::FancyMainWindow {
+	class MainWindow : public Utils::FancyMainWindow {
 		Q_OBJECT
 	public:
-        ~ChemistryMainWindow();
-		explicit ChemistryMainWindow();
+        ~MainWindow();
+		explicit MainWindow( QWidget * parent = 0 );
 
 		QWidget * createContents( Core::IMode * );
 		void createActions();
@@ -55,17 +61,19 @@ namespace chemistry {
 		QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
 		static QToolButton * toolButton( const char * );
 		static QToolButton * toolButton( QAction * );
-		static ChemistryMainWindow * instance();
+		static MainWindow * instance();
     
     signals:
     
 	public slots:
 		void actionSearch();
-		void handleViewDetails( int raw, const SDFileModel * );
-		void handleViewFragments( int raw, const SDFileModel * );
+
+    private slots:
+        void handleDropped( const QList< QUrl >& );
 
 	private:
-		static ChemistryMainWindow * instance_;
+        std::unique_ptr< MolTableView > tableView_;
+		static MainWindow * instance_;
 		QWidget * toolBar_;
 		QHBoxLayout * toolBarLayout_;
 		QDockWidget * toolBarDockWidget_;

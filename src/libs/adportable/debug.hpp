@@ -66,3 +66,5 @@ namespace adportable {
         return x.where();
     }
 }
+
+#define ADP_DEBUG() adportable::debug(__FILE__, __LINE__)

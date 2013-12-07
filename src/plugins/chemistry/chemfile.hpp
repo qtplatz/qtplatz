@@ -28,7 +28,7 @@
 #include <coreplugin/ifile.h>
 #include <boost/noncopyable.hpp>
 #ifndef Q_MOC_RUN
-#include <adchem/conversion.hpp>
+//#include <adchem/conversion.hpp>
 #endif
 #include <memory>
 
@@ -64,13 +64,13 @@ namespace chemistry {
         virtual void checkPermissions() {}
 
 		// <---------
-		bool open( const QString& filename, const OpenBabel::OBFormat * );
-		inline adchem::Conversion& conversion() { return *obconversion_; }
-		inline const adchem::Conversion& conversion() const { return *obconversion_; }
-		const std::string& filename() const { return filename_; }
-		bool Read( adchem::Mol& );
-        unsigned long long tellg() const;
-        unsigned long long fsize() const;
+		// bool open( const QString& filename, const OpenBabel::OBFormat * );
+		// inline adchem::Conversion& conversion() { return *obconversion_; }
+		// inline const adchem::Conversion& conversion() const { return *obconversion_; }
+		// const std::string& filename() const { return filename_; }
+		// bool Read( adchem::Mol& );
+        // unsigned long long tellg() const;
+        // unsigned long long fsize() const;
 
     signals:
         
@@ -82,7 +82,7 @@ namespace chemistry {
 		std::string filename_;
         bool modified_;
 		size_t nread_;
-        std::unique_ptr< adchem::Conversion > obconversion_;
+        //std::unique_ptr< adchem::Conversion > obconversion_;
 		unsigned long long filesize_;
     };
     

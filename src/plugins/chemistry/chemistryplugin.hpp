@@ -31,7 +31,7 @@
 namespace chemistry { 
 
   class ChemistryMode;
-  class ChemistryMainWindow;
+  class MainWindow;
 
   class ChemistryPlugin : public ExtensionSystem::IPlugin {
 	  Q_OBJECT
@@ -45,8 +45,8 @@ namespace chemistry {
       ShutdownFlag aboutToShutdown();
 
   private:
-	  std::unique_ptr< ChemistryMode > mode_;
-	  std::unique_ptr< ChemistryMainWindow > mainWindow_;
+	  std::shared_ptr< ChemistryMode > mode_;
+	  std::shared_ptr< MainWindow > mainWindow_;
 	  
   private slots:
 	  void triggerAction();

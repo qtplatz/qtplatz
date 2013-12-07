@@ -1,15 +1,15 @@
 /**************************************************************************
 ** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013 MS-Cheminformatics LLC
+** Copyright (C) 2013 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -22,47 +22,48 @@
 **
 **************************************************************************/
 
-#include "svgitem.hpp"
-#include <qpainter.h>
-#include <qrect.h>
-#include <qpalette.h>
-#include <qsvgrenderer.h>
-#include <QtCore/QDebug>
-#include <algorithm>
+#include "moltabledelegate.hpp"
+#include <QPainter>
+#include <QApplication>
+#include <QMenu>
+#include <QComboBox>
+#include <QSvgRenderer>
+#include <QByteArray>
+#include <QDebug>
 
 using namespace chemistry;
 
-SvgItem::SvgItem()
+MolTableDelegate::MolTableDelegate(QObject *parent) :  QItemDelegate(parent)
 {
 }
-
-SvgItem::SvgItem( const SvgItem& t ) : svg_( t.svg_ )
-{
-}
-
-template<class T> void debug_draw_rect( QPainter * painter, const T& rect, const QBrush& brush )
-{
-	painter->setPen( Qt::SolidLine );
-	painter->setBrush( brush );
-	painter->drawRect( rect );
-}
-
 
 void
-SvgItem::paint( QPainter * painter, const QRect& rect, const QPalette& /* palette */ ) const 
+MolTableDelegate::paint( QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
 {
-	painter->save();
+	if ( index.column() == 1 ) {
+        render_svg( painter, option.rect, option.palette, index.data().toByteArray() );
+    } else {
+		QItemDelegate::paint( painter, option, index );
+    }
+}
 
-	QSvgRenderer renderer( svg_ );
+void
+MolTableDelegate::render_svg( QPainter * painter, const QRect& rect, const QPalette&, const QByteArray& svg ) const
+{
+    painter->save();
+
+	QSvgRenderer renderer( svg );
 	// QRectF source = renderer.boundsOnElement( "topsvg" );
 
 	painter->translate( rect.x(), rect.y() );
 	QRectF viewport = painter->viewport();
-	painter->scale( 100 / viewport.width(), 100 / viewport.height() );  // aspect 1:2 := 100x100 vbox
+	// painter->scale( 1000 / viewport.width(), 1000 / viewport.height() );  // aspect 1:2 := 100x100 vbox
+    painter->scale( 1.0, 1.0 );
 
 	QRect target( 0, 0, rect.width(), rect.height() );
 	// renderer.setViewBox( target ); // <-- this will fix size on device
 	renderer.render( painter, target );
 
-	painter->restore();
+    painter->restore();
 }
+
