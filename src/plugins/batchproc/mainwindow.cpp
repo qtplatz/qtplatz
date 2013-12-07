@@ -31,6 +31,8 @@
 #include "task.hpp"
 #include "process.hpp"
 #include <qtwrapper/trackingenabled.hpp>
+#include <adportable/profile.hpp>
+#include <adportable/debug.hpp>
 
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/rightpane.h>
@@ -103,7 +105,13 @@ MainWindow::createContents( Core::IMode * mode )
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
         toolBarLayout->addItem( new QSpacerItem( 40, 20 ) );
-        toolBarLayout->addWidget( new QLabel( tr("Control Method: ") ) );
+        toolBarLayout->addWidget( new QLabel( tr("Data save in: ") ) );
+
+        boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
+        dir /= "data";
+        QLineEdit * w = new QLineEdit( dir.string().c_str() );
+        toolBarLayout->addWidget( w );
+        connect( w, SIGNAL( textChanged( const QString& ) ), this, SLOT( handleDestDirChanged( const QString& ) ) );
 
         toolBarLayout->addItem( new QSpacerItem( 40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum ) );
         //
@@ -311,7 +319,7 @@ MainWindow::handleStateChanged( const QModelIndex& index )
                 QString file = model_->index( index.row(), Constants::c_batchproc_filename ).data( Qt::EditRole ).toString();
 
                 auto proc
-                    = std::make_shared< import >( index.row(), file.toStdWString(), L"", [=](int row, int curr, int total)->bool{
+                    = std::make_shared< import >( index.row(), file.toStdWString(), destDir_, [=](int row, int curr, int total)->bool{
                             emit emitProgress( row, curr, total );
                             return model_->index( row, Constants::c_batchproc_process ).data().value< process >().state() == PROCESS_CANCELING;
                         });
@@ -334,4 +342,11 @@ MainWindow::handleProgress( int rowId, int curr, int total )
 
     QModelIndex index = model.index( rowId, Constants::c_batchproc_progress );
     model.setData( index, double( curr * 100 ) / total );
+}
+
+void
+MainWindow::handleDestDirChanged( const QString& text )
+{
+	adportable::debug(__FILE__, __LINE__) << text.toStdString();
+    destDir_ = text.toStdWString();
 }

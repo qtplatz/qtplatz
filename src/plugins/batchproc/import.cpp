@@ -84,11 +84,11 @@ import::import()
 
 import::import( int row
                 , const std::wstring& source_file
-                , const std::wstring& destination_file
+				, const std::wstring& destdir
                 , std::function< bool(int, int, int) > progress )
     : rowId_( row )
     , source_file_( source_file )
-    , destination_file_( destination_file )
+	, destdir_( destdir )
     , progress_( progress )
     , datafile_(0)
     , accessor_(0)
@@ -171,8 +171,11 @@ import::open_destination()
             
             boost::filesystem::path src( source_file_ );
 
-            boost::filesystem::path dir( adportable::profile::user_data_dir< char >() );
-            dir /= "data";
+            boost::filesystem::path dir( destdir_ );
+            if ( destdir_.empty() ) {
+                dir = adportable::profile::user_data_dir< char >();
+                dir /= "data";
+            }
             dir /= src.parent_path().leaf();
 
             if ( !boost::filesystem::exists( dir ) )
@@ -255,8 +258,6 @@ import::import_processed_spectra( uint64_t fcn, size_t nSpectra )
 
             std::string ar;
             if ( adfs::cpio< adcontrols::MassSpectrum >::serialize( ms, ar ) ) {
-                //std::string compressed;
-                //adportable::bzip2::compress( compressed, ar.data(), ar.size() );
 
                 uint64_t time = static_cast<uint64_t>( adcontrols::metric::scale_to_micro( ms.getMSProperty().timeSinceInjection() ) );
                 uint32_t events = 0;
@@ -315,8 +316,6 @@ import::import_profile_spectra( uint64_t fcn, size_t nSpectra )
 
             std::string archive_data;
             std::string archive_meta;
-            //std::string compressed_data;
-            std::string compressed_meta;
 
             do {
                 if ( adportable::serializer< import_profile >::serialize( profile, archive_data ) ) {
@@ -326,7 +325,7 @@ import::import_profile_spectra( uint64_t fcn, size_t nSpectra )
 
             if ( !keep_masses ) {
                 if ( adportable::serializer< import_continuum_massarray >::serialize( meta, archive_meta ) ) {
-                    adportable::bzip2::compress( compressed_meta, archive_meta.data(), archive_meta.size() );
+                    // adportable::bzip2::compress( compressed_meta, archive_meta.data(), archive_meta.size() );
                 }
             }
 
@@ -334,7 +333,7 @@ import::import_profile_spectra( uint64_t fcn, size_t nSpectra )
             uint32_t events = 0;
             adutils::AcquiredData::insert( fs_->db(), profileId_, time, i, 0, events
                                            , archive_data.data(), archive_data.size()
-                                           , compressed_meta.data(), compressed_meta.size() );
+                                           , archive_meta.data(), archive_meta.size() );
             
             adportable::debug(__FILE__, __LINE__)
                 << "import spectrum size " << archive_data.size() << " mass array size: " << archive_meta.size();

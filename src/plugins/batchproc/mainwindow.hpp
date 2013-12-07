@@ -64,6 +64,7 @@ namespace batchproc {
         std::unique_ptr< BatchprocDelegate > delegate_;
         QDockWidget * toolBarDockWidget_;
         std::deque< std::wstring > files_;
+        std::wstring destDir_;
 
         void createDockWidgets();
         QDockWidget * createDockWidget( QWidget *, const QString& title = QString() );
@@ -74,6 +75,7 @@ namespace batchproc {
         void showContextMenu( const QPoint& pt );
         void handleStateChanged( const QModelIndex& );
         void handleProgress( int row, int current, int total );
+        void handleDestDirChanged( const QString& );
     };
 
 }

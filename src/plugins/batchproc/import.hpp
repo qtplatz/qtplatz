@@ -48,7 +48,7 @@ namespace batchproc {
         import();
         import( int row
                 , const std::wstring& source_file
-                , const std::wstring& destination_file
+                , const std::wstring& destdir
                 , std::function<bool(int, int, int)> );
 
         operator bool () const { 
@@ -64,6 +64,7 @@ namespace batchproc {
         int rowId_;
         std::wstring source_file_;
         std::wstring destination_file_;
+        std::wstring destdir_;
         std::function<bool(int, int, int)> progress_;
         adcontrols::datafile * datafile_;
         const adcontrols::LCMSDataset* accessor_;
