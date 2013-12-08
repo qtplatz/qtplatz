@@ -51,6 +51,7 @@
 
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/exception/all.hpp>
 
 using namespace chemistry;
 
@@ -73,60 +74,68 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
     horizontalHeader()->setDefaultSectionSize( 200 );
 }
 
+namespace chemistry { 
+    static char * tags [] = {
+        "DSSTox_RID"
+        , "DSSTox_CID"
+        , "DSST0x_Generic_SID"
+        , "STRUCTURE_Formula"
+        , "STRUCTURE_MolecularWeight"
+        , "STRUCTURE_TestForm_DefinedOrganic"
+        , "STRUCTURE_ChemicalType"
+        , "STRUCTURE_Shown"
+        , "TestSubstance_ChemicalName"
+        , "TestSubstance_SASRN" 
+        , "TestSubstance_CASRN" 
+        , "TestSubstance_Description" 
+        , "ChemicalNote" 
+        , "STRUCTURE_SMILES" 
+        , "STRUCTURE_InChIS" 
+        , "STRUCTURE_InChIKey" 
+        , "Substance_modify_yyyymmdd" 
+    };
+}
+
 void
 MolTableView::setMol( SDFile& file )
 {
     if ( file ) {
+
         RDKit::SDMolSupplier& supplier = file.molSupplier();
         model_->setRowCount( supplier.length() );
 
         for ( size_t idx = 0; idx < supplier.length(); ++idx ) {
+            try {
+                if ( RDKit::ROMol * mol = supplier[idx] ) {
+                    std::string smiles = RDKit::MolToSmiles( *mol );
+					if ( ! smiles.empty() ) {
+                        model_->setData( model_->index( idx, 0 ), smiles.c_str() );
 
-            if ( RDKit::ROMol * mol = supplier.next() ) {
-                
-                std::string smiles = RDKit::MolToSmiles( *mol );
-                model_->setData( model_->index( idx, 0 ), smiles.c_str() );
-                
-                //std::string text = supplier.getItemText( idx );
-                //ADP_DEBUG() << text;
+                        // SVG
+                        std::vector<int> drawing = RDKit::Drawing::MolToDrawing( *mol );
+                        std::string svg = RDKit::Drawing::DrawingToSVG( drawing );
+                        model_->setData( model_->index( idx, 1 ), QByteArray( svg.data(), svg.size() ) );
+                    }
 
-                std::vector<int> drawing = RDKit::Drawing::MolToDrawing( *mol );
-                std::string svg = RDKit::Drawing::DrawingToSVG( drawing );
-                model_->setData( model_->index( idx, 1 ), QByteArray( svg.data(), svg.size() ) );
+                    // associated data
+                    std::map< std::string, std::string > data;
+                    SDFile::associatedData( supplier.getItemText( idx ), data );
+                    
+                    if ( model_->columnCount() < sizeof(tags)/sizeof(tags[0]) + 2 )
+                        model_->setColumnCount( sizeof(tags)/sizeof(tags[0]) + 2 );
 
-                std::map< std::string, std::string > data;
-                SDFile::associatedData( supplier.getItemText( idx ), data );
-
-                static char * tags [] = {
-                    "DSSTox_RID"
-                    , "DSSTox_CID"
-                    , "DSST0x_Generic_SID"
-                    , "STRUCTURE_Formula"
-                    , "STRUCTURE_MolecularWeight"
-                    , "STRUCTURE_TestForm_DefinedOrganic"
-                    , "STRUCTURE_ChemicalType"
-                    , "STRUCTURE_Shown"
-                    , "TestSubstance_ChemicalName"
-                    , "TestSubstance_SASRN" 
-                    , "TestSubstance_CASRN" 
-                    , "TestSubstance_Description" 
-                    , "ChemicalNote" 
-                    , "STRUCTURE_SMILES" 
-                    , "STRUCTURE_InChIS" 
-                    , "STRUCTURE_InChIKey" 
-                    , "Substance_modify_yyyymmdd" 
-                };
-
-                if ( model_->columnCount() < sizeof(tags)/sizeof(tags[0]) + 2 )
-                    model_->setColumnCount( sizeof(tags)/sizeof(tags[0]) + 2 );
-                size_t col = 2;
-                for ( auto tag: tags ) {
-                    auto it = data.find( tag );
-                    if ( it != data.end() )
-                        model_->setData( model_->index( idx, col++ ), it->second.c_str() );
+                    size_t col = 2;
+                    for ( auto tag: tags ) {
+                        auto it = data.find( tag );
+                        if ( it != data.end() )
+                            model_->setData( model_->index( idx, col++ ), it->second.c_str() );
+                    }
+                    delete mol;
                 }
-
-                delete mol;
+            } catch ( std::exception& ex ) {
+                ADDEBUG() << boost::current_exception_diagnostic_information() << ex.what();
+           } catch ( ... ) {
+                ADDEBUG() << boost::current_exception_diagnostic_information();
             }
         }
     }

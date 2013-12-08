@@ -67,4 +67,4 @@ namespace adportable {
     }
 }
 
-#define ADP_DEBUG() adportable::debug(__FILE__, __LINE__)
+#define ADDEBUG() adportable::debug(__FILE__, __LINE__)

@@ -38,7 +38,7 @@ namespace chemistry {
     class SDFile {
     public:
         SDFile();
-        SDFile( const std::string& filename, bool sanitize = true , bool removeHs = true, bool strictParsing = true );
+        SDFile( const std::string& filename, bool sanitize = false, bool removeHs = false, bool strictParsing = false );
         operator bool() const { return molSupplier_ != 0; }
 
         RDKit::SDMolSupplier& molSupplier() { return *molSupplier_; }

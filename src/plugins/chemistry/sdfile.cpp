@@ -135,7 +135,7 @@ SDFile::associatedData( const std::string& text, std::map< std::string, std::str
         std::string xstr;
 
         for ( std::string::const_iterator it = text.begin() + pos; it < text.end(); ++it ) {
-            if ( std::isprint( *it ) )
+            // if ( std::isprint( unsigned(*it) ) ) // formula contains 128> char that cause an assersion error on VS2012
                 xstr += *it;
         }
         
@@ -148,17 +148,14 @@ SDFile::associatedData( const std::string& text, std::map< std::string, std::str
         std::string::const_iterator it = xstr.begin();
         std::string::const_iterator end = xstr.end();
 
-        int idx = 0;
         if ( boost::spirit::qi::parse( it, end, parser, nodes ) ) {
-            for ( const auto& node: nodes ) {
+            for ( const auto& node: nodes )
                 data[ node.first ] = node.second;
-                // adportable::debug(__FILE__, __LINE__) << idx++ << "/" << nodes.size() 
-                //                                       << "[" << node.first << "]=" << node.second;
-            }
         } else {
             adportable::debug(__FILE__, __LINE__) << "associatedData parse failed";
         }
 
     }
+	return true;
 }
 
