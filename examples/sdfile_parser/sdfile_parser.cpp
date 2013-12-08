@@ -52,9 +52,6 @@ namespace client {
                 >> '>' 
                 ;
             
-            end_tag = qi::lit("$$$$")
-                ;
-            
             node = 
                 start_tag  [ at_c<0>(_val) = qi::_1 ]
                 >> *(text  [ at_c<1>(_val) = qi::_1 ])
@@ -64,11 +61,10 @@ namespace client {
                 + ( node )
                 >> *( qi::lit("$$$$") )
                 ;
-
+            
             nodes.name( "nodes" );
             node.name( "node" );
             start_tag.name( "start_tag" );
-            end_tag.name( "end_tag" );
 			text.name( "text" );
             
             qi::on_error<qi::fail> (
@@ -83,7 +79,7 @@ namespace client {
         }
 
         qi::rule<Iterator, std::string()> text;
-        qi::rule<Iterator, std::string()> start_tag, end_tag;
+        qi::rule<Iterator, std::string()> start_tag;
         qi::rule<Iterator, std::pair< std::string, std::string>()> node;
         qi::rule<Iterator, nodes_type()> nodes;
     };
@@ -140,7 +136,25 @@ main(int argc, char * argv[])
     } while (0);
 #else
     std::string str;
+    std::string line;
+	while( std::getline( std::cin, line ) )
+        str += line;
 
+    std::string::const_iterator it = str.begin();
+    std::string::const_iterator end = str.end();
+    
+    client::nodes_type v;
+    if ( boost::spirit::qi::parse( it, end, parser, v ) && it == end ) {
+        std::cout << "OK: ";
+        for ( auto& node: v ) 
+            std::cout << "[" << node.first << "]=" << node.second << std::endl;
+    } else {
+        std::cout << "-------------------------\n";
+        std::cout << "Parsing failed\n";
+        std::cout << "-------------------------\n";
+    }
+        
+/*
 	while( std::getline( std::cin, str ) ) {
 
 		std::string::const_iterator it = str.begin();
@@ -156,6 +170,7 @@ main(int argc, char * argv[])
             std::cout << "-------------------------\n";
         }
 	}
+*/
 #endif
 	return 0;
 }

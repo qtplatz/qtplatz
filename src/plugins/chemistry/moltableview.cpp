@@ -98,6 +98,9 @@ MolTableView::setMol( SDFile& file )
                 SDFile::associatedData( supplier.getItemText( idx ), data );
 
                 delete mol;
+
+                if ( idx == 1 )
+                    break;
             }
         }
     }

@@ -29,6 +29,7 @@
 #include <utils/fancymainwindow.h>
 #include <QLayout>
 #include <QUrl>
+#include <memory>
 
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }

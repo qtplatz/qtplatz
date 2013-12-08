@@ -39,64 +39,72 @@
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/map.hpp>
+#include <fstream>
 
-namespace chemistry {
-    namespace client {
+namespace chemistry {  namespace client {
 
-        struct structure_data_t {
-            std::string mol;
-            std::map< std::string, std::string > data;
-        };
-
-        typedef std::pair<std::string, std::string > pair_type;
-        
-        struct handler_t {
-            static void assign( pair_type& t, const std::string& d ) { 
-            }
-            static void assign( structure_data_t& t, const std::string& d ) { 
-                t.mol = d;
-            }
-            static void assign( structure_data_t& t, const std::pair<std::string, std::string>& d ) {
-                t.data[ d.first ] = d.second;
-            }
-        };
-
-        
         namespace qi = boost::spirit::qi;
-        using qi::lit;
-        using qi::lexeme;
-        using qi::_val;
-        using qi::_1;
-        using boost::spirit::ascii::char_;
-        using boost::spirit::ascii::space;
         using boost::phoenix::bind;
+        using boost::spirit::qi::_val;
+        using boost::spirit::qi::_1;
+        using boost::spirit::ascii::space;
+        using boost::spirit::ascii::space_type;
+        using boost::spirit::ascii::char_;
+        using qi::lexeme;
         using boost::phoenix::at_c;
+        using boost::phoenix::push_back;
+        using namespace qi::labels;
+
+        typedef std::pair< std::string, std::string > node_type;
+        typedef std::vector< node_type > nodes_type;
 
         template<typename Iterator>
-        struct sdfile_parser : boost::spirit::qi::grammar< Iterator, pair_type() > {
+        struct sdfile_parser : boost::spirit::qi::grammar< Iterator, nodes_type() > {
+
+            sdfile_parser() : sdfile_parser::base_type( nodes ) {
+
+                text = lexeme[+(char_ - '>' - '<' - '$')   [_val += qi::_1] ]
+                    ;
+
+                start_tag =
+                    '>'
+                    >> *(space)
+                    >> qi::lit('<')  
+                    >> lexeme[+(char_ - '>') [_val += qi::_1] ]
+                    >> '>' 
+                    ;
             
-            sdfile_parser() : sdfile_parser::base_type( node )  {
-                
-                text = lexeme[+(char_ - '<') [_val += _1]];
-
-                start_tag = '>' >> lit('<')
-                                >> lexeme[+(char_ - '>') [_val += _1]]
-                                >> '>'
-                    ;
-
                 node = 
-                    start_tag  [ boost::phoenix::bind(handler_t::assign, _val, _1) ]
-                    >> text    [ boost::phoenix::bind(handler_t::assign, _val, _1) ]
+                    start_tag  [ at_c<0>(_val) = qi::_1 ]
+                    >> *(text  [ at_c<1>(_val) = qi::_1 ])
                     ;
+
+                nodes =
+                    + ( node )
+                    >> *( qi::lit("$$$$") )
+                    ;
+            
+                nodes.name( "nodes" );
+                node.name( "node" );
+                start_tag.name( "start_tag" );
+                text.name( "text" );
+            
+                qi::on_error<qi::fail> (
+                    nodes
+                    , std::cout << boost::phoenix::val( "Error! Expecting " )
+                    << _4
+                    << boost::phoenix::val(" here: \"")
+                    << boost::phoenix::construct< std::string >(_3, _2)
+                    << boost::phoenix::val("\"")
+                    << std::endl
+                    );
             }
 
-            qi::rule<Iterator, std::string(), boost::spirit::ascii::space_type > token;
-            qi::rule<Iterator, std::string(), boost::spirit::ascii::space_type > text;
-            qi::rule<Iterator, std::string(), boost::spirit::ascii::space_type > start_tag;
-            qi::rule<Iterator, std::string(), boost::spirit::ascii::space_type > quoted_string;
-            qi::rule<Iterator, pair_type() > node;
+            qi::rule<Iterator, std::string()> text;
+            qi::rule<Iterator, std::string()> start_tag;
+            qi::rule<Iterator, std::pair< std::string, std::string>()> node;
+            qi::rule<Iterator, nodes_type()> nodes;
         };
-
     }
 }
 
@@ -118,51 +126,39 @@ SDFile::SDFile( const std::string& filename, bool sanitize, bool removeHs, bool 
 bool
 SDFile::associatedData( const std::string& text, std::map< std::string, std::string >& data )
 {
-    data.clear();
+    adportable::debug(__FILE__, __LINE__) << "-------------- associatedData...";    
 
-    client::sdfile_parser< std::string::const_iterator > parser;
+    std::string::size_type pos = text.find_first_of( ">" );
 
-    std::string::const_iterator it = text.begin();
-    std::string::const_iterator end = text.end();
+    if ( pos != std::string::npos ) {
 
-    client::pair_type pair;
+        std::string xstr;
 
-    boost::spirit::qi::parse( it, end, parser, pair );
+        for ( std::string::const_iterator it = text.begin() + pos; it < text.end(); ++it ) {
+            if ( std::isprint( *it ) )
+                xstr += *it;
+        }
+        
+        std::ofstream of( "text.txt" );
+        of << xstr;
 
-    (void)text;
-}
+        client::sdfile_parser< std::string::const_iterator > parser;
+        client::nodes_type nodes;
+        
+        std::string::const_iterator it = xstr.begin();
+        std::string::const_iterator end = xstr.end();
 
-#if 0
-
-        template<typename Iterator, typename handler, typename startType>
-        struct chemical_formula_parser : boost::spirit::qi::grammar< Iterator, startType() > {
-            
-            chemical_formula_parser() : chemical_formula_parser::base_type( molecule ), element( element_table, element_table )  {
-                molecule =
-                    + (
-                        atoms            [ boost::phoenix::bind(&handler::formula_add, _val, qi::_1) ]
-                        | repeated_group [ boost::phoenix::bind(&handler::formula_join, _val, qi::_1 ) ]
-                        | space
-                        )
-                    ;
-                atoms = 
-                    atom >> ( qi::uint_ | qi::attr(1u) ) // default to 1
-                    ;
-                atom =
-                    ( qi::uint_ | qi::attr(0u) ) >> element
-                    ;
-                repeated_group %= // forces attr proparation
-                    '(' >> molecule >> ')'
-                        >> qi::omit[ qi::uint_[ boost::phoenix::bind( handler::formula_repeat, qi::_val, qi::_1 ) ] ]
-                    ;
+        int idx = 0;
+        if ( boost::spirit::qi::parse( it, end, parser, nodes ) ) {
+            for ( const auto& node: nodes ) {
+                data[ node.first ] = node.second;
+                adportable::debug(__FILE__, __LINE__) << idx++ << "/" << nodes.size() 
+                                                      << "[" << node.first << "]=" << node.second;
             }
-            
-            qi::rule<Iterator, atom_type() > atom;
-            qi::rule<Iterator, std::pair< atom_type, std::size_t >() > atoms;
-            qi::rule<Iterator, startType()> molecule, repeated_group;
-            qi::symbols<char, const char *> element;
-        };
+        } else {
+            adportable::debug(__FILE__, __LINE__) << "associatedData parse failed";
+        }
 
     }
+}
 
-#endif
