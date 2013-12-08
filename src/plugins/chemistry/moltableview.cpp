@@ -97,10 +97,36 @@ MolTableView::setMol( SDFile& file )
                 std::map< std::string, std::string > data;
                 SDFile::associatedData( supplier.getItemText( idx ), data );
 
-                delete mol;
+                static char * tags [] = {
+                    "DSSTox_RID"
+                    , "DSSTox_CID"
+                    , "DSST0x_Generic_SID"
+                    , "STRUCTURE_Formula"
+                    , "STRUCTURE_MolecularWeight"
+                    , "STRUCTURE_TestForm_DefinedOrganic"
+                    , "STRUCTURE_ChemicalType"
+                    , "STRUCTURE_Shown"
+                    , "TestSubstance_ChemicalName"
+                    , "TestSubstance_SASRN" 
+                    , "TestSubstance_CASRN" 
+                    , "TestSubstance_Description" 
+                    , "ChemicalNote" 
+                    , "STRUCTURE_SMILES" 
+                    , "STRUCTURE_InChIS" 
+                    , "STRUCTURE_InChIKey" 
+                    , "Substance_modify_yyyymmdd" 
+                };
 
-                if ( idx == 1 )
-                    break;
+                if ( model_->columnCount() < sizeof(tags)/sizeof(tags[0]) + 2 )
+                    model_->setColumnCount( sizeof(tags)/sizeof(tags[0]) + 2 );
+                size_t col = 2;
+                for ( auto tag: tags ) {
+                    auto it = data.find( tag );
+                    if ( it != data.end() )
+                        model_->setData( model_->index( idx, col++ ), it->second.c_str() );
+                }
+
+                delete mol;
             }
         }
     }

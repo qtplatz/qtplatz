@@ -126,7 +126,7 @@ SDFile::SDFile( const std::string& filename, bool sanitize, bool removeHs, bool 
 bool
 SDFile::associatedData( const std::string& text, std::map< std::string, std::string >& data )
 {
-    adportable::debug(__FILE__, __LINE__) << "-------------- associatedData...";    
+    // adportable::debug(__FILE__, __LINE__) << "-------------- associatedData...";    
 
     std::string::size_type pos = text.find_first_of( ">" );
 
@@ -139,8 +139,8 @@ SDFile::associatedData( const std::string& text, std::map< std::string, std::str
                 xstr += *it;
         }
         
-        std::ofstream of( "text.txt" );
-        of << xstr;
+        // std::ofstream of( "text.txt" );
+        // of << xstr;
 
         client::sdfile_parser< std::string::const_iterator > parser;
         client::nodes_type nodes;
@@ -152,8 +152,8 @@ SDFile::associatedData( const std::string& text, std::map< std::string, std::str
         if ( boost::spirit::qi::parse( it, end, parser, nodes ) ) {
             for ( const auto& node: nodes ) {
                 data[ node.first ] = node.second;
-                adportable::debug(__FILE__, __LINE__) << idx++ << "/" << nodes.size() 
-                                                      << "[" << node.first << "]=" << node.second;
+                // adportable::debug(__FILE__, __LINE__) << idx++ << "/" << nodes.size() 
+                //                                       << "[" << node.first << "]=" << node.second;
             }
         } else {
             adportable::debug(__FILE__, __LINE__) << "associatedData parse failed";
