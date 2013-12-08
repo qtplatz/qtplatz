@@ -83,6 +83,7 @@ MolTableView::setMol( SDFile& file )
         for ( size_t idx = 0; idx < supplier.length(); ++idx ) {
 
             if ( RDKit::ROMol * mol = supplier.next() ) {
+                
                 std::string smiles = RDKit::MolToSmiles( *mol );
                 model_->setData( model_->index( idx, 0 ), smiles.c_str() );
                 
@@ -93,12 +94,9 @@ MolTableView::setMol( SDFile& file )
                 std::string svg = RDKit::Drawing::DrawingToSVG( drawing );
                 model_->setData( model_->index( idx, 1 ), QByteArray( svg.data(), svg.size() ) );
 
-#if defined DEBUG && 0
-                boost::filesystem::path path( smiles );
-                path.replace_extension( L".svg" );
-                boost::filesystem::ofstream of( path );
-                of << svg;
-#endif
+                std::map< std::string, std::string > data;
+                SDFile::associatedData( supplier.getItemText( idx ), data );
+
                 delete mol;
             }
         }
@@ -142,6 +140,7 @@ MolTableView::dropEvent( QDropEvent * event )
 	if ( mimeData->hasUrls() ) {
 		QList<QUrl> urlList = mimeData->urls();
         emit dropped( urlList );
+        event->accept();
 	}
 }
 

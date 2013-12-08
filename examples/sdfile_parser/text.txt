@@ -1,0 +1,21 @@
+>  <DSSTox_RID>75317
+>  <DSSTox_CID>5
+>  <DSSTox_Generic_SID>20005
+>  <DSSTox_FileID>1_Tox21S_v2a
+>  <STRUCTURE_Formula>C2H5NO
+>  <STRUCTURE_MolecularWeight>59.0672
+>  <STRUCTURE_TestedForm_DefinedOrganic>parent
+>  <STRUCTURE_ChemicalType>defined organic
+>  <STRUCTURE_Shown>tested chemical
+>  <TestSubstance_ChemicalName>Acetamide
+>  <TestSubstance_CASRN>60-35-5
+>  <TestSubstance_Description>single chemical compound
+>  <ChemicalNote>blank
+>  <STRUCTURE_ChemicalName_IUPAC>acetamide
+>  <STRUCTURE_SMILES>CC(=O)N
+>  <STRUCTURE_Parent_SMILES>CC(=O)N
+>  <STRUCTURE_InChIS>InChI=1S/C2H5NO/c1-2(3)4/h1H3,(H2,3,4)
+>  <STRUCTURE_InChIKey>DLFVBJFMPXGRIB-UHFFFAOYSA-N
+>  <Substance_modify_yyyymmdd>20080429
+>  <Note_Tox21S>blank
+$$$$
