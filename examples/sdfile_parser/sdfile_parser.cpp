@@ -41,7 +41,7 @@ namespace client {
 
         sdfile_parser() : sdfile_parser::base_type( nodes ) {
 
-            text = lexeme[+(char_ - '<')   [_val += qi::_1] ]
+            text = lexeme[+(char_ - '>' - '<' - '$')   [_val += qi::_1] ]
                 ;
 
             start_tag =
@@ -52,25 +52,66 @@ namespace client {
                 >> '>' 
                 ;
             
+            end_tag = qi::lit("$$$$")
+                ;
+            
             node = 
                 start_tag  [ at_c<0>(_val) = qi::_1 ]
                 >> *(text  [ at_c<1>(_val) = qi::_1 ])
                 ;
 
-            nodes %=
-                node
-                | ( nodes >> node )
-                | ( nodes >> qi::lit("$$$$") )
+            nodes =
+                + ( node )
+                >> *( qi::lit("$$$$") )
                 ;
+
+            nodes.name( "nodes" );
+            node.name( "node" );
+            start_tag.name( "start_tag" );
+            end_tag.name( "end_tag" );
+			text.name( "text" );
+            
+            qi::on_error<qi::fail> (
+                nodes
+				, std::cout << boost::phoenix::val( "Error! Expecting " )
+                << _4
+				<< boost::phoenix::val(" here: \"")
+				<< boost::phoenix::construct< std::string >(_3, _2)
+				<< boost::phoenix::val("\"")
+                << std::endl
+                );
         }
 
         qi::rule<Iterator, std::string()> text;
-        qi::rule<Iterator, std::string()> start_tag;
+        qi::rule<Iterator, std::string()> start_tag, end_tag;
         qi::rule<Iterator, std::pair< std::string, std::string>()> node;
         qi::rule<Iterator, nodes_type()> nodes;
     };
 
 }
+
+const char * text = 
+">  <DSSTox_RID>75317 \n\
+>  <DSSTox_CID>5 \n\
+>  <DSSTox_Generic_SID>20005 \n\
+>  <DSSTox_FileID>1_Tox21S_v2a\n\
+>  <STRUCTURE_Formula>C2H5NO\n\
+>  <STRUCTURE_MolecularWeight>59.0672\n\
+>  <STRUCTURE_TestedForm_DefinedOrganic>parent\n\
+>  <STRUCTURE_ChemicalType>defined organic\n\
+>  <STRUCTURE_Shown>tested chemical\n\
+>  <TestSubstance_ChemicalName>Acetamide\n\
+>  <TestSubstance_CASRN>60-35-5\n\
+>  <TestSubstance_Description>single chemical compound\n\
+>  <ChemicalNote>blank\n\
+>  <STRUCTURE_ChemicalName_IUPAC>acetamide\n\
+>  <STRUCTURE_SMILES>CC(=O)\n\
+>  <STRUCTURE_Parent_SMILES>CC(=O)N\n\
+>  <STRUCTURE_InChIS>InChI=1S/C2H5NO/c1-2(3)4/h1H3,(H2,3,4)\n\
+>  <STRUCTURE_InChIKey>DLFVBJFMPXGRIB-UHFFFAOYSA-N\n\
+>  <Substance_modify_yyyymmdd>20080429\n\
+>  <Note_Tox21S>blank\n$$$$";
+
 
 int
 main(int argc, char * argv[])
@@ -79,10 +120,9 @@ main(int argc, char * argv[])
     (void)argv;
 
     client::sdfile_parser< std::string::const_iterator > parser;
-
-    std::string str;
-
-    while ( std::getline( std::cin, str ) ) {
+#if 1
+    do {
+        std::string str = text;
 
         std::string::const_iterator it = str.begin();
         std::string::const_iterator end = str.end();
@@ -97,7 +137,26 @@ main(int argc, char * argv[])
             std::cout << "Parsing failed\n";
             std::cout << "-------------------------\n";
         }
-    }
+    } while (0);
+#else
+    std::string str;
+
+	while( std::getline( std::cin, str ) ) {
+
+		std::string::const_iterator it = str.begin();
+        std::string::const_iterator end = str.end();
+        client::nodes_type v;
+        if ( boost::spirit::qi::parse( it, end, parser, v ) && it == end ) {
+			std::cout << "OK: ";
+			for ( auto& node: v ) 
+				std::cout << "[" << node.first << "]=" << node.second << std::endl;
+        } else {
+            std::cout << "-------------------------\n";
+            std::cout << "Parsing failed\n";
+            std::cout << "-------------------------\n";
+        }
+	}
+#endif
 	return 0;
 }
 
