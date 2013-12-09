@@ -45,20 +45,21 @@
 #include <coreplugin/icore.h>
 #include <utils/styledbar.h>
 
+#include <QDebug>
 #include <QDockWidget>
-#include <qmenu.h>
+#include <QLineEdit>
+#include <QMenu>
 #include <QResizeEvent>
 #include <qstackedwidget.h>
-
-# include <QtWidgets/QVBoxLayout>
-# include <QtWidgets/QHBoxLayout>
-# include <QtWidgets/QToolButton>
-# include <QtWidgets/QTextEdit>
-# include <QtWidgets/qlabel.h>
-
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QToolButton>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QLabel>
+#include <QtGui/QIcon>
 #include <QStandardItemModel>
-#include <QtGui/qicon.h>
-#include <qdebug.h>
+#include <QProgressBar>
+
 #include <boost/filesystem/path.hpp>
 #include <boost/bind.hpp>
 #include <algorithm>
@@ -72,11 +73,13 @@ MainWindow::~MainWindow()
 }
 
 MainWindow::MainWindow( QWidget * parent ) : Utils::FancyMainWindow( parent )
-                                                             , tableView_( new MolTableView( this ) )
-                                                             , toolBar_( 0 )
-                                                             , toolBarLayout_( 0 )
-                                                             , toolBarDockWidget_( 0 )
-                                                             , actionSearch_( 0 )
+                                           , tableView_( new MolTableView( this ) )
+                                           , toolBar_( 0 )
+                                           , toolBarLayout_( 0 )
+                                           , toolBarDockWidget_( 0 )
+                                           , actionSearch_( 0 )
+                                           , topLineEdit_( 0 )
+                                           , progressBar_( 0 )
 {
 	instance_ = this;
 }
@@ -116,80 +119,12 @@ MainWindow::createContents( Core::IMode * mode )
         connect( tableView_.get(), SIGNAL( dropped( const QList<QUrl>& ) ), this, SLOT( handleDropped( const QList<QUrl>& ) ) );
     }
 
-#if 0
-    Utils::StyledBar * toolBar = new Utils::StyledBar;
-    if ( toolBar ) {
-        toolBar->setProperty( "topBorder", true );
-        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
-        toolBarLayout->setSpacing( 0 );
-        toolBarLayout->addItem( new QSpacerItem( 40, 20 ) );
-        toolBarLayout->addWidget( new QLabel( tr("Control Method: ") ) );
-
-        toolBarLayout->addItem( new QSpacerItem( 40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum ) );
-        //
-        QDockWidget * dock = new QDockWidget( "Batch Toolbar" );
-        dock->setObjectName( QLatin1String( "Batch Toolbar" ) );
-        // dock->setWidget( toolBar );
-        dock->setFeatures( QDockWidget::NoDockWidgetFeatures );
-        dock->setAllowedAreas( Qt::BottomDockWidgetArea );
-        dock->setTitleBarWidget( new QWidget( dock ) );
-        dock->setProperty( "manaaged_dockwidget", QLatin1String( "true" ) );
-        addDockWidget( Qt::BottomDockWidgetArea, dock );
-        // setToolBarDockWidget( dock );
-    }
-
-	//---------- central widget ------------
-	QWidget * centralWidget = new QWidget;
-    if ( centralWidget ) {
-        setCentralWidget( centralWidget );
-
-        QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
-        centralWidget->setLayout( centralLayout );
-        centralLayout->setMargin( 0 );
-        centralLayout->setSpacing( 0 );
-        // centralLayout->addWidget( documentAndRightPane ); // [0]
-        centralLayout->addWidget( editorAndFindWidget ); // [0]
-        centralLayout->setStretch( 0, 1 );
-        centralLayout->setStretch( 1, 0 );
-
-        centralLayout->addWidget( toolBar );              // [1]
-    }
-
-	// Right-side window with editor, output etc.
-	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
-    if ( mainWindowSplitter ) {
-        QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
-        outputPane->setObjectName( QLatin1String( "SequenceOutputPanePlaceHolder" ) );
-        mainWindowSplitter->addWidget( this );
-        mainWindowSplitter->addWidget( outputPane );
-        mainWindowSplitter->setStretchFactor( 0, 10 );
-        mainWindowSplitter->setStretchFactor( 1, 0 );
-        mainWindowSplitter->setOrientation( Qt::Vertical );
-    }
-
-	// Navigation and right-side window
-	Core::MiniSplitter * splitter = new Core::MiniSplitter;               // entier this view
-    if ( splitter ) {
-        splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) ); // navegate
-        splitter->addWidget( mainWindowSplitter );                            // *this + ontput
-        splitter->setStretchFactor( 0, 0 );
-        splitter->setStretchFactor( 1, 1 );
-        splitter->setObjectName( QLatin1String( "SequenceModeWidget" ) );
-    }
-
-    // createDockWidgets();
-	return splitter;
-#endif
-
     QWidget * editorAndFindWidget = new QWidget;
     if ( editorAndFindWidget ) {
         editorAndFindWidget->setLayout( editorHolderLayout );
         editorAndFindWidget->setLayout( editorHolderLayout );
 
         editorHolderLayout->addWidget( tableView_.get() );
-        //editorHolderLayout->addWidget( new Core::EditorManagerPlaceHolder( mode ) );
-        //editorHolderLayout->addWidget( new Core::FindToolBarPlaceHolder( editorAndFindWidget ) );
     }
 
     Core::MiniSplitter * documentAndRightPane = new Core::MiniSplitter;
@@ -200,18 +135,8 @@ MainWindow::createContents( Core::IMode * mode )
         documentAndRightPane->setStretchFactor( 1, 0 );
     }
 
-    Utils::StyledBar * toolBar = new Utils::StyledBar;
-    if ( toolBar ) {
-        toolBar->setProperty( "topBorder", true );
-        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
-        toolBarLayout->setMargin( 0 );
-        toolBarLayout->setSpacing( 0 );
-        // toolBarLayout->addWidget( toolBar_ );
-        toolBarLayout->addWidget( toolButton( actionSearch_ ) );
-        toolBarLayout->addWidget( new QLabel( tr("Alchemy") ) );
-        toolBarLayout->addWidget( new QLabel( tr("Chemistry") ) );
-        toolBarLayout->addWidget( new QLabel( tr("Physics") ) );
-    }
+    Utils::StyledBar * toolBar1 = createTopStyledBar();
+    Utils::StyledBar * toolBar2 = createMidStyledBar();
 
 	if ( QDockWidget * dock = new QDockWidget( "Chemistry Toolbar" ) ) {
         dock->setObjectName( QLatin1String( "Chemistry Toolbar" ) );
@@ -219,7 +144,7 @@ MainWindow::createContents( Core::IMode * mode )
         dock->setFeatures( QDockWidget::NoDockWidgetFeatures );
         dock->setAllowedAreas( Qt::BottomDockWidgetArea );
         dock->setTitleBarWidget( new QWidget( dock ) );
-        dock->setProperty( "manaaged_dockwidget", QLatin1String( "true" ) );
+        dock->setProperty( "managed_dockwidget", QLatin1String( "true" ) );
         addDockWidget( Qt::BottomDockWidgetArea, dock );
         setToolBarDockWidget( dock );
     }
@@ -229,14 +154,11 @@ MainWindow::createContents( Core::IMode * mode )
 	setCentralWidget( centralWidget );
 
 	QVBoxLayout * centralLayout = new QVBoxLayout( centralWidget );
-	centralWidget->setLayout( centralLayout );
 	centralLayout->setMargin( 0 );
 	centralLayout->setSpacing( 0 );
+    centralLayout->addWidget( toolBar1 );
     centralLayout->addWidget( documentAndRightPane );
-	centralLayout->setStretch( 0, 1 );
-	centralLayout->setStretch( 1, 0 );
-
-	centralLayout->addWidget( toolBar );
+	centralLayout->addWidget( toolBar2 );
 
 	// Right-side window with editor, output etc.
 	Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
@@ -368,8 +290,55 @@ MainWindow::handleDropped( const QList< QUrl >& urls )
 {
     for ( auto& url: urls ) {
         boost::filesystem::path path( url.toLocalFile().toStdWString() );
+        topLineEdit_->setText( QString::fromStdWString( path.wstring() ) );
         SDFile file( path.string() );
-        tableView_->setMol( file );
+        tableView_->setMol( file, *progressBar_ );
     }
+}
+
+Utils::StyledBar *
+MainWindow::createMidStyledBar()
+{
+    Utils::StyledBar * toolBar = new Utils::StyledBar;
+    if ( toolBar ) {
+        toolBar->setProperty( "topBorder", true );
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setSpacing( 0 );
+        toolBarLayout->addWidget( toolButton( actionSearch_ ) );
+        toolBarLayout->addWidget( new QLabel( tr("Alchemy") ) );
+        toolBarLayout->addWidget( new QLabel( tr("Chemistry") ) );
+        toolBarLayout->addWidget( new QLabel( tr("Physics") ) );
+    }
+    return toolBar;
+}
+
+Utils::StyledBar *
+MainWindow::createTopStyledBar()
+{
+    Utils::StyledBar * toolBar = new Utils::StyledBar;
+    if ( toolBar ) {
+        toolBar->setProperty( "topBorder", true );
+        QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
+        toolBarLayout->setMargin( 0 );
+        toolBarLayout->setSpacing( 0 );
+        Core::ActionManager * am = Core::ICore::instance()->actionManager();
+        if ( am ) {
+            QList<int> globalcontext;
+            globalcontext << Core::Constants::C_GLOBAL_ID;
+            // toolBarLayout->addWidget(toolButton(am->command(constants::CONNECT)->action()));
+        }
+        toolBarLayout->addWidget( new QLabel( tr(">> Drop SD File on table: " ) ) );
+        topLineEdit_ = new QLineEdit;
+        toolBarLayout->addWidget( topLineEdit_ );
+        
+        toolBarLayout->addWidget( new Utils::StyledSeparator );
+        toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
+        progressBar_ = new QProgressBar;
+		progressBar_->setVisible( false );
+        toolBarLayout->addWidget( progressBar_ );
+        progressBar_->setStyleSheet( QString("QProgressBar { color: lightgreen}") );
+    }
+    return toolBar;
 }
 

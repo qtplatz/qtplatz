@@ -26,6 +26,7 @@
 #include "moltabledelegate.hpp"
 #include "sdfile.hpp"
 #include <adportable/debug.hpp>
+#include <qtwrapper/waitcursor.hpp>
 
 //#include <GraphMol/SmilesParse/SmilesParse.h>
 #include <RDGeneral/Invariant.h>
@@ -48,10 +49,31 @@
 #include <QStandardItemModel>
 #include <QHeaderView>
 #include <QByteArray>
+#include <QProgressBar>
 
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/exception/all.hpp>
+
+namespace chemistry { 
+    static char * tags [] = {
+        "DSSTox_RID"
+        , "DSSTox_CID"
+        , "DSSTox_Generic_SID"
+        , "STRUCTURE_Formula"
+        , "STRUCTURE_ChemicalName_IUPAC"
+        , "STRUCTURE_MolecularWeight"
+        , "STRUCTURE_ChemicalType"
+        , "STRUCTURE_Shown"
+        , "TestSubstance_ChemicalName"
+        , "TestSubstance_CASRN" 
+        , "TestSubstance_Description" 
+        , "ChemicalNote" 
+        , "STRUCTURE_InChIS" 
+        , "STRUCTURE_InChIKey" 
+        , "Substance_modify_yyyymmdd" 
+    };
+}
 
 using namespace chemistry;
 
@@ -68,76 +90,71 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
     setAcceptDrops( true );
     setModel( model_ );
     setItemDelegate( delegate_ );
-    model_->setColumnCount( 2 );
+    model_->setColumnCount( 2 + sizeof(tags)/sizeof(tags[0]));
 
     verticalHeader()->setDefaultSectionSize( 80 );
     horizontalHeader()->setDefaultSectionSize( 200 );
-}
 
-namespace chemistry { 
-    static char * tags [] = {
-        "DSSTox_RID"
-        , "DSSTox_CID"
-        , "DSST0x_Generic_SID"
-        , "STRUCTURE_Formula"
-        , "STRUCTURE_MolecularWeight"
-        , "STRUCTURE_TestForm_DefinedOrganic"
-        , "STRUCTURE_ChemicalType"
-        , "STRUCTURE_Shown"
-        , "TestSubstance_ChemicalName"
-        , "TestSubstance_SASRN" 
-        , "TestSubstance_CASRN" 
-        , "TestSubstance_Description" 
-        , "ChemicalNote" 
-        , "STRUCTURE_SMILES" 
-        , "STRUCTURE_InChIS" 
-        , "STRUCTURE_InChIKey" 
-        , "Substance_modify_yyyymmdd" 
-    };
+    int col = 0;
+    model_->setHeaderData( col++, Qt::Horizontal, "SMILES" );
+    model_->setHeaderData( col++, Qt::Horizontal, "Structure" );
+    for ( auto tag: tags )
+        model_->setHeaderData( col++, Qt::Horizontal, tag );        
+
+    for ( int c = 2; c < model_->columnCount(); ++c )
+        resizeColumnToContents( c );
 }
 
 void
-MolTableView::setMol( SDFile& file )
+MolTableView::setMol( SDFile& file, QProgressBar& progressBar )
 {
     if ( file ) {
+
+        qtwrapper::waitCursor wait;
 
         RDKit::SDMolSupplier& supplier = file.molSupplier();
         model_->setRowCount( supplier.length() );
 
+        progressBar.setRange( 0, supplier.length() );
+        progressBar.setVisible( true );
+        progressBar.setTextVisible( true );
+
         for ( size_t idx = 0; idx < supplier.length(); ++idx ) {
+            progressBar.setValue( idx + 1 );
             try {
-                if ( RDKit::ROMol * mol = supplier[idx] ) {
+                if ( RDKit::ROMol * mol = supplier.next() ) {
                     std::string smiles = RDKit::MolToSmiles( *mol );
 					if ( ! smiles.empty() ) {
                         model_->setData( model_->index( idx, 0 ), smiles.c_str() );
-
+                        
                         // SVG
                         std::vector<int> drawing = RDKit::Drawing::MolToDrawing( *mol );
                         std::string svg = RDKit::Drawing::DrawingToSVG( drawing );
                         model_->setData( model_->index( idx, 1 ), QByteArray( svg.data(), svg.size() ) );
                     }
-
+                    
                     // associated data
                     std::map< std::string, std::string > data;
                     SDFile::associatedData( supplier.getItemText( idx ), data );
                     
-                    if ( model_->columnCount() < sizeof(tags)/sizeof(tags[0]) + 2 )
-                        model_->setColumnCount( sizeof(tags)/sizeof(tags[0]) + 2 );
-
                     size_t col = 2;
                     for ( auto tag: tags ) {
                         auto it = data.find( tag );
                         if ( it != data.end() )
-                            model_->setData( model_->index( idx, col++ ), it->second.c_str() );
+                            model_->setData( model_->index( idx, col ), it->second.c_str() );
+                        ++col;
                     }
-                    delete mol;
+					delete mol;
                 }
+				if ( idx == 10 )
+					this->update();
             } catch ( std::exception& ex ) {
                 ADDEBUG() << boost::current_exception_diagnostic_information() << ex.what();
            } catch ( ... ) {
                 ADDEBUG() << boost::current_exception_diagnostic_information();
             }
         }
+        progressBar.setVisible( false );
     }
 }
 

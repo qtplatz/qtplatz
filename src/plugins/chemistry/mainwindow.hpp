@@ -36,11 +36,12 @@ namespace Utils { class StyledBar; }
 
 class QStandardItemModel;
 class QTableView;
-
 class QHBoxLayout;
 class QWidget;
 class QToolButton;
 class QAction;
+class QLineEdit;
+class QProgressBar;
 
 namespace chemistry { 
 
@@ -78,13 +79,16 @@ namespace chemistry {
 		QWidget * toolBar_;
 		QHBoxLayout * toolBarLayout_;
 		QDockWidget * toolBarDockWidget_;
-
 		QAction * actionSearch_;
+        QLineEdit * topLineEdit_;
+        QProgressBar * progressBar_;
 
 		void setToolBarDockWidget( QDockWidget * dock );
 		QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
 		void createDockWidgets();
 		void createToolbar();
+        Utils::StyledBar * createTopStyledBar();
+        Utils::StyledBar * createMidStyledBar();
 	};
 
 }

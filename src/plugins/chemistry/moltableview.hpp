@@ -30,6 +30,7 @@
 #include <memory>
 
 class QStandardItemModel;
+class QProgressBar;
 
 namespace chemistry {
 
@@ -42,7 +43,7 @@ namespace chemistry {
         explicit MolTableView(QWidget *parent = 0);
         ~MolTableView();
 
-        void setMol( SDFile& );
+        void setMol( SDFile&, QProgressBar& );
 
     signals:
         void dropped( const QList< QUrl >& );
