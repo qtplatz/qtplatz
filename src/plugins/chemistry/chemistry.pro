@@ -60,17 +60,13 @@ FORMS += \
     sdfileview.ui \
     massdefectform.ui
 
-#win32 {
-#    for(file, OPENBABEL_DLLS ) FILES += $$replace(file, /, $$QMAKE_DIR_SEP)
-#    for(file, OPENBABEL_FILES) FILES += $$replace(file, /, $$QMAKE_DIR_SEP)
-#    dest = $$replace(IDE_APP_PATH, /, $$QMAKE_DIR_SEP)
-#    for(file, FILES) {
-#       QMAKE_POST_LINK +=$$quote(cmd /c copy /y $${file} $${dest}$$escape_expand(\\n\\t))
-#    }
-#} else {
-#    for(file, OPENBABEL_DLLS ) FILES += $$replace(file, /, $$QMAKE_DIR_SEP)
-#    dest = $$replace(IDE_LIBRARY_PATH, /, $$QMAKE_DIR_SEP)
-#    for(file, FILES) {
-#       QMAKE_POST_LINK +=$$quote($(COPY) $${file} $${dest}$$escape_expand(\\n\\t))
-#    }
+#macx {
+#  RDKIT_DLLS = libFileParsers libGraphMol libSmilesParse libRDGeneral libRDGeometryLib libSubstructMatch libDepictor
+
+#  for (file, RDKIT_DLLS) FILES += $$replace( file, /, $$QMAKE_DIR_SEP)
+#  dest = $$replace(IDE_APP_PATH, /, $$QMAKE_DIR_SEP)
+#  for (file, FILES) {
+#      QMAKE_POST_LINK +=$$quote($(COPY) $${file} $${dest}$$escape_expand(\\n\\t))
+#      message( "file " $${QMAKE_POST_LINK} )
+#  }
 #}

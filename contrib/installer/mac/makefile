@@ -11,11 +11,18 @@ PLUGINS   = ./qtplatz.app/Contents/PlugIns
 #TAO_VERSION = 2.1.4
 #BOOST_VERSION = 1_51
 #OPENBABEL_VERSION = 4.0.0
+RDKit_VERSION = 2014.03.1pre
+RDKITDEST = $(FRAMEWORK)
 
 #QTDIR = /usr/local/qt/${QT_VERSION}
 #DEST  = /Volumes/qtplatz
 
+$(worning $(RDBASE) $(origin RDBASE)
 $(warning $(ACE_ROOT) $(origin ACE_ROOT))
+
+ifeq ($(RDBASE),)
+$(error RDBASE is not set)
+endif
 
 LIBDIR_OPENBABEL = /usr/local/lib
 LIBDIR_ACETAO    = $(ACE_ROOT)/lib
@@ -29,35 +36,68 @@ TAO_LIBS = \
 	libTAO_AnyTypeCode \
 	libTAO_CodecFactory
 
-#OPENBABEL_LIBS = libopenbabel
+RDKit_LIBS = \
+	libAlignment \
+	libCatalogs \
+	libChemReactions \
+	libChemTransforms \
+	libChemicalFeatures \
+	libDataStructs \
+	libDepictor \
+	libDescriptors \
+	libDistGeomHelpers \
+	libDistGeometry \
+	libEigenSolvers \
+	libFileParsers \
+	libFingerprints \
+	libForceField \
+	libForceFieldHelpers \
+	libFragCatalog \
+	libGraphMol \
+	libMolAlign \
+	libMolCatalog \
+	libMolChemicalFeatures \
+	libMolTransforms \
+	libOptimizer \
+	libPartialCharges \
+	libRDGeneral \
+	libRDGeometryLib \
+	libShapeHelpers \
+	libSimDivPickers \
+	libSmilesParse \
+	libSubgraphs \
+	libSubstructMatch \
+	libhc
 
 all:
 	@echo "################################################"
 	@echo "ACE_ROOT is: " $(ACE_ROOT)
 	@echo "LIBDIR_ACETAO is: " $(LIBDIR_ACETAO)
 	@echo "DEPLOYQT is: " $(DEPLOYQT)
+	@echo "RDBASE is: " $(RDBASE)
 	@echo "################################################"
 	@echo " -- do following procedure -- or make world -- "
 	@echo "################################################"
 	@echo "make app"
 	@echo "make deployqt"
-	@echo "make fix"
+	@echo "make ace_tao"
+	@echo "make rdkit"
 	@echo "make dmg"
 	@echo
 
 world:
 	make app
 	make deployqt
-	make fix
+	make ace_tao
+	make rdkit
 	make dmg
 
 # all: qtplatz.app
 
-qtplatz.app:
-	cp -rp ../../../bin/qtplatz.app .
-
 app:
-	cp -rp ../../../bin/qtplatz.app .
+	(cd ../../../bin; tar cf - .) | tar xvf -
+	find . -name "*_debug.*.dylib" -exec rm -f {} \;
+	find . -name "*_debug.*.a" -exec rm -f {} \;
 
 thank:
 	sh ./thankslasconic.sh ./qtplatz.app/Contents/MacOS/qtplatz
@@ -69,8 +109,8 @@ deploy2:
 deployqt:
 	${DEPLOYQT} ./qtplatz.app -verbose=2
 
-#fix: fix_frameworks fix_platforms fix_accessible fix_imageformats fix_printsupport fix_ace_tao
-fix: copy_ace_tao fix_ace_tao
+ace_tao: copy_ace_tao fix_ace_tao
+rdkit: copy_rdkit fix_rdkit
 
 fix_frameworks:
 	for j in QtCore ; do \
@@ -130,6 +170,23 @@ fix_ace_tao:
 	  done; \
 	done
 
+copy_rdkit:
+	for i in $(RDKit_LIBS) ; do \
+	  install $(RDBASE)/lib/$$i.$(RDKit_VERSION).dylib $(RDKITDEST) ; \
+	done
+	( cd $(RDKITDEST); \
+	  for i in $(RDKit_LIBS); do \
+	    ln -s $$i.$(RDKit_VERSION).dylib $$i.1.dylib ; \
+	    ln -s $$i.1.dylib $$i.dylib ; \
+	  done )
+
+fix_rdkit:
+	for i in $(RDKit_LIBS) ; do \
+	  for j in $(RDKit_LIBS); do \
+		install_name_tool -change $$j.1.dylib $(EPATH)/$$j.1.dylib $(RDKITDEST)/$$i.$(RDKit_VERSION).dylib ; \
+	  done; \
+	done
+
 dmg: qtplatz.app
 	hdiutil create qtplatz-`git describe`.dmg -srcfolder ./qtplatz.app
 
@@ -149,6 +206,11 @@ otool:
 	done
 	@echo "-------- ---------"
 	otool -L ${PLUGINS}/platforms/libqcocoa.dylib
+
+otool_rdkit:
+	for i in $(RDKit_LIBS); do \
+		otool -L $(RDKITDEST)/$$i.dylib ;\
+	done
 
 # /Volumes/qtplatz/qtplatz.app: /Volumes/qtplatz
 # 	cd ../../../bin; tar cf - ./qtplatz.app | (cd /Volumes/qtplatz; tar xvf -)
