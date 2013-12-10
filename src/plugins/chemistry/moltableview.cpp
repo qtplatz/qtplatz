@@ -27,6 +27,7 @@
 #include "sdfile.hpp"
 #include <adportable/debug.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <adcontrols/chemicalformula.hpp>
 
 //#include <GraphMol/SmilesParse/SmilesParse.h>
 #include <RDGeneral/Invariant.h>
@@ -36,7 +37,7 @@
 #include <GraphMol/Substruct/SubstructMatch.h>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/FileParsers/FileParsers.h>
-//#include <RDGeneral/RDLog.h>
+#include <GraphMol/Descriptors/MolDescriptors.h>
 
 #include <GraphMol/FileParsers/MolSupplier.h>
 #include <GraphMol/MolDrawing/MolDrawing.h>
@@ -57,11 +58,7 @@
 
 namespace chemistry { 
     static char * tags [] = {
-        "DSSTox_RID"
-        , "DSSTox_CID"
-        , "DSSTox_Generic_SID"
-        , "STRUCTURE_Formula"
-        , "STRUCTURE_ChemicalName_IUPAC"
+        "STRUCTURE_ChemicalName_IUPAC"
         , "STRUCTURE_MolecularWeight"
         , "STRUCTURE_ChemicalType"
         , "STRUCTURE_Shown"
@@ -72,6 +69,9 @@ namespace chemistry {
         , "STRUCTURE_InChIS" 
         , "STRUCTURE_InChIKey" 
         , "Substance_modify_yyyymmdd" 
+        , "DSSTox_RID"
+        , "DSSTox_CID"
+        , "DSSTox_Generic_SID"
     };
 }
 
@@ -90,6 +90,9 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
     setAcceptDrops( true );
     setModel( model_ );
     setItemDelegate( delegate_ );
+
+	setSortingEnabled( true );
+
     model_->setColumnCount( 2 + sizeof(tags)/sizeof(tags[0]));
 
     verticalHeader()->setDefaultSectionSize( 80 );
@@ -98,17 +101,42 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
     int col = 0;
     model_->setHeaderData( col++, Qt::Horizontal, "SMILES" );
     model_->setHeaderData( col++, Qt::Horizontal, "Structure" );
+    model_->setHeaderData( col++, Qt::Horizontal, "Formula" );
+    model_->setHeaderData( col++, Qt::Horizontal, "Mass" );
     for ( auto tag: tags )
         model_->setHeaderData( col++, Qt::Horizontal, tag );        
 
-    for ( int c = 2; c < model_->columnCount(); ++c )
-        resizeColumnToContents( c );
+    do { // add PFTBA as demonstration
+        model_->setRowCount( 1 );
+        std::string smiles = "C(C(C(F)(F)F)(F)F)(C(N(C(C(C(C(F)(F)F)(F)F)(F)F)(F)F)C(C(C(C(F)(F)F)(F)F)(F)F)(F)F)(F)F)(F)F";
+        RDKit::RWMol * mol = RDKit::SmilesToMol( smiles );
+        
+        model_->setData( model_->index( 0, 0 ), smiles.c_str() );
+        do { // SVG
+            std::vector<int> drawing = RDKit::Drawing::MolToDrawing( *mol );
+            std::string svg = RDKit::Drawing::DrawingToSVG( drawing );
+            model_->setData( model_->index( 0, 1 ), QByteArray( svg.data(), svg.size() ) );
+            model_->item( 0, 1 )->setEditable( false );
+        } while(0);
+        do { // formula
+            std::string formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
+            model_->setData( model_->index( 0, 2 ), formula.c_str() );
+
+            adcontrols::ChemicalFormula cformula;    
+            model_->setData( model_->index( 0, 3 ), cformula.getMonoIsotopicMass( formula ) );
+        } while(0);
+        delete mol;
+    } while (0);    // end of PFTBA
+
+    for ( int col = 3; col < model_->columnCount(); ++col )
+        resizeColumnToContents( col );
 }
 
 void
 MolTableView::setMol( SDFile& file, QProgressBar& progressBar )
 {
     if ( file ) {
+        adcontrols::ChemicalFormula cformula;
 
         qtwrapper::waitCursor wait;
 
@@ -123,21 +151,31 @@ MolTableView::setMol( SDFile& file, QProgressBar& progressBar )
             progressBar.setValue( idx + 1 );
             try {
                 if ( RDKit::ROMol * mol = supplier.next() ) {
+
+                    size_t col = 0;
                     std::string smiles = RDKit::MolToSmiles( *mol );
 					if ( ! smiles.empty() ) {
-                        model_->setData( model_->index( idx, 0 ), smiles.c_str() );
+                        model_->setData( model_->index( idx, col++ ), smiles.c_str() );
                         
                         // SVG
                         std::vector<int> drawing = RDKit::Drawing::MolToDrawing( *mol );
                         std::string svg = RDKit::Drawing::DrawingToSVG( drawing );
-                        model_->setData( model_->index( idx, 1 ), QByteArray( svg.data(), svg.size() ) );
+                        model_->setData( model_->index( idx, col ), QByteArray( svg.data(), svg.size() ) );
+                        model_->item( idx, col )->setEditable( false );
                     }
-                    
+                    col = 2;
+					try {
+						mol->updatePropertyCache( false );
+						std::string formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
+						model_->setData( model_->index( idx, col++ ), QString::fromStdString( formula) );
+						model_->setData( model_->index( idx, col++), cformula.getMonoIsotopicMass( formula ) );
+					} catch ( std::exception& ex ) {
+						ADDEBUG() << ex.what();
+					}
+                    col = 4;
                     // associated data
                     std::map< std::string, std::string > data;
                     SDFile::associatedData( supplier.getItemText( idx ), data );
-                    
-                    size_t col = 2;
                     for ( auto tag: tags ) {
                         auto it = data.find( tag );
                         if ( it != data.end() )

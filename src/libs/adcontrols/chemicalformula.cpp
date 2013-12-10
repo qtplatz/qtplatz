@@ -150,9 +150,33 @@ namespace adcontrols {
         class ChemicalFormulaImpl {
         public:
             ChemicalFormulaImpl();
-            double getMonoIsotopicMass( const std::wstring& formula );
-            double getChemicalMass( const std::wstring& formula );
-            std::wstring standardFormula( const std::wstring& formula );
+
+            template< typename char_type > static double getMonoIsotopicMass( const std::basic_string< char_type >& formula ) {
+                client::map_type map;
+                if ( parse( formula, map ) ) {
+                    adcontrols::TableOfElements *toe = adcontrols::TableOfElements::instance();
+                    double mass = 0;
+                    for ( client::map_type::value_type& p: map ) {
+                        const char * element_name = p.first.second;
+                        size_t isotope = p.first.first;
+                        mass += toe->getMonoIsotopicMass( toe->findElement( element_name ), isotope ) * p.second;
+                    }
+                    return mass;
+                }
+                return 0;
+            }
+
+            template< typename char_type > static double getChemicalMass( const std::basic_string< char_type >& formula ) {
+                client::map_type map;
+                if ( parse( formula, map ) ) {
+                    adcontrols::TableOfElements *toe = adcontrols::TableOfElements::instance();
+                    double mass = 0;
+                    for ( client::map_type::value_type& p: map )
+                        mass += toe->getChemicalMass( toe->findElement( p.first.second ) ) * p.second;
+                    return mass;
+                }
+                return 0;
+            }
 
 			template< typename char_type > static bool parse( const std::basic_string< char_type >& formula, client::map_type& map ) {
                 
@@ -175,6 +199,29 @@ namespace adcontrols {
 
                 return boost::spirit::qi::parse( it, end, cf, fmt ) && it == end;
             }
+
+            template< typename char_type > static std::basic_string<char_type> standardFormula( const std::basic_string<char_type>& formula ) {
+                client::map_type map;
+                if ( parse( formula, map ) ) {
+                    std::basic_ostringstream<char_type> o;
+
+                    for ( client::map_type::value_type& p: map ) {
+						std::basic_string<char_type> atom( p.first.second, p.first.second + std::strlen( p.first.second ) );
+                        if ( p.first.first == 0 ) {
+                            o << atom; // adportable::utf::to_wstring( p.first.second );
+                            if ( p.second > 1 )  // omit '1' such as CH4, not C1H4
+                                o << p.second;
+                        } else {
+                            o << atom; // p.first.first << adportable::utf::to_wstring( p.first.second );
+                            if ( p.second > 1 ) 
+                                o << p.second;
+                            o << ' ';
+                        }
+                    }
+                    return o.str();
+                }
+                return std::basic_string<char_type>();
+            }
         };
 
     }
@@ -193,19 +240,31 @@ ChemicalFormula::ChemicalFormula() : impl_( new internal::ChemicalFormulaImpl )
 double
 ChemicalFormula::getMonoIsotopicMass( const std::wstring& formula )
 {
-    return impl_->getMonoIsotopicMass( formula );
+    return internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula );
+}
+
+double
+ChemicalFormula::getMonoIsotopicMass( const std::string& formula )
+{
+    return internal::ChemicalFormulaImpl::getMonoIsotopicMass( formula );
 }
 
 double
 ChemicalFormula::getChemicalMass( const std::wstring& formula )
 {
-    return impl_->getChemicalMass( formula );
+    return internal::ChemicalFormulaImpl::getChemicalMass( formula );
 }
 
 std::wstring
 ChemicalFormula::standardFormula( const std::wstring& formula )
 {
-    return impl_->standardFormula( formula );
+    return internal::ChemicalFormulaImpl::standardFormula( formula );
+}
+
+std::string
+ChemicalFormula::standardFormula( const std::string& formula )
+{
+    return internal::ChemicalFormulaImpl::standardFormula( formula );
 }
 
 std::wstring
@@ -358,58 +417,4 @@ ChemicalFormulaImpl::ChemicalFormulaImpl()
 {
 }
 
-double
-ChemicalFormulaImpl::getChemicalMass( const std::wstring& formula )
-{
-    client::map_type map;
-    if ( parse( formula, map ) ) {
-        adcontrols::TableOfElements *toe = adcontrols::TableOfElements::instance();
-        double mass = 0;
-        for ( client::map_type::value_type& p: map )
-            mass += toe->getChemicalMass( toe->findElement( p.first.second ) ) * p.second;
-        return mass;
-    }
-    return 0;
-}
-
-double
-ChemicalFormulaImpl::getMonoIsotopicMass( const std::wstring& formula )
-{
-    client::map_type map;
-    if ( parse( formula, map ) ) {
-        adcontrols::TableOfElements *toe = adcontrols::TableOfElements::instance();
-        double mass = 0;
-        for ( client::map_type::value_type& p: map ) {
-			const char * element_name = p.first.second;
-			size_t isotope = p.first.first;
-			mass += toe->getMonoIsotopicMass( toe->findElement( element_name ), isotope ) * p.second;
-        }
-        return mass;
-    }
-    return 0;
-}
-
-std::wstring
-ChemicalFormulaImpl::standardFormula( const std::wstring& formula )
-{
-    client::map_type map;
-    if ( parse( formula, map ) ) {
-
-        std::wostringstream o;
-        for ( client::map_type::value_type& p: map ) {
-            if ( p.first.first == 0 ) {
-                o << adportable::utf::to_wstring( p.first.second );
-                if ( p.second > 1 )  // omit '1' such as CH4, not C1H4
-                    o << p.second;
-            } else {
-                o << p.first.first << adportable::utf::to_wstring( p.first.second );
-                if ( p.second > 1 ) 
-                    o << p.second;
-                o << L" ";
-            }
-        }
-        return o.str();
-    }
-    return L"";
-}
 
