@@ -27,8 +27,10 @@
 #include "moltableview.hpp"
 #include "sdfile.hpp"
 #include "massdefectform.hpp"
+#include "chemistryconstants.hpp"
 #include <adchem/chopper.hpp>
 #include <adchem/mol.hpp>
+#include <adportable/profile.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 
 #include <coreplugin/actionmanager/actioncontainer.h>
@@ -47,6 +49,7 @@
 
 #include <QDebug>
 #include <QDockWidget>
+#include <QFileDialog>
 #include <QLineEdit>
 #include <QMenu>
 #include <QResizeEvent>
@@ -322,15 +325,17 @@ MainWindow::createTopStyledBar()
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setMargin( 0 );
         toolBarLayout->setSpacing( 0 );
+
+        toolBarLayout->addWidget( new QLabel( tr(">> Drop SD File on table: " ) ) );
+        topLineEdit_ = new QLineEdit;
+        toolBarLayout->addWidget( topLineEdit_ );
+
         Core::ActionManager * am = Core::ICore::instance()->actionManager();
         if ( am ) {
             QList<int> globalcontext;
             globalcontext << Core::Constants::C_GLOBAL_ID;
-            // toolBarLayout->addWidget(toolButton(am->command(constants::CONNECT)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Constants::SDFILE_OPEN)->action()));
         }
-        toolBarLayout->addWidget( new QLabel( tr(">> Drop SD File on table: " ) ) );
-        topLineEdit_ = new QLineEdit;
-        toolBarLayout->addWidget( topLineEdit_ );
         
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
@@ -340,5 +345,25 @@ MainWindow::createTopStyledBar()
         progressBar_->setStyleSheet( QString("QProgressBar { color: lightgreen}") );
     }
     return toolBar;
+}
+
+void
+MainWindow::actSDFileOpen()
+{
+    boost::filesystem::path datapath( adportable::profile::user_data_dir<char>() );
+    datapath /= "data";
+
+    QString name
+        = QFileDialog::getOpenFileName( this
+                                        , tr("Open SDFile" )
+										, datapath.string().c_str()
+                                        , tr("Structure Data files(*.sdf)") );
+    if ( ! name.isEmpty() ) {
+
+        topLineEdit_->setText( name );
+        SDFile file( name.toStdString() );
+        tableView_->setMol( file, *progressBar_ );
+
+	}
 }
 

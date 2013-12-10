@@ -28,6 +28,8 @@
 #include <extensionsystem/iplugin.h>
 #include <memory>
 
+class QAction;
+
 namespace chemistry { 
 
   class ChemistryMode;
@@ -47,6 +49,9 @@ namespace chemistry {
   private:
 	  std::shared_ptr< ChemistryMode > mode_;
 	  std::shared_ptr< MainWindow > mainWindow_;
+      QAction * actSDFileOpen_;
+      
+      void initialize_actions();
 	  
   private slots:
 	  void triggerAction();

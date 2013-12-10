@@ -69,6 +69,7 @@ namespace chemistry {
     
 	public slots:
 		void actionSearch();
+        void actSDFileOpen();
 
     private slots:
         void handleDropped( const QList< QUrl >& );

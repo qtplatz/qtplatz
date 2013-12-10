@@ -27,8 +27,9 @@
 namespace chemistry {
 namespace Constants {
 
-const char ACTION_ID[] = "Chemistry.Action";
-const char MENU_ID[] = "Chemistry.Menu";
+    const char ACTION_ID[] = "Chemistry.Action";
+    const char MENU_ID[]   = "Chemistry.Menu";
+    const char SDFILE_OPEN[] = "Chemistry.SDFileOpen";
 
 } // namespace Chemistry
 } // namespace Constants
