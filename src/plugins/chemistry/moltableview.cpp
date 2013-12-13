@@ -24,24 +24,18 @@
 
 #include "moltableview.hpp"
 #include "moltabledelegate.hpp"
-#include "sdfile.hpp"
+#include <adchem/sdfile.hpp>
 #include <adportable/debug.hpp>
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/chemicalformula.hpp>
 
-//#include <GraphMol/SmilesParse/SmilesParse.h>
-#include <RDGeneral/Invariant.h>
+#include <GraphMol/SmilesParse/SmilesParse.h>
 #include <GraphMol/RDKitBase.h>
 #include <GraphMol/SmilesParse/SmilesParse.h>
 #include <GraphMol/SmilesParse/SmilesWrite.h>
-#include <GraphMol/Substruct/SubstructMatch.h>
-#include <GraphMol/Depictor/RDDepictor.h>
-#include <GraphMol/FileParsers/FileParsers.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
-
 #include <GraphMol/FileParsers/MolSupplier.h>
-#include <GraphMol/MolDrawing/MolDrawing.h>
-#include <GraphMol/MolDrawing/DrawingToSVG.h>
+#include <adchem/drawing.hpp>
 
 #include <QDragEnterEvent>
 #include <QMimeData>
@@ -113,8 +107,7 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
         
         model_->setData( model_->index( 0, 0 ), smiles.c_str() );
         do { // SVG
-            std::vector<int> drawing = RDKit::Drawing::MolToDrawing( *mol );
-            std::string svg = RDKit::Drawing::DrawingToSVG( drawing );
+            std::string svg = adchem::drawing::toSVG( *mol );
             model_->setData( model_->index( 0, 1 ), QByteArray( svg.data(), svg.size() ) );
             model_->item( 0, 1 )->setEditable( false );
         } while(0);
@@ -133,64 +126,63 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
 }
 
 void
-MolTableView::setMol( SDFile& file, QProgressBar& progressBar )
+MolTableView::setMol( adchem::SDFile& file, QProgressBar& progressBar )
 {
     if ( file ) {
         adcontrols::ChemicalFormula cformula;
 
         qtwrapper::waitCursor wait;
 
-        RDKit::SDMolSupplier& supplier = file.molSupplier();
-        model_->setRowCount( supplier.length() );
+        //RDKit::SDMolSupplier& supplier = file.molSupplier();
+		model_->setRowCount( file.size() );
 
-        progressBar.setRange( 0, supplier.length() );
+        progressBar.setRange( 0, file.size() );
         progressBar.setVisible( true );
         progressBar.setTextVisible( true );
 
-        for ( size_t idx = 0; idx < supplier.length(); ++idx ) {
+		size_t idx = 0;
+		for ( auto mol: file ) {
             progressBar.setValue( idx + 1 );
             try {
-                if ( RDKit::ROMol * mol = supplier.next() ) {
-
-                    size_t col = 0;
-                    std::string smiles = RDKit::MolToSmiles( *mol );
-					if ( ! smiles.empty() ) {
-                        model_->setData( model_->index( idx, col++ ), smiles.c_str() );
-                        
-                        // SVG
-                        std::vector<int> drawing = RDKit::Drawing::MolToDrawing( *mol );
-                        std::string svg = RDKit::Drawing::DrawingToSVG( drawing );
-                        model_->setData( model_->index( idx, col ), QByteArray( svg.data(), svg.size() ) );
-                        model_->item( idx, col )->setEditable( false );
-                    }
-                    col = 2;
-					try {
-						mol->updatePropertyCache( false );
-						std::string formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
-						model_->setData( model_->index( idx, col++ ), QString::fromStdString( formula) );
-						model_->setData( model_->index( idx, col++), cformula.getMonoIsotopicMass( formula ) );
-					} catch ( std::exception& ex ) {
-						ADDEBUG() << ex.what();
-					}
-                    col = 4;
-                    // associated data
-                    std::map< std::string, std::string > data;
-                    SDFile::associatedData( supplier.getItemText( idx ), data );
+                size_t col = 0;
+                std::string smiles = RDKit::MolToSmiles( mol );
+                if ( ! smiles.empty() ) {
+                    model_->setData( model_->index( idx, col++ ), smiles.c_str() );
+                    
+                    // SVG
+                    std::string svg = adchem::drawing::toSVG( mol );
+                    model_->setData( model_->index( idx, col ), QByteArray( svg.data(), svg.size() ) );
+                    model_->item( idx, col )->setEditable( false );
+                }
+                col = 2;
+                try {
+                    mol.updatePropertyCache( false );
+                    std::string formula = RDKit::Descriptors::calcMolFormula( mol, true, false );
+                    model_->setData( model_->index( idx, col++ ), QString::fromStdString( formula) );
+                    model_->setData( model_->index( idx, col++), cformula.getMonoIsotopicMass( formula ) );
+                } catch ( std::exception& ex ) {
+                    ADDEBUG() << ex.what();
+                }
+                col = 4;
+                // associated data
+                std::map< std::string, std::string > data;
+                adchem::SDFile::iterator it = file.begin() + idx;
+                if ( adchem::SDFile::parseItemText( it.itemText(), data ) ) {
                     for ( auto tag: tags ) {
                         auto it = data.find( tag );
                         if ( it != data.end() )
                             model_->setData( model_->index( idx, col ), it->second.c_str() );
                         ++col;
                     }
-					delete mol;
-                }
+				}
 				if ( idx == 10 )
 					this->update();
             } catch ( std::exception& ex ) {
                 ADDEBUG() << boost::current_exception_diagnostic_information() << ex.what();
-           } catch ( ... ) {
+            } catch ( ... ) {
                 ADDEBUG() << boost::current_exception_diagnostic_information();
             }
+            ++idx;
         }
         progressBar.setVisible( false );
     }

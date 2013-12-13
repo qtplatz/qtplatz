@@ -22,44 +22,53 @@
 **
 **************************************************************************/
 
-#ifndef MOLWIDGET_HPP
-#define MOLWIDGET_HPP
+#include "molecule.hpp"
 
-#include <QWidget>
-#include <QUrl>
-#include <QList>
-#include <memory>
+// #include <RDGeneral/Invariant.h>
+// #include <GraphMol/RDKitBase.h>
+#include <GraphMol/SmilesParse/SmilesParse.h>
+#include <GraphMol/SmilesParse/SmilesWrite.h>
+// #include <GraphMol/Substruct/SubstructMatch.h>
+#include <GraphMol/Depictor/RDDepictor.h>
+// #include <GraphMol/FileParsers/FileParsers.h>
+#include <GraphMol/Descriptors/MolDescriptors.h>
+// #include <GraphMol/FileParsers/MolSupplier.h>
 
-#include "adwchem_global.hpp"
+using namespace adchem;
 
-namespace RDKit { class ROMol; }
-
-namespace adwchem {
-
-    class ADWCHEMSHARED_EXPORT MolWidget : public QWidget {
-        Q_OBJECT
-    public:
-        explicit MolWidget(QWidget *parent = 0);
-
-        void setMol( const RDKit::ROMol& );
-
-    private:
-        void dragEnterEvent( QDragEnterEvent * ) override;
-        void dragMoveEvent( QDragMoveEvent * ) override;
-        void dragLeaveEvent( QDragLeaveEvent * ) override;
-        void dropEvent( QDropEvent * ) override;
-        void paintEvent( QPaintEvent * ) override;
-
-        std::string svg_;
-
-    signals:
-        void dropped( const QList< QUrl >& );
-
-    public slots:
-        void handleDropped( const QList< QUrl >& );
-
-    };
-
+molecule::~molecule()
+{
+    delete mol_;
 }
 
-#endif // MOLWIDGET_HPP
+molecule::molecule() : mol_(0)
+{
+}
+
+molecule::molecule( const molecule& t ) : mol_(0)
+{
+    if ( t.mol_ )
+        mol_ = new RDKit::ROMol( *t.mol_ );
+}
+
+// static
+RDKit::ROMol *
+molecule::SmilesToMol( const std::string& smiles )
+{
+    return RDKit::SmilesToMol( smiles );
+}
+
+// static
+std::string
+molecule::MolToSmiles( const RDKit::ROMol& mol )
+{
+    return RDKit::MolToSmiles( mol );
+}
+
+// static
+std::string
+molecule::MolToFormula( RDKit::ROMol& mol, bool separateIsotopes, bool abbreviateHIsotopes )
+{
+    mol.updatePropertyCache( false );
+    return RDKit::Descriptors::calcMolFormula( mol, separateIsotopes, abbreviateHIsotopes );
+}

@@ -22,6 +22,12 @@
 **
 **************************************************************************/
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4100)
+# pragma warning(disable:4503)
+#endif
+
 #include "sdfile.hpp"
 #include <adportable/debug.hpp>
 
@@ -39,9 +45,12 @@
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/map.hpp>
+
 #include <fstream>
 
-namespace chemistry {  namespace client {
+using namespace adchem;
+
+namespace adchem {  namespace client {
 
         namespace qi = boost::spirit::qi;
         using boost::phoenix::bind;
@@ -108,26 +117,46 @@ namespace chemistry {  namespace client {
     }
 }
 
-using namespace chemistry;
-
-SDFile::SDFile()
-{
-}
-
 SDFile::SDFile( const std::string& filename, bool sanitize, bool removeHs, bool strictParsing )
     : molSupplier_( std::make_shared< RDKit::SDMolSupplier >( filename, sanitize, removeHs, strictParsing ) )
     , filename_( filename )
 {
-    adportable::debug(__FILE__, __LINE__) << filename_;
-    adportable::debug(__FILE__, __LINE__) << molSupplier_->length();
+}
+
+SDFile::iterator
+SDFile::begin()
+{
+    return sdfile_iterator( *molSupplier_, 0 );
+}
+
+SDFile::const_iterator
+SDFile::begin() const
+{
+    return sdfile_iterator( *molSupplier_, 0 );
+}
+
+SDFile::iterator
+SDFile::end()
+{
+    return sdfile_iterator( *molSupplier_, size() );
+}
+
+SDFile::const_iterator
+SDFile::end() const
+{
+    return sdfile_iterator( *molSupplier_, size() );
+}
+
+SDFile::size_type
+SDFile::size() const
+{
+    return molSupplier_->length();
 }
 
 // static
 bool
-SDFile::associatedData( const std::string& text, std::map< std::string, std::string >& data )
+SDFile::parseItemText( const std::string& text, std::map< std::string, std::string >& data )
 {
-    // adportable::debug(__FILE__, __LINE__) << "-------------- associatedData...";    
-
     std::string::size_type pos = text.find_first_of( ">" );
 
     if ( pos != std::string::npos ) {
@@ -159,3 +188,55 @@ SDFile::associatedData( const std::string& text, std::map< std::string, std::str
 	return true;
 }
 
+sdfile_iterator::sdfile_iterator( RDKit::SDMolSupplier& supplier
+                                  , size_t idx ) : supplier_( supplier )
+                                                 , idx_( idx )
+{
+}
+
+sdfile_iterator::sdfile_iterator( const sdfile_iterator& t ) : supplier_( t.supplier_ )
+                                                             , idx_( t.idx_ )
+{
+}
+
+const sdfile_iterator&
+sdfile_iterator::operator ++ ()
+{
+    ++idx_;
+    return *this;
+}
+
+sdfile_iterator
+sdfile_iterator::operator + ( int distance ) const
+{
+    return sdfile_iterator( supplier_, idx_ + distance );
+}
+
+bool
+sdfile_iterator::operator != ( const sdfile_iterator& rhs ) const
+{
+    return idx_ != rhs.idx_;
+}
+
+sdfile_iterator::operator RDKit::ROMol * () const
+{
+    const_cast< sdfile_iterator *>(this)->fetch();
+    return mol_.get();
+}
+
+std::string
+sdfile_iterator::itemText() const
+{
+    return supplier_.getItemText( idx_ );
+}
+
+bool
+sdfile_iterator::fetch()
+{
+    if ( idx_ >= 0 && idx_ < supplier_.length() ) {
+        mol_.reset( supplier_[ idx_ ] );
+        return true;
+    }
+    mol_.reset();
+    return false;
+}

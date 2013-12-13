@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,45 +22,39 @@
 **
 **************************************************************************/
 
-#ifndef MOLTABLEVIEW_HPP
-#define MOLTABLEVIEW_HPP
+#include "drawing.hpp"
 
-#include <QTableView>
-#include <QUrl>
-#include <memory>
+// #include <RDGeneral/Invariant.h>
+// #include <GraphMol/RDKitBase.h>
+// #include <GraphMol/SmilesParse/SmilesParse.h>
+// #include <GraphMol/SmilesParse/SmilesWrite.h>
+// #include <GraphMol/Substruct/SubstructMatch.h>
+#include <GraphMol/Depictor/RDDepictor.h>
+// #include <GraphMol/FileParsers/FileParsers.h>
+// #include <GraphMol/Descriptors/MolDescriptors.h>
+// #include <GraphMol/FileParsers/MolSupplier.h>
 
-class QStandardItemModel;
-class QProgressBar;
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4018) // signed/unsigned
+# pragma warning(disable:4189) // local variable not referenced
+#endif
+#include <GraphMol/MolDrawing/MolDrawing.h>
+#include <GraphMol/MolDrawing/DrawingToSVG.h>
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
-namespace adchem { class SDFile; }
+using namespace adchem;
 
-namespace chemistry {
-
-    class MolTableDelegate;
-
-    class MolTableView : public QTableView {
-        Q_OBJECT
-    public:
-        explicit MolTableView(QWidget *parent = 0);
-        ~MolTableView();
-
-        void setMol( adchem::SDFile&, QProgressBar& );
-
-    signals:
-        void dropped( const QList< QUrl >& );
-
-    public slots:
-
-    private:
-        void dragEnterEvent( QDragEnterEvent * ) override;
-        void dragMoveEvent( QDragMoveEvent * ) override;
-        void dragLeaveEvent( QDragLeaveEvent * ) override;
-        void dropEvent( QDropEvent * ) override;
-
-        MolTableDelegate * delegate_;
-        QStandardItemModel * model_;
-    };
-
+drawing::drawing()
+{
 }
 
-#endif // MOLTABLEVIEW_HPP
+// static
+std::string
+drawing::toSVG( const RDKit::ROMol& mol )
+{
+    std::vector< int > drawing = RDKit::Drawing::MolToDrawing( mol );
+    return RDKit::Drawing::DrawingToSVG( drawing );
+}

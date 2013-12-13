@@ -20,7 +20,8 @@ SUBDIRS   = \
     adplugin \
     adsequence \
     adorbmgr \
-    adwchem
+    adwchem \
+    adchem
 
 #    adchem \
 

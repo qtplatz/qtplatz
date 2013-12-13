@@ -20,8 +20,7 @@ SOURCES += chemistryplugin.cpp \
         massdefectform.cpp \
         massdefectdelegate.cpp \
         massdefectmethod.cpp \
-        moltableview.cpp \
-        sdfile.cpp
+        moltableview.cpp
 
 HEADERS += chemistryplugin.hpp\
         chemistry_global.hpp\
@@ -33,14 +32,15 @@ HEADERS += chemistryplugin.hpp\
         massdefectform.hpp \
         massdefectdelegate.hpp \
         massdefectmethod.hpp \
-        moltableview.hpp \
-        sdfile.hpp
+        moltableview.hpp
 
 OTHER_FILES = chemistry.pluginspec
 
 LIBS += -l$$qtLibraryTarget(Core)
 LIBS += -l$$qtLibraryTarget( adutils ) \
         -l$$qtLibraryTarget( adportable ) \
+        -l$$qtLibraryTarget( adchem ) \
+        -l$$qtLibraryTarget( adwchem ) \
         -l$$qtLibraryTarget( adcontrols ) \
         -l$$qtLibraryTarget( adplugin ) \
         -l$$qtLibraryTarget( qtwrapper )
@@ -50,7 +50,6 @@ LIBS += -l$$qtLibraryTarget( adutils ) \
 }
 
 LIBS += -lFileParsers -lGraphMol -lSmilesParse -lRDGeneral -lRDGeometryLib -lSubstructMatch -lDepictor -lDescriptors
-
 
 RESOURCES += \
     chemistry.qrc

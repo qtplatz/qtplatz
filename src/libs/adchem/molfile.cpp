@@ -22,35 +22,10 @@
 **
 **************************************************************************/
 
-#ifndef SDFILE_HPP
-#define SDFILE_HPP
+#include "molfile.hpp"
 
-#include <memory>
-#include <string>
-#include <map>
+using namespace adchem;
 
-namespace RDKit {
-    class SDMolSupplier;
+MOLFile::MOLFile()
+{
 }
-
-namespace chemistry {
-
-    class SDFile {
-    public:
-        SDFile();
-        SDFile( const std::string& filename, bool sanitize = false, bool removeHs = false, bool strictParsing = false );
-        operator bool() const { return molSupplier_ != 0; }
-
-        RDKit::SDMolSupplier& molSupplier() { return *molSupplier_; }
-        const RDKit::SDMolSupplier& molSupplier() const { return *molSupplier_; }
-
-        static bool associatedData( const std::string&, std::map< std::string, std::string >& );
-
-    private:
-        std::shared_ptr< RDKit::SDMolSupplier > molSupplier_;
-        std::string filename_;
-    };
-
-}
-
-#endif // SDFILE_HPP

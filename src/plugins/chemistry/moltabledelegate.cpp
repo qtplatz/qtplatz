@@ -53,15 +53,12 @@ MolTableDelegate::render_svg( QPainter * painter, const QRect& rect, const QPale
     painter->save();
 
 	QSvgRenderer renderer( svg );
-	// QRectF source = renderer.boundsOnElement( "topsvg" );
 
 	painter->translate( rect.x(), rect.y() );
 	QRectF viewport = painter->viewport();
-	// painter->scale( 1000 / viewport.width(), 1000 / viewport.height() );  // aspect 1:2 := 100x100 vbox
     painter->scale( 1.0, 1.0 );
 
 	QRect target( 0, 0, rect.width(), rect.height() );
-	// renderer.setViewBox( target ); // <-- this will fix size on device
 	renderer.render( painter, target );
 
     painter->restore();

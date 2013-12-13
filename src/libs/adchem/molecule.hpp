@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,45 +22,35 @@
 **
 **************************************************************************/
 
-#ifndef MOLTABLEVIEW_HPP
-#define MOLTABLEVIEW_HPP
+#ifndef MOLECULE_HPP
+#define MOLECULE_HPP
 
-#include <QTableView>
-#include <QUrl>
+#include "adchem_global.hpp"
 #include <memory>
+#include <string>
 
-class QStandardItemModel;
-class QProgressBar;
+namespace RDKit { class ROMol; }
 
-namespace adchem { class SDFile; }
+namespace adchem {
 
-namespace chemistry {
-
-    class MolTableDelegate;
-
-    class MolTableView : public QTableView {
-        Q_OBJECT
+    class ADCHEMSHARED_EXPORT molecule {
     public:
-        explicit MolTableView(QWidget *parent = 0);
-        ~MolTableView();
+        ~molecule();
+        molecule();
+        molecule( const molecule& );
+        molecule( RDKit::ROMol * );
 
-        void setMol( adchem::SDFile&, QProgressBar& );
-
-    signals:
-        void dropped( const QList< QUrl >& );
-
-    public slots:
+        inline operator bool() const { return mol_ != 0; }
+        inline RDKit::ROMol * get() { return mol_; }
+        inline const RDKit::ROMol * get() const { return mol_; }
+        static RDKit::ROMol * SmilesToMol( const std::string& );
+        static std::string MolToSmiles( const RDKit::ROMol& );
+        static std::string MolToFormula( RDKit::ROMol&, bool separateIsotopes = true, bool abbreviateHIsotopes = false );
 
     private:
-        void dragEnterEvent( QDragEnterEvent * ) override;
-        void dragMoveEvent( QDragMoveEvent * ) override;
-        void dragLeaveEvent( QDragLeaveEvent * ) override;
-        void dropEvent( QDropEvent * ) override;
-
-        MolTableDelegate * delegate_;
-        QStandardItemModel * model_;
+        RDKit::ROMol * mol_;
     };
 
 }
 
-#endif // MOLTABLEVIEW_HPP
+#endif // MOLECULE_HPP

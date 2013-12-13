@@ -8,6 +8,7 @@ QT       += widgets svg
 
 TARGET = adwchem
 TEMPLATE = lib
+include(../../qtplatzlibrary.pri)
 include(../../boost.pri)
 include(../../rdkit.pri)
 
@@ -20,14 +21,8 @@ HEADERS += adwchem.hpp\
         adwchem_global.hpp \
         molwidget.hpp
 
-LIBS += -lFileParsers \
-        -lGraphMol \
-        -lSmilesParse \
-        -lRDGeneral \
-        -lRDGeometryLib \
-        -lSubstructMatch \
-        -lDepictor \
-        -lDescriptors
+LIBS += -l$$qtLibraryTarget( adchem ) \
+        -l$$qtLibraryTarget( adportable )
 
 unix:!symbian {
     maemo5 {

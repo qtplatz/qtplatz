@@ -25,11 +25,9 @@
 #include "mainwindow.hpp"
 #include "moltabledelegate.hpp"
 #include "moltableview.hpp"
-#include "sdfile.hpp"
+#include <adchem/sdfile.hpp>
 #include "massdefectform.hpp"
 #include "chemistryconstants.hpp"
-#include <adchem/chopper.hpp>
-#include <adchem/mol.hpp>
 #include <adportable/profile.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 
@@ -294,7 +292,7 @@ MainWindow::handleDropped( const QList< QUrl >& urls )
     for ( auto& url: urls ) {
         boost::filesystem::path path( url.toLocalFile().toStdWString() );
         topLineEdit_->setText( QString::fromStdWString( path.wstring() ) );
-        SDFile file( path.string() );
+        adchem::SDFile file( path.string() );
         tableView_->setMol( file, *progressBar_ );
     }
 }
@@ -361,7 +359,7 @@ MainWindow::actSDFileOpen()
     if ( ! name.isEmpty() ) {
 
         topLineEdit_->setText( name );
-        SDFile file( name.toStdString() );
+        adchem::SDFile file( name.toStdString() );
         tableView_->setMol( file, *progressBar_ );
 
 	}

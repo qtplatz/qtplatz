@@ -1,6 +1,6 @@
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,45 +22,15 @@
 **
 **************************************************************************/
 
-#ifndef MOLTABLEVIEW_HPP
-#define MOLTABLEVIEW_HPP
+#ifndef ADCHEM_GLOBAL_HPP
+#define ADCHEM_GLOBAL_HPP
 
-#include <QTableView>
-#include <QUrl>
-#include <memory>
+#include <compiler/decl_export.h>
 
-class QStandardItemModel;
-class QProgressBar;
+#if defined(ADCHEM_LIBRARY)
+#  define ADCHEMSHARED_EXPORT DECL_EXPORT
+#else
+#  define ADCHEMSHARED_EXPORT DECL_IMPORT
+#endif
 
-namespace adchem { class SDFile; }
-
-namespace chemistry {
-
-    class MolTableDelegate;
-
-    class MolTableView : public QTableView {
-        Q_OBJECT
-    public:
-        explicit MolTableView(QWidget *parent = 0);
-        ~MolTableView();
-
-        void setMol( adchem::SDFile&, QProgressBar& );
-
-    signals:
-        void dropped( const QList< QUrl >& );
-
-    public slots:
-
-    private:
-        void dragEnterEvent( QDragEnterEvent * ) override;
-        void dragMoveEvent( QDragMoveEvent * ) override;
-        void dragLeaveEvent( QDragLeaveEvent * ) override;
-        void dropEvent( QDropEvent * ) override;
-
-        MolTableDelegate * delegate_;
-        QStandardItemModel * model_;
-    };
-
-}
-
-#endif // MOLTABLEVIEW_HPP
+#endif // ADCHEM_GLOBAL_HPP
