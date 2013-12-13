@@ -19,7 +19,8 @@ SUBDIRS   = \
     adwplot \
     adplugin \
     adsequence \
-    adorbmgr
+    adorbmgr \
+    adwchem
 
 #    adchem \
 

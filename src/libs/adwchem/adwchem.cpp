@@ -1,15 +1,15 @@
 /**************************************************************************
-** Copyright (C) 2013 MS-Cheminformatics LLC
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
-** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -22,29 +22,9 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "adwchem.hpp"
 
-#include "adchem_global.h"
-#include <string>
-#include <compiler/disable_dll_interface.h>
 
-namespace adchem {
-
-    class string;
-
-	class ADCHEMSHARED_EXPORT attribute {
-        std::string key_;
-        std::string value_;
-	public:
-        ~attribute();
-        attribute();
-        attribute( const attribute& );
-
-        void key( const char * );
-        void value( const char * );
-        const char * key() const;
-        const char * value() const;
-	};
-
+adwchem::adwchem()
+{
 }
-
