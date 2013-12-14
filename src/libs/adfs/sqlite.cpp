@@ -256,22 +256,22 @@ namespace adfs {
     }
     
     template<> bool 
-    stmt::bind_item::operator = ( const boost::uint32_t& v )
+    stmt::bind_item::operator = ( const uint32_t& v )
     {
         return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
     }
     
-    template<> bool
-    stmt::bind_item::operator = ( const long & v )
-    {
-        return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
-    }
+    // template<> bool
+    // stmt::bind_item::operator = ( const long & v )
+    // {
+    //     return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
+    // }
     
-    template<> bool 
-    stmt::bind_item::operator = ( const unsigned long & v )
-    {
-        return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
-    }
+    // template<> bool 
+    // stmt::bind_item::operator = ( const unsigned long & v )
+    // {
+    //     return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
+    // }
     
     template<> bool
     stmt::bind_item::operator = ( const int64_t& v )
@@ -279,16 +279,16 @@ namespace adfs {
         return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
     }
 
-	template<> bool
+    template<> bool
+    stmt::bind_item::operator = ( const uint64_t& v )
+    {
+        return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
+    }
+
+    template<> bool
     stmt::bind_item::operator = ( const double& v )
     {
         return sqlite3_bind_double( stmt_, nnn_, v ) == SQLITE_OK;
-    }
-    
-    template<> bool
-    stmt::bind_item::operator = ( const boost::uint64_t& v )
-    {
-        return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
     }
     
     template<> bool
