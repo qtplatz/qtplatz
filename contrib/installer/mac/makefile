@@ -1,12 +1,11 @@
-
-DEPLOYQT = /usr/local/Qt5.1.1/5.1.1/clang_64/bin/macdeployqt
-APATH = /usr/local/Qt5.1.1/5.1.1/clang_64/lib
-APLUGINS = /usr/local/Qt5.1.1/5.1.1/clang_64/plugins
+QT_VERSION=5.2.0
+DEPLOYQT = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION)/clang_64/bin/macdeployqt
+APATH = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION)/clang_64/lib
+APLUGINS = /usr/local/Qt$(QT_VERSION)/$(QT_VERSION)/clang_64/plugins
 EPATH = @executable_path/../Frameworks
 FRAMEWORK = ./qtplatz.app/Contents/Frameworks
 PLUGINS   = ./qtplatz.app/Contents/PlugIns
 
-#QT_VERSION = 5.1.1
 #ACE_VERSION = 6.1.4
 #TAO_VERSION = 2.1.4
 #BOOST_VERSION = 1_51
