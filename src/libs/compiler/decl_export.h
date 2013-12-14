@@ -37,10 +37,11 @@
 #  define DECL_IMPORT /* nothing */
 #endif
 
-#if defined _MSC_VER 
-  typedef unsigned int size_t;
-#elif defined __APPLE__ 
-  typedef unsigned long size_t;
-#else
-  typedef unsigned int size_t;
-#endif
+/* #if defined _MSC_VER  */
+/*   typedef unsigned int size_t; */
+/* #elif defined __APPLE__  */
+/*   typedef unsigned long size_t; */
+/* #else */
+/*   typedef unsigned int size_t; */
+/* #endif */
+#include <stddef.h>
