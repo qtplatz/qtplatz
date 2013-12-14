@@ -21,7 +21,8 @@ $(worning $(RDBASE) $(origin RDBASE)
 $(warning $(ACE_ROOT) $(origin ACE_ROOT))
 
 ifeq ($(RDBASE),)
-$(error RDBASE is not set)
+#$(error RDBASE is not set)
+RDBASE=~/src/rdkit
 endif
 
 LIBDIR_OPENBABEL = /usr/local/lib

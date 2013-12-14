@@ -37,8 +37,12 @@ LIBS += -lFileParsers \
         -lSubstructMatch \
         -lDepictor \
         -lDescriptors
+!win32 {
+  LIBS += -lboost_system
+}
 
 LIBS += -l$$qtLibraryTarget( adportable )
+
 
 unix:!symbian {
     maemo5 {

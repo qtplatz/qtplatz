@@ -21,6 +21,10 @@ HEADERS += adwchem.hpp\
         adwchem_global.hpp \
         molwidget.hpp
 
+!win32 {
+  LIBS += -lboost_system -lboost_filesystem
+}
+
 LIBS += -l$$qtLibraryTarget( adchem ) \
         -l$$qtLibraryTarget( adportable )
 
