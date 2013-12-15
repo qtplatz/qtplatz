@@ -261,17 +261,17 @@ namespace adfs {
         return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
     }
     
-    // template<> bool
-    // stmt::bind_item::operator = ( const long & v )
-    // {
-    //     return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
-    // }
+    template<> bool
+    stmt::bind_item::operator = ( const long & v )
+    {
+        return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
+    }
     
-    // template<> bool 
-    // stmt::bind_item::operator = ( const unsigned long & v )
-    // {
-    //     return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
-    // }
+    template<> bool 
+    stmt::bind_item::operator = ( const unsigned long & v )
+    {
+        return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
+    }
     
     template<> bool
     stmt::bind_item::operator = ( const int64_t& v )
