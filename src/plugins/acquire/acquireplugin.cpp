@@ -254,7 +254,7 @@ AcquirePlugin::initialize_actions()
     actionRun_->setEnabled( false );
 	actionStop_->setEnabled( false );
 	actionInject_->setEnabled( false );
-    actionSnapshot_->setEnabled( false );
+    actionSnapshot_->setEnabled( true );
   
     //const AcquireManagerActions& actions = mainWindow_->acquireManagerActions();
     QList<int> globalcontext;
