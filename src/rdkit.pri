@@ -9,13 +9,21 @@ isEmpty( RDBASE ) {
 }
 
 INCLUDEPATH += $${RDBASE}/Code
-# message( "RDBASE=" $${RDBASE} )
 
 win32 {
+
+   win32-msvc2008: VC=90
+   win32-msvc2010: VC=100
+   win32-msvc2012: VC=110
+   win32-msvc2013: VC=120
+   
+   RDKIT_LIBRARY=$${RDBASE}/build_$${QMAKE_HOST.arch}_$${VC}/lib
+   # message( "LIB" $${RDKIT_LIBRARY} )      
+
   CONFIG(debug, debug|release) {
-    LIBS += -L$${RDBASE}/lib/Debug
+    LIBS += -L$${RDKIT_LIBRARY}/Debug
   } else {
-    LIBS += -L$${RDBASE}/lib/Release
+    LIBS += -L$${RDKIT_LIBRARY}/Release
   }
 } else {
   LIBS += -L$${RDBASE}/lib
