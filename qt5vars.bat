@@ -27,6 +27,8 @@ echo arch_tool=%uname%
 echo QMAKESPEC=%QMAKESPEC%
 echo -------------------------------------
 
+set RDBASE_PREFIX=%USERPROFILE%\src\rdkit
+
 if %uname%==x86_vc11 goto x86_vc11
 if %uname%==x86_vc12 goto x86_vc12
 if %uname%==x64_vc11 goto x64_vc11
@@ -39,7 +41,9 @@ set ACE_ROOT="%USERPROFILE%\src\vc11\ACE_wrappers"
 set QTDIR=C:\Qt\Qt5.1.1\5.1.1\msvc2012
 set QWT=C:\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
-set RDBASE=
+set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
+set BOOST_LIBRARY=%BOOST_ROOT%
+set RDBASE=%RDBASE_PREFIX%\build_x86_110
 goto all_set
 
 :x86_vc12
@@ -49,7 +53,9 @@ set ACE_ROOT="%USERPROFILE%\src\vc11\ACE_wrappers"
 set QTDIR=C:\x86\qt5\qtbase
 set QWT=C:\x86\vc12\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
-set RDBASE=
+set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
+set BOOST_LIBRARY=%BOOST_ROOT%
+set RDBASE=%RDBASE_PREFIX%\build_x86_120
 goto all_set
 
 :x64_vc11
@@ -59,6 +65,9 @@ set ACE_ROOT="%USERPROFILE%\src64\ACE_wrappers"
 set QTDIR=C:\x64\qt5\qtbase
 set QWT=C:\x64\vc11\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\x64\Boost
+set BOOST_INCLUDE=%BOOST_ROOT%\boost-1_55
+set BOOST_LIBRARY=%BOOST_ROOT%\x86_64
+set RDBASE=%RDBASE_PREFIX%\build_x64_110
 goto all_set
 
 :x64_vc12
@@ -67,7 +76,10 @@ call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd6
 set ACE_ROOT="%USERPROFILE%\src64\ACE_wrappers"
 set QTDIR=C:\x64\qt5\qtbase
 set QWT=C:\x64\vc12\Qwt-6.1.1-svn
-set BOOST_ROOT=C:\x64\Boost
+set BOOST_ROOT=C:\Boost
+set BOOST_INCLUDE=%BOOST_ROOT%\boost-1_55
+set BOOST_LIBRARY=%BOOST_ROOT%\x86_64
+set RDBASE=%RDBASE_PREFIX%\build_x64_120
 goto all_set
 
 :all_set
@@ -79,5 +91,5 @@ echo -- QMAKESPEC set to %QMAKESPEC%
 echo -- ACE_ROOT set to %ACE_ROOT%
 echo -- QWT set to %QWT%
 echo -- BOOST_ROOT set to %BOOST_ROOT%
-
+echo -- RDBASE set to %RDBASE%
 echo -- all set.

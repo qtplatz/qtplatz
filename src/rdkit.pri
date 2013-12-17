@@ -9,12 +9,13 @@ isEmpty( RDBASE ) {
 }
 
 INCLUDEPATH += $${RDBASE}/Code
+# message( "RDBASE=" $${RDBASE} )
 
 win32 {
   CONFIG(debug, debug|release) {
-    LIBS += -L$${RDBASE}/build/lib/Debug
+    LIBS += -L$${RDBASE}/lib/Debug
   } else {
-    LIBS += -L$${RDBASE}/build/lib/Release
+    LIBS += -L$${RDBASE}/lib/Release
   }
 } else {
   LIBS += -L$${RDBASE}/lib
