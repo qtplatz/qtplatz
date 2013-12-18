@@ -58,9 +58,9 @@ rawdata::~rawdata()
 
 rawdata::rawdata( adfs::filesystem& dbf
                   , adcontrols::datafile& parent ) : dbf_( dbf )
+                                                   , parent_( parent )
                                                    , npos0_( 0 )
                                                    , configLoaded_( false )
-                                                   , parent_( parent )
 {
 }
 
@@ -183,7 +183,7 @@ rawdata::getSpectrumCount( int fcn ) const
             sql.bind( 1 ) = it->objid;
             sql.bind( 2 ) = fcn;
             if ( sql.step() == adfs::sqlite_row )
-                return static_cast< size_t >( boost::get<boost::int64_t>( sql.column_value( 0 ) ) );
+                return static_cast< size_t >( sql.get_column_value<int64_t>( 0 ) );
         }
     }
     return 0;
@@ -294,7 +294,7 @@ rawdata::getChromatograms( const std::vector< std::tuple<int, double, double> >&
         sql.bind( 1 ) = it->objid;
         sql.bind( 2 ) = npos;
         if ( sql.step() == adfs::sqlite_row )
-            npos = boost::get< boost::int64_t >(sql.column_value( 0 ));
+            npos = sql.get_column_value< int64_t >( 0 );
     }
 
     std::vector< std::tuple< int, double, double > > xranges( ranges );
@@ -372,9 +372,9 @@ rawdata::fetchTraces( int64_t objid, const std::wstring& dataInterpreterClsid, a
 
         while( sql.step() == adfs::sqlite_row ) {
 			++nrecord;
-            uint64_t rowid = boost::get< boost::int64_t >( sql.column_value( 0 ) );
-            uint64_t npos = boost::get< boost::int64_t >( sql.column_value( 1 ) );
-            uint32_t events = static_cast< uint32_t >( boost::get< boost::int64_t >( sql.column_value( 2 ) ) );
+            uint64_t rowid = sql.get_column_value< int64_t >( 0 );
+            uint64_t npos  = sql.get_column_value< int64_t >( 1 );
+            uint32_t events = static_cast< uint32_t >( sql.get_column_value< int64_t >( 2 ) );
             if ( npos0_ == 0 )
                 npos0_ = npos;
 
@@ -424,6 +424,7 @@ rawdata::fetchSpectrum( int64_t objid
         if ( sql.step() == adfs::sqlite_row ) {
 			uint64_t rowid  = sql.get_column_value< uint64_t >( 0 );
 			int fcn    = int( sql.get_column_value< int64_t >( 1 ) );
+            (void)fcn;
             
             if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
                 xdata.resize( blob.size() );

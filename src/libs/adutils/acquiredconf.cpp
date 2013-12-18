@@ -24,6 +24,7 @@
 
 #include "acquiredconf.hpp"
 #include <adfs/sqlite.hpp>
+#include <typeinfo>
 
 using namespace adutils;
 

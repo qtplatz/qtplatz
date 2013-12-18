@@ -20,10 +20,8 @@ SUBDIRS   = \
     adplugin \
     adsequence \
     adorbmgr \
-    adwchem \
-    adchem
-
-#    adchem \
+    adchem \
+    adwchem
 
 # adfs : boost
 # xmlparser : none

@@ -274,7 +274,13 @@ namespace adfs {
         return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
     }
 
-#if ! (defined __x86_64__ && defined __linux__ )    
+#if (defined __x86_64__ && defined __linux__ )    
+    template<> bool 
+    stmt::bind_item::operator = ( const long long & v )
+    {
+        return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
+    }
+#else
     // int64_t and long is identical on gcc x86_64
     template<> bool
     stmt::bind_item::operator = ( const int64_t& v )

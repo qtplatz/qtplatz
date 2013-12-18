@@ -54,7 +54,7 @@ namespace adfs {
             static bool format_superblock( sqlite& db, const std::wstring& filename );
             static bool format_directory( sqlite& db );
             static bool mount( sqlite& db );
-            static bool prealloc( adfs::sqlite& db, unsigned long long size );
+            static bool prealloc( adfs::sqlite& db, uint64_t size );
             
             static folder add_folder( adfs::sqlite& db, const std::wstring& fullpath, bool create );  // full path required
             static folder find_folder( adfs::sqlite& db, const std::wstring& fullpath ); // full path required

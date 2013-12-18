@@ -139,7 +139,7 @@ fs::format_directory( adfs::sqlite& db )
 }
 
 bool
-fs::prealloc( adfs::sqlite& db, unsigned long long size )
+fs::prealloc( adfs::sqlite& db, uint64_t size )
 {
     adfs::stmt sql( db );
 
