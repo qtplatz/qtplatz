@@ -76,8 +76,8 @@ file::attachments()
     sql.bind( 1 ) = rowid_;
 
     while ( sql.step() == adfs::sqlite_row ) {
-        boost::int64_t rowid = boost::get< boost::int64_t >( sql.column_value( 0 ) );
-        std::wstring name = boost::get< std::wstring>( sql.column_value( 1 ) );
+        boost::int64_t rowid = sql.get_column_value< int64_t >( 0 );
+        std::wstring name = sql.get_column_value< std::wstring>( 1 );
         attachments.push_back( adfs::file( *db_, rowid, name ) );
     }
     return attachments;

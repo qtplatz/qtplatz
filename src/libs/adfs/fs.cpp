@@ -48,8 +48,8 @@ namespace adfs {
     namespace internal {
 
         struct to_posix_time {
-            static boost::posix_time::ptime ptime( const adfs::column_value_type& v ) {
-                return boost::posix_time::time_from_string( adportable::utf::to_utf8( boost::get<std::wstring>(v) ) );
+            static boost::posix_time::ptime ptime( const std::wstring& v ) {
+                return boost::posix_time::time_from_string( adportable::utf::to_utf8( v ) );
             }
         };
 
@@ -97,8 +97,8 @@ fs::mount( adfs::sqlite& db )
 
     while ( sql.step() == adfs::sqlite_row ) {
 
-        std::wstring creator = boost::get<std::wstring>( sql.column_value( 0 ) );
-        int64_t magic = boost::get<int64_t>( sql.column_value( 1 ) );
+        std::wstring creator = sql.get_column_value<std::wstring>( 0 );
+        int64_t magic =sql.get_column_value<int64_t>( 1 );
 
         if ( magic == 0x2011031111301102LL )
             return true;
@@ -252,9 +252,9 @@ fs::get_parent_folder( sqlite& db, int64_t rowid )
     sql.bind( 1 ) = rowid;
 
     while ( sql.step() == sqlite_row ) {
-        int64_t parent_id = boost::get<int64_t>( sql.column_value( 0 ) ); // parent rawid
-        std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) ); // parent name
-        dir_type type = static_cast<dir_type>( boost::get<int64_t>( sql.column_value( 2 ) ) );
+        int64_t parent_id = sql.get_column_value<int64_t>( 0 ); // parent rawid
+        std::wstring name = sql.get_column_value<std::wstring>( 1 ); // parent name
+        dir_type type = static_cast<dir_type>( sql.get_column_value<int64_t>( 2 ) );
         if ( type == type_folder )
             return folder( db, parent_id, name );
 
@@ -304,7 +304,7 @@ fs::rowid_from_fileid( adfs::sqlite& db, int64_t fileid )
     if ( sql.prepare( "SELECT rowid FROM file WHERE fileid = :fileid" ) ) {
         sql.bind( 1 ) = fileid;
         if ( sql.step() == sqlite_row )
-            return boost::get<int64_t>( sql.column_value( 0 ) );
+            return sql.get_column_value< int64_t>( 0 );
     }
     return 0;
 }
@@ -319,11 +319,11 @@ fs::select_folders( sqlite& db, int64_t parent_id, std::vector<folder>& vec )
         sql.bind( 1 ) = parent_id;
 
         while ( sql.step() == sqlite_row ) {
-            int64_t rowid = boost::get<int64_t>( sql.column_value( 0 ) );
-            std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) );
+            int64_t rowid = sql.get_column_value<int64_t>( 0 );
+            std::wstring name = sql.get_column_value<std::wstring>( 1 );
             try {
-                boost::posix_time::ptime ctime = to_posix_time::ptime( sql.column_value( 2 ) );
-                boost::posix_time::ptime mtime = to_posix_time::ptime( sql.column_value( 3 ) );
+                boost::posix_time::ptime ctime = to_posix_time::ptime( sql.get_column_value<std::wstring>( 2 ) );
+                boost::posix_time::ptime mtime = to_posix_time::ptime( sql.get_column_value<std::wstring>( 3 ) );
                 (void)ctime;
                 (void)mtime;
             } catch ( std::out_of_range& ex ) {
@@ -348,11 +348,11 @@ fs::select_file( sqlite& db, int64_t parent_id, const std::wstring& id, adfs::fi
 
         if ( sql.step() == sqlite_row ) {
 
-            int64_t fileid = boost::get<int64_t>( sql.column_value( 0 ) );
-            std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) );
+            int64_t fileid = sql.get_column_value<int64_t>( 0 );
+            std::wstring name = sql.get_column_value<std::wstring>( 1 );
             try {
-                boost::posix_time::ptime ctime = to_posix_time::ptime( sql.column_value( 2 ) );
-                boost::posix_time::ptime mtime = to_posix_time::ptime( sql.column_value( 3 ) );
+                boost::posix_time::ptime ctime = to_posix_time::ptime( sql.get_column_value<std::wstring>( 2 ) );
+                boost::posix_time::ptime mtime = to_posix_time::ptime( sql.get_column_value<std::wstring>( 3 ) );
                 (void)ctime;
                 (void)mtime;
             } catch ( std::out_of_range& ex ) {
@@ -377,11 +377,11 @@ fs::select_files( sqlite& db, int64_t parent_id, files& files )
 
         while ( sql.step() == sqlite_row ) {
 
-            int64_t rowid = boost::get<int64_t>( sql.column_value( 0 ) );
-            std::wstring name = boost::get<std::wstring>( sql.column_value( 1 ) );
+            int64_t rowid = sql.get_column_value<int64_t>( 0 );
+            std::wstring name = sql.get_column_value<std::wstring>( 1 );
             try {
-                boost::posix_time::ptime ctime = to_posix_time::ptime( sql.column_value( 2 ) );
-                boost::posix_time::ptime mtime = to_posix_time::ptime( sql.column_value( 3 ) );
+                boost::posix_time::ptime ctime = to_posix_time::ptime( sql.get_column_value<std::wstring>( 2 ) );
+                boost::posix_time::ptime mtime = to_posix_time::ptime( sql.get_column_value<std::wstring>( 3 ) );
                 (void)ctime;
                 (void)mtime;
             } catch ( std::out_of_range& ex ) {
@@ -424,7 +424,7 @@ internal::dml::select_directory( adfs::sqlite& db, dir_type type, int64_t parent
     sql.bind( 2 ) = adportable::utf::to_utf8( name ); // name
     sql.bind( 3 ) = parent_id;
     if ( sql.step() == adfs::sqlite_row )
-        return boost::get< int64_t >( sql.column_value( 0 ) );
+        return sql.get_column_value< int64_t >( 0 );
     return 0;
 }
 

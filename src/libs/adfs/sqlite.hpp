@@ -79,7 +79,7 @@ namespace adfs {
     class null { };
     class error { };
 
-    typedef boost::variant< int64_t, double, std::wstring, blob, null > column_value_type;
+    // typedef boost::variant< long, double, std::wstring, blob, null > column_value_type;
 
     class stmt {
     public:
@@ -115,7 +115,7 @@ namespace adfs {
         int column_count();
         int column_type( int );
 
-        column_value_type column_value( int );
+        // column_value_type column_value( int );
         template<typename T> T get_column_value( int );
 
     private:

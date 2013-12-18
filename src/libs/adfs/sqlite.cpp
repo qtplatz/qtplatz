@@ -30,6 +30,7 @@
 #include <adportable/debug.hpp>
 #include <iostream>
 
+#include <compiler/disable_unused_variable.h>
 #include <boost/noncopyable.hpp>
 #include <boost/filesystem.hpp>
 
@@ -272,7 +273,9 @@ namespace adfs {
     {
         return sqlite3_bind_int( stmt_, nnn_, v ) == SQLITE_OK;
     }
-    
+
+#if ! (defined __x86_64__ && defined __linux__ )    
+    // int64_t and long is identical on gcc x86_64
     template<> bool
     stmt::bind_item::operator = ( const int64_t& v )
     {
@@ -284,6 +287,7 @@ namespace adfs {
     {
         return sqlite3_bind_int64( stmt_, nnn_, v ) == SQLITE_OK;
     }
+#endif
 
     template<> bool
     stmt::bind_item::operator = ( const double& v )
@@ -377,23 +381,23 @@ stmt::column_type( int nCol )
     return sqlite3_column_type( stmt_, nCol );
 }
 
-column_value_type
-stmt::column_value( int nCol )
-{
-    switch( sqlite3_column_type( stmt_, nCol ) ) {
-    case SQLITE_INTEGER: return column_value_type( sqlite3_column_int64( stmt_, nCol ) );
-    case SQLITE_FLOAT:   return column_value_type( sqlite3_column_double( stmt_, nCol ) );
-    case SQLITE_TEXT:    
-        do {
-            const unsigned char * text = sqlite3_column_text( stmt_, nCol );
-			return column_value_type( adportable::utf::to_wstring( text ) );
-        } while(0);
-    case SQLITE_BLOB:    return column_value_type( blob() );
-    case SQLITE_NULL:    return column_value_type( null() );
-    default: break;
-    };
-    return column_value_type( null() );
-}
+// column_value_type
+// stmt::column_value( int nCol )
+// {
+//     switch( sqlite3_column_type( stmt_, nCol ) ) {
+//     case SQLITE_INTEGER: return column_value_type( sqlite3_column_int64( stmt_, nCol ) );
+//     case SQLITE_FLOAT:   return column_value_type( sqlite3_column_double( stmt_, nCol ) );
+//     case SQLITE_TEXT:    
+//         do {
+//             const unsigned char * text = sqlite3_column_text( stmt_, nCol );
+// 			return column_value_type( adportable::utf::to_wstring( text ) );
+//         } while(0);
+//     case SQLITE_BLOB:    return column_value_type( blob() );
+//     case SQLITE_NULL:    return column_value_type( null() );
+//     default: break;
+//     };
+//     return column_value_type( null() );
+// }
 
 ///////////////////
 
