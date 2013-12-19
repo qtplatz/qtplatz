@@ -467,6 +467,9 @@ MSCalibSpectraWnd::replotLengthTime()
 
     adcontrols::ChemicalFormula parser;
 
+	if ( ! margedCalibResult_ )
+		return;
+
     const adcontrols::MSAssignedMasses& masses = margedCalibResult_->assignedMasses();
     adcontrols::segment_wrapper<> segments( *margedSpectrum_ );
 
