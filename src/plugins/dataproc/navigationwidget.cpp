@@ -30,6 +30,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adutils/processeddata.hpp>
+#include <adutils/fsio2.hpp>
 #include <adportable/debug.hpp>
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
@@ -515,16 +516,25 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                             QString dir = qtwrapper::qstring::copy( path.wstring() );
                             QString name = qtwrapper::qstring::copy( folium.name() );
                             QString filename = 
-                                QFileDialog::getSaveFileName( this, tr("Save spectrum"), dir, tr("Documents (*.txt)") );
+                                QFileDialog::getSaveFileName( this, tr("Save spectrum")
+                                                              , dir
+                                                              , tr("qtplatz (*.adfs);;Text files (*.txt)") );
+
                             boost::filesystem::path dstfile( qtwrapper::wstring::copy( filename ) );
-                            boost::filesystem::ofstream of( dstfile );
-                            
-                            if ( selectedItem == asProfile ) {
-                                auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
-                                export_spectrum::write( of, *profile );
-                            } else if ( selectedItem == asCentroid ) {
-                                auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
-                                export_spectrum::write( of, *centroid );
+
+                            if ( dstfile.extension() == ".adfs" ) {
+                                
+                                adutils::adfs2::appendOnFile( dstfile.wstring(), folium, processor->file() );
+                                
+                            } else {
+                                boost::filesystem::ofstream of( dstfile );
+                                if ( selectedItem == asProfile ) {
+                                    auto profile = portfolio::get< adcontrols::MassSpectrumPtr >( folium );
+                                    export_spectrum::write( of, *profile );
+                                } else if ( selectedItem == asCentroid ) {
+                                    auto centroid = portfolio::get< adcontrols::MassSpectrumPtr >( *it );
+                                    export_spectrum::write( of, *centroid );
+                                }
                             }
                         }
                     }

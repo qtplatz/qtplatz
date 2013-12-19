@@ -43,7 +43,7 @@ namespace adinterface {
 }
 
 namespace adfs { class filesystem; class folder; class file; }
-namespace portfolio { class Portfolio; }
+namespace portfolio { class Portfolio; class Folium; }
 
 namespace adutils {
 	
@@ -52,6 +52,7 @@ namespace adutils {
         fsio2();
 
         static bool saveContents( adfs::filesystem&, const std::wstring&, const portfolio::Portfolio&, const adcontrols::datafile& );
+        static bool appendOnFile( const std::wstring& file, const portfolio::Folium&, const adcontrols::datafile& );
     };
 
 }
