@@ -524,7 +524,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
                             if ( dstfile.extension() == ".adfs" ) {
                                 
-                                adutils::adfs2::appendOnFile( dstfile.wstring(), folium, processor->file() );
+                                adutils::fsio2::appendOnFile( dstfile.wstring(), folium, processor->file() );
                                 
                             } else {
                                 boost::filesystem::ofstream of( dstfile );

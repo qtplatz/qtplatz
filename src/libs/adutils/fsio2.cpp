@@ -94,7 +94,7 @@ fsio2::saveContents( adfs::filesystem& dbf, const std::wstring& path, const port
 
     dbf.addFolder( path );
 
-    adportable::path name( path );
+    adportable::path name( path ); // this should be "/Processed"
 
     for ( const portfolio::Folder& folder: portfolio.folders() )
         detail::folder::save( dbf, name, source, folder );
@@ -243,40 +243,28 @@ detail::import::attributes( adfs::attributes& d, const portfolio::attributes_typ
 bool
 fsio2::appendOnFile( const std::wstring& filename, const portfolio::Folium& folium, const adcontrols::datafile& source )
 {
-    boost::filesystem::path path( filename );
-
     adfs::filesystem fs;
     
-    if ( !boost::filesystem::exists( path ) ) {
-        if ( !fs.create( path.wstring().c_str() ) )
+    if ( !boost::filesystem::exists( filename ) ) {
+        if ( !fs.create( filename.c_str() ) )
             return false;
     } else {
-        if ( ! fs.mount( path.wstring().c_str() ) )
+        if ( ! fs.mount( filename.c_str() ) )
             return false;
     }
 
-    ADDEBUG() << folium.name();
-    
-/*
-    adfs::stmt sql( dbf.db() );
-    sql.begin();
+	portfolio::Folder folder = folium.getParentFolder();
 
-    dbf.addFolder( path );
+    // "/Processed/Spectra" | "/Processed/MSCalibration"    
+    boost::filesystem::path pathname = adportable::path::posix( boost::filesystem::path( "/Processed" ) / folder.name() );
 
-    adportable::path name( path );
+    adfs::folder dbf = fs.addFolder( pathname.wstring() );
+    detail::import::attributes( dbf, folder.attributes() );
 
-    for ( const portfolio::Folder& folder: portfolio.folders() )
-        detail::folder::save( dbf, name, source, folder );
+    std::wstring name = boost::filesystem::path( source.filename() ).leaf().wstring() + L":" + folium.name();
+    portfolio::Folium xfolium( folium );
+    xfolium.name( name );
 
-    sql.commit();
-*/
-    
-
-    // if ( adfs::folder folder = fs.addFolder( L"/Processed/Spectra" ) ) {
-        
-
-    // }
-
-    return true;
+    return detail::folium::save( dbf, pathname, source, xfolium );
 }
 

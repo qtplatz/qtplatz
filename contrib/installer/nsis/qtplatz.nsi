@@ -130,10 +130,9 @@ Section "!Application" App
 ;-------------------------------- define path -------------------------
 	!define InQtPlatz   "..\..\..\..\qtplatz"
 	!define InQtPath    "$%QTDIR%"
-#	!define InVC110Path "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\redist\x86\Microsoft.VC110.CRT"
 	!define InVC110Path "$%VCINSTALLDIR%\redist\x86\Microsoft.VC110.CRT"
-;-------------------------------
 
+;-------------------------------
 	!include "filelist\filelist-tao.nsh"
 	!include "filelist\filelist-qt.nsh"
 	!include "filelist\filelist-ecrion.nsh"

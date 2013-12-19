@@ -133,7 +133,7 @@ Folium::removeAttachment( const std::wstring& name, bool removeContents )
 
 
 Folder
-Folium::getParentFolder()
+Folium::getParentFolder() const
 {
     pugi::xml_node parent = node_.parent();
     while ( parent && parent.attribute( "folderType" ).value() != std::string( "directory" ) )
