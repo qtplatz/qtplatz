@@ -64,7 +64,7 @@ rem set QTDIR=C:\x64\qt5\qtbase
 set QTDIR=C:\x64\Qt5.2.0\5.2.0\msvc2012_64
 set QWT=C:\x64\vc11\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
-set BOOST_INCLUDE=%BOOST_ROOT%\
+set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
 set BOOST_LIBRARY=%BOOST_ROOT%\x86_64
 goto all_set
 :x64_vc12
