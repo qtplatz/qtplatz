@@ -238,10 +238,11 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 				}
             }
 		}
-        portfolio::Folium folium = folder.findFoliumByName( L"TIC.1" );
-        if ( folium.empty() )
-            processor->fetch( folium );
-        handleSelectionChanged( processor, folium );
+        if ( portfolio::Folium folium = folder.findFoliumByName( L"TIC.1" ) ) {
+			if ( folium.empty() )
+				processor->fetch( folium );
+			handleSelectionChanged( processor, folium );
+		}
     }
 
     // show first spectrum on tree by default
