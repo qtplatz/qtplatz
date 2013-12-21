@@ -31,10 +31,10 @@ all:
 world: qtplatz
 
 clean:
-	devenv $(QTPLATZ_PATH)\qtplatz.sln /Clean "$(TARGET)"
+	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Clean /p:Configuration=Release
 
 qtplatz:
-	devenv $(QTPLATZ_PATH)\qtplatz.sln /Build "$(TARGET)"
+	msbuild $(QTPLATZ_PATH)\qtplatz.sln /m:4 /t:Rebuild /p:Configuration=Release
 
 nsis: version.exe
 	git describe | version "!define VERSION	" > version.nsh
