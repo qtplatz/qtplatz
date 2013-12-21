@@ -13,9 +13,10 @@
    ${InstallFile} "${InBinPath}"    "Aggregation.dll"        "bin" 1 0
    ${InstallFile} "${InBinPath}"    "ExtensionSystem.dll"    "bin" 1 0
    ${InstallFile} "${InBinPath}"    "Utils.dll"              "bin" 1 0
+   ${InstallFile} "${InBinPath}"    "adchem.dll"             "bin" 1 0
    ${InstallFile} "${InBinPath}"    "adcontrols.dll"         "bin" 1 0
-   ${InstallFile} "${InBinPath}"    "adorbmgr.dll"           "bin" 1 0
    ${InstallFile} "${InBinPath}"    "adextension.dll"        "bin" 1 0
+   ${InstallFile} "${InBinPath}"    "adorbmgr.dll"           "bin" 1 0
    ${InstallFile} "${InBinPath}"    "adplugin.dll"           "bin" 1 0
    ${InstallFile} "${InBinPath}"    "adsequence.dll"         "bin" 1 0
    ${InstallFile} "${InBinPath}"    "chromatogr.dll"         "bin" 1 0
