@@ -361,7 +361,11 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
 void
 NavigationWidget::handleRemoveSession( Dataprocessor * processor )
 {
-    
+    QStandardItemModel& model = *pModel_;
+
+    if ( QStandardItem * item = StandardItemHelper::findRow( model, processor ) ) {
+		model.removeRow( item->row() );
+    }
 }
 
 void
