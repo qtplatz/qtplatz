@@ -37,6 +37,8 @@ namespace adcontrols {
 	class ProcessedDataset;
 }
 
+namespace portfolio { class Portfolio; }
+
 namespace fticr {
 
 	class datafile : public adcontrols::datafile
@@ -66,6 +68,7 @@ namespace fticr {
 		bool _open( const std::wstring&, bool );
 		static bool is_valid_datafile( const std::wstring& );
 	private:
+		bool _1open( const std::wstring&, portfolio::Portfolio& );
 		std::wstring filename_; // root directory name
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
 		struct acqu {

@@ -147,7 +147,34 @@ datafile::_open( const std::wstring& filename, bool )
     if ( !dw )
 		return false;
     filename_ = dw.root_dir.wstring();
-	boost::filesystem::path acqu( dw.root_dir / L"acqu" );
+
+    portfolio::Portfolio portfolio;
+	portfolio.create_with_fullpath( filename_ );
+    
+    bool res = false;
+    if ( boost::filesystem::is_regular_file( dw.root_dir / L"acqu" ) ) {
+        res = _1open( filename_, portfolio );
+    } else {
+        boost::filesystem::directory_iterator end;
+        for ( boost::filesystem::directory_iterator it( filename_ ); it != end; ++it ) {
+            if ( boost::filesystem::is_directory( *it / L"pdata" ) )
+                res = _1open( it->path().wstring(), portfolio );
+        }
+    }
+    if ( res ) {
+        processedDataset_.reset( new adcontrols::ProcessedDataset );
+        processedDataset_->xml( portfolio.xml() );
+    }
+    return res;
+}
+
+bool
+datafile::_1open( const std::wstring& filename, portfolio::Portfolio& portfolio )
+{
+    boost::filesystem::path _1( filename );  // "a_file/1/acqu"
+
+    boost::filesystem::path acqu( _1 / L"acqu" );
+
 	if ( boost::filesystem::is_regular_file( acqu ) ) {
 		jcampdxparser::vector_type map;
 		if ( jcampdxparser::parse_file( map, acqu.wstring() ) ) {
@@ -160,14 +187,12 @@ datafile::_open( const std::wstring& filename, bool )
 		}
 	}
 
-	portfolio::Portfolio portfolio;
-	portfolio.create_with_fullpath( filename_ );
 	portfolio::Folder spectra = portfolio.addFolder( L"Spectra" );
 
-	boost::filesystem::directory_iterator pos( dw.pdata() );
+	//boost::filesystem::directory_iterator pos( dw.pdata() );
 	boost::filesystem::directory_iterator last;
 
-	for ( ; pos != last; ++pos ) {
+    for ( boost::filesystem::directory_iterator pos( _1 / L"pdata" ); pos != last; ++pos ) {
 		boost::filesystem::path p( *pos );
 		if ( boost::filesystem::is_directory( p ) ) {
 			boost::filesystem::path rdfile( p / L"1r" );
@@ -185,8 +210,6 @@ datafile::_open( const std::wstring& filename, bool )
 			}
 		}
 	}
-	processedDataset_.reset( new adcontrols::ProcessedDataset );
-	processedDataset_->xml( portfolio.xml() );
     return true;
 }
 
@@ -214,13 +237,37 @@ datafile::is_valid_datafile( const std::wstring& filename )
 ////////////////
 dirwalk::dirwalk( const std::wstring& file ) : valid( false )
 {
+    // "file/1/pdata"
 	boost::filesystem::path path( file );
-	boost::filesystem::path dir( path.branch_path() );
-    
-	if ( boost::filesystem::is_directory( dir ) ) {
-		if ( boost::filesystem::is_directory( dir / L"pdata" ) ) {
-			root_dir = dir;
-			valid = true;
-		}
-	}
+
+    if ( boost::filesystem::is_directory( path ) ) {
+
+        if ( boost::filesystem::is_directory( path / L"pdata" ) ) {
+            // if "1" selected
+            root_dir = path;
+            valid = true;
+
+        } else {
+            // if "file" selected
+            boost::filesystem::directory_iterator end;
+            for ( boost::filesystem::directory_iterator it( path ); it != end; ++it ) {
+                if ( boost::filesystem::is_directory( *it / L"pdata" ) ) {
+                    root_dir = path;
+                    valid = true;
+                    break;
+                }
+            }
+        }
+
+    } else {
+        // if "acqu" (any regular file under "1" directory has been selected
+        boost::filesystem::path dir( path.branch_path() );
+        
+        if ( boost::filesystem::is_directory( dir ) ) {
+            if ( boost::filesystem::is_directory( dir / L"pdata" ) ) {
+                root_dir = dir;
+                valid = true;
+            }
+        }
+    }
 }
