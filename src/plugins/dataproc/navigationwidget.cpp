@@ -204,6 +204,7 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     connect( pTreeView_, SIGNAL(customContextMenuRequested( QPoint )), this, SLOT( handleContextMenuRequested( QPoint ) ) );
 
     if ( SessionManager * mgr = SessionManager::instance() ) {
+        connect( mgr, SIGNAL( onSessionRemoved( Dataprocessor* ) ), this, SLOT( handleRemoveSession( Dataprocessor * ) ) );
         connect( mgr, SIGNAL( signalAddSession( Dataprocessor* ) ), this, SLOT( handleAddSession( Dataprocessor * ) ) );
         connect( mgr, SIGNAL( signalSessionUpdated( Dataprocessor*, portfolio::Folium& ) )
                  , this, SLOT( handleSessionUpdated( Dataprocessor *, portfolio::Folium& ) ) );
@@ -355,6 +356,12 @@ NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Fo
         processor->setCurrentSelection( folium );
     }
 
+}
+
+void
+NavigationWidget::handleRemoveSession( Dataprocessor * processor )
+{
+    
 }
 
 void

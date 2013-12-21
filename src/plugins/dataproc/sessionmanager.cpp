@@ -55,6 +55,20 @@ SessionManager * SessionManager::instance()
 }
 
 void
+SessionManager::removeEditor( Core::IEditor * editor )
+{
+    auto it = std::find_if( sessions_.begin(), sessions_.end(), [=]( Session& s ){
+            return s.editor() == editor;
+        });
+    if ( it != sessions_.end() ) {
+        if ( activeDataprocessor_ == it->processor() )
+            activeDataprocessor_ = 0;
+        emit onSessionRemoved( it->processor() );
+        sessions_.erase( it );
+    }
+}
+
+void
 SessionManager::addDataprocessor( std::shared_ptr<Dataprocessor>& proc, Core::IEditor * editor )
 {
     loadInprogress_ = true;

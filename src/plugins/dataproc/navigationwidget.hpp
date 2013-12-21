@@ -56,6 +56,7 @@ namespace dataproc {
         void handleAddSession( Dataprocessor * );
 		void handleSessionUpdated( Dataprocessor *, portfolio::Folium& );
 		void handleFolderChanged( Dataprocessor *, const QString& folder );
+        void handleRemoveSession( Dataprocessor * );
 
     private slots:
         void initView();

@@ -44,11 +44,13 @@ DataprocEditor::DataprocEditor( Core::IEditorFactory * factory ) : Core::IEditor
                                                                    , file_(0)
 {
     Core::UniqueIDManager * uidm = Core::UniqueIDManager::instance();
-    context_ << uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR );
+    context_ << uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR )
+             << uidm->uniqueIdentifier( Core::Constants::C_EDITORMANAGER );
 }
 
 DataprocEditor::~DataprocEditor()
 {
+    SessionManager::instance()->removeEditor( this );
 	delete widget_;
 }
 
