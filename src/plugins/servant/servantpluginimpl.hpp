@@ -46,6 +46,7 @@ namespace servant {
     namespace internal {
         
         class ServantPluginImpl;
+
         ///////////////////////////////////////////////////////////
         class LogHandler_i : public POA_LogHandler {
             ServantPluginImpl& impl_;

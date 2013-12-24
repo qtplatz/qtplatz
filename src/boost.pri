@@ -25,4 +25,4 @@ win32 {
 }
 
 INCLUDEPATH *= $${BOOST_INCLUDE}
-message( "using boost " $${INCLUDEPATH} )
+#message( "using boost " $${INCLUDEPATH} )

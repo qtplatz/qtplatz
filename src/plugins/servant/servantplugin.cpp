@@ -44,8 +44,9 @@
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adorbmgr/orbmgr.hpp>
-#include <adinterface/instrumentC.h>
-#include <adinterface/brokerclientC.h>
+
+//#include <adinterface/instrumentC.h>
+//#include <adinterface/brokerclientC.h>
 
 #include <adplugin/loader.hpp>
 #include <adplugin/plugin.hpp>

@@ -26,7 +26,7 @@
 
 #include "logger.hpp"
 #include "servantplugin.hpp"
-#include <adinterface/brokerC.h>
+//#include <adinterface/brokerC.h>
 
 #include <adplugin/manager.hpp>
 #include <adorbmgr/orbmgr.hpp>
@@ -49,7 +49,7 @@ namespace servant {   namespace internal {
             ~LogHost();
             static LogHost * instance_;
         public:
-            Broker::Logger_var logger_;
+            // Broker::Logger_var logger_;
             static LogHost * instance();
             static void initialize();
             static void shutdown();
@@ -72,7 +72,7 @@ internal::LogHost::~LogHost()
 internal::LogHost *
 internal::LogHost::instance()
 {
-    if ( ! LogHost::instance_ )
+	if ( ! LogHost::instance_ )
         initialize();
     return LogHost::instance_;
 }
@@ -80,6 +80,7 @@ internal::LogHost::instance()
 void
 internal::LogHost::initialize()
 {
+	/*
     ServantPlugin * plugin = ServantPlugin::instance();
     if ( plugin ) {
 		Broker::Manager_var manager = adorbmgr::orbmgr::getBrokerManager();
@@ -88,6 +89,7 @@ internal::LogHost::initialize()
             LogHost::instance_->logger_ = manager->getLogger();
         }
     }
+	*/
 }
 
 void
@@ -105,6 +107,7 @@ Logger::Logger( const std::wstring& srcid ) : srcid_(srcid)
 
 Logger::~Logger(void)
 {
+	/*
     internal::LogHost * host = internal::LogHost::instance();
     if ( host ) {
         Broker::LogMessage log;
@@ -120,6 +123,7 @@ Logger::~Logger(void)
         OutputWindow * outputWindow = ExtensionSystem::PluginManager::instance()->getObject< servant::OutputWindow >();
         outputWindow->appendLog( stream_.str() );
     }
+	*/
 }
 
 void
