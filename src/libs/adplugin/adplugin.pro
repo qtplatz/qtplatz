@@ -14,9 +14,7 @@ include(../../ace_tao.pri)
 include(../../boost.pri)
 INCLUDEPATH += $$OUT_PWD/..
 
-LIBS += -l$$qtLibraryTarget(acewrapper) \
-        -l$$qtLibraryTarget(adinterface) \
-        -l$$qtLibraryTarget(adportable) \
+LIBS += -l$$qtLibraryTarget(adportable) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(xmlparser)
 
