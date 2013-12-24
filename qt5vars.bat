@@ -42,7 +42,7 @@ set QTDIR=C:\Qt\Qt5.1.1\5.1.1\msvc2012
 set QWT=C:\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
-set BOOST_LIBRARY=%BOOST_ROOT%
+set BOOST_LIBRARY=%BOOST_ROOT%\lib
 goto all_set
 
 :x86_vc12
@@ -53,7 +53,7 @@ set QTDIR=C:\x86\qt5\qtbase
 set QWT=C:\x86\vc12\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
-set BOOST_LIBRARY=%BOOST_ROOT%
+set BOOST_LIBRARY=%BOOST_ROOT%\lib
 goto all_set
 
 :x64_vc11
@@ -65,7 +65,7 @@ set QTDIR=C:\x64\Qt5.2.0\5.2.0\msvc2012_64
 set QWT=C:\x64\vc11\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
-set BOOST_LIBRARY=%BOOST_ROOT%\x86_64
+set BOOST_LIBRARY=%BOOST_ROOT%\x86_64\lib
 goto all_set
 :x64_vc12
 echo ======= setup for x64 64bit memory using VS2013 =================
@@ -75,7 +75,7 @@ set QTDIR=C:\x64\qt5\qtbase
 set QWT=C:\x64\vc12\Qwt-6.1.1-svn
 set BOOST_ROOT=C:\Boost
 set BOOST_INCLUDE=%BOOST_ROOT%\include\boost-1_55
-set BOOST_LIBRARY=%BOOST_ROOT%\x86_64
+set BOOST_LIBRARY=%BOOST_ROOT%\x86_64\lib
 goto all_set
 
 :all_set
