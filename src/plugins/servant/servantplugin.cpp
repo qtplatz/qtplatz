@@ -25,7 +25,7 @@
 
 #include "servantplugin.hpp"
 #include "servantmode.hpp"
-#include "logger.hpp"
+//#include "logger.hpp"
 #include "outputwindow.hpp"
 #include "servantpluginimpl.hpp"
 
@@ -148,7 +148,6 @@ bool
 ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 {
     Q_UNUSED(arguments);
-    int nErrors = 0;
 
     do { adportable::debug(__FILE__, __LINE__) << "<----- ServantPlugin::initialize() ..."; } while(0);
 
@@ -265,18 +264,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 			pImpl_->init_debug_adcontroller( session );
 	}
 
-    // 
-    ControlServer::Session_var session;
-    std::vector< Instrument::Session_var > i8t_sessions;
-
-    do { adportable::debug(__FILE__, __LINE__) << "<-- ServantPlugin::initialize() ### 3 ##"; } while(0);
-
-    if ( ! CORBA::is_nil( session ) )
-        session->configComplete();
-
-    Logger log;
-    log( ( nErrors ? L"Servant iitialized with errors" : L"Servernt initialized successfully") );
-    
     do { adportable::debug() << "----> ServantPlugin::initialize() completed."; } while(0);
     return true;
 }
@@ -308,7 +295,6 @@ ServantPlugin::final_close()
 	
 
     adportable::debug() << "====== ServantPlugin::final_close Loggor::shutdown... =======";    
-    Logger::shutdown();
     try {
         adportable::debug() << "====== ServantPlugin::final_close orb shutdown... =======";    
 		adorbmgr::orbmgr::instance()->shutdown();

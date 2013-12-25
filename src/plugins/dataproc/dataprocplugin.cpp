@@ -49,7 +49,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adextension/ieditorfactory.hpp>
 #include <adextension/isnapshothandler.hpp>
-#include <adorbmgr/orbmgr.hpp>
+//#include <adorbmgr/orbmgr.hpp>
 
 #include <adplugin/plugin.hpp>
 #include <adplugin/loader.hpp>

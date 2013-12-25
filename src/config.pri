@@ -20,7 +20,7 @@ CONFIG(release, debug|release) {
 }
 
 BOOST_VERSION=boost-1_55
-ACE_VERSION=6.2.1
+ACE_VERSION=6.2.3
 QWT_VERSION=6.1.1-svn
 
 # does not override if environment variable already exist
@@ -29,6 +29,7 @@ QWT_VERSION=6.1.1-svn
 ACE_ROOT = $$(ACE_ROOT)
 TAO_ROOT = $$(TAO_ROOT)
 isEmpty( ACE_ROOT ) {
+  message("empty ACE_ROOT")
   win32: ACE_ROOT=C:/ACE_wrapper
   else: ACE_ROOT=/usr/local/ace+tao/$${ACE_VERSION}
 }

@@ -64,7 +64,7 @@
 #include <adcontrols/waveform.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/targetingmethod.hpp>
-#include <adorbmgr/orbmgr.hpp>
+//#include <adorbmgr/orbmgr.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <adportable/profile.hpp>
 #include <adportable/debug.hpp>

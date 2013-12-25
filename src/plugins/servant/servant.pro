@@ -10,13 +10,14 @@ include(../../qtplatzplugin.pri)
 include(../../ace_tao.pri)
 include(../../boost.pri)
 
-LIBS += -l$$qtLibraryTarget(adcontrols) \
-    -l$$qtLibraryTarget(adinterface) -l$$qtLibraryTarget(acewrapper) \
-    -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adplugin) \
-    -l$$qtLibraryTarget(qtwrapper) -l$$qtLibraryTarget(adbroker) \
+LIBS += -l$$qtLibraryTarget(adorbmgr) \
+    -l$$qtLibraryTarget(adcontrols) \
+    -l$$qtLibraryTarget(acewrapper) \
+    -l$$qtLibraryTarget(adportable) \
+    -l$$qtLibraryTarget(adplugin) \
+    -l$$qtLibraryTarget(qtwrapper) \
     -l$$qtLibraryTarget(adextension) \
     -l$$qtLibraryTarget(xmlparser) \
-    -l$$qtLibraryTarget(adorbmgr) \
     -l$$qtLibraryTarget(Core)
 
 !win32 {
@@ -29,8 +30,7 @@ DEFINES += SERVANT_LIBRARY
 #  orbservantmanager.cpp --> to be deleted
 #  orbservantmanager.hpp --> to be deleted
 
-SOURCES += logger.cpp \
-        outputwindow.cpp \
+SOURCES += outputwindow.cpp \
         servant.cpp \
         servantmode.cpp \
         servantplugin.cpp \

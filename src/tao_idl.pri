@@ -9,8 +9,11 @@ for(idl, IDLFILES): PRE_TARGETDEPS += $$replace( idl, ".idl", "C.cpp" )
 #that contains <quot></quot> by vc.  nmake does not has such problem though
 #Windows always require $ACE_ROOT/lib in path anyway for tao_idl get to work
 
-win32: TAO_IDL = tao_idl
+
+win32: TAO_IDL = $${ACE_ROOT}\bin\tao_idl
 else: TAO_IDL = $${ACE_ROOT}/bin/tao_idl
+
+message( "TAO_IDL" $${TAO_IDL} )
 
 IDL_FLAGS = -Wb,pre_include=ace/pre.h -Wb,post_include=ace/post.h $${IDL_INCLUDES}
 

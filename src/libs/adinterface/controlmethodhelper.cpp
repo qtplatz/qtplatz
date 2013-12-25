@@ -68,8 +68,8 @@ unsigned int
 ControlMethodHelper::findInstrument( const std::wstring& modelname, unsigned long unitnumber )
 {
     for ( size_t i = 0; i < method_.iinfo.length(); ++i ) {
-        if ( modelname == method_.iinfo[i].modelname.in() && unitnumber == method_.iinfo[i].unit_number )
-            return i;
+        if ( modelname == method_.iinfo[uint32_t(i)].modelname.in() && uint32_t(unitnumber) == uint32_t(method_.iinfo[uint32_t(i)].unit_number) )
+            return unsigned int(i);
     }
     return (-1); // error
 }
@@ -122,7 +122,7 @@ ControlMethodHelper::findFirst( ControlMethod::Method& method, const std::wstrin
 {
     size_t nlines = method.lines.length();
     for ( size_t i = 0; i < nlines; ++i ) {
-        ControlMethod::MethodLine& line = method.lines[ i ];
+        ControlMethod::MethodLine& line = method.lines[ int(i) ];
         if ( modelname == line.modelname.in() && unitnumber == line.unitnumber )
             return &line;
     }

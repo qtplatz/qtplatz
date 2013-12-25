@@ -15,6 +15,7 @@
 !define BrandedName "MS-Cheminformatics ${AppName}"
 ;;
 !include "version.nsh"
+!include "x64.nsh"
 ;;
 ; end configuration
 
@@ -57,7 +58,7 @@
 
   ;Name and file
   Name "${AppName}"
-  OutFile "qtplatz-${VERSION}-setup.exe"
+  OutFile "qtplatz_${ARCH}-${VERSION}-setup.exe"
 
   ;Default installation folder
   InstallDir "C:\${AppName}"
@@ -127,10 +128,14 @@ Section "!Application" App
 	${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\bin"
 	${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\lib\qtplatz\plugins\QtProject"
 
+	!ifndef ARCH
+	  !define ARCH	x86
+        !endif
+
 ;-------------------------------- define path -------------------------
 	!define InQtPlatz   "..\..\..\..\qtplatz"
 	!define InQtPath    "$%QTDIR%"
-	!define InVC110Path "$%VCINSTALLDIR%\redist\x86\Microsoft.VC110.CRT"
+	!define InVC110Path "$%VCINSTALLDIR%\redist\${ARCH}\Microsoft.VC110.CRT"
 
 ;-------------------------------
 	!include "filelist\filelist-tao.nsh"
@@ -141,7 +146,7 @@ Section "!Application" App
 ;;; -- optional --
 	!include "filelist\filelist-bruker.nsh"
 	!include "filelist\filelist-infitof.nsh"
-	!include "filelist\filelist-mc4.nsh"
+;;	!include "filelist\filelist-mc4.nsh"
 
 	; Store installation folder and shortcut folder
    	WriteRegStr HKLM "${RegInstDirKey}" "Installation Directory" $INSTDIR

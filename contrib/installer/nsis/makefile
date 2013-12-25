@@ -38,7 +38,7 @@ qtplatz:
 
 nsis: version.exe
 	git describe | version "!define VERSION	" > version.nsh
-	$(NSIS) qtplatz.nsi
+	$(NSIS) /DARCH=x64 qtplatz.nsi
 
 version.exe: version.c
 	cl version.c
