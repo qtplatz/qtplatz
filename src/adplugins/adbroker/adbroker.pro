@@ -18,12 +18,13 @@ include(../../ace_tao.pri)
 INCLUDEPATH *= $$OUT_PWD/../../libs
 
 LIBS += -l$$qtLibraryTarget(adinterface) \
-    -l$$qtLibraryTarget(adcontrols) \
-    -l$$qtLibraryTarget(adfs) \
-    -l$$qtLibraryTarget(adportable) \
-    -l$$qtLibraryTarget(acewrapper) \
-    -l$$qtLibraryTarget(portfolio) \
-    -l$$qtLibraryTarget(adplugin)
+        -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adfs) \
+        -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(acewrapper) \
+        -l$$qtLibraryTarget(portfolio) \
+        -l$$qtLibraryTarget(adplugin) \
+        -l$$qtLibraryTarget(adorbmgr)
 
 win32 {
   LIBS += -l$$qtLibraryTarget(TAO_Utils) \
@@ -56,7 +57,8 @@ SOURCES += adbroker.cpp \
     manager_i.cpp \
     session_i.cpp \
     task.cpp \
-    objectdiscovery.cpp
+    objectdiscovery.cpp \
+    orbbroker.cpp
 
 HEADERS += adbroker.hpp \
     adbroker_global.h \
@@ -70,7 +72,8 @@ HEADERS += adbroker.hpp \
     manager_i.hpp \
     session_i.hpp \
     task.hpp \
-    objectdiscovery.hpp
+    objectdiscovery.hpp \
+    orbbroker.hpp
 
 OTHER_FILES += \
     adbroker.pri \

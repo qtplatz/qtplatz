@@ -51,11 +51,11 @@ std::wstring
 adinterface::EventLog::LogMessageHelper::toString( const ::EventLog::LogMessage& msg )
 {
     const wchar_t * fmt = msg.format.in();
-    size_t narg = msg.args.length();
+    CORBA::ULong narg = msg.args.length();
 
     boost::wformat format( fmt );
 
-    for ( size_t i = 0; i < narg; ++i )
+    for ( CORBA::ULong i = 0; i < narg; ++i )
         format % static_cast<const wchar_t *>( msg.args[i].in() );
 
     std::wostringstream o;

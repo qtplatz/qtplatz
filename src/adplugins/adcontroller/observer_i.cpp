@@ -156,7 +156,7 @@ observer_i::isActive (void)
 observer_i::getSiblings (void)
 {
     SignalObserver::Observers_var vec( new SignalObserver::Observers );
-    vec->length( sibling_set_.size() );
+    vec->length( static_cast<CORBA::ULong>( sibling_set_.size() ) );
 
     std::lock_guard< std::mutex > lock( mutex_ );
 
@@ -210,9 +210,9 @@ observer_i::populate_siblings()
 	if ( sourceVec.ptr() == 0 )
 		return;
 
-	size_t nsize = sourceVec->length();
+	CORBA::ULong nsize = sourceVec->length();
 
-	for ( size_t i = 0; i < nsize; ++i )
+	for ( CORBA::ULong i = 0; i < nsize; ++i )
         addSibling( sourceVec[i] );
 }
 

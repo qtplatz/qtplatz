@@ -23,9 +23,17 @@
 **************************************************************************/
 
 #include "orbfactory.hpp"
+#include "orbservant.hpp"
 
 using namespace adplugin;
 
 orbFactory::orbFactory()
 {
+}
+
+void
+orbFactory::release( orbServant *& p )
+{
+    delete p;
+    p = 0;
 }

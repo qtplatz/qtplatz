@@ -136,7 +136,7 @@ spectrum_processor::tic( unsigned int nbrSamples, const int32_t * praw, double& 
     do {
         slope_counter counter(20.0);
 
-        for ( unsigned int x = (N/2); x < nbrSamples - (N/2); ++x ) {
+        for ( size_t x = (N/2); x < nbrSamples - (N/2); ++x ) {
             avgr( praw[x] );
             if ( counter( convolute<int32_t>( &praw[x] ) ) > N )
                 base( praw[ x - (N/2) ] );
@@ -162,7 +162,7 @@ spectrum_processor::tic( unsigned int nbrSamples, const double * praw, double& d
     int cnt = 1;
     do {
         slope_counter counter(20.0);
-        for ( unsigned int x = (N/2); x < nbrSamples - (N/2); ++x ) {
+        for ( size_t x = (N/2); x < nbrSamples - (N/2); ++x ) {
             avgr( praw[x] );
             if ( counter( convolute<double>( &praw[x] ) ) > N )
                 base( praw[ x - (N/2) ] );
@@ -184,12 +184,12 @@ spectrum_processor::differentiation( size_t nbrSamples, double * pY, const doubl
     using adportable::differential;
 
     const size_t Nhalf = N / 2;
-    differential<double> diff( N );
+    differential<double> diff( static_cast<long>(N) );
 
-    for ( unsigned int x = 0; x <= Nhalf; ++x )
+    for ( size_t x = 0; x <= Nhalf; ++x )
         pY[ x ] = pY[ nbrSamples - 1 - x ] = 0;
 
-    for ( unsigned int x = Nhalf; x < nbrSamples - Nhalf; ++x )
+    for ( size_t x = Nhalf; x < nbrSamples - Nhalf; ++x )
         pY[ x ] = diff( &intens[x] );
 }
 
@@ -345,7 +345,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
     size_t NH = N / 2;
 
     double slope = double( noise ) / double( w );
-    adportable::differential<double> diff( N, 1 );
+    adportable::differential<double> diff( static_cast<long>(N), 1 );
 
     peakfind::slope_state<peakfind::counter> state;
     state.width_ = w / 8;
@@ -353,7 +353,7 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double *pX, const doub
         state.width_ = 3;
 
 	averager base;
-    for ( unsigned int x = NH; x < nbrSamples - NH; ++x ) {
+    for ( size_t x = NH; x < nbrSamples - NH; ++x ) {
         double d1 = diff( &pY[x] );
         bool reduce = false;
         if ( d1 >= slope )

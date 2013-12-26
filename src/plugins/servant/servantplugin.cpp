@@ -25,11 +25,9 @@
 
 #include "servantplugin.hpp"
 #include "servantmode.hpp"
-//#include "logger.hpp"
 #include "outputwindow.hpp"
 #include "servantpluginimpl.hpp"
-
-#include <adorbmgr/orbmgr.hpp>
+#include <adbroker/orbbroker.hpp>
 
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
@@ -43,10 +41,6 @@
 
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
-#include <adorbmgr/orbmgr.hpp>
-
-//#include <adinterface/instrumentC.h>
-//#include <adinterface/brokerclientC.h>
 
 #include <adplugin/loader.hpp>
 #include <adplugin/plugin.hpp>
@@ -70,6 +64,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <boost/exception/all.hpp>
 #include <chrono>
 #include <thread>
 
@@ -78,61 +73,13 @@ using namespace servant::internal;
 
 ServantPlugin * ServantPlugin::instance_ = 0;
 
-namespace servant { namespace internal {
-
-        struct orbServantCreator {
-            std::ostringstream errmsg;
-            std::string ior;
-            CORBA::Object_var obj;
-
-            adplugin::orbServant * operator()( adplugin::plugin_ptr plugin, std::vector< adplugin::orbServant * >& vec ) {
-                if ( ! plugin )
-                    return 0;
-
-                adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance();
-                
-                adplugin::orbFactory * factory = plugin->query_interface< adplugin::orbFactory >();
-                if ( ! factory ) {
-                    errmsg << plugin->clsid() << " does not support adplugin::orbFactory.";
-                    return 0;
-                }
-                adplugin::orbServant * orbServant = factory->create_instance();
-                if ( ! orbServant ) {
-                    errmsg << plugin->clsid() << " does not create servant instance.";
-                    return 0;                    
-                }
-                    
-                orbServant->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
-                ior = orbServant->activate();
-                if ( ! ior.empty() )
-                    obj = pMgr->orb()->string_to_object( ior.c_str() );
-
-                vec.push_back( orbServant );
-                return orbServant;
-            }
-        };
-
-        template<class T> struct findObject {
-            static T* find( Broker::Manager_ptr bmgr, const char * name ) {
-                CORBA::Object_var obj = bmgr->find_object( name );
-                if ( CORBA::is_nil( obj.in() ) )
-                    return 0;
-                return T::_narrow( obj );
-            }
-        };
-
-    }
-}
-
 ServantPlugin::~ServantPlugin()
 {
     final_close();
-    delete pImpl_;
-    // ACE::fini();
     instance_ = 0;
 }
 
-ServantPlugin::ServantPlugin() : pImpl_( 0 )
+ServantPlugin::ServantPlugin() 
 {
     instance_ = this;
     // ACE::init();
@@ -153,7 +100,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
     OutputWindow * outputWindow = new OutputWindow;
     addAutoReleasedObject( outputWindow );
-    pImpl_ = new internal::ServantPluginImpl( outputWindow );
+    //pImpl_ = new internal::ServantPluginImpl( outputWindow );
 
     ///////////////////////////////////
     Core::ICore * core = Core::ICore::instance();
@@ -166,10 +113,6 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
         }
     } else
         return false;
-    
-    // ACE initialize
-    // acewrapper::instance_manager::initialize();
-    // <------
     
 	boost::filesystem::path plugindir;
     do {
@@ -189,81 +132,40 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 				adcontrols::massSpectrometerBroker::register_factory( factory, factory->name() );
 		});
 	}
-    // ------------ Broker::Manager initialize first --------------------
-    adorbmgr::orbmgr * pMgr = adorbmgr::orbmgr::instance();
-	if ( pMgr ) {
-		pMgr->init( 0, 0 );
-		pMgr->spawn();
-	}
-    //--------------------------------------------------------------------
-    //--------------------------------------------------------------------
-    Broker::Manager_var bmgr;
-	adplugin::plugin_ptr adbroker = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" );
-	if ( adbroker ) {
-		internal::orbServantCreator broker_creator;
-		adplugin::orbServant * adBroker = broker_creator( adbroker, orbServants_ );
-        if ( adBroker ) {
-            bmgr = Broker::Manager::_narrow( broker_creator.obj );
-            if ( CORBA::is_nil( bmgr ) ) {
-                *error_message = "Broker::Manager cannot be created";
+
+	if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
+
+        adplugin::orbServant * adBroker = 0;
+        if ( adbroker::orbBroker * orbBroker = adbroker_plugin->query_interface< adbroker::orbBroker >() ) {
+
+            orbBroker->orbmgr_init( 0, 0 );
+
+            adbroker::orbBroker& orbCreator = *orbBroker;
+
+            try { 
+
+                adBroker = orbBroker->create_instance();
+                orbServants_.push_back( adBroker );
+
+            } catch ( boost::exception& ex ) {
+                *error_message = QString::fromStdString( boost::diagnostic_information( ex ) );
                 return false;
             }
-        } else {
-            *error_message = broker_creator.errmsg.str().empty() ? 
-                "adplugin for Broker::Manager did not loaded." : broker_creator.errmsg.str().c_str();
-            return false;
-        }
-		adorbmgr::orbmgr::instance()->setBrokerManager( bmgr );
-        size_t nTrial = 3;
-        while ( nTrial-- ) {
-            try {
-                bmgr->register_ior( adBroker->object_name(), broker_creator.ior.c_str() );
-            } catch ( CORBA::Exception& ex ) {
-                if ( /* ex.get_id() == CORBA::TRANSIENT && */ nTrial )
-                    std::this_thread::sleep_for( std::chrono::milliseconds(10) );
-                else {
-                    *error_message = QString( "CORBA::Exception : " ) + ex._info().c_str();
-                    return false;
+
+            // ----------------------- initialize corba servants ------------------------------
+            std::vector< adplugin::plugin_ptr > factories;
+            adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
+            for ( const adplugin::plugin_ptr& plugin: factories ) {
+                
+                if ( plugin->iid() == adbroker_plugin->iid() )
+                    continue;
+                
+                if ( adplugin::orbServant * servant = orbCreator( plugin.get() ) ) {
+                    orbServants_.push_back( servant );
                 }
             }
         }
     }
-    pImpl_->init_debug_adbroker( bmgr );
-
-    // ----------------------- initialize corba servants ------------------------------
-    std::vector< adplugin::plugin_ptr > factories;
-    adplugin::loader::select_iids( ".*\\.adplugins\\.orbfactory\\..*", factories );
-    for ( const adplugin::plugin_ptr& ptr: factories ) {
-
-        if ( ptr->iid() == adbroker->iid() )
-            continue;
-
-        internal::orbServantCreator creator;
-        adplugin::orbServant * servant = creator( ptr, orbServants_ );
-        if ( servant ) {
-            BrokerClient::Accessor_var accessor = BrokerClient::Accessor::_narrow( creator.obj );
-            if ( !CORBA::is_nil( accessor ) ) {
-                accessor->setBrokerManager( bmgr.in() );
-				accessor->adpluginspec( ptr->clsid(), ptr->adpluginspec() );
-            }
-            try {
-                bmgr->register_ior( servant->object_name(), creator.ior.c_str() );
-                bmgr->register_object( servant->object_name(), creator.obj );
-            } catch ( CORBA::Exception& ex ) {
-                *error_message = ex._info().c_str();
-                return false;
-            }
-        }
-    }
-
-    using namespace acewrapper::constants;
-    ControlServer::Manager_var cmgr ( internal::findObject< ControlServer::Manager >::find( bmgr.in(), adcontroller::manager::_name() ) );
-	if ( ! CORBA::is_nil( cmgr ) ) {
-        ControlServer::Session_var session = cmgr->getSession( L"debug" );
-        if ( ! CORBA::is_nil( session ) )
-			pImpl_->init_debug_adcontroller( session );
-	}
-
     do { adportable::debug() << "----> ServantPlugin::initialize() completed."; } while(0);
     return true;
 }
@@ -280,35 +182,33 @@ ServantPlugin::extensionsInitialized()
 ExtensionSystem::IPlugin::ShutdownFlag
 ServantPlugin::aboutToShutdown()
 { 
-	CORBA::release( pImpl_->manager_ );
-	pImpl_->manager_ = 0;
 	return SynchronousShutdown;
 }
 
 void
 ServantPlugin::final_close()
 {
-	 adportable::debug() << "====== ServantPlugin::final_close servants shutdown... =======";
-	// destriction must be reverse order
+    adportable::debug() << "====== ServantPlugin::final_close servants shutdown... =======";
+    // destriction must be reverse order
     for ( orbservant_vector_type::reverse_iterator it = orbServants_.rbegin(); it != orbServants_.rend(); ++it )
         (*it)->deactivate();
-	
 
-    adportable::debug() << "====== ServantPlugin::final_close Loggor::shutdown... =======";    
-    try {
-        adportable::debug() << "====== ServantPlugin::final_close orb shutdown... =======";    
-		adorbmgr::orbmgr::instance()->shutdown();
-        adportable::debug() << "====== ServantPlugin::final_close orb fini... =======";    
-        adorbmgr::orbmgr::instance()->fini();
-    } catch ( CORBA::Exception& ex ) {
-		adportable::debug dbg( __FILE__, __LINE__ );
-		dbg << ex._info().c_str();
-        QMessageBox::critical( 0, dbg.where().c_str(), dbg.str().c_str() );
-	}
+	if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
+        if ( adbroker::orbBroker * orbBroker = adbroker_plugin->query_interface< adbroker::orbBroker >() ) {
 
-    adportable::debug() << "====== ServantPlugin::final_close waiting threads... =======";    
-	adorbmgr::orbmgr::instance()->wait();
-    adportable::debug() << "====== ServantPlugin::final_close complete =======";    
+            try {
+
+                orbBroker->orbmgr_shutdown();
+                orbBroker->orbmgr_fini();
+                orbBroker->orbmgr_wait();
+
+            } catch ( boost::exception& ex ) {
+                ADDEBUG() << boost::diagnostic_information( ex );
+            }
+            
+        }
+    }
+
 }
 
 Q_EXPORT_PLUGIN( ServantPlugin )

@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "adbroker.hpp"
+#include "orbbroker.hpp"
 #include <adplugin/visitor.hpp>
 #include <adportable/debug.hpp>
 #include <typeinfo>
@@ -31,7 +32,6 @@
 #include <acewrapper/orbservant.hpp>
 #include <acewrapper/constants.hpp>
 #include <adportable/debug.hpp>
-
 #include "manager_i.hpp"
 #include "brokermanager.hpp"
 #include <mutex>
@@ -94,7 +94,8 @@ adBroker::initial_reference( const char * )
 
 
 class adbroker_plugin : public adplugin::plugin
-                      , public adplugin::orbFactory {
+                      , public adplugin::orbFactory
+                      , public adbroker::orbBroker {
 
     static adbroker_plugin * instance_;
     adbroker_plugin() {}
@@ -142,6 +143,8 @@ void *
 adbroker_plugin::query_interface_workaround( const char * typenam )
 {
     if ( std::string( typenam ) == typeid( orbFactory ).name() )
+        return static_cast<orbFactory *>(this);
+    else if ( std::string( typenam ) == typeid( adbroker::orbBroker ).name() )
         return static_cast<orbFactory *>(this);
     return 0;
 }

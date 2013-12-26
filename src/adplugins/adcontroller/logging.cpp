@@ -61,7 +61,7 @@ Logging::commit_to_broker()
             blog.srcId = CORBA::wstring_dup( elog.srcId );
             blog.text = CORBA::wstring_dup( elog.format );
             blog.args.length( elog.args.length() );
-            for ( size_t i = 0; i < elog.args.length(); ++i )
+            for ( CORBA::ULong i = 0; i < elog.args.length(); ++i )
                 blog.args[i] = CORBA::wstring_dup( elog.args[i] );
             logger->log( blog );
         }

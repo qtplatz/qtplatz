@@ -76,7 +76,7 @@ namespace adinterface {
                     ::ControlMethod::MethodLine& t = ControlMethodHelper::add( dst, instId_, unitNumber_ );
                     line = &t;
                 }
-                line->xdata.length( device.size() );
+                line->xdata.length( CORBA::ULong( device.size() ) );
                 std::copy( device.begin(), device.end(), reinterpret_cast< char *>(line->xdata.get_buffer()) );
                 return true;
             }

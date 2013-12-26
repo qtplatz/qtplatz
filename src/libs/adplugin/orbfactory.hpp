@@ -35,6 +35,7 @@ namespace adplugin {
     public:
         orbFactory();
         virtual orbServant * create_instance() = 0;
-    };
+        virtual void release( orbServant *& p );
+	};
 
 }

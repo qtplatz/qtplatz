@@ -561,7 +561,7 @@ AcquirePlugin::actionConnect()
                             SignalObserver::Observers_var siblings = observer_->getSiblings();
                             size_t nsize = siblings->length();
 
-                            for ( size_t i = 0; i < nsize; ++i ) {
+                            for ( CORBA::ULong i = 0; i < nsize; ++i ) {
                                 SignalObserver::Observer_var var = SignalObserver::Observer::_duplicate( siblings[i] );
                                 populate( var );
                             }
@@ -588,7 +588,7 @@ AcquirePlugin::populate( SignalObserver::Observer_var& observer )
     traceBox_->addItem( qtwrapper::qstring( topLevelName ) );
 
     SignalObserver::Observers_var children = observer->getSiblings();
-    for ( size_t i = 0; i < children->length(); ++i ) {
+    for ( CORBA::ULong i = 0; i < children->length(); ++i ) {
         SignalObserver::Description_var secondLevelDesc = children[i]->getDescription();
         CORBA::WString_var secondLevelName = children[i]->getDescription()->trace_display_name.in();
         traceBox_->addItem( qtwrapper::qstring( L"   " + std::wstring( secondLevelName ) ) );
@@ -656,7 +656,7 @@ AcquirePlugin::actionSnapshot()
     if ( CORBA::is_nil( observer_ ) )
         return;
     SignalObserver::Observers_var siblings = observer_->getSiblings();
-    for ( size_t i = 0; i < siblings->length(); ++i ) {
+    for ( CORBA::ULong  i = 0; i < siblings->length(); ++i ) {
         SignalObserver::Description_var desc = siblings[i]->getDescription();
         if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA ) {
             CORBA::ULongLong first, second;
@@ -731,7 +731,7 @@ AcquirePlugin::handle_update_ui_data( unsigned long objId, long pos )
         if ( trace_accessors_.find( objId ) == trace_accessors_.end() )
             return;
         adcontrols::TraceAccessor& accessor = *trace_accessors_[ objId ];
-        for ( size_t fcn = 0; fcn < accessor.nfcn(); ++fcn ) {
+        for ( int fcn = 0; fcn < static_cast<int>(accessor.nfcn()); ++fcn ) {
             if ( pImpl_->traces_.find( fcn ) == pImpl_->traces_.end() )
                 pImpl_->traces_[ fcn ] = adcontrols::Trace( fcn );
             adcontrols::Trace& trace = pImpl_->traces_[ fcn ];
@@ -753,7 +753,7 @@ AcquirePlugin::readCalibrations( observer_type& obs )
     SignalObserver::octet_array_var data;
 
     bool success = false;
-    size_t idx = 0;
+    CORBA::ULong idx = 0;
     while ( tgt->readCalibration( idx++, data, dataClass ) ) {
         if ( std::wcscmp( dataClass, adcontrols::MSCalibrateResult::dataClass() ) == 0 ) {
             adcontrols::MSCalibrateResult result;
@@ -924,9 +924,9 @@ AcquirePlugin::selectRange( double x1, double x2, double y1, double y2 )
     (void)y1; (void)y2;
 
     SignalObserver::Observers_var siblings = observer_->getSiblings();
-    size_t nsize = siblings->length();
+    CORBA::ULong nsize = siblings->length();
 
-    for ( size_t i = 0; i < nsize; ++i ) {
+    for ( CORBA::ULong i = 0; i < nsize; ++i ) {
         SignalObserver::Description_var desc = siblings[i]->getDescription();
         
         if ( desc->trace_method == SignalObserver::eTRACE_SPECTRA 

@@ -26,7 +26,6 @@
 #pragma once
 
 #include <extensionsystem/iplugin.h>
-//#include <adinterface/brokerC.h>
 #include <adplugin/orbservant.hpp>
 #include <vector>
 
@@ -36,9 +35,9 @@ namespace adportable {
 
 namespace servant {
 
-    namespace internal {
-        class ServantPluginImpl;
-    }
+    // namespace internal {
+    //     class ServantPluginImpl;
+    // }
     
     class ServantPlugin : public ExtensionSystem::IPlugin {
 	    Q_OBJECT
@@ -61,7 +60,7 @@ namespace servant {
         
     private:
         void final_close();
-        internal::ServantPluginImpl * pImpl_;
+        //internal::ServantPluginImpl * pImpl_;
 
         typedef std::vector< adplugin::orbServant * > orbservant_vector_type;
         std::vector< adplugin::orbServant * > orbServants_;

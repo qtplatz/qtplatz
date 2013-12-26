@@ -10,15 +10,14 @@ include(../../qtplatzplugin.pri)
 include(../../ace_tao.pri)
 include(../../boost.pri)
 
-LIBS += -l$$qtLibraryTarget(adorbmgr) \
-    -l$$qtLibraryTarget(adcontrols) \
-    -l$$qtLibraryTarget(acewrapper) \
-    -l$$qtLibraryTarget(adportable) \
-    -l$$qtLibraryTarget(adplugin) \
-    -l$$qtLibraryTarget(qtwrapper) \
-    -l$$qtLibraryTarget(adextension) \
-    -l$$qtLibraryTarget(xmlparser) \
-    -l$$qtLibraryTarget(Core)
+LIBS += -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(acewrapper) \
+        -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(adplugin) \
+        -l$$qtLibraryTarget(qtwrapper) \
+        -l$$qtLibraryTarget(adextension) \
+        -l$$qtLibraryTarget(xmlparser) \
+        -l$$qtLibraryTarget(Core)
 
 !win32 {
   LIBS += -lTAO_Utils -lTAO_PortableServer -lTAO_AnyTypeCode -lTAO -lACE
@@ -33,16 +32,14 @@ DEFINES += SERVANT_LIBRARY
 SOURCES += outputwindow.cpp \
         servant.cpp \
         servantmode.cpp \
-        servantplugin.cpp \
-        servantpluginimpl.cpp
+        servantplugin.cpp
 
 HEADERS += servant_global.h \
         logger.hpp \
         outputwindow.hpp \
         servant.hpp \
         servantmode.hpp \
-        servantplugin.hpp \
-        servantpluginimpl.hpp
+        servantplugin.hpp
 
 OTHER_FILES += \
     servant.pluginspec \

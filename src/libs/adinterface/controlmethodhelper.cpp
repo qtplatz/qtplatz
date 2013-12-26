@@ -78,7 +78,7 @@ ControlMethodHelper::findInstrument( const std::wstring& modelname, unsigned lon
 unsigned int
 ControlMethodHelper::findInstrument( const ControlMethod::Method& m, const std::wstring& modelname, unsigned long unitnumber )
 {
-    for ( size_t i = 0; i < m.iinfo.length(); ++i ) {
+    for ( CORBA::ULong i = 0; i < m.iinfo.length(); ++i ) {
         if ( modelname == m.iinfo[i].modelname.in() && unitnumber == m.iinfo[i].unit_number )
             return i;
     }
@@ -134,7 +134,7 @@ const ControlMethod::MethodLine *
 ControlMethodHelper::findFirst( const ControlMethod::Method& method, const std::wstring& modelname, unsigned long unitnumber )
 {
     size_t nlines = method.lines.length();
-    for ( size_t i = 0; i < nlines; ++i ) {
+    for ( CORBA::ULong i = 0; i < nlines; ++i ) {
         const ControlMethod::MethodLine& line = method.lines[ i ];
         if ( modelname == line.modelname.in() && unitnumber == line.unitnumber )
             return &line;
@@ -147,7 +147,7 @@ const ControlMethod::MethodLine *
 ControlMethodHelper::findNext( const ControlMethod::Method& method, const ControlMethod::MethodLine * line )
 {
     if ( line ) {
-        size_t nlines = method.lines.length();
+        CORBA::ULong nlines = method.lines.length();
         if ( line >= &method.lines[0] && line < &method.lines[ nlines ] ) {
             for ( size_t i = size_t( line - &method.lines[0] ); i < nlines; ++i ) {
                 if ( line->modelname.in() == method.lines[i].modelname.in()
@@ -163,7 +163,7 @@ ControlMethod::MethodLine *
 ControlMethodHelper::findNext( ControlMethod::Method& method, const ControlMethod::MethodLine * line )
 {
     if ( line ) {
-        size_t nlines = method.lines.length();
+        CORBA::ULong nlines = method.lines.length();
         if ( line >= &method.lines[0] && line < &method.lines[ nlines ] ) {
             for ( size_t i = size_t( line - &method.lines[0] ); i < nlines; ++i ) {
                 if ( line->modelname.in() == method.lines[i].modelname.in()
