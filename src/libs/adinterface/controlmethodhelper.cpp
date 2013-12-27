@@ -69,7 +69,7 @@ ControlMethodHelper::findInstrument( const std::wstring& modelname, unsigned lon
 {
     for ( size_t i = 0; i < method_.iinfo.length(); ++i ) {
         if ( modelname == method_.iinfo[uint32_t(i)].modelname.in() && uint32_t(unitnumber) == uint32_t(method_.iinfo[uint32_t(i)].unit_number) )
-            return unsigned int(i);
+            return static_cast<unsigned int>(i);
     }
     return (-1); // error
 }
