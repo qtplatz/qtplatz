@@ -113,6 +113,7 @@ examples/device_controller/*S.cpp
 examples/device_controller/*S.h
 examples/device_controller/*S.inl
 src/plugins/chemistry/portfolio.xml
+src/plugins/batchproc/batchproc.pluginspec
 src/app/exclude.txt
 src/app/version.h
 

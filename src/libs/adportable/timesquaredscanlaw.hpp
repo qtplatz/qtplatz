@@ -27,7 +27,7 @@
 
 namespace adportable {
 
-    const double kATOMIC_MASS_CONSTANT = 1.66054020e-27; // [kg/u]
+    const double kATOMIC_MASS_CONSTANT = 1.660538921e-27; // [kg/u]
     const double kELEMENTAL_CHARGE    = 1.60217733e-19; // [C]
     const double kTimeSquaredCoeffs   = 2.0 * kELEMENTAL_CHARGE / kATOMIC_MASS_CONSTANT;
 
@@ -44,6 +44,7 @@ namespace adportable {
 
         virtual double tDelay() const { return tDelay_; }
         virtual double kAcceleratorVoltage() const { return kAcceleratorVoltage_; }
+        virtual double acceleratorVoltage( double mass, double time, int mode, double tDelay );
         
     protected:
         double kAcceleratorVoltage_;
