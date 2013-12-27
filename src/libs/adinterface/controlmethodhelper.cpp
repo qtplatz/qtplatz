@@ -149,7 +149,7 @@ ControlMethodHelper::findNext( const ControlMethod::Method& method, const Contro
     if ( line ) {
         CORBA::ULong nlines = method.lines.length();
         if ( line >= &method.lines[0] && line < &method.lines[ nlines ] ) {
-            for ( size_t i = size_t( line - &method.lines[0] ); i < nlines; ++i ) {
+            for ( CORBA::ULong i = uint32_t( line - &method.lines[0] ); i < nlines; ++i ) {
                 if ( line->modelname.in() == method.lines[i].modelname.in()
                     && line->unitnumber == method.lines[i].unitnumber )
                     return &method.lines[i];
@@ -165,7 +165,7 @@ ControlMethodHelper::findNext( ControlMethod::Method& method, const ControlMetho
     if ( line ) {
         CORBA::ULong nlines = method.lines.length();
         if ( line >= &method.lines[0] && line < &method.lines[ nlines ] ) {
-            for ( size_t i = size_t( line - &method.lines[0] ); i < nlines; ++i ) {
+            for ( uint32_t i = uint32_t( line - &method.lines[0] ); i < nlines; ++i ) {
                 if ( line->modelname.in() == method.lines[i].modelname.in()
                     && line->unitnumber == method.lines[i].unitnumber )
                     return &method.lines[i];
@@ -195,7 +195,7 @@ bool
 ControlMethodHelper::append( ControlMethod::Method& method, const ControlMethod::MethodLine& line
                            , const std::wstring& modelname, unsigned long unitnumber )
 {
-    size_t n = method.lines.length();
+    CORBA::ULong n = method.lines.length();
     method.lines.length( n + 1 );
     method.lines[ n ] = line;
     method.lines[ n ].unitnumber = unitnumber;
@@ -298,7 +298,7 @@ ControlMethodHelper::copy( Method& dst, const ControlMethod::Method& src )
     dst.lines.clear();
     dst.subject = src.subject.in();
     dst.description = src.subject.in();
-    for ( size_t i = 0; i < src.iinfo.length(); ++i ) {
+    for ( CORBA::ULong i = 0; i < src.iinfo.length(); ++i ) {
         const ControlMethod::InstInfo& s = src.iinfo[ i ];
         InstInfo info;
         info.index = s.index;
@@ -310,7 +310,7 @@ ControlMethodHelper::copy( Method& dst, const ControlMethod::Method& src )
         dst.iinfo.push_back ( info );
     }
 
-    for ( size_t i = 0; i < src.lines.length(); ++i ) {
+	for ( CORBA::ULong i = 0; i < src.lines.length(); ++i ) {
         const ControlMethod::MethodLine& s = src.lines[ i ];
         dst.lines.push_back( Method::Line() );
         Method::Line& line = dst.lines.back();
@@ -332,13 +332,13 @@ ControlMethodHelper::copy( Method& dst, const ControlMethod::Method& src )
 bool
 ControlMethodHelper::copy( ControlMethod::Method& dst, const Method& src )
 {
-    dst.iinfo.length( src.iinfo.size() );
-    dst.lines.length( src.lines.size() );
+    dst.iinfo.length( static_cast< CORBA::ULong >(src.iinfo.size()) );
+    dst.lines.length( static_cast< CORBA::ULong >(src.lines.size()) );
 
 	dst.subject = CORBA::wstring_dup( src.subject.c_str() );
 	dst.description = CORBA::wstring_dup( src.subject.c_str() );
 
-    for ( size_t i = 0; i < src.iinfo.size(); ++i ) {
+    for ( CORBA::ULong i = 0; i < src.iinfo.size(); ++i ) {
         const InstInfo& s = src.iinfo[ i ];
         ControlMethod::InstInfo& info = dst.iinfo[ i ];
         info.index = s.index;
@@ -349,7 +349,7 @@ ControlMethodHelper::copy( ControlMethod::Method& dst, const Method& src )
         info.description = CORBA::wstring_dup( s.description.c_str() );
     }
 
-    for ( size_t i = 0; i < src.lines.size(); ++i ) {
+    for ( CORBA::ULong i = 0; i < src.lines.size(); ++i ) {
         const Method::Line& s = src.lines[ i ];
         ControlMethod::MethodLine& d = dst.lines[ i ];
 
@@ -360,7 +360,7 @@ ControlMethodHelper::copy( ControlMethod::Method& dst, const Method& src )
         d.time.sec_ = s.time.sec_;
         d.time.usec_ = s.time.usec_;
         d.funcid = s.funcid;
-        d.xdata.length( s.xdata.size() );
+        d.xdata.length( static_cast<CORBA::ULong>(s.xdata.size()) );
         std::copy( s.xdata.begin(), s.xdata.end(), d.xdata.get_buffer() );
     }
     return true;
