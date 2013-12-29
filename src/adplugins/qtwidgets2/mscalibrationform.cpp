@@ -178,7 +178,7 @@ MSCalibrationForm::getCalibrateMethod( adcontrols::MSCalibrateMethod& method ) c
     
     size_t nRows = model.rowCount();
 
-    for ( size_t row = 0; row < nRows; ++row ) {
+    for ( int row = 0; row < nRows; ++row ) {
         adcontrols::MSReference reference;
 
 		reference.charge_count( model.index( row, c_charge ).data( Qt::EditRole ).toInt() );
@@ -209,7 +209,7 @@ MSCalibrationForm::setCalibrateMethod( const adcontrols::MSCalibrateMethod& meth
     ui->spinHighMass->setValue( method.highMass() );
 
     const adcontrols::MSReferences& references = method.references();
-    int nRows = references.size();
+    int nRows = static_cast<int>( references.size() );
     if ( nRows < model.rowCount() )
         model.removeRows( 0, model.rowCount() ); // make sure all clear
 

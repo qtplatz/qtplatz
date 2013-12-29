@@ -43,14 +43,14 @@ namespace adportable {
         static double determ( boost::numeric::ublas::matrix<double>& a, int n );
         static double weight_value( polfit::WeightingType wmode, double yi );
         //----------------------------
-        static void normalCoefficients( int count
+        static void normalCoefficients( size_t count
                                        , const double* x, const double* y, int degree
                                        , boost::numeric::ublas::vector<double>& xSum
                                        , boost::numeric::ublas::vector<double>& yxSum
                                        , boost::numeric::ublas::matrix<double>& a
                                        , boost::numeric::ublas::vector<double>& b );
 	
-        static void normalCoefficients( int count
+        static void normalCoefficients( size_t count
                                       , const double* x, const double * y
                                       , int degree
                                       , boost::numeric::ublas::matrix<double>& a
@@ -155,7 +155,7 @@ internal::determ( boost::numeric::ublas::matrix<double>& a, int n ) // double **
 int 
 polfit::fit( const double *x
             , const double *y
-            , int npts
+            , size_t npts
             , int nterms
             , std::vector<double>& polynomial
             , double & chisqr
@@ -224,7 +224,7 @@ polfit::fit( const double *x
             chisq = chisq + polynomial[j] * polynomial[k] * sumx[n];
         }
     }
-    xfree = npts - nterms;
+    xfree = double( npts - nterms );
     chisqr = chisq / xfree;
     return 0;
 }
@@ -263,7 +263,7 @@ polfit::polfit()
 /////
 
 void
-internal::normalCoefficients( int npts
+internal::normalCoefficients( size_t npts
                            , const double * xArray
                            , const double * yArray 
                            , int degree	// degree of polynomial 
@@ -310,7 +310,7 @@ internal::normalCoefficients( int npts
 }
 
 void
-internal::normalCoefficients(int count
+internal::normalCoefficients(size_t count
                            , const double* xArray
                            , const double* yArray 
                            , int degree	// degree of polynomial  
@@ -329,7 +329,7 @@ internal::normalCoefficients(int count
 ////////////
 
 bool
-polfit::fit( const double* x, const double* y, int npts, int nterms, std::vector<double>& coeffs )
+polfit::fit( const double* x, const double* y, size_t npts, int nterms, std::vector<double>& coeffs )
 {
     if ( nterms > npts )
         return false;

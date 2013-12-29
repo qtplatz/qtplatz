@@ -170,13 +170,13 @@ SequenceEditor::restoreState(const QByteArray &state)
 int
 SequenceEditor::currentLine() const
 {
-    return currRow_ + 1;
+    return static_cast<int>(currRow_) + 1;
 }
 
 int
 SequenceEditor::currentColumn() const
 {
-    return currCol_ + 1;
+    return static_cast<int>(currCol_) + 1;
 }
 
 bool

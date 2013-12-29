@@ -135,7 +135,7 @@ MSProperty::numAverage() const
 void
 MSProperty::setNumAverage( size_t value )
 {
-    instNumAvrg_ = value;
+    instNumAvrg_ = static_cast<uint32_t>(value);
 }
 
 double

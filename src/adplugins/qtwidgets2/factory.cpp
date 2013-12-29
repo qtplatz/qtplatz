@@ -31,6 +31,7 @@
 #include <QtCore/qplugin.h>
 #include "mscalibrationform.hpp"
 #include "mscalibsummarywidget.hpp"
+#include "mspeakview.hpp"
 #include <adplugin/lifecycle.hpp>
 #include <QMessageBox>
 
@@ -44,6 +45,8 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
         pWidget = new qtwidgets2::MSCalibrationForm( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets2::MSCalibSummaryWidget" ) {
         pWidget = new qtwidgets2::MSCalibSummaryWidget( parent );
+    } else if ( std::wstring( iid ) == L"qtwidgets2::MSPeakView" ) {
+        pWidget = new qtwidgets2::MSPeakView( parent );
     }
     if ( pWidget )
         return pWidget;

@@ -155,7 +155,7 @@ namespace adcontrols {
 	struct partial_molecular_mass {
 
 		static double combination( size_t n, size_t r ) {
-			double a = n;
+			double a = static_cast<double>(n);
 			if ( r > 0 ) {
 				size_t x = n; 
 				while ( --x > ( n - r ) )

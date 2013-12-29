@@ -50,7 +50,7 @@ Trace::Trace( const Trace& t ) : fcn_( t.fcn_ )
 void
 Trace::set_fcn( size_t n )
 {
-    fcn_ = n;
+    fcn_ = static_cast<int>(n);
 }
 
 bool

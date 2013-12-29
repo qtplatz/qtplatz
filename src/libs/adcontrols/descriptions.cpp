@@ -119,7 +119,7 @@ Descriptions::size() const
 }
 
 const Description& 
-Descriptions::operator [] ( int idx ) const
+Descriptions::operator [] ( size_t idx ) const
 {
    return (*pImpl_)[idx];
 }

@@ -14,9 +14,11 @@ include(../../adplugin.pri)
 include(../../boost.pri)
 include( ../../ace_tao.pri )
 
-LIBS += -l$$qtLibraryTarget(adportable) -l$$qtLibraryTarget(adcontrols) \
-    -l$$qtLibraryTarget(adplugin) -l$$qtLibraryTarget(qtwrapper) \
-    -l$$qtLibraryTarget(xmlparser)
+LIBS += -l$$qtLibraryTarget(adportable) \
+        -l$$qtLibraryTarget(adcontrols) \
+        -l$$qtLibraryTarget(adplugin) \
+        -l$$qtLibraryTarget(qtwrapper) \
+        -l$$qtLibraryTarget(xmlparser)
 
 !win32 {
   LIBS *= -lboost_filesystem -lboost_system
@@ -34,6 +36,9 @@ SOURCES += factory.cpp \
         mscalibrationform.cpp \
         mscalibsummarydelegate.cpp \
         mscalibsummarywidget.cpp \
+        mspeakview.cpp \
+        mspeaksummary.cpp \
+        mspeaktable.cpp \
         standarditemhelper.cpp \
         tableview.cpp \
         qtwidgets2.cpp
@@ -42,6 +47,9 @@ HEADERS += \
         factory.hpp \
         mscalibratedelegate.hpp \
         mscalibrationform.hpp \
+        mspeakview.hpp \
+        mspeaksummary.hpp \
+        mspeaktable.hpp \
         mscalibsummarydelegate.hpp \
         mscalibsummarywidget.hpp \
         standarditemhelper.hpp \

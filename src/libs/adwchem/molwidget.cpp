@@ -77,7 +77,7 @@ MolWidget::paintEvent( QPaintEvent * )
 {
     QPainter painter( this );
     
-	QByteArray svg( svg_.data(), svg_.size() );
+	QByteArray svg( svg_.data(), static_cast<int>(svg_.size()) );
     QSvgRenderer renderer( svg );
     // QRectF viewport = painter->viewport();
     // painter->scale( 1.0, 1.0 );

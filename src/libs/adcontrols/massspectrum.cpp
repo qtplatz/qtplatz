@@ -835,7 +835,7 @@ segments_helper::base_peak_index( const MassSpectrum& ms, double lMass, double h
     double hMax = 0;
     
     segment_wrapper< const MassSpectrum > segments( ms );
-    size_t fcn = 0;
+    int fcn = 0;
     for ( auto& fms: segments ) {
         if ( lMass < fms.getMass( 0 ) || hMass < fms.getMass( fms.size() - 1 ) ) {
             const double * intens = fms.getIntensityArray();

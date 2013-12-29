@@ -32,8 +32,6 @@
 #include "msprocessingwnd.hpp"
 #include "mscalibrationwnd.hpp"
 #include "mscalibspectrawnd.hpp"
-
-#include "mspeakwidget.hpp"
 #include "sessionmanager.hpp"
 #include "mspropertyform.hpp"
 
@@ -399,7 +397,7 @@ MainWindow::createDockWidgets()
         , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
         , { "Peak Find",       "qtwidgets::PeakMethodForm" }
         , { "Data property",   "dataproc::MSPropertyForm" }      // local
-        , { "MS Peak List",    "dataproc::MSPeakWidget" }  // local
+        , { "MS Peaks",        "qtwidgets2::MSPeakView" }  // local
     };
     
     for ( auto widget: widgets ) {

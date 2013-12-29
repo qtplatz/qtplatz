@@ -55,7 +55,7 @@ namespace adcontrols {
 
 	   void append( const Description&, bool uniq = false );
 	   size_t size() const;
-	   const Description& operator [](int idx) const;
+	   const Description& operator [](size_t idx) const;
 
        class description_iterator {
            size_t pos_;
