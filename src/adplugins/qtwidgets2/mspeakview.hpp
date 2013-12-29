@@ -27,16 +27,27 @@
 
 #include <QWidget>
 #include <memory>
+#include <adplugin/lifecycle.hpp>
 
 namespace qtwidgets2 {
 
     class MSPeakSummary;
     class MSPeakTable;
 
-    class MSPeakView : public QWidget {
+    class MSPeakView : public QWidget
+                     , public adplugin::LifeCycle {
         Q_OBJECT
     public:
         explicit MSPeakView(QWidget *parent = 0);
+
+        // adplugin::LifeCycle
+        void OnCreate( const adportable::Configuration& ) override;
+        void OnInitialUpdate() override;
+        void onUpdate( boost::any& ) override;
+        void OnFinalClose() override;
+        bool getContents( boost::any& ) const override;
+        bool setContents( boost::any& ) override;
+        void * query_interface_workaround( const char * ) override;
 
     signals:
             

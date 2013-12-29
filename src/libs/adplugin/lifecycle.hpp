@@ -45,6 +45,14 @@ namespace adplugin {
         virtual void onUpdate( boost::any& ) {}
         virtual bool getContents( boost::any& ) const { return false; }
         virtual bool setContents( boost::any& ) { return false; }
+        virtual void * query_interface_workaround( const char * typenam ) { (void)typenam; return 0; }
+
+        template<typename T> T* query_interface() {
+            T* p = dynamic_cast<T*>(this);
+            if ( !p )
+                p = reinterpret_cast<T*>( query_interface_workaround( typeid(T).name() ) );
+            return p;
+        }
 		
     protected:
 		inline bool isScoped() const { return scope_flag_; }

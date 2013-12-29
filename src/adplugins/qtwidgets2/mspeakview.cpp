@@ -47,3 +47,43 @@ MSPeakView::MSPeakView(QWidget *parent) : QWidget(parent)
     }
 }
 
+void *
+MSPeakView::query_interface_workaround( const char * typenam )
+{
+    if ( typenam == typeid( MSPeakView ).name() )
+        return static_cast< MSPeakView * >(this);
+    return 0;
+}
+
+void
+MSPeakView::OnCreate( const adportable::Configuration& )
+{
+}
+
+void
+MSPeakView::OnInitialUpdate()
+{
+}
+
+void
+MSPeakView::onUpdate( boost::any& )
+{
+}
+
+void
+MSPeakView::OnFinalClose()
+{
+}
+
+bool
+MSPeakView::getContents( boost::any& ) const
+{
+    return false;
+}
+
+bool
+MSPeakView::setContents( boost::any& )
+{
+    return false;
+}
+
