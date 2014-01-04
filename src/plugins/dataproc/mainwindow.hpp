@@ -30,7 +30,7 @@
 #include <memory>
 
 namespace adportable { class Configuration; }
-namespace adcontrols { class datafile; class ProcessMethod; class MSAssignedMasses; }
+namespace adcontrols { class datafile; class ProcessMethod; class MSAssignedMasses; class MSPeaks; }
 namespace portfolio { class Folium; }
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
@@ -82,7 +82,8 @@ namespace dataproc {
         void handleSessionAdded( Dataprocessor * );
         void handleSelectionChanged( Dataprocessor *, portfolio::Folium& );
         void onMethodApply( adcontrols::ProcessMethod& );
-        void actionApply();                                                        
+        void actionApply();
+        void handle_add_mspeaks( const adcontrols::MSPeaks& );
 
     private slots:
         void handleApplyMethod();
@@ -94,6 +95,8 @@ namespace dataproc {
         void actionSelMSCalibration();
         void actionSelMSCalibSpectra();
         void actionSelChromatogram();
+        void actionSelMSPeaks();
+        friend class MSPeaksWnd;
 
     private:
         QWidget * toolBar_;
@@ -108,10 +111,11 @@ namespace dataproc {
         QAction * actionSelMSCalibration_;
         QAction * actionSelMSCalibSpectra_;
         QAction * actionSelChromatogram_;
+        QAction * actionSelMSPeaks_;
         QStackedWidget * stack_;
         std::unique_ptr< QLineEdit > processMethodNameEdit_;
-
         enum ProcessType currentFeature_;
+        QWidget * msPeaksWnd_;
 
         void setToolBarDockWidget( QDockWidget * dock );
         QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }
@@ -123,6 +127,7 @@ namespace dataproc {
 
     signals:
         void onPrintCurrentView( const QString& ) const;
+        void onAddMSPeaks( const adcontrols::MSPeaks& ) const;
     };
 
 }

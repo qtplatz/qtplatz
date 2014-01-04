@@ -357,3 +357,24 @@ polfit::fit( const double* x, const double* y, size_t npts, int nterms, std::vec
 	return true;
 }
 
+double
+polfit::estimate_y( const std::vector<double>& v, double x )
+{
+	int n = 0;
+	double y = 0;
+	for ( auto d: v )
+		y += d * std::pow( x, n++ );
+	return y;
+}
+
+double
+polfit::standard_error( const double* x, const double* y, size_t npts, const std::vector<double>& coeffs )
+{
+    double sdd = 0;
+    for ( size_t i = 0; i < npts; ++i ) {
+        double v = estimate_y( coeffs, x[i] );
+        sdd += v * v;
+    }
+    return std::sqrt( sdd );
+}
+

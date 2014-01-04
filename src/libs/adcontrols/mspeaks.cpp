@@ -39,6 +39,44 @@ MSPeaks::MSPeaks( const MSPeaks& t ) : vec_( t.vec_ )
 {
 }
 
+const std::vector<double>&
+MSPeaks::x() const
+{
+    return x_;
+}
+
+const std::vector<double>&
+MSPeaks::y() const
+{
+    return y_;
+}
+
+const std::vector<double>&
+MSPeaks::coeffs() const
+{
+    return coeffs_;
+}
+
+void
+MSPeaks::polinomials( const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& coeffs)
+{
+    x_ = x;
+    y_ = y;
+    coeffs_ = coeffs;
+}
+
+const MSPeak&
+MSPeaks::operator [] ( size_t idx ) const
+{
+    return vec_[ idx ];
+}
+
+size_t
+MSPeaks::size() const
+{
+    return vec_.size();
+}
+
 MSPeaks::iterator_type
 MSPeaks::begin()
 {

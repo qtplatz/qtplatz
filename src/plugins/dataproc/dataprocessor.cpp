@@ -838,7 +838,7 @@ DataprocessorImpl::applyMethod( portfolio::Folium& folium
             adcontrols::waveform::fft::lowpass_filter( ms, m.cutoffFreqHz() );
             double base(0), rms(0);
             const double * intens = ms.getIntensityArray();
-            adportable::spectrum_processor::tic( ms.size(), intens, base, rms );
+            adportable::spectrum_processor::tic( uint32_t( ms.size() ), intens, base, rms );
             for ( size_t i = 0; i < ms.size(); ++i )
                 ms.setIntensity( i, intens[i] - base );
         }

@@ -87,8 +87,13 @@ double
 TimeSquaredScanLaw::acceleratorVoltage( double mass, double time, int mode, double tDelay )
 {
     const double L = fLength( mode );
-    const double t = time - tDelay;
-    double acceleratorVoltage = ( mass * ( L * L ) * ( t * t ) ) / kTimeSquaredCoeffs;
+    return acceleratorVoltage( mass, time, L, tDelay );
+}
 
+double
+TimeSquaredScanLaw::acceleratorVoltage( double mass, double time, double fLength, double tDelay )
+{
+    const double t = time - tDelay;
+    double acceleratorVoltage = ( mass * ( fLength * fLength ) ) / ( kTimeSquaredCoeffs * ( t * t ) );
     return acceleratorVoltage;
 }

@@ -188,6 +188,10 @@ MSCalibrationWnd::init()
             assert(res);
             res = connect( pSummary, SIGNAL( on_apply_calibration_to_default() ), this, SLOT( handle_apply_calibration_to_default() ) );
             assert(res);
+            
+            res = connect( pSummary, SIGNAL( on_add_selection_to_peak_table(const adcontrols::MSPeaks& ))
+                           , this, SLOT( handle_add_selection_to_peak_table( const adcontrols::MSPeaks& ) ) );
+            assert(res);
 
             // Make a connection to zoomer in order to sync table in visible range
             res = connect( &pImpl_->processedSpectrum_->zoomer()
@@ -490,6 +494,13 @@ MSCalibrationWnd::handle_reassign_mass_requested()
         }
     }
 }
+
+void
+MSCalibrationWnd::handle_add_selection_to_peak_table( const adcontrols::MSPeaks& peaks )
+{
+    MainWindow::instance()->handle_add_mspeaks( peaks );
+}
+
 
 void
 MSCalibrationWnd::handle_recalibration_requested()

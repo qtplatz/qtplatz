@@ -110,7 +110,7 @@
 namespace dataproc {
     class mimeTypeHelper {
     public:
-        static bool add( Core::MimeDatabase * mdb, const char * xml, size_t len, QString*& emsg ) {
+        static bool add( Core::MimeDatabase * mdb, const char * xml, int len, QString*& emsg ) {
             if ( mdb && xml ) {
                 QBuffer io;
                 io.setData( xml, len );
@@ -249,7 +249,7 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
         }
 
         std::for_each( mime.begin(), mime.end(), [&](const std::string& xml){
-                if ( mimeTypeHelper::add( mdb, xml.c_str(), xml.size(), error_message ) )
+                if ( mimeTypeHelper::add( mdb, xml.c_str(), static_cast<int>(xml.size()), error_message ) )
 					mimeTypeHelper::populate( mTypes, xml.c_str() );
             });
 
@@ -331,9 +331,9 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
 		if ( const adcontrols::LCMSDataset * dset = dp->getLCMSDataset() ) {
-			long pos1 = dset->posFromTime( x1 * 60.0 ); // min --> sec
-			long pos2 = dset->posFromTime( x2 * 60.0 ); // min --> sec
-			long pos = pos1;
+			size_t pos1 = dset->posFromTime( x1 * 60.0 ); // min --> sec
+			size_t pos2 = dset->posFromTime( x2 * 60.0 ); // min --> sec
+			int pos = static_cast<int>(pos1);
 			double t1 = dset->timeFromPos( pos1 ) / 60.0; // to minuites
 			double t2 = dset->timeFromPos( pos2 ) / 60.0; // to minutes
 
@@ -346,7 +346,7 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                     std::wostringstream text;
                     if ( pos2 > pos1 ) {
                         QProgressBar progressBar;
-                        progressBar.setRange( pos1, pos2 );
+                        progressBar.setRange( static_cast<int>(pos1), static_cast<int>(pos2) );
                         progressBar.setVisible( true );
                     
                         adcontrols::MassSpectrum a;
@@ -367,9 +367,9 @@ DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
                     // add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
                     if ( folium ) {
                         bool hasCentroid( false );
-                        if ( pos1 == pos2 && dset->hasProcessedSpectrum( 0, pos1 ) ) {
+                        if ( pos1 == pos2 && dset->hasProcessedSpectrum( 0, static_cast<int>(pos1) ) ) {
                             adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
-                            if ( dset->getSpectrum( 0, pos1, *pCentroid, dset->findObjId( L"MS.CENTROID" ) ) ) {
+                            if ( dset->getSpectrum( 0, static_cast<int>(pos1), *pCentroid, dset->findObjId( L"MS.CENTROID" ) ) ) {
                                 hasCentroid = true;
                                 portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
                                 att.assign( pCentroid, pCentroid->dataClass() );

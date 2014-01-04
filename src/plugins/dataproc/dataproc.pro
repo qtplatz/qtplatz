@@ -65,7 +65,8 @@ SOURCES += \
     mspropertyform.cpp \
     dataprocessworker.cpp \
     dialogspectrometerchoice.cpp \
-    filepropertywidget.cpp
+    filepropertywidget.cpp \
+    mspeakswnd.cpp
 
 HEADERS += \
     dataproc_global.h \
@@ -96,7 +97,8 @@ HEADERS += \
     mspropertyform.hpp \
     dataprocessworker.hpp \
     dialogspectrometerchoice.hpp \
-    filepropertywidget.hpp
+    filepropertywidget.hpp \
+    mspeakswnd.hpp
 
 OTHER_FILES += \
     dataproc.pluginspec \

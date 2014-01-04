@@ -29,6 +29,8 @@
 #include <memory>
 #include <adplugin/lifecycle.hpp>
 
+namespace adcontrols { class MSPeaks; }
+
 namespace qtwidgets2 {
 
     class MSPeakSummary;
@@ -49,13 +51,21 @@ namespace qtwidgets2 {
         bool setContents( boost::any& ) override;
         void * query_interface_workaround( const char * ) override;
 
+        void currentChanged( int mode );
+        void currentChanged( const std::string& );
+
     signals:
+        void onSetData( const QString&, const adcontrols::MSPeaks& );
+        void onSetData( int mode, const adcontrols::MSPeaks& );
             
     public slots:
+        void handle_add_mspeaks( const adcontrols::MSPeaks& );
 
 	private:
         std::unique_ptr< MSPeakSummary > peakSummary_;
         std::unique_ptr< MSPeakTable > peakTable_;
+        std::unique_ptr< adcontrols::MSPeaks > mspeaks_;
+        std::vector< QWidget * > clients_;
     };
 
 }

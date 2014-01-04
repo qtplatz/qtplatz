@@ -45,6 +45,7 @@ namespace adportable {
         virtual double tDelay() const { return tDelay_; }
         virtual double kAcceleratorVoltage() const { return kAcceleratorVoltage_; }
         virtual double acceleratorVoltage( double mass, double time, int mode, double tDelay );
+        static double acceleratorVoltage( double mass, double time, double flength, double tDelay );
         
     protected:
         double kAcceleratorVoltage_;

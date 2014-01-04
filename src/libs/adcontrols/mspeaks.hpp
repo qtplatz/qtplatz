@@ -29,21 +29,24 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
+#include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
     class MSPeak;
 
-    class MSPeaks {
+    class ADCONTROLSSHARED_EXPORT MSPeaks {
     public:
         ~MSPeaks();
         MSPeaks();
         MSPeaks( const MSPeaks& );
+        static const wchar_t * dataClass() { return L"adcontrols::MSPeaks"; }
 
         typedef MSPeak value_type;
         typedef std::vector< value_type >::iterator iterator_type;
         typedef std::vector< value_type >::const_iterator const_iterator_type;
 
+        size_t size() const;
         iterator_type begin();
         iterator_type end();
         const_iterator_type begin() const;
@@ -51,14 +54,24 @@ namespace adcontrols {
         iterator_type erase( iterator_type );
         iterator_type erase( iterator_type first, iterator_type last );
         MSPeaks& operator << ( const MSPeak& );
+        const MSPeak& operator [] ( size_t idx ) const;
+        
+        const std::vector<double>& x() const;
+        const std::vector<double>& y() const;
+        const std::vector<double>& coeffs() const;
+        void polinomials( const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& coeffs);
 
     private:
         std::vector< value_type > vec_;
 
+        std::vector< double > x_;
+        std::vector< double > y_;
+        std::vector< double > coeffs_;
+
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive& ar, const unsigned int version) {
-            (void)(version)
+            (void)(version);
                 ar & vec_;
         }
         

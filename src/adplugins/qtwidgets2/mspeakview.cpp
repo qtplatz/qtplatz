@@ -25,14 +25,22 @@
 #include "mspeakview.hpp"
 #include "mspeaksummary.hpp"
 #include "mspeaktable.hpp"
+#include <adcontrols/mspeaks.hpp>
+#include <adcontrols/mspeak.hpp>
+#include <adcontrols/metric/prefix.hpp>
+#include <adportable/float.hpp>
+#include <adportable/polfit.hpp>
+#include <adportable/is_type.hpp>
 #include <QSplitter>
 #include <QBoxLayout>
 
 using namespace qtwidgets2;
+using namespace adcontrols::metric;
 
 MSPeakView::MSPeakView(QWidget *parent) : QWidget(parent)
-                                        , peakSummary_( new MSPeakSummary )
-                                        , peakTable_( new MSPeakTable )
+                                        , peakSummary_( new MSPeakSummary(this) )
+                                        , peakTable_( new MSPeakTable(this) )
+                                        , mspeaks_( new adcontrols::MSPeaks )
 {
     if ( QSplitter * splitter = new QSplitter ) {
 
@@ -63,6 +71,8 @@ MSPeakView::OnCreate( const adportable::Configuration& )
 void
 MSPeakView::OnInitialUpdate()
 {
+    peakSummary_->onInitialUpdate( this );
+    peakTable_->onInitialUpdate();
 }
 
 void
@@ -73,6 +83,10 @@ MSPeakView::onUpdate( boost::any& )
 void
 MSPeakView::OnFinalClose()
 {
+    for ( auto& w: clients_ ) {
+        disconnect(this, SIGNAL(onSetData( const QString&, const adcontrols::MSPeaks&)), w, SLOT(handleSetData(const QString&, const adcontrols::MSPeaks&)) );
+        disconnect(this, SIGNAL(onSetData( int, const adcontrols::MSPeaks& ) ), w, SLOT(handleSetData( int, const adcontrols::MSPeaks& )) );        
+    }
 }
 
 bool
@@ -82,8 +96,116 @@ MSPeakView::getContents( boost::any& ) const
 }
 
 bool
-MSPeakView::setContents( boost::any& )
+MSPeakView::setContents( boost::any& a )
 {
+    if ( adportable::a_type< QWidget * >::is_a( a ) ) {
+        QWidget * w = boost::any_cast< QWidget * >( a );
+        if ( std::find_if( clients_.begin(), clients_.end(), [=]( const QWidget * a ){ return a == w; }) == clients_.end() ) {
+            bool res1, res2;
+            res1 = connect(this, SIGNAL(onSetData( const QString&, const adcontrols::MSPeaks&)), w, SLOT(handleSetData(const QString&, const adcontrols::MSPeaks&)) );
+            res2 = connect(this, SIGNAL(onSetData( int, const adcontrols::MSPeaks& ) ), w, SLOT(handleSetData( int, const adcontrols::MSPeaks& )) );
+            if ( res1 || res2 )
+                clients_.push_back( w );
+        }
+    }
     return false;
 }
 
+void
+MSPeakView::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
+{
+    for ( auto& peak: peaks ) {
+        auto it = std::find_if( mspeaks_->begin(), mspeaks_->end(), [=]( const adcontrols::MSPeak& a ){
+                return
+                adportable::compare<double>::essentiallyEqual(a.time(), peak.time()) &&
+                adportable::compare<double>::essentiallyEqual(a.mass(), peak.mass());
+            });
+        if ( it == mspeaks_->end() ) {
+            (*mspeaks_) << peak;
+            peakTable_->addPeak( peak );
+        }
+    }
+
+    // estimate t-delay by ions
+    do {
+        std::map< int, adcontrols::MSPeaks > d;
+        for ( auto& peak: *mspeaks_ )
+            d[ peak.mode() ] << peak;
+        for ( auto& t: d ) {
+            const adcontrols::MSPeaks& pks = t.second;
+            if ( pks.size() >= 2 ) {
+                std::vector<double> x, y, coeffs;
+                for ( auto& pk: pks ) {
+                    x.push_back( scale_to_micro( pk.time() ) );
+                    y.push_back( std::sqrt( pk.mass() ) );
+                }
+                adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs );
+                peakSummary_->setPolinomials( t.first, coeffs, adportable::polfit::standard_error( x.data(), y.data(), x.size(), coeffs ) );
+            }
+        }
+    } while(0);
+
+    // estimate t-delay by flength
+    do {
+        std::map< std::string, adcontrols::MSPeaks > d;
+        for ( auto& peak: *mspeaks_ ) {
+            if ( ! peak.formula().empty() )
+                d[ peak.formula() ] << peak;
+        }
+
+        for ( auto& t: d ) {
+            const adcontrols::MSPeaks& pks = t.second;
+            if ( pks.size() >= 2 ) {
+                std::vector<double> x, y, coeffs;
+                for ( auto& pk: pks ) {
+                    x.push_back( scale_to_micro( pk.time() ) );
+                    y.push_back( pk.flight_length() );
+                }
+                adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs );
+                peakSummary_->setPolinomials( t.first, coeffs, adportable::polfit::standard_error( x.data(), y.data(), x.size(), coeffs ) );
+            }
+        }
+    } while(0);
+}
+
+void
+MSPeakView::currentChanged( int mode )
+{
+    adcontrols::MSPeaks peaks;
+    
+    for ( auto& peak: *mspeaks_ ) {
+        if ( peak.mode() == mode )
+            peaks << peak;
+    }
+    if ( peaks.size() >= 2 ) {
+        std::vector<double> x, y, coeffs;
+        for ( auto& pk: peaks ) {
+            x.push_back( scale_to_micro( pk.time() ) );
+            y.push_back( std::sqrt( pk.mass() ) );
+        }
+        adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs );
+        peaks.polinomials( x, y, coeffs );
+        emit onSetData( mode, peaks );
+    }
+}
+
+void
+MSPeakView::currentChanged( const std::string& formula )
+{
+    adcontrols::MSPeaks peaks;
+    
+    for ( auto& peak: *mspeaks_ ) {
+        if ( ! peak.formula().empty() && peak.formula() == formula )
+            peaks << peak;
+    }
+    if ( peaks.size() >= 2 ) {
+        std::vector<double> x, y, coeffs;
+        for ( auto& pk: peaks ) {
+            x.push_back( scale_to_micro( pk.time() ) );
+			y.push_back( pk.flight_length() );
+        }
+        adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs );
+        peaks.polinomials( x, y, coeffs );
+        emit onSetData( QString::fromStdString( formula ), peaks );
+    }
+}

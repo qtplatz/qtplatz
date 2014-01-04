@@ -39,39 +39,49 @@ namespace adcontrols {
         ~MSPeak();
         MSPeak();
         MSPeak( const MSPeak& );
+        MSPeak( double time, double mass, int32_t mode, double flength = 1.0 );
+        static const wchar_t * dataClass() { return L"adcontrols::MSPeak"; }
 
         double time() const;
         double mass() const;
         int32_t mode() const;
+        double flight_length() const;
         const std::string& formula() const;
         const std::wstring& description() const;
         const std::string& spectrumId() const;
+        int32_t spectrumIndex() const;
 
         void time( double );
         void mass( double );
         void mode( int32_t );
+        void flight_length( double );
         void formula( const std::string& );
         void description( const std::wstring& );
         void spectrumId( const std::string& ); // uuid for a spectrum
+        void spectrumIndex( int );
 
     private:
         double time_;
         double mass_;
         int32_t mode_;  // corresponding to flight length
+        double flength_;
         std::string formula_;
         std::wstring description_;
         std::string spectrumId_;
+        int32_t spectrumIndex_;
 
         friend class boost::serialization::access;
         template<class Archive>
             void serialize(Archive& ar, const unsigned int version) {
-            (void)(version)
+            (void)(version);
             ar & time_
                 & mass_
                 & mode_
+                & flength_
                 & formula_
                 & description_
-                & spectrumId_;
+                & spectrumId_
+                & spectrumIndex_
                 ;
         }
     };

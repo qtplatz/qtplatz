@@ -993,7 +993,7 @@ MSCalibSpectraWnd::generate_marged_result( Dataprocessor * /* processor */)
             std::for_each( assigned.begin(), assigned.end(), [&]( const adcontrols::MSAssignedMass& t ){
 					if ( t.idMassSpectrum() == idSegment ) {
                         adcontrols::MSAssignedMass x( t );
-                        x.idMassSpectrum( nSeg + idSegment );
+                        x.idMassSpectrum( static_cast<uint32_t>(nSeg + idSegment) );
 						x.idPeak( std::distance( index.begin(), std::find( index.begin(), index.end(), t.idPeak() ) ) );
                         masses << x;
                     }
@@ -1012,4 +1012,5 @@ MSCalibSpectraWnd::generate_marged_result( Dataprocessor * /* processor */)
     if ( masses.size() > 0 )
         DataprocHandler::doAnnotateAssignedPeaks( *margedSpectrum_, masses );
 }
+
 

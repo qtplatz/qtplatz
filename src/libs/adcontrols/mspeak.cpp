@@ -29,16 +29,32 @@ MSPeak::~MSPeak()
 {
 }
 
-MSPeak::MSPeak()
+MSPeak::MSPeak() : time_( 0 )               
+                 , mass_( 0 )               
+                 , mode_( 0 )               
+                 , flength_( 0 )         
+                 , formula_( 0 )         
+                 , description_( 0 ) 
+                 , spectrumId_( 0 )   
+                 , spectrumIndex_( 0 )
 {
 }
 
 MSPeak::MSPeak( const MSPeak& t ) : time_( t.time_ )
                                   , mass_( t.mass_ )
                                   , mode_( t.mode_ )
+                                  , flength_( t.flength_ )
                                   , formula_( t.formula_ )
                                   , description_( t.description_ )
-                                  , spectrumId_( t.spectrumId_ )
+                                  , spectrumId_( t.spectrumId_ )   
+                                  , spectrumIndex_( t.spectrumIndex_ )
+{
+}
+
+MSPeak::MSPeak( double time, double mass, int32_t mode, double flength ) : time_( time )
+                                                                         , mass_( mass )
+                                                                         , mode_( mode )
+                                                                         , flength_( flength )
 {
 }
 
@@ -60,6 +76,12 @@ MSPeak::mode() const
     return mode_;
 }
 
+double
+MSPeak::flight_length() const
+{
+    return flength_;
+}
+
 const std::string&
 MSPeak::formula() const
 {
@@ -70,6 +92,18 @@ const std::wstring&
 MSPeak::description() const
 {
     return description_;
+}
+
+const std::string&
+MSPeak::spectrumId() const
+{
+    return spectrumId_;
+}
+
+int32_t
+MSPeak::spectrumIndex() const
+{
+    return spectrumIndex_;
 }
 
 void
@@ -91,6 +125,12 @@ MSPeak::mode( int32_t v )
 }
 
 void
+MSPeak::flight_length( double v )
+{
+    flength_ = v;
+}
+
+void
 MSPeak::formula( const std::string& v )
 {
     formula_= v;
@@ -106,5 +146,11 @@ void
 MSPeak::spectrumId( const std::string& v )
 {
     spectrumId_ = v;
+}
+
+void
+MSPeak::spectrumIndex( int v )
+{
+    spectrumIndex_ = v;
 }
 

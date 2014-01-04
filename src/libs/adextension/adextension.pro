@@ -10,7 +10,6 @@ TARGET = adextension
 TEMPLATE = lib
 
 include(../../qtplatzlibrary.pri)
-include(../../ace_tao.pri)
 
 DEFINES += ADEXTENSION_LIBRARY
 

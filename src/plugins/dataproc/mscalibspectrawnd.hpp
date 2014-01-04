@@ -45,7 +45,9 @@ namespace adcontrols {
     class MSCalibrateResult;
     class MSAssignedMasses;
     class ProcessMethod;
+    class MSPeaks;
 }
+
 namespace adportable {  class Configuration; }
 namespace adwplot { class SpectrumWidget; class Dataplot; }
 

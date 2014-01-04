@@ -25,18 +25,25 @@
 #ifndef MSPEAKSUMMARY_HPP
 #define MSPEAKSUMMARY_HPP
 
-#include <QTableView>
+#include <QTreeView>
+#include <QItemDelegate>
 #include <memory>
 
-class QItemDelegate;
 class QStandardItemModel;
 
 namespace qtwidgets2 {
 
-    class MSPeakSummary : public QTableView {
+    class MSPeakView;
+
+    class MSPeakSummary : public QTreeView {
         Q_OBJECT
     public:
         explicit MSPeakSummary(QWidget *parent = 0);
+
+        void onInitialUpdate( MSPeakView * );
+
+        void setPolinomials( int mode, const std::vector< double >&, double sd );
+        void setPolinomials( const std::string& formula, const std::vector< double >&, double sd );
 
     signals:
 
@@ -45,6 +52,23 @@ namespace qtwidgets2 {
     private:
         std::unique_ptr< QStandardItemModel > model_;
         std::unique_ptr< QItemDelegate > delegate_;
+        MSPeakView * parent_;
+
+        // reimplement QTreeView
+        void currentChanged( const QModelIndex&, const QModelIndex& ) override;
+    };
+
+    class MSPeakSummaryDelegate : public QItemDelegate {
+        Q_OBJECT
+    public:
+        explicit MSPeakSummaryDelegate(QObject *parent = 0);
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+		// void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+        // void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
+        // bool editorEvent( QEvent * event, QAbstractItemModel *
+        //                   , const QStyleOptionViewItem&, const QModelIndex& ) override;
+    signals:
+    public slots:
     };
 
 }

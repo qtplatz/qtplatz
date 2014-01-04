@@ -35,6 +35,7 @@ namespace adcontrols {
     class MSReferences;
     class MSCalibrateResult;
     class MSAssignedMasses;
+    class MSPeaks;
 }
 
 class QStandardItemModel;
@@ -89,6 +90,7 @@ namespace qtwidgets2 {
         void on_reassign_mass_requested();
         void on_apply_calibration_to_dataset();
         void on_apply_calibration_to_default();
+        void on_add_selection_to_peak_table( const adcontrols::MSPeaks& );
 
     public slots:
         void setData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
@@ -120,6 +122,7 @@ namespace qtwidgets2 {
         void setEditable( int row, bool enable = false );
         void formulaChanged( const QModelIndex& );
         void copySummaryToClipboard();
+        void addSelectionToPeakTable();
     };
 
 }

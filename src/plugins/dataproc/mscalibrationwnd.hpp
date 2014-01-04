@@ -37,6 +37,7 @@ namespace adcontrols {
     class ProcessMethod;
 	class MSAssignedMasses;
 	class MSProperty;
+    class MSPeaks;
 }
 
 namespace adportable {  class Configuration; }
@@ -71,6 +72,8 @@ namespace dataproc {
         void handle_recalibration_requested();
         void handle_apply_calibration_to_dataset();
         void handle_apply_calibration_to_default();
+        //---
+        void handle_add_selection_to_peak_table( const adcontrols::MSPeaks& );
         
     private:
         std::shared_ptr<MSCalibrationWndImpl> pImpl_;

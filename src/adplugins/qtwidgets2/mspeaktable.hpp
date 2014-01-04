@@ -27,8 +27,10 @@
 
 #include <QTableView>
 #include <memory>
-class QItemDelegate;
+#include <QItemDelegate>
 class QStandardItemModel;
+
+namespace adcontrols { class MSPeaks; class MSPeak; }
 
 namespace qtwidgets2 {
 
@@ -36,7 +38,9 @@ namespace qtwidgets2 {
         Q_OBJECT
     public:
         explicit MSPeakTable(QWidget *parent = 0);
-
+        void onInitialUpdate();
+        QStandardItemModel& model() { return *model_; }
+        void setPeaks( const adcontrols::MSPeaks& );
     signals:
 
     public slots:
@@ -44,8 +48,23 @@ namespace qtwidgets2 {
     private:
         std::unique_ptr< QStandardItemModel > model_;
         std::unique_ptr< QItemDelegate > delegate_;
+
+        void addPeak( const adcontrols::MSPeak& );
+        friend class MSPeakView;
     };
 
+    class MSPeakTableDelegate : public QItemDelegate {
+        Q_OBJECT
+    public:
+        explicit MSPeakTableDelegate(QObject *parent = 0);
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+		// void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+        // void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
+        // bool editorEvent( QEvent * event, QAbstractItemModel *
+        //                   , const QStyleOptionViewItem&, const QModelIndex& ) override;
+    signals:
+    public slots:
+    };
 }
 
 #endif // MSPEAKTABLE_HPP

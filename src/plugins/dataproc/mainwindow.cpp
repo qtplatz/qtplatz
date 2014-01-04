@@ -32,8 +32,9 @@
 #include "msprocessingwnd.hpp"
 #include "mscalibrationwnd.hpp"
 #include "mscalibspectrawnd.hpp"
-#include "sessionmanager.hpp"
+#include "mspeakswnd.hpp"
 #include "mspropertyform.hpp"
+#include "sessionmanager.hpp"
 
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/processmethod.hpp>
@@ -108,9 +109,11 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , actionSelMSCalibration_( 0 )
                                           , actionSelMSCalibSpectra_( 0 )
                                           , actionSelChromatogram_( 0 )
+                                          , actionSelMSPeaks_( 0 )
                                           , stack_( 0 )
                                           , processMethodNameEdit_( new QLineEdit ) 
                                           , currentFeature_( CentroidProcess )
+                                          , msPeaksWnd_( 0 )
 {
 }
 
@@ -163,6 +166,11 @@ MainWindow::createStyledBarTop()
             connect( actionSelChromatogram_, SIGNAL( triggered() ), this, SLOT( actionSelChromatogram() ) );
             am->registerAction( actionSelChromatogram_, "dataproc.selChromatogram", globalcontext );
             toolBarLayout->addWidget( toolButton( actionSelChromatogram_ ) );
+
+            actionSelMSPeaks_ = new QAction( "MS Peaks", this );
+            connect( actionSelMSPeaks_, SIGNAL( triggered() ), this, SLOT( actionSelMSPeaks() ) );
+            am->registerAction( actionSelChromatogram_, "dataproc.selMSPeaks", globalcontext );
+            toolBarLayout->addWidget( toolButton( actionSelMSPeaks_ ) );
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
@@ -270,6 +278,11 @@ MainWindow::createContents( Core::IMode * mode
 
         wnd.push_back( new ChromatogramWnd( apppath ) );
         wnd.back()->setWindowTitle( "Chromatogram" );
+        stack_->addWidget( wnd.back() );
+
+        msPeaksWnd_ = new MSPeaksWnd;
+        wnd.push_back( msPeaksWnd_ );
+        wnd.back()->setWindowTitle( "MS Peaks" );
         stack_->addWidget( wnd.back() );
     }
 	
@@ -397,17 +410,23 @@ MainWindow::createDockWidgets()
         , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
         , { "Peak Find",       "qtwidgets::PeakMethodForm" }
         , { "Data property",   "dataproc::MSPropertyForm" }      // local
-        , { "MS Peaks",        "qtwidgets2::MSPeakView" }  // local
+        , { "MS Peaks",        "qtwidgets2::MSPeakView" }
     };
     
     for ( auto widget: widgets ) {
 
         QWidget * pWidget = adplugin::widget_factory::create( widget.wiid, 0, 0 );
+        if ( pWidget && std::strcmp(widget.wiid, "qtwidgets2::MSPeakView") == 0 ) {
+            connect( this, SIGNAL(onAddMSPeaks( const adcontrols::MSPeaks& )), pWidget, SLOT(handle_add_mspeaks( const adcontrols::MSPeaks& )) );
+            adplugin::LifeCycleAccessor accessor( pWidget );
+            if ( adplugin::LifeCycle * p = accessor.get() )
+                p->setContents( boost::any( msPeaksWnd_) );
+        }
 
         if ( !pWidget ) {
             if ( std::strcmp( widget.wiid, "dataproc::FilePropertyWidget" ) == 0 ) 
                 pWidget = new FilePropertyWidget;
-            if ( std::strcmp( widget.wiid, "dataproc::MSPropertyForm" ) == 0 ) 
+            if ( std::strcmp( widget.wiid, "dataproc::MSPropertyForm" ) == 0 )
                 pWidget = new MSPropertyForm;
         }
         
@@ -463,7 +482,7 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
 			if ( stack_->currentIndex() == 2 || stack_->currentIndex() == 3 )
 				actionSelMSProcess();
 		}
-
+        
         // set data property to MSPropertyForm
         boost::any any( folium );
         for ( auto widget: dockWidgets() ) {
@@ -486,6 +505,12 @@ MainWindow::currentProcessView( std::string& title ) const
 void
 MainWindow::handleApplyMethod()
 {
+}
+
+void
+MainWindow::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
+{
+    emit onAddMSPeaks( peaks );
 }
 
 void
@@ -646,6 +671,12 @@ void
 MainWindow::actionSelChromatogram()
 {
     stack_->setCurrentIndex( 4 );
+}
+
+void
+MainWindow::actionSelMSPeaks()
+{
+    stack_->setCurrentIndex( 5 );
 }
 
 void

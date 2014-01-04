@@ -34,8 +34,11 @@
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/mscalibration.hpp>
+#include <adcontrols/mspeaks.hpp>
+#include <adcontrols/mspeak.hpp>
 #include <adcontrols/computemass.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/serializer.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <qtwrapper/qstring.hpp>
@@ -53,6 +56,7 @@
 #include <QMessageBox>
 #include <algorithm>
 #include <tuple>
+#include <set>
 
 using namespace qtwidgets2;
 
@@ -194,10 +198,9 @@ MSCalibSummaryWidget::setAssignedData( int row, int fcn, int idx, const adcontro
     auto it = std::find_if( assigned.begin(), assigned.end(), [=]( const adcontrols::MSAssignedMass& a ){
             return fcn == int(a.idMassSpectrum()) && idx == int(a.idPeak()); 
         });
-
+    
     if ( it == assigned.end() )
         return false;
-
 	
 	double normalized_time = 0; // ( it->time() - t0 ) / pCalibrantSpectrum_->scanLaw().fLength( it->mode() );
 
@@ -248,7 +251,7 @@ MSCalibSummaryWidget::createModelData( const std::vector< std::pair< int, int > 
     const adcontrols::MSCalibration& calib = pCalibResult_->calibration();
 
     model.removeRows( 0, model.rowCount() );
-    model.insertRows( 0, indecies.size() ); 
+    model.insertRows( 0, static_cast<int>(indecies.size()) ); 
 
     adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *pCalibrantSpectrum_ );
 
@@ -353,9 +356,9 @@ MSCalibSummaryWidget::setData( const adcontrols::MSCalibrateResult& res, const a
 	double threshold = res.threshold();
     
     adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *pCalibrantSpectrum_ );
-    for ( size_t fcn = 0; fcn < segments.size(); ++fcn ) {
+    for ( int fcn = 0; fcn < segments.size(); ++fcn ) {
 		adcontrols::MassSpectrum& fms = segments[ fcn ];
-		for ( size_t idx = 0; idx < fms.size(); ++idx ) {
+		for ( int idx = 0; idx < fms.size(); ++idx ) {
 			if ( fms.getIntensity( idx ) > threshold )
 				indecies.push_back( std::make_pair( fcn, idx ) );
 		}
@@ -376,6 +379,7 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
     actions.push_back( menu.addAction( "Apply calibration to current dataset" ) );
     actions.push_back( menu.addAction( "Save as default calibration" ) );
     actions.push_back( menu.addAction( "Copy summary to clipboard" ) );
+    actions.push_back( menu.addAction( "Add to peak table" ) );
 
     QAction * selected = menu.exec( this->mapToGlobal( pt ) );
 
@@ -390,6 +394,8 @@ MSCalibSummaryWidget::showContextMenu( const QPoint& pt )
         emit on_apply_calibration_to_default(); // save calibration as system default
     } else if ( selected == actions[ 4 ] ) {
         copySummaryToClipboard();
+    } else if ( selected == actions[ 5 ] ) {
+        addSelectionToPeakTable();
     }
 }
 
@@ -495,9 +501,9 @@ MSCalibSummaryWidget::currentChanged( const QModelIndex& index, const QModelInde
     QStandardItemModel& model = *pModel_;
     (void)prev;
     scrollTo( index, QAbstractItemView::EnsureVisible );
-	size_t row = index.row();
-    size_t idx = model.index( row, c_index ).data( Qt::EditRole ).toInt();
-    size_t fcn = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
+	int row = index.row();
+    int idx = model.index( row, c_index ).data( Qt::EditRole ).toInt();
+    int fcn = model.index( row, c_fcn ).data( Qt::EditRole ).toInt();
 
     emit currentChanged( idx, fcn );
 
@@ -531,6 +537,42 @@ MSCalibSummaryWidget::handleCopyToClipboard()
         prev = idx;
     }
     QApplication::clipboard()->setText( copy_table );
+}
+
+void
+MSCalibSummaryWidget::addSelectionToPeakTable()
+{
+    QModelIndexList list = selectionModel()->selectedIndexes();
+    if ( list.size() < 1 )
+        return;
+
+    std::set< int > rows;
+
+    for ( auto index: list )
+        rows.insert( index.row() );
+
+    QStandardItemModel& model = *pModel_;
+    adcontrols::MSPeaks peaks;
+    for ( int row: rows ) {
+        double time = model.index( row, c_time ).data( Qt::EditRole ).toDouble();
+        double mass = model.index( row, c_mass ).data( Qt::EditRole ).toDouble();
+        std::string formula = model.index( row, c_formula ).data().toString().toStdString();
+        if ( !formula.empty() )
+            mass = model.index( row, c_exact_mass ).data( Qt::EditRole ).toDouble();
+        int mode = model.index( row, c_mode ).data().toInt();
+
+        const adcontrols::ScanLaw& law = pCalibrantSpectrum_->scanLaw();
+        adcontrols::MSPeak peak( time, mass, mode, law.fLength( mode ) );
+        peak.formula( formula );
+
+        //peak.spectrumId( pCalibrantSpectrum_->uuid() );
+        peaks << peak;
+    }
+    // std::string device;
+    // adportable::serializer< adcontrols::MSPeaks >::serialize( peaks, device );
+    // QByteArray d( device.data(), device.size() );
+	// emit on_add_selection_to_peak_table( QString::fromStdWString(adcontrols::MSPeaks::dataClass()), d );
+    emit on_add_selection_to_peak_table( peaks );
 }
 
 void
