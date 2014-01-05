@@ -57,7 +57,8 @@ namespace adcontrols {
 
 		static std::wstring getFormula( const CTable& );
 		static elemental_composition_map_t getComposition( const std::wstring& formula );
-        static std::wstring formatFormula( const std::wstring& formula, bool ritchText = true );
+        static std::wstring formatFormula( const std::wstring& formula, bool richText = true );
+        static std::string formatFormula( const std::string& formula, bool richText = true );
 
     private:
         internal::ChemicalFormulaImpl * impl_;

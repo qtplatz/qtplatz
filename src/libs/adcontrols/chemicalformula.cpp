@@ -267,8 +267,15 @@ ChemicalFormula::standardFormula( const std::string& formula )
     return internal::ChemicalFormulaImpl::standardFormula( formula );
 }
 
+std::string
+ChemicalFormula::formatFormula( const std::string& formula, bool richText )
+{
+    std::wstring wformula = formatFormula( adportable::utf::to_wstring( formula ), richText );
+    return adportable::utf::to_utf8( wformula );
+}
+
 std::wstring
-ChemicalFormula::formatFormula( const std::wstring& formula, bool ritchText )
+ChemicalFormula::formatFormula( const std::wstring& formula, bool richText )
 {
     using adcontrols::internal::ChemicalFormulaImpl;
     client::format_type fmt;
@@ -276,7 +283,7 @@ ChemicalFormula::formatFormula( const std::wstring& formula, bool ritchText )
     if ( ChemicalFormulaImpl::format( formula, fmt ) ) {
 
         std::wostringstream o;
-        if ( ritchText ) {
+        if ( richText ) {
             for ( auto e: fmt ) {
                 if ( std::strcmp( e.first.second, "(" ) == 0 ) {
                     o << L"(";
@@ -344,7 +351,7 @@ ChemicalFormula::getFormula( const CTable& ctable )
 	}
 
 	for ( const CTable::Bond& bond: ctable.bonds() ) {
-		size_t n = bond.bond_type <= 3 ? bond.bond_type : 0;
+		int n = bond.bond_type <= 3 ? bond.bond_type : 0;
 		valences[ bond.first_atom_number - 1 ].second -= n;
 		valences[ bond.second_atom_number - 1 ].second -= n;
 	}

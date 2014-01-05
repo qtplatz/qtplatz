@@ -29,12 +29,18 @@
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/chemicalformula.hpp>
 
+#include <compiler/diagnostic_push.h>
+#if defined _MSC_VER
+# pragma warning(disable:4267) // size_t to unsigned int possible loss of data (x64 int on MSC is 32bit)
+#endif
 #include <GraphMol/SmilesParse/SmilesParse.h>
 #include <GraphMol/RDKitBase.h>
 #include <GraphMol/SmilesParse/SmilesParse.h>
 #include <GraphMol/SmilesParse/SmilesWrite.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
 #include <GraphMol/FileParsers/MolSupplier.h>
+#include <compiler/diagnostic_pop.h>
+
 #include <adchem/drawing.hpp>
 
 #include <QDragEnterEvent>
@@ -108,7 +114,7 @@ MolTableView::MolTableView(QWidget *parent) : QTableView(parent)
         model_->setData( model_->index( 0, 0 ), smiles.c_str() );
         do { // SVG
             std::string svg = adchem::drawing::toSVG( *mol );
-            model_->setData( model_->index( 0, 1 ), QByteArray( svg.data(), svg.size() ) );
+            model_->setData( model_->index( 0, 1 ), QByteArray( svg.data(), static_cast<int>(svg.size()) ) );
             model_->item( 0, 1 )->setEditable( false );
         } while(0);
         do { // formula
@@ -134,24 +140,24 @@ MolTableView::setMol( adchem::SDFile& file, QProgressBar& progressBar )
         qtwrapper::waitCursor wait;
 
         //RDKit::SDMolSupplier& supplier = file.molSupplier();
-		model_->setRowCount( file.size() );
+		model_->setRowCount( static_cast<int>(file.size()) );
 
-        progressBar.setRange( 0, file.size() );
+        progressBar.setRange( 0, static_cast<int>(file.size()) );
         progressBar.setVisible( true );
         progressBar.setTextVisible( true );
 
-		size_t idx = 0;
+		uint32_t idx = 0;
 		for ( auto mol: file ) {
             progressBar.setValue( idx + 1 );
             try {
-                size_t col = 0;
+                int col = 0;
                 std::string smiles = RDKit::MolToSmiles( mol );
                 if ( ! smiles.empty() ) {
                     model_->setData( model_->index( idx, col++ ), smiles.c_str() );
                     
                     // SVG
                     std::string svg = adchem::drawing::toSVG( mol );
-                    model_->setData( model_->index( idx, col ), QByteArray( svg.data(), svg.size() ) );
+                    model_->setData( model_->index( idx, col ), QByteArray( svg.data(), static_cast<int>(svg.size()) ) );
                     model_->item( idx, col )->setEditable( false );
                 }
                 col = 2;

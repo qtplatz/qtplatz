@@ -59,7 +59,7 @@ namespace dataproc {
     private:
         std::vector< std::shared_ptr< adwplot::Dataplot > > plots_;
         std::vector< std::vector< std::shared_ptr< QwtPlotMarker > > > plotMarkers_;
-        std::vector< std::shared_ptr< QwtPlotCurve > > plotCurves_;
+        std::vector< std::vector< std::shared_ptr< QwtPlotCurve > > > plotCurves_;
 
         void init();
     };
