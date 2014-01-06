@@ -28,18 +28,22 @@
 #include <adcontrols/metric/prefix.hpp>
 #include <adportable/float.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
-#include <QStandardItemModel>
+#include <QApplication>
+#include <QClipboard>
+#include <QHeaderView>
 #include <QItemDelegate>
+#include <QKeyEvent>
+#include <QStandardItemModel>
 #include <boost/format.hpp>
 
 namespace qtwidgets2 {
 
     enum {
-        c_mspeaktable_time
+        c_mspeaktable_formula
+        , c_mspeaktable_time
         , c_mspeaktable_mass
         , c_mspeaktable_mode
         , c_mspeaktable_flength
-        , c_mspeaktable_formula
         , c_mspeaktable_accelerator_voltage
         , c_mspeaktable_description
         , c_mspeaktable_spectrumId
@@ -91,6 +95,7 @@ MSPeakTable::MSPeakTable(QWidget *parent) : QTableView(parent)
     this->setModel( model_.get() );
 	this->setItemDelegate( delegate_.get() );
     this->setSortingEnabled( true );
+    this->verticalHeader()->setDefaultSectionSize( 18 );
     QFont font;
     font.setFamily( "Consolas" );
 	font.setPointSize( 8 );
@@ -101,12 +106,8 @@ void
 MSPeakTable::onInitialUpdate()
 {
     QStandardItemModel& model = *model_;
-    QTableView& tableView = *this;
     
-    QStandardItem * rnode = model.invisibleRootItem();
-    tableView.setRowHeight( 0, 7 );
-    rnode->setColumnCount( c_mspeaktable_num_columns );
-
+    model.setColumnCount( c_mspeaktable_num_columns );
     model.setHeaderData( c_mspeaktable_time, Qt::Horizontal, QObject::tr( "time(us)" ) );
     model.setHeaderData( c_mspeaktable_mass, Qt::Horizontal, QObject::tr( "m/z" ) );
     model.setHeaderData( c_mspeaktable_mode, Qt::Horizontal, QObject::tr( "lap#" ) );
@@ -114,6 +115,10 @@ MSPeakTable::onInitialUpdate()
     model.setHeaderData( c_mspeaktable_description, Qt::Horizontal, QObject::tr( "description" ) );
     model.setHeaderData( c_mspeaktable_spectrumId, Qt::Horizontal, QObject::tr( "spectrum id" ) );
     model.setHeaderData( c_mspeaktable_accelerator_voltage, Qt::Horizontal, QObject::tr( "V(acc)" ) );
+
+    resizeRowsToContents();
+    resizeColumnsToContents();
+    horizontalHeader()->setResizeMode( QHeaderView::Stretch );
 }
 
 void
@@ -122,6 +127,9 @@ MSPeakTable::setPeaks( const adcontrols::MSPeaks& peaks )
     model_->setRowCount(0);
     for ( auto& peak: peaks )
         addPeak( peak );
+
+    resizeRowsToContents();
+    resizeColumnsToContents();
 }
 
 void
@@ -143,3 +151,39 @@ MSPeakTable::addPeak( const adcontrols::MSPeak& peak )
     model.setData( model.index( row, c_mspeaktable_accelerator_voltage ), vacc );
 }
 
+void
+MSPeakTable::keyPressEvent( QKeyEvent * event )
+{
+    if ( event->matches( QKeySequence::Copy ) ) {
+        handleCopyToClipboard();
+    } else if ( event->matches( QKeySequence::Paste ) ) {
+        // handlePasteFromClipboard();
+    } else {
+        QTableView::keyPressEvent( event );
+    }
+}
+
+void
+MSPeakTable::handleCopyToClipboard()
+{
+    QStandardItemModel& model = *model_;
+    QModelIndexList list = selectionModel()->selectedIndexes();
+
+    qSort( list );
+    if ( list.size() < 1 )
+        return;
+
+    QString copy_table;
+    QModelIndex prev = list.first();
+	int i = 0;
+    for ( auto idx: list ) {
+		if ( i++ > 0 )
+			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
+        if ( idx.column() == c_mspeaktable_time )
+            copy_table.append( QString("%1").arg( adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() ) ) );
+        else
+            copy_table.append( model.data( idx ).toString() );
+        prev = idx;
+    }
+    QApplication::clipboard()->setText( copy_table );
+}

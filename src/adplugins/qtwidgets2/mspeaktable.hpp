@@ -41,9 +41,15 @@ namespace qtwidgets2 {
         void onInitialUpdate();
         QStandardItemModel& model() { return *model_; }
         void setPeaks( const adcontrols::MSPeaks& );
+    protected:
+        // reimplement QTableView
+        // void currentChanged( const QModelIndex&, const QModelIndex& ) override;
+        void keyPressEvent( QKeyEvent * event ) override;
+        
     signals:
 
     public slots:
+        void handleCopyToClipboard();
 
     private:
         std::unique_ptr< QStandardItemModel > model_;
