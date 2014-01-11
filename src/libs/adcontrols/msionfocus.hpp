@@ -93,7 +93,7 @@ namespace adcontrols {
                 & mode_
                 & fLength_
                 & toleranceMethod_
-                & tolerance_
+                & tolerances_
                 & expected_
                 & assigned_
                 ;
