@@ -36,12 +36,12 @@
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT MSIonFocus {
+    class ADCONTROLSSHARED_EXPORT MSWatchIons {
     public:
-        ~MSIonFocus();
-        MSIonFocus();
-        MSIonFocus( const MSIonFocus& );
-        static const wchar_t * dataClass() { return L"adcontrols::MSIonFocus"; }
+        ~MSWatchIons();
+        MSWatchIons();
+        MSWatchIons( const MSWatchIons& );
+        static const wchar_t * dataClass() { return L"adcontrols::MSWatchIons"; }
 
         enum eTolerance {
             ToleranceInDa

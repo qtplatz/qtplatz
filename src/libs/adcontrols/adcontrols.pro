@@ -54,7 +54,7 @@ SOURCES += acceptor.cpp \
     mscalibratemethod.cpp \
     mscalibrateresult.cpp \
     mscalibration.cpp \
-    msionfocus.cpp \
+    mswatchions.cpp \
     mslockmethod.cpp \
     mspeakinfoitem.cpp \
     msproperty.cpp \
@@ -123,7 +123,7 @@ HEADERS += acceptor.hpp \
     mscalibratemethod.hpp \
     mscalibrateresult.hpp \
     mscalibration.hpp \
-    msionfocus.hpp \
+    mswatchions.hpp \
     mslockmethod.hpp \
     mspeakinfoitem.hpp \
     msproperty.hpp \

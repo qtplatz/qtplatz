@@ -22,17 +22,17 @@
 **
 **************************************************************************/
 
-#include "msionfocus.hpp"
+#include "mswatchions.hpp"
 #include "mspeaks.hpp"
 #include "mspeak.hpp"
 
 using namespace adcontrols;
 
-MSIonFocus::~MSIonFocus()
+MSWatchIons::~MSWatchIons()
 {
 }
 
-MSIonFocus::MSIonFocus() : acceleratorVoltage_( 0 )
+MSWatchIons::MSWatchIons() : acceleratorVoltage_( 0 )
                          , timeOffset_( 0 )
                          , hasCalibration_( false )
                          , mode_( 0 )
@@ -41,7 +41,7 @@ MSIonFocus::MSIonFocus() : acceleratorVoltage_( 0 )
 {
 }
 
-MSIonFocus::MSIonFocus( const MSIonFocus& t )
+MSWatchIons::MSWatchIons( const MSWatchIons& t )
     : acceleratorVoltage_( t.acceleratorVoltage_ )
     , timeOffset_( t.timeOffset_ )
     , hasCalibration_( t.hasCalibration_ )
@@ -55,109 +55,109 @@ MSIonFocus::MSIonFocus( const MSIonFocus& t )
 }
 
 double
-MSIonFocus::acceleratorVoltage() const
+MSWatchIons::acceleratorVoltage() const
 {
     return acceleratorVoltage_;
 }
 
 double
-MSIonFocus::timeOffset() const
+MSWatchIons::timeOffset() const
 {
     return timeOffset_;
 }
 
 bool
-MSIonFocus::hasCalibration() const
+MSWatchIons::hasCalibration() const
 {
     return hasCalibration_;
 }
 
 int32_t
-MSIonFocus::mode() const
+MSWatchIons::mode() const
 {
     return mode_;
 }
 
 double
-MSIonFocus::fLength() const
+MSWatchIons::fLength() const
 {
     return fLength_;
 }
 
-MSIonFocus::eTolerance
-MSIonFocus::toleranceMethod() const
+MSWatchIons::eTolerance
+MSWatchIons::toleranceMethod() const
 {
     return toleranceMethod_;
 }
 
 double
-MSIonFocus::tolerance( eTolerance m ) const
+MSWatchIons::tolerance( eTolerance m ) const
 {
     return tolerances_[ m ];
 }
 
 void
-MSIonFocus::acceleratorVoltage( double v )
+MSWatchIons::acceleratorVoltage( double v )
 {
     acceleratorVoltage_ = v;
 }
 
 void
-MSIonFocus::timeOffset( double v )
+MSWatchIons::timeOffset( double v )
 {
     timeOffset_ = v;
 }
 
 void
-MSIonFocus::hasCalibration( bool v )
+MSWatchIons::hasCalibration( bool v )
 {
     hasCalibration_ = v;
 }
 
 void
-MSIonFocus::mode( int32_t v )
+MSWatchIons::mode( int32_t v )
 {
     mode_ = v;
 }
 
 void
-MSIonFocus::fLength( double v )
+MSWatchIons::fLength( double v )
 {
     fLength_ = v;
 }
 
 void
-MSIonFocus::toleranceMethod( eTolerance v )
+MSWatchIons::toleranceMethod( eTolerance v )
 {
     toleranceMethod_ = v;
 }
 
 void
-MSIonFocus::tolerance( eTolerance t, double v )
+MSWatchIons::tolerance( eTolerance t, double v )
 {
     tolerances_[ t ] = v;
 }
 
 const MSPeaks& 
-MSIonFocus::expected() const
+MSWatchIons::expected() const
 {
     return expected_;
 }
 
 const MSPeaks&
-MSIonFocus::assigned() const
+MSWatchIons::assigned() const
 {
     return assigned_;
 }
 
 MSPeaks&
-MSIonFocus::expected()
+MSWatchIons::expected()
 {
     return expected_;
 }
 
 MSPeaks&
-MSIonFocus::assigned()
+MSWatchIons::assigned()
 {
     return assigned_;
 }
