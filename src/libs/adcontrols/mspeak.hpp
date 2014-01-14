@@ -40,12 +40,14 @@ namespace adcontrols {
         MSPeak();
         MSPeak( const MSPeak& );
         MSPeak( double time, double mass, int32_t mode, double flength = 1.0 );
+        MSPeak( const std::string& formula, double mass );
         static const wchar_t * dataClass() { return L"adcontrols::MSPeak"; }
 
         double time() const;
         double mass() const;
         int32_t mode() const;
         double flight_length() const;
+        double width( bool isTime = false ) const;
         const std::string& formula() const;
         const std::wstring& description() const;
         const std::string& spectrumId() const;
@@ -54,6 +56,7 @@ namespace adcontrols {
         void time( double );
         void mass( double );
         void mode( int32_t );
+        void width( double, bool isTime = false );
         void flight_length( double );
         void formula( const std::string& );
         void description( const std::wstring& );
@@ -69,6 +72,8 @@ namespace adcontrols {
         std::wstring description_;
         std::string spectrumId_;
         int32_t spectrumIndex_;
+        double time_width_;
+        double mass_width_;
 
         friend class boost::serialization::access;
         template<class Archive>
@@ -82,6 +87,9 @@ namespace adcontrols {
                 & description_
                 & spectrumId_
                 & spectrumIndex_
+                & widthInTime_
+                & time_width_
+                & mass_width_
                 ;
         }
     };

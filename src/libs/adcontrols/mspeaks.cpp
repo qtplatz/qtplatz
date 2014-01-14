@@ -71,6 +71,12 @@ MSPeaks::operator [] ( size_t idx ) const
     return vec_[ idx ];
 }
 
+void
+MSPeaks::clear()
+{
+    vec_.clear();
+}
+
 size_t
 MSPeaks::size() const
 {

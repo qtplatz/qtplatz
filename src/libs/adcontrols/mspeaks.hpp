@@ -46,6 +46,7 @@ namespace adcontrols {
         typedef std::vector< value_type >::iterator iterator_type;
         typedef std::vector< value_type >::const_iterator const_iterator_type;
 
+        void clear();
         size_t size() const;
         iterator_type begin();
         iterator_type end();

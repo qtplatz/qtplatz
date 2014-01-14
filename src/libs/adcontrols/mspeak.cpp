@@ -33,10 +33,9 @@ MSPeak::MSPeak() : time_( 0 )
                  , mass_( 0 )               
                  , mode_( 0 )               
                  , flength_( 0 )         
-                 , formula_( 0 )         
-                 , description_( 0 ) 
-                 , spectrumId_( 0 )   
                  , spectrumIndex_( 0 )
+                 , time_width_( 0 )
+                 , mass_width_( 0 )
 {
 }
 
@@ -48,6 +47,8 @@ MSPeak::MSPeak( const MSPeak& t ) : time_( t.time_ )
                                   , description_( t.description_ )
                                   , spectrumId_( t.spectrumId_ )   
                                   , spectrumIndex_( t.spectrumIndex_ )
+                                  , time_width_( t.time_width_ )
+                                  , mass_width_( t.mass_width_ )
 {
 }
 
@@ -55,6 +56,14 @@ MSPeak::MSPeak( double time, double mass, int32_t mode, double flength ) : time_
                                                                          , mass_( mass )
                                                                          , mode_( mode )
                                                                          , flength_( flength )
+{
+}
+
+MSPeak::MSPeak( const std::string& formula, double mass ) : formula_( formula )
+                                                          , mass_( mass )
+                                                          , mode_( 0 )
+                                                          , flength_( 0 )
+                                                          , spectrumIndex_( 0 )
 {
 }
 
@@ -74,6 +83,21 @@ int32_t
 MSPeak::mode() const
 {
     return mode_;
+}
+
+double
+MSPeak::width( bool isTime ) const
+{
+    return isTime ? time_width_ : mass_width_;
+}
+
+void
+MSPeak::width( double value, bool isTime )
+{
+    if ( isTime )
+        time_width_ = value;
+    else
+        mass_width_ = value;
 }
 
 double
