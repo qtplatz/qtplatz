@@ -405,6 +405,7 @@ MainWindow::createDockWidgets()
     } widgets [] = { 
         {  "Centroid" ,        "qtwidgets::CentroidForm" }
         , { "MS Calibration",  "qtwidgets2::MSCalibrationForm" }
+        , { "MS Chromatogr.",  "qtwidgets2::MSChromatogramWidget" }
         , { "Targeting",       "qtwidgets::TargetForm" }
         //, { "Isotope",       "qtwidgets::IsotopeForm" }
         , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }

@@ -42,7 +42,8 @@ SOURCES += factory.cpp \
         mspeaktable.cpp \
         standarditemhelper.cpp \
         tableview.cpp \
-        qtwidgets2.cpp
+        qtwidgets2.cpp \
+    mschromatogramwidget.cpp
 
 HEADERS += \
         factory.hpp \
@@ -55,7 +56,8 @@ HEADERS += \
         mscalibsummarywidget.hpp \
         standarditemhelper.hpp \
         tableview.hpp \
-        qtwidgets2.hpp
+        qtwidgets2.hpp \
+    mschromatogramwidget.hpp
 
 FORMS += \
     mscalibrationform.ui

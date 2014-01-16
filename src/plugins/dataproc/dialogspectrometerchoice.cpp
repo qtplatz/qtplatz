@@ -39,7 +39,7 @@ DialogSpectrometerChoice::DialogSpectrometerChoice(QWidget *parent) :
 	std::vector< std::wstring > names = adcontrols::MassSpectrometer::get_model_names();
 
 	model_->setColumnCount( 1 );
-	model_->setRowCount( names.size() );
+	model_->setRowCount( static_cast<int>(names.size()) );
     int row = 0;
     for ( auto& name: names ) {
         model_->setItem( row++, 0, new QStandardItem( QString::fromStdWString( name ) ) );

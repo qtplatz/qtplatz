@@ -63,43 +63,49 @@ namespace adcontrols {
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const ProcessMethod::value_type& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
-
+    
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const adcontrols::CentroidMethod& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
     
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const IsotopeMethod& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
     
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const ElementalCompositionMethod& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
     
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const MSCalibrateMethod& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
     
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const TargetingMethod& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
     }
-
+    
     template<> void DECL_EXPORT
     ProcessMethod::appendMethod( const PeakMethod& v )
     {
-	vec_.push_back( v );
+        vec_.push_back( v );
+    }
+
+    template<> void DECL_EXPORT
+    ProcessMethod::appendMethod( const MSChromatogramMethod& v )
+    {
+        vec_.push_back( v );
     }
 
 }; // namespace adcontrols
@@ -108,8 +114,8 @@ namespace adcontrols {
 template<class T> struct method_finder {
     static const T * find( const ProcessMethod::vector_type& vec ) {
 		auto it = std::find_if( vec.begin(), vec.end(), [&]( const ProcessMethod::value_type& t ){
-			return typeid(T) == t.type();
-		});
+                return typeid(T) == t.type();
+            });
 		if ( it != vec.end() )
 			return &boost::get< T >( *it );
         return 0;
@@ -152,6 +158,12 @@ namespace adcontrols {
     ProcessMethod::find() const
     {
         return method_finder< PeakMethod >::find( vec_ );
+    }
+
+    template<> DECL_EXPORT /* __declspec(dllexport) */ const adcontrols::MSChromatogramMethod*
+    ProcessMethod::find() const
+    {
+        return method_finder< MSChromatogramMethod >::find( vec_ );
     }
 
 }; // namespace adcontrols
@@ -213,15 +225,15 @@ namespace adcontrols {
     template<> void
     ProcessMethod::serialize( portable_binary_oarchive& ar, const unsigned int version )
     {
-	(void)version;
-	ar << boost::serialization::make_nvp( "ProcessMethod", vec_ );
+        (void)version;
+        ar << boost::serialization::make_nvp( "ProcessMethod", vec_ );
     }
     
     template<> void
     ProcessMethod::serialize( portable_binary_iarchive& ar, const unsigned int version )
     {
-	(void)version;
-	ar >> boost::serialization::make_nvp("ProcessMethod", vec_);
+        (void)version;
+        ar >> boost::serialization::make_nvp("ProcessMethod", vec_);
     }
 }; // namespace adcontrols
 

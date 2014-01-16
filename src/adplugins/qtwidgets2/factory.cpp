@@ -24,15 +24,16 @@
 **************************************************************************/
 
 #include "factory.hpp"
-#include <adplugin/adplugin.hpp>
-#include <adplugin/constants.hpp>
-#include <adportable/debug.hpp>
-#include <qdebug.h>
 #include <QtCore/qplugin.h>
 #include "mscalibrationform.hpp"
 #include "mscalibsummarywidget.hpp"
 #include "mspeakview.hpp"
+#include "mschromatogramwidget.hpp"
 #include <adplugin/lifecycle.hpp>
+#include <adplugin/adplugin.hpp>
+#include <adplugin/constants.hpp>
+#include <adportable/debug.hpp>
+#include <qdebug.h>
 #include <QMessageBox>
 
 using namespace qtwidgets2;
@@ -47,6 +48,8 @@ factory::create_widget( const wchar_t * iid, QWidget * parent )
         pWidget = new qtwidgets2::MSCalibSummaryWidget( parent );
     } else if ( std::wstring( iid ) == L"qtwidgets2::MSPeakView" ) {
         pWidget = new qtwidgets2::MSPeakView( parent );
+    } else if ( std::wstring( iid ) == L"qtwidgets2::MSChromatogramWidget" ) {
+        pWidget = new qtwidgets2::MSChromatogramWidget( parent );
     }
     if ( pWidget )
         return pWidget;

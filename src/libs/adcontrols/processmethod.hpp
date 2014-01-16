@@ -35,6 +35,7 @@
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adcontrols/targetingmethod.hpp>
 #include <adcontrols/peakmethod.hpp>
+#include <adcontrols/mschromatogrammethod.hpp>
 
 #include <compiler/disable_dll_interface.h>
 
@@ -51,11 +52,12 @@ namespace adcontrols {
         static const wchar_t * dataClass() { return L"adcontrols::ProcessMethod"; }
 
         typedef boost::variant< CentroidMethod
-                              , IsotopeMethod
-                              , ElementalCompositionMethod
-                              , MSCalibrateMethod
-                              , TargetingMethod 
-							  , PeakMethod 
+                                , IsotopeMethod
+                                , ElementalCompositionMethod
+                                , MSCalibrateMethod
+                                , TargetingMethod 
+                                , PeakMethod 
+                                , MSChromatogramMethod
                               > value_type;
 
         typedef std::vector< value_type > vector_type;
