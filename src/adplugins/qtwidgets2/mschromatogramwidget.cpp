@@ -27,10 +27,14 @@
 #include <adcontrols/processmethod.hpp>
 #include <adportable/is_type.hpp>
 #include <boost/any.hpp>
+#include <boost/format.hpp>
 #include <QStandardItemModel>
 #include <QItemDelegate>
 #include <QTextDocument>
 #include <QComboBox>
+#include <QLineEdit>
+#include <QDoubleSpinBox>
+#include <QKeyEvent>
 
 namespace qtwidgets2 {
     enum {
@@ -49,6 +53,7 @@ MSChromatogramWidget::MSChromatogramWidget(QWidget *parent) : QTreeView(parent)
 {
     setModel( model_.get() );
     setItemDelegate( delegate_.get() );
+    setEditTriggers( QAbstractItemView::AllEditTriggers );
     connect( delegate_.get(), SIGNAL( valueChanged( const QModelIndex& ) ), this, SLOT( handleValueChanged( const QModelIndex& ) ) );
 }
 
@@ -66,12 +71,15 @@ MSChromatogramWidget::OnInitialUpdate()
 {
     QStandardItemModel& model = *model_;
 
-    model.setColumnCount( 4 );
-    model.setRowCount( 5 );
+    model.setColumnCount( 3 );
+    model.setRowCount( 3 );
+
+    model.setHeaderData( 0, Qt::Horizontal, "MS Chromatogram Parameter" );
+    model.setHeaderData( 1, Qt::Horizontal, "" );
+    model.setHeaderData( 2, Qt::Horizontal, "" );
 
     model.setData( model.index( r_mschromatogram_datasource, 0 ), "data source" );
-
-    model.setData( model.index( r_mschromatogram_width,      0 ), "m/z width" );
+    model.setData( model.index( r_mschromatogram_width,      0 ), "mass width" );
     do { // width
         QStandardItem * parent = model.itemFromIndex( model.index( r_mschromatogram_width, 0 ) );
         parent->setRowCount( 2 );
@@ -82,7 +90,7 @@ MSChromatogramWidget::OnInitialUpdate()
             //chk->setFlags( chk->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled );
 			chk->setCheckable( true );
 			chk->setEnabled( true );
-            chk->setEditable( true );
+            chk->setEditable( false );
 			model.setData( model.index( row, 0, parent->index() ), ( row == 0 ) ? "Dalton" : "R.P." );
             model.setData( model.index( row, 0, parent->index() ), ( row == method_->widthMethod())? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
         }
@@ -98,6 +106,14 @@ MSChromatogramWidget::OnInitialUpdate()
     } while(0);
 
     setContents( *method_ );    
+
+    // editable
+    model.itemFromIndex( model.index( r_mschromatogram_datasource, 0 ) )->setEditable( false );
+    model.itemFromIndex( model.index( r_mschromatogram_width, 0 ) )->setEditable( false );
+    QStandardItem * limit = model.itemFromIndex( model.index( r_mschromatogram_limits, 0 ) );
+    limit->setEditable( false );
+    model.itemFromIndex( model.index( 0, 0, limit->index() ) )->setEditable( false );
+    model.itemFromIndex( model.index( 1, 0, limit->index() ) )->setEditable( false );
 
     // for ( int c = 0; c < model.columnCount(); ++c )
     //     resizeColumnToContents( c );
@@ -164,8 +180,11 @@ MSChromatogramWidget::setContents( const adcontrols::MSChromatogramMethod& m )
 
     static int rows [] = { 0, 1 };
     QStandardItem * parent = model.itemFromIndex( model.index( r_mschromatogram_width, 0 ) );
-    for ( auto row: rows )
-        model.setData( model.index( row, 1, parent->index() ), m.width( adcontrols::MSChromatogramMethod::WidthMethod( row ) ) );
+    for ( auto row: rows ) {
+        // model.setData( model.index( row, 0, parent->index() ), ( row == 0 ) ? "Dalton" : "R.P." );
+        model.setData( model.index( row, 0, parent->index() ), ( row == method_->widthMethod())? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole );
+        model.setData( model.index( row, 1, parent->index() ), m.width( static_cast<adcontrols::MSChromatogramMethod::WidthMethod>( row ) ) );
+    }
 
     // mass range
     // mass_range summary
@@ -250,6 +269,13 @@ MSChromatogramDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem
             return pCombo;
         }
     }
+    if ( index.data().type() == QVariant::Double ) {
+        QDoubleSpinBox * p = new QDoubleSpinBox( parent );
+        p->setDecimals( 4 );
+        p->setMaximum( 1000000.0 );
+        return p;
+    }
+
     return QItemDelegate::createEditor( parent, option, index );
 }
 
@@ -267,6 +293,13 @@ MSChromatogramDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 			int value = index.data().toInt();
             const char * text = ( value == MSChromatogramMethod::widthInDa ) ? "Daltons" : "R.P.";
             drawDisplay( painter, option, option.rect, text );
+            return;            
+        } else if ( index.row() == r_mschromatogram_width && index.column() == 2 ) {
+			double value = index.data().toDouble();
+            if ( value >= 10 )
+                drawDisplay( painter, option, option.rect, (boost::format( "%f" ) % value).str().c_str() );
+            else
+                drawDisplay( painter, option, option.rect, (boost::format( "%.4f" ) % value).str().c_str() );
             return;            
         }
     }
@@ -328,10 +361,27 @@ MSChromatogramDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
 }
 
 bool
-MSChromatogramDelegate::editorEvent( QEvent * 
-                                     , QAbstractItemModel * 
+MSChromatogramDelegate::editorEvent( QEvent * event
+                                     , QAbstractItemModel * model
                                      , const QStyleOptionViewItem&
-                                     , const QModelIndex& )
+                                     , const QModelIndex& index )
 {
+    // as same effect as override mouseReleaseEvent in Widget class
+    if ( event->type() == QEvent::MouseButtonRelease && (model->flags( index ) & Qt::ItemIsUserCheckable ) ) {
+        if ( index.parent() == model->index( r_mschromatogram_width, 0 ) ) {
+            adcontrols::MSChromatogramMethod::WidthMethod method;
+            bool checked = index.data( Qt::CheckStateRole ) == Qt::Checked; // to be unchecked
+
+            if ( index.row() == adcontrols::MSChromatogramMethod::widthInDa )
+                method = checked ? adcontrols::MSChromatogramMethod::widthInRP : adcontrols::MSChromatogramMethod::widthInDa;
+            else
+                method = checked ? adcontrols::MSChromatogramMethod::widthInDa : adcontrols::MSChromatogramMethod::widthInRP;
+
+            model->setData( model->index( r_mschromatogram_width, 1 ), method );
+            emit valueChanged( model->index( r_mschromatogram_width, 1 ) );
+
+            return true;        
+        }
+    }
 	return false;
 }
