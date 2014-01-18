@@ -1,0 +1,181 @@
+/**************************************************************************
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+*
+** Contact: toshi.hondo@qtplatz.com
+**
+** Commercial Usage
+**
+** Licensees holding valid ScienceLiaison commercial licenses may use this file in
+** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and MS-Cheminformatics LLC.
+**
+** GNU Lesser General Public License Usage
+**
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.TXT included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+**************************************************************************/
+
+#include "spectrogramwidget.hpp"
+
+using namespace adwplot;
+
+#include <qwt_plot_spectrogram.h>
+#include <qwt_color_map.h>
+#include <qwt_plot_spectrogram.h>
+#include <qwt_scale_widget.h>
+#include <qwt_scale_draw.h>
+#include <qwt_plot_zoomer.h>
+#include <qwt_plot_panner.h>
+#include <qwt_plot_layout.h>
+#include <qwt_plot_renderer.h>
+#include <qbrush.h>
+#include <iostream>
+
+namespace detail {
+
+    class zoomer : public QwtPlotZoomer {
+    public:
+        zoomer( QWidget * canvas ) : QwtPlotZoomer( canvas ) {
+            setTrackerMode( AlwaysOn );
+        }
+        virtual QwtText trackerTextF( const QPointF &pos ) const {
+            QColor bg( Qt::white );
+            bg.setAlpha( 200 );
+            
+            QwtText text = QwtPlotZoomer::trackerTextF( pos );
+			text.setBackgroundBrush( QBrush( bg ) );
+            return text;
+        }
+    };
+
+    class SpectrogramData: public QwtRasterData  {
+    public:
+        SpectrogramData() {
+
+            setInterval( Qt::XAxis, QwtInterval( 0, 10.0 ) );   // time
+            setInterval( Qt::YAxis, QwtInterval( 0, 1000.0 ) ); // m/z
+            setInterval( Qt::ZAxis, QwtInterval( 0.0, 65536.0 ) );
+        }
+
+        virtual double value( double x, double y ) const  {
+			//return model::instance()->value( size_t(x) + 128, size_t(y) + 128 );
+			return 0;
+		}
+    };
+
+    class ColorMap: public QwtLinearColorMap {
+    public:
+        ColorMap(): QwtLinearColorMap( Qt::darkCyan, Qt::red ) {
+            addColorStop( 0.1, Qt::cyan );
+            addColorStop( 0.6, Qt::green );
+            addColorStop( 0.95, Qt::yellow );
+        }
+    };
+} // namespace detail
+
+SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
+                                                        , spectrogram_( new QwtPlotSpectrogram() )
+{
+    spectrogram_->setRenderThreadCount( 0 ); // use system specific thread count
+
+    spectrogram_->setColorMap( new detail::ColorMap() );
+    spectrogram_->setCachePolicy( QwtPlotRasterItem::PaintCache );
+
+    spectrogram_->setData( new detail::SpectrogramData() );
+    spectrogram_->attach( this );
+
+    QList<double> contourLevels;
+    for ( double level = 0.5; level < 10.0; level += 1.0 )
+        contourLevels += level;
+    spectrogram_->setContourLevels( contourLevels );
+
+    const QwtInterval zInterval = spectrogram_->data()->interval( Qt::ZAxis );
+    // A color bar on the right axis
+    QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
+    rightAxis->setTitle( QwtText( "Intensity", QwtText::RichText ) );
+    rightAxis->setColorBarEnabled( true );
+    rightAxis->setColorMap( zInterval, new detail::ColorMap() );
+
+    setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
+    enableAxis( QwtPlot::yRight );
+
+    axisWidget( QwtPlot::xBottom )->setTitle( QwtText( "Time <i>(min)</i>", QwtText::RichText ) );
+    axisWidget( QwtPlot::yLeft )->setTitle( QwtText( "<i>m/z</i>", QwtText::RichText ) );
+
+    QwtScaleWidget *yAxis = axisWidget( QwtPlot::yLeft );    
+    yAxis->setTitle( "m/z" );
+
+    plotLayout()->setAlignCanvasToScales( true );
+    replot();
+
+    // LeftButton for the zooming
+    // MidButton for the panning
+    // RightButton: zoom out by 1
+    // Ctrl+RighButton: zoom out to full size
+
+    QwtPlotZoomer* zoomer = new detail::zoomer( canvas() );
+    zoomer->setMousePattern( QwtEventPattern::MouseSelect2, Qt::RightButton, Qt::ControlModifier );
+    zoomer->setMousePattern( QwtEventPattern::MouseSelect3, Qt::RightButton );
+
+    QwtPlotPanner *panner = new QwtPlotPanner( canvas() );
+    panner->setAxisEnabled( QwtPlot::yRight, false );
+    panner->setMouseButton( Qt::MidButton );
+
+    // Avoid jumping when labels with more/less digits
+    // appear/disappear when scrolling vertically
+
+    const QFontMetrics fm( axisWidget( QwtPlot::yLeft )->font() );
+    QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );
+    sd->setMinimumExtent( fm.width( "100.00" ) );
+
+    const QColor c( Qt::darkBlue );
+    zoomer->setRubberBandPen( c );
+    zoomer->setTrackerPen( c );
+
+    connect( this, SIGNAL( dataChanged() ), this, SLOT( handle_dataChanged() ) );
+	//    model::instance()->signal( std::bind(&SpectrogramWidget::handle_signal, this) );
+}
+
+void
+SpectrogramWidget::handleDataChanged()
+{
+	spectrogram_->invalidateCache();
+	replot();
+}
+
+void
+SpectrogramWidget::handleShowContour( bool on )
+{
+    spectrogram_->setDisplayMode( QwtPlotSpectrogram::ContourMode, on );
+    replot();
+}
+
+void
+SpectrogramWidget::handleShowSpectrogram( bool on )
+{
+    spectrogram_->setDisplayMode( QwtPlotSpectrogram::ImageMode, on );
+    spectrogram_->setDefaultContourPen( on ? QPen( Qt::black, 0 ) : QPen( Qt::NoPen ) );
+
+    replot();
+}
+
+void
+SpectrogramWidget::handleSetAlpha( int alpha )
+{
+    spectrogram_->setAlpha( alpha );
+    replot();
+}
+
+void
+SpectrogramWidget::handle_signal()
+{
+    emit dataChanged();
+}
+

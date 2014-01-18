@@ -34,7 +34,8 @@ SOURCES += adwplot.cpp \
     traces.cpp \
     zoomer.cpp \
     picker.cpp \
-    panner.cpp
+    panner.cpp \
+    spectrogramwidget.cpp
 
 HEADERS += adwplot.hpp \
     annotation.hpp \
@@ -52,7 +53,8 @@ HEADERS += adwplot.hpp \
     traces.hpp \
     zoomer.hpp \
     picker.hpp \
-    panner.hpp
+    panner.hpp \
+    spectrogramwidget.hpp
 
 unix:!symbian {
     maemo5 {

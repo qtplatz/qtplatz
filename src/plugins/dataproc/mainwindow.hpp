@@ -96,6 +96,8 @@ namespace dataproc {
         void actionSelMSCalibSpectra();
         void actionSelChromatogram();
         void actionSelMSPeaks();
+        void actionSelSpectrogram();
+        
         friend class MSPeaksWnd;
 
     private:
@@ -112,6 +114,7 @@ namespace dataproc {
         QAction * actionSelMSCalibSpectra_;
         QAction * actionSelChromatogram_;
         QAction * actionSelMSPeaks_;
+        QAction * actionSelSpectrogram_;
         QStackedWidget * stack_;
         std::unique_ptr< QLineEdit > processMethodNameEdit_;
         enum ProcessType currentFeature_;

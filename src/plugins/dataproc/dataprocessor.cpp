@@ -607,10 +607,12 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
 {
     portfolio::Folder folder = portfolio_->addFolder( L"Chromatograms" );
 
-    const adcontrols::Descriptions& descs = src.getDescriptions();
     std::wstring name;
-    for ( size_t i = 0; i < descs.size(); ++i )
-        name += descs[i].text();
+	for ( auto& desc: src.getDescriptions() ) {
+		if ( !name.empty() )
+			name += L"/";
+		name += desc.text();
+	}
 
     portfolio::Folium folium = folder.addFolium( name );
     adutils::ChromatogramPtr c( new adcontrols::Chromatogram( src ) );  // profile, deep copy

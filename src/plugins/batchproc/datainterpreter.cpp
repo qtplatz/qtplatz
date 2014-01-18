@@ -115,23 +115,23 @@ DataInterpreter::translate_profile( adcontrols::MassSpectrum& ms
         }
     }
 
-    adportable::debug(__FILE__, __LINE__) << "translate_profile checkpoint 3";
+    //adportable::debug(__FILE__, __LINE__) << "translate_profile checkpoint 3";
     const import_continuum_massarray& continuum_massarray = meta ? ma : pSpectrometer->continuum_massarray();
     
 	ms.setMSProperty( profile.prop_ );
 	ms.setPolarity( profile.polarity_ );
     ms.resize( profile.intensities_.size() );
 
-    adportable::debug(__FILE__, __LINE__) << "translate_profile checkpoint 4";
+    //adportable::debug(__FILE__, __LINE__) << "translate_profile checkpoint 4";
     ms.setMassArray( continuum_massarray.masses_.data() );
     auto intens = profile.intensities_.data();
     for ( size_t i = 0; i < ms.size(); ++i )
         ms.setIntensity( i, *intens++ );
 
-    adportable::debug(__FILE__, __LINE__) << "translate_profile checkpoint 5";
+    //adportable::debug(__FILE__, __LINE__) << "translate_profile checkpoint 5";
     ms.setAcquisitionMassRange( ms.getMass( 0 ), ms.getMass( ms.size() - 1 ) );
 
-    adportable::debug(__FILE__, __LINE__) << "translate_profile checkpoint 6";
+    //adportable::debug(__FILE__, __LINE__) << "translate_profile checkpoint 6";
 
     return adcontrols::translate_complete;
 }

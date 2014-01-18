@@ -33,6 +33,7 @@
 #include "mscalibrationwnd.hpp"
 #include "mscalibspectrawnd.hpp"
 #include "mspeakswnd.hpp"
+#include "spectrogramwnd.hpp"
 #include "mspropertyform.hpp"
 #include "sessionmanager.hpp"
 
@@ -110,6 +111,7 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , actionSelMSCalibSpectra_( 0 )
                                           , actionSelChromatogram_( 0 )
                                           , actionSelMSPeaks_( 0 )
+                                          , actionSelSpectrogram_( 0 )
                                           , stack_( 0 )
                                           , processMethodNameEdit_( new QLineEdit ) 
                                           , currentFeature_( CentroidProcess )
@@ -169,8 +171,13 @@ MainWindow::createStyledBarTop()
 
             actionSelMSPeaks_ = new QAction( "MS Peaks", this );
             connect( actionSelMSPeaks_, SIGNAL( triggered() ), this, SLOT( actionSelMSPeaks() ) );
-            am->registerAction( actionSelChromatogram_, "dataproc.selMSPeaks", globalcontext );
+            am->registerAction( actionSelMSPeaks_, "dataproc.selMSPeaks", globalcontext );
             toolBarLayout->addWidget( toolButton( actionSelMSPeaks_ ) );
+
+            actionSelSpectrogram_ = new QAction( "Spectrogram", this );
+            connect( actionSelSpectrogram_, SIGNAL( triggered() ), this, SLOT( actionSelSpectrogram() ) );
+            am->registerAction( actionSelSpectrogram_, "dataproc.selSpectrogram", globalcontext );
+            toolBarLayout->addWidget( toolButton( actionSelSpectrogram_ ) );
         }
         toolBarLayout->addWidget( new Utils::StyledSeparator );
         toolBarLayout->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
@@ -283,6 +290,10 @@ MainWindow::createContents( Core::IMode * mode
         msPeaksWnd_ = new MSPeaksWnd;
         wnd.push_back( msPeaksWnd_ );
         wnd.back()->setWindowTitle( "MS Peaks" );
+        stack_->addWidget( wnd.back() );
+
+        wnd.push_back( new SpectrogramWnd );
+        wnd.back()->setWindowTitle( "Spectrogram" );
         stack_->addWidget( wnd.back() );
     }
 	
@@ -678,6 +689,12 @@ void
 MainWindow::actionSelMSPeaks()
 {
     stack_->setCurrentIndex( 5 );
+}
+
+void
+MainWindow::actionSelSpectrogram()
+{
+    stack_->setCurrentIndex( 6 );
 }
 
 void
