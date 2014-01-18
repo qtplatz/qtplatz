@@ -32,9 +32,11 @@
 
 using namespace dataproc;
 
-NavigationDelegate::NavigationDelegate(QObject *parent) :
-    QItemDelegate(parent)
+NavigationDelegate::NavigationDelegate(QObject *parent) :  QItemDelegate(parent)
 {
+    qRegisterMetaType< portfolio::Folium >();
+    //qRegisterMetaType< portfolio::Folder >();
+    //qRegisterMetaType< dataproc::Dataprocessor * >();
 }
 
 void

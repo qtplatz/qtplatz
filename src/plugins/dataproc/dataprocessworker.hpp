@@ -32,7 +32,7 @@
 #include <memory>
 #include <boost/asio.hpp>
 
-namespace adcontrols { class MassSpectrum; }
+namespace adcontrols { class MassSpectrum; class ProcessMethod; }
 namespace qtwrapper { class ProgressBar; }
 
 namespace dataproc {
@@ -54,11 +54,18 @@ namespace dataproc {
         
         void createChromatograms( Dataprocessor *, const std::vector< std::tuple< int, double, double > >& );
         void createChromatograms( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectrum >&, double lMass, double hMass );
+        void createSpectrogram( Dataprocessor * );
 
     private:
         void terminate();
-        void handleCreateChromatograms( Dataprocessor *, const std::vector< std::tuple< int, double, double > >&
+        void handleCreateChromatograms( Dataprocessor *
+                                        , const std::shared_ptr< adcontrols::ProcessMethod >
+                                        , const std::vector< std::tuple< int, double, double > >&
                                         , qtwrapper::ProgressBar* );
+        void handleCreateSpectrogram( Dataprocessor *
+                                      , const std::shared_ptr< adcontrols::ProcessMethod >
+                                      , qtwrapper::ProgressBar* );
+
         void join( const std::thread::id& );
     };
 

@@ -78,9 +78,10 @@ namespace dataproc {
     signals:
 		void signalAddSession( Dataprocessor * );
         void signalSessionAdded( Dataprocessor * );
-		void signalSessionUpdated( Dataprocessor *, portfolio::Folium& );
         void signalSelectionChanged( Dataprocessor *, portfolio::Folium& );
         void signalCheckStateChanged( Dataprocessor *, portfolio::Folium&, bool );
+		//void signalSessionUpdated( Dataprocessor *, portfolio::Folium& );
+		void onSessionUpdated( Dataprocessor *, const QString& foliumId );
 		void onFolderChanged( Dataprocessor *, const QString& folder );
         void onSessionRemoved( Dataprocessor * );
 

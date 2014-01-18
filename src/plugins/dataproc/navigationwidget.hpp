@@ -55,6 +55,7 @@ namespace dataproc {
         void toggleAutoSynchronization();
         void handleAddSession( Dataprocessor * );
 		void handleSessionUpdated( Dataprocessor *, portfolio::Folium& );
+		void handleSessionUpdated( Dataprocessor *, const QString& foliumId );
 		void handleFolderChanged( Dataprocessor *, const QString& folder );
         void handleRemoveSession( Dataprocessor * );
 

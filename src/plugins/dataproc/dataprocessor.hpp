@@ -38,6 +38,7 @@ namespace adcontrols {
     class LCMSDataset;
     class ProcessMethod;
     class MassSpectrum;
+    class MassSpectra;
     class Chromatogram;
     class MSAssignedMasses;
     class MSCalibrateMethod;
@@ -88,8 +89,12 @@ namespace dataproc {
         void sendCheckedSpectraToCalibration( Dataprocessor * );
         void removeCheckedItems();
 
+        void createSpectrogram();
+
         portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );
+        portfolio::Folium addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& );
+        portfolio::Portfolio& portfolio() { return *portfolio_; }
 
         static const std::shared_ptr< adcontrols::ProcessMethod > findProcessMethod( const portfolio::Folium& );
         static bool saveMSCalibration( portfolio::Folium& );

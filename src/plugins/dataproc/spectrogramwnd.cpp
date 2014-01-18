@@ -23,6 +23,9 @@
 **************************************************************************/
 
 #include "spectrogramwnd.hpp"
+#include <adcontrols/MassSpectra.hpp>
+#include <portfolio/folium.hpp>
+#include <portfolio/folder.hpp>
 #include <adwplot/spectrogramwidget.hpp>
 #include <qwt_plot_renderer.h>
 #include <QPrinter>
@@ -66,3 +69,29 @@ SpectrogramWnd::handlePrintCurrentView( const QString& pdfname )
     }
 
 }
+
+void
+SpectrogramWnd::handleSessionAdded( Dataprocessor* )
+{
+}
+
+void
+SpectrogramWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
+{
+    portfolio::Folder folder = folium.getParentFolder();
+
+    if ( folder && folder.name() == L"Spectrograms" && folium.name() == L"Spectrogram" ) {
+        // todo
+    }
+}
+
+void
+SpectrogramWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
+{
+}
+
+void
+SpectrogramWnd::handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool )
+{
+}
+

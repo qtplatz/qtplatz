@@ -206,8 +206,9 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QWidget(parent)
     if ( SessionManager * mgr = SessionManager::instance() ) {
         connect( mgr, SIGNAL( onSessionRemoved( Dataprocessor* ) ), this, SLOT( handleRemoveSession( Dataprocessor * ) ) );
         connect( mgr, SIGNAL( signalAddSession( Dataprocessor* ) ), this, SLOT( handleAddSession( Dataprocessor * ) ) );
-        connect( mgr, SIGNAL( signalSessionUpdated( Dataprocessor*, portfolio::Folium& ) )
-                 , this, SLOT( handleSessionUpdated( Dataprocessor *, portfolio::Folium& ) ) );
+        // connect( mgr, SIGNAL( signalSessionUpdated( Dataprocessor*, portfolio::Folium ) )
+        //          , this, SLOT( handleSessionUpdated( Dataprocessor *, portfolio::Folium ) ) );
+        connect( mgr, SIGNAL( onSessionUpdated( Dataprocessor*, const QString& ) ), this, SLOT( handleSessionUpdated( Dataprocessor *, const QString& ) ) );
         connect( mgr, SIGNAL( onFolderChanged( Dataprocessor*, const QString& ) )
                  , this, SLOT( handleFolderChanged( Dataprocessor *, const QString& ) ) );
         
@@ -322,6 +323,13 @@ NavigationWidget::handleFolderChanged( Dataprocessor * processor, const QString&
             }
         }
     }
+}
+
+void
+NavigationWidget::handleSessionUpdated( Dataprocessor * processor, const QString& foliumId )
+{
+    portfolio::Folium folium = processor->portfolio().findFolium( foliumId.toStdWString() );
+    handleSessionUpdated( processor, folium );
 }
 
 void
@@ -547,6 +555,16 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                                     export_spectrum::write( of, *centroid );
                                 }
                             }
+                        }
+                    }
+                }
+                if ( processor && folium.getParentFolder().name() == L"Chromatograms" ) {
+                    QMenu menu;
+                    QAction * doSpectrogram = 0; 
+                    doSpectrogram = menu.addAction( "Creatge Spectrogram" );
+                    if ( QAction* selectedItem = menu.exec( globalPos ) ) {
+                        if ( doSpectrogram == selectedItem ) {
+                            processor->createSpectrogram();
                         }
                     }
                 }

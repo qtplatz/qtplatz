@@ -24,13 +24,18 @@
 
 #include "dataprocessworker.hpp"
 #include "dataprocessor.hpp"
+#include "dataprochandler.hpp"
 #include "sessionmanager.hpp"
+#include "mainwindow.hpp"
 #include <qtwrapper/progressbar.hpp>
 #include <adportable/debug.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectra.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/mspeakinfo.hpp>
+#include <adcontrols/mspeakinfoitem.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
 #include <coreplugin/icore.h>
@@ -100,7 +105,26 @@ DataprocessWorker::createChromatograms( Dataprocessor* processor
     std::lock_guard< std::mutex > lock( mutex_ );
 	if ( threads_.empty() )
 		threads_.push_back( std::thread( [=] { io_service_.run(); } ) );
-    threads_.push_back( std::thread( [=] { handleCreateChromatograms( processor, ranges, p ); } ) );
+
+	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
+	MainWindow::instance()->getProcessMethod( *pm );
+
+    threads_.push_back( std::thread( [=] { handleCreateChromatograms( processor, pm, ranges, p ); } ) );
+}
+
+void
+DataprocessWorker::createSpectrogram( Dataprocessor* processor )
+{
+	qtwrapper::ProgressBar * p = new qtwrapper::ProgressBar;
+
+    std::lock_guard< std::mutex > lock( mutex_ );
+	if ( threads_.empty() )
+		threads_.push_back( std::thread( [=] { io_service_.run(); } ) );
+
+	adcontrols::ProcessMethodPtr pm = std::make_shared< adcontrols::ProcessMethod >();
+	MainWindow::instance()->getProcessMethod( *pm );
+
+    threads_.push_back( std::thread( [=] { handleCreateSpectrogram( processor, pm, p ); } ) );
 }
 
 void
@@ -117,13 +141,14 @@ DataprocessWorker::join( const std::thread::id& id )
 
 void
 DataprocessWorker::handleCreateChromatograms( Dataprocessor* processor
+                                              , const std::shared_ptr< adcontrols::ProcessMethod > method
                                               , const std::vector< std::tuple< int, double, double > >& ranges
 											  , qtwrapper::ProgressBar * progress )
 {
     std::vector< adcontrols::Chromatogram > vec;
 
 	progress->setStarted();
-
+    
     if ( const adcontrols::LCMSDataset * dset = processor->getLCMSDataset() ) {
         dset->getChromatograms( ranges, vec, [=](long curr, long total)->bool{
                 if ( curr == 0 )
@@ -133,13 +158,9 @@ DataprocessWorker::handleCreateChromatograms( Dataprocessor* processor
             } );
     }
 
-    adcontrols::ProcessMethod method;
-    adcontrols::PeakMethod peakmethod;
-	method.appendMethod( peakmethod );
-
     portfolio::Folium folium;
     for ( auto c: vec )
-        folium = processor->addChromatogram( c, method );
+        folium = processor->addChromatogram( c, *method );
 	SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
 
 	progress->dispose();
@@ -147,3 +168,52 @@ DataprocessWorker::handleCreateChromatograms( Dataprocessor* processor
     io_service_.post( std::bind(&DataprocessWorker::join, this, std::this_thread::get_id() ) );
 }
 
+void
+DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
+                                            , const std::shared_ptr< adcontrols::ProcessMethod > pm
+                                            , qtwrapper::ProgressBar * progress )
+{
+    progress->setStarted();
+
+    if ( const adcontrols::LCMSDataset * dset = processor->getLCMSDataset() ) {
+
+        bool hasCentroid = dset->hasProcessedSpectrum( 0, 0 );
+        const adcontrols::CentroidMethod *centroidMethod = pm->find< adcontrols::CentroidMethod >();
+
+        auto spectra = std::make_shared< adcontrols::MassSpectra >();
+        auto objId = dset->findObjId( L"MS.CENTROID" );
+        
+        adcontrols::Chromatogram tic;
+        if ( dset->getTIC( 0, tic ) ) {
+            for ( int pos = 0; pos < int( tic.size() ); ++pos ) {
+                if ( auto ptr = std::make_shared< adcontrols::MassSpectrum >() ) {
+                    if ( pos == 0 )
+                        progress->setProgressRange( 0, static_cast<int>(tic.size()) );
+                    progress->setProgressValue( pos );
+
+                    if ( hasCentroid ) {
+                        if ( dset->getSpectrum( 0, pos, *ptr, objId ) ) {
+                            ADDEBUG() << "Creating spectrogram from centroid: " << pos << "/" << tic.size();
+                            (*spectra) << ptr;
+                        }
+                    } else {
+                        adcontrols::MassSpectrum profile;
+                        if ( dset->getSpectrum( 0, pos, profile, 0 ) ) {
+                            ADDEBUG() << "Creating spectrogram from profile: " << pos << "/" << tic.size();
+                            adcontrols::MSPeakInfo result;
+                            DataprocHandler::doCentroid( result, *ptr, profile, *centroidMethod );
+                            (*spectra) << ptr;
+                        }
+                    }
+                }
+            }
+        }
+        portfolio::Folium folium = processor->addSpectrogram( spectra );
+        SessionManager::instance()->folderChanged( processor, folium.getParentFolder().name() );
+    }
+    
+	progress->dispose();
+
+    io_service_.post( std::bind(&DataprocessWorker::join, this, std::this_thread::get_id() ) );
+    
+}

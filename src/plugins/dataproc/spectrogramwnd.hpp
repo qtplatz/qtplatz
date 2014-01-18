@@ -44,10 +44,10 @@ namespace dataproc {
     signals:
 
     public slots:
-        void handleSessionAdded( Dataprocessor* ) {}
-        void handleSelectionChanged( Dataprocessor*, portfolio::Folium& ) {}
-        void handleApplyMethod( const adcontrols::ProcessMethod& ) {}
-        void handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool ) {}
+        void handleSessionAdded( Dataprocessor* );
+        void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
+        void handleApplyMethod( const adcontrols::ProcessMethod& );
+        void handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool );
         void handlePrintCurrentView( const QString& outpdf );
 
     private:

@@ -50,6 +50,7 @@
 #include <adcontrols/elementalcompositionmethod.hpp>
 #include <adcontrols/isotopemethod.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
@@ -617,12 +618,28 @@ Dataprocessor::addChromatogram( const adcontrols::Chromatogram& src, const adcon
     portfolio::Folium folium = folder.addFolium( name );
     adutils::ChromatogramPtr c( new adcontrols::Chromatogram( src ) );  // profile, deep copy
 	folium.assign( c, c->dataClass() );
-
+    
     for ( adcontrols::ProcessMethod::vector_type::const_iterator it = m.begin(); it != m.end(); ++it )
 		boost::apply_visitor( doChromatogramProcess( c, folium ), *it );
 
     SessionManager::instance()->updateDataprocessor( this, folium );
 	return folium;
+}
+
+portfolio::Folium
+Dataprocessor::addSpectrogram( std::shared_ptr< adcontrols::MassSpectra >& spectra )
+{
+    portfolio::Folder folder = portfolio_->addFolder( L"Spectrograms" );
+    portfolio::Folium folium = folder.addFolium( L"Spectrogram" );  // "Spectrograms/Spectrogram"
+	folium.assign( spectra, spectra->dataClass() );
+    SessionManager::instance()->updateDataprocessor( this, folium ); // this cause an error on emit since this is in worker thread
+	return folium;
+}
+
+void
+Dataprocessor::createSpectrogram()
+{
+	DataprocessWorker::instance()->createSpectrogram( this );
 }
 
 ///////////////////////////
