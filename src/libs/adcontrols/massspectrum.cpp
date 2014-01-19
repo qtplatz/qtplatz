@@ -848,7 +848,7 @@ segments_helper::base_peak_index( const MassSpectrum& ms, double lMass, double h
 
             if ( hMax < *maxIt ) {
                 hMax = *maxIt;
-                idx.first = std::distance( intens, maxIt );
+                idx.first = static_cast<int>(std::distance( intens, maxIt ));
                 idx.second = fcn;
             }
         }
@@ -883,7 +883,7 @@ segments_helper::selected_indecies( std::vector< std::pair< int, int > >& result
             size_t hIdx = std::distance( masses, hIt );
             for ( size_t i = lIdx; i <= hIdx; ++i ) {
                 if ( intens[ i ] >= threshold )
-                    results.push_back( std::make_pair( i, fcn ) );
+                    results.push_back( std::make_pair( int(i), int(fcn) ) );
             }
         }
         ++fcn;

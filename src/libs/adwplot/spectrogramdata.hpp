@@ -22,46 +22,27 @@
 **
 **************************************************************************/
 
-#ifndef SPECTROGRAMWIDGET_HPP
-#define SPECTROGRAMWIDGET_HPP
+#ifndef SPECTROGRAMDATA_HPP
+#define SPECTROGRAMDATA_HPP
 
-#include <qwt_plot.h>
+#pragma once
+
+#include <qwt_raster_data.h>
 #include <memory>
 
-class QwtPlotSpectrogram;
-class QwtRasterData;
-class QwtPlotZoomer;
-class QwtPlotPanner;
+class QRectF;
 
 namespace adwplot {
 
-    class SpectrogramData;
-
-    class SpectrogramWidget : public QwtPlot {
-        Q_OBJECT
+    class SpectrogramData : public QwtRasterData {
     public:
-        explicit SpectrogramWidget(QWidget *parent = 0);
-        void setData( SpectrogramData * );
-    
-    signals:
-        void dataChanged();
-                          
-    public slots:
-        void handleShowContour( bool on );
-        void handleShowSpectrogram( bool on );
-        void handleSetAlpha( int );
-        void handleDataChanged();
-    private slots:
-        void handleZoomed( const QRectF& );
-        
-    private:
-        std::unique_ptr< QwtPlotSpectrogram > spectrogram_;
-        std::unique_ptr< QwtPlotZoomer > zoomer_;
-        std::unique_ptr< QwtPlotPanner > panner_;
-        SpectrogramData * data_;
-        void handle_signal();
+        SpectrogramData();
+        virtual ~SpectrogramData();
+        double value( double x, double y ) const override;
+        virtual QRectF boundingRect() const;
+        virtual bool zoomed( const QRectF& ) { return false; }
     };
 
 }
 
-#endif // SPECTROGRAMWIDGET_HPP
+#endif // SPECTROGRAMDATA_HPP

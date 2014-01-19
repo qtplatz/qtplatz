@@ -22,46 +22,30 @@
 **
 **************************************************************************/
 
-#ifndef SPECTROGRAMWIDGET_HPP
-#define SPECTROGRAMWIDGET_HPP
+#include "spectrogramdata.hpp"
 
-#include <qwt_plot.h>
-#include <memory>
+using namespace adwplot;
 
-class QwtPlotSpectrogram;
-class QwtRasterData;
-class QwtPlotZoomer;
-class QwtPlotPanner;
-
-namespace adwplot {
-
-    class SpectrogramData;
-
-    class SpectrogramWidget : public QwtPlot {
-        Q_OBJECT
-    public:
-        explicit SpectrogramWidget(QWidget *parent = 0);
-        void setData( SpectrogramData * );
-    
-    signals:
-        void dataChanged();
-                          
-    public slots:
-        void handleShowContour( bool on );
-        void handleShowSpectrogram( bool on );
-        void handleSetAlpha( int );
-        void handleDataChanged();
-    private slots:
-        void handleZoomed( const QRectF& );
-        
-    private:
-        std::unique_ptr< QwtPlotSpectrogram > spectrogram_;
-        std::unique_ptr< QwtPlotZoomer > zoomer_;
-        std::unique_ptr< QwtPlotPanner > panner_;
-        SpectrogramData * data_;
-        void handle_signal();
-    };
-
+SpectrogramData::~SpectrogramData()
+{
 }
 
-#endif // SPECTROGRAMWIDGET_HPP
+SpectrogramData::SpectrogramData()
+{
+    setInterval( Qt::XAxis, QwtInterval( 0, 10.0 ) );   // time
+    setInterval( Qt::YAxis, QwtInterval( 0, 1000.0 ) ); // m/z
+    setInterval( Qt::ZAxis, QwtInterval( 0.0, 10000.0 ) );
+}
+
+double
+SpectrogramData::value( double x, double y ) const
+{
+     return x * 10 + y;
+}
+
+QRectF
+SpectrogramData::boundingRect() const
+{
+    return QRectF( 0.0, 0.0, 10.0, 1000.0 ); // x, y, w, h
+}
+

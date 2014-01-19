@@ -23,14 +23,42 @@
 **************************************************************************/
 
 #include "spectrogramwnd.hpp"
-#include <adcontrols/MassSpectra.hpp>
+#include <adcontrols/massspectra.hpp>
+#include <adcontrols/massspectrum.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/array_wrapper.hpp>
 #include <portfolio/folium.hpp>
 #include <portfolio/folder.hpp>
 #include <adwplot/spectrogramwidget.hpp>
+#include <adwplot/spectrogramdata.hpp>
 #include <qwt_plot_renderer.h>
 #include <QPrinter>
 #include <QPrintDialog>
 #include <QBoxLayout>
+#include <boost/numeric/ublas/matrix.hpp>
+
+namespace dataproc {
+    namespace detail {
+
+        class SpectrogramData : public adwplot::SpectrogramData {
+        public:
+            SpectrogramData( std::shared_ptr< adcontrols::MassSpectra >& spectra );
+            SpectrogramData( const SpectrogramData& );
+            double value( double x, double y ) const override;
+            QRectF boundingRect() const override;
+            bool zoomed( const QRectF& ) override;
+            
+        private:
+            std::shared_ptr< adcontrols::MassSpectra > spectra_;
+            boost::numeric::ublas::matrix< double > m_;
+            std::pair< double, double > xlimits_, ylimits_;
+            size_t dx( double x ) const;
+            size_t dy( double y ) const;
+            void updateData();
+        };
+
+    }
+}
 
 using namespace dataproc;
 
@@ -76,12 +104,15 @@ SpectrogramWnd::handleSessionAdded( Dataprocessor* )
 }
 
 void
-SpectrogramWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::Folium& folium )
+SpectrogramWnd::handleSelectionChanged( Dataprocessor*, portfolio::Folium& folium )
 {
     portfolio::Folder folder = folium.getParentFolder();
 
-    if ( folder && folder.name() == L"Spectrograms" && folium.name() == L"Spectrogram" ) {
-        // todo
+    if ( folder && folder.name() == L"Spectrograms" ) {
+        adcontrols::MassSpectraPtr ptr;
+        if ( portfolio::Folium::get< adcontrols::MassSpectraPtr >( ptr, folium ) ) {
+            plot_->setData( new detail::SpectrogramData( ptr ) );
+        }
     }
 }
 
@@ -93,5 +124,92 @@ SpectrogramWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 void
 SpectrogramWnd::handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool )
 {
+}
+
+//
+namespace dataproc {
+    namespace detail {
+
+        SpectrogramData::SpectrogramData( const SpectrogramData& t ) : spectra_( t.spectra_ )
+                                                                     , m_( t.m_ )
+                                                                     , xlimits_( t.xlimits_ )
+                                                                     , ylimits_( t.ylimits_ )
+        {
+        }
+
+        SpectrogramData::SpectrogramData( adcontrols::MassSpectraPtr& spectra ) : spectra_( spectra )
+                                                                                , m_( 512, 400 )
+                                                                                , xlimits_( spectra_->x_left(), spectra_->x_right() )
+                                                                                , ylimits_( spectra_->lower_mass(), spectra_->upper_mass() )
+        {
+            updateData();
+        }
+
+        size_t 
+        SpectrogramData::dx( double x ) const
+        {
+            size_t d = ((x - xlimits_.first) / ( xlimits_.second - xlimits_.first )) * ( m_.size1() - 1 );
+            return d;
+        }
+
+        size_t
+        SpectrogramData::dy( double y ) const
+        {
+            size_t d = ((y - ylimits_.first) / ( ylimits_.second - ylimits_.first )) * ( m_.size2() - 1 );
+            return d;
+        }
+        
+        double
+        SpectrogramData::value( double x, double y ) const
+        {
+            return m_( dx(x), dy(y) );
+        }
+
+        QRectF
+        SpectrogramData::boundingRect() const
+        {
+            return QRectF( xlimits_.first, ylimits_.first, xlimits_.second - xlimits_.first, ylimits_.second - ylimits_.first );
+        }
+
+        bool
+        SpectrogramData::zoomed( const QRectF& rc ) 
+        {
+            xlimits_ = std::make_pair( rc.left(), rc.right() );
+            ylimits_ = std::make_pair( rc.top(), rc.bottom() );
+            updateData();
+            return true;
+        }
+
+        void
+        SpectrogramData::updateData() 
+        {
+            for ( size_t i = 0; i < m_.size1(); ++i ) {
+                for ( size_t j = 0; j < m_.size2(); ++j ) {
+                    m_( i, j ) = 0;
+                }
+            }
+            size_t id = 0;
+            for ( auto& ms: *spectra_ ) {
+                double x = spectra_->x()[ id++ ];
+
+                if ( xlimits_.first <= x && x <= xlimits_.second ) {
+                    size_t ix = dx(x);
+
+                    adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
+                    for ( auto& seg: segs ) {
+                        for ( int i = 0; i < seg.size(); ++i ) {
+                            double m = seg.getMass( i );
+                            if ( ylimits_.first < m && m < ylimits_.second ) {
+                                m_( ix, dy(m) ) += seg.getIntensity( i ); 
+                            }
+                        }
+                    }
+                }
+            }
+            setInterval( Qt::XAxis, QwtInterval( spectra_->x_left(), spectra_->x_right() ) );   // time (sec -> min)
+            setInterval( Qt::YAxis, QwtInterval( spectra_->lower_mass(), spectra_->upper_mass() ) ); // m/z
+            setInterval( Qt::ZAxis, QwtInterval( 0.0, spectra_->z_max() ) );
+        }
+    }
 }
 

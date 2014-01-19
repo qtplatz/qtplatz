@@ -42,6 +42,7 @@
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/massspectra.hpp>
 
 using namespace adutils;
 
@@ -97,6 +98,11 @@ cpio::save( adfs::file& dbf, const boost::any& a )
 
         return internal::cpio_handler< adcontrols::MSPeakInfo >::save( dbf, a );
 
+    } else if ( adportable::a_type< adutils::MassSpectraPtr >::is_a( a ) ) {
+
+        return internal::cpio_handler< adcontrols::MassSpectra >::save( dbf, a );
+
     }
+    assert( 0 );
     return false;
 }

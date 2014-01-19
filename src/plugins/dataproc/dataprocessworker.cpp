@@ -185,6 +185,9 @@ DataprocessWorker::handleCreateSpectrogram( Dataprocessor* processor
         
         adcontrols::Chromatogram tic;
         if ( dset->getTIC( 0, tic ) ) {
+
+            spectra->setChromatogram( tic );
+
             for ( int pos = 0; pos < int( tic.size() ); ++pos ) {
                 if ( auto ptr = std::make_shared< adcontrols::MassSpectrum >() ) {
                     if ( pos == 0 )

@@ -26,19 +26,25 @@
 #pragma once
 
 #include "adcontrols_global.h"
-
+#include "massspectrum.hpp"
 #include <string>
 #include <memory>
+#include <boost/serialization/version.hpp>
 #include <boost/serialization/vector.hpp>
+#include <adportable/serialization_shared_ptr.hpp>
+
 #include <compiler/disable_dll_interface.h>
 
 namespace adcontrols {
 
     class MassSpectrum;
+    class Chromatogram;
 
     class ADCONTROLSSHARED_EXPORT MassSpectra {
     public:
-		static const wchar_t * dataClass() { return L"adcontrols::MassSpectra"; }
+        ~MassSpectra();
+        MassSpectra();
+        MassSpectra( const MassSpectra& );
 
         typedef std::shared_ptr< MassSpectrum > value_type;
         typedef std::vector< value_type >::iterator iterator;
@@ -56,18 +62,35 @@ namespace adcontrols {
         inline const_iterator begin() const { return vec_.begin(); }
         inline const_iterator end() const { return vec_.end(); }
 
+        void setChromatogram( const Chromatogram& );
+        const std::vector< double >& x() const;
+
+        void lower_mass( double );
+        void upper_mass( double );
+        void z_max( double );
+
+        double lower_mass() const;
+        double upper_mass() const;
+        double x_left() const;
+        double x_right() const;
+        double z_max() const;
+
+		static const wchar_t * dataClass() { return L"adcontrols::MassSpectra"; }
+        static bool archive( std::ostream&, const MassSpectra& );
+        static bool restore( std::istream&, MassSpectra& );
     private:
         std::vector< value_type > vec_;
+        std::vector< double > x_;
+        double lower_mass_;
+        double upper_mass_;
+        double z_max_;
 
 	    friend class boost::serialization::access;
-	    template<class Archive> void serialize(Archive& ar, const unsigned int version) {
-            (void)version;
-            ar & vec_;
+        template<class Archive> void serialize(Archive& ar, const unsigned int) {
+            ar & lower_mass_ & upper_mass_ & z_max_ & x_ & vec_;
         }
     };    
-
     typedef std::shared_ptr<MassSpectra> MassSpectraPtr;
-   
 }
 
 

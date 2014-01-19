@@ -31,6 +31,7 @@
 #include <adcontrols/datapublisher.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/massspectra.hpp>
 #include <adcontrols/mscalibrateresult.hpp>
 #include <adcontrols/peakresult.hpp>
 #include <adcontrols/processeddataset.hpp>
@@ -202,6 +203,10 @@ datafile::fetch( const std::wstring& dataId, const std::wstring& dataType ) cons
 					} else if ( dataType == adcontrols::MSPeakInfo::dataClass() ) {
                         
                         any = detail::serializer< adcontrols::MSPeakInfo >::deserialize( obuf );
+
+					} else if ( dataType == adcontrols::MassSpectra::dataClass() ) {
+                        
+                        any = detail::serializer< adcontrols::MassSpectra >::deserialize( obuf );
                         
                     } else {
                         adportable::debug(__FILE__, __LINE__)

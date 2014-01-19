@@ -493,6 +493,9 @@ MainWindow::handleSelectionChanged( dataproc::Dataprocessor *, portfolio::Folium
         } else if ( folder.name() == L"Spectra" ) {
 			if ( stack_->currentIndex() == 2 || stack_->currentIndex() == 3 )
 				actionSelMSProcess();
+        } else if ( folder.name() == L"Spectrograms" ) {
+            if ( stack_->currentIndex() != 6 )
+                actionSelSpectrogram();
 		}
         
         // set data property to MSPropertyForm

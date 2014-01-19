@@ -38,6 +38,7 @@ namespace adcontrols {
     class MSCalibrateResult;
 	class MSPeakInfo;
 	class PeakResult;
+    class MassSpectra;
 }
 
 namespace adutils {
@@ -49,6 +50,7 @@ namespace adutils {
     typedef std::shared_ptr< adcontrols::MSCalibrateResult > MSCalibrateResultPtr;
     typedef std::shared_ptr< adcontrols::PeakResult > PeakResultPtr;
     typedef std::shared_ptr< adcontrols::MSPeakInfo > MSPeakInfoPtr;
+    typedef std::shared_ptr< adcontrols::MassSpectra > MassSpectraPtr;
 
     class ProcessedData {
     public:
@@ -67,6 +69,7 @@ namespace adutils {
                                 , MSCalibrateResultPtr 
                                 , PeakResultPtr 
                                 , MSPeakInfoPtr
+                                , MassSpectraPtr
                               > value_type;
 
         static value_type toVariant( boost::any& );

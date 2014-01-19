@@ -66,6 +66,9 @@ ProcessedData::toVariant( boost::any & a )
     else if ( adportable::a_type< MSPeakInfoPtr >::is_a( a ) )
         return boost::any_cast< MSPeakInfoPtr >( a );
 
+    else if ( adportable::a_type< MassSpectraPtr >::is_a( a ) )
+        return boost::any_cast< MassSpectraPtr >( a );
+
     adportable::debug(__FILE__, __LINE__)
         << "ProcessedData::toVariant( " << a.type().name() << " ) -- return Nothing()";
 
