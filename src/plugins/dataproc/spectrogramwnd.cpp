@@ -155,7 +155,7 @@ namespace dataproc {
         }
 
         SpectrogramData::SpectrogramData( adcontrols::MassSpectraPtr& spectra ) : spectra_( spectra )
-                                                                                , m_( 512, 400 )
+                                                                                , m_( 1280, 720 ) // 720p
                                                                                 , xlimits_( spectra_->x_left(), spectra_->x_right() )
                                                                                 , ylimits_( spectra_->lower_mass(), spectra_->upper_mass() )
         {
@@ -205,6 +205,7 @@ namespace dataproc {
                     m_( i, j ) = 0;
                 }
             }
+            double z_max = std::numeric_limits<double>::lowest();
             size_t id = 0;
             for ( auto& ms: *spectra_ ) {
                 double x = spectra_->x()[ id++ ];
@@ -217,15 +218,22 @@ namespace dataproc {
                         for ( int i = 0; i < seg.size(); ++i ) {
                             double m = seg.getMass( i );
                             if ( ylimits_.first < m && m < ylimits_.second ) {
-                                m_( ix, dy(m) ) += seg.getIntensity( i ); 
+                                size_t iy = dy(m);
+                                m_( ix, iy ) += seg.getIntensity( i ); 
+                                z_max = std::max( z_max, m_( ix, iy ) );
                             }
                         }
                     }
                 }
             }
+            for ( size_t i = 0; i < m_.size1(); ++i ) {
+                for ( size_t j = 0; j < m_.size2(); ++j ) {
+                    m_( i, j ) /= (z_max / 10000.0);
+                }
+            }
             setInterval( Qt::XAxis, QwtInterval( spectra_->x_left(), spectra_->x_right() ) );   // time (sec -> min)
             setInterval( Qt::YAxis, QwtInterval( spectra_->lower_mass(), spectra_->upper_mass() ) ); // m/z
-            setInterval( Qt::ZAxis, QwtInterval( 0.0, spectra_->z_max() ) );
+            setInterval( Qt::ZAxis, QwtInterval( 0.0, 10000 ) );
         }
     }
 }

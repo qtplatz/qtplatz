@@ -524,7 +524,10 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                     QAction* selectedItem = menu.exec( globalPos );
                     if ( selectedItem ) {
                         if ( selectedItem == doCalibration ) {
-                            processor->sendCheckedSpectraToCalibration( processor );
+
+                            for ( auto& session: *SessionManager::instance() )
+								processor->sendCheckedSpectraToCalibration( session.processor() );
+
                         } else if ( selectedItem == removeChecked ) {
                             processor->removeCheckedItems();
                             invalidateSession( processor );

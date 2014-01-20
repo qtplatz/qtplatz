@@ -531,7 +531,7 @@ MSCalibSummaryWidget::handleCopyToClipboard()
 		if ( i++ > 0 )
 			copy_table.append( prev.row() == idx.row() ? '\t' : '\n' );
         if ( idx.column() == c_time || idx.column() == c_time_normalized )
-            copy_table.append( QString("%1").arg( adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() ) ) );
+            copy_table.append( QString::number( adcontrols::metric::scale_to_micro( model.data( idx ).toDouble() ), 'g', 14 ) );
         else
             copy_table.append( model.data( idx ).toString() );
         prev = idx;

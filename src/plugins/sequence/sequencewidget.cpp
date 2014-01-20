@@ -89,7 +89,7 @@ SequenceWidget::OnInitialUpdate( const adsequence::schema& schema )
 
     QStandardItem * rootnode = model_->invisibleRootItem();
     size_t ncols = std::distance( schema.begin(), schema.end() );
-    rootnode->setColumnCount( ncols );
+    rootnode->setColumnCount( static_cast<int>(ncols) );
 
     for ( adsequence::schema::vector_type::const_iterator it = schema.begin(); it != schema.end(); ++it )
         model_->setHeaderData( std::distance( schema.begin(), it ), Qt::Horizontal, it->display_name().c_str() );
@@ -150,9 +150,9 @@ SequenceWidget::addLine()
     QStandardItemModel& model = *model_;
     const adsequence::schema& schema = *schema_;
 
-    size_t row = model.rowCount();
+    int row = model.rowCount();
     model.insertRow( row );
-    size_t col = 0;
+    int col = 0;
     for ( adsequence::schema::vector_type::const_iterator it = schema.begin(); it != schema.end(); ++it ) {
         if ( it->type() == adsequence::COLUMN_SAMPLE_TYPE ) // samp_type
             model.setData( model.index( row, col++ ), int( adsequence::SAMPLE_TYPE_UNKNOWN ) );
@@ -250,13 +250,13 @@ SequenceWidget::setSequence( const adsequence::sequence& seq )
 
     model.removeRows( 0, model.rowCount() );
 
-    for ( size_t row = 0; row < seq.size(); ++row ) {
+    for ( int row = 0; row < static_cast<int>(seq.size()); ++row ) {
 
         model.insertRow( row );
 
         const adsequence::line_t& line = seq[ row ];
         
-        for ( size_t col = 0; col < schema.size(); ++col ) {
+        for ( int col = 0; col < static_cast<int>(schema.size()); ++col ) {
             switch ( schema[ col ].type() ) {
             case adsequence::COLUMN_INT:
                 model.setData( model.index( row, col ), boost::get<int>( line[ col ] ) );
@@ -289,7 +289,7 @@ SequenceWidget::getControlMethodName( size_t row ) const
         = std::find_if( schema.begin(), schema.end(), boost::bind(&adsequence::column::name, _1 ) == "name_control" );
     if ( it != schema.end() ) {
         size_t col = std::distance( schema.begin(), it );
-        return model.index( row, col ).data( Qt::EditRole ).toString();
+        return model.index( static_cast<int>(row), static_cast<int>(col) ).data( Qt::EditRole ).toString();
     }
     return QString();
 }
@@ -304,7 +304,7 @@ SequenceWidget::getProcessMethodName( size_t row ) const
         = std::find_if( schema.begin(), schema.end(), boost::bind(&adsequence::column::name, _1 ) == "name_process" );
     if ( it != schema.end() ) {
         size_t col = std::distance( schema.begin(), it );
-        return model.index( row, col ).data( Qt::EditRole ).toString();
+        return model.index( static_cast<int>(row), static_cast<int>(col) ).data( Qt::EditRole ).toString();
     }
     return QString();
 }

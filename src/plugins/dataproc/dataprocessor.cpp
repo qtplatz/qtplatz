@@ -361,7 +361,9 @@ void
 Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
 {
     qtwrapper::waitCursor wait;
-    portfolio::Folder spectra = portfolio_->findFolder( L"Spectra" );
+
+    // obtain data from source (may not be my-self)
+    portfolio::Folder spectra = processor->portfolio().findFolder( L"Spectra" );
 
     adcontrols::ProcessMethod mproc;
     MainWindow::instance()->getProcessMethod( mproc );
@@ -374,6 +376,7 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
     adcontrols::CentroidMethod centroidMethod( *pCentroidMethod ); // copy
     centroidMethod.centroidAreaIntensity( false );  // force hight for overlay with profile
 
+    // add to my-self
     portfolio::Folder calibFolder = portfolio_->addFolder( L"MSCalibration" );
 
     for ( auto& folium: spectra.folio() ) {

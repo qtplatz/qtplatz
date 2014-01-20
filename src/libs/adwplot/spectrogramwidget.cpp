@@ -75,16 +75,17 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     spectrogram_->setRenderThreadCount( 0 ); // use system specific thread count
 
     spectrogram_->setColorMap( new detail::ColorMap() );
+    
     spectrogram_->setCachePolicy( QwtPlotRasterItem::PaintCache );
 
 	setData( new SpectrogramData() );
     spectrogram_->attach( this );
 
-    QList<double> contourLevels;
-    for ( double level = 0.5; level < 10.0; level += 1.0 )
-        contourLevels += level;
-    spectrogram_->setContourLevels( contourLevels );
-    
+    // QList<double> contourLevels;
+    // for ( double level = 0.5; level < 10.0; level += 1.0 )
+    //     contourLevels += level;
+    // spectrogram_->setContourLevels( contourLevels );
+
     const QwtInterval zInterval = spectrogram_->data()->interval( Qt::ZAxis );
     // A color bar on the right axis
     QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
@@ -139,8 +140,7 @@ SpectrogramWidget::setData( SpectrogramData * data )
     // A color bar on the right axis
     const QwtInterval zInterval = data->interval( Qt::ZAxis );
     setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
-    QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
-    rightAxis->setColorMap( zInterval, new detail::ColorMap() );
+    // axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new detail::ColorMap() );
 
     const QwtInterval xInterval = data->interval( Qt::XAxis );
     setAxisScale( QwtPlot::xBottom, xInterval.minValue(), xInterval.maxValue() );
@@ -158,7 +158,7 @@ void
 SpectrogramWidget::handleDataChanged()
 {
 	spectrogram_->invalidateCache();
-	replot();
+ 	replot();
 }
 
 void
@@ -195,7 +195,10 @@ SpectrogramWidget::handleZoomed( const QRectF& rc )
 {
     if ( data_ ) {
         if ( data_->zoomed( rc ) ) {
-            spectrogram_->invalidateCache();
+            const QwtInterval zInterval = data_->interval( Qt::ZAxis );
+            setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
+            // axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new detail::ColorMap() );
+            replot();
         }
     }
 }
