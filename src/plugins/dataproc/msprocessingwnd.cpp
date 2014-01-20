@@ -168,7 +168,7 @@ void
 MSProcessingWnd::draw1( adutils::MassSpectrumPtr& ptr )
 {
     pProfileSpectrum_ = ptr;
-    pImpl_->profileSpectrum_->setData( ptr, drawIdx1_++ );
+    pImpl_->profileSpectrum_->setData( ptr, static_cast<int>(drawIdx1_++) );
 	std::wostringstream title;
 	for ( auto text: ptr->getDescriptions() )
 		title << text.text() << L", ";
@@ -181,7 +181,7 @@ void
 MSProcessingWnd::draw2( adutils::MassSpectrumPtr& ptr )
 {
     pProcessedSpectrum_ = ptr;
-    pImpl_->processedSpectrum_->setData( ptr, drawIdx2_++ );
+    pImpl_->processedSpectrum_->setData( ptr, static_cast<int>(drawIdx2_++) );
 }
 
 void
@@ -228,7 +228,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
 			portfolio::Folium folium = folder.findFoliumByName( title );
             if ( folium.nil() ) {   // add TIC if not yet added
 				adcontrols::Chromatogram c;
-                if ( dset->getTIC( fcn, c ) ) {
+                if ( dset->getTIC( static_cast<int>(fcn), c ) ) {
                     if ( c.isConstantSampledData() )
                         c.getTimeArray();
                     c.addDescription( adcontrols::Description( L"origin", title ) );
@@ -464,7 +464,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
     QPainter painter( &printer );
 
 	QRectF boundingRect;
-	QRectF drawRect( 0.0, 0.0, printer.width(), (12.0/72)*resolution );
+	QRectF drawRect( 0.0, 0.0, printer.width(), (12.0/72)*printer.resolution() );
 
 	painter.drawText( drawRect, Qt::TextWordWrap, folium.fullpath().c_str(), &boundingRect );
 	

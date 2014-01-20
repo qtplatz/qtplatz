@@ -52,6 +52,8 @@ namespace dataproc {
 
     private:
         std::unique_ptr< adwplot::SpectrogramWidget > plot_;
+        std::wstring foliumId_;
+        std::string fullpath_;
         void init();
     };
 

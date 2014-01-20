@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "spectrogramwnd.hpp"
+#include "sessionmanager.hpp"
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/debug.hpp>
@@ -78,24 +79,38 @@ SpectrogramWnd::init()
 void
 SpectrogramWnd::handlePrintCurrentView( const QString& pdfname )
 {
+	// A4 := 210mm x 297mm (8.27 x 11.69 inch)
+
     QPrinter printer( QPrinter::HighResolution );
-    printer.setOrientation( QPrinter::Landscape );
+
     printer.setOutputFileName( pdfname );
+    printer.setOrientation( QPrinter::Landscape );
+    printer.setDocName( "QtPlatz Spectrogram" );
+    printer.setColorMode( QPrinter::Color );
+    printer.setPaperSize( QPrinter::A4 );
+    printer.setFullPage( false );
+    printer.setResolution( 300 );
+
+    QPainter painter( &printer );
+    QRectF drawRect( printer.resolution()/2, printer.resolution()/2, printer.width() - printer.resolution(), (12.0/72)*printer.resolution() );
     
-    QPrintDialog dialog( &printer );
-    if ( dialog.exec() ) {
-        QwtPlotRenderer renderer;
+    QRectF boundingRect;
+    printer.setDocName( "QtPlatz Process Report" );
+    painter.drawText( drawRect, Qt::TextWordWrap, fullpath_.c_str(), &boundingRect );
 
-        if ( printer.colorMode() == QPrinter::GrayScale ) {
-            renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground );
-            renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground );
-            renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame );
-            renderer.setLayoutFlag( QwtPlotRenderer::FrameWithScales );
-        }
-
-        renderer.renderTo( plot_.get(), printer );
-    }
-
+    drawRect.setTop( boundingRect.bottom() + printer.resolution() / 4 );
+    drawRect.setHeight( printer.height() - boundingRect.top() - printer.resolution()/2 );
+    // drawRect.setWidth( printer.width() );
+    
+    QwtPlotRenderer renderer;
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
+    
+    if ( printer.colorMode() == QPrinter::GrayScale )
+        renderer.setLayoutFlag( QwtPlotRenderer::FrameWithScales );
+    
+    renderer.render( plot_.get(), &painter, drawRect );
 }
 
 void
@@ -111,6 +126,8 @@ SpectrogramWnd::handleSelectionChanged( Dataprocessor*, portfolio::Folium& foliu
     if ( folder && folder.name() == L"Spectrograms" ) {
         adcontrols::MassSpectraPtr ptr;
         if ( portfolio::Folium::get< adcontrols::MassSpectraPtr >( ptr, folium ) ) {
+            foliumId_ = folium.id();
+            fullpath_ = folium.fullpath();
             plot_->setData( new detail::SpectrogramData( ptr ) );
         }
     }
