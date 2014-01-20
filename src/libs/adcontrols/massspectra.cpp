@@ -93,7 +93,7 @@ MassSpectra::setChromatogram( const Chromatogram& c )
     x_.clear();
     if ( const double * tarray = c.getTimeArray() ) {
         for ( int i = 0; i < c.size(); ++i )
-            x_.push_back( tarray[i] / 60.0 ); --> min
+            x_.push_back( tarray[i] / 60.0 ); //--> min
     } else {
         for ( int i = 0; i < c.size(); ++i )
             x_.push_back( c.timeFromSampleIndex( i ) / 60.0 ); // --> min
