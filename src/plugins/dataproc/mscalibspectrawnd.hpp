@@ -79,6 +79,8 @@ namespace dataproc {
         void handle_apply_calibration_to_dataset();
         void handle_apply_calibration_to_default();
         void handleAxisChanged( int );
+        //---
+        void handle_add_selection_to_peak_table( const adcontrols::MSPeaks& );
 
     private:
         void init();
@@ -101,7 +103,7 @@ namespace dataproc {
         // results member holds all isChecked flagged data
         typedef std::tuple< std::wstring, std::weak_ptr<adcontrols::MassSpectrum>, std::weak_ptr<adcontrols::MSCalibrateResult> > result_type;
 		std::vector< result_type > results_;
-        std::vector< size_t > number_of_segments_;
+        //std::vector< size_t > number_of_segments_;
 
         // marged is convenient marged spectra for easy review all identified peaks
         std::shared_ptr< adcontrols::MassSpectrum > margedSpectrum_;
@@ -109,34 +111,36 @@ namespace dataproc {
 
         QWidget * wndCalibSummary_;
         QSplitter * wndSplitter_;
-        std::shared_ptr< adwplot::Dataplot > dplot_;
-        std::shared_ptr< adwplot::Dataplot > rplot_;
         int axis_;
 
-        std::map< std::wstring, std::shared_ptr< internal::SeriesData > > plotData_; // formula,  coeffs(a, b)
-        std::map< std::wstring, std::shared_ptr< QwtPlotCurve > > plotCurves_;
-        std::map< std::wstring, std::vector< double > > assignedTimes_;
+        std::map< std::wstring, std::shared_ptr< internal::SeriesData > > data_; // formula,  coeffs(a, b)
+        std::map< std::wstring, std::shared_ptr< QwtPlotCurve > > plotCurves_;  // formula marker, length by time
+        std::map< std::wstring, std::shared_ptr< QwtPlotCurve > > plotRegressions_; // regression line for length by time
+        std::vector< std::shared_ptr< QwtPlotMarker > > slopeMarkers_;
+        std::vector< std::shared_ptr< QwtPlotMarker > > interceptMarkers_;
         QwtPlotCurve * regressionCurve_;
-        QwtPlotCurve * slopePlotCurve_;
-        QwtPlotCurve * interceptPlotCurve_;
-        QwtPlotCurve * slopeRegressionCurve_;
-        QwtPlotCurve * interceptRegressionCurve_;
-        double T0_;
+        std::shared_ptr< QwtPlotCurve > slopePlotCurve_;
+        std::shared_ptr< QwtPlotCurve > interceptPlotCurve_;
+        // QwtPlotCurve * slopeRegressionCurve_;
+        // QwtPlotCurve * interceptRegressionCurve_;
 
-        std::vector< double > aCoeffs_; // sqrt(m)/intercept
-        std::vector< double > bCoeffs_;
+        std::vector< double > coeffs_intercepts_;
+        std::vector< double > coeffs_slopes_;
+
+        enum { idPlotLengthTime, idPlotSlopeIntercept };  // plot (left & right)
+
+        std::vector< std::shared_ptr< adwplot::Dataplot > > plots_;
 
         bool readCalibSummary( adcontrols::MSAssignedMasses& );
         void replotSpectra();
-        void replotLengthTime();
         void plotSelectedLengthTime( const std::wstring& formula );
-        void plot( internal::SeriesData&, int id );
-        void plot_slope();
-        void plot_intercept();
-        void plotTimeMarker( double t, double l );
+        void plot_length_time();
+        void plot_length_time( internal::SeriesData&, int id, adwplot::Dataplot& );
+        void plot_slope( adwplot::Dataplot& );
+        void plot_intercept( adwplot::Dataplot& );
+        // void plotTimeMarker( double t, double l );
         void flight_length_regression();
         void generate_marged_result( Dataprocessor * );
-        void reverse_assign_peaks();
     };
 
 }

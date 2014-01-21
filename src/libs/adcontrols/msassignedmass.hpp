@@ -73,8 +73,8 @@ namespace adcontrols {
     private:
         std::wstring formula_;
         uint32_t idReference_;
-        uint32_t idMassSpectrum_;
-        uint32_t idPeak_;
+        uint32_t idMassSpectrum_; // segment# on segment_wrapper<MassSpectrum>[]
+        uint32_t idPeak_;         // peak# on MassSpectrum
         double exactMass_;
         double time_;
         double mass_;

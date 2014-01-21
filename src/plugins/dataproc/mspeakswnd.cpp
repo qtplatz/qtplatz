@@ -254,6 +254,7 @@ MSPeaksWnd::handleSetData( int mode, const adcontrols::MSPeaks& peaks )
     regplot( data, (boost::format( "lap# %d" ) % mode).str(), plot );
 
     plot.replot();
+	plot.zoomer().setZoomBase( false );
 
     MainWindow::instance()->actionSelMSPeaks();
 }
@@ -320,6 +321,7 @@ MSPeaksWnd::handleSetData( const QString& formula, const adcontrols::MSPeaks& pe
     mspeakswnd::draw_regression regplot( curves );
     regplot( data, adcontrols::ChemicalFormula::formatFormula( formula.toStdString() ), plot );
 	plot.replot();
+	plot.zoomer().setZoomBase( false );
 
     MainWindow::instance()->actionSelMSPeaks();
 }
