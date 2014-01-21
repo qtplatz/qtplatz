@@ -130,7 +130,8 @@ MSCalibSummaryDelegate::to_print_text( std::string& text, const QModelIndex &ind
     text.clear();
     switch( index.column() ) {
     case MSCalibSummaryWidget::c_time:
-        text = ( boost::format("%.5lf") % index.data( Qt::EditRole ).toDouble() ).str();
+    case MSCalibSummaryWidget::c_time_normalized:
+        text = ( boost::format("%.7lf") % scale_to_micro( index.data( Qt::EditRole ).toDouble() ) ).str();
         break;
     case MSCalibSummaryWidget::c_exact_mass:
 		if ( ! index.model()->data( index.model()->index( index.row(), MSCalibSummaryWidget::c_formula ), Qt::EditRole ).toString().isEmpty() )

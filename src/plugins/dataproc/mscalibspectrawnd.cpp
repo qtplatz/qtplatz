@@ -62,11 +62,13 @@
 #include <qwt_plot_layout.h>
 #include <qwt_plot_legenditem.h>
 #include <qwt_plot_marker.h>
+#include <qwt_plot_renderer.h>
 #include <qwt_scale_widget.h>
 #include <qwt_symbol.h>
 #include <qwt_scale_engine.h>
 #include <QVBoxLayout>
 #include <QMessageBox>
+#include <QPrinter>
 #include <boost/format.hpp>
 #include <algorithm>
 #include <cmath>
@@ -328,6 +330,9 @@ MSCalibSpectraWnd::handleSessionAdded( Dataprocessor * processor )
     portfolio::Portfolio portfolio = processor->getPortfolio();
 
     if ( portfolio::Folder fCalib = portfolio.findFolder( L"MSCalibration" ) ) {
+
+		fullpath_ = QString::fromStdWString( processor->filename() );
+
         if ( portfolio::Folium fSummary = fCalib.findFoliumByName( L"Summary Spectrum" ) ) {
 
 			if ( fSummary.empty() )
@@ -524,8 +529,7 @@ MSCalibSpectraWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::
 	if ( ! ( folder && folder.name() == L"MSCalibration" ) )
 		return;
 
-    folio_ = folder.folio();
-    folium_ = folium;
+    fullpath_ = QString::fromStdWString( processor->filename() );
     portfolio::Folio attachments = folium.attachments();
 
     portfolio::Folio::iterator it = std::find_if( attachments.begin(), attachments.end(), []( const portfolio::Folium& a ) {
@@ -735,6 +739,76 @@ MSCalibSpectraWnd::handle_apply_calibration_to_default()
 		Dataprocessor::saveMSCalibration( *margedCalibResult_, *margedSpectrum_ );
 	}
 }
+
+void
+MSCalibSpectraWnd::handlePrintCurrentView( const QString& pdfname )
+{
+	// A4 := 210mm x 297mm (8.27 x 11.69 inch)
+    QPrinter printer;
+    printer.setColorMode( QPrinter::Color );
+    printer.setPaperSize( QPrinter::A4 );
+    printer.setFullPage( false );
+	printer.setOrientation( QPrinter::Landscape );
+    
+    printer.setDocName( "QtPlatz Multi-turn calibration report" );
+    printer.setOutputFileName( pdfname );
+    // printer.setResolution( resolution );
+
+    QPainter painter( &printer );
+
+    QRectF boundingRect;
+    QRectF drawRect( printer.resolution()/2, printer.resolution()/2, printer.width() - printer.resolution(), (12.0/72)*printer.resolution() );
+	painter.drawText( drawRect, Qt::TextWordWrap, fullpath_, &boundingRect );
+
+    drawRect.setTop( boundingRect.bottom() );
+    drawRect.setHeight( printer.height() - boundingRect.top() - printer.resolution()/2 );
+    //drawRect.setWidth( size.width() );
+
+    QwtPlotRenderer renderer;
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
+
+    QRectF rc( drawRect );
+	rc.setHeight( drawRect.height() / 2 );
+    rc.setWidth( drawRect.width() * 0.6 );
+    for ( auto& plot: plots_ ) {
+        renderer.render( plot.get(), &painter, rc );
+        rc.moveTo( rc.left(), rc.bottom() );
+    }
+
+    // renderer.render( pImpl_->processedSpectrum_, &painter, drawRect );
+    // ---------- calibratin equation ----------
+#if 0
+    if ( calibResult ) {
+        const adcontrols::MSCalibration& calib = calibResult->calibration();
+        QString text = "Calibration eq.: sqrt(m/z) = ";
+        for ( size_t i = 0; i < calib.coeffs().size(); ++i ) {
+            if ( i == 0 )
+                text += ( boost::format( "%.14le" ) % calib.coeffs()[0] ).str().c_str();
+            else
+                text += ( boost::format( "\t+ %.14le * x^%d" ) % calib.coeffs()[i] % i ).str().c_str();
+        }
+        drawRect.setTop( drawRect.bottom() + 0.5 * resolution );
+        drawRect.setHeight( printer.height() - drawRect.top() );
+        QFont font = painter.font();
+        font.setPointSize( 8 );
+        painter.setFont( font );
+        painter.drawText( drawRect, Qt::TextWordWrap, text );
+    }
+#endif
+    // ---------- end calibration equestion -----
+
+    if ( connect( this, SIGNAL( onPrint(QPrinter&, QPainter&) )
+                  , wndCalibSummary_, SLOT(handlePrint(QPrinter&, QPainter&)) ) ) {
+        emit onPrint( printer, painter );
+        bool res = disconnect( this, SIGNAL( onPrint(QPrinter&, QPainter&) )
+                               , wndCalibSummary_, SLOT(handlePrint(QPrinter&, QPainter&)) );
+        assert( res );
+    }
+    
+}
+
 
 void
 MSCalibSpectraWnd::plot_length_time( internal::SeriesData& d, int id, adwplot::Dataplot& plot )

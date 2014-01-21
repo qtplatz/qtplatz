@@ -50,6 +50,7 @@ namespace adcontrols {
 
 namespace adportable {  class Configuration; }
 namespace adwplot { class SpectrumWidget; class Dataplot; }
+class QPrinter;
 
 namespace dataproc {
 
@@ -67,9 +68,11 @@ namespace dataproc {
         void handleSelectionChanged( Dataprocessor*, portfolio::Folium& );
         void handleApplyMethod( const adcontrols::ProcessMethod& );
         void handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool );
+        void handlePrintCurrentView( const QString& outpdf );
 
     signals:
         void onSetData( const adcontrols::MSCalibrateResult&, const adcontrols::MassSpectrum& );
+        void onPrint( QPrinter&, QPainter& );
 
     private slots:
         void handleSelSummary( size_t idx, size_t fcn );
@@ -92,9 +95,7 @@ namespace dataproc {
         std::vector< std::shared_ptr< adwplot::SpectrumWidget > > wndSpectra_;
         std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
         std::shared_ptr< QwtPlotMarker > time_length_marker_;
-
-        std::vector< portfolio::Folium > folio_;
-        portfolio::Folium folium_;
+        QString fullpath_;
 
         // selSpectra member holds last selected spectra regardless of isChecked state (for spectral comperison on display)
         std::deque< std::pair< std::wstring, std::weak_ptr< adcontrols::MassSpectrum > > > selSpectra_;

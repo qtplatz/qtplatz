@@ -576,7 +576,7 @@ MSCalibrationWnd::handlePrintCurrentView( const QString& pdfname )
     renderer.render( pImpl_->processedSpectrum_, &painter, drawRect );
     // ---------- spectrum rendered ----------
     
-    // ---------- calibratin equeatin ----------
+    // ---------- calibratin equation ----------
     if ( calibResult ) {
         const adcontrols::MSCalibration& calib = calibResult->calibration();
         QString text = "Calibration eq.: sqrt(m/z) = ";
