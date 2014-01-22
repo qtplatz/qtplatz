@@ -174,20 +174,26 @@ namespace dataproc {
         {
             //size_t d = ((x - xlimits_.first) / ( xlimits_.second - xlimits_.first )) * ( m_.size1() - 1 );
             size_t d = ((x - xlimits_.first) / ( xlimits_.second - xlimits_.first )) * ( size1_ - 1 );
-            return d;
+			if ( d > m_.size1() - 1 )
+				return m_.size1() - 1;
+			return d;
         }
 
         size_t
         SpectrogramData::dy( double y ) const
         {
             size_t d = ((y - ylimits_.first) / ( ylimits_.second - ylimits_.first )) * ( m_.size2() - 1 );
+			if ( d > m_.size2() - 1 )
+				return m_.size2() - 1;
             return d;
         }
         
         double
         SpectrogramData::value( double x, double y ) const
         {
-            return m_( dx(x), dy(y) );
+			size_t ix = dx( x );
+			size_t iy = dy( y );
+            return m_( ix, iy );
         }
 
         QRectF
