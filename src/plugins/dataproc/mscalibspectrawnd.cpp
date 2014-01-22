@@ -963,7 +963,7 @@ MSCalibSpectraWnd::plot_intercept( adwplot::Dataplot& plot )
         interceptPlotCurve_->setSamples( xy );
     }
 
-    do {
+	if ( coeffs_intercepts_.size() >= 1 ) {
         std::ostringstream o;
         o << boost::format( "intercept = %.6g" ) % coeffs_intercepts_[0];
         for ( size_t i = 1; i < coeffs_intercepts_.size(); ++i ) {

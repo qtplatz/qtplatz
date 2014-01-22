@@ -130,17 +130,12 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
 	setData( new SpectrogramData() );
     spectrogram_->attach( this );
 
-    // QList<double> contourLevels;
-    // for ( double level = 0.5; level < 10.0; level += 1.0 )
-    //     contourLevels += level;
-    // spectrogram_->setContourLevels( contourLevels );
-
     const QwtInterval zInterval = spectrogram_->data()->interval( Qt::ZAxis );
     // A color bar on the right axis
     QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
     rightAxis->setTitle( QwtText( "Intensity", QwtText::RichText ) );
     rightAxis->setColorBarEnabled( true );
-    rightAxis->setColorMap( zInterval, new detail::ColorMap() );
+	rightAxis->setColorMap( zInterval, new detail::ColorMap );
 
     setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
     enableAxis( QwtPlot::yRight );
@@ -170,14 +165,12 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
 
     const QFontMetrics fm( axisWidget( QwtPlot::yLeft )->font() );
     QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );
-    sd->setMinimumExtent( fm.width( "100.00" ) );
+    sd->setMinimumExtent( fm.width( "1.00" ) );
 
     const QColor c( Qt::darkBlue );
     zoomer_->setRubberBandPen( c );
     zoomer_->setTrackerPen( c );
     
-    //zoomer_->setStateMachine( new QwtPickerClickPointMachine );
-    //zoomer_->setRubberBand( QwtPicker::CrossRubberBand );
     detail::Picker * picker = new detail::Picker( canvas() );
     (void)picker;  // will delete by QWidget
 
@@ -193,8 +186,8 @@ SpectrogramWidget::setData( SpectrogramData * data )
 
     // A color bar on the right axis
     const QwtInterval zInterval = data->interval( Qt::ZAxis );
+    axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new detail::ColorMap() );
     setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
-    // axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new detail::ColorMap() );
 
     const QwtInterval xInterval = data->interval( Qt::XAxis );
     setAxisScale( QwtPlot::xBottom, xInterval.minValue(), xInterval.maxValue() );
@@ -249,10 +242,10 @@ SpectrogramWidget::handleZoomed( const QRectF& rc )
 {
     if ( data_ ) {
         if ( data_->zoomed( rc ) ) {
-            const QwtInterval zInterval = data_->interval( Qt::ZAxis );
+			const QwtInterval zInterval = data_->interval( Qt::ZAxis );
+            axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new detail::ColorMap );
             setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
-            // axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new detail::ColorMap() );
-            replot();
+            spectrogram_->invalidateCache();
         }
     }
 }

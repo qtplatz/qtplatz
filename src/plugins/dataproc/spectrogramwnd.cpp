@@ -37,6 +37,7 @@
 #include <QPrintDialog>
 #include <QBoxLayout>
 #include <boost/numeric/ublas/matrix.hpp>
+#include <algorithm>
 
 namespace dataproc {
     namespace detail {
@@ -56,6 +57,8 @@ namespace dataproc {
             size_t dx( double x ) const;
             size_t dy( double y ) const;
             void updateData();
+            size_t size1_;
+            size_t size2_;
         };
 
     }
@@ -151,6 +154,8 @@ namespace dataproc {
                                                                      , m_( t.m_ )
                                                                      , xlimits_( t.xlimits_ )
                                                                      , ylimits_( t.ylimits_ )
+                                                                     , size1_( t.size1_ )
+                                                                     , size2_( t.size2_ )
         {
         }
 
@@ -159,13 +164,16 @@ namespace dataproc {
                                                                                 , xlimits_( spectra_->x_left(), spectra_->x_right() )
                                                                                 , ylimits_( spectra_->lower_mass(), spectra_->upper_mass() )
         {
+            size1_ = m_.size1();
+            size2_ = m_.size2();
             updateData();
         }
 
         size_t 
         SpectrogramData::dx( double x ) const
         {
-            size_t d = ((x - xlimits_.first) / ( xlimits_.second - xlimits_.first )) * ( m_.size1() - 1 );
+            //size_t d = ((x - xlimits_.first) / ( xlimits_.second - xlimits_.first )) * ( m_.size1() - 1 );
+            size_t d = ((x - xlimits_.first) / ( xlimits_.second - xlimits_.first )) * ( size1_ - 1 );
             return d;
         }
 
@@ -205,11 +213,15 @@ namespace dataproc {
                     m_( i, j ) = 0;
                 }
             }
+            size_t id1 = std::distance( spectra_->x().begin(), std::lower_bound( spectra_->x().begin(), spectra_->x().end(), xlimits_.first ) );
+            size_t id2 = std::distance( spectra_->x().begin(), std::lower_bound( spectra_->x().begin(), spectra_->x().end(), xlimits_.second ) );
+            size1_ = std::min( m_.size1(), id2 - id1 + 1 );
+            
             double z_max = std::numeric_limits<double>::lowest();
             size_t id = 0;
             for ( auto& ms: *spectra_ ) {
                 double x = spectra_->x()[ id++ ];
-
+                
                 if ( xlimits_.first <= x && x <= xlimits_.second ) {
                     size_t ix = dx(x);
 
@@ -226,14 +238,14 @@ namespace dataproc {
                     }
                 }
             }
-            for ( size_t i = 0; i < m_.size1(); ++i ) {
-                for ( size_t j = 0; j < m_.size2(); ++j ) {
-                    m_( i, j ) /= (z_max / 10000.0);
-                }
-            }
+            // for ( size_t i = 0; i < m_.size1(); ++i ) {
+            //     for ( size_t j = 0; j < m_.size2(); ++j ) {
+            //         m_( i, j ) /= (z_max / 10000.0);
+            //     }
+            // }
             setInterval( Qt::XAxis, QwtInterval( spectra_->x_left(), spectra_->x_right() ) );   // time (sec -> min)
             setInterval( Qt::YAxis, QwtInterval( spectra_->lower_mass(), spectra_->upper_mass() ) ); // m/z
-            setInterval( Qt::ZAxis, QwtInterval( 0.0, 10000 ) );
+            setInterval( Qt::ZAxis, QwtInterval( 0.0, z_max ) );
         }
     }
 }
