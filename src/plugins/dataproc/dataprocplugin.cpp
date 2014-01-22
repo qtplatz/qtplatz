@@ -49,7 +49,6 @@
 #include <adcontrols/processmethod.hpp>
 #include <adextension/ieditorfactory.hpp>
 #include <adextension/isnapshothandler.hpp>
-//#include <adorbmgr/orbmgr.hpp>
 
 #include <adplugin/plugin.hpp>
 #include <adplugin/loader.hpp>
@@ -65,6 +64,7 @@
 #include <portfolio/folium.hpp>
 #include <qtwrapper/qstring.hpp>
 #include <qtwrapper/application.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <xmlparser/pugixml.hpp>
 
 #include <coreplugin/icore.h>
@@ -130,16 +130,6 @@ namespace dataproc {
 			return false;
         }
     };
-
-	class waitCursor {
-	public:
-		waitCursor() {
-			QApplication::setOverrideCursor( Qt::WaitCursor );
-		}
-		~waitCursor() {
-			QApplication::restoreOverrideCursor();
-		}
-	};
 }
 
 using namespace dataproc;
@@ -324,7 +314,7 @@ DataprocPlugin::handle_folium_added( const QString token, const QString path, co
 void
 DataprocPlugin::onSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
-	waitCursor w;
+	qtwrapper::waitCursor w;
 
     adportable::debug(__FILE__, __LINE__) << "onSelectTimeRagneOnChromatogram(" << x1 << ", " << x2 << ")";
 

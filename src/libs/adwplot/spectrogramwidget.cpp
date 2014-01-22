@@ -27,16 +27,22 @@
 
 using namespace adwplot;
 
+#include <adportable/debug.hpp>
 #include <qwt_plot_spectrogram.h>
 #include <qwt_color_map.h>
 #include <qwt_plot_spectrogram.h>
 #include <qwt_scale_widget.h>
 #include <qwt_scale_draw.h>
+#include <qwt_plot_canvas.h>
 #include <qwt_plot_zoomer.h>
 #include <qwt_plot_panner.h>
 #include <qwt_plot_layout.h>
 #include <qwt_plot_renderer.h>
-#include <qbrush.h>
+#include <qwt_plot_picker.h>
+#include <qwt_picker_machine.h>
+#include <QBrush>
+#include <QEvent>
+#include <QMouseEvent>
 #include <iostream>
 
 namespace detail {
@@ -48,7 +54,7 @@ namespace detail {
         }
         virtual QwtText trackerTextF( const QPointF &pos ) const {
             QColor bg( Qt::white );
-            bg.setAlpha( 200 );
+            bg.setAlpha( 128 );
             
             QwtText text = QwtPlotZoomer::trackerTextF( pos );
 			text.setBackgroundBrush( QBrush( bg ) );
@@ -64,6 +70,49 @@ namespace detail {
             addColorStop( 0.95, Qt::yellow );
         }
     };
+
+    class PickerMachine : public QwtPickerMachine {
+    public:
+        PickerMachine() : QwtPickerMachine( QwtPickerMachine::PointSelection ) {
+        }
+        virtual QList< QwtPickerMachine::Command > transition( const QwtEventPattern&, const QEvent * e ) {
+            QList< QwtPickerMachine::Command > cmdList;
+            if ( e->type() == QEvent::MouseMove )
+                cmdList << Move;
+            return cmdList;
+        }
+    };
+    
+    class Picker: public QwtPlotPicker {
+    public:
+        Picker(QWidget *canvas): QwtPlotPicker(QwtPlot::xBottom, QwtPlot::yLeft, canvas) {
+            setRubberBand(QwtPlotPicker::CrossRubberBand);
+            QPen pen( QColor( 0xff, 0, 0, 0x80 ) ); // transparent darkRed
+            setRubberBandPen( pen );
+            setRubberBand(QwtPicker::CrossRubberBand);
+            setTrackerMode( AlwaysOff );
+            canvas->setMouseTracking(true);
+        }
+
+        void widgetMouseMoveEvent(QMouseEvent *e) {
+            if ( !isActive() ) {
+                begin();
+                append( e->pos() );
+            } else {
+                move( e->pos() );
+            }
+            QwtPlotPicker::widgetMouseMoveEvent(e);
+        }
+        
+        void widgetLeaveEvent(QEvent *) {
+            end();
+        }
+
+        virtual QwtPickerMachine *stateMachine(int) const {
+            return new PickerMachine;
+        }
+    };
+
 } // namespace detail
 
 SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
@@ -106,15 +155,15 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     replot();
 
     // LeftButton for the zooming
-    // MidButton for the panning
+    // Alt+LeftButton for the panning
     // RightButton: zoom out by 1
-    // Ctrl+RighButton: zoom out to full size
+    // Shift+LeftButton: zoom out to full size
 
-    zoomer_->setMousePattern( QwtEventPattern::MouseSelect2, Qt::RightButton, Qt::ControlModifier );
+    zoomer_->setMousePattern( QwtEventPattern::MouseSelect2, Qt::LeftButton, Qt::ShiftModifier );
     zoomer_->setMousePattern( QwtEventPattern::MouseSelect3, Qt::RightButton );
 
     panner_->setAxisEnabled( QwtPlot::yRight, false );
-    panner_->setMouseButton( Qt::MidButton );
+    panner_->setMouseButton( Qt::LeftButton, Qt::AltModifier );
 
     // Avoid jumping when labels with more/less digits
     // appear/disappear when scrolling vertically
@@ -126,6 +175,11 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     const QColor c( Qt::darkBlue );
     zoomer_->setRubberBandPen( c );
     zoomer_->setTrackerPen( c );
+    
+    //zoomer_->setStateMachine( new QwtPickerClickPointMachine );
+    //zoomer_->setRubberBand( QwtPicker::CrossRubberBand );
+    detail::Picker * picker = new detail::Picker( canvas() );
+    (void)picker;  // will delete by QWidget
 
     connect( this, SIGNAL( dataChanged() ), this, SLOT( handle_dataChanged() ) );
     connect( zoomer_.get(), SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomed( const QRectF& ) ) );
