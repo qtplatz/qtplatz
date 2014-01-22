@@ -92,9 +92,6 @@ namespace dataproc {
         int populate( Dataprocessor *, portfolio::Folder& );
         void doCalibration( adcontrols::MassSpectrum& centroid, adcontrols::MSCalibrateResult&, const adcontrols::MSAssignedMasses& assigned );
 
-        std::vector< std::shared_ptr< adwplot::SpectrumWidget > > wndSpectra_;
-        std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
-        std::shared_ptr< QwtPlotMarker > time_length_marker_;
         QString fullpath_;
 
         // selSpectra member holds last selected spectra regardless of isChecked state (for spectral comperison on display)
@@ -114,6 +111,8 @@ namespace dataproc {
         QSplitter * wndSplitter_;
         int axis_;
 
+        std::vector< std::shared_ptr< adwplot::SpectrumWidget > > wndSpectra_;
+        std::vector< std::shared_ptr< QwtPlotMarker > > markers_;
         std::map< std::wstring, std::shared_ptr< internal::SeriesData > > data_; // formula,  coeffs(a, b)
         std::map< std::wstring, std::shared_ptr< QwtPlotCurve > > plotCurves_;  // formula marker, length by time
         std::map< std::wstring, std::shared_ptr< QwtPlotCurve > > plotRegressions_; // regression line for length by time

@@ -44,6 +44,7 @@
 #include <adcontrols/processmethod.hpp>
 #include <adcontrols/mscalibratemethod.hpp>
 #include <adwplot/spectrumwidget.hpp>
+#include <adwplot/peakmarker.hpp>
 #include <adutils/processeddata.hpp>
 #include <adportable/utf.hpp>
 
@@ -77,44 +78,18 @@ namespace dataproc {
     public:
         ~MSCalibrationWndImpl() {}
         MSCalibrationWndImpl( QWidget * parent ) : processedSpectrum_( new adwplot::SpectrumWidget( parent ) )
-                                                  , calibSummaryWidget_( 0 )
-                                                  , centroid_center_( new QwtPlotMarker )
-                                                  , centroid_left_( new QwtPlotMarker )
-                                                  , centroid_right_( new QwtPlotMarker )
-                                                  , centroid_threshold_( new QwtPlotMarker )
-                                                  , centroid_baselevel_( new QwtPlotMarker )
-                                                  , timeAxis_( false ) {
+                                                 , calibSummaryWidget_( 0 )
+                                                 , centroid_marker_( std::make_shared< adwplot::PeakMarker >() )
+                                                 , timeAxis_( false ) {
 
-            centroid_center_->setLineStyle( QwtPlotMarker::VLine );
-            centroid_center_->setLinePen( Qt::darkGray, 0, Qt::DashDotLine );
-            centroid_center_->attach( processedSpectrum_ );
-
-            centroid_left_->setLineStyle( QwtPlotMarker::VLine );
-            centroid_left_->setLinePen( Qt::darkGray, 0, Qt::DotLine );
-            centroid_left_->attach( processedSpectrum_ );
-
-            centroid_right_->setLineStyle( QwtPlotMarker::VLine );
-            centroid_right_->setLinePen( Qt::darkGray, 0, Qt::DotLine );
-            centroid_right_->attach( processedSpectrum_ );
-
-            centroid_threshold_->setLineStyle( QwtPlotMarker::HLine );
-            centroid_threshold_->setLinePen( Qt::darkGray, 0, Qt::DashDotLine );
-            centroid_threshold_->attach( processedSpectrum_ );
-
-            centroid_baselevel_->setLineStyle( QwtPlotMarker::HLine );
-            centroid_baselevel_->setLinePen( Qt::darkGray, 0, Qt::DotLine );
-            centroid_baselevel_->attach( processedSpectrum_ );
+            processedSpectrum_->enableAxis( QwtPlot::yRight ); // enable y-axis for profile overlay
+            centroid_marker_->attach( processedSpectrum_ );
+            centroid_marker_->setYAxis( QwtPlot::yRight );
         }
 
         adwplot::SpectrumWidget * processedSpectrum_;
         QWidget * calibSummaryWidget_;
-
-        std::unique_ptr< QwtPlotMarker > centroid_center_;
-        std::unique_ptr< QwtPlotMarker > centroid_left_;
-        std::unique_ptr< QwtPlotMarker > centroid_right_;
-        std::unique_ptr< QwtPlotMarker > centroid_threshold_;
-        std::unique_ptr< QwtPlotMarker > centroid_baselevel_;
-
+        std::shared_ptr< adwplot::PeakMarker > centroid_marker_;
         std::weak_ptr< adcontrols::MassSpectrum > calibCentroid_;
         std::weak_ptr< adcontrols::MassSpectrum > calibProfile_;
         std::weak_ptr< adcontrols::MSCalibrateResult > calibResult_;
@@ -124,34 +99,22 @@ namespace dataproc {
         bool timeAxis_;
 
         void restore_state( adcontrols::MassSpectrum& ) {
-            centroid_center_->setLinePen( Qt::transparent, 0, Qt::DashDotLine );
+            centroid_marker_->visible( false );
         }
 
         void store_state( adcontrols::MassSpectrum& centroid, size_t fcn, size_t idx ) {
-
-            centroid_center_->setLinePen( Qt::green, 0, Qt::DashDotLine );
+            centroid_marker_->visible( true );
 
             if ( std::shared_ptr< adcontrols::MSPeakInfo > pkInfo = peakInfo_.lock() ) {
                 using namespace adcontrols::metric;
 
                 adcontrols::segment_wrapper< adcontrols::MSPeakInfo > segments( *pkInfo );
                 const adcontrols::MSPeakInfoItem& pk = *(segments[ fcn ].begin() + idx);
-                // todo: axis time/mass 
-                if ( timeAxis_ ) {
-                    centroid_center_->setValue( adcontrols::metric::scale_to_micro( pk.time() ), 0 );
-                    centroid_left_->setValue( adcontrols::metric::scale_to_micro( pk.centroid_left( true ) ), 0 );
-                    centroid_right_->setValue( adcontrols::metric::scale_to_micro( pk.centroid_right( true ) ), 0 );
-                } else {
-                    centroid_center_->setValue( pk.mass(), 0 );
-                    centroid_left_->setValue( pk.centroid_left(), 0 );
-                    centroid_right_->setValue( pk.centroid_right(), 0 );
-                }
-                centroid_threshold_->setValue( 0, pk.centroid_threshold() );
-                centroid_baselevel_->setValue( 0, pk.base_height() );
+                centroid_marker_->setPeak( pk, timeAxis_, adcontrols::metric::micro );
             } else {
                 adcontrols::segment_wrapper<> segments( centroid );
                 double mass = segments[ fcn ].getMass( idx );
-                centroid_center_->setValue( mass, 0 );
+                centroid_marker_->setValue( adwplot::PeakMarker::idPeakCenter, mass, 0 );
             }
         }
     };
@@ -188,7 +151,6 @@ MSCalibrationWnd::init()
             assert(res);
             res = connect( pSummary, SIGNAL( on_apply_calibration_to_default() ), this, SLOT( handle_apply_calibration_to_default() ) );
             assert(res);
-            
             res = connect( pSummary, SIGNAL( on_add_selection_to_peak_table(const adcontrols::MSPeaks& ))
                            , this, SLOT( handle_add_selection_to_peak_table( const adcontrols::MSPeaks& ) ) );
             assert(res);
@@ -267,11 +229,11 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
             if ( it != attachments.end() ) {
                 // Select DFT Filterd if exists
                 pImpl_->calibProfile_ = portfolio::get< adcontrols::MassSpectrumPtr> ( *it );
-                pImpl_->processedSpectrum_->setData( pImpl_->calibProfile_.lock(), idx_profile );
+                pImpl_->processedSpectrum_->setData( pImpl_->calibProfile_.lock(), idx_profile, true );
 
             } else {
 
-                pImpl_->processedSpectrum_->setData( ptr, idx_profile );
+                pImpl_->processedSpectrum_->setData( ptr, idx_profile, true );
                 if ( ptr->isCentroid() ) {
                     pImpl_->calibCentroid_ = ptr;
                     pImpl_->processedSpectrum_->setTitle( folium.name() );
@@ -326,7 +288,7 @@ MSCalibrationWnd::handleAxisChanged( int axis )
     boost::any& data = pImpl_->folium_;
     if ( adutils::ProcessedData::is_type< adutils::MassSpectrumPtr >( data ) ) { 
         adutils::MassSpectrumPtr ptr = boost::any_cast< adutils::MassSpectrumPtr >( data );
-        pImpl_->processedSpectrum_->setData( ptr, idx_profile );
+        pImpl_->processedSpectrum_->setData( ptr, idx_profile, true ); // on yRight axis
     }
 
     if ( auto centroid = pImpl_->calibCentroid_.lock() )
@@ -376,9 +338,9 @@ MSCalibrationWnd::calibPolynomialFit( adcontrols::MSCalibrateResult& calibResult
     // recalc polinomials
 	mass_calibrator calibrator( calibResult.assignedMasses(), prop );
         
-    size_t nterm = pCalibMethod->polynomialDegree() + 1;
+    int nterm = pCalibMethod->polynomialDegree() + 1;
     if ( calibrator.size() < nterm )
-        nterm = calibrator.size();
+        nterm = static_cast<int>( calibrator.size() );
     
     adcontrols::MSCalibration calib;
     if ( calibrator.polfit( calib, nterm ) ) {
@@ -461,7 +423,7 @@ MSCalibrationWnd::handle_reassign_mass_requested()
                             ms.setMass( i, calib.compute_mass( ms.getTime( i ) ) ); //getNormalizedTime( i ) ) );
                     }
                 }
-                pImpl_->processedSpectrum_->setData( profile, idx_profile ); 
+                pImpl_->processedSpectrum_->setData( profile, idx_profile, true ); 
 
 				// centroid (override profile that has better visibility)
                 adcontrols::segment_wrapper< adcontrols::MassSpectrum > segments( *centroid );

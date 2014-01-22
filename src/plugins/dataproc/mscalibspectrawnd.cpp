@@ -168,7 +168,21 @@ using namespace dataproc;
 
 MSCalibSpectraWnd::~MSCalibSpectraWnd()
 {
-	time_length_marker_->detach();
+	// detach all object attached to QwtPlot
+	slopeMarkers_.clear();
+    interceptMarkers_.clear();
+    markers_.clear();
+    plotCurves_.clear();
+    plotRegressions_.clear();
+
+    if ( slopePlotCurve_ )
+        slopePlotCurve_->detach();
+
+    if ( interceptPlotCurve_ )
+        interceptPlotCurve_->detach();
+
+    if ( regressionCurve_ )
+        regressionCurve_->detach();
 }
 
 namespace dataproc {

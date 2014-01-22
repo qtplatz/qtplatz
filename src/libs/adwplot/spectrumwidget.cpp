@@ -126,12 +126,12 @@ namespace adwplot {
             ~TraceData();
             void setData( Dataplot& plot
                           , const std::shared_ptr< adcontrols::MassSpectrum>&
-                          , QRectF&, SpectrumWidget::HorizontalAxis );
+                          , QRectF&, SpectrumWidget::HorizontalAxis, bool yRight );
             std::pair<double, double> y_range( double left, double right ) const;
             
         private:
-            void setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF& );
-            void setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF& );
+            void setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF&, bool yRight );
+            void setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF&, bool yRight );
 
             int idx_;
             std::vector< PlotCurve > curves_;
@@ -298,7 +298,7 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     TraceData& trace = impl_->traces_[ idx ];
 
     QRectF rect;
-    trace.setData( *this, ptr, rect, haxis_ );
+    trace.setData( *this, ptr, rect, haxis_, yaxis2 );
 
     setAxisScale( QwtPlot::xBottom, rect.left(), rect.right() );
     setAxisScale( yaxis2 ? QwtPlot::yRight : QwtPlot::yLeft, rect.top(), rect.bottom() );
@@ -328,7 +328,7 @@ TraceData::~TraceData()
 }
 
 void
-TraceData::setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF& rect )
+TraceData::setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, const QRectF& rect, bool yRight )
 {
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( ms );
     for ( auto& seg: segments ) {
@@ -338,11 +338,13 @@ TraceData::setProfileData( Dataplot& plot, const adcontrols::MassSpectrum& ms, c
         if ( idx_ )
             curve.p()->setPen( QPen( color_table[ idx_ ] ) );
         curve.p()->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
+        if ( yRight )
+            curve.p()->setYAxis( QwtPlot::yRight );
     }
 }
 
 void
-TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms, const QRectF& rect )
+TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms, const QRectF& rect, bool yRight )
 {
     adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segments( _ms );
 
@@ -362,6 +364,8 @@ TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms,
                     curve.p()->setData( xp );
                     curve.p()->setPen( QPen( color_table[ c ] ) );
                     curve.p()->setStyle( QwtPlotCurve::Sticks );
+                    if ( yRight )
+                        curve.p()->setYAxis( QwtPlot::yRight );
                 }
             }
 
@@ -371,6 +375,8 @@ TraceData::setCentroidData( Dataplot& plot, const adcontrols::MassSpectrum& _ms,
             curve.p()->setPen( QPen( color_table[ 0 ] ) );
             curve.p()->setData( new xSeriesData( seg, rect, isTimeAxis_ ) );
             curve.p()->setStyle( QwtPlotCurve::Sticks );
+            if ( yRight )
+                curve.p()->setYAxis( QwtPlot::yRight );
         }
     }
 }
@@ -379,7 +385,8 @@ void
 TraceData::setData( Dataplot& plot
                     , const std::shared_ptr< adcontrols::MassSpectrum >& ms
                     , QRectF& rect
-                    , SpectrumWidget::HorizontalAxis haxis )
+                    , SpectrumWidget::HorizontalAxis haxis
+                    , bool yRight )
 {
     curves_.clear();
 
@@ -413,9 +420,9 @@ TraceData::setData( Dataplot& plot
 
     }
     if ( ms->isCentroid() ) { // sticked
-        setCentroidData( plot, *ms, rect );
+        setCentroidData( plot, *ms, rect, yRight );
     } else { // Profile
-        setProfileData( plot, *ms, rect );
+        setProfileData( plot, *ms, rect, yRight );
     }
 }
 
