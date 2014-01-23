@@ -40,36 +40,14 @@ using namespace adwplot;
 #include <qwt_plot_renderer.h>
 #include <qwt_plot_picker.h>
 #include <qwt_picker_machine.h>
+#include <qwt_painter.h>
 #include <QBrush>
 #include <QEvent>
 #include <QMouseEvent>
 #include <iostream>
+#include <boost/format.hpp>
 
 namespace detail {
-
-    class zoomer : public QwtPlotZoomer {
-    public:
-        zoomer( QWidget * canvas ) : QwtPlotZoomer( canvas ) {
-            setTrackerMode( AlwaysOn );
-        }
-        virtual QwtText trackerTextF( const QPointF &pos ) const {
-            QColor bg( Qt::white );
-            bg.setAlpha( 128 );
-            
-            QwtText text = QwtPlotZoomer::trackerTextF( pos );
-			text.setBackgroundBrush( QBrush( bg ) );
-            return text;
-        }
-    };
-
-    class ColorMap: public QwtLinearColorMap {
-    public:
-        ColorMap(): QwtLinearColorMap( Qt::darkCyan, Qt::red ) {
-            addColorStop( 0.1, Qt::cyan );
-            addColorStop( 0.6, Qt::green );
-            addColorStop( 0.95, Qt::yellow );
-        }
-    };
 
     class PickerMachine : public QwtPickerMachine {
     public:
@@ -87,7 +65,7 @@ namespace detail {
     public:
         Picker(QWidget *canvas): QwtPlotPicker(QwtPlot::xBottom, QwtPlot::yLeft, canvas) {
             setRubberBand(QwtPlotPicker::CrossRubberBand);
-            QPen pen( QColor( 0xff, 0, 0, 0x80 ) ); // transparent darkRed
+            QPen pen( QColor( 0xff, 0, 0, 0x40 ) ); // transparent darkRed
             setRubberBandPen( pen );
             setRubberBand(QwtPicker::CrossRubberBand);
             setTrackerMode( AlwaysOff );
@@ -110,6 +88,83 @@ namespace detail {
 
         virtual QwtPickerMachine *stateMachine(int) const {
             return new PickerMachine;
+        }
+    };
+
+    /////// zoomer ///////////
+    class zoomer : public QwtPlotZoomer {
+        static const int minX = 25;
+        QPoint p1_;
+    public:
+        zoomer( QWidget * canvas ) : QwtPlotZoomer( canvas ) {
+            QPen pen( QColor( 0xff, 0, 0, 0x80 ) ); // transparent darkRed
+            setRubberBandPen( pen );
+            setRubberBand(QwtPlotPicker::CrossRubberBand);
+            setTrackerMode( AlwaysOn );
+        }
+        void widgetMousePressEvent( QMouseEvent * e ) override {
+            p1_ = e->pos();
+            QwtPlotZoomer::widgetMousePressEvent( e );
+        }
+        QwtText trackerTextF( const QPointF &pos ) const override {
+            QColor bg( Qt::white );
+            bg.setAlpha( 128 );
+            QwtText text;
+            if ( p1_.y() ) {
+                QPointF pt = invTransform( p1_ );
+                double dm = pos.y() - pt.y();
+                text = QwtText( (boost::format("<i>m/z</i> %.4f(&delta;=%.4f)@ %.3fmin") % pos.y() % dm % pos.x() ).str().c_str(), QwtText::RichText );
+            } else {
+                text = QwtText( (boost::format("<i>m/z</i> %.4f @ %.3fmin") % pos.y() % pos.x() ).str().c_str(), QwtText::RichText );
+            }
+			text.setBackgroundBrush( QBrush( bg ) );
+            return text;
+        }
+        QSizeF minZoomSize() const override {
+            QRectF rc = zoomBase();
+            return QSizeF( rc.width() * 1.0e-9, rc.height() * 1.0e-9 );
+        }
+        void drawRubberBand( QPainter * painter ) const override {
+            if ( !isActive() || rubberBand() == NoRubberBand || rubberBandPen().style() == Qt::NoPen )
+                return;
+            const QPolygon pa = adjustedPoints( pickedPoints() );
+            if ( pa.count() < 2 )
+                return;
+            const QPoint p1 = pa[0];
+            const QPoint p2 = pa[int( pa.count() - 1 )];
+            const QRect rect = QRect( p1, p2 ).normalized();
+            const QRectF& rc = pickArea().boundingRect(); // view rect                
+            if ( rect.width() < minX ) { // virtical indicator using 2 parallel lines
+                QwtPainter::drawLine( painter, rc.left(), p1.y(), rc.right(), p1.y() );  // horizontal @ 1st point
+            } else {
+                QwtPainter::drawLine( painter, rc.left(), p1.y(), rc.right(), p1.y() );  // horizontal @ 1st point
+                QwtPainter::drawLine( painter, p1.x(), rc.top(), p1.x(), rc.bottom() );  // vertical @ 1st point
+            }
+        }
+
+        bool accept( QPolygon &pa ) const override {
+            if ( pa.count() < 2 )
+                return false;
+            QRect rect = QRect( pa[0], pa[int( pa.count() ) - 1] ).normalized();
+            if ( rect.width() <= 2 && rect.height() <= 2 )
+                return false;
+            if ( rect.width() < minX ) {
+                const QRectF& rc = pickArea().boundingRect(); // view rect
+                pa.resize( 2 );
+                pa[ 0 ] = QPoint( rc.left(), rect.top() );
+                pa[ 1 ] = QPoint( rc.right(), rect.bottom() );
+                return true;
+            }
+            return QwtPlotZoomer::accept( pa );
+        }
+    };
+
+    class ColorMap: public QwtLinearColorMap {
+    public:
+        ColorMap(): QwtLinearColorMap( Qt::darkCyan, Qt::red ) {
+            addColorStop( 0.1, Qt::cyan );
+            addColorStop( 0.6, Qt::green );
+            addColorStop( 0.95, Qt::yellow );
         }
     };
 

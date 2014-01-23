@@ -44,6 +44,7 @@
 #include <adportable/debug.hpp>
 #include <boost/any.hpp>
 #include <boost/format.hpp>
+#include <boost/filesystem/path.hpp>
 
 using namespace adtextfile;
 
@@ -77,6 +78,8 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
         return false;
     }
 
+    boost::filesystem::path path( filename );
+
     portfolio::Portfolio portfolio;
 
     portfolio.create_with_fullpath( filename );
@@ -98,8 +101,9 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
             std::for_each( it + 1, txt.spectra_.end(), [&ptr]( adcontrols::MassSpectrumPtr& sub ){
                     ptr->addSegment( *sub );
                 });
-            
-            portfolio::Folium folium = spectra.addFolium( L"A Spectrum" );
+
+			std::wstring name = path.stem().wstring();
+            portfolio::Folium folium = spectra.addFolium( name );
             folium.setAttribute( L"dataType", adcontrols::MassSpectrum::dataClass() );        
             data_[ folium.id() ] = ptr;
             

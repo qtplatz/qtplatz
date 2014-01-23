@@ -496,8 +496,8 @@ QString FileManager::getSaveAsFileName(IFile *file, const QString &filter, QStri
 {
     if (!file)
         return QLatin1String("");
-	QString absoluteFilePath = file->fileName();
-	// QString absoluteFilePath = file->suggestedFileName(); // TH, changed on 13 May 2012 for data import
+	//QString absoluteFilePath = file->fileName();
+	QString absoluteFilePath = file->suggestedFileName(); // TH, changed on 13 May 2012 for data import --> revert at 23 Jan 2014
     const QFileInfo fi(absoluteFilePath);
     QString fileName = fi.fileName();
     QString path = fi.absolutePath();

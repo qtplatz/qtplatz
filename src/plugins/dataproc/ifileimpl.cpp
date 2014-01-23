@@ -53,8 +53,11 @@ IFileImpl::IFileImpl( adcontrols::datafile * file
                                         , accessor_(0)
                                         , dprocessor_( dprocessor ) 
 {
-    if ( file_ )
-        filename_ = QString( qtwrapper::qstring::copy( file_->filename() ) );
+	if ( file_ ) {
+		boost::filesystem::path path( file_->filename() );
+		if ( path.extension() != L".adfs" )
+			modified_ = true;
+	}
 }
 
 void
@@ -83,7 +86,9 @@ IFileImpl::save( const QString& filename )
 {
     portfolio::Portfolio portfolio = dprocessor_.getPortfolio();
 
-    boost::filesystem::path path( filename_.toStdWString() ); // original name
+	boost::filesystem::path path( file_->filename() ); // original name
+	if ( path.extension() != L".adfs" )
+		path.replace_extension( L".adfs" );
 
     if ( filename.isEmpty() || ( path == boost::filesystem::path( filename.toStdString() ) ) ) {
         // Save
@@ -119,7 +124,7 @@ IFileImpl::save( const QString& filename )
 QString
 IFileImpl::fileName() const
 {
-    return filename_;
+	return QString::fromStdWString( file_->filename() );
 }
 
 QString
@@ -161,8 +166,8 @@ bool
 IFileImpl::subscribe( const adcontrols::LCMSDataset& data )
 {
     accessor_ = &data;
-    size_t nfcn = data.getFunctionCount();
-    for ( size_t i = 0; i < nfcn; ++i ) {
+    int nfcn = static_cast<int>(data.getFunctionCount());
+    for ( int i = 0; i < nfcn; ++i ) {
         adcontrols::Chromatogram c;
         if ( data.getTIC( i, c ) )
             ticVec_.push_back( c );

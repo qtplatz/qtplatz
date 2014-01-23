@@ -134,30 +134,48 @@ import::operator()()
     if ( datafile_ && open_destination() ) {
 
         datafile_->accept( *this );
-        if ( tic_.empty() )
-            return false;
-
-        const adcontrols::Chromatogram& chro = *tic_[0];
-        size_t nSpectra = chro.size();
-        if ( nSpectra > 0 ) {
-            std::string archived;
-            if ( adfs::cpio< adcontrols::Chromatogram >::serialize( chro, archived ) ) {
-                std::string compressed;
-                adportable::bzip2::compress( compressed, archived.data(), archived.size() );
-
-                uint32_t events = 0;
-                int64_t time = 0; // us
-                uint32_t fcn = 0;
-                int32_t pos = 0;
-                adutils::AcquiredData::insert( fs_->db(), ticId_, time, pos, fcn, events, compressed.data(), compressed.size() );
+        if ( !tic_.empty() ) {
+            const adcontrols::Chromatogram& chro = *tic_[0];
+            size_t nSpectra = chro.size();
+            if ( nSpectra > 0 ) {
+                std::string archived;
+                if ( adfs::cpio< adcontrols::Chromatogram >::serialize( chro, archived ) ) {
+                    std::string compressed;
+                    adportable::bzip2::compress( compressed, archived.data(), archived.size() );
+                    
+                    uint32_t events = 0;
+                    int64_t time = 0; // us
+                    uint32_t fcn = 0;
+                    int32_t pos = 0;
+                    adutils::AcquiredData::insert( fs_->db(), ticId_, time, pos, fcn, events, compressed.data(), compressed.size() );
+                }
             }
-        }
-        if ( accessor_->hasProcessedSpectrum( 0, 0 ) )
-            import_processed_spectra( 0, nSpectra );
-        import_profile_spectra( 0, nSpectra );
-        task::instance()->remove( *this );
+            if ( accessor_->hasProcessedSpectrum( 0, 0 ) ) // import centroid spectra on Bruker CompassXpress data
+                import_processed_spectra( 0, nSpectra );
+            import_profile_spectra( 0, nSpectra );
+            task::instance()->remove( *this );
+            return true;
+        } else {
+            boost::filesystem::path path( source_file_ );
+			if ( path.extension() == ".txt" || path.extension() == ".csv" ) {
 
-        return true;
+				std::string xml;
+				struct dataSubscriber : public adcontrols::dataSubscriber {
+					dataSubscriber( std::string& xml ) : xml_( xml ) {}
+					bool subscribe( const adcontrols::ProcessedDataset& processed ) {
+						xml_ = processed.xml();
+						return true;
+					}
+					std::string& xml_;
+				};
+
+				dataSubscriber visitor(xml);
+				datafile_->accept( visitor );
+                datafile_->saveContents( L"/Processed", portfolio::Portfolio( xml ) );
+            }
+            task::instance()->remove( *this );            
+            return true;
+        }
     }
     return false;
 }
@@ -243,9 +261,9 @@ import::import_processed_spectra( uint64_t fcn, size_t nSpectra )
 {
 	uint32_t objId = accessor_->findObjId( L"MS.CENTROID" );
 
-    for ( size_t i = 0; i < nSpectra; ++i ) {
+    for ( int i = 0; i < static_cast<int>(nSpectra); ++i ) {
 
-        if ( progress_( rowId_, i, nSpectra ) ) {
+        if ( progress_( rowId_, i, static_cast<int>(nSpectra) ) ) {
             progress_( rowId_, 0, 0 ); // canceled
             return false;
         }
@@ -267,7 +285,7 @@ import::import_processed_spectra( uint64_t fcn, size_t nSpectra )
             }
         }  
     }
-    progress_( rowId_, nSpectra, nSpectra ); // completed
+    progress_( rowId_, int(nSpectra), int(nSpectra) ); // completed
     return true;
 }
 

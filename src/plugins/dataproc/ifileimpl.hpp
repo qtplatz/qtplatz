@@ -89,7 +89,6 @@ namespace dataproc {
 
     private:
         const QString mimeType_;
-        QString filename_;
         bool modified_;
         adcontrols::datafile* file_;
         const adcontrols::LCMSDataset* accessor_;

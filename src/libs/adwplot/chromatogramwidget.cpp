@@ -54,7 +54,7 @@ using namespace adwplot;
 
 namespace adwplot {
 
-    namespace chromatogram_internal {
+    namespace chromatogram_widget {
 
         static Qt::GlobalColor color_table[] = {
             Qt::blue,
@@ -109,7 +109,7 @@ namespace adwplot {
         template<> void TraceData<adcontrols::Trace>::setData( const adcontrols::Trace& trace )
         {
             using adcontrols::Trace;
-            namespace ci = chromatogram_internal;
+            namespace cw = chromatogram_widget;
 
             if ( trace.size() <= 2 )
                 return;
@@ -139,6 +139,30 @@ namespace adwplot {
         struct boundingRect_visitor : public boost::static_visitor< QRectF > {
             template<typename T> QRectF operator()( const T& t ) const { return t.boundingRect(); }
         };
+
+        class zoomer : public QwtPlotZoomer {
+            zoomer( QWidget * canvas ) : QwtPlotZoomer( canvas ) {
+                QPen pen( QColor( 0xff, 0, 0, 0x80 ) ); // transparent darkRed
+                setRubberBandPen( pen );
+                setRubberBand(QwtPlotPicker::CrossRubberBand);
+                setTrackerMode( AlwaysOn );
+            }
+            QSizeF minZoomSize() const override {
+                QRectF rc = zoomBase();
+                return QSizeF( rc.width() * 1.0e-9, rc.height() * 1.0e-9 );
+            }
+            QwtText trackerTextF( const QPointF &pos ) const override {
+                QColor bg( Qt::white );
+                bg.setAlpha( 128 );
+                QwtText text;
+                text = QwtText( (boost::format("<i>m/z</i> %.4f @ %.3fmin") % pos.y() % pos.x() ).str().c_str(), QwtText::RichText );
+                text.setBackgroundBrush( QBrush( bg ) );
+                return text;
+            }
+            
+        };
+
+
     }
 
     struct ChromatogramWidgetImpl : boost::noncopyable {
@@ -146,7 +170,7 @@ namespace adwplot {
         adcontrols::annotations peak_annotations_;
         std::vector< Annotation > annotation_markers_;
         
-        std::vector< chromatogram_internal::trace_variant > traces_;
+        std::vector< chromatogram_widget::trace_variant > traces_;
         std::vector< Peak > peaks_;
         std::vector< Baseline > baselines_;	
 
@@ -154,6 +178,7 @@ namespace adwplot {
         void update_annotations( const std::pair<double, double>&, adcontrols::annotations& ) const;
 		void clear_annotations();
     };
+    
 }
 
 ChromatogramWidget::~ChromatogramWidget()
@@ -210,7 +235,7 @@ ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yaxis2 )
         return;
 
     using adcontrols::Trace;
-    using chromatogram_internal::TraceData;
+    using chromatogram_widget::TraceData;
 
     while ( int( impl_->traces_.size() ) <= idx )
         impl_->traces_.push_back( TraceData<Trace>( *this ) );
@@ -224,13 +249,13 @@ ChromatogramWidget::setData( const adcontrols::Trace& c, int idx, bool yaxis2 )
 
     if ( trace ) {
 
-        trace->plot_curve().setPen( QPen( chromatogram_internal::color_table[ idx ] ) );
+        trace->plot_curve().setPen( QPen( chromatogram_widget::color_table[ idx ] ) );
         trace->setData( c );
 
         if ( idx == 0 ) {
             QRectF rect = trace->boundingRect();
             for ( const auto& it: impl_->traces_ ) {
-                QRectF rc = boost::apply_visitor( chromatogram_internal::boundingRect_visitor(),  it );
+                QRectF rc = boost::apply_visitor( chromatogram_widget::boundingRect_visitor(),  it );
                 if ( rc.bottom() < rect.bottom() )
                     rect.setBottom( rc.bottom() );
                 if ( rc.top() > rect.top() )
@@ -252,14 +277,14 @@ ChromatogramWidget::setData( const adcontrols::Chromatogram& c, int idx, bool )
         return;
 
     using adcontrols::Chromatogram;
-    using chromatogram_internal::TraceData;
+    using chromatogram_widget::TraceData;
 
     while ( int ( impl_->traces_.size() ) <= idx )
 		impl_->traces_.push_back( TraceData<Chromatogram>( *this ) );        
 
 	TraceData<Chromatogram>& trace = boost::get<TraceData<Chromatogram> >(impl_->traces_[ idx ] );
 
-	trace.plot_curve().setPen( QPen( chromatogram_internal::color_table[idx] ) ); 
+	trace.plot_curve().setPen( QPen( chromatogram_widget::color_table[idx] ) ); 
     trace.setData( c );
 
     const double * intens = c.getIntensityArray();
