@@ -26,6 +26,7 @@
 #pragma once
 
 #include <vector>
+#include <cstdlib> // size_t
 
 namespace adportable {
 
