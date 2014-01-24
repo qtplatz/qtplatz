@@ -31,6 +31,7 @@ SOURCES += \
     loader.cpp \
     plugin.cpp \
     orbfactory.cpp \
+    orbbroker.cpp \
     orbservant.cpp \
     plugin_ptr.cpp \
     visitor.cpp \
@@ -45,6 +46,7 @@ HEADERS += adplugin.hpp \
     loader.hpp \
     plugin.hpp \
     orbfactory.hpp \
+    orbbroker.hpp \
     orbservant.hpp \
     plugin_ptr.hpp \
     visitor.hpp

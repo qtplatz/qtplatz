@@ -25,30 +25,35 @@
 
 #pragma once
 
-#include "adbroker_global.h"
-#include <adplugin/orbbroker.hpp>
+#include "adplugin_global.h"
+#include <string>
 
-namespace adplugin { class orbServant; class plugin; }
+namespace CORBA {
+    class ORB;
+}
 
-namespace adbroker {
+namespace PortableServer {
+	class POA;
+	class POAManager;
+}
 
-    class orbBroker : public adplugin::orbBroker {
-        
+namespace adplugin {
+
+	class orbServant;
+	class plugin;
+
+    class ADPLUGINSHARED_EXPORT orbBroker {
     public:
-        orbBroker();
         virtual ~orbBroker();
-        
-        // orbServant creator -- histrical
-        virtual adplugin::orbServant * operator()( adplugin::plugin * ) const override;
+        orbBroker();
 
-        // Borker instance
-        virtual adplugin::orbServant * create_instance() const override;
-        virtual bool orbmgr_init( int ac, char * av [] ) const override;
-        virtual void orbmgr_shutdown() override;
-        virtual bool orbmgr_fini() override;
-        virtual bool orbmgr_wait() override;
+        // orbServant creator -- histrical
+        virtual adplugin::orbServant * operator()( adplugin::plugin * ) const = 0;
+        virtual adplugin::orbServant * create_instance() const = 0;
+        virtual bool orbmgr_init( int ac, char * av [] ) const = 0;
+        virtual void orbmgr_shutdown() = 0;
+        virtual bool orbmgr_fini() = 0;
+        virtual bool orbmgr_wait() = 0;
     };
 
 }
-
-

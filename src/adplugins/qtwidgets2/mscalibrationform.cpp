@@ -215,7 +215,7 @@ MSCalibrationForm::setCalibrateMethod( const adcontrols::MSCalibrateMethod& meth
 
     model.setRowCount( nRows + 1 ); // be sure last empty line
 
-    size_t row = 0;
+    int row = 0;
     for ( auto& ref: references ) {
 		std::wstring formula = ref.display_formula();
         

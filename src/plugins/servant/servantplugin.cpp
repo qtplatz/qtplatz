@@ -27,8 +27,6 @@
 #include "servantmode.hpp"
 #include "outputwindow.hpp"
 #include "servantpluginimpl.hpp"
-#include <adbroker/orbbroker.hpp>
-
 #include <coreplugin/icore.h>
 #include <coreplugin/uniqueidmanager.h>
 #include <coreplugin/coreconstants.h>
@@ -48,6 +46,8 @@
 #include <adplugin/orbfactory.hpp>
 #include <adplugin/manager.hpp>
 #include <adplugin/constants.hpp>
+//#include <adbroker/orbbroker.hpp>
+#include <adplugin/orbbroker.hpp>
 
 #include <adportable/configuration.hpp>
 #include <adportable/string.hpp>
@@ -136,13 +136,13 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
 
         adplugin::orbServant * adBroker = 0;
-        //if ( adbroker::orbBroker * orbBroker = adbroker_plugin->query_interface< adbroker::orbBroker >() ) {
-        if ( adbroker::orbBroker * orbBroker = adbroker_plugin->query_interface< adplugin::orbServant >() ) {
+
+        if ( adplugin::orbBroker * orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) {
 
             orbBroker->orbmgr_init( 0, 0 );
 
-            adbroker::orbBroker& orbCreator = *orbBroker;
-
+            // adbroker::orbBroker& orbCreator = *orbBroker;
+            
             try { 
 
                 adBroker = orbBroker->create_instance();
@@ -161,7 +161,7 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
                 if ( plugin->iid() == adbroker_plugin->iid() )
                     continue;
                 
-                if ( adplugin::orbServant * servant = orbCreator( plugin.get() ) ) {
+                if ( adplugin::orbServant * servant = (*orbBroker)( plugin.get() ) ) {
                     orbServants_.push_back( servant );
                 }
             }
@@ -197,7 +197,7 @@ ServantPlugin::final_close()
     
 	if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
 
-        if ( adbroker::orbBroker * orbBroker = adbroker_plugin->query_interface< adbroker::orbBroker >() ) {
+        if ( adplugin::orbBroker * orbBroker = adbroker_plugin->query_interface< adplugin::orbBroker >() ) {
             
             try {
 

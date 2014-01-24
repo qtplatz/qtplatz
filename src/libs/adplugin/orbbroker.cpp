@@ -1,4 +1,3 @@
-// This is a -*- C++ -*- header.
 /**************************************************************************
 ** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 ** Copyright (C) 2013-2014 MS-Cheminformatics LLC
@@ -25,30 +24,15 @@
 
 #pragma once
 
-#include "adbroker_global.h"
-#include <adplugin/orbbroker.hpp>
+#include "orbbroker.hpp"
 
-namespace adplugin { class orbServant; class plugin; }
+using namespace adplugin;
 
-namespace adbroker {
-
-    class orbBroker : public adplugin::orbBroker {
-        
-    public:
-        orbBroker();
-        virtual ~orbBroker();
-        
-        // orbServant creator -- histrical
-        virtual adplugin::orbServant * operator()( adplugin::plugin * ) const override;
-
-        // Borker instance
-        virtual adplugin::orbServant * create_instance() const override;
-        virtual bool orbmgr_init( int ac, char * av [] ) const override;
-        virtual void orbmgr_shutdown() override;
-        virtual bool orbmgr_fini() override;
-        virtual bool orbmgr_wait() override;
-    };
-
+orbBroker::orbBroker()
+{
 }
 
+orbBroker::~orbBroker()
+{
+}
 

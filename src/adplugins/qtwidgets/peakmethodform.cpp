@@ -181,7 +181,7 @@ PeakMethodForm::setContents( const adcontrols::PeakMethod& method )
     do {
         QStandardItemModel& model = *pTimeEventsModel_;
 		
-		model.setRowCount( method.size() + 1 ); // add one blank line at end
+		model.setRowCount( static_cast< int >( method.size() + 1 ) ); // add one blank line at end
 		int row = 0;
 		for ( const auto item: *pMethod_ ) {
 			model.setData( model.index( row, c_time ), item.time() );
