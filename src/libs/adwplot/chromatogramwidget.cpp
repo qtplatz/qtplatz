@@ -223,6 +223,16 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
 		QwtPlotZoomer * p = zoomer1_.get();
 		connect( p, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( zoomed( const QRectF& ) ) );
 	}
+
+	if ( picker_ ) {
+		// picker_->setStateMachine( new QwtPickerClickPointMachine() );
+		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
+		connect( picker_.get(), SIGNAL( selected( const QPointF& ) ), this, SLOT( selected( const QPointF& ) ) );
+		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
+
+        picker_->setEnabled( true );
+	}
+
 }
 
 void

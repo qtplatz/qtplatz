@@ -75,7 +75,8 @@ namespace adwplot {
         virtual void onPanned( int dx, int dy );
     
     protected:
-        std::unique_ptr< Zoomer > zoomer1_;  // left bottom
+        std::unique_ptr< Zoomer > zoomer1_;  // left bottom axix
+        std::unique_ptr< Picker > picker_;   // (right mouse button)
         std::unique_ptr< Panner > panner_;
     };
   

@@ -178,6 +178,12 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
     zoomer1_->tracker1( std::bind( &SpectrumWidgetImpl::tracker1, impl_, _1 ) );
     zoomer1_->tracker2( std::bind( &SpectrumWidgetImpl::tracker2, impl_, _1, _2 ) );
 
+	if ( picker_ ) {
+		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
+		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
+		picker_->setEnabled( true );
+	}
+
 	QwtText axisHor( "m/z" );
 	QFont font = axisHor.font();
 	font.setFamily( "Verdana" );
