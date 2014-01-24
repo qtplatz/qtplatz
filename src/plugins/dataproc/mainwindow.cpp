@@ -169,9 +169,9 @@ MainWindow::createStyledBarTop()
             am->registerAction( actionSelChromatogram_, "dataproc.selChromatogram", globalcontext );
             toolBarLayout->addWidget( toolButton( actionSelChromatogram_ ) );
 
-            actionSelMSPeaks_ = new QAction( "MS Peaks", this );
+            actionSelMSPeaks_ = new QAction( "TOF Plots", this );
             connect( actionSelMSPeaks_, SIGNAL( triggered() ), this, SLOT( actionSelMSPeaks() ) );
-            am->registerAction( actionSelMSPeaks_, "dataproc.selMSPeaks", globalcontext );
+            am->registerAction( actionSelMSPeaks_, "dataproc.selTOFPlots", globalcontext );
             toolBarLayout->addWidget( toolButton( actionSelMSPeaks_ ) );
 
             actionSelSpectrogram_ = new QAction( "Spectrogram", this );
@@ -289,7 +289,7 @@ MainWindow::createContents( Core::IMode * mode
 
         msPeaksWnd_ = new MSPeaksWnd;
         wnd.push_back( msPeaksWnd_ );
-        wnd.back()->setWindowTitle( "MS Peaks" );
+        wnd.back()->setWindowTitle( "TOF Peaks" );
         stack_->addWidget( wnd.back() );
 
         wnd.push_back( new SpectrogramWnd );
@@ -422,7 +422,7 @@ MainWindow::createDockWidgets()
         , { "Elemental Comp.", "qtwidgets::ElementalCompositionForm" }
         , { "Peak Find",       "qtwidgets::PeakMethodForm" }
         , { "Data property",   "dataproc::MSPropertyForm" }      // local
-        , { "MS Peaks",        "qtwidgets2::MSPeakView" }
+        , { "TOF Peaks",       "qtwidgets2::MSPeakView" }
     };
     
     for ( auto widget: widgets ) {

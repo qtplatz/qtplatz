@@ -212,5 +212,10 @@ QwtText
 SpectrogramWidget::tracker2( const QPointF& p1, const QPointF& pos )
 {
     double dm = pos.y() - p1.y();
-    return QwtText( (boost::format("<i>m/z</i> %.4f(&delta;=%.4f)@ %.3fmin") % pos.y() % dm % pos.x() ).str().c_str(), QwtText::RichText );
+    if ( std::abs( dm ) < 1.0 ) {
+        dm *= 1000.0;
+        return QwtText( (boost::format("<i>m/z</i> %.4f(&delta;=%.3fmDa)@ %.3fmin") % pos.y() % dm % pos.x() ).str().c_str(), QwtText::RichText );
+    } else {
+        return QwtText( (boost::format("<i>m/z</i> %.4f(&delta;=%.3fDa)@ %.3fmin") % pos.y() % dm % pos.x() ).str().c_str(), QwtText::RichText );
+    }
 }
