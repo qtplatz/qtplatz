@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2013 MS-Cheminformatics LLC
-** Copyright (C) 2010-2013 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -61,9 +61,9 @@ namespace adplugin {
             // a.k.a. RTLD_NOW|RTLD_GLOBAL for dlopen
             // This hit to a problem on Apple clang 4.0 based on LLVM 3.1svn
             // 2013 Jun 1st, -thoshi
-            T* p = dynamic_cast<T*>(this);
-            if ( !p )
-                p = reinterpret_cast<T*>( query_interface_workaround( typeid(T).name() ) );
+			 T* p = dynamic_cast<T*>(this);
+			 if ( !p )
+				p = reinterpret_cast<T*>( query_interface_workaround( typeid(T).name() ) );
             return p;
         }
     };

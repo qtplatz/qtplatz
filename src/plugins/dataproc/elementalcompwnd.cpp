@@ -55,7 +55,7 @@ namespace dataproc {
         adwplot::ChromatogramWidget * ticPlot_;
         adwplot::SpectrumWidget * profileSpectrum_;
         adwplot::SpectrumWidget * processedSpectrum_;
-        size_t drawIdx_;
+        int drawIdx_;
     };
 
     //---------------------------------------------------------

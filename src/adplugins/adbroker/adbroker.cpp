@@ -144,8 +144,8 @@ adbroker_plugin::query_interface_workaround( const char * typenam )
 {
     if ( std::string( typenam ) == typeid( orbFactory ).name() )
         return static_cast<orbFactory *>(this);
-    else if ( std::string( typenam ) == typeid( adbroker::orbBroker ).name() )
-        return static_cast<orbFactory *>(this);
+	else if ( std::string( typenam ) == typeid( adplugin::orbBroker ).name() )
+		return static_cast< adplugin::orbBroker * >(this );
     return 0;
 }
 
