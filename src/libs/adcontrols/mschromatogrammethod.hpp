@@ -72,6 +72,8 @@ namespace adcontrols {
         void serialize( Archive& ar, const unsigned int version ) {
             using namespace boost::serialization;
 
+            (void)version;
+
             ar & BOOST_SERIALIZATION_NVP( dataSource_ )
                 & BOOST_SERIALIZATION_NVP( widthMethod_ )
                 & BOOST_SERIALIZATION_NVP( width_[0] )

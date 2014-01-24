@@ -431,8 +431,10 @@ MainWindow::createDockWidgets()
         if ( pWidget && std::strcmp(widget.wiid, "qtwidgets2::MSPeakView") == 0 ) {
             connect( this, SIGNAL(onAddMSPeaks( const adcontrols::MSPeaks& )), pWidget, SLOT(handle_add_mspeaks( const adcontrols::MSPeaks& )) );
             adplugin::LifeCycleAccessor accessor( pWidget );
-            if ( adplugin::LifeCycle * p = accessor.get() )
-                p->setContents( boost::any( msPeaksWnd_) );
+            if ( adplugin::LifeCycle * p = accessor.get() ) {
+                boost::any a( msPeaksWnd_ );
+                p->setContents( a );
+            }
         }
 
         if ( !pWidget ) {

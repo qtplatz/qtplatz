@@ -67,7 +67,7 @@ namespace dataproc {
 using namespace dataproc;
 
 SpectrogramWnd::SpectrogramWnd(QWidget *parent) : QWidget(parent)
-                                                , plot_( new adwplot::SpectrogramWidget )
+                                                , plot_( std::make_shared< adwplot::SpectrogramWidget >() )
 {
     init();
 }

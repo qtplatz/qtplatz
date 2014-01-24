@@ -51,7 +51,7 @@ namespace dataproc {
         void handlePrintCurrentView( const QString& outpdf );
 
     private:
-        std::unique_ptr< adwplot::SpectrogramWidget > plot_;
+        std::shared_ptr< adwplot::SpectrogramWidget > plot_;
         std::wstring foliumId_;
         std::string fullpath_;
         void init();
