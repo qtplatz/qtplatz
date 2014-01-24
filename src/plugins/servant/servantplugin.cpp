@@ -136,7 +136,8 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 	if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
 
         adplugin::orbServant * adBroker = 0;
-        if ( adbroker::orbBroker * orbBroker = adbroker_plugin->query_interface< adbroker::orbBroker >() ) {
+        //if ( adbroker::orbBroker * orbBroker = adbroker_plugin->query_interface< adbroker::orbBroker >() ) {
+        if ( adbroker::orbBroker * orbBroker = adbroker_plugin->query_interface< adplugin::orbServant >() ) {
 
             orbBroker->orbmgr_init( 0, 0 );
 
@@ -189,13 +190,15 @@ void
 ServantPlugin::final_close()
 {
     adportable::debug() << "====== ServantPlugin::final_close servants shutdown... =======";
+
     // destriction must be reverse order
     for ( orbservant_vector_type::reverse_iterator it = orbServants_.rbegin(); it != orbServants_.rend(); ++it )
         (*it)->deactivate();
-
+    
 	if ( adplugin::plugin_ptr adbroker_plugin = adplugin::loader::select_iid( ".*\\.orbfactory\\.adbroker" ) ) {
-        if ( adbroker::orbBroker * orbBroker = adbroker_plugin->query_interface< adbroker::orbBroker >() ) {
 
+        if ( adbroker::orbBroker * orbBroker = adbroker_plugin->query_interface< adbroker::orbBroker >() ) {
+            
             try {
 
                 orbBroker->orbmgr_shutdown();

@@ -45,6 +45,7 @@
 #include <QMouseEvent>
 #include <iostream>
 #include <boost/format.hpp>
+#include <cmath>
 
 namespace adwplot {
     namespace detail {
@@ -73,7 +74,7 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     spectrogram_->setColorMap( new detail::ColorMap() );
     spectrogram_->setCachePolicy( QwtPlotRasterItem::PaintCache );
 
-    if ( Zoomer * zoomer = dynamic_cast< Zoomer * >( zoomer_.get() ) ) {
+    if ( Zoomer * zoomer = dynamic_cast< Zoomer * >( zoomer_ ) ) {
         using namespace std::placeholders;
         zoomer->tracker1( std::bind( &SpectrogramWidget::tracker1, this, _1 ) );
         zoomer->tracker2( std::bind( &SpectrogramWidget::tracker2, this, _1, _2 ) );
@@ -127,7 +128,7 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     // (void)picker;  // will delete by QWidget
 
     connect( this, SIGNAL( dataChanged() ), this, SLOT( handle_dataChanged() ) );
-    connect( zoomer_.get(), SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomed( const QRectF& ) ) );
+    connect( zoomer_, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomed( const QRectF& ) ) );
 	//    model::instance()->signal( std::bind(&SpectrogramWidget::handle_signal, this) );
 }
 

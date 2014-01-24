@@ -28,6 +28,7 @@
 #include <QTableView>
 #include <memory>
 #include <QItemDelegate>
+
 class QStandardItemModel;
 
 namespace adcontrols { class MSPeaks; class MSPeak; }
@@ -52,8 +53,8 @@ namespace qtwidgets2 {
         void handleCopyToClipboard();
 
     private:
-        std::unique_ptr< QStandardItemModel > model_;
-        std::unique_ptr< QItemDelegate > delegate_;
+        std::shared_ptr< QStandardItemModel > model_;
+        std::shared_ptr< QItemDelegate > delegate_;
 
         void addPeak( const adcontrols::MSPeak& );
         friend class MSPeakView;

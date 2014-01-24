@@ -59,10 +59,10 @@ MSPeak::MSPeak( double time, double mass, int32_t mode, double flength ) : time_
 {
 }
 
-MSPeak::MSPeak( const std::string& formula, double mass ) : formula_( formula )
-                                                          , mass_( mass )
+MSPeak::MSPeak( const std::string& formula, double mass ) : mass_( mass )
                                                           , mode_( 0 )
                                                           , flength_( 0 )
+                                                          , formula_( formula )
                                                           , spectrumIndex_( 0 )
 {
 }

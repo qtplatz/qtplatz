@@ -50,7 +50,7 @@ namespace qtwidgets2 {
     public slots:
 
     private:
-        std::unique_ptr< QStandardItemModel > model_;
+        std::shared_ptr< QStandardItemModel > model_;
         std::unique_ptr< QItemDelegate > delegate_;
         MSPeakView * parent_;
 

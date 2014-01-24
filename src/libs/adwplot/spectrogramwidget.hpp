@@ -55,9 +55,9 @@ namespace adwplot {
         void handleZoomed( const QRectF& );
         
     private:
-        std::unique_ptr< QwtPlotSpectrogram > spectrogram_;
-        std::unique_ptr< QwtPlotZoomer > zoomer_;
-        std::unique_ptr< QwtPlotPanner > panner_;
+        QwtPlotSpectrogram * spectrogram_;
+        QwtPlotZoomer * zoomer_;
+        QwtPlotPanner * panner_;
         SpectrogramData * data_;
         void handle_signal();
 

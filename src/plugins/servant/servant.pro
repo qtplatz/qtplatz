@@ -16,6 +16,7 @@ LIBS += -l$$qtLibraryTarget(adcontrols) \
         -l$$qtLibraryTarget(adplugin) \
         -l$$qtLibraryTarget(qtwrapper) \
         -l$$qtLibraryTarget(adextension) \
+        -l$$qtLibraryTarget(adbroker) \
         -l$$qtLibraryTarget(xmlparser) \
         -l$$qtLibraryTarget(Core)
 

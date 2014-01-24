@@ -87,7 +87,6 @@ namespace adcontrols {
                 & description_
                 & spectrumId_
                 & spectrumIndex_
-                & widthInTime_
                 & time_width_
                 & mass_width_
                 ;

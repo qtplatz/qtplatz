@@ -41,6 +41,7 @@ namespace qtwidgets2 {
         Q_OBJECT
     public:
         explicit MSPeakView(QWidget *parent = 0);
+        ~MSPeakView();
 
         // adplugin::LifeCycle
         void OnCreate( const adportable::Configuration& ) override;

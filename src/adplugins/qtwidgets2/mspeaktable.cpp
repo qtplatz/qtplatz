@@ -89,8 +89,8 @@ using namespace qtwidgets2;
 
 
 MSPeakTable::MSPeakTable(QWidget *parent) : QTableView(parent)
-                                          , model_( new QStandardItemModel )
-										  , delegate_( new MSPeakTableDelegate )
+                                          , model_( std::make_shared< QStandardItemModel >() )
+										  , delegate_( std::make_shared< MSPeakTableDelegate >() )
 {
     this->setModel( model_.get() );
 	this->setItemDelegate( delegate_.get() );

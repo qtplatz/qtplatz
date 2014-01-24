@@ -37,6 +37,10 @@
 using namespace qtwidgets2;
 using namespace adcontrols::metric;
 
+MSPeakView::~MSPeakView()
+{
+}
+
 MSPeakView::MSPeakView(QWidget *parent) : QWidget(parent)
                                         , peakSummary_( new MSPeakSummary(this) )
                                         , peakTable_( new MSPeakTable(this) )
