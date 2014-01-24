@@ -60,6 +60,9 @@ namespace adwplot {
         std::unique_ptr< QwtPlotPanner > panner_;
         SpectrogramData * data_;
         void handle_signal();
+
+        QwtText tracker1( const QPointF& );
+        QwtText tracker2( const QPointF&, const QPointF& );
     };
 
 }

@@ -26,30 +26,37 @@
 #include "zoomer.hpp"
 #include <QMouseEvent>
 #include <qwt_painter.h>
+#include <qwt_picker_machine.h>
+#include <QList>
 #include <QDebug>
+#include <QWidget>
+#include <boost/format.hpp>
 
 using namespace adwplot;
 
-#if QWT_VERSION >= 0x060100
 Zoomer::Zoomer( int xAxis, int yAxis, QWidget * canvas ) : QwtPlotZoomer( xAxis, yAxis, canvas )
-#else
-Zoomer::Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas ) : QwtPlotZoomer( xAxis, yAxis, canvas )
-#endif
                                                          , autoYScale_( false )
-                                                         , rubberBand_( RectRubberBand ) 
 {
-    setTrackerMode(QwtPicker::AlwaysOff);
-    // setRubberBand(QwtPicker::NoRubberBand);
-
-    // LeftButton: zoom out by 1
-    // unzoom 1 step is implemented as double-click 
+    // Shift+LeftButton: zoom out to full size
     setMousePattern( QwtEventPattern::MouseSelect2,  Qt::LeftButton, Qt::ShiftModifier );
     
-    // Ctrl+RightButton: zoom out to full size
-    setMousePattern( QwtEventPattern::MouseSelect3,  Qt::LeftButton, Qt::ControlModifier );
+    // RightButton: zoom out by 1
+    // setMousePattern( QwtEventPattern::MouseSelect3, Qt::RightButton );
+    // ==> double click for zoom out by 1 via override widgetMouseDoubleClickEvent
 
-    setRubberBand( QwtPicker::RectRubberBand );
-    setRubberBandPen( QColor(Qt::green) );
+    // setStateMachine( new zoomer::PickerMachine );
+
+    QPen pen( QColor( 0xff, 0, 0, 0x40 ) ); // transparent darkRed
+    setRubberBandPen( pen );
+    setRubberBand( CrossRubberBand );
+    setTrackerMode( ActiveOnly );
+    canvas->setMouseTracking( true );
+    connect( this, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomed( const QRectF& ) ) );
+}
+
+Zoomer::~Zoomer()
+{
+    disconnect( this, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomed( const QRectF& ) ) );
 }
 
 void
@@ -66,54 +73,75 @@ Zoomer::zoom( const QRectF& rect )
 	QwtPlotZoomer::zoom( rc );
 }
 
+void
+Zoomer::widgetMousePressEvent( QMouseEvent * e ) 
+{
+    p1_ = e->pos();
+    QwtPlotZoomer::widgetMousePressEvent( e );
+}
+
+void
+Zoomer::widgetMouseMoveEvent( QMouseEvent * e )
+{
+    if ( !isActive() ) {
+        begin();
+        append( e->pos() );
+    } else
+        move( e->pos() );
+    QwtPlotPicker::widgetMouseMoveEvent( e );
+}
+
+void
+Zoomer::widgetLeaveEvent( QEvent * )
+{
+    end();
+}
+
 // virtual
 void
 Zoomer::widgetMouseDoubleClickEvent( QMouseEvent * event )
 {
 	if ( mouseMatch( MouseSelect1, event ) )
 		QwtPlotZoomer::zoom( -1 );
-	else
-		QwtPlotPicker::widgetMouseDoubleClickEvent( event );
+    QwtPlotPicker::widgetMouseDoubleClickEvent( event );
 }
 
 //virtual
 bool
 Zoomer::accept( QPolygon &pa ) const
 {
-  if ( pa.count() < 2 )
-    return false;
+    if ( pa.count() < 2 )
+        return false;
   
-  QRect rect = QRect( pa[0], pa[int( pa.count() ) - 1] );
-  rect = rect.normalized();
+    QRect rect = QRect( pa[0], pa[int( pa.count() ) - 1] );
+    rect = rect.normalized();
   
-  const int minSize = 2;
-  if ( rect.width() < minSize && rect.height() < minSize )
-    return false;
-  
-  pa.resize( 2 );
-  
-  if ( rubberBand_ == HLineRubberBand ) {
-#if QWT_VERSION <  0x060100
-    const QRect& pRect = pickRect();
-#else
-    const QRectF& pRect = pickArea().boundingRect();
-#endif
-    pa[ 0 ] = QPoint( rect.left(), pRect.top() );
-    pa[ 1 ] = QPoint( rect.right(), pRect.bottom() );
-  } else if ( rubberBand_ == VLineRubberBand ) {
-#if QWT_VERSION <  0x060100
-    const QRect& pRect = pickRect();
-#else
-    const QRectF& pRect = pickArea().boundingRect();
-#endif
-    pa[ 0 ] = QPoint( pRect.left(), rect.top() );
-    pa[ 1 ] = QPoint( pRect.right(), rect.bottom() );
-  } else {
-    pa[ 0 ] = rect.topLeft();
-    pa[ 1 ] = rect.bottomRight();
-  }
-  
-  return true;
+    if ( rect.width() < 2 && rect.height() < 2 )
+        return false;
+    pa.resize( 2 );
+
+    const QRectF& rc = pickArea().boundingRect(); // view rect
+    if ( rect.width() < minX ) {
+        // make a virtical line
+        pa[ 0 ] = QPoint( rc.left(), rect.top() );
+        pa[ 1 ] = QPoint( rc.right(), rect.bottom() );
+        return true;
+    } else if ( rect.height() < minY ) {
+        // make a horizontal line
+        pa[ 0 ] = QPoint( rect.left(), rc.top() );
+        pa[ 1 ] = QPoint( rect.right(), rc.bottom() );
+    } else {
+        pa[ 0 ] = rect.topLeft();
+        pa[ 1 ] = rect.bottomRight();
+    }
+    return true;
+}
+
+QSizeF
+Zoomer::minZoomSize() const
+{
+    QRectF rc = zoomBase();
+    return QSizeF( rc.width() * 1.0e-6, rc.height() * 1.0e-6 );
 }
 
 void
@@ -123,22 +151,61 @@ Zoomer::drawRubberBand( QPainter *painter ) const
 		return;
 
 	const QPolygon pa = adjustedPoints( pickedPoints() );
-	if ( pa.count() < 2 )
-		return;
+    if ( pa.count() < 1 )
+        return;
 
-	const QPoint p1 = pa[0];
-	const QPoint p2 = pa[int( pa.count() - 1 )];
+    const QRectF& rc = pickArea().boundingRect(); // view rect
+    const QPoint p2 = pa[int( pa.count() - 1 )];
 
-	const QRect rect = QRect( p1, p2 ).normalized();
-	if ( autoYScale_ || rect.height() < 20 ) {
-		QwtPainter::drawLine( painter, p1.x(), p1.y(), p2.x(), p1.y() );  // horizontal
-		const_cast<Zoomer *>(this)->rubberBand_ = HLineRubberBand;
-	} else if ( rect.width() < 20 ) {
-		QwtPainter::drawLine( painter, p1.x(), p1.y(), p1.x(), p2.y() );  // virtical
-		const_cast<Zoomer *>(this)->rubberBand_ = VLineRubberBand;
-	} else {
-		QwtPainter::drawRect( painter, rect );
-		const_cast<Zoomer *>(this)->rubberBand_ = RectRubberBand;
-	}
+    QwtPainter::drawLine( painter, p2.x(), rc.top(), p2.x(), rc.bottom() );  // vertical @ 2nd point (automaticall drawn by picker)
+    QwtPainter::drawLine( painter, rc.left(), p2.y(), rc.right(), p2.y() );  // horizontal @ 2nd point
+
+	if ( pa.count() >= 2 ) {
+        const QPoint p1 = pa[0];
+        const QRect rect = QRect( p1, p2 ).normalized();
+        
+        if ( autoYScale_ || rect.height() < minY ) { // select horizontal (indicate by 2 vertical lines)
+            QwtPainter::drawLine( painter, p1.x(), rc.top(), p1.x(), rc.bottom() );  // vertical @ 1st point
+        } else if ( rect.width() < minX ) {
+            QwtPainter::drawLine( painter, rc.left(), p1.y(), rc.right(), p1.y() );  // horizontal @ 1st point
+        } else {
+            QwtPainter::drawLine( painter, p1.x(), rc.top(), p1.x(), rc.bottom() );  // vertical @ 1st point
+            QwtPainter::drawLine( painter, rc.left(), p1.y(), rc.right(), p1.y() );  // horizontal @ 1st point
+        }
+    }
 }
 
+QwtText
+Zoomer::trackerTextF( const QPointF &pos ) const
+{
+    QColor bg( Qt::white );
+    bg.setAlpha( 128 );
+    QwtText text;
+    if ( tracker2_ && ( p1_.x() || p1_.y() ) ) { // has 1st point
+        text = tracker2_( invTransform( p1_ ), pos );
+    } else if ( tracker1_ ) {
+        text = tracker1_( pos );
+    } else {
+        text = QwtPlotZoomer::trackerTextF( pos );
+    }
+    text.setBackgroundBrush( QBrush( bg ) );
+    return text;
+}
+
+void
+Zoomer::tracker1( std::function<QwtText( const QPointF& )> f )
+{
+    tracker1_ = f;
+}
+
+void
+Zoomer::tracker2( std::function<QwtText( const QPointF&, const QPointF& )> f )
+{
+    tracker2_ = f;
+}
+
+void
+Zoomer::handleZoomed( const QRectF& )
+{
+    p1_ = QPoint( 0, 0 );  // invalidate p1_
+}

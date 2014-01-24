@@ -69,6 +69,6 @@ PlotCurve::setStyle( QwtPlotCurve::CurveStyle style )
 void
 PlotCurve::setData( const double * xData, const double * yData, size_t size )
 {
-    curve_->setSamples( xData, yData, size );
+    curve_->setSamples( xData, yData, static_cast<int>(size) );
 }
 

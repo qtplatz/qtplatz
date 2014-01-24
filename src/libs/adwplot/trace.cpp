@@ -68,7 +68,7 @@ Trace::setStyle( Trace::CurveStyle style )
 }
 
 void
-Trace::setData( const double * xData, const double * yData, size_t size )
+Trace::setData( const double * xData, const double * yData, int size )
 {
     curve_->setSamples( xData, yData, size );
 }

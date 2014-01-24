@@ -144,7 +144,7 @@ TraceWidget::TraceWidget(QWidget *parent) : Dataplot(parent)
                                                 , impl_( new TraceWidgetImpl )
                                                 , autoYZoom_( true ) 
 {
-    zoomer2_.reset();
+    //zoomer2_.reset();
 	zoomer1_->autoYScale( autoYZoom_ );
 
     setAxisTitle(QwtPlot::xBottom, "Time(microsecond)");
@@ -153,12 +153,13 @@ TraceWidget::TraceWidget(QWidget *parent) : Dataplot(parent)
     // handle zoom rect by this
     if ( zoomer1_ )
         connect( zoomer1_.get(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
-
+/*
 	if ( picker_ ) {
 		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
 		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
 		picker_->setEnabled( true );
 	}
+	*/
 }
 
 void

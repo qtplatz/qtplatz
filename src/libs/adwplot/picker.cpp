@@ -31,7 +31,7 @@ using namespace adwplot;
 
 Picker::Picker( QWidget * parent ) : QwtPlotPicker( parent )
 {
-    setTrackerMode(QwtPicker::AlwaysOn);
+    setTrackerMode(QwtPicker::AlwaysOff);
     setMousePattern( QwtEventPattern::MouseSelect1,  Qt::RightButton );
     setStateMachine( new QwtPickerDragRectMachine() );
 

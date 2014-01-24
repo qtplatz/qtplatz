@@ -53,7 +53,7 @@ namespace adwplot {
         };
 
         void setStyle( CurveStyle );
-        void setData( const double * xData, const double * yData, size_t size );
+        void setData( const double * xData, const double * yData, int size );
         void setSeriesData( SeriesData* );
         SeriesData * getSeriesData();
 

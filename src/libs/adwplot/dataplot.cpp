@@ -52,7 +52,7 @@ Dataplot::Dataplot(QWidget *parent) : QwtPlot(parent)
     zoomer1_.reset( new Zoomer( int(QwtPlot::xBottom), int(QwtPlot::yLeft), canvas() ) );
 
     // picker
-    picker_.reset( new Picker( canvas() ) );
+    //picker_.reset( new Picker( canvas() ) );
 
     // panner
     panner_.reset( new Panner( canvas() ) );

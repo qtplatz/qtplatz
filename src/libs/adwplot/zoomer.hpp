@@ -27,6 +27,7 @@
 #define ZOOMER_H
 
 #include <qwt_plot_zoomer.h>
+#include <functional>
 
 class QwtPlotCanvas;
 
@@ -35,32 +36,43 @@ namespace adwplot {
     class Zoomer : public QwtPlotZoomer {
         Q_OBJECT
     public:
-#if QWT_VERSION >= 0x060100
-      Zoomer( int xAxis, int yAxis, QWidget * canvas );
-#else // 0x060003 or earlier
-      Zoomer( int xAxis, int yAxis, QwtPlotCanvas * canvas );
-#endif
-      void autoYScale( bool );
+        ~Zoomer();
+        Zoomer( int xAxis, int yAxis, QWidget * canvas );
 
-      // QwtPlotZoomer
-      virtual void zoom( const QRectF& );
+        void autoYScale( bool );
+
+        // QwtPlotZoomer
+        void zoom( const QRectF& ) override;
+        void tracker1( std::function<QwtText( const QPointF& )> );
+        void tracker2( std::function<QwtText( const QPointF&, const QPointF& )> );
     private:
-      bool autoYScale_;
-      enum { HLineRubberBand, VLineRubberBand, RectRubberBand } rubberBand_;
+        static const int minX = 20;
+        static const int minY = 20;
+
+        bool autoYScale_;
+        QPoint p1_;
+        std::function<QwtText( const QPointF& )> tracker1_;
+        std::function<QwtText( const QPointF&, const QPointF& )> tracker2_;
     protected:
-      // virtual void widgetMousePressEvent( QMouseEvent * );
-      // virtual void widgetMouseReleaseEvent( QMouseEvent * );
-      virtual void widgetMouseDoubleClickEvent( QMouseEvent * );
-      // virtual void widgetMouseMoveEvent( QMouseEvent * );
+        void widgetMousePressEvent( QMouseEvent* ) override;
+        // virtual void widgetMouseReleaseEvent( QMouseEvent * );
+        void widgetMouseDoubleClickEvent( QMouseEvent * ) override;
+        void widgetMouseMoveEvent( QMouseEvent * ) override;
+        void widgetLeaveEvent( QEvent * );
       
-      // QwtPlotZoomer
-      virtual bool accept( QPolygon & ) const;
+        // QwtPlotZoomer
+        bool accept( QPolygon & ) const override;
+        QSizeF minZoomSize() const override;
       
-      // QwtPicker
-      virtual void drawRubberBand( QPainter * ) const;
-      
+        // QwtPicker
+        void drawRubberBand( QPainter * ) const override;
+        QwtText trackerTextF( const QPointF &pos ) const override;
+        
     signals:
         void zoom_override( QRectF& );
+
+    private slots:
+        void handleZoomed( const QRectF& );
     };
 
 }

@@ -177,6 +177,9 @@ namespace adwplot {
         void clear();
         void update_annotations( const std::pair<double, double>&, adcontrols::annotations& ) const;
 		void clear_annotations();
+
+        QwtText tracker1( const QPointF& );
+        QwtText tracker2( const QPointF&, const QPointF& );
     };
     
 }
@@ -212,17 +215,13 @@ ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
     setAxisFont( QwtPlot::yLeft, font );
 
     if ( zoomer1_ ) {
+        using namespace std::placeholders;
+        zoomer1_->tracker1( std::bind( &ChromatogramWidgetImpl::tracker1, impl_, _1 ) );
+        zoomer1_->tracker2( std::bind( &ChromatogramWidgetImpl::tracker2, impl_, _1, _2 ) );
+
         connect( zoomer1_.get(), SIGNAL( zoom_override( QRectF& ) ), this, SLOT( override_zoom_rect( QRectF& ) ) );
 		QwtPlotZoomer * p = zoomer1_.get();
 		connect( p, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( zoomed( const QRectF& ) ) );
-	}
-
-	if ( picker_ ) {
-		// picker_->setStateMachine( new QwtPickerClickPointMachine() );
-		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
-		connect( picker_.get(), SIGNAL( selected( const QPointF& ) ), this, SLOT( selected( const QPointF& ) ) );
-		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
-        picker_->setEnabled( true );
 	}
 }
 
@@ -429,6 +428,22 @@ ChromatogramWidgetImpl::update_annotations( const std::pair<double, double>& ran
         });
 
     vec.sort();
+}
+
+QwtText
+ChromatogramWidgetImpl::tracker1( const QPointF& pos )
+{
+    return QwtText( (boost::format("%.3fmin, %.1f") % pos.x() % pos.y() ).str().c_str(), QwtText::RichText );
+}
+
+QwtText
+ChromatogramWidgetImpl::tracker2( const QPointF& p1, const QPointF& pos )
+{
+    double d = ( pos.x() - p1.x() );
+    if ( std::abs( d ) < 1.0 )
+        return QwtText( (boost::format("%.3fmin(&delta;=%.3f<i>s</i>),%.1f") % pos.x() % (d * 60.0) % pos.y() ).str().c_str(), QwtText::RichText );
+    else
+        return QwtText( (boost::format("%.3fmin(&delta;=%.3f<i>min</i>),%.1f") % pos.x() % d % pos.y() ).str().c_str(), QwtText::RichText );
 }
 
 

@@ -56,7 +56,6 @@ namespace adwplot {
         void unlink();
 
         QRectF zoomRect() const;
-        inline Picker& picker() { return *picker_; }
         inline Zoomer& zoomer() { return *zoomer1_; } // left bottom
     
     private:
@@ -77,8 +76,6 @@ namespace adwplot {
     
     protected:
         std::unique_ptr< Zoomer > zoomer1_;  // left bottom
-        std::unique_ptr< Zoomer > zoomer2_;  // right top
-        std::unique_ptr< Picker > picker_;
         std::unique_ptr< Panner > panner_;
     };
   

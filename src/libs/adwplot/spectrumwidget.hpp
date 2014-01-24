@@ -32,21 +32,21 @@ namespace adcontrols { class MassSpectrum; }
 namespace adwplot {
 
     namespace internal { class TraceData; }
-
+    
     class SpectrumWidget : public Dataplot {
         Q_OBJECT
     public:
         explicit SpectrumWidget(QWidget *parent = 0);
         ~SpectrumWidget();
-
+        
         void clear();
         void setData( const std::shared_ptr< adcontrols::MassSpectrum >&, int idx, bool yaxis1 = false );
-
+        
         enum HorizontalAxis { HorizontalAxisMass, HorizontalAxisTime };
         void setAxis( HorizontalAxis );
         bool autoAnnotation() const;
         void setAutoAnnotation( bool enable = true );
-
+        
     private:
         struct SpectrumWidgetImpl * impl_;
         bool autoYZoom_;
@@ -57,9 +57,6 @@ namespace adwplot {
 		void onSelected( const QPointF& );
 		void onSelected( const QRectF& );
         
-	private:
-        // virtual void zoom( const QRectF& );
-
     public slots:
 		virtual void override_zoom_rect( QRectF& );
 		virtual void moved( const QPointF& );

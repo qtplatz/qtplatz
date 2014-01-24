@@ -155,6 +155,8 @@ namespace adwplot {
         void update_annotations( Dataplot&, const std::pair<double, double>& );
 		void clear_annotations();
 
+        QwtText tracker1( const QPointF& );
+        QwtText tracker2( const QPointF&, const QPointF& );
     };
 
 } // namespace adwplot
@@ -169,8 +171,12 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
                                                 , autoYZoom_( true ) 
                                                 , haxis_( HorizontalAxisMass )
 {
-    zoomer2_.reset();
+    //zoomer2_.reset();
 	zoomer1_->autoYScale( autoYZoom_ );
+
+    using namespace std::placeholders;
+    zoomer1_->tracker1( std::bind( &SpectrumWidgetImpl::tracker1, impl_, _1 ) );
+    zoomer1_->tracker2( std::bind( &SpectrumWidgetImpl::tracker2, impl_, _1, _2 ) );
 
 	QwtText axisHor( "m/z" );
 	QFont font = axisHor.font();
@@ -200,11 +206,13 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
 		QwtPlotZoomer * p = zoomer1_.get();
 		connect( p, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( zoomed( const QRectF& ) ) );
 	}
+	/*
 	if ( picker_ ) {
 		connect( picker_.get(), SIGNAL( moved( const QPointF& ) ), this, SLOT( moved( const QPointF& ) ) );
 		connect( picker_.get(), SIGNAL( selected( const QRectF& ) ), this, SLOT( selected( const QRectF& ) ) );
 		picker_->setEnabled( true );
 	}
+	*/
 }
 
 void
@@ -293,7 +301,7 @@ SpectrumWidget::setData( const std::shared_ptr< adcontrols::MassSpectrum >& ptr,
     bool addedTrace = impl_->traces_.size() <= size_t( idx );
 
     while ( int( impl_->traces_.size() ) <= idx ) 
-		impl_->traces_.push_back( TraceData( impl_->traces_.size() ) );
+		impl_->traces_.push_back( TraceData( static_cast<int>(impl_->traces_.size()) ) );
 
     TraceData& trace = impl_->traces_[ idx ];
 
@@ -557,11 +565,11 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
                                 double microseconds = adcontrols::metric::scale_to_micro( ms.getTime( idx ) );
                                 adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % microseconds ).str()
                                                               , microseconds, ms.getIntensity( idx )
-                                                              , ( fcn << 24 | idx ), pri );
+                                                              , int( fcn << 24 | idx ), pri );
                                 auto_annotations << annot;
                             } else {
                                 adcontrols::annotation annot( ( boost::wformat( L"%.4lf" ) % ms.getMass( idx ) ).str()
-                                                              , ms.getMass( idx ), ms.getIntensity( idx ), ( fcn << 24 | idx ), pri );
+                                                              , ms.getMass( idx ), ms.getIntensity( idx ), int( fcn << 24 | idx ), pri );
                                 auto_annotations << annot;
                             }
                         }
@@ -605,4 +613,20 @@ SpectrumWidgetImpl::clear()
     centroid_.reset();
     annotations_.clear();
     traces_.clear();
+}
+
+QwtText
+SpectrumWidgetImpl::tracker1( const QPointF& pos )
+{
+    return QwtText( (boost::format("<i>m/z=</i>%.4f") % pos.x()).str().c_str(), QwtText::RichText );
+}
+
+QwtText
+SpectrumWidgetImpl::tracker2( const QPointF& p1, const QPointF& pos )
+{
+    double d = ( pos.x() - p1.x() );
+    if ( std::abs(d) < 1.0 )
+        return QwtText( (boost::format("<i>m/z=</i>%.4f (&delta;=%gmDa)") % pos.x() % (d * 1000)).str().c_str(), QwtText::RichText );
+    else
+        return QwtText( (boost::format("<i>m/z=</i>%.4f (&delta;=%gDa)") % pos.x() % d).str().c_str(), QwtText::RichText );
 }

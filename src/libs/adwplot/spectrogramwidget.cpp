@@ -24,8 +24,7 @@
 
 #include "spectrogramwidget.hpp"
 #include "spectrogramdata.hpp"
-
-using namespace adwplot;
+#include "zoomer.hpp"
 
 #include <adportable/debug.hpp>
 #include <qwt_plot_spectrogram.h>
@@ -47,140 +46,38 @@ using namespace adwplot;
 #include <iostream>
 #include <boost/format.hpp>
 
-namespace detail {
-
-    class PickerMachine : public QwtPickerMachine {
-    public:
-        PickerMachine() : QwtPickerMachine( QwtPickerMachine::PointSelection ) {
-        }
-        virtual QList< QwtPickerMachine::Command > transition( const QwtEventPattern&, const QEvent * e ) {
-            QList< QwtPickerMachine::Command > cmdList;
-            if ( e->type() == QEvent::MouseMove )
-                cmdList << Move;
-            return cmdList;
-        }
-    };
-    
-    class Picker: public QwtPlotPicker {
-    public:
-        Picker(QWidget *canvas): QwtPlotPicker(QwtPlot::xBottom, QwtPlot::yLeft, canvas) {
-            setRubberBand(QwtPlotPicker::CrossRubberBand);
-            QPen pen( QColor( 0xff, 0, 0, 0x40 ) ); // transparent darkRed
-            setRubberBandPen( pen );
-            setRubberBand(QwtPicker::CrossRubberBand);
-            setTrackerMode( AlwaysOff );
-            canvas->setMouseTracking(true);
-        }
-
-        void widgetMouseMoveEvent(QMouseEvent *e) {
-            if ( !isActive() ) {
-                begin();
-                append( e->pos() );
-            } else {
-                move( e->pos() );
-            }
-            QwtPlotPicker::widgetMouseMoveEvent(e);
-        }
+namespace adwplot {
+    namespace detail {
         
-        void widgetLeaveEvent(QEvent *) {
-            end();
-        }
-
-        virtual QwtPickerMachine *stateMachine(int) const {
-            return new PickerMachine;
-        }
-    };
-
-    /////// zoomer ///////////
-    class zoomer : public QwtPlotZoomer {
-        static const int minX = 25;
-        QPoint p1_;
-    public:
-        zoomer( QWidget * canvas ) : QwtPlotZoomer( canvas ) {
-            QPen pen( QColor( 0xff, 0, 0, 0x80 ) ); // transparent darkRed
-            setRubberBandPen( pen );
-            setRubberBand(QwtPlotPicker::CrossRubberBand);
-            setTrackerMode( AlwaysOn );
-        }
-        void widgetMousePressEvent( QMouseEvent * e ) override {
-            p1_ = e->pos();
-            QwtPlotZoomer::widgetMousePressEvent( e );
-        }
-        QwtText trackerTextF( const QPointF &pos ) const override {
-            QColor bg( Qt::white );
-            bg.setAlpha( 128 );
-            QwtText text;
-            if ( p1_.y() ) {
-                QPointF pt = invTransform( p1_ );
-                double dm = pos.y() - pt.y();
-                text = QwtText( (boost::format("<i>m/z</i> %.4f(&delta;=%.4f)@ %.3fmin") % pos.y() % dm % pos.x() ).str().c_str(), QwtText::RichText );
-            } else {
-                text = QwtText( (boost::format("<i>m/z</i> %.4f @ %.3fmin") % pos.y() % pos.x() ).str().c_str(), QwtText::RichText );
+        class ColorMap: public QwtLinearColorMap {
+        public:
+            ColorMap(): QwtLinearColorMap( Qt::darkCyan, Qt::red ) {
+                addColorStop( 0.1, Qt::cyan );
+                addColorStop( 0.6, Qt::green );
+                addColorStop( 0.95, Qt::yellow );
             }
-			text.setBackgroundBrush( QBrush( bg ) );
-            return text;
-        }
-        QSizeF minZoomSize() const override {
-            QRectF rc = zoomBase();
-            return QSizeF( rc.width() * 1.0e-9, rc.height() * 1.0e-9 );
-        }
-        void drawRubberBand( QPainter * painter ) const override {
-            if ( !isActive() || rubberBand() == NoRubberBand || rubberBandPen().style() == Qt::NoPen )
-                return;
-            const QPolygon pa = adjustedPoints( pickedPoints() );
-            if ( pa.count() < 2 )
-                return;
-            const QPoint p1 = pa[0];
-            const QPoint p2 = pa[int( pa.count() - 1 )];
-            const QRect rect = QRect( p1, p2 ).normalized();
-            const QRectF& rc = pickArea().boundingRect(); // view rect                
-            if ( rect.width() < minX ) { // virtical indicator using 2 parallel lines
-                QwtPainter::drawLine( painter, rc.left(), p1.y(), rc.right(), p1.y() );  // horizontal @ 1st point
-            } else {
-                QwtPainter::drawLine( painter, rc.left(), p1.y(), rc.right(), p1.y() );  // horizontal @ 1st point
-                QwtPainter::drawLine( painter, p1.x(), rc.top(), p1.x(), rc.bottom() );  // vertical @ 1st point
-            }
-        }
+        };
 
-        bool accept( QPolygon &pa ) const override {
-            if ( pa.count() < 2 )
-                return false;
-            QRect rect = QRect( pa[0], pa[int( pa.count() ) - 1] ).normalized();
-            if ( rect.width() <= 2 && rect.height() <= 2 )
-                return false;
-            if ( rect.width() < minX ) {
-                const QRectF& rc = pickArea().boundingRect(); // view rect
-                pa.resize( 2 );
-                pa[ 0 ] = QPoint( rc.left(), rect.top() );
-                pa[ 1 ] = QPoint( rc.right(), rect.bottom() );
-                return true;
-            }
-            return QwtPlotZoomer::accept( pa );
-        }
-    };
+    } // namespace detail
+}
 
-    class ColorMap: public QwtLinearColorMap {
-    public:
-        ColorMap(): QwtLinearColorMap( Qt::darkCyan, Qt::red ) {
-            addColorStop( 0.1, Qt::cyan );
-            addColorStop( 0.6, Qt::green );
-            addColorStop( 0.95, Qt::yellow );
-        }
-    };
-
-} // namespace detail
+using namespace adwplot;
 
 SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
                                                         , spectrogram_( new QwtPlotSpectrogram() )
-                                                        , zoomer_( new detail::zoomer( canvas() ) )
+                                                        , zoomer_( new Zoomer( xBottom, yLeft, canvas() ) )
                                                         , panner_( new QwtPlotPanner( canvas() ) )
                                                         , data_(0)
 {
     spectrogram_->setRenderThreadCount( 0 ); // use system specific thread count
-
     spectrogram_->setColorMap( new detail::ColorMap() );
-    
     spectrogram_->setCachePolicy( QwtPlotRasterItem::PaintCache );
+
+    if ( Zoomer * zoomer = dynamic_cast< Zoomer * >( zoomer_.get() ) ) {
+        using namespace std::placeholders;
+        zoomer->tracker1( std::bind( &SpectrogramWidget::tracker1, this, _1 ) );
+        zoomer->tracker2( std::bind( &SpectrogramWidget::tracker2, this, _1, _2 ) );
+    }
 
 	setData( new SpectrogramData() );
     spectrogram_->attach( this );
@@ -226,8 +123,8 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     zoomer_->setRubberBandPen( c );
     zoomer_->setTrackerPen( c );
     
-    detail::Picker * picker = new detail::Picker( canvas() );
-    (void)picker;  // will delete by QWidget
+    // detail::Picker * picker = new detail::Picker( canvas() );
+    // (void)picker;  // will delete by QWidget
 
     connect( this, SIGNAL( dataChanged() ), this, SLOT( handle_dataChanged() ) );
     connect( zoomer_.get(), SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomed( const QRectF& ) ) );
@@ -305,3 +202,15 @@ SpectrogramWidget::handleZoomed( const QRectF& rc )
     }
 }
 
+QwtText
+SpectrogramWidget::tracker1( const QPointF& pos )
+{
+    return QwtText( (boost::format("<i>m/z</i> %.4f @ %.3fmin") % pos.y() % pos.x() ).str().c_str(), QwtText::RichText );
+}
+
+QwtText
+SpectrogramWidget::tracker2( const QPointF& p1, const QPointF& pos )
+{
+    double dm = pos.y() - p1.y();
+    return QwtText( (boost::format("<i>m/z</i> %.4f(&delta;=%.4f)@ %.3fmin") % pos.y() % dm % pos.x() ).str().c_str(), QwtText::RichText );
+}
