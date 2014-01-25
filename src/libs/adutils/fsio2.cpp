@@ -41,6 +41,7 @@
 #include <portfolio/portfolio.hpp>
 #include <portfolio/folder.hpp>
 #include <portfolio/folium.hpp>
+#include <boost/exception/all.hpp>
 
 namespace adutils { namespace detail {
 
@@ -128,9 +129,10 @@ detail::attachment::save( adfs::file& parent, const boost::filesystem::path& pat
     if ( ! any.empty() ) {
         try {
             adutils::cpio::save( dbThis, any );
-        } catch ( boost::bad_any_cast& ) {
-            assert( 0 );
-            return false;
+		} catch ( boost::exception& e ) {
+			typedef boost::error_info< struct tag_errmsg, std::string > errmsg_info;
+			e << errmsg_info("adutils::detail::attachement::save");
+			throw;
         }
         
         for ( const portfolio::Folium& att: folium.attachments() )
@@ -155,8 +157,13 @@ detail::folium::save( adfs::folder& folder, const boost::filesystem::path& path
         import::attributes( dbf, folium.attributes() );
         cpio::save( dbf, any );
 
-        for ( const portfolio::Folium& att: folium.attachments() )
-            detail::attachment::save( dbf, filename, source, att );
+        for ( const portfolio::Folium& att: folium.attachments() ) {
+			try {
+				detail::attachment::save( dbf, filename, source, att );
+			} catch ( boost::exception& e ) {
+				ADDEBUG() << boost::diagnostic_information( e );
+			}
+		}
     }
     return true;
 }

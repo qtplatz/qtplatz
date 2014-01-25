@@ -134,27 +134,37 @@ import::operator()()
     if ( datafile_ && open_destination() ) {
 
         datafile_->accept( *this );
-        if ( !tic_.empty() ) {
-            const adcontrols::Chromatogram& chro = *tic_[0];
-            size_t nSpectra = chro.size();
-            if ( nSpectra > 0 ) {
-                std::string archived;
-                if ( adfs::cpio< adcontrols::Chromatogram >::serialize( chro, archived ) ) {
-                    std::string compressed;
-                    adportable::bzip2::compress( compressed, archived.data(), archived.size() );
-                    
-                    uint32_t events = 0;
-                    int64_t time = 0; // us
-                    uint32_t fcn = 0;
-                    int32_t pos = 0;
-                    adutils::AcquiredData::insert( fs_->db(), ticId_, time, pos, fcn, events, compressed.data(), compressed.size() );
+        if ( accessor_ ) {   // this data contains LCMS dataset
+            configure_ms_profile();
+            configure_ms_tic();
+            if ( accessor_->hasProcessedSpectrum( 0, 0 ) )
+                configure_ms_centroid();
+            
+            if ( portfolio_ )
+                adutils::fsio2::saveContents( *fs_, L"/Processed", *portfolio_, *datafile_ );
+            
+            if ( !tic_.empty() ) {
+                const adcontrols::Chromatogram& chro = *tic_[0];
+                size_t nSpectra = chro.size();
+                if ( nSpectra > 0 ) {
+                    std::string archived;
+                    if ( adfs::cpio< adcontrols::Chromatogram >::serialize( chro, archived ) ) {
+                        std::string compressed;
+                        adportable::bzip2::compress( compressed, archived.data(), archived.size() );
+                        
+                        uint32_t events = 0;
+                        int64_t time = 0; // us
+                        uint32_t fcn = 0;
+                        int32_t pos = 0;
+                        adutils::AcquiredData::insert( fs_->db(), ticId_, time, pos, fcn, events, compressed.data(), compressed.size() );
+                    }
                 }
+                if ( accessor_->hasProcessedSpectrum( 0, 0 ) ) // import centroid spectra on Bruker CompassXpress data
+                    import_processed_spectra( 0, nSpectra );
+                import_profile_spectra( 0, nSpectra );
+                task::instance()->remove( *this );
+                return true;
             }
-            if ( accessor_->hasProcessedSpectrum( 0, 0 ) ) // import centroid spectra on Bruker CompassXpress data
-                import_processed_spectra( 0, nSpectra );
-            import_profile_spectra( 0, nSpectra );
-            task::instance()->remove( *this );
-            return true;
         } else {
             boost::filesystem::path path( source_file_ );
 			if ( path.extension() == ".txt" || path.extension() == ".csv" ) {
@@ -202,6 +212,9 @@ import::open_destination()
             boost::filesystem::path path( dir / src.filename() );
             path.replace_extension( L".adfs~" );
 
+            if ( boost::filesystem::exists( path ) ) 
+                boost::filesystem::remove( path );
+
             destination_file_ = path.generic_wstring();
 		}
 
@@ -212,48 +225,62 @@ import::open_destination()
 
         adutils::AcquiredConf::create_table( fs_->db() );
         adutils::AcquiredData::create_table( fs_->db() );
-        
-        adutils::AcquiredConf::insert( fs_->db()
-                                       , profileId_ 
-                                       , 0   // pobjid
-                                       , L"batchproc::import"
-                                       , uint64_t( signalobserver::eTRACE_SPECTRA )
-                                       , uint64_t( signalobserver::eMassSpectrometer )
-                                       , L"MS.PROFILE"
-                                       , L"Profile mass spectrum"
-                                       , L"m/z"
-                                       , L"intensity"
-                                       , 4
-                                       , 0 );
 
-        adutils::AcquiredConf::insert( fs_->db()
-                                       , centroidId_
-                                       , 0   // pobjid
-                                       , L"batchproc::import"
-                                       , uint64_t( signalobserver::eTRACE_SPECTRA )
-                                       , uint64_t( signalobserver::eMassSpectrometer )
-                                       , L"MS.CENTROID"
-                                       , L"Profile mass spectrum"
-                                       , L"m/z"
-                                       , L"intensity"
-                                       , 4
-                                       , 0 );
-
-        adutils::AcquiredConf::insert( fs_->db()
-                                       , ticId_
-                                       , 0   // pobjid
-                                       , L"batchproc::import"
-                                       , uint64_t( signalobserver::eTRACE_TRACE )
-                                       , uint64_t( signalobserver::eMassSpectrometer )
-                                       , L"MS.TIC"
-                                       , L"TIC"
-                                       , L"time"
-                                       , L"intensity"
-                                       , 4
-                                       , 0 );
         return true;
     }
+
     return false;
+}
+
+bool
+import::configure_ms_profile()
+{
+    return adutils::AcquiredConf::insert( fs_->db()
+                                          , profileId_ 
+                                          , 0   // pobjid
+                                          , L"batchproc::import"
+                                          , uint64_t( signalobserver::eTRACE_SPECTRA )
+                                          , uint64_t( signalobserver::eMassSpectrometer )
+                                          , L"MS.PROFILE"
+                                          , L"Profile mass spectrum"
+                                          , L"m/z"
+                                          , L"intensity"
+                                          , 4
+                                          , 0 );
+}
+
+bool
+import::configure_ms_centroid()
+{
+    return adutils::AcquiredConf::insert( fs_->db()
+                                          , centroidId_
+                                          , 0   // pobjid
+                                          , L"batchproc::import"
+                                          , uint64_t( signalobserver::eTRACE_SPECTRA )
+                                          , uint64_t( signalobserver::eMassSpectrometer )
+                                          , L"MS.CENTROID"
+                                          , L"Profile mass spectrum"
+                                          , L"m/z"
+                                          , L"intensity"
+                                          , 4
+                                          , 0 );
+}
+
+bool
+import::configure_ms_tic()
+{
+    return adutils::AcquiredConf::insert( fs_->db()
+                                          , ticId_
+                                          , 0   // pobjid
+                                          , L"batchproc::import"
+                                          , uint64_t( signalobserver::eTRACE_TRACE )
+                                          , uint64_t( signalobserver::eMassSpectrometer )
+                                          , L"MS.TIC"
+                                          , L"TIC"
+                                          , L"time"
+                                          , L"intensity"
+                                          , 4
+                                          , 0 );
 }
 
 bool
@@ -378,9 +405,8 @@ bool
 import::subscribe( const adcontrols::ProcessedDataset& processed )
 {
     std::string xml = processed.xml();
-	portfolio::Portfolio portfolio( xml );
-
-    return adutils::fsio2::saveContents( *fs_, L"/Processed", portfolio, *datafile_ );
+	portfolio_ = std::make_shared< portfolio::Portfolio >( xml );
+    return true;
 }
 
 void

@@ -43,6 +43,7 @@
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
 #include <adcontrols/massspectra.hpp>
+#include <boost/exception/all.hpp>
 
 using namespace adutils;
 
@@ -103,6 +104,10 @@ cpio::save( adfs::file& dbf, const boost::any& a )
         return internal::cpio_handler< adcontrols::MassSpectra >::save( dbf, a );
 
     }
-    assert( 0 );
-    return false;
+
+	struct cpio_error : virtual boost::exception, virtual std::exception {};
+	typedef boost::error_info< struct tag_errmsg, std::string > info;
+	BOOST_THROW_EXCEPTION( cpio_error() << info( std::string("cpio can't handle class ") + a.type().name() ) );
+
+	return false;
 }

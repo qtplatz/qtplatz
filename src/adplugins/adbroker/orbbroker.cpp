@@ -83,7 +83,16 @@ orbBroker::create_instance() const
 
         if ( adBroker * broker = new adBroker ) {
 
-            broker->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
+			try {
+				broker->initialize( pMgr->orb(), pMgr->root_poa(), pMgr->poa_manager() );
+			} catch ( CORBA::Exception& ex ) {
+				adportable::debug( __FILE__, __LINE__ ) << ex._info().c_str();
+				return 0;
+			} catch ( ... ) {
+				adportable::debug( __FILE__, __LINE__ ) << boost::current_exception_diagnostic_information();
+				return 0;
+			}
+
             std::string ior = broker->activate();
 
             if ( !ior.empty() ) {

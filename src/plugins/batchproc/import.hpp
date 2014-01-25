@@ -35,6 +35,7 @@
 
 namespace adcontrols { class datafile; class LCMSDataset; class Chromatogram; class MassSpectrum; }
 namespace adfs { class filesystem; }
+namespace portfolio { class Portfolio; }
 
 namespace batchproc {
 
@@ -72,12 +73,16 @@ namespace batchproc {
         uint64_t profileId_;
         uint64_t centroidId_;
         uint64_t ticId_;
+        std::shared_ptr< portfolio::Portfolio > portfolio_;
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > tic_;
         bool open_destination();
         void setup_continuum_massarray( import_continuum_massarray&, const adcontrols::MassSpectrum& );
         void setup_continuum_spectrum( import_profile&, const adcontrols::MassSpectrum& );
         bool import_profile_spectra( uint64_t fcn, size_t );
         bool import_processed_spectra( uint64_t fcn, size_t );
+        bool configure_ms_tic();
+        bool configure_ms_profile();
+        bool configure_ms_centroid();
     };
 
 }

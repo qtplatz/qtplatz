@@ -146,7 +146,7 @@ Section "!Application" App
 ;;; -- optional --
 	!include "filelist\filelist-bruker.nsh"
 	!include "filelist\filelist-infitof.nsh"
-;;	!include "filelist\filelist-mc4.nsh"
+	!include "filelist\filelist-mc4.nsh"
 
 	; Store installation folder and shortcut folder
    	WriteRegStr HKLM "${RegInstDirKey}" "Installation Directory" $INSTDIR
