@@ -45,6 +45,8 @@ namespace adwplot {
     
     signals:
         void dataChanged();
+		void onSelected( const QPointF& ) const;
+		void onSelected( const QRectF& ) const;
                           
     public slots:
         void handleShowContour( bool on );
@@ -54,7 +56,7 @@ namespace adwplot {
 
     private slots:
         void handleZoomed( const QRectF& );
-		void handleMoved( const QPointF& );
+		void handleSelected( const QPointF& );
 		void handleSelected( const QRectF& );
         
     private:

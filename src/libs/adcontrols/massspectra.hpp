@@ -74,6 +74,7 @@ namespace adcontrols {
         double x_left() const;
         double x_right() const;
         double z_max() const;
+        const value_type find( double t, bool closest = true ) const;
 
 		static const wchar_t * dataClass() { return L"adcontrols::MassSpectra"; }
         static bool archive( std::ostream&, const MassSpectra& );

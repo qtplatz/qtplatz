@@ -36,7 +36,7 @@ namespace boost {
         
         template<class Archive, class T>
         inline void save( Archive& ar, const std::shared_ptr< T >& t, const unsigned int /* file version */) {
-            const T* t_ptr = t.get();
+            //const T* t_ptr = t.get();
             ar << boost::serialization::make_nvp( "sh_ptr", *t );
         }
 

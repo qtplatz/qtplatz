@@ -81,8 +81,9 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     }
 
     if ( picker_ ) {
-        connect( picker_, SIGNAL( moved( const QPointF& ) ), this, SLOT( handleMoved( const QPointF& ) ) );
+        connect( picker_, SIGNAL( selected( const QPointF& ) ), this, SLOT( handleSelected( const QPointF& ) ) );
         connect( picker_, SIGNAL( selected( const QRectF& ) ), this, SLOT( handleSelected( const QRectF& ) ) );
+        // picker_->setStateMachine( new QwtPickerClickPointMachine );
         picker_->setTrackerMode( QwtPicker::AlwaysOff );
         picker_->setEnabled( true );
     }
@@ -217,14 +218,20 @@ SpectrogramWidget::tracker2( const QPointF& p1, const QPointF& pos )
 }
 
 void
-SpectrogramWidget::handleMoved( const QPointF& pos )
+SpectrogramWidget::handleSelected( const QPointF& pos )
 {
-    qDebug() << pos;
+    emit onSelected( pos );
 }
 
 void
 SpectrogramWidget::handleSelected( const QRectF& rect )
 {
-    qDebug() << rect;
+    QRect rc( QPoint( transform( xBottom, rect.left() ), transform( yLeft, rect.top() ) )
+              , QPoint( transform( xBottom, rect.right() ), transform( yLeft, rect.bottom() ) ) );
+    rc = rc.normalized();
+    if ( rc.width() < 2 && rc.height() < 2 )
+        emit onSelected( QPointF( rect.left(), rect.top() ) );
+    else
+        emit onSelected( rect );
 }
 

@@ -30,7 +30,7 @@
 
 namespace adwplot { class SpectrogramWidget; class SpectrumWidget; class ChromatogramWidget; }
 namespace portfolio { class Folium; }
-namespace adcontrols { class ProcessMethod; }
+namespace adcontrols { class ProcessMethod; class MassSpectra; }
 
 namespace dataproc {
 
@@ -50,12 +50,17 @@ namespace dataproc {
         void handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool );
         void handlePrintCurrentView( const QString& outpdf );
 
+    private slots:
+		void handleSelected( const QPointF& );
+		void handleSelected( const QRectF& );
+
     private:
         std::shared_ptr< adwplot::SpectrogramWidget > plot_;
         std::shared_ptr< adwplot::SpectrumWidget > sp_;
         std::shared_ptr< adwplot::ChromatogramWidget > chromatogr_;
         std::wstring foliumId_;
         std::string fullpath_;
+        std::weak_ptr< adcontrols::MassSpectra > data_;
         void init();
     };
 

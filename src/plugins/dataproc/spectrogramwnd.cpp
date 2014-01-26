@@ -26,6 +26,7 @@
 #include "sessionmanager.hpp"
 #include <adcontrols/massspectra.hpp>
 #include <adcontrols/massspectrum.hpp>
+#include <adcontrols/chromatogram.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/array_wrapper.hpp>
 #include <portfolio/folium.hpp>
@@ -34,12 +35,14 @@
 #include <adwplot/spectrogramdata.hpp>
 #include <adwplot/spectrumwidget.hpp>
 #include <adwplot/chromatogramwidget.hpp>
+#include <qtwrapper/waitcursor.hpp>
 #include <qwt_plot_renderer.h>
 #include <QSplitter>
 #include <QPrinter>
 #include <QPrintDialog>
 #include <QBoxLayout>
 #include <boost/numeric/ublas/matrix.hpp>
+#include <boost/format.hpp>
 #include <algorithm>
 
 namespace dataproc {
@@ -75,6 +78,8 @@ SpectrogramWnd::SpectrogramWnd(QWidget *parent) : QWidget(parent)
                                                 , chromatogr_( std::make_shared< adwplot::ChromatogramWidget >() )
 {
     init();
+    connect( plot_.get(), SIGNAL( onSelected( const QPointF& ) ), this, SLOT( handleSelected( const QPointF& ) ) );
+    connect( plot_.get(), SIGNAL( onSelected( const QRectF& ) ), this, SLOT( handleSelected( const QRectF& ) ) );
 }
 
 void
@@ -156,6 +161,7 @@ SpectrogramWnd::handleSelectionChanged( Dataprocessor*, portfolio::Folium& foliu
         if ( portfolio::Folium::get< adcontrols::MassSpectraPtr >( ptr, folium ) ) {
             foliumId_ = folium.id();
             fullpath_ = folium.fullpath();
+            data_ = ptr;
             plot_->setData( new detail::SpectrogramData( ptr ) );
         }
     }
@@ -169,6 +175,53 @@ SpectrogramWnd::handleApplyMethod( const adcontrols::ProcessMethod& )
 void
 SpectrogramWnd::handleCheckStateChanged( Dataprocessor*, portfolio::Folium&, bool )
 {
+}
+
+void
+SpectrogramWnd::handleSelected( const QPointF& pos )
+{
+    double w = 0.001;
+    QRectF rect( QPointF( pos.x(), pos.y() - (w/2) ), QPointF( pos.x(), pos.y() + (w/2) ) );
+    handleSelected( rect );
+}
+
+void
+SpectrogramWnd::handleSelected( const QRectF& rect )
+{
+    if ( adcontrols::MassSpectraPtr ptr = data_.lock() ) {
+        
+        qtwrapper::waitCursor wait;
+
+        if ( const adcontrols::MassSpectrumPtr ms = ptr->find( rect.left() ) ) {
+            sp_->setData( ms, 0 );
+            sp_->setTitle( (boost::format("@ %.3fmin") % rect.left()).str() );
+        }
+
+        double m1 = rect.top();
+        double m2 = rect.bottom();
+        if ( m2 < m1 )
+            std::swap( m1, m2 );
+
+        adcontrols::Chromatogram c;
+        c.resize( ptr->size() );
+        c.setTimeArray( ptr->x().data() );
+
+        int idx = 0;
+        for ( const auto& ms: *ptr ) {
+            adcontrols::segment_wrapper< const adcontrols::MassSpectrum > segs( *ms );
+            double y = 0;
+            for ( auto& seg: segs ) {
+                adportable::array_wrapper< const double > masses( seg.getMassArray(), seg.size() );
+                auto it = std::lower_bound( masses.begin(), masses.end(), m1 );
+                while ( *it++ <= m2 )
+                    y += seg.getIntensity( std::distance( masses.begin(), it ) );
+            }
+            c.setIntensity( idx++, y );
+        }
+        chromatogr_->setData( c, 0 );
+        chromatogr_->setTitle( (boost::format("<i>m/z</i> %.4f -- %.4f") % m1 % m2 ).str() );
+    }        
+
 }
 
 //
@@ -266,8 +319,6 @@ namespace dataproc {
                     }
                 }
             }
-            qDebug() << "z_max =" << z_max;
-
             setInterval( Qt::XAxis, QwtInterval( spectra_->x_left(), spectra_->x_right() ) );   // time (sec -> min)
             setInterval( Qt::YAxis, QwtInterval( spectra_->lower_mass(), spectra_->upper_mass() ) ); // m/z
 #if 0       // normaize

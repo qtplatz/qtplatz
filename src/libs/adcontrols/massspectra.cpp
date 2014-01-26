@@ -87,6 +87,12 @@ MassSpectra::operator [] ( size_t fcn ) const
     return *vec_[ fcn ];
 }
 
+size_t
+MassSpectra::size() const
+{
+    return vec_.size();
+}
+
 void
 MassSpectra::setChromatogram( const Chromatogram& c )
 {
@@ -152,6 +158,21 @@ const std::vector<double>&
 MassSpectra::x() const
 {
     return x_;
+}
+
+const MassSpectra::value_type
+MassSpectra::find( double t, bool closest ) const
+{
+    auto it = std::lower_bound( x_.begin(), x_.end(), t );
+    if ( it != x_.end() ) {
+        size_t idx = std::distance( x_.begin(), it );
+        if ( closest && it != x_.begin() ) {
+            if ( std::abs( *it - t ) > std::abs( *( it - 1 ) - t ) )
+                --idx;
+        }
+        return vec_[ idx ];
+    }
+    return 0;
 }
 
 bool
