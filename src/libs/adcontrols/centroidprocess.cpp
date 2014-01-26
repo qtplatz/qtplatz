@@ -215,8 +215,12 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
 
     // buffer for smoothing
     std::unique_ptr< double [] > pY( new double [ profile.size() ] );
-    int nAverage = 3;
-	while ( ( profile.getMass( nAverage ) - profile.getMass( 0 ) ) < finder.peakwidth_ )
+    uint32_t nAverage = 3;
+	uint32_t nSize = profile.size();
+	if ( nSize < 3 )
+		return;
+
+	while ( ( profile.getMass( nAverage ) - profile.getMass( 0 ) ) < finder.peakwidth_ && nAverage <= nSize )
 		++nAverage;
     if ( nAverage >= 26 )
 		nAverage = 25;

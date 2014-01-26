@@ -184,22 +184,11 @@ SpectrumWidget::SpectrumWidget(QWidget *parent) : Dataplot(parent)
 		picker_->setEnabled( true );
 	}
 
-	QwtText axisHor( "m/z" );
-	QFont font = axisHor.font();
-	font.setFamily( "Verdana" );
-	font.setBold( true );
-	font.setItalic( true );
-	font.setPointSize( 9 );
-	axisHor.setFont( font );
-    setAxisTitle(QwtPlot::xBottom, axisHor);
-
-	QwtText axisVart( "Intensity" );
-	font.setItalic( false );
-	axisVart.setFont( font );
-
-    setAxisTitle(QwtPlot::yLeft, axisVart);
+    setAxisTitle(QwtPlot::xBottom, QwtText( "<i>m/z</i>", QwtText::RichText ) );
+    setAxisTitle(QwtPlot::yLeft, QwtText( "Intensity" ) );
 
     // -----------
+    QFont font;
     font.setFamily( "Colsolas" );
     font.setBold( false );
 	font.setPointSize( 8 );
@@ -296,7 +285,7 @@ SpectrumWidget::setAxis( HorizontalAxis haxis )
     clear();
     haxis_ = haxis;
     impl_->isTimeAxis_ = haxis == HorizontalAxisTime;
-    setAxisTitle(QwtPlot::xBottom, haxis_ == HorizontalAxisMass ? "m/z" : "Time(microseconds)");
+    setAxisTitle(QwtPlot::xBottom, QwtText( haxis_ == HorizontalAxisMass ? "<i>m/z</i>" : "Time[&mu;s]", QwtText::RichText) );
 }
 
 void

@@ -25,7 +25,7 @@
 #include "spectrogramwidget.hpp"
 #include "spectrogramdata.hpp"
 #include "zoomer.hpp"
-
+#include "picker.hpp"
 #include <adportable/debug.hpp>
 #include <qwt_plot_spectrogram.h>
 #include <qwt_color_map.h>
@@ -34,7 +34,6 @@
 #include <qwt_scale_draw.h>
 #include <qwt_plot_canvas.h>
 #include <qwt_plot_zoomer.h>
-#include <qwt_plot_panner.h>
 #include <qwt_plot_layout.h>
 #include <qwt_plot_renderer.h>
 #include <qwt_plot_picker.h>
@@ -52,9 +51,9 @@ namespace adwplot {
         
         class ColorMap: public QwtLinearColorMap {
         public:
-            ColorMap(): QwtLinearColorMap( Qt::darkCyan, Qt::red ) {
+            ColorMap(): QwtLinearColorMap( Qt::darkBlue, Qt::red ) {
                 addColorStop( 0.1, Qt::cyan );
-                addColorStop( 0.6, Qt::green );
+                addColorStop( 0.7, Qt::green );
                 addColorStop( 0.95, Qt::yellow );
             }
         };
@@ -67,7 +66,7 @@ using namespace adwplot;
 SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
                                                         , spectrogram_( new QwtPlotSpectrogram() )
                                                         , zoomer_( new Zoomer( xBottom, yLeft, canvas() ) )
-                                                        , panner_( new QwtPlotPanner( canvas() ) )
+                                                        , picker_( new Picker( canvas() ) )
                                                         , data_(0)
 {
     spectrogram_->setRenderThreadCount( 0 ); // use system specific thread count
@@ -78,6 +77,14 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
         using namespace std::placeholders;
         zoomer->tracker1( std::bind( &SpectrogramWidget::tracker1, this, _1 ) );
         zoomer->tracker2( std::bind( &SpectrogramWidget::tracker2, this, _1, _2 ) );
+        zoomer_->setRubberBandPen( QPen( QColor( 0xff, 0xff, 0x80, 0x80 ) ) ); // Ivory, transparency = 50%
+    }
+
+    if ( picker_ ) {
+        connect( picker_, SIGNAL( moved( const QPointF& ) ), this, SLOT( handleMoved( const QPointF& ) ) );
+        connect( picker_, SIGNAL( selected( const QRectF& ) ), this, SLOT( handleSelected( const QRectF& ) ) );
+        picker_->setTrackerMode( QwtPicker::AlwaysOff );
+        picker_->setEnabled( true );
     }
 
 	setData( new SpectrogramData() );
@@ -93,39 +100,26 @@ SpectrogramWidget::SpectrogramWidget( QWidget *parent ) : QwtPlot(parent)
     setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
     enableAxis( QwtPlot::yRight );
 
-    axisWidget( QwtPlot::xBottom )->setTitle( QwtText( "Time (min)", QwtText::RichText ) );
+    axisWidget( QwtPlot::xBottom )->setTitle( QwtText( "Time[min]", QwtText::RichText ) );
     axisWidget( QwtPlot::yLeft )->setTitle( QwtText( "<i>m/z</i>", QwtText::RichText ) );
 
     QwtScaleWidget *yAxis = axisWidget( QwtPlot::yLeft );    
     yAxis->setTitle( "m/z" );
 
+    QFont font;
+    font.setFamily( "Colsolas" );
+    font.setBold( false );
+	font.setPointSize( 8 );
+    setAxisFont( QwtPlot::xBottom, font );
+    setAxisFont( QwtPlot::yLeft, font );
+    setAxisFont( QwtPlot::yRight, font );
+
     plotLayout()->setAlignCanvasToScales( true );
     replot();
 
-    // LeftButton for the zooming
-    // Alt+LeftButton for the panning
-    // RightButton: zoom out by 1
-    // Shift+LeftButton: zoom out to full size
-
-    zoomer_->setMousePattern( QwtEventPattern::MouseSelect2, Qt::LeftButton, Qt::ShiftModifier );
-    zoomer_->setMousePattern( QwtEventPattern::MouseSelect3, Qt::RightButton );
-
-    panner_->setAxisEnabled( QwtPlot::yRight, false );
-    panner_->setMouseButton( Qt::LeftButton, Qt::AltModifier );
-
-    // Avoid jumping when labels with more/less digits
-    // appear/disappear when scrolling vertically
-
     const QFontMetrics fm( axisWidget( QwtPlot::yLeft )->font() );
     QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );
-    sd->setMinimumExtent( fm.width( "1.00" ) );
-
-    const QColor c( Qt::darkBlue );
-    zoomer_->setRubberBandPen( c );
-    zoomer_->setTrackerPen( c );
-    
-    // detail::Picker * picker = new detail::Picker( canvas() );
-    // (void)picker;  // will delete by QWidget
+    sd->setMinimumExtent( fm.width( "8000.0" ) ); // width for yLeft axis
 
     connect( this, SIGNAL( dataChanged() ), this, SLOT( handle_dataChanged() ) );
     connect( zoomer_, SIGNAL( zoomed( const QRectF& ) ), this, SLOT( handleZoomed( const QRectF& ) ) );
@@ -137,16 +131,16 @@ SpectrogramWidget::setData( SpectrogramData * data )
 {
     data_ = data;
 
-    // A color bar on the right axis
-    const QwtInterval zInterval = data->interval( Qt::ZAxis );
-    axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new detail::ColorMap() );
-    setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
-
     const QwtInterval xInterval = data->interval( Qt::XAxis );
     setAxisScale( QwtPlot::xBottom, xInterval.minValue(), xInterval.maxValue() );
 
     const QwtInterval yInterval = data->interval( Qt::YAxis );
     setAxisScale( QwtPlot::yLeft, yInterval.minValue(), yInterval.maxValue() );
+
+    const QwtInterval zInterval = data->interval( Qt::ZAxis );
+    setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
+    // A color bar on the right axis
+    axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new detail::ColorMap() );
 
     spectrogram_->setData( data );
     replot();
@@ -195,10 +189,11 @@ SpectrogramWidget::handleZoomed( const QRectF& rc )
 {
     if ( data_ ) {
         if ( data_->zoomed( rc ) ) {
+            spectrogram_->invalidateCache();
 			const QwtInterval zInterval = data_->interval( Qt::ZAxis );
             axisWidget( QwtPlot::yRight )->setColorMap( zInterval, new detail::ColorMap );
             setAxisScale( QwtPlot::yRight, zInterval.minValue(), zInterval.maxValue() );
-            spectrogram_->invalidateCache();
+            replot();
         }
     }
 }
@@ -220,3 +215,16 @@ SpectrogramWidget::tracker2( const QPointF& p1, const QPointF& pos )
         return QwtText( (boost::format("<i>m/z</i> %.4f(&delta;=%.3fDa)@ %.3fmin") % pos.y() % dm % pos.x() ).str().c_str(), QwtText::RichText );
     }
 }
+
+void
+SpectrogramWidget::handleMoved( const QPointF& pos )
+{
+    qDebug() << pos;
+}
+
+void
+SpectrogramWidget::handleSelected( const QRectF& rect )
+{
+    qDebug() << rect;
+}
+

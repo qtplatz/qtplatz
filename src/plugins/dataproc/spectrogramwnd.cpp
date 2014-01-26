@@ -32,7 +32,10 @@
 #include <portfolio/folder.hpp>
 #include <adwplot/spectrogramwidget.hpp>
 #include <adwplot/spectrogramdata.hpp>
+#include <adwplot/spectrumwidget.hpp>
+#include <adwplot/chromatogramwidget.hpp>
 #include <qwt_plot_renderer.h>
+#include <QSplitter>
 #include <QPrinter>
 #include <QPrintDialog>
 #include <QBoxLayout>
@@ -68,6 +71,8 @@ using namespace dataproc;
 
 SpectrogramWnd::SpectrogramWnd(QWidget *parent) : QWidget(parent)
                                                 , plot_( std::make_shared< adwplot::SpectrogramWidget >() )
+                                                , sp_( std::make_shared< adwplot::SpectrumWidget >() )
+                                                , chromatogr_( std::make_shared< adwplot::ChromatogramWidget >() )
 {
     init();
 }
@@ -75,8 +80,28 @@ SpectrogramWnd::SpectrogramWnd(QWidget *parent) : QWidget(parent)
 void
 SpectrogramWnd::init()
 {
-    QBoxLayout * layout = new QVBoxLayout( this );
-    layout->addWidget( plot_.get() );
+    if ( QSplitter * splitter = new QSplitter ) {
+
+        splitter->addWidget( plot_.get() );
+        splitter->setOrientation( Qt::Vertical );
+
+        if ( QSplitter * v_splitter = new QSplitter ) {
+
+            sp_->setMinimumHeight( 40 );
+            chromatogr_->setMinimumHeight( 40 );
+
+            v_splitter->addWidget( sp_.get() );
+            v_splitter->addWidget( chromatogr_.get() );
+            v_splitter->setOrientation( Qt::Horizontal );
+
+            splitter->addWidget( v_splitter );
+        }
+        splitter->setStretchFactor( 0, 9 );
+        splitter->setStretchFactor( 1, 3 );
+        
+        QBoxLayout * layout = new QVBoxLayout( this );
+        layout->addWidget( splitter ); 
+    }
 }
 
 void
@@ -214,11 +239,8 @@ namespace dataproc {
         void
         SpectrogramData::updateData() 
         {
-            for ( size_t i = 0; i < m_.size1(); ++i ) {
-                for ( size_t j = 0; j < m_.size2(); ++j ) {
-                    m_( i, j ) = 0;
-                }
-            }
+            m_.clear();
+
             size_t id1 = std::distance( spectra_->x().begin(), std::lower_bound( spectra_->x().begin(), spectra_->x().end(), xlimits_.first ) );
             size_t id2 = std::distance( spectra_->x().begin(), std::lower_bound( spectra_->x().begin(), spectra_->x().end(), xlimits_.second ) );
             size1_ = std::min( m_.size1(), id2 - id1 + 1 );
@@ -244,14 +266,16 @@ namespace dataproc {
                     }
                 }
             }
-            // for ( size_t i = 0; i < m_.size1(); ++i ) {
-            //     for ( size_t j = 0; j < m_.size2(); ++j ) {
-            //         m_( i, j ) /= (z_max / 10000.0);
-            //     }
-            // }
+            qDebug() << "z_max =" << z_max;
+
             setInterval( Qt::XAxis, QwtInterval( spectra_->x_left(), spectra_->x_right() ) );   // time (sec -> min)
             setInterval( Qt::YAxis, QwtInterval( spectra_->lower_mass(), spectra_->upper_mass() ) ); // m/z
+#if 0       // normaize
+            m_ /= ( z_max / 1000.0 );
+            setInterval( Qt::ZAxis, QwtInterval( 0.0, 1000 ) );
+#else
             setInterval( Qt::ZAxis, QwtInterval( 0.0, z_max ) );
+#endif
         }
     }
 }

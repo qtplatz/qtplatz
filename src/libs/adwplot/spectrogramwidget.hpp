@@ -31,7 +31,7 @@
 class QwtPlotSpectrogram;
 class QwtRasterData;
 class QwtPlotZoomer;
-class QwtPlotPanner;
+class QwtPlotPicker;
 
 namespace adwplot {
 
@@ -51,13 +51,16 @@ namespace adwplot {
         void handleShowSpectrogram( bool on );
         void handleSetAlpha( int );
         void handleDataChanged();
+
     private slots:
         void handleZoomed( const QRectF& );
+		void handleMoved( const QPointF& );
+		void handleSelected( const QRectF& );
         
     private:
         QwtPlotSpectrogram * spectrogram_;
         QwtPlotZoomer * zoomer_;
-        QwtPlotPanner * panner_;
+        QwtPlotPicker * picker_;
         SpectrogramData * data_;
         void handle_signal();
 

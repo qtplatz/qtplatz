@@ -192,22 +192,11 @@ ChromatogramWidget::~ChromatogramWidget()
 ChromatogramWidget::ChromatogramWidget(QWidget *parent) : Dataplot(parent)
                                                         , impl_( new ChromatogramWidgetImpl )
 {
-	QwtText axisHor( "Time[min]" );
-	QFont font = axisHor.font();
-	font.setFamily( "Verdana" );
-	font.setBold( true );
-	font.setItalic( false );
-	font.setPointSize( 9 );
-	axisHor.setFont( font );
-
-    setAxisTitle(QwtPlot::xBottom, axisHor);
-
-	QwtText axisVert( "Intensity" );
-	font.setItalic( false );
-	axisVert.setFont( font );
-    setAxisTitle(QwtPlot::yLeft, axisVert );
+    setAxisTitle(QwtPlot::xBottom, QwtText( "Time[min]", QwtText::RichText ) );
+    setAxisTitle(QwtPlot::yLeft, QwtText( "Intensity" ) );
 
     // -----------
+    QFont font;
     font.setFamily( "Colsolas" );
     font.setBold( false );
 	font.setPointSize( 8 );
