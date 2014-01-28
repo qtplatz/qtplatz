@@ -62,8 +62,10 @@ Annotations::interference( double x, double y, const QwtText& label, Qt::Alignme
 	QRectF rc = boundingRect( x, y, label, align );
 
 	auto it = std::find_if( vec_.begin(), vec_.end(), [=]( const Annotation& a ){
-            bool res = rc.intersects( this->boundingRect( a, align ) );
-            return res;
+            QwtPlotMarker * marker = a.getPlotMarker();
+            QRectF rhs = boundingRect( marker->xValue(), marker->yValue(), marker->label(), align );
+            QRectF lhs = rc.intersected( rhs );
+            return lhs.width() || lhs.height();
         });
 
 	if ( it == vec_.end() )

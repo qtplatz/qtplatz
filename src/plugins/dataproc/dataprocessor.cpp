@@ -645,6 +645,12 @@ Dataprocessor::createSpectrogram()
 	DataprocessWorker::instance()->createSpectrogram( this );
 }
 
+void
+Dataprocessor::clusterSpectrogram()
+{
+	DataprocessWorker::instance()->clusterSpectrogram( this );
+}
+
 ///////////////////////////
 bool
 Dataprocessor::subscribe( const adcontrols::LCMSDataset& data )

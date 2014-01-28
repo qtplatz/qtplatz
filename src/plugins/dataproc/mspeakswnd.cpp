@@ -59,7 +59,7 @@ namespace dataproc {
                 marker->setValue( x, y );
                 marker->setLineStyle( QwtPlotMarker::Cross );
                 marker->setLinePen( Qt::darkGreen, 0.0, Qt::DashDotLine );
-                marker->setLabel( QwtText( (boost::format("%.7e<i>(&mu;s)</i>") % x).str().c_str(), QwtText::RichText ) );
+                marker->setLabel( QwtText( (boost::format("%.7g<i>(ns)</i>") % ( y * 1000 )).str().c_str(), QwtText::RichText ) );
                 marker->setLabelAlignment( Qt::AlignRight | Qt::AlignBottom );
                 marker->attach( &plot );
             }
@@ -94,22 +94,24 @@ namespace dataproc {
                 const QPointF& dmax = *std::max_element( data.begin(), data.end(), []( const QPointF& a, const QPointF& b ){
                         return std::abs(a.y()) < std::abs(b.y()); } );
                 double dfs = dmax.y() * 1.2;
-
-                std::shared_ptr< QwtPlotCurve > curve = std::make_shared< QwtPlotCurve >( QwtText("&delta;", QwtText::RichText) );
+                
+                std::shared_ptr< QwtPlotCurve > curve = std::make_shared< QwtPlotCurve >( QwtText("&delta;(ns)", QwtText::RichText) );
                 curves_.push_back( curve );
                 curve->setPen( Qt::red );
                 curve->setYAxis( QwtPlot::yRight );
                 curve->setSamples( data );
 				curve->setStyle( QwtPlotCurve::Sticks );
+                curve->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Cross ), Qt::NoBrush, QPen( Qt::darkMagenta ), QSize(5, 5) ) );
                 curve->attach( &plot );
-                plot.setAxisScale( QwtPlot::yRight, -dfs, dfs );
-
+                plot.setAxisScale( QwtPlot::yRight, dfs, -dfs );
+                
+                // horizontal center line for deviation plot
                 std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >();
                 markers_.push_back( marker );
                 marker->setYAxis( QwtPlot::yRight );
                 marker->setValue( 0.0, 0.0 );
                 marker->setLineStyle( QwtPlotMarker::HLine );
-                marker->setLinePen( Qt::darkRed, 0.0, Qt::DashDotLine );
+                marker->setLinePen( Qt::gray, 0.0, Qt::DashDotLine );
                 marker->attach( &plot );
             }
 		};
@@ -126,47 +128,50 @@ MSPeaksWnd::MSPeaksWnd(QWidget *parent) : QWidget(parent)
     plotMarkers_.resize( plots_.size() );
     plotCurves_.resize( plots_.size() );
 
-    QwtText text_haxis( "time (&mu;s)", QwtText::RichText );
-    QFont font = text_haxis.font();
-	font.setFamily( "Verdana" );
-	font.setBold( true );
-	font.setItalic( true );
-	font.setPointSize( 9 );
-    text_haxis.setFont( font );
-
-    static char * vertical_titles [] = {
-        "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span>"
-        , "flight length (m)"
+    static struct {
+        const char * xBottom;
+        const char * yLeft;
+    } axis_titles [] = {
+        { "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span>"
+          , "time (&mu;s)"
+        }
+        , { "flight length (m)"
+          , "time (&mu;s)"
+        }
     };
+    assert( sizeof( axis_titles ) / sizeof( axis_titles[0] ) == plots_.size() );
+
+    QFont font;
+    font.setFamily( "Colsolas" );
+    font.setBold( false );
+	font.setPointSize( 8 );
 
     int n = 0;
     for ( auto& plot: plots_ ) {
-        plot->setAxisTitle( QwtPlot::xBottom, text_haxis );
 
-        if ( sizeof( vertical_titles ) / sizeof( vertical_titles[0] ) <= n )
-            continue;
-        QwtText vtext( vertical_titles[ n++ ], QwtText::RichText );        
-        vtext.setFont( font );
-        plot->setAxisTitle( QwtPlot::yLeft, vtext );
-    };
-
-    for ( auto& plot: plots_ ) {
         plot->setMinimumHeight( 40 );
         plot->setMinimumWidth( 40 );
         plot->enableAxis( QwtPlot::yRight );
-        QwtText text( "&delta;", QwtText::RichText );
-        QwtPlotGrid * grid = new QwtPlotGrid;
-        // grid->enableXMin( true );  // enable minor grid lines
-        grid->setMajorPen( Qt::gray, 0, Qt::DotLine );
-        grid->attach( plot.get() );
-        plot->setAxisTitle( QwtPlot::yRight, text );
+
+        plot->setAxisFont( QwtPlot::xBottom, font );
+        plot->setAxisFont( QwtPlot::yLeft, font );
+        plot->setAxisFont( QwtPlot::yRight, font );
+
+        plot->setAxisTitle( QwtPlot::yLeft, QwtText( axis_titles[ n ].yLeft, QwtText::RichText ) );
+        plot->setAxisTitle( QwtPlot::xBottom, QwtText( axis_titles[ n ].xBottom, QwtText::RichText ) );
+        plot->setAxisTitle( QwtPlot::yRight, QwtText( "&delta;(ns)", QwtText::RichText ) );
+
         plot->axisAutoScale( QwtPlot::xBottom );
         plot->axisAutoScale( QwtPlot::yLeft );
-        plot->setAxisScale( QwtPlot::yRight, -1.0, 1.0 );
+        ++n;
+
+        QwtPlotGrid * grid = new QwtPlotGrid;
+        grid->setMajorPen( Qt::gray, 0, Qt::DotLine );
+        grid->attach( plot.get() );
 
         QwtPlotLegendItem * legendItem = new QwtPlotLegendItem;
         legendItem->attach( plot.get() );
-    }
+    };
 
     init();
 }
@@ -201,6 +206,7 @@ MSPeaksWnd::handleSetData( int mode, const adcontrols::MSPeaks& peaks )
     // title
     plot.setTitle( ( boost::format( "#lap: %d" ) % mode ).str() );
 
+    // SQRT(m) - time plot
     // footer (equation)
     std::ostringstream o;
     o << "&radic;<span style=\"text-decoration: overline\">&nbsp;<i>m/z</i></span> = ";
@@ -217,38 +223,38 @@ MSPeaksWnd::handleSetData( int mode, const adcontrols::MSPeaks& peaks )
         markers.push_back( marker );
         marker->setLabel( QwtText( adcontrols::ChemicalFormula::formatFormula( peaks[ i ].formula() ).c_str() ) );
         marker->setLabelAlignment( Qt::AlignRight | Qt::AlignBottom );
-        marker->setValue( peaks.x()[ i ], peaks.y()[ i ] );
-		marker->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Cross ), Qt::NoBrush, QPen( Qt::darkMagenta ), QSize(5, 5) ) );
+        marker->setValue( peaks.y()[ i ], peaks.x()[ i ] );
+		marker->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::XCross ), Qt::NoBrush, QPen( Qt::darkMagenta ), QSize(5, 5) ) );
         marker->attach( &plot );
     }
 
     // deviation
     QVector< QPointF > deviation;
     for ( size_t i = 0; i < peaks.x().size(); ++i ) {
-		double x = peaks.x()[i];
-        double y = peaks.y()[i] - adportable::polfit::estimate_y( peaks.coeffs(), x );
-        deviation.push_back( QPointF( x, y ) );
+        double sqrtM = peaks.y()[i];
+        double t = ( sqrtM - peaks.coeffs()[ 0 ] ) / peaks.coeffs()[ 1 ];
+        deviation.push_back( QPointF( sqrtM, ( peaks.x()[i] - t ) * 1000 ) ); // --> ns
     }
     mspeakswnd::draw_stics devplot( curves, markers );
     devplot( deviation, plot );
 
     // draw time zero marker
     // m = a + bt
-    double x0 = (-coeffs[0])/coeffs[1];
-    double y0 = 0.0;
+    double y0 = (-coeffs[0])/coeffs[1];  // time on y-axis
+    double x0 = 0.0;
     mspeakswnd::draw_crosshair_marker draw_marker( markers );
     draw_marker( x0, y0, plot );
 
     // draw regression line
     QVector< QPointF > data;
-    if ( x0 > 0 ) {
-        y0 = adportable::polfit::estimate_y( peaks.coeffs(), 0.0 );
-        x0 = 0.0;
-    }
-    double x1 = *std::max_element( peaks.x().begin(), peaks.x().end() );
-    double y1 = adportable::polfit::estimate_y( peaks.coeffs(), x1 );
-    data.push_back( QPointF(x0, y0) );
-    data.push_back( QPointF(x1, y1) );
+    double t0 = 0.0;
+    double m0 = adportable::polfit::estimate_y( peaks.coeffs(), t0 ); // estimate sqrt(m)
+
+    double t1 = *std::max_element( peaks.x().begin(), peaks.x().end() ); // time
+    double m1 = adportable::polfit::estimate_y( peaks.coeffs(), t1 ); // sqrt(m)
+    data.push_back( QPointF(m0, t0) );
+    data.push_back( QPointF(m1, t1) );
+    plot.setAxisScale( QwtPlot::yLeft, -(t1 * 0.05), t1 * 1.05 );
 
     mspeakswnd::draw_regression regplot( curves );
     regplot( data, (boost::format( "lap# %d" ) % mode).str(), plot );
@@ -274,12 +280,12 @@ MSPeaksWnd::handleSetData( const QString& formula, const adcontrols::MSPeaks& pe
 
     // footer
     std::ostringstream o;
-    o << "L = ";
+    o << "T(&mu;s) = ";
     const std::vector<double> coeffs = peaks.coeffs();
     o << boost::format( "%.7e + " ) % coeffs[0];
-    o << boost::format( "%.7e&sdot;t" ) % coeffs[1];
+    o << boost::format( "%.7e&sdot;L(m)" ) % coeffs[1];
     for ( size_t i = 2; i < coeffs.size(); ++i )
-        o << boost::format( " + %.7e&sdot;t<sup>%d</sup>") % coeffs[i] % i;
+        o << boost::format( " + %.7e&sdot;L<sup>%d</sup>") % coeffs[i] % i;
     plot.setFooter( o.str() );
 
     // markers (data points)
@@ -287,7 +293,7 @@ MSPeaksWnd::handleSetData( const QString& formula, const adcontrols::MSPeaks& pe
         std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >( peaks[ i ].formula().c_str() );
         markers.push_back( marker );
         marker->setValue( peaks.x()[ i ], peaks.y()[ i ] );
-		marker->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Cross ), Qt::NoBrush, QPen( Qt::darkMagenta ), QSize(5, 5) ) );
+		marker->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::XCross ), Qt::NoBrush, QPen( Qt::darkMagenta ), QSize(5, 5) ) );
         marker->attach( &plot );
     }
 
@@ -296,27 +302,27 @@ MSPeaksWnd::handleSetData( const QString& formula, const adcontrols::MSPeaks& pe
     for ( size_t i = 0; i < peaks.x().size(); ++i ) {
 		double x = peaks.x()[i];
         double y = peaks.y()[i] - adportable::polfit::estimate_y( peaks.coeffs(), x );
-        deviation.push_back( QPointF( x, y ) );
+        deviation.push_back( QPointF( x, y * 1000 ) ); // --> ns
     }
     mspeakswnd::draw_stics devplot( curves, markers );
     devplot( deviation, plot );
-
-    // draw time zero marker
-    double x0 = (-coeffs[0])/coeffs[1]; // time where y-value is zero
-    double y0 = 0.0;
+    
+    double x0 = 0.0;
+    double y0 = coeffs[ 0 ];
     mspeakswnd::draw_crosshair_marker draw_marker( markers );
     draw_marker( x0, y0, plot );
 
     // draw regression line
     QVector< QPointF > data;
-    if ( x0 > 0 ) {
-        y0 = adportable::polfit::estimate_y( peaks.coeffs(), 0.0 );
+    if ( y0 > 0 ) {
+        y0 = ( - peaks.coeffs()[ 0 ] ) / peaks.coeffs()[ 1 ];
         x0 = 0.0;
     }
     double x1 = *std::max_element( peaks.x().begin(), peaks.x().end() );
     double y1 = adportable::polfit::estimate_y( peaks.coeffs(), x1 );
     data.push_back( QPointF(x0, y0) );
     data.push_back( QPointF(x1, y1) );
+    plot.setAxisScale( QwtPlot::yLeft, -(y1 * 0.05), y1 * 1.05 );
 
     mspeakswnd::draw_regression regplot( curves );
     regplot( data, adcontrols::ChemicalFormula::formatFormula( formula.toStdString() ), plot );

@@ -28,6 +28,7 @@
 #include <utils/fancymainwindow.h>
 #include "constants.hpp"
 #include <memory>
+#include <array>
 
 namespace adportable { class Configuration; }
 namespace adcontrols { class datafile; class ProcessMethod; class MSAssignedMasses; class MSPeaks; }
@@ -46,9 +47,13 @@ namespace dataproc {
 
     class Dataprocessor;
 
+
     class MainWindow : public Utils::FancyMainWindow {
         Q_OBJECT
-        public:
+        enum idActions { idActCreateSpectrogram
+                         , idActClusterSpectrogram
+                         , numActions };
+    public:
         ~MainWindow();
         explicit MainWindow(QWidget *parent = 0);
 
@@ -77,6 +82,7 @@ namespace dataproc {
         void printCurrentView( const QString& ) const;
 
         void saveDefaultMSCalibrateResult( portfolio::Folium& );
+        void install_actions();
 
     public slots:
         void handleSessionAdded( Dataprocessor * );
@@ -97,6 +103,9 @@ namespace dataproc {
         void actionSelChromatogram();
         void actionSelMSPeaks();
         void actionSelSpectrogram();
+
+        void actCreateSpectrogram();
+		void actClusterSpectrogram();
         
         friend class MSPeaksWnd;
 
@@ -119,6 +128,7 @@ namespace dataproc {
         std::unique_ptr< QLineEdit > processMethodNameEdit_;
         enum ProcessType currentFeature_;
         QWidget * msPeaksWnd_;
+        std::array< QAction *, numActions > actions_;
 
         void setToolBarDockWidget( QDockWidget * dock );
         QDockWidget * toolBarDockWidget() { return toolBarDockWidget_; }

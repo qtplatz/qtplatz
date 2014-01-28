@@ -87,6 +87,7 @@ namespace dataproc {
         void handle_folium_added( const QString, const QString, const QString );
         
     private:
+        enum { idActSpectrogram, nActions };
         
     private:
         dataproc::MainWindow * mainWindow_;

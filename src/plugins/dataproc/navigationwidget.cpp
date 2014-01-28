@@ -564,7 +564,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 if ( processor && folium.getParentFolder().name() == L"Chromatograms" ) {
                     QMenu menu;
                     QAction * doSpectrogram = 0; 
-                    doSpectrogram = menu.addAction( "Creatge Spectrogram" );
+                    doSpectrogram = menu.addAction( "Create Spectrogram" );
                     if ( QAction* selectedItem = menu.exec( globalPos ) ) {
                         if ( doSpectrogram == selectedItem ) {
                             processor->createSpectrogram();

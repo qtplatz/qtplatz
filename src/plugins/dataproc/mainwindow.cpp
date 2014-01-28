@@ -82,16 +82,6 @@
 #include <QLineEdit>
 #include <qdebug.h>
 
-// namespace dataproc {
-//     class setTrackingEnabled {
-//         Utils::FancyMainWindow& w_;
-// 	public:
-//         setTrackingEnabled( Utils::FancyMainWindow& w ) : w_(w) { w_.setTrackingEnabled( false ); }
-//         ~setTrackingEnabled() {  w_.setTrackingEnabled( true ); }
-//     };
-// }
-
-
 using namespace dataproc;
 
 MainWindow::~MainWindow()
@@ -117,6 +107,7 @@ MainWindow::MainWindow( QWidget *parent ) : Utils::FancyMainWindow(parent)
                                           , currentFeature_( CentroidProcess )
                                           , msPeaksWnd_( 0 )
 {
+    std::fill( actions_.begin(), actions_.end(), static_cast<QAction *>(0) );
 }
 
 MainWindow *
@@ -128,6 +119,31 @@ MainWindow::instance()
 void
 MainWindow::activateLayout()
 {
+}
+
+void
+MainWindow::install_actions()
+{
+    const QList<int> gc = QList<int>() << Core::Constants::C_GLOBAL_ID;
+
+    if ( QAction * action = new QAction( tr("Data processing"), this ) ) {
+
+		actions_[ idActCreateSpectrogram ] = new QAction( tr("Create spectrogram"), this );
+        connect( actions_[ idActCreateSpectrogram ], SIGNAL( triggered() ), this, SLOT( actCreateSpectrogram() ) );
+
+        if ( Core::ActionManager *am = Core::ICore::instance()->actionManager() ) {
+
+            Core::ActionContainer * menu = am->createMenu( Constants::MENU_ID );
+            menu->menu()->setTitle( "Dataproc" );
+
+            if ( Core::Command * cmd = am->registerAction( actions_[ idActCreateSpectrogram ], Constants::CREATE_SPECTROGRAM, gc ) )
+                menu->addAction( cmd );
+
+
+			// add 'dataproc' menu item to Tools
+			am->actionContainer( Core::Constants::M_TOOLS )->addMenu( menu );
+		}
+    }
 }
 
 Utils::StyledBar *
@@ -740,4 +756,21 @@ void
 MainWindow::saveDefaultMSCalibrateResult( portfolio::Folium& )
 {
     
+}
+
+
+///
+void
+MainWindow::actCreateSpectrogram()
+{
+    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
+        processor->createSpectrogram();
+    }
+}
+
+void
+MainWindow::actClusterSpectrogram()
+{
+    if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() )
+        processor->clusterSpectrogram();
 }

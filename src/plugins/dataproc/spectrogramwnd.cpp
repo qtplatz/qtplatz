@@ -142,8 +142,19 @@ SpectrogramWnd::handlePrintCurrentView( const QString& pdfname )
     
     if ( printer.colorMode() == QPrinter::GrayScale )
         renderer.setLayoutFlag( QwtPlotRenderer::FrameWithScales );
+
+    QRectF rc1( drawRect );
+    rc1.setHeight( drawRect.height() * 0.60 );
+    renderer.render( plot_.get(), &painter, rc1 );
+
+    QRectF rc2( drawRect );
+    rc2.setTop( rc1.bottom() + printer.resolution() / 4 );
+	rc2.setHeight( drawRect.height() * 0.30 );
+    rc2.setRight( drawRect.width() / 2 );
+    renderer.render( sp_.get(), &painter, rc2 );
     
-    renderer.render( plot_.get(), &painter, drawRect );
+    rc2.moveLeft( rc2.right() + printer.resolution() / 4 );
+    renderer.render( chromatogr_.get(), &painter, rc2 );
 }
 
 void
@@ -194,7 +205,7 @@ SpectrogramWnd::handleSelected( const QRectF& rect )
 
         if ( const adcontrols::MassSpectrumPtr ms = ptr->find( rect.left() ) ) {
             sp_->setData( ms, 0 );
-            sp_->setTitle( (boost::format("@ %.3fmin") % rect.left()).str() );
+            sp_->setTitle( (boost::format("Spectrum @ %.3fmin") % rect.left()).str() );
         }
 
         double m1 = rect.top();
@@ -203,8 +214,12 @@ SpectrogramWnd::handleSelected( const QRectF& rect )
             std::swap( m1, m2 );
 
         adcontrols::Chromatogram c;
-        c.resize( ptr->size() );
-        c.setTimeArray( ptr->x().data() );
+
+        std::vector< double > seconds;
+        for ( auto& x: ptr->x() )
+            seconds.push_back( x * 60.0 );
+        c.resize( seconds.size() );
+        c.setTimeArray( seconds.data() );
 
         int idx = 0;
         for ( const auto& ms: *ptr ) {
@@ -219,7 +234,7 @@ SpectrogramWnd::handleSelected( const QRectF& rect )
             c.setIntensity( idx++, y );
         }
         chromatogr_->setData( c, 0 );
-        chromatogr_->setTitle( (boost::format("<i>m/z</i> %.4f -- %.4f") % m1 % m2 ).str() );
+        chromatogr_->setTitle( (boost::format("Chromatogram @ <i>m/z</i>=%.4f -- %.4f") % m1 % m2 ).str() );
     }        
 
 }

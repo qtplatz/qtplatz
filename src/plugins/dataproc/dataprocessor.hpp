@@ -90,6 +90,7 @@ namespace dataproc {
         void removeCheckedItems();
 
         void createSpectrogram();
+        void clusterSpectrogram();
 
         portfolio::Folium addSpectrum( const adcontrols::MassSpectrum&, const adcontrols::ProcessMethod& );
         portfolio::Folium addChromatogram( const adcontrols::Chromatogram&, const adcontrols::ProcessMethod& );

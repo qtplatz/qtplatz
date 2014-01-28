@@ -165,17 +165,15 @@ DataprocPlugin::initialize( const QStringList& arguments, QString* error_message
     Q_UNUSED( arguments );
 
     Core::ICore * core = Core::ICore::instance();
-  
-    QList<int> context;
-    if ( core ) {
-        Core::UniqueIDManager * uidm = core->uniqueIDManager();
-        if ( uidm ) {
-            context.append( uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR ) );
-            // context.append( uidm->uniqueIdentifier( Core::Constants::C_EDITORMANAGER ) );
-            // context.append( uidm->uniqueIdentifier( Core::Constants::C_NAVIGATION_PANE ) );
-        }
-    } else
+    if ( core == 0 )
         return false;
+
+    mainWindow_->install_actions();
+    
+    QList<int> context;
+    if ( Core::UniqueIDManager * uidm = core->uniqueIDManager() ) {
+        context.append( uidm->uniqueIdentifier( Constants::C_DATAPROCESSOR ) );
+    }
 
     //-------------------------------------------------------------------------------------------
     const wchar_t * query = L"/DataprocConfiguration/Configuration";

@@ -162,8 +162,8 @@ MSPeakView::handle_add_mspeaks( const adcontrols::MSPeaks& peaks )
             if ( pks.size() >= 2 ) {
                 std::vector<double> x, y, coeffs;
                 for ( auto& pk: pks ) {
-                    x.push_back( scale_to_micro( pk.time() ) );
-                    y.push_back( pk.flight_length() );
+                    x.push_back( pk.flight_length() );
+                    y.push_back( scale_to_micro( pk.time() ) );
                 }
                 adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs );
                 peakSummary_->setPolinomials( t.first, coeffs, adportable::polfit::standard_error( x.data(), y.data(), x.size(), coeffs ) );
@@ -205,8 +205,8 @@ MSPeakView::currentChanged( const std::string& formula )
     if ( peaks.size() >= 2 ) {
         std::vector<double> x, y, coeffs;
         for ( auto& pk: peaks ) {
-            x.push_back( scale_to_micro( pk.time() ) );
-			y.push_back( pk.flight_length() );
+			x.push_back( pk.flight_length() );
+            y.push_back( scale_to_micro( pk.time() ) );
         }
         adportable::polfit::fit( x.data(), y.data(), x.size(), 2, coeffs );
         peaks.polinomials( x, y, coeffs );

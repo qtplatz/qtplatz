@@ -128,6 +128,11 @@ DataprocessWorker::createSpectrogram( Dataprocessor* processor )
 }
 
 void
+DataprocessWorker::clusterSpectrogram( Dataprocessor * processor )
+{
+}
+
+void
 DataprocessWorker::join( const std::thread::id& id )
 {
     std::lock_guard< std::mutex > lock( mutex_ );

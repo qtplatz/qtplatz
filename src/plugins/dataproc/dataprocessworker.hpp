@@ -55,6 +55,7 @@ namespace dataproc {
         void createChromatograms( Dataprocessor *, const std::vector< std::tuple< int, double, double > >& );
         void createChromatograms( Dataprocessor *, std::shared_ptr< adcontrols::MassSpectrum >&, double lMass, double hMass );
         void createSpectrogram( Dataprocessor * );
+		void clusterSpectrogram( Dataprocessor * );
 
     private:
         void terminate();

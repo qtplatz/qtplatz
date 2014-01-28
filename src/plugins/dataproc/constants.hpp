@@ -29,10 +29,13 @@
 namespace dataproc {
 
     namespace Constants {
+
         const char * const C_DATAPROCESSOR      = "Dataprocessor";
         const char * const C_DATAPROC_MODE      = "Dataproc.Mode";
         const char * const C_DATA_TEXT_MIMETYPE = "application/txt";
         const char * const C_DATA_NATIVE_MIMETYPE = "application/adfs";
+
+        const char MENU_ID[]                      = "dataproc.Menu";
 
         // common actions
         const char * const METHOD_OPEN          = "dataproc.MethodOpen";
@@ -40,6 +43,8 @@ namespace dataproc {
         const char * const METHOD_APPLY         = "dataproc.MethodApply";
         const char * const PRINT_CURRENT_VIEW   = "dataproc.PrintCurrentView";
         const char * const CALIBFILE_APPLY      = "dataproc.ApplyCalibration";
+
+        const char * const CREATE_SPECTROGRAM   = "dataproc.Spectrogram";
 
         // icon
         const char * const ICON_METHOD_SAVE     = ":/dataproc/image/filesave.png";

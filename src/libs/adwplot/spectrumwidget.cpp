@@ -597,7 +597,9 @@ SpectrumWidgetImpl::update_annotations( Dataplot& plot
             QwtText text( QString::fromStdWString(a.text()), QwtText::RichText );
             text.setColor( color );
             text.setFont( font );
-			annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
+			bool res = annots.insert( a.x(), a.y(), text, Qt::AlignTop | Qt::AlignHCenter );
+            if ( res )
+                qDebug() << "auto annotation insert[" << annots.size() << "]=" << a.x() << ", " << text.text();
         }
     }
 }
